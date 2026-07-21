@@ -24,7 +24,7 @@ from ultralytics.utils import (
 )
 
 PREFIX = colorstr("Platform: ")
-PLATFORM_API_URL = f"{PLATFORM_URL}/api/webhooks"
+PLATFORM_API_URL = os.getenv("PLATFORM_API_URL", f"{PLATFORM_URL}/api/webhooks")
 
 
 def slugify(text):
@@ -173,6 +173,25 @@ def _interp_plot(plot, n=101):
     return result
 
 
+def _validation_payload(image_metrics, sample_limit=5_000, extremes_limit=100):
+    """Return exact F1 extremes and an evenly ranked sample for correlation analysis."""
+    ranked = sorted(image_metrics.items(), key=lambda item: (item[1]["f1"], item[0]))
+    if len(ranked) > sample_limit:
+        sample = [ranked[round(i * (len(ranked) - 1) / (sample_limit - 1))] for i in range(sample_limit)]
+    else:
+        sample = ranked
+
+    def rows(items):
+        return [[Path(name).stem.split("_", 1)[0], metric["tp"], metric["fp"], metric["fn"]] for name, metric in items]
+
+    return {
+        "population": len(ranked),
+        "sampling": "f1_rank",
+        "rows": rows(sample),
+        "extremes": {"worst": rows(ranked[:extremes_limit]), "best": rows(reversed(ranked[-extremes_limit:]))},
+    }
+
+
 def _sanitize_json_value(value):
     """Replace non-finite floats in payloads with None so requests JSON encoding succeeds."""
     if isinstance(value, dict):
@@ -184,7 +203,7 @@ def _sanitize_json_value(value):
     return value
 
 
-def _send(event, data, project, name, model_id=None, retry=2):
+def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
     """Send event to Platform endpoint with retry logic."""
     payload = {"event": event, "project": project, "name": name, "data": _sanitize_json_value(data)}
     if model_id:
@@ -196,7 +215,7 @@ def _send(event, data, project, name, model_id=None, retry=2):
             f"{PLATFORM_API_URL}/training/metrics",
             json=payload,
             headers={"Authorization": f"Bearer {_api_key}"},
-            timeout=30,
+            timeout=timeout,
         )
         if 400 <= r.status_code < 500 and r.status_code not in {408, 429}:
             try:
@@ -234,14 +253,17 @@ def _handle_control_response(trainer, ctx, response):
         LOGGER.info(f"{PREFIX}Training cancelled from Platform ⚠️")
 
 
-def _upload_model(model_path, project, name, progress=False, retry=1, model_id=None):
-    """Upload model checkpoint to Platform via signed URL."""
+def _upload_model(model_path, project, name, progress=False, retry=1, model_id=None, run_id=None):
+    """Publish a model checkpoint to its configured Platform storage location."""
     from ultralytics.utils.uploads import safe_upload
 
     model_path = Path(model_path)
     if not model_path.exists():
         LOGGER.warning(f"{PREFIX}Model file not found: {model_path}")
         return None
+    model_size = model_path.stat().st_size
+    if os.getenv("PLATFORM_API_URL"):
+        return {"modelPath": str(model_path.resolve()), "modelSize": model_size}
 
     # Get signed upload URL from Platform (server sanitizes filename for storage safety)
     @Retry(times=3, delay=2)
@@ -249,6 +271,8 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
         payload = {"project": project, "name": name, "filename": model_path.name}
         if model_id:
             payload["modelId"] = model_id  # Direct lookup avoids slug mismatch from auto-increment
+        if run_id:
+            payload["runId"] = run_id
         r = requests.post(
             f"{PLATFORM_API_URL}/models/upload",
             json=payload,
@@ -266,13 +290,23 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
 
     # Upload to GCS using safe_upload with retry logic and optional progress bar
     if safe_upload(file=model_path, url=data["uploadUrl"], retry=retry, progress=progress):
-        return data.get("gcsPath")
+        gcs_path = data.get("gcsPath")
+        if gcs_path and run_id:
+            saved = _send(
+                "checkpoint_saved",
+                {
+                    "modelPath": gcs_path,
+                    "runId": run_id,
+                    "uploadPath": data.get("uploadPath"),
+                },
+                project,
+                name,
+                model_id,
+                timeout=90,
+            )
+            return {"modelPath": gcs_path, "modelSize": model_size} if saved else None
+        return {"modelPath": gcs_path, "modelSize": model_size}
     return None
-
-
-def _upload_model_async(model_path, project, name, model_id=None):
-    """Upload model asynchronously using bounded thread pool."""
-    _executor.submit(_upload_model, model_path, project, name, model_id=model_id)
 
 
 def _get_environment_info():
@@ -345,7 +379,15 @@ def on_pretrain_routine_start(trainer):
     LOGGER.info(f"{PREFIX}Streaming training metrics to Platform")
 
     # Single dict for all platform callback state (like trainer.hub_session for HUB callbacks)
-    ctx = {"model_id": None, "last_upload": time(), "cancelled": False, "console_logger": None, "system_logger": None}
+    ctx = {
+        "model_id": None,
+        "run_id": None,
+        "last_upload": time(),
+        "checkpoint_upload": None,
+        "cancelled": False,
+        "console_logger": None,
+        "system_logger": None,
+    }
     trainer.platform = ctx
 
     # Create callback to send console output to Platform
@@ -385,6 +427,7 @@ def on_pretrain_routine_start(trainer):
     )
     if response and response.get("modelId"):
         ctx["model_id"] = response["modelId"]
+        ctx["run_id"] = response.get("runId")
         # Server returns actual slug (may differ from requested name due to auto-increment, e.g. "train" → "train-2")
         if response.get("modelSlug"):
             ctx["model_slug"] = response["modelSlug"]
@@ -462,9 +505,10 @@ def on_model_save(trainer):
     ctx = getattr(trainer, "platform", None)
     if not ctx or RANK not in {-1, 0} or not trainer.args.project:
         return
-
     # Rate limit to every 15 minutes (900 seconds)
     if time() - ctx["last_upload"] < 900:
+        return
+    if ctx["checkpoint_upload"] and not ctx["checkpoint_upload"].done():
         return
 
     model_path = trainer.best if trainer.best and Path(trainer.best).exists() else trainer.last
@@ -472,7 +516,9 @@ def on_model_save(trainer):
         return
 
     project, name = _get_project_name(trainer)
-    _upload_model_async(model_path, project, name, model_id=ctx["model_id"])
+    ctx["checkpoint_upload"] = _executor.submit(
+        _upload_model, model_path, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"]
+    )
     ctx["last_upload"] = time()
 
 
@@ -493,12 +539,20 @@ def on_train_end(trainer):
         ctx["console_logger"] = None
 
     # Upload best model (blocking with progress bar to ensure it completes)
-    gcs_path = None
-    model_size = None
+    artifact = None
     if trainer.best and Path(trainer.best).exists():
-        model_size = Path(trainer.best).stat().st_size
-        gcs_path = _upload_model(trainer.best, project, name, progress=True, retry=3, model_id=ctx["model_id"])
-        if not gcs_path:
+        if ctx["checkpoint_upload"]:
+            ctx["checkpoint_upload"].result()
+        artifact = _upload_model(
+            trainer.best,
+            project,
+            name,
+            progress=True,
+            retry=3,
+            model_id=ctx["model_id"],
+            run_id=ctx["run_id"],
+        )
+        if not artifact:
             LOGGER.warning(f"{PREFIX}Model will not be available for download on Platform (upload failed)")
 
     # Collect plots from trainer and validator, deduplicating by type
@@ -518,6 +572,8 @@ def on_train_end(trainer):
     # stopper.best_epoch is 1-indexed; -1 aligns with the 0-indexed `epoch` field
     best_epoch = max(0, getattr(getattr(trainer, "stopper", None), "best_epoch", trainer.epoch + 1) - 1)
 
+    image_metrics = trainer.validator.metrics.box.image_metrics if trainer.args.task == "detect" else {}
+    validation = _validation_payload(image_metrics)
     _send(
         "training_complete",
         {
@@ -525,11 +581,12 @@ def on_train_end(trainer):
                 "metrics": {**trainer.metrics, "fitness": trainer.fitness},
                 "bestEpoch": best_epoch,
                 "bestFitness": trainer.best_fitness,
-                "modelPath": gcs_path,  # Only send GCS path, not local path
-                "modelSize": model_size,
+                **({"validation": validation} if validation["rows"] else {}),
+                **(artifact or {}),
             },
             "classNames": class_names,
             "plots": plots,
+            "runId": ctx["run_id"],
         },
         project,
         name,

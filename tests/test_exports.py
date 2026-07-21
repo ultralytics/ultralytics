@@ -177,6 +177,16 @@ def test_modelopt_quantize_onnx_requires_int8_dataset():
         modelopt_quantize_onnx("model.onnx", quantize=8)
 
 
+def test_int8_calibration_validates_split():
+    """Check INT8 calibration rejects dataset splits that do not exist."""
+    exporter = object.__new__(Exporter)
+    exporter.model = SimpleNamespace(task="obb")
+    exporter.args = SimpleNamespace(data="coco8.yaml", split="trainval")
+    exporter.imgsz = [32]
+    with pytest.raises(FileNotFoundError, match="trainval"):
+        exporter.get_int8_calibration_dataloader()
+
+
 def test_export_rknn_batch_expansion(monkeypatch, tmp_path):
     """Check RKNN calibrates batch 1 before Toolkit expands to the requested batch."""
     calls = {}
@@ -388,18 +398,41 @@ def test_export_coreml_matrix(task, dynamic, quantize, nms, batch, end2end):
     MACOS and checks.IS_PYTHON_MINIMUM_3_13,
     reason="coremltools deadlocks after OpenVINO on macOS Python 3.13 (conflicting OpenMP runtimes)",
 )
-def test_export_coreml(isolated_model):
+@pytest.mark.parametrize("format", ["coreml", "mlmodel"])
+def test_export_coreml(isolated_model, format, monkeypatch, tmp_path):
     """Test YOLO export to CoreML format and check for errors."""
+    from ultralytics.utils.export import coreml
+
+    quantize, torch2coreml = [], coreml.torch2coreml
+
+    def capture_quantize(*args, **kwargs):
+        quantize.append(kwargs["quantize"])
+        return torch2coreml(*args, **kwargs)
+
+    monkeypatch.setattr(coreml, "torch2coreml", capture_quantize)
     # Capture stdout and stderr
     stdout, stderr = io.StringIO(), io.StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        YOLO(isolated_model).export(format="coreml", nms=True, imgsz=32)
+        file = YOLO(isolated_model_path(tmp_path, WEIGHTS_DIR / "yolo11n.pt")).export(
+            format=format, nms=True, imgsz=32, iou=0.42, conf=0.24
+        )
+        import coremltools as ct
+
+        spec = ct.utils.load_spec(str(file))
+        metadata = spec.description.metadata
+        assert metadata.author and metadata.shortDescription and metadata.license and metadata.versionString
+        assert metadata.userDefined["IoU threshold"] == "0.42"
+        assert metadata.userDefined["Confidence threshold"] == "0.24"
+        assert all(key in metadata.userDefined for key in ("names", "stride", "task"))
+        assert next(iter(spec.pipeline.models[1].nonMaximumSuppression.stringClassLabels.vector)) == "person"
+        assert [output.name for output in spec.description.output] == ["confidence", "coordinates"]
         if MACOS:
             file = YOLO(isolated_model).export(format="coreml", imgsz=32)
             YOLO(file)(SOURCE, imgsz=32)  # model prediction only supported on macOS for nms=False models
 
     # Check captured output for errors
     output = stdout.getvalue() + stderr.getvalue()
+    assert quantize[0] == (16 if format == "coreml" else None)
     assert "Error" not in output, f"CoreML export produced errors: {output}"
     assert "You will not be able to run predict()" not in output, "CoreML export has predict() error"
 

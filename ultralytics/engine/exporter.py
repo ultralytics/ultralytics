@@ -230,7 +230,7 @@ def export_formats():
             "_hailo_model",
             False,
             False,
-            ["name", "quantize", "data", "fraction", "opset", "simplify", "conf", "iou"],
+            ["name", "quantize", "data", "fraction", "simplify", "conf", "iou"],
             "base",
         ],
     ]
@@ -617,8 +617,6 @@ class Exporter:
                 raise ValueError(
                     "Hailo export selects the model output path automatically; remove the end2end argument."
                 )
-            if self.args.opset not in {None, 11}:
-                raise ValueError("Hailo export requires opset=11.")
             self.args.name = str(self.args.name or "hailo8l").lower()
             hailo_archs = ("hailo8", "hailo8l", "hailo10h", "hailo15h", "hailo15l")
             if self.args.name not in hailo_archs:
@@ -731,6 +729,18 @@ class Exporter:
                 raise ValueError("Alibaba MNN export does not support combining 'dynamic=True' with 'nms=True'.")
             if model.task not in {"detect", "pose"}:
                 raise ValueError("Alibaba MNN export with 'nms=True' only supports detect and pose models.")
+        if fmt == "coreml":
+            if self.args.batch > 1:
+                assert self.args.dynamic, (
+                    "batch sizes > 1 are not supported without 'dynamic=True' for CoreML export. Please retry at 'dynamic=True'."
+                )
+            if self.args.dynamic:
+                assert not self.args.nms, (
+                    "'nms=True' cannot be used together with 'dynamic=True' for CoreML export. Please disable one of them."
+                )
+                assert model.task != "classify" and not isinstance(model.model[-1], RTDETRDecoder), (
+                    "'dynamic=True' is not supported for CoreML classification or RT-DETR models."
+                )
         if (fmt in {"engine", "coreml"} or self.args.nms) and self.args.dynamic and self.args.batch == 1:
             LOGGER.warning(
                 f"'dynamic=True' model with '{'nms=True' if self.args.nms else f'format={self.args.format}'}' requires max batch size, i.e. 'batch=16'"
@@ -1198,15 +1208,6 @@ class Exporter:
 
         assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
         assert TORCH_1_11, "CoreML export requires torch>=1.11"
-        if self.args.batch > 1:
-            assert self.args.dynamic, (
-                "batch sizes > 1 are not supported without 'dynamic=True' for CoreML export. Please retry at 'dynamic=True'."
-            )
-        if self.args.dynamic:
-            assert not self.args.nms, (
-                "'nms=True' cannot be used together with 'dynamic=True' for CoreML export. Please disable one of them."
-            )
-            assert self.model.task != "classify", "'dynamic=True' is not supported for CoreML classification models."
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
         if f.is_dir():
             shutil.rmtree(f)
@@ -1392,6 +1393,8 @@ class Exporter:
         """Export YOLO model to RKNN format with optional INT8 quantization."""
         from ultralytics.utils.export.rknn import onnx2rknn
 
+        if self.args.opset and self.args.opset > 19:
+            LOGGER.warning(f"{prefix} rknn-toolkit2 requires opset<=19, setting opset=19.")
         self.args.opset = min(self.args.opset or 19, 19)  # rknn-toolkit expects opset<=19
         self.im = self.im[:1]  # RKNN Toolkit expands the batch after calibrating the batch-1 ONNX model
         f_onnx = self.export_onnx()

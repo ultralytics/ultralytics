@@ -13,6 +13,10 @@ on:
         type: boolean
         description: Publish to PyPI
 
+concurrency:
+  group: ${{ github.workflow }}
+  queue: max
+
 jobs:
   check:
     if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher' && github.ref == 'refs/heads/main'
@@ -122,8 +126,20 @@ jobs:
           name: dist
           path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
+        id: publish
+        continue-on-error: true
         with:
           skip-existing: true # tolerate recovery re-runs after partial failures
+      - name: Clean partial attestations # leftover *.publish.attestation files make the retry fail pre-existence checks
+        if: steps.publish.outcome == 'failure'
+        run: |
+          rm -f dist/*.publish.attestation
+          sleep 30
+      - name: Retry publish # transient sigstore/Rekor or PyPI network failures
+        if: steps.publish.outcome == 'failure'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
 
   sbom:
     needs: [check, build, publish]

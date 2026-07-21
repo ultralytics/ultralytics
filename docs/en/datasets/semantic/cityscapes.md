@@ -1,6 +1,12 @@
 ---
 title: Cityscapes Semantic Segmentation Dataset
 comments: true
+creator:
+    name: Cityscapes Dataset
+    url: https://www.cityscapes-dataset.com/
+license:
+    name: Research-Only
+    url: https://www.cityscapes-dataset.com/license/
 description: Train Ultralytics YOLO on Cityscapes — 2,975 training and 500 validation images across 19 urban classes for semantic segmentation of street scenes.
 keywords: Cityscapes dataset, semantic segmentation, Ultralytics YOLO, YOLO26, autonomous driving, urban scene understanding, computer vision, deep learning
 ---

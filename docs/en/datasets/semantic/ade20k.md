@@ -1,6 +1,12 @@
 ---
 title: ADE20K Segmentation Dataset
 comments: true
+creator:
+    name: MIT CSAIL
+    url: https://ade20k.csail.mit.edu/
+license:
+    name: Research-Only
+    url: https://ade20k.csail.mit.edu/terms
 description: Train Ultralytics YOLO on the ADE20K dataset — 20,210 training and 2,000 validation images across 150 scene-parsing classes for semantic segmentation.
 keywords: ADE20K dataset, semantic segmentation, scene parsing, Ultralytics YOLO, YOLO26, ADEChallengeData2016, computer vision, deep learning
 ---

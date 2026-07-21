@@ -28,6 +28,13 @@ def test_special_modes() -> None:
     run("yolo cfg")
 
 
+def test_help_lists_platform() -> None:
+    """Verify the CLI help resource directory includes Ultralytics Platform."""
+    from ultralytics.cfg import CLI_HELP_MSG
+
+    assert "Platform: https://platform.ultralytics.com" in CLI_HELP_MSG
+
+
 def test_cli_imports_defer_torchvision() -> None:
     """Verify startup imports do not load torchvision or SAM3 geometry."""
     code = (

@@ -19,6 +19,7 @@ from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG_DICT,
     LOGGER,
+    PLATFORM_URL,
     RANK,
     SETTINGS,
     YAML,
@@ -759,7 +760,14 @@ class Model(torch.nn.Module):
             "verbose": False,
         }  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "export"}  # highest priority args on the right
-        return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
+        try:
+            return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
+        except (ImportError, OSError):
+            LOGGER.info(
+                "Ultralytics Platform runs exports in the cloud without local environment setup: "
+                f"{PLATFORM_URL}/?utm_source=ultralytics_package&utm_medium=referral&utm_campaign=export_failure"
+            )
+            raise
 
     def train(
         self,

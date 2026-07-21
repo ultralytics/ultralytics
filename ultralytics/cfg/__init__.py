@@ -170,6 +170,7 @@ CLI_HELP_MSG = f"""
         yolo solutions help
 
     Docs: https://docs.ultralytics.com
+    Platform: https://platform.ultralytics.com
     Solutions: https://docs.ultralytics.com/solutions/
     Community: https://community.ultralytics.com
     GitHub: https://github.com/ultralytics/ultralytics

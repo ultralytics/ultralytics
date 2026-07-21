@@ -353,6 +353,7 @@ class v8DetectionLoss:
         self.device = device
 
         self.use_dfl = m.reg_max > 1
+        self.loss_names = "box_loss", "cls_loss", "dfl_loss" if self.use_dfl else "l1_loss"
 
         # Class weights for handling imbalanced datasets
         self.class_weights = getattr(model, "class_weights", None)
@@ -455,15 +456,10 @@ class v8DetectionLoss:
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
-        detached = loss.detach()
         return (
             (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor),
             loss,
-            {
-                "box_loss": detached[0],
-                "cls_loss": detached[1],
-                "dfl_loss" if self.reg_max > 1 else "l1_loss": detached[2],
-            },
+            dict(zip(self.loss_names, loss.detach())),
         )  # loss(box, cls, dfl)
 
     def parse_output(
@@ -497,6 +493,7 @@ class v8SegmentationLoss(v8DetectionLoss):
     ):  # model must be de-paralleled
         """Initialize the v8SegmentationLoss class with model parameters and mask overlap setting."""
         super().__init__(model, tal_topk, tal_topk2)
+        self.loss_names = ("box_loss", "seg_loss", *self.loss_names[1:], "sem_loss")
         self.overlap = model.args.overlap_mask
         self.bcedice_loss = BCEDiceLoss(weight_bce=0.5, weight_dice=0.5)
 
@@ -560,14 +557,7 @@ class v8SegmentationLoss(v8DetectionLoss):
                 loss[4] += (pred_semantic * 0).sum()
 
         loss[1] *= self.hyp.box  # seg gain
-        detached = loss.detach()
-        return loss * batch_size, {
-            "box_loss": detached[0],
-            "seg_loss": detached[1],
-            "cls_loss": detached[2],
-            "dfl_loss" if self.reg_max > 1 else "l1_loss": detached[3],
-            "sem_loss": detached[4],
-        }  # loss(box, seg, cls, dfl, semantic)
+        return loss * batch_size, dict(zip(self.loss_names, loss.detach()))  # loss(box, seg, cls, dfl, semantic)
 
     @staticmethod
     def single_mask_loss(
@@ -663,6 +653,7 @@ class v8PoseLoss(v8DetectionLoss):
     def __init__(self, model: torch.nn.Module, tal_topk: int = 10, tal_topk2: int = 10):  # model must be de-paralleled
         """Initialize v8PoseLoss with model parameters and keypoint-specific loss functions."""
         super().__init__(model, tal_topk, tal_topk2)
+        self.loss_names = ("box_loss", "pose_loss", "kobj_loss", *self.loss_names[1:])
         self.kpt_shape = model.model[-1].kpt_shape
         self.bce_pose = nn.BCEWithLogitsLoss()
         is_pose = self.kpt_shape == [17, 3]
@@ -707,14 +698,7 @@ class v8PoseLoss(v8DetectionLoss):
         loss[1] *= self.hyp.pose  # pose gain
         loss[2] *= self.hyp.kobj  # kobj gain
 
-        detached = loss.detach()
-        return loss * batch_size, {
-            "box_loss": detached[0],
-            "pose_loss": detached[1],
-            "kobj_loss": detached[2],
-            "cls_loss": detached[3],
-            "dfl_loss" if self.reg_max > 1 else "l1_loss": detached[4],
-        }  # loss(box, pose, kobj, cls, dfl)
+        return loss * batch_size, dict(zip(self.loss_names, loss.detach()))  # loss(box, pose, kobj, cls, dfl)
 
     @staticmethod
     def kpts_decode(anchor_points: torch.Tensor, pred_kpts: torch.Tensor) -> torch.Tensor:
@@ -838,6 +822,7 @@ class PoseLoss26(v8PoseLoss):
         self.flow_model = model.model[-1].flow_model if hasattr(model.model[-1], "flow_model") else None
         if self.flow_model is not None:
             self.rle_loss = RLELoss(use_target_weight=True).to(self.device)
+            self.loss_names += ("rle_loss",)
             self.target_weights = (
                 torch.from_numpy(RLE_WEIGHT).to(self.device) if is_pose else torch.ones(nkpt, device=self.device)
             )
@@ -893,17 +878,8 @@ class PoseLoss26(v8PoseLoss):
         if self.rle_loss is not None:
             loss[5] *= self.hyp.rle  # rle gain
 
-        detached = loss.detach()
-        loss_items = {
-            "box_loss": detached[0],
-            "pose_loss": detached[1],
-            "kobj_loss": detached[2],
-            "cls_loss": detached[3],
-            "dfl_loss" if self.reg_max > 1 else "l1_loss": detached[4],
-        }  # loss(box, kpt_location, kpt_visibility, cls, dfl[, rle])
-        if self.rle_loss is not None:
-            loss_items["rle_loss"] = detached[5]
-        return loss * batch_size, loss_items
+        # loss(box, kpt_location, kpt_visibility, cls, dfl[, rle])
+        return loss * batch_size, dict(zip(self.loss_names, loss.detach()))
 
     @staticmethod
     def kpts_decode(anchor_points: torch.Tensor, pred_kpts: torch.Tensor) -> torch.Tensor:
@@ -1028,6 +1004,7 @@ class v8OBBLoss(v8DetectionLoss):
     def __init__(self, model: torch.nn.Module, tal_topk=10, tal_topk2: int | None = None):
         """Initialize v8OBBLoss with model, assigner, and rotated bbox loss; model must be de-paralleled."""
         super().__init__(model, tal_topk=tal_topk)
+        self.loss_names = (*self.loss_names, "angle_loss")
         self.assigner = RotatedTaskAlignedAssigner(
             topk=tal_topk,
             num_classes=self.nc,
@@ -1140,13 +1117,7 @@ class v8OBBLoss(v8DetectionLoss):
         loss[2] *= self.hyp.dfl  # dfl gain
         loss[3] *= self.hyp.angle  # angle gain
 
-        detached = loss.detach()
-        return loss * batch_size, {
-            "box_loss": detached[0],
-            "cls_loss": detached[1],
-            "dfl_loss" if self.reg_max > 1 else "l1_loss": detached[2],
-            "angle_loss": detached[3],
-        }  # loss(box, cls, dfl, angle)
+        return loss * batch_size, dict(zip(self.loss_names, loss.detach()))  # loss(box, cls, dfl, angle)
 
     def bbox_decode(
         self, anchor_points: torch.Tensor, pred_dist: torch.Tensor, pred_angle: torch.Tensor
@@ -1259,6 +1230,7 @@ class TVPDetectLoss:
     def __init__(self, model: torch.nn.Module, tal_topk=10, tal_topk2: int | None = None):
         """Initialize TVPDetectLoss with task-prompt and visual-prompt criteria using the provided model."""
         self.vp_criterion = v8DetectionLoss(model, tal_topk, tal_topk2)
+        self.loss_names = tuple(k[:-5] for k in self.vp_criterion.loss_names)  # strip "_loss" suffix
         # NOTE: store following info as it's changeable in __call__
         self.hyp = self.vp_criterion.hyp
         self.ori_nc = self.vp_criterion.nc
@@ -1279,11 +1251,11 @@ class TVPDetectLoss:
         """Calculate the loss for text-visual prompt detection."""
         if self.ori_nc == preds["scores"].shape[1]:
             loss = torch.zeros(3, device=self.vp_criterion.device, requires_grad=True)
-            return loss, {"box": loss[0].detach(), "cls": loss[1].detach(), "dfl": loss[2].detach()}
+            return loss, dict(zip(self.loss_names, loss.detach()))
 
         preds["scores"] = self._get_vp_features(preds)
         vp_loss = self.vp_criterion(preds, batch)
-        return vp_loss[0][1], {k[:-5]: v for k, v in vp_loss[1].items()}  # strip "_loss" suffix from keys
+        return vp_loss[0][1], dict(zip(self.loss_names, vp_loss[1].values()))
 
     def _get_vp_features(self, preds: dict[str, torch.Tensor]) -> list[torch.Tensor]:
         """Extract visual-prompt features from the model output."""
@@ -1303,6 +1275,7 @@ class TVPSegmentLoss(TVPDetectLoss):
         """Initialize TVPSegmentLoss with task-prompt and visual-prompt criteria using the provided model."""
         super().__init__(model)
         self.vp_criterion = v8SegmentationLoss(model, tal_topk, tal_topk2)
+        self.loss_names = tuple(k[:-5] for k in self.vp_criterion.loss_names if k != "sem_loss")  # strip "_loss"
         self.hyp = self.vp_criterion.hyp
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
@@ -1313,14 +1286,13 @@ class TVPSegmentLoss(TVPDetectLoss):
         """Calculate the loss for text-visual prompt segmentation."""
         if self.ori_nc == preds["scores"].shape[1]:
             loss = torch.zeros(4, device=self.vp_criterion.device, requires_grad=True)
-            detached = loss.detach()
-            return loss, {"box": detached[0], "seg": detached[1], "cls": detached[2], "dfl": detached[3]}
+            return loss, dict(zip(self.loss_names, loss.detach()))
 
         preds["scores"] = self._get_vp_features(preds)
         vp_loss = self.vp_criterion(preds, batch)
         cls_loss = vp_loss[0][2]
-        # strip "_loss" suffix from keys, drop "sem_loss" to match the logged columns
-        return cls_loss, {k[:-5]: v for k, v in vp_loss[1].items() if k != "sem_loss"}
+        # zip drops the trailing "sem_loss" item to match the logged columns
+        return cls_loss, dict(zip(self.loss_names, vp_loss[1].values()))
 
 
 class SemanticSegmentationLoss(nn.Module):

@@ -633,6 +633,193 @@ def test_normalize_platform_uri():
     assert normalize_platform_uri("coco8.yaml") == "coco8.yaml"  # non-Platform inputs unchanged
 
 
+def test_convert_signed_ndjson(monkeypatch):
+    """Test signed NDJSON URLs are converted before dataset YAML validation."""
+    from ultralytics.data import converter, utils
+
+    captured = []
+
+    async def convert(path):
+        captured.append(path)
+        return "dataset.ndjson.yaml"
+
+    monkeypatch.setattr(converter, "convert_ndjson_to_yolo", convert)
+    url = "https://storage.googleapis.com/bucket/dataset-v1.ndjson?X-Goog-Signature=abc"
+    assert utils.convert_ndjson_to_yolo_if_needed(url) == "dataset.ndjson.yaml"
+    assert captured == [url]
+
+
+@pytest.mark.parametrize("task", ["detect", "classify"])
+def test_ndjson_conversion_concurrency_and_resume(monkeypatch, tmp_path, task):
+    """Test concurrent conversions share work and interrupted conversions resume before publishing completion."""
+    import asyncio
+    import json
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
+
+    import aiohttp
+
+    from ultralytics.data import converter
+
+    counts, failures, conversions, count_lock = {}, set(), 0, threading.Lock()
+
+    class Response:
+        def __init__(self, url):
+            self.url = url
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_):
+            pass
+
+        def raise_for_status(self):
+            pass
+
+        async def read(self):
+            await asyncio.sleep(0.01)
+            with count_lock:
+                counts[self.url] = counts.get(self.url, 0) + 1
+                fail = self.url in failures
+                failures.discard(self.url)
+            if fail:
+                raise OSError("interrupted")
+            return image_bytes
+
+    class Session:
+        def __init__(self, **_):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_):
+            pass
+
+        def get(self, url, **_):
+            return Response(url)
+
+    ok, image = cv2.imencode(".jpg", np.zeros((16, 16, 3), dtype=np.uint8))
+    assert ok
+    image_bytes = image.tobytes()
+    monkeypatch.setattr(aiohttp, "ClientSession", Session)
+    original_convert = converter._convert_ndjson_to_yolo
+
+    async def track_conversion(*args):
+        nonlocal conversions
+        with count_lock:
+            conversions += 1
+        return await original_convert(*args)
+
+    monkeypatch.setattr(converter, "_convert_ndjson_to_yolo", track_conversion)
+    annotations = {"classification": [7]} if task == "classify" else {"boxes": [[0, 0.5, 0.5, 1, 1]]}
+
+    def write_ndjson(name):
+        path = tmp_path / f"{name}.ndjson"
+        records = [
+            {"type": "dataset", "task": task, "class_names": {"7": "item", "8": "rare"}},
+            {
+                "file": "train.jpg",
+                "url": f"https://example.com/{name}-train.jpg",
+                "split": "train",
+                "annotations": annotations,
+            },
+            {
+                "file": "val.jpg",
+                "url": f"https://example.com/{name}-val.jpg",
+                "split": "val",
+                "annotations": {"classification": [8]} if task == "classify" else annotations,
+            },
+        ]
+        path.write_text("\n".join(json.dumps(record) for record in records))
+        return path
+
+    concurrent = write_ndjson("concurrent")
+    jobs = 2
+    barrier = threading.Barrier(jobs)
+
+    def convert(path):
+        barrier.wait()
+        return asyncio.run(converter.convert_ndjson_to_yolo(path, tmp_path))
+
+    with ThreadPoolExecutor(max_workers=jobs) as pool:
+        results = list(pool.map(convert, [concurrent] * jobs))
+    assert len(set(results)) == 1
+    assert conversions == 1
+    assert sum(counts.values()) == 2
+    if task == "classify":
+        assert check_cls_dataset(results[0])["nc"] == 2
+        from ultralytics.data import dataset as dataset_module
+
+        monkeypatch.setattr(dataset_module, "TORCHVISION_0_18", False)
+        args = copy(DEFAULT_CFG)
+        train = dataset_module.ClassificationDataset(results[0] / "train", args)
+        val = dataset_module.ClassificationDataset(results[0] / "val", args)
+        assert train.samples[0][1] == 0
+        assert val.samples[0][1] == 1
+        assert dataset_module.ClassificationDataset(results[0] / "val", args).samples[0][1] == 1
+
+    resume = write_ndjson("resume")
+    failed_url = "https://example.com/resume-val.jpg"
+    failures.add(failed_url)
+    with ThreadPoolExecutor(max_workers=jobs) as pool:
+        futures = [pool.submit(convert, resume) for _ in range(jobs)]
+        errors, results = [], []
+        for future in futures:
+            try:
+                results.append(future.result())
+            except RuntimeError as error:
+                errors.append(str(error))
+    assert len(errors) == len(results) == 1 and "Downloaded 1/2 images" in errors[0]
+    result = results[0]
+    marker = result / ".ndjson.yaml" if task == "classify" else result
+    assert YAML.load(marker)["complete"] is True
+    assert counts["https://example.com/resume-train.jpg"] == 1
+    assert counts[failed_url] == 2
+    request_count = sum(counts.values())
+    asyncio.run(converter.convert_ndjson_to_yolo(resume, tmp_path))
+    assert conversions == 4
+    assert sum(counts.values()) == request_count
+
+
+def test_platform_job_transport(monkeypatch, tmp_path):
+    """Test configurable Platform transport with an existing local checkpoint."""
+    from types import SimpleNamespace
+
+    from ultralytics import SETTINGS, cfg
+    from ultralytics.utils.callbacks import platform
+
+    monkeypatch.setattr(cfg, "TESTS_RUNNING", False)
+    monkeypatch.setitem(SETTINGS, "runs_dir", str(tmp_path))
+    args = SimpleNamespace(
+        save_dir=None, project="user/project", task="detect", name="model", mode="train", exist_ok=True
+    )
+    assert cfg.get_save_dir(args) == tmp_path / "detect/user/project/model"
+
+    captured = {}
+
+    def post(url, **kwargs):
+        captured.update(url=url, **kwargs)
+        return SimpleNamespace(status_code=200, json=lambda: {"received": True}, raise_for_status=lambda: None)
+
+    monkeypatch.setattr(platform, "requests", SimpleNamespace(post=post), raising=False)
+    monkeypatch.setattr(platform, "_api_key", "api-key")
+    monkeypatch.setattr(platform, "PLATFORM_API_URL", "https://example.test/api/webhooks")
+    assert platform._send("epoch_end", {"epoch": 0}, "user/project", "model") == {"received": True}
+    assert captured["url"] == "https://example.test/api/webhooks/training/metrics"
+    assert captured["json"]["data"] == {"epoch": 0}
+    assert captured["headers"] == {"Authorization": "Bearer api-key"}
+
+    model = tmp_path / "models" / "best.pt"
+    model.parent.mkdir()
+    model.write_bytes(b"weights")
+    monkeypatch.setenv("PLATFORM_API_URL", "http://127.0.0.1:8765")
+    assert platform._upload_model(model, "user/project", "model") == {
+        "modelPath": str(model),
+        "modelSize": 7,
+    }
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch():
@@ -756,10 +943,11 @@ def test_results_update_probs():
     assert r.verbose() and r.summary(), "verbose()/summary() raise AttributeError on a raw Tensor probs"
 
 
-def test_labels_and_crops():
+def test_labels_and_crops(tmp_path):
     """Test output from prediction args for saving YOLO detection labels and crops."""
     imgs = [SOURCE, ASSETS / "zidane.jpg"]
-    results = YOLO(WEIGHTS_DIR / "yolo26n.pt")(imgs, imgsz=160, save_txt=True, save_crop=True)
+    model = YOLO(WEIGHTS_DIR / "yolo26n.pt")
+    results = model(imgs, imgsz=160, save_txt=True, save_crop=True)
     save_path = Path(results[0].save_dir)
     for r in results:
         im_name = Path(r.path).stem
@@ -783,6 +971,9 @@ def test_labels_and_crops():
         # Same number of crops as detections
         crop_count = len([f for f in crop_files if im_name in f.name])
         assert crop_count == len(r.boxes.data), f"Crop count {crop_count} != detection count {len(r.boxes.data)}"
+
+    model(SOURCE, imgsz=160, save_crop=True, verbose=False, project=tmp_path, name="crop", exist_ok=True)
+    assert any((tmp_path / "crop/crops").rglob("*.jpg")), "save_crop=True alone must write crop files"
 
 
 def test_data_utils(tmp_path):

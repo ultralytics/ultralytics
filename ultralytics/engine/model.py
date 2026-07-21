@@ -764,8 +764,9 @@ class Model(torch.nn.Module):
             return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
         except Exception:
             formats = export_formats()
+            export_format = args.get("format", DEFAULT_CFG_DICT["format"])
             format_name = dict(zip(formats["Argument"], formats["Format"])).get(
-                str(args["format"]).lower(), args["format"]
+                str(export_format).lower(), export_format
             )
             LOGGER.info(f"Export to {format_name} in the cloud with Ultralytics Platform: {PLATFORM_URL}")
             raise

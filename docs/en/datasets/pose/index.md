@@ -144,7 +144,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 
 ### Tiger-Pose
 
-- **Description**: The [Ultralytics](https://www.ultralytics.com/) Tiger-Pose dataset comprises 263 images sourced from a [YouTube video](https://www.youtube.com/watch?v=MIBAT6BGE6U), with 210 images allocated for training and 53 for validation.
+- **Description**: The [Ultralytics](https://www.ultralytics.com/) Tiger-Pose dataset comprises 263 images sourced from a [YouTube video](https://youtu.be/Gc6K5eKrTNQ), with 210 images allocated for training and 53 for validation.
 - **Label Format**: Same as Ultralytics YOLO format as described above, with 12 keypoints for animal pose and no visibility dimension.
 - **Number of Classes**: 1 (tiger).
 - **Keypoints**: 12 keypoints.

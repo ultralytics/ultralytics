@@ -28,6 +28,7 @@ __all__ = (
     "Detect",
     "Pose",
     "RTDETRDecoder",
+    "RTDETRDecoderEfficient",
     "RTDETRDecoderV2",
     "Segment",
     "SemanticSegment",
@@ -1512,9 +1513,7 @@ class RTDETRDecoder(nn.Module):
         self.num_decoder_layers = ndl
 
         # Backbone feature projection
-        self.input_proj = nn.ModuleList(nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch)
-        # NOTE: simplified version but it's not consistent with .pt weights.
-        # self.input_proj = nn.ModuleList(Conv(x, hd, act=False) for x in ch)
+        self.input_proj = self._build_input_proj(ch, hd)
 
         # Transformer module
         decoder_layer = DeformableTransformerDecoderLayer(hd, nh, d_ffn, dropout, act, self.nl, ndp)
@@ -1530,16 +1529,16 @@ class RTDETRDecoder(nn.Module):
         self.learnt_init_query = learnt_init_query
         if learnt_init_query:
             self.tgt_embed = nn.Embedding(nq, hd)
-        self.query_pos_head = MLP(4, 2 * hd, hd, num_layers=2)
+        self.query_pos_head = self._build_query_pos_head(hd)
 
         # Encoder head
-        self.enc_output = nn.Sequential(nn.Linear(hd, hd), nn.LayerNorm(hd))
+        self.enc_output = self._build_enc_output(hd)
         self.enc_score_head = nn.Linear(hd, nc)
-        self.enc_bbox_head = MLP(hd, hd, 4, num_layers=3)
+        self.enc_bbox_head = self._build_bbox_head(hd)
 
         # Decoder head
         self.dec_score_head = nn.ModuleList([nn.Linear(hd, nc) for _ in range(ndl)])
-        self.dec_bbox_head = nn.ModuleList([MLP(hd, hd, 4, num_layers=3) for _ in range(ndl)])
+        self.dec_bbox_head = nn.ModuleList(self._build_bbox_head(hd) for _ in range(ndl))
 
         self._reset_parameters()
 
@@ -1677,6 +1676,10 @@ class RTDETRDecoder(nn.Module):
         feats = torch.cat(feats, 1)
         return feats, shapes
 
+    def _project_encoder_features(self, feats: torch.Tensor) -> torch.Tensor:
+        """Project masked encoder memory into the query-selection space; override to skip enc_output."""
+        return self.enc_output(self.valid_mask * feats)
+
     def _get_decoder_input(
         self,
         feats: torch.Tensor,
@@ -1703,8 +1706,7 @@ class RTDETRDecoder(nn.Module):
             self.anchors, self.valid_mask = self._generate_anchors(shapes, dtype=feats.dtype, device=feats.device)
             self.shapes = shapes
 
-        # Prepare input for decoder
-        features = self.enc_output(self.valid_mask * feats)  # bs, h*w, 256
+        features = self._project_encoder_features(feats)  # bs, h*w, 256
         enc_outputs_scores = self.enc_score_head(features)  # (bs, h*w, nc)
 
         # Query selection
@@ -1735,6 +1737,23 @@ class RTDETRDecoder(nn.Module):
             embeddings = torch.cat([dn_embed, embeddings], 1)
 
         return embeddings, refer_bbox, enc_bboxes, enc_scores
+
+    def _build_input_proj(self, ch: tuple, hd: int) -> nn.ModuleList:
+        """Build the per-level backbone feature projection; override to change projection (e.g. skip when x == hd)."""
+        # NOTE: the simplified `nn.ModuleList(Conv(x, hd, act=False) for x in ch)` is not consistent with .pt weights.
+        return nn.ModuleList(nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch)
+
+    def _build_query_pos_head(self, hd: int) -> "MLP":
+        """Build the reference-box position MLP; override to change depth, width, or activation."""
+        return MLP(4, 2 * hd, hd, num_layers=2)
+
+    def _build_enc_output(self, hd: int) -> nn.Module:
+        """Build the encoder-memory projection applied before query selection; override to skip (nn.Identity)."""
+        return nn.Sequential(nn.Linear(hd, hd), nn.LayerNorm(hd))
+
+    def _build_bbox_head(self, hd: int) -> "MLP":
+        """Build one 3-layer bbox-regression MLP (reused for enc head and each decoder layer); override for act."""
+        return MLP(hd, hd, 4, num_layers=3)
 
     def _reset_parameters(self):
         """Initialize or reset the parameters of the model's various components with predefined weights and biases."""
@@ -1823,8 +1842,21 @@ class RTDETRDecoderV2(RTDETRDecoder):
         if isinstance(act, str):
             act = {"relu": nn.ReLU(), "gelu": nn.GELU(), "silu": nn.SiLU()}[act]
         super().__init__(
-            nc, ch, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx,
-            nd, label_noise_ratio, box_noise_scale, learnt_init_query,
+            nc,
+            ch,
+            hd,
+            nq,
+            ndp,
+            nh,
+            ndl,
+            d_ffn,
+            dropout,
+            act,
+            eval_idx,
+            nd,
+            label_noise_ratio,
+            box_noise_scale,
+            learnt_init_query,
         )
         self.efficient_ms = efficient_ms
         if efficient_ms:
@@ -1833,6 +1865,132 @@ class RTDETRDecoderV2(RTDETRDecoder):
             self.nl = 1
             decoder_layer = DeformableTransformerDecoderLayer(hd, nh, d_ffn, dropout, act, 1, ndp)
             self.decoder = DeformableTransformerDecoder(hd, decoder_layer, ndl, eval_idx, efficient_ms=True)
+
+
+class RTDETRDecoderEfficient(RTDETRDecoder):
+    """RT-DETR decoder with v2-style efficiency tweaks on the base MSDeformAttn path.
+
+    Signature mirrors `RTDETRDecoderV2` (base `RTDETRDecoder` params + `efficient_ms`). Behavioral changes over
+    `RTDETRDecoder` are expressed by overriding the parent's `_build_*` factory hooks so the correct submodules are
+    constructed once (no build-then-replace):
+
+    - `input_proj`: `nn.Identity()` when a backbone channel already matches `hd`, else `Conv2d(1x1, bias=False) + BN`.
+    - `query_pos_head`: DEIM-style 3-layer `MLP(4, hd, hd)` (vs base's 2-layer `MLP(4, 2*hd, hd)`).
+    - `enc_output`: `nn.Identity()`; encoder features feed `enc_score_head` directly via `_project_encoder_features`.
+    - `enc_bbox_head`/`dec_bbox_head`: built with the ctor `act` (origin's `mlp_act`, silu on Efficient YAMLs).
+    - `decoder.fixed_query_pos = True` hoists `pos_mlp(refer_bbox)` out of the per-layer loop.
+    - `efficient_ms=True` rebuilds the decoder with `n_levels=1` cross-attention and round-robin per-layer scheduling
+    (mirrors `RTDETRDecoderV2`).
+
+    `learnt_init_query=True` is rejected: the enc_output skip leaves no matching-init path.
+
+    Examples:
+        >>> decoder = RTDETRDecoderEfficient(nc=80, ch=(512, 1024, 2048), hd=256, nq=300, efficient_ms=True)
+    """
+
+    def __init__(
+        self,
+        nc: int = 80,
+        ch: tuple = (512, 1024, 2048),
+        hd: int = 256,
+        nq: int = 300,
+        ndp: int = 4,
+        nh: int = 8,
+        ndl: int = 6,
+        d_ffn: int = 1024,
+        dropout: float = 0.0,
+        act: nn.Module = nn.ReLU(),
+        eval_idx: int = -1,
+        nd: int = 100,
+        label_noise_ratio: float = 0.5,
+        box_noise_scale: float = 1.0,
+        learnt_init_query: bool = False,
+        efficient_ms: bool = False,
+    ):
+        """Initialize the RTDETRDecoderEfficient module.
+
+        Args:
+            nc (int): Number of classes.
+            ch (tuple): Channels in the backbone feature maps.
+            hd (int): Dimension of hidden layers.
+            nq (int): Number of query points.
+            ndp (int): Number of decoder points per attention head per level.
+            nh (int): Number of heads in multi-head attention.
+            ndl (int): Number of decoder layers.
+            d_ffn (int): Dimension of the feed-forward networks.
+            dropout (float): Dropout rate.
+            act (nn.Module): Activation function.
+            eval_idx (int): Evaluation index.
+            nd (int): Number of denoising.
+            label_noise_ratio (float): Label noise ratio.
+            box_noise_scale (float): Box noise scale.
+            learnt_init_query (bool): Unsupported (raises); enc_output is skipped so init pathway does not match.
+            efficient_ms (bool): Enable round-robin single-level cross-attention per decoder layer.
+        """
+        if learnt_init_query:
+            raise ValueError("RTDETRDecoderEfficient does not support learnt_init_query=True.")
+        if isinstance(act, str):
+            act = {"relu": nn.ReLU(), "gelu": nn.GELU(), "silu": nn.SiLU()}[act]
+        # Store the activation class for the _build_* hooks invoked during super().__init__().
+        self._act_cls = type(act) if isinstance(act, nn.Module) else act
+        super().__init__(
+            nc,
+            ch,
+            hd,
+            nq,
+            ndp,
+            nh,
+            ndl,
+            d_ffn,
+            dropout,
+            act,
+            eval_idx,
+            nd,
+            label_noise_ratio,
+            box_noise_scale,
+            learnt_init_query,
+        )
+        self.efficient_ms = efficient_ms
+        if efficient_ms:
+            self.nl = 1
+            decoder_layer = DeformableTransformerDecoderLayer(hd, nh, d_ffn, dropout, act, 1, ndp)
+            self.decoder = DeformableTransformerDecoder(hd, decoder_layer, ndl, eval_idx, efficient_ms=True)
+        # Hoist query_pos out of the decoder layer loop (compute once from initial refer_bbox).
+        self.decoder.fixed_query_pos = True
+
+    def _build_input_proj(self, ch: tuple, hd: int) -> nn.ModuleList:
+        """Skip the 1x1 conv projection when a backbone channel already matches hd."""
+        return nn.ModuleList(
+            nn.Identity() if x == hd else nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch
+        )
+
+    def _build_query_pos_head(self, hd: int) -> "MLP":
+        """DEIM-style 3-layer query_pos MLP with the head's own activation."""
+        return MLP(4, hd, hd, num_layers=3, act=self._act_cls)
+
+    def _build_enc_output(self, hd: int) -> nn.Module:
+        """Skip the encoder-memory projection; _project_encoder_features scores from masked memory directly."""
+        return nn.Identity()
+
+    def _build_bbox_head(self, hd: int) -> "MLP":
+        """Build the bbox-regression MLP with the head's own activation (origin's `mlp_act`) instead of base ReLU."""
+        return MLP(hd, hd, 4, num_layers=3, act=self._act_cls)
+
+    def _reset_parameters(self):
+        """Initialize parameters; skips enc_output (Identity) and input_proj (may contain nn.Identity)."""
+        bias_cls = bias_init_with_prob(0.01) / 80 * self.nc
+        constant_(self.enc_score_head.bias, bias_cls)
+        constant_(self.enc_bbox_head.layers[-1].weight, 0.0)
+        constant_(self.enc_bbox_head.layers[-1].bias, 0.0)
+        for cls_, reg_ in zip(self.dec_score_head, self.dec_bbox_head):
+            constant_(cls_.bias, bias_cls)
+            constant_(reg_.layers[-1].weight, 0.0)
+            constant_(reg_.layers[-1].bias, 0.0)
+        xavier_uniform_(self.query_pos_head.layers[0].weight)
+
+    def _project_encoder_features(self, feats: torch.Tensor) -> torch.Tensor:
+        """Skip enc_output projection; score directly from masked encoder memory."""
+        return self.valid_mask.to(feats.dtype) * feats
 
 
 class v10Detect(Detect):
@@ -2020,8 +2178,7 @@ class DeimDecoder(RTDETRDecoder):
         scaled_dim = round(layer_scale * hd)
 
         self.input_proj = nn.ModuleList(
-            nn.Identity() if x == hd else nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd))
-            for x in ch
+            nn.Identity() if x == hd else nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch
         )
 
         self.up = nn.Parameter(torch.tensor([0.5]), requires_grad=False)
@@ -2217,5 +2374,3 @@ class DeimDecoder(RTDETRDecoder):
         for layer in self.input_proj:
             if isinstance(layer, nn.Sequential) and len(layer) and hasattr(layer[0], "weight"):
                 xavier_uniform_(layer[0].weight)
-
-

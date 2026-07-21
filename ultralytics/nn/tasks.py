@@ -69,6 +69,7 @@ from ultralytics.nn.modules import (
     RepVGGDW,
     ResNetLayer,
     RTDETRDecoder,
+    RTDETRDecoderEfficient,
     RTDETRDecoderV2,
     SCDown,
     Segment,
@@ -1013,12 +1014,12 @@ class RTDETRDetectionModel(DetectionModel):
 
 
 class YOLODETRDetectionModel(RTDETRDetectionModel):
-    """YOLO-DETR detection model with DfineLoss dispatch for DEIM and RTDETRDecoderV2 heads.
+    """YOLO-DETR detection model with DfineLoss dispatch for DEIM, RTDETRDecoderV2, and RTDETRDecoderEfficient heads.
 
     Inherits from RTDETRDetectionModel and overrides ``init_criterion`` and ``loss`` to route DETR heads through
-    ``DfineLoss``. The DEIM head uses the full FGL + DDF terms; ``RTDETRDecoderV2`` reuses the same constants but with
-    FGL/DDF gains zeroed and union-set matching off, since V2 emits no ``pred_corners`` / pre-stage tensors. The parent
-    ``RTDETRDecoder`` head still falls through to ``RTDETRDetectionLoss`` via super.
+    ``DfineLoss``. The DEIM head uses the full FGL + DDF terms; ``RTDETRDecoderV2`` and ``RTDETRDecoderEfficient`` reuse
+    the same constants but with FGL/DDF gains zeroed and union-set matching off, since neither emits ``pred_corners`` /
+    pre-stage tensors. The parent ``RTDETRDecoder`` head still falls through to ``RTDETRDetectionLoss`` via super.
     """
 
     # Hardcoded DfineLoss constants.
@@ -1035,13 +1036,15 @@ class YOLODETRDetectionModel(RTDETRDetectionModel):
     }
 
     def init_criterion(self):
-        """Initialize the loss criterion, dispatching to DfineLoss for DEIM and RTDETRDecoderV2 heads."""
+        """Initialize the loss criterion, dispatching to DfineLoss for DEIM, RTDETRDecoderV2, and RTDETRDecoderEfficient
+        heads.
+        """
         head_name = type(self.model[-1]).__name__
         if head_name == "DeimDecoder":
             from ultralytics.models.utils.loss_dfine import DfineLoss
 
             return DfineLoss(nc=self.nc, **self._DFINE_LOSS_CONSTANTS)
-        if head_name == "RTDETRDecoderV2":
+        if head_name in {"RTDETRDecoderV2", "RTDETRDecoderEfficient"}:
             from ultralytics.models.utils.loss_dfine import DfineLoss
 
             v2_kwargs = {
@@ -2166,7 +2169,7 @@ def parse_model(d, ch, verbose=True):
             args.append([ch[x] for x in f])
         elif m is ImagePoolingAttn:
             args.insert(1, [ch[x] for x in f])  # channels as second arg
-        elif m in {RTDETRDecoder, RTDETRDecoderV2, DeimDecoder}:  # channels arg must be passed in index 1
+        elif m in {RTDETRDecoder, RTDETRDecoderV2, RTDETRDecoderEfficient, DeimDecoder}:  # channels arg at index 1
             args.insert(1, [ch[x] for x in f])
         elif m is CBLinear:
             c2 = args[0]
@@ -2325,7 +2328,7 @@ def guess_model_family(model):
 
     def head2family(head_name: str):
         head = head_name.lower()
-        if head in {"deimdecoder", "dfinedecoder", "rtdetrdecoderv2"}:
+        if head in {"deimdecoder", "dfinedecoder", "rtdetrdecoderv2", "rtdetrdecoderefficient"}:
             return "yolodetr"
         if head == "rtdetrdecoder":
             return "rtdetr"
@@ -2347,7 +2350,7 @@ def guess_model_family(model):
         # Route any YOLO-DETR checkpoint/export to the YOLO-DETR family by name, across all scales and formats
         # (incl. .engine), e.g. yolo27n-detr / yolo27x-detr / yolo27xxl-detr -> yolo27<scale>detr. This takes priority
         # over embedded metadata so engines route here too (the exporter stamps model_type="rtdetr" for every
-        # RTDETRDecoder subclass, which would otherwise send RTDETRDecoderV2 engines to the RT-DETR family).
+        # RTDETRDecoder subclass, which would otherwise send RTDETRDecoderV2 / RTDETRDecoderEfficient engines to RT-DETR).
         if "yolodetr" in stem or re.search(r"yolo\d+[a-z]*detr", stem):
             return "yolodetr"
 

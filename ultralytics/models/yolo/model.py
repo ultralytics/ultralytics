@@ -94,8 +94,8 @@ class YOLO(Model):
             if hasattr(self.model, "model"):
                 head_name = self.model.model[-1]._get_name()
                 # YOLO-DETR family check must precede the broad "RTDETR in head_name" substring match
-                # since "RTDETRDecoderV2" would otherwise be incorrectly routed to RTDETR.
-                if head_name in {"DeimDecoder", "RTDETRDecoderV2"}:  # YOLO-DETR head
+                # since "RTDETRDecoderV2" / "RTDETRDecoderEfficient" would otherwise be routed to RTDETR.
+                if head_name in {"DeimDecoder", "RTDETRDecoderV2", "RTDETRDecoderEfficient"}:  # YOLO-DETR head
                     from ultralytics import YOLODETR
 
                     new_instance = YOLODETR(self)

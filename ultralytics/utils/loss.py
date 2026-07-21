@@ -1170,6 +1170,97 @@ class v8OBBLoss(v8DetectionLoss):
         return ang_loss.sum() / target_scores_sum
 
 
+class DepthLoss26:
+    """Criterion class for computing training losses for YOLO depth estimation.
+
+    Uses scale-invariant log loss (SILog) + gradient-matching loss, following the Depth Anything approach. SILog handles
+    scale ambiguity while gradient loss preserves edges.
+    """
+
+    def __init__(self, model: torch.nn.Module):
+        """Initialize DepthLoss26."""
+        device = next(model.parameters()).device
+        self.device = device
+        h = model.args  # hyperparameters
+        self.silog_weight = h.dlog
+        self.grad_weight = h.dgrad
+        self.silog_lambda = h.dlam  # 1.0 = scale-invariant, 0.0 = log-RMSE
+        self.grad_scales = 4
+        self.loss_names = "dlog_loss", "dgrad_loss"
+
+    @staticmethod
+    def _grad_l1(pred_log: torch.Tensor, gt_log: torch.Tensor, valid_f: torch.Tensor) -> torch.Tensor:
+        """L1 between predicted and GT log-depth spatial gradients (dx, dy), gated by the valid mask.
+
+        Each gradient is zeroed unless both contributing pixels are valid, so edges are only
+        matched where GT is defined.
+        """
+        pred_dx = (pred_log[:, :, :, 1:] - pred_log[:, :, :, :-1]) * valid_f[:, :, :, 1:] * valid_f[:, :, :, :-1]
+        gt_dx = (gt_log[:, :, :, 1:] - gt_log[:, :, :, :-1]) * valid_f[:, :, :, 1:] * valid_f[:, :, :, :-1]
+        pred_dy = (pred_log[:, :, 1:, :] - pred_log[:, :, :-1, :]) * valid_f[:, :, 1:, :] * valid_f[:, :, :-1, :]
+        gt_dy = (gt_log[:, :, 1:, :] - gt_log[:, :, :-1, :]) * valid_f[:, :, 1:, :] * valid_f[:, :, :-1, :]
+        return F.l1_loss(pred_dx, gt_dx) + F.l1_loss(pred_dy, gt_dy)
+
+    def __call__(
+        self, preds: dict[str, torch.Tensor] | torch.Tensor, batch: dict[str, torch.Tensor]
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        """Calculate depth estimation loss.
+
+        Args:
+            preds (dict | torch.Tensor): Dict with "depth" key or raw tensor of (B, 1, H, W) predicted depth.
+            batch (dict): Dict with "depth" key holding (B, H, W) ground truth depth in meters.
+
+        Returns:
+            loss_sum (torch.Tensor): Total loss scaled by batch size.
+            loss_items (dict[str, torch.Tensor]): Detached silog/gradient losses keyed by loss_names.
+        """
+        loss = torch.zeros(2, device=self.device)
+        pred_depth = preds["depth"] if isinstance(preds, dict) else preds
+        gt_depth = batch["depth"].to(self.device)
+
+        if gt_depth.ndim == 3:
+            gt_depth = gt_depth.unsqueeze(1)
+
+        if gt_depth.shape[-2:] != pred_depth.shape[-2:]:
+            pred_depth = F.interpolate(pred_depth, size=gt_depth.shape[-2:], mode="bilinear", align_corners=True)
+
+        valid = gt_depth > 0.001
+        if valid.sum() < 10:
+            # Keep the result attached so BaseTrainer's unconditional backward() works.
+            return pred_depth.sum() * 0.0, dict(zip(self.loss_names, loss.detach()))
+
+        pred_valid = pred_depth[valid]
+        gt_valid = gt_depth[valid]
+
+        pred_valid = pred_valid.clamp(min=0.001)
+
+        log_diff = torch.log(pred_valid) - torch.log(gt_valid)
+        # Centered variance form: non-negative by construction and fp16-stable near convergence.
+        m = log_diff.mean()
+        silog = torch.sqrt(((log_diff - m) ** 2).mean() + (1.0 - self.silog_lambda) * m**2 + 1e-6)
+        loss[0] = silog * self.silog_weight
+
+        # Multi-scale gradient-matching loss.
+        pred_log = torch.log(pred_depth.clamp(min=0.001))
+        gt_log = torch.log(gt_depth.clamp(min=0.001))
+        valid_f = valid.float()
+        grad_loss = self._grad_l1(pred_log, gt_log, valid_f)
+        for _ in range(1, max(self.grad_scales, 1)):
+            if pred_log.shape[-1] < 4 or pred_log.shape[-2] < 4:
+                break
+            vp = F.avg_pool2d(valid_f, 2)
+            if vp.mean() < 0.5:  # skip sparse GT (LiDAR)
+                break
+            denom = vp.clamp(min=1e-6)
+            pred_log = F.avg_pool2d(pred_log * valid_f, 2) / denom
+            gt_log = F.avg_pool2d(gt_log * valid_f, 2) / denom
+            valid_f = (vp > 0).float()
+            grad_loss = grad_loss + self._grad_l1(pred_log, gt_log, valid_f)
+        loss[1] = grad_loss * self.grad_weight
+
+        return loss * pred_depth.shape[0], dict(zip(self.loss_names, loss.detach()))
+
+
 class E2EDetectLoss:
     """Criterion class for computing training losses for end-to-end detection."""
 

@@ -282,7 +282,7 @@ class BaseTrainer:
         # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
         self.test_loader = self.get_dataloader(
             self.data.get("val") or self.data.get("test"),
-            batch_size=batch_size if self.args.task in {"obb", "semantic"} else batch_size * 2,
+            batch_size=batch_size if self.args.task in {"obb", "semantic", "depth"} else batch_size * 2,
             rank=LOCAL_RANK,
             mode="val",
         )
@@ -761,6 +761,7 @@ class BaseTrainer:
                 "pose",
                 "obb",
                 "semantic",
+                "depth",
             }:
                 data = check_det_dataset(self.args.data)
                 if "yaml_file" in data:

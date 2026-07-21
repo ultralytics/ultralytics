@@ -290,6 +290,21 @@ def test_component_losses_matches_loss_vector():
     assert comp["depth"].requires_grad  # live graph, not detached
 
 
+def test_render_report_and_rank():
+    """rank_levers sorts by ΔAP over baseline; render_report assembles titled sections."""
+    from ultralytics.data.scripts.diagnose_s3d import rank_levers, render_report
+
+    ladder = {
+        "baseline": {"ap3d_50": 0.30, "ap3d_70": 0.05},
+        "z": {"ap3d_50": 0.55, "ap3d_70": 0.30},
+        "dims": {"ap3d_50": 0.31, "ap3d_70": 0.06},
+    }
+    levers = rank_levers(ladder, key="ap3d_70")
+    assert levers[0][0] == "z" and levers[0][1] == pytest.approx(0.25)
+    report = render_report({"Oracle ladder": "| a | b |\n|---|---|\n| 1 | 2 |"})
+    assert "# s3d network diagnostics" in report and "Oracle ladder" in report
+
+
 def test_depth_bias_fit_recovers_slope():
     """dz = 0.05*z + 0.1 exactly → fit recovers (0.05, 0.1, ~0)."""
     rng = np.random.default_rng(0)

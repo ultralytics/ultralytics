@@ -686,6 +686,7 @@ nav:
           - scripts:
               - benchmark_s3d: reference/data/scripts/benchmark_s3d.md
               - convert_kitti_3d: reference/data/scripts/convert_kitti_3d.md
+              - diagnose_s3d: reference/data/scripts/diagnose_s3d.md
           - split: reference/data/split.md
           - split_dota: reference/data/split_dota.md
           - stereo:
@@ -775,6 +776,7 @@ nav:
                   - auto_label: reference/models/yolo/s3d/auto_label.md
                   - dataset: reference/models/yolo/s3d/dataset.md
                   - dense_align_optimized: reference/models/yolo/s3d/dense_align_optimized.md
+                  - diagnose: reference/models/yolo/s3d/diagnose.md
                   - geometric: reference/models/yolo/s3d/geometric.md
                   - head: reference/models/yolo/s3d/head.md
                   - loss: reference/models/yolo/s3d/loss.md

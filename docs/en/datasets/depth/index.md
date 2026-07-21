@@ -145,4 +145,4 @@ Depth estimation validation reports the standard Depth Anything metric set:
 
 ### Do depth file names need to match image file names?
 
-Yes. Each depth `.npy` file must share the same stem as the corresponding image. The loader derives the depth path by replacing the `images` directory component with `depth` and substituting the image extension for `.npy`. Images whose depth file is missing load an all-zero (all-invalid) depth map and are warned about at dataset load; if no depth maps are found at all, an error is raised.
+Yes. Each depth `.npy` file must share the same stem as the corresponding image. The loader derives the depth path by replacing the `images` directory component with `depth` and substituting the image extension for `.npy`. Images whose depth file is missing or unreadable are dropped during the (cached) dataset scan with a warning, exactly like corrupt images; if no valid image-depth pairs are found at all, an error is raised.

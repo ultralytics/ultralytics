@@ -49,15 +49,6 @@ def _rewind(dataloader) -> None:
         reset()
 
 
-def lstsq_affine(log_pred: np.ndarray, log_gt: np.ndarray) -> tuple[float, float]:
-    """Closed-form least-squares fit of (a, b) minimizing ||a·log_pred + b − log_gt||."""
-    log_pred = np.asarray(log_pred, dtype=np.float64)
-    log_gt = np.asarray(log_gt, dtype=np.float64)
-    A = np.stack([log_pred, np.ones_like(log_pred)], axis=1)
-    (a, b), *_ = np.linalg.lstsq(A, log_gt, rcond=None)
-    return float(a), float(b)
-
-
 def _delta1_none(log_pred: np.ndarray, log_gt: np.ndarray, a: float, b: float) -> float:
     """δ1 under no per-image alignment after applying ``d' = exp(a·log_pred + b)``.
 
@@ -74,18 +65,16 @@ def select_calibration(
     lg_fit: np.ndarray,
     lp_score: np.ndarray,
     lg_score: np.ndarray,
-    margin: float = 0.0,
 ) -> dict[str, Any]:
     """Pick the calibration that best improves *held-out* raw-scale δ1 — "calibrate only if it helps".
 
-    Three candidates are fit on the ``*_fit`` log-pixel arrays and scored on the independent ``*_score`` arrays under
+    Two candidates are fit on the ``*_fit`` log-pixel arrays and scored on the independent ``*_score`` arrays under
     :func:`_delta1_none`:
     - ``identity`` (a=1, b=0): no calibration,
-    - ``scale-only`` (a=1, b=mean(log_gt − log_pred)): a global scale,
-    - ``affine`` (a, b from :func:`lstsq_affine`): scale + log-slope.
-    The winner is the highest held-out δ1. A candidate must beat the current best by ``margin`` to win, so ties favor
-    the simpler model (identity > scale-only > affine). Identity is the baseline, so a calibration that does not
-    generalize is rejected — auto-cal does no harm.
+    - ``scale-only`` (a=1, b=mean(log_gt − log_pred)): a global scale.
+    The winner is the highest held-out δ1, with ties favoring identity — so a calibration that does not generalize is
+    rejected and auto-cal does no harm. (An affine log-slope candidate was evaluated and removed: the extra parameter
+    overfits within-dataset cross-validation and harms cross-distribution generalization.)
 
     Returns:
         dict with ``a``, ``b`` (floats of the winner), ``name``, and ``scores`` (per-candidate δ1).
@@ -95,13 +84,9 @@ def select_calibration(
     candidates = [
         ("identity", 1.0, 0.0),
         ("scale-only", 1.0, float(np.mean(lg_fit - lp_fit))),
-        ("affine", *lstsq_affine(lp_fit, lg_fit)),
     ]
     scored = [(name, a, b, _delta1_none(lp_score, lg_score, a, b)) for name, a, b in candidates]
-    best = scored[0]  # identity is the baseline; simpler candidates come first so ties favor them
-    for cand in scored[1:]:
-        if cand[3] > best[3] + margin:
-            best = cand
+    best = max(scored, key=lambda s: s[3])  # identity first, so exact ties favor it
     return {"a": best[1], "b": best[2], "name": best[0], "scores": {s[0]: s[3] for s in scored}}
 
 
@@ -109,7 +94,6 @@ def select_calibration_cv(
     pairs: list[tuple[np.ndarray, np.ndarray]],
     margin: float = 0.0,
     folds: int = 2,
-    allow_affine: bool = False,
 ) -> dict[str, Any]:
     """Cross-validated "calibrate only if it helps": choose a candidate by K-fold held-out δ1.
 
@@ -119,15 +103,10 @@ def select_calibration_cv(
     selected. The winning *type* must beat identity's mean held-out δ1 by ``margin`` (ties favor the simpler type); the
     final ``(a, b)`` is then refit on all pairs.
 
-    Only ``identity`` and ``scale-only`` are auto-selected by default. The affine *slope* (``a``) overfits
-    within-dataset cross-validation — both folds share a dataset's idiosyncrasies, so the extra parameter looks free and
-    gets picked even when it harms cross-distribution generalization (confirmed across NYU/SUNRGBD/KITTI). Set
-    ``allow_affine=True`` to include it.
-
     Returns:
         dict with ``a``, ``b`` (floats), ``name``, and ``cv_scores`` (mean held-out δ1 per type).
     """
-    names = ["identity", "scale-only"] + (["affine"] if allow_affine else [])
+    names = ["identity", "scale-only"]
     k = max(2, min(folds, len(pairs)))
     per_fold = {n: [] for n in names}
     for f in range(k):
@@ -149,14 +128,12 @@ def select_calibration_cv(
         if cv[n] > cv[best] + margin:
             best = n
     # refit the chosen type on all pairs (CV selects the type; all data sets the parameters)
-    lp = np.concatenate([p[0] for p in pairs])
-    lg = np.concatenate([p[1] for p in pairs])
     if best == "identity":
         a, b = 1.0, 0.0
-    elif best == "scale-only":
+    else:  # scale-only
+        lp = np.concatenate([p[0] for p in pairs])
+        lg = np.concatenate([p[1] for p in pairs])
         a, b = 1.0, float(np.mean(lg - lp))
-    else:
-        a, b = lstsq_affine(lp, lg)
     return {"a": a, "b": b, "name": best, "cv_scores": cv}
 
 
@@ -219,8 +196,7 @@ def fit_calibration_selective(
     """Select and apply calibration via "calibrate only if it helps" (see :func:`select_calibration_cv`).
 
     Collects per-image ``(log_pred, log_gt)`` over the loader, splits images into independent fit/score folds (no
-    leakage), chooses identity / scale-only by cross-validated raw-scale δ1 (affine is opt-in via
-    :func:`select_calibration_cv`'s ``allow_affine`` and not offered here), and writes the winner into the head's
+    leakage), chooses identity / scale-only by cross-validated raw-scale δ1, and writes the winner into the head's
     ``cal_a``/``cal_b``.
 
     Returns:

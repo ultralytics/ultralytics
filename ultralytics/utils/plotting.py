@@ -542,7 +542,7 @@ class Annotator:
         """
         if self.pil:
             self.im = np.asarray(self.im).copy()
-        heat = colorize_depth(depth, cmap=cmap, mode=mode)
+        heat = colorize_depth(depth, cmap=cmap, mode=mode)  # BGR, matching the Annotator buffer convention
         if heat.shape[:2] != self.im.shape[:2]:
             heat = cv2.resize(heat, (self.im.shape[1], self.im.shape[0]))
         self.im = cv2.addWeighted(self.im, 1 - alpha, heat, alpha, 0)
@@ -1016,8 +1016,8 @@ def plot_images(
             if dh != h or dw != w:
                 d = cv2.resize(d.astype(np.float32), (w, h), interpolation=cv2.INTER_NEAREST)
             im = np.asarray(annotator.im).copy()
-            # The main mosaic is RGB (pil=True), but depth_map emits a BGR heatmap and uses cv2 addWeighted.
-            # Convert the patch to BGR for the overlay, then convert back to RGB for the mosaic.
+            # The mosaic deviates from the Annotator BGR-buffer convention (it holds RGB), so convert the patch
+            # to BGR for the overlay, then back to RGB for the mosaic.
             sub_bgr = cv2.cvtColor(np.ascontiguousarray(im[y : y + h, x : x + w]), cv2.COLOR_RGB2BGR)
             sub_annotator = Annotator(sub_bgr, line_width=1, pil=False)
             sub_annotator.depth_map(d, alpha=0.6)

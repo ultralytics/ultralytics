@@ -43,6 +43,7 @@ from .utils import (
     save_dataset_cache_file,
     verify_image,
     verify_image_label,
+    verify_image_depth,
     verify_image_mask,
 )
 
@@ -74,8 +75,6 @@ class YOLODataset(BaseDataset):
         >>> dataset = YOLODataset(img_path="path/to/images", data={"names": {0: "person"}}, task="detect")
         >>> dataset.get_labels()
     """
-
-    uses_label_files = True
 
     def __init__(self, *args, data: dict | None = None, task: str = "detect", **kwargs):
         """Initialize the YOLODataset.
@@ -147,12 +146,12 @@ class YOLODataset(BaseDataset):
                     )
                 if msg:
                     msgs.append(msg)
-                pbar.desc = f"{desc} {self._scan_summary(nf, nm, ne, nc)}"
+                pbar.desc = f"{desc} {nf} images, {nm + ne} backgrounds, {nc} corrupt"
             pbar.close()
 
         if msgs:
             LOGGER.info("\n".join(msgs))
-        if nf == 0 and self.uses_label_files:
+        if nf == 0:
             if self.augment:  # training requires labels; unlabeled val splits (e.g. COCO test-dev) only warn
                 raise ValueError(f"{self.prefix}No labels found in {path}. {HELP_URL}")
             LOGGER.warning(f"{self.prefix}No labels found in {path}. {HELP_URL}")
@@ -163,15 +162,6 @@ class YOLODataset(BaseDataset):
             save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
 
-    def _scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
-        """Format label-scan counts for progress display (task subclasses may reword)."""
-        return f"{nf} images, {nm + ne} backgrounds, {nc} corrupt"
-
-    @property
-    def cache_path(self) -> Path:
-        """Path of the label-scan .cache file for this split (subclasses may relocate it)."""
-        return Path(self.label_files[0]).parent.with_suffix(".cache")
-
     def get_labels(self) -> list[dict]:
         """Return list of label dictionaries for YOLO training.
 
@@ -181,7 +171,7 @@ class YOLODataset(BaseDataset):
             (list[dict]): List of label dictionaries, each containing information about an image and its annotations.
         """
         self.label_files = img2label_paths(self.im_files)
-        cache_path = self.cache_path
+        cache_path = Path(self.label_files[0]).parent.with_suffix(".cache")
         try:
             cache, exists = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
@@ -192,7 +182,7 @@ class YOLODataset(BaseDataset):
         # Display cache
         nf, nm, ne, nc, n = cache.pop("results")  # found, missing, empty, corrupt, total
         if exists and LOCAL_RANK in {-1, 0}:
-            d = f"Scanning {cache_path}... {self._scan_summary(nf, nm, ne, nc)}"
+            d = f"Scanning {cache_path}... {nf} images, {nm + ne} backgrounds, {nc} corrupt"
             TQDM(None, desc=self.prefix + d, total=n, initial=n)  # display results
             if cache["msgs"]:
                 LOGGER.info("\n".join(cache["msgs"]))  # display warnings
@@ -221,7 +211,7 @@ class YOLODataset(BaseDataset):
             )
             for lb in labels:
                 lb["segments"] = []
-        if len_cls == 0 and self.uses_label_files:
+        if len_cls == 0:
             LOGGER.warning(f"Labels are missing or empty in {cache_path}, training may not work correctly. {HELP_URL}")
         return labels
 
@@ -341,8 +331,6 @@ class DepthDataset(YOLODataset):
         >>> dataset = DepthDataset(img_path="/data/nyu/images/train", data={"nc": 1})
     """
 
-    uses_label_files = False
-
     def _depth_path_for(self, im_file: str) -> str:
         """Map an image path to its companion depth .npy path (last 'images' path component → 'depth')."""
         parts = list(Path(im_file).parts)
@@ -352,54 +340,89 @@ class DepthDataset(YOLODataset):
                 break
         return str(Path(*parts).with_suffix(".npy"))
 
-    def _scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
-        """Count valid images, not found label files — the detection counts would read '0 images'."""
-        return f"{nf + nm} images, {nc} corrupt"
+    def cache_labels(self, path: Path = Path("./labels.cache")) -> dict[str, Any]:
+        """Cache image-depth pairing metadata, verifying images and depth maps in one pass.
 
-    @property
-    def cache_path(self) -> Path:
-        """Store the label-scan cache next to the depth maps (depth datasets have no labels/ tree)."""
-        return Path(self._depth_path_for(self.im_files[0])).parent.with_suffix(".cache")
+        Args:
+            path (Path): Path where to save the cache file.
+
+        Returns:
+            (dict[str, Any]): Cached depth metadata.
+        """
+        x = {"labels": []}
+        nf, nm, nc, msgs = 0, 0, 0, []  # found, missing, corrupt, messages
+        desc = f"{self.prefix}Scanning {path.parent / path.stem}..."
+        total = len(self.im_files)
+        with ThreadPool(NUM_THREADS) as pool:
+            results = pool.imap(
+                func=verify_image_depth,
+                iterable=zip(self.im_files, self.depth_files, repeat(self.prefix)),
+            )
+            pbar = TQDM(results, desc=desc, total=total)
+            for im_file, shape, nf_f, nm_f, nc_f, msg in pbar:
+                nf += nf_f
+                nm += nm_f
+                nc += nc_f
+                if im_file:
+                    x["labels"].append(
+                        {
+                            "im_file": im_file,
+                            "shape": shape,
+                            "cls": np.array([], dtype=np.float32),
+                            "bboxes": np.zeros((0, 4), dtype=np.float32),
+                            "segments": [],
+                            "normalized": True,
+                            "bbox_format": "xywh",
+                        }
+                    )
+                if msg:
+                    msgs.append(msg)
+                pbar.desc = f"{desc} {nf} images, {nm} missing depth, {nc} corrupt"
+            pbar.close()
+        if msgs:
+            LOGGER.info("\n".join(msgs))
+        x["hash"] = get_hash(self.depth_files + self.im_files)
+        x["results"] = nf, nm, nc, total
+        x["msgs"] = msgs
+        if x["labels"]:
+            save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
+        return x
 
     def get_labels(self) -> list[dict]:
-        """Load labels and verify paired depth maps exist and are readable."""
-        labels = super().get_labels()
-        valid, missing, corrupt = [], 0, []
-        for label in labels:
-            depth_file = Path(self._depth_path_for(label["im_file"]))
-            if not depth_file.exists():
-                missing += 1
-                valid.append(label)  # Preserve the existing all-invalid fallback for partially labeled datasets.
-                continue
-            try:
-                depth = np.load(depth_file, mmap_mode="r", allow_pickle=False)
-                if depth.ndim != 2:
-                    raise ValueError(f"expected a 2D array, got shape {depth.shape}")
-                valid.append(label)
-            except Exception as e:
-                corrupt.append(f"{depth_file}: {e}")
-        if missing + len(corrupt) == len(labels):
+        """Load image-depth pairs from cache or scan, dropping images with missing or corrupt depth maps.
+
+        Returns:
+            (list[dict]): List of label dictionaries with image shapes; depth maps load lazily per index.
+        """
+        self.depth_files = [self._depth_path_for(f) for f in self.im_files]
+        cache_path = Path(self.depth_files[0]).parent.with_suffix(".cache")
+        try:
+            cache, exists = load_dataset_cache_file(cache_path), True
+            assert cache["version"] == DATASET_CACHE_VERSION
+            assert cache["hash"] == get_hash(self.depth_files + self.im_files)
+        except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
+            cache, exists = self.cache_labels(cache_path), False
+
+        nf, nm, nc, n = cache.pop("results")
+        if exists and LOCAL_RANK in {-1, 0}:
+            d = f"Scanning {cache_path}... {nf} images, {nm} missing depth, {nc} corrupt"
+            TQDM(None, desc=self.prefix + d, total=n, initial=n)
+            if cache["msgs"]:
+                LOGGER.info("\n".join(cache["msgs"]))
+
+        [cache.pop(k) for k in ("hash", "version", "msgs")]
+        labels = cache["labels"]
+        if not labels:
             raise FileNotFoundError(
-                f"{self.prefix}No valid depth maps found for {len(labels)} images. Expected readable 2D .npy files in a "
+                f"{self.prefix}No valid image-depth pairs found in {cache_path}. Expected readable 2D .npy files in a "
                 f"'depth/' tree parallel to 'images/' (images/train/x.jpg → depth/train/x.npy). {HELP_URL}"
             )
-        if missing:
-            LOGGER.warning(
-                f"{self.prefix}{missing}/{len(labels)} depth maps missing; those images load all-invalid (zero) depth."
-            )
-        if corrupt:
-            LOGGER.warning(
-                f"{self.prefix}Ignoring {len(corrupt)} image(s) with corrupt depth maps:\n" + "\n".join(corrupt)
-            )
-        self.im_files = [label["im_file"] for label in valid]
-        return valid
+        self.im_files = [lb["im_file"] for lb in labels]
+        return labels
 
     def _load_depth(self, index):
-        """Return the native-resolution depth map for an image, or None if missing."""
-        depth_file = self._depth_path_for(self.im_files[index])
-        if not Path(depth_file).exists():
-            return None
-        depth = np.load(depth_file).astype(np.float32)
+        """Return the native-resolution depth map for an image, with non-finite values mapped to 0 (invalid)."""
+        depth = np.load(self._depth_path_for(self.im_files[index])).astype(np.float32)
         return np.nan_to_num(depth, nan=0.0, posinf=0.0, neginf=0.0)
 
     def get_image_and_label(self, index):
@@ -407,8 +430,6 @@ class DepthDataset(YOLODataset):
         label = super().get_image_and_label(index)
         h, w = label["resized_shape"]
         depth = self._load_depth(index)
-        if depth is None:
-            depth = np.zeros((h, w), dtype=np.float32)
         if depth.shape[:2] != (h, w):
             depth = cv2.resize(depth, (w, h), interpolation=cv2.INTER_NEAREST)
         label["depth"] = depth

@@ -233,7 +233,7 @@ Use a trained YOLO26n-depth model to run predictions on images.
 
         # Access the results
         for result in results:
-            depth_map = result.depth.data  # NumPy float32 array, shape (H, W), values in meters
+            depth_map = result.depth.data.cpu().numpy()  # torch.Tensor -> NumPy float32, shape (H, W), meters
         ```
 
     === "CLI"
@@ -252,7 +252,7 @@ YOLO depth estimation returns one `Results` object per image. Each result stores
 | Attribute           | Type            | Shape   | Description                |
 | ------------------- | --------------- | ------- | -------------------------- |
 | `result.depth`      | `DepthMap`      | `(H,W)` | Dense per-pixel depth map. |
-| `result.depth.data` | NumPy `float32` | `(H,W)` | Depth values in meters.    |
+| `result.depth.data` | `torch.Tensor` | `(H,W)` | Depth values in meters; call `.cpu().numpy()` for NumPy. |
 | `result.boxes`      | -               | -       | No instance boxes.         |
 | `result.masks`      | -               | -       | No instance masks.         |
 
@@ -341,7 +341,7 @@ Each prediction is median-aligned to its ground truth per image, and the statist
 
 ### What is the depth map output format?
 
-The depth map is stored as a NumPy `float32` array of shape `(H, W)` where each value is the predicted depth in meters. Access it through `result.depth.data` after running prediction. The map is aligned to the input image resolution.
+The depth map is stored as a `torch.Tensor` of shape `(H, W)` where each value is the predicted depth in meters (use `result.depth.data.cpu().numpy()` for a NumPy `float32` array). Access it through `result.depth.data` after running prediction. The map is aligned to the input image resolution.
 
 ### What datasets are supported for depth estimation?
 

@@ -1235,8 +1235,9 @@ class DepthLoss26:
         pred_valid = pred_valid.clamp(min=0.001)
 
         log_diff = torch.log(pred_valid) - torch.log(gt_valid)
-        # Clamp variance to keep sqrt non-negative at dlam=1.0.
-        silog = torch.sqrt(((log_diff**2).mean() - self.silog_lambda * log_diff.mean() ** 2).clamp_min(0) + 1e-6)
+        # Centered variance form: non-negative by construction and fp16-stable near convergence.
+        m = log_diff.mean()
+        silog = torch.sqrt(((log_diff - m) ** 2).mean() + (1.0 - self.silog_lambda) * m**2 + 1e-6)
         loss[0] = silog * self.silog_weight
 
         # Multi-scale gradient-matching loss.

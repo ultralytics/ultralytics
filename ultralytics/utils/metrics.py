@@ -1972,7 +1972,7 @@ class DepthMetrics(SimpleClass, DataExportMixin):
         t = self._totals.cpu()
         n = self._count
         d1, d2, d3, abs_rel, rmse_sq, silog_a, silog_b = (float(x) for x in t)
-        silog = ((silog_a / n) - 0.5 * (silog_b / n) ** 2) ** 0.5 * 100
+        silog = max((silog_a / n) - (silog_b / n) ** 2, 0.0) ** 0.5 * 100  # λ=1 variance form (ZoeDepth/KITTI)
         self._results = {
             "metrics/delta1": d1 / n,
             "metrics/delta2": d2 / n,

@@ -1228,23 +1228,22 @@ def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch,
         assert str(tmp_path) not in captured["validation_split"]
 
 
-def test_depth_dataset_ignores_unreadable_targets(tmp_path, monkeypatch):
-    """Filter corrupt depth targets during dataset scanning instead of failing during training."""
-    from ultralytics.data.dataset import DepthDataset, YOLODataset
+def test_depth_dataset_ignores_unreadable_targets(tmp_path):
+    """Drop images with missing or corrupt depth maps during the cached dataset scan."""
+    from ultralytics.data.dataset import DepthDataset
 
-    images = tmp_path / "images" / "train"
-    depth = tmp_path / "depth" / "train"
+    images, depth = tmp_path / "images" / "train", tmp_path / "depth" / "train"
     images.mkdir(parents=True)
     depth.mkdir(parents=True)
-    labels = [{"im_file": str(images / f"{name}.jpg")} for name in ("valid", "corrupt")]
-    np.save(depth / "valid.npy", np.ones((2, 3), dtype=np.float32))
+    for name in ("valid", "corrupt", "missing"):
+        cv2.imwrite(str(images / f"{name}.jpg"), np.zeros((32, 32, 3), np.uint8))
+    np.save(depth / "valid.npy", np.ones((32, 32), dtype=np.float32))
     (depth / "corrupt.npy").write_text("not an npy file")
-    monkeypatch.setattr(YOLODataset, "get_labels", lambda _self: labels)
-    dataset = DepthDataset.__new__(DepthDataset)
-    dataset.prefix = "train: "
 
-    assert dataset.get_labels() == labels[:1]
-    assert dataset.im_files == [labels[0]["im_file"]]
+    data = {"names": {0: "depth"}, "nc": 1, "channels": 3}
+    ds = DepthDataset(img_path=str(images), imgsz=32, data=data, augment=False, batch_size=1)
+    assert [Path(f).stem for f in ds.im_files] == ["valid"]
+    assert (depth.parent / "train.cache").exists()  # scan results cached next to the depth maps
 
 
 def test_utils_init():

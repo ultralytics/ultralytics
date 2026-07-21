@@ -249,12 +249,12 @@ See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
 YOLO depth estimation returns one `Results` object per image. Each result stores one dense float depth map for the full image.
 
-| Attribute           | Type            | Shape   | Description                |
-| ------------------- | --------------- | ------- | -------------------------- |
-| `result.depth`      | `DepthMap`      | `(H,W)` | Dense per-pixel depth map. |
+| Attribute           | Type           | Shape   | Description                                              |
+| ------------------- | -------------- | ------- | -------------------------------------------------------- |
+| `result.depth`      | `DepthMap`     | `(H,W)` | Dense per-pixel depth map.                               |
 | `result.depth.data` | `torch.Tensor` | `(H,W)` | Depth values in meters; call `.cpu().numpy()` for NumPy. |
-| `result.boxes`      | -               | -       | No instance boxes.         |
-| `result.masks`      | -               | -       | No instance masks.         |
+| `result.boxes`      | -              | -       | No instance boxes.                                       |
+| `result.masks`      | -              | -       | No instance masks.                                       |
 
 For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 

@@ -1814,7 +1814,8 @@ class LetterBox(BaseTransform):
         new_unpad = params["new_unpad"]
 
         if shape[::-1] != new_unpad:  # resize
-            img = cv2.resize(img, new_unpad, interpolation=self.interpolation)
+            interp = cv2.INTER_AREA if new_unpad[0] * new_unpad[1] < shape[0] * shape[1] else self.interpolation
+            img = cv2.resize(img, new_unpad, interpolation=interp)
             if img.ndim == 2:
                 img = img[..., None]
 

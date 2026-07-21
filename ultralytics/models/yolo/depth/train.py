@@ -68,7 +68,6 @@ class DepthTrainer(DetectionTrainer):
 
     def get_validator(self) -> yolo.depth.DepthValidator:
         """Return a DepthValidator for model validation."""
-        self.loss_names = "dlog_loss", "dgrad_loss"
         return yolo.depth.DepthValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

@@ -178,31 +178,34 @@ def _collect_logpairs(
     rng = np.random.default_rng(0)
     pairs = []
     seen = 0
-    for batch in dataloader:
-        img = batch["img"].to(device).float() / 255
-        gt = batch["depth"].to(device).float()
-        if gt.ndim == 3:
-            gt = gt.unsqueeze(1)
-        pred = model(img).float()
-        if pred.ndim == 3:
-            pred = pred.unsqueeze(1)
-        if pred.shape[-2:] != gt.shape[-2:]:
-            pred = F.interpolate(pred, size=gt.shape[-2:], mode="bilinear", align_corners=True)
-        for pi, gi in zip(pred, gt):
-            valid = (gi > 1e-3) & (pi > 1e-3) & torch.isfinite(pi)
-            if not valid.any():
-                continue
-            lp = torch.log(pi[valid]).detach().cpu().numpy()
-            lg = torch.log(gi[valid]).detach().cpu().numpy()
-            if lp.size > 20_000:
-                idx = rng.choice(lp.size, 20_000, replace=False)
-                lp, lg = lp[idx], lg[idx]
-            pairs.append((lp, lg))
-        seen += img.shape[0]
-        if seen >= max_images:
-            break
-    head.cal_a.fill_(a0)
-    head.cal_b.fill_(b0)  # restore; callers set the chosen value explicitly
+    try:
+        for batch in dataloader:
+            img = batch["img"].to(device).float() / 255
+            gt = batch["depth"].to(device).float()
+            if gt.ndim == 3:
+                gt = gt.unsqueeze(1)
+            pred = model(img).float()
+            if pred.ndim == 3:
+                pred = pred.unsqueeze(1)
+            if pred.shape[-2:] != gt.shape[-2:]:
+                pred = F.interpolate(pred, size=gt.shape[-2:], mode="bilinear", align_corners=True)
+            for pi, gi in zip(pred, gt):
+                valid = (gi > 1e-3) & (pi > 1e-3) & torch.isfinite(pi)
+                if not valid.any():
+                    continue
+                lp = torch.log(pi[valid]).detach().cpu().numpy()
+                lg = torch.log(gi[valid]).detach().cpu().numpy()
+                if lp.size > 20_000:
+                    idx = rng.choice(lp.size, 20_000, replace=False)
+                    lp, lg = lp[idx], lg[idx]
+                pairs.append((lp, lg))
+            seen += img.shape[0]
+            if seen >= max_images:
+                break
+    finally:
+        # A failed pass must not wipe the model's existing calibration; callers set the chosen value explicitly.
+        head.cal_a.fill_(a0)
+        head.cal_b.fill_(b0)
     return pairs
 
 

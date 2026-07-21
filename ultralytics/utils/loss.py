@@ -1186,6 +1186,7 @@ class DepthLoss26:
         self.grad_weight = h.dgrad
         self.silog_lambda = h.dlam  # 1.0 = scale-invariant, 0.0 = log-RMSE
         self.grad_scales = 4
+        self.loss_names = "dlog_loss", "dgrad_loss"
         # Mask GT outside the head's range so unreachable targets do not corrupt in-range gradients.
         self.max_depth = getattr(model.model[-1], "max_depth", None)
 
@@ -1204,7 +1205,7 @@ class DepthLoss26:
 
     def __call__(
         self, preds: dict[str, torch.Tensor] | torch.Tensor, batch: dict[str, torch.Tensor]
-    ) -> tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate depth estimation loss.
 
         Args:
@@ -1213,7 +1214,7 @@ class DepthLoss26:
 
         Returns:
             loss_sum (torch.Tensor): Total loss scaled by batch size.
-            loss_items (torch.Tensor): Detached per-component [silog, grad] losses.
+            loss_items (dict[str, torch.Tensor]): Detached silog/gradient losses keyed by loss_names.
         """
         loss = torch.zeros(2, device=self.device)
         pred_depth = preds["depth"] if isinstance(preds, dict) else preds
@@ -1230,7 +1231,7 @@ class DepthLoss26:
             valid &= gt_depth <= self.max_depth
         if valid.sum() < 10:
             # Keep the result attached so BaseTrainer's unconditional backward() works.
-            return pred_depth.sum() * 0.0, loss.detach()
+            return pred_depth.sum() * 0.0, dict(zip(self.loss_names, loss.detach()))
 
         pred_valid = pred_depth[valid]
         gt_valid = gt_depth[valid]
@@ -1260,7 +1261,7 @@ class DepthLoss26:
             grad_loss = grad_loss + self._grad_l1(pred_log, gt_log, valid_f)
         loss[1] = grad_loss * self.grad_weight
 
-        return loss * pred_depth.shape[0], loss.detach()
+        return loss * pred_depth.shape[0], dict(zip(self.loss_names, loss.detach()))
 
 
 class E2EDetectLoss:

@@ -42,7 +42,7 @@ keywords: Ultralytics, YOLO, YOLO26, YOLO11, object detection, image segmentatio
 
 # Ultralytics YOLO Docs
 
-[Ultralytics](https://www.ultralytics.com) YOLO is a family of real-time computer vision models for object detection, instance segmentation, semantic segmentation, classification, pose estimation, oriented bounding boxes, and tracking, available through one Python package and CLI. YOLO26 is built on deep learning and computer vision advancements, featuring end-to-end NMS-free inference and optimized edge deployment. Its streamlined design makes it suitable for various applications and easily adaptable to different hardware platforms, from edge devices to cloud APIs. For stable production workloads, both [YOLO26](models/yolo26.md) and [YOLO11](models/yolo11.md) are recommended.
+[Ultralytics](https://www.ultralytics.com) YOLO is a family of real-time computer vision models for object detection, instance segmentation, semantic segmentation, depth estimation, classification, pose estimation, oriented bounding boxes, and tracking, available through one Python package and CLI. YOLO26 is built on deep learning and computer vision advancements, featuring end-to-end NMS-free inference and optimized edge deployment. Its streamlined design makes it suitable for various applications and easily adaptable to different hardware platforms, from edge devices to cloud APIs. For stable production workloads, both [YOLO26](models/yolo26.md) and [YOLO11](models/yolo11.md) are recommended.
 
 Explore the Ultralytics Docs, a comprehensive resource covering the YOLO package and CLI as well as the [Ultralytics Platform](platform/index.md), which adds data annotation, cloud training, and deployment on top of the same models. Whether you are a seasoned machine learning practitioner or new to the field, this hub aims to help you get the most out of YOLO in your projects.
 
@@ -158,7 +158,7 @@ See the [Quickstart](quickstart.md) guide for the full installation and usage re
 
 Most model workflow `yolo` commands follow one grammar, `yolo [TASK] MODE ARGS`, where Task is optional, and these docs are organized around the same three parts, plus one shortcut:
 
-- **[Task](tasks/index.md)** answers **what** you want from an image: [detection](tasks/detect.md), [instance segmentation](tasks/segment.md), [semantic segmentation](tasks/semantic.md), [classification](tasks/classify.md), [pose estimation](tasks/pose.md), or [oriented boxes](tasks/obb.md).
+- **[Task](tasks/index.md)** answers **what** you want from an image: [detection](tasks/detect.md), [instance segmentation](tasks/segment.md), [semantic segmentation](tasks/semantic.md), [depth estimation](tasks/depth.md), [classification](tasks/classify.md), [pose estimation](tasks/pose.md), or [oriented boxes](tasks/obb.md).
 - **[Mode](modes/index.md)** answers **how** you use a model: [train](modes/train.md), [validate](modes/val.md), [predict](modes/predict.md), [export](modes/export.md), [track](modes/track.md), or [benchmark](modes/benchmark.md).
 - **[Args](usage/cfg.md)** configures the command, from which [model](models/index.md) to run with `model=` to hyperparameters like `epochs` and `imgsz`.
 - **[Solutions](solutions/index.md)** is the shortcut: a finished application, like object counting or a security alarm, that skips Task and Mode entirely.
@@ -183,7 +183,7 @@ Our licensing strategy is designed to ensure that any improvements to our open-s
 
 ### What is Ultralytics YOLO and how does it improve object detection?
 
-Ultralytics YOLO is the acclaimed YOLO (You Only Look Once) series for real-time object detection and image segmentation. The latest model, [YOLO26](models/yolo26.md), builds on previous versions by introducing end-to-end NMS-free inference and optimized edge deployment. YOLO supports various [vision AI tasks](tasks/index.md) such as [detection](tasks/detect.md), [instance segmentation](tasks/segment.md), [semantic segmentation](tasks/semantic.md), [pose estimation](tasks/pose.md), [tracking](modes/track.md), and [classification](tasks/classify.md). Its efficient architecture ensures excellent speed and accuracy, making it suitable for diverse applications, including edge devices and cloud APIs.
+Ultralytics YOLO is the acclaimed YOLO (You Only Look Once) series for real-time object detection and image segmentation. The latest model, [YOLO26](models/yolo26.md), builds on previous versions by introducing end-to-end NMS-free inference and optimized edge deployment. YOLO supports various [vision AI tasks](tasks/index.md) such as [detection](tasks/detect.md), [instance segmentation](tasks/segment.md), [semantic segmentation](tasks/semantic.md), [depth estimation](tasks/depth.md), [pose estimation](tasks/pose.md), [tracking](modes/track.md), and [classification](tasks/classify.md). Its efficient architecture ensures excellent speed and accuracy, making it suitable for diverse applications, including edge devices and cloud APIs.
 
 ### How can I get started with YOLO installation and setup?
 

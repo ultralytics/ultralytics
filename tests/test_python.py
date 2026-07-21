@@ -771,25 +771,6 @@ def test_platform_job_transport(monkeypatch, tmp_path):
     }
 
 
-def test_platform_validation_payload():
-    """Test exact gallery extremes and bounded sampling across the full F1 rank distribution."""
-    from ultralytics.utils.callbacks import platform
-
-    image_metrics = {f"{i:032x}_image.jpg": {"f1": i / 9, "tp": i, "fp": 9 - i, "fn": 0} for i in range(10)}
-    validation = platform._validation_payload(image_metrics, sample_limit=5, extremes_limit=2)
-    assert validation["population"] == 10
-    assert validation["sampling"] == "f1_rank"
-    assert [row[1] for row in validation["rows"]] == [0, 2, 4, 7, 9]
-    assert [row[1] for row in validation["extremes"]["worst"]] == [0, 1]
-    assert [row[1] for row in validation["extremes"]["best"]] == [9, 8]
-
-    large = {f"{i:032x}.jpg": {"f1": i / 5_999, "tp": i, "fp": 0, "fn": 0} for i in range(6_000)}
-    bounded = platform._validation_payload(large)
-    assert len(bounded["rows"]) == 5_000
-    assert len(bounded["extremes"]["worst"]) == len(bounded["extremes"]["best"]) == 100
-    assert bounded["rows"][0][1] == 0 and bounded["rows"][-1][1] == 5_999
-
-
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch():

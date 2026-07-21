@@ -49,6 +49,7 @@ class SAM3Backend:
     """
 
     _FILE_STEMS = ("sam3_vision_encoder", "sam3_text_encoder", "sam3_decoder")
+    _TEXT_DECODER = "sam3_decoder_text"
     _POINT_STEMS = ("sam3_prompt_encoder", "sam3_mask_decoder")
 
     def __init__(self, model_dir: str | Path, device: torch.device | str = "cpu", fp16: bool = False):
@@ -89,6 +90,13 @@ class SAM3Backend:
         """Check if both point prompt module files exist."""
         return all((self._model_dir / f"{s}.{ext}").exists() for s in self._POINT_STEMS)
 
+    @property
+    def _has_text_decoder(self) -> bool:
+        """Whether the geometry free decoder used for text only prompts was exported."""
+        return self._TEXT_DECODER in getattr(self, "_sessions", {}) or self._TEXT_DECODER in getattr(
+            self, "_trt_contexts", {}
+        )
+
     def _load_models(self) -> None:
         if self._format == "onnx":
             self._load_onnx()
@@ -117,6 +125,12 @@ class SAM3Backend:
         self._txt_session = ort.InferenceSession(str(paths[self._FILE_STEMS[1]]), sess_options=so, providers=providers)
         self._dec_session = ort.InferenceSession(str(paths[self._FILE_STEMS[2]]), sess_options=so, providers=providers)
         self._sessions = dict(zip(self._FILE_STEMS, (self._vis_session, self._txt_session, self._dec_session)))
+
+        text_dec = self._model_dir / f"{self._TEXT_DECODER}.onnx"
+        if text_dec.exists():
+            self._sessions[self._TEXT_DECODER] = ort.InferenceSession(
+                str(text_dec), sess_options=so, providers=providers
+            )
 
         if self._has_point_files("onnx"):
             pe_path = self._model_dir / f"{self._POINT_STEMS[0]}.onnx"
@@ -168,6 +182,9 @@ class SAM3Backend:
         }
 
         all_stems = list(self._FILE_STEMS)
+        if (self._model_dir / f"{self._TEXT_DECODER}.engine").exists():
+            paths[self._TEXT_DECODER] = self._model_dir / f"{self._TEXT_DECODER}.engine"
+            all_stems.append(self._TEXT_DECODER)
         if self._has_point_files("engine"):
             point_paths = {s: self._model_dir / f"{s}.engine" for s in self._POINT_STEMS}
             paths.update(point_paths)
@@ -352,25 +369,25 @@ class SAM3Backend:
         Returns:
             dict with pred_logits, pred_boxes, pred_masks, presence_logits.
         """
-        bs = prompt_mask.shape[0] if hasattr(prompt_mask, "shape") else 1
+        feed = {
+            "fpn_feat_0": img_out["_fpn_feat_0"],
+            "fpn_feat_1": img_out["_fpn_feat_1"],
+            "fpn_feat_2": img_out["_fpn_feat_2"],
+            "fpn_pos_2": img_out["_fpn_pos_2"],
+            "prompt_features": prompt_features,
+            "prompt_mask": prompt_mask,
+        }
+        # An ignored box is not neutral, it appends a geometry token that shifts the presence logit,
+        # so a text only prompt uses the graph exported without geometry when that graph is available.
+        if input_boxes is None and self._has_text_decoder:
+            return self._run(self._TEXT_DECODER, feed)
         if input_boxes is None:
-            # Text-only: dummy single-box with label=-10 (ignored by geometry encoder)
+            bs = prompt_mask.shape[0] if hasattr(prompt_mask, "shape") else 1
             input_boxes = np.zeros((bs, 1, 4), dtype=np.float32)
             input_boxes_labels = np.full((bs, 1), -10, dtype=np.int32)
-
-        return self._run(
-            self._FILE_STEMS[2],
-            {
-                "fpn_feat_0": img_out["_fpn_feat_0"],
-                "fpn_feat_1": img_out["_fpn_feat_1"],
-                "fpn_feat_2": img_out["_fpn_feat_2"],
-                "fpn_pos_2": img_out["_fpn_pos_2"],
-                "prompt_features": prompt_features,
-                "prompt_mask": prompt_mask,
-                "input_boxes": input_boxes,
-                "input_boxes_labels": input_boxes_labels,
-            },
-        )
+        feed["input_boxes"] = input_boxes
+        feed["input_boxes_labels"] = input_boxes_labels
+        return self._run(self._FILE_STEMS[2], feed)
 
     # ------------------------------------------------------------------
     # Point prompt inference (prompt encoder + mask decoder)

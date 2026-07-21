@@ -541,9 +541,10 @@ class SAM3DecoderONNX(nn.Module):
     using pre-computed scale constants (no dynamic Sqrt).
     """
 
-    def __init__(self, model):
+    def __init__(self, model, with_geometry: bool = True):
         super().__init__()
         self.model = model
+        self.with_geometry = with_geometry
 
     def forward(
         self,
@@ -553,8 +554,8 @@ class SAM3DecoderONNX(nn.Module):
         fpn_pos_2: torch.Tensor,
         prompt_features: torch.Tensor,
         prompt_mask: torch.Tensor,
-        input_boxes: torch.Tensor,
-        input_boxes_labels: torch.Tensor,
+        input_boxes: torch.Tensor = None,
+        input_boxes_labels: torch.Tensor = None,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """Run decoder. Returns (pred_logits, pred_boxes, pred_masks, presence_logits)."""
         from ultralytics.models.sam.modules.sam import SAM2Model
@@ -569,43 +570,43 @@ class SAM3DecoderONNX(nn.Module):
             self.model, backbone_out, batch=prompt_mask.shape[0]
         )
 
-        # Build a Prompt object from input_boxes / input_boxes_labels.
-        # input_boxes: [B, N, 4] -> reshape to (N, B, 4) for sequence-first convention
-        # input_boxes_labels: [B, N] int -> (N, B) ; values: 1=pos, 0=neg, -10=ignore (padding)
-        boxes_seq_first = input_boxes.transpose(0, 1)  # (N, B, 4)
-        # box_mask: True = padded position to ignore
-        box_mask = input_boxes_labels == -10  # (B, N)
-        # Replace -10 in labels with 0 (will be masked out anyway)
-        labels_clean = (
-            torch.where(
-                input_boxes_labels == -10,
-                torch.zeros_like(input_boxes_labels),
-                input_boxes_labels,
+        prompt = prompt_features
+        pmask = ~prompt_mask  # True = padded
+
+        # A box prompt appends geometry tokens to the text prompt. An ignored box is not neutral, it
+        # shifts the presence logit, so the text only graph omits geometry exactly as forward_grounding does.
+        if self.with_geometry:
+            # Build a Prompt object from input_boxes / input_boxes_labels.
+            # input_boxes: [B, N, 4] -> reshape to (N, B, 4) for sequence-first convention
+            # input_boxes_labels: [B, N] int -> (N, B) ; values: 1=pos, 0=neg, -10=ignore (padding)
+            boxes_seq_first = input_boxes.transpose(0, 1)  # (N, B, 4)
+            # box_mask: True = padded position to ignore
+            box_mask = input_boxes_labels == -10  # (B, N)
+            # Replace -10 in labels with 0 (will be masked out anyway)
+            labels_clean = (
+                torch.where(
+                    input_boxes_labels == -10,
+                    torch.zeros_like(input_boxes_labels),
+                    input_boxes_labels,
+                )
+                .transpose(0, 1)
+                .long()
             )
-            .transpose(0, 1)
-            .long()
-        )
 
-        geo_prompt = Prompt(
-            box_embeddings=boxes_seq_first,
-            box_mask=box_mask,
-            box_labels=labels_clean,
-        )
+            geo_feats, geo_masks = self.model.geometry_encoder(
+                geo_prompt=Prompt(
+                    box_embeddings=boxes_seq_first,
+                    box_mask=box_mask,
+                    box_labels=labels_clean,
+                ),
+                img_feats=img_feats,
+                img_sizes=vis_feat_sizes,
+                img_pos_embeds=img_pos_embeds,
+            )
 
-        # Run geometry encoder + concat with text features (matches model._encode_prompt + forward_grounding)
-        prompt_text = prompt_features
-        text_mask_pad = ~prompt_mask  # True = padded
-
-        geo_feats, geo_masks = self.model.geometry_encoder(
-            geo_prompt=geo_prompt,
-            img_feats=img_feats,
-            img_sizes=vis_feat_sizes,
-            img_pos_embeds=img_pos_embeds,
-        )
-
-        # Concatenate text + geometry (text first, then geometry)
-        prompt = torch.cat([prompt_text, geo_feats], dim=0)
-        pmask = torch.cat([text_mask_pad, geo_masks], dim=1)
+            # Concatenate text + geometry (text first, then geometry)
+            prompt = torch.cat([prompt, geo_feats], dim=0)
+            pmask = torch.cat([pmask, geo_masks], dim=1)
 
         encoder_out = self.model._run_encoder(img_feats, img_pos_embeds, vis_feat_sizes, prompt, pmask)
         out = {"backbone_out": backbone_out}
@@ -802,7 +803,7 @@ def export_sam3_onnx(
         exported_files.append(f)
         return f
 
-    # === 1. Vision Encoder ===
+    # Vision Encoder
     # Load SAM2 neck weights from the interactive model (separate learned FPN for point prompts)
     from ultralytics.models.sam.build_sam3 import build_interactive_sam3
 
@@ -810,8 +811,14 @@ def export_sam3_onnx(
     tracker_model_for_neck = build_interactive_sam3(checkpoint_path)
     tracker_model_for_neck = tracker_model_for_neck.to(device).eval()
     sam2_convs = tracker_model_for_neck.image_encoder.vision_backbone.sam2_convs
+    # SAM 3.1 restructured the tracker, so its interactive weights do not load and must never be exported untrained
+    # Only neck levels 0 to 2 are checked because scalp discards the last level, which SAM 3.1 no longer ships
+    point_modules = ("sam_prompt_encoder", "sam_mask_decoder", "sam2_convs.0", "sam2_convs.1", "sam2_convs.2")
+    has_point_weights = not any(m in k for k in tracker_model_for_neck.missing_keys for m in point_modules)
+    if not has_point_weights:
+        sam2_convs = None
     if sam2_convs is None:
-        LOGGER.warning(f"{prefix} interactive model has no sam2_convs — point prompts may not work correctly")
+        LOGGER.warning(f"{prefix} interactive weights are unavailable so point prompt modules are skipped")
 
     LOGGER.info(f"{prefix} exporting vision encoder with dual neck (opset {opset})...")
     vis_encoder = SAM3VisionEncoderONNX(model, imgsz=imgsz, sam2_convs=sam2_convs).to(device).eval()
@@ -831,7 +838,7 @@ def export_sam3_onnx(
 
     del tracker_model_for_neck
 
-    # === 2. Text Encoder ===
+    # Text Encoder
     LOGGER.info(f"{prefix} exporting text encoder (opset {opset})...")
     txt_encoder = SAM3TextEncoderONNX(model).to(device).eval()
     dummy_tokens = torch.zeros(1, 32, dtype=torch.long, device=device)
@@ -842,7 +849,7 @@ def export_sam3_onnx(
     with torch.no_grad():
         txt_feats, txt_mask = txt_encoder(dummy_tokens)
 
-    # === 3. Decoder (with folded geometry encoder) ===
+    # Decoder (with folded geometry encoder)
     LOGGER.info(f"{prefix} exporting decoder (opset {opset})...")
     decoder = SAM3DecoderONNX(model).to(device).eval()
 
@@ -869,54 +876,70 @@ def export_sam3_onnx(
         {"input_boxes": {1: "num_boxes"}, "input_boxes_labels": {1: "num_boxes"}},
     )
 
-    # === 4. SAM Prompt Encoder (for point prompts) ===
-    LOGGER.info(f"{prefix} exporting SAM prompt encoder (opset {opset})...")
-    tracker_model = build_interactive_sam3(checkpoint_path)
-    tracker_model = tracker_model.to(device).eval()
-
-    prompt_enc = SAM3PromptEncoderONNX(tracker_model).to(device).eval()
-    dummy_pts = torch.tensor([[[500.0, 500.0]]], dtype=dtype, device=device)
-    dummy_lbl = torch.tensor([[1]], dtype=torch.int32, device=device)
-
+    # Text only decoder. A box prompt appends geometry tokens, and even a box labelled as ignored
+    # shifts the presence logit and suppresses detections, so text prompts need a graph without them.
+    LOGGER.info(f"{prefix} exporting text only decoder (opset {opset})...")
     _export(
-        prompt_enc,
-        (dummy_pts, dummy_lbl),
-        "sam3_prompt_encoder.onnx",
-        ["point_coords", "point_labels"],
-        ["sparse_embeddings", "dense_embeddings", "dense_pe"],
-        {"point_coords": {1: "num_points"}, "point_labels": {1: "num_points"}, "sparse_embeddings": {1: "num_embeds"}},
+        SAM3DecoderONNX(model, with_geometry=False).to(device).eval(),
+        (fpn0, fpn1, fpn2, fpos2, txt_feats, txt_mask),
+        "sam3_decoder_text.onnx",
+        ["fpn_feat_0", "fpn_feat_1", "fpn_feat_2", "fpn_pos_2", "prompt_features", "prompt_mask"],
+        ["pred_logits", "pred_boxes", "pred_masks", "presence_logit_dec"],
     )
 
-    # === 5. SAM Mask Decoder (for point prompts) ===
-    # Use multimask_output=True to produce 3 candidate masks + IoU scores.
-    # The best mask is selected at runtime by argmax(iou_scores).
-    # PyTorch SAM3 uses multimask=True for 1-point prompts, and multimask=True
-    # with best-mask selection also improves multi-point quality.
-    LOGGER.info(f"{prefix} exporting SAM mask decoder (opset {opset}, multimask=True)...")
-    mask_dec = SAM3MaskDecoderONNX(tracker_model, multimask_output=True).to(device).eval()
+    if has_point_weights:
+        # SAM Prompt Encoder (for point prompts)
+        LOGGER.info(f"{prefix} exporting SAM prompt encoder (opset {opset})...")
+        tracker_model = build_interactive_sam3(checkpoint_path)
+        tracker_model = tracker_model.to(device).eval()
 
-    with torch.no_grad():
-        sparse_dummy, dense_dummy, dpe_dummy = prompt_enc(dummy_pts, dummy_lbl)
+        prompt_enc = SAM3PromptEncoderONNX(tracker_model).to(device).eval()
+        dummy_pts = torch.tensor([[[500.0, 500.0]]], dtype=dtype, device=device)
+        dummy_lbl = torch.tensor([[1]], dtype=torch.int32, device=device)
 
-    _export(
-        mask_dec,
-        (fpn2, dpe_dummy, sparse_dummy, dense_dummy, fpn0, fpn1),
-        "sam3_mask_decoder.onnx",
-        [
-            "image_embeddings",
-            "image_pe",
-            "sparse_prompt_embeddings",
-            "dense_prompt_embeddings",
-            "high_res_feat_0",
-            "high_res_feat_1",
-        ],
-        ["masks", "iou_scores"],
-        {"sparse_prompt_embeddings": {1: "num_embeds"}},
-    )
+        _export(
+            prompt_enc,
+            (dummy_pts, dummy_lbl),
+            "sam3_prompt_encoder.onnx",
+            ["point_coords", "point_labels"],
+            ["sparse_embeddings", "dense_embeddings", "dense_pe"],
+            {
+                "point_coords": {1: "num_points"},
+                "point_labels": {1: "num_points"},
+                "sparse_embeddings": {1: "num_embeds"},
+            },
+        )
 
-    del tracker_model
+        # SAM Mask Decoder (for point prompts)
+        # Use multimask_output=True to produce 3 candidate masks + IoU scores.
+        # The best mask is selected at runtime by argmax(iou_scores).
+        # PyTorch SAM3 uses multimask=True for 1-point prompts, and multimask=True
+        # with best-mask selection also improves multi-point quality.
+        LOGGER.info(f"{prefix} exporting SAM mask decoder (opset {opset}, multimask=True)...")
+        mask_dec = SAM3MaskDecoderONNX(tracker_model, multimask_output=True).to(device).eval()
 
-    # === Post-processing ===
+        with torch.no_grad():
+            sparse_dummy, dense_dummy, dpe_dummy = prompt_enc(dummy_pts, dummy_lbl)
+
+        _export(
+            mask_dec,
+            (fpn2, dpe_dummy, sparse_dummy, dense_dummy, fpn0, fpn1),
+            "sam3_mask_decoder.onnx",
+            [
+                "image_embeddings",
+                "image_pe",
+                "sparse_prompt_embeddings",
+                "dense_prompt_embeddings",
+                "high_res_feat_0",
+                "high_res_feat_1",
+            ],
+            ["masks", "iou_scores"],
+            {"sparse_prompt_embeddings": {1: "num_embeds"}},
+        )
+
+        del tracker_model
+
+    # Post-processing
     for f in exported_files:
         component_metadata = {**metadata, "component": Path(f).stem}
         _onnx_postprocess(
@@ -978,6 +1001,8 @@ def export_sam3_engine(
         onnx_dir / "sam3_text_encoder.onnx",
         onnx_dir / "sam3_decoder.onnx",
     ]
+    if (onnx_dir / "sam3_decoder_text.onnx").exists():
+        onnx_files.append(onnx_dir / "sam3_decoder_text.onnx")
     # Optional point prompt modules
     if (onnx_dir / "sam3_prompt_encoder.onnx").exists():
         onnx_files.append(onnx_dir / "sam3_prompt_encoder.onnx")
@@ -1003,7 +1028,7 @@ def export_sam3_engine(
         # FP16 through mixed precision (ModelOpt AutoCast keeps overflow prone nodes in FP32), which
         # keeps the detection decoder accurate and builds identically on TensorRT 10 and 11. The
         # static vision and text encoders go through onnx2engine.
-        dynamic_modules = {"sam3_decoder", "sam3_prompt_encoder", "sam3_mask_decoder"}
+        dynamic_modules = {"sam3_decoder", "sam3_decoder_text", "sam3_prompt_encoder", "sam3_mask_decoder"}
         if onnx_file.stem in dynamic_modules:
             _build_decoder_engine_dynamic(
                 onnx_file=str(onnx_file),

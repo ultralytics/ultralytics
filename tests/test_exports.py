@@ -91,6 +91,13 @@ def test_best_onnx_opset_caps_int8_only(monkeypatch):
     assert best_onnx_opset(onnx, quantize=8) == 20
 
 
+def test_tensorrt_export_format_arguments():
+    """Check the TensorRT format lists its supported ONNX opset and workspace controls."""
+    formats = export_formats()
+    arguments = dict(zip(formats["Argument"], formats["Arguments"]))["engine"]
+    assert {"opset", "workspace"} <= set(arguments)
+
+
 def test_onnx_int8_quantize_excludes_non_weighted_ops(monkeypatch):
     """Check ONNX INT8 keeps only weighted ops quantized while preserving the string return contract."""
     import onnx

@@ -438,16 +438,17 @@ Automatic statistics computed from your dataset:
 
 View all models trained on this dataset in a searchable table:
 
-| Column   | Description               |
-| -------- | ------------------------- |
-| Name     | Model name with link      |
-| Project  | Parent project with icon  |
-| Status   | Training status badge     |
-| Task     | YOLO task type            |
-| Epochs   | Best epoch / total epochs |
-| mAP50-95 | Mean average precision    |
-| mAP50    | mAP at IoU 0.50           |
-| Created  | Creation date             |
+| Column   | Description                                         |
+| -------- | --------------------------------------------------- |
+| Name     | Model name with link                                |
+| Project  | Parent project with icon                            |
+| Version  | Immutable dataset version used for training, if any |
+| Status   | Training status badge                               |
+| Task     | YOLO task type                                      |
+| Epochs   | Best epoch / total epochs                           |
+| mAP50-95 | Mean average precision                              |
+| mAP50    | mAP at IoU 0.50                                     |
+| Created  | Creation date                                       |
 
 ![Ultralytics Platform Datasets Models Tab Trained Models Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-models-tab-trained-models-table.avif)
 
@@ -495,6 +496,10 @@ To create a version:
 5. Download the version separately from the table when needed
 
 Each version is numbered sequentially (v1, v2, v3...) and stored permanently. You can download any previous version at any time from the versions table.
+
+!!! tip "Save a Version While Training"
+
+    Enable **Save Dataset Version** in the [Cloud Training dialog](../train/cloud-training.md#save-dataset-version-optional) to link a model to the exact dataset used for training. The Platform reuses a matching version when the dataset contents have not changed and creates a new version only when they have.
 
 !!! note "Ready Datasets Only"
 

@@ -1,0 +1,49 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# DIODE dataset for monocular depth estimation — real indoor + outdoor, FARO Focus survey-grade laser, depth up to ~80 m
+# Documentation: https://docs.ultralytics.com/datasets/depth/diode
+# Example usage: yolo depth train data=depth-diode.yaml model=yolo26n-depth.pt
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── depth-diode  ← downloads here (84 GB archives, ~90 GB converted)
+#         ├── images/{train,val}  # RGB images
+#         └── depth/{train,val}   # paired *.npy, float32 meters (images/ -> depth/)
+# If an interrupted download leaves a partial dataset, delete the depth-diode dir and re-run to rebuild it.
+
+path: depth-diode # dataset root dir (relative to Ultralytics settings 'datasets_dir')
+train: images/train # train images (relative to 'path') 25458 images
+val: images/val # val images (relative to 'path') 771 images
+max_depth: 80 # (m) maximum valid depth; GT beyond this is excluded from val metrics
+
+nc: 1
+names:
+  0: depth
+
+channels: 3
+
+# Download script/URL (optional)
+download: |
+  import shutil
+  from pathlib import Path
+
+  import numpy as np
+
+  from ultralytics.utils import TQDM
+  from ultralytics.utils.downloads import download
+
+  # Download and extract the official archives (train ~81 GB, val ~2.6 GB), then convert:
+  # flatten <split>/<scene>/<scan>/*.png into images/<split>/ and save the paired *_depth.npy
+  # (masked invalid -> 0, clipped at 80 m) as depth/<split>/*.npy
+  dir = Path(yaml["path"])  # dataset root dir
+  download([f"https://diode-dataset.s3.amazonaws.com/{s}.tar.gz" for s in ("train", "val")], dir=dir / "source", delete=True)
+  for split in ("train", "val"):
+      (dir / "images" / split).mkdir(parents=True, exist_ok=True)
+      (dir / "depth" / split).mkdir(parents=True, exist_ok=True)
+      for im in TQDM(sorted((dir / "source" / split).rglob("*.png")), desc=f"Converting {split}"):
+          name = "_".join(im.relative_to(dir / "source").parts)  # train/indoors/scene/scan/x.png -> train_indoors_scene_scan_x.png
+          depth = np.load(im.with_name(f"{im.stem}_depth.npy")).squeeze().astype(np.float32)
+          depth[np.load(im.with_name(f"{im.stem}_depth_mask.npy")) == 0] = 0.0  # zero out invalid pixels
+          np.save(dir / "depth" / split / f"{name[:-4]}.npy", depth.clip(max=80))
+          im.replace(dir / "images" / split / name)
+  shutil.rmtree(dir / "source")

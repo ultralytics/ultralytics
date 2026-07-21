@@ -234,12 +234,9 @@ class TaskAlignedAssigner(nn.Module):
         # (b, max_num_obj, topk)
         topk_idxs.masked_fill_(~topk_mask, 0)
 
-        # (b, max_num_obj, topk, h*w) -> (b, max_num_obj, h*w)
+        # Count how many of the topk lists select each anchor; scatter_add_ accumulates duplicate indices in one pass
         count_tensor = torch.zeros(metrics.shape, dtype=torch.int8, device=topk_idxs.device)
-        ones = torch.ones_like(topk_idxs[:, :, :1], dtype=torch.int8, device=topk_idxs.device)
-        for k in range(self.topk):
-            # Expand topk_idxs for each value of k and add 1 at the specified positions
-            count_tensor.scatter_add_(-1, topk_idxs[:, :, k : k + 1], ones)
+        count_tensor.scatter_add_(-1, topk_idxs, torch.ones_like(topk_idxs, dtype=torch.int8))
         # Filter invalid bboxes
         count_tensor.masked_fill_(count_tensor > 1, 0)
 

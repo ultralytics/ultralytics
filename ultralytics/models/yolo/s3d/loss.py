@@ -330,8 +330,13 @@ class Stereo3DDetLoss(v8DetectionLoss):
             return (raw * aux_weights).sum() / aux_weights.sum().clamp(min=1.0)
         return raw.mean()
 
-    def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
-        """Calculate stereo 3D detection loss: det losses + aux 3D losses.
+    def component_losses(
+        self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
+    ) -> dict[str, torch.Tensor]:
+        """Compute live (non-detached) per-component losses keyed in trainer loss_names order.
+
+        Keys: box, cls, lr_dist, depth, dims, orient, proj_center. Used by loss() and by the gradient
+        diagnostics probe (diagnose.py), which needs each component's own autograd graph.
 
         Args:
             preds: Dict with boxes, scores, feats, lr_distance, depth, dimensions, orientation.
@@ -341,23 +346,38 @@ class Stereo3DDetLoss(v8DetectionLoss):
         aux_keys = {"lr_distance", "lr_logvar", "depth", "depth_bins", "dimensions", "orientation", "proj_offset"}
         aux_preds = {k: v for k, v in preds.items() if k in aux_keys}
 
-        loss = torch.zeros(7, device=self.device)  # box, cls, lr_dist, depth, dims, orient, proj_center
-
         # Get detection losses + TAL assignment results
         (fg_mask, target_gt_idx, _, _, _), det_loss, _ = self.get_assigned_targets_and_loss(preds, batch)
-
-        if self.use_bbox_loss:
-            loss[0] = det_loss[0]  # box (already scaled by hyp.box)
-        loss[1] = det_loss[1]  # cls (already scaled by hyp.cls)
         # det_loss[2] is dfl, which is 0 since reg_max=1
 
-        # Aux losses
+        zero = preds["boxes"].sum() * 0.0  # graph-connected zero for absent components
+        comp = {
+            "box": det_loss[0] if self.use_bbox_loss else zero,  # already scaled by hyp.box
+            "cls": det_loss[1],  # already scaled by hyp.cls
+        }
         aux_losses = self._compute_aux_losses(aux_preds, batch, target_gt_idx, fg_mask)
-        for i, k in enumerate(["lr_distance", "depth", "dimensions", "orientation"], 2):
-            if k in aux_losses:
-                loss[i] = aux_losses[k] * float(self.aux_w.get(k, 1.0))
-        if "proj_center" in aux_losses:
-            loss[6] = aux_losses["proj_center"] * float(self.aux_w.get("proj_center", 1.0))
+        for name, k in (
+            ("lr_dist", "lr_distance"),
+            ("depth", "depth"),
+            ("dims", "dimensions"),
+            ("orient", "orientation"),
+        ):
+            comp[name] = aux_losses[k] * float(self.aux_w.get(k, 1.0)) if k in aux_losses else zero
+        comp["proj_center"] = (
+            aux_losses["proj_center"] * float(self.aux_w.get("proj_center", 1.0))
+            if "proj_center" in aux_losses
+            else zero
+        )
+        return comp
 
+    def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+        """Calculate stereo 3D detection loss: det losses + aux 3D losses.
+
+        Args:
+            preds: Dict with boxes, scores, feats, lr_distance, depth, dimensions, orientation.
+            batch: Batch dict with img, batch_idx, cls, bboxes, aux_targets.
+        """
+        comp = self.component_losses(preds, batch)
+        loss = torch.stack([comp[k] for k in ("box", "cls", "lr_dist", "depth", "dims", "orient", "proj_center")])
         batch_size = preds["boxes"].shape[0]
         return loss * batch_size, loss.detach()

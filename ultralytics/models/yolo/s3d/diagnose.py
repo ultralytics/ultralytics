@@ -367,6 +367,59 @@ def per_branch_gradients(losses: dict[str, torch.Tensor], params: list[torch.Ten
     return {"norms": norms, "cosine": cosine}
 
 
+def grad_diag_step(model: torch.nn.Module, batch: dict[str, Any]) -> dict[str, Any]:
+    """Run one gradient-diagnostics probe: fresh forward + per-component grads on shared params.
+
+    Args:
+        model (torch.nn.Module): Unwrapped Stereo3DDetModel with .criterion initialized.
+        batch (dict): A preprocessed training batch (img float on device, targets on device).
+
+    Returns:
+        (dict): {"norms": {...}, "cosine": {...}} from per_branch_gradients.
+    """
+    was_training = model.training
+    model.train()
+    try:
+        preds = model(batch["img"])
+        comp = model.criterion.component_losses(preds, batch)
+        live = {k: v for k, v in comp.items() if v.requires_grad}
+        return per_branch_gradients(live, shared_params(model))
+    finally:
+        model.train(was_training)
+
+
+def grad_diag_callback(trainer) -> None:
+    """Append a grad_diag.csv row every `diag_grad_every` batches (on_train_batch_end callback).
+
+    Enabled by `training: {diag_grad_every: N}` in the model YAML (see Stereo3DDetTrainer). Uses
+    autograd.grad internally, so it never touches .grad or interferes with the optimizer step.
+    """
+    from ultralytics.utils.torch_utils import unwrap_model
+
+    every = getattr(trainer, "_diag_grad_every", 0)
+    ib = getattr(trainer, "_diag_batch_i", 0)
+    trainer._diag_batch_i = ib + 1
+    if not every or ib % every:
+        return
+    model = unwrap_model(trainer.model)
+    if getattr(model, "criterion", None) is None or not hasattr(trainer, "batch"):
+        return
+    out = grad_diag_step(model, trainer.batch)
+    path = trainer.save_dir / "grad_diag.csv"
+    names = sorted(out["norms"])
+    pairs = sorted(out["cosine"])
+    if not path.exists():
+        header = ["epoch", "batch"] + [f"norm_{n}" for n in names] + [f"cos_{a}__{b}" for a, b in pairs]
+        path.write_text(",".join(header) + "\n")
+    row = (
+        [str(trainer.epoch), str(ib)]
+        + [f"{out['norms'][n]:.6g}" for n in names]
+        + [f"{out['cosine'][p]:.4f}" for p in pairs]
+    )
+    with open(path, "a") as f:
+        f.write(",".join(row) + "\n")
+
+
 def depth_bias_fit(records: list[dict[str, float]]) -> tuple[float, float, float]:
     """Fit dz = a·z_gt + b over matched predictions.
 

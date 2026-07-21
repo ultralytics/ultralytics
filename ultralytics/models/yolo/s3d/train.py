@@ -30,6 +30,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         overrides["task"] = "s3d"
         super().__init__(cfg, overrides, _callbacks)
         self.add_callback("on_train_epoch_start", Stereo3DDetTrainer._set_loss_epoch_frac)
+        self.add_callback("on_train_start", Stereo3DDetTrainer._maybe_enable_grad_diag)
 
     @staticmethod
     def _set_loss_epoch_frac(trainer):
@@ -37,6 +38,18 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         criterion = getattr(unwrap_model(trainer.model), "criterion", None)
         if criterion is not None:
             criterion.epoch_frac = trainer.epoch / max(trainer.epochs, 1)
+
+    @staticmethod
+    def _maybe_enable_grad_diag(trainer):
+        """Enable gradient diagnostics when the model YAML sets training.diag_grad_every > 0."""
+        yaml_cfg = getattr(unwrap_model(trainer.model), "yaml", {}) or {}
+        every = int((yaml_cfg.get("training") or {}).get("diag_grad_every", 0))
+        if every > 0:
+            from ultralytics.models.yolo.s3d.diagnose import grad_diag_callback
+
+            trainer._diag_grad_every = every
+            trainer._diag_batch_i = 0
+            trainer.add_callback("on_train_batch_end", grad_diag_callback)
 
     def get_validator(self):
         """Return a Stereo3DDetValidator, currently extending DetectionValidator."""

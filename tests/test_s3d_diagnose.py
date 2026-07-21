@@ -251,6 +251,45 @@ def test_shared_params_excludes_head():
     assert len(sp) == len(list(toy.model[0].parameters())) + len(list(toy.model[1].parameters()))
 
 
+def test_component_losses_matches_loss_vector():
+    """Refactored Stereo3DDetLoss.component_losses must reproduce loss() exactly (CPU, tiny model)."""
+    import math
+
+    import torch
+
+    from ultralytics import YOLO
+    from ultralytics.models.yolo.s3d.diagnose import LOSS_COMPONENT_NAMES
+    from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS
+
+    from ultralytics.cfg import get_cfg
+
+    model = YOLO("yolo26n-s3d.yaml")  # build from YAML, no weights download
+    core = model.model
+    core.args = get_cfg()  # loss reads hyp gains (box/cls) from a namespace
+    criterion = core.init_criterion()
+    imgsz = 64
+    batch = {
+        "img": torch.zeros(1, 6, imgsz, imgsz),
+        "batch_idx": torch.zeros(1),
+        "cls": torch.zeros(1, 1),
+        "bboxes": torch.tensor([[0.5, 0.5, 0.2, 0.2]]),
+        "aux_targets": {
+            "lr_distance": torch.full((1, 1, 1), 2.0),
+            "depth": torch.full((1, 1, 1), math.log(20.0)),
+            "dimensions": torch.zeros(1, 1, 3),
+            "orientation": torch.zeros(1, 1, ORIENT_CHANNELS),
+            "proj_offset": torch.zeros(1, 1, 2),
+        },
+    }
+    core.train()
+    preds = core(batch["img"])
+    comp = criterion.component_losses(preds, batch)
+    total, items = criterion.loss(preds, batch)
+    for i, name in enumerate(LOSS_COMPONENT_NAMES):
+        assert float(comp[name]) == pytest.approx(float(items[i]), abs=1e-5)
+    assert comp["depth"].requires_grad  # live graph, not detached
+
+
 def test_depth_bias_fit_recovers_slope():
     """dz = 0.05*z + 0.1 exactly → fit recovers (0.05, 0.1, ~0)."""
     rng = np.random.default_rng(0)

@@ -67,10 +67,15 @@ def _normal_dir_from_yaml(yaml_path: str | Path) -> Path:
 
 
 def _average_ood_rows(rows: list[dict]) -> dict[str, float]:
-    """Macro-average over categories, ignoring NaNs."""
+    """Macro-average over categories, ignoring NaNs and non-numeric fields (e.g. ``category``).
+
+    Averages every numeric key present, so both the heatmap-prior metrics (``mAP50`` …) and the
+    none-prior metrics (``none_mAP50`` …) are aggregated in one pass.
+    """
+    keys = [k for k in rows[0] if isinstance(rows[0].get(k), (int, float))]
     out: dict[str, float] = {}
-    for key in ("mAP10", "mAP25", "mAP50", "mAP10_50", "P", "R"):
-        vals = [r[key] for r in rows if not math.isnan(r[key])]
+    for key in keys:
+        vals = [r[key] for r in rows if isinstance(r.get(key), (int, float)) and not math.isnan(r[key])]
         out[key] = sum(vals) / len(vals) if vals else math.nan
     return out
 
@@ -109,8 +114,10 @@ class AnomalyRNDTrainer(AnomalyTrainer):
                 metrics.update(avg_metrics)
                 self.best_fitness = max(self.best_fitness or -math.inf, fitness)
                 LOGGER.info(
-                    f"OOD eval @ep{self.epoch + 1}: mAP50={avg['mAP50']:.4f} "
-                    f"mAP10={avg['mAP10']:.4f} (n={len(rows)} categories)"
+                    f"OOD eval @ep{self.epoch + 1}: [heatmap] mAP50={avg['mAP50']:.4f} "
+                    f"mAP10={avg['mAP10']:.4f} | [none] mAP50={avg.get('none_mAP50', float('nan')):.4f} "
+                    f"mAP10={avg.get('none_mAP10', float('nan')):.4f} "
+                    f"(fitness=heatmap mAP50; n={len(rows)} categories)"
                 )
         finally:
             del ema_eval
@@ -178,10 +185,25 @@ class AnomalyRNDTrainer(AnomalyTrainer):
                     "conf": 0.25,
                     "end2end": False,
                 }
+                # Pass 1: heatmap prior (memory bank active) — the yoloa_clean fitness signal.
                 validator = YOLOAnomalyValidator(args=overrides)
                 validator(trainer=None, model=model)
+                row = {"category": yaml.parent.name, **validator._ood_map_metrics()}
 
-                rows.append({"category": yaml.parent.name, **validator._ood_map_metrics()})
+                # Pass 2: none prior (bank disabled via the ``building`` flag, same toggle the viz
+                # path uses) — bare-detector baseline, logged as ``none_*`` so the per-category
+                # fusion lift (heatmap - none) is visible. Does not change fitness.
+                mb = model.memory_bank
+                saved_building = mb.building
+                mb.building = True
+                try:
+                    validator_none = YOLOAnomalyValidator(args=overrides)
+                    validator_none(trainer=None, model=model)
+                    row.update({f"none_{k}": v for k, v in validator_none._ood_map_metrics().items()})
+                finally:
+                    mb.building = saved_building
+
+                rows.append(row)
             except Exception as e:
                 LOGGER.warning(f"OOD eval failed for {yaml}: {type(e).__name__}: {e}")
 

@@ -221,7 +221,7 @@ Note that the example below is for YOLO26 [Detect](../tasks/detect.md) models fo
 
 ## YOLOE-26: Open-Vocabulary Detection and Segmentation
 
-YOLO26 also powers [YOLOE-26](yoloe.md), an open-vocabulary variant that detects and segments object categories from **text prompts**, **visual prompts**, or a **prompt-free mode** instead of a fixed class list learned at training time. YOLOE-26 keeps YOLO26's NMS-free, end-to-end (e2e) design, so open-vocabulary inference stays fast enough for dynamic environments where target categories change over time. YOLOE-26x reaches **40.6 AP** on LVIS minival under text prompting.
+YOLO26 also powers [YOLOE-26](yoloe.md), an open-vocabulary variant that detects and segments object categories from **text prompts**, **visual prompts**, or a **prompt-free mode** instead of a fixed class list learned at training time. YOLOE-26 keeps YOLO26's NMS-free, end-to-end (e2e) design, so open-vocabulary inference stays fast enough for dynamic environments where target categories change over time. YOLOE-26x reaches **40.6 AP** on LVIS minival under text prompting, **38.5 AP** under visual prompting, and **31.1 AP** in the prompt-free Non-E2E setting.
 
 See the **[YOLOE documentation](yoloe.md)** for per-scale performance tables, prompt-free variants, and full usage examples.
 

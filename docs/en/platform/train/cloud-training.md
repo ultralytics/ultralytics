@@ -151,6 +151,8 @@ Training jobs progress through the following statuses:
 | **Failed**    | Training failed (see console logs for details)       |
 | **Cancelled** | Training was cancelled by the user                   |
 
+To receive the completed and failed results without keeping this page open, connect [Slack alerts](../integrations/slack.md).
+
 !!! success "Free Credits"
 
     New accounts receive signup credits — $5 for personal emails and $25 for company emails. [Check your balance](../account/billing.md) in Settings > Billing.

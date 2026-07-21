@@ -172,7 +172,7 @@ EXPECTED_MODULES = (
     "ultralytics/data/utils.py",
     "ultralytics/data/augment.py:classify_augmentations",
     "ultralytics/data/loaders.py:__init__",  # source loaders ARE the source-validation layer; their raises are clean
-    "ultralytics/engine/trainer.py:_setup_train",  # trainer validation of batch/imgsz interplay before training
+    "ultralytics/engine/trainer.py:_build_train_pipeline",  # actual train batch/imgsz validation before optimizer setup
     "ultralytics/engine/exporter.py:validate_args",  # exporter's intentional per-format argument validation
     "ultralytics/engine/exporter.py:__call__",  # intentional compat asserts; per-format bugs raise in deeper frames
 )

@@ -1,5 +1,11 @@
 ---
 comments: true
+creator:
+    name: Roboflow
+    url: https://github.com/roboflow/roboflow-100-benchmark
+license:
+    name: MIT
+    url: https://github.com/roboflow/roboflow-100-benchmark/blob/main/LICENSE.md
 description: Explore the Roboflow 100 dataset featuring 100 diverse datasets designed to test object detection models across various domains, from healthcare to video games.
 keywords: Roboflow 100, Ultralytics, object detection, dataset, benchmarking, machine learning, computer vision, diverse datasets, model evaluation
 ---

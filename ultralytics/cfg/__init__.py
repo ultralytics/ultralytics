@@ -22,7 +22,6 @@ from ultralytics.utils import (
     LOGGER,
     RANK,
     ROOT,
-    RUNS_DIR,
     SETTINGS,
     SETTINGS_FILE,
     STR_OR_PATH,
@@ -32,8 +31,6 @@ from ultralytics.utils import (
     checks,
     colorstr,
     deprecation_warn,
-    get_python_command,
-    get_pythonpath_env,
     vscode_msg,
 )
 
@@ -94,7 +91,7 @@ TASK2METRIC = {
 }
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
-_YOLO_CLI_COMMAND = get_python_command("ultralytics.cfg.__init__")
+_YOLO_CLI_COMMAND = [sys.executable, "-m", "ultralytics.cfg.__init__"]
 SOLUTIONS_HELP_MSG = f"""
     Arguments received: {["yolo", *ARGV[1:]]!s}. Ultralytics 'yolo solutions' usage overview:
 
@@ -512,7 +509,7 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
 
         project = args.project or ""
         if not Path(project).is_absolute():
-            base = ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR
+            base = ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else Path(SETTINGS["runs_dir"])
             worker = os.environ.get("PYTEST_XDIST_WORKER")
             if worker and TESTS_RUNNING:  # isolate parallel pytest-xdist workers
                 base = base / worker
@@ -817,15 +814,14 @@ def handle_yolo_solutions(args: list[str]) -> None:
         checks.check_requirements("streamlit>=1.29.0")
         LOGGER.info("💡 Loading Ultralytics live inference app...")
         subprocess.run(
-            [
-                *get_python_command("streamlit"),
+            [  # Run subprocess with Streamlit custom argument
+                "streamlit",
                 "run",
                 str(ROOT / "solutions/streamlit_inference.py"),
                 "--server.headless",
                 "true",
                 overrides.pop("model", "yolo26n.pt"),
-            ],
-            env=get_pythonpath_env(),
+            ]
         )
     else:
         import cv2  # Only needed for cap and vw functionality

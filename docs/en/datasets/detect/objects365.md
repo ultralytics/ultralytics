@@ -1,6 +1,12 @@
 ---
 title: Objects365 Detection Dataset
 comments: true
+creator:
+    name: Objects365 Consortium
+    url: https://www.objects365.org/
+license:
+    name: CC-BY-4.0
+    url: https://www.objects365.org/download.html
 description: Objects365 is a large-scale object detection dataset with 1,742,289 training and 80,000 validation images across 365 classes. Train Ultralytics YOLO on it.
 keywords: Objects365 dataset, object detection, Megvii, large-scale dataset, model pretraining, computer vision, annotated images, bounding boxes, YOLO26, 365 classes
 ---
@@ -19,6 +25,60 @@ The [Objects365](https://www.objects365.org/) dataset is a large-scale [object d
   <br>
   <strong>Watch:</strong> How to Train Ultralytics YOLO on the Objects365 Dataset
 </p>
+
+## Objects365 Pretrained Models
+
+Ultralytics publishes [YOLO26](../../models/yolo26.md) detection and [segmentation](../../tasks/segment.md) models pretrained on Objects365v1, so you can detect its 365 classes without downloading the dataset. All models were trained for 150 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640.
+
+| Model                                                                                          | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | mAP<sup>val<br>50</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| ---------------------------------------------------------------------------------------------- | --------------------------- | -------------------------- | ----------------------- | ------------------------ | ----------------------- |
+| [YOLO26n](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-objv1-150.pt) | 640                         | 16.3                       | 22.3                    | 2.5                      | 6.0                     |
+| [YOLO26s](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-objv1-150.pt) | 640                         | 24.3                       | 31.7                    | 9.6                      | 21.3                    |
+| [YOLO26m](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-objv1-150.pt) | 640                         | 30.3                       | 38.2                    | 20.6                     | 69.4                    |
+| [YOLO26l](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-objv1-150.pt) | 640                         | 32.2                       | 40.1                    | 25.0                     | 87.7                    |
+| [YOLO26x](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-objv1-150.pt) | 640                         | 35.8                       | 44.1                    | 56.1                     | 195.7                   |
+
+Segmentation models use masks generated for Objects365v1 and report both box and mask accuracy:
+
+| Model                                                                                              | size<br><sup>(pixels)</sup> | mAP<sup>box<br>50-95</sup> | mAP<sup>mask<br>50-95</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| -------------------------------------------------------------------------------------------------- | --------------------------- | -------------------------- | --------------------------- | ------------------------ | ----------------------- |
+| [YOLO26n-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-objv1-seg.pt) | 640                         | 15.7                       | 13.2                        | 2.8                      | 9.7                     |
+| [YOLO26s-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-objv1-seg.pt) | 640                         | 23.8                       | 19.5                        | 10.5                     | 34.8                    |
+| [YOLO26m-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-objv1-seg.pt) | 640                         | 29.5                       | 23.8                        | 23.8                     | 122.7                   |
+| [YOLO26l-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-objv1-seg.pt) | 640                         | 31.7                       | 25.3                        | 28.2                     | 141.0                   |
+| [YOLO26x-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-objv1-seg.pt) | 640                         | 35.4                       | 27.9                        | 63.1                     | 315.3                   |
+
+- **mAP<sup>val</sup>** values are for single-model single-scale on the Objects365v1 validation split.
+- **Params** and **FLOPs** values are for the fused model after `model.fuse()`.
+
+You can run [prediction](../../modes/predict.md) or start fine-tuning from these checkpoints as follows.
+
+!!! example "Pretrained Model Usage Example"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load an Objects365 pretrained YOLO26n model
+        model = YOLO("yolo26n-objv1-150.pt")
+
+        # Run prediction
+        results = model.predict(source="image.jpg")
+
+        # Start training from the pretrained checkpoint
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Predict using an Objects365 pretrained model
+        yolo detect predict source=image.jpg model=yolo26n-objv1-150.pt
+
+        # Start training from an Objects365 pretrained checkpoint
+        yolo detect train data=coco8.yaml model=yolo26n-objv1-150.pt epochs=100 imgsz=640
+        ```
 
 ## Key Features
 

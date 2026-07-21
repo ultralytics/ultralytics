@@ -664,7 +664,11 @@ class YOLOAnomalyModel(DetectionModel):
                 f"module — not an anomaly checkpoint?"
             )
         # Format check 1: structural YAML knobs (catches param-free diffs like fusion_norm).
-        donor_v2 = (getattr(donor, "yaml", None) or {}).get("anomaly", {})
+        # Read the donor block from ``anomaly`` OR legacy ``anomaly_v2`` (donors trained on the
+        # yoloa_clean_louis branch label the block ``anomaly_v2``) so the knob check compares real
+        # values instead of silently falling back to defaults and false-flagging (e.g. per_scale).
+        donor_yaml = getattr(donor, "yaml", None) or {}
+        donor_v2 = donor_yaml.get("anomaly") or donor_yaml.get("anomaly_v2") or {}
         cur_v2 = (self.yaml or {}).get("anomaly", {})
         cfg_diff = [
             f"  {k}: ckpt={donor_v2.get(k, d)!r} vs model={cur_v2.get(k, d)!r}"

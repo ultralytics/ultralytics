@@ -477,7 +477,11 @@ def test_track_stream(model, tmp_path):
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
-    if model in {"yolo26n-cls.pt", "yolo26n-sem.pt"}:  # classification and semantic segmentation not supported
+    if model in {
+        "yolo26n-cls.pt",
+        "yolo26n-sem.pt",
+        "yolo26n-depth.pt",
+    }:  # classification, semantic, and depth not supported
         return
     from ultralytics.trackers.track import TRACKER_MAP
 
@@ -553,14 +557,14 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics.to_df()
         metrics.to_csv()
         metrics.to_json()
-        # Tests for confusion matrix export
-        metrics.confusion_matrix.to_df()
-        metrics.confusion_matrix.to_csv()
-        metrics.confusion_matrix.to_json()
-        cm = metrics.confusion_matrix
-        expected = cm.nc if task in {"classify", "semantic"} else cm.nc + 1  # detection-style tasks include background
-        assert cm.matrix.shape == (expected, expected), f"{task} confusion matrix is {cm.matrix.shape}"
-        assert len(cm.tp_fp()[0]) == cm.nc  # per-class TP/FP never include background
+        if task != "depth":  # depth is dense regression: no classes, no confusion matrix
+            metrics.confusion_matrix.to_df()
+            metrics.confusion_matrix.to_csv()
+            metrics.confusion_matrix.to_json()
+            cm = metrics.confusion_matrix
+            expected = cm.nc if task in {"classify", "semantic"} else cm.nc + 1  # background for detection tasks
+            assert cm.matrix.shape == (expected, expected), f"{task} confusion matrix is {cm.matrix.shape}"
+            assert len(cm.tp_fp()[0]) == cm.nc  # per-class TP/FP never include background
 
 
 def test_val_save_txt_pose(tmp_path):
@@ -921,6 +925,57 @@ def test_results_plot_without_boxes():
         assert r.plot(color_mode=color_mode).shape == orig_img.shape
 
 
+def test_results_depth_field():
+    """A depth array becomes a DepthMap that survives the .cpu().numpy() chain."""
+    from ultralytics.engine.results import DepthMap, Results
+
+    img = np.zeros((20, 24, 3), dtype=np.uint8)
+    depth = np.random.rand(20, 24).astype(np.float32)
+    r = Results(orig_img=img, path="x.jpg", names={0: "depth"}, depth=depth)
+    assert isinstance(r.depth, DepthMap)
+    assert r.depth.data.shape == (20, 24)
+    rc = r.cpu().numpy()  # exercises BaseTensor _keys plumbing (.cpu()/.numpy())
+    assert rc.depth is not None
+    assert rc.depth.data.shape == (20, 24)  # shape survives the .cpu().numpy() chain
+
+
+def test_results_depth_none_summary_len_and_update():
+    """Depth-only Results: None passthrough, empty summary, __len__ counts the map, update() wraps arrays."""
+    from ultralytics.engine.results import DepthMap, Results
+
+    img = np.zeros((8, 8, 3), dtype=np.uint8)
+    assert Results(orig_img=img, path="x.jpg", names={}, depth=None).depth is None
+    r = Results(orig_img=img, path="x.jpg", names={0: "depth"}, depth=np.ones((8, 8), dtype=np.float32))
+    assert r.summary() == []  # depth-only Results has no per-instance summary
+    assert len(r) == 1  # __len__ returns the depth map count
+    r = Results(orig_img=img, path="x.jpg", names={0: "depth"})
+    r.update(depth=np.ones((8, 8), dtype=np.float32))
+    assert isinstance(r.depth, DepthMap)
+
+
+def test_results_plot_with_depth():
+    """Results.plot() with a depth map blends the colorized depth heatmap over the image."""
+    from ultralytics.engine.results import Results
+
+    img = np.zeros((24, 24, 3), dtype=np.uint8)
+    depth = np.random.rand(24, 24).astype(np.float32)
+    r = Results(orig_img=img, path="x.jpg", names={0: "depth"}, depth=depth)
+    out = r.plot()  # must not raise; returns an annotated image (masks=True by default)
+    assert out.shape[:2] == (24, 24)  # heatmap overlaid, same size as input
+
+
+def test_annotator_depth_map():
+    """Annotator.depth_map colorizes a depth array, including the all-zero (no valid pixels) case."""
+    from ultralytics.utils.plotting import Annotator
+
+    ann = Annotator(np.zeros((32, 32, 3), dtype=np.uint8))
+    ann.depth_map(np.random.rand(32, 32).astype(np.float32))
+    assert ann.result().shape == (32, 32, 3)
+    ann = Annotator(np.zeros((16, 16, 3), dtype=np.uint8))
+    ann.depth_map(np.zeros((16, 16), dtype=np.float32))  # no valid pixels → must not divide-by-zero
+    assert ann.result().shape == (16, 16, 3)
+
+
 def test_results_update_probs():
     """Test that Results.update(probs=...) wraps the tensor in Probs like the sibling attributes."""
     from ultralytics.engine.results import Probs, Results
@@ -1139,6 +1194,96 @@ def test_cfg_init():
     assert smart_value("zipfile.Path") == "zipfile.Path"
 
 
+def test_depth_calibration_checkpoint_provenance(tmp_path):
+    """Depth calibration persists the selected transform and sample count with the checkpoint."""
+    from copy import deepcopy
+
+    from ultralytics.models.yolo.depth.calibrate import _depth_head, calibrate_checkpoint
+    from ultralytics.nn.tasks import DepthModel
+    from ultralytics.utils.patches import torch_load
+
+    torch.manual_seed(0)
+    model = DepthModel("yolo26n-depth.yaml", verbose=False)
+    batches = [
+        {"img": (torch.rand(2, 3, 64, 64) * 255).to(torch.uint8), "depth": torch.rand(2, 64, 64) * 5 + 0.5}
+        for _ in range(4)
+    ]
+    path = tmp_path / "depth.pt"
+    torch.save({"model": deepcopy(model).half()}, path)
+
+    provenance = calibrate_checkpoint(
+        path, batches, device="cpu", dataset_hash="manifest-sha256", validation_split="images/val"
+    )
+    checkpoint = torch_load(path)
+    head = _depth_head(checkpoint["model"])
+
+    assert provenance == checkpoint["depth_calibration"]
+    assert provenance["candidate"] in {"identity", "scale-only"}
+    assert provenance["images"] == 8
+    assert provenance["status"] == "selected"
+    assert provenance["dataset_hash"] == "manifest-sha256"
+    assert provenance["validation_split"] == "images/val"
+    assert provenance["strategy"] == "two-fold-held-out-delta1"
+    assert set(provenance["scores"]) == {"identity", "scale-only"}
+    assert float(head.cal_a) == provenance["a"]
+    assert float(head.cal_b) == provenance["b"]
+
+
+@pytest.mark.parametrize("external", [False, True])
+def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch, external):
+    """Calibration provenance records local splits without rejecting external validation paths."""
+    from types import SimpleNamespace
+
+    from ultralytics.models.yolo import detect
+    from ultralytics.models.yolo.depth import calibrate
+    from ultralytics.models.yolo.depth.train import DepthTrainer
+
+    dataset_root = tmp_path / "private" / "dataset"
+    validation_path = (tmp_path / "shared" if external else dataset_root) / "images" / "val"
+    validation_path.mkdir(parents=True)
+    checkpoint = tmp_path / "best.pt"
+    checkpoint.touch()
+    captured = {}
+    monkeypatch.setattr(detect.DetectionTrainer, "final_eval", lambda _self: None)
+    monkeypatch.setattr(
+        calibrate,
+        "calibrate_checkpoint",
+        lambda *_args, **kwargs: captured.update(kwargs) or {"status": "selected"},
+    )
+    trainer = DepthTrainer.__new__(DepthTrainer)
+    trainer.best = checkpoint
+    trainer.last = tmp_path / "last.pt"
+    trainer.save_dir = tmp_path
+    trainer.args = SimpleNamespace(plots=False)
+    trainer.test_loader = []
+    trainer.device = "cpu"
+    trainer.data = {"path": dataset_root, "val": str(validation_path), "hash": "manifest-sha256"}
+
+    trainer.final_eval()
+
+    assert captured["validation_split"] == (None if external else "images/val")
+    if captured["validation_split"] is not None:
+        assert str(tmp_path) not in captured["validation_split"]
+
+
+def test_depth_dataset_ignores_unreadable_targets(tmp_path):
+    """Drop images with missing or corrupt depth maps during the cached dataset scan."""
+    from ultralytics.data.dataset import DepthDataset
+
+    images, depth = tmp_path / "images" / "train", tmp_path / "depth" / "train"
+    images.mkdir(parents=True)
+    depth.mkdir(parents=True)
+    for name in ("valid", "corrupt", "missing"):
+        cv2.imwrite(str(images / f"{name}.jpg"), np.zeros((32, 32, 3), np.uint8))
+    np.save(depth / "valid.npy", np.ones((32, 32), dtype=np.float32))
+    (depth / "corrupt.npy").write_text("not an npy file")
+
+    data = {"names": {0: "depth"}, "nc": 1, "channels": 3}
+    ds = DepthDataset(img_path=str(images), imgsz=32, data=data, augment=False, batch_size=1)
+    assert [Path(f).stem for f in ds.im_files] == ["valid"]
+    assert (depth.parent / "train.cache").exists()  # scan results cached next to the depth maps
+
+
 def test_utils_init():
     """Test initialization utilities in the Ultralytics library."""
     from ultralytics.utils import get_ubuntu_version, is_github_action_running
@@ -1219,9 +1364,43 @@ def test_semantic_loss_all_ignore(nc):
     preds = torch.randn(1, nc, 64, 64, requires_grad=True)
     aux = torch.randn(1, nc, 32, 32, requires_grad=True)
     loss, items = loss_fn((preds, aux), {"semantic_mask": torch.full((1, 64, 64), 255, dtype=torch.long)})
-    assert torch.isfinite(loss).all() and torch.isfinite(items).all()
+    assert torch.isfinite(loss).all() and all(torch.isfinite(x).all() for x in items.values())
     loss.backward()
     assert preds.grad is not None and aux.grad is not None
+
+
+class _DepthLossModel(torch.nn.Module):
+    """Tiny stub mirroring the model surface DepthLoss26 reads: .parameters() for device and .args for hyps."""
+
+    def __init__(self, **over):
+        super().__init__()
+        from types import SimpleNamespace
+
+        self.p = torch.nn.Parameter(torch.zeros(1))
+        hyp = dict(dlog=1.0, dgrad=0.5, dlam=1.0)
+        hyp.update(over)
+        self.args = SimpleNamespace(**hyp)
+
+
+def _depth_loss_for_scaled_pred(lam, scale):
+    """Return the SILog-only depth loss for a prediction with perfect structure but wrong global scale."""
+    from ultralytics.utils.loss import DepthLoss26
+
+    crit = DepthLoss26(_DepthLossModel(dlam=lam, dgrad=0.0))  # SILog only
+    gt = torch.rand(2, 1, 16, 16) * 5 + 1.0
+    pred = (gt * scale).clone().requires_grad_(True)
+    total, _ = crit({"depth": pred}, {"depth": gt})
+    return float(total.sum().detach())
+
+
+def test_v26_depth_loss_lower_lambda_penalizes_scale_error_more():
+    """A globally scale-shifted prediction is ~free under scale-invariant SILog (dlam=1) but must be heavily penalized
+    as dlam drops (loss becomes scale-dependent).
+    """
+    loss_invariant = _depth_loss_for_scaled_pred(lam=1.0, scale=2.0)
+    loss_anchored = _depth_loss_for_scaled_pred(lam=0.15, scale=2.0)
+    assert loss_invariant < 0.05
+    assert loss_anchored > 5 * max(loss_invariant, 1e-6)
 
 
 def test_utils_ops():
@@ -1375,6 +1554,33 @@ def test_nn_modules_block():
     C3TR(c1, c2)(x)
     C3Ghost(c1, c2)(x)
     BottleneckCSP(c1, c2)(x)
+
+
+def _depth_head_feats():
+    """Return a small Depth head constructor kwargs-matched P3/P4/P5 feature pyramid."""
+    return [torch.randn(1, 32, 32, 32), torch.randn(1, 64, 16, 16), torch.randn(1, 128, 8, 8)]
+
+
+def test_nn_depth_head_export_upsamples_to_input():
+    """Depth export upsamples x4 to input resolution; inference returns native head resolution."""
+    from ultralytics.nn.modules.head import Depth
+
+    head = Depth(c_mid=32, ch=(32, 64, 128)).eval()
+    for fmt in ("onnx", "coreml"):
+        head.export, head.format = True, fmt
+        assert head(_depth_head_feats()).shape[-2:] == (256, 256)
+    head.export = False
+    assert head(_depth_head_feats()).shape[-2:] != (256, 256)  # inference returns native head resolution
+
+
+def test_nn_depth_head_no_dead_parameters():
+    """Every head parameter receives gradient — DDP then needs no find_unused_parameters."""
+    from ultralytics.nn.modules.head import Depth
+
+    head = Depth(c_mid=32, ch=(32, 64, 128)).train()
+    head(_depth_head_feats())["depth"].sum().backward()
+    unused = [n for n, p in head.named_parameters() if p.grad is None]
+    assert not unused, f"parameters with no gradient: {unused}"
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
@@ -1651,7 +1857,7 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     """Test YOLO model grayscale training, validation, and prediction functionality."""
     if IS_RASPBERRYPI and task == "semantic":
         skip_rpi_semantic()
-    if task == "classify":  # not support grayscale classification yet
+    if task in {"classify", "depth"}:  # grayscale not supported for classification or depth tasks
         return
     grayscale_data = tmp_path / f"{Path(data).stem}-grayscale.yaml"
     data = check_det_dataset(data)

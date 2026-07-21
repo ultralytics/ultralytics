@@ -110,6 +110,9 @@ jobs:
       - name: Benchmark SemanticSegmentationModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-sem.pt' imgsz=160 verbose=0.189
+      - name: Benchmark DepthModel
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-depth.pt' imgsz=160 verbose=0.5
       - name: Merge Coverage Reports
         run: |
           coverage xml -o coverage-benchmarks.xml

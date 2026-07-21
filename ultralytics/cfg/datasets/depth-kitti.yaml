@@ -1,0 +1,68 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# KITTI dataset for monocular depth estimation — real outdoor driving, Velodyne HDL-64 LiDAR (densified), sparse, up to ~80 m
+# Documentation: https://docs.ultralytics.com/datasets/depth/kitti
+# Example usage: yolo depth train data=depth-kitti.yaml model=yolo26n-depth.pt
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── depth-kitti  ← downloads here (~190 GB archives, ~230 GB converted)
+#         ├── images/{train,val}  # RGB images
+#         └── depth/{train,val}   # paired *.npy, float32 meters (images/ -> depth/)
+# If an interrupted download leaves a partial dataset, delete the depth-kitti dir and re-run to rebuild it.
+
+path: depth-kitti # dataset root dir (relative to Ultralytics settings 'datasets_dir')
+train: images/train # train images (relative to 'path') 60040 images
+val: images/val # val images (relative to 'path') 32378 images (KITTI Eigen test split)
+max_depth: 80 # (m) maximum valid depth; GT beyond this is excluded from val metrics
+
+nc: 1
+names:
+  0: depth
+
+channels: 3
+
+# Download script/URL (optional)
+download: |
+  import shutil
+  from pathlib import Path
+
+  import cv2
+  import numpy as np
+
+  from ultralytics.utils import TQDM
+  from ultralytics.utils.downloads import download
+
+  # Drives of the 28 KITTI Eigen test scenes -> val; every other annotated drive -> train
+  VAL_DRIVES = """2011_09_26_drive_0002 2011_09_26_drive_0009 2011_09_26_drive_0013 2011_09_26_drive_0020
+  2011_09_26_drive_0023 2011_09_26_drive_0027 2011_09_26_drive_0029 2011_09_26_drive_0036 2011_09_26_drive_0046
+  2011_09_26_drive_0048 2011_09_26_drive_0052 2011_09_26_drive_0056 2011_09_26_drive_0059 2011_09_26_drive_0064
+  2011_09_26_drive_0084 2011_09_26_drive_0086 2011_09_26_drive_0093 2011_09_26_drive_0096 2011_09_26_drive_0101
+  2011_09_26_drive_0106 2011_09_26_drive_0117 2011_09_28_drive_0002 2011_09_29_drive_0026 2011_09_29_drive_0071
+  2011_09_30_drive_0016 2011_10_03_drive_0034 2011_10_03_drive_0042 2011_10_03_drive_0047""".split()
+  # Annotated drives excluded from the release training set (raw data was unavailable at build time)
+  SKIP_DRIVES = {"2011_09_28_drive_0104", "2011_09_28_drive_0135", "2011_09_28_drive_0177", "2011_09_28_drive_0214"}
+
+  # Download the improved sparse GT (~14 GB) and the raw recordings it covers (~175 GB)
+  dir = Path(yaml["path"])  # dataset root dir
+  base = "https://s3.eu-central-1.amazonaws.com/avg-kitti"
+  download([f"{base}/data_depth_annotated.zip"], dir=dir / "source", delete=True, exist_ok=True)
+  gt_drives = sorted(p for p in (dir / "source" / "data_depth_annotated").glob("*/*_sync") if p.name[:-5] not in SKIP_DRIVES)
+  urls = [f"{base}/raw_data/{p.name[:-5]}/{p.name}.zip" for p in gt_drives]
+  download(urls, dir=dir / "source" / "raw", delete=True, exist_ok=True, threads=4)
+
+  # Convert: GT PNGs are uint16 meters*256; RGB frames come from the matching raw drive
+  for split in ("train", "val"):
+      (dir / "images" / split).mkdir(parents=True, exist_ok=True)
+      (dir / "depth" / split).mkdir(parents=True, exist_ok=True)
+  for gt in TQDM(gt_drives, desc="Converting"):
+      drive = gt.name[:-5]  # 2011_09_26_drive_0002
+      split = "val" if drive in VAL_DRIVES else "train"
+      for cam in ("image_02", "image_03"):
+          for png in sorted((gt / "proj_depth" / "groundtruth" / cam).glob("*.png")):
+              name = f"{drive}_{cam[-2:]}_{png.stem}"
+              depth = cv2.imread(str(png), cv2.IMREAD_ANYDEPTH).astype(np.float32) / 256.0
+              np.save(dir / "depth" / split / f"{name}.npy", depth)
+              raw = dir / "source" / "raw" / drive[:10] / gt.name / cam / "data" / png.name
+              raw.replace(dir / "images" / split / f"{name}.png")
+  shutil.rmtree(dir / "source")

@@ -293,7 +293,7 @@ POST /api/datasets
 
 !!! note "Supported Tasks"
 
-    Valid `task` values: `detect`, `segment`, `semantic`, `classify`, `pose`, `obb`.
+    Valid `task` values: `detect`, `segment`, `semantic`, `classify`, `pose`, `obb`. Depth datasets are coming soon.
 
 **Response:**
 
@@ -911,13 +911,13 @@ POST /api/models
 
 **JSON Body:**
 
-| Field         | Type   | Required | Description                                                |
-| ------------- | ------ | -------- | ---------------------------------------------------------- |
-| `projectId`   | string | Yes      | Target project ID                                          |
-| `slug`        | string | No       | URL slug (lowercase alphanumeric/hyphens)                  |
-| `name`        | string | No       | Display name (max 100 chars)                               |
-| `description` | string | No       | Model description (max 1000 chars)                         |
-| `task`        | string | No       | Task type (detect, segment, semantic, pose, obb, classify) |
+| Field         | Type   | Required | Description                                                       |
+| ------------- | ------ | -------- | ----------------------------------------------------------------- |
+| `projectId`   | string | Yes      | Target project ID                                                 |
+| `slug`        | string | No       | URL slug (lowercase alphanumeric/hyphens)                         |
+| `name`        | string | No       | Display name (max 100 chars)                                      |
+| `description` | string | No       | Model description (max 1000 chars)                                |
+| `task`        | string | No       | Task type (detect, segment, semantic, depth, pose, obb, classify) |
 
 !!! note "Model File Upload"
 
@@ -1024,7 +1024,7 @@ Provide either `file` or `source`. Maximum upload size is 100 MB.
 
 **Response:**
 
-Responses contain per-image `shape`, `speed`, `results`, and optional semantic mask data, plus `metadata` with image count, function timing, task, and service versions. Internal model paths are never returned.
+Responses contain per-image `shape`, `speed`, `results`, and optional dense pixel-map data (a semantic class map, or a 16-bit depth map where `depth = pixel × max / 65535`), plus `metadata` with image count, function timing, task, and service versions. Internal model paths are never returned.
 
 ```json
 {

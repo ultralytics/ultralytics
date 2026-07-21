@@ -320,6 +320,35 @@ Response format varies by task:
 
     Semantic segmentation returns per-class pixel coverage (`pixel_ratio`, the fraction of image pixels assigned to each class) instead of per-object boxes.
 
+=== "Depth"
+
+    ```json
+    {
+      "results": [],
+      "depth": {
+        "shape": [480, 640],
+        "encoding": "png",
+        "data": "<base64 16-bit grayscale PNG>",
+        "min": 0.31,
+        "max": 79.9
+      }
+    }
+    ```
+
+    [Depth estimation](../../tasks/depth.md) returns a dense per-pixel map instead of per-object results: a base64-encoded 16-bit grayscale PNG where `depth = pixel × max / 65535` and a pixel value of `0` means no depth. Decode it with any image library:
+
+    ```python
+    import base64
+    import io
+
+    import numpy as np
+    from PIL import Image
+
+    depth = response["images"][0]["depth"]
+    pixels = np.asarray(Image.open(io.BytesIO(base64.b64decode(depth["data"]))))
+    meters = pixels * depth["max"] / 65535.0  # 0 = no depth
+    ```
+
 === "Pose"
 
     ```json

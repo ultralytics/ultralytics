@@ -97,7 +97,8 @@ class BaseTrainer:
         fitness (float): Current fitness value.
         loss (torch.Tensor): Current loss value.
         tloss (dict): Running mean of loss items.
-        loss_names (tuple): Names of loss items, derived from the loss dict returned by the criterion on the first batch.
+        loss_names (tuple): Names of loss items, derived from the loss dict returned by the criterion on the first
+            batch.
         csv (Path): Path to results CSV file.
         metrics (dict): Dictionary of metrics.
         plots (dict): Dictionary of plots.

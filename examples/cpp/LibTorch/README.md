@@ -6,8 +6,8 @@ A C++ application that runs every [Ultralytics YOLO](https://docs.ultralytics.co
 
 ## ✨ Features
 
-- **All tasks:** [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and YOLO26 semantic segmentation.
-- **All generations:** [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLO11](https://docs.ultralytics.com/models/yolo11), and [YOLO26](https://docs.ultralytics.com/models/yolo26). Grid (YOLOv8/11) and end-to-end (YOLO26) outputs are detected automatically.
+- **All tasks:** [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and Ultralytics YOLO26 semantic segmentation.
+- **All generations:** [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8), [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11), and [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26). Grid (YOLOv8/11) and end-to-end (YOLO26) outputs are detected automatically.
 - **Zero configuration:** task, class names, and `imgsz` come from the TorchScript `config.txt` metadata that Ultralytics embeds on export.
 
 ## 📋 Dependencies

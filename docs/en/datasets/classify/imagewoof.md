@@ -1,6 +1,12 @@
 ---
 title: ImageWoof Image Classification Dataset
 comments: true
+creator:
+    name: fast.ai
+    url: https://github.com/fastai/imagenette
+license:
+    name: Research-Only
+    url: https://www.image-net.org/download.php
 description: ImageWoof is a challenging 12,954-image subset of ImageNet with 10 dog breeds, built for fine-grained image classification training and benchmarking.
 keywords: ImageWoof dataset, ImageNet subset, dog breeds, image classification, fine-grained classification, deep learning, machine learning, Ultralytics, noisy labels
 ---

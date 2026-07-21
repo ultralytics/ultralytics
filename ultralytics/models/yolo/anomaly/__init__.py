@@ -3,7 +3,7 @@
 from .predict import AnomalyPredictor, AnomalyPredictorHM
 from .train import AnomalyTrainer
 from .train_rnd import AnomalyRNDTrainer
-from .val import YOLOAnomalyValidator, YOLOAnomalyValidatorHM
+from .val import YOLOAnomalyCocoValidator, YOLOAnomalyValidator, YOLOAnomalyValidatorHM
 
 __all__ = (
     "AnomalyPredictor",
@@ -12,4 +12,5 @@ __all__ = (
     "AnomalyRNDTrainer",
     "YOLOAnomalyValidator",
     "YOLOAnomalyValidatorHM",
+    "YOLOAnomalyCocoValidator",
 )

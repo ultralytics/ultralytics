@@ -4,12 +4,15 @@
 
 from __future__ import annotations
 
+import csv
+import json
 from pathlib import Path
 
 import cv2
 import numpy as np
 import torch
 import torch.distributed as dist
+import yaml
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.models.yolo.anomaly.predict import AnomalyPredictorHM
@@ -359,3 +362,282 @@ class YOLOAnomalyValidatorHM(YOLOAnomalyValidator):
                 b[:, [1, 3]] *= sy  # y1, y2
             outputs.append({"bboxes": b[:, :4], "conf": b[:, 4], "cls": b[:, 5], "extra": b[:, 6:]})
         return outputs
+
+
+class YOLOAnomalyCocoValidator(YOLOAnomalyValidator):
+    """Anomaly validator that owns the full offline COCO-eval pipeline for MVTec.
+
+    Two responsibilities:
+
+    1. **Dump** — during ``model.val(..., save_json=True)`` it serializes predictions to
+       ``save_dir/predictions.json`` with an integer ``image_id`` = the 0-based index into
+       ``val.txt`` order. Native ``DetectionValidator.pred_to_json`` keys on the file-name
+       stem, which for MVTec is a non-numeric string (``0_000``) that faster-coco-eval
+       rejects and that collides across categories in pooled eval; the integer scheme fixes
+       both and matches :meth:`build_coco_gt`.
+    2. **Evaluate** — :meth:`evaluate_run` runs multi-confidence COCO eval offline over the
+       dumped predictions (per-category + pooled, loose ``.10:.50`` and standard ``.50:.95``
+       IoU grids). Because the dump keeps every box (``conf=DUMP_CONF``), each conf floor is
+       obtained by ``loadRes(preds, min_score=conf)`` — a single inference pass covers the
+       whole sweep, no re-inference and no temp files.
+
+    Driver usage::
+
+        for cat in cats:
+            model.set_memory(...)
+            model.val(validator=YOLOAnomalyCocoValidator, conf=YOLOAnomalyCocoValidator.DUMP_CONF,
+                      iou=YOLOAnomalyCocoValidator.DUMP_IOU, save_json=True,
+                      project=str(out_root), name=cat, exist_ok=True, ...)
+        YOLOAnomalyCocoValidator.evaluate_run(out_root, cat_to_yaml, conf_sweep, cat_arg)
+    """
+
+    # Dump-time thresholds: keep nearly every detection so any conf floor can be applied offline.
+    DUMP_CONF = 0.001
+    DUMP_IOU = 0.2
+    # COCO IoU grids. Loose linspace(.10,.50,9): .10=idx0 .25=idx3 .50=idx8. Standard = canonical COCO.
+    IOU_LOOSE = np.linspace(0.1, 0.5, 9)
+    IOU_STANDARD = np.linspace(0.5, 0.95, 10)
+
+    # -- dump-pass lifecycle ---------------------------------------------------
+    def init_metrics(self, model) -> None:
+        """Build the val.txt-ordered {abs_path: int id} map used for stable image ids."""
+        super().init_metrics(model)
+        val_file = Path(self.data["path"]) / self.data["val"]
+        paths = [line.strip() for line in val_file.read_text().splitlines() if line.strip()]
+        self._imgid_map = {Path(p).as_posix(): i for i, p in enumerate(paths)}
+
+    def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, any]) -> None:
+        """Serialize one image's predictions with an integer, val.txt-ordered image_id."""
+        key = Path(pbatch["im_file"]).as_posix()
+        image_id = self._imgid_map.get(key)
+        if image_id is None:  # val loader order diverged from val.txt — id scheme would break
+            raise KeyError(f"{key} not in val.txt id map (order mismatch between loader and val.txt)")
+        box = ops.xyxy2xywh(predn["bboxes"])  # xywh (center)
+        box[:, :2] -= box[:, 2:] / 2  # center -> top-left corner
+        for b, s in zip(box.tolist(), predn["conf"].tolist()):
+            self.jdict.append(
+                {
+                    "image_id": image_id,
+                    "category_id": 0,  # single-class — matches build_coco_gt's cls_id=0
+                    "bbox": [round(x, 3) for x in b],
+                    "score": round(s, 5),
+                }
+            )
+
+    def eval_json(self, stats: dict[str, any]) -> dict[str, any]:
+        """Skip the native is_coco/is_lvis path; predictions.json is dumped by the base validator."""
+        return stats
+
+    # -- offline COCO eval (moved from run_yoloa; multi-conf, in-memory) --------
+    @staticmethod
+    def build_coco_gt(yaml_path, rebuild: bool = False) -> dict:
+        """Convert YOLO-seg val labels to a COCO ground-truth dict (bbox from polygon).
+
+        ``image_id`` = 0-based index into ``val.txt`` order (integer), matching
+        :meth:`pred_to_json`. GT is static (labels only), so the result is cached to
+        ``coco_gt.json`` next to the val list and reused unless the cache is missing/stale
+        (older than ``val.txt``) or ``rebuild`` is set.
+        """
+        yaml_path = Path(yaml_path)
+        with open(yaml_path) as f:
+            data = yaml.safe_load(f)
+        root = Path(data["path"])
+        val_file = root / data["val"]
+
+        cache_path = val_file.with_name("coco_gt.json")
+        if not rebuild and cache_path.is_file() and cache_path.stat().st_mtime >= val_file.stat().st_mtime:
+            with open(cache_path) as f:
+                LOGGER.info(f"  loaded cached GT -> {cache_path}")
+                return json.load(f)
+
+        with open(val_file) as f:
+            img_paths = [line.strip() for line in f if line.strip()]
+
+        images, annotations = [], []
+        ann_id = 0
+        for i, img_path_str in enumerate(img_paths):
+            image_id = i  # integer — matches pred_to_json list-index
+            img = cv2.imread(img_path_str)
+            if img is None:
+                continue
+            h, w = img.shape[:2]
+            images.append({"id": image_id, "file_name": img_path_str, "width": w, "height": h})
+
+            label_path = Path(img_path_str).with_suffix(".txt")
+            if not label_path.is_file():
+                continue  # negative image — no GT annotation needed
+            with open(label_path) as fh:
+                for line in fh:
+                    parts = line.strip().split()
+                    if len(parts) < 5:  # cls_id + ≥2 polygon points (4 coords)
+                        continue
+                    cls_id = 0  # force single-class: MVTec binary labels still carry original ids
+                    points = list(map(float, parts[1:]))
+                    xs = [points[j] * w for j in range(0, len(points), 2)]
+                    ys = [points[j] * h for j in range(1, len(points), 2)]
+                    x_min, y_min = min(xs), min(ys)
+                    x_max, y_max = max(xs), max(ys)
+                    bw, bh = x_max - x_min, y_max - y_min
+                    annotations.append(
+                        {
+                            "id": ann_id,
+                            "image_id": image_id,
+                            "category_id": cls_id,
+                            "bbox": [round(x_min, 1), round(y_min, 1), round(bw, 1), round(bh, 1)],
+                            "area": round(bw * bh, 1),
+                            "iscrowd": 0,
+                        }
+                    )
+                    ann_id += 1
+
+        names = data.get("names", ["anomaly"])
+        if isinstance(names, list):
+            categories = [{"id": i, "name": n} for i, n in enumerate(names)]
+        else:
+            categories = [{"id": i, "name": n} for i, n in names.items()]
+
+        gt = {"info": {}, "licenses": [], "images": images, "annotations": annotations, "categories": categories}
+        with open(cache_path, "w") as f:
+            json.dump(gt, f)
+        LOGGER.info(f"  cached GT ({len(images)} imgs, {len(annotations)} anns) -> {cache_path}")
+        return gt
+
+    @staticmethod
+    def _ap_at_iou(precision, iou_thrs, target: float, tol: float = 1e-3) -> float:
+        """Mean AP at a single IoU threshold from the COCO precision tensor.
+
+        ``precision`` has shape [T, R, K, A, M]; slice IoU index ``t`` at area=all (0) and
+        maxDet=100 (-1) and average the valid (>-1) recall points. Returns NaN if ``target``
+        is absent from ``iou_thrs`` (e.g. .10/.25 in the standard .50:.95 grid).
+        """
+        matches = np.where(np.abs(iou_thrs - target) < tol)[0]
+        if precision is None or matches.size == 0:
+            return float("nan")
+        p = precision[matches[0], :, :, 0, -1]
+        p = p[p > -1]
+        return round(float(p.mean()), 4) if p.size else 0.0
+
+    @classmethod
+    def _coco_ap(cls, anno, preds: list[dict], iou_thrs, min_score: float = 0.0) -> dict:
+        """One COCOeval over a prebuilt GT ``anno`` and score-filtered ``preds`` (in-memory)."""
+        from faster_coco_eval import COCOeval_faster
+
+        stat_keys = ["AP", "AP50", "AP75", "AP_small", "AP_medium", "AP_large", "AR1", "AR10", "AR100"]
+        zero = {k: 0.0 for k in stat_keys}
+        zero.update({"mAP10": float("nan"), "mAP25": float("nan"), "mAP50": float("nan")})
+        if not preds or not any(p["score"] >= min_score for p in preds):
+            return zero
+
+        pred = anno.loadRes(preds, min_score=min_score)  # faster-coco-eval filters by score
+        val = COCOeval_faster(anno, pred, iouType="bbox", print_function=LOGGER.info)
+        val.params.iouThrs = iou_thrs
+        val.evaluate()
+        val.accumulate()
+        val.summarize()
+
+        precision = val.eval["precision"] if getattr(val, "eval", None) else None
+        d = val.stats_as_dict  # faster-coco-eval: AR_all=1, AR_second=10, AR_third=100
+        return {
+            "AP": round(float(d.get("AP_all", 0)), 4),
+            "AP50": round(float(d.get("AP_50", 0)), 4),
+            "AP75": round(float(d.get("AP_75", 0)), 4),
+            "AP_small": round(float(d.get("AP_small", 0)), 4),
+            "AP_medium": round(float(d.get("AP_medium", 0)), 4),
+            "AP_large": round(float(d.get("AP_large", 0)), 4),
+            "AR1": round(float(d.get("AR_all", 0)), 4),
+            "AR10": round(float(d.get("AR_second", 0)), 4),
+            "AR100": round(float(d.get("AR_third", 0)), 4),
+            "mAP10": cls._ap_at_iou(precision, iou_thrs, 0.10),
+            "mAP25": cls._ap_at_iou(precision, iou_thrs, 0.25),
+            "mAP50": cls._ap_at_iou(precision, iou_thrs, 0.50),
+        }
+
+    @classmethod
+    def evaluate_run(cls, out_root, cat_to_yaml: dict, cat_to_json: dict, conf_sweep, cat_arg: str, rebuild_gt: bool = False) -> None:
+        """Offline multi-conf COCO eval over dumped predictions.json — per-cat + POOLED, one CSV.
+
+        Args:
+            out_root: run output root; the CSV is written to ``out_root/coco_<cat_arg>.csv``.
+            cat_to_yaml: ordered {category: data-yaml Path} produced by the driver.
+            cat_to_json: {category: predictions.json Path} — the exact file each dump pass wrote.
+            conf_sweep: conf floors to evaluate (each applied via ``loadRes(min_score=conf)``).
+            cat_arg: original ``--cat`` value; names the CSV ``coco_<cat_arg>.csv``.
+            rebuild_gt: force rebuild of the cached ``coco_gt.json``.
+        """
+        from faster_coco_eval import COCO
+
+        out_root = Path(out_root)
+        regimes = [("loose(.10:.50)", cls.IOU_LOOSE), ("standard(.50:.95)", cls.IOU_STANDARD)]
+        rows = []
+        all_gt = {"info": {}, "licenses": [], "images": [], "annotations": [], "categories": [{"id": 0, "name": "anomaly"}]}
+        all_preds = []
+        ann_offset = 0  # keep annotation ids unique across cats in pooled GT
+
+        for cat, yaml_path in cat_to_yaml.items():
+            pred_json = cat_to_json.get(cat)
+            if pred_json is None or not Path(pred_json).is_file():
+                LOGGER.warning(f"[{cat}] predictions.json missing — skip COCO eval")
+                continue
+            with open(pred_json) as f:
+                preds = json.load(f)
+
+            gt = cls.build_coco_gt(yaml_path, rebuild=rebuild_gt)
+            anno = COCO(gt)  # in-memory GT, built once per cat and reused across confs/regimes
+            for conf in conf_sweep:
+                for regime, iou_thrs in regimes:
+                    ap = cls._coco_ap(anno, preds, iou_thrs, min_score=conf)
+                    rows.append({"category": cat, "conf": conf, "regime": regime, **ap})
+                    print(
+                        f"  [{cat}] conf={conf:.3f} {regime}: AP={ap['AP']:.4f} AP50={ap['AP50']:.4f} "
+                        f"mAP10={ap['mAP10']:.4f} mAP25={ap['mAP25']:.4f} mAP50={ap['mAP50']:.4f}",
+                        flush=True,
+                    )
+
+            # accumulate for pooled (offset image_ids to keep them unique across cats)
+            img_offset = len(all_gt["images"])
+            for img in gt["images"]:
+                ic = dict(img)
+                ic["id"] = img["id"] + img_offset
+                all_gt["images"].append(ic)
+            for ann in gt["annotations"]:
+                ac = dict(ann)
+                ac["id"] += ann_offset
+                ac["image_id"] = ann["image_id"] + img_offset
+                all_gt["annotations"].append(ac)
+            ann_offset = len(all_gt["annotations"])
+            for p in preds:
+                pc = dict(p)
+                pc["image_id"] = p["image_id"] + img_offset
+                all_preds.append(pc)
+
+        # pooled across all categories
+        if all_gt["images"]:
+            print(
+                f"\n  POOLED: {len(all_gt['images'])} images, {len(all_gt['annotations'])} GT, {len(all_preds)} preds",
+                flush=True,
+            )
+            anno = COCO(all_gt)
+            for conf in conf_sweep:
+                for regime, iou_thrs in regimes:
+                    ap = cls._coco_ap(anno, all_preds, iou_thrs, min_score=conf)
+                    rows.append({"category": "POOLED", "conf": conf, "regime": regime, **ap})
+                    print(
+                        f"  [POOLED] conf={conf:.3f} {regime}: AP={ap['AP']:.4f} AP50={ap['AP50']:.4f} "
+                        f"mAP10={ap['mAP10']:.4f} mAP25={ap['mAP25']:.4f} mAP50={ap['mAP50']:.4f}",
+                        flush=True,
+                    )
+
+        if rows:
+            out_csv = out_root / f"coco_{cat_arg}.csv"
+            out_csv.parent.mkdir(parents=True, exist_ok=True)
+            fieldnames = [
+                "category", "conf", "regime", "AP", "AP50", "AP75",
+                "mAP10", "mAP25", "mAP50",
+                "AP_small", "AP_medium", "AP_large",
+                "AR1", "AR10", "AR100",
+            ]
+            with open(out_csv, "w", newline="") as f:
+                w = csv.DictWriter(f, fieldnames=fieldnames)
+                w.writeheader()
+                w.writerows(rows)
+            print(f"\nCOCO CSV -> {out_csv}", flush=True)

@@ -25,7 +25,7 @@ import numpy as np
 import torch
 
 from ultralytics.models.yolo.anomaly.predict import AnomalyPredictorHM
-from ultralytics.models.yolo.anomaly.val import YOLOAnomalyValidatorHM
+from ultralytics.models.yolo.anomaly.val import YOLOAnomalyCocoValidator, YOLOAnomalyValidatorHM
 from ultralytics.models.yolo.anomaly.train_rnd import MVTEC_CATEGORIES
 from ultralytics.utils import LOGGER
 from ultralytics import YOLOA
@@ -99,7 +99,21 @@ def main():
     ap.add_argument("--device", default=None, help="cpu / cuda:0 / 0 (default: cuda:0 if available)")
     ap.add_argument("--batch", type=int, default=8, help="memory-bank feature-extraction batch size")
     ap.add_argument("--conf", type=float, default=0.1, help="predict conf threshold")
+    ap.add_argument(
+        "--conf-sweep",
+        type=float,
+        nargs="+",
+        default=None,
+        help="val: run val at each of these conf floors and report mAP per conf (e.g. --conf-sweep 0.1 0.25 0.5). "
+        "Bank is built once per category and reused across conf values. Falls back to [--conf] if unset.",
+    )
     ap.add_argument("--iou", type=float, default=0.1, help="NMS IoU")
+    ap.add_argument(
+        "--coco-eval",
+        action="store_true",
+        help="val: dump all boxes once per cat (conf=0.001) then run multi-conf COCO eval offline. "
+        "Reports both loose (.10:.50) and standard (.50:.95) IoU — per-cat + pooled.",
+    )
     ap.add_argument("--e2e", "--end2end", action="store_true", help="use end-to-end NMS-free head")
     ap.add_argument("--hm-gate-blend", type=float, default=0.0, help="heatmap conf gate (0=on, 1=off)")
     ap.add_argument(
@@ -119,6 +133,7 @@ def main():
     ap.add_argument("--out", default=None, help="output root (default: runs/temp/yoloa_new/<model_id>)")
 
     ap.add_argument("--rebuild", action="store_true", help="rebuild memory bank even if cache exists")
+    ap.add_argument("--rebuild-gt", action="store_true", help="rebuild cached coco_gt.json even if fresh")
 
     ap.add_argument(
         "--hm-boxes",
@@ -127,6 +142,11 @@ def main():
     )
 
     args = ap.parse_args()
+
+    # --conf-sweep is only meaningful for the COCO path (one inference pass, filtered offline).
+    # The native path runs a single --conf, so reject a sweep without --coco-eval.
+    if args.conf_sweep and not args.coco_eval:
+        ap.error("--conf-sweep requires --coco-eval (the native path evaluates a single --conf only)")
 
     # -- Resolve paths / device ------------------------------------------------
     root = Path(args.mvtec_root or os.environ.get("MVTEC_ROOT", DEFAULT_MVTEC_ROOT))
@@ -141,7 +161,10 @@ def main():
         print(f"  bb_layers override -> {model.model.bb_layers}", flush=True)
 
     mid = model_id_from_ckpt(args.ckpt)
-    out_root = Path(args.out) if args.out else Path("runs/temp/yoloa_new") / mid
+    # Absolute so it is passed to model.val() as `project` verbatim — ultralytics get_save_dir()
+    # prepends runs/<task>/ to a RELATIVE project, which would put predictions.json somewhere we
+    # don't read from. Absolute → save_dir == out_root/<cat>, co-located with the COCO CSV.
+    out_root = (Path(args.out) if args.out else Path("runs/temp/yoloa_new") / mid).resolve()
     bank_cache = args.bank_cache or str(out_root / "banks")
 
     print(
@@ -154,77 +177,139 @@ def main():
 
     # -- VAL -------------------------------------------------------------------
     if args.mode == "val":
-        rows = []
-        for ci, cat in enumerate(cats, 1):
-            yaml = _data_yaml(root, cat)
-            if yaml is None:
-                LOGGER.warning(f"[{ci}/{len(cats)}] {cat}: no data yaml; skipping")
-                continue
+        if args.coco_eval:
+            conf_list = args.conf_sweep if args.conf_sweep else [args.conf]
+            # COCO path: ONE inference pass per category (dump all boxes at DUMP_CONF), then
+            # YOLOAnomalyCocoValidator.evaluate_run does the multi-conf COCO eval offline by
+            # score-filtering the dump. All GT/eval/CSV logic lives on the validator.
+            cat_to_yaml, cat_to_json = {}, {}
+            for ci, cat in enumerate(cats, 1):
+                yaml = _data_yaml(root, cat)
+                if yaml is None:
+                    LOGGER.warning(f"[{ci}/{len(cats)}] {cat}: no data yaml; skipping")
+                    continue
 
-            stage = "val (no memory)" if args.no_memory else "set_memory + val"
-            print(f"\n{'=' * 60}\n[{ci}/{len(cats)}] {cat}: {stage}\n{'=' * 60}", flush=True)
-            if not args.no_memory:
-                model.reset_memory()
-                model.to(device)
-                model.set_memory(source=str(good_dir(root, cat)), batch=args.batch, imgsz=args.imgsz)
+                stage = "val (no memory)" if args.no_memory else "set_memory + val"
+                print(f"\n{'=' * 60}\n[{ci}/{len(cats)}] {cat}: {stage}\n{'=' * 60}", flush=True)
+                if not args.no_memory:
+                    model.reset_memory()
+                    model.to(device)
+                    model.set_memory(source=str(good_dir(root, cat)), batch=args.batch, imgsz=args.imgsz)
 
-            metrics = model.val(
-                validator=YOLOAnomalyValidatorHM if args.hm_boxes else None,
-                data=str(yaml),
-                imgsz=args.imgsz,
-                iou=args.iou,
-                end2end=args.e2e,
-                single_cls=True,
-                device=device,
-                batch=args.batch,
-                conf=args.conf,
-                project=Path(args.ckpt).stem,
-                name=cat,
-            )
-
-            # all_ap cols: iouv = linspace(.10, .50, 9) → .10=col0, .25=col3, .50=col8.
-            ap_mat = metrics.box.all_ap
-            ok = ap_mat.ndim == 2 and ap_mat.shape[1] >= 9
-            map10 = float(ap_mat[:, 0].mean()) if ok else float("nan")
-            map25 = float(ap_mat[:, 3].mean()) if ok else float("nan")
-            map50 = float(ap_mat[:, 8].mean()) if ok else float("nan")
-            map10_50 = float(ap_mat.mean()) if ok else float("nan")  # mean over IoU .10:.50
-
-            rows.append({"category": cat, "mAP10": map10, "mAP25": map25, "mAP50": map50, "mAP10-50": map10_50})
-            print(
-                f"[{cat}] mAP10={map10:.4f} mAP25={map25:.4f} mAP50={map50:.4f} mAP10-50={map10_50:.4f}",
-                flush=True,
-            )
-
-        if rows:
-            rows.append(
-                {
-                    "category": "AVERAGE",
-                    "mAP10": _average(rows, "mAP10"),
-                    "mAP25": _average(rows, "mAP25"),
-                    "mAP50": _average(rows, "mAP50"),
-                    "mAP10-50": _average(rows, "mAP10-50"),
-                }
-            )
-
-            print("\n" + "=" * 80)
-            print(f"{'category':<15s} {'mAP10':>10s} {'mAP25':>10s} {'mAP50':>10s} {'mAP10-50':>10s}")
-            print("-" * 80)
-            for r in rows:
-                print(
-                    f"{r['category']:<15s} "
-                    f"{r['mAP10']:>10.4f} {r['mAP25']:>10.4f} "
-                    f"{r['mAP50']:>10.4f} {r['mAP10-50']:>10.4f}"
+                metrics = model.val(
+                    validator=YOLOAnomalyCocoValidator,
+                    data=str(yaml),
+                    imgsz=args.imgsz,
+                    iou=YOLOAnomalyCocoValidator.DUMP_IOU,
+                    conf=YOLOAnomalyCocoValidator.DUMP_CONF,
+                    end2end=args.e2e,
+                    single_cls=True,
+                    device=device,
+                    batch=args.batch,
+                    save_json=True,
+                    plots=False,
+                    project=str(out_root),
+                    name=cat,
+                    exist_ok=True,
                 )
-            print("=" * 80)
+                # Read predictions.json from where the validator actually wrote it (authoritative).
+                out_json = Path(metrics.save_dir) / "predictions.json"
+                if not out_json.is_file():
+                    LOGGER.warning(f"[{cat}] predictions.json not written at {out_json}; skipping")
+                    continue
+                cat_to_yaml[cat] = yaml
+                cat_to_json[cat] = out_json
+                sz_kb = out_json.stat().st_size / 1024
+                print(f"  JSON dumped ({sz_kb:.0f} KB) -> {out_json}", flush=True)
 
-            out_csv = out_root / f"val_{args.cat}.csv"
-            out_csv.parent.mkdir(parents=True, exist_ok=True)
-            with open(out_csv, "w", newline="") as f:
-                w = csv.DictWriter(f, fieldnames=["category", "mAP10", "mAP25", "mAP50", "mAP10-50"])
-                w.writeheader()
-                w.writerows(rows)
-            print(f"\nCSV -> {out_csv}", flush=True)
+            print(f"\n{'=' * 60}\nCOCO eval: loose(.10:.50) + standard(.50:.95) × conf {conf_list}\n{'=' * 60}", flush=True)
+            YOLOAnomalyCocoValidator.evaluate_run(
+                out_root, cat_to_yaml, cat_to_json, conf_list, args.cat, rebuild_gt=args.rebuild_gt
+            )
+
+        else:
+            # YOLOA-native path: a single --conf (fine sweeps go through --coco-eval).
+            conf = args.conf
+            rows = []
+            for ci, cat in enumerate(cats, 1):
+                yaml = _data_yaml(root, cat)
+                if yaml is None:
+                    LOGGER.warning(f"[{ci}/{len(cats)}] {cat}: no data yaml; skipping")
+                    continue
+
+                stage = "val (no memory)" if args.no_memory else "set_memory + val"
+                print(f"\n{'=' * 60}\n[{ci}/{len(cats)}] {cat}: {stage}\n{'=' * 60}", flush=True)
+                if not args.no_memory:
+                    model.reset_memory()
+                    model.to(device)
+                    model.set_memory(source=str(good_dir(root, cat)), batch=args.batch, imgsz=args.imgsz)
+
+                metrics = model.val(
+                    validator=YOLOAnomalyValidatorHM if args.hm_boxes else None,
+                    data=str(yaml),
+                    imgsz=args.imgsz,
+                    iou=args.iou,
+                    end2end=args.e2e,
+                    single_cls=True,
+                    device=device,
+                    batch=args.batch,
+                    conf=conf,
+                    project=Path(args.ckpt).stem,
+                    name=cat,
+                )
+
+                # all_ap cols: iouv = linspace(.10, .50, 9) → .10=col0, .25=col3, .50=col8.
+                ap_mat = metrics.box.all_ap
+                ok = ap_mat.ndim == 2 and ap_mat.shape[1] >= 9
+                map10 = float(ap_mat[:, 0].mean()) if ok else float("nan")
+                map25 = float(ap_mat[:, 3].mean()) if ok else float("nan")
+                map50 = float(ap_mat[:, 8].mean()) if ok else float("nan")
+                map10_50 = float(ap_mat.mean()) if ok else float("nan")  # mean over IoU .10:.50
+
+                rows.append(
+                    {"conf": conf, "category": cat, "mAP10": map10, "mAP25": map25, "mAP50": map50, "mAP10-50": map10_50}
+                )
+                print(
+                    f"[{cat}] conf={conf:.3f} mAP10={map10:.4f} mAP25={map25:.4f} "
+                    f"mAP50={map50:.4f} mAP10-50={map10_50:.4f}",
+                    flush=True,
+                )
+
+            if rows:
+                # AVERAGE row across categories (single conf).
+                sub = [r for r in rows if r["category"] != "AVERAGE"]
+                if sub:
+                    rows.append(
+                        {
+                            "conf": conf,
+                            "category": "AVERAGE",
+                            "mAP10": _average(sub, "mAP10"),
+                            "mAP25": _average(sub, "mAP25"),
+                            "mAP50": _average(sub, "mAP50"),
+                            "mAP10-50": _average(sub, "mAP10-50"),
+                        }
+                    )
+
+                print("\n" + "=" * 90)
+                print(
+                    f"{'conf':>6s} {'category':<15s} {'mAP10':>10s} {'mAP25':>10s} {'mAP50':>10s} {'mAP10-50':>10s}"
+                )
+                print("-" * 90)
+                for r in sorted(rows, key=lambda x: (x["conf"], x["category"] == "AVERAGE", x["category"])):
+                    print(
+                        f"{r['conf']:>6.3f} {r['category']:<15s} "
+                        f"{r['mAP10']:>10.4f} {r['mAP25']:>10.4f} "
+                        f"{r['mAP50']:>10.4f} {r['mAP10-50']:>10.4f}"
+                    )
+                print("=" * 90)
+
+                out_csv = out_root / f"val_{args.cat}.csv"
+                out_csv.parent.mkdir(parents=True, exist_ok=True)
+                with open(out_csv, "w", newline="") as f:
+                    w = csv.DictWriter(f, fieldnames=["conf", "category", "mAP10", "mAP25", "mAP50", "mAP10-50"])
+                    w.writeheader()
+                    w.writerows(rows)
+                print(f"\nCSV -> {out_csv}", flush=True)
 
     # -- PREDICT / VISUALIZE ---------------------------------------------------
     else:

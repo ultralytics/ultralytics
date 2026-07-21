@@ -67,7 +67,7 @@ def test_export_onnx(end2end, isolated_model):
 @pytest.mark.parametrize("precision", [{"int8": True}, {"quantize": 8}])
 def test_export_onnx_int8(isolated_model, precision):
     """Test INT8 ONNX export via both the legacy int8 alias and the unified quantize arg."""
-    file = YOLO(isolated_model).export(format="onnx", data="coco8.yaml", fraction=0.25, imgsz=32, **precision)
+    file = YOLO(isolated_model).export(format="onnx", data=Path("coco8.yaml"), fraction=0.25, imgsz=32, **precision)
     assert Path(file).name.endswith("_int8.onnx")
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
     Path(file).unlink()  # cleanup

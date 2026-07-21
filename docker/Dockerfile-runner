@@ -36,6 +36,5 @@ ENTRYPOINT ["sh", "-c", "./config.sh --url https://github.com/ultralytics --toke
 # Example (push): docker push $t
 # Example (pull): t=ultralytics/ultralytics:latest-runner && docker pull $t
 # Example (run): docker run -d --restart unless-stopped -e GITHUB_RUNNER_TOKEN=TOKEN -e GITHUB_RUNNER_NAME=NAME --ipc=host --device nvidia.com/gpu=all $t
-# CDI (--device nvidia.com/gpu=all; needs Docker >= 28.2.0 and nvidia-container-toolkit >= 1.18) instead of legacy
-# --gpus all: CDI puts the device nodes in the container config, so long-lived runners keep GPU access across host
-# systemd daemon-reloads, e.g. apt installs (nvidia-container-toolkit#48)
+# CDI requires Docker >= 28.2.0 and nvidia-container-toolkit >= 1.18.
+# Legacy --gpus all can lose GPU access after host systemd daemon reloads (nvidia-container-toolkit#48).

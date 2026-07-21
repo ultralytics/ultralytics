@@ -1,6 +1,11 @@
 ---
 title: Argoverse Detection Dataset
 comments: true
+creator:
+    name: Argo AI
+    url: https://www.argoverse.org/av1.html
+license:
+    name: CC-BY-NC-SA-4.0
 description: Train YOLO object detection models on the Argoverse (Argoverse-HD) dataset — 54,446 autonomous-driving images across 8 classes, from a ring-front-center camera.
 keywords: Argoverse dataset, Argoverse-HD, object detection, 2D detection, autonomous driving, self-driving car dataset, YOLO26, traffic detection, Ultralytics
 ---

@@ -604,16 +604,17 @@ class Exporter:
             if task26:
                 raise ValueError(f"Hailo export does not currently support YOLO26 {task26} models.")
             if (
-                model.task not in {"detect", "segment", "pose", "obb", "classify", "semantic"}
-                or type(model.model[-1]) not in {Detect, Segment, Pose, OBB, Classify, SemanticSegment}
+                model.task not in {"detect", "segment", "pose", "obb", "classify", "semantic", "depth"}
+                or type(model.model[-1]) not in {Detect, Segment, Pose, OBB, Classify, SemanticSegment, Depth}
                 or not family.startswith(("yolov8", "yolo11", "yolo26"))
             ):
                 raise ValueError(
                     "Hailo export currently supports YOLOv8/YOLO11/YOLO26 detection and classification models, "
-                    "YOLOv8/YOLO11 segmentation, pose, and OBB models, and YOLO26 semantic segmentation models."
+                    "YOLOv8/YOLO11 segmentation, pose, and OBB models, and YOLO26 semantic segmentation and depth "
+                    "models."
                 )
-            if model.task == "semantic" and not family.startswith("yolo26"):
-                raise ValueError("Hailo export supports semantic segmentation only for YOLO26 models.")
+            if model.task in {"semantic", "depth"} and not family.startswith("yolo26"):
+                raise ValueError(f"Hailo export supports {model.task} models only for YOLO26.")
             if self.args.end2end is not None:
                 raise ValueError(
                     "Hailo export selects the model output path automatically; remove the end2end argument."
@@ -1532,6 +1533,11 @@ class Exporter:
                 if head.bake_argmax
                 else f"/model.{head_index}/classifier/classifier.1/Conv"
             ]
+        elif task == "depth":
+            # The Depth head ends in clamp/exp, log-affine calibration, and a 4x upsample. Cut at the final logit
+            # conv (head.3, the last layer of the dense decoder) so the a16 HEF carries the raw logit and the host
+            # mirrors Depth.forward. Same string convention as detect's `.2/Conv`; no new head attribute.
+            end_nodes = [f"/model.{head_index}/head/head.3/Conv"]
         else:
             scales = range(len(head.one2one_cv2 if one2one else head.cv2))
             if one2one:
@@ -1565,7 +1571,9 @@ class Exporter:
                 "model_optimization_flavor(optimization_level=2)",
                 f"post_quantization_optimization(finetune, policy=enabled, dataset_size={calibration_size})",
             ]
-            if one2one:
+            if one2one or task == "depth":
+                # a16 on the output(s): the NMS-free detect logits and the single dense depth logit both need the
+                # wider activation to keep their range (a8 collapses the depth map; validated on Hailo-8L).
                 outputs = ", ".join(f"output_layer{i + 1}" for i in range(len(end_nodes)))
                 model_script.append(f"quantization_param([{outputs}], precision_mode=a16_w16)")
             elif task in {"classify", "semantic"}:
@@ -1630,6 +1638,8 @@ class Exporter:
                     "hailo_arch": self.args.name,
                     "nms": task == "detect" and not one2one,
                     "semantic_baked": task == "semantic" and head.bake_argmax,
+                    # Depth's learned log-affine calibration is applied on the host, so it must ride in metadata.
+                    **({"cal_a": float(head.cal_a), "cal_b": float(head.cal_b)} if task == "depth" else {}),
                 },
             )
             return str(output_dir)

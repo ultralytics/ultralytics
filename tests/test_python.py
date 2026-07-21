@@ -584,6 +584,155 @@ def test_normalize_platform_uri():
     assert normalize_platform_uri("coco8.yaml") == "coco8.yaml"  # non-Platform inputs unchanged
 
 
+def test_convert_signed_ndjson(monkeypatch):
+    """Test signed NDJSON URLs are converted before dataset YAML validation."""
+    from ultralytics.data import converter, utils
+
+    captured = []
+
+    async def convert(path):
+        captured.append(path)
+        return "dataset.ndjson.yaml"
+
+    monkeypatch.setattr(converter, "convert_ndjson_to_yolo", convert)
+    url = "https://storage.googleapis.com/bucket/dataset-v1.ndjson?X-Goog-Signature=abc"
+    assert utils.convert_ndjson_to_yolo_if_needed(url) == "dataset.ndjson.yaml"
+    assert captured == [url]
+
+
+@pytest.mark.parametrize("task", ["detect", "classify"])
+def test_ndjson_conversion_concurrency_and_resume(monkeypatch, tmp_path, task):
+    """Test concurrent conversions share work and interrupted conversions resume before publishing completion."""
+    import asyncio
+    import json
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
+
+    import aiohttp
+
+    from ultralytics.data import converter
+
+    counts, failures, conversions, count_lock = {}, set(), 0, threading.Lock()
+
+    class Response:
+        def __init__(self, url):
+            self.url = url
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_):
+            pass
+
+        def raise_for_status(self):
+            pass
+
+        async def read(self):
+            await asyncio.sleep(0.01)
+            with count_lock:
+                counts[self.url] = counts.get(self.url, 0) + 1
+                fail = self.url in failures
+                failures.discard(self.url)
+            if fail:
+                raise OSError("interrupted")
+            return image_bytes
+
+    class Session:
+        def __init__(self, **_):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_):
+            pass
+
+        def get(self, url, **_):
+            return Response(url)
+
+    ok, image = cv2.imencode(".jpg", np.zeros((16, 16, 3), dtype=np.uint8))
+    assert ok
+    image_bytes = image.tobytes()
+    monkeypatch.setattr(aiohttp, "ClientSession", Session)
+    original_convert = converter._convert_ndjson_to_yolo
+
+    async def track_conversion(*args):
+        nonlocal conversions
+        with count_lock:
+            conversions += 1
+        return await original_convert(*args)
+
+    monkeypatch.setattr(converter, "_convert_ndjson_to_yolo", track_conversion)
+    annotations = {"classification": [7]} if task == "classify" else {"boxes": [[0, 0.5, 0.5, 1, 1]]}
+
+    def write_ndjson(name):
+        path = tmp_path / f"{name}.ndjson"
+        records = [
+            {"type": "dataset", "task": task, "class_names": {"7": "item", "8": "rare"}},
+            {
+                "file": "train.jpg",
+                "url": f"https://example.com/{name}-train.jpg",
+                "split": "train",
+                "annotations": annotations,
+            },
+            {
+                "file": "val.jpg",
+                "url": f"https://example.com/{name}-val.jpg",
+                "split": "val",
+                "annotations": {"classification": [8]} if task == "classify" else annotations,
+            },
+        ]
+        path.write_text("\n".join(json.dumps(record) for record in records))
+        return path
+
+    concurrent = write_ndjson("concurrent")
+    jobs = 2
+    barrier = threading.Barrier(jobs)
+
+    def convert(path):
+        barrier.wait()
+        return asyncio.run(converter.convert_ndjson_to_yolo(path, tmp_path))
+
+    with ThreadPoolExecutor(max_workers=jobs) as pool:
+        results = list(pool.map(convert, [concurrent] * jobs))
+    assert len(set(results)) == 1
+    assert conversions == 1
+    assert sum(counts.values()) == 2
+    if task == "classify":
+        assert check_cls_dataset(results[0])["nc"] == 2
+        from ultralytics.data import dataset as dataset_module
+
+        monkeypatch.setattr(dataset_module, "TORCHVISION_0_18", False)
+        args = copy(DEFAULT_CFG)
+        train = dataset_module.ClassificationDataset(results[0] / "train", args)
+        val = dataset_module.ClassificationDataset(results[0] / "val", args)
+        assert train.samples[0][1] == 0
+        assert val.samples[0][1] == 1
+        assert dataset_module.ClassificationDataset(results[0] / "val", args).samples[0][1] == 1
+
+    resume = write_ndjson("resume")
+    failed_url = "https://example.com/resume-val.jpg"
+    failures.add(failed_url)
+    with ThreadPoolExecutor(max_workers=jobs) as pool:
+        futures = [pool.submit(convert, resume) for _ in range(jobs)]
+        errors, results = [], []
+        for future in futures:
+            try:
+                results.append(future.result())
+            except RuntimeError as error:
+                errors.append(str(error))
+    assert len(errors) == len(results) == 1 and "Downloaded 1/2 images" in errors[0]
+    result = results[0]
+    marker = result / ".ndjson.yaml" if task == "classify" else result
+    assert YAML.load(marker)["complete"] is True
+    assert counts["https://example.com/resume-train.jpg"] == 1
+    assert counts[failed_url] == 2
+    request_count = sum(counts.values())
+    asyncio.run(converter.convert_ndjson_to_yolo(resume, tmp_path))
+    assert conversions == 4
+    assert sum(counts.values()) == request_count
+
+
 def test_platform_job_transport(monkeypatch, tmp_path):
     """Test configurable Platform transport with an existing local checkpoint."""
     from types import SimpleNamespace

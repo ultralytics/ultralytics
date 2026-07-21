@@ -272,6 +272,12 @@ class BaseTrainer:
         self.train_loader = self.get_dataloader(
             self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
         )
+        final_batch_size = len(self.train_loader.sampler) % self.train_loader.batch_size or self.train_loader.batch_size
+        if self.args.imgsz < 2 * self.stride and not self.train_loader.drop_last and final_batch_size == 1:
+            raise ValueError(
+                f"final batch=1 training at imgsz={self.args.imgsz} gives BatchNorm a single value per channel; "
+                f"change batch or use imgsz >= {2 * self.stride}"
+            )
         # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
         self.test_loader = self.get_dataloader(
             self.data.get("val") or self.data.get("test"),
@@ -370,12 +376,6 @@ class BaseTrainer:
         # Batch size
         if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
             self.args.batch = self.batch_size = self.auto_batch()
-        if self.batch_size // max(self.world_size, 1) == 1 and self.args.imgsz < 2 * gs:
-            raise ValueError(
-                f"batch=1 training at imgsz={self.args.imgsz} gives BatchNorm a single value per channel; "
-                f"increase batch or use imgsz >= {2 * gs}"
-            )
-
         self._build_train_pipeline()
         self.validator = self.get_validator()
         if self.args.distill_model is not None and "dis_loss" not in self.loss_names:

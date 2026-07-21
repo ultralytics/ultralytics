@@ -301,17 +301,16 @@ Model and pipeline choices often matter more than compiler flags:
 
 ## Export Arguments
 
-| Argument   | Type          | Default       | Description                                        |
-| :--------- | :------------ | :------------ | :------------------------------------------------- |
-| `name`     | `str`         | `hailo8l`     | Target Hailo accelerator architecture              |
-| `imgsz`    | `int`, `list` | `640`         | Fixed model input size                             |
-| `data`     | `str`         | task-specific | Calibration dataset YAML                           |
-| `fraction` | `float`       | `1.0`         | Fraction of calibration images to use              |
-| `quantize` | `int`         | `8`           | Hailo export uses INT8 quantization                |
-| `opset`    | `int`         | `11`          | Fixed ONNX opset required by the Hailo translation |
-| `simplify` | `bool`        | `True`        | Simplify the intermediate ONNX graph               |
-| `conf`     | `float`       | `0.25`        | YOLOv8/YOLO11 HailoRT NMS confidence threshold     |
-| `iou`      | `float`       | `0.7`         | YOLOv8/YOLO11 HailoRT NMS IoU threshold            |
+| Argument   | Type          | Default       | Description                                    |
+| :--------- | :------------ | :------------ | :--------------------------------------------- |
+| `name`     | `str`         | `hailo8l`     | Target Hailo accelerator architecture          |
+| `imgsz`    | `int`, `list` | `640`         | Fixed model input size                         |
+| `data`     | `str`         | task-specific | Calibration dataset YAML                       |
+| `fraction` | `float`       | `1.0`         | Fraction of calibration images to use          |
+| `quantize` | `int`         | `8`           | Hailo export uses INT8 quantization            |
+| `simplify` | `bool`        | `True`        | Simplify the intermediate ONNX graph           |
+| `conf`     | `float`       | `0.25`        | YOLOv8/YOLO11 HailoRT NMS confidence threshold |
+| `iou`      | `float`       | `0.7`         | YOLOv8/YOLO11 HailoRT NMS IoU threshold        |
 
 For detection export, YOLOv8 and YOLO11 receive HailoRT NMS, while YOLO26 keeps its NMS-free one-to-one outputs. Segmentation, pose, and OBB use raw head tensors, classification returns on-chip probabilities, and semantic segmentation returns raw logits on Hailo-8/8L and all single-class heads or baked class maps for multi-class Hailo-10/15 heads. Do not pass `end2end`; explicit overrides are rejected. Dynamic shapes, batches larger than one, embedded Ultralytics NMS, FP16, and FP32 are also unsupported.
 

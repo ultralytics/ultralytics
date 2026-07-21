@@ -318,8 +318,9 @@ class DEIMSwiGLUFFN(nn.Module):
         init.constant_(self.w3.bias, 0)
 
     def forward(self, x):
-        x1, x2 = self.w12(x).chunk(2, dim=-1)
-        return self.w3(F.silu(x1) * x2)
+        with torch.autocast(device_type=x.device.type, dtype=torch.float32, enabled=x.is_cuda):
+            x1, x2 = self.w12(x.float()).chunk(2, dim=-1)
+            return self.w3(F.silu(x1) * x2).to(x.dtype)
 
 
 class DeimGate(nn.Module):
@@ -384,7 +385,9 @@ class DeimTransformerDecoderLayer(nn.Module):
 
     def forward(self, target, reference_points, value, spatial_shapes, attn_mask=None, query_pos_embed=None):
         q = k = self.with_pos_embed(target, query_pos_embed)
-        target2, _ = self.self_attn(q, k, value=target, attn_mask=attn_mask)
+        with torch.autocast(device_type=target.device.type, dtype=torch.float32, enabled=target.is_cuda):
+            target2, _ = self.self_attn(q, k, value=target, attn_mask=attn_mask)
+        target2 = target2.to(target.dtype)
         target = self.norm1(target + self.dropout1(target2))
 
         target2 = self.cross_attn(self.with_pos_embed(target, query_pos_embed), reference_points, value, spatial_shapes)

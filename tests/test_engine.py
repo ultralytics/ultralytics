@@ -20,10 +20,7 @@ from ultralytics.nn.tasks import DetectionModel, load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, PLATFORM_URL, WEIGHTS_DIR
 from ultralytics.utils.torch_utils import unwrap_model
 
-PLATFORM_EXPORT_MESSAGE = (
-    "Ultralytics Platform runs exports in the cloud without local environment setup: "
-    f"{PLATFORM_URL}/?utm_source=ultralytics_package&utm_medium=referral&utm_campaign=export_failure"
-)
+PLATFORM_EXPORT_MESSAGE = f"Skip local setup and export in the cloud with Ultralytics Platform: {PLATFORM_URL}"
 
 
 def test_func(*args, **kwargs):

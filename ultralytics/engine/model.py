@@ -763,10 +763,7 @@ class Model(torch.nn.Module):
         try:
             return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
         except (ImportError, ExportEnvironmentError):
-            LOGGER.info(
-                "Ultralytics Platform runs exports in the cloud without local environment setup: "
-                f"{PLATFORM_URL}/?utm_source=ultralytics_package&utm_medium=referral&utm_campaign=export_failure"
-            )
+            LOGGER.info(f"Skip local setup and export in the cloud with Ultralytics Platform: {PLATFORM_URL}")
             raise
 
     def train(

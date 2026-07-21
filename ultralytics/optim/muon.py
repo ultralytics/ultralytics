@@ -60,7 +60,7 @@ def muon_update(
     This function applies momentum to the gradients, optionally uses Nesterov acceleration, and then orthogonalizes the
     updates using Newton-Schulz iterations. Matrices with the same row count are zero-padded and orthogonalized in a
     single batched call, and momentum math uses fused foreach ops, avoiding per-parameter kernel launch overhead.
-    Higher-rank tensors are reshaped before orthogonalization, and each update is scaled based on its matrix dimensions.
+    Higher-rank tensors are reshaped before orthogonalization, and each update is scaled based on parameter dimensions.
 
     Args:
         grad (torch.Tensor | list[torch.Tensor]): Gradient tensor(s) to update. Each must have at least two dimensions.
@@ -83,7 +83,7 @@ def muon_update(
         - With Nesterov: update = beta * momentum + (1-beta) * grad.
         - Without Nesterov: update = momentum.
         - Tensors with more than 2 dimensions are reshaped to 2D with the first dimension preserved.
-        - Final updates are scaled by sqrt(max(1, rows / columns)) using the reshaped matrix dimensions.
+        - Final updates are scaled by sqrt(max(1, dim[-2] / dim[-1])) to account for parameter dimensions.
     """
     single = isinstance(grad, torch.Tensor)
     grads, momentums = ([grad], [momentum]) if single else (grad, momentum)
@@ -96,11 +96,11 @@ def muon_update(
         updates = list(momentums)
     buckets = {}  # group matrices transposed to rows <= cols by (rows, scale) for batched orthogonalization
     for i, u in enumerate(updates):
-        m = u.flatten(1) if u.ndim > 2 else u
-        scale = max(1, m.size(0) / m.size(1)) ** 0.5
+        m = u.view(len(u), -1) if u.ndim > 2 else u
         transpose = m.size(0) > m.size(1)
         if transpose:
             m = m.transpose(0, 1)
+        scale = max(1, grads[i].size(-2) / grads[i].size(-1)) ** 0.5
         buckets.setdefault((m.size(0), scale, m.device, m.dtype), []).append((i, m, transpose))
     for (_, scale, _, _), items in buckets.items():
         n = max(m.size(1) for _, m, _ in items)

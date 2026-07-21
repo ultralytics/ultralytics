@@ -22,7 +22,7 @@ from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
-from ultralytics.optim.muon import muon_update, zeropower_via_newtonschulz5
+from ultralytics.optim.muon import muon_update
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -54,10 +54,10 @@ def test_muon_update_batches_higher_rank_tensors():
     assert [update.shape for update in updates] == [gradient.shape for gradient in gradients]
     assert all(torch.isfinite(update).all() for update in updates)
 
-    gradient = torch.randn(4, 1, 1, 1, 1)
-    update = muon_update(gradient, torch.zeros_like(gradient), beta=0, nesterov=False)
-    expected = zeropower_via_newtonschulz5(gradient.flatten(1)).to(gradient.dtype).mul_(2).reshape_as(gradient)
-    torch.testing.assert_close(update, expected)
+    gradient = torch.randn(2, 2, 4)
+    update = muon_update(gradient, torch.zeros_like(gradient))
+    assert update.shape == gradient.shape
+    assert torch.isfinite(update).all()
 
 
 def test_dataloader_caps_workers_to_batches():

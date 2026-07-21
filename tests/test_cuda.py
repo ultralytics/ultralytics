@@ -82,7 +82,8 @@ def test_export_onnx_matrix(task, dynamic, batch, simplify, nms):
         # Limit Jetson task coverage for slow CI speed; full task coverage remains on GPU CI.
         # for task, dynamic, quantize, batch in product(TASKS, [True, False], [8, 16], [1, 2])
         for task, dynamic, quantize, batch in product(["detect"] if IS_JETSON else sorted(TASKS), [True], [8, 16], [2])
-    ],
+    ]
+    + [("detect", False, 8, 2)],  # exercise TensorRT 7-10 implicit INT8 quantization on GPU CI
 )
 def test_export_engine_matrix(task, dynamic, quantize, batch):
     """Test YOLO model export to TensorRT format for various configurations and run inference."""
@@ -112,6 +113,24 @@ def test_export_engine_matrix(task, dynamic, quantize, batch):
         Path(file).with_suffix(".int8.onnx").unlink(missing_ok=True)  # cleanup TensorRT 11 ModelOpt INT8 ONNX
     if quantize == 16:
         Path(file).with_suffix(".fp16.onnx").unlink(missing_ok=True)  # cleanup TensorRT 11 ModelOpt FP16 ONNX
+
+
+@pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
+@pytest.mark.parametrize("nc", [1, 3])
+def test_semantic_loss_all_ignore_amp(nc):
+    """All-ignore guard must stay finite with large fp16 logits, where sum() overflows to inf (AMP is a GPU path)."""
+    from ultralytics.cfg import get_cfg
+    from ultralytics.nn.tasks import SemanticSegmentationModel
+    from ultralytics.utils.loss import SemanticSegmentationLoss
+
+    model = SemanticSegmentationModel(cfg="yolo26-sem.yaml", nc=nc, verbose=False)
+    model.args = get_cfg()
+    loss_fn = SemanticSegmentationLoss(model)
+    preds = (torch.randn(1, nc, 64, 64, device=f"cuda:{DEVICES[0]}") + 50).half().requires_grad_()
+    loss, items = loss_fn(preds, {"semantic_mask": torch.full((1, 64, 64), 255, dtype=torch.long)})
+    assert torch.isfinite(loss).all() and all(torch.isfinite(x).all() for x in items.values())
+    loss.backward()
+    assert preds.grad is not None
 
 
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
@@ -177,6 +196,15 @@ def test_predict_multiple_devices():
     assert str(model.device) == cuda_device
     _ = model(SOURCE)
     assert str(model.device) == cuda_device
+
+
+@pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
+def test_track_exported_model():
+    """Track with an exported model on GPU; exported backends return raw preds as a single Tensor."""
+    file = YOLO(MODEL).export(format="torchscript", imgsz=160, device=DEVICES[0])
+    results = YOLO(file).track(SOURCE, imgsz=160, device=DEVICES[0])
+    assert len(results[0].boxes)
+    Path(file).unlink()  # cleanup
 
 
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")

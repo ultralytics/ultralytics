@@ -17,8 +17,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
     objects at arbitrary angles rather than just axis-aligned rectangles.
 
     Attributes:
-        loss_names (tuple): Names of the loss components used during training including box_loss, cls_loss, dfl_loss,
-            and angle_loss.
+        loss_names (tuple): Names of the loss components, derived from the loss dict returned by the criterion.
 
     Methods:
         get_model: Return OBBModel initialized with specified config and weights.
@@ -64,7 +63,9 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
             >>> trainer = OBBTrainer()
             >>> model = trainer.get_model(cfg="yolo26n-obb.yaml", weights="yolo26n-obb.pt")
         """
-        model = OBBModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
+        model = self.set_model_names_for_load(
+            OBBModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
+        )
         if weights:
             model.load(weights)
 
@@ -72,7 +73,6 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
 
     def get_validator(self):
         """Return an instance of OBBValidator for validation of YOLO model."""
-        self.loss_names = "box_loss", "cls_loss", "dfl_loss", "angle_loss"
         return yolo.obb.OBBValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

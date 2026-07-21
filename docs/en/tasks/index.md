@@ -24,7 +24,7 @@ Ultralytics YOLO26 is a versatile AI framework that supports multiple [computer 
 
 ## [Detection](detect.md)
 
-Detection is the primary task supported by YOLO26. It involves identifying objects in an image or video frame and drawing bounding boxes around them. The detected objects are classified into different categories based on their features. YOLO26 can detect multiple objects in a single image or video frame with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed, making it ideal for real-time applications like [surveillance systems](https://www.ultralytics.com/blog/shattering-the-surveillance-status-quo-with-vision-ai) and [autonomous vehicles](https://www.ultralytics.com/solutions/ai-in-automotive).
+Detection is the primary task supported by YOLO26. It involves identifying objects in an image or video frame and drawing bounding boxes around them. The detected objects are classified into different categories based on their features. YOLO26 can detect multiple objects in a single image or video frame with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed, making it ideal for real-time applications like [surveillance systems](https://www.ultralytics.com/blog/shattering-the-surveillance-status-quo-with-vision-ai) and [autonomous vehicles](https://www.ultralytics.com/solutions/computer-vision-in-automotive).
 
 [Detection Examples](detect.md){ .md-button }
 
@@ -36,7 +36,7 @@ Segmentation takes object detection further by producing pixel-level masks for e
 
 ## [Semantic Segmentation](semantic.md)
 
-Semantic segmentation assigns a class label to every pixel in an image, producing a dense class map of the entire scene. Unlike instance segmentation, it does not distinguish between individual objects of the same class. This makes it ideal for [autonomous driving](https://www.ultralytics.com/solutions/ai-in-automotive), [scene parsing](https://www.ultralytics.com/glossary/semantic-segmentation), and land-cover mapping where understanding the full spatial layout matters more than identifying individual objects.
+Semantic segmentation assigns a class label to every pixel in an image, producing a dense class map of the entire scene. Unlike instance segmentation, it does not distinguish between individual objects of the same class. This makes it ideal for [autonomous driving](https://www.ultralytics.com/solutions/computer-vision-in-automotive), [scene parsing](https://www.ultralytics.com/glossary/semantic-segmentation), and land-cover mapping where understanding the full spatial layout matters more than identifying individual objects.
 
 [Semantic Segmentation Examples](semantic.md){ .md-button }
 
@@ -61,6 +61,10 @@ Oriented Bounding Box (OBB) detection enhances traditional object detection by a
 ## Conclusion
 
 Ultralytics YOLO26 supports multiple computer vision tasks, including detection, instance segmentation, semantic segmentation, classification, oriented object detection, and keypoint detection. Each task addresses specific needs in the computer vision landscape, from basic object identification to detailed pose analysis. By understanding the capabilities and applications of each task, you can select the most appropriate approach for your specific computer vision challenges and leverage YOLO26's powerful features to build effective solutions.
+
+## What's Next
+
+Picked a task? Format your data for it with the [Datasets guide](../datasets/index.md), then [train on your own images](../modes/train.md).
 
 ## FAQ
 

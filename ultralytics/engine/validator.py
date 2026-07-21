@@ -80,7 +80,7 @@ class BaseValidator:
         plots (dict): Dictionary to store plots for visualization.
         callbacks (dict): Dictionary to store various callback functions.
         stride (int): Model stride for padding calculations.
-        loss (torch.Tensor): Accumulated loss during training validation.
+        loss (dict): Accumulated loss items during training validation.
 
     Methods:
         __call__: Execute validation process, running inference on dataloader and computing performance metrics.
@@ -162,7 +162,7 @@ class BaseValidator:
             if trainer.args.compile and hasattr(model, "_orig_mod"):
                 model = model._orig_mod  # validate non-compiled original model to avoid issues
             model = model.float()
-            self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
+            self.loss = {k: torch.zeros_like(v) for k, v in trainer.loss_items.items()}
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()
         else:
@@ -204,7 +204,7 @@ class BaseValidator:
                 "obb",
                 "semantic",
             }:
-                self.data = check_det_dataset(self.args.data)
+                self.data = check_det_dataset(self.args.data, split=self.args.split)
             else:
                 raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' for task={self.args.task} not found ❌"))
 
@@ -217,7 +217,7 @@ class BaseValidator:
 
             model.eval()
             if self.args.compile:
-                model = attempt_compile(model, device=self.device)
+                model = attempt_compile(model, device=self.device, mode=self.args.compile)
             model.warmup(imgsz=(1 if pt else self.args.batch, self.data["channels"], imgsz, imgsz))  # warmup
 
         self.run_callbacks("on_val_start")
@@ -245,7 +245,8 @@ class BaseValidator:
                 # Loss
                 with dt[2]:
                     if self.training:
-                        self.loss += model.loss(batch, preds)[1]
+                        for k, v in model.loss(batch, preds)[1].items():
+                            self.loss[k] += v
 
             # Postprocess
             with dt[3]:
@@ -269,12 +270,14 @@ class BaseValidator:
 
         if self.training:
             # Reduce loss across all GPUs
-            loss = self.loss.clone().detach()
+            loss = {k: v.clone().detach() for k, v in self.loss.items()}
             if trainer.world_size > 1:
-                dist.reduce(loss, dst=0, op=dist.ReduceOp.AVG)
+                for v in loss.values():
+                    dist.reduce(v, dst=0, op=dist.ReduceOp.AVG)
             if RANK > 0:
                 return
-            results = {**stats, **trainer.label_loss_items(loss.cpu() / len(self.dataloader), prefix="val")}
+            loss = {k: v.cpu() / len(self.dataloader) for k, v in loss.items()}
+            results = {**stats, **trainer.label_loss_items(loss, prefix="val")}
             return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
         else:
             if RANK > 0:
@@ -391,10 +394,7 @@ class BaseValidator:
         return []
 
     def on_plot(self, name, data=None):
-        """Register plots for visualization, deduplicating by type."""
-        plot_type = data.get("type") if data else None
-        if plot_type and any((v.get("data") or {}).get("type") == plot_type for v in self.plots.values()):
-            return  # Skip duplicate plot types
+        """Register a plot by its unique path for visualization and logging."""
         self.plots[Path(name)] = {"data": data, "timestamp": time.time()}
 
     def plot_val_samples(self, batch, ni):

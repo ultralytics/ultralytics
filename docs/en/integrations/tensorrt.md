@@ -22,6 +22,10 @@ This toolkit optimizes deep learning models for NVIDIA GPUs and results in faste
 
 TensorRT is known for its compatibility with various model formats, including TensorFlow, [PyTorch](https://www.ultralytics.com/glossary/pytorch), and ONNX, providing developers with a flexible solution for integrating and optimizing models from different frameworks. This versatility enables efficient [model deployment](https://www.ultralytics.com/glossary/model-deployment) across diverse hardware and software environments.
 
+!!! warning "TensorRT engines are hardware- and runtime-specific"
+
+    TensorRT profiles and tunes an engine on its build GPU. Build for the deployment GPU architecture and match the TensorRT/CUDA runtime; do not treat an `.engine` file as a portable model format. For edge deployment, [Ultralytics Platform](../platform/train/models.md#nvidia-jetson-tensorrt-targets) offers eight Jetson target selections, with physical build and validation status documented for each, or you can export locally on the destination device.
+
 ## Key Features of TensorRT Models
 
 TensorRT models offer a range of key features that contribute to their efficiency and effectiveness in high-speed deep learning inference:
@@ -151,6 +155,7 @@ The TensorRT format supports the [Export](../modes/export.md), [Predict](../mode
 | `quantize`  | `int` or `str`    | `None`         | Quantization precision: `16` (FP16) or `8` (INT8/PTQ; needs calibration `data`/`fraction`); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags.                                                                                                     |
 | `dynamic`   | `bool`            | `False`        | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                                                                                          |
 | `simplify`  | `bool`            | `True`         | Simplifies the model graph with `onnxslim`, potentially improving performance and compatibility.                                                                                                                                                                 |
+| `opset`     | `int`             | `None`         | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                                                                                 |
 | `workspace` | `float` or `None` | `None`         | Sets the maximum workspace size in GiB for TensorRT optimizations, balancing memory usage and performance; use `None` for auto-allocation by TensorRT up to device maximum.                                                                                      |
 | `nms`       | `bool`            | `False`        | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                                                                                              |
 | `batch`     | `int`             | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
@@ -263,7 +268,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
 #### Drawbacks of using YOLO with TensorRT INT8
 
-- **Decreases in evaluation metrics:** Using a lower precision will mean that `mAP`, `Precision`, `Recall` or any [other metric used to evaluate model performance](../guides/yolo-performance-metrics.md) is likely to be somewhat worse. See the [Performance results section](#ultralytics-yolo-tensorrt-export-performance) to compare the differences in `mAP50` and `mAP50-95` when exporting with INT8 on small sample of various devices.
+- **Decreases in evaluation metrics:** Using a lower precision will mean that `mAP`, `Precision`, `Recall` or any [other metric used to evaluate model performance](../guides/yolo-performance-metrics.md) is likely to be somewhat worse. Sigmoid layers are kept at higher precision to preserve score calibration, but INT8 can still shift confidence values, so select the operating threshold from the INT8 model's own F1 curve. See the [Performance results section](#ultralytics-yolo-tensorrt-export-performance) to compare the differences in `mAP50` and `mAP50-95` when exporting with INT8 on small sample of various devices.
 
 - **Increased development times:** Finding the "optimal" settings for INT8 calibration for dataset and device can take a significant amount of testing.
 

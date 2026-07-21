@@ -23,6 +23,7 @@ Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 DEEPX                   | `deepx`                   | yolo26n_deepx_model/
 Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 LiteRT                  | `litert`                  | yolo26n.tflite
+Hailo                   | `hailo`                   | yolo26n_hailo_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -78,8 +79,20 @@ from ultralytics.cfg import QUANTIZE_DOCS_URL, TASK2CALIBRATIONDATA, TASK2DATA, 
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.data.dataset import ClassificationDataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
-from ultralytics.nn.autobackend import check_class_names, default_class_names
-from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder, Segment26, SemanticSegment
+from ultralytics.nn.autobackend import AutoBackend, check_class_names, default_class_names
+from ultralytics.nn.modules import (
+    OBB,
+    OBB26,
+    C2f,
+    Classify,
+    Detect,
+    Pose,
+    Pose26,
+    RTDETRDecoder,
+    Segment,
+    Segment26,
+    SemanticSegment,
+)
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
@@ -135,7 +148,7 @@ def export_formats():
             ".torchscript",
             True,
             True,
-            ["batch", "optimize", "quantize", "nms", "dynamic"],
+            ["batch", "quantize", "nms", "dynamic"],
             "base",
         ],
         [
@@ -162,7 +175,7 @@ def export_formats():
             ".engine",
             False,
             True,
-            ["batch", "data", "dynamic", "quantize", "simplify", "nms", "fraction"],
+            ["batch", "data", "dynamic", "quantize", "opset", "simplify", "workspace", "nms", "fraction"],
             "base",
         ],
         ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "quantize", "nms"], "coreml"],
@@ -186,7 +199,7 @@ def export_formats():
             "tensorflow",
         ],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "base"],
-        ["MNN", "mnn", ".mnn", True, True, ["batch", "quantize"], "mnn"],
+        ["MNN", "mnn", ".mnn", True, True, ["batch", "dynamic", "quantize", "nms"], "mnn"],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "quantize"], "ncnn"],
         ["IMX", "imx", "_imx_model", True, True, ["data", "quantize", "fraction", "nms"], "isolated-imx"],
         [
@@ -211,6 +224,15 @@ def export_formats():
         ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "quantize", "optimize"], "isolated-deepx"],
         ["Qualcomm QNN", "qnn", "_qnn.onnx", False, False, ["batch", "name", "quantize", "fraction", "data"], "base"],
         ["LiteRT", "litert", ".tflite", True, False, ["batch", "quantize", "data", "fraction"], "litert"],
+        [
+            "Hailo",
+            "hailo",
+            "_hailo_model",
+            False,
+            False,
+            ["name", "quantize", "data", "fraction", "simplify", "conf", "iou"],
+            "base",
+        ],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -310,7 +332,13 @@ EXPORT_ENVS = {
         "extras": ["export-base"],
         # Axelera export requires 2.8.0 <= torch < 2.12.0.
         "torch": ">=2.8,<2.12",
-        "requirements": ["axelera-devkit==1.7.0", "numpy<=2.3.5", "onnx>=1.12.0,<2.0.0", "onnxslim>=0.1.71"],
+        "requirements": [
+            "axelera-devkit==1.7.0",
+            "omnimalloc==0.5.0",
+            "numpy<=2.3.5",
+            "onnx>=1.12.0,<2.0.0",
+            "onnxslim>=0.1.71",
+        ],
         "indexes": [
             ("--extra-index-url", "https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple"),
         ],
@@ -358,6 +386,7 @@ INT8_FORMATS = frozenset(
         "rknn",
         "axelera",
         "deepx",
+        "hailo",
         "litert",
     }
 )
@@ -365,7 +394,7 @@ W8A16_FORMATS = frozenset(
     {"coreml", "imx", "qnn", "litert"}
 )  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
-FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn"})
+FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo"})
 # (label, supporting formats) per quantize precision, used to list valid options in errors. 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS.
 QUANTIZE_PRECISIONS = (
     ("16 (FP16)", FP16_FORMATS),
@@ -386,7 +415,7 @@ def validate_args(format, passed_args, valid_args):
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
-    export_args = ["dynamic", "keras", "nms", "batch", "fraction", "data"]
+    export_args = ["dynamic", "keras", "nms", "batch", "fraction", "data", "optimize"]
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
@@ -407,7 +436,7 @@ def validate_args(format, passed_args, valid_args):
         elif passed_args.quantize == 32:  # FP32
             assert format not in FP32_UNSUPPORTED_FORMATS, f"ERROR ❌️ quantize=32 (FP32) is not supported; {hint}"
     for arg in export_args:
-        not_default = getattr(passed_args, arg, None) != getattr(default_args, arg, None)
+        not_default = getattr(passed_args, arg, getattr(default_args, arg, None)) != getattr(default_args, arg, None)
         if not_default:
             assert arg in valid_args, f"ERROR ❌️ argument '{arg}' is not supported for format='{format}'"
 
@@ -429,7 +458,13 @@ def try_export(inner_func):
             LOGGER.info(f"{prefix} export success ✅ {dt.t:.1f}s, saved as '{path}' ({mb:.1f} MB)")
             return f
         except Exception as e:
-            LOGGER.error(f"{prefix} export failure {dt.t:.1f}s: {e}")
+            dependency_help = (
+                " Ultralytics Platform runs exports in the cloud with no local dependencies required. "
+                "Visit https://platform.ultralytics.com."
+                if isinstance(e, ImportError)
+                else ""
+            )
+            LOGGER.error(f"{prefix} export failure {dt.t:.1f}s: {e}{dependency_help}")
             raise e
 
     return outer_func
@@ -548,7 +583,7 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
-        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn"} and self.args.quantize not in {8, "w8a16"}:
+        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo"} and self.args.quantize not in {8, "w8a16"}:
             if self.args.quantize == 32:
                 raise ValueError(
                     f"{fmt} export only supports INT8, but got an explicit quantize=32 (FP32) request. "
@@ -556,11 +591,39 @@ class Exporter:
                 )
             LOGGER.warning(f"{fmt} export requires INT8 quantization, enabling it.")
             self.args.quantize = "w8a16" if fmt == "qnn" else 8
+        if fmt in {"axelera", "hailo"} and not self.args.data:
+            self.args.data = TASK2CALIBRATIONDATA.get(model.task)
+        if fmt == "hailo":
+            assert LINUX and not ARM64, "Hailo export is only supported on Linux x86_64."
+            blocks = {str(x[2]) for x in model.yaml.get("backbone", []) + model.yaml.get("head", [])}
+            family = Path(getattr(model, "yaml_file", None) or model.yaml.get("yaml_file", "")).stem.lower() or (
+                "yolov8" if "C2f" in blocks else "yolo11" if {"C3k2", "C2PSA"} <= blocks else ""
+            )
+            task26 = {Segment26: "segmentation", Pose26: "pose", OBB26: "OBB"}.get(type(model.model[-1]))
+            if task26:
+                raise ValueError(f"Hailo export does not currently support YOLO26 {task26} models.")
+            if (
+                model.task not in {"detect", "segment", "pose", "obb", "classify", "semantic"}
+                or type(model.model[-1]) not in {Detect, Segment, Pose, OBB, Classify, SemanticSegment}
+                or not family.startswith(("yolov8", "yolo11", "yolo26"))
+            ):
+                raise ValueError(
+                    "Hailo export currently supports YOLOv8/YOLO11/YOLO26 detection and classification models, "
+                    "YOLOv8/YOLO11 segmentation, pose, and OBB models, and YOLO26 semantic segmentation models."
+                )
+            if model.task == "semantic" and not family.startswith("yolo26"):
+                raise ValueError("Hailo export supports semantic segmentation only for YOLO26 models.")
+            if self.args.end2end is not None:
+                raise ValueError(
+                    "Hailo export selects the model output path automatically; remove the end2end argument."
+                )
+            self.args.name = str(self.args.name or "hailo8l").lower()
+            hailo_archs = ("hailo8", "hailo8l", "hailo10h", "hailo15h", "hailo15l")
+            if self.args.name not in hailo_archs:
+                raise ValueError(f"Invalid Hailo architecture '{self.args.name}'. Valid names are {hailo_archs}.")
         if fmt == "axelera":
             if model.task == "segment" and any(isinstance(m, Segment26) for m in model.modules()):
                 raise ValueError("Axelera export does not currently support YOLO26 segmentation models.")
-            if not self.args.data:
-                self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "imx":
             if not self.args.nms and model.task in {"detect", "pose", "segment"}:
                 LOGGER.warning("IMX export requires nms=True, setting nms=True.")
@@ -595,7 +658,11 @@ class Exporter:
                             "Please upgrade TensorRT to 8.5.0 or later to enable end2end export."
                         )
 
-                    if self.args.quantize == 8 and check_version(trt.__version__, "==10.3.0") and is_jetson(jetpack=6):
+                    if (
+                        self.args.quantize == 8
+                        and check_version(trt.__version__, ">=10.3.0,<10.4.0")  # JetPack 6 builds report 10.3.0.x
+                        and is_jetson(jetpack=6)
+                    ):
                         # https://github.com/ultralytics/ultralytics/issues/23841
                         model.end2end = False
                         LOGGER.warning(
@@ -608,9 +675,8 @@ class Exporter:
         if self.args.quantize == 16 and fmt == "torchscript" and self.device.type == "cpu":
             raise ValueError("FP16 TorchScript export is only supported on GPU, i.e. use device=0.")
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
-        if self.args.optimize:
-            assert fmt != "ncnn", "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
-            assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
+        if fmt == "axelera" and min(self.imgsz) < 64:
+            raise ValueError(f"Axelera export requires imgsz>=64, but got imgsz={self.imgsz}.")
         if fmt == "rknn":
             if not self.args.name:
                 LOGGER.warning(
@@ -647,6 +713,9 @@ class Exporter:
         if self.args.nms and model.task == "semantic":
             LOGGER.warning("'nms=True' is not valid for semantic segmentation models. Forcing 'nms=False'.")
             self.args.nms = False
+        if fmt == "coreml" and self.args.nms and model.task != "detect":
+            LOGGER.warning("CoreML 'nms=True' is only supported for detect models. Forcing 'nms=False'.")
+            self.args.nms = False
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
             assert not is_tf_format or TORCH_1_13, "TensorFlow exports with NMS require torch>=1.13"
@@ -655,6 +724,23 @@ class Exporter:
                 LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=False'.")
                 self.args.nms = False
             self.args.conf = self.args.conf or 0.25  # set conf default value for nms export
+        if fmt == "mnn" and self.args.nms:
+            if self.args.dynamic:
+                raise ValueError("Alibaba MNN export does not support combining 'dynamic=True' with 'nms=True'.")
+            if model.task not in {"detect", "pose"}:
+                raise ValueError("Alibaba MNN export with 'nms=True' only supports detect and pose models.")
+        if fmt == "coreml":
+            if self.args.batch > 1:
+                assert self.args.dynamic, (
+                    "batch sizes > 1 are not supported without 'dynamic=True' for CoreML export. Please retry at 'dynamic=True'."
+                )
+            if self.args.dynamic:
+                assert not self.args.nms, (
+                    "'nms=True' cannot be used together with 'dynamic=True' for CoreML export. Please disable one of them."
+                )
+                assert model.task != "classify" and not isinstance(model.model[-1], RTDETRDecoder), (
+                    "'dynamic=True' is not supported for CoreML classification or RT-DETR models."
+                )
         if (fmt in {"engine", "coreml"} or self.args.nms) and self.args.dynamic and self.args.batch == 1:
             LOGGER.warning(
                 f"'dynamic=True' model with '{'nms=True' if self.args.nms else f'format={self.args.format}'}' requires max batch size, i.e. 'batch=16'"
@@ -732,9 +818,13 @@ class Exporter:
                 m.dynamic = self.args.dynamic
                 m.export = True
                 m.format = self.args.format
-                # Clamp max_det to anchor count for small image sizes (required for TensorRT compatibility)
-                anchors = sum(int(self.imgsz[0] / s) * int(self.imgsz[1] / s) for s in model.stride.tolist())
-                m.max_det = min(self.args.max_det, anchors)
+                # Clamp max_det to available queries/anchors (required for TensorRT compatibility)
+                available = (
+                    m.num_queries
+                    if isinstance(m, RTDETRDecoder)
+                    else sum(int(self.imgsz[0] / s) * int(self.imgsz[1] / s) for s in model.stride.tolist())
+                )
+                m.max_det = min(self.args.max_det, available)
                 m.agnostic_nms = self.args.agnostic_nms
                 m.xyxy = self.args.nms and fmt != "coreml"
                 m.shape = None  # reset cached shape for new export input size
@@ -783,7 +873,7 @@ class Exporter:
             "batch": self.args.batch,
             "imgsz": self.imgsz,
             "names": model.names,
-            "args": {k: v for k, v in self.args if k in fmt_keys},
+            "args": {k: str(v) if isinstance(v, Path) else v for k, v in self.args if k in fmt_keys},
             "channels": model.yaml.get("channels", 3),
             "end2end": getattr(model, "end2end", False),
         }  # model metadata
@@ -821,11 +911,16 @@ class Exporter:
             )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
             q = "quantize=16" if self.args.quantize == 16 else ""  # FP16 inference flag for the val/predict hint
+            inference_commands = (
+                f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
+                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
+                if fmt in AutoBackend._BACKEND_MAP
+                else ""
+            )
             LOGGER.info(
                 f"\nExport complete ({time.time() - t:.1f}s)"
                 f"\nResults saved to {colorstr('bold', Path(f).resolve())}"
-                f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
-                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
+                f"{inference_commands}"
                 f"\nVisualize:       https://netron.app"
             )
 
@@ -835,16 +930,17 @@ class Exporter:
     def get_int8_calibration_dataloader(self, prefix=""):
         """Build and return a dataloader for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
-        data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
         cfg = deepcopy(self.args)
         cfg.imgsz = max(self.imgsz)
         if self.model.task == "classify":
             import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
+            data = check_cls_dataset(self.args.data, split=self.args.split)
             dataset = ClassificationDataset(data[self.args.split or "val"], args=cfg, augment=False)
             # INT8 backends divide images by 255, so emit uint8 [0, 255] center-cropped like classify inference
             dataset.torch_transforms = T.Compose([T.Resize(cfg.imgsz), T.CenterCrop(cfg.imgsz), T.PILToTensor()])
         else:
+            data = check_det_dataset(self.args.data, split=self.args.split)
             dataset = build_yolo_dataset(
                 cfg,
                 data[self.args.split or "val"],
@@ -878,7 +974,6 @@ class Exporter:
             model=NMSModel(self.model, self.args) if self.args.nms else self.model,
             im=self.im,
             output_file=self.file.with_suffix(".torchscript"),
-            optimize=self.args.optimize,
             metadata=self.metadata,
             prefix=prefix,
         )
@@ -899,7 +994,8 @@ class Exporter:
 
         from ultralytics.utils.export.engine import best_onnx_opset, torch2onnx
 
-        opset = self.args.opset or best_onnx_opset(onnx, cuda="cuda" in self.device.type)
+        opset = self.args.opset or best_onnx_opset(onnx, cuda="cuda" in self.device.type, quantize=self.args.quantize)
+        assert not isinstance(self.model.model[-1], RTDETRDecoder) or opset >= 16, "RTDETR export requires opset>=16"
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")
         if self.args.nms:
             assert TORCH_1_13, f"'nms=True' ONNX export requires torch>=1.13 (found torch=={TORCH_VERSION})"
@@ -1120,26 +1216,12 @@ class Exporter:
 
         assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
         assert TORCH_1_11, "CoreML export requires torch>=1.11"
-        if self.args.batch > 1:
-            assert self.args.dynamic, (
-                "batch sizes > 1 are not supported without 'dynamic=True' for CoreML export. Please retry at 'dynamic=True'."
-            )
-        if self.args.dynamic:
-            assert not self.args.nms, (
-                "'nms=True' cannot be used together with 'dynamic=True' for CoreML export. Please disable one of them."
-            )
-            assert self.model.task != "classify", "'dynamic=True' is not supported for CoreML classification models."
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
         if f.is_dir():
             shutil.rmtree(f)
 
-        if self.model.task == "detect":
-            model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel) if self.args.nms else self.model
-        else:
-            if self.args.nms:
-                LOGGER.warning(f"{prefix} 'nms=True' is only available for Detect models like 'yolo26n.pt'.")
-                # TODO CoreML Segment and Pose model pipelining
-            model = self.model
+        # TODO CoreML Segment and Pose model pipelining; 'nms=True' is forced off for non-detect tasks upstream
+        model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel) if self.args.nms else self.model
 
         if self.args.dynamic:
             input_shape = ct.Shape(
@@ -1160,12 +1242,12 @@ class Exporter:
             im=self.im,
             classifier_names=list(self.model.names.values()) if self.model.task == "classify" else None,
             mlmodel=mlmodel,
-            quantize=self.args.quantize,
+            quantize=16 if self.args.nms and not mlmodel and self.args.quantize is None else self.args.quantize,
             metadata=self.metadata,
             prefix=prefix,
         )
 
-        if self.args.nms and self.model.task == "detect":
+        if self.args.nms:
             ct_model = pipeline_coreml(
                 ct_model,
                 self.output_shape,
@@ -1244,7 +1326,7 @@ class Exporter:
         # Export to ONNX
         if isinstance(self.model.model[-1], RTDETRDecoder):
             self.args.opset = self.args.opset or 19
-            assert 16 <= self.args.opset <= 19, "RTDETR export requires opset>=16;<=19"
+            assert self.args.opset <= 19, "RTDETR TensorFlow export requires opset<=19"
         self.args.simplify = True
         f_onnx = self.export_onnx()  # ensure ONNX is available
         keras_model = onnx2saved_model(
@@ -1319,7 +1401,10 @@ class Exporter:
         """Export YOLO model to RKNN format with optional INT8 quantization."""
         from ultralytics.utils.export.rknn import onnx2rknn
 
+        if self.args.opset and self.args.opset > 19:
+            LOGGER.warning(f"{prefix} rknn-toolkit2 requires opset<=19, setting opset=19.")
         self.args.opset = min(self.args.opset or 19, 19)  # rknn-toolkit expects opset<=19
+        self.im = self.im[:1]  # RKNN Toolkit expands the batch after calibrating the batch-1 ONNX model
         f_onnx = self.export_onnx()
         output_dir = Path(str(self.file).replace(self.file.suffix, f"_rknn_model{os.sep}"))
         rknn_dataset = None
@@ -1338,6 +1423,7 @@ class Exporter:
             output_dir=output_dir,
             name=self.args.name,
             quantize=self.args.quantize,
+            batch=self.args.batch,
             dataset=rknn_dataset,
             metadata=self.metadata,
             prefix=prefix,
@@ -1405,6 +1491,145 @@ class Exporter:
             batch=0 if self.args.dynamic else self.args.batch,
             prefix=prefix,
         )
+
+    @try_export
+    def export_hailo(self, prefix=colorstr("Hailo:")):
+        """Export a YOLO model to Hailo Executable Format (HEF)."""
+        try:
+            import tensorflow as tf
+            from hailo_sdk_client import ClientRunner
+        except ImportError as e:
+            raise ImportError("Hailo export requires the Hailo Dataflow Compiler.") from e
+
+        calibration_dataloader = self.get_int8_calibration_dataloader(prefix)
+        calibration_size = len(calibration_dataloader.dataset)
+        LOGGER.warning(
+            f"\nHailo level-2 optimization will use {calibration_size} calibration images. "
+            "Hailo recommends at least 1,024 representative images for best accuracy. "
+            'Pass data="path/to/dataset.yaml". '
+            "See https://docs.ultralytics.com/integrations/hailo/#export-a-hailo-hef-model"
+        )
+        head_index = len(self.model.model) - 1
+        head = self.model.model[head_index]
+        one2one = getattr(self.model, "end2end", False)
+        task = self.model.task
+        if task == "classify":
+            # The Classify head ends in Gemm -> Softmax; cut at the Softmax so the HEF returns the same
+            # (1, nc) probabilities as the PyTorch model. The DFC translates the softmax to a native layer.
+            end_nodes = [f"/model.{head_index}/Softmax"]
+        elif task == "semantic":
+            # Multi-class Hailo-15/10 (DFC 5.x) heads compile the bilinear upsample and ArgMax on chip. Hailo-8/8L
+            # (DFC 3.x) cannot compile the Resize, and single-class heads use a threshold instead of ArgMax, so both
+            # cut at the classifier logits and run the reduction on the host.
+            head.bake_argmax = head.nc > 1 and self.args.name in {"hailo10h", "hailo15h", "hailo15l"}
+            end_nodes = [
+                f"/model.{head_index}/ArgMax"
+                if head.bake_argmax
+                else f"/model.{head_index}/classifier/classifier.1/Conv"
+            ]
+        else:
+            scales = range(len(head.one2one_cv2 if one2one else head.cv2))
+            if one2one:
+                end_nodes = [
+                    f"/model.{head_index}/one2one_cv{branch}.{i}/one2one_cv{branch}.{i}.2/Conv"
+                    for branch in (2, 3)
+                    for i in scales
+                ]
+            elif task in {"segment", "pose", "obb"}:
+                # reg/cls/extra triple per scale (extra = mask coeffs, keypoints, or angle); segment adds prototypes.
+                end_nodes = [
+                    f"/model.{head_index}/cv{branch}.{i}/cv{branch}.{i}.2/Conv" for i in scales for branch in (2, 3, 4)
+                ]
+                if task == "segment":
+                    end_nodes.append(f"/model.{head_index}/proto/cv3/act/Mul")
+            else:
+                end_nodes = [
+                    f"/model.{head_index}/cv{branch}.{i}/cv{branch}.{i}.2/Conv" for i in scales for branch in (2, 3)
+                ]
+        self.args.opset = 11
+        f_onnx = Path(self.export_onnx())
+        output_dir = self.file.parent / f"{self.file.stem}_hailo_model"
+        if output_dir.exists():
+            shutil.rmtree(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            runner = ClientRunner(hw_arch=self.args.name)
+            runner.translate_onnx_model(str(f_onnx), self.file.stem, end_node_names=end_nodes)
+            model_script = [
+                "normalization1 = normalization([0, 0, 0], [255, 255, 255])",
+                "model_optimization_flavor(optimization_level=2)",
+                f"post_quantization_optimization(finetune, policy=enabled, dataset_size={calibration_size})",
+            ]
+            if one2one:
+                outputs = ", ".join(f"output_layer{i + 1}" for i in range(len(end_nodes)))
+                model_script.append(f"quantization_param([{outputs}], precision_mode=a16_w16)")
+            elif task in {"classify", "semantic"}:
+                pass  # softmax/class-map is already the graph output; no NMS or activation changes needed
+            else:
+                outputs = [layer.inputs[0].rsplit("/", 1)[-1] for layer in runner.get_hn_model().get_output_layers()]
+                if task in {"segment", "pose", "obb"}:
+                    # Bake sigmoid into the class convs only (position 1 of each per-scale reg/cls/extra triple).
+                    # Mask coeffs, prototypes, keypoints and angles stay raw and are decoded on the host.
+                    model_script.extend(
+                        f"change_output_activation({outputs[i]}, sigmoid)" for i in range(1, 3 * len(scales), 3)
+                    )
+                else:
+                    nms_config = output_dir / "nms_config.json"
+                    nms_config.write_text(
+                        json.dumps(
+                            {
+                                "nms_scores_th": self.args.conf if self.args.conf is not None else 0.25,
+                                "nms_iou_th": self.args.iou,
+                                "image_dims": self.imgsz,
+                                "max_proposals_per_class": 100,
+                                "classes": len(self.model.names),
+                                "regression_length": 16,
+                                "background_removal": False,
+                                "background_removal_index": 0,
+                                "bbox_decoders": [
+                                    {
+                                        "name": f"bbox_decoder_{stride}",
+                                        "stride": stride,
+                                        "reg_layer": outputs[i * 2],
+                                        "cls_layer": outputs[i * 2 + 1],
+                                    }
+                                    for i, stride in enumerate(int(x) for x in head.stride)
+                                ],
+                            },
+                            indent=2,
+                        )
+                    )
+                    model_script.extend(
+                        f"change_output_activation({outputs[i]}, sigmoid)" for i in range(1, len(outputs), 2)
+                    )
+                    model_script.append(f'nms_postprocess("{nms_config}", meta_arch=yolov8, engine=cpu)')
+                    model_script.append("allocator_param(width_splitter_defuse=disabled)")
+            runner.load_model_script("\n".join(model_script))
+
+            def calibration_dataset():
+                for batch in calibration_dataloader:
+                    for image in batch["img"].permute(0, 2, 3, 1).numpy().astype(np.float32):
+                        yield image, {}
+
+            runner.optimize(
+                lambda: tf.data.Dataset.from_generator(
+                    calibration_dataset,
+                    output_signature=(tf.TensorSpec(shape=(*self.imgsz, 3), dtype=tf.float32), {}),
+                )
+            )
+            (output_dir / f"{self.file.stem}.hef").write_bytes(runner.compile())
+            YAML.save(
+                output_dir / "metadata.yaml",
+                {
+                    **self.metadata,
+                    "hailo_arch": self.args.name,
+                    "nms": task == "detect" and not one2one,
+                    "semantic_baked": task == "semantic" and head.bake_argmax,
+                },
+            )
+            return str(output_dir)
+        finally:
+            f_onnx.unlink(missing_ok=True)
 
     def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://ai.google.dev/edge/litert/models/metadata."""

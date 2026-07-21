@@ -52,8 +52,10 @@ RUN uv pip install --system --no-cache -e "." albumentations faster-coco-eval &&
 # Example (build): t=ultralytics/ultralytics:latest && docker build -f docker/Dockerfile -t $t .
 # Example (push): docker push $t
 # Example (pull): t=ultralytics/ultralytics:latest && docker pull $t
-# Example (run-gpu): docker run -it --ipc=host --runtime=nvidia --gpus all $t
-# Example (run-gpu-subset): docker run -it --ipc=host --runtime=nvidia --gpus "device=2,3" $t
-# Note: device=2,3 maps to CUDA 0,1 inside the container.
-# Example (run-with-volume): docker run -it --ipc=host --runtime=nvidia --gpus all -v "$PWD/shared/datasets:/datasets" $t
+# Example (run-gpu): docker run -it --ipc=host --device nvidia.com/gpu=all $t
+# Example (run-gpu-subset): docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t
+# Note: CDI devices 2,3 appear as cuda:0,1 inside the container.
+# Example (run-with-volume): docker run -it --ipc=host --device nvidia.com/gpu=all -v "$PWD/shared/datasets:/datasets" $t
+# CDI requires Docker >= 28.2.0 and nvidia-container-toolkit >= 1.18.
+# Legacy --gpus all can lose GPU access after host systemd daemon reloads (nvidia-container-toolkit#48).
 # Example (tag-release): t=ultralytics/ultralytics:latest tnew=ultralytics/ultralytics:vX.Y && docker tag $t $tnew && docker push $tnew

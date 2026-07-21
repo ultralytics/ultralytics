@@ -213,7 +213,7 @@ def verify_image(args: tuple) -> tuple:
 
 def verify_image_mask(args: tuple) -> tuple:
     """Verify that an image and its semantic mask exist, are readable, and have matching shapes."""
-    im_file, mask_file, prefix = args
+    im_file, mask_file, prefix, check_bit_depth = args
     # Number (found, missing, corrupt), message
     nf, nm, nc, msg = 0, 0, 0, ""
     try:
@@ -229,16 +229,20 @@ def verify_image_mask(args: tuple) -> tuple:
             mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
             assert mask is not None, f"mask file {mask_file} is unreadable"
             assert mask.shape[:2] == shape, f"mask size {mask.shape[:2]} does not match image size {shape}"
+            is_1bit = False
+            if check_bit_depth:
+                with Image.open(mask_file) as im:
+                    is_1bit = im.mode == "1"
             nf = 1
         else:
             nm = 1
             msg = f"{prefix}{im_file}: ignoring image with missing mask {mask_file}"
-            return None, None, None, nm, nf, nc, msg
-        return im_file, mask_file, shape, nm, nf, nc, msg
+            return None, None, None, None, nm, nf, nc, msg
+        return im_file, mask_file, shape, is_1bit, nm, nf, nc, msg
     except Exception as e:
         nc = 1
         msg = f"{prefix}{im_file}: ignoring corrupt image/mask: {e}"
-    return None, None, None, nm, nf, nc, msg
+    return None, None, None, None, nm, nf, nc, msg
 
 
 def verify_image_label(args: tuple) -> list:
@@ -410,10 +414,9 @@ def polygons2masks_overlap(
     areas = np.asarray(areas)
     index = np.argsort(-areas)
     ms = np.array(ms)[index]
+    # Running max: the old `masks + mask` sum hit 2 * i + 1 and overflowed uint8 past 128 overlapping instances
     for i in range(len(segments)):
-        mask = ms[i] * (i + 1)
-        masks = masks + mask
-        masks = np.clip(masks, a_min=0, a_max=i + 1)
+        np.maximum(masks, ms[i] * (i + 1), out=masks)
     return masks, index
 
 
@@ -441,16 +444,16 @@ def convert_ndjson_to_yolo_if_needed(data: str | Path) -> str | Path:
     """Convert an NDJSON dataset or Platform dataset URI to YOLO format."""
     data = normalize_platform_uri(data)  # accept Platform web URLs (https://platform.ultralytics.com/.../datasets/...)
     data_str = str(data)
-    if data_str.endswith(".ndjson") or (data_str.startswith("ul://") and "/datasets/" in data_str):
+    if clean_url(data_str).endswith(".ndjson") or (data_str.startswith("ul://") and "/datasets/" in data_str):
         import asyncio
 
         from ultralytics.data.converter import convert_ndjson_to_yolo
 
-        return asyncio.run(convert_ndjson_to_yolo(check_file(data)))
+        return asyncio.run(convert_ndjson_to_yolo(data))
     return data
 
 
-def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]:
+def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") -> dict[str, Any]:
     """Download, verify, and/or unzip a dataset if not found locally.
 
     This function checks the availability of a specified dataset, and if not found, it has the option to download and
@@ -460,6 +463,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
     Args:
         dataset (str): Path to the dataset or dataset descriptor (like a YAML file).
         autodownload (bool, optional): Whether to automatically download the dataset if not found.
+        split (str, optional): Dataset split required by the caller.
 
     Returns:
         (dict[str, Any]): Parsed dataset information and paths.
@@ -491,6 +495,8 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
                 )
             LOGGER.warning("renaming data YAML 'validation' key to 'val' to match YOLO format.")
             data["val"] = data.pop("validation")  # replace 'validation' key with 'val' key
+    if split and not data.get(split):
+        raise FileNotFoundError(f"{dataset} '{split}:' images not found ❌")
     if "names" not in data and "nc" not in data:
         raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
     if "nc" in data and not isinstance(data["nc"], int):
@@ -529,7 +535,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
                 data[k] = [str((path / x).resolve()) for x in data[k]]
 
     # Parse YAML
-    val, s = (data.get(x) for x in ("val", "download"))
+    val, s = (data.get(x) for x in (split or "val", "download"))
     if val:
         val = [Path(x).resolve() for x in (val if isinstance(val, list) else [val])]  # val path
         if not all(x.exists() for x in val):
@@ -577,6 +583,9 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
             - 'nc' (int): The number of classes in the dataset.
             - 'names' (dict[int, str]): A dictionary of class names in the dataset.
     """
+    if split and split not in {"train", "val", "test"}:
+        raise ValueError(f"Invalid classification dataset split '{split}'. Use 'train', 'val', or 'test'.")
+
     # Download (optional if dataset=https://file.zip is passed directly)
     if str(dataset).startswith(("http:/", "https:/")):
         dataset = safe_download(dataset, dir=DATASETS_DIR, unzip=True, delete=False)
@@ -628,9 +637,11 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
         LOGGER.warning("Dataset 'split=test' not found, using 'split=val' instead.")
         test_set = val_set
 
-    nc = len([x for x in (data_dir / "train").glob("*") if x.is_dir()])  # number of classes
-    names = [x.name for x in (data_dir / "train").iterdir() if x.is_dir()]  # class names list
-    names = dict(enumerate(sorted(names)))
+    if (ndjson_names := data_dir / ".ndjson.yaml").is_file():
+        names = YAML.load(ndjson_names)["names"]
+    else:
+        names = dict(enumerate(sorted(x.name for x in (data_dir / "train").iterdir() if x.is_dir())))
+    nc = len(names)
 
     # Print to console
     for k, v in {"train": train_set, "val": val_set, "test": test_set}.items():
@@ -646,10 +657,11 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
                     raise FileNotFoundError(f"{dataset} '{k}:' no training images found")
                 else:
                     LOGGER.warning(f"{prefix} found {nf} images in {nd} classes (no images found)")
-            elif nd != nc:
+            elif nd != nc and not ndjson_names.is_file():
                 LOGGER.error(f"{prefix} found {nf} images in {nd} classes (requires {nc} classes, not {nd})")
             else:
-                LOGGER.info(f"{prefix} found {nf} images in {nd} classes ✅ ")
+                class_count = f"{nd}/{nc}" if ndjson_names.is_file() else nd
+                LOGGER.info(f"{prefix} found {nf} images in {class_count} classes ✅ ")
 
     return {"train": train_set, "val": val_set, "test": test_set, "nc": nc, "names": names, "channels": 3}
 

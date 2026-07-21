@@ -8,6 +8,7 @@ import os
 import time
 import urllib
 from dataclasses import dataclass
+from io import BytesIO
 from pathlib import Path
 from threading import Thread
 from typing import Any
@@ -514,32 +515,36 @@ class LoadPilAndNumpy:
             im0 = [im0]
         # use `image{i}.jpg` when Image.filename returns an empty path.
         self.paths = [getattr(im, "filename", "") or f"image{i}.jpg" for i, im in enumerate(im0)]
-        pil_flag = "L" if channels == 1 else "RGB"  # grayscale or RGB
-        self.im0 = [self._single_check(im, pil_flag) for im in im0]
+        self.im0 = [self._single_check(im, channels) for im in im0]
         self.mode = "image"
         self.bs = len(self.im0)
         self.count = 0
 
     @staticmethod
-    def _single_check(im: Image.Image | np.ndarray, flag: str = "RGB") -> np.ndarray:
-        """Validate and format an image to a NumPy array.
+    def _single_check(im: Image.Image | np.ndarray, channels: int = 3) -> np.ndarray:
+        """Validate an image and normalize its channel count.
 
         Notes:
             - PIL inputs are converted to NumPy and returned in OpenCV-compatible BGR order for color images.
-            - NumPy color inputs are returned as-is (no channel-order conversion is applied).
-            - 2D grayscale NumPy inputs are expanded to match the model channels (3 for color, 1 for grayscale),
-              mirroring how PIL and file inputs are handled.
+            - NumPy color inputs are assumed to use OpenCV-compatible BGR order.
         """
         assert isinstance(im, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(im)}"
         if isinstance(im, Image.Image):
+            flag = "L" if channels == 1 else "RGB"
             im = np.asarray(im.convert(flag))
-            # Add a new axis if grayscale; convert RGB -> BGR for OpenCV compatibility.
             im = im[..., None] if flag == "L" else im[..., ::-1]
-            im = np.ascontiguousarray(im)  # contiguous
-        elif im.ndim == 2:  # grayscale in numpy form
-            # Expand 2D grayscale to 3 channels for color models (like PIL/file inputs); np.repeat preserves dtype
-            im = im[..., None] if flag == "L" else np.repeat(im[..., None], 3, axis=2)
-        return im
+            return np.ascontiguousarray(im)
+        im = np.atleast_3d(im)
+        c = im.shape[2]
+        if c == channels:
+            return im
+        if c == 2:  # gray + alpha
+            im, c = im[..., :1], 1
+        if c == 1:
+            return np.repeat(im, channels, axis=2)
+        if channels == 1:
+            return cv2.cvtColor(im, cv2.COLOR_BGRA2GRAY if c == 4 else cv2.COLOR_BGR2GRAY)[..., None]
+        return np.ascontiguousarray(im[..., :3])
 
     def __len__(self) -> int:
         """Return the length of the 'im0' attribute, representing the number of loaded images."""
@@ -607,7 +612,7 @@ class LoadTensor:
             im = im.unsqueeze(0)
         if im.shape[2] % stride or im.shape[3] % stride:
             raise ValueError(s)
-        if im.max() > 1.0 + torch.finfo(im.dtype).eps:  # torch.float32 eps is 1.2e-07
+        if im.max() > 1.0 + (torch.finfo(im.dtype).eps if im.is_floating_point() else 0):
             LOGGER.warning(
                 f"torch.Tensor inputs should be normalized 0.0-1.0 but max value is {im.max()}. Dividing input by 255."
             )
@@ -637,9 +642,11 @@ def autocast_list(source: list[Any]) -> list[Image.Image | np.ndarray]:
     files = []
     for im in source:
         if isinstance(im, (str, Path)):  # filename or uri
-            files.append(
-                ImageOps.exif_transpose(Image.open(urllib.request.urlopen(im) if str(im).startswith("http") else im))
-            )
+            if str(im).startswith("http"):  # requests follows HTTP 308 redirects that urllib lacks pre-3.11
+                import requests  # scoped as slow import
+
+                im = BytesIO(requests.get(im).content)
+            files.append(ImageOps.exif_transpose(Image.open(im)))
         elif isinstance(im, (Image.Image, np.ndarray)):  # PIL or np Image
             files.append(im)
         else:

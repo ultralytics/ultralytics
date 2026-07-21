@@ -762,7 +762,7 @@ class SemanticDataset(YOLODataset):
     def _semantic_cache_hash(self, mask_files: list[str]) -> str:
         """Return a hash for semantic cache validation that also includes label_mapping changes."""
         mapping = json.dumps(self.label_mapping, sort_keys=True, separators=(",", ":"))
-        return get_hash(self.im_files + mask_files + [f"label_mapping:{mapping}"])
+        return get_hash(self.im_files + mask_files + [f"label_mapping:{mapping}", "mask_bit_depth"])
 
     def cache_labels(self, path: Path = Path("./labels.cache")) -> dict[str, Any]:
         """Cache semantic labels and image-mask pairing metadata.
@@ -781,10 +781,15 @@ class SemanticDataset(YOLODataset):
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(
                 func=verify_image_mask,
-                iterable=zip(self.im_files, self.mask_files, repeat(self.prefix)),
+                iterable=zip(
+                    self.im_files,
+                    self.mask_files,
+                    repeat(self.prefix),
+                    repeat(int(self.data.get("nc", 0)) == 1),
+                ),
             )
             pbar = TQDM(results, desc=desc, total=total)
-            for im_file, mask_file, shape, nm_f, nf_f, nc_f, msg in pbar:
+            for im_file, mask_file, shape, is_1bit, nm_f, nf_f, nc_f, msg in pbar:
                 nm += nm_f
                 nf += nf_f
                 nc += nc_f
@@ -794,6 +799,7 @@ class SemanticDataset(YOLODataset):
                             "im_file": im_file,
                             "mask_file": mask_file,
                             "shape": shape,
+                            "is_1bit": is_1bit,
                             "cls": np.array([], dtype=np.float32),
                             "bboxes": np.zeros((0, 4), dtype=np.float32),
                             "segments": [],
@@ -853,12 +859,8 @@ class SemanticDataset(YOLODataset):
         mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
         if mask is None:
             raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")
-        if mask.ndim == 3 and mask.shape[2] == 1:
-            mask = np.squeeze(mask, axis=2)
-        if int(self.data.get("nc", 0)) == 1:
-            with Image.open(mask_file) as im:
-                if im.mode == "1":  # cv2 expands 1-bit PNGs to {0, 255}; map only true 1-bit foreground to 1.
-                    mask[mask == 255] = 1
+        if int(self.data.get("nc", 0)) == 1 and self.labels[index]["is_1bit"]:
+            mask[mask == 255] = 1  # cv2 expands 1-bit PNG foreground to 255.
         if self.label_mapping:
             mask = self.convert_label(mask, inverse=False)
         return mask.astype(np.uint8, copy=False)
@@ -1015,6 +1017,7 @@ class ClassificationDataset:
             self.base = torchvision.datasets.ImageFolder(root=root, allow_empty=True)
         else:
             self.base = torchvision.datasets.ImageFolder(root=root)
+        is_ndjson = (Path(root).parent / ".ndjson.yaml").is_file()
         self.samples = self.base.samples
         self.root = self.base.root
 
@@ -1025,6 +1028,10 @@ class ClassificationDataset:
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
         self.samples = self.verify_images()  # filter out bad images
+        if is_ndjson:
+            self.samples = [(f, int(Path(f).parent.name)) for f, _ in self.samples]
+        if args.single_cls:
+            self.samples = [(f, 0) for f, _ in self.samples]
         self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
         if self.cache_ram:
             self.cache_images()

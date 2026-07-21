@@ -19,8 +19,9 @@ from PIL import Image
 import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
+from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
-from ultralytics.data.utils import check_det_dataset
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -79,6 +80,26 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
     """Test empty datasets fail through DataLoader validation instead of worker-cap math."""
     with pytest.raises(ValueError, match="positive integer"):
         build_dataloader([], batch=4, workers=2)
+
+
+def test_cfg_rejects_fuzzed_values():
+    """Test invalid overrides fail in config validation."""
+    with pytest.raises(TypeError, match="degrees"):
+        get_cfg(overrides={"degrees": None})
+    with pytest.raises(ValueError, match="cls_pw"):
+        get_cfg(overrides={"cls_pw": 10})
+    for key, value in (
+        ("split", []),
+        ("split", -0.0),
+        ("optimizer", []),
+        ("copy_paste_mode", {}),
+        ("optimizer", None),
+        ("split", None),
+        ("copy_paste_mode", None),
+    ):
+        with pytest.raises((TypeError, ValueError), match=key):
+            get_cfg(overrides={key: value})
+    assert get_cfg(overrides={"auto_augment": None}).auto_augment is None
 
 
 def skip_rpi_semantic():
@@ -175,6 +196,42 @@ def test_model_methods():
     _ = model.task_map
 
 
+def test_model_load_remaps_cls_head_by_names():
+    """Test class-name remap is limited to closed-set class-logit heads."""
+    from types import SimpleNamespace
+
+    from ultralytics.models.yolo.detect.train import DetectionTrainer
+    from ultralytics.models.yolo.obb.train import OBBTrainer
+    from ultralytics.models.yolo.pose.train import PoseTrainer
+    from ultralytics.models.yolo.segment.train import SegmentationTrainer
+    from ultralytics.nn.tasks import DetectionModel, OBBModel, PoseModel, SegmentationModel, YOLOEModel
+
+    src = DetectionModel("yolo26n.yaml", nc=3, verbose=False)
+    tgt = DetectionModel("yolo26n.yaml", nc=2, verbose=False)
+    src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat"}
+    for seq in src.model[-1].cv3:
+        seq[-1].bias.data.copy_(torch.tensor([10.0, 20.0, 30.0]))
+    tgt.load(src, verbose=False)
+    assert all(seq[-1].bias.tolist() == [20.0, 10.0] for seq in tgt.model[-1].cv3)
+
+    src = YOLOEModel("yoloe-26n.yaml", nc=3, verbose=False)
+    tgt = YOLOEModel("yoloe-26n.yaml", nc=2, verbose=False)
+    src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat"}
+    tgt.load(src, verbose=False)  # YOLOE cv3 outputs embeddings, not class rows
+
+    names = {0: "dog", 1: "cat"}
+    for trainer_cls, model in (
+        (DetectionTrainer, DetectionModel("yolo26n.yaml", nc=2, verbose=False)),
+        (SegmentationTrainer, SegmentationModel("yolo26n-seg.yaml", nc=2, verbose=False)),
+        (PoseTrainer, PoseModel("yolo26n-pose.yaml", nc=2, data_kpt_shape=[17, 3], verbose=False)),
+        (OBBTrainer, OBBModel("yolo26n-obb.yaml", nc=2, verbose=False)),
+    ):
+        trainer = object.__new__(trainer_cls)
+        trainer.args = SimpleNamespace(cls_remap=True)
+        trainer.data = {"names": names}
+        assert trainer.set_model_names_for_load(model).names == names
+
+
 def test_model_profile():
     """Test profiling of the YOLO model with `profile=True` to assess performance and resource usage."""
     from ultralytics.nn.tasks import DetectionModel
@@ -242,12 +299,33 @@ def test_predict_img(model_name):
     assert len(model(batch, imgsz=32, classes=0)) == len(batch)  # multiple sources in a batch
 
 
+@pytest.mark.parametrize("model_name", ["yolo26n.pt", "yolo11n.pt"])  # end2end and NMS-based models
+def test_predict_classes_with_max_det(model_name):
+    """Test that the classes filter applies before max_det truncation in both end2end and NMS-based models."""
+    boxes = YOLO(WEIGHTS_DIR / model_name)(SOURCE, classes=[0], max_det=300, verbose=False)[0].boxes
+    assert len(boxes) > 1  # bus.jpg contains multiple persons
+    top1 = YOLO(WEIGHTS_DIR / model_name)(SOURCE, classes=[0], max_det=1, verbose=False)[0].boxes  # fresh model
+    assert len(top1) == 1 and int(top1.cls) == 0
+    assert float(top1.conf) == pytest.approx(float(boxes.conf.max()))  # best person kept, not an arbitrary one
+
+
 @pytest.mark.parametrize("model", MODELS)
 def test_predict_visualize(model):
     """Test model prediction methods with 'visualize=True' to generate prediction visualizations."""
     if IS_RASPBERRYPI and model == "yolo26n-sem.pt":
         skip_rpi_semantic()
     YOLO(WEIGHTS_DIR / model)(SOURCE, imgsz=32, visualize=True)
+
+
+def test_load_tensor_uint8():
+    """Test that tensor normalization supports uint8 while preserving floating-point epsilon tolerance."""
+    from ultralytics.data.loaders import LoadTensor
+
+    loaded = LoadTensor(torch.full((1, 3, 32, 32), 255, dtype=torch.uint8)).im0
+    assert loaded.dtype == torch.float32 and loaded.max() == 1
+    normalized = torch.ones((1, 3, 32, 32), dtype=torch.float32)
+    normalized[..., 0, 0] += torch.finfo(normalized.dtype).eps
+    assert LoadTensor(normalized).im0.max() > 1
 
 
 def test_predict_gray_and_4ch(tmp_path):
@@ -273,13 +351,18 @@ def test_predict_gray_and_4ch(tmp_path):
         f.unlink()  # cleanup
 
 
-def test_predict_grayscale_ndarray():
-    """Test that a 2D grayscale NumPy array is accepted by a color model, consistent with PIL/file inputs."""
+def test_predict_ndarray_channels():
+    """Test NumPy channel normalization for grayscale and color models."""
+    from ultralytics.data.loaders import LoadPilAndNumpy
+
     model = YOLO(MODEL)  # default 3-channel model
     gray = np.asarray(Image.open(SOURCE).convert("L"))  # genuine 2D (H, W) uint8 array
     assert gray.ndim == 2, "Expected a 2D grayscale array for this test"
     assert len(model(source=gray, imgsz=32, verbose=False)) == 1  # 2D ndarray auto-expanded to 3 channels
     assert len(model(source=gray.astype("float64"), imgsz=32, verbose=False)) == 1  # non-OpenCV dtype also works
+    for source_channels, model_channels in ((1, 3), (2, 1), (2, 3), (3, 1), (4, 1), (4, 3)):
+        im = np.zeros((8, 8, source_channels), dtype=np.uint8)
+        assert LoadPilAndNumpy(im, channels=model_channels).im0[0].shape == (8, 8, model_channels)
 
 
 @pytest.mark.slow
@@ -337,6 +420,56 @@ def test_track_second_association_indices():
     assert len(low) == 1 and int(low[0, -1]) == 2, f"second-association idx not preserved:\n{tracks}"
 
 
+@pytest.mark.parametrize("tracker_type", ["bytetrack", "fasttrack"])
+def test_track_second_association_low_conf_keeps_id(tracker_type):
+    """Low-confidence detection is recovered by the second association under the default fuse_score=True."""
+    from ultralytics.engine.results import Boxes
+    from ultralytics.trackers.track import TRACKER_MAP
+    from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace
+
+    args = IterableSimpleNamespace(**YAML.load(ROOT / f"cfg/trackers/{tracker_type}.yaml"))  # default fuse_score=True
+    tracker = TRACKER_MAP[tracker_type](args)
+    box = [100, 100, 200, 200]  # same box on both frames, so IoU is 1.0
+    # frame 1: high score starts the track; frame 2: score drops into the low band (track_low_thresh < 0.15 < track_high_thresh)
+    frame1 = tracker.update(Boxes(torch.tensor([[*box, 0.9, 0]], dtype=torch.float32), (640, 640)))
+    frame2 = tracker.update(Boxes(torch.tensor([[*box, 0.15, 0]], dtype=torch.float32), (640, 640)))
+    assert len(frame1) == 1, f"expected one track on frame 1:\n{frame1}"
+    tid = int(frame1[0, 4])
+    # the low-score box must be kept and mapped to the same id via the second association
+    assert len(frame2) == 1, f"low-confidence detection lost by second association:\n{frame2}"
+    assert int(frame2[0, 4]) == tid, f"id switched on low-confidence frame: {tid} -> {int(frame2[0, 4])}\n{frame2}"
+
+
+@pytest.mark.parametrize("tracker_type", ["botsort", "deepocsort", "tracktrack"])
+def test_track_reid_auto_user_detections(tracker_type):
+    """Native ReID (model='auto') must degrade to motion-only with user-supplied detections, not encode the raw frame."""
+    from ultralytics.engine.results import Boxes
+    from ultralytics.trackers.track import TRACKER_MAP
+    from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace
+
+    cfg = {**YAML.load(ROOT / f"cfg/trackers/{tracker_type}.yaml"), "with_reid": True, "model": "auto"}
+    tracker = TRACKER_MAP[tracker_type](IterableSimpleNamespace(**cfg))
+    img = np.full((640, 640, 3), 128, dtype=np.uint8)  # nonzero so bogus frame-derived features would not be dropped
+    data = torch.tensor([[10, 10, 50, 50, 0.9, 0], [200, 200, 260, 260, 0.9, 0]], dtype=torch.float32)
+    for _ in range(3):  # frame 2 used to crash in embedding_distance after storing image rows as track features
+        tracks = tracker.update(Boxes(data, (640, 640)), img)
+    assert len(tracks) == 2, f"native-ReID tracker must keep tracking without feats:\n{tracks}"
+
+
+def test_reid_invalid_crops():
+    """Test ReID skips out-of-bounds detection crops while preserving feature alignment."""
+    from types import SimpleNamespace
+
+    from ultralytics.trackers.utils.reid import ReID
+
+    encoder = ReID.__new__(ReID)
+    encoder.is_pt = True
+    encoder.model = SimpleNamespace(predictor=lambda crops: [torch.ones(4) for _ in crops])
+    img = np.full((640, 640, 3), 128, dtype=np.uint8)
+    feats = encoder(img, np.array([[30, 30, 40, 40], [1100, 1100, 200, 200]], dtype=np.float32))
+    assert feats[0] is not None and feats[1] is None
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
 def test_track_stream(model, tmp_path):
@@ -386,6 +519,44 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics.confusion_matrix.to_df()
         metrics.confusion_matrix.to_csv()
         metrics.confusion_matrix.to_json()
+        cm = metrics.confusion_matrix
+        expected = cm.nc if task in {"classify", "semantic"} else cm.nc + 1  # detection-style tasks include background
+        assert cm.matrix.shape == (expected, expected), f"{task} confusion matrix is {cm.matrix.shape}"
+        assert len(cm.tp_fp()[0]) == cm.nc  # per-class TP/FP never include background
+
+
+def test_val_save_txt_pose(tmp_path):
+    """Test that pose keypoints saved by val(save_txt=True) and val(save_json=True) are in the original image space."""
+    model = YOLO(WEIGHTS_DIR / "yolo26n-pose.pt")
+    # imgsz=640 (not the imgsz=32 used elsewhere): coco8-pose images are non-square, so the letterbox offset is only
+    # large enough to push mis-scaled keypoints outside [0, 1] at full resolution; at small imgsz they would stay in
+    # range and hide the regression. save_json=True also exercises pred_to_json, the other consumer of the scaled key.
+    metrics = model.val(
+        data="coco8-pose.yaml", imgsz=640, conf=0.25, save_txt=True, save_json=True, project=tmp_path, name="val"
+    )
+    txt_files = list((Path(metrics.save_dir) / "labels").glob("*.txt"))
+    assert txt_files, "val(save_txt=True) saved no label files"
+    assert (Path(metrics.save_dir) / "predictions.json").exists(), "val(save_json=True) saved no predictions.json"
+    for txt_file in txt_files:
+        for line in txt_file.read_text().splitlines():
+            values = [float(v) for v in line.split()]
+            x, y, w, h = values[1:5]  # normalized xywh box
+            kpts = torch.tensor(values[5:]).view(-1, 3)  # (17, 3) of normalized (x, y, conf) keypoints
+            assert ((kpts[:, :2] >= 0) & (kpts[:, :2] <= 1)).all(), f"keypoints not in [0, 1] in {txt_file.name}"
+            # Keypoints scaled into the wrong (letterbox) space also land off the person, so check that visible
+            # keypoints cluster on the box; the 0.05 margin allows joints (wrists, ankles) just outside a tight box.
+            visible = kpts[kpts[:, 2] > 0.5, :2]
+            if len(visible):
+                cx, cy = visible.mean(0)
+                assert abs(cx - x) < w / 2 + 0.05 and abs(cy - y) < h / 2 + 0.05, "keypoints misaligned with box"
+
+
+def test_pose_metrics_curves():
+    """Test that pose curve labels contain four unique box and pose series."""
+    from ultralytics.utils.metrics import PoseMetrics
+
+    curves = PoseMetrics().curves
+    assert len(curves) == len(set(curves)) == 8
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
@@ -411,6 +582,193 @@ def test_normalize_platform_uri():
     assert normalize_platform_uri(f"{base}/datasets/coco8") == "ul://glenn-jocher/datasets/coco8"
     assert normalize_platform_uri(f"{base}/project/model/") == "ul://glenn-jocher/project/model"
     assert normalize_platform_uri("coco8.yaml") == "coco8.yaml"  # non-Platform inputs unchanged
+
+
+def test_convert_signed_ndjson(monkeypatch):
+    """Test signed NDJSON URLs are converted before dataset YAML validation."""
+    from ultralytics.data import converter, utils
+
+    captured = []
+
+    async def convert(path):
+        captured.append(path)
+        return "dataset.ndjson.yaml"
+
+    monkeypatch.setattr(converter, "convert_ndjson_to_yolo", convert)
+    url = "https://storage.googleapis.com/bucket/dataset-v1.ndjson?X-Goog-Signature=abc"
+    assert utils.convert_ndjson_to_yolo_if_needed(url) == "dataset.ndjson.yaml"
+    assert captured == [url]
+
+
+@pytest.mark.parametrize("task", ["detect", "classify"])
+def test_ndjson_conversion_concurrency_and_resume(monkeypatch, tmp_path, task):
+    """Test concurrent conversions share work and interrupted conversions resume before publishing completion."""
+    import asyncio
+    import json
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
+
+    import aiohttp
+
+    from ultralytics.data import converter
+
+    counts, failures, conversions, count_lock = {}, set(), 0, threading.Lock()
+
+    class Response:
+        def __init__(self, url):
+            self.url = url
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_):
+            pass
+
+        def raise_for_status(self):
+            pass
+
+        async def read(self):
+            await asyncio.sleep(0.01)
+            with count_lock:
+                counts[self.url] = counts.get(self.url, 0) + 1
+                fail = self.url in failures
+                failures.discard(self.url)
+            if fail:
+                raise OSError("interrupted")
+            return image_bytes
+
+    class Session:
+        def __init__(self, **_):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_):
+            pass
+
+        def get(self, url, **_):
+            return Response(url)
+
+    ok, image = cv2.imencode(".jpg", np.zeros((16, 16, 3), dtype=np.uint8))
+    assert ok
+    image_bytes = image.tobytes()
+    monkeypatch.setattr(aiohttp, "ClientSession", Session)
+    original_convert = converter._convert_ndjson_to_yolo
+
+    async def track_conversion(*args):
+        nonlocal conversions
+        with count_lock:
+            conversions += 1
+        return await original_convert(*args)
+
+    monkeypatch.setattr(converter, "_convert_ndjson_to_yolo", track_conversion)
+    annotations = {"classification": [7]} if task == "classify" else {"boxes": [[0, 0.5, 0.5, 1, 1]]}
+
+    def write_ndjson(name):
+        path = tmp_path / f"{name}.ndjson"
+        records = [
+            {"type": "dataset", "task": task, "class_names": {"7": "item", "8": "rare"}},
+            {
+                "file": "train.jpg",
+                "url": f"https://example.com/{name}-train.jpg",
+                "split": "train",
+                "annotations": annotations,
+            },
+            {
+                "file": "val.jpg",
+                "url": f"https://example.com/{name}-val.jpg",
+                "split": "val",
+                "annotations": {"classification": [8]} if task == "classify" else annotations,
+            },
+        ]
+        path.write_text("\n".join(json.dumps(record) for record in records))
+        return path
+
+    concurrent = write_ndjson("concurrent")
+    jobs = 2
+    barrier = threading.Barrier(jobs)
+
+    def convert(path):
+        barrier.wait()
+        return asyncio.run(converter.convert_ndjson_to_yolo(path, tmp_path))
+
+    with ThreadPoolExecutor(max_workers=jobs) as pool:
+        results = list(pool.map(convert, [concurrent] * jobs))
+    assert len(set(results)) == 1
+    assert conversions == 1
+    assert sum(counts.values()) == 2
+    if task == "classify":
+        assert check_cls_dataset(results[0])["nc"] == 2
+        from ultralytics.data import dataset as dataset_module
+
+        monkeypatch.setattr(dataset_module, "TORCHVISION_0_18", False)
+        args = copy(DEFAULT_CFG)
+        train = dataset_module.ClassificationDataset(results[0] / "train", args)
+        val = dataset_module.ClassificationDataset(results[0] / "val", args)
+        assert train.samples[0][1] == 0
+        assert val.samples[0][1] == 1
+        assert dataset_module.ClassificationDataset(results[0] / "val", args).samples[0][1] == 1
+
+    resume = write_ndjson("resume")
+    failed_url = "https://example.com/resume-val.jpg"
+    failures.add(failed_url)
+    with ThreadPoolExecutor(max_workers=jobs) as pool:
+        futures = [pool.submit(convert, resume) for _ in range(jobs)]
+        errors, results = [], []
+        for future in futures:
+            try:
+                results.append(future.result())
+            except RuntimeError as error:
+                errors.append(str(error))
+    assert len(errors) == len(results) == 1 and "Downloaded 1/2 images" in errors[0]
+    result = results[0]
+    marker = result / ".ndjson.yaml" if task == "classify" else result
+    assert YAML.load(marker)["complete"] is True
+    assert counts["https://example.com/resume-train.jpg"] == 1
+    assert counts[failed_url] == 2
+    request_count = sum(counts.values())
+    asyncio.run(converter.convert_ndjson_to_yolo(resume, tmp_path))
+    assert conversions == 4
+    assert sum(counts.values()) == request_count
+
+
+def test_platform_job_transport(monkeypatch, tmp_path):
+    """Test configurable Platform transport with an existing local checkpoint."""
+    from types import SimpleNamespace
+
+    from ultralytics import SETTINGS, cfg
+    from ultralytics.utils.callbacks import platform
+
+    monkeypatch.setattr(cfg, "TESTS_RUNNING", False)
+    monkeypatch.setitem(SETTINGS, "runs_dir", str(tmp_path))
+    args = SimpleNamespace(
+        save_dir=None, project="user/project", task="detect", name="model", mode="train", exist_ok=True
+    )
+    assert cfg.get_save_dir(args) == tmp_path / "detect/user/project/model"
+
+    captured = {}
+
+    def post(url, **kwargs):
+        captured.update(url=url, **kwargs)
+        return SimpleNamespace(status_code=200, json=lambda: {"received": True}, raise_for_status=lambda: None)
+
+    monkeypatch.setattr(platform, "requests", SimpleNamespace(post=post), raising=False)
+    monkeypatch.setattr(platform, "_api_key", "api-key")
+    monkeypatch.setattr(platform, "PLATFORM_API_URL", "https://example.test/api/webhooks")
+    assert platform._send("epoch_end", {"epoch": 0}, "user/project", "model") == {"received": True}
+    assert captured["url"] == "https://example.test/api/webhooks/training/metrics"
+    assert captured["json"]["data"] == {"epoch": 0}
+    assert captured["headers"] == {"Authorization": "Bearer api-key"}
+
+    model = tmp_path / "models" / "best.pt"
+    model.parent.mkdir()
+    model.write_bytes(b"weights")
+    monkeypatch.setenv("PLATFORM_API_URL", "http://127.0.0.1:8765")
+    assert platform._upload_model(model, "user/project", "model") == {
+        "modelPath": str(model),
+        "modelSize": 7,
+    }
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
@@ -525,10 +883,22 @@ def test_results_plot_without_boxes():
         assert r.plot(color_mode=color_mode).shape == orig_img.shape
 
 
-def test_labels_and_crops():
+def test_results_update_probs():
+    """Test that Results.update(probs=...) wraps the tensor in Probs like the sibling attributes."""
+    from ultralytics.engine.results import Probs, Results
+
+    orig_img = np.zeros((32, 32, 3), dtype=np.uint8)
+    r = Results(orig_img, path="image.jpg", names={i: f"c{i}" for i in range(5)}, probs=torch.rand(5))
+    r.update(probs=torch.rand(5))
+    assert isinstance(r.probs, Probs), "update(probs=) should wrap the tensor in Probs, not store a raw Tensor"
+    assert r.verbose() and r.summary(), "verbose()/summary() raise AttributeError on a raw Tensor probs"
+
+
+def test_labels_and_crops(tmp_path):
     """Test output from prediction args for saving YOLO detection labels and crops."""
     imgs = [SOURCE, ASSETS / "zidane.jpg"]
-    results = YOLO(WEIGHTS_DIR / "yolo26n.pt")(imgs, imgsz=160, save_txt=True, save_crop=True)
+    model = YOLO(WEIGHTS_DIR / "yolo26n.pt")
+    results = model(imgs, imgsz=160, save_txt=True, save_crop=True)
     save_path = Path(results[0].save_dir)
     for r in results:
         im_name = Path(r.path).stem
@@ -553,6 +923,9 @@ def test_labels_and_crops():
         crop_count = len([f for f in crop_files if im_name in f.name])
         assert crop_count == len(r.boxes.data), f"Crop count {crop_count} != detection count {len(r.boxes.data)}"
 
+    model(SOURCE, imgsz=160, save_crop=True, verbose=False, project=tmp_path, name="crop", exist_ok=True)
+    assert any((tmp_path / "crop/crops").rglob("*.jpg")), "save_crop=True alone must write crop files"
+
 
 def test_data_utils(tmp_path):
     """Test data utility functions including auto-splitting and zip archiving."""
@@ -566,6 +939,25 @@ def test_data_utils(tmp_path):
     autosplit(tmp_path / "coco8/images")
     assert any((tmp_path / "coco8").glob("autosplit_*.txt"))
     assert zip_directory(images_dir).is_file()
+    with pytest.raises(ValueError, match="split"):
+        check_cls_dataset("imagenet10", split="invalid")
+    with pytest.raises(FileNotFoundError, match="'test:' images not found"):
+        check_det_dataset("coco8.yaml", split="test")
+    data_yaml = tmp_path / "coco8.yaml"
+    data_yaml.write_text("train: images/train\nval: images/val\ntest: images/test\nnames: [item]\n")
+    with pytest.raises(FileNotFoundError, match="images not found"):
+        check_det_dataset(data_yaml, split="test")
+
+    # polygons2masks_overlap must not overflow uint8 on the transient `masks + mask` sum (reaches 2 * i + 1):
+    # with more than 128 overlapping instances every instance must keep a distinct index in the overlap mask
+    from ultralytics.data.utils import polygons2masks_overlap
+
+    segments = [
+        np.array([[150 - s, 150 - s], [150 + s, 150 - s], [150 + s, 150 + s], [150 - s, 150 + s]], dtype=np.float32)
+        for s in range(140, 10, -1)  # 130 concentric squares, all overlapping the center
+    ]
+    overlap, _ = polygons2masks_overlap((300, 300), segments)
+    assert len(np.unique(overlap)) == len(segments) + 1  # background + 130 instances, no uint8 wraparound
 
 
 def test_safe_download_unzips_local_path_archive(tmp_path):
@@ -717,8 +1109,14 @@ def test_utils_init():
     is_github_action_running()
 
 
-def test_utils_checks():
+def test_utils_checks(monkeypatch):
     """Test various utility checks for filenames, requirements, image sizes, display capabilities, and versions."""
+
+    def package_version(name):
+        if name == "v2":
+            return "1.0"
+        raise checks.metadata.PackageNotFoundError
+
     checks.check_yolov5u_filename("yolov5n.pt")
     checks.check_requirements("numpy")  # check requirements.txt
     checks.check_imgsz([600, 600], max_dim=1)
@@ -727,10 +1125,25 @@ def test_utils_checks():
     checks.check_imshow(warn=True)
     checks.check_suffix("https://example.com/model.pt?token=abc", ".pt")
     checks.check_version("ultralytics", "8.0.0")
-    # parse_version must pad to a 3-tuple so shorter version strings compare correctly
+    # parse_version must pad to at least 3 components and keep all segments so any version pair compares correctly
     assert checks.parse_version("2") == (2, 0, 0)
+    assert checks.parse_version("4.13.0.92") == (4, 13, 0, 92)
+    assert checks.parse_version("2.0.1+cu118") == (2, 0, 1)  # numeric local/build suffixes are not release segments
+    assert checks.parse_version("1.0.0rc1") == (1, 0, 0)
+    assert checks.parse_version("v2.1") == (2, 1, 0)
+    assert checks.parse_version("1.0rc1") == (1, 0, 0)  # documented non-PEP-440 tradeoff: pre-releases equal the final
+    monkeypatch.setattr(checks.metadata, "version", package_version)
+    assert not checks.check_version("v2", ">=2.0")  # installed version-shaped package keeps metadata precedence
+    versions = ("v2.1-rc.1", "v2.1-beta1", "v2.1rev1", "v2.1-dev1", "v2.1+cu118")
+    assert all(checks.check_version(v, ">=2.0") for v in versions)
+    with pytest.raises(ModuleNotFoundError):
+        checks.check_version("v2-missing", ">=2.0", hard=True)
+    assert checks.check_version("10.3.0.30", ">=10.3.0,<10.4.0")  # Jetson TensorRT family pin
     assert checks.check_version("6.0", ">=6.0.0")  # 2-component current must satisfy 3-component requirement
     assert checks.check_version("2.1", "==2.1.0")
+    assert checks.check_version("4.13.0.92", "!=4.13.0.90")  # 4-segment pins must not be truncated
+    assert not checks.check_version("4.13.0.90", "!=4.13.0.90")
+    assert checks.check_version("2.0.1", "<2.0.1.5")
     checks.print_args()
 
 
@@ -753,6 +1166,24 @@ def test_utils_torchutils():
     profile_ops(x, [m], n=3)
     get_flops_with_torch_profiler(m)
     time_sync()
+
+
+@pytest.mark.parametrize("nc", [1, 3])
+def test_semantic_loss_all_ignore(nc):
+    """SemanticSegmentationLoss must stay finite when the whole batch is ignore (255), e.g. unlabeled/void frames."""
+    from ultralytics.cfg import get_cfg
+    from ultralytics.nn.tasks import SemanticSegmentationModel
+    from ultralytics.utils.loss import SemanticSegmentationLoss
+
+    model = SemanticSegmentationModel(cfg="yolo26-sem.yaml", nc=nc, verbose=False)
+    model.args = get_cfg()
+    loss_fn = SemanticSegmentationLoss(model)
+    preds = torch.randn(1, nc, 64, 64, requires_grad=True)
+    aux = torch.randn(1, nc, 32, 32, requires_grad=True)
+    loss, items = loss_fn((preds, aux), {"semantic_mask": torch.full((1, 64, 64), 255, dtype=torch.long)})
+    assert torch.isfinite(loss).all() and all(torch.isfinite(x).all() for x in items.values())
+    loss.backward()
+    assert preds.grad is not None and aux.grad is not None
 
 
 def test_utils_ops():
@@ -786,6 +1217,54 @@ def test_utils_ops():
 
     # segment2box must not drop a polygon lying on the left image edge (all x == 0) to a zero box
     assert segment2box(np.array([[0, 100], [0, 150], [0, 200]]), 640, 640).tolist() == [0, 100, 0, 200]
+
+    # segment2box must keep the visible extent when edge points shift out of frame after augmentation (issue #24935)
+    seg = np.array([[550.0, 100.0], [690.0, 100.0], [690.0, 200.0], [550.0, 200.0]])
+    assert segment2box(seg, 640, 640).tolist() == [550, 100, 640, 200]
+    seg = np.array([[-10.0, 100.0], [650.0, 100.0], [650.0, 200.0], [-10.0, 200.0]])
+    assert segment2box(seg, 640, 640).tolist() == [0, 100, 640, 200]
+    assert segment2box(np.array([[100.0, 100.0], [200.0, 100.0], [700.0, -100.0]]), 640, 640).tolist() == [
+        100,
+        0,
+        450,
+        100,
+    ]
+    assert segment2box(np.array([[700.0, 100.0], [750.0, 150.0]]), 640, 640).tolist() == [0, 0, 0, 0]
+    assert segment2box(np.empty((0, 2)), 640, 640).tolist() == [0, 0, 0, 0]
+    seg = np.array([[-100.0, -100.0], [740.0, -100.0], [740.0, 740.0], [-100.0, 740.0]])  # surrounds the image
+    assert segment2box(seg, 640, 640).tolist() == [0, 0, 640, 640]
+
+
+def test_nms_end2end_classes_before_max_det():
+    """The end-to-end NMS branch must filter classes before truncating to max_det, like the NMS-based branch."""
+    from ultralytics.utils.nms import non_max_suppression
+
+    # (2, 4, 6) end2end predictions sorted by descending confidence: [x1, y1, x2, y2, conf, cls]
+    pred = torch.tensor(
+        [
+            [[0, 0, 9, 9, 0.9, 5], [1, 1, 9, 9, 0.8, 0], [2, 2, 9, 9, 0.7, 0], [3, 3, 9, 9, 0.6, 0]],
+            [[0, 0, 9, 9, 0.9, 0], [1, 1, 9, 9, 0.8, 5], [2, 2, 9, 9, 0.7, 5], [3, 3, 9, 9, 0.6, 0]],
+        ],
+        dtype=torch.float32,
+    )
+    outputs, indices = non_max_suppression(pred, conf_thres=0.25, classes=[0], max_det=2, return_idxs=True)
+    for out, idx, confs, expected in zip(outputs, indices, ([0.8, 0.7], [0.9, 0.6]), ([1, 2], [0, 3])):
+        assert out.shape[0] == 2 and (out[:, 5] == 0).all()  # top-2 class-0 boxes kept, not truncated away
+        assert torch.allclose(out[:, 4], torch.tensor(confs))
+        assert idx.tolist() == expected
+    out = non_max_suppression(pred, conf_thres=0.25, max_det=2)[0]  # without classes, top-2 overall unchanged
+    assert torch.allclose(out[:, 4], torch.tensor([0.9, 0.8]))
+
+
+def test_process_mask_empty():
+    """Process_mask/process_mask_native/scale_masks must handle 0 detections without crashing."""
+    from ultralytics.utils import ops
+
+    protos, coeffs, bboxes = torch.rand(32, 160, 160), torch.zeros(0, 32), torch.zeros(0, 4)
+    assert ops.process_mask(protos, coeffs, bboxes, (640, 640), upsample=True).shape == (0, 640, 640)
+    assert ops.process_mask(protos, coeffs, bboxes, (640, 640)).shape == (0, 160, 160)  # prototype res when no upsample
+    assert ops.process_mask_native(protos, coeffs, bboxes, (640, 640)).shape == (0, 640, 640)
+    assert ops.scale_masks(torch.zeros(1, 0, 160, 160), (640, 640)).shape == (1, 0, 640, 640)
 
 
 def test_utils_files(tmp_path):

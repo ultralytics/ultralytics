@@ -84,9 +84,11 @@ Run the image:
 
 ```bash
 # Run the Ultralytics image in a container with GPU support
-sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t            # all GPUs
-sudo docker run -it --ipc=host --runtime=nvidia --gpus '"device=2,3"' $t # specify GPUs
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t                         # all GPUs
+sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t # specify GPUs
 ```
+
+On Linux, CDI device requests require Docker >= 28.2.0 and NVIDIA Container Toolkit >= 1.18. The legacy `--gpus all` flag can lose GPU access after host daemon reloads, so upgrade older Linux hosts and use `--device` instead. See the [Docker Quickstart Guide](docker-quickstart.md) for details.
 
 ## Speeding Up Installation with Libmamba
 
@@ -150,8 +152,8 @@ Using Ultralytics Docker images ensures a consistent and reproducible environmen
 
 ```bash
 sudo docker pull ultralytics/ultralytics:latest-conda
-sudo docker run -it --ipc=host --runtime=nvidia --gpus all ultralytics/ultralytics:latest-conda            # all GPUs
-sudo docker run -it --ipc=host --runtime=nvidia --gpus '"device=2,3"' ultralytics/ultralytics:latest-conda # specify GPUs
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest-conda                         # all GPUs
+sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 ultralytics/ultralytics:latest-conda # specify GPUs
 ```
 
 This approach is ideal for deploying applications in production or running complex workflows without manual configuration. Learn more about [Ultralytics Conda Docker Image](../quickstart.md).

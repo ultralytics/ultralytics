@@ -38,7 +38,7 @@ Here's why you should consider YOLO26's predict mode for your various inference 
 - **Performance:** Engineered for real-time, high-speed processing without sacrificing [accuracy](https://www.ultralytics.com/glossary/accuracy).
 - **Ease of Use:** Intuitive Python and CLI interfaces for rapid deployment and testing.
 - **Highly Customizable:** Various settings and parameters to tune the model's inference behavior according to your specific requirements.
-- **Production Ready:** Deploy models as API endpoints on [Ultralytics Platform](https://platform.ultralytics.com) with auto-scaling and monitoring, or run inference locally.
+- **Production Ready:** Deploy models as [Ultralytics Platform inference endpoints](../platform/deploy/endpoints.md) with auto-scaling and monitoring, or run inference locally.
 
 ### Key Features of Predict Mode
 
@@ -368,7 +368,7 @@ Below are code examples for using each source type:
 
         Example `.streams` text file:
 
-        ```
+        ```text
         rtsp://example.com/media1.mp4
         rtsp://example.com/media2.mp4
         rtmp://example2.com/live
@@ -529,7 +529,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 
 ### Results by Task
 
-Each prediction returns one `Results` object per image or frame. The common fields above are always available, while the
+Which fields below populate depends on your model's task — [compare detection, segmentation, classification, pose, OBB, and semantic segmentation](../tasks/index.md) if you haven't picked one yet. Each prediction returns one `Results` object per image or frame. The common fields above are always available, while the
 task-specific prediction data is stored in the fields below. Coordinate, confidence, and probability tensors are
 `torch.float32` unless half precision is used, then `torch.float16`. After `result.numpy()`, tensors become NumPy arrays with matching NumPy dtypes.
 Instance masks are `torch.uint8` binary tensors, while semantic masks use the smallest practical integer dtype for class
@@ -960,6 +960,10 @@ This script will run predictions on each frame of the video, visualize the resul
 [car spare parts]: https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/car-parts-detection-for-predict.avif
 [football player detect]: https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/football-players-detection.avif
 [human fall detect]: https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/person-fall-detection.avif
+
+## What's Next
+
+Ready to move past a pretrained model? [Confirm your task fits your problem](../tasks/index.md), format your own data with the [Datasets guide](../datasets/index.md), then [train on it](train.md).
 
 ## FAQ
 

@@ -62,6 +62,8 @@ stateDiagram-v2
     class Stopped extern
 ```
 
+Connect [Slack alerts](../integrations/slack.md) to receive a message when a deployment becomes ready or fails to start.
+
 ### Region Selection
 
 Choose from 42 regions worldwide. The interactive region map and table show:

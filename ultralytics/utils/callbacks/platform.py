@@ -6,7 +6,6 @@ import re
 import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
-from heapq import nlargest
 from math import isfinite
 from pathlib import Path
 from time import sleep, time
@@ -172,6 +171,25 @@ def _interp_plot(plot, n=101):
         result["ap"] = plot["ap"]  # Keep AP values as-is (per-class scalars)
 
     return result
+
+
+def _validation_payload(image_metrics, sample_limit=5_000, extremes_limit=100):
+    """Return exact F1 extremes and an evenly ranked sample for correlation analysis."""
+    ranked = sorted(image_metrics.items(), key=lambda item: (item[1]["f1"], item[0]))
+    if len(ranked) > sample_limit:
+        sample = [ranked[round(i * (len(ranked) - 1) / (sample_limit - 1))] for i in range(sample_limit)]
+    else:
+        sample = ranked
+
+    def rows(items):
+        return [[Path(name).stem.split("_", 1)[0], metric["tp"], metric["fp"], metric["fn"]] for name, metric in items]
+
+    return {
+        "population": len(ranked),
+        "sampling": "f1_rank",
+        "rows": rows(sample),
+        "extremes": {"worst": rows(ranked[:extremes_limit]), "best": rows(reversed(ranked[-extremes_limit:]))},
+    }
 
 
 def _sanitize_json_value(value):
@@ -555,18 +573,7 @@ def on_train_end(trainer):
     best_epoch = max(0, getattr(getattr(trainer, "stopper", None), "best_epoch", trainer.epoch + 1) - 1)
 
     image_metrics = trainer.validator.metrics.box.image_metrics if trainer.args.task == "detect" else {}
-    cohort = min(25_000, (len(image_metrics) + 1) // 2)
-    worst = nlargest(cohort, image_metrics.items(), key=lambda item: (-item[1]["f1"], item[1]["fp"] + item[1]["fn"]))
-    worst_names = {name for name, _ in worst}
-    best = nlargest(
-        cohort,
-        ((name, metric) for name, metric in image_metrics.items() if name not in worst_names),
-        key=lambda item: (item[1]["f1"], item[1]["tp"]),
-    )
-    rows = [
-        [Path(name).stem.split("_", 1)[0], metric["tp"], metric["fp"], metric["fn"]] for name, metric in worst + best
-    ]
-    validation = {"population": len(image_metrics), "rows": rows}
+    validation = _validation_payload(image_metrics)
     _send(
         "training_complete",
         {
@@ -575,7 +582,7 @@ def on_train_end(trainer):
                 "bestEpoch": best_epoch,
                 "bestFitness": trainer.best_fitness,
                 "calibration": getattr(trainer, "depth_calibration", None),
-                **({"validation": validation} if rows else {}),
+                **({"validation": validation} if validation["rows"] else {}),
                 **(artifact or {}),
             },
             "classNames": class_names,

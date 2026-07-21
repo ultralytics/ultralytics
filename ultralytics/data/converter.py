@@ -797,9 +797,9 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     """Convert NDJSON dataset format to Ultralytics YOLO dataset structure.
 
     This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format. For
-    detection/segmentation/pose/obb tasks, it creates separate directories for images and labels. For classification
-    tasks, it creates the ImageNet-style {split}/{class_name}/ folder structure. It supports parallel processing for
-    efficient conversion of large datasets and can download images from URLs.
+    detection/segmentation/pose/obb tasks, it creates separate directories for images and labels. Depth datasets use
+    parallel images/ and depth/ trees with float32 NPY targets. Classification tasks use the ImageNet-style
+    {split}/{class_name}/ folder structure. Downloads run concurrently.
 
     The NDJSON format consists of:
     - First line: Dataset metadata with class names, task type, and configuration
@@ -864,7 +864,9 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
     with open(ndjson_path) as f:
         lines = [json.loads(line.strip()) for line in f if line.strip()]
     dataset_record, image_records = lines[0], lines[1:]
-    is_classification = dataset_record.get("task") == "classify"
+    task = dataset_record.get("task", "detect")
+    is_classification = task == "classify"
+    is_depth = task == "depth"
     class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
     classification_ids = set()
 
@@ -878,6 +880,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
             if not isinstance(source_name, str) or not source_name:
                 raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
             # Preserve safe content hashes already present in the filename or URL while indexes prevent collisions.
+            # Depth targets use the same stem, so image and target URLs follow the same output mechanics.
             suffix = source_name.rsplit(".", 1)[-1]
             stems = (Path(clean_url(r.get("url") or "")).stem, Path(source_name).stem)
             content_hash = next(
@@ -892,12 +895,28 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
                     raise ValueError(f"Invalid NDJSON classification ID: {class_id!r}")
                 classification_ids.add(class_id)
         hash_record = {k: v for k, v in r.items() if k != "url"}
+        if isinstance(r.get("depth"), dict):
+            hash_record["depth"] = {k: v for k, v in r["depth"].items() if k != "url"}
+            if r["depth"].get("url"):
+                hash_record["depth"]["_source"] = clean_url(r["depth"]["url"])
         if r.get("file"):
             hash_record["_source"] = clean_url(r["url"]) if r.get("url") else str(ndjson_path.parent.resolve())
         _h.update(json.dumps(hash_record, sort_keys=True).encode())
     _hash = _h.hexdigest()[:8]
     class_dirs = {class_id: f"{i:06d}" for i, class_id in enumerate(sorted(classification_ids))}
     classification_names = {i: class_names.get(class_id, str(class_id)) for i, class_id in enumerate(class_dirs)}
+
+    # Depth adds one sibling URL per image record; file naming, caching, and retries remain shared.
+    if is_depth:
+        for record in image_records:
+            depth = record.get("depth")
+            if not isinstance(depth, dict) or not isinstance(depth.get("url"), str) or not depth["url"]:
+                raise ValueError(f"Depth record '{record.get('file', '<unknown>')}' is missing depth.url")
+            if depth.get("encoding") != "npy-f32" or depth.get("unit") != "m":
+                raise ValueError("Depth records require encoding='npy-f32' and unit='m'")
+            shape = depth.get("shape")
+            if not isinstance(shape, list) or len(shape) != 2 or not all(type(x) is int and x > 0 for x in shape):
+                raise ValueError("Depth records require a positive [height, width] shape")
 
     # Hash-qualified dirs allow identical datasets to reuse downloads while preventing changed datasets from mutating
     # files that another training job may still be reading.
@@ -910,27 +929,6 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
         except Exception:
             pass
     splits = {record["split"] for record in image_records}
-
-    # Check if this is a classification dataset
-    inferred_nc = None
-
-    # Validate required fields before downloading images
-    task = dataset_record.get("task", "detect")
-    if not is_classification:
-        class_ids = {
-            int(label[0])
-            for record in image_records
-            for labels in record.get("annotations", {}).values()
-            for label in labels
-            if label
-        }
-        if class_ids or class_names:
-            max_class_id = max(class_ids | set(class_names))
-            if class_names:
-                for i in range(max_class_id + 1):
-                    class_names.setdefault(i, f"class{i}")
-            else:
-                inferred_nc = max_class_id + 1
     if not is_classification:
         if "train" not in splits:
             raise ValueError(f"Dataset missing required 'train' split. Found splits: {sorted(splits)}")
@@ -951,6 +949,24 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
                 f"Auto-splitting {len(train_records)} images into {len(train_records) - val_count} train, {val_count} val. "
                 f"For best results, manually assign validation images in Platform dataset page."
             )
+
+    inferred_nc = None
+
+    if not is_classification:
+        class_ids = {
+            int(label[0])
+            for record in image_records
+            for labels in record.get("annotations", {}).values()
+            for label in labels
+            if label
+        }
+        if class_ids or class_names:
+            max_class_id = max(class_ids | set(class_names))
+            if class_names:
+                for i in range(max_class_id + 1):
+                    class_names.setdefault(i, f"class{i}")
+            else:
+                inferred_nc = max_class_id + 1
     if task == "pose" and "kpt_shape" not in dataset_record:
         dataset_record["kpt_shape"] = _infer_ndjson_kpt_shape(image_records)
 
@@ -958,18 +974,53 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
     data_yaml = None
 
     if not is_classification:
-        # Detection/segmentation/pose/obb: prepare YAML and create base structure
-        data_yaml = dict(dataset_record)
-        if class_names:
-            data_yaml["names"] = class_names
-        elif inferred_nc is not None:
-            data_yaml["nc"] = inferred_nc
+        # Detection/segmentation/pose/obb/depth: prepare YAML and create base structure
+        if is_depth:
+            data_yaml = {"task": "depth", "nc": 1, "names": {0: "depth"}}
+        else:
+            data_yaml = dict(dataset_record)
+            if class_names:
+                data_yaml["names"] = class_names
+            elif inferred_nc is not None:
+                data_yaml["nc"] = inferred_nc
         data_yaml.pop("class_names", None)
         data_yaml.pop("type", None)  # Remove NDJSON-specific fields
         for split in sorted(splits):
             (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)
-            (dataset_dir / "labels" / split).mkdir(parents=True, exist_ok=True)
+            (dataset_dir / ("depth" if is_depth else "labels") / split).mkdir(parents=True, exist_ok=True)
             data_yaml[split] = f"images/{split}"
+
+    async def ensure_file(session, path, url):
+        """Return True when the file exists locally, otherwise download one URL with the retry policy."""
+        if path.exists():
+            return True
+        if not url:
+            return False
+        path.parent.mkdir(parents=True, exist_ok=True)
+        for attempt in range(3):
+            error = None
+            try:
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=30)) as response:
+                    response.raise_for_status()
+                    path.write_bytes(await response.read())
+                return True
+            except aiohttp.ClientResponseError as e:
+                error = e
+                if e.status not in {408, 429} and e.status < 500:
+                    LOGGER.warning(f"Failed to download {clean_url(url)}: HTTP {e.status}")
+                    return False
+            except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+                error = e
+            except Exception as e:  # OSError, disk full, permissions — not transient, don't retry
+                LOGGER.warning(f"Failed to save {clean_url(url)}: {e}")
+                return False
+            if attempt < 2:
+                await asyncio.sleep(2**attempt)
+            else:
+                LOGGER.warning(
+                    f"Failed to download {clean_url(url)} after 3 attempts: {type(error).__name__ if error else 'unknown'}"
+                )
+        return False
 
     async def process_record(session, semaphore, record):
         """Process single image record with async session."""
@@ -984,45 +1035,27 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
                 class_name = class_dirs[class_id]
                 image_path = dataset_dir / split / class_name / original_name
             else:
-                # Detection: write label file and place image in images/{split}/
                 image_path = dataset_dir / "images" / split / original_name
-                stem = original_name.rsplit(".", 1)[0] or original_name
-                label_path = dataset_dir / "labels" / split / f"{stem}.txt"
-                lines_to_write = []
-                for key in annotations:
-                    lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
-                    break
-                label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
+                if not is_depth:
+                    stem = original_name.rsplit(".", 1)[0] or original_name
+                    label_path = dataset_dir / "labels" / split / f"{stem}.txt"
+                    lines_to_write = []
+                    for key in annotations:
+                        lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
+                        break
+                    label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
-            # Reuse existing images and download missing ones.
-            if not image_path.exists():
-                if http_url := record.get("url"):
-                    image_path.parent.mkdir(parents=True, exist_ok=True)
-                    # Retry with exponential backoff (3 attempts: 1s, 2s delays before the final attempt)
-                    for attempt in range(3):
-                        error = None
-                        try:
-                            async with session.get(http_url, timeout=aiohttp.ClientTimeout(total=30)) as response:
-                                response.raise_for_status()
-                                image_path.write_bytes(await response.read())
-                            return True
-                        except aiohttp.ClientResponseError as e:
-                            error = e
-                            if e.status not in {408, 429} and e.status < 500:
-                                LOGGER.warning(f"Failed to download {http_url}: {e}")
-                                return False
-                        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
-                            error = e
-                        except Exception as e:  # OSError, disk full, permissions — not transient, don't retry
-                            LOGGER.warning(f"Failed to save {http_url}: {e}")
-                            return False
-                        if attempt < 2:  # Don't sleep after last attempt
-                            await asyncio.sleep(2**attempt)  # 1s, 2s backoff
-                        else:
-                            LOGGER.warning(f"Failed to download {http_url} after 3 attempts: {error}")
-                            return False
-                else:
-                    return False
+            image_ok = await ensure_file(session, image_path, record.get("url"))
+            if not is_depth:
+                return image_ok
+
+            stem = original_name.rsplit(".", 1)[0] or original_name
+            depth_path = dataset_dir / "depth" / split / f"{stem}.npy"
+            depth_ok = await ensure_file(session, depth_path, record["depth"]["url"])
+            if not image_ok or not depth_ok:
+                image_path.unlink(missing_ok=True)
+                depth_path.unlink(missing_ok=True)
+                return False
             return True
 
     # Process all images with async downloads (limit connections for small datasets)

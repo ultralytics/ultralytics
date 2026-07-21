@@ -237,7 +237,7 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
         ```bash
         yolo TASK MODE ARGS
         ```
-        - `TASK` (optional) is one of ([detect](tasks/detect.md), [segment](tasks/segment.md), [semantic](tasks/semantic.md), [classify](tasks/classify.md), [pose](tasks/pose.md), [obb](tasks/obb.md))
+        - `TASK` (optional) is one of ([detect](tasks/detect.md), [segment](tasks/segment.md), [semantic](tasks/semantic.md), [depth](tasks/depth.md), [classify](tasks/classify.md), [pose](tasks/pose.md), [obb](tasks/obb.md))
         - `MODE` (required) is one of ([train](modes/train.md), [val](modes/val.md), [predict](modes/predict.md), [export](modes/export.md), [track](modes/track.md), [benchmark](modes/benchmark.md))
         - `ARGS` (optional) are `arg=value` pairs like `imgsz=640` that override defaults.
 
@@ -340,7 +340,7 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
 
 ## Use Ultralytics with Python
 
-The Ultralytics YOLO Python interface offers seamless integration into Python projects, making it easy to load, run, and process model outputs. Designed for simplicity, the Python interface allows users to quickly implement [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](tasks/segment.md), [semantic segmentation](tasks/semantic.md), and [classification](tasks/classify.md). This makes the YOLO Python interface an invaluable tool for incorporating these functionalities into Python projects.
+The Ultralytics YOLO Python interface offers seamless integration into Python projects, making it easy to load, run, and process model outputs. Designed for simplicity, the Python interface allows users to quickly implement [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](tasks/segment.md), [semantic segmentation](tasks/semantic.md), [depth estimation](tasks/depth.md), and [classification](tasks/classify.md). This makes the YOLO Python interface an invaluable tool for incorporating these functionalities into Python projects.
 
 For instance, users can load a model, train it, evaluate its performance, and export it to ONNX format with just a few lines of code. Explore the [Python Guide](usage/python.md) to learn more about using YOLO within your Python projects.
 

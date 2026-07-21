@@ -30,7 +30,7 @@ The ideal format depends on your model's intended operational context and hardwa
 
 !!! tip "Skip the manual export"
 
-    For managed deployment without manual export, [Ultralytics Platform](https://platform.ultralytics.com) provides ready-to-use [inference endpoints](../platform/deploy/endpoints.md) with auto-scaling across 43 global regions.
+    For managed deployment without manual export, [Ultralytics Platform](https://platform.ultralytics.com) provides ready-to-use [inference endpoints](../platform/deploy/endpoints.md) with auto-scaling across 42 global regions.
 
 ## YOLO26's Deployment Options
 
@@ -56,7 +56,7 @@ Here is a short description of each format and when to reach for it. For the ful
 - **[DEEPX](../integrations/deepx.md)** (`deepx`): Targets DEEPX NPU hardware with INT8 quantization for embedded edge inference.
 - **[Qualcomm QNN](../integrations/qnn.md)** (`qnn`): On-device inference on Snapdragon Hexagon NPU, Adreno GPU, and CPU through the Qualcomm AI stack.
 
-The [Hailo integration](../integrations/hailo.md) exports YOLO detection models directly to Hailo HEF for Hailo-8, Hailo-8L, Hailo-10, and Hailo-15 accelerators. The [Ambarella integration](../integrations/ambarella.md) follows an ONNX-first workflow and compiles ONNX exports to the AmbaPB format with Ambarella's CVflow toolchain for CVflow® SoCs such as the CV72, optionally using SpongeTorch compression-aware training.
+The [Hailo integration](../integrations/hailo.md) exports YOLO detection, segmentation, pose, OBB, classification, and semantic segmentation models directly to Hailo HEF; see its compatibility table for validated models and targets. The [Ambarella integration](../integrations/ambarella.md) follows an ONNX-first workflow and compiles ONNX exports to the AmbaPB format with Ambarella's CVflow toolchain for CVflow® SoCs such as the CV72, optionally using SpongeTorch compression-aware training.
 
 ## Deployment Options Compared
 

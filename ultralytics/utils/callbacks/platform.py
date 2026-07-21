@@ -173,6 +173,25 @@ def _interp_plot(plot, n=101):
     return result
 
 
+def _validation_payload(image_metrics, sample_limit=5_000, extremes_limit=100):
+    """Return exact F1 extremes and an evenly ranked sample for correlation analysis."""
+    ranked = sorted(image_metrics.items(), key=lambda item: (item[1]["f1"], item[0]))
+    if len(ranked) > sample_limit:
+        sample = [ranked[round(i * (len(ranked) - 1) / (sample_limit - 1))] for i in range(sample_limit)]
+    else:
+        sample = ranked
+
+    def rows(items):
+        return [[Path(name).stem.split("_", 1)[0], metric["tp"], metric["fp"], metric["fn"]] for name, metric in items]
+
+    return {
+        "population": len(ranked),
+        "sampling": "f1_rank",
+        "rows": rows(sample),
+        "extremes": {"worst": rows(ranked[:extremes_limit]), "best": rows(reversed(ranked[-extremes_limit:]))},
+    }
+
+
 def _sanitize_json_value(value):
     """Replace non-finite floats in payloads with None so requests JSON encoding succeeds."""
     if isinstance(value, dict):
@@ -553,6 +572,8 @@ def on_train_end(trainer):
     # stopper.best_epoch is 1-indexed; -1 aligns with the 0-indexed `epoch` field
     best_epoch = max(0, getattr(getattr(trainer, "stopper", None), "best_epoch", trainer.epoch + 1) - 1)
 
+    image_metrics = trainer.validator.metrics.box.image_metrics if trainer.args.task == "detect" else {}
+    validation = _validation_payload(image_metrics)
     _send(
         "training_complete",
         {
@@ -560,6 +581,7 @@ def on_train_end(trainer):
                 "metrics": {**trainer.metrics, "fitness": trainer.fitness},
                 "bestEpoch": best_epoch,
                 "bestFitness": trainer.best_fitness,
+                **({"validation": validation} if validation["rows"] else {}),
                 **(artifact or {}),
             },
             "classNames": class_names,

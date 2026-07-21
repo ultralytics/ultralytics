@@ -911,12 +911,12 @@ POST /api/models
 
 **JSON Body:**
 
-| Field         | Type   | Required | Description                                                |
-| ------------- | ------ | -------- | ---------------------------------------------------------- |
-| `projectId`   | string | Yes      | Target project ID                                          |
-| `slug`        | string | No       | URL slug (lowercase alphanumeric/hyphens)                  |
-| `name`        | string | No       | Display name (max 100 chars)                               |
-| `description` | string | No       | Model description (max 1000 chars)                         |
+| Field         | Type   | Required | Description                                                       |
+| ------------- | ------ | -------- | ----------------------------------------------------------------- |
+| `projectId`   | string | Yes      | Target project ID                                                 |
+| `slug`        | string | No       | URL slug (lowercase alphanumeric/hyphens)                         |
+| `name`        | string | No       | Display name (max 100 chars)                                      |
+| `description` | string | No       | Model description (max 1000 chars)                                |
 | `task`        | string | No       | Task type (detect, segment, semantic, depth, pose, obb, classify) |
 
 !!! note "Model File Upload"

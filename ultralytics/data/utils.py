@@ -213,7 +213,7 @@ def verify_image(args: tuple) -> tuple:
 
 def verify_image_mask(args: tuple) -> tuple:
     """Verify that an image and its semantic mask exist, are readable, and have matching shapes."""
-    im_file, mask_file, prefix = args
+    im_file, mask_file, prefix, check_bit_depth = args
     # Number (found, missing, corrupt), message
     nf, nm, nc, msg = 0, 0, 0, ""
     try:
@@ -229,16 +229,20 @@ def verify_image_mask(args: tuple) -> tuple:
             mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
             assert mask is not None, f"mask file {mask_file} is unreadable"
             assert mask.shape[:2] == shape, f"mask size {mask.shape[:2]} does not match image size {shape}"
+            is_1bit = False
+            if check_bit_depth:
+                with Image.open(mask_file) as im:
+                    is_1bit = im.mode == "1"
             nf = 1
         else:
             nm = 1
             msg = f"{prefix}{im_file}: ignoring image with missing mask {mask_file}"
-            return None, None, None, nm, nf, nc, msg
-        return im_file, mask_file, shape, nm, nf, nc, msg
+            return None, None, None, None, nm, nf, nc, msg
+        return im_file, mask_file, shape, is_1bit, nm, nf, nc, msg
     except Exception as e:
         nc = 1
         msg = f"{prefix}{im_file}: ignoring corrupt image/mask: {e}"
-    return None, None, None, nm, nf, nc, msg
+    return None, None, None, None, nm, nf, nc, msg
 
 
 def verify_image_label(args: tuple) -> list:

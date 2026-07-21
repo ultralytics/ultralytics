@@ -181,6 +181,14 @@ class SemanticMask(BaseTensor):
         return 1
 
 
+class DepthMap(BaseTensor):
+    """Per-pixel depth map (meters) for one image, shape (H, W)."""
+
+    def __len__(self) -> int:
+        """Return one depth map per image."""
+        return 1
+
+
 class Results(SimpleClass, DataExportMixin):
     """A class for storing and manipulating inference results.
 
@@ -197,6 +205,7 @@ class Results(SimpleClass, DataExportMixin):
         keypoints (Keypoints | None): Detected keypoints.
         obb (OBB | None): Oriented bounding boxes.
         semantic_mask (SemanticMask | None): Semantic segmentation class map.
+        depth (DepthMap | None): Per-pixel depth map.
         speed (dict): Dictionary containing inference speed information.
         names (dict): Dictionary mapping class indices to class names.
         path (str): Path to the input image file.
@@ -241,6 +250,7 @@ class Results(SimpleClass, DataExportMixin):
         obb: torch.Tensor | None = None,
         speed: dict[str, float] | None = None,
         semantic_mask: torch.Tensor | None = None,
+        depth: torch.Tensor | None = None,
     ) -> None:
         """Initialize the Results class for storing and manipulating inference results.
 
@@ -254,6 +264,7 @@ class Results(SimpleClass, DataExportMixin):
             keypoints (torch.Tensor | None): A 2D tensor of keypoint coordinates for each detection.
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
             semantic_mask (torch.Tensor | None): A 2D tensor of class IDs for semantic segmentation results.
+            depth (torch.Tensor | None): A 2D float tensor of per-pixel depth values (H, W).
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
 
         Notes:
@@ -271,11 +282,12 @@ class Results(SimpleClass, DataExportMixin):
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
         self.semantic_mask = SemanticMask(semantic_mask, self.orig_shape) if semantic_mask is not None else None
+        self.depth = DepthMap(depth, self.orig_shape) if depth is not None else None
         self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
         self.path = path
         self.save_dir = None
-        self._keys = "boxes", "masks", "probs", "keypoints", "obb", "semantic_mask"
+        self._keys = "boxes", "masks", "probs", "keypoints", "obb", "semantic_mask", "depth"
 
     def __getitem__(self, idx):
         """Return a Results object for a specific index of inference results.
@@ -298,7 +310,7 @@ class Results(SimpleClass, DataExportMixin):
 
         Returns:
             (int): The number of results, determined by the length of the first non-empty attribute in (boxes, masks,
-                probs, keypoints, obb, or semantic_mask). Empty Results objects return 0.
+                probs, keypoints, obb, semantic_mask, or depth). Empty Results objects return 0.
 
         Examples:
             >>> results = Results(orig_img, path, names, boxes=torch.rand(5, 6))
@@ -319,6 +331,7 @@ class Results(SimpleClass, DataExportMixin):
         obb: torch.Tensor | None = None,
         keypoints: torch.Tensor | None = None,
         semantic_mask: torch.Tensor | None = None,
+        depth: torch.Tensor | None = None,
     ):
         """Update the Results object with new detection data.
 
@@ -334,6 +347,7 @@ class Results(SimpleClass, DataExportMixin):
             keypoints (torch.Tensor | None): A tensor of shape (N, K, 3) containing keypoints, where K=17 for persons.
             semantic_mask (torch.Tensor | None): A tensor of shape (H, W) containing class IDs for semantic
                 segmentation.
+            depth (torch.Tensor | None): A tensor of shape (H, W) containing per-pixel depth values.
 
         Examples:
             >>> results = model("image.jpg")
@@ -352,6 +366,8 @@ class Results(SimpleClass, DataExportMixin):
             self.keypoints = Keypoints(keypoints, self.orig_shape)
         if semantic_mask is not None:
             self.semantic_mask = SemanticMask(semantic_mask, self.orig_shape)
+        if depth is not None:
+            self.depth = DepthMap(depth, self.orig_shape)
 
     def _apply(self, fn: str, *args, **kwargs):
         """Apply a function to all non-empty attributes and return a new Results object with modified attributes.
@@ -587,6 +603,12 @@ class Results(SimpleClass, DataExportMixin):
                 sem_mask = sem_mask.cpu().numpy()
             annotator.semantic_mask(sem_mask, alpha=0.5)
 
+        # Plot Depth results — blend colorized depth heatmap over the image
+        if self.depth is not None and show_masks:
+            d = self.depth.data
+            d = d.cpu().numpy() if hasattr(d, "cpu") else np.asarray(d)
+            annotator.depth_map(d)
+
         # Plot Pose results
         if self.keypoints is not None:
             for i, k in enumerate(reversed(self.keypoints.cpu().numpy().data)):  # one host transfer, no per-kpt syncs
@@ -687,6 +709,10 @@ class Results(SimpleClass, DataExportMixin):
         if boxes:
             counts = torch.as_tensor(boxes.cls, dtype=torch.int64).bincount()  # no-op for torch, converts numpy()
             return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts) if n > 0)
+        if self.depth is not None:
+            d = self.depth.data
+            d = d[d > 0]
+            return f"depth {float(d.min()):.2f}-{float(d.max()):.2f}m, " if len(d) else "depth (no valid pixels), "
         if self.semantic_mask is not None:
             return ""
 
@@ -782,6 +808,9 @@ class Results(SimpleClass, DataExportMixin):
         if self.semantic_mask is not None:
             LOGGER.warning("Semantic Segmentation task does not support `save_crop`.")
             return
+        if self.depth is not None:
+            LOGGER.warning("Depth task does not support `save_crop`.")
+            return
         for d in self.boxes:
             save_one_box(
                 d.xyxy,
@@ -849,6 +878,10 @@ class Results(SimpleClass, DataExportMixin):
                         "pixel_ratio": round(count / total, decimals),
                     }
                 )
+            return results
+
+        if self.depth is not None:
+            # Depth is a dense per-pixel map, not a per-instance result; excluded from summary.
             return results
 
         is_obb = self.obb is not None

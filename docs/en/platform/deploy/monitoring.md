@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, monitoring, metrics, logs, deployment, performan
 
 # Monitoring
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides monitoring for deployed endpoints. Track request metrics, view logs, and check health status with automatic polling.
+[Ultralytics Platform](https://platform.ultralytics.com) provides [monitoring for deployed endpoints](../../guides/model-monitoring-and-maintenance.md). Track request metrics, view logs, and check health status with automatic polling.
 
 ![Ultralytics Platform Deploy Page Overview Cards And World Map](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-overview-cards-and-world-map.avif)
 
@@ -61,7 +61,7 @@ Four summary cards at the top of the page show:
 
 The interactive world map shows:
 
-- **Region pins** for all 43 available regions
+- **Region pins** for all 42 available regions
 - **Green pins** for deployed regions
 - **Animated blue pins** for regions with active deployments in progress
 - **Pin size** varies based on deployment status and latency

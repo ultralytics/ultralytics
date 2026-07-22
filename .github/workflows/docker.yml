@@ -51,6 +51,9 @@ on:
         type: boolean
         description: Publish to DockerHub and ghcr.io
 
+concurrency:
+  group: ${{ github.workflow }}
+
 jobs:
   docker:
     if: github.repository == 'ultralytics/ultralytics'

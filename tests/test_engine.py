@@ -415,3 +415,29 @@ def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrain
 
     assert captured["cfg"] == checkpoint_model.yaml, "Checkpoint config was not used"
     assert captured["weights"] is (checkpoint_model if uses_weights else None), "Unexpected weights loaded"
+
+
+@pytest.mark.parametrize("use_scipy", [False, True])
+def test_match_predictions_returns_cpu_bool(use_scipy):
+    """`match_predictions` returns an equivalent CPU `torch.bool` matrix for both the greedy and scipy paths."""
+    from ultralytics.models.yolo.detect import DetectionValidator
+
+    validator = DetectionValidator.__new__(DetectionValidator)  # bypass __init__; match_predictions only reads iouv
+    validator.iouv = torch.linspace(0.5, 0.95, 10)
+
+    # iou[gt, pred]: pred 0 and pred 1 share class 0 with gt 0, pred 2 shares class 1 with gt 1.
+    pred_classes = torch.tensor([0, 0, 1])
+    true_classes = torch.tensor([0, 1])
+    iou = torch.tensor([[0.92, 0.60, 0.10], [0.00, 0.00, 0.82]])
+
+    correct = validator.match_predictions(pred_classes, true_classes, iou, use_scipy=use_scipy)
+
+    assert correct.dtype == torch.bool, f"expected torch.bool, got {correct.dtype}"
+    assert correct.device.type == "cpu", "correct matrix must stay on CPU"
+    assert correct.shape == (3, validator.iouv.numel())
+
+    expected = torch.zeros(3, 10, dtype=torch.bool)
+    expected[0] = 0.92 >= validator.iouv  # pred 0 wins gt 0 (higher IoU than pred 1)
+    expected[2] = 0.82 >= validator.iouv  # pred 2 wins gt 1
+    # pred 1 never scores: gt 0 is already taken by the higher-IoU pred 0
+    assert torch.equal(correct, expected), f"use_scipy={use_scipy}\n{correct}\n!=\n{expected}"

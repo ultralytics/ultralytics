@@ -171,6 +171,43 @@ def test_qnn_quantize_requires_w8a16():
         validate_args("qnn", SimpleNamespace(quantize=8), valid_args)
 
 
+@pytest.mark.parametrize(
+    "format,argument,value",
+    [
+        ("engine", "workspace", 4.0),
+        ("engine", "opset", 13),
+        ("mnn", "simplify", False),
+        ("saved_model", "opset", 13),
+        ("hailo", "simplify", False),
+    ],
+)
+def test_validate_supported_export_argument(format, argument, value):
+    """Validate format-specific opset and simplify arguments accepted by the export table."""
+    formats = export_formats()
+    valid_args = dict(zip(formats["Argument"], formats["Arguments"]))[format]
+    passed_args = get_cfg(overrides={"batch": 1, "data": None, "device": None, argument: value})
+    validate_args(format, passed_args, valid_args)
+
+
+@pytest.mark.parametrize(
+    "format,argument,value",
+    [
+        ("coreml", "workspace", 4.0),
+        ("coreml", "opset", 13),
+        ("coreml", "simplify", False),
+        ("hailo", "opset", 13),
+        ("saved_model", "simplify", False),
+    ],
+)
+def test_validate_unsupported_export_argument(format, argument, value):
+    """Reject format-specific opset and simplify arguments absent from the export table."""
+    formats = export_formats()
+    valid_args = dict(zip(formats["Argument"], formats["Arguments"]))[format]
+    passed_args = get_cfg(overrides={"batch": 1, "data": None, "device": None, argument: value})
+    with pytest.raises(AssertionError, match=rf"argument '{argument}' is not supported for format='{format}'"):
+        validate_args(format, passed_args, valid_args)
+
+
 def test_modelopt_quantize_onnx_requires_int8_dataset():
     """Check INT8 ModelOpt quantization fails early without calibration data."""
     with pytest.raises(ValueError, match="requires a calibration dataset"):

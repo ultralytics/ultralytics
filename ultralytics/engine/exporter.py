@@ -432,7 +432,7 @@ def validate_args(format, passed_args, valid_args):
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
-    export_args = ["dynamic", "keras", "nms", "batch", "fraction", "data", "optimize"]
+    export_args = set().union(*export_formats()["Arguments"]) - {"conf", "iou", "name", "quantize"}
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults

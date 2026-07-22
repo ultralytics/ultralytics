@@ -175,8 +175,6 @@ class BasePredictor:
         im = im.half() if self.model.fp16 else im.float()  # uint8 to fp16/32
         if not_tensor:
             im /= 255  # 0 - 255 to 0.0 - 1.0
-        if self.channels_last:
-            im = im.contiguous(memory_format=torch.channels_last)
         return im
 
     def inference(self, im: torch.Tensor, *args, **kwargs):
@@ -336,6 +334,8 @@ class BasePredictor:
                 # Preprocess
                 with profilers[0]:
                     im = self.preprocess(im0s)
+                    if self.channels_last:
+                        im = im.contiguous(memory_format=torch.channels_last)  # centralized: covers all task predictors
 
                 # Inference
                 with profilers[1]:

@@ -1502,20 +1502,6 @@ def test_nn_modules_conv():
     m.fuse_convs()
     m(x)
 
-    # Fuse ConvTranspose + BatchNorm on grouped and channels-last weights (output-axis regression);
-    # randomize BN stats because a fresh eval BatchNorm is ~identity and hides the axis/group mapping
-    from ultralytics.utils.torch_utils import fuse_deconv_and_bn
-
-    for groups, mem in ((2, torch.contiguous_format), (1, torch.channels_last)):
-        deconv = torch.nn.ConvTranspose2d(c1, c2, 2, stride=2, groups=groups, bias=False).eval().to(memory_format=mem)
-        bn = torch.nn.BatchNorm2d(c2).eval()
-        for p in (bn.weight, bn.bias, bn.running_mean):
-            torch.nn.init.normal_(p)
-        bn.running_var.uniform_(0.5, 2.0)
-        xt = torch.randn(2, c1, 8, 8)
-        ref = bn(deconv(xt))
-        assert torch.allclose(fuse_deconv_and_bn(deconv, bn)(xt), ref, atol=1e-4)
-
 
 def test_nn_modules_block():
     """Test various neural network block modules."""

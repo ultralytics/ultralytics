@@ -370,7 +370,7 @@ def fuse_deconv_and_bn(deconv, bn):
     # per-output-channel BN scale applies along axis 1 (group-mapped from axis 0), not axis 0 as for Conv2d.
     bn_scale = bn.weight.div(torch.sqrt(bn.eps + bn.running_var))
     w_scale = bn_scale.view(deconv.groups, -1).repeat_interleave(deconv.in_channels // deconv.groups, 0)
-    deconv.weight.data = deconv.weight * w_scale.view(deconv.weight.shape[0], -1, 1, 1)
+    deconv.weight.data = deconv.weight * w_scale[:, :, None, None]
 
     # Compute fused bias
     b_conv = (

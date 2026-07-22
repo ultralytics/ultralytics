@@ -353,15 +353,12 @@ jobs:
         with:
           python-version: "3.13"
           activate-environment: true
+          enable-cache: true
+          cache-dependency-glob: |
+            pyproject.toml
+            ultralytics/engine/exporter.py
       - name: Install export system dependencies
         run: sudo apt-get update && sudo apt-get install -y openjdk-21-jre flatbuffers-compiler
-      - name: Cache uv wheels
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/uv
-          key: isolated-exports-uv-${{ hashFiles('ultralytics/engine/exporter.py', 'pyproject.toml') }}
-          restore-keys: |
-            isolated-exports-uv-
       - name: Install base package
         run: uv pip install -e ".[export-base]" pytest "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
       - name: Configure Ultralytics cache paths

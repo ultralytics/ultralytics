@@ -29,11 +29,9 @@ jobs:
       previous_tag: ${{ steps.check_pypi.outputs.previous_tag }}
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.x"
       - uses: ultralytics/actions/setup-uv@main
         with:
+          python-version: "3"
           activate-environment: true
       - run: uv pip install --no-cache ultralytics-actions
       - id: check_pypi
@@ -78,15 +76,11 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.x"
       - uses: ultralytics/actions/setup-uv@main
         with:
-          activate-environment: true
-      - run: uv pip install --no-cache build
+          python-version: "3"
       - name: Build ultralytics
-        run: python -m build --outdir dist/
+        run: uv build --out-dir dist/
       - name: Build ultralytics-opencv-headless
         run: |
           python - <<'PY'
@@ -106,7 +100,7 @@ jobs:
           text = text.replace('"opencv-python>=', '"opencv-python-headless>=', 1)
           path.write_text(text)
           PY
-          python -m build --outdir dist/
+          uv build --out-dir dist/
           git checkout pyproject.toml
       - uses: actions/upload-artifact@v7
         with:
@@ -151,11 +145,9 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.x"
       - uses: ultralytics/actions/setup-uv@main
         with:
+          python-version: "3"
           activate-environment: true
       - run: uv pip install -e .
       - uses: anchore/sbom-action@v0

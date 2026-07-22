@@ -106,7 +106,12 @@ Arguments such as `model`, `data`, `imgsz`, `quantize`, `device`, `verbose` and 
 | `quantize` | `None`        | Quantization precision: `16` (FP16) or `8` (INT8/PTQ; needs calibration `data`/`fraction`); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags.                                            |
 | `device`   | `'cpu'`       | Defines the computation device(s) for benchmarking, such as `"cpu"` or `"cuda:0"`.                                                                                                                      |
 | `verbose`  | `False`       | Controls the level of detail in logging output. Set `verbose=True` for detailed logs.                                                                                                                   |
+| `eps`      | `0.001`       | Small epsilon (milliseconds) added to the per-image inference time before converting it to FPS, preventing division by zero. Rarely changed.                                                            |
 | `format`   | `''`          | Benchmarks only the specified export format (e.g., `format=onnx`). Leave it blank to test every supported format automatically.                                                                         |
+
+!!! note "Standalone `benchmark()` function defaults"
+
+    The standalone `benchmark()` function (`from ultralytics.utils.benchmarks import benchmark`) uses its own signature defaults instead of the table values above, notably `model="yolo26n.pt"` and `imgsz=160`; pass `imgsz` explicitly to match the `yolo benchmark` CLI.
 
 ## Export Formats
 

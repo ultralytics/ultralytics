@@ -44,7 +44,7 @@ jobs:
           token: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           ref: ${{ env.BRANCH }}
           fetch-depth: 0
-      - uses: astral-sh/setup-uv@v7
+      - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: "3.14"
       - name: Install Dependencies

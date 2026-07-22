@@ -30,6 +30,28 @@ from ultralytics.utils.git import GitRepo
 from ultralytics.utils.patches import imread, imshow, imwrite, torch_save  # for patches
 from ultralytics.utils.tqdm import TQDM  # noqa
 
+
+def env_bool(name: str, default: bool = False) -> bool:
+    """Parse a boolean environment variable, accepting common truthy strings.
+
+    Accepts "1", "true", "yes", "on", "y", "t" (case-insensitive, whitespace-trimmed) as True; any other set value is
+    False. The default is returned only when the variable is unset, not when it is set to an empty string.
+
+    Args:
+        name (str): Environment variable name.
+        default (bool): Value returned when the variable is unset.
+
+    Returns:
+        (bool): Parsed boolean value.
+
+    Examples:
+        >>> env_bool("YOLO_UNSET_EXAMPLE_VAR", True)  # returns the default when the variable is unset
+        True
+    """
+    v = os.environ.get(name)
+    return default if v is None else v.strip().lower() in {"1", "true", "yes", "on", "y", "t"}
+
+
 # PyTorch Multi-GPU DDP Constants
 RANK = int(os.getenv("RANK", -1))
 LOCAL_RANK = int(os.getenv("LOCAL_RANK", -1))  # https://pytorch.org/docs/stable/elastic/run.html
@@ -44,9 +66,9 @@ ASSETS_URL = "https://github.com/ultralytics/assets/releases/download/v0.0.0"  #
 PLATFORM_URL = os.getenv("ULTRALYTICS_PLATFORM_URL", "https://platform.ultralytics.com").rstrip("/")
 DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
-AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"  # global auto-install mode
-VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
-SAFE_LOAD = str(os.getenv("ULTRALYTICS_SAFE_LOAD", False)).lower() == "true"  # opt-in weights_only model loading
+AUTOINSTALL = env_bool("YOLO_AUTOINSTALL", True)  # global auto-install mode
+VERBOSE = env_bool("YOLO_VERBOSE", True)  # global verbose mode
+SAFE_LOAD = env_bool("ULTRALYTICS_SAFE_LOAD")  # opt-in weights_only model loading
 LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
 MACOS_VERSION = platform.mac_ver()[0] if MACOS else None
@@ -108,7 +130,7 @@ HELP_MSG = """
 
             yolo TASK MODE ARGS
 
-            Where   TASK (optional) is one of [detect, segment, semantic, classify, pose, obb]
+            Where   TASK (optional) is one of [detect, segment, semantic, classify, pose, obb, depth]
                     MODE (required) is one of [train, val, predict, export, track, benchmark]
                     ARGS (optional) are any number of custom "arg=value" pairs like "imgsz=320" that override defaults.
                         See all ARGS at https://docs.ultralytics.com/usage/cfg or with "yolo cfg"
@@ -831,7 +853,7 @@ def is_online() -> bool:
     Returns:
         (bool): True if connection is successful, False otherwise.
     """
-    if str(os.getenv("YOLO_OFFLINE", "")).lower() == "true":
+    if env_bool("YOLO_OFFLINE"):
         return False
 
     for host in ("one.one.one.one", "dns.google"):
@@ -1144,7 +1166,8 @@ def threaded(func):
         func (callable): The function to be potentially executed in a separate thread.
 
     Returns:
-        (callable): A wrapper function that either returns a daemon thread or the direct function result.
+        (callable): A wrapper function that either returns a thread or the direct function result. The thread is
+            non-daemon so interpreter shutdown joins it before module teardown, avoiding teardown races.
 
     Examples:
         >>> @threaded
@@ -1158,7 +1181,9 @@ def threaded(func):
     def wrapper(*args, **kwargs):
         """Multi-thread a given function based on 'threaded' kwarg and return the thread or function result."""
         if kwargs.pop("threaded", True):  # run in thread
-            thread = threading.Thread(target=func, args=args, kwargs=kwargs, daemon=True)
+            # Non-daemon so interpreter shutdown joins the thread before module teardown; a daemon thread still
+            # running at exit can be killed mid-C-call, aborting the process (e.g. 'FATAL: exception not rethrown').
+            thread = threading.Thread(target=func, args=args, kwargs=kwargs, daemon=False)
             thread.start()
             return thread
         else:

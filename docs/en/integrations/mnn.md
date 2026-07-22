@@ -121,6 +121,8 @@ The MNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
 | `imgsz`    | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
 | `quantize` | `int` or `str`   | `None`  | Quantization precision: `16` (FP16), `8` (INT8 weight quantization), or `32`/unset (FP32). Replaces the deprecated `half`/`int8` flags. |
 | `batch`    | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `dynamic`  | `bool`           | `False` | Enables dynamic input image dimensions. Cannot be combined with `nms=True`.                                                             |
+| `nms`      | `bool`           | `False` | Adds NMS for detect and pose models. Cannot be combined with `dynamic=True`.                                                            |
 | `device`   | `str`            | `None`  | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                         |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).

@@ -14,7 +14,7 @@ from PIL import Image
 from torch.nn import functional as F
 
 from ultralytics.data.utils import polygons2masks, polygons2masks_overlap
-from ultralytics.utils import LOGGER, IterableSimpleNamespace, colorstr
+from ultralytics.utils import LOGGER, IterableSimpleNamespace, colorstr, deprecation_warn
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
@@ -54,6 +54,7 @@ class BaseTransform:
         labels = self.apply_image(labels, params)
         labels = self.apply_instances(labels, params)
         labels = self.apply_semantic(labels, params)
+        labels = self.apply_depth(labels, params)
         return labels
 
     def get_params(self, labels):
@@ -99,6 +100,18 @@ class BaseTransform:
 
         Args:
             labels (dict): Dictionary containing 'semantic_mask'.
+            params (dict | None): Parameters from get_params.
+
+        Returns:
+            (dict): Updated labels dictionary.
+        """
+        return labels
+
+    def apply_depth(self, labels, params=None):
+        """Apply transformation to depth map.
+
+        Args:
+            labels (dict): Dictionary containing 'depth'.
             params (dict | None): Parameters from get_params.
 
         Returns:
@@ -332,6 +345,7 @@ class BaseMixTransform(BaseTransform):
         labels = self.apply_image(labels, params)
         labels = self.apply_instances(labels, params)
         labels = self.apply_semantic(labels, params)
+        labels = self.apply_depth(labels, params)
         labels.pop("mix_labels", None)
         return labels
 
@@ -1355,6 +1369,26 @@ class RandomPerspective(BaseTransform):
         labels["semantic_mask"] = mask
         return labels
 
+    def apply_depth(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Apply the same projective warp to metric depth maps.
+
+        Depth values remain in meters; only their spatial support is warped. Nearest-neighbor interpolation avoids
+        manufacturing spurious near-zero "valid" pixels when sparse or invalid regions border real depth.
+        """
+        depth = labels.get("depth")
+        if depth is None:
+            return labels
+
+        M = params["M"]
+        size = params["size"]
+        if (size[0] != depth.shape[1] or size[1] != depth.shape[0]) or (M != np.eye(3)).any():
+            if self.perspective:
+                depth = cv2.warpPerspective(depth, M, dsize=size, flags=cv2.INTER_NEAREST, borderValue=0)
+            else:
+                depth = cv2.warpAffine(depth, M[:2], dsize=size, flags=cv2.INTER_NEAREST, borderValue=0)
+        labels["depth"] = depth
+        return labels
+
     @staticmethod
     def box_candidates(
         box1: np.ndarray,
@@ -1599,6 +1633,25 @@ class RandomFlip(BaseTransform):
                 labels["semantic_mask"] = np.ascontiguousarray(np.flipud(labels["semantic_mask"]))
             elif params["direction"] == "horizontal":
                 labels["semantic_mask"] = np.ascontiguousarray(np.fliplr(labels["semantic_mask"]))
+        return labels
+
+    def apply_depth(self, labels: dict[str, Any], params: dict[str, Any]) -> dict[str, Any]:
+        """Apply flip to the paired metric depth map.
+
+        Args:
+            labels (dict[str, Any]): Dictionary containing 'depth'.
+            params (dict): Parameters from get_params.
+
+        Returns:
+            (dict): Updated labels with flipped (or unchanged) depth map.
+        """
+        if labels.get("depth") is None:
+            return labels
+        if params["flip"]:
+            if params["direction"] == "vertical":
+                labels["depth"] = np.ascontiguousarray(np.flipud(labels["depth"]))
+            elif params["direction"] == "horizontal":
+                labels["depth"] = np.ascontiguousarray(np.fliplr(labels["depth"]))
         return labels
 
 
@@ -1880,7 +1933,8 @@ class CopyPaste(BaseMixTransform):
     def __init__(self, dataset=None, pre_transform=None, p: float = 0.5, mode: str = "flip") -> None:
         """Initialize CopyPaste object with dataset, pre_transform, and probability of applying CopyPaste."""
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
-        assert mode in {"flip", "mixup"}, f"Expected `mode` to be `flip` or `mixup`, but got {mode}."
+        if mode not in ("flip", "mixup"):
+            raise ValueError(f"Expected `mode` to be `flip` or `mixup`, but got {mode}.")
         self.mode = mode
 
     def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
@@ -2142,6 +2196,7 @@ class Albumentations(BaseTransform):
                 - 'img': np.ndarray representing the image
                 - 'cls': np.ndarray of class labels
                 - 'instances': object containing bounding boxes and other instance information
+                - 'semantic_mask': optional np.ndarray of semantic class IDs
 
         Returns:
             (dict[str, Any]): The input dictionary with augmented image and updated annotations.
@@ -2170,16 +2225,21 @@ class Albumentations(BaseTransform):
 
         if self.contains_spatial:
             cls = labels["cls"]
-            if len(cls):
+            mask = labels.get("semantic_mask")
+            if len(cls) or mask is not None:
                 labels["instances"].convert_bbox("xywh")
                 labels["instances"].normalize(*im.shape[:2][::-1])
                 bboxes = labels["instances"].bboxes
                 # TODO: add supports of segments and keypoints
-                new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
-                if len(new["class_labels"]) > 0:  # skip update if no bbox in new im
+                new = self.transform(
+                    image=im, bboxes=bboxes, class_labels=cls, **({"mask": mask} if mask is not None else {})
+                )
+                if len(new["class_labels"]) > 0 or mask is not None:  # only box-only samples skip on losing all boxes
                     labels["img"] = new["image"]
                     labels["cls"] = np.array(new["class_labels"]).reshape(-1, 1)
-                    bboxes = np.array(new["bboxes"], dtype=np.float32)
+                    bboxes = np.array(new["bboxes"], dtype=np.float32).reshape(-1, 4)
+                    if mask is not None:
+                        labels["semantic_mask"] = new["mask"]
                 labels["instances"].update(bboxes=bboxes)
         else:
             labels["img"] = self.transform(image=labels["img"])["image"]  # transformed
@@ -2311,6 +2371,10 @@ class Format(BaseTransform):
         nl = params.get("nl", 0)
 
         if self.return_mask:
+            if self.mask_ratio > min(h, w):
+                raise ValueError(
+                    f"mask_ratio={self.mask_ratio} downsamples imgsz={(h, w)} masks to zero size; use mask_ratio <= {min(h, w)}"
+                )
             if nl:
                 masks, instances, cls = self._format_segments(instances, cls, w, h)
                 masks = torch.from_numpy(masks)
@@ -2810,18 +2874,16 @@ def classify_transforms(
     scale_size = size if isinstance(size, (tuple, list)) and len(size) == 2 else (size, size)
 
     if crop_fraction:
-        raise DeprecationWarning(
-            "'crop_fraction' arg of classify_transforms is deprecated, will be removed in a future version."
-        )
+        deprecation_warn("crop_fraction")
 
-    # Aspect ratio is preserved, crops center within image, no borders are added, image is lost
-    if scale_size[0] == scale_size[1]:
-        # Simple case, use torchvision built-in Resize with the shortest edge mode (scalar size arg)
-        tfl = [T.Resize(scale_size[0], interpolation=getattr(T.InterpolationMode, interpolation))]
-    else:
-        # Resize the shortest edge to matching target dim for non-square target
-        tfl = [T.Resize(scale_size)]
-    tfl += [T.CenterCrop(size), T.ToTensor(), T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std))]
+    # Square target uses the scalar shortest-edge mode (preserves aspect); non-square resizes to the exact (h, w).
+    resize = scale_size[0] if scale_size[0] == scale_size[1] else scale_size
+    tfl = [
+        T.Resize(resize, interpolation=getattr(T.InterpolationMode, interpolation)),
+        T.CenterCrop(size),
+        T.ToTensor(),
+        T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std)),
+    ]
     return T.Compose(tfl)
 
 
@@ -2926,6 +2988,48 @@ def classify_augmentations(
     ]
 
     return T.Compose(primary_tfl + secondary_tfl + final_tfl)
+
+
+class DepthFormat(Format):
+    """Format transform for monocular depth estimation: image via Format, depth map resized and tensorized.
+
+    Mirrors SemanticFormat: the base Format.apply_image converts the image (HWC BGR -> CHW RGB tensor), and the
+    apply_depth hook (run after apply_image in BaseTransform.__call__) resizes the paired depth map to the letterboxed
+    image size and emits it as a (1, H, W) float tensor.
+    """
+
+    def apply_depth(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Resize depth to the formatted image size (nearest) and emit a (1, H, W) float tensor.
+
+        Args:
+            labels (dict[str, Any]): Dictionary with 'img' (already a CHW tensor) and optionally 'depth'.
+            params (dict[str, Any] | None): Unused parameters for API compatibility.
+
+        Returns:
+            (dict[str, Any]): Updated labels with 'depth' as a (1, H, W) float tensor.
+        """
+        depth = labels.get("depth")
+        if depth is None or "img" not in labels:
+            return labels
+        _, h, w = labels["img"].shape
+        if depth.shape[:2] != (h, w):
+            depth = cv2.resize(depth, (w, h), interpolation=cv2.INTER_NEAREST)
+        labels["depth"] = torch.from_numpy(np.ascontiguousarray(depth[None])).float()
+        return labels
+
+    def apply_instances(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Remove instance-level keys not needed for depth estimation.
+
+        Args:
+            labels (dict[str, Any]): Dictionary to clean up.
+            params (dict[str, Any] | None): Unused parameters for API compatibility.
+
+        Returns:
+            (dict[str, Any]): Updated labels with unused keys removed.
+        """
+        for k in ("cls", "instances", "resized_shape", "ori_shape", "ratio_pad"):
+            labels.pop(k, None)
+        return labels
 
 
 # NOTE: keep this class for backward compatibility

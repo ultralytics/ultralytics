@@ -70,14 +70,16 @@ class ObjectBlurrer(BaseSolution):
         annotator = SolutionAnnotator(im0, self.line_width)
 
         # Iterate over bounding boxes and classes
+        h, w = im0.shape[:2]
         for box, cls, conf in zip(self.boxes, self.clss, self.confs):
+            x0, y0, x1, y1 = map(int, self.get_enclosing_box(box))
+            x0, y0, x1, y1 = max(x0, 0), max(y0, 0), min(x1, w), min(y1, h)  # clip OBB corners to image bounds
+            if x0 >= x1 or y0 >= y1:  # box fully outside the frame clips to an empty ROI, cv2.blur would assert
+                continue
             # Crop and blur the detected object
-            blur_obj = cv2.blur(
-                im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])],
-                (self.blur_ratio, self.blur_ratio),
-            )
+            blur_obj = cv2.blur(im0[y0:y1, x0:x1], (self.blur_ratio, self.blur_ratio))
             # Update the blurred area in the original image
-            im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] = blur_obj
+            im0[y0:y1, x0:x1] = blur_obj
             annotator.box_label(
                 box, label=self.adjust_box_label(cls, conf), color=colors(cls, True)
             )  # Annotate bounding box

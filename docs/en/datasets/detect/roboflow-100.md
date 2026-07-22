@@ -1,5 +1,11 @@
 ---
 comments: true
+creator:
+    name: Roboflow
+    url: https://github.com/roboflow/roboflow-100-benchmark
+license:
+    name: MIT
+    url: https://github.com/roboflow/roboflow-100-benchmark/blob/main/LICENSE.md
 description: Explore the Roboflow 100 dataset featuring 100 diverse datasets designed to test object detection models across various domains, from healthcare to video games.
 keywords: Roboflow 100, Ultralytics, object detection, dataset, benchmarking, machine learning, computer vision, diverse datasets, model evaluation
 ---
@@ -51,7 +57,7 @@ Dataset [benchmarking](../../modes/benchmark.md) involves evaluating the perform
 
 !!! example "Benchmarking Example"
 
-    The script below downloads the Roboflow 100 datasets listed in `datasets_links.txt` from Roboflow, then fine-tunes a single base model (e.g., YOLO26n) across the whole collection in one `model.train()` call. Passing a list of datasets fine-tunes the base model on each one in series and automatically visualizes the cross-dataset results. A free [Roboflow API key](https://docs.roboflow.com/api-reference/authentication) is required to download the datasets.
+    The script below downloads the Roboflow 100 datasets listed in `datasets_links.txt` from Roboflow, then fine-tunes a single base model (e.g., YOLO26n) across the whole collection in one `model.train()` call. Passing a list of datasets fine-tunes the base model on each one in series and automatically visualizes the cross-dataset results.
 
     === "Python"
 
@@ -59,15 +65,13 @@ Dataset [benchmarking](../../modes/benchmark.md) involves evaluating the perform
         import re
         from pathlib import Path
 
-        from ultralytics import YOLO
-        from ultralytics.utils import ASSETS_URL, YAML
-        from ultralytics.utils.checks import check_requirements
-        from ultralytics.utils.downloads import safe_download
-
-        # Download the RF100 datasets from Roboflow (requires a free Roboflow API key)
-        check_requirements("roboflow")
         from roboflow import Roboflow
 
+        from ultralytics import YOLO
+        from ultralytics.utils import ASSETS_URL, YAML
+        from ultralytics.utils.downloads import safe_download
+
+        # Download the RF100 datasets (requires a Roboflow API key)
         rf = Roboflow(api_key="YOUR_ROBOFLOW_API_KEY")
         safe_download(f"{ASSETS_URL}/datasets_links.txt")  # list of RF100 dataset links
 

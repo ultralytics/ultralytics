@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Inference API Testing
 comments: true
 description: Learn how to test YOLO models with the Ultralytics Platform inference API including browser testing and programmatic access.
@@ -319,6 +320,36 @@ Response format varies by task:
 
     Semantic segmentation returns per-class pixel coverage (`pixel_ratio`, the fraction of image pixels assigned to each class) instead of per-object boxes.
 
+=== "Depth"
+
+    ```json
+    {
+      "results": [],
+      "depth": {
+        "shape": [480, 640],
+        "encoding": "png",
+        "data": "<base64 grayscale PNG>",
+        "min": 0.31,
+        "max": 79.9,
+        "bits": 8
+      }
+    }
+    ```
+
+    [Depth estimation](../../tasks/depth.md) returns a dense per-pixel map instead of per-object results: a base64-encoded grayscale PNG where `depth = pixel × max / divisor` and a pixel value of `0` means no depth. The optional `bits` request parameter selects the quantization — `8` (default, uint8 PNG, divisor 255), `12`, or `16` (uint16 PNG, divisor 65535). The map is returned at model inference resolution (`imgsz`), so resize it to the image dimensions if you need per-pixel alignment. Decode it with any image library:
+
+    ```python
+    import base64
+    import io
+
+    import numpy as np
+    from PIL import Image
+
+    depth = response["images"][0]["depth"]
+    pixels = np.asarray(Image.open(io.BytesIO(base64.b64decode(depth["data"]))))
+    meters = pixels * depth["max"] / (255.0 if depth["bits"] == 8 else 65535.0)  # 0 = no depth
+    ```
+
 === "Pose"
 
     ```json
@@ -355,7 +386,16 @@ Response format varies by task:
       "class": 0,
       "name": "ship",
       "confidence": 0.89,
-      "box": {"x1": 105, "y1": 48, "x2": 295, "y2": 55, "x3": 290, "y3": 395, "x4": 110, "y4": 402}
+      "box": {
+        "x1": 105,
+        "y1": 48,
+        "x2": 295,
+        "y2": 55,
+        "x3": 290,
+        "y3": 395,
+        "x4": 110,
+        "y4": 402
+      }
     }
     ```
 

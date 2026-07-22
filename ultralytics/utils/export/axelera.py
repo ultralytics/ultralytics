@@ -60,6 +60,7 @@ def torch2axelera(
                 )
                 from axelera import compiler
 
+            check_requirements("omnimalloc==0.5.0")
             from axelera.compiler import CompilerConfig
             from axelera.compiler.config.model_specific import extract_ultralytics_metadata
 

@@ -9,7 +9,6 @@ from typing import Any
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import PoseModel
 from ultralytics.utils import DEFAULT_CFG, RANK
-from ultralytics.utils.torch_utils import unwrap_model
 
 
 class PoseTrainer(yolo.detect.DetectionTrainer):
@@ -22,7 +21,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         args (dict): Configuration arguments for training.
         model (PoseModel): The pose estimation model being trained.
         data (dict): Dataset configuration including keypoint shape information.
-        loss_names (tuple): Names of the loss components used in training.
+        loss_names (tuple): Names of the loss components, derived from the loss dict returned by the criterion.
 
     Methods:
         get_model: Retrieve a pose estimation model with specified configuration.
@@ -71,12 +70,14 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         Returns:
             (PoseModel): Initialized pose estimation model.
         """
-        model = PoseModel(
-            cfg,
-            nc=self.data["nc"],
-            ch=self.data["channels"],
-            data_kpt_shape=self.data["kpt_shape"],
-            verbose=verbose and RANK == -1,
+        model = self.set_model_names_for_load(
+            PoseModel(
+                cfg,
+                nc=self.data["nc"],
+                ch=self.data["channels"],
+                data_kpt_shape=self.data["kpt_shape"],
+                verbose=verbose and RANK == -1,
+            )
         )
         if weights:
             model.load(weights)
@@ -95,12 +96,6 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
 
     def get_validator(self):
         """Return an instance of the PoseValidator class for validation."""
-        self.loss_names = "box_loss", "pose_loss", "kobj_loss", "cls_loss", "dfl_loss"
-        model = unwrap_model(self.model)
-        if hasattr(model, "student_model"):
-            model = model.student_model  # copy_attr does not copy nn.Module attributes like .model
-        if getattr(model.model[-1], "flow_model", None) is not None:
-            self.loss_names += ("rle_loss",)
         return yolo.pose.PoseValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

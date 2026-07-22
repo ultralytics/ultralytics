@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from functools import partial
 from pathlib import Path
 
@@ -69,6 +70,7 @@ def onnx2saved_model(
     quantize: int | str | None = None,
     images: np.ndarray | None = None,
     disable_group_convolution: bool = False,
+    cuda: bool = False,
     prefix: str = "",
 ):
     """Convert an ONNX model to TensorFlow SavedModel format using onnx2tf.
@@ -79,6 +81,8 @@ def onnx2saved_model(
         quantize (int | str | None): Precision scheme, 8 for INT8.
         images (np.ndarray | None, optional): Calibration images for INT8 quantization in BHWC format.
         disable_group_convolution (bool, optional): Disable group convolution optimization. Defaults to False.
+        cuda (bool, optional): True if exporting on a CUDA device; selects GPU onnxruntime and keeps GPUs visible to
+            TensorFlow, which are otherwise hidden so CPU exports never touch GPU memory. Defaults to False.
         prefix (str, optional): Logging prefix. Defaults to "".
 
     Returns:
@@ -89,12 +93,14 @@ def onnx2saved_model(
         - Downloads calibration data if INT8 quantization is enabled.
         - Removes temporary files and renames quantized models after conversion.
     """
-    cuda = torch.cuda.is_available()
     try:
         import tensorflow as tf
     except ImportError:
         check_requirements("tensorflow>2.19.0" if IS_PYTHON_MINIMUM_3_13 else "tensorflow>=2.0.0,<=2.19.0")
         import tensorflow as tf
+    if not cuda:
+        with contextlib.suppress(Exception):  # fails only if TF GPUs are already initialized by earlier user code
+            tf.config.set_visible_devices([], "GPU")  # hide GPUs so non-CUDA exports never allocate GPU memory
     check_requirements(
         f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}",  # pin to avoid h5py build issues on aarch64
         cmds="--no-deps",
@@ -108,7 +114,8 @@ def onnx2saved_model(
             "onnx>=1.12.0,<2.0.0",
             f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}",
             "onnxslim>=0.1.82",
-            "onnxruntime-gpu" if cuda else "onnxruntime",
+            # Interchangeable candidates so an installed variant (e.g. onnxruntime-gpu) is never dual-installed over
+            ("onnxruntime-gpu" if cuda else "onnxruntime", "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn"),
             "protobuf>=6.31.1,<7.0.0"
             if IS_PYTHON_MINIMUM_3_13
             else "protobuf>=5",  # TF>2.19 (Python 3.13) needs protobuf>=6.31.1; cap <7 to match TF gencode and avoid PaddlePaddle segfault
@@ -274,7 +281,7 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
         str(tflite_file),
     ]  # argv list avoids shell metacharacter issues in output_dir/tflite_file paths
     LOGGER.info(f"{prefix} running '{shlex.join(cmd)}'")
-    subprocess.run(cmd)
+    subprocess.run(cmd, check=True)
     return str(Path(output_dir) / f"{Path(tflite_file).stem}_edgetpu.tflite")
 
 

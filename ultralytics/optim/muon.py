@@ -15,11 +15,11 @@ def zeropower_via_newtonschulz5(G: torch.Tensor, eps: float = 1e-7) -> torch.Ten
     optimization purposes.
 
     Args:
-        G (torch.Tensor): Input 2D tensor/matrix to orthogonalize.
+        G (torch.Tensor): Input 2D matrix or 3D batch of matrices to orthogonalize.
         eps (float, optional): Small epsilon value added to norm for numerical stability. Default: 1e-7.
 
     Returns:
-        (torch.Tensor): Orthogonalized matrix with same shape as input G.
+        (torch.Tensor): Orthogonalized matrix/matrices with same shape as input G.
 
     Examples:
         >>> G = torch.randn(128, 64)
@@ -34,44 +34,43 @@ def zeropower_via_newtonschulz5(G: torch.Tensor, eps: float = 1e-7) -> torch.Ten
         - Output approximates US'V^T where S' has diagonal entries ~ Uniform(0.5, 1.5).
         - Does not produce exact UV^T but works well empirically for neural network optimization.
     """
-    assert len(G.shape) == 2
-    X = G.bfloat16()
-    X /= X.norm() + eps  # ensure top singular value <= 1
-    if G.size(0) > G.size(1):
-        X = X.T
-    for a, b, c in [  # num_steps fixed at 5
-        # original params
-        (3.4445, -4.7750, 2.0315),
-        (3.4445, -4.7750, 2.0315),
-        (3.4445, -4.7750, 2.0315),
-        (3.4445, -4.7750, 2.0315),
-        (3.4445, -4.7750, 2.0315),
-    ]:
-        # for _ in range(steps):
-        A = X @ X.T
-        B = b * A + c * A @ A
-        X = a * X + B @ X
-    if G.size(0) > G.size(1):
-        X = X.T
-    return X
+    assert G.ndim in {2, 3}
+    X = G.reshape(-1, G.size(-2), G.size(-1)).bfloat16()
+    X /= X.norm(dim=(-2, -1), keepdim=True) + eps  # ensure top singular value <= 1
+    if G.size(-2) > G.size(-1):
+        X = X.transpose(-2, -1)
+    a, b, c = 3.4445, -4.7750, 2.0315
+    for _ in range(5):
+        A = X @ X.transpose(-2, -1)
+        B = torch.baddbmm(A, A, A, beta=b, alpha=c)  # b * A + c * A @ A
+        X = torch.baddbmm(X, B, X, beta=a)  # a * X + B @ X
+    if G.size(-2) > G.size(-1):
+        X = X.transpose(-2, -1)
+    return X.reshape(G.shape)
 
 
-def muon_update(grad: torch.Tensor, momentum: torch.Tensor, beta: float = 0.95, nesterov: bool = True) -> torch.Tensor:
-    """Compute Muon optimizer update with momentum and orthogonalization.
+def muon_update(
+    grad: torch.Tensor | list[torch.Tensor],
+    momentum: torch.Tensor | list[torch.Tensor],
+    beta: float = 0.95,
+    nesterov: bool = True,
+) -> torch.Tensor | list[torch.Tensor]:
+    """Compute Muon optimizer updates with momentum and orthogonalization.
 
-    This function applies momentum to the gradient, optionally uses Nesterov acceleration, and then orthogonalizes the
-    update using Newton-Schulz iterations. For convolutional filters (4D tensors), it reshapes before orthogonalization
-    and scales the final update based on parameter dimensions.
+    This function applies momentum to the gradients, optionally uses Nesterov acceleration, and then orthogonalizes the
+    updates using Newton-Schulz iterations. Matrices with the same row count are zero-padded and orthogonalized in a
+    single batched call, and momentum math uses fused foreach ops, avoiding per-parameter kernel launch overhead.
+    Convolutional filters (4D tensors) are reshaped before orthogonalization, and each update is scaled based on
+    parameter dimensions.
 
     Args:
-        grad (torch.Tensor): Gradient tensor to update. Can be 2D or 4D (for conv filters).
-        momentum (torch.Tensor): Momentum buffer tensor, modified in-place via lerp.
+        grad (torch.Tensor | list[torch.Tensor]): Gradient tensor(s) to update. Each can be 2D or 4D.
+        momentum (torch.Tensor | list[torch.Tensor]): Momentum buffer tensor(s), modified in-place.
         beta (float, optional): Momentum coefficient for exponential moving average. Default: 0.95.
         nesterov (bool, optional): Whether to use Nesterov momentum acceleration. Default: True.
 
     Returns:
-        (torch.Tensor): Orthogonalized update tensor with same shape as input grad. For 4D inputs, returns reshaped
-            result matching original dimensions.
+        (torch.Tensor | list[torch.Tensor]): Orthogonalized update tensor(s), each with the gradient's shape and dtype.
 
     Examples:
         >>> grad = torch.randn(64, 128)
@@ -81,19 +80,38 @@ def muon_update(grad: torch.Tensor, momentum: torch.Tensor, beta: float = 0.95, 
         torch.Size([64, 128])
 
     Notes:
-        - Momentum buffer is updated in-place: momentum = beta * momentum + (1-beta) * grad.
+        - Momentum buffers are updated in-place: momentum = beta * momentum + (1-beta) * grad.
         - With Nesterov: update = beta * momentum + (1-beta) * grad.
         - Without Nesterov: update = momentum.
         - 4D tensors (conv filters) are reshaped to 2D as (out_channels, in_channels*height*width) for orthogonalization.
-        - Final update is scaled by sqrt(max(1, dim[-2] / dim[-1])) to account for parameter dimensions.
+        - Final updates are scaled by sqrt(max(1, dim[-2] / dim[-1])) to account for parameter dimensions.
     """
-    momentum.lerp_(grad, 1 - beta)
-    update = grad.lerp(momentum, beta) if nesterov else momentum
-    if update.ndim == 4:  # for the case of conv filters
-        update = update.view(len(update), -1)
-    update = zeropower_via_newtonschulz5(update)
-    update *= max(1, grad.size(-2) / grad.size(-1)) ** 0.5
-    return update
+    single = isinstance(grad, torch.Tensor)
+    grads, momentums = ([grad], [momentum]) if single else (grad, momentum)
+    torch._foreach_mul_(momentums, beta)
+    torch._foreach_add_(momentums, grads, alpha=1 - beta)
+    if nesterov:
+        updates = list(torch._foreach_mul(momentums, beta))
+        torch._foreach_add_(updates, grads, alpha=1 - beta)
+    else:
+        updates = list(momentums)
+    buckets = {}  # group matrices transposed to rows <= cols by (rows, scale) for batched orthogonalization
+    for i, u in enumerate(updates):
+        m = u.view(len(u), -1) if u.ndim == 4 else u
+        transpose = m.size(0) > m.size(1)
+        if transpose:
+            m = m.T
+        scale = max(1, grads[i].size(-2) / grads[i].size(-1)) ** 0.5
+        buckets.setdefault((m.size(0), scale, m.device, m.dtype), []).append((i, m, transpose))
+    for (_, scale, _, _), items in buckets.items():
+        n = max(m.size(1) for _, m, _ in items)
+        # zero-pad columns so different shapes share one batched call (zeros stay zero through Newton-Schulz)
+        X = torch.stack([torch.nn.functional.pad(m, (0, n - m.size(1))) for _, m, _ in items])
+        X = zeropower_via_newtonschulz5(X).to(grads[items[0][0]].dtype).mul_(scale)
+        for j, (i, m, transpose) in enumerate(items):
+            x = X[j, :, : m.size(1)]
+            updates[i] = (x.T if transpose else x).reshape(grads[i].shape)
+    return updates[0] if single else updates
 
 
 class MuSGD(optim.Optimizer):
@@ -202,52 +220,35 @@ class MuSGD(optim.Optimizer):
                 loss = closure()
 
         for group in self.param_groups:
-            # Muon
+            params = [p for p in group["params"] if p.grad is not None]
+            if not params:
+                continue
+            lr, momentum, nesterov = group["lr"], group["momentum"], group["nesterov"]
+            for p in params:
+                if len(self.state[p]) == 0:
+                    self.state[p]["momentum_buffer"] = torch.zeros_like(p)
+                    if group["use_muon"]:
+                        self.state[p]["momentum_buffer_SGD"] = torch.zeros_like(p)
             if group["use_muon"]:
-                # generate weight updates in distributed fashion
-                for p in group["params"]:
-                    lr = group["lr"]
-                    if p.grad is None:
-                        continue
-                    grad = p.grad
-                    state = self.state[p]
-                    if len(state) == 0:
-                        state["momentum_buffer"] = torch.zeros_like(p)
-                        state["momentum_buffer_SGD"] = torch.zeros_like(p)
-
-                    update = muon_update(
-                        grad, state["momentum_buffer"], beta=group["momentum"], nesterov=group["nesterov"]
-                    )
-                    p.add_(update.reshape(p.shape), alpha=-(lr * self.muon))
-
-                    # SGD update
-                    if group["weight_decay"] != 0:
-                        grad = grad.add(p, alpha=group["weight_decay"])
-                    state["momentum_buffer_SGD"].mul_(group["momentum"]).add_(grad)
-                    sgd_update = (
-                        grad.add(state["momentum_buffer_SGD"], alpha=group["momentum"])
-                        if group["nesterov"]
-                        else state["momentum_buffer_SGD"]
-                    )
-                    p.add_(sgd_update, alpha=-(lr * self.sgd))
-            else:  # SGD
-                for p in group["params"]:
-                    lr = group["lr"]
-                    if p.grad is None:
-                        continue
-                    grad = p.grad
-                    if group["weight_decay"] != 0:
-                        grad = grad.add(p, alpha=group["weight_decay"])
-                    state = self.state[p]
-                    if len(state) == 0:
-                        state["momentum_buffer"] = torch.zeros_like(p)
-                    state["momentum_buffer"].mul_(group["momentum"]).add_(grad)
-                    update = (
-                        grad.add(state["momentum_buffer"], alpha=group["momentum"])
-                        if group["nesterov"]
-                        else state["momentum_buffer"]
-                    )
-                    p.add_(update, alpha=-lr)
+                updates = muon_update(
+                    [p.grad for p in params],
+                    [self.state[p]["momentum_buffer"] for p in params],
+                    beta=momentum,
+                    nesterov=nesterov,
+                )
+                torch._foreach_add_(params, updates, alpha=-(lr * self.muon))
+                buffers = [self.state[p]["momentum_buffer_SGD"] for p in params]
+                lr *= self.sgd
+            else:
+                buffers = [self.state[p]["momentum_buffer"] for p in params]
+            # SGD update
+            grads = [p.grad for p in params]
+            if group["weight_decay"] != 0:
+                grads = torch._foreach_add(grads, params, alpha=group["weight_decay"])
+            torch._foreach_mul_(buffers, momentum)
+            torch._foreach_add_(buffers, grads)
+            updates = torch._foreach_add(grads, buffers, alpha=momentum) if nesterov else buffers
+            torch._foreach_add_(params, updates, alpha=-lr)
         return loss
 
 
@@ -324,15 +325,18 @@ class Muon(optim.Optimizer):
                 loss = closure()
 
         for group in self.param_groups:
-            for p in group["params"]:
+            params = group["params"]
+            if not params:
+                continue
+            for p in params:
                 if p.grad is None:
-                    # continue
                     p.grad = torch.zeros_like(p)  # Force synchronization
-                state = self.state[p]
-                if len(state) == 0:
-                    state["momentum_buffer"] = torch.zeros_like(p)
-                update = muon_update(p.grad, state["momentum_buffer"], beta=group["momentum"])
-                p.mul_(1 - group["lr"] * group["weight_decay"])
-                p.add_(update.reshape(p.shape), alpha=-group["lr"])
+                if len(self.state[p]) == 0:
+                    self.state[p]["momentum_buffer"] = torch.zeros_like(p)
+            updates = muon_update(
+                [p.grad for p in params], [self.state[p]["momentum_buffer"] for p in params], beta=group["momentum"]
+            )
+            torch._foreach_mul_(params, 1 - group["lr"] * group["weight_decay"])
+            torch._foreach_add_(params, updates, alpha=-group["lr"])
 
         return loss

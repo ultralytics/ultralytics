@@ -192,7 +192,7 @@ Rockchip-powered devices with YOLO26 RKNN models can be used in various applicat
 - **Smart Surveillance**: Deploy efficient object detection systems for security monitoring with low power consumption.
 - **Industrial Automation**: Implement quality control and defect detection directly on embedded devices.
 - **Retail Analytics**: Track customer behavior and inventory management in real-time without cloud dependency.
-- **Smart Agriculture**: Monitor crop health and detect pests using [computer vision in agriculture](https://www.ultralytics.com/solutions/ai-in-agriculture).
+- **Smart Agriculture**: Monitor crop health and detect pests using [computer vision in agriculture](https://www.ultralytics.com/solutions/computer-vision-in-agriculture).
 - **Autonomous Robotics**: Enable vision-based navigation and obstacle detection on resource-constrained platforms.
 
 ## Benchmarks

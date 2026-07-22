@@ -46,6 +46,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
 
     tracker = check_yaml(predictor.args.tracker)
     cfg = IterableSimpleNamespace(**YAML.load(tracker))
+    cfg.device = predictor.device  # run any ReID encoder on the predictor's device
 
     if cfg.tracker_type not in TRACKER_MAP:
         raise AssertionError(f"Only {sorted(TRACKER_MAP)} are supported for now, but got '{cfg.tracker_type}'")

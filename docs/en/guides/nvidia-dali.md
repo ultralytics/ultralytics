@@ -321,7 +321,7 @@ For production deployment, combine DALI preprocessing with [TensorRT](../integra
 
 ### Model Repository Structure
 
-```
+```text
 model_repository/
 ├── dali_preprocessing/
 │   ├── 1/

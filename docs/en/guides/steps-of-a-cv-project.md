@@ -22,7 +22,7 @@ Building a computer vision project means moving through a clear sequence of stag
   <strong>Watch:</strong> How to Do <a href="https://www.ultralytics.com/glossary/computer-vision-cv">Computer Vision</a> Projects | A Step-by-Step Guide
 </p>
 
-Computer vision techniques like [object detection](../tasks/detect.md), [image classification](../tasks/classify.md), and [instance segmentation](../tasks/segment.md) can be applied across various industries, from [autonomous driving](https://www.ultralytics.com/solutions/ai-in-automotive) to [medical imaging](https://www.ultralytics.com/solutions/ai-in-healthcare) to gain valuable insights.
+Computer vision techniques like [object detection](../tasks/detect.md), [image classification](../tasks/classify.md), and [instance segmentation](../tasks/segment.md) can be applied across various industries, from [autonomous driving](https://www.ultralytics.com/solutions/computer-vision-in-automotive) to [medical imaging](https://www.ultralytics.com/solutions/computer-vision-in-healthcare) to gain valuable insights.
 
 ## An Overview of a Computer Vision Project
 
@@ -163,7 +163,7 @@ Once your model has been thoroughly tested, it's time to deploy it. [Model deplo
 - **Deploying the Model:** Deploy the model by setting up APIs or endpoints and integrating it with your application.
 - **Ensuring Scalability:** Implement load balancers, auto-scaling groups, and monitoring tools to manage resources and handle increasing data and user requests.
 
-For more detailed guidance on deployment strategies and best practices, check out our [model deployment practices guide](./model-deployment-practices.md). [Ultralytics Platform](https://platform.ultralytics.com) also provides managed [deployment endpoints](../platform/deploy/endpoints.md) with auto-scaling across 43 global regions, handling infrastructure setup automatically.
+For more detailed guidance on deployment strategies and best practices, check out our [model deployment practices guide](./model-deployment-practices.md). [Ultralytics Platform](https://platform.ultralytics.com) also provides managed [deployment endpoints](../platform/deploy/endpoints.md) with auto-scaling across 42 global regions, handling infrastructure setup automatically.
 
 ## Step 8: Monitoring, Maintenance, and Documentation
 

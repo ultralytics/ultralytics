@@ -11,6 +11,7 @@ from .base import BaseBackend
 from .coreml import CoreMLBackend
 from .deepx import DeepXBackend
 from .executorch import ExecuTorchBackend
+from .hailo import HailoBackend
 from .litert import LiteRTBackend
 from .mnn import MNNBackend
 from .ncnn import NCNNBackend
@@ -30,6 +31,7 @@ __all__ = [
     "CoreMLBackend",
     "DeepXBackend",
     "ExecuTorchBackend",
+    "HailoBackend",
     "LiteRTBackend",
     "MNNBackend",
     "NCNNBackend",

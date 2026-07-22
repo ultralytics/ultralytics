@@ -1,6 +1,12 @@
 ---
 title: COCO8 Detection Dataset
 comments: true
+creator:
+    name: Ultralytics
+    url: https://www.ultralytics.com/
+license:
+    name: CC-BY-4.0
+    url: https://cocodataset.org/#termsofuse
 description: Explore the Ultralytics COCO8 dataset, a versatile and manageable set of 8 images perfect for testing object detection models and training pipelines.
 keywords: COCO8, Ultralytics, dataset, object detection, YOLO26, training, validation, machine learning, computer vision
 ---
@@ -22,11 +28,25 @@ The [Ultralytics](https://www.ultralytics.com/) COCO8 dataset is a compact yet p
   <strong>Watch:</strong> Ultralytics COCO Dataset Overview
 </p>
 
-COCO8 is fully compatible with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](../../models/yolo26.md), enabling seamless integration into your computer vision workflows.
+## Dataset Structure
+
+COCO8 comprises the first 8 images from the COCO train 2017 set—4 for training and 4 for validation—covering the full set of 80 COCO object classes in [YOLO label format](../index.md):
+
+```text
+coco8/
+├── images/
+│   ├── train/   # 4 images
+│   └── val/     # 4 images
+└── labels/
+    ├── train/
+    └── val/
+```
+
+Explore [COCO8 on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/coco8) to browse every image with its annotation overlays, view the class distribution and bounding-box heatmaps in the **Charts** tab, and clone it to train your own model in the cloud.
 
 ## Dataset YAML
 
-The COCO8 dataset configuration is defined in a YAML (Yet Another Markup Language) file, which specifies dataset paths, class names, and other essential metadata. You can review the official `coco8.yaml` file in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8.yaml).
+The COCO8 dataset configuration is defined in a YAML file, which specifies dataset paths, class names, and other essential metadata. You can review the official `coco8.yaml` file in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8.yaml).
 
 !!! example "ultralytics/cfg/datasets/coco8.yaml"
 
@@ -36,7 +56,7 @@ The COCO8 dataset configuration is defined in a YAML (Yet Another Markup Languag
 
 ## Usage
 
-To train a YOLO26n model on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following examples. For a full list of training options, see the [YOLO Training documentation](../../modes/train.md).
+The COCO8 dataset (1 MB) downloads automatically the first time you start training. To train a YOLO26n model on COCO8 for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following examples. For a full list of training options, see the [YOLO Training documentation](../../modes/train.md).
 
 !!! example "Train Example"
 
@@ -121,10 +141,6 @@ You can train a YOLO26 model on COCO8 using either Python or the CLI:
         ```
 
 For additional training options, refer to the [YOLO Training documentation](../../modes/train.md).
-
-### Why Should I Use Ultralytics Platform for Managing My COCO8 Training?
-
-[Ultralytics Platform](https://platform.ultralytics.com/) streamlines dataset management, training, and deployment for [YOLO](../../models/yolo26.md) models—including COCO8. With features like cloud training, real-time monitoring, and intuitive dataset handling, HUB enables you to launch experiments with a single click and eliminates manual setup hassles. Learn more about [Ultralytics Platform](https://platform.ultralytics.com/) and how it can accelerate your computer vision projects.
 
 ### What Are the Benefits of Using Mosaic Augmentation in Training With the COCO8 Dataset?
 

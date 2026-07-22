@@ -212,8 +212,6 @@ class FASTTracker(BYTETracker):
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
         if r_tracked_stracks and detections_second:
             dists = matching.iou_distance(r_tracked_stracks, detections_second)
-            if self.args.fuse_score:
-                dists = matching.fuse_score(dists, detections_second)
             matches, u_track, _ = matching.linear_assignment(dists, thresh=0.5)
             self._apply_matches(matches, r_tracked_stracks, detections_second, activated, refind)
         else:

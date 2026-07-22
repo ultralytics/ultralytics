@@ -33,7 +33,9 @@ jobs:
         with:
           python-version: "3.x"
       - uses: ultralytics/actions/setup-uv@main
-      - run: uv pip install --system --no-cache ultralytics-actions
+        with:
+          activate-environment: true
+      - run: uv pip install --no-cache ultralytics-actions
       - id: check_pypi
         shell: python
         env:
@@ -67,7 +69,6 @@ jobs:
             [ -n "$PREVIOUS_TAG" ] || git fetch --unshallow --tags # summarize resolves the previous tag from git history
             ultralytics-actions-summarize-release
           fi
-          uv cache prune --ci
 
   build:
     needs: check
@@ -81,7 +82,9 @@ jobs:
         with:
           python-version: "3.x"
       - uses: ultralytics/actions/setup-uv@main
-      - run: uv pip install --system --no-cache build
+        with:
+          activate-environment: true
+      - run: uv pip install --no-cache build
       - name: Build ultralytics
         run: python -m build --outdir dist/
       - name: Build ultralytics-opencv-headless
@@ -109,7 +112,6 @@ jobs:
         with:
           name: dist
           path: dist/
-      - run: uv cache prune --ci
 
   publish:
     needs: [check, build]
@@ -153,16 +155,14 @@ jobs:
         with:
           python-version: "3.x"
       - uses: ultralytics/actions/setup-uv@main
-      - run: |
-          uv venv sbom-env
-          uv pip install -e .
-        env:
-          VIRTUAL_ENV: sbom-env
+        with:
+          activate-environment: true
+      - run: uv pip install -e .
       - uses: anchore/sbom-action@v0
         with:
           format: spdx-json
           output-file: sbom.spdx.json
-          path: sbom-env
+          path: .venv
       - run: gh release upload ${{ needs.check.outputs.current_tag }} sbom.spdx.json --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

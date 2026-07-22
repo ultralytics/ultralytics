@@ -340,8 +340,9 @@ def sample_trial(rng, uni, corpus, personality):
     def mutate_combos(max_groups=4):
         """Combine compatible mode-specific argument groups without repeating keys."""
         options = [c.split() for m, c in COMBO_POOL if m == mode]
-        options.extend(c.split() for m, task, c in TASK_COMBO_POOL if m == mode and task == base["task"])
         rng.shuffle(options)
+        task_options = [c.split() for m, task, c in TASK_COMBO_POOL if m == mode and task == base["task"]]
+        options = task_options + options
         used, target = set(), rng.randint(1, max_groups)
         for combo in options:
             keys = {a.partition("=")[0] for a in combo}

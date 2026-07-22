@@ -14,4 +14,8 @@ keywords: Ultralytics, SAM3, SAM, neck, backbone, ViTDet, segmentation, Python
 
 ## ::: ultralytics.models.sam.sam3.necks.Sam3DualViTDetNeck
 
+<br><br><hr><br>
+
+## ::: ultralytics.models.sam.sam3.necks.Sam3TriViTDetNeck
+
 <br><br>

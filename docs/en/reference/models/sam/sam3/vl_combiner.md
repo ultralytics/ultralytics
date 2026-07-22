@@ -14,4 +14,8 @@ keywords: Ultralytics, SAM3, vision-language, backbone, feature fusion, transfor
 
 ## ::: ultralytics.models.sam.sam3.vl_combiner.SAM3VLBackbone
 
+<br><br><hr><br>
+
+## ::: ultralytics.models.sam.sam3.vl_combiner.SAM3VLBackboneTri
+
 <br><br>

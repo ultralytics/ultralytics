@@ -743,6 +743,8 @@ nav:
                   - geometry_encoders: reference/models/sam/sam3/geometry_encoders.md
                   - maskformer_segmentation: reference/models/sam/sam3/maskformer_segmentation.md
                   - model_misc: reference/models/sam/sam3/model_misc.md
+                  - multiplex: reference/models/sam/sam3/multiplex.md
+                  - multiplex_video: reference/models/sam/sam3/multiplex_video.md
                   - necks: reference/models/sam/sam3/necks.md
                   - sam3_image: reference/models/sam/sam3/sam3_image.md
                   - text_encoder_ve: reference/models/sam/sam3/text_encoder_ve.md
@@ -803,6 +805,7 @@ nav:
               - pytorch: reference/nn/backends/pytorch.md
               - qnn: reference/nn/backends/qnn.md
               - rknn: reference/nn/backends/rknn.md
+              - sam3: reference/nn/backends/sam3.md
               - tensorflow: reference/nn/backends/tensorflow.md
               - tensorrt: reference/nn/backends/tensorrt.md
               - triton: reference/nn/backends/triton.md
@@ -891,6 +894,7 @@ nav:
               - paddle: reference/utils/export/paddle.md
               - qnn: reference/utils/export/qnn.md
               - rknn: reference/utils/export/rknn.md
+              - sam3_onnx: reference/utils/export/sam3_onnx.md
               - tensorflow: reference/utils/export/tensorflow.md
               - torchscript: reference/utils/export/torchscript.md
           - files: reference/utils/files.md

@@ -12,7 +12,7 @@ keywords: Ultralytics, SAM model, Segment Anything Model, SAM 2 model, Segment A
 
 <br>
 
-## ::: ultralytics.models.sam.build._load_checkpoint
+## ::: ultralytics.models.sam.build.\_load_checkpoint
 
 <br><br><hr><br>
 
@@ -48,11 +48,11 @@ keywords: Ultralytics, SAM model, Segment Anything Model, SAM 2 model, Segment A
 
 <br><br><hr><br>
 
-## ::: ultralytics.models.sam.build._build_sam
+## ::: ultralytics.models.sam.build.\_build_sam
 
 <br><br><hr><br>
 
-## ::: ultralytics.models.sam.build._build_sam2
+## ::: ultralytics.models.sam.build.\_build_sam2
 
 <br><br><hr><br>
 

@@ -12,11 +12,27 @@ keywords: Ultralytics, SAM3, SAM, segmentation, transformer, ViTDet, model build
 
 <br>
 
-## ::: ultralytics.models.sam.build_sam3._create_vision_backbone
+## ::: ultralytics.models.sam.build_sam3.\_create_vision_backbone
 
 <br><br><hr><br>
 
-## ::: ultralytics.models.sam.build_sam3._create_sam3_transformer
+## ::: ultralytics.models.sam.build_sam3.\_create_sam3_transformer
+
+<br><br><hr><br>
+
+## ::: ultralytics.models.sam.build_sam3.\_create_text_encoder
+
+<br><br><hr><br>
+
+## ::: ultralytics.models.sam.build_sam3.\_create_dot_prod_scoring
+
+<br><br><hr><br>
+
+## ::: ultralytics.models.sam.build_sam3.\_create_segmentation_head
+
+<br><br><hr><br>
+
+## ::: ultralytics.models.sam.build_sam3.\_create_geometry_encoder
 
 <br><br><hr><br>
 
@@ -28,6 +44,14 @@ keywords: Ultralytics, SAM3, SAM, segmentation, transformer, ViTDet, model build
 
 <br><br><hr><br>
 
-## ::: ultralytics.models.sam.build_sam3._load_checkpoint
+## ::: ultralytics.models.sam.build_sam3.build_sam3_multiplex
+
+<br><br><hr><br>
+
+## ::: ultralytics.models.sam.build_sam3.build_sam3_multiplex_tracker
+
+<br><br><hr><br>
+
+## ::: ultralytics.models.sam.build_sam3.\_load_checkpoint
 
 <br><br>

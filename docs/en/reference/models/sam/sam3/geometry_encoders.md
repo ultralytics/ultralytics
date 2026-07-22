@@ -20,6 +20,10 @@ keywords: Ultralytics, SAM3, SAM, prompt encoder, geometry encoder, padding, emb
 
 <br><br><hr><br>
 
+## ::: ultralytics.models.sam.sam3.geometry_encoders.roi_align_grid_sample
+
+<br><br><hr><br>
+
 ## ::: ultralytics.models.sam.sam3.geometry_encoders.is_right_padded
 
 <br><br><hr><br>

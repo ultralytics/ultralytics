@@ -328,7 +328,7 @@ def fuse_conv_and_bn(conv, bn):
         >>> fused_conv = fuse_conv_and_bn(conv, bn)
     """
     # Compute fused weights
-    w_conv = conv.weight.view(conv.out_channels, -1)
+    w_conv = conv.weight.reshape(conv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
     conv.weight.data = torch.mm(w_bn, w_conv).view(conv.weight.shape)
 

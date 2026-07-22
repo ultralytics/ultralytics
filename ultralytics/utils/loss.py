@@ -1647,8 +1647,16 @@ class E2ELoss:
         self.final_o2m = 0.1
         # online cls distillation: pull one2one cls toward the one2many teacher at one2one positives
         self.distill = getattr(model.args, "distill", 0.0)
+        # max-distill: teacher = o2m's max predicted prob over the GT's positives (its deploy-relevant score),
+        # transferred onto the o2o single positive anchor; vs default = o2m score at that same anchor (near no-op,
+        # since o2o already scores its own positives >= o2m there)
+        self.distill_max = getattr(model.args, "distill_max", False)
         if self.distill:
             self.one2one.assigner.distill = True  # cache the positive x GT-class mask during assignment
+            if self.distill_max:
+                if not self.train_o2m:
+                    raise ValueError("distill_max needs the one2many branch trained (set o2m=True, o2o_ft=False)")
+                self.one2many.assigner.distill_teacher = True  # cache the o2m per-GT max prob as the teacher
         # one2one-only ranking regularizer (RS-style pairwise surrogate), folded into the o2o cls loss
         if getattr(model.args, "rank", 0.0):
             in_gt = getattr(model.args, "rank_in_gt", False)
@@ -1707,6 +1715,8 @@ class E2ELoss:
                 preds["one2many"]["scores"],
                 self.one2one.assigner.distill_pos_mask,
                 self.one2one.assigner.distill_norm,
+                self.one2many.assigner.distill_o2m_maxprob if self.distill_max else None,
+                self.one2one.assigner.distill_gt_idx if self.distill_max else None,
             )
             total = torch.cat((total, (self.o2o * distill * batch_size).view(1)))
             loss_items = torch.cat((loss_items, distill.detach().view(1)))
@@ -1718,22 +1728,35 @@ class E2ELoss:
 
     @staticmethod
     def distill_loss(
-        s_o2o: torch.Tensor, s_o2m: torch.Tensor, pos_mask: torch.Tensor | None, norm: torch.Tensor | None
+        s_o2o: torch.Tensor,
+        s_o2m: torch.Tensor,
+        pos_mask: torch.Tensor | None,
+        norm: torch.Tensor | None,
+        o2m_maxprob: torch.Tensor | None = None,
+        o2o_gt_idx: torch.Tensor | None = None,
     ) -> torch.Tensor:
-        """Gap-weighted BCE distillation pulling one2one cls logits toward the detached one2many probabilities.
+        """Gap-weighted BCE distillation pulling one2one cls logits toward a detached one2many teacher.
 
         Applied only at the one2one positive anchors and only on each GT's class channel (``pos_mask``), so the loss
         never touches background or non-GT classes. Each position is weighted by ``gap = clamp(teacher - student, 0)``
         (a detached weight): positions where the student has caught up to or passed the teacher get zero weight and
-        thus zero gradient, so the loss auto-focuses on the lagging "dead tail". The one2many teacher is detached, so
-        gradients flow only into the one2one cls head. Normalized by the one2one ``target_scores_sum`` (sum of soft
-        target scores), matching the cls/box/dfl losses so the ``distill`` gain shares their scale.
+        thus zero gradient, so the loss auto-focuses on the lagging "dead tail". The teacher is detached, so gradients
+        flow only into the one2one cls head. Normalized by the one2one ``target_scores_sum`` (sum of soft target
+        scores), matching the cls/box/dfl losses so the ``distill`` gain shares their scale.
+
+        Two teacher choices: the default is the one2many probability at the same anchor (near no-op, since one2one
+        already scores its own positives >= one2many there); ``o2m_maxprob`` switches to the one2many max predicted
+        prob over each GT's positives (its deploy-relevant score), transferred onto the one2one single positive anchor
+        via ``o2o_gt_idx`` so only that one anchor is lifted (no duplicate).
 
         Args:
             s_o2o (torch.Tensor): One2one class logits with shape (bs, nc, num_anchors).
             s_o2m (torch.Tensor): One2many class logits with shape (bs, nc, num_anchors).
             pos_mask (torch.Tensor | None): Positive x GT-class mask with shape (bs, num_anchors, nc).
             norm (torch.Tensor | None): One2one target-score sum used as the normalization denominator.
+            o2m_maxprob (torch.Tensor | None): One2many per-GT max prob with shape (bs, n_max_boxes); enables
+                max-distill.
+            o2o_gt_idx (torch.Tensor | None): One2one per-anchor GT index with shape (bs, num_anchors) for the gather.
 
         Returns:
             (torch.Tensor): Scalar distillation loss (0 when there are no positives).
@@ -1741,7 +1764,11 @@ class E2ELoss:
         if pos_mask is None or not pos_mask.any():
             return s_o2o.new_zeros((), dtype=torch.float32)
         student = s_o2o.permute(0, 2, 1)[pos_mask]  # logits, gradient flows into the one2one cls head
-        teacher = s_o2m.permute(0, 2, 1).detach().sigmoid()[pos_mask]  # soft target, no gradient to teacher/backbone
+        if o2m_maxprob is not None:  # max-distill: o2m per-GT max transferred onto the o2o positive anchor of that GT
+            teacher_anchor = o2m_maxprob.gather(1, o2o_gt_idx)  # (bs, num_anchors)
+            teacher = teacher_anchor.unsqueeze(-1).expand(-1, -1, s_o2o.shape[1])[pos_mask].detach()
+        else:  # default: o2m probability at the same anchor
+            teacher = s_o2m.permute(0, 2, 1).detach().sigmoid()[pos_mask]
         gap = (teacher - student.detach().sigmoid()).clamp(min=0)  # detached focus weight; 0 where student >= teacher
         bce = F.binary_cross_entropy_with_logits(student, teacher, reduction="none")
         return (gap * bce).sum() / norm

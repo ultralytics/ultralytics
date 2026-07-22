@@ -64,6 +64,9 @@ class TaskAlignedAssigner(nn.Module):
         self.distill = False  # cache the positive x GT-class mask for online one2one<-one2many cls distillation
         self.distill_pos_mask = None
         self.distill_norm = None  # one2one target_scores_sum, normalizes the distillation loss like cls/box/dfl
+        self.distill_teacher = False  # o2m head: cache the per-GT max predicted prob as the max-distill teacher
+        self.distill_gt_idx = None  # o2o head: per-anchor GT index, maps its positive to the o2m per-GT max teacher
+        self.distill_o2m_maxprob = None  # o2m head: (bs, n_max_boxes) max predicted GT-class prob over o2m positives
         self.full_pos = False  # score every 1:1-matched anchor by its own CIoU (o24 aux head)
         self.share_pos = False  # o2m head: cache its positive set + align metric for the o2o head to reuse
         self.shared_metric = self.shared_mask = None
@@ -107,6 +110,7 @@ class TaskAlignedAssigner(nn.Module):
         """
         self.bs = pd_scores.shape[0]
         self.o2f_cls_weight = self.distill_pos_mask = self.distill_norm = None
+        self.distill_gt_idx = self.distill_o2m_maxprob = None
         self.shared_metric = self.shared_mask = None
         self.rank_in_gts = None
         self.n_max_boxes = gt_bboxes.shape[1]
@@ -140,6 +144,10 @@ class TaskAlignedAssigner(nn.Module):
                     self.shared_mask = self.shared_mask.to(device)
                 if self.rank_in_gts is not None:
                     self.rank_in_gts = self.rank_in_gts.to(device)
+                if self.distill_gt_idx is not None:
+                    self.distill_gt_idx = self.distill_gt_idx.to(device)
+                if self.distill_o2m_maxprob is not None:
+                    self.distill_o2m_maxprob = self.distill_o2m_maxprob.to(device)
                 return tuple(t.to(device) for t in result)
             raise
 
@@ -197,6 +205,13 @@ class TaskAlignedAssigner(nn.Module):
         ):  # cache positive x GT-class locations + score sum for online cls distillation (read by E2ELoss)
             self.distill_pos_mask = target_scores > 0
             self.distill_norm = target_scores.sum().clamp_(min=1)  # == the loss's target_scores_sum
+            self.distill_gt_idx = target_gt_idx  # map each o2o positive anchor to its GT (for the max-distill teacher)
+        if (
+            self.distill_teacher
+        ):  # o2m head: per-GT max predicted GT-class prob over its positives (max-distill teacher)
+            gt_cls = gt_labels.long().squeeze(-1)  # (bs, n_max_boxes)
+            cls_prob = pd_scores.transpose(1, 2).gather(1, gt_cls.unsqueeze(-1).expand(-1, -1, mask_pos.shape[-1]))
+            self.distill_o2m_maxprob = (cls_prob * mask_pos).amax(-1)  # (bs, n_max_boxes); pd_scores already detached
         if self.share_pos:  # o2m: cache the positive set + align metric for the o2o head to reuse as its candidates
             self.shared_metric, self.shared_mask = align_metric, mask_pos  # align_metric already masked to positives
 

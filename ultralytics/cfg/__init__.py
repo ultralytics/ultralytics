@@ -285,6 +285,7 @@ CFG_BOOL_KEYS = frozenset(
         "o2m",
         "o24",
         "o2o_ft",
+        "distill_max",
         "lsj",
     }
 )

@@ -366,10 +366,11 @@ def fuse_deconv_and_bn(deconv, bn):
     """
     if isinstance(bn, nn.Identity):  # ConvTranspose(bn=False) leaves bn as nn.Identity, nothing to fuse
         return deconv.requires_grad_(False)
-    # Compute fused weights
-    w_deconv = deconv.weight.view(deconv.out_channels, -1)
-    w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
-    deconv.weight.data = torch.mm(w_bn, w_deconv).view(deconv.weight.shape)
+    # Compute fused weights: ConvTranspose2d weight is [in_channels, out_channels // groups, kH, kW], so the
+    # per-output-channel BN scale applies along axis 1 (group-mapped from axis 0), not axis 0 as for Conv2d.
+    bn_scale = bn.weight.div(torch.sqrt(bn.eps + bn.running_var))
+    w_scale = bn_scale.view(deconv.groups, -1).repeat_interleave(deconv.in_channels // deconv.groups, 0)
+    deconv.weight.data = deconv.weight * w_scale.view(deconv.weight.shape[0], -1, 1, 1)
 
     # Compute fused bias
     b_conv = (
@@ -378,7 +379,7 @@ def fuse_deconv_and_bn(deconv, bn):
         else deconv.bias
     )
     b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fused_bias = torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn
+    fused_bias = bn_scale * b_conv + b_bn
 
     if deconv.bias is None:
         deconv.register_parameter("bias", nn.Parameter(fused_bias))

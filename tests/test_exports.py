@@ -700,8 +700,6 @@ def test_every_format_env_is_registered():
 @pytest.mark.parametrize("cal_a, cal_b", [(1.0, 0.0), (0.8, 0.15)])
 def test_hailo_decode_depth_matches_head(cal_a, cal_b):
     """Hailo `_decode_depth` reproduces `Depth.forward` from the raw logit, for identity and learned calibration."""
-    import numpy as np
-
     from ultralytics.nn.backends.hailo import HailoBackend
     from ultralytics.nn.modules import Depth
 

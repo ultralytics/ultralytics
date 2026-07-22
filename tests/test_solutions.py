@@ -4,6 +4,7 @@
 # Includes all solutions except DistanceCalculation and the Security Alarm System.
 
 import os
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import cv2
@@ -465,3 +466,16 @@ def test_display_output_method():
         mock_imshow.assert_called_once()
         mock_wait.assert_called_once()
         mock_destroy.assert_called_once()
+
+
+def test_heatmap_accumulator_single_channel():
+    """Test Heatmap.process() stores a single-channel (H, W) accumulator instead of a redundant 3-channel one."""
+    heatmap = solutions.Heatmap(model=MODEL, show=SHOW, region=None)
+    heatmap.boxes, heatmap.track_ids, heatmap.clss = [], [], []
+    heatmap.track_data = SimpleNamespace(is_track=False)
+    frame = np.zeros((480, 640, 3), dtype=np.uint8)
+    with patch.object(heatmap, "extract_tracks"), patch.object(heatmap, "display_output"):
+        heatmap.process(frame)
+    assert heatmap.heatmap.shape == frame.shape[:2], (
+        f"Heatmap accumulator must match frame HxW {frame.shape[:2]}, got {heatmap.heatmap.shape}"
+    )

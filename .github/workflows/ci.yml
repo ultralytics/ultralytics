@@ -161,6 +161,8 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           activate-environment: true
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |

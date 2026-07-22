@@ -192,6 +192,15 @@ class BaseValidator:
             self.args.quantize = 16 if model.fp16 else None  # record actual inference precision
             stride, fmt = model.stride, model.format
             pt = fmt == "pt"
+            # Same gate as predictor.setup_model: NHWC is lossless only for native PyTorch models on CUDA.
+            self.channels_last = self.args.channels_last and self.device.type == "cuda" and pt
+            if self.args.channels_last and not self.channels_last:
+                LOGGER.warning(
+                    f"'channels_last=True' applies only to native PyTorch models on CUDA, ignoring for "
+                    f"format='{fmt}' on '{self.device.type}'."
+                )
+            if self.channels_last:
+                model.to(memory_format=torch.channels_last)
             imgsz = check_imgsz(self.args.imgsz, stride=stride)
             if fmt not in {"pt", "torchscript"} and not getattr(model, "dynamic", False):
                 self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1

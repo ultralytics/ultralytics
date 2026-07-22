@@ -304,7 +304,7 @@ class BaseTrainer:
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, but numerically wrong
-        # on MPS and no benefit on CPU, so restrict to CUDA and convert the input batches to match below
+        # on MPS and no benefit on CPU
         if self.args.channels_last and self.device.type == "cuda":
             self.model = self.model.to(memory_format=torch.channels_last)
         elif self.args.channels_last:

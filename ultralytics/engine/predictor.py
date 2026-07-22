@@ -423,8 +423,7 @@ class BasePredictor:
             self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()
         # channels_last (NHWC) is CUDA-only and native-PyTorch-only: lossless and Tensor-Core friendly there, wrong
-        # on MPS, no CPU gain. Exported CUDA runtimes (TensorRT / ONNX io-binding) read im.data_ptr() against an NCHW
-        # binding, so feeding them an NHWC-strided input would be misread as NCHW and corrupt predictions.
+        # on MPS, no CPU gain, and only a native nn.Module has weights to convert.
         channels_last = self.args.channels_last and self.device.type == "cuda" and self.model.format == "pt"
         if self.args.channels_last and not channels_last:
             LOGGER.warning(

@@ -209,7 +209,7 @@ jobs:
         with:
           timeout_minutes: 120
           retry_delay_seconds: 60
-          retries: 3
+          retries: 2
           run: |
             derivatives='${{ matrix.derivatives }}'
             if [[ -n "$derivatives" ]]; then

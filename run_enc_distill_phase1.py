@@ -158,6 +158,8 @@ def main(argv: list[str]) -> None:
             Active only when the dataset is a ConcatDataset (multi-source ``data=`` arg).
         --optimizer <name>: ultralytics optimizer name (default ``AdamW``). ``MuSGD`` swaps in
             Muon-based updates for distillation ablations. Recipe ``beta2`` is ignored when non-AdamW.
+        --proj_hidden_dim <1280|1536>: adaptor MLP hidden width. 1280 matches the YOLO Classify projection
+            (ultralytics/nn/modules/head.py:819). 1536 matches EUPE Stage 1 (arXiv:2603.22387 Section 4.1).
         --normalize_teacher_input: presence-only flag (no value). When set, convert the pipeline's ImageNet-normalized
             input to each teacher's training-time distribution: no-op for EUPE/DINOv3 (which already match ImageNet
             stats), SigLIP-style ``2x - 1`` for SigLIP2/MoonViT/SAM3. Default off matches all existing phase1 anchors.
@@ -179,6 +181,7 @@ def main(argv: list[str]) -> None:
     args, fork_from = _pop_flag(args, "--fork_from")  # format: <parent_run_id>:<fork_step>
     args, distill_path = _pop_flag(args, "--distill_path")
     args, adaptor_arch = _pop_flag(args, "--adaptor_arch")
+    args, proj_hidden_dim_str = _pop_flag(args, "--proj_hidden_dim")
     args, sample_t_str = _pop_flag(args, "--sample_t")
     args, optimizer = _pop_flag(args, "--optimizer")
     args, norm_in_str = _pop_flag(args, "--normalize_teacher_input", is_bool=True)
@@ -201,6 +204,9 @@ def main(argv: list[str]) -> None:
     if resume:
         resume = paths.patch_resume(resume)
     resume_args = _load_train_args(resume) if resume else {}
+    proj_hidden_dim = int(proj_hidden_dim_str or resume_args.get("proj_hidden_dim", 1280))
+    if proj_hidden_dim not in (1280, 1536):
+        raise ValueError(f"--proj_hidden_dim must be 1280 or 1536, got {proj_hidden_dim}")
     knn_every = int(knn_every_str) if knn_every_str else int(resume_args.get("knn_every", 5))
     if knn_every < 1:
         raise ValueError(f"--knn_every must be positive, got {knn_every}")
@@ -228,6 +234,7 @@ def main(argv: list[str]) -> None:
         for key, now, default in (
             ("distill_path", distill_path, "adaptor"),
             ("adaptor_arch", adaptor_arch, "mlp"),
+            ("proj_hidden_dim", proj_hidden_dim, 1280),
             ("data", data, DATA_7SRC_DEFAULT),
             ("sample_t", sample_t, 0.0),
             ("optimizer", optimizer, "AdamW"),
@@ -282,6 +289,7 @@ def main(argv: list[str]) -> None:
             cls_l1=cls_l1,
             distill_path=distill_path,
             adaptor_arch=adaptor_arch,
+            proj_hidden_dim=proj_hidden_dim,
             sample_t=sample_t,
             optimizer=optimizer,
             normalize_teacher_input=normalize_teacher_input,
@@ -305,6 +313,7 @@ def main(argv: list[str]) -> None:
         cls_l1=cls_l1,
         distill_path=distill_path,
         adaptor_arch=adaptor_arch,
+        proj_hidden_dim=proj_hidden_dim,
         sample_t=sample_t,
         loss_type=loss_type,
         high_res_final_epochs=high_res_final_epochs,

@@ -26,8 +26,9 @@ def _make_adaptor(in_dim, out_dim, hidden_dim=None, arch="mlp"):
     """Create an adaptor head mapping student features to teacher embed_dim.
 
     Two variants:
-        - "mlp" (EUPE Section 4.1): 2-layer "linear-LN-GELU-linear" without bias. Default hidden=in_dim; EUPE uses 3072
-          for 86M+ students. RADIO v1 uses ReLU (RADIO/radio/adaptor_mlp.py:27); we follow EUPE's GELU.
+        - "mlp" (EUPE Section 4.1): 2-layer "linear-LN-GELU-linear" without bias. Phase 1 defaults to the 1280-wide
+          YOLO Classify projection (ultralytics/nn/modules/head.py:819), while 1536 matches EUPE Stage 1. RADIO v1
+          uses ReLU (RADIO/radio/adaptor_mlp.py:27). We follow EUPE's GELU.
         - "linear" (EdgeCrafter 2603.18739 Section 3.3): single token-wise Linear. Paper argues a minimal adapter keeps
           the representational burden on the backbone rather than letting a high-capacity projection absorb the
           mismatch.
@@ -261,8 +262,9 @@ class ImageEncoderModel(ClassificationModel):
             teachers (dict): Per-teacher config. Keys are teacher names (e.g. "eupe:vitb16"), values are dicts with
                 "embed_dim", "num_patches", "token_types". If None, defaults to a single EUPE-ViT-B teacher for
                 backward compat.
-            proj_hidden_dim (int, optional): Adaptor MLP hidden dimension. None = use backbone dim (c_). EUPE uses 3072
-                for 86M+ students.
+            proj_hidden_dim (int, optional): Adaptor MLP hidden dimension. None uses the 1280-wide YOLO Classify
+                projection (ultralytics/nn/modules/head.py:819). EUPE uses 1536 in Stage 1 (arXiv:2603.22387
+                Section 4.1).
             loss_cfg (dict, optional): Loss config with keys cos_weight, l1_weight, cls_l1, loss_type, distill_path.
                 None = EUPE defaults.
             distill_path (str): "adaptor" (default, cos+L1 on final-stage CLS+patch through adaptor MLP) or "feat_map"

@@ -70,8 +70,6 @@ class ClassificationPredictor(BasePredictor):
             )
         img = (img if isinstance(img, torch.Tensor) else torch.from_numpy(img)).to(self.model.device)
         img = img.half() if self.model.fp16 else img.float()  # Convert uint8 to fp16/32
-        if self.channels_last:  # base preprocess is bypassed here (no super), so convert the layout directly
-            img = img.contiguous(memory_format=torch.channels_last)
         return img
 
     def postprocess(self, preds, img, orig_imgs):

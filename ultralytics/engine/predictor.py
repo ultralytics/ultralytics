@@ -129,7 +129,6 @@ class BasePredictor:
         if self.args.conf is None:
             self.args.conf = 0.25  # default conf=0.25
         self.done_warmup = False
-        self.channels_last = False  # set in setup_model; NHWC memory format for native PyTorch CUDA inference
         if self.args.show:
             self.args.show = check_imshow(warn=True)
 
@@ -175,8 +174,6 @@ class BasePredictor:
         im = im.half() if self.model.fp16 else im.float()  # uint8 to fp16/32
         if not_tensor:
             im /= 255  # 0 - 255 to 0.0 - 1.0
-        if self.channels_last:
-            im = im.contiguous(memory_format=torch.channels_last)
         return im
 
     def inference(self, im: torch.Tensor, *args, **kwargs):
@@ -316,8 +313,7 @@ class BasePredictor:
                         1 if self.model.format in {"pt", "triton"} else self.dataset.bs,
                         self.model.channels,
                         *self.imgsz,
-                    ),
-                    channels_last=self.channels_last,  # match preprocess layout so compile traces it once
+                    )
                 )
                 self.done_warmup = True
 
@@ -429,13 +425,13 @@ class BasePredictor:
         # channels_last (NHWC) is CUDA-only and native-PyTorch-only: lossless and Tensor-Core friendly there, wrong
         # on MPS, no CPU gain. Exported CUDA runtimes (TensorRT / ONNX io-binding) read im.data_ptr() against an NCHW
         # binding, so feeding them an NHWC-strided input would be misread as NCHW and corrupt predictions.
-        self.channels_last = self.args.channels_last and self.device.type == "cuda" and self.model.format == "pt"
-        if self.args.channels_last and not self.channels_last:
+        channels_last = self.args.channels_last and self.device.type == "cuda" and self.model.format == "pt"
+        if self.args.channels_last and not channels_last:
             LOGGER.warning(
                 f"'channels_last=True' applies only to native PyTorch models on CUDA, ignoring for "
                 f"format='{self.model.format}' on '{self.device.type}'."
             )
-        if self.channels_last:
+        if channels_last:
             self.model.to(memory_format=torch.channels_last)
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 

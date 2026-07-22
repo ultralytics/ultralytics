@@ -80,7 +80,7 @@ class BaseValidator:
         plots (dict): Dictionary to store plots for visualization.
         callbacks (dict): Dictionary to store various callback functions.
         stride (int): Model stride for padding calculations.
-        loss (torch.Tensor): Accumulated loss during training validation.
+        loss (dict): Accumulated loss items during training validation.
 
     Methods:
         __call__: Execute validation process, running inference on dataloader and computing performance metrics.
@@ -162,7 +162,7 @@ class BaseValidator:
             if trainer.args.compile and hasattr(model, "_orig_mod"):
                 model = model._orig_mod  # validate non-compiled original model to avoid issues
             model = model.float()
-            self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
+            self.loss = {k: torch.zeros_like(v) for k, v in trainer.loss_items.items()}
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()
         else:
@@ -190,6 +190,15 @@ class BaseValidator:
             self.args.quantize = 16 if model.fp16 else None  # record actual inference precision
             stride, fmt = model.stride, model.format
             pt = fmt == "pt"
+            # Same gate as predictor.setup_model: NHWC is lossless only for native PyTorch models on CUDA.
+            channels_last = self.args.channels_last and self.device.type == "cuda" and pt
+            if self.args.channels_last and not channels_last:
+                LOGGER.warning(
+                    f"'channels_last=True' applies only to native PyTorch models on CUDA, ignoring for "
+                    f"format='{fmt}' on '{self.device.type}'."
+                )
+            if channels_last:
+                model.to(memory_format=torch.channels_last)
             imgsz = check_imgsz(self.args.imgsz, stride=stride)
             if fmt not in {"pt", "torchscript"} and not getattr(model, "dynamic", False):
                 self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1
@@ -203,6 +212,7 @@ class BaseValidator:
                 "pose",
                 "obb",
                 "semantic",
+                "depth",
             }:
                 self.data = check_det_dataset(self.args.data, split=self.args.split)
             else:
@@ -245,7 +255,8 @@ class BaseValidator:
                 # Loss
                 with dt[2]:
                     if self.training:
-                        self.loss += model.loss(batch, preds)[1]
+                        for k, v in model.loss(batch, preds)[1].items():
+                            self.loss[k] += v
 
             # Postprocess
             with dt[3]:
@@ -269,12 +280,14 @@ class BaseValidator:
 
         if self.training:
             # Reduce loss across all GPUs
-            loss = self.loss.clone().detach()
+            loss = {k: v.clone().detach() for k, v in self.loss.items()}
             if trainer.world_size > 1:
-                dist.reduce(loss, dst=0, op=dist.ReduceOp.AVG)
+                for v in loss.values():
+                    dist.reduce(v, dst=0, op=dist.ReduceOp.AVG)
             if RANK > 0:
                 return
-            results = {**stats, **trainer.label_loss_items(loss.cpu() / len(self.dataloader), prefix="val")}
+            loss = {k: v.cpu() / len(self.dataloader) for k, v in loss.items()}
+            results = {**stats, **trainer.label_loss_items(loss, prefix="val")}
             return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
         else:
             if RANK > 0:
@@ -330,7 +343,7 @@ class BaseValidator:
                         matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
                         matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
                     correct[matches[:, 1].astype(int), i] = True
-        return torch.tensor(correct, dtype=torch.bool, device=pred_classes.device)
+        return torch.from_numpy(correct)
 
     def add_callback(self, event: str, callback):
         """Append the given callback to the specified event."""

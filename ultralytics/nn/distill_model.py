@@ -209,8 +209,9 @@ class DistillationModel(nn.Module):
         if not self.training:  # for loss calculation during validation while training
             if preds is None:
                 preds = self.student_model(batch["img"])
-            regular_loss, regular_loss_detach = self.student_model.loss(batch, preds)
-            return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, loss_distill])
+            regular_loss, loss_items = self.student_model.loss(batch, preds)
+            loss_items["dis_loss"] = loss_distill.detach()
+            return torch.cat([regular_loss, loss_distill]), loss_items
 
         # Clear feature dicts before forward passes
         self._teacher_feats.clear()
@@ -220,7 +221,7 @@ class DistillationModel(nn.Module):
             self.teacher_model(batch["img"])  # hooks capture teacher features
         preds = self.student_model(batch["img"])  # hooks capture student features
 
-        regular_loss, regular_loss_detach = self.student_model.loss(batch, preds)
+        regular_loss, loss_items = self.student_model.loss(batch, preds)
         teacher_head_feat = self._teacher_feats[self.feats_idx[-1]]
         teacher_scores = (
             self.decouple_outputs(teacher_head_feat, branch="one2many")["scores"]
@@ -237,9 +238,9 @@ class DistillationModel(nn.Module):
                 self.loss_sl2(student_feat, teacher_feat, feat_idx=i, teacher_scores=teacher_scores) * self.dis
             )
 
-        distill_loss_detach = loss_distill.detach()
+        loss_items["dis_loss"] = loss_distill.detach()
         loss_distill = loss_distill * batch["img"].shape[0]
-        return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, distill_loss_detach])
+        return torch.cat([regular_loss, loss_distill]), loss_items
 
     def loss_sl2(
         self, student_feat: torch.Tensor, teacher_feat: torch.Tensor, feat_idx: int, teacher_scores: tuple

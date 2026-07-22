@@ -44,6 +44,7 @@ from ultralytics.nn.modules import (
     Conv,
     Conv2,
     ConvTranspose,
+    Depth,
     Detect,
     DWConv,
     DWConvTranspose2d,
@@ -87,6 +88,7 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.checks import REMOTE_FILE_PREFIXES, check_file, check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
+    DepthLoss26,
     E2ELoss,
     PoseLoss26,
     SemanticSegmentationLoss,
@@ -775,6 +777,26 @@ class PoseModel(DetectionModel):
         return E2ELoss(self, loss) if self.end2end else loss(self)
 
 
+class DepthModel(DetectionModel):
+    """YOLO depth estimation model.
+
+    This class extends DetectionModel for monocular depth estimation, using YOLO backbone + FPN with a DPT-style dense
+    depth decoder head. Follows the Depth Anything approach adapted to YOLO architecture.
+
+    Examples:
+        >>> model = DepthModel("yolo26n-depth.yaml", ch=3)
+        >>> results = model(image_tensor)
+    """
+
+    def __init__(self, cfg="yolo26n-depth.yaml", ch=3, nc=None, verbose=True):
+        """Initialize YOLO Depth model."""
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    def init_criterion(self):
+        """Initialize the depth loss criterion."""
+        return DepthLoss26(self)
+
+
 class ClassificationModel(BaseModel):
     """YOLO classification model.
 
@@ -931,7 +953,7 @@ class RTDETRDetectionModel(DetectionModel):
 
         Returns:
             (torch.Tensor): Total loss value.
-            (torch.Tensor): Main three losses in a tensor.
+            (dict): Main three losses in a dict.
         """
         if not hasattr(self, "criterion"):
             self.criterion = self.init_criterion()
@@ -964,9 +986,11 @@ class RTDETRDetectionModel(DetectionModel):
             (dec_bboxes, dec_scores), targets, dn_bboxes=dn_bboxes, dn_scores=dn_scores, dn_meta=dn_meta
         )
         # NOTE: There are like 12 losses in RTDETR, backward with all losses but only show the main three losses.
-        return sum(loss.values()), torch.as_tensor(
-            [loss[k].detach() for k in ["loss_giou", "loss_class", "loss_bbox"]], device=img.device
-        )
+        return sum(loss.values()), {
+            "giou_loss": loss["loss_giou"].detach(),
+            "cls_loss": loss["loss_class"].detach(),
+            "l1_loss": loss["loss_bbox"].detach(),
+        }
 
     def predict(self, x, profile=False, visualize=False, batch=None, augment=False, embed=None):
         """Perform a forward pass through the model.
@@ -2015,6 +2039,8 @@ def parse_model(d, ch, verbose=True):
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
                 m.legacy = legacy
+        elif m is Depth:
+            args = [*args[:1], [ch[x] for x in f]]  # c_mid, ch tuple; drops the legacy mode arg old checkpoints store
         elif m is SemanticSegment:
             args.append([ch[x] for x in f])  # nc, ch tuple
         elif m is v10Detect:
@@ -2095,7 +2121,7 @@ def guess_model_task(model):
         model (torch.nn.Module | dict | str | Path): PyTorch model, model configuration dict, or model file path.
 
     Returns:
-        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'obb', 'semantic').
+        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'obb', 'semantic', 'depth').
     """
 
     def cfg2task(cfg):
@@ -2113,6 +2139,8 @@ def guess_model_task(model):
             return "pose"
         if "obb" in m:
             return "obb"
+        if "depth" in m:
+            return "depth"
 
     # Guess from model cfg
     if isinstance(model, dict):
@@ -2137,6 +2165,8 @@ def guess_model_task(model):
                 return "pose"
             elif isinstance(m, OBB):
                 return "obb"
+            elif isinstance(m, Depth):
+                return "depth"
             elif isinstance(m, (Detect, WorldDetect, YOLOEDetect, v10Detect)):
                 return "detect"
 
@@ -2153,6 +2183,8 @@ def guess_model_task(model):
             return "pose"
         elif "-obb" in model.stem or "obb" in model.parts:
             return "obb"
+        elif "-depth" in model.stem or "depth" in model.parts:
+            return "depth"
         elif "detect" in model.parts:
             return "detect"
 

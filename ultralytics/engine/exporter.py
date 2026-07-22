@@ -460,13 +460,7 @@ def try_export(inner_func):
             LOGGER.info(f"{prefix} export success ✅ {dt.t:.1f}s, saved as '{path}' ({mb:.1f} MB)")
             return f
         except Exception as e:
-            dependency_help = (
-                " Ultralytics Platform runs exports in the cloud with no local dependencies required. "
-                "Visit https://platform.ultralytics.com."
-                if isinstance(e, ImportError)
-                else ""
-            )
-            LOGGER.error(f"{prefix} export failure {dt.t:.1f}s: {e}{dependency_help}")
+            LOGGER.error(f"{prefix} export failure {dt.t:.1f}s: {e}")
             raise e
 
     return outer_func
@@ -1245,12 +1239,21 @@ class Exporter:
         model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel) if self.args.nms else self.model
 
         if self.args.dynamic:
+            h, w = self.imgsz
+            lb_h = lb_w = 32
+            if getattr(self.model, "end2end", False):
+                # end2end graphs bake TopK k=max_det, so the smallest declared input must still supply >= k anchors
+                # or CoreML rejects the model at load; shrink the range proportionally from the traced default size
+                stride = int(self.model.stride.max())
+                r = self.model.model[-1].max_det / sum(int(h / s) * int(w / s) for s in self.model.stride.tolist())
+                lb_h = max(lb_h, int(np.ceil(h * r**0.5 / stride)) * stride)
+                lb_w = max(lb_w, int(np.ceil(w * r**0.5 / stride)) * stride)
             input_shape = ct.Shape(
                 shape=(
                     ct.RangeDim(lower_bound=1, upper_bound=self.args.batch, default=1),
                     self.im.shape[1],
-                    ct.RangeDim(lower_bound=32, upper_bound=self.imgsz[0] * 2, default=self.imgsz[0]),
-                    ct.RangeDim(lower_bound=32, upper_bound=self.imgsz[1] * 2, default=self.imgsz[1]),
+                    ct.RangeDim(lower_bound=lb_h, upper_bound=h * 2, default=h),
+                    ct.RangeDim(lower_bound=lb_w, upper_bound=w * 2, default=w),
                 )
             )
             inputs = [ct.TensorType("image", shape=input_shape)]

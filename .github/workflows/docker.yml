@@ -51,9 +51,6 @@ on:
         type: boolean
         description: Publish to DockerHub and ghcr.io
 
-concurrency:
-  group: ${{ github.workflow }}
-
 jobs:
   docker:
     if: github.repository == 'ultralytics/ultralytics'
@@ -212,10 +209,8 @@ jobs:
         with:
           timeout_minutes: 120
           retry_delay_seconds: 60
-          retries: 2
+          retries: 3
           run: |
-            docker builder prune -af
-
             derivatives='${{ matrix.derivatives }}'
             if [[ -n "$derivatives" ]]; then
               IFS=',' read -ra derivative_array <<< "$derivatives"
@@ -236,7 +231,6 @@ jobs:
                   -t "ghcr.io/ultralytics/ultralytics:$derivative_tag" \
                   -t "ghcr.io/ultralytics/ultralytics:$derivative_version_tag" \
                   .
-                docker builder prune -af
               done
             fi
 

@@ -157,10 +157,6 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           activate-environment: true
-          enable-cache: true
-          cache-dependency-glob: |
-            pyproject.toml
-            .github/workflows/ci.yml
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
@@ -207,6 +203,9 @@ jobs:
           flags: Tests
           fail_ci_if_error: false
           use_oidc: true
+      - name: Prune uv Cache
+        run: uv cache prune --ci
+
   # Shared runner CI keeps current stacks on the main path; legacy torch shards are isolated only where needed.
   SlowTests:
     if: (github.event_name == 'workflow_dispatch' && github.event.inputs.tests == 'true') || github.event_name == 'schedule'
@@ -303,10 +302,6 @@ jobs:
             torchvision: "0.26.0"
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        if: matrix.os != 'cpu-latest'
-        with:
-          python-version: ${{ matrix.python }}
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: ${{ matrix.python }}

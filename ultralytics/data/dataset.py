@@ -328,6 +328,35 @@ class YOLODataset(BaseDataset):
         )
         return transforms
 
+    def build_text_transforms(self, transforms: Compose, max_samples: int) -> Compose:
+        """Insert text augmentation for text-based subclasses providing `category_freq`.
+
+        Args:
+            transforms (Compose): Transforms composed by build_transforms.
+            max_samples (int): Maximum number of text samples per image.
+
+        Returns:
+            (Compose): Transforms with RandomLoadText inserted before Format when augmenting.
+        """
+        if self.augment:
+            # NOTE: hard-coded the args for now.
+            # NOTE: this implementation is different from official yoloe,
+            # the strategy of selecting negative is restricted in one dataset,
+            # while official pre-saved neg embeddings from all datasets at once.
+            transform = RandomLoadText(
+                max_samples=min(max_samples, 80),
+                padding=True,
+                padding_value=self._get_neg_texts(self.category_freq),
+            )
+            transforms.insert(-1, transform)
+        return transforms
+
+    @staticmethod
+    def _get_neg_texts(category_freq: dict) -> list[str]:
+        """Get negative text samples with frequency above the dataset threshold."""
+        threshold = min(max(category_freq.values()), 100)
+        return [k for k, v in category_freq.items() if v >= threshold]
+
     def close_mosaic(self, hyp: dict) -> None:
         """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their probabilities to 0.0.
 
@@ -546,7 +575,7 @@ class YOLOMultiModalDataset(YOLODataset):
         return labels
 
     def build_transforms(self, hyp: dict | None = None) -> Compose:
-        """Enhance data transformations with optional text augmentation for multi-modal training.
+        """Enhance data transformations with text augmentation for multi-modal training.
 
         Args:
             hyp (dict, optional): Hyperparameters for transforms.
@@ -554,19 +583,7 @@ class YOLOMultiModalDataset(YOLODataset):
         Returns:
             (Compose): Composed transforms including text augmentation if applicable.
         """
-        transforms = super().build_transforms(hyp)
-        if self.augment:
-            # NOTE: hard-coded the args for now.
-            # NOTE: this implementation is different from official yoloe,
-            # the strategy of selecting negative is restricted in one dataset,
-            # while official pre-saved neg embeddings from all datasets at once.
-            transform = RandomLoadText(
-                max_samples=min(self.data["nc"], 80),
-                padding=True,
-                padding_value=self._get_neg_texts(self.category_freq),
-            )
-            transforms.insert(-1, transform)
-        return transforms
+        return self.build_text_transforms(super().build_transforms(hyp), self.data["nc"])
 
     @property
     def category_names(self):
@@ -590,12 +607,6 @@ class YOLOMultiModalDataset(YOLODataset):
                     t = t.strip()
                     category_freq[t] += 1
         return category_freq
-
-    @staticmethod
-    def _get_neg_texts(category_freq: dict, threshold: int = 100) -> list[str]:
-        """Get negative text samples based on frequency threshold."""
-        threshold = min(max(category_freq.values()), 100)
-        return [k for k, v in category_freq.items() if v >= threshold]
 
 
 class GroundingDataset(YOLODataset):
@@ -643,7 +654,7 @@ class GroundingDataset(YOLODataset):
         """
         return []
 
-    def verify_labels(self, labels: list[dict[str, Any]]) -> None:
+    def _verify_instance_counts(self, labels: list[dict[str, Any]]) -> None:
         """Verify the number of instances in the dataset matches expected counts.
 
         This method checks if the total number of bounding box instances in the provided labels matches the expected
@@ -776,7 +787,7 @@ class GroundingDataset(YOLODataset):
         cache, _ = self._load_or_scan_cache(cache_path, get_hash(self.json_file))
         [cache.pop(k) for k in ("hash", "version")]  # remove items
         labels = cache["labels"]
-        self.verify_labels(labels)
+        self._verify_instance_counts(labels)
         self.im_files = [str(label["im_file"]) for label in labels]
         if LOCAL_RANK in {-1, 0}:
             LOGGER.info(f"Load {self.json_file} from cache file {cache_path}")
@@ -791,19 +802,7 @@ class GroundingDataset(YOLODataset):
         Returns:
             (Compose): Composed transforms including text augmentation if applicable.
         """
-        transforms = super().build_transforms(hyp)
-        if self.augment:
-            # NOTE: hard-coded the args for now.
-            # NOTE: this implementation is different from official yoloe,
-            # the strategy of selecting negative is restricted in one dataset,
-            # while official pre-saved neg embeddings from all datasets at once.
-            transform = RandomLoadText(
-                max_samples=min(self.max_samples, 80),
-                padding=True,
-                padding_value=self._get_neg_texts(self.category_freq),
-            )
-            transforms.insert(-1, transform)
-        return transforms
+        return self.build_text_transforms(super().build_transforms(hyp), self.max_samples)
 
     @property
     def category_names(self):
@@ -820,12 +819,6 @@ class GroundingDataset(YOLODataset):
                     t = t.strip()
                     category_freq[t] += 1
         return category_freq
-
-    @staticmethod
-    def _get_neg_texts(category_freq: dict, threshold: int = 100) -> list[str]:
-        """Get negative text samples based on frequency threshold."""
-        threshold = min(max(category_freq.values()), 100)
-        return [k for k, v in category_freq.items() if v >= threshold]
 
 
 class YOLOConcatDataset(ConcatDataset):

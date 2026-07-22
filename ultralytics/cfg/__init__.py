@@ -442,15 +442,18 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                 if not (0.0 <= v <= 1.0):
                     raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
             elif k in CFG_FRACTION_KEYS:
-                if not isinstance(v, FLOAT_OR_INT):
-                    if hard:
-                        raise TypeError(
-                            f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                            f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
-                        )
-                    cfg[k] = v = float(v)
-                if not (0.0 <= v <= 1.0) or (k == "fraction" and v == 0.0):
-                    raise ValueError(f"'{k}={v}' is invalid. Use (0.0, 1.0] for fraction; [0.0, 1.0] otherwise.")
+                if isinstance(v, (list, tuple)) and len(v) != 2:
+                    raise ValueError(f"'{k}={v}' is invalid. Use a single float or a two-item list like [0.5, 1.0].")
+                for item in v if isinstance(v, (list, tuple)) else [v]:
+                    if not isinstance(item, FLOAT_OR_INT):
+                        if hard:
+                            raise TypeError(
+                                f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                                f"Valid '{k}' types are int (i.e. '{k}=0'), float (i.e. '{k}=0.5'), or a two-item list like '{k}=[0.5,1.0]'"
+                            )
+                    if not (0.0 <= float(item) <= 1.0) or (k == "fraction" and float(item) == 0.0):
+                        raise ValueError(f"'{k}={v}' is invalid. Use (0.0, 1.0] for fraction; [0.0, 1.0] otherwise.")
+                cfg[k] = [float(i) for i in v] if isinstance(v, (list, tuple)) else float(v)
             elif k in CFG_INT_KEYS:
                 if not isinstance(v, int):
                     if hard:

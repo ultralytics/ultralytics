@@ -197,11 +197,11 @@ class YOLODataset(BaseDataset):
             repeat(self.single_cls),
         )
 
-    def result_to_label(self, result) -> tuple[dict | None, int, int, int, int, str]:
+    def result_to_label(self, result: list) -> tuple[dict | None, int, int, int, int, str]:
         """Convert one verification result into a label dict and scan counter increments.
 
         Args:
-            result: One result from the verification function returned by `verify_args`.
+            result (list): One result from the verification function returned by `verify_args`.
 
         Returns:
             (tuple): (label dict or None, missing, found, empty, corrupt, message).
@@ -472,7 +472,7 @@ class DepthDataset(YOLODataset):
         """Return the depth verification function and its argument iterable."""
         return verify_image_depth, zip(self.im_files, self.depth_files, repeat(self.prefix))
 
-    def result_to_label(self, result) -> tuple[dict | None, int, int, int, int, str]:
+    def result_to_label(self, result: tuple) -> tuple[dict | None, int, int, int, int, str]:
         """Convert one verify_image_depth result into a label dict and scan counter increments."""
         im_file, shape, nf_f, nm_f, nc_f, msg = result
         label = (
@@ -962,7 +962,7 @@ class SemanticDataset(YOLODataset):
             repeat(int(self.data.get("nc", 0)) == 1),
         )
 
-    def result_to_label(self, result) -> tuple[dict | None, int, int, int, int, str]:
+    def result_to_label(self, result: tuple) -> tuple[dict | None, int, int, int, int, str]:
         """Convert one verify_image_mask result into a label dict and scan counter increments."""
         im_file, mask_file, shape, is_1bit, nm_f, nf_f, nc_f, msg = result
         label = (

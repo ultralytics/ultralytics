@@ -328,7 +328,7 @@ def fuse_conv_and_bn(conv, bn):
         >>> fused_conv = fuse_conv_and_bn(conv, bn)
     """
     # Compute fused weights
-    w_conv = conv.weight.view(conv.out_channels, -1)
+    w_conv = conv.weight.reshape(conv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
     conv.weight.data = torch.mm(w_bn, w_conv).view(conv.weight.shape)
 
@@ -367,7 +367,7 @@ def fuse_deconv_and_bn(deconv, bn):
     if isinstance(bn, nn.Identity):  # ConvTranspose(bn=False) leaves bn as nn.Identity, nothing to fuse
         return deconv.requires_grad_(False)
     # Compute fused weights
-    w_deconv = deconv.weight.view(deconv.out_channels, -1)
+    w_deconv = deconv.weight.reshape(deconv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
     deconv.weight.data = torch.mm(w_bn, w_deconv).view(deconv.weight.shape)
 

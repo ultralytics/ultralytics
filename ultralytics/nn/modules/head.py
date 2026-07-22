@@ -845,8 +845,9 @@ class Depth(nn.Module):
 
         out = feats[-1]
         for i in range(self.nl - 2, -1, -1):
-            # align_corners=True is baked into the released depth weights.
-            out = F.interpolate(out, size=feats[i].shape[2:], mode="bilinear", align_corners=True)
+            # align_corners=True is baked into the released depth weights. Constant scale (consecutive pyramid
+            # levels) keeps the upsample static for dynamic-shape CoreML export; output size is identical.
+            out = F.interpolate(out, scale_factor=2, mode="bilinear", align_corners=True)
             out = out + feats[i]
             out = self.refine[i](out)
 

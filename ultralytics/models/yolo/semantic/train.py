@@ -67,7 +67,6 @@ class SemanticSegmentationTrainer(DetectionTrainer):
 
     def get_validator(self):
         """Return a SemanticSegmentationValidator for model evaluation."""
-        self.loss_names = "ce_loss", "dice_loss", "aux_loss"
         return yolo.semantic.SemanticSegmentationValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

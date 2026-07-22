@@ -96,7 +96,7 @@ Pass your video to the `ObjectBlurrer` solution and it detects objects each fram
 Here's a table with the `ObjectBlurrer` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "line_width", "blur_ratio"]) }}
+{{ param_table(["model", "blur_ratio"]) }}
 
 The `ObjectBlurrer` solution also supports a range of `track` arguments:
 

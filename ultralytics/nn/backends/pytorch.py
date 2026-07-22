@@ -47,13 +47,13 @@ class PyTorchBackend(BaseBackend):
         Args:
             weight (str | torch.nn.Module): Path to the .pt checkpoint or a pre-loaded module.
         """
-        from ultralytics.nn.tasks import load_checkpoint
+        from ultralytics.nn.tasks import BaseModel, load_checkpoint
 
         if isinstance(weight, torch.nn.Module):
             if self.fuse and hasattr(weight, "fuse"):
                 if IS_JETSON and is_jetson(jetpack=5):
                     weight = weight.to(self.device)
-                weight = weight.fuse(verbose=self.verbose)
+                weight = weight.fuse(verbose=self.verbose) if isinstance(weight, BaseModel) else weight.fuse()
             model = weight.to(self.device)
         else:
             model, _ = load_checkpoint(weight, device=self.device, fuse=self.fuse)

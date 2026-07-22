@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.models.yolo import classify, detect, obb, pose, s3d, segment, semantic, world, yoloe
+from ultralytics.models.yolo import classify, depth, detect, obb, pose, s3d, segment, semantic, world, yoloe
 
 from .model import YOLO, YOLOE, YOLOWorld
 
@@ -9,6 +9,7 @@ __all__ = (
     "YOLOE",
     "YOLOWorld",
     "classify",
+    "depth",
     "detect",
     "obb",
     "pose",

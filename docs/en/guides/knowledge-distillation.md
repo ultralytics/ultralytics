@@ -236,7 +236,7 @@ Distillation training supports resuming from checkpoints. The teacher model is r
 
 When distillation is enabled, an additional `dis_loss` column appears in training logs:
 
-```
+```text
       Epoch    GPU_mem   box_loss   cls_loss   dfl_loss   dis_loss  Instances       Size
       1/80      46.2G      1.566      5.404    0.003249      6.658        231        640
 ```

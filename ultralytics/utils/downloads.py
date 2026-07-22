@@ -9,7 +9,7 @@ import tarfile
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
-from urllib import parse, request
+from urllib import parse
 
 from ultralytics.utils import ASSETS_URL, LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
 
@@ -19,8 +19,9 @@ GITHUB_ASSETS_NAMES = frozenset(
     [f"yolov8{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb", "-oiv7")]
     + [f"yolo11{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb")]
     + [f"yolo12{k}{suffix}.pt" for k in "nsmlx" for suffix in ("",)]  # detect models only currently
-    + [f"yolo26{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-sem", "-pose", "-obb")]
+    + [f"yolo26{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-sem", "-pose", "-obb", "-depth")]
     + [f"yolo26{k}-s3d.pt" for k in "nsml"]
+    + [f"yolo26{k}-objv1{suffix}.pt" for k in "nsmlx" for suffix in ("-150", "-seg")]
     + [f"yolov5{k}{resolution}u.pt" for k in "nsmlx" for resolution in ("", "6")]
     + [f"yolov3{k}u.pt" for k in ("", "-spp", "-tiny")]
     + [f"yolov8{k}-world.pt" for k in "smlx"]
@@ -66,8 +67,9 @@ def is_url(url: str | Path, check: bool = False) -> bool:
         if not (result.scheme and result.netloc):
             return False
         if check:
-            r = request.urlopen(request.Request(url, method="HEAD"), timeout=3)
-            return 200 <= r.getcode() < 400
+            import requests  # scoped as slow import
+
+            return requests.head(url, timeout=3, allow_redirects=True).ok
         return True
     except Exception:
         return False
@@ -326,10 +328,12 @@ def safe_download(
     if "://" not in url and Path(url).is_file():  # local file path ('://' check required in Windows Python<3.10)
         f = Path(url)
     else:
+        import requests  # scoped as slow import
+
         gdrive = url.startswith("https://drive.google.com/")  # check if the URL is a Google Drive link
         if gdrive:
             url, file = get_google_drive_file_info(url)
-        url = url.replace(" ", "%20")  # encode spaces for curl/urllib compatibility
+        url = url.replace(" ", "%20")  # encode spaces for curl compatibility
 
         f = Path(dir or ".") / (file or url2file(url))  # URL converted to filename
         if not f.is_file():  # URL and file do not exist
@@ -337,16 +341,24 @@ def safe_download(
             desc = f"Downloading {uri} to '{f}'"
             f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
             curl_installed = shutil.which("curl")
-            expected_size = None  # set by urllib from Content-Length; reused to validate curl retries
+            expected_size = None  # set from Content-Length; reused to validate curl retries
             for i in range(retry + 1):
                 try:
                     if (curl or i > 0) and curl_installed:  # curl download with retry, continue
                         s = "sS" * (not progress)  # silent
-                        r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
+                        # Stall bounds (not a total-transfer cap): abort if <1 B/s for 300 s so a dead connection
+                        # cannot block interpreter shutdown while a non-daemon plot thread waits on a font download
+                        args = ["--connect-timeout", "30", "--speed-limit", "1", "--speed-time", "300"]
+                        r = subprocess.run(
+                            ["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-", *args]
+                        ).returncode
                         assert r == 0, f"Curl return value {r}"
-                    else:  # urllib download
-                        with request.urlopen(url) as response:
-                            expected_size = int(response.getheader("Content-Length", 0))
+                    else:  # requests download; timeout bounds connect and per-chunk read gaps, not total transfer
+                        with requests.get(
+                            url, stream=True, headers={"Accept-Encoding": "identity"}, timeout=(30, 300)
+                        ) as response:
+                            response.raise_for_status()
+                            expected_size = int(response.headers.get("Content-Length", 0))
                             if i == 0 and expected_size > 1048576:
                                 check_disk_space(expected_size, path=f.parent)
                             buffer_size = max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192
@@ -359,10 +371,7 @@ def safe_download(
                                 unit_divisor=1024,
                             ) as pbar:
                                 with open(f, "wb") as f_opened:
-                                    while True:
-                                        data = response.read(buffer_size)
-                                        if not data:
-                                            break
+                                    for data in response.iter_content(chunk_size=buffer_size):
                                         f_opened.write(data)
                                         pbar.update(len(data))
 
@@ -416,10 +425,10 @@ def safe_download(
                         target.mkdir(parents=True, exist_ok=True)
                     elif source := tar.extractfile(m):
                         target.parent.mkdir(parents=True, exist_ok=True)
-                        with source, open(target, "wb") as f:
-                            shutil.copyfileobj(source, f)
+                        with source, open(target, "wb") as out:  # 'f' is the archive path, deleted below
+                            shutil.copyfileobj(source, out)
         if delete:
-            f.unlink()  # remove zip
+            f.unlink()  # remove archive
         return unzip_dir
     return f
 

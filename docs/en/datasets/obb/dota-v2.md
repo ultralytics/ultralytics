@@ -1,6 +1,12 @@
 ---
 title: DOTA OBB Dataset
 comments: true
+creator:
+    name: DOTA Team
+    url: https://captain-whu.github.io/DOTA/
+license:
+    name: Research-Only
+    url: https://captain-whu.github.io/DOTA/dataset.html
 description: Explore the DOTA dataset for object detection in aerial images, featuring 1.7M Oriented Bounding Boxes across 18 categories. Ideal for aerial image analysis.
 keywords: DOTA dataset, object detection, aerial images, oriented bounding boxes, OBB, DOTA v1.0, DOTA v1.5, DOTA v2.0, multiscale detection, Ultralytics
 ---
@@ -70,7 +76,7 @@ DOTA serves as a benchmark for training and evaluating models specifically tailo
 
 ## Dataset YAML
 
-A dataset YAML (Yet Another Markup Language) file specifies image/label roots, class names, and other important metadata. Ultralytics maintains official YAML files for the two most commonly used releases:
+A dataset YAML file specifies image/label roots, class names, and other important metadata. Ultralytics maintains official YAML files for the two most commonly used releases:
 
 - [`DOTAv1.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.yaml)
 - [`DOTAv1.5.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.5.yaml)

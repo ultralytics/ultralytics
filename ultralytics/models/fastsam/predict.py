@@ -68,7 +68,7 @@ class FastSAMPredictor(SegmentationPredictor):
                 [0, 0, result.orig_shape[1], result.orig_shape[0]], device=result.boxes.data.device, dtype=torch.float32
             )
             boxes = adjust_bboxes_to_image_border(result.boxes.xyxy, result.orig_shape)
-            idx = torch.nonzero(box_iou(full_box[None], boxes) > 0.9).flatten()
+            idx = torch.nonzero(box_iou(full_box[None], boxes)[0] > 0.9).flatten()
             if idx.numel() != 0:
                 result.boxes.xyxy[idx] = full_box
 

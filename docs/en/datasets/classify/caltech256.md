@@ -1,6 +1,11 @@
 ---
 title: Caltech-256 Image Classification Dataset
 comments: true
+creator:
+    name: California Institute of Technology
+    url: https://data.caltech.edu/records/nyy15-4j048
+license:
+    name: CC-BY-4.0
 description: Train YOLO image classification models on Caltech-256, a benchmark of 30,607 images across 256 object categories plus a background class, with automatic 80/20 splitting.
 keywords: Caltech-256, dataset, image classification, object recognition, machine learning, computer vision, YOLO, deep learning, AI
 ---

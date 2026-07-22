@@ -48,6 +48,7 @@ class Stereo3DDetLoss(v8DetectionLoss):
         pseudo_labels: dict | None = None,
     ):
         super().__init__(model, tal_topk=tal_topk)
+        self.loss_names = ("box", "cls", "lr_dist", "depth", "dims", "orient", "proj_center")
         self.aux_w = loss_weights or {}
         self.use_bbox_loss = use_bbox_loss
         self.cls_label_smoothing = cls_label_smoothing
@@ -330,7 +331,9 @@ class Stereo3DDetLoss(v8DetectionLoss):
             return (raw * aux_weights).sum() / aux_weights.sum().clamp(min=1.0)
         return raw.mean()
 
-    def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    def loss(
+        self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate stereo 3D detection loss: det losses + aux 3D losses.
 
         Args:
@@ -360,4 +363,4 @@ class Stereo3DDetLoss(v8DetectionLoss):
             loss[6] = aux_losses["proj_center"] * float(self.aux_w.get("proj_center", 1.0))
 
         batch_size = preds["boxes"].shape[0]
-        return loss * batch_size, loss.detach()
+        return loss * batch_size, dict(zip(self.loss_names, loss.detach()))

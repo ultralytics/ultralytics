@@ -1,7 +1,13 @@
 ---
 title: ImageNet Image Classification Dataset
 comments: true
-description: ImageNet (ILSVRC-2012) image classification dataset: 1,000 classes, 1.28M training images. Train Ultralytics YOLO classification models with data=imagenet.
+creator:
+    name: ImageNet
+    url: https://www.image-net.org/
+license:
+    name: Research-Only
+    url: https://www.image-net.org/download.php
+description: "ImageNet (ILSVRC-2012) image classification dataset: 1,000 classes, 1.28M training images. Train Ultralytics YOLO classification models with data=imagenet."
 keywords: ImageNet, ILSVRC-2012, image classification, deep learning, computer vision, pretrained models, YOLO, dataset, WordNet
 ---
 

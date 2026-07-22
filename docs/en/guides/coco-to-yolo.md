@@ -55,7 +55,7 @@ After conversion, [organize your directory structure](#3-organize-directory-stru
 
 A typical COCO-format dataset exported from annotation tools has the following structure:
 
-```
+```text
 my_dataset/
 ├── images/
 │   ├── train/
@@ -138,7 +138,7 @@ Use the [`convert_coco()`](../reference/data/converter.md#ultralytics.data.conve
 
 `convert_coco()` writes one `.txt` file per annotated image into a `labels/` subdirectory named after each JSON file, with the `instances_` prefix removed (so `instances_train.json` produces `labels/train/`). Images with no annotations are skipped and get no label file, so the `labels/` tree may not mirror every image:
 
-```
+```text
 my_dataset/converted/
 └── labels/
     ├── train/   # from instances_train.json
@@ -176,7 +176,7 @@ for src in converted_dir.iterdir():
 
 Your final [dataset structure](../datasets/detect/index.md#ultralytics-yolo-format) should look like:
 
-```
+```text
 my_dataset/
 ├── images/
 │   ├── train/

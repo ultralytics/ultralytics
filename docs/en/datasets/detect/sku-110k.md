@@ -1,6 +1,12 @@
 ---
 title: SKU-110K Detection Dataset
 comments: true
+creator:
+    name: SKU-110K Authors
+    url: https://github.com/eg4000/SKU110K_CVPR19
+license:
+    name: Research-Only
+    url: https://github.com/eg4000/SKU110K_CVPR19#dataset
 description: SKU-110K is a single-class retail-shelf object detection dataset of 11,743 densely packed images (8,219 train / 588 val / 2,936 test) for training YOLO models.
 keywords: SKU-110K, dataset, object detection, retail shelf images, densely packed objects, single class, deep learning, computer vision, YOLO26, Ultralytics
 ---

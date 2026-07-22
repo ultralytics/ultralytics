@@ -147,6 +147,7 @@ def pipeline_coreml(
 
     # Update metadata
     pipeline.spec.specificationVersion = spec.specificationVersion
+    pipeline.spec.description.metadata.CopyFrom(spec.description.metadata)
     pipeline.spec.description.metadata.userDefined.update(
         {"IoU threshold": str(nms.iouThreshold), "Confidence threshold": str(nms.confidenceThreshold)}
     )

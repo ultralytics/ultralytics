@@ -1,6 +1,12 @@
 ---
 title: ImageNet10 Image Classification Dataset
 comments: true
+creator:
+    name: Ultralytics
+    url: https://www.ultralytics.com/
+license:
+    name: Research-Only
+    url: https://www.image-net.org/download.php
 description: ImageNet10 is a tiny 24-image subset of ImageNet across its first 10 classes, built by Ultralytics for fast CI tests, sanity checks, and pipeline validation.
 keywords: ImageNet10, ImageNet subset, Ultralytics, CI tests, sanity checks, training pipelines, image classification, computer vision, deep learning, dataset
 ---

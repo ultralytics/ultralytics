@@ -424,11 +424,15 @@ class BasePredictor:
         if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
             self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()
-        # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, wrong on MPS, no CPU gain.
-        # _apply recurses into the eager PyTorch backend and no-ops on exported formats holding no nn.Module.
-        self.channels_last = self.args.channels_last and self.device.type == "cuda"
+        # channels_last (NHWC) is CUDA-only and native-PyTorch-only: lossless and Tensor-Core friendly there, wrong
+        # on MPS, no CPU gain. Exported CUDA runtimes (TensorRT / ONNX io-binding) read im.data_ptr() against an NCHW
+        # binding, so feeding them an NHWC-strided input would be misread as NCHW and corrupt predictions.
+        self.channels_last = self.args.channels_last and self.device.type == "cuda" and self.model.format == "pt"
         if self.args.channels_last and not self.channels_last:
-            LOGGER.warning(f"'channels_last=True' is only supported on CUDA, ignoring on '{self.device.type}'.")
+            LOGGER.warning(
+                f"'channels_last=True' applies only to native PyTorch models on CUDA, ignoring for "
+                f"format='{self.model.format}' on '{self.device.type}'."
+            )
         if self.channels_last:
             self.model.to(memory_format=torch.channels_last)
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)

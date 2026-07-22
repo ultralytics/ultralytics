@@ -29,6 +29,7 @@ from types import SimpleNamespace
 import numpy as np
 import torch
 import torch.nn.functional as F
+from torch import nn
 
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
@@ -64,6 +65,9 @@ class SAM3Backend:
     _FILE_STEMS = ("sam3_vision_encoder", "sam3_text_encoder", "sam3_decoder")
     _POINT_STEMS = ("sam3_prompt_encoder", "sam3_mask_decoder")
     _VIDEO_STEMS = ("sam3_memory_encoder", "sam3_memory_attention", "sam3_mask_embed")
+    # Release each session's CUDA arena back to its peak-of-run instead of accumulating peaks
+    # across sessions (the fp32 multiplex attention graphs materialize multi-GB score tensors).
+    _ort_arena_shrink = False
 
     def __init__(self, model_dir: str | Path, device: torch.device | str = "cpu", fp16: bool = False):
         self.device = torch.device(device) if isinstance(device, str) else device
@@ -261,7 +265,13 @@ class SAM3Backend:
                     v = v.astype(dt)
                 filtered[inp.name] = v
 
-        raw = session.run(None, filtered)
+        run_options = None
+        if self._ort_arena_shrink and self.device.type == "cuda":
+            import onnxruntime as ort
+
+            run_options = ort.RunOptions()
+            run_options.add_run_config_entry("memory.enable_memory_arena_shrinkage", f"gpu:{self.device.index or 0}")
+        raw = session.run(None, filtered, run_options)
         out_names = [o.name for o in session.get_outputs()]
         return dict(zip(out_names, raw))
 
@@ -1093,3 +1103,301 @@ class SAM3Backend:
 
     def __repr__(self) -> str:
         return f"SAM3Backend(format={self._format!r}, dir={str(self._model_dir)!r}, device={self.device}, names={self.names})"
+
+
+# ---------------------------------------------------------------------------
+# SAM 3.1 Object Multiplex backend
+# ---------------------------------------------------------------------------
+
+
+class _MuxMemoryEncoderShim(nn.Module):
+    """maskmem_backbone stand-in: pre-resizes muxed masks and calls the memory-encoder graph."""
+
+    def __init__(self, backend: "SAM3MultiplexBackend", interpol_size: list[int]):
+        super().__init__()
+        self._backend = backend
+        self.mask_downsampler = SimpleNamespace(interpol_size=list(interpol_size))
+
+    def forward(self, pix_feat: torch.Tensor, masks: torch.Tensor, skip_mask_sigmoid: bool = True) -> dict:
+        assert skip_mask_sigmoid, "sigmoid scaling happens in the session code"
+        interpol = self.mask_downsampler.interpol_size
+        if list(masks.shape[-2:]) != interpol:  # weightless antialias resize kept outside the graph
+            masks = F.interpolate(masks.float(), size=interpol, align_corners=False, mode="bilinear", antialias=True)
+        out = self._backend._run("sam3_memory_encoder", {"pix_feat": pix_feat[:1].contiguous(), "mask_for_mem": masks})
+        return {"vision_features": out["maskmem_features"].float(), "vision_pos_enc": [out["maskmem_pos_enc"].float()]}
+
+
+class _MuxMemoryAttentionShim(nn.Module):
+    """transformer.encoder stand-in for the decoupled multiplex memory attention graph."""
+
+    def __init__(self, backend: "SAM3MultiplexBackend", d_model: int):
+        super().__init__()
+        self._backend = backend
+        self.d_model = d_model
+
+    def forward(
+        self,
+        image,
+        src,
+        memory_image,
+        memory,
+        image_pos=None,
+        src_pos=None,
+        memory_image_pos=None,
+        memory_pos=None,
+        num_obj_ptr_tokens: int = 0,
+    ) -> dict:
+        # All inputs are sequence-first (L, B, C); pointer tokens trail the memory sequence.
+        s_sp = memory.shape[0] - num_obj_ptr_tokens
+        assert num_obj_ptr_tokens > 0, "multiplex memory attention always sees object pointers"
+        feed = {
+            "curr": image.permute(1, 0, 2).contiguous(),  # (HW, 1, C) → (1, HW, C)
+            "curr_pos": src_pos[:, :1].permute(1, 0, 2).contiguous(),
+            "spatial_mem": memory[:s_sp].permute(1, 0, 2).contiguous(),
+            "mem_image": memory_image.permute(1, 0, 2).contiguous(),
+            "mem_image_pos": memory_image_pos.permute(1, 0, 2).contiguous(),
+            "ptr_tok": memory[s_sp:].permute(1, 0, 2).contiguous(),
+            "ptr_pos": memory_pos[s_sp:, :1].permute(1, 0, 2).contiguous(),
+        }
+        fused = self._backend._run("sam3_memory_attention", feed)["fused"].float()
+        return {"memory": fused.permute(1, 0, 2), "pos_embed": src_pos}
+
+
+class _MuxMaskDecoderShim(nn.Module):
+    """MultiplexMaskDecoder stand-in; exposes the real conv_s0/conv_s1 for feature-cache projection."""
+
+    def __init__(self, backend: "SAM3MultiplexBackend", conv_s0, conv_s1):
+        super().__init__()
+        self._backend = backend
+        self.conv_s0 = conv_s0
+        self.conv_s1 = conv_s1
+
+    def forward(
+        self,
+        image_embeddings,
+        image_pe=None,  # baked into the graph
+        multimask_output: bool = True,
+        high_res_features=None,
+        extra_per_object_embeddings=None,
+    ) -> dict:
+        assert multimask_output, "MultiplexMaskDecoder is multimask-only"
+        hr0, hr1 = high_res_features
+        out = self._backend._run(
+            "sam3_multiplex_mask_decoder",
+            {
+                "image_embeddings": image_embeddings,
+                "extra_per_object_embeddings": extra_per_object_embeddings,
+                "high_res_feat_0": hr0[:1].contiguous(),
+                "high_res_feat_1": hr1[:1].contiguous(),
+            },
+        )
+        return {
+            "masks": out["masks"].float(),
+            "iou_pred": out["iou_pred"].float(),
+            "sam_tokens_out": out["sam_tokens_out"].float(),
+            "object_score_logits": out["object_score_logits"].float(),
+        }
+
+
+class _InteractivePromptEncoderShim(nn.Module):
+    """interactive_sam_prompt_encoder stand-in over the prompt-encoder and mask-embed graphs."""
+
+    def __init__(self, backend: "SAM3MultiplexBackend", mask_input_size, image_embedding_size):
+        super().__init__()
+        self._backend = backend
+        self.mask_input_size = tuple(mask_input_size)
+        self.image_embedding_size = tuple(image_embedding_size)
+        self._dense_pe = None
+
+    def get_dense_pe(self) -> torch.Tensor:
+        if self._dense_pe is None:
+            self._run_dummy()
+        return self._dense_pe
+
+    def _run_dummy(self):
+        out = self._backend._run(
+            "sam3_prompt_encoder",
+            {
+                "point_coords": torch.zeros(1, 1, 2),
+                "point_labels": -torch.ones(1, 1, dtype=torch.int32),
+            },
+        )
+        self._dense_pe = out["dense_pe"].float()
+
+    def forward(self, points=None, boxes=None, masks=None):
+        assert boxes is None, "box prompts reach the tracker as masks/points"
+        coords, labels = points
+        out = self._backend._run("sam3_prompt_encoder", {"point_coords": coords, "point_labels": labels})
+        if self._dense_pe is None:
+            self._dense_pe = out["dense_pe"].float()
+        sparse = out["sparse_embeddings"].float()
+        if masks is not None:
+            dense = self._backend._run("sam3_mask_embed", {"mask_input": masks})["dense_embeddings"].float()
+        else:
+            dense = out["dense_embeddings"].float()
+        return sparse, dense
+
+
+class _InteractiveMaskDecoderShim(nn.Module):
+    """interactive_sam_mask_decoder stand-in: all-token graph + SAM2MaskDecoder forward selection."""
+
+    def __init__(self, backend: "SAM3MultiplexBackend", conv_s0, conv_s1, extra_args: dict | None):
+        super().__init__()
+        self._backend = backend
+        self.conv_s0 = conv_s0
+        self.conv_s1 = conv_s1
+        extra_args = extra_args or {}
+        self.dynamic_multimask_via_stability = extra_args.get("dynamic_multimask_via_stability", False)
+        self.dynamic_multimask_stability_delta = extra_args.get("dynamic_multimask_stability_delta", 0.05)
+        self.dynamic_multimask_stability_thresh = extra_args.get("dynamic_multimask_stability_thresh", 0.98)
+        self.use_multimask_token_for_obj_ptr = True
+
+    def _get_stability_scores(self, mask_logits):
+        """Borrowed SAM2MaskDecoder stability score (weightless)."""
+        from ultralytics.models.sam.modules.decoders import SAM2MaskDecoder
+
+        return SAM2MaskDecoder._get_stability_scores(self, mask_logits)
+
+    def forward(
+        self,
+        image_embeddings,
+        image_pe=None,  # baked into the graph
+        sparse_prompt_embeddings=None,
+        dense_prompt_embeddings=None,
+        multimask_output: bool = False,
+        repeat_image: bool = True,
+        high_res_features=None,
+    ):
+        from ultralytics.models.sam.modules.decoders import SAM2MaskDecoder
+
+        assert repeat_image, "the interactive graph repeats the image embedding internally"
+        hr0, hr1 = high_res_features
+        out = self._backend._run(
+            "sam3_mask_decoder",
+            {
+                "image_embeddings": image_embeddings[:1].contiguous(),
+                "sparse_prompt_embeddings": sparse_prompt_embeddings,
+                "dense_prompt_embeddings": dense_prompt_embeddings,
+                "high_res_feat_0": hr0[:1].contiguous(),
+                "high_res_feat_1": hr1[:1].contiguous(),
+            },
+        )
+        masks = out["masks"].float()
+        ious = out["iou_scores"].float()
+        tokens = out["sam_tokens"].float()
+        object_score_logits = out["object_score_logits"].float()
+
+        # Replicate SAM2MaskDecoder.forward selection (weightless)
+        if multimask_output:
+            masks, ious = masks[:, 1:, :, :], ious[:, 1:]
+        elif self.dynamic_multimask_via_stability:
+            masks, ious = SAM2MaskDecoder._dynamic_multimask_via_stability(self, masks, ious)
+        else:
+            masks, ious = masks[:, 0:1, :, :], ious[:, 0:1]
+        if multimask_output and self.use_multimask_token_for_obj_ptr:
+            sam_tokens_out = tokens[:, 1:]
+        else:
+            sam_tokens_out = tokens[:, 0:1]
+        return masks, ious, sam_tokens_out, object_score_logits
+
+
+class SAM3MultiplexBackend(SAM3Backend):
+    """Multi-file runtime for exported SAM 3.1 Object Multiplex models.
+
+    The detector side reuses SAM3Backend's graph surface. The tracker side instantiates the real
+    SAM3MultiplexModel as a skeleton, loads the small parameters shipped in
+    ``sam3_multiplex_params.npz`` onto it, and swaps the heavy submodules for graph-runner shims —
+    so every line of session/bucket/selection logic runs unmodified.
+    """
+
+    _ort_arena_shrink = True
+    # Base loaders iterate self._VIDEO_STEMS, so the multiplex decoder loads with the rest
+    _VIDEO_STEMS = (
+        "sam3_memory_encoder",
+        "sam3_memory_attention",
+        "sam3_mask_embed",
+        "sam3_multiplex_mask_decoder",
+    )
+
+    def _init_video_state(self) -> None:
+        """Build the shim-backed multiplex tracker instead of the Phase-1 track_step mirror."""
+        self.no_mem_embed = None
+        self._no_mem_embed_spatial = None
+        self.has_video_modules = False
+        ext = "onnx" if self._format == "onnx" else "engine"
+        params_file = self._model_dir / "sam3_multiplex_params.npz"
+        if not (all((self._model_dir / f"{s}.{ext}").exists() for s in self._VIDEO_STEMS) and params_file.exists()):
+            LOGGER.warning("SAM3MultiplexBackend: multiplex graphs or params sidecar missing; tracking disabled")
+            return
+
+        from ultralytics.models.sam.build_sam3 import build_sam3_multiplex_tracker
+
+        skeleton = build_sam3_multiplex_tracker(None)
+        params = np.load(params_file)
+        sd = {k: torch.from_numpy(params[k]) for k in params.files}
+        missing, unexpected = skeleton.load_state_dict(sd, strict=False)
+        assert not unexpected, f"unexpected params in sidecar: {unexpected[:5]}"
+        LOGGER.info(f"SAM3MultiplexBackend: loaded {len(sd)} sidecar tensors onto the tracker skeleton")
+
+        interpol = list(skeleton.maskmem_backbone.mask_downsampler.interpol_size)
+        pe = skeleton.interactive_sam_prompt_encoder
+        mask_input_size, embed_size = pe.mask_input_size, pe.image_embedding_size
+
+        # Swap heavy submodules for graph shims (real conv_s0/s1 stay torch for cache projection)
+        skeleton.transformer.encoder = _MuxMemoryAttentionShim(self, skeleton.transformer.d_model)
+        skeleton.maskmem_backbone = _MuxMemoryEncoderShim(self, interpol)
+        skeleton.sam_mask_decoder = _MuxMaskDecoderShim(
+            self, skeleton.sam_mask_decoder.conv_s0, skeleton.sam_mask_decoder.conv_s1
+        )
+        skeleton.interactive_sam_prompt_encoder = _InteractivePromptEncoderShim(self, mask_input_size, embed_size)
+        skeleton.interactive_sam_mask_decoder = _InteractiveMaskDecoderShim(
+            self,
+            skeleton.interactive_sam_mask_decoder.conv_s0,
+            skeleton.interactive_sam_mask_decoder.conv_s1,
+            skeleton.interactive_sam_mask_decoder_extra_args,
+        )
+        skeleton.backbone = None
+        skeleton.eval()
+        for p in skeleton.parameters():
+            p.requires_grad = False
+        self.tracker_model = skeleton.to(self.device)
+        self.has_video_modules = True
+
+    def to(self, device):
+        """Move the runtime and the tracker skeleton's real torch pieces."""
+        super().to(device)
+        if getattr(self, "tracker_model", None) is not None:
+            self.tracker_model = self.tracker_model.to(self.device)
+        return self
+
+    def forward_image_semantic(self, im: torch.Tensor) -> dict:
+        """Vision encoder for the multiplex detector; stashes the tri-neck tracker streams."""
+        out = self._run(self._FILE_STEMS[0], {"images": im})
+        result = {
+            "backbone_fpn": [out["fpn_feat_0"], out["fpn_feat_1"], out["fpn_feat_2"]],
+            "vision_pos_enc": [out["fpn_pos_2"]] * 3,
+            "_fpn_feat_0": out["fpn_feat_0"],
+            "_fpn_feat_1": out["fpn_feat_1"],
+            "_fpn_feat_2": out["fpn_feat_2"],
+            "_fpn_pos_2": out["fpn_pos_2"],
+        }
+        for stream in ("interactive", "propagation"):
+            for i in range(3):
+                key = f"{stream}_feat_{i}"
+                if key in out:
+                    result[f"_{key}"] = out[key]
+        return result
+
+    def forward_grounding(self, backbone_out: dict, text_ids: torch.Tensor, geometric_prompt=None) -> dict:
+        """Grounding plus the tri-neck tracker pyramids the multiplex predictor caches."""
+        out = super().forward_grounding(backbone_out, text_ids, geometric_prompt)
+        if "_interactive_feat_0" in backbone_out:
+            pos2 = backbone_out["_fpn_pos_2"]
+
+            def _stream(prefix):
+                feats = [backbone_out[f"_{prefix}_feat_{i}"] for i in range(3)]
+                pos = [pos2.new_zeros(1, 1, *f.shape[-2:]).expand(1, f.shape[1], -1, -1) for f in feats[:2]] + [pos2]
+                return {"backbone_fpn": feats, "vision_pos_enc": pos, "vision_features": feats[-1]}
+
+            out["backbone_out"] = {"interactive": _stream("interactive"), "sam2_backbone_out": _stream("propagation")}
+        return out

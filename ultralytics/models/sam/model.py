@@ -160,7 +160,11 @@ class SAM(Model):
         if not self.is_sam3:
             raise NotImplementedError("Export is only supported for SAM3 models.")
 
-        from ultralytics.utils.export.sam3_onnx import export_sam3_engine, export_sam3_onnx
+        from ultralytics.utils.export.sam3_onnx import (
+            export_sam3_engine,
+            export_sam3_multiplex_onnx,
+            export_sam3_onnx,
+        )
 
         fmt = kwargs.pop("format", "onnx")
         assert fmt in {"onnx", "engine"}, f"SAM3 export supports format='onnx' or 'engine', got '{fmt}'"
@@ -174,7 +178,9 @@ class SAM(Model):
         # For TRT: always export FP32 ONNX (TRT handles FP16 internally via mixed precision)
         onnx_half = half if fmt == "onnx" else False
 
-        onnx_files = export_sam3_onnx(
+        # sam3.1 multiplex checkpoints export the bucketed tracker stack instead
+        export_fn = export_sam3_multiplex_onnx if "multiplex" in Path(self.ckpt_path).stem else export_sam3_onnx
+        onnx_files = export_fn(
             checkpoint_path=str(self.ckpt_path),
             device=device,
             opset=opset,

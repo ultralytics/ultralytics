@@ -439,7 +439,7 @@ def build_sam3_multiplex(checkpoint_path: str, multiplex_count: int = 16):
     return model
 
 
-def build_sam3_multiplex_tracker(checkpoint_path: str, multiplex_count: int = 16):
+def build_sam3_multiplex_tracker(checkpoint_path: str | None, multiplex_count: int = 16):
     """Build the SAM 3.1 Object Multiplex tracker net (backbone-less, fed by the detector).
 
     Mirrors Meta's build_sam3_multiplex_video_model configuration exactly; loads the
@@ -547,6 +547,10 @@ def build_sam3_multiplex_tracker(checkpoint_path: str, multiplex_count: int = 16
             dynamic_multimask_stability_thresh=0.98,
         ),
     )
+
+    if checkpoint_path is None:  # structural skeleton (exported-backend runtime loads params itself)
+        model.eval()
+        return model
 
     with open(checkpoint_path, "rb") as f:
         ckpt = torch_load(f)

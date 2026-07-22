@@ -2191,12 +2191,16 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
 
 def _sam3_export_backend(model_arg, device):
-    """Return a SAM3Backend when ``model_arg`` is an exported ONNX/TensorRT model directory, else None."""
+    """Return the matching backend when ``model_arg`` is an exported ONNX/TensorRT model directory, else None.
+
+    Multiplex exports are recognized by their ``sam3_multiplex_params.npz`` sidecar.
+    """
     model_path = Path(model_arg)
     if model_path.is_dir() and model_path.name.endswith(("_onnx", "_engine")):
-        from ultralytics.nn.backends.sam3 import SAM3Backend
+        from ultralytics.nn.backends.sam3 import SAM3Backend, SAM3MultiplexBackend
 
-        return SAM3Backend(model_path, device=device or "cpu")
+        cls = SAM3MultiplexBackend if (model_path / "sam3_multiplex_params.npz").exists() else SAM3Backend
+        return cls(model_path, device=device or "cpu")
     return None
 
 
@@ -4131,7 +4135,10 @@ class SAM3MultiplexVideoSemanticPredictor(SAM3VideoSemanticPredictor):
         self._reconditioned_obj_ids_last_frame: set = set()
 
     def get_model(self):
-        """Build the multiplex detector (tri-neck SAM3SemanticModel)."""
+        """Build the multiplex detector, or the exported-graph backend for _onnx/_engine dirs."""
+        if (backend := _sam3_export_backend(self.args.model, self.args.device)) is not None:
+            return backend
+
         from .build_sam3 import build_sam3_multiplex
 
         return build_sam3_multiplex(self.args.model)
@@ -4139,9 +4146,12 @@ class SAM3MultiplexVideoSemanticPredictor(SAM3VideoSemanticPredictor):
     def setup_model(self, model=None, verbose=True):
         """Build detector and the multiplex tracker net (skips the parent's per-object tracker)."""
         SAM3SemanticPredictor.setup_model(self, model, verbose)
-        from .build_sam3 import build_sam3_multiplex_tracker
+        if hasattr(self.model, "tracker_model"):  # exported backend carries its graph-shimmed tracker
+            self.tracker_model = self.model.tracker_model
+        else:
+            from .build_sam3 import build_sam3_multiplex_tracker
 
-        self.tracker_model = build_sam3_multiplex_tracker(self.args.model).to(self.device).eval()
+            self.tracker_model = build_sam3_multiplex_tracker(self.args.model).to(self.device).eval()
         self.tracker = SimpleNamespace(model=self.tracker_model)
 
     def setup_source(self, source):

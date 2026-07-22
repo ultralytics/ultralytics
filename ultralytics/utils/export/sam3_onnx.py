@@ -264,7 +264,7 @@ class SAM3VisionEncoderONNX(nn.Module):
     separate learned weights: ``convs`` for SAM3 and ``sam2_convs`` for SAM2.
     """
 
-    def __init__(self, model, imgsz=1008, sam2_convs=None):
+    def __init__(self, model, imgsz=1008, sam2_convs=None, interactive_convs=None, propagation_convs=None):
         super().__init__()
         neck = model.backbone.vision_backbone
         trunk = neck.trunk
@@ -278,6 +278,12 @@ class SAM3VisionEncoderONNX(nn.Module):
         self.has_sam2_neck = sam2_convs is not None
         if sam2_convs is not None:
             self.sam2_convs = sam2_convs
+        # Tri-neck heads (SAM 3.1 multiplex: interactive + propagation streams)
+        self.has_tri_neck = interactive_convs is not None
+        if self.has_tri_neck:
+            assert propagation_convs is not None and sam2_convs is None
+            self.interactive_convs = interactive_convs
+            self.propagation_convs = propagation_convs
 
         patch_size = trunk.patch_size
         self.h_patches = imgsz // patch_size
@@ -345,6 +351,21 @@ class SAM3VisionEncoderONNX(nn.Module):
         fpn_feat_0 = self.fpn_convs[0](feats)
         fpn_feat_1 = self.fpn_convs[1](feats)
         fpn_feat_2 = self.fpn_convs[2](feats)
+
+        if self.has_tri_neck:
+            # Tri-neck heads (SAM 3.1 multiplex): interactive + propagation streams, raw 256ch
+            return (
+                fpn_feat_0,
+                fpn_feat_1,
+                fpn_feat_2,
+                self.fpn_pos_2.expand(batch_size, -1, -1, -1),
+                self.interactive_convs[0](feats),
+                self.interactive_convs[1](feats),
+                self.interactive_convs[2](feats),
+                self.propagation_convs[0](feats),
+                self.propagation_convs[1](feats),
+                self.propagation_convs[2](feats),
+            )
 
         if self.has_sam2_neck:
             # SAM2 FPN (for point-prompt mask decoder — separate learned weights)
@@ -1272,13 +1293,14 @@ def export_sam3_engine(
         onnx_dir / "sam3_text_encoder.onnx",
         onnx_dir / "sam3_decoder.onnx",
     ]
-    # Optional point-prompt and video-memory modules
+    # Optional point-prompt, video-memory, and multiplex modules
     for name in (
         "sam3_prompt_encoder",
         "sam3_mask_decoder",
         "sam3_memory_encoder",
         "sam3_memory_attention",
         "sam3_mask_embed",
+        "sam3_multiplex_mask_decoder",
     ):
         if (onnx_dir / f"{name}.onnx").exists():
             onnx_files.append(onnx_dir / f"{name}.onnx")
@@ -1305,13 +1327,14 @@ def export_sam3_engine(
 
         # Named optimization-profile ranges: batch axes cover multi-object tracking, and the memory
         # attention token axis scales in whole memory frames (num_mem_tokens = frames * tokens).
-        dim_profiles = {"num_objects": (1, 4, 32)}
-        calib_dims = {"num_objects": 2}
+        dim_profiles = {"num_objects": (1, 4, 32), "num_buckets": (1, 2, 8)}
+        calib_dims = {"num_objects": 2, "num_buckets": 1}
         if onnx_file.stem == "sam3_memory_attention":
             num_tokens = model_onnx.graph.input[0].type.tensor_type.shape.dim[1].dim_value  # curr: [B, HW, 256]
             dim_profiles["num_mem_tokens"] = (num_tokens, 7 * num_tokens, 16 * num_tokens)
             dim_profiles["num_ptr_frames"] = (1, 16, 64)
-            calib_dims.update({"num_mem_tokens": num_tokens, "num_ptr_frames": 8})
+            dim_profiles["num_ptr_tokens"] = (1, 7 * 16, 16 * 16)  # multiplex: frames * multiplex_count
+            calib_dims.update({"num_mem_tokens": num_tokens, "num_ptr_frames": 8, "num_ptr_tokens": 32})
 
         # Modules with a dynamic axis need a custom build with an optimization profile. They honor
         # FP16 through mixed precision (ModelOpt AutoCast keeps overflow prone nodes in FP32), which
@@ -1324,6 +1347,7 @@ def export_sam3_engine(
             "sam3_memory_encoder",
             "sam3_memory_attention",
             "sam3_mask_embed",
+            "sam3_multiplex_mask_decoder",
         }
         if onnx_file.stem in dynamic_modules:
             _build_decoder_engine_dynamic(
@@ -1351,6 +1375,13 @@ def export_sam3_engine(
             )
         exported_engines.append(engine_file)
         LOGGER.info(f"{prefix} saved {Path(engine_file).name} ({'mixed FP16' if half else 'FP32'})")
+
+    params_npz = onnx_dir / "sam3_multiplex_params.npz"
+    if params_npz.exists():
+        import shutil
+
+        shutil.copy2(params_npz, engine_dir / params_npz.name)
+        LOGGER.info(f"{prefix} copied {params_npz.name}")
 
     LOGGER.info(f"{prefix} export complete -> {engine_dir}")
     return exported_engines
@@ -1474,3 +1505,517 @@ def _build_decoder_engine_dynamic(
             f.write(len(meta).to_bytes(4, byteorder="little", signed=True))
             f.write(meta.encode())
         f.write(serialized)
+
+
+# ---------------------------------------------------------------------------
+# ONNX Wrappers: SAM 3.1 Object Multiplex modules
+# ---------------------------------------------------------------------------
+
+
+class SAM3MultiplexMemoryEncoderONNX(nn.Module):
+    """ONNX wrapper for the multiplex memory encoder (bucketed masks + frame features → memory).
+
+    Mirrors SAM3MultiplexModel._encode_new_memory's maskmem_backbone call: the runtime composes
+    the muxed mask channels (16 masks + 16 conditional channels, sigmoid-scaled) and pre-resizes
+    to the downsampler's interpolation size; per-slot no-object gating stays in the reused
+    session code with real (npz-shipped) parameters.
+
+    Inputs:
+        pix_feat:     [1, 256, 72, 72] — current frame features (broadcast over buckets)
+        mask_for_mem: [num_buckets, 32, 1152, 1152] — muxed masks + conditional channels
+
+    Outputs:
+        maskmem_features: [num_buckets, 256, 72, 72]
+        maskmem_pos_enc:  [num_buckets, 256, 72, 72]
+    """
+
+    def __init__(self, tracker_model):
+        super().__init__()
+        mem_enc = tracker_model.maskmem_backbone
+        self.mask_downsampler = mem_enc.mask_downsampler
+        self.pix_feat_proj = mem_enc.pix_feat_proj
+        self.fuser = mem_enc.fuser
+        self.out_proj = mem_enc.out_proj
+        feat_size = tracker_model.image_size // tracker_model.backbone_stride
+        with torch.no_grad():
+            pos = mem_enc.position_encoding(torch.zeros(1, tracker_model.mem_dim, feat_size, feat_size))
+        self.register_buffer("maskmem_pos", pos.float())
+
+    def forward(self, pix_feat: torch.Tensor, mask_for_mem: torch.Tensor):
+        masks = self.mask_downsampler(mask_for_mem)  # pre-resized input → no Resize traced
+        x = self.pix_feat_proj(pix_feat) + masks  # [1,...] broadcasts over buckets
+        x = self.fuser(x)
+        x = self.out_proj(x)
+        return x, self.maskmem_pos.expand(x.shape[0], -1, -1, -1)
+
+
+class SAM3MultiplexMemoryAttentionONNX(nn.Module):
+    """ONNX wrapper for the decoupled multiplex memory attention (4 layers, 8-head RoPE).
+
+    Reimplements TransformerEncoderDecoupledCrossAttention inline with real-valued RoPE.
+    Queries/keys are sums of separate image-stream and object-stream projections; pointer
+    tokens enter as a separate input so their RoPE exclusion is structural, and their image
+    stream is exactly the zero-input projection (bias only), matching Meta's zero padding.
+
+    Inputs (batch-first):
+        curr:            [1, 5184, 256] — current frame image stream (broadcast over buckets)
+        curr_pos:        [1, 5184, 256] — query/grid position encoding
+        spatial_mem:     [num_buckets, S, 256] — bucket memory features (S = frames * 5184)
+        mem_image:       [1, S, 256] — stored per-frame image features (shared across buckets)
+        mem_image_pos:   [1, S, 256] — image-stream pos enc incl. temporal offsets
+        ptr_tok:         [num_buckets, P, 256] — object pointer tokens
+        ptr_pos:         [1, P, 256] — pointer temporal encodings
+
+    Outputs:
+        fused: [num_buckets, 5184, 256]
+    """
+
+    def __init__(self, tracker_model):
+        super().__init__()
+        encoder = tracker_model.transformer.encoder
+        assert not encoder.use_image_in_output
+        self.layers = encoder.layers
+        self.norm = encoder.norm
+        self.d_model = encoder.d_model
+        rope = self.layers[0].self_attention_rope
+        self.num_heads = rope.num_heads
+        self.head_dim = self.d_model // self.num_heads
+        feat_size = tracker_model.image_size // tracker_model.backbone_stride
+        self.feat_size = feat_size
+        freqs = torch.view_as_real(rope.compute_cis(end_x=feat_size, end_y=feat_size))  # [HW, hd/2, 2]
+        self.register_buffer("rope_cos", freqs[..., 0].repeat_interleave(2, dim=-1))  # [HW, head_dim]
+        self.register_buffer("rope_sin", freqs[..., 1].repeat_interleave(2, dim=-1))
+
+    def _heads(self, x: torch.Tensor) -> torch.Tensor:
+        """[B, L, C] → [B, heads, L, head_dim]."""
+        return x.reshape(x.shape[0], x.shape[1], self.num_heads, self.head_dim).transpose(1, 2)
+
+    def _rope(self, x: torch.Tensor) -> torch.Tensor:
+        """Rotary encoding over the grid; broadcasts over leading dims (heads and frames)."""
+        return x * self.rope_cos + _ViTBlockONNX._rotate_half(x) * self.rope_sin
+
+    def _attn(self, q, k, v):
+        out = F.scaled_dot_product_attention(q, k, v)
+        return out.transpose(1, 2).reshape(out.shape[0], out.shape[2], self.d_model)
+
+    def forward(self, curr, curr_pos, spatial_mem, mem_image, mem_image_pos, ptr_tok, ptr_pos):
+        B = spatial_mem.shape[0]
+        x = (curr + 0.1 * curr_pos).expand(B, -1, -1)  # pos_enc_at_input=True
+
+        for layer in self.layers:
+            # Self-attention (RoPE on q and k; pos_enc_at_attn=False)
+            t = layer.norm1(x)
+            q = self._rope(self._heads(layer.self_attn_q_proj(t)))
+            k = self._rope(self._heads(layer.self_attn_k_proj(t)))
+            v = self._heads(layer.self_attn_v_proj(t))
+            x = x + layer.self_attn_out_proj(self._attn(q, k, v))
+
+            # Decoupled cross-attention
+            t = layer.norm2(x)
+            q = self._rope(self._heads(layer.image_cross_attn_q_proj(curr) + layer.cross_attn_q_proj(t)))
+            k_sp = layer.image_cross_attn_k_proj(mem_image) + layer.cross_attn_k_proj(spatial_mem) + mem_image_pos
+            k_sp = self._heads(k_sp)
+            # Per-frame RoPE over S = frames * grid: [B, h, S, d] → [B, h, T, grid, d]
+            k_sp = self._rope(
+                k_sp.reshape(k_sp.shape[0], self.num_heads, -1, self.feat_size * self.feat_size, self.head_dim)
+            ).flatten(2, 3)
+            # Pointer keys: zero image stream (projection bias only), pointer pos appended
+            k_pt = layer.image_cross_attn_k_proj.bias + layer.cross_attn_k_proj(ptr_tok) + ptr_pos
+            k = torch.cat([k_sp, self._heads(k_pt)], dim=2)
+            v = torch.cat(
+                [self._heads(layer.cross_attn_v_proj(spatial_mem)), self._heads(layer.cross_attn_v_proj(ptr_tok))],
+                dim=2,
+            )
+            x = x + layer.cross_attn_out_proj(self._attn(q, k, v))
+
+            # Feedforward
+            t = layer.norm3(x)
+            x = x + layer.linear2(layer.activation(layer.linear1(t)))
+
+        return self.norm(x)
+
+
+class SAM3MultiplexMaskDecoderONNX(nn.Module):
+    """ONNX wrapper for the MultiplexMaskDecoder (one pass decodes all 16 bucket slots).
+
+    Suppression embeddings arrive pre-composed ([num_buckets, 16, 256]) from the reused session
+    code; the propagation dense PE is baked as a buffer; high-res features stay at batch 1 and
+    broadcast in the upscaling adds.
+
+    Outputs: masks [B,16,3,288,288], iou_pred [B,16,3], sam_tokens_out [B,16,3,256],
+    object_score_logits [B,16,1].
+    """
+
+    def __init__(self, tracker_model):
+        super().__init__()
+        self.mask_decoder = tracker_model.sam_mask_decoder
+        with torch.no_grad():
+            self.register_buffer("image_pe", tracker_model.get_propagation_dense_pe().float())
+
+    def forward(self, image_embeddings, extra_per_object_embeddings, high_res_feat_0, high_res_feat_1):
+        out = self.mask_decoder(
+            image_embeddings=image_embeddings,
+            image_pe=self.image_pe,
+            multimask_output=True,
+            high_res_features=[high_res_feat_0, high_res_feat_1],
+            extra_per_object_embeddings=extra_per_object_embeddings,
+        )
+        return out["masks"], out["iou_pred"], out["sam_tokens_out"], out["object_score_logits"]
+
+
+class SAM3InteractiveMaskDecoderONNX(nn.Module):
+    """ONNX wrapper for the multiplex interactive SAM2-style mask decoder, emitting ALL tokens.
+
+    Unlike the Phase-1 wrapper (fixed multimask + baked selection), this exports predict_masks
+    raw: all 4 mask tokens, IoUs, output tokens, and score logits. The runtime shim replicates
+    SAM2MaskDecoder.forward's multimask/stability selection in weightless torch, so both
+    multimask and single-mask (stability fallback) interactive calls are exact.
+
+    Inputs: image_embeddings [1,256,72,72] (repeat_image in-graph), sparse [N,T,256],
+    dense [N,256,72,72], high_res_feat_0 [1,32,288,288], high_res_feat_1 [1,64,144,144].
+    """
+
+    def __init__(self, tracker_model):
+        super().__init__()
+        self.mask_decoder = tracker_model.interactive_sam_mask_decoder
+        with torch.no_grad():
+            self.register_buffer("image_pe", tracker_model.interactive_sam_prompt_encoder.get_dense_pe().float())
+
+    def forward(
+        self, image_embeddings, sparse_prompt_embeddings, dense_prompt_embeddings, high_res_feat_0, high_res_feat_1
+    ):
+        masks, ious, tokens, object_score_logits = self.mask_decoder.predict_masks(
+            image_embeddings=image_embeddings,
+            image_pe=self.image_pe,
+            sparse_prompt_embeddings=sparse_prompt_embeddings,
+            dense_prompt_embeddings=dense_prompt_embeddings,
+            repeat_image=True,
+            high_res_features=[high_res_feat_0, high_res_feat_1],
+        )
+        return masks, ious, tokens, object_score_logits
+
+
+# Small tracker parameters that stay REAL torch modules in the backend skeleton (the session
+# code calls them directly); shipped as an npz sidecar with original state-dict key names.
+_MULTIPLEX_PARAM_PREFIXES = (
+    "obj_ptr_proj.",
+    "interactive_obj_ptr_proj.",
+    "no_obj_ptr_linear.",
+    "obj_ptr_tpos_proj.",
+    "maskmem_tpos_enc",
+    "interactivity_no_mem_embed",
+    "no_obj_embed_spatial",
+    "output_valid_embed",
+    "output_invalid_embed",
+    "interactive_mask_downsample.",
+    "image_pe_layer.",
+    "sam_mask_decoder.conv_s0.",
+    "sam_mask_decoder.conv_s1.",
+    "interactive_sam_mask_decoder.conv_s0.",
+    "interactive_sam_mask_decoder.conv_s1.",
+)
+
+
+def _multiplex_param_bundle(tracker_model) -> dict:
+    """Collect the small tracker parameters the backend loads onto its skeleton."""
+
+    sd = tracker_model.state_dict()
+    return {k: v.cpu().numpy() for k, v in sd.items() if k.startswith(_MULTIPLEX_PARAM_PREFIXES)}
+
+
+def export_sam3_multiplex_onnx(
+    checkpoint_path: str,
+    device: torch.device | str = "cpu",
+    opset: int = 20,
+    half: bool = False,
+    output_dir: str | None = None,
+    imgsz: int = 1008,
+    prefix: str = "SAM3.1 ONNX:",
+) -> list[str]:
+    """Export the SAM 3.1 Object Multiplex stack (detector + bucketed tracker) as ONNX modules.
+
+    Produces the shared detector graphs (tri-neck vision encoder, text encoder, DETR decoder),
+    the interactive click graphs (prompt encoder, all-token mask decoder, mask embed), the three
+    multiplex tracker graphs (memory encoder, decoupled memory attention, multiplex mask
+    decoder), and a ``sam3_multiplex_params.npz`` sidecar with the small tracker parameters the
+    runtime keeps as real torch modules.
+
+    Args:
+        checkpoint_path (str): Path to sam3.1_multiplex.pt.
+        device (torch.device | str): Export device (cpu recommended).
+        opset (int): ONNX opset version.
+        half (bool): FP16 ONNX export (ONNX-only deployment; TRT converts separately).
+        output_dir (str | None): Parent directory for the output folder.
+        imgsz (int): Image size (multiplex stack is pinned to 1008).
+        prefix (str): Log prefix.
+
+    Returns:
+        (list[str]): Exported ONNX file paths.
+    """
+    import numpy as np
+
+    from ultralytics.models.sam.build_sam3 import build_sam3_multiplex, build_sam3_multiplex_tracker
+    from ultralytics.utils.checks import check_requirements
+
+    check_requirements(["onnx>=1.12.0,<2.0.0"])
+    import onnx
+
+    device = torch.device(device) if isinstance(device, str) else device
+    assert imgsz == 1008, f"multiplex export is pinned to imgsz=1008, got {imgsz}"
+
+    LOGGER.info(f"\n{prefix} building multiplex detector + tracker from {checkpoint_path}...")
+    model = build_sam3_multiplex(checkpoint_path).to(device).eval()
+    tracker_model = build_sam3_multiplex_tracker(checkpoint_path).to(device).eval()
+    for m in (model, tracker_model):
+        for p in m.parameters():
+            p.requires_grad = False
+
+    _prepare_for_onnx_export(model)
+
+    dtype = torch.float32
+    if output_dir is None:
+        output_dir = str(Path(checkpoint_path).parent)
+    output_path = Path(output_dir) / f"{Path(checkpoint_path).stem}_onnx"
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    metadata = {
+        "author": "Ultralytics",
+        "task": "segment",
+        "stride": 14,
+        "imgsz": [imgsz, imgsz],
+        "multiplex": True,
+        "multiplex_count": tracker_model.multiplex_count,
+    }
+    exported_files = []
+
+    def _export(module, args, name, input_names, output_names, dynamic_axes=None):
+        f = str(output_path / name)
+        torch.onnx.export(
+            module,
+            args,
+            f,
+            opset_version=opset,
+            do_constant_folding=True,
+            dynamo=False,
+            input_names=input_names,
+            output_names=output_names,
+            dynamic_axes=dynamic_axes,
+        )
+        exported_files.append(f)
+        return f
+
+    neck = model.backbone.vision_backbone
+    feat_size = imgsz // 14
+    num_tokens = feat_size * feat_size
+
+    # === 1. Tri-neck Vision Encoder ===
+    LOGGER.info(f"{prefix} exporting tri-neck vision encoder (opset {opset})...")
+    vis_encoder = (
+        SAM3VisionEncoderONNX(
+            model, imgsz=imgsz, interactive_convs=neck.interactive_convs, propagation_convs=neck.propagation_convs
+        )
+        .to(device)
+        .eval()
+    )
+    dummy_image = torch.randn(1, 3, imgsz, imgsz, dtype=dtype, device=device)
+    vis_outputs = ["fpn_feat_0", "fpn_feat_1", "fpn_feat_2", "fpn_pos_2"]
+    vis_outputs += [f"interactive_feat_{i}" for i in range(3)] + [f"propagation_feat_{i}" for i in range(3)]
+    _export(vis_encoder, (dummy_image,), "sam3_vision_encoder.onnx", ["images"], vis_outputs)
+    with torch.no_grad():
+        vis_out = vis_encoder(dummy_image)
+    fpn0, fpn1, fpn2, fpos2 = vis_out[:4]
+
+    # === 2. Text Encoder ===
+    LOGGER.info(f"{prefix} exporting text encoder (opset {opset})...")
+    txt_encoder = SAM3TextEncoderONNX(model).to(device).eval()
+    dummy_tokens = torch.zeros(1, 32, dtype=torch.long, device=device)
+    dummy_tokens[0, :3] = torch.tensor([49406, 2533, 49407])
+    _export(txt_encoder, (dummy_tokens,), "sam3_text_encoder.onnx", ["tokens"], ["text_features", "text_mask"])
+    with torch.no_grad():
+        txt_feats, txt_mask = txt_encoder(dummy_tokens)
+
+    # === 3. DETR Decoder ===
+    LOGGER.info(f"{prefix} exporting decoder (opset {opset})...")
+    decoder = SAM3DecoderONNX(model).to(device).eval()
+    dummy_boxes = torch.zeros(1, 1, 4, dtype=dtype, device=device)
+    dummy_box_labels = torch.full((1, 1), -10, dtype=torch.int32, device=device)
+    _export(
+        decoder,
+        (fpn0, fpn1, fpn2, fpos2, txt_feats, txt_mask, dummy_boxes, dummy_box_labels),
+        "sam3_decoder.onnx",
+        [
+            "fpn_feat_0",
+            "fpn_feat_1",
+            "fpn_feat_2",
+            "fpn_pos_2",
+            "prompt_features",
+            "prompt_mask",
+            "input_boxes",
+            "input_boxes_labels",
+        ],
+        ["pred_logits", "pred_boxes", "pred_masks", "presence_logit_dec"],
+        {"input_boxes": {1: "num_boxes"}, "input_boxes_labels": {1: "num_boxes"}},
+    )
+
+    # === 4. Interactive Prompt Encoder ===
+    LOGGER.info(f"{prefix} exporting interactive prompt encoder (opset {opset})...")
+
+    class _InteractivePEHolder:
+        sam_prompt_encoder = tracker_model.interactive_sam_prompt_encoder
+
+    prompt_enc = SAM3PromptEncoderONNX(_InteractivePEHolder).to(device).eval()
+    dummy_pts = torch.tensor([[[500.0, 500.0]]], dtype=dtype, device=device)
+    dummy_lbl = torch.tensor([[1]], dtype=torch.int32, device=device)
+    _export(
+        prompt_enc,
+        (dummy_pts, dummy_lbl),
+        "sam3_prompt_encoder.onnx",
+        ["point_coords", "point_labels"],
+        ["sparse_embeddings", "dense_embeddings", "dense_pe"],
+        {
+            "point_coords": {0: "num_objects", 1: "num_points"},
+            "point_labels": {0: "num_objects", 1: "num_points"},
+            "sparse_embeddings": {0: "num_objects", 1: "num_embeds"},
+            "dense_embeddings": {0: "num_objects"},
+        },
+    )
+    with torch.no_grad():
+        sparse_dummy, dense_dummy, _ = prompt_enc(dummy_pts, dummy_lbl)
+
+    # === 5. Interactive Mask Decoder (all tokens; selection happens in the runtime shim) ===
+    LOGGER.info(f"{prefix} exporting interactive mask decoder (opset {opset})...")
+    mask_dec = SAM3InteractiveMaskDecoderONNX(tracker_model).to(device).eval()
+    hr0 = tracker_model.interactive_sam_mask_decoder.conv_s0(vis_out[4])
+    hr1 = tracker_model.interactive_sam_mask_decoder.conv_s1(vis_out[5])
+    _export(
+        mask_dec,
+        (fpn2, sparse_dummy, dense_dummy, hr0, hr1),
+        "sam3_mask_decoder.onnx",
+        [
+            "image_embeddings",
+            "sparse_prompt_embeddings",
+            "dense_prompt_embeddings",
+            "high_res_feat_0",
+            "high_res_feat_1",
+        ],
+        ["masks", "iou_scores", "sam_tokens", "object_score_logits"],
+        {
+            "sparse_prompt_embeddings": {0: "num_objects", 1: "num_embeds"},
+            "dense_prompt_embeddings": {0: "num_objects"},
+            "masks": {0: "num_objects"},
+            "iou_scores": {0: "num_objects"},
+            "sam_tokens": {0: "num_objects"},
+            "object_score_logits": {0: "num_objects"},
+        },
+    )
+
+    # === 6. Mask Embed (dense embeddings for mask prompts) ===
+    LOGGER.info(f"{prefix} exporting mask embed (opset {opset})...")
+
+    class _MaskEmbedHolder:
+        sam_prompt_encoder = tracker_model.interactive_sam_prompt_encoder
+
+    mask_embed = SAM3MaskEmbedONNX(_MaskEmbedHolder).to(device).eval()
+    dummy_mask_in = torch.randn(1, 1, feat_size * 4, feat_size * 4, dtype=dtype, device=device)
+    _export(
+        mask_embed,
+        (dummy_mask_in,),
+        "sam3_mask_embed.onnx",
+        ["mask_input"],
+        ["dense_embeddings"],
+        {"mask_input": {0: "num_objects"}, "dense_embeddings": {0: "num_objects"}},
+    )
+
+    # === 7. Multiplex Memory Encoder ===
+    LOGGER.info(f"{prefix} exporting multiplex memory encoder (opset {opset})...")
+    interpol_size = tracker_model.maskmem_backbone.mask_downsampler.interpol_size
+    mc = tracker_model.multiplex_count
+    mem_enc = SAM3MultiplexMemoryEncoderONNX(tracker_model).to(device).eval()
+    dummy_mem_pix = torch.randn(1, 256, feat_size, feat_size, dtype=dtype, device=device)
+    dummy_mem_mask = torch.randn(1, mc * 2, *interpol_size, dtype=dtype, device=device)
+    _export(
+        mem_enc,
+        (dummy_mem_pix, dummy_mem_mask),
+        "sam3_memory_encoder.onnx",
+        ["pix_feat", "mask_for_mem"],
+        ["maskmem_features", "maskmem_pos_enc"],
+        {name: {0: "num_buckets"} for name in ("mask_for_mem", "maskmem_features", "maskmem_pos_enc")},
+    )
+
+    # === 8. Multiplex Memory Attention ===
+    LOGGER.info(f"{prefix} exporting multiplex memory attention (opset {opset})...")
+    mem_attn = SAM3MultiplexMemoryAttentionONNX(tracker_model).to(device).eval()
+    dummy_curr = torch.randn(1, num_tokens, 256, dtype=dtype, device=device)
+    dummy_curr_pos = torch.randn(1, num_tokens, 256, dtype=dtype, device=device)
+    dummy_spatial = torch.randn(1, num_tokens, 256, dtype=dtype, device=device)
+    dummy_mem_img = torch.randn(1, num_tokens, 256, dtype=dtype, device=device)
+    dummy_mem_img_pos = torch.randn(1, num_tokens, 256, dtype=dtype, device=device)
+    dummy_ptr = torch.randn(1, 2 * mc, 256, dtype=dtype, device=device)
+    dummy_ptr_pos = torch.randn(1, 2 * mc, 256, dtype=dtype, device=device)
+    _export(
+        mem_attn,
+        (
+            dummy_curr,
+            dummy_curr_pos,
+            dummy_spatial,
+            dummy_mem_img,
+            dummy_mem_img_pos,
+            dummy_ptr,
+            dummy_ptr_pos,
+        ),
+        "sam3_memory_attention.onnx",
+        ["curr", "curr_pos", "spatial_mem", "mem_image", "mem_image_pos", "ptr_tok", "ptr_pos"],
+        ["fused"],
+        {
+            "spatial_mem": {0: "num_buckets", 1: "num_mem_tokens"},
+            "mem_image": {1: "num_mem_tokens"},
+            "mem_image_pos": {1: "num_mem_tokens"},
+            "ptr_tok": {0: "num_buckets", 1: "num_ptr_tokens"},
+            "ptr_pos": {1: "num_ptr_tokens"},
+            "fused": {0: "num_buckets"},
+        },
+    )
+
+    # === 9. Multiplex Mask Decoder ===
+    LOGGER.info(f"{prefix} exporting multiplex mask decoder (opset {opset})...")
+    mux_dec = SAM3MultiplexMaskDecoderONNX(tracker_model).to(device).eval()
+    dummy_embed = torch.randn(1, 256, feat_size, feat_size, dtype=dtype, device=device)
+    dummy_extra = torch.zeros(1, mc, 256, dtype=dtype, device=device)
+    hr0p = tracker_model.sam_mask_decoder.conv_s0(vis_out[7])
+    hr1p = tracker_model.sam_mask_decoder.conv_s1(vis_out[8])
+    _export(
+        mux_dec,
+        (dummy_embed, dummy_extra, hr0p, hr1p),
+        "sam3_multiplex_mask_decoder.onnx",
+        ["image_embeddings", "extra_per_object_embeddings", "high_res_feat_0", "high_res_feat_1"],
+        ["masks", "iou_pred", "sam_tokens_out", "object_score_logits"],
+        {
+            name: {0: "num_buckets"}
+            for name in (
+                "image_embeddings",
+                "extra_per_object_embeddings",
+                "masks",
+                "iou_pred",
+                "sam_tokens_out",
+                "object_score_logits",
+            )
+        },
+    )
+
+    # === Params sidecar ===
+    params = _multiplex_param_bundle(tracker_model)
+    np.savez_compressed(str(output_path / "sam3_multiplex_params.npz"), **params)
+    LOGGER.info(f"{prefix} saved sam3_multiplex_params.npz ({len(params)} tensors)")
+
+    del tracker_model, model
+
+    # === Post-processing ===
+    for f in exported_files:
+        component_metadata = {**metadata, "component": Path(f).stem}
+        _onnx_postprocess(f, metadata=component_metadata, half=half, device_type=device.type, prefix=prefix)
+        model_onnx = onnx.load(f)
+        onnx.checker.check_model(model_onnx)
+        LOGGER.info(f"{prefix} validated {Path(f).name} ({Path(f).stat().st_size / 1e6:.1f} MB)")
+
+    LOGGER.info(f"{prefix} export complete -> {output_path}")
+    return exported_files

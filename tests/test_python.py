@@ -1365,6 +1365,90 @@ def test_v26_depth_loss_lower_lambda_penalizes_scale_error_more():
     assert loss_anchored > 5 * max(loss_invariant, 1e-6)
 
 
+def test_pose_keypoint_loss_per_anchor_stride():
+    """Keypoint targets must be divided by each matched anchor's own stride, for sparse matches across strides.
+
+    A multi-image batch matches anchors at strides 8, 32 (image 0) and 16 (image 1) to their ground-truth objects.
+    Predictions are the ground-truth keypoints already divided by the correct per-anchor stride, so the location loss
+    is exactly zero only if the masked stride indexing maps every match to the right stride. The no-foreground image
+    (all masks False) must return a zero loss without touching the stride path.
+    """
+    import torch.nn as nn
+
+    from ultralytics.utils.loss import KeypointLoss, v8PoseLoss
+
+    crit = v8PoseLoss.__new__(v8PoseLoss)  # bypass __init__; calculate_keypoints_loss only needs these two criteria
+    crit.keypoint_loss = KeypointLoss(sigmas=torch.ones(3) / 3)
+    crit.bce_pose = nn.BCEWithLogitsLoss()
+
+    stride_tensor = torch.tensor([[8.0], [16.0], [16.0], [32.0]])  # (N_anchors, 1), anchors span three stride levels
+    masks = torch.tensor([[True, False, False, True], [False, True, False, False]])  # sparse, cross-stride, 2 images
+    target_gt_idx = torch.zeros(2, 4, dtype=torch.long)  # every anchor points at its image's single gt object
+    batch_idx = torch.tensor([[0], [1]])  # one gt object per image
+    kp0 = torch.tensor([[80.0, 40.0, 2.0], [160.0, 120.0, 2.0], [240.0, 200.0, 2.0]])  # image-0 gt kpts (image coords)
+    kp1 = torch.tensor([[64.0, 32.0, 2.0], [128.0, 96.0, 2.0], [192.0, 160.0, 2.0]])  # image-1 gt kpts
+    keypoints = torch.stack([kp0, kp1])  # (N_kpts_in_batch, N_kpts, 3)
+
+    pred_kpts = torch.zeros(2, 4, 3, 3)  # (BS, N_anchors, N_kpts, 3)
+    pred_kpts[0, 0, :, :2] = kp0[:, :2] / 8  # image 0, anchor 0 (stride 8)
+    pred_kpts[0, 3, :, :2] = kp0[:, :2] / 32  # image 0, anchor 3 (stride 32)
+    pred_kpts[1, 1, :, :2] = kp1[:, :2] / 16  # image 1, anchor 1 (stride 16)
+    pred_kpts[..., 2] = 10.0  # confident visibility logits so the object loss stays finite
+    target_bboxes = torch.tensor([10.0, 10.0, 110.0, 110.0]).expand(2, 4, 4).clone()  # nonzero area per anchor
+
+    kpts_loss, kobj_loss = crit.calculate_keypoints_loss(
+        masks, target_gt_idx, keypoints.clone(), batch_idx, stride_tensor, target_bboxes, pred_kpts
+    )
+    assert kpts_loss < 1e-6, f"per-anchor stride mismatch produced nonzero location loss {float(kpts_loss)}"
+    assert torch.isfinite(torch.as_tensor(kobj_loss)).all()
+
+    empty_loss, empty_obj = crit.calculate_keypoints_loss(
+        torch.zeros(2, 4, dtype=torch.bool),
+        target_gt_idx,
+        keypoints.clone(),
+        batch_idx,
+        stride_tensor,
+        target_bboxes.clone(),
+        pred_kpts,
+    )
+    assert float(empty_loss) == 0.0 and float(empty_obj) == 0.0  # no-foreground path returns zeros, no crash
+
+
+def test_bbox_loss_masked_weight_sparse():
+    """`BboxLoss` weight is the per-anchor score sum over matched anchors only; sparse fg_mask must give a finite loss.
+
+    Reducing after masking (`target_scores[fg_mask].sum(-1)`) must equal masking after the full-tensor reduction, so
+    the IoU loss matches a hand-computed reference on a sparse multi-anchor batch.
+    """
+    from ultralytics.utils.loss import BboxLoss
+
+    torch.manual_seed(0)
+    n_anchors, nc = 6, 4
+    fg_mask = torch.tensor([[True, False, True, False, False, True]])  # 3 of 6 anchors matched
+    target_scores = torch.rand(1, n_anchors, nc)
+    target_scores_sum = target_scores.sum().clamp(min=1e-6)
+    anchor_points = torch.rand(n_anchors, 2) * 8
+    target_bboxes = torch.cat([anchor_points - 1, anchor_points + 1], dim=1).unsqueeze(0)  # (1, A, 4) xyxy
+    pred_bboxes = target_bboxes.clone()  # perfect boxes -> IoU 1 -> loss_iou 0 on matched anchors
+    pred_dist = torch.rand(1, n_anchors, 16 * 4)
+
+    loss_iou, loss_dfl = BboxLoss(reg_max=16).forward(
+        pred_dist,
+        pred_bboxes,
+        anchor_points,
+        target_bboxes,
+        target_scores,
+        target_scores_sum,
+        fg_mask,
+        imgsz=torch.tensor([16.0, 16.0]),
+        stride=torch.ones(n_anchors, 1),
+    )
+    weight = target_scores[fg_mask].sum(-1, keepdim=True)
+    assert torch.allclose(weight, target_scores.sum(-1)[fg_mask].unsqueeze(-1))  # mask-first == mask-last
+    assert float(loss_iou) < 1e-6  # perfect boxes -> zero IoU loss regardless of weight
+    assert torch.isfinite(loss_dfl).all()
+
+
 def test_utils_ops():
     """Test utility operations for coordinate transformations and normalizations."""
     from ultralytics.utils.ops import (

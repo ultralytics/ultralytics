@@ -1075,6 +1075,9 @@ class RandomPerspective(BaseTransform):
         shear: float = 0.0,
         perspective: float = 0.0,
         size: tuple[int, int] | None = None,
+        small_object_crop: float = 0.0,
+        small_object_crop_size: float = 32.0,
+        small_object_crop_max_scale: float = 2.0,
     ):
         """Initialize RandomPerspective object with transformation parameters.
 
@@ -1089,20 +1092,36 @@ class RandomPerspective(BaseTransform):
             shear (float): Shear intensity (angle in degrees).
             perspective (float): Perspective distortion factor.
             size (tuple[int, int] | None): Output size (width, height). If None, uses the input image size.
+            small_object_crop (float): Probability of centering and zooming the crop on a small ground-truth box.
+            small_object_crop_size (float): Maximum eligible pre-affine geometric-mean box side and selected target
+                output size in pixels. A mosaic canvas is cropped rather than resized, so its 2x dimensions do not
+                introduce a 0.5 scale factor.
+            small_object_crop_max_scale (float): Maximum zoom factor used for a small-object crop.
         """
+        assert 0.0 <= small_object_crop <= 1.0, f"small_object_crop must be in [0, 1], not {small_object_crop}."
+        assert small_object_crop_size > 0.0, f"small_object_crop_size must be positive, not {small_object_crop_size}."
+        assert small_object_crop_max_scale >= 1.0, (
+            f"small_object_crop_max_scale must be at least 1, not {small_object_crop_max_scale}."
+        )
         self.degrees = degrees
         self.translate = translate
         self.scale = scale
         self.shear = shear
         self.perspective = perspective
         self.size = size
+        self.small_object_crop = small_object_crop
+        self.small_object_crop_size = small_object_crop_size
+        self.small_object_crop_max_scale = small_object_crop_max_scale
 
-    def _compute_affine_matrix(self, img: np.ndarray, size: tuple[int, int]) -> tuple[np.ndarray, float]:
+    def _compute_affine_matrix(
+        self, img: np.ndarray, size: tuple[int, int], target: tuple[float, float, float] | None = None
+    ) -> tuple[np.ndarray, float]:
         """Compute the affine transformation matrix without applying it.
 
         Args:
             img (np.ndarray): Input image used to determine center and dimensions.
             size (tuple[int, int]): Size of the output image (width, height) used for clipping translation transform.
+            target (tuple[float, float, float] | None): Optional target center x/y and geometric-mean side in pixels.
 
         Returns:
             (M, scale): 3x3 transformation matrix and scale factor.
@@ -1120,7 +1139,9 @@ class RandomPerspective(BaseTransform):
         # Rotation and Scale
         R = np.eye(3, dtype=np.float32)
         a = random.uniform(-self.degrees, self.degrees)
-        if isinstance(self.scale, (tuple, list)):
+        if target is not None:
+            s = min(max(self.small_object_crop_size / target[2], 1.0), self.small_object_crop_max_scale)
+        elif isinstance(self.scale, (tuple, list)):
             s = random.uniform(self.scale[0], self.scale[1])
         else:
             s = random.uniform(1 - self.scale, 1 + self.scale)
@@ -1134,12 +1155,42 @@ class RandomPerspective(BaseTransform):
         # Translation
         T = np.eye(3, dtype=np.float32)
 
-        T[0, 2] = random.uniform(0.5 - self.translate, 0.5 + self.translate) * size[0]  # x translation (pixels)
-        T[1, 2] = random.uniform(0.5 - self.translate, 0.5 + self.translate) * size[1]  # y translation (pixels)
+        crop_center = np.array(
+            [
+                random.uniform(0.5 - self.translate, 0.5 + self.translate) * size[0],
+                random.uniform(0.5 - self.translate, 0.5 + self.translate) * size[1],
+            ]
+        )
+        if target is None:
+            T[:2, 2] = crop_center
+        else:
+            target_center = S @ R @ P @ C @ np.array([target[0], target[1], 1.0])
+            T[:2, 2] = crop_center - target_center[:2] / target_center[2]
 
         # Combined rotation matrix
         M = T @ S @ R @ P @ C  # order of operations (right to left) is IMPORTANT
         return M, s
+
+    def _get_small_object_target(
+        self, labels: dict[str, Any], orig_shape: tuple[int, int]
+    ) -> tuple[float, float, float] | None:
+        """Select a small ground-truth box and return its center and geometric-mean side in pixels."""
+        instances = deepcopy(labels.get("instances"))
+        if instances is None or not len(instances):
+            return None
+
+        instances.convert_bbox(format="xyxy")
+        instances.denormalize(*orig_shape[::-1])
+        bboxes = instances.bboxes
+        wh = np.clip(bboxes[:, 2:4] - bboxes[:, 0:2], 0, None)
+        sides = np.sqrt(wh.prod(1))
+        eligible = np.flatnonzero((sides > 0) & (sides <= self.small_object_crop_size))
+        if not len(eligible):
+            return None
+
+        i = random.choice(eligible.tolist())
+        center = (bboxes[i, 0:2] + bboxes[i, 2:4]) / 2
+        return float(center[0]), float(center[1]), float(sides[i])
 
     def get_params(self, labels: dict[str, Any]) -> dict[str, Any]:
         """Compute affine transformation parameters shared across image and instances.
@@ -1153,7 +1204,10 @@ class RandomPerspective(BaseTransform):
         img = labels["img"]
         size = (img.shape[1], img.shape[0]) if self.size is None else self.size  # w, h
         orig_shape = img.shape[:2]
-        M, scale = self._compute_affine_matrix(img, size)
+        target = None
+        if self.small_object_crop and random.random() < self.small_object_crop:
+            target = self._get_small_object_target(labels, orig_shape)
+        M, scale = self._compute_affine_matrix(img, size, target)
         return {"M": M, "scale": scale, "orig_shape": orig_shape, "size": size}
 
     def apply_image(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -2737,6 +2791,9 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bo
         shear=hyp.shear,
         perspective=hyp.perspective,
         size=(imgsz, imgsz) if not stretch else None,
+        small_object_crop=hyp.small_object_crop,
+        small_object_crop_size=hyp.small_object_crop_size,
+        small_object_crop_max_scale=hyp.small_object_crop_max_scale,
     )
 
     pre_transform = Compose([mosaic, affine])

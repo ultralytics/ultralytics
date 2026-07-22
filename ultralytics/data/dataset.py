@@ -51,6 +51,28 @@ from .utils import (
 DATASET_CACHE_VERSION = "1.0.4"
 
 
+def _text_augment_transform(category_freq: dict, max_samples: int) -> RandomLoadText:
+    """Build the RandomLoadText augmentation shared by multi-modal and grounding datasets.
+
+    Args:
+        category_freq (dict): Frequency of each category in the dataset.
+        max_samples (int): Maximum number of text samples before clamping to 80.
+
+    Returns:
+        (RandomLoadText): Text augmentation transform, padding negative texts from the most frequent categories.
+    """
+    # NOTE: hard-coded the args for now.
+    # NOTE: this implementation is different from official yoloe,
+    # the strategy of selecting negative is restricted in one dataset,
+    # while official pre-saved neg embeddings from all datasets at once.
+    threshold = min(max(category_freq.values()), 100)
+    return RandomLoadText(
+        max_samples=min(max_samples, 80),
+        padding=True,
+        padding_value=[k for k, v in category_freq.items() if v >= threshold],
+    )
+
+
 class YOLODataset(BaseDataset):
     """Dataset class for loading object detection and/or segmentation labels in YOLO format.
 
@@ -296,31 +318,6 @@ class YOLODataset(BaseDataset):
         self.im_files = [lb["im_file"] for lb in labels]  # update im_files
         self.verify_labels(labels, cache_path)
         return labels
-
-    @staticmethod
-    def _get_neg_texts(category_freq: dict, threshold: int = 100) -> list[str]:
-        """Get negative text samples based on frequency threshold."""
-        threshold = min(max(category_freq.values()), 100)
-        return [k for k, v in category_freq.items() if v >= threshold]
-
-    def _text_augment_transform(self, max_samples: int) -> RandomLoadText:
-        """Build the RandomLoadText augmentation shared by multi-modal and grounding datasets.
-
-        Args:
-            max_samples (int): Maximum number of text samples before clamping to 80.
-
-        Returns:
-            (RandomLoadText): Text augmentation transform. Requires a `category_freq` property on the subclass.
-        """
-        # NOTE: hard-coded the args for now.
-        # NOTE: this implementation is different from official yoloe,
-        # the strategy of selecting negative is restricted in one dataset,
-        # while official pre-saved neg embeddings from all datasets at once.
-        return RandomLoadText(
-            max_samples=min(max_samples, 80),
-            padding=True,
-            padding_value=self._get_neg_texts(self.category_freq),
-        )
 
     def build_transforms(self, hyp: dict | None = None) -> Compose:
         """Build and append transforms to the list.
@@ -581,7 +578,7 @@ class YOLOMultiModalDataset(YOLODataset):
         """
         transforms = super().build_transforms(hyp)
         if self.augment:
-            transforms.insert(-1, self._text_augment_transform(self.data["nc"]))
+            transforms.insert(-1, _text_augment_transform(self.category_freq, self.data["nc"]))
         return transforms
 
     @property
@@ -803,7 +800,7 @@ class GroundingDataset(YOLODataset):
         """
         transforms = super().build_transforms(hyp)
         if self.augment:
-            transforms.insert(-1, self._text_augment_transform(self.max_samples))
+            transforms.insert(-1, _text_augment_transform(self.category_freq, self.max_samples))
         return transforms
 
     @property

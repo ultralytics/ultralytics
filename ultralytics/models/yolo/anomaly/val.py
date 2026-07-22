@@ -373,10 +373,9 @@ class YOLOAnomalyCocoValidator(YOLOAnomalyValidator):
        ``save_dir/predictions.json`` with an integer ``image_id`` = the 0-based index into
        ``val.txt`` order. Native ``DetectionValidator.pred_to_json`` keys on the file-name
        stem, which for MVTec is a non-numeric string (``0_000``) that faster-coco-eval
-       rejects and that collides across categories in pooled eval; the integer scheme fixes
-       both and matches :meth:`build_coco_gt`.
+       rejects; the integer scheme fixes that and matches :meth:`build_coco_gt`.
     2. **Evaluate** — :meth:`evaluate_run` runs multi-confidence COCO eval offline over the
-       dumped predictions (per-category + pooled, loose ``.10:.50`` IoU grid). Because the
+       dumped predictions (per-category + macro-average, loose ``.10:.50`` IoU grid). Because the
        dump keeps every box (``conf=DUMP_CONF``), each conf floor is
        obtained by ``loadRes(preds, min_score=conf)`` — a single inference pass covers the
        whole sweep, no re-inference and no temp files.
@@ -554,7 +553,7 @@ class YOLOAnomalyCocoValidator(YOLOAnomalyValidator):
 
     @classmethod
     def evaluate_run(cls, out_root, cat_to_yaml: dict, cat_to_json: dict, conf_sweep, cat_arg: str, rebuild_gt: bool = False) -> None:
-        """Offline multi-conf COCO eval over dumped predictions.json — per-cat + POOLED, one CSV.
+        """Offline multi-conf COCO eval over dumped predictions.json — per-cat + AVERAGE, one CSV.
 
         Args:
             out_root: run output root; the CSV is written to ``out_root/coco_<cat_arg>.csv``.
@@ -569,9 +568,6 @@ class YOLOAnomalyCocoValidator(YOLOAnomalyValidator):
         out_root = Path(out_root)
         regimes = [("loose(.10:.50)", cls.IOU_LOOSE)]
         rows = []
-        all_gt = {"info": {}, "licenses": [], "images": [], "annotations": [], "categories": [{"id": 0, "name": "anomaly"}]}
-        all_preds = []
-        ann_offset = 0  # keep annotation ids unique across cats in pooled GT
 
         for cat, yaml_path in cat_to_yaml.items():
             pred_json = cat_to_json.get(cat)
@@ -593,39 +589,26 @@ class YOLOAnomalyCocoValidator(YOLOAnomalyValidator):
                         flush=True,
                     )
 
-            # accumulate for pooled (offset image_ids to keep them unique across cats)
-            img_offset = len(all_gt["images"])
-            for img in gt["images"]:
-                ic = dict(img)
-                ic["id"] = img["id"] + img_offset
-                all_gt["images"].append(ic)
-            for ann in gt["annotations"]:
-                ac = dict(ann)
-                ac["id"] += ann_offset
-                ac["image_id"] = ann["image_id"] + img_offset
-                all_gt["annotations"].append(ac)
-            ann_offset = len(all_gt["annotations"])
-            for p in preds:
-                pc = dict(p)
-                pc["image_id"] = p["image_id"] + img_offset
-                all_preds.append(pc)
-
-        # pooled across all categories
-        if all_gt["images"]:
-            print(
-                f"\n  POOLED: {len(all_gt['images'])} images, {len(all_gt['annotations'])} GT, {len(all_preds)} preds",
-                flush=True,
-            )
-            anno = COCO(all_gt)
-            for conf in conf_sweep:
-                for regime, iou_thrs in regimes:
-                    ap = cls._coco_ap(anno, all_preds, iou_thrs, min_score=conf)
-                    rows.append({"category": "POOLED", "conf": conf, "regime": regime, **ap})
-                    print(
-                        f"  [POOLED] conf={conf:.3f} {regime}: AP={ap['AP']:.4f} AP50={ap['AP50']:.4f} "
-                        f"mAP10={ap['mAP10']:.4f} mAP25={ap['mAP25']:.4f} mAP50={ap['mAP50']:.4f}",
-                        flush=True,
-                    )
+        # macro-AVERAGE across categories: mean of each metric over cats, per (conf, regime).
+        # Skip -1.0 (COCO "N/A", e.g. AP75 in the .10:.50 grid) and NaN so they don't drag the mean.
+        cat_rows = [r for r in rows if r["category"] != "AVERAGE"]
+        metric_keys = [k for k in cat_rows[0] if k not in ("category", "conf", "regime")] if cat_rows else []
+        for conf in conf_sweep:
+            for regime, _ in regimes:
+                sub = [r for r in cat_rows if r["conf"] == conf and r["regime"] == regime]
+                if not sub:
+                    continue
+                avg = {}
+                for k in metric_keys:
+                    vals = [r[k] for r in sub if not np.isnan(r[k]) and r[k] != -1.0]
+                    avg[k] = round(float(np.mean(vals)), 4) if vals else -1.0
+                rows.append({"category": "AVERAGE", "conf": conf, "regime": regime, **avg})
+                print(
+                    f"  [AVERAGE over {len(sub)} cats] conf={conf:.3f} {regime}: AP={avg['AP']:.4f} "
+                    f"AP50={avg['AP50']:.4f} mAP10={avg['mAP10']:.4f} mAP25={avg['mAP25']:.4f} "
+                    f"mAP50={avg['mAP50']:.4f}",
+                    flush=True,
+                )
 
         if rows:
             out_csv = out_root / f"coco_{cat_arg}.csv"

@@ -112,7 +112,7 @@ def main():
         "--coco-eval",
         action="store_true",
         help="val: dump all boxes once per cat (conf=0.001) then run multi-conf COCO eval offline. "
-        "Reports both loose (.10:.50) and standard (.50:.95) IoU — per-cat + pooled.",
+        "Reports loose (.10:.50) IoU — per-cat + average.",
     )
     ap.add_argument("--e2e", "--end2end", action="store_true", help="use end-to-end NMS-free head")
     ap.add_argument("--hm-gate-blend", type=float, default=0.0, help="heatmap conf gate (0=on, 1=off)")

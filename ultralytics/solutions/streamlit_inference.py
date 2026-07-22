@@ -154,7 +154,7 @@ class Inference:
         available_models = [
             f"{size}{task}".replace("yolo", "YOLO")
             for size in ("yolo26n", "yolo26s", "yolo26m", "yolo26l", "yolo26x")
-            for task in ("", "-seg", "-sem", "-pose", "-obb", "-cls")
+            for task in ("", "-seg", "-sem", "-depth", "-pose", "-obb", "-cls")
             if f"{size}{task}" in GITHUB_ASSETS_STEMS
         ]
         if self.model_path:  # Insert user provided custom model in available_models

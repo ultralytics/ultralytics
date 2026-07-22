@@ -14,7 +14,7 @@ from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.engine.trainer import BaseTrainer
-from ultralytics.models.yolo import classify, detect, obb, pose, segment, semantic
+from ultralytics.models.yolo import classify, depth, detect, obb, pose, segment, semantic
 from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import DetectionModel, load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, WEIGHTS_DIR
@@ -73,6 +73,7 @@ def test_export(monkeypatch, tmp_path):
             "yolo26n-sem.yaml",
             None,
         ),
+        (depth.DepthTrainer, depth.DepthValidator, depth.DepthPredictor, "depth8.yaml", "yolo26-depth.yaml", None),
     ],
 )
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")

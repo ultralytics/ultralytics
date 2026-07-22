@@ -1884,3 +1884,176 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
             }
             for c in self.ap_class_index
         ]
+
+
+class DepthMetrics(SimpleClass, DataExportMixin):
+    """Monocular depth estimation metrics: delta1-3, abs_rel, rmse, silog.
+
+    Per-image sums are computed on-device and accumulated in float64 on CPU, pooled over every valid pixel of the val
+    set (images with more valid pixels weigh proportionally more; this differs from protocols that average per-image
+    metrics). Following the standard Eigen evaluation protocol, pixels with gt outside (min_depth, max_depth) are
+    excluded and predictions are clamped into that range.
+
+    Attributes:
+        min_depth (float): Minimum valid depth in meters.
+        max_depth (float): Maximum valid depth in meters.
+    """
+
+    def __init__(
+        self,
+        min_depth: float = 0.001,
+        max_depth: float = 100.0,
+        align: str = "median",
+    ) -> None:
+        """Initialize depth metric accumulators.
+
+        Args:
+            min_depth (float): Minimum valid depth in meters; pixels with gt <= min_depth are ignored.
+            max_depth (float): Maximum valid depth in meters; pixels with gt >= max_depth are ignored and predictions
+                are clamped to it.
+            align (str): Per-image scale alignment before scoring, following the Depth Anything eval protocol. "median"
+                rescales each prediction by median(gt)/median(pred) so affine-invariant (scale-ambiguous) outputs are
+                comparable to metric GT; "none" disables alignment and scores predictions in their raw output scale.
+        """
+        self.min_depth = min_depth
+        self.max_depth = max_depth
+        self.align = align
+        self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
+        self._totals = None
+        self._count = 0.0
+        self._results = {}
+
+    def update_stats(self, preds: torch.Tensor, targets: torch.Tensor) -> None:
+        """Accumulate summed metrics over valid pixels, with per-image scale alignment.
+
+        Args:
+            preds (torch.Tensor): Predicted depth (B,1,H,W) or (B,H,W).
+            targets (torch.Tensor): Ground-truth depth in meters, same shape.
+        """
+        p = preds.squeeze(1) if preds.ndim == 4 else preds
+        g = targets.squeeze(1) if targets.ndim == 4 else targets
+        if p.ndim == 2:  # single image (H,W) -> (1,H,W) so alignment is always per-image
+            p, g = p[None], g[None]
+        for pi, gi in zip(p, g):
+            # Eigen protocol: score only pixels with gt inside (min_depth, max_depth); drop non-finite preds
+            mask = (gi > self.min_depth) & (gi < self.max_depth) & torch.isfinite(pi)
+            n = int(mask.sum())
+            if n == 0:
+                continue
+            pv = pi[mask].float()
+            gv = gi[mask].float()
+            if self.align == "median":
+                scale = torch.median(gv) / torch.median(pv.clamp_min(self.min_depth))
+                pv = pv * scale
+            pv = pv.clamp(self.min_depth, self.max_depth)
+            thresh = torch.maximum(pv / gv, gv / pv)
+            log_diff = torch.log(pv) - torch.log(gv)
+            totals = torch.stack(
+                [
+                    (thresh < 1.25).sum(),
+                    (thresh < 1.25**2).sum(),
+                    (thresh < 1.25**3).sum(),
+                    (torch.abs(pv - gv) / gv).sum(),
+                    ((pv - gv) ** 2).sum(),
+                    (log_diff**2).sum(),
+                    log_diff.sum(),
+                ]
+            )
+            if self._totals is None:
+                self._totals = torch.zeros(7, dtype=torch.float64)
+            self._totals += totals.cpu().double()  # float64 on CPU; MPS tensors cannot be float64
+            self._count += float(n)
+
+    def process(self, *args, **kwargs) -> None:
+        """Finalize metrics from accumulated sums."""
+        if self._totals is None or self._count == 0:
+            self._results = dict.fromkeys(self.keys, 0.0)
+            return
+        t = self._totals.cpu()
+        n = self._count
+        d1, d2, d3, abs_rel, rmse_sq, silog_a, silog_b = (float(x) for x in t)
+        silog = max((silog_a / n) - (silog_b / n) ** 2, 0.0) ** 0.5 * 100  # λ=1 variance form (ZoeDepth/KITTI)
+        self._results = {
+            "metrics/delta1": d1 / n,
+            "metrics/delta2": d2 / n,
+            "metrics/delta3": d3 / n,
+            "metrics/abs_rel": abs_rel / n,
+            "metrics/rmse": (rmse_sq / n) ** 0.5,
+            "metrics/silog": silog,
+        }
+
+    def clear_stats(self) -> None:
+        """Reset accumulators."""
+        self._totals = None
+        self._count = 0.0
+        self._results = {}
+
+    @property
+    def keys(self) -> list[str]:
+        """Metric keys for logging."""
+        return [
+            "metrics/delta1",
+            "metrics/delta2",
+            "metrics/delta3",
+            "metrics/abs_rel",
+            "metrics/rmse",
+            "metrics/silog",
+        ]
+
+    def mean_results(self) -> list[float]:
+        """Return metric values in `keys` order."""
+        return [self._results.get(k, 0.0) for k in self.keys]
+
+    @property
+    def delta1(self) -> float:
+        """Fraction of pixels with max(p/g, g/p) < 1.25."""
+        return self._results.get("metrics/delta1", 0.0)
+
+    @property
+    def delta2(self) -> float:
+        """Fraction of pixels with max(p/g, g/p) < 1.25**2."""
+        return self._results.get("metrics/delta2", 0.0)
+
+    @property
+    def delta3(self) -> float:
+        """Fraction of pixels with max(p/g, g/p) < 1.25**3."""
+        return self._results.get("metrics/delta3", 0.0)
+
+    @property
+    def abs_rel(self) -> float:
+        """Mean absolute relative error."""
+        return self._results.get("metrics/abs_rel", 0.0)
+
+    @property
+    def rmse(self) -> float:
+        """Root mean squared error (meters)."""
+        return self._results.get("metrics/rmse", 0.0)
+
+    @property
+    def silog(self) -> float:
+        """Scale-invariant logarithmic error (x100)."""
+        return self._results.get("metrics/silog", 0.0)
+
+    @property
+    def fitness(self) -> float:
+        """Fitness = delta1 (higher is better)."""
+        return self._results.get("metrics/delta1", 0.0)
+
+    @property
+    def results_dict(self) -> dict[str, float]:
+        """Results dict including fitness."""
+        return dict(zip([*self.keys, "fitness"], [*self.mean_results(), self.fitness]))
+
+    @property
+    def curves(self) -> list:
+        """No PR curves for depth."""
+        return []
+
+    @property
+    def curves_results(self) -> list:
+        """No PR curve results for depth."""
+        return []
+
+    def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict]:
+        """Single-row summary of global depth metrics."""
+        return [{k.split("/")[-1]: round(v, decimals) for k, v in self._results.items()}]

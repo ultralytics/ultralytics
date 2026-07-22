@@ -86,6 +86,7 @@ from ultralytics.nn.modules import (
     C2f,
     Classify,
     DeimDecoder,
+    Depth,
     Detect,
     Pose,
     Pose26,
@@ -94,7 +95,7 @@ from ultralytics.nn.modules import (
     Segment26,
     SemanticSegment,
 )
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel
+from ultralytics.nn.tasks import ClassificationModel, DepthModel, DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
@@ -459,13 +460,7 @@ def try_export(inner_func):
             LOGGER.info(f"{prefix} export success ✅ {dt.t:.1f}s, saved as '{path}' ({mb:.1f} MB)")
             return f
         except Exception as e:
-            dependency_help = (
-                " Ultralytics Platform runs exports in the cloud with no local dependencies required. "
-                "Visit https://platform.ultralytics.com."
-                if isinstance(e, ImportError)
-                else ""
-            )
-            LOGGER.error(f"{prefix} export failure {dt.t:.1f}s: {e}{dependency_help}")
+            LOGGER.error(f"{prefix} export failure {dt.t:.1f}s: {e}")
             raise e
 
     return outer_func
@@ -626,6 +621,8 @@ class Exporter:
             if model.task == "segment" and any(isinstance(m, Segment26) for m in model.modules()):
                 raise ValueError("Axelera export does not currently support YOLO26 segmentation models.")
         if fmt == "imx":
+            if model.task == "depth":
+                raise ValueError("IMX export is not supported for depth models.")
             if not self.args.nms and model.task in {"detect", "pose", "segment"}:
                 LOGGER.warning("IMX export requires nms=True, setting nms=True.")
                 self.args.nms = True
@@ -711,8 +708,8 @@ class Exporter:
                 f"Invalid HTP architecture '{self.args.name}' for Qualcomm QNN export. Valid archs are {QNN_HTP_ARCHS} "
                 "(Snapdragon 888/8Gen1/8Gen2/8Gen3/8Elite/8EliteGen5 respectively)."
             )
-        if self.args.nms and model.task == "semantic":
-            LOGGER.warning("'nms=True' is not valid for semantic segmentation models. Forcing 'nms=False'.")
+        if self.args.nms and model.task in {"semantic", "depth"}:
+            LOGGER.warning(f"'nms=True' is not valid for {model.task} models. Forcing 'nms=False'.")
             self.args.nms = False
         if fmt == "coreml" and self.args.nms and model.task != "detect":
             LOGGER.warning("CoreML 'nms=True' is only supported for detect models. Forcing 'nms=False'.")
@@ -805,7 +802,7 @@ class Exporter:
 
             model = executorch_wrapper(model)
         for m in model.modules():
-            if isinstance(m, (Classify, SemanticSegment)):
+            if isinstance(m, (Classify, SemanticSegment, Depth)):
                 m.export = True
                 m.format = self.args.format
                 # Semantic argmax bake needs an integer graph output; TensorRT supports uint8 outputs only on TRT>=10
@@ -1028,6 +1025,8 @@ class Exporter:
             if isinstance(self.model, SegmentationModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 116, 8400)
                 dynamic["output1"] = {0: "batch", 2: "mask_height", 3: "mask_width"}  # shape(1,32,160,160)
+            elif isinstance(self.model, DepthModel):
+                dynamic["output0"] = {0: "batch", 2: "height", 3: "width"}  # shape(1,1,640,640) dense map, not anchors
             elif isinstance(self.model, DetectionModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 84, 8400)
             if self.args.nms:  # only batch size is dynamic with NMS
@@ -1244,12 +1243,21 @@ class Exporter:
         model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel) if self.args.nms else self.model
 
         if self.args.dynamic:
+            h, w = self.imgsz
+            lb_h = lb_w = 32
+            if getattr(self.model, "end2end", False):
+                # end2end graphs bake TopK k=max_det, so the smallest declared input must still supply >= k anchors
+                # or CoreML rejects the model at load; shrink the range proportionally from the traced default size
+                stride = int(self.model.stride.max())
+                r = self.model.model[-1].max_det / sum(int(h / s) * int(w / s) for s in self.model.stride.tolist())
+                lb_h = max(lb_h, int(np.ceil(h * r**0.5 / stride)) * stride)
+                lb_w = max(lb_w, int(np.ceil(w * r**0.5 / stride)) * stride)
             input_shape = ct.Shape(
                 shape=(
                     ct.RangeDim(lower_bound=1, upper_bound=self.args.batch, default=1),
                     self.im.shape[1],
-                    ct.RangeDim(lower_bound=32, upper_bound=self.imgsz[0] * 2, default=self.imgsz[0]),
-                    ct.RangeDim(lower_bound=32, upper_bound=self.imgsz[1] * 2, default=self.imgsz[1]),
+                    ct.RangeDim(lower_bound=lb_h, upper_bound=h * 2, default=h),
+                    ct.RangeDim(lower_bound=lb_w, upper_bound=w * 2, default=w),
                 )
             )
             inputs = [ct.TensorType("image", shape=input_shape)]

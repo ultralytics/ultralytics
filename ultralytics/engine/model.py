@@ -19,6 +19,7 @@ from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG_DICT,
     LOGGER,
+    PLATFORM_URL,
     RANK,
     SETTINGS,
     YAML,
@@ -621,6 +622,46 @@ class Model(torch.nn.Module):
         self.metrics = validator.metrics
         return validator.metrics
 
+    def calibrate(self, data=None, **kwargs: Any):
+        """Fit scale-only depth calibration on a small labeled set (depth task only).
+
+        Runs a validation pass, then fits the global log-affine ``d' = exp(a·log d + b)`` against
+        ground-truth depth via :func:`fit_calibration_selective` — the same "calibrate only if it
+        helps" policy as trainer auto-calibration (identity / scale-only chosen by held-out δ1) —
+        which writes ``(a, b)`` into the head's ``cal_a``/``cal_b`` buffers. No gradient training
+        and the decoder weights are untouched, so it cannot degrade the relative depth structure.
+        Call ``model.save(...)`` afterwards to persist the calibration.
+
+        Args:
+            data (str, optional): Dataset YAML providing a labeled split to calibrate against.
+            **kwargs (Any): Extra validation arguments (e.g. ``imgsz``, ``batch``, ``device``, ``split``).
+
+        Returns:
+            (tuple | None): The fitted ``(a, b)``, or ``None`` if fewer than 2 images had valid depth pixels.
+
+        Examples:
+            >>> model = YOLO("yolo26s-depth.pt")
+            >>> model.calibrate(data="my_depth_dataset.yaml")
+            >>> model.save("yolo26s-depth-calibrated.pt")
+        """
+        self._check_is_pytorch_model()
+        if self.task != "depth":
+            raise ValueError(f"calibrate() is only supported for depth models (task='depth'), got task={self.task!r}.")
+        from ultralytics.models.yolo.depth.calibrate import _depth_head, fit_calibration_selective
+
+        if _depth_head(self.model) is None:
+            raise ValueError("Model has no Depth head with calibration buffers (cal_a/cal_b).")
+        args = {**self.overrides, **kwargs, "mode": "val", "task": "depth", "rect": False}
+        if data is not None:
+            args["data"] = data
+        validator = self._smart_load("validator")(args=args, _callbacks=self.callbacks)
+        validator(model=self.model)  # builds the dataloader and reports metrics with the current calibration
+        res = fit_calibration_selective(self.model, validator.dataloader, validator.device)
+        if res is None:
+            return None
+        LOGGER.info("Call model.save(...) to persist the calibration.")
+        return res["a"], res["b"]
+
     def benchmark(self, data=None, format="", verbose=False, **kwargs: Any):
         """Benchmark the model across various export formats to evaluate performance.
 
@@ -709,7 +750,7 @@ class Model(torch.nn.Module):
             'path/to/exported/model.onnx'
         """
         self._check_is_pytorch_model()
-        from .exporter import Exporter
+        from .exporter import Exporter, export_formats
 
         custom = {
             "imgsz": self.model.args["imgsz"],
@@ -719,7 +760,16 @@ class Model(torch.nn.Module):
             "verbose": False,
         }  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "export"}  # highest priority args on the right
-        return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
+        try:
+            return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
+        except Exception:
+            formats = export_formats()
+            export_format = args.get("format", DEFAULT_CFG_DICT["format"])
+            format_name = dict(zip(formats["Argument"], formats["Format"])).get(
+                str(export_format).lower(), export_format
+            )
+            LOGGER.info(f"Export to {format_name} in the cloud with Ultralytics Platform: {PLATFORM_URL}")
+            raise
 
     def train(
         self,
@@ -1068,11 +1118,6 @@ class Model(torch.nn.Module):
         """
         include = {"imgsz", "data", "task", "single_cls"}  # only remember these arguments when loading a PyTorch model
         return {k: v for k, v in args.items() if k in include}
-
-    # def __getattr__(self, attr):
-    #    """Raises error if object has no requested attribute."""
-    #    name = self.__class__.__name__
-    #    raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
     def _smart_load(self, key: str):
         """Intelligently load the appropriate module based on the model task.

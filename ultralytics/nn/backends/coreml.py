@@ -31,19 +31,13 @@ class CoreMLBackend(BaseBackend):
         import coremltools as ct
 
         LOGGER.info(f"Loading {weight} for CoreML inference...")
-        # Run on the Neural Engine (CPU_AND_NE): ~3x faster than CPU, and the default ComputeUnit.ALL / CPU_AND_GPU
-        # abort the process via an MPSGraph compiler bug on macOS hosts (coremltools 9.x). CPU_AND_NE needs macOS >= 13,
-        # so fall back to CPU_ONLY below that. CoreML inference is macOS-only, so this applies wherever the backend runs.
-        # Exception: RT-DETR loses FP16 accuracy and runs slower on the Neural Engine alone, so route it through ALL.
-        # RTDETRDecoderV2 FP32 additionally triggers an MPSGraph MLIR pass bug on GPU under ALL, so keep FP32 off ALL.
+        # Compute unit is resolved at export from the model backbone (see Exporter.metadata): HGNetv2/ResNet/ViT
+        # backbones are MPSGraph-safe and ~3x faster on the GPU (ALL) path; the YOLO CSP trunk aborts the MLIR pass
+        # manager on GPU (and gains nothing from the Neural Engine), so it uses CPU_AND_NE. That needs macOS >= 13,
+        # so the fallback below covers older hosts and packages exported before this field existed.
         meta = dict(ct.utils.load_spec(str(weight)).description.metadata.userDefined)
-        head = meta.get("head")
-        if head == "RTDETRDecoderV2" and meta.get("precision") != "fp16":
-            default_unit = ct.ComputeUnit.CPU_AND_NE
-        elif head in {"RTDETRDecoder", "RTDETRDecoderV2", "DeimDecoder"}:
-            default_unit = ct.ComputeUnit.ALL
-        else:
-            default_unit = ct.ComputeUnit.CPU_AND_NE
+        unit_name = meta.get("coreml_compute_units", "CPU_AND_NE")
+        default_unit = getattr(ct.ComputeUnit, unit_name, ct.ComputeUnit.CPU_AND_NE)
         try:
             self.model = ct.models.MLModel(weight, compute_units=default_unit)
         except Exception:

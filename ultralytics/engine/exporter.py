@@ -882,18 +882,14 @@ class Exporter:
             "channels": model.yaml.get("channels", 3),
             "end2end": getattr(model, "end2end", False),
         }  # model metadata
-        head = model.model[-1] if hasattr(model, "model") and len(model.model) else None
-        if head is not None:
-            self.metadata["head"] = head.__class__.__name__
-            if isinstance(head, DeimDecoder):
-                self.metadata["model_type"] = "yolodetr"
-            elif isinstance(head, RTDETRDecoder):
-                self.metadata["model_type"] = "rtdetr"
         if self.deim_fp32_pinning:
             self.metadata["deim_fp32_pinning"] = True
         if fmt == "coreml":
-            q = self.args.quantize
-            self.metadata["precision"] = "int8" if q in {8, "w8a16"} else "fp16" if q == 16 else "fp32"
+            # CoreML GPU (MPSGraph) compiles the HGNetv2/ResNet/ViT backbones but aborts the MLIR pass manager on the
+            # YOLO CSP trunk, so only whitelisted backbones take the faster ALL path; the rest use the Neural Engine.
+            backbone = {str(x[2]) for x in model.yaml.get("backbone", [])}
+            gpu_safe = bool(backbone & {"HGStem", "ResNetLayer", "VITPatchStem"})
+            self.metadata["coreml_compute_units"] = "ALL" if gpu_safe else "CPU_AND_NE"
         if self.dla is not None:
             self.metadata["dla"] = self.dla  # make sure `AutoBackend` uses correct dla device if it has one
         if model.task == "pose":

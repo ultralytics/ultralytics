@@ -122,6 +122,7 @@ class BaseValidator:
         self.device = None
         self.batch_i = None
         self.training = True
+        self.channels_last = False  # set in __call__; convert val batches to NHWC when the trained model is
         self.names = None
         self.seen = None
         self.stats = None
@@ -152,6 +153,7 @@ class BaseValidator:
             (dict): Dictionary containing validation statistics.
         """
         self.training = trainer is not None
+        self.channels_last = self.training and trainer.channels_last
         augment = self.args.augment and (not self.training)
         if self.training:
             self.device = trainer.device
@@ -237,7 +239,7 @@ class BaseValidator:
             # Preprocess
             with dt[0]:
                 batch = self.preprocess(batch)
-                if self.training and trainer.channels_last:
+                if self.channels_last:
                     batch["img"] = batch["img"].to(memory_format=torch.channels_last)  # match channels_last model
 
             with autocast(self.training and self.args.quantize == 16, device=self.device.type):

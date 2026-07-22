@@ -237,6 +237,8 @@ class BaseValidator:
             # Preprocess
             with dt[0]:
                 batch = self.preprocess(batch)
+                if self.training and trainer.channels_last:
+                    batch["img"] = batch["img"].to(memory_format=torch.channels_last)  # match channels_last model
 
             with autocast(self.training and self.args.quantize == 16, device=self.device.type):
                 # Inference

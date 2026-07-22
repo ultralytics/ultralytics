@@ -1093,18 +1093,16 @@ class PolygonSemanticDataset(SemanticDataset, YOLODataset):
         self.bg_class_idx = data.get("bg_class_idx", max(int(nc) - 1, 0))
         super().__init__(*args, data=data, **kwargs)
 
-    # Rebind the scanning hooks to YOLODataset's polygon .txt label implementations; the MRO
-    # (SemanticDataset, YOLODataset) would otherwise resolve SemanticDataset's PNG-mask hooks.
+    # Rebind label scanning to YOLODataset's polygon .txt implementations; the MRO (SemanticDataset, YOLODataset)
+    # would otherwise resolve SemanticDataset's PNG-mask hooks and its get_labels, which syncs mask_files from
+    # label dicts that polygon labels do not have.
+    get_labels = YOLODataset.get_labels
     get_label_files = YOLODataset.get_label_files
     get_cache_hash = YOLODataset.get_cache_hash
     scan_summary = YOLODataset.scan_summary
     verify_args = YOLODataset.verify_args
     result_to_label = YOLODataset.result_to_label
     verify_labels = YOLODataset.verify_labels
-
-    def get_labels(self) -> list[dict]:
-        """Parse YOLO polygon .txt labels via YOLODataset's template, skipping SemanticDataset's mask-file sync."""
-        return YOLODataset.get_labels(self)
 
     def load_mask(self, index: int, image_shape: tuple[int, int] | None = None) -> np.ndarray:
         """Rasterize this image's polygons into a (H, W) uint8 semantic mask, bg = self.bg_class_idx."""

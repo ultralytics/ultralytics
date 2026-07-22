@@ -53,14 +53,30 @@ class AnomalyTrainer(DetectionTrainer):
 
         # Attach the prior-mask builder only to the training transform pipeline.
         if mode == "train":
-            v2_cfg = getattr(unwrap_model(self.model), "yaml", {}).get("anomaly", {})
-            transform = LoadAnomalyPriorMask(v2_cfg, mode=mode)
-            if isinstance(dataset, YOLOConcatDataset):
-                for d in dataset.datasets:
-                    d.transforms.append(transform)
-            else:
-                dataset.transforms.append(transform)
+            self._append_prior_mask_transform(dataset)
         return dataset
+
+    def _append_prior_mask_transform(self, dataset) -> None:
+        """Append ``LoadAnomalyPriorMask`` to a train dataset's transform pipeline (idempotent).
+
+        Re-applied after ``close_mosaic`` too: ``YOLODataset.close_mosaic`` rebuilds ``transforms``
+        from scratch and would otherwise DROP this transform. The prior is the GT-derived
+        supervision the anomaly head consumes every batch — NOT a mosaic-family aug — so it must
+        survive the close. Without this, a run whose mosaic closes early (e.g. ``close_mosaic >=
+        epochs`` closes at epoch 0) trains with no ``prior_mask``; for the FROZEN prototype head
+        that means zero gradient and a ``element 0 ... does not require grad`` backward crash.
+        """
+        v2_cfg = getattr(unwrap_model(self.model), "yaml", {}).get("anomaly", {})
+        targets = dataset.datasets if isinstance(dataset, YOLOConcatDataset) else [dataset]
+        for d in targets:
+            existing = getattr(d.transforms, "transforms", [])
+            if not any(isinstance(t, LoadAnomalyPriorMask) for t in existing):
+                d.transforms.append(LoadAnomalyPriorMask(v2_cfg, mode="train"))
+
+    def _close_dataloader_mosaic(self):
+        """Close mosaic, then RE-APPEND the prior-mask transform that the rebuild drops."""
+        super()._close_dataloader_mosaic()
+        self._append_prior_mask_transform(self.train_loader.dataset)
 
     def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
         """Build the standard optimizer, then move fusion params into a ``lr * fusion_lr_scale`` group.

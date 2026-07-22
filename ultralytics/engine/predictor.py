@@ -129,6 +129,7 @@ class BasePredictor:
         if self.args.conf is None:
             self.args.conf = 0.25  # default conf=0.25
         self.done_warmup = False
+        self.channels_last = False  # set in setup_model; NHWC memory format for native PyTorch CUDA inference
         if self.args.show:
             self.args.show = check_imshow(warn=True)
 
@@ -315,7 +316,8 @@ class BasePredictor:
                         1 if self.model.format in {"pt", "triton"} else self.dataset.bs,
                         self.model.channels,
                         *self.imgsz,
-                    )
+                    ),
+                    channels_last=self.channels_last,  # match preprocess layout so compile traces it once
                 )
                 self.done_warmup = True
 

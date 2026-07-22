@@ -303,6 +303,13 @@ class BaseTrainer:
         """Configure model, optimizer, dataloaders, and training utilities before the training loop."""
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
+        # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, but numerically wrong
+        # on MPS and no benefit on CPU, so restrict to CUDA and convert the input batches to match below
+        self.channels_last = self.args.channels_last and self.device.type == "cuda"
+        if self.args.channels_last and not self.channels_last:
+            LOGGER.warning(f"'channels_last=True' is only supported on CUDA, ignoring on '{self.device.type}'.")
+        if self.channels_last:
+            self.model = self.model.to(memory_format=torch.channels_last)
         self.set_model_attributes()
 
         # Compile model (knowledge distillation runs the wrapped model eagerly and relies on
@@ -464,6 +471,8 @@ class BaseTrainer:
                 try:
                     with autocast(self.amp):
                         batch = self.preprocess_batch(batch)
+                        if self.channels_last:
+                            batch["img"] = batch["img"].to(memory_format=torch.channels_last)
                         if self.args.compile:
                             # Decouple inference and loss calculations for improved compile performance
                             preds = self.model(batch["img"])
@@ -697,7 +706,9 @@ class BaseTrainer:
             for k, v in ema.state_dict().items():
                 if isinstance(v, torch.Tensor) and not torch.isfinite(v).all() and torch.isfinite(model_sd[k]).all():
                     v.copy_(model_sd[k])
-        ema = deepcopy(ema).half()
+        # Serialize NCHW regardless of channels_last training: released versions fuse with .view(), which crashes on
+        # NHWC-strided checkpoint weights, and trainer/predictor re-apply channels_last at setup anyway.
+        ema = deepcopy(ema).half().to(memory_format=torch.contiguous_format)
         if hasattr(ema, "criterion"):
             ema.criterion = None  # strip training-only state from the serialization snapshot
         # Clamp fp16 serialization overflow without mutating the live EMA.

@@ -122,6 +122,7 @@ class BaseValidator:
         self.device = None
         self.batch_i = None
         self.training = True
+        self.channels_last = False  # set in __call__; convert val batches to NHWC when the trained model is
         self.names = None
         self.seen = None
         self.stats = None
@@ -152,6 +153,7 @@ class BaseValidator:
             (dict): Dictionary containing validation statistics.
         """
         self.training = trainer is not None
+        self.channels_last = self.training and trainer.channels_last
         augment = self.args.augment and (not self.training)
         if self.training:
             self.device = trainer.device
@@ -190,6 +192,15 @@ class BaseValidator:
             self.args.quantize = 16 if model.fp16 else None  # record actual inference precision
             stride, fmt = model.stride, model.format
             pt = fmt == "pt"
+            # Same gate as predictor.setup_model: NHWC is lossless only for native PyTorch models on CUDA.
+            self.channels_last = self.args.channels_last and self.device.type == "cuda" and pt
+            if self.args.channels_last and not self.channels_last:
+                LOGGER.warning(
+                    f"'channels_last=True' applies only to native PyTorch models on CUDA, ignoring for "
+                    f"format='{fmt}' on '{self.device.type}'."
+                )
+            if self.channels_last:
+                model.to(memory_format=torch.channels_last)
             imgsz = check_imgsz(self.args.imgsz, stride=stride)
             if fmt not in {"pt", "torchscript"} and not getattr(model, "dynamic", False):
                 self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1
@@ -237,6 +248,8 @@ class BaseValidator:
             # Preprocess
             with dt[0]:
                 batch = self.preprocess(batch)
+                if self.channels_last:
+                    batch["img"] = batch["img"].to(memory_format=torch.channels_last)  # match channels_last model
 
             with autocast(self.training and self.args.quantize == 16, device=self.device.type):
                 # Inference

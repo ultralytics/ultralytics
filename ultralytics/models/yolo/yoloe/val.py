@@ -81,6 +81,8 @@ class YOLOEDetectValidator(DetectionValidator):
         pbar = TQDM(dataloader, total=len(dataloader), desc=desc)
         for batch in pbar:
             batch = self.preprocess(batch)
+            if self.channels_last:
+                batch["img"] = batch["img"].to(memory_format=torch.channels_last)  # match channels_last model
             preds = model.get_visual_pe(batch["img"], visual=batch["visuals"])  # (B, max_n, embed_dim)
 
             batch_idx = batch["batch_idx"]
@@ -154,6 +156,7 @@ class YOLOEDetectValidator(DetectionValidator):
         """
         if trainer is not None:
             self.device = trainer.device
+            self.channels_last = trainer.channels_last  # set before get_visual_pe, which runs before super().__call__
             model = trainer.ema.ema
             names = [name.split("/", 1)[0] for name in list(self.dataloader.dataset.data["names"].values())]
 

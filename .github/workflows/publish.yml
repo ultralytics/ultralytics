@@ -144,17 +144,22 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v7
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: "3"
-          activate-environment: true
-      - run: uv pip install -e .
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: ${{ runner.temp }}/dist
+      - name: Create isolated SBOM environment
+        run: |
+          uv venv "$RUNNER_TEMP/sbom-env"
+          uv pip install --python "$RUNNER_TEMP/sbom-env/bin/python" "$RUNNER_TEMP"/dist/ultralytics-[0-9]*-py3-none-any.whl
       - uses: anchore/sbom-action@v0
         with:
           format: spdx-json
           output-file: sbom.spdx.json
-          path: .venv
+          path: ${{ runner.temp }}/sbom-env
       - run: gh release upload ${{ needs.check.outputs.current_tag }} sbom.spdx.json --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -322,9 +322,7 @@ def functional_attention(
 
     if freqs_cis is not None:
         num_k_rope = k.size(-2) - num_k_exclude_rope
-        q, k[:, :, :num_k_rope] = apply_rotary_enc(
-            q, k[:, :, :num_k_rope], freqs_cis, repeat_freqs_k=rope_k_repeat
-        )
+        q, k[:, :, :num_k_rope] = apply_rotary_enc(q, k[:, :, :num_k_rope], freqs_cis, repeat_freqs_k=rope_k_repeat)
 
     out = F.scaled_dot_product_attention(q, k, v)
     return out.transpose(1, 2).reshape(b, n, cv)

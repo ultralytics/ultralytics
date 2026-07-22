@@ -62,6 +62,7 @@ class SAM3Backend:
         has_point_modules (bool): Whether prompt encoder + mask decoder are available.
     """
 
+    is_multiplex = False
     _FILE_STEMS = ("sam3_vision_encoder", "sam3_text_encoder", "sam3_decoder")
     _POINT_STEMS = ("sam3_prompt_encoder", "sam3_mask_decoder")
     _VIDEO_STEMS = ("sam3_memory_encoder", "sam3_memory_attention", "sam3_mask_embed")
@@ -315,6 +316,9 @@ class SAM3Backend:
                 out_bufs[tname] = out
                 ctx.set_tensor_address(tname, out.data_ptr())
 
+        # The private stream is non-blocking: order it after the producer stream so the engine
+        # never reads feed tensors while their producing kernels are still in flight.
+        self._cuda_stream.wait_stream(torch.cuda.current_stream(self.device))
         ctx.execute_async_v3(self._cuda_stream.cuda_stream)
         self._cuda_stream.synchronize()
         return out_bufs
@@ -445,12 +449,11 @@ class SAM3Backend:
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Run point-based segmentation: prompt encoder + mask decoder.
 
-        Uses SAM2 neck features (``_sam2_feat_*``) when available, falling back
-        to SAM3 FPN features (``_fpn_feat_*``). The SAM2 neck has separate
-        learned weights matched to the mask decoder.
+        Requires the SAM2 neck features (``_sam2_feat_*``), whose separate learned
+        weights match the mask decoder.
 
         Args:
-            img_out: Dict from forward_image (with _sam2_feat_* or _fpn_feat_* cached).
+            img_out: Dict from forward_image (with _sam2_feat_* cached).
             point_coords: [B, N, 2] float32 — point coordinates in pixel space.
             point_labels: [B, N] int32 — 1=foreground, 0=background.
 
@@ -459,21 +462,15 @@ class SAM3Backend:
         """
         assert self.has_point_modules, "Point prompt modules not found. Re-export with prompt_encoder + mask_decoder."
 
-        # The point-prompt mask decoder REQUIRES the SAM2 neck features (separate
-        # learned weights). The SAM3 FPN features are a different feature space
-        # (cosine ~0.42) and produce scattered, broken masks. Falling back to them
-        # is only a last resort for old exports — warn loudly so it isn't silent.
+        # The point-prompt mask decoder REQUIRES the SAM2 neck features (separate learned
+        # weights); the SAM3 FPN features are a different feature space (cosine ~0.42).
         # forward_image always sets the three sam2 keys together, so one check suffices.
-        has_sam2 = "_sam2_feat_0" in img_out
-        if not has_sam2:
-            LOGGER.warning(
-                "SAM3Backend: point prompt requested but the vision encoder has no sam2_feat_* outputs. "
-                "Falling back to SAM3 FPN features — masks will be WRONG. "
-                "Re-export the vision encoder with the SAM2 neck (sam2_feat_0/1/2)."
+        if "_sam2_feat_0" not in img_out:
+            raise RuntimeError(
+                "Point prompts require the dual-neck vision encoder (sam2_feat_* outputs); re-export the model."
             )
-        prefix = "_sam2_feat_" if has_sam2 else "_fpn_feat_"
 
-        image_embeddings = img_out[f"{prefix}2"]
+        image_embeddings = img_out["_sam2_feat_2"]
         if self._no_mem_embed_spatial is not None:
             # no_mem_embed is no longer baked into the mask decoder graph (video tracking adds
             # memory-conditioned features instead); apply the initial-frame bias here.
@@ -490,8 +487,8 @@ class SAM3Backend:
                 "image_pe": pe_out["dense_pe"],
                 "sparse_prompt_embeddings": pe_out["sparse_embeddings"],
                 "dense_prompt_embeddings": pe_out["dense_embeddings"],
-                "high_res_feat_0": img_out[f"{prefix}0"],
-                "high_res_feat_1": img_out[f"{prefix}1"],
+                "high_res_feat_0": img_out["_sam2_feat_0"],
+                "high_res_feat_1": img_out["_sam2_feat_1"],
             },
         )
         return md_out["masks"], md_out["iou_scores"]
@@ -500,8 +497,9 @@ class SAM3Backend:
     # set_classes
     # ------------------------------------------------------------------
 
-    def set_classes(self, text: list[str]) -> None:
+    def set_classes(self, text: list[str] | str) -> None:
         """Tokenize text, run text encoder per-class, cache results."""
+        text = [text] if isinstance(text, str) else list(text)  # e.g. the "visual" exemplar placeholder
         try:
             import clip
         except ImportError:
@@ -636,15 +634,14 @@ class SAM3Backend:
         self.no_mem_embed = None
         self._no_mem_embed_spatial = None
         md_meta = self._metadata.get("sam3_mask_decoder", {})
-        if "no_mem_embed" in md_meta:  # current exports ship no_mem_embed unbaked, added at runtime
+        if "no_mem_embed" in md_meta:  # exports ship no_mem_embed unbaked, added at runtime
             self.no_mem_embed = torch.tensor(json.loads(md_meta["no_mem_embed"]), dtype=torch.float32).view(1, 1, -1)
             self._no_mem_embed_spatial = self.no_mem_embed.view(1, -1, 1, 1)
         elif self.has_point_modules:
-            LOGGER.warning(
-                "SAM3Backend: legacy export detected (no_mem_embed baked into sam3_mask_decoder); "
-                "point prompts work but video tracking requires a re-export."
+            raise RuntimeError(
+                f"{self._model_dir} was produced by an outdated exporter (sam3_mask_decoder lacks the "
+                "no_mem_embed metadata); re-export the model."
             )
-            self.has_video_modules = False
 
         if not self.has_video_modules:
             return
@@ -1310,6 +1307,7 @@ class SAM3MultiplexBackend(SAM3Backend):
     so every line of session/bucket/selection logic runs unmodified.
     """
 
+    is_multiplex = True
     _ort_arena_shrink = True
     # Base loaders iterate self._VIDEO_STEMS, so the multiplex decoder loads with the rest
     _VIDEO_STEMS = (
@@ -1326,9 +1324,12 @@ class SAM3MultiplexBackend(SAM3Backend):
         self.has_video_modules = False
         ext = "onnx" if self._format == "onnx" else "engine"
         params_file = self._model_dir / "sam3_multiplex_params.npz"
-        if not (all((self._model_dir / f"{s}.{ext}").exists() for s in self._VIDEO_STEMS) and params_file.exists()):
-            LOGGER.warning("SAM3MultiplexBackend: multiplex graphs or params sidecar missing; tracking disabled")
-            return
+        missing = [s for s in self._VIDEO_STEMS if not (self._model_dir / f"{s}.{ext}").exists()]
+        if missing or not params_file.exists():
+            raise FileNotFoundError(
+                f"{self._model_dir} is a multiplex export (params sidecar present or expected) but is missing "
+                f"{missing + ([] if params_file.exists() else [params_file.name])}; re-export the model."
+            )
 
         from ultralytics.models.sam.build_sam3 import build_sam3_multiplex_tracker
 

@@ -349,7 +349,7 @@ def build_interactive_sam3(checkpoint_path: str, compile=None, with_backbone=Tru
     return model
 
 
-def build_sam3_multiplex(checkpoint_path: str, multiplex_count: int = 16):
+def build_sam3_multiplex(checkpoint_path: str):
     """Build the SAM 3.1 Object Multiplex detector (tri-neck SAM3SemanticModel).
 
     The detector runs per-frame text/box grounding and its tri-head neck also produces the
@@ -359,7 +359,6 @@ def build_sam3_multiplex(checkpoint_path: str, multiplex_count: int = 16):
 
     Args:
         checkpoint_path (str): Path to sam3.1_multiplex.pt.
-        multiplex_count (int): Bucket capacity of the multiplex tracker.
 
     Returns:
         (SAM3SemanticModel): The multiplex detector with tri-head neck.
@@ -538,7 +537,6 @@ def build_sam3_multiplex_tracker(checkpoint_path: str | None, multiplex_count: i
         use_mask_input_as_output_without_sam=True,
         directly_add_no_mem_embed=True,
         iou_prediction_use_sigmoid=False,
-        forward_backbone_per_frame_for_eval=True,
         max_cond_frames_in_attn=4,
         is_dynamic_model=True,
         sam_mask_decoder_extra_args=dict(

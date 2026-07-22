@@ -25,6 +25,7 @@ from __future__ import annotations
 import json
 import math
 from pathlib import Path
+from types import SimpleNamespace
 
 import torch
 import torch.nn as nn
@@ -960,6 +961,89 @@ def _onnx_postprocess(f, metadata, half=False, device_type="cpu", prefix="SAM3 O
 # ---------------------------------------------------------------------------
 
 
+def _module_exporter(output_path, opset, exported_files):
+    """Create the shared per-module ONNX export helper (traces with the common options)."""
+
+    _export = _module_exporter(output_path, opset, exported_files)
+
+    return _export
+
+
+def _export_text_and_detr(_export, model, fpn, dtype, device, opset, prefix):
+    """Export the text encoder and DETR grounding decoder (identical across SAM3 exporters)."""
+    fpn0, fpn1, fpn2, fpos2 = fpn
+    LOGGER.info(f"{prefix} exporting text encoder (opset {opset})...")
+    txt_encoder = SAM3TextEncoderONNX(model).to(device).eval()
+    dummy_tokens = torch.zeros(1, 32, dtype=torch.long, device=device)
+    dummy_tokens[0, :3] = torch.tensor([49406, 2533, 49407])
+    _export(txt_encoder, (dummy_tokens,), "sam3_text_encoder.onnx", ["tokens"], ["text_features", "text_mask"])
+    with torch.no_grad():
+        txt_feats, txt_mask = txt_encoder(dummy_tokens)
+
+    LOGGER.info(f"{prefix} exporting decoder (opset {opset})...")
+    decoder = SAM3DecoderONNX(model).to(device).eval()
+    # Dummy box inputs: 1 dummy box with label=-10 (ignored), so the engine works for text-only too.
+    # Real bbox inference passes actual boxes with labels=1 (positive) or 0 (negative).
+    dummy_boxes = torch.zeros(1, 1, 4, dtype=dtype, device=device)
+    dummy_box_labels = torch.full((1, 1), -10, dtype=torch.int32, device=device)
+    _export(
+        decoder,
+        (fpn0, fpn1, fpn2, fpos2, txt_feats, txt_mask, dummy_boxes, dummy_box_labels),
+        "sam3_decoder.onnx",
+        [
+            "fpn_feat_0",
+            "fpn_feat_1",
+            "fpn_feat_2",
+            "fpn_pos_2",
+            "prompt_features",
+            "prompt_mask",
+            "input_boxes",
+            "input_boxes_labels",
+        ],
+        ["pred_logits", "pred_boxes", "pred_masks", "presence_logit_dec"],
+        {"input_boxes": {1: "num_boxes"}, "input_boxes_labels": {1: "num_boxes"}},
+    )
+
+
+def _export_point_prompt_encoder(_export, sam_prompt_encoder, dtype, device, opset, prefix):
+    """Export the SAM point prompt encoder; returns the traced wrapper and its dummy inputs."""
+    LOGGER.info(f"{prefix} exporting SAM prompt encoder (opset {opset})...")
+    holder = SimpleNamespace(sam_prompt_encoder=sam_prompt_encoder)
+    prompt_enc = SAM3PromptEncoderONNX(holder).to(device).eval()
+    dummy_pts = torch.tensor([[[500.0, 500.0]]], dtype=dtype, device=device)
+    dummy_lbl = torch.tensor([[1]], dtype=torch.int32, device=device)
+    _export(
+        prompt_enc,
+        (dummy_pts, dummy_lbl),
+        "sam3_prompt_encoder.onnx",
+        ["point_coords", "point_labels"],
+        ["sparse_embeddings", "dense_embeddings", "dense_pe"],
+        {
+            "point_coords": {0: "num_objects", 1: "num_points"},
+            "point_labels": {0: "num_objects", 1: "num_points"},
+            "sparse_embeddings": {0: "num_objects", 1: "num_embeds"},
+            "dense_embeddings": {0: "num_objects"},
+        },
+    )
+    return prompt_enc, dummy_pts, dummy_lbl
+
+
+def _export_mask_embed(_export, sam_prompt_encoder, feat_size, dtype, device, opset, prefix):
+    """Export the dense mask-embedding graph used for mask-seeded video objects."""
+    LOGGER.info(f"{prefix} exporting mask embed (opset {opset})...")
+    holder = SimpleNamespace(sam_prompt_encoder=sam_prompt_encoder)
+    mask_embed = SAM3MaskEmbedONNX(holder).to(device).eval()
+    dummy_mask_in = torch.randn(1, 1, feat_size * 4, feat_size * 4, dtype=dtype, device=device)
+    _export(
+        mask_embed,
+        (dummy_mask_in,),
+        "sam3_mask_embed.onnx",
+        ["mask_input"],
+        ["dense_embeddings"],
+        {"mask_input": {0: "num_objects"}, "dense_embeddings": {0: "num_objects"}},
+    )
+
+
 def export_sam3_onnx(
     checkpoint_path: str,
     device: torch.device | str = "cpu",
@@ -1017,22 +1101,7 @@ def export_sam3_onnx(
     metadata = {"author": "Ultralytics", "task": "segment", "stride": 14, "imgsz": [imgsz, imgsz]}
     exported_files = []
 
-    def _export(module, args, name, input_names, output_names, dynamic_axes=None):
-        """Trace one module to ONNX with the shared export options and record the path."""
-        f = str(output_path / name)
-        torch.onnx.export(
-            module,
-            args,
-            f,
-            opset_version=opset,
-            do_constant_folding=True,
-            dynamo=False,
-            input_names=input_names,
-            output_names=output_names,
-            dynamic_axes=dynamic_axes,
-        )
-        exported_files.append(f)
-        return f
+    _export = _module_exporter(output_path, opset, exported_files)
 
     # === 1. Vision Encoder ===
     # Load SAM2 neck weights from the interactive model (separate learned FPN for point prompts)
@@ -1063,43 +1132,8 @@ def export_sam3_onnx(
 
     del tracker_model_for_neck
 
-    # === 2. Text Encoder ===
-    LOGGER.info(f"{prefix} exporting text encoder (opset {opset})...")
-    txt_encoder = SAM3TextEncoderONNX(model).to(device).eval()
-    dummy_tokens = torch.zeros(1, 32, dtype=torch.long, device=device)
-    dummy_tokens[0, :3] = torch.tensor([49406, 2533, 49407])
-
-    _export(txt_encoder, (dummy_tokens,), "sam3_text_encoder.onnx", ["tokens"], ["text_features", "text_mask"])
-
-    with torch.no_grad():
-        txt_feats, txt_mask = txt_encoder(dummy_tokens)
-
-    # === 3. Decoder (with folded geometry encoder) ===
-    LOGGER.info(f"{prefix} exporting decoder (opset {opset})...")
-    decoder = SAM3DecoderONNX(model).to(device).eval()
-
-    # Dummy box inputs: 1 dummy box with label=-10 (ignored), so the engine works for text-only too.
-    # Real bbox inference passes actual boxes with labels=1 (positive) or 0 (negative).
-    dummy_boxes = torch.zeros(1, 1, 4, dtype=dtype, device=device)
-    dummy_box_labels = torch.full((1, 1), -10, dtype=torch.int32, device=device)
-
-    _export(
-        decoder,
-        (fpn0, fpn1, fpn2, fpos2, txt_feats, txt_mask, dummy_boxes, dummy_box_labels),
-        "sam3_decoder.onnx",
-        [
-            "fpn_feat_0",
-            "fpn_feat_1",
-            "fpn_feat_2",
-            "fpn_pos_2",
-            "prompt_features",
-            "prompt_mask",
-            "input_boxes",
-            "input_boxes_labels",
-        ],
-        ["pred_logits", "pred_boxes", "pred_masks", "presence_logit_dec"],
-        {"input_boxes": {1: "num_boxes"}, "input_boxes_labels": {1: "num_boxes"}},
-    )
+    # === 2-3. Text Encoder + DETR Decoder (shared with the multiplex exporter) ===
+    _export_text_and_detr(_export, model, (fpn0, fpn1, fpn2, fpos2), dtype, device, opset, prefix)
 
     # === 4. SAM Prompt Encoder (for point prompts) ===
     LOGGER.info(f"{prefix} exporting SAM prompt encoder (opset {opset})...")
@@ -1108,22 +1142,8 @@ def export_sam3_onnx(
     if imgsz != 1008:
         tracker_model.set_imgsz((imgsz, imgsz))  # also rescales the memory mask interpol_size
 
-    prompt_enc = SAM3PromptEncoderONNX(tracker_model).to(device).eval()
-    dummy_pts = torch.tensor([[[500.0, 500.0]]], dtype=dtype, device=device)
-    dummy_lbl = torch.tensor([[1]], dtype=torch.int32, device=device)
-
-    _export(
-        prompt_enc,
-        (dummy_pts, dummy_lbl),
-        "sam3_prompt_encoder.onnx",
-        ["point_coords", "point_labels"],
-        ["sparse_embeddings", "dense_embeddings", "dense_pe"],
-        {
-            "point_coords": {0: "num_objects", 1: "num_points"},
-            "point_labels": {0: "num_objects", 1: "num_points"},
-            "sparse_embeddings": {0: "num_objects", 1: "num_embeds"},
-            "dense_embeddings": {0: "num_objects"},
-        },
+    prompt_enc, dummy_pts, dummy_lbl = _export_point_prompt_encoder(
+        _export, tracker_model.sam_prompt_encoder, dtype, device, opset, prefix
     )
 
     # === 5. SAM Mask Decoder (for point prompts) ===
@@ -1210,18 +1230,7 @@ def export_sam3_onnx(
     )
 
     # === 8. Mask Embed (video tracking: dense embeddings for mask-seeded objects) ===
-    LOGGER.info(f"{prefix} exporting mask embed (opset {opset})...")
-    mask_embed = SAM3MaskEmbedONNX(tracker_model).to(device).eval()
-    dummy_mask_in = torch.randn(1, 1, feat_size * 4, feat_size * 4, dtype=dtype, device=device)
-
-    _export(
-        mask_embed,
-        (dummy_mask_in,),
-        "sam3_mask_embed.onnx",
-        ["mask_input"],
-        ["dense_embeddings"],
-        {"mask_input": {0: "num_objects"}, "dense_embeddings": {0: "num_objects"}},
-    )
+    _export_mask_embed(_export, tracker_model.sam_prompt_encoder, feat_size, dtype, device, opset, prefix)
 
     video_constants = _video_constants(tracker_model)
     del tracker_model
@@ -1271,7 +1280,7 @@ def export_sam3_engine(
         prefix: Log prefix.
 
     Returns:
-        List of 3 engine file paths.
+        List of engine file paths (3 core modules plus any optional point, video, or multiplex modules present).
     """
     from ultralytics.utils.checks import check_requirements
     from ultralytics.utils.export.engine import onnx2engine
@@ -1773,6 +1782,10 @@ def export_sam3_multiplex_onnx(
     _prepare_for_onnx_export(model)
 
     dtype = torch.float32
+    if half and device.type != "cpu":  # same dtype policy as export_sam3_onnx
+        model = model.half()
+        tracker_model = tracker_model.half()
+        dtype = torch.float16
     if output_dir is None:
         output_dir = str(Path(checkpoint_path).parent)
     output_path = Path(output_dir) / f"{Path(checkpoint_path).stem}_onnx"
@@ -1825,59 +1838,12 @@ def export_sam3_multiplex_onnx(
         vis_out = vis_encoder(dummy_image)
     fpn0, fpn1, fpn2, fpos2 = vis_out[:4]
 
-    # === 2. Text Encoder ===
-    LOGGER.info(f"{prefix} exporting text encoder (opset {opset})...")
-    txt_encoder = SAM3TextEncoderONNX(model).to(device).eval()
-    dummy_tokens = torch.zeros(1, 32, dtype=torch.long, device=device)
-    dummy_tokens[0, :3] = torch.tensor([49406, 2533, 49407])
-    _export(txt_encoder, (dummy_tokens,), "sam3_text_encoder.onnx", ["tokens"], ["text_features", "text_mask"])
-    with torch.no_grad():
-        txt_feats, txt_mask = txt_encoder(dummy_tokens)
-
-    # === 3. DETR Decoder ===
-    LOGGER.info(f"{prefix} exporting decoder (opset {opset})...")
-    decoder = SAM3DecoderONNX(model).to(device).eval()
-    dummy_boxes = torch.zeros(1, 1, 4, dtype=dtype, device=device)
-    dummy_box_labels = torch.full((1, 1), -10, dtype=torch.int32, device=device)
-    _export(
-        decoder,
-        (fpn0, fpn1, fpn2, fpos2, txt_feats, txt_mask, dummy_boxes, dummy_box_labels),
-        "sam3_decoder.onnx",
-        [
-            "fpn_feat_0",
-            "fpn_feat_1",
-            "fpn_feat_2",
-            "fpn_pos_2",
-            "prompt_features",
-            "prompt_mask",
-            "input_boxes",
-            "input_boxes_labels",
-        ],
-        ["pred_logits", "pred_boxes", "pred_masks", "presence_logit_dec"],
-        {"input_boxes": {1: "num_boxes"}, "input_boxes_labels": {1: "num_boxes"}},
-    )
+    # === 2-3. Text Encoder + DETR Decoder (shared with the base exporter) ===
+    _export_text_and_detr(_export, model, (fpn0, fpn1, fpn2, fpos2), dtype, device, opset, prefix)
 
     # === 4. Interactive Prompt Encoder ===
-    LOGGER.info(f"{prefix} exporting interactive prompt encoder (opset {opset})...")
-
-    class _InteractivePEHolder:
-        sam_prompt_encoder = tracker_model.interactive_sam_prompt_encoder
-
-    prompt_enc = SAM3PromptEncoderONNX(_InteractivePEHolder).to(device).eval()
-    dummy_pts = torch.tensor([[[500.0, 500.0]]], dtype=dtype, device=device)
-    dummy_lbl = torch.tensor([[1]], dtype=torch.int32, device=device)
-    _export(
-        prompt_enc,
-        (dummy_pts, dummy_lbl),
-        "sam3_prompt_encoder.onnx",
-        ["point_coords", "point_labels"],
-        ["sparse_embeddings", "dense_embeddings", "dense_pe"],
-        {
-            "point_coords": {0: "num_objects", 1: "num_points"},
-            "point_labels": {0: "num_objects", 1: "num_points"},
-            "sparse_embeddings": {0: "num_objects", 1: "num_embeds"},
-            "dense_embeddings": {0: "num_objects"},
-        },
+    prompt_enc, dummy_pts, dummy_lbl = _export_point_prompt_encoder(
+        _export, tracker_model.interactive_sam_prompt_encoder, dtype, device, opset, prefix
     )
     with torch.no_grad():
         sparse_dummy, dense_dummy, _ = prompt_enc(dummy_pts, dummy_lbl)
@@ -1910,21 +1876,7 @@ def export_sam3_multiplex_onnx(
     )
 
     # === 6. Mask Embed (dense embeddings for mask prompts) ===
-    LOGGER.info(f"{prefix} exporting mask embed (opset {opset})...")
-
-    class _MaskEmbedHolder:
-        sam_prompt_encoder = tracker_model.interactive_sam_prompt_encoder
-
-    mask_embed = SAM3MaskEmbedONNX(_MaskEmbedHolder).to(device).eval()
-    dummy_mask_in = torch.randn(1, 1, feat_size * 4, feat_size * 4, dtype=dtype, device=device)
-    _export(
-        mask_embed,
-        (dummy_mask_in,),
-        "sam3_mask_embed.onnx",
-        ["mask_input"],
-        ["dense_embeddings"],
-        {"mask_input": {0: "num_objects"}, "dense_embeddings": {0: "num_objects"}},
-    )
+    _export_mask_embed(_export, tracker_model.interactive_sam_prompt_encoder, feat_size, dtype, device, opset, prefix)
 
     # === 7. Multiplex Memory Encoder ===
     LOGGER.info(f"{prefix} exporting multiplex memory encoder (opset {opset})...")

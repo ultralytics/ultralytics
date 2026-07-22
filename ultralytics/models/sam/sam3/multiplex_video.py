@@ -28,6 +28,7 @@ from ultralytics.nn.modules import MLP
 from ultralytics.utils import TQDM
 
 from ..modules.blocks import PositionEmbeddingRandom
+from ..modules.sam import SAM2Model, SAM3Model
 from ..modules.encoders import PromptEncoder
 from ..modules.transformer import TwoWayTransformer
 from ..modules.utils import get_1d_sine_pe, select_closest_cond_frames
@@ -81,6 +82,11 @@ class TrackerTransformerWrapper(nn.Module):
 class SAM3MultiplexModel(nn.Module):
     """SAM 3.1 Object Multiplex tracker with bucketed shared-memory multi-object tracking.
 
+    Non-conditioning frame outputs (including ~10MB/frame of image features for the decoupled
+    memory attention) accumulate on the storage device for the whole session by default, matching
+    Meta; construct with ``trim_past_non_cond_mem_for_eval=True`` to release payloads once frames
+    leave the memory window (long videos / prompt-only sessions).
+
     Objects are grouped into buckets of ``multiplex_count`` slots (managed by a MultiplexState);
     memory encoding, memory attention, and mask decoding run with batch = num_buckets. Spatial
     memory and object pointers are stored per bucket in the mux space, and demuxed to the
@@ -110,9 +116,7 @@ class SAM3MultiplexModel(nn.Module):
         multimask_output_for_tracking: bool = False,
         use_multimask_token_for_obj_ptr: bool = False,
         iou_prediction_use_sigmoid: bool = False,
-        forward_backbone_per_frame_for_eval: bool = False,
         memory_temporal_stride_for_eval: int = 1,
-        offload_output_to_cpu_for_eval: bool = False,
         trim_past_non_cond_mem_for_eval: bool = False,
         non_overlap_masks_for_mem_enc: bool = False,
         use_obj_ptrs_in_encoder: bool = False,
@@ -145,7 +149,6 @@ class SAM3MultiplexModel(nn.Module):
         clear_non_cond_mem_for_multi_obj: bool = False,
         fill_hole_area: int = 0,
         always_start_from_first_ann_frame: bool = False,
-        max_point_num_in_prompt_enc: int = 16,
         non_overlap_masks_for_output: bool = True,
         # accepted for config parity with Meta's builder (training/eval-harness only)
         **kwargs,
@@ -192,7 +195,6 @@ class SAM3MultiplexModel(nn.Module):
         if hasattr(maskmem_backbone, "out_proj") and hasattr(maskmem_backbone.out_proj, "weight"):
             assert maskmem_backbone.out_proj.weight.shape[0] == self.hidden_dim, "no memory compression expected"
         self.num_maskmem = num_maskmem
-        self.sincos_tpos_enc = sincos_tpos_enc
         self.use_maskmem_tpos_v2 = use_maskmem_tpos_v2
         self.maskmem_tpos_enc = nn.Parameter(torch.zeros(num_maskmem, 1, 1, self.mem_dim))
         trunc_normal_(self.maskmem_tpos_enc, std=0.02)
@@ -204,7 +206,6 @@ class SAM3MultiplexModel(nn.Module):
         if apply_sigmoid_to_mask_logits_for_mem_enc:
             self.sigmoid_scale_for_mem_enc = sigmoid_scale_for_mem_enc
             self.sigmoid_bias_for_mem_enc = sigmoid_bias_for_mem_enc
-            self.binarize_mask_from_pts_for_mem_enc = False  # not trained with binarization
         self.non_overlap_masks_for_mem_enc = non_overlap_masks_for_mem_enc
         self.memory_temporal_stride_for_eval = memory_temporal_stride_for_eval
         self.use_mask_input_as_output_without_sam = use_mask_input_as_output_without_sam
@@ -221,8 +222,6 @@ class SAM3MultiplexModel(nn.Module):
         self.backbone_stride = backbone_stride
         self.low_res_mask_size = self.image_size // self.backbone_stride * 4
         self.input_mask_size = self.low_res_mask_size * 4
-        self.forward_backbone_per_frame_for_eval = forward_backbone_per_frame_for_eval
-        self.offload_output_to_cpu_for_eval = offload_output_to_cpu_for_eval
         self.trim_past_non_cond_mem_for_eval = trim_past_non_cond_mem_for_eval
         # Meta resets dynamic_multimask_via_stability to False for the multiplex decoder while the
         # interactive decoder keeps it.
@@ -273,9 +272,7 @@ class SAM3MultiplexModel(nn.Module):
         # demo/session options
         self.clear_non_cond_mem_around_input = clear_non_cond_mem_around_input
         self.clear_non_cond_mem_for_multi_obj = clear_non_cond_mem_for_multi_obj
-        self.fill_hole_area = fill_hole_area
         self.always_start_from_first_ann_frame = always_start_from_first_ann_frame
-        self.max_point_num_in_prompt_enc = max_point_num_in_prompt_enc
         self.non_overlap_masks_for_output = non_overlap_masks_for_output
 
     def _build_sam_heads(self, two_way_transformer_cls):
@@ -365,16 +362,8 @@ class SAM3MultiplexModel(nn.Module):
             and self.num_multimask_outputs > 0
         )
 
-    @staticmethod
-    def _apply_non_overlapping_constraints(pred_masks):
-        """Keep only the highest-scoring object per location."""
-        batch_size = pred_masks.size(0)
-        if batch_size == 1:
-            return pred_masks
-        max_obj_inds = torch.argmax(pred_masks, dim=0, keepdim=True)
-        batch_obj_inds = torch.arange(batch_size, device=pred_masks.device)[:, None, None, None]
-        keep = max_obj_inds == batch_obj_inds
-        return torch.where(keep, pred_masks, torch.clamp(pred_masks, max=-10.0))
+    # Reused from the SAM2/SAM3 model family (identical semantics, single source of truth)
+    _apply_non_overlapping_constraints = staticmethod(SAM2Model._apply_non_overlapping_constraints)
 
     def get_propagation_dense_pe(self) -> torch.Tensor:
         """Dense positional encoding for the multiplex mask decoder."""
@@ -832,6 +821,8 @@ class SAM3MultiplexModel(nn.Module):
         if self.no_obj_embed_spatial is not None:
             no_obj_embed_spatial = self.no_obj_embed_spatial.unsqueeze(0).repeat(multiplex_state.num_buckets, 1, 1)
             obj_expected = multiplex_state.total_valid_entries
+            # Faithful to Meta (video_tracking_multiplex.py): scores from mask-input frames can
+            # lag the live object count; pad with 0-logits (absent) or truncate to match.
             if object_score_logits.shape[0] != obj_expected:
                 if object_score_logits.shape[0] < obj_expected:
                     pad = object_score_logits.new_zeros(
@@ -1873,10 +1864,37 @@ class SAM3MultiplexModel(nn.Module):
                 obj_scores = current_out["object_score_logits"]
                 current_out["local_obj_id_to_idx"] = deepcopy(inference_state["obj_id_to_idx"])
                 output_dict[storage_key][frame_idx] = current_out
+                if self.trim_past_non_cond_mem_for_eval:
+                    self._trim_past_non_cond_memory(frame_idx, output_dict)
             self._add_output_per_object(inference_state, frame_idx, current_out, storage_key)
             inference_state["frames_already_tracked"][frame_idx] = {"reverse": reverse}
             low_res_masks, video_res_masks = self._get_orig_video_res_output(inference_state, pred_masks)
             yield frame_idx, obj_ids, low_res_masks, video_res_masks, obj_scores
+
+    def _trim_past_non_cond_memory(self, frame_idx, output_dict):
+        """Drop heavy memory payloads from the frame that just left the attention window.
+
+        Mirrors Meta's ``_trim_output_and_memory``/``_trim_past_out`` for the
+        ``trim_past_non_cond_mem_for_eval`` flag: the frame ``r * num_maskmem`` steps back can no
+        longer be selected as spatial memory, so its ``maskmem_features``/``image_features``
+        payload (~10MB per frame) is released while the small keys object pointers and heuristics
+        still read are kept. Without the flag (the default, faithful to Meta), non-conditioning
+        outputs grow unboundedly with video length.
+        """
+        past_frame_idx = frame_idx - self.memory_temporal_stride_for_eval * self.num_maskmem
+        past_out = output_dict["non_cond_frame_outputs"].get(past_frame_idx, None)
+        if past_out is None or "maskmem_features" not in past_out:
+            return
+        trimmed = {
+            "conditioning_objects": past_out["conditioning_objects"],
+            "pred_masks": past_out["pred_masks"],
+            "object_score_logits": past_out["object_score_logits"],
+        }
+        if self.use_obj_ptrs_in_encoder:
+            trimmed["obj_ptr"] = past_out["obj_ptr"]
+        if "local_obj_id_to_idx" in past_out:
+            trimmed["local_obj_id_to_idx"] = past_out["local_obj_id_to_idx"]
+        output_dict["non_cond_frame_outputs"][past_frame_idx] = trimmed
 
     def _add_output_per_object(self, inference_state, frame_idx, current_out, storage_key):
         """Split a multi-object output into per-object slices sharing the same storage."""
@@ -2248,6 +2266,8 @@ class SAM3MultiplexModel(nn.Module):
                 local_remain_old_obj_inds = [
                     obj_idx for obj_id, obj_idx in local_obj_id_to_idx.items() if obj_id not in obj_ids
                 ]
+                # Faithful to Meta's demo _slice_state: "guard against stale indices by
+                # intersecting with available rows" on historical per-object outputs.
                 max_rows = min(out["pred_masks"].shape[0], out["object_score_logits"].shape[0])
                 keep_indices = [idx for idx in local_remain_old_obj_inds if 0 <= idx < max_rows]
                 out["pred_masks"] = out["pred_masks"][keep_indices]
@@ -2300,22 +2320,8 @@ class SAM3MultiplexModel(nn.Module):
     # Output suppression heuristics (used by the semantic video orchestrator)
     # ------------------------------------------------------------------
 
-    @staticmethod
-    def _suppress_shrinked_masks(pred_masks, new_pred_masks, shrink_threshold=0.3):
-        """Suppress masks whose area shrinks heavily under pixel-wise non-overlap."""
-        area_before = torch.clamp((pred_masks > 0).sum(dim=(-1, -2)), min=1.0)
-        area_after = (new_pred_masks > 0).sum(dim=(-1, -2))
-        keep = (area_after / area_before) >= shrink_threshold
-        keep_mask = keep[..., None, None].expand_as(pred_masks)
-        return torch.where(keep_mask, pred_masks, torch.clamp(pred_masks, max=-10.0))
-
-    @staticmethod
-    def _suppress_object_pw_area_shrinkage(pred_masks):
-        """Fully suppress masks that shrink heavily under pixel-wise non-overlap constraints."""
-        if pred_masks.size(0) == 1:
-            return pred_masks
-        pixel_level = SAM3MultiplexModel._apply_non_overlapping_constraints(pred_masks)
-        return SAM3MultiplexModel._suppress_shrinked_masks(pred_masks, pixel_level)
+    _suppress_shrinked_masks = staticmethod(SAM3Model._suppress_shrinked_masks)
+    _suppress_object_pw_area_shrinkage = SAM3Model._suppress_object_pw_area_shrinkage
 
     def _apply_object_wise_non_overlapping_constraints(self, pred_masks, obj_scores, background_value=-10.0):
         """Let only one object (by score) claim each overlapping region."""

@@ -2234,6 +2234,9 @@ class SAM3SemanticPredictor(SAM3Predictor):
     def get_model(self):
         """Retrieve and initialize the Segment Anything Model 3 (SAM3) for image segmentation tasks."""
         if (backend := _sam3_export_backend(self.args.model, self.args.device)) is not None:
+            assert not backend.is_multiplex, (
+                f"{self.args.model} is a SAM 3.1 multiplex export; use SAM3MultiplexVideoSemanticPredictor"
+            )
             return backend
 
         from .build_sam3 import build_sam3_image_model  # slow import
@@ -2532,6 +2535,9 @@ class SAM3VideoPredictor(SAM2VideoPredictor, SAM3Predictor):
     def get_model(self):
         """Retrieve the SAM3 tracker, supporting exported ONNX/TensorRT model directories."""
         if (backend := _sam3_export_backend(self.args.model, self.args.device)) is not None:
+            assert not backend.is_multiplex, (
+                f"{self.args.model} is a SAM 3.1 multiplex export; use SAM3MultiplexVideoSemanticPredictor"
+            )
             assert backend.has_video_modules, (
                 f"{self.args.model} lacks the video memory modules (sam3_memory_encoder, "
                 "sam3_memory_attention, sam3_mask_embed); re-export the model to enable tracking."
@@ -4091,7 +4097,7 @@ class SAM3MultiplexVideoSemanticPredictor(SAM3VideoSemanticPredictor):
     up to ``multiplex_count`` objects, so multi-object tracking cost scales with buckets instead of
     objects. Detection, association, hotstart, keep-alive, and confirmation heuristics are reused
     from the parent; only the tracker-touching steps are overridden. Requires a sam3.1_multiplex.pt
-    checkpoint; torch inference only (no exported-backend support in this phase).
+    checkpoint, or an exported ONNX/TensorRT model directory (routed to SAM3MultiplexBackend).
     """
 
     def __init__(
@@ -4129,6 +4135,7 @@ class SAM3MultiplexVideoSemanticPredictor(SAM3VideoSemanticPredictor):
         # Parent helpers reach the net via self.tracker.model (e.g. non-overlap constraints).
         self.tracker = SimpleNamespace(model=None)
         self.tracker_model = None
+        self._seeded_frame_ids = None  # (frame_idx, {obj_ids}) of the latest prompt-seeded frame
         self._tracker_feature_cache: dict = {}
         self._pending_backbone_out = None
         self._pending_recondition_blend = None
@@ -4137,6 +4144,11 @@ class SAM3MultiplexVideoSemanticPredictor(SAM3VideoSemanticPredictor):
     def get_model(self):
         """Build the multiplex detector, or the exported-graph backend for _onnx/_engine dirs."""
         if (backend := _sam3_export_backend(self.args.model, self.args.device)) is not None:
+            assert backend.is_multiplex and getattr(backend, "tracker_model", None) is not None, (
+                f"{self.args.model} lacks the multiplex tracker graphs "
+                "(sam3_memory_encoder/attention, sam3_multiplex_mask_decoder, sam3_multiplex_params.npz); "
+                "re-export the model to enable tracking."
+            )
             return backend
 
         from .build_sam3 import build_sam3_multiplex
@@ -4146,7 +4158,7 @@ class SAM3MultiplexVideoSemanticPredictor(SAM3VideoSemanticPredictor):
     def setup_model(self, model=None, verbose=True):
         """Build detector and the multiplex tracker net (skips the parent's per-object tracker)."""
         SAM3SemanticPredictor.setup_model(self, model, verbose)
-        if hasattr(self.model, "tracker_model"):  # exported backend carries its graph-shimmed tracker
+        if getattr(self.model, "is_multiplex", False):  # exported backend carries its graph-shimmed tracker
             self.tracker_model = self.model.tracker_model
         else:
             from .build_sam3 import build_sam3_multiplex_tracker
@@ -4245,7 +4257,6 @@ class SAM3MultiplexVideoSemanticPredictor(SAM3VideoSemanticPredictor):
             cached_features=self._tracker_feature_cache,
             device=self.device,
         )
-        state["backbone_out"] = None
         tracker_states_local.append(state)
 
         start_id = int(tracker_metadata["max_obj_id"]) + 1
@@ -4315,14 +4326,19 @@ class SAM3MultiplexVideoSemanticPredictor(SAM3VideoSemanticPredictor):
         if len(low_res_masks_list) > 0:
             low_res_masks_global = torch.cat(low_res_masks_list, dim=0)
             obj_scores_global = torch.cat(obj_scores_list, dim=0)
+            # Dynamic backfill can place new ids into older states, so per-state concatenation
+            # order is not necessarily the metadata id order the downstream heuristics index by.
+            meta_ids = list(tracker_metadata_prev["obj_ids"])
+            assert sorted(obj_ids_local) == sorted(meta_ids), f"{obj_ids_local} != {meta_ids}"
+            if obj_ids_local != meta_ids:
+                pos = {obj_id: i for i, obj_id in enumerate(obj_ids_local)}
+                idx = torch.tensor([pos[i] for i in meta_ids], device=low_res_masks_global.device)
+                low_res_masks_global = low_res_masks_global[idx]
+                obj_scores_global = obj_scores_global[idx]
         else:
             size = self.tracker_model.low_res_mask_size
             low_res_masks_global = torch.zeros(0, size, size, device=self.device)
             obj_scores_global = torch.zeros(0, device=self.device)
-
-        assert np.all(np.array(obj_ids_local) == tracker_metadata_prev["obj_ids"]), (
-            f"{obj_ids_local} != {tracker_metadata_prev['obj_ids']}"
-        )
         return low_res_masks_global, obj_scores_global
 
     def _recondition_masklets(
@@ -4448,7 +4464,6 @@ class SAM3MultiplexVideoSemanticPredictor(SAM3VideoSemanticPredictor):
     ):
         """Add new detection-seeded objects, backfilling bucket slots before opening new states."""
         model = self.tracker_model
-        prev_state = tracker_states_local[0] if len(tracker_states_local) > 0 else None
 
         # Best-fit: reuse the existing state with the fewest (but sufficient) free slots
         best_state, best_available = None, float("inf")
@@ -4466,7 +4481,6 @@ class SAM3MultiplexVideoSemanticPredictor(SAM3VideoSemanticPredictor):
                 cached_features=self._tracker_feature_cache,
                 device=self.device,
             )
-            best_state["backbone_out"] = prev_state.get("backbone_out", None) if prev_state is not None else None
             tracker_states_local.append(best_state)
 
         assert len(new_obj_ids) == new_obj_masks.size(0) and new_obj_masks.is_floating_point()
@@ -4509,7 +4523,7 @@ class SAM3MultiplexVideoSemanticPredictor(SAM3VideoSemanticPredictor):
     ):
         """Build outputs, overriding reconditioned objects with their detection masks."""
         merged = set(reconditioned_obj_ids or set()) | self._reconditioned_obj_ids_last_frame
-        seeded = getattr(self, "_seeded_frame_ids", None)
+        seeded = self._seeded_frame_ids
         if seeded is not None and seeded[0] == getattr(self, "_current_frame_idx", None):
             merged |= seeded[1]
         return SAM3VideoSemanticPredictor.build_outputs(

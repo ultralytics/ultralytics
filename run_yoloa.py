@@ -222,7 +222,7 @@ def main():
                 sz_kb = out_json.stat().st_size / 1024
                 print(f"  JSON dumped ({sz_kb:.0f} KB) -> {out_json}", flush=True)
 
-            print(f"\n{'=' * 60}\nCOCO eval: loose(.10:.50) + standard(.50:.95) × conf {conf_list}\n{'=' * 60}", flush=True)
+            print(f"\n{'=' * 60}\nCOCO eval: loose(.10:.50) × conf {conf_list}\n{'=' * 60}", flush=True)
             YOLOAnomalyCocoValidator.evaluate_run(
                 out_root, cat_to_yaml, cat_to_json, conf_list, args.cat, rebuild_gt=args.rebuild_gt
             )

@@ -376,8 +376,8 @@ class YOLOAnomalyCocoValidator(YOLOAnomalyValidator):
        rejects and that collides across categories in pooled eval; the integer scheme fixes
        both and matches :meth:`build_coco_gt`.
     2. **Evaluate** — :meth:`evaluate_run` runs multi-confidence COCO eval offline over the
-       dumped predictions (per-category + pooled, loose ``.10:.50`` and standard ``.50:.95``
-       IoU grids). Because the dump keeps every box (``conf=DUMP_CONF``), each conf floor is
+       dumped predictions (per-category + pooled, loose ``.10:.50`` IoU grid). Because the
+       dump keeps every box (``conf=DUMP_CONF``), each conf floor is
        obtained by ``loadRes(preds, min_score=conf)`` — a single inference pass covers the
        whole sweep, no re-inference and no temp files.
 
@@ -567,7 +567,7 @@ class YOLOAnomalyCocoValidator(YOLOAnomalyValidator):
         from faster_coco_eval import COCO
 
         out_root = Path(out_root)
-        regimes = [("loose(.10:.50)", cls.IOU_LOOSE), ("standard(.50:.95)", cls.IOU_STANDARD)]
+        regimes = [("loose(.10:.50)", cls.IOU_LOOSE)]
         rows = []
         all_gt = {"info": {}, "licenses": [], "images": [], "annotations": [], "categories": [{"id": 0, "name": "anomaly"}]}
         all_preds = []

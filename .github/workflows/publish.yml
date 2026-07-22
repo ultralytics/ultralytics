@@ -29,11 +29,11 @@ jobs:
       previous_tag: ${{ steps.check_pypi.outputs.previous_tag }}
     steps:
       - uses: actions/checkout@v7
-      - uses: ultralytics/actions/setup-uv@main
+      - uses: actions/setup-python@v7
         with:
-          python-version: "3"
-          activate-environment: true
-      - run: uv pip install --no-cache ultralytics-actions
+          python-version: "3.x"
+      - uses: ultralytics/actions/setup-uv@main
+      - run: uv pip install --system --no-cache ultralytics-actions
       - id: check_pypi
         shell: python
         env:
@@ -67,6 +67,7 @@ jobs:
             [ -n "$PREVIOUS_TAG" ] || git fetch --unshallow --tags # summarize resolves the previous tag from git history
             ultralytics-actions-summarize-release
           fi
+          uv cache prune --ci
 
   build:
     needs: check
@@ -76,11 +77,13 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v7
-      - uses: ultralytics/actions/setup-uv@main
+      - uses: actions/setup-python@v7
         with:
-          python-version: "3"
+          python-version: "3.x"
+      - uses: ultralytics/actions/setup-uv@main
+      - run: uv pip install --system --no-cache build
       - name: Build ultralytics
-        run: uv build --out-dir dist/
+        run: python -m build --outdir dist/
       - name: Build ultralytics-opencv-headless
         run: |
           python - <<'PY'
@@ -100,12 +103,13 @@ jobs:
           text = text.replace('"opencv-python>=', '"opencv-python-headless>=', 1)
           path.write_text(text)
           PY
-          uv build --out-dir dist/
+          python -m build --outdir dist/
           git checkout pyproject.toml
       - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
+      - run: uv cache prune --ci
 
   publish:
     needs: [check, build]
@@ -144,22 +148,21 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
       - uses: ultralytics/actions/setup-uv@main
-        with:
-          python-version: "3"
-      - uses: actions/download-artifact@v8
-        with:
-          name: dist
-          path: ${{ runner.temp }}/dist
-      - name: Create isolated SBOM environment
-        run: |
-          uv venv "$RUNNER_TEMP/sbom-env"
-          uv pip install --python "$RUNNER_TEMP/sbom-env/bin/python" "$RUNNER_TEMP"/dist/ultralytics-[0-9]*-py3-none-any.whl
+      - run: |
+          uv venv sbom-env
+          uv pip install -e .
+        env:
+          VIRTUAL_ENV: sbom-env
       - uses: anchore/sbom-action@v0
         with:
           format: spdx-json
           output-file: sbom.spdx.json
-          path: ${{ runner.temp }}/sbom-env
+          path: sbom-env
       - run: gh release upload ${{ needs.check.outputs.current_tag }} sbom.spdx.json --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

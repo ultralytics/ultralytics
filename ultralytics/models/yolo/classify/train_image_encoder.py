@@ -195,15 +195,21 @@ class ImageEncoderTrainer(ClassificationTrainer):
         # ``hires_tail`` is read as a legacy alias so runs launched before the rename still resume.
         v = getattr(self.args, "high_res_final_epochs", None) or getattr(self.args, "hires_tail", None)
         self._high_res_imgsz, self._high_res_epochs = map(int, v.split(":")) if v else (None, None)
+        self._multires_sizes = tuple(getattr(self.args, "multires_sizes", ()))
+        self._multires_generator = torch.Generator().manual_seed(self.args.seed) if self._multires_sizes else None
+        if self._multires_sizes and self._high_res_imgsz:
+            raise ValueError("EUPE multi-resolution continuation cannot be combined with high_res_final_epochs")
         self._teacher_dynamic = {safe_key(n): TEACHER_REGISTRY[n].get("dynamic_imgsz", False) for n in self.teachers}
         self._teacher_multiples = {safe_key(n): TEACHER_REGISTRY[n].get("imgsz_multiple", 1) for n in self.teachers}
-        self._load_imgsz = max(self._teacher_imgsz, self._high_res_imgsz or 0)
-        if self._high_res_imgsz:
+        self._load_imgsz = max(self._teacher_imgsz, self._high_res_imgsz or 0, *self._multires_sizes)
+        if self._high_res_imgsz or self._multires_sizes:
             for name, sk in zip(self.teachers, self._safe_keys):
-                if self._teacher_dynamic[sk] and self._high_res_imgsz % self._teacher_multiples[sk]:
+                if self._multires_sizes and not self._teacher_dynamic[sk]:
+                    raise ValueError(f"{name} does not support EUPE multi-resolution teacher inputs")
+                sizes = self._multires_sizes or (self._high_res_imgsz,)
+                if self._teacher_dynamic[sk] and any(size % self._teacher_multiples[sk] for size in sizes):
                     raise ValueError(
-                        f"{name} high-res teacher size must be divisible by {self._teacher_multiples[sk]}, "
-                        f"got {self._high_res_imgsz}"
+                        f"{name} teacher sizes must be divisible by {self._teacher_multiples[sk]}, got {sizes}"
                     )
 
         # Register hooks here (not in runner): dist.py:57 only serializes self.args to DDP workers.
@@ -254,7 +260,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
             LOGGER.info(
                 f"ImageEncoderTrainer sizes: load={self._load_imgsz} student={self.args.imgsz}"
                 f" high_res_final_epochs={getattr(self.args, 'high_res_final_epochs', None)} "
-                f"teacher_tail={teacher_tail}"
+                f"eupe_multires={self._multires_sizes or None} teacher_tail={teacher_tail}"
             )
 
     def _setup_train(self):
@@ -403,8 +409,9 @@ class ImageEncoderTrainer(ClassificationTrainer):
                 self.teacher_models[sk] = build_teacher_model(name, self.device, normalize_input=normalize_input)
                 n = sum(p.numel() for p in self.teacher_models[sk].parameters()) / 1e6
                 LOGGER.info(f"  {name}: {n:.1f}M params, embed_dim={self.teacher_models[sk].embed_dim}")
-                # torch.compile the frozen teacher forward: ~2x on DINOv3-ViT-B (B=256/224, measured),
-                # numerically identical to eager (min cosine >= 0.9999). Static B=256 shape compiles once.
+                # torch.compile the frozen teacher forward: ~2x on DINOv3-ViT-B (B=256/224, measured), numerically
+                # identical to eager (min cosine >= 0.9999). Fixed resolution compiles once. EUPE multi-resolution
+                # caches one graph for each of its three teacher sizes rather than requesting a dynamic graph.
                 self.teacher_models[sk].model = torch.compile(self.teacher_models[sk].model)
 
     def _build_transforms(self, mode):
@@ -413,7 +420,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
         Same augmented image goes to both teacher and student, resized to their respective resolutions
         in preprocess_batch (EUPE Stage 2 / DUNE / AM-RADIO convention). Images load at the largest active resolution.
         """
-        sz = self._load_imgsz
+        sz = self.args.imgsz if self._multires_sizes and mode != "train" else self._load_imgsz
         if mode == "train":
             return classify_augmentations_distill(
                 size=sz,
@@ -531,19 +538,24 @@ class ImageEncoderTrainer(ClassificationTrainer):
             (dict): Batch with 'img', 'cls', per-teacher entries, and '_teacher_keys'.
         """
         imgs = batch.to(self.device, non_blocking=True)
+        student_imgsz, multires_teacher_imgsz = (
+            self._sample_multires_sizes() if self._multires_sizes else (self._student_imgsz(), None)
+        )
         # Per-batch gate (not an on_train_epoch_start hook like close_mosaic): raising the final-epoch resolution
         # only swaps the interpolation target, no dataloader rebuild, so reading live self.epoch here also makes a
         # resume part-way through the final epochs re-enter the higher-resolution regime for free.
-        student_imgs = resize_to(imgs, self._student_imgsz())
+        student_imgs = resize_to(imgs, student_imgsz)
 
         result = {
             "img": student_imgs,
             "cls": torch.zeros(imgs.shape[0], dtype=torch.long, device=self.device),
             "_teacher_keys": self._safe_keys,
         }
+        if self._multires_sizes:
+            result["_patch_align_mode"] = "bicubic"
 
         for sk in self._safe_keys:
-            teacher_imgsz = self._teacher_imgsz_for(sk)
+            teacher_imgsz = multires_teacher_imgsz or self._teacher_imgsz_for(sk)
             teacher_imgs = resize_to(imgs, teacher_imgsz)
             out = encode_teacher_batch(
                 self.teacher_models[sk], teacher_imgs, self._teacher_chunk_for(sk, teacher_imgsz)
@@ -551,6 +563,18 @@ class ImageEncoderTrainer(ClassificationTrainer):
             result[sk] = {"cls": out.cls, "patches": out.patches}
 
         return result
+
+    def _sample_multires_sizes(self):
+        """Return independently sampled EUPE Stage 3 sizes synchronized across DDP ranks.
+
+        A dedicated CPU generator starts from the same run seed on every rank and advances once per training batch.
+
+        Returns:
+            student_imgsz (int): Student input size.
+            teacher_imgsz (int): Teacher input size.
+        """
+        indices = torch.randint(len(self._multires_sizes), (2,), generator=self._multires_generator).tolist()
+        return tuple(self._multires_sizes[i] for i in indices)
 
     def _student_imgsz(self):
         """Return current student image size."""
@@ -563,6 +587,8 @@ class ImageEncoderTrainer(ClassificationTrainer):
 
     def _teacher_imgsz_for(self, sk):
         """Return current teacher image size for a safe teacher key."""
+        if self._multires_sizes:
+            return self.args.imgsz
         epoch = getattr(self, "epoch", 0)
         return (
             self._high_res_imgsz

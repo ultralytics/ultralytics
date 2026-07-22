@@ -136,8 +136,17 @@ class ImageEncoderLoss:
         return loss, [cls_cos.detach(), patch_cos.detach(), patch_term.detach()]
 
     @staticmethod
-    def _align_patch_tokens(s_patch, t_patch):
-        """Resize teacher patch tokens to the student patch grid."""
+    def _align_patch_tokens(s_patch, t_patch, mode="bilinear"):
+        """Resize teacher patch tokens to the student patch grid.
+
+        Args:
+            s_patch (torch.Tensor): Student patch tokens.
+            t_patch (torch.Tensor): Teacher patch tokens.
+            mode (str): Spatial interpolation mode.
+
+        Returns:
+            (torch.Tensor): Aligned teacher patch tokens.
+        """
         # Spatial alignment: if student and teacher have different patch counts, interpolate teacher
         # to match student grid. EUPE Section 3.1 upsamples to max(N_S, N_T); for teachers with
         # very large grids (SAM3: 5184 patches), we downsample teacher to student grid instead.
@@ -149,7 +158,7 @@ class ImageEncoderLoss:
             h = int(s_patch.shape[1] ** 0.5)
             th = int(t_patch.shape[1] ** 0.5)
             t_patch = t_patch.transpose(1, 2).reshape(t_patch.shape[0], t_patch.shape[2], th, th)
-            t_patch = F.interpolate(t_patch, size=(h, h), mode="bilinear", antialias=True)
+            t_patch = F.interpolate(t_patch, size=(h, h), mode=mode, antialias=True)
             t_patch = t_patch.flatten(2).transpose(1, 2)
         return t_patch
 
@@ -203,6 +212,7 @@ class ImageEncoderLoss:
         dev = first[0].device
         total_loss = torch.tensor(0.0, device=dev)
         all_items = []
+        patch_align_mode = batch.get("_patch_align_mode", "bilinear")
 
         for key in teacher_keys:
             if self.distill_path == "feat_map":
@@ -211,7 +221,7 @@ class ImageEncoderLoss:
             else:
                 s_cls, s_patch = preds[key]
                 t_cls = batch[key]["cls"]
-                t_patch = self._align_patch_tokens(s_patch, batch[key]["patches"])
+                t_patch = self._align_patch_tokens(s_patch, batch[key]["patches"], mode=patch_align_mode)
                 loss_i, items_i = self._teacher_loss(s_cls, s_patch, t_cls, t_patch)
             total_loss = total_loss + loss_i
             all_items.extend(items_i)
@@ -358,13 +368,23 @@ class ImageEncoderModel(ClassificationModel):
         # over channel dim independently per position, so separate application is equivalent.
         cls_normed = self.token_norm(cls_feats)
         teacher_preds = {}
+        patch_align_mode = batch.get("_patch_align_mode")
         for key in self.adaptors:
             n = batch[key]["patches"].shape[1]
             h = int(n**0.5)
             if h * h != n:
                 raise ValueError(f"Teacher patches for {key} must form a square grid, got {n} tokens")
-            # Patches via bilinear upsample (EUPE convnext.py:256, bilinear+antialias)
-            patch_feats = F.interpolate(features, size=(h, h), mode="bilinear", antialias=True)
+            if patch_align_mode:
+                # EUPE Section 4.1 aligns the smaller spatial grid to the larger grid with bicubic interpolation.
+                target_h = max(features.shape[-2], h)
+                patch_feats = (
+                    features
+                    if features.shape[-2:] == (target_h, target_h)
+                    else F.interpolate(features, size=(target_h, target_h), mode=patch_align_mode, antialias=True)
+                )
+            else:
+                # Preserve the original fixed-resolution and high-resolution-tail path exactly.
+                patch_feats = F.interpolate(features, size=(h, h), mode="bilinear", antialias=True)
             patch_feats = patch_feats.flatten(2).transpose(1, 2)  # (B, N, 1280)
             patch_normed = self.token_norm(patch_feats)
 

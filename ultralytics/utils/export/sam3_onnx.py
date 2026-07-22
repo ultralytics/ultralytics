@@ -964,7 +964,21 @@ def _onnx_postprocess(f, metadata, half=False, device_type="cpu", prefix="SAM3 O
 def _module_exporter(output_path, opset, exported_files):
     """Create the shared per-module ONNX export helper (traces with the common options)."""
 
-    _export = _module_exporter(output_path, opset, exported_files)
+    def _export(module, args, name, input_names, output_names, dynamic_axes=None):
+        f = str(output_path / name)
+        torch.onnx.export(
+            module,
+            args,
+            f,
+            opset_version=opset,
+            do_constant_folding=True,
+            dynamo=False,
+            input_names=input_names,
+            output_names=output_names,
+            dynamic_axes=dynamic_axes,
+        )
+        exported_files.append(f)
+        return f
 
     return _export
 
@@ -1800,22 +1814,7 @@ def export_sam3_multiplex_onnx(
         "multiplex_count": tracker_model.multiplex_count,
     }
     exported_files = []
-
-    def _export(module, args, name, input_names, output_names, dynamic_axes=None):
-        f = str(output_path / name)
-        torch.onnx.export(
-            module,
-            args,
-            f,
-            opset_version=opset,
-            do_constant_folding=True,
-            dynamo=False,
-            input_names=input_names,
-            output_names=output_names,
-            dynamic_axes=dynamic_axes,
-        )
-        exported_files.append(f)
-        return f
+    _export = _module_exporter(output_path, opset, exported_files)
 
     neck = model.backbone.vision_backbone
     feat_size = imgsz // 14

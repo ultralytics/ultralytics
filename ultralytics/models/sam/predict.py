@@ -4223,7 +4223,7 @@ class SAM3MultiplexVideoSemanticPredictor(SAM3VideoSemanticPredictor):
                 # (same semantics as Meta's find_text placeholder — no text detections).
                 inference_state["text_prompt"] = None
                 inference_state["text_ids"] = torch.arange(1, device=self.device, dtype=torch.long)
-                if self.model.names != "visual":
+                if self.model.names != ["visual"]:
                     self.model.set_classes(text="visual")
                 inference_state["per_frame_geometric_prompt"][frame_idx] = self._get_dummy_prompt(num_prompts=1)
                 out = self._run_single_frame_inference(frame_idx, reverse=False, inference_state=inference_state)

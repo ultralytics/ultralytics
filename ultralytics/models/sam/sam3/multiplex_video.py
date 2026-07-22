@@ -2258,9 +2258,10 @@ class SAM3MultiplexModel(nn.Module):
         # Step 3: slice packed per-bucket/per-object storage
         def _slice_state(output_dict, storage_key):
             for frame_idx, out in output_dict[storage_key].items():
-                out["maskmem_features"] = out["maskmem_features"][buckets_to_keep]
-                out["maskmem_pos_enc"] = [x[buckets_to_keep] for x in out["maskmem_pos_enc"]]
-                out["maskmem_pos_enc"] = self._get_maskmem_pos_enc(inference_state, out)
+                if "maskmem_features" in out:  # absent on frames trimmed by _trim_past_non_cond_memory
+                    out["maskmem_features"] = out["maskmem_features"][buckets_to_keep]
+                    out["maskmem_pos_enc"] = [x[buckets_to_keep] for x in out["maskmem_pos_enc"]]
+                    out["maskmem_pos_enc"] = self._get_maskmem_pos_enc(inference_state, out)
                 out["obj_ptr"] = out["obj_ptr"][buckets_to_keep]
                 local_obj_id_to_idx = out["local_obj_id_to_idx"]
                 local_remain_old_obj_inds = [

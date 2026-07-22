@@ -1324,7 +1324,11 @@ class SAM3MultiplexBackend(SAM3Backend):
         self.has_video_modules = False
         ext = "onnx" if self._format == "onnx" else "engine"
         params_file = self._model_dir / "sam3_multiplex_params.npz"
-        missing = [s for s in self._VIDEO_STEMS if not (self._model_dir / f"{s}.{ext}").exists()]
+        missing = [
+            s
+            for s in (*self._VIDEO_STEMS, *self._POINT_STEMS)  # interactive graphs feed the click shims
+            if not (self._model_dir / f"{s}.{ext}").exists()
+        ]
         if missing or not params_file.exists():
             raise FileNotFoundError(
                 f"{self._model_dir} is a multiplex export (params sidecar present or expected) but is missing "

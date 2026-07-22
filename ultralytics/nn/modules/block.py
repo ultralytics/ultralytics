@@ -1146,11 +1146,11 @@ class C3k2Detail(C3k2):
         """
         super().__init__(c1, c2, n, c3k, e, attn, g, shortcut)
         self.proj = Conv(cd, c2, 1, act=False)
-        self.alpha = nn.Parameter(torch.zeros(c2, 1, 1))
+        self.alpha = nn.Parameter(torch.zeros(c2))  # per-channel gate, 1D so the optimizer treats it as a vector
 
     def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
         """Return C3k2(x[0]) plus the gated detail residual alpha * proj(x[1])."""
-        return super().forward(x[0]) + self.alpha * self.proj(x[1])
+        return super().forward(x[0]) + self.alpha.view(-1, 1, 1) * self.proj(x[1])
 
 
 class C2fSlim(C2f):

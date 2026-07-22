@@ -1369,9 +1369,9 @@ def test_pose_keypoint_loss_per_anchor_stride():
     """Keypoint targets must be divided by each matched anchor's own stride, for sparse matches across strides.
 
     A multi-image batch matches anchors at strides 8, 32 (image 0) and 16 (image 1) to their ground-truth objects.
-    Predictions are the ground-truth keypoints already divided by the correct per-anchor stride, so the location loss
-    is exactly zero only if the masked stride indexing maps every match to the right stride. The no-foreground image
-    (all masks False) must return a zero loss without touching the stride path.
+    Predictions are the ground-truth keypoints already divided by the correct per-anchor stride, so the location loss is
+    exactly zero only if the masked stride indexing maps every match to the right stride. The no-foreground image (all
+    masks False) must return a zero loss without touching the stride path.
     """
     import torch.nn as nn
 
@@ -1417,8 +1417,8 @@ def test_pose_keypoint_loss_per_anchor_stride():
 def test_bbox_loss_masked_weight_sparse():
     """`BboxLoss` weight is the per-anchor score sum over matched anchors only; sparse fg_mask must give a finite loss.
 
-    Reducing after masking (`target_scores[fg_mask].sum(-1)`) must equal masking after the full-tensor reduction, so
-    the IoU loss matches a hand-computed reference on a sparse multi-anchor batch.
+    Reducing after masking (`target_scores[fg_mask].sum(-1)`) must equal masking after the full-tensor reduction, so the
+    IoU loss matches a hand-computed reference on a sparse multi-anchor batch.
     """
     from ultralytics.utils.loss import BboxLoss
 

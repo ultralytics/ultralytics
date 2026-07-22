@@ -62,10 +62,14 @@ jobs:
         model: [yolo26n]
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        if: matrix.os != 'cpu-latest'
+        with:
+          python-version: ${{ matrix.python }}
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: ${{ matrix.python }}
-          activate-environment: true
+          activate-environment: ${{ matrix.os == 'cpu-latest' }}
       - name: Install requirements
         uses: ultralytics/actions/retry@main
         with:
@@ -73,8 +77,12 @@ jobs:
           retry_delay_seconds: 20
           timeout_minutes: 20
           run: |
+            uv_system_args=()
+            if [[ "${{ matrix.os }}" != "cpu-latest" ]]; then
+              uv_system_args=(--system)
+            fi
             # Pin PNNX until 20260704 NCNN inference segfault is fixed: https://github.com/pnnx/pnnx/issues/293
-            uv pip install -e ".[export,export-executorch]" \
+            uv pip install "${uv_system_args[@]}" -e ".[export,export-executorch]" \
               ncnn pnnx==20260526 "coverage[toml]" \
               --torch-backend cpu
       - name: Check environment
@@ -116,6 +124,8 @@ jobs:
           flags: Benchmarks
           fail_ci_if_error: false
           use_oidc: true
+      - name: Prune uv Cache
+        run: uv cache prune --ci
       - name: Benchmark Summary
         run: |
           cat benchmarks.log
@@ -150,6 +160,7 @@ jobs:
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
+          slow=""
           torch=""
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
@@ -193,6 +204,9 @@ jobs:
           flags: Tests
           fail_ci_if_error: false
           use_oidc: true
+      - name: Prune uv Cache
+        run: uv cache prune --ci
+
   # Shared runner CI keeps current stacks on the main path; legacy torch shards are isolated only where needed.
   SlowTests:
     if: (github.event_name == 'workflow_dispatch' && github.event.inputs.tests == 'true') || github.event_name == 'schedule'
@@ -342,6 +356,9 @@ jobs:
           retry_delay_seconds: 60
         env:
           YOLO_AUTOINSTALL: "false"
+      - name: Prune uv Cache
+        run: uv cache prune --ci
+
   # Export recipes that need their own environments are validated here so the shared CI jobs stay lean.
   IsolatedExports:
     if: github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.tests == 'true') || github.event_name == 'schedule'
@@ -349,18 +366,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: "3.13"
-          activate-environment: true
-          enable-cache: true
-          cache-dependency-glob: |
-            pyproject.toml
-            ultralytics/engine/exporter.py
       - name: Install export system dependencies
         run: sudo apt-get update && sudo apt-get install -y openjdk-21-jre flatbuffers-compiler
+      - name: Cache uv wheels
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/uv
+          key: isolated-exports-uv-${{ hashFiles('ultralytics/engine/exporter.py', 'pyproject.toml') }}
+          restore-keys: |
+            isolated-exports-uv-
       - name: Install base package
-        run: uv pip install -e ".[export-base]" pytest "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
+        run: uv pip install --system -e ".[export-base]" pytest "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
       - name: Configure Ultralytics cache paths
         run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
       - name: Cache test assets

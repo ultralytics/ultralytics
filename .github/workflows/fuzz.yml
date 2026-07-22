@@ -106,6 +106,9 @@ jobs:
         with:
           name: fuzz-${{ matrix.personality }}
           path: fuzz-out/
+      - name: Prune uv Cache
+        run: uv cache prune --ci
+
   Report:
     needs: Fuzz
     if: always() && github.event.inputs.repro_command == ''

@@ -47,9 +47,11 @@ jobs:
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: "3.14"
-          activate-environment: true
       - name: Install Dependencies
-        run: uv pip install -e ".[dev]" ruff --extra-index-url https://download.pytorch.org/whl/cpu
+        run: |
+          uv venv
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+          uv pip install -e ".[dev]" ruff --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Ruff fixes
         continue-on-error: true
         run: |

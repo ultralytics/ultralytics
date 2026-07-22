@@ -174,6 +174,8 @@ class BasePredictor:
         im = im.half() if self.model.fp16 else im.float()  # uint8 to fp16/32
         if not_tensor:
             im /= 255  # 0 - 255 to 0.0 - 1.0
+        if self.channels_last:
+            im = im.contiguous(memory_format=torch.channels_last)
         return im
 
     def inference(self, im: torch.Tensor, *args, **kwargs):
@@ -422,6 +424,13 @@ class BasePredictor:
         if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
             self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()
+        # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, wrong on MPS, no CPU gain.
+        # _apply recurses into the eager PyTorch backend and no-ops on exported formats holding no nn.Module.
+        self.channels_last = self.args.channels_last and self.device.type == "cuda"
+        if self.args.channels_last and not self.channels_last:
+            LOGGER.warning(f"'channels_last=True' is only supported on CUDA, ignoring on '{self.device.type}'.")
+        if self.channels_last:
+            self.model.to(memory_format=torch.channels_last)
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
     def write_results(self, i: int, p: Path, im: torch.Tensor, s: list[str]) -> str:

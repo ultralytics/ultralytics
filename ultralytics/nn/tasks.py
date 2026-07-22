@@ -37,6 +37,7 @@ from ultralytics.nn.modules import (
     C2fSlim,
     C3Ghost,
     C3k2,
+    C3k2Detail,
     C3k2Slim,
     C3x,
     CBFuse,
@@ -1780,6 +1781,14 @@ def parse_model(d, ch, verbose=True):
                     args.extend((True, 1.2))
             if m is C2fCIB:
                 legacy = False
+        elif m is C3k2Detail:
+            c1, cd = ch[f[0]], ch[f[1]]  # main (neck) input, detail (raw backbone) input
+            c2 = make_divisible(min(args[0], max_channels) * width, 8)
+            args = [c1, c2, cd, n, *args[1:]]  # c1, c2, cd, n, c3k, ...
+            n = 1
+            legacy = False
+            if scale in "mlx":
+                args[4] = True
         elif m is AIFI:
             args = [ch[f], *args]
         elif m in frozenset({HGStem, HGBlock}):

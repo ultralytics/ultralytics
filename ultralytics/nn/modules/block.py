@@ -38,6 +38,7 @@ __all__ = (
     "C2fSlim",
     "C3Ghost",
     "C3k2",
+    "C3k2Detail",
     "C3k2Slim",
     "C3x",
     "CBFuse",
@@ -1109,12 +1110,55 @@ class C3k2(C2f):
         )
 
 
+class C3k2Detail(C3k2):
+    """C3k2 with a gated detail residual injected from a second high-resolution input.
+
+    For inputs ``[x_main, x_detail]`` it returns ``C3k2(x_main) + alpha * proj(x_detail)``, adding fine detail from a
+    raw backbone feature (``x_detail``) straight onto the neck output so it bypasses the bottleneck abstraction inside
+    C3k2. ``proj`` is a 1x1 conv mapping the detail channels to ``c2`` and ``alpha`` is a per-channel vector initialized
+    to 0, so at the start the block is identical to a plain C3k2.
+    """
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        cd: int,
+        n: int = 1,
+        c3k: bool = False,
+        e: float = 0.5,
+        attn: bool = False,
+        g: int = 1,
+        shortcut: bool = True,
+    ):
+        """Initialize C3k2Detail.
+
+        Args:
+            c1 (int): Main input channels.
+            c2 (int): Output channels.
+            cd (int): Detail (second input) channels.
+            n (int): Number of blocks.
+            c3k (bool): Whether to use C3k blocks.
+            e (float): Expansion ratio.
+            attn (bool): Whether to use attention blocks.
+            g (int): Groups for convolutions.
+            shortcut (bool): Whether to use shortcut connections.
+        """
+        super().__init__(c1, c2, n, c3k, e, attn, g, shortcut)
+        self.proj = Conv(cd, c2, 1, act=False)
+        self.alpha = nn.Parameter(torch.zeros(c2, 1, 1))
+
+    def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
+        """Return C3k2(x[0]) plus the gated detail residual alpha * proj(x[1])."""
+        return super().forward(x[0]) + self.alpha * self.proj(x[1])
+
+
 class C2fSlim(C2f):
     """C2f variant that drops the second split half from the final concat when ``shortcut=True``.
 
-    In C2f both halves of the ``cv1`` split are kept in the final concat. Here, when ``shortcut=True`` the second
-    half only seeds the bottleneck chain and is excluded from the concat, so ``cv2`` takes ``(1 + n) * c`` channels
-    instead of ``(2 + n) * c``. With ``shortcut=False`` it is identical to C2f.
+    In C2f both halves of the ``cv1`` split are kept in the final concat. Here, when ``shortcut=True`` the second half
+    only seeds the bottleneck chain and is excluded from the concat, so ``cv2`` takes ``(1 + n) * c`` channels instead
+    of ``(2 + n) * c``. With ``shortcut=False`` it is identical to C2f.
     """
 
     def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = False, g: int = 1, e: float = 0.5):
@@ -2161,8 +2205,8 @@ class MobileOneBlock(nn.Module):
     """MobileOne reparameterizable block.
 
     Multi-branched (skip-BN + scale + conv branches) at train time, fused into a single plain convolution after
-    `reparameterize()` for inference. Adapted from `MobileOne <https://arxiv.org/abs/2206.04040>`_ and
-    `FastViT <https://arxiv.org/abs/2303.14189>`_.
+    `reparameterize()` for inference. Adapted from `MobileOne <https://arxiv.org/abs/2206.04040>`_ and `FastViT
+    <https://arxiv.org/abs/2303.14189>`_.
     """
 
     def __init__(
@@ -2322,8 +2366,8 @@ class ConvFFN(nn.Module):
 class RepMixer(nn.Module):
     """Reparameterizable token mixer from `FastViT <https://arxiv.org/abs/2303.14189>`_.
 
-    Trains as ``x + layer_scale * (mixer(x) - norm(x))`` and collapses into a single depthwise convolution
-    (skip connection included) after `reparameterize()`.
+    Trains as ``x + layer_scale * (mixer(x) - norm(x))`` and collapses into a single depthwise convolution (skip
+    connection included) after `reparameterize()`.
     """
 
     def __init__(self, dim: int, k: int = 3, layer_scale_init: float = 1e-5):
@@ -2394,8 +2438,8 @@ class RepMixerBlock(nn.Module):
 class RepMixerStage(nn.Module):
     """Stack of FastViT RepMixer blocks, a drop-in replacement for C3k2 as a stage token mixer.
 
-    A 1x1 projection is inserted only when ``c1 != c2``; in the common case (e.g. YOLO backbone P4/P5 stages)
-    the channels are unchanged and the stage is pure RepMixer blocks.
+    A 1x1 projection is inserted only when ``c1 != c2``; in the common case (e.g. YOLO backbone P4/P5 stages) the
+    channels are unchanged and the stage is pure RepMixer blocks.
     """
 
     def __init__(self, c1: int, c2: int, n: int = 1, mlp_ratio: float = 2.5, k: int = 3):

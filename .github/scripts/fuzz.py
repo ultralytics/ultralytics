@@ -474,7 +474,7 @@ def run_trial(trial, timeout=None):
             with contextlib.suppress(ProcessLookupError):
                 os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
         else:
-            subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)], capture_output=True)
+            subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)], capture_output=True, check=False)
         _, stderr = proc.communicate()
         rc, stderr = "timeout", stderr or ""
     finally:

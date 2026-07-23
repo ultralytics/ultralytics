@@ -30,6 +30,8 @@ Platform only ever reads from your storage — it never writes, modifies, or del
    enter a known bucket name manually.
 4. Click **Connect**. Platform verifies it can list and read each selected bucket before saving anything.
 
+![Ultralytics Platform Google Cloud Storage Integration Settings](https://cdn.ul.run/i/17d8f8e3add44f3b57dde44e02ded433.avif)<!-- screenshot -->
+
 Reconnecting the same service account later adds new buckets to the existing integration. A saved credential is only replaced once its replacement can still read every bucket you've already connected.
 
 !!! note "Credential security"

@@ -47,6 +47,8 @@ Platform only ever reads from your storage — it never writes, modifies, or del
    a known bucket name manually.
 4. Click **Connect**. Platform verifies it can list and read each selected bucket before saving anything.
 
+![Ultralytics Platform Amazon S3 Integration Settings](https://cdn.ul.run/i/1f7aea988553c32ff7ca6bd39d56787e.avif)<!-- screenshot -->
+
 Reconnecting the same IAM user later adds new buckets to the existing integration. A saved credential is only replaced once its replacement can still read every bucket you've already connected.
 
 !!! note "One region per connection"

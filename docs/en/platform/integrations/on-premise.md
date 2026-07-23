@@ -58,6 +58,8 @@ A GPU is optional. Every computer can ingest datasets and train models on its CP
 5. Open the terminal named in the dialog, copy the command, paste it, and press Enter.
 6. Keep the Integrations page open until the progress indicator shows **Connected**.
 
+![Ultralytics Platform On Premise Integration Setup](https://cdn.ul.run/i/8c220a591df1fdf949840d7047a9314d.avif)<!-- screenshot -->
+
 Platform fills in the folders and one-time connection token before you copy the command. The generated command follows the format below:
 
 === "Linux"

@@ -1557,7 +1557,7 @@ class RTDETRDecoder(nn.Module):
         ndl: int = 6,  # num decoder layers
         d_ffn: int = 1024,  # dim of feedforward
         dropout: float = 0.0,
-        act: nn.Module = nn.ReLU(),
+        act: nn.Module | None = None,
         eval_idx: int = -1,
         # Training args
         nd: int = 100,  # num denoising
@@ -1585,6 +1585,7 @@ class RTDETRDecoder(nn.Module):
             learnt_init_query (bool): Whether to learn initial query embeddings.
         """
         super().__init__()
+        act = act or nn.ReLU()
         self.hidden_dim = hd
         self.nhead = nh
         self.nl = len(ch)  # num level

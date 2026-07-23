@@ -2328,7 +2328,10 @@ class SAM3SemanticPredictor(SAM3Predictor):
             if masks.shape[0] == 0:
                 masks, boxes = None, torch.zeros((0, 6), device=pred_masks.device)
             else:
-                masks = F.interpolate(masks.float()[None], orig_img.shape[:2], mode="bilinear")[0] > 0.5
+                masks = (
+                    F.interpolate(masks.float()[None], orig_img.shape[:2], mode="bilinear")[0]
+                    > self.model.mask_threshold
+                )
                 boxes[..., [0, 2]] *= orig_img.shape[1]
                 boxes[..., [1, 3]] *= orig_img.shape[0]
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
@@ -2398,7 +2401,9 @@ class SAM3SemanticPredictor(SAM3Predictor):
         if pred_masks.shape[0] == 0:
             pred_masks, pred_boxes = None, torch.zeros((0, 6), device=pred_masks.device)
         else:
-            pred_masks = F.interpolate(pred_masks.float()[None], src_shape[:2], mode="bilinear")[0] > 0.5
+            pred_masks = (
+                F.interpolate(pred_masks.float()[None], src_shape[:2], mode="bilinear")[0] > self.model.mask_threshold
+            )
             pred_boxes[..., 0] *= src_shape[1]
             pred_boxes[..., 1] *= src_shape[0]
             pred_boxes[..., 2] *= src_shape[1]
@@ -3184,19 +3189,22 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # Step 4: Run SAM2 memory encoder on the current frame's prediction masks
         # This is done on all GPUs
         batch_size = tracker_low_res_masks_global.size(0)
-        if batch_size > 0:
-            if not hasattr(self, "_warm_up_complete") or self._warm_up_complete:
-                if self.suppress_overlapping_based_on_recent_occlusion_threshold > 0.0:
-                    # NOTE: tracker_low_res_masks_global is updated in-place then returned
-                    tracker_low_res_masks_global = self._suppress_overlapping_based_on_recent_occlusion(
-                        frame_idx,
-                        tracker_low_res_masks_global,
-                        tracker_metadata_prev,
-                        tracker_metadata_new,
-                        obj_ids_newly_removed,
-                        reverse,
-                    )
+        if (
+            batch_size > 0
+            and (not hasattr(self, "_warm_up_complete") or self._warm_up_complete)
+            and self.suppress_overlapping_based_on_recent_occlusion_threshold > 0.0
+        ):
+            # NOTE: tracker_low_res_masks_global is updated in-place then returned
+            tracker_low_res_masks_global = self._suppress_overlapping_based_on_recent_occlusion(
+                frame_idx,
+                tracker_low_res_masks_global,
+                tracker_metadata_prev,
+                tracker_metadata_new,
+                obj_ids_newly_removed,
+                reverse,
+            )
 
+        if batch_size > 0:
             self._tracker_update_memories(tracker_states_local, frame_idx, low_res_masks=tracker_low_res_masks_global)
 
         # Step 4: update the SAM2 metadata based on the update plan

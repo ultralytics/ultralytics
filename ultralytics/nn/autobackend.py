@@ -169,7 +169,7 @@ class AutoBackend(nn.Module):
     def __init__(
         self,
         model: str | torch.nn.Module = "yolo26n.pt",
-        device: torch.device = torch.device("cpu"),
+        device: torch.device | None = None,
         dnn: bool = False,
         data: str | Path | None = None,
         fp16: bool = False,
@@ -188,6 +188,7 @@ class AutoBackend(nn.Module):
             verbose (bool): Enable verbose logging.
         """
         super().__init__()
+        device = device or torch.device("cpu")
         # Determine model format from path/URL
         format = "pt" if isinstance(model, nn.Module) else self._model_type(model, dnn)
 
@@ -380,7 +381,7 @@ class AutoBackend(nn.Module):
         Returns:
             (AutoBackend): The model instance with the function applied and updated attributes.
         """
-        self = super()._apply(fn)
+        super()._apply(fn)
         if hasattr(self.backend, "model") and isinstance(self.backend.model, nn.Module):
             self.backend.model._apply(fn)
             self.backend.device = next(self.backend.model.parameters()).device  # update device after move

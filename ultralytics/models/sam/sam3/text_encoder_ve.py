@@ -56,10 +56,8 @@ class ResidualAttentionBlock(nn.Module):
         """Compute multi-head attention with optional cross-attention support and masking."""
         k_x = k_x if k_x is not None else q_x
         v_x = v_x if v_x is not None else q_x
-        if attn_mask is not None:
-            # Leave boolean masks as is
-            if attn_mask.dtype != torch.bool:
-                attn_mask = attn_mask.to(q_x.dtype)
+        if attn_mask is not None and attn_mask.dtype != torch.bool:  # leave boolean masks as is
+            attn_mask = attn_mask.to(q_x.dtype)
 
         return self.attn(q_x, k_x, v_x, need_weights=False, attn_mask=attn_mask)[0]
 

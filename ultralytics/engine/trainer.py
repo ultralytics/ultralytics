@@ -232,8 +232,6 @@ class BaseTrainer:
                 cmd, file = generate_ddp_command(self)
                 LOGGER.info(f"{colorstr('DDP:')} debug command {' '.join(cmd)}")
                 subprocess.run(cmd, check=True)
-            except Exception:
-                raise
             finally:
                 if file is not None:
                     ddp_cleanup(self, str(file))
@@ -727,7 +725,7 @@ class BaseTrainer:
                 "train_args": vars(self.args),  # save as dict
                 "train_metrics": {**self.metrics, "fitness": self.fitness},
                 "train_results": self.read_results_csv(),
-                "date": datetime.now().isoformat(),
+                "date": datetime.now().astimezone().isoformat(),
                 "version": __version__,
                 "git": {
                     "root": str(GIT.root),
@@ -1115,11 +1113,11 @@ class BaseTrainer:
         if not use_muon:
             g = [x.values() for x in g[:3]]  # convert to list of params
 
-        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "MuSGD", "auto"}
+        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSprop", "SGD", "MuSGD", "auto"}
         name = {x.lower(): x for x in optimizers}.get(str(name).lower(), str(name))
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
             optim_args = {"lr": lr, "betas": (momentum, 0.999), "weight_decay": 0.0}
-        elif name == "RMSProp":
+        elif name == "RMSprop":
             optim_args = {"lr": lr, "momentum": momentum}
         elif name == "SGD" or name == "MuSGD":
             optim_args = {"lr": lr, "momentum": momentum, "nesterov": True}

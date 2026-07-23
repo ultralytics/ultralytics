@@ -159,7 +159,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         Returns:
             (torch.Tensor): Model prediction results.
         """
-        return super().inference(im, vpe=self.prompts, *args, **kwargs)
+        return super().inference(im, *args, vpe=self.prompts, **kwargs)
 
     def get_vpe(self, source):
         """Process the source to get the visual prompt embeddings (VPE).

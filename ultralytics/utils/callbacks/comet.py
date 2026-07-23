@@ -63,17 +63,17 @@ def _get_comet_model_name() -> str:
 
 def _get_eval_batch_logging_interval() -> int:
     """Get the evaluation batch logging interval from environment variable or use default value 1."""
-    return int(os.getenv("COMET_EVAL_BATCH_LOGGING_INTERVAL", 1))
+    return int(os.getenv("COMET_EVAL_BATCH_LOGGING_INTERVAL", "1"))
 
 
 def _get_max_image_predictions_to_log() -> int:
     """Get the maximum number of image predictions to log from environment variables."""
-    return int(os.getenv("COMET_MAX_IMAGE_PREDICTIONS", 100))
+    return int(os.getenv("COMET_MAX_IMAGE_PREDICTIONS", "100"))
 
 
 def _scale_confidence_score(score: float) -> float:
     """Scale the confidence score by a factor specified in environment variable."""
-    scale = float(os.getenv("COMET_MAX_CONFIDENCE_SCORE", 100.0))
+    scale = float(os.getenv("COMET_MAX_CONFIDENCE_SCORE", "100.0"))
     return score * scale
 
 

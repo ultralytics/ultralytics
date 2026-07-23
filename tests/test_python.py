@@ -1228,7 +1228,7 @@ def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch,
 
 
 def test_depth_dataset_ignores_unreadable_targets(tmp_path):
-    """Drop images with missing or corrupt depth maps during the cached dataset scan."""
+    """Drop unreadable depth maps and accept single-class mode with empty class labels."""
     from ultralytics.data.dataset import DepthDataset
 
     images, depth = tmp_path / "images" / "train", tmp_path / "depth" / "train"
@@ -1240,7 +1240,7 @@ def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     (depth / "corrupt.npy").write_text("not an npy file")
 
     data = {"names": {0: "depth"}, "nc": 1, "channels": 3}
-    ds = DepthDataset(img_path=str(images), imgsz=32, data=data, augment=False, batch_size=1)
+    ds = DepthDataset(img_path=str(images), imgsz=32, data=data, augment=False, single_cls=True, batch_size=1)
     assert [Path(f).stem for f in ds.im_files] == ["valid"]
     assert (depth.parent / "train.cache").exists()  # scan results cached next to the depth maps
 

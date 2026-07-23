@@ -185,18 +185,19 @@ See the [Semantic Segmentation Docs](https://docs.ultralytics.com/tasks/semantic
 
 See the [Depth Estimation Docs](https://docs.ultralytics.com/tasks/depth) for usage examples. These models are pretrained on a broad multi-dataset mix and evaluated on the [NYU Depth V2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html) Eigen test split, predicting per-pixel depth in meters.
 
-| Model                                                                                            | size<br><sup>(pixels)</sup> | delta1<sup>NYU</sup> | abs_rel<sup>NYU</sup> | rmse<sup>NYU</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-| ------------------------------------------------------------------------------------------------ | --------------------------- | -------------------- | --------------------- | ------------------ | ------------------------ | ----------------------- |
-| [YOLO26n-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-depth.pt) | 768                         | 0.882                | 0.109                 | 0.414              | 6.4                      | 46.9                    |
-| [YOLO26s-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-depth.pt) | 768                         | 0.896                | 0.104                 | 0.399              | 13.2                     | 67.9                    |
-| [YOLO26m-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-depth.pt) | 768                         | 0.921                | 0.089                 | 0.364              | 23.3                     | 130.7                   |
-| [YOLO26l-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-depth.pt) | 768                         | 0.930                | 0.083                 | 0.351              | 27.7                     | 157.2                   |
-| [YOLO26x-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-depth.pt) | 768                         | 0.933                | 0.080                 | 0.344              | 57.0                     | 302.0                   |
+| Model                                                                                            | size<br><sup>(pixels)</sup> | delta1<sup>NYU</sup> | abs_rel<sup>NYU</sup> | rmse<sup>NYU</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| ------------------------------------------------------------------------------------------------ | --------------------------- | -------------------- | --------------------- | ------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
+| [YOLO26n-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-depth.pt) | 768                         | 0.882                | 0.109                 | 0.414              | 2.7 ± 0.1                                 | 6.4                      | 46.9                    |
+| [YOLO26s-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-depth.pt) | 768                         | 0.896                | 0.104                 | 0.399              | 3.8 ± 0.0                                 | 13.2                     | 67.9                    |
+| [YOLO26m-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-depth.pt) | 768                         | 0.921                | 0.089                 | 0.364              | 6.0 ± 0.1                                 | 23.3                     | 130.7                   |
+| [YOLO26l-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-depth.pt) | 768                         | 0.930                | 0.083                 | 0.351              | 7.7 ± 0.1                                 | 27.7                     | 157.2                   |
+| [YOLO26x-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-depth.pt) | 768                         | 0.933                | 0.080                 | 0.344              | 13.6 ± 0.2                                | 57.0                     | 302.0                   |
 
 - **delta1<sup>NYU</sup>** is the percentage of pixels where the predicted depth is within a factor of 1.25 of the ground truth, on the NYU Depth V2 Eigen test split (654 images) with multi-scale + horizontal-flip TTA and log-least-squares alignment.
 - Single-scale accuracy without TTA is reproducible with `yolo depth val model=yolo26n-depth.pt data=nyu-depth.yaml imgsz=768 device=0` (substitute `model=` for each size), which uses median (scale-only) alignment and scores lower: delta1 0.785 (n), 0.786 (s), 0.827 (m), 0.839 (l), 0.843 (x).
 - **abs_rel** is the mean absolute relative error between predicted and ground-truth depth values.
 - **rmse** is the root mean squared error in meters.
+- **Speed** is TensorRT fp16 inference on a Tesla T4 at `imgsz=768`, `batch=1`, mean ± std over 100 timed runs after 10 warmup iterations (pre/post-processing excluded).
 - **params** and **FLOPs** are measured at 768×768, the training resolution of the released weights.
 
 </details>

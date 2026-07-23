@@ -1,0 +1,105 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# YOLO27-ViT-DETR object detection model with a ViT + Spatial Tuning Adapter backbone and DeimDecoder head.
+# The x and xxl variants share the same row layout. Per-scale ViT width, STA width, input projection module, and decoder
+# depth are resolved from scale_args by parse_model.
+
+nc: 80 # number of classes
+
+scales:
+  # [depth, width, max_channels]
+  x: [1.00, 1.00, 1024]
+  xxl: [1.00, 1.00, 1024]
+
+scale_args:
+  x:
+    vit_dim: 384
+    vit_heads: 6
+    vit_ffn_ratio: 6
+    vit_ffn: swiglu
+    sta_c1: 64
+    sta_c2: 128
+    sta_c3: 256
+    fuse_c: 256
+    input_proj_module: nn.Identity
+    input_proj_args: []
+    ndl: 6
+  xxl:
+    vit_dim: 768
+    vit_heads: 12
+    vit_ffn_ratio: 4
+    vit_ffn: mlp
+    sta_c1: 96
+    sta_c2: 192
+    sta_c3: 384
+    fuse_c: 320
+    input_proj_module: Conv
+    input_proj_args: [256, 1, 1, None, 1, 1, False]
+    ndl: 4
+
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, nn.Identity, []] # 0 input capture
+
+  # ViT branch
+  - [-1, 1, VITPatchStem, [vit_dim, 16, 4]] # 1
+  - [-1, 5, VITBlock, [vit_heads, vit_ffn_ratio, vit_ffn, 1.0e-5]] # 2 vit blocks 0..4
+  - [-1, 1, VITBlock, [vit_heads, vit_ffn_ratio, vit_ffn, 1.0e-5]] # 3 vit block 5
+  - [-1, 2, VITBlock, [vit_heads, vit_ffn_ratio, vit_ffn, 1.0e-5]] # 4 vit blocks 6..7
+  - [-1, 1, VITBlock, [vit_heads, vit_ffn_ratio, vit_ffn, 1.0e-5]] # 5 vit block 8
+  - [-1, 2, VITBlock, [vit_heads, vit_ffn_ratio, vit_ffn, 1.0e-5]] # 6 vit blocks 9..10
+  - [-1, 1, VITBlock, [vit_heads, vit_ffn_ratio, vit_ffn, 1.0e-5]] # 7 vit block 11
+
+  - [3, 1, VITTokenToSpatial, [4]] # 8 vit /16 from block 5
+  - [5, 1, VITTokenToSpatial, [4]] # 9 vit /16 from block 8
+  - [7, 1, VITTokenToSpatial, [4]] # 10 vit /16 from block 11
+  - [8, 1, nn.Upsample, [None, 2, "bilinear"]] # 11 vit P3 at /8
+  - [10, 1, VITDownsample2x, []] # 12 vit P5 at /32
+
+  # Spatial Tuning Adapter branch
+  - [0, 1, ConvSyncBN, [sta_c1, 3, 2, None, 1, 1, False]] # 13 stem conv
+  - [-1, 1, nn.GELU, []] # 14
+  - [-1, 1, nn.MaxPool2d, [3, 2, 1]] # 15 stem pool
+  - [-1, 1, ConvSyncBN, [sta_c2, 3, 2, None, 1, 1, False]] # 16 c2
+  - [-1, 1, nn.GELU, []] # 17
+  - [-1, 1, ConvSyncBN, [sta_c3, 3, 2, None, 1, 1, False]] # 18 c3
+  - [-1, 1, nn.GELU, []] # 19
+  - [-1, 1, ConvSyncBN, [sta_c3, 3, 2, None, 1, 1, False]] # 20 c4
+
+  # Fusion
+  - [[11, 16], 1, Concat, [1]] # 21
+  - [-1, 1, ConvSyncBN, [fuse_c, 1, 1, None, 1, 1, False]] # 22 P3 out
+  - [[9, 18], 1, Concat, [1]] # 23
+  - [-1, 1, ConvSyncBN, [fuse_c, 1, 1, None, 1, 1, False]] # 24 P4 out
+  - [[12, 20], 1, Concat, [1]] # 25
+  - [-1, 1, ConvSyncBN, [fuse_c, 1, 1, None, 1, 1, False]] # 26 P5 out
+
+head:
+  - [26, 1, input_proj_module, input_proj_args] # 27 input_proj.2
+  - [-1, 1, AIFI, [1024, 8]] # 28
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 29 Y5
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 30
+  - [24, 1, input_proj_module, input_proj_args] # 31 input_proj.1
+  - [[-2, -1], 1, Add, []] # 32
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 33
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 34 Y4
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 35
+  - [22, 1, input_proj_module, input_proj_args] # 36 input_proj.0
+  - [[-2, -1], 1, Add, []] # 37
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 38 X3
+
+  - [-1, 1, SCDown, [256, 3, 2, False]] # 39
+  - [[-1, 34], 1, Add, []] # 40
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 41 F4
+
+  - [-1, 1, SCDown, [256, 3, 2, False]] # 42
+  - [[-1, 29], 1, Add, []] # 43
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 44 F5
+
+  # DeimDecoder. Args:
+  # [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
+  #  learnt_init_query, query_select_method, reg_max, reg_scale, layer_scale, mlp_act,
+  #  o2m_topk_mode, use_gateway, share_bbox_head, share_score_head]
+  - [[38, 41, 44], 1, DeimDecoder, [nc, 256, 300, [3, 6, 3], 8, ndl, 2048, 0.0, "silu", -1, 100, 0.5, 1.0, False, "default", 32, 4.0, 1.0, "silu", "unshared", True, False, False]] # 45

@@ -41,16 +41,16 @@ with fixed decoder queries and end-to-end export support.
 ## Model Variants
 
 The main YOLO-DETR family currently contains six release-facing variants. The `n/s/m/l` models are scale-resolved from
-`yolo27-detr.yaml`; the `x` and `xxl` models use separate DINOv3-ViT-backed configs.
+`yolo27-detr.yaml`; the `x` and `xxl` models are scale-resolved from `yolo27-vit-detr.yaml`.
 
-| Model          | Config                | Backbone Source              | Decoder           | Decoder Layers | Notes                                                      |
-| -------------- | --------------------- | ---------------------------- | ----------------- | -------------- | ---------------------------------------------------------- |
-| YOLO27n-DETR   | `yolo27n-detr.yaml`   | YOLO26n-style CSP            | `RTDETRDecoderV2` | 3              | Uses `efficient_ms=True` round-robin multi-scale attention |
-| YOLO27s-DETR   | `yolo27s-detr.yaml`   | YOLO26s-style CSP            | `RTDETRDecoderV2` | 3              | Standard multi-scale decoder                               |
-| YOLO27m-DETR   | `yolo27m-detr.yaml`   | YOLO26l-style CSP            | `RTDETRDecoderV2` | 2              | Shorter decoder for a middle deployment point              |
-| YOLO27l-DETR   | `yolo27l-detr.yaml`   | YOLO26l-style CSP            | `RTDETRDecoderV2` | 4              | Larger CSP variant with a deeper decoder                   |
-| YOLO27x-DETR   | `yolo27x-detr.yaml`   | DINOv3-ViT-S/16-plus + STA   | `DeimDecoder`     | 6              | DINOv3-dependent high-capacity variant                     |
-| YOLO27xxl-DETR | `yolo27xxl-detr.yaml` | DINOv3-ViT-B/16 + STA        | `DeimDecoder`     | 4              | DINOv3-dependent extra-large variant                       |
+| Model          | Config                    | Backbone Source              | Decoder           | Decoder Layers | Notes                                                      |
+| -------------- | ------------------------- | ---------------------------- | ----------------- | -------------- | ---------------------------------------------------------- |
+| YOLO27n-DETR   | `yolo27n-detr.yaml`       | YOLO26n-style CSP            | `RTDETRDecoderV2` | 3              | Uses `efficient_ms=True` round-robin multi-scale attention |
+| YOLO27s-DETR   | `yolo27s-detr.yaml`       | YOLO26s-style CSP            | `RTDETRDecoderV2` | 3              | Standard multi-scale decoder                               |
+| YOLO27m-DETR   | `yolo27m-detr.yaml`       | YOLO26l-style CSP            | `RTDETRDecoderV2` | 2              | Shorter decoder for a middle deployment point              |
+| YOLO27l-DETR   | `yolo27l-detr.yaml`       | YOLO26l-style CSP            | `RTDETRDecoderV2` | 4              | Larger CSP variant with a deeper decoder                   |
+| YOLO27x-DETR   | `yolo27x-vit-detr.yaml`   | DINOv3-ViT-S/16-plus + STA   | `DeimDecoder`     | 6              | DINOv3-dependent high-capacity variant                     |
+| YOLO27xxl-DETR | `yolo27xxl-vit-detr.yaml` | DINOv3-ViT-B/16 + STA        | `DeimDecoder`     | 4              | DINOv3-dependent extra-large variant                       |
 
 !!! note "Backbone labels"
 
@@ -146,7 +146,7 @@ fine-tuning YOLO26-style CSP backbones. The following examples show practical st
 
 | Model group                     | Example model       | `lr0`    | `backbone_lr_ratio` | Effective backbone LR | Notes                                      |
 | ------------------------------- | ------------------- | -------- | ------------------- | --------------------- | ------------------------------------------ |
-| DINOv3-ViT + STA backbone       | `yolo27x-detr.yaml` | `0.0005` | `0.02`              | `0.00001`             | Protects the pretrained ViT backbone       |
+| DINOv3-ViT + STA backbone       | `yolo27x-vit-detr.yaml` | `0.0005` | `0.02`              | `0.00001`             | Protects the pretrained ViT backbone       |
 | YOLO26L-style CSP backbone      | `yolo27l-detr.yaml` | `0.0001` | `0.1`               | `0.00001`             | Fine-tunes the CSP backbone more directly  |
 
 The effective backbone learning rate can be similar across recipes even when `lr0` and `backbone_lr_ratio` differ. For
@@ -156,7 +156,7 @@ uses a lower head LR with a higher backbone ratio.
 ```python
 from ultralytics import YOLODETR
 
-model = YOLODETR("yolo27x-detr.yaml")
+model = YOLODETR("yolo27x-vit-detr.yaml")
 model.train(
     data="coco8.yaml",
     epochs=100,

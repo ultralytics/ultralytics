@@ -2040,7 +2040,7 @@ def parse_model(d, ch, verbose=True):
             scale = next(iter(scales.keys()))
             LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
         depth, width, max_channels = scales[scale]
-    # Per-scale variables resolvable as string tokens in module args (e.g. `ndl`, `efficient_ms`).
+    # Per-scale variables resolvable as string tokens in module names/args (e.g. `ndl`, `efficient_ms`).
     # Empty dict for any yaml that does not opt in via a top-level `scale_args:` block, so this is a
     # no-op for every existing yaml. See yolo27-detr.yaml for canonical usage.
     scale_args = (d.get("scale_args") or {}).get(scale, {}) if scale else {}
@@ -2117,6 +2117,8 @@ def parse_model(d, ch, verbose=True):
         }
     )
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
+        if isinstance(m, str) and m in scale_args:
+            m = scale_args[m]
         m = (
             getattr(torch.nn, m[3:])
             if m.startswith("nn.")
@@ -2127,6 +2129,8 @@ def parse_model(d, ch, verbose=True):
         if restricted and not (isinstance(m, type) and issubclass(m, torch.nn.Module)):
             # Under restricted loading, only known model layers may be named here.
             raise TypeError(emojis(f"ERROR ❌️ module '{m}' is not a permitted model layer under restricted loading."))
+        if isinstance(args, str) and args in scale_args:
+            args = scale_args[args]
         for j, a in enumerate(args):
             if isinstance(a, str):
                 with contextlib.suppress(ValueError):
@@ -2254,7 +2258,7 @@ def yaml_model_load(path):
         LOGGER.warning(f"Ultralytics YOLO P6 models now use -p6 suffix. Renaming {path.stem} to {new_stem}.")
         path = path.with_name(new_stem + path.suffix)
 
-    unified_path = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
+    unified_path = re.sub(r"(\d+)(xxl|[nslmx])(.+)?$", r"\1\3", str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
     yaml_file = check_yaml(path, hard=False) or check_yaml(unified_path)
     d = YAML.load(yaml_file)  # model dict
     d["scale"] = guess_model_scale(path)
@@ -2263,16 +2267,16 @@ def yaml_model_load(path):
 
 
 def guess_model_scale(model_path):
-    """Extract the size character n, s, m, l, or x of the model's scale from the model path.
+    """Extract the size name n, s, m, l, x, or xxl of the model's scale from the model path.
 
     Args:
         model_path (str | Path): The path to the YOLO model's YAML file.
 
     Returns:
-        (str): The size character of the model's scale (n, s, m, l, or x), or empty string if not found.
+        (str): The size name of the model's scale (n, s, m, l, x, or xxl), or empty string if not found.
     """
     try:
-        return re.search(r"yolo(e-)?[v]?\d+([nslmx])", Path(model_path).stem).group(2)
+        return re.search(r"yolo(e-)?[v]?\d+(xxl|[nslmx])", Path(model_path).stem).group(2)
     except AttributeError:
         return ""
 

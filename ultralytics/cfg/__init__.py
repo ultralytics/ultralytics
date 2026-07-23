@@ -829,7 +829,8 @@ def handle_yolo_solutions(args: list[str]) -> None:
                 "--server.headless",
                 "true",
                 overrides.pop("model", "yolo26n.pt"),
-            ]
+            ],
+            check=False,
         )
     else:
         import cv2  # Only needed for cap and vw functionality

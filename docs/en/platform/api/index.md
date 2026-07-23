@@ -173,7 +173,7 @@ Responses return JSON with resource-specific fields:
 
 ```json
 {
-  "error": "Dataset not found"
+    "error": "Dataset not found"
 }
 ```
 
@@ -236,33 +236,33 @@ GET /api/datasets
 
 ```json
 {
-  "datasets": [
-    {
-      "_id": "dataset_abc123",
-      "name": "my-dataset",
-      "slug": "my-dataset",
-      "task": "detect",
-      "imageCount": 1000,
-      "classCount": 10,
-      "classNames": ["person", "car"],
-      "visibility": "private",
-      "username": "johndoe",
-      "starCount": 3,
-      "isStarred": false,
-      "sampleImages": [
+    "datasets": [
         {
-          "url": "https://storage.example.com/...",
-          "width": 1920,
-          "height": 1080,
-          "labels": [{ "classId": 0, "bbox": [0.5, 0.4, 0.3, 0.6] }]
+            "_id": "dataset_abc123",
+            "name": "my-dataset",
+            "slug": "my-dataset",
+            "task": "detect",
+            "imageCount": 1000,
+            "classCount": 10,
+            "classNames": ["person", "car"],
+            "visibility": "private",
+            "username": "johndoe",
+            "starCount": 3,
+            "isStarred": false,
+            "sampleImages": [
+                {
+                    "url": "https://storage.example.com/...",
+                    "width": 1920,
+                    "height": 1080,
+                    "labels": [{ "classId": 0, "bbox": [0.5, 0.4, 0.3, 0.6] }]
+                }
+            ],
+            "createdAt": "2024-01-15T10:00:00Z",
+            "updatedAt": "2024-01-16T08:30:00Z"
         }
-      ],
-      "createdAt": "2024-01-15T10:00:00Z",
-      "updatedAt": "2024-01-16T08:30:00Z"
-    }
-  ],
-  "total": 1,
-  "region": "us"
+    ],
+    "total": 1,
+    "region": "us"
 }
 ```
 
@@ -286,12 +286,12 @@ POST /api/datasets
 
 ```json
 {
-  "slug": "my-dataset",
-  "name": "My Dataset",
-  "task": "detect",
-  "description": "A custom detection dataset",
-  "visibility": "private",
-  "classNames": ["person", "car"]
+    "slug": "my-dataset",
+    "name": "My Dataset",
+    "task": "detect",
+    "description": "A custom detection dataset",
+    "visibility": "private",
+    "classNames": ["person", "car"]
 }
 ```
 
@@ -303,9 +303,9 @@ POST /api/datasets
 
 ```json
 {
-  "datasetId": "dataset_abc123",
-  "slug": "my-dataset",
-  "region": "us"
+    "datasetId": "dataset_abc123",
+    "slug": "my-dataset",
+    "region": "us"
 }
 ```
 
@@ -319,9 +319,9 @@ PATCH /api/datasets/{datasetId}
 
 ```json
 {
-  "name": "Updated Name",
-  "description": "New description",
-  "visibility": "public"
+    "name": "Updated Name",
+    "description": "New description",
+    "visibility": "public"
 }
 ```
 
@@ -354,12 +354,12 @@ Creates a copy of a public, owned, or editable workspace dataset with all images
 
 ```json
 {
-  "name": "cloned-dataset",
-  "slug": "cloned-dataset",
-  "description": "My cloned dataset",
-  "visibility": "private",
-  "license": "AGPL-3.0",
-  "owner": "team-username"
+    "name": "cloned-dataset",
+    "slug": "cloned-dataset",
+    "description": "My cloned dataset",
+    "visibility": "private",
+    "license": "AGPL-3.0",
+    "owner": "team-username"
 }
 ```
 
@@ -381,8 +381,8 @@ Returns a JSON response with a signed download URL for the latest dataset export
 
 ```json
 {
-  "downloadUrl": "https://storage.example.com/export.ndjson?signed=...",
-  "cached": true
+    "downloadUrl": "https://storage.example.com/export.ndjson?signed=...",
+    "cached": true
 }
 ```
 
@@ -400,7 +400,7 @@ NDJSON export.
 
 ```json
 {
-  "description": "Added 500 training images"
+    "description": "Added 500 training images"
 }
 ```
 
@@ -410,8 +410,8 @@ All fields are optional. The `description` field is a user-provided label for th
 
 ```json
 {
-  "version": 3,
-  "downloadUrl": "https://storage.example.com/v3.ndjson?signed=..."
+    "version": 3,
+    "downloadUrl": "https://storage.example.com/v3.ndjson?signed=..."
 }
 ```
 
@@ -427,8 +427,8 @@ Update the description of an existing version. This requires Editor access or hi
 
 ```json
 {
-  "version": 2,
-  "description": "Fixed mislabeled classes"
+    "version": 2,
+    "description": "Fixed mislabeled classes"
 }
 ```
 
@@ -436,7 +436,7 @@ Update the description of an existing version. This requires Editor access or hi
 
 ```json
 {
-  "ok": true
+    "ok": true
 }
 ```
 
@@ -450,7 +450,7 @@ Rebuild the dataset's images, annotations, and classes from a saved version with
 
 ```json
 {
-  "version": 2
+    "version": 2
 }
 ```
 
@@ -466,34 +466,34 @@ Returns class distribution, location heatmap, and dimension statistics. Results 
 
 ```json
 {
-  "classes": [{ "classId": 0, "count": 1500, "imageCount": 450 }],
-  "imageStats": {
-    "widthHistogram": [{ "bin": 640, "count": 120 }],
-    "heightHistogram": [{ "bin": 480, "count": 95 }],
-    "pointsHistogram": [{ "bin": 4, "count": 200 }]
-  },
-  "locationHeatmap": {
-    "bins": [
-      [5, 10],
-      [8, 3]
-    ],
-    "maxCount": 50
-  },
-  "dimensionHeatmap": {
-    "bins": [
-      [2, 5],
-      [3, 1]
-    ],
-    "maxCount": 12,
-    "minWidth": 10,
-    "maxWidth": 1920,
-    "minHeight": 10,
-    "maxHeight": 1080
-  },
-  "classNames": ["person", "car", "dog"],
-  "cached": true,
-  "sampled": false,
-  "sampleSize": 1000
+    "classes": [{ "classId": 0, "count": 1500, "imageCount": 450 }],
+    "imageStats": {
+        "widthHistogram": [{ "bin": 640, "count": 120 }],
+        "heightHistogram": [{ "bin": 480, "count": 95 }],
+        "pointsHistogram": [{ "bin": 4, "count": 200 }]
+    },
+    "locationHeatmap": {
+        "bins": [
+            [5, 10],
+            [8, 3]
+        ],
+        "maxCount": 50
+    },
+    "dimensionHeatmap": {
+        "bins": [
+            [2, 5],
+            [3, 1]
+        ],
+        "maxCount": 12,
+        "minWidth": 10,
+        "maxWidth": 1920,
+        "minHeight": 10,
+        "maxHeight": 1080
+    },
+    "classNames": ["person", "car", "dog"],
+    "cached": true,
+    "sampled": false,
+    "sampleSize": 1000
 }
 ```
 
@@ -507,8 +507,8 @@ POST /api/datasets/{datasetId}/classes/merge
 
 ```json
 {
-  "sourceClassIds": [2, 4],
-  "targetClassId": 1
+    "sourceClassIds": [2, 4],
+    "targetClassId": 1
 }
 ```
 
@@ -522,7 +522,7 @@ POST /api/datasets/{datasetId}/classes/delete
 
 ```json
 {
-  "classIds": [2, 4]
+    "classIds": [2, 4]
 }
 ```
 
@@ -536,9 +536,9 @@ Randomly reassign images across train, validation, and test splits. Percentages 
 
 ```json
 {
-  "train": 80,
-  "val": 20,
-  "test": 0
+    "train": 80,
+    "val": 20,
+    "test": 0
 }
 ```
 
@@ -572,32 +572,32 @@ Returns models that were trained using this dataset.
 
 ```json
 {
-  "models": [
-    {
-      "_id": "model_abc123",
-      "name": "experiment-1",
-      "slug": "experiment-1",
-      "status": "completed",
-      "task": "detect",
-      "epochs": 100,
-      "bestEpoch": 87,
-      "projectId": "project_xyz",
-      "projectSlug": "my-project",
-      "projectIconColor": "#3b82f6",
-      "projectIconLetter": "M",
-      "username": "johndoe",
-      "startedAt": "2024-01-14T22:00:00Z",
-      "completedAt": "2024-01-15T10:00:00Z",
-      "createdAt": "2024-01-14T21:55:00Z",
-      "metrics": {
-        "mAP50": 0.85,
-        "mAP50-95": 0.72,
-        "precision": 0.88,
-        "recall": 0.81
-      }
-    }
-  ],
-  "count": 1
+    "models": [
+        {
+            "_id": "model_abc123",
+            "name": "experiment-1",
+            "slug": "experiment-1",
+            "status": "completed",
+            "task": "detect",
+            "epochs": 100,
+            "bestEpoch": 87,
+            "projectId": "project_xyz",
+            "projectSlug": "my-project",
+            "projectIconColor": "#3b82f6",
+            "projectIconLetter": "M",
+            "username": "johndoe",
+            "startedAt": "2024-01-14T22:00:00Z",
+            "completedAt": "2024-01-15T10:00:00Z",
+            "createdAt": "2024-01-14T21:55:00Z",
+            "metrics": {
+                "mAP50": 0.85,
+                "mAP50-95": 0.72,
+                "precision": 0.88,
+                "recall": 0.81
+            }
+        }
+    ],
+    "count": 1
 }
 ```
 
@@ -634,9 +634,9 @@ For uploaded archives, the upload session is already bound to the dataset by the
 
 ```json
 {
-  "datasetId": "dataset_abc123",
-  "sessionId": "session_abc123",
-  "targetSplit": "train"
+    "datasetId": "dataset_abc123",
+    "sessionId": "session_abc123",
+    "targetSplit": "train"
 }
 ```
 
@@ -644,8 +644,8 @@ For uploaded archives, the upload session is already bound to the dataset by the
 
 ```json
 {
-  "datasetId": "dataset_abc123",
-  "sourceUrl": "https://example.com/my-dataset.zip"
+    "datasetId": "dataset_abc123",
+    "sourceUrl": "https://example.com/my-dataset.zip"
 }
 ```
 
@@ -653,9 +653,9 @@ For uploaded archives, the upload session is already bound to the dataset by the
 
 ```json
 {
-  "datasetId": "dataset_abc123",
-  "sessionId": "session_abc123",
-  "classMapping": { "person": 0, "automobile": "car", "background": null }
+    "datasetId": "dataset_abc123",
+    "sessionId": "session_abc123",
+    "classMapping": { "person": 0, "automobile": "car", "background": null }
 }
 ```
 
@@ -667,9 +667,9 @@ For uploaded archives, the upload session is already bound to the dataset by the
 
 ```json
 {
-  "jobId": "job_abc123",
-  "datasetId": "dataset_abc123",
-  "status": "queued"
+    "jobId": "job_abc123",
+    "datasetId": "dataset_abc123",
+    "status": "queued"
 }
 ```
 
@@ -720,7 +720,7 @@ Returns the same image shape for up to 1,000 supplied image IDs. It accepts the 
 
 ```json
 {
-  "imageIds": ["IMAGE_OBJECT_ID"]
+    "imageIds": ["IMAGE_OBJECT_ID"]
 }
 ```
 
@@ -756,10 +756,10 @@ PUT /api/datasets/{datasetId}/images/{hash}/labels
 
 ```json
 {
-  "labels": [
-    { "classId": 0, "bbox": [0.5, 0.5, 0.2, 0.3] },
-    { "classId": 1, "segments": [0.1, 0.2, 0.3, 0.2, 0.2, 0.4] }
-  ]
+    "labels": [
+        { "classId": 0, "bbox": [0.5, 0.5, 0.2, 0.3] },
+        { "classId": 1, "segments": [0.1, 0.2, 0.3, 0.2, 0.2, 0.4] }
+    ]
 }
 ```
 
@@ -961,10 +961,10 @@ Clone a public, owned, or editable workspace model to one of your projects.
 
 ```json
 {
-  "targetProjectSlug": "my-project",
-  "modelName": "cloned-model",
-  "description": "Cloned from public model",
-  "owner": "team-username"
+    "targetProjectSlug": "my-project",
+    "modelName": "cloned-model",
+    "description": "Cloned from public model",
+    "owner": "team-username"
 }
 ```
 
@@ -1034,22 +1034,22 @@ Responses contain per-image `shape`, `speed`, `results`, and optional dense pixe
 
 ```json
 {
-  "images": [
-    {
-      "shape": [1080, 1920],
-      "results": [
+    "images": [
         {
-          "class": 0,
-          "name": "person",
-          "confidence": 0.92,
-          "box": { "x1": 100, "y1": 50, "x2": 300, "y2": 400 }
+            "shape": [1080, 1920],
+            "results": [
+                {
+                    "class": 0,
+                    "name": "person",
+                    "confidence": 0.92,
+                    "box": { "x1": 100, "y1": 50, "x2": 300, "y2": 400 }
+                }
+            ]
         }
-      ]
+    ],
+    "metadata": {
+        "imageCount": 1
     }
-  ],
-  "metadata": {
-    "imageCount": 1
-  }
 }
 ```
 
@@ -1203,15 +1203,15 @@ POST /api/deployments
 
 ```json
 {
-  "modelId": "model_abc123",
-  "name": "my-deployment",
-  "region": "us-central1",
-  "resources": {
-    "cpu": 1,
-    "memoryGi": 2,
-    "minInstances": 0,
-    "maxInstances": 1
-  }
+    "modelId": "model_abc123",
+    "name": "my-deployment",
+    "region": "us-central1",
+    "resources": {
+        "cpu": 1,
+        "memoryGi": 2,
+        "minInstances": 0,
+        "maxInstances": 1
+    }
 }
 ```
 
@@ -1455,7 +1455,7 @@ POST /api/activity/mark-seen
 
 ```json
 {
-  "all": true
+    "all": true
 }
 ```
 
@@ -1463,7 +1463,7 @@ Or pass specific IDs:
 
 ```json
 {
-  "eventIds": ["EVENT_ID_1", "EVENT_ID_2"]
+    "eventIds": ["EVENT_ID_1", "EVENT_ID_2"]
 }
 ```
 
@@ -1479,8 +1479,8 @@ POST /api/activity/archive
 
 ```json
 {
-  "all": true,
-  "archive": true
+    "all": true,
+    "archive": true
 }
 ```
 
@@ -1488,8 +1488,8 @@ Or pass specific IDs:
 
 ```json
 {
-  "eventIds": ["EVENT_ID_1", "EVENT_ID_2"],
-  "archive": false
+    "eventIds": ["EVENT_ID_1", "EVENT_ID_2"],
+    "archive": false
 }
 ```
 
@@ -1526,8 +1526,8 @@ POST /api/trash
 
 ```json
 {
-  "id": "item_abc123",
-  "type": "dataset"
+    "id": "item_abc123",
+    "type": "dataset"
 }
 ```
 
@@ -1541,8 +1541,8 @@ DELETE /api/trash
 
 ```json
 {
-  "id": "item_abc123",
-  "type": "dataset"
+    "id": "item_abc123",
+    "type": "dataset"
 }
 ```
 
@@ -1588,8 +1588,8 @@ GET /api/billing/balance
 
 ```json
 {
-  "creditsCents": 2500,
-  "plan": "free"
+    "creditsCents": 2500,
+    "plan": "free"
 }
 ```
 
@@ -1644,42 +1644,42 @@ GET /api/storage
 
 ```json
 {
-  "tier": "free",
-  "usage": {
-    "storage": {
-      "current": 1073741824,
-      "limit": 107374182400,
-      "percent": 1.0
-    }
-  },
-  "region": "us",
-  "username": "johndoe",
-  "updatedAt": "2024-01-15T10:00:00Z",
-  "breakdown": {
-    "byCategory": {
-      "datasets": { "bytes": 536870912, "count": 2 },
-      "models": { "bytes": 268435456, "count": 4 },
-      "exports": { "bytes": 268435456, "count": 3 }
+    "tier": "free",
+    "usage": {
+        "storage": {
+            "current": 1073741824,
+            "limit": 107374182400,
+            "percent": 1.0
+        }
     },
-    "topItems": [
-      {
-        "_id": "dataset_abc123",
-        "name": "my-dataset",
-        "slug": "my-dataset",
-        "sizeBytes": 536870912,
-        "type": "dataset"
-      },
-      {
-        "_id": "model_def456",
-        "name": "experiment-1",
-        "slug": "experiment-1",
-        "sizeBytes": 134217728,
-        "type": "model",
-        "parentName": "My Project",
-        "parentSlug": "my-project"
-      }
-    ]
-  }
+    "region": "us",
+    "username": "johndoe",
+    "updatedAt": "2024-01-15T10:00:00Z",
+    "breakdown": {
+        "byCategory": {
+            "datasets": { "bytes": 536870912, "count": 2 },
+            "models": { "bytes": 268435456, "count": 4 },
+            "exports": { "bytes": 268435456, "count": 3 }
+        },
+        "topItems": [
+            {
+                "_id": "dataset_abc123",
+                "name": "my-dataset",
+                "slug": "my-dataset",
+                "sizeBytes": 536870912,
+                "type": "dataset"
+            },
+            {
+                "_id": "model_def456",
+                "name": "experiment-1",
+                "slug": "experiment-1",
+                "sizeBytes": 134217728,
+                "type": "model",
+                "parentName": "My Project",
+                "parentSlug": "my-project"
+            }
+        ]
+    }
 }
 ```
 
@@ -1714,11 +1714,11 @@ Request a signed URL for uploading a file directly to cloud storage. The signed 
 
 ```json
 {
-  "assetType": "datasets",
-  "assetId": "dataset_abc123",
-  "filename": "my-dataset.zip",
-  "contentType": "application/zip",
-  "totalBytes": 52428800
+    "assetType": "datasets",
+    "assetId": "dataset_abc123",
+    "filename": "my-dataset.zip",
+    "contentType": "application/zip",
+    "totalBytes": 52428800
 }
 ```
 
@@ -1734,9 +1734,9 @@ Request a signed URL for uploading a file directly to cloud storage. The signed 
 
 ```json
 {
-  "sessionId": "session_abc123",
-  "uploadUrl": "https://storage.example.com/...",
-  "expiresAt": "2026-02-22T12:00:00Z"
+    "sessionId": "session_abc123",
+    "uploadUrl": "https://storage.example.com/...",
+    "expiresAt": "2026-02-22T12:00:00Z"
 }
 ```
 
@@ -1752,8 +1752,8 @@ Notify the platform that a file upload is complete. For models, this attaches th
 
 ```json
 {
-  "sessionId": "session_abc123",
-  "checksum": "<optional sha-256 hex>"
+    "sessionId": "session_abc123",
+    "checksum": "<optional sha-256 hex>"
 }
 ```
 
@@ -1805,7 +1805,7 @@ POST /api/api-keys
 
 ```json
 {
-  "name": "training-server"
+    "name": "training-server"
 }
 ```
 
@@ -1852,8 +1852,8 @@ POST /api/teams/create
 
 ```json
 {
-  "username": "my-team",
-  "fullName": "My Team"
+    "username": "my-team",
+    "fullName": "My Team"
 }
 ```
 
@@ -1875,8 +1875,8 @@ POST /api/members
 
 ```json
 {
-  "email": "user@example.com",
-  "role": "editor"
+    "email": "user@example.com",
+    "role": "editor"
 }
 ```
 
@@ -1976,8 +1976,8 @@ PATCH /api/users
 
 ```json
 {
-  "username": "target-user",
-  "followed": true
+    "username": "target-user",
+    "followed": true
 }
 ```
 

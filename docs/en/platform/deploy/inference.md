@@ -224,41 +224,41 @@ POST https://YOUR_DEPLOYMENT_URL.run.app/predict
 
 ```json
 {
-  "images": [
-    {
-      "shape": [1080, 1920],
-      "results": [
+    "images": [
         {
-          "class": 0,
-          "name": "person",
-          "confidence": 0.92,
-          "box": { "x1": 100, "y1": 50, "x2": 300, "y2": 400 }
-        },
-        {
-          "class": 2,
-          "name": "car",
-          "confidence": 0.87,
-          "box": { "x1": 400, "y1": 200, "x2": 600, "y2": 350 }
+            "shape": [1080, 1920],
+            "results": [
+                {
+                    "class": 0,
+                    "name": "person",
+                    "confidence": 0.92,
+                    "box": { "x1": 100, "y1": 50, "x2": 300, "y2": 400 }
+                },
+                {
+                    "class": 2,
+                    "name": "car",
+                    "confidence": 0.87,
+                    "box": { "x1": 400, "y1": 200, "x2": 600, "y2": 350 }
+                }
+            ],
+            "speed": {
+                "preprocess": 1.2,
+                "inference": 12.5,
+                "postprocess": 2.3
+            }
         }
-      ],
-      "speed": {
-        "preprocess": 1.2,
-        "inference": 12.5,
-        "postprocess": 2.3
-      }
+    ],
+    "metadata": {
+        "imageCount": 1,
+        "functionTimeCall": 0.018,
+        "task": "detect",
+        "version": {
+            "ultralytics": "8.x.x",
+            "torch": "2.6.0",
+            "torchvision": "0.21.0",
+            "python": "3.13.0"
+        }
     }
-  ],
-  "metadata": {
-    "imageCount": 1,
-    "functionTimeCall": 0.018,
-    "task": "detect",
-    "version": {
-      "ultralytics": "8.x.x",
-      "torch": "2.6.0",
-      "torchvision": "0.21.0",
-      "python": "3.13.0"
-    }
-  }
 }
 ```
 

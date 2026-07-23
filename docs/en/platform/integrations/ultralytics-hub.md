@@ -14,9 +14,9 @@ The Ultralytics HUB integration transfers everything from your [Ultralytics HUB]
 1. Go to **Settings > [Integrations](index.md)** and select **Ultralytics HUB** from the integration list.
 2. Paste your **Ultralytics HUB API Key** and click **Import**.
 3. Review the **Import from Ultralytics HUB?** preview dialog, which summarizes what will be transferred:
-   - Number of datasets, projects, and models
-   - Credits to be transferred, if any
-   - Storage required, checked against your remaining storage
+    - Number of datasets, projects, and models
+    - Credits to be transferred, if any
+    - Storage required, checked against your remaining storage
 4. Click **Confirm** to start the import.
 
 ![Ultralytics Platform Settings Integrations Hub Import Dialog](https://cdn.ul.run/i/63f4864761cfdf24f6754c9f5af8d478.avif)<!-- screenshot -->

@@ -165,6 +165,8 @@ def main(argv: list[str]) -> None:
             input to each teacher's training-time distribution: no-op for EUPE/DINOv3 (which already match ImageNet
             stats), SigLIP-style ``2x - 1`` for SigLIP2/MoonViT/SAM3. Default off matches all existing phase1 anchors.
             On resume, inherits from the checkpoint when not re-passed.
+        --standardize_teacher_outputs: estimate fixed per-channel CLS and patch statistics over 500 teacher-only
+            iterations before training, then standardize all teacher targets. Default off preserves existing runs.
         --high_res_final_epochs <imgsz:epochs>: e.g. "640:12" runs the student at <imgsz> for the last <epochs>
             epochs (DINOv3 high-resolution adaptation) so its frozen P5 attention meets the larger token count it
             will see at detection resolution. DINOv3 and EUPE teachers use the same size in that tail.
@@ -189,6 +191,7 @@ def main(argv: list[str]) -> None:
     args, sample_t_str = _pop_flag(args, "--sample_t")
     args, optimizer = _pop_flag(args, "--optimizer")
     args, norm_in_str = _pop_flag(args, "--normalize_teacher_input", is_bool=True)
+    args, norm_out_str = _pop_flag(args, "--standardize_teacher_outputs", is_bool=True)
     args, loss_type = _pop_flag(args, "--loss_type")
     args, high_res_final_epochs = _pop_flag(args, "--high_res_final_epochs")  # "<imgsz>:<epochs>" e.g. "384:12"
     args, _hires_legacy = _pop_flag(args, "--hires_tail")  # legacy alias for --high_res_final_epochs
@@ -220,6 +223,7 @@ def main(argv: list[str]) -> None:
     sample_t = float(sample_t_str) if sample_t_str else 0.0
     optimizer = optimizer or "AdamW"
     normalize_teacher_input = bool(norm_in_str)
+    standardize_teacher_outputs = bool(norm_out_str)
     loss_type = loss_type or "cos_l1"
     high_res_final_epochs = high_res_final_epochs or _hires_legacy or None
     eupe_multires = bool(eupe_multires_str)
@@ -240,6 +244,8 @@ def main(argv: list[str]) -> None:
     # guard below doesn't fire spuriously on every resume of a normalize-on run.
     if resume_args and not norm_in_str:
         normalize_teacher_input = bool(resume_args.get("normalize_teacher_input", False))
+    if resume_args and not norm_out_str:
+        standardize_teacher_outputs = bool(resume_args.get("standardize_teacher_outputs", False))
 
     gpu = args[0] if args else "0"
     teachers = args[1] if len(args) > 1 else resume_args.get("teachers", "eupe:vitb16")
@@ -297,6 +303,7 @@ def main(argv: list[str]) -> None:
         proj_hidden_dim = int(continuation_args.get("proj_hidden_dim", 1280) or 1280)
         sample_t = float(continuation_args.get("sample_t", 0.0))
         normalize_teacher_input = bool(continuation_args.get("normalize_teacher_input", False))
+        standardize_teacher_outputs |= bool(continuation_args.get("standardize_teacher_outputs", False))
         loss_type = continuation_args.get("loss_type", "cos_l1")
         optimizer = "AdamW"
         parent_wandb_id = parent_wandb_id or wandb_config.resolve_run_id_by_name(
@@ -316,6 +323,7 @@ def main(argv: list[str]) -> None:
             ("sample_t", sample_t, 0.0),
             ("optimizer", optimizer, "AdamW"),
             ("normalize_teacher_input", normalize_teacher_input, False),
+            ("standardize_teacher_outputs", standardize_teacher_outputs, False),
             ("loss_type", loss_type, "cos_l1"),
             ("high_res_final_epochs", high_res_final_epochs, None),
             ("knn_every", knn_every, 5),
@@ -409,6 +417,7 @@ def main(argv: list[str]) -> None:
             sample_t=sample_t,
             optimizer=optimizer,
             normalize_teacher_input=normalize_teacher_input,
+            standardize_teacher_outputs=standardize_teacher_outputs,
             loss_type=loss_type,
             high_res_final_epochs=high_res_final_epochs,
             knn_every=knn_every,
@@ -425,6 +434,7 @@ def main(argv: list[str]) -> None:
         knn_eval="/data/shared-datasets/imagenet",
         knn_every=knn_every,
         normalize_teacher_input=normalize_teacher_input,
+        standardize_teacher_outputs=standardize_teacher_outputs,
         cos_weight=cos_weight,
         l1_weight=l1_weight,
         cls_l1=cls_l1,

@@ -35,6 +35,7 @@ from ultralytics.nn.teacher_model import (
 )
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils import callbacks as ul_callbacks
+from ultralytics.utils.torch_utils import unwrap_model
 
 # DataComp-12M has images up to ~268M pixels. PIL raises DecompressionBombError above 179M pixels,
 # crashing DataLoader workers despite wds.warn_and_continue. Standard for web-crawled pipelines.
@@ -43,6 +44,44 @@ Image.MAX_IMAGE_PIXELS = None
 # ImageNet normalization (used by EUPE, DINOv3, SigLIP2, SAM3 -- standard for ViT models)
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
+TEACHER_STATS_STEPS = 500
+TEACHER_STATS_CHUNK = 4096
+
+
+def _merge_feature_moments(
+    state: dict[str, int | torch.Tensor], count: int, mean: torch.Tensor, m2: torch.Tensor
+) -> None:
+    """Merge channel-wise population moments into an accumulator.
+
+    Args:
+        state (dict[str, int | torch.Tensor]): Running count, mean, and sum of squared deviations.
+        count (int): Number of feature vectors in the incoming group.
+        mean (torch.Tensor): Incoming per-channel mean.
+        m2 (torch.Tensor): Incoming per-channel sum of squared deviations.
+    """
+    if not state:
+        state.update(count=count, mean=mean, m2=m2)
+        return
+    total = state["count"] + count
+    delta = mean - state["mean"]
+    state["mean"] += delta * count / total
+    state["m2"] += m2 + delta.square() * state["count"] * count / total
+    state["count"] = total
+
+
+def _update_feature_moments(state: dict[str, int | torch.Tensor], features: torch.Tensor) -> None:
+    """Update channel-wise moments from teacher features without a full-size FP32 copy.
+
+    Args:
+        state (dict[str, int | torch.Tensor]): Running count, mean, and sum of squared deviations.
+        features (torch.Tensor): Teacher features with channels in the final dimension.
+    """
+    vectors_per_image = features[0].numel() // features.shape[-1]
+    batch_chunk = max(1, TEACHER_STATS_CHUNK // vectors_per_image)
+    for group in features.detach().split(batch_chunk):
+        rows = group.reshape(-1, features.shape[-1]).float()
+        variance, mean = torch.var_mean(rows, dim=0, correction=0)
+        _merge_feature_moments(state, rows.shape[0], mean.double(), variance.double() * rows.shape[0])
 
 
 class BalancedSampler(torch.utils.data.WeightedRandomSampler):
@@ -167,6 +206,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
         overrides.setdefault("close_mosaic", 0)  # no mosaic in distillation, avoids .reset() call
         overrides.setdefault("teachers", "eupe:vitb16")
         self.teacher_models = {}
+        self._teacher_feature_stats = {}
         # Distillation reports distill_loss only, so filter Platform hooks here before BaseTrainer.__init__ runs them
         # and lets Platform send a cancel trigger for missing classification metrics.
         original_add_integration_callbacks = ul_callbacks.add_integration_callbacks
@@ -283,6 +323,78 @@ class ImageEncoderTrainer(ClassificationTrainer):
             else:
                 LOGGER.warning(f"kNN eval skipped: {knn_path} not found")
 
+    def _build_train_pipeline(self):
+        """Build training state and estimate fixed teacher-output statistics when requested."""
+        super()._build_train_pipeline()
+        if not getattr(self.args, "standardize_teacher_outputs", False) or self._teacher_feature_stats:
+            return
+        model = unwrap_model(self.model)
+        saved = getattr(model, "teacher_feature_stats", None)
+        if saved:
+            self._teacher_feature_stats = {
+                sk: {
+                    token_type: tuple(x.to(self.device) for x in values)
+                    for token_type, values in token_stats.items()
+                }
+                for sk, token_stats in saved.items()
+            }
+            LOGGER.info("Loaded fixed teacher-output statistics from the resume checkpoint")
+            return
+        self._estimate_teacher_feature_stats()
+        model.teacher_feature_stats = {
+            sk: {token_type: tuple(x.cpu() for x in values) for token_type, values in token_stats.items()}
+            for sk, token_stats in self._teacher_feature_stats.items()
+        }
+
+    def _estimate_teacher_feature_stats(self):
+        """Estimate EUPE fixed per-channel teacher statistics over 500 training iterations."""
+        moments = {}
+        batches = iter(self.train_loader)
+        LOGGER.info(f"Estimating fixed teacher-output statistics for {TEACHER_STATS_STEPS} iterations")
+        with (
+            torch.no_grad(),
+            torch.autocast(
+                device_type=self.device.type,
+                dtype=torch.bfloat16,
+                enabled=self.amp and self.device.type == "cuda",
+            ),
+        ):
+            for step in range(TEACHER_STATS_STEPS):
+                try:
+                    batch = next(batches)
+                except StopIteration:
+                    batches = iter(self.train_loader)
+                    batch = next(batches)
+                imgs = batch.to(self.device, non_blocking=True)
+                multires_teacher_imgsz = self._sample_multires_sizes()[1] if self._multires_sizes else None
+                for sk in self._safe_keys:
+                    teacher_imgsz = multires_teacher_imgsz or self._teacher_imgsz_for(sk)
+                    output = encode_teacher_batch(
+                        self.teacher_models[sk],
+                        resize_to(imgs, teacher_imgsz),
+                        self._teacher_chunk_for(sk, teacher_imgsz),
+                    )
+                    for token_type in ("cls", "patches"):
+                        features = getattr(output, token_type)
+                        if features is not None:
+                            _update_feature_moments(moments.setdefault((sk, token_type), {}), features)
+                if RANK in {-1, 0} and (step + 1) % 100 == 0:
+                    LOGGER.info(f"Teacher-output statistics: {step + 1}/{TEACHER_STATS_STEPS}")
+
+        for (sk, token_type), state in moments.items():
+            payload = torch.cat((state["mean"].new_tensor([state["count"]]), state["mean"], state["m2"]))
+            if torch.distributed.is_initialized():
+                gathered = [torch.empty_like(payload) for _ in range(torch.distributed.get_world_size())]
+                torch.distributed.all_gather(gathered, payload)
+                state = {}
+                d = (payload.numel() - 1) // 2
+                for rank_state in gathered:
+                    count = int(rank_state[0].item())
+                    _merge_feature_moments(state, count, rank_state[1 : d + 1], rank_state[d + 1 :])
+            std = (state["m2"] / state["count"]).sqrt().float()
+            self._teacher_feature_stats.setdefault(sk, {})[token_type] = (state["mean"].float(), std)
+        LOGGER.info("Fixed teacher-output statistics ready")
+
     @staticmethod
     def _resolve_paths(data_path):
         """Resolve a path to (train, val). val is None when no held-out val split is discoverable.
@@ -381,6 +493,8 @@ class ImageEncoderTrainer(ClassificationTrainer):
         )
         if weights:
             model.load(weights)
+            if self.resume and hasattr(weights, "teacher_feature_stats"):
+                model.teacher_feature_stats = weights.teacher_feature_stats
         for m in model.modules():
             if not self.args.pretrained and hasattr(m, "reset_parameters"):
                 m.reset_parameters()
@@ -558,7 +672,10 @@ class ImageEncoderTrainer(ClassificationTrainer):
             teacher_imgsz = multires_teacher_imgsz or self._teacher_imgsz_for(sk)
             teacher_imgs = resize_to(imgs, teacher_imgsz)
             out = encode_teacher_batch(
-                self.teacher_models[sk], teacher_imgs, self._teacher_chunk_for(sk, teacher_imgsz)
+                self.teacher_models[sk],
+                teacher_imgs,
+                self._teacher_chunk_for(sk, teacher_imgsz),
+                self._teacher_feature_stats.get(sk),
             )
             result[sk] = {"cls": out.cls, "patches": out.patches}
 
@@ -633,6 +750,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
             self.test_loader, self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
         validator.teacher_models = self.teacher_models
+        validator.teacher_feature_stats = self._teacher_feature_stats
         validator._teacher_imgsz = self._teacher_imgsz
         self._sync_validator_sizes(validator)
         return validator

@@ -590,6 +590,7 @@ def check_dict_alignment(
             "knn_every",
             "multires_sizes",
             "normalize_teacher_input",
+            "standardize_teacher_outputs",
             "proj_hidden_dim",
             "cos_weight",
             "l1_weight",

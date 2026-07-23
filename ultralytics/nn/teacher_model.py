@@ -47,6 +47,27 @@ class TeacherOutput:
     patches: torch.Tensor
 
 
+def standardize_teacher_output(
+    output: TeacherOutput, stats: dict[str, tuple[torch.Tensor, torch.Tensor]]
+) -> TeacherOutput:
+    """Standardize teacher features with fixed per-channel statistics.
+
+    Args:
+        output (TeacherOutput): Teacher CLS and patch features.
+        stats (dict[str, tuple[torch.Tensor, torch.Tensor]]): Mean and standard deviation by output type.
+
+    Returns:
+        (TeacherOutput): Standardized teacher features.
+    """
+    cls = output.cls
+    if cls is not None and "cls" in stats:
+        mean, std = stats["cls"]
+        cls.sub_(mean.to(cls)).div_(std.to(cls))
+    mean, std = stats["patches"]
+    output.patches.sub_(mean.to(output.patches)).div_(std.to(output.patches))
+    return TeacherOutput(cls=cls, patches=output.patches)
+
+
 def resize_to(img: torch.Tensor, size: int) -> torch.Tensor:
     """Bilinear-resize a (B, C, H, W) image to a square ``size``, unchanged if already that size."""
     if img.shape[-1] == size:
@@ -54,24 +75,32 @@ def resize_to(img: torch.Tensor, size: int) -> torch.Tensor:
     return torch.nn.functional.interpolate(img, size=size, mode="bilinear", antialias=True)
 
 
-def encode_teacher_batch(teacher: TeacherModel, image: torch.Tensor, chunk: int = 0) -> TeacherOutput:
+def encode_teacher_batch(
+    teacher: TeacherModel,
+    image: torch.Tensor,
+    chunk: int = 0,
+    stats: dict[str, tuple[torch.Tensor, torch.Tensor]] | None = None,
+) -> TeacherOutput:
     """Encode a teacher batch, optionally splitting it into smaller calls.
 
     Args:
         teacher (TeacherModel): Frozen teacher model.
         image (torch.Tensor): Preprocessed image tensor (B, 3, H, W).
         chunk (int): Images per teacher forward call. Non-positive values encode the full batch.
+        stats (dict[str, tuple[torch.Tensor, torch.Tensor]] | None, optional): Fixed output statistics.
 
     Returns:
         (TeacherOutput): Concatenated CLS and patch features.
     """
     if chunk <= 0 or chunk >= image.shape[0]:
-        return teacher.encode(image)
-    outputs = [teacher.encode(x) for x in image.split(chunk)]
-    return TeacherOutput(
-        cls=None if outputs[0].cls is None else torch.cat([x.cls for x in outputs], 0),
-        patches=torch.cat([x.patches for x in outputs], 0),
-    )
+        output = teacher.encode(image)
+    else:
+        outputs = [teacher.encode(x) for x in image.split(chunk)]
+        output = TeacherOutput(
+            cls=None if outputs[0].cls is None else torch.cat([x.cls for x in outputs], 0),
+            patches=torch.cat([x.patches for x in outputs], 0),
+        )
+    return standardize_teacher_output(output, stats) if stats else output
 
 
 class TeacherModel(nn.Module):

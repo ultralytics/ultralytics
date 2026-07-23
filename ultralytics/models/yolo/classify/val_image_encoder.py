@@ -57,6 +57,7 @@ class ImageEncoderValidator(BaseValidator):
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.teacher_models = {}
+        self.teacher_feature_stats = {}
         self.metrics = _DistillMetrics()
 
     def init_metrics(self, model):
@@ -101,7 +102,12 @@ class ImageEncoderValidator(BaseValidator):
         for sk in teacher_keys:
             teacher_imgsz = teacher_imgsz_by_key.get(sk, getattr(self, "_teacher_imgsz", imgs.shape[-1]))
             teacher_imgs = resize_to(imgs, teacher_imgsz)
-            out = encode_teacher_batch(self.teacher_models[sk], teacher_imgs, teacher_chunk_by_key.get(sk, 0))
+            out = encode_teacher_batch(
+                self.teacher_models[sk],
+                teacher_imgs,
+                teacher_chunk_by_key.get(sk, 0),
+                self.teacher_feature_stats.get(sk),
+            )
             result[sk] = {"cls": out.cls, "patches": out.patches}
 
         return result

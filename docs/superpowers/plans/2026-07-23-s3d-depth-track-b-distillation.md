@@ -14,7 +14,7 @@
 - Every Python file starts with `# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license` (Actions bot adds it; don't add/revert manually).
 - Never edit the primary checkout — work in a git worktree on a feature branch; open a PR. Never push `main`, never force-push.
 - **Depends on** `docs/superpowers/plans/2026-07-23-s3d-depth-foundation.md`: rebase this track's branch onto the merged foundation before starting. Locked node indices: **P3=16, P4=19, P5=22, StereoCostVolume=23, Stereo3DDetHead=24**, head `from=[16,19,22,23]`.
-- Teacher checkpoint (frozen, eval, on device): `/home/rick/autoresearch_depth/weights/yolo26x-depth-640-best.pt`. Its `Depth` head at eval returns metric depth `(B,1,H/4,W/4)`. Load via `ultralytics.nn.tasks.attempt_load_one_weight`.
+- Teacher checkpoint (frozen, eval, on device): `/home/rick/autoresearch_depth/weights/yolo26x-depth-640-best.pt`. Its `Depth` head at eval returns metric depth `(B,1,H/4,W/4)`. Load via `ultralytics.nn.tasks.load_checkpoint`.
 - Student scale `n`. Primary dataset `kitti-stereo`; regression `cube-s3d`. Smoke: `kitti-stereo8` / a tiny cube subset, `epochs=1`.
 - PR body must include a `Deleted:` line. For this track: `Deleted: nothing` — justification: pure additive training-only capability; the one refactor (SILog/grad helper) is a net consolidation that removes duplicated math from `DepthLoss26`.
 
@@ -151,7 +151,7 @@ Deleted: nothing (additive, training-only; reuses the monocular Depth module)"
 - Test: `tests/test_s3d_distill.py` (add tests)
 
 **Interfaces:**
-- Consumes: `enable_distill_head` (Task 1); `attempt_load_one_weight`.
+- Consumes: `enable_distill_head` (Task 1); `load_checkpoint`.
 - Produces:
   - `yolo26-s3d-distill.yaml` — reordered s3d graph + `training.distill.{teacher,c_mid}` + `training.loss_weights.distill`.
   - `Stereo3DDetModel.__init__` calls `head.enable_distill_head(c_mid)` when `training.distill` present.
@@ -188,9 +188,9 @@ def test_baseline_yaml_leaves_head_disabled():
 @pytest.mark.skipif(not _TEACHER.exists(), reason="teacher checkpoint not present")
 def test_teacher_depth_forward_shape():
     """The frozen teacher maps a 3ch left image to (B,1,H/4,W/4) metric depth."""
-    from ultralytics.nn.tasks import attempt_load_one_weight
+    from ultralytics.nn.tasks import load_checkpoint
 
-    teacher, _ = attempt_load_one_weight(str(_TEACHER))
+    teacher, _ = load_checkpoint(str(_TEACHER))
     teacher = teacher.eval()
     for p in teacher.parameters():
         p.requires_grad_(False)
@@ -256,9 +256,9 @@ Add these methods to `Stereo3DDetTrainer`:
         if not path:
             trainer.teacher_model = None
             return
-        from ultralytics.nn.tasks import attempt_load_one_weight
+        from ultralytics.nn.tasks import load_checkpoint
 
-        teacher, _ = attempt_load_one_weight(path)
+        teacher, _ = load_checkpoint(path)
         teacher = teacher.to(trainer.device).eval()
         for p in teacher.parameters():
             p.requires_grad_(False)

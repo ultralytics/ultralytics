@@ -6,7 +6,7 @@
 
 **Architecture:** A new `DepthPriorEncoder` module occupies the head's 4th-input slot (node 23) where `StereoCostVolume` used to sit, outputting the same `[B, 64, H/8, W/8]` shape so the head is unchanged. The `Stereo3DDetModel` owns a frozen, `eval()`, `requires_grad=False` depth model (hidden from the module registry so it is never trained, saved, or toggled to train mode). A dedicated monocular-left forward runs the frozen depth model on the left RGB once, then injects the encoded dense-depth features at node 23 — reusing the existing cost-volume injection *seam* (`if m.i == <cv slot>`) but dropping the now-unnecessary right-image pass.
 
-**Tech Stack:** PyTorch, Ultralytics `parse_model`/`BaseModel`, `attempt_load_one_weight`, pytest.
+**Tech Stack:** PyTorch, Ultralytics `parse_model`/`BaseModel`, `load_checkpoint`, pytest.
 
 ## Global Constraints
 
@@ -258,7 +258,7 @@ Deleted: StereoCostVolume from this variant's graph (replaced by DepthPriorEncod
 - Modify: `tests/test_s3d_depth_prior.py`
 
 **Interfaces:**
-- Consumes: `yolo26-s3d-depthprior.yaml` (Task 2); `attempt_load_one_weight`.
+- Consumes: `yolo26-s3d-depthprior.yaml` (Task 2); `load_checkpoint`.
 - Produces:
   - `Stereo3DDetModel.depth_prior_model` (property) → the frozen `DepthModel` or `None`.
   - `_prior_layer: int` — the `DepthPriorEncoder` node index (23).
@@ -343,9 +343,9 @@ At the end of `__init__` (after the `depth_mode` block, `model.py:56`), load the
         self._depth_prior_model = []
         dp_cfg = training_cfg.get("depth_prior")
         if dp_cfg and dp_cfg.get("model"):
-            from ultralytics.nn.tasks import attempt_load_one_weight
+            from ultralytics.nn.tasks import load_checkpoint
 
-            dpm, _ = attempt_load_one_weight(dp_cfg["model"])
+            dpm, _ = load_checkpoint(dp_cfg["model"])
             dpm.eval()
             for p in dpm.parameters():
                 p.requires_grad_(False)

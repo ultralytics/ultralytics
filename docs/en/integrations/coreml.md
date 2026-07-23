@@ -68,7 +68,7 @@ so preprocessing is reported as 0 and its cost is included in inference.
 | YOLO26n-obb   | OBB      | 1024                        | 22.8<br><sup>0.0 / 22.8 / 0.0</sup>  | **7.4**<br><sup>0.0 / 7.4 / 0.0</sup>                     |
 
 - <sup>1</sup> The retired semantic export embeds the ArgMax in the graph and returns a compact full-resolution class map (`[1, 1024, 1024]`) instead of float logits.
-- **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`, measured through the [iOS SDK's](https://github.com/ultralytics/yolo-ios-app) per-stage timing via the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) benchmark harness in profile mode (optimized native code).
+- **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`, measured through the [iOS SDK's](https://github.com/ultralytics/yolo-ios-app) per-stage timing via the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) benchmark harness in profile mode (optimized native code). Sustained real-time camera operation runs higher because it includes the capture and scaling pipeline plus thermal settling: YOLO26n detect measures 11.3 ms/frame and YOLO26n Depth 16.5 ms/frame in the live camera app on the same device — see the [iOS SDK performance doc](https://github.com/ultralytics/yolo-ios-app/blob/main/docs/performance.md) for steady-state profiling.
 - The matching Snapdragon CPU/GPU/NPU table is in the [Qualcomm QNN integration](qnn.md).
 
 ## Exporting YOLO26 Models to CoreML
@@ -198,7 +198,7 @@ Integrating a raw `.mlpackage` yourself is also straightforward with Apple's sta
 - **[CoreML Tools](https://apple.github.io/coremltools/docs-guides/)**: Conversion, quantization, and optimization reference for the `coremltools` toolchain that powers this export.
 - **[Xcode Core ML Performance Reports](https://developer.apple.com/videos/)**: Per-layer device placement and latency profiling for your exact model and device.
 
-Ship the model either embedded in the app bundle (instant availability, ideal for nano/small models) or downloaded on first run and cached (smaller binary, easy model updates) — the official apps use the second approach with the [standardized `v8.3.0` GitHub release assets](https://github.com/ultralytics/yolo-ios-app/releases/tag/v8.3.0).
+Ship the model either embedded in the app bundle (instant availability, ideal for nano/small models) or downloaded on first run and cached (smaller binary, easy model updates). The official apps combine both approaches: default nano models are bundled for immediate use, while larger variants download on demand and are cached locally.
 
 ## Recommended Workflow
 

@@ -39,6 +39,7 @@ __all__ = (
     "C3Ghost",
     "C3k2",
     "C3k2Detail",
+    "C3k2DetailCat",
     "C3k2Slim",
     "C3x",
     "CBFuse",
@@ -1151,6 +1152,52 @@ class C3k2Detail(C3k2):
     def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
         """Return C3k2(x[0]) plus the gated detail residual alpha * proj(x[1])."""
         return super().forward(x[0]) + self.alpha.view(-1, 1, 1) * self.proj(x[1])
+
+
+class C3k2DetailCat(C3k2):
+    """C3k2 that concatenates a channel-reduced detail input into the final cv2 fusion.
+
+    For inputs ``[x_main, x_detail]`` it runs the normal C3k2 chain on ``x_main`` and appends ``detail(x_detail)`` — a
+    1x1 conv reducing the raw backbone feature to the hidden width ``self.c`` — as one more branch of the ``cv2``
+    concat, so ``cv2`` fuses the neck features together with the injected detail. ``cv2`` is widened by ``self.c`` input
+    channels accordingly.
+    """
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        cd: int,
+        n: int = 1,
+        c3k: bool = False,
+        e: float = 0.5,
+        attn: bool = False,
+        g: int = 1,
+        shortcut: bool = True,
+    ):
+        """Initialize C3k2DetailCat.
+
+        Args:
+            c1 (int): Main input channels.
+            c2 (int): Output channels.
+            cd (int): Detail (second input) channels.
+            n (int): Number of blocks.
+            c3k (bool): Whether to use C3k blocks.
+            e (float): Expansion ratio.
+            attn (bool): Whether to use attention blocks.
+            g (int): Groups for convolutions.
+            shortcut (bool): Whether to use shortcut connections.
+        """
+        super().__init__(c1, c2, n, c3k, e, attn, g, shortcut)
+        self.detail = Conv(cd, self.c, 1)  # reduce detail channels to the hidden width, fused via cv2
+        self.cv2 = Conv((3 + n) * self.c, c2, 1)  # one extra detail branch added to the cv2 concat
+
+    def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
+        """Run the C3k2 chain on x[0] and concat the reduced detail x[1] into the cv2 fusion."""
+        y = list(self.cv1(x[0]).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        y.append(self.detail(x[1]))
+        return self.cv2(torch.cat(y, 1))
 
 
 class C2fSlim(C2f):

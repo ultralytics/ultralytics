@@ -39,6 +39,8 @@ yolo export model=yolo26n-sem.pt format=onnx opset=12  # semantic
 
 See the [Export documentation](https://docs.ultralytics.com/modes/export) for more options.
 
+[YOLOE](https://docs.ultralytics.com/models/yoloe) models must have their vocabulary baked in with `set_classes()` before export — see [YOLOE Export Usage](https://docs.ultralytics.com/models/yoloe#export-usage).
+
 To run a half-precision model, export with `quantize=16` **on a GPU** (on CPU, `quantize=16` is ignored and the export stays FP32). The example detects the FP16 input type and runs it automatically:
 
 ```bash
@@ -54,20 +56,6 @@ from onnxruntime.transformers.float16 import convert_float_to_float16
 model = onnx.load("yolo26n.onnx")
 onnx.save(convert_float_to_float16(model, keep_io_types=False), "yolo26n_fp16.onnx")
 ```
-
-### YOLOE Models
-
-To export a YOLOE model with a custom text vocabulary for C++ inference, call `set_classes()` before `export()`. This embeds the selected class vocabulary into the exported model, allowing the exported ONNX model to run without requiring text prompts or a text encoder at inference time.
-
-```python
-from ultralytics import YOLOE
-
-model = YOLOE("yoloe-26s-seg.pt")
-model.set_classes(["person", "bus"])
-model.export(format="onnx")
-```
-
-For additional information about `set_classes()` and YOLOE workflows, see the [YOLOE documentation](../../../docs/en/models/yoloe.md).
 
 ## 🛠️ Build
 

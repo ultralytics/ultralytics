@@ -285,17 +285,20 @@ class Tuner:
                 return
 
             with open(self.tune_file, "w", encoding="utf-8") as f:
-                f.writelines(json.dumps(
-                            self._result_record(
-                                result["iteration"],
-                                result["fitness"] or 0.0,
-                                result.get("hyperparameters", {}),
-                                result.get("datasets", {}),
-                                result.get("save_dirs"),
-                            ),
-                            default=self._json_default,
-                        )
-                        + "\n" for result in all_results)
+                f.writelines(
+                    json.dumps(
+                        self._result_record(
+                            result["iteration"],
+                            result["fitness"] or 0.0,
+                            result.get("hyperparameters", {}),
+                            result.get("datasets", {}),
+                            result.get("save_dirs"),
+                        ),
+                        default=self._json_default,
+                    )
+                    + "\n"
+                    for result in all_results
+                )
 
         except Exception as e:
             LOGGER.warning(f"{self.prefix}MongoDB to NDJSON sync failed: {e}")
@@ -585,8 +588,10 @@ class Tuner:
                     [
                         f"{self.prefix}Best fitness={fitness[best_idx]} observed at iteration {best_idx + 1}",
                         f"{self.prefix}Best fitness metrics are {self._best_metrics(best_result)}",
-                        (f"{self.prefix}Best fitness model is "
-                        f"{self.tune_dir / 'weights' if len(best_result.get('datasets', {})) == 1 else 'not saved for multi-dataset tuning'}"),
+                        (
+                            f"{self.prefix}Best fitness model is "
+                            f"{self.tune_dir / 'weights' if len(best_result.get('datasets', {})) == 1 else 'not saved for multi-dataset tuning'}"
+                        ),
                     ]
                 )
             header = "\n".join(header_lines)

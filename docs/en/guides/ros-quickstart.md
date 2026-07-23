@@ -90,6 +90,7 @@ class UltralyticsNode(Node):
     """Run YOLO detection on ROS2 image messages."""
 
     def __init__(self):
+        """Initialize the ROS2 node, model, and image interfaces."""
         super().__init__("ultralytics")
         self.bridge = cv_bridge.CvBridge()
         self.model = YOLO("yolo26m.pt")

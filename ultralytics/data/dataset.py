@@ -22,6 +22,7 @@ from ultralytics.utils.torch_utils import TORCHVISION_0_18
 
 from .augment import (
     Compose,
+    DepthFormat,
     Format,
     LetterBox,
     RandomLoadText,
@@ -41,12 +42,13 @@ from .utils import (
     polygons2masks_overlap,
     save_dataset_cache_file,
     verify_image,
+    verify_image_depth,
     verify_image_label,
     verify_image_mask,
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
-DATASET_CACHE_VERSION = "1.0.3"
+DATASET_CACHE_VERSION = "1.0.4"
 
 
 class YOLODataset(BaseDataset):
@@ -64,6 +66,10 @@ class YOLODataset(BaseDataset):
     Methods:
         cache_labels: Cache dataset labels, check images and read shapes.
         get_labels: Return list of label dictionaries for YOLO training.
+        get_label_files: Return companion label files for the dataset's images.
+        verify_args: Return the per-image verification function and its arguments.
+        result_to_label: Convert one verification result into a label dict.
+        verify_labels: Check box/segment consistency of the loaded labels.
         build_transforms: Build and append transforms to the list.
         close_mosaic: Disable mosaic, copy_paste, mixup and cutmix augmentations and build transformations.
         update_labels_info: Update label format for different tasks.
@@ -93,6 +99,10 @@ class YOLODataset(BaseDataset):
     def cache_labels(self, path: Path = Path("./labels.cache")) -> dict:
         """Cache dataset labels, check images and read shapes.
 
+        This is the shared scanning skeleton for file-based datasets; subclasses customize it through the
+        `get_label_files`, `get_cache_hash`, `verify_args`, `result_to_label` and `scan_summary` hooks instead of
+        duplicating this method.
+
         Args:
             path (Path): Path where to save the cache file.
 
@@ -103,48 +113,21 @@ class YOLODataset(BaseDataset):
         nm, nf, ne, nc, msgs = 0, 0, 0, 0, []  # number missing, found, empty, corrupt, messages
         desc = f"{self.prefix}Scanning {path.parent / path.stem}..."
         total = len(self.im_files)
-        nkpt, ndim = self.data.get("kpt_shape", (0, 0))
-        if self.use_keypoints and (nkpt <= 0 or ndim not in {2, 3}):
-            raise ValueError(
-                "'kpt_shape' in data.yaml missing or incorrect. Should be a list with [number of "
-                "keypoints, number of dims (2 for x,y or 3 for x,y,visible)], i.e. 'kpt_shape: [17, 3]'"
-            )
         with ThreadPool(NUM_THREADS) as pool:
-            results = pool.imap(
-                func=verify_image_label,
-                iterable=zip(
-                    self.im_files,
-                    self.label_files,
-                    repeat(self.prefix),
-                    repeat(self.use_keypoints),
-                    repeat(len(self.data["names"])),
-                    repeat(nkpt),
-                    repeat(ndim),
-                    repeat(self.single_cls),
-                ),
-            )
+            func, iterable = self.verify_args()
+            results = pool.imap(func=func, iterable=iterable)
             pbar = TQDM(results, desc=desc, total=total)
-            for im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg in pbar:
+            for result in pbar:
+                label, nm_f, nf_f, ne_f, nc_f, msg = self.result_to_label(result)
                 nm += nm_f
                 nf += nf_f
                 ne += ne_f
                 nc += nc_f
-                if im_file:
-                    x["labels"].append(
-                        {
-                            "im_file": im_file,
-                            "shape": shape,
-                            "cls": lb[:, 0:1],  # n, 1
-                            "bboxes": lb[:, 1:],  # n, 4
-                            "segments": segments,
-                            "keypoints": keypoint,
-                            "normalized": True,
-                            "bbox_format": "xywh",
-                        }
-                    )
+                if label is not None:
+                    x["labels"].append(label)
                 if msg:
                     msgs.append(msg)
-                pbar.desc = f"{desc} {nf} images, {nm + ne} backgrounds, {nc} corrupt"
+                pbar.desc = f"{desc} {self.scan_summary(nf, nm, ne, nc)}"
             pbar.close()
 
         if msgs:
@@ -153,46 +136,100 @@ class YOLODataset(BaseDataset):
             if self.augment:  # training requires labels; unlabeled val splits (e.g. COCO test-dev) only warn
                 raise ValueError(f"{self.prefix}No labels found in {path}. {HELP_URL}")
             LOGGER.warning(f"{self.prefix}No labels found in {path}. {HELP_URL}")
-        x["hash"] = get_hash(self.label_files + self.im_files)
-        x["results"] = nf, nm, ne, nc, len(self.im_files)
+        x["hash"] = self.get_cache_hash()
+        x["results"] = nf, nm, ne, nc, total
         x["msgs"] = msgs  # warnings
         if x["labels"]:
             save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
 
-    def get_labels(self) -> list[dict]:
-        """Return list of label dictionaries for YOLO training.
-
-        This method loads labels from disk or cache, verifies their integrity, and prepares them for training.
+    def get_label_files(self) -> list[str]:
+        """Return the companion label files for the dataset's images, storing them on the instance.
 
         Returns:
-            (list[dict]): List of label dictionaries, each containing information about an image and its annotations.
+            (list[str]): List of label file paths.
         """
         self.label_files = img2label_paths(self.im_files)
-        cache_path = Path(self.label_files[0]).parent.with_suffix(".cache")
-        try:
-            cache, exists = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
-            assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
-            assert cache["hash"] == get_hash(self.label_files + self.im_files)  # identical hash
-        except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
-            cache, exists = self.cache_labels(cache_path), False  # run cache ops
+        return self.label_files
 
-        # Display cache
-        nf, nm, ne, nc, n = cache.pop("results")  # found, missing, empty, corrupt, total
-        if exists and LOCAL_RANK in {-1, 0}:
-            d = f"Scanning {cache_path}... {nf} images, {nm + ne} backgrounds, {nc} corrupt"
-            TQDM(None, desc=self.prefix + d, total=n, initial=n)  # display results
-            if cache["msgs"]:
-                LOGGER.info("\n".join(cache["msgs"]))  # display warnings
+    def get_cache_hash(self) -> str:
+        """Return the hash used to validate a label cache against the current dataset files.
 
-        # Read cache
-        labels = cache["labels"]
-        if not labels:
-            issues = "\n  ".join(sorted(set(cache["msgs"]))) or "no error details"
-            raise RuntimeError(f"No valid images found in {cache_path}.\n  {issues}\n{HELP_URL}")
-        [cache.pop(k) for k in ("hash", "version", "msgs")]  # remove items
-        self.im_files = [lb["im_file"] for lb in labels]  # update im_files
+        Returns:
+            (str): Dataset cache hash.
+        """
+        return get_hash(self.label_files + self.im_files)
 
+    def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
+        """Return a one-line summary of scan counters for progress bars and cache logs.
+
+        Args:
+            nf (int): Number of found images.
+            nm (int): Number of missing labels.
+            ne (int): Number of empty labels.
+            nc (int): Number of corrupt images.
+
+        Returns:
+            (str): Scan summary message.
+        """
+        return f"{nf} images, {nm + ne} backgrounds, {nc} corrupt"
+
+    def verify_args(self) -> tuple:
+        """Return the per-image verification function and its argument iterable used by `cache_labels`.
+
+        Returns:
+            (tuple): (verify function, zipped argument iterable) for ThreadPool.imap.
+        """
+        nkpt, ndim = self.data.get("kpt_shape", (0, 0))
+        if self.use_keypoints and (nkpt <= 0 or ndim not in {2, 3}):
+            raise ValueError(
+                "'kpt_shape' in data.yaml missing or incorrect. Should be a list with [number of "
+                "keypoints, number of dims (2 for x,y or 3 for x,y,visible)], i.e. 'kpt_shape: [17, 3]'"
+            )
+        return verify_image_label, zip(
+            self.im_files,
+            self.label_files,
+            repeat(self.prefix),
+            repeat(self.use_keypoints),
+            repeat(len(self.data["names"])),
+            repeat(nkpt),
+            repeat(ndim),
+            repeat(self.single_cls),
+        )
+
+    def result_to_label(self, result: list) -> tuple[dict | None, int, int, int, int, str]:
+        """Convert one verification result into a label dict and scan counter increments.
+
+        Args:
+            result (list): One result from the verification function returned by `verify_args`.
+
+        Returns:
+            (tuple): (label dict or None, missing, found, empty, corrupt, message).
+        """
+        im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg = result
+        label = (
+            {
+                "im_file": im_file,
+                "shape": shape,
+                "cls": lb[:, 0:1],  # n, 1
+                "bboxes": lb[:, 1:],  # n, 4
+                "segments": segments,
+                "keypoints": keypoint,
+                "normalized": True,
+                "bbox_format": "xywh",
+            }
+            if im_file
+            else None
+        )
+        return label, nm_f, nf_f, ne_f, nc_f, msg
+
+    def verify_labels(self, labels: list[dict], cache_path: Path) -> None:
+        """Check that the dataset is all boxes or all segments, removing mixed segments if necessary.
+
+        Args:
+            labels (list[dict]): List of label dictionaries.
+            cache_path (Path): Path of the dataset cache file, used in warning messages.
+        """
         # Check if the dataset is all boxes or all segments
         lengths = ((len(lb["cls"]), len(lb["bboxes"]), len(lb["segments"])) for lb in labels)
         len_cls, len_boxes, len_segments = (sum(x) for x in zip(*lengths))
@@ -211,6 +248,53 @@ class YOLODataset(BaseDataset):
                 lb["segments"] = []
         if len_cls == 0:
             LOGGER.warning(f"Labels are missing or empty in {cache_path}, training may not work correctly. {HELP_URL}")
+
+    def _load_or_scan_cache(self, cache_path: Path, cache_hash: str) -> tuple[dict, bool]:
+        """Load a dataset cache file if it matches the current version and hash, otherwise rescan and rebuild it.
+
+        Args:
+            cache_path (Path): Path of the cache file.
+            cache_hash (str): Expected hash of the dataset files.
+
+        Returns:
+            (tuple): (cache dict, True if a valid existing cache file was loaded).
+        """
+        try:
+            cache, exists = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
+            assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
+            assert cache["hash"] == cache_hash  # identical hash
+        except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
+            cache, exists = self.cache_labels(cache_path), False  # run cache ops
+        return cache, exists
+
+    def get_labels(self) -> list[dict]:
+        """Return list of label dictionaries for YOLO training.
+
+        This method loads labels from disk or cache, verifies their integrity, and prepares them for training.
+
+        Returns:
+            (list[dict]): List of label dictionaries, each containing information about an image and its annotations.
+        """
+        label_files = self.get_label_files()
+        cache_path = Path(label_files[0]).parent.with_suffix(".cache")
+        cache, exists = self._load_or_scan_cache(cache_path, self.get_cache_hash())
+
+        # Display cache
+        nf, nm, ne, nc, n = cache.pop("results")  # found, missing, empty, corrupt, total
+        if exists and LOCAL_RANK in {-1, 0}:
+            d = f"Scanning {cache_path}... {self.scan_summary(nf, nm, ne, nc)}"
+            TQDM(None, desc=self.prefix + d, total=n, initial=n)  # display results
+            if cache["msgs"]:
+                LOGGER.info("\n".join(cache["msgs"]))  # display warnings
+
+        # Read cache
+        labels = cache["labels"]
+        if not labels:
+            issues = "\n  ".join(sorted(set(cache["msgs"]))) or "no error details"
+            raise RuntimeError(f"No valid images found in {cache_path}.\n  {issues}\n{HELP_URL}")
+        [cache.pop(k) for k in ("hash", "version", "msgs")]  # remove items
+        self.im_files = [lb["im_file"] for lb in labels]  # update im_files
+        self.verify_labels(labels, cache_path)
         return labels
 
     def build_transforms(self, hyp: dict | None = None) -> Compose:
@@ -243,6 +327,35 @@ class YOLODataset(BaseDataset):
             )
         )
         return transforms
+
+    def build_text_transforms(self, transforms: Compose, max_samples: int) -> Compose:
+        """Insert text augmentation for text-based subclasses providing `category_freq`.
+
+        Args:
+            transforms (Compose): Transforms composed by build_transforms.
+            max_samples (int): Maximum number of text samples per image.
+
+        Returns:
+            (Compose): Transforms with RandomLoadText inserted before Format when augmenting.
+        """
+        if self.augment:
+            # NOTE: hard-coded the args for now.
+            # NOTE: this implementation is different from official yoloe,
+            # the strategy of selecting negative is restricted in one dataset,
+            # while official pre-saved neg embeddings from all datasets at once.
+            transform = RandomLoadText(
+                max_samples=min(max_samples, 80),
+                padding=True,
+                padding_value=self._get_neg_texts(self.category_freq),
+            )
+            transforms.insert(-1, transform)
+        return transforms
+
+    @staticmethod
+    def _get_neg_texts(category_freq: dict) -> list[str]:
+        """Get negative text samples with frequency above the dataset threshold."""
+        threshold = min(max(category_freq.values()), 100)
+        return [k for k, v in category_freq.items() if v >= threshold]
 
     def close_mosaic(self, hyp: dict) -> None:
         """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their probabilities to 0.0.
@@ -304,7 +417,7 @@ class YOLODataset(BaseDataset):
         values = list(zip(*[list(b.values()) for b in batch]))
         for i, k in enumerate(keys):
             value = values[i]
-            if k in {"img", "text_feats", "semantic_mask", "sem_masks"}:
+            if k in {"img", "text_feats", "semantic_mask", "sem_masks", "depth"}:
                 value = torch.stack(value, 0)
             elif k == "visuals":
                 value = torch.nn.utils.rnn.pad_sequence(value, batch_first=True)
@@ -317,6 +430,105 @@ class YOLODataset(BaseDataset):
                 new_batch["batch_idx"][i] += i  # add target image index for build_targets()
             new_batch["batch_idx"] = torch.cat(new_batch["batch_idx"], 0)
         return new_batch
+
+
+class DepthDataset(YOLODataset):
+    """Dataset for monocular depth estimation with paired RGB + depth map loading.
+
+    Extends YOLODataset to load depth ground truth maps alongside RGB images. Depth maps are stored as .npy files in a
+    parallel directory structure (images/train/*.jpg → depth/train/*.npy).
+
+    Examples:
+        >>> dataset = DepthDataset(img_path="/data/nyu/images/train", data={"nc": 1})
+    """
+
+    def _depth_path_for(self, im_file: str) -> str:
+        """Map an image path to its companion depth .npy path (last 'images' path component → 'depth')."""
+        parts = list(Path(im_file).parts)
+        for i in range(len(parts) - 1, -1, -1):
+            if parts[i] == "images":
+                parts[i] = "depth"
+                break
+        return str(Path(*parts).with_suffix(".npy"))
+
+    def get_label_files(self) -> list[str]:
+        """Return the depth .npy paths paired with the dataset's images.
+
+        Returns:
+            (list[str]): List of depth file paths.
+        """
+        self.depth_files = [self._depth_path_for(f) for f in self.im_files]
+        return self.depth_files
+
+    def get_cache_hash(self) -> str:
+        """Return a hash over the paired depth and image files.
+
+        Returns:
+            (str): Dataset cache hash.
+        """
+        return get_hash(self.depth_files + self.im_files)
+
+    def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
+        """Return a one-line summary of image-depth scan counters."""
+        return f"{nf} images, {nm} missing depth, {nc} corrupt"
+
+    def verify_args(self) -> tuple:
+        """Return the depth verification function and its argument iterable."""
+        return verify_image_depth, zip(self.im_files, self.depth_files, repeat(self.prefix))
+
+    def result_to_label(self, result: tuple) -> tuple[dict | None, int, int, int, int, str]:
+        """Convert one verify_image_depth result into a label dict and scan counter increments."""
+        im_file, shape, nf_f, nm_f, nc_f, msg = result
+        label = (
+            {
+                "im_file": im_file,
+                "shape": shape,
+                "cls": np.array([], dtype=np.float32),
+                "bboxes": np.zeros((0, 4), dtype=np.float32),
+                "segments": [],
+                "normalized": True,
+                "bbox_format": "xywh",
+            }
+            if im_file
+            else None
+        )
+        return label, nm_f, nf_f, 0, nc_f, msg
+
+    def verify_labels(self, labels: list[dict], cache_path: Path) -> None:
+        """Skip box and segment checks; depth datasets carry no box or segment annotations."""
+
+    def _load_depth(self, index):
+        """Return the native-resolution depth map for an image, with non-finite values mapped to 0 (invalid)."""
+        depth = np.load(self._depth_path_for(self.im_files[index])).astype(np.float32)
+        return np.nan_to_num(depth, nan=0.0, posinf=0.0, neginf=0.0)
+
+    def get_image_and_label(self, index):
+        """Load image, label, and depth map for the given index."""
+        label = super().get_image_and_label(index)
+        h, w = label["resized_shape"]
+        depth = self._load_depth(index)
+        if depth.shape[:2] != (h, w):
+            depth = cv2.resize(depth, (w, h), interpolation=cv2.INTER_NEAREST)
+        label["depth"] = depth
+        return label
+
+    def build_transforms(self, hyp=None):
+        """Build transforms for depth estimation.
+
+        Args:
+            hyp (dict): Hyperparameters.
+
+        Returns:
+            (Compose): Composed transforms.
+        """
+        # NOTE: For now following arguments are not supported
+        hyp.mosaic = hyp.mixup = hyp.cutmix = hyp.copy_paste = 0.0
+        transforms = super().build_transforms(hyp)
+        if not self.augment:
+            # stretch the image instead of padding
+            transforms[-2] = LetterBox(new_shape=(self.imgsz, self.imgsz), scale_fill=True)
+        transforms[-1] = DepthFormat()  # replace the last transform with DepthFormat
+        return transforms
 
 
 class YOLOMultiModalDataset(YOLODataset):
@@ -363,7 +575,7 @@ class YOLOMultiModalDataset(YOLODataset):
         return labels
 
     def build_transforms(self, hyp: dict | None = None) -> Compose:
-        """Enhance data transformations with optional text augmentation for multi-modal training.
+        """Enhance data transformations with text augmentation for multi-modal training.
 
         Args:
             hyp (dict, optional): Hyperparameters for transforms.
@@ -371,19 +583,7 @@ class YOLOMultiModalDataset(YOLODataset):
         Returns:
             (Compose): Composed transforms including text augmentation if applicable.
         """
-        transforms = super().build_transforms(hyp)
-        if self.augment:
-            # NOTE: hard-coded the args for now.
-            # NOTE: this implementation is different from official yoloe,
-            # the strategy of selecting negative is restricted in one dataset,
-            # while official pre-saved neg embeddings from all datasets at once.
-            transform = RandomLoadText(
-                max_samples=min(self.data["nc"], 80),
-                padding=True,
-                padding_value=self._get_neg_texts(self.category_freq),
-            )
-            transforms.insert(-1, transform)
-        return transforms
+        return self.build_text_transforms(super().build_transforms(hyp), self.data["nc"])
 
     @property
     def category_names(self):
@@ -407,12 +607,6 @@ class YOLOMultiModalDataset(YOLODataset):
                     t = t.strip()
                     category_freq[t] += 1
         return category_freq
-
-    @staticmethod
-    def _get_neg_texts(category_freq: dict, threshold: int = 100) -> list[str]:
-        """Get negative text samples based on frequency threshold."""
-        threshold = min(max(category_freq.values()), 100)
-        return [k for k, v in category_freq.items() if v >= threshold]
 
 
 class GroundingDataset(YOLODataset):
@@ -460,7 +654,7 @@ class GroundingDataset(YOLODataset):
         """
         return []
 
-    def verify_labels(self, labels: list[dict[str, Any]]) -> None:
+    def _verify_instance_counts(self, labels: list[dict[str, Any]]) -> None:
         """Verify the number of instances in the dataset matches expected counts.
 
         This method checks if the total number of bounding box instances in the provided labels matches the expected
@@ -590,15 +784,10 @@ class GroundingDataset(YOLODataset):
             (list[dict]): List of label dictionaries, each containing information about an image and its annotations.
         """
         cache_path = Path(self.json_file).with_suffix(".cache")
-        try:
-            cache, _ = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
-            assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
-            assert cache["hash"] == get_hash(self.json_file)  # identical hash
-        except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
-            cache, _ = self.cache_labels(cache_path), False  # run cache ops
+        cache, _ = self._load_or_scan_cache(cache_path, get_hash(self.json_file))
         [cache.pop(k) for k in ("hash", "version")]  # remove items
         labels = cache["labels"]
-        self.verify_labels(labels)
+        self._verify_instance_counts(labels)
         self.im_files = [str(label["im_file"]) for label in labels]
         if LOCAL_RANK in {-1, 0}:
             LOGGER.info(f"Load {self.json_file} from cache file {cache_path}")
@@ -613,19 +802,7 @@ class GroundingDataset(YOLODataset):
         Returns:
             (Compose): Composed transforms including text augmentation if applicable.
         """
-        transforms = super().build_transforms(hyp)
-        if self.augment:
-            # NOTE: hard-coded the args for now.
-            # NOTE: this implementation is different from official yoloe,
-            # the strategy of selecting negative is restricted in one dataset,
-            # while official pre-saved neg embeddings from all datasets at once.
-            transform = RandomLoadText(
-                max_samples=min(self.max_samples, 80),
-                padding=True,
-                padding_value=self._get_neg_texts(self.category_freq),
-            )
-            transforms.insert(-1, transform)
-        return transforms
+        return self.build_text_transforms(super().build_transforms(hyp), self.max_samples)
 
     @property
     def category_names(self):
@@ -642,12 +819,6 @@ class GroundingDataset(YOLODataset):
                     t = t.strip()
                     category_freq[t] += 1
         return category_freq
-
-    @staticmethod
-    def _get_neg_texts(category_freq: dict, threshold: int = 100) -> list[str]:
-        """Get negative text samples based on frequency threshold."""
-        threshold = min(max(category_freq.values()), 100)
-        return [k for k, v in category_freq.items() if v >= threshold]
 
 
 class YOLOConcatDataset(ConcatDataset):
@@ -758,87 +929,67 @@ class SemanticDataset(YOLODataset):
             normalized[src] = dst
         return normalized
 
-    def _semantic_cache_hash(self, mask_files: list[str]) -> str:
-        """Return a hash for semantic cache validation that also includes label_mapping changes."""
-        mapping = json.dumps(self.label_mapping, sort_keys=True, separators=(",", ":"))
-        return get_hash(self.im_files + mask_files + [f"label_mapping:{mapping}"])
-
-    def cache_labels(self, path: Path = Path("./labels.cache")) -> dict[str, Any]:
-        """Cache semantic labels and image-mask pairing metadata.
-
-        Args:
-            path (Path): Path where to save the cache file.
+    def get_label_files(self) -> list[str]:
+        """Return the mask PNG paths paired with the dataset's images.
 
         Returns:
-            (dict[str, Any]): Cached semantic metadata.
+            (list[str]): List of mask file paths.
         """
-        x = {"labels": []}
-        nm, nf, nc, msgs = 0, 0, 0, []  # missing, found, corrupt, messages
-        desc = f"{self.prefix}Scanning {path.parent / path.stem}..."
-        total = len(self.im_files)
+        self.mask_files = img2label_paths(self.im_files, label_dir=self.data.get("masks_dir", "masks"), suffix=".png")
+        return self.mask_files
 
-        with ThreadPool(NUM_THREADS) as pool:
-            results = pool.imap(
-                func=verify_image_mask,
-                iterable=zip(self.im_files, self.mask_files, repeat(self.prefix)),
-            )
-            pbar = TQDM(results, desc=desc, total=total)
-            for im_file, mask_file, shape, nm_f, nf_f, nc_f, msg in pbar:
-                nm += nm_f
-                nf += nf_f
-                nc += nc_f
-                if im_file:
-                    x["labels"].append(
-                        {
-                            "im_file": im_file,
-                            "mask_file": mask_file,
-                            "shape": shape,
-                            "cls": np.array([], dtype=np.float32),
-                            "bboxes": np.zeros((0, 4), dtype=np.float32),
-                            "segments": [],
-                            "normalized": True,
-                            "bbox_format": "xywh",
-                        }
-                    )
-                if msg:
-                    msgs.append(msg)
-                pbar.desc = f"{desc} {nf} images, {nm} missing masks, {nc} corrupt"
-            pbar.close()
-        x["hash"] = self._semantic_cache_hash(self.mask_files)
-        x["results"] = nf, nm, nc, total
-        x["msgs"] = msgs
-        if x["labels"]:
-            save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
-        return x
+    def get_cache_hash(self) -> str:
+        """Return a hash for semantic cache validation that also includes label_mapping changes.
 
-    def get_labels(self):
+        Returns:
+            (str): Dataset cache hash.
+        """
+        mapping = json.dumps(self.label_mapping, sort_keys=True, separators=(",", ":"))
+        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}", "mask_bit_depth"])
+
+    def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
+        """Return a one-line summary of image-mask scan counters."""
+        return f"{nf} images, {nm} missing masks, {nc} corrupt"
+
+    def verify_args(self) -> tuple:
+        """Return the mask verification function and its argument iterable."""
+        return verify_image_mask, zip(
+            self.im_files,
+            self.mask_files,
+            repeat(self.prefix),
+            repeat(int(self.data.get("nc", 0)) == 1),
+        )
+
+    def result_to_label(self, result: tuple) -> tuple[dict | None, int, int, int, int, str]:
+        """Convert one verify_image_mask result into a label dict and scan counter increments."""
+        im_file, mask_file, shape, is_1bit, nm_f, nf_f, nc_f, msg = result
+        label = (
+            {
+                "im_file": im_file,
+                "mask_file": mask_file,
+                "shape": shape,
+                "is_1bit": is_1bit,
+                "cls": np.array([], dtype=np.float32),
+                "bboxes": np.zeros((0, 4), dtype=np.float32),
+                "segments": [],
+                "normalized": True,
+                "bbox_format": "xywh",
+            }
+            if im_file
+            else None
+        )
+        return label, nm_f, nf_f, 0, nc_f, msg
+
+    def verify_labels(self, labels: list[dict], cache_path: Path) -> None:
+        """Skip box and segment checks; semantic masks carry no box or segment annotations."""
+
+    def get_labels(self) -> list[dict]:
         """Load semantic labels from cache or scan image-mask paths.
 
         Returns:
             (list[dict]): List of label dictionaries with mask file paths and image shapes.
         """
-        self.mask_files = img2label_paths(self.im_files, label_dir=self.data.get("masks_dir", "masks"), suffix=".png")
-        cache_path = Path(self.mask_files[0]).parent.with_suffix(".cache")
-
-        try:
-            cache, exists = load_dataset_cache_file(cache_path), True
-            assert cache["version"] == DATASET_CACHE_VERSION
-            assert cache["hash"] == self._semantic_cache_hash(self.mask_files)
-        except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
-            cache, exists = self.cache_labels(cache_path), False
-
-        nf, nm, nc, n = cache.pop("results")
-        if exists and LOCAL_RANK in {-1, 0}:
-            d = f"Scanning {cache_path}... {nf} masks, {nm} missing, {nc} corrupt"
-            TQDM(None, desc=self.prefix + d, total=n, initial=n)
-            if cache["msgs"]:
-                LOGGER.info("\n".join(cache["msgs"]))
-
-        [cache.pop(k) for k in ("hash", "version", "msgs")]
-        labels = cache["labels"]
-        if not labels:
-            raise RuntimeError(f"No valid images found in {cache_path}. {HELP_URL}")
-        self.im_files = [lb["im_file"] for lb in labels]
+        labels = super().get_labels()
         self.mask_files = [lb["mask_file"] for lb in labels]
         return labels
 
@@ -852,12 +1003,8 @@ class SemanticDataset(YOLODataset):
         mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
         if mask is None:
             raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")
-        if mask.ndim == 3 and mask.shape[2] == 1:
-            mask = np.squeeze(mask, axis=2)
-        if int(self.data.get("nc", 0)) == 1:
-            with Image.open(mask_file) as im:
-                if im.mode == "1":  # cv2 expands 1-bit PNGs to {0, 255}; map only true 1-bit foreground to 1.
-                    mask[mask == 255] = 1
+        if int(self.data.get("nc", 0)) == 1 and self.labels[index]["is_1bit"]:
+            mask[mask == 255] = 1  # cv2 expands 1-bit PNG foreground to 255.
         if self.label_mapping:
             mask = self.convert_label(mask, inverse=False)
         return mask.astype(np.uint8, copy=False)
@@ -939,13 +1086,16 @@ class PolygonSemanticDataset(SemanticDataset, YOLODataset):
         self.bg_class_idx = data.get("bg_class_idx", max(int(nc) - 1, 0))
         super().__init__(*args, data=data, **kwargs)
 
-    def get_labels(self):
-        """Parse YOLO polygon .txt labels."""
-        return YOLODataset.get_labels(self)
-
-    def cache_labels(self, path: Path = Path("./labels.cache")) -> dict[str, Any]:
-        """Cache polygon labels via YOLODataset to keep the 5-tuple `results` format expected by get_labels."""
-        return YOLODataset.cache_labels(self, path)
+    # Rebind label scanning to YOLODataset's polygon .txt implementations; the MRO (SemanticDataset, YOLODataset)
+    # would otherwise resolve SemanticDataset's PNG-mask hooks and its get_labels, which syncs mask_files from
+    # label dicts that polygon labels do not have.
+    get_labels = YOLODataset.get_labels
+    get_label_files = YOLODataset.get_label_files
+    get_cache_hash = YOLODataset.get_cache_hash
+    scan_summary = YOLODataset.scan_summary
+    verify_args = YOLODataset.verify_args
+    result_to_label = YOLODataset.result_to_label
+    verify_labels = YOLODataset.verify_labels
 
     def load_mask(self, index: int, image_shape: tuple[int, int] | None = None) -> np.ndarray:
         """Rasterize this image's polygons into a (H, W) uint8 semantic mask, bg = self.bg_class_idx."""

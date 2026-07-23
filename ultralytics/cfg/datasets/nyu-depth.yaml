@@ -1,0 +1,28 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# NYU Depth V2 dataset for monocular depth estimation
+# Documentation: https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html
+# 795 train + 654 val (Eigen test split) images, 480x640, indoor scenes, depth in meters
+# Example usage: yolo depth train data=nyu-depth.yaml model=yolo26n-depth.pt
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── nyu-depth  ← downloads here (≈1.5 GB)
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: nyu-depth # dataset root dir (relative to Ultralytics settings 'datasets_dir')
+train: images/train # train images (relative to 'path') 795 images
+val: images/val # val images (relative to 'path') 654 images
+
+# Depth maps are paired .npy files (float32, meters) under depth/<split>/, resolved by
+# swapping '/images/' -> '/depth/' on each image path.
+
+# Classes
+nc: 1
+names:
+  0: depth
+
+channels: 3
+
+# Download script/URL (optional)
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/nyu-depth.zip

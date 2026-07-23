@@ -327,10 +327,9 @@ def fuse_conv_and_bn(conv, bn):
         >>> bn = nn.BatchNorm2d(16)
         >>> fused_conv = fuse_conv_and_bn(conv, bn)
     """
-    # Compute fused weights
-    w_conv = conv.weight.view(conv.out_channels, -1)
-    w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
-    conv.weight.data = torch.mm(w_bn, w_conv).view(conv.weight.shape)
+    # Compute fused weights: Conv2d weight is [out_channels, in_channels // groups, kH, kW], scale along axis 0
+    bn_scale = bn.weight.div(torch.sqrt(bn.eps + bn.running_var))
+    conv.weight.data = conv.weight * bn_scale.view(-1, 1, 1, 1)
 
     # Compute fused bias
     b_conv = (
@@ -339,7 +338,7 @@ def fuse_conv_and_bn(conv, bn):
         else conv.bias
     )
     b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fused_bias = torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn
+    fused_bias = bn_scale * b_conv + b_bn
 
     if conv.bias is None:
         conv.register_parameter("bias", nn.Parameter(fused_bias))
@@ -366,10 +365,11 @@ def fuse_deconv_and_bn(deconv, bn):
     """
     if isinstance(bn, nn.Identity):  # ConvTranspose(bn=False) leaves bn as nn.Identity, nothing to fuse
         return deconv.requires_grad_(False)
-    # Compute fused weights
-    w_deconv = deconv.weight.view(deconv.out_channels, -1)
-    w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
-    deconv.weight.data = torch.mm(w_bn, w_deconv).view(deconv.weight.shape)
+    # Compute fused weights: ConvTranspose2d weight is [in_channels, out_channels // groups, kH, kW], so the
+    # per-output-channel BN scale applies along axis 1 (group-mapped from axis 0), not axis 0 as for Conv2d.
+    bn_scale = bn.weight.div(torch.sqrt(bn.eps + bn.running_var))
+    w_scale = bn_scale.view(deconv.groups, -1).repeat_interleave(deconv.in_channels // deconv.groups, 0)
+    deconv.weight.data = deconv.weight * w_scale[:, :, None, None]
 
     # Compute fused bias
     b_conv = (
@@ -378,7 +378,7 @@ def fuse_deconv_and_bn(deconv, bn):
         else deconv.bias
     )
     b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fused_bias = torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn
+    fused_bias = bn_scale * b_conv + b_bn
 
     if deconv.bias is None:
         deconv.register_parameter("bias", nn.Parameter(fused_bias))
@@ -741,11 +741,16 @@ class ModelEMA:
             d = self.decay(self.updates)
 
             msd = unwrap_model(model).state_dict()  # model state_dict
+            ema_v, model_v = [], []
             for k, v in self.ema.state_dict().items():
                 if v.dtype.is_floating_point:  # true for FP16 and FP32
-                    v *= d
-                    v += (1 - d) * msd[k].detach()
-                    # assert v.dtype == msd[k].dtype == torch.float32, f'{k}: EMA {v.dtype},  model {msd[k].dtype}'
+                    ema_v.append(v)
+                    model_v.append(msd[k])
+            if ema_v and TORCH_2_0 and (TORCH_2_4 or ema_v[0].device.type != "mps"):  # one kernel launch per op
+                torch._foreach_lerp_(ema_v, model_v, 1 - d)
+            else:  # _foreach_lerp_ needs torch>=2.0 and, on MPS, torch>=2.4
+                for v, m in zip(ema_v, model_v):
+                    v.mul_(d).add_(m, alpha=1 - d)
 
     def update_attr(self, model, include=(), exclude=("process_group", "reducer")):
         """Copy attributes from model to EMA, with options to include/exclude certain attributes.

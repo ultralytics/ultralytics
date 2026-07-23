@@ -305,6 +305,7 @@ The `Integrations` tab lets you import datasets and projects from external servi
 
 - **Ultralytics HUB** — import your existing datasets and projects from [Ultralytics HUB](../integrations/ultralytics-hub.md).
 - **Roboflow** — import annotated datasets from a [Roboflow](../integrations/roboflow.md) workspace using a Roboflow API key.
+- **Slack** — send selected training, export, and deployment results to a [Slack channel](../integrations/slack.md).
 - **On Premise** — connect Enterprise CPU/GPU workers and keep dataset pixels on your own host. See [On Premise](../integrations/on-premise.md).
 - **Weights & Biases** — experiment-tracking sync (coming soon).
 

@@ -56,9 +56,6 @@ jobs:
         shell: bash # multi-line run blocks and ${GITHUB_WORKSPACE} expansion on all three OSes
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: "3.13"

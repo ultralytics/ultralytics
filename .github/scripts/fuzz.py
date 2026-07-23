@@ -163,6 +163,9 @@ COMBO_POOL = [
     ("export", "quantize=fp16"),
     ("export", "end2end=True max_det=10"),
 ]
+TASK_COMBO_POOL = [
+    ("train", "depth", "dlog=0.5 dgrad=1.0 dlam=0.0"),
+]
 
 # Oracle: expected clean errors are these types raised from the validation layers (modules or exact frames)
 EXPECTED_TYPES = {"SyntaxError", "ValueError", "TypeError", "AssertionError", "FileNotFoundError"}
@@ -172,7 +175,7 @@ EXPECTED_MODULES = (
     "ultralytics/data/utils.py",
     "ultralytics/data/augment.py:classify_augmentations",
     "ultralytics/data/loaders.py:__init__",  # source loaders ARE the source-validation layer; their raises are clean
-    "ultralytics/engine/trainer.py:_setup_train",  # trainer validation of batch/imgsz interplay before training
+    "ultralytics/engine/trainer.py:_build_train_pipeline",  # actual train batch/imgsz validation before optimizer setup
     "ultralytics/engine/exporter.py:validate_args",  # exporter's intentional per-format argument validation
     "ultralytics/engine/exporter.py:__call__",  # intentional compat asserts; per-format bugs raise in deeper frames
 )
@@ -283,7 +286,7 @@ def build_corpus(uni):
         # Bare weight names keep issue repro commands portable; they resolve against the precached weights_dir
         model, data = uni["task2model"][task], uni["task2data"][task]
         for mode in MODES:
-            if mode == "track" and task in {"classify", "semantic"}:
+            if mode == "track" and task not in {"detect", "segment", "pose", "obb"}:
                 continue
             argv = [mode, task, f"model={model}", *strip_defaults(CLAMPS[mode].split(), uni["defaults"])]
             if mode in {"train", "val"}:
@@ -338,6 +341,8 @@ def sample_trial(rng, uni, corpus, personality):
         """Combine compatible mode-specific argument groups without repeating keys."""
         options = [c.split() for m, c in COMBO_POOL if m == mode]
         rng.shuffle(options)
+        task_options = [c.split() for m, task, c in TASK_COMBO_POOL if m == mode and task == base["task"]]
+        options = task_options + options
         used, target = set(), rng.randint(1, max_groups)
         for combo in options:
             keys = {a.partition("=")[0] for a in combo}

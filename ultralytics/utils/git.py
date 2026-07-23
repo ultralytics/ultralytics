@@ -127,7 +127,7 @@ class GitRepo:
         if not self.is_repo or not self.head or not self.head.startswith("ref: "):
             return None
         ref = self.head[5:].strip()
-        return ref.removeprefix("refs/heads/")
+        return ref[11:] if ref.startswith("refs/heads/") else ref
 
     @cached_property
     def commit(self) -> str | None:

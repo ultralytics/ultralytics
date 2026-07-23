@@ -188,4 +188,3 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
 class YOLOEVPSegPredictor(YOLOEVPDetectPredictor, SegmentationPredictor):
     """Predictor for YOLO-EVP segmentation tasks combining detection and segmentation capabilities."""
 
-    pass

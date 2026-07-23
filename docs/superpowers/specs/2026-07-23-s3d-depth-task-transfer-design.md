@@ -24,8 +24,8 @@ Goal framing: a **general, reusable method** (not cube-specific). Validate on de
 
 - **Warm-start (scale-matched):** `yolo26n-depth.pt` (local; also an auto-downloadable release
   asset — `yolo26{n..x}-depth.pt`). Must match the student scale for name+shape matching.
-- **Teacher / prior (stronger, scale-independent):** `yolo26l-depth-640-best.pt`
-  (`/home/rick/autoresearch_depth/weights/`), optionally `-x-`.
+- **Teacher / prior (stronger, scale-independent):** `yolo26x-depth-640-best.pt`
+  (`/home/rick/autoresearch_depth/weights/`) — strongest available depth model.
 - **Student:** `yolo26n-s3d` (scale `n`; matches prior s3d/cube work).
 - **Baseline:** current `yolo26-s3d` with no depth transfer.
 
@@ -75,7 +75,7 @@ AP3D@0.7, at **no inference/deploy cost**.
   input/4) during training only; not built into the inference/export graph.
 
 ### B2. Frozen distillation teacher
-- Load `yolo26l-depth-640-best.pt` once, frozen, `eval()`, on the trainer device (new hook,
+- Load `yolo26x-depth-640-best.pt` once, frozen, `eval()`, on the trainer device (new hook,
   mirroring the existing `on_train_epoch_start` `epoch_frac` precedent).
 - In `preprocess_batch`, run the teacher on the **left** image (no grad) → `batch["teacher_depth"]`
   (metric depth, resized to aux-head resolution).
@@ -95,7 +95,7 @@ AP3D@0.7, at **no inference/deploy cost**.
 accuracy — accepting a second forward pass at inference.
 
 ### C1. Depth prior source
-- Frozen `yolo26l-depth-640-best.pt` produces a **dense metric depth map** for the left image at
+- Frozen `yolo26x-depth-640-best.pt` produces a **dense metric depth map** for the left image at
   **train and inference**.
 
 ### C2. Fusion — replace the inert cost volume

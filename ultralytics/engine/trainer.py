@@ -232,8 +232,6 @@ class BaseTrainer:
                 cmd, file = generate_ddp_command(self)
                 LOGGER.info(f"{colorstr('DDP:')} debug command {' '.join(cmd)}")
                 subprocess.run(cmd, check=True)
-            except Exception:
-                raise
             finally:
                 if file is not None:
                     ddp_cleanup(self, str(file))
@@ -727,7 +725,7 @@ class BaseTrainer:
                 "train_args": vars(self.args),  # save as dict
                 "train_metrics": {**self.metrics, "fitness": self.fitness},
                 "train_results": self.read_results_csv(),
-                "date": datetime.now().isoformat(),
+                "date": datetime.now().astimezone().isoformat(),
                 "version": __version__,
                 "git": {
                     "root": str(GIT.root),

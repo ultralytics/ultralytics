@@ -247,8 +247,8 @@ class DetectionValidator(BaseValidator):
             dist.gather_object(self.metrics.stats, gathered_stats, dst=0)
             merged_stats = {key: [] for key in self.metrics.stats}
             for stats_dict in gathered_stats:
-                for key in merged_stats:
-                    merged_stats[key].extend(stats_dict[key])
+                for key, value in stats_dict.items():
+                    merged_stats[key].extend(value)
             gathered_jdict = [None] * dist.get_world_size()
             dist.gather_object(self.jdict, gathered_jdict, dst=0)
             self.jdict = []

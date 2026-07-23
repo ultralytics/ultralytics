@@ -861,8 +861,8 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
     check_requirements("aiohttp")
     import aiohttp
 
-    with open(ndjson_path) as f:
-        lines = [json.loads(line.strip()) for line in f if line.strip()]
+    content = await asyncio.get_running_loop().run_in_executor(None, ndjson_path.read_text)
+    lines = [json.loads(line.strip()) for line in content.splitlines() if line.strip()]
     dataset_record, image_records = lines[0], lines[1:]
     task = dataset_record.get("task", "detect")
     is_classification = task == "classify"

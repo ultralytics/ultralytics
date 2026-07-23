@@ -213,7 +213,7 @@ def unzip_file(
 
 def check_disk_space(
     file_bytes: int,
-    path: str | Path = Path.cwd(),
+    path: str | Path | None = None,
     sf: float = 1.5,
     hard: bool = True,
 ) -> bool:
@@ -228,7 +228,7 @@ def check_disk_space(
     Returns:
         (bool): True if there is sufficient disk space, False otherwise.
     """
-    _total, _used, free = shutil.disk_usage(path)  # bytes
+    _total, _used, free = shutil.disk_usage(path or Path.cwd())  # bytes
     if file_bytes * sf < free:
         return True  # sufficient space
 
@@ -349,7 +349,7 @@ def safe_download(
                         # cannot block interpreter shutdown while a non-daemon plot thread waits on a font download
                         args = ["--connect-timeout", "30", "--speed-limit", "1", "--speed-time", "300"]
                         r = subprocess.run(
-                            ["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-", *args]
+                            ["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-", *args], check=False
                         ).returncode
                         assert r == 0, f"Curl return value {r}"
                     else:  # requests download; timeout bounds connect and per-chunk read gaps, not total transfer
@@ -532,7 +532,7 @@ def attempt_download_asset(
 
 def download(
     url: str | list[str] | Path,
-    dir: Path = Path.cwd(),
+    dir: Path | None = None,
     unzip: bool = True,
     delete: bool = False,
     curl: bool = False,
@@ -557,7 +557,7 @@ def download(
     Examples:
         >>> download("https://github.com/ultralytics/assets/releases/download/v0.0.0/bus.jpg", dir="path/to/dir")
     """
-    dir = Path(dir)
+    dir = Path(dir or Path.cwd())
     dir.mkdir(parents=True, exist_ok=True)  # make directory
     urls = [url] if isinstance(url, (str, Path)) else url
     if threads > 1:

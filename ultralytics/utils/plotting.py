@@ -817,7 +817,7 @@ def save_one_box(
 @threaded
 def plot_images(
     labels: dict[str, Any],
-    images: torch.Tensor | np.ndarray = np.zeros((0, 3, 640, 640), dtype=np.float32),
+    images: torch.Tensor | np.ndarray | None = None,
     paths: list[str] | None = None,
     fname: str = "images.jpg",
     names: dict[int, str] | None = None,
@@ -859,6 +859,7 @@ def plot_images(
         - 3 channels: Used as-is (standard RGB)
         - 4+ channels: Cropped to first 3 channels
     """
+    images = np.zeros((0, 3, 640, 640), dtype=np.float32) if images is None else images
     for k in ("cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images", "semantic_mask", "depth"):
         if k not in labels:
             continue

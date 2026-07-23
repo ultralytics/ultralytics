@@ -116,7 +116,5 @@ class YOLOESegTrainerFromScratch(YOLOETrainerFromScratch, YOLOESegTrainer):
     """Trainer for YOLOE segmentation models trained from scratch without pretrained weights."""
 
 
-
 class YOLOESegVPTrainer(YOLOEVPTrainer, YOLOESegTrainerFromScratch):
     """Trainer for YOLOE segmentation models with Vision Prompt (VP) capabilities."""
-

@@ -2662,12 +2662,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                 names = names or dict(enumerate(str(i) for i in range(pred_boxes[:, 6].int().max() + 1)))
             if pred_masks.shape[0] > 1:
                 tracker_scores = torch.tensor(
-                    [
-                        (
-                            preds["obj_id_to_tracker_score"].get(obj_id, 0.0)
-                        )
-                        for obj_id in curr_obj_ids
-                    ],
+                    [(preds["obj_id_to_tracker_score"].get(obj_id, 0.0)) for obj_id in curr_obj_ids],
                     device=pred_masks.device,
                 )[keep]
                 pred_masks = (
@@ -3714,9 +3709,10 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         for (first_obj_id, obj_id), frame_indices in overlap_pair_to_frame_inds.items():
             if obj_id in removed_obj_ids or obj_id in obj_ids_newly_removed:
                 continue  # skip if the object is already removed
-            if ((obj_first_frame_idx[obj_id] > hotstart_diff and not reverse) or (
-                obj_first_frame_idx[obj_id] < hotstart_diff and reverse
-            )) and len(frame_indices) >= self.hotstart_dup_thresh:
+            if (
+                (obj_first_frame_idx[obj_id] > hotstart_diff and not reverse)
+                or (obj_first_frame_idx[obj_id] < hotstart_diff and reverse)
+            ) and len(frame_indices) >= self.hotstart_dup_thresh:
                 obj_ids_newly_removed.add(obj_id)
                 LOGGER.debug(
                     f"Removing object {obj_id} at frame {frame_idx} "

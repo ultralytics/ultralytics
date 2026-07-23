@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
@@ -203,12 +203,12 @@ def torch2coreml(
     # Internally based on the model conversion and output type.
     # Setting minimum_deployment_target >= iOS16 will require setting compute_precision=ct.precision.FLOAT32.
     # iOS16 adds in better support for FP16, but none of the CoreML NMS specifications handle FP16 as input.
-    convert_kwargs = dict(
-        inputs=inputs,
-        classifier_config=ct.ClassifierConfig(classifier_names) if classifier_names else None,
-        convert_to="neuralnetwork" if mlmodel else "mlprogram",
-        skip_model_load=True,
-    )
+    convert_kwargs = {
+        "inputs": inputs,
+        "classifier_config": ct.ClassifierConfig(classifier_names) if classifier_names else None,
+        "convert_to": "neuralnetwork" if mlmodel else "mlprogram",
+        "skip_model_load": True,
+    }
     if not mlmodel:
         # ML Program conversion defaults to FP16. Pin FP32 unless FP16/INT8 was requested.
         from ultralytics.nn.modules.head import RTDETRDecoder

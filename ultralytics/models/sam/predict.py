@@ -2328,7 +2328,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
             if masks.shape[0] == 0:
                 masks, boxes = None, torch.zeros((0, 6), device=pred_masks.device)
             else:
-                masks = F.interpolate(masks.float()[None], orig_img.shape[:2], mode="bilinear")[0] > 0.5
+                masks = F.interpolate(masks.float()[None], orig_img.shape[:2], mode="bilinear")[0].sigmoid() > 0.5
                 boxes[..., [0, 2]] *= orig_img.shape[1]
                 boxes[..., [1, 3]] *= orig_img.shape[0]
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
@@ -2398,7 +2398,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
         if pred_masks.shape[0] == 0:
             pred_masks, pred_boxes = None, torch.zeros((0, 6), device=pred_masks.device)
         else:
-            pred_masks = F.interpolate(pred_masks.float()[None], src_shape[:2], mode="bilinear")[0] > 0.5
+            pred_masks = F.interpolate(pred_masks.float()[None], src_shape[:2], mode="bilinear")[0].sigmoid() > 0.5
             pred_boxes[..., 0] *= src_shape[1]
             pred_boxes[..., 1] *= src_shape[0]
             pred_boxes[..., 2] *= src_shape[1]

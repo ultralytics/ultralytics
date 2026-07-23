@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import Any
 
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
-from torch import nn
 
 from ultralytics.utils.metrics import bbox_iou
 from ultralytics.utils.ops import linear_sum_assignment, xywh2xyxy, xyxy2xywh

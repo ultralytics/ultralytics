@@ -158,7 +158,7 @@ def modelopt_quantize_onnx(
         )
         return out_file
 
-    from modelopt.onnx import autocast
+    import modelopt.onnx.autocast as autocast
 
     out_file = str(Path(onnx_file).with_suffix(".fp16.onnx"))
     LOGGER.info(f"{prefix} converting ONNX to FP16 mixed precision with ModelOpt AutoCast...")

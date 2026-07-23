@@ -57,7 +57,7 @@ onnx.save(convert_float_to_float16(model, keep_io_types=False), "yolo26n_fp16.on
 
 ### YOLOE Models
 
-When exporting a YOLOE model for C++ inference, call `set_classes()` before `export()`. This embeds the selected class vocabulary into the exported model, allowing the exported ONNX model to run without requiring text prompts or a text encoder at inference time.
+To export a YOLOE model with a custom text vocabulary for C++ inference, call `set_classes()` before `export()`. This embeds the selected class vocabulary into the exported model, allowing the exported ONNX model to run without requiring text prompts or a text encoder at inference time.
 
 ```python
 from ultralytics import YOLOE

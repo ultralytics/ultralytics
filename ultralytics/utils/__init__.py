@@ -162,7 +162,7 @@ HELP_MSG = """
 
 # Settings and Environment Variables
 torch.set_printoptions(linewidth=320, precision=4, profile="default")
-np.set_printoptions(linewidth=320, formatter=dict(float_kind="{:11.5g}".format))  # format short g, %precision=5
+np.set_printoptions(linewidth=320, formatter={"float_kind": "{:11.5g}".format})  # format short g, %precision=5
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warnings in Colab
@@ -726,7 +726,7 @@ def is_ubuntu() -> bool:
         return False
 
 
-def is_debian(codenames: list[str] | None | str = None) -> list[bool] | bool:
+def is_debian(codenames: list[str] | str | None = None) -> list[bool] | bool:
     """Check if the OS is Debian.
 
     Args:
@@ -1102,7 +1102,6 @@ class TryExcept(contextlib.ContextDecorator):
 
     def __enter__(self):
         """Execute when entering TryExcept context, initialize instance."""
-        pass
 
     def __exit__(self, exc_type, value, traceback):
         """Define behavior when exiting a 'with' block, print error message if necessary."""
@@ -1149,7 +1148,7 @@ class Retry(contextlib.ContextDecorator):
                     self._attempts += 1
                     LOGGER.warning(f"Retry {self._attempts}/{self.times} failed: {e}")
                     if self._attempts >= self.times:
-                        raise e
+                        raise
                     time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay
 
         return wrapped_func

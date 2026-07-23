@@ -11,7 +11,7 @@ Deploying computer vision models on Qualcomm Snapdragon devices requires a model
 
 !!! tip "Run YOLO on Snapdragon NPUs today with the official mobile apps"
 
-    The official [Ultralytics Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) runs QNN exports on the Hexagon NPU out of the box — real-time camera inference and single-image prediction for all seven YOLO26 tasks. For iOS deployment, see the [Ultralytics YOLO iOS SDK](https://github.com/ultralytics/yolo-ios-app) and the [CoreML integration](coreml.md).
+    The official [Ultralytics Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) provides opt-in QNN support for real-time camera inference and single-image prediction across all seven YOLO26 tasks. Enable the QNN runtime and add its ONNX Runtime dependency as described in the plugin README. For iOS deployment, see the [Ultralytics YOLO iOS SDK](https://github.com/ultralytics/yolo-ios-app) and the [CoreML integration](coreml.md).
 
 !!! important "Official mobile input sizes"
 
@@ -268,7 +268,8 @@ devices = [d for d in ort.get_ep_devices() if d.ep_name == "QNNExecutionProvider
 options = ort.SessionOptions()
 options.add_provider_for_devices(devices, {"backend_path": qnn_ep.get_qnn_htp_path()})
 session = ort.InferenceSession("yolo26n_qnn.onnx", sess_options=options)
-outputs = session.run(None, {"images": input_tensor})  # input_tensor: float32 NCHW
+input_info = session.get_inputs()[0]
+outputs = session.run(None, {input_info.name: input_tensor})  # input_tensor: float32 NHWC
 ```
 
 Because the QNN context binary is precompiled, the session loads quickly without recompiling the graph on-device.

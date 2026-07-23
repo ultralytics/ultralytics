@@ -66,10 +66,22 @@ class TaskAlignedAssigner(nn.Module):
     @staticmethod
     def _reset_mon() -> dict:
         """Return an empty monitor accumulator for TAL assignment stats."""
-        return {"n_gt": 0, "zero_pos": 0, "conflict": 0, "pos_pre": 0, "pos_post": 0,
-                "align": 0.0, "iou": 0.0, "score": 0.0, "soft": 0.0, "tss": 0.0,
-                "by_size": {b: {"n_gt": 0, "zero_pos": 0, "iou": 0.0, "score": 0.0, "soft": 0.0}
-                            for b in ("small", "medium", "large")}}
+        return {
+            "n_gt": 0,
+            "zero_pos": 0,
+            "conflict": 0,
+            "pos_pre": 0,
+            "pos_post": 0,
+            "align": 0.0,
+            "iou": 0.0,
+            "score": 0.0,
+            "soft": 0.0,
+            "tss": 0.0,
+            "by_size": {
+                b: {"n_gt": 0, "zero_pos": 0, "iou": 0.0, "score": 0.0, "soft": 0.0}
+                for b in ("small", "medium", "large")
+            },
+        }
 
     @torch.no_grad()
     def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
@@ -159,14 +171,37 @@ class TaskAlignedAssigner(nn.Module):
             )
 
         if self.monitor:
-            self._update_mon(mask_pos_pre, mask_pos, align_metric, overlaps, pd_scores, gt_labels, gt_bboxes,
-                             mask_gt, pos_align_metrics, pos_overlaps, target_scores.sum())
+            self._update_mon(
+                mask_pos_pre,
+                mask_pos,
+                align_metric,
+                overlaps,
+                pd_scores,
+                gt_labels,
+                gt_bboxes,
+                mask_gt,
+                pos_align_metrics,
+                pos_overlaps,
+                target_scores.sum(),
+            )
 
         return target_labels, target_bboxes, target_scores, fg_mask.bool(), target_gt_idx
 
     @torch.no_grad()
-    def _update_mon(self, mask_pos_pre, mask_pos, align_metric, overlaps, pd_scores, gt_labels, gt_bboxes,
-                    mask_gt, pos_align, pos_over, tss):
+    def _update_mon(
+        self,
+        mask_pos_pre,
+        mask_pos,
+        align_metric,
+        overlaps,
+        pd_scores,
+        gt_labels,
+        gt_bboxes,
+        mask_gt,
+        pos_align,
+        pos_over,
+        tss,
+    ):
         """Accumulate per-GT assignment stats into self.mon (used by callbacks/tal_monitor.py)."""
         a = self.mon
         mg = mask_gt.bool()  # (b, n_gt, 1)

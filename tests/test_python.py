@@ -4,11 +4,13 @@ import contextlib
 import csv
 import os
 import shutil
+import sys
 import tarfile
 import urllib
 import zipfile
 from copy import copy
 from pathlib import Path
+from types import ModuleType, SimpleNamespace
 
 import cv2
 import numpy as np
@@ -17,6 +19,7 @@ import torch
 from PIL import Image
 
 import ultralytics.data.build as data_build
+import ultralytics.data.loaders as data_loaders
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
@@ -402,6 +405,47 @@ def test_youtube():
     # Handle internet connection errors and 'urllib.error.HTTPError: HTTP Error 429: Too Many Requests'
     except (urllib.error.HTTPError, ConnectionError) as e:
         LOGGER.error(f"YouTube Test Error: {e}")
+
+
+def test_youtube_ignores_streams_without_resolution(monkeypatch):
+    """Test YouTube stream selection delegates nullable-safe resolution ordering to pytubefix."""
+
+    class StreamQuery:
+        def __init__(self, streams):
+            self.streams = streams
+
+        def filter(self, **kwargs):
+            return self
+
+        def order_by(self, attribute):
+            self.streams = sorted(
+                (stream for stream in self.streams if getattr(stream, attribute) is not None),
+                key=lambda stream: int(getattr(stream, attribute)[:-1]),
+            )
+            return self
+
+        def desc(self):
+            self.streams.reverse()
+            return self
+
+        def first(self):
+            return self.streams[0] if self.streams else None
+
+    pytubefix = ModuleType("pytubefix")
+    pytubefix.YouTube = lambda _: SimpleNamespace(
+        streams=StreamQuery(
+            [
+                SimpleNamespace(resolution=None, url="none"),
+                SimpleNamespace(resolution="720p", url="720"),
+                SimpleNamespace(resolution="1080p", url="1080"),
+                SimpleNamespace(resolution="2160p", url="2160"),
+            ]
+        )
+    )
+    monkeypatch.setitem(sys.modules, "pytubefix", pytubefix)
+    monkeypatch.setattr(data_loaders, "check_requirements", lambda *_: None)
+
+    assert data_loaders.get_best_youtube_url("https://youtu.be/example") == "2160"
 
 
 def test_track_second_association_indices():

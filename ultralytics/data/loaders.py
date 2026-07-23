@@ -684,11 +684,11 @@ def get_best_youtube_url(url: str, method: str = "pytube") -> str | None:
         check_requirements("pytubefix>=6.5.2")
         from pytubefix import YouTube
 
-        streams = YouTube(url).streams.filter(file_extension="mp4", only_video=True)
-        streams = sorted(streams, key=lambda s: s.resolution, reverse=True)  # sort streams by resolution
-        for stream in streams:
-            if stream.resolution and int(stream.resolution[:-1]) >= 1080:  # check if resolution is at least 1080p
-                return stream.url
+        stream = (
+            YouTube(url).streams.filter(file_extension="mp4", only_video=True).order_by("resolution").desc().first()
+        )
+        if stream and int(stream.resolution[:-1]) >= 1080:  # check if resolution is at least 1080p
+            return stream.url
 
     elif method == "pafy":
         check_requirements(("pafy", "youtube_dl==2020.12.2"))

@@ -894,6 +894,7 @@ class Metric(SimpleClass):
         all_ap (list): AP scores for all classes and all IoU thresholds. Shape: (nc, 10).
         ap_class_index (list): Index of class for each AP score. Shape: (nc,).
         nc (int): Number of classes.
+        center_rmse (list): TP-RMSE center-based offset per class. Shape: (nc,).
 
     Methods:
         ap50: AP at IoU threshold of 0.5 for all classes.
@@ -920,6 +921,7 @@ class Metric(SimpleClass):
         self.all_ap = []  # (nc, 10)
         self.ap_class_index = []  # (nc, )
         self.nc = 0
+        self.center_rmse = []  # (nc, )
         self.image_metrics = {}
 
     @property
@@ -985,13 +987,30 @@ class Metric(SimpleClass):
         """
         return self.all_ap.mean() if len(self.all_ap) else 0.0
 
+    @property
+    def mcenter_offset(self) -> float:
+        """Return the mean TP-RMSE Center Offset over all detected classes.
+
+        Returns:
+            (float): The mcenter_offset of all classes
+        """
+        return self.center_rmse.mean() if len(self.center_rmse) else 0.0
+
     def mean_results(self) -> list[float]:
         """Return mean of results, mp, mr, map50, map."""
-        return [self.mp, self.mr, self.map50, self.map]
+        metrics = [self.mp, self.mr, self.map50, self.map]
+        # as segmentation models also use base metrics, it is important to assure
+        # that it is possible to use that metric
+        if self.center_rmse is not None and len(self.center_rmse):
+            metrics.append(self.mcenter_offset)
+        return metrics
 
-    def class_result(self, i: int) -> tuple[float, float, float, float]:
-        """Return class-aware result, p[i], r[i], ap50[i], ap[i]."""
-        return self.p[i], self.r[i], self.ap50[i], self.ap[i]
+    def class_result(self, i: int) -> tuple[float, float, float, float, float]:
+        """Return class-aware result, p[i], r[i], ap50[i], ap[i], center_offset[i]: if the model is (detect, obb)."""
+        metrics = [self.p[i], self.r[i], self.ap50[i], self.ap[i]]
+        if self.center_rmse is not None and len(self.center_rmse):
+            metrics.append(self.center_rmse[i])
+        return tuple(metrics)
 
     @property
     def maps(self) -> np.ndarray:
@@ -1004,7 +1023,7 @@ class Metric(SimpleClass):
     def fitness(self) -> float:
         """Return model fitness as a weighted combination of metrics."""
         w = [0.0, 0.0, 0.0, 1.0]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
-        return float((np.nan_to_num(np.array(self.mean_results())) * w).sum())
+        return (np.nan_to_num(np.array(self.mean_results()[:4])) * w).sum()
 
     def update(self, results: tuple):
         """Update the evaluation metrics with a new set of results.
@@ -1054,7 +1073,14 @@ class Metric(SimpleClass):
             [self.px, self.r_curve, "Confidence", "Recall"],
         ]
 
-    def update_image_metrics(self, tp: np.ndarray, target_cls: np.ndarray, pred_cls: np.ndarray, im_name: str) -> None:
+    def update_image_metrics(
+        self,
+        tp: np.ndarray,
+        target_cls: np.ndarray,
+        pred_cls: np.ndarray,
+        im_name: str,
+        tp_center_offset: np.ndarray | None = None,
+    ) -> None:
         """Update per-image precision, recall, F1, TP, FP, and FN at IoU threshold 0.5.
 
         Args:
@@ -1063,30 +1089,46 @@ class Metric(SimpleClass):
             target_cls (np.ndarray): Ground truth class labels for the image.
             pred_cls (np.ndarray): Predicted class labels for the image.
             im_name (str): The image filename used as the per-image key.
+            tp_center_offset (np.ndarray | None): Optional per-prediction center offsets. When provided, computes
+                per-image RMSE over true positives only.
         """
         # Use the default IoU=0.5 column to match the validator's image-level matching policy.
-        tp = int(tp[:, 0].sum())
+        tp_col = tp[:, 0].astype(bool) if tp.size else np.zeros((0,), dtype=bool)
+        tp_count = int(tp_col.sum())
         num_preds = pred_cls.shape[0]
         num_targets = target_cls.shape[0]
-        fp = num_preds - tp
-        fn = num_targets - tp
+        fp = num_preds - tp_count
+        fn = num_targets - tp_count
         if num_preds == 0 and num_targets == 0:
             # Empty-GT image with no predictions is a trivially correct call, so report a perfect score rather than
             # zeroing out P/R/F1 by the standard 0/0 fallback below.
             precision = recall = f1 = 1.0
         else:
-            precision = tp / num_preds if num_preds else 0.0
-            recall = tp / num_targets if num_targets else 0.0
+            precision = tp_count / num_preds if num_preds else 0.0
+            recall = tp_count / num_targets if num_targets else 0.0
             denom = precision + recall
             f1 = 2 * precision * recall / denom if denom else 0.0
-        self.image_metrics[im_name] = {
+        metrics = {
             "precision": float(precision),
             "recall": float(recall),
             "f1": float(f1),
-            "tp": int(tp),
+            "tp": int(tp_count),
             "fp": int(fp),
             "fn": int(fn),
         }
+        if tp_center_offset is not None:
+            offset_arr = np.asarray(tp_center_offset, dtype=float)
+            if offset_arr.size == 0 or tp_col.size == 0:
+                metrics["center_rmse"] = 0.0
+            else:
+                if offset_arr.shape[0] != tp_col.shape[0]:
+                    n = min(offset_arr.shape[0], tp_col.shape[0])
+                    offset_arr = offset_arr[:n]
+                    tp_col = tp_col[:n]
+                tp_offsets = offset_arr[tp_col]
+                metrics["center_rmse"] = float(np.sqrt(np.mean(tp_offsets**2))) if tp_offsets.size else 0.0
+
+        self.image_metrics[im_name] = metrics
 
 
 class DetMetrics(SimpleClass, DataExportMixin):
@@ -1097,7 +1139,8 @@ class DetMetrics(SimpleClass, DataExportMixin):
         box (Metric): An instance of the Metric class for storing detection results.
         speed (dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         stats (dict[str, list]): A dictionary containing lists for true positives, confidence scores, predicted classes,
-            target classes, and target images.
+            target classes, target images and the normalized (imgsz) offset of the predictions with respect to the
+            ground truth.
         nt_per_class: Number of targets per class.
         nt_per_image: Number of targets per image.
 
@@ -1126,7 +1169,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.names = names if names is not None else {}
         self.box = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
-        self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
+        self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[], tp_center_offset=[])
         self.nt_per_class = None
         self.nt_per_image = None
 
@@ -1139,7 +1182,15 @@ class DetMetrics(SimpleClass, DataExportMixin):
         """
         for k in self.stats.keys():
             self.stats[k].append(stat[k])
-        self.box.update_image_metrics(stat["tp"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
+        # Unit tests and some programmatic calls may omit image names.
+        im_name = stat.get("im_name", f"image_{len(self.box.image_metrics)}")
+        self.box.update_image_metrics(
+            stat["tp"],
+            stat["target_cls"],
+            stat["pred_cls"],
+            im_name,
+            tp_center_offset=stat.get("tp_center_offset"),
+        )
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
         """Process predicted results for object detection and update metrics.
@@ -1168,8 +1219,34 @@ class DetMetrics(SimpleClass, DataExportMixin):
         )[2:]
         self.box.nc = len(self.names)
         self.box.update(results)
+
+        if self.include_center_rmse:
+            # compute center offset RMSE (normalized) across all true positives
+            tp_offsets = stats.get("tp_center_offset") if "tp_center_offset" in stats else None
+            rmse_per_class = np.zeros(len(self.names), dtype=float)
+            if tp_offsets is None or tp_offsets.size == 0:
+                self.center_rmse = 0.0
+            else:
+                tp_offsets = tp_offsets.astype(float)
+                tp_mask = stats["tp"][:, 0].astype(bool)
+                if not tp_mask.any():
+                    self.center_rmse = 0.0
+                else:
+                    tp_offsets_filtered = tp_offsets[tp_mask]
+                    pred_cls_tp = stats["pred_cls"][tp_mask].astype(int)
+                    self.center_rmse = float(np.sqrt(np.mean(tp_offsets_filtered**2)))
+                    for c in range(len(self.names)):
+                        cls_mask = pred_cls_tp == c
+                        if cls_mask.any():
+                            offs = tp_offsets_filtered[cls_mask]
+                            rmse_per_class[c] = float(np.sqrt(np.mean(offs**2)))
+                        else:
+                            rmse_per_class[c] = 0.0
+
+            self.box.center_rmse = rmse_per_class
         self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=len(self.names))
         self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=len(self.names))
+
         return stats
 
     def clear_stats(self):
@@ -1182,13 +1259,30 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.box.clear_image_metrics()
 
     @property
+    def include_center_rmse(self) -> bool:
+        """Whether this metrics class should include center-RMSE in box metrics and reported keys."""
+        return True
+
+    @property
     def keys(self) -> list[str]:
         """Return a list of keys for accessing specific metrics."""
-        return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP50(B)", "metrics/mAP50-95(B)"]
+        keys = [
+            "metrics/precision(B)",
+            "metrics/recall(B)",
+            "metrics/mAP50(B)",
+            "metrics/mAP50-95(B)",
+        ]
+        if self.include_center_rmse:
+            keys.append("metrics/center_rmse(B)")
+        return keys
 
     def mean_results(self) -> list[float]:
-        """Calculate mean of detected objects & return precision, recall, mAP50, and mAP50-95."""
-        return self.box.mean_results()
+        """Calculate mean of detected objects & return precision, recall, mAP50, mAP50-95 and center_rmse.
+
+        The returned list length matches `self.keys` so it can be used directly in formatted outputs.
+        """
+        base = list(self.box.mean_results())
+        return base
 
     def class_result(self, i: int) -> tuple[float, float, float, float]:
         """Return the result of evaluating the performance of an object detection model on a specific class."""
@@ -1213,7 +1307,9 @@ class DetMetrics(SimpleClass, DataExportMixin):
     def results_dict(self) -> dict[str, float]:
         """Return dictionary of computed performance metrics and statistics."""
         keys = [*self.keys, "fitness"]
-        values = ((float(x) if hasattr(x, "item") else x) for x in ([*self.mean_results(), self.fitness]))
+        # include center_rmse (self.center_rmse) after mean_results
+        mean_vals = list(self.mean_results())
+        values = ((float(x) if hasattr(x, "item") else x) for x in ([*mean_vals, self.fitness]))
         return dict(zip(keys, values))
 
     @property
@@ -1304,7 +1400,8 @@ class SegmentMetrics(DetMetrics):
                 keys in self.stats.
         """
         super().update_stats(stat)  # update box stats
-        self.seg.update_image_metrics(stat["tp_m"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
+        im_name = stat.get("im_name", f"image_{len(self.seg.image_metrics)}")
+        self.seg.update_image_metrics(stat["tp_m"], stat["target_cls"], stat["pred_cls"], im_name)
 
     def clear_image_metrics(self) -> None:
         """Clear stored per-image metrics."""
@@ -1337,6 +1434,11 @@ class SegmentMetrics(DetMetrics):
         self.seg.nc = len(self.names)
         self.seg.update(results_mask)
         return stats
+
+    @property
+    def include_center_rmse(self) -> bool:
+        """Disable center-RMSE reporting for segmentation metrics."""
+        return False
 
     @property
     def keys(self) -> list[str]:
@@ -1455,7 +1557,8 @@ class PoseMetrics(DetMetrics):
                 keys in self.stats.
         """
         super().update_stats(stat)  # update box stats
-        self.pose.update_image_metrics(stat["tp_p"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
+        im_name = stat.get("im_name", f"image_{len(self.pose.image_metrics)}")
+        self.pose.update_image_metrics(stat["tp_p"], stat["target_cls"], stat["pred_cls"], im_name)
 
     def clear_image_metrics(self) -> None:
         """Clear stored per-image metrics."""
@@ -1488,6 +1591,11 @@ class PoseMetrics(DetMetrics):
         self.pose.nc = len(self.names)
         self.pose.update(results_pose)
         return stats
+
+    @property
+    def include_center_rmse(self) -> bool:
+        """Disable center-RMSE reporting for pose metrics."""
+        return False
 
     @property
     def keys(self) -> list[str]:

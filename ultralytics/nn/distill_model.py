@@ -308,6 +308,7 @@ class DistillationModel(nn.Module):
         """
         if isinstance(preds, tuple):  # decouple for val mode
             preds = preds[1]
-        if isinstance(preds, dict) and branch in preds:
-            preds = preds[branch]
+        if isinstance(preds, dict):
+            if branch in preds:
+                preds = preds[branch]
         return preds

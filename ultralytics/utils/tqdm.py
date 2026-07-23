@@ -8,8 +8,6 @@ import time
 from functools import lru_cache
 from typing import IO, Any
 
-from typing_extensions import Self
-
 
 @lru_cache(maxsize=1)
 def is_noninteractive_console() -> bool:
@@ -170,7 +168,7 @@ class TQDM:
         fallback = f"{rate:.1f}B/s" if self.is_bytes else f"{rate:.1f}{self.unit}/s"
         return next((f"{rate / t:.1f}{u}" for t, u in self.scales if rate >= t), fallback)
 
-    def _format_num(self, num: float) -> str:
+    def _format_num(self, num: int | float) -> str:
         """Format number with optional unit scaling."""
         if not self.unit_scale or not self.is_bytes:
             return str(num)
@@ -335,11 +333,11 @@ class TQDM:
             except Exception:
                 pass
 
-    def __enter__(self) -> Self:
+    def __enter__(self) -> TQDM:
         """Enter context manager."""
         return self
 
-    def __exit__(self, *args: object) -> None:
+    def __exit__(self, *args: Any) -> None:
         """Exit context manager and close progress bar."""
         self.close()
 

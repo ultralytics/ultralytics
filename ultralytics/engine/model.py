@@ -1093,7 +1093,7 @@ class Model(torch.nn.Module):
             >>> model.reset_callbacks()
             # All callbacks are now reset to their default functions
         """
-        for event in callbacks.default_callbacks:
+        for event in callbacks.default_callbacks.keys():
             self.callbacks[event] = [callbacks.default_callbacks[event][0]]
 
     @staticmethod

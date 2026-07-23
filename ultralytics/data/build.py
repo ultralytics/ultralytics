@@ -251,7 +251,9 @@ def build_yolo_dataset(
         pad = 0.0  # depth val letterbox stretches, so pad is ignored
     elif cfg.task == "semantic":
         data_path = Path(data.get("path", ""))
-        if "masks_dir" in data or (data_path / "masks").exists():
+        if "masks_dir" in data:
+            dataset = SemanticDataset
+        elif (data_path / "masks").exists():
             dataset = SemanticDataset
         else:
             dataset = PolygonSemanticDataset
@@ -469,6 +471,6 @@ def load_inference_source(
         dataset = LoadImagesAndVideos(source, batch=batch, vid_stride=vid_stride, channels=channels)
 
     # Attach source types to the dataset
-    dataset.source_type = source_type
+    setattr(dataset, "source_type", source_type)
 
     return dataset

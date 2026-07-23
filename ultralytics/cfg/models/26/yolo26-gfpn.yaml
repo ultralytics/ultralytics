@@ -60,4 +60,4 @@ head:
   - [[13, 24, 25], 1, Concat, [1]] # 26
   - [-1, 1, C3k2, [1024, True, 0.5, True]] # 27 merge_6 -> x6 (P5/32-large)
 
-  - [[20, 23, 27], 1, DetectZero, [nc]] # 28 Detect(P3, P4, P5)
+  - [[20, 23, 27], 1, Detect, [nc]] # 28 Detect(P3, P4, P5)

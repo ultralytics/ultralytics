@@ -53,8 +53,8 @@ def env_bool(name: str, default: bool = False) -> bool:
 
 
 # PyTorch Multi-GPU DDP Constants
-RANK = int(os.getenv("RANK", -1))
-LOCAL_RANK = int(os.getenv("LOCAL_RANK", -1))  # https://pytorch.org/docs/stable/elastic/run.html
+RANK = int(os.getenv("RANK", "-1"))
+LOCAL_RANK = int(os.getenv("LOCAL_RANK", "-1"))  # https://pytorch.org/docs/stable/elastic/run.html
 
 # Other Constants
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
@@ -77,7 +77,7 @@ ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = str(torch.__version__)  # Normalize torch.__version__ (PyTorch>1.9 returns TorchVersion objects)
 TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
-IS_VSCODE = os.environ.get("TERM_PROGRAM", False) == "vscode"
+IS_VSCODE = os.environ.get("TERM_PROGRAM") == "vscode"
 RKNN_CHIPS = frozenset(
     {
         "rk3588",
@@ -826,7 +826,7 @@ def is_jetson(jetpack=None) -> bool:
     jetson = "tegra" in DEVICE_MODEL
     if jetson and jetpack:
         try:
-            content = open("/etc/nv_tegra_release").read()
+            content = Path("/etc/nv_tegra_release").read_text()
             version_map = {4: "R32", 5: "R35", 6: "R36", 7: "R38"}  # JetPack to L4T major version mapping
             return jetpack in version_map and version_map[jetpack] in content
         except Exception:

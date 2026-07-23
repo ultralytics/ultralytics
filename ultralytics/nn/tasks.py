@@ -300,7 +300,7 @@ class BaseModel(torch.nn.Module):
         Returns:
             (BaseModel): An updated BaseModel object.
         """
-        self = super()._apply(fn)
+        super()._apply(fn)
         m = self.model[-1]  # Detect()
         if isinstance(
             m, Detect
@@ -728,7 +728,7 @@ class SemanticSegmentationModel(BaseModel):
 
     def _apply(self, fn):
         """Apply a function to all tensors in the model."""
-        self = super()._apply(fn)
+        super()._apply(fn)
         m = self.model[-1]
         if isinstance(m, SemanticSegment):
             m.stride = fn(m.stride)
@@ -932,7 +932,7 @@ class RTDETRDetectionModel(DetectionModel):
         Returns:
             (RTDETRDetectionModel): An updated RTDETRDetectionModel object.
         """
-        self = super()._apply(fn)
+        super()._apply(fn)
         m = self.model[-1]
         m.anchors = fn(m.anchors)
         m.valid_mask = fn(m.valid_mask)
@@ -1632,7 +1632,7 @@ class _SafeLoad:
         import torch.nn.modules as torch_nn
 
         import ultralytics.nn.modules as ul_nn
-        import ultralytics.nn.tasks as ul_tasks
+        from ultralytics.nn import tasks as ul_tasks  # noqa: PLW0406
 
         allow = []
 
@@ -1642,7 +1642,7 @@ class _SafeLoad:
                 for info in pkgutil.iter_modules(pkg.__path__, f"{pkg.__name__}."):
                     try:
                         mods.append(importlib.import_module(info.name))
-                    except Exception:  # optional/oddball submodule — skip
+                    except Exception:  # noqa: S112  # optional/oddball submodule — skip
                         continue
             for mod in mods:
                 for name, klass in inspect.getmembers(mod, inspect.isclass):

@@ -208,7 +208,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
 def check_uv():
     """Check if uv package manager is installed and can run successfully."""
     try:
-        return subprocess.run(["uv", "-V"], capture_output=True).returncode == 0
+        return subprocess.run(["uv", "-V"], capture_output=True, check=False).returncode == 0
     except FileNotFoundError:
         return False
 
@@ -951,7 +951,9 @@ def check_multiple_install():
     import sys
 
     try:
-        result = subprocess.run([sys.executable, "-m", "pip", "show", "ultralytics"], capture_output=True, text=True)
+        result = subprocess.run(
+            [sys.executable, "-m", "pip", "show", "ultralytics"], capture_output=True, text=True, check=False
+        )
         install_msg = (
             f"Install your local copy in editable mode with 'pip install -e {ROOT.parent}' to avoid "
             "issues. See https://docs.ultralytics.com/quickstart/"
@@ -1065,7 +1067,7 @@ def is_intel():
 
     # Check GPU via xpu-smi
     try:
-        result = subprocess.run(["xpu-smi", "discovery"], capture_output=True, text=True, timeout=5)
+        result = subprocess.run(["xpu-smi", "discovery"], capture_output=True, text=True, timeout=5, check=False)
         return "intel" in result.stdout.lower()
     except Exception:  # broad clause to capture all Intel GPU exception types
         return False
@@ -1080,7 +1082,10 @@ def is_sudo_available() -> bool:
     if WINDOWS:
         return False
     cmd = "sudo --version"
-    return subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+    return (
+        subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False).returncode
+        == 0
+    )
 
 
 # Run checks and define constants

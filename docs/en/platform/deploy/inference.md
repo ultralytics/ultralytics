@@ -165,10 +165,10 @@ POST https://YOUR_DEPLOYMENT_URL.run.app/predict
 
     url = "https://YOUR_DEPLOYMENT_URL.run.app/predict"
     headers = {"Authorization": "Bearer YOUR_API_KEY"}
-    files = {"file": open("image.jpg", "rb")}
     data = {"conf": 0.25, "iou": 0.7, "imgsz": 640}
 
-    response = requests.post(url, headers=headers, files=files, data=data)
+    with open("image.jpg", "rb") as image_file:
+        response = requests.post(url, headers=headers, files={"file": image_file}, data=data)
     print(response.json())
     ```
 

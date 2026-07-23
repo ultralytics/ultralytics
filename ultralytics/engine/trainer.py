@@ -1125,6 +1125,19 @@ class BaseTrainer:
                 "Request support for additional optimizers at https://github.com/ultralytics/ultralytics."
             )
 
+        # Enable PyTorch fused multi-tensor kernels where supported (Adam/AdamW/SGD are the only stock optimizers
+        # exposing `fused`). foreach is already torch's default on CUDA, so it needs no flag; fused adds the win on
+        # every fused-capable device, including CPU/MPS where foreach is unavailable. Fall back to the default
+        # (non-fused) path if the private device-support helper ever moves or the model has no parameters.
+        if name in {"Adam", "AdamW", "SGD"} and TORCH_2_4:
+            try:
+                from torch.optim.optimizer import _get_fused_kernels_supported_devices
+
+                if next(unwrap_model(model).parameters()).device.type in _get_fused_kernels_supported_devices():
+                    optim_args["fused"] = True
+            except (ImportError, StopIteration):
+                pass
+
         num_params = [len(g[0]), len(g[1]), len(g[2])]  # number of param groups
         g[2] = {"params": g[2], **optim_args, "param_group": "bias"}
         g[0] = {"params": g[0], **optim_args, "weight_decay": decay, "param_group": "weight"}

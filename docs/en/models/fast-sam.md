@@ -154,7 +154,7 @@ This snippet demonstrates the simplicity of loading a pretrained model and runni
         from ultralytics.models.fastsam import FastSAMPredictor
 
         # Create FastSAMPredictor
-        overrides = dict(conf=0.25, task="segment", mode="predict", model="FastSAM-s.pt", save=False, imgsz=1024)
+        overrides = {"conf": 0.25, "task": "segment", "mode": "predict", "model": "FastSAM-s.pt", "save": False, "imgsz": 1024}
         predictor = FastSAMPredictor(overrides=overrides)
 
         # Segment everything

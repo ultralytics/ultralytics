@@ -100,7 +100,7 @@ class Predictor(BasePredictor):
         """
         if overrides is None:
             overrides = {}
-        overrides.update(dict(task="segment", mode="predict", batch=1))
+        overrides.update({"task": "segment", "mode": "predict", "batch": 1})
         super().__init__(cfg, overrides, _callbacks)
         self.args.retina_masks = True
         self.im = None
@@ -1129,7 +1129,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         # temporary outputs have been added (either in this call or any previous calls
         # to `propagate_in_video_preflight`).
         consolidated_frame_inds = inference_state["consolidated_frame_inds"]
-        for is_cond in {False, True}:
+        for is_cond in (False, True):
             # Separately consolidate conditioning and non-conditioning temp outputs
             storage_key = "cond_frame_outputs" if is_cond else "non_cond_frame_outputs"
             # Find all the frames that contain temporary outputs for any objects
@@ -2662,14 +2662,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                 names = names or dict(enumerate(str(i) for i in range(pred_boxes[:, 6].int().max() + 1)))
             if pred_masks.shape[0] > 1:
                 tracker_scores = torch.tensor(
-                    [
-                        (
-                            preds["obj_id_to_tracker_score"][obj_id]
-                            if obj_id in preds["obj_id_to_tracker_score"]
-                            else 0.0
-                        )
-                        for obj_id in curr_obj_ids
-                    ],
+                    [(preds["obj_id_to_tracker_score"].get(obj_id, 0.0)) for obj_id in curr_obj_ids],
                     device=pred_masks.device,
                 )[keep]
                 pred_masks = (
@@ -3191,19 +3184,22 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # Step 4: Run SAM2 memory encoder on the current frame's prediction masks
         # This is done on all GPUs
         batch_size = tracker_low_res_masks_global.size(0)
-        if batch_size > 0:
-            if not hasattr(self, "_warm_up_complete") or self._warm_up_complete:
-                if self.suppress_overlapping_based_on_recent_occlusion_threshold > 0.0:
-                    # NOTE: tracker_low_res_masks_global is updated in-place then returned
-                    tracker_low_res_masks_global = self._suppress_overlapping_based_on_recent_occlusion(
-                        frame_idx,
-                        tracker_low_res_masks_global,
-                        tracker_metadata_prev,
-                        tracker_metadata_new,
-                        obj_ids_newly_removed,
-                        reverse,
-                    )
+        if (
+            batch_size > 0
+            and (not hasattr(self, "_warm_up_complete") or self._warm_up_complete)
+            and self.suppress_overlapping_based_on_recent_occlusion_threshold > 0.0
+        ):
+            # NOTE: tracker_low_res_masks_global is updated in-place then returned
+            tracker_low_res_masks_global = self._suppress_overlapping_based_on_recent_occlusion(
+                frame_idx,
+                tracker_low_res_masks_global,
+                tracker_metadata_prev,
+                tracker_metadata_new,
+                obj_ids_newly_removed,
+                reverse,
+            )
 
+        if batch_size > 0:
             self._tracker_update_memories(tracker_states_local, frame_idx, low_res_masks=tracker_low_res_masks_global)
 
         # Step 4: update the SAM2 metadata based on the update plan
@@ -3696,7 +3692,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         # Step 3: removed tracks that overlaps with another track for `hotstart_dup_thresh` frames
         # a) find overlaps tracks -- we consider overlap if they match to the same detection
-        for _, matched_trk_obj_ids in det_to_matched_trk_obj_ids.items():
+        for matched_trk_obj_ids in det_to_matched_trk_obj_ids.values():
             if len(matched_trk_obj_ids) < 2:
                 continue  # only count detections that are matched to multiple (>=2) masklets
             # if there are multiple matched track ids, we need to find the one that appeared first;
@@ -3716,15 +3712,15 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         for (first_obj_id, obj_id), frame_indices in overlap_pair_to_frame_inds.items():
             if obj_id in removed_obj_ids or obj_id in obj_ids_newly_removed:
                 continue  # skip if the object is already removed
-            if (obj_first_frame_idx[obj_id] > hotstart_diff and not reverse) or (
-                obj_first_frame_idx[obj_id] < hotstart_diff and reverse
-            ):
-                if len(frame_indices) >= self.hotstart_dup_thresh:
-                    obj_ids_newly_removed.add(obj_id)
-                    LOGGER.debug(
-                        f"Removing object {obj_id} at frame {frame_idx} "
-                        f"since it overlaps with another track {first_obj_id} at frames: {frame_indices}"
-                    )
+            if (
+                (obj_first_frame_idx[obj_id] > hotstart_diff and not reverse)
+                or (obj_first_frame_idx[obj_id] < hotstart_diff and reverse)
+            ) and len(frame_indices) >= self.hotstart_dup_thresh:
+                obj_ids_newly_removed.add(obj_id)
+                LOGGER.debug(
+                    f"Removing object {obj_id} at frame {frame_idx} "
+                    f"since it overlaps with another track {first_obj_id} at frames: {frame_indices}"
+                )
 
         removed_obj_ids.update(obj_ids_newly_removed)
         return obj_ids_newly_removed, metadata

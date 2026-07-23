@@ -21,21 +21,21 @@ Platform only ever reads from your storage — it never writes, modifies, or del
 1. In the AWS console, go to **IAM > Users** and create a user with no console access.
 2. Attach a policy granting only list and read access to the buckets you want to connect:
 
-    ```json
-    {
-        "Version": "2012-10-17",
-        "Statement": [
-            { "Effect": "Allow", "Action": "s3:ListAllMyBuckets", "Resource": "*" },
-            {
-                "Effect": "Allow",
-                "Action": ["s3:ListBucket", "s3:GetObject"],
-                "Resource": ["arn:aws:s3:::my-bucket", "arn:aws:s3:::my-bucket/*"]
-            }
-        ]
-    }
-    ```
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       { "Effect": "Allow", "Action": "s3:ListAllMyBuckets", "Resource": "*" },
+       {
+         "Effect": "Allow",
+         "Action": ["s3:ListBucket", "s3:GetObject"],
+         "Resource": ["arn:aws:s3:::my-bucket", "arn:aws:s3:::my-bucket/*"]
+       }
+     ]
+   }
+   ```
 
-    `s3:ListAllMyBuckets` is optional — it lets Platform discover your buckets so you don't have to type their names.
+   `s3:ListAllMyBuckets` is optional — it lets Platform discover your buckets so you don't have to type their names.
 
 3. Open the user's **Security credentials** tab, create an **access key**, and copy the access key ID and secret access key.
 

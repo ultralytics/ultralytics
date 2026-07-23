@@ -29,7 +29,7 @@ graph LR
 
 Start training from the platform UI by clicking **New Model** on any project or dataset page. The training dialog has two tabs: **Cloud Training** and **Local Training**.
 
-![Ultralytics Platform Training Dialog Cloud Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-dialog-cloud-tab.avif)<!-- screenshot -->
+![Ultralytics Platform Training Dialog Cloud Tab](https://cdn.ul.run/i/f0160413f29838c06031d856c0b1b611.avif)<!-- screenshot -->
 
 ### Step 1: Select Base Model
 
@@ -114,7 +114,7 @@ This preserves the data used for the run even if you later add or remove images,
 
 Choose your GPU from Ultralytics Cloud:
 
-![Ultralytics Platform Training Dialog Gpu Selector And Cost](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-dialog-gpu-selector-and-cost.avif)<!-- screenshot -->
+![Ultralytics Platform Training Dialog Gpu Selector And Cost](https://cdn.ul.run/i/88128243d47533e192f277fe116415a1.avif)<!-- screenshot -->
 {% include "macros/platform-gpu-table.md" %}
 
 !!! tip "GPU Selection"
@@ -156,7 +156,7 @@ To receive the completed and failed results without keeping this page open, conn
 
     New accounts receive signup credits — $5 for personal emails and $25 for company emails. [Check your balance](../account/billing.md) in Settings > Billing.
 
-![Ultralytics Platform Training Progress With Charts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-progress-with-charts.avif)<!-- screenshot -->
+![Ultralytics Platform Training Progress With Charts](https://cdn.ul.run/i/099b8eb821f51ea71afbcf958f8b7ad4.avif)<!-- screenshot -->
 
 ## Monitor Training
 
@@ -164,7 +164,7 @@ View real-time training progress on the model page's **Train** tab:
 
 ### Charts Subtab
 
-![Ultralytics Platform Model Training Live Charts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-training-live-charts.avif)<!-- screenshot -->
+![Ultralytics Platform Model Training Live Charts](https://cdn.ul.run/i/77ce0ac74e85d90d7c4aad414043e16c.avif)<!-- screenshot -->
 | Metric | Description |
 | ------------- | ---------------------------- |
 | **Loss** | Training and validation loss |
@@ -365,7 +365,7 @@ Cloud training is paid from your Platform credit balance.
 
 Before starting a cloud job, the training dialog shows your current credit balance and estimates the job duration and cost from the selected model, dataset, epochs, image size, and GPU. The estimate is informational; actual usage is charged for the GPU time consumed. Afterward, review the resulting credit transaction in **Settings > Billing**.
 
-![Ultralytics Platform Training Billing Details](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-billing-details.avif)<!-- screenshot -->
+![Ultralytics Platform Training Billing Details](https://cdn.ul.run/i/25af8513bd41798bc31f6b79373160a1.avif)<!-- screenshot -->
 
 ## Training Tips
 
@@ -459,7 +459,7 @@ The YAML editor also supports **importing configurations from previous training 
 - **Paste YAML or JSON**: Paste any valid YAML or JSON training configuration into the editor. Parameters are validated automatically, with out-of-range values clamped and warnings displayed.
 - **Drag and drop files**: Drag a `.yaml` or `.json` file directly into the editor to import its parameters.
 
-![Ultralytics Platform Training Dialog Copy Training Config JSON](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-dialog-copy-training-config-json.avif)<!-- screenshot -->
+![Ultralytics Platform Training Dialog Copy Training Config JSON](https://cdn.ul.run/i/f8292fbda39637e176ea41aa502a90ae.avif)<!-- screenshot -->
 This makes it easy to reproduce or iterate on previous training configurations without manually re-entering each parameter.
 
 ### Can I train from a dataset page?

@@ -9,7 +9,7 @@ keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud dep
 
 [Ultralytics Platform](https://platform.ultralytics.com) is a comprehensive end-to-end computer vision platform that streamlines the entire ML workflow from data preparation to model deployment. Built for teams and individuals who need production-ready [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) solutions without the infrastructure complexity.
 
-![Ultralytics Platform Dataset Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/dataset-screenshot.avif)<!-- screenshot -->
+![Ultralytics Platform Dataset Screenshot](https://cdn.ul.run/i/5ed8d9e29d7cb6f1c4f8c3bae72d5b95.avif)<!-- screenshot -->
 
 ## What is Ultralytics Platform?
 
@@ -111,11 +111,11 @@ graph LR
 ### Model Training
 
 - **Cloud Training**: Train on cloud GPUs (24 on all plans, 26 with [Pro or Enterprise](account/billing.md#plans) for B200 and B300) with real-time metrics
-- **Remote Training**: Train anywhere and stream metrics to the platform (W&B-style)
+- **Remote Training**: Train anywhere and stream metrics to Ultralytics Platform
 - **Project Organization**: Group related models, compare experiments, track activity
 - **19 Export Formats**: ONNX, TensorRT, CoreML, LiteRT, Hailo, and more (see [supported formats](train/models.md#supported-formats))
 
-![Ultralytics Platform Project Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/project-screenshot.avif)<!-- screenshot -->
+![Ultralytics Platform Project Screenshot](https://cdn.ul.run/i/bb1cd6c01edc8f339d177bfa82ce4930.avif)<!-- screenshot -->
 You can train models either through the web UI (cloud training) or from your own machine (remote training):
 
 === "Cloud Training (Web UI)"
@@ -299,7 +299,7 @@ See [Cloud Training](train/cloud-training.md) for complete pricing and GPU optio
 
 ### How does remote training work?
 
-You can train models on your own hardware and stream real-time metrics to the platform, similar to Weights & Biases.
+You can train models on your own hardware and stream real-time metrics to Ultralytics Platform.
 
 !!! warning "Package Version Requirement"
 

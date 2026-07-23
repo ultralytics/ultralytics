@@ -15,13 +15,13 @@ The Roboflow integration imports every supported dataset in your Roboflow worksp
 1. Go to **Settings > [Integrations](index.md)** and select **Roboflow** from the integration list.
 2. Paste your **Roboflow API Key** and click **Import**.
 3. Review the **Import from Roboflow** preview dialog, which lists:
-    - **New datasets** that will be imported
-    - **Already imported** datasets that will be skipped
-    - Any datasets with a **missing version**, **unsupported tasks**, or that **couldn't be sized**
-    - Storage required, checked against your remaining storage
+   - **New datasets** that will be imported
+   - **Already imported** datasets that will be skipped
+   - Any datasets with a **missing version**, **unsupported tasks**, or that **couldn't be sized**
+   - Storage required, checked against your remaining storage
 4. Click **Import** to start.
 
-![Ultralytics Platform Settings Integrations Roboflow Import Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-integrations-roboflow-import-dialog.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Integrations Roboflow Import Dialog](https://cdn.ul.run/i/60fcca0ef2a3ce1e587c4ec28a72d6b3.avif)<!-- screenshot -->
 Imported datasets appear in your [Datasets](../data/datasets.md) list immediately with a `processing` status and become ready once their images and annotations finish importing.
 
 ## Supported Task Types

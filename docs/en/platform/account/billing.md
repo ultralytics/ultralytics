@@ -11,13 +11,13 @@ keywords: Ultralytics Platform, billing, credits, pricing, subscription, payment
 [Ultralytics Platform](https://platform.ultralytics.com) uses credits for metered cloud training. Add credits, track
 usage, and manage your subscription from `Settings > Billing`.
 
-![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-credit-balance-and-plan-card.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/91dbcbf01b4e198db621c42f1a1dd939.avif)<!-- screenshot -->
 
 ## Plans
 
 Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 
-![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-free-pro-enterprise-comparison.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/6983407099b65484aa9ebbb8f5843296.avif)<!-- screenshot -->
 | Feature | Free | Pro ($29/mo) | Enterprise |
 | ---------------------------------------------------------- | ---------- | --------------- | ----------- |
 | **Signup Credit** | $5 / $25\* | - | Custom |
@@ -95,7 +95,7 @@ Credits are the currency for Platform compute services.
 
 View your balance in `Settings > Billing`:
 
-![Ultralytics Platform Settings Billing Tab Credit Balance With Topup Button](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-credit-balance-with-topup-button.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Credit Balance With Topup Button](https://cdn.ul.run/i/fc071d4f78b5eb61d16899a0b83a9075.avif)<!-- screenshot -->
 | Balance Type | Description |
 | ------------- | ------------------------------------ |
 | **Available** | Credits available for cloud training |
@@ -117,7 +117,7 @@ Top up your balance:
 3. Select or enter amount ($5 - $1,000)
 4. Complete payment
 
-![Ultralytics Platform Settings Billing Tab Topup Amount Selection Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-topup-amount-selection-dialog.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Topup Amount Selection Dialog](https://cdn.ul.run/i/c24e1b95dc28e3f05e4cf904bf478063.avif)<!-- screenshot -->
 
 ### Top-Up Presets
 
@@ -222,7 +222,7 @@ Upgrade for more features and monthly credits:
 3. Choose billing cycle (Monthly or Yearly)
 4. Complete checkout
 
-![Ultralytics Platform Settings Plans Tab Upgrade to Pro Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-upgrade-to-pro-dialog.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Plans Tab Upgrade to Pro Dialog](https://cdn.ul.run/i/12e87f262b43116d06b9c8c4371ceb31.avif)<!-- screenshot -->
 
 ### Pro Benefits
 
@@ -276,7 +276,7 @@ When your Pro subscription ends (cancelled or expired), your account reverts to 
 
 View all transactions in `Settings > Billing`:
 
-![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-transaction-history-table.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.ul.run/i/21fee06d70fc825f2cb02f5cad204759.avif)<!-- screenshot -->
 | Column | Description |
 | ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | **Date** | Transaction date |

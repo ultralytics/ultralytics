@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, monitoring, metrics, logs, deployment, performan
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides [monitoring for deployed endpoints](../../guides/model-monitoring-and-maintenance.md). Track request metrics, view logs, and check health status with automatic polling.
 
-![Ultralytics Platform Deploy Page Overview Cards And World Map](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-overview-cards-and-world-map.avif)<!-- screenshot -->
+![Ultralytics Platform Deploy Page Overview Cards And World Map](https://cdn.ul.run/i/eef2a853f7a3ed8535e33ce8ba4e56e9.avif)<!-- screenshot -->
 
 ## Deployments Dashboard
 
@@ -44,7 +44,7 @@ graph TB
 
 Four summary cards at the top of the page show:
 
-![Ultralytics Platform Deploy Page Four Overview Cards](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-four-overview-cards.avif)<!-- screenshot -->
+![Ultralytics Platform Deploy Page Four Overview Cards](https://cdn.ul.run/i/22ec2abcf5b32ed95c86a6d99334ae20.avif)<!-- screenshot -->
 | Metric | Description |
 | ------------------------ | ----------------------------- |
 | **Total Requests (24h)** | Requests across all endpoints |
@@ -65,7 +65,7 @@ The interactive world map shows:
 - **Animated blue pins** for regions with active deployments in progress
 - **Pin size** varies based on deployment status and latency
 
-![Ultralytics Platform Deploy Page World Map With Deployed Regions](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-world-map-with-deployed-regions.avif)<!-- screenshot -->
+![Ultralytics Platform Deploy Page World Map With Deployed Regions](https://cdn.ul.run/i/c41816967db08bae01d7b35db483be75.avif)<!-- screenshot -->
 
 ### Deployments List
 
@@ -107,7 +107,7 @@ Running deployments show a health check indicator:
 
 Health checks auto-retry every 20 seconds when unhealthy. Click the refresh icon to manually trigger a health check. The health check uses a 55-second timeout to accommodate cold starts on scale-to-zero endpoints.
 
-![Ultralytics Platform Deployment Card Health Check Healthy With Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deployment-card-health-check-healthy-with-latency.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Card Health Check Healthy With Latency](https://cdn.ul.run/i/d5aa488389e03b7e79df0c8953821b8d.avif)<!-- screenshot -->
 !!! info "Cold Start Tolerance"
 
     The health-check request allows up to 55 seconds so a scale-to-zero endpoint has time to start.
@@ -116,7 +116,7 @@ Health checks auto-retry every 20 seconds when unhealthy. Click the refresh icon
 
 Each deployment card includes a `Logs` tab for viewing recent log entries:
 
-![Ultralytics Platform Deployment Card Logs Tab With Severity Filter](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deployment-card-logs-tab-with-severity-filter.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Card Logs Tab With Severity Filter](https://cdn.ul.run/i/ed39a1f0c2b195c53cc72371cef5352b.avif)<!-- screenshot -->
 
 ### Log Entries
 
@@ -272,10 +272,10 @@ Returns health check status with response latency.
 
 ```json
 {
-    "healthy": true,
-    "status": 200,
-    "latencyMs": 142,
-    "serverTiming": { "db": 8, "ping": 142, "total": 150 }
+  "healthy": true,
+  "status": 200,
+  "latencyMs": 142,
+  "serverTiming": { "db": 8, "ping": 142, "total": 150 }
 }
 ```
 

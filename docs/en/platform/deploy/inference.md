@@ -11,7 +11,7 @@ keywords: Ultralytics Platform, inference, API, YOLO, object detection, predicti
 [Ultralytics Platform](https://platform.ultralytics.com) provides browser-based inference for testing trained models
 and dedicated endpoints for programmatic access.
 
-![Ultralytics Platform Model Predict Tab With Detections Overlay](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/model-predict-tab-with-detections-overlay.avif)<!-- screenshot -->
+![Ultralytics Platform Model Predict Tab With Detections Overlay](https://cdn.ul.run/i/1f9c773de477773437c0e67d95606a96.avif)<!-- screenshot -->
 
 ## Predict Tab
 
@@ -22,7 +22,7 @@ Every model includes a `Predict` tab for browser-based inference:
 3. Upload an image, use an example, or open your webcam
 4. Review the task-specific overlay, prediction summary, timing, and raw response
 
-![Ultralytics Platform Predict Tab Image Upload Dropzone](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/predict-tab-image-upload-dropzone.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Image Upload Dropzone](https://cdn.ul.run/i/da1b8d1cc986be4cf7666cf975964c8f.avif)<!-- screenshot -->
 
 ### Input Methods
 
@@ -88,7 +88,7 @@ Inference results display the output appropriate to the model task: boxes, masks
 classification scores, semantic coverage, or a depth map. Object results use the dataset class colors when available.
 The panel also shows preprocess, inference, postprocess, and network timing.
 
-![Ultralytics Platform Predict Tab Results With Detections And Speed Stats](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/predict-tab-results-with-detections-and-speed-stats.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Results With Detections And Speed Stats](https://cdn.ul.run/i/be4e9315a7e88a8fec79ca7d1e66b590.avif)<!-- screenshot -->
 The results panel shows:
 
 | Field               | Description                                             |
@@ -101,7 +101,7 @@ The results panel shows:
 
 Adjust inference behavior with the three sliders below the image:
 
-![Ultralytics Platform Predict Tab Parameters Sliders](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/predict-tab-parameters-sliders.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Parameters Sliders](https://cdn.ul.run/i/b23db67dc46afb855da463c5b3607fbf.avif)<!-- screenshot -->
 | Parameter | Range | Default | Description |
 | -------------- | -------------------------- | ------- | ---------------------------- |
 | **Confidence** | 0.01 – 1.0, steps of 0.01 | 0.25 | Minimum confidence threshold |
@@ -206,7 +206,7 @@ POST https://YOUR_DEPLOYMENT_URL.run.app/predict
     console.log(result);
     ```
 
-![Ultralytics Platform Predict Tab Code Examples Python Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/predict-tab-code-examples-python-tab.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Code Examples Python Tab](https://cdn.ul.run/i/cd62f02ed84d12f13825cebebcfcde47.avif)<!-- screenshot -->
 
 ### Request Parameters
 
@@ -224,45 +224,45 @@ POST https://YOUR_DEPLOYMENT_URL.run.app/predict
 
 ```json
 {
-    "images": [
+  "images": [
+    {
+      "shape": [1080, 1920],
+      "results": [
         {
-            "shape": [1080, 1920],
-            "results": [
-                {
-                    "class": 0,
-                    "name": "person",
-                    "confidence": 0.92,
-                    "box": { "x1": 100, "y1": 50, "x2": 300, "y2": 400 }
-                },
-                {
-                    "class": 2,
-                    "name": "car",
-                    "confidence": 0.87,
-                    "box": { "x1": 400, "y1": 200, "x2": 600, "y2": 350 }
-                }
-            ],
-            "speed": {
-                "preprocess": 1.2,
-                "inference": 12.5,
-                "postprocess": 2.3
-            }
+          "class": 0,
+          "name": "person",
+          "confidence": 0.92,
+          "box": { "x1": 100, "y1": 50, "x2": 300, "y2": 400 }
+        },
+        {
+          "class": 2,
+          "name": "car",
+          "confidence": 0.87,
+          "box": { "x1": 400, "y1": 200, "x2": 600, "y2": 350 }
         }
-    ],
-    "metadata": {
-        "imageCount": 1,
-        "functionTimeCall": 0.018,
-        "task": "detect",
-        "version": {
-            "ultralytics": "8.x.x",
-            "torch": "2.6.0",
-            "torchvision": "0.21.0",
-            "python": "3.13.0"
-        }
+      ],
+      "speed": {
+        "preprocess": 1.2,
+        "inference": 12.5,
+        "postprocess": 2.3
+      }
     }
+  ],
+  "metadata": {
+    "imageCount": 1,
+    "functionTimeCall": 0.018,
+    "task": "detect",
+    "version": {
+      "ultralytics": "8.x.x",
+      "torch": "2.6.0",
+      "torchvision": "0.21.0",
+      "python": "3.13.0"
+    }
+  }
 }
 ```
 
-![Ultralytics Platform Predict Tab Json Response View](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/predict-tab-json-response-view.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Json Response View](https://cdn.ul.run/i/0557b70bfbb0b3b6802aed4e742f43fa.avif)<!-- screenshot -->
 
 ### Response Fields
 

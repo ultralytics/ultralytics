@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, API keys, authentication, remote training, secur
 
 [Ultralytics Platform](https://platform.ultralytics.com) API keys enable secure programmatic access for remote training, inference, and automation. Create named keys with AES-256-GCM encryption for different use cases.
 
-![Ultralytics Platform Settings API Keys Tab Key List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-api-keys-section-with-key-list.avif)<!-- screenshot -->
+![Ultralytics Platform Settings API Keys Tab Key List](https://cdn.ul.run/i/155b05c0f34728d40f1068faace4068c.avif)<!-- screenshot -->
 
 ## Create API Key
 
@@ -21,7 +21,7 @@ Create a new API key:
 3. Enter a name for the key (e.g., "Training Server")
 4. Click **Create Key**
 
-![Ultralytics Platform Settings API Keys Tab Create API Key Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-create-api-key-dialog.avif)<!-- screenshot -->
+![Ultralytics Platform Settings API Keys Tab Create API Key Dialog](https://cdn.ul.run/i/9009ea66724651fe7a9a14cbc7373f7d.avif)<!-- screenshot -->
 
 ### Key Name
 
@@ -35,7 +35,7 @@ Give your key a descriptive name:
 
 After creation, the key is displayed in a confirmation dialog:
 
-![Ultralytics Platform Settings API Keys Tab API Key Created Copy Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-api-key-created-copy-dialog.avif)<!-- screenshot -->
+![Ultralytics Platform Settings API Keys Tab API Key Created Copy Dialog](https://cdn.ul.run/i/ee06afd9368909b791271521411ca1d3.avif)<!-- screenshot -->
 !!! tip "Copy Your Key"
 
     Copy your key after creation for easy reference. Keys are also visible in the key list — the platform decrypts and

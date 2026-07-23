@@ -9,7 +9,7 @@ keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, boun
 
 [Ultralytics Platform](https://platform.ultralytics.com) includes an annotation editor for labeling images with bounding boxes, polygons, keypoints, oriented boxes, and classifications. The editor supports manual drawing, [SAM-powered smart annotation](https://www.ultralytics.com/annotate), and predictions from compatible YOLO models.
 
-![Ultralytics Platform Annotate Editor Toolbar With Canvas](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-editor-toolbar-with-canvas.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Editor Toolbar With Canvas](https://cdn.ul.run/i/399410c0c344f246f9a1e53d6a56317f.avif)<!-- screenshot -->
 
 ```mermaid
 graph TB
@@ -108,7 +108,7 @@ To annotate images:
 
 For datasets you can edit, annotation controls are active as soon as the fullscreen viewer opens on desktop. There is no separate edit mode or `Edit` button. On mobile, and when you do not have edit access, the fullscreen viewer is read-only.
 
-![Ultralytics Platform Fullscreen Annotation Editor With Toolbar](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-fullscreen-annotation-editor-with-toolbar.avif)<!-- screenshot -->
+![Ultralytics Platform Fullscreen Annotation Editor With Toolbar](https://cdn.ul.run/i/45967c28367df905c9c0ea3df89f71f8.avif)<!-- screenshot -->
 
 ```mermaid
 graph LR
@@ -146,7 +146,7 @@ Draw rectangular boxes around objects:
 2. In the default `Draw` mode, click and drag to draw a rectangle
 3. Release to complete the box
 
-![Ultralytics Platform Annotate Detect Bounding Box Drawing](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-detect-bounding-box-drawing.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Detect Bounding Box Drawing](https://cdn.ul.run/i/4807f5dabfd261cf5ec97bbe0e48f9bf.avif)<!-- screenshot -->
 !!! tip "Resize and Move"
 
     - Drag 8 corner/edge handles to resize
@@ -161,7 +161,7 @@ Draw precise polygon masks:
 2. In the default `Draw` mode, click to add vertices, or hold `Shift` and move the mouse to freehand-draw dense points
 3. Double-click, click the first vertex, or press `Enter` or `Escape` to close the polygon
 
-![Ultralytics Platform Annotate Segment Polygon Vertices](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-segment-polygon-vertices.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Segment Polygon Vertices](https://cdn.ul.run/i/beaa3100b16f0ca78f9a9ec7ada26307.avif)<!-- screenshot -->
 !!! tip "Edit Vertices"
 
     - Drag individual vertices to adjust
@@ -177,7 +177,7 @@ Annotate poses using skeleton templates. Select a template from the toolbar, cli
 3. Click on the image to place all keypoints at once
 4. Drag individual keypoints to adjust their positions
 
-![Ultralytics Platform Annotate Pose Template Dropdown](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-pose-template-dropdown.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Pose Template Dropdown](https://cdn.ul.run/i/c4142039a02b15bc0850510413ab2bcc.avif)<!-- screenshot -->
 
 #### Built-in Skeleton Templates
 
@@ -191,7 +191,7 @@ The editor includes 5 built-in templates:
 | **Dog**    | 18        | AP-10K animal pose — nose, head, neck, shoulders, tailbase, tail, and 4 legs (elbows, knees, paws)                     |
 | **Box**    | 4         | Corner keypoints — top-left, top-right, bottom-right, bottom-left                                                      |
 
-![Ultralytics Platform Annotate Pose Keypoints Skeleton](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-pose-keypoints-skeleton.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Pose Keypoints Skeleton](https://cdn.ul.run/i/6076a2281fbcb4d0ea40364e6414527b.avif)<!-- screenshot -->
 
 #### Custom Skeleton Templates
 
@@ -204,7 +204,7 @@ Create custom templates for any pose structure:
 5. Connect keypoints by selecting two points (connections are drawn automatically as you place sequential keypoints)
 6. Save the template for reuse across your dataset
 
-![Ultralytics Platform Annotate Pose Custom Template](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-pose-custom-template.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Pose Custom Template](https://cdn.ul.run/i/32bee9720f58ba5f544a596e339d8cbe.avif)<!-- screenshot -->
 Custom templates are saved to your account and available in all pose datasets.
 
 !!! tip "Template Workflow"
@@ -224,7 +224,7 @@ Draw rotated boxes for angled objects:
 3. Use the rotation handle to adjust angle
 4. Drag corner handles to resize
 
-![Ultralytics Platform Annotate Obb Rotated Box](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-obb-rotated-box.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Obb Rotated Box](https://cdn.ul.run/i/84f8b775b7be6211c8e9629f2f1ee582.avif)<!-- screenshot -->
 
 ### Classification (Classify)
 
@@ -233,7 +233,7 @@ Assign image-level class labels:
 1. Click an image to open the fullscreen editor
 2. Select a class in the class sidebar, or press a number key from `1-9`
 
-![Ultralytics Platform Annotate Classify Side Panel](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-classify-side-panel.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Classify Side Panel](https://cdn.ul.run/i/69a17281376983879ce5a0a684b98dc3.avif)<!-- screenshot -->
 
 ## Smart Annotation
 
@@ -248,7 +248,7 @@ With a SAM model selected:
 3. Refine the mask with additional clicks: click **outside** the current mask to add coverage, or click **inside** the current mask to subtract regions
 4. Press `Enter` or `Escape` to save the annotation, or enable **auto-apply** for one-click workflows
 
-![Ultralytics Platform Annotate Sam Positive Negative Points Mask](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-sam-positive-negative-points-mask.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Sam Positive Negative Points Mask](https://cdn.ul.run/i/b0c54020c314e66331ee834a99ad860e.avif)<!-- screenshot -->
 
 ```mermaid
 graph LR
@@ -297,7 +297,7 @@ Auto-apply mode speeds up Smart annotation by automatically saving the SAM mask 
 | **Auto-apply ON + `Shift`**  | Place multiple points first, mask applies on release |
 | **Auto-apply OFF** (default) | Place points freely, press `Enter` to apply          |
 
-![Ultralytics Platform Annotate Sam Auto Apply Toggle](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-sam-auto-apply-toggle.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Sam Auto Apply Toggle](https://cdn.ul.run/i/328b6ed2b473331130e1022114c2af96.avif)<!-- screenshot -->
 !!! tip "When to Use Auto-Apply"
 
     Auto-apply is ideal for datasets with well-separated objects where a single click produces an accurate mask. For complex or overlapping objects, turn auto-apply off and use multiple positive/negative points to refine the mask before saving.
@@ -314,7 +314,7 @@ When Smart mode is active, a model picker appears in the toolbar. Five SAM model
 | **SAM 2.1 Large** | 428 MB  | Slower   | Most accurate of SAM 2.1   |
 | **SAM 3**         | 3.45 GB | Slowest  | Default, latest generation |
 
-![Ultralytics Platform Annotate Sam Model Selector](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-sam-model-selector.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Sam Model Selector](https://cdn.ul.run/i/7a8ebe81c1c5a77e5e14bf1591fd6365.avif)<!-- screenshot -->
 Switching models while Smart mode is active re-initializes the predictor for the current image automatically.
 
 ### YOLO Smart Annotation
@@ -326,7 +326,7 @@ With a YOLO model selected, Smart annotation can add predictions from pretrained
 3. Click `Predict`
 4. Review the added annotations and make any needed corrections
 
-![Ultralytics Platform Annotate Smart Annotation Yolo Model](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-smart-annotation-yolo-model.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Smart Annotation Yolo Model](https://cdn.ul.run/i/d24d03b370f2aaff749b7c7eaf834073.avif)<!-- screenshot -->
 !!! tip "YOLO Model Notes"
 
     - The model picker only lists models that match the current dataset task.
@@ -399,7 +399,7 @@ Define annotation classes for your dataset in the `Classes` tab:
 3. Click `Add` or press `Enter`
 4. A color is assigned automatically from the Ultralytics palette
 
-![Ultralytics Platform Annotate Classes Tab Add New Class](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-classes-tab-add-new-class.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Classes Tab Add New Class](https://cdn.ul.run/i/1e4e0b0d594a21770451eac29f504af3.avif)<!-- screenshot -->
 
 ### Add New Class During Annotation
 
@@ -483,7 +483,7 @@ Efficient annotation with keyboard shortcuts:
     | `Cmd/Ctrl+Shift+]` | Bring to front |
     | `Cmd/Ctrl+Shift+[` | Send to back   |
 
-![Ultralytics Platform Annotate Keyboard Shortcuts Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-keyboard-shortcuts-dialog.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Keyboard Shortcuts Dialog](https://cdn.ul.run/i/15dca1f9fc6cea237178a532693e5f01.avif)<!-- screenshot -->
 ??? tip "View All Shortcuts"
 
     Click the keyboard icon in the annotation toolbar to open the shortcuts reference.

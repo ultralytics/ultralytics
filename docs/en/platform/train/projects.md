@@ -31,7 +31,7 @@ graph TB
 
 Navigate to **Projects** in the sidebar and click **New Project**.
 
-![Ultralytics Platform Projects List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-projects-list.avif)<!-- screenshot -->
+![Ultralytics Platform Projects List](https://cdn.ul.run/i/52e0c21eb0fb677ed35d2496b000543e.avif)<!-- screenshot -->
 ??? tip "Quick Create"
 
     You can also create a project from the Home page quick actions.
@@ -44,7 +44,7 @@ Enter your project details:
 - **Visibility**: Public (anyone can view) or Private (only you and your team members can access). New projects default to Public; Enterprise workspaces default new projects to Private with the Ultralytics-Enterprise license.
 - **License**: Optional license for your project (AGPL-3.0, Apache-2.0, MIT, GPL-3.0, BSD-3-Clause, LGPL-3.0, MPL-2.0, EUPL-1.1, Unlicense, Ultralytics-Enterprise, and more). The **Ultralytics-Enterprise** license is for commercial use without AGPL requirements and is available with an Enterprise plan — see [Ultralytics Licensing](https://www.ultralytics.com/license).
 
-![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-new-project-dialog-name-visibility-license.avif)<!-- screenshot -->
+![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.ul.run/i/0163bb8b7b1d126da2a20e82e3cfd19c.avif)<!-- screenshot -->
 Click **Create Project** to finalize. Your new project appears in the Projects list and sidebar.
 
 ## Project Page
@@ -56,7 +56,7 @@ The project page has two main areas:
 | **Models Sidebar** | Resizable list of all models in the project with search, status filters, sort options, and checkboxes for selection |
 | **Main Panel**     | Charts dashboard or comparison table (toggle between views)                                                         |
 
-![Ultralytics Platform Project Page Sidebar And Charts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-project-page-sidebar-and-charts.avif)<!-- screenshot -->
+![Ultralytics Platform Project Page Sidebar And Charts](https://cdn.ul.run/i/11b9fd191cdcc70c6617030ea2122af1.avif)<!-- screenshot -->
 
 ### Project Header
 
@@ -89,7 +89,7 @@ Toggle between three view modes using the view controls:
 - **Compact**: Condensed models sidebar with the Charts dashboard on the right — more vertical room for models in projects with many experiments.
 - **Table**: Comparison table showing training arguments and final metrics side-by-side. Enable **Diff** to highlight only the columns where values differ across models.
 
-![Ultralytics Platform Project Comparison Table View](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-project-comparison-table-view.avif)<!-- screenshot -->
+![Ultralytics Platform Project Comparison Table View](https://cdn.ul.run/i/9ed6bf0f81e1d4aab4f12089f635c2e3.avif)<!-- screenshot -->
 
 ### Models Sidebar
 
@@ -196,7 +196,7 @@ Update project name, description, or settings:
 3. Click the icon to customize it
 4. Click the license badge to change the license
 
-![Ultralytics Platform Projects Settings](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-projects-settings.avif)<!-- screenshot -->
+![Ultralytics Platform Projects Settings](https://cdn.ul.run/i/e1c865408fce6d433f07dafdde7d0b6c.avif)<!-- screenshot -->
 
 ## Delete Project
 

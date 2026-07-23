@@ -27,7 +27,7 @@ reCamera series is purpose-built for edge AI applications, tailored to meet the 
 
 ## Quick Hardware Setup of reCamera
 
-Please follow the [reCamera Getting Started](https://wiki.seeedstudio.com/recamera_basic_getting_start/) page and select your device (such as reCamera 2002 Series, Gimbal, or HQ POE) to open its Quick Start Guide for initial onboarding of the device such as connecting the device to a network and access the [Node-RED](https://nodered.org/) web UI for quick previewing of detection results.
+Please follow the [reCamera Getting Started](https://wiki.seeedstudio.com/recamera_basic_getting_start/) page and select your device (such as reCamera 2002 Series, Gimbal, or HQ POE) to open its Quick Start Guide for initial onboarding of the device such as connecting the device to a network and accessing the [Node-RED](https://nodered.org/) web UI for quick previewing of detection results.
 
 ## Inference Using Pre-installed YOLO26 Models
 

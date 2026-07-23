@@ -1,0 +1,165 @@
+{
+  "env": {
+    "python": "3.10.20",
+    "torch": "2.9.1+cu126",
+    "cpu": "Intel Xeon Processor (Skylake, IBRS)",
+    "logical_cpus": 32,
+    "torch_threads": 8,
+    "ultralytics": "8.4.104",
+    "device": "cpu",
+    "imgsz": 768,
+    "batch": 1,
+    "warmup": 5,
+    "timed_runs": 30,
+    "onnxruntime": "1.23.2",
+    "openvino": "2026.2.1-21919-ede283a88e3-releases/2026/2",
+    "onnx": "1.22.0"
+  },
+  "rows": [
+    {
+      "model": "yolo26n-depth",
+      "params_M": 5.17,
+      "GFLOPs": 46.6,
+      "pt_fp32": {
+        "pre": 2.752,
+        "inf": 181.808,
+        "inf_std": 17.698,
+        "post": 0.735,
+        "total": 185.296
+      },
+      "onnx_cpu_fp32": {
+        "pre": 27.041,
+        "inf": 271.991,
+        "inf_std": 27.2,
+        "post": 0.139,
+        "total": 299.171
+      },
+      "onnx_providers": [
+        "CPUExecutionProvider"
+      ],
+      "openvino_fp32": {
+        "pre": 2.892,
+        "inf": 139.819,
+        "inf_std": 25.398,
+        "post": 0.134,
+        "total": 142.845
+      }
+    },
+    {
+      "model": "yolo26s-depth",
+      "params_M": 12.03,
+      "GFLOPs": 67.5,
+      "pt_fp32": {
+        "pre": 2.662,
+        "inf": 283.852,
+        "inf_std": 25.875,
+        "post": 0.728,
+        "total": 287.241
+      },
+      "onnx_cpu_fp32": {
+        "pre": 15.635,
+        "inf": 393.737,
+        "inf_std": 13.143,
+        "post": 0.148,
+        "total": 409.521
+      },
+      "onnx_providers": [
+        "CPUExecutionProvider"
+      ],
+      "openvino_fp32": {
+        "pre": 3.578,
+        "inf": 208.158,
+        "inf_std": 20.512,
+        "post": 0.129,
+        "total": 211.865
+      }
+    },
+    {
+      "model": "yolo26m-depth",
+      "params_M": 22.08,
+      "GFLOPs": 129.9,
+      "pt_fp32": {
+        "pre": 2.965,
+        "inf": 466.455,
+        "inf_std": 40.492,
+        "post": 0.744,
+        "total": 470.164
+      },
+      "onnx_cpu_fp32": {
+        "pre": 28.701,
+        "inf": 621.543,
+        "inf_std": 49.654,
+        "post": 0.344,
+        "total": 650.588
+      },
+      "onnx_providers": [
+        "CPUExecutionProvider"
+      ],
+      "openvino_fp32": {
+        "pre": 5.95,
+        "inf": 399.273,
+        "inf_std": 44.558,
+        "post": 0.141,
+        "total": 405.364
+      }
+    },
+    {
+      "model": "yolo26l-depth",
+      "params_M": 26.47,
+      "GFLOPs": 156.2,
+      "pt_fp32": {
+        "pre": 3.106,
+        "inf": 623.369,
+        "inf_std": 48.599,
+        "post": 0.938,
+        "total": 627.412
+      },
+      "onnx_cpu_fp32": {
+        "pre": 22.433,
+        "inf": 821.931,
+        "inf_std": 50.729,
+        "post": 0.157,
+        "total": 844.521
+      },
+      "onnx_providers": [
+        "CPUExecutionProvider"
+      ],
+      "openvino_fp32": {
+        "pre": 3.461,
+        "inf": 544.73,
+        "inf_std": 40.484,
+        "post": 0.135,
+        "total": 548.326
+      }
+    },
+    {
+      "model": "yolo26x-depth",
+      "params_M": 55.8,
+      "GFLOPs": 300.5,
+      "pt_fp32": {
+        "pre": 3.328,
+        "inf": 1140.741,
+        "inf_std": 69.343,
+        "post": 0.939,
+        "total": 1145.007
+      },
+      "onnx_cpu_fp32": {
+        "pre": 22.342,
+        "inf": 1240.897,
+        "inf_std": 73.288,
+        "post": 0.184,
+        "total": 1263.423
+      },
+      "onnx_providers": [
+        "CPUExecutionProvider"
+      ],
+      "openvino_fp32": {
+        "pre": 4.546,
+        "inf": 834.979,
+        "inf_std": 38.58,
+        "post": 0.144,
+        "total": 839.668
+      }
+    }
+  ]
+}

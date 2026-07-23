@@ -53,7 +53,7 @@ CoreML integrates directly with Apple's [Vision framework](https://developer.app
 
 This is the latest on-file sweep of the retired `v8.3.0` YOLO26n INT8 CoreML assets on an iPhone 17 Pro (Apple A19,
 iOS 26.5.2). Semantic and OBB used 1024px inputs, so these rows are not benchmarks for the standardized
-`models-v1.0.0` assets. Each cell shows the **total time** (preprocessing + inference + postprocessing, excluding
+`v8.3.0` assets. Each cell shows the **total time** (preprocessing + inference + postprocessing, excluding
 annotation) with the per-stage split beneath it. On iOS, Vision performs input scaling inside the inference request,
 so preprocessing is reported as 0 and its cost is included in inference.
 
@@ -198,7 +198,7 @@ Integrating a raw `.mlpackage` yourself is also straightforward with Apple's sta
 - **[CoreML Tools](https://apple.github.io/coremltools/docs-guides/)**: Conversion, quantization, and optimization reference for the `coremltools` toolchain that powers this export.
 - **[Xcode Core ML Performance Reports](https://developer.apple.com/videos/)**: Per-layer device placement and latency profiling for your exact model and device.
 
-Ship the model either embedded in the app bundle (instant availability, ideal for nano/small models) or downloaded on first run and cached (smaller binary, easy model updates) — the official apps use the second approach with the [standardized `models-v1.0.0` GitHub release assets](https://github.com/ultralytics/yolo-ios-app/releases/tag/models-v1.0.0).
+Ship the model either embedded in the app bundle (instant availability, ideal for nano/small models) or downloaded on first run and cached (smaller binary, easy model updates) — the official apps use the second approach with the [standardized `v8.3.0` GitHub release assets](https://github.com/ultralytics/yolo-ios-app/releases/tag/v8.3.0).
 
 ## Recommended Workflow
 

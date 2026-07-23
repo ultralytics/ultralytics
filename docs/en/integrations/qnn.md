@@ -18,7 +18,7 @@ Deploying computer vision models on Qualcomm Snapdragon devices requires a model
     Export classification models at `imgsz=224`. Export detect, segment, semantic, depth, pose, and OBB models at
     `imgsz=640`. This 224/640 standard is shared by the official QNN, LiteRT, and CoreML mobile assets.
     Ready-to-run v73 and v81 assets for all seven nano tasks are published in the
-    [yolo-flutter-app `models-v1.0.0` release](https://github.com/ultralytics/yolo-flutter-app/releases/tag/models-v1.0.0).
+    [yolo-flutter-app `v0.6.6` release](https://github.com/ultralytics/yolo-flutter-app/releases/tag/v0.6.6).
 
 ## What is Qualcomm QNN?
 
@@ -62,7 +62,7 @@ The exported `*_qnn.onnx` file is self-contained: it embeds the QNN context bina
 This latest on-file sweep used retired LiteRT `v0.6.6` and QNN `v0.3.5` assets on a
 [Xiaomi 17](https://www.mi.com/global/product/xiaomi-17/) powered by the Qualcomm Snapdragon 8 Elite Gen 5 (SM8850)
 — Qualcomm Oryon CPU, Adreno GPU, and Hexagon NPU (HTP v81). Semantic and OBB used 1024px QNN inputs, so those rows
-are not same-resolution comparisons and none of these values are benchmarks for the standardized `models-v1.0.0`
+are not same-resolution comparisons and none of these values are benchmarks for the standardized `v0.6.6`
 assets. Each cell shows the **total time** with the preprocess / inference / postprocess split beneath it.
 
 | Model         | Task     | LiteRT / QNN<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | GPU<br><sup>w8a32 LiteRT<br>(ms)</sup>   | NPU<br><sup>QNN W8A16<br>(ms)</sup>     |

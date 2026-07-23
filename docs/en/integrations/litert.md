@@ -56,7 +56,7 @@ Latest on-file end-to-end single-image inference for the retired `v0.6.6` YOLO26
 int8 weights, FP32 activations) on a [Xiaomi 17](https://www.mi.com/global/product/xiaomi-17/) phone powered by the
 Qualcomm Snapdragon 8 Elite Gen 5 (SM8850), measured through the
 [Ultralytics Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) `0.6.10`. The input sizes match the
-current 224/640 standard, but the `models-v1.0.0` binaries require a fresh sweep before these values can be claimed
+current 224/640 standard, but the replaced `v0.6.6` binaries require a fresh sweep before these values can be claimed
 for the current release. Each cell shows the **total time** (preprocessing + inference + postprocessing, excluding
 annotation) with the per-stage split beneath it. CPU runs the LiteRT XNNPACK delegate; GPU runs the LiteRT OpenCL/GL
 delegate (FP16).
@@ -72,7 +72,7 @@ delegate (FP16).
 | YOLO26n-obb   | OBB      | 640                         | 50.5<br><sup>1.8 / 47.3 / 1.4</sup>    | **13.0**<br><sup>2.9 / 7.9 / 2.3</sup>        |
 
 - **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`, measured with the Flutter plugin's on-device benchmark harness in profile mode. The full task suite runs back-to-back, so the CPU-bound preprocessing stage reflects sustained operation (a thermally rested single-task measurement is lower); the GPU/CPU inference stage is the steady-state compute cost.
-- The LiteRT export traces the PyTorch model directly, producing an **NCHW** `.tflite` with a float input — the GPU delegate compiles the whole graph (all seven tasks run on the Adreno GPU here), and `w8a32` needs no calibration data. The official Android assets are hosted on the [yolo-flutter-app `models-v1.0.0` release](https://github.com/ultralytics/yolo-flutter-app/releases/tag/models-v1.0.0), with the detailed benchmark record in [the Flutter performance doc](https://github.com/ultralytics/yolo-flutter-app/blob/main/doc/performance.md).
+- The LiteRT export traces the PyTorch model directly, producing an **NCHW** `.tflite` with a float input — the GPU delegate compiles the whole graph (all seven tasks run on the Adreno GPU here), and `w8a32` needs no calibration data. The official Android assets are hosted on the [yolo-flutter-app `v0.6.6` release](https://github.com/ultralytics/yolo-flutter-app/releases/tag/v0.6.6), with the detailed benchmark record in [the Flutter performance doc](https://github.com/ultralytics/yolo-flutter-app/blob/main/doc/performance.md).
 - The matching Snapdragon **Hexagon NPU** numbers (and the INT8 TFLite CPU/GPU baseline) are in the [Qualcomm QNN integration](qnn.md).
 
 The following device sweeps used the same retired `v0.6.6` assets.

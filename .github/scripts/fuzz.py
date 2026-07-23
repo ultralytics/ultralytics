@@ -33,6 +33,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import types
 from pathlib import Path, PureWindowsPath
 
 # Per-mode subprocess timeouts (seconds) on Linux CPU runners, ~6-10x headroom over observed norms
@@ -272,6 +273,29 @@ def prepare_sources(uni):
         ],
     }
     uni["video"] = str(video)
+
+
+def verify_valid_optimizers(uni):
+    """Fail fast if a `valid` optimizer name builds the wrong optimizer class before fuzzing starts.
+
+    The subprocess loop only observes crash/no-crash, so a valid optimizer name that silently resolves to a
+    different-but-working optimizer (`RMSProp` once built MuSGD via a `getattr` casing fallback) trains without crashing
+    and is never flagged. Assert the constructed class in-process so the next silent mismatch is caught.
+    """
+    from ultralytics.engine.trainer import BaseTrainer
+    from ultralytics.nn.tasks import DetectionModel
+
+    model = DetectionModel(cfg=Path(uni["task2model"]["detect"]).with_suffix(".yaml").name, nc=80, verbose=False)
+    trainer = types.SimpleNamespace(args=types.SimpleNamespace(lr0=0.01, momentum=0.9), data={"nc": 80})
+    mismatches = []
+    for name in ENUM_POOLS["optimizer"]["valid"]:
+        built = type(
+            BaseTrainer.build_optimizer(trainer, model, name=name, lr=1e-3, momentum=0.9, decay=1e-5, iterations=100)
+        ).__name__
+        # `auto` deterministically resolves to AdamW at our iterations=100 (>10000 gives MuSGD); others match their name
+        if not (built == "AdamW" if name == "auto" else built.lower() == name.lower()):
+            mismatches.append(f"{name}->{built}")
+    assert not mismatches, f"optimizer valid-pool builds the wrong class: {', '.join(mismatches)}"
 
 
 def strip_defaults(pairs, defaults):
@@ -534,6 +558,7 @@ def cmd_fuzz(args):
     from ultralytics.utils.checks import collect_system_info
 
     environment = {k: str(v) for k, v in collect_system_info().items()}  # before fuzzing: fail fast, never lose trials
+    verify_valid_optimizers(uni)  # a valid optimizer name must build its own class, never silently the wrong one
     precache_assets(uni)
     corpus = build_corpus(uni)
 

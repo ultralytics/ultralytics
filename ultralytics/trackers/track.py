@@ -124,8 +124,6 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
         idx = tracks[:, -1].astype(int)
         predictor.results[i] = result[idx]
 
-        # Restore the source device: tracks come back as numpy, and leaving them on CPU splits a Results object
-        # whose masks/keypoints are still on GPU.
         update_args = {"obb" if is_obb else "boxes": torch.as_tensor(tracks[:, :-1], device=src.data.device)}
         predictor.results[i].update(**update_args)
 

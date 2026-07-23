@@ -31,6 +31,7 @@ __all__ = (
     "DetectO2OSA",
     "DetectO2OSAD",
     "DetectO2OStem",
+    "DetectZero",
     "Pose",
     "RTDETRDecoder",
     "Segment",
@@ -437,6 +438,36 @@ class DetectO2OSAD(Detect):
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
         return y if self.export else (y, preds)
+
+
+class DetectZero(Detect):
+    """YOLO Detect head with a single conv per branch, mirroring DAMO-YOLO ZeroHead (stacked_convs=0).
+
+    Replaces Detect's stacked cls/reg towers with one prediction layer per branch per level: the box branch is a dense
+    3x3 conv and the class branch is a depthwise-separable 3x3 (depthwise + 1x1 pointwise) to keep the wide-channel
+    class projection cheap. Everything else (DFL decode, one2one/one2many branches, postprocess) is inherited unchanged.
+
+    Examples:
+        >>> detect = DetectZero(nc=80, reg_max=1, end2end=True, ch=(128, 256, 512))
+        >>> x = [torch.randn(1, 128, 80, 80), torch.randn(1, 256, 40, 40), torch.randn(1, 512, 20, 20)]
+        >>> outputs = detect(x)
+    """
+
+    def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
+        """Initialize the detection head with a single conv per branch (dense box, depthwise-separable class).
+
+        Args:
+            nc (int): Number of classes.
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
+        """
+        super().__init__(nc, reg_max, end2end, ch)
+        self.cv2 = nn.ModuleList(nn.Sequential(nn.Conv2d(x, 4 * self.reg_max, 3, padding=1)) for x in ch)
+        self.cv3 = nn.ModuleList(nn.Sequential(DWConv(x, x, 3), nn.Conv2d(x, self.nc, 1)) for x in ch)
+        if end2end:
+            self.one2one_cv2 = copy.deepcopy(self.cv2)
+            self.one2one_cv3 = copy.deepcopy(self.cv3)
 
 
 class DetectO2OObj(Detect):

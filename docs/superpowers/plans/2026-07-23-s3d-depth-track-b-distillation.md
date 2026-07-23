@@ -14,7 +14,7 @@
 - Every Python file starts with `# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license` (Actions bot adds it; don't add/revert manually).
 - Never edit the primary checkout — work in a git worktree on a feature branch; open a PR. Never push `main`, never force-push.
 - **Depends on** `docs/superpowers/plans/2026-07-23-s3d-depth-foundation.md`: rebase this track's branch onto the merged foundation before starting. Locked node indices: **P3=16, P4=19, P5=22, StereoCostVolume=23, Stereo3DDetHead=24**, head `from=[16,19,22,23]`.
-- Teacher checkpoint (frozen, eval, on device): `/home/rick/autoresearch_depth/weights/yolo26x-depth-640-best.pt`. Its `Depth` head at eval returns metric depth `(B,1,H/4,W/4)`. Load via `ultralytics.nn.tasks.load_checkpoint`.
+- Teacher checkpoint (frozen, eval, on device): `yolo26x-depth.pt`. Its `Depth` head at eval returns metric depth `(B,1,H/4,W/4)`. Load via `ultralytics.nn.tasks.load_checkpoint`.
 - Student scale `n`. Primary dataset `kitti-stereo`; regression `cube-s3d`. Smoke: `kitti-stereo8` / a tiny cube subset, `epochs=1`.
 - PR body must include a `Deleted:` line. For this track: `Deleted: nothing` — justification: pure additive training-only capability; the one refactor (SILog/grad helper) is a net consolidation that removes duplicated math from `DepthLoss26`.
 
@@ -170,7 +170,7 @@ import pytest
 from ultralytics.models.yolo.s3d.train import Stereo3DDetTrainer
 
 DISTILL_CFG = "ultralytics/cfg/models/26/yolo26-s3d-distill.yaml"
-_TEACHER = Path("/home/rick/autoresearch_depth/weights/yolo26x-depth-640-best.pt")
+_TEACHER = Path("yolo26x-depth.pt")
 
 
 def test_distill_yaml_enables_head():
@@ -219,7 +219,7 @@ training:
     proj_center: 1.0
     distill: 1.0
   distill:
-    teacher: /home/rick/autoresearch_depth/weights/yolo26x-depth-640-best.pt
+    teacher: yolo26x-depth.pt
     c_mid: 256
 ```
 

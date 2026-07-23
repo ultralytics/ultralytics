@@ -22,10 +22,13 @@ Goal framing: a **general, reusable method** (not cube-specific). Validate on de
 
 ## Assets (no depth training needed)
 
-- **Warm-start (scale-matched):** `yolo26n-depth.pt` (local; also an auto-downloadable release
-  asset — `yolo26{n..x}-depth.pt`). Must match the student scale for name+shape matching.
-- **Teacher / prior (stronger, scale-independent):** `yolo26x-depth-640-best.pt`
-  (`/home/rick/autoresearch_depth/weights/`) — strongest available depth model.
+- **Warm-start (scale-matched):** `yolo26n-depth.pt` — auto-downloadable release asset
+  (published on the `v8.4.0` `ultralytics/assets` release, built from current code). Must match
+  the student scale for name+shape matching.
+- **Teacher / prior (scale-independent):** `yolo26x-depth.pt` — auto-downloadable release asset
+  (same `v8.4.0` release), the largest published depth model. Chosen over the local
+  `yolo26x-depth.pt`, which predates PR #25171 and won't load without repair; the
+  release asset loads cleanly and auto-downloads on the training boxes.
 - **Student:** `yolo26n-s3d` (scale `n`; matches prior s3d/cube work).
 - **Baseline:** current `yolo26-s3d` with no depth transfer.
 
@@ -75,7 +78,7 @@ AP3D@0.7, at **no inference/deploy cost**.
   input/4) during training only; not built into the inference/export graph.
 
 ### B2. Frozen distillation teacher
-- Load `yolo26x-depth-640-best.pt` once, frozen, `eval()`, on the trainer device (new hook,
+- Load `yolo26x-depth.pt` once, frozen, `eval()`, on the trainer device (new hook,
   mirroring the existing `on_train_epoch_start` `epoch_frac` precedent).
 - In `preprocess_batch`, run the teacher on the **left** image (no grad) → `batch["teacher_depth"]`
   (metric depth, resized to aux-head resolution).
@@ -95,7 +98,7 @@ AP3D@0.7, at **no inference/deploy cost**.
 accuracy — accepting a second forward pass at inference.
 
 ### C1. Depth prior source
-- Frozen `yolo26x-depth-640-best.pt` produces a **dense metric depth map** for the left image at
+- Frozen `yolo26x-depth.pt` produces a **dense metric depth map** for the left image at
   **train and inference**.
 
 ### C2. Fusion — replace the inert cost volume

@@ -16,7 +16,7 @@
 - **Delete > Replace > Add.** This track's PR body **must** contain: `Deleted: StereoCostVolume from the s3d graph (replaced by DepthPriorEncoder in the depth-prior variant)`.
 - Never edit the primary checkout — work in a git worktree on a feature branch; open a PR. Never push `main`, never force-push.
 - **Depends on** `2026-07-23-s3d-depth-foundation.md` (reordered YAML). Branch from / rebase onto the foundation branch before starting.
-- Depth-prior checkpoint (frozen, eval, scale-independent): `/home/rick/autoresearch_depth/weights/yolo26x-depth-640-best.pt`.
+- Depth-prior checkpoint (frozen, eval, scale-independent): `yolo26x-depth.pt`.
 - Warm-start (scale-matched, still applies): `yolo26n-depth.pt`.
 - Student scale `n`. Eval datasets: `kitti-stereo` (primary) + `cube-s3d` (regression). Smoke datasets: `kitti-stereo8` / small cube, `epochs=1`.
 
@@ -194,7 +194,7 @@ training:
     orientation: 1.0
     proj_center: 1.0
   depth_prior:
-    model: /home/rick/autoresearch_depth/weights/yolo26x-depth-640-best.pt
+    model: yolo26x-depth.pt
 
 mean_dims:
   Car: [3.88, 1.63, 1.53]
@@ -274,7 +274,7 @@ from pathlib import Path
 
 import pytest
 
-_PRIOR_CKPT = "/home/rick/autoresearch_depth/weights/yolo26x-depth-640-best.pt"
+_PRIOR_CKPT = "yolo26x-depth.pt"
 _have_prior = Path(_PRIOR_CKPT).exists()
 prior_only = pytest.mark.skipif(not _have_prior, reason="depth-prior checkpoint not present")
 

@@ -30,8 +30,7 @@ The Deployment section helps you:
 - **Monitor** request metrics, logs, and health checks
 - **Scale to zero** when idle (deployments currently run a single active instance)
 
-<!-- screenshot: deploy-page-world-map-with-overview-cards -->
-![Ultralytics Platform Deploy Page World Map With Overview Cards](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-world-map-with-overview-cards.avif)
+![Ultralytics Platform Deploy Page World Map With Overview Cards](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-world-map-with-overview-cards.avif)<!-- screenshot: deploy-page-world-map-with-overview-cards -->
 
 ## Deployment Options
 
@@ -114,8 +113,7 @@ Access the global deployments page from the sidebar under `Deploy`. This page sh
 - **Deployments list** with three view modes: cards, compact, and table
 - **New Deployment** button to create endpoints from any completed model
 
-<!-- screenshot: deploy-page-overview-cards-and-deployments-list -->
-![Ultralytics Platform Deploy Page Overview Cards And Deployments List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-overview-cards-and-deployments-list.avif)
+![Ultralytics Platform Deploy Page Overview Cards And Deployments List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-overview-cards-and-deployments-list.avif)<!-- screenshot: deploy-page-overview-cards-and-deployments-list -->
 
 !!! info "Automatic Polling"
 

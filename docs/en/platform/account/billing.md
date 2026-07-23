@@ -10,15 +10,13 @@ keywords: Ultralytics Platform, billing, credits, pricing, subscription, payment
 
 [Ultralytics Platform](https://platform.ultralytics.com) uses a credit-based billing system for cloud training and dedicated endpoints. Add credits, track usage, and manage your subscription from `Settings > Billing`.
 
-<!-- screenshot: settings-billing-tab-credit-balance-and-plan-card -->
-![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-credit-balance-and-plan-card.avif)
+![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-credit-balance-and-plan-card.avif)<!-- screenshot: settings-billing-tab-credit-balance-and-plan-card -->
 
 ## Plans
 
 Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 
-<!-- screenshot: settings-plans-tab-free-pro-enterprise-comparison -->
-![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-free-pro-enterprise-comparison.avif)
+![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-free-pro-enterprise-comparison.avif)<!-- screenshot: settings-plans-tab-free-pro-enterprise-comparison -->
 
 | Feature                                                    | Free       | Pro ($29/mo)    | Enterprise  |
 | ---------------------------------------------------------- | ---------- | --------------- | ----------- |
@@ -97,8 +95,7 @@ Credits are the currency for Platform compute services.
 
 View your balance in `Settings > Billing`:
 
-<!-- screenshot: settings-billing-tab-credit-balance-with-topup-button -->
-![Ultralytics Platform Settings Billing Tab Credit Balance With Topup Button](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-credit-balance-with-topup-button.avif)
+![Ultralytics Platform Settings Billing Tab Credit Balance With Topup Button](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-credit-balance-with-topup-button.avif)<!-- screenshot: settings-billing-tab-credit-balance-with-topup-button -->
 
 | Balance Type  | Description                          |
 | ------------- | ------------------------------------ |
@@ -121,8 +118,7 @@ Top up your balance:
 3. Select or enter amount ($5 - $1,000)
 4. Complete payment
 
-<!-- screenshot: settings-billing-tab-topup-amount-selection-dialog -->
-![Ultralytics Platform Settings Billing Tab Topup Amount Selection Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-topup-amount-selection-dialog.avif)
+![Ultralytics Platform Settings Billing Tab Topup Amount Selection Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-topup-amount-selection-dialog.avif)<!-- screenshot: settings-billing-tab-topup-amount-selection-dialog -->
 
 ### Top-Up Presets
 
@@ -226,8 +222,7 @@ Upgrade for more features and monthly credits:
 3. Choose billing cycle (Monthly or Yearly)
 4. Complete checkout
 
-<!-- screenshot: settings-plans-tab-upgrade-to-pro-dialog -->
-![Upgrade to Pro dialog in Settings Plans tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-upgrade-to-pro-dialog.avif)
+![Upgrade to Pro dialog in Settings Plans tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-upgrade-to-pro-dialog.avif)<!-- screenshot: settings-plans-tab-upgrade-to-pro-dialog -->
 
 ### Pro Benefits
 
@@ -281,8 +276,7 @@ When your Pro subscription ends (cancelled or expired), your account reverts to 
 
 View all transactions in `Settings > Billing`:
 
-<!-- screenshot: settings-billing-tab-transaction-history-table -->
-![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-transaction-history-table.avif)
+![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-transaction-history-table.avif)<!-- screenshot: settings-billing-tab-transaction-history-table -->
 
 | Column      | Description                                                                                                                            |
 | ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |

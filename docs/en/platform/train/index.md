@@ -31,8 +31,7 @@ The Training section helps you:
 - **Compare** model performance across experiments
 - **Export** to 19+ deployment formats (see [supported formats](models.md#supported-formats))
 
-<!-- screenshot: platform-train-overview -->
-![Ultralytics Platform Train Overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-train-overview.avif)
+![Ultralytics Platform Train Overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-train-overview.avif)<!-- screenshot: platform-train-overview -->
 
 ## Workflow
 

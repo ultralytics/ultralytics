@@ -10,8 +10,7 @@ keywords: Ultralytics Platform, explore, public datasets, public projects, compu
 
 [Ultralytics Platform](https://platform.ultralytics.com) Explore page showcases public content from the community. Discover [datasets](data/datasets.md) and [projects](train/projects.md) for inspiration and learning. The Explore page is accessible to everyone — even without signing in.
 
-<!-- screenshot: platform-explore-datasets-tab-cards-view -->
-![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-datasets-tab-cards-view.avif)
+![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-datasets-tab-cards-view.avif)<!-- screenshot: platform-explore-datasets-tab-cards-view -->
 
 ```mermaid
 graph LR
@@ -53,8 +52,7 @@ The Explore page uses a tabbed interface with `Datasets` and `Projects` tabs. Ea
 
 Each tab provides a search bar and sort options:
 
-<!-- screenshot: platform-explore-datasets-tab-with-search -->
-![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-datasets-tab-with-search.avif)
+![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-datasets-tab-with-search.avif)<!-- screenshot: platform-explore-datasets-tab-with-search -->
 
 | Sort Option             | Description                                                      |
 | ----------------------- | ---------------------------------------------------------------- |
@@ -79,8 +77,7 @@ Cards and compact views support infinite scroll for loading more results.
 
 Each item displays:
 
-<!-- screenshot: platform-explore-dataset-and-project-cards -->
-![Ultralytics Platform Explore Dataset And Project Cards](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-dataset-and-project-cards.avif)
+![Ultralytics Platform Explore Dataset And Project Cards](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-dataset-and-project-cards.avif)<!-- screenshot: platform-explore-dataset-and-project-cards -->
 
 === "Project Cards"
 
@@ -139,8 +136,7 @@ Use a public dataset for your training:
 2. Click `Clone Dataset`
 3. Dataset copies to your account
 
-<!-- screenshot: platform-explore-clone-dataset -->
-![Ultralytics Platform Explore Clone Dataset](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-clone-dataset.avif)
+![Ultralytics Platform Explore Clone Dataset](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-clone-dataset.avif)<!-- screenshot: platform-explore-clone-dataset -->
 
 !!! note "Cloned Dataset Properties"
 
@@ -179,8 +175,7 @@ Clone a public model to one of your projects:
 4. Optionally, rename the model
 5. Click `Clone Model` to confirm
 
-<!-- screenshot: platform-explore-clone-model-dialog -->
-![Ultralytics Platform Explore Clone Model Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-clone-model-dialog.avif)
+![Ultralytics Platform Explore Clone Model Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-clone-model-dialog.avif)<!-- screenshot: platform-explore-clone-model-dialog -->
 
 !!! note "Clone vs Download"
 
@@ -194,8 +189,7 @@ Copy a public project to your workspace:
 2. Click `Clone Project`
 3. Project copies with all models to your account
 
-<!-- screenshot: platform-explore-clone-project -->
-![Ultralytics Platform Explore Clone Project](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-clone-project.avif)
+![Ultralytics Platform Explore Clone Project](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-clone-project.avif)<!-- screenshot: platform-explore-clone-project -->
 
 See [Projects](train/projects.md) for organizing models in your project.
 
@@ -225,8 +219,7 @@ Official datasets include benchmark datasets like [coco8](../datasets/detect/coc
 
 Click on a creator's username to view their public profile at `platform.ultralytics.com/{username}`. Public profiles show:
 
-<!-- screenshot: platform-user-profile-public-content -->
-![Ultralytics Platform User Profile Public Content](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-user-profile-public-content.avif)
+![Ultralytics Platform User Profile Public Content](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-user-profile-public-content.avif)<!-- screenshot: platform-user-profile-public-content -->
 
 | Section       | Content                      |
 | ------------- | ---------------------------- |

@@ -56,7 +56,7 @@ Per-task before/after on the Adreno GPU of a [Xiaomi 17](https://www.mi.com/glob
 | YOLO26n-pose | Pose     | 640                         | 17.4<br><sup>2.4 / 9.9 / 5.1</sup>               | **14.0**<br><sup>1.9 / 9.3 / 2.8</sup>   |
 | YOLO26n-obb  | OBB      | 640                         | 13.9<br><sup>3.0 / 8.3 / 2.7</sup>               | **13.0**<br><sup>2.9 / 7.9 / 2.3</sup>   |
 
-w8a32 LiteRT matches or beats the legacy onnx2tf INT8 format on five of six tasks in total latency. **Semantic remains the format regression** because the w8a32 NCHW logits cost more inference time than the legacy NHWC logits, even after preprocessing cleanup. The legacy onnx2tf models run unchanged on LiteRT 2.x alongside the new NCHW exports. The official Android LiteRT assets are hosted on the [yolo-flutter-app `v0.6.6` release](https://github.com/ultralytics/yolo-flutter-app/releases/tag/v0.6.6), with the detailed benchmark record in [the Flutter performance doc](https://github.com/ultralytics/yolo-flutter-app/blob/main/doc/performance.md).
+w8a32 LiteRT matches or beats the legacy onnx2tf INT8 format on five of six tasks in total latency. **Semantic remains the format regression** because the w8a32 NCHW logits cost more inference time than the legacy NHWC logits, even after preprocessing cleanup. The legacy onnx2tf models run unchanged on LiteRT 2.x alongside the new NCHW exports. The official Android LiteRT assets are hosted on the [yolo-flutter-app `models-v1.0.0` release](https://github.com/ultralytics/yolo-flutter-app/releases/tag/models-v1.0.0), with the detailed benchmark record in [the Flutter performance doc](https://github.com/ultralytics/yolo-flutter-app/blob/main/doc/performance.md).
 
 ### Format regressions vs LiteRT
 
@@ -132,14 +132,14 @@ The replacement LiteRT format supports the [Export](../modes/export.md), [Predic
         model = YOLO("yolo26n.pt")
 
         # Export the model to LiteRT format
-        model.export(format="litert")  # creates 'yolo26n.tflite'
+        model.export(format="litert", imgsz=640)  # use imgsz=224 for classification
         ```
 
     === "CLI"
 
         ```bash
         # Export a YOLO26n PyTorch model to LiteRT format
-        yolo export model=yolo26n.pt format=litert # creates 'yolo26n.tflite'
+        yolo export model=yolo26n.pt format=litert imgsz=640 # use imgsz=224 for classification
         ```
 
 !!! example "Predict"
@@ -235,13 +235,13 @@ from ultralytics import YOLO
 model = YOLO("yolo26n.pt")
 
 # Export the model to LiteRT format
-model.export(format="litert")  # creates 'yolo26n.tflite'
+model.export(format="litert", imgsz=640)  # use imgsz=224 for classification
 ```
 
 For CLI users, you can achieve this with:
 
 ```bash
-yolo export model=yolo26n.pt format=litert # creates 'yolo26n.tflite'
+yolo export model=yolo26n.pt format=litert imgsz=640 # use imgsz=224 for classification
 ```
 
 For more details, visit the [Ultralytics export guide](../modes/export.md).

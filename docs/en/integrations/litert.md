@@ -19,6 +19,11 @@ The LiteRT export format optimizes your models for tasks like [object detection]
 
     The official [Ultralytics YOLO Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) runs LiteRT `.tflite` exports on Android out of the box — real-time camera inference, single-image prediction, GPU acceleration, and automatic model download for all seven YOLO26 tasks, including Depth. For Apple devices use the [CoreML export](coreml.md); for Qualcomm Snapdragon NPUs see the [Qualcomm QNN integration](qnn.md).
 
+!!! important "Official mobile input sizes"
+
+    Export classification models at `imgsz=224`. Export detect, segment, semantic, depth, pose, and OBB models at
+    `imgsz=640`. This 224/640 standard is shared by the official LiteRT, CoreML, and QNN mobile assets.
+
 !!! tip "Run YOLO on Web with LiteRT.js today via the official @ultralytics/yolo npm package"
 
     The official [Ultralytics YOLO NPM package](https://www.npmjs.com/package/@ultralytics/yolo) runs LiteRT `.tflite` exports directly in the browser via [LiteRT.js](https://developers.google.com/edge/litert/web) no server or Python required — with real-time webcam inference, single-image prediction, and WebGPU acceleration (automatic CPU/WASM fallback) across all six YOLO26 tasks (detect, segment, pose, OBB, classify, semantic). On WebGPU it's often ~2× faster than ONNX Runtime Web.
@@ -47,7 +52,14 @@ One model format, every target:
 
 ## Measured Performance
 
-End-to-end single-image inference for the official YOLO26n Android LiteRT assets (`w8a32`: int8 weights, FP32 activations) on a [Xiaomi 17](https://www.mi.com/global/product/xiaomi-17/) phone powered by the Qualcomm Snapdragon 8 Elite Gen 5 (SM8850), measured through the [Ultralytics Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) `0.6.10`. Each cell shows the **total time** (preprocessing + inference + postprocessing, excluding annotation) with the per-stage split beneath it. CPU runs the LiteRT XNNPACK delegate; GPU runs the LiteRT OpenCL/GL delegate (FP16).
+Latest on-file end-to-end single-image inference for the retired `v0.6.6` YOLO26n Android LiteRT assets (`w8a32`:
+int8 weights, FP32 activations) on a [Xiaomi 17](https://www.mi.com/global/product/xiaomi-17/) phone powered by the
+Qualcomm Snapdragon 8 Elite Gen 5 (SM8850), measured through the
+[Ultralytics Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) `0.6.10`. The input sizes match the
+current 224/640 standard, but the `models-v1.0.0` binaries require a fresh sweep before these values can be claimed
+for the current release. Each cell shows the **total time** (preprocessing + inference + postprocessing, excluding
+annotation) with the per-stage split beneath it. CPU runs the LiteRT XNNPACK delegate; GPU runs the LiteRT OpenCL/GL
+delegate (FP16).
 
 | Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | GPU Adreno<br><sup>w8a32 LiteRT<br>(ms)</sup> |
 | ------------- | -------- | --------------------------- | -------------------------------------- | --------------------------------------------- |
@@ -60,8 +72,40 @@ End-to-end single-image inference for the official YOLO26n Android LiteRT assets
 | YOLO26n-obb   | OBB      | 640                         | 50.5<br><sup>1.8 / 47.3 / 1.4</sup>    | **13.0**<br><sup>2.9 / 7.9 / 2.3</sup>        |
 
 - **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`, measured with the Flutter plugin's on-device benchmark harness in profile mode. The full task suite runs back-to-back, so the CPU-bound preprocessing stage reflects sustained operation (a thermally rested single-task measurement is lower); the GPU/CPU inference stage is the steady-state compute cost.
-- The LiteRT export traces the PyTorch model directly, producing an **NCHW** `.tflite` with a float input — the GPU delegate compiles the whole graph (all seven tasks run on the Adreno GPU here), and `w8a32` needs no calibration data. The official Android assets are hosted on the [yolo-flutter-app `v0.6.6` release](https://github.com/ultralytics/yolo-flutter-app/releases/tag/v0.6.6), with the detailed benchmark record in [the Flutter performance doc](https://github.com/ultralytics/yolo-flutter-app/blob/main/doc/performance.md).
+- The LiteRT export traces the PyTorch model directly, producing an **NCHW** `.tflite` with a float input — the GPU delegate compiles the whole graph (all seven tasks run on the Adreno GPU here), and `w8a32` needs no calibration data. The official Android assets are hosted on the [yolo-flutter-app `models-v1.0.0` release](https://github.com/ultralytics/yolo-flutter-app/releases/tag/models-v1.0.0), with the detailed benchmark record in [the Flutter performance doc](https://github.com/ultralytics/yolo-flutter-app/blob/main/doc/performance.md).
 - The matching Snapdragon **Hexagon NPU** numbers (and the INT8 TFLite CPU/GPU baseline) are in the [Qualcomm QNN integration](qnn.md).
+
+The following device sweeps used the same retired `v0.6.6` assets.
+
+### Google Pixel 10
+
+| Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | GPU<br><sup>w8a32 LiteRT<br>(ms)</sup>   |
+| ------------- | -------- | --------------------------- | -------------------------------------- | ---------------------------------------- |
+| YOLO26n       | Detect   | 640                         | 53.6<br><sup>1.5 / 50.5 / 1.6</sup>    | **43.9**<br><sup>3.9 / 36.2 / 3.8</sup>  |
+| YOLO26n-seg   | Segment  | 640                         | 90.0<br><sup>2.0 / 80.8 / 7.2</sup>    | **48.5**<br><sup>2.4 / 35.4 / 10.7</sup> |
+| YOLO26n-sem   | Semantic | 640                         | 71.0<br><sup>1.5 / 61.6 / 8.0</sup>    | **69.9**<br><sup>1.5 / 58.0 / 10.5</sup> |
+| YOLO26n-depth | Depth    | 640                         | 124.9<br><sup>1.5 / 117.2 / 6.3</sup>  | **50.0**<br><sup>1.8 / 36.5 / 11.7</sup> |
+| YOLO26n-cls   | Classify | 224                         | **4.0**<br><sup>0.3 / 3.4 / 0.3</sup>  | 17.6<br><sup>0.9 / 16.6 / 0.1</sup>      |
+| YOLO26n-pose  | Pose     | 640                         | 59.5<br><sup>1.5 / 56.8 / 1.2</sup>    | **45.9**<br><sup>3.9 / 38.4 / 3.7</sup>  |
+| YOLO26n-obb   | OBB      | 640                         | 52.1<br><sup>1.5 / 49.1 / 1.6</sup>    | **45.6**<br><sup>4.1 / 38.8 / 2.7</sup>  |
+
+Google Tensor G5, Android 16/API 36. Each row is the mean of 15 runs after 3 warmups; CPU/GPU order alternated
+between rows. Native logs confirmed full placement on each requested LiteRT backend.
+
+### Samsung Galaxy S26
+
+| Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | GPU<br><sup>w8a32 LiteRT<br>(ms)</sup>   |
+| ------------- | -------- | --------------------------- | -------------------------------------- | ---------------------------------------- |
+| YOLO26n       | Detect   | 640                         | 36.7<br><sup>1.2 / 33.9 / 1.7</sup>    | **17.3**<br><sup>2.5 / 12.3 / 2.5</sup>  |
+| YOLO26n-seg   | Segment  | 640                         | 55.4<br><sup>1.2 / 48.9 / 5.3</sup>    | **30.8**<br><sup>1.2 / 23.3 / 6.2</sup>  |
+| YOLO26n-sem   | Semantic | 640                         | 48.7<br><sup>1.2 / 39.4 / 8.0</sup>    | **36.2**<br><sup>1.2 / 27.2 / 7.8</sup>  |
+| YOLO26n-depth | Depth    | 640                         | 93.4<br><sup>1.2 / 85.2 / 7.0</sup>    | **33.7**<br><sup>1.3 / 22.4 / 10.0</sup> |
+| YOLO26n-cls   | Classify | 224                         | **2.8**<br><sup>0.2 / 2.4 / 0.3</sup>  | 3.2<br><sup>0.2 / 3.0 / 0.0</sup>        |
+| YOLO26n-pose  | Pose     | 640                         | 42.9<br><sup>1.3 / 40.5 / 1.1</sup>    | **19.3**<br><sup>1.4 / 14.7 / 3.2</sup>  |
+| YOLO26n-obb   | OBB      | 640                         | 37.3<br><sup>1.3 / 34.8 / 1.2</sup>    | **17.8**<br><sup>1.7 / 14.4 / 1.7</sup>  |
+
+Exynos 2600 with Xclipse 960 GPU, Android 16/API 36. Each row is the mean of 15 runs after 3 warmups; CPU/GPU order
+alternated between rows. Native logs confirmed full placement on each requested LiteRT backend.
 
 ## Export to LiteRT: Converting Your YOLO Model
 
@@ -101,14 +145,14 @@ All [Ultralytics YOLO models](../models/index.md) support export out of the box.
         model = YOLO("yolo26n.pt")
 
         # Export the model to LiteRT format
-        model.export(format="litert")  # creates 'yolo26n.tflite'
+        model.export(format="litert", imgsz=640)  # use imgsz=224 for classification
         ```
 
     === "CLI"
 
         ```bash
         # Export a YOLO26n PyTorch model to LiteRT format
-        yolo export model=yolo26n.pt format=litert # creates 'yolo26n.tflite'
+        yolo export model=yolo26n.pt format=litert imgsz=640 # use imgsz=224 for classification
         ```
 
 !!! example "Quantized export"
@@ -121,26 +165,26 @@ All [Ultralytics YOLO models](../models/index.md) support export out of the box.
         model = YOLO("yolo26n.pt")
 
         # Dynamic INT8: int8 weights, FP32 activations - no calibration data needed
-        model.export(format="litert", quantize="w8a32")  # creates 'yolo26n_w8a32.tflite'
+        model.export(format="litert", quantize="w8a32", imgsz=640)  # use imgsz=224 for classification
 
         # Static INT8: int8 weights + int8 activations - needs calibration data
-        model.export(format="litert", quantize=8, data="coco8.yaml")  # creates 'yolo26n_int8.tflite'
+        model.export(format="litert", quantize=8, data="coco8.yaml", imgsz=640)  # use 224 for classification
 
         # Static w8a16: int8 weights + int16 activations (higher accuracy) - needs calibration data
-        model.export(format="litert", quantize="w8a16", data="coco8.yaml")  # creates 'yolo26n_w8a16.tflite'
+        model.export(format="litert", quantize="w8a16", data="coco8.yaml", imgsz=640)  # use 224 for classification
         ```
 
     === "CLI"
 
         ```bash
         # Dynamic INT8 (no calibration data needed)
-        yolo export model=yolo26n.pt format=litert quantize=w8a32
+        yolo export model=yolo26n.pt format=litert quantize=w8a32 imgsz=640
 
         # Static INT8 (needs calibration data)
-        yolo export model=yolo26n.pt format=litert quantize=8 data=coco8.yaml
+        yolo export model=yolo26n.pt format=litert quantize=8 data=coco8.yaml imgsz=640
 
         # Static w8a16: int8 weights + int16 activations (needs calibration data)
-        yolo export model=yolo26n.pt format=litert quantize=w8a16 data=coco8.yaml
+        yolo export model=yolo26n.pt format=litert quantize=w8a16 data=coco8.yaml imgsz=640
         ```
 
 !!! example "Predict"
@@ -245,13 +289,13 @@ from ultralytics import YOLO
 model = YOLO("yolo26n.pt")
 
 # Export the model to LiteRT format
-model.export(format="litert")  # creates 'yolo26n.tflite'
+model.export(format="litert", imgsz=640)  # use imgsz=224 for classification
 ```
 
 For CLI users:
 
 ```bash
-yolo export model=yolo26n.pt format=litert # creates 'yolo26n.tflite'
+yolo export model=yolo26n.pt format=litert imgsz=640 # use imgsz=224 for classification
 ```
 
 For more details, visit the [Ultralytics export guide](../modes/export.md).

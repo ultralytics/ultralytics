@@ -2150,7 +2150,7 @@ model.export(format="onnx", imgsz=640, quantize=16)
 model.export(format="engine", imgsz=640, quantize=16)
 
 # Export to CoreML
-model.export(format="coreml", imgsz=640)
+model.export(format="coreml", imgsz=640)  # use imgsz=224 for classification
 ```
 
 **Validation:**

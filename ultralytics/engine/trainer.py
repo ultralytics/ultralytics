@@ -1127,15 +1127,19 @@ class BaseTrainer:
 
         # Enable PyTorch fused multi-tensor kernels where supported (Adam/AdamW/SGD are the only stock optimizers
         # exposing `fused`). foreach is already torch's default on CUDA, so it needs no flag; fused adds the win on
-        # every fused-capable device, including CPU/MPS where foreach is unavailable. Fall back to the default
-        # (non-fused) path if the private device-support helper ever moves or the model has no parameters.
+        # every fused-capable device, including CPU/MPS where foreach is unavailable. Mirror fused's own precondition
+        # exactly — every param floating-point on a supported device — so a mixed-device/non-float custom model falls
+        # back to the default path instead of constructing and then failing on the first step. Also fall back if the
+        # private device-support helper ever moves.
         if name in {"Adam", "AdamW", "SGD"} and TORCH_2_4:
             try:
                 from torch.optim.optimizer import _get_fused_kernels_supported_devices
 
-                if next(unwrap_model(model).parameters()).device.type in _get_fused_kernels_supported_devices():
+                supported = _get_fused_kernels_supported_devices()
+                params = list(unwrap_model(model).parameters())
+                if params and all(p.is_floating_point() and p.device.type in supported for p in params):
                     optim_args["fused"] = True
-            except (ImportError, StopIteration):
+            except ImportError:
                 pass
 
         num_params = [len(g[0]), len(g[1]), len(g[2])]  # number of param groups

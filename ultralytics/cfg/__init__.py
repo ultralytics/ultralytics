@@ -300,6 +300,7 @@ CFG_BOOL_KEYS = frozenset(
         "simplify",
         "nms",
         "profile",
+        "channels_last",
         "end2end",
         "cls_remap",
     }

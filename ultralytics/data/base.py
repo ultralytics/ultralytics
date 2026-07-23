@@ -205,7 +205,7 @@ class BaseDataset(Dataset):
                 if keypoints is not None:
                     self.labels[i]["keypoints"] = keypoints[j]
             if self.single_cls:
-                self.labels[i]["cls"][:, 0] = 0
+                self.labels[i]["cls"][:] = 0
 
     def _read_image(self, im_file: str) -> tuple[np.ndarray, tuple[int, int]]:
         """Read image from disk.

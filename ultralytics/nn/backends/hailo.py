@@ -47,9 +47,9 @@ class HailoBackend(BaseBackend):
             from ultralytics.utils import YAML
 
             self.apply_metadata(YAML.load(metadata_file))
-        if self.task and self.task not in {"detect", "segment", "pose", "obb", "classify", "semantic"}:
+        if self.task and self.task not in {"detect", "segment", "pose", "obb", "classify", "semantic", "depth"}:
             raise ValueError(
-                f"Hailo inference only supports detect, segment, pose, obb, classify and semantic tasks, "
+                f"Hailo inference only supports detect, segment, pose, obb, classify, semantic and depth tasks, "
                 f"not task='{self.task}'."
             )
 
@@ -99,6 +99,8 @@ class HailoBackend(BaseBackend):
             # Hailo-8/8L and single-class heads return raw stride-8 logits; hand them to the predictor's existing
             # bilinear upsample, letterbox removal, and class reduction so results match the PyTorch model exactly.
             return out.permute(0, 3, 1, 2)
+        if self.task == "depth":
+            return self._decode_depth(outputs[0])
         return self._decode_raw(outputs) if not self.metadata.get("nms", False) else self._decode_nms(outputs[0])
 
     def _decode_nms(self, output: list) -> np.ndarray:
@@ -194,3 +196,14 @@ class HailoBackend(BaseBackend):
         scores, index = scores.flatten(1).topk(min(300, scores.shape[1] * classes), dim=1)
         boxes = boxes.gather(1, (index // classes)[..., None].repeat(1, 1, 4))
         return torch.cat((boxes, scores[..., None], (index % classes)[..., None].float()), 2).numpy()
+
+    def _decode_depth(self, output: np.ndarray) -> torch.Tensor:
+        """Decode the raw depth logit into a metric depth map, mirroring ``Depth.forward`` on the host.
+
+        The HEF is cut at the head's final logit conv, so the clamp/exp and learned log-affine calibration that
+        follow it in the head run here. The map stays at head resolution (H/4, W/4); ``DepthPredictor.postprocess``
+        resizes it to the image with ``scale_masks``, the same path the PyTorch model takes at inference.
+        """
+        logit = torch.from_numpy(output).permute(0, 3, 1, 2)  # (B, H/4, W/4, 1) -> (B, 1, H/4, W/4)
+        depth = logit.clamp(-4.0, 5.0).exp()
+        return depth.pow(self.metadata.get("cal_a", 1.0)) * math.exp(self.metadata.get("cal_b", 0.0))

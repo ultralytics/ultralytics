@@ -454,6 +454,8 @@ class Predictor(BasePredictor):
             >>> predictor.setup_model(model=sam_model, verbose=True)
         """
         device = select_device(self.args.device, verbose=verbose)
+        if self.args.channels_last:
+            LOGGER.warning("'channels_last=True' is not supported for SAM predictors, ignoring.")
         if model is None:
             model = self.get_model()
         # Move model to device first, then cast dtype, then set eval so any eval-time caches are created on-device.

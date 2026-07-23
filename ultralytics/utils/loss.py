@@ -361,6 +361,7 @@ class v8DetectionLoss:
         self.device = device
 
         self.use_dfl = m.reg_max > 1
+        self.cls_norm = getattr(h, "cls_norm", "tss")  # cls loss normalizer: 'tss' or 'pos'
 
         # Class weights for handling imbalanced datasets
         self.class_weights = getattr(model, "class_weights", None)
@@ -375,6 +376,7 @@ class v8DetectionLoss:
             stride=self.stride.tolist(),
             topk2=tal_topk2,
         )
+        self.assigner.monitor = getattr(h, "tal_monitor", False)  # collect assignment stats for tal_monitor callback
         self.bbox_loss = BboxLoss(m.reg_max, self.sigmoid_box).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 
@@ -446,7 +448,8 @@ class v8DetectionLoss:
         bce_loss = self.bce(pred_scores, target_scores.to(dtype))  # (bs, num_anchors, nc)
         if self.class_weights is not None:
             bce_loss *= self.class_weights
-        loss[1] = bce_loss.sum() / target_scores_sum  # BCE
+        cls_denom = max(fg_mask.sum(), 1) if self.cls_norm == "pos" else target_scores_sum
+        loss[1] = bce_loss.sum() / cls_denom  # BCE
 
         # Bbox loss
         if fg_mask.sum():
@@ -1187,7 +1190,12 @@ class E2ELoss:
     def __init__(self, model: torch.nn.Module, loss_fn=v8DetectionLoss):
         """Initialize E2ELoss with one-to-many and one-to-one detection losses using the provided model."""
         self.one2many = loss_fn(model, tal_topk=10)
-        self.one2one = loss_fn(model, tal_topk=7, tal_topk2=1)
+        o2f_k = int(getattr(model.args, "o2f", 0))
+        self.one2one = loss_fn(model, tal_topk=7, tal_topk2=1 + o2f_k if o2f_k else 1)
+        if o2f_k:  # o2f: certain positive + K ambiguous soft-labeled anchors per GT
+            self.one2one.assigner.o2f_k = o2f_k
+            self.one2one.assigner.o2f_T = self.o2f_tmax = getattr(model.args, "o2f_tmax", 0.6)
+            self.o2f_tmin = getattr(model.args, "o2f_tmin", 0.2)
         self.updates = 0
         self.total = 1.0
         # init gain
@@ -1210,6 +1218,9 @@ class E2ELoss:
         self.updates += 1
         self.o2m = self.decay(self.updates)
         self.o2o = max(self.total - self.o2m, 0)
+        if self.one2one.assigner.o2f_k:  # anneal o2f ambiguous positive degree tmax -> tmin
+            frac = min(self.updates / max(self.one2one.hyp.epochs - 1, 1), 1.0)
+            self.one2one.assigner.o2f_T = self.o2f_tmax + (self.o2f_tmin - self.o2f_tmax) * frac
 
     def decay(self, x) -> float:
         """Calculate the decayed weight for one-to-many loss based on the current update step."""

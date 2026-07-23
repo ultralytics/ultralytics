@@ -162,6 +162,10 @@ class BaseTrainer:
 
         # Callbacks - initialize early so on_pretrain_routine_start can capture original args.data
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
+        if getattr(self.args, "tal_monitor", False):
+            from ultralytics.utils.callbacks.tal_monitor import on_train_epoch_end
+
+            self.add_callback("on_train_epoch_end", on_train_epoch_end)
 
         if self.device.type in {"cpu", "mps"}:
             world_size = 0

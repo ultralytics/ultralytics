@@ -58,6 +58,18 @@ class TaskAlignedAssigner(nn.Module):
         self.stride = stride if stride is not None else [8, 16, 32]
         self.stride_val = self.stride[1] if len(self.stride) > 1 else self.stride[0]
         self.eps = eps
+        self.o2f_k = 0  # o2f: number of ambiguous soft-labeled anchors per GT (0=disabled)
+        self.o2f_T = 0.0  # o2f: positive degree of ambiguous anchors, annealed per epoch by E2ELoss.update()
+        self.monitor = False  # collect per-batch assignment stats when enabled (see callbacks/tal_monitor.py)
+        self.mon = self._reset_mon()
+
+    @staticmethod
+    def _reset_mon() -> dict:
+        """Return an empty monitor accumulator for TAL assignment stats."""
+        return {"n_gt": 0, "zero_pos": 0, "conflict": 0, "pos_pre": 0, "pos_post": 0,
+                "align": 0.0, "iou": 0.0, "score": 0.0, "soft": 0.0, "tss": 0.0,
+                "by_size": {b: {"n_gt": 0, "zero_pos": 0, "iou": 0.0, "score": 0.0, "soft": 0.0}
+                            for b in ("small", "medium", "large")}}
 
     @torch.no_grad()
     def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
@@ -123,12 +135,12 @@ class TaskAlignedAssigner(nn.Module):
             fg_mask (torch.Tensor): Foreground mask with shape (bs, num_total_anchors).
             target_gt_idx (torch.Tensor): Target ground truth indices with shape (bs, num_total_anchors).
         """
-        mask_pos, align_metric, overlaps = self.get_pos_mask(
+        mask_pos_pre, align_metric, overlaps = self.get_pos_mask(
             pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt
         )
 
         target_gt_idx, fg_mask, mask_pos = self.select_highest_overlaps(
-            mask_pos, overlaps, self.n_max_boxes, align_metric
+            mask_pos_pre, overlaps, self.n_max_boxes, align_metric
         )
 
         # Assigned target
@@ -141,7 +153,101 @@ class TaskAlignedAssigner(nn.Module):
         norm_align_metric = (align_metric * pos_overlaps / (pos_align_metrics + self.eps)).amax(-2).unsqueeze(-1)
         target_scores = target_scores * norm_align_metric
 
+        if self.o2f_k and self.o2f_T > 0 and self.topk2 != self.topk:
+            target_scores, fg_mask = self.apply_o2f_soft_labels(
+                target_scores, fg_mask, align_metric, pd_scores, gt_labels, mask_gt
+            )
+
+        if self.monitor:
+            self._update_mon(mask_pos_pre, mask_pos, align_metric, overlaps, pd_scores, gt_labels, gt_bboxes,
+                             mask_gt, pos_align_metrics, pos_overlaps, target_scores.sum())
+
         return target_labels, target_bboxes, target_scores, fg_mask.bool(), target_gt_idx
+
+    @torch.no_grad()
+    def _update_mon(self, mask_pos_pre, mask_pos, align_metric, overlaps, pd_scores, gt_labels, gt_bboxes,
+                    mask_gt, pos_align, pos_over, tss):
+        """Accumulate per-GT assignment stats into self.mon (used by callbacks/tal_monitor.py)."""
+        a = self.mon
+        mg = mask_gt.bool()  # (b, n_gt, 1)
+        n_gt = int(mg.sum())
+        if n_gt == 0:
+            return
+        pre = (mask_pos_pre * mg).sum(-1)
+        post = (mask_pos * mg).sum(-1)
+        chosen = (align_metric * mg).argmax(-1)  # top-align positive anchor per GT
+        has_pos = (post > 0) & mg.squeeze(-1)
+        claims = mask_pos_pre.sum(-2, keepdim=True)  # (b, 1, anchors)
+        conflict = ((mask_pos_pre * (claims > 1)) * mg).sum(-1) > 0
+
+        bidx = torch.arange(pre.shape[0], device=pre.device).unsqueeze(1)
+        gidx = torch.arange(pre.shape[1], device=pre.device)
+        ch_align = align_metric[bidx, gidx, chosen]
+        ch_iou = overlaps[bidx, gidx, chosen]
+        nc = pd_scores.shape[-1]
+        ch_score = pd_scores.gather(1, chosen.unsqueeze(-1).expand(-1, -1, nc)).gather(2, gt_labels.long()).squeeze(-1)
+        ch_soft = ch_align * pos_over.squeeze(-1) / (pos_align.squeeze(-1) + self.eps)
+
+        a["n_gt"] += n_gt
+        a["zero_pos"] += int((mg.squeeze(-1) & ~has_pos).sum())
+        a["conflict"] += int((conflict & mg.squeeze(-1)).sum())
+        a["pos_pre"] += float(pre.sum())
+        a["pos_post"] += float(post.sum())
+        sel = has_pos
+        a["align"] += float(ch_align[sel].sum())
+        a["iou"] += float(ch_iou[sel].sum())
+        a["score"] += float(ch_score[sel].sum())
+        a["soft"] += float(ch_soft[sel].sum())
+        a["tss"] += float(tss)
+
+        areas = (gt_bboxes[..., 2] - gt_bboxes[..., 0]) * (gt_bboxes[..., 3] - gt_bboxes[..., 1])
+        for name, (lo, hi) in {"small": (0, 32**2), "medium": (32**2, 96**2), "large": (96**2, 1e18)}.items():
+            m = mg.squeeze(-1) & (areas >= lo) & (areas < hi)
+            bs = a["by_size"][name]
+            bs["n_gt"] += int(m.sum())
+            bs["zero_pos"] += int((m & ~has_pos).sum())
+            bs["iou"] += float(ch_iou[m & sel].sum())
+            bs["score"] += float(ch_score[m & sel].sum())
+            bs["soft"] += float(ch_soft[m & sel].sum())
+
+    @torch.no_grad()
+    def apply_o2f_soft_labels(self, target_scores, fg_mask, align_metric, pd_scores, gt_labels, mask_gt):
+        """Assign one-to-few (o2f) soft classification labels to ambiguous anchors.
+
+        For each GT the top-align anchor is the certain positive (unchanged); the next `o2f_k` anchors are
+        ambiguous: they get a cls-only soft label t = (p_i / max p_k) * T (T annealed per epoch from
+        o2f_tmax to o2f_tmin, see E2ELoss.update) and are excluded from box regression. Early in training
+        they act mostly positive (representation learning); late, mostly negative (duplicate removal).
+        Reference: One-to-Few Label Assignment for End-to-End Dense Detection (CVPR 2023).
+
+        Args:
+            target_scores (torch.Tensor): Soft target scores, shape (bs, num_anchors, num_classes).
+            fg_mask (torch.Tensor): Foreground mask, shape (bs, num_anchors).
+            align_metric (torch.Tensor): Masked alignment metric, shape (bs, n_max_boxes, num_anchors).
+            pd_scores (torch.Tensor): Predicted class probabilities, shape (bs, num_anchors, num_classes).
+            gt_labels (torch.Tensor): Ground truth labels, shape (bs, n_max_boxes, 1).
+            mask_gt (torch.Tensor): Valid GT mask, shape (bs, n_max_boxes, 1).
+
+        Returns:
+            (tuple[torch.Tensor, torch.Tensor]): Updated target_scores and fg_mask.
+        """
+        k = self.o2f_k
+        bs, n_gt = align_metric.shape[:2]
+        topv, topi = align_metric.topk(k + 1, dim=-1)  # ordered certain + ambiguous per GT
+        amb = topi[:, :, 1:]  # (b, n_gt, k) ambiguous anchor indices
+        valid = (topv[:, :, 1:] > self.eps) & mask_gt.bool()
+        if not valid.any():
+            return target_scores, fg_mask
+        flat_idx = topi.reshape(bs, -1)  # (b, n_gt*(k+1))
+        p_sel = pd_scores.gather(1, flat_idx.unsqueeze(-1).expand(-1, -1, pd_scores.shape[-1]))
+        flat_lab = gt_labels.long().view(bs, n_gt, 1, 1).expand(-1, -1, k + 1, -1).reshape(bs, -1, 1)
+        p_sel = p_sel.gather(2, flat_lab).reshape(bs, n_gt, k + 1)  # p at GT class per selected anchor
+        t_amb = p_sel[:, :, 1:] / (p_sel.amax(-1, keepdim=True) + self.eps) * self.o2f_T  # (b, n_gt, k)
+        lab = gt_labels.long().expand(-1, -1, k)
+        bidx = torch.arange(bs, device=amb.device).view(bs, 1, 1).expand(-1, n_gt, k)
+        target_scores[bidx[valid], amb[valid], lab[valid]] = t_amb[valid].to(target_scores.dtype)
+        fg_mask[bidx[valid], amb[valid]] = 0  # ambiguous anchors: cls-only, no box loss
+        return target_scores, fg_mask
 
     def get_pos_mask(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt):
         """Get positive mask for each ground truth box.

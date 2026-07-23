@@ -36,6 +36,7 @@ resume: False # (bool) resume training from last checkpoint in the run dir
 amp: True # (bool) Automatic Mixed Precision (AMP) training; True runs AMP capability check
 fraction: 1.0 # (float) fraction of training dataset to use (>0.0, 1.0 = all)
 profile: False # (bool) profile ONNX/TensorRT speeds during training for loggers
+tal_monitor: False # (bool) log per-epoch TAL label-assignment stats to {save_dir}/tal_stats.jsonl
 freeze: # (int | list, optional) freeze first N layers (int) or specific layer indices (list)
 multi_scale: 0.0 # (float) multi-scale range as a fraction of imgsz; sizes are rounded to stride multiples
 compile: False # (bool | str) enable torch.compile() backend='inductor'; True="default", False=off, or "default|reduce-overhead|max-autotune-no-cudagraphs"
@@ -104,6 +105,10 @@ dis: 6.0 # (float) distillation loss weight
 box: 7.5 # (float) box loss gain
 cls: 0.5 # (float) classification loss gain
 cls_pw: 0.0 # (float) class weights power for handling class imbalance (0.0=disable, 1.0=full inverse frequency)
+cls_norm: tss # (str) cls loss normalizer: 'tss' (target_scores_sum) or 'pos' (number of positive anchors)
+o2f: 0 # (int) one-to-few: K ambiguous soft-labeled anchors per GT for the one-to-one head (0=disabled)
+o2f_tmax: 0.6 # (float) o2f initial positive degree of ambiguous anchors (annealed to o2f_tmin over epochs)
+o2f_tmin: 0.2 # (float) o2f final positive degree of ambiguous anchors
 dfl: 1.5 # (float) distribution focal loss gain
 pose: 12.0 # (float) pose loss gain (pose tasks)
 kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)

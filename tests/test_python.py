@@ -88,6 +88,8 @@ def test_cfg_rejects_fuzzed_values():
         get_cfg(overrides={"degrees": None})
     with pytest.raises(ValueError, match="cls_pw"):
         get_cfg(overrides={"cls_pw": 10})
+    with pytest.raises(ValueError, match="mask_ratio"):
+        get_cfg(overrides={"imgsz": 32, "mask_ratio": 2094})
     for key, value in (
         ("split", []),
         ("split", -0.0),

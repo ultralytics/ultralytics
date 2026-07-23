@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, teams, collaboration, enterprise, roles, permiss
 
 [Ultralytics Platform](https://platform.ultralytics.com) team features enable collaborative computer vision workflows. Create a team workspace to share datasets, projects, models, and deployments with your colleagues using role-based access control.
 
-![Ultralytics Platform Teams Member List With Roles](https://cdn.ul.run/i/e4ad3b29827e62599a84b2b9b19f29b0.avif)<!-- screenshot -->
+![Ultralytics Platform Teams Member List With Roles](https://cdn.ul.run/i/b680a4b6f2db15b3a34bc19adab8515e.avif)<!-- screenshot -->
 
 ## Overview
 
@@ -44,13 +44,13 @@ you can [invite members](#inviting-members).
 
     You can create up to 5 teams. To create another, you must first delete or transfer ownership of an existing team.
 
-![Ultralytics Platform Teams Create Team Landing](https://cdn.ul.run/i/c6c47cb9c3ef6e4eeaebf093f3af03bd.avif)<!-- screenshot -->
+![Ultralytics Platform Teams Create Team Landing](https://cdn.ul.run/i/f70ce48d7c555aaff12423337446d3ae.avif)<!-- screenshot -->
 
 ## Switching Workspaces
 
 Switch between your personal account and team workspaces using the workspace switcher in the sidebar. All teams you belong to appear in the list.
 
-![Ultralytics Platform Teams Workspace Switcher Dropdown](https://cdn.ul.run/i/3e315251784e1246e294515f2ccd984e.avif)<!-- screenshot -->
+![Ultralytics Platform Teams Workspace Switcher Dropdown](https://cdn.ul.run/i/b5d3298767cc96743a74133b7c92fe6b.avif)<!-- screenshot -->
 When you switch to a team workspace, all resources you see and create belong to that team. Your personal workspace resources remain separate.
 
 ## Roles and Permissions
@@ -94,7 +94,7 @@ Admins and Owners can invite new members to the team:
 4. Select a role (Admin, Editor, or Viewer)
 5. Click **Send Invitation**
 
-![Ultralytics Platform Teams Invite Member Dialog](https://cdn.ul.run/i/ae4da6bdaeb83134b5866800d88bc650.avif)<!-- screenshot -->
+![Ultralytics Platform Teams Invite Member Dialog](https://cdn.ul.run/i/4f3fbc7dc21172bf12cd404a5ca0b863.avif)<!-- screenshot -->
 The invitee receives an email invitation with a link to accept and join the team. Invitations expire after 14 days.
 Once accepted, the team workspace appears in the invitee's workspace switcher. If an invite expires or is lost,
 **Resend invite** from the member actions menu to rotate the token and restart the 14-day window, or **Cancel invite**

@@ -19,7 +19,7 @@ The Ultralytics HUB integration transfers everything from your [Ultralytics HUB]
     - Storage required, checked against your remaining storage
 4. Click **Confirm** to start the import.
 
-![Ultralytics Platform Settings Integrations Hub Import Dialog](https://cdn.ul.run/i/63f4864761cfdf24f6754c9f5af8d478.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Integrations Hub Import Dialog](https://cdn.ul.run/i/77f8aceb881f6c84e0eb287a76b32f21.avif)<!-- screenshot -->
 A progress bar tracks the import while it runs. When it finishes, the card shows a summary of everything that was imported.
 
 If an import does not finish (for example a network issue or a model that failed to transfer), the card shows the error and a **Resume import** button. Re-enter your **Ultralytics HUB API Key** and click **Resume import** — already-imported items are skipped and only the remaining items are transferred.

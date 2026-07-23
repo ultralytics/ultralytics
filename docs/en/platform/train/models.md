@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive model management for training, analyzing, and deploying YOLO models. Upload pretrained models or train new ones directly on the platform.
 
-![Ultralytics Platform Model Page Overview Tab](https://cdn.ul.run/i/73503e74ee3b501de29f61c5eeab8b14.avif)<!-- screenshot -->
+![Ultralytics Platform Model Page Overview Tab](https://cdn.ul.run/i/b6f84231e3204326e830408ab624080d.avif)<!-- screenshot -->
 
 ## Upload Model
 
@@ -22,7 +22,7 @@ Upload existing model weights to the platform:
 
 Multiple files can be uploaded simultaneously (up to 3 concurrent).
 
-![Ultralytics Platform Model Drag Drop Upload](https://cdn.ul.run/i/9fbcfa5fd13b783cd8b0ae3d020e563d.avif)<!-- screenshot -->
+![Ultralytics Platform Model Drag Drop Upload](https://cdn.ul.run/i/bc0d8b8d2325e5fa4d4a5d084cd5338b.avif)<!-- screenshot -->
 Supported model formats:
 
 | Format  | Extension | Description               |
@@ -90,7 +90,7 @@ Displays model metadata and key metrics:
 - Dataset link (when trained with a Platform dataset)
 - Download button for model weights
 
-![Ultralytics Platform Model Overview Metrics And Args](https://cdn.ul.run/i/487841eaa697efaaf07ae1f45665629f.avif)<!-- screenshot -->
+![Ultralytics Platform Model Overview Metrics And Args](https://cdn.ul.run/i/ad21ef64b20b89f6b3c666478cb99160.avif)<!-- screenshot -->
 
 ### Train Tab
 
@@ -107,7 +107,7 @@ Interactive training metric charts showing loss curves and performance metrics o
 | **Validation Loss** | val/box_loss, val/cls_loss, val/dfl_loss       |
 | **Learning Rate**   | lr/pg0, lr/pg1, lr/pg2                         |
 
-![Ultralytics Platform Model Train Charts Subtab](https://cdn.ul.run/i/211a6315f44207109dcffc6e4e532484.avif)<!-- screenshot -->
+![Ultralytics Platform Model Train Charts Subtab](https://cdn.ul.run/i/8df35301b3aee141ac97c7412af6ae49.avif)<!-- screenshot -->
 
 #### Console Subtab
 
@@ -118,7 +118,7 @@ Live console output from the training process:
 - Error detection with highlighted error banners
 - ANSI color support for formatted output
 
-![Ultralytics Platform Model Train Console Subtab](https://cdn.ul.run/i/a91ace6f1c400e1317fcbbd70f01ca07.avif)<!-- screenshot -->
+![Ultralytics Platform Model Train Console Subtab](https://cdn.ul.run/i/bc59665c252c368ae4bee1db0b9a010e.avif)<!-- screenshot -->
 
 #### System Subtab
 
@@ -133,7 +133,7 @@ GPU and system metrics during training:
 | **RAM**        | System memory usage        |
 | **Disk**       | Disk usage                 |
 
-![Ultralytics Platform Model Train System Subtab](https://cdn.ul.run/i/3ddcb5692a13a3ef6e6bdbfa0f5a7ae8.avif)<!-- screenshot -->
+![Ultralytics Platform Model Train System Subtab](https://cdn.ul.run/i/b3aabb59e110c774a2c1e5f25b340149.avif)<!-- screenshot -->
 
 ### Predict Tab
 
@@ -164,13 +164,13 @@ After training completes, view detailed validation analysis:
 
 Interactive heatmap showing prediction accuracy per class:
 
-![Ultralytics Platform Model Confusion Matrix](https://cdn.ul.run/i/1c2d90015607a20571d6d889fff12c1e.avif)<!-- screenshot -->
+![Ultralytics Platform Model Confusion Matrix](https://cdn.ul.run/i/f56797cea011d9f343cbf9816c23b1f0.avif)<!-- screenshot -->
 
 ### PR/F1 Curves
 
 When the training run provides them, the **Validation** subtab also displays performance curves at different confidence thresholds. Available validation plots depend on the artifacts produced by the run.
 
-![Ultralytics Platform Model Pr F1 Curves](https://cdn.ul.run/i/f90561427448bee0e8bc4fedf02512ec.avif)<!-- screenshot -->
+![Ultralytics Platform Model Pr F1 Curves](https://cdn.ul.run/i/5083314df80efe48e0f54371f04fc228.avif)<!-- screenshot -->
 | Curve | Description |
 | ------------------------ | ---------------------------------------- |
 | **Precision-Recall** | Trade-off between precision and recall |
@@ -207,7 +207,7 @@ Export your model to 19 deployment formats:
 
 Connect [Slack alerts](../integrations/slack.md) to receive a message when an export is ready or fails.
 
-![Ultralytics Platform Model Export Tab Format List](https://cdn.ul.run/i/8f007313dd2943a01b834596280a4e54.avif)<!-- screenshot -->
+![Ultralytics Platform Model Export Tab Format List](https://cdn.ul.run/i/ed9816fc33591913c76044931dc9f243.avif)<!-- screenshot -->
 
 ### Supported Formats
 
@@ -226,7 +226,7 @@ The Platform supports export to [19 deployment formats](../../modes/export.md#ex
 | **Edge Devices**   | TF Edge TPU or RKNN | Coral and Rockchip (see [supported chips](#rknn-chip-support)) |
 | **General**        | ONNX                | Works with most runtimes                                       |
 
-![Ultralytics Platform Model Export Progress](https://cdn.ul.run/i/c6498c35ae413e3c5301cc269247e081.avif)<!-- screenshot -->
+![Ultralytics Platform Model Export Progress](https://cdn.ul.run/i/c52a4db7d09c7ca7f01e6c923ceca184.avif)<!-- screenshot -->
 
 ### NVIDIA Jetson TensorRT Targets
 

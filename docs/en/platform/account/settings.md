@@ -20,7 +20,7 @@ The `Profile` tab contains your profile information, social links, data region, 
 
 Update your profile information:
 
-![Ultralytics Platform Settings Profile Tab Display Name Bio Company Fields](https://cdn.ul.run/i/2017c0ca10f3a51b162bb5cf56898951.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Profile Tab Display Name Bio Company Fields](https://cdn.ul.run/i/679e7eb184fe9db51391b1d3548c9aa2.avif)<!-- screenshot -->
 | Field | Description |
 | ---------------- | ----------------------------------------- |
 | **Display Name** | Your public name |
@@ -64,7 +64,7 @@ Update your profile information:
 
 Connect your professional profiles:
 
-![Ultralytics Platform Settings Profile Tab Social Links Grid](https://cdn.ul.run/i/e45c0a46a4c0434269eceafee4a0fdde.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Profile Tab Social Links Grid](https://cdn.ul.run/i/6632010d3fc5d6ffd4045df2e1db0e89.avif)<!-- screenshot -->
 | Platform | Format |
 | ------------------ | -------------- |
 | **GitHub** | username |
@@ -81,7 +81,7 @@ Social links appear on your public profile page.
 
 Manage email addresses linked to your account in the `Profile` tab:
 
-![Ultralytics Platform Settings Profile Tab Emails Section](https://cdn.ul.run/i/a165951a13638dfb99afaa106da9f3ab.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Profile Tab Emails Section](https://cdn.ul.run/i/f09baef9e8e5b2ceec2fa688b597eeeb.avif)<!-- screenshot -->
 | Action | Description |
 | ------------------ | ---------------------------------------------- |
 | **Add Email** | Add a new email address to your account |
@@ -113,7 +113,7 @@ View your data region on the `Profile` tab:
 
 Monitor your storage consumption on the `Profile` tab and the **Home** page:
 
-![Ultralytics Platform Settings Profile Tab Storage Usage Card](https://cdn.ul.run/i/59c8652a4183a64d29854a4c60101472.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Profile Tab Storage Usage Card](https://cdn.ul.run/i/d4907e21c741a134223d33d80be6f9ed.avif)<!-- screenshot -->
 The storage card shows:
 
 - **Overall progress bar** with color-coded status (green under 70%, amber 70-89%, red 90%+)
@@ -216,7 +216,7 @@ The `API Keys` tab lets you create and manage API keys for remote training and i
 
 The `Plans` tab lets you compare available plans and upgrade or downgrade your subscription.
 
-![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/6983407099b65484aa9ebbb8f5843296.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/4687f31bbcab35be3b474784751759e5.avif)<!-- screenshot -->
 | Plan | Storage | Models | Deployments | Concurrent Trainings | Team Seats |
 | -------------- | --------- | --------- | ----------- | -------------------- | ---------- |
 | **Free** | 100 GB | 100 | 3 | 3 | — |
@@ -236,7 +236,7 @@ See [Billing](billing.md) for detailed plan information, pricing, and upgrade in
 The `Billing` tab is where you manage credits, payment methods, and review transaction history. Credits pay for
 metered cloud training.
 
-![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/91dbcbf01b4e198db621c42f1a1dd939.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/8deb4532660afd808780789930cfbeb6.avif)<!-- screenshot -->
 From this tab you can:
 
 - **View credit balance** and monitor remaining credits
@@ -258,7 +258,7 @@ See [Billing](billing.md) for full documentation on credits, payment, and plan m
 
 The `Teams` tab lets you manage workspace members, roles, and invitations. Teams are available on [Pro and Enterprise plans](billing.md#plans).
 
-![Ultralytics Platform Teams Member List With Roles](https://cdn.ul.run/i/e4ad3b29827e62599a84b2b9b19f29b0.avif)<!-- screenshot -->
+![Ultralytics Platform Teams Member List With Roles](https://cdn.ul.run/i/b680a4b6f2db15b3a34bc19adab8515e.avif)<!-- screenshot -->
 
 ### Roles and Permissions
 
@@ -312,7 +312,7 @@ See [Integrations](../integrations/index.md) for the full list of supported serv
 
 The `Trash` tab shows all deleted items and lets you restore or permanently remove them. Deleted items follow a 30-day soft delete policy before automatic permanent deletion.
 
-![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.ul.run/i/b9d534ae95564c28c0371254b824899a.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.ul.run/i/1fda3fe06d0527f579017b71afa6a2ff.avif)<!-- screenshot -->
 From this tab you can:
 
 - **Browse deleted items** filtered by type (All, Projects, Datasets, Models)

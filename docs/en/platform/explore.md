@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, explore, public datasets, public projects, compu
 
 [Ultralytics Platform](https://platform.ultralytics.com) Explore page showcases public content from the community. Discover [datasets](data/datasets.md) and [projects](train/projects.md) for inspiration and learning. The Explore page is accessible to everyone — even without signing in.
 
-![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.ul.run/i/44403308823076fbd991afc13848a4af.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.ul.run/i/a0871fbc2ffb9a7c0b975871b05a6efd.avif)<!-- screenshot -->
 
 ```mermaid
 graph LR
@@ -52,7 +52,7 @@ The Explore page uses a tabbed interface with `Datasets` and `Projects` tabs. Ea
 
 Each tab provides a search bar and sort options:
 
-![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.ul.run/i/de283c25f6c7d4534759ab5ff93f9017.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.ul.run/i/2f0f8e4e9739e1ecec188a7e29507013.avif)<!-- screenshot -->
 | Sort Option | Description |
 | ----------------------- | ----------------------------------------------------------------------- |
 | **Stars** | Community star count (descending) |
@@ -76,7 +76,7 @@ Cards and compact views support infinite scroll for loading more results.
 
 Each item displays:
 
-![Ultralytics Platform Explore Dataset And Project Cards](https://cdn.ul.run/i/d547700f257b4d643e7aad58bf7eef91.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Dataset And Project Cards](https://cdn.ul.run/i/6d245bbadc0f8f3870cfd3659d6591a0.avif)<!-- screenshot -->
 === "Project Cards"
 
     | Element              | Description                                                   |
@@ -135,7 +135,7 @@ Use a public dataset for your training:
 3. Review the destination workspace, name, visibility, and license
 4. Click `Clone Dataset` to confirm
 
-![Ultralytics Platform Explore Clone Dataset](https://cdn.ul.run/i/0a47b35ace1e08a0351bc9900ce2bea6.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Clone Dataset](https://cdn.ul.run/i/1f535c47f9b143dcce6f78af9f60ab2d.avif)<!-- screenshot -->
 !!! note "Cloned Dataset Properties"
 
     - The clone dialog lets you review the destination, name, visibility, and license
@@ -174,7 +174,7 @@ Clone a public model to one of your projects:
 4. Optionally, rename the model
 5. Click `Clone Model` to confirm
 
-![Ultralytics Platform Explore Clone Model Dialog](https://cdn.ul.run/i/fb9f96718cec68fab823bc7b12b65105.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Clone Model Dialog](https://cdn.ul.run/i/258ade9b3b4aea11dab181c17995f802.avif)<!-- screenshot -->
 !!! note "Clone vs Download"
 
     **Clone** copies the model to a project on the Platform for further training or deployment. **Download** saves the model file to your local machine.
@@ -187,7 +187,7 @@ Copy a public project to your workspace:
 2. Click `Clone Project`
 3. Review the destination, name, visibility, and license, then click `Clone Project`
 
-![Ultralytics Platform Explore Clone Project](https://cdn.ul.run/i/a829de81a60175fc3cfe83d83223a257.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Clone Project](https://cdn.ul.run/i/1096f79e000e9297860173aa46258035.avif)<!-- screenshot -->
 The cloned project includes completed models that have model files. Deployments and exports are not copied. Its default visibility follows the same workspace rules as dataset cloning.
 
 See [Projects](train/projects.md) for organizing models in your project.
@@ -211,7 +211,7 @@ Official datasets include benchmark datasets like [coco8](../datasets/detect/coc
 
 Click on a creator's username to view their public profile at `platform.ultralytics.com/{username}`. Public profiles show:
 
-![Ultralytics Platform User Profile Public Content](https://cdn.ul.run/i/b10ecb9bde9260ed2ad13131b5c5b41b.avif)<!-- screenshot -->
+![Ultralytics Platform User Profile Public Content](https://cdn.ul.run/i/48da46c491e24235796056e924da4439.avif)<!-- screenshot -->
 | Section | Content |
 | ------------- | ---------------------------- |
 | **Bio** | User description and company |

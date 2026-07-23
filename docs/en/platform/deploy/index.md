@@ -30,7 +30,7 @@ The Deployment section helps you:
 - **Monitor** request metrics, logs, and health checks
 - **Scale to zero** when idle (deployments currently run a single active instance)
 
-![Ultralytics Platform Deploy Page World Map With Overview Cards](https://cdn.ul.run/i/fe23ab7b4a68f782b569fdcdeb3f5822.avif)<!-- screenshot -->
+![Ultralytics Platform Deploy Page World Map With Overview Cards](https://cdn.ul.run/i/e922afb2e2f7573c320821ec4fa62537.avif)<!-- screenshot -->
 
 ## Deployment Options
 
@@ -113,7 +113,7 @@ Access the global deployments page from the sidebar under `Deploy`. This page sh
 - **Deployments list** with three view modes: cards, compact, and table
 - **New Deployment** button to create endpoints from any completed model
 
-![Ultralytics Platform Deploy Page Overview Cards And Deployments List](https://cdn.ul.run/i/bd40054cb22ccb93314051e370040fd9.avif)<!-- screenshot -->
+![Ultralytics Platform Deploy Page Overview Cards And Deployments List](https://cdn.ul.run/i/eb51c1bb9c4884b4b1bc89e4caf94eee.avif)<!-- screenshot -->
 !!! info "Automatic Polling"
 
     The page polls every 15 seconds normally. When deployments are in a transitional state (`creating`, `deploying`, or `stopping`), polling increases to every 3 seconds for faster feedback.

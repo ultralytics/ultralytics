@@ -31,7 +31,7 @@ The Data section of Ultralytics Platform helps you:
 - **Analyze** your data with statistics and visualizations
 - **Export** in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for local training
 
-![Ultralytics Platform Data Overview Sidebar Datasets](https://cdn.ul.run/i/5a0ea48e70262d3eaac73d6f5ba2933f.avif)<!-- screenshot -->
+![Ultralytics Platform Data Overview Sidebar Datasets](https://cdn.ul.run/i/c6f7198b77344ed8d712d8c34ec82459.avif)<!-- screenshot -->
 
 ## Workflow
 

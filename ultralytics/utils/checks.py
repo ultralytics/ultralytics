@@ -260,7 +260,7 @@ def check_version(
                 r"v\d+(\.\d+)*([-_.]?(a|b|c|rc|alpha|beta|pre|preview)[-_.]?\d*)?"
                 r"([-_.]?(post|rev|r)[-_.]?\d*)?([-_.]?dev[-_.]?\d*)?(\+[\w.-]+)?",
                 current,
-                re.I,
+                re.IGNORECASE,
             ):
                 pass
             elif hard:
@@ -287,17 +287,7 @@ def check_version(
         v = parse_version(version)  # '1.2.3' -> (1, 2, 3)
         n = max(len(c), len(v))  # pad to equal length so 4-segment pins like '!=4.13.0.90' compare exactly
         cn, vn = c + (0,) * (n - len(c)), v + (0,) * (n - len(v))
-        if op == "==" and cn != vn:
-            result = False
-        elif op == "!=" and cn == vn:
-            result = False
-        elif op == ">=" and not (cn >= vn):
-            result = False
-        elif op == "<=" and not (cn <= vn):
-            result = False
-        elif op == ">" and not (cn > vn):
-            result = False
-        elif op == "<" and not (cn < vn):
+        if (op == "==" and cn != vn) or (op == "!=" and cn == vn) or (op == ">=" and not (cn >= vn)) or (op == "<=" and not (cn <= vn)) or (op == ">" and not (cn > vn)) or (op == "<" and not (cn < vn)):
             result = False
     if not result:
         warning = f"{name}{required} is required, but {name}=={current} is currently installed {msg}"
@@ -963,7 +953,7 @@ def check_multiple_install():
             if "not found" in result.stderr.lower():  # Package not pip-installed but locally imported
                 LOGGER.warning(f"Ultralytics not found via pip but importing from: {ROOT}. {install_msg}")
             return
-        yolo_path = (Path(re.findall(r"location:\s+(.+)", result.stdout, flags=re.I)[-1]) / "ultralytics").resolve()
+        yolo_path = (Path(re.findall(r"location:\s+(.+)", result.stdout, flags=re.IGNORECASE)[-1]) / "ultralytics").resolve()
         if not yolo_path.samefile(ROOT.resolve()):
             LOGGER.warning(
                 f"Multiple Ultralytics installations detected. The `yolo` command uses: {yolo_path}, "

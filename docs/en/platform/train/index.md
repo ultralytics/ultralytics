@@ -29,9 +29,9 @@ The Training section helps you:
 - **Train** on cloud GPUs with a single click
 - **Monitor** real-time metrics during training
 - **Compare** model performance across experiments
-- **Export** to 19+ deployment formats (see [supported formats](models.md#supported-formats))
+- **Export** to 19 deployment formats (see [supported formats](models.md#supported-formats))
 
-![Ultralytics Platform Train Overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-train-overview.avif)<!-- screenshot: platform-train-overview -->
+![Ultralytics Platform Train Overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-train-overview.avif)<!-- screenshot -->
 
 ## Workflow
 
@@ -53,7 +53,7 @@ graph LR
 | **Configure** | Select [dataset](../data/datasets.md), base model, and training parameters |
 | **Train**     | Run on cloud GPUs or your local hardware                                   |
 | **Monitor**   | View real-time loss curves and metrics                                     |
-| **Export**    | Convert to 19+ deployment formats ([details](models.md#supported-formats)) |
+| **Export**    | Convert to 19 deployment formats ([details](models.md#supported-formats))  |
 
 ## Training Options
 
@@ -156,7 +156,9 @@ Training time depends on:
 - Number of epochs
 - GPU type selected
 
-A typical training run with 1000 images, YOLO26n, 100 epochs on RTX PRO 6000 takes about 5-10 minutes. Smaller runs (500 images, 50 epochs on RTX 4090) complete in under an hour. See [cost examples](cloud-training.md#cost-examples) for detailed estimates.
+The current estimator predicts about 6 minutes for 1000 images, YOLO26n, 100 epochs on RTX PRO 6000, and about 2
+minutes for 500 images, YOLO26n, 50 epochs on RTX 4090. Actual duration varies; use the live estimate in the training
+dialog for the selected dataset and configuration. See [cost examples](cloud-training.md#cost-examples).
 
 ### Can I train multiple models simultaneously?
 
@@ -168,7 +170,7 @@ If training fails:
 
 1. The model is marked failed and the compute instance is terminated
 2. You can start a new training run from the base model
-3. Credits are only charged for completed compute time
+3. If cloud compute had started, elapsed GPU time is charged; failures before compute starts have no GPU usage charge
 
 ### How do I choose the right GPU?
 

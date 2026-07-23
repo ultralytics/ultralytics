@@ -24,9 +24,10 @@ Platform only ever reads from your storage — it never writes, modifies, or del
 
 ## Connect to Platform
 
-1. Go to **Settings > [Integrations](index.md)** and find the **Google Cloud** card.
-2. Click **Connect** and paste the contents of the service account JSON key.
-3. Platform lists the buckets the service account can read. Select the ones to connect, or enter a bucket name manually if the account can't list buckets.
+1. Go to **Settings > [Integrations](index.md)** and select **Google Cloud Storage** from the integration list.
+2. Paste the contents of the service account JSON key.
+3. Click **Find available buckets**, then select the buckets to connect. If the service account can't list buckets,
+   enter a known bucket name manually.
 4. Click **Connect**. Platform verifies it can list and read each selected bucket before saving anything.
 
 Reconnecting the same service account later adds new buckets to the existing integration. A saved credential is only replaced once its replacement can still read every bucket you've already connected.
@@ -43,7 +44,8 @@ Reconnecting the same service account later adds new buckets to the existing int
 
 Platform lists the folder once and indexes what it finds:
 
-- **Images** — `.jpg`, `.jpeg`, `.png`, `.webp`, and `.avif` objects are indexed with dimensions read from bounded header requests. Source pixels are never copied out of your bucket.
+- **Images** — `.jpg`, `.jpeg`, `.png`, `.webp`, and `.avif` objects are indexed with dimensions read through bounded
+  requests. Platform does not persist a second copy of the source image.
 - **Labels** — YOLO `.txt` sidecars are parsed into Platform annotations, matched by the standard `images/` → `labels/` layout or as same-folder siblings.
 - **Metadata** — a `data.yaml`/`data.yml` provides class names, task type, and pose keypoint shape, exactly like an [archive upload](../data/datasets.md#supported-formats).
 - **Splits** — `train`, `val`, and `test` folder names in the object path assign splits automatically.

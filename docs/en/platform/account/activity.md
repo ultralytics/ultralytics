@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, activity feed, audit log, notifications, event t
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides a comprehensive activity feed that tracks all events and actions across your account. Monitor training progress and system events in one centralized location.
 
-![Ultralytics Platform Activity Page Inbox Tab With Event List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/activity-page-inbox-tab-with-event-list.avif)<!-- screenshot: activity-page-inbox-tab-with-event-list -->
+![Ultralytics Platform Activity Page Inbox Tab With Event List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/activity-page-inbox-tab-with-event-list.avif)<!-- screenshot -->
 
 ## Overview
 
@@ -32,7 +32,7 @@ Navigate to the Activity Feed in any of the following ways:
 2. Open the profile menu at the bottom of the sidebar and select **Activity**
 3. Navigate directly to `/activity`
 
-![Ultralytics Platform Activity Page Inbox With Search And Date Filter](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/activity-page-inbox-with-search-and-date-filter.avif)<!-- screenshot: activity-page-inbox-with-search-and-date-filter -->
+![Ultralytics Platform Activity Page Inbox With Search And Date Filter](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/activity-page-inbox-with-search-and-date-filter.avif)<!-- screenshot -->
 
 ## Activity Types
 
@@ -110,25 +110,28 @@ Filter by time period using the date range picker:
 - The page defaults to the last 30 days
 - Custom date ranges supported
 
-![Ultralytics Platform Activity Page Date Range Picker Expanded](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/activity-page-date-range-picker-expanded.avif)<!-- screenshot: activity-page-date-range-picker-expanded -->
+![Ultralytics Platform Activity Page Date Range Picker Expanded](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/activity-page-date-range-picker-expanded.avif)<!-- screenshot -->
 
 ## Event Details
 
-Each event displays:
+Each row displays:
 
-| Field           | Description                                            |
-| --------------- | ------------------------------------------------------ |
-| **Icon**        | Resource type indicator                                |
-| **Description** | What happened (e.g., "Created project my-project")     |
-| **Timestamp**   | Relative time (e.g., "Today at 3:45 PM", "3 days ago") |
-| **Metadata**    | Additional context when available                      |
+| Field           | Description                                             |
+| --------------- | ------------------------------------------------------- |
+| **Event**       | Action and resource type (for example, Created Project) |
+| **Resource**    | Recorded resource name                                  |
+| **Time**        | Event timestamp                                         |
+| **User email**  | Account member that performed the action                |
+| **Resource ID** | Recorded resource identifier                            |
+| **Actions**     | Undo, Archive, or Restore when available                |
 
 ## Undo Support
 
-Some actions support undo directly from the Activity feed:
+Recent settings changes support undo directly from the Activity feed:
 
-- **Settings changes**: Click **Undo** next to a recent settings update event to revert the change
-- Undo is available for **one hour** after the action; after that, the undo button disappears
+- Click **Undo** next to the matching settings event to restore the previous value.
+- Undo remains available for **one hour** in the browser session where the change was made. It does not persist after
+  reloading or opening another browser.
 
 ## Pagination
 
@@ -138,66 +141,22 @@ The Activity feed supports pagination:
 - Navigate between pages using the pagination controls
 - Page size is configurable via URL query parameter
 
-## API Routes
+## Export Activity
 
-The Activity feed is powered by browser-authenticated routes — it is not exposed as a public API and cannot be accessed with an API key. The route shapes are listed below for reference; to view, mark, or archive activity, use the Activity feed in the platform UI.
-
-!!! note "Browser Session Only"
-
-    The routes shown below require an active platform browser session. The `Authorization: Bearer YOUR_API_KEY` header in the examples will not authenticate these routes — they are documented only to describe how the in-app feed talks to the server.
-
-=== "List Activity"
-
-    ```bash
-    curl -H "Authorization: Bearer YOUR_API_KEY" \
-      https://platform.ultralytics.com/api/activity
-    ```
-
-=== "Filter and Search"
-
-    ```bash
-    curl -H "Authorization: Bearer YOUR_API_KEY" \
-      "https://platform.ultralytics.com/api/activity?archived=false&search=model&page=1&limit=20"
-    ```
-
-=== "Mark Seen"
-
-    ```bash
-    curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
-      -H "Content-Type: application/json" \
-      -d '{"all": true}' \
-      https://platform.ultralytics.com/api/activity/mark-seen
-    ```
-
-=== "Archive"
-
-    ```bash
-    # Archive specific events
-    curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
-      -H "Content-Type: application/json" \
-      -d '{"eventIds": ["event_id_here"], "archive": true}' \
-      https://platform.ultralytics.com/api/activity/archive
-
-    # Archive all events
-    curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
-      -H "Content-Type: application/json" \
-      -d '{"all": true, "archive": true}' \
-      https://platform.ultralytics.com/api/activity/archive
-    ```
+Click **Export** to download the events in the current Inbox or Archive view as JSON. The export respects the active
+search and date filters.
 
 ## FAQ
 
-### How long is activity history retained?
-
-Activity history is retained indefinitely for your account. Archived events are also kept permanently.
-
 ### Can I export my activity history?
 
-Yes, use the GDPR data export feature in [`Settings > Profile`](settings.md#gdpr-compliance) to download all account data including activity history.
+Yes. Click **Export** on the Activity page to download the current filtered view, or use the GDPR data export feature
+in [`Settings > Profile`](settings.md#gdpr-compliance) to download account metadata including activity history.
 
 ### What happens to activity when I delete a resource?
 
-The activity event remains in your history with a note that the resource was deleted. You can still see what happened even after deletion.
+The recorded event keeps its action, resource name, resource ID, time, and user email. The resource itself is no longer
+available after permanent deletion.
 
 ### Does activity work with team workspaces?
 

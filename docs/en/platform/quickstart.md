@@ -7,7 +7,7 @@ keywords: Ultralytics Platform, Quickstart, YOLO models, dataset upload, model t
 
 # Ultralytics Platform Quickstart
 
-[Ultralytics Platform](https://platform.ultralytics.com) is designed to be user-friendly and intuitive, allowing users to quickly upload their datasets and train new YOLO models. It offers a range of pretrained models to choose from, making it easy for users to get started. Once a model is trained, it can be tested directly in the browser and deployed to production with a single click.
+[Ultralytics Platform](https://platform.ultralytics.com) provides a guided workflow to upload datasets, train new YOLO models from pretrained weights, test completed models in the browser, and configure dedicated inference endpoints.
 
 <p align="center">
   <br>
@@ -44,19 +44,20 @@ graph LR
 
 [Ultralytics Platform](https://platform.ultralytics.com) offers a variety of easy signup options. You can register and log in using your Google or GitHub accounts, or with your email address.
 
-![Ultralytics Platform Signup](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-signup.avif)<!-- screenshot: platform-signup -->
+![Ultralytics Platform Signup](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-signup.avif)<!-- screenshot -->
 
 ### Region Selection
 
-During onboarding, you'll be asked to select your data region. The Platform automatically measures latency to each region and recommends the closest one. This is an important choice as it determines where your data, models, and deployments will be stored.
+During onboarding, you'll be asked to select your data region. The Platform automatically measures latency to each
+region and recommends the closest one. This choice determines where your datasets, models, and managed training data are
+stored. Dedicated endpoint regions are selected separately when you deploy a model.
 
-![Ultralytics Platform Onboarding Region Map With Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-onboarding-region-map-with-latency.avif)<!-- screenshot: platform-onboarding-region-map-with-latency -->
-
-| Region | Label                        | Location             | Best For                                |
+![Ultralytics Platform Onboarding Region Map With Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-onboarding-region-map-with-latency.avif)<!-- screenshot -->
+| Region | Label | Location | Best For |
 | ------ | ---------------------------- | -------------------- | --------------------------------------- |
-| **US** | Americas                     | Iowa, USA            | Americas users, fastest for Americas    |
-| **EU** | Europe, Middle East & Africa | Belgium, Europe      | European users, GDPR compliance         |
-| **AP** | Asia Pacific                 | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+| **US** | Americas | Iowa, USA | Americas users, fastest for Americas |
+| **EU** | Europe, Middle East & Africa | Belgium, Europe | European users, GDPR compliance |
+| **AP** | Asia Pacific | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
 
 !!! warning "Choose Your Region Carefully"
 
@@ -83,17 +84,16 @@ The onboarding flow guides you through three steps:
 2. **Data Region** - Select US, EU, or AP with a visual world map showing latency
 3. **Complete** - Review your selections, optionally apply a promo code, and finish signup to claim your welcome credits
 
-![Ultralytics Platform Onboarding Profile With Use Case](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-onboarding-profile-with-use-case.avif)<!-- screenshot: platform-onboarding-profile-with-use-case -->
-
+![Ultralytics Platform Onboarding Profile With Use Case](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-onboarding-profile-with-use-case.avif)<!-- screenshot -->
 ??? tip "Update Later"
 
-    You can update your profile anytime from [Settings](account/settings.md), including your display name, bio, and social links. Note that your username and data region cannot be changed after signup.
+    You can update your profile anytime from [Settings](account/settings.md), including your display name, bio, and social links. Your username cannot be changed after signup. The data region has no self-service change; contact support to request a move.
 
 ## Home Dashboard
 
 After signing in, you will be directed to the Home page of [Ultralytics Platform](https://platform.ultralytics.com), which provides a welcome card with workspace stats, quick access to datasets, projects, and storage, and a recent activity feed.
 
-![Ultralytics Platform Home Dashboard Welcome Card](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-home-dashboard-welcome-card.avif)<!-- screenshot: platform-home-dashboard-welcome-card -->
+![Ultralytics Platform Home Dashboard Welcome Card](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-home-dashboard-welcome-card.avif)<!-- screenshot -->
 
 ### Sidebar Navigation
 
@@ -147,11 +147,11 @@ A floating chat widget is available on every page. Click it to ask questions abo
 
 The Platform includes guided tours that introduce key features as you explore different sections:
 
-| Tour             | Trigger                              | What It Covers                                                       |
-| ---------------- | ------------------------------------ | -------------------------------------------------------------------- |
-| **Nav Tour**     | First visit to Home after onboarding | Home, Explore, Annotate, Train, Deploy, Settings, Account            |
-| **Project Tour** | First visit to a project page        | Models sidebar, Training Charts, Train button                        |
-| **Dataset Tour** | First visit to a dataset page        | Images gallery, Split tabs, Classes, Charts, Train, Upload, Download |
+| Tour             | Trigger                              | What It Covers                                                           |
+| ---------------- | ------------------------------------ | ------------------------------------------------------------------------ |
+| **Nav Tour**     | First visit to Home after onboarding | Home, Explore, Annotate, Train, Deploy, Settings, Account                |
+| **Project Tour** | First visit to a project page        | Models sidebar, Training Charts, New Model button                        |
+| **Dataset Tour** | First visit to a dataset page        | Images gallery, Split tabs, Classes, Charts, New Model, Upload, Download |
 
 !!! tip "Enterprise Users"
 
@@ -168,16 +168,15 @@ To replay any tour:
 
 Navigate to `Annotate` in the sidebar and click `New Dataset` to add your training data. You can also drag and drop files directly onto the Datasets card on the Home dashboard.
 
-![Ultralytics Platform Quickstart Upload Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-quickstart-upload-dialog.avif)<!-- screenshot: platform-quickstart-upload-dialog -->
-
+![Ultralytics Platform Quickstart Upload Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-quickstart-upload-dialog.avif)<!-- screenshot -->
 Ultralytics Platform supports multiple upload formats (full details in [Datasets](data/datasets.md)):
 
-| Format              | Max Size (Free / Pro / Enterprise) | Description                                                                 |
-| ------------------- | ---------------------------------- | --------------------------------------------------------------------------- |
-| **Images**          | 50 MB                              | JPG, PNG, WebP, TIFF, and other common formats                              |
-| **Dataset Archive** | 10 / 20 / 50 GB                    | ZIP or TAR archive (including `.tar.gz` and `.tgz`) with images and labels  |
-| **Video**           | 1 GB                               | MP4, WebM, MOV, AVI, MKV, M4V - frames extracted at ~1 fps (max 100 frames) |
-| **NDJSON**          | 10 / 20 / 50 GB                    | Ultralytics dataset export format for portable metadata                     |
+| Format              | Max Size (Free / Pro / Enterprise) | Description                                                                |
+| ------------------- | ---------------------------------- | -------------------------------------------------------------------------- |
+| **Images**          | 50 MB                              | JPG, PNG, WebP, TIFF, and other common formats                             |
+| **Dataset Archive** | 10 / 20 / 50 GB                    | ZIP or TAR archive (including `.tar.gz` and `.tgz`) with images and labels |
+| **Video**           | 1 GB                               | MP4, WebM, MOV, MKV, M4V - frames extracted at 1 FPS (max 100 frames)      |
+| **NDJSON**          | 10 / 20 / 50 GB                    | Ultralytics dataset export format for portable metadata                    |
 
 ```mermaid
 graph LR
@@ -198,7 +197,7 @@ After upload, the platform automatically processes your data:
 
 1. Images larger than 4096px are resized (preserving aspect ratio)
 2. 256px thumbnails are generated for fast browsing
-3. Labels are parsed and validated ([YOLO `.txt` format](../datasets/detect/index.md#ultralytics-yolo-format))
+3. YOLO, COCO, and Ultralytics NDJSON labels are parsed and validated
 4. Statistics are computed (class distribution, heatmaps, dimensions)
 
 !!! tip "YOLO Dataset Structure"
@@ -226,13 +225,10 @@ Read more about [datasets](data/datasets.md) and supported formats for [detect](
 
 ## Create Your First Project
 
-Projects help you organize related models and experiments. Navigate to Projects and click "Create Project".
+Projects help you organize related models and experiments. Navigate to Projects and click `New Project`.
 
-![Ultralytics Platform Projects Create](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-projects-create.avif)<!-- screenshot: platform-projects-create -->
-
-Enter a name and optional description for your project. Projects contain:
-
-- **Models**: Trained checkpoints
+![Ultralytics Platform Projects Create](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-projects-create.avif)<!-- screenshot -->
+Enter a name and optional description. Projects organize model runs and imported or cloned model weights, with charts for comparing completed training results.
 
 Read more about [projects](train/projects.md).
 
@@ -240,11 +236,11 @@ Read more about [projects](train/projects.md).
 
 From your project, click `New Model` to start cloud training.
 
-![Ultralytics Platform Quickstart Training Dialog Cloud Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-quickstart-training-dialog-cloud-tab.avif)<!-- screenshot: platform-quickstart-training-dialog-cloud-tab -->
+![Ultralytics Platform Quickstart Training Dialog Cloud Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-quickstart-training-dialog-cloud-tab.avif)<!-- screenshot -->
 
 ### Training Configuration
 
-1. **Select Dataset**: Choose from your uploaded datasets (only datasets with a [`train` split](data/datasets.md#filter-by-split) are shown)
+1. **Select Dataset**: Choose a ready dataset with at least one train image, at least one validation or test image, and at least one labeled image
 2. **Choose Model**: Select a base model - official Ultralytics models or your own trained models
 3. **Set Epochs**: Number of training iterations (default: 100)
 4. **Select GPU**: Choose compute resources based on your budget and model size. The default is **RTX PRO 6000** (96 GB Blackwell, $2.09/hr), which handles every YOLO26 variant. See the full [GPU pricing table](index.md#what-gpu-options-are-available-for-cloud-training) or the [Cloud Training GPU step](train/cloud-training.md#step-5-select-gpu-cloud-tab) for the complete list and tier gating.
@@ -263,8 +259,7 @@ Once training starts, you can monitor progress in real-time through three subtab
 | **Console** | Live training log output                                |
 | **System**  | GPU utilization, memory usage, hardware metrics         |
 
-![Ultralytics Platform Training Charts Loss And Metrics](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-charts-loss-and-metrics.avif)<!-- screenshot: platform-training-charts-loss-and-metrics -->
-
+![Ultralytics Platform Training Charts Loss And Metrics](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-charts-loss-and-metrics.avif)<!-- screenshot -->
 Metrics are streamed in real-time via SSE (Server-Sent Events). After training completes, validation plots are generated including confusion matrix, PR curves, and F1 curves.
 
 !!! tip "Cancel Training"
@@ -279,10 +274,9 @@ After training completes, test your model directly in the browser:
 
 1. Navigate to your model's `Predict` tab
 2. Upload an image, drag and drop, or use example images (auto-inference on drop)
-3. View inference results with bounding boxes rendered on canvas
+3. View task-appropriate prediction overlays and the raw JSON response
 
-![Ultralytics Platform Predict Tab With Bounding Boxes](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-predict-tab-with-bounding-boxes.avif)<!-- screenshot: platform-predict-tab-with-bounding-boxes -->
-
+![Ultralytics Platform Predict Tab With Bounding Boxes](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-predict-tab-with-bounding-boxes.avif)<!-- screenshot -->
 Adjust inference parameters:
 
 | Parameter      | Default | Description                       |
@@ -291,14 +285,14 @@ Adjust inference parameters:
 | **IoU**        | 0.7     | Control overlap for NMS           |
 | **Image Size** | 640     | Resize input for inference        |
 
-The `Predict` tab provides ready-to-use code examples with your actual API key pre-filled:
+The `Predict` tab also shows example deployment code. Deploy the model first, then replace the placeholder URL and key with the values from your endpoint:
 
 === "Python"
 
     ```python
     import requests
 
-    url = "https://platform.ultralytics.com/api/models/{model_id}/predict"
+    url = "https://your-deployment-url.run.app/predict"
     headers = {"Authorization": "Bearer YOUR_API_KEY"}
 
     with open("image.jpg", "rb") as f:
@@ -310,7 +304,7 @@ The `Predict` tab provides ready-to-use code examples with your actual API key p
 === "cURL"
 
     ```bash
-    curl -X POST "https://platform.ultralytics.com/api/models/{model_id}/predict" \
+    curl -X POST "https://your-deployment-url.run.app/predict" \
       -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg"
     ```
@@ -330,12 +324,12 @@ Deploy your model to a dedicated endpoint for production use:
 3. The map shows real-time latency measurements with colors on a green-to-red gradient (lower latency is greener, higher latency is redder)
 4. Click `Deploy` to create your endpoint
 
-![Ultralytics Platform Deploy Tab Region Map With Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-deploy-tab-region-map-with-latency.avif)<!-- screenshot: platform-deploy-tab-region-map-with-latency -->
+![Ultralytics Platform Deploy Tab Region Map With Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-deploy-tab-region-map-with-latency.avif)<!-- screenshot -->
 
 ```mermaid
 graph LR
     A[Select Region]:::start --> B[Deploy]:::proc
-    B --> C[Provisioning ~1 min]:::proc
+    B --> C[Provisioning]:::proc
     C --> D[Running]:::out
     D --> E{Lifecycle}:::decide
     E --> F[Stop]:::error
@@ -350,7 +344,7 @@ graph LR
     classDef error fill:#F44336,color:#fff
 ```
 
-Your endpoint will be ready in about a minute with:
+Once provisioning completes, your endpoint provides:
 
 - **Unique URL**: HTTPS endpoint for API calls
 - **Scale-to-zero behavior**: No idle compute cost (deployments currently run a single active instance)

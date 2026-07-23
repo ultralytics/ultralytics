@@ -32,7 +32,7 @@ The Account section helps you:
 - **Recover** deleted items from Trash within 30 days
 - **Export** your data for GDPR compliance
 
-![Ultralytics Platform Settings Page Profile Tab With Social Links](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-page-profile-tab-with-social-links.avif)<!-- screenshot: settings-page-profile-tab-with-social-links -->
+![Ultralytics Platform Settings Page Profile Tab With Social Links](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-page-profile-tab-with-social-links.avif)<!-- screenshot -->
 
 ## Account Features
 
@@ -50,15 +50,15 @@ The Account section helps you:
 
 Account management is organized into seven tabs within `Settings` (in order):
 
-| Tab            | Description                                                                                                                               |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `Profile`      | Display name, bio, company, use case, emails, social links, data region                                                                   |
-| `API Keys`     | Create and manage API keys for remote training and programmatic access                                                                    |
-| `Plans`        | Compare Free, Pro, and Enterprise plans                                                                                                   |
-| `Billing`      | Credit balance, top-up, payment methods, transactions                                                                                     |
-| `Teams`        | Member list, roles, invites, seat allocation                                                                                              |
-| `Integrations` | Transfer datasets, projects, models, and balance from Ultralytics HUB; import datasets from Roboflow; Weights & Biases sync (coming soon) |
-| `Trash`        | Soft-deleted projects, datasets, and models (30-day recovery)                                                                             |
+| Tab            | Description                                                                                                   |
+| -------------- | ------------------------------------------------------------------------------------------------------------- |
+| `Profile`      | Display name, bio, company, use case, emails, social links, data region                                       |
+| `API Keys`     | Create and manage API keys for remote training and programmatic access                                        |
+| `Plans`        | Compare Free, Pro, and Enterprise plans                                                                       |
+| `Billing`      | Credit balance, top-up, payment methods, transactions                                                         |
+| `Teams`        | Member list, roles, invites, seat allocation                                                                  |
+| `Integrations` | Connect cloud or On Premise storage and compute, Slack notifications, and Ultralytics HUB or Roboflow imports |
+| `Trash`        | Soft-deleted projects, datasets, and models (30-day recovery)                                                 |
 
 ## Security
 
@@ -66,15 +66,16 @@ Ultralytics Platform implements multiple security measures:
 
 ### Authentication
 
-- **OAuth2**: Sign in with Google or GitHub
+- **OAuth**: Sign in with Google or GitHub
 - **Email/password**: Sign in with email and password
-- **Session management**: Secure, expiring sessions
+- **Session management**: Clerk-managed sessions shared across Ultralytics subdomains
 
 ### Data Protection
 
-- **Encryption**: All data encrypted at rest and in transit
+- **Transport security**: Platform traffic uses HTTPS
 - **API Keys**: AES-256-GCM encrypted storage
-- **Region isolation**: Data stays in your selected region (US, EU, or AP)
+- **Data region**: Datasets, models, and managed training data use your selected US, EU, or AP region; deployment
+  regions are selected separately
 
 ### Access Control
 
@@ -124,11 +125,9 @@ Yes, Ultralytics Platform implements:
 
 - Secure encrypted connections (HTTPS)
 - AES-256-GCM encryption for API keys
-- Encryption at rest for all stored data
-- Regional data isolation (US, EU, AP)
+- Regional storage for datasets, models, and managed training data (US, EU, AP)
 
 ### Can I change my data region?
 
-Your data region is selected during onboarding and can't be changed yourself. To move to a different region, contact support to request a region change.
-
-This ensures data residency compliance.
+Your data region is selected during onboarding and can't be changed yourself. Contact support to request a region
+change. Dedicated deployments use the deployment region selected when each endpoint is created.

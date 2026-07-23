@@ -31,8 +31,7 @@ graph TB
 
 Navigate to **Projects** in the sidebar and click **New Project**.
 
-![Ultralytics Platform Projects List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-projects-list.avif)<!-- screenshot: platform-projects-list -->
-
+![Ultralytics Platform Projects List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-projects-list.avif)<!-- screenshot -->
 ??? tip "Quick Create"
 
     You can also create a project from the Home page quick actions.
@@ -40,12 +39,12 @@ Navigate to **Projects** in the sidebar and click **New Project**.
 Enter your project details:
 
 - **Name**: A descriptive name for your project (a random name is auto-generated)
+- **URL**: The project slug, generated from the name and editable before creation
 - **Description**: Optional notes about the project purpose
 - **Visibility**: Public (anyone can view) or Private (only you and your team members can access). New projects default to Public; Enterprise workspaces default new projects to Private with the Ultralytics-Enterprise license.
 - **License**: Optional license for your project (AGPL-3.0, Apache-2.0, MIT, GPL-3.0, BSD-3-Clause, LGPL-3.0, MPL-2.0, EUPL-1.1, Unlicense, Ultralytics-Enterprise, and more). The **Ultralytics-Enterprise** license is for commercial use without AGPL requirements and is available with an Enterprise plan — see [Ultralytics Licensing](https://www.ultralytics.com/license).
 
-![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-new-project-dialog-name-visibility-license.avif)<!-- screenshot: platform-new-project-dialog-name-visibility-license -->
-
+![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-new-project-dialog-name-visibility-license.avif)<!-- screenshot -->
 Click **Create Project** to finalize. Your new project appears in the Projects list and sidebar.
 
 ## Project Page
@@ -57,7 +56,7 @@ The project page has two main areas:
 | **Models Sidebar** | Resizable list of all models in the project with search, status filters, sort options, and checkboxes for selection |
 | **Main Panel**     | Charts dashboard or comparison table (toggle between views)                                                         |
 
-![Ultralytics Platform Project Page Sidebar And Charts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-project-page-sidebar-and-charts.avif)<!-- screenshot: platform-project-page-sidebar-and-charts -->
+![Ultralytics Platform Project Page Sidebar And Charts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-project-page-sidebar-and-charts.avif)<!-- screenshot -->
 
 ### Project Header
 
@@ -72,14 +71,15 @@ The header displays:
 
 Action buttons in the header:
 
-| Button        | Description                                    |
-| ------------- | ---------------------------------------------- |
-| **New Model** | Opens the [training dialog](cloud-training.md) |
-| **Clone**     | Clone project and all models (public projects) |
-| **Star**      | Star/unstar the project                        |
-| **Share**     | Social sharing for public projects             |
-| **Refresh**   | Refresh project data                           |
-| **Delete**    | Move project to trash                          |
+| Button             | Description                                                         |
+| ------------------ | ------------------------------------------------------------------- |
+| **New Model**      | Open the [training dialog](cloud-training.md) for editable projects |
+| **Upload models**  | Select one or more `.pt` checkpoints for an editable project        |
+| **Clone Project**  | Clone a public project and its completed models into your workspace |
+| **Star**           | Star or unstar the project                                          |
+| **Share**          | Share or embed a public project                                     |
+| **Refresh**        | Refresh project data                                                |
+| **Delete project** | Move an owned project and its models to Trash                       |
 
 ### View Modes
 
@@ -89,7 +89,7 @@ Toggle between three view modes using the view controls:
 - **Compact**: Condensed models sidebar with the Charts dashboard on the right — more vertical room for models in projects with many experiments.
 - **Table**: Comparison table showing training arguments and final metrics side-by-side. Enable **Diff** to highlight only the columns where values differ across models.
 
-![Ultralytics Platform Project Comparison Table View](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-project-comparison-table-view.avif)<!-- screenshot: platform-project-comparison-table-view -->
+![Ultralytics Platform Project Comparison Table View](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-project-comparison-table-view.avif)<!-- screenshot -->
 
 ### Models Sidebar
 
@@ -196,7 +196,7 @@ Update project name, description, or settings:
 3. Click the icon to customize it
 4. Click the license badge to change the license
 
-![Ultralytics Platform Projects Settings](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-projects-settings.avif)<!-- screenshot: platform-projects-settings -->
+![Ultralytics Platform Projects Settings](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-projects-settings.avif)<!-- screenshot -->
 
 ## Delete Project
 
@@ -213,10 +213,11 @@ Remove a project you no longer need:
 
 ### How many models can a project contain?
 
-There's no hard limit on models per project. However, for better organization, we recommend:
+There is no separate per-project model limit. The workspace-wide plan limit applies across all projects: Free supports
+100 models, Pro supports 500, and Enterprise is unlimited. For clearer comparisons:
 
 - Group related experiments (same dataset/task)
-- Archive old experiments
+- Delete obsolete runs to Trash when you no longer need them
 - Use meaningful project names
 
 ### Can I restore a deleted project?

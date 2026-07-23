@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, explore, public datasets, public projects, compu
 
 [Ultralytics Platform](https://platform.ultralytics.com) Explore page showcases public content from the community. Discover [datasets](data/datasets.md) and [projects](train/projects.md) for inspiration and learning. The Explore page is accessible to everyone — even without signing in.
 
-![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-datasets-tab-cards-view.avif)<!-- screenshot: platform-explore-datasets-tab-cards-view -->
+![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-datasets-tab-cards-view.avif)<!-- screenshot -->
 
 ```mermaid
 graph LR
@@ -52,14 +52,13 @@ The Explore page uses a tabbed interface with `Datasets` and `Projects` tabs. Ea
 
 Each tab provides a search bar and sort options:
 
-![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-datasets-tab-with-search.avif)<!-- screenshot: platform-explore-datasets-tab-with-search -->
-
-| Sort Option             | Description                                                      |
-| ----------------------- | ---------------------------------------------------------------- |
-| **Stars**               | Community star count (descending)                                |
-| **Created**             | Creation date, newest (default) or oldest first                  |
-| **Name**                | Alphabetical, ascending or descending                            |
-| **Images** / **Models** | Image count (datasets) or model count (projects), most or fewest |
+![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-datasets-tab-with-search.avif)<!-- screenshot -->
+| Sort Option | Description |
+| ----------------------- | ----------------------------------------------------------------------- |
+| **Stars** | Community star count (descending) |
+| **Created** | Creation date, newest (default) or oldest first |
+| **Name** | Alphabetical, ascending or descending |
+| **Images** / **Models** | Image count (datasets) or model count (projects), most or fewest first |
 
 ### View Modes
 
@@ -77,8 +76,7 @@ Cards and compact views support infinite scroll for loading more results.
 
 Each item displays:
 
-![Ultralytics Platform Explore Dataset And Project Cards](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-dataset-and-project-cards.avif)<!-- screenshot: platform-explore-dataset-and-project-cards -->
-
+![Ultralytics Platform Explore Dataset And Project Cards](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-dataset-and-project-cards.avif)<!-- screenshot -->
 === "Project Cards"
 
     | Element              | Description                                                   |
@@ -114,9 +112,9 @@ graph TD
     D --> G[Clone Project]:::proc
     E --> H[Download Model]:::proc
     E --> I[Clone Model]:::proc
-    F --> J[Private Copy in Your Account]:::out
-    G --> K[Private Copy with All Models]:::out
-    H --> L[.pt / ONNX / Other Formats]:::out
+    F --> J[Copy in Destination Workspace]:::out
+    G --> K[Project Copy with Completed Models]:::out
+    H --> L[.pt / Completed Exports]:::out
     I --> M[Copy to Your Project]:::proc
     J --> N[Edit, Annotate, Train]:::out
     K --> N
@@ -134,16 +132,17 @@ Use a public dataset for your training:
 
 1. Click on the dataset to open its detail page
 2. Click `Clone Dataset`
-3. Dataset copies to your account
+3. Review the destination workspace, name, visibility, and license
+4. Click `Clone Dataset` to confirm
 
-![Ultralytics Platform Explore Clone Dataset](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-clone-dataset.avif)<!-- screenshot: platform-explore-clone-dataset -->
-
+![Ultralytics Platform Explore Clone Dataset](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-clone-dataset.avif)<!-- screenshot -->
 !!! note "Cloned Dataset Properties"
 
-    - Cloned datasets are **private by default**
+    - The clone dialog lets you review the destination, name, visibility, and license
+    - Public datasets stay public by default in workspaces whose default visibility is public; Enterprise workspace clones default to private
     - You can modify classes, annotations, and splits
     - Changes don't affect the original dataset
-    - Images are deduplicated using content-addressable storage (CAS) — cloning is fast and **does not double your storage usage**
+    - Image bytes reuse content-addressable storage (CAS), but the clone still counts toward the destination workspace's storage quota
 
 See [Datasets](data/datasets.md) for managing and annotating your cloned dataset.
 
@@ -152,8 +151,8 @@ See [Datasets](data/datasets.md) for managing and annotating your cloned dataset
 Download a public model:
 
 1. Click on the model within a project
-2. Click the **download icon**
-3. Select format (PT, ONNX, etc.)
+2. Click the **download icon** to download its PyTorch `.pt` weights
+3. Open the **Export** tab to download any completed exports that are available
 
 You can also use the model for inference or as a starting point for fine-tuning:
 
@@ -175,8 +174,7 @@ Clone a public model to one of your projects:
 4. Optionally, rename the model
 5. Click `Clone Model` to confirm
 
-![Ultralytics Platform Explore Clone Model Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-clone-model-dialog.avif)<!-- screenshot: platform-explore-clone-model-dialog -->
-
+![Ultralytics Platform Explore Clone Model Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-clone-model-dialog.avif)<!-- screenshot -->
 !!! note "Clone vs Download"
 
     **Clone** copies the model to a project on the Platform for further training or deployment. **Download** saves the model file to your local machine.
@@ -187,22 +185,16 @@ Copy a public project to your workspace:
 
 1. Click on the project to open its detail page
 2. Click `Clone Project`
-3. Project copies with all models to your account
+3. Review the destination, name, visibility, and license, then click `Clone Project`
 
-![Ultralytics Platform Explore Clone Project](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-clone-project.avif)<!-- screenshot: platform-explore-clone-project -->
+![Ultralytics Platform Explore Clone Project](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-clone-project.avif)<!-- screenshot -->
+The cloned project includes completed models that have model files. Deployments and exports are not copied. Its default visibility follows the same workspace rules as dataset cloning.
 
 See [Projects](train/projects.md) for organizing models in your project.
 
 ## Official Ultralytics Content
 
-Official `@ultralytics` content is pinned to the top of the Explore page. This includes:
-
-| Project                           | Description                 | Models                        | Tasks                                                 |
-| --------------------------------- | --------------------------- | ----------------------------- | ----------------------------------------------------- |
-| **[YOLO26](../models/yolo26.md)** | Latest January 2026 release | 35 models (5 sizes × 7 tasks) | detect, segment, semantic, depth, pose, OBB, classify |
-| **[YOLO11](../models/yolo11.md)** | Current stable release      | 25 models (5 sizes × 5 tasks) | detect, segment, pose, OBB, classify                  |
-| **YOLOv8**                        | Previous generation         | 25 models (5 sizes × 5 tasks) | detect, segment, pose, OBB, classify                  |
-| **YOLOv5**                        | Legacy, widely adopted      | 15+ models                    | detect, segment, classify                             |
+Official `@ultralytics` content is pinned to the top of Explore results. It includes projects for [YOLO26](../models/yolo26.md), [YOLO11](../models/yolo11.md), and earlier model generations. Open a project to see its current models and supported tasks.
 
 Official datasets include benchmark datasets like [coco8](../datasets/detect/coco8.md) (8-image COCO subset), [VOC](../datasets/detect/voc.md), [african-wildlife](../datasets/detect/african-wildlife.md), [dota8](../datasets/obb/dota8.md), and other commonly used computer vision datasets.
 
@@ -219,19 +211,19 @@ Official datasets include benchmark datasets like [coco8](../datasets/detect/coc
 
 Click on a creator's username to view their public profile at `platform.ultralytics.com/{username}`. Public profiles show:
 
-![Ultralytics Platform User Profile Public Content](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-user-profile-public-content.avif)<!-- screenshot: platform-user-profile-public-content -->
-
-| Section       | Content                      |
+![Ultralytics Platform User Profile Public Content](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-user-profile-public-content.avif)<!-- screenshot -->
+| Section | Content |
 | ------------- | ---------------------------- |
-| **Bio**       | User description and company |
-| **Links**     | Social profiles              |
-| **Followers** | Follower count               |
-| **Projects**  | Public projects with models  |
-| **Datasets**  | Public datasets              |
+| **Bio** | User description and company |
+| **Links** | Social profiles |
+| **Followers** | Follower count |
+| **Projects** | Public projects with models |
+| **Datasets** | Public datasets |
 
 ### Follow Users
 
-Click the **Follow** button on any user's profile to follow them. Following helps you discover new content from creators you're interested in. Your follower count is displayed on your profile.
+Click the **Follow** button on any user's profile to follow or unfollow them. Follower counts are displayed on public
+profiles.
 
 ## Make Your Content Public
 
@@ -239,8 +231,8 @@ Make your work available to the community. Public content appears on the Explore
 
 ```mermaid
 graph LR
-    A[Your Private Content]:::start --> B[Edit Settings]:::proc
-    B --> C[Set Visibility: Public]:::proc
+    A[Your Private Content]:::start --> B[Click Private Badge]:::proc
+    B --> C[Confirm Make Public]:::proc
     C --> D[Appears on Explore Page]:::proc
     D --> E[Community Can Clone/Download]:::out
 
@@ -252,18 +244,14 @@ graph LR
 ### Make Dataset Public
 
 1. Go to your dataset
-2. Open the actions menu (three dots)
-3. Click `Edit`
-4. Set visibility to `Public`
-5. Click `Save`
+2. Click the **Private** visibility badge in the top navigation bar
+3. Review the warning and click **Make Public**
 
 ### Make Project Public
 
 1. Go to your project
-2. Open the actions menu (three dots)
-3. Click `Edit`
-4. Set visibility to `Public`
-5. Click `Save`
+2. Click the **Private** visibility badge in the top navigation bar
+3. Review the warning and click **Make Public**
 
 !!! tip "Quality Content"
 
@@ -312,7 +300,7 @@ Public content can be embedded in external websites using embed URLs:
 | Model   | `platform.ultralytics.com/embed/{username}/{project}/{model}` |
 | Dataset | `platform.ultralytics.com/embed/{username}/datasets/{slug}`   |
 
-Use these URLs in an `<iframe>` to embed interactive project views, model prediction widgets, or dataset viewers on your website.
+Use these URLs in an `<iframe>` to embed public preview cards for projects, models, or datasets. Each card links to the full resource on Platform.
 
 ## Public Content URLs
 
@@ -334,13 +322,7 @@ Public content on the platform uses clean, shareable URLs:
 
 ### Can I use public content commercially?
 
-Check individual content licenses. Most community content is for:
-
-- Research and education
-- Personal projects
-- Non-commercial use
-
-Contact creators for commercial licensing.
+Check the license shown on the individual project, model, or dataset. Usage rights depend on that resource's license; contact the creator when the license does not grant the rights you need.
 
 ### How do I report inappropriate content?
 
@@ -354,25 +336,12 @@ To report inappropriate content:
 
 If the content is no longer accessible, use the **Help** page from any page and include as much detail as possible (URL, username, or description).
 
-Our team reviews reports within 24-48 hours.
-
 ### Can I make public content private again?
 
 Yes, you can change visibility anytime:
 
-1. Open content settings
-2. Change visibility to **Private**
-3. Save changes
+1. Open the project or dataset
+2. Click the **Public** visibility badge in the top navigation bar
+3. The resource changes to private immediately
 
 Existing clones are not affected.
-
-### How do I get featured?
-
-Featured content is selected based on:
-
-- Quality and usefulness
-- Community engagement
-- Novelty and interest
-- Clear documentation
-
-There's no application process - just create great content!

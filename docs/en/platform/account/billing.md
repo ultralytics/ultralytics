@@ -8,31 +8,31 @@ keywords: Ultralytics Platform, billing, credits, pricing, subscription, payment
 
 # Billing
 
-[Ultralytics Platform](https://platform.ultralytics.com) uses a credit-based billing system for cloud training and dedicated endpoints. Add credits, track usage, and manage your subscription from `Settings > Billing`.
+[Ultralytics Platform](https://platform.ultralytics.com) uses credits for metered cloud training. Add credits, track
+usage, and manage your subscription from `Settings > Billing`.
 
-![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-credit-balance-and-plan-card.avif)<!-- screenshot: settings-billing-tab-credit-balance-and-plan-card -->
+![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-credit-balance-and-plan-card.avif)<!-- screenshot -->
 
 ## Plans
 
 Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 
-![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-free-pro-enterprise-comparison.avif)<!-- screenshot: settings-plans-tab-free-pro-enterprise-comparison -->
-
-| Feature                                                    | Free       | Pro ($29/mo)    | Enterprise  |
+![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-free-pro-enterprise-comparison.avif)<!-- screenshot -->
+| Feature | Free | Pro ($29/mo) | Enterprise |
 | ---------------------------------------------------------- | ---------- | --------------- | ----------- |
-| **Signup Credit**                                          | $5 / $25\* | -               | Custom      |
-| **Monthly Credit**                                         | -          | $30/seat/month  | Custom      |
-| **Models**                                                 | 100        | 500             | Unlimited   |
-| **Concurrent Trainings**                                   | 3          | 10              | Unlimited   |
-| **Storage**                                                | 100 GB     | 500 GB          | Unlimited   |
-| **Dataset Upload (ZIP/TAR incl. `.tar.gz`/`.tgz`/NDJSON)** | 10 GB      | 20 GB           | 50 GB       |
-| **Deployments**                                            | 3          | 10              | Unlimited   |
-| **Cloud GPU Types**                                        | 24         | 26              | 26          |
-| **Best GPUs (B200, B300)**                                 | -          | Yes             | Yes         |
-| **Teams**                                                  | -          | Up to 5 members | Custom size |
-| **SSO / SAML**                                             | -          | -               | Yes         |
-| **Enterprise License**                                     | -          | -               | Yes         |
-| **License**                                                | AGPL-3.0   | AGPL-3.0        | Enterprise  |
+| **Signup Credit** | $5 / $25\* | - | Custom |
+| **Monthly Credit** | - | $30/seat/month | Custom |
+| **Models** | 100 | 500 | Unlimited |
+| **Concurrent Trainings** | 3 | 10 | Unlimited |
+| **Storage** | 100 GB | 500 GB | Unlimited |
+| **Dataset Upload (ZIP/TAR incl. `.tar.gz`/`.tgz`/NDJSON)** | 10 GB | 20 GB | 50 GB |
+| **Deployments** | 3 | 10 | Unlimited |
+| **Cloud GPU Types** | 24 | 26 | 26 |
+| **Best GPUs (B200, B300)** | - | Yes | Yes |
+| **Teams** | - | Up to 5 members | Custom size |
+| **SSO / SAML** | - | - | Yes |
+| **Enterprise License** | - | - | Yes |
+| **License** | AGPL-3.0 | AGPL-3.0 | Enterprise |
 
 \*Free plan: $5 at signup, or $25 if you verify a company/work email address.
 
@@ -46,8 +46,8 @@ Get started at no cost:
 - 3 concurrent cloud trainings
 - 3 deployments
 - 100 GB storage · 10 GB dataset upload limit
-- Model export to all 19+ formats
-- Manual, SAM 3 & YOLO Smart annotation
+- Model export to all 19 formats
+- Draw and Smart annotation modes
 - 24 cloud GPU types including 5090, H100 & H200 ($0.24–$4.39/hr)
 - Community support
 
@@ -95,9 +95,8 @@ Credits are the currency for Platform compute services.
 
 View your balance in `Settings > Billing`:
 
-![Ultralytics Platform Settings Billing Tab Credit Balance With Topup Button](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-credit-balance-with-topup-button.avif)<!-- screenshot: settings-billing-tab-credit-balance-with-topup-button -->
-
-| Balance Type  | Description                          |
+![Ultralytics Platform Settings Billing Tab Credit Balance With Topup Button](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-credit-balance-with-topup-button.avif)<!-- screenshot -->
+| Balance Type | Description |
 | ------------- | ------------------------------------ |
 | **Available** | Credits available for cloud training |
 
@@ -118,7 +117,7 @@ Top up your balance:
 3. Select or enter amount ($5 - $1,000)
 4. Complete payment
 
-![Ultralytics Platform Settings Billing Tab Topup Amount Selection Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-topup-amount-selection-dialog.avif)<!-- screenshot: settings-billing-tab-topup-amount-selection-dialog -->
+![Ultralytics Platform Settings Billing Tab Topup Amount Selection Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-topup-amount-selection-dialog.avif)<!-- screenshot -->
 
 ### Top-Up Presets
 
@@ -144,9 +143,10 @@ Enable automatic credit purchases when your balance drops below a threshold:
 
 Default settings: threshold $20, amount $100.
 
-!!! tip "Uninterrupted Training"
+!!! tip "Reduce Training Interruptions"
 
-    Enable auto top-up to ensure training jobs are never interrupted by insufficient credits.
+    Auto top-up can reduce the chance that a paid cloud training job is stopped for insufficient credits. It requires
+    a valid default payment method.
 
 ### Payment Methods
 
@@ -187,7 +187,7 @@ flowchart LR
 3. **Train**: Job runs on the selected GPU
 4. **Charge**: On completion (or cancellation), billing uses actual runtime
 
-!!! success "Consumer Protection"
+!!! note "Actual Usage"
 
     You pay for actual compute time used, including partial runs that are cancelled.
 
@@ -222,7 +222,7 @@ Upgrade for more features and monthly credits:
 3. Choose billing cycle (Monthly or Yearly)
 4. Complete checkout
 
-![Upgrade to Pro dialog in Settings Plans tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-upgrade-to-pro-dialog.avif)<!-- screenshot: settings-plans-tab-upgrade-to-pro-dialog -->
+![Ultralytics Platform Settings Plans Tab Upgrade to Pro Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-upgrade-to-pro-dialog.avif)<!-- screenshot -->
 
 ### Pro Benefits
 
@@ -235,7 +235,6 @@ After upgrading:
 - 10 cloud deployments
 - [Team collaboration](teams.md) (up to 5 members)
 - Access to best GPUs (B200, B300)
-- Full monitoring dashboard
 - Priority support
 
 ### Cancel Pro
@@ -270,40 +269,32 @@ When your Pro subscription ends (cancelled or expired), your account reverts to 
 
 !!! tip "No Data Loss"
 
-    Downgrading never deletes your models, datasets, or deployments. Limits are only enforced when creating **new** resources — existing resources remain fully accessible.
+    Downgrading does not automatically delete models, datasets, or deployments. The workspace owner retains access,
+    while Free-plan creation limits apply and team members lose access to team resources.
 
 ## Transaction History
 
 View all transactions in `Settings > Billing`:
 
-![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-transaction-history-table.avif)<!-- screenshot: settings-billing-tab-transaction-history-table -->
-
-| Column      | Description                                                                                                                            |
+![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-transaction-history-table.avif)<!-- screenshot -->
+| Column | Description |
 | ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **Date**    | Transaction date                                                                                                                       |
-| **Type**    | Signup, Purchase, Subscription, Monthly Grant, Training, Refund, Adjustment, Promo, Auto Top-Up, Auto Top-Up Failed, Pro Credit Expiry |
-| **Amount**  | Transaction value (green for credits, red for charges)                                                                                 |
-| **Balance** | Resulting balance after transaction                                                                                                    |
-| **Details** | Additional context (model link, receipt, period)                                                                                       |
+| **Date** | Transaction date |
+| **Type** | Signup, Purchase, Subscription, Monthly Grant, Training, Refund, Adjustment, Promo, Auto Top-Up, Auto Top-Up Failed, Pro Credit Expiry |
+| **Amount** | Transaction value (green for credits, red for charges) |
+| **Balance** | Resulting balance after transaction |
+| **Details** | Additional context (model link, receipt, period) |
 
 ## FAQ
 
 ### What happens when I run out of credits?
 
-- **Running training**: Continues to completion — your balance may go negative
+- **Running paid cloud training**: Stops when metered usage pushes the balance below zero
 - **New training**: Cannot start new jobs until balance is positive
 - **Deployments**: Continue running regardless of balance
 
-If a training run completes and the actual cost exceeds your remaining balance, your balance goes negative. Add credits to restore a positive balance before starting new training jobs. Enable [auto top-up](#auto-top-up) to avoid interruptions.
-
-### Are unused credits refundable?
-
-- **Purchased credits**: No refunds
-- **Signup/monthly credits**: No refunds (use it or lose it)
-
-### Can I transfer credits?
-
-Credits are not transferable between accounts.
+Add credits to restore a positive balance before starting new training jobs. Enable [auto top-up](#auto-top-up) to
+reduce the chance of an active job being stopped for insufficient funds.
 
 ### How do I get an invoice?
 
@@ -311,8 +302,11 @@ Transaction receipts are available in the transaction history. Click the receipt
 
 ### What if training fails?
 
-**Failed training runs are not charged.** If a job fails due to a configuration error, out-of-memory issue, or any other reason, no credits are deducted. Completed, user-cancelled, and auto-terminated stuck jobs may incur charges based on actual GPU time used. See [Cloud Training Billing](../train/cloud-training.md#billing-by-job-status) for a full breakdown by job status.
+If a cloud GPU has started, failed, cancelled, completed, and auto-terminated jobs are charged for elapsed GPU time.
+Validation or launch failures before cloud compute starts have no GPU usage charge. See
+[Cloud Training Billing](../train/cloud-training.md#billing-by-job-status) for the full breakdown.
 
 ### Is there a free trial?
 
-The Free plan includes $5 signup credit ($25 with a company email) -- essentially a free trial. No credit card required to start.
+The Free plan includes $5 in signup credit, increased to $25 after verifying a company email. No credit card is
+required to start.

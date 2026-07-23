@@ -31,7 +31,7 @@ The Data section of Ultralytics Platform helps you:
 - **Analyze** your data with statistics and visualizations
 - **Export** in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for local training
 
-![Ultralytics Platform Data Overview Sidebar Datasets](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-data-overview-sidebar-datasets.avif)<!-- screenshot: platform-data-overview-sidebar-datasets -->
+![Ultralytics Platform Data Overview Sidebar Datasets](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-data-overview-sidebar-datasets.avif)<!-- screenshot -->
 
 ## Workflow
 
@@ -76,7 +76,7 @@ Ultralytics Platform datasets support 6 of the 7 YOLO task types — [depth](../
 
 Ultralytics Platform uses Content-Addressable Storage (CAS) for efficient data management:
 
-- **Deduplication**: Identical images stored only once via XXH3-128 hashing
+- **Deduplication**: Identical image bytes in the same data region reuse one CAS object via XXH3-128 hashing
 - **Integrity**: Hash-based addressing ensures data integrity
 - **Efficiency**: Optimized storage and fast processing
 
@@ -116,7 +116,7 @@ Dataset pages can show up to six tabs, depending on the dataset state and your p
 | **Versions** | Create and download immutable NDJSON snapshots for reproducible training     |
 | **Errors**   | Images that failed processing with error details and fix guidance            |
 
-`Classes` and `Charts` appear when the dataset has images. `Errors` appears only when processing failures exist. `Versions` appears for owners, or for non-owners when versions already exist.
+`Classes` and `Charts` appear when the dataset has images. `Errors` appears only when processing failures exist. `Versions` appears when you have edit access, or in read-only mode when versions already exist.
 
 ### Clustering
 
@@ -188,4 +188,4 @@ Yes! Use the dataset URI format to train locally:
     model.train(data="ul://username/datasets/my-dataset", epochs=100)
     ```
 
-Or export your dataset in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for fully offline training.
+Or export your dataset in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) to transfer its metadata, splits, annotations, and signed image URLs.

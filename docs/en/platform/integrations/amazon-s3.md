@@ -41,9 +41,10 @@ Platform only ever reads from your storage — it never writes, modifies, or del
 
 ## Connect to Platform
 
-1. Go to **Settings > [Integrations](index.md)** and find the **Amazon S3** card.
-2. Click **Connect** and enter the access key ID, secret access key, and the bucket region (for example `us-east-1`).
-3. Platform lists the buckets the credential can read. Select the ones to connect, or enter a bucket name manually if the policy doesn't permit discovery.
+1. Go to **Settings > [Integrations](index.md)** and select **Amazon S3** from the integration list.
+2. Enter the access key ID, secret access key, and bucket region (for example `us-east-1`).
+3. Click **Find available buckets**, then select the buckets to connect. If the policy doesn't permit discovery, enter
+   a known bucket name manually.
 4. Click **Connect**. Platform verifies it can list and read each selected bucket before saving anything.
 
 Reconnecting the same IAM user later adds new buckets to the existing integration. A saved credential is only replaced once its replacement can still read every bucket you've already connected.
@@ -64,7 +65,8 @@ Reconnecting the same IAM user later adds new buckets to the existing integratio
 
 Platform lists the folder once and indexes what it finds:
 
-- **Images** — `.jpg`, `.jpeg`, `.png`, `.webp`, and `.avif` objects are indexed with dimensions read from bounded header requests. Source pixels are never copied out of your bucket.
+- **Images** — `.jpg`, `.jpeg`, `.png`, `.webp`, and `.avif` objects are indexed with dimensions read through bounded
+  requests. Platform does not persist a second copy of the source image.
 - **Labels** — YOLO `.txt` sidecars are parsed into Platform annotations, matched by the standard `images/` → `labels/` layout or as same-folder siblings.
 - **Metadata** — a `data.yaml`/`data.yml` provides class names, task type, and pose keypoint shape, exactly like an [archive upload](../data/datasets.md#supported-formats).
 - **Splits** — `train`, `val`, and `test` folder names in the object key assign splits automatically.

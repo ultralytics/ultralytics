@@ -9,8 +9,7 @@ keywords: Ultralytics Platform, REST API, API reference, authentication, endpoin
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides a comprehensive REST API for programmatic access to datasets, models, training, and deployments.
 
-![Ultralytics Platform Api Overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-api-overview.avif)<!-- screenshot: platform-api-overview -->
-
+![Ultralytics Platform Interactive API Documentation](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-api-overview.avif)<!-- screenshot -->
 !!! tip "Quick Start"
 
     ```bash
@@ -119,7 +118,7 @@ https://platform.ultralytics.com/api
 
 ## Rate Limits
 
-The API enforces per-API-key rate limits (sliding-window, Upstash Redis-backed) to protect against abuse while keeping legitimate usage unrestricted. Anonymous traffic is additionally protected by Vercel's platform-level abuse controls.
+The API enforces sliding-window, Upstash Redis-backed limits per API key. Each route uses the matching category below.
 
 When throttled, the API returns `429` with retry metadata:
 
@@ -132,21 +131,26 @@ X-RateLimit-Reset: 2026-02-21T12:34:56.000Z
 
 Rate limits are applied automatically based on the endpoint being called. Expensive operations have tighter limits to prevent abuse, while standard CRUD operations share a generous default:
 
-| Endpoint      | Limit            | Applies To                                                                               |
-| ------------- | ---------------- | ---------------------------------------------------------------------------------------- |
-| **Default**   | 100 requests/min | All endpoints not listed below (list, get, create, update, delete)                       |
-| **Training**  | 10 requests/min  | Starting cloud training jobs (`POST /api/training/start`)                                |
-| **Upload**    | 10 requests/min  | File uploads, signed URLs, and dataset ingest                                            |
-| **Predict**   | 20 requests/min  | Shared model inference (`POST /api/models/{id}/predict`)                                 |
-| **Export**    | 20 requests/min  | Model format exports (`POST /api/exports`), dataset NDJSON exports, and version creation |
-| **Download**  | 30 requests/min  | Model weight file downloads (`GET /api/models/{id}/files`)                               |
-| **Dedicated** | **Unlimited**    | [Dedicated endpoints](../deploy/endpoints.md) — your own service, no API limits          |
+| Category       | Limit            | Applies To                                                                                        |
+| -------------- | ---------------- | ------------------------------------------------------------------------------------------------- |
+| **Default**    | 100 requests/min | Routes not assigned to a category below                                                           |
+| **Training**   | 10 requests/min  | Starting cloud training                                                                           |
+| **Upload**     | 10 requests/min  | Signed upload URLs, upload completion, and dataset ingest                                         |
+| **Predict**    | 20 requests/min  | Model and deployment inference through Platform API routes                                        |
+| **Export**     | 20 requests/min  | Model export routes and dataset export/version routes                                             |
+| **Download**   | 30 requests/min  | Model file downloads                                                                              |
+| **Mutation**   | 10 requests/min  | Team creation, storage integration changes, API keys, members, invites, and deployment start/stop |
+| **Billing**    | 5 requests/min   | Auto top-up and subscription checkout routes                                                      |
+| **Hydrate**    | 20 requests/min  | Hydrating a selected set of dataset images                                                        |
+| **Clustering** | 10 requests/min  | Dataset image clustering                                                                          |
 
 Each category has an independent counter per API key. For example, making 20 predict requests does not affect your 100 request/min default allowance.
 
 ### Dedicated Endpoints (Unlimited)
 
-[Dedicated endpoints](../deploy/endpoints.md) are **not subject to API key rate limits**. When you deploy a model to a dedicated endpoint, requests to that endpoint URL (e.g., `https://predict-abc123.run.app/predict`) go directly to your dedicated service with no rate limiting from the Platform. You're paying for the compute, so you get throughput from your dedicated service configuration rather than the shared API limits.
+[Dedicated endpoints](../deploy/endpoints.md) are **not subject to Platform API-key rate limits** when you call the
+endpoint URL directly (for example, `https://predict-abc123.run.app/predict`). Throughput then depends on the deployed
+service configuration.
 
 !!! tip "Handling Rate Limits"
 
@@ -293,7 +297,7 @@ POST /api/datasets
 
 !!! note "Supported Tasks"
 
-    Valid `task` values: `detect`, `segment`, `semantic`, `classify`, `pose`, `obb`. Depth datasets are coming soon.
+    Valid `task` values: `detect`, `segment`, `semantic`, `classify`, `pose`, and `obb`.
 
 **Response:**
 
@@ -369,9 +373,9 @@ Returns a JSON response with a signed download URL for the latest dataset export
 
 **Query Parameters:**
 
-| Parameter | Type    | Description                                                               |
-| --------- | ------- | ------------------------------------------------------------------------- |
-| `v`       | integer | Version number (1-indexed). If omitted, returns latest (uncached) export. |
+| Parameter | Type    | Description                                                                                                             |
+| --------- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `v`       | integer | Version number (1-indexed). If omitted, returns the latest mutable export, reusing it when the dataset has not changed. |
 
 **Response:**
 
@@ -388,7 +392,9 @@ Returns a JSON response with a signed download URL for the latest dataset export
 POST /api/datasets/{datasetId}/export
 ```
 
-Create a new numbered version snapshot of the dataset. Owner-only. The version captures current image count, class count, annotation count, and split distribution, then generates and stores an immutable NDJSON export.
+Create a new numbered version snapshot of the dataset. This requires Editor access or higher. The version captures
+current image count, class count, annotation count, and split distribution, then generates and stores an immutable
+NDJSON export.
 
 **Request Body:**
 
@@ -415,7 +421,7 @@ All fields are optional. The `description` field is a user-provided label for th
 PATCH /api/datasets/{datasetId}/export
 ```
 
-Update the description of an existing version. Owner-only.
+Update the description of an existing version. This requires Editor access or higher.
 
 **Request Body:**
 
@@ -1252,7 +1258,7 @@ Resume a stopped deployment.
 POST /api/deployments/{deploymentId}/stop
 ```
 
-Pause a running deployment (stops billing).
+Stop serving requests by setting the service's minimum and maximum instances to zero.
 
 ### Health Check
 
@@ -2008,19 +2014,6 @@ Upload a WebP profile/workspace icon up to 5 MB as multipart form field `image`,
 
 ---
 
-## Error Codes
-
-| Code               | HTTP Status | Description                |
-| ------------------ | ----------- | -------------------------- |
-| `UNAUTHORIZED`     | 401         | Invalid or missing API key |
-| `FORBIDDEN`        | 403         | Insufficient permissions   |
-| `NOT_FOUND`        | 404         | Resource not found         |
-| `VALIDATION_ERROR` | 400         | Invalid request data       |
-| `RATE_LIMITED`     | 429         | Too many requests          |
-| `INTERNAL_ERROR`   | 500         | Server error               |
-
----
-
 ## Python Integration
 
 For easier integration, use the Ultralytics Python package which handles authentication, uploads, and real-time metric streaming automatically.
@@ -2028,7 +2021,7 @@ For easier integration, use the Ultralytics Python package which handles authent
 ### Installation & Setup
 
 ```bash
-pip install ultralytics
+pip install "ultralytics>=8.4.104"
 ```
 
 Verify installation:
@@ -2036,10 +2029,6 @@ Verify installation:
 ```bash
 yolo check
 ```
-
-!!! warning "Package Version Requirement"
-
-    Platform integration requires **ultralytics>=8.4.60**. Lower versions will NOT work with Platform.
 
 ### Authentication
 
@@ -2060,7 +2049,7 @@ yolo check
     ```python
     from ultralytics import settings
 
-    settings.api_key = "YOUR_API_KEY"
+    settings.update({"api_key": "YOUR_API_KEY"})
     ```
 
 ### Using Platform Datasets
@@ -2194,7 +2183,7 @@ The public REST operations documented above are available without the Python SDK
 
 ### Are there API client libraries?
 
-Currently, use the Ultralytics Python package or make direct HTTP requests. Official client libraries for other languages are planned.
+Use the Ultralytics Python package or make direct HTTP requests from any language.
 
 ### How do I handle rate limits?
 
@@ -2218,7 +2207,8 @@ def api_request_with_retry(url, headers, max_retries=3):
 
 ### How do I find my model or dataset ID?
 
-Resource IDs are returned when you create resources via the API. You can also find them in the platform URL:
+Resource IDs are returned by create, list, and get API responses. Platform page URLs use human-readable slugs, not
+database IDs:
 
 ```text
 https://platform.ultralytics.com/username/project/model-name
@@ -2226,4 +2216,4 @@ https://platform.ultralytics.com/username/project/model-name
                                   username project   model
 ```
 
-Use the list endpoints to search by name or filter by project.
+Use the list endpoints to find the corresponding `_id` for a model, dataset, project, deployment, or other resource.

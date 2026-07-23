@@ -114,7 +114,7 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
             tracker.reset()
             predictor.vid_path[i if is_stream else 0] = vid_path
 
-        det = (result.obb if is_obb else result.boxes).cpu().numpy()
+        det = (src := result.obb if is_obb else result.boxes).cpu().numpy()
         kwargs = {"feats": getattr(result, "feats", None)}
         if dets_del_list is not None:
             kwargs["dets_del"] = dets_del_list[i]
@@ -124,7 +124,9 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
         idx = tracks[:, -1].astype(int)
         predictor.results[i] = result[idx]
 
-        update_args = {"obb" if is_obb else "boxes": torch.as_tensor(tracks[:, :-1])}
+        # Restore the source device: tracks come back as numpy, and leaving them on CPU splits a Results object
+        # whose masks/keypoints are still on GPU.
+        update_args = {"obb" if is_obb else "boxes": torch.as_tensor(tracks[:, :-1], device=src.data.device)}
         predictor.results[i].update(**update_args)
 
 

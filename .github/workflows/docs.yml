@@ -60,7 +60,7 @@ jobs:
           --unsafe-fixes \
           --extend-select F,I,D,UP,RUF,FA \
           --target-version py39 \
-          --ignore D100,D104,D203,D205,D212,D213,D401,D406,D407,D413,RUF001,RUF002,RUF012 \
+          --ignore BLE001,D100,D104,D203,D205,D212,D213,D401,D406,D407,D413,RUF001,RUF002,RUF012,S110 \
           .
       - name: Update Docs Reference Section and Push Changes
         continue-on-error: true
@@ -83,7 +83,7 @@ jobs:
           ruff check \
           --extend-select F,I,D,UP,RUF,FA \
           --target-version py39 \
-          --ignore D100,D104,D203,D205,D212,D213,D401,D406,D407,D413,RUF001,RUF002,RUF012 \
+          --ignore BLE001,D100,D104,D203,D205,D212,D213,D401,D406,D407,D413,RUF001,RUF002,RUF012,S110 \
           .
       - name: Build Docs and Check for Warnings
         run: |

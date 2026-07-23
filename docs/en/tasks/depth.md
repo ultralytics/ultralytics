@@ -29,6 +29,7 @@ YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~
 - Single-scale accuracy without TTA is reproducible with `yolo depth val model=yolo26n-depth.pt data=nyu-depth.yaml imgsz=768 device=0` (substitute `model=` for each size), which uses median (scale-only) alignment and scores lower: delta1 0.785 (n), 0.786 (s), 0.827 (m), 0.839 (l), 0.843 (x).
 - **abs_rel** is the mean absolute relative error between predicted and ground-truth depth values.
 - **rmse** is the root mean squared error in meters.
+- **Speed** is TensorRT fp16 inference on a Tesla T4 at `imgsz=768`, `batch=1`, mean ± std over 100 timed runs after 10 warmup iterations (pre/post-processing excluded).
 - **params** and **FLOPs** are measured at 768×768, the training resolution of the released weights.
 
 ## Depth range and the log-depth head

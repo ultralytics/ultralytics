@@ -330,8 +330,8 @@ class SA(nn.Module):
         super().__init__()
         self.conv = nn.Conv2d(c, 1, 1)
 
-    def forward(self, x):
-        return x + self.conv(x).sigmoid()
+    def forward(self, x, y):
+        return x + self.conv(y).sigmoid()
 
 
 class SAD(nn.Module):
@@ -339,48 +339,62 @@ class SAD(nn.Module):
         super().__init__()
         self.conv = nn.Conv2d(c, 1, 1)
 
-    def forward(self, x):
-        return x * self.conv(x).sigmoid()
+    def forward(self, x, y):
+        return x * self.conv(y).sigmoid()
 
 
 class DetectO2OSA(Detect):
-    """YOLO Detect head that adds spatial attention to the one2one branch.
+    """YOLO Detect head that adds backbone-guided spatial attention to both branches.
 
-    Identical to Detect, but inserts a per-level spatial-attention block (SA) before the one2one box and classification
-    heads. It refines the (optionally detached) features feeding the one2one branch only; the one2many branch is
-    unchanged. Has no effect unless end-to-end detection is enabled.
+    Identical to Detect, but inserts a per-level spatial-attention block (SA) before the box and classification heads of
+    both the one2many and one2one branches. Each SA block refines the head features (x) using the matching backbone
+    P3/P4/P5 feature map (y) as the attention reference; the one2one branch operates on the optionally detached
+    features.
+
+    The YAML `from` list must supply the three head levels followed by the three backbone levels, e.g. `[[16, 19, 22, 4,
+    6, 10], 1, DetectO2OSA, [nc]]`, so `ch` arrives as `[*head_ch, *backbone_ch]`.
 
     Attributes:
-        one2one_sa (nn.ModuleList): Per-level spatial-attention block applied to the one2one features before the heads.
+        one2many_sa (nn.ModuleList): Per-level SA block for the one2many branch; refines head features with a backbone
+            reference.
+        one2one_sa (nn.ModuleList): Per-level SA block for the one2one branch; refines head features with a backbone
+            reference.
 
     Examples:
-        Create an end-to-end detection head with one2one spatial attention
-        >>> detect = DetectO2OSA(nc=80, end2end=True, ch=(256, 512, 1024))
-        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
-        >>> outputs = detect(x)
+        Create an end-to-end detection head with backbone-guided spatial attention
+        >>> detect = DetectO2OSA(nc=80, end2end=True, ch=(256, 512, 1024, 128, 128, 256))
+        >>> head = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> backbone = [torch.randn(1, 128, 80, 80), torch.randn(1, 128, 40, 40), torch.randn(1, 256, 20, 20)]
+        >>> outputs = detect(head + backbone)
     """
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
-        """Initialize the detection head and, when end-to-end, the per-level one2one spatial-attention block.
+        """Initialize the detection head and the per-level one2many (and, when end-to-end, one2one) attention blocks.
 
         Args:
             nc (int): Number of classes.
             reg_max (int): Maximum number of DFL channels.
             end2end (bool): Whether to use end-to-end NMS-free detection.
-            ch (tuple): Tuple of channel sizes from backbone feature maps.
+            ch (tuple): Channel sizes as `[*head_ch, *backbone_ch]`; the first half feeds the detection heads and the
+                second half supplies the per-level backbone attention references.
         """
-        super().__init__(nc, reg_max, end2end, ch)
+        nl = len(ch) // 2  # head levels; second half is the backbone reference
+        super().__init__(nc, reg_max, end2end, ch[:nl])
+        self.one2many_sa = nn.ModuleList(SA(c) for c in ch[nl:])
         if end2end:
-            self.one2one_sa = nn.ModuleList(SA(x) for x in ch)
+            self.one2one_sa = nn.ModuleList(SA(c) for c in ch[nl:])
 
     def forward(
         self, x: list[torch.Tensor]
     ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
-        """Run the one2many head on raw features and the one2one head on stem-refined features."""
-        preds = self.forward_head(x, **self.one2many)
+        """Run the one2many and one2one heads on backbone-attended features."""
+        x, ref = x[: self.nl], x[self.nl :]  # head features, backbone P3/P4/P5 references
+        feats = [self.one2many_sa[i](x[i], ref[i]) for i in range(self.nl)]
+        preds = self.forward_head(feats, **self.one2many)
         if self.end2end:
             feats = [xi.detach() for xi in x] if self.detach_one2one else x
-            feats = [self.one2one_sa[i](feats[i]) for i in range(self.nl)]
+            r = [xi.detach() for xi in ref] if self.detach_one2one else ref
+            feats = [self.one2one_sa[i](feats[i], r[i]) for i in range(self.nl)]
             one2one = self.forward_head(feats, **self.one2one)
             preds = {"one2many": preds, "one2one": one2one}
         if self.training:
@@ -392,44 +406,57 @@ class DetectO2OSA(Detect):
 
 
 class DetectO2OSAD(Detect):
-    """YOLO Detect head that adds multiplicative spatial attention to the one2one branch.
+    """YOLO Detect head that adds backbone-guided multiplicative spatial attention to both branches.
 
-    Identical to Detect, but inserts a per-level multiplicative spatial-attention block (SAD) before the one2one box and
-    classification heads. It refines the (optionally detached) features feeding the one2one branch only; the one2many
-    branch is unchanged. Has no effect unless end-to-end detection is enabled.
+    Identical to Detect, but inserts a per-level multiplicative spatial-attention block (SAD) before the box and
+    classification heads of both the one2many and one2one branches. Each SAD block refines the head features (x) using
+    the matching backbone P3/P4/P5 feature map (y) as the attention reference; the one2one branch operates on the
+    optionally detached features.
+
+    The YAML `from` list must supply the three head levels followed by the three backbone levels, e.g. `[[16, 19, 22, 4,
+    6, 10], 1, DetectO2OSAD, [nc]]`, so `ch` arrives as `[*head_ch, *backbone_ch]`.
 
     Attributes:
-        one2one_sad (nn.ModuleList): Per-level SAD block applied to the one2one features before the heads.
+        one2many_sad (nn.ModuleList): Per-level SAD block for the one2many branch; refines head features with a backbone
+            reference.
+        one2one_sad (nn.ModuleList): Per-level SAD block for the one2one branch; refines head features with a backbone
+            reference.
 
     Examples:
-        Create an end-to-end detection head with one2one multiplicative spatial attention
-        >>> detect = DetectO2OSAD(nc=80, end2end=True, ch=(256, 512, 1024))
-        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
-        >>> outputs = detect(x)
+        Create an end-to-end detection head with backbone-guided multiplicative spatial attention
+        >>> detect = DetectO2OSAD(nc=80, end2end=True, ch=(256, 512, 1024, 128, 128, 256))
+        >>> head = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> backbone = [torch.randn(1, 128, 80, 80), torch.randn(1, 128, 40, 40), torch.randn(1, 256, 20, 20)]
+        >>> outputs = detect(head + backbone)
     """
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
-        """Initialize the detection head and, when end-to-end, the per-level one2one multiplicative spatial-attention
-        block.
+        """Initialize the detection head and the per-level one2many (and, when end-to-end, one2one) attention blocks.
 
         Args:
             nc (int): Number of classes.
             reg_max (int): Maximum number of DFL channels.
             end2end (bool): Whether to use end-to-end NMS-free detection.
-            ch (tuple): Tuple of channel sizes from backbone feature maps.
+            ch (tuple): Channel sizes as `[*head_ch, *backbone_ch]`; the first half feeds the detection heads and the
+                second half supplies the per-level backbone attention references.
         """
-        super().__init__(nc, reg_max, end2end, ch)
+        nl = len(ch) // 2  # head levels; second half is the backbone reference
+        super().__init__(nc, reg_max, end2end, ch[:nl])
+        self.one2many_sad = nn.ModuleList(SAD(c) for c in ch[nl:])
         if end2end:
-            self.one2one_sad = nn.ModuleList(SAD(x) for x in ch)
+            self.one2one_sad = nn.ModuleList(SAD(c) for c in ch[nl:])
 
     def forward(
         self, x: list[torch.Tensor]
     ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
-        """Run the one2many head on raw features and the one2one head on attention-refined features."""
-        preds = self.forward_head(x, **self.one2many)
+        """Run the one2many and one2one heads on backbone-attended features."""
+        x, ref = x[: self.nl], x[self.nl :]  # head features, backbone P3/P4/P5 references
+        feats = [self.one2many_sad[i](x[i], ref[i]) for i in range(self.nl)]
+        preds = self.forward_head(feats, **self.one2many)
         if self.end2end:
             feats = [xi.detach() for xi in x] if self.detach_one2one else x
-            feats = [self.one2one_sad[i](feats[i]) for i in range(self.nl)]
+            r = [xi.detach() for xi in ref] if self.detach_one2one else ref
+            feats = [self.one2one_sad[i](feats[i], r[i]) for i in range(self.nl)]
             one2one = self.forward_head(feats, **self.one2one)
             preds = {"one2many": preds, "one2one": one2one}
         if self.training:

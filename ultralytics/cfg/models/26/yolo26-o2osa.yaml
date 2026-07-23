@@ -49,4 +49,4 @@ head:
   - [[-1, 10], 1, Concat, [1]] # cat head P5
   - [-1, 1, C3k2, [1024, True, 0.5, True]] # 22 (P5/32-large)
 
-  - [[16, 19, 22], 1, DetectO2OSA, [nc]] # Detect(P3, P4, P5)
+  - [[16, 19, 22, 4, 6, 10], 1, DetectO2OSA, [nc]] # Detect(P3, P4, P5) + backbone P3, P4, P5 attention refs

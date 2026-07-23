@@ -2,6 +2,10 @@
 
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
+from __future__ import annotations
+
+import os
+
 import torch.nn as nn
 
 from ultralytics.nn.modules.transformer import MLP
@@ -18,9 +22,91 @@ from .sam3.maskformer_segmentation import PixelDecoder, UniversalSegmentationHea
 from .sam3.model_misc import DotProductScoring, TransformerWrapper
 from .sam3.necks import Sam3DualViTDetNeck
 from .sam3.sam3_image import SAM3SemanticModel
+from .sam3.text_encoder_student import TextStudentEncoder
 from .sam3.text_encoder_ve import VETextEncoder
 from .sam3.vitdet import ViT
 from .sam3.vl_combiner import SAM3VLBackbone
+
+# ---------------------------------------------------------------------------
+# SAM3-LiteText backbone configurations
+# ---------------------------------------------------------------------------
+# Each entry maps a backbone name to the MobileCLIPTextTransformer config dict.
+# context_length=77 is the checkpoint training size; it gets truncated after
+# loading via TextStudentEncoder.set_context_length().
+_LITETEXT_CONFIGS = {
+    "S0": {
+        "dim": 512,
+        "model_name": "mct",
+        "n_transformer_layers": 4,
+        "n_heads_per_layer": 8,
+        "ffn_multiplier_per_layer": 4.0,
+        "norm_layer": "layer_norm_fp32",
+        "context_length": 77,
+        "vocab_size": 49408,
+        "causal_masking": False,
+    },
+    "S1": {
+        "dim": 512,
+        "model_name": "base",
+        "n_transformer_layers": 12,
+        "n_heads_per_layer": 8,
+        "ffn_multiplier_per_layer": 4.0,
+        "norm_layer": "layer_norm_fp32",
+        "context_length": 77,
+        "vocab_size": 49408,
+        "causal_masking": False,
+    },
+    "L": {
+        "dim": 768,
+        "model_name": "base",
+        "n_transformer_layers": 12,
+        "n_heads_per_layer": 12,
+        "ffn_multiplier_per_layer": 4.0,
+        "norm_layer": "layer_norm_fp32",
+        "context_length": 77,
+        "vocab_size": 49408,
+        "causal_masking": False,
+    },
+}
+
+
+def _detect_litetext_backbone(checkpoint_path: str) -> str | None:
+    """Infer the LiteText backbone variant from the checkpoint filename.
+
+    Handles both the Ultralytics naming convention (``sam3-litetext-{s0,s1,l}.pt``) and the original EfficientSAM3
+    naming convention (``efficient_sam3_text_{s0,s1,l}_ctx*.pt`` or
+    ``efficient_sam3_image_encoder_mobileclip_{s0,s1,2_l}_ctx*.pt``).
+
+    Returns one of ``"S0"``, ``"S1"``, ``"L"``, or ``None`` if the path does not correspond to a LiteText model.
+
+    Args:
+        checkpoint_path (str): Path or name of the checkpoint file.
+
+    Returns:
+        (str | None): Backbone variant string or None.
+    """
+    name = os.path.basename(checkpoint_path).lower()
+    # Ultralytics/HuggingFace convention: sam3-litetext-{s0,s1,l}.pt
+    # or sam3_litetext_mobileclip_{s0,s1,2_l}_ctx*.pt
+    if "litetext" in name or "lite-text" in name:
+        if "litetext-l" in name or "litetext_l" in name or "_2_l" in name or (name.endswith("_l.pt") or "_l_ctx" in name):
+            return "L"
+        if "litetext-s1" in name or "litetext_s1" in name or "_s1_" in name:
+            return "S1"
+        if "litetext-s0" in name or "litetext_s0" in name or "_s0_" in name:
+            return "S0"
+        return None
+    # Original EfficientSAM3 convention: efficient_sam3_text_{s0,s1,l}_ctx*.pt
+    # Note: reject image-encoder-only filenames (efficient_sam3_image_encoder_mobileclip_*)
+    # which carry SAM3 visual weights only and must not be routed through the LiteText path.
+    if "efficient_sam3_text" in name or ("mobileclip" in name and "image_encoder" not in name):
+        if "_l_" in name or "_2_l" in name:
+            return "L"
+        if "_s1_" in name:
+            return "S1"
+        if "_s0_" in name:
+            return "S0"
+    return None
 
 
 def _create_vision_backbone(compile_mode=None, enable_inst_interactivity=True) -> Sam3DualViTDetNeck:
@@ -132,36 +218,126 @@ def _create_sam3_transformer() -> TransformerWrapper:
     return TransformerWrapper(encoder=encoder, decoder=decoder, d_model=256)
 
 
-def build_sam3_image_model(checkpoint_path: str, enable_segmentation: bool = True, compile: bool = False):
-    """Build SAM3 image model.
+def _peek_litetext_pos_embed_length(checkpoint_path: str) -> int | None:
+    """Inspect a checkpoint file and return the positional-embedding sequence length stored inside.
+
+    LiteText checkpoints come in two formats:
+
+    - ``*_fixed.pt`` — already saved at the **operational** context length (e.g. 16 or 32).
+    - Hypothetical raw checkpoints — saved with the original pre-training length (e.g. 77).
+
+    By peeking at the stored tensor shape we can build ``TextStudentEncoder`` at exactly the
+    right size so that :func:`torch.nn.Module.load_state_dict` never encounters a shape mismatch.
 
     Args:
-        checkpoint_path: Optional path to model checkpoint
-        enable_segmentation: Whether to enable segmentation head
-        compile: Whether to enable compilation of the model
+        checkpoint_path (str): Path to the LiteText checkpoint file.
 
     Returns:
-        A SAM3 image model
+        (int | None): Detected positional-embedding length, or ``None`` if the key is not found.
     """
     try:
-        import clip
-    except ImportError:
-        from ultralytics.utils.checks import check_requirements
+        with open(checkpoint_path, "rb") as f:
+            ckpt = torch_load(f, map_location="cpu", weights_only=False)
+        state = ckpt.get("model", ckpt)
+        for key, val in state.items():
+            if "language_backbone" in key and "positional_embedding.pos_embed.pos_embed" in key:
+                return int(val.shape[2])
+    except Exception:
+        pass
+    return None
 
-        check_requirements("git+https://github.com/ultralytics/CLIP.git")
-        import clip
+
+def _detect_litetext_context_length(checkpoint_path: str, default: int = 16) -> int:
+    """Infer the operational context length from the checkpoint filename.
+
+    Files with ``"ctx32"`` in their name are assumed to use context length 32; all others default to 16.
+
+    Args:
+        checkpoint_path (str): Path or name of the checkpoint file.
+        default (int): Fallback context length. Default is 16.
+
+    Returns:
+        (int): Detected or default context length.
+    """
+    name = os.path.basename(checkpoint_path).lower()
+    if "ctx32" in name:
+        return 32
+    if "ctx16" in name:
+        return 16
+    return default
+
+
+def build_sam3_image_model(
+    checkpoint_path: str,
+    enable_segmentation: bool = True,
+    compile: bool = False,
+    litetext_context_length: int | None = None,
+):
+    """Build a SAM3 semantic image model, optionally with a lightweight LiteText encoder.
+
+    The function auto-detects whether ``checkpoint_path`` refers to a SAM3-LiteText checkpoint by inspecting
+    the filename. Filenames containing ``"litetext-s0"``, ``"litetext-s1"``, or ``"litetext-l"`` (case-insensitive),
+    or the original EfficientSAM3 naming (``"efficient_sam3_text_*"``), will use
+    :class:`~ultralytics.models.sam.sam3.text_encoder_student.TextStudentEncoder` instead of the default heavy
+    CLIP ViT-L text encoder.
+
+    The operational context length is also auto-detected from the filename (``ctx16`` → 16, ``ctx32`` → 32),
+    falling back to 16 when not specified. Pass ``litetext_context_length`` explicitly to override.
+
+    Args:
+        checkpoint_path (str): Path to the model checkpoint file.
+        enable_segmentation (bool): Whether to attach the segmentation head. Default is True.
+        compile (bool): Whether to JIT-compile the vision backbone. Default is False.
+        litetext_context_length (int | None): Operational context length for LiteText checkpoints. When ``None``
+            the value is auto-detected from the filename (``ctx16`` / ``ctx32``), defaulting to 16. Ignored for
+            standard SAM3 checkpoints.
+
+    Returns:
+        (SAM3SemanticModel): Configured and weight-loaded SAM3 model ready for evaluation.
+    """
+    litetext_backbone = _detect_litetext_backbone(checkpoint_path)
+    if litetext_backbone is not None and litetext_context_length is None:
+        litetext_context_length = _detect_litetext_context_length(checkpoint_path)
+
+    if litetext_backbone is None:
+        # Standard SAM3: heavy CLIP ViT-L text encoder.
+        try:
+            import clip
+        except ImportError:
+            from ultralytics.utils.checks import check_requirements
+
+            check_requirements("git+https://github.com/ultralytics/CLIP.git")
+            import clip
+
     # Create visual components
     compile_mode = "default" if compile else None
     vision_encoder = _create_vision_backbone(compile_mode=compile_mode, enable_inst_interactivity=True)
 
     # Create text components
-    text_encoder = VETextEncoder(
-        tokenizer=clip.simple_tokenizer.SimpleTokenizer(),
-        d_model=256,
-        width=1024,
-        heads=16,
-        layers=24,
-    )
+    if litetext_backbone is not None:
+        # Peek at the checkpoint to find the actual positional-embedding length.
+        # "fixed" checkpoints store pos_embed at the operational ctx length (e.g. 16);
+        # raw pre-trained checkpoints store it at the original training length (e.g. 77).
+        # Building the model at the checkpoint's stored length prevents size mismatches in
+        # load_state_dict(); set_context_length() handles truncation afterwards.
+        ckpt_pos_embed_len = _peek_litetext_pos_embed_length(checkpoint_path)
+        if ckpt_pos_embed_len is not None:
+            litetext_cfg = {**_LITETEXT_CONFIGS[litetext_backbone], "context_length": ckpt_pos_embed_len}
+        else:
+            litetext_cfg = _LITETEXT_CONFIGS[litetext_backbone]
+        text_encoder = TextStudentEncoder(
+            cfg=litetext_cfg,
+            context_length=litetext_context_length,
+            output_dim=256,
+        )
+    else:
+        text_encoder = VETextEncoder(
+            tokenizer=clip.simple_tokenizer.SimpleTokenizer(),
+            d_model=256,
+            width=1024,
+            heads=16,
+            layers=24,
+        )
 
     # Create visual-language backbone
     backbone = SAM3VLBackbone(visual=vision_encoder, text=text_encoder, scalp=1)
@@ -251,6 +427,12 @@ def build_sam3_image_model(checkpoint_path: str, enable_segmentation: bool = Tru
 
     # Load checkpoint
     model = _load_checkpoint(model, checkpoint_path)
+
+    # For LiteText models the checkpoint stores positional embeddings at context_length=77
+    # (the pre-training context). Truncate them to the operational context length now.
+    if litetext_backbone is not None:
+        model.backbone.language_backbone.set_context_length(litetext_context_length)
+
     model.eval()
     return model
 

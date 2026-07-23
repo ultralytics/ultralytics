@@ -19,6 +19,7 @@ The Ultralytics HUB integration transfers everything from your [Ultralytics HUB]
     - Storage required, checked against your remaining storage
 4. Click **Confirm** to start the import.
 
+<!-- screenshot: settings-integrations-hub-import-dialog -->
 ![Ultralytics Platform Settings Integrations Hub Import Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-integrations-hub-import-dialog.avif)
 
 A progress bar tracks the import while it runs. When it finishes, the card shows a summary of everything that was imported.

@@ -9,6 +9,7 @@ keywords: Ultralytics Platform, trash, restore, soft delete, recover, deleted it
 
 [Ultralytics Platform](https://platform.ultralytics.com) implements a 30-day soft delete policy, allowing you to recover accidentally deleted projects, datasets, and models. Deleted items are moved to Trash where they can be restored before permanent deletion.
 
+<!-- screenshot: settings-trash-tab-with-items-and-storage-treemap -->
 ![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-trash-tab-with-items-and-storage-treemap.avif)
 
 ## Soft Delete Policy
@@ -30,6 +31,7 @@ Navigate to your Trash:
 1. Go to **Settings** and click the **Trash** tab
 2. Or navigate directly to `/trash` (redirects to `Settings > Trash`)
 
+<!-- screenshot: settings-trash-tab-filter-by-type-dropdown -->
 ![Ultralytics Platform Settings Trash Tab Filter By Type Dropdown](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-trash-tab-filter-by-type-dropdown.avif)
 
 ## Trash Contents
@@ -85,6 +87,7 @@ Recover a deleted item:
 3. Click the **Restore** button (undo icon)
 4. Confirm restoration
 
+<!-- screenshot: settings-trash-tab-restore-button-on-item -->
 ![Ultralytics Platform Settings Trash Tab Restore Button On Item](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-trash-tab-restore-button-on-item.avif)
 
 The item returns to its original location with all data intact.

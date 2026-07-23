@@ -20,6 +20,7 @@ The `Profile` tab contains your profile information, social links, data region, 
 
 Update your profile information:
 
+<!-- screenshot: settings-profile-tab-display-name-bio-company-fields -->
 ![Ultralytics Platform Settings Profile Tab Display Name Bio Company Fields](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-display-name-bio-company-fields.avif)
 
 | Field            | Description                               |
@@ -65,6 +66,7 @@ Update your profile information:
 
 Connect your professional profiles:
 
+<!-- screenshot: settings-profile-tab-social-links-grid -->
 ![Ultralytics Platform Settings Profile Tab Social Links Grid](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-social-links-grid.avif)
 
 | Platform           | Format         |
@@ -83,6 +85,7 @@ Social links appear on your public profile page.
 
 Manage email addresses linked to your account in the `Profile` tab:
 
+<!-- screenshot: settings-profile-tab-emails-section -->
 ![Ultralytics Platform Settings Profile Tab Emails Section](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-emails-section.avif)
 
 | Action             | Description                                    |
@@ -114,6 +117,7 @@ View your data region on the `Profile` tab:
 
 Monitor your storage consumption on the `Profile` tab and the **Home** page:
 
+<!-- screenshot: settings-profile-tab-storage-usage-card -->
 ![Ultralytics Platform Settings Profile Tab Storage Usage Card](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-storage-usage-card.avif)
 
 The storage card shows:
@@ -223,6 +227,7 @@ The `API Keys` tab lets you create and manage API keys for remote training and i
 
 The `Plans` tab lets you compare available plans and upgrade or downgrade your subscription.
 
+<!-- screenshot: settings-plans-tab-free-pro-enterprise-comparison -->
 ![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-free-pro-enterprise-comparison.avif)
 
 | Plan           | Storage   | Models    | Deployments | Concurrent Trainings | Team Seats |
@@ -243,6 +248,7 @@ See [Billing](billing.md) for detailed plan information, pricing, and upgrade in
 
 The `Billing` tab is where you manage credits, payment methods, and review transaction history. Credits are the currency used for cloud training and deployments on the platform.
 
+<!-- screenshot: settings-billing-tab-credit-balance-and-plan-card -->
 ![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-credit-balance-and-plan-card.avif)
 
 From this tab you can:
@@ -263,6 +269,7 @@ See [Billing](billing.md) for full documentation on credits, payment, and plan m
 
 The `Teams` tab lets you manage workspace members, roles, and invitations. Teams are available on [Pro and Enterprise plans](billing.md#plans).
 
+<!-- screenshot: settings-teams-tab-member-list-with-roles -->
 ![Ultralytics Platform Teams Member List With Roles](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-tab-member-list-with-roles.avif)
 
 ### Roles and Permissions
@@ -315,6 +322,7 @@ See [Integrations](../integrations/index.md) for the full list of supported serv
 
 The `Trash` tab shows all deleted items and lets you restore or permanently remove them. Deleted items follow a 30-day soft delete policy before automatic permanent deletion.
 
+<!-- screenshot: settings-trash-tab-with-items-and-storage-treemap -->
 ![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-trash-tab-with-items-and-storage-treemap.avif)
 
 From this tab you can:

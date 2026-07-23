@@ -29,6 +29,7 @@ graph LR
 
 Start training from the platform UI by clicking **New Model** on any project page (or **Train** from a dataset page). The training dialog has two tabs: **Cloud Training** and **Local Training**.
 
+<!-- screenshot: platform-training-dialog-cloud-tab -->
 ![Ultralytics Platform Training Dialog Cloud Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-dialog-cloud-tab.avif)
 
 ### Step 1: Select Base Model
@@ -114,6 +115,7 @@ This preserves the data used for the run even if you later add or remove images,
 
 Choose your GPU from Ultralytics Cloud:
 
+<!-- screenshot: platform-training-dialog-gpu-selector-and-cost -->
 ![Ultralytics Platform Training Dialog Gpu Selector And Cost](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-dialog-gpu-selector-and-cost.avif)
 
 {% include "macros/platform-gpu-table.md" %}
@@ -157,6 +159,7 @@ To receive the completed and failed results without keeping this page open, conn
 
     New accounts receive signup credits — $5 for personal emails and $25 for company emails. [Check your balance](../account/billing.md) in Settings > Billing.
 
+<!-- screenshot: platform-training-progress-with-charts -->
 ![Ultralytics Platform Training Progress With Charts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-progress-with-charts.avif)
 
 ## Monitor Training
@@ -165,6 +168,7 @@ View real-time training progress on the model page's **Train** tab:
 
 ### Charts Subtab
 
+<!-- screenshot: platform-model-training-live-charts -->
 ![Ultralytics Platform Model Training Live Charts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-training-live-charts.avif)
 
 | Metric        | Description                  |
@@ -375,6 +379,7 @@ After training, view detailed costs in the **Billing** tab:
 - Total GPU time
 - Download cost report
 
+<!-- screenshot: platform-training-billing-details -->
 ![Ultralytics Platform Training Billing Details](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-billing-details.avif)
 
 ## Training Tips
@@ -465,6 +470,7 @@ The YAML editor also supports **importing configurations from previous training 
 - **Paste YAML or JSON**: Paste any valid YAML or JSON training configuration into the editor. Parameters are validated automatically, with out-of-range values clamped and warnings displayed.
 - **Drag and drop files**: Drag a `.yaml` or `.json` file directly into the editor to import its parameters.
 
+<!-- screenshot: platform-training-dialog-copy-training-config-json -->
 ![Ultralytics Platform Training Dialog Copy Training Config JSON](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-dialog-copy-training-config-json.avif)
 
 This makes it easy to reproduce or iterate on previous training configurations without manually re-entering each parameter.

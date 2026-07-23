@@ -10,6 +10,7 @@ keywords: Ultralytics Platform, inference, API, YOLO, object detection, predicti
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides an inference API for testing trained models. Use the browser-based `Predict` tab for quick validation or the [REST API](../api/index.md#models-api) for programmatic access.
 
+<!-- screenshot: model-predict-tab-with-detections-overlay -->
 ![Ultralytics Platform Model Predict Tab With Detections Overlay](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/model-predict-tab-with-detections-overlay.avif)
 
 ## Predict Tab
@@ -21,6 +22,7 @@ Every model includes a `Predict` tab for browser-based inference:
 3. Upload an image, use an example, or open your webcam
 4. View predictions instantly with bounding box overlays
 
+<!-- screenshot: predict-tab-image-upload-dropzone -->
 ![Ultralytics Platform Predict Tab Image Upload Dropzone](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/predict-tab-image-upload-dropzone.avif)
 
 ### Input Methods
@@ -90,6 +92,7 @@ Inference results display:
 - **Class colors** from your dataset's color palette (or the Ultralytics default palette)
 - **Speed breakdown**: Preprocess, inference, postprocess, and network time
 
+<!-- screenshot: predict-tab-results-with-detections-and-speed-stats -->
 ![Ultralytics Platform Predict Tab Results With Detections And Speed Stats](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/predict-tab-results-with-detections-and-speed-stats.avif)
 
 The results panel shows:
@@ -104,6 +107,7 @@ The results panel shows:
 
 Adjust detection behavior with parameters in the collapsible **Parameters** section:
 
+<!-- screenshot: predict-tab-parameters-sliders -->
 ![Ultralytics Platform Predict Tab Parameters Sliders](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/predict-tab-parameters-sliders.avif)
 
 | Parameter      | Range                      | Default | Description                                              |
@@ -208,6 +212,7 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
     console.log(result);
     ```
 
+<!-- screenshot: predict-tab-code-examples-python-tab -->
 ![Ultralytics Platform Predict Tab Code Examples Python Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/predict-tab-code-examples-python-tab.avif)
 
 ### Request Parameters
@@ -264,6 +269,7 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
 }
 ```
 
+<!-- screenshot: predict-tab-json-response-view -->
 ![Ultralytics Platform Predict Tab Json Response View](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/predict-tab-json-response-view.avif)
 
 ### Response Fields

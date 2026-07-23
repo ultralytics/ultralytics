@@ -9,6 +9,7 @@ keywords: Ultralytics Platform, REST API, API reference, authentication, endpoin
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides a comprehensive REST API for programmatic access to datasets, models, training, and deployments.
 
+<!-- screenshot: platform-api-overview -->
 ![Ultralytics Platform Api Overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-api-overview.avif)
 
 !!! tip "Quick Start"

@@ -205,6 +205,7 @@ For task-specific format details, see [supported tasks](index.md#supported-tasks
 5. Set visibility (public or private) and optional license (see [available licenses](#available-licenses))
 6. Click `Create & Upload` (or `Create Dataset` if creating an empty dataset)
 
+<!-- screenshot: platform-datasets-upload-dialog-task-selector -->
 ![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-upload-dialog-task-selector.avif)
 
 After upload, the platform processes your data through a multi-stage pipeline:
@@ -228,6 +229,7 @@ graph LR
 4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format) and COCO format labels extracted
 5. **Statistics**: Class distributions and image dimensions computed
 
+<!-- screenshot: platform-datasets-upload-progress-bar -->
 ![Ultralytics Platform Datasets Upload Progress Bar](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-upload-progress-bar.avif)
 
 ??? tip "Validate Before Upload"
@@ -256,6 +258,7 @@ Open the [Clustering](#clustering) panel from the gallery toolbar to explore you
 | **Compact** | Smaller thumbnails for quick scanning                                             |
 | **Table**   | List with thumbnail, filename, dimensions, size, split, classes, and label counts |
 
+<!-- screenshot: platform-datasets-gallery-grid-view-with-annotations -->
 ![Ultralytics Platform Datasets Gallery Grid View With Annotations](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-gallery-grid-view-with-annotations.avif)
 
 ### Sorting and Filtering
@@ -306,6 +309,7 @@ Click any image to open the fullscreen viewer with:
 - **Pan**: Hold `Space` and drag to pan the canvas when zoomed
 - **Pixel view**: Toggle pixelated rendering for close inspection
 
+<!-- screenshot: platform-datasets-fullscreen-viewer-with-metadata-panel -->
 ![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-fullscreen-viewer-with-metadata-panel.avif)
 
 ### Filter by Split
@@ -322,6 +326,7 @@ Filter images by their dataset split:
 
 The `Clustering` panel projects your dataset into an interactive 2D scatter plot where visually similar images sit close together. Use it to surface clusters, spot duplicates and outliers, and inspect how splits or classes are distributed across your data — without leaving the gallery. Open it from the scatter-chart icon in the gallery toolbar on any dataset page.
 
+<!-- screenshot: platform-datasets-clustering-empty-state -->
 ![Ultralytics Platform Datasets Clustering Empty State](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-clustering-empty-state.avif)
 
 ### Running Analysis
@@ -338,6 +343,7 @@ Analysis runs in the background and can take a few minutes depending on the size
 
 Once analysis completes, the panel shows a 2D scatter of all analyzed images. Gallery filters (split, class, labeled/unlabeled) dim out-of-filter points so you can focus on the subset you care about.
 
+<!-- screenshot: platform-datasets-clustering -->
 ![Ultralytics Platform Datasets Clustering Scatter Plot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-clustering.avif)
 
 #### Color By
@@ -353,6 +359,7 @@ Change how data points are shaded with the `Color by` dropdown in the panel tool
 | **Size**        | File size                            |
 | **Annotations** | Number of annotations per image      |
 
+<!-- screenshot: platform-datasets-clustering-color-modes -->
 ![Ultralytics Platform Datasets Clustering Color Modes](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-clustering-color-modes.avif)
 
 #### Lasso Selection
@@ -399,6 +406,7 @@ Manage annotation classes for your dataset:
 - **Edit class colors**: Click a color swatch to change the class color
 - **Add new class**: Use the input at the bottom to add classes
 
+<!-- screenshot: platform-datasets-classes-tab-histogram-and-table -->
 ![Ultralytics Platform Datasets Classes Tab Histogram And Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-classes-tab-histogram-and-table.avif)
 
 !!! note "Log Scale for Imbalanced Datasets"
@@ -424,6 +432,7 @@ Automatic statistics computed from your dataset:
 | **Objects per Image**       | Histogram of annotation count per image                               |
 | **Image Dimensions 2D**     | 2D width vs height heatmap with aspect ratio guide lines              |
 
+<!-- screenshot: platform-datasets-charts-tab-statistics-grid -->
 ![Ultralytics Platform Datasets Charts Tab Statistics Grid](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-charts-tab-statistics-grid.avif)
 
 !!! tip "Statistics Caching"
@@ -450,6 +459,7 @@ View all models trained on this dataset in a searchable table:
 | mAP50    | mAP at IoU 0.50                                     |
 | Created  | Creation date                                       |
 
+<!-- screenshot: platform-datasets-models-tab-trained-models-table -->
 ![Ultralytics Platform Datasets Models Tab Trained Models Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-models-tab-trained-models-table.avif)
 
 ### Errors Tab
@@ -462,6 +472,7 @@ Images that failed processing are listed here with:
 - **Error table**: Filename, user-friendly error description, fix hints, and preview thumbnail
 - Common errors include corrupted files, unsupported formats, images too small (min 28px), and unsupported color modes
 
+<!-- screenshot: platform-datasets-errors-tab-processing-failures -->
 ![Ultralytics Platform Datasets Errors Tab Processing Failures](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-errors-tab-processing-failures.avif)
 
 ??? info "Common Processing Errors"
@@ -523,6 +534,7 @@ To export:
 2. Download the current NDJSON snapshot directly
 3. Use the **Versions** tab when you want an immutable numbered snapshot you can re-download later
 
+<!-- screenshot: platform-datasets-export-ndjson-download -->
 ![Ultralytics Platform Datasets Export Ndjson Download](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-export-ndjson-download.avif)
 
 The NDJSON format stores one JSON object per line. The first line contains dataset metadata, followed by one line per image:
@@ -551,6 +563,7 @@ Right-click any image in **Grid** or **Compact** view to access quick actions:
 | **Download**      | Download the original image file                |
 | **Delete**        | Delete the image from the dataset               |
 
+<!-- screenshot: platform-datasets-image-card-context-menu -->
 ![Ultralytics Platform Datasets Image Card Context Menu](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-image-card-context-menu.avif)
 
 !!! tip "Single vs Bulk"
@@ -581,6 +594,7 @@ Redistribute all images across train, validation, and test splits using custom r
 3. Review the live image count preview to confirm the distribution
 4. Click **Apply** to randomly reassign all images according to your percentages
 
+<!-- screenshot: platform-datasets-split-redistribution-dialog -->
 ![Ultralytics Platform Datasets Split Redistribution Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-split-redistribution-dialog.avif)
 
 The dialog provides three ways to set your target split ratios:

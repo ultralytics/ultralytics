@@ -10,6 +10,7 @@ keywords: Ultralytics Platform, teams, collaboration, enterprise, roles, permiss
 
 [Ultralytics Platform](https://platform.ultralytics.com) team features enable collaborative computer vision workflows. Create a team workspace to share datasets, projects, models, and deployments with your colleagues using role-based access control.
 
+<!-- screenshot: settings-teams-tab-member-list-with-roles -->
 ![Ultralytics Platform Teams Member List With Roles](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-tab-member-list-with-roles.avif)
 
 ## Overview
@@ -40,12 +41,14 @@ Alternatively, [upgrade your personal account to Pro](billing.md#upgrade-to-pro)
 
     You can create up to 5 teams. To create another, you must first delete or transfer ownership of an existing team.
 
+<!-- screenshot: settings-teams-create-team-landing -->
 ![Ultralytics Platform Teams Create Team Landing](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-create-team-landing.avif)
 
 ## Switching Workspaces
 
 Switch between your personal account and team workspaces using the workspace switcher in the sidebar. All teams you belong to appear in the list.
 
+<!-- screenshot: settings-teams-workspace-switcher-dropdown -->
 ![Ultralytics Platform Teams Workspace Switcher Dropdown](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-workspace-switcher-dropdown.avif)
 
 When you switch to a team workspace, all resources you see and create belong to that team. Your personal workspace resources remain separate.
@@ -91,6 +94,7 @@ Admins and Owners can invite new members to the team:
 4. Select a role (Admin, Editor, or Viewer)
 5. Click **Send Invitation**
 
+<!-- screenshot: settings-teams-invite-member-dialog -->
 ![Ultralytics Platform Teams Invite Member Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-invite-member-dialog.avif)
 
 The invitee receives an email invitation with a link to accept and join the team. Invitations remain valid until accepted or canceled. Once accepted, the team workspace appears in the invitee's workspace switcher. If an invite is lost, **Resend** it from the Teams tab to rotate the token and send a fresh email, or **Cancel** it to free up the seat.

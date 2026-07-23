@@ -13,7 +13,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 
-from ultralytics.engine.exporter import EXPORT_ENVS  # noqa: E402 (requires repository path setup above)
+from ultralytics.engine.exporter import EXPORT_ENVS
 
 
 def isolated_env_ids():

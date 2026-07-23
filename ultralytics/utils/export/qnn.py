@@ -96,10 +96,7 @@ def onnx2qnn(
     dims = [d.dim_value for d in onnx.load(str(onnx_file)).graph.input[0].type.tensor_type.shape.dim]
     if len(dims) == 4 and dims[3] in {1, 3} and dims[1] not in {1, 3}:  # channel-last graph (QNNModel export)
         nchw_transform = transform_fn
-
-        def transform_fn(data_item):
-            return nchw_transform(data_item).transpose(0, 2, 3, 1)
-
+        transform_fn = lambda data_item: nchw_transform(data_item).transpose(0, 2, 3, 1)
     try:
         quant_pre_process(str(onnx_file), str(pre_file))
         # 16-bit activations + 8-bit weights is the ORT-recommended accuracy/perf balance for the HTP backend

@@ -6,8 +6,8 @@ from __future__ import annotations
 import math
 
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
-from torch import nn
 from torch.nn.init import constant_, xavier_uniform_
 
 from ultralytics.utils.torch_utils import TORCH_1_11

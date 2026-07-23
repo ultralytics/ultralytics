@@ -329,7 +329,7 @@ class YOLOE(Model):
         # Verify no background class is present
         assert " " not in classes
         assert isinstance(self.model, YOLOEModel)
-        if sorted(self.model.names.values()) != sorted(classes):
+        if sorted(list(self.model.names.values())) != sorted(classes):
             if embeddings is None:
                 embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
             self.model.set_classes(classes, embeddings)

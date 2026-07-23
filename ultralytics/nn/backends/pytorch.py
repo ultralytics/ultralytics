@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import torch
-from torch import nn
+import torch.nn as nn
 
 from ultralytics.utils import IS_JETSON, LOGGER, is_jetson
 

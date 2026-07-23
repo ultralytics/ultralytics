@@ -5,8 +5,8 @@ import math
 
 import numpy as np
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
-from torch import nn
 from torch.nn.init import uniform_
 
 __all__ = "inverse_sigmoid", "multi_scale_deformable_attn_pytorch"

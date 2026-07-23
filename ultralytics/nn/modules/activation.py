@@ -2,7 +2,7 @@
 """Activation modules."""
 
 import torch
-from torch import nn
+import torch.nn as nn
 
 
 class AGLU(nn.Module):

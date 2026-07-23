@@ -7,7 +7,7 @@ import math
 
 import numpy as np
 import torch
-from torch import nn
+import torch.nn as nn
 
 __all__ = (
     "CBAM",

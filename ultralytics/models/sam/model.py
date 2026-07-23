@@ -103,9 +103,9 @@ class SAM(Model):
             >>> for r in results:
             ...     print(f"Detected {len(r.masks)} masks")
         """
-        overrides = {"conf": 0.25, "task": "segment", "mode": "predict", "imgsz": 1024}
+        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024)
         kwargs = {**overrides, **kwargs}
-        prompts = {"bboxes": bboxes, "points": points, "labels": labels}
+        prompts = dict(bboxes=bboxes, points=points, labels=labels)
         return super().predict(source, stream, prompts=prompts, **kwargs)
 
     def __call__(self, source=None, stream: bool = False, bboxes=None, points=None, labels=None, **kwargs):

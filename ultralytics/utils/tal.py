@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import torch
-from torch import nn
+import torch.nn as nn
 
 from . import LOGGER
 from .metrics import bbox_iou, probiou

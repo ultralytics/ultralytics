@@ -30,7 +30,7 @@ def on_fit_epoch_end(trainer):
     """
     if ray.train._internal.session.get_session():  # check if Ray Tune session is active
         metrics = trainer.metrics
-        session.report({**metrics, "epoch": trainer.epoch + 1})
+        session.report({**metrics, **{"epoch": trainer.epoch + 1}})
 
 
 callbacks = (

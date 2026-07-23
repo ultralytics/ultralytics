@@ -120,6 +120,7 @@ def update_markdown_files(md_filepath: Path):
 
         # Save page
         md_filepath.write_text(content)
+    return
 
 
 def update_docs_html():

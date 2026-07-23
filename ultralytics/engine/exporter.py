@@ -1253,13 +1253,15 @@ class Exporter:
         else:
             inputs = [ct.ImageType("image", shape=self.im.shape, scale=1 / 255, bias=[0.0, 0.0, 0.0])]
 
+        quantize = 16 if self.args.nms and not mlmodel and self.args.quantize is None else self.args.quantize
+        self.metadata["args"]["quantize"] = quantize
         ct_model = torch2coreml(
             model=model,
             inputs=inputs,
             im=self.im,
             classifier_names=list(self.model.names.values()) if self.model.task == "classify" else None,
             mlmodel=mlmodel,
-            quantize=16 if self.args.nms and not mlmodel and self.args.quantize is None else self.args.quantize,
+            quantize=quantize,
             metadata=self.metadata,
             prefix=prefix,
         )

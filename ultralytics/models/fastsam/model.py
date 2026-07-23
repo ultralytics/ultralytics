@@ -70,7 +70,7 @@ class FastSAM(Model):
         Returns:
             (list): List of Results objects containing the prediction results.
         """
-        prompts = {"bboxes": bboxes, "points": points, "labels": labels, "texts": texts}
+        prompts = dict(bboxes=bboxes, points=points, labels=labels, texts=texts)
         return super().predict(source, stream, prompts=prompts, **kwargs)
 
     @property

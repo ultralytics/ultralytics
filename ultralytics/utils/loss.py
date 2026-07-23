@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Any
 
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
-from torch import nn
 
 from ultralytics.utils.metrics import CITYSCAPES_WEIGHT, OKS_SIGMA, RLE_WEIGHT
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh

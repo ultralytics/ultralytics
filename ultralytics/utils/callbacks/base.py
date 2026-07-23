@@ -9,60 +9,74 @@ from copy import deepcopy
 
 def on_pretrain_routine_start(trainer):
     """Called at the beginning of the pre-training routine, before data loading and model setup."""
+    pass
 
 
 def on_pretrain_routine_end(trainer):
     """Called at the end of the pre-training routine, after data loading and model setup are complete."""
+    pass
 
 
 def on_train_start(trainer):
     """Called when the training starts, before the first epoch begins."""
+    pass
 
 
 def on_train_epoch_start(trainer):
     """Called at the start of each training epoch, before batch iteration begins."""
+    pass
 
 
 def on_train_batch_start(trainer):
     """Called at the start of each training batch, before the forward pass."""
+    pass
 
 
 def optimizer_step(trainer):
     """Called during the optimizer step. Reserved for custom integrations; not called by default."""
+    pass
 
 
 def on_before_zero_grad(trainer):
     """Called before the gradients are set to zero. Reserved for custom integrations; not called by default."""
+    pass
 
 
 def on_train_batch_end(trainer):
     """Called at the end of each training batch, after the backward pass. Optimizer step may be deferred by
     accumulation.
     """
+    pass
 
 
 def on_train_epoch_end(trainer):
     """Called at the end of each training epoch, after all batches but before validation."""
+    pass
 
 
 def on_fit_epoch_end(trainer):
     """Called at the end of each fit epoch (train + val), after validation and any checkpoint save."""
+    pass
 
 
 def on_model_save(trainer):
     """Called when the model checkpoint is saved, after validation."""
+    pass
 
 
 def on_train_end(trainer):
     """Called when the training ends, after final evaluation of the best model."""
+    pass
 
 
 def on_params_update(trainer):
     """Called when the model parameters are updated. Reserved for custom integrations; not called by default."""
+    pass
 
 
 def teardown(trainer):
     """Called during the teardown of the training process."""
+    pass
 
 
 # Validator callbacks --------------------------------------------------------------------------------------------------
@@ -70,18 +84,22 @@ def teardown(trainer):
 
 def on_val_start(validator):
     """Called when the validation starts."""
+    pass
 
 
 def on_val_batch_start(validator):
     """Called at the start of each validation batch."""
+    pass
 
 
 def on_val_batch_end(validator):
     """Called at the end of each validation batch."""
+    pass
 
 
 def on_val_end(validator):
     """Called when the validation ends."""
+    pass
 
 
 # Predictor callbacks --------------------------------------------------------------------------------------------------
@@ -89,22 +107,27 @@ def on_val_end(validator):
 
 def on_predict_start(predictor):
     """Called when the prediction starts."""
+    pass
 
 
 def on_predict_batch_start(predictor):
     """Called at the start of each prediction batch."""
+    pass
 
 
 def on_predict_batch_end(predictor):
     """Called at the end of each prediction batch."""
+    pass
 
 
 def on_predict_postprocess_end(predictor):
     """Called after the post-processing of the prediction ends."""
+    pass
 
 
 def on_predict_end(predictor):
     """Called when the prediction ends."""
+    pass
 
 
 # Exporter callbacks ---------------------------------------------------------------------------------------------------
@@ -112,10 +135,12 @@ def on_predict_end(predictor):
 
 def on_export_start(exporter):
     """Called when the model export starts."""
+    pass
 
 
 def on_export_end(exporter):
     """Called when the model export ends."""
+    pass
 
 
 default_callbacks = {

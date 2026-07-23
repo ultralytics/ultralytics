@@ -7,9 +7,9 @@ from __future__ import annotations
 import math
 
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
-from torch import nn
-from torch.utils import checkpoint
+import torch.utils.checkpoint as checkpoint
 
 from ultralytics.nn.modules.transformer import MLP
 

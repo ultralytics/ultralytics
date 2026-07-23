@@ -99,7 +99,7 @@ class DistanceCalculation(BaseSolution):
 
             # Update selected boxes if they're being tracked
             if len(self.selected_boxes) == 2:
-                for trk_id in self.selected_boxes:
+                for trk_id in self.selected_boxes.keys():
                     if trk_id == track_id:
                         self.selected_boxes[track_id] = box
 

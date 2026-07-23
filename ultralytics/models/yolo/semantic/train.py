@@ -123,7 +123,7 @@ class SemanticSegmentationTrainer(DetectionTrainer):
             return
 
         _, ax = plt.subplots(1, 1, figsize=(8, 6), tight_layout=True)
-        bars = ax.bar(range(nc), pixel_counts, color=[list(c / 255.0 for c in colors(i, False)) for i in range(nc)])
+        bars = ax.bar(range(nc), pixel_counts, color=[[c / 255.0 for c in colors(i, False)] for i in range(nc)])
         ax.set_xlabel("Class")
         ax.set_ylabel("Pixels")
         ax.set_title("Training Labels Class Distribution")

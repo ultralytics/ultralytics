@@ -59,7 +59,7 @@ The exported `*_qnn.onnx` file is self-contained: it embeds the QNN context bina
 
 ### Android Phone
 
-This latest on-file sweep used retired LiteRT `v0.6.6` and QNN `v0.3.5` assets on a
+This historical sweep used pre-reexport LiteRT and QNN binaries previously published under `v0.6.6` on a
 [Xiaomi 17](https://www.mi.com/global/product/xiaomi-17/) powered by the Qualcomm Snapdragon 8 Elite Gen 5 (SM8850)
 — Qualcomm Oryon CPU, Adreno GPU, and Hexagon NPU (HTP v81). Semantic and OBB used 1024px QNN inputs, so those rows
 are not same-resolution comparisons and none of these values are benchmarks for the standardized `v0.6.6`
@@ -77,13 +77,17 @@ assets. Each cell shows the **total time** with the preprocess / inference / pos
 
 - **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`,
   measured with the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) on-device benchmark harness.
+  Sustained real-time camera frame times run higher because they also include capture, letterboxing, and thermal
+  settling; use the app's on-screen pre/inference/post breakdown for steady-state measurements on your device.
 - Native logs confirmed every LiteRT model on CPU and GPU and every QNN model on the Hexagon NPU, including depth.
 - The detailed benchmark record is in the
   [Flutter performance doc](https://github.com/ultralytics/yolo-flutter-app/blob/main/doc/performance.md).
+- The pre-standard semantic QNN binary used an in-graph ArgMax class map, avoiding the erratic logits-decoding path
+  seen in earlier snapshots. This sweep measured 30.4 ms total on the NPU.
 
 ### Windows on Snapdragon Laptop
 
-This historical sweep used the retired v73 QNN assets; semantic and OBB used 1024px inputs. End-to-end single-image
+This historical sweep used pre-standard v73 QNN binaries; semantic and OBB used 1024px inputs. End-to-end single-image
 inference ran on a Lenovo laptop powered by the Qualcomm Snapdragon X Elite (X1E78100) — Qualcomm Oryon CPU and
 Hexagon NPU (HTP v73), 32 GB RAM, Windows 11. This Windows-on-Snapdragon comparison runs the native PyTorch FP32 CPU
 baseline that most desktop developers start from against the QNN Hexagon NPU path. Each cell shows the **full

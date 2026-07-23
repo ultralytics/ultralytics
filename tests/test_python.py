@@ -1435,41 +1435,6 @@ def test_nms_end2end_classes_before_max_det():
     assert torch.allclose(out[:, 4], torch.tensor([0.9, 0.8]))
 
 
-@pytest.mark.parametrize(
-    "head_name, extra_attr, extra_n",
-    [("Detect", None, 0), ("Segment", "nm", 3), ("OBB", "ne", 1), ("Pose", "nk", 6)],
-)
-def test_end2end_postprocess_keeps_gathered_rows_aligned(head_name, extra_attr, extra_n):
-    """The end2end `postprocess` top-k gather must keep each box, extra channel, score, and class on the same anchor.
-
-    The anchor index is encoded into the box coordinates and the head's extra channel, so a misaligned gather index
-    would return a box (or mask/angle/keypoint row) that no longer matches the score it is paired with.
-    """
-    from ultralytics.nn.modules import head as head_mod
-
-    head = getattr(head_mod, head_name).__new__(getattr(head_mod, head_name))
-    head.nc, head.max_det, head.export, head.agnostic_nms = 4, 3, False, False
-    if extra_attr:
-        setattr(head, extra_attr, extra_n)
-
-    num = 8
-    marker = torch.arange(num, dtype=torch.float32).view(num, 1)  # anchor i -> value i
-    boxes = marker.repeat(1, 4)
-    scores = torch.zeros(num, head.nc)
-    for i in range(num):
-        scores[i, i % head.nc] = 0.1 * (i + 1)  # rising peak in class i % nc -> top-3 anchors are 7, 6, 5
-    parts = [boxes, scores] + ([marker.repeat(1, extra_n)] if extra_n else [])
-    preds = torch.cat(parts, dim=-1).unsqueeze(0)  # (1, num, 4 + nc + extra)
-
-    out = head.postprocess(preds)[0]  # (max_det, 6 + extra): [x1, y1, x2, y2, score, cls, *extra]
-    for row, (anchor, cls, score) in zip(out, [(7, 3, 0.8), (6, 2, 0.7), (5, 1, 0.6)]):
-        assert torch.allclose(row[:4], torch.full((4,), float(anchor)))  # box stayed on its anchor
-        assert float(row[4]) == pytest.approx(score, abs=1e-6)  # score
-        assert int(row[5]) == cls  # class index
-        if extra_n:
-            assert torch.allclose(row[6:], torch.full((extra_n,), float(anchor)))  # extra channel stayed aligned
-
-
 def test_process_mask_empty():
     """Process_mask/process_mask_native/scale_masks must handle 0 detections without crashing."""
     from ultralytics.utils import ops

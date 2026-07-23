@@ -845,8 +845,9 @@ class Depth(nn.Module):
 
         out = feats[-1]
         for i in range(self.nl - 2, -1, -1):
-            # align_corners=True is baked into the released depth weights.
-            out = F.interpolate(out, size=feats[i].shape[2:], mode="bilinear", align_corners=True)
+            # align_corners=True is baked into the released depth weights. Constant scale (consecutive pyramid
+            # levels) keeps the upsample static for dynamic-shape CoreML export; output size is identical.
+            out = F.interpolate(out, scale_factor=2, mode="bilinear", align_corners=True)
             out = out + feats[i]
             out = self.refine[i](out)
 
@@ -963,7 +964,7 @@ class WorldDetect(Detect):
 
     def forward(self, x: list[torch.Tensor], text: torch.Tensor) -> dict[str, torch.Tensor] | tuple:
         """Concatenate and return predicted bounding boxes and class probabilities."""
-        feats = [xi.clone() for xi in x]  # save original features for anchor generation
+        feats = list(x)  # snapshot references for anchor generation; the loop below reassigns x[i], never mutates
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv4[i](self.cv3[i](x[i]), text)), 1)
         self.no = self.nc + self.reg_max * 4  # self.nc could be changed when inference with different texts

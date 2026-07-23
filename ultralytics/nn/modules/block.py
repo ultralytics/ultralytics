@@ -1999,7 +1999,8 @@ class Proto26(Proto):
         feat = x[0]
         for i, f in enumerate(self.feat_refine):
             up_feat = f(x[i + 1])
-            up_feat = F.interpolate(up_feat, size=feat.shape[2:], mode="nearest")
+            # Constant scale (P4/P5 -> P3) keeps the upsample static for dynamic-shape CoreML export
+            up_feat = F.interpolate(up_feat, scale_factor=2 ** (i + 1), mode="nearest")
             feat = feat + up_feat
         p = super().forward(self.feat_fuse(feat))
         if self.training and return_semantic:

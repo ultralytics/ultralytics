@@ -19,6 +19,7 @@ from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG_DICT,
     LOGGER,
+    PLATFORM_URL,
     RANK,
     SETTINGS,
     YAML,
@@ -749,7 +750,7 @@ class Model(torch.nn.Module):
             'path/to/exported/model.onnx'
         """
         self._check_is_pytorch_model()
-        from .exporter import Exporter
+        from .exporter import Exporter, export_formats
 
         custom = {
             "imgsz": self.model.args["imgsz"],
@@ -759,7 +760,16 @@ class Model(torch.nn.Module):
             "verbose": False,
         }  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "export"}  # highest priority args on the right
-        return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
+        try:
+            return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
+        except Exception:
+            formats = export_formats()
+            export_format = args.get("format", DEFAULT_CFG_DICT["format"])
+            format_name = dict(zip(formats["Argument"], formats["Format"])).get(
+                str(export_format).lower(), export_format
+            )
+            LOGGER.info(f"Export to {format_name} in the cloud with Ultralytics Platform: {PLATFORM_URL}")
+            raise
 
     def train(
         self,

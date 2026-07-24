@@ -261,7 +261,7 @@ For task-specific `Results` fields across every task, see the [Predict Results b
 
 ### Colorizing the depth map
 
-The raw depth map is a single-channel float array in meters useful for computation, but hard to read directly. To turn it into a color image, use the `colorize_depth` helper in `ultralytics.utils.plotting`, which maps the `(H, W)` depth array to a `(H, W, 3)` BGR `uint8` image (invalid pixels `<= 0` are rendered black).
+The raw depth map is a single-channel float array in meters — useful for computation, but hard to read directly. To turn it into a color image, use the `colorize_depth` helper in `ultralytics.utils.plotting`, which maps the `(H, W)` depth array to a `(H, W, 3)` BGR `uint8` image (invalid pixels `<= 0` are rendered black).
 
 `result.plot()` already blends this colorization over the input image using the defaults (`cmap="jet"`, `mode="disparity"`); call `colorize_depth` directly when you want a standalone colored depth image or a different colormap or normalization.
 

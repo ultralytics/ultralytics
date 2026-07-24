@@ -52,30 +52,35 @@ One model format, every target:
 
 ## Measured Performance
 
-End-to-end single-image inference for the standardized `v0.6.6` YOLO26n Android LiteRT assets (`w8a32`: int8
-weights, FP32 activations) on a [Xiaomi 17](https://www.mi.com/global/product/xiaomi-17/) powered by the Qualcomm
-Snapdragon 8 Elite Gen 5 (SM8850), using the
-[Ultralytics Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) `0.6.10`. Each cell shows the
-**total time** (preprocessing + inference + postprocessing, excluding annotation) with the per-stage split beneath
-it. CPU runs the LiteRT XNNPACK delegate; GPU runs the LiteRT OpenCL/GL delegate (FP16).
+**Hardware:** [Xiaomi 17](https://www.mi.com/global/product/xiaomi-17/) with 12 GB LPDDR5X memory and Android 16 /
+API 36. Its 3 nm [Snapdragon 8 Elite Gen 5](https://www.qualcomm.com/smartphones/products/8-series/snapdragon-8-elite-gen-5)
+(SM8850) has an 8-core Qualcomm Oryon CPU (2 Prime cores up to 4.6 GHz and 6 Performance cores up to 3.62 GHz),
+Adreno GPU, and Hexagon NPU.
 
-| Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | GPU Adreno<br><sup>w8a32 LiteRT<br>(ms)</sup> |
-| ------------- | -------- | --------------------------- | -------------------------------------- | --------------------------------------------- |
-| YOLO26n       | Detect   | 640                         | 52.2<br><sup>1.8 / 48.1 / 2.4</sup>    | **15.8**<br><sup>2.3 / 8.9 / 4.6</sup>        |
-| YOLO26n-seg   | Segment  | 640                         | 73.4<br><sup>1.8 / 65.6 / 6.0</sup>    | **33.2**<br><sup>1.8 / 23.8 / 7.6</sup>       |
-| YOLO26n-sem   | Semantic | 640                         | 61.2<br><sup>1.8 / 51.1 / 8.3</sup>    | **34.2**<br><sup>1.8 / 24.0 / 8.3</sup>       |
-| YOLO26n-depth | Depth    | 640                         | 124.4<br><sup>1.9 / 115.1 / 7.4</sup>  | **23.0**<br><sup>1.8 / 13.5 / 7.7</sup>       |
-| YOLO26n-cls   | Classify | 224                         | 4.4<br><sup>0.4 / 4.0 / 0.0</sup>      | **3.1**<br><sup>0.8 / 2.1 / 0.2</sup>         |
-| YOLO26n-pose  | Pose     | 640                         | 57.4<br><sup>1.8 / 53.8 / 1.8</sup>    | **16.6**<br><sup>2.7 / 10.1 / 3.9</sup>       |
-| YOLO26n-obb   | OBB      | 640                         | 50.3<br><sup>1.8 / 47.2 / 1.4</sup>    | **11.7**<br><sup>1.8 / 7.8 / 2.0</sup>        |
+| Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | GPU<br><sup>w8a32 LiteRT<br>(ms)</sup>  |
+| ------------- | -------- | --------------------------- | -------------------------------------- | --------------------------------------- |
+| YOLO26n       | Detect   | 640                         | 52.2<br><sup>1.8 / 48.1 / 2.4</sup>    | **15.8**<br><sup>2.3 / 8.9 / 4.6</sup>  |
+| YOLO26n-seg   | Segment  | 640                         | 73.4<br><sup>1.8 / 65.6 / 6.0</sup>    | **33.2**<br><sup>1.8 / 23.8 / 7.6</sup> |
+| YOLO26n-sem   | Semantic | 640                         | 61.2<br><sup>1.8 / 51.1 / 8.3</sup>    | **34.2**<br><sup>1.8 / 24.0 / 8.3</sup> |
+| YOLO26n-depth | Depth    | 640                         | 124.4<br><sup>1.9 / 115.1 / 7.4</sup>  | **23.0**<br><sup>1.8 / 13.5 / 7.7</sup> |
+| YOLO26n-cls   | Classify | 224                         | 4.4<br><sup>0.4 / 4.0 / 0.0</sup>      | **3.1**<br><sup>0.8 / 2.1 / 0.2</sup>   |
+| YOLO26n-pose  | Pose     | 640                         | 57.4<br><sup>1.8 / 53.8 / 1.8</sup>    | **16.6**<br><sup>2.7 / 10.1 / 3.9</sup> |
+| YOLO26n-obb   | OBB      | 640                         | 50.3<br><sup>1.8 / 47.2 / 1.4</sup>    | **11.7**<br><sup>1.8 / 7.8 / 2.0</sup>  |
 
-- **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`, measured with the Flutter plugin's on-device benchmark harness in profile mode. The full task suite runs back-to-back, so the CPU-bound preprocessing stage reflects sustained operation (a thermally rested single-task measurement is lower); the GPU/CPU inference stage is the steady-state compute cost.
-- The LiteRT export traces the PyTorch model directly, producing an **NCHW** `.tflite` with a float input — the GPU delegate compiles the whole graph (all seven tasks run on the Adreno GPU here), and `w8a32` needs no calibration data. The official Android assets are hosted on the [yolo-flutter-app `v0.6.6` release](https://github.com/ultralytics/yolo-flutter-app/releases/tag/v0.6.6), with the detailed benchmark record in [the Flutter performance doc](https://github.com/ultralytics/yolo-flutter-app/blob/main/doc/performance.md).
+- **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`, measured with the [Ultralytics Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) `0.6.10` and the standardized `v0.6.6` assets. CPU/GPU order alternated between tasks in one sequential sweep. Native logs confirmed that every CPU row used LiteRT CPU/XNNPACK and every GPU row delegated the complete graph to LiteRT OpenCL (`LITERT_CL`).
+- The LiteRT export traces the PyTorch model directly, producing an **NCHW** `.tflite` with a float input — the GPU delegate compiles the whole graph (all seven tasks run on the Adreno GPU here), and `w8a32` needs no calibration data. Consumers should read tensor shapes and signature names instead of assuming the legacy onnx2tf NHWC layout or `Identity` output names; pack RGB data directly as planar CHW or transpose it before inference. Semantic exports return NCHW logits and require a host-side class argmax. The official Android assets are hosted on the [yolo-flutter-app `v0.6.6` release](https://github.com/ultralytics/yolo-flutter-app/releases/tag/v0.6.6), with the detailed benchmark record in [the Flutter performance doc](https://github.com/ultralytics/yolo-flutter-app/blob/main/doc/performance.md).
 - The matching Snapdragon **Hexagon NPU** numbers (and the INT8 TFLite CPU/GPU baseline) are in the [Qualcomm QNN integration](qnn.md).
+- Compare the Apple CPU/accelerator results in the [CoreML integration](coreml.md#measured-performance).
 
 The following device sweeps use the same standardized `v0.6.6` assets.
 
 ### Google Pixel 10
+
+**Hardware:** [Google Pixel 10](https://store.google.com/product/pixel_10_specs) with 12 GB memory and Android 16 /
+API 36. Its 3 nm [Google Tensor G5](https://blog.google/products-and-platforms/devices/pixel/tensor-g5-pixel-10/) has
+an 8-core CPU (1 Prime core up to 3.78 GHz, 5 Performance cores up to 3.05 GHz, and 2 Efficiency cores up to
+2.25 GHz), PowerVR D-Series GPU, and Google TPU. Core clocks and the GPU driver name were read from the benchmark
+device because Google does not publish them in the linked specifications.
 
 | Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup>  | GPU<br><sup>w8a32 LiteRT<br>(ms)</sup>   |
 | ------------- | -------- | --------------------------- | --------------------------------------- | ---------------------------------------- |
@@ -87,10 +92,16 @@ The following device sweeps use the same standardized `v0.6.6` assets.
 | YOLO26n-pose  | Pose     | 640                         | 59.7<br><sup>1.5 / 57.0 / 1.2</sup>     | **46.6**<br><sup>3.8 / 39.2 / 3.5</sup>  |
 | YOLO26n-obb   | OBB      | 640                         | 52.0<br><sup>1.5 / 48.9 / 1.7</sup>     | **45.5**<br><sup>4.0 / 38.5 / 2.9</sup>  |
 
-Google Tensor G5, Android 16/API 36. Each row is the mean of 15 runs after 3 warmups; CPU/GPU order alternated
-between rows. Native logs confirmed full placement on each requested LiteRT backend.
+**Benchmark:** Mean of 15 `predict()` calls after 3 warmups on `bus.jpg`, using `ultralytics_yolo` `0.6.10` and the
+official `v0.6.6` assets. CPU/GPU order alternates between tasks in one sequential sweep. Native logs confirmed that
+every CPU row used LiteRT CPU/XNNPACK and every GPU row delegated the complete graph to LiteRT OpenCL (`LITERT_CL`).
 
 ### Samsung Galaxy S26
+
+**Hardware:** [Samsung Galaxy S26](https://www.samsung.com/uk/smartphones/galaxy-s26/) (SM-S942B) with 12 GB memory
+and Android 16 / API 36. Its 2 nm [Exynos 2600](https://semiconductor.samsung.com/processor/mobile-processor/exynos-2600/)
+has a 10-core Armv9.3 CPU (1 C1-Ultra core up to 3.8 GHz, 3 performance C1-Pro cores up to 3.26 GHz, and 6 efficiency
+C1-Pro cores up to 2.76 GHz), Xclipse 960 GPU, and Samsung NPU.
 
 | Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | GPU<br><sup>w8a32 LiteRT<br>(ms)</sup>  |
 | ------------- | -------- | --------------------------- | -------------------------------------- | --------------------------------------- |
@@ -102,8 +113,31 @@ between rows. Native logs confirmed full placement on each requested LiteRT back
 | YOLO26n-pose  | Pose     | 640                         | 42.8<br><sup>1.3 / 40.5 / 1.0</sup>    | **18.4**<br><sup>1.4 / 14.1 / 2.9</sup> |
 | YOLO26n-obb   | OBB      | 640                         | 37.5<br><sup>1.3 / 35.1 / 1.2</sup>    | **18.8**<br><sup>2.5 / 14.6 / 1.8</sup> |
 
-Exynos 2600 with Xclipse 960 GPU, Android 16/API 36. Each row is the mean of 15 runs after 3 warmups; CPU/GPU order
-alternated between rows. Native logs confirmed full placement on each requested LiteRT backend.
+**Benchmark:** Mean of 15 `predict()` calls after 3 warmups on `bus.jpg`, using `ultralytics_yolo` `0.6.10` and the
+official `v0.6.6` assets. CPU/GPU order alternates between tasks in one sequential sweep. Native logs confirmed that
+every CPU row used LiteRT CPU/XNNPACK and every GPU row delegated the complete graph to LiteRT OpenCL (`LITERT_CL`).
+
+### Xiaomi 17T Pro
+
+**Hardware:** [Xiaomi 17T Pro](https://www.mi.com/global/product/xiaomi-17t-pro/specs/) (2602EPTC0G) with 12 GB
+LPDDR5X memory and Android 16 / API 36. Its 3 nm
+[MediaTek Dimensity 9500](https://www.mediatek.com/products/smartphones/mediatek-dimensity-9500) (MT6993) has an
+8-core Armv9.3 CPU (1 C1-Ultra core up to 4.21 GHz, 3 C1-Premium cores up to 3.5 GHz, and 4 C1-Pro cores up to
+2.7 GHz), Mali-G1 Ultra MC12 GPU, and MediaTek NPU 990.
+
+| Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | GPU<br><sup>w8a32 LiteRT<br>(ms)</sup>   |
+| ------------- | -------- | --------------------------- | -------------------------------------- | ---------------------------------------- |
+| YOLO26n       | Detect   | 640                         | 45.4<br><sup>1.3 / 42.1 / 2.0</sup>    | **26.6**<br><sup>1.9 / 22.0 / 2.7</sup>  |
+| YOLO26n-seg   | Segment  | 640                         | 126.2<br><sup>2.6 / 113.9 / 9.7</sup>  | **46.7**<br><sup>2.6 / 33.3 / 10.8</sup> |
+| YOLO26n-sem   | Semantic | 640                         | 117.9<br><sup>2.6 / 98.8 / 16.5</sup>  | **74.3**<br><sup>2.6 / 54.7 / 17.0</sup> |
+| YOLO26n-depth | Depth    | 640                         | 182.4<br><sup>2.5 / 167.6 / 12.3</sup> | **47.8**<br><sup>2.5 / 32.3 / 12.9</sup> |
+| YOLO26n-cls   | Classify | 224                         | **6.2**<br><sup>0.4 / 5.3 / 0.4</sup>  | 7.4<br><sup>0.4 / 6.9 / 0.1</sup>        |
+| YOLO26n-pose  | Pose     | 640                         | 97.6<br><sup>2.5 / 93.3 / 1.8</sup>    | **28.6**<br><sup>2.5 / 23.3 / 2.8</sup>  |
+| YOLO26n-obb   | OBB      | 640                         | 91.5<br><sup>2.6 / 85.8 / 3.2</sup>    | **27.5**<br><sup>2.7 / 21.8 / 2.9</sup>  |
+
+**Benchmark:** Mean of 15 `predict()` calls after 3 warmups on `bus.jpg`, using `ultralytics_yolo` `0.6.10` and the
+official `v0.6.6` assets. CPU/GPU order alternates between tasks in one sequential sweep. Native logs confirmed that
+every CPU row used LiteRT CPU/XNNPACK and every GPU row delegated the complete graph to LiteRT OpenCL (`LITERT_CL`).
 
 ## Export to LiteRT: Converting Your YOLO Model
 

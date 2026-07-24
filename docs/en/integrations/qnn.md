@@ -59,10 +59,10 @@ The exported `*_qnn.onnx` file is self-contained: it embeds the QNN context bina
 
 ### Android Phone
 
-This sweep used the standardized LiteRT and QNN assets published under `v0.6.6` on a
-[Xiaomi 17](https://www.mi.com/global/product/xiaomi-17/) powered by the Qualcomm Snapdragon 8 Elite Gen 5 (SM8850)
-— Qualcomm Oryon CPU, Adreno GPU, and Hexagon NPU (HTP v81). Each cell shows the **total time** with the preprocess /
-inference / postprocess split beneath it.
+**Hardware:** [Xiaomi 17](https://www.mi.com/global/product/xiaomi-17/) with 12 GB LPDDR5X memory and Android 16 /
+API 36. Its 3 nm [Snapdragon 8 Elite Gen 5](https://www.qualcomm.com/smartphones/products/8-series/snapdragon-8-elite-gen-5)
+(SM8850) has an 8-core Qualcomm Oryon CPU (2 Prime cores up to 4.6 GHz and 6 Performance cores up to 3.62 GHz),
+Adreno GPU, and Hexagon NPU (HTP v81).
 
 | Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | GPU<br><sup>w8a32 LiteRT<br>(ms)</sup>  | NPU<br><sup>QNN W8A16<br>(ms)</sup>    |
 | ------------- | -------- | --------------------------- | -------------------------------------- | --------------------------------------- | -------------------------------------- |
@@ -75,19 +75,23 @@ inference / postprocess split beneath it.
 | YOLO26n-obb   | OBB      | 640                         | 50.3<br><sup>1.8 / 47.2 / 1.4</sup>    | 11.7<br><sup>1.8 / 7.8 / 2.0</sup>      | **8.6**<br><sup>1.8 / 5.7 / 1.1</sup>  |
 
 - **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`,
-  measured with the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) on-device benchmark harness.
-  Sustained real-time camera frame times run higher because they also include capture, letterboxing, and thermal
-  settling; use the app's on-screen pre/inference/post breakdown for steady-state measurements on your device.
-- Native logs confirmed every LiteRT model on CPU and GPU and every QNN model on the Hexagon NPU, including depth.
+  measured with the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) `0.6.10` on-device benchmark
+  harness and the standardized `v0.6.6` assets. Backend order rotated between tasks in one sequential sweep. Native
+  logs confirmed that every CPU row used LiteRT CPU/XNNPACK, every GPU row delegated the complete graph to LiteRT
+  OpenCL (`LITERT_CL`), and every NPU row used the QNN Hexagon HTP backend.
 - The detailed benchmark record is in the
   [Flutter performance doc](https://github.com/ultralytics/yolo-flutter-app/blob/main/doc/performance.md).
+- Compare other Android devices in the [LiteRT integration](litert.md#measured-performance) and Apple devices in the
+  [CoreML integration](coreml.md#measured-performance).
 
 ### Windows on Snapdragon Laptop
 
-This historical sweep used pre-standard v73 QNN binaries; semantic and OBB used 1024px inputs. End-to-end single-image
-inference ran on a Lenovo laptop powered by the Qualcomm Snapdragon X Elite (X1E78100) — Qualcomm Oryon CPU and
-Hexagon NPU (HTP v73), 32 GB RAM, Windows 11. This Windows-on-Snapdragon comparison runs the native PyTorch FP32 CPU
-baseline that most desktop developers start from against the QNN Hexagon NPU path. Each cell shows the **full
+This historical sweep used pre-standard v73 QNN binaries; semantic and OBB used 1024px inputs. It ran on a Lenovo
+laptop with 32 GB memory and Windows 11. Its
+[Snapdragon X Elite](https://www.qualcomm.com/products/mobile/snapdragon/pcs-and-tablets/snapdragon-x-elite)
+(X1E78100) has a 12-core Qualcomm Oryon CPU, Adreno GPU, and Hexagon NPU (HTP v73); the exact Lenovo model was not
+recorded. This Windows-on-Snapdragon comparison runs the native PyTorch FP32 CPU baseline that most desktop
+developers start from against the ONNX Runtime QNN Hexagon HTP path. Each cell shows the **full
 `model.predict()` wall time** with the reported preprocessing / inference / postprocessing timings beneath it; the
 total can include framework overhead outside those three stages. CPU numbers are PyTorch FP32 (`torch==2.10.0+cpu`)
 and NPU numbers are ONNX Runtime QNN (`onnxruntime-qnn==2.2.0`, INT8 weights / 16-bit activations).

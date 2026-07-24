@@ -6,9 +6,9 @@ keywords: Apple Core AI, CoreAI, aimodel, Core ML comparison, CoreML, mlpackage,
 
 # Apple Core AI Integration
 
-!!! warning "Core AI export is not yet available in Ultralytics"
+!!! warning "Core AI export is unavailable in Ultralytics"
 
-    Ultralytics does **not currently support** `format=coreai` or direct export to Apple's `.aimodel` format. For production deployment on Apple devices today, use the supported [Core ML integration](coreml.md). Core AI support is planned for Q4 2026, after iOS 27 and macOS 27 become generally available.
+    Ultralytics does not support `format=coreai` or direct export to Apple's `.aimodel` format. Use the supported [Core ML integration](coreml.md) for Apple deployment.
 
 [Core AI](https://developer.apple.com/core-ai/) is Apple's new framework for running neural networks directly on Apple silicon. It introduces the `.aimodel` model format, a modern Swift inference API, PyTorch-based conversion tools, ahead-of-time compilation, model specialization, and dedicated debugging and profiling tools.
 
@@ -21,7 +21,7 @@ Core AI is a new deployment path rather than a new name for Core ML. The framewo
 | Capability                       | Core AI                                                                              | Core ML                                                                                   |
 | -------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
 | Model artifact                   | `.aimodel`                                                                           | `.mlpackage` or `.mlmodel`                                                                |
-| Ultralytics export               | Planned                                                                              | Available with `format=coreml`                                                            |
+| Ultralytics export               | Not available                                                                        | Available with `format=coreml`                                                            |
 | Apple runtime API                | `AIModel`, `InferenceFunction`, and `NDArray`                                        | `MLModel`, often through `VNCoreMLModel` and `VNCoreMLRequest`                            |
 | Conversion workflow              | PyTorch `torch.export` through `coreai-torch`                                        | TorchScript conversion through `coremltools`                                              |
 | Primary focus                    | Modern neural networks and generative AI                                             | Broad machine learning deployment, including neural and non-neural models                 |
@@ -147,7 +147,8 @@ Core ML and Core AI are expected to coexist while applications transition. Suppo
 
 ## Ultralytics Roadmap
 
-Ultralytics plans to evaluate a dedicated `coreai` export target in Q4 2026, after iOS 27 and macOS 27 are generally available. The initial work is expected to focus on NMS-free YOLO26 models and the `.aimodel` format while retaining Core ML for established Apple deployment targets.
+Ultralytics is evaluating a dedicated `coreai` export target. Follow the linked roadmap and release notes for plans
+and availability; Core ML remains the supported Apple deployment target.
 
 Before Core AI can become a supported export format, the integration needs:
 

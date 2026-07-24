@@ -69,7 +69,7 @@ Adreno GPU, and Hexagon NPU.
 
 - **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`, measured with the [Ultralytics Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) `0.6.10` and the standardized `v0.6.6` assets. CPU/GPU order alternated between tasks in one sequential sweep. Native logs confirmed that every CPU row used LiteRT CPU/XNNPACK and every GPU row delegated the complete graph to LiteRT OpenCL (`LITERT_CL`).
 - The LiteRT export traces the PyTorch model directly, producing an **NCHW** `.tflite` with a float input — the GPU delegate compiles the whole graph (all seven tasks run on the Adreno GPU here), and `w8a32` needs no calibration data. Consumers should read tensor shapes and signature names instead of assuming the legacy onnx2tf NHWC layout or `Identity` output names; pack RGB data directly as planar CHW or transpose it before inference. Semantic exports return NCHW logits and require a host-side class argmax. The official Android assets are hosted on the [yolo-flutter-app `v0.6.6` release](https://github.com/ultralytics/yolo-flutter-app/releases/tag/v0.6.6), with the detailed benchmark record in [the Flutter performance doc](https://github.com/ultralytics/yolo-flutter-app/blob/main/doc/performance.md).
-- The matching Snapdragon **Hexagon NPU** numbers (and the INT8 TFLite CPU/GPU baseline) are in the [Qualcomm QNN integration](qnn.md).
+- The matching Snapdragon **Hexagon NPU** and LiteRT CPU/GPU numbers are in the [Qualcomm QNN integration](qnn.md).
 - Compare the Apple CPU/accelerator results in the [CoreML integration](coreml.md#measured-performance).
 
 The following device sweeps use the same standardized `v0.6.6` assets.

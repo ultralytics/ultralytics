@@ -1461,6 +1461,8 @@ class Attention(nn.Module):
         pe (Conv): Convolutional layer for positional encoding.
     """
 
+    fp32 = False  # compute attention scores in fp32; set via the fp32_attn hyperparameter
+
     def __init__(self, dim: int, num_heads: int = 8, attn_ratio: float = 0.5):
         """Initialize multi-head attention module.
 
@@ -1496,9 +1498,15 @@ class Attention(nn.Module):
             [self.key_dim, self.key_dim, self.head_dim], dim=2
         )
 
-        attn = (q.transpose(-2, -1) @ k) * self.scale
-        attn = attn.softmax(dim=-1)
-        x = (v @ attn.transpose(-2, -1)).view(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
+        if self.fp32:
+            # Attention scores in fp32: under AMP the q@k matmul overflows fp16 once activations grow large
+            with torch.autocast(device_type=x.device.type, enabled=False):
+                attn = (q.float().transpose(-2, -1) @ k.float()) * self.scale
+                attn = attn.softmax(dim=-1)
+        else:
+            attn = (q.transpose(-2, -1) @ k) * self.scale
+            attn = attn.softmax(dim=-1)
+        x = (v @ attn.transpose(-2, -1).to(v.dtype)).view(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
         x = self.proj(x)
         return x
 

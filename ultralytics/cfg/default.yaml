@@ -34,6 +34,7 @@ close_mosaic: 10 # (int) disable mosaic augmentation for final N epochs (0 to ke
 lsj: False # (bool) use large scale jittering (scale 0.5-2.0, translate 0.5) during the close_mosaic epochs
 resume: False # (bool) resume training from last checkpoint in the run dir
 amp: True # (bool) Automatic Mixed Precision (AMP) training; True runs AMP capability check
+fp32_attn: False # (bool) compute C2PSA/PSA Attention scores in fp32 to avoid fp16 q@k overflow under AMP
 fraction: 1.0 # (float) fraction of training dataset to use (1.0 = all)
 profile: False # (bool) profile ONNX/TensorRT speeds during training for loggers
 freeze: # (int | list, optional) freeze first N layers (int) or specific layer indices (list)

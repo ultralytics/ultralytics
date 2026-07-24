@@ -14,6 +14,7 @@ import torch.nn as nn
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
+from ultralytics.nn.modules import Attention
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.patches import override_configs
@@ -145,6 +146,7 @@ class DetectionTrainer(BaseTrainer):
         self.model.nc = self.data["nc"]  # attach number of classes to model
         self.model.names = self.data["names"]  # attach class names to model
         self.model.args = self.args  # attach hyperparameters to model
+        Attention.fp32 = self.args.fp32_attn  # toggle fp32 attention scores
         if getattr(self.model, "end2end", False):
             # Detach one2one from the backbone only in the standard one2many-aux mode; with o24 (or no aux) let it train too.
             self.model.set_head_attr(max_det=self.args.max_det, detach_one2one=self.args.o2m and not self.args.o24)

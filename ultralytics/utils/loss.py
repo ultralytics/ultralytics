@@ -1731,7 +1731,12 @@ class E2ELoss:
             total = torch.cat((total, (self.o2o * rank * batch_size).view(1)))
             loss_items = torch.cat((loss_items, rank.detach().view(1)))
         if self.aux_fg:  # class-agnostic foreground supervision on the head-input features (o2m assignment, 0/1 target)
-            aux = self.aux_fg * self.aux_fg_loss(preds["aux_fg"], self.one2many.obj_fg)
+            # the aux branch is training-only, so "aux_fg" is absent at validation (eval mode); report 0 there
+            aux = (
+                self.aux_fg * self.aux_fg_loss(preds["aux_fg"], self.one2many.obj_fg)
+                if "aux_fg" in preds
+                else total.new_zeros(())
+            )
             total = torch.cat((total, (aux * batch_size).view(1)))
             loss_items = torch.cat((loss_items, aux.detach().view(1)))
         return total, loss_items

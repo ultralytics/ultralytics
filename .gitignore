@@ -206,3 +206,5 @@ results.csv
 
 # CI test asset cache
 .ultralytics_cache/
+
+scripts/

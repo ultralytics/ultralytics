@@ -236,7 +236,6 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
             datasets (list[Dataset]): List of datasets containing category names to process.
             batch (int): Batch size for processing text embeddings.
         """
-        pass
 
 
 class YOLOEVPTrainer(YOLOETrainerFromScratch):

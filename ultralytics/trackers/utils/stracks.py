@@ -160,16 +160,16 @@ def multi_gmc(stracks: list, H: np.ndarray) -> None:
     """
     if not stracks:
         return
-    multi_mean = np.asarray([st.mean.copy() for st in stracks])
+    multi_mean = np.asarray([st.mean for st in stracks])
     multi_covariance = np.asarray([st.covariance for st in stracks])
 
     R = H[:2, :2]
     R8x8 = np.kron(np.eye(4, dtype=np.float32), R)
     t = H[:2, 2]
 
+    multi_mean = np.matmul(R8x8, multi_mean[..., None])[..., 0]
+    multi_mean[:, :2] += t
+    multi_covariance = np.matmul(np.matmul(R8x8, multi_covariance), R8x8.T)
     for i, (mean, cov) in enumerate(zip(multi_mean, multi_covariance)):
-        mean = R8x8.dot(mean)
-        mean[:2] += t
-        cov = R8x8.dot(cov).dot(R8x8.transpose())
         stracks[i].mean = mean
         stracks[i].covariance = cov

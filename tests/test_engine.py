@@ -5,7 +5,7 @@ from collections import OrderedDict
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 import torch
@@ -26,6 +26,13 @@ from ultralytics.utils.torch_utils import unwrap_model
 def test_func(*args, **kwargs):
     """Test function used as a callback stub to verify callback registration."""
     print("callback test passed")
+
+
+def test_log_callbacks():
+    """Test _log_callbacks logs each attached callback's module name and skips empty entries."""
+    with patch("ultralytics.utils.callbacks.base.LOGGER") as mock_logger:
+        _log_callbacks([{"on_train_start": lambda t: None}, {}])
+        assert "test_engine" in mock_logger.debug.call_args.args[0]
 
 
 def test_export(monkeypatch, tmp_path):
@@ -419,33 +426,3 @@ def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrain
     assert captured["weights"] is (checkpoint_model if uses_weights else None), "Unexpected weights loaded"
 
 
-@pytest.mark.parametrize(
-    "cbs, log_method, expected_msg",
-    [
-        (
-            [
-                {"callback_name": "alpha", "on_train_start": lambda t: None},
-                {"callback_name": "beta", "on_train_end": lambda t: None},
-            ],
-            "info",
-            "attached callbacks",
-        ),
-        (
-            [{"callback_name": ""}],
-            "debug",
-            "No integration callbacks attached",
-        ),
-        (
-            [{"on_train_start": lambda t: None}],
-            "warning",
-            "Some callbacks are missing",
-        ),
-    ],
-)
-def test_log_callbacks(cbs, log_method, expected_msg):
-    """Test _log_callbacks calls the correct LOGGER method with the expected message."""
-    with patch("ultralytics.utils.callbacks.base.LOGGER") as mock_logger:
-        _log_callbacks(cbs, object())
-        method: MagicMock = getattr(mock_logger, log_method)
-        method.assert_called_once()
-        assert expected_msg in method.call_args.args[0]

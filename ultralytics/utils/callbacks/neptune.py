@@ -115,7 +115,6 @@ def on_train_end(trainer) -> None:
 
 callbacks = (
     {
-        "callback_name": "neptune",
         "on_pretrain_routine_start": on_pretrain_routine_start,
         "on_train_epoch_end": on_train_epoch_end,
         "on_fit_epoch_end": on_fit_epoch_end,

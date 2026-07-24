@@ -309,7 +309,7 @@ class GMC:
         currPoints = matchedKeypoints[good]
 
         # Estimate transformation matrix using RANSAC
-        if (prevPoints.shape[0] > 4) and (prevPoints.shape[0] == currPoints.shape[0]):
+        if prevPoints.shape[0] > 4:
             H, _ = cv2.estimateAffinePartial2D(prevPoints, currPoints, cv2.RANSAC)
 
             # Scale translation components back to original resolution

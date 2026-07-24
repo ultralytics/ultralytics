@@ -1944,8 +1944,7 @@ class SemanticSegment(nn.Module):
             (torch.Tensor | tuple): Logits of shape [B, nc, H/8, W/8] during training (or a (main, aux) tuple when
                 aux_head is present) and inference. ONNX, MNN, OpenVINO, TensorRT>=10, and multi-class Hailo-10/15
                 export bake in the class reduction and return a compact map of shape [B, H, W] (uint8 when nc <= 256,
-                else int32).
-                Other export formats return upsampled logits of shape [B, nc, H, W].
+                else int32). Other export formats return upsampled logits of shape [B, nc, H, W].
         """
         # Classify
         logits = self.classifier(x[0])  # [B, nc, H/8, W/8]

@@ -24,6 +24,7 @@ __all__ = (
     "OBB",
     "Classify",
     "Detect",
+    "DetectAux",
     "DetectO2OObj",
     "DetectO2OObjBox",
     "DetectO2OObjShared",
@@ -323,6 +324,55 @@ class DetectO2OStem(Detect):
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
         return y if self.export else (y, preds)
+
+
+class DetectAux(Detect):
+    """YOLO Detect head with a training-only class-agnostic foreground auxiliary branch.
+
+    Identical to Detect at inference and export, but during training adds a per-level branch (a 3x3 Conv followed by a
+    1x1 Conv) on the same P3/P4/P5 features that feed the detection heads. Each branch predicts a single class-agnostic
+    "foreground here" logit per anchor, supervised by a BCE loss toward the one2many foreground mask (pure 0/1 target,
+    o2m assignment). The features are not detached, so the branch injects deep-supervision gradients into the backbone
+    and neck. It does not participate in inference or export and adds no deployment cost.
+
+    Attributes:
+        aux_fg (nn.ModuleList): Per-level foreground branch (3x3 Conv + 1x1 Conv) producing one logit per anchor.
+
+    Examples:
+        Create an end-to-end detection head with a class-agnostic foreground auxiliary branch
+        >>> detect = DetectAux(nc=80, end2end=True, ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = detect(x)
+    """
+
+    def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
+        """Initialize the detection head plus the training-only class-agnostic foreground branch.
+
+        Args:
+            nc (int): Number of classes.
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
+        """
+        super().__init__(nc, reg_max, end2end, ch)
+        c3 = max(ch[0], min(self.nc, 100))  # foreground branch hidden channels, matching the Detect cls branch
+        self.aux_fg = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), nn.Conv2d(c3, 1, 1)) for x in ch)
+
+    def forward(
+        self, x: list[torch.Tensor]
+    ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        """Run the standard Detect forward, adding the class-agnostic foreground logits during training only."""
+        out = super().forward(x)
+        if self.training:  # out is the training preds dict; foreground branch is a training-only auxiliary
+            bs = x[0].shape[0]  # batch size
+            out["aux_fg"] = torch.cat([self.aux_fg[i](x[i]).view(bs, 1, -1) for i in range(self.nl)], -1)
+        return out
+
+    def bias_init(self):
+        """Initialize Detect biases plus the class-agnostic foreground prior."""
+        super().bias_init()
+        for i, aux in enumerate(self.aux_fg):
+            aux[-1].bias.data[:] = math.log(5 / (640 / self.stride[i]) ** 2)  # ~object density per anchor
 
 
 class SA(nn.Module):

@@ -1611,7 +1611,13 @@ class E2ELoss:
             self.one2one.cls_hard = True  # decouple cls (hard) from the IoU quality branch
         if self.one2one.small_target_gamma < 1.0 and self.one2one.cls_hard:
             raise ValueError("o2o_small_target_gamma cannot be combined with o2o_cls_hard or o2o_quality")
-        self.one2many.cache_obj_assign = self.one2one.obj and self.train_o2m and not quality  # quality uses o2o assign
+        # training-only class-agnostic foreground auxiliary (DetectAux head): dense BCE toward the o2m foreground mask
+        # (pure 0/1, o2m assignment); needs the o2m assignment, so it requires the one2many branch to be trained
+        self.aux_fg = (
+            getattr(model.args, "aux_fg", 0.0) if hasattr(model.model[-1], "aux_fg") and self.train_o2m else 0.0
+        )
+        # cache the o2m foreground mask for the objectness (quality uses the o2o assign) or foreground auxiliary target
+        self.one2many.cache_obj_assign = (self.one2one.obj and self.train_o2m and not quality) or bool(self.aux_fg)
         if self.one2one.obj and hasattr(model.model[-1], "obj_fuse"):
             head = model.model[-1]
             # recall mode trains cls on the fused logit; quality mode trains cls alone and multiplies at inference
@@ -1724,7 +1730,26 @@ class E2ELoss:
             rank = self.one2one.rank_gain * self.one2one.rank_loss
             total = torch.cat((total, (self.o2o * rank * batch_size).view(1)))
             loss_items = torch.cat((loss_items, rank.detach().view(1)))
+        if self.aux_fg:  # class-agnostic foreground supervision on the head-input features (o2m assignment, 0/1 target)
+            aux = self.aux_fg * self.aux_fg_loss(preds["aux_fg"], self.one2many.obj_fg)
+            total = torch.cat((total, (aux * batch_size).view(1)))
+            loss_items = torch.cat((loss_items, aux.detach().view(1)))
         return total, loss_items
+
+    @staticmethod
+    def aux_fg_loss(aux_pred: torch.Tensor, fg_mask: torch.Tensor) -> torch.Tensor:
+        """Class-agnostic foreground BCE toward the one2many foreground mask, normalized by the positive count.
+
+        Args:
+            aux_pred (torch.Tensor): Foreground logits with shape (bs, 1, num_anchors).
+            fg_mask (torch.Tensor): One2many foreground mask with shape (bs, num_anchors); 1 at o2m positives.
+
+        Returns:
+            (torch.Tensor): Scalar foreground auxiliary loss (0 when there are no positives).
+        """
+        target = fg_mask.unsqueeze(1).to(aux_pred.dtype)  # (bs, 1, num_anchors), 1 at o2m positives
+        loss = F.binary_cross_entropy_with_logits(aux_pred.float(), target.float(), reduction="none")
+        return loss.sum() / fg_mask.sum().clamp(min=1)
 
     @staticmethod
     def distill_loss(

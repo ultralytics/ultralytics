@@ -202,6 +202,13 @@ class DetectionTrainer(BaseTrainer):
             self.loss_names += ("distill_loss",)
         if e2e and getattr(self.args, "rank", 0.0):
             self.loss_names += ("rank_loss",)
+        if (
+            e2e
+            and not getattr(self.args, "o2o_ft", False)
+            and getattr(self.args, "aux_fg", 0.0)
+            and hasattr(unwrap_model(self.model).model[-1], "aux_fg")
+        ):
+            self.loss_names += ("aux_fg_loss",)
         return yolo.detect.DetectionValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

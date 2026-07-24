@@ -63,9 +63,9 @@ class TensorRTBackend(BaseBackend):
             self.apply_metadata(metadata)
         try:
             self.context = engine.create_execution_context()
-        except Exception as e:
+        except Exception:
             LOGGER.error("TensorRT model exported with a different version than expected\n")
-            raise e
+            raise
 
         # Setup bindings
         self.bindings = OrderedDict()

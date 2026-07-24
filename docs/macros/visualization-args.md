@@ -8,6 +8,7 @@
     "save_txt": ["bool", "False", "Saves detection results in a text file, following the format `[class] [x_center] [y_center] [width] [height] [confidence]`. Useful for integration with other analysis tools."],
     "save_conf": ["bool", "False", "Includes confidence scores in the saved text files. Enhances the detail available for post-processing and analysis."],
     "save_crop": ["bool", "False", "Saves cropped images of detections. Useful for dataset augmentation, analysis, or creating focused datasets for specific objects."],
+    "show_fps": ["bool", "False", "Displays the FPS on Video stream."],
     "show_labels": ["bool", "True", "Displays labels for each detection in the visual output. Provides immediate understanding of detected objects."],
     "show_conf": ["bool", "True", "Displays the confidence score for each detection alongside the label. Gives insight into the model's certainty for each detection."],
     "show_boxes": ["bool", "True", "Draws bounding boxes around detected objects. Essential for visual identification and location of objects in images or video frames."],

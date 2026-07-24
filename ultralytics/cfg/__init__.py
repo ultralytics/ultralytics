@@ -278,6 +278,7 @@ CFG_BOOL_KEYS = frozenset(
         "dnn",
         "plots",
         "show",
+        "show_fps",
         "save_txt",
         "save_conf",
         "save_crop",

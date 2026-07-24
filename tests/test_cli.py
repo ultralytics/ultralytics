@@ -61,6 +61,13 @@ def test_predict(task: str, model: str, data: str) -> None:
         run(f"yolo {task} predict model={model} source={ASSETS} imgsz=32 save end2end={end2end} max_det=100")
 
 
+@pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
+def test_show_fps(task: str, model: str, data: str) -> None:
+    """Test YOLO prediction on provided sample assets for specified task and model."""
+    for end2end in {False, True}:
+        run(f"yolo {task} predict model={model} source={ASSETS} imgsz=32 save show_fps end2end={end2end} max_det=100")
+
+
 @pytest.mark.parametrize("model", MODELS)
 def test_export(model: str, tmp_path: Path) -> None:
     """Test exporting a YOLO model to TorchScript format."""

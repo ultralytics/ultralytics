@@ -14,18 +14,19 @@ Ultralytics (`ultralytics` on PyPI, AGPL-3.0) is the official Python package for
 4. **Keep scope minimal**: Implement only the simplest complete solution. Avoid impossible-state handling, speculative flags, compatibility shims, policy scaffolding, and unrelated cleanup. Tests are out of scope by default — rely on existing coverage and focused validation; only an uncovered, high-risk regression path justifies minimal new test code.
 5. **Ship zero-regression, production-ready changes**: Understand what you remove instead of retaining broken code as insurance. Remove unused imports, functions, types, files, and comments; run relevant cleanup checks; and thoroughly debug and validate the changed owner. Do not break existing workflows unless the PR intentionally removes them with evidence.
 
-**Review gate:** adversarial reviewers must answer three questions before LGTM: (a) is the behavior in the correct owner? (b) what could be deleted, replaced, or reused? (c) does any added condition suppress a symptom or add speculative scaffolding? A finding on any blocks LGTM.
+**Review gate:** every addition gets one question — could deleting or changing existing code have fixed this instead? The PR must answer it, and an unconvincing answer blocks LGTM.
 
-**NEVER push to `main`. NEVER force push.** Always start work in a new git worktree (`git worktree add`) on a feature branch and open a PR — never edit the primary checkout directly, it may hold in-flight work.
+NEVER push to `main`. NEVER force push. Always start work in a new git worktree (`git worktree add`) on a feature branch and open a PR — never edit the primary checkout directly, it may hold in-flight work.
 
 ## PR Workflow
 
 After opening a PR:
 
 1. Wait for the automated PR review and auto-format commit from Ultralytics Actions (`format.yml`), then pull and address every finding.
-2. Record the pulled live PR-head SHA. Inside the implementation session, run one reviewer covering Core Principles/deduplication/minimalism, production readiness, and performance on the full diff; collect all findings, batch and commit fixes, then reuse it for `<recorded-sha>..HEAD` and affected invariants. Push reviewed fixes; after automation, pull and repeat delta review until local and live heads match. Run one final cold full-diff review, require LGTM with no findings, record its SHA, and hand off or merge only while it remains the live head.
-3. Never fight other commits: Ultralytics Actions pushes auto-format and header commits, and multiple users may work on the same PR. `git pull --rebase` before pushing; never reset or revert commits you did not author.
-4. After the PR merges, clean up: remove local worktrees and branches for it, then `git checkout main && git pull`.
+2. Review the full diff in-session against the Core Principles and the review gate above, then batch the fixes into one commit and push. After each round of bot or human commits, pull and review `<last-reviewed-sha>..HEAD` plus anything that delta could have invalidated. Repeat until the local head matches the live head.
+3. Hand off or merge only on a clean final pass: one cold full-diff review returning LGTM with no findings, on a head that is still live at merge time.
+4. Never fight other commits: Ultralytics Actions pushes auto-format and header commits, and multiple users may work on the same PR. `git pull --rebase` before pushing; never reset or revert commits you did not author.
+5. After the PR merges, clean up: remove local worktrees and branches for it, then `git checkout main && git pull`.
 
 ## Commands
 

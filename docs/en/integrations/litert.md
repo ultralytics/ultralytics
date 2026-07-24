@@ -52,57 +52,55 @@ One model format, every target:
 
 ## Measured Performance
 
-This historical end-to-end single-image sweep measured pre-reexport `v0.6.6` YOLO26n Android LiteRT binaries
-(`w8a32`: int8 weights, FP32 activations) on a [Xiaomi 17](https://www.mi.com/global/product/xiaomi-17/) phone powered
-by the Qualcomm Snapdragon 8 Elite Gen 5 (SM8850), using the
-[Ultralytics Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) `0.6.10`. The input sizes match the
-224/640 standard, but these values do not benchmark the replacement binaries now published in `v0.6.6`. Each cell
-shows the **total time** (preprocessing + inference + postprocessing, excluding
-annotation) with the per-stage split beneath it. CPU runs the LiteRT XNNPACK delegate; GPU runs the LiteRT OpenCL/GL
-delegate (FP16).
+End-to-end single-image inference for the standardized `v0.6.6` YOLO26n Android LiteRT assets (`w8a32`: int8
+weights, FP32 activations) on a [Xiaomi 17](https://www.mi.com/global/product/xiaomi-17/) powered by the Qualcomm
+Snapdragon 8 Elite Gen 5 (SM8850), using the
+[Ultralytics Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) `0.6.10`. Each cell shows the
+**total time** (preprocessing + inference + postprocessing, excluding annotation) with the per-stage split beneath
+it. CPU runs the LiteRT XNNPACK delegate; GPU runs the LiteRT OpenCL/GL delegate (FP16).
 
 | Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | GPU Adreno<br><sup>w8a32 LiteRT<br>(ms)</sup> |
 | ------------- | -------- | --------------------------- | -------------------------------------- | --------------------------------------------- |
-| YOLO26n       | Detect   | 640                         | 52.4<br><sup>1.8 / 48.2 / 2.4</sup>    | **13.5**<br><sup>1.9 / 8.1 / 3.5</sup>        |
-| YOLO26n-seg   | Segment  | 640                         | 72.8<br><sup>1.8 / 65.3 / 5.7</sup>    | **28.6**<br><sup>1.8 / 20.1 / 6.7</sup>       |
-| YOLO26n-sem   | Semantic | 640                         | 60.3<br><sup>1.8 / 50.4 / 8.1</sup>    | **32.9**<br><sup>1.8 / 23.0 / 8.2</sup>       |
-| YOLO26n-depth | Depth    | 640                         | 325.1<br><sup>5.1 / 300.9 / 19.2</sup> | **23.0**<br><sup>2.0 / 12.9 / 8.2</sup>       |
-| YOLO26n-cls   | Classify | 224                         | 10.5<br><sup>0.9 / 9.6 / 0.1</sup>     | **3.2**<br><sup>1.0 / 2.2 / 0.1</sup>         |
-| YOLO26n-pose  | Pose     | 640                         | 56.9<br><sup>1.8 / 53.9 / 1.2</sup>    | **14.0**<br><sup>1.9 / 9.3 / 2.8</sup>        |
-| YOLO26n-obb   | OBB      | 640                         | 50.5<br><sup>1.8 / 47.3 / 1.4</sup>    | **13.0**<br><sup>2.9 / 7.9 / 2.3</sup>        |
+| YOLO26n       | Detect   | 640                         | 52.2<br><sup>1.8 / 48.1 / 2.4</sup>    | **15.8**<br><sup>2.3 / 8.9 / 4.6</sup>        |
+| YOLO26n-seg   | Segment  | 640                         | 73.4<br><sup>1.8 / 65.6 / 6.0</sup>    | **33.2**<br><sup>1.8 / 23.8 / 7.6</sup>       |
+| YOLO26n-sem   | Semantic | 640                         | 61.2<br><sup>1.8 / 51.1 / 8.3</sup>    | **34.2**<br><sup>1.8 / 24.0 / 8.3</sup>       |
+| YOLO26n-depth | Depth    | 640                         | 124.4<br><sup>1.9 / 115.1 / 7.4</sup>  | **23.0**<br><sup>1.8 / 13.5 / 7.7</sup>       |
+| YOLO26n-cls   | Classify | 224                         | 4.4<br><sup>0.4 / 4.0 / 0.0</sup>      | **3.1**<br><sup>0.8 / 2.1 / 0.2</sup>         |
+| YOLO26n-pose  | Pose     | 640                         | 57.4<br><sup>1.8 / 53.8 / 1.8</sup>    | **16.6**<br><sup>2.7 / 10.1 / 3.9</sup>       |
+| YOLO26n-obb   | OBB      | 640                         | 50.3<br><sup>1.8 / 47.2 / 1.4</sup>    | **11.7**<br><sup>1.8 / 7.8 / 2.0</sup>        |
 
 - **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`, measured with the Flutter plugin's on-device benchmark harness in profile mode. The full task suite runs back-to-back, so the CPU-bound preprocessing stage reflects sustained operation (a thermally rested single-task measurement is lower); the GPU/CPU inference stage is the steady-state compute cost.
 - The LiteRT export traces the PyTorch model directly, producing an **NCHW** `.tflite` with a float input — the GPU delegate compiles the whole graph (all seven tasks run on the Adreno GPU here), and `w8a32` needs no calibration data. The official Android assets are hosted on the [yolo-flutter-app `v0.6.6` release](https://github.com/ultralytics/yolo-flutter-app/releases/tag/v0.6.6), with the detailed benchmark record in [the Flutter performance doc](https://github.com/ultralytics/yolo-flutter-app/blob/main/doc/performance.md).
 - The matching Snapdragon **Hexagon NPU** numbers (and the INT8 TFLite CPU/GPU baseline) are in the [Qualcomm QNN integration](qnn.md).
 
-The following device sweeps used the same pre-reexport `v0.6.6` binaries.
+The following device sweeps use the same standardized `v0.6.6` assets.
 
 ### Google Pixel 10
 
-| Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | GPU<br><sup>w8a32 LiteRT<br>(ms)</sup>   |
-| ------------- | -------- | --------------------------- | -------------------------------------- | ---------------------------------------- |
-| YOLO26n       | Detect   | 640                         | 53.6<br><sup>1.5 / 50.5 / 1.6</sup>    | **43.9**<br><sup>3.9 / 36.2 / 3.8</sup>  |
-| YOLO26n-seg   | Segment  | 640                         | 90.0<br><sup>2.0 / 80.8 / 7.2</sup>    | **48.5**<br><sup>2.4 / 35.4 / 10.7</sup> |
-| YOLO26n-sem   | Semantic | 640                         | 71.0<br><sup>1.5 / 61.6 / 8.0</sup>    | **69.9**<br><sup>1.5 / 58.0 / 10.5</sup> |
-| YOLO26n-depth | Depth    | 640                         | 124.9<br><sup>1.5 / 117.2 / 6.3</sup>  | **50.0**<br><sup>1.8 / 36.5 / 11.7</sup> |
-| YOLO26n-cls   | Classify | 224                         | **4.0**<br><sup>0.3 / 3.4 / 0.3</sup>  | 17.6<br><sup>0.9 / 16.6 / 0.1</sup>      |
-| YOLO26n-pose  | Pose     | 640                         | 59.5<br><sup>1.5 / 56.8 / 1.2</sup>    | **45.9**<br><sup>3.9 / 38.4 / 3.7</sup>  |
-| YOLO26n-obb   | OBB      | 640                         | 52.1<br><sup>1.5 / 49.1 / 1.6</sup>    | **45.6**<br><sup>4.1 / 38.8 / 2.7</sup>  |
+| Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup>  | GPU<br><sup>w8a32 LiteRT<br>(ms)</sup>   |
+| ------------- | -------- | --------------------------- | --------------------------------------- | ---------------------------------------- |
+| YOLO26n       | Detect   | 640                         | 53.3<br><sup>1.5 / 50.2 / 1.6</sup>     | **45.5**<br><sup>3.8 / 37.7 / 4.0</sup>  |
+| YOLO26n-seg   | Segment  | 640                         | 87.7<br><sup>1.8 / 78.5 / 7.5</sup>     | **50.9**<br><sup>3.0 / 36.9 / 10.9</sup> |
+| YOLO26n-sem   | Semantic | 640                         | **68.6**<br><sup>1.5 / 59.0 / 8.0</sup> | 71.6<br><sup>1.5 / 59.5 / 10.6</sup>     |
+| YOLO26n-depth | Depth    | 640                         | 120.3<br><sup>1.5 / 112.5 / 6.3</sup>   | **52.5**<br><sup>2.0 / 37.5 / 13.0</sup> |
+| YOLO26n-cls   | Classify | 224                         | **4.0**<br><sup>0.3 / 3.4 / 0.2</sup>   | 17.6<br><sup>0.9 / 16.7 / 0.1</sup>      |
+| YOLO26n-pose  | Pose     | 640                         | 59.7<br><sup>1.5 / 57.0 / 1.2</sup>     | **46.6**<br><sup>3.8 / 39.2 / 3.5</sup>  |
+| YOLO26n-obb   | OBB      | 640                         | 52.0<br><sup>1.5 / 48.9 / 1.7</sup>     | **45.5**<br><sup>4.0 / 38.5 / 2.9</sup>  |
 
 Google Tensor G5, Android 16/API 36. Each row is the mean of 15 runs after 3 warmups; CPU/GPU order alternated
 between rows. Native logs confirmed full placement on each requested LiteRT backend.
 
 ### Samsung Galaxy S26
 
-| Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | GPU<br><sup>w8a32 LiteRT<br>(ms)</sup>   |
-| ------------- | -------- | --------------------------- | -------------------------------------- | ---------------------------------------- |
-| YOLO26n       | Detect   | 640                         | 36.7<br><sup>1.2 / 33.9 / 1.7</sup>    | **17.3**<br><sup>2.5 / 12.3 / 2.5</sup>  |
-| YOLO26n-seg   | Segment  | 640                         | 55.4<br><sup>1.2 / 48.9 / 5.3</sup>    | **30.8**<br><sup>1.2 / 23.3 / 6.2</sup>  |
-| YOLO26n-sem   | Semantic | 640                         | 48.7<br><sup>1.2 / 39.4 / 8.0</sup>    | **36.2**<br><sup>1.2 / 27.2 / 7.8</sup>  |
-| YOLO26n-depth | Depth    | 640                         | 93.4<br><sup>1.2 / 85.2 / 7.0</sup>    | **33.7**<br><sup>1.3 / 22.4 / 10.0</sup> |
-| YOLO26n-cls   | Classify | 224                         | **2.8**<br><sup>0.2 / 2.4 / 0.3</sup>  | 3.2<br><sup>0.2 / 3.0 / 0.0</sup>        |
-| YOLO26n-pose  | Pose     | 640                         | 42.9<br><sup>1.3 / 40.5 / 1.1</sup>    | **19.3**<br><sup>1.4 / 14.7 / 3.2</sup>  |
-| YOLO26n-obb   | OBB      | 640                         | 37.3<br><sup>1.3 / 34.8 / 1.2</sup>    | **17.8**<br><sup>1.7 / 14.4 / 1.7</sup>  |
+| Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | GPU<br><sup>w8a32 LiteRT<br>(ms)</sup>  |
+| ------------- | -------- | --------------------------- | -------------------------------------- | --------------------------------------- |
+| YOLO26n       | Detect   | 640                         | 36.7<br><sup>1.3 / 33.8 / 1.7</sup>    | **16.4**<br><sup>1.4 / 12.3 / 2.6</sup> |
+| YOLO26n-seg   | Segment  | 640                         | 54.6<br><sup>1.2 / 48.0 / 5.3</sup>    | **32.8**<br><sup>1.3 / 24.5 / 7.0</sup> |
+| YOLO26n-sem   | Semantic | 640                         | 47.8<br><sup>1.2 / 38.4 / 8.1</sup>    | **34.2**<br><sup>1.3 / 24.9 / 8.0</sup> |
+| YOLO26n-depth | Depth    | 640                         | 92.9<br><sup>1.2 / 84.8 / 6.9</sup>    | **33.5**<br><sup>1.3 / 22.4 / 9.8</sup> |
+| YOLO26n-cls   | Classify | 224                         | 2.7<br><sup>0.2 / 2.3 / 0.2</sup>      | **2.6**<br><sup>0.2 / 2.4 / 0.0</sup>   |
+| YOLO26n-pose  | Pose     | 640                         | 42.8<br><sup>1.3 / 40.5 / 1.0</sup>    | **18.4**<br><sup>1.4 / 14.1 / 2.9</sup> |
+| YOLO26n-obb   | OBB      | 640                         | 37.5<br><sup>1.3 / 35.1 / 1.2</sup>    | **18.8**<br><sup>2.5 / 14.6 / 1.8</sup> |
 
 Exynos 2600 with Xclipse 960 GPU, Android 16/API 36. Each row is the mean of 15 runs after 3 warmups; CPU/GPU order
 alternated between rows. Native logs confirmed full placement on each requested LiteRT backend.

@@ -171,9 +171,9 @@ Follow the [Ultralytics roadmap](https://www.ultralytics.com/roadmap) and releas
 
 ## FAQ
 
-### Can Ultralytics export YOLO models to `.aimodel` today?
+### Can Ultralytics export YOLO models to `.aimodel`?
 
-No. Ultralytics currently supports Apple's Core ML `.mlpackage` format through `model.export(format="coreml", imgsz=640)` (`imgsz=224` for classification). A native Core AI export target is planned but is not yet part of the supported exporter.
+No. Ultralytics exports Apple models as Core ML `.mlpackage` files through `model.export(format="coreml", imgsz=640)` (`imgsz=224` for classification); `.aimodel` is not an export target.
 
 ### Is Core AI replacing Core ML?
 

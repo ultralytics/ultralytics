@@ -145,7 +145,7 @@ def _convert_bohb_search_space(space):
         par = "/".join(str(p) for p in path)
         sampler = domain.get_sampler()
         if isinstance(sampler, Quantized):
-            raise ValueError("TuneBOHB does not support quantized search spaces with the current ConfigSpace version.")
+            raise TypeError("TuneBOHB does not support quantized search spaces with the current ConfigSpace version.")
 
         if isinstance(domain, Float) and isinstance(sampler, (Uniform, LogUniform)):
             cs.add(
@@ -163,7 +163,7 @@ def _convert_bohb_search_space(space):
         elif isinstance(domain, Categorical) and isinstance(sampler, Uniform):
             cs.add(ConfigSpace.CategoricalHyperparameter(par, choices=domain.categories))
         else:
-            raise ValueError(
+            raise TypeError(
                 f"TuneBOHB does not support parameters of type {type(domain).__name__} "
                 f"with sampler type {type(domain.sampler).__name__}."
             )
@@ -481,7 +481,7 @@ def run_ray_tune(
     tune_dir = get_save_dir(
         get_cfg(
             DEFAULT_CFG,
-            {**train_args, **{"exist_ok": train_args.pop("resume", False)}},  # resume w/ same tune_dir
+            {**train_args, "exist_ok": train_args.pop("resume", False)},  # resume w/ same tune_dir
         ),
         name=train_args.pop("name", "tune"),  # runs/{task}/{tune_dir}
     )  # must be absolute dir

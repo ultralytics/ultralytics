@@ -9,14 +9,16 @@ on:
   issues:
     types: [opened, edited]
   discussion:
-    types: [created]
+    types: [created, closed]
   pull_request:
     types: [opened, closed, synchronize, review_requested]
 
 permissions:
-  contents: write # Modify code in PRs
+  contents: read
+            write # Modify code in PRs
   pull-requests: write # Add comments and labels to PRs
-  issues: write # Add comments and labels to issues
+  issues: read
+          write # Add comments and labels to issues
 
 jobs:
   actions:

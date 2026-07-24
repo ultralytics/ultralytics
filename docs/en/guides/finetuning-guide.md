@@ -41,49 +41,27 @@ For datasets with the same number of classes as the pretrained model (for exampl
 
 Ultralytics transfers matching classification-head rows by class name across datasets, ignoring case and surrounding whitespace. When equivalent classes use different names, rename the source checkpoint classes in memory before loading. This preserves pretrained classification weights for shared concepts that would otherwise be treated as unmatched and initialized randomly.
 
-This [Objects365](../datasets/detect/objects365.md) v2-to-COCO example defines aliases as **target COCO name -> source Objects365 name** and applies them immediately before the standard weight load:
+This [Objects365](../datasets/detect/objects365.md) v2-to-COCO example renames the source classes on the loaded checkpoint, which `train()` then passes through as the pretrained weights:
 
 ```python
 from ultralytics import YOLO
-from ultralytics.models.yolo.detect.train import DetectionTrainer
 
-# Target COCO name -> source Objects365 v2 checkpoint name
-COCO_TO_OBJECTS365_ALIASES = {
-    "bird": "wild bird",
-    "handbag": "handbag/satchel",
-    "suitcase": "luggage",
-    "bowl": "bowl/basin",
-    "orange": "orange/tangerine",
-    "tv": "monitor/tv",
-    "teddy bear": "stuffed toy",
-    "hair drier": "hair dryer",
-    "skis": "skating and skiing shoes",
-    "sports ball": "baseball",
+# Source Objects365 v2 name -> target COCO name
+ALIASES = {
+    "wild bird": "bird",
+    "handbag/satchel": "handbag",
+    "luggage": "suitcase",
+    "bowl/basin": "bowl",
+    "orange/tangerine": "orange",
+    "monitor/tv": "tv",
+    "stuffed toy": "teddy bear",
+    "hair dryer": "hair drier",
+    "skating and skiing shoes": "skis",
 }
 
-
-class ObjectsAliasYOLOTrainer(DetectionTrainer):
-    class_aliases = COCO_TO_OBJECTS365_ALIASES
-
-    def get_model(self, cfg=None, weights=None, verbose=True):
-        model = super().get_model(cfg=cfg, weights=None, verbose=verbose)
-        if weights:
-            self._apply_class_aliases(weights)
-            model.load(weights)
-        return model
-
-    def _apply_class_aliases(self, weights):
-        source = weights["model"] if isinstance(weights, dict) else weights
-        source.names = dict(source.names)
-        source_lookup = {name.strip().lower(): index for index, name in source.names.items()}
-        for target_name, source_name in self.class_aliases.items():
-            source_index = source_lookup.get(source_name.strip().lower())
-            if source_index is not None:
-                source.names[source_index] = target_name
-
-
 model = YOLO("path/to/yolo26s-objects365.pt")
-model.train(trainer=ObjectsAliasYOLOTrainer, data="coco.yaml", epochs=100, imgsz=640)
+model.model.names = {i: ALIASES.get(name, name) for i, name in model.model.names.items()}
+model.train(data="coco.yaml", epochs=100, imgsz=640)
 ```
 
 ## Basic Fine-Tuning Example

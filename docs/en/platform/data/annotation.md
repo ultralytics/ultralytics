@@ -233,7 +233,7 @@ Assign image-level class labels:
 1. Click an image to open the fullscreen editor
 2. Select a class in the class sidebar, or press a number key from `1-9`
 
-![Ultralytics Platform Annotate Classify Side Panel](https://cdn.ul.run/i/aea678799e886a678e4edaf3215fd271.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Classify Side Panel](https://cdn.ul.run/i/aee8d1a82873672bf6d179df35e5d939.avif)<!-- screenshot -->
 
 ## Smart Annotation
 

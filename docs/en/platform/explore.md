@@ -52,7 +52,7 @@ The Explore page uses a tabbed interface with `Datasets` and `Projects` tabs. Ea
 
 Each tab provides a search bar and sort options:
 
-![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.ul.run/i/2f0f8e4e9739e1ecec188a7e29507013.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.ul.run/i/f68f4cc6f7de1b2f8c99d9bfceaeeb53.avif)<!-- screenshot -->
 
 | Sort Option             | Description                                                            |
 | ----------------------- | ---------------------------------------------------------------------- |
@@ -136,7 +136,7 @@ Use a public dataset for your training:
 3. Review the destination workspace, name, visibility, and license
 4. Click `Clone Dataset` to confirm
 
-![Ultralytics Platform Explore Clone Dataset](https://cdn.ul.run/i/1f535c47f9b143dcce6f78af9f60ab2d.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Clone Dataset](https://cdn.ul.run/i/f8691631e0bf7b37d6402ee377c040f7.avif)<!-- screenshot -->
 !!! note "Cloned Dataset Properties"
 
     - The clone dialog lets you review the destination, name, visibility, and license

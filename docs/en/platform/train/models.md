@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive model management for training, analyzing, and deploying YOLO models. Upload pretrained models or train new ones directly on the platform.
 
-![Ultralytics Platform Model Page Overview Tab](https://cdn.ul.run/i/b6f84231e3204326e830408ab624080d.avif)<!-- screenshot -->
+![Ultralytics Platform Model Page Overview Tab](https://cdn.ul.run/i/3012fee5f840c678a07bd8920b0d34b5.avif)<!-- screenshot -->
 
 ## Upload Model
 
@@ -90,7 +90,7 @@ Displays model metadata and key metrics:
 - Dataset link (when trained with a Platform dataset)
 - Download button for model weights
 
-![Ultralytics Platform Model Overview Metrics And Args](https://cdn.ul.run/i/ad21ef64b20b89f6b3c666478cb99160.avif)<!-- screenshot -->
+![Ultralytics Platform Model Overview Metrics And Args](https://cdn.ul.run/i/5e7fa4c46cadf75c87934a8734838f2c.avif)<!-- screenshot -->
 
 ### Train Tab
 
@@ -107,7 +107,7 @@ Interactive training metric charts showing loss curves and performance metrics o
 | **Validation Loss** | val/box_loss, val/cls_loss, val/dfl_loss       |
 | **Learning Rate**   | lr/pg0, lr/pg1, lr/pg2                         |
 
-![Ultralytics Platform Model Train Charts Subtab](https://cdn.ul.run/i/8df35301b3aee141ac97c7412af6ae49.avif)<!-- screenshot -->
+![Ultralytics Platform Model Train Charts Subtab](https://cdn.ul.run/i/640ad65e65f173c9088f9637dd98da54.avif)<!-- screenshot -->
 
 #### Console Subtab
 
@@ -118,7 +118,7 @@ Live console output from the training process:
 - Error detection with highlighted error banners
 - ANSI color support for formatted output
 
-![Ultralytics Platform Model Train Console Subtab](https://cdn.ul.run/i/bc59665c252c368ae4bee1db0b9a010e.avif)<!-- screenshot -->
+![Ultralytics Platform Model Train Console Subtab](https://cdn.ul.run/i/45125323b2fa8bb95dfc4e067f5c01f2.avif)<!-- screenshot -->
 
 #### System Subtab
 
@@ -133,7 +133,7 @@ GPU and system metrics during training:
 | **RAM**        | System memory usage        |
 | **Disk**       | Disk usage                 |
 
-![Ultralytics Platform Model Train System Subtab](https://cdn.ul.run/i/b3aabb59e110c774a2c1e5f25b340149.avif)<!-- screenshot -->
+![Ultralytics Platform Model Train System Subtab](https://cdn.ul.run/i/6e614bf9749f5eba38c384858c05ca0a.avif)<!-- screenshot -->
 
 ### Predict Tab
 
@@ -164,13 +164,13 @@ After training completes, view detailed validation analysis:
 
 Interactive heatmap showing prediction accuracy per class:
 
-![Ultralytics Platform Model Confusion Matrix](https://cdn.ul.run/i/f56797cea011d9f343cbf9816c23b1f0.avif)<!-- screenshot -->
+![Ultralytics Platform Model Confusion Matrix](https://cdn.ul.run/i/64c239ca6baa01d0b65cd7a4d42ece2c.avif)<!-- screenshot -->
 
 ### PR/F1 Curves
 
 When the training run provides them, the **Validation** subtab also displays performance curves at different confidence thresholds. Available validation plots depend on the artifacts produced by the run.
 
-![Ultralytics Platform Model Pr F1 Curves](https://cdn.ul.run/i/5083314df80efe48e0f54371f04fc228.avif)<!-- screenshot -->
+![Ultralytics Platform Model Pr F1 Curves](https://cdn.ul.run/i/78226b971bd48bed8f043a377a37c6e9.avif)<!-- screenshot -->
 
 | Curve                    | Description                              |
 | ------------------------ | ---------------------------------------- |
@@ -208,7 +208,7 @@ Export your model to 19 deployment formats:
 
 Connect [Slack alerts](../integrations/slack.md) to receive a message when an export is ready or fails.
 
-![Ultralytics Platform Model Export Tab Format List](https://cdn.ul.run/i/ed9816fc33591913c76044931dc9f243.avif)<!-- screenshot -->
+![Ultralytics Platform Model Export Tab Format List](https://cdn.ul.run/i/9e5b54290f479b20ed96d5a0f091659f.avif)<!-- screenshot -->
 
 ### Supported Formats
 
@@ -227,7 +227,7 @@ The Platform supports export to [19 deployment formats](../../modes/export.md#ex
 | **Edge Devices**   | TF Edge TPU or RKNN | Coral and Rockchip (see [supported chips](#rknn-chip-support)) |
 | **General**        | ONNX                | Works with most runtimes                                       |
 
-![Ultralytics Platform Model Export Progress](https://cdn.ul.run/i/c52a4db7d09c7ca7f01e6c923ceca184.avif)<!-- screenshot -->
+![Ultralytics Platform Model Export Progress](https://cdn.ul.run/i/e66458bb5b6753a9f54927a87e8cdae2.avif)<!-- screenshot -->
 
 ### NVIDIA Jetson TensorRT Targets
 

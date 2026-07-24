@@ -260,7 +260,7 @@ Once training starts, you can monitor progress in real-time through three subtab
 | **Console** | Live training log output                                |
 | **System**  | GPU utilization, memory usage, hardware metrics         |
 
-![Ultralytics Platform Training Charts Loss And Metrics](https://cdn.ul.run/i/9d23bca6cd6c63842832beb660f15b39.avif)<!-- screenshot -->
+![Ultralytics Platform Training Charts Loss And Metrics](https://cdn.ul.run/i/6da2556476cf397f3ad98565de550a7c.avif)<!-- screenshot -->
 Metrics are streamed in real-time via SSE (Server-Sent Events). After training completes, validation plots are generated including confusion matrix, PR curves, and F1 curves.
 
 !!! tip "Cancel Training"
@@ -277,7 +277,7 @@ After training completes, test your model directly in the browser:
 2. Upload an image, drag and drop, or use example images (auto-inference on drop)
 3. View task-appropriate prediction overlays and the raw JSON response
 
-![Ultralytics Platform Predict Tab With Bounding Boxes](https://cdn.ul.run/i/2156f5440bcd8df152e086f4e1fd4bf4.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab With Bounding Boxes](https://cdn.ul.run/i/f91ddda982943417224caabce9151d5a.avif)<!-- screenshot -->
 Adjust inference parameters:
 
 | Parameter      | Default | Description                       |

@@ -196,7 +196,7 @@ Update project name, description, or settings:
 3. Click the icon to customize it
 4. Click the license badge to change the license
 
-![Ultralytics Platform Projects Settings](https://cdn.ul.run/i/1ec7d084c2a0ce6b7bf0b582093566f8.avif)<!-- screenshot -->
+![Ultralytics Platform Projects Settings](https://cdn.ul.run/i/efc68367a7a6f0b80f43e28e96b22167.avif)<!-- screenshot -->
 
 ## Delete Project
 

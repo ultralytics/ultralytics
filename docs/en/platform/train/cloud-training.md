@@ -156,7 +156,7 @@ To receive the completed and failed results without keeping this page open, conn
 
     New accounts receive signup credits — $5 for personal emails and $25 for company emails. [Check your balance](../account/billing.md) in Settings > Billing.
 
-![Ultralytics Platform Training Progress With Charts](https://cdn.ul.run/i/3bc4907008ee459448739e98ecbf4645.avif)<!-- screenshot -->
+![Ultralytics Platform Training Progress With Charts](https://cdn.ul.run/i/0bb05d90a4924966d1cf3c918c8a6008.avif)<!-- screenshot -->
 
 ## Monitor Training
 
@@ -164,7 +164,7 @@ View real-time training progress on the model page's **Train** tab:
 
 ### Charts Subtab
 
-![Ultralytics Platform Model Training Live Charts](https://cdn.ul.run/i/65dc8b13609a01f0fddc23f94e27e707.avif)<!-- screenshot -->
+![Ultralytics Platform Model Training Live Charts](https://cdn.ul.run/i/6f5275f2049fe7054f012744ac676df1.avif)<!-- screenshot -->
 
 | Metric        | Description                  |
 | ------------- | ---------------------------- |

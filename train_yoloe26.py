@@ -42,7 +42,7 @@ ye_v4_json="yolo-enterprise/pipeline_outputs/train/v4/merged.json"
 ye_v5_json="yolo-enterprise/pipeline_outputs/train/v5/merged_simplified.json"
 
 
-refer_data_yaml=os.path.abspath(f"../datasets/lvis_train_vps.yaml")
+refer_data_yaml=os.path.abspath(f"/data/shared-datasets/louis_data/lvis_train_vps.yaml")
 
 
 
@@ -50,7 +50,7 @@ DATA_CONFIG=dict()
 
 # old-engine data: absolute paths on the shared NFS mount /data/shared-datasets
 # (portable across ultra6 users; formerly relative ../datasets/...)
-lvis_data=os.path.abspath("../datasets/lvis.yaml")
+lvis_data=os.path.abspath("/data/shared-datasets/louis_data/lvis.yaml")
 
 
 old_flickr_data= dict(
@@ -131,7 +131,7 @@ DATA_CONFIG["old_engine_data"] = dict(
         ]
     ),
     val=dict(
-        yolo_data=[f"{train_data_root}/lvis.yaml"]
+        yolo_data=[lvis_data]
     )
 )
 

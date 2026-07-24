@@ -6,18 +6,23 @@ Ultralytics (`ultralytics` on PyPI, AGPL-3.0) is the official Python package for
 
 ## Core Principles (CRITICAL)
 
-**Delete > Replace > Add.** Before writing any change, answer in order: what can I delete? what can I replace? only then, what must I add?
+Respecting these principles is critical for every PR.
 
-The most common agent failure in this repo is reaching for the locally-safest edit — a new guard, flag, or helper — instead of fixing ownership. These tripwires override that instinct:
+**Less is more. The simplest solution is the best solution.**
 
-1. **Never guard a symptom — relocate the trigger.** A fix that adds a condition to suppress bad behavior (a staleness check, an is-initialized flag, a skip-first-call guard, a try/except around broken logic) is wrong by default. Find the code path that should own the behavior, move the logic there, and delete the code that got it wrong. Example: a warning fired from stale state; the right fix was not a recency guard — it deleted the stale detection and moved the trigger into the code path that observes the event live.
-2. **Bugfixes are net-negative by default.** A bugfix that adds more lines than it removes needs a one-sentence justification in the PR body naming why deletion and relocation were impossible.
-3. **Search the repo before creating anything.** Before building a feature or helper, search the whole package — it likely exists (`ultralytics/utils/` holds most shared helpers). If two modules grow the same logic, consolidate into the shared utility and delete the duplicates. Avoid premature abstraction — three similar lines beat a helper nobody else calls.
-4. **Deletion beats caution.** Zero regression means understanding the code you remove, not leaving it in place as insurance. Keeping broken or duplicated code "to be safe" is itself the regression: it is how repos rot. All changes must still ship debugged, validated, and production ready.
+The action hierarchy for every change: **Delete > Replace > Add**. The best code change is a deletion. The second best is modifying what exists. Adding new code is the last resort.
 
-**Output gate:** every PR body must contain a `Deleted:` line naming the code removed (functions, branches, files, config). Features must name what they reused or consolidated. `Deleted: nothing` demands the rule-2 justification.
+1. **Solve at the owner**: Put behavior in the code path that owns or observes it. For fixes, never guard a symptom with a staleness check, initialization flag, skip-first-call branch, or `try/except` around broken logic; relocate the trigger and delete the wrong path. For features, extend the existing owner rather than creating a parallel abstraction.
+2. **Search and reuse first**: Search the whole repository before creating a feature, component, helper, workflow, or utility. Reuse or adapt what exists, consolidate in the shared owner when duplication appears, and delete duplicate paths. Three similar lines beat a helper nobody else calls.
+3. **Delete, then replace, then add**: Delete superseded code and modify existing files before creating new ones. Bugfixes are net-negative by default; a net-positive bugfix needs a one-sentence PR justification explaining why deletion or relocation was impossible. A new file must first prove it cannot fit cleanly in an existing owner.
+4. **Keep scope minimal**: Implement only the simplest complete solution. Avoid impossible-state handling, speculative flags, compatibility shims, policy scaffolding, and unrelated cleanup. Tests are out of scope by default; rely on existing coverage and focused validation. Only an uncovered, high-risk regression path justifies minimal new test code. Never add redundant coverage or broad test scaffolding.
+5. **Ship zero-regression, production-ready changes**: Understand what you remove instead of retaining broken code as insurance. Remove unused imports, functions, types, files, and comments; run relevant cleanup checks; and thoroughly debug and validate the changed owner. Do not break existing workflows unless the PR intentionally removes them with evidence.
 
-**Review gate:** adversarial reviewers must answer two questions before LGTM: (a) what could have been deleted instead of added? (b) does any added condition suppress a symptom rather than relocate a trigger? A finding on either blocks LGTM.
+**When fixing bugs, ask: "What can I delete?" before "What can I replace?" before "What should I add?"**
+
+**Output gate:** every PR body must contain a `Deleted:` line naming the code removed (functions, branches, files, config). Features must name what they reused or consolidated. `Deleted: nothing` requires one sentence explaining why deletion or replacement did not apply.
+
+**Review gate:** adversarial reviewers must answer three questions before LGTM: (a) is the behavior in the correct owner? (b) what could be deleted, replaced, or reused? (c) does any added condition suppress a symptom or add speculative scaffolding? A finding on any blocks LGTM.
 
 **This file is code — additions require deletions.** To add a rule here, remove or merge one. When everything is emphasized, nothing is.
 

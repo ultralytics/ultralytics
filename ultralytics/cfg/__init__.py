@@ -170,7 +170,7 @@ CLI_HELP_MSG = f"""
         yolo solutions help
 
     Docs: https://docs.ultralytics.com
-    Solutions: https://docs.ultralytics.com/solutions/
+    Platform: https://platform.ultralytics.com
     Community: https://community.ultralytics.com
     GitHub: https://github.com/ultralytics/ultralytics
     """
@@ -295,6 +295,7 @@ CFG_BOOL_KEYS = frozenset(
         "simplify",
         "nms",
         "profile",
+        "channels_last",
         "end2end",
         "cls_remap",
     }
@@ -828,7 +829,8 @@ def handle_yolo_solutions(args: list[str]) -> None:
                 "--server.headless",
                 "true",
                 overrides.pop("model", "yolo26n.pt"),
-            ]
+            ],
+            check=False,
         )
     else:
         import cv2  # Only needed for cap and vw functionality

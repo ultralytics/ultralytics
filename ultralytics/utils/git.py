@@ -40,13 +40,13 @@ class GitRepo:
         - Caches properties on first access using cached_property; recreate the object to reflect repository changes.
     """
 
-    def __init__(self, path: Path = Path(__file__).resolve()):
+    def __init__(self, path: Path | None = None):
         """Initialize a Git repository context by discovering the repository root from a starting path.
 
         Args:
             path (Path, optional): File or directory path used as the starting point to locate the repository root.
         """
-        self.root = self._find_root(path)
+        self.root = self._find_root(path or Path(__file__).resolve())
         self.gitdir = self._gitdir(self.root) if self.root else None
         self.refdir = self._refdir(self.gitdir)
 
@@ -127,7 +127,7 @@ class GitRepo:
         if not self.is_repo or not self.head or not self.head.startswith("ref: "):
             return None
         ref = self.head[5:].strip()
-        return ref[len("refs/heads/") :] if ref.startswith("refs/heads/") else ref
+        return ref[11:] if ref.startswith("refs/heads/") else ref
 
     @cached_property
     def commit(self) -> str | None:

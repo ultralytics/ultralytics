@@ -445,7 +445,7 @@ class Model(torch.nn.Module):
             >>> # Model is now fused and ready for optimized inference
         """
         self._check_is_pytorch_model()
-        self.model.fuse()
+        self.model = self.model.fuse()  # DistillationModel fuses to its student, so adopt the return
         return self
 
     def embed(

@@ -82,19 +82,23 @@ class TQDM:
 
     @staticmethod
     def _fit_cells(text: str, width: int | None = None) -> tuple[str, int]:
-        """Strip ANSI escapes and fit text to a conservative terminal-cell width."""
-        from ultralytics.utils import remove_colorstr
-
-        text, cells = remove_colorstr(text), 0
-        for i, char in enumerate(text):
-            char_cells = (
-                0
-                if unicodedata.combining(char) or unicodedata.category(char).startswith("C")
-                else 1 + (unicodedata.east_asian_width(char) in "WF")
-            )
+        """Measure display cells and optionally trim to width, keeping ANSI color balanced."""
+        cells, i, n = 0, 0, len(text)
+        while i < n:
+            if text[i] == "\033":  # ANSI escape: zero width, consume through its letter terminator
+                i += 1
+                while i < n and not text[i].isalpha():
+                    i += 1
+                i += 1
+                continue
+            char_cells = 1 + (unicodedata.east_asian_width(text[i]) in "WF")
             if width is not None and cells + char_cells > width:
-                return text[:i], cells
+                trimmed = text[:i]
+                if "\033[" in trimmed and not trimmed.endswith("\033[0m"):
+                    trimmed += "\033[0m"  # close open color so it does not bleed into the rest of the line
+                return trimmed, cells
             cells += char_cells
+            i += 1
         return text, cells
 
     def __init__(

@@ -101,13 +101,13 @@ def _is_cls_yaml(model) -> bool:
 
 
 def _checkpoint_cls_yaml(weights: Path) -> str:
-    """Read classification yaml metadata from a checkpoint."""
+    """Read a scaled classification yaml from checkpoint metadata."""
     ckpt = torch.load(weights, map_location="cpu", weights_only=False)
     model = ckpt.get("model")
     for yaml_file in (ckpt.get("train_args", {}).get("model"), getattr(model, "yaml", {}).get("yaml_file", "")):
-        if _is_cls_yaml(yaml_file):
+        if _is_cls_yaml(yaml_file) and guess_model_scale(yaml_file):
             return str(yaml_file)
-    raise ValueError(f"Could not infer a classification yaml from checkpoint metadata: {weights}")
+    raise ValueError(f"Could not infer a scaled classification yaml from checkpoint metadata: {weights}")
 
 
 def _export_hf_token() -> None:
@@ -143,10 +143,11 @@ def _infer_model_yaml(phase1_weights: str, head_suffix: str = "") -> str:
     """Resolve the task-specific model yaml from a weights path.
 
     Reads ``args.yaml`` next to the weights when the path follows the standard ``<run>/weights/<file>.pt`` layout
-    (phase-1 distill checkpoints); otherwise derives the cls yaml from the weights filename so bare ultralytics weights
-    like ``yolo26l-cls.pt`` pick up the right scale. The trailing ``-cls.yaml`` is rewritten to ``{head_suffix}.yaml``
-    (e.g. ``""`` for det, ``"-pose"`` for pose, ``"-obb"`` for obb), and any ``-sppf`` arch tag is dropped since det
-    yamls already carry SPPF (``yolo26x-cls-sppf.yaml`` -> ``yolo26x.yaml``).
+    (phase-1 distill checkpoints), walking the lineage when a run's ``model`` names a parent checkpoint instead of a
+    yaml. Otherwise derives the cls yaml from the weights filename so bare ultralytics weights like ``yolo26l-cls.pt``
+    pick up the right scale. Raises when no scale survives anywhere. The trailing ``-cls.yaml`` is rewritten to
+    ``{head_suffix}.yaml`` (e.g. ``""`` for det, ``"-pose"`` for pose, ``"-obb"`` for obb), and any ``-sppf`` arch tag
+    is dropped since det yamls already carry SPPF (``yolo26x-cls-sppf.yaml`` -> ``yolo26x.yaml``).
 
     Args:
         phase1_weights (str): Path to a weights ``.pt`` file.
@@ -157,11 +158,16 @@ def _infer_model_yaml(phase1_weights: str, head_suffix: str = "") -> str:
     """
     w = Path(phase1_weights)
     cls_yaml = w.stem + ".yaml"
-    if w.parent.name == "weights":
+    # A fork or resume names a parent checkpoint as its `model`, so walk that lineage back to the run still naming a
+    # yaml and stop on a self-referential resume. Checkpoint metadata cannot answer this: `yaml_file` drops the scale.
+    chain = []
+    while w.parent.name == "weights" and w.resolve() not in chain:
+        chain.append(w.resolve())
         args_yaml = w.parent.parent / "args.yaml"
-        cls_yaml = YAML.load(args_yaml).get("model") if args_yaml.exists() else cls_yaml
-        if not _is_cls_yaml(cls_yaml):
-            cls_yaml = _checkpoint_cls_yaml(w)
+        cls_yaml = YAML.load(args_yaml).get("model") if args_yaml.exists() else w.stem + ".yaml"
+        w = Path(str(cls_yaml))
+    if not _is_cls_yaml(cls_yaml) or not guess_model_scale(cls_yaml):
+        cls_yaml = _checkpoint_cls_yaml(chain[-1] if chain else w)
     # Strip the `-cls` task suffix. Lookahead matches both end-position (`yolo26s-cls.yaml` -> `yolo26s.yaml`)
     # and middle-position when a custom arch suffix follows (`yolo26s-cls-attn.yaml` -> `yolo26s-attn.yaml`).
     out = re.sub(r"-cls(?=[-.])", head_suffix, cls_yaml, count=1)

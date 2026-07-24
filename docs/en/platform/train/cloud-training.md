@@ -27,20 +27,20 @@ graph LR
 
 ## Training Dialog
 
-Start training from the platform UI by clicking **New Model** on any project page (or **Train** from a dataset page). The training dialog has two tabs: **Cloud Training** and **Local Training**.
+Start training from the platform UI by clicking **New Model** on any project or dataset page. The training dialog has two tabs: **Cloud Training** and **Local Training**.
 
-![Ultralytics Platform Training Dialog Cloud Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-dialog-cloud-tab.avif)
+![Ultralytics Platform Training Dialog Cloud Tab](https://cdn.ul.run/i/16e56d74f0d7ed2cdc07ff5d8767b0df.avif)<!-- screenshot -->
 
 ### Step 1: Select Base Model
 
-Choose from official YOLO26 models or your own trained models:
+Choose an official Ultralytics model or one of your own completed models:
 
-| Category        | Description                              |
-| --------------- | ---------------------------------------- |
-| **Official**    | All 30 YOLO26 models (5 sizes x 6 tasks) |
-| **Your Models** | Your completed models for fine-tuning    |
+| Category        | Description                                                         |
+| --------------- | ------------------------------------------------------------------- |
+| **Official**    | YOLO26 (recommended), YOLO11, YOLOv8, and YOLOv5 project models     |
+| **Your Models** | Your completed or uploaded models, organized by project, for tuning |
 
-Official models are organized by task type ([Detect](../../tasks/detect.md), [Segment](../../tasks/segment.md), [Semantic](../../tasks/semantic.md), [Pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [Classify](../../tasks/classify.md)) with sizes from nano to xlarge.
+The selector filters official models to tasks compatible with the selected dataset. YOLO26 includes [Detect](../../tasks/detect.md), [Segment](../../tasks/segment.md), [Semantic](../../tasks/semantic.md), [Depth](../../tasks/depth.md), [Pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), and [Classify](../../tasks/classify.md) variants in sizes from nano to xlarge.
 
 ### Step 2: Select Dataset
 
@@ -57,7 +57,7 @@ Choose a dataset to train on (see [Datasets](../data/datasets.md)):
 
 !!! warning "Task Mismatch"
 
-    A task mismatch warning appears if the model task (e.g., detect) doesn't match the dataset task (e.g., segment). Training will fail if you proceed with mismatched tasks. Ensure both model and dataset use the same task type, as described in the [task guides](../../tasks/index.md).
+    A task mismatch warning appears when the selected model cannot train the dataset task, and **Start Training** remains disabled until you choose a compatible model. A segment dataset accepts segment or semantic models; other dataset tasks require the matching model task. See the [task guides](../../tasks/index.md).
 
 ### Step 3: Configure Parameters
 
@@ -68,7 +68,7 @@ Set core training parameters:
 | **Epochs**     | Number of training iterations                                                                    | 100       |
 | **Batch Size** | Samples per iteration                                                                            | -1 (auto) |
 | **Image Size** | Input resolution (320/416/512/640/1280 dropdown, any multiple of 32 from 32-4096 in YAML editor) | 640       |
-| **Run Name**   | Optional name for the training run                                                               | auto      |
+| **Name**       | Optional name for the training run                                                               | auto      |
 
 ### Step 4: Advanced Settings (Optional)
 
@@ -114,8 +114,7 @@ This preserves the data used for the run even if you later add or remove images,
 
 Choose your GPU from Ultralytics Cloud:
 
-![Ultralytics Platform Training Dialog Gpu Selector And Cost](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-dialog-gpu-selector-and-cost.avif)
-
+![Ultralytics Platform Training Dialog Gpu Selector And Cost](https://cdn.ul.run/i/7c588c7e6369f13267f9301dafd4647e.avif)<!-- screenshot -->
 {% include "macros/platform-gpu-table.md" %}
 
 !!! tip "GPU Selection"
@@ -157,7 +156,7 @@ To receive the completed and failed results without keeping this page open, conn
 
     New accounts receive signup credits — $5 for personal emails and $25 for company emails. [Check your balance](../account/billing.md) in Settings > Billing.
 
-![Ultralytics Platform Training Progress With Charts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-progress-with-charts.avif)
+![Ultralytics Platform Training Progress With Charts](https://cdn.ul.run/i/0bb05d90a4924966d1cf3c918c8a6008.avif)<!-- screenshot -->
 
 ## Monitor Training
 
@@ -165,7 +164,7 @@ View real-time training progress on the model page's **Train** tab:
 
 ### Charts Subtab
 
-![Ultralytics Platform Model Training Live Charts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-training-live-charts.avif)
+![Ultralytics Platform Model Training Live Charts](https://cdn.ul.run/i/6f5275f2049fe7054f012744ac676df1.avif)<!-- screenshot -->
 
 | Metric        | Description                  |
 | ------------- | ---------------------------- |
@@ -188,11 +187,9 @@ After training completes, the **best model** (`best.pt`, the highest-mAP checkpo
 
 ## Cancel Training
 
-Click **Cancel Training** on the model page to stop a running job:
-
-- The compute instance is terminated
-- Credits stop being charged
-- The best checkpoint remains available if it was reached before cancellation
+Click **Cancel Training** on the model page and confirm the action. For cloud training, the Platform stops the job,
+releases its compute, and charges the elapsed GPU time used before cancellation. For local training, cancellation signals
+the process to stop at the next epoch boundary and preserves partial results.
 
 ## Remote Training
 
@@ -212,7 +209,7 @@ Train on your own hardware while streaming metrics to the platform.
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.60**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.104**. Lower versions will not work with Platform.
 
     ```bash
     pip install -U ultralytics
@@ -315,8 +312,8 @@ Before training starts, the platform estimates total cost by:
 | Scenario                         | GPU          | Estimated Cost |
 | -------------------------------- | ------------ | -------------- |
 | 500 images, YOLO26n, 50 epochs   | RTX 4090     | ~$0.03         |
-| 1000 images, YOLO26n, 100 epochs | RTX PRO 6000 | ~$0.30         |
-| 5000 images, YOLO26s, 100 epochs | H100 SXM     | ~$1.93         |
+| 1000 images, YOLO26n, 100 epochs | RTX PRO 6000 | ~$0.23         |
+| 5000 images, YOLO26s, 100 epochs | H100 SXM     | ~$1.56         |
 
 ### Billing Flow
 
@@ -341,27 +338,25 @@ Cloud training billing flow:
 
 !!! success "Consumer Protection"
 
-    Billing tracks actual compute usage, including partial runs that are cancelled. **You are never charged for failed training runs.**
+    Billing tracks actual GPU time, including partial runs that are cancelled or fail after a cloud GPU has started.
 
 ### Billing by Job Status
 
-| Status        | Charged?                                    |
-| ------------- | ------------------------------------------- |
-| **Completed** | Yes — actual GPU time used                  |
-| **Cancelled** | Yes — GPU time from start to cancellation   |
-| **Failed**    | No — failed runs are not charged            |
-| **Stuck**     | Partial — only actual training time charged |
+| Status        | Charged?                                                |
+| ------------- | ------------------------------------------------------- |
+| **Completed** | Yes — actual GPU time used                              |
+| **Cancelled** | Yes — GPU time from start to cancellation               |
+| **Failed**    | Yes, when cloud compute started — elapsed GPU time used |
+| **Stuck**     | Yes — elapsed GPU time until automatic termination      |
 
-!!! tip "No Charge for Errors"
+!!! note "Failures Before Compute Starts"
 
-    If a training run fails due to a configuration error, out-of-memory issue, or any other failure, you are **not charged**. Only successful compute time is billed. Stuck jobs (no activity for 4+ hours) are automatically terminated and charged only for the time the GPU was actively training, not the idle time.
+    A validation or launch failure before a cloud GPU starts has no compute usage to charge. Once a GPU is running,
+    completed, cancelled, failed, and automatically terminated jobs are settled from elapsed wall-clock GPU time.
 
 ### Payment Methods
 
-| Method              | Description              |
-| ------------------- | ------------------------ |
-| **Account Balance** | Pre-loaded credits       |
-| **Pay Per Job**     | Charge at job completion |
+Cloud training is paid from your Platform credit balance.
 
 !!! note "Minimum Balance"
 
@@ -369,13 +364,9 @@ Cloud training billing flow:
 
 ### View Training Costs
 
-After training, view detailed costs in the **Billing** tab:
+Before starting a cloud job, the training dialog shows your current credit balance and estimates the job duration and cost from the selected model, dataset, epochs, image size, and GPU. The estimate is informational; actual usage is charged for the GPU time consumed. Afterward, review the resulting credit transaction in **Settings > Billing**.
 
-- Per-epoch cost breakdown
-- Total GPU time
-- Download cost report
-
-![Ultralytics Platform Training Billing Details](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-billing-details.avif)
+![Ultralytics Platform Training Billing Details](https://cdn.ul.run/i/416432e95da3c64eae823bee07a044d8.avif)<!-- screenshot -->
 
 ## Training Tips
 
@@ -423,9 +414,9 @@ Typical times (1000 images, 100 epochs):
 
 | Model   | RTX PRO 6000 | A100 SXM |
 | ------- | ------------ | -------- |
-| YOLO26n | ~8 min       | ~7 min   |
-| YOLO26m | ~16 min      | ~13 min  |
-| YOLO26x | ~27 min      | ~22 min  |
+| YOLO26n | ~6 min       | ~5 min   |
+| YOLO26m | ~15 min      | ~12 min  |
+| YOLO26x | ~30 min      | ~25 min  |
 
 !!! note "Approximate Times"
 
@@ -433,21 +424,25 @@ Typical times (1000 images, 100 epochs):
 
 ### Can I train overnight?
 
-Yes, training continues until completion. You'll receive a notification when training finishes. Make sure your account has sufficient balance for epoch-based training.
+Yes. Training can run unattended while it remains funded, and the Platform records a completion or failure event. If
+metering drives the balance below zero, active paid cloud runs stop and settle the GPU time already used.
 
 ### What happens if I run out of credits?
 
-If your credit balance reaches zero during a training run, training **continues to completion** and your balance goes negative. This ensures your training job is never interrupted mid-run.
-
-After training completes, you'll need to add credits to bring your balance back to positive before starting new training jobs. Your completed model, checkpoints, and all training artifacts are fully preserved regardless of balance.
+Cloud usage is metered as training progresses. If a charge pushes your balance below zero, active paid cloud training
+runs are stopped and settled for the GPU time already used. Add credits or enable auto top-up to keep long-running jobs
+funded.
 
 !!! note "Negative Balance"
 
-    A negative balance only prevents starting **new** training jobs. Existing deployments and other platform features continue to work normally. Add credits via [Settings > Billing](../account/billing.md) or enable [auto top-up](../account/billing.md#auto-top-up) to avoid interruptions.
+    A zero or negative balance prevents new paid cloud training jobs. A negative metered balance also triggers shutdown
+    of active paid cloud training runs.
 
 ### What happens if my training costs more than the estimate?
 
-Cost estimates are approximate — actual training time may vary due to factors like data loading speed, GPU warmup, and model convergence behavior. If the actual cost exceeds the estimate, your balance may go negative (see above). The platform **does not stop training** based on the estimate.
+Cost estimates are approximate — actual training time may vary due to factors like data loading speed, GPU warmup, and
+model convergence behavior. If actual usage exhausts the available balance, the Platform stops active paid cloud runs
+after the balance goes negative.
 
 To manage costs:
 
@@ -465,13 +460,12 @@ The YAML editor also supports **importing configurations from previous training 
 - **Paste YAML or JSON**: Paste any valid YAML or JSON training configuration into the editor. Parameters are validated automatically, with out-of-range values clamped and warnings displayed.
 - **Drag and drop files**: Drag a `.yaml` or `.json` file directly into the editor to import its parameters.
 
-![Ultralytics Platform Training Dialog Copy Training Config JSON](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-dialog-copy-training-config-json.avif)
-
+![Ultralytics Platform Training Dialog Copy Training Config JSON](https://cdn.ul.run/i/d03490834657b55f99a40363f102f47d.avif)<!-- screenshot -->
 This makes it easy to reproduce or iterate on previous training configurations without manually re-entering each parameter.
 
 ### Can I train from a dataset page?
 
-Yes, the **Train** button on dataset pages opens the training dialog with the dataset preselected and locked. You then select a project and model to begin training.
+Yes, the **New Model** button on dataset pages opens the training dialog with the dataset preselected and locked. You then select a project and model to begin training.
 
 ## Training Parameters Reference
 

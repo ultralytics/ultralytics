@@ -24,7 +24,7 @@ from ultralytics.nn.tasks import YOLODETRDetectionModel
 from ultralytics.utils import LOGGER, RANK, colorstr
 from ultralytics.utils.torch_utils import unwrap_model
 
-__all__ = ("YOLODETRTrainer", "YOLODETRDataset", "YOLODETRValidator")
+__all__ = ("YOLODETRDataset", "YOLODETRTrainer", "YOLODETRValidator")
 
 _YOLODETR_DEFAULTS = {
     "no_aug_epoch": 4,
@@ -88,9 +88,18 @@ class YOLODETRDataset(RTDETRDataset):
         _, _, stop = self.policy_epochs
         if epoch >= stop:
             for key in (
-                "mosaic", "mixup", "copy_paste", "cutmix",
-                "degrees", "translate", "scale", "shear", "perspective",
-                "hsv_h", "hsv_s", "hsv_v",
+                "mosaic",
+                "mixup",
+                "copy_paste",
+                "cutmix",
+                "degrees",
+                "translate",
+                "scale",
+                "shear",
+                "perspective",
+                "hsv_h",
+                "hsv_s",
+                "hsv_v",
             ):
                 setattr(hyp, key, 0.0)
             hyp.augmentations = []
@@ -208,62 +217,13 @@ class YOLODETRTrainer(RTDETRTrainer):
         return batch
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        """Build YOLODETRDetectionModel and optionally load weights with class-row remapping."""
-        model = YOLODETRDetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
-        if weights:
-            self._load_with_class_transfer(model, weights, verbose=RANK in {-1, 0})
-        return model
-
-    def _load_with_class_transfer(self, model, weights, verbose=True):
-        """Load source weights into model, remapping class-row tensors when name lists differ.
-
-        Handles Obj365 -> COCO style transfer:
-          - drops ``denoising_class_embed.*`` tensors when shape mismatch (random reinit)
-          - remaps ``score_head`` / ``class_embed`` rows by class-name matching (incl. aliases)
-        """
-        from ultralytics.utils.class_map import (
-            is_default_numeric_names, names_to_list, remap_class_row_state_dict, resolve_names,
+        """Build YOLODETRDetectionModel and load weights; cls-head rows remap by class name inside model.load()."""
+        model = self.set_model_names_for_load(
+            YOLODETRDetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         )
-        from ultralytics.utils.torch_utils import intersect_dicts
-
-        src_args = getattr(weights, "args", None)
-        src_data_yaml = src_args.get("data") if isinstance(src_args, dict) else getattr(src_args, "data", None)
-        src_names = resolve_names(getattr(weights, "names", None), src_data_yaml)
-        dst_names = resolve_names(self.data.get("names"), getattr(self.args, "data", None))
-
-        csd = weights.float().state_dict()
-        state_dict = model.state_dict()
-
-        dn_discard = [
-            k for k in csd
-            if "denoising_class_embed" in k and k in state_dict and csd[k].shape != state_dict[k].shape
-        ]
-        for k in dn_discard:
-            del csd[k]
-            if verbose:
-                LOGGER.info(f"Discarded '{k}' due to class-count mismatch (will be randomly initialized)")
-
-        src_is_default = is_default_numeric_names(src_names)
-        dst_is_default = is_default_numeric_names(dst_names)
-        src_name_list = names_to_list(src_names)
-        dst_name_list = names_to_list(dst_names)
-        names_match = bool(src_name_list) and src_name_list == dst_name_list
-        if (
-            src_names is not None and dst_names is not None
-            and not src_is_default and not dst_is_default and not names_match
-        ):
-            csd, remapped, missing = remap_class_row_state_dict(
-                csd, state_dict, src_names=src_names, dst_names=dst_names
-            )
-            if verbose and remapped:
-                LOGGER.info(f"Remapped {len(remapped)} class tensors using source->target class-name map")
-            if verbose and missing:
-                LOGGER.info(f"{len(missing)} target classes were not mapped and kept target initialization")
-
-        updated_csd = intersect_dicts(csd, state_dict)
-        model.load_state_dict(updated_csd, strict=False)
-        if verbose:
-            LOGGER.info(f"Transferred {len(updated_csd)}/{len(model.state_dict())} items from pretrained weights")
+        if weights:
+            model.load(weights)
+        return model
 
     def build_dataset(self, img_path, mode="val", batch=None):
         """Build YOLODETRDataset for train (with decay schedule); use RT-DETR's dataset for val."""

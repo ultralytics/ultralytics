@@ -18,7 +18,7 @@ settings = SETTINGS
 
 MODELS = ("YOLO", "YOLOWorld", "YOLOE", "NAS", "SAM", "FastSAM", "RTDETR")
 
-__all__ = (
+__all__ = (  # noqa: PLE0604
     "__version__",
     "ASSETS",
     *MODELS,

@@ -577,7 +577,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
                 LOGGER.info(f"Running {s} ...")
                 subprocess.run(s.split(), check=True)
             else:  # python script
-                exec(s, {"yaml": data})
+                exec(s, {"yaml": data})  # noqa: S102
             dt = f"({round(time.time() - t, 1)}s)"
             s = f"success ✅ {dt}, saved to {colorstr('bold', DATASETS_DIR)}" if r in {0, None} else f"failure {dt} ❌"
             LOGGER.info(f"Dataset download {s}\n")
@@ -742,7 +742,7 @@ class HUBDatasetStats:
                 data = check_det_dataset(yaml_path, autodownload)  # dict
                 data["path"] = data_dir  # YAML path should be set to '' (relative) or parent (absolute)
             except Exception as e:
-                raise Exception("error/HUB/dataset_stats/init") from e
+                raise RuntimeError("error/HUB/dataset_stats/init") from e
 
         self.hub_dir = Path(f"{data['path']}-hub")
         self.im_dir = self.hub_dir / "images"

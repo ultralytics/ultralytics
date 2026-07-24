@@ -245,8 +245,7 @@ def test_predict_txt(tmp_path):
     """Test YOLO predictions with file, directory, and pattern sources listed in a text file."""
     file = tmp_path / "sources_multi_row.txt"
     with open(file, "w") as f:
-        for src in SOURCES_LIST:
-            f.write(f"{src}\n")
+        f.writelines(f"{src}\n" for src in SOURCES_LIST)
     results = YOLO(MODEL)(source=file, imgsz=32)
     assert len(results) == 7, f"Expected 7 results from source list, got {len(results)}"
 
@@ -515,7 +514,7 @@ def test_val(task: str, weight: str, data: str) -> None:
     if IS_RASPBERRYPI and task == "semantic":
         skip_rpi_semantic()
     model = YOLO(weight)
-    for plots in {True, False}:  # Test both cases i.e. plots=True and plots=False
+    for plots in (True, False):  # Test both cases i.e. plots=True and plots=False
         metrics = model.val(data=data, imgsz=32, plots=plots)
         metrics.to_df()
         metrics.to_csv()
@@ -1241,7 +1240,7 @@ def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch,
 
 
 def test_depth_dataset_ignores_unreadable_targets(tmp_path):
-    """Drop images with missing or corrupt depth maps during the cached dataset scan."""
+    """Drop unreadable depth maps and accept single-class mode with empty class labels."""
     from ultralytics.data.dataset import DepthDataset
 
     images, depth = tmp_path / "images" / "train", tmp_path / "depth" / "train"
@@ -1253,7 +1252,7 @@ def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     (depth / "corrupt.npy").write_text("not an npy file")
 
     data = {"names": {0: "depth"}, "nc": 1, "channels": 3}
-    ds = DepthDataset(img_path=str(images), imgsz=32, data=data, augment=False, batch_size=1)
+    ds = DepthDataset(img_path=str(images), imgsz=32, data=data, augment=False, single_cls=True, batch_size=1)
     assert [Path(f).stem for f in ds.im_files] == ["valid"]
     assert (depth.parent / "train.cache").exists()  # scan results cached next to the depth maps
 
@@ -1325,6 +1324,36 @@ def test_utils_torchutils():
     time_sync()
 
 
+def test_rtdetr_remap_cls_by_names():
+    """Test RT-DETR decoder cls-head remap (direct-name match, unmatched, denoising partial transfer)."""
+    from types import SimpleNamespace
+
+    from ultralytics.nn.tasks import RTDETRDetectionModel
+
+    # Source has 2 classes (person, bird), target has 3 (person, bird, airplane). Target 'airplane' has no source.
+    dst_state = {
+        "score_head.weight": torch.full((3, 1), -1.0),
+        "score_head.bias": torch.full((3,), -1.0),
+        "decoder.denoising_class_embed.weight": torch.full((3, 4), -1.0),
+    }
+    csd = {
+        "score_head.weight": torch.tensor([[1.0], [2.0]]),
+        "score_head.bias": torch.tensor([10.0, 20.0]),
+        "decoder.denoising_class_embed.weight": torch.full((2, 4), 9.0),
+    }
+    tgt = SimpleNamespace(names={0: "person", 1: "bird", 2: "airplane"}, state_dict=lambda: dst_state)
+    src = SimpleNamespace(names={0: "bird", 1: "person"})  # inverted order to exercise the row-index mapping
+    n = RTDETRDetectionModel._remap_cls_by_names(tgt, csd, src, verbose=False)
+    assert n == 3  # score_head.weight + score_head.bias + denoising_class_embed remapped
+    assert dst_state["score_head.weight"][0, 0].item() == 2.0  # 'person' <- src[1]
+    assert dst_state["score_head.weight"][1, 0].item() == 1.0  # 'bird' <- src[0]
+    assert dst_state["score_head.weight"][2, 0].item() == -1.0  # 'airplane' unmatched -> dst init kept
+    assert dst_state["score_head.bias"].tolist() == [20.0, 10.0, -1.0]
+    dn = dst_state["decoder.denoising_class_embed.weight"]  # row-per-class embedding transfers like score_head
+    assert dn[0].eq(9.0).all() and dn[1].eq(9.0).all() and dn[2].eq(-1.0).all()
+    assert "decoder.denoising_class_embed.weight" not in csd  # popped so intersect_dicts skips it
+
+
 @pytest.mark.parametrize("nc", [1, 3])
 def test_semantic_loss_all_ignore(nc):
     """SemanticSegmentationLoss must stay finite when the whole batch is ignore (255), e.g. unlabeled/void frames."""
@@ -1351,7 +1380,7 @@ class _DepthLossModel(torch.nn.Module):
         from types import SimpleNamespace
 
         self.p = torch.nn.Parameter(torch.zeros(1))
-        hyp = dict(dlog=1.0, dgrad=0.5, dlam=1.0)
+        hyp = {"dlog": 1.0, "dgrad": 0.5, "dlam": 1.0}
         hyp.update(over)
         self.args = SimpleNamespace(**hyp)
 
@@ -1489,9 +1518,8 @@ def test_utils_patches_torch_save(tmp_path):
 
     mock = MagicMock(side_effect=RuntimeError)
 
-    with patch("ultralytics.utils.patches._torch_save", new=mock):
-        with pytest.raises(RuntimeError):
-            torch_save(torch.zeros(1), tmp_path / "test.pt")
+    with patch("ultralytics.utils.patches._torch_save", new=mock), pytest.raises(RuntimeError):
+        torch_save(torch.zeros(1), tmp_path / "test.pt")
 
     assert mock.call_count == 4, "torch_save was not attempted the expected number of times"
 
@@ -1727,10 +1755,10 @@ def test_yoloe(tmp_path):
     from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
     # visual-prompts
-    visuals = dict(
-        bboxes=np.array([[221.52, 405.8, 344.98, 857.54], [120, 425, 160, 445]]),
-        cls=np.array([0, 1]),
-    )
+    visuals = {
+        "bboxes": np.array([[221.52, 405.8, 344.98, 857.54], [120, 425, 160, 445]]),
+        "cls": np.array([0, 1]),
+    }
     model.predict(
         SOURCE,
         visual_prompts=visuals,
@@ -1756,7 +1784,7 @@ def test_yoloe(tmp_path):
         imgsz=32,
     )
     # Train, from scratch
-    data_dict = dict(train=dict(yolo_data=["coco128-seg.yaml"]), val=dict(yolo_data=["coco128-seg.yaml"]))
+    data_dict = {"train": {"yolo_data": ["coco128-seg.yaml"]}, "val": {"yolo_data": ["coco128-seg.yaml"]}}
     data_yaml = tmp_path / "yoloe-data.yaml"
     YAML.save(data=data_dict, file=data_yaml)
     for data in [data_dict, data_yaml]:
@@ -1838,7 +1866,7 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     data["channels"] = 1  # add additional channels key for grayscale
     YAML.save(data=data, file=grayscale_data)
     # remove npy files in train/val splits if exists, might be created by previous tests
-    for split in {"train", "val"}:
+    for split in ("train", "val"):
         for npy_file in (Path(data["path"]) / data[split]).glob("*.npy"):
             npy_file.unlink()
 

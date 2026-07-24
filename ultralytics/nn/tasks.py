@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import contextlib
 import json
 import pickle
@@ -9,7 +11,7 @@ from copy import deepcopy
 from pathlib import Path
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
@@ -311,7 +313,7 @@ class BaseModel(torch.nn.Module):
         Returns:
             (BaseModel): An updated BaseModel object.
         """
-        self = super()._apply(fn)
+        super()._apply(fn)
         m = self.model[-1]  # Detect()
         if isinstance(
             m, Detect
@@ -350,7 +352,7 @@ class BaseModel(torch.nn.Module):
         if verbose:
             LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")
 
-    def _remap_cls_by_names(self, csd, src_model, verbose=True):
+    def _remap_cls_by_names(self, csd: dict[str, torch.Tensor], src_model: torch.nn.Module, verbose: bool = True):
         """Remap pretrained classification head rows to current class order by name.
 
         Copies rows from pretrained cls layers into the current model's state_dict where the destination class name
@@ -739,7 +741,7 @@ class SemanticSegmentationModel(BaseModel):
 
     def _apply(self, fn):
         """Apply a function to all tensors in the model."""
-        self = super()._apply(fn)
+        super()._apply(fn)
         m = self.model[-1]
         if isinstance(m, SemanticSegment):
             m.stride = fn(m.stride)
@@ -934,6 +936,56 @@ class RTDETRDetectionModel(DetectionModel):
         """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
+    def _remap_cls_by_names(self, csd: dict[str, torch.Tensor], src_model: torch.nn.Module, verbose: bool = True):
+        """Remap RT-DETR decoder cls-head rows by class name.
+
+        Overrides BaseModel's YOLO-specific implementation: RT-DETR's classification tensors live under
+        `score_head` and `class_embed` inside `RTDETRDecoder` rather than `Detect.cv3`. All of them are
+        row-per-class, including the training-only `denoising_class_embed` embedding, so matched class rows
+        transfer even when source and target `nc` differ; any residual shape mismatch is dropped by
+        `intersect_dicts`.
+
+        Args:
+            csd (dict): Pretrained checkpoint state_dict (will be mutated).
+            src_model (torch.nn.Module): Pretrained module, used to read `.names`.
+            verbose (bool): Log mapping summary.
+
+        Returns:
+            (int): Number of cls tensors remapped (counted toward "Transferred" log line).
+        """
+        src_names = getattr(src_model, "names", None)
+        tgt_names = getattr(self, "names", None)
+        if not (isinstance(src_names, dict) and isinstance(tgt_names, dict)):
+            return 0
+        # Skip default placeholder names {0:"0", 1:"1", ...} (also catches empty dicts)
+        if any(all(str(k) == str(v) for k, v in n.items()) for n in (src_names, tgt_names)):
+            return 0
+
+        src_lookup = {str(v).strip().lower(): k for k, v in src_names.items()}
+        tgt_nc = len(tgt_names)
+        idx = torch.tensor(
+            [src_lookup.get(str(tgt_names[k]).strip().lower(), -1) for k in range(tgt_nc)], dtype=torch.long
+        )
+        n_match = int((idx >= 0).sum())
+        # Skip if nothing matches, or class names already share order and count (intersect_dicts handles it directly)
+        if n_match == 0 or (len(src_names) == tgt_nc and torch.equal(idx, torch.arange(tgt_nc))):
+            return 0
+
+        valid = idx >= 0
+        state_dict = self.state_dict()
+        cls_keys = {k for k in csd if ("score_head" in k or "class_embed" in k) and k in state_dict}
+        remapped = 0
+        for k in cls_keys:
+            v_src, v_tgt = csd[k], state_dict[k]
+            if v_src.ndim != v_tgt.ndim or v_src.shape[1:] != v_tgt.shape[1:]:
+                continue
+            v_tgt[valid] = v_src[idx[valid]].to(v_tgt.dtype)
+            csd.pop(k)  # prevent intersect_dicts from copying these rows in the wrong (source) order
+            remapped += 1
+        if verbose and remapped:
+            LOGGER.info(f"Remapped {n_match}/{tgt_nc} decoder cls head rows from pretrained weights by class name")
+        return remapped
+
     def _apply(self, fn):
         """Apply a function to all tensors in the model, including decoder anchors and valid mask.
 
@@ -943,7 +995,7 @@ class RTDETRDetectionModel(DetectionModel):
         Returns:
             (RTDETRDetectionModel): An updated RTDETRDetectionModel object.
         """
-        self = super()._apply(fn)
+        super()._apply(fn)
         m = self.model[-1]
         m.anchors = fn(m.anchors)
         m.valid_mask = fn(m.valid_mask)
@@ -1778,7 +1830,7 @@ class _SafeLoad:
         import torch.nn.modules as torch_nn
 
         import ultralytics.nn.modules as ul_nn
-        import ultralytics.nn.tasks as ul_tasks
+        from ultralytics.nn import tasks as ul_tasks  # noqa: PLW0406
 
         allow = []
 
@@ -1788,7 +1840,7 @@ class _SafeLoad:
                 for info in pkgutil.iter_modules(pkg.__path__, f"{pkg.__name__}."):
                     try:
                         mods.append(importlib.import_module(info.name))
-                    except Exception:  # optional/oddball submodule — skip
+                    except Exception:  # noqa: S112  # optional/oddball submodule — skip
                         continue
             for mod in mods:
                 for name, klass in inspect.getmembers(mod, inspect.isclass):

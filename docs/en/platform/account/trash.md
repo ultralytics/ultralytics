@@ -9,7 +9,7 @@ keywords: Ultralytics Platform, trash, restore, soft delete, recover, deleted it
 
 [Ultralytics Platform](https://platform.ultralytics.com) implements a 30-day soft delete policy, allowing you to recover accidentally deleted projects, datasets, and models. Deleted items are moved to Trash where they can be restored before permanent deletion.
 
-![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-trash-tab-with-items-and-storage-treemap.avif)
+![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.ul.run/i/1fda3fe06d0527f579017b71afa6a2ff.avif)<!-- screenshot -->
 
 ## Soft Delete Policy
 
@@ -30,7 +30,7 @@ Navigate to your Trash:
 1. Go to **Settings** and click the **Trash** tab
 2. Or navigate directly to `/trash` (redirects to `Settings > Trash`)
 
-![Ultralytics Platform Settings Trash Tab Filter By Type Dropdown](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-trash-tab-filter-by-type-dropdown.avif)
+![Ultralytics Platform Settings Trash Tab Filter By Type Dropdown](https://cdn.ul.run/i/0590e96caff8724036eb5af5d24fa206.avif)<!-- screenshot -->
 
 ## Trash Contents
 
@@ -83,10 +83,8 @@ Recover a deleted item:
 1. Navigate to **Settings > Trash**
 2. Find the item you want to restore
 3. Click the **Restore** button (undo icon)
-4. Confirm restoration
 
-![Ultralytics Platform Settings Trash Tab Restore Button On Item](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-trash-tab-restore-button-on-item.avif)
-
+![Ultralytics Platform Settings Trash Tab Restore Button On Item](https://cdn.ul.run/i/2dd74fa1d628c9dc2c1bd7581f299976.avif)<!-- screenshot -->
 The item returns to its original location with all data intact.
 
 If the original slug is already taken, the platform restores the item with a unique available slug so you can access it immediately.
@@ -168,9 +166,12 @@ Access trash programmatically via the [REST API](../api/index.md#trash-api):
 
 === "Empty Trash"
 
-    !!! note "Browser session only"
+    ```bash
+    curl -X DELETE -H "Authorization: Bearer YOUR_API_KEY" \
+      https://platform.ultralytics.com/api/trash/empty
+    ```
 
-        `DELETE /api/trash/empty` requires an authenticated browser session and cannot be called with an API key. Use the **Empty Trash** button in [**Settings > Trash**](../account/settings.md#trash-tab) instead, or permanently delete individual items via `DELETE /api/trash` (API-key compatible).
+    Pass `?owner=WORKSPACE_USERNAME` to empty a team workspace where you have Editor access or higher.
 
 ## FAQ
 
@@ -180,7 +181,8 @@ No. After 30 days, items are permanently deleted and cannot be recovered. Make s
 
 ### What happens when I delete a project with models?
 
-Both the project and all models inside it move to Trash together. Restoring the project restores all its models. You can also restore individual models separately.
+Both the project and all active models inside it move to Trash together. Restoring the project restores the models that
+were trashed with it. A cascaded model cannot be restored while its parent project remains in Trash.
 
 ### Do items in Trash count toward storage?
 

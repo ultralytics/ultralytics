@@ -302,8 +302,8 @@ class TransformerDecoder(nn.Module):
         # assign layer index to each layer so that some layers can decide what to do
         # based on which layer index they are (e.g. cross attention to memory bank only
         # in selected layers)
-        for layer_idx, layer in enumerate(self.layers):
-            layer.layer_idx = layer_idx
+        for layer_idx, decoder_layer in enumerate(self.layers):
+            decoder_layer.layer_idx = layer_idx
 
     @staticmethod
     def _get_coords(H, W, device, dtype):

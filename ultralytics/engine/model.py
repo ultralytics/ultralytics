@@ -19,6 +19,7 @@ from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG_DICT,
     LOGGER,
+    PLATFORM_URL,
     RANK,
     SETTINGS,
     YAML,
@@ -397,7 +398,7 @@ class Model(torch.nn.Module):
 
         updates = {
             "model": deepcopy(self.model).half() if isinstance(self.model, torch.nn.Module) else self.model,
-            "date": datetime.now().isoformat(),
+            "date": datetime.now().astimezone().isoformat(),
             "version": __version__,
             "license": "AGPL-3.0 License (https://ultralytics.com/license)",
             "docs": "https://docs.ultralytics.com",
@@ -749,7 +750,7 @@ class Model(torch.nn.Module):
             'path/to/exported/model.onnx'
         """
         self._check_is_pytorch_model()
-        from .exporter import Exporter
+        from .exporter import Exporter, export_formats
 
         custom = {
             "imgsz": self.model.args["imgsz"],
@@ -759,7 +760,16 @@ class Model(torch.nn.Module):
             "verbose": False,
         }  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "export"}  # highest priority args on the right
-        return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
+        try:
+            return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
+        except Exception:
+            formats = export_formats()
+            export_format = args.get("format", DEFAULT_CFG_DICT["format"])
+            format_name = dict(zip(formats["Argument"], formats["Format"])).get(
+                str(export_format).lower(), export_format
+            )
+            LOGGER.info(f"Export to {format_name} in the cloud with Ultralytics Platform: {PLATFORM_URL}")
+            raise
 
     def train(
         self,
@@ -832,17 +842,16 @@ class Model(torch.nn.Module):
             self.metrics = self.trainer.train()
             return self.metrics
         pretrained = kwargs.get("pretrained", overrides.get("pretrained", True) if kwargs.get("cfg") else True)
-        if args.get("resume"):
-            if args["resume"] is True:  # resume=True (boolean) uses current model as checkpoint
-                if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
-                    args["resume"] = self.ckpt_path
-                else:
-                    LOGGER.warning(
-                        f"model '{self.ckpt_path}' is not a resumable training checkpoint "
-                        f"(missing epoch/optimizer state). Use 'resume' only to continue incomplete training. "
-                        f"Starting new training instead."
-                    )
-                    args["resume"] = False
+        if args.get("resume") is True:  # resume=True (boolean) uses current model as checkpoint
+            if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
+                args["resume"] = self.ckpt_path
+            else:
+                LOGGER.warning(
+                    f"model '{self.ckpt_path}' is not a resumable training checkpoint "
+                    f"(missing epoch/optimizer state). Use 'resume' only to continue incomplete training. "
+                    f"Starting new training instead."
+                )
+                args["resume"] = False
 
         self.trainer = (trainer or self._smart_load("trainer"))(overrides=args, _callbacks=self.callbacks)
         if not args.get("resume") and self.ckpt:
@@ -908,7 +917,7 @@ class Model(torch.nn.Module):
         if use_ray:
             from ultralytics.utils.tuner import run_ray_tune
 
-            return run_ray_tune(self, iterations=iterations, *args, **kwargs)
+            return run_ray_tune(self, *args, iterations=iterations, **kwargs)
         else:
             from .tuner import Tuner
 
@@ -938,7 +947,7 @@ class Model(torch.nn.Module):
             >>> model = model._apply(lambda t: t.cuda())  # Move model to GPU
         """
         self._check_is_pytorch_model()
-        self = super()._apply(fn)
+        super()._apply(fn)
         self.predictor = None  # reset predictor as device may have changed
         self.overrides["device"] = self.device  # was str(self.device) i.e. device(type='cuda', index=0) -> 'cuda:0'
         return self
@@ -1083,7 +1092,7 @@ class Model(torch.nn.Module):
             >>> model.reset_callbacks()
             # All callbacks are now reset to their default functions
         """
-        for event in callbacks.default_callbacks.keys():
+        for event in callbacks.default_callbacks:
             self.callbacks[event] = [callbacks.default_callbacks[event][0]]
 
     @staticmethod

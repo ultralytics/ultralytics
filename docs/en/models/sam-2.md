@@ -212,7 +212,7 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
         from ultralytics.models.sam import SAM2VideoPredictor
 
         # Create SAM2VideoPredictor
-        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="sam2_b.pt")
+        overrides = {"conf": 0.25, "task": "segment", "mode": "predict", "imgsz": 1024, "model": "sam2_b.pt"}
         predictor = SAM2VideoPredictor(overrides=overrides)
 
         # Run inference with single point
@@ -260,7 +260,7 @@ It offers three significant enhancements:
         from ultralytics.models.sam import SAM2DynamicInteractivePredictor
 
         # Create SAM2DynamicInteractivePredictor
-        overrides = dict(conf=0.01, task="segment", mode="predict", imgsz=1024, model="sam2_t.pt", save=False)
+        overrides = {"conf": 0.01, "task": "segment", "mode": "predict", "imgsz": 1024, "model": "sam2_t.pt", "save": False}
         predictor = SAM2DynamicInteractivePredictor(overrides=overrides, max_obj_num=10)
 
         # Define a category by box prompt

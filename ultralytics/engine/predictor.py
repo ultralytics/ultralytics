@@ -184,7 +184,7 @@ class BasePredictor:
             if self.args.visualize and (not self.source_type.tensor)
             else False
         )
-        return self.model(im, augment=self.args.augment, visualize=visualize, embed=self.args.embed, *args, **kwargs)
+        return self.model(im, *args, augment=self.args.augment, visualize=visualize, embed=self.args.embed, **kwargs)
 
     def pre_transform(self, im: list[np.ndarray]) -> list[np.ndarray]:
         """Pre-transform input image before inference.
@@ -426,6 +426,16 @@ class BasePredictor:
         if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
             self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()
+        # channels_last (NHWC) is CUDA-only and native-PyTorch-only: lossless and Tensor-Core friendly there, wrong
+        # on MPS, no CPU gain, and only a native nn.Module has weights to convert.
+        channels_last = self.args.channels_last and self.device.type == "cuda" and self.model.format == "pt"
+        if self.args.channels_last and not channels_last:
+            LOGGER.warning(
+                f"'channels_last=True' applies only to native PyTorch models on CUDA, ignoring for "
+                f"format='{self.model.format}' on '{self.device.type}'."
+            )
+        if channels_last:
+            self.model.to(memory_format=torch.channels_last)
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
     def write_results(self, i: int, p: Path, im: torch.Tensor, s: list[str]) -> str:

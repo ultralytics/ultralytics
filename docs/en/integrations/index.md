@@ -27,6 +27,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Amazon SageMaker](amazon-sagemaker.md): Leverage Amazon SageMaker to efficiently build, train, and deploy Ultralytics models, providing an all-in-one platform for the ML lifecycle.
 
+- [BNNR](bnnr.md): Add XAI-guided, bbox-aware augmentation search and training reports for YOLO via the external BNNR `UltralyticsDetectionAdapter` (Python API; does not replace `yolo train`).
+
 - [ClearML](clearml.md): Automate your Ultralytics ML workflows, monitor experiments, and foster team collaboration.
 
 - [Comet ML](comet.md): Enhance your model development with Ultralytics by tracking, comparing, and optimizing your machine learning experiments.

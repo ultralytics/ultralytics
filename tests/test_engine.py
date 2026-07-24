@@ -5,6 +5,7 @@ from collections import OrderedDict
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
+from unittest.mock import patch
 
 import pytest
 import torch
@@ -18,12 +19,20 @@ from ultralytics.models.yolo import classify, depth, detect, obb, pose, segment,
 from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import DetectionModel, load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, WEIGHTS_DIR
+from ultralytics.utils.callbacks.base import _log_callbacks
 from ultralytics.utils.torch_utils import unwrap_model
 
 
 def test_func(*args, **kwargs):
     """Test function used as a callback stub to verify callback registration."""
     print("callback test passed")
+
+
+def test_log_callbacks():
+    """Test _log_callbacks logs each attached callback's module name and skips empty entries."""
+    with patch("ultralytics.utils.callbacks.base.LOGGER") as mock_logger:
+        _log_callbacks([{"on_train_start": lambda t: None}, {}])
+        assert "test_engine" in mock_logger.debug.call_args.args[0]
 
 
 def test_export(monkeypatch, tmp_path):

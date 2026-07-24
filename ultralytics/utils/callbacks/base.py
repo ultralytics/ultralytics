@@ -1,8 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Base callbacks for Ultralytics training, validation, prediction, and export processes."""
 
+from __future__ import annotations
+
 from collections import defaultdict
 from copy import deepcopy
+from typing import Callable
+
+from ultralytics.utils import LOGGER, colorstr
 
 # Trainer callbacks ----------------------------------------------------------------------------------------------------
 
@@ -203,8 +208,20 @@ def add_integration_callbacks(instance):
 
         callbacks_list.extend([clear_cb, comet_cb, dvc_cb, mlflow_cb, neptune_cb, tune_cb, tb_cb, wb_cb])
 
-    # Add the callbacks to the callbacks dictionary
+    # Log attached callbacks
+    _log_callbacks(callbacks_list)
+
     for callbacks in callbacks_list:
         for k, v in callbacks.items():
             if v not in instance.callbacks[k]:
                 instance.callbacks[k].append(v)
+
+
+def _log_callbacks(callbacks_list: list[dict[str, Callable]]) -> None:
+    """Log the names of the attached callbacks.
+
+    Args:
+        callbacks_list (list): A list of callback dictionaries mapping event names to callback functions.
+    """
+    cb_names = [next(iter(cb.values())).__module__.split(".")[-1] for cb in callbacks_list if cb]
+    LOGGER.debug(f"{colorstr('callbacks:')} {', '.join(cb_names)}")

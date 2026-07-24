@@ -56,7 +56,6 @@ ALIASES = {
     "monitor/tv": "tv",
     "stuffed toy": "teddy bear",
     "hair dryer": "hair drier",
-    "skating and skiing shoes": "skis",
 }
 
 model = YOLO("path/to/yolo26s-objects365.pt")

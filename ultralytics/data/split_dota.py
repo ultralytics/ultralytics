@@ -94,7 +94,7 @@ def load_yolo_dota(data_root: str, split: str = "train") -> list[dict[str, Any]]
         with open(lb_file, encoding="utf-8") as f:
             lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
             lb = np.array(lb, dtype=np.float32)
-        annos.append(dict(ori_size=(h, w), label=lb, filepath=im_file))
+        annos.append({"ori_size": (h, w), "label": lb, "filepath": im_file})
     return annos
 
 
@@ -291,7 +291,7 @@ def split_trainval(
     for r in rates:
         crop_sizes.append(int(crop_size / r))
         gaps.append(int(gap / r))
-    for split in {"train", "val"}:
+    for split in ("train", "val"):
         split_images_and_labels(data_root, save_dir, split, crop_sizes, gaps)
 
 

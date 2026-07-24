@@ -1142,7 +1142,11 @@ def update_mkdocs_file(reference_yaml: str) -> None:
         MKDOCS_YAML.write_text(new_content)
         try:
             result = subprocess.run(
-                ["npx", "prettier", "--write", str(MKDOCS_YAML)], capture_output=True, text=True, cwd=PACKAGE_DIR.parent
+                ["npx", "prettier", "--write", str(MKDOCS_YAML)],
+                capture_output=True,
+                text=True,
+                cwd=PACKAGE_DIR.parent,
+                check=False,
             )
             if result.returncode != 0:
                 LOGGER.warning(f"prettier formatting failed: {result.stderr.strip()}")

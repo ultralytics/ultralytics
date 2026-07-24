@@ -1174,7 +1174,7 @@ class YOLODETRDetectionModel(RTDETRDetectionModel):
 
         Returns:
             (torch.Tensor): Total loss value.
-            (torch.Tensor): Main loss components (3 entries, or 5 with FGL/DDF when DfineLoss is active).
+            (dict): Name-keyed loss components (giou/cls/l1, plus fgl/ddf when DfineLoss is active).
         """
         if not hasattr(self, "criterion"):
             self.criterion = self.init_criterion()
@@ -1217,12 +1217,16 @@ class YOLODETRDetectionModel(RTDETRDetectionModel):
             loss_kwargs["dfine_meta"] = dfine_meta
         loss = self.criterion((dec_bboxes, dec_scores), targets, **loss_kwargs)
 
-        log_keys = ["loss_giou", "loss_class", "loss_bbox"]
+        # NOTE: backward with all losses but only log the main three (+ FGL/DDF when DfineLoss is active).
+        loss_items = {
+            "giou_loss": loss["loss_giou"].detach(),
+            "cls_loss": loss["loss_class"].detach(),
+            "l1_loss": loss["loss_bbox"].detach(),
+        }
         if supports_dfine and dfine_meta is not None:
-            log_keys += ["loss_fgl", "loss_ddf"]
-        return sum(loss.values()), torch.as_tensor(
-            [loss[k].detach() for k in log_keys], device=img.device
-        )
+            loss_items["fgl_loss"] = loss["loss_fgl"].detach()
+            loss_items["ddf_loss"] = loss["loss_ddf"].detach()
+        return sum(loss.values()), loss_items
 
 
 class WorldModel(DetectionModel):

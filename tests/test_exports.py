@@ -266,6 +266,42 @@ def test_export_openvino(end2end, isolated_model):
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
+@pytest.mark.parametrize(
+    "device, available, expected",
+    [
+        ("intel:gpu", ["CPU", "GPU.0", "GPU.1"], "GPU"),  # alias resolves to indexed IDs on multi-GPU machines
+        ("intel:npu", ["CPU", "GPU.0", "GPU.1"], "AUTO"),  # absent device class falls back
+        ("intel:gpu", ["CPU"], "CPU"),  # CPU-only machine falls back to CPU
+    ],
+)
+def test_openvino_intel_device_resolution(device, available, expected, tmp_path, monkeypatch):
+    """Check `intel:*` resolves against indexed OpenVINO device IDs (`GPU.0`) and falls back when absent."""
+    from ultralytics.nn.backends import openvino as ov_backend
+
+    captured = {}
+
+    class FakeCore:
+        available_devices = available
+
+        def read_model(self, model, weights):
+            param = SimpleNamespace(get_layout=lambda: SimpleNamespace(empty=False))
+            return SimpleNamespace(get_parameters=lambda: [param])
+
+        def compile_model(self, ov_model, device_name, config):
+            captured["device_name"] = device_name
+            return SimpleNamespace(
+                get_property=lambda name: ["CPU"],
+                input=lambda: SimpleNamespace(get_any_name=lambda: "images"),
+            )
+
+    monkeypatch.setitem(sys.modules, "openvino", SimpleNamespace(Core=FakeCore))
+    monkeypatch.setattr(ov_backend, "check_requirements", lambda *args, **kwargs: None)
+    (tmp_path / "model.xml").touch()
+
+    ov_backend.OpenVINOBackend(tmp_path, device=device)
+    assert captured["device_name"] == expected
+
+
 @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")
 @pytest.mark.parametrize(

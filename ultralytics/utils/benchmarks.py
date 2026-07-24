@@ -118,30 +118,30 @@ def benchmark(
     if format_arg:
         formats = frozenset(export_formats()["Argument"])
         assert format_arg in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
-    for name, format, suffix, cpu, gpu, valid_args, _ in zip(*export_formats().values()):
+    for name, export_format, suffix, cpu, gpu, valid_args, _ in zip(*export_formats().values()):
         emoji, filename = "❌", None  # export defaults
         try:
-            if format_arg and format_arg != format:
+            if format_arg and format_arg != export_format:
                 continue
-            if IS_PYTHON_MINIMUM_3_13 and not format_arg and format in {"saved_model", "pb", "edgetpu"}:
+            if IS_PYTHON_MINIMUM_3_13 and not format_arg and export_format in {"saved_model", "pb", "edgetpu"}:
                 continue
 
             # Checks
-            if format == "pb":
+            if export_format == "pb":
                 assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
-            elif format == "edgetpu":
+            elif export_format == "edgetpu":
                 assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
                 assert shutil.which("edgetpu_compiler"), "Edge TPU benchmark requires edgetpu_compiler"
-            elif format == "coreml":
+            elif export_format == "coreml":
                 assert MACOS or (LINUX and not ARM64), "CoreML export only supported on macOS and non-aarch64 Linux"
                 # coremltools deadlocks after OpenVINO on macOS Python 3.13 (conflicting OpenMP runtimes); CoreML
                 # is still benchmarked on non-aarch64 Linux Python 3.13.
                 assert not (MACOS and IS_PYTHON_MINIMUM_3_13), (
                     "CoreML not benchmarked on macOS Python>=3.13 (coremltools/OpenVINO OpenMP deadlock)"
                 )
-            if format in {"saved_model", "pb", "edgetpu"}:
+            if export_format in {"saved_model", "pb", "edgetpu"}:
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
-            if format == "paddle":
+            if export_format == "paddle":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
                 assert model.task != "obb", "Paddle OBB bug https://github.com/PaddlePaddle/Paddle/issues/72024"
                 assert (LINUX and not IS_JETSON) or MACOS, "Windows and Jetson Paddle exports not supported yet"
@@ -150,28 +150,28 @@ def benchmark(
                 assert not IS_PYTHON_MINIMUM_3_13, (
                     "PaddlePaddle not benchmarked on Python>=3.13 (protobuf ABI conflict with TensorFlow)"
                 )
-            if format == "mnn":
+            if export_format == "mnn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 MNN exports not supported yet"
                 # MNN export works standalone on Python 3.13 but its ONNX-parsing protobuf clashes with the
                 # protobuf>=6.31.1 that TensorFlow loads earlier in this shared benchmark process, aborting the run.
                 assert not IS_PYTHON_MINIMUM_3_13, (
                     "MNN not benchmarked on Python>=3.13 (protobuf ABI conflict with TensorFlow)"
                 )
-            if format == "ncnn":
+            if export_format == "ncnn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
-            if format == "imx":
+            if export_format == "imx":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 IMX exports not supported"
                 assert model.task in {"detect", "classify", "pose", "segment"}, (
                     "IMX export is only supported for detection, classification, pose estimation and segmentation tasks"
                 )
                 assert "C2f" in model.__str__(), "IMX only supported for YOLOv8n and YOLO11n"
-            if format == "rknn":
+            if export_format == "rknn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 RKNN exports not supported yet"
                 assert LINUX, "RKNN only supported on Linux"
                 assert not is_rockchip(), "RKNN Inference only supported on Rockchip devices"
-            if format == "executorch":
+            if export_format == "executorch":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 ExecuTorch exports not supported yet"
-            if format == "axelera":
+            if export_format == "axelera":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Axelera exports not supported"
                 assert LINUX and not (ARM64 and IS_DOCKER), (
                     "export is only supported on Linux and is not supported on ARM64 Docker."
@@ -179,7 +179,7 @@ def benchmark(
                 assert not (model.task == "segment" and any(isinstance(m, Segment26) for m in model.model.modules())), (
                     "Axelera export does not currently support YOLO26 segmentation models"
                 )
-            if format == "litert":
+            if export_format == "litert":
                 assert MACOS or (LINUX and not ARM64), "LiteRT benchmark only supported on Linux x86 and macOS"
                 # benchmark() deadlocks on the ai-edge-litert/TensorFlow abseil mutex (RAW: Lock blocking) on macOS CI
                 # when litert runs after other TF-based formats in the shared process; still benchmarked locally.
@@ -192,14 +192,14 @@ def benchmark(
                 assert gpu, "inference not supported on GPU"
 
             # Export
-            if format == "-":
+            if export_format == "-":
                 filename = model.pt_path or model.ckpt_path or model.model_name
                 exported_model = deepcopy(model)  # PyTorch format
             else:
                 export_data = data if "data" in valid_args else None
                 filename = deepcopy(model).export(
                     imgsz=imgsz,
-                    format=format,
+                    format=export_format,
                     quantize=quantize,
                     data=export_data,
                     device=device,
@@ -211,10 +211,10 @@ def benchmark(
             emoji = "❎"  # indicates export succeeded
 
             # Predict
-            assert model.task != "pose" or format != "pb", "GraphDef Pose inference is not supported"
-            assert format != "edgetpu", "inference not supported"
-            assert format != "coreml" or platform.system() == "Darwin", "inference only supported on macOS>=10.13"
-            assert format != "axelera", "inference only supported on Axelera hardware"
+            assert model.task != "pose" or export_format != "pb", "GraphDef Pose inference is not supported"
+            assert export_format != "edgetpu", "inference not supported"
+            assert export_format != "coreml" or platform.system() == "Darwin", "inference requires macOS>=10.13"
+            assert export_format != "axelera", "inference only supported on Axelera hardware"
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, quantize=quantize, verbose=False)
 
             # Validate

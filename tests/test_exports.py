@@ -292,10 +292,12 @@ def test_export_openvino_matrix(task, dynamic, quantize, batch, nms, end2end):
         nms=nms,
         end2end=end2end,
     )
-    r = YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, batch=batch)  # exported model inference
+    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, batch=batch)  # exported model inference
     if task == "semantic":
-        assert r[0].semantic_mask is not None
-        assert r[0].semantic_mask.data.dtype in {torch.uint8, torch.int32}
+        import openvino as ov
+
+        # OpenVINO must bake the argmax into a compact [B, H, W] class map, not emit [B, nc, H, W] logits
+        assert len(ov.Core().read_model(next(Path(file).glob("*.xml"))).output(0).get_partial_shape()) == 3
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 

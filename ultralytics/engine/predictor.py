@@ -174,6 +174,8 @@ class BasePredictor:
         im = im.half() if self.model.fp16 else im.float()  # uint8 to fp16/32
         if not_tensor:
             im /= 255  # 0 - 255 to 0.0 - 1.0
+        elif self.args.preprocess_tensor:
+            im = self.pre_transform_tensor(im)
         return im
 
     def inference(self, im: torch.Tensor, *args, **kwargs):
@@ -203,6 +205,23 @@ class BasePredictor:
             stride=self.model.stride,
         )
         return [letterbox(image=x) for x in im]
+
+    def pre_transform_tensor(self, im: torch.Tensor) -> torch.Tensor:
+        """Pre-transform a raw (B, C, H, W) tensor on-device before inference.
+
+        Args:
+            im (torch.Tensor): Normalized input tensor of shape (B, C, H, W) at original resolution.
+
+        Returns:
+            (torch.Tensor): Transformed tensor.
+        """
+        letterbox = LetterBox(
+            self.imgsz,
+            auto=self.args.rect
+            and (self.model.format == "pt" or (getattr(self.model, "dynamic", False) and self.model.format != "imx")),
+            stride=self.model.stride,
+        )
+        return letterbox.apply_tensor(im)
 
     def postprocess(self, preds, img, orig_imgs):
         """Post-process predictions for an image and return them."""
@@ -263,6 +282,7 @@ class BasePredictor:
             vid_stride=self.args.vid_stride,
             buffer=self.args.stream_buffer,
             channels=getattr(self.model, "channels", 3),
+            preprocess_tensor=self.args.preprocess_tensor,
         )
         self.source_type = self.dataset.source_type
         if (

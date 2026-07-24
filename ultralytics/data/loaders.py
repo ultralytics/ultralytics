@@ -586,20 +586,23 @@ class LoadTensor:
         >>> print(f"Processed {len(images)} images")
     """
 
-    def __init__(self, im0: torch.Tensor) -> None:
+    def __init__(self, im0: torch.Tensor, preprocess: bool = False) -> None:
         """Initialize LoadTensor object for processing torch.Tensor image data.
 
         Args:
             im0 (torch.Tensor): Input tensor with shape (B, C, H, W).
+            preprocess (bool): Whether letterboxing is deferred to the predictor. If False, the tensor is treated as
+                already preprocessed and at the model input size. If True, a raw tensor at original resolution is
+                accepted and only normalization to 0.0-1.0 is applied here.
         """
-        self.im0 = self._single_check(im0)
+        self.im0 = self._single_check(im0, preprocess=preprocess)
         self.bs = self.im0.shape[0]
         self.mode = "image"
         self.paths = [f"image{i}.jpg" for i in range(self.bs)]
         self.count = 0
 
     @staticmethod
-    def _single_check(im: torch.Tensor, stride: int = 32) -> torch.Tensor:
+    def _single_check(im: torch.Tensor, stride: int = 32, preprocess: bool = False) -> torch.Tensor:
         """Validate and format a single image tensor, ensuring correct shape and normalization."""
         s = (
             f"torch.Tensor inputs should be BCHW i.e. shape(1, 3, 640, 640) "
@@ -610,12 +613,13 @@ class LoadTensor:
                 raise ValueError(s)
             LOGGER.warning(s)
             im = im.unsqueeze(0)
-        if im.shape[2] % stride or im.shape[3] % stride:
+        if not preprocess and (im.shape[2] % stride or im.shape[3] % stride):
             raise ValueError(s)
         if im.max() > 1.0 + (torch.finfo(im.dtype).eps if im.is_floating_point() else 0):
-            LOGGER.warning(
-                f"torch.Tensor inputs should be normalized 0.0-1.0 but max value is {im.max()}. Dividing input by 255."
-            )
+            if not preprocess:
+                LOGGER.warning(
+                    f"torch.Tensor inputs should be normalized 0.0-1.0 but max value is {im.max()}. Dividing input by 255."
+                )
             im = im.float() / 255.0
 
         return im

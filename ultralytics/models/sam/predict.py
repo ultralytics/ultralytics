@@ -139,6 +139,9 @@ class Predictor(BasePredictor):
         im = im.to(self.device)
         if not_tensor:
             im = (im - self.mean) / self.std
+        elif self.args.preprocess_tensor:
+            im = self.pre_transform_tensor(im) * 255  # letterbox in [0-1], then scale to [0-255]
+            im = (im - self.mean) / self.std
         im = im.half() if self.model.fp16 else im.float()
         return im
 
@@ -167,6 +170,18 @@ class Predictor(BasePredictor):
         assert len(im) == 1, "SAM model does not currently support batched inference"
         letterbox = LetterBox(self.imgsz, auto=False, center=False)
         return [letterbox(image=x) for x in im]
+
+    def pre_transform_tensor(self, im: torch.Tensor) -> torch.Tensor:
+        """Pre-transform a raw (B, C, H, W) tensor on-device before inference.
+
+        Args:
+            im (torch.Tensor): Normalized input tensor of shape (B, C, H, W) at original resolution.
+
+        Returns:
+            (torch.Tensor): Transformed tensor.
+        """
+        letterbox = LetterBox(self.imgsz, auto=False, center=False)
+        return letterbox.apply_tensor(im)
 
     def inference(self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False, *args, **kwargs):
         """Perform image segmentation inference based on the given input cues, using the currently loaded image.

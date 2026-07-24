@@ -48,6 +48,9 @@ class BaseDataset(Dataset):
         ims (list): List of loaded images.
         im_hw0 (list): List of original image dimensions (h, w).
         im_hw (list): List of resized image dimensions (h, w).
+        img_cache (np.ndarray): Single contiguous uint8 buffer holding all images when caching in RAM.
+        img_offsets (list): Flat offset of each image within img_cache.
+        img_shapes (list): (h, w, c) shape of each image within img_cache.
         npy_files (list[Path]): List of numpy file paths.
         cache (str | None): Cache setting ('ram', 'disk', or None for no caching).
         transforms (callable): Image transformation function.
@@ -132,6 +135,7 @@ class BaseDataset(Dataset):
 
         # Cache images (options are cache = True, False, None, "ram", "disk")
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
+        self.img_cache, self.img_offsets, self.img_shapes = None, None, None  # shared RAM buffer + per-image layout
         self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
         self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
         if self.cache == "ram" and self.check_cache_ram():
@@ -228,6 +232,11 @@ class BaseDataset(Dataset):
         """
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
+            if self.img_cache is not None:  # zero-copy view into the shared RAM buffer
+                h, w, c = self.img_shapes[i]
+                pos = self.img_offsets[i]
+                im = self.img_cache[pos : pos + h * w * c].reshape(h, w, c)
+                return im, self.im_hw0[i], self.im_hw[i]
             if fn.exists():  # load npy
                 try:
                     im = np.load(fn)
@@ -278,20 +287,41 @@ class BaseDataset(Dataset):
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
 
     def cache_images(self) -> None:
-        """Cache images to memory or disk for faster training."""
-        b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
-        fcn, storage = (self.cache_images_to_disk, "Disk") if self.cache == "disk" else (self.load_image, "RAM")
-        with ThreadPool(NUM_THREADS) as pool:
-            results = pool.imap(fcn, range(self.ni))
-            pbar = TQDM(enumerate(results), total=self.ni, disable=LOCAL_RANK > 0)
-            for i, x in pbar:
-                if self.cache == "disk":
+        """Cache images to RAM or disk for faster training.
+
+        For RAM, images are decoded once into a single contiguous uint8 buffer (`img_cache`) instead of a Python list
+        of per-image arrays, which copy-on-write duplicates into every forked DataLoader worker
+        (https://github.com/ultralytics/ultralytics/issues/9824). One buffer stays read-only-shared across workers so
+        RAM stays flat, and `load_image` returns zero-copy views into it.
+        """
+        b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabyte
+        if self.cache == "disk":
+            with ThreadPool(NUM_THREADS) as pool:
+                pbar = TQDM(
+                    enumerate(pool.imap(self.cache_images_to_disk, range(self.ni))),
+                    total=self.ni,
+                    disable=LOCAL_RANK > 0,
+                )
+                for i, _ in pbar:
                     b += self.npy_files[i].stat().st_size
-                else:  # 'ram'
-                    self.ims[i], self.im_hw0[i], self.im_hw[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
-                    b += self.ims[i].nbytes
-                pbar.desc = f"{self.prefix}Caching images ({b / gb:.1f}GB {storage})"
+                    pbar.desc = f"{self.prefix}Caching images ({b / gb:.1f}GB Disk)"
+                pbar.close()
+            return
+
+        ims, offset = [], 0
+        self.img_shapes, self.img_offsets = [None] * self.ni, [None] * self.ni
+        with ThreadPool(NUM_THREADS) as pool:
+            pbar = TQDM(enumerate(pool.imap(self.load_image, range(self.ni))), total=self.ni, disable=LOCAL_RANK > 0)
+            for i, (im, hw0, hw) in pbar:
+                self.im_hw0[i], self.im_hw[i] = hw0, hw
+                self.img_shapes[i], self.img_offsets[i] = im.shape, offset
+                offset += im.size
+                ims.append(im.reshape(-1))
+                b += im.nbytes
+                pbar.desc = f"{self.prefix}Caching images ({b / gb:.1f}GB RAM)"
             pbar.close()
+        self.img_cache = np.concatenate(ims)  # single contiguous buffer shared read-only across forked workers
+        self.ims = [None] * self.ni  # release per-image arrays; views now come from img_cache
 
     def cache_images_to_disk(self, i: int) -> None:
         """Save an image as an *.npy file for faster loading."""

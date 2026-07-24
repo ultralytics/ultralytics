@@ -501,6 +501,7 @@ class v8DetectionLoss:
         self.cache_obj_assign = False  # o2m branch: cache fg_mask/target_bboxes for the o2o objectness target
         self.obj_fg = None  # o2m foreground mask, copied onto the o2o loss by E2ELoss each step
         self.obj_gt_bboxes = None  # o2m matched-GT boxes (pixels), copied onto the o2o loss by E2ELoss each step
+        self.obj_fg_score = None  # o2m class-agnostic soft label (per-anchor max of the cls target), for the aux target
         self.small_cls_gain = 1.0  # P3 positive GT-class cls up-gradient gain (small objects); set by E2ELoss
         self.small_cls_area = 0.0  # >0 switches to continuous area-based weighting (letterbox px^2); 0 = P3 binary
         self.small_target_gamma = 1.0  # <1 raises small-object TAL targets; set on the one2one loss by E2ELoss
@@ -673,6 +674,7 @@ class v8DetectionLoss:
 
         if self.cache_obj_assign:  # o2m branch: expose foreground + matched-GT boxes for the o2o objectness target
             self.obj_fg, self.obj_gt_bboxes = fg_mask, target_bboxes
+            self.obj_fg_score = target_scores.amax(-1)  # class-agnostic soft label (IoU-weighted, == o2m cls target)
 
         cls_target, cls_target_sum = target_scores, target_scores_sum
 
@@ -1611,11 +1613,13 @@ class E2ELoss:
             self.one2one.cls_hard = True  # decouple cls (hard) from the IoU quality branch
         if self.one2one.small_target_gamma < 1.0 and self.one2one.cls_hard:
             raise ValueError("o2o_small_target_gamma cannot be combined with o2o_cls_hard or o2o_quality")
-        # training-only class-agnostic foreground auxiliary (DetectAux head): dense BCE toward the o2m foreground mask
-        # (pure 0/1, o2m assignment); needs the o2m assignment, so it requires the one2many branch to be trained
+        # training-only class-agnostic foreground auxiliary (DetectAux head): dense BCE toward the o2m foreground,
+        # o2m assignment; needs the o2m assignment, so it requires the one2many branch to be trained
         self.aux_fg = (
             getattr(model.args, "aux_fg", 0.0) if hasattr(model.model[-1], "aux_fg") and self.train_o2m else 0.0
         )
+        # aux target: the o2m IoU soft label (same as the o2m cls target) instead of a hard 0/1 foreground mask
+        self.aux_fg_iou = getattr(model.args, "aux_fg_iou", False)
         # cache the o2m foreground mask for the objectness (quality uses the o2o assign) or foreground auxiliary target
         self.one2many.cache_obj_assign = (self.one2one.obj and self.train_o2m and not quality) or bool(self.aux_fg)
         if self.one2one.obj and hasattr(model.model[-1], "obj_fuse"):
@@ -1730,31 +1734,32 @@ class E2ELoss:
             rank = self.one2one.rank_gain * self.one2one.rank_loss
             total = torch.cat((total, (self.o2o * rank * batch_size).view(1)))
             loss_items = torch.cat((loss_items, rank.detach().view(1)))
-        if self.aux_fg:  # class-agnostic foreground supervision on the head-input features (o2m assignment, 0/1 target)
+        if self.aux_fg:  # class-agnostic foreground supervision on the head-input features (o2m assignment)
             # the aux branch is training-only, so "aux_fg" is absent at validation (eval mode); report 0 there
-            aux = (
-                self.aux_fg * self.aux_fg_loss(preds["aux_fg"], self.one2many.obj_fg)
-                if "aux_fg" in preds
-                else total.new_zeros(())
-            )
+            target = self.one2many.obj_fg_score if self.aux_fg_iou else self.one2many.obj_fg
+            aux = self.aux_fg * self.aux_fg_loss(preds["aux_fg"], target) if "aux_fg" in preds else total.new_zeros(())
             total = torch.cat((total, (aux * batch_size).view(1)))
             loss_items = torch.cat((loss_items, aux.detach().view(1)))
         return total, loss_items
 
     @staticmethod
-    def aux_fg_loss(aux_pred: torch.Tensor, fg_mask: torch.Tensor) -> torch.Tensor:
-        """Class-agnostic foreground BCE toward the one2many foreground mask, normalized by the positive count.
+    def aux_fg_loss(aux_pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        """Class-agnostic foreground BCE toward the one2many target, normalized by the target sum.
+
+        For a hard 0/1 foreground mask the denominator is the positive count; for the IoU soft label it is the sum of
+        soft targets, matching how the one2many cls loss normalizes.
 
         Args:
             aux_pred (torch.Tensor): Foreground logits with shape (bs, 1, num_anchors).
-            fg_mask (torch.Tensor): One2many foreground mask with shape (bs, num_anchors); 1 at o2m positives.
+            target (torch.Tensor): One2many foreground target with shape (bs, num_anchors); a hard 0/1 mask or the
+                class-agnostic IoU soft label (per-anchor max of the o2m cls target).
 
         Returns:
             (torch.Tensor): Scalar foreground auxiliary loss (0 when there are no positives).
         """
-        target = fg_mask.unsqueeze(1).to(aux_pred.dtype)  # (bs, 1, num_anchors), 1 at o2m positives
-        loss = F.binary_cross_entropy_with_logits(aux_pred.float(), target.float(), reduction="none")
-        return loss.sum() / fg_mask.sum().clamp(min=1)
+        t = target.unsqueeze(1).to(aux_pred.dtype)  # (bs, 1, num_anchors)
+        loss = F.binary_cross_entropy_with_logits(aux_pred.float(), t.float(), reduction="none")
+        return loss.sum() / t.sum().clamp(min=1)
 
     @staticmethod
     def distill_loss(

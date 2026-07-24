@@ -190,6 +190,15 @@ class BaseValidator:
             self.args.quantize = 16 if model.fp16 else None  # record actual inference precision
             stride, fmt = model.stride, model.format
             pt = fmt == "pt"
+            # Same gate as predictor.setup_model: NHWC is lossless only for native PyTorch models on CUDA.
+            channels_last = self.args.channels_last and self.device.type == "cuda" and pt
+            if self.args.channels_last and not channels_last:
+                LOGGER.warning(
+                    f"'channels_last=True' applies only to native PyTorch models on CUDA, ignoring for "
+                    f"format='{fmt}' on '{self.device.type}'."
+                )
+            if channels_last:
+                model.to(memory_format=torch.channels_last)
             imgsz = check_imgsz(self.args.imgsz, stride=stride)
             if fmt not in {"pt", "torchscript"} and not getattr(model, "dynamic", False):
                 self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1
@@ -335,7 +344,7 @@ class BaseValidator:
                         matches = matches[iou[matches[:, 0], matches[:, 1]].argsort()[::-1]]
                         matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
                     correct[matches[:, 1].astype(int), i] = True
-        return torch.tensor(correct, dtype=torch.bool, device=pred_classes.device)
+        return torch.from_numpy(correct)
 
     def add_callback(self, event: str, callback):
         """Append the given callback to the specified event."""
@@ -364,15 +373,12 @@ class BaseValidator:
 
     def init_metrics(self, model):
         """Initialize performance metrics for the YOLO model."""
-        pass
 
     def update_metrics(self, preds, batch):
         """Update metrics based on predictions and batch."""
-        pass
 
     def finalize_metrics(self):
         """Finalize and return all metrics."""
-        pass
 
     def get_stats(self):
         """Return statistics about the model's performance."""
@@ -380,15 +386,12 @@ class BaseValidator:
 
     def gather_stats(self):
         """Gather statistics from all the GPUs during DDP training to GPU 0."""
-        pass
 
     def print_results(self):
         """Print the results of the model's predictions."""
-        pass
 
     def get_desc(self):
         """Get description of the YOLO model."""
-        pass
 
     @property
     def metric_keys(self):
@@ -401,16 +404,12 @@ class BaseValidator:
 
     def plot_val_samples(self, batch, ni):
         """Plot validation samples during training."""
-        pass
 
     def plot_predictions(self, batch, preds, ni):
         """Plot YOLO model predictions on batch images."""
-        pass
 
     def pred_to_json(self, preds, batch):
         """Convert predictions to JSON format."""
-        pass
 
     def eval_json(self, stats):
         """Evaluate and return JSON format of prediction statistics."""
-        pass

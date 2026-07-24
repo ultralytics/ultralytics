@@ -975,7 +975,6 @@ class DeformableTransformerDecoder(nn.Module):
             for size in level_sizes[:-1]:
                 level_start_index.append(level_start_index[-1] + size)
             order = sorted(range(n_levels), key=lambda i: level_sizes[i])  # small -> large
-            shift = (n_levels - 1 - (self.num_layers - 1) % n_levels) % n_levels
         # DEIM-style hoist: compute query_pos once from the initial refer_bbox and reuse across layers.
         query_pos_fixed = (
             pos_mlp(refer_bbox.flatten(0, -2)).unflatten(0, refer_bbox.shape[:-1])
@@ -998,7 +997,7 @@ class DeformableTransformerDecoder(nn.Module):
                 query_pos = pos_scale * query_pos_unscaled
 
             if self.efficient_ms:
-                level_idx = order[(i + shift) % n_levels]  # round-robin, last uses max-res
+                level_idx = order[i % n_levels]  # round-robin, smallest first
                 start = level_start_index[level_idx]
                 end = start + level_sizes[level_idx]
                 feats_level = feats_all[:, start:end, :]

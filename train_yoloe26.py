@@ -309,14 +309,14 @@ elif args.trainer == "YOLOEVPTrainer":
         if "savpe"  in name: # unfreeze the whole savpe module
             continue
 
-        elif "cv4" in name: # unfreeze the whole cv4 and one2one_cv4 modules, which is the visual prompt module
-            # freeze.extend(
-            #     [
-            #         f"{head_index}.{name}.0.norm",
-            #         f"{head_index}.{name}.1.norm",
-            #         f"{head_index}.{name}.2.norm",
-            #     ]  )
-            continue
+        # elif "cv4" in name: # unfreeze the whole cv4 and one2one_cv4 modules, which is the visual prompt module
+        #     # freeze.extend(
+        #     #     [
+        #     #         f"{head_index}.{name}.0.norm",
+        #     #         f"{head_index}.{name}.1.norm",
+        #     #         f"{head_index}.{name}.2.norm",
+        #     #     ]  )
+        #     continue
         else:
             freeze.append(f"{head_index}.{name}")
 

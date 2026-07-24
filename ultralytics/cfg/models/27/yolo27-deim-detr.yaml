@@ -1,27 +1,26 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO27-DETR-Efficient object detection model with P3/8 - P5/32 outputs.
-# YOLO26-style CSP trunk + RTDETRDecoderEfficient head, unified across n/s scales.
-# Per-scale decoder differences (ndl, efficient_ms) are resolved at parse time via `scale_args`.
+# YOLO27-DEIM-DETR object detection model with P3/8 - P5/32 outputs.
+# YOLO26-style CSP trunk + FPN/PAN with a DeimDecoder head for m/l scales.
+# Per-scale decoder depth is resolved at parse time via `scale_args`.
 #
-# Scale summary (source YAMLs from origin/detr_decoder, both trained with 6 decoder layers):
-#   n: ndl=4, efficient_ms=True   - yolo26-rtdetr_efficient_efms_mal_dfineloss.yaml (truncated 6 -> 4, round-robin)
-#   s: ndl=3, efficient_ms=False  - yolo26-rtdetr_efficient_mal_dfineloss.yaml      (truncated 6 -> 3, multi-scale)
-# Task: detect. RTDETRDecoderEfficient is named so the dispatch routes this model to YOLODETR
-# and YOLODETRDetectionModel.init_criterion selects DfineLoss with V2-style zeroed FGL/DDF gains.
+# Scale summary:
+#   m: ndl=3
+#   l: ndl=4
+# Task: detect. DeimDecoder is named so the dispatch routes this model to YOLODETR.
 
 # Parameters
 nc: 80 # number of classes
 
 scales:
   # [depth, width, max_channels]
-  n: [0.50, 0.25, 1024]
-  s: [0.50, 0.50, 1024]
+  m: [1.00, 1.00, 512]
+  l: [1.00, 1.00, 512]
 
 # Per-scale variables resolved into module args as string tokens (see parse_model in tasks.py).
 scale_args:
-  n: {ndl: 4, efficient_ms: True}
-  s: {ndl: 3, efficient_ms: False}
+  m: {ndl: 3}
+  l: {ndl: 4}
 
 # YOLO26 CSP backbone
 backbone:
@@ -38,7 +37,7 @@ backbone:
   - [-1, 1, SPPF, [1024, 5, 3, True]] # 9
   - [-1, 2, C2PSA, [1024]] # 10
 
-# YOLO26 FPN/PAN + RTDETRDecoderEfficient
+# YOLO26 FPN/PAN + DeimDecoder
 head:
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
   - [[-1, 6], 1, Concat, [1]] # cat backbone P4
@@ -56,7 +55,8 @@ head:
   - [[-1, 10], 1, Concat, [1]] # cat head P5
   - [-1, 1, C3k2, [1024, True, 0.5, True]] # 22 (P5/32-large)
 
-  # RTDETRDecoderEfficient. Args (ch is auto-filled from `from` refs). Positional order:
+  # DeimDecoder. Args (ch is auto-filled from `from` refs). Positional order:
   # [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
-  #  learnt_init_query, efficient_ms]. `ndl` and `efficient_ms` are resolved per scale via `scale_args`.
-  - [[16, 19, 22], 1, RTDETRDecoderEfficient, [nc, 256, 300, 4, 8, ndl, 2048, 0.0, "silu", -1, 100, 0.5, 1.0, False, efficient_ms]]
+  #  learnt_init_query, query_select_method, reg_max, reg_scale, layer_scale, mlp_act,
+  #  o2m_topk_mode, use_gateway, share_bbox_head, share_score_head]. `ndl` is resolved per scale via `scale_args`.
+  - [[16, 19, 22], 1, DeimDecoder, [nc, 256, 300, [3, 6, 3], 8, ndl, 2048, 0.0, "silu", -1, 100, 0.5, 1.0, False, "default", 32, 4.0, 1.0, "silu", "unshared", True, False, False]]

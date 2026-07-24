@@ -2,7 +2,7 @@
 title: YOLO-DETR
 comments: true
 description: Learn about Ultralytics YOLO-DETR object detection models with YOLO26-style CSP and DINOv3-ViT + STA backbones, DETR decoders, training, inference, validation, and export.
-keywords: YOLO-DETR, YOLODETR, YOLO27-DETR, Ultralytics, object detection, DETR, RTDETRDecoderV2, DeimDecoder, DINOv3, DINOv3-ViT, Vision Transformer, YOLO26, NMS-free, real-time detection
+keywords: YOLO-DETR, YOLODETR, YOLO27-DETR, Ultralytics, object detection, DETR, RTDETRDecoderEfficient, DeimDecoder, DINOv3, DINOv3-ViT, Vision Transformer, YOLO26, NMS-free, real-time detection
 ---
 
 # Ultralytics YOLO-DETR
@@ -14,11 +14,14 @@ decoder heads inside the standard Ultralytics workflow. It uses the dedicated `Y
 the familiar [Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), and
 [Export](../modes/export.md) modes.
 
-The family has two architecture groups:
+The family spans three configs:
 
-- **YOLO26-style CSP variants (`n/s/m/l`)** use a YOLO26-style convolutional backbone and `RTDETRDecoderV2` head.
-- **DINOv3-ViT + STA variants (`x/xxl`)** use a DINOv3 Vision Transformer backbone with spatial token aggregation
-  (STA) and a `DeimDecoder` head. The `x` scale uses DINOv3-ViT-S/16-plus; the `xxl` scale uses DINOv3-ViT-B/16.
+- **YOLO26-style CSP (`n/s`)** use a YOLO26-style convolutional backbone with an `RTDETRDecoderEfficient` head
+  (`yolo27-detr.yaml`).
+- **YOLO26-style CSP (`m/l`)** use the same backbone with a `DeimDecoder` head (`yolo27-deim-detr.yaml`).
+- **DINOv3-ViT + STA (`x/xxl`)** use a DINOv3 Vision Transformer backbone with spatial token aggregation (STA) and a
+  `DeimDecoder` head (`yolo27-vit-detr.yaml`). The `x` scale uses DINOv3-ViT-S/16-plus; the `xxl` scale uses
+  DINOv3-ViT-B/16.
 
 Both groups produce DETR-style query predictions, making YOLO-DETR suitable for NMS-free object detection pipelines
 with fixed decoder queries and end-to-end export support.
@@ -40,23 +43,23 @@ with fixed decoder queries and end-to-end export support.
 
 ## Model Variants
 
-The main YOLO-DETR family currently contains six release-facing variants. The `n/s/m/l` models are scale-resolved from
-`yolo27-detr.yaml`; the `x` and `xxl` models are scale-resolved from `yolo27-vit-detr.yaml`.
+The main YOLO-DETR family currently contains six release-facing variants. The `n/s` models are scale-resolved from
+`yolo27-detr.yaml`, `m/l` from `yolo27-deim-detr.yaml`, and `x/xxl` from `yolo27-vit-detr.yaml`.
 
-| Model          | Config                    | Backbone Source              | Decoder           | Decoder Layers | Notes                                                      |
-| -------------- | ------------------------- | ---------------------------- | ----------------- | -------------- | ---------------------------------------------------------- |
-| YOLO27n-DETR   | `yolo27n-detr.yaml`       | YOLO26n-style CSP            | `RTDETRDecoderV2` | 3              | Uses `efficient_ms=True` round-robin multi-scale attention |
-| YOLO27s-DETR   | `yolo27s-detr.yaml`       | YOLO26s-style CSP            | `RTDETRDecoderV2` | 3              | Standard multi-scale decoder                               |
-| YOLO27m-DETR   | `yolo27m-detr.yaml`       | YOLO26l-style CSP            | `RTDETRDecoderV2` | 2              | Shorter decoder for a middle deployment point              |
-| YOLO27l-DETR   | `yolo27l-detr.yaml`       | YOLO26l-style CSP            | `RTDETRDecoderV2` | 4              | Larger CSP variant with a deeper decoder                   |
-| YOLO27x-DETR   | `yolo27x-vit-detr.yaml`   | DINOv3-ViT-S/16-plus + STA   | `DeimDecoder`     | 6              | DINOv3-dependent high-capacity variant                     |
-| YOLO27xxl-DETR | `yolo27xxl-vit-detr.yaml` | DINOv3-ViT-B/16 + STA        | `DeimDecoder`     | 4              | DINOv3-dependent extra-large variant                       |
+| Model          | Config                    | Backbone Source            | Decoder                  | Decoder Layers | Notes                                                       |
+| -------------- | ------------------------- | -------------------------- | ------------------------ | -------------- | ----------------------------------------------------------- |
+| YOLO27n-DETR   | `yolo27n-detr.yaml`       | YOLO26n-style CSP          | `RTDETRDecoderEfficient` | 4              | Uses `efficient_ms=True` round-robin single-level attention |
+| YOLO27s-DETR   | `yolo27s-detr.yaml`       | YOLO26s-style CSP          | `RTDETRDecoderEfficient` | 3              | Standard multi-scale decoder                                |
+| YOLO27m-DETR   | `yolo27m-deim-detr.yaml`  | YOLO26l-style CSP          | `DeimDecoder`            | 3              | DEIM decoder at a middle deployment point                   |
+| YOLO27l-DETR   | `yolo27l-deim-detr.yaml`  | YOLO26l-style CSP          | `DeimDecoder`            | 4              | DEIM decoder with a deeper stack                            |
+| YOLO27x-DETR   | `yolo27x-vit-detr.yaml`   | DINOv3-ViT-S/16-plus + STA | `DeimDecoder`            | 6              | DINOv3-dependent high-capacity variant                      |
+| YOLO27xxl-DETR | `yolo27xxl-vit-detr.yaml` | DINOv3-ViT-B/16 + STA      | `DeimDecoder`            | 4              | DINOv3-dependent extra-large variant                        |
 
 !!! note "Backbone labels"
 
-    `YOLO27m-DETR` uses the YOLO26l-style CSP backbone with a shorter 2-layer decoder, so its `m` label describes the
-    deployment point rather than a separate YOLO26m backbone. The `n/s/m/l` configs also resolve scale-specific
-    `RTDETRDecoderV2` settings such as decoder depth and `efficient_ms` from `scale_args`.
+    `YOLO27m-DETR` uses the YOLO26l-style CSP backbone with a shorter 3-layer decoder, so its `m` label describes the
+    deployment point rather than a separate YOLO26m backbone. Each config resolves its scale-specific decoder depth
+    (and `efficient_ms` for `n/s`) from `scale_args`.
 
 ## Supported Tasks and Modes
 
@@ -142,16 +145,22 @@ backbone_lr = lr0 * backbone_lr_ratio
 ```
 
 Use a smaller ratio when the backbone is a pretrained transformer that should adapt slowly, and a larger ratio when
-fine-tuning YOLO26-style CSP backbones. The following examples show practical starting points:
+fine-tuning YOLO26-style CSP backbones directly. Recommended per-scale training settings (`optimizer="AdamW"`,
+`lrf=0.5`, `momentum=0.9`) are:
 
-| Model group                     | Example model       | `lr0`    | `backbone_lr_ratio` | Effective backbone LR | Notes                                      |
-| ------------------------------- | ------------------- | -------- | ------------------- | --------------------- | ------------------------------------------ |
-| DINOv3-ViT + STA backbone       | `yolo27x-vit-detr.yaml` | `0.0005` | `0.02`              | `0.00001`             | Protects the pretrained ViT backbone       |
-| YOLO26L-style CSP backbone      | `yolo27l-detr.yaml` | `0.0001` | `0.1`               | `0.00001`             | Fine-tunes the CSP backbone more directly  |
+| Scale | Config                    | `lr0`    | `backbone_lr_ratio` | `weight_decay` |
+| ----- | ------------------------- | -------- | ------------------- | -------------- |
+| `n`   | `yolo27n-detr.yaml`       | `0.0002` | `0.1`               | `0.0001`       |
+| `s`   | `yolo27s-detr.yaml`       | `0.0001` | `0.1`               | `0.0001`       |
+| `m`   | `yolo27m-deim-detr.yaml`  | `0.0005` | `0.025`             | `0.000125`     |
+| `l`   | `yolo27l-deim-detr.yaml`  | `0.0005` | `0.025`             | `0.000125`     |
+| `x`   | `yolo27x-vit-detr.yaml`   | `0.0005` | `0.02`              | `0.000125`     |
+| `xxl` | `yolo27xxl-vit-detr.yaml` | `0.0005` | `0.02`              | `0.000125`     |
 
-The effective backbone learning rate can be similar across recipes even when `lr0` and `backbone_lr_ratio` differ. For
-example, the DINOv3-ViT recipe uses a higher head LR with a lower backbone ratio, while the YOLO26L-style CSP recipe
-uses a lower head LR with a higher backbone ratio.
+The DEIM variants use the reference DEIM `lr0=0.0005` with a low backbone ratio (`0.025` for `m/l`, `0.02` for
+`x/xxl`), while the efficient `n/s` variants use a smaller `lr0` with a higher ratio (`0.1`) to adapt their
+YOLO26-style CSP backbones more directly. The effective backbone learning rate (`lr0 * backbone_lr_ratio`) stays in
+the `1e-5`–`2e-5` range across scales.
 
 ```python
 from ultralytics import YOLODETR
@@ -178,7 +187,7 @@ and passing the subclass through `model.train(trainer=...)`:
   and learning-rate scaling. Setting `nbs` equal to `batch` disables that scaling and reproduces the published
   DETR learning rates directly, for example `model.train(..., batch=16, nbs=16)`.
 - **AdamW optimizer with a small learning rate.** DETR recipes use `optimizer="AdamW"` with a small `lr0` (around
-  `1e-4` is a safe starting point, since `RTDETRDecoderV2` can become unstable at larger values) and a low
+  `1e-4` is a safe starting point, since DETR decoders can become unstable at larger values) and a low
   `weight_decay`, which is closer to transformer-training practice than the SGD defaults used for CNN-only
   detectors.
 - **Bias-less warmup.** Set `warmup_bias_lr=0.0` and `warmup_momentum` equal to `momentum` so the bias parameters
@@ -205,7 +214,7 @@ create additional decoder queries; it only changes how many predictions can be r
 can contain more objects than the configured query count, adjust the query count in the model YAML and retrain so the
 decoder learns the additional queries.
 
-Decoder depth is part of the selected architecture. The YOLO26-style CSP variants use 3, 3, 2, and 4 decoder layers
+Decoder depth is part of the selected architecture. The YOLO26-style CSP variants use 4, 3, 3, and 4 decoder layers
 for `n`, `s`, `m`, and `l`, respectively. The DINOv3-ViT + STA variants use 6 decoder layers for `x` and 4 for `xxl`.
 Export keeps the selected architecture and decoder behavior, including `efficient_ms=True` for YOLO27n-DETR.
 

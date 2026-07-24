@@ -1880,7 +1880,7 @@ class RTDETRDecoderV2(RTDETRDecoder):
     per-layer assignments.
 
     Examples:
-        Parent-equivalent inference wiring (used by yolo27l-detr.yaml)
+        Parent-equivalent inference wiring
         >>> decoder = RTDETRDecoderV2(nc=80, ch=(512, 1024, 2048), hd=256, nq=300)
     """
 

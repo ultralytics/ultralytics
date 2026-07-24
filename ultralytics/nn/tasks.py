@@ -2299,7 +2299,7 @@ def guess_model_task(model):
         m = cfg["head"][-1][-2].lower()  # output module name
         if m in {"classify", "classifier", "cls", "fc"}:
             return "classify"
-        if m in {"rtdetrdecoder", "rtdetrdecoderv2", "dfinedecoder", "deimdecoder"}:
+        if m in {"rtdetrdecoder", "rtdetrdecoderv2", "rtdetrdecoderefficient", "deimdecoder"}:
             return "detect"
         if "detect" in m:
             return "detect"
@@ -2373,7 +2373,7 @@ def guess_model_family(model):
 
     def head2family(head_name: str):
         head = head_name.lower()
-        if head in {"deimdecoder", "dfinedecoder", "rtdetrdecoderv2", "rtdetrdecoderefficient"}:
+        if head in {"deimdecoder", "rtdetrdecoderv2", "rtdetrdecoderefficient"}:
             return "yolodetr"
         if head == "rtdetrdecoder":
             return "rtdetr"

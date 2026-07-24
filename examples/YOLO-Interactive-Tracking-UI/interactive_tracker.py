@@ -122,7 +122,7 @@ def click_event(event: int, x: int, y: int, flags: int, param) -> None:
         flags (int): Any relevant flags passed by OpenCV.
         param (Any): Additional parameters (not used).
     """
-    global selected_object_id, latest_detections
+    global selected_object_id
     if event == cv2.EVENT_LBUTTONDOWN:
         if not latest_detections:
             return

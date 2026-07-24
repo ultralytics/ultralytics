@@ -207,7 +207,6 @@ class GMC:
         knnMatches = self.matcher.knnMatch(self.prevDescriptors, descriptors, 2)
 
         # Filter matches based on spatial distance constraints
-        matches = []
         spatialDistances = []
         maxSpatialDistance = 0.25 * np.array([width, height])
 
@@ -219,6 +218,8 @@ class GMC:
             return H
 
         # Apply Lowe's ratio test and spatial distance filtering
+        prevPoints = []
+        currPoints = []
         for m, n in knnMatches:
             if m.distance < 0.9 * n.distance:
                 prevKeyPointLocation = self.prevKeyPoints[m.queryIdx].pt
@@ -233,25 +234,19 @@ class GMC:
                     np.abs(spatialDistance[1]) < maxSpatialDistance[1]
                 ):
                     spatialDistances.append(spatialDistance)
-                    matches.append(m)
+                    prevPoints.append(prevKeyPointLocation)
+                    currPoints.append(currKeyPointLocation)
 
         # Filter outliers using statistical analysis
+        spatialDistances = np.asarray(spatialDistances).reshape(-1, 2)
         meanSpatialDistances = np.mean(spatialDistances, 0)
         stdSpatialDistances = np.std(spatialDistances, 0)
         inliers = (spatialDistances - meanSpatialDistances) < 2.5 * stdSpatialDistances
 
-        # Extract good matches and corresponding points
-        goodMatches = []
-        prevPoints = []
-        currPoints = []
-        for i in range(len(matches)):
-            if inliers[i, 0] and inliers[i, 1]:
-                goodMatches.append(matches[i])
-                prevPoints.append(self.prevKeyPoints[matches[i].queryIdx].pt)
-                currPoints.append(keypoints[matches[i].trainIdx].pt)
-
-        prevPoints = np.array(prevPoints)
-        currPoints = np.array(currPoints)
+        # Keep matched point pairs that survive the outlier filter
+        good = inliers.all(axis=1)
+        prevPoints = np.asarray(prevPoints).reshape(-1, 2)[good]
+        currPoints = np.asarray(currPoints).reshape(-1, 2)[good]
 
         # Estimate transformation matrix using RANSAC
         if prevPoints.shape[0] > 4:
@@ -309,19 +304,12 @@ class GMC:
         matchedKeypoints, status, _ = cv2.calcOpticalFlowPyrLK(self.prevFrame, frame, self.prevKeyPoints, None)
 
         # Extract successfully tracked points
-        prevPoints = []
-        currPoints = []
-
-        for i in range(len(status)):
-            if status[i]:
-                prevPoints.append(self.prevKeyPoints[i])
-                currPoints.append(matchedKeypoints[i])
-
-        prevPoints = np.array(prevPoints)
-        currPoints = np.array(currPoints)
+        good = status.ravel().astype(bool)
+        prevPoints = self.prevKeyPoints[good]
+        currPoints = matchedKeypoints[good]
 
         # Estimate transformation matrix using RANSAC
-        if (prevPoints.shape[0] > 4) and (prevPoints.shape[0] == currPoints.shape[0]):
+        if prevPoints.shape[0] > 4:
             H, _ = cv2.estimateAffinePartial2D(prevPoints, currPoints, cv2.RANSAC)
 
             # Scale translation components back to original resolution

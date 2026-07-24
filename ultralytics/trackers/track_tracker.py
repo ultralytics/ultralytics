@@ -439,7 +439,7 @@ class TRACKTRACK:
         self.frame_id += 1
         activated, refind, lost, removed = [], [], [], []
 
-        scores = results.conf
+        scores = np.asarray(results.conf)  # keep masks numpy; numpy coerces a 1-element torch bool mask via __index__
         boxes = parse_bboxes(results)
         high_mask = scores >= self.args.track_high_thresh
         low_mask = (scores > self.args.track_low_thresh) & (scores < self.args.track_high_thresh)

@@ -186,7 +186,7 @@ video_path = "path/to/video.mp4"
 cap = cv2.VideoCapture(video_path)
 
 # Store the track history
-track_history = defaultdict(lambda: [])
+track_history = defaultdict(list)
 
 # Loop through the video frames
 while cap.isOpened():

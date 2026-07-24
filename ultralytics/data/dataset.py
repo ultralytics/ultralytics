@@ -786,7 +786,7 @@ class GroundingDataset(YOLODataset):
         Raises:
             FileNotFoundError: If a .cache file is specified but does not exist.
         """
-        # Check if json_file ends with .cache
+        # Check if json_file ends with .cache (e.g. .engine.cache files)
         if self.json_file.endswith('.cache'):
             cache_path = Path(self.json_file)
             if not cache_path.exists():
@@ -798,6 +798,10 @@ class GroundingDataset(YOLODataset):
                 labels = cache["labels"]
             except (AssertionError, AttributeError, KeyError):
                 raise RuntimeError(f"Invalid or corrupted cache file: {cache_path}")
+            self.im_files = [str(label["im_file"]) for label in labels]
+            if LOCAL_RANK in {-1, 0}:
+                LOGGER.info(f"Loaded {len(labels)} labels from {cache_path}")
+            return labels
 
         else:
             cache_path = Path(self.json_file).with_suffix(".cache")
@@ -809,10 +813,9 @@ class GroundingDataset(YOLODataset):
                 cache, _ = self.cache_labels(cache_path), False  # run cache ops
             [cache.pop(k) for k in ("hash", "version")]  # remove items
             labels = cache["labels"]
-            self.verify_labels(labels)
             self.im_files = [str(label["im_file"]) for label in labels]
             if LOCAL_RANK in {-1, 0}:
-                LOGGER.info(f"Load {self.json_file} from cache file {cache_path}")
+                LOGGER.info(f"Loaded {len(labels)} labels from {cache_path}")
             return labels
 
     def build_transforms(self, hyp: dict | None = None) -> Compose:

@@ -118,15 +118,15 @@ DATA_CONFIG["old_engine_data"] = dict(
         grounding_data=[
             dict(
                 img_path=f"{train_data_root}/Objects365v1/images/train",
-                json_file=f"{train_data_root}/datasets/Objects365v1/annotations/objects365_train_segm.engine.cache",
+                json_file=f"{train_data_root}/Objects365v1/annotations/objects365_train_segm.engine.cache",
             ) ,
             dict(
                 img_path=f"{train_data_root}/flickr/full_images/",
-                json_file=f"{train_data_root}/datasets/flickr/annotations/final_flickr_separateGT_train_segm.engine.cache"
+                json_file=f"{train_data_root}/flickr/annotations/final_flickr_separateGT_train_segm.engine.cache"
             ),
             dict(
                 img_path=f"{train_data_root}/mixed_grounding/gqa/images",
-                json_file=f"{train_data_root}/datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.engine.cache"
+                json_file=f"{train_data_root}/mixed_grounding/annotations/final_mixed_train_no_coco_segm.engine.cache"
             ),
         ]
     ),

@@ -37,6 +37,32 @@ When a pretrained model is fine-tuned on a dataset with a different number of cl
 
 For datasets with the same number of classes as the pretrained model (for example, fine-tuning COCO-pretrained weights on another 80-class dataset), 100% of weights transfer including the detection head.
 
+### Transfer Classes with Name Aliases
+
+Ultralytics transfers matching classification-head rows by class name across datasets, ignoring case and surrounding whitespace. When equivalent classes use different names, rename the source checkpoint classes in memory before loading. This preserves pretrained classification weights for shared concepts that would otherwise be treated as unmatched and initialized randomly.
+
+This [Objects365](../datasets/detect/objects365.md) v2-to-COCO example renames the source classes on the loaded checkpoint, which `train()` then passes through as the pretrained weights:
+
+```python
+from ultralytics import YOLO
+
+# Source Objects365 v2 name -> target COCO name
+ALIASES = {
+    "wild bird": "bird",
+    "handbag/satchel": "handbag",
+    "luggage": "suitcase",
+    "bowl/basin": "bowl",
+    "orange/tangerine": "orange",
+    "monitor/tv": "tv",
+    "stuffed toy": "teddy bear",
+    "hair dryer": "hair drier",
+}
+
+model = YOLO("path/to/yolo26s-objects365.pt")
+model.model.names = {i: ALIASES.get(name, name) for i, name in model.model.names.items()}
+model.train(data="coco.yaml", epochs=100, imgsz=640)
+```
+
 ## Basic Fine-Tuning Example
 
 !!! example

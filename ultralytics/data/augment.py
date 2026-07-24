@@ -1187,8 +1187,7 @@ class RandomPerspective(BaseTransform):
         M = params["M"]
         size = params["size"]
         if (size[0] != img.shape[1] or size[1] != img.shape[0]) or (M != np.eye(3)).any():  # image changed
-            # cv2 tiles borderValue as a 4-element Scalar across channel blocks of 4, so a 3-tuple
-            # zeroes every 4th channel of multispectral borders; 4 identical values pad all channels alike
+            # 4 values: cv2 tiles borderValue in blocks of 4, so a 3-tuple zeroes every 4th multispectral channel
             if self.perspective:
                 img = cv2.warpPerspective(img, M, dsize=size, borderValue=(114, 114, 114, 114))
             else:  # affine

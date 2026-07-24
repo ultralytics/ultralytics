@@ -53,11 +53,12 @@ The Explore page uses a tabbed interface with `Datasets` and `Projects` tabs. Ea
 Each tab provides a search bar and sort options:
 
 ![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.ul.run/i/2f0f8e4e9739e1ecec188a7e29507013.avif)<!-- screenshot -->
-| Sort Option | Description |
-| ----------------------- | ----------------------------------------------------------------------- |
-| **Stars** | Community star count (descending) |
-| **Created** | Creation date, newest (default) or oldest first |
-| **Name** | Alphabetical, ascending or descending |
+
+| Sort Option             | Description                                                            |
+| ----------------------- | ---------------------------------------------------------------------- |
+| **Stars**               | Community star count (descending)                                      |
+| **Created**             | Creation date, newest (default) or oldest first                        |
+| **Name**                | Alphabetical, ascending or descending                                  |
 | **Images** / **Models** | Image count (datasets) or model count (projects), most or fewest first |
 
 ### View Modes
@@ -212,13 +213,14 @@ Official datasets include benchmark datasets like [coco8](../datasets/detect/coc
 Click on a creator's username to view their public profile at `platform.ultralytics.com/{username}`. Public profiles show:
 
 ![Ultralytics Platform User Profile Public Content](https://cdn.ul.run/i/48da46c491e24235796056e924da4439.avif)<!-- screenshot -->
-| Section | Content |
+
+| Section       | Content                      |
 | ------------- | ---------------------------- |
-| **Bio** | User description and company |
-| **Links** | Social profiles |
-| **Followers** | Follower count |
-| **Projects** | Public projects with models |
-| **Datasets** | Public datasets |
+| **Bio**       | User description and company |
+| **Links**     | Social profiles              |
+| **Followers** | Follower count               |
+| **Projects**  | Public projects with models  |
+| **Datasets**  | Public datasets              |
 
 ### Follow Users
 

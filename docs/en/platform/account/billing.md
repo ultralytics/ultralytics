@@ -18,21 +18,22 @@ usage, and manage your subscription from `Settings > Billing`.
 Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 
 ![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/4687f31bbcab35be3b474784751759e5.avif)<!-- screenshot -->
-| Feature | Free | Pro ($29/mo) | Enterprise |
+
+| Feature                                                    | Free       | Pro ($29/mo)    | Enterprise  |
 | ---------------------------------------------------------- | ---------- | --------------- | ----------- |
-| **Signup Credit** | $5 / $25\* | - | Custom |
-| **Monthly Credit** | - | $30/seat/month | Custom |
-| **Models** | 100 | 500 | Unlimited |
-| **Concurrent Trainings** | 3 | 10 | Unlimited |
-| **Storage** | 100 GB | 500 GB | Unlimited |
-| **Dataset Upload (ZIP/TAR incl. `.tar.gz`/`.tgz`/NDJSON)** | 10 GB | 20 GB | 50 GB |
-| **Deployments** | 3 | 10 | Unlimited |
-| **Cloud GPU Types** | 24 | 26 | 26 |
-| **Best GPUs (B200, B300)** | - | Yes | Yes |
-| **Teams** | - | Up to 5 members | Custom size |
-| **SSO / SAML** | - | - | Yes |
-| **Enterprise License** | - | - | Yes |
-| **License** | AGPL-3.0 | AGPL-3.0 | Enterprise |
+| **Signup Credit**                                          | $5 / $25\* | -               | Custom      |
+| **Monthly Credit**                                         | -          | $30/seat/month  | Custom      |
+| **Models**                                                 | 100        | 500             | Unlimited   |
+| **Concurrent Trainings**                                   | 3          | 10              | Unlimited   |
+| **Storage**                                                | 100 GB     | 500 GB          | Unlimited   |
+| **Dataset Upload (ZIP/TAR incl. `.tar.gz`/`.tgz`/NDJSON)** | 10 GB      | 20 GB           | 50 GB       |
+| **Deployments**                                            | 3          | 10              | Unlimited   |
+| **Cloud GPU Types**                                        | 24         | 26              | 26          |
+| **Best GPUs (B200, B300)**                                 | -          | Yes             | Yes         |
+| **Teams**                                                  | -          | Up to 5 members | Custom size |
+| **SSO / SAML**                                             | -          | -               | Yes         |
+| **Enterprise License**                                     | -          | -               | Yes         |
+| **License**                                                | AGPL-3.0   | AGPL-3.0        | Enterprise  |
 
 \*Free plan: $5 at signup, or $25 if you verify a company/work email address.
 
@@ -96,7 +97,8 @@ Credits are the currency for Platform compute services.
 View your balance in `Settings > Billing`:
 
 ![Ultralytics Platform Settings Billing Tab Credit Balance With Topup Button](https://cdn.ul.run/i/e7db27e18b14d2a8d2672966455c965f.avif)<!-- screenshot -->
-| Balance Type | Description |
+
+| Balance Type  | Description                          |
 | ------------- | ------------------------------------ |
 | **Available** | Credits available for cloud training |
 
@@ -277,13 +279,14 @@ When your Pro subscription ends (cancelled or expired), your account reverts to 
 View all transactions in `Settings > Billing`:
 
 ![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.ul.run/i/ecd72fd02c557801a298593d0f8ad2bb.avif)<!-- screenshot -->
-| Column | Description |
+
+| Column      | Description                                                                                                                            |
 | ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **Date** | Transaction date |
-| **Type** | Signup, Purchase, Subscription, Monthly Grant, Training, Refund, Adjustment, Promo, Auto Top-Up, Auto Top-Up Failed, Pro Credit Expiry |
-| **Amount** | Transaction value (green for credits, red for charges) |
-| **Balance** | Resulting balance after transaction |
-| **Details** | Additional context (model link, receipt, period) |
+| **Date**    | Transaction date                                                                                                                       |
+| **Type**    | Signup, Purchase, Subscription, Monthly Grant, Training, Refund, Adjustment, Promo, Auto Top-Up, Auto Top-Up Failed, Pro Credit Expiry |
+| **Amount**  | Transaction value (green for credits, red for charges)                                                                                 |
+| **Balance** | Resulting balance after transaction                                                                                                    |
+| **Details** | Additional context (model link, receipt, period)                                                                                       |
 
 ## FAQ
 

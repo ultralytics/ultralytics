@@ -165,12 +165,13 @@ View real-time training progress on the model page's **Train** tab:
 ### Charts Subtab
 
 ![Ultralytics Platform Model Training Live Charts](https://cdn.ul.run/i/65dc8b13609a01f0fddc23f94e27e707.avif)<!-- screenshot -->
-| Metric | Description |
+
+| Metric        | Description                  |
 | ------------- | ---------------------------- |
-| **Loss** | Training and validation loss |
-| **mAP** | Mean Average Precision |
+| **Loss**      | Training and validation loss |
+| **mAP**       | Mean Average Precision       |
 | **Precision** | Correct positive predictions |
-| **Recall** | Detected ground truths |
+| **Recall**    | Detected ground truths       |
 
 ### Console Subtab
 

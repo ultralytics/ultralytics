@@ -102,11 +102,12 @@ The results panel shows:
 Adjust inference behavior with the three sliders below the image:
 
 ![Ultralytics Platform Predict Tab Parameters Sliders](https://cdn.ul.run/i/e31f0d2fd7058ab006f9ef835bcf6eb7.avif)<!-- screenshot -->
-| Parameter | Range | Default | Description |
-| -------------- | -------------------------- | ------- | ---------------------------- |
-| **Confidence** | 0.01 – 1.0, steps of 0.01 | 0.25 | Minimum confidence threshold |
-| **IoU** | 0.0 – 0.95, steps of 0.01 | 0.7 | NMS IoU threshold |
-| **Image Size** | 32 – 1280, steps of 32 | 640 | Input resize dimension |
+
+| Parameter      | Range                     | Default | Description                  |
+| -------------- | ------------------------- | ------- | ---------------------------- |
+| **Confidence** | 0.01 – 1.0, steps of 0.01 | 0.25    | Minimum confidence threshold |
+| **IoU**        | 0.0 – 0.95, steps of 0.01 | 0.7     | NMS IoU threshold            |
+| **Image Size** | 32 – 1280, steps of 32    | 640     | Input resize dimension       |
 
 !!! note "Auto-Rerun"
 

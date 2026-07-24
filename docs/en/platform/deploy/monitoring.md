@@ -45,12 +45,13 @@ graph TB
 Four summary cards at the top of the page show:
 
 ![Ultralytics Platform Deploy Page Four Overview Cards](https://cdn.ul.run/i/4ee4595697397d7ffc102fed995168c1.avif)<!-- screenshot -->
-| Metric | Description |
+
+| Metric                   | Description                   |
 | ------------------------ | ----------------------------- |
 | **Total Requests (24h)** | Requests across all endpoints |
-| **Active Deployments** | Currently running endpoints |
-| **Error Rate (24h)** | Percentage of failed requests |
-| **P95 Latency (24h)** | 95th percentile response time |
+| **Active Deployments**   | Currently running endpoints   |
+| **Error Rate (24h)**     | Percentage of failed requests |
+| **P95 Latency (24h)**    | 95th percentile response time |
 
 !!! warning "Error Rate Alert"
 

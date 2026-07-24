@@ -21,14 +21,15 @@ The `Profile` tab contains your profile information, social links, data region, 
 Update your profile information:
 
 ![Ultralytics Platform Settings Profile Tab Display Name Bio Company Fields](https://cdn.ul.run/i/679e7eb184fe9db51391b1d3548c9aa2.avif)<!-- screenshot -->
-| Field | Description |
+
+| Field            | Description                               |
 | ---------------- | ----------------------------------------- |
-| **Display Name** | Your public name |
-| **Username** | Unique identifier (set at signup) |
-| **Company** | Company or organization name |
-| **Use Case** | Primary application (select from list) |
-| **Bio** | Short description (minimum 10 characters) |
-| **Profile Icon** | Avatar with color, initials, or image |
+| **Display Name** | Your public name                          |
+| **Username**     | Unique identifier (set at signup)         |
+| **Company**      | Company or organization name              |
+| **Use Case**     | Primary application (select from list)    |
+| **Bio**          | Short description (minimum 10 characters) |
+| **Profile Icon** | Avatar with color, initials, or image     |
 
 #### Username Rules
 
@@ -65,15 +66,16 @@ Update your profile information:
 Connect your professional profiles:
 
 ![Ultralytics Platform Settings Profile Tab Social Links Grid](https://cdn.ul.run/i/6632010d3fc5d6ffd4045df2e1db0e89.avif)<!-- screenshot -->
-| Platform | Format |
+
+| Platform           | Format         |
 | ------------------ | -------------- |
-| **GitHub** | username |
-| **LinkedIn** | profile-slug |
-| **X (Twitter)** | username |
-| **YouTube** | channel-handle |
-| **Google Scholar** | user-id |
-| **Discord** | username |
-| **Website** | `example.com` |
+| **GitHub**         | username       |
+| **LinkedIn**       | profile-slug   |
+| **X (Twitter)**    | username       |
+| **YouTube**        | channel-handle |
+| **Google Scholar** | user-id        |
+| **Discord**        | username       |
+| **Website**        | `example.com`  |
 
 Social links appear on your public profile page.
 
@@ -82,12 +84,13 @@ Social links appear on your public profile page.
 Manage email addresses linked to your account in the `Profile` tab:
 
 ![Ultralytics Platform Settings Profile Tab Emails Section](https://cdn.ul.run/i/f09baef9e8e5b2ceec2fa688b597eeeb.avif)<!-- screenshot -->
-| Action | Description |
+
+| Action             | Description                                    |
 | ------------------ | ---------------------------------------------- |
-| **Add Email** | Add a new email address to your account |
-| **Remove** | Remove a non-primary email address |
-| **Verify** | Send a verification email to confirm ownership |
-| **Set as Primary** | Set a verified email as your primary address |
+| **Add Email**      | Add a new email address to your account        |
+| **Remove**         | Remove a non-primary email address             |
+| **Verify**         | Send a verification email to confirm ownership |
+| **Set as Primary** | Set a verified email as your primary address   |
 
 !!! note "Primary Email"
 
@@ -217,11 +220,12 @@ The `API Keys` tab lets you create and manage API keys for remote training and i
 The `Plans` tab lets you compare available plans and upgrade or downgrade your subscription.
 
 ![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/4687f31bbcab35be3b474784751759e5.avif)<!-- screenshot -->
-| Plan | Storage | Models | Deployments | Concurrent Trainings | Team Seats |
+
+| Plan           | Storage   | Models    | Deployments | Concurrent Trainings | Team Seats |
 | -------------- | --------- | --------- | ----------- | -------------------- | ---------- |
-| **Free** | 100 GB | 100 | 3 | 3 | — |
-| **Pro** | 500 GB | 500 | 10 | 10 | Up to 5 |
-| **Enterprise** | Unlimited | Unlimited | Unlimited | Unlimited | Custom |
+| **Free**       | 100 GB    | 100       | 3           | 3                    | —          |
+| **Pro**        | 500 GB    | 500       | 10          | 10                   | Up to 5    |
+| **Enterprise** | Unlimited | Unlimited | Unlimited   | Unlimited            | Custom     |
 
 From this tab you can:
 

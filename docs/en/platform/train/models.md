@@ -171,12 +171,13 @@ Interactive heatmap showing prediction accuracy per class:
 When the training run provides them, the **Validation** subtab also displays performance curves at different confidence thresholds. Available validation plots depend on the artifacts produced by the run.
 
 ![Ultralytics Platform Model Pr F1 Curves](https://cdn.ul.run/i/5083314df80efe48e0f54371f04fc228.avif)<!-- screenshot -->
-| Curve | Description |
+
+| Curve                    | Description                              |
 | ------------------------ | ---------------------------------------- |
-| **Precision-Recall** | Trade-off between precision and recall |
-| **F1-Confidence** | F1 score at different confidence levels |
+| **Precision-Recall**     | Trade-off between precision and recall   |
+| **F1-Confidence**        | F1 score at different confidence levels  |
 | **Precision-Confidence** | Precision at different confidence levels |
-| **Recall-Confidence** | Recall at different confidence levels |
+| **Recall-Confidence**    | Recall at different confidence levels    |
 
 ## Export Model
 

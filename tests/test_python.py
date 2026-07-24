@@ -1253,6 +1253,20 @@ def test_utils_init():
     is_github_action_running()
 
 
+def test_plt_settings_backend_restore():
+    """Test plt_settings does not raise when the original backend can't be restored headless (#20761)."""
+    import matplotlib.pyplot as plt
+
+    from ultralytics.utils import plt_settings
+
+    original = plt.get_backend()
+    try:
+        plt.rcParams["backend"] = "TkAgg"  # interactive backend that can't reload on a headless runner
+        plt_settings()(lambda: None)()  # must not raise
+    finally:
+        plt.switch_backend(original)
+
+
 def test_utils_checks(monkeypatch):
     """Test various utility checks for filenames, requirements, image sizes, display capabilities, and versions."""
 

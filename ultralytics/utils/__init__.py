@@ -435,8 +435,10 @@ def plt_settings(rcparams=None, backend="Agg"):
             finally:
                 if switch:
                     plt.close("all")
+                    # Best-effort restore: an interactive backend captured headful can't reload headless, so a
+                    # failed restore must not crash a finished run (get_backend() doesn't guarantee a valid backend)
                     with contextlib.suppress(Exception):
-                        plt.switch_backend(original_backend)  # get_backend() doesn't guarantee valid backend
+                        plt.switch_backend(original_backend)
             return result
 
         wrapper._fonts_registered = False

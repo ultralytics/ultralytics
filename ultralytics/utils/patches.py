@@ -199,9 +199,9 @@ def torch_save(*args, **kwargs):
     for i in range(4):  # 3 retries
         try:
             return _torch_save(*args, **kwargs)
-        except RuntimeError as e:  # Unable to save, possibly waiting for device to flush or antivirus scan
+        except RuntimeError:  # Unable to save, possibly waiting for device to flush or antivirus scan
             if i == 3:
-                raise e
+                raise
             time.sleep((2**i) / 2)  # Exponential backoff: 0.5s, 1.0s, 2.0s
 
 

@@ -424,5 +424,3 @@ def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrain
 
     assert captured["cfg"] == checkpoint_model.yaml, "Checkpoint config was not used"
     assert captured["weights"] is (checkpoint_model if uses_weights else None), "Unexpected weights loaded"
-
-

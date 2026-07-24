@@ -202,6 +202,10 @@ CFG_FLOAT_KEYS = frozenset(
         "box",
         "cls",
         "dfl",
+        "pose",
+        "kobj",
+        "rle",
+        "angle",
         "dlog",
         "dgrad",
         "dis",
@@ -234,6 +238,7 @@ CFG_FRACTION_KEYS = frozenset(
         "mixup",
         "cutmix",
         "copy_paste",
+        "erasing",
         "conf",
         "iou",
         "fraction",
@@ -461,11 +466,6 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                     cfg[k] = v = int(v)
                 if k in CFG_INT_MIN and v < CFG_INT_MIN[k]:
                     raise ValueError(f"'{k}={v}' is an invalid value. '{k}' must be >= {CFG_INT_MIN[k]}.")
-                if k == "mask_ratio" and isinstance(cfg.get("imgsz"), int) and v > cfg["imgsz"]:
-                    raise ValueError(
-                        f"'mask_ratio={v}' is an invalid value. 'mask_ratio' downsamples masks and must not "
-                        f"exceed 'imgsz={cfg['imgsz']}'."
-                    )
             elif k in CFG_BOOL_KEYS and not isinstance(v, bool):
                 if hard:
                     raise TypeError(

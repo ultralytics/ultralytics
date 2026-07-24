@@ -1585,7 +1585,7 @@ class RTDETRDecoder(nn.Module):
             learnt_init_query (bool): Whether to learn initial query embeddings.
         """
         super().__init__()
-        act = act or nn.ReLU()
+        act = nn.ReLU() if act is None else act
         self.hidden_dim = hd
         self.nhead = nh
         self.nl = len(ch)  # num level

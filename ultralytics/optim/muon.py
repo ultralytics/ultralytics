@@ -182,13 +182,13 @@ class MuSGD(optim.Optimizer):
             muon (float): Scaling factor for Muon component.
             sgd (float): Scaling factor for SGD component.
         """
-        defaults = dict(
-            lr=lr,
-            momentum=momentum,
-            weight_decay=weight_decay,
-            nesterov=nesterov,
-            use_muon=use_muon,
-        )
+        defaults = {
+            "lr": lr,
+            "momentum": momentum,
+            "weight_decay": weight_decay,
+            "nesterov": nesterov,
+            "use_muon": use_muon,
+        }
         super().__init__(params, defaults)
         self.muon = muon
         self.sgd = sgd
@@ -290,7 +290,7 @@ class Muon(optim.Optimizer):
             weight_decay (float): Weight decay factor applied multiplicatively.
             momentum (float): Momentum factor for gradient accumulation.
         """
-        defaults = dict(lr=lr, weight_decay=weight_decay, momentum=momentum)
+        defaults = {"lr": lr, "weight_decay": weight_decay, "momentum": momentum}
         super().__init__(params, defaults)
 
     @torch.no_grad()

@@ -266,7 +266,7 @@ class Tuner:
                     "hyperparameters": {k: (v.item() if hasattr(v, "item") else v) for k, v in hyperparameters.items()},
                     "metrics": metrics,
                     "datasets": datasets,
-                    "timestamp": datetime.now(),
+                    "timestamp": datetime.now().astimezone(),
                     "iteration": iteration,
                 }
             )
@@ -285,20 +285,20 @@ class Tuner:
                 return
 
             with open(self.tune_file, "w", encoding="utf-8") as f:
-                for result in all_results:
-                    f.write(
-                        json.dumps(
-                            self._result_record(
-                                result["iteration"],
-                                result["fitness"] or 0.0,
-                                result.get("hyperparameters", {}),
-                                result.get("datasets", {}),
-                                result.get("save_dirs"),
-                            ),
-                            default=self._json_default,
-                        )
-                        + "\n"
+                f.writelines(
+                    json.dumps(
+                        self._result_record(
+                            result["iteration"],
+                            result["fitness"] or 0.0,
+                            result.get("hyperparameters", {}),
+                            result.get("datasets", {}),
+                            result.get("save_dirs"),
+                        ),
+                        default=self._json_default,
                     )
+                    + "\n"
+                    for result in all_results
+                )
 
         except Exception as e:
             LOGGER.warning(f"{self.prefix}MongoDB to NDJSON sync failed: {e}")
@@ -405,12 +405,12 @@ class Tuner:
                 # MongoDB already sorted by fitness DESC, so results[0] is best
                 x = np.array(
                     [
-                        [r["fitness"]] + [r["hyperparameters"].get(k, self.args.get(k)) for k in self.space.keys()]
+                        [r["fitness"]] + [r["hyperparameters"].get(k, self.args.get(k)) for k in self.space]
                         for r in results
                     ]
                 )
             elif self.collection.name in self.collection.database.list_collection_names():  # Tuner started elsewhere
-                x = np.array([[0.0] + [getattr(self.args, k) for k in self.space.keys()]])
+                x = np.array([[0.0] + [getattr(self.args, k) for k in self.space]])
 
         # Fall back to local NDJSON if MongoDB unavailable or empty
         if x is None:
@@ -433,7 +433,7 @@ class Tuner:
                 factors = np.where(mask, np.exp(step), 1.0).clip(0.25, 4.0)
             hyp = {k: float(genes[i] * factors[i]) for i, k in enumerate(self.space.keys())}
         else:
-            hyp = {k: getattr(self.args, k) for k in self.space.keys()}
+            hyp = {k: getattr(self.args, k) for k in self.space}
 
         # Constrain to limits
         for k, bounds in self.space.items():
@@ -588,8 +588,10 @@ class Tuner:
                     [
                         f"{self.prefix}Best fitness={fitness[best_idx]} observed at iteration {best_idx + 1}",
                         f"{self.prefix}Best fitness metrics are {self._best_metrics(best_result)}",
-                        f"{self.prefix}Best fitness model is "
-                        f"{self.tune_dir / 'weights' if len(best_result.get('datasets', {})) == 1 else 'not saved for multi-dataset tuning'}",
+                        (
+                            f"{self.prefix}Best fitness model is "
+                            f"{self.tune_dir / 'weights' if len(best_result.get('datasets', {})) == 1 else 'not saved for multi-dataset tuning'}"
+                        ),
                     ]
                 )
             header = "\n".join(header_lines)

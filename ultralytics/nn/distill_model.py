@@ -49,6 +49,7 @@ class DistillationModel(nn.Module):
         loss: Compute combined detection and distillation loss.
         loss_sl2: Compute score-weighted L2 distillation loss for a feature pair.
         decouple_outputs: Normalize teacher/student head outputs across train/val formats.
+        fuse: Fuse and return the student model for inference and export.
         train: Set training mode while keeping teacher frozen.
 
     Examples:
@@ -197,6 +198,11 @@ class DistillationModel(nn.Module):
         if isinstance(x, dict):  # for cases of training and validating while training.
             return self.loss(x, *args, **kwargs)
         return self.student_model.predict(x, *args, **kwargs)
+
+    def fuse(self, verbose: bool = True):
+        """Fuse and return the student model, dropping the training-only distillation wrapper."""
+        self._remove_feature_hooks()
+        return self.student_model.fuse(verbose=verbose)
 
     def loss(self, batch, preds=None):
         """Compute loss.

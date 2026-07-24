@@ -85,14 +85,14 @@ The `tfjs` argument now exports a [LiteRT](litert.md) `.tflite` model, which sup
         model = YOLO("yolo26n.pt")
 
         # Export the model to TF.js format
-        model.export(format="litert")  # creates 'yolo26n.tflite'
+        model.export(format="litert", imgsz=640)  # use imgsz=224 for classification
         ```
 
     === "CLI"
 
         ```bash
         # Export a YOLO26n PyTorch model to TF.js format
-        yolo export model=yolo26n.pt format=litert # creates 'yolo26n.tflite'
+        yolo export model=yolo26n.pt format=litert imgsz=640 # use imgsz=224 for classification
         ```
 
 !!! note "Predict and Validate"
@@ -150,7 +150,7 @@ Exporting Ultralytics YOLO26 models to TensorFlow.js (TF.js) format is straightf
         model = YOLO("yolo26n.pt")
 
         # Export the model to TF.js format
-        model.export(format="litert")  # creates 'yolo26n.tflite'
+        model.export(format="litert", imgsz=640)  # use imgsz=224 for classification
 
         # The exported '.tflite' model runs in the browser via LiteRT.js or locally with yolo predict/val.
         ```
@@ -159,7 +159,7 @@ Exporting Ultralytics YOLO26 models to TensorFlow.js (TF.js) format is straightf
 
         ```bash
         # Export a YOLO26n PyTorch model to TF.js format
-        yolo export model=yolo26n.pt format=litert # creates 'yolo26n.tflite'
+        yolo export model=yolo26n.pt format=litert imgsz=640 # use imgsz=224 for classification
 
         # The exported '.tflite' model runs in the browser via LiteRT.js or locally with yolo predict/val.
         ```

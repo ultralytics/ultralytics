@@ -123,9 +123,8 @@ class TransformerWrapper(nn.Module):
     def _reset_parameters(self):
         """Initialize the parameters of the model."""
         for n, p in self.named_parameters():
-            if p.dim() > 1:
-                if "box_embed" not in n and "query_embed" not in n and "reference_points" not in n:
-                    nn.init.xavier_uniform_(p)
+            if p.dim() > 1 and "box_embed" not in n and "query_embed" not in n and "reference_points" not in n:
+                nn.init.xavier_uniform_(p)
 
 
 def get_valid_ratio(mask):

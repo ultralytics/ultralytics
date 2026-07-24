@@ -100,7 +100,7 @@ class GMC:
 
         Examples:
             >>> gmc = GMC(method="sparseOptFlow")
-            >>> raw_frame = np.random.rand(480, 640, 3)
+            >>> raw_frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
             >>> transformation_matrix = gmc.apply(raw_frame)
             >>> print(transformation_matrix.shape)
             (2, 3)
@@ -125,10 +125,10 @@ class GMC:
 
         Examples:
             >>> gmc = GMC(method="ecc")
-            >>> processed_frame = gmc.apply_ecc(np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]))
-            >>> print(processed_frame)
-            [[1. 0. 0.]
-             [0. 1. 0.]]
+            >>> raw_frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+            >>> transformation_matrix = gmc.apply_ecc(raw_frame)
+            >>> print(transformation_matrix.shape)
+            (2, 3)
         """
         height, width, c = raw_frame.shape
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY) if c == 3 else raw_frame
@@ -282,10 +282,10 @@ class GMC:
 
         Examples:
             >>> gmc = GMC()
-            >>> result = gmc.apply_sparseoptflow(np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]))
-            >>> print(result)
-            [[1. 0. 0.]
-             [0. 1. 0.]]
+            >>> raw_frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+            >>> transformation_matrix = gmc.apply_sparseoptflow(raw_frame)
+            >>> print(transformation_matrix.shape)
+            (2, 3)
         """
         height, width, c = raw_frame.shape
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY) if c == 3 else raw_frame

@@ -178,7 +178,7 @@ To reorganize the data set directory, we can run the following script:
                 for filename in os.listdir(subdir_path):
                     if filename.endswith(".txt"):
                         shutil.move(os.path.join(subdir_path, filename), os.path.join(labels_dir, filename))
-                    elif filename.endswith(".jpg") or filename.endswith(".png") or filename.endswith(".jpeg"):
+                    elif filename.endswith((".jpg", ".png", ".jpeg")):
                         shutil.move(os.path.join(subdir_path, filename), os.path.join(images_dir, filename))
                     # Delete .xml files
                     elif filename.endswith(".xml"):
@@ -388,7 +388,7 @@ def organize_files(directory):
         for filename in os.listdir(subdir_path):
             if filename.endswith(".txt"):
                 shutil.move(os.path.join(subdir_path, filename), os.path.join(labels_dir, filename))
-            elif filename.endswith(".jpg") or filename.endswith(".png") or filename.endswith(".jpeg"):
+            elif filename.endswith((".jpg", ".png", ".jpeg")):
                 shutil.move(os.path.join(subdir_path, filename), os.path.join(images_dir, filename))
 
 

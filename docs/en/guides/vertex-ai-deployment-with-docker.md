@@ -160,8 +160,6 @@ Finally, implement the `run_inference` function that will handle the object dete
 ```python
 def run_inference(input_image: Image.Image, confidence_threshold: float = 0.5) -> Dict[str, Any]:
     """Run inference on an image using YOLO26n model."""
-    global model_yolo
-
     # Check if model is ready
     if not is_model_ready():
         print("Model not ready for inference")

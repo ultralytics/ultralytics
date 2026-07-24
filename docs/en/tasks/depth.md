@@ -313,65 +313,24 @@ The raw depth map is a single-channel float array in meters — useful for compu
         depth = result.depth.data.cpu().numpy()  # (H, W) float32, meters
 
         # Colorize with near = warm and save
-        colored = colorize_depth(depth, cmap="spectral", mode="disparity")  # (H, W, 3) BGR uint8
-        cv2.imwrite("depth_colored.png", colored)
+        cv2.imwrite("depth_colored.png", colorize_depth(depth, cmap="spectral"))  # (H, W, 3) BGR uint8
+
+        # Fix the range to 0-20 m so the same color means the same distance across frames
+        cv2.imwrite("depth_metric.png", colorize_depth(depth, vmin=0.0, vmax=20.0, cmap="inferno", mode="metric"))
 
         # Blended overlay straight from the Results object (uses cmap="jet", mode="disparity")
         result.save("depth_overlay.png")
         ```
 
-Two arguments control the result — the `cmap` color scheme and the `mode` normalization. Select an option below to see its look and usage.
+Every colormap runs cool/dark → warm/bright. The `mode` decides which end is near, and `vmin`/`vmax` lock the range across frames so a color always means the same distance.
 
-!!! example "Colorization options"
-
-    === "Colormap (`cmap`)"
-
-        Sets the color scheme. Each colormap runs cool/dark → warm/bright, and the `mode` sets which end is near: in the default `disparity` mode warm marks near pixels, while in `metric` mode warm marks far pixels.
-
-        === "jet (default)"
-
-            High-contrast blue → green → red — the classic depth palette used by `result.plot()`.
-
-            ```python
-            colored = colorize_depth(depth, cmap="jet")  # blue = far, red = near
-            ```
-
-        === "inferno"
-
-            Black → purple → orange → yellow. Perceptually uniform, readable in grayscale, and colorblind-friendly.
-
-            ```python
-            colored = colorize_depth(depth, cmap="inferno")
-            ```
-
-        === "spectral"
-
-            Red → yellow → green → blue (near = warm). Matplotlib `Spectral_r`.
-
-            ```python
-            colored = colorize_depth(depth, cmap="spectral")
-            ```
-
-    === "Normalization (`mode`)"
-
-        Sets how depth values map onto the color range. Pass explicit `vmin`/`vmax` (meters for `metric`, inverse-meters for `disparity`) to lock the range across frames so the same color always means the same distance.
-
-        === "disparity (default)"
-
-            Normalizes inverse depth (`1/d`) between the 2nd and 98th percentiles. Emphasizes nearby structure and is robust to a few very-far outliers, giving a smooth near-to-far gradient.
-
-            ```python
-            colored = colorize_depth(depth, mode="disparity")
-            ```
-
-        === "metric"
-
-            Normalizes depth in meters linearly between its min and max. Use it when colors should correspond to true metric distance rather than perceived nearness — fix the scale with `vmin`/`vmax` for consistent colors across frames.
-
-            ```python
-            # Linear color mapping over a fixed 0–20 m range
-            colored = colorize_depth(depth, vmin=0.0, vmax=20.0, cmap="inferno", mode="metric")
-            ```
+| Argument | Value                 | Description                                                                                                           |
+| -------- | --------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `cmap`   | `jet` (default)       | High-contrast blue → green → red, the palette `result.plot()` uses.                                                   |
+| `cmap`   | `inferno`             | Black → purple → orange → yellow. Perceptually uniform, colorblind-friendly, readable in grayscale.                   |
+| `cmap`   | `spectral`            | Red → yellow → green → blue (matplotlib `Spectral_r`).                                                                |
+| `mode`   | `disparity` (default) | Normalizes inverse depth (`1/d`) between the 2nd and 98th percentiles; warm marks near and far outliers are absorbed. |
+| `mode`   | `metric`              | Normalizes depth in meters linearly between `vmin` and `vmax`; warm marks far, so colors track true distance.         |
 
 ## Export
 

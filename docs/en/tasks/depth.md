@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn about monocular depth estimation using YOLO26. Predict per-pixel depth maps from single RGB images with NYU Depth V2 and custom dataset support.
-keywords: monocular depth estimation, YOLO26, depth map, per-pixel depth, NYU Depth V2, DPT, dense prediction, Ultralytics
+keywords: monocular depth estimation, YOLO26, depth map, per-pixel depth, NYU Depth V2, DPT, dense prediction, Depth Anything V2, Ultralytics
 model_name: yolo26n-depth
 ---
 
@@ -31,6 +31,38 @@ YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~
 - **rmse** is the root mean squared error in meters.
 - **Speed** is inference-only latency (pre/post-processing excluded) at `imgsz=768`, `batch=1`, reported as mean ± std over timed runs after warmup. **CPU ONNX** is ONNX Runtime fp32 on a 32-core Intel Xeon (Skylake); **T4 TensorRT10** is TensorRT fp16 on a Tesla T4.
 - **params** and **FLOPs** are measured at 768×768, the training resolution of the released weights.
+
+## Speed compared to Depth Anything V2
+
+Depth Anything V2 is a widely used open baseline for monocular depth. Its DINOv2 [vision transformer](https://www.ultralytics.com/glossary/vision-transformer-vit) backbone and DPT decoder are compute-heavy, so on the same Tesla T4 under TensorRT fp16 the smallest released Depth Anything V2 model is slower than every YOLO26 depth model — including YOLO26x-depth, which carries more than twice the parameters.
+
+At ~768 px — `imgsz=768` for YOLO26, the resolution its released weights are trained at, and 770 px for Depth Anything V2, whose DINOv2 backbone requires a multiple of its patch size of 14:
+
+| Model                   | params (M) | FLOPs (B) | T4 TensorRT10 (ms) |   FPS | Speedup vs V2 Small | Speedup vs V2 Base |
+| ----------------------- | ---------: | --------: | -----------------: | ----: | ------------------: | -----------------: |
+| Depth Anything V2 Base  |       97.5 |    1025.5 |              55.40 |  18.1 |                   — |                  — |
+| Depth Anything V2 Small |       24.8 |     346.9 |              20.99 |  47.6 |                   — |                  — |
+| YOLO26x-depth           |       57.0 |     302.0 |              13.57 |  73.7 |                1.5× |               4.1× |
+| YOLO26l-depth           |       27.7 |     157.2 |               7.68 | 130.2 |                2.7× |               7.2× |
+| YOLO26m-depth           |       23.3 |     130.7 |               6.00 | 166.7 |                3.5× |               9.2× |
+| YOLO26s-depth           |       13.2 |      67.9 |               3.82 | 261.6 |                5.5× |              14.5× |
+| YOLO26n-depth           |        6.4 |      46.9 |               2.73 | 365.8 |                7.7× |              20.3× |
+
+At ~640 px — `imgsz=640` and 644 px respectively — the ordering is unchanged, and YOLO26n-depth is 5.9× faster than Depth Anything V2 Small:
+
+| Model                   | T4 TensorRT10 (ms) |   FPS |
+| ----------------------- | -----------------: | ----: |
+| Depth Anything V2 Base  |              35.10 |  28.5 |
+| Depth Anything V2 Small |              13.62 |  73.4 |
+| YOLO26x-depth           |              10.26 |  97.5 |
+| YOLO26l-depth           |               6.14 | 162.8 |
+| YOLO26m-depth           |               4.71 | 212.1 |
+| YOLO26s-depth           |               3.08 | 324.4 |
+| YOLO26n-depth           |               2.29 | 436.9 |
+
+- Latency is inference-only, `batch=1`, TensorRT fp16 on a Tesla T4 — the same harness as the model table above, shown here to two decimals; FPS is the reciprocal of the unrounded latency. The **Speedup** columns divide the Depth Anything V2 Small (20.99 ms) and Base (55.40 ms) latency by the YOLO26 latency.
+- Depth Anything V2 Small and Base are the released ViT-S and ViT-B checkpoints.
+- The comparison covers latency only — the two model families are not evaluated here under a shared accuracy protocol.
 
 ## Depth range and the log-depth head
 

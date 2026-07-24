@@ -74,6 +74,6 @@ class PaddleBackend(BaseBackend):
         Returns:
             (list[np.ndarray]): Model predictions as a list of numpy arrays, one per output handle.
         """
-        self.input_handle.copy_from_cpu(im.cpu().numpy().astype(np.float32))
+        self.input_handle.copy_from_cpu(im.cpu().numpy().astype(np.float32, copy=False))
         self.predictor.run()
         return [self.predictor.get_output_handle(x).copy_to_cpu() for x in self.output_names]

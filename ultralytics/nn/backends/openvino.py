@@ -84,7 +84,7 @@ class OpenVINOBackend(BaseBackend):
         Returns:
             (list[np.ndarray]): Model predictions as a list of numpy arrays, one per output layer.
         """
-        im = im.cpu().numpy().astype(np.float32)
+        im = im.cpu().numpy().astype(np.float32, copy=False)
 
         if self.inference_mode in {"THROUGHPUT", "CUMULATIVE_THROUGHPUT"}:
             # Async inference for larger batch sizes

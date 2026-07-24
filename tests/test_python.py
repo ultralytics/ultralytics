@@ -1475,6 +1475,33 @@ def test_process_mask_empty():
     assert ops.scale_masks(torch.zeros(1, 0, 160, 160), (640, 640)).shape == (1, 0, 640, 640)
 
 
+@pytest.mark.skipif(
+    not hasattr(torch.backends, "mps") or not torch.backends.mps.is_available(), reason="MPS is not available"
+)
+def test_task_aligned_assigner_mps_fallback():
+    """TaskAlignedAssigner should avoid nondeterministic MPS indexing failures by running on CPU."""
+    from ultralytics.utils.tal import TaskAlignedAssigner
+
+    torch.manual_seed(0)
+    device = torch.device("mps")
+    bs, n_max_boxes, num_anchors, num_classes = 8, 300, 8400, 80
+    pd_scores = torch.rand(bs, num_anchors, num_classes, device=device)
+    pd_xy = torch.rand(bs, num_anchors, 2, device=device) * 620
+    pd_bboxes = torch.cat((pd_xy, pd_xy + torch.rand(bs, num_anchors, 2, device=device) * 30 + 5), dim=-1)
+    anc_points = torch.rand(num_anchors, 2, device=device) * 640
+    gt_labels = torch.randint(num_classes, (bs, n_max_boxes, 1), device=device)
+    gt_xy = torch.rand(bs, n_max_boxes, 2, device=device) * 620
+    gt_bboxes = torch.cat((gt_xy, gt_xy + torch.rand(bs, n_max_boxes, 2, device=device) * 30 + 5), dim=-1)
+    mask_gt = torch.ones(bs, n_max_boxes, 1, dtype=torch.bool, device=device)
+    assigner = TaskAlignedAssigner(num_classes=num_classes)
+
+    # Repeat to exercise the nondeterministic PyTorch 2.9.1 MPS indexing failure seen on the pre-fix path.
+    for _ in range(20):
+        outputs = assigner(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
+        torch.mps.synchronize()
+        assert all(output.device.type == "mps" for output in outputs)
+
+
 def test_utils_files(tmp_path):
     """Test file handling utilities including file age, date, and paths with spaces."""
     from ultralytics.utils.files import file_age, file_date, get_latest_run, increment_path, spaces_in_path

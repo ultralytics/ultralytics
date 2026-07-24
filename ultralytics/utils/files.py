@@ -152,13 +152,13 @@ def increment_path(path: str | Path, exist_ok: bool = False, sep: str = "-", mkd
 
 def file_age(path: str | Path = __file__) -> int:
     """Return days since the last modification of the specified file."""
-    dt = datetime.now() - datetime.fromtimestamp(Path(path).stat().st_mtime)  # delta
+    dt = datetime.now().astimezone() - datetime.fromtimestamp(Path(path).stat().st_mtime).astimezone()  # delta
     return dt.days  # + dt.seconds / 86400  # fractional days
 
 
 def file_date(path: str | Path = __file__) -> str:
     """Return the file modification date in 'YYYY-M-D' format."""
-    t = datetime.fromtimestamp(Path(path).stat().st_mtime)
+    t = datetime.fromtimestamp(Path(path).stat().st_mtime).astimezone()
     return f"{t.year}-{t.month}-{t.day}"
 
 

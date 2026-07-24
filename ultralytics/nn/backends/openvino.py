@@ -37,7 +37,7 @@ class OpenVINOBackend(BaseBackend):
         if isinstance(self.device, str) and self.device.startswith("intel"):
             device_name = self.device.split(":")[1].upper()
             self.device = torch.device("cpu")
-            if device_name not in core.available_devices:
+            if not any(d == device_name or d.startswith(f"{device_name}.") for d in core.available_devices):
                 LOGGER.warning(f"OpenVINO device '{device_name}' not available. Using '{fallback_device}' instead.")
                 device_name = fallback_device
 

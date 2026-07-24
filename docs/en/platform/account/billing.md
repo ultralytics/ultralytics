@@ -2,7 +2,7 @@
 plans: [free, pro, enterprise]
 title: Billing & Credits
 comments: true
-description: Manage credits, payments, and subscriptions on Ultralytics Platform with transparent pricing for cloud training and deployments.
+description: Manage credits, payments, and subscriptions on Ultralytics Platform with transparent cloud training pricing.
 keywords: Ultralytics Platform, billing, credits, pricing, subscription, payments, training costs
 ---
 

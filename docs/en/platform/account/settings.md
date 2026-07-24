@@ -289,7 +289,7 @@ Owners and admins can manage the team:
 All resources created in a team workspace belong to the team, not individual members. Team members share:
 
 - **Datasets, projects, and models** — accessible by all members based on their role
-- **Credit balance** — a single shared pool for training and deployments
+- **Credit balance** — shared across team members for cloud training
 - **Storage and resource limits** — counted at the team level
 
 !!! note "Team Billing"

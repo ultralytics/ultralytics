@@ -348,12 +348,13 @@ graph LR
 Once provisioning completes, your endpoint provides:
 
 - **Unique URL**: HTTPS endpoint for API calls
-- **Scale-to-zero behavior**: No idle compute cost (deployments currently run a single active instance)
+- **Scale-to-zero behavior**: Idle endpoints scale to zero (deployments currently run a single active instance)
 - **Monitoring**: Request metrics and logs
 
 !!! info "Deployment Lifecycle"
 
-    Endpoints can be **started**, **stopped**, and **deleted**. Stopped endpoints don't incur compute costs but retain their configuration. Restart a stopped endpoint with one click.
+    Endpoints can be **started**, **stopped**, and **deleted**. Stopped endpoints retain their configuration and can be
+    restarted with one click.
 
 After deployment, you can manage all your endpoints from the `Deploy` section in the sidebar, which shows a global map with active deployments, overview metrics, and a list of all endpoints.
 

@@ -135,10 +135,6 @@ Endpoints currently behave as follows:
 - **Scale to zero**: No cost when idle (default)
 - **Single active instance**: `maxInstances` is currently capped at `1` on all plans
 
-!!! tip "Cost Savings"
-
-    Scale-to-zero is enabled by default (min instances = 0). You only pay for active inference time.
-
 ### Regional Deployment
 
 Use the measured region latency to place an endpoint near its callers. Actual inference latency depends on the model,

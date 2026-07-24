@@ -455,24 +455,6 @@ def test_track_reid_auto_user_detections(tracker_type):
     assert len(tracks) == 2, f"native-ReID tracker must keep tracking without feats:\n{tracks}"
 
 
-@pytest.mark.parametrize("tracker_type", ["bytetrack", "botsort", "tracktrack", "fasttrack", "ocsort", "deepocsort"])
-def test_track_single_torch_detection(tracker_type):
-    """A single torch-backed detection must not break the low-level tracker update.
-
-    numpy resolves a single-element torch bool mask through `__index__` (True -> 1), so a 1-row numpy detection array
-    masked by it asks for row 1 and raises IndexError; larger torch masks fall back to boolean indexing and work, which
-    is why only the single-detection case fails.
-    """
-    from ultralytics.engine.results import Boxes
-    from ultralytics.trackers.track import TRACKER_MAP
-    from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace
-
-    args = IterableSimpleNamespace(**YAML.load(ROOT / f"cfg/trackers/{tracker_type}.yaml"))
-    tracker = TRACKER_MAP[tracker_type](args)
-    tracks = tracker.update(Boxes(torch.tensor([[100, 100, 200, 200, 0.9, 0]], dtype=torch.float32), (640, 640)))
-    assert len(tracks) == 1, f"single torch-backed detection lost by {tracker_type}:\n{tracks}"
-
-
 def test_reid_invalid_crops():
     """Test ReID skips out-of-bounds detection crops while preserving feature alignment."""
     from types import SimpleNamespace

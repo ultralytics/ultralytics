@@ -1,11 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Base callbacks for Ultralytics training, validation, prediction, and export processes."""
 
+from __future__ import annotations
+
 from collections import defaultdict
 from copy import deepcopy
-from typing import Callable, Dict, List
+from typing import Callable
 
-from ultralytics.utils import colorstr, LOGGER
+from ultralytics.utils import LOGGER, colorstr
 
 # Trainer callbacks ----------------------------------------------------------------------------------------------------
 
@@ -215,7 +217,7 @@ def add_integration_callbacks(instance):
                 instance.callbacks[k].append(v)
 
 
-def _log_callbacks(callbacks_list: List[Dict[str, Callable]]) -> None:
+def _log_callbacks(callbacks_list: list[dict[str, Callable]]) -> None:
     """Log the names of the attached callbacks.
 
     Args:

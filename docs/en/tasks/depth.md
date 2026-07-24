@@ -34,7 +34,7 @@ YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~
 
 ## Speed compared to Depth Anything V2
 
-Depth Anything V2 is a widely used open baseline for monocular depth. Its DINOv2 [vision transformer](https://www.ultralytics.com/glossary/vision-transformer-vit) backbone is compute-heavy, so on the same Tesla T4 under TensorRT fp16 the smallest released Depth Anything V2 model is slower than every YOLO26 depth model — including YOLO26x-depth, which carries more than twice the parameters.
+Depth Anything V2 is a widely used open baseline for monocular depth. Its DINOv2 [vision transformer](https://www.ultralytics.com/glossary/vision-transformer-vit) backbone and DPT decoder are compute-heavy, so on the same Tesla T4 under TensorRT fp16 the smallest released Depth Anything V2 model is slower than every YOLO26 depth model — including YOLO26x-depth, which carries more than twice the parameters.
 
 At ~768 px — `imgsz=768` for YOLO26, the resolution its released weights are trained at, and 770 px for Depth Anything V2, whose DINOv2 backbone requires a multiple of its patch size of 14:
 

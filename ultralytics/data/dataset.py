@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from collections import defaultdict
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
@@ -798,7 +799,7 @@ class GroundingDataset(YOLODataset):
                 labels = cache["labels"]
             except (AssertionError, AttributeError, KeyError):
                 raise RuntimeError(f"Invalid or corrupted cache file: {cache_path}")
-            self.im_files = [str(label["im_file"]) for label in labels]
+            self.im_files = [os.path.abspath(str(label["im_file"])) for label in labels]
             if LOCAL_RANK in {-1, 0}:
                 LOGGER.info(f"Loaded {len(labels)} labels from {cache_path}")
             return labels
@@ -813,7 +814,7 @@ class GroundingDataset(YOLODataset):
                 cache, _ = self.cache_labels(cache_path), False  # run cache ops
             [cache.pop(k) for k in ("hash", "version")]  # remove items
             labels = cache["labels"]
-            self.im_files = [str(label["im_file"]) for label in labels]
+            self.im_files = [os.path.abspath(str(label["im_file"])) for label in labels]
             if LOCAL_RANK in {-1, 0}:
                 LOGGER.info(f"Loaded {len(labels)} labels from {cache_path}")
             return labels

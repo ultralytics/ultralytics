@@ -20,7 +20,7 @@ The `Profile` tab contains your profile information, social links, data region, 
 
 Update your profile information:
 
-![Ultralytics Platform Settings Profile Tab Display Name Bio Company Fields](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-display-name-bio-company-fields.avif)
+![Ultralytics Platform Settings Profile Tab Display Name Bio Company Fields](https://cdn.ul.run/i/679e7eb184fe9db51391b1d3548c9aa2.avif)<!-- screenshot -->
 
 | Field            | Description                               |
 | ---------------- | ----------------------------------------- |
@@ -59,13 +59,13 @@ Update your profile information:
 
 1. Go to **Settings > Profile**
 2. Update fields (display name, company, use case, bio)
-3. Click **Save Changes**
+3. Wait for the **Saved** indicator next to the Profile heading. Changes save automatically after you stop typing.
 
 ### Social Links
 
 Connect your professional profiles:
 
-![Ultralytics Platform Settings Profile Tab Social Links Grid](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-social-links-grid.avif)
+![Ultralytics Platform Settings Profile Tab Social Links Grid](https://cdn.ul.run/i/6632010d3fc5d6ffd4045df2e1db0e89.avif)<!-- screenshot -->
 
 | Platform           | Format         |
 | ------------------ | -------------- |
@@ -83,7 +83,7 @@ Social links appear on your public profile page.
 
 Manage email addresses linked to your account in the `Profile` tab:
 
-![Ultralytics Platform Settings Profile Tab Emails Section](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-emails-section.avif)
+![Ultralytics Platform Settings Profile Tab Emails Section](https://cdn.ul.run/i/f09baef9e8e5b2ceec2fa688b597eeeb.avif)<!-- screenshot -->
 
 | Action             | Description                                    |
 | ------------------ | ---------------------------------------------- |
@@ -100,22 +100,19 @@ Manage email addresses linked to your account in the `Profile` tab:
 
 View your data region on the `Profile` tab:
 
-| Region | Location      | Best For                        |
-| ------ | ------------- | ------------------------------- |
-| **US** | United States | Americas users                  |
-| **EU** | Europe        | European users, GDPR compliance |
-| **AP** | Asia Pacific  | Asia-Pacific users              |
+{% include "macros/platform-data-regions.md" %}
 
 !!! note "Data Region"
 
-    Your data region is selected during onboarding and cannot be changed yourself. All your data stays in this region — contact support to request a region change.
+    Your data region is selected during onboarding and cannot be changed yourself. It applies to datasets, models, and
+    managed training data. Dedicated deployments use the region selected when each endpoint is created. Contact support
+    to request an account data-region change.
 
 ### Storage Usage
 
 Monitor your storage consumption on the `Profile` tab and the **Home** page:
 
-![Ultralytics Platform Settings Profile Tab Storage Usage Card](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-storage-usage-card.avif)
-
+![Ultralytics Platform Settings Profile Tab Storage Usage Card](https://cdn.ul.run/i/d4907e21c741a134223d33d80be6f9ed.avif)<!-- screenshot -->
 The storage card shows:
 
 - **Overall progress bar** with color-coded status (green under 70%, amber 70-89%, red 90%+)
@@ -163,8 +160,8 @@ To free up storage:
 
 The `Profile` tab includes a Security card at the bottom:
 
-- **Two-Factor Authentication**: Coming soon. Currently handled by your OAuth provider (Google, GitHub)
-- **Connected Accounts**: Shows your linked OAuth provider (e.g., Google)
+- **Two-Factor Authentication**: Marked **Coming Soon** in Platform settings
+- **Connected Accounts**: Shows the connected OAuth account displayed by Platform
 
 ### GDPR Compliance
 
@@ -199,7 +196,8 @@ Permanently delete your account:
 
 !!! warning "Irreversible Action"
 
-    Account deletion is permanent. All data is removed within 30 days per GDPR requirements.
+    Account deletion is permanent. Your sign-in account is removed immediately and a background job deletes the
+    associated Platform data and stored files.
 
 ##### What's Deleted
 
@@ -209,12 +207,6 @@ Permanently delete your account:
 - All activity history
 - Credit balance
 
-##### What's Retained
-
-- Anonymized analytics
-- Server logs (90 days)
-- Legal compliance records
-
 ## API Keys Tab
 
 The `API Keys` tab lets you create and manage API keys for remote training and inference. See [API Keys](api-keys.md) for full documentation.
@@ -223,39 +215,38 @@ The `API Keys` tab lets you create and manage API keys for remote training and i
 
 The `Plans` tab lets you compare available plans and upgrade or downgrade your subscription.
 
-![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-free-pro-enterprise-comparison.avif)
+![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/4687f31bbcab35be3b474784751759e5.avif)<!-- screenshot -->
 
-| Plan           | Storage   | Models    | Deployments | Concurrent Trainings | Team Seats |
-| -------------- | --------- | --------- | ----------- | -------------------- | ---------- |
-| **Free**       | 100 GB    | 100       | 3           | 3                    | —          |
-| **Pro**        | 500 GB    | 500       | 10          | 10                   | Up to 5    |
-| **Enterprise** | Unlimited | Unlimited | Unlimited   | Unlimited            | Custom     |
+{% include "macros/platform-plan-comparison.md" %}
 
 From this tab you can:
 
 - **Compare features** across Free, Pro, and Enterprise tiers
-- **Upgrade to Pro** to unlock more storage, models, team collaboration, and priority GPU access
+- **Upgrade to Pro** to unlock more storage, models, team collaboration, and B200/B300 GPU access
 - **Review Enterprise** capabilities including SSO/SAML and commercial licensing — see [Ultralytics Licensing](https://www.ultralytics.com/license)
 
 See [Billing](billing.md) for detailed plan information, pricing, and upgrade instructions.
 
 ## Billing Tab
 
-The `Billing` tab is where you manage credits, payment methods, and review transaction history. Credits are the currency used for cloud training and deployments on the platform.
+The `Billing` tab is where you manage credits, payment methods, and review transaction history. Credits pay for
+metered cloud training.
 
-![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-credit-balance-and-plan-card.avif)
-
+![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/8deb4532660afd808780789930cfbeb6.avif)<!-- screenshot -->
 From this tab you can:
 
 - **View credit balance** and monitor remaining credits
 - **Add credits** via manual top-up (presets from $10–$500 or custom amounts up to $1,000)
-- **Enable auto top-up** to automatically add credits when your balance falls below a threshold, preventing training interruptions
+- **Enable auto top-up** to automatically add credits when your balance falls below a threshold, reducing the chance of
+  training interruption
 - **Manage payment methods** and update your billing address
 - **Review transaction history** to track all credit movements including purchases, training costs, and refunds
 
 !!! tip "Training Costs"
 
-    Before each training run, the platform estimates the cost based on your selected GPU, dataset size, and epochs. You're charged for actual usage upon completion — unused estimated credits are returned to your balance.
+    Before each training run, the platform estimates the cost based on your selected GPU, dataset size, and epochs.
+    The estimate is a balance check, not a credit reservation; actual GPU usage is metered and settled against your
+    balance.
 
 See [Billing](billing.md) for full documentation on credits, payment, and plan management.
 
@@ -263,22 +254,17 @@ See [Billing](billing.md) for full documentation on credits, payment, and plan m
 
 The `Teams` tab lets you manage workspace members, roles, and invitations. Teams are available on [Pro and Enterprise plans](billing.md#plans).
 
-![Ultralytics Platform Teams Member List With Roles](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-tab-member-list-with-roles.avif)
+![Ultralytics Platform Teams Member List With Roles](https://cdn.ul.run/i/b680a4b6f2db15b3a34bc19adab8515e.avif)<!-- screenshot -->
 
 ### Roles and Permissions
 
-| Role       | Description                                                          |
-| ---------- | -------------------------------------------------------------------- |
-| **Owner**  | Full control including billing, member management, and team deletion |
-| **Admin**  | Manage members, resources, and settings (cannot delete team)         |
-| **Editor** | Create and edit projects, datasets, and models                       |
-| **Viewer** | Read-only access to shared resources                                 |
+{% include "macros/platform-team-roles.md" %}
 
 ### Manage Members
 
 Owners and admins can manage the team:
 
-- **Invite members** via email (invites stay valid until accepted or canceled; pending invites count against the seat limit)
+- **Invite members** via email (invites expire after 14 days; pending invites count against the seat limit)
 - **Change roles**: Click the role dropdown next to a member (only the owner can assign/remove the admin role)
 - **Remove members**: Click the menu and select **Remove**
 - **Cancel invites**: Cancel pending invitations that haven't been accepted
@@ -290,7 +276,7 @@ Owners and admins can manage the team:
 All resources created in a team workspace belong to the team, not individual members. Team members share:
 
 - **Datasets, projects, and models** — accessible by all members based on their role
-- **Credit balance** — a single shared pool for training and deployments
+- **Credit balance** — shared across team members for cloud training
 - **Storage and resource limits** — counted at the team level
 
 !!! note "Team Billing"
@@ -303,11 +289,13 @@ See [Teams](teams.md) for full documentation on team creation, switching workspa
 
 The `Integrations` tab lets you import datasets and projects from external services and connect third-party tools:
 
+- **Google Cloud Storage** — use datasets stored in GCS without uploading a copy.
+- **Amazon S3** — use datasets stored in S3 without uploading a copy.
+- **Azure Blob Storage** — use datasets stored in Azure without uploading a copy.
 - **Ultralytics HUB** — import your existing datasets and projects from [Ultralytics HUB](../integrations/ultralytics-hub.md).
 - **Roboflow** — import annotated datasets from a [Roboflow](../integrations/roboflow.md) workspace using a Roboflow API key.
 - **Slack** — send selected training, export, and deployment results to a [Slack channel](../integrations/slack.md).
 - **On Premise** — connect Enterprise CPU/GPU workers and keep dataset pixels on your own host. See [On Premise](../integrations/on-premise.md).
-- **Weights & Biases** — experiment-tracking sync (coming soon).
 
 See [Integrations](../integrations/index.md) for the full list of supported services.
 
@@ -315,8 +303,7 @@ See [Integrations](../integrations/index.md) for the full list of supported serv
 
 The `Trash` tab shows all deleted items and lets you restore or permanently remove them. Deleted items follow a 30-day soft delete policy before automatic permanent deletion.
 
-![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-trash-tab-with-items-and-storage-treemap.avif)
-
+![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.ul.run/i/1fda3fe06d0527f579017b71afa6a2ff.avif)<!-- screenshot -->
 From this tab you can:
 
 - **Browse deleted items** filtered by type (All, Projects, Datasets, Models)
@@ -351,14 +338,6 @@ Manage your email addresses directly on the platform:
 2. Scroll to the **Emails** section
 3. Add a new email, verify it, and set it as primary
 
-### Can I have multiple accounts?
-
-You can create accounts in different regions, but:
-
-- Each needs a unique email
-- Data doesn't transfer between accounts
-- Billing is separate
-
 ### How do I change my password?
 
 If you signed up with email and password, use the password reset flow on the sign-in page. If you signed up with an OAuth provider, manage your password through that provider:
@@ -368,15 +347,11 @@ If you signed up with email and password, use the password reset flow on the sig
 
 ### Is two-factor authentication available?
 
-2FA is handled by your OAuth provider. Enable 2FA in:
-
-- Google Account settings
-- GitHub Security settings
+Platform currently marks two-factor authentication as **Coming Soon** in its Security card. If you sign in through
+Google or GitHub, configure multi-factor authentication with that provider.
 
 ### How long until deleted data is removed?
 
-| Type                 | Timeline      |
-| -------------------- | ------------- |
-| **Trash items**      | 30 days       |
-| **Account deletion** | Up to 30 days |
-| **Backups**          | 90 days       |
+- **Trash items** remain recoverable for 30 days before automatic permanent deletion.
+- **Account deletion** removes the sign-in account immediately and queues deletion of associated Platform records and
+  stored files. The action cannot be undone.

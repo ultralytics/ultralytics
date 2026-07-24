@@ -8,9 +8,10 @@ keywords: Ultralytics Platform, inference, API, YOLO, object detection, predicti
 
 # Inference
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides an inference API for testing trained models. Use the browser-based `Predict` tab for quick validation or the [REST API](../api/index.md#models-api) for programmatic access.
+[Ultralytics Platform](https://platform.ultralytics.com) provides browser-based inference for testing trained models
+and dedicated endpoints for programmatic access.
 
-![Ultralytics Platform Model Predict Tab With Detections Overlay](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/model-predict-tab-with-detections-overlay.avif)
+![Ultralytics Platform Model Predict Tab With Detections Overlay](https://cdn.ul.run/i/3cb26693dd15bd98be3742b7c8b09cc5.avif)<!-- screenshot -->
 
 ## Predict Tab
 
@@ -19,9 +20,9 @@ Every model includes a `Predict` tab for browser-based inference:
 1. Navigate to your model
 2. Click the **Predict** tab
 3. Upload an image, use an example, or open your webcam
-4. View predictions instantly with bounding box overlays
+4. Review the task-specific overlay, prediction summary, timing, and raw response
 
-![Ultralytics Platform Predict Tab Image Upload Dropzone](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/predict-tab-image-upload-dropzone.avif)
+![Ultralytics Platform Predict Tab Image Upload Dropzone](https://cdn.ul.run/i/d2dafa4b28ec36687eaf850ccb1fea3c.avif)<!-- screenshot -->
 
 ### Input Methods
 
@@ -83,34 +84,30 @@ Click the webcam card to start a live camera feed:
 
 ### View Results
 
-Inference results display:
+Inference results display the output appropriate to the model task: boxes, masks, keypoints, oriented boxes,
+classification scores, semantic coverage, or a depth map. Object results use the dataset class colors when available.
+The panel also shows preprocess, inference, postprocess, and network timing.
 
-- **Bounding boxes** with class labels as SVG overlays
-- **Confidence scores** for each detection
-- **Class colors** from your dataset's color palette (or the Ultralytics default palette)
-- **Speed breakdown**: Preprocess, inference, postprocess, and network time
-
-![Ultralytics Platform Predict Tab Results With Detections And Speed Stats](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/predict-tab-results-with-detections-and-speed-stats.avif)
-
+![Ultralytics Platform Predict Tab Results With Detections And Speed Stats](https://cdn.ul.run/i/b12413a329d89294abbe75ed8b488356.avif)<!-- screenshot -->
 The results panel shows:
 
-| Field               | Description                                      |
-| ------------------- | ------------------------------------------------ |
-| **Detections list** | Each detection with class name and confidence    |
-| **Speed stats**     | Preprocess, inference, postprocess, network (ms) |
-| **JSON response**   | Raw API response in a code block                 |
+| Field               | Description                                             |
+| ------------------- | ------------------------------------------------------- |
+| **Results summary** | Detections, classifications, or semantic class coverage |
+| **Speed stats**     | Preprocess, inference, postprocess, and network (ms)    |
+| **JSON response**   | Raw API response in a code block                        |
 
 ## Inference Parameters
 
-Adjust detection behavior with parameters in the collapsible **Parameters** section:
+Adjust inference behavior with the three sliders below the image:
 
-![Ultralytics Platform Predict Tab Parameters Sliders](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/predict-tab-parameters-sliders.avif)
+![Ultralytics Platform Predict Tab Parameters Sliders](https://cdn.ul.run/i/9cfec37c66590d4e323567478693c800.avif)<!-- screenshot -->
 
-| Parameter      | Range                      | Default | Description                                              |
-| -------------- | -------------------------- | ------- | -------------------------------------------------------- |
-| **Confidence** | 0.01 – 1.0                 | 0.25    | Minimum confidence threshold                             |
-| **IoU**        | 0.0 – 0.95                 | 0.7     | NMS IoU threshold                                        |
-| **Image Size** | 320, 640, 1280 (UI toggle) | 640     | Input resize dimension (API accepts any value 32 – 1280) |
+| Parameter      | Range                     | Default | Description                  |
+| -------------- | ------------------------- | ------- | ---------------------------- |
+| **Confidence** | 0.01 – 1.0, steps of 0.01 | 0.25    | Minimum confidence threshold |
+| **IoU**        | 0.0 – 0.95, steps of 0.01 | 0.7     | NMS IoU threshold            |
+| **Image Size** | 32 – 1280, steps of 32    | 640     | Input resize dimension       |
 
 !!! note "Auto-Rerun"
 
@@ -129,16 +126,18 @@ Filter predictions by confidence:
 Control Non-Maximum Suppression:
 
 - **Higher (0.7+)**: Allow more overlapping boxes
-- **Lower (0.3-0.5)**: Merge nearby detections more aggressively
+- **Lower (0.3-0.5)**: Suppress overlapping detections more aggressively
 - **Default (0.7)**: Balanced NMS behavior for most use cases
 
 ## Deployment Predict
 
 Each running [dedicated endpoint](endpoints.md) includes a `Predict` tab directly on its deployment card. This uses the deployment's own inference service rather than the shared predict service, letting you test your deployed endpoint from the browser.
 
-## REST API
+## Dedicated Endpoint API
 
-Access inference programmatically:
+The **API Docs** card in the model `Predict` tab contains example Python, JavaScript, and cURL requests. The examples
+use placeholders until you deploy the model. After deployment, the deployment card's `Code` tab fills in its endpoint
+URL and the API key available to your workspace.
 
 ### Authentication
 
@@ -155,7 +154,7 @@ Authorization: Bearer YOUR_API_KEY
 ### Endpoint
 
 ```http
-POST https://platform.ultralytics.com/api/models/{modelId}/predict
+POST https://YOUR_DEPLOYMENT_URL.run.app/predict
 ```
 
 ### Request
@@ -165,7 +164,7 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
     ```python
     import requests
 
-    url = "https://platform.ultralytics.com/api/models/MODEL_ID/predict"
+    url = "https://YOUR_DEPLOYMENT_URL.run.app/predict"
     headers = {"Authorization": "Bearer YOUR_API_KEY"}
     data = {"conf": 0.25, "iou": 0.7, "imgsz": 640}
 
@@ -178,7 +177,7 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
 
     ```bash
     curl -X POST \
-      "https://platform.ultralytics.com/api/models/MODEL_ID/predict" \
+      "https://YOUR_DEPLOYMENT_URL.run.app/predict" \
       -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg" \
       -F "conf=0.25" \
@@ -196,7 +195,7 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
     formData.append("imgsz", "640");
 
     const response = await fetch(
-      "https://platform.ultralytics.com/api/models/MODEL_ID/predict",
+      "https://YOUR_DEPLOYMENT_URL.run.app/predict",
       {
         method: "POST",
         headers: { Authorization: "Bearer YOUR_API_KEY" },
@@ -208,19 +207,11 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
     console.log(result);
     ```
 
-![Ultralytics Platform Predict Tab Code Examples Python Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/predict-tab-code-examples-python-tab.avif)
+![Ultralytics Platform Predict Tab Code Examples Python Tab](https://cdn.ul.run/i/b3913018ed5745d7abdb03fefa67a21a.avif)<!-- screenshot -->
 
 ### Request Parameters
 
-| Parameter   | Type   | Default | Range      | Description                                        |
-| ----------- | ------ | ------- | ---------- | -------------------------------------------------- |
-| `file`      | file   | -       | -          | Image or video file (required unless `source` set) |
-| `conf`      | float  | 0.25    | 0.01 – 1.0 | Minimum confidence threshold                       |
-| `iou`       | float  | 0.7     | 0.0 – 0.95 | NMS IoU threshold                                  |
-| `imgsz`     | int    | 640     | 32 – 1280  | Input image size in pixels                         |
-| `normalize` | bool   | false   | -          | Return bounding box coordinates as 0 – 1           |
-| `decimals`  | int    | 5       | 0 – 10     | Decimal precision for coordinate values            |
-| `source`    | string | -       | -          | Image URL or base64 string (alternative to `file`) |
+{% include "macros/platform-inference-parameters.md" %}
 
 ### Response
 
@@ -253,7 +244,7 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
     "metadata": {
         "imageCount": 1,
         "functionTimeCall": 0.018,
-        "model": "model.pt",
+        "task": "detect",
         "version": {
             "ultralytics": "8.x.x",
             "torch": "2.6.0",
@@ -264,7 +255,7 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
 }
 ```
 
-![Ultralytics Platform Predict Tab Json Response View](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/predict-tab-json-response-view.avif)
+![Ultralytics Platform Predict Tab Json Response View](https://cdn.ul.run/i/2103262abc6d1ea0832eff6e280f4661.avif)<!-- screenshot -->
 
 ### Response Fields
 
@@ -399,32 +390,29 @@ Response format varies by task:
     }
     ```
 
-## Billing
-
-Shared inference (the Predict tab and `/api/models/{id}/predict` endpoint) is **included at no additional cost** on all plans. There are no per-request charges for shared inference.
-
-For production workloads requiring higher throughput, deploy a [dedicated endpoint](endpoints.md).
-
 ## Rate Limits
 
-Shared inference is rate-limited to **20 requests/min per API key**. When throttled, the API returns `429` with a `Retry-After` header. See the full [rate limit reference](../api/index.md#rate-limits) for all endpoint categories.
+The shared model API is limited to **20 requests/minute** for each API key, signed-in caller, or anonymous IP. When
+throttled, the API returns `429` with a `Retry-After` header. See the full
+[rate-limit reference](../api/index.md#rate-limits) for all endpoint categories.
 
 !!! tip "Need More Throughput?"
 
-    Deploy a [dedicated endpoint](endpoints.md) for **unlimited** inference with no rate limits, predictable throughput, and consistent low-latency responses. For local inference, see the [Predict mode guide](../../modes/predict.md).
+    Requests sent directly to a [dedicated endpoint](endpoints.md) do not pass through the Platform API rate limiter.
+    For high-volume local inference, see the [Predict mode guide](../../modes/predict.md).
 
 ## Error Handling
 
 Common error responses:
 
-| Code | Message             | Solution                                                                             |
-| ---- | ------------------- | ------------------------------------------------------------------------------------ |
-| 400  | Invalid image       | Check file format                                                                    |
-| 401  | Unauthorized        | Verify API key                                                                       |
-| 404  | Model not found     | Check model ID                                                                       |
-| 429  | Rate limited        | Wait and retry, or use a [dedicated endpoint](endpoints.md) for unlimited throughput |
-| 500  | Server error        | Retry request                                                                        |
-| 503  | Service unavailable | Predict service starting up or unreachable; wait briefly and retry                   |
+| Code | Message             | Solution                                                                          |
+| ---- | ------------------- | --------------------------------------------------------------------------------- |
+| 400  | Invalid image       | Check file format                                                                 |
+| 401  | Unauthorized        | Verify API key                                                                    |
+| 404  | Model not found     | Check model ID                                                                    |
+| 429  | Rate limited        | Wait and retry, or send requests directly to a [dedicated endpoint](endpoints.md) |
+| 500  | Server error        | Retry request                                                                     |
+| 503  | Service unavailable | Predict service starting up or unreachable; wait briefly and retry                |
 
 ## FAQ
 
@@ -433,7 +421,8 @@ Common error responses:
 Both inference methods accept video files:
 
 - **Dedicated endpoints** accept video files directly. Supported formats (up to 100 MB): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV. Each frame is processed individually and results are returned per frame. See [dedicated endpoints](endpoints.md#request-parameters) for details.
-- **Shared inference** (`/api/models/{id}/predict`) uses the same predict service and accepts the same video formats. However, the browser **Predict tab** in the UI only uploads images — use the REST API directly or a [dedicated endpoint](endpoints.md) for video workflows. The shared endpoint is also [rate-limited to 20 req/min](../api/index.md#per-api-key-limits), so dedicated endpoints are the better choice for heavy video workloads.
+- **Shared inference** (`/api/models/{id}/predict`) uses the same predict service and accepts the same video formats.
+  The browser **Predict** tab only selects images, so use the API or a [dedicated endpoint](endpoints.md) for video.
 
 ### How do I get the annotated image?
 
@@ -454,9 +443,9 @@ See the [Predict mode documentation](../../modes/predict.md) for the full result
 
 ### What's the maximum image size?
 
-- **Upload limit**: 10MB
-- **Recommended**: <5MB for fast inference
-- **Auto-resize**: Images are resized to the selected `Image Size` parameter
+- **Predict tab limit**: 10 MB
+- **Dedicated endpoint API limit**: 100 MB
+- **Auto-resize in the Predict tab**: Images are resized to the selected `Image Size` before upload
 
 Large images are automatically resized while preserving aspect ratio.
 
@@ -464,9 +453,9 @@ Large images are automatically resized while preserving aspect ratio.
 
 The current API processes one image per request. For batch:
 
-1. Send concurrent requests
-2. Use a dedicated endpoint for higher throughput
-3. Consider local inference for large batches
+1. Send separate requests for each image
+2. Distribute requests across dedicated endpoints when appropriate
+3. Use local inference for large batches
 
 !!! example "Batch Inference with Python"
 

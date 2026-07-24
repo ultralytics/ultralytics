@@ -35,7 +35,7 @@ class CPUInfo:
             if sys.platform == "darwin":
                 # Query macOS sysctl for the CPU brand string
                 s = subprocess.run(
-                    ["sysctl", "-n", "machdep.cpu.brand_string"], capture_output=True, text=True
+                    ["sysctl", "-n", "machdep.cpu.brand_string"], capture_output=True, text=True, check=False
                 ).stdout.strip()
                 if s:
                     return CPUInfo._clean(s)
@@ -70,9 +70,9 @@ class CPUInfo:
         """Normalize and prettify a raw CPU descriptor string."""
         s = re.sub(r"\s+", " ", s.strip())
         s = s.replace("(TM)", "").replace("(tm)", "").replace("(R)", "").replace("(r)", "").strip()
-        if m := re.search(r"(Intel.*?i\d[\w-]*) CPU @ ([\d.]+GHz)", s, re.I):
+        if m := re.search(r"(Intel.*?i\d[\w-]*) CPU @ ([\d.]+GHz)", s, re.IGNORECASE):
             return f"{m.group(1)} {m.group(2)}"
-        if m := re.search(r"(AMD.*?Ryzen.*?[\w-]*) CPU @ ([\d.]+GHz)", s, re.I):
+        if m := re.search(r"(AMD.*?Ryzen.*?[\w-]*) CPU @ ([\d.]+GHz)", s, re.IGNORECASE):
             return f"{m.group(1)} {m.group(2)}"
         return s
 

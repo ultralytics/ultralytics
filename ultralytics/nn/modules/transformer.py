@@ -85,7 +85,7 @@ class TransformerEncoderLayer(nn.Module):
         self.dropout1 = nn.Dropout(dropout)
         self.dropout2 = nn.Dropout(dropout)
 
-        self.act = act or nn.GELU()
+        self.act = nn.GELU() if act is None else act
         self.normalize_before = normalize_before
 
     @staticmethod
@@ -645,7 +645,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
 
         # FFN
         self.linear1 = nn.Linear(d_model, d_ffn)
-        self.act = act or nn.ReLU()
+        self.act = nn.ReLU() if act is None else act
         self.dropout3 = nn.Dropout(dropout)
         self.linear2 = nn.Linear(d_ffn, d_model)
         self.dropout4 = nn.Dropout(dropout)

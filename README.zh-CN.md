@@ -185,18 +185,19 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 
 请参阅[深度估计文档](https://docs.ultralytics.com/tasks/depth)获取使用示例。这些模型在广泛的多数据集混合上预训练，并在 [NYU Depth V2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html) Eigen 测试集上评估，预测每像素深度（单位为米）。
 
-| 模型                                                                                             | 尺寸<br><sup>(像素) | delta1<sup>NYU</sup> | abs_rel<sup>NYU</sup> | rmse<sup>NYU</sup> | 参数<br><sup>(百万) | FLOPs<br><sup>(十亿) |
-| ------------------------------------------------------------------------------------------------ | ------------------- | -------------------- | --------------------- | ------------------ | ------------------- | -------------------- |
-| [YOLO26n-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-depth.pt) | 768                 | 0.882                | 0.109                 | 0.414              | 6.4                 | 46.9                 |
-| [YOLO26s-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-depth.pt) | 768                 | 0.896                | 0.104                 | 0.399              | 13.2                | 67.9                 |
-| [YOLO26m-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-depth.pt) | 768                 | 0.921                | 0.089                 | 0.364              | 23.3                | 130.7                |
-| [YOLO26l-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-depth.pt) | 768                 | 0.930                | 0.083                 | 0.351              | 27.7                | 157.2                |
-| [YOLO26x-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-depth.pt) | 768                 | 0.933                | 0.080                 | 0.344              | 57.0                | 302.0                |
+| 模型                                                                                             | 尺寸<br><sup>(像素) | delta1<sup>NYU</sup> | abs_rel<sup>NYU</sup> | rmse<sup>NYU</sup> | 速度<br><sup>CPU ONNX<br>(毫秒) | 速度<br><sup>T4 TensorRT10<br>(毫秒) | 参数<br><sup>(百万) | FLOPs<br><sup>(十亿) |
+| ------------------------------------------------------------------------------------------------ | ------------------- | -------------------- | --------------------- | ------------------ | ------------------------------- | ------------------------------------ | ------------------- | -------------------- |
+| [YOLO26n-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-depth.pt) | 768                 | 0.882                | 0.109                 | 0.414              | 272.0 ± 27.2                    | 2.7 ± 0.1                            | 6.4                 | 46.9                 |
+| [YOLO26s-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-depth.pt) | 768                 | 0.896                | 0.104                 | 0.399              | 393.7 ± 13.1                    | 3.8 ± 0.0                            | 13.2                | 67.9                 |
+| [YOLO26m-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-depth.pt) | 768                 | 0.921                | 0.089                 | 0.364              | 621.5 ± 49.7                    | 6.0 ± 0.1                            | 23.3                | 130.7                |
+| [YOLO26l-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-depth.pt) | 768                 | 0.930                | 0.083                 | 0.351              | 821.9 ± 50.7                    | 7.7 ± 0.1                            | 27.7                | 157.2                |
+| [YOLO26x-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-depth.pt) | 768                 | 0.933                | 0.080                 | 0.344              | 1240.9 ± 73.3                   | 13.6 ± 0.2                           | 57.0                | 302.0                |
 
 - **delta1<sup>NYU</sup>** 是在 NYU Depth V2 Eigen 测试集（654 张图像）上，通过多尺度 + 水平翻转 TTA 和对数最小二乘对齐后，预测深度在真实深度 1.25 倍范围内的像素比例。
 - 不使用 TTA 的单尺度准确率可通过 `yolo depth val model=yolo26n-depth.pt data=nyu-depth.yaml imgsz=768 device=0`（为每个模型尺寸替换 `model=` 参数）复现，该方法采用中值（仅尺度）对齐，得分较低：delta1 0.785 (n), 0.786 (s), 0.827 (m), 0.839 (l), 0.843 (x)。
 - **abs_rel** 是预测深度与真实深度之间的平均绝对相对误差。
 - **rmse** 是均方根误差（单位为米）。
+- **速度** 为纯推理延迟（不含前/后处理），在 `imgsz=768`、`batch=1` 下测得，经预热后取多次计时运行的均值 ± 标准差。**CPU ONNX** 为在 32 核 Intel Xeon (Skylake) 上以 ONNX Runtime fp32 运行；**T4 TensorRT10** 为在 Tesla T4 上以 TensorRT fp16 运行。
 - **参数** 和 **FLOPs** 在 768×768 下测量。<br>使用 `yolo depth val data=nyu-depth.yaml device=0 imgsz=768` 复现结果。
 
 </details>

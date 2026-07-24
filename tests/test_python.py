@@ -1313,7 +1313,7 @@ def test_utils_torchutils():
 
 
 def test_rtdetr_remap_cls_by_names():
-    """Test RT-DETR decoder cls-head remap (direct-name match, unmatched, denoising discard)."""
+    """Test RT-DETR decoder cls-head remap (direct-name match, unmatched, denoising partial transfer)."""
     from types import SimpleNamespace
 
     from ultralytics.nn.tasks import RTDETRDetectionModel
@@ -1332,12 +1332,14 @@ def test_rtdetr_remap_cls_by_names():
     tgt = SimpleNamespace(names={0: "person", 1: "bird", 2: "airplane"}, state_dict=lambda: dst_state)
     src = SimpleNamespace(names={0: "bird", 1: "person"})  # inverted order to exercise the row-index mapping
     n = RTDETRDetectionModel._remap_cls_by_names(tgt, csd, src, verbose=False)
-    assert n == 2  # score_head.weight + score_head.bias remapped, denoising_class_embed discarded
+    assert n == 3  # score_head.weight + score_head.bias + denoising_class_embed remapped
     assert dst_state["score_head.weight"][0, 0].item() == 2.0  # 'person' <- src[1]
     assert dst_state["score_head.weight"][1, 0].item() == 1.0  # 'bird' <- src[0]
     assert dst_state["score_head.weight"][2, 0].item() == -1.0  # 'airplane' unmatched -> dst init kept
     assert dst_state["score_head.bias"].tolist() == [20.0, 10.0, -1.0]
-    assert "decoder.denoising_class_embed.weight" not in csd  # discarded due to nc mismatch
+    dn = dst_state["decoder.denoising_class_embed.weight"]  # row-per-class embedding transfers like score_head
+    assert dn[0].eq(9.0).all() and dn[1].eq(9.0).all() and dn[2].eq(-1.0).all()
+    assert "decoder.denoising_class_embed.weight" not in csd  # popped so intersect_dicts skips it
 
 
 @pytest.mark.parametrize("nc", [1, 3])

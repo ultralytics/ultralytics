@@ -929,14 +929,15 @@ class RTDETRDetectionModel(DetectionModel):
         """Remap RT-DETR decoder cls-head rows by class name.
 
         Overrides BaseModel's YOLO-specific implementation: RT-DETR's classification tensors live under
-        `score_head` and `class_embed` inside `RTDETRDecoder` rather than `Detect.cv3`, and the training-only
-        `denoising_class_embed` embedding is discarded (not remapped) when source and target `nc` differ so it
-        is randomly re-initialized after `intersect_dicts`.
+        `score_head` and `class_embed` inside `RTDETRDecoder` rather than `Detect.cv3`. All of them are
+        row-per-class, including the training-only `denoising_class_embed` embedding, so matched class rows
+        transfer even when source and target `nc` differ; any residual shape mismatch is dropped by
+        `intersect_dicts`.
 
         Args:
             csd (dict): Pretrained checkpoint state_dict (will be mutated).
             src_model (torch.nn.Module): Pretrained module, used to read `.names`.
-            verbose (bool): Log mapping and discard summary.
+            verbose (bool): Log mapping summary.
 
         Returns:
             (int): Number of cls tensors remapped (counted toward "Transferred" log line).
@@ -949,17 +950,6 @@ class RTDETRDetectionModel(DetectionModel):
         if any(all(str(k) == str(v) for k, v in n.items()) for n in (src_names, tgt_names)):
             return 0
 
-        # Discard `denoising_class_embed` on class-count mismatch so it is randomly initialized after intersect_dicts
-        state_dict = self.state_dict()
-        for k in [
-            k
-            for k in list(csd)
-            if "denoising_class_embed" in k and k in state_dict and csd[k].shape != state_dict[k].shape
-        ]:
-            del csd[k]
-            if verbose:
-                LOGGER.info(f"Discarded '{k}' due to class-count mismatch (will be randomly initialized)")
-
         src_lookup = {str(v).strip().lower(): k for k, v in src_names.items()}
         tgt_nc = len(tgt_names)
         idx = torch.tensor(
@@ -971,9 +961,8 @@ class RTDETRDetectionModel(DetectionModel):
             return 0
 
         valid = idx >= 0
-        cls_keys = {
-            k for k in csd if ("score_head" in k or "class_embed" in k) and "denoising" not in k and k in state_dict
-        }
+        state_dict = self.state_dict()
+        cls_keys = {k for k in csd if ("score_head" in k or "class_embed" in k) and k in state_dict}
         remapped = 0
         for k in cls_keys:
             v_src, v_tgt = csd[k], state_dict[k]

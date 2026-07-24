@@ -191,10 +191,10 @@ class HailoBackend(BaseBackend):
         scores = torch.cat([x.flatten(2) for x in cls_maps], 2).transpose(1, 2).sigmoid()
         classes = scores.shape[2]
         anchor_index = scores.amax(-1).topk(min(300, scores.shape[1]), dim=1).indices[..., None]
-        boxes = boxes.gather(1, anchor_index.repeat(1, 1, 4))
-        scores = scores.gather(1, anchor_index.repeat(1, 1, classes))
+        boxes = boxes.gather(1, anchor_index.expand(-1, -1, 4))
+        scores = scores.gather(1, anchor_index.expand(-1, -1, classes))
         scores, index = scores.flatten(1).topk(min(300, scores.shape[1] * classes), dim=1)
-        boxes = boxes.gather(1, (index // classes)[..., None].repeat(1, 1, 4))
+        boxes = boxes.gather(1, (index // classes)[..., None].expand(-1, -1, 4))
         return torch.cat((boxes, scores[..., None], (index % classes)[..., None].float()), 2).numpy()
 
     def _decode_depth(self, output: np.ndarray) -> torch.Tensor:

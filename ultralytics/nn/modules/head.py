@@ -230,7 +230,7 @@ class Detect(nn.Module):
         """
         boxes, scores = preds.split([4, self.nc], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
+        boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
         return torch.cat([boxes, scores, conf], dim=-1)
 
     def get_topk_index(self, scores: torch.Tensor, max_det: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -253,7 +253,7 @@ class Detect(nn.Module):
             labels = labels.gather(1, indices)
             return scores, labels, indices
         ori_index = scores.max(dim=-1)[0].topk(k)[1].unsqueeze(-1)
-        scores = scores.gather(dim=1, index=ori_index.repeat(1, 1, nc))
+        scores = scores.gather(dim=1, index=ori_index.expand(-1, -1, nc))
         scores, index = scores.flatten(1).topk(k)
         idx = ori_index[torch.arange(batch_size)[..., None], index // nc]  # original index
         return scores[..., None], (index % nc)[..., None].float(), idx
@@ -358,8 +358,8 @@ class Segment(Detect):
         """
         boxes, scores, mask_coefficient = preds.split([4, self.nc, self.nm], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
-        mask_coefficient = mask_coefficient.gather(dim=1, index=idx.repeat(1, 1, self.nm))
+        boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
+        mask_coefficient = mask_coefficient.gather(dim=1, index=idx.expand(-1, -1, self.nm))
         return torch.cat([boxes, scores, conf, mask_coefficient], dim=-1)
 
     def fuse(self) -> None:
@@ -513,8 +513,8 @@ class OBB(Detect):
         """
         boxes, scores, angle = preds.split([4, self.nc, self.ne], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
-        angle = angle.gather(dim=1, index=idx.repeat(1, 1, self.ne))
+        boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
+        angle = angle.gather(dim=1, index=idx.expand(-1, -1, self.ne))
         return torch.cat([boxes, scores, conf, angle], dim=-1)
 
     def fuse(self) -> None:
@@ -634,8 +634,8 @@ class Pose(Detect):
         """
         boxes, scores, kpts = preds.split([4, self.nc, self.nk], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
-        kpts = kpts.gather(dim=1, index=idx.repeat(1, 1, self.nk))
+        boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
+        kpts = kpts.gather(dim=1, index=idx.expand(-1, -1, self.nk))
         return torch.cat([boxes, scores, conf, kpts], dim=-1)
 
     def fuse(self) -> None:
@@ -1422,8 +1422,8 @@ class YOLOESegment(YOLOEDetect):
         """
         boxes, scores, mask_coefficient = preds.split([4, self.nc, self.nm], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
-        mask_coefficient = mask_coefficient.gather(dim=1, index=idx.repeat(1, 1, self.nm))
+        boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
+        mask_coefficient = mask_coefficient.gather(dim=1, index=idx.expand(-1, -1, self.nm))
         return torch.cat([boxes, scores, conf, mask_coefficient], dim=-1)
 
     def fuse(self, txt_feats: torch.Tensor = None):
@@ -1585,7 +1585,7 @@ class RTDETRDecoder(nn.Module):
             learnt_init_query (bool): Whether to learn initial query embeddings.
         """
         super().__init__()
-        act = act or nn.ReLU()
+        act = nn.ReLU() if act is None else act
         self.hidden_dim = hd
         self.nhead = nh
         self.nl = len(ch)  # num level

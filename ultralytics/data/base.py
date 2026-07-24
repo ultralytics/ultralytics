@@ -209,7 +209,7 @@ class BaseDataset(Dataset):
                 if keypoints is not None:
                     self.labels[i]["keypoints"] = keypoints[j]
             if self.single_cls:
-                self.labels[i]["cls"][:, 0] = 0
+                self.labels[i]["cls"][:] = 0
 
     def load_image(
         self, i: int, rect_mode: bool = True, resize_short: bool = False

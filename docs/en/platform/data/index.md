@@ -55,7 +55,7 @@ graph LR
 
 ## Supported Tasks
 
-Ultralytics Platform supports all 6 YOLO task types:
+Ultralytics Platform datasets support 6 of the 7 YOLO task types — [depth](../../tasks/depth.md) datasets are coming soon (depth models and prediction are already supported):
 
 | Task                                             | Description                                                     | Annotation Tool   |
 | ------------------------------------------------ | --------------------------------------------------------------- | ----------------- |

@@ -112,7 +112,7 @@ The table below outlines the available parameters for `VisualAISearch`:
 
 ## Conclusion
 
-With CLIP and the Ultralytics Python package, you can stand up a zero-shot semantic image search engine in just a few lines, either as a Flask web app or as a programmatic search backend. From here, point `data` at your own image directory to index it, then explore other [Ultralytics Solutions](../solutions/index.md) to build on top of your computer vision workflows.
+With CLIP and the Ultralytics Python package, you can stand up a zero-shot semantic image search engine in just a few lines, either as a Flask web app or as a programmatic search backend. From here, point `data` at your own image directory to index it, then explore other [Ultralytics Solutions](index.md) to build on top of your computer vision workflows.
 
 ## FAQ
 

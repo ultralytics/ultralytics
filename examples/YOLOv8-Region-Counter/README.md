@@ -2,11 +2,11 @@
 
 > **Note:** Region Counter is now part of **[Ultralytics Solutions](https://docs.ultralytics.com/solutions)**, offering enhanced features and ongoing updates.
 >
-> 🔗 **Explore the official [Region Counting Guide](https://docs.ultralytics.com/guides/region-counting) for the latest implementation.**
+> 🔗 **Explore the official [Region Counting Guide](https://docs.ultralytics.com/solutions/region-counting) for the latest implementation.**
 
 > 🔔 **Notice:**
 >
-> This GitHub example (`ultralytics/examples/YOLOv8-Region-Counter/`) will remain available but **is no longer actively maintained**. For the most current features, updates, and support, please refer to the official [Region Counting guide](https://docs.ultralytics.com/guides/region-counting) within the Ultralytics documentation. Thank you!
+> This GitHub example (`ultralytics/examples/YOLOv8-Region-Counter/`) will remain available but **is no longer actively maintained**. For the most current features, updates, and support, please refer to the official [Region Counting guide](https://docs.ultralytics.com/solutions/region-counting) within the Ultralytics documentation. Thank you!
 
 Region counting is a technique used to count objects within predefined areas or zones in a video feed. This allows for more detailed analysis, especially when monitoring multiple distinct areas simultaneously. Users can interactively adjust these regions by clicking and dragging with the left mouse button, enabling real-time counting tailored to specific needs and layouts. This method is valuable in various [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications, from traffic analysis to retail analytics.
 
@@ -131,4 +131,4 @@ Yes, you can use different Ultralytics YOLO model versions (like YOLOv5, YOLOv9,
 
 ## 🤝 Contributing
 
-Contributions to improve this example or add new features are welcome! Please feel free to submit Pull Requests or open Issues on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics). Remember to check the official [Region Counting guide](https://docs.ultralytics.com/guides/region-counting) for the latest maintained version.
+Contributions to improve this example or add new features are welcome! Please feel free to submit Pull Requests or open Issues on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics). Remember to check the official [Region Counting guide](https://docs.ultralytics.com/solutions/region-counting) for the latest maintained version.

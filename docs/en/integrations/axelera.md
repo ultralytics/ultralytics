@@ -53,8 +53,8 @@ These cards enable AI acceleration in existing host devices, facilitating [brown
 
 | Product           | Form Factor    | Compute            | Performance (INT8) | Target Application                                                                                                                         |
 | :---------------- | :------------- | :----------------- | :----------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
-| **Metis PCIe x4** | PCIe Gen3 x16  | **4x** Metis AIPUs | **856 TOPS**       | High-density [video analytics](../guides/analytics.md), smart cities                                                                       |
-| **Metis PCIe x1** | PCIe Gen3 x1   | **1x** Metis AIPU  | **214 TOPS**       | Industrial PCs, retail [queue management](../guides/queue-management.md)                                                                   |
+| **Metis PCIe x4** | PCIe Gen3 x16  | **4x** Metis AIPUs | **856 TOPS**       | High-density [video analytics](../solutions/analytics.md), smart cities                                                                    |
+| **Metis PCIe x1** | PCIe Gen3 x1   | **1x** Metis AIPU  | **214 TOPS**       | Industrial PCs, retail [queue management](../solutions/queue-management.md)                                                                |
 | **Metis M.2**     | M.2 2280 M-Key | **1x** Metis AIPU  | **214 TOPS**       | [Drones](https://www.ultralytics.com/blog/build-ai-powered-drone-applications-with-ultralytics-yolo11), robotics, portable medical devices |
 | **Metis M.2 MAX** | M.2 2280       | **1x** Metis AIPU  | **214 TOPS**       | Environments requiring advanced thermal management                                                                                         |
 
@@ -271,10 +271,10 @@ _Benchmarks based on Axelera AI data. Actual FPS depends on model size, batching
 
 Ultralytics YOLO on Axelera hardware enables advanced edge computing solutions:
 
-- **Smart Retail**: Real-time [object counting](../guides/object-counting.md) and [heatmap analytics](../guides/heatmaps.md) for store optimization.
+- **Smart Retail**: Real-time [object counting](../solutions/object-counting.md) and [heatmap analytics](../solutions/heatmaps.md) for store optimization.
 - **Industrial Safety**: Low-latency [PPE detection](../datasets/detect/construction-ppe.md) in manufacturing environments.
 - **Drone Analytics**: High-speed [object detection](../tasks/detect.md) on UAVs for [agriculture](https://www.ultralytics.com/solutions/computer-vision-in-agriculture) and search-and-rescue.
-- **Traffic Systems**: Edge-based [license plate recognition](https://www.ultralytics.com/blog/using-ultralytics-yolo11-for-automatic-number-plate-recognition) and [speed estimation](../guides/speed-estimation.md).
+- **Traffic Systems**: Edge-based [license plate recognition](https://www.ultralytics.com/blog/using-ultralytics-yolo11-for-automatic-number-plate-recognition) and [speed estimation](../solutions/speed-estimation.md).
 
 ## Recommended Workflow
 

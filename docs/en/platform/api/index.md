@@ -993,15 +993,7 @@ Public models can be predicted without authentication. Private and shared models
 
 **Multipart Form:**
 
-| Field       | Type    | Description                                                         |
-| ----------- | ------- | ------------------------------------------------------------------- |
-| `file`      | file    | Image or video file (e.g. JPG, PNG, WebP, BMP, TIFF; MP4, MOV, AVI) |
-| `source`    | string  | Image URL or base64-encoded image (alternative to `file`)           |
-| `conf`      | float   | Confidence threshold, 0.01–1 (default: 0.25)                        |
-| `iou`       | float   | IoU threshold, 0–0.95 (default: 0.7)                                |
-| `imgsz`     | int     | Image size, 32–1280 pixels (default: 640)                           |
-| `normalize` | boolean | Return normalized coordinates (default: `false`)                    |
-| `decimals`  | int     | Coordinate precision, 0–10 (default: 5)                             |
+{% include "macros/platform-inference-parameters.md" %}
 
 Provide either `file` or `source`. Maximum upload size is 100 MB.
 
@@ -1278,15 +1270,7 @@ Send an image directly to a deployment endpoint for inference. Functionally equi
 
 **Multipart Form:**
 
-| Field       | Type    | Description                                               |
-| ----------- | ------- | --------------------------------------------------------- |
-| `file`      | file    | Image or video file                                       |
-| `source`    | string  | Image URL or base64-encoded image (alternative to `file`) |
-| `conf`      | float   | Confidence threshold, 0.01–1 (default: 0.25)              |
-| `iou`       | float   | IoU threshold, 0–0.95 (default: 0.7)                      |
-| `imgsz`     | int     | Image size, 32–1280 pixels (default: 640)                 |
-| `normalize` | boolean | Return normalized coordinates (default: `false`)          |
-| `decimals`  | int     | Coordinate precision, 0–10 (default: 5)                   |
+{% include "macros/platform-inference-parameters.md" %}
 
 Provide either `file` or `source`. The response uses the same image and metadata contract as model prediction and never returns the internal model path.
 
@@ -1377,26 +1361,10 @@ POST /api/exports
 
 **Supported Formats:**
 
-| Format        | Value         | Use Case                 |
-| ------------- | ------------- | ------------------------ |
-| ONNX          | `onnx`        | Cross-platform inference |
-| TorchScript   | `torchscript` | PyTorch deployment       |
-| OpenVINO      | `openvino`    | Intel hardware           |
-| TensorRT      | `engine`      | NVIDIA GPU optimization  |
-| CoreML        | `coreml`      | Apple devices            |
-| TF SavedModel | `saved_model` | TensorFlow Serving       |
-| TF GraphDef   | `pb`          | TensorFlow frozen graph  |
-| PaddlePaddle  | `paddle`      | Baidu PaddlePaddle       |
-| NCNN          | `ncnn`        | Mobile neural network    |
-| LiteRT        | `litert`      | Mobile/edge and browser  |
-| Edge TPU      | `edgetpu`     | Google Coral devices     |
-| MNN           | `mnn`         | Alibaba mobile inference |
-| RKNN          | `rknn`        | Rockchip NPU             |
-| Qualcomm      | `qnn`         | Qualcomm Snapdragon NPU  |
-| IMX           | `imx`         | Sony IMX500 sensor       |
-| Axelera       | `axelera`     | Axelera AI accelerators  |
-| ExecuTorch    | `executorch`  | Meta ExecuTorch runtime  |
-| DeepX         | `deepx`       | DeepX NPU accelerators   |
+Use the `format` argument from the shared export table below. PyTorch is the source format and is not an API export target.
+
+{% set integrations_path = "../../integrations" %}
+{% include "macros/export-table.md" %}
 
 ### Get Export Status
 
@@ -1568,6 +1536,8 @@ Permanently deletes all items in trash.
 
 Check your credit balance, plan usage, and transaction history. See [Billing documentation](../account/billing.md).
 
+The balance and transaction endpoints accept an optional `owner` query parameter with the workspace owner's username.
+
 !!! note "Currency Units"
 
     Billing amounts use cents (`creditsCents`) where `100 = $1.00`.
@@ -1577,12 +1547,6 @@ Check your credit balance, plan usage, and transaction history. See [Billing doc
 ```http
 GET /api/billing/balance
 ```
-
-**Query Parameters:**
-
-| Parameter | Type   | Description              |
-| --------- | ------ | ------------------------ |
-| `owner`   | string | Workspace owner username |
 
 **Response:**
 
@@ -1610,12 +1574,6 @@ GET /api/billing/transactions
 Returns transaction history (most recent first).
 
 Transactions include client-facing ledger fields such as amount, resulting balance, date, optional model context, and receipt URL. Internal notes, Stripe payment/refund IDs, and idempotency keys are not returned.
-
-**Query Parameters:**
-
-| Parameter | Type   | Description              |
-| --------- | ------ | ------------------------ |
-| `owner`   | string | Workspace owner username |
 
 ---
 

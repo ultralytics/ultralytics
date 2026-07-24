@@ -54,11 +54,7 @@ stored. Dedicated endpoint regions are selected separately when you deploy a mod
 
 ![Ultralytics Platform Onboarding Region Map With Latency](https://cdn.ul.run/i/6e7f398d48e5d13a6af94dcd5c7ec5f9.avif)<!-- screenshot -->
 
-| Region | Label                        | Location             | Best For                                |
-| ------ | ---------------------------- | -------------------- | --------------------------------------- |
-| **US** | Americas                     | Iowa, USA            | Americas users, fastest for Americas    |
-| **EU** | Europe, Middle East & Africa | Belgium, Europe      | European users, GDPR compliance         |
-| **AP** | Asia Pacific                 | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+{% include "macros/platform-data-regions.md" %}
 
 !!! warning "Choose Your Region Carefully"
 

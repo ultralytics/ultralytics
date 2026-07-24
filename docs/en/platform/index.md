@@ -62,11 +62,7 @@ graph LR
 
 Your data stays in your region. Ultralytics Platform operates infrastructure in three global regions:
 
-| Region | Label                        | Location             | Best For                                |
-| ------ | ---------------------------- | -------------------- | --------------------------------------- |
-| **US** | Americas                     | Iowa, USA            | Americas users, fastest for Americas    |
-| **EU** | Europe, Middle East & Africa | Belgium, Europe      | European users, GDPR compliance         |
-| **AP** | Asia Pacific                 | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+{% include "macros/platform-data-regions.md" %}
 
 You select your data region during onboarding. Datasets, models, and managed training data remain in that region.
 Dedicated endpoints are deployed separately to a region you choose from the global deployment map.
@@ -231,19 +227,7 @@ Once deployed, call your endpoint from any language:
 
 !!! info "Plan Tiers"
 
-    | Feature              | Free           | Pro ($29/mo)            | Enterprise     |
-    | -------------------- | -------------- | ----------------------- | -------------- |
-    | Signup Credit        | $5 / $25*      | -                       | Custom         |
-    | Monthly Credit       | -              | $30/seat/month          | Custom         |
-    | Models               | 100            | 500                     | Unlimited      |
-    | Concurrent Trainings | 3              | 10                      | Unlimited      |
-    | Deployments          | 3              | 10                      | Unlimited      |
-    | Storage              | 100 GB         | 500 GB                  | Unlimited      |
-    | Cloud GPU Types      | 24             | 26 (incl. B200 / B300)  | 26             |
-    | Teams                | -              | Up to 5 members         | Up to 50       |
-    | Support              | Community      | Priority                | Dedicated      |
-
-    *$5 at signup, or $25 with a verified company/work email.
+    See the canonical [Free, Pro, and Enterprise comparison](account/billing.md#plans) for current limits, GPU access, collaboration, and licensing.
 
 ## Quick Links
 
@@ -372,29 +356,9 @@ See [Annotation](data/annotation.md) for the complete guide.
 
 ### What export formats are supported?
 
-The Platform supports 19 deployment formats:
+The Platform supports the same 19 deployment formats as Ultralytics Export mode. PyTorch is the source format; each row with a `format` argument is an export target.
 
-| Format        | File Extension      | Use Case                  |
-| ------------- | ------------------- | ------------------------- |
-| ONNX          | `.onnx`             | Cross-platform deployment |
-| TorchScript   | `.torchscript`      | C++ deployment            |
-| OpenVINO      | `_openvino_model`   | Intel hardware            |
-| TensorRT      | `.engine`           | NVIDIA GPU inference      |
-| CoreML        | `.mlpackage`        | Apple devices             |
-| TF SavedModel | `_saved_model`      | TensorFlow ecosystem      |
-| TF GraphDef   | `.pb`               | TensorFlow legacy         |
-| PaddlePaddle  | `_paddle_model`     | Baidu ecosystem           |
-| NCNN          | `_ncnn_model`       | Mobile (Android/ARM)      |
-| LiteRT        | `.tflite`           | Mobile/edge and browser   |
-| Edge TPU      | `_edgetpu.tflite`   | Google Coral devices      |
-| MNN           | `.mnn`              | Alibaba mobile            |
-| RKNN          | `_rknn_model`       | Rockchip NPU              |
-| Qualcomm      | `_qnn.onnx`         | Qualcomm Snapdragon NPU   |
-| IMX500        | `_imx_model`        | Sony IMX500 sensor        |
-| Axelera       | `_axelera_model`    | Axelera AI accelerators   |
-| ExecuTorch    | `_executorch_model` | PyTorch mobile            |
-| DeepX         | `_deepx_model`      | DeepX NPU accelerators    |
-| Hailo         | `_hailo_model`      | Hailo AI accelerators     |
+{% include "macros/export-table.md" %}
 
 See [Models Export](train/models.md#export-model), the [Export mode guide](../modes/export.md), and the [Integrations index](../integrations/index.md) for format-specific options.
 

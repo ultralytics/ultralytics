@@ -100,11 +100,7 @@ Manage email addresses linked to your account in the `Profile` tab:
 
 View your data region on the `Profile` tab:
 
-| Region | Location      | Best For                        |
-| ------ | ------------- | ------------------------------- |
-| **US** | United States | Americas users                  |
-| **EU** | Europe        | European users, GDPR compliance |
-| **AP** | Asia Pacific  | Asia-Pacific users              |
+{% include "macros/platform-data-regions.md" %}
 
 !!! note "Data Region"
 
@@ -221,11 +217,7 @@ The `Plans` tab lets you compare available plans and upgrade or downgrade your s
 
 ![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/4687f31bbcab35be3b474784751759e5.avif)<!-- screenshot -->
 
-| Plan           | Storage   | Models    | Deployments | Concurrent Trainings | Team Seats |
-| -------------- | --------- | --------- | ----------- | -------------------- | ---------- |
-| **Free**       | 100 GB    | 100       | 3           | 3                    | —          |
-| **Pro**        | 500 GB    | 500       | 10          | 10                   | Up to 5    |
-| **Enterprise** | Unlimited | Unlimited | Unlimited   | Unlimited            | Custom     |
+{% include "macros/platform-plan-comparison.md" %}
 
 From this tab you can:
 
@@ -266,12 +258,7 @@ The `Teams` tab lets you manage workspace members, roles, and invitations. Teams
 
 ### Roles and Permissions
 
-| Role       | Description                                                          |
-| ---------- | -------------------------------------------------------------------- |
-| **Owner**  | Full control including billing, member management, and team deletion |
-| **Admin**  | Manage members, resources, and settings (cannot delete team)         |
-| **Editor** | Create and edit projects, datasets, and models                       |
-| **Viewer** | Read-only access to shared resources                                 |
+{% include "macros/platform-team-roles.md" %}
 
 ### Manage Members
 

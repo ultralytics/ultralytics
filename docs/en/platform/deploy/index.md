@@ -82,11 +82,7 @@ graph TB
     classDef out fill:#9C27B0,color:#fff
 ```
 
-| Region | Location             |
-| ------ | -------------------- |
-| US     | Iowa, USA            |
-| EU     | Belgium, Europe      |
-| AP     | Taiwan, Asia-Pacific |
+{% include "macros/platform-data-regions.md" %}
 
 ### Dedicated Endpoints
 

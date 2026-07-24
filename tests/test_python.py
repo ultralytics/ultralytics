@@ -459,9 +459,9 @@ def test_track_reid_auto_user_detections(tracker_type):
 def test_track_single_torch_detection(tracker_type):
     """A single torch-backed detection must not break the low-level tracker update.
 
-    numpy resolves a single-element torch bool mask through `__index__` (True -> 1), so a 1-row numpy
-    detection array masked by it asks for row 1 and raises IndexError; larger torch masks fall back to
-    boolean indexing and work, which is why only the single-detection case fails.
+    numpy resolves a single-element torch bool mask through `__index__` (True -> 1), so a 1-row numpy detection array
+    masked by it asks for row 1 and raises IndexError; larger torch masks fall back to boolean indexing and work, which
+    is why only the single-detection case fails.
     """
     from ultralytics.engine.results import Boxes
     from ultralytics.trackers.track import TRACKER_MAP

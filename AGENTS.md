@@ -14,7 +14,7 @@ Ultralytics (`ultralytics` on PyPI, AGPL-3.0) is the official Python package for
 4. **Keep scope minimal**: Implement only the simplest complete solution. Avoid impossible-state handling, speculative flags, compatibility shims, policy scaffolding, and unrelated cleanup. Tests are out of scope by default — rely on existing coverage and focused validation; only an uncovered, high-risk regression path justifies minimal new test code.
 5. **Ship zero-regression, production-ready changes**: Understand what you remove instead of retaining broken code as insurance. Remove unused imports, functions, types, files, and comments; run relevant cleanup checks; and thoroughly debug and validate the changed owner. Do not break existing workflows unless the PR intentionally removes them with evidence.
 
-**Review gate:** every addition gets one question — could deleting or changing existing code have fixed this instead? The PR must answer it, and an unconvincing answer blocks LGTM.
+**Review gate:** for every addition, the reviewer inspects the surrounding code and decides whether deleting or changing what already exists would have fixed the problem instead — if it would, that is a blocking finding. Judge the diff, never the PR description; a missing explanation is not a finding.
 
 NEVER push to `main`. NEVER force push. Always start work in a new git worktree (`git worktree add`) on a feature branch and open a PR — never edit the primary checkout directly, it may hold in-flight work.
 

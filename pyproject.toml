@@ -216,6 +216,7 @@ split_before_first_argument = false
 
 [tool.ruff]
 line-length = 120
+target-version = "py38"
 
 [tool.ruff.format]
 docstring-code-format = true

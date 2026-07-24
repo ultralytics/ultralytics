@@ -6,36 +6,27 @@ Ultralytics (`ultralytics` on PyPI, AGPL-3.0) is the official Python package for
 
 ## Core Principles (CRITICAL)
 
-Respecting these principles is critical for every PR.
-
-**Less is more. The simplest solution is the best solution.**
-
-The action hierarchy for every change: **Delete > Replace > Add**. The best code change is a deletion. The second best is modifying what exists. Adding new code is the last resort.
+**Less is more. The simplest solution is the best solution.** The action hierarchy for every change: **Delete > Replace > Add**.
 
 1. **Solve at the owner**: Put behavior in the code path that owns or observes it. For fixes, never guard a symptom with a staleness check, initialization flag, skip-first-call branch, or `try/except` around broken logic; relocate the trigger and delete the wrong path. For features, extend the existing owner rather than creating a parallel abstraction.
-2. **Search and reuse first**: Search the whole repository before creating a feature, component, helper, workflow, or utility. Reuse or adapt what exists, consolidate in the shared owner when duplication appears, and delete duplicate paths. Three similar lines beat a helper nobody else calls.
-3. **Delete, then replace, then add**: Delete superseded code and modify existing files before creating new ones. Bugfixes are net-negative by default; a net-positive bugfix needs a one-sentence PR justification explaining why deletion or relocation was impossible. A new file must first prove it cannot fit cleanly in an existing owner.
-4. **Keep scope minimal**: Implement only the simplest complete solution. Avoid impossible-state handling, speculative flags, compatibility shims, policy scaffolding, and unrelated cleanup. Tests are out of scope by default; rely on existing coverage and focused validation. Only an uncovered, high-risk regression path justifies minimal new test code. Never add redundant coverage or broad test scaffolding.
-5. **Ship zero-regression, production-ready changes**: Understand what you remove instead of retaining broken code as insurance. Remove unused imports, functions, types, files, and comments; run relevant cleanup checks; and thoroughly debug and validate the changed owner. Do not break existing workflows unless the PR intentionally removes them with evidence.
+2. **Search and reuse first**: Search the whole repository before creating a feature, component, helper, workflow, or utility. Reuse or adapt what exists, consolidate in-scope duplication in the shared owner, and delete duplicate paths. Three similar lines beat a helper nobody else calls.
+3. **Delete and modify existing code before creating new code**: Bugfixes are net-negative by default unless deletion and relocation are demonstrably impossible. A new file must first prove it cannot fit cleanly in an existing owner.
+4. **Keep scope minimal**: Implement only the simplest complete solution. Avoid impossible-state handling, speculative flags, compatibility shims, policy scaffolding, and unrelated cleanup. Tests are out of scope by default — rely on existing coverage and focused validation; only an uncovered, high-risk regression path justifies minimal new test code.
+5. **Ship zero-regression, production-ready changes**: Understand what you remove instead of retaining broken code as insurance. Remove unused imports, functions, types, files, and comments; run relevant cleanup checks; and thoroughly debug and validate the changed owner. Do not break existing features or workflows unless the PR intentionally removes them with evidence.
 
-**When fixing bugs, ask: "What can I delete?" before "What can I replace?" before "What should I add?"**
+**Review gate:** for every addition, the reviewer decides whether deleting or changing existing code would have fixed the problem instead — if it would, that is a blocking finding. A missing or thin PR description is never itself a finding.
 
-**Output gate:** every PR body must contain a `Deleted:` line naming the code removed (functions, branches, files, config). Features must name what they reused or consolidated. `Deleted: nothing` requires one sentence explaining why deletion or replacement did not apply.
-
-**Review gate:** adversarial reviewers must answer three questions before LGTM: (a) is the behavior in the correct owner? (b) what could be deleted, replaced, or reused? (c) does any added condition suppress a symptom or add speculative scaffolding? A finding on any blocks LGTM.
-
-**This file is code — additions require deletions.** To add a rule here, remove or merge one. When everything is emphasized, nothing is.
-
-**NEVER push to `main`. NEVER force push.** Always start work in a new git worktree (`git worktree add`) on a feature branch and open a PR — never edit the primary checkout directly, it may hold in-flight work.
+NEVER push to `main`. NEVER force push. Always start work in a new git worktree (`git worktree add`) on a feature branch and open a PR — never edit the primary checkout directly, it may hold in-flight work.
 
 ## PR Workflow
 
 After opening a PR:
 
 1. Wait for the automated PR review and auto-format commit from Ultralytics Actions (`format.yml`), then pull and address every finding.
-2. Record the pulled live PR-head SHA. Inside the implementation session, run one reviewer covering Core Principles/deduplication/minimalism, production readiness, and performance on the full diff; collect all findings, batch and commit fixes, then reuse it for `<recorded-sha>..HEAD` and affected invariants. Push reviewed fixes; after automation, pull and repeat delta review until local and live heads match. Run one final cold full-diff review, require LGTM with no findings, record its SHA, and hand off or merge only while it remains the live head.
-3. Never fight other commits: Ultralytics Actions pushes auto-format and header commits, and multiple users may work on the same PR. `git pull --rebase` before pushing; never force-push, reset, or revert commits you did not author.
-4. After the PR merges, clean up: remove local worktrees and branches for it, then `git checkout main && git pull`.
+2. Review the full diff in-session against the Core Principles, performance, and the review gate above, then batch the fixes into one commit and push. After each round of bot or human commits, pull and resume the same reviewer on `<last-reviewed-sha>..HEAD` plus anything that delta could have invalidated. Repeat until the local head matches the live head.
+3. Hand off or merge only on a clean final pass: one cold full-diff review returning LGTM with no findings, on a head that is still live at merge time.
+4. Never fight other commits: Ultralytics Actions pushes auto-format and header commits, and multiple users may work on the same PR. `git pull --rebase` before pushing; never reset or revert commits you did not author.
+5. After the PR merges, clean up: remove local worktrees and branches for it, then `git checkout main && git pull`.
 
 ## Commands
 
@@ -65,7 +56,7 @@ yolo predict model=yolo26n.pt
 
 - CI (`ci.yml`) runs tests on Python 3.13 across ubuntu-latest, macos-26, windows-latest, and ubuntu-24.04-arm, plus a floor job on Python 3.8 with torch 1.8.0.
 - `pyproject.toml` pytest `addopts` includes `--doctest-modules`, so pointing pytest at `ultralytics/` runs docstring doctests — CI only runs `tests/`, so package doctests are NOT exercised in CI.
-- `tests/test_exports.py` is partitioned by `--export-env` (env ids from `export_formats()`); omitting the flag runs ALL export formats, so pass `--export-env base` to match CI. GPU tests live in `tests/test_cuda.py` and skip without CUDA.
+- `tests/test_exports.py` is partitioned by `--export-env` (env ids from `export_formats()`); omitting the flag runs ALL export formats. GPU tests live in `tests/test_cuda.py` and skip without CUDA.
 
 ## Architecture
 

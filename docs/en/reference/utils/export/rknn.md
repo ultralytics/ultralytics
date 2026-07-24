@@ -12,6 +12,10 @@ keywords: Ultralytics, RKNN, model export, ONNX to RKNN, Rockchip, NPU, RK3588, 
 
 <br>
 
+## ::: ultralytics.utils.export.rknn.rknn_detect_forward
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.export.rknn._check_rknn_return
 
 <br><br><hr><br>

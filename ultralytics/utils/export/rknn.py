@@ -7,6 +7,26 @@ from pathlib import Path
 from ultralytics.utils import IS_COLAB, LOGGER, YAML
 
 
+def rknn_detect_forward(self, x):
+    """RKNN INT8 export forward for a ``Detect`` head: emit raw per-scale reg and sigmoid(cls) maps.
+
+    DFL and box decode are deferred to ``RKNNBackend._decode`` on CPU to keep the wide-range box decode out of the INT8
+    graph, while sigmoid stays in-graph since bounded [0, 1] scores quantize finely under INT8.
+
+    Args:
+        self (Detect): The detection head the method is bound to.
+        x (list[torch.Tensor]): Per-scale feature maps from the neck.
+
+    Returns:
+        (list[torch.Tensor]): reg ``(B, 4 * reg_max, H, W)`` and sigmoid(cls) ``(B, nc, H, W)`` per scale.
+    """
+    y = []
+    for i in range(self.nl):
+        y.append(self.cv2[i](x[i]))  # reg: raw regression output (DFL deferred to CPU)
+        y.append(self.cv3[i](x[i]).sigmoid())  # cls: class scores (sigmoid in-graph)
+    return y
+
+
 def _check_rknn_return(ret, name: str):
     """Raise a RuntimeError if an RKNN API call failed."""
     if ret not in {0, None}:

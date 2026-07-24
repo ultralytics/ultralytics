@@ -56,15 +56,57 @@ class RKNNBackend(BaseBackend):
 
             self.apply_metadata(YAML.load(metadata_file))
 
-    def forward(self, im: torch.Tensor) -> list:
+    def forward(self, im: torch.Tensor) -> list | torch.Tensor:
         """Run inference on the Rockchip NPU.
 
         Args:
             im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
 
         Returns:
-            (list): Model predictions as a list of output arrays.
+            (list | torch.Tensor): Decoded detections of shape (1, 4 + nc, anchors) for detection models exported with
+                raw head maps, otherwise the raw list of output arrays.
         """
         im = (im.cpu().numpy() * 255).astype("uint8")
         im = im if isinstance(im, (list, tuple)) else [im]
-        return self.model.inference(inputs=im)
+        y = self.model.inference(inputs=im)
+        # only the INT8 raw-head path emits all-4D NCHW maps in (reg, cls) pairs
+        # FP16 seg outputs (3D preds + 4D protos) must pass through
+        if isinstance(y, (list, tuple)) and len(y) > 1 and len(y) % 2 == 0 and all(o.ndim == 4 for o in y):
+            return self._decode(y)  # raw per-scale reg/cls maps -> (1, 4 + nc, anchors)
+        return y
+
+    def _decode(self, outputs: list) -> torch.Tensor:
+        """Decode raw RKNN reg/cls head maps into (1, 4 + nc, anchors), applying DFL and box decode in float.
+
+        The INT8 export forward (rknn_detect_forward) emits per-scale regression (4 * reg_max channels) and
+        already-sigmoided classification (nc channels) maps in export order (reg, cls per scale, large to small).
+        Doing DFL and box decode here on CPU keeps the wide-range decode off the NPU so INT8 models stay accurate.
+        The predictor then runs NMS.
+
+        Args:
+            outputs (list): Raw NCHW arrays from RKNNLite.inference, reg and cls per scale, large to small.
+
+        Returns:
+            (torch.Tensor): Predictions of shape (1, 4 + nc, anchors) with boxes in xywh pixel units.
+        """
+        import numpy as np
+
+        from ultralytics.utils.tal import dist2bbox, make_anchors
+
+        nc = len(self.names)
+        feats = [torch.as_tensor(np.ascontiguousarray(o), dtype=torch.float32) for o in outputs]
+        regs, clss = feats[0::2], feats[1::2]  # reg/cls per scale, large -> small feature maps
+        reg_max = regs[0].shape[1] // 4  # reg has 4 * reg_max channels; reg_max == 1 means no DFL
+
+        strides = [self.imgsz[0] // r.shape[2] for r in regs]
+        anchors, strides_t = (a.transpose(0, 1) for a in make_anchors(regs, strides, 0.5))
+
+        boxes = torch.cat([r.reshape(1, 4 * reg_max, -1) for r in regs], 2)
+        scores = torch.cat([c.reshape(1, nc, -1) for c in clss], 2)
+
+        b, _, a = boxes.shape
+        if reg_max > 1:  # DFL integral; reg_max == 1 means boxes are raw ltrb distances (DFL is Identity)
+            proj = torch.arange(reg_max, dtype=boxes.dtype)
+            boxes = (boxes.view(b, 4, reg_max, a).softmax(2) * proj.view(1, 1, reg_max, 1)).sum(2)
+        dbox = dist2bbox(boxes, anchors.unsqueeze(0), xywh=True, dim=1) * strides_t
+        return torch.cat((dbox, scores), 1)  # cls already sigmoided in-graph (see rknn_detect_forward)

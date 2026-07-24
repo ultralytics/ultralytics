@@ -241,7 +241,7 @@ class GMC:
         spatialDistances = np.asarray(spatialDistances).reshape(-1, 2)
         meanSpatialDistances = np.mean(spatialDistances, 0)
         stdSpatialDistances = np.std(spatialDistances, 0)
-        inliers = (spatialDistances - meanSpatialDistances) < 2.5 * stdSpatialDistances
+        inliers = np.abs(spatialDistances - meanSpatialDistances) < 2.5 * stdSpatialDistances
 
         # Keep matched point pairs that survive the outlier filter
         good = inliers.all(axis=1)

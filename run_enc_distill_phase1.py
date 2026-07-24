@@ -13,6 +13,7 @@ import torch
 from callbacks import paths, wandb_config
 from ultralytics import YOLO
 from ultralytics.models.yolo.classify.train_image_encoder import ImageEncoderTrainer
+from ultralytics.nn.tasks import guess_model_scale
 from ultralytics.utils import YAML
 
 RECIPES = {
@@ -389,6 +390,12 @@ def main(argv: list[str]) -> None:
     # reset_parameters() wipe in ImageEncoderTrainer.get_model that would re-randomize the loaded
     # weights back to a cold start. A .yaml build stays pretrained=False (fresh init).
     fork_pretrained = str(model_yaml).endswith(".pt")
+    if not resume and not fork_pretrained and not guess_model_scale(model_yaml):
+        raise SystemExit(
+            f"[phase1] fresh yaml run needs an explicit scale letter in the model name: {model_yaml!r}. Relaunch as "
+            f"e.g. yolo26x-...-cls.yaml (the x-file need not exist, Ultralytics unifies it). A scale-less name silently "
+            f"binds to the scales-block's first key."
+        )
     model = YOLO(model_yaml)
     continuation_log = (
         {

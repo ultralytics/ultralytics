@@ -60,10 +60,11 @@ import torch
 from callbacks import grad_clip, muon_w, nfs_sync, paths, wandb_config
 from ultralytics import YOLO
 from ultralytics.data.utils import IMG_FORMATS
-from ultralytics.nn.tasks import guess_model_scale
+from ultralytics.nn.tasks import guess_model_scale, load_checkpoint
 from ultralytics.nn.teacher_model import TEACHER_REGISTRY, safe_key
 from ultralytics.utils import YAML
 from ultralytics.utils.downloads import attempt_download_asset
+from ultralytics.utils.torch_utils import intersect_dicts
 
 # teacher_frozen_det: frozen foundation teacher (yolo26-teacherdet.yaml layer 0) + trainable ViTDet pyramid + Detect,
 # the frozen-feature detection ceiling. Supported = ImageNet-stat ViT/ConvNeXt teachers audited (2026-06-24) to run at
@@ -180,6 +181,39 @@ def _infer_model_yaml(phase1_weights: str, head_suffix: str = "") -> str:
             f"(source weights: {phase1_weights}). Would route to ClassificationTrainer and crash."
         )
     return out
+
+
+def _assert_backbone_compatible(phase1_weights: str, model_yaml: str) -> None:
+    """Abort before training unless every tensor in the longest common backbone prefix transfers.
+
+    A wrong-scale yaml builds the detector at the wrong scale and silently drops the whole backbone. cls and det
+    backbones diverge at det's SPPF, so only rows identical in both yamls must transfer.
+
+    Args:
+        phase1_weights (str): Phase-1 checkpoint seeding the detector backbone.
+        model_yaml (str): Detector model yaml resolved by _infer_model_yaml.
+    """
+    src = load_checkpoint(phase1_weights)[0]
+    det = YOLO(model_yaml).model
+    shared = 0
+    for s_row, d_row in zip(src.yaml["backbone"], det.yaml["backbone"]):
+        if s_row != d_row:
+            break
+        shared += 1
+    prefix = tuple(f"model.{i}." for i in range(shared))
+    src_sd = src.state_dict()
+    expected = [k for k in src_sd if k.startswith(prefix)]
+    if not expected:
+        raise SystemExit(
+            f"[preflight] no shared backbone rows between {phase1_weights} and {model_yaml} (arch mismatch?)"
+        )
+    transferred = intersect_dicts(src_sd, det.state_dict())
+    dropped = [k for k in expected if k not in transferred]
+    if dropped:
+        raise SystemExit(
+            f"[preflight] {len(dropped)}/{len(expected)} shared-prefix backbone tensors from {phase1_weights} fail to "
+            f"transfer into {model_yaml} (scale mismatch?). First: {dropped[:5]}"
+        )
 
 
 def _build_det_train_args(
@@ -478,6 +512,7 @@ def _run_multi_det(
         YAML.save(model_yaml, cfg)
     else:
         model_yaml = _infer_model_yaml(phase1_weights)
+        _assert_backbone_compatible(phase1_weights, model_yaml)
         # Fail fast on a wrong parent id (e.g. a dir basename) before training the full dataset suite, since
         # push_summary_to_parent would otherwise drop the downstream link silently at the final step.
         wandb_config.assert_parent_resolvable(phase1_wandb_id)
@@ -748,6 +783,7 @@ def main(argv: list[str]) -> None:
     if mode in ("coco_det_finetune", "coco_det_finetune_frozen", "coco_pose_finetune", "dota_obb_finetune"):
         head_suffix = {"coco_pose_finetune": "-pose", "dota_obb_finetune": "-obb"}.get(mode, "")
         model_yaml = _infer_model_yaml(phase1_weights, head_suffix)
+        _assert_backbone_compatible(phase1_weights, model_yaml)
     else:
         model_yaml = "yolo26s-cls.yaml"
     wandb_group = {

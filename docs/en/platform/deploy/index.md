@@ -132,7 +132,7 @@ Deploy close to your users with 42 regions covering:
 
 Endpoints currently behave as follows:
 
-- **Scale to zero**: No cost when idle (default)
+- **Scale to zero**: `minInstances` defaults to `0`
 - **Single active instance**: `maxInstances` is currently capped at `1` on all plans
 
 ### Regional Deployment

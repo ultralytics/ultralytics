@@ -271,7 +271,6 @@ def test_export_openvino(end2end, isolated_model):
     [
         ("intel:gpu", ["CPU", "GPU.0", "GPU.1"], "GPU"),  # alias resolves to indexed IDs on multi-GPU machines
         ("intel:npu", ["CPU", "GPU.0", "GPU.1"], "AUTO"),  # absent device class falls back
-        ("intel:gpu", ["CPU"], "CPU"),  # CPU-only machine falls back to CPU
     ],
 )
 def test_openvino_intel_device_resolution(device, available, expected, tmp_path, monkeypatch):

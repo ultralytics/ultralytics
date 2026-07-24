@@ -8,7 +8,7 @@ Usage: See https://docs.ultralytics.com/modes/predict/
 from __future__ import annotations
 
 from copy import deepcopy
-from functools import lru_cache
+from functools import cached_property
 from pathlib import Path
 from typing import Any
 
@@ -650,7 +650,7 @@ class Results(SimpleClass, DataExportMixin):
             >>> for result in results:
             ...     result.show()  # Display all results
         """
-        self.plot(show=True, *args, **kwargs)
+        self.plot(*args, show=True, **kwargs)
 
     def save(self, filename: str | None = None, *args, **kwargs) -> str:
         """Save annotated inference results image to file.
@@ -680,7 +680,7 @@ class Results(SimpleClass, DataExportMixin):
         if not filename:
             filename = f"results_{Path(self.path).name}"
         Path(filename).absolute().parent.mkdir(parents=True, exist_ok=True)
-        self.plot(save=True, filename=filename, *args, **kwargs)
+        self.plot(*args, save=True, filename=filename, **kwargs)
         return filename
 
     def verbose(self) -> str:
@@ -1049,8 +1049,7 @@ class Boxes(BaseTensor):
         """
         return self.data[:, -3] if self.is_track else None
 
-    @property
-    @lru_cache(maxsize=2)
+    @cached_property
     def xywh(self) -> torch.Tensor | np.ndarray:
         """Convert bounding boxes from [x1, y1, x2, y2] format to [x, y, width, height] format.
 
@@ -1070,8 +1069,7 @@ class Boxes(BaseTensor):
         """
         return ops.xyxy2xywh(self.xyxy)
 
-    @property
-    @lru_cache(maxsize=2)
+    @cached_property
     def xyxyn(self) -> torch.Tensor | np.ndarray:
         """Return normalized bounding box coordinates relative to the original image size.
 
@@ -1093,8 +1091,7 @@ class Boxes(BaseTensor):
         xyxy[..., [1, 3]] /= self.orig_shape[0]
         return xyxy
 
-    @property
-    @lru_cache(maxsize=2)
+    @cached_property
     def xywhn(self) -> torch.Tensor | np.ndarray:
         """Return normalized bounding boxes in [x, y, width, height] format.
 
@@ -1155,8 +1152,7 @@ class Masks(BaseTensor):
             masks = masks[None, :]
         super().__init__(masks, orig_shape)
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def xyn(self) -> list[np.ndarray]:
         """Return normalized xy-coordinates of the segmentation masks.
 
@@ -1179,8 +1175,7 @@ class Masks(BaseTensor):
             for x in ops.masks2segments(self.data)
         ]
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def xy(self) -> list[np.ndarray]:
         """Return the [x, y] pixel coordinates for each segment in the mask tensor.
 
@@ -1251,8 +1246,7 @@ class Keypoints(BaseTensor):
         super().__init__(keypoints, orig_shape)
         self.has_visible = self.data.shape[-1] == 3
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def xy(self) -> torch.Tensor | np.ndarray:
         """Return x, y coordinates of keypoints.
 
@@ -1273,8 +1267,7 @@ class Keypoints(BaseTensor):
         """
         return self.data[..., :2]
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def xyn(self) -> torch.Tensor | np.ndarray:
         """Return normalized coordinates (x, y) of keypoints relative to the original image size.
 
@@ -1294,8 +1287,7 @@ class Keypoints(BaseTensor):
         xy[..., 1] /= self.orig_shape[0]
         return xy
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def conf(self) -> torch.Tensor | np.ndarray | None:
         """Return confidence values for each keypoint.
 
@@ -1358,8 +1350,7 @@ class Probs(BaseTensor):
         """
         super().__init__(probs, orig_shape)
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def top1(self) -> int:
         """Return the index of the class with the highest probability.
 
@@ -1373,8 +1364,7 @@ class Probs(BaseTensor):
         """
         return int(self.data.argmax())
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def top5(self) -> list[int]:
         """Return the indices of the top 5 class probabilities.
 
@@ -1388,8 +1378,7 @@ class Probs(BaseTensor):
         """
         return (-self.data).argsort(0)[:5].tolist()  # this way works with both torch and numpy.
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def top1conf(self) -> torch.Tensor | np.ndarray:
         """Return the confidence score of the highest probability class.
 
@@ -1407,8 +1396,7 @@ class Probs(BaseTensor):
         """
         return self.data[self.top1]
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def top5conf(self) -> torch.Tensor | np.ndarray:
         """Return confidence scores for the top 5 classification predictions.
 
@@ -1598,8 +1586,7 @@ class OBB(BaseTensor):
         """
         return self.data[:, -3] if self.is_track else None
 
-    @property
-    @lru_cache(maxsize=2)
+    @cached_property
     def xyxyxyxy(self) -> torch.Tensor | np.ndarray:
         """Convert OBB format to 8-point (xyxyxyxy) coordinate format for rotated bounding boxes.
 
@@ -1616,8 +1603,7 @@ class OBB(BaseTensor):
         """
         return ops.xywhr2xyxyxyxy(self.xywhr)
 
-    @property
-    @lru_cache(maxsize=2)
+    @cached_property
     def xyxyxyxyn(self) -> torch.Tensor | np.ndarray:
         """Convert rotated bounding boxes to normalized xyxyxyxy format.
 
@@ -1637,8 +1623,7 @@ class OBB(BaseTensor):
         xyxyxyxyn[..., 1] /= self.orig_shape[0]
         return xyxyxyxyn
 
-    @property
-    @lru_cache(maxsize=2)
+    @cached_property
     def xyxy(self) -> torch.Tensor | np.ndarray:
         """Convert oriented bounding boxes (OBB) to axis-aligned bounding boxes in xyxy format.
 

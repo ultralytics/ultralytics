@@ -2213,7 +2213,7 @@ def api_request_with_retry(url, headers, max_retries=3):
             return response
         wait = int(response.headers.get("Retry-After", 2**attempt))
         time.sleep(wait)
-    raise Exception("Rate limit exceeded")
+    raise RuntimeError("Rate limit exceeded")
 ```
 
 ### How do I find my model or dataset ID?

@@ -476,7 +476,7 @@ def try_export(inner_func):
             return f
         except Exception as e:
             LOGGER.error(f"{prefix} export failure {dt.t:.1f}s: {e}")
-            raise e
+            raise
 
     return outer_func
 
@@ -633,9 +633,8 @@ class Exporter:
             hailo_archs = ("hailo8", "hailo8l", "hailo10h", "hailo15h", "hailo15l")
             if self.args.name not in hailo_archs:
                 raise ValueError(f"Invalid Hailo architecture '{self.args.name}'. Valid names are {hailo_archs}.")
-        if fmt == "axelera":
-            if model.task == "segment" and any(isinstance(m, Segment26) for m in model.modules()):
-                raise ValueError("Axelera export does not currently support YOLO26 segmentation models.")
+        if fmt == "axelera" and model.task == "segment" and any(isinstance(m, Segment26) for m in model.modules()):
+            raise ValueError("Axelera export does not currently support YOLO26 segmentation models.")
         if fmt == "imx":
             if model.task == "depth":
                 raise ValueError("IMX export is not supported for depth models.")
@@ -877,7 +876,7 @@ class Exporter:
         self.metadata = {
             "description": description,
             "author": "Ultralytics",
-            "date": datetime.now().isoformat(),
+            "date": datetime.now().astimezone().isoformat(),
             "version": __version__,
             "license": "AGPL-3.0 License (https://ultralytics.com/license)",
             "docs": "https://docs.ultralytics.com",
@@ -980,7 +979,7 @@ class Exporter:
         return build_dataloader(dataset, batch=batch, workers=0, drop_last=True)  # required for batch loading
 
     @try_export
-    def export_torchscript(self, prefix=colorstr("TorchScript:")):
+    def export_torchscript(self, prefix=colorstr("TorchScript:")):  # noqa: B008
         """Export YOLO model to TorchScript format."""
         from ultralytics.utils.export.torchscript import torch2torchscript
 
@@ -993,7 +992,7 @@ class Exporter:
         )
 
     @try_export
-    def export_onnx(self, prefix=colorstr("ONNX:")):
+    def export_onnx(self, prefix=colorstr("ONNX:")):  # noqa: B008
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.12.0,<2.0.0"]
         if self.args.simplify or (self.args.format == "onnx" and self.args.quantize == 8):
@@ -1095,7 +1094,7 @@ class Exporter:
         return f
 
     @try_export
-    def export_openvino(self, prefix=colorstr("OpenVINO:")):
+    def export_openvino(self, prefix=colorstr("OpenVINO:")):  # noqa: B008
         """Export YOLO model to OpenVINO format."""
         from ultralytics.utils.export.openvino import torch2openvino
 
@@ -1149,7 +1148,7 @@ class Exporter:
         return f
 
     @try_export
-    def export_paddle(self, prefix=colorstr("PaddlePaddle:")):
+    def export_paddle(self, prefix=colorstr("PaddlePaddle:")):  # noqa: B008
         """Export YOLO model to PaddlePaddle format."""
         from ultralytics.utils.export.paddle import torch2paddle
 
@@ -1162,7 +1161,7 @@ class Exporter:
         )
 
     @try_export
-    def export_litert(self, prefix=colorstr("LiteRT:")):
+    def export_litert(self, prefix=colorstr("LiteRT:")):  # noqa: B008
         """Export YOLO model to LiteRT format using litert_torch with optional INT8 quantization.
 
         Supports ``quantize=8`` (static INT8, int8 weights + int8 activations, requires calibration ``data``),
@@ -1185,7 +1184,7 @@ class Exporter:
         )
 
     @try_export
-    def export_mnn(self, prefix=colorstr("MNN:")):
+    def export_mnn(self, prefix=colorstr("MNN:")):  # noqa: B008
         """Export YOLO model to MNN format using MNN https://github.com/alibaba/MNN."""
         from ultralytics.utils.export.mnn import onnx2mnn
 
@@ -1198,7 +1197,7 @@ class Exporter:
         )
 
     @try_export
-    def export_ncnn(self, prefix=colorstr("NCNN:")):
+    def export_ncnn(self, prefix=colorstr("NCNN:")):  # noqa: B008
         """Export YOLO model to NCNN format using PNNX https://github.com/pnnx/pnnx."""
         from ultralytics.utils.export.ncnn import torch2ncnn
 
@@ -1213,7 +1212,7 @@ class Exporter:
         )
 
     @try_export
-    def export_coreml(self, prefix=colorstr("CoreML:")):
+    def export_coreml(self, prefix=colorstr("CoreML:")):  # noqa: B008
         """Export YOLO model to CoreML format."""
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
         from ultralytics.utils.export.coreml import IOSDetectModel, pipeline_coreml, torch2coreml
@@ -1292,7 +1291,7 @@ class Exporter:
         return f
 
     @try_export
-    def export_engine(self, prefix=colorstr("TensorRT:")):
+    def export_engine(self, prefix=colorstr("TensorRT:")):  # noqa: B008
         """Export YOLO model to TensorRT format https://developer.nvidia.com/tensorrt."""
         assert self.im.device.type != "cpu", "export running on CPU but must be on GPU, i.e. use 'device=0'"
         f_onnx = self.export_onnx()  # run before TRT import https://github.com/ultralytics/ultralytics/issues/7016
@@ -1317,7 +1316,7 @@ class Exporter:
         return f
 
     @try_export
-    def export_saved_model(self, prefix=colorstr("TensorFlow SavedModel:")):
+    def export_saved_model(self, prefix=colorstr("TensorFlow SavedModel:")):  # noqa: B008
         """Export YOLO model to TensorFlow SavedModel format."""
         assert not (MACOS and IS_PYTHON_MINIMUM_3_13), (
             "TensorFlow exports not supported on macOS with Python>=3.13: the ai-edge-litert macOS wheel fails to load "
@@ -1363,14 +1362,14 @@ class Exporter:
         return str(f), keras_model  # or keras_model = tf.saved_model.load(f, tags=None, options=None)
 
     @try_export
-    def export_pb(self, keras_model, prefix=colorstr("TensorFlow GraphDef:")):
+    def export_pb(self, keras_model, prefix=colorstr("TensorFlow GraphDef:")):  # noqa: B008
         """Export YOLO model to TensorFlow GraphDef *.pb format https://github.com/leimao/Frozen-Graph-TensorFlow."""
         from ultralytics.utils.export.tensorflow import keras2pb
 
         return keras2pb(keras_model, output_file=self.file.with_suffix(".pb"), prefix=prefix)
 
     @try_export
-    def export_axelera(self, prefix=colorstr("Axelera:")):
+    def export_axelera(self, prefix=colorstr("Axelera:")):  # noqa: B008
         """Export YOLO model to Axelera format."""
         assert LINUX and not (ARM64 and IS_DOCKER), (
             "export is only supported on Linux and is not supported on ARM64 Docker."
@@ -1391,7 +1390,7 @@ class Exporter:
         )
 
     @try_export
-    def export_executorch(self, prefix=colorstr("ExecuTorch:")):
+    def export_executorch(self, prefix=colorstr("ExecuTorch:")):  # noqa: B008
         """Export YOLO model to ExecuTorch *.pte format."""
         assert TORCH_2_9, f"ExecuTorch requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
         from ultralytics.utils.export.executorch import torch2executorch
@@ -1405,7 +1404,7 @@ class Exporter:
         )
 
     @try_export
-    def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):
+    def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):  # noqa: B008
         """Export YOLO model to Edge TPU format https://coral.ai/docs/edgetpu/models-intro/."""
         from ultralytics.utils.export.tensorflow import tflite2edgetpu
 
@@ -1414,7 +1413,7 @@ class Exporter:
         return output_file
 
     @try_export
-    def export_rknn(self, prefix=colorstr("RKNN:")):
+    def export_rknn(self, prefix=colorstr("RKNN:")):  # noqa: B008
         """Export YOLO model to RKNN format with optional INT8 quantization."""
         from ultralytics.utils.export.rknn import onnx2rknn
 
@@ -1447,7 +1446,7 @@ class Exporter:
         )
 
     @try_export
-    def export_imx(self, prefix=colorstr("IMX:")):
+    def export_imx(self, prefix=colorstr("IMX:")):  # noqa: B008
         """Export YOLO model to IMX format."""
         assert LINUX, (
             "Export only supported on Linux."
@@ -1471,7 +1470,7 @@ class Exporter:
         )
 
     @try_export
-    def export_deepx(self, prefix=colorstr("DEEPX:")):
+    def export_deepx(self, prefix=colorstr("DEEPX:")):  # noqa: B008
         """Export YOLO model to DEEPX format."""
         assert LINUX and not ARM64, "DEEPX export only supported on non-aarch64 Linux"
         from ultralytics.utils.export.deepx import onnx2deepx
@@ -1487,7 +1486,7 @@ class Exporter:
         )
 
     @try_export
-    def export_qnn(self, prefix=colorstr("Qualcomm QNN:")):
+    def export_qnn(self, prefix=colorstr("Qualcomm QNN:")):  # noqa: B008
         """Export YOLO model to a Qualcomm QNN context binary using ONNX Runtime QNN."""
         from ultralytics.utils.export.qnn import onnx2qnn
 
@@ -1510,7 +1509,7 @@ class Exporter:
         )
 
     @try_export
-    def export_hailo(self, prefix=colorstr("Hailo:")):
+    def export_hailo(self, prefix=colorstr("Hailo:")):  # noqa: B008
         """Export a YOLO model to Hailo Executable Format (HEF)."""
         try:
             import tensorflow as tf
@@ -1781,7 +1780,7 @@ class NMSModel(torch.nn.Module):
 
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds
-        kwargs = dict(device=pred.device, dtype=pred.dtype)
+        kwargs = {"device": pred.device, "dtype": pred.dtype}
         bs = pred.shape[0]
         pred = pred.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
         extra_shape = pred.shape[-1] - (4 + len(self.model.names))  # extras from Segment, OBB, Pose

@@ -3,6 +3,7 @@ plans: [free, pro, enterprise]
 comments: true
 description: Complete REST API reference for Ultralytics Platform including authentication, endpoints, and examples for datasets, models, and deployments.
 keywords: Ultralytics Platform, REST API, API reference, authentication, endpoints, YOLO, programmatic access
+integrations_path: ../../integrations
 ---
 
 # REST API Reference
@@ -1363,7 +1364,6 @@ POST /api/exports
 
 Use the `format` argument from the shared export table below. PyTorch is the source format and is not an API export target.
 
-{% set integrations_path = "../../integrations" %}
 {% include "macros/export-table.md" %}
 
 ### Get Export Status

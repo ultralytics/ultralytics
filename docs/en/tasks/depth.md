@@ -294,7 +294,7 @@ Two arguments control the result — the `cmap` color scheme and the `mode` norm
 
     === "Colormap (`cmap`)"
 
-        Sets the color scheme. Warmer colors always mark the near side of the range.
+        Sets the color scheme. Each colormap runs cool/dark → warm/bright, and the `mode` sets which end is near: in the default `disparity` mode warm marks near pixels, while in `metric` mode warm marks far pixels.
 
         === "jet (default)"
 

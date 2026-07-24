@@ -8,6 +8,7 @@ name: Mirror Repository
 
 permissions:
   contents: read
+            write
 
 on:
   # push:

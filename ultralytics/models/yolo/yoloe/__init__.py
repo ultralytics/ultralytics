@@ -2,7 +2,13 @@
 
 from .predict import YOLOEVPDetectPredictor, YOLOEVPSegPredictor
 from .train import YOLOEPEFreeTrainer, YOLOEPETrainer, YOLOETrainer, YOLOETrainerFromScratch, YOLOEVPTrainer
-from .train_seg import YOLOEPESegTrainer, YOLOESegTrainer, YOLOESegTrainerFromScratch, YOLOESegVPTrainer
+from .train_seg import (
+    YOLOEPESegTrainer,
+    YOLOESegTrainer,
+    YOLOESegTrainerFromScratch,
+    YOLOESegTrainerSegHead,
+    YOLOESegVPTrainer,
+)
 from .val import YOLOEDetectValidator, YOLOESegValidator
 
 __all__ = [
@@ -12,6 +18,7 @@ __all__ = [
     "YOLOEPETrainer",
     "YOLOESegTrainer",
     "YOLOESegTrainerFromScratch",
+    "YOLOESegTrainerSegHead",
     "YOLOESegVPTrainer",
     "YOLOESegValidator",
     "YOLOETrainer",

@@ -118,3 +118,12 @@ class YOLOESegTrainerFromScratch(YOLOETrainerFromScratch, YOLOESegTrainer):
 
 class YOLOESegVPTrainer(YOLOEVPTrainer, YOLOESegTrainerFromScratch):
     """Trainer for YOLOE segmentation models with Vision Prompt (VP) capabilities."""
+
+
+class YOLOESegTrainerSegHead(YOLOETrainerFromScratch, YOLOESegTrainer):
+    """Train YOLOE segmentation head only (freezes backbone + detect, trains proto/cv5).
+
+    The freeze logic lives in train_yoloe26.py's elif branch — this class exists so that
+    eval('YOLOESegTrainerSegHead') resolves. Factory pattern: the script builds a seg model,
+    then freezes everything except cv5, one2one_cv5, and proto layers.
+    """

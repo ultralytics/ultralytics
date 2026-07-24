@@ -297,7 +297,9 @@ def test_export_openvino_matrix(task, dynamic, quantize, batch, nms, end2end):
         import openvino as ov
 
         # OpenVINO must bake the argmax into a compact [B, H, W] class map, not emit [B, nc, H, W] logits
-        assert len(ov.Core().read_model(next(Path(file).glob("*.xml"))).output(0).get_partial_shape()) == 3
+        out = ov.Core().read_model(next(Path(file).glob("*.xml"))).output(0)
+        assert len(out.get_partial_shape()) == 3  # [B, H, W], not [B, nc, H, W]
+        assert out.get_element_type() in {ov.Type.u8, ov.Type.i32}  # compact integer class map, never float logits
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 

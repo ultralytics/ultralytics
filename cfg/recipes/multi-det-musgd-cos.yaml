@@ -1,0 +1,40 @@
+# ul33 with the MuSGD base and cosine decay to 1% of lr0 instead of flat lrf 0.88. Isolates the
+# LR-schedule axis against multi-det.
+# source: phase2-ul33sub8-conv-x-sppf-cosdecay/args.yaml (verified equal)
+auto_augment: randaugment
+backbone_lr_ratio: 1.0
+batch: 64
+box: 9.83241
+close_mosaic: 10
+cls: 0.64896
+copy_paste: 0.40413
+copy_paste_mode: flip
+cos_lr: true
+cutmix: 0.00082
+degrees: 0.00012
+dfl: 0.95824
+end2end: true
+epochs: 100
+erasing: 0.4
+fliplr: 0.30393
+hsv_h: 0.01315
+hsv_s: 0.35348
+hsv_v: 0.19383
+imgsz: 640
+kobj: 1.0
+lr0: 0.0015
+lrf: 0.01
+mixup: 0.05
+momentum: 0.94751
+mosaic: 0.99182
+nbs: 32
+optimizer: MuSGD
+patience: 100
+pose: 12.0
+scale: 0.9
+shear: 0.00136
+translate: 0.27484
+warmup_bias_lr: 0.05684
+warmup_epochs: 0.493725
+warmup_momentum: 0.54064
+weight_decay: 0.00027

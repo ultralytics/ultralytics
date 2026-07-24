@@ -11,21 +11,18 @@ Usage:
           "coco_pose_finetune" (COCO pose), "dota_obb_finetune" (DOTA-v1.0 OBB,
           yolo26s-obb.pt-aligned recipe), "multi_det_finetune" (sequential per-dataset
           det fine-tune + val over a list of YOLO-format datasets; logs per-dataset and
-          macro-averaged mAP to a CSV; ul33 table recipe, batch 64 and lr0 0.0015 by default)
+          macro-averaged mAP to a CSV, on the multi-det recipe profile)
 
 Flags:
     --resume <path>: resume from checkpoint (all single-dataset modes)
     --fork_from <parent_id>:<fork_step>: wandb-fork continuation (all single-dataset modes)
-    --lr <val>: override lr0. Effective only under a MuSGD base (--published_recipe/--sched_decay)
-                or the non-det modes; the default DEIM recipe hardcodes lr0 5e-4. For coco/dota
-                MuSGD it is the recipe lr0 at canonical bs scaled by --batch, other modes final lr0.
-    --batch <int>: override batch size (all det modes). The default DEIM recipe sets nbs=batch. A
-                MuSGD base (coco/dota/published) also scales nbs/warmup/lr0 linearly off canonical
-                bs (coco 128, dota 32, multi_det 64). For other modes --batch is applied as-is.
-    --nbs <int>: explicit nbs override; effective only under a MuSGD base (the default DEIM recipe
-                forces nbs=batch).
-    --sched_decay: multi_det_finetune only. Under MuSGD, replace the flat lrf 0.88 ul33 default
-                with cosine decay to 1% of lr0 (isolates the LR-schedule axis).
+    --recipe <name>: coco/multi_det modes. Recipe profile stem under cfg/recipes/, defaulting to
+                the mode's profile (coco-preserve, multi-det). Use coco-adapt for a non-distilled
+                backbone, multi-det-musgd-cos or yolo26-published-{det,multi-det} for the MuSGD arms.
+    --lr <val>: override the profile lr0 (det modes) or the final lr0 (other modes).
+    --batch <int>: override the profile batch (det modes), applied as-is for other modes.
+    --nbs <int>: override the profile nbs. A bare --batch already carries the profile's
+                batch:nbs ratio, so pass this only to break that ratio deliberately.
     --backbone_lr_ratio <float>: coco_det_finetune and multi_det_finetune. Backbone LR = lr0 *
                 this (below 1 preserves distilled backbone features).
     --datasets <path>: multi_det_finetune only. Either a file with one YOLO data.yaml
@@ -33,9 +30,6 @@ Flags:
                 one level deep for ``*/data.yaml``.
     --imgsz <int>: multi_det_finetune/teacher_frozen_det only. Override the canonical det
                 imgsz (640), e.g. 224 to run the frozen backbone at its phase-1 grid.
-    --published_recipe: coco_det_finetune/multi_det_finetune. Apply the shipped yolo26{size}.pt
-                recipe (per-size aug, lr0/nbs/warmup batch-scaled). Composes with --backbone_lr_ratio,
-                exclusive with --sched_decay.
 """
 
 import os
@@ -214,80 +208,45 @@ def _assert_backbone_compatible(phase1_weights: str, model_yaml: str) -> None:
         )
 
 
-def _build_det_train_args(
-    epochs: int | None,
-    patience: int | None,
-    batch_override: str,
-    lr_override: str,
-    nbs_override: str,
-    default_batch: int = 128,
-    default_lr0: float | None = None,
-) -> dict:
-    """Build the yolo26s.pt-aligned detection recipe.
+# The checked-in profile is the authoritative recipe snapshot, so a no-flag launch reproduces its reference arm instead
+# of inheriting a drifted code default. A non-distilled backbone on coco takes `--recipe coco-adapt`.
+_RECIPE_DIR = Path(_REPO_ROOT) / "cfg" / "recipes"
+_RECIPE_DELTA_CASTS = dict(epochs=int, patience=int, batch=int, lr0=float, nbs=int, backbone_lr_ratio=float)
 
-    Scales lr0, nbs, and warmup_epochs linearly with batch so lr/sample, effective weight decay (wd * batch / nbs), and
-    warmup span in samples stay invariant when the canonical batch=128 is overridden.
+
+def _load_recipe(name: str, model_yaml: str, **deltas: str | int | None) -> dict:
+    """Load a checked-in detection recipe profile and apply explicitly-declared CLI deltas.
 
     Args:
-        epochs (int, optional): Override default epochs (70).
-        patience (int, optional): Override default patience (100).
-        batch_override (str): CLI --batch override.
-        lr_override (str): CLI --lr override (RECIPE lr at canonical bs).
-        nbs_override (str): CLI --nbs override (bypasses auto-scaling).
+        name (str): Profile stem under ``cfg/recipes/``.
+        model_yaml (str): Detector YAML, supplying the model size for a ``_shipped_from`` profile.
+        **deltas (str | int | None, optional): CLI overrides keyed by recipe field, empty/None entries ignored.
 
     Returns:
         (dict): train_args fragment containing the recipe (no data, no device, no save_dir).
     """
-    batch = int(batch_override) if batch_override else default_batch
-    scale = batch / 128.0
-    nbs = max(1, int(nbs_override) if nbs_override else int(round(64 * scale)))
-    # An explicit --lr is the recipe lr0 at bs=128, scaled by batch (all modes). Absent --lr, multi_det (ul33) uses a
-    # fixed default_lr0 at any batch, while coco/dota fall back to their scaled 0.00038 base.
-    if lr_override:
-        lr0 = float(lr_override) * scale
-    elif default_lr0 is not None:
-        lr0 = default_lr0
-    else:
-        lr0 = 0.00038 * scale
-    warmup = 0.98745 * scale
-    return dict(
-        epochs=epochs or 70,
-        batch=batch,
-        imgsz=640,
-        nbs=nbs,
-        patience=patience or 100,
-        lr0=lr0,
-        lrf=0.88219,
-        momentum=0.94751,
-        weight_decay=0.00027,
-        warmup_epochs=warmup,
-        warmup_momentum=0.54064,
-        warmup_bias_lr=0.05684,
-        cos_lr=False,
-        close_mosaic=10,
-        end2end=True,
-        box=9.83241,
-        cls=0.64896,
-        dfl=0.95824,
-        pose=12.0,
-        kobj=1.0,
-        mosaic=0.99182,
-        mixup=0.05,
-        cutmix=0.00082,
-        copy_paste=0.40413,
-        copy_paste_mode="flip",
-        scale=0.9,
-        fliplr=0.30393,
-        translate=0.27484,
-        degrees=0.00012,
-        shear=0.00136,
-        hsv_h=0.01315,
-        hsv_s=0.35348,
-        hsv_v=0.19383,
-        erasing=0.4,
-        auto_augment="randaugment",
-        optimizer="MuSGD",
+    path = _RECIPE_DIR / f"{name}.yaml"
+    if not path.exists():
+        raise SystemExit(f"unknown recipe '{name}'. Available: {sorted(p.stem for p in _RECIPE_DIR.glob('*.yaml'))}")
+    recipe = YAML.load(path)
+    deltas = {k: _RECIPE_DELTA_CASTS[k](v) for k, v in deltas.items() if v}
+    # A published profile holds only the keys _published_det_args does not return, and scales them to the batch itself.
+    shipped = recipe.pop("_shipped_from", None)
+    if shipped:
+        recipe.update(_published_det_args(shipped, model_yaml, deltas.get("batch", recipe["batch"])))
+    elif "batch" in deltas and "nbs" not in deltas:
+        # wd_eff = wd * batch / nbs, so a bare --batch holds the profile's batch:nbs ratio instead of its literal nbs.
+        recipe["nbs"] = max(1, round(recipe["nbs"] * deltas["batch"] / recipe["batch"]))
+    recipe.update(deltas)
+    # The only pre-launch view of the resolved recipe: args.yaml lands after the trainer starts, and a published
+    # profile's lr0/nbs/warmup_epochs come from the downloaded checkpoint.
+    print(
+        f"[recipe] {path} {f'+ declared deltas {deltas}' if deltas else '(no deltas)'} -> "
+        f"optimizer={recipe['optimizer']} batch={recipe['batch']} nbs={recipe['nbs']} lr0={recipe['lr0']:.5f} "
+        f"lrf={recipe['lrf']} cos_lr={recipe['cos_lr']} warmup_epochs={recipe['warmup_epochs']:.3f} "
+        f"epochs={recipe['epochs']} backbone_lr_ratio={recipe['backbone_lr_ratio']}"
     )
+    return recipe
 
 
 def _resolve_dataset_list(datasets_arg: str) -> list[Path]:
@@ -320,49 +279,61 @@ def _resolve_dataset_list(datasets_arg: str) -> list[Path]:
     return yamls
 
 
-# Default flat recipe for multi_det. Epochs/patience apply literally to every dataset (no dataset-size scaling).
-# Pass positional epochs/patience to override. Macros at different budgets are not directly comparable, so
-# _run_multi_det warns on any override. The flat default is 100 for the multi_det per-dataset suite. The
-# single-dataset coco/dota modes keep _build_det_train_args' own default of 70.
-_MULTI_DET_BASE_EPOCHS = 100
-_MULTI_DET_BASE_PATIENCE = 100
-# ul33 table recipe: batch 64 with lr0 held fixed at any batch (the coco/dota helper default is bs=128, lr0 scaled).
-_MULTI_DET_BASE_BATCH = 64
-_MULTI_DET_BASE_LR0 = 0.0015
-# Esat's DEIM optimizer transplant: AdamW at his literal lr0/wd, no warmup. The default det recipe, shared by coco
-# multi_det arms. Callers add nbs=batch (so effective wd = wd) and leave cos_lr at the builder default False (linear
-# decay to lrf). The muon head boost is MuSGD-only, so an AdamW arm gets none.
-_DEIM_OPT_ARGS = dict(
-    optimizer="AdamW",
-    lr0=0.0005,
-    lrf=0.5,
-    momentum=0.9,
-    weight_decay=0.000125,
-    warmup_epochs=0.0,
-    warmup_momentum=0.9,
-    warmup_bias_lr=0.0,
-)
-
 # Published-recipe train_args copied verbatim from the shipped yolo26{size}.pt (the rest are budget/infra we hold
 # fixed across arms, or MuSGD weights that ride the muon_w callback). lr0/nbs/warmup_epochs get batch-scaled below.
 _PUB_RECIPE_KEYS = (
-    "lrf", "momentum", "weight_decay", "warmup_momentum", "warmup_bias_lr", "cos_lr", "box", "cls", "dfl",
-    "hsv_h", "hsv_s", "hsv_v", "degrees", "translate", "scale", "shear", "perspective", "flipud", "fliplr",
-    "bgr", "mosaic", "mixup", "cutmix", "copy_paste", "copy_paste_mode", "auto_augment", "erasing",
+    "lrf",
+    "momentum",
+    "weight_decay",
+    "warmup_momentum",
+    "warmup_bias_lr",
+    "cos_lr",
+    "box",
+    "cls",
+    "dfl",
+    "hsv_h",
+    "hsv_s",
+    "hsv_v",
+    "degrees",
+    "translate",
+    "scale",
+    "shear",
+    "perspective",
+    "flipud",
+    "fliplr",
+    "bgr",
+    "mosaic",
+    "mixup",
+    "cutmix",
+    "copy_paste",
+    "copy_paste_mode",
+    "auto_augment",
+    "erasing",
 )
-_PUBLISHED_RECIPE: dict[str, dict] = {}  # size letter -> shipped yolo26{size}.pt train_args, cached per process
 
 
-def _published_det_args(model_yaml: str, batch: int) -> dict:
-    """Published yolo26{size} detector recipe (size from model_yaml, args from the shipped .pt), lr0/nbs/warmup scaled to batch."""
-    size = guess_model_scale(model_yaml)
-    if size not in _PUBLISHED_RECIPE:
-        pt = attempt_download_asset(f"yolo26{size}.pt")
-        _PUBLISHED_RECIPE[size] = torch.load(pt, map_location="cpu", weights_only=False)["train_args"]
-    ta = _PUBLISHED_RECIPE[size]
+def _published_det_args(asset: str, model_yaml: str, batch: int) -> dict:
+    """Published detector recipe read from a shipped checkpoint (size from model_yaml), lr0/nbs/warmup scaled to batch.
+
+    Args:
+        asset (str): Release asset name templated on the model size, e.g. "yolo26{size}.pt".
+        model_yaml (str): Detector YAML supplying the model size.
+        batch (int): Effective batch the shipped lr0/nbs/warmup_epochs are rescaled to.
+
+    Returns:
+        (dict): Recipe fragment holding the shipped augmentation, loss, and optimizer-schedule args.
+    """
+    pt_name = asset.format(size=guess_model_scale(model_yaml))
+    ta = torch.load(attempt_download_asset(pt_name), map_location="cpu", weights_only=False)["train_args"]
+    # A dropped key would fall through to the Ultralytics default, making the profile a hybrid instead of a snapshot.
+    missing = [k for k in _PUB_RECIPE_KEYS if k not in ta]
+    if missing:
+        raise SystemExit(f"{pt_name} train_args is missing published-recipe keys {missing}")
     bscale = batch / ta["batch"]
-    out = {k: ta[k] for k in _PUB_RECIPE_KEYS if k in ta}
-    out.update(lr0=ta["lr0"] * bscale, nbs=max(1, round(ta["nbs"] * bscale)), warmup_epochs=ta["warmup_epochs"] * bscale)
+    out = {k: ta[k] for k in _PUB_RECIPE_KEYS}
+    out.update(
+        lr0=ta["lr0"] * bscale, nbs=max(1, round(ta["nbs"] * bscale)), warmup_epochs=ta["warmup_epochs"] * bscale
+    )
     return out
 
 
@@ -452,15 +423,14 @@ def _run_multi_det(
     teacher_spec: str | None = None,
     seed: int = 0,
     backbone_lr_ratio_override: str = "",
-    sched_decay: bool = False,
-    published_recipe: bool = False,
+    recipe_name: str = "",
 ) -> None:
     """Sequentially train + val on a list of YOLO-format detection datasets.
 
-    Per dataset: fresh YOLO(model_yaml) with backbone from phase1_weights, train using the default DEIM AdamW recipe
-    (AdamW lr0 5e-4, lrf 0.5, nbs=batch, backbone_lr_ratio 1.0; MuSGD via --published_recipe/--sched_decay), then val. Each dataset is its own W&B run named ``{parent_name}-{basename}``.
-    Aggregate metrics are written to ``{parent save_dir}/multi_results.csv`` (mirrored to the NFS run dir) and printed
-    as a macro average at the end.
+    Per dataset: fresh YOLO(model_yaml) with backbone from phase1_weights, train using the recipe profile (``multi-det``
+    by default), then val. Each dataset is its own W&B run named ``{parent_name}-{basename}``. Aggregate metrics are
+    written to ``{parent save_dir}/multi_results.csv`` (mirrored to the NFS run dir) and printed as a macro average at
+    the end.
 
     Single-GPU only (same DDP-callback-loss caveat as other det modes).
 
@@ -469,11 +439,11 @@ def _run_multi_det(
         phase1_weights (str): Path to backbone checkpoint for `pretrained=`.
         parent_name (str): Run name prefix; sub-runs append "-{basename}".
         phase1_wandb_id (str): Optional W&B parent ID forwarded to wandb_config.
-        epochs (int, optional): Per-dataset epochs (default 100).
-        patience (int, optional): Per-dataset patience (default 100).
-        batch_override (str): CLI --batch override (default DEIM sets nbs=batch; a MuSGD base scales lr/nbs/warmup).
-        lr_override (str): CLI --lr override (ignored under the default DEIM recipe, which hardcodes lr0 5e-4).
-        nbs_override (str): CLI --nbs override (ignored under the default DEIM recipe, which forces nbs=batch).
+        epochs (int, optional): Per-dataset epochs, overriding the profile.
+        patience (int, optional): Per-dataset patience, overriding the profile.
+        batch_override (str): CLI --batch override, applied to the profile as a declared delta.
+        lr_override (str): CLI --lr override of the profile lr0.
+        nbs_override (str): CLI --nbs override of the profile nbs.
         datasets_arg (str): Path to dataset list (file or directory). See _resolve_dataset_list.
         freeze_override (str): Distilled-student freeze depth. When set (and no teacher_spec), freezes det layers 0..N-1
             via the trainer freeze arg (e.g. 10 for yolo26l = transferred backbone 0-8 + SPPF 9), so only C2PSA + neck +
@@ -484,10 +454,7 @@ def _run_multi_det(
         seed (int, optional): Training seed for detection-head init and augmentation RNG. Default 0 reproduces prior
             runs, vary it to sample per-dataset run-to-run variance.
         backbone_lr_ratio_override (str, optional): Backbone LR = lr0 * this (below 1 preserves distilled features).
-        sched_decay (bool, optional): Under MuSGD, replace the flat lrf 0.88 default with cosine decay to 1% of lr0.
-        published_recipe (bool, optional): Apply the shipped yolo26{size}.pt recipe (size from model_yaml, per-size aug
-            + lr0/nbs/warmup batch-scaled), reverting the ul33 lr0 inflation. Composes with backbone_lr_ratio_override,
-            exclusive with sched_decay.
+        recipe_name (str, optional): Recipe profile stem under cfg/recipes/, defaulting to the mode's profile.
     """
     if "," in gpu:
         raise SystemExit(
@@ -525,27 +492,42 @@ def _run_multi_det(
         except OSError as e:
             print(f"[multi_det_finetune] NFS mirror of multi_results.csv failed (continuing): {e}")
 
-    base_epochs = epochs or _MULTI_DET_BASE_EPOCHS
-    base_patience = patience or _MULTI_DET_BASE_PATIENCE
-    if base_epochs != _MULTI_DET_BASE_EPOCHS or base_patience != _MULTI_DET_BASE_PATIENCE:
-        print(
-            f"[multi_det_finetune] NOTE non-default recipe epochs={base_epochs} patience={base_patience}, "
-            f"default flat is {_MULTI_DET_BASE_EPOCHS}/{_MULTI_DET_BASE_PATIENCE}. Macros at different epoch budgets "
-            f"are not directly comparable. Omit the positional epochs/patience to use the default."
-        )
-    batch_actual = int(batch_override) if batch_override else _MULTI_DET_BASE_BATCH
+    # Every input to the recipe is loop-invariant, so resolve it once here rather than per dataset.
+    det_args = _load_recipe(
+        recipe_name or "multi-det",
+        model_yaml,
+        epochs=epochs,
+        patience=patience,
+        batch=batch_override,
+        lr0=lr_override,
+        nbs=nbs_override,
+        backbone_lr_ratio=backbone_lr_ratio_override,
+    )
+    if epochs or patience:
+        print("[multi_det_finetune] NOTE macros are comparable only across equal epoch budgets.")
+    if teacher_spec:
+        # Freeze layer 0 (the teacher) via the trainer freeze arg: BaseTrainer re-enables requires_grad for any
+        # non-frozen-listed param (trainer.py:319), so freezing only in __init__ is undone. imgsz is per-teacher.
+        det_args["freeze"] = 1
+        det_args["imgsz"] = _TEACHER_DET_IMGSZ.get(teacher_spec, 640)
+    elif freeze_override:
+        # Frozen distilled-student backbone, with the same trainer re-enable caveat as the teacher branch above.
+        det_args["freeze"] = int(freeze_override)
+    if imgsz_override:
+        # Ablation lever: run the whole detector (and thus the frozen backbone) at a non-640 imgsz, e.g. 224 to
+        # match the backbone's phase-1 distillation grid. Overrides the profile 640 and any per-teacher imgsz.
+        det_args["imgsz"] = int(imgsz_override)
     print(f"[multi_det_finetune] parent={parent_name} datasets={len(dataset_yamls)} model={model_yaml}")
     print(f"[multi_det_finetune] aggregate csv -> {csv_path}")
-    print(f"[multi_det_finetune] flat recipe epochs={base_epochs} patience={base_patience} batch={batch_actual}")
 
     results = []
     for i, ds_yaml in enumerate(dataset_yamls, start=1):
         basename = ds_yaml.parent.name
-        n_imgs, iters_per_ep = _dataset_train_stats(ds_yaml, batch_actual)
+        n_imgs, iters_per_ep = _dataset_train_stats(ds_yaml, det_args["batch"])
         print(f"\n=== [{i}/{len(dataset_yamls)}] {basename} ===")
         print(
             f"[multi_det_finetune] {basename}: n_train={n_imgs} iters/ep={iters_per_ep} "
-            f"epochs={base_epochs} patience={base_patience}"
+            f"epochs={det_args['epochs']} patience={det_args['patience']}"
         )
 
         model = YOLO(model_yaml)
@@ -572,44 +554,10 @@ def _run_multi_det(
                 iters_per_epoch=iters_per_ep,
             ),
         )
-        det_args = _build_det_train_args(
-            base_epochs, base_patience, batch_override, lr_override, nbs_override,
-            default_batch=_MULTI_DET_BASE_BATCH, default_lr0=_MULTI_DET_BASE_LR0,
-        )
-        # Recipe base. Default = the ablation-winning DEIM AdamW transplant (AdamW lr0 5e-4, lrf 0.5 linear, nbs=batch,
-        # backbone_lr_ratio 1.0), which beat MuSGD flat and the 0.02 ratio on every ul33 backbone. published_recipe and
-        # sched_decay opt into the MuSGD-base alternatives instead.
-        if published_recipe:
-            # Shipped yolo26{size}.pt recipe (per-size aug, lr0/nbs/warmup batch-scaled), reverting the ul33 lr0 inflation.
-            det_args.update(_published_det_args(model_yaml, det_args["batch"]))
-        elif sched_decay:
-            # MuSGD with cosine decay to 1% of lr0 instead of the flat lrf 0.88 default (isolates the LR-schedule axis).
-            det_args.update(cos_lr=True, lrf=0.01)
-        else:
-            # DEIM transplant, byte-matched to the coco deim arm (AdamW, lrf 0.5 linear, nbs=batch). Muon boost dropped below.
-            det_args.update(**_DEIM_OPT_ARGS, nbs=det_args["batch"])
-        det_args["backbone_lr_ratio"] = float(backbone_lr_ratio_override) if backbone_lr_ratio_override else 1.0
         # sgd_w/cls_w/o2m/detach_epoch from the MuSGD recipe are not train_args (cfg validator rejects), so muon_w
         # rides in via callback. It is a MuSGD-only weight, absent for the AdamW deim arm.
         if det_args["optimizer"] == "MuSGD":
             model.add_callback("on_train_start", muon_w.override(0.4355))
-        print(
-            f"[multi_det_finetune] {basename} recipe: optimizer={det_args['optimizer']} lr0={det_args['lr0']:.5f} "
-            f"lrf={det_args['lrf']} cos_lr={det_args['cos_lr']} nbs={det_args['nbs']} "
-            f"warmup_epochs={det_args['warmup_epochs']:.3f} backbone_lr_ratio={det_args.get('backbone_lr_ratio', 1.0)}"
-        )
-        if teacher_spec:
-            # Freeze layer 0 (the teacher) via the trainer freeze arg: BaseTrainer re-enables requires_grad for any
-            # non-frozen-listed param (trainer.py:319), so freezing only in __init__ is undone. imgsz is per-teacher.
-            det_args["freeze"] = 1
-            det_args["imgsz"] = _TEACHER_DET_IMGSZ.get(teacher_spec, 640)
-        elif freeze_override:
-            # Frozen distilled-student backbone; same trainer re-enable caveat as the teacher branch above.
-            det_args["freeze"] = int(freeze_override)
-        if imgsz_override:
-            # Ablation lever: run the whole detector (and thus the frozen backbone) at a non-640 imgsz, e.g. 224 to
-            # match the backbone's phase-1 distillation grid. Overrides the canonical 640 and any per-teacher imgsz.
-            det_args["imgsz"] = int(imgsz_override)
         train_args = dict(
             pretrained=False if teacher_spec else phase1_weights,
             device=int(gpu),
@@ -670,10 +618,7 @@ def main(argv: list[str]) -> None:
     argv, nbs_override = _pop_flag(argv, "--nbs")
     argv, freeze_override = _pop_flag(argv, "--freeze")
     argv, backbone_lr_ratio_override = _pop_flag(argv, "--backbone_lr_ratio")
-    argv, sched_decay = _pop_flag(argv, "--sched_decay", is_bool=True)
-    argv, published_recipe = _pop_flag(argv, "--published_recipe", is_bool=True)
-    if published_recipe and sched_decay:
-        raise SystemExit("ERROR: --published_recipe and --sched_decay are mutually-exclusive recipe bases.")
+    argv, recipe_name = _pop_flag(argv, "--recipe")
     argv, scratch = _pop_flag(argv, "--scratch", is_bool=True)
     argv, datasets_arg = _pop_flag(argv, "--datasets")
     argv, imgsz_override = _pop_flag(argv, "--imgsz")
@@ -696,10 +641,14 @@ def main(argv: list[str]) -> None:
         if resume or fork_from:
             raise SystemExit("ERROR: --resume and --fork_from are not supported for teacher_frozen_det.")
         if freeze_override:
-            raise SystemExit("ERROR: --freeze is not supported with --teacher (teacher_frozen_det already freezes layer 0).")
+            raise SystemExit(
+                "ERROR: --freeze is not supported with --teacher (teacher_frozen_det already freezes layer 0)."
+            )
         gpu = argv[0] if argv else "0"
         if "," in gpu:
-            raise SystemExit(f"ERROR: teacher_frozen_det requires a single GPU (DDP drops add_callback). Got gpu={gpu!r}.")
+            raise SystemExit(
+                f"ERROR: teacher_frozen_det requires a single GPU (DDP drops add_callback). Got gpu={gpu!r}."
+            )
         positionals = [a for a in argv[1:] if a != "teacher_frozen_det"]
         name = positionals[0] if positionals else f"phase2-teacherfrozen-{safe_key(teacher_spec)}"
         _export_hf_token()
@@ -760,8 +709,7 @@ def main(argv: list[str]) -> None:
             imgsz_override=imgsz_override,
             seed=seed,
             backbone_lr_ratio_override=backbone_lr_ratio_override,
-            sched_decay=sched_decay,
-            published_recipe=published_recipe,
+            recipe_name=recipe_name,
         )
         return
 
@@ -847,21 +795,18 @@ def main(argv: list[str]) -> None:
             **_AUG_ARGS,
         )
     elif mode in _COCO_DET_MODES:
-        det_args = _build_det_train_args(epochs, patience, batch_override, lr_override, nbs_override)
-        # Recipe base. Default = DEIM AdamW transplant + backbone_lr_ratio 0.02 (COCO ablation winner for distilled
-        # backbones: ultravit-x 0.5291 vs 0.5191 at 1.0x). A CE/conv/scratch backbone has nothing distilled to
-        # preserve, so pass --backbone_lr_ratio 1.0 for those. published_recipe opts into the shipped MuSGD base.
-        if published_recipe:
-            # Shipped yolo26{size}.pt recipe (per-size aug, lr0/nbs/warmup batch-scaled).
-            det_args.update(_published_det_args(model_yaml, det_args["batch"]))
-        else:
-            # DEIM transplant onto our conv head (AdamW, lrf 0.5 linear, nbs=batch). Muon boost dropped below.
-            det_args.update(**_DEIM_OPT_ARGS, nbs=det_args["batch"])
-        det_args["backbone_lr_ratio"] = float(backbone_lr_ratio_override) if backbone_lr_ratio_override else 0.02
-        print(
-            f"[{mode}] optimizer={det_args['optimizer']} batch={det_args['batch']} nbs={det_args['nbs']} "
-            f"lr0={det_args['lr0']:.5f} warmup_epochs={det_args['warmup_epochs']:.3f} "
-            f"backbone_lr_ratio={det_args.get('backbone_lr_ratio', 1.0)}"
+        # coco-preserve holds the distilled backbone at backbone_lr_ratio 0.02 (the COCO ablation winner, ultravit-x
+        # 0.5291 vs 0.5191 at 1.0x). A CE/conv/scratch backbone has nothing distilled to preserve and takes
+        # `--recipe coco-adapt` instead.
+        det_args = _load_recipe(
+            recipe_name or "coco-preserve",
+            model_yaml,
+            epochs=epochs,
+            patience=patience,
+            batch=batch_override,
+            lr0=lr_override,
+            nbs=nbs_override,
+            backbone_lr_ratio=backbone_lr_ratio_override,
         )
         train_args.update(data="coco.yaml", **det_args)
         # sgd_w/cls_w/o2m/detach_epoch from the yolo26s.pt MuSGD recipe are not exposed as train_args (cfg

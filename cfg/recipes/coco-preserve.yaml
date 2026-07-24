@@ -1,0 +1,40 @@
+# COCO detection fine-tune, distilled backbone. DEIM AdamW transplant at backbone_lr_ratio
+# 0.02: the ablation winner for a distilled backbone (ultravit-x 0.5291 vs 0.5191 at 1.0x).
+# source: phase2-coco-det-ultravit-x-repmixer-attn2-deim-adamw/args.yaml (verified equal)
+auto_augment: randaugment
+backbone_lr_ratio: 0.02
+batch: 64
+box: 9.83241
+close_mosaic: 10
+cls: 0.64896
+copy_paste: 0.40413
+copy_paste_mode: flip
+cos_lr: false
+cutmix: 0.00082
+degrees: 0.00012
+dfl: 0.95824
+end2end: true
+epochs: 70
+erasing: 0.4
+fliplr: 0.30393
+hsv_h: 0.01315
+hsv_s: 0.35348
+hsv_v: 0.19383
+imgsz: 640
+kobj: 1.0
+lr0: 0.0005
+lrf: 0.5
+mixup: 0.05
+momentum: 0.9
+mosaic: 0.99182
+nbs: 64
+optimizer: AdamW
+patience: 100
+pose: 12.0
+scale: 0.9
+shear: 0.00136
+translate: 0.27484
+warmup_bias_lr: 0.0
+warmup_epochs: 0.0
+warmup_momentum: 0.9
+weight_decay: 0.000125

@@ -292,7 +292,10 @@ def test_export_openvino_matrix(task, dynamic, quantize, batch, nms, end2end):
         nms=nms,
         end2end=end2end,
     )
-    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, batch=batch)  # exported model inference
+    r = YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, batch=batch)  # exported model inference
+    if task == "semantic":
+        assert r[0].semantic_mask is not None
+        assert r[0].semantic_mask.data.dtype in {torch.uint8, torch.int32}
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 

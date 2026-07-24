@@ -3,7 +3,8 @@
 Usage:
     python run_knn_eval.py <gpu_id> <run_dir> [--imgsz N] [--wandb]
 
-Finds weights/best.pt and model config from args.yaml automatically.
+Finds weights/best.pt and model config from args.yaml automatically, warning and falling back to
+last.pt when best.pt is absent.
 --imgsz sets the eval resolution (default 224); the loader batch scales down with imgsz to hold
 activation memory roughly constant. With --wandb, updates the finished WandB run's summary with knn/top1.
 
@@ -66,6 +67,7 @@ def main():
     weight_path = run_dir / "weights" / "best.pt"
     if not weight_path.exists():
         weight_path = run_dir / "weights" / "last.pt"
+        print(f"WARNING: no best.pt in {run_dir.name}, falling back to last.pt (different checkpoint provenance)")
     if not weight_path.exists():
         print(f"Error: no weights found in {run_dir / 'weights'}")
         sys.exit(1)

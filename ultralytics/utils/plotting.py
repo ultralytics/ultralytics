@@ -1494,6 +1494,7 @@ def project_box3d_corners(
     letterbox_scale: float | None = None,
     letterbox_pad_left: float | None = None,
     letterbox_pad_top: float | None = None,
+    camera: str = "left",
 ) -> np.ndarray:
     """Project the eight corners of a 3D bounding box to 2D pixel coordinates.
 
@@ -1503,18 +1504,19 @@ def project_box3d_corners(
         letterbox_scale: Scale factor from letterboxing (if images were letterboxed)
         letterbox_pad_left: Left padding from letterboxing (if images were letterboxed)
         letterbox_pad_top: Top padding from letterboxing (if images were letterboxed)
+        camera: Camera view to project to ("left" or "right")
 
     Returns:
         Array of 2D pixel coordinates [8, 2] with shape (u, v) for each corner
     """
 
-    def _get_calib_params(cal: CalibrationParameters | dict[str, float]) -> tuple[float, float, float, float]:
+    def _get_calib_params(cal: CalibrationParameters | dict[str, float]) -> tuple[float, float, float, float, float]:
         if isinstance(cal, dict):
-            return cal["fx"], cal["fy"], cal["cx"], cal["cy"]
+            return cal["fx"], cal["fy"], cal["cx"], cal["cy"], cal.get("baseline", 0.0)
         # Assume it's a CalibrationParameters object
-        return cal.fx, cal.fy, cal.cx, cal.cy
+        return cal.fx, cal.fy, cal.cx, cal.cy, cal.baseline
 
-    fx, fy, cx, cy = _get_calib_params(calib)
+    fx, fy, cx, cy, baseline = _get_calib_params(calib)
 
     x, y, z = box3d.center_3d
     length, width, height = box3d.dimensions
@@ -1571,6 +1573,11 @@ def project_box3d_corners(
     corners_world[1, :] += y
     corners_world[2, :] += z
 
+    # For right camera, shift X by baseline (right camera is offset to the right,
+    # so objects appear shifted left in the image)
+    if camera == "right":
+        corners_world[0, :] -= baseline
+
     X, Y, Z = corners_world
     Z = np.maximum(Z, 1e-6)
 
@@ -1610,6 +1617,7 @@ def plot_boxes3d(
     letterbox_scale: float | None = None,
     letterbox_pad_left: float | None = None,
     letterbox_pad_top: float | None = None,
+    camera: str = "left",
 ) -> np.ndarray:
     """Draw wireframe representations of Box3D objects onto an image.
 
@@ -1622,6 +1630,7 @@ def plot_boxes3d(
         letterbox_scale: Scale factor from letterboxing (if images were letterboxed)
         letterbox_pad_left: Left padding from letterboxing (if images were letterboxed)
         letterbox_pad_top: Top padding from letterboxing (if images were letterboxed)
+        camera: Camera view to project to ("left" or "right")
     """
     config = config or VisualizationConfig()
 
@@ -1648,6 +1657,7 @@ def plot_boxes3d(
                 letterbox_scale=letterbox_scale,
                 letterbox_pad_left=letterbox_pad_left,
                 letterbox_pad_top=letterbox_pad_top,
+                camera=camera,
             )
         except Exception as exc:
             LOGGER.warning("Skipping invalid Box3D during visualization: %s", exc)
@@ -1686,45 +1696,6 @@ def plot_boxes3d(
                 cv2.LINE_AA,
             )
 
-    return canvas
-
-
-def plot_boxes2d(
-    img: np.ndarray,
-    boxes3d: list[Box3D] | None,
-    config: VisualizationConfig | None = None,
-    calib: dict[str, float] | None = None,
-) -> np.ndarray:
-    """Draw 2D bounding boxes (projected from 3D) onto an image.
-
-    Args:
-        img: Image to draw on.
-        boxes3d: List of Box3D objects to project and draw.
-        config: Visualization configuration (default: VisualizationConfig()).
-        calib: Calibration dict for 3D-to-2D projection.
-    """
-    config = config or VisualizationConfig()
-
-    if img.dtype != np.uint8:
-        img = np.clip(img, 0, 255).astype(np.uint8)
-    else:
-        img = img.copy().astype(np.uint8)
-
-    canvas = img.astype(np.uint8)
-
-    if not boxes3d or calib is None:
-        return canvas
-
-    height, width = canvas.shape[:2]
-    line_width = max(1, config.line_width)
-
-    for box in boxes3d:
-        bbox_2d = box.project_to_2d(calib, image_size=(width, height))
-        x_min, y_min, x_max, y_max = int(bbox_2d[0]), int(bbox_2d[1]), int(bbox_2d[2]), int(bbox_2d[3])
-        if x_max <= x_min or y_max <= y_min:
-            continue
-        color = _select_color(0, config.pred_color_scheme)
-        cv2.rectangle(canvas, (x_min, y_min), (x_max, y_max), color, line_width, cv2.LINE_AA)
     return canvas
 
 
@@ -1780,10 +1751,28 @@ def plot_stereo3d_boxes(
         letterbox_pad_top=letterbox_pad_top,
     )
 
-    # Convert calib to dict if needed for project_to_2d
-    calib_dict = left_calib.to_dict() if hasattr(left_calib, "to_dict") else left_calib
-    right_canvas = plot_boxes2d(right_img, pred_boxes3d, config, calib=calib_dict)
-    right_canvas = plot_boxes2d(right_canvas, gt_boxes3d, config, calib=calib_dict)
+    right_canvas = plot_boxes3d(
+        right_img,
+        pred_boxes3d,
+        right_calib,
+        config,
+        is_ground_truth=False,
+        letterbox_scale=letterbox_scale,
+        letterbox_pad_left=letterbox_pad_left,
+        letterbox_pad_top=letterbox_pad_top,
+        camera="right",
+    )
+    right_canvas = plot_boxes3d(
+        right_canvas,
+        gt_boxes3d,
+        right_calib,
+        config,
+        is_ground_truth=True,
+        letterbox_scale=letterbox_scale,
+        letterbox_pad_left=letterbox_pad_left,
+        letterbox_pad_top=letterbox_pad_top,
+        camera="right",
+    )
 
     combined = combine_stereo_views(left_canvas, right_canvas)
     return left_canvas, right_canvas, combined

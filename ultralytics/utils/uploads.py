@@ -14,7 +14,7 @@ class _ProgressReader:
     """File wrapper that reports read progress for upload monitoring."""
 
     def __init__(self, file_path, pbar):
-        self.file = open(file_path, "rb")
+        self.file = open(file_path, "rb")  # noqa: SIM115  # kept open for streamed upload reads
         self.pbar = pbar
         self._size = os.path.getsize(file_path)
 

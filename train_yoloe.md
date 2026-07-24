@@ -17,10 +17,10 @@ under `/data/shared-datasets/yoloe26_data/`.
 
 | set | images | labels (`.engine.cache`) |
 |-----|--------|--------------------------|
-| flickr | `/data/shared-datasets/yoloe26_data/flickr/full_images/` | `/data/shared-datasets/yoloe26_data/datasets/flickr/annotations/final_flickr_separateGT_train_segm.engine.cache` |
-| mixed_grounding | `/data/shared-datasets/yoloe26_data/mixed_grounding/gqa/images` | `/data/shared-datasets/yoloe26_data/datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.engine.cache` |
-| Objects365v1 | `/data/shared-datasets/yoloe26_data/Objects365v1/images/train` | `/data/shared-datasets/yoloe26_data/datasets/Objects365v1/annotations/objects365_train_segm.engine.cache` |
-| **val** (lvis) | `/data/shared-datasets/yoloe26_data/lvis.yaml` | — |
+| flickr | `/data/shared-datasets/yoloe26_data/flickr/full_images/` | `/data/shared-datasets/yoloe26_data/flickr/annotations/final_flickr_separateGT_train_segm.engine.cache` |
+| mixed_grounding | `/data/shared-datasets/yoloe26_data/mixed_grounding/gqa/images` | `/data/shared-datasets/yoloe26_data/mixed_grounding/annotations/final_mixed_train_no_coco_segm.engine.cache` |
+| Objects365v1 | `/data/shared-datasets/yoloe26_data/Objects365v1/images/train` | `/data/shared-datasets/yoloe26_data/Objects365v1/annotations/objects365_train_segm.engine.cache` |
+| **val** (lvis) | `/data/shared-datasets/louis_data/lvis.yaml` | — |
 
 `--data` key: `old_engine_data` (flickr + mixed_grounding + Objects365v1).
 
@@ -38,7 +38,7 @@ Root: `/data/shared-datasets/yoloe26_data/` — images **and** labels both under
 | mixed_grounding | `…/yoloe26_data/mixed_grounding/gqa/images` | `mixed_grounding/pipeline_outputs/{v4,v5}/merged.json` |
 | Objects365v1 | `…/yoloe26_data/Objects365v1/images/train` | `Objects365v1/pipeline_outputs/train/{v4,v5}/merged.json` |
 | yolo-enterprise | `…/yoloe26_data/yolo-enterprise/images/train` | `yolo-enterprise/pipeline_outputs/train/v4/merged.json`  (v5: `…/train/v5/merged_simplified.json`) |
-| **val** (lvis) | `../datasets/lvis.yaml` (relative, abspath-resolved) | — |
+| **val** (lvis) | `/data/shared-datasets/louis_data/lvis.yaml` | — |
 
 
 The commands in section 2 use `--data old_engine_data`. To train on enterprise
@@ -93,7 +93,7 @@ python train_yoloe26.py \
   --data coco128 \
   --optimizer MuSGD --lr0 0.00125 --lrf 0.5 --momentum 0.9 --weight_decay 0.0005 \
   --epochs 30 --close_mosaic 2 --batch 256 --copy_paste 0.1 --mixup 0.0 \
-  --device "cpu"  \
+  --device "0,1"  \
   --project runs/yoloe26_tp \
   --name "26s_ptwobjv1_bs256_epo30_close2_engine_old_engine_data_tp1"
 ```

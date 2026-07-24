@@ -168,7 +168,7 @@ class HGBlock(nn.Module):
             act (nn.Module): Activation function.
         """
         super().__init__()
-        act = act or nn.ReLU()
+        act = nn.ReLU() if act is None else act
         block = LightConv if lightconv else Conv
         self.m = nn.ModuleList(block(c1 if i == 0 else cm, cm, k=k, act=act) for i in range(n))
         self.sc = Conv(c1 + n * cm, c2 // 2, 1, 1, act=act)  # squeeze conv

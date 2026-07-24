@@ -167,7 +167,7 @@ class LightConv(nn.Module):
             act (nn.Module): Activation function.
         """
         super().__init__()
-        act = act or nn.ReLU()
+        act = nn.ReLU() if act is None else act
         self.conv1 = Conv(c1, c2, 1, act=False)
         self.conv2 = DWConv(c2, c2, k, act=act)
 

@@ -238,7 +238,7 @@ class GMC:
         # Filter outliers using statistical analysis
         meanSpatialDistances = np.mean(spatialDistances, 0)
         stdSpatialDistances = np.std(spatialDistances, 0)
-        inliers = (spatialDistances - meanSpatialDistances) < 2.5 * stdSpatialDistances
+        inliers = np.abs(spatialDistances - meanSpatialDistances) < 2.5 * stdSpatialDistances
 
         # Extract good matches and corresponding points
         goodMatches = []

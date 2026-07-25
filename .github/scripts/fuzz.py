@@ -296,8 +296,8 @@ def precache_assets(uni):
 def prepare_models(uni):
     """Create the corrupt and foreign model files used by model trials, derived from a cached corpus weight.
 
-    `model` is otherwise pinned, so checkpoint loading went unfuzzed even though corrupt and wrong-format
-    checkpoints are a top error surface in the package's telemetry. Every entry here is an unsupported input.
+    `model` is otherwise pinned, so checkpoint loading went unfuzzed even though corrupt and wrong-format checkpoints
+    are a top error surface in the package's telemetry. Every entry here is an unsupported input.
     """
     from ultralytics.utils import ASSETS, WEIGHTS_DIR
     from ultralytics.utils.downloads import attempt_download_asset
@@ -332,8 +332,8 @@ def prepare_datasets(uni):
 def make_dataset(root, mutation):
     """Build one synthetic detect dataset under root and return the path to its YAML.
 
-    Generated entirely on disk with no downloads, so the whole pool is a few KB of 64px images against the
-    multi-MB curated corpora. Each mutation reproduces a failure signature users actually hit.
+    Generated entirely on disk with no downloads, so the whole pool is a few KB of 64px images against the multi-MB
+    curated corpora. Each mutation reproduces a failure signature users actually hit.
     """
     from PIL import Image
 

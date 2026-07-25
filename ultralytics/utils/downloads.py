@@ -402,6 +402,8 @@ def safe_download(
                             emojis(f"❌  Download failure for {uri}. Retry limit reached. {e}")
                         ) from e
                     LOGGER.warning(f"Download failure, retrying {i + 1}/{retry} {uri}... {e}")
+            else:  # no attempt reached `break`, so every one failed size validation and unlinked its download
+                raise ConnectionError(emojis(f"❌  Download failure for {uri}. Retry limit reached."))
 
     if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz"}:
         from zipfile import is_zipfile

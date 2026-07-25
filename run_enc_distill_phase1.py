@@ -107,6 +107,9 @@ RECIPES = {
 # to the global batch so wd_eff stays at the recipe value.
 NBS_CANONICAL = 512
 
+# --eupe_multires continuation schedule, checked in beside the phase2 detection profiles.
+_MULTIRES_RECIPE = Path(_REPO_ROOT) / "cfg" / "recipes" / "eupe-multires.yaml"
+
 DATA_7SRC_DEFAULT = ",".join(
     [
         "/data/shared-datasets/imagenet",
@@ -161,7 +164,7 @@ def main(argv: list[str]) -> None:
         --optimizer <name>: ultralytics optimizer name (default ``AdamW``). ``MuSGD`` swaps in
             Muon-based updates for distillation ablations. Recipe ``beta2`` is ignored when non-AdamW.
         --proj_hidden_dim <1280|1536>: adaptor MLP hidden width. 1280 matches the YOLO Classify projection
-            (ultralytics/nn/modules/head.py:819). 1536 matches EUPE Stage 1 (arXiv:2603.22387 Section 4.1).
+        (ultralytics/nn/modules/head.py: 819). 1536 matches EUPE Stage 1 (arXiv:2603.22387 Section 4.1).
         --normalize_teacher_input: presence-only flag (no value). When set, convert the pipeline's ImageNet-normalized
             input to each teacher's training-time distribution: no-op for EUPE/DINOv3 (which already match ImageNet
             stats), SigLIP-style ``2x - 1`` for SigLIP2/MoonViT/SAM3. Default off matches all existing phase1 anchors.
@@ -228,7 +231,8 @@ def main(argv: list[str]) -> None:
     loss_type = loss_type or "cos_l1"
     high_res_final_epochs = high_res_final_epochs or _hires_legacy or None
     eupe_multires = bool(eupe_multires_str)
-    multires_sizes = (256, 384, 512) if eupe_multires else ()
+    # The profile is the schedule verbatim, read without mutation so the guards below and the schedule agree.
+    multires_recipe = YAML.load(_MULTIRES_RECIPE) if eupe_multires else {}
 
     if resume:
         resume = paths.patch_resume(resume)
@@ -269,12 +273,14 @@ def main(argv: list[str]) -> None:
             raise ValueError("--eupe_multires requires a finished Phase 1 .pt checkpoint as the positional model")
         if len(args) <= 2:
             raise ValueError("--eupe_multires requires a new run name as the third positional argument")
-        if epochs is not None and epochs != 15:
-            raise ValueError(f"--eupe_multires fixes the continuation to 15 epochs, got {epochs}")
+        if epochs is not None and epochs != multires_recipe["epochs"]:
+            raise ValueError(
+                f"--eupe_multires fixes the continuation to {multires_recipe['epochs']} epochs, got {epochs}"
+            )
         if lr_override:
-            raise ValueError("--eupe_multires fixes lr0 at 2e-4 and does not accept --lr")
-        if nbs_override and int(nbs_override) != 512:
-            raise ValueError("--eupe_multires fixes effective batch at 512")
+            raise ValueError(f"--eupe_multires fixes lr0 at {multires_recipe['lr0']} and does not accept --lr")
+        if nbs_override and int(nbs_override) != multires_recipe["nbs"]:
+            raise ValueError(f"--eupe_multires fixes effective batch at {multires_recipe['nbs']}")
         if continuation_overrides:
             raise ValueError(
                 f"--eupe_multires inherits {', '.join(continuation_overrides)} from its checkpoint. Drop the override."
@@ -307,9 +313,7 @@ def main(argv: list[str]) -> None:
         standardize_teacher_outputs |= bool(continuation_args.get("standardize_teacher_outputs", False))
         loss_type = continuation_args.get("loss_type", "cos_l1")
         optimizer = "AdamW"
-        parent_wandb_id = parent_wandb_id or wandb_config.resolve_run_id_by_name(
-            checkpoint.parents[1].name
-        )
+        parent_wandb_id = parent_wandb_id or wandb_config.resolve_run_id_by_name(checkpoint.parents[1].name)
     elif parent_wandb_id:
         raise ValueError("--parent_wandb_id is only valid with --eupe_multires")
 
@@ -349,25 +353,18 @@ def main(argv: list[str]) -> None:
 
     world_size = len(gpu.split(",")) if "," in gpu else 1
     if eupe_multires:
-        global_batch = int(batch_override) * world_size if batch_override else 512
-        if global_batch > 512:
+        global_batch = int(batch_override) * world_size if batch_override else multires_recipe["batch"]
+        if global_batch > multires_recipe["nbs"]:
             raise ValueError(
-                f"--eupe_multires global micro-batch cannot exceed its effective batch of 512, got {global_batch}"
+                f"--eupe_multires global micro-batch cannot exceed its effective batch of "
+                f"{multires_recipe['nbs']}, got {global_batch}"
             )
-        schedule = dict(
-            epochs=15,
-            batch=global_batch,
-            imgsz=256,
-            nbs=512,
-            lr0=2e-4,
-            warmup_epochs=1,
-            weight_decay=0.02,
-        )
+        schedule = {**multires_recipe, "batch": global_batch}
+        # The only pre-launch view of the resolved schedule: args.yaml lands after the trainer starts.
+        print(f"[recipe] {_MULTIRES_RECIPE.name} -> {schedule}")
     else:
         global_batch = (
-            int(batch_override) * world_size
-            if batch_override
-            else int(resume_args.get("batch", 64 * world_size))
+            int(batch_override) * world_size if batch_override else int(resume_args.get("batch", 64 * world_size))
         )
         # nbs = effective batch after gradient accumulation. --nbs pins it so a memory-capped micro-batch still
         # trains at the target effective batch, and lr0/warmup scale off it.
@@ -400,7 +397,7 @@ def main(argv: list[str]) -> None:
     continuation_log = (
         {
             "stage": "eupe_multires",
-            "multires_sizes": list(multires_sizes),
+            "multires_sizes": multires_recipe["multires_sizes"],
             "pretrained_from": model_yaml,
             "parent_wandb_id": parent_wandb_id or None,
             "tags": ["eupe-multires"],
@@ -474,8 +471,6 @@ def main(argv: list[str]) -> None:
         workers=2,
         nfs_sync=True,
     )
-    if eupe_multires:
-        train_args["multires_sizes"] = multires_sizes
     # Recipe-driven aug overrides — applied only when present so legacy recipes inherit
     # Ultralytics's DEFAULT_CFG (auto_augment=randaugment, erasing=0.4, hsv_h=0.015, hsv_s=hsv_v=0.4).
     # Reference recipes (DINOv3 / EUPE / UNIC / DUNE) explicitly disable RandAugment + RandomErasing

@@ -32,6 +32,7 @@ Flags:
                 imgsz (640), e.g. 224 to run the frozen backbone at its phase-1 grid.
 """
 
+import csv
 import os
 import re
 import shutil
@@ -360,48 +361,47 @@ def _dataset_train_stats(data_yaml: Path, batch: int) -> tuple[int, int]:
     return n_imgs, max(1, (n_imgs + batch - 1) // batch)
 
 
+def _read_multi_results(csv_path: Path) -> dict[str, dict[str, float]]:
+    """Read unique dataset rows from one multi_det CSV."""
+    if not csv_path.exists():
+        return {}
+    rows = {}
+    with csv_path.open(newline="") as f:
+        for record in csv.DictReader(f):
+            name = record.pop("dataset")
+            if name in rows:
+                raise ValueError(f"{csv_path}: duplicate row for dataset {name!r}")
+            rows[name] = {key: float(value) for key, value in record.items()}
+    return rows
+
+
+def _write_multi_results(csv_path: Path, rows: dict[str, dict[str, float]]) -> None:
+    """Write one canonical multi_det CSV with no duplicate rows."""
+    with csv_path.open("w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=("dataset", "map50", "map50_95", "fitness"))
+        writer.writeheader()
+        writer.writerows(
+            {"dataset": name, **{key: f"{value:.4f}" for key, value in row.items()}} for name, row in rows.items()
+        )
+
+
 def load_multi_results(parent_name: str, expected: list[str] | None = None) -> tuple[dict, dict]:
-    """Read a multi_det aggregate CSV as the layout-agnostic source of truth for one parent run.
-
-    Prefers the shared NFS mirror, falls back to the host-local copy. Raises on a missing file, a missing MACRO row, a
-    duplicate dataset row, or any dataset in ``expected`` without a row, so a partial chain or a wrong-layout lookup
-    fails loudly instead of silently treating absent values as zero (the failure mode that produced the inet-l 0.0000
-    artifact when results were re-derived from wandb groups across the flat-vs-nested layout split).
-
-    Args:
-        parent_name (str): multi_det parent run name; the CSV lives at ``<root>/<parent_name>/multi_results.csv``.
-        expected (list, optional): Dataset basenames that must each be present.
-
-    Returns:
-        (dict): Per-dataset metrics keyed by basename, each with map50, map50_95, fitness.
-        (dict): The MACRO-row metrics with map50, map50_95, fitness.
-    """
-    for root in (paths.NFS_MIRROR_ROOT, paths.LOCAL_ROOT):
-        csv_path = paths.multi_results_csv(parent_name, root)
-        try:
-            text = csv_path.read_text()
-            break
-        except FileNotFoundError:
-            continue
-    else:
+    """Read a completed multi_det aggregate CSV, preferring the shared NFS copy."""
+    csv_path = next(
+        (
+            path
+            for root in (paths.NFS_MIRROR_ROOT, paths.LOCAL_ROOT)
+            if (path := paths.multi_results_csv(parent_name, root)).exists()
+        ),
+        None,
+    )
+    if csv_path is None:
         raise FileNotFoundError(f"multi_results.csv not found for {parent_name!r} under NFS or local root")
-
-    per_dataset = {}
-    macro = None
-    for line in text.splitlines()[1:]:
-        if not line.strip():
-            continue
-        name, map50, map50_95, fitness = line.split(",")
-        row = {"map50": float(map50), "map50_95": float(map50_95), "fitness": float(fitness)}
-        if name == "MACRO":
-            macro = row
-        elif name in per_dataset:
-            raise ValueError(f"{csv_path}: duplicate row for dataset {name!r}")
-        else:
-            per_dataset[name] = row
+    per_dataset = _read_multi_results(csv_path)
+    macro = per_dataset.pop("MACRO", None)
     if macro is None:
         raise ValueError(f"{csv_path}: no MACRO row, the run is incomplete")
-    missing = sorted(set(expected or ()) - per_dataset.keys())
+    missing = sorted(set(expected or ()) - per_dataset)
     if missing:
         raise ValueError(f"{csv_path}: missing rows for {missing}")
     return per_dataset, macro
@@ -480,8 +480,19 @@ def _run_multi_det(
 
     csv_path = paths.multi_results_csv(parent_name, paths.LOCAL_ROOT)
     nfs_csv = paths.multi_results_csv(parent_name)
-    if not csv_path.exists():
-        csv_path.write_text("dataset,map50,map50_95,fitness\n")
+    completed = _read_multi_results(csv_path)
+    shared = _read_multi_results(nfs_csv)
+    completed.pop("MACRO", None)
+    shared.pop("MACRO", None)
+    conflicts = sorted(name for name in completed.keys() & shared.keys() if completed[name] != shared[name])
+    if conflicts:
+        raise ValueError(f"Conflicting local and NFS multi_results.csv rows for {conflicts}")
+    completed.update(shared)
+    expected = {path.parent.name for path in dataset_yamls}
+    unexpected = sorted(completed.keys() - expected)
+    if unexpected:
+        raise ValueError(f"Existing multi_results.csv contains datasets outside this suite: {unexpected}")
+    _write_multi_results(csv_path, completed)
 
     def _mirror_csv() -> None:
         # nfs_sync mirrors only per-dataset save_dirs, never this parent-level CSV, so it stays host-local otherwise.
@@ -520,9 +531,41 @@ def _run_multi_det(
     print(f"[multi_det_finetune] parent={parent_name} datasets={len(dataset_yamls)} model={model_yaml}")
     print(f"[multi_det_finetune] aggregate csv -> {csv_path}")
 
-    results = []
+    recipe_args = {
+        "pretrained": False if teacher_spec else phase1_weights,
+        "seed": seed,
+        **det_args,
+    }
+    resume_args = {"model": model_yaml, **recipe_args}
+    for basename in completed:
+        args_path = next(
+            (
+                path
+                for root in (paths.LOCAL_ROOT, paths.NFS_MIRROR_ROOT)
+                if (path := root / parent_name / basename / "args.yaml").exists()
+            ),
+            None,
+        )
+        if args_path is None:
+            raise FileNotFoundError(
+                f"Cannot verify provenance for completed dataset {basename!r}: args.yaml is missing"
+            )
+        saved_args = YAML.load(args_path)
+        mismatched = {
+            key: (saved_args.get(key), value) for key, value in resume_args.items() if saved_args.get(key) != value
+        }
+        if mismatched:
+            raise ValueError(f"Refusing to mix a changed recipe or checkpoint into {parent_name}: {mismatched}")
+
     for i, ds_yaml in enumerate(dataset_yamls, start=1):
         basename = ds_yaml.parent.name
+        if basename in completed:
+            print(f"=== [{i}/{len(dataset_yamls)}] {basename}: finalized, skipping ===")
+            continue
+        for root in (paths.LOCAL_ROOT, paths.NFS_MIRROR_ROOT):
+            stale_dir = root / parent_name / basename
+            if stale_dir.exists():
+                shutil.rmtree(stale_dir)
         n_imgs, iters_per_ep = _dataset_train_stats(ds_yaml, det_args["batch"])
         print(f"\n=== [{i}/{len(dataset_yamls)}] {basename} ===")
         print(
@@ -535,7 +578,7 @@ def _run_multi_det(
         # Nest NFS mirror under parent so different parents' same-basename sub-runs (e.g. two parents both training
         # `aerial-cows`) don't collide on the flat `NFS_MIRROR_ROOT / Path(save_dir).name` mapping in nfs_sync.setup.
         sync_start, sync_end = nfs_sync.setup(
-            str(paths.NFS_MIRROR_ROOT / parent_name), interval_sec=paths.SYNC_INTERVAL_SEC
+            str(paths.NFS_MIRROR_ROOT / parent_name), interval_sec=paths.SYNC_INTERVAL_SEC, exclude=("weights/",)
         )
         model.add_callback("on_train_start", sync_start)
         model.add_callback("on_train_end", sync_end)
@@ -559,7 +602,6 @@ def _run_multi_det(
         if det_args["optimizer"] == "MuSGD":
             model.add_callback("on_train_start", muon_w.override(0.4355))
         train_args = dict(
-            pretrained=False if teacher_spec else phase1_weights,
             device=int(gpu),
             project=paths.WANDB_PROJECT,
             name=basename,
@@ -567,32 +609,34 @@ def _run_multi_det(
             exist_ok=False,
             dropout=0,
             amp=True,
-            seed=seed,
             deterministic=True,
+            save=False,
             workers=4,
             data=str(ds_yaml),
-            **det_args,
+            **recipe_args,
         )
         model.train(**train_args)
         metrics = model.val()
+        shutil.rmtree(parent_save_dir / basename / "weights")
         row = {
             "dataset": basename,
             "map50": float(metrics.box.map50),
             "map50_95": float(metrics.box.map),
             "fitness": float(metrics.fitness),
         }
-        results.append(row)
-        with csv_path.open("a") as f:
-            f.write(f"{row['dataset']},{row['map50']:.4f},{row['map50_95']:.4f},{row['fitness']:.4f}\n")
-        _mirror_csv()
+        completed[basename] = {key: row[key] for key in ("map50", "map50_95", "fitness")}
+        if len(completed) < len(dataset_yamls):
+            _write_multi_results(csv_path, completed)
+            _mirror_csv()
         print(f"[done] {basename} mAP50={row['map50']:.4f} mAP50-95={row['map50_95']:.4f} fitness={row['fitness']:.4f}")
 
-    macro = {k: sum(r[k] for r in results) / len(results) for k in ("map50", "map50_95", "fitness")}
-    with csv_path.open("a") as f:
-        f.write(f"MACRO,{macro['map50']:.4f},{macro['map50_95']:.4f},{macro['fitness']:.4f}\n")
+    macro = {
+        key: sum(row[key] for row in completed.values()) / len(completed) for key in ("map50", "map50_95", "fitness")
+    }
+    _write_multi_results(csv_path, {**completed, "MACRO": macro})
     _mirror_csv()
     print(
-        f"\n[multi_det_finetune] MACRO over {len(results)} datasets: "
+        f"\n[multi_det_finetune] MACRO over {len(completed)} datasets: "
         f"mAP50={macro['map50']:.4f} mAP50-95={macro['map50_95']:.4f} fitness={macro['fitness']:.4f}"
     )
     if not teacher_spec:  # frozen-teacher runs have no phase1 distillation parent to push the downstream link to
@@ -603,7 +647,7 @@ def _run_multi_det(
             parent_id,
             {
                 "downstream_multi_macro_map50_95": float(macro["map50_95"]),
-                "downstream_multi_n_datasets": len(results),
+                "downstream_multi_n_datasets": len(completed),
             },
         )
 

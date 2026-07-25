@@ -14,13 +14,14 @@ from pathlib import Path
 from ultralytics.utils import LOGGER, RANK
 
 
-def setup(nfs_mirror_root: str | Path, interval_sec: int = 600):
+def setup(nfs_mirror_root: str | Path, interval_sec: int = 600, exclude: tuple[str, ...] = ()):
     """Build (on_train_start, on_train_end) callbacks that mirror save_dir to NFS.
 
     Args:
         nfs_mirror_root (str | Path): NFS directory that will contain the run dir; the save_dir basename is appended to
             form the final target.
         interval_sec (int, optional): Seconds between rsync passes.
+        exclude (tuple[str, ...], optional): Rsync patterns to omit from the mirror.
 
     Returns:
         (tuple): (on_train_start callback, on_train_end callback).
@@ -31,7 +32,15 @@ def setup(nfs_mirror_root: str | Path, interval_sec: int = 600):
 
     def _rsync(src: str, dst: str) -> None:
         Path(dst).mkdir(parents=True, exist_ok=True)
-        cmd = ["rsync", "-a", "--partial", "--exclude=*.pt.tmp", f"{src.rstrip('/')}/", f"{dst.rstrip('/')}/"]
+        cmd = [
+            "rsync",
+            "-a",
+            "--partial",
+            "--exclude=*.pt.tmp",
+            *(f"--exclude={x}" for x in exclude),
+            f"{src.rstrip('/')}/",
+            f"{dst.rstrip('/')}/",
+        ]
         subprocess.run(cmd, check=False, capture_output=True)
 
     def _loop() -> None:

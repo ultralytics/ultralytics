@@ -107,7 +107,6 @@ RECIPES = {
 # to the global batch so wd_eff stays at the recipe value.
 NBS_CANONICAL = 512
 
-# --eupe_multires continuation schedule, checked in beside the phase2 detection profiles.
 _MULTIRES_RECIPE = Path(_REPO_ROOT) / "cfg" / "recipes" / "eupe-multires.yaml"
 
 DATA_7SRC_DEFAULT = ",".join(
@@ -231,7 +230,6 @@ def main(argv: list[str]) -> None:
     loss_type = loss_type or "cos_l1"
     high_res_final_epochs = high_res_final_epochs or _hires_legacy or None
     eupe_multires = bool(eupe_multires_str)
-    # The profile is the schedule verbatim, read without mutation so the guards below and the schedule agree.
     multires_recipe = YAML.load(_MULTIRES_RECIPE) if eupe_multires else {}
 
     if resume:
@@ -265,8 +263,6 @@ def main(argv: list[str]) -> None:
 
     continuation_args = {}
     if eupe_multires:
-        # EUPE Section 4.1 treats Stage 3 as a separate finetuning schedule. Fifteen epochs matches its image-budget
-        # ratio: 100k * 4096 / (390k * 8192) * 114 = 14.6 epochs in the current Phase 1 schedule.
         if resume or fork_from or high_res_final_epochs:
             raise ValueError("--eupe_multires requires a fresh run without --resume, --fork_from, or high-res tail")
         if not str(model_yaml).endswith(".pt"):
@@ -360,7 +356,6 @@ def main(argv: list[str]) -> None:
                 f"{multires_recipe['nbs']}, got {global_batch}"
             )
         schedule = {**multires_recipe, "batch": global_batch}
-        # The only pre-launch view of the resolved schedule: args.yaml lands after the trainer starts.
         print(f"[recipe] {_MULTIRES_RECIPE.name} -> {schedule}")
     else:
         global_batch = (

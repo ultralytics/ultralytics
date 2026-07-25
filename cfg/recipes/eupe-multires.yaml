@@ -1,9 +1,8 @@
-# EUPE Stage 3-style multi-resolution continuation from a finished Phase 1 checkpoint. 15 epochs matches
-# EUPE Sec 4.1's image-budget ratio: 100k * 4096 / (390k * 8192) * 114 = 14.6 epochs. batch is the default
-# global micro-batch, which --batch * world_size overrides. lrf 0.01 comes from the runner, not this profile.
-# lr0, weight_decay and warmup_epochs coincide with RECIPES["dinov3_lowwd"] but are independent: Stage 3 is
-# its own schedule and must not follow a retune of the base recipe.
-# source: phase1-12src-ultravit-x-repmixer-fastvitffn-attn2-dinoreg-dinov3-vitl16-eupe-multires/args.yaml
+# EUPE Stage 3 multires continuation. 15 epochs matches Sec 4.1's image budget:
+# 100k * 4096 / (390k * 8192) * 114 = 14.6. No lrf key: main() sets 0.01 on every phase1 run.
+# lr0/weight_decay/warmup_epochs match RECIPES["dinov3_lowwd"] by coincidence, not by reference.
+# source (verified equal on all 4 multires runs):
+# phase1-12src-ultravit-x-repmixer-fastvitffn-attn2-dinoreg-dinov3-vitl16-eupe-multires/args.yaml
 batch: 512
 epochs: 15
 imgsz: 256

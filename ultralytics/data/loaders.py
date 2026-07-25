@@ -513,6 +513,8 @@ class LoadPilAndNumpy:
         """
         if not isinstance(im0, list):
             im0 = [im0]
+        if not im0:  # an empty batch otherwise fails unnamed inside np.stack in Predictor.preprocess
+            raise FileNotFoundError("No images found in source, predict requires at least one image.")
         # use `image{i}.jpg` when Image.filename returns an empty path.
         self.paths = [getattr(im, "filename", "") or f"image{i}.jpg" for i, im in enumerate(im0)]
         self.im0 = [self._single_check(im, channels) for im in im0]
@@ -535,6 +537,10 @@ class LoadPilAndNumpy:
             im = im[..., None] if flag == "L" else im[..., ::-1]
             return np.ascontiguousarray(im)
         im = np.atleast_3d(im)
+        # Without this a batched or zero-sized array reads shape[2] as a channel count it is not
+        assert im.ndim == 3 and im.shape[0] and im.shape[1], (
+            f"Expected a single (H, W, C) image, but got array of shape {im.shape}"
+        )
         c = im.shape[2]
         if c == channels:
             return im

@@ -63,6 +63,65 @@ def test_export_onnx(end2end, isolated_model):
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
+@pytest.mark.parametrize("end2end", [False, True])
+def test_export_onnx_parity(end2end, isolated_model):
+    """Verify ONNX export produces detections matching the PyTorch model.
+
+    Current export tests only check that inference runs without crashing.
+    This test compares actual detection outputs (boxes, classes, confidences)
+    between the PyTorch model and the ONNX export to catch silent regressions.
+    Detections are matched by IoU rather than sorted order, since numerical
+    differences can reorder detections without changing semantics.
+    Addresses recurring parity issues: #19991, #24861, #22737, #5016.
+    """
+    imgsz = 640  # large enough for detections on bus.jpg
+    file = YOLO(isolated_model).export(format="onnx", imgsz=imgsz, end2end=end2end)
+    pt_results = YOLO(isolated_model)(SOURCE, imgsz=imgsz, verbose=False)
+    onnx_results = YOLO(file)(SOURCE, imgsz=imgsz, verbose=False)
+    pt_boxes = pt_results[0].boxes
+    onnx_boxes = onnx_results[0].boxes
+    if pt_boxes is None or onnx_boxes is None:
+        assert pt_boxes is onnx_boxes, f"Detection mismatch: pt={pt_boxes}, onnx={onnx_boxes}"
+        return
+    pt_data = pt_boxes.data
+    onnx_data = onnx_boxes.data
+    assert len(pt_data) == len(onnx_data), f"Detection count mismatch: pt={len(pt_data)}, onnx={len(onnx_data)}"
+    if len(pt_data) == 0:
+        return
+    # Match each PT detection to the best ONNX detection by IoU
+    for pt_det in pt_data:
+        best_iou, best_j = 0.0, -1
+        for j, onnx_det in enumerate(onnx_data):
+            iou = _box_iou(pt_det[:4], onnx_det[:4])
+            if iou > best_iou:
+                best_iou, best_j = iou, j
+        assert best_j >= 0 and best_iou > 0.5, (
+            f"No matching ONNX detection for PT box {pt_det[:4]} (best IoU={best_iou:.3f})"
+        )
+        matched = onnx_data[best_j]
+        assert pt_det[-1].long() == matched[-1].long(), (
+            f"Class mismatch at IoU={best_iou:.3f}: pt={pt_det[-1]}, onnx={matched[-1]}"
+        )
+        assert torch.allclose(pt_det[:4], matched[:4], atol=15.0), (
+            f"Box mismatch at IoU={best_iou:.3f}: pt={pt_det[:4]}, onnx={matched[:4]}"
+        )
+        assert torch.allclose(pt_det[-2], matched[-2], atol=0.15), (
+            f"Confidence mismatch: pt={pt_det[-2]:.4f}, onnx={matched[-2]:.4f}"
+        )
+
+
+def _box_iou(box1, box2):
+    """Compute IoU between two xyxy boxes."""
+    x1 = max(box1[0], box2[0])
+    y1 = max(box1[1], box2[1])
+    x2 = min(box1[2], box2[2])
+    y2 = min(box1[3], box2[3])
+    inter = max(0.0, x2 - x1) * max(0.0, y2 - y1)
+    area1 = (box1[2] - box1[0]) * (box1[3] - box1[1])
+    area2 = (box2[2] - box2[0]) * (box2[3] - box2[1])
+    return inter / (area1 + area2 - inter) if area1 + area2 - inter > 0 else 0.0
+
+
 @pytest.mark.slow
 @pytest.mark.parametrize("precision", [{"int8": True}, {"quantize": 8}])
 def test_export_onnx_int8(isolated_model, precision):

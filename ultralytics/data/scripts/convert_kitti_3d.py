@@ -113,7 +113,7 @@ class KITTIToYOLO3D:
         self.class_id_remap = None  # Will store remapping from original to new IDs
         if self.filter_classes is not None:
             # Convert to set for faster lookup
-            self.filter_classes = set([c.strip() for c in self.filter_classes])
+            self.filter_classes = {c.strip() for c in self.filter_classes}
             # Validate that all filter classes exist
             invalid_classes = self.filter_classes - set(self.class_map.keys())
             if invalid_classes:
@@ -719,9 +719,11 @@ class KITTIToYOLO3D:
             LOGGER.info("\nComputing mean dimensions from training split...")
             self.mean_dims = self._compute_mean_dimensions("train")
 
-    def create_dataset_yaml(self, splits=["train", "val"]):
+    def create_dataset_yaml(self, splits=None):
         """Create dataset.yaml for YOLO training."""
         # Build class names based on filter - use OrderedDict to preserve insertion order
+        if splits is None:
+            splits = ["train", "val"]
         if self.filter_classes is not None:
             # Remap class IDs to be consecutive starting from 0
             filtered_class_map = {}

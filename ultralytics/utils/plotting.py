@@ -804,8 +804,8 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     ax[3].hist2d(x["width"], x["height"], bins=50, cmap=subplot_3_4_color)
     ax[3].set_xlabel("width")
     ax[3].set_ylabel("height")
-    for a in {0, 1, 2, 3}:
-        for s in {"top", "right", "left", "bottom"}:
+    for a in (0, 1, 2, 3):
+        for s in ("top", "right", "left", "bottom"):
             ax[a].spines[s].set_visible(False)
 
     fname = save_dir / "labels.jpg"
@@ -916,7 +916,7 @@ def plot_images(
         - 3 channels: Used as-is (standard RGB)
         - 4+ channels: Cropped to first 3 channels
     """
-    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images", "semantic_mask", "depth"}:
+    for k in ("cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images", "semantic_mask", "depth"):
         if k not in labels:
             continue
         if k == "cls" and labels[k].ndim == 2:
@@ -1119,7 +1119,7 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
             if i == 0:
                 for c in data.columns:
                     c_strip = c.strip()
-                    if "loss" in c_strip or c_strip.startswith("train/") or c_strip.startswith("val/"):
+                    if "loss" in c_strip or c_strip.startswith(("train/", "val/")):
                         loss_keys.append(c)
                     elif not any(c_strip.startswith(p) or c_strip == p for p in skip_prefixes):
                         metric_keys.append(c)
@@ -1372,7 +1372,7 @@ def feature_visualization(x, module_type: str, stage: int, n: int = 32, save_dir
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
 
-    for m in {"Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder"}:  # all model heads
+    for m in ("Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder"):  # all model heads
         if m in module_type:
             return
     if isinstance(x, torch.Tensor):

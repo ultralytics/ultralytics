@@ -19,7 +19,6 @@ from ultralytics.models.yolo.s3d.augment import (
     StereoHFlip,
     StereoHSV,
     StereoLetterBox,
-    StereoScale,
 )
 from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS, encode_orientation
 from ultralytics.utils import DEFAULT_CFG, LOGGER
@@ -391,7 +390,6 @@ class Stereo3DDetDataset(BaseDataset):
             transforms.extend(
                 [
                     StereoHFlip(p=float(hyp.get("fliplr", 0.5))),
-                    StereoScale(scale_range=(0.8, 1.2), p=float(hyp.get("scale", 0.5))),
                     StereoCrop(crop_h=0.9, crop_w=0.9, p=float(hyp.get("crop_fraction", 0.3))),
                     StereoHSV(
                         hgain=float(hyp.get("hsv_h", 0.015)),
@@ -854,7 +852,7 @@ class Stereo3DDetDataset(BaseDataset):
         # Pad aux targets per image to [B, max_n, C]
         max_n = max(per_image_counts) if per_image_counts else 0
         aux_targets: dict[str, torch.Tensor] = {}
-        for k in per_image_aux.keys():
+        for k in per_image_aux:
             c = {
                 "lr_distance": 1,
                 "depth": 1,

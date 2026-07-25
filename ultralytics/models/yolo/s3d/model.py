@@ -146,15 +146,11 @@ class Stereo3DDetModel(DetectionModel):
         """Initialize the loss criterion."""
         from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
 
-        aux_w = None
-        use_bbox_loss = True
-        if hasattr(self, "yaml") and self.yaml is not None:
-            training_config = self.yaml.get("training", {})
-            if training_config:
-                if "loss_weights" in training_config:
-                    aux_w = training_config["loss_weights"]
-                if "use_bbox_loss" in training_config:
-                    use_bbox_loss = bool(training_config["use_bbox_loss"])
-
-        pseudo_cfg = getattr(self, "pseudo_labels", {})
-        return Stereo3DDetLoss(self, loss_weights=aux_w, use_bbox_loss=use_bbox_loss, pseudo_labels=pseudo_cfg)
+        training_config = self.yaml.get("training", {}) if getattr(self, "yaml", None) else {}
+        return Stereo3DDetLoss(
+            self,
+            loss_weights=training_config.get("loss_weights"),
+            use_bbox_loss=bool(training_config.get("use_bbox_loss", True)),
+            pseudo_labels=getattr(self, "pseudo_labels", {}),
+            photometric_loss=bool(training_config.get("photometric_loss", False)),
+        )

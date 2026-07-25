@@ -587,55 +587,6 @@ class StereoHFlip:
         return stereo.to_labels(labels)
 
 
-class StereoScale:
-    """Random scale augmentation for stereo images.
-
-    Scales both views by the same factor. Normalized labels remain unchanged since the scale operation preserves
-    relative coordinates.
-    """
-
-    def __init__(self, scale_range: tuple[float, float] = (0.8, 1.2), p: float = 0.5):
-        """Initialize StereoScale.
-
-        Args:
-            scale_range: Min and max scale factors.
-            p: Probability of applying scale.
-        """
-        self.scale_range = scale_range
-        self.p = p
-
-    def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
-        """Apply random scale to stereo image.
-
-        Args:
-            labels: Dict with 'img' (6-channel).
-
-        Returns:
-            Updated labels dict.
-        """
-        if np.random.random() > self.p:
-            return labels
-
-        img = labels.get("img")
-        if img is None or img.shape[-1] != 6:
-            return labels
-
-        h, w = img.shape[:2]
-        s = float(np.random.uniform(*self.scale_range))
-        new_w = max(1, round(w * s))
-        new_h = max(1, round(h * s))
-
-        # Resize 6-channel image
-        img_scaled = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
-        labels["img"] = img_scaled
-
-        # Scale calibration only — normalized instance coords are preserved by uniform scaling.
-        stereo = StereoLabels.from_labels(labels)
-        stereo.scale_calibration(s, s).update_size(new_w, new_h)
-
-        return stereo.to_labels(labels)
-
-
 class StereoCrop:
     """Random crop augmentation for stereo images.
 

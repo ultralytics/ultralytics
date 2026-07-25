@@ -84,7 +84,9 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         pred_heights_2d: np.ndarray (N_pred,) 2D bbox heights in pixels
     """
 
-    def __init__(self, names: dict[int, str] = {}) -> None:
+    def __init__(self, names: dict[int, str] | None = None) -> None:
+        if names is None:
+            names = {}
         self.names = names
         self.nc = len(names) if names else 0
         self.stats: list[dict[str, Any]] = []

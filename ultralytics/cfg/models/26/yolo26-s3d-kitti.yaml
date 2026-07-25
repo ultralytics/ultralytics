@@ -4,14 +4,14 @@
 # Finer cost-volume disparity sampling (48 bins over the same 48-px range, ~4 px/bin at full res)
 # plus dense self-supervised photometric left-right consistency with a weakened supervised
 # lr_distance anchor. Together (and only together) these lift KITTI Car AP3D@0.7 Moderate from
-# 20.1 to 25.7 (3 seeds, 400-epoch MuSGD schedule; train with epochs=400).
+# 20.1 to 25.7 (3 seeds, validated with epochs=400 optimizer=MuSGD amp=False).
 # Requires well-textured imagery — keep the default yolo26-s3d.yaml for low-texture or
 # constant-object-size data, where the photometric term is unstable and adds nothing.
 # A standard 3ch backbone runs on L/R images separately (batch trick: [2B,3,H,W]),
 # features are split at the tap point for cost volume, then left-only features
 # continue through the neck/head for 2D detection.
 # Benefits: 100% pretrained weight compatibility, clean left-only 2D features.
-# Usage: model=yolo26s-s3d.yaml
+# Usage: model=yolo26s-s3d-kitti.yaml
 
 # Parameters
 nc: 3

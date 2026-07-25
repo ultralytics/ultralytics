@@ -50,6 +50,8 @@ def test_photometric_loss_finite_at_extremes():
     assert torch.isfinite(loss)
     loss.backward()
     assert torch.isfinite(lr.grad).all()
+    # Runaway positive log-disparity must stay finite too (upper clamp bounds exp, incl. fp16 range)
+    assert torch.isfinite(photometric_lr_loss(torch.full((1, 1, h8 * w8), 20.0), imgs))
 
 
 def test_photometric_gated_in_loss(tmp_path):

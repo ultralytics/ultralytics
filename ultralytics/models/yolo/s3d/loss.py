@@ -98,7 +98,9 @@ def photometric_lr_loss(lr_map: torch.Tensor, imgs: torch.Tensor, smooth_w: floa
     """
     B, _, H, W = imgs.shape
     h8, w8 = H // 8, W // 8
-    disp = lr_map[:, :, : h8 * w8].clamp(min=-10.0).exp().view(B, 1, h8, w8)  # width-normalized disparity
+    # Width-normalized disparity is physically in (0, 1], so log-disparity is bounded above by 0; the upper
+    # clamp also keeps exp() finite in fp16 under AMP (exp overflows half precision above ~11).
+    disp = lr_map[:, :, : h8 * w8].clamp(min=-10.0, max=0.0).exp().view(B, 1, h8, w8)
     return photometric_disp_loss(disp, imgs, smooth_w)
 
 

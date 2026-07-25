@@ -235,6 +235,8 @@ def check_disk_space(
         return True  # sufficient space
 
     def fmt_bytes(b):
+        if b < (1 << 20):  # without a KB tier every value under 51 KB renders "0.0 MB", hiding how full the disk is
+            return f"{b / (1 << 10):.1f} KB"
         return f"{b / (1 << 20):.1f} MB" if b < (1 << 30) else f"{b / (1 << 30):.3f} GB"
 
     # Insufficient space

@@ -88,16 +88,22 @@ def test_export_onnx_parity(end2end, isolated_model):
     assert len(pt_data) == len(onnx_data), f"Detection count mismatch: pt={len(pt_data)}, onnx={len(onnx_data)}"
     if len(pt_data) == 0:
         return
-    # Match each PT detection to the best ONNX detection by IoU
+    # Match each PT detection to the best unmatched ONNX detection by IoU.
+    # One-to-one assignment prevents multiple PT detections from matching the same ONNX detection,
+    # which could hide dropped/duplicated boxes.
+    consumed = set()
     for pt_det in pt_data:
         best_iou, best_j = 0.0, -1
         for j, onnx_det in enumerate(onnx_data):
+            if j in consumed:
+                continue
             iou = _box_iou(pt_det[:4], onnx_det[:4])
             if iou > best_iou:
                 best_iou, best_j = iou, j
         assert best_j >= 0 and best_iou > 0.5, (
             f"No matching ONNX detection for PT box {pt_det[:4]} (best IoU={best_iou:.3f})"
         )
+        consumed.add(best_j)
         matched = onnx_data[best_j]
         assert pt_det[-1].long() == matched[-1].long(), (
             f"Class mismatch at IoU={best_iou:.3f}: pt={pt_det[-1]}, onnx={matched[-1]}"

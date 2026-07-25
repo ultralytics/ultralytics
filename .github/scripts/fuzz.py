@@ -294,8 +294,8 @@ def prepare_datasets(uni):
 def make_dataset(root, mutation):
     """Build one synthetic detect dataset under root and return the path to its YAML.
 
-    Generated entirely on disk with no downloads, so the whole pool is a few KB of 64px images against the
-    multi-MB curated corpora. Each mutation reproduces a failure signature users actually hit.
+    Generated entirely on disk with no downloads, so the whole pool is a few KB of 64px images against the multi-MB
+    curated corpora. Each mutation reproduces a failure signature users actually hit.
     """
     from PIL import Image
 

@@ -194,8 +194,7 @@ def _classify_by_boundary_visibility(
         x2_clamped = max(0, min(int(x2) - 1, image_width - 1))  # x2 is exclusive
 
         # Ensure x2_clamped >= x1_clamped
-        if x2_clamped < x1_clamped:
-            x2_clamped = x1_clamped
+        x2_clamped = max(x2_clamped, x1_clamped)
 
         # Check if boundaries are visible
         # A boundary is visible if:

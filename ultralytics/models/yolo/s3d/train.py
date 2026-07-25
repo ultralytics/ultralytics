@@ -336,35 +336,34 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             # Right column: 3D wireframes on a separate LEFT-image view (cleaner)
             # ------------------------------------------------------------------
             L3 = left_img.copy()
-            if isinstance(calib_i, dict):
-                if len(labels) and calib_i is not None:
-                    boxes3d = [
-                        b
-                        for lab in labels
-                        if (b := Box3D.from_label(lab, calib_i, self.data["names"], L3.shape[:2])) is not None
-                    ]
-                    class_ids = {int(b.class_id) for b in boxes3d}
-                    magenta = (255, 0, 255)  # BGR
-                    scheme = {cid: magenta for cid in class_ids}
-                    cfg = VisualizationConfig(
-                        line_width=2,
-                        font_size=0.5,
-                        show_labels=True,
-                        show_conf=False,
-                        gt_color_scheme=scheme,
-                    )
-                    L3, _, _ = plot_stereo3d_boxes(
-                        left_img=L3,
-                        right_img=L3.copy(),  # dummy
-                        pred_boxes3d=None,
-                        gt_boxes3d=boxes3d,
-                        left_calib=calib_i,
-                        right_calib=calib_i,
-                        config=cfg,
-                        letterbox_scale=None,
-                        letterbox_pad_left=None,
-                        letterbox_pad_top=None,
-                    )
+            if isinstance(calib_i, dict) and len(labels) and calib_i is not None:
+                boxes3d = [
+                    b
+                    for lab in labels
+                    if (b := Box3D.from_label(lab, calib_i, self.data["names"], L3.shape[:2])) is not None
+                ]
+                class_ids = {int(b.class_id) for b in boxes3d}
+                magenta = (255, 0, 255)  # BGR
+                scheme = {cid: magenta for cid in class_ids}
+                cfg = VisualizationConfig(
+                    line_width=2,
+                    font_size=0.5,
+                    show_labels=True,
+                    show_conf=False,
+                    gt_color_scheme=scheme,
+                )
+                L3, _, _ = plot_stereo3d_boxes(
+                    left_img=L3,
+                    right_img=L3.copy(),  # dummy
+                    pred_boxes3d=None,
+                    gt_boxes3d=boxes3d,
+                    left_calib=calib_i,
+                    right_calib=calib_i,
+                    config=cfg,
+                    letterbox_scale=None,
+                    letterbox_pad_left=None,
+                    letterbox_pad_top=None,
+                )
             L3 = _add_title(L3, "3D (proj)")
 
             panel = np.concatenate([L2, L3], axis=1)

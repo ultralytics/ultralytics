@@ -88,10 +88,6 @@ keywords: ultralytics, plotting, utilities, documentation, data visualization, a
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.plotting.plot_boxes2d
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.plotting.plot_stereo3d_boxes
 
 <br><br><hr><br>

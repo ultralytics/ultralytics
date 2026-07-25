@@ -83,13 +83,12 @@ class YOLO(Model):
                 hasattr(self.model, "model")
                 and isinstance(self.model.model, (list, tuple))
                 and len(self.model.model) > 0
-            ):
-                if "RTDETR" in self.model.model[-1]._get_name():  # if RTDETR head
-                    from ultralytics import RTDETR
+            ) and "RTDETR" in self.model.model[-1]._get_name():  # if RTDETR head
+                from ultralytics import RTDETR
 
-                    new_instance = RTDETR(self)
-                    self.__class__ = type(new_instance)
-                    self.__dict__ = new_instance.__dict__
+                new_instance = RTDETR(self)
+                self.__class__ = type(new_instance)
+                self.__dict__ = new_instance.__dict__
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:
@@ -342,7 +341,7 @@ class YOLOE(Model):
         # Verify no background class is present
         assert " " not in classes
         assert isinstance(self.model, YOLOEModel)
-        if sorted(list(self.model.names.values())) != sorted(classes):
+        if sorted(self.model.names.values()) != sorted(classes):
             if embeddings is None:
                 embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
             self.model.set_classes(classes, embeddings)

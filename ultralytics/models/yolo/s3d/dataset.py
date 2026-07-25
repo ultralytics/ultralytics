@@ -854,7 +854,7 @@ class Stereo3DDetDataset(BaseDataset):
         # Pad aux targets per image to [B, max_n, C]
         max_n = max(per_image_counts) if per_image_counts else 0
         aux_targets: dict[str, torch.Tensor] = {}
-        for k in per_image_aux.keys():
+        for k in per_image_aux:
             c = {
                 "lr_distance": 1,
                 "depth": 1,

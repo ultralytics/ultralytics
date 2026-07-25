@@ -7,7 +7,7 @@ from typing import Any
 
 import numpy as np
 import torch
-import torch.nn as nn
+from torch import nn
 
 from ultralytics.utils.checks import check_suffix
 from ultralytics.utils.downloads import is_url

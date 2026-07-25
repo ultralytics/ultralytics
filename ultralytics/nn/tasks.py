@@ -30,12 +30,14 @@ from ultralytics.nn.modules import (
     ADown,
     Bottleneck,
     BottleneckCSP,
+    CAA,
     C2f,
     C2fAttn,
     C2fCIB,
     C2fPSA,
     C3Ghost,
     C3k2,
+    C3k2k,
     C3x,
     CBFuse,
     CBLinear,
@@ -1906,6 +1908,7 @@ def parse_model(d, ch, verbose=True):
             C2,
             C2f,
             C3k2,
+            C3k2k,
             RepNCSPELAN4,
             ELAN1,
             ADown,
@@ -1983,6 +1986,8 @@ def parse_model(d, ch, verbose=True):
             if m is C2fCIB:
                 legacy = False
         elif m is AIFI:
+            args = [ch[f], *args]
+        elif m is CAA:
             args = [ch[f], *args]
         elif m in frozenset({HGStem, HGBlock}):
             c1, cm, c2 = ch[f], args[0], args[1]

@@ -1119,6 +1119,44 @@ class Scale(nn.Module):
         return x * self.factor
 
 
+class CAA(nn.Module):
+    """Context Anchor Attention (PKINet-style): conv-only long-range context via strip depthwise convs + pooled gate."""
+
+    def __init__(self, c1: int, k: int = 11):
+        """Initialize CAA with input channels c1 and strip kernel size k."""
+        super().__init__()
+        self.dw_h = Conv(c1, c1, (1, k), g=c1)
+        self.dw_w = Conv(c1, c1, (k, 1), g=c1)
+        self.pw = Conv(c1, c1, 1, act=False)
+        self.pool = nn.AdaptiveAvgPool2d(1)
+        self.gate = nn.Conv2d(c1, c1, 1, bias=True)
+        self.act = nn.Sigmoid()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply strip-conv features gated by global context, with residual."""
+        y = self.pw(self.dw_w(self.dw_h(x)))
+        return x + y * self.act(self.gate(self.pool(y)))
+
+
+class C3k2k(C3k2):
+    """C3k2 with configurable bottleneck kernel size (HKS-style larger kernels in deep levels)."""
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        n: int = 1,
+        c3k: bool = False,
+        e: float = 0.5,
+        k: int = 3,
+        g: int = 1,
+        shortcut: bool = True,
+    ):
+        """Initialize C3k2k; k is the bottleneck conv kernel size."""
+        super().__init__(c1, c2, n, c3k, e, False, g, shortcut)
+        self.m = nn.ModuleList(Bottleneck(self.c, self.c, shortcut, g, k=(k, k), e=1.0) for _ in range(n))
+
+
 class C3k(C3):
     """C3k is a CSP bottleneck module with customizable kernel sizes for feature extraction in neural networks."""
 

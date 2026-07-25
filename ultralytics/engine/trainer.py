@@ -1078,8 +1078,9 @@ class BaseTrainer:
                     g[3][fullname] = param  # muon params (2D linear, 4D conv; other shapes fail Newton-Schulz)
                 elif "bias" in fullname:  # bias (no decay)
                     g[2][fullname] = param
-                elif isinstance(module, bn) or "logit_scale" in fullname:  # weight (no decay)
-                    # ContrastiveHead and BNContrastiveHead included here with 'logit_scale'
+                elif isinstance(module, bn) or "logit_scale" in fullname or fullname.endswith(".freqs"):
+                    # weight (no decay). ContrastiveHead and BNContrastiveHead included here with 'logit_scale',
+                    # MixedRoPE2D.freqs because decaying rotary frequencies to zero erases positional variation
                     g[1][fullname] = param
                 else:  # weight (with decay)
                     g[0][fullname] = param

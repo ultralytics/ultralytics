@@ -1,5 +1,11 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+# Positional-encoding arm over the attn2-dinoreg baseline.
+# P5 attention uses DINOv3 axial 2D RoPE, with fixed patch-center phases.
+# Every other setting is held at the dinoreg control, so positional encoding is the only
+# variable. Storage tokens carry no patch position, so RoPE2DBlock leaves their K/V prefix
+# unrotated.
+#
 # Lane B P5 hybrid. Retains the Attn2 ConvFFN and depth, with DINO-style qkv/proj biases,
 # four per-block storage tokens, and 64-wide heads.
 # Family s-x. Scale n is unsupported: head_dim 64 does not divide n's 288-wide P5.
@@ -21,7 +27,7 @@ backbone:
   - [-1, 1, Conv, [384, 3, 2]]
   - [-1, 20, RepUltraViTBlock, [3, True, 0.00001, True]]
   - [-1, 1, Conv, [1152, 3, 2]]
-  - [-1, 8, MHSABlock, [0, 4, True, 0.00001, True, 64, False, True, True, False, 4]]
+  - [-1, 8, DINOv3RoPE2D, [0, 4, True, 0.00001, True, 64, True, True, False, 4]]
 
 head:
   - [-1, 1, Classify, [nc]]

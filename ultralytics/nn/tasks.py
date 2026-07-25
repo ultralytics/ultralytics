@@ -2049,10 +2049,18 @@ def parse_model(d, ch, verbose=True):
                     adjustments.append(f"c2 {c2_requested:g}->{c2}")
             if m is C2fAttn:  # set 1) embed channels and 2) num heads
                 embed_channels_requested = min(args[1], max_channels // 2) * width
-                args[1] = make_divisible(embed_channels_requested, channel_divisor)
+                args[2] = int(max(round(min(args[2], max_channels // 2 // 32)) * width, 1) if args[2] > 1 else args[2])
+                # MaxSigmoidAttnBlock reshapes its ec-channel embed and its hidden-channel projection into nh heads,
+                # so the embed width must equal the attention hidden width and stay divisible by nh
+                hidden_channels = int(c2 * (args[6] if len(args) > 6 else 0.5))
+                if hidden_channels % args[2]:
+                    raise ValueError(
+                        f"C2fAttn hidden channels {hidden_channels} (from c2={c2}) must be divisible by nh={args[2]}; "
+                        f"adjust channel_divisor, width_multiple or nh"
+                    )
+                args[1] = hidden_channels
                 if args[1] != embed_channels_requested:
                     adjustments.append(f"embed {embed_channels_requested:g}->{args[1]}")
-                args[2] = int(max(round(min(args[2], max_channels // 2 // 32)) * width, 1) if args[2] > 1 else args[2])
 
             args = [c1, c2, *args[1:]]
             if m in repeat_modules:

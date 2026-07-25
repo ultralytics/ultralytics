@@ -24,6 +24,7 @@ DEEPX                   | `deepx`                   | yolo26n_deepx_model/
 Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 LiteRT                  | `litert`                  | yolo26n.tflite
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
+Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -58,6 +59,7 @@ Inference:
                          yolo26n_deepx_model        # DEEPX
                          yolo26n_qnn.onnx           # Qualcomm QNN
                          yolo26n.tflite             # LiteRT
+                         yolo26n_ascend_model       # Huawei Ascend
 """
 
 from __future__ import annotations
@@ -250,6 +252,15 @@ def export_formats():
             ["name", "quantize", "data", "fraction", "simplify", "conf", "iou"],
             "base",
         ],
+        [
+            "Huawei Ascend",
+            "ascend",
+            "_ascend_model",
+            False,
+            False,
+            ["batch", "name", "quantize", "opset", "simplify", "nms"],
+            "base",
+        ],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -389,7 +400,7 @@ EXPORT_ENVS = {
 
 
 # Export precision support per format. Unset/32 requests are FP32 except for formats listed in FP32_UNSUPPORTED_FORMATS.
-FP16_FORMATS = frozenset({"torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn", "rknn"})
+FP16_FORMATS = frozenset({"torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn", "rknn", "ascend"})
 INT8_FORMATS = frozenset(
     {
         "onnx",
@@ -411,7 +422,7 @@ W8A16_FORMATS = frozenset(
     {"coreml", "imx", "qnn", "litert"}
 )  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
-FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo"})
+FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend"})
 # (label, supporting formats) per quantize precision, used to list valid options in errors. 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS.
 QUANTIZE_PRECISIONS = (
     ("16 (FP16)", FP16_FORMATS),
@@ -712,6 +723,15 @@ class Exporter:
                 self.args.quantize = 8
             elif self.args.quantize is None:
                 self.args.quantize = 16
+        if fmt == "ascend":
+            if not self.args.name:
+                LOGGER.warning(
+                    "Huawei Ascend export requires a missing 'name' arg for the target SoC. "
+                    "Using default name='Ascend310B4'."
+                )
+                self.args.name = "Ascend310B4"
+            if self.args.quantize is None:
+                self.args.quantize = 16  # Ascend AI Core convolutions accept only FP16/INT8 inputs, never FP32
         if fmt == "qnn":
             if not self.args.name:
                 LOGGER.warning(
@@ -1444,6 +1464,24 @@ class Exporter:
             quantize=self.args.quantize,
             batch=self.args.batch,
             dataset=rknn_dataset,
+            metadata=self.metadata,
+            prefix=prefix,
+        )
+
+    @try_export
+    def export_ascend(self, prefix=colorstr("Ascend:")):  # noqa: B008
+        """Export YOLO model to Huawei Ascend offline model (.om) format."""
+        from ultralytics.utils.export.ascend import onnx2ascend
+
+        if self.args.opset and self.args.opset > 17:
+            LOGGER.warning(f"{prefix} the CANN ONNX parser requires opset<=17, setting opset=17.")
+        self.args.opset = min(self.args.opset or 17, 17)
+        return onnx2ascend(
+            onnx_file=self.export_onnx(),
+            output_dir=str(self.file).replace(self.file.suffix, f"_ascend_model{os.sep}"),
+            name=self.args.name,
+            imgsz=self.imgsz,
+            batch=self.args.batch,
             metadata=self.metadata,
             prefix=prefix,
         )

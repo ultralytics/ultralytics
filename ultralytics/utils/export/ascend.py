@@ -16,6 +16,7 @@ def onnx2ascend(
     name: str,
     imgsz: tuple[int, int],
     batch: int = 1,
+    channels: int = 3,
     metadata: dict | None = None,
     prefix: str = "",
 ) -> str:
@@ -27,6 +28,7 @@ def onnx2ascend(
         name (str): Target Ascend SoC passed to ATC as ``--soc_version``, e.g. ``"Ascend310B4"``.
         imgsz (tuple[int, int]): Export image size as ``(height, width)``.
         batch (int, optional): Static batch size baked into the offline model. Defaults to 1.
+        channels (int, optional): Input channel count, matching the traced ONNX graph. Defaults to 3.
         metadata (dict | None, optional): Optional metadata to save as YAML. Defaults to None.
         prefix (str, optional): Logging prefix. Defaults to "".
 
@@ -49,7 +51,7 @@ def onnx2ascend(
         "--framework=5",  # 5 = ONNX
         f"--output={output_dir / Path(onnx_file).stem}",  # ATC appends the .om suffix itself
         "--input_format=NCHW",
-        f"--input_shape=images:{batch},3,{imgsz[0]},{imgsz[1]}",
+        f"--input_shape=images:{batch},{channels},{imgsz[0]},{imgsz[1]}",
         f"--soc_version={name}",
         "--precision_mode=force_fp16",  # Ascend AI Core convolutions reject FP32 inputs
     ]  # argv list avoids shell metacharacter issues in onnx_file/output_dir paths

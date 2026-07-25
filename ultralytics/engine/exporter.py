@@ -1478,10 +1478,11 @@ class Exporter:
         self.args.opset = min(self.args.opset or 17, 17)
         return onnx2ascend(
             onnx_file=self.export_onnx(),
-            output_dir=str(self.file).replace(self.file.suffix, f"_ascend_model{os.sep}"),
+            output_dir=self.file.parent / f"{self.file.stem}_ascend_model",
             name=self.args.name,
             imgsz=self.imgsz,
             batch=self.args.batch,
+            channels=self.im.shape[1],
             metadata=self.metadata,
             prefix=prefix,
         )

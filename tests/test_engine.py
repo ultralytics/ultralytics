@@ -36,6 +36,16 @@ def test_export(monkeypatch, tmp_path):
     YOLO(f)(SOURCE)  # exported model inference
 
 
+def test_build_optimizer_canonicalizes_name():
+    """Test `optimizer=musgd` builds MuSGD with muon groups and `optimizer=AUTO` triggers auto-selection."""
+    trainer = SimpleNamespace(args=get_cfg(), data={"nc": 80})
+    model = YOLO("yolo26n.yaml").model
+    optimizer = BaseTrainer.build_optimizer(trainer, model, name="musgd")
+    assert type(optimizer).__name__ == "MuSGD" and any(pg.get("use_muon") for pg in optimizer.param_groups)
+    optimizer = BaseTrainer.build_optimizer(trainer, model, name="AUTO", iterations=100)
+    assert type(optimizer).__name__ == "AdamW"  # auto-selects AdamW for <10k iterations
+
+
 @pytest.mark.parametrize(
     "trainer_cls,validator_cls,predictor_cls,data,model,weights",
     [

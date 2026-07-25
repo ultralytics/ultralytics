@@ -23,6 +23,85 @@ def laplacian_nll(
     return loss.mean() if reduction == "mean" else loss
 
 
+def _ssim(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    """Per-pixel SSIM dissimilarity (1-SSIM)/2 with 3x3 average pooling (monodepth-style)."""
+    c1, c2 = 0.01**2, 0.03**2
+    pool = F.avg_pool2d
+    mx, my = pool(x, 3, 1, 1), pool(y, 3, 1, 1)
+    sx = pool(x * x, 3, 1, 1) - mx * mx
+    sy = pool(y * y, 3, 1, 1) - my * my
+    sxy = pool(x * y, 3, 1, 1) - mx * my
+    ssim = ((2 * mx * my + c1) * (2 * sxy + c2)) / ((mx * mx + my * my + c1) * (sx + sy + c2))
+    return ((1 - ssim) / 2).clamp(0, 1)
+
+
+def photometric_disp_loss(disp: torch.Tensor, imgs: torch.Tensor, smooth_w: float = 0.1) -> torch.Tensor:
+    """Dense self-supervised left-right photometric consistency on a P3-grid disparity map.
+
+    Warps the right view by the predicted dense disparity (u_R = u_L - d) and penalizes photometric
+    error (0.85*SSIM + 0.15*L1, monodepth weighting) against the left view, plus an edge-aware
+    disparity smoothness term. The P3 disparity map is bilinearly upsampled and the warp runs at
+    FULL image resolution: low-resolution warping is too blurry to supervise the 1-2 px matching
+    precision that stereo depth needs. Supervises every pixel — a dense correspondence signal that
+    a monocular predictor can only satisfy by producing true disparity everywhere.
+
+    Args:
+        disp: [B, 1, H/8, W/8] width-normalized disparity (linear, >=0) on the P3 grid.
+        imgs: [B, 6, H, W] letterboxed stereo pair in [0, 1] (left = ch 0-2, right = ch 3-5).
+        smooth_w: Weight of the edge-aware smoothness term.
+
+    Returns:
+        (torch.Tensor): Scalar loss (photometric mean over valid pixels + smooth_w * smoothness).
+    """
+    B, _, H, W = imgs.shape
+    disp_full = F.interpolate(disp, size=(H, W), mode="bilinear", align_corners=True)
+    left, right = imgs[:, :3], imgs[:, 3:6]
+
+    ys = torch.linspace(-1, 1, H, device=imgs.device)
+    xs = torch.linspace(-1, 1, W, device=imgs.device)
+    gy, gx = torch.meshgrid(ys, xs, indexing="ij")
+    gx = gx.unsqueeze(0) - 2.0 * disp_full[:, 0]  # sample right at u - d (grid units: delta = 2*d_px/W)
+    grid = torch.stack([gx, gy.unsqueeze(0).expand_as(gx)], dim=-1)  # [B, H, W, 2]
+    warped = F.grid_sample(right, grid, align_corners=True, padding_mode="border")
+    valid = ((gx >= -1) & (gx <= 1)).unsqueeze(1).float()  # [B, 1, H, W]
+
+    photo = 0.85 * _ssim(warped, left).mean(1, keepdim=True) + 0.15 * (warped - left).abs().mean(1, keepdim=True)
+    photo = (photo * valid).sum() / valid.sum().clamp(min=1.0)
+
+    # Edge-aware smoothness on the mean-normalized P3 disparity (monodepth), edges from 1/8-scale left
+    left8 = F.avg_pool2d(left, 8)
+    d_n = disp / disp.mean().clamp(min=1e-6)
+    dx = (d_n[..., :, 1:] - d_n[..., :, :-1]).abs() * torch.exp(
+        -(left8[..., :, 1:] - left8[..., :, :-1]).abs().mean(1, keepdim=True)
+    )
+    dy = (d_n[..., 1:, :] - d_n[..., :-1, :]).abs() * torch.exp(
+        -(left8[..., 1:, :] - left8[..., :-1, :]).abs().mean(1, keepdim=True)
+    )
+    return photo + smooth_w * (dx.mean() + dy.mean())
+
+
+def photometric_lr_loss(lr_map: torch.Tensor, imgs: torch.Tensor, smooth_w: float = 0.1) -> torch.Tensor:
+    """Photometric consistency on the lr_distance head output (log width-normalized disparity).
+
+    Requires well-textured imagery: on largely textureless scenes the photometric gradient is
+    ambiguous and, combined with a weak supervised lr_distance weight, lets background disparities
+    drift unbounded. Keep this loss disabled (the default) for such datasets.
+
+    Args:
+        lr_map: [B, 1, HW] lr_distance head output (log of width-normalized disparity); the first
+            (H/8)*(W/8) entries (P3) are used.
+        imgs: [B, 6, H, W] letterboxed stereo pair in [0, 1] (left = ch 0-2, right = ch 3-5).
+        smooth_w: Weight of the edge-aware smoothness term.
+
+    Returns:
+        (torch.Tensor): Scalar loss (photometric mean over valid pixels + smooth_w * smoothness).
+    """
+    B, _, H, W = imgs.shape
+    h8, w8 = H // 8, W // 8
+    disp = lr_map[:, :, : h8 * w8].clamp(min=-10.0).exp().view(B, 1, h8, w8)  # width-normalized disparity
+    return photometric_disp_loss(disp, imgs, smooth_w)
+
+
 class Stereo3DDetLoss(v8DetectionLoss):
     """Multi-scale loss for stereo 3D detection using YOLO-style bbox assignment.
 
@@ -46,9 +125,11 @@ class Stereo3DDetLoss(v8DetectionLoss):
         use_bbox_loss: bool = True,
         cls_label_smoothing: float = 0.0,
         pseudo_labels: dict | None = None,
+        photometric_loss: bool = False,
     ):
         super().__init__(model, tal_topk=tal_topk)
-        self.loss_names = ("box", "cls", "lr_dist", "depth", "dims", "orient", "proj_center")
+        self.loss_names = ("box", "cls", "lr_dist", "depth", "dims", "orient", "proj_center", "photo")
+        self.photometric_loss = photometric_loss
         self.aux_w = loss_weights or {}
         self.use_bbox_loss = use_bbox_loss
         self.cls_label_smoothing = cls_label_smoothing
@@ -344,7 +425,7 @@ class Stereo3DDetLoss(v8DetectionLoss):
         aux_keys = {"lr_distance", "lr_logvar", "depth", "depth_bins", "dimensions", "orientation", "proj_offset"}
         aux_preds = {k: v for k, v in preds.items() if k in aux_keys}
 
-        loss = torch.zeros(7, device=self.device)  # box, cls, lr_dist, depth, dims, orient, proj_center
+        loss = torch.zeros(8, device=self.device)  # box, cls, lr_dist, depth, dims, orient, proj_center, photo
 
         # Get detection losses + TAL assignment results
         (fg_mask, target_gt_idx, _, _, _), det_loss, _ = self.get_assigned_targets_and_loss(preds, batch)
@@ -361,6 +442,10 @@ class Stereo3DDetLoss(v8DetectionLoss):
                 loss[i] = aux_losses[k] * float(self.aux_w.get(k, 1.0))
         if "proj_center" in aux_losses:
             loss[6] = aux_losses["proj_center"] * float(self.aux_w.get("proj_center", 1.0))
+        if self.photometric_loss and "lr_distance" in preds:
+            loss[7] = photometric_lr_loss(preds["lr_distance"], batch["img"]) * float(
+                self.aux_w.get("photometric", 1.0)
+            )
 
         batch_size = preds["boxes"].shape[0]
         return loss * batch_size, dict(zip(self.loss_names, loss.detach()))

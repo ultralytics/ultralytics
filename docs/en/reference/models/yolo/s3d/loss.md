@@ -18,4 +18,16 @@ keywords: Ultralytics, ultralytics.models.yolo.s3d.loss, API reference, YOLO, Py
 
 ## ::: ultralytics.models.yolo.s3d.loss.laplacian_nll
 
+<br><br><hr><br>
+
+## ::: ultralytics.models.yolo.s3d.loss._ssim
+
+<br><br><hr><br>
+
+## ::: ultralytics.models.yolo.s3d.loss.photometric_disp_loss
+
+<br><br><hr><br>
+
+## ::: ultralytics.models.yolo.s3d.loss.photometric_lr_loss
+
 <br><br>

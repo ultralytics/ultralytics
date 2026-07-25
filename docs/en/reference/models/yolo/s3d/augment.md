@@ -24,10 +24,6 @@ keywords: Ultralytics, ultralytics.models.yolo.s3d.augment, API reference, YOLO,
 
 <br><br><hr><br>
 
-## ::: ultralytics.models.yolo.s3d.augment.StereoScale
-
-<br><br><hr><br>
-
 ## ::: ultralytics.models.yolo.s3d.augment.StereoCrop
 
 <br><br><hr><br>

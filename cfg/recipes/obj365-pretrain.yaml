@@ -1,0 +1,43 @@
+# Objects365-v1 detection pretrain, 150 epochs, any backbone. One profile for distilled/CE/conv/scratch
+# alike, since this is a shared preprocessing step rather than an evaluation arm.
+# backbone_lr_ratio 1.0: over ~91.3M images seen (150 x 608,606), 0.02 leaves the backbone unchanged.
+# Output is no longer a pristine distilled backbone, so COCO fine-tune it with --recipe coco-adapt.
+# No grad_clip key: main() passes it, and profiles must not carry it when reseeded from args.yaml.
+# source: cfg/recipes/coco-adapt.yaml, epochs 70->150, patience 100->150
+auto_augment: randaugment
+backbone_lr_ratio: 1.0
+batch: 64
+box: 9.83241
+close_mosaic: 10
+cls: 0.64896
+copy_paste: 0.40413
+copy_paste_mode: flip
+cos_lr: false
+cutmix: 0.00082
+degrees: 0.00012
+dfl: 0.95824
+end2end: true
+epochs: 150
+erasing: 0.4
+fliplr: 0.30393
+hsv_h: 0.01315
+hsv_s: 0.35348
+hsv_v: 0.19383
+imgsz: 640
+kobj: 1.0
+lr0: 0.0005
+lrf: 0.5
+mixup: 0.05
+momentum: 0.9
+mosaic: 0.99182
+nbs: 64
+optimizer: AdamW
+patience: 150
+pose: 12.0
+scale: 0.9
+shear: 0.00136
+translate: 0.27484
+warmup_bias_lr: 0.0
+warmup_epochs: 0.0
+warmup_momentum: 0.9
+weight_decay: 0.000125

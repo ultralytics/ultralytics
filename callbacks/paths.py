@@ -60,7 +60,9 @@ def multi_results_csv(parent_name: str, root: Path = NFS_MIRROR_ROOT) -> Path:
     return root / parent_name / "multi_results.csv"
 
 
-def patch_resume(ckpt_path, name: str | None = None, device=None, data: str | None = None) -> str:
+def patch_resume(
+    ckpt_path, name: str | None = None, device=None, data: str | None = None, grad_clip: float | None = None
+) -> str:
     """Rewrite a checkpoint's ``train_args`` to clean W&B project + absolute local save_dir, in place.
 
     Needed because Ultralytics' ``check_resume`` restores project/name/save_dir/data from the checkpoint, not caller
@@ -73,6 +75,8 @@ def patch_resume(ckpt_path, name: str | None = None, device=None, data: str | No
             the target physical GPU as a different CUDA index).
         data (str, optional): Override dataset path, e.g. when the resuming host mounts the dataset at a different
             location (``data`` is NOT in ``check_resume``'s override whitelist so it must be baked into the checkpoint).
+        grad_clip (float, optional): Clip norm baked in via ``setdefault`` for checkpoints predating ``grad_clip``
+            as a train arg, which would otherwise resume at the 10.0 default, not the 1.0 they trained at.
 
     Returns:
         (str): Absolute path of the patched checkpoint (same as input, for chaining).
@@ -88,6 +92,8 @@ def patch_resume(ckpt_path, name: str | None = None, device=None, data: str | No
         train_args["device"] = device
     if data is not None:
         train_args["data"] = data
+    if grad_clip is not None:
+        train_args.setdefault("grad_clip", grad_clip)
     ckpt["train_args"] = train_args
     torch.save(ckpt, ckpt_path)
     return str(ckpt_path)

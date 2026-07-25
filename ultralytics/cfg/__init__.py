@@ -206,6 +206,7 @@ CFG_FLOAT_KEYS = frozenset(
         "time",
         "workspace",
         "batch",
+        "grad_clip",
     }
 )
 CFG_FRACTION_KEYS = frozenset(
@@ -599,7 +600,6 @@ def check_dict_alignment(
             "distill_path",
             "adaptor_arch",
             "sample_t",
-            "grad_clip",
             "beta2",
             "muon_w",
             "nfs_sync",

@@ -11,14 +11,22 @@ Usage:
           "coco_pose_finetune" (COCO pose), "dota_obb_finetune" (DOTA-v1.0 OBB,
           yolo26s-obb.pt-aligned recipe), "multi_det_finetune" (sequential per-dataset
           det fine-tune + val over a list of YOLO-format datasets; logs per-dataset and
-          macro-averaged mAP to a CSV, on the multi-det recipe profile)
+          macro-averaged mAP to a CSV, on the multi-det recipe profile),
+          "obj365v1_det_pretrain" (Objects365-v1 detection pretrain, 150 epochs, any backbone,
+          on the obj365-pretrain profile; its output checkpoint is then COCO fine-tuned with
+          --recipe coco-adapt, since it is no longer a pristine distilled backbone)
+
+    obj365v1_det_pretrain is the only mode taking multiple GPUs ("0,1,2,3"): grad_clip is a train arg and
+    nfs_sync starts in the runner, so neither rides a callback DDP drops. muon_w and log_config still do,
+    so stay on an AdamW profile and expect W&B to lose the lineage fields under DDP (args.yaml keeps them).
+    Keep batch divisible by the GPU count: trainer.py floors batch_size // world_size silently.
 
 Flags:
     --resume <path>: resume from checkpoint (all single-dataset modes)
     --fork_from <parent_id>:<fork_step>: wandb-fork continuation (all single-dataset modes)
-    --recipe <name>: coco/multi_det modes. Recipe profile stem under cfg/recipes/, defaulting to
-                the mode's profile (coco-preserve, multi-det). Use coco-adapt for a non-distilled
-                backbone, multi-det-musgd-cos or yolo26-published-{det,multi-det} for the MuSGD arms.
+    --recipe <name>: coco/multi_det/obj365 modes. Recipe profile stem under cfg/recipes/, defaulting to
+                the mode's profile (coco-preserve, multi-det, obj365-pretrain). Use coco-adapt for a
+                non-distilled backbone, multi-det-musgd-cos or yolo26-published-{det,multi-det} for MuSGD.
     --lr <val>: override the profile lr0 (det modes) or the final lr0 (other modes).
     --batch <int>: override the profile batch (det modes), applied as-is for other modes.
     --nbs <int>: override the profile nbs. A bare --batch already carries the profile's
@@ -44,7 +52,7 @@ os.environ["PYTHONPATH"] = _REPO_ROOT + os.pathsep + os.environ.get("PYTHONPATH"
 
 import torch
 
-from callbacks import grad_clip, muon_w, nfs_sync, paths, wandb_config
+from callbacks import muon_w, nfs_sync, paths, wandb_config
 from ultralytics import YOLO
 from ultralytics.data.utils import IMG_FORMATS
 from ultralytics.nn.tasks import guess_model_scale, load_checkpoint
@@ -117,8 +125,12 @@ def _export_hf_token() -> None:
 
 
 _COCO_DET_MODES = ("coco_det_finetune", "coco_det_finetune_frozen")
-_SCALED_MODES = _COCO_DET_MODES + ("dota_obb_finetune",)
-_SINGLE_GPU_DET_MODES = _COCO_DET_MODES + ("dota_obb_finetune", "multi_det_finetune", "teacher_frozen_det")
+# Single-dataset profile modes, so the generic override block must not re-apply lr/batch/nbs.
+_SCALED_MODES = (*_COCO_DET_MODES, "dota_obb_finetune", "obj365v1_det_pretrain")
+# Modes that build a detection/OBB model rather than a classifier.
+_DET_MODES = (*_SCALED_MODES, "coco_pose_finetune")
+# The only mode allowed multiple GPUs. See the DDP guard in main().
+_DDP_CAPABLE_MODE = "obj365v1_det_pretrain"
 
 _AUG_ARGS = dict(
     hsv_h=0.015,
@@ -161,17 +173,21 @@ def _infer_model_yaml(phase1_weights: str, head_suffix: str = "") -> str:
         args_yaml = w.parent.parent / "args.yaml"
         cls_yaml = YAML.load(args_yaml).get("model") if args_yaml.exists() else w.stem + ".yaml"
         w = Path(str(cls_yaml))
-    if not _is_cls_yaml(cls_yaml) or not guess_model_scale(cls_yaml):
+    # A det yaml with a resolvable scale is already the answer: obj365v1_det_pretrain checkpoints record a det
+    # yaml in args.yaml, and demanding a cls yaml here sent them to _checkpoint_cls_yaml, which raises.
+    if not guess_model_scale(cls_yaml):
         cls_yaml = _checkpoint_cls_yaml(chain[-1] if chain else w)
     # Strip the `-cls` task suffix. Lookahead matches both end-position (`yolo26s-cls.yaml` -> `yolo26s.yaml`)
     # and middle-position when a custom arch suffix follows (`yolo26s-cls-attn.yaml` -> `yolo26s-attn.yaml`).
     out = re.sub(r"-cls(?=[-.])", head_suffix, cls_yaml, count=1)
     # Drop the `-sppf` tag: det yamls already carry SPPF, no `-sppf` det counterparts exist.
     out = re.sub(r"-sppf(?=[-.])", "", out, count=1)
-    if "-cls" in out:
+    # The head_suffix leg catches a det-source yaml asked to produce an OBB/pose yaml: nothing was there to
+    # rewrite, so it would silently hand back a plain det yaml for the wrong task.
+    if "-cls" in out or (head_suffix and head_suffix not in out):
         raise ValueError(
-            f"_infer_model_yaml: stripped -cls failed for {cls_yaml!r} -> {out!r} "
-            f"(source weights: {phase1_weights}). Would route to ClassificationTrainer and crash."
+            f"_infer_model_yaml: could not derive a {head_suffix or '-cls-stripped'} yaml from {cls_yaml!r} -> "
+            f"{out!r} (source weights: {phase1_weights}). Would route to the wrong trainer and crash."
         )
     return out
 
@@ -575,14 +591,6 @@ def _run_multi_det(
         )
 
         model = YOLO(model_yaml)
-        model.add_callback("on_train_start", grad_clip.override(1.0))
-        # Nest NFS mirror under parent so different parents' same-basename sub-runs (e.g. two parents both training
-        # `aerial-cows`) don't collide on the flat `NFS_MIRROR_ROOT / Path(save_dir).name` mapping in nfs_sync.setup.
-        sync_start, sync_end = nfs_sync.setup(
-            str(paths.NFS_MIRROR_ROOT / parent_name), interval_sec=paths.SYNC_INTERVAL_SEC, exclude=("weights/",)
-        )
-        model.add_callback("on_train_start", sync_start)
-        model.add_callback("on_train_end", sync_end)
         model.add_callback(
             "on_pretrain_routine_start",
             wandb_config.log_config(
@@ -603,7 +611,7 @@ def _run_multi_det(
         if det_args["optimizer"] == "MuSGD":
             model.add_callback("on_train_start", muon_w.override(0.4355))
         train_args = dict(
-            device=int(gpu),
+            device=gpu,
             project=paths.WANDB_PROJECT,
             name=basename,
             save_dir=str(parent_save_dir / basename),
@@ -613,10 +621,16 @@ def _run_multi_det(
             deterministic=True,
             workers=4,
             data=str(ds_yaml),
+            # Not in the recipe profile: a recipe key enters resume_args above, compared per sub-run.
+            grad_clip=1.0,
             **recipe_args,
         )
+        # Nest the NFS mirror under the parent so different parents' same-basename sub-runs (e.g. two parents both
+        # training `aerial-cows`) don't collide on the flat `NFS_MIRROR_ROOT / Path(save_dir).name` mapping.
+        sync_stop = nfs_sync.start(train_args["save_dir"], paths.NFS_MIRROR_ROOT / parent_name, exclude=("weights/",))
         model.train(**train_args)
         metrics = model.val()
+        sync_stop()
         shutil.rmtree(parent_save_dir / basename / "weights")
         row = {
             "dataset": basename,
@@ -713,7 +727,8 @@ def main(argv: list[str]) -> None:
         )
         return
     if resume:
-        resume = paths.patch_resume(resume)
+        # Bake grad_clip: pre-relocation ckpts lack the key and would resume at 10.0, not their trained 1.0.
+        resume = paths.patch_resume(resume, grad_clip=1.0)
     resume_args = _load_train_args(resume) if resume else {}
     gpu = argv[0] if argv else "0"
     phase1_weights = (
@@ -722,11 +737,11 @@ def main(argv: list[str]) -> None:
         else resume_args.get("pretrained", "runs/classify/yolo-next-encoder/phase1-d7-dinov3-convnextb/weights/best.pt")
     )
     mode = argv[2] if len(argv) > 2 else ("inet_linear_probe" if resume_args.get("freeze") else "inet_finetune")
-    if mode in _SINGLE_GPU_DET_MODES and "," in gpu:
+    if "," in gpu and mode != _DDP_CAPABLE_MODE:
         raise SystemExit(
-            f"ERROR: mode={mode!r} requires a single GPU. Phase-2 DetectionTrainer/OBBTrainer "
-            f"re-spawns workers under DDP and silently drops our model.add_callback registrations "
-            f"(grad_clip/muon_w/nfs_sync would no-op). Got gpu={gpu!r}. Pass a single GPU id like '0'."
+            f"ERROR: mode={mode!r} needs a single GPU. dist.py:79 rebuilds the trainer per DDP child with "
+            f"no callbacks, so muon_w and log_config no-op and the recipe silently changes. Only "
+            f"{_DDP_CAPABLE_MODE} is DDP-safe. Got gpu={gpu!r}."
         )
     name = argv[3] if len(argv) > 3 else resume_args.get("name", f"phase2-{mode}-d7")
     phase1_wandb_id = argv[4] if len(argv) > 4 else ""
@@ -765,7 +780,7 @@ def main(argv: list[str]) -> None:
         lr_override = lr_override or (str(resume_args["lr0"]) if "lr0" in resume_args else "")
         nbs_override = nbs_override or (str(resume_args["nbs"]) if "nbs" in resume_args else "")
 
-    if mode in ("coco_det_finetune", "coco_det_finetune_frozen", "coco_pose_finetune", "dota_obb_finetune"):
+    if mode in _DET_MODES:
         head_suffix = {"coco_pose_finetune": "-pose", "dota_obb_finetune": "-obb"}.get(mode, "")
         model_yaml = _infer_model_yaml(phase1_weights, head_suffix)
         _assert_backbone_compatible(phase1_weights, model_yaml)
@@ -775,16 +790,13 @@ def main(argv: list[str]) -> None:
         "coco_det_finetune": "downstream-coco",
         "coco_pose_finetune": "downstream-coco-pose",
         "dota_obb_finetune": "downstream-dota-obb",
+        "obj365v1_det_pretrain": "pretrain-obj365-det",
     }.get(mode, "downstream-imagenet")
 
     model = YOLO(model_yaml)
     # Standard pretrained= flow transfers the backbone via intersect_dicts (layers 0-8, or 0-10 for -sppf cls yamls).
     if mode == "inet_finetune":
         model.add_callback("on_train_start", muon_w.override(0.1))
-    model.add_callback("on_train_start", grad_clip.override(1.0))
-    sync_start, sync_end = nfs_sync.setup(str(paths.NFS_MIRROR_ROOT), interval_sec=paths.SYNC_INTERVAL_SEC)
-    model.add_callback("on_train_start", sync_start)
-    model.add_callback("on_train_end", sync_end)
     model.add_callback(
         "on_pretrain_routine_start",
         wandb_config.log_config(
@@ -797,7 +809,7 @@ def main(argv: list[str]) -> None:
     )
     train_args = dict(
         pretrained=phase1_weights,
-        device=gpu if mode in ("coco_det_finetune", "dota_obb_finetune") else int(gpu),
+        device=gpu,
         **paths.run_paths(name),
         cos_lr=True,
         warmup_bias_lr=0,
@@ -806,6 +818,8 @@ def main(argv: list[str]) -> None:
         seed=seed,
         deterministic=True,
         workers=4,
+        # Passed for every mode rather than per-profile, so profiles stay verbatim args.yaml snapshots.
+        grad_clip=1.0,
     )
     if mode == "inet_linear_probe":
         train_args.update(
@@ -859,6 +873,20 @@ def main(argv: list[str]) -> None:
             model.add_callback("on_train_start", muon_w.override(0.4355))
         if mode == "coco_det_finetune_frozen":
             train_args["freeze"] = 9
+    elif mode == "obj365v1_det_pretrain":
+        det_args = _load_recipe(
+            recipe_name or "obj365-pretrain",
+            model_yaml,
+            epochs=epochs,
+            patience=patience,
+            batch=batch_override,
+            lr0=lr_override,
+            nbs=nbs_override,
+            backbone_lr_ratio=backbone_lr_ratio_override,
+        )
+        train_args.update(data="Objects365v1.yaml", **det_args)
+        if det_args["optimizer"] == "MuSGD":
+            model.add_callback("on_train_start", muon_w.override(0.4355))
     elif mode == "coco_pose_finetune":
         train_args.update(
             data="coco-pose.yaml",
@@ -948,7 +976,7 @@ def main(argv: list[str]) -> None:
             optimizer="MuSGD",
         )
         model.add_callback("on_train_start", muon_w.override(0.5))
-    else:  # inet_finetune (default)
+    elif mode == "inet_finetune":
         train_args.update(
             data="/data/shared-datasets/imagenet",
             epochs=epochs or 50,
@@ -964,6 +992,10 @@ def main(argv: list[str]) -> None:
             optimizer="MuSGD",
             **_AUG_ARGS,
         )
+    else:
+        # Was a silent fall-through to inet_finetune, so a typo trained ImageNet for 50 epochs. The only thing
+        # that accidentally caught it was int(gpu) raising on a comma-separated DDP arg, which no longer happens.
+        raise SystemExit(f"ERROR: unknown mode {mode!r}. Pass one of the modes listed in this script's docstring.")
     # Resume drift guard: refuse silent data mismatch. The mode-inference at line 97 uses
     # freeze as a proxy and can land on a different mode than the saved run (e.g. resumed
     # coco_det_finetune defaults to inet_finetune). Fail loud rather than truncate the dataset.
@@ -990,7 +1022,11 @@ def main(argv: list[str]) -> None:
     if scratch:
         train_args["pretrained"] = False
         print("[scratch] pretrained=False, backbone will be randomly initialized")
+    # Started from the runner rather than a trainer callback so it survives DDP: under DDP this process is the
+    # launcher, which blocks in subprocess.run for the whole run while the children write into save_dir.
+    sync_stop = nfs_sync.start(train_args["save_dir"])
     model.train(**train_args)
+    sync_stop()
 
 
 if __name__ == "__main__":

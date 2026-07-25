@@ -253,19 +253,13 @@ class ImageEncoderTrainer(ClassificationTrainer):
                     )
 
         # Register hooks here (not in runner): dist.py:57 only serializes self.args to DDP workers.
-        from callbacks import beta2_override, grad_clip, muon_w, nfs_sync, paths, wd_schedule  # runner-local package
+        from callbacks import beta2_override, muon_w, wd_schedule  # runner-local package
 
-        grad_clip_v = getattr(self.args, "grad_clip", None)
         beta2_v = getattr(self.args, "beta2", None)
         muon_w_v = getattr(self.args, "muon_w", None)
-        nfs_sync_v = getattr(self.args, "nfs_sync", False)
-        for v, mod in ((grad_clip_v, grad_clip), (beta2_v, beta2_override), (muon_w_v, muon_w)):
+        for v, mod in ((beta2_v, beta2_override), (muon_w_v, muon_w)):
             if v is not None:
                 self.add_callback("on_train_start", mod.override(float(v)))
-        if nfs_sync_v:
-            sync_start, sync_end = nfs_sync.setup(str(paths.NFS_MIRROR_ROOT), interval_sec=paths.SYNC_INTERVAL_SEC)
-            self.add_callback("on_train_start", sync_start)
-            self.add_callback("on_train_end", sync_end)
 
         # WD cosine schedule: DINOv3 / DINOv2 / EUPE all ramp weight_decay from a small start
         # value to a larger end value over training. Reference shapes:
@@ -294,8 +288,8 @@ class ImageEncoderTrainer(ClassificationTrainer):
                 for name, sk in zip(self.teachers, self._safe_keys)
             }
             LOGGER.info(
-                f"ImageEncoderTrainer hooks: grad_clip={grad_clip_v} beta2={beta2_v} "
-                f"muon_w={muon_w_v} nfs_sync={nfs_sync_v} wd_end={wd_end_v}"
+                f"ImageEncoderTrainer hooks: beta2={beta2_v} muon_w={muon_w_v} wd_end={wd_end_v} "
+                f"nfs_sync={getattr(self.args, 'nfs_sync', False)} (starts in _setup_train)"
             )
             LOGGER.info(
                 f"ImageEncoderTrainer sizes: load={self._load_imgsz} student={self.args.imgsz}"
@@ -304,8 +298,14 @@ class ImageEncoderTrainer(ClassificationTrainer):
             )
 
     def _setup_train(self):
-        """Set bf16 autocast after AMP check to avoid poisoning the yolo26n detection test."""
+        """Set bf16 autocast after the AMP check, then start the NFS mirror for the training process."""
         super()._setup_train()
+        # Not in __init__: a DDP launcher builds this trainer (RANK=-1) but never trains, so both it and
+        # the rank-0 child would mirror one save_dir. _setup_train runs only in the process that trains.
+        if getattr(self.args, "nfs_sync", False):
+            from callbacks import nfs_sync  # runner-local package
+
+            self.add_callback("on_train_end", nfs_sync.start(self.save_dir))
         if self.amp:
             # bf16 instead of fp16: fp16 backbone produces nan on ~5% of DataComp-12M batches
             # (max 65504 vs bf16 sharing fp32 exponent range). Follows DUNE convention.
@@ -332,10 +332,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
         saved = getattr(model, "teacher_feature_stats", None)
         if saved:
             self._teacher_feature_stats = {
-                sk: {
-                    token_type: tuple(x.to(self.device) for x in values)
-                    for token_type, values in token_stats.items()
-                }
+                sk: {token_type: tuple(x.to(self.device) for x in values) for token_type, values in token_stats.items()}
                 for sk, token_stats in saved.items()
             }
             LOGGER.info("Loaded fixed teacher-output statistics from the resume checkpoint")
@@ -764,7 +761,9 @@ class ImageEncoderTrainer(ClassificationTrainer):
             knn = self._knn_eval(getattr(self.args, "knn_every", 5))
             metrics["knn/top1"] = round(knn[224], 4) if knn else float("nan")
             if self._high_res_imgsz:  # stable column: operating-res kNN in the tail, nan otherwise
-                metrics["knn/top1_hr"] = round(knn[self._high_res_imgsz], 4) if knn and self._high_res_imgsz in knn else float("nan")
+                metrics["knn/top1_hr"] = (
+                    round(knn[self._high_res_imgsz], 4) if knn and self._high_res_imgsz in knn else float("nan")
+                )
         return metrics, fitness
 
     def _knn_eval(self, every_n=5):
@@ -865,7 +864,6 @@ class ImageEncoderTrainer(ClassificationTrainer):
 
     def plot_training_samples(self, batch, ni):
         """Skip training sample plotting for distillation (no class labels)."""
-        pass
 
     def final_eval(self):
         """Rewrite the finished checkpoints in place as portable stock ClassificationModel weights (rank 0).

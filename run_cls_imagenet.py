@@ -25,11 +25,13 @@ Flags:
         per-arch summary of recipe, reference top-1, single-gpu constraint,
         and data path.
 
-Single-GPU only: muon_w + nfs_sync + wandb_config callbacks are registered via
+Single-GPU only: muon_w + wandb_config callbacks are registered via
 model.add_callback() and silently no-op under DDP respawn (utils/dist.py:79
-serializes the overrides dict, not the model callback list). For multi-GPU,
+serializes the overrides dict, not the model callback list). nfs_sync is started
+by this runner directly, so it no longer depends on a callback. For multi-GPU,
 subclass ClassificationTrainer and register inside __init__ instead.
 """
+
 import os
 import re
 import sys
@@ -53,8 +55,8 @@ def _pop_flag(argv: list[str], flag: str, is_bool: bool = False) -> tuple[list[s
         return argv, ""
     i = argv.index(flag)
     if is_bool:
-        return argv[:i] + argv[i + 1:], "true"
-    return argv[:i] + argv[i + 2:], argv[i + 1]
+        return argv[:i] + argv[i + 1 :], "true"
+    return argv[:i] + argv[i + 2 :], argv[i + 1]
 
 
 def _load_train_args(resume: str) -> dict:
@@ -113,9 +115,6 @@ def main(argv: list[str]) -> None:
 
     model = YOLO(model_yaml)
     model.add_callback("on_train_start", muon_w.override(0.1))
-    sync_start, sync_end = nfs_sync.setup(str(paths.NFS_MIRROR_ROOT), interval_sec=paths.SYNC_INTERVAL_SEC)
-    model.add_callback("on_train_start", sync_start)
-    model.add_callback("on_train_end", sync_end)
     model.add_callback(
         "on_pretrain_routine_start",
         wandb_config.log_config(
@@ -161,7 +160,9 @@ def main(argv: list[str]) -> None:
     )
     if resume:
         train_args["resume"] = resume
+    sync_stop = nfs_sync.start(train_args["save_dir"])
     model.train(**train_args)
+    sync_stop()
 
 
 if __name__ == "__main__":

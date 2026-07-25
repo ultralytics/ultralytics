@@ -193,4 +193,4 @@ Ascend AI Core convolutions accept only `DT_FLOAT16` and `DT_INT8` tensors. An F
 
 ### Which Ascend devices are supported?
 
-Any SoC that your installed CANN toolkit provides kernels for, selected through the `name` argument. Common targets are `Ascend310B4` for Atlas 200I A2 and OrangePi AIPro boards, and `Ascend310P3` for Atlas 300I inference cards.
+Any SoC that your installed CANN toolkit provides kernels for, selected through the `name` argument. Common targets are `Ascend310B4` for Atlas 200I A2 and OrangePi AIPro boards, and `Ascend310P3` for Atlas 300I inference cards. On [Ultralytics Platform](https://platform.ultralytics.com), Ascend310P targets are available now and the 310B boards are marked coming soon while their operator kernels are added to the build image.

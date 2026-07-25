@@ -51,7 +51,8 @@ PERSONALITIES = {  # mode-selection weights only; mutation kernel and classifier
     "predict-val": {"train": 0.05, "val": 0.35, "predict": 0.35, "track": 0.2, "export": 0.05},
     "chaos": {m: 0.2 for m in MODES},
 }
-STRATEGY_WEIGHTS = [("invalid", 0.35), ("combo", 0.35), ("malformed", 0.1), ("source", 0.2)]
+STRATEGY_WEIGHTS = [("invalid", 0.3), ("combo", 0.3), ("malformed", 0.1), ("source", 0.15), ("dataset", 0.15)]
+STRATEGY_MODES = {"source": {"predict", "track"}, "dataset": {"train", "val"}}  # strategies limited to some modes
 RESAMPLE_ATTEMPTS = 20  # draws allowed to find a command no recent run has executed before accepting a repeat
 HISTORY_DAYS = 7  # re-explore a command once its history entry ages past this, so regressions are resampled
 
@@ -129,6 +130,43 @@ PROBES = {  # boundary and wrong-type probes per typed key family (values are CL
 }
 CHAOS_PROBES = ["[]", "[1,2]", "{}", "🚀", "1e309", "nan", "-0"]  # chaos shard extras for any key, all invalid
 
+# Label file contents per dataset mutation; anything unlisted gets one well-formed box.
+LABEL_ROWS = {
+    "class-index-oob": "22 0.5 0.5 0.2 0.2",  # "Label class 22 exceeds dataset class count 1"
+    "coords-out-of-range": "0 1.5 0.5 0.2 0.2",
+    "negative-coords": "0 -0.5 0.5 0.2 0.2",
+    "wrong-columns": "0 0.5 0.5",
+    "nonnumeric": "cat 0.5 0.5 0.2 0.2",
+    "duplicate-rows": "0 0.5 0.5 0.2 0.2\n0 0.5 0.5 0.2 0.2",
+    "tiny-boxes": "0 0.5 0.5 0.0001 0.0001",
+    "background-only": "",
+}
+# Dataset mutation -> are its contents supported. `data` is otherwise pinned, leaving dataset loading — the
+# largest error surface by affected users in the package's telemetry — entirely unfuzzed. Background-only,
+# grayscale, webp and CRLF inputs ARE supported, so a deep failure on those is a T1 bug rather than a gap.
+DATASET_MUTATIONS = {
+    "baseline": True,
+    "background-only": True,
+    "mixed-background": True,
+    "grayscale": True,
+    "webp": True,
+    "crlf-labels": True,
+    "duplicate-rows": True,
+    "tiny-boxes": True,
+    "single-image": True,
+    "class-index-oob": False,
+    "coords-out-of-range": False,
+    "negative-coords": False,
+    "wrong-columns": False,
+    "nonnumeric": False,
+    "tiny-image": False,
+    "missing-val-key": False,
+    "missing-val-dir": False,
+    "nc-names-mismatch": False,
+    "bad-yaml": False,
+    "empty-train-dir": False,
+}
+
 # Valid-but-rare combinations (mode, extra args) — where the T1 semantic bugs live
 COMBO_POOL = [
     ("train", "rect=True"),
@@ -183,6 +221,8 @@ EXPECTED_MODULES = (
     "ultralytics/engine/trainer.py:_build_train_pipeline",  # actual train batch/imgsz validation before optimizer setup
     "ultralytics/engine/exporter.py:validate_args",  # exporter's intentional per-format argument validation
     "ultralytics/engine/exporter.py:__call__",  # intentional compat asserts; per-format bugs raise in deeper frames
+    "ultralytics/data/base.py:get_img_files",  # the image-discovery validation layer
+    "ultralytics/data/dataset.py:cache_labels",  # raises the clean "No labels found" summary; get_labels does not
 )
 NETWORK_MARKERS = (  # specific download/network signatures only; bare ConnectionError is raised for local sources too
     "urlopen error",
@@ -240,6 +280,57 @@ def precache_assets(uni):
         attempt_download_asset(WEIGHTS_DIR / model)
 
     prepare_sources(uni)
+    prepare_datasets(uni)
+
+
+def prepare_datasets(uni):
+    """Create the synthetic detect datasets used by dataset trials, one directory per mutation."""
+    from ultralytics.utils import WEIGHTS_DIR
+
+    root = WEIGHTS_DIR.parent / "fuzz-datasets"
+    uni["datasets"] = [(str(make_dataset(root / name, name)), valid) for name, valid in DATASET_MUTATIONS.items()]
+
+
+def make_dataset(root, mutation):
+    """Build one synthetic detect dataset under root and return the path to its YAML.
+
+    Generated entirely on disk with no downloads, so the whole pool is a few KB of 64px images against the
+    multi-MB curated corpora. Each mutation reproduces a failure signature users actually hit.
+    """
+    from PIL import Image
+
+    shutil.rmtree(root, ignore_errors=True)
+    extension = "webp" if mutation == "webp" else "jpg"
+    image_mode = "L" if mutation == "grayscale" else "RGB"
+    size = (8, 8) if mutation == "tiny-image" else (64, 64)  # the loader requires >9px, so 8px is a rejection
+    rows = LABEL_ROWS.get(mutation, "0 0.5 0.5 0.2 0.2")
+    if mutation == "crlf-labels":
+        rows = rows.replace("\n", "\r\n") + "\r\n"
+    count = 1 if mutation == "single-image" else 4
+    for split in ("train", "val"):
+        images, labels = root / "images" / split, root / "labels" / split
+        images.mkdir(parents=True, exist_ok=True)
+        labels.mkdir(parents=True, exist_ok=True)
+        if mutation == "empty-train-dir" and split == "train":
+            continue
+        for i in range(count):
+            shade = i * 60 % 256
+            Image.new(image_mode, size, shade if image_mode == "L" else (shade, shade, 90)).save(
+                images / f"{i}.{extension}"
+            )
+            # mixed-background leaves only the odd images labelled, the batch composition all-background misses
+            (labels / f"{i}.txt").write_text("" if mutation == "mixed-background" and i % 2 == 0 else rows)
+    if mutation == "missing-val-dir":
+        shutil.rmtree(root / "images" / "val")
+    yaml = f"path: {root}\ntrain: images/train\nval: images/val\nnames:\n  0: item\n"
+    if mutation == "missing-val-key":
+        yaml = f"path: {root}\ntrain: images/train\nnames:\n  0: item\n"
+    elif mutation == "nc-names-mismatch":
+        yaml = f"path: {root}\ntrain: images/train\nval: images/val\nnc: 1\nnames: [a, b, c, d]\n"
+    elif mutation == "bad-yaml":
+        yaml = f"path: {root}\ntrain: [images/train\nval: images/val\nnames: {{0: item\n"
+    (root / "data.yaml").write_text(yaml)
+    return root / "data.yaml"
 
 
 def prepare_sources(uni):
@@ -314,13 +405,15 @@ def build_corpus(uni):
 
 
 def sample_trial(rng, uni, corpus, personality):
-    """Sample one trial with canonical arguments from invalid, valid-combination, or source strategies."""
+    """Sample one trial with canonical arguments from one of the mutation strategies."""
     weights = PERSONALITIES[personality]
     mode = rng.choices(MODES, weights=[weights[m] for m in MODES])[0]
-    base = rng.choice([c for c in corpus if c["mode"] == mode])
-    argv, mutated = list(base["argv"]), []
-    strategies = [(s, w) for s, w in STRATEGY_WEIGHTS if s != "source" or mode in {"predict", "track"}]
+    strategies = [(s, w) for s, w in STRATEGY_WEIGHTS if mode in STRATEGY_MODES.get(s, MODES)]
     strategy = rng.choices([s for s, _ in strategies], weights=[w for _, w in strategies])[0]
+    # the synthetic datasets are detect-format, so dataset trials must start from a detect base
+    pool = [c for c in corpus if c["mode"] == mode and (strategy != "dataset" or c["task"] == "detect")]
+    base = rng.choice(pool)
+    argv, mutated = list(base["argv"]), []
 
     validity = {}  # key -> is its EFFECTIVE value supported: stripped args contribute nothing, duplicates last-win
 
@@ -374,6 +467,11 @@ def sample_trial(rng, uni, corpus, personality):
             key = token.partition("=")[0]
             mutated.append(key)
             validity[key] = False
+    elif strategy == "dataset":  # `data` is pinned for every other strategy; this one owns swapping it out
+        dataset, valid = rng.choice(uni["datasets"])
+        mutate([f"data={dataset}"], valid=valid)
+        mutate_combos(max_groups=2)  # combine with rect/single_cls/etc, where dataset-shape bugs actually surface
+        mutate_boundary()
     else:
         source, valid = rng.choice(uni["sources"][mode])
         mutate([f"source={source}"], valid=valid)
@@ -545,6 +643,18 @@ def classify(trial, rc, stderr):
         or (exc == "NotImplementedError" and "not found in list of available optimizers" in stderr)
         or (exc == "ValueError" and "Expected `mode` to be `flip` or `mixup`" in stderr)
         or (exc == "AssertionError" and "RTDETR export requires opset>=16" in stderr)
+        # Both dataset-validation layers summarise as RuntimeError, so the wrapper — not data/utils.py — is the
+        # deepest frame: get_dataset re-raises YAML errors, and get_labels reports the per-file reasons once the
+        # label cache exists (an uncached first trial raises ValueError from cache_labels instead). Excused only
+        # for trials that deliberately supplied an unsupported dataset: a supported one failing here, or a
+        # malformed one failing anywhere else, still reports.
+        or (
+            exc == "RuntimeError"
+            and trial.get("strategy") == "dataset"
+            and not trial.get("valid_input", True)
+            and frames
+            and frames[-1] in {"ultralytics/engine/trainer.py:get_dataset", "ultralytics/data/dataset.py:get_labels"}
+        )
         or (exc in EXPECTED_TYPES and frames and frames[-1].startswith(EXPECTED_MODULES))
     ):
         return "expected", None, None  # clean validation errors are expected only for trials we actually mutated
@@ -726,14 +836,18 @@ def cmd_repro(args):
         argv = argv[1:]
 
     def portable(arg):
-        """Remap runner-local absolute model/source paths from issue commands to this machine's copies."""
+        """Remap runner-local absolute model/source/data paths from issue commands to this machine's copies."""
         k, _, v = arg.partition("=")
-        if k in {"model", "source"} and ("/" in v or "\\" in v) and not Path(v).exists():
+        if k in {"model", "source", "data"} and ("/" in v or "\\" in v) and not Path(v).exists():
             from ultralytics.utils import ASSETS, WEIGHTS_DIR
 
             # PureWindowsPath splits on both separators, so Windows-origin issue commands remap on any OS.
             if k == "model":
                 candidates = [WEIGHTS_DIR / PureWindowsPath(v).name]
+            elif k == "data":  # every synthetic dataset yaml is data.yaml, so the mutation directory identifies it
+                prepare_datasets(uni)
+                mutation = PureWindowsPath(v).parent.name
+                candidates = [Path(p) for p, _valid in uni["datasets"] if Path(p).parent.name == mutation]
             else:
                 prepare_sources(uni)
                 candidates = [ASSETS, ASSETS / PureWindowsPath(v).name]

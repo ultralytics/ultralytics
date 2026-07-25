@@ -78,6 +78,15 @@ jobs:
           restore-keys: |
             ultralytics-fuzz-assets-${{ runner.os }}-
             ultralytics-test-assets-${{ runner.os }}-
+      - name: Cache fuzz exploration history
+        # Separate from the asset cache: this entry is rewritten every run (cache keys are immutable, so the key
+        # carries the run id and restore-keys picks up the newest prior entry) while the multi-GB assets are not.
+        uses: actions/cache@v6
+        with:
+          path: fuzz-history
+          key: ultralytics-fuzz-history-${{ matrix.personality }}-${{ github.run_id }}
+          restore-keys: |
+            ultralytics-fuzz-history-${{ matrix.personality }}-
       - name: Precache fuzz assets
         if: github.event.inputs.repro_command == ''
         uses: ultralytics/actions/retry@main
@@ -94,6 +103,7 @@ jobs:
             --budget-minutes "$MINUTES" \
             --seed ${{ github.run_id }} \
             --personality ${{ matrix.personality }} \
+            --history fuzz-history/${{ matrix.personality }}.txt \
             --out fuzz-out
       - name: Reproduce command
         if: github.event.inputs.repro_command != '' && matrix.personality == 'chaos'

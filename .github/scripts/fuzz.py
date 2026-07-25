@@ -51,7 +51,10 @@ PERSONALITIES = {  # mode-selection weights only; mutation kernel and classifier
     "predict-val": {"train": 0.05, "val": 0.35, "predict": 0.35, "track": 0.2, "export": 0.05},
     "chaos": {m: 0.2 for m in MODES},
 }
-STRATEGY_WEIGHTS = [("invalid", 0.4), ("combo", 0.4), ("source", 0.2)]
+STRATEGY_WEIGHTS = [("invalid", 0.35), ("combo", 0.35), ("malformed", 0.1), ("source", 0.2)]
+SOURCE_MODES = {"predict", "track"}  # the `source` strategy only applies where a source argument is meaningful
+RESAMPLE_ATTEMPTS = 20  # draws allowed to find a command no prior run has executed before accepting a repeat
+HISTORY_LIMIT = 200_000  # explored-command hashes retained across runs (~3MB, ~50 days at current throughput)
 
 # Cost/hazard keys pinned to clamped known-good values, never mutated (`time` is training duration in HOURS)
 NEVER_MUTATE = frozenset(
@@ -62,7 +65,6 @@ NEVER_MUTATE = frozenset(
         "imgsz",
         "batch",
         "workers",
-        "device",
         "source",
         "project",
         "name",
@@ -116,6 +118,9 @@ ENUM_POOLS = {
     "auto_augment": {"valid": ["randaugment", "autoaugment", "augmix"], "invalid": ["randaug", ""]},
     "copy_paste_mode": {"valid": ["flip", "mixup"], "invalid": ["paste", ""]},
     "quantize": {"valid": ["fp16", "w8a8", "none"], "invalid": ["half", "int8_dynamic", "int4"]},
+    # CPU runners make every accelerator request invalid; `mps` is genuinely valid on the macOS shard, so an mps
+    # failure there tiers T2 instead of T1. Accepted: select_device is the layer under test, not the tier.
+    "device": {"valid": ["cpu"], "invalid": ["0,1", "cuda:5", "mps", "-1", "gpu0", "0"]},
 }
 PROBES = {  # boundary and wrong-type probes per typed key family (values are CLI strings)
     "fraction": {"valid": ["0.0", "1.0", "0.5"], "invalid": ["-0.1", "1.5", "half", "True", "none"]},
@@ -124,6 +129,17 @@ PROBES = {  # boundary and wrong-type probes per typed key family (values are CL
     "float": {"valid": ["0.0", "0.1", "10"], "invalid": ["-5", "big", "none"]},
 }
 CHAOS_PROBES = ["[]", "[1,2]", "{}", "🚀", "1e309", "nan", "-0"]  # chaos shard extras for any key, all invalid
+MALFORMED_KERNELS = [  # token-level CLI corruptions; see malformed_tokens()
+    "no_equals",
+    "bad_mode",
+    "bad_task",
+    "bare_word",
+    "dash_flag",
+    "empty_value",
+    "double_equals",
+    "split_list",
+    "typo_key",
+]
 
 # Valid-but-rare combinations (mode, extra args) — where the T1 semantic bugs live
 COMBO_POOL = [
@@ -172,6 +188,7 @@ EXPECTED_TYPES = {"SyntaxError", "ValueError", "TypeError", "AssertionError", "F
 EXPECTED_MODULES = (
     "ultralytics/cfg/__init__.py",
     "ultralytics/utils/checks.py",
+    "ultralytics/utils/torch_utils.py:select_device",  # the device-validation layer; its ValueError is intentional
     "ultralytics/data/utils.py",
     "ultralytics/data/augment.py:classify_augmentations",
     "ultralytics/data/loaders.py:__init__",  # source loaders ARE the source-validation layer; their raises are clean
@@ -314,7 +331,7 @@ def sample_trial(rng, uni, corpus, personality):
     mode = rng.choices(MODES, weights=[weights[m] for m in MODES])[0]
     base = rng.choice([c for c in corpus if c["mode"] == mode])
     argv, mutated = list(base["argv"]), []
-    strategies = STRATEGY_WEIGHTS if mode in {"predict", "track"} else STRATEGY_WEIGHTS[:2]
+    strategies = [(s, w) for s, w in STRATEGY_WEIGHTS if s != "source" or mode in SOURCE_MODES]
     strategy = rng.choices([s for s, _ in strategies], weights=[w for _, w in strategies])[0]
 
     validity = {}  # key -> is its EFFECTIVE value supported: stripped args contribute nothing, duplicates last-win
@@ -363,6 +380,12 @@ def sample_trial(rng, uni, corpus, personality):
         for _ in range(n_keys):
             key, value, valid = sample_mutation(rng, uni, chaos=personality == "chaos")
             mutate([f"{key}={value}"], valid=valid)
+    elif strategy == "malformed":  # appended raw: these tokens are deliberately not well-formed k=v pairs
+        for token in malformed_tokens(rng):
+            argv.append(token)
+            key = token.partition("=")[0]
+            mutated.append(key)
+            validity[key] = False
     else:
         source, valid = rng.choice(uni["sources"][mode])
         mutate([f"source={source}"], valid=valid)
@@ -407,6 +430,35 @@ def sample_mutation(rng, uni, chaos=False):
         return key, value, valid and probe_supported(key, value)
     value = rng.choice(pool["valid"] + pool["invalid"] + (CHAOS_PROBES if chaos else []))
     return key, value, value in pool["valid"] and probe_supported(key, value)
+
+
+def malformed_tokens(rng):
+    """Build CLI tokens malformed at the token level, the way users actually mistype `yolo` commands.
+
+    Value mutation alone never produces a malformed *token*, so the argument parser only ever sees well-formed
+    `k=v` pairs with known keys. Each kernel here mirrors a real signature from the package's own telemetry,
+    where `ultralytics.cfg:entrypoint` is a top error surface by user count. All of them should raise a clean
+    SyntaxError or ValueError from the cfg layer; anything deeper is a validation gap.
+    """
+    key = rng.choice(["data", "epochs", "imgsz", "conf", "model", "source"])
+    kernel = rng.choice(MALFORMED_KERNELS)
+    if kernel == "no_equals":
+        return [key]  # "'data' is a valid YOLO argument but is missing an '=' sign"
+    if kernel == "bad_mode":
+        return [f"mode={rng.choice(['checks', 'settings', 'help', 'traln'])}"]
+    if kernel == "bad_task":
+        return [f"task={rng.choice(['detection', 'segmentaion', 'classify_', ''])}"]
+    if kernel == "bare_word":
+        return [rng.choice(["yolo", "epochs10", "?", "coco8"])]
+    if kernel == "dash_flag":
+        return [f"{rng.choice(['--', '-'])}{key}", "1"]
+    if kernel == "empty_value":
+        return [f"{key}="]
+    if kernel == "double_equals":
+        return [f"{key}==1"]
+    if kernel == "split_list":
+        return ["classes=[0,", "2]"]  # an unquoted list the shell split into two tokens
+    return [f"{rng.choice(['epocs', 'imgz', 'batchsize', 'devise'])}=1"]  # near-miss key: exercises did-you-mean
 
 
 def run_trial(trial, timeout=None):
@@ -522,6 +574,23 @@ def stderr_tail(stderr, lines=30):
     return "\n".join(stderr.strip().splitlines()[-lines:])
 
 
+def command_hash(argv):
+    """Return a stable short hash of one exact command, used to dedupe draws within and across runs."""
+    return hashlib.sha256("\x00".join(argv).encode()).hexdigest()[:16]
+
+
+def read_history(path):
+    """Load the ordered command hashes explored by prior runs (empty when unset or absent)."""
+    return Path(path).read_text().split() if path and Path(path).exists() else []
+
+
+def write_history(path, history, new_keys):
+    """Persist this run's newly explored hashes, retaining the most recent HISTORY_LIMIT entries."""
+    if path:
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+        Path(path).write_text("\n".join([*history, *new_keys][-HISTORY_LIMIT:]))
+
+
 def cmd_fuzz(args):
     """Run the budgeted fuzzing loop and write trials JSONL + findings JSON for the report job."""
     uni = load_universe()
@@ -607,31 +676,41 @@ def cmd_fuzz(args):
         changed = " ".join(a for a in trial["argv"] if a.partition("=")[0] in set(trial.get("mutated", [])))
         log.info(f"[fuzz] #{n} {outcome:>13} {duration:6.1f}s  yolo {trial['mode']} {trial['task']} {changed}".rstrip())
 
-    executed, duplicate_samples = set(), 0
+    history = read_history(args.history)  # commands explored by every prior run, so each run breaks new ground
+    explored, new_keys, duplicate_samples, saturated_samples = set(history), [], 0, 0
+    log.info(f"[fuzz] history: {len(history)} commands explored by prior runs")
     for base in corpus:  # canaries first: unmutated corpus must pass or the environment itself is broken
         if time.time() > deadline or (args.max_trials and n >= args.max_trials):
             break
-        executed.add(tuple(base["argv"]))
+        explored.add(command_hash(base["argv"]))
         execute(dict(base), canary=True)
     while time.time() < deadline and (not args.max_trials or n < args.max_trials):
         if shutil.disk_usage(tempfile.gettempdir()).free < MIN_FREE_GB * 1024**3:
             log.warning(f"[fuzz] stopping early: <{MIN_FREE_GB}GB free disk")
             break
-        trial = sample_trial(rng, uni, corpus, args.personality)
-        command = tuple(trial["argv"])
-        if command in executed:
+        for _ in range(RESAMPLE_ATTEMPTS):  # redraw until the command is one no run has executed before
+            trial = sample_trial(rng, uni, corpus, args.personality)
+            key = command_hash(trial["argv"])
+            if key not in explored:
+                break
             duplicate_samples += 1
-            continue
-        executed.add(command)
+        if key in explored:  # the reachable space is saturated for this personality: run the repeat rather than spin
+            saturated_samples += 1
+        else:
+            explored.add(key)
+            new_keys.append(key)
         execute(trial)
+    write_history(args.history, history, new_keys)
 
     infra_failed = bool(canary_results) and (canary_results.count(False) / len(canary_results)) > CANARY_FAIL_FRACTION
     summary = {
         "personality": args.personality,
         "seed": args.seed,
         "trials": n,
-        "unique_commands": len(executed),
+        "unique_commands": len(new_keys),  # never executed by this or any prior run
         "duplicate_samples": duplicate_samples,
+        "saturated_samples": saturated_samples,  # draws that repeated a prior command after RESAMPLE_ATTEMPTS
+        "history_size": len(history) + len(new_keys),
         "counters": counters,
         "infra_failed": infra_failed,
         "findings": sorted(findings.values(), key=lambda x: (x["tier"], x["signature"])),
@@ -701,7 +780,8 @@ def cmd_report(args):
         print("[report] no findings files found")
         return
     run_url = f"https://github.com/{args.repo}/actions/runs/{os.environ.get('GITHUB_RUN_ID', '')}"
-    findings, counters, flagged, unique_commands, duplicate_samples = {}, {}, [], 0, 0
+    findings, counters, flagged = {}, {}, []
+    unique_commands = duplicate_samples = saturated_samples = history_size = 0
     for shard in shards:
         for k, v in shard["counters"].items():
             counters[k] = counters.get(k, 0) + v
@@ -709,6 +789,8 @@ def cmd_report(args):
             flagged.append(shard["personality"])
         unique_commands += shard.get("unique_commands", shard["trials"])
         duplicate_samples += shard.get("duplicate_samples", 0)
+        saturated_samples += shard.get("saturated_samples", 0)
+        history_size += shard.get("history_size", 0)
         for f in shard["findings"]:
             prev = findings.get(f["signature"])
             if not prev or (prev["tier"] == "T2" and f["tier"] == "T1"):  # prefer the T1 view of a shared signature
@@ -853,7 +935,8 @@ def cmd_report(args):
     summary = (
         f"## Fuzz — {total} trials\n\n"
         + "\n".join(table)
-        + f"\n\nExploration: {unique_commands} unique commands · {duplicate_samples} duplicate samples skipped"
+        + f"\n\nExploration: {unique_commands} never-before-run commands · {duplicate_samples} duplicate draws"
+        + f" · {saturated_samples} saturated · {history_size} commands explored all-time"
         + f"\n\nNew issue threads created: {created} (cap {args.max_issues})"
         + (f" · ⚠️ shards with >20% canary failures: {', '.join(flagged)}" if flagged else "")
     )
@@ -908,6 +991,7 @@ def main():
     p.add_argument("--personality", choices=sorted(PERSONALITIES), default="chaos")
     p.add_argument("--out", default="fuzz-out")
     p.add_argument("--max-trials", type=int, default=0, help="optional hard trial cap (smoke tests)")
+    p.add_argument("--history", default=None, help="file of command hashes explored by prior runs, read and updated")
     p.add_argument("--debug-timeout", type=float, default=None, help="override all trial timeouts (test hang path)")
 
     p = sub.add_parser("repro", help="replay one exact command and classify it")

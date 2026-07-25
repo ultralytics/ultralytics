@@ -76,7 +76,7 @@ def test_export_onnx_parity(end2end, isolated_model):
     """
     imgsz = 640  # large enough for detections on bus.jpg
     file = YOLO(isolated_model).export(format="onnx", imgsz=imgsz, end2end=end2end)
-    pt_results = YOLO(isolated_model)(SOURCE, imgsz=imgsz, verbose=False)
+    pt_results = YOLO(isolated_model)(SOURCE, imgsz=imgsz, end2end=end2end, verbose=False)
     onnx_results = YOLO(file)(SOURCE, imgsz=imgsz, verbose=False)
     pt_boxes = pt_results[0].boxes
     onnx_boxes = onnx_results[0].boxes

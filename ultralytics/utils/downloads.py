@@ -389,6 +389,7 @@ def safe_download(
                 except MemoryError:
                     raise  # Re-raise immediately - no point retrying if insufficient disk space
                 except Exception as e:
+                    f.unlink(missing_ok=True)  # a partial file is served as a cache hit by the is_file() check above
                     if i == 0 and not is_online():
                         raise ConnectionError(
                             emojis(f"❌  Download failure for {uri}. Environment may be offline.")

@@ -87,7 +87,7 @@ class ONNXBackend(BaseBackend):
             try:
                 self.session = onnxruntime.InferenceSession(weight, providers=providers)
             except onnxruntime.capi.onnxruntime_pybind11_state.InvalidProtobuf as e:
-                # ONNX Runtime reports an unparseable graph as a raw protobuf error naming neither the problem
+                # ONNX Runtime reports an unparsable graph as a raw protobuf error naming neither the problem
                 # nor a remedy. Only this one type is caught: other load failures are execution-provider or
                 # model-support issues, where the runtime's own message is the useful one.
                 raise TypeError(

@@ -48,6 +48,7 @@ from ultralytics.nn.modules import (
     Conv2,
     ConvTranspose,
     DINOv3,
+    DINOv3RoPE2D,
     DEIMDINOv3ConvNeXt,
     DEIMDINOv3STAs,
     DEIMEUPEConvNeXt,
@@ -59,7 +60,6 @@ from ultralytics.nn.modules import (
     DWConvTranspose2d,
     FastViTBlock,
     Focus,
-    FracRoPE2D,
     GhostBottleneck,
     GhostConv,
     HGBlock,
@@ -69,6 +69,7 @@ from ultralytics.nn.modules import (
     LayerNorm2d,
     LRPCHead,
     MHSABlock,
+    MixedRoPE2D,
     PooledMHSABlock,
     Pose,
     Pose26,
@@ -81,6 +82,7 @@ from ultralytics.nn.modules import (
     RepUltraViTBlock,
     RepVGGDW,
     ResNetLayer,
+    RoPE2DBlock,
     RTDETRDecoder,
     RTDETRDecoderv2,
     SCDown,
@@ -273,8 +275,8 @@ class BaseModel(torch.nn.Module):
                 if isinstance(m, RepVGGDW):
                     m.fuse()
                     m.forward = m.forward_fuse
-                if isinstance(m, FracRoPE2D):
-                    m.switch_to_deploy(m.rope_hw[0])  # rebake RoPE buffers at the current grid for deploy
+                if isinstance(m, RoPE2DBlock):
+                    m.switch_to_deploy()  # rebake RoPE buffers at the current grid for deploy
                 if isinstance(m, AnchorPoolQueryMix):
                     m.fuse()
                     m.forward = m.forward_fuse
@@ -1992,7 +1994,8 @@ def parse_model(d, ch, verbose=True):
                 RepUltraViTBlock,
                 FastViTBlock,
                 MHSABlock,
-                FracRoPE2D,
+                DINOv3RoPE2D,
+                MixedRoPE2D,
                 WindowMHSABlock,
                 PooledMHSABlock,
                 AnchorPoolQueryMix,

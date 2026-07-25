@@ -38,12 +38,11 @@ def _ssim(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 def photometric_disp_loss(disp: torch.Tensor, imgs: torch.Tensor, smooth_w: float = 0.1) -> torch.Tensor:
     """Dense self-supervised left-right photometric consistency on a P3-grid disparity map.
 
-    Warps the right view by the predicted dense disparity (u_R = u_L - d) and penalizes photometric
-    error (0.85*SSIM + 0.15*L1, monodepth weighting) against the left view, plus an edge-aware
-    disparity smoothness term. The P3 disparity map is bilinearly upsampled and the warp runs at
-    FULL image resolution: low-resolution warping is too blurry to supervise the 1-2 px matching
-    precision that stereo depth needs. Supervises every pixel — a dense correspondence signal that
-    a monocular predictor can only satisfy by producing true disparity everywhere.
+    Warps the right view by the predicted dense disparity (u_R = u_L - d) and penalizes photometric error (0.85*SSIM +
+    0.15*L1, monodepth weighting) against the left view, plus an edge-aware disparity smoothness term. The P3 disparity
+    map is bilinearly upsampled and the warp runs at FULL image resolution: low-resolution warping is too blurry to
+    supervise the 1-2 px matching precision that stereo depth needs. Supervises every pixel — a dense correspondence
+    signal that a monocular predictor can only satisfy by producing true disparity everywhere.
 
     Args:
         disp: [B, 1, H/8, W/8] width-normalized disparity (linear, >=0) on the P3 grid.
@@ -83,13 +82,13 @@ def photometric_disp_loss(disp: torch.Tensor, imgs: torch.Tensor, smooth_w: floa
 def photometric_lr_loss(lr_map: torch.Tensor, imgs: torch.Tensor, smooth_w: float = 0.1) -> torch.Tensor:
     """Photometric consistency on the lr_distance head output (log width-normalized disparity).
 
-    Requires well-textured imagery: on largely textureless scenes the photometric gradient is
-    ambiguous and, combined with a weak supervised lr_distance weight, lets background disparities
-    drift unbounded. Keep this loss disabled (the default) for such datasets.
+    Requires well-textured imagery: on largely textureless scenes the photometric gradient is ambiguous and, combined
+    with a weak supervised lr_distance weight, lets background disparities drift unbounded. Keep this loss disabled (the
+    default) for such datasets.
 
     Args:
-        lr_map: [B, 1, HW] lr_distance head output (log of width-normalized disparity); the first
-            (H/8)*(W/8) entries (P3) are used.
+        lr_map: [B, 1, HW] lr_distance head output (log of width-normalized disparity); the first (H/8)*(W/8) entries
+            (P3) are used.
         imgs: [B, 6, H, W] letterboxed stereo pair in [0, 1] (left = ch 0-2, right = ch 3-5).
         smooth_w: Weight of the edge-aware smoothness term.
 

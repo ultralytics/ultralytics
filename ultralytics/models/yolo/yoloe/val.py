@@ -209,4 +209,3 @@ class YOLOEDetectValidator(DetectionValidator):
 
 class YOLOESegValidator(YOLOEDetectValidator, SegmentationValidator):
     """YOLOE segmentation validator that supports both text and visual prompt embeddings."""
-

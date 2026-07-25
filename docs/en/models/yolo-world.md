@@ -322,22 +322,22 @@ This approach provides a powerful means of customizing state-of-the-art [object 
         from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
 
         # Option 1: Use Python dictionary
-        data = dict(
-            train=dict(
-                yolo_data=["Objects365.yaml"],
-                grounding_data=[
-                    dict(
-                        img_path="flickr30k/images",
-                        json_file="flickr30k/final_flickr_separateGT_train.json",
-                    ),
-                    dict(
-                        img_path="GQA/images",
-                        json_file="GQA/final_mixed_train_no_coco.json",
-                    ),
+        data = {
+            "train": {
+                "yolo_data": ["Objects365.yaml"],
+                "grounding_data": [
+                    {
+                        "img_path": "flickr30k/images",
+                        "json_file": "flickr30k/final_flickr_separateGT_train.json",
+                    },
+                    {
+                        "img_path": "GQA/images",
+                        "json_file": "GQA/final_mixed_train_no_coco.json",
+                    },
                 ],
-            ),
-            val=dict(yolo_data=["lvis.yaml"]),
-        )
+            },
+            "val": {"yolo_data": ["lvis.yaml"]},
+        }
 
         # Option 2: Use YAML file (yolo_world_data.yaml)
         # train:

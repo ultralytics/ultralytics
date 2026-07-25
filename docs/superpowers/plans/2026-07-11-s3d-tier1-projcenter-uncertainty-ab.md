@@ -67,31 +67,31 @@ Expected: FAIL — `AttributeError: 'Stereo3DDetHead' object has no attribute 'e
 In `head.py`, add to `Stereo3DDetHead` (reuse existing `_branch`, `_deep_branch`, and the `hidden`/`depth_hidden` sizing from `__init__` — store them as `self._hidden`, `self._depth_hidden`, `self._ch` in `__init__` so the enable methods can rebuild branches):
 
 ```python
-    def enable_proj_center(self) -> None:
-        """Add the projected-3D-center offset branch (2ch: Δu, Δv). Idempotent."""
-        if "proj_offset" in self.aux_specs:
-            return
-        self.aux_specs["proj_offset"] = 2
-        self.aux["proj_offset"] = nn.ModuleList(_branch(x, 2, self._hidden) for x in self._ch)
+def enable_proj_center(self) -> None:
+    """Add the projected-3D-center offset branch (2ch: Δu, Δv). Idempotent."""
+    if "proj_offset" in self.aux_specs:
+        return
+    self.aux_specs["proj_offset"] = 2
+    self.aux["proj_offset"] = nn.ModuleList(_branch(x, 2, self._hidden) for x in self._ch)
 
-    def enable_depth_uncertainty(self) -> None:
-        """Widen the lr_distance branch to emit a log-variance channel and flag NLL/decode use. Idempotent."""
-        if getattr(self, "use_uncertainty", False):
-            return
-        self.use_uncertainty = True
-        self.aux_specs["lr_distance"] = 2  # value + log-variance
-        branches = [_deep_branch(x + (self.cv_ch if i == 0 else 0), 2, self._depth_hidden)
-                    for i, x in enumerate(self._ch)]
-        self.aux["lr_distance"] = nn.ModuleList(branches)
+
+def enable_depth_uncertainty(self) -> None:
+    """Widen the lr_distance branch to emit a log-variance channel and flag NLL/decode use. Idempotent."""
+    if getattr(self, "use_uncertainty", False):
+        return
+    self.use_uncertainty = True
+    self.aux_specs["lr_distance"] = 2  # value + log-variance
+    branches = [_deep_branch(x + (self.cv_ch if i == 0 else 0), 2, self._depth_hidden) for i, x in enumerate(self._ch)]
+    self.aux["lr_distance"] = nn.ModuleList(branches)
 ```
 
 Add `self.use_uncertainty = False`, `self._hidden = hidden`, `self._depth_hidden = depth_hidden`, `self._ch = ch` in `__init__` (near the existing `hidden`/`depth_hidden` computation). In `forward_head`, after the aux loop, split the uncertainty channel:
 
 ```python
-        if getattr(self, "use_uncertainty", False) and "lr_distance" in preds:
-            lr = preds["lr_distance"]
-            preds["lr_distance"] = lr[:, :1]        # value
-            preds["lr_logvar"] = lr[:, 1:2]         # log-variance
+if getattr(self, "use_uncertainty", False) and "lr_distance" in preds:
+    lr = preds["lr_distance"]
+    preds["lr_distance"] = lr[:, :1]  # value
+    preds["lr_logvar"] = lr[:, 1:2]  # log-variance
 ```
 
 In `model.py`, alongside the existing `depth_mode` handling (~line 47-53):
@@ -274,11 +274,14 @@ Expected: FAIL — `Stereo3DDetLoss.__init__() got an unexpected keyword argumen
 In `loss.py` `__init__`, add `use_proj_center: bool = False` and `use_uncertainty: bool = False` params, store on `self`. In `_compute_aux_losses`, extend the key loop to include `"proj_offset"` mapped to a `proj_center` loss via the existing `_aux_loss` (smooth-L1) path:
 
 ```python
-        if self.use_proj_center and "proj_offset" in aux_targets and "proj_offset" in aux_preds:
-            aux_losses["proj_center"] = self._aux_loss(
-                aux_preds["proj_offset"], aux_targets["proj_offset"].to(self.device),
-                target_gt_idx, fg_mask, aux_weights,
-            )
+if self.use_proj_center and "proj_offset" in aux_targets and "proj_offset" in aux_preds:
+    aux_losses["proj_center"] = self._aux_loss(
+        aux_preds["proj_offset"],
+        aux_targets["proj_offset"].to(self.device),
+        target_gt_idx,
+        fg_mask,
+        aux_weights,
+    )
 ```
 
 Add `proj_offset` to the `aux_keys` set in `loss()` (line 269) and extend the `loss` tensor to 7 slots, tallying `proj_center` with weight `self.aux_w.get("proj_center", 1.0)`. In `model.py::init_criterion`, read `use_proj_center`/`use_depth_uncertainty` from the training block and pass them to `Stereo3DDetLoss(...)`.

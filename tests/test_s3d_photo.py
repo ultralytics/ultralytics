@@ -9,8 +9,8 @@ import torch
 def _stereo_pair_with_disparity(d_px: int, h: int = 64, w: int = 128):
     """Build a 6-ch stereo image where the right view is the left shifted by d_px (uniform disparity).
 
-    Convention: u_R = u_L − d, so right content sits d px to the LEFT of its left-image position,
-    i.e. right = roll(left, −d) along width.
+    Convention: u_R = u_L − d, so right content sits d px to the LEFT of its left-image position, i.e. right =
+    roll(left, −d) along width.
     """
     g = torch.Generator().manual_seed(0)
     left = torch.rand(1, 3, h, w, generator=g)

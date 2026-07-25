@@ -1,8 +1,5 @@
-# EUPE Stage 3 multires continuation. 15 epochs matches Sec 4.1's image budget:
-# 100k * 4096 / (390k * 8192) * 114 = 14.6. No lrf key: main() sets 0.01 on every phase1 run.
-# lr0/weight_decay/warmup_epochs match RECIPES["dinov3_lowwd"] by coincidence, not by reference.
-# source (verified equal on all 4 multires runs):
-# phase1-12src-ultravit-x-repmixer-fastvitffn-attn2-dinoreg-dinov3-vitl16-eupe-multires/args.yaml
+# EUPE Stage 3 multires continuation. 15 epochs = Sec 4.1's image budget: 100k*4096/(390k*8192)*114 = 14.6.
+# source: phase1-12src-ultravit-x-repmixer-fastvitffn-attn2-dinoreg-dinov3-vitl16-eupe-multires/args.yaml
 batch: 512
 epochs: 15
 imgsz: 256

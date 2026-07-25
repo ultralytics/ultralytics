@@ -1805,11 +1805,21 @@ def torch_safe_load(weight, safe_only=None):
     try:
         ckpt = _load()
 
-    except RuntimeError as e:
+    except (RuntimeError, EOFError, pickle.UnpicklingError) as e:
+        # An unreadable file reaches here as one of three loader-internal errors depending on how it is damaged:
+        # RuntimeError for a truncated zip, EOFError for an empty one, UnpicklingError for arbitrary bytes.
+        if isinstance(e, RuntimeError) and "PytorchStreamReader" not in str(e):
+            raise  # an unrelated RuntimeError is a real failure, not a damaged file
         # Recover only a corrupt cached official asset requested by bare name; never touch user-supplied paths.
         name = Path(str(weight)).name
-        if "PytorchStreamReader" not in str(e) or str(weight) != name or name not in GITHUB_ASSETS_NAMES:
-            raise
+        if str(weight) != name or name not in GITHUB_ASSETS_NAMES:
+            raise TypeError(
+                emojis(
+                    f"ERROR ❌️ {weight} is not a loadable checkpoint — the file is empty, truncated or corrupted "
+                    f"({type(e).__name__}: {e}).\nRecommend fixes are to re-download or re-export the file, or to "
+                    f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
+                )
+            ) from e
         LOGGER.warning(f"Corrupt cache {file}, re-downloading {weight}...")
         Path(file).unlink(missing_ok=True)
         file = attempt_download_asset(weight)

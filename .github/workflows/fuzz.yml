@@ -79,13 +79,14 @@ jobs:
             ultralytics-fuzz-assets-${{ runner.os }}-
             ultralytics-test-assets-${{ runner.os }}-
       - name: Cache fuzz exploration history
-        # Separate from the asset cache: this entry is rewritten every run (cache keys are immutable, so the key
-        # carries the run id and restore-keys picks up the newest prior entry) while the multi-GB assets are not.
-        # Entries age out inside fuzz.py (--history-days), so the file stays bounded without a second expiry here.
+        # Separate from the asset cache: this entry is rewritten every run while the multi-GB assets are not. Cache
+        # entries are immutable, so the key carries run id AND attempt — a re-run reuses the run id and would
+        # otherwise hit its own entry, skip the save, and discard everything it explored. restore-keys then picks
+        # up the newest prior entry. Entries age out inside fuzz.py (HISTORY_DAYS), bounding the file.
         uses: actions/cache@v6
         with:
           path: fuzz-history
-          key: ultralytics-fuzz-history-${{ matrix.personality }}-${{ github.run_id }}
+          key: ultralytics-fuzz-history-${{ matrix.personality }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             ultralytics-fuzz-history-${{ matrix.personality }}-
       - name: Precache fuzz assets

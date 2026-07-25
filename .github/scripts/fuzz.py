@@ -565,10 +565,10 @@ def command_hash(argv):
 def read_history(path, max_age_days):
     """Load `hash day` lines from prior runs, dropping entries older than max_age_days.
 
-    Expiry is what keeps exploration honest about regressions: this repository moves fast, so a command that
-    passed a week ago says nothing about today's code. Ageing each entry out individually gives a rolling
-    window rather than a cliff — every day drops the oldest day and every command is retried about weekly —
-    where permanent exclusion would mean a regression in already-covered ground was never resampled.
+    Expiry is what keeps exploration honest about regressions: this repository moves fast, so a command that passed a
+    week ago says nothing about today's code. Ageing each entry out individually gives a rolling window rather than a
+    cliff — every day drops the oldest day and every command is retried about weekly — where permanent exclusion would
+    mean a regression in already-covered ground was never resampled.
     """
     if not path or not Path(path).exists():
         return []

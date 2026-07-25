@@ -292,7 +292,15 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         from ultralytics.models.sam import SAM3VideoSemanticPredictor
 
         # Initialize semantic video predictor
-        overrides = {"conf": 0.25, "task": "segment", "mode": "predict", "imgsz": 640, "model": "sam3.pt", "quantize": 16, "save": True}
+        overrides = {
+            "conf": 0.25,
+            "task": "segment",
+            "mode": "predict",
+            "imgsz": 640,
+            "model": "sam3.pt",
+            "quantize": 16,
+            "save": True,
+        }
         predictor = SAM3VideoSemanticPredictor(overrides=overrides)
 
         # Track concepts using text prompts

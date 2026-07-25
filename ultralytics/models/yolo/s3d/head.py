@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 from ultralytics.nn.modules.conv import Conv
 from ultralytics.nn.modules.head import Detect
@@ -143,7 +143,7 @@ class Stereo3DDetHead(Detect):
     @property
     def one2many(self):
         """Returns the one-to-many head components including aux branches."""
-        return dict(box_head=self.cv2, cls_head=self.cv3, aux_branches=self.aux)
+        return {"box_head": self.cv2, "cls_head": self.cv3, "aux_branches": self.aux}
 
     def forward_head(
         self, x: list[torch.Tensor], box_head=None, cls_head=None, aux_branches=None

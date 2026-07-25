@@ -53,7 +53,7 @@ def photometric_disp_loss(disp: torch.Tensor, imgs: torch.Tensor, smooth_w: floa
     Returns:
         (torch.Tensor): Scalar loss (photometric mean over valid pixels + smooth_w * smoothness).
     """
-    B, _, H, W = imgs.shape
+    _B, _, H, W = imgs.shape
     disp_full = F.interpolate(disp, size=(H, W), mode="bilinear", align_corners=True)
     left, right = imgs[:, :3], imgs[:, 3:6]
 

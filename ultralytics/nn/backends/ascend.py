@@ -44,7 +44,7 @@ class AscendBackend(BaseBackend):
         if found is None:
             raise FileNotFoundError(f"No .om file found in: {w}")
 
-        self.model = InferSession(getattr(self.device, "index", None) or 0, str(found))
+        self.model = InferSession(0, str(found))  # NPU 0; torch devices cannot address an Ascend device index
 
         # Load metadata
         metadata_file = found.parent / "metadata.yaml"

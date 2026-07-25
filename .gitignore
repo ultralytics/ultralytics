@@ -210,3 +210,4 @@ results.csv
 # Fuzz media and datasets generated beside the weights dir, which is the checkout root outside CI
 fuzz-sources/
 fuzz-datasets/
+fuzz-models/

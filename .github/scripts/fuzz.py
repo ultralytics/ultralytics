@@ -51,7 +51,14 @@ PERSONALITIES = {  # mode-selection weights only; mutation kernel and classifier
     "predict-val": {"train": 0.05, "val": 0.35, "predict": 0.35, "track": 0.2, "export": 0.05},
     "chaos": {m: 0.2 for m in MODES},
 }
-STRATEGY_WEIGHTS = [("invalid", 0.3), ("combo", 0.3), ("malformed", 0.1), ("source", 0.15), ("dataset", 0.15)]
+STRATEGY_WEIGHTS = [
+    ("invalid", 0.3),
+    ("combo", 0.3),
+    ("malformed", 0.1),
+    ("model", 0.1),
+    ("source", 0.1),
+    ("dataset", 0.1),
+]
 STRATEGY_MODES = {"source": {"predict", "track"}, "dataset": {"train", "val"}}  # strategies limited to some modes
 RESAMPLE_ATTEMPTS = 20  # draws allowed to find a command no recent run has executed before accepting a repeat
 HISTORY_DAYS = 7  # re-explore a command once its history entry ages past this, so regressions are resampled
@@ -223,6 +230,8 @@ EXPECTED_MODULES = (
     "ultralytics/engine/exporter.py:__call__",  # intentional compat asserts; per-format bugs raise in deeper frames
     "ultralytics/data/base.py:get_img_files",  # the image-discovery validation layer
     "ultralytics/data/dataset.py:cache_labels",  # raises the clean "No labels found" summary; get_labels does not
+    "ultralytics/engine/model.py:_check_is_pytorch_model",  # only ever raises its intentional wrong-format error
+    "ultralytics/nn/autobackend.py:__init__",  # the format dispatcher; per-backend bugs raise in deeper frames
 )
 NETWORK_MARKERS = (  # specific download/network signatures only; bare ConnectionError is raised for local sources too
     "urlopen error",
@@ -281,6 +290,35 @@ def precache_assets(uni):
 
     prepare_sources(uni)
     prepare_datasets(uni)
+    prepare_models(uni)
+
+
+def prepare_models(uni):
+    """Create the corrupt and foreign model files used by model trials, derived from a cached corpus weight.
+
+    `model` is otherwise pinned, so checkpoint loading went unfuzzed even though corrupt and wrong-format
+    checkpoints are a top error surface in the package's telemetry. Every entry here is an unsupported input.
+    """
+    from ultralytics.utils import ASSETS, WEIGHTS_DIR
+    from ultralytics.utils.downloads import attempt_download_asset
+
+    root = WEIGHTS_DIR.parent / "fuzz-models"
+    root.mkdir(parents=True, exist_ok=True)
+    good = Path(attempt_download_asset(WEIGHTS_DIR / uni["task2model"]["detect"])).read_bytes()
+    image = (ASSETS / "bus.jpg").read_bytes()
+    blobs = {
+        "truncated.pt": good[: len(good) // 2],  # the "failed finding central directory" class of corruption
+        "header-only.pt": good[:512],
+        "empty.pt": b"",
+        "random-bytes.pt": bytes(range(256)) * 64,
+        "text.pt": b"not a checkpoint\n" * 16,
+        "image-as-pt.pt": image,
+        "garbage.onnx": b"not an onnx graph" * 100,  # right suffix, wrong contents
+        "image.jpg": image,  # a real image passed as model=, which autobackend rejects on format
+    }
+    for name, blob in blobs.items():
+        (root / name).write_bytes(blob)
+    uni["models"] = [str(root / name) for name in blobs]
 
 
 def prepare_datasets(uni):
@@ -467,6 +505,8 @@ def sample_trial(rng, uni, corpus, personality):
             key = token.partition("=")[0]
             mutated.append(key)
             validity[key] = False
+    elif strategy == "model":  # `model` is pinned for every other strategy; this one owns swapping it out
+        mutate([f"model={rng.choice(uni['models'])}"], valid=False)
     elif strategy == "dataset":  # `data` is pinned for every other strategy; this one owns swapping it out
         dataset, valid = rng.choice(uni["datasets"])
         mutate([f"data={dataset}"], valid=valid)
@@ -843,7 +883,8 @@ def cmd_repro(args):
 
             # PureWindowsPath splits on both separators, so Windows-origin issue commands remap on any OS.
             if k == "model":
-                candidates = [WEIGHTS_DIR / PureWindowsPath(v).name]
+                prepare_models(uni)  # corrupt fuzz models live beside the weights dir, not inside it
+                candidates = [WEIGHTS_DIR / PureWindowsPath(v).name, *(Path(p) for p in uni["models"])]
             elif k == "data":  # every synthetic dataset yaml is data.yaml, so the mutation directory identifies it
                 prepare_datasets(uni)
                 mutation = PureWindowsPath(v).parent.name

@@ -228,10 +228,10 @@ def check_disk_space(
     Returns:
         (bool): True if there is sufficient disk space, False otherwise.
     """
-    _total, _used, free = shutil.disk_usage(path or Path.cwd())  # bytes
-    # Overlay, union and quota-limited filesystems report 0 free bytes while writes still succeed, so 0 means
-    # unknowable rather than empty. A genuinely full disk still fails at write time with an OS error.
-    if not free or file_bytes * sf < free:
+    total, _used, free = shutil.disk_usage(path or Path.cwd())  # bytes
+    # A filesystem that cannot report usage returns 0 total blocks; free == 0 against a valid total is genuinely
+    # full and must still be caught, since `free` counts blocks available to an unprivileged process.
+    if not total or file_bytes * sf < free:
         return True  # sufficient space
 
     def fmt_bytes(b):

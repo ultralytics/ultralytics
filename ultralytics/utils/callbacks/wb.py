@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import os
+
 from ultralytics.utils import SETTINGS, TESTS_RUNNING
 from ultralytics.utils.torch_utils import model_info_for_loggers
 
@@ -168,7 +170,7 @@ def on_train_end(trainer):
     """Save the best model as an artifact and log final plots at the end of training."""
     _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
     _log_plots(trainer.plots, step=trainer.epoch + 1)
-    if trainer.args.save and trainer.best.exists():
+    if os.getenv("WANDB_LOG_MODEL_ARTIFACT", "true").lower() == "true" and trainer.best.exists():
         art = wb.Artifact(type="model", name=f"run_{wb.run.id}_model")
         art.add_file(trainer.best)
         wb.run.log_artifact(art, aliases=["best"])

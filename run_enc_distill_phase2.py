@@ -525,8 +525,7 @@ def _run_multi_det(
         # Frozen distilled-student backbone, with the same trainer re-enable caveat as the teacher branch above.
         det_args["freeze"] = int(freeze_override)
     if imgsz_override:
-        # Ablation lever: run the whole detector (and thus the frozen backbone) at a non-640 imgsz, e.g. 224 to
-        # match the backbone's phase-1 distillation grid. Overrides the profile 640 and any per-teacher imgsz.
+        # Ablation lever: run the detector at a non-640 imgsz, e.g. 224 to match the phase-1 distillation grid.
         det_args["imgsz"] = int(imgsz_override)
     print(f"[multi_det_finetune] parent={parent_name} datasets={len(dataset_yamls)} model={model_yaml}")
     print(f"[multi_det_finetune] aggregate csv -> {csv_path}")
@@ -557,6 +556,8 @@ def _run_multi_det(
         if mismatched:
             raise ValueError(f"Refusing to mix a changed recipe or checkpoint into {parent_name}: {mismatched}")
 
+    # Weights are deleted after val, so skip the upload. Not save=False: without best.pt val scores the last epoch.
+    os.environ["WANDB_LOG_MODEL_ARTIFACT"] = "false"
     for i, ds_yaml in enumerate(dataset_yamls, start=1):
         basename = ds_yaml.parent.name
         if basename in completed:
@@ -610,7 +611,6 @@ def _run_multi_det(
             dropout=0,
             amp=True,
             deterministic=True,
-            save=False,
             workers=4,
             data=str(ds_yaml),
             **recipe_args,

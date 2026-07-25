@@ -56,11 +56,10 @@ def photometric_disp_loss(disp: torch.Tensor, imgs: torch.Tensor, smooth_w: floa
     disp_full = F.interpolate(disp, size=(H, W), mode="bilinear", align_corners=True)
     left, right = imgs[:, :3], imgs[:, 3:6]
 
-    ys = torch.linspace(-1, 1, H, device=imgs.device)
-    xs = torch.linspace(-1, 1, W, device=imgs.device)
-    gy, gx = torch.meshgrid(ys, xs, indexing="ij")
-    gx = gx.unsqueeze(0) - 2.0 * disp_full[:, 0]  # sample right at u - d (grid units: delta = 2*d_px/W)
-    grid = torch.stack([gx, gy.unsqueeze(0).expand_as(gx)], dim=-1)  # [B, H, W, 2]
+    # Broadcast the sampling grid directly (no meshgrid — torch 1.8 compatible)
+    gx = torch.linspace(-1, 1, W, device=imgs.device).view(1, 1, W) - 2.0 * disp_full[:, 0]  # u - d, delta=2*d_px/W
+    gy = torch.linspace(-1, 1, H, device=imgs.device).view(1, H, 1).expand_as(gx)
+    grid = torch.stack([gx, gy], dim=-1)  # [B, H, W, 2]
     warped = F.grid_sample(right, grid, align_corners=True, padding_mode="border")
     valid = ((gx >= -1) & (gx <= 1)).unsqueeze(1).float()  # [B, 1, H, W]
 

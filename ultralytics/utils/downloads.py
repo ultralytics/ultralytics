@@ -389,12 +389,15 @@ def safe_download(
                 except MemoryError:
                     raise  # Re-raise immediately - no point retrying if insufficient disk space
                 except Exception as e:
-                    f.unlink(missing_ok=True)  # a partial file is served as a cache hit by the is_file() check above
+                    # Only on the terminal failure: retries resume the partial file via curl `-C -`, but leaving
+                    # one behind makes the `not f.is_file()` guard above serve it as a complete cache hit forever.
                     if i == 0 and not is_online():
+                        f.unlink(missing_ok=True)
                         raise ConnectionError(
                             emojis(f"❌  Download failure for {uri}. Environment may be offline.")
                         ) from e
                     elif i >= retry:
+                        f.unlink(missing_ok=True)
                         raise ConnectionError(
                             emojis(f"❌  Download failure for {uri}. Retry limit reached. {e}")
                         ) from e

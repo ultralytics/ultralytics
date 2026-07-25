@@ -52,9 +52,8 @@ PERSONALITIES = {  # mode-selection weights only; mutation kernel and classifier
     "chaos": {m: 0.2 for m in MODES},
 }
 STRATEGY_WEIGHTS = [("invalid", 0.35), ("combo", 0.35), ("malformed", 0.1), ("source", 0.2)]
-SOURCE_MODES = {"predict", "track"}  # the `source` strategy only applies where a source argument is meaningful
-RESAMPLE_ATTEMPTS = 20  # draws allowed to find a command no prior run has executed before accepting a repeat
-HISTORY_LIMIT = 200_000  # explored-command hashes retained across runs (~3MB, ~50 days at current throughput)
+RESAMPLE_ATTEMPTS = 20  # draws allowed to find a command no recent run has executed before accepting a repeat
+HISTORY_DAYS = 7  # re-explore a command once its history entry ages past this, so regressions are resampled
 
 # Cost/hazard keys pinned to clamped known-good values, never mutated (`time` is training duration in HOURS)
 NEVER_MUTATE = frozenset(
@@ -129,17 +128,6 @@ PROBES = {  # boundary and wrong-type probes per typed key family (values are CL
     "float": {"valid": ["0.0", "0.1", "10"], "invalid": ["-5", "big", "none"]},
 }
 CHAOS_PROBES = ["[]", "[1,2]", "{}", "🚀", "1e309", "nan", "-0"]  # chaos shard extras for any key, all invalid
-MALFORMED_KERNELS = [  # token-level CLI corruptions; see malformed_tokens()
-    "no_equals",
-    "bad_mode",
-    "bad_task",
-    "bare_word",
-    "dash_flag",
-    "empty_value",
-    "double_equals",
-    "split_list",
-    "typo_key",
-]
 
 # Valid-but-rare combinations (mode, extra args) — where the T1 semantic bugs live
 COMBO_POOL = [
@@ -331,7 +319,7 @@ def sample_trial(rng, uni, corpus, personality):
     mode = rng.choices(MODES, weights=[weights[m] for m in MODES])[0]
     base = rng.choice([c for c in corpus if c["mode"] == mode])
     argv, mutated = list(base["argv"]), []
-    strategies = [(s, w) for s, w in STRATEGY_WEIGHTS if s != "source" or mode in SOURCE_MODES]
+    strategies = [(s, w) for s, w in STRATEGY_WEIGHTS if s != "source" or mode in {"predict", "track"}]
     strategy = rng.choices([s for s, _ in strategies], weights=[w for _, w in strategies])[0]
 
     validity = {}  # key -> is its EFFECTIVE value supported: stripped args contribute nothing, duplicates last-win
@@ -441,24 +429,19 @@ def malformed_tokens(rng):
     ValueError from the cfg layer; anything deeper is a validation gap.
     """
     key = rng.choice(["data", "epochs", "imgsz", "conf", "model", "source"])
-    kernel = rng.choice(MALFORMED_KERNELS)
-    if kernel == "no_equals":
-        return [key]  # "'data' is a valid YOLO argument but is missing an '=' sign"
-    if kernel == "bad_mode":
-        return [f"mode={rng.choice(['checks', 'settings', 'help', 'traln'])}"]
-    if kernel == "bad_task":
-        return [f"task={rng.choice(['detection', 'segmentaion', 'classify_', ''])}"]
-    if kernel == "bare_word":
-        return [rng.choice(["yolo", "epochs10", "?", "coco8"])]
-    if kernel == "dash_flag":
-        return [f"{rng.choice(['--', '-'])}{key}", "1"]
-    if kernel == "empty_value":
-        return [f"{key}="]
-    if kernel == "double_equals":
-        return [f"{key}==1"]
-    if kernel == "split_list":
-        return ["classes=[0,", "2]"]  # an unquoted list the shell split into two tokens
-    return [f"{rng.choice(['epocs', 'imgz', 'batchsize', 'devise'])}=1"]  # near-miss key: exercises did-you-mean
+    return rng.choice(
+        [
+            [key],  # "'data' is a valid YOLO argument but is missing an '=' sign"
+            [f"mode={rng.choice(['checks', 'settings', 'help', 'traln'])}"],
+            [f"task={rng.choice(['detection', 'segmentaion', 'classify_', ''])}"],
+            [rng.choice(["yolo", "epochs10", "?", "coco8"])],  # bare word that is not an argument at all
+            [f"{rng.choice(['--', '-'])}{key}", "1"],  # argparse-style flag the yolo CLI does not use
+            [f"{key}="],
+            [f"{key}==1"],
+            ["classes=[0,", "2]"],  # an unquoted list the shell split into two tokens
+            [f"{rng.choice(['epocs', 'imgz', 'batchsize', 'devise'])}=1"],  # near-miss key: did-you-mean path
+        ]
+    )
 
 
 def run_trial(trial, timeout=None):
@@ -579,16 +562,27 @@ def command_hash(argv):
     return hashlib.sha256("\x00".join(argv).encode()).hexdigest()[:16]
 
 
-def read_history(path):
-    """Load the ordered command hashes explored by prior runs (empty when unset or absent)."""
-    return Path(path).read_text().split() if path and Path(path).exists() else []
+def read_history(path, max_age_days):
+    """Load `hash day` lines from prior runs, dropping entries older than max_age_days.
+
+    Expiry is what keeps exploration honest about regressions: this repository moves fast, so a command that
+    passed a week ago says nothing about today's code. Ageing each entry out individually gives a rolling
+    window rather than a cliff — every day drops the oldest day and every command is retried about weekly —
+    where permanent exclusion would mean a regression in already-covered ground was never resampled.
+    """
+    if not path or not Path(path).exists():
+        return []
+    cutoff = int(time.time() // 86400) - max_age_days
+    lines = (line.partition(" ") for line in Path(path).read_text().splitlines())
+    return [f"{key} {day}" for key, _, day in lines if key and day.isdigit() and int(day) >= cutoff]
 
 
 def write_history(path, history, new_keys):
-    """Persist this run's newly explored hashes, retaining the most recent HISTORY_LIMIT entries."""
+    """Persist this run's newly explored hashes, stamped with today so future runs can age them out."""
     if path:
+        today = int(time.time() // 86400)
         Path(path).parent.mkdir(parents=True, exist_ok=True)
-        Path(path).write_text("\n".join([*history, *new_keys][-HISTORY_LIMIT:]))
+        Path(path).write_text("\n".join([*history, *(f"{key} {today}" for key in new_keys)]))
 
 
 def cmd_fuzz(args):
@@ -676,9 +670,10 @@ def cmd_fuzz(args):
         changed = " ".join(a for a in trial["argv"] if a.partition("=")[0] in set(trial.get("mutated", [])))
         log.info(f"[fuzz] #{n} {outcome:>13} {duration:6.1f}s  yolo {trial['mode']} {trial['task']} {changed}".rstrip())
 
-    history = read_history(args.history)  # commands explored by every prior run, so each run breaks new ground
-    explored, new_keys, duplicate_samples, saturated_samples = set(history), [], 0, 0
-    log.info(f"[fuzz] history: {len(history)} commands explored by prior runs")
+    history = read_history(args.history, HISTORY_DAYS)  # recent runs' commands, so each run breaks new ground
+    explored = {line.partition(" ")[0] for line in history}
+    new_keys, duplicate_samples, saturated_samples = [], 0, 0
+    log.info(f"[fuzz] history: {len(history)} commands explored in the last {HISTORY_DAYS} days")
     for base in corpus:  # canaries first: unmutated corpus must pass or the environment itself is broken
         if time.time() > deadline or (args.max_trials and n >= args.max_trials):
             break
@@ -707,9 +702,9 @@ def cmd_fuzz(args):
         "personality": args.personality,
         "seed": args.seed,
         "trials": n,
-        "unique_commands": len(new_keys),  # never executed by this or any prior run
+        "unique_commands": len(new_keys),  # not executed by this or any run inside the history window
         "duplicate_samples": duplicate_samples,
-        "saturated_samples": saturated_samples,  # draws that repeated a prior command after RESAMPLE_ATTEMPTS
+        "saturated_samples": saturated_samples,  # draws that repeated a recent command after RESAMPLE_ATTEMPTS
         "history_size": len(history) + len(new_keys),
         "counters": counters,
         "infra_failed": infra_failed,
@@ -935,8 +930,8 @@ def cmd_report(args):
     summary = (
         f"## Fuzz — {total} trials\n\n"
         + "\n".join(table)
-        + f"\n\nExploration: {unique_commands} never-before-run commands · {duplicate_samples} duplicate draws"
-        + f" · {saturated_samples} saturated · {history_size} commands explored all-time"
+        + f"\n\nExploration: {unique_commands} newly explored commands · {duplicate_samples} duplicate draws"
+        + f" · {saturated_samples} saturated · {history_size} in the {HISTORY_DAYS}-day history window"
         + f"\n\nNew issue threads created: {created} (cap {args.max_issues})"
         + (f" · ⚠️ shards with >20% canary failures: {', '.join(flagged)}" if flagged else "")
     )

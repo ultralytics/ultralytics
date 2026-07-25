@@ -81,6 +81,7 @@ jobs:
       - name: Cache fuzz exploration history
         # Separate from the asset cache: this entry is rewritten every run (cache keys are immutable, so the key
         # carries the run id and restore-keys picks up the newest prior entry) while the multi-GB assets are not.
+        # Entries age out inside fuzz.py (--history-days), so the file stays bounded without a second expiry here.
         uses: actions/cache@v6
         with:
           path: fuzz-history

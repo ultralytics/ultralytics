@@ -221,6 +221,8 @@ EXPECTED_MODULES = (
     "ultralytics/engine/exporter.py:validate_args",  # exporter's intentional per-format argument validation
     "ultralytics/engine/exporter.py:__call__",  # intentional compat asserts; per-format bugs raise in deeper frames
     "ultralytics/nn/autobackend.py:__init__",  # the format dispatcher; per-backend bugs raise in deeper frames
+    "ultralytics/nn/tasks.py:torch_safe_load",  # the checkpoint-readability layer; loader errors raise deeper
+    "ultralytics/nn/backends/onnx.py:load_model",  # raises the intentional unparseable-graph error
 )
 NETWORK_MARKERS = (  # specific download/network signatures only; bare ConnectionError is raised for local sources too
     "urlopen error",

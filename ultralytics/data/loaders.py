@@ -537,10 +537,9 @@ class LoadPilAndNumpy:
             im = im[..., None] if flag == "L" else im[..., ::-1]
             return np.ascontiguousarray(im)
         im = np.atleast_3d(im)
-        # Without this a batched or zero-sized array reads shape[2] as a channel count it is not
-        assert im.ndim == 3 and im.shape[0] and im.shape[1], (
-            f"Expected a single (H, W, C) image, but got array of shape {im.shape}"
-        )
+        # Reject batched arrays, whose shape[2] is not a channel count, and any zero dimension: a zero-channel
+        # array otherwise falls through the conversions below unchanged and reaches inference empty.
+        assert im.ndim == 3 and all(im.shape), f"Expected a single (H, W, C) image, but got array of shape {im.shape}"
         c = im.shape[2]
         if c == channels:
             return im

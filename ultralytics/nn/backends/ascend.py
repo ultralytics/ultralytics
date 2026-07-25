@@ -15,8 +15,8 @@ from .base import BaseBackend
 class AscendBackend(BaseBackend):
     """Huawei Ascend NPU inference backend for CANN offline models.
 
-    Loads a compiled .om offline model and runs inference on the Ascend AI Processor through the ais_bench
-    runtime, which wraps CANN's pyACL bindings.
+    Loads a compiled .om offline model and runs inference on the Ascend AI Processor through the ais_bench runtime,
+    which wraps CANN's pyACL bindings.
     """
 
     def load_model(self, weight: str | Path) -> None:

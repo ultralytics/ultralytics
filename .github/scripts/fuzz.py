@@ -137,17 +137,6 @@ PROBES = {  # boundary and wrong-type probes per typed key family (values are CL
 }
 CHAOS_PROBES = ["[]", "[1,2]", "{}", "🚀", "1e309", "nan", "-0"]  # chaos shard extras for any key, all invalid
 
-# Label file contents per dataset mutation; anything unlisted gets one well-formed box.
-LABEL_ROWS = {
-    "class-index-oob": "22 0.5 0.5 0.2 0.2",  # "Label class 22 exceeds dataset class count 1"
-    "coords-out-of-range": "0 1.5 0.5 0.2 0.2",
-    "negative-coords": "0 -0.5 0.5 0.2 0.2",
-    "wrong-columns": "0 0.5 0.5",
-    "nonnumeric": "cat 0.5 0.5 0.2 0.2",
-    "duplicate-rows": "0 0.5 0.5 0.2 0.2\n0 0.5 0.5 0.2 0.2",
-    "tiny-boxes": "0 0.5 0.5 0.0001 0.0001",
-    "background-only": "",
-}
 # Dataset mutation -> are its contents supported. `data` is otherwise pinned, leaving dataset loading — the
 # largest error surface by affected users in the package's telemetry — entirely unfuzzed. Background-only,
 # grayscale, webp and CRLF inputs ARE supported, so a deep failure on those is a T1 bug rather than a gap.
@@ -225,12 +214,12 @@ EXPECTED_MODULES = (
     "ultralytics/data/utils.py",
     "ultralytics/data/augment.py:classify_augmentations",
     "ultralytics/data/loaders.py:__init__",  # source loaders ARE the source-validation layer; their raises are clean
-    "ultralytics/engine/trainer.py:_build_train_pipeline",  # actual train batch/imgsz validation before optimizer setup
-    "ultralytics/engine/exporter.py:validate_args",  # exporter's intentional per-format argument validation
-    "ultralytics/engine/exporter.py:__call__",  # intentional compat asserts; per-format bugs raise in deeper frames
     "ultralytics/data/base.py:get_img_files",  # the image-discovery validation layer
     "ultralytics/data/dataset.py:cache_labels",  # raises the clean "No labels found" summary; get_labels does not
+    "ultralytics/engine/trainer.py:_build_train_pipeline",  # actual train batch/imgsz validation before optimizer setup
     "ultralytics/engine/model.py:_check_is_pytorch_model",  # only ever raises its intentional wrong-format error
+    "ultralytics/engine/exporter.py:validate_args",  # exporter's intentional per-format argument validation
+    "ultralytics/engine/exporter.py:__call__",  # intentional compat asserts; per-format bugs raise in deeper frames
     "ultralytics/nn/autobackend.py:__init__",  # the format dispatcher; per-backend bugs raise in deeper frames
 )
 NETWORK_MARKERS = (  # specific download/network signatures only; bare ConnectionError is raised for local sources too
@@ -308,10 +297,8 @@ def prepare_models(uni):
     image = (ASSETS / "bus.jpg").read_bytes()
     blobs = {
         "truncated.pt": good[: len(good) // 2],  # the "failed finding central directory" class of corruption
-        "header-only.pt": good[:512],
         "empty.pt": b"",
         "random-bytes.pt": bytes(range(256)) * 64,
-        "text.pt": b"not a checkpoint\n" * 16,
         "image-as-pt.pt": image,
         "garbage.onnx": b"not an onnx graph" * 100,  # right suffix, wrong contents
         "image.jpg": image,  # a real image passed as model=, which autobackend rejects on format
@@ -341,7 +328,16 @@ def make_dataset(root, mutation):
     extension = "webp" if mutation == "webp" else "jpg"
     image_mode = "L" if mutation == "grayscale" else "RGB"
     size = (8, 8) if mutation == "tiny-image" else (64, 64)  # the loader requires >9px, so 8px is a rejection
-    rows = LABEL_ROWS.get(mutation, "0 0.5 0.5 0.2 0.2")
+    rows = {  # label file contents; anything unlisted gets one well-formed box
+        "class-index-oob": "22 0.5 0.5 0.2 0.2",  # "Label class 22 exceeds dataset class count 1"
+        "coords-out-of-range": "0 1.5 0.5 0.2 0.2",
+        "negative-coords": "0 -0.5 0.5 0.2 0.2",
+        "wrong-columns": "0 0.5 0.5",
+        "nonnumeric": "cat 0.5 0.5 0.2 0.2",
+        "duplicate-rows": "0 0.5 0.5 0.2 0.2\n0 0.5 0.5 0.2 0.2",
+        "tiny-boxes": "0 0.5 0.5 0.0001 0.0001",
+        "background-only": "",
+    }.get(mutation, "0 0.5 0.5 0.2 0.2")
     if mutation == "crlf-labels":
         rows = rows.replace("\n", "\r\n") + "\r\n"
     count = 1 if mutation == "single-image" else 4

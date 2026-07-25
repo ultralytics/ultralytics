@@ -44,12 +44,17 @@ class AscendBackend(BaseBackend):
         if found is None:
             raise FileNotFoundError(f"No .om file found in: {w}")
 
-        self.model = InferSession(0, str(found))  # NPU 0; torch devices cannot address an Ascend device index
+        self.model = InferSession(getattr(self.device, "index", None) or 0, str(found))
 
         # Load metadata
         metadata_file = found.parent / "metadata.yaml"
         if metadata_file.exists():
             self.apply_metadata(YAML.load(metadata_file))
+
+    def __del__(self):
+        """Release the Ascend device-side resources held by the inference session."""
+        if model := getattr(self, "model", None):
+            model.free_resource()
 
     def forward(self, im: torch.Tensor) -> np.ndarray | list[np.ndarray]:
         """Run inference on the Ascend NPU.

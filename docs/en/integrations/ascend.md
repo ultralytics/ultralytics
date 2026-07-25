@@ -38,6 +38,7 @@ All standard Ultralytics tasks are supported for Ascend export across YOLO26, YO
 | [Pose Estimation](../tasks/pose.md)           | ✅        |
 | [OBB Detection](../tasks/obb.md)              | ✅        |
 | [Classification](../tasks/classify.md)        | ✅        |
+| [Depth Estimation](../tasks/depth.md)         | ✅        |
 
 ## Export to Ascend: Converting Your YOLO Model
 

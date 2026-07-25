@@ -543,10 +543,7 @@ class DINOv3RoPE2D(RoPE2DBlock):
     """RoPE2DBlock using the released DINOv3 axial formulation. Dim-preserving 4D in/out.
 
     Reproduces `RopePositionEmbedding` of the DINOv3 lineage, verified line by line against the EUPE teacher
-    implementation and the transformers `DINOv3ViTRopePositionEmbedding`. The DEIM checkout vendors a bit-identical
-builder at `nn/backbones/dinov3/layers/rope_position_encoding.py`. It is not imported, because that tree does not
-exist in this checkout and its `periods` buffer is persistent, which would add one state_dict key per block and
-break weight transfer from the non-rotary control. Patch-center coordinates are normalized per
+    implementation and the transformers `DINOv3ViTRopePositionEmbedding`. Patch-center coordinates are normalized per
     axis to [-1, 1], periods form the geometric ladder `base ** (2k / (head_dim / 2))`, angles are `2 * pi * coord /
     period`, and the `[y, x, y, x]` duplication keeps each rotate-half pair on a single angle.
 

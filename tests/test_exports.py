@@ -67,12 +67,10 @@ def test_export_onnx(end2end, isolated_model):
 def test_export_onnx_parity(end2end, isolated_model):
     """Verify ONNX export produces detections matching the PyTorch model.
 
-    Current export tests only check that inference runs without crashing.
-    This test compares actual detection outputs (boxes, classes, confidences)
-    between the PyTorch model and the ONNX export to catch silent regressions.
-    Detections are matched by IoU rather than sorted order, since numerical
-    differences can reorder detections without changing semantics.
-    Addresses recurring parity issues: #19991, #24861, #22737, #5016.
+    Current export tests only check that inference runs without crashing. This test compares actual detection outputs
+    (boxes, classes, confidences) between the PyTorch model and the ONNX export to catch silent regressions. Detections
+    are matched by IoU rather than sorted order, since numerical differences can reorder detections without changing
+    semantics. Addresses recurring parity issues: #19991, #24861, #22737, #5016.
     """
     imgsz = 640  # large enough for detections on bus.jpg
     file = YOLO(isolated_model).export(format="onnx", imgsz=imgsz, end2end=end2end)

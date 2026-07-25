@@ -251,6 +251,7 @@ else:
         text=True,
         timeout=30,
         env={**os.environ, "KMP_DUPLICATE_LIB_OK": "TRUE"},
+        check=False,
     )
     assert result.returncode == 0, f"Subprocess failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
     assert "CALLBACK_LOADED_OK" in result.stdout, f"Callback not loaded in subprocess:\n{result.stdout}"
@@ -288,6 +289,7 @@ print("PICKLE_CREATED")
         capture_output=True,
         text=True,
         timeout=10,
+        check=False,
     )
     assert create_result.returncode == 0, f"Failed to create pickle:\n{create_result.stderr}"
 
@@ -309,6 +311,7 @@ except AttributeError as e:
         capture_output=True,
         text=True,
         timeout=10,
+        check=False,
     )
     assert load_result.returncode == 0
     assert "EXPECTED_FAILURE" in load_result.stdout, (

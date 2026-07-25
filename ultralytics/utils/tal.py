@@ -60,6 +60,8 @@ class TaskAlignedAssigner(nn.Module):
         self.eps = eps
         self.o2f_k = 0  # o2f: number of ambiguous soft-labeled anchors per GT (0=disabled)
         self.o2f_T = 0.0  # o2f: positive degree of ambiguous anchors, annealed per epoch by E2ELoss.update()
+        self.dup_sup = False  # dup suppression: stash certain/sibling pairs for the margin loss
+        self._dup_pairs = None
         self.monitor = False  # collect per-batch assignment stats when enabled (see callbacks/tal_monitor.py)
         self.mon = self._reset_mon()
 
@@ -169,6 +171,9 @@ class TaskAlignedAssigner(nn.Module):
             target_scores, fg_mask = self.apply_o2f_soft_labels(
                 target_scores, fg_mask, align_metric, pd_scores, gt_labels, mask_gt
             )
+
+        if self.dup_sup and self.topk2 != self.topk:
+            self._stash_dup_pairs(align_metric, pd_scores, gt_labels, mask_pos, mask_gt)
 
         if self.monitor:
             self._update_mon(
@@ -283,6 +288,33 @@ class TaskAlignedAssigner(nn.Module):
         target_scores[bidx[valid], amb[valid], lab[valid]] = t_amb[valid].to(target_scores.dtype)
         fg_mask[bidx[valid], amb[valid]] = 0  # ambiguous anchors: cls-only, no box loss
         return target_scores, fg_mask
+
+    @torch.no_grad()
+    def _stash_dup_pairs(self, align_metric, pd_scores, gt_labels, mask_pos, mask_gt):
+        """Stash (certain, best-sibling) anchor indices per GT for the duplicate-suppression margin loss.
+
+        The certain anchor is the top-align positive; the sibling is the highest-scoring other anchor in the
+        GT's candidate pool. Only indices are captured (assigner inputs are detached); the loss applies the
+        prob-space margin on raw logits so gradients flow.
+
+        Args:
+            align_metric (torch.Tensor): Masked alignment metric, shape (bs, n_max_boxes, num_anchors).
+            pd_scores (torch.Tensor): Predicted class probabilities, shape (bs, num_anchors, num_classes).
+            gt_labels (torch.Tensor): Ground truth labels, shape (bs, n_max_boxes, 1).
+            mask_pos (torch.Tensor): Positive mask, shape (bs, n_max_boxes, num_anchors).
+            mask_gt (torch.Tensor): Valid GT mask, shape (bs, n_max_boxes, 1).
+        """
+        bs, n_gt, _ = align_metric.shape
+        certain = align_metric.argmax(-1)  # (b, n_gt) top-align positive per GT
+        ind = torch.zeros([2, bs, n_gt], dtype=torch.long, device=gt_labels.device)
+        ind[0] = torch.arange(end=bs, device=gt_labels.device).view(-1, 1).expand(-1, n_gt)
+        ind[1] = gt_labels.squeeze(-1).clamp(min=0)
+        scores = torch.zeros_like(align_metric, dtype=torch.float32)  # fp32: pd_scores may be fp16 under AMP
+        scores[mask_pos.bool()] = pd_scores[ind[0], :, ind[1]][mask_pos.bool()].float()
+        scores.scatter_(-1, certain.unsqueeze(-1), -1.0)  # exclude certain from sibling search
+        sib = scores.argmax(-1)  # (b, n_gt) highest-scoring sibling
+        valid = (mask_pos.sum(-1) > 1) & mask_gt.squeeze(-1).bool()  # GTs with >1 candidate
+        self._dup_pairs = (certain, sib, valid, gt_labels.squeeze(-1).long())
 
     def get_pos_mask(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt):
         """Get positive mask for each ground truth box.

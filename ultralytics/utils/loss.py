@@ -362,6 +362,8 @@ class v8DetectionLoss:
 
         self.use_dfl = m.reg_max > 1
         self.cls_norm = getattr(h, "cls_norm", "tss")  # cls loss normalizer: 'tss' or 'pos'
+        self.dup_sup = getattr(h, "dup_sup", 0.0)  # duplicate-suppression margin weight (o2o head)
+        self.dup_margin = getattr(h, "dup_margin", 0.3)  # required prob margin certain vs sibling
 
         # Class weights for handling imbalanced datasets
         self.class_weights = getattr(model, "class_weights", None)
@@ -377,6 +379,7 @@ class v8DetectionLoss:
             topk2=tal_topk2,
         )
         self.assigner.monitor = getattr(h, "tal_monitor", False)  # collect assignment stats for tal_monitor callback
+        self.assigner.dup_sup = self.dup_sup > 0
         self.bbox_loss = BboxLoss(m.reg_max, self.sigmoid_box).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 
@@ -443,6 +446,7 @@ class v8DetectionLoss:
         )
 
         target_scores_sum = max(target_scores.sum(), 1)
+        self._cache = {"fg_mask": fg_mask, "gt_idx": target_gt_idx, "gt_labels": gt_labels}  # for E2ELoss
 
         # Cls loss with optional class weighting
         bce_loss = self.bce(pred_scores, target_scores.to(dtype))  # (bs, num_anchors, nc)
@@ -450,6 +454,13 @@ class v8DetectionLoss:
             bce_loss *= self.class_weights
         cls_denom = max(fg_mask.sum(), 1) if self.cls_norm == "pos" else target_scores_sum
         loss[1] = bce_loss.sum() / cls_denom  # BCE
+        if self.dup_sup > 0 and self.assigner._dup_pairs is not None:
+            certain, sib, valid, lab = self.assigner._dup_pairs
+            if valid.any():  # prob margin between certain anchor and best sibling (o2o dedup)
+                p = pred_scores.sigmoid()
+                bidx = torch.arange(p.shape[0], device=p.device).view(-1, 1)
+                margin = F.relu(p[bidx, sib, lab] - p[bidx, certain, lab] + self.dup_margin)
+                loss[1] += self.dup_sup * margin[valid].mean()
 
         # Bbox loss
         if fg_mask.sum():
@@ -1196,6 +1207,8 @@ class E2ELoss:
             self.one2one.assigner.o2f_k = o2f_k
             self.one2one.assigner.o2f_T = self.o2f_tmax = getattr(model.args, "o2f_tmax", 0.6)
             self.o2f_tmin = getattr(model.args, "o2f_tmin", 0.2)
+        self.o2f_two_stage = getattr(model.args, "o2f_two_stage", False)  # anneal o2f_T to 0 in second half
+        self.o2o_distill = getattr(model.args, "o2o_distill", 0.0)  # o2m->o2o winner distillation weight
         self.updates = 0
         self.total = 1.0
         # init gain
@@ -1211,16 +1224,52 @@ class E2ELoss:
         one2many, one2one = preds["one2many"], preds["one2one"]
         loss_one2many = self.one2many.loss(one2many, batch)
         loss_one2one = self.one2one.loss(one2one, batch)
-        return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2one[1]
+        total_o2o = loss_one2one[0]
+        if self.o2o_distill > 0:
+            total_o2o = total_o2o + self.o2o_distill * self.winner_distill(one2many, one2one) * batch["img"].shape[0]
+        return loss_one2many[0] * self.o2m + total_o2o * self.o2o, loss_one2one[1]
+
+    def winner_distill(self, one2many: dict, one2one: dict) -> torch.Tensor:
+        """Distill the one-to-many head's per-GT winner score into the one-to-one certain anchors.
+
+        For each GT, the teacher signal is the o2m head's best cls probability among its own positives
+        (the NMS-winner proxy); the student is the o2o certain anchor's logit for that GT's class.
+        Teaches the o2o head the o2m head's calibrated, deduped score scale.
+        """
+        c_m, c_o = self.one2many._cache, self.one2one._cache
+        gt_labels = c_m["gt_labels"]  # (b, n_gt, 1)
+        b, n_gt = gt_labels.shape[:2]
+        lab_anchor = gt_labels.long().squeeze(-1).gather(1, c_m["gt_idx"])  # GT class per anchor (b, A)
+        tp = one2many["scores"].sigmoid().gather(1, lab_anchor.unsqueeze(1)).squeeze(1)  # (b, A)
+        tp = tp * c_m["fg_mask"]
+        s_star = torch.zeros(b, n_gt, device=tp.device, dtype=tp.dtype)
+        s_star.scatter_reduce_(1, c_m["gt_idx"], tp, reduce="amax")  # o2m best score per GT
+        fg_o = c_o["fg_mask"].bool()
+        target = s_star.gather(1, c_o["gt_idx"])[fg_o]
+        lab_o = gt_labels.long().squeeze(-1).gather(1, c_o["gt_idx"])[fg_o]
+        mask = target > 0  # GTs where the teacher has a winner
+        if not mask.any():
+            return torch.zeros((), device=tp.device)
+        student = one2one["scores"].permute(0, 2, 1)[fg_o].gather(1, lab_o.unsqueeze(1)).squeeze(1)
+        return F.binary_cross_entropy_with_logits(student[mask], target[mask])
 
     def update(self) -> None:
         """Update the weights for one-to-many and one-to-one losses based on the decay schedule."""
         self.updates += 1
         self.o2m = self.decay(self.updates)
         self.o2o = max(self.total - self.o2m, 0)
-        if self.one2one.assigner.o2f_k:  # anneal o2f ambiguous positive degree tmax -> tmin
-            frac = min(self.updates / max(self.one2one.hyp.epochs - 1, 1), 1.0)
-            self.one2one.assigner.o2f_T = self.o2f_tmax + (self.o2f_tmin - self.o2f_tmax) * frac
+        if self.one2one.assigner.o2f_k:  # anneal o2f ambiguous positive degree
+            epochs = max(self.one2one.hyp.epochs - 1, 1)
+            if self.o2f_two_stage:  # tmax->tmin over first half of epochs, tmin->0 over second half
+                half = epochs / 2
+                if self.updates <= half:
+                    t = self.o2f_tmax - (self.o2f_tmax - self.o2f_tmin) * self.updates / half
+                else:
+                    t = max(self.o2f_tmin * (1 - (self.updates - half) / half), 0)
+            else:
+                frac = min(self.updates / epochs, 1.0)
+                t = self.o2f_tmax + (self.o2f_tmin - self.o2f_tmax) * frac
+            self.one2one.assigner.o2f_T = t
 
     def decay(self, x) -> float:
         """Calculate the decayed weight for one-to-many loss based on the current update step."""

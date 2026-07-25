@@ -109,6 +109,10 @@ cls_norm: tss # (str) cls loss normalizer: 'tss' (target_scores_sum) or 'pos' (n
 o2f: 0 # (int) one-to-few: K ambiguous soft-labeled anchors per GT for the one-to-one head (0=disabled)
 o2f_tmax: 0.6 # (float) o2f initial positive degree of ambiguous anchors (annealed to o2f_tmin over epochs)
 o2f_tmin: 0.2 # (float) o2f final positive degree of ambiguous anchors
+o2f_two_stage: False # (bool) anneal o2f_t tmax->tmin in the first half of epochs, then tmin->0 in the second half
+o2o_distill: 0.0 # (float) weight for one2many->one2one winner-score distillation on the cls branch (0=disabled)
+dup_sup: 0.0 # (float) weight for duplicate-suppression margin loss on one-to-one siblings (0=disabled)
+dup_margin: 0.3 # (float) required prob margin between the certain anchor and its best sibling for dup_sup
 dfl: 1.5 # (float) distribution focal loss gain
 pose: 12.0 # (float) pose loss gain (pose tasks)
 kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)

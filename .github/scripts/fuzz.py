@@ -435,10 +435,10 @@ def sample_mutation(rng, uni, chaos=False):
 def malformed_tokens(rng):
     """Build CLI tokens malformed at the token level, the way users actually mistype `yolo` commands.
 
-    Value mutation alone never produces a malformed *token*, so the argument parser only ever sees well-formed
-    `k=v` pairs with known keys. Each kernel here mirrors a real signature from the package's own telemetry,
-    where `ultralytics.cfg:entrypoint` is a top error surface by user count. All of them should raise a clean
-    SyntaxError or ValueError from the cfg layer; anything deeper is a validation gap.
+    Value mutation alone never produces a malformed *token*, so the argument parser only ever sees well-formed `k=v`
+    pairs with known keys. Each kernel here mirrors a real signature from the package's own telemetry, where
+    `ultralytics.cfg:entrypoint` is a top error surface by user count. All of them should raise a clean SyntaxError or
+    ValueError from the cfg layer; anything deeper is a validation gap.
     """
     key = rng.choice(["data", "epochs", "imgsz", "conf", "model", "source"])
     kernel = rng.choice(MALFORMED_KERNELS)

@@ -82,6 +82,23 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
         build_dataloader([], batch=4, workers=2)
 
 
+def test_grounding_empty_segmentation_keeps_bbox(tmp_path):
+    """Test empty `segmentation` keeps the normalized bbox and yields a four-corner segment."""
+    import json
+    from types import SimpleNamespace
+
+    from ultralytics.data.dataset import GroundingDataset
+
+    (tmp_path / "im0.jpg").touch()
+    image = {"id": 0, "height": 480, "width": 640, "file_name": "im0.jpg", "caption": "a dog"}
+    ann = {"image_id": 0, "iscrowd": 0, "bbox": [100, 100, 200, 100], "tokens_positive": [[2, 5]], "segmentation": []}
+    (tmp_path / "anno.json").write_text(json.dumps({"images": [image], "annotations": [ann]}))
+    dataset = SimpleNamespace(json_file=str(tmp_path / "anno.json"), img_path=tmp_path, im_files=[], prefix="")
+    label = GroundingDataset.cache_labels(dataset, tmp_path / "labels.cache")["labels"][0]
+    assert np.allclose(label["bboxes"][0], [0.3125, 0.3125, 0.3125, 100 / 480], atol=1e-6)
+    assert label["segments"][0].shape == (4, 2)  # box corners, not the 2-point bbox row stored before
+
+
 def test_cfg_rejects_fuzzed_values():
     """Test invalid overrides fail in config validation."""
     with pytest.raises(TypeError, match="degrees"):

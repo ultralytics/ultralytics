@@ -1805,9 +1805,10 @@ def torch_safe_load(weight, safe_only=None):
     try:
         ckpt = _load()
 
-    except (RuntimeError, EOFError, pickle.UnpicklingError) as e:
-        # An unreadable file reaches here as one of three loader-internal errors depending on how it is damaged:
-        # RuntimeError for a truncated zip, EOFError for an empty one, UnpicklingError for arbitrary bytes.
+    except (RuntimeError, EOFError) as e:
+        # A damaged file reaches here as one of two loader-internal errors: RuntimeError for a truncated zip and
+        # EOFError for an empty one. UnpicklingError is deliberately not caught here — it has its own handler
+        # below, which re-raises verbatim off the safe_only path because a legacy file raises it too.
         if isinstance(e, RuntimeError) and "PytorchStreamReader" not in str(e):
             raise  # an unrelated RuntimeError is a real failure, not a damaged file
         # Recover only a corrupt cached official asset requested by bare name; never touch user-supplied paths.

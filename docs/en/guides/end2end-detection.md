@@ -132,7 +132,7 @@ If you need the traditional YOLO output format (for example, to reuse existing N
 
 ## Export Format Compatibility
 
-Most [export formats](../modes/export.md#export-formats) support end-to-end inference out of the box, including [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [CoreML](../integrations/coreml.md), [OpenVINO](../integrations/openvino.md), [TFLite](../integrations/tflite.md), [TF.js](../integrations/tfjs.md), and [MNN](../integrations/mnn.md).
+Most [export formats](../modes/export.md#export-formats) support end-to-end inference out of the box, including [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [CoreML](../integrations/coreml.md), [OpenVINO](../integrations/openvino.md), [LiteRT](../integrations/litert.md), and [MNN](../integrations/mnn.md).
 
 The following formats **do not** support end-to-end and automatically fall back to the one-to-many head: [NCNN](../integrations/ncnn.md), [RKNN](../integrations/rockchip-rknn.md), [PaddlePaddle](../integrations/paddlepaddle.md), [ExecuTorch](../integrations/executorch.md), [IMX](../integrations/sony-imx500.md), [Edge TPU](../integrations/edge-tpu.md), and [Qualcomm QNN](../integrations/qnn.md).
 
@@ -187,10 +187,10 @@ However, `end2end=False` combined with `nms=True` is a valid configuration — i
 
 ### What does the max_det parameter control in end-to-end models?
 
-The [`max_det`](../modes/predict.md#inference-arguments) parameter (default: 300) sets the maximum number of detections the one-to-one head can output per image. You can adjust it at inference or export time:
+The [`max_det`](../modes/predict.md#inference-arguments) parameter (default: 300) sets the maximum number of detections returned per image. You can adjust it at inference or export time:
 
 ```python
-model.predict("image.jpg", max_det=100)  # fewer detections, slightly faster
+model.predict("image.jpg", max_det=100)  # fewer detections
 model.export(format="onnx", max_det=500)  # more detections for dense scenes
 ```
 

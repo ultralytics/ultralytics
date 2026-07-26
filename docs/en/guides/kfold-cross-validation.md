@@ -107,7 +107,7 @@ Let's get started.
 
 6. The following is a sample view of the populated DataFrame:
 
-    ```
+    ```text
                                                            0    1    2    3    4    5
     '0000a16e4b057580_jpg.rf.00ab48988370f64f5ca8ea4...'  0.0  0.0  0.0  0.0  0.0  7.0
     '0000a16e4b057580_jpg.rf.7e6dce029fb67f01eb19aa7...'  0.0  0.0  0.0  0.0  0.0  7.0
@@ -173,7 +173,7 @@ The rows index the label files, each corresponding to an image in your dataset, 
 4. Next, we create the directories and dataset YAML files for each split.
 
     ```python
-    import datetime
+    from datetime import datetime, timezone
 
     supported_extensions = [".jpg", ".jpeg", ".png"]
 
@@ -185,7 +185,8 @@ The rows index the label files, each corresponding to an image in your dataset, 
         images.extend(sorted((dataset_path / "images").rglob(f"*{ext}")))
 
     # Create the necessary directories and dataset YAML files
-    save_path = Path(dataset_path / f"{datetime.date.today().isoformat()}_{ksplit}-Fold_Cross-val")
+    date = datetime.now(timezone.utc).date().isoformat()
+    save_path = Path(dataset_path / f"{date}_{ksplit}-Fold_Cross-val")
     save_path.mkdir(parents=True, exist_ok=True)
     ds_yamls = []
 

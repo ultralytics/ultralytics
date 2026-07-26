@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from functools import partial
 from pathlib import Path
 
@@ -18,7 +19,6 @@ from ultralytics.utils.checks import (
     is_sudo_available,
 )
 from ultralytics.utils.downloads import attempt_download_asset
-from ultralytics.utils.files import spaces_in_path
 from ultralytics.utils.tal import make_anchors
 
 
@@ -70,6 +70,7 @@ def onnx2saved_model(
     quantize: int | str | None = None,
     images: np.ndarray | None = None,
     disable_group_convolution: bool = False,
+    cuda: bool = False,
     prefix: str = "",
 ):
     """Convert an ONNX model to TensorFlow SavedModel format using onnx2tf.
@@ -80,6 +81,8 @@ def onnx2saved_model(
         quantize (int | str | None): Precision scheme, 8 for INT8.
         images (np.ndarray | None, optional): Calibration images for INT8 quantization in BHWC format.
         disable_group_convolution (bool, optional): Disable group convolution optimization. Defaults to False.
+        cuda (bool, optional): True if exporting on a CUDA device; selects GPU onnxruntime and keeps GPUs visible to
+            TensorFlow, which are otherwise hidden so CPU exports never touch GPU memory. Defaults to False.
         prefix (str, optional): Logging prefix. Defaults to "".
 
     Returns:
@@ -90,12 +93,14 @@ def onnx2saved_model(
         - Downloads calibration data if INT8 quantization is enabled.
         - Removes temporary files and renames quantized models after conversion.
     """
-    cuda = torch.cuda.is_available()
     try:
         import tensorflow as tf
     except ImportError:
         check_requirements("tensorflow>2.19.0" if IS_PYTHON_MINIMUM_3_13 else "tensorflow>=2.0.0,<=2.19.0")
         import tensorflow as tf
+    if not cuda:
+        with contextlib.suppress(Exception):  # fails only if TF GPUs are already initialized by earlier user code
+            tf.config.set_visible_devices([], "GPU")  # hide GPUs so non-CUDA exports never allocate GPU memory
     check_requirements(
         f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}",  # pin to avoid h5py build issues on aarch64
         cmds="--no-deps",
@@ -109,7 +114,8 @@ def onnx2saved_model(
             "onnx>=1.12.0,<2.0.0",
             f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}",
             "onnxslim>=0.1.82",
-            "onnxruntime-gpu" if cuda else "onnxruntime",
+            # Interchangeable candidates so an installed variant (e.g. onnxruntime-gpu) is never dual-installed over
+            ("onnxruntime-gpu" if cuda else "onnxruntime", "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn"),
             "protobuf>=6.31.1,<7.0.0"
             if IS_PYTHON_MINIMUM_3_13
             else "protobuf>=5",  # TF>2.19 (Python 3.13) needs protobuf>=6.31.1; cap <7 to match TF gencode and avoid PaddlePaddle segfault
@@ -248,7 +254,12 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
     check_cmd = "edgetpu_compiler --version"
     help_url = "https://coral.ai/docs/edgetpu/compiler/"
     assert LINUX, f"export only supported on Linux. See {help_url}"
-    if subprocess.run(check_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True).returncode != 0:
+    if (
+        subprocess.run(
+            check_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, check=False
+        ).returncode
+        != 0
+    ):
         LOGGER.info(f"\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}")
         sudo = "sudo " if is_sudo_available() else ""
         for c in (
@@ -275,57 +286,8 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
         str(tflite_file),
     ]  # argv list avoids shell metacharacter issues in output_dir/tflite_file paths
     LOGGER.info(f"{prefix} running '{shlex.join(cmd)}'")
-    subprocess.run(cmd)
+    subprocess.run(cmd, check=True)
     return str(Path(output_dir) / f"{Path(tflite_file).stem}_edgetpu.tflite")
-
-
-def pb2tfjs(pb_file: str, output_dir: str, quantize: int | str | None = None, prefix: str = "") -> str:
-    """Convert a TensorFlow GraphDef (.pb) model to TensorFlow.js format.
-
-    Args:
-        pb_file (str): Path to the input TensorFlow GraphDef (.pb) model file.
-        output_dir (str): Output directory path for the converted TensorFlow.js model.
-        quantize (int | str | None): Precision scheme, 16 for FP16 or 8 for INT8.
-        prefix (str, optional): Logging prefix. Defaults to "".
-
-    Returns:
-        (str): Path to the exported TensorFlow.js model directory.
-
-    Notes:
-        Auto-installs tensorflowjs if not present. Uses tensorflowjs_converter command-line tool for conversion.
-        Handles spaces in file paths and warns if output directory contains spaces.
-    """
-    import shlex
-    import subprocess
-
-    check_requirements("tensorflowjs")
-    import tensorflow as tf
-    import tensorflowjs as tfjs
-
-    LOGGER.info(f"\n{prefix} starting export with tensorflowjs {tfjs.__version__}...")
-
-    gd = tf.Graph().as_graph_def()  # TF GraphDef
-    with open(pb_file, "rb") as f:
-        gd.ParseFromString(f.read())
-    outputs = ",".join(gd_outputs(gd))
-    LOGGER.info(f"\n{prefix} output node names: {outputs}")
-
-    quantization = ["--quantize_float16"] if quantize == 16 else ["--quantize_uint8"] if quantize == 8 else []
-    with spaces_in_path(pb_file) as fpb_, spaces_in_path(output_dir) as f_:  # exporter cannot handle spaces in paths
-        cmd = [
-            "tensorflowjs_converter",
-            "--input_format=tf_frozen_model",
-            *quantization,
-            f"--output_node_names={outputs}",
-            str(fpb_),
-            str(f_),
-        ]  # argv list avoids shell metacharacter issues in interpolated paths
-        LOGGER.info(f"{prefix} running '{shlex.join(cmd)}'")
-        subprocess.run(cmd)
-
-    if " " in output_dir:
-        LOGGER.warning(f"{prefix} your model may not work correctly with spaces in path '{output_dir}'.")
-    return str(output_dir)
 
 
 def gd_outputs(gd):

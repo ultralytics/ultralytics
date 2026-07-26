@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn how to prepare semantic segmentation datasets for Ultralytics YOLO, including PNG mask labels, dataset YAML fields, ignore labels, and supported datasets.
-keywords: Ultralytics, YOLO, semantic segmentation, semantic, dataset format, pixel masks, Cityscapes, ADE20K, Pascal VOC
+keywords: Ultralytics, YOLO, semantic segmentation, semantic, dataset format, pixel masks, Cityscapes, ADE20K
 title: Semantic Segmentation Datasets
 ---
 
@@ -13,7 +13,7 @@ This guide explains the dataset format used by Ultralytics YOLO semantic segment
 
 ## Supported Dataset Formats
 
-Two label formats are supported. The dataset loader picks the path based on whether the dataset YAML defines a `masks_dir` key.
+Two label formats are supported. The dataset loader picks PNG masks when the dataset YAML defines a `masks_dir` key, or when a `masks/` folder already exists next to your images at the dataset root; otherwise it falls back to YOLO polygon labels.
 
 ### PNG mask format
 
@@ -42,7 +42,7 @@ For example, an image at `images/train/aachen_000000_000019.png` is paired with 
 
 If your dataset already has Ultralytics YOLO polygon labels (one `.txt` per image with `<class-index> <x1> <y1> <x2> <y2> ...` rows), you can train semantic segmentation directly from them — no PNG mask conversion needed. See the [instance segmentation dataset format](../segment/index.md#ultralytics-yolo-format) for the row-level layout.
 
-This path is selected automatically when the dataset YAML **omits** `masks_dir`. Behavior:
+This path is selected automatically when the dataset YAML **omits** `masks_dir` **and** no `masks/` folder exists next to your images at the dataset root — remove or rename any leftover `masks/` folder, or the loader falls back to PNG-mask mode and looks for masks there instead. Behavior:
 
 - Polygons are converted to a per-image semantic mask at load time, sorted by area so smaller objects override larger ones in overlap regions.
 - **Multi-class** (`N > 1` in `names`): an extra `background` class is appended after your declared classes for pixels not covered by any polygon. The model is built with `N + 1` output channels and the last channel is background.
@@ -55,15 +55,15 @@ Use this path when your data is already labeled as instance polygons and you wan
 
 Semantic segmentation datasets are configured with YAML files. The main fields are:
 
-| Key             | Description                                                                                       |
-| --------------- | ------------------------------------------------------------------------------------------------- |
-| `path`          | Dataset root directory.                                                                           |
-| `train`         | Training image path relative to `path`, or an absolute path.                                      |
-| `val`           | Validation image path relative to `path`, or an absolute path.                                    |
-| `test`          | Optional test image path.                                                                         |
-| `masks_dir`     | Directory name used for semantic masks. Omit this key to switch to the YOLO polygon label format. |
-| `names`         | Class ID to class name mapping.                                                                   |
-| `label_mapping` | Optional mapping from source dataset IDs to training IDs or `ignore_label`.                       |
+| Key             | Description                                                                                                                                     |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `path`          | Dataset root directory.                                                                                                                         |
+| `train`         | Training image path relative to `path`, or an absolute path.                                                                                    |
+| `val`           | Validation image path relative to `path`, or an absolute path.                                                                                  |
+| `test`          | Optional test image path.                                                                                                                       |
+| `masks_dir`     | Directory name used for semantic masks. Omit this key (with no `masks/` folder at the dataset root) to switch to the YOLO polygon label format. |
+| `names`         | Class ID to class name mapping.                                                                                                                 |
+| `label_mapping` | Optional mapping from source dataset IDs to training IDs or `ignore_label`.                                                                     |
 
 !!! example "ultralytics/cfg/datasets/cityscapes8.yaml"
 
@@ -99,7 +99,7 @@ Train a YOLO26 semantic segmentation model with Python or CLI:
 
 ## Supported Datasets
 
-Ultralytics provides semantic segmentation dataset YAML files for these datasets:
+Ultralytics provides semantic segmentation dataset YAML files for these datasets. See the [semantic segmentation task page](../../tasks/semantic.md) for the full pretrained-model benchmark table.
 
 - [Cityscapes](cityscapes.md): Urban street-scene semantic segmentation dataset with 19 train classes.
 - [Cityscapes8](cityscapes8.md): An 8-image Cityscapes subset for quick tests and CI checks.
@@ -131,7 +131,8 @@ names:
 
 1. Lay out images and `.txt` polygon files exactly as for [instance segmentation](../segment/index.md).
 2. Create a dataset YAML with `path`, `train`, `val`, and `names` — **omit** `masks_dir`.
-3. Do not add a "background" entry to `names`. For multi-class datasets the loader appends one automatically; for single-class datasets training stays at 1 class — your declared class becomes `1` in the mask and uncovered pixels become `0`.
+3. Make sure no `masks/` folder exists next to your images at the dataset root — its presence alone switches the loader to PNG-mask mode even without `masks_dir` in the YAML.
+4. Do not add a "background" entry to `names`. For multi-class datasets the loader appends one automatically; for single-class datasets training stays at 1 class — your declared class becomes `1` in the mask and uncovered pixels become `0`.
 
 ```yaml
 path: path/to/my-polygon-dataset
@@ -142,6 +143,8 @@ names:
     0: person
     1: car
 ```
+
+[Ultralytics Platform](https://platform.ultralytics.com/) provides a polygon annotation tool for the semantic task, plus SAM-assisted Smart annotation — annotate directly in the browser and export or train on the resulting polygon-labeled dataset without setting up this layout by hand.
 
 ## FAQ
 
@@ -155,7 +158,7 @@ Pixel value `255` is used as the ignore label. These pixels are skipped during l
 
 ### Do mask file names need to match image file names?
 
-Yes. Each semantic mask should have the same file stem as the corresponding image. The dataset loader replaces the `images` directory component with `masks_dir` and searches for matching mask files.
+Yes. Each semantic mask should have the same file stem as the corresponding image. The dataset loader replaces the `images` directory component with `masks_dir` and searches for matching mask files, falling back to other supported image extensions (`.jpg`, `.tiff`, etc.) if a `.png` mask isn't found — though only lossless formats are recommended, since the fallback doesn't enforce this.
 
 ### Can I use original dataset label IDs directly?
 
@@ -163,4 +166,8 @@ Yes, if they already match your `names` class IDs. If the source dataset uses no
 
 ### Can I use my instance segmentation dataset to train semantic segmentation?
 
-Yes. Instance segmentation datasets use Ultralytics YOLO polygon labels (one `.txt` per image with `<class-index> <x1> <y1> <x2> <y2> ...` rows), and the same files can be reused for semantic segmentation — just **omit** `masks_dir` from the dataset YAML. The loader converts polygons to per-image masks on the fly. For multi-class datasets (`N > 1`) an extra `background` class is appended and the model is built with `N + 1` output channels. For single-class datasets (`N == 1`) training stays at 1 class — the mask shows your declared class as `1` and uncovered pixels as `0`.
+Yes. Instance segmentation datasets use Ultralytics YOLO polygon labels (one `.txt` per image with `<class-index> <x1> <y1> <x2> <y2> ...` rows), and the same files can be reused for semantic segmentation — just **omit** `masks_dir` from the dataset YAML, and make sure no `masks/` folder exists next to your images at the dataset root (its presence alone triggers PNG-mask mode even without `masks_dir` set). The loader then converts polygons to per-image masks on the fly. For multi-class datasets (`N > 1`) an extra `background` class is appended, and the model is built with `N + 1` output channels. For single-class datasets (`N == 1`) training stays at 1 class — the mask shows your declared class as `1` and uncovered pixels as `0`.
+
+### Which datasets ship with Ultralytics for semantic segmentation?
+
+Ultralytics includes ready-to-use dataset YAML files for [Cityscapes](cityscapes.md) (19 urban-scene classes), the lightweight [Cityscapes8](cityscapes8.md) subset for pipeline testing, and [ADE20K](ade20k.md) (150 scene-parsing classes). Each page documents the exact class list, download steps, and a verified training example.

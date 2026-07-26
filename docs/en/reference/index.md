@@ -18,7 +18,7 @@ If you're new to Ultralytics, the [Quickstart](../quickstart.md), [Modes](../mod
 - [`engine`](engine/model.md): Core training, validation, prediction, export, and tuning engine — the backbone of the `Model`, `Trainer`, `Validator`, `Predictor`, `Exporter`, and `Tuner` interfaces.
 - [`hub`](hub/__init__.md): [Ultralytics HUB](https://platform.ultralytics.com/) integration for authentication, sessions, dataset uploads, and cloud-based training.
 - [`models`](models/yolo/model.md): Model implementations for YOLO, YOLOE, YOLO-World, SAM, SAM3, FastSAM, RT-DETR, and YOLO-NAS, including their predict, train, val, and export pipelines.
-- [`nn`](nn/tasks.md): Neural network building blocks — backbones, necks, heads, layers, and the multi-backend `AutoBackend` runtime (PyTorch, ONNX, TensorRT, CoreML, OpenVINO, TFLite, and more).
+- [`nn`](nn/tasks.md): Neural network building blocks — backbones, necks, heads, layers, and the multi-backend `AutoBackend` runtime (PyTorch, ONNX, TensorRT, CoreML, OpenVINO, LiteRT, and more).
 - [`optim`](optim/muon.md): Custom optimizers, including the Muon optimizer used for advanced training experiments.
 - [`solutions`](solutions/solutions.md): Ready-made [Ultralytics Solutions](../solutions/index.md) — object counting, heatmaps, AI Gym, parking management, region counting, similarity search, and more.
 - [`trackers`](trackers/track.md): Multi-object trackers (`BYTETracker`, `BoTSORT`) and the unified [tracking API](../modes/track.md) that plugs them into any YOLO model.

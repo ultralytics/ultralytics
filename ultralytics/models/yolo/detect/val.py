@@ -84,7 +84,7 @@ class DetectionValidator(BaseValidator):
         self.is_coco = (
             isinstance(val, str)
             and "coco" in val
-            and (val.endswith(f"{os.sep}val2017.txt") or val.endswith(f"{os.sep}test-dev2017.txt"))
+            and (val.endswith((f"{os.sep}val2017.txt", f"{os.sep}test-dev2017.txt")))
         )  # is COCO
         self.is_lvis = isinstance(val, str) and "lvis" in val and not self.is_coco  # is LVIS
         self.class_map = converter.coco80_to_coco91_class() if self.is_coco else list(range(1, len(model.names) + 1))
@@ -95,7 +95,7 @@ class DetectionValidator(BaseValidator):
         self.seen = 0
         self.jdict = []
         self.metrics.names = model.names
-        self.metrics.iou_metrics = list(getattr(self.args, "iou_metrics", None) or [])
+        self.metrics.iou_metrics = self.args.iou_metrics
         self.metrics.clear_stats()
         self.metrics.clear_image_metrics()
         self.confusion_matrix = ConfusionMatrix(names=model.names, save_matches=self.args.plots and self.args.visualize)
@@ -247,10 +247,10 @@ class DetectionValidator(BaseValidator):
         if RANK == 0:
             gathered_stats = [None] * dist.get_world_size()
             dist.gather_object(self.metrics.stats, gathered_stats, dst=0)
-            merged_stats = {key: [] for key in self.metrics.stats.keys()}
+            merged_stats = {key: [] for key in self.metrics.stats}
             for stats_dict in gathered_stats:
-                for key in merged_stats:
-                    merged_stats[key].extend(stats_dict[key])
+                for key, value in stats_dict.items():
+                    merged_stats[key].extend(value)
             gathered_jdict = [None] * dist.get_world_size()
             dist.gather_object(self.jdict, gathered_jdict, dst=0)
             self.jdict = []
@@ -302,7 +302,7 @@ class DetectionValidator(BaseValidator):
                 )
 
         # Save per-class metrics CSV when requested
-        if not self.training and getattr(self.args, "save_csv", False) and self.nc > 1 and len(self.metrics.ap_class_index):
+        if not self.training and self.args.save_csv and self.nc > 1 and len(self.metrics.ap_class_index):
             csv_path = self.save_dir / "per_class_metrics.csv"
             csv_path.write_text(self.metrics.to_csv())
             LOGGER.info(f"Per-class metrics saved to {csv_path}")

@@ -1,4 +1,5 @@
 ---
+title: utils.callbacks.neptune API Reference
 description: Learn how to use NeptuneAI with Ultralytics for advanced logging and tracking of experiments. Detailed setup and callback functions included.
 keywords: Ultralytics, NeptuneAI, YOLO, experiment logging, machine learning, AI, callbacks, training, validation
 ---

@@ -1,4 +1,6 @@
 ---
+plans: [free, pro, enterprise]
+title: Model Deployment Options
 comments: true
 description: Learn about model deployment options in Ultralytics Platform including inference testing, dedicated endpoints, and monitoring dashboards.
 keywords: Ultralytics Platform, deployment, inference, endpoints, monitoring, YOLO, production, cloud deployment
@@ -6,7 +8,7 @@ keywords: Ultralytics Platform, deployment, inference, endpoints, monitoring, YO
 
 # Deployment
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive deployment options for putting your YOLO models into production. Test models with browser-based inference, deploy to dedicated endpoints across 43 global regions, and monitor performance in real-time.
+[Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive [model deployment options](../../guides/model-deployment-options.md) for putting your YOLO models into production. Test models with browser-based inference, deploy to dedicated endpoints across 42 global regions, and monitor performance in real-time.
 
 <p align="center">
   <br>
@@ -24,11 +26,11 @@ keywords: Ultralytics Platform, deployment, inference, endpoints, monitoring, YO
 The Deployment section helps you:
 
 - **Test** models directly in the browser with the `Predict` tab
-- **Deploy** to dedicated endpoints in 43 global regions
+- **Deploy** to dedicated endpoints in 42 global regions
 - **Monitor** request metrics, logs, and health checks
 - **Scale to zero** when idle (deployments currently run a single active instance)
 
-![Ultralytics Platform Deploy Page World Map With Overview Cards](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-world-map-with-overview-cards.avif)
+![Ultralytics Platform Deploy Page World Map With Overview Cards](https://cdn.ul.run/i/e922afb2e2f7573c320821ec4fa62537.avif)<!-- screenshot -->
 
 ## Deployment Options
 
@@ -38,28 +40,27 @@ Ultralytics Platform offers multiple deployment paths:
 | --------------------------------------- | -------------------------------------------------------- | ----------------------- |
 | **[Predict Tab](inference.md)**         | Browser-based inference with image, webcam, and examples | Development, validation |
 | **Shared Inference**                    | Multi-tenant service across 3 regions                    | Light usage, testing    |
-| **[Dedicated Endpoints](endpoints.md)** | Single-tenant services across 43 regions                 | Production, low latency |
+| **[Dedicated Endpoints](endpoints.md)** | Single-tenant services across 42 regions                 | Production, low latency |
 
 ## Workflow
 
 ```mermaid
 graph LR
-    A[✅ Test] --> B[⚙️ Configure]
-    B --> C[🌐 Deploy]
-    C --> D[📊 Monitor]
+    A[✅ Test]:::start --> B[⚙️ Configure]:::proc
+    B --> C[🌐 Deploy]:::proc
+    C --> D[📊 Monitor]:::out
 
-    style A fill:#4CAF50,color:#fff
-    style B fill:#2196F3,color:#fff
-    style C fill:#FF9800,color:#fff
-    style D fill:#9C27B0,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
-| Stage         | Description                                                                 |
-| ------------- | --------------------------------------------------------------------------- |
-| **Test**      | Validate model with the [`Predict` tab](inference.md)                       |
-| **Configure** | Select region and deployment name (deployments use fixed default resources) |
-| **Deploy**    | Create a dedicated endpoint from the [`Deploy` tab](endpoints.md)           |
-| **Monitor**   | Track requests, latency, errors, and logs in [Monitoring](monitoring.md)    |
+| Stage         | Description                                                              |
+| ------------- | ------------------------------------------------------------------------ |
+| **Test**      | Validate model with the [`Predict` tab](inference.md)                    |
+| **Configure** | Select a region and review the editable, auto-generated deployment name  |
+| **Deploy**    | Create a dedicated endpoint from the [`Deploy` tab](endpoints.md)        |
+| **Monitor**   | Track requests, latency, errors, and logs in [Monitoring](monitoring.md) |
 
 ## Architecture
 
@@ -69,34 +70,28 @@ The shared inference service runs in 3 key regions, automatically routing reques
 
 ```mermaid
 graph TB
-    User[User Request] --> API[Platform API]
-    API --> Router{Region Router}
-    Router -->|US users| US["US Predict Service<br/>Iowa"]
-    Router -->|EU users| EU["EU Predict Service<br/>Belgium"]
-    Router -->|AP users| AP["AP Predict Service<br/>Taiwan"]
+    User[User Request]:::start --> API[Platform API]:::proc
+    API --> Router{Region Router}:::decide
+    Router -->|US users| US["US Predict Service<br/>Iowa"]:::out
+    Router -->|EU users| EU["EU Predict Service<br/>Belgium"]:::out
+    Router -->|AP users| AP["AP Predict Service<br/>Taiwan"]:::out
 
-    style User fill:#f5f5f5,color:#333
-    style API fill:#2196F3,color:#fff
-    style Router fill:#FF9800,color:#fff
-    style US fill:#4CAF50,color:#fff
-    style EU fill:#4CAF50,color:#fff
-    style AP fill:#4CAF50,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
-| Region | Location             |
-| ------ | -------------------- |
-| US     | Iowa, USA            |
-| EU     | Belgium, Europe      |
-| AP     | Taiwan, Asia-Pacific |
+{% include "macros/platform-data-regions.md" %}
 
 ### Dedicated Endpoints
 
-Deploy to 43 regions worldwide on Ultralytics Cloud:
+Deploy to 42 regions worldwide on Ultralytics Cloud:
 
 - **Americas**: 14 regions
 - **Europe**: 13 regions
 - **Asia-Pacific**: 12 regions
-- **Middle East & Africa**: 4 regions
+- **Middle East & Africa**: 3 regions
 
 Each endpoint is a single-tenant service with:
 
@@ -114,8 +109,7 @@ Access the global deployments page from the sidebar under `Deploy`. This page sh
 - **Deployments list** with three view modes: cards, compact, and table
 - **New Deployment** button to create endpoints from any completed model
 
-![Ultralytics Platform Deploy Page Overview Cards And Deployments List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-overview-cards-and-deployments-list.avif)
-
+![Ultralytics Platform Deploy Page Overview Cards And Deployments List](https://cdn.ul.run/i/eb51c1bb9c4884b4b1bc89e4caf94eee.avif)<!-- screenshot -->
 !!! info "Automatic Polling"
 
     The page polls every 15 seconds normally. When deployments are in a transitional state (`creating`, `deploying`, or `stopping`), polling increases to every 3 seconds for faster feedback.
@@ -124,7 +118,7 @@ Access the global deployments page from the sidebar under `Deploy`. This page sh
 
 ### Global Coverage
 
-Deploy close to your users with 43 regions covering:
+Deploy close to your users with 42 regions covering:
 
 - North America, South America
 - Europe, Middle East, Africa
@@ -134,20 +128,13 @@ Deploy close to your users with 43 regions covering:
 
 Endpoints currently behave as follows:
 
-- **Scale to zero**: No cost when idle (default)
+- **Scale to zero**: `minInstances` defaults to `0`
 - **Single active instance**: `maxInstances` is currently capped at `1` on all plans
 
-!!! tip "Cost Savings"
+### Regional Deployment
 
-    Scale-to-zero is enabled by default (min instances = 0). You only pay for active inference time.
-
-### Low Latency
-
-Dedicated endpoints provide:
-
-- Cold start: ~5-15 seconds (cached container), up to ~45 seconds (first deploy)
-- Warm inference: 50-200ms (model dependent)
-- Regional routing for optimal performance
+Use the measured region latency to place an endpoint near its callers. Actual inference latency depends on the model,
+input size, endpoint state, and network path.
 
 ### Health Checks
 
@@ -160,16 +147,16 @@ Each running deployment includes an automatic health check with:
 
 ## Quick Start
 
-Deploy a model in under 2 minutes:
+Create a deployment:
 
 1. Train or upload a model to a project
 2. Go to the model's **Deploy** tab
 3. Select a region from the latency table
-4. Click **Deploy** — your endpoint is live
+4. Click **Deploy** and wait for the deployment status to become **Ready**
 
 !!! example "Quick Deploy"
 
-    ```
+    ```text
     Model → Deploy tab → Select region → Click Deploy → Endpoint URL ready
     ```
 
@@ -185,22 +172,18 @@ Deploy a model in under 2 minutes:
 
 ### What's the difference between shared and dedicated inference?
 
-| Feature     | Shared          | Dedicated                            |
-| ----------- | --------------- | ------------------------------------ |
-| **Latency** | Variable        | Consistent                           |
-| **Cost**    | Free (included) | Free (basic), usage-based (advanced) |
-| **Scale**   | Limited         | Scale-to-zero, single instance       |
-| **Regions** | 3               | 43                                   |
-| **URL**     | Generic         | Custom                               |
-| **Rate**    | 20 req/min      | Unlimited                            |
+| Feature     | Shared                       | Dedicated                            |
+| ----------- | ---------------------------- | ------------------------------------ |
+| **Service** | Shared across Platform users | Dedicated to one deployment          |
+| **Scale**   | Managed by Platform          | Scale-to-zero, one instance          |
+| **Regions** | 3 data regions               | Choose from 42 deployment regions    |
+| **URL**     | Platform model API           | Generated deployment endpoint URL    |
+| **Testing** | Model `Predict` tab          | Deployment-card `Predict` tab or API |
 
 ### How long does deployment take?
 
-Dedicated endpoint deployment typically takes 1-2 minutes:
-
-1. Image pull (~30s)
-2. Container start (~30s)
-3. Health check (~30s)
+The deployment remains in a creating or deploying state while its service starts. It becomes usable when the status
+changes to **Ready**; timing varies by model and region.
 
 ### Can I deploy multiple models?
 

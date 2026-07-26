@@ -10,8 +10,15 @@ Ultralytics YOLO26 is NMS-free: the model outputs (1, 300, 57) already in final 
 We use a small ConfidenceFilter operator instead of decode_pose (which only
 supports yolov8/yolo11 raw output layout).
 
-When --tracker is set (default: tracktrack), the pipeline appends op.tracker()
-for multi-object tracking. Use --tracker none to disable tracking.
+This is the "drop-in" example (see README.md for the two-pathway design): frame
+ingestion and rendering use plain OpenCV, and only the model -- plus, optionally, a
+tracker -- runs through the Axelera pipeline builder. The pose-only path returns the
+model's raw NumPy output so it drops straight into existing NumPy post-processing.
+See yolo11-seg.py for the complementary "E2E ecosystem" pathway (typed Results
+objects, cv.create_source, and the display.App renderer).
+
+When --tracker is set (default: tracktrack), the pipeline appends op.ax_pose() +
+op.tracker() for multi-object tracking. Use --tracker none to disable tracking.
 
 Usage:
     python yolo26-pose-tracker.py --model yolo26n-pose.axm --source 0
@@ -100,65 +107,80 @@ class ConfidenceFilter(op.Operator):
 
 
 def build_pipeline(model_path: str, conf: float = 0.25, tracker_algo: str | None = "tracktrack"):
-    """Build Ultralytics YOLO26 pose estimation pipeline with optional tracking.
+    """Build the YOLO26 pose pipeline, optionally with tracking.
 
-    Ultralytics YOLO26 is NMS-free (end-to-end), so no op.nms() is needed. When tracker_algo is provided, op.tracker()
-    is appended for multi-object tracking. Calls .optimized() so the runtime can fuse operators for maximum throughput.
+    YOLO26 is NMS-free, so there's no op.nms(). Pose-only returns the raw model rows (np.ndarray); adding a tracker
+    switches the output to a list of TrackedObject.
     """
     stages = [
-        op.colorconvert("RGB", src="BGR"),  # OpenCV reads BGR; models expect RGB
+        op.color_convert("RGB", src="BGR"),  # OpenCV reads BGR; models expect RGB
         op.letterbox(640, 640),
-        op.totensor(),
+        op.to_tensor(),
         op.load(model_path),
         ConfidenceFilter(threshold=conf),
-        op.to_image_space(keypoint_cols=range(6, 57, 3)),
+        op.to_image_space(keypoint_cols=range(6, 57, 3)),  # MODEL_PIXEL -> NORMALIZED
     ]
     if tracker_algo:
-        stages.extend([op.axpose(num_keypoints=17), op.tracker(algo=tracker_algo)])
+        # op.tracker() needs typed objects, so wrap the raw rows with ax_pose first.
+        stages.append(op.ax_pose(num_keypoints=17, class_id_type=op.CocoClasses))
+        stages.append(op.tracker(algo=tracker_algo))
     return op.seq(*stages).optimized()
 
 
 def draw_pose(image: np.ndarray, detections: np.ndarray, conf: float = 0.25) -> np.ndarray:
-    """Draw pose estimation results on the image (in-place, no tracking)."""
+    """Draw pose results straight from the raw model rows (in-place, no tracking).
+
+    Each row is [x0, y0, x1, y1, score, class_id, 17x(kpt_x, kpt_y, kpt_conf)], with box and keypoint x/y already
+    normalized to [0, 1] by op.to_image_space() and scaled back to pixels here.
+    """
+    h, w = image.shape[:2]
+
     for det in detections:
-        score = det[4]
+        score = float(det[4])
         if score < conf:
             continue
 
-        # Bounding box
-        x0, y0, x1, y1 = map(int, det[:4])
+        # Bounding box (denormalize)
+        x0, y0 = int(det[0] * w), int(det[1] * h)
+        x1, y1 = int(det[2] * w), int(det[3] * h)
         cv2.rectangle(image, (x0, y0), (x1, y1), (0, 255, 0), 2)
         cv2.putText(image, f"{score:.2f}", (x0, y0 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
-        # Parse 17 keypoints: columns 6..56, stride 3 (x, y, conf)
-        kpts = det[6:].reshape(17, 3)
+        kpts = det[6:].reshape(-1, 3)  # 17 x (x, y, confidence); x/y normalized, conf raw
 
         # Draw skeleton limbs
         for i, (a, b) in enumerate(COCO_SKELETON):
             kp_a, kp_b = kpts[a - 1], kpts[b - 1]
             if kp_a[2] > 0.5 and kp_b[2] > 0.5:
                 color = tuple(int(c) for c in LIMB_COLORS[i][::-1])  # RGB -> BGR
-                pt_a = (int(kp_a[0]), int(kp_a[1]))
-                pt_b = (int(kp_b[0]), int(kp_b[1]))
+                pt_a = (int(kp_a[0] * w), int(kp_a[1] * h))
+                pt_b = (int(kp_b[0] * w), int(kp_b[1] * h))
                 cv2.line(image, pt_a, pt_b, color, 2)
 
         # Draw keypoints
         for j, kp in enumerate(kpts):
             if kp[2] > 0.5:
                 color = tuple(int(c) for c in KPT_COLORS[j][::-1])  # RGB -> BGR
-                cv2.circle(image, (int(kp[0]), int(kp[1])), 4, color, -1)
+                cv2.circle(image, (int(kp[0] * w), int(kp[1] * h)), 4, color, -1)
 
     return image
 
 
 def draw_tracked_poses(image: np.ndarray, tracked_poses: list) -> np.ndarray:
-    """Draw tracked pose results: bbox with track ID color, skeleton, and keypoints (in-place)."""
+    """Draw tracked pose results: bbox with track ID color, skeleton, and keypoints (in-place).
+
+    TrackedObject bbox and the keypoints on its wrapped PoseObject are normalized (0..1); they are scaled by the image
+    size before drawing.
+    """
+    h, w = image.shape[:2]
+
     for tracked in tracked_poses:
         color = get_track_color(tracked.track_id)
 
-        # Bounding box
+        # Bounding box (denormalize)
         bbox = tracked.predicted_bbox
-        x0, y0, x1, y1 = int(bbox.x0), int(bbox.y0), int(bbox.x1), int(bbox.y1)
+        x0, y0 = int(bbox.x0 * w), int(bbox.y0 * h)
+        x1, y1 = int(bbox.x1 * w), int(bbox.y1 * h)
         cv2.rectangle(image, (x0, y0), (x1, y1), color, 2)
         cv2.putText(image, f"ID {tracked.track_id}", (x0, y0 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
@@ -173,14 +195,20 @@ def draw_tracked_poses(image: np.ndarray, tracked_poses: list) -> np.ndarray:
         for i, (a, b) in enumerate(COCO_SKELETON):
             kp_a, kp_b = kpts[a - 1], kpts[b - 1]
             if kp_a.confidence > 0.5 and kp_b.confidence > 0.5:
-                pt_a = (int(kp_a.x), int(kp_a.y))
-                pt_b = (int(kp_b.x), int(kp_b.y))
+                pt_a = (int(kp_a.x * w), int(kp_a.y * h))
+                pt_b = (int(kp_b.x * w), int(kp_b.y * h))
                 cv2.line(image, pt_a, pt_b, color, 2)
 
         # Draw keypoints
         for j, kp in enumerate(kpts):
             if kp.confidence > 0.5:
-                cv2.circle(image, (int(kp.x), int(kp.y)), 4, tuple(int(c) for c in KPT_COLORS[j][::-1]), -1)
+                cv2.circle(
+                    image,
+                    (int(kp.x * w), int(kp.y * h)),
+                    4,
+                    tuple(int(c) for c in KPT_COLORS[j][::-1]),
+                    -1,
+                )
 
     return image
 
@@ -199,9 +227,16 @@ def main():
         help="Tracking algorithm (use 'none' to disable tracking)",
     )
     parser.add_argument(
-        "--no-display", action="store_true", help="Disable GUI window (headless mode, saves to --output)"
+        "--no-display",
+        action="store_true",
+        help="Disable GUI window (headless mode, saves to --output)",
     )
-    parser.add_argument("--output", type=str, default="output.mp4", help="Output video path when --no-display is set")
+    parser.add_argument(
+        "--output",
+        type=str,
+        default="output.mp4",
+        help="Output video path when --no-display is set",
+    )
     args = parser.parse_args()
 
     tracker_algo = None if args.tracker == "none" else args.tracker

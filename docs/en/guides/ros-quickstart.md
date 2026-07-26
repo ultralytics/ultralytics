@@ -1,10 +1,15 @@
 ---
+title: YOLO with ROS Quickstart
 comments: true
-description: Learn to integrate Ultralytics YOLO with your robot running ROS Noetic, utilizing RGB images, depth images, and point clouds for efficient object detection, segmentation, and enhanced robotic perception.
-keywords: Ultralytics, YOLO, object detection, deep learning, machine learning, guide, ROS, Robot Operating System, robotics, ROS Noetic, Python, Ubuntu, simulation, visualization, communication, middleware, hardware abstraction, tools, utilities, ecosystem, Noetic Ninjemys, autonomous vehicle, AMV
+description: Integrate Ultralytics YOLO with ROS1 or ROS2 to run object detection and segmentation on RGB images, depth images, and point clouds for robotic perception.
+keywords: Ultralytics, YOLO, object detection, deep learning, machine learning, guide, ROS, ROS2, Robot Operating System, robotics, rclpy, rospy, ROS Noetic, Python, Ubuntu, simulation, visualization, communication, middleware, hardware abstraction, tools, utilities, ecosystem, Noetic Ninjemys, autonomous vehicle, AMV
 ---
 
 # ROS (Robot Operating System) quickstart guide
+
+This guide shows you how to integrate [Ultralytics YOLO](../models/yolo26.md) with ROS1 (`rospy`) or ROS2 (`rclpy`) to run real-time [object detection](../tasks/detect.md) and [segmentation](../tasks/segment.md) on RGB images, depth images, and point clouds.
+
+Jump to [setting up YOLO with ROS](#setting-up-ultralytics-yolo-with-ros), then work with [RGB images](#use-ultralytics-with-ros-sensor_msgsimage), [depth images](#use-ultralytics-with-ros-depth-images), or [point clouds](#use-ultralytics-with-ros-sensor_msgspointcloud2).
 
 <p align="center"> <iframe src="https://player.vimeo.com/video/639236696?h=740f412ce5" width="640" height="360" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></p>
 <p align="center"><a href="https://vimeo.com/639236696">ROS Introduction (captioned)</a> from <a href="https://vimeo.com/osrfoundation">Open Robotics</a> on <a href="https://vimeo.com/">Vimeo</a>.</p>
@@ -27,7 +32,7 @@ The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source frame
 
 ???+ note "Evolution of ROS Versions"
 
-    Since its development in 2007, ROS has evolved through [multiple versions](https://wiki.ros.org/Distributions), each introducing new features and improvements to meet the growing needs of the robotics community. The development of ROS can be categorized into two main series: ROS 1 and ROS 2. This guide focuses on the Long Term Support (LTS) version of ROS 1, known as ROS Noetic Ninjemys, the code should also work with earlier versions.
+    Since its development in 2007, ROS has evolved through [multiple versions](https://wiki.ros.org/Distributions), split into ROS 1 and ROS 2. The existing examples below use ROS1 Noetic; the compact adapters in [Using ROS2](#using-ros2) show the corresponding `rclpy` interfaces for current ROS2 releases.
 
     ### ROS 1 vs. ROS 2
 
@@ -45,7 +50,7 @@ In ROS, communication between nodes is facilitated through [messages](https://wi
 
 ## Setting Up Ultralytics YOLO with ROS
 
-This guide has been tested using [this ROS environment](https://github.com/ambitious-octopus/rosbot_ros/tree/noetic), which is a fork of the [ROSbot ROS repository](https://github.com/husarion/rosbot_ros). This environment includes the Ultralytics YOLO package, a Docker container for easy setup, comprehensive ROS packages, and Gazebo worlds for rapid testing. It is designed to work with the [Husarion ROSbot 2 PRO](https://husarion.com/manuals/rosbot/). The code examples provided will work in any ROS Noetic/Melodic environment, including both simulation and real-world.
+The ROS1 examples were tested using [this ROS environment](https://github.com/ambitious-octopus/rosbot_ros/tree/noetic), a fork of the [ROSbot ROS repository](https://github.com/husarion/rosbot_ros). The same YOLO and NumPy processing applies in ROS2; only the node lifecycle and message conversion differ.
 
 <p align="center">
   <img width="50%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/husarion-rosbot-2-pro.avif" alt="Husarion ROSbot 2 PRO autonomous robot platform">
@@ -66,6 +71,76 @@ Apart from the ROS environment, you will need to install the following dependenc
     ```bash
     pip install ultralytics
     ```
+
+## Using ROS2
+
+ROS2 replaces `rospy` with `rclpy` and `ros_numpy` image conversion with `cv_bridge`. The following node is the complete ROS2 equivalent of the RGB detection flow below; instantiate models once and reuse them across callbacks.
+
+```python
+import cv_bridge
+import rclpy
+from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
+from sensor_msgs.msg import Image
+
+from ultralytics import YOLO
+
+
+class UltralyticsNode(Node):
+    """Run YOLO detection on ROS2 image messages."""
+
+    def __init__(self):
+        """Initialize the ROS2 node, model, and image interfaces."""
+        super().__init__("ultralytics")
+        self.bridge = cv_bridge.CvBridge()
+        self.model = YOLO("yolo26m.pt")
+        self.publisher = self.create_publisher(Image, "/ultralytics/detection/image", 5)
+        self.create_subscription(Image, "/camera/color/image_raw", self.callback, qos_profile_sensor_data)
+
+    def callback(self, message):
+        """Publish the annotated camera frame."""
+        image = self.bridge.imgmsg_to_cv2(message, desired_encoding="bgr8")
+        annotated = self.model(image)[0].plot(show=False)
+        self.publisher.publish(self.bridge.cv2_to_imgmsg(annotated, encoding="bgr8"))
+
+
+def main(args=None):
+    """Start the ROS2 node."""
+    rclpy.init(args=args)
+    node = UltralyticsNode()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+```
+
+For depth images, reuse the depth-processing code below and replace only message acquisition and conversion:
+
+```python
+self.create_subscription(Image, "/camera/color/image_raw", self.rgb_callback, qos_profile_sensor_data)
+self.create_subscription(Image, "/camera/depth/image_raw", self.depth_callback, qos_profile_sensor_data)
+
+
+def rgb_callback(self, message):
+    self.rgb_image = self.bridge.imgmsg_to_cv2(message, desired_encoding="bgr8")
+
+
+def depth_callback(self, message):
+    depth_image = self.bridge.imgmsg_to_cv2(message, desired_encoding="passthrough")
+    # Apply the NumPy mask and distance calculation from the depth example below.
+```
+
+For point clouds, ROS2 provides `sensor_msgs_py.point_cloud2`; convert the organized cloud once, then reuse the NumPy segmentation and 3D mapping below:
+
+```python
+from sensor_msgs_py import point_cloud2
+
+points = point_cloud2.read_points_numpy(message, field_names=("x", "y", "z", "rgb"))
+points = points.reshape(message.height, message.width, 4)
+```
 
 ## Use Ultralytics with ROS `sensor_msgs/Image`
 
@@ -516,6 +591,10 @@ for index, class_id in enumerate(classes):
   <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/point-cloud-segmentation-ultralytics.avif" alt="Point Cloud Segmentation with Ultralytics ">
 </p>
 
+## Conclusion
+
+With Ultralytics YOLO integrated into ROS, your robot can run [object detection](../tasks/detect.md) and [segmentation](../tasks/segment.md) across RGB images, depth images, and point clouds, turning raw sensor streams into actionable perception. From here, explore the [Predict mode](../modes/predict.md) for more inference options, or follow the [steps of a computer vision project](steps-of-a-cv-project.md) to take your robotics application from prototype to production.
+
 ## FAQ
 
 ### What is the Robot Operating System (ROS)?
@@ -530,7 +609,7 @@ Integrating Ultralytics YOLO with ROS involves setting up a ROS environment and 
 pip install ros_numpy ultralytics
 ```
 
-Next, create a ROS node and subscribe to an [image topic](../tasks/detect.md) to process the incoming data. Here is a minimal example:
+Next, create a ROS node and subscribe to an image topic to process the incoming data for [object detection](../tasks/detect.md). Here is a minimal example:
 
 ```python
 import ros_numpy
@@ -557,7 +636,7 @@ rospy.spin()
 
 ### What are ROS topics and how are they used in Ultralytics YOLO?
 
-ROS topics facilitate communication between nodes in a ROS network by using a publish-subscribe model. A topic is a named channel that nodes use to send and receive messages asynchronously. In the context of Ultralytics YOLO, you can make a node subscribe to an image topic, process the images using YOLO for tasks like [detection](https://docs.ultralytics.com/tasks/detect) or [segmentation](https://docs.ultralytics.com/tasks/segment), and publish outcomes to new topics.
+ROS topics facilitate communication between nodes in a ROS network by using a publish-subscribe model. A topic is a named channel that nodes use to send and receive messages asynchronously. In the context of Ultralytics YOLO, you can make a node subscribe to an image topic, process the images using YOLO for tasks like [detection](../tasks/detect.md) or [segmentation](../tasks/segment.md), and publish outcomes to new topics.
 
 For example, subscribe to a camera topic and process the incoming image for detection:
 
@@ -584,6 +663,7 @@ Here's an example using [Open3D](https://www.open3d.org/) for visualization:
 ```python
 import sys
 
+import numpy as np
 import open3d as o3d
 import ros_numpy
 import rospy
@@ -626,4 +706,4 @@ for index, class_id in enumerate(classes):
     o3d.visualization.draw_geometries([pcd])
 ```
 
-This approach provides a 3D visualization of segmented objects, useful for tasks like navigation and manipulation in [robotics applications](https://docs.ultralytics.com/guides/steps-of-a-cv-project).
+This approach provides a 3D visualization of segmented objects, useful for tasks like navigation and manipulation in [robotics applications](steps-of-a-cv-project.md).

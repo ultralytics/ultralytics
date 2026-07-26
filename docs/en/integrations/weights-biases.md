@@ -1,4 +1,5 @@
 ---
+title: Weights & Biases YOLO Integration
 comments: true
 description: Learn how to enhance YOLO26 experiment tracking and visualization with Weights & Biases for better model performance and management.
 keywords: YOLO26, Weights & Biases, model training, experiment tracking, Ultralytics, machine learning, computer vision, model visualization

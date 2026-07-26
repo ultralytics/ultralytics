@@ -1,4 +1,5 @@
 ---
+title: Pose Estimation with YOLO
 comments: true
 description: Discover how to use YOLO26 for pose estimation tasks. Learn about model training, validation, prediction, and exporting in various formats.
 keywords: pose estimation, YOLO26, Ultralytics, keypoints, model training, image recognition, deep learning, human pose detection, computer vision, real-time tracking
@@ -62,7 +63,7 @@ Ultralytics YOLO26 pretrained Pose models are shown here. Detect, Segment and Po
 
 ## Train
 
-Train a YOLO26-pose model on the COCO8-pose dataset. The [COCO8-pose dataset](https://docs.ultralytics.com/datasets/pose/coco8-pose) is a small sample dataset that's perfect for testing and debugging your pose estimation models.
+Train a YOLO26-pose model on the COCO8-pose dataset. The [COCO8-pose dataset](../datasets/pose/coco8-pose.md) is a small sample dataset that's perfect for testing and debugging your pose estimation models.
 
 !!! example
 
@@ -93,13 +94,13 @@ Train a YOLO26-pose model on the COCO8-pose dataset. The [COCO8-pose dataset](ht
         yolo pose train data=coco8-pose.yaml model=yolo26n-pose.yaml pretrained=yolo26n-pose.pt epochs=100 imgsz=640
         ```
 
-See full `train` mode details in the [Train](../modes/train.md) page. Pose models can also be trained on cloud GPUs through [Ultralytics Platform](https://platform.ultralytics.com).
+See full `train` mode details in the [Train](../modes/train.md) page. Pose models can also be trained with [Ultralytics Platform cloud training](../platform/train/cloud-training.md).
 
 ### Dataset format
 
-YOLO pose dataset format can be found in detail in the [Dataset Guide](../datasets/pose/index.md). To convert your existing dataset from other formats (like [COCO](https://docs.ultralytics.com/datasets/pose/coco) etc.) to YOLO format, please use the [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics. [Ultralytics Platform](https://platform.ultralytics.com) also supports pose annotation with built-in skeleton templates for person, hand, face, and custom keypoint layouts.
+YOLO pose dataset format can be found in detail in the [Dataset Guide](../datasets/pose/index.md). To convert your existing dataset from other formats (like [COCO](../datasets/pose/coco.md) etc.) to YOLO format, please use the [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics. [Ultralytics Platform annotation](../platform/data/annotation.md) also supports pose labels with built-in skeleton templates for person, hand, face, and custom keypoint layouts.
 
-For custom pose estimation tasks, you can also explore specialized datasets like [Tiger-Pose](https://docs.ultralytics.com/datasets/pose/tiger-pose) for animal pose estimation, [Hand Keypoints](https://docs.ultralytics.com/datasets/pose/hand-keypoints) for hand tracking, or [Dog-Pose](https://docs.ultralytics.com/datasets/pose/dog-pose) for canine pose analysis.
+For custom pose estimation tasks, you can also explore specialized datasets like [Tiger-Pose](../datasets/pose/tiger-pose.md) for animal pose estimation, [Hand Keypoints](../datasets/pose/hand-keypoints.md) for hand tracking, or [Dog-Pose](../datasets/pose/dog-pose.md) for canine pose analysis.
 
 ## Val
 
@@ -139,7 +140,7 @@ Validate trained YOLO26n-pose model [accuracy](https://www.ultralytics.com/gloss
 
 ## Predict
 
-Use a trained YOLO26n-pose model to run predictions on images. The [predict mode](https://docs.ultralytics.com/modes/predict) allows you to perform inference on images, videos, or real-time streams.
+Use a trained YOLO26n-pose model to run predictions on images. The [predict mode](../modes/predict.md) allows you to perform inference on images, videos, or real-time streams.
 
 !!! example
 
@@ -239,7 +240,7 @@ model = YOLO("yolo26n-pose.pt")  # load a pretrained model (recommended for trai
 results = model.train(data="your-dataset.yaml", epochs=100, imgsz=640)
 ```
 
-For comprehensive details on training, refer to the [Train Section](#train). You can also use [Ultralytics Platform](https://platform.ultralytics.com) for a no-code approach to training custom pose estimation models.
+For comprehensive details on training, refer to the [Train Section](#train). You can also use [Ultralytics Platform cloud training](../platform/train/cloud-training.md) for a no-code approach to training custom pose estimation models.
 
 ### How do I validate a trained YOLO26-pose model?
 

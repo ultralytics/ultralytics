@@ -6,8 +6,8 @@ from __future__ import annotations
 import math
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 from torch.nn.init import constant_, xavier_uniform_
 
 from ultralytics.utils.torch_utils import TORCH_1_11
@@ -54,7 +54,7 @@ class TransformerEncoderLayer(nn.Module):
         cm: int = 2048,
         num_heads: int = 8,
         dropout: float = 0.0,
-        act: nn.Module = nn.GELU(),
+        act: nn.Module | None = None,
         normalize_before: bool = False,
     ):
         """Initialize the TransformerEncoderLayer with specified parameters.
@@ -85,7 +85,7 @@ class TransformerEncoderLayer(nn.Module):
         self.dropout1 = nn.Dropout(dropout)
         self.dropout2 = nn.Dropout(dropout)
 
-        self.act = act
+        self.act = nn.GELU() if act is None else act
         self.normalize_before = normalize_before
 
     @staticmethod
@@ -181,7 +181,7 @@ class AIFI(TransformerEncoderLayer):
         cm: int = 2048,
         num_heads: int = 8,
         dropout: float = 0,
-        act: nn.Module = nn.GELU(),
+        act: nn.Module | None = None,
         normalize_before: bool = False,
     ):
         """Initialize the AIFI instance with specified parameters.
@@ -206,14 +206,14 @@ class AIFI(TransformerEncoderLayer):
             (torch.Tensor): Output tensor with shape [B, C, H, W].
         """
         c, h, w = x.shape[1:]
-        pos_embed = self.build_2d_sincos_position_embedding(w, h, c)
+        pos_embed = self.build_2d_sincos_position_embedding(w, h, c, device=x.device)
         # Flatten [B, C, H, W] to [B, HxW, C]
         x = super().forward(x.flatten(2).permute(0, 2, 1), pos=pos_embed.to(device=x.device, dtype=x.dtype))
         return x.permute(0, 2, 1).view([-1, c, h, w]).contiguous()
 
     @staticmethod
     def build_2d_sincos_position_embedding(
-        w: int, h: int, embed_dim: int = 256, temperature: float = 10000.0
+        w: int, h: int, embed_dim: int = 256, temperature: float = 10000.0, device=None
     ) -> torch.Tensor:
         """Build 2D sine-cosine position embedding.
 
@@ -222,16 +222,19 @@ class AIFI(TransformerEncoderLayer):
             h (int): Height of the feature map.
             embed_dim (int): Embedding dimension.
             temperature (float): Temperature for the sine/cosine functions.
+            device (torch.device, optional): Device on which to build the embedding grids.
 
         Returns:
             (torch.Tensor): Position embedding with shape [1, h*w, embed_dim].
         """
         assert embed_dim % 4 == 0, "Embed dimension must be divisible by 4 for 2D sin-cos position embedding"
-        grid_w = torch.arange(w, dtype=torch.float32)
-        grid_h = torch.arange(h, dtype=torch.float32)
+        # Build on the input's device so a traced graph doesn't bake a CPU `arange` that clashes with GPU activations
+        # (e.g. TorchScript export of RT-DETR: the traced `arange` is pinned to CPU and fails GPU inference).
+        grid_w = torch.arange(w, dtype=torch.float32, device=device)
+        grid_h = torch.arange(h, dtype=torch.float32, device=device)
         grid_w, grid_h = torch.meshgrid(grid_w, grid_h, indexing="ij") if TORCH_1_11 else torch.meshgrid(grid_w, grid_h)
         pos_dim = embed_dim // 4
-        omega = torch.arange(pos_dim, dtype=torch.float32) / pos_dim
+        omega = torch.arange(pos_dim, dtype=torch.float32, device=device) / pos_dim
         omega = 1.0 / (temperature**omega)
 
         # Pin matmul to fp32 for CoreML export: fp16 sin/cos on integer-derived positions accumulates visible error.
@@ -613,7 +616,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
         n_heads: int = 8,
         d_ffn: int = 1024,
         dropout: float = 0.0,
-        act: nn.Module = nn.ReLU(),
+        act: nn.Module | None = None,
         n_levels: int = 4,
         n_points: int = 4,
     ):
@@ -642,7 +645,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
 
         # FFN
         self.linear1 = nn.Linear(d_model, d_ffn)
-        self.act = act
+        self.act = nn.ReLU() if act is None else act
         self.dropout3 = nn.Dropout(dropout)
         self.linear2 = nn.Linear(d_ffn, d_model)
         self.dropout4 = nn.Dropout(dropout)

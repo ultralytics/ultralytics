@@ -1,4 +1,5 @@
 ---
+title: models.rtdetr.model API Reference
 description: Explore the interface for Baidu's RT-DETR, a Vision Transformer-based real-time object detector in the Ultralytics Docs. Learn more about its efficient hybrid encoding and IoU-aware query selection.
 keywords: RT-DETR, real-time object detection, Vision Transformer, Ultralytics, model interface, Baidu, hybrid encoding, IoU-aware query selection, machine learning, AI
 ---

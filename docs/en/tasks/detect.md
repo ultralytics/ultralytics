@@ -72,11 +72,11 @@ Train YOLO26n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/
         yolo detect train data=coco8.yaml model=yolo26n.yaml pretrained=yolo26n.pt epochs=100 imgsz=640
         ```
 
-See full `train` mode details in the [Train](../modes/train.md) page. Detection models can also be trained on cloud GPUs through [Ultralytics Platform](https://platform.ultralytics.com).
+See full `train` mode details in the [Train](../modes/train.md) page. Detection models can also be trained with [Ultralytics Platform cloud training](../platform/train/cloud-training.md).
 
 ### Dataset format
 
-YOLO detection dataset format can be found in detail in the [Dataset Guide](../datasets/detect/index.md). To convert your existing dataset from other formats (like COCO etc.) to YOLO format, please use [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics. You can also annotate and manage detection datasets directly on [Ultralytics Platform](https://platform.ultralytics.com) with AI-assisted labeling tools.
+YOLO detection dataset format can be found in detail in the [Dataset Guide](../datasets/detect/index.md). To convert your existing dataset from other formats (like COCO etc.) to YOLO format, please use [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics. You can also annotate and manage detection datasets with [Ultralytics Platform's AI-assisted annotation tools](../platform/data/annotation.md).
 
 ## Val
 
@@ -197,7 +197,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ### Can I train and deploy detection models without coding?
 
-Yes. [Ultralytics Platform](https://platform.ultralytics.com) provides a browser-based workflow for annotating datasets, training detection models on cloud GPUs, and deploying them to inference endpoints. See the [Platform quickstart](../platform/quickstart.md) to get started.
+Yes. The [Ultralytics Platform quickstart](../platform/quickstart.md) covers a browser-based workflow for annotating datasets, training detection models on cloud GPUs, and deploying them to inference endpoints.
 
 ### How do I train a YOLO26 model on my custom dataset?
 
@@ -270,7 +270,7 @@ For more validation details, visit the [Val](../modes/val.md) page.
 
 ### What formats can I export a YOLO26 model to?
 
-Ultralytics YOLO26 allows exporting models to various formats such as [ONNX](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange), [TensorRT](https://www.ultralytics.com/glossary/tensorrt), [CoreML](https://docs.ultralytics.com/integrations/coreml), and more to ensure compatibility across different platforms and devices.
+Ultralytics YOLO26 allows exporting models to various formats such as [ONNX](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange), [TensorRT](https://www.ultralytics.com/glossary/tensorrt), [CoreML](../integrations/coreml.md), and more to ensure compatibility across different platforms and devices.
 
 !!! example
 
@@ -298,7 +298,7 @@ Check the full list of supported formats and instructions on the [Export](../mod
 
 Ultralytics YOLO26 is designed to offer state-of-the-art performance for [object detection](detect.md), [instance segmentation](segment.md), [semantic segmentation](semantic.md), and [pose estimation](pose.md). Here are some key advantages:
 
-1. **Pretrained Models**: Utilize models pretrained on popular datasets like [COCO](https://docs.ultralytics.com/datasets/detect/coco) and [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet) for faster development.
+1. **Pretrained Models**: Utilize models pretrained on popular datasets like [COCO](../datasets/detect/coco.md) and [ImageNet](../datasets/classify/imagenet.md) for faster development.
 2. **High Accuracy**: Achieves impressive mAP scores, ensuring reliable object detection.
 3. **Speed**: Optimized for [real-time inference](https://www.ultralytics.com/glossary/real-time-inference), making it ideal for applications requiring swift processing.
 4. **Flexibility**: Export models to various formats like ONNX and TensorRT for deployment across multiple platforms.

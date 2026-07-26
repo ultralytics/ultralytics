@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Explore Ultralytics' diverse datasets for vision tasks like detection, segmentation, semantic segmentation, classification, and more. Enhance your projects with high-quality annotated data.
-keywords: Ultralytics, datasets, computer vision, object detection, instance segmentation, semantic segmentation, pose estimation, image classification, multi-object tracking
+description: Explore Ultralytics' diverse datasets for vision tasks like detection, segmentation, semantic segmentation, depth estimation, classification, and more. Enhance your projects with high-quality annotated data.
+keywords: Ultralytics, datasets, computer vision, object detection, instance segmentation, semantic segmentation, depth estimation, pose estimation, image classification, multi-object tracking
 ---
 
 # Datasets Overview
 
-Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), semantic segmentation, pose estimation, classification, and multi-object tracking. Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets.
+Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), semantic segmentation, depth estimation, pose estimation, classification, and multi-object tracking. Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets.
 
 <p align="center">
   <br>
@@ -64,6 +64,14 @@ Semantic segmentation assigns a class label to every pixel in an image, producin
 - [Cityscapes](semantic/cityscapes.md): Urban street-scene semantic segmentation dataset with 19 train classes.
 - [Cityscapes8](semantic/cityscapes8.md): A compact 8-image Cityscapes subset for quick semantic segmentation pipeline checks.
 - [ADE20K](semantic/ade20k.md): Scene parsing dataset with 150 semantic classes.
+
+## [Depth Estimation](depth/index.md)
+
+Monocular depth estimation predicts a per-pixel depth map in meters from a single RGB image, supporting 3D scene reconstruction, robot navigation, and AR/VR applications.
+
+- [NYU Depth V2](depth/nyu-depth-v2.md): Standard indoor depth benchmark captured with a Microsoft Kinect v1.
+- [KITTI](depth/kitti.md): Real-world outdoor autonomous-driving scenes with Velodyne LiDAR depth.
+- [Depth8](depth/depth8.md): A compact 8-image SUN RGB-D subset for quick pipeline checks.
 
 ## [Pose Estimation](pose/index.md)
 
@@ -128,7 +136,7 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
 3. **Export Annotations**: Convert these annotations into the YOLO `*.txt` file format which Ultralytics supports.
 4. **Organize Dataset**: Arrange your dataset into the correct folder structure. You should have `images/` and `labels/` top-level directories, and within each, a `train/` and `val/` subdirectory.
 
-    ```
+    ```text
     dataset/
     ├── images/
     │   ├── train/
@@ -141,7 +149,7 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
 5. **Create a `data.yaml` File**: In your dataset's root directory, create a `data.yaml` file that describes the dataset, classes, and other necessary information.
 6. **Optimize Images (Optional)**: If you want to reduce the size of the dataset for more efficient processing, you can optimize the images using the code below. This is not required, but recommended for smaller dataset sizes and faster download speeds.
 7. **Zip Dataset**: Compress the entire dataset folder into a zip file.
-8. **Document and PR**: Create a documentation page describing your dataset and how it fits into the existing framework. After that, submit a Pull Request (PR). Refer to [Ultralytics Contribution Guidelines](https://docs.ultralytics.com/help/contributing) for more details on how to submit a PR.
+8. **Document and PR**: Create a documentation page describing your dataset and how it fits into the existing framework. After that, submit a Pull Request (PR). Refer to [Ultralytics Contribution Guidelines](../help/contributing.md) for more details on how to submit a PR.
 
 ### Example Code to Optimize and Zip a Dataset
 
@@ -180,7 +188,7 @@ Ultralytics supports a wide variety of datasets for [object detection](https://w
 - [VisDrone](detect/visdrone.md): A dataset with object detection and multi-object tracking data from drone-captured imagery.
 - [SKU-110K](detect/sku-110k.md): Featuring dense object detection in retail environments with over 11K images.
 
-These datasets facilitate training robust [Ultralytics YOLO](https://docs.ultralytics.com/models) models for various object detection applications.
+These datasets facilitate training robust [Ultralytics YOLO](../models/index.md) models for various object detection applications.
 
 ### How do I contribute a new dataset to Ultralytics?
 
@@ -193,7 +201,7 @@ Contributing a new dataset involves several steps:
 5. **Create a `data.yaml` File**: Include dataset descriptions, classes, and other relevant information.
 6. **Optimize Images (Optional)**: Reduce dataset size for efficiency.
 7. **Zip Dataset**: Compress the dataset into a zip file.
-8. **Document and PR**: Describe your dataset and submit a Pull Request following [Ultralytics Contribution Guidelines](https://docs.ultralytics.com/help/contributing).
+8. **Document and PR**: Describe your dataset and submit a Pull Request following [Ultralytics Contribution Guidelines](../help/contributing.md).
 
 Visit [Contribute New Datasets](#contribute-new-datasets) for a comprehensive guide.
 
@@ -206,19 +214,19 @@ Visit [Contribute New Datasets](#contribute-new-datasets) for a comprehensive gu
 - **Visualization Tools**: Explore and visualize your dataset images and annotations.
 - **Dataset Analysis**: Get insights into your dataset distribution and characteristics.
 
-The platform streamlines the transition from dataset management to model training, making the entire process more efficient. Learn more about [Ultralytics Platform Datasets](https://docs.ultralytics.com/platform/data).
+The platform streamlines the transition from dataset management to model training, making the entire process more efficient. Learn more about [Ultralytics Platform Datasets](../platform/data/index.md).
 
 ### What are the unique features of Ultralytics YOLO models for computer vision?
 
 Ultralytics YOLO models provide several unique features for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks:
 
 - **Real-time Performance**: High-speed inference and training capabilities for time-sensitive applications.
-- **Versatility**: Support for detection, instance segmentation, semantic segmentation, classification, and pose estimation tasks in a unified framework.
+- **Versatility**: Support for detection, instance segmentation, semantic segmentation, depth estimation, classification, and pose estimation tasks in a unified framework.
 - **Pretrained Models**: Access to high-performing, pretrained models for various applications, reducing training time.
 - **Extensive Community Support**: Active community and comprehensive documentation for troubleshooting and development.
 - **Easy Integration**: Simple API for integrating with existing projects and workflows.
 
-Discover more about YOLO models on the [Ultralytics Models](https://docs.ultralytics.com/models) page.
+Discover more about YOLO models on the [Ultralytics Models](../models/index.md) page.
 
 ### How can I optimize and zip a dataset using Ultralytics tools?
 

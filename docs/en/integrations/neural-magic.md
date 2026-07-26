@@ -1,4 +1,5 @@
 ---
+title: DeepSparse CPU Inference for YOLO26
 comments: true
 description: Enhance YOLO26 performance using Neural Magic's DeepSparse Engine. Learn how to deploy and benchmark YOLO26 models on CPUs for efficient object detection.
 keywords: YOLO26, DeepSparse, Neural Magic, model optimization, object detection, inference speed, CPU performance, sparsity, pruning, quantization

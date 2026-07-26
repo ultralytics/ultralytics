@@ -258,7 +258,7 @@ def export_formats():
             "_ascend_model",
             False,
             False,
-            ["batch", "name", "quantize", "opset", "simplify", "nms"],
+            ["batch", "name", "quantize", "opset", "simplify"],
             "base",
         ],
     ]

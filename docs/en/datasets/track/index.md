@@ -1,7 +1,8 @@
 ---
 comments: true
 description: Learn how to use Multi-Object Tracking with YOLO. Explore dataset formats, tracking algorithms, and implementation examples using Python or CLI for real-time object tracking.
-keywords: YOLO, Multi-Object Tracking, Tracking Datasets, Python Tracking Example, CLI Tracking Example, Object Detection, Ultralytics, AI, Machine Learning, BoT-SORT, ByteTrack
+keywords: YOLO, Multi-Object Tracking, Tracking Datasets, Python Tracking Example, CLI Tracking Example, Object Detection, Ultralytics, AI, Machine Learning, BoT-SORT, ByteTrack, OC-SORT, Deep OC-SORT, FastTracker, TrackTrack
+title: Multi-Object Tracking Datasets
 ---
 
 # Multi-object Tracking Datasets Overview
@@ -18,6 +19,10 @@ Ultralytics YOLO supports the following tracking algorithms:
 
 - [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - Use `botsort.yaml` to enable this tracker (default)
 - [ByteTrack](https://github.com/FoundationVision/ByteTrack) - Use `bytetrack.yaml` to enable this tracker
+- [OC-SORT](https://arxiv.org/abs/2203.14360) - Use `ocsort.yaml` to enable this tracker
+- [Deep OC-SORT](https://arxiv.org/abs/2302.11813) - Use `deepocsort.yaml` to enable this tracker
+- [FastTracker](https://arxiv.org/abs/2508.14370) - Use `fasttrack.yaml` to enable this tracker
+- [TrackTrack](https://openaccess.thecvf.com/content/CVPR2025/papers/Shim_Focusing_on_Tracks_for_Online_Multi-Object_Tracking_CVPR_2025_paper.pdf) - Use `tracktrack.yaml` to enable this tracker
 
 ## Usage
 
@@ -28,14 +33,14 @@ Ultralytics YOLO supports the following tracking algorithms:
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolo11n.pt")
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.3, iou=0.5, show=True)
+        model = YOLO("yolo26n.pt")
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.1, iou=0.7, show=True)
         ```
 
     === "CLI"
 
         ```bash
-        yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.3 iou=0.5 show=True
+        yolo track model=yolo26n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.1 iou=0.7 show=True
         ```
 
 ## Persisting Tracks Between Frames
@@ -52,7 +57,7 @@ For continuous tracking across video frames, you can use the `persist=True` para
         from ultralytics import YOLO
 
         # Load the YOLO model
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
 
         # Open the video file
         cap = cv2.VideoCapture("path/to/video.mp4")
@@ -89,21 +94,21 @@ To use Multi-Object Tracking with Ultralytics YOLO, you can start by using the P
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolo11n.pt")  # Load the YOLO11 model
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.3, iou=0.5, show=True)
+        model = YOLO("yolo26n.pt")  # Load the YOLO26 model
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.1, iou=0.7, show=True)
         ```
 
     === "CLI"
 
         ```bash
-        yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.3 iou=0.5 show=True
+        yolo track model=yolo26n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.1 iou=0.7 show=True
         ```
 
-These commands load the YOLO11 model and use it for tracking objects in the given video source with specific confidence (`conf`) and [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (`iou`) thresholds. For more details, refer to the [track mode documentation](../../modes/track.md).
+These commands load the YOLO26 model and use it for tracking objects in the given video source with specific confidence (`conf`) and [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (`iou`) thresholds. For more details, refer to the [track mode documentation](../../modes/track.md).
 
 ### What are the upcoming features for training trackers in Ultralytics?
 
-Ultralytics is continuously enhancing its AI models. An upcoming feature will enable the training of standalone trackers. Until then, Multi-Object Detector leverages pretrained detection, segmentation, or Pose models for tracking without requiring standalone training. Stay updated by following our [blog](https://www.ultralytics.com/blog) or checking the [upcoming features](../../reference/trackers/track.md).
+Ultralytics is continuously enhancing its AI models. An upcoming feature will enable the training of standalone trackers. Until then, Multi-Object Detector leverages pretrained detection, segmentation, or Pose models for tracking without requiring standalone training. Stay updated by following our [blog](https://www.ultralytics.com/blog).
 
 ### Why should I use Ultralytics YOLO for multi-object tracking?
 
@@ -137,6 +142,6 @@ You can customize the tracker by creating a modified version of the tracker conf
 ```python
 from ultralytics import YOLO
 
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 results = model.track(source="video.mp4", tracker="custom_tracker.yaml")
 ```

@@ -1,18 +1,18 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # COCO 2017 dataset https://cocodataset.org by Microsoft
-# Documentation: https://docs.ultralytics.com/datasets/detect/coco/
+# Documentation: https://docs.ultralytics.com/datasets/detect/coco
 # Example usage: yolo train data=coco.yaml
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── coco ← downloads here (20.1 GB)
+#     └── coco ← downloads here (20.3 GB)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
 path: coco # dataset root dir
 train: train2017.txt # train images (relative to 'path') 118287 images
 val: val2017.txt # val images (relative to 'path') 5000 images
-test: test-dev2017.txt # 20288 of 40670 images, submit to https://competitions.codalab.org/competitions/20794
+test: test-dev2017.txt # 20288 of 40670 images, submit via https://cocodataset.org/#detection-eval
 
 # Classes
 names:
@@ -109,10 +109,10 @@ download: |
   dir = Path(yaml["path"])  # dataset root dir
   urls = [ASSETS_URL + ("/coco2017labels-segments.zip" if segments else "/coco2017labels.zip")]  # labels
   download(urls, dir=dir.parent)
-  # Download data
+
+  # Download data (test2017.zip excluded: ground truth is withheld, only used for the eval-server test-dev split)
   urls = [
       "http://images.cocodataset.org/zips/train2017.zip",  # 19G, 118k images
       "http://images.cocodataset.org/zips/val2017.zip",  # 1G, 5k images
-      "http://images.cocodataset.org/zips/test2017.zip",  # 7G, 41k images (optional)
   ]
   download(urls, dir=dir / "images", threads=3)

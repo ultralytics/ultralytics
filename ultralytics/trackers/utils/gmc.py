@@ -17,11 +17,11 @@ class GMC:
     SIFT, ECC, and Sparse Optical Flow. It also supports downscaling of frames for computational efficiency.
 
     Attributes:
-        method (str): The tracking method to use. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow', 'none'.
+        method (str | None): The tracking method to use. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow', None.
         downscale (int): Factor by which to downscale the frames for processing.
-        prevFrame (np.ndarray): Previous frame for tracking.
-        prevKeyPoints (list): Keypoints from the previous frame.
-        prevDescriptors (np.ndarray): Descriptors from the previous frame.
+        prevFrame (np.ndarray | None): Previous frame for tracking.
+        prevKeyPoints (tuple | np.ndarray | None): Keypoints from the previous frame.
+        prevDescriptors (np.ndarray | None): Descriptors from the previous frame.
         initializedFirstFrame (bool): Flag indicating if the first frame has been processed.
 
     Methods:
@@ -69,9 +69,14 @@ class GMC:
             self.criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, number_of_iterations, termination_eps)
 
         elif self.method == "sparseOptFlow":
-            self.feature_params = dict(
-                maxCorners=1000, qualityLevel=0.01, minDistance=1, blockSize=3, useHarrisDetector=False, k=0.04
-            )
+            self.feature_params = {
+                "maxCorners": 1000,
+                "qualityLevel": 0.01,
+                "minDistance": 1,
+                "blockSize": 3,
+                "useHarrisDetector": False,
+                "k": 0.04,
+            }
 
         elif self.method in {"none", "None", None}:
             self.method = None
@@ -95,7 +100,7 @@ class GMC:
 
         Examples:
             >>> gmc = GMC(method="sparseOptFlow")
-            >>> raw_frame = np.random.rand(480, 640, 3)
+            >>> raw_frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
             >>> transformation_matrix = gmc.apply(raw_frame)
             >>> print(transformation_matrix.shape)
             (2, 3)
@@ -120,10 +125,10 @@ class GMC:
 
         Examples:
             >>> gmc = GMC(method="ecc")
-            >>> processed_frame = gmc.apply_ecc(np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]))
-            >>> print(processed_frame)
-            [[1. 0. 0.]
-             [0. 1. 0.]]
+            >>> raw_frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+            >>> transformation_matrix = gmc.apply_ecc(raw_frame)
+            >>> print(transformation_matrix.shape)
+            (2, 3)
         """
         height, width, c = raw_frame.shape
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY) if c == 3 else raw_frame
@@ -143,6 +148,7 @@ class GMC:
         # Run the ECC algorithm to find transformation matrix
         try:
             (_, H) = cv2.findTransformECC(self.prevFrame, frame, H, self.warp_mode, self.criteria, None, 1)
+            H[:, 2] *= (width / frame.shape[1], height / frame.shape[0])
         except Exception as e:
             LOGGER.warning(f"findTransformECC failed; using identity warp. {e}")
 
@@ -201,7 +207,6 @@ class GMC:
         knnMatches = self.matcher.knnMatch(self.prevDescriptors, descriptors, 2)
 
         # Filter matches based on spatial distance constraints
-        matches = []
         spatialDistances = []
         maxSpatialDistance = 0.25 * np.array([width, height])
 
@@ -213,6 +218,8 @@ class GMC:
             return H
 
         # Apply Lowe's ratio test and spatial distance filtering
+        prevPoints = []
+        currPoints = []
         for m, n in knnMatches:
             if m.distance < 0.9 * n.distance:
                 prevKeyPointLocation = self.prevKeyPoints[m.queryIdx].pt
@@ -227,25 +234,19 @@ class GMC:
                     np.abs(spatialDistance[1]) < maxSpatialDistance[1]
                 ):
                     spatialDistances.append(spatialDistance)
-                    matches.append(m)
+                    prevPoints.append(prevKeyPointLocation)
+                    currPoints.append(currKeyPointLocation)
 
         # Filter outliers using statistical analysis
+        spatialDistances = np.asarray(spatialDistances).reshape(-1, 2)
         meanSpatialDistances = np.mean(spatialDistances, 0)
         stdSpatialDistances = np.std(spatialDistances, 0)
-        inliers = (spatialDistances - meanSpatialDistances) < 2.5 * stdSpatialDistances
+        inliers = np.abs(spatialDistances - meanSpatialDistances) < 2.5 * stdSpatialDistances
 
-        # Extract good matches and corresponding points
-        goodMatches = []
-        prevPoints = []
-        currPoints = []
-        for i in range(len(matches)):
-            if inliers[i, 0] and inliers[i, 1]:
-                goodMatches.append(matches[i])
-                prevPoints.append(self.prevKeyPoints[matches[i].queryIdx].pt)
-                currPoints.append(keypoints[matches[i].trainIdx].pt)
-
-        prevPoints = np.array(prevPoints)
-        currPoints = np.array(currPoints)
+        # Keep matched point pairs that survive the outlier filter
+        good = inliers.all(axis=1)
+        prevPoints = np.asarray(prevPoints).reshape(-1, 2)[good]
+        currPoints = np.asarray(currPoints).reshape(-1, 2)[good]
 
         # Estimate transformation matrix using RANSAC
         if prevPoints.shape[0] > 4:
@@ -276,10 +277,10 @@ class GMC:
 
         Examples:
             >>> gmc = GMC()
-            >>> result = gmc.apply_sparseoptflow(np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]))
-            >>> print(result)
-            [[1. 0. 0.]
-             [0. 1. 0.]]
+            >>> raw_frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+            >>> transformation_matrix = gmc.apply_sparseoptflow(raw_frame)
+            >>> print(transformation_matrix.shape)
+            (2, 3)
         """
         height, width, c = raw_frame.shape
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY) if c == 3 else raw_frame
@@ -303,19 +304,12 @@ class GMC:
         matchedKeypoints, status, _ = cv2.calcOpticalFlowPyrLK(self.prevFrame, frame, self.prevKeyPoints, None)
 
         # Extract successfully tracked points
-        prevPoints = []
-        currPoints = []
-
-        for i in range(len(status)):
-            if status[i]:
-                prevPoints.append(self.prevKeyPoints[i])
-                currPoints.append(matchedKeypoints[i])
-
-        prevPoints = np.array(prevPoints)
-        currPoints = np.array(currPoints)
+        good = status.ravel().astype(bool)
+        prevPoints = self.prevKeyPoints[good]
+        currPoints = matchedKeypoints[good]
 
         # Estimate transformation matrix using RANSAC
-        if (prevPoints.shape[0] > 4) and (prevPoints.shape[0] == currPoints.shape[0]):
+        if prevPoints.shape[0] > 4:
             H, _ = cv2.estimateAffinePartial2D(prevPoints, currPoints, cv2.RANSAC)
 
             # Scale translation components back to original resolution

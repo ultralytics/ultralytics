@@ -18,6 +18,9 @@ def download_file(url: str, local_path: str) -> str:
     Args:
         url (str): URL of the file to download.
         local_path (str): Local path where the file will be saved.
+
+    Returns:
+        (str): Local path where the file was saved.
     """
     # Check if the local path already exists
     if os.path.exists(local_path):
@@ -117,7 +120,7 @@ class RTDETR:
 
         # Ensure the classes are a list
         if not isinstance(self.classes, list):
-            raise ValueError("Classes should be a list of class names.")
+            raise TypeError("Classes should be a list of class names.")
 
         # Generate a color palette for drawing bounding boxes
         self.color_palette: np.ndarray = np.random.uniform(0, 255, size=(len(self.classes), 3))
@@ -187,7 +190,7 @@ class RTDETR:
         image_data = np.transpose(image_data, (2, 0, 1))  # Channel first
 
         # Expand the dimensions of the image data to match the expected input shape
-        image_data = np.expand_dims(image_data, axis=0).astype(np.float32)
+        image_data = image_data[None].astype(np.float32)
 
         return image_data
 

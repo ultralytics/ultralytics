@@ -6,7 +6,7 @@
 
 # Parameters
 nc: 80 # number of classes
-scales: # model compound scaling constants, i.e. 'model=yolov8n-cls.yaml' will call yolov8-cls.yaml with scale 'n'
+scales: # model compound scaling constants, i.e. 'model=rtdetr-resnet50.yaml' will call rtdetr-resnet50.yaml with scale 'l'
   # [depth, width, max_channels]
   l: [1.00, 1.00, 1024]
 
@@ -42,4 +42,4 @@ head:
   - [[-1, 7], 1, Concat, [1]] # cat Y5
   - [-1, 3, RepC3, [256]] # F5 (22), pan_blocks.1
 
-  - [[16, 19, 22], 1, RTDETRDecoder, [nc]] # Detect(P3, P4, P5)
+  - [[16, 19, 22], 1, RTDETRDecoder, [nc]] # RTDETRDecoder(P3, P4, P5)

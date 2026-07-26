@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import torch
 from PIL import Image
 
@@ -30,7 +32,7 @@ class FastSAMPredictor(SegmentationPredictor):
         set_prompts: Set prompts to be used during inference.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize the FastSAMPredictor with configuration and callbacks.
 
         This initializes a predictor specialized for Fast SAM (Segment Anything Model) segmentation tasks. The predictor
@@ -40,7 +42,7 @@ class FastSAMPredictor(SegmentationPredictor):
         Args:
             cfg (dict): Configuration for the predictor.
             overrides (dict, optional): Configuration overrides.
-            _callbacks (list, optional): List of callback functions.
+            _callbacks (dict, optional): Dictionary of callback functions.
         """
         super().__init__(cfg, overrides, _callbacks)
         self.prompts = {}
@@ -63,10 +65,10 @@ class FastSAMPredictor(SegmentationPredictor):
         results = super().postprocess(preds, img, orig_imgs)
         for result in results:
             full_box = torch.tensor(
-                [0, 0, result.orig_shape[1], result.orig_shape[0]], device=preds[0].device, dtype=torch.float32
+                [0, 0, result.orig_shape[1], result.orig_shape[0]], device=result.boxes.data.device, dtype=torch.float32
             )
             boxes = adjust_bboxes_to_image_border(result.boxes.xyxy, result.orig_shape)
-            idx = torch.nonzero(box_iou(full_box[None], boxes) > 0.9).flatten()
+            idx = torch.nonzero(box_iou(full_box[None], boxes)[0] > 0.9).flatten()
             if idx.numel() != 0:
                 result.boxes.xyxy[idx] = full_box
 
@@ -134,11 +136,14 @@ class FastSAMPredictor(SegmentationPredictor):
                     if (masks[i].sum() if TORCH_1_10 else masks[i].sum(0).sum()) <= 100:  # torch 1.9 bug workaround
                         filter_idx.append(i)
                         continue
-                    crop_ims.append(Image.fromarray(result.orig_img[y1:y2, x1:x2, ::-1]))
+                    crop = result.orig_img[y1:y2, x1:x2] * masks[i, y1:y2, x1:x2, None].cpu().numpy()
+                    crop_ims.append(Image.fromarray(crop[:, :, ::-1]))
                 similarity = self._clip_inference(crop_ims, texts)
                 text_idx = torch.argmax(similarity, dim=-1)  # (M, )
                 if len(filter_idx):
-                    text_idx += (torch.tensor(filter_idx, device=self.device)[None] <= int(text_idx)).sum(0)
+                    # Remap text_idx to its original index before filtering (supports multiple text prompts)
+                    ori_idxs = torch.tensor([i for i in range(len(result)) if i not in filter_idx], device=self.device)
+                    text_idx = ori_idxs[text_idx]
                 idx[text_idx] = True
 
             prompt_results.append(result[idx])

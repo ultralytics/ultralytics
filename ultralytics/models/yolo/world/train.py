@@ -17,10 +17,9 @@ from ultralytics.utils.torch_utils import unwrap_model
 
 def on_pretrain_routine_end(trainer) -> None:
     """Set up model classes and text encoder at the end of the pretrain routine."""
-    if RANK in {-1, 0}:
-        # Set class names for evaluation
-        names = [name.split("/", 1)[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
-        unwrap_model(trainer.ema.ema).set_classes(names, cache_clip_model=False)
+    # Set on all ranks: validation runs on every rank, but txt_feats/nc are not DDP buffers so they don't sync
+    names = [name.split("/", 1)[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
+    unwrap_model(trainer.ema.ema).set_classes(names, cache_clip_model=False)
 
 
 class WorldTrainer(DetectionTrainer):
@@ -83,7 +82,7 @@ class WorldTrainer(DetectionTrainer):
             cfg["yaml_file"] if isinstance(cfg, dict) else cfg,
             ch=self.data["channels"],
             nc=min(self.data["nc"], 80),
-            verbose=verbose and RANK in {-1, 0},
+            verbose=verbose and RANK == -1,
         )
         if weights:
             model.load(weights)

@@ -1,7 +1,8 @@
 ---
+title: Object Speed Estimation with YOLO26
 comments: true
-description: Learn how to estimate object speed using Ultralytics YOLO26 for applications in traffic control, autonomous navigation, and surveillance.
-keywords: Ultralytics YOLO26, speed estimation, object tracking, computer vision, traffic control, autonomous navigation, surveillance, security
+description: Estimate the speed of tracked objects in video with Ultralytics YOLO26 using frame rate and pixel-to-meter scaling for traffic and surveillance use cases.
+keywords: Ultralytics YOLO26, speed estimation, object tracking, vehicle speed, traffic control, autonomous navigation, surveillance, computer vision
 ---
 
 # Speed Estimation using Ultralytics YOLO26 🚀
@@ -28,7 +29,7 @@ keywords: Ultralytics YOLO26, speed estimation, object tracking, computer vision
 ## Advantages of Speed Estimation
 
 - **Efficient Traffic Control:** Accurate speed estimation aids in managing traffic flow, enhancing safety, and reducing congestion on roadways.
-- **Precise Autonomous Navigation:** In autonomous systems like [self-driving cars](https://www.ultralytics.com/solutions/ai-in-automotive), reliable speed estimation ensures safe and accurate vehicle navigation.
+- **Precise Autonomous Navigation:** In autonomous systems like [self-driving cars](https://www.ultralytics.com/solutions/computer-vision-in-automotive), reliable speed estimation ensures safe and accurate vehicle navigation.
 - **Enhanced Surveillance Security:** Speed estimation in surveillance analytics helps identify unusual behaviors or potential threats, improving the effectiveness of security measures.
 
 ## Real World Applications
@@ -41,6 +42,10 @@ keywords: Ultralytics YOLO26, speed estimation, object tracking, computer vision
 ???+ warning "Speed is an Estimate"
 
     Speed will be an estimate and may not be completely accurate. Additionally, the estimation can vary on camera specifications and related factors.
+
+## Estimate Speed with YOLO26
+
+The `SpeedEstimator` solution tracks each object across frames and converts its pixel displacement into a speed using the video frame rate (`fps`) and a real-world scale (`meter_per_pixel`). Tune `meter_per_pixel` to your camera setup and use `max_speed` to clamp outliers from noisy tracks.
 
 !!! example "Speed Estimation using Ultralytics YOLO"
 
@@ -123,38 +128,7 @@ Additionally, the following visualization options are supported:
 
 ### How do I estimate object speed using Ultralytics YOLO26?
 
-Estimating object speed with Ultralytics YOLO26 involves combining [object detection](https://www.ultralytics.com/glossary/object-detection) and tracking techniques. First, you need to detect objects in each frame using the YOLO26 model. Then, track these objects across frames to calculate their movement over time. Finally, use the distance traveled by the object between frames and the frame rate to estimate its speed.
-
-**Example**:
-
-```python
-import cv2
-
-from ultralytics import solutions
-
-cap = cv2.VideoCapture("path/to/video.mp4")
-w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-video_writer = cv2.VideoWriter("speed_estimation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-
-# Initialize SpeedEstimator
-speedestimator = solutions.SpeedEstimator(
-    model="yolo26n.pt",
-    show=True,
-)
-
-while cap.isOpened():
-    success, im0 = cap.read()
-    if not success:
-        break
-    results = speedestimator(im0)
-    video_writer.write(results.plot_im)
-
-cap.release()
-video_writer.release()
-cv2.destroyAllWindows()
-```
-
-For more details, refer to our [official blog post](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects).
+Estimating object speed with Ultralytics YOLO26 combines [object detection](https://www.ultralytics.com/glossary/object-detection) and tracking. The model detects objects in each frame, tracks them across frames, and converts the distance traveled between frames into a speed using the frame rate and `meter_per_pixel` scale. The [Python example above](#estimate-speed-with-yolo26) runs this full pipeline — pass your video and tune `meter_per_pixel` to your camera. For more background, refer to our [official blog post](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects).
 
 ### What are the benefits of using Ultralytics YOLO26 for speed estimation in traffic management?
 
@@ -162,7 +136,7 @@ Using Ultralytics YOLO26 for speed estimation offers significant advantages in t
 
 - **Enhanced Safety**: Accurately estimate vehicle speeds to detect over-speeding and improve road safety.
 - **Real-Time Monitoring**: Benefit from YOLO26's real-time object detection capability to monitor traffic flow and congestion effectively.
-- **Scalability**: Deploy the model on various hardware setups, from [edge devices](https://docs.ultralytics.com/guides/nvidia-jetson/) to servers, ensuring flexible and scalable solutions for large-scale implementations.
+- **Scalability**: Deploy the model on various hardware setups, from [edge devices](nvidia-jetson.md) to servers, ensuring flexible and scalable solutions for large-scale implementations.
 
 For more applications, see [advantages of speed estimation](#advantages-of-speed-estimation).
 

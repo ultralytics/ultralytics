@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from typing import Any
 
@@ -13,25 +12,23 @@ from ultralytics.utils import LOGGER
 
 def torch2openvino(
     model: torch.nn.Module,
-    im: torch.Tensor,
-    file: Path | str | None = None,
+    im: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor, ...],
+    output_dir: Path | str | None = None,
     dynamic: bool = False,
-    half: bool = False,
-    int8: bool = False,
+    quantize: int | str | None = None,
     calibration_dataset: Any | None = None,
     ignored_scope: dict | None = None,
     prefix: str = "",
-) -> str:
+) -> Any:
     """Export a PyTorch model to OpenVINO format with optional INT8 quantization.
 
     Args:
         model (torch.nn.Module): The model to export (may be NMS-wrapped).
-        im (torch.Tensor): Example input tensor.
-        file (Path | str | None): Source model path used to derive output directory.
+        im (torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor, ...]): Example input tensor(s) for tracing.
+        output_dir (Path | str | None): Directory to save the exported OpenVINO model.
         dynamic (bool): Whether to use dynamic input shapes.
-        half (bool): Whether to compress to FP16.
-        int8 (bool): Whether to apply INT8 quantization.
-        calibration_dataset (nn.Dataset): Dataset for nncf.Dataset (required when ``int8=True``).
+        quantize (int | str | None): Precision scheme, e.g. 16 for FP16 or 8 for INT8.
+        calibration_dataset (nncf.Dataset | None): Dataset for INT8 calibration (required when ``quantize=8``).
         ignored_scope (dict | None): Kwargs passed to ``nncf.IgnoredScope`` for head patterns.
         prefix (str): Prefix for log messages.
 
@@ -42,8 +39,14 @@ def torch2openvino(
 
     LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
 
-    ov_model = ov.convert_model(model, input=None if dynamic else [im.shape], example_input=im)
-    if int8:
+    input_shape = [i.shape for i in im] if isinstance(im, (list, tuple)) else im.shape
+    # Hand OpenVINO an already-traced ScriptModule (torchscript/coreml exports trace the same way), not a raw
+    # nn.Module, so it doesn't re-trace internally with check_trace=True - that re-trace-and-diff sanity check is
+    # non-deterministic on NMS models and fails with "Graphs differed across invocations!". check_trace=False skips
+    # the same check on our own trace.
+    ts = torch.jit.trace(model, im, strict=False, check_trace=False)
+    ov_model = ov.convert_model(ts, input=None if dynamic else input_shape, example_input=im)
+    if quantize == 8:
         import nncf
 
         ov_model = nncf.quantize(
@@ -53,10 +56,9 @@ def torch2openvino(
             ignored_scope=ignored_scope,
         )
 
-    if file is not None:
-        file = Path(file)
-        suffix = f"_{'int8_' if int8 else ''}openvino_model{os.sep}"
-        f = str(file).replace(file.suffix, suffix)
-        f_ov = str(Path(f) / file.with_suffix(".xml").name)
-        ov.save_model(ov_model, f_ov, compress_to_fp16=half)
+    if output_dir is not None:
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_file = output_dir / "model.xml"
+        ov.save_model(ov_model, output_file, compress_to_fp16=quantize == 16)
     return ov_model

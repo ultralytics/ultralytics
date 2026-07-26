@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn how YOLO26 base models were trained on COCO, including optimizer settings, augmentation pipelines, loss weights, and practical fine-tuning guidance for each model size.
+description: Learn how YOLO26 models were trained on COCO, including optimizer settings, augmentation pipelines, loss weights, and fine-tuning guidance for each model size.
 keywords: YOLO26, training recipe, pretraining, fine-tuning, MuSGD, augmentation, loss weights, COCO, model card, hyperparameters, Ultralytics, object detection, deep learning, data augmentation
 ---
 
@@ -10,15 +10,33 @@ keywords: YOLO26, training recipe, pretraining, fine-tuning, MuSGD, augmentation
 
 This guide documents the exact [training](../modes/train.md) recipe used to produce the official [YOLO26](../models/yolo26.md) pretrained checkpoints on [COCO](../datasets/detect/coco.md). Every [hyperparameter](https://www.ultralytics.com/glossary/hyperparameter-tuning) shown here is already embedded in the released `.pt` weights and can be inspected programmatically.
 
-Understanding how the base models were trained helps you make better decisions when [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning): which [data augmentations](./yolo-data-augmentation.md) to keep, which [loss function](https://www.ultralytics.com/glossary/loss-function) weights to adjust, and what optimizer settings work best for your dataset size.
+Knowing what went into the official checkpoints — not just the architecture, but the [learning rate](https://www.ultralytics.com/glossary/learning-rate) schedules, augmentation pipelines, and loss weights that shaped their performance — helps you make better decisions when [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning): which [data augmentations](./yolo-data-augmentation.md) to keep, which [loss function](https://www.ultralytics.com/glossary/loss-function) weights to adjust, and what optimizer settings work best for your dataset size.
 
-!!! tip "Who is this guide for?"
+## Training Overview
 
-    This guide is for practitioners who want to understand what went into the official YOLO26 checkpoints — not just the architecture, but the [learning rate](https://www.ultralytics.com/glossary/learning-rate) schedules, augmentation pipelines, and loss weights that shaped their performance. Use this information to make informed choices when fine-tuning on your own data.
+All YOLO26 base models were trained on COCO at **640x640** resolution using the **MuSGD** optimizer with **[batch size](https://www.ultralytics.com/glossary/batch-size) 128**. Rather than starting from random weights in a single run, models were initialized from intermediate pretrained weights and refined with hyperparameters found via [evolutionary search](./hyperparameter-tuning.md#genetic-evolution-and-mutation). Full training logs and metrics for every model size are available on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26):
 
-## Inspecting Training Args
+<iframe
+  src="https://platform.ultralytics.com/embed/ultralytics/yolo26"
+  title="YOLO26 COCO training runs and metrics on Ultralytics Platform"
+  loading="lazy"
+  scrolling="no"
+  width="100%"
+  height="290px"
+  style="border:none"
+></iframe>
 
-Every Ultralytics checkpoint stores the full training configuration used to produce it. You can inspect these settings at any time:
+Key design choices across all sizes:
+
+- **End-to-end training** (`end2end=True`) with NMS-free one-to-one head
+- **[MuSGD](../modes/train.md#musgd-optimizer) optimizer** combining SGD with Muon-style orthogonalized updates for weight matrices (parameters with `ndim >= 2`, such as conv and linear weights)
+- **Heavy mosaic augmentation** (~0.9-1.0 probability) disabled in the last 10 epochs (`close_mosaic=10`)
+- **Aggressive scale augmentation** (0.56-0.95) to handle objects at different sizes
+- **Minimal rotation/shear** for most sizes, keeping geometric distortion low
+
+## Inspecting YOLO26 Checkpoint Training Args
+
+Every Ultralytics checkpoint stores the full training configuration used to produce it, so you can verify each number on this page yourself:
 
 !!! example "Inspect checkpoint training args"
 
@@ -44,31 +62,35 @@ Every Ultralytics checkpoint stores the full training configuration used to prod
             print(f"{k}: {v}")
         ```
 
+The output lists the full configuration of over 100 entries, including every recipe value documented on this page. An excerpt for `yolo26n.pt`:
+
+```plaintext
+batch: 128
+...
+box: 5.62767
+...
+close_mosaic: 10
+cls: 0.56099
+...
+dfl: 9.03871
+...
+epochs: 245
+...
+lr0: 0.0054
+lrf: 0.04952
+...
+optimizer: MuSGD
+```
+
 This works for any `.pt` checkpoint — official releases and your own fine-tuned models alike. For the full list of configurable training arguments, see the [training configuration reference](../usage/cfg.md).
 
-## Training Overview
+## YOLO26 Training Hyperparameters per Model Size
 
-All YOLO26 base models were trained on COCO at **640x640** resolution using the **MuSGD** optimizer with **[batch size](https://www.ultralytics.com/glossary/batch-size) 128**. Models were initialized from intermediate pretrained weights and refined with hyperparameters found via evolutionary search. Full training logs and metrics for every model size are available on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26):
-
-<iframe
-  src="https://platform.ultralytics.com/embed/ultralytics/yolo26"
-  scrolling="no"
-  width="100%"
-  height="290px"
-  style="border:none"
-></iframe>
-
-Key design choices across all sizes:
-
-- **End-to-end training** (`end2end=True`) with NMS-free one-to-one head
-- **MuSGD optimizer** combining SGD with Muon-style orthogonalized updates for conv weights
-- **Heavy [mosaic](./yolo-data-augmentation.md#mosaic-mosaic) augmentation** (~0.9-1.0 probability) disabled in the last 10 epochs (`close_mosaic=10`)
-- **Aggressive scale augmentation** (0.56-0.95) to handle objects at different sizes
-- **Minimal rotation/shear** for most sizes, keeping geometric distortion low
-
-## Hyperparameters per Model Size
+The tables below group the recipe by category — optimizer and schedule, loss weights, and augmentation. Every value comes straight from the `train_args` embedded in the released checkpoints.
 
 ### Optimizer and Learning Rate
+
+These optimizer and schedule settings drove COCO pretraining for each size; note how the N model stands apart from the rest:
 
 | Setting         | N       | S       | M       | L       | X       |
 | --------------- | ------- | ------- | ------- | ------- | ------- |
@@ -88,13 +110,15 @@ Key design choices across all sizes:
 
 ### Loss Weights
 
+Loss weights balance the three components of the detection loss — [bounding box](https://www.ultralytics.com/glossary/bounding-box) IoU regression (`box`), classification (`cls`), and a box-distance regression term (`dfl`). Note that DFL-free YOLO26 repurposes the `dfl` gain to weight an L1 loss on normalized box distances rather than distribution focal loss:
+
 | Setting | N    | S    | M    | L    | X    |
 | ------- | ---- | ---- | ---- | ---- | ---- |
 | `box`   | 5.63 | 9.83 | 9.83 | 9.83 | 9.83 |
 | `cls`   | 0.56 | 0.65 | 0.65 | 0.65 | 0.65 |
 | `dfl`   | 9.04 | 0.96 | 0.96 | 0.96 | 0.96 |
 
-The N model prioritizes DFL loss, while S/M/L/X models shift emphasis to [bounding box](https://www.ultralytics.com/glossary/bounding-box) regression. Classification loss remains relatively consistent across all sizes.
+The N model prioritizes the `dfl` distance-regression term, while S/M/L/X models shift emphasis to IoU-based box regression. Classification loss remains relatively consistent across all sizes.
 
 ### Augmentation Pipeline
 
@@ -115,7 +139,9 @@ For a detailed explanation of each technique, see the [YOLO Data Augmentation gu
 | [`hsv_v`](./yolo-data-augmentation.md#brightness-adjustment-hsv_v) | 0.566 | 0.194 | 0.194 | 0.194 | 0.194 |
 | [`bgr`](./yolo-data-augmentation.md#bgr-channel-swap-bgr)          | 0.106 | 0.0   | 0.0   | 0.0   | 0.0   |
 
-Larger models use more aggressive augmentation overall (higher [mixup](./yolo-data-augmentation.md#mixup-mixup), [copy-paste](./yolo-data-augmentation.md#copy-paste-copy_paste), and [scale](./yolo-data-augmentation.md#scale-scale)), since they have more capacity and benefit from stronger [regularization](https://www.ultralytics.com/glossary/regularization). The N model is the only size with meaningful [rotation](./yolo-data-augmentation.md#rotation-degrees), [shear](./yolo-data-augmentation.md#shear-shear), and [BGR](./yolo-data-augmentation.md#bgr-channel-swap-bgr) augmentation.
+Values shown as `~0` are below 0.01 in the actual checkpoints (for example, `degrees=0.00012` for the S model) — the augmentation is effectively disabled.
+
+Larger models use more aggressive augmentation overall (higher mixup, copy-paste, and scale), since they have more capacity and benefit from stronger [regularization](https://www.ultralytics.com/glossary/regularization). The N model is the only size with meaningful rotation, shear, and BGR augmentation.
 
 ### Internal Training Parameters
 
@@ -131,13 +157,13 @@ Larger models use more aggressive augmentation overall (higher [mixup](./yolo-da
     | `o2m` | One-to-many head loss weight | 1.0 | 0.705 | 0.705 | 0.705 | 0.705 |
     | `topk` | Top-k label assignment | 8 | 5 | 5 | 5 | 5 |
 
-    These are recorded for reproducibility but do not need to be set when fine-tuning. See the [FAQ](#faq) for more details.
+    See the [FAQ entry on these parameters](#what-are-muon_w-sgd_w-cls_w-o2m-and-topk-in-the-checkpoint) for what they mean when fine-tuning.
 
-## Fine-Tuning Guidance
+## Fine-Tuning YOLO26 on Your Own Dataset
 
 When fine-tuning YOLO26 on your own dataset, you don't need to replicate the full pretraining recipe. The pretrained weights already encode the augmentation and optimization knowledge from COCO training. For more general training best practices, see [Tips for Model Training](./model-training-tips.md).
 
-### Start Simple
+### Fine-Tune with Default Settings
 
 !!! example "Fine-tune with defaults"
 
@@ -158,7 +184,7 @@ When fine-tuning YOLO26 on your own dataset, you don't need to replicate the ful
 
 Fine-tuning with defaults is a strong baseline. Only adjust hyperparameters if you have a specific reason to.
 
-### When to Adjust
+### When to Adjust YOLO26 Hyperparameters
 
 **Small datasets (< 1,000 images):**
 
@@ -173,7 +199,7 @@ Fine-tuning with defaults is a strong baseline. Only adjust hyperparameters if y
 - Consider `optimizer=MuSGD` for longer runs
 - Increase augmentation: `mosaic=1.0`, `mixup=0.3`, `scale=0.9`
 
-**Domain-specific imagery** (aerial, medical, underwater):
+**Domain-specific imagery (aerial, medical, underwater):**
 
 - Increase `flipud=0.5` if vertical orientation varies
 - Increase `degrees` if objects appear at arbitrary rotations
@@ -181,7 +207,7 @@ Fine-tuning with defaults is a strong baseline. Only adjust hyperparameters if y
 
 For automated hyperparameter optimization, see the [Hyperparameter Tuning guide](./hyperparameter-tuning.md).
 
-### Choosing a Model Size
+### Choose a Model Size
 
 | Model   | Best For                               | Batch Size Guidance                     |
 | ------- | -------------------------------------- | --------------------------------------- |
@@ -193,24 +219,28 @@ For automated hyperparameter optimization, see the [Hyperparameter Tuning guide]
 
 For export and deployment options, see the [Export guide](../modes/export.md) and [Model Deployment Options](./model-deployment-options.md).
 
+## Conclusion
+
+The YOLO26 checkpoints ship with their full training recipe embedded, so the exact hyperparameters behind every model size are always one `train_args` lookup away. Start fine-tuning from the defaults, adjust deliberately using the tables on this page, and verify every change against your own validation set. If questions come up along the way, ask the community on the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) or the [Ultralytics Discord server](https://discord.com/invite/ultralytics).
+
 ## FAQ
 
 ### How do I see the exact hyperparameters used for any checkpoint?
 
-Load the checkpoint with `torch.load()` and access the `train_args` key, or use `model.ckpt["train_args"]` with the Ultralytics API. See [Inspecting Training Args](#inspecting-training-args) for complete examples.
+Load the checkpoint with `torch.load()` and access the `train_args` key, or use `model.ckpt["train_args"]` with the Ultralytics API. See [Inspecting YOLO26 Checkpoint Training Args](#inspecting-yolo26-checkpoint-training-args) for complete examples.
 
 ### Why are the epoch counts different for each model size?
 
-Larger models converge faster on COCO because they have more capacity. The N model needed 245 epochs while the X model only needed 40. When fine-tuning on your own dataset, the optimal number of epochs depends on your dataset size and complexity, not the model size. Use early stopping (`patience`) to find the right stopping point automatically.
+Larger models generally needed fewer epochs on COCO because their greater capacity speeds up convergence — the X model trained for 40 epochs versus 245 for N — though the counts are not strictly monotonic (S used 70, M used 80). When fine-tuning on your own dataset, the optimal number of epochs depends on your dataset size and complexity, not the model size. Use early stopping (`patience`) to find the right stopping point automatically.
 
 ### Should I use MuSGD for fine-tuning?
 
-When `optimizer=auto` (the default), Ultralytics automatically selects **MuSGD** for longer training runs (>10,000 iterations) and **AdamW** for shorter ones. You can explicitly set `optimizer=MuSGD` if you prefer. For more on optimizer selection, see the [training documentation](../modes/train.md).
+Usually you don't need to choose: with the default `optimizer=auto`, Ultralytics automatically selects **MuSGD** for longer training runs (>10,000 iterations) and **AdamW** for shorter ones. You can explicitly set `optimizer=MuSGD` if you prefer. For more on how MuSGD works, see the [training documentation](../modes/train.md#musgd-optimizer).
 
 ### What are `muon_w`, `sgd_w`, `cls_w`, `o2m`, and `topk` in the checkpoint?
 
-These are internal parameters from the training pipeline that produced the base checkpoints. They are stored for reproducibility but are **not** user-configurable settings in `default.yaml`. You do not need to set them when fine-tuning. See [Internal Training Parameters](#internal-training-parameters) for details.
+These are internal parameters from the training pipeline that produced the base checkpoints, recorded in `train_args` for reproducibility. They are not user-configurable settings in `default.yaml`, and passing them to `model.train()` raises an invalid-argument error — the public package does not read them. You do not need to set them when fine-tuning; see [Internal Training Parameters](#internal-training-parameters) for their values per model size.
 
 ### Can I replicate the exact pretraining from scratch?
 
-The checkpoints were produced using an internal training branch with additional features not in the public codebase (like configurable `o2m` weights and `cls_w`). You can get very close results using the hyperparameters documented on this page with the public Ultralytics package, but an exact reproduction requires the internal branch.
+Not exactly — the checkpoints were produced using an internal training branch with additional features not in the public codebase (like configurable `o2m` weights and `cls_w`). You can get very close results using the hyperparameters documented on this page with the public Ultralytics package, but an exact reproduction requires the internal branch.

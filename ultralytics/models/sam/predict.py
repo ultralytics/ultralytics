@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections import OrderedDict, defaultdict
 from copy import deepcopy
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import cv2
 import numpy as np
@@ -37,7 +37,9 @@ from .amg import (
     uncrop_boxes_xyxy,
     uncrop_masks,
 )
-from .sam3.geometry_encoders import Prompt
+
+if TYPE_CHECKING:
+    from .sam3.geometry_encoders import Prompt
 
 
 class Predictor(BasePredictor):
@@ -98,7 +100,7 @@ class Predictor(BasePredictor):
         """
         if overrides is None:
             overrides = {}
-        overrides.update(dict(task="segment", mode="predict", batch=1))
+        overrides.update({"task": "segment", "mode": "predict", "batch": 1})
         super().__init__(cfg, overrides, _callbacks)
         self.args.retina_masks = True
         self.im = None
@@ -228,7 +230,7 @@ class Predictor(BasePredictor):
             >>> predictor = Predictor()
             >>> im = torch.rand(1, 3, 1024, 1024)
             >>> bboxes = [[100, 100, 200, 200]]
-            >>> masks, scores, logits = predictor.prompt_inference(im, bboxes=bboxes)
+            >>> masks, scores = predictor.prompt_inference(im, bboxes=bboxes)
         """
         features = self.get_im_features(im) if self.features is None else self.features
 
@@ -452,11 +454,13 @@ class Predictor(BasePredictor):
             >>> predictor.setup_model(model=sam_model, verbose=True)
         """
         device = select_device(self.args.device, verbose=verbose)
+        if self.args.channels_last:
+            LOGGER.warning("'channels_last=True' is not supported for SAM predictors, ignoring.")
         if model is None:
             model = self.get_model()
         # Move model to device first, then cast dtype, then set eval so any eval-time caches are created on-device.
         model = model.to(device)
-        model = model.half() if self.args.half else model.float()
+        model = model.half() if self.args.quantize == 16 else model.float()
         model.eval()
         self.model = model
         self.device = device
@@ -466,7 +470,7 @@ class Predictor(BasePredictor):
         # Ultralytics compatibility settings
         self.model.format = "sam"
         self.model.stride = 32
-        self.model.fp16 = self.args.half
+        self.model.fp16 = self.args.quantize == 16
         self.done_warmup = True
         self.torch_dtype = torch.float16 if self.model.fp16 else torch.float32
 
@@ -629,7 +633,8 @@ class Predictor(BasePredictor):
 
         # Recalculate boxes and remove any new duplicates
         new_masks = torch.cat(new_masks, dim=0)
-        boxes = batched_mask_to_box(new_masks)
+        # batched_mask_to_box requires bool masks; on uint8 it returns all-zero boxes and the NMS dedup below is a no-op
+        boxes = batched_mask_to_box(new_masks.bool())
         keep = torchvision.ops.nms(boxes.float(), torch.as_tensor(scores), nms_thresh)
 
         return new_masks[keep].to(device=masks.device, dtype=masks.dtype), keep
@@ -1124,7 +1129,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         # temporary outputs have been added (either in this call or any previous calls
         # to `propagate_in_video_preflight`).
         consolidated_frame_inds = inference_state["consolidated_frame_inds"]
-        for is_cond in {False, True}:
+        for is_cond in (False, True):
             # Separately consolidate conditioning and non-conditioning temp outputs
             storage_key = "cond_frame_outputs" if is_cond else "non_cond_frame_outputs"
             # Find all the frames that contain temporary outputs for any objects
@@ -1972,8 +1977,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             raise RuntimeError("No objects have been added to the state. Please add objects before inference.")
         idx = list(self.obj_idx_set)  # cls id
         pred_masks, pred_scores = pred_masks[idx], pred_scores[idx]
-        # the original score are in [-32,32], and a object score larger than 0 means the object is present, we map it to [-1,1] range,
-        # and use a activate function to make sure the object score logits are non-negative, so that we can use it as a mask
+        # The original scores are in [-32, 32]. An object score larger than 0 means the object is present.
+        # Map scores to [0, 1] so that the object score logits are non-negative and can be used as a mask.
         pred_scores = torch.clamp_(pred_scores / 32, min=0)
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
@@ -2051,7 +2056,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 consolidated_out["pred_masks"][obj_idx : obj_idx + 1] = obj_mask
                 consolidated_out["obj_ptr"][obj_idx : obj_idx + 1] = out["obj_ptr"]
 
-                if "object_score_logits" in out.keys():
+                if "object_score_logits" in out:
                     consolidated_out["object_score_logits"][obj_idx : obj_idx + 1] = out["object_score_logits"]
 
         high_res_masks = F.interpolate(
@@ -2273,8 +2278,9 @@ class SAM3SemanticPredictor(SAM3Predictor):
         """Run inference on the extracted features with optional bounding boxes and labels."""
         # NOTE: priority: bboxes > text > pre-set classes
         nc = 1 if bboxes is not None else len(text) if text is not None else len(self.model.names)
-        geometric_prompt = self._get_dummy_prompt(nc)
+        geometric_prompt = None
         if bboxes is not None:
+            geometric_prompt = self._get_dummy_prompt(nc)
             for i in range(len(bboxes)):
                 geometric_prompt.append_boxes(bboxes[[i]], labels[[i]])
             if text is None:
@@ -2322,7 +2328,10 @@ class SAM3SemanticPredictor(SAM3Predictor):
             if masks.shape[0] == 0:
                 masks, boxes = None, torch.zeros((0, 6), device=pred_masks.device)
             else:
-                masks = F.interpolate(masks.float()[None], orig_img.shape[:2], mode="bilinear")[0] > 0.5
+                masks = (
+                    F.interpolate(masks.float()[None], orig_img.shape[:2], mode="bilinear")[0]
+                    > self.model.mask_threshold
+                )
                 boxes[..., [0, 2]] *= orig_img.shape[1]
                 boxes[..., [1, 3]] *= orig_img.shape[0]
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
@@ -2392,7 +2401,9 @@ class SAM3SemanticPredictor(SAM3Predictor):
         if pred_masks.shape[0] == 0:
             pred_masks, pred_boxes = None, torch.zeros((0, 6), device=pred_masks.device)
         else:
-            pred_masks = F.interpolate(pred_masks.float()[None], src_shape[:2], mode="bilinear")[0] > 0.5
+            pred_masks = (
+                F.interpolate(pred_masks.float()[None], src_shape[:2], mode="bilinear")[0] > self.model.mask_threshold
+            )
             pred_boxes[..., 0] *= src_shape[1]
             pred_boxes[..., 1] *= src_shape[0]
             pred_boxes[..., 2] *= src_shape[1]
@@ -2406,6 +2417,9 @@ class SAM3SemanticPredictor(SAM3Predictor):
 
     def _get_dummy_prompt(self, num_prompts=1):
         """Get a dummy geometric prompt with zero boxes."""
+        # Scoped for import ultralytics speed: SAM3 geometry imports optional torchvision ops.
+        from .sam3.geometry_encoders import Prompt
+
         geometric_prompt = Prompt(
             box_embeddings=torch.zeros(0, num_prompts, 4, device=self.device),
             box_mask=torch.zeros(num_prompts, 0, device=self.device, dtype=torch.bool),
@@ -2509,8 +2523,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         hotstart_delay=0,
         hotstart_unmatch_thresh=3,
         hotstart_dup_thresh=3,
-        init_trk_keep_alive=30,
-        max_trk_keep_alive=30,
+        init_trk_keep_alive=10,
+        max_trk_keep_alive=10,
         min_trk_keep_alive=-4,
         # Threshold for suppressing overlapping objects based on recent occlusion
         suppress_overlapping_based_on_recent_occlusion_threshold=0.0,
@@ -2522,7 +2536,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         max_num_objects=-1,
         recondition_every_nth_frame=-1,
         # masket confirmation status (to suppress unconfirmed masklets)
-        masklet_confirmation_enable=False,
+        masklet_confirmation_enable=True,
         # a masklet is confirmed after being consecutively detected and matched for
         # `masklet_confirmation_consecutive_det_thresh`
         masklet_confirmation_consecutive_det_thresh=3,
@@ -2653,14 +2667,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                 names = names or dict(enumerate(str(i) for i in range(pred_boxes[:, 6].int().max() + 1)))
             if pred_masks.shape[0] > 1:
                 tracker_scores = torch.tensor(
-                    [
-                        (
-                            preds["obj_id_to_tracker_score"][obj_id]
-                            if obj_id in preds["obj_id_to_tracker_score"]
-                            else 0.0
-                        )
-                        for obj_id in curr_obj_ids
-                    ],
+                    [(preds["obj_id_to_tracker_score"].get(obj_id, 0.0)) for obj_id in curr_obj_ids],
                     device=pred_masks.device,
                 )[keep]
                 pred_masks = (
@@ -2725,7 +2732,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         if self.masklet_confirmation_enable:
             status = metadata["masklet_confirmation"]["status"]
             is_unconfirmed = status == self.UNCONFIRMED
-            out["unconfirmed_obj_ids"] = tracker_metadata_new["obj_ids_all_gpu"][is_unconfirmed].tolist()
+            out["unconfirmed_obj_ids"] = tracker_metadata_new["obj_ids"][is_unconfirmed].tolist()
         else:
             out["unconfirmed_obj_ids"] = []
         return out
@@ -3004,7 +3011,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             for state_idx, inference_state in enumerate(tracker_states_local):
                 if (
                     trk_obj_id in inference_state["obj_ids"]
-                    # NOTE: Goal of this condition is to avoid reconditioning masks that are occluded/low qualiy.
+                    # NOTE: Goal of this condition is to avoid reconditioning masks that are occluded/low quality.
                     # Unfortunately, these can get reconditioned anyway due to batching. We should consider removing these heuristics.
                     and obj_score > HIGH_CONF_THRESH
                 ):
@@ -3182,19 +3189,22 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # Step 4: Run SAM2 memory encoder on the current frame's prediction masks
         # This is done on all GPUs
         batch_size = tracker_low_res_masks_global.size(0)
-        if batch_size > 0:
-            if not hasattr(self, "_warm_up_complete") or self._warm_up_complete:
-                if self.suppress_overlapping_based_on_recent_occlusion_threshold > 0.0:
-                    # NOTE: tracker_low_res_masks_global is updated in-place then returned
-                    tracker_low_res_masks_global = self._suppress_overlapping_based_on_recent_occlusion(
-                        frame_idx,
-                        tracker_low_res_masks_global,
-                        tracker_metadata_prev,
-                        tracker_metadata_new,
-                        obj_ids_newly_removed,
-                        reverse,
-                    )
+        if (
+            batch_size > 0
+            and (not hasattr(self, "_warm_up_complete") or self._warm_up_complete)
+            and self.suppress_overlapping_based_on_recent_occlusion_threshold > 0.0
+        ):
+            # NOTE: tracker_low_res_masks_global is updated in-place then returned
+            tracker_low_res_masks_global = self._suppress_overlapping_based_on_recent_occlusion(
+                frame_idx,
+                tracker_low_res_masks_global,
+                tracker_metadata_prev,
+                tracker_metadata_new,
+                obj_ids_newly_removed,
+                reverse,
+            )
 
+        if batch_size > 0:
             self._tracker_update_memories(tracker_states_local, frame_idx, low_res_masks=tracker_low_res_masks_global)
 
         # Step 4: update the SAM2 metadata based on the update plan
@@ -3562,7 +3572,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         ious_np = ious.cpu().numpy()
         if self.o2o_matching_masklets_enable:
-            from scipy.optimize import linear_sum_assignment
+            from ultralytics.utils.ops import linear_sum_assignment
 
             # Hungarian matching for tracks (one-to-one: each track matches at most one detection)
             cost_matrix = 1 - ious_np  # Hungarian solves for minimum cost
@@ -3687,7 +3697,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         # Step 3: removed tracks that overlaps with another track for `hotstart_dup_thresh` frames
         # a) find overlaps tracks -- we consider overlap if they match to the same detection
-        for _, matched_trk_obj_ids in det_to_matched_trk_obj_ids.items():
+        for matched_trk_obj_ids in det_to_matched_trk_obj_ids.values():
             if len(matched_trk_obj_ids) < 2:
                 continue  # only count detections that are matched to multiple (>=2) masklets
             # if there are multiple matched track ids, we need to find the one that appeared first;
@@ -3707,15 +3717,15 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         for (first_obj_id, obj_id), frame_indices in overlap_pair_to_frame_inds.items():
             if obj_id in removed_obj_ids or obj_id in obj_ids_newly_removed:
                 continue  # skip if the object is already removed
-            if (obj_first_frame_idx[obj_id] > hotstart_diff and not reverse) or (
-                obj_first_frame_idx[obj_id] < hotstart_diff and reverse
-            ):
-                if len(frame_indices) >= self.hotstart_dup_thresh:
-                    obj_ids_newly_removed.add(obj_id)
-                    LOGGER.debug(
-                        f"Removing object {obj_id} at frame {frame_idx} "
-                        f"since it overlaps with another track {first_obj_id} at frames: {frame_indices}"
-                    )
+            if (
+                (obj_first_frame_idx[obj_id] > hotstart_diff and not reverse)
+                or (obj_first_frame_idx[obj_id] < hotstart_diff and reverse)
+            ) and len(frame_indices) >= self.hotstart_dup_thresh:
+                obj_ids_newly_removed.add(obj_id)
+                LOGGER.debug(
+                    f"Removing object {obj_id} at frame {frame_idx} "
+                    f"since it overlaps with another track {first_obj_id} at frames: {frame_indices}"
+                )
 
         removed_obj_ids.update(obj_ids_newly_removed)
         return obj_ids_newly_removed, metadata

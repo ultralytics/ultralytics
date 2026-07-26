@@ -1,4 +1,6 @@
 ---
+plans: [pro, enterprise]
+title: Team Management & Roles
 comments: true
 description: Create and manage teams on Ultralytics Platform with role-based access control, shared resources, and enterprise features for collaborative computer vision workflows.
 keywords: Ultralytics Platform, teams, collaboration, enterprise, roles, permissions, RBAC, workspace, team management
@@ -8,7 +10,7 @@ keywords: Ultralytics Platform, teams, collaboration, enterprise, roles, permiss
 
 [Ultralytics Platform](https://platform.ultralytics.com) team features enable collaborative computer vision workflows. Create a team workspace to share datasets, projects, models, and deployments with your colleagues using role-based access control.
 
-![Ultralytics Platform Teams Member List With Roles](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-tab-member-list-with-roles.avif)
+![Ultralytics Platform Teams Member List With Roles](https://cdn.ul.run/i/b680a4b6f2db15b3a34bc19adab8515e.avif)<!-- screenshot -->
 
 ## Overview
 
@@ -17,7 +19,7 @@ Teams allow multiple users to work together under a shared workspace:
 - **Shared Resources**: Datasets, projects, models, and deployments are accessible to all team members
 - **Role-Based Access**: Four roles (Owner, Admin, Editor, Viewer) control what each member can do
 - **Shared Billing**: Team members share the workspace credit balance and resource limits
-- **Seat Management**: Pro teams support up to 5 members, Enterprise teams up to 50
+- **Seat Management**: Pro teams support up to 5 members, Enterprise teams support custom team sizes
 
 !!! note "Plan Requirement"
 
@@ -28,32 +30,34 @@ Teams allow multiple users to work together under a shared workspace:
 Create a new team workspace:
 
 1. Click on the workspace switcher in the sidebar
-2. Click **+ Create Team** to open the Teams tab in Settings
-3. Click **+ Upgrade to Pro** to open the upgrade dialog
-4. Enter your team name and username, then complete checkout
+2. Click **Create Team** to open the Teams tab in Settings
+3. Click **Upgrade to Pro**
+4. Select **Team** in the upgrade dialog
+5. Enter the team name and unique team URL, choose monthly or yearly billing, and click
+   **Create Team & Continue to Checkout**
+6. Complete checkout
 
-Alternatively, [upgrade your personal account to Pro](billing.md#upgrade-to-pro) first, then create a team from the Teams tab. Once your team is created, you can [invite members](#inviting-members).
+The workspace switcher shows **Create Team** before you have a team workspace. Once the team is created and upgraded,
+you can [invite members](#inviting-members).
 
-![Ultralytics Platform Teams Create Team Landing](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-create-team-landing.avif)
+!!! note "Team Creation Limit"
+
+    You can create up to 5 teams. To create another, you must first delete or transfer ownership of an existing team.
+
+![Ultralytics Platform Teams Create Team Landing](https://cdn.ul.run/i/f70ce48d7c555aaff12423337446d3ae.avif)<!-- screenshot -->
 
 ## Switching Workspaces
 
 Switch between your personal account and team workspaces using the workspace switcher in the sidebar. All teams you belong to appear in the list.
 
-![Ultralytics Platform Teams Workspace Switcher Dropdown](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-workspace-switcher-dropdown.avif)
-
+![Ultralytics Platform Teams Workspace Switcher Dropdown](https://cdn.ul.run/i/b5d3298767cc96743a74133b7c92fe6b.avif)<!-- screenshot -->
 When you switch to a team workspace, all resources you see and create belong to that team. Your personal workspace resources remain separate.
 
 ## Roles and Permissions
 
 Teams use a four-role hierarchy for access control. Each role inherits all permissions from the roles below it.
 
-| Role       | Description                                                            |
-| ---------- | ---------------------------------------------------------------------- |
-| **Owner**  | Full control, transfer ownership, assign admin role, remove any member |
-| **Admin**  | Invite and remove members, manage billing, create and edit all content |
-| **Editor** | Create and edit projects, datasets, models, start training, deploy     |
-| **Viewer** | Read-only access to all team resources                                 |
+{% include "macros/platform-team-roles.md" %}
 
 !!! note "Single Owner"
 
@@ -73,7 +77,7 @@ Team members share the workspace credit balance and resource limits. All members
 
 !!! note "Pro Plan Seat Billing"
 
-    On the Pro plan, each team member is a paid seat at $29/month (or $290/year). Monthly credits of $30/seat are added to the shared wallet.
+    On the Pro plan, each team member is a paid seat at $29/month (or $290/year, a ~17% saving). Monthly credits of $30/seat are added to the team's shared wallet at the start of every billing cycle.
 
 ## Inviting Members
 
@@ -85,9 +89,11 @@ Admins and Owners can invite new members to the team:
 4. Select a role (Admin, Editor, or Viewer)
 5. Click **Send Invitation**
 
-![Ultralytics Platform Teams Invite Member Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-invite-member-dialog.avif)
-
-The invitee receives an email invitation with a link to accept and join the team. Invitations expire after 7 days. Once accepted, the team workspace appears in the invitee's workspace switcher. If an invite is missed, resend or cancel it from the Teams tab and send a fresh invite.
+![Ultralytics Platform Teams Invite Member Dialog](https://cdn.ul.run/i/4f3fbc7dc21172bf12cd404a5ca0b863.avif)<!-- screenshot -->
+The invitee receives an email invitation with a link to accept and join the team. Invitations expire after 14 days.
+Once accepted, the team workspace appears in the invitee's workspace switcher. If an invite expires or is lost,
+**Resend invite** from the member actions menu to rotate the token and restart the 14-day window, or **Cancel invite**
+to free the reserved seat.
 
 !!! note "Admin Invites"
 
@@ -101,11 +107,12 @@ Enterprise plans include additional capabilities for organizations with advanced
 
 !!! warning "License Expiration"
 
-    If your Enterprise license expires, workspace access is blocked until the license is renewed. See [Ultralytics Licensing](https://www.ultralytics.com/licensing) for details.
+    If an Enterprise license expires, team members lose access to the workspace. The owner can still open the workspace
+    to manage renewal. See [Ultralytics Licensing](https://www.ultralytics.com/license) for details.
 
 ### Getting Started with Enterprise
 
-Enterprise plans are provisioned by the Ultralytics team. See [Ultralytics Licensing](https://www.ultralytics.com/licensing) for plan details. Once your enterprise configuration is set up, you'll receive a provisioning invite to accept as the team Owner, after which you can invite your team members.
+Enterprise plans are provisioned by the Ultralytics team. See [Ultralytics Licensing](https://www.ultralytics.com/license) for plan details. Once your enterprise configuration is set up, you'll receive a provisioning invite to accept as the team Owner, after which you can invite your team members.
 
 ## FAQ
 
@@ -123,4 +130,4 @@ All team members share a single credit balance. The Owner and Admins can top up 
 
 ### How do I upgrade from Pro to Enterprise?
 
-Enterprise pricing and provisioning are handled directly by the Ultralytics team. See [Ultralytics Licensing](https://www.ultralytics.com/licensing) for plan details.
+Enterprise pricing and provisioning are handled directly by the Ultralytics team. See [Ultralytics Licensing](https://www.ultralytics.com/license) for plan details.

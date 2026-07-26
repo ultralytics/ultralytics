@@ -1,4 +1,5 @@
 ---
+title: utils.dist API Reference
 description: Explore Ultralytics' utilities for distributed training including DDP file generation, command setup, and cleanup. Improve multi-node training efficiency.
 keywords: Ultralytics, distributed training, DDP, multi-node training, network port, DDP file generation, DDP command, training utilities
 ---
@@ -7,7 +8,7 @@ keywords: Ultralytics, distributed training, DDP, multi-node training, network p
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/dist.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/dist.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/dist.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/dist.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

@@ -35,25 +35,26 @@ def torch2ncnn(
     from ultralytics.utils.checks import check_requirements
 
     check_requirements("ncnn", cmds="--no-deps")  # no deps to avoid installing opencv-python
-    check_requirements("pnnx")
+    # Pin until PNNX 20260704 NCNN inference segfault is fixed: https://github.com/pnnx/pnnx/issues/293
+    check_requirements("pnnx==20260526")
     import ncnn
     import pnnx
 
     LOGGER.info(f"\n{prefix} starting export with NCNN {ncnn.__version__} and PNNX {pnnx.__version__}...")
     output_dir = Path(output_dir)
 
-    ncnn_args = dict(
-        ncnnparam=(output_dir / "model.ncnn.param").as_posix(),
-        ncnnbin=(output_dir / "model.ncnn.bin").as_posix(),
-        ncnnpy=(output_dir / "model_ncnn.py").as_posix(),
-    )
-    pnnx_args = dict(
-        ptpath=(output_dir / "model.pt").as_posix(),
-        pnnxparam=(output_dir / "model.pnnx.param").as_posix(),
-        pnnxbin=(output_dir / "model.pnnx.bin").as_posix(),
-        pnnxpy=(output_dir / "model_pnnx.py").as_posix(),
-        pnnxonnx=(output_dir / "model.pnnx.onnx").as_posix(),
-    )
+    ncnn_args = {
+        "ncnnparam": (output_dir / "model.ncnn.param").as_posix(),
+        "ncnnbin": (output_dir / "model.ncnn.bin").as_posix(),
+        "ncnnpy": (output_dir / "model_ncnn.py").as_posix(),
+    }
+    pnnx_args = {
+        "ptpath": (output_dir / "model.pt").as_posix(),
+        "pnnxparam": (output_dir / "model.pnnx.param").as_posix(),
+        "pnnxbin": (output_dir / "model.pnnx.bin").as_posix(),
+        "pnnxpy": (output_dir / "model_pnnx.py").as_posix(),
+        "pnnxonnx": (output_dir / "model.pnnx.onnx").as_posix(),
+    }
 
     output_dir.mkdir(parents=True, exist_ok=True)  # make ncnn_model directory
     device_type = device.type if device is not None else "cpu"

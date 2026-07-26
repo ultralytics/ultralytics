@@ -53,6 +53,8 @@ class ConsoleLogger:
             flush_interval (float): Max seconds between flushes when batching.
             on_flush (callable | None): Callback(content: str, line_count: int, chunk_id: int) for custom handling.
         """
+        if isinstance(destination, str) and destination.startswith("http://"):
+            LOGGER.warning("ConsoleLogger destination uses plaintext HTTP; captured logs are sent unencrypted.")
         self.destination = destination
         self.is_api = isinstance(destination, str) and destination.startswith(("http://", "https://"))
         if destination is not None and not self.is_api:
@@ -194,7 +196,7 @@ class ConsoleLogger:
 
             # Add timestamp if needed
             if not line.startswith("[20"):
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                timestamp = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S")
                 line = f"[{timestamp}] {line}"
 
             # Add to buffer and check if flush needed
@@ -245,7 +247,7 @@ class ConsoleLogger:
             if self.is_api:
                 import requests
 
-                payload = {"timestamp": datetime.now().isoformat(), "message": content}
+                payload = {"timestamp": datetime.now().astimezone().isoformat(), "message": content}
                 requests.post(str(self.destination), json=payload, timeout=5)
             else:
                 self.destination.parent.mkdir(parents=True, exist_ok=True)

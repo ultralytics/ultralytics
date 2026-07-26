@@ -1,6 +1,12 @@
 ---
 title: Hand Keypoints Pose Estimation Dataset
 comments: true
+creator:
+    name: Rion Dsilva
+    type: Person
+    url: https://www.linkedin.com/in/rion-dsilva-043464229/
+license:
+    name: CC-BY-NC-SA-4.0
 description: "Explore the Ultralytics Hand Keypoints dataset: 26,768 hand images with 21 keypoints each, for gesture recognition and pose estimation with YOLO26."
 keywords: Hand KeyPoints, pose estimation, dataset, keypoints, MediaPipe, YOLO, deep learning, computer vision
 ---

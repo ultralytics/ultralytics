@@ -1,6 +1,12 @@
 ---
 title: DOTA128 OBB Dataset
 comments: true
+creator:
+    name: Ultralytics
+    url: https://www.ultralytics.com/
+license:
+    name: Research-Only
+    url: https://captain-whu.github.io/DOTA/dataset.html
 description: Explore the DOTA128 dataset - a versatile oriented object detection dataset ideal for testing and debugging OBB models using Ultralytics YOLO26.
 keywords: DOTA128 dataset, Ultralytics, YOLO26, object detection, debugging, training models, oriented object detection, dataset YAML
 ---

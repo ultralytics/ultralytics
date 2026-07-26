@@ -67,7 +67,7 @@ def test_export_onnx(end2end, isolated_model):
 @pytest.mark.parametrize("precision", [{"int8": True}, {"quantize": 8}])
 def test_export_onnx_int8(isolated_model, precision):
     """Test INT8 ONNX export via both the legacy int8 alias and the unified quantize arg."""
-    file = YOLO(isolated_model).export(format="onnx", data="coco8.yaml", fraction=0.25, imgsz=32, **precision)
+    file = YOLO(isolated_model).export(format="onnx", data=Path("coco8.yaml"), fraction=0.25, imgsz=32, **precision)
     assert Path(file).name.endswith("_int8.onnx")
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
     Path(file).unlink()  # cleanup
@@ -175,6 +175,16 @@ def test_modelopt_quantize_onnx_requires_int8_dataset():
     """Check INT8 ModelOpt quantization fails early without calibration data."""
     with pytest.raises(ValueError, match="requires a calibration dataset"):
         modelopt_quantize_onnx("model.onnx", quantize=8)
+
+
+def test_int8_calibration_validates_split():
+    """Check INT8 calibration rejects dataset splits that do not exist."""
+    exporter = object.__new__(Exporter)
+    exporter.model = SimpleNamespace(task="obb")
+    exporter.args = SimpleNamespace(data="coco8.yaml", split="trainval")
+    exporter.imgsz = [32]
+    with pytest.raises(FileNotFoundError, match="trainval"):
+        exporter.get_int8_calibration_dataloader()
 
 
 def test_export_rknn_batch_expansion(monkeypatch, tmp_path):

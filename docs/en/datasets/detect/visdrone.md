@@ -1,6 +1,11 @@
 ---
 title: VisDrone Detection Dataset
 comments: true
+creator:
+    name: VisDrone Team
+    url: https://github.com/VisDrone/VisDrone-Dataset
+license:
+    name: None
 description: Train YOLO26 on the VisDrone-DET aerial dataset - 6,471 train, 548 val, and 1,610 test drone images across 10 object classes with automatic download.
 keywords: VisDrone, VisDrone-DET, drone dataset, aerial object detection, small object detection, UAV imagery, YOLO26, object detection dataset
 ---
@@ -11,7 +16,7 @@ The [VisDrone Dataset](https://github.com/VisDrone/VisDrone-Dataset) is a large-
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/9ymyH4H1fG4"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/rTblZN9IRDo"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>

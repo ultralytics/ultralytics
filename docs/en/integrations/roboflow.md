@@ -2,6 +2,7 @@
 comments: true
 description: Learn how to label data and export datasets in YOLO format using Roboflow for training Ultralytics models.
 keywords: Roboflow, Ultralytics YOLO, data labeling, computer vision, dataset export
+title: Roboflow Data Labeling for YOLO
 ---
 
 # Roboflow
@@ -13,7 +14,7 @@ Roboflow provides tools for [data labeling](https://www.ultralytics.com/glossary
     Ultralytics offers two licensing options to accommodate different use cases:
 
     - **AGPL-3.0 License**: This [OSI-approved open-source license](https://www.ultralytics.com/legal/agpl-3-0-software-license) is ideal for students and enthusiasts, promoting open collaboration and knowledge sharing. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for more details.
-    - **Enterprise License**: Designed for commercial use, this license allows for the seamless integration of Ultralytics software and AI models into commercial products and services. If your scenario involves commercial applications, please reach out via [Ultralytics Licensing](https://www.ultralytics.com/license).
+    - **Enterprise License**: For development and production use, this license enables seamless integration of Ultralytics software and AI models into business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. To get started, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
 
     For more details see the [Ultralytics Licensing page](https://www.ultralytics.com/license).
 
@@ -164,7 +165,7 @@ After uploading a model, access the model evaluation tool via your model page on
 <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/roboflow-model-evaluation.avif" alt="Initiating a Roboflow model evaluation" width="800">
 </p>
 
-This tool displays a [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix) illustrating model performance and an interactive vector analysis plot using [CLIP](https://openai.com/research/clip) embeddings. These features help identify areas for model improvement.
+This tool displays a [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix) illustrating model performance and an interactive vector analysis plot using [CLIP](https://openai.com/index/clip/) embeddings. These features help identify areas for model improvement.
 
 The confusion matrix pop-up:
 

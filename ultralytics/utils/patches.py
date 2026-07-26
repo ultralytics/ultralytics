@@ -32,7 +32,10 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
         >>> img = imread("path/to/image.jpg")
         >>> img = imread("path/to/image.jpg", cv2.IMREAD_GRAYSCALE)
     """
-    file_bytes = np.fromfile(filename, np.uint8)
+    try:
+        file_bytes = np.fromfile(filename, np.uint8)
+    except (FileNotFoundError, OSError):
+        return None
     if filename.endswith((".tiff", ".tif")):
         success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
         if success:
@@ -41,8 +44,8 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
         return None
     else:
         im = cv2.imdecode(file_bytes, flags)
-        # Fallback for formats OpenCV imdecode may not support (AVIF, HEIC)
-        if im is None and filename.lower().endswith((".avif", ".heic")):
+        # Fallback for formats OpenCV imdecode may not support (AVIF, HEIC, HEIF)
+        if im is None and filename.lower().endswith((".avif", ".heic", ".heif")):
             im = _imread_pil(filename, flags)
         return im[..., None] if im is not None and im.ndim == 2 else im  # Always ensure 3 dimensions
 
@@ -195,19 +198,19 @@ def torch_save(*args, **kwargs):
     for i in range(4):  # 3 retries
         try:
             return _torch_save(*args, **kwargs)
-        except RuntimeError as e:  # Unable to save, possibly waiting for device to flush or antivirus scan
+        except RuntimeError:  # Unable to save, possibly waiting for device to flush or antivirus scan
             if i == 3:
-                raise e
+                raise
             time.sleep((2**i) / 2)  # Exponential backoff: 0.5s, 1.0s, 2.0s
 
 
 @contextmanager
-def arange_patch(dynamic: bool = False, half: bool = False, fmt: str = ""):
+def arange_patch(dynamic: bool = False, quantize: int | str | None = None, fmt: str = ""):
     """Workaround for ONNX torch.arange incompatibility with FP16.
 
     https://github.com/pytorch/pytorch/issues/148041.
     """
-    if dynamic and half and fmt == "onnx":
+    if dynamic and quantize == 16 and fmt == "onnx":
         func = torch.arange
 
         def arange(*args, dtype=None, **kwargs):

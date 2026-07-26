@@ -278,8 +278,8 @@ class TransformerEncoder(nn.Module):
         # assign layer index to each layer so that some layers can decide what to do
         # based on which layer index they are (e.g. cross attention to memory bank only
         # in selected layers)
-        for layer_idx, layer in enumerate(self.layers):
-            layer.layer_idx = layer_idx
+        for layer_idx, encoder_layer in enumerate(self.layers):
+            encoder_layer.layer_idx = layer_idx
 
     def _prepare_multilevel_features(self, srcs, masks, pos_embeds):
         """Prepare multi-level features for transformer encoder."""
@@ -476,7 +476,7 @@ class TransformerEncoderFusion(TransformerEncoder):
                     else None
                 )
         else:
-            assert all(x.dim == 4 for x in src), "expected list of (bs, c, h, w) tensors"
+            assert all(x.dim() == 4 for x in src), "expected list of (bs, c, h, w) tensors"
 
         if self.add_pooled_text_to_img_feat:
             # Fusion: Add mean pooled text to image features

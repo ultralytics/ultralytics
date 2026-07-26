@@ -395,4 +395,3 @@ class ReidValidator(ClassificationValidator):
 
     def plot_predictions(self, batch: dict[str, Any], preds, ni: int) -> None:
         """Plot predictions (no-op for ReID, embeddings are not visual)."""
-        pass

@@ -1391,7 +1391,6 @@ class ReidDataset(ClassificationDataset):
         root_path = Path(root)
         if not root_path.exists():
             raise FileNotFoundError(f"ReID dataset path not found: {root}")
-        return None
 
     def _cache_hash(self) -> str:
         """Hash over (path, pid, camid) tuples — not just paths.
@@ -1486,7 +1485,7 @@ class ReidDataset(ClassificationDataset):
                 global_idx += 1
 
         if samples:
-            LOGGER.info(f"{self.prefix}Using folder-per-identity layout ({len(set(s[1] for s in samples))} identities)")
+            LOGGER.info(f"{self.prefix}Using folder-per-identity layout ({len({s[1] for s in samples})} identities)")
         return samples
 
     def _get_samples_flat(self, root_path: Path) -> list[tuple]:

@@ -162,7 +162,6 @@ class ReidTrainer(ClassificationTrainer):
         human-meaningful class names, so a mosaic of pid-labelled crops adds visual noise without conveying
         anything useful. ``ReidValidator.plot_predictions`` is similarly a no-op.
         """
-        pass
 
     def label_loss_items(self, loss_items=None, prefix: str = "train"):
         """Return a loss dict with labeled training loss items.

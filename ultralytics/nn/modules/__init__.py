@@ -112,8 +112,6 @@ from .vit_blocks import MHSABlock, UltraViTBlock
 
 __all__ = (
     "AIFI",
-    "UltraViTBlock",
-    "MHSABlock",
     "C1",
     "C2",
     "C2PSA",
@@ -169,6 +167,7 @@ __all__ = (
     "LRPCHead",
     "LayerNorm2d",
     "LightConv",
+    "MHSABlock",
     "MLPBlock",
     "MSDeformAttn",
     "MaxSigmoidAttnBlock",
@@ -191,6 +190,7 @@ __all__ = (
     "TransformerBlock",
     "TransformerEncoderLayer",
     "TransformerLayer",
+    "UltraViTBlock",
     "WorldDetect",
     "YOLOEDetect",
     "YOLOESegment",

@@ -58,6 +58,7 @@ from ultralytics.nn.modules import (
     ImagePoolingAttn,
     Index,
     LRPCHead,
+    MHSABlock,
     Pose,
     Pose26,
     ReID,
@@ -72,12 +73,11 @@ from ultralytics.nn.modules import (
     Segment26,
     SemanticSegment,
     TorchVision,
+    UltraViTBlock,
     WorldDetect,
     YOLOEDetect,
     YOLOESegment,
     YOLOESegment26,
-    UltraViTBlock,
-    MHSABlock,
     v10Detect,
 )
 from ultralytics.utils import (

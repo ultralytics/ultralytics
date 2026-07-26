@@ -548,8 +548,8 @@ class ConfusionMatrix(DataExportMixin):
             normalize (bool, optional): Whether to normalize the confusion matrix.
             save_dir (str, optional): Directory where the plot will be saved.
             on_plot (callable, optional): An optional callback to pass plots path and data when they are rendered.
-            filter_empty (bool, optional): Whether to hide rows and columns whose ground truth and prediction counts
-                are both zero, e.g. when evaluating on a subset of the trained classes.
+            filter_empty (bool, optional): Whether to hide rows and columns whose ground truth and prediction counts are
+                both zero, e.g. when evaluating on a subset of the trained classes.
             show_values (bool | None, optional): Whether to annotate each cell with its value. If None, cells are
                 annotated when the plotted matrix has fewer than 30 classes.
         """

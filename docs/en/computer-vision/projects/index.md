@@ -224,10 +224,10 @@ Detect people or vehicles entering a restricted zone in real time and trigger an
     === "CLI"
 
         ```bash
-        yolo solutions alarm show=True
+        yolo solutions security show=True
 
         # Pass a source video
-        yolo solutions alarm source="path/to/video.mp4"
+        yolo solutions security source="path/to/video.mp4"
         ```
 
 
@@ -432,10 +432,10 @@ Count exercise repetitions in real time by tracking joint angles from pose keypo
     === "CLI"
 
         ```bash
-        yolo solutions aigym show=True
+        yolo solutions workout show=True
 
         # Pass a source video
-        yolo solutions aigym source="path/to/video.mp4"
+        yolo solutions workout source="path/to/video.mp4"
         ```
 
 
@@ -642,15 +642,6 @@ Calculate the real-world distance between any two detected objects in a frame. U
         )
 
         distance.calculate(source="path/to/video.mp4")
-        ```
-
-    === "CLI"
-
-        ```bash
-        yolo solutions distance show=True
-
-        # Pass a source video
-        yolo solutions distance source="path/to/video.mp4"
         ```
 
 

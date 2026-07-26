@@ -1,5 +1,11 @@
 ---
 comments: true
+creator:
+    name: Roboflow
+    url: https://github.com/roboflow/roboflow-100-benchmark
+license:
+    name: MIT
+    url: https://github.com/roboflow/roboflow-100-benchmark/blob/main/LICENSE.md
 description: Explore the Roboflow 100 dataset featuring 100 diverse datasets designed to test object detection models across various domains, from healthcare to video games.
 keywords: Roboflow 100, Ultralytics, object detection, dataset, benchmarking, machine learning, computer vision, diverse datasets, model evaluation
 ---
@@ -62,7 +68,7 @@ Dataset [benchmarking](../../modes/benchmark.md) involves evaluating the perform
         from roboflow import Roboflow
 
         from ultralytics import YOLO
-        from ultralytics.utils import ASSETS_URL, YAML
+        from ultralytics.utils import ASSETS_URL, LOGGER, YAML
         from ultralytics.utils.downloads import safe_download
 
         # Download the RF100 datasets (requires a Roboflow API key)
@@ -80,8 +86,8 @@ Dataset [benchmarking](../../modes/benchmark.md) involves evaluating the perform
                 cfg["train"], cfg["val"] = "train/images", "valid/images"
                 YAML.save(yaml, cfg)
                 datasets.append(str(yaml))
-            except Exception:
-                continue
+            except Exception as e:
+                LOGGER.warning(f"Failed to prepare dataset from {line!r}: {e}")
 
         # Fine-tune one base model across all RF100 datasets and visualize the cross-dataset results
         model = YOLO("yolo26n.pt")

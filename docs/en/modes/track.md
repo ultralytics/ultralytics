@@ -72,7 +72,7 @@ Run tracking on a video with the default BoT-SORT tracker. Swap to another track
         yolo track model=yolo26n.pt source="https://youtu.be/LNwODJXcvt4" tracker="bytetrack.yaml"
         ```
 
-To run the tracker on video streams, use a trained Detect, Segment, Pose, or OBB model such as YOLO26n, YOLO26n-seg, YOLO26n-pose, or YOLO26n-obb. You can train custom models locally or on cloud GPUs through [Ultralytics Platform](https://platform.ultralytics.com).
+To run the tracker on video streams, use a trained Detect, Segment, Pose, or OBB model such as YOLO26n, YOLO26n-seg, YOLO26n-pose, or YOLO26n-obb. You can train custom models locally or with [Ultralytics Platform cloud training](../platform/train/cloud-training.md).
 
 !!! example
 
@@ -547,7 +547,7 @@ In the following example, we demonstrate how to utilize YOLO26's tracking capabi
     cap = cv2.VideoCapture(video_path)
 
     # Store the track history
-    track_history = defaultdict(lambda: [])
+    track_history = defaultdict(list)
 
     # Loop through the video frames
     while cap.isOpened():
@@ -773,7 +773,7 @@ To visualize object tracks over multiple video frames, you can use the YOLO mode
     model = YOLO("yolo26n.pt")
     video_path = "path/to/video.mp4"
     cap = cv2.VideoCapture(video_path)
-    track_history = defaultdict(lambda: [])
+    track_history = defaultdict(list)
 
     while cap.isOpened():
         success, frame = cap.read()

@@ -27,7 +27,7 @@ reCamera series is purpose-built for edge AI applications, tailored to meet the 
 
 ## Quick Hardware Setup of reCamera
 
-Please follow [reCamera Quick Start Guide](https://wiki.seeedstudio.com/recamera_getting_started/) for initial onboarding of the device such as connecting the device to a WiFi network and access the [Node-RED](https://nodered.org/) web UI for quick previewing of detection results.
+Please follow the [reCamera Getting Started](https://wiki.seeedstudio.com/recamera_basic_getting_start/) page and select your device (such as reCamera 2002 Series, Gimbal, or HQ POE) to open its Quick Start Guide for initial onboarding of the device such as connecting the device to a network and accessing the [Node-RED](https://nodered.org/) web UI for quick previewing of detection results.
 
 ## Inference Using Pre-installed YOLO26 Models
 
@@ -152,7 +152,7 @@ reCamera advanced computer vision capabilities and modular design make it suitab
 To set up your reCamera for the first time, follow these steps:
 
 1. Connect the reCamera to a power source
-2. Connect it to your WiFi network using the [reCamera Quick Start Guide](https://wiki.seeedstudio.com/recamera_getting_started/)
+2. Connect it to your network using the [reCamera Getting Started](https://wiki.seeedstudio.com/recamera_basic_getting_start/) page (select your device to open its Quick Start Guide)
 3. Access the Node-RED web UI by entering the device's IP address in a web browser (or use `192.168.42.1` if connected via USB)
 4. Start using the pre-installed YOLO26 models immediately through the dashboard interface
 

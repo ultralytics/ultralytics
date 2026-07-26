@@ -29,11 +29,11 @@ class PaddleBackend(BaseBackend):
         cuda = isinstance(self.device, torch.device) and torch.cuda.is_available() and self.device.type != "cpu"
         LOGGER.info(f"Loading {weight} for PaddlePaddle inference...")
         if cuda:
-            check_requirements("paddlepaddle-gpu>=3.0.0,!=3.3.0")
+            check_requirements("paddlepaddle-gpu>=3.0.0,<3.3.0")
         elif ARM64:
             check_requirements("paddlepaddle==3.0.0")
         else:
-            check_requirements("paddlepaddle>=3.0.0,!=3.3.0")
+            check_requirements("paddlepaddle>=3.0.0,<3.3.0")
 
         import paddle.inference as pdi
 
@@ -74,6 +74,6 @@ class PaddleBackend(BaseBackend):
         Returns:
             (list[np.ndarray]): Model predictions as a list of numpy arrays, one per output handle.
         """
-        self.input_handle.copy_from_cpu(im.cpu().numpy().astype(np.float32))
+        self.input_handle.copy_from_cpu(im.cpu().numpy().astype(np.float32, copy=False))
         self.predictor.run()
         return [self.predictor.get_output_handle(x).copy_to_cpu() for x in self.output_names]

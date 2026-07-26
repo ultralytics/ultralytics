@@ -25,7 +25,7 @@ class YOLOETrainer(DetectionTrainer):
     model initialization, validation, and dataset building with multi-modal support.
 
     Attributes:
-        loss_names (tuple): Names of loss components used during training.
+        loss_names (tuple): Names of loss components, derived from the loss dict returned by the criterion.
 
     Methods:
         get_model: Initialize and return a YOLOEModel with specified configuration.
@@ -79,7 +79,6 @@ class YOLOETrainer(DetectionTrainer):
 
     def get_validator(self):
         """Return a YOLOEDetectValidator for YOLOE model validation."""
-        self.loss_names = "box", "cls", "dfl"
         return YOLOEDetectValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
@@ -122,8 +121,6 @@ class YOLOEPETrainer(DetectionTrainer):
         Returns:
             (YOLOEModel): Initialized model with frozen layers except for specific projection layers.
         """
-        # NOTE: This `nc` here is the max number of different text samples in one image, rather than the actual `nc`.
-        # NOTE: Following the official config, nc hard-coded to 80 for now.
         model = YOLOEModel(
             cfg["yaml_file"] if isinstance(cfg, dict) else cfg,
             ch=self.data["channels"],
@@ -224,7 +221,6 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
 
     def get_validator(self):
         """Return a DetectionValidator for YOLO model validation."""
-        self.loss_names = "box", "cls", "dfl"
         return DetectionValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
@@ -240,7 +236,6 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
             datasets (list[Dataset]): List of datasets containing category names to process.
             batch (int): Batch size for processing text embeddings.
         """
-        pass
 
 
 class YOLOEVPTrainer(YOLOETrainerFromScratch):

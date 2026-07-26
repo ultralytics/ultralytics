@@ -69,12 +69,13 @@ class Events:
             and (IS_PIP_PACKAGE or GIT.origin == "https://github.com/ultralytics/ultralytics.git")
         )
 
-    def __call__(self, cfg, device=None) -> None:
+    def __call__(self, cfg, device=None, backend=None) -> None:
         """Queue an event and flush the queue asynchronously when the rate limit elapses.
 
         Args:
             cfg (IterableSimpleNamespace): The configuration object containing mode and task information.
             device (torch.device | str, optional): The device type (e.g., 'cpu', 'cuda').
+            backend (object | None, optional): The inference backend instance used during prediction.
         """
         if not self.enabled:
             # Events disabled, do nothing
@@ -90,6 +91,8 @@ class Events:
             }
             if cfg.mode == "export":
                 params["format"] = cfg.format
+            if cfg.mode == "predict":
+                params["backend"] = type(backend).__name__ if backend is not None else None
             self.events.append({"name": cfg.mode, "params": params})
 
         # Check rate limit and return early if under limit

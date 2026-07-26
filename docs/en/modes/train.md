@@ -10,7 +10,7 @@ keywords: Ultralytics, YOLO26, model training, deep learning, object detection, 
 
 ## Introduction
 
-Training a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model involves feeding it data and adjusting its parameters so that it can make accurate predictions. Train mode in Ultralytics YOLO26 is engineered for effective and efficient training of object detection models, fully utilizing modern hardware capabilities. This guide aims to cover all the details you need to get started with training your own models using YOLO26's robust set of features.
+Training a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model involves feeding it data and adjusting its parameters so that it can make accurate predictions. Train mode in Ultralytics YOLO26 is engineered for effective and efficient training of object detection models, fully utilizing modern hardware capabilities. This guide aims to cover all the details you need to get started with training your own models using YOLO26's robust set of features. If you haven't installed Ultralytics yet, start with the [Quickstart guide](../quickstart.md).
 
 <p align="center">
   <br>
@@ -31,19 +31,16 @@ Here are some compelling reasons to opt for YOLO26's Train mode:
 - **Versatility:** Train on custom datasets in addition to readily available ones like COCO, VOC, and ImageNet.
 - **User-Friendly:** Simple yet powerful CLI and Python interfaces for a straightforward training experience.
 - **Hyperparameter Flexibility:** A broad range of customizable hyperparameters to fine-tune model performance. For deeper control, you can [customize the trainer](../guides/custom-trainer.md) itself.
+- **Cloud Training:** Train on cloud GPUs through [Ultralytics Platform](../platform/train/cloud-training.md) with real-time metrics and automatic checkpointing.
 
 ### Key Features of Train Mode
 
 The following are some notable features of YOLO26's Train mode:
 
-- **Automatic Dataset Download:** Standard datasets like COCO, VOC, and ImageNet are downloaded automatically on first use.
+- **Automatic Dataset Download:** Dataset configurations with a download source are downloaded automatically on first use, e.g., `yolo train data=coco8.yaml`. See the [Datasets overview](../datasets/index.md) for supported formats and datasets.
 - **Multi-GPU Support:** Scale your training efforts seamlessly across multiple GPUs to expedite the process.
 - **Hyperparameter Configuration:** The option to modify hyperparameters through YAML configuration files or CLI arguments.
 - **Visualization and Monitoring:** Real-time tracking of training metrics and visualization of the learning process for better insights.
-
-!!! tip
-
-    * YOLO26 datasets like COCO, VOC, ImageNet, and many others automatically download on first use, i.e., `yolo train data=coco.yaml`
 
 ## Usage Examples
 
@@ -336,7 +333,7 @@ To use TensorBoard in [Google Colab](https://colab.research.google.com/github/ul
         tensorboard --logdir ultralytics/runs # replace with 'runs' directory
         ```
 
-To use TensorBoard locally run the below command and view results at `http://localhost:6006/`.
+To use TensorBoard locally run the below command and view results at `localhost:6006`.
 
 !!! example
 
@@ -350,7 +347,15 @@ This will load TensorBoard and direct it to the directory where your training lo
 
 After setting up your logger, you can then proceed with your model training. All training metrics will be automatically logged in your chosen platform, and you can access these logs to monitor your model's performance over time, compare different models, and identify areas for improvement.
 
+## What's Next
+
+[Validate](val.md) your trained model against held-out data to check its real-world accuracy, then [export](export.md) it to ONNX, TensorRT, or another deployment format. Training on your own data instead of COCO8? Format it first with the [Datasets guide](../datasets/index.md).
+
 ## FAQ
+
+### Can I train without a local GPU?
+
+Yes. [Ultralytics Platform cloud training](../platform/train/cloud-training.md) includes free credits to get started. Upload your dataset, select a model and GPU, and train directly from the browser.
 
 ### How do I train an [object detection](https://www.ultralytics.com/glossary/object-detection) model using Ultralytics YOLO26?
 
@@ -414,6 +419,49 @@ To resume training from an interrupted session, set the `resume` argument to `Tr
         ```
 
 Check the section on [Resuming Interrupted Trainings](#resuming-interrupted-trainings) for more information.
+
+### How do I train a model on an imbalanced dataset?
+
+Class imbalance occurs when some classes have significantly fewer examples than others in your training data. This can cause the model to perform poorly on rare classes. Ultralytics YOLO supports class weighting through the `cls_pw` argument to address this issue.
+
+The `cls_pw` argument controls class weighting power based on inverse class frequency:
+
+- `cls_pw=0.0` (default): Disables class weighting
+- `cls_pw=1.0`: Applies full inverse frequency weighting
+- Values between `0.0` and `1.0`: Provide partial weighting for moderate imbalance
+
+The class weights are computed as `(1.0 / class_counts) ^ cls_pw` and normalized so their mean equals 1.0.
+
+!!! example "Training on Imbalanced Dataset"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a pretrained model
+        model = YOLO("yolo26n.pt")
+
+        # Train with full class weighting for severely imbalanced data
+        results = model.train(data="custom.yaml", epochs=100, imgsz=640, cls_pw=1.0)
+
+        # Or use partial weighting (0.25) for moderate imbalance
+        results = model.train(data="custom.yaml", epochs=100, imgsz=640, cls_pw=0.25)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Train with full inverse frequency weighting
+        yolo detect train data=custom.yaml model=yolo26n.pt epochs=100 imgsz=640 cls_pw=1.0
+
+        # Train with partial weighting for moderate imbalance
+        yolo detect train data=custom.yaml model=yolo26n.pt epochs=100 imgsz=640 cls_pw=0.25
+        ```
+
+!!! tip
+
+    Start with `cls_pw=0.25` for moderately imbalanced datasets and increase to `1.0` if the rare classes still underperform. You can check the computed class weights in the training logs to verify the weight distribution.
 
 ### Can I train YOLO26 models on Apple silicon chips?
 

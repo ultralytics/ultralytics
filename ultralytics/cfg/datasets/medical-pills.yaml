@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Medical-pills dataset by Ultralytics
-# Documentation: https://docs.ultralytics.com/datasets/detect/medical-pills/
+# Documentation: https://docs.ultralytics.com/datasets/detect/medical-pills
 # Example usage: yolo train data=medical-pills.yaml
 # parent
 # ├── ultralytics

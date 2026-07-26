@@ -131,10 +131,10 @@ def pytest_sessionfinish(session, exitstatus):
     from ultralytics.utils import WEIGHTS_DIR
 
     # Remove files
-    models = [path for x in {"*.onnx", "*.torchscript"} for path in WEIGHTS_DIR.rglob(x)]
+    models = [path for x in ("*.onnx", "*.torchscript") for path in WEIGHTS_DIR.rglob(x)]
     for file in ["decelera_portrait_min.mov", "bus.jpg", "yolo26n.onnx", "yolo26n.torchscript", *models]:
         Path(file).unlink(missing_ok=True)
 
     # Remove directories
-    for directory in [path for x in {"*.mlpackage", "*_openvino_model"} for path in WEIGHTS_DIR.rglob(x)]:
+    for directory in [path for x in ("*.mlpackage", "*_openvino_model") for path in WEIGHTS_DIR.rglob(x)]:
         shutil.rmtree(directory, ignore_errors=True)

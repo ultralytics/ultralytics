@@ -117,7 +117,7 @@ YOLOv5 automatically locates the labels for each image by substituting the last 
 
 The recommended directory structure is:
 
-```
+```text
 /datasets/
 └── coco128/  # Dataset root
     ├── images/

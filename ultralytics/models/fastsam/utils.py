@@ -2,8 +2,7 @@
 
 
 def adjust_bboxes_to_image_border(boxes, image_shape, threshold=20):
-    """
-    Adjust bounding boxes to stick to image border if they are within a certain threshold.
+    """Adjust bounding boxes to stick to image border if they are within a certain threshold.
 
     Args:
         boxes (torch.Tensor): Bounding boxes with shape (N, 4) in xyxy format.

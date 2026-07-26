@@ -3,8 +3,9 @@
 import json
 from time import time
 
-from ultralytics.hub import HUB_WEB_ROOT, PREFIX, HUBTrainingSession, events
+from ultralytics.hub import HUB_WEB_ROOT, PREFIX, HUBTrainingSession
 from ultralytics.utils import LOGGER, RANK, SETTINGS
+from ultralytics.utils.events import events
 
 
 def on_pretrain_routine_start(trainer):
@@ -59,7 +60,7 @@ def on_model_save(trainer):
 def on_train_end(trainer):
     """Upload final model and metrics to Ultralytics HUB at the end of training."""
     if session := getattr(trainer, "hub_session", None):
-        # Upload final model and metrics with exponential standoff
+        # Upload final model and metrics with exponential backoff
         LOGGER.info(f"{PREFIX}Syncing final model...")
         session.upload_model(
             trainer.epoch,
@@ -84,7 +85,8 @@ def on_val_start(validator):
 
 def on_predict_start(predictor):
     """Run events on predict start."""
-    events(predictor.args, predictor.device)
+    backend = getattr(getattr(predictor, "model", None), "backend", None)
+    events(predictor.args, predictor.device, backend=backend)
 
 
 def on_export_start(exporter):
@@ -106,4 +108,4 @@ callbacks = (
     }
     if SETTINGS["hub"] is True
     else {}
-)  # verify hub is enabled before registering callbacks
+)

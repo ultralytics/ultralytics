@@ -50,6 +50,22 @@ def onnx2ascend(
     output_dir = Path(output_dir).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # CANN dereferences the optional score-threshold input when it is omitted from ONNX NonMaxSuppression nodes.
+    # NMSModel already filters scores by a positive confidence threshold, so an explicit zero preserves its semantics.
+    import onnx
+    from onnx import TensorProto, helper
+
+    model = onnx.load(onnx_file)
+    modified = False
+    for i, node in enumerate(model.graph.node):
+        if node.op_type == "NonMaxSuppression" and len(node.input) == 4:
+            threshold_name = f"ascend_nms_score_threshold_{i}"
+            node.input.append(threshold_name)
+            model.graph.initializer.append(helper.make_tensor(threshold_name, TensorProto.FLOAT, [1], [0.0]))
+            modified = True
+    if modified:
+        onnx.save(model, onnx_file)
+
     cmd = [
         "atc",
         f"--model={Path(onnx_file).resolve()}",  # absolute: ATC runs with cwd=output_dir

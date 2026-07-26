@@ -1,4 +1,5 @@
 ---
+title: trackers.utils.kalman_filter API Reference
 description: Explore Kalman filter implementations like KalmanFilterXYAH and KalmanFilterXYWH for tracking bounding boxes in image space using Ultralytics.
 keywords: Kalman Filter, Object Tracking, Python, Ultralytics, YOLO, Bounding Boxes, Image Processing
 ---

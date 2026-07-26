@@ -1,4 +1,5 @@
 ---
+title: nn.backends.ncnn API Reference
 description: Explore NCNNBackend for Tencent NCNN inference, optimized for mobile and embedded platforms with Vulkan acceleration support.
 keywords: Ultralytics, NCNNBackend, NCNN inference, Tencent NCNN, mobile inference, Vulkan acceleration, embedded AI, deep learning
 ---

@@ -63,7 +63,7 @@ python main.py --model yolov8n.onnx --img image.jpg --conf-thres 0.5 --iou-thres
 - `--conf-thres`: Confidence threshold for filtering detections. Only detections with a score higher than this value will be kept. Learn more about thresholds in the [performance metrics guide](https://docs.ultralytics.com/guides/yolo-performance-metrics).
 - `--iou-thres`: IoU threshold for Non-Maximum Suppression (NMS). Boxes with IoU greater than this threshold will be suppressed. See the [NMS glossary entry](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) for details.
 
-The script will process the image, perform object detection, draw bounding boxes on the detected objects, and save the output image as `output.jpg`.
+The script will process the image, perform object detection, draw bounding boxes on the detected objects, and display the result in a window.
 
 ## Contributing
 

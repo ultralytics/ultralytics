@@ -1,4 +1,5 @@
 ---
+title: models.yolo.obb.train API Reference
 description: Explore the Ultralytics YOLO OBB Trainer class for efficient training with Oriented Bounding Box models. Learn with examples and method details.
 keywords: Ultralytics, YOLO, OBB Trainer, Oriented Bounding Box, Machine Learning, Training, AI
 ---

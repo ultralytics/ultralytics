@@ -1,4 +1,5 @@
 ---
+title: hub.utils API Reference
 description: Explore the utilities in the Ultralytics Platform. Learn about smart_request, request_with_credentials, and more to enhance your YOLO projects.
 keywords: Ultralytics, HUB, Utilities, YOLO, smart_request, request_with_credentials
 ---

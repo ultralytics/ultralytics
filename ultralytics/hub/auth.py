@@ -110,14 +110,19 @@ class Auth:
 
         try:
             if header := self.get_auth_header():
-                r = requests.post(f"{HUB_API_ROOT}/v1/auth", headers=header)
+                r = requests.post(f"{HUB_API_ROOT}/v1/auth", headers=header, timeout=30)
+                if r.status_code in {408, 429} or r.status_code >= 500:
+                    r.raise_for_status()  # transient server error: keep credentials, take the connectivity path
                 if not r.json().get("success", False):
                     raise ConnectionError("Unable to authenticate.")
                 return True
             raise ConnectionError("User has not authenticated locally.")
         except ConnectionError:
-            self.id_token = self.api_key = False  # reset invalid
+            self.id_token = self.api_key = False  # reset invalid credentials
             LOGGER.warning(f"{PREFIX}Invalid API key")
+            return False
+        except requests.exceptions.RequestException as e:
+            LOGGER.warning(f"{PREFIX}Authentication request failed, check your connection: {e}")  # keep credentials
             return False
 
     def auth_with_cookies(self) -> bool:

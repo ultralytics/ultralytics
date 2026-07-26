@@ -1,4 +1,5 @@
 ---
+title: nn.backends.paddle API Reference
 description: Explore PaddleBackend for Baidu PaddlePaddle inference, supporting deployment with Paddle Inference engine on various hardware platforms.
 keywords: Ultralytics, PaddleBackend, PaddlePaddle inference, Baidu Paddle, Paddle Inference, deep learning, model deployment
 ---

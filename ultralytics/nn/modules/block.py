@@ -1138,6 +1138,64 @@ class CAA(nn.Module):
         return x + y * self.act(self.gate(self.pool(y)))
 
 
+class C2fRep(nn.Module):
+    """C2f with RepConv blocks instead of Bottlenecks (ported from Yasin's exp, adapted to local RepConv).
+
+    RepConv here is RepConvN-style (no identity branch), avoiding the YOLOv7
+    identity-over-residual gradient-diversity problem that plain RepC3 hits.
+    """
+
+    def __init__(
+        self, c1: int, c2: int, n: int = 1, shortcut: bool = False, g: int = 1, e: float = 0.5
+    ):
+        """Initialize C2fRep with RepConv blocks."""
+        super().__init__()
+        self.c = int(c2 * e)
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)
+        self.m = nn.ModuleList(RepConv(self.c, self.c, bn=shortcut) for _ in range(n))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass through cv1 split -> RepConv blocks -> cv2 concat."""
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+
+class C3k2Rep(C2fRep):
+    """C3k2 replacement using RepConv blocks; attn=True adds PSABlock hybrids (ported from Yasin's exp)."""
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        n: int = 1,
+        c3k: bool = False,
+        e: float = 0.5,
+        attn: bool = False,
+        g: int = 1,
+        shortcut: bool = True,
+    ):
+        """Initialize C3k2Rep; attn=True pairs each RepConv with a PSABlock."""
+        super().__init__(c1, c2, n, shortcut, g, e)
+        if attn:
+            self.m = nn.ModuleList(
+                nn.Sequential(
+                    RepConv(self.c, self.c, bn=shortcut),
+                    PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1)),
+                )
+                for _ in range(n)
+            )
+        elif c3k:
+            self.m = nn.ModuleList(
+                nn.Sequential(
+                    RepConv(self.c, self.c, bn=shortcut),
+                    RepConv(self.c, self.c, bn=shortcut),
+                )
+                for _ in range(n)
+            )
+
+
 class C3k2k(C3k2):
     """C3k2 with configurable bottleneck kernel size (HKS-style larger kernels in deep levels)."""
 

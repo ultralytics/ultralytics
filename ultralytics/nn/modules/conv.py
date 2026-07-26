@@ -667,3 +667,94 @@ class Index(nn.Module):
             (torch.Tensor): Selected tensor.
         """
         return x[self.index]
+
+
+class ScaledAdd(nn.Module):
+    """Element-wise addition with a learnable scale on the residual input (ported from Yasin's exp).
+
+    Computes x[0] + alpha * x[1] where alpha is a learnable scalar initialized to 0,
+    so training starts as pure x[0] and gradually learns the residual contribution.
+    """
+
+    def __init__(self):
+        """Initialize ScaledAdd with alpha=0."""
+        super().__init__()
+        self.alpha = nn.Parameter(torch.zeros(1))
+
+    def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
+        """Return main + alpha * residual for two same-shape inputs."""
+        return x[0] + self.alpha * x[1]
+
+
+class StripAttn(nn.Module):
+    """Strip-pooling attention with a symmetric sigmoid gate (SPNet CVPR 2020, ported from Yasin's exp).
+
+    Pools horizontal and vertical strips for global axial context, mixes each strip with a
+    depthwise 1D conv and a pointwise conv, then gates the input with 2*sigmoid so features
+    can be both suppressed (<1) and amplified (>1). Cost is O(C^2 * (H + W)) — near-free.
+    """
+
+    def __init__(self, c: int, k: int = 3):
+        """Initialize StripAttn with channel count c and strip kernel size k."""
+        super().__init__()
+        self.pool_h = nn.AdaptiveAvgPool2d((None, 1))
+        self.pool_w = nn.AdaptiveAvgPool2d((1, None))
+        self.conv_h = nn.Conv2d(c, c, (k, 1), padding=(k // 2, 0), groups=c, bias=False)
+        self.conv_w = nn.Conv2d(c, c, (1, k), padding=(0, k // 2), groups=c, bias=False)
+        self.fc_h = nn.Conv2d(c, c, 1)
+        self.fc_w = nn.Conv2d(c, c, 1)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Gate input with broadcast sum of horizontal and vertical strip contexts."""
+        gh = self.fc_h(self.conv_h(self.pool_h(x)))
+        gw = self.fc_w(self.conv_w(self.pool_w(x)))
+        return x * (2 * (gh + gw).sigmoid())
+
+
+class MogaGate(nn.Module):
+    """Gated multi-order aggregation (MogaNet, ICLR 2024), channel-preserving residual form (ported from Yasin's exp).
+
+    Feature decomposition amplifies per-channel deviations from the spatial mean, then a
+    SiLU gate is multiplied with multi-order context from parallel DW 3x3 convs at
+    dilations {1, 2, 3} (RF 3/5/7). All ops are DW or 1x1.
+    """
+
+    def __init__(self, c: int):
+        """Initialize MogaGate with channel count c."""
+        super().__init__()
+        self.gamma = nn.Parameter(1e-5 * torch.ones(c, 1, 1))
+        self.gate = nn.Conv2d(c, c, 1)
+        self.dw1 = nn.Conv2d(c, c, 3, 1, 1, groups=c, bias=False)
+        self.dw2 = nn.Conv2d(c, c, 3, 1, 2, dilation=2, groups=c, bias=False)
+        self.dw3 = nn.Conv2d(c, c, 3, 1, 3, dilation=3, groups=c, bias=False)
+        self.proj = nn.Conv2d(c, c, 1)
+        self.act = nn.SiLU()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply feature decomposition, then gated multi-order context, residually."""
+        y = x + self.gamma * (x - x.mean((2, 3), keepdim=True))  # feature decomposition
+        ctx = self.dw1(y) + self.dw2(y) + self.dw3(y)  # fusable to a single DW 7x7
+        return x + self.proj(self.act(self.gate(y)) * self.act(ctx))
+
+
+class DilEncoder(nn.Module):
+    """YOLOF-style dilated encoder: 1x1 projector + residual dilated-conv blocks.
+
+    Gives a single feature level multiple receptive fields (YOLOF's compensation for
+    removed FPN levels). Dilated convs are TensorRT-native.
+    """
+
+    def __init__(self, c1: int, c2: int, dilations: tuple = (2, 4)):
+        """Initialize DilEncoder with input/output channels and per-block dilations."""
+        super().__init__()
+        self.proj = Conv(c1, c2, 1)
+        self.blocks = nn.ModuleList(
+            nn.Sequential(Conv(c2, c2, 3, 1, None, 1, d), Conv(c2, c2, 1, act=False)) for d in dilations
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply 1x1 projection then residual dilated blocks."""
+        y = self.proj(x)
+        for b in self.blocks:
+            y = y + b(y)
+        return y

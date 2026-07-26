@@ -32,12 +32,14 @@ from ultralytics.nn.modules import (
     BottleneckCSP,
     CAA,
     C2f,
+    C2fRep,
     C2fAttn,
     C2fCIB,
     C2fPSA,
     C3Ghost,
     C3k2,
     C3k2k,
+    C3k2Rep,
     C3x,
     CBFuse,
     CBLinear,
@@ -67,6 +69,10 @@ from ultralytics.nn.modules import (
     RTDETRDecoder,
     SCDown,
     Scale,
+    ScaledAdd,
+    StripAttn,
+    DilEncoder,
+    MogaGate,
     Segment,
     Segment26,
     SemanticSegment,
@@ -1909,6 +1915,8 @@ def parse_model(d, ch, verbose=True):
             C2f,
             C3k2,
             C3k2k,
+            C3k2Rep,
+            DilEncoder,
             RepNCSPELAN4,
             ELAN1,
             ADown,
@@ -1989,6 +1997,10 @@ def parse_model(d, ch, verbose=True):
             args = [ch[f], *args]
         elif m is CAA:
             args = [ch[f], *args]
+        elif m in frozenset({StripAttn, MogaGate}):
+            args = [ch[f], *args]
+        elif m is ScaledAdd:
+            c2 = ch[f[-1]]
         elif m in frozenset({HGStem, HGBlock}):
             c1, cm, c2 = ch[f], args[0], args[1]
             args = [c1, cm, c2, *args[2:]]

@@ -12,7 +12,7 @@ keywords: Ultralytics, ultralytics.utils.export.ascend, API reference, YOLO, Pyt
 
 <br>
 
-## ::: ultralytics.utils.export.ascend.check_atc
+## ::: ultralytics.utils.export.ascend._check_atc
 
 <br><br><hr><br>
 

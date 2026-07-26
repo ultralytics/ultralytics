@@ -1480,9 +1480,9 @@ class Exporter:
     @try_export
     def export_ascend(self, prefix=colorstr("Ascend:")):  # noqa: B008
         """Export YOLO model to Huawei Ascend offline model (.om) format."""
-        from ultralytics.utils.export.ascend import check_atc, onnx2ascend
+        from ultralytics.utils.export.ascend import _check_atc, onnx2ascend
 
-        check_atc()  # before the ONNX trace, so a missing toolchain does not cost a full export first
+        _check_atc()  # before the ONNX trace, so a missing toolchain does not cost a full export first
         if self.args.opset and self.args.opset > 17:
             LOGGER.warning(f"{prefix} the CANN ONNX parser requires opset<=17, setting opset=17.")
         self.args.opset = min(self.args.opset or 17, 17)

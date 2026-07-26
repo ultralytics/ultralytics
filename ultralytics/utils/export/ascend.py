@@ -11,7 +11,7 @@ from pathlib import Path
 from ultralytics.utils import LOGGER, YAML
 
 
-def check_atc() -> None:
+def _check_atc() -> None:
     """Raise if the CANN ATC compiler is not on PATH."""
     if not shutil.which("atc"):
         raise FileNotFoundError(
@@ -46,7 +46,7 @@ def onnx2ascend(
     Returns:
         (str): Path to the exported Ascend model directory.
     """
-    check_atc()
+    _check_atc()
     output_dir = Path(output_dir).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 

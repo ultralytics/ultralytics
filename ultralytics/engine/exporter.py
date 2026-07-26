@@ -956,7 +956,7 @@ class Exporter:
         """Build and return a dataloader for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         calibration_batch = self.args.calibration_batch or self.args.batch
-        if self.args.format == "engine" and calibration_batch > self.args.batch:
+        if self.args.format.lower() in {"engine", "tensorrt", "trt"} and calibration_batch > self.args.batch:
             raise ValueError(
                 f"calibration_batch={calibration_batch} cannot exceed batch={self.args.batch} for TensorRT export, "
                 f"set calibration_batch <= batch or increase batch."

@@ -10,8 +10,8 @@ Welcome to the [Ultralytics](https://www.ultralytics.com/) "Under Construction" 
 ## Exciting New Features on the Way 🎉
 
 - **Innovative Breakthroughs:** Get ready for [advanced features](https://docs.ultralytics.com/) and services designed to [transform your AI and ML experience](https://www.ultralytics.com/solutions).
-- **New Horizons:** Anticipate novel products that [redefine AI and ML capabilities](https://docs.ultralytics.com/tasks/).
-- **Enhanced Services:** We're upgrading our [services](https://platform.ultralytics.com) for greater [efficiency](https://docs.ultralytics.com/modes/benchmark/) and user-friendliness.
+- **New Horizons:** Anticipate novel products that [redefine AI and ML capabilities](https://docs.ultralytics.com/tasks).
+- **Enhanced Services:** We're upgrading our [services](https://platform.ultralytics.com) for greater [efficiency](https://docs.ultralytics.com/modes/benchmark) and user-friendliness.
 
 ## Stay Updated 🚧
 
@@ -27,8 +27,8 @@ Help shape the future of Ultralytics Platform by sharing your ideas, feedback, a
 
 ## Thank You, Community! 🌍
 
-Your [contributions](https://docs.ultralytics.com/help/contributing/) and ongoing support fuel our commitment to pushing the boundaries of [AI innovation](https://github.com/ultralytics/ultralytics). Stay tuned—exciting things are just around the corner!
+Your [contributions](https://docs.ultralytics.com/help/contributing) and ongoing support fuel our commitment to pushing the boundaries of [AI innovation](https://github.com/ultralytics/ultralytics). Stay tuned—exciting things are just around the corner!
 
 ---
 
-Excited for what's coming? Bookmark this page and check out our [Quickstart Guide](https://docs.ultralytics.com/quickstart/) to get started with our current tools while you wait. Get ready for a transformative AI and ML journey with Ultralytics! 🛠️🤖
+Excited for what's coming? Bookmark this page and check out our [Quickstart Guide](https://docs.ultralytics.com/quickstart) to get started with our current tools while you wait. Get ready for a transformative AI and ML journey with Ultralytics! 🛠️🤖

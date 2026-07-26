@@ -1,4 +1,5 @@
 ---
+title: utils.callbacks.comet API Reference
 description: Explore the integration of Comet callbacks in Ultralytics YOLO, enabling advanced logging and monitoring for your machine learning experiments.
 keywords: Ultralytics, YOLO, Comet, callbacks, logging, machine learning, monitoring, integration
 ---
@@ -7,7 +8,7 @@ keywords: Ultralytics, YOLO, Comet, callbacks, logging, machine learning, monito
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/comet.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/comet.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/comet.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/comet.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

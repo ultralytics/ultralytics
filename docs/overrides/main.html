@@ -1,29 +1,57 @@
 <!-- Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license -->
 
-<!--Site announcement bar-->
-{% extends "base.html" %} {% block announce %}
-<div class="banner-wrapper">
-  <div
-    class="banner-content-wrapper"
-    onclick="window.open('https://docs.ultralytics.com/models/yolo11/')"
-  >
-    <p>Introducing</p>
+{% extends "base.html" %} {% block extrahead %}
+<script>
+  window.addEventListener("load", () => {
+    setTimeout(() => {
+      ((w, d, s, l, i) => {
+        w[l] = w[l] || [];
+        w[l].push({ "gtm.start": Date.now(), event: "gtm.js" });
+        var f = d.getElementsByTagName(s)[0],
+          j = d.createElement(s),
+          dl = l !== "dataLayer" ? `&l=${l}` : "";
+        j.async = true;
+        j.defer = true;
+        j.src = `https://www.googletagmanager.com/gtm.js?id=${i}${dl}`;
+        f.parentNode.insertBefore(j, f);
+      })(window, document, "script", "dataLayer", "GTM-MZ9KWSFF");
+    }, 1000); // 1 second delay after page load
+  });
+</script>
+{{ super() }} {% endblock %} {% block announce %}
+<a href="https://platform.ultralytics.com" target="_blank" class="banner-wrapper">
+  <div class="banner-content-wrapper">
     <img
-      src="https://assets-global.website-files.com/646dd1f1a3703e451ba81ecc/67d044caa316aa50fba40a08_Ultralytics_YOLO11_Logotype_Reverse.svg"
-      loading="lazy"
-      height="40"
-      alt="Ultralytics YOLO11"
+      src="https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/680a070c3b99253410dd3e84_Ultralytics_full_white.svg"
+      alt="Ultralytics"
+      class="banner-logo"
     />
+    <p>Introducing Ultralytics Platform: Annotate, train, and deploy YOLO models</p>
   </div>
-</div>
-{% endblock %}
+  <img
+    src="https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/69ba5bb596507e4235390de5_banner-arrow-right.png"
+    alt="Arrow"
+    class="banner-arrow"
+  />
+</a>
+{% endblock %} {% block scripts %}
+<noscript
+  ><iframe
+    src="https://www.googletagmanager.com/ns.html?id=GTM-MZ9KWSFF"
+    height="0"
+    width="0"
+    style="display: none; visibility: hidden"
+  ></iframe
+></noscript>
 
-<!--Page titles-->
-{% block htmltitle %} {% if page.toc|first is defined %} {% set
-page_specific_title = page.toc.items[0].title %} {% else %} {% set
-page_specific_title = page.title | striptags %} {% endif %}
+{{ super() }}
+<script defer src="/_vercel/insights/script.js"></script>
+{% endblock %} {% block htmltitle %} {% if page and page.meta and page.meta.title %} {% set page_specific_title =
+page.meta.title | striptags %} {% elif page and page.toc is defined and page.toc.items is defined and page.toc.items %}
+{% set page_specific_title = page.toc.items[0].title %} {% elif page and page.title %} {% set page_specific_title =
+page.title | striptags %} {% else %} {% set page_specific_title = "" %} {% endif %}
 <title>
-  {%- if page_specific_title -%} {{ page_specific_title }} - {{ config.site_name
-  }} {%- else -%} {{ config.site_name }} {%- endif -%}
+  {%- if page_specific_title -%} {{ page_specific_title }} | Ultralytics Docs {%- else -%} Ultralytics Docs {%- endif
+  -%}
 </title>
 {% endblock %}

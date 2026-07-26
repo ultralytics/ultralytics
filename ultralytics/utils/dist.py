@@ -25,9 +25,9 @@ def find_free_network_port() -> int:
         (int): The available network port number.
 
     Notes:
-        Candidates are drawn below the OS ephemeral range (32768+ on Linux, 49152+ on macOS and Windows) because the
-        port is released here and rebound later by the DDP subprocess. An ephemeral port can be handed to any outbound
-        connection in that window, which surfaces as an EADDRINUSE rendezvous failure at launch.
+        Candidates are drawn below the default OS ephemeral floor (32768 on Linux, 49152 on macOS and Windows)
+        because the port is released here and rebound later by the DDP subprocess. An ephemeral port can be handed to
+        any outbound connection in that window, which surfaces as an EADDRINUSE rendezvous failure at launch.
     """
     import random
     import socket
@@ -40,7 +40,7 @@ def find_free_network_port() -> int:
             except OSError:
                 continue  # in use by an explicit listener, try the next candidate
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(("127.0.0.1", 0))  # every candidate was busy, fall back to an ephemeral port
+        s.bind(("127.0.0.1", 0))  # no non-ephemeral candidate available, fall back to an ephemeral port
         return s.getsockname()[1]
 
 

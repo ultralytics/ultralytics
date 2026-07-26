@@ -1,16 +1,18 @@
 """Run kNN evaluation on a distilled encoder run directory or on a released reference encoder.
 
 Usage:
-    python run_knn_eval.py <gpu_id> <run_dir|teacher_spec> [--imgsz N] [--csv PATH] [--wandb]
+    python run_knn_eval.py <gpu_id> <run_dir|teacher_spec> [--imgsz N] [--crop_ratio R] [--csv PATH] [--wandb]
 
-A target matching ``TEACHER_REGISTRY`` in either form (``tips:v2b14`` or ``tips_v2b14``) is read as a teacher spec (e.g. ``tips:v2b14``, ``dune:vits14``,
-``eupe:vitb16``), scoring a released encoder under the same k=20 / T=0.07 protocol as our students. Anything else is a
-run directory, where weights/best.pt and the model config come from args.yaml automatically, warning and falling back
-to last.pt when best.pt is absent.
+A target matching ``TEACHER_REGISTRY`` in either form (``tips:v2b14`` or ``tips_v2b14``) is read as a teacher spec and
+scored under the same k=20 / T=0.07 protocol as our students. Anything else is a run directory, where weights/best.pt
+and the model config come from args.yaml automatically, warning and falling back to last.pt when best.pt is absent.
 
 --imgsz sets the eval resolution (default 224), and the loader batch scales down with imgsz to hold activation memory
-roughly constant. --csv appends one result row per call so a sweep stays readable while it runs. With --wandb, updates
-the finished WandB run's summary with knn/top1 (run directories only).
+roughly constant. --crop_ratio selects the published eval protocol (bicubic shortest-side resize to imgsz/ratio, then
+a center crop), which is what DINOv2/TIPS/EUPE kNN numbers are measured under. Pass 0.875 to match them, or 1.0 to
+isolate interpolation from crop. Absent, the Ultralytics bilinear ratio-1.0 transform is used, as in every existing
+table row. --csv appends one result row per call so a sweep stays readable while it runs. With --wandb, updates the
+finished WandB run's summary with knn/top1 (run directories only).
 
 Examples:
     python run_knn_eval.py 3 /data/shared-datasets/fatih-runs/classify/yolo-next-encoder/phase1-d1-eupe-vitb16
@@ -128,18 +130,22 @@ def main():
         return value
 
     imgsz = int(pop("--imgsz") or 224)
+    crop_ratio = float(pop("--crop_ratio") or 0)
     csv_path = pop("--csv")
     use_wandb = "--wandb" in argv
     positional = [a for a in argv if not a.startswith("--")]
 
     if len(positional) < 2:
-        print("Usage: python run_knn_eval.py <gpu_id> <run_dir|teacher_spec> [--imgsz N] [--csv PATH] [--wandb]")
+        print("Usage: run_knn_eval.py <gpu> <run_dir|teacher_spec> [--imgsz N] [--crop_ratio R] [--csv PATH] [--wandb]")
         sys.exit(1)
 
     gpu_id, target = int(positional[0]), resolve_teacher_key(positional[1])
     is_teacher = target in TEACHER_REGISTRY
     if use_wandb and is_teacher:
         print("Error: --wandb writes to a training run's summary, which a released teacher does not have.")
+        sys.exit(1)
+    if use_wandb and crop_ratio:
+        print("Error: the knn/top1 summary key has no protocol axis, so a --crop_ratio result would overwrite it.")
         sys.exit(1)
 
     device = torch.device(f"cuda:{gpu_id}")
@@ -161,7 +167,6 @@ def main():
         fraction=1.0,
         auto_augment="",
         erasing=0.0,
-        crop_fraction=1.0,
         scale=0.92,
         fliplr=0.5,
         flipud=0.0,
@@ -171,6 +176,24 @@ def main():
     )
     train_ds = ClassificationDataset(str(root / "train"), args=ds_args, augment=False, prefix="knn-train")
     val_ds = ClassificationDataset(str(root / "val"), args=ds_args, augment=False, prefix="knn-val")
+    if crop_ratio:
+        # ``classify_transforms`` welds resize to crop and rejects ``crop_fraction`` (augment.py:2812 raises), so the
+        # published protocol is built here: eupe/eval/knn.py:199-203 asserts a 256/224 ratio, transforms.py:132 BICUBIC.
+        import torchvision.transforms as T
+
+        resize = round(imgsz / crop_ratio)
+
+        from ultralytics.data.augment import DEFAULT_MEAN, DEFAULT_STD
+
+        train_ds.torch_transforms = val_ds.torch_transforms = T.Compose(
+            [
+                T.Resize(resize, interpolation=T.InterpolationMode.BICUBIC),
+                T.CenterCrop(imgsz),
+                T.ToTensor(),
+                T.Normalize(mean=torch.tensor(DEFAULT_MEAN), std=torch.tensor(DEFAULT_STD)),
+            ]
+        )
+        print(f"  published protocol: resize {resize} bicubic -> center crop {imgsz} (ratio {crop_ratio})")
     bs = max(8, round(256 * (224 / imgsz) ** 2))  # hold activation memory ~constant across imgsz
     train_loader = build_dataloader(train_ds, bs, 8, shuffle=False, rank=-1)
     val_loader = build_dataloader(val_ds, bs, 8, shuffle=False, rank=-1)
@@ -195,8 +218,8 @@ def main():
         header = not Path(csv_path).exists()
         with open(csv_path, "a", encoding="utf-8") as f:
             if header:
-                f.write("model,imgsz,top1,seconds\n")
-            f.write(f"{name},{imgsz},{top1:.2f},{elapsed:.0f}\n")
+                f.write("model,imgsz,crop_ratio,top1,seconds\n")
+            f.write(f"{name},{imgsz},{crop_ratio or 1.0},{top1:.2f},{elapsed:.0f}\n")
         print(f"  appended to {csv_path}")
 
     if use_wandb:

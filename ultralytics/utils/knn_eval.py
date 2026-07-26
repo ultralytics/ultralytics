@@ -26,6 +26,8 @@ import logging
 import torch
 import torch.nn.functional as F
 
+from ultralytics.utils.torch_utils import autocast
+
 logger = logging.getLogger("ultralytics")
 
 
@@ -78,7 +80,10 @@ def extract_features(model, dataloader, device, feature_fn=yolo_cls_features):
         imgs = batch["img"].to(device, non_blocking=True).float()
         labels = batch["cls"].to(device, non_blocking=True)
 
-        features = F.normalize(feature_fn(model, imgs), dim=1, p=2)
+        # fp32 is part of the protocol and ``.float()`` casts only the tensor, not the kernels (measured: a forward
+        # under an outer autocast shifts features ~5e-3), so the promotion is disabled where the protocol is defined.
+        with autocast(False, device=device.type):
+            features = F.normalize(feature_fn(model, imgs), dim=1, p=2)
 
         all_features.append(features.cpu())
         all_labels.append(labels.cpu().long().squeeze())

@@ -19,7 +19,8 @@ GITHUB_ASSETS_NAMES = frozenset(
     [f"yolov8{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb", "-oiv7")]
     + [f"yolo11{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb")]
     + [f"yolo12{k}{suffix}.pt" for k in "nsmlx" for suffix in ("",)]  # detect models only currently
-    + [f"yolo26{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-sem", "-pose", "-obb")]
+    + [f"yolo26{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-sem", "-pose", "-obb", "-depth")]
+    + [f"yolo26{k}-objv1{suffix}.pt" for k in "nsmlx" for suffix in ("-150", "-seg")]
     + [f"yolov5{k}{resolution}u.pt" for k in "nsmlx" for resolution in ("", "6")]
     + [f"yolov3{k}u.pt" for k in ("", "-spp", "-tiny")]
     + [f"yolov8{k}-world.pt" for k in "smlx"]
@@ -212,7 +213,7 @@ def unzip_file(
 
 def check_disk_space(
     file_bytes: int,
-    path: str | Path = Path.cwd(),
+    path: str | Path | None = None,
     sf: float = 1.5,
     hard: bool = True,
 ) -> bool:
@@ -227,11 +228,15 @@ def check_disk_space(
     Returns:
         (bool): True if there is sufficient disk space, False otherwise.
     """
-    _total, _used, free = shutil.disk_usage(path)  # bytes
-    if file_bytes * sf < free:
+    total, _used, free = shutil.disk_usage(path or Path.cwd())  # bytes
+    # A filesystem that cannot report usage returns 0 total blocks; free == 0 against a valid total is genuinely
+    # full and must still be caught, since `free` counts blocks available to an unprivileged process.
+    if not total or file_bytes * sf < free:
         return True  # sufficient space
 
     def fmt_bytes(b):
+        if b < (1 << 20):  # without a KB tier every value under 51 KB renders "0.0 MB", hiding how full the disk is
+            return f"{b / (1 << 10):.1f} KB"
         return f"{b / (1 << 20):.1f} MB" if b < (1 << 30) else f"{b / (1 << 30):.3f} GB"
 
     # Insufficient space
@@ -344,10 +349,17 @@ def safe_download(
                 try:
                     if (curl or i > 0) and curl_installed:  # curl download with retry, continue
                         s = "sS" * (not progress)  # silent
-                        r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
+                        # Stall bounds (not a total-transfer cap): abort if <1 B/s for 300 s so a dead connection
+                        # cannot block interpreter shutdown while a non-daemon plot thread waits on a font download
+                        args = ["--connect-timeout", "30", "--speed-limit", "1", "--speed-time", "300"]
+                        r = subprocess.run(
+                            ["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-", *args], check=False
+                        ).returncode
                         assert r == 0, f"Curl return value {r}"
-                    else:  # requests download
-                        with requests.get(url, stream=True, headers={"Accept-Encoding": "identity"}) as response:
+                    else:  # requests download; timeout bounds connect and per-chunk read gaps, not total transfer
+                        with requests.get(
+                            url, stream=True, headers={"Accept-Encoding": "identity"}, timeout=(30, 300)
+                        ) as response:
                             response.raise_for_status()
                             expected_size = int(response.headers.get("Content-Length", 0))
                             if i == 0 and expected_size > 1048576:
@@ -360,11 +372,10 @@ def safe_download(
                                 unit="B",
                                 unit_scale=True,
                                 unit_divisor=1024,
-                            ) as pbar:
-                                with open(f, "wb") as f_opened:
-                                    for data in response.iter_content(chunk_size=buffer_size):
-                                        f_opened.write(data)
-                                        pbar.update(len(data))
+                            ) as pbar, open(f, "wb") as f_opened:
+                                for data in response.iter_content(chunk_size=buffer_size):
+                                    f_opened.write(data)
+                                    pbar.update(len(data))
 
                     if f.exists():
                         file_size = f.stat().st_size
@@ -380,15 +391,21 @@ def safe_download(
                 except MemoryError:
                     raise  # Re-raise immediately - no point retrying if insufficient disk space
                 except Exception as e:
+                    # Only on the terminal failure: retries resume the partial file via curl `-C -`, but leaving
+                    # one behind makes the `not f.is_file()` guard above serve it as a complete cache hit forever.
                     if i == 0 and not is_online():
+                        f.unlink(missing_ok=True)
                         raise ConnectionError(
                             emojis(f"❌  Download failure for {uri}. Environment may be offline.")
                         ) from e
                     elif i >= retry:
+                        f.unlink(missing_ok=True)
                         raise ConnectionError(
                             emojis(f"❌  Download failure for {uri}. Retry limit reached. {e}")
                         ) from e
                     LOGGER.warning(f"Download failure, retrying {i + 1}/{retry} {uri}... {e}")
+            else:  # no attempt reached `break`, so every one failed size validation and unlinked its download
+                raise ConnectionError(emojis(f"❌  Download failure for {uri}. Retry limit reached."))
 
     if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz"}:
         from zipfile import is_zipfile
@@ -416,10 +433,10 @@ def safe_download(
                         target.mkdir(parents=True, exist_ok=True)
                     elif source := tar.extractfile(m):
                         target.parent.mkdir(parents=True, exist_ok=True)
-                        with source, open(target, "wb") as f:
-                            shutil.copyfileobj(source, f)
+                        with source, open(target, "wb") as out:  # 'f' is the archive path, deleted below
+                            shutil.copyfileobj(source, out)
         if delete:
-            f.unlink()  # remove zip
+            f.unlink()  # remove archive
         return unzip_dir
     return f
 
@@ -525,7 +542,7 @@ def attempt_download_asset(
 
 def download(
     url: str | list[str] | Path,
-    dir: Path = Path.cwd(),
+    dir: Path | None = None,
     unzip: bool = True,
     delete: bool = False,
     curl: bool = False,
@@ -550,7 +567,7 @@ def download(
     Examples:
         >>> download("https://github.com/ultralytics/assets/releases/download/v0.0.0/bus.jpg", dir="path/to/dir")
     """
-    dir = Path(dir)
+    dir = Path(dir or Path.cwd())
     dir.mkdir(parents=True, exist_ok=True)  # make directory
     urls = [url] if isinstance(url, (str, Path)) else url
     if threads > 1:

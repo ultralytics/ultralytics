@@ -8,7 +8,7 @@ Usage: See https://docs.ultralytics.com/modes/predict/
 from __future__ import annotations
 
 from copy import deepcopy
-from functools import lru_cache
+from functools import cached_property
 from pathlib import Path
 from typing import Any
 
@@ -181,6 +181,14 @@ class SemanticMask(BaseTensor):
         return 1
 
 
+class DepthMap(BaseTensor):
+    """Per-pixel depth map (meters) for one image, shape (H, W)."""
+
+    def __len__(self) -> int:
+        """Return one depth map per image."""
+        return 1
+
+
 class Results(SimpleClass, DataExportMixin):
     """A class for storing and manipulating inference results.
 
@@ -197,6 +205,7 @@ class Results(SimpleClass, DataExportMixin):
         keypoints (Keypoints | None): Detected keypoints.
         obb (OBB | None): Oriented bounding boxes.
         semantic_mask (SemanticMask | None): Semantic segmentation class map.
+        depth (DepthMap | None): Per-pixel depth map.
         speed (dict): Dictionary containing inference speed information.
         names (dict): Dictionary mapping class indices to class names.
         path (str): Path to the input image file.
@@ -241,6 +250,7 @@ class Results(SimpleClass, DataExportMixin):
         obb: torch.Tensor | None = None,
         speed: dict[str, float] | None = None,
         semantic_mask: torch.Tensor | None = None,
+        depth: torch.Tensor | None = None,
     ) -> None:
         """Initialize the Results class for storing and manipulating inference results.
 
@@ -254,6 +264,7 @@ class Results(SimpleClass, DataExportMixin):
             keypoints (torch.Tensor | None): A 2D tensor of keypoint coordinates for each detection.
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
             semantic_mask (torch.Tensor | None): A 2D tensor of class IDs for semantic segmentation results.
+            depth (torch.Tensor | None): A 2D float tensor of per-pixel depth values (H, W).
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
 
         Notes:
@@ -271,11 +282,12 @@ class Results(SimpleClass, DataExportMixin):
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
         self.semantic_mask = SemanticMask(semantic_mask, self.orig_shape) if semantic_mask is not None else None
+        self.depth = DepthMap(depth, self.orig_shape) if depth is not None else None
         self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
         self.path = path
         self.save_dir = None
-        self._keys = "boxes", "masks", "probs", "keypoints", "obb", "semantic_mask"
+        self._keys = "boxes", "masks", "probs", "keypoints", "obb", "semantic_mask", "depth"
 
     def __getitem__(self, idx):
         """Return a Results object for a specific index of inference results.
@@ -298,7 +310,7 @@ class Results(SimpleClass, DataExportMixin):
 
         Returns:
             (int): The number of results, determined by the length of the first non-empty attribute in (boxes, masks,
-                probs, keypoints, obb, or semantic_mask). Empty Results objects return 0.
+                probs, keypoints, obb, semantic_mask, or depth). Empty Results objects return 0.
 
         Examples:
             >>> results = Results(orig_img, path, names, boxes=torch.rand(5, 6))
@@ -319,6 +331,7 @@ class Results(SimpleClass, DataExportMixin):
         obb: torch.Tensor | None = None,
         keypoints: torch.Tensor | None = None,
         semantic_mask: torch.Tensor | None = None,
+        depth: torch.Tensor | None = None,
     ):
         """Update the Results object with new detection data.
 
@@ -334,6 +347,7 @@ class Results(SimpleClass, DataExportMixin):
             keypoints (torch.Tensor | None): A tensor of shape (N, K, 3) containing keypoints, where K=17 for persons.
             semantic_mask (torch.Tensor | None): A tensor of shape (H, W) containing class IDs for semantic
                 segmentation.
+            depth (torch.Tensor | None): A tensor of shape (H, W) containing per-pixel depth values.
 
         Examples:
             >>> results = model("image.jpg")
@@ -352,6 +366,8 @@ class Results(SimpleClass, DataExportMixin):
             self.keypoints = Keypoints(keypoints, self.orig_shape)
         if semantic_mask is not None:
             self.semantic_mask = SemanticMask(semantic_mask, self.orig_shape)
+        if depth is not None:
+            self.depth = DepthMap(depth, self.orig_shape)
 
     def _apply(self, fn: str, *args, **kwargs):
         """Apply a function to all non-empty attributes and return a new Results object with modified attributes.
@@ -587,6 +603,12 @@ class Results(SimpleClass, DataExportMixin):
                 sem_mask = sem_mask.cpu().numpy()
             annotator.semantic_mask(sem_mask, alpha=0.5)
 
+        # Plot Depth results — blend colorized depth heatmap over the image
+        if self.depth is not None and show_masks:
+            d = self.depth.data
+            d = d.cpu().numpy() if hasattr(d, "cpu") else np.asarray(d)
+            annotator.depth_map(d)
+
         # Plot Pose results
         if self.keypoints is not None:
             for i, k in enumerate(reversed(self.keypoints.cpu().numpy().data)):  # one host transfer, no per-kpt syncs
@@ -624,7 +646,7 @@ class Results(SimpleClass, DataExportMixin):
             >>> for result in results:
             ...     result.show()  # Display all results
         """
-        self.plot(show=True, *args, **kwargs)
+        self.plot(*args, show=True, **kwargs)
 
     def save(self, filename: str | None = None, *args, **kwargs) -> str:
         """Save annotated inference results image to file.
@@ -654,7 +676,7 @@ class Results(SimpleClass, DataExportMixin):
         if not filename:
             filename = f"results_{Path(self.path).name}"
         Path(filename).absolute().parent.mkdir(parents=True, exist_ok=True)
-        self.plot(save=True, filename=filename, *args, **kwargs)
+        self.plot(*args, save=True, filename=filename, **kwargs)
         return filename
 
     def verbose(self) -> str:
@@ -687,6 +709,10 @@ class Results(SimpleClass, DataExportMixin):
         if boxes:
             counts = torch.as_tensor(boxes.cls, dtype=torch.int64).bincount()  # no-op for torch, converts numpy()
             return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts) if n > 0)
+        if self.depth is not None:
+            d = self.depth.data
+            d = d[d > 0]
+            return f"depth {float(d.min()):.2f}-{float(d.max()):.2f}m, " if len(d) else "depth (no valid pixels), "
         if self.semantic_mask is not None:
             return ""
 
@@ -782,6 +808,9 @@ class Results(SimpleClass, DataExportMixin):
         if self.semantic_mask is not None:
             LOGGER.warning("Semantic Segmentation task does not support `save_crop`.")
             return
+        if self.depth is not None:
+            LOGGER.warning("Depth task does not support `save_crop`.")
+            return
         for d in self.boxes:
             save_one_box(
                 d.xyxy,
@@ -849,6 +878,10 @@ class Results(SimpleClass, DataExportMixin):
                         "pixel_ratio": round(count / total, decimals),
                     }
                 )
+            return results
+
+        if self.depth is not None:
+            # Depth is a dense per-pixel map, not a per-instance result; excluded from summary.
             return results
 
         is_obb = self.obb is not None
@@ -1012,8 +1045,7 @@ class Boxes(BaseTensor):
         """
         return self.data[:, -3] if self.is_track else None
 
-    @property
-    @lru_cache(maxsize=2)
+    @cached_property
     def xywh(self) -> torch.Tensor | np.ndarray:
         """Convert bounding boxes from [x1, y1, x2, y2] format to [x, y, width, height] format.
 
@@ -1033,8 +1065,7 @@ class Boxes(BaseTensor):
         """
         return ops.xyxy2xywh(self.xyxy)
 
-    @property
-    @lru_cache(maxsize=2)
+    @cached_property
     def xyxyn(self) -> torch.Tensor | np.ndarray:
         """Return normalized bounding box coordinates relative to the original image size.
 
@@ -1056,8 +1087,7 @@ class Boxes(BaseTensor):
         xyxy[..., [1, 3]] /= self.orig_shape[0]
         return xyxy
 
-    @property
-    @lru_cache(maxsize=2)
+    @cached_property
     def xywhn(self) -> torch.Tensor | np.ndarray:
         """Return normalized bounding boxes in [x, y, width, height] format.
 
@@ -1118,8 +1148,7 @@ class Masks(BaseTensor):
             masks = masks[None, :]
         super().__init__(masks, orig_shape)
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def xyn(self) -> list[np.ndarray]:
         """Return normalized xy-coordinates of the segmentation masks.
 
@@ -1142,8 +1171,7 @@ class Masks(BaseTensor):
             for x in ops.masks2segments(self.data)
         ]
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def xy(self) -> list[np.ndarray]:
         """Return the [x, y] pixel coordinates for each segment in the mask tensor.
 
@@ -1214,8 +1242,7 @@ class Keypoints(BaseTensor):
         super().__init__(keypoints, orig_shape)
         self.has_visible = self.data.shape[-1] == 3
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def xy(self) -> torch.Tensor | np.ndarray:
         """Return x, y coordinates of keypoints.
 
@@ -1236,8 +1263,7 @@ class Keypoints(BaseTensor):
         """
         return self.data[..., :2]
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def xyn(self) -> torch.Tensor | np.ndarray:
         """Return normalized coordinates (x, y) of keypoints relative to the original image size.
 
@@ -1257,8 +1283,7 @@ class Keypoints(BaseTensor):
         xy[..., 1] /= self.orig_shape[0]
         return xy
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def conf(self) -> torch.Tensor | np.ndarray | None:
         """Return confidence values for each keypoint.
 
@@ -1321,8 +1346,7 @@ class Probs(BaseTensor):
         """
         super().__init__(probs, orig_shape)
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def top1(self) -> int:
         """Return the index of the class with the highest probability.
 
@@ -1336,8 +1360,7 @@ class Probs(BaseTensor):
         """
         return int(self.data.argmax())
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def top5(self) -> list[int]:
         """Return the indices of the top 5 class probabilities.
 
@@ -1351,8 +1374,7 @@ class Probs(BaseTensor):
         """
         return (-self.data).argsort(0)[:5].tolist()  # this way works with both torch and numpy.
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def top1conf(self) -> torch.Tensor | np.ndarray:
         """Return the confidence score of the highest probability class.
 
@@ -1370,8 +1392,7 @@ class Probs(BaseTensor):
         """
         return self.data[self.top1]
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def top5conf(self) -> torch.Tensor | np.ndarray:
         """Return confidence scores for the top 5 classification predictions.
 
@@ -1518,8 +1539,7 @@ class OBB(BaseTensor):
         """
         return self.data[:, -3] if self.is_track else None
 
-    @property
-    @lru_cache(maxsize=2)
+    @cached_property
     def xyxyxyxy(self) -> torch.Tensor | np.ndarray:
         """Convert OBB format to 8-point (xyxyxyxy) coordinate format for rotated bounding boxes.
 
@@ -1536,8 +1556,7 @@ class OBB(BaseTensor):
         """
         return ops.xywhr2xyxyxyxy(self.xywhr)
 
-    @property
-    @lru_cache(maxsize=2)
+    @cached_property
     def xyxyxyxyn(self) -> torch.Tensor | np.ndarray:
         """Convert rotated bounding boxes to normalized xyxyxyxy format.
 
@@ -1557,8 +1576,7 @@ class OBB(BaseTensor):
         xyxyxyxyn[..., 1] /= self.orig_shape[0]
         return xyxyxyxyn
 
-    @property
-    @lru_cache(maxsize=2)
+    @cached_property
     def xyxy(self) -> torch.Tensor | np.ndarray:
         """Convert oriented bounding boxes (OBB) to axis-aligned bounding boxes in xyxy format.
 

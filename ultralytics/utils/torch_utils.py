@@ -17,8 +17,8 @@ from typing import Any
 import numpy as np
 import torch
 import torch.distributed as dist
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 from ultralytics import __version__
 from ultralytics.utils import (
@@ -210,8 +210,8 @@ def select_device(device="", newline=False, verbose=True):
 
     Args:
         device (str | torch.device, optional): Device string or torch.device object. Options include 'cpu', 'cuda', '0',
-            '0,1,2,3', 'mps', 'npu', 'npu:0', or '-1' for auto-select. Defaults to auto-selecting the first available
-            GPU, or CPU if no GPU is available.
+            '0,1,2,3', 'mps', 'npu', 'npu:0', 'xpu', 'xpu:0,1', or '-1' for auto-select. Defaults to auto-selecting the
+            first available GPU, or CPU if no GPU is available.
         newline (bool, optional): If True, adds a newline at the end of the log string.
         verbose (bool, optional): If True, logs the device information.
 
@@ -272,37 +272,33 @@ def select_device(device="", newline=False, verbose=True):
     cpu = device == "cpu"
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
     if device.startswith("xpu"):  # Intel XPU
-        install = ""
-        if not hasattr(torch, "xpu") or not torch.xpu.is_available():
+        available = torch.xpu.device_count() if hasattr(torch, "xpu") else 0  # count under any active affinity mask
+        mask = [i for i in os.environ.get("ZE_AFFINITY_MASK", "").replace(" ", "").split(",") if i]  # physical ids
+        ids = [i for i in device.split(":", 1)[1].split(",") if i] if ":" in device else []
+        ids = ids or ["0"]  # 'xpu' -> XPU 0
+        if mask and all(i in mask for i in ids):
+            ids = [str(mask.index(i)) for i in ids]  # physical ids -> torch indices, so DDP ranks re-parse identically
+        indices = [int(i) for i in ids]
+        if max(indices) >= available:
             install = (
-                "See https://pytorch-extension.intel.com/installation?platform=gpu for up-to-date torch install instructions if no "
-                "XPU devices are seen by torch.\n"
-                if torch.xpu.device_count() == 0
+                "See https://pytorch-extension.intel.com/installation?platform=gpu for up-to-date torch install "
+                "instructions if no XPU devices are seen by torch.\n"
+                if available == 0
                 else ""
             )
-        index_str = device.split(":", 1)[1] if ":" in device else "0"
-        index_list = [int(i) for i in index_str.split(",") if i]
-        if not index_list:
-            index_list = [0]
-        available = torch.xpu.device_count()  # count before applying a new mask
-        if max(index_list) >= available:
-            visible = os.environ.get("ZE_AFFINITY_MASK")
             raise ValueError(
                 f"Invalid XPU 'device={device}' requested."
                 f" Use 'device=cpu' or pass valid XPU device(s) if available,"
                 f" i.e. 'device=xpu' or 'device=xpu:0,1,2,3' for Multi-GPU.\n"
-                f"\ntorch.xpu.is_available(): {torch.xpu.is_available()}"
-                f"\ntorch.xpu.device_count(): {torch.xpu.device_count()}"
-                f"\nos.environ['ZE_AFFINITY_MASK']={visible}\n"
+                f"\ntorch.xpu.device_count(): {available}"
+                f"\nos.environ['ZE_AFFINITY_MASK']: {os.environ.get('ZE_AFFINITY_MASK')}\n"
                 f"{install}"
             )
-        if len(index_list) > 1:
-            # Limit visible XPUs to the requested set after validation
-            os.environ["ZE_AFFINITY_MASK"] = ",".join(str(i) for i in index_list)
-        index = index_list[0]
+        if len(indices) > 1 and not mask:
+            os.environ["ZE_AFFINITY_MASK"] = ",".join(ids)  # restrict visible XPUs to the requested set for DDP
+        index = indices[0]
         if verbose:
-            info = get_xpu_info(index)
-            s += f"XPU:{index} ({info})\n"
+            s += f"XPU:{index} ({get_xpu_info(index)})\n"
             LOGGER.info(s if newline else s.rstrip())
         return torch.device("xpu", index)
     if not cpu and not mps and device:  # non-cpu device requested
@@ -372,10 +368,9 @@ def fuse_conv_and_bn(conv, bn):
         >>> bn = nn.BatchNorm2d(16)
         >>> fused_conv = fuse_conv_and_bn(conv, bn)
     """
-    # Compute fused weights
-    w_conv = conv.weight.view(conv.out_channels, -1)
-    w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
-    conv.weight.data = torch.mm(w_bn, w_conv).view(conv.weight.shape)
+    # Compute fused weights: Conv2d weight is [out_channels, in_channels // groups, kH, kW], scale along axis 0
+    bn_scale = bn.weight.div(torch.sqrt(bn.eps + bn.running_var))
+    conv.weight.data = conv.weight * bn_scale.view(-1, 1, 1, 1)
 
     # Compute fused bias
     b_conv = (
@@ -384,7 +379,7 @@ def fuse_conv_and_bn(conv, bn):
         else conv.bias
     )
     b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fused_bias = torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn
+    fused_bias = bn_scale * b_conv + b_bn
 
     if conv.bias is None:
         conv.register_parameter("bias", nn.Parameter(fused_bias))
@@ -411,10 +406,11 @@ def fuse_deconv_and_bn(deconv, bn):
     """
     if isinstance(bn, nn.Identity):  # ConvTranspose(bn=False) leaves bn as nn.Identity, nothing to fuse
         return deconv.requires_grad_(False)
-    # Compute fused weights
-    w_deconv = deconv.weight.view(deconv.out_channels, -1)
-    w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
-    deconv.weight.data = torch.mm(w_bn, w_deconv).view(deconv.weight.shape)
+    # Compute fused weights: ConvTranspose2d weight is [in_channels, out_channels // groups, kH, kW], so the
+    # per-output-channel BN scale applies along axis 1 (group-mapped from axis 0), not axis 0 as for Conv2d.
+    bn_scale = bn.weight.div(torch.sqrt(bn.eps + bn.running_var))
+    w_scale = bn_scale.view(deconv.groups, -1).repeat_interleave(deconv.in_channels // deconv.groups, 0)
+    deconv.weight.data = deconv.weight * w_scale[:, :, None, None]
 
     # Compute fused bias
     b_conv = (
@@ -423,7 +419,7 @@ def fuse_deconv_and_bn(deconv, bn):
         else deconv.bias
     )
     b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fused_bias = torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn
+    fused_bias = bn_scale * b_conv + b_bn
 
     if deconv.bias is None:
         deconv.register_parameter("bias", nn.Parameter(fused_bias))
@@ -551,47 +547,14 @@ def get_flops(model, imgsz=640):
             # Method 1: Use stride-based input tensor
             stride = max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32  # max stride
             im = torch.empty((1, p.shape[1], stride, stride), device=p.device, dtype=p.dtype)  # input image in BCHW
-            flops = thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1e9 * 2  # stride GFLOPs
+            flops = thop.profile(model, inputs=[im], verbose=False)[0] / 1e9 * 2  # stride GFLOPs
             return flops * imgsz[0] / stride * imgsz[1] / stride  # imgsz GFLOPs
         except Exception:
             # Method 2: Use actual image size (required for RTDETR models)
             im = torch.empty((1, p.shape[1], *imgsz), device=p.device, dtype=p.dtype)  # input image in BCHW format
-            return thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1e9 * 2  # imgsz GFLOPs
+            return thop.profile(model, inputs=[im], verbose=False)[0] / 1e9 * 2  # imgsz GFLOPs
     except Exception:
         return 0.0
-
-
-def get_flops_with_torch_profiler(model, imgsz=640):
-    """Compute model FLOPs using torch profiler (alternative to thop package, but 2-10x slower).
-
-    Args:
-        model (nn.Module): The model to calculate FLOPs for.
-        imgsz (int | list, optional): Input image size.
-
-    Returns:
-        (float): The model's GFLOPs (billions of floating point operations).
-    """
-    if not TORCH_2_0:  # torch profiler implemented in torch>=2.0
-        return 0.0
-    model = unwrap_model(model)
-    p = next(model.parameters())
-    if not isinstance(imgsz, list):
-        imgsz = [imgsz, imgsz]  # expand if int/float
-    try:
-        # Use stride size for input tensor
-        stride = (max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32) * 2  # max stride
-        im = torch.empty((1, p.shape[1], stride, stride), device=p.device, dtype=p.dtype)  # input image in BCHW
-        with torch.profiler.profile(with_flops=True) as prof:
-            model(im)
-        flops = sum(x.flops for x in prof.key_averages()) / 1e9
-        flops = flops * imgsz[0] / stride * imgsz[1] / stride  # 640x640 GFLOPs
-    except Exception:
-        # Use actual image size for input tensor (i.e. required for RTDETR models)
-        im = torch.empty((1, p.shape[1], *imgsz), device=p.device, dtype=p.dtype)  # input image in BCHW format
-        with torch.profiler.profile(with_flops=True) as prof:
-            model(im)
-        flops = sum(x.flops for x in prof.key_averages()) / 1e9
-    return flops
 
 
 def initialize_weights(model):
@@ -836,7 +799,7 @@ def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, A
         return {}
 
     metadata = {
-        "date": datetime.now().isoformat(),
+        "date": datetime.now().astimezone().isoformat(),
         "version": __version__,
         "license": "AGPL-3.0 License (https://ultralytics.com/license)",
         "docs": "https://docs.ultralytics.com",
@@ -908,7 +871,7 @@ def cuda_memory_usage(device=None):
     Yields:
         (dict): A dictionary with a key 'memory' initialized to 0, which will be updated with the reserved memory.
     """
-    cuda_info = dict(memory=0)
+    cuda_info = {"memory": 0}
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
         try:
@@ -961,7 +924,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
             m = m.half() if hasattr(m, "half") and isinstance(x, torch.Tensor) and x.dtype is torch.float16 else m
             tf, tb, t = 0, 0, [0, 0, 0]  # dt forward, backward
             try:
-                flops = thop.profile(deepcopy(m), inputs=[x], verbose=False)[0] / 1e9 * 2 if thop else 0  # GFLOPs
+                flops = thop.profile(m, inputs=[x], verbose=False)[0] / 1e9 * 2 if thop else 0  # GFLOPs
             except Exception:
                 flops = 0
 

@@ -80,7 +80,7 @@ class BaseValidator:
         plots (dict): Dictionary to store plots for visualization.
         callbacks (dict): Dictionary to store various callback functions.
         stride (int): Model stride for padding calculations.
-        loss (torch.Tensor): Accumulated loss during training validation.
+        loss (dict): Accumulated loss items during training validation.
 
     Methods:
         __call__: Execute validation process, running inference on dataloader and computing performance metrics.
@@ -162,7 +162,7 @@ class BaseValidator:
             if trainer.args.compile and hasattr(model, "_orig_mod"):
                 model = model._orig_mod  # validate non-compiled original model to avoid issues
             model = model.float()
-            self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
+            self.loss = {k: torch.zeros_like(v) for k, v in trainer.loss_items.items()}
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()
         else:
@@ -176,21 +176,13 @@ class BaseValidator:
                     model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
             with torch_distributed_zero_first(LOCAL_RANK):
                 self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)
+            # DDP ranks reuse the device assigned in trainer._setup_ddp() via set_device()
             if RANK == -1:
                 eval_device = select_device(self.args.device)
+            elif str(self.args.device).startswith("xpu"):
+                eval_device = torch.device("xpu", torch.xpu.current_device())
             else:
-                # DDP ranks reuse the device assigned in trainer._setup_ddp() via set_device()
-                device_arg = str(self.args.device or "").lower()
-                if device_arg.startswith("xpu"):
-                    if not hasattr(torch, "xpu") or not torch.xpu.is_available():
-                        raise RuntimeError("Requested XPU device but torch.xpu is not available.")
-                    eval_device = torch.device("xpu", torch.xpu.current_device())
-                elif device_arg.startswith("cuda") or device_arg.isdigit() or device_arg == "":
-                    if not torch.cuda.is_available():
-                        raise RuntimeError("Requested CUDA device but torch.cuda is not available.")
-                    eval_device = torch.device("cuda", torch.cuda.current_device())
-                else:
-                    eval_device = torch.device("cpu")
+                eval_device = torch.device("cuda", torch.cuda.current_device())
             model = AutoBackend(
                 model=model or self.args.model,
                 device=eval_device,
@@ -202,6 +194,15 @@ class BaseValidator:
             self.args.quantize = 16 if model.fp16 else None  # record actual inference precision
             stride, fmt = model.stride, model.format
             pt = fmt == "pt"
+            # Same gate as predictor.setup_model: NHWC is lossless only for native PyTorch models on CUDA.
+            channels_last = self.args.channels_last and self.device.type == "cuda" and pt
+            if self.args.channels_last and not channels_last:
+                LOGGER.warning(
+                    f"'channels_last=True' applies only to native PyTorch models on CUDA, ignoring for "
+                    f"format='{fmt}' on '{self.device.type}'."
+                )
+            if channels_last:
+                model.to(memory_format=torch.channels_last)
             imgsz = check_imgsz(self.args.imgsz, stride=stride)
             if fmt not in {"pt", "torchscript"} and not getattr(model, "dynamic", False):
                 self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1
@@ -215,6 +216,7 @@ class BaseValidator:
                 "pose",
                 "obb",
                 "semantic",
+                "depth",
             }:
                 self.data = check_det_dataset(self.args.data, split=self.args.split)
             else:
@@ -257,7 +259,8 @@ class BaseValidator:
                 # Loss
                 with dt[2]:
                     if self.training:
-                        self.loss += model.loss(batch, preds)[1]
+                        for k, v in model.loss(batch, preds)[1].items():
+                            self.loss[k] += v
 
             # Postprocess
             with dt[3]:
@@ -281,17 +284,17 @@ class BaseValidator:
 
         if self.training:
             # Reduce loss across all GPUs
-            loss = self.loss.clone().detach()
+            loss = {k: v.clone().detach() for k, v in self.loss.items()}
             if trainer.world_size > 1:
-                if trainer.device.type == "xpu":
-                    dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
-                    if RANK == 0:
-                        loss /= trainer.world_size
-                else:
-                    dist.reduce(loss, dst=0, op=dist.ReduceOp.AVG)
+                xpu = trainer.device.type == "xpu"  # XPU CCL backend lacks ReduceOp.AVG, so SUM then average on rank 0
+                for v in loss.values():
+                    dist.reduce(v, dst=0, op=dist.ReduceOp.SUM if xpu else dist.ReduceOp.AVG)
+                    if xpu and RANK == 0:
+                        v /= trainer.world_size
             if RANK > 0:
                 return
-            results = {**stats, **trainer.label_loss_items(loss.cpu() / len(self.dataloader), prefix="val")}
+            loss = {k: v.cpu() / len(self.dataloader) for k, v in loss.items()}
+            results = {**stats, **trainer.label_loss_items(loss, prefix="val")}
             return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
         else:
             if RANK > 0:
@@ -347,7 +350,7 @@ class BaseValidator:
                         matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
                         matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
                     correct[matches[:, 1].astype(int), i] = True
-        return torch.tensor(correct, dtype=torch.bool, device=pred_classes.device)
+        return torch.from_numpy(correct)
 
     def add_callback(self, event: str, callback):
         """Append the given callback to the specified event."""
@@ -376,15 +379,12 @@ class BaseValidator:
 
     def init_metrics(self, model):
         """Initialize performance metrics for the YOLO model."""
-        pass
 
     def update_metrics(self, preds, batch):
         """Update metrics based on predictions and batch."""
-        pass
 
     def finalize_metrics(self):
         """Finalize and return all metrics."""
-        pass
 
     def get_stats(self):
         """Return statistics about the model's performance."""
@@ -392,15 +392,12 @@ class BaseValidator:
 
     def gather_stats(self):
         """Gather statistics from all the GPUs during DDP training to GPU 0."""
-        pass
 
     def print_results(self):
         """Print the results of the model's predictions."""
-        pass
 
     def get_desc(self):
         """Get description of the YOLO model."""
-        pass
 
     @property
     def metric_keys(self):
@@ -413,16 +410,12 @@ class BaseValidator:
 
     def plot_val_samples(self, batch, ni):
         """Plot validation samples during training."""
-        pass
 
     def plot_predictions(self, batch, preds, ni):
         """Plot YOLO model predictions on batch images."""
-        pass
 
     def pred_to_json(self, preds, batch):
         """Convert predictions to JSON format."""
-        pass
 
     def eval_json(self, stats):
         """Evaluate and return JSON format of prediction statistics."""
-        pass

@@ -1,11 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """Tests for legacy fallback for older checkpoints export where `names` attribute might be missing, None, or malformed."""
 
 import ast
 
 import pytest
-
 
 from tests import SOURCE
 from ultralytics import YOLO
@@ -18,7 +16,8 @@ def _save_model_with_names(model: YOLO, names, tmp_path, filename: str) -> str:
 
     Args:
         model (YOLO): A loaded YOLO wrapper whose inner nn.Module will be mutated.
-        names: The value to assign to `model.model.names`. Pass the string `"__delete__"` to remove the attribute entirely.
+        names: The value to assign to `model.model.names`. Pass the string `"__delete__"` to remove the attribute
+            entirely.
         tmp_path (Path): Pytest-provided per-test temporary directory.
         filename (str): Filename for the saved checkpoint.
 
@@ -50,11 +49,11 @@ def _assert_names_valid(meta: dict) -> dict:
     names = ast.literal_eval(meta["names"])
 
     assert isinstance(names, dict), f"Expected 'names' to deserialize as a dict, got {type(names).__name__}"
-    assert all(isinstance(k, int) for k in names.keys()), (
-        f"All 'names' keys must be int after export, got: {set(type(k).__name__ for k in names.keys())}"
+    assert all(isinstance(k, int) for k in names), (
+        f"All 'names' keys must be int after export, got: { {type(k).__name__ for k in names} }"
     )
     assert all(isinstance(v, str) for v in names.values()), (
-        f"All 'names' values must be str after export, got: {set(type(v).__name__ for v in names.values())}"
+        f"All 'names' values must be str after export, got: { {type(v).__name__ for v in names.values()} }"
     )
     return names
 

@@ -544,6 +544,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
                 hsv_h=self.args.hsv_h,
                 hsv_s=self.args.hsv_s,
                 hsv_v=self.args.hsv_v,
+                color_jitter=getattr(self.args, "color_jitter", 1.0),
                 grayscale=getattr(self.args, "grayscale", 0.0),
                 gaussian_blur=getattr(self.args, "gaussian_blur", 0.0),
                 solarize=getattr(self.args, "solarize", 0.0),

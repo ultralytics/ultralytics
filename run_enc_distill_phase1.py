@@ -102,6 +102,10 @@ RECIPES = {
     ),
 }
 
+# ColorJitter probability arm: wraps the jitter in RandomApply(p=0.8) per the reference recipes already
+# cited in the "dinov3" recipe comment above. Not comparable to any dinov3_lowwd arm.
+RECIPES["dinov3_lowwd_jitter"] = {**RECIPES["dinov3_lowwd"], "color_jitter": 0.8}
+
 # Reference global step-batch the recipes' lr0 and warmup_epochs are tuned for. When
 # per_gpu_batch * world_size exceeds this, lr0 and warmup_epochs scale linearly and nbs rises
 # to the global batch so wd_eff stays at the recipe value.
@@ -471,7 +475,18 @@ def main(argv: list[str]) -> None:
     # Reference recipes (DINOv3 / EUPE / UNIC / DUNE) explicitly disable RandAugment + RandomErasing
     # and rely on a hand-tuned photometric stack — see RECIPES["dinov3"] docstring above.
     aug_source = continuation_args if eupe_multires else r
-    for k in ("wd_end", "auto_augment", "erasing", "hsv_h", "hsv_s", "hsv_v", "grayscale", "gaussian_blur", "solarize"):
+    for k in (
+        "wd_end",
+        "auto_augment",
+        "erasing",
+        "hsv_h",
+        "hsv_s",
+        "hsv_v",
+        "color_jitter",
+        "grayscale",
+        "gaussian_blur",
+        "solarize",
+    ):
         if k in aug_source and not (eupe_multires and k == "wd_end"):
             train_args[k] = aug_source[k]
     if resume:

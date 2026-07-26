@@ -57,6 +57,7 @@ def classify_augmentations_distill(
     hsv_s: float = 0.4,
     hsv_v: float = 0.4,
     force_color_jitter: bool = False,
+    color_jitter: float = 1.0,
     erasing: float = 0.0,
     grayscale: float = 0.0,
     gaussian_blur: float = 0.0,
@@ -65,9 +66,9 @@ def classify_augmentations_distill(
 ):
     """Build a distillation-style classification training transform.
 
-    Identical to ``ultralytics.data.augment.classify_augmentations`` except for three extra optional knobs ported from
-    DINOv3 / UNIC / DUNE encoder-distillation recipes. Default 0.0 keeps the function bit-equivalent to the upstream
-    pipeline so callers can switch over safely.
+    Identical to ``ultralytics.data.augment.classify_augmentations`` except for the extra optional knobs ported from
+    DINOv3 / UNIC / DUNE encoder-distillation recipes. Every knob defaults to its upstream-equivalent neutral value so
+    callers can switch over safely.
 
     DINOv3 ``ColorJitter(brightness=0.4, contrast=0.4, saturation=0.2, hue=0.1)`` maps onto Ultralytics's ``hsv_v /
     hsv_v / hsv_s / hsv_h`` binding (brightness and contrast share hsv_v) inside the upstream call.
@@ -86,6 +87,8 @@ def classify_augmentations_distill(
         hsv_s (float): HSV-Saturation; binds to T.ColorJitter(saturation=hsv_s). DINOv3 uses 0.2.
         hsv_v (float): HSV-Value; binds to T.ColorJitter(brightness=hsv_v, contrast=hsv_v). DINOv3 uses 0.4.
         force_color_jitter (bool): Apply ColorJitter even if auto_augment is enabled.
+        color_jitter (float): Probability of applying the ColorJitter above; upstream fires it on every sample. DINOv3 /
+            UNIC / DUNE all wrap the same jitter in ``RandomApply(p=0.8)`` — see the module docstring for refs.
         erasing (float): Probability of RandomErasing. DINOv3 / EUPE / UNIC / DUNE / AM-RADIO do NOT use random erasing;
             off by default.
         grayscale (float): Probability of converting to 3-channel grayscale. DINOv3 / DINOv2 / UNIC use 0.2.
@@ -130,6 +133,15 @@ def classify_augmentations_distill(
         interpolation=interpolation,
     )
 
+    # Upstream appends ColorJitter bare, so it fires on every sample. Gate on ``< 1.0`` rather than
+    # rewriting unconditionally: ``T.RandomApply.forward`` draws ``torch.rand(1)`` before comparing
+    # against ``p``, so wrapping at p=1.0 would shift the RNG stream and change sample 1. ``next``
+    # returns None when auto_augment suppressed the jitter and there is nothing to wrap.
+    if color_jitter < 1.0:
+        i = next((i for i, t in enumerate(compose.transforms) if isinstance(t, T.ColorJitter)), None)
+        if i is not None:
+            compose.transforms[i] = T.RandomApply([compose.transforms[i]], p=color_jitter)
+
     # DINOv3 / UNIC / DUNE photometric extras — strict UNIC ``main_unic.py:485-521`` order.
     # ``T.RandomGrayscale`` outputs 3-channel grayscale (replicates the single channel) — what
     # DINOv3 ``DataAugmentationDINO`` and UNIC produce; downstream Normalize stays valid because
@@ -146,8 +158,7 @@ def classify_augmentations_distill(
     if solarize > 0.0:
         extras.append(T.RandomSolarize(threshold=128, p=solarize))
 
-    # Insert before ``final_tfl = [ToTensor, Normalize, RandomErasing]`` (3 trailing entries by
-    # upstream construction at ``ultralytics/data/augment.py:2602-2606``). If upstream ever
-    # changes the size of ``final_tfl``, update the slice index here in lockstep.
+    # Insert before upstream's ``final_tfl = [ToTensor, Normalize, RandomErasing]`` (3 trailing
+    # entries). If upstream ever changes the size of ``final_tfl``, update the slice in lockstep.
     compose.transforms[-3:-3] = extras
     return compose

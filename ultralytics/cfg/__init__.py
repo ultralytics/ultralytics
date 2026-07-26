@@ -606,9 +606,10 @@ def check_dict_alignment(
             # DINOv3 / UNIC / DUNE encoder-distillation knobs surfaced through DDP-serialised args.
             # ``wd_end``: half-cosine target weight_decay (callbacks/wd_schedule.py); reference
             #   DINOv3 distillation_convnext/convnext_tiny_p16.yaml schedules.weight_decay.
-            # ``grayscale`` / ``gaussian_blur`` / ``solarize``: DINOv3 DataAugmentationDINO photometric
-            #   stack ports (callbacks/distill_aug.py:classify_augmentations_distill docstring for refs).
+            # ``color_jitter`` / ``grayscale`` / ``gaussian_blur`` / ``solarize``: DINOv3 DataAugmentationDINO
+            #   photometric stack ports (callbacks/distill_aug.py:classify_augmentations_distill docstring for refs).
             "wd_end",
+            "color_jitter",
             "grayscale",
             "gaussian_blur",
             "solarize",

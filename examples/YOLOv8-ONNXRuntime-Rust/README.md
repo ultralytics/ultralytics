@@ -1,6 +1,6 @@
 # YOLOv8-ONNXRuntime-Rust for All Key YOLO Tasks
 
-This repository provides a Rust demonstration for performing Ultralytics YOLOv8 tasks like [Classification](https://docs.ultralytics.com/tasks/classify/), [Segmentation](https://docs.ultralytics.com/tasks/segment/), [Detection](https://docs.ultralytics.com/tasks/detect/), [Pose Estimation](https://docs.ultralytics.com/tasks/pose/), and [Oriented Bounding Box (OBB)](https://docs.ultralytics.com/tasks/obb/) detection using the [ONNXRuntime](https://onnxruntime.ai/).
+This repository provides a Rust demonstration for performing Ultralytics YOLOv8 tasks like [Classification](https://docs.ultralytics.com/tasks/classify), [Segmentation](https://docs.ultralytics.com/tasks/segment), [Detection](https://docs.ultralytics.com/tasks/detect), [Pose Estimation](https://docs.ultralytics.com/tasks/pose), and [Oriented Bounding Box (OBB)](https://docs.ultralytics.com/tasks/obb) detection using the [ONNXRuntime](https://onnxruntime.ai/).
 
 ## ✨ Recently Updated
 
@@ -20,7 +20,7 @@ Newly updated YOLOv8 example code is located in [this repository](https://github
 
 ### 1. Install Rust
 
-Please follow the official Rust installation guide: [https://www.rust-lang.org/tools/install](https://www.rust-lang.org/tools/install).
+Please follow the official Rust installation guide: [https://www.rust-lang.org/tools/install](https://rust-lang.org/tools/install/).
 
 ### 2. ONNXRuntime Linking
 
@@ -29,13 +29,13 @@ Please follow the official Rust installation guide: [https://www.rust-lang.org/t
 - #### For Linux or macOS Users:
   - Download the ONNX Runtime package from the [Releases page](https://github.com/microsoft/onnxruntime/releases).
   - Set up the library path by exporting the `ORT_DYLIB_PATH` environment variable:
-    ```shell
+    ```bash
     export ORT_DYLIB_PATH=/path/to/onnxruntime/lib/libonnxruntime.so.1.19.0 # Adjust version/path as needed
     ```
 
-### 3. \[Optional] Install CUDA & CuDNN & TensorRT
+### 3. [Optional] Install CUDA & CuDNN & TensorRT
 
-- The CUDA execution provider requires [CUDA](https://developer.nvidia.com/cuda-toolkit) v11.6+.
+- The CUDA execution provider requires [CUDA](https://developer.nvidia.com/cuda/toolkit) v11.6+.
 - The TensorRT execution provider requires CUDA v11.4+ and [TensorRT](https://developer.nvidia.com/tensorrt) v8.4+. You may also need [cuDNN](https://developer.nvidia.com/cudnn).
 
 ## ▶️ Get Started
@@ -48,7 +48,7 @@ First, install the Ultralytics package:
 pip install -U ultralytics
 ```
 
-Then, export the desired [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) models to the ONNX format. See the [Export documentation](https://docs.ultralytics.com/modes/export/) for more details.
+Then, export the desired [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) models to the ONNX format. See the [Export documentation](https://docs.ultralytics.com/modes/export) for more details.
 
 ```bash
 # Export ONNX model with dynamic shapes (recommended for flexibility)
@@ -122,7 +122,7 @@ cargo run --release -- --trt --fp16 --profile --model MODEL_PATH.onnx --source S
 
 Example Profile Output (yolov8m.onnx, batch=1, 3 runs, trt, fp16, RTX 3060Ti):
 
-```output
+```text
 ==> 0 # Warm-up run
 [Model Preprocess]: 12.75788ms
 [ORT H2D]: 237.118µs
@@ -177,7 +177,7 @@ cargo run --release -- --model ../assets/weights/yolov8m-cls-dyn.onnx --source .
 
 Example output:
 
-```output
+```text
 Summary:
 > Task: Classify (Ultralytics 8.0.217) # Version might differ
 > EP: Cpu

@@ -1,4 +1,5 @@
 ---
+title: Training Callbacks
 comments: true
 description: Explore Ultralytics callbacks for training, validation, exporting, and prediction. Learn how to use and customize them for your ML models.
 keywords: Ultralytics, callbacks, training, validation, export, prediction, ML models, YOLO, Python, machine learning
@@ -10,13 +11,13 @@ Ultralytics framework supports callbacks, which serve as entry points at strateg
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/GsXGnb-A4Kc?start=67"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ENQXiK7HF5o"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Mastering Ultralytics YOLO: Callbacks
+  <strong>Watch:</strong> How to use Ultralytics Callbacks | Predict, Train, Validate and Export Callbacks | Ultralytics YOLO🚀
 </p>
 
 ## Examples
@@ -41,7 +42,7 @@ def on_predict_batch_end(predictor):
 
 
 # Create a YOLO model instance
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 
 # Add the custom callback to the model
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
@@ -51,28 +52,58 @@ for result, frame in model.predict():  # or model.track()
     pass
 ```
 
+### Access Model metrics using the `on_model_save` callback
+
+This example shows how to retrieve training details, such as the best_fitness score, total_loss, and other metrics after a checkpoint is saved using the `on_model_save` callback.
+
+```python
+from ultralytics import YOLO
+
+# Load a YOLO model
+model = YOLO("yolo26n.pt")
+
+
+def print_checkpoint_metrics(trainer):
+    """Print trainer metrics and loss details after each checkpoint is saved."""
+    print(
+        f"Model details\n"
+        f"Best fitness: {trainer.best_fitness}, "
+        f"Loss names: {trainer.loss_names}, "  # List of loss names
+        f"Metrics: {trainer.metrics}, "
+        f"Total loss: {trainer.tloss}"  # Total loss value
+    )
+
+
+if __name__ == "__main__":
+    # Add on_model_save callback.
+    model.add_callback("on_model_save", print_checkpoint_metrics)
+
+    # Run model training on custom dataset.
+    results = model.train(data="coco8.yaml", epochs=3)
+```
+
 ## All Callbacks
 
 Below are all the supported callbacks. For more details, refer to the callbacks [source code](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/base.py).
 
 ### Trainer Callbacks
 
-| Callback                    | Description                                                                                  |
-| --------------------------- | -------------------------------------------------------------------------------------------- |
-| `on_pretrain_routine_start` | Triggered at the beginning of the pre-training routine.                                      |
-| `on_pretrain_routine_end`   | Triggered at the end of the pre-training routine.                                            |
-| `on_train_start`            | Triggered when the training starts.                                                          |
-| `on_train_epoch_start`      | Triggered at the start of each training [epoch](https://www.ultralytics.com/glossary/epoch). |
-| `on_train_batch_start`      | Triggered at the start of each training batch.                                               |
-| `optimizer_step`            | Triggered during the optimizer step.                                                         |
-| `on_before_zero_grad`       | Triggered before gradients are zeroed.                                                       |
-| `on_train_batch_end`        | Triggered at the end of each training batch.                                                 |
-| `on_train_epoch_end`        | Triggered at the end of each training epoch.                                                 |
-| `on_fit_epoch_end`          | Triggered at the end of each fit epoch.                                                      |
-| `on_model_save`             | Triggered when the model is saved.                                                           |
-| `on_train_end`              | Triggered when the training process ends.                                                    |
-| `on_params_update`          | Triggered when model parameters are updated.                                                 |
-| `teardown`                  | Triggered when the training process is being cleaned up.                                     |
+| Callback                    | Description                                                                                                                                                                                                                                                                                                                      |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `on_pretrain_routine_start` | Triggered at the beginning of the pre-training routine, before data loading and model setup.                                                                                                                                                                                                                                     |
+| `on_pretrain_routine_end`   | Triggered at the end of the pre-training routine, after data loading and model setup are complete.                                                                                                                                                                                                                               |
+| `on_train_start`            | Triggered when the training starts, before the first [epoch](https://www.ultralytics.com/glossary/epoch) begins.                                                                                                                                                                                                                 |
+| `on_train_epoch_start`      | Triggered at the start of each training [epoch](https://www.ultralytics.com/glossary/epoch), before batch iteration begins.                                                                                                                                                                                                      |
+| `on_train_batch_start`      | Triggered at the start of each training batch, before the forward pass.                                                                                                                                                                                                                                                          |
+| `optimizer_step`            | Triggered during the optimizer step. Reserved for custom integrations; not called by the default training loop.                                                                                                                                                                                                                  |
+| `on_before_zero_grad`       | Triggered before gradients are zeroed. Reserved for custom integrations; not called by the default training loop.                                                                                                                                                                                                                |
+| `on_train_batch_end`        | Triggered at the end of each training batch, after the backward pass. The optimizer step may be deferred due to gradient accumulation.                                                                                                                                                                                           |
+| `on_train_epoch_end`        | Triggered at the end of each training epoch, after all batches are processed but **before** validation. Validation metrics and fitness may not be available yet.                                                                                                                                                                 |
+| `on_model_save`             | Triggered when the model checkpoint is saved, after validation.                                                                                                                                                                                                                                                                  |
+| `on_fit_epoch_end`          | Triggered at the end of each fit epoch (train + val), **after** validation and any checkpoint save. Validation metrics are available, and fitness is available for the per-epoch training call. This callback is also called during final best-model evaluation, where no checkpoint save occurs and fitness may not be present. |
+| `on_train_end`              | Triggered when the training process ends, after final evaluation of the best model.                                                                                                                                                                                                                                              |
+| `on_params_update`          | Triggered when model parameters are updated. Reserved for custom integrations; not called by the default training loop.                                                                                                                                                                                                          |
+| `teardown`                  | Triggered when the training process is being cleaned up.                                                                                                                                                                                                                                                                         |
 
 ### Validator Callbacks
 
@@ -119,7 +150,7 @@ def on_predict_batch_end(predictor):
     predictor.results = zip(predictor.results, image)
 
 
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
 for result, frame in model.predict():
     pass
@@ -147,7 +178,7 @@ def put_in_eval_mode(trainer):
             module.track_running_stats = False
 
 
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 model.add_callback("on_train_epoch_start", put_in_eval_mode)
 model.train(data="coco.yaml", epochs=10)
 ```
@@ -173,7 +204,7 @@ def plot_samples(validator):
     validator.plot_predictions(v["batch"], v["preds"], v["batch_i"])
 
 
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 model.add_callback("on_val_batch_end", plot_samples)
 model.val(data="coco.yaml")
 ```
@@ -189,7 +220,7 @@ Here is an example where a custom callback saves predictions based on whether an
 ```python
 from ultralytics import YOLO
 
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 
 class_id = 2
 
@@ -203,9 +234,9 @@ def save_on_object(predictor):
 
 
 model.add_callback("on_predict_postprocess_end", save_on_object)
-results = model("pedestrians.mp4", stream=True, save=True)
+results_stream = model("pedestrians.mp4", stream=True, save=True)
 
-for results in results:
+for result in results_stream:
     pass
 ```
 
@@ -232,7 +263,7 @@ def on_predict_batch_end(predictor):
     predictor.results = zip(predictor.results, image)
 
 
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
 for result, frame in model.predict():
     pass

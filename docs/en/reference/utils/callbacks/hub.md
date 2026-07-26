@@ -1,13 +1,14 @@
 ---
+title: utils.callbacks.hub API Reference
 description: Explore detailed guides on Ultralytics callbacks, including pretrain, model save, train start/end, and more. Enhance your ML training workflows with ease.
 keywords: Ultralytics, callbacks, pretrain, model save, train start, train end, validation, predict, export, training, machine learning
 ---
 
 # Reference for `ultralytics/utils/callbacks/hub.py`
 
-!!! note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/hub.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/hub.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/callbacks/hub.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/hub.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/hub.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

@@ -432,7 +432,8 @@ def validate_args(format, passed_args, valid_args):
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
-    export_args = ["dynamic", "keras", "nms", "batch", "fraction", "data", "optimize"]
+    # Format-specific args come from the export table; skip inference args and quantize (validated above)
+    export_args = sorted(set().union(*export_formats()["Arguments"]) - {"conf", "iou", "name", "quantize"})
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
@@ -1252,13 +1253,15 @@ class Exporter:
         else:
             inputs = [ct.ImageType("image", shape=self.im.shape, scale=1 / 255, bias=[0.0, 0.0, 0.0])]
 
+        quantize = 16 if self.args.nms and not mlmodel and self.args.quantize is None else self.args.quantize
+        self.metadata["args"]["quantize"] = quantize
         ct_model = torch2coreml(
             model=model,
             inputs=inputs,
             im=self.im,
             classifier_names=list(self.model.names.values()) if self.model.task == "classify" else None,
             mlmodel=mlmodel,
-            quantize=16 if self.args.nms and not mlmodel and self.args.quantize is None else self.args.quantize,
+            quantize=quantize,
             metadata=self.metadata,
             prefix=prefix,
         )
@@ -1725,10 +1728,10 @@ class ClassMapModel(ExportWrapper):
     """Reduces semantic-segmentation logits to a compact integer class map for export.
 
     Applied to QNN and Core ML semantic exports, where the argmax runs on the NPU: deployment consumers want per-pixel
-    class indices, and shipping float logits instead forces a dequantize + argmax over large tensors (~20M values at
-    1024px) on the consumer's CPU every frame - measured as both slow and highly variable on mobile
-    NPUs. The argmax cannot live in the model's own forward because it is non-differentiable (training needs
-    logits), so it is attached here at export time, mirroring how `NMSModel` adds suppression only for export.
+    class indices, and shipping float logits instead forces a dequantize + argmax over large tensors (~8M values at the
+    standard 640px mobile input) on the consumer's CPU every frame - measured as both slow and highly variable on mobile
+    NPUs. The argmax cannot live in the model's own forward because it is non-differentiable (training needs logits), so
+    it is attached here at export time, mirroring how `NMSModel` adds suppression only for export.
 
     Attributes:
         task (str): The wrapped model's task ("semantic").

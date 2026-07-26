@@ -28,10 +28,13 @@ Platform only ever reads from your storage — it never writes, modifies, or del
 
 ## Connect to Platform
 
-1. Go to **Settings > [Integrations](index.md)** and find the **Microsoft Azure** card.
-2. Click **Connect** and paste the connection string.
-3. Platform lists the containers in the storage account. Select the ones to connect, or enter a container name manually.
+1. Go to **Settings > [Integrations](index.md)** and select **Microsoft Azure** from the integration list.
+2. Paste the connection string.
+3. Click **Find available containers**, then select the containers to connect. You can also enter a container name
+   manually.
 4. Click **Connect**. Platform verifies it can list and read each selected container before saving anything.
+
+![Ultralytics Platform Azure Blob Storage Integration Settings](https://cdn.ul.run/i/1c4cd9b8e39b23fd9dafadb2e079f70a.avif)<!-- screenshot -->
 
 Reconnecting the same storage account later adds new containers to the existing integration. A saved credential is only replaced once its replacement can still read every container you've already connected.
 
@@ -47,7 +50,8 @@ Reconnecting the same storage account later adds new containers to the existing 
 
 Platform lists the folder once and indexes what it finds:
 
-- **Images** — `.jpg`, `.jpeg`, `.png`, `.webp`, and `.avif` blobs are indexed with dimensions read from bounded header requests. Source pixels are never copied out of your container.
+- **Images** — `.jpg`, `.jpeg`, `.png`, `.webp`, and `.avif` blobs are indexed with dimensions read through bounded
+  requests. Platform does not persist a second copy of the source image.
 - **Labels** — YOLO `.txt` sidecars are parsed into Platform annotations, matched by the standard `images/` → `labels/` layout or as same-folder siblings.
 - **Metadata** — a `data.yaml`/`data.yml` provides class names, task type, and pose keypoint shape, exactly like an [archive upload](../data/datasets.md#supported-formats).
 - **Splits** — `train`, `val`, and `test` folder names in the blob path assign splits automatically.

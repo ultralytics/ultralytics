@@ -1397,14 +1397,43 @@ def test_utils_benchmarks():
 def test_utils_torchutils():
     """Test Torch utility functions including profiling and FLOP calculations."""
     from ultralytics.nn.modules.conv import Conv
-    from ultralytics.utils.torch_utils import get_flops_with_torch_profiler, profile_ops, time_sync
+    from ultralytics.utils.torch_utils import profile_ops, time_sync
 
     x = torch.randn(1, 64, 20, 20)
     m = Conv(64, 64, k=1, s=2)
 
     profile_ops(x, [m], n=3)
-    get_flops_with_torch_profiler(m)
     time_sync()
+
+
+def test_rtdetr_remap_cls_by_names():
+    """Test RT-DETR decoder cls-head remap (direct-name match, unmatched, denoising partial transfer)."""
+    from types import SimpleNamespace
+
+    from ultralytics.nn.tasks import RTDETRDetectionModel
+
+    # Source has 2 classes (person, bird), target has 3 (person, bird, airplane). Target 'airplane' has no source.
+    dst_state = {
+        "score_head.weight": torch.full((3, 1), -1.0),
+        "score_head.bias": torch.full((3,), -1.0),
+        "decoder.denoising_class_embed.weight": torch.full((3, 4), -1.0),
+    }
+    csd = {
+        "score_head.weight": torch.tensor([[1.0], [2.0]]),
+        "score_head.bias": torch.tensor([10.0, 20.0]),
+        "decoder.denoising_class_embed.weight": torch.full((2, 4), 9.0),
+    }
+    tgt = SimpleNamespace(names={0: "person", 1: "bird", 2: "airplane"}, state_dict=lambda: dst_state)
+    src = SimpleNamespace(names={0: "bird", 1: "person"})  # inverted order to exercise the row-index mapping
+    n = RTDETRDetectionModel._remap_cls_by_names(tgt, csd, src, verbose=False)
+    assert n == 3  # score_head.weight + score_head.bias + denoising_class_embed remapped
+    assert dst_state["score_head.weight"][0, 0].item() == 2.0  # 'person' <- src[1]
+    assert dst_state["score_head.weight"][1, 0].item() == 1.0  # 'bird' <- src[0]
+    assert dst_state["score_head.weight"][2, 0].item() == -1.0  # 'airplane' unmatched -> dst init kept
+    assert dst_state["score_head.bias"].tolist() == [20.0, 10.0, -1.0]
+    dn = dst_state["decoder.denoising_class_embed.weight"]  # row-per-class embedding transfers like score_head
+    assert dn[0].eq(9.0).all() and dn[1].eq(9.0).all() and dn[2].eq(-1.0).all()
+    assert "decoder.denoising_class_embed.weight" not in csd  # popped so intersect_dicts skips it
 
 
 @pytest.mark.parametrize("nc", [1, 3])

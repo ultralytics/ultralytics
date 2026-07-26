@@ -9,19 +9,11 @@ keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud dep
 
 [Ultralytics Platform](https://platform.ultralytics.com) is a comprehensive end-to-end computer vision platform that streamlines the entire ML workflow from data preparation to model deployment. Built for teams and individuals who need production-ready [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) solutions without the infrastructure complexity.
 
-![Ultralytics Platform Dataset Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/dataset-screenshot.avif)
+![Ultralytics Platform Dataset Screenshot](https://cdn.ul.run/i/2990f4be3ba5e24b885f6a1ea278a793.avif)<!-- screenshot -->
 
 ## What is Ultralytics Platform?
 
-Ultralytics Platform is designed to replace fragmented ML tooling with a unified solution. It combines the capabilities of:
-
-- **Roboflow** - Data management and annotation
-- **Weights & Biases** - Experiment tracking
-- **SageMaker** - Cloud training
-- **HuggingFace** - Model deployment
-- **Arize** - Monitoring
-
-All in one platform with native support for [YOLO26](../models/yolo26.md) and [YOLO11](../models/yolo11.md) models.
+Ultralytics Platform brings dataset management and annotation, experiment tracking, cloud and remote training, model export, dedicated inference endpoints, and deployment monitoring into one workspace. It has native support for [YOLO26](../models/yolo26.md) and [YOLO11](../models/yolo11.md) models.
 
 ## Workflow: Upload → Annotate → Train → Export → Deploy
 
@@ -53,7 +45,7 @@ graph LR
 | **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) with automatic processing                                                                                                 |
 | **Annotate** | Manual tools for all 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM and YOLO models for detect, segment, semantic, and OBB (see [supported tasks](data/index.md#supported-tasks)) |
 | **Train**    | Cloud GPUs (24 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                              |
-| **Export**   | [19+ deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, etc.; see [supported formats](train/models.md#supported-formats))                                                                        |
+| **Export**   | [19 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, etc.; see [supported formats](train/models.md#supported-formats))                                                                  |
 | **Deploy**   | 42 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                          |
 
 **What you can do:**
@@ -61,7 +53,7 @@ graph LR
 - **Upload** images, videos, and dataset files to create training datasets
 - **Visualize** annotations with interactive overlays for all 6 YOLO task types (see [supported tasks](data/index.md#supported-tasks))
 - **Train** models on cloud GPUs (24 on all plans, 26 with Pro or Enterprise for B200 and B300) with real-time metrics
-- **Export** to [19+ deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, etc.)
+- **Export** to [19 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, etc.)
 - **Deploy** to 42 global regions with one-click dedicated endpoints
 - **Monitor** training progress, deployment health, and usage metrics
 - **Collaborate** by making projects and datasets public for the community
@@ -70,17 +62,14 @@ graph LR
 
 Your data stays in your region. Ultralytics Platform operates infrastructure in three global regions:
 
-| Region | Label                        | Location             | Best For                                |
-| ------ | ---------------------------- | -------------------- | --------------------------------------- |
-| **US** | Americas                     | Iowa, USA            | Americas users, fastest for Americas    |
-| **EU** | Europe, Middle East & Africa | Belgium, Europe      | European users, GDPR compliance         |
-| **AP** | Asia Pacific                 | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+{% include "macros/platform-data-regions.md" %}
 
-You select your region during onboarding, and all your data, models, and deployments remain in that region.
+You select your data region during onboarding. Datasets, models, and managed training data remain in that region.
+Dedicated endpoints are deployed separately to a region you choose from the global deployment map.
 
 !!! warning "Region is Permanent"
 
-    Your data region cannot be changed after account creation. During onboarding, the platform measures latency to each region and recommends the closest one. Choose carefully. Note: this applies to your dataset and model content. Account-level data (profile, billing, activity logs) is processed globally, as described in our [Privacy Policy](https://www.ultralytics.com/legal/privacy) and [Data Processing Agreement](https://www.ultralytics.com/legal/ultralytics-data-processing-agreement#exhibit-a-details-of-personal-data-processing).
+    You cannot change your data region yourself after account creation. During onboarding, the Platform measures latency to each region and recommends the closest one. Contact support if you later need to request a region change. This applies to dataset and model content; account-level data such as profile, billing, and activity records is processed globally, as described in our [Privacy Policy](https://www.ultralytics.com/legal/privacy) and [Data Processing Agreement](https://www.ultralytics.com/legal/ultralytics-data-processing-agreement#exhibit-a-details-of-personal-data-processing).
 
 ## Key Features
 
@@ -113,23 +102,22 @@ graph LR
 
 !!! tip "Supported Task Types"
 
-    The annotation editor supports all 6 YOLO task types: **[detect](../datasets/detect/index.md)** (bounding boxes), **[segment](../datasets/segment/index.md)** (polygons), **[semantic](../datasets/semantic/index.md)** (per-class regions), **[pose](../datasets/pose/index.md)** (keypoints), **[OBB](../datasets/obb/index.md)** (oriented boxes), and **[classify](../datasets/classify/index.md)** (image-level labels). Each task type has dedicated drawing tools and keyboard shortcuts.
+    The annotation editor supports all 6 YOLO task types: **[detect](../datasets/detect/index.md)** (bounding boxes), **[segment](../datasets/segment/index.md)** (polygons), **[semantic](../datasets/semantic/index.md)** (per-class regions), **[pose](../datasets/pose/index.md)** (keypoints), **[OBB](../datasets/obb/index.md)** (oriented boxes), and **[classify](../datasets/classify/index.md)** (image-level labels). Each task type has dedicated annotation controls and keyboard shortcuts.
 
 ### Model Training
 
 - **Cloud Training**: Train on cloud GPUs (24 on all plans, 26 with [Pro or Enterprise](account/billing.md#plans) for B200 and B300) with real-time metrics
-- **Remote Training**: Train anywhere and stream metrics to the platform (W&B-style)
+- **Remote Training**: Train anywhere and stream metrics to Ultralytics Platform
 - **Project Organization**: Group related models, compare experiments, track activity
-- **19+ Export Formats**: ONNX, TensorRT, CoreML, LiteRT, and more (see [supported formats](train/models.md#supported-formats))
+- **19 Export Formats**: ONNX, TensorRT, CoreML, LiteRT, Hailo, and more (see [supported formats](train/models.md#supported-formats))
 
-![Ultralytics Platform Project Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/project-screenshot.avif)
-
+![Ultralytics Platform Project Screenshot](https://cdn.ul.run/i/fd80b9795191f02b24d9b8d8d1c8380b.avif)<!-- screenshot -->
 You can train models either through the web UI (cloud training) or from your own machine (remote training):
 
 === "Cloud Training (Web UI)"
 
     1. Navigate to your project
-    2. Click `Train Model`
+    2. Click `New Model`
     3. Select dataset, model, GPU, and epochs
     4. Monitor real-time loss curves and metrics
 
@@ -137,7 +125,7 @@ You can train models either through the web UI (cloud training) or from your own
 
     ```bash
     # Install ultralytics
-    pip install "ultralytics>=8.4.60"
+    pip install "ultralytics>=8.4.104"
 
     # Set your API key
     export ULTRALYTICS_API_KEY="YOUR_API_KEY"
@@ -239,19 +227,7 @@ Once deployed, call your endpoint from any language:
 
 !!! info "Plan Tiers"
 
-    | Feature              | Free           | Pro ($29/mo)            | Enterprise     |
-    | -------------------- | -------------- | ----------------------- | -------------- |
-    | Signup Credit        | $5 / $25*      | -                       | Custom         |
-    | Monthly Credit       | -              | $30/seat/month          | Custom         |
-    | Models               | 100            | 500                     | Unlimited      |
-    | Concurrent Trainings | 3              | 10                      | Unlimited      |
-    | Deployments          | 3              | 10                      | Unlimited      |
-    | Storage              | 100 GB         | 500 GB                  | Unlimited      |
-    | Cloud GPU Types      | 24             | 26 (incl. B200 / B300)  | 26             |
-    | Teams                | -              | Up to 5 members         | Up to 50       |
-    | Support              | Community      | Priority                | Dedicated      |
-
-    *$5 at signup, or $25 with a verified company/work email.
+    See the canonical [Free, Pro, and Enterprise comparison](account/billing.md#plans) for current limits, GPU access, collaboration, and licensing.
 
 ## Quick Links
 
@@ -279,7 +255,7 @@ To get started with [Ultralytics Platform](https://platform.ultralytics.com):
 
 1. **Sign Up**: Create an account at [platform.ultralytics.com](https://platform.ultralytics.com)
 2. **Select Region**: Choose your data region (US, EU, or AP) during onboarding
-3. **Upload Dataset**: Navigate to the [Datasets](data/datasets.md) section to upload your data
+3. **Upload Dataset**: Open `Annotate` in the sidebar and upload your data
 4. **Train Model**: Create a project and start training on cloud GPUs
 5. **Deploy**: Test your model and deploy to a dedicated endpoint
 
@@ -307,14 +283,14 @@ See [Cloud Training](train/cloud-training.md) for complete pricing and GPU optio
 
 ### How does remote training work?
 
-You can train models on your own hardware and stream real-time metrics to the platform, similar to Weights & Biases.
+You can train models on your own hardware and stream real-time metrics to Ultralytics Platform.
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.60**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.104**. Lower versions will NOT work with Platform.
 
     ```bash
-    pip install "ultralytics>=8.4.60"
+    pip install "ultralytics>=8.4.104"
     ```
 
 === "CLI"
@@ -380,28 +356,9 @@ See [Annotation](data/annotation.md) for the complete guide.
 
 ### What export formats are supported?
 
-The Platform supports 19+ deployment formats:
+The Platform supports the same 19 deployment formats as Ultralytics Export mode. PyTorch is the source format; each row with a `format` argument is an export target.
 
-| Format        | File Extension      | Use Case                  |
-| ------------- | ------------------- | ------------------------- |
-| ONNX          | `.onnx`             | Cross-platform deployment |
-| TorchScript   | `.torchscript`      | C++ deployment            |
-| OpenVINO      | `_openvino_model`   | Intel hardware            |
-| TensorRT      | `.engine`           | NVIDIA GPU inference      |
-| CoreML        | `.mlpackage`        | Apple devices             |
-| TF SavedModel | `_saved_model`      | TensorFlow ecosystem      |
-| TF GraphDef   | `.pb`               | TensorFlow legacy         |
-| PaddlePaddle  | `_paddle_model`     | Baidu ecosystem           |
-| NCNN          | `_ncnn_model`       | Mobile (Android/ARM)      |
-| LiteRT        | `.tflite`           | Mobile/edge and browser   |
-| Edge TPU      | `_edgetpu.tflite`   | Google Coral devices      |
-| MNN           | `.mnn`              | Alibaba mobile            |
-| RKNN          | `_rknn_model`       | Rockchip NPU              |
-| Qualcomm      | `_qnn.onnx`         | Qualcomm Snapdragon NPU   |
-| IMX500        | `_imx_model`        | Sony IMX500 sensor        |
-| Axelera       | `_axelera_model`    | Axelera AI accelerators   |
-| ExecuTorch    | `_executorch_model` | PyTorch mobile            |
-| DeepX         | `_deepx_model`      | DeepX NPU accelerators    |
+{% include "macros/export-table.md" %}
 
 See [Models Export](train/models.md#export-model), the [Export mode guide](../modes/export.md), and the [Integrations index](../integrations/index.md) for format-specific options.
 
@@ -430,7 +387,7 @@ See [Models Export](train/models.md#export-model), the [Export mode guide](../mo
 | Problem                 | Solution                                                                                                                    |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | Endpoint not responding | Check endpoint status (Ready vs Stopped). Cold start may take 5-15 seconds                                                  |
-| 401 Unauthorized        | Verify API key is correct and has required scopes                                                                           |
+| 401 Unauthorized        | Verify the API key is active and copied correctly                                                                           |
 | Slow inference          | Check model size, consider [TensorRT export](train/models.md#supported-formats), select closer region                       |
 | Export failed           | Some formats require specific model architectures. Try [ONNX](train/models.md#supported-formats) for broadest compatibility |
 
@@ -446,19 +403,22 @@ See [Models Export](train/models.md#export-model), the [Export mode guide](../mo
 
 ??? question "How do I get more credits?"
 
-    Go to Settings > Billing > Add Credits. Purchase credits from $5 to $1000. Purchased credits never expire.
+    Go to **Settings > Billing** and click **Top Up**. Purchase credits from $5 to $1,000. Purchased credits never
+    expire.
 
 ??? question "What happens if training fails?"
 
-    You're only charged for completed compute time. Checkpoints are saved, and you can resume training.
+    If cloud compute had started, elapsed GPU time is charged. Failures before a GPU starts have no compute usage
+    charge.
 
 ??? question "Can I download my trained model?"
 
-    Yes, click the download icon on any model page to download the `.pt` file or exported formats.
+    Yes. Click the download icon on a model page for its `.pt` weights, or open the **Export** tab for completed exported formats.
 
 ??? question "How do I share my work publicly?"
 
-    Edit your project or dataset settings and toggle visibility to "Public". Public content appears on the Explore page.
+    Open the project or dataset, click its **Private** badge in the top navigation bar, and confirm **Make Public**.
+    Public content appears on the Explore page.
 
 ??? question "What are the file size limits?"
 

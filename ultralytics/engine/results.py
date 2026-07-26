@@ -598,7 +598,7 @@ class Results(SimpleClass, DataExportMixin):
         # Plot Classify results
         if pred_probs is not None and show_probs:
             if self.multi_label:
-                indices = (pred_probs.data > 0.5).nonzero(as_tuple=True)[0].tolist()
+                indices = torch.as_tensor(pred_probs.data > 0.5).nonzero(as_tuple=True)[0].tolist()
                 show_indices = indices if indices else pred_probs.top5
                 text = "\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in show_indices)
             else:
@@ -717,7 +717,7 @@ class Results(SimpleClass, DataExportMixin):
         if self.probs is not None:
             if self.multi_label:
                 # Show all classes above threshold for multi-label
-                indices = (self.probs.data > 0.5).nonzero(as_tuple=True)[0].tolist()
+                indices = torch.as_tensor(self.probs.data > 0.5).nonzero(as_tuple=True)[0].tolist()
                 if indices:
                     return f"{', '.join(f'{self.names[j]} {self.probs.data[j]:.2f}' for j in indices)}, "
                 return f"{self.names[self.probs.top1]} {self.probs.data[self.probs.top1]:.2f}, "
@@ -771,7 +771,7 @@ class Results(SimpleClass, DataExportMixin):
         if probs is not None:
             # Classify
             if self.multi_label:
-                indices = (probs.data > 0.5).nonzero(as_tuple=True)[0].tolist()
+                indices = torch.as_tensor(probs.data > 0.5).nonzero(as_tuple=True)[0].tolist()
                 [texts.append(f"{probs.data[j]:.2f} {self.names[j]}") for j in (indices or probs.top5)]
             else:
                 [texts.append(f"{probs.data[j]:.2f} {self.names[j]}") for j in probs.top5]
@@ -867,7 +867,7 @@ class Results(SimpleClass, DataExportMixin):
         if self.probs is not None:
             if self.multi_label:
                 # Return all classes above threshold, fall back to top5 if none
-                indices = (self.probs.data > 0.5).nonzero(as_tuple=True)[0].tolist() or self.probs.top5
+                indices = torch.as_tensor(self.probs.data > 0.5).nonzero(as_tuple=True)[0].tolist() or self.probs.top5
                 for class_id in indices:
                     results.append(
                         {

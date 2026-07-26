@@ -20,8 +20,12 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
+from pathlib import Path
 
 from axelera.runtime import cv, display, op
+
+# Image-file suffixes that denote a single still frame (keep the window open afterward).
+IMAGE_SUFFIXES = {".bmp", ".dng", ".jpeg", ".jpg", ".png", ".tif", ".tiff", ".webp"}
 
 
 def build_pipeline(model_path: str, conf: float = 0.25, iou: float = 0.45):
@@ -62,7 +66,12 @@ def main(args):
         vis = visualizer.create_window("YOLO11 Segmentation", (800, 500), expose_surface=expose_surface)
         pipeline = build_pipeline(args.model, args.conf, args.iou)
 
-        with cv.create_source(args.source) as source:
+        # cv.create_source wants a path/URL string; map a bare camera index to its /dev/video node.
+        source_arg = f"/dev/video{args.source}" if args.source.isdigit() else args.source
+        # The ffmpeg backend doesn't support V4L2 /dev/video cameras, so decode those with OpenCV;
+        # ffmpeg stays the default for files/streams (faster, wider format support).
+        backend = "opencv" if source_arg.startswith("/dev/video") else "ffmpeg"
+        with cv.create_source(source_arg, backend=backend) as source:
             if args.output:
                 vis.save_output_video(args.output, int(source.fps) or 30)
             for frame_count, (img, segments) in enumerate(pipeline.stream(source), start=1):
@@ -74,6 +83,12 @@ def main(args):
                     counts = Counter(getattr(s.class_id, "name", str(s.class_id)) for s in segments)
                     summary = ", ".join(f"{name}x{n}" for name, n in counts.most_common()) or "none"
                     print(f"frame {frame_count}: {len(segments)} segments ({summary})")
+
+        # Keep the window open for a still image; gate on the source being an image file, not the
+        # frame count -- a 1-frame video or a stream that stops early isn't an image.
+        is_image = not args.source.isdigit() and Path(args.source).suffix.lower() in IMAGE_SUFFIXES
+        if is_image and not args.no_display and not vis.is_closed:
+            vis.wait_for_close()
 
 
 if __name__ == "__main__":

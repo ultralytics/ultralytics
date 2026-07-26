@@ -23,12 +23,27 @@ def find_free_network_port() -> int:
 
     Returns:
         (int): The available network port number.
+
+    Notes:
+        Candidates are drawn below the default OS ephemeral floor (32768 on Linux, 49152 on macOS and Windows)
+        because the port is released here and rebound later by the DDP subprocess. An ephemeral port can be handed to
+        any outbound connection in that window, which surfaces as an EADDRINUSE rendezvous failure at launch.
     """
+    import random
     import socket
 
+    # SystemRandom as init_seeds() seeds the global RNG earlier in this process, which would hand every concurrent
+    # DDP launch on a host the same candidate list
+    for port in random.SystemRandom().sample(range(10000, 32768), 10):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind(("127.0.0.1", port))
+                return port
+            except OSError:
+                continue  # in use by an explicit listener, try the next candidate
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(("127.0.0.1", 0))
-        return s.getsockname()[1]  # port
+        s.bind(("127.0.0.1", 0))  # no non-ephemeral candidate available, fall back to an ephemeral port
+        return s.getsockname()[1]
 
 
 def generate_ddp_file(trainer: BaseTrainer) -> str:

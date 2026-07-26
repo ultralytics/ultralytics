@@ -21,20 +21,20 @@ from ultralytics.utils.patches import imread
 
 
 class BaseDataset(Dataset):
-    """
-    Base dataset class for loading and processing image data.
+    """Base dataset class for loading and processing image data.
 
-    This class provides core functionality for loading images, caching, and preparing data for training and inference
-    in object detection tasks.
+    This class provides core functionality for loading images, caching, and preparing data for training and inference in
+    object detection tasks.
 
     Attributes:
-        img_path (str): Path to the folder containing images.
+        img_path (str | list[str]): Path to the folder containing images.
         imgsz (int): Target image size for resizing.
         augment (bool): Whether to apply data augmentation.
         single_cls (bool): Whether to treat all objects as a single class.
         prefix (str): Prefix to print in log messages.
         fraction (float): Fraction of dataset to utilize.
-        channels (int): Number of channels in the images (1 for grayscale, 3 for RGB).
+        channels (int): Number of channels in the images (1 for grayscale, 3 for color). Color images loaded with OpenCV
+            are in BGR channel order.
         cv2_flag (int): OpenCV flag for reading images.
         im_files (list[str]): List of image file paths.
         labels (list[dict]): List of label data dictionaries.
@@ -49,7 +49,7 @@ class BaseDataset(Dataset):
         im_hw0 (list): List of original image dimensions (h, w).
         im_hw (list): List of resized image dimensions (h, w).
         npy_files (list[Path]): List of numpy file paths.
-        cache (str): Cache images to RAM or disk during training.
+        cache (str | None): Cache setting ('ram', 'disk', or None for no caching).
         transforms (callable): Image transformation function.
         batch_shapes (np.ndarray): Batch shapes for rectangular training.
         batch (np.ndarray): Batch index of each image.
@@ -62,7 +62,7 @@ class BaseDataset(Dataset):
         cache_images_to_disk: Save an image as an *.npy file for faster loading.
         check_cache_disk: Check image caching requirements vs available disk space.
         check_cache_ram: Check image caching requirements vs available memory.
-        set_rectangle: Set the shape of bounding boxes as rectangles.
+        set_rectangle: Sort images by aspect ratio and set batch shapes for rectangular training.
         get_image_and_label: Get and return label information from the dataset.
         update_labels_info: Custom label format method to be implemented by subclasses.
         build_transforms: Build transformation pipeline to be implemented by subclasses.
@@ -86,8 +86,7 @@ class BaseDataset(Dataset):
         fraction: float = 1.0,
         channels: int = 3,
     ):
-        """
-        Initialize BaseDataset with given configuration and options.
+        """Initialize BaseDataset with given configuration and options.
 
         Args:
             img_path (str | list[str]): Path to the folder containing images or list of image paths.
@@ -103,7 +102,8 @@ class BaseDataset(Dataset):
             single_cls (bool): If True, single class training is used.
             classes (list[int], optional): List of included classes.
             fraction (float): Fraction of dataset to utilize.
-            channels (int): Number of channels in the images (1 for grayscale, 3 for RGB).
+            channels (int): Number of channels in the images (1 for grayscale, 3 for color). Color images loaded with
+                OpenCV are in BGR channel order.
         """
         super().__init__()
         self.img_path = img_path
@@ -148,8 +148,7 @@ class BaseDataset(Dataset):
         self.transforms = self.build_transforms(hyp=hyp)
 
     def get_img_files(self, img_path: str | list[str]) -> list[str]:
-        """
-        Read image files from the specified path.
+        """Read image files from the specified path.
 
         Args:
             img_path (str | list[str]): Path or list of paths to image directories or files.
@@ -165,14 +164,14 @@ class BaseDataset(Dataset):
             for p in img_path if isinstance(img_path, list) else [img_path]:
                 p = Path(p)  # os-agnostic
                 if p.is_dir():  # dir
-                    f += glob.glob(str(p / "**" / "*.*"), recursive=True)
+                    f += glob.glob(str(Path(glob.escape(p)) / "**" / "*.*"), recursive=True)
                     # F = list(p.rglob('*.*'))  # pathlib
                 elif p.is_file():  # file
                     with open(p, encoding="utf-8") as t:
                         t = t.read().strip().splitlines()
                         parent = str(p.parent) + os.sep
-                        f += [x.replace("./", parent) if x.startswith("./") else x for x in t]  # local to global path
-                        # F += [p.parent / x.lstrip(os.sep) for x in t]  # local to global path (pathlib)
+                        f += [x.replace("./", parent, 1) if x.startswith("./") else x for x in t]  # local to global
+                        # F += [p.parent / x.lstrip(os.sep) for x in t]  # local to global (pathlib)
                 else:
                     raise FileNotFoundError(f"{self.prefix}{p} does not exist")
             im_files = sorted(x.replace("/", os.sep) for x in f if x.rpartition(".")[-1].lower() in IMG_FORMATS)
@@ -186,8 +185,7 @@ class BaseDataset(Dataset):
         return im_files
 
     def update_labels(self, include_class: list[int] | None) -> None:
-        """
-        Update labels to include only specified classes.
+        """Update labels to include only specified classes.
 
         Args:
             include_class (list[int], optional): List of classes to include. If None, all classes are included.
@@ -198,7 +196,7 @@ class BaseDataset(Dataset):
                 cls = self.labels[i]["cls"]
                 bboxes = self.labels[i]["bboxes"]
                 segments = self.labels[i]["segments"]
-                keypoints = self.labels[i]["keypoints"]
+                keypoints = self.labels[i].get("keypoints")
                 j = (cls == include_class_array).any(1)
                 self.labels[i]["cls"] = cls[j]
                 self.labels[i]["bboxes"] = bboxes[j]
@@ -207,15 +205,18 @@ class BaseDataset(Dataset):
                 if keypoints is not None:
                     self.labels[i]["keypoints"] = keypoints[j]
             if self.single_cls:
-                self.labels[i]["cls"][:, 0] = 0
+                self.labels[i]["cls"][:] = 0
 
-    def load_image(self, i: int, rect_mode: bool = True) -> tuple[np.ndarray, tuple[int, int], tuple[int, int]]:
-        """
-        Load an image from dataset index 'i'.
+    def load_image(
+        self, i: int, rect_mode: bool = True, resize_short: bool = False
+    ) -> tuple[np.ndarray, tuple[int, int], tuple[int, int]]:
+        """Load an image from dataset index 'i'.
 
         Args:
             i (int): Index of the image to load.
-            rect_mode (bool): Whether to use rectangular resizing.
+            rect_mode (bool): Whether to use rectangular resizing (long side to imgsz).
+            resize_short (bool): Whether to resize the shorter side to imgsz while maintaining aspect ratio. Overrides
+                rect_mode when True.
 
         Returns:
             im (np.ndarray): Loaded image as a NumPy array.
@@ -230,6 +231,13 @@ class BaseDataset(Dataset):
             if fn.exists():  # load npy
                 try:
                     im = np.load(fn)
+                    npy_channels = im.shape[-1] if im.ndim >= 3 else 1
+                    if npy_channels != self.channels:
+                        LOGGER.warning(
+                            f"{self.prefix}Removing stale *.npy image file {fn} with {npy_channels} channels, expected {self.channels}"
+                        )
+                        Path(fn).unlink(missing_ok=True)
+                        im = imread(f, flags=self.cv2_flag)
                 except Exception as e:
                     LOGGER.warning(f"{self.prefix}Removing corrupt *.npy image file {fn} due to: {e}")
                     Path(fn).unlink(missing_ok=True)
@@ -241,10 +249,16 @@ class BaseDataset(Dataset):
 
             h0, w0 = im.shape[:2]  # orig hw
             if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
-                r = self.imgsz / max(h0, w0)  # ratio
-                if r != 1:  # if sizes are not equal
-                    w, h = (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz))
-                    im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
+                if resize_short:  # resize short side to imgsz while maintaining aspect ratio
+                    r = self.imgsz / min(h0, w0)  # ratio
+                    if r != 1:  # if sizes are not equal
+                        w, h = (math.ceil(w0 * r), self.imgsz) if h0 < w0 else (self.imgsz, math.ceil(h0 * r))
+                        im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
+                else:
+                    r = self.imgsz / max(h0, w0)  # ratio
+                    if r != 1:  # if sizes are not equal
+                        w, h = (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz))
+                        im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
             elif not (h0 == w0 == self.imgsz):  # resize by stretching image to square imgsz
                 im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
             if im.ndim == 2:
@@ -283,11 +297,14 @@ class BaseDataset(Dataset):
         """Save an image as an *.npy file for faster loading."""
         f = self.npy_files[i]
         if not f.exists():
-            np.save(f.as_posix(), imread(self.im_files[i]), allow_pickle=False)
+            try:
+                np.save(f.as_posix(), imread(self.im_files[i], flags=self.cv2_flag), allow_pickle=False)
+            except Exception as e:
+                f.unlink(missing_ok=True)
+                LOGGER.warning(f"{self.prefix}WARNING ⚠️ Failed to cache image {f}: {e}")
 
     def check_cache_disk(self, safety_margin: float = 0.5) -> bool:
-        """
-        Check if there's enough disk space for caching images.
+        """Check if there's enough disk space for caching images.
 
         Args:
             safety_margin (float): Safety margin factor for disk space calculation.
@@ -307,10 +324,10 @@ class BaseDataset(Dataset):
             b += im.nbytes
             if not os.access(Path(im_file).parent, os.W_OK):
                 self.cache = None
-                LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writeable")
+                LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writable")
                 return False
         disk_required = b * self.ni / n * (1 + safety_margin)  # bytes required to cache dataset to disk
-        total, used, free = shutil.disk_usage(Path(self.im_files[0]).parent)
+        total, _used, free = shutil.disk_usage(Path(self.im_files[0]).parent)
         if disk_required > free:
             self.cache = None
             LOGGER.warning(
@@ -322,8 +339,7 @@ class BaseDataset(Dataset):
         return True
 
     def check_cache_ram(self, safety_margin: float = 0.5) -> bool:
-        """
-        Check if there's enough RAM for caching images.
+        """Check if there's enough RAM for caching images.
 
         Args:
             safety_margin (float): Safety margin factor for RAM calculation.
@@ -352,7 +368,7 @@ class BaseDataset(Dataset):
         return True
 
     def set_rectangle(self) -> None:
-        """Set the shape of bounding boxes for YOLO detections as rectangles."""
+        """Sort images by aspect ratio and set batch shapes for rectangular training."""
         bi = np.floor(np.arange(self.ni) / self.batch_size).astype(int)  # batch index
         nb = bi[-1] + 1  # number of batches
 
@@ -381,8 +397,7 @@ class BaseDataset(Dataset):
         return self.transforms(self.get_image_and_label(index))
 
     def get_image_and_label(self, index: int) -> dict[str, Any]:
-        """
-        Get and return label information from the dataset.
+        """Get and return label information from the dataset.
 
         Args:
             index (int): Index of the image to retrieve.
@@ -406,12 +421,11 @@ class BaseDataset(Dataset):
         return len(self.labels)
 
     def update_labels_info(self, label: dict[str, Any]) -> dict[str, Any]:
-        """Custom your label format here."""
+        """Customize your label format here."""
         return label
 
     def build_transforms(self, hyp: dict[str, Any] | None = None):
-        """
-        Users can customize augmentations here.
+        """Users can customize augmentations here.
 
         Examples:
             >>> if self.augment:
@@ -424,8 +438,7 @@ class BaseDataset(Dataset):
         raise NotImplementedError
 
     def get_labels(self) -> list[dict[str, Any]]:
-        """
-        Users can customize their own format here.
+        """Users can customize their own format here.
 
         Examples:
             Ensure output is a dictionary with the following keys:

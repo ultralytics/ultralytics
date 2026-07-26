@@ -16,8 +16,7 @@ torch.classes.__path__ = []  # Torch module __path__._path issue: https://github
 
 
 class Inference:
-    """
-    A class to perform object detection, image classification, image segmentation and pose estimation inference.
+    """A class to perform object detection, image classification, image segmentation and pose estimation inference.
 
     This class provides functionalities for loading models, configuring settings, uploading video files, and performing
     real-time inference using Streamlit and Ultralytics YOLO models.
@@ -54,8 +53,7 @@ class Inference:
     """
 
     def __init__(self, **kwargs: Any) -> None:
-        """
-        Initialize the Inference class, checking Streamlit requirements and setting up the model path.
+        """Initialize the Inference class, checking Streamlit requirements and setting up the model path.
 
         Args:
             **kwargs (Any): Additional keyword arguments for model configuration.
@@ -79,6 +77,7 @@ class Inference:
         self.model_path = None  # Model file path
         if self.temp_dict["model"] is not None:
             self.model_path = self.temp_dict["model"]
+        self.imgsz = self.temp_dict.get("imgsz", 640)
 
         LOGGER.info(f"Ultralytics Solutions: ✅ {self.temp_dict}")
 
@@ -151,24 +150,20 @@ class Inference:
 
     def configure(self) -> None:
         """Configure the model and load selected classes for inference."""
-        # Add dropdown menu for model selection
-        M_ORD, T_ORD = ["yolo11n", "yolo11s", "yolo11m", "yolo11l", "yolo11x"], ["", "-seg", "-pose", "-obb", "-cls"]
-        available_models = sorted(
-            [
-                x.replace("yolo", "YOLO")
-                for x in GITHUB_ASSETS_STEMS
-                if any(x.startswith(b) for b in M_ORD) and "grayscale" not in x
-            ],
-            key=lambda x: (M_ORD.index(x[:7].lower()), T_ORD.index(x[7:].lower() or "")),
-        )
+        # Add dropdown menu for model selection, offering the standard size/task grid in order
+        available_models = [
+            f"{size}{task}".replace("yolo", "YOLO")
+            for size in ("yolo26n", "yolo26s", "yolo26m", "yolo26l", "yolo26x")
+            for task in ("", "-seg", "-sem", "-depth", "-pose", "-obb", "-cls")
+            if f"{size}{task}" in GITHUB_ASSETS_STEMS
+        ]
         if self.model_path:  # Insert user provided custom model in available_models
             available_models.insert(0, self.model_path)
         selected_model = self.st.sidebar.selectbox("Model", available_models)
 
         with self.st.spinner("Model is downloading..."):
-            if (
-                selected_model.endswith((".pt", ".onnx", ".torchscript", ".mlpackage", ".engine"))
-                or "openvino_model" in selected_model
+            if selected_model.endswith((".pt", ".onnx", ".torchscript", ".mlpackage", ".engine")) or any(
+                fmt in selected_model for fmt in ("openvino_model", "rknn_model")
             ):
                 model_path = selected_model
             else:
@@ -235,10 +230,12 @@ class Inference:
                 # Process frame with model
                 if self.enable_trk:
                     results = self.model.track(
-                        frame, conf=self.conf, iou=self.iou, classes=self.selected_ind, persist=True
+                        frame, conf=self.conf, iou=self.iou, classes=self.selected_ind, imgsz=self.imgsz, persist=True
                     )
                 else:
-                    results = self.model(frame, conf=self.conf, iou=self.iou, classes=self.selected_ind)
+                    results = self.model(
+                        frame, conf=self.conf, iou=self.iou, classes=self.selected_ind, imgsz=self.imgsz
+                    )
 
                 annotated_frame = results[0].plot()  # Add annotations on frame
 

@@ -506,12 +506,12 @@ def get_flops(model, imgsz=640):
             # Method 1: Use stride-based input tensor
             stride = max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32  # max stride
             im = torch.empty((1, p.shape[1], stride, stride), device=p.device, dtype=p.dtype)  # input image in BCHW
-            flops = thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1e9 * 2  # stride GFLOPs
+            flops = thop.profile(model, inputs=[im], verbose=False)[0] / 1e9 * 2  # stride GFLOPs
             return flops * imgsz[0] / stride * imgsz[1] / stride  # imgsz GFLOPs
         except Exception:
             # Method 2: Use actual image size (required for RTDETR models)
             im = torch.empty((1, p.shape[1], *imgsz), device=p.device, dtype=p.dtype)  # input image in BCHW format
-            return thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1e9 * 2  # imgsz GFLOPs
+            return thop.profile(model, inputs=[im], verbose=False)[0] / 1e9 * 2  # imgsz GFLOPs
     except Exception:
         return 0.0
 
@@ -916,7 +916,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
             m = m.half() if hasattr(m, "half") and isinstance(x, torch.Tensor) and x.dtype is torch.float16 else m
             tf, tb, t = 0, 0, [0, 0, 0]  # dt forward, backward
             try:
-                flops = thop.profile(deepcopy(m), inputs=[x], verbose=False)[0] / 1e9 * 2 if thop else 0  # GFLOPs
+                flops = thop.profile(m, inputs=[x], verbose=False)[0] / 1e9 * 2 if thop else 0  # GFLOPs
             except Exception:
                 flops = 0
 

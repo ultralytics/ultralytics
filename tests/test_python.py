@@ -562,6 +562,22 @@ def test_pose_metrics_curves():
     assert len(curves) == len(set(curves)) == 8
 
 
+def test_ap_per_class_prec_values_alignment():
+    """Test `prec_values` keeps one row per class, aligned with `unique_classes` and `ap`, when a middle GT class has no predictions."""
+    from ultralytics.utils.metrics import ap_per_class
+
+    tp = np.array([[True] * 10, [False] * 10, [True] * 10])  # per-detection TP across 10 IoU thresholds
+    conf = np.array([0.9, 0.8, 0.7])
+    pred_cls = np.array([0.0, 2.0, 2.0])  # class 1 gets zero predictions
+    target_cls = np.array([0.0, 1.0, 2.0])  # 3 GT classes, one label each
+
+    *_, ap, unique_classes, _, _, _, _, prec_values = ap_per_class(tp, conf, pred_cls, target_cls)
+
+    assert prec_values.shape[0] == len(unique_classes) == ap.shape[0] == 3
+    assert not prec_values[1].any()  # class 1 (no predictions) keeps a zero row instead of shifting classes 2+
+    assert prec_values[0].any() and prec_values[2].any()  # classes with predictions keep their real curves
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_multi():

@@ -57,7 +57,7 @@ This section provides the Python code used to create a Gradio interface for Ultr
 
 ```python
 import gradio as gr
-import PIL.Image as Image
+from PIL import Image
 
 from ultralytics import ASSETS, YOLO
 

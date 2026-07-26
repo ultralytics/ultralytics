@@ -34,7 +34,7 @@ from ultralytics.models.yolo.detect import DetectionTrainer
 class CustomTrainer(DetectionTrainer):
     """A custom trainer that extends DetectionTrainer with additional functionality."""
 
-    pass  # Add your customizations here
+    # Add your customizations here
 
 
 model = YOLO("yolo26n.pt")
@@ -198,8 +198,6 @@ model.train(data="coco8.yaml", epochs=10, trainer=WeightedTrainer)
 
     class WeightedDetectionModel(DetectionModel):
         """Detection model that uses class-weighted loss."""
-
-        ...
     ```
 
     ```python

@@ -1471,8 +1471,15 @@ class Exporter:
     @try_export
     def export_ascend(self, prefix=colorstr("Ascend:")):  # noqa: B008
         """Export YOLO model to Huawei Ascend offline model (.om) format."""
+        import shutil
+
         from ultralytics.utils.export.ascend import onnx2ascend
 
+        assert shutil.which("atc"), (
+            "Ascend export requires the CANN toolkit 'atc' compiler, which was not found on PATH. Install CANN and "
+            "source its environment, e.g. `source /usr/local/Ascend/ascend-toolkit/set_env.sh`. "
+            "See https://docs.ultralytics.com/integrations/ascend/"
+        )
         if self.args.opset and self.args.opset > 17:
             LOGGER.warning(f"{prefix} the CANN ONNX parser requires opset<=17, setting opset=17.")
         self.args.opset = min(self.args.opset or 17, 17)

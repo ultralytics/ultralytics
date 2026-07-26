@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import shlex
-import shutil
 import subprocess
 from pathlib import Path
 
@@ -35,21 +34,14 @@ def onnx2ascend(
     Returns:
         (str): Path to the exported Ascend model directory.
     """
-    if not shutil.which("atc"):
-        raise FileNotFoundError(
-            "Ascend export requires the CANN toolkit 'atc' compiler, which was not found on PATH. Install CANN and "
-            "source its environment, e.g. `source /usr/local/Ascend/ascend-toolkit/set_env.sh`. "
-            "See https://docs.ultralytics.com/integrations/ascend/"
-        )
-
-    output_dir = Path(output_dir)
+    output_dir = Path(output_dir).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
     cmd = [
         "atc",
-        f"--model={onnx_file}",
+        f"--model={Path(onnx_file).resolve()}",  # absolute: ATC runs with cwd=output_dir
         "--framework=5",  # 5 = ONNX
-        f"--output={output_dir / Path(onnx_file).stem}",  # ATC appends the .om suffix itself
+        f"--output={output_dir / f'{Path(onnx_file).stem}_{name}'}",  # ATC appends the .om suffix
         "--input_format=NCHW",
         f"--input_shape=images:{batch},{channels},{imgsz[0]},{imgsz[1]}",
         f"--soc_version={name}",
@@ -57,7 +49,7 @@ def onnx2ascend(
     ]  # argv list avoids shell metacharacter issues in onnx_file/output_dir paths
     LOGGER.info(f"\n{prefix} starting export with ATC for {name}...")
     LOGGER.info(f"{prefix} running '{shlex.join(cmd)}'")
-    subprocess.run(cmd, check=True)
+    subprocess.run(cmd, check=True, cwd=output_dir)  # ATC litters kernel_meta/ and fusion_result.json in the CWD
 
     if metadata is not None:
         YAML.save(output_dir / "metadata.yaml", metadata)

@@ -83,6 +83,7 @@ Ultralytics offers a diverse range of pretrained models for various tasks:
 - Object Detection: YOLO26n, YOLO26s, YOLO26m, YOLO26l, YOLO26x
 - [Instance Segmentation](https://www.ultralytics.com/glossary/instance-segmentation): YOLO26n-seg, YOLO26s-seg, YOLO26m-seg, YOLO26l-seg, YOLO26x-seg
 - [Semantic Segmentation](../tasks/semantic.md): YOLO26n-sem, YOLO26s-sem, YOLO26m-sem, YOLO26l-sem, YOLO26x-sem
+- [Depth Estimation](../tasks/depth.md): YOLO26n-depth, YOLO26s-depth, YOLO26m-depth, YOLO26l-depth, YOLO26x-depth
 - Classification: YOLO26n-cls, YOLO26s-cls, YOLO26m-cls, YOLO26l-cls, YOLO26x-cls
 - Pose Estimation: YOLO26n-pose, YOLO26s-pose, YOLO26m-pose, YOLO26l-pose, YOLO26x-pose
 - Oriented Detection (OBB): YOLO26n-obb, YOLO26s-obb, YOLO26m-obb, YOLO26l-obb, YOLO26x-obb
@@ -131,7 +132,7 @@ Key distinctions include:
 - MuSGD Optimizer: A hybrid of SGD and Muon (inspired by Moonshot AI's Kimi K2) for more stable training and faster convergence.
 - CPU Performance: YOLO26 delivers up to 43% faster CPU inference, making it ideal for devices without GPUs.
 - Task-Specific Optimizations: Enhanced segmentation with semantic loss and multi-scale protos, RLE for precision pose estimation, and improved OBB decoding with angle loss.
-- Tasks: Both models support [object detection](https://www.ultralytics.com/glossary/object-detection) and instance segmentation, while YOLO26 also adds [semantic segmentation](../tasks/semantic.md) for dense pixel-level prediction. Both models also support classification, pose estimation, and oriented object detection (OBB) in a unified framework.
+- Tasks: Both models support [object detection](https://www.ultralytics.com/glossary/object-detection) and instance segmentation, while YOLO26 also adds [semantic segmentation](../tasks/semantic.md) for dense pixel-level prediction and [monocular depth estimation](../tasks/depth.md) for per-pixel depth. Both models also support classification, pose estimation, and oriented object detection (OBB) in a unified framework.
 
 For an in-depth comparison of features and performance metrics, visit the [YOLO26 documentation page](../models/yolo26.md).
 
@@ -168,7 +169,7 @@ For environment-specific installation instructions and troubleshooting tips, con
 Ultralytics YOLO boasts a rich set of features for advanced computer vision tasks:
 
 - Real-Time Detection: Efficiently detect and classify objects in real-time scenarios.
-- Multi-Task Capabilities: Perform object detection, instance segmentation, [semantic segmentation](../tasks/semantic.md), classification, pose estimation, and oriented object detection (OBB) with a unified framework.
+- Multi-Task Capabilities: Perform object detection, instance segmentation, [semantic segmentation](../tasks/semantic.md), [monocular depth estimation](../tasks/depth.md), classification, pose estimation, and oriented object detection (OBB) with a unified framework.
 - Pretrained Models: Access a variety of [pretrained models](../models/index.md) that balance speed and accuracy for different use cases.
 - Custom Training: Easily fine-tune models on custom datasets with the flexible [training pipeline](../modes/train.md).
 - Wide [Deployment Options](../guides/model-deployment-options.md): Export models to various formats like TensorRT, ONNX, and CoreML for deployment across different platforms.

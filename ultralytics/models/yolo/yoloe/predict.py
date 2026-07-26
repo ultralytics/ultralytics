@@ -46,6 +46,29 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         """
         self.prompts = prompts
 
+    def preprocess(self, im):
+        """Preprocess images, converting dict prompts for tensor sources that never pass through pre_transform."""
+        if isinstance(im, torch.Tensor) and isinstance(self.prompts, dict):
+            h, w = im.shape[2:]  # tensor sources skip letterboxing, so src and dst shapes are identical
+            self.prompts = self._prompts_to_tensor((h, w), (h, w))
+        return super().preprocess(im)
+
+    def _prompts_to_tensor(self, dst_shape, src_shape):
+        """Convert the single-image prompts dict to a batched visuals tensor on the model device.
+
+        Args:
+            dst_shape (tuple): The target (height, width) after any letterboxing.
+            src_shape (tuple): The original (height, width) the prompts refer to.
+
+        Returns:
+            (torch.Tensor): Visual prompts tensor of shape (1, N, H, W) in model precision.
+        """
+        bboxes = self.prompts.get("bboxes", None)
+        masks = self.prompts.get("masks", None)
+        visuals = self._process_single_image(dst_shape, src_shape, self.prompts["cls"], bboxes, masks)
+        prompts = visuals.unsqueeze(0).to(self.device)  # (1, N, H, W)
+        return prompts.half() if self.model.fp16 else prompts.float()
+
     def pre_transform(self, im):
         """Preprocess images and prompts before inference.
 
@@ -62,13 +85,13 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
             ValueError: If neither valid bounding boxes nor masks are provided in the prompts.
         """
         img = super().pre_transform(im)
-        bboxes = self.prompts.pop("bboxes", None)
-        masks = self.prompts.pop("masks", None)
-        category = self.prompts["cls"]
+        if not isinstance(self.prompts, dict):  # already converted (tensor source, or re-entry at batch=1)
+            return img
         if len(img) == 1:
-            visuals = self._process_single_image(img[0].shape[:2], im[0].shape[:2], category, bboxes, masks)
-            prompts = visuals.unsqueeze(0).to(self.device)  # (1, N, H, W)
+            self.prompts = self._prompts_to_tensor(img[0].shape[:2], im[0].shape[:2])
         else:
+            bboxes = self.prompts.get("bboxes", None)
+            category = self.prompts["cls"]
             # NOTE: only supports bboxes as prompts for now
             assert bboxes is not None, f"Expected bboxes, but got {bboxes}!"
             # NOTE: needs list[np.ndarray]
@@ -86,7 +109,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
                 for i in range(len(img))
             ]
             prompts = torch.nn.utils.rnn.pad_sequence(visuals, batch_first=True).to(self.device)  # (B, N, H, W)
-        self.prompts = prompts.half() if self.model.fp16 else prompts.float()
+            self.prompts = prompts.half() if self.model.fp16 else prompts.float()
         return img
 
     def _process_single_image(self, dst_shape, src_shape, category, bboxes=None, masks=None):
@@ -136,45 +159,44 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         Returns:
             (torch.Tensor): Model prediction results.
         """
-        return super().inference(im, vpe=self.prompts, *args, **kwargs)
+        return super().inference(im, *args, vpe=self.prompts, **kwargs)
 
     def get_vpe(self, source):
         """Process the source to get the visual prompt embeddings (VPE).
 
+        Preprocesses each image via preprocess(), which converts the visual prompts to tensor format (and letterboxes
+        array inputs), then extracts the VPE from the model. Multiple reference images are embedded one by one and
+        merged class-wise, so each class embedding averages every reference example of that class.
+
         Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of the image to
-                make predictions on. Accepts various types including file paths, URLs, PIL images, numpy arrays, and
-                torch tensors.
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of the image(s)
+                to make predictions on. Accepts various types including file paths, URLs, PIL images, numpy arrays, and
+                torch tensors. A list of reference images requires one set of `bboxes` and `cls` prompts per image.
 
         Returns:
             (torch.Tensor): The visual prompt embeddings (VPE) from the model.
+
+        Raises:
+            AssertionError: If the source does not fit in a single batch, e.g. a directory of images.
         """
         self.setup_source(source)
+        assert len(self.dataset) == self.dataset.bs, "get_vpe only supports a single image or a list of images!"
         for _, im0s, _ in self.dataset:
-            if len(im0s) > 1:  # multiple refer_image
-                categories = self.prompts["cls"]
-                prompts = self.prompts  # original prompts
-                vpes = []
-                for i, im in enumerate(im0s):
-                    self.prompts = {k: prompts[k][i] for k in ["bboxes", "cls"]}  # extract prompt for current image
-                    im = self.preprocess([im])
-                    vpes += [self.model(im, vpe=self.prompts, return_vpe=True)]
-                vpe_stack = []  # vpe for each class processed separately
-                for cls_id in range(len(self.model.names)):  # merge embeddings classwise
-                    cls_stack = []  # collect embeddings for same class
-                    for vpe, cat in zip(vpes, categories):
-                        if cls_id in cat:  # image may not have prompts for current class
-                            cls_stack += [
-                                vpe[0, np.unique(cat).tolist().index(cls_id)]
-                            ]  # index of cls_id in unique list
-                    vpe_stack += [torch.nn.functional.normalize(torch.stack(cls_stack).mean(0), p=2, dim=-1)]
-                return torch.stack(vpe_stack)[None]
-            else:
+            if len(im0s) == 1:  # single reference image
                 im = self.preprocess(im0s)
                 return self.model(im, vpe=self.prompts, return_vpe=True)
+            prompts = self.prompts  # one set of prompts per reference image
+            vpes = []
+            for i, im in enumerate(im0s):
+                self.prompts = {k: prompts[k][i] for k in ("bboxes", "cls")}  # prompts of the current image
+                vpes.append(self.model(self.preprocess([im]), vpe=self.prompts, return_vpe=True))
+            vpe = []
+            for i in range(len(self.model.names)):  # merge embeddings class-wise across reference images
+                # An image embeds class i only if prompted for it, at the index of i in its sorted unique classes
+                stack = [v[0, np.unique(c).tolist().index(i)] for v, c in zip(vpes, prompts["cls"]) if i in c]
+                vpe.append(torch.nn.functional.normalize(torch.stack(stack).mean(0), p=2, dim=-1))
+            return torch.stack(vpe)[None]
 
 
 class YOLOEVPSegPredictor(YOLOEVPDetectPredictor, SegmentationPredictor):
     """Predictor for YOLO-EVP segmentation tasks combining detection and segmentation capabilities."""
-
-    pass

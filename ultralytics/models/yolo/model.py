@@ -13,6 +13,7 @@ from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import (
     ClassificationModel,
+    DepthModel,
     DetectionModel,
     OBBModel,
     PoseModel,
@@ -118,6 +119,12 @@ class YOLO(Model):
                 "validator": yolo.obb.OBBValidator,
                 "predictor": yolo.obb.OBBPredictor,
             },
+            "depth": {
+                "model": DepthModel,
+                "trainer": yolo.depth.DepthTrainer,
+                "validator": yolo.depth.DepthValidator,
+                "predictor": yolo.depth.DepthPredictor,
+            },
             "semantic": {
                 "model": SemanticSegmentationModel,
                 "trainer": yolo.semantic.SemanticSegmentationTrainer,
@@ -174,7 +181,7 @@ class YOLOWorld(Model):
         return {
             "detect": {
                 "model": WorldModel,
-                "validator": yolo.detect.DetectionValidator,
+                "validator": yolo.world.WorldValidator,
                 "predictor": yolo.detect.DetectionPredictor,
                 "trainer": yolo.world.WorldTrainer,
             }
@@ -322,7 +329,7 @@ class YOLOE(Model):
         # Verify no background class is present
         assert " " not in classes
         assert isinstance(self.model, YOLOEModel)
-        if sorted(list(self.model.names.values())) != sorted(classes):
+        if sorted(self.model.names.values()) != sorted(classes):
             if embeddings is None:
                 embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
             self.model.set_classes(classes, embeddings)
@@ -375,7 +382,8 @@ class YOLOE(Model):
                 are computed.
             visual_prompts (dict[str, list]): Dictionary containing visual prompts for the model. Must include 'bboxes'
                 and 'cls' keys when non-empty.
-            refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
+            refer_image (str | PIL.Image | np.ndarray | list, optional): Reference image for visual prompts. Pass a
+                list to merge prompts from multiple reference images, with one set of 'bboxes' and 'cls' per image.
             predictor (callable): Custom predictor class for visual prompt predictions. Defaults to
                 YOLOEVPDetectPredictor.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
@@ -395,14 +403,14 @@ class YOLOE(Model):
             assert "bboxes" in visual_prompts and "cls" in visual_prompts, (
                 f"Expected 'bboxes' and 'cls' in visual prompts, but got {visual_prompts.keys()}"
             )
-            if isinstance(refer_image, list):  # multiple reference images
-                assert len(visual_prompts["bboxes"]) == len(visual_prompts["cls"]) == len(refer_image), (
-                    "Expected number of prompts to be equal to number of reference images."
-                )
-            else:
-                assert len(visual_prompts["bboxes"]) == len(visual_prompts["cls"]), (
-                    f"Expected equal number of bounding boxes and classes, but got {len(visual_prompts['bboxes'])} and "
-                    f"{len(visual_prompts['cls'])} respectively"
+            assert len(visual_prompts["bboxes"]) == len(visual_prompts["cls"]), (
+                f"Expected equal number of bounding boxes and classes, but got {len(visual_prompts['bboxes'])} and "
+                f"{len(visual_prompts['cls'])} respectively"
+            )
+            if isinstance(refer_image, list):  # one set of prompts per reference image
+                assert len(visual_prompts["cls"]) == len(refer_image), (
+                    f"Expected {len(refer_image)} sets of prompts for {len(refer_image)} reference images, but got "
+                    f"{len(visual_prompts['cls'])}"
                 )
             if type(self.predictor) is not predictor:
                 args = get_cfg(overrides={**self.overrides, **kwargs})
@@ -411,7 +419,7 @@ class YOLOE(Model):
                         "task": self.model.task,
                         "mode": "predict",
                         "save": False,
-                        "verbose": refer_image is None,
+                        "verbose": kwargs.get("verbose", self.overrides.get("verbose", refer_image is None)),
                         "batch": 1,
                         "device": args.device,
                         "quantize": args.quantize,
@@ -420,15 +428,16 @@ class YOLOE(Model):
                     _callbacks=self.callbacks,
                 )
 
-            num_cls = (
-                max(max(c) + 1 for c in visual_prompts["cls"])
-                if isinstance(visual_prompts["cls"], list)  # means multiple images
-                else len(set(visual_prompts["cls"]))
-            )
+            if isinstance(refer_image, list):  # class IDs are shared across reference images
+                num_cls = max(int(max(c)) + 1 for c in visual_prompts["cls"])
+            elif isinstance(source, list) and refer_image is None:  # means multiple images
+                num_cls = max(len(set(c)) for c in visual_prompts["cls"])
+            else:
+                num_cls = len(set(visual_prompts["cls"]))
             self.model.model[-1].nc = num_cls
             self.model.names = [f"object{i}" for i in range(num_cls)]
             self.predictor.set_prompts(visual_prompts.copy())
-            self.predictor.setup_model(model=self.model)
+            self.predictor.setup_model(model=self.model, verbose=self.predictor.args.verbose)
 
             if refer_image is None and source is not None:
                 dataset = load_inference_source(source)

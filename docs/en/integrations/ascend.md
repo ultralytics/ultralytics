@@ -40,6 +40,17 @@ All standard Ultralytics tasks are supported for Ascend export across YOLO26, YO
 | [Classification](../tasks/classify.md)        | ✅        |
 | [Depth Estimation](../tasks/depth.md)         | ✅        |
 
+## Supported Devices
+
+Pass the target SoC with `name`; ATC bakes it into the `.om` as `--soc_version`, so it must match the board you deploy to. Locally you can compile for any SoC your CANN installation provides kernels for. On [Ultralytics Platform](https://platform.ultralytics.com), the 310B targets are listed as coming soon while their operator kernels are added to the build image.
+
+| `name`        | Devices                           | Local export | Platform    |
+| :------------ | :-------------------------------- | :----------- | :---------- |
+| `Ascend310P3` | Atlas 300I Pro, Atlas 300V Pro    | ✅           | ✅          |
+| `Ascend310P1` | Atlas 300I                        | ✅           | ✅          |
+| `Ascend310B4` | OrangePi AIPro 20T, Atlas 200I A2 | ✅           | Coming soon |
+| `Ascend310B1` | OrangePi AIPro 8T                 | ✅           | Coming soon |
+
 ## Export to Ascend: Converting Your YOLO Model
 
 !!! note
@@ -99,16 +110,16 @@ The Ascend format supports the [Export](../modes/export.md), [Predict](../modes/
 
 ### Export Arguments
 
-| Argument   | Type             | Default         | Description                                                                                                                             |
-| :--------- | :--------------- | :-------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'ascend'`      | Target format for the exported model, defining compatibility with Ascend AI Processors.                                                 |
-| `name`     | `str`            | `'Ascend310B4'` | Target SoC passed to ATC as `--soc_version`, e.g. `Ascend310B4` or `Ascend310P3`. Must match your deployment device.                    |
-| `imgsz`    | `int` or `tuple` | `640`           | Desired image size for the model input, baked into the `.om` as a static shape.                                                         |
-| `batch`    | `int`            | `1`             | Static batch size compiled into the offline model.                                                                                      |
-| `quantize` | `int`            | `16`            | Quantization precision. Ascend export is FP16-only and auto-enables `16` if not specified. Replaces the deprecated `half`/`int8` flags. |
-| `opset`    | `int`            | `17`            | ONNX opset for the intermediate graph. Capped at 17, the highest version the CANN ONNX parser accepts.                                  |
-| `simplify` | `bool`           | `True`          | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                 |
-| `nms`      | `bool`           | `False`         | Adds Non-Maximum Suppression to the exported graph.                                                                                     |
+| Argument   | Type             | Default         | Description                                                                                                                                    |
+| :--------- | :--------------- | :-------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'ascend'`      | Target format for the exported model, defining compatibility with Ascend AI Processors.                                                        |
+| `name`     | `str`            | `'Ascend310B4'` | Target SoC passed to ATC as `--soc_version`: `Ascend310P3`, `Ascend310P1`, `Ascend310B4`, or `Ascend310B1`. Must match your deployment device. |
+| `imgsz`    | `int` or `tuple` | `640`           | Desired image size for the model input, baked into the `.om` as a static shape.                                                                |
+| `batch`    | `int`            | `1`             | Static batch size compiled into the offline model.                                                                                             |
+| `quantize` | `int`            | `16`            | Quantization precision. Ascend export is FP16-only and auto-enables `16` if not specified. Replaces the deprecated `half`/`int8` flags.        |
+| `opset`    | `int`            | `17`            | ONNX opset for the intermediate graph. Capped at 17, the highest version the CANN ONNX parser accepts.                                         |
+| `simplify` | `bool`           | `True`          | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                        |
+| `nms`      | `bool`           | `False`         | Adds Non-Maximum Suppression to the exported graph.                                                                                            |
 
 !!! note "Why is FP32 unavailable?"
 
@@ -193,4 +204,4 @@ Ascend AI Core convolutions accept only `DT_FLOAT16` and `DT_INT8` tensors. An F
 
 ### Which Ascend devices are supported?
 
-Any SoC that your installed CANN toolkit provides kernels for, selected through the `name` argument. Common targets are `Ascend310B4` for Atlas 200I A2 and OrangePi AIPro boards, and `Ascend310P3` for Atlas 300I inference cards. On [Ultralytics Platform](https://platform.ultralytics.com), Ascend310P targets are available now and the 310B boards are marked coming soon while their operator kernels are added to the build image.
+Any SoC that your installed CANN toolkit provides kernels for, selected through the `name` argument. See [Supported Devices](#supported-devices) for the four validated targets and their availability on Ultralytics Platform.

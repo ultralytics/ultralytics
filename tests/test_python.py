@@ -1909,8 +1909,8 @@ def multilabel_dataset():
             img_path = img_dir / f"img_{split}_{i}.jpg"
             Image.fromarray(img).save(img_path)
             num_labels = (i % 3) + 1
-            class_indices = sorted(set(j % nc for j in range(i, i + num_labels)))
-            labels.append([img_path.name] + class_indices)
+            class_indices = sorted({j % nc for j in range(i, i + num_labels)})
+            labels.append([img_path.name, *class_indices])
         labels_file = img_dir / "labels.csv"
         with open(labels_file, "w", newline="") as f:
             csv.writer(f).writerows(labels)

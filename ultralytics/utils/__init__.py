@@ -702,8 +702,7 @@ class TypeValidator:
     """Validates data types against predefined schema with clear error messages."""
 
     def __init__(self, valid_types):
-        """
-        Initialize validator with type schema including examples and documentation.
+        """Initialize validator with type schema including examples and documentation.
 
         Args:
             valid_types: List of tuples/lists, each containing [key, expected_types, example, docs_link].
@@ -719,15 +718,14 @@ class TypeValidator:
         return ", ".join(t.__name__ for t in types) if isinstance(types, tuple) else types.__name__
 
     def __call__(self, data):
-        """
-        Validate data dictionary against defined type schema.
+        """Validate data dictionary against defined type schema.
 
         Args:
             data: Dictionary to validate against the schema
 
         Raises:
-            TypeError: When a value's type doesn't match expected types,
-                      includes helpful example and documentation link if provided
+            TypeError: When a value's type doesn't match expected types, includes helpful example and documentation link
+                if provided
         """
         for key, types, example, docs in self.valid_types:
             if data.get(key) is not None and not isinstance(data[key], types):

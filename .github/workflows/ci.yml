@@ -465,6 +465,9 @@ jobs:
         github.event_name == 'schedule' ||
         (github.event_name == 'workflow_dispatch' && github.event.inputs.amd-gpu == 'true')
       )
+    permissions:
+      contents: read
+      id-token: write
     timeout-minutes: 120
     runs-on: amd-gpu-latest
     steps:

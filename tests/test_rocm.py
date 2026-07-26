@@ -115,7 +115,7 @@ def test_rocm_predict_sam():
             "imgsz": 1024,
             "model": WEIGHTS_DIR / "mobile_sam.pt",
             "device": DEVICES[0],
-            "half": True,
+            "quantize": 16,
         }
     )
     predictor.set_image(ASSETS / "zidane.jpg")

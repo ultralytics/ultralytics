@@ -484,7 +484,7 @@ Set `class_mode` when initializing the model to control how the class embeddings
         import numpy as np
 
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEVPDetectPredictor
+        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         # Initialize a YOLOE model with the memory bank in prototype mode
         model = YOLOE("yoloe-26l-seg.pt", class_mode="prototype")
@@ -502,7 +502,7 @@ Set `class_mode` when initializing the model to control how the class embeddings
                 "cls": ["person"],
             },
             vp_weight={"person": 0.5},  # weight of the visual prompt relative to the text embedding, per class
-            predictor=YOLOEVPDetectPredictor,
+            predictor=YOLOEVPSegPredictor,
         )
 
         # Add another visual prompt on the same image
@@ -516,7 +516,7 @@ Set `class_mode` when initializing the model to control how the class embeddings
                 ),
                 "cls": [0],  # an int cls stores a visual-only entry named "object0" in the memory bank
             },
-            predictor=YOLOEVPDetectPredictor,
+            predictor=YOLOEVPSegPredictor,
         )
 
         # Predict on a new image with no prompts, reusing the stored text and visual prompt embeddings

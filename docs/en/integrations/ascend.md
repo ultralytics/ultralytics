@@ -110,16 +110,16 @@ The Ascend format supports the [Export](../modes/export.md), [Predict](../modes/
 
 ### Export Arguments
 
-| Argument   | Type             | Default         | Description                                                                                                                                    |
-| :--------- | :--------------- | :-------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'ascend'`      | Target format for the exported model, defining compatibility with Ascend AI Processors.                                                        |
-| `name`     | `str`            | `'Ascend310B4'` | Target SoC passed to ATC as `--soc_version`: `Ascend310P3`, `Ascend310P1`, `Ascend310B4`, or `Ascend310B1`. Must match your deployment device. |
-| `imgsz`    | `int` or `tuple` | `640`           | Desired image size for the model input, baked into the `.om` as a static shape.                                                                |
-| `batch`    | `int`            | `1`             | Static batch size compiled into the offline model.                                                                                             |
-| `quantize` | `int`            | `16`            | Quantization precision. Ascend export is FP16-only and auto-enables `16` if not specified. Replaces the deprecated `half`/`int8` flags.        |
-| `opset`    | `int`            | `17`            | ONNX opset for the intermediate graph. Capped at 17, the highest version the CANN ONNX parser accepts.                                         |
-| `simplify` | `bool`           | `True`          | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                        |
-| `nms`      | `bool`           | `False`         | Adds Non-Maximum Suppression to the exported graph.                                                                                            |
+| Argument   | Type             | Default         | Description                                                                                                                                                                                          |
+| :--------- | :--------------- | :-------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'ascend'`      | Target format for the exported model, defining compatibility with Ascend AI Processors.                                                                                                              |
+| `name`     | `str`            | `'Ascend310B4'` | Target SoC passed to ATC as `--soc_version`, e.g. `Ascend310P3`. Any SoC your CANN install has kernels for is valid; see [Supported Devices](#supported-devices). Must match your deployment device. |
+| `imgsz`    | `int` or `tuple` | `640`           | Desired image size for the model input, baked into the `.om` as a static shape.                                                                                                                      |
+| `batch`    | `int`            | `1`             | Static batch size compiled into the offline model.                                                                                                                                                   |
+| `quantize` | `int`            | `16`            | Quantization precision. Ascend export is FP16-only and auto-enables `16` if not specified. Replaces the deprecated `half`/`int8` flags.                                                              |
+| `opset`    | `int`            | `17`            | ONNX opset for the intermediate graph. Capped at 17, the highest version the CANN ONNX parser accepts.                                                                                               |
+| `simplify` | `bool`           | `True`          | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                              |
+| `nms`      | `bool`           | `False`         | Adds Non-Maximum Suppression to the exported graph.                                                                                                                                                  |
 
 !!! note "Why is FP32 unavailable?"
 

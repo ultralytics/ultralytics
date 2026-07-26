@@ -724,6 +724,8 @@ class Exporter:
             elif self.args.quantize is None:
                 self.args.quantize = 16
         if fmt == "ascend":
+            # No SoC allowlist: valid --soc_version values depend on which Ascend-cann-kernels-* packages are
+            # installed, so a hardcoded list would reject valid targets. ATC reports an unknown SoC itself.
             if not self.args.name:
                 LOGGER.warning(
                     "Huawei Ascend export requires a missing 'name' arg for the target SoC. "
@@ -1471,8 +1473,6 @@ class Exporter:
     @try_export
     def export_ascend(self, prefix=colorstr("Ascend:")):  # noqa: B008
         """Export YOLO model to Huawei Ascend offline model (.om) format."""
-        import shutil
-
         from ultralytics.utils.export.ascend import onnx2ascend
 
         assert shutil.which("atc"), (

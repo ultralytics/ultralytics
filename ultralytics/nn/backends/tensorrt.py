@@ -65,9 +65,9 @@ class TensorRTBackend(BaseBackend):
         self.infer_device = f"dla:{int(dla)}" if dla is not None else str(self.device)
         try:
             self.context = engine.create_execution_context()
-        except Exception as e:
+        except Exception:
             LOGGER.error("TensorRT model exported with a different version than expected\n")
-            raise e
+            raise
 
         # Setup bindings
         self.bindings = OrderedDict()

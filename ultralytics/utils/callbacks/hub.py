@@ -3,6 +3,8 @@
 import json
 from time import time
 
+from torch import nn
+
 from ultralytics.hub import HUB_WEB_ROOT, PREFIX, HUBTrainingSession
 from ultralytics.utils import LOGGER, RANK, SETTINGS
 from ultralytics.utils.events import events
@@ -96,11 +98,10 @@ def on_predict_batch_end(predictor):
     # Image size from args
     imgsz = getattr(predictor.args, "imgsz", None)
 
-    # Model parameter count (PyTorch models only)
-    try:
-        model_params = sum(p.numel() for p in model.parameters()) if model and hasattr(model, "parameters") else None
-    except Exception:
-        model_params = None
+    # Model parameter count (PyTorch models only). AutoBackend holds no parameters of its own, so read them from the
+    # backend's underlying torch module.
+    torch_model = getattr(backend, "model", None)
+    model_params = sum(p.numel() for p in torch_model.parameters()) if isinstance(torch_model, nn.Module) else None
 
     # Per-image speed from the last processed batch
     speed = None

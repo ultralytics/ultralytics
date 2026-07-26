@@ -43,6 +43,7 @@ class Events:
     Methods:
         __init__: Initialize the event queue, rate limiter, and runtime metadata.
         __call__: Queue an event and trigger a non-blocking send when the rate limit elapses.
+        flush: Send any queued events synchronously before a short-lived process exits.
     """
 
     url = "https://www.google-analytics.com/mp/collect?measurement_id=G-X8NCJYTQXM&api_secret=QLQrATrNSwGRFRLE-cbHJw"

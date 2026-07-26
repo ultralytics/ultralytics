@@ -109,7 +109,7 @@ Ultralytics YOLO26 stands out for its real-time object detection capabilities an
 
 ### Can I deploy my YOLO26 model on edge devices using Paperspace Gradient?
 
-Yes, you can deploy YOLO26 models on edge devices using Paperspace Gradient. The platform supports various deployment formats like [TFLite](../integrations/tflite.md) and [Edge TPU](../integrations/edge-tpu.md), which are optimized for edge devices. After training your model on Gradient, refer to our [export guide](../modes/export.md) for instructions on converting your model to the desired format.
+Yes, you can deploy YOLO26 models on edge devices using Paperspace Gradient. The platform supports various deployment formats like [LiteRT](../integrations/litert.md) and [Edge TPU](../integrations/edge-tpu.md), which are optimized for edge devices. After training your model on Gradient, refer to our [export guide](../modes/export.md) for instructions on converting your model to the desired format.
 
 ### How does experiment tracking in Paperspace Gradient help improve YOLO26 training?
 

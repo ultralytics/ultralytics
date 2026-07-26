@@ -1738,7 +1738,8 @@ class E2ELoss:
             # the aux branch is training-only, so "aux_fg" is absent at validation (eval mode); report 0 there
             target = self.one2many.obj_fg_score if self.aux_fg_iou else self.one2many.obj_fg
             aux = self.aux_fg * self.aux_fg_loss(preds["aux_fg"], target) if "aux_fg" in preds else total.new_zeros(())
-            total = torch.cat((total, (aux * batch_size).view(1)))
+            # scaled by the one2many branch weight, so it decays on the o2m schedule and vanishes with the aux head
+            total = torch.cat((total, (self.o2m * aux * batch_size).view(1)))
             loss_items = torch.cat((loss_items, aux.detach().view(1)))
         return total, loss_items
 

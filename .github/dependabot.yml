@@ -1,4 +1,5 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Dependabot for package version updates
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
@@ -7,21 +8,17 @@ updates:
   - package-ecosystem: pip
     directory: "/"
     schedule:
-      interval: weekly
+      interval: monthly
       time: "04:00"
     open-pull-requests-limit: 10
-    reviewers:
-      - glenn-jocher
     labels:
       - dependencies
 
   - package-ecosystem: github-actions
     directory: "/.github/workflows"
     schedule:
-      interval: weekly
+      interval: daily
       time: "04:00"
     open-pull-requests-limit: 5
-    reviewers:
-      - glenn-jocher
     labels:
       - dependencies

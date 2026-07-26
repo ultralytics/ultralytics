@@ -1,14 +1,15 @@
 ---
+title: YOLO26 Heatmaps for Data Visualization
 comments: true
-description: Transform complex data into insightful heatmaps using Ultralytics YOLO11. Discover patterns, trends, and anomalies with vibrant visualizations.
-keywords: Ultralytics, YOLO11, heatmaps, data visualization, data analysis, complex data, patterns, trends, anomalies
+description: Generate real-time object tracking heatmaps on video with the Ultralytics YOLO26 Heatmap solution to visualize traffic flow and crowd movement patterns.
+keywords: Ultralytics, YOLO26, heatmap, object tracking heatmap, video heatmap, traffic flow visualization, crowd movement analysis, Heatmap solution, OpenCV colormaps, computer vision
 ---
 
-# Advanced [Data Visualization](https://www.ultralytics.com/glossary/data-visualization): Heatmaps using Ultralytics YOLO11 🚀
+# Object Tracking Heatmaps with Ultralytics YOLO26
 
-## Introduction to Heatmaps
+<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-generate-heatmaps-using-ultralytics-yolo.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Heatmaps In Colab"></a>
 
-A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics/) transforms complex data into a vibrant, color-coded matrix. This visual tool employs a spectrum of colors to represent varying data values, where warmer hues indicate higher intensities and cooler tones signify lower values. Heatmaps excel in visualizing intricate data patterns, correlations, and anomalies, offering an accessible and engaging approach to data interpretation across diverse domains.
+The [Heatmap solution](../reference/solutions/heatmap.md) in [Ultralytics YOLO26](../models/yolo26.md) tracks objects across video frames and overlays their accumulated movement intensity onto each frame, so busy areas glow in warm colors while quiet areas stay cool. Built on YOLO26 [object tracking](../modes/track.md), it turns any video into a spatial activity map that reveals traffic flow, crowd movement, and dwell zones with a single Python call or CLI command.
 
 <p align="center">
   <br>
@@ -18,23 +19,27 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Heatmaps using Ultralytics YOLO11
+  <strong>Watch:</strong> Heatmaps using Ultralytics YOLO26
 </p>
 
-## Why Choose Heatmaps for Data Analysis?
+## Why Use Heatmaps for Video Analytics?
 
-- **Intuitive Data Distribution Visualization:** Heatmaps simplify the comprehension of data concentration and distribution, converting complex datasets into easy-to-understand visual formats.
-- **Efficient Pattern Detection:** By visualizing data in heatmap format, it becomes easier to spot trends, clusters, and outliers, facilitating quicker analysis and insights.
-- **Enhanced Spatial Analysis and Decision-Making:** Heatmaps are instrumental in illustrating spatial relationships, aiding in decision-making processes in sectors such as business intelligence, environmental studies, and urban planning.
+- **Spot activity patterns at a glance:** Intensity accumulates wherever tracked objects spend time, so high-traffic lanes, popular shelves, or crowd bottlenecks stand out without manual frame-by-frame review.
+- **Tracking built in:** The solution runs YOLO26 detection and tracking internally, so there is no separate tracking pipeline to wire up.
+- **Counting in the same pass:** Pass a `region` to count objects entering and exiting a zone while the heatmap builds, combining two analytics tasks in one run.
 
 ## Real World Applications
 
-|                                                                    Transportation                                                                    |                                                                Retail                                                                |
-| :--------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------: |
-| ![Ultralytics YOLO11 Transportation Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-transportation-heatmap.avif) | ![Ultralytics YOLO11 Retail Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-retail-heatmap.avif) |
-|                                                      Ultralytics YOLO11 Transportation Heatmap                                                       |                                                  Ultralytics YOLO11 Retail Heatmap                                                   |
+|                                                                                Transportation                                                                                |                                                                                Retail                                                                                 |
+| :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| ![Ultralytics YOLO heatmap overlay showing vehicle traffic density](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-transportation-heatmap.avif) | ![Ultralytics YOLO heatmap overlay showing retail customer movement](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-retail-heatmap.avif) |
+|                                                                   Ultralytics YOLO Transportation Heatmap                                                                    |                                                                    Ultralytics YOLO Retail Heatmap                                                                    |
 
-!!! example "Heatmaps using Ultralytics YOLO11 Example"
+## How to Generate Heatmaps with Ultralytics YOLO
+
+Run the Heatmap solution on a video source from the CLI or Python. The Python example writes the processed frames to an output video file:
+
+!!! example "Heatmaps using Ultralytics YOLO"
 
     === "CLI"
 
@@ -43,13 +48,13 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
         yolo solutions heatmap show=True
 
         # Pass a source video
-        yolo solutions heatmap source="path/to/video/file.mp4"
+        yolo solutions heatmap source="path/to/video.mp4"
 
         # Pass a custom colormap
         yolo solutions heatmap colormap=cv2.COLORMAP_INFERNO
 
         # Heatmaps + object counting
-        yolo solutions heatmap region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
+        yolo solutions heatmap region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
         ```
 
     === "Python"
@@ -59,151 +64,142 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 
         from ultralytics import solutions
 
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        cap = cv2.VideoCapture("path/to/video.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Video writer
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("heatmap_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # In case you want to apply object counting + heatmaps, you can pass region points.
-        # region_points = [(20, 400), (1080, 400)]  # Define line points
-        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # Define region points
-        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]  # Define polygon points
+        # For object counting with heatmap, you can pass region points.
+        # region_points = [(20, 400), (1080, 400)]                                      # line points
+        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]              # rectangle region
+        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]   # polygon points
 
-        # Init heatmap
+        # Initialize heatmap object
         heatmap = solutions.Heatmap(
-            show=True,  # Display the output
-            model="yolo11n.pt",  # Path to the YOLO11 model file
-            colormap=cv2.COLORMAP_PARULA,  # Colormap of heatmap
-            # region=region_points,  # If you want to do object counting with heatmaps, you can pass region_points
-            # classes=[0, 2],  # If you want to generate heatmap for specific classes i.e person and car.
-            # show_in=True,  # Display in counts
-            # show_out=True,  # Display out counts
-            # line_width=2,  # Adjust the line width for bounding boxes and text display
+            show=True,  # display the output
+            model="yolo26n.pt",  # path to the YOLO26 model file
+            colormap=cv2.COLORMAP_PARULA,  # colormap of heatmap
+            # region=region_points,  # object counting with heatmaps, you can pass region_points
+            # classes=[0, 2],  # generate heatmap for specific classes, e.g., person and car.
         )
 
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
+
             if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
+                print("Video frame is empty or processing is complete.")
                 break
-            im0 = heatmap.generate_heatmap(im0)
-            video_writer.write(im0)
+
+            results = heatmap(im0)
+
+            # print(results)  # access the output
+
+            video_writer.write(results.plot_im)  # write the processed frame.
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-### Arguments `Heatmap()`
+## `Heatmap()` Arguments
 
-| Name         | Type   | Default            | Description                                                       |
-| ------------ | ------ | ------------------ | ----------------------------------------------------------------- |
-| `model`      | `str`  | `None`             | Path to Ultralytics YOLO Model File                               |
-| `colormap`   | `int`  | `cv2.COLORMAP_JET` | Colormap to use for the heatmap.                                  |
-| `show`       | `bool` | `False`            | Whether to display the image with the heatmap overlay.            |
-| `show_in`    | `bool` | `True`             | Whether to display the count of objects entering the region.      |
-| `show_out`   | `bool` | `True`             | Whether to display the count of objects exiting the region.       |
-| `region`     | `list` | `None`             | Points defining the counting region (either a line or a polygon). |
-| `line_width` | `int`  | `2`                | Thickness of the lines used in drawing.                           |
+Here's a table with the `Heatmap` arguments:
 
-### Arguments `model.track`
+{% from "macros/solutions-args.md" import param_table %}
+{{ param_table(["model", "colormap", "show_in", "show_out", "region"]) }}
 
-{% include "macros/track-args.md" %}
+You can also apply different `track` arguments in the `Heatmap` solution.
 
-### Heatmap COLORMAPs
+{% from "macros/track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+
+Additionally, the supported visualization arguments are listed below:
+
+{% from "macros/visualization-args.md" import param_table %}
+{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
+
+### Heatmap Colormaps
+
+The `colormap` argument accepts any [OpenCV colormap](https://docs.opencv.org/4.x/d3/d50/group__imgproc__colormap.html). Pass the constant from the `cv2` module, for example `colormap=cv2.COLORMAP_INFERNO`:
 
 | Colormap Name                   | Description                            |
 | ------------------------------- | -------------------------------------- |
-| `cv::COLORMAP_AUTUMN`           | Autumn color map                       |
-| `cv::COLORMAP_BONE`             | Bone color map                         |
-| `cv::COLORMAP_JET`              | Jet color map                          |
-| `cv::COLORMAP_WINTER`           | Winter color map                       |
-| `cv::COLORMAP_RAINBOW`          | Rainbow color map                      |
-| `cv::COLORMAP_OCEAN`            | Ocean color map                        |
-| `cv::COLORMAP_SUMMER`           | Summer color map                       |
-| `cv::COLORMAP_SPRING`           | Spring color map                       |
-| `cv::COLORMAP_COOL`             | Cool color map                         |
-| `cv::COLORMAP_HSV`              | HSV (Hue, Saturation, Value) color map |
-| `cv::COLORMAP_PINK`             | Pink color map                         |
-| `cv::COLORMAP_HOT`              | Hot color map                          |
-| `cv::COLORMAP_PARULA`           | Parula color map                       |
-| `cv::COLORMAP_MAGMA`            | Magma color map                        |
-| `cv::COLORMAP_INFERNO`          | Inferno color map                      |
-| `cv::COLORMAP_PLASMA`           | Plasma color map                       |
-| `cv::COLORMAP_VIRIDIS`          | Viridis color map                      |
-| `cv::COLORMAP_CIVIDIS`          | Cividis color map                      |
-| `cv::COLORMAP_TWILIGHT`         | Twilight color map                     |
-| `cv::COLORMAP_TWILIGHT_SHIFTED` | Shifted Twilight color map             |
-| `cv::COLORMAP_TURBO`            | Turbo color map                        |
-| `cv::COLORMAP_DEEPGREEN`        | Deep Green color map                   |
+| `cv2.COLORMAP_AUTUMN`           | Autumn color map                       |
+| `cv2.COLORMAP_BONE`             | Bone color map                         |
+| `cv2.COLORMAP_JET`              | Jet color map                          |
+| `cv2.COLORMAP_WINTER`           | Winter color map                       |
+| `cv2.COLORMAP_RAINBOW`          | Rainbow color map                      |
+| `cv2.COLORMAP_OCEAN`            | Ocean color map                        |
+| `cv2.COLORMAP_SUMMER`           | Summer color map                       |
+| `cv2.COLORMAP_SPRING`           | Spring color map                       |
+| `cv2.COLORMAP_COOL`             | Cool color map                         |
+| `cv2.COLORMAP_HSV`              | HSV (Hue, Saturation, Value) color map |
+| `cv2.COLORMAP_PINK`             | Pink color map                         |
+| `cv2.COLORMAP_HOT`              | Hot color map                          |
+| `cv2.COLORMAP_PARULA`           | Parula color map                       |
+| `cv2.COLORMAP_MAGMA`            | Magma color map                        |
+| `cv2.COLORMAP_INFERNO`          | Inferno color map                      |
+| `cv2.COLORMAP_PLASMA`           | Plasma color map                       |
+| `cv2.COLORMAP_VIRIDIS`          | Viridis color map                      |
+| `cv2.COLORMAP_CIVIDIS`          | Cividis color map                      |
+| `cv2.COLORMAP_TWILIGHT`         | Twilight color map                     |
+| `cv2.COLORMAP_TWILIGHT_SHIFTED` | Shifted Twilight color map             |
+| `cv2.COLORMAP_TURBO`            | Turbo color map                        |
+| `cv2.COLORMAP_DEEPGREEN`        | Deep Green color map                   |
 
-These colormaps are commonly used for visualizing data with different color representations.
+## How Heatmaps Work
+
+The [Heatmap solution](../reference/solutions/heatmap.md) extends the [ObjectCounter](../reference/solutions/object_counter.md) class. On the first processed frame it creates a blank intensity layer matching the frame size. Each frame is then processed in two steps:
+
+1. YOLO26 tracking detects and follows every object in the frame
+2. For each tracked object, the heatmap intensity increases within a circular region centered in its bounding box
+
+Once per frame, the accumulated intensity layer is normalized, colorized with the selected colormap, and blended with the original frame. The overlay appears as soon as at least one object is tracked; frames without tracked objects are shown without the heatmap overlay.
+
+The result is a dynamic visualization that builds up over time, revealing traffic patterns, crowd movements, or other spatial behaviors in your video data. When a `region` is set, the solution also [counts objects](object-counting.md) entering and exiting that region while the heatmap builds.
+
+## Conclusion
+
+The Ultralytics YOLO26 Heatmap solution turns object tracking results into an intuitive activity overlay with a few lines of code. To go further, combine it with [object counting](object-counting.md), explore the other [Ultralytics Solutions](../solutions/index.md), or read about the underlying [tracking mode](../modes/track.md).
 
 ## FAQ
 
-### How does Ultralytics YOLO11 generate heatmaps and what are their benefits?
+### How does Ultralytics YOLO26 generate heatmaps from a video?
 
-Ultralytics YOLO11 generates heatmaps by transforming complex data into a color-coded matrix where different hues represent data intensities. Heatmaps make it easier to visualize patterns, correlations, and anomalies in the data. Warmer hues indicate higher values, while cooler tones represent lower values. The primary benefits include intuitive visualization of data distribution, efficient pattern detection, and enhanced spatial analysis for decision-making. For more details and configuration options, refer to the [Heatmap Configuration](#arguments-heatmap) section.
+Ultralytics YOLO26 generates heatmaps by tracking objects across video frames and accumulating an intensity value at each tracked object's location, then colorizing the result and blending it with the original frame. Areas where objects appear frequently or linger build up higher intensity and render in warmer colors. For configuration options, refer to the [`Heatmap()` Arguments](#heatmap-arguments) section.
 
-### Can I use Ultralytics YOLO11 to perform object tracking and generate a heatmap simultaneously?
+### How do I save the heatmap output to a video file?
 
-Yes, Ultralytics YOLO11 supports object tracking and heatmap generation concurrently. This can be achieved through its `Heatmap` solution integrated with object tracking models. To do so, you need to initialize the heatmap object and use YOLO11's tracking capabilities. Here's a simple example:
+Use OpenCV's `cv2.VideoWriter` and write `results.plot_im` for every processed frame, as shown in the [main example](#how-to-generate-heatmaps-with-ultralytics-yolo). The `plot_im` attribute holds the frame with the heatmap overlay already applied.
 
-```python
-import cv2
+### Can I combine heatmaps with object counting?
 
-from ultralytics import solutions
+Yes. Pass a `region` argument to `Heatmap()` with line, rectangle, or polygon points, and the solution counts objects entering and exiting that region while the heatmap builds. The returned results include `in_count`, `out_count`, and per-class counts. See the [object counting guide](object-counting.md) for region configuration details.
 
-cap = cv2.VideoCapture("path/to/video/file.mp4")
-heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, show=True, model="yolo11n.pt")
+### How can I visualize only specific object classes in heatmaps using Ultralytics YOLO26?
 
-while cap.isOpened():
-    success, im0 = cap.read()
-    if not success:
-        break
-    im0 = heatmap.generate_heatmap(im0)
-    cv2.imshow("Heatmap", im0)
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
-
-cap.release()
-cv2.destroyAllWindows()
-```
-
-For further guidance, check the [Tracking Mode](../modes/track.md) page.
-
-### What makes Ultralytics YOLO11 heatmaps different from other data visualization tools like those from [OpenCV](https://www.ultralytics.com/glossary/opencv) or Matplotlib?
-
-Ultralytics YOLO11 heatmaps are specifically designed for integration with its [object detection](https://www.ultralytics.com/glossary/object-detection) and tracking models, providing an end-to-end solution for real-time data analysis. Unlike generic visualization tools like OpenCV or Matplotlib, YOLO11 heatmaps are optimized for performance and automated processing, supporting features like persistent tracking, decay factor adjustment, and real-time video overlay. For more information on YOLO11's unique features, visit the [Ultralytics YOLO11 Introduction](https://www.ultralytics.com/blog/introducing-ultralytics-yolov8).
-
-### How can I visualize only specific object classes in heatmaps using Ultralytics YOLO11?
-
-You can visualize specific object classes by specifying the desired classes in the `track()` method of the YOLO model. For instance, if you only want to visualize cars and persons (assuming their class indices are 0 and 2), you can set the `classes` parameter accordingly.
+Pass the `classes` argument to `Heatmap()` with the class indices you want to keep. For example, `classes=[0, 2]` builds the heatmap only from persons and cars (COCO class indices 0 and 2):
 
 ```python
 import cv2
 
 from ultralytics import solutions
 
-cap = cv2.VideoCapture("path/to/video/file.mp4")
-heatmap = solutions.Heatmap(show=True, model="yolo11n.pt", classes=[0, 2])
+cap = cv2.VideoCapture("path/to/video.mp4")
+heatmap = solutions.Heatmap(show=True, model="yolo26n.pt", classes=[0, 2])
 
 while cap.isOpened():
     success, im0 = cap.read()
     if not success:
         break
-    im0 = heatmap.generate_heatmap(im0)
-    cv2.imshow("Heatmap", im0)
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
-
+    results = heatmap(im0)
 cap.release()
 cv2.destroyAllWindows()
 ```
 
-### Why should businesses choose Ultralytics YOLO11 for heatmap generation in data analysis?
+### What makes Ultralytics YOLO26 heatmaps different from other data visualization tools like those from [OpenCV](https://www.ultralytics.com/glossary/opencv) or Matplotlib?
 
-Ultralytics YOLO11 offers seamless integration of advanced object detection and real-time heatmap generation, making it an ideal choice for businesses looking to visualize data more effectively. The key advantages include intuitive data distribution visualization, efficient pattern detection, and enhanced spatial analysis for better decision-making. Additionally, YOLO11's cutting-edge features such as persistent tracking, customizable colormaps, and support for various export formats make it superior to other tools like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and OpenCV for comprehensive data analysis. Learn more about business applications at [Ultralytics Plans](https://www.ultralytics.com/plans).
+Ultralytics YOLO26 heatmaps integrate [object detection](https://www.ultralytics.com/glossary/object-detection), tracking, intensity accumulation, and overlay rendering into a single call, while generic tools like OpenCV or Matplotlib require you to build that pipeline yourself. The solution processes video streams in real time and supports persistent tracking and customizable colormaps out of the box. For details on the underlying model, see the [YOLO26 model page](../models/yolo26.md).

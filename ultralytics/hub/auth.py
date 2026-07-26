@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import requests
+from __future__ import annotations
 
 from ultralytics.hub.utils import HUB_API_ROOT, HUB_WEB_ROOT, PREFIX, request_with_credentials
 from ultralytics.utils import IS_COLAB, LOGGER, SETTINGS, emojis
@@ -9,8 +9,7 @@ API_KEY_URL = f"{HUB_WEB_ROOT}/settings?tab=api+keys"
 
 
 class Auth:
-    """
-    Manages authentication processes including API key handling, cookie-based authentication, and header generation.
+    """Manages authentication processes including API key handling, cookie-based authentication, and header generation.
 
     The class supports different methods of authentication:
     1. Directly using an API key.
@@ -39,8 +38,7 @@ class Auth:
     id_token = api_key = model_key = False
 
     def __init__(self, api_key: str = "", verbose: bool = False):
-        """
-        Initialize Auth class and authenticate user.
+        """Initialize Auth class and authenticate user.
 
         Handles API key validation, Google Colab authentication, and new key requests. Updates SETTINGS upon successful
         authentication.
@@ -84,8 +82,7 @@ class Auth:
             LOGGER.info(f"{PREFIX}Get API key from {API_KEY_URL} and then run 'yolo login API_KEY'")
 
     def request_api_key(self, max_attempts: int = 3) -> bool:
-        """
-        Prompt the user to input their API key.
+        """Prompt the user to input their API key.
 
         Args:
             max_attempts (int): Maximum number of authentication attempts.
@@ -104,27 +101,32 @@ class Auth:
         raise ConnectionError(emojis(f"{PREFIX}Failed to authenticate ❌"))
 
     def authenticate(self) -> bool:
-        """
-        Attempt to authenticate with the server using either id_token or API key.
+        """Attempt to authenticate with the server using either id_token or API key.
 
         Returns:
             (bool): True if authentication is successful, False otherwise.
         """
+        import requests  # scoped as slow import
+
         try:
             if header := self.get_auth_header():
-                r = requests.post(f"{HUB_API_ROOT}/v1/auth", headers=header)
+                r = requests.post(f"{HUB_API_ROOT}/v1/auth", headers=header, timeout=30)
+                if r.status_code in {408, 429} or r.status_code >= 500:
+                    r.raise_for_status()  # transient server error: keep credentials, take the connectivity path
                 if not r.json().get("success", False):
                     raise ConnectionError("Unable to authenticate.")
                 return True
             raise ConnectionError("User has not authenticated locally.")
         except ConnectionError:
-            self.id_token = self.api_key = False  # reset invalid
+            self.id_token = self.api_key = False  # reset invalid credentials
             LOGGER.warning(f"{PREFIX}Invalid API key")
+            return False
+        except requests.exceptions.RequestException as e:
+            LOGGER.warning(f"{PREFIX}Authentication request failed, check your connection: {e}")  # keep credentials
             return False
 
     def auth_with_cookies(self) -> bool:
-        """
-        Attempt to fetch authentication via cookies and set id_token.
+        """Attempt to fetch authentication via cookies and set id_token.
 
         User must be logged in to HUB and running in a supported browser.
 
@@ -145,8 +147,7 @@ class Auth:
             return False
 
     def get_auth_header(self):
-        """
-        Get the authentication header for making API requests.
+        """Get the authentication header for making API requests.
 
         Returns:
             (dict | None): The authentication header if id_token or API key is set, None otherwise.

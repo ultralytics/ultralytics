@@ -1,15 +1,11 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Module defines the base classes and structures for object tracking in YOLO."""
 
-from collections import OrderedDict
 from typing import Any
-
-import numpy as np
 
 
 class TrackState:
-    """
-    Enumeration class representing the possible states of an object being tracked.
+    """Enumeration class representing the possible states of an object being tracked.
 
     Attributes:
         New (int): State when the object is newly detected.
@@ -20,7 +16,7 @@ class TrackState:
     Examples:
         >>> state = TrackState.New
         >>> if state == TrackState.New:
-        >>>     print("Object is newly detected.")
+        ...     print("Object is newly detected.")
     """
 
     New = 0
@@ -30,27 +26,23 @@ class TrackState:
 
 
 class BaseTrack:
-    """
-    Base class for object tracking, providing foundational attributes and methods.
+    """Base class for object tracking, providing foundational attributes and methods.
 
     Attributes:
         _count (int): Class-level counter for unique track IDs.
+        _tentative_count (int): Class-level counter for the negative IDs held by unconfirmed tracks.
         track_id (int): Unique identifier for the track.
         is_activated (bool): Flag indicating whether the track is currently active.
         state (TrackState): Current state of the track.
-        history (OrderedDict): Ordered history of the track's states.
-        features (list): List of features extracted from the object for tracking.
-        curr_feature (Any): The current feature of the object being tracked.
         score (float): The confidence score of the tracking.
         start_frame (int): The frame number where tracking started.
         frame_id (int): The most recent frame ID processed by the track.
-        time_since_update (int): Frames passed since the last update.
-        location (tuple): The location of the object in the context of multi-camera tracking.
 
     Methods:
         end_frame: Returns the ID of the last frame where the object was tracked.
         next_id: Increments and returns the next global track ID.
-        next_tentative_id: Increments and returns the next tentative ID.
+        next_tentative_id: Increments and returns the next placeholder ID for an unconfirmed track.
+        confirm: Promotes an unconfirmed track by assigning it a permanent global track ID.
         activate: Abstract method to activate the track.
         predict: Abstract method to predict the next state of the track.
         update: Abstract method to update the track with new data.
@@ -66,21 +58,16 @@ class BaseTrack:
     """
 
     _count = 0
-    _internal_count = 100  # Start with an offset to avoid conflict
+    _tentative_count = 0
 
     def __init__(self):
         """Initialize a new track with a unique ID and foundational tracking attributes."""
         self.track_id = 0
         self.is_activated = False
         self.state = TrackState.New
-        self.history = OrderedDict()
-        self.features = []
-        self.curr_feature = None
         self.score = 0
         self.start_frame = 0
         self.frame_id = 0
-        self.time_since_update = 0
-        self.location = (np.inf, np.inf)
 
     @property
     def end_frame(self) -> int:
@@ -95,12 +82,17 @@ class BaseTrack:
 
     @staticmethod
     def next_tentative_id() -> int:
-        """Increment and return the next unique ID used for unconfirmed tracks."""
-        BaseTrack._internal_count += 1
-        return BaseTrack._internal_count
+        """Return the next placeholder ID for an unconfirmed track, negative so it can never collide with a real ID."""
+        BaseTrack._tentative_count += 1
+        return -BaseTrack._tentative_count
+
+    def confirm(self) -> None:
+        """Promote an unconfirmed track by assigning it the next permanent global track ID."""
+        self.track_id = self.next_id()
+        self.is_activated = True
 
     def activate(self, *args: Any) -> None:
-        """Activates the track with provided arguments, initializing necessary attributes for tracking."""
+        """Activate the track with provided arguments, initializing necessary attributes for tracking."""
         raise NotImplementedError
 
     def predict(self) -> None:
@@ -121,5 +113,6 @@ class BaseTrack:
 
     @staticmethod
     def reset_id() -> None:
-        """Reset the global track ID counter to its initial value."""
+        """Reset the global track ID counters to their initial values."""
         BaseTrack._count = 0
+        BaseTrack._tentative_count = 0

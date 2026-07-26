@@ -14,11 +14,14 @@ from __future__ import annotations
 import itertools
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 from ultralytics.nn.modules import LayerNorm2d
 from ultralytics.utils.instance import to_2tuple
+from ultralytics.utils.torch_utils import TORCH_1_11
+
+CKPT_KWARGS = {"use_reentrant": False} if TORCH_1_11 else {}  # use_reentrant added in torch 1.11, required in 2.9
 
 
 class Conv2d_BN(torch.nn.Sequential):
@@ -139,7 +142,7 @@ class MBConv(nn.Module):
         drop_path (nn.Module): Drop path layer (Identity for inference).
 
     Examples:
-        >>> in_chans, out_chans = 32, 64
+        >>> in_chans, out_chans = 64, 64
         >>> mbconv = MBConv(in_chans, out_chans, expand_ratio=4, activation=nn.ReLU, drop_path=0.1)
         >>> x = torch.randn(1, in_chans, 56, 56)
         >>> output = mbconv(x)
@@ -210,7 +213,7 @@ class PatchMerging(nn.Module):
         >>> x = torch.randn(4, 64, 56, 56)
         >>> output = patch_merging(x)
         >>> print(output.shape)
-        torch.Size([4, 3136, 128])
+        torch.Size([4, 784, 128])
     """
 
     def __init__(self, input_resolution: tuple[int, int], dim: int, out_dim: int, activation):
@@ -269,7 +272,7 @@ class ConvLayer(nn.Module):
         >>> conv_layer = ConvLayer(64, (56, 56), depth=3, activation=nn.ReLU)
         >>> output = conv_layer(input_tensor)
         >>> print(output.shape)
-        torch.Size([1, 3136, 128])
+        torch.Size([1, 64, 56, 56])
     """
 
     def __init__(
@@ -330,7 +333,7 @@ class ConvLayer(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Process input through convolutional layers, applying MBConv blocks and optional downsampling."""
         for blk in self.blocks:
-            x = torch.utils.checkpoint(blk, x) if self.use_checkpoint else blk(x)  # warn: checkpoint is slow import
+            x = torch.utils.checkpoint.checkpoint(blk, x, **CKPT_KWARGS) if self.use_checkpoint else blk(x)
         return x if self.downsample is None else self.downsample(x)
 
 
@@ -481,6 +484,7 @@ class Attention(torch.nn.Module):
             del self.ab
         else:
             self.ab = self.attention_biases[:, self.attention_bias_idxs]
+        return self
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Apply multi-head attention with spatial awareness and trainable attention biases."""
@@ -496,7 +500,8 @@ class Attention(torch.nn.Module):
         q = q.permute(0, 2, 1, 3)
         k = k.permute(0, 2, 1, 3)
         v = v.permute(0, 2, 1, 3)
-        self.ab = self.ab.to(self.attention_biases.device)
+        if not self.training:
+            self.ab = self.ab.to(self.attention_biases.device)
 
         attn = (q @ k.transpose(-2, -1)) * self.scale + (
             self.attention_biases[:, self.attention_bias_idxs] if self.training else self.ab
@@ -667,7 +672,7 @@ class BasicLayer(nn.Module):
         >>> layer = BasicLayer(dim=192, input_resolution=(56, 56), depth=2, num_heads=3, window_size=7)
         >>> output = layer(input_tensor)
         >>> print(output.shape)
-        torch.Size([1, 784, 384])
+        torch.Size([1, 3136, 192])
     """
 
     def __init__(
@@ -742,7 +747,7 @@ class BasicLayer(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Process input through TinyViT blocks and optional downsampling."""
         for blk in self.blocks:
-            x = torch.utils.checkpoint(blk, x) if self.use_checkpoint else blk(x)  # warn: checkpoint is slow import
+            x = torch.utils.checkpoint.checkpoint(blk, x, **CKPT_KWARGS) if self.use_checkpoint else blk(x)
         return x if self.downsample is None else self.downsample(x)
 
     def extra_repr(self) -> str:
@@ -771,11 +776,11 @@ class TinyViT(nn.Module):
         neck (nn.Sequential): Neck module for feature refinement.
 
     Examples:
-        >>> model = TinyViT(img_size=224, num_classes=1000)
+        >>> model = TinyViT(img_size=224, embed_dims=(64, 128, 160, 320), num_heads=(2, 4, 5, 10))
         >>> x = torch.randn(1, 3, 224, 224)
         >>> features = model.forward_features(x)
         >>> print(features.shape)
-        torch.Size([1, 256, 56, 56])
+        torch.Size([1, 256, 14, 14])
     """
 
     def __init__(
@@ -838,21 +843,21 @@ class TinyViT(nn.Module):
         # Build layers
         self.layers = nn.ModuleList()
         for i_layer in range(self.num_layers):
-            kwargs = dict(
-                dim=embed_dims[i_layer],
-                input_resolution=(
+            kwargs = {
+                "dim": embed_dims[i_layer],
+                "input_resolution": (
                     patches_resolution[0] // (2 ** (i_layer - 1 if i_layer == 3 else i_layer)),
                     patches_resolution[1] // (2 ** (i_layer - 1 if i_layer == 3 else i_layer)),
                 ),
                 #   input_resolution=(patches_resolution[0] // (2 ** i_layer),
                 #                     patches_resolution[1] // (2 ** i_layer)),
-                depth=depths[i_layer],
-                drop_path=dpr[sum(depths[:i_layer]) : sum(depths[: i_layer + 1])],
-                downsample=PatchMerging if (i_layer < self.num_layers - 1) else None,
-                use_checkpoint=use_checkpoint,
-                out_dim=embed_dims[min(i_layer + 1, len(embed_dims) - 1)],
-                activation=activation,
-            )
+                "depth": depths[i_layer],
+                "drop_path": dpr[sum(depths[:i_layer]) : sum(depths[: i_layer + 1])],
+                "downsample": PatchMerging if (i_layer < self.num_layers - 1) else None,
+                "use_checkpoint": use_checkpoint,
+                "out_dim": embed_dims[min(i_layer + 1, len(embed_dims) - 1)],
+                "activation": activation,
+            }
             if i_layer == 0:
                 layer = ConvLayer(conv_expand_ratio=mbconv_expand_ratio, **kwargs)
             else:
@@ -908,10 +913,10 @@ class TinyViT(nn.Module):
         i = 0
         for layer in self.layers:
             for block in layer.blocks:
-                block.apply(lambda x: _set_lr_scale(x, lr_scales[i]))
+                block.apply(lambda x, scale=lr_scales[i]: _set_lr_scale(x, scale))
                 i += 1
             if layer.downsample is not None:
-                layer.downsample.apply(lambda x: _set_lr_scale(x, lr_scales[i - 1]))
+                layer.downsample.apply(lambda x, scale=lr_scales[i - 1]: _set_lr_scale(x, scale))
         assert i == depth
         for m in {self.norm_head, self.head}:
             m.apply(lambda x: _set_lr_scale(x, lr_scales[-1]))
@@ -962,8 +967,9 @@ class TinyViT(nn.Module):
         """Perform the forward pass through the TinyViT model, extracting features from the input image."""
         return self.forward_features(x)
 
-    def set_imgsz(self, imgsz: list[int] = [1024, 1024]):
+    def set_imgsz(self, imgsz: list[int] | None = None):
         """Set image size to make model compatible with different image sizes."""
+        imgsz = imgsz if imgsz is not None else [1024, 1024]
         imgsz = [s // 4 for s in imgsz]
         self.patches_resolution = imgsz
         for i, layer in enumerate(self.layers):

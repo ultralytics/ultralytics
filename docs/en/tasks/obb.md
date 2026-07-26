@@ -54,7 +54,7 @@ Train YOLO26n-obb on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.
 
 !!! note
 
-    OBB angles are constrained to the range **0–90 degrees** (exclusive of 90). Angles of 90 degrees or greater are not supported.
+    An OBB and its 180° rotation are identical, so rotation is defined modulo 180° and the box has no direction. Internally the angle is stored in radians and normalized to **`[-π/4, 3π/4)`** (`[-45°, 135°)`), the box width `w` is taken as the longer side, and the angle is defined as the clockwise angle from the positive x-axis to the direction of `w`. The `[0°, 90°)` form is the regularized DOTA-style convention and is not applied at training or inference.
 
 !!! example
 
@@ -98,9 +98,9 @@ Train YOLO26n-obb on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.
 
 ### Dataset format
 
-OBB dataset format can be found in detail in the [Dataset Guide](../datasets/obb/index.md). The YOLO OBB format designates bounding boxes by their four corner points with coordinates normalized between 0 and 1, following this structure. [Ultralytics Platform](https://platform.ultralytics.com) supports OBB annotation with a dedicated oriented bounding box drawing tool:
+OBB dataset format can be found in detail in the [Dataset Guide](../datasets/obb/index.md). The YOLO OBB format designates bounding boxes by their four corner points with coordinates normalized between 0 and 1, following this structure. [Ultralytics Platform annotation](../platform/data/annotation.md) supports OBB labels with a dedicated oriented bounding box drawing tool:
 
-```
+```text
 class_index x1 y1 x2 y2 x3 y3 x4 y4
 ```
 

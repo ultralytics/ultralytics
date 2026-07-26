@@ -7,11 +7,13 @@ from typing import Any
 
 import torch
 
+from ultralytics.cfg import get_cfg
 from ultralytics.data.build import load_inference_source
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import (
     ClassificationModel,
+    DepthModel,
     DetectionModel,
     OBBModel,
     PoseModel,
@@ -117,6 +119,12 @@ class YOLO(Model):
                 "validator": yolo.obb.OBBValidator,
                 "predictor": yolo.obb.OBBPredictor,
             },
+            "depth": {
+                "model": DepthModel,
+                "trainer": yolo.depth.DepthTrainer,
+                "validator": yolo.depth.DepthValidator,
+                "predictor": yolo.depth.DepthPredictor,
+            },
             "semantic": {
                 "model": SemanticSegmentationModel,
                 "trainer": yolo.semantic.SemanticSegmentationTrainer,
@@ -173,7 +181,7 @@ class YOLOWorld(Model):
         return {
             "detect": {
                 "model": WorldModel,
-                "validator": yolo.detect.DetectionValidator,
+                "validator": yolo.world.WorldValidator,
                 "predictor": yolo.detect.DetectionPredictor,
                 "trainer": yolo.world.WorldTrainer,
             }
@@ -220,7 +228,7 @@ class YOLOE(Model):
         predict: Run prediction on images, videos, directories, streams, etc.
 
     Examples:
-        Load a YOLOE detection model
+        Load a YOLOE segmentation model
         >>> model = YOLOE("yoloe-11s-seg.pt")
 
         Set vocabulary and class names
@@ -321,7 +329,7 @@ class YOLOE(Model):
         # Verify no background class is present
         assert " " not in classes
         assert isinstance(self.model, YOLOEModel)
-        if sorted(list(self.model.names.values())) != sorted(classes):
+        if sorted(self.model.names.values()) != sorted(classes):
             if embeddings is None:
                 embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
             self.model.set_classes(classes, embeddings)
@@ -360,7 +368,7 @@ class YOLOE(Model):
         self,
         source=None,
         stream: bool = False,
-        visual_prompts: dict[str, list] = {},
+        visual_prompts: dict[str, list] | None = None,
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         **kwargs,
@@ -389,6 +397,7 @@ class YOLOE(Model):
             >>> prompts = {"bboxes": [[10, 20, 100, 200]], "cls": ["person"]}
             >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts)
         """
+        visual_prompts = visual_prompts if visual_prompts is not None else {}
         if len(visual_prompts):
             assert "bboxes" in visual_prompts and "cls" in visual_prompts, (
                 f"Expected 'bboxes' and 'cls' in visual prompts, but got {visual_prompts.keys()}"
@@ -398,16 +407,17 @@ class YOLOE(Model):
                 f"{len(visual_prompts['cls'])} respectively"
             )
             if type(self.predictor) is not predictor:
+                args = get_cfg(overrides={**self.overrides, **kwargs})
                 self.predictor = predictor(
                     overrides={
                         "task": self.model.task,
                         "mode": "predict",
                         "save": False,
-                        "verbose": refer_image is None,
+                        "verbose": kwargs.get("verbose", self.overrides.get("verbose", refer_image is None)),
                         "batch": 1,
-                        "device": kwargs.get("device", None),
-                        "half": kwargs.get("half", False),
-                        "imgsz": kwargs.get("imgsz", self.overrides.get("imgsz", 640)),
+                        "device": args.device,
+                        "quantize": args.quantize,
+                        "imgsz": args.imgsz,
                     },
                     _callbacks=self.callbacks,
                 )
@@ -420,7 +430,7 @@ class YOLOE(Model):
             self.model.model[-1].nc = num_cls
             self.model.names = [f"object{i}" for i in range(num_cls)]
             self.predictor.set_prompts(visual_prompts.copy())
-            self.predictor.setup_model(model=self.model)
+            self.predictor.setup_model(model=self.model, verbose=self.predictor.args.verbose)
 
             if refer_image is None and source is not None:
                 dataset = load_inference_source(source)

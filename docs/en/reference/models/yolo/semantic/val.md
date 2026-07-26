@@ -1,4 +1,5 @@
 ---
+title: models.yolo.semantic.val API Reference
 description: Reference for YOLO semantic segmentation validator. Learn about the SemanticSegmentationValidator class and its validation metrics.
 keywords: Ultralytics, semantic segmentation, validator, validation, mIoU, YOLO, semantic
 ---

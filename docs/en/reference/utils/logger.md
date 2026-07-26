@@ -1,4 +1,5 @@
 ---
+title: utils.logger API Reference
 description: High-performance console output capture with API/file streaming for YOLO11 training logs.
 keywords: ConsoleLogger, console capture, log streaming, API logging, file logging, YOLO11, Ultralytics
 ---
@@ -12,6 +13,10 @@ keywords: ConsoleLogger, console capture, log streaming, API logging, file loggi
 <br>
 
 ## ::: ultralytics.utils.logger.ConsoleLogger
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.logger._DriveInfo
 
 <br><br><hr><br>
 

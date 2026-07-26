@@ -1,4 +1,5 @@
 ---
+title: utils.plotting API Reference
 description: Explore detailed functionalities of Ultralytics plotting utilities for data visualizations and custom annotations in ML projects.
 keywords: ultralytics, plotting, utilities, documentation, data visualization, annotations, python, ML tools
 ---
@@ -19,6 +20,18 @@ keywords: ultralytics, plotting, utilities, documentation, data visualization, a
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.plotting._gaussian_filter1d
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.plotting._spectral_lut
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.plotting.colorize_depth
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.plotting.plot_labels
 
 <br><br><hr><br>
@@ -35,7 +48,15 @@ keywords: ultralytics, plotting, utilities, documentation, data visualization, a
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.plotting.plot_multitrain_results
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.plotting.plt_color_scatter
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.plotting.plot_depth_panels
 
 <br><br><hr><br>
 

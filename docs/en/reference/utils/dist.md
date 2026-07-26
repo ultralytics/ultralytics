@@ -1,4 +1,5 @@
 ---
+title: utils.dist API Reference
 description: Explore Ultralytics' utilities for distributed training including DDP file generation, command setup, and cleanup. Improve multi-node training efficiency.
 keywords: Ultralytics, distributed training, DDP, multi-node training, network port, DDP file generation, DDP command, training utilities
 ---

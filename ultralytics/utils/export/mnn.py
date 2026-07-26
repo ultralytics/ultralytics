@@ -11,8 +11,7 @@ from ultralytics.utils import LOGGER
 def onnx2mnn(
     onnx_file: str,
     output_file: Path | str,
-    half: bool = False,
-    int8: bool = False,
+    quantize: int | str | None = None,
     metadata: dict | None = None,
     prefix: str = "",
 ) -> str:
@@ -21,8 +20,7 @@ def onnx2mnn(
     Args:
         onnx_file (str): Path to the source ONNX file.
         output_file (Path | str): Path to save the exported MNN model.
-        half (bool): Whether to enable FP16 conversion.
-        int8 (bool): Whether to enable INT8 weight quantization.
+        quantize (int | str | None): Precision scheme, e.g. 16 for FP16 or 8 for INT8 weights.
         metadata (dict | None): Optional metadata embedded via ``--bizCode``.
         prefix (str): Prefix for log messages.
 
@@ -51,9 +49,9 @@ def onnx2mnn(
         "--bizCode",
         json.dumps(metadata or {}),
     ]
-    if int8:
+    if quantize == 8:
         mnn_args.extend(("--weightQuantBits", "8"))
-    if half:
+    if quantize == 16:
         mnn_args.append("--fp16")
     mnnconvert.convert(mnn_args)
     # Remove scratch file created during model convert optimize

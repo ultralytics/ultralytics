@@ -46,7 +46,8 @@ class TorchVisionVideoClassifier:
         return [
             name
             for name, (fn_name, weights_name) in cls._model_specs.items()
-            if getattr(video_models, fn_name, None) is not None and getattr(video_models, weights_name, None) is not None
+            if getattr(video_models, fn_name, None) is not None
+            and getattr(video_models, weights_name, None) is not None
         ]
 
     def __init__(self, model_name: str = "s3d", device: str = ""):
@@ -173,7 +174,9 @@ class ActionRecognition(BaseSolution):
             for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
                 if self.frame_counter % self.skip_frame == 0:
                     gain = 1 + 2 * self.crop_margin_percentage / 100
-                    crop = save_one_box(torch.as_tensor(box), im0, gain=gain, pad=0, square=True, save=False, BGR=True)
+                    crop = save_one_box(
+                        self.get_enclosing_box(box), im0, gain=gain, pad=0, square=True, save=False, BGR=True
+                    )
                     if crop.size and crop.shape[0] and crop.shape[1]:
                         self.crop_history[track_id].append(cv2.resize(crop, self.video_classifier.frame_size))
 

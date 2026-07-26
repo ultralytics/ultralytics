@@ -56,9 +56,6 @@ jobs:
         shell: bash # multi-line run blocks and ${GITHUB_WORKSPACE} expansion on all three OSes
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.13"
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: "3.13"
@@ -81,6 +78,17 @@ jobs:
           restore-keys: |
             ultralytics-fuzz-assets-${{ runner.os }}-
             ultralytics-test-assets-${{ runner.os }}-
+      - name: Cache fuzz exploration history
+        # Separate from the asset cache: this entry is rewritten every run while the multi-GB assets are not. Cache
+        # entries are immutable, so the key carries run id AND attempt — a re-run reuses the run id and would
+        # otherwise hit its own entry, skip the save, and discard everything it explored. restore-keys then picks
+        # up the newest prior entry. Entries age out inside fuzz.py (HISTORY_DAYS), bounding the file.
+        uses: actions/cache@v6
+        with:
+          path: fuzz-history
+          key: ultralytics-fuzz-history-${{ matrix.personality }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            ultralytics-fuzz-history-${{ matrix.personality }}-
       - name: Precache fuzz assets
         if: github.event.inputs.repro_command == ''
         uses: ultralytics/actions/retry@main
@@ -97,6 +105,7 @@ jobs:
             --budget-minutes "$MINUTES" \
             --seed ${{ github.run_id }} \
             --personality ${{ matrix.personality }} \
+            --history fuzz-history/${{ matrix.personality }}.txt \
             --out fuzz-out
       - name: Reproduce command
         if: github.event.inputs.repro_command != '' && matrix.personality == 'chaos'

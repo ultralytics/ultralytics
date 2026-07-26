@@ -232,8 +232,6 @@ class BaseTrainer:
                 cmd, file = generate_ddp_command(self)
                 LOGGER.info(f"{colorstr('DDP:')} debug command {' '.join(cmd)}")
                 subprocess.run(cmd, check=True)
-            except Exception as e:
-                raise e
             finally:
                 if file is not None:
                     ddp_cleanup(self, str(file))
@@ -303,6 +301,12 @@ class BaseTrainer:
         """Configure model, optimizer, dataloaders, and training utilities before the training loop."""
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
+        # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, but numerically wrong
+        # on MPS and no benefit on CPU
+        if self.args.channels_last and self.device.type == "cuda":
+            self.model = self.model.to(memory_format=torch.channels_last)
+        elif self.args.channels_last:
+            LOGGER.warning(f"'channels_last=True' is only supported on CUDA, ignoring on '{self.device.type}'.")
         self.set_model_attributes()
 
         # Compile model (knowledge distillation runs the wrapped model eagerly and relies on
@@ -697,7 +701,9 @@ class BaseTrainer:
             for k, v in ema.state_dict().items():
                 if isinstance(v, torch.Tensor) and not torch.isfinite(v).all() and torch.isfinite(model_sd[k]).all():
                     v.copy_(model_sd[k])
-        ema = deepcopy(ema).half()
+        # Serialize NCHW regardless of channels_last training: released versions fuse with .view(), which crashes on
+        # NHWC-strided checkpoint weights, and trainer/predictor re-apply channels_last at setup anyway.
+        ema = deepcopy(ema).half().to(memory_format=torch.contiguous_format)
         if hasattr(ema, "criterion"):
             ema.criterion = None  # strip training-only state from the serialization snapshot
         # Clamp fp16 serialization overflow without mutating the live EMA.
@@ -717,9 +723,9 @@ class BaseTrainer:
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "scaler": self.scaler.state_dict(),
                 "train_args": vars(self.args),  # save as dict
-                "train_metrics": {**self.metrics, **{"fitness": self.fitness}},
+                "train_metrics": {**self.metrics, "fitness": self.fitness},
                 "train_results": self.read_results_csv(),
-                "date": datetime.now().isoformat(),
+                "date": datetime.now().astimezone().isoformat(),
                 "version": __version__,
                 "git": {
                     "root": str(GIT.root),
@@ -873,11 +879,9 @@ class BaseTrainer:
 
     def set_class_weights(self):
         """Compute and set class weights for handling class imbalance. Override in subclasses."""
-        pass
 
     def build_targets(self, preds, targets):
         """Build target tensors for training YOLO model."""
-        pass
 
     def progress_string(self):
         """Return a string describing training progress."""
@@ -886,11 +890,9 @@ class BaseTrainer:
     # TODO: may need to put these following functions into callback
     def plot_training_samples(self, batch, ni):
         """Plot training samples during YOLO training."""
-        pass
 
     def plot_training_labels(self):
         """Plot training labels for YOLO model."""
-        pass
 
     def save_metrics(self, metrics):
         """Save training metrics to a CSV file."""
@@ -1111,14 +1113,14 @@ class BaseTrainer:
         if not use_muon:
             g = [x.values() for x in g[:3]]  # convert to list of params
 
-        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "MuSGD", "auto"}
+        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSprop", "SGD", "MuSGD", "auto"}
         name = {x.lower(): x for x in optimizers}.get(str(name).lower(), str(name))
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
-            optim_args = dict(lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
-        elif name == "RMSProp":
-            optim_args = dict(lr=lr, momentum=momentum)
+            optim_args = {"lr": lr, "betas": (momentum, 0.999), "weight_decay": 0.0}
+        elif name == "RMSprop":
+            optim_args = {"lr": lr, "momentum": momentum}
         elif name == "SGD" or name == "MuSGD":
-            optim_args = dict(lr=lr, momentum=momentum, nesterov=True)
+            optim_args = {"lr": lr, "momentum": momentum, "nesterov": True}
         else:
             raise NotImplementedError(
                 f"Optimizer '{name}' not found in list of available optimizers {optimizers}. "
@@ -1145,7 +1147,7 @@ class BaseTrainer:
                 p2 = [v for k, v in p.items() if not pattern.search(k)]
                 g_.extend([{"params": p1, **x, "lr": lr * 3}, {"params": p2, **x}])
             g = g_
-        optimizer = getattr(optim, name, partial(MuSGD, muon=muon, sgd=sgd))(params=g)
+        optimizer = (partial(MuSGD, muon=muon, sgd=sgd) if use_muon else getattr(optim, name))(params=g)
 
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "

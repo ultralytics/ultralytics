@@ -146,6 +146,7 @@ The TF GraphDef format supports the [Export](../modes/export.md), [Predict](../m
 | `format`   | `str`            | `'pb'`  | Target format for the exported model, defining compatibility with various deployment environments.                                      |
 | `imgsz`    | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
 | `quantize` | `int` or `str`   | `None`  | Fixed FP32 export. GraphDef does not support export-time FP16, INT8, or W8A16 precision conversion.                                     |
+| `opset`    | `int`            | `None`  | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                        |
 | `batch`    | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
 | `device`   | `str`            | `None`  | Specifies the device for exporting: CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                           |
 

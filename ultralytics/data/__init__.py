@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from .base import BaseDataset
 from .build import build_dataloader, build_grounding, build_yolo_dataset, load_inference_source
@@ -6,6 +6,7 @@ from .dataset import (
     ClassificationDataset,
     GroundingDataset,
     HumanDataset,
+    PolygonSemanticDataset,
     SemanticDataset,
     YOLOConcatDataset,
     YOLODataset,
@@ -15,14 +16,15 @@ from .dataset import (
 __all__ = (
     "BaseDataset",
     "ClassificationDataset",
+    "GroundingDataset",
+    "HumanDataset",
+    "PolygonSemanticDataset",
     "SemanticDataset",
+    "YOLOConcatDataset",
     "YOLODataset",
     "YOLOMultiModalDataset",
-    "YOLOConcatDataset",
-    "HumanDataset",
-    "GroundingDataset",
-    "build_yolo_dataset",
-    "build_grounding",
     "build_dataloader",
+    "build_grounding",
+    "build_yolo_dataset",
     "load_inference_source",
 )

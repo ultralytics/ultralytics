@@ -1,31 +1,32 @@
 ---
+title: nn.modules.utils API Reference
 description: Explore the detailed reference of utility functions in the Ultralytics PyTorch modules. Learn about initialization, inverse sigmoid, and multiscale deformable attention.
 keywords: Ultralytics, PyTorch, utils, initialization, inverse sigmoid, multiscale deformable attention, deep learning, neural networks
 ---
 
 # Reference for `ultralytics/nn/modules/utils.py`
 
-!!! Note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/utils.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/nn/modules/utils.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/utils.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
-<br><br>
+<br>
 
 ## ::: ultralytics.nn.modules.utils._get_clones
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.modules.utils.bias_init_with_prob
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.modules.utils.linear_init
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.modules.utils.inverse_sigmoid
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.modules.utils.multi_scale_deformable_attn_pytorch
 

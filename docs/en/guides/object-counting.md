@@ -1,255 +1,240 @@
 ---
+title: Real-Time Object Counting with YOLO26
 comments: true
-description: Learn to accurately identify and count objects in real-time using Ultralytics YOLOv8 for applications like crowd analysis and surveillance.
-keywords: object counting, YOLOv8, Ultralytics, real-time object detection, AI, deep learning, object tracking, crowd analysis, surveillance, resource optimization
+description: Count objects crossing a line or inside a region in real time with Ultralytics YOLO26. Track and tally specific classes for crowd analysis, retail, and traffic.
+keywords: object counting, YOLO26, Ultralytics, real-time object detection, object tracking, line counting, region counting, crowd analysis, surveillance, traffic management
 ---
 
-# Object Counting using Ultralytics YOLOv8 🚀
+# Object Counting using Ultralytics YOLO26
 
 ## What is Object Counting?
 
-Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves accurate identification and counting of specific objects in videos and camera streams. YOLOv8 excels in real-time applications, providing efficient and precise object counting for various scenarios like crowd analysis and surveillance, thanks to its state-of-the-art algorithms and deep learning capabilities.
+<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-count-the-objects-using-ultralytics-yolo.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Object Counting In Colab"></a>
 
-<table>
-  <tr>
-    <td align="center">
-      <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Ag2e-5_NpS0"
-        title="YouTube video player" frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowfullscreen>
-      </iframe>
-      <br>
-      <strong>Watch:</strong> Object Counting using Ultralytics YOLOv8
-    </td>
-    <td align="center">
-      <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Fj9TStNBVoY"
-        title="YouTube video player" frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowfullscreen>
-      </iframe>
-      <br>
-      <strong>Watch:</strong> Class-wise Object Counting using Ultralytics YOLOv8
-    </td>
-  </tr>
-</table>
+Object counting with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) involves accurate identification and counting of specific objects in videos and camera streams. YOLO26 excels in real-time applications, providing efficient and precise object counting for various scenarios like crowd analysis and surveillance, thanks to its state-of-the-art algorithms and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) capabilities.
 
-## Advantages of Object Counting?
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/pJLXmhyuHzA"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Perform Real-Time Object Counting with Ultralytics YOLO26 🚀
+</p>
 
-- **Resource Optimization:** Object counting facilitates efficient resource management by providing accurate counts, and optimizing resource allocation in applications like inventory management.
-- **Enhanced Security:** Object counting enhances security and surveillance by accurately tracking and counting entities, aiding in proactive threat detection.
-- **Informed Decision-Making:** Object counting offers valuable insights for decision-making, optimizing processes in retail, traffic management, and various other domains.
+## Advantages of Object Counting
+
+- **Resource Optimization:** Object counting facilitates efficient resource management by providing accurate counts, optimizing resource allocation in applications like [inventory management](analytics.md).
+- **Enhanced Security:** Object counting enhances security and surveillance by accurately tracking and counting entities, aiding in proactive [threat detection](security-alarm-system.md).
+- **Informed Decision-Making:** Object counting offers valuable insights for decision-making, optimizing processes in retail, [traffic management](https://www.ultralytics.com/blog/ai-in-traffic-management-from-congestion-to-coordination), and various other domains.
 
 ## Real World Applications
 
-|                                                                           Logistics                                                                           |                                                                     Aquaculture                                                                     |
-| :-----------------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Conveyor Belt Packets Counting Using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/70e2d106-510c-4c6c-a57a-d34a765aa757) | ![Fish Counting in Sea using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/c60d047b-3837-435f-8d29-bb9fc95d2191) |
-|                                                    Conveyor Belt Packets Counting Using Ultralytics YOLOv8                                                    |                                                    Fish Counting in Sea using Ultralytics YOLOv8                                                    |
+|                                                                        Logistics                                                                         |                                                                          Aquaculture                                                                          |
+| :------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| ![Conveyor Belt Packets Counting Using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/conveyor-belt-packets-counting.avif) | ![Fish Counting in Sea using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/fish-counting-in-sea-using-ultralytics-yolov8.avif) |
+|                                                 Conveyor Belt Packets Counting Using Ultralytics YOLO26                                                  |                                                         Fish Counting in Sea using Ultralytics YOLO26                                                         |
 
-!!! Example "Object Counting using YOLOv8 Example"
+## Count Objects with YOLO26
 
-    === "Count in Region"
+Define a counting `region` — two points for a line or three or more for a polygon — and pass it to the `ObjectCounter` solution. The counter tracks each object across frames and tallies IN/OUT counts when tracked centroids cross the line or move inside the region, returning an annotated frame you can write to an output video.
+
+!!! example "Object Counting using Ultralytics YOLO"
+
+    === "CLI"
+
+        ```bash
+        # Run a counting example
+        yolo solutions count show=True
+
+        # Pass a source video
+        yolo solutions count source="path/to/video.mp4"
+
+        # Pass region coordinates
+        yolo solutions count region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
+        ```
+
+        The `region` argument accepts either two points (for a line) or a polygon with three or more points. Define the coordinates in the order they should be connected so the counter knows exactly where entries and exits occur.
+
+    === "Python"
 
         ```python
         import cv2
 
-        from ultralytics import YOLO, solutions
+        from ultralytics import solutions
 
-        model = YOLO("yolov8n.pt")
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        cap = cv2.VideoCapture("path/to/video.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-        # Define region points
-        region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+        # region_points = [(20, 400), (1080, 400)]                                      # line counting
+        region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # rectangular region
+        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]   # polygon region
 
         # Video writer
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Init Object Counter
+        # Initialize object counter object
         counter = solutions.ObjectCounter(
-            view_img=True,
-            reg_pts=region_points,
-            classes_names=model.names,
-            draw_tracks=True,
-            line_thickness=2,
+            show=True,  # display the output
+            region=region_points,  # pass region points
+            model="yolo26n.pt",  # model="yolo26n-obb.pt" for object counting with OBB model.
+            # classes=[0, 2],  # count specific classes, e.g., person and car with the COCO pretrained model.
+            # tracker="botsort.yaml",  # choose trackers, e.g., "bytetrack.yaml"
         )
 
+        # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-            if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
-            tracks = model.track(im0, persist=True, show=False)
 
-            im0 = counter.start_counting(im0, tracks)
-            video_writer.write(im0)
+            if not success:
+                print("Video frame is empty or processing is complete.")
+                break
+
+            results = counter(im0)
+
+            # print(results)  # access the output
+
+            video_writer.write(results.plot_im)  # write the processed frame.
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-    === "Count in Polygon"
-
-        ```python
-        import cv2
-
-        from ultralytics import YOLO, solutions
-
-        model = YOLO("yolov8n.pt")
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-        # Define region points as a polygon with 5 points
-        region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360), (20, 400)]
-
-        # Video writer
-        video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-
-        # Init Object Counter
-        counter = solutions.ObjectCounter(
-            view_img=True,
-            reg_pts=region_points,
-            classes_names=model.names,
-            draw_tracks=True,
-            line_thickness=2,
-        )
-
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
-            tracks = model.track(im0, persist=True, show=False)
-
-            im0 = counter.start_counting(im0, tracks)
-            video_writer.write(im0)
-
-        cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()
-        ```
-
-    === "Count in Line"
-
-        ```python
-        import cv2
-
-        from ultralytics import YOLO, solutions
-
-        model = YOLO("yolov8n.pt")
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-        # Define line points
-        line_points = [(20, 400), (1080, 400)]
-
-        # Video writer
-        video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-
-        # Init Object Counter
-        counter = solutions.ObjectCounter(
-            view_img=True,
-            reg_pts=line_points,
-            classes_names=model.names,
-            draw_tracks=True,
-            line_thickness=2,
-        )
-
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
-            tracks = model.track(im0, persist=True, show=False)
-
-            im0 = counter.start_counting(im0, tracks)
-            video_writer.write(im0)
-
-        cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()
-        ```
-
-    === "Specific Classes"
-
-        ```python
-        import cv2
-
-        from ultralytics import YOLO, solutions
-
-        model = YOLO("yolov8n.pt")
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-        line_points = [(20, 400), (1080, 400)]  # line or region points
-        classes_to_count = [0, 2]  # person and car classes for count
-
-        # Video writer
-        video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-
-        # Init Object Counter
-        counter = solutions.ObjectCounter(
-            view_img=True,
-            reg_pts=line_points,
-            classes_names=model.names,
-            draw_tracks=True,
-            line_thickness=2,
-        )
-
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
-            tracks = model.track(im0, persist=True, show=False, classes=classes_to_count)
-
-            im0 = counter.start_counting(im0, tracks)
-            video_writer.write(im0)
-
-        cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()
-        ```
-
-???+ tip "Region is Movable"
-
-    You can move the region anywhere in the frame by clicking on its edges
-
-### Argument `ObjectCounter`
+### `ObjectCounter` Arguments
 
 Here's a table with the `ObjectCounter` arguments:
 
-| Name                 | Type    | Default                    | Description                                                            |
-| -------------------- | ------- | -------------------------- | ---------------------------------------------------------------------- |
-| `classes_names`      | `dict`  | `None`                     | Dictionary of class names.                                             |
-| `reg_pts`            | `list`  | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                           |
-| `count_reg_color`    | `tuple` | `(255, 0, 255)`            | RGB color of the counting region.                                      |
-| `count_txt_color`    | `tuple` | `(0, 0, 0)`                | RGB color of the count text.                                           |
-| `count_bg_color`     | `tuple` | `(255, 255, 255)`          | RGB color of the count text background.                                |
-| `line_thickness`     | `int`   | `2`                        | Line thickness for bounding boxes.                                     |
-| `track_thickness`    | `int`   | `2`                        | Thickness of the track lines.                                          |
-| `view_img`           | `bool`  | `False`                    | Flag to control whether to display the video stream.                   |
-| `view_in_counts`     | `bool`  | `True`                     | Flag to control whether to display the in counts on the video stream.  |
-| `view_out_counts`    | `bool`  | `True`                     | Flag to control whether to display the out counts on the video stream. |
-| `draw_tracks`        | `bool`  | `False`                    | Flag to control whether to draw the object tracks.                     |
-| `track_color`        | `tuple` | `None`                     | RGB color of the tracks.                                               |
-| `region_thickness`   | `int`   | `5`                        | Thickness of the object counting region.                               |
-| `line_dist_thresh`   | `int`   | `15`                       | Euclidean distance threshold for line counter.                         |
-| `cls_txtdisplay_gap` | `int`   | `50`                       | Display gap between each class count.                                  |
+{% from "macros/solutions-args.md" import param_table %}
+{{ param_table(["model", "show_in", "show_out", "region"]) }}
 
-### Arguments `model.track`
+The `ObjectCounter` solution allows the use of several `track` arguments:
 
-| Name      | Type    | Default        | Description                                                 |
-| --------- | ------- | -------------- | ----------------------------------------------------------- |
-| `source`  | `im0`   | `None`         | source directory for images or videos                       |
-| `persist` | `bool`  | `False`        | persisting tracks between frames                            |
-| `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |
-| `conf`    | `float` | `0.3`          | Confidence Threshold                                        |
-| `iou`     | `float` | `0.5`          | IOU Threshold                                               |
-| `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=[0,2,3] |
-| `verbose` | `bool`  | `True`         | Display the object tracking results                         |
+{% from "macros/track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+
+Additionally, the visualization arguments listed below are supported:
+
+{% from "macros/visualization-args.md" import param_table %}
+{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
+
+## FAQ
+
+### How do I count objects in a video using Ultralytics YOLO26?
+
+To count objects in a video using Ultralytics YOLO26, you can follow these steps:
+
+1. Import the necessary libraries (`cv2`, `ultralytics`).
+2. Define the counting region (e.g., a polygon, line, etc.).
+3. Set up the video capture and initialize the object counter.
+4. Process each frame to track objects and count them within the defined region.
+
+Here's a simple example for counting in a region:
+
+```python
+import cv2
+
+from ultralytics import solutions
+
+
+def count_objects_in_region(video_path, output_video_path, model_path):
+    """Count objects in a specific region within a video."""
+    cap = cv2.VideoCapture(video_path)
+    assert cap.isOpened(), "Error reading video file"
+    w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+    video_writer = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+
+    region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
+    counter = solutions.ObjectCounter(show=True, region=region_points, model=model_path)
+
+    while cap.isOpened():
+        success, im0 = cap.read()
+        if not success:
+            print("Video frame is empty or processing is complete.")
+            break
+        results = counter(im0)
+        video_writer.write(results.plot_im)
+
+    cap.release()
+    video_writer.release()
+    cv2.destroyAllWindows()
+
+
+count_objects_in_region("path/to/video.mp4", "output_video.avi", "yolo26n.pt")
+```
+
+For more advanced configurations and options, check out the [RegionCounter solution](region-counting.md) for counting objects in multiple regions simultaneously.
+
+### What are the advantages of using Ultralytics YOLO26 for object counting?
+
+Using Ultralytics YOLO26 for object counting offers several advantages:
+
+1. **Resource Optimization:** It facilitates efficient resource management by providing accurate counts, helping optimize resource allocation in industries like [inventory management](https://www.ultralytics.com/blog/ai-for-smarter-retail-inventory-management).
+2. **Enhanced Security:** It enhances security and surveillance by accurately tracking and counting entities, aiding in proactive threat detection and [security systems](security-alarm-system.md).
+3. **Informed Decision-Making:** It offers valuable insights for decision-making, optimizing processes in domains like retail, traffic management, and more.
+4. **Real-time Processing:** YOLO26's architecture enables [real-time inference](https://www.ultralytics.com/glossary/real-time-inference), making it suitable for live video streams and time-sensitive applications.
+
+For implementation examples and practical applications, explore the [TrackZone solution](trackzone.md) for tracking objects in specific zones.
+
+### How can I count specific classes of objects using Ultralytics YOLO26?
+
+To count specific classes of objects using Ultralytics YOLO26, you need to specify the classes you are interested in during the tracking phase. Below is a Python example:
+
+```python
+import cv2
+
+from ultralytics import solutions
+
+
+def count_specific_classes(video_path, output_video_path, model_path, classes_to_count):
+    """Count specific classes of objects in a video."""
+    cap = cv2.VideoCapture(video_path)
+    assert cap.isOpened(), "Error reading video file"
+    w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+    video_writer = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+
+    line_points = [(20, 400), (1080, 400)]
+    counter = solutions.ObjectCounter(show=True, region=line_points, model=model_path, classes=classes_to_count)
+
+    while cap.isOpened():
+        success, im0 = cap.read()
+        if not success:
+            print("Video frame is empty or processing is complete.")
+            break
+        results = counter(im0)
+        video_writer.write(results.plot_im)
+
+    cap.release()
+    video_writer.release()
+    cv2.destroyAllWindows()
+
+
+count_specific_classes("path/to/video.mp4", "output_specific_classes.avi", "yolo26n.pt", [0, 2])
+```
+
+In this example, `classes_to_count=[0, 2]` means it counts objects of class `0` and `2` (e.g., person and car in the COCO dataset). You can find more information about class indices in the [COCO dataset documentation](../datasets/detect/coco.md).
+
+### Why should I use YOLO26 over other [object detection](https://www.ultralytics.com/glossary/object-detection) models for real-time applications?
+
+Ultralytics YOLO26 provides several advantages over other object detection models like Faster R-CNN, SSD, and previous YOLO versions:
+
+1. **Speed and Efficiency:** YOLO26 offers real-time processing capabilities, making it ideal for applications requiring high-speed inference, such as surveillance and [autonomous driving](https://www.ultralytics.com/blog/ai-in-self-driving-cars).
+2. **[Accuracy](https://www.ultralytics.com/glossary/accuracy):** It provides state-of-the-art accuracy for object detection and tracking tasks, reducing the number of false positives and improving overall system reliability.
+3. **Ease of Integration:** YOLO26 offers seamless integration with various platforms and devices, including mobile and [edge devices](nvidia-jetson.md), which is crucial for modern AI applications.
+4. **Flexibility:** Supports various tasks like object detection, [segmentation](../tasks/segment.md), and tracking with configurable models to meet specific use-case requirements.
+
+Check out Ultralytics [YOLO26 Documentation](../models/yolo26.md) for a deeper dive into its features and performance comparisons.
+
+### Can I use YOLO26 for advanced applications like crowd analysis and traffic management?
+
+Yes, Ultralytics YOLO26 is perfectly suited for advanced applications like crowd analysis and traffic management due to its real-time detection capabilities, scalability, and integration flexibility. Its advanced features allow for high-accuracy object tracking, counting, and classification in dynamic environments. Example use cases include:
+
+- **Crowd Analysis:** Monitor and manage large gatherings, ensuring safety and optimizing crowd flow with [region-based counting](region-counting.md).
+- **Traffic Management:** Track and count vehicles, analyze traffic patterns, and manage congestion in real-time with [speed estimation](speed-estimation.md) capabilities.
+- **Retail Analytics:** Analyze customer movement patterns and product interactions to optimize store layouts and improve customer experience.
+- **Industrial Automation:** Count products on conveyor belts and monitor production lines for quality control and efficiency improvements.
+
+For more specialized applications, explore [Ultralytics Solutions](../solutions/index.md) for a comprehensive set of tools designed for real-world computer vision challenges.

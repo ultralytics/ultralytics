@@ -1,39 +1,48 @@
 ---
+title: data.dataset API Reference
 description: Explore the YOLODataset and its subclasses for object detection, segmentation, and multi-modal tasks. Find details on dataset loading, caching, and augmentation.
 keywords: Ultralytics, YOLODataset, object detection, segmentation, dataset loading, caching, data augmentation
 ---
 
 # Reference for `ultralytics/data/dataset.py`
 
-!!! Note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/dataset.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/dataset.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/data/dataset.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/dataset.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/dataset.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
-<br><br>
+<br>
 
 ## ::: ultralytics.data.dataset.YOLODataset
 
-<br><br>
+<br><br><hr><br>
+
+## ::: ultralytics.data.dataset.DepthDataset
+
+<br><br><hr><br>
 
 ## ::: ultralytics.data.dataset.YOLOMultiModalDataset
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.dataset.GroundingDataset
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.dataset.YOLOConcatDataset
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.dataset.SemanticDataset
 
-<br><br>
+<br><br><hr><br>
+
+## ::: ultralytics.data.dataset.PolygonSemanticDataset
+
+<br><br><hr><br>
 
 ## ::: ultralytics.data.dataset.ClassificationDataset
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.dataset.HumanDataset
 

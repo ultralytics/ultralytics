@@ -1,87 +1,104 @@
 ---
+title: data.augment API Reference
 description: Explore Ultralytics image augmentation techniques like MixUp, Mosaic, and Random Perspective for enhancing model training. Improve your deep learning models now.
 keywords: Ultralytics, image augmentation, MixUp, Mosaic, Random Perspective, deep learning, model training, YOLO
 ---
 
 # Reference for `ultralytics/data/augment.py`
 
-!!! Note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/data/augment.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
-<br><br>
+<br>
 
 ## ::: ultralytics.data.augment.BaseTransform
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.augment.Compose
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.augment.BaseMixTransform
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.augment.Mosaic
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.augment.MixUp
 
-<br><br>
+<br><br><hr><br>
+
+## ::: ultralytics.data.augment.CutMix
+
+<br><br><hr><br>
 
 ## ::: ultralytics.data.augment.RandomPerspective
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.augment.RandomHSV
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.augment.RandomFlip
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.augment.LetterBox
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.augment.CopyPaste
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.augment.Albumentations
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.augment.Format
 
-<br><br>
+<br><br><hr><br>
+
+## ::: ultralytics.data.augment.SemanticFormat
+
+<br><br><hr><br>
+
+## ::: ultralytics.data.augment.LoadVisualPrompt
+
+<br><br><hr><br>
 
 ## ::: ultralytics.data.augment.RandomLoadText
 
-<br><br>
+<br><br><hr><br>
+
+## ::: ultralytics.data.augment.DepthFormat
+
+<br><br><hr><br>
 
 ## ::: ultralytics.data.augment.ClassifyLetterBox
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.augment.CenterCrop
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.augment.ToTensor
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.augment.v8_transforms
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.augment.classify_transforms
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.augment.classify_augmentations
 

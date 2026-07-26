@@ -1,126 +1,241 @@
 ---
 comments: true
-description: Learn how to export YOLOv8 models to CoreML for optimized, on-device machine learning on iOS and macOS. Follow step-by-step instructions.
-keywords: CoreML export, YOLOv8 models, CoreML conversion, Ultralytics, iOS object detection, macOS machine learning, AI deployment, machine learning integration
+description: Export Ultralytics YOLO26 models to CoreML for fast on-device inference on the Apple Neural Engine across iPhone, iPad, and Mac. Step-by-step export, quantization, and deployment guide.
+keywords: CoreML export, Core ML, YOLO26 CoreML, Apple Neural Engine, ANE, mlpackage, ML Program, Vision framework, iOS object detection, macOS machine learning, Swift, quantization, INT8, FP16, on-device AI, Ultralytics
 ---
 
-# CoreML Export for YOLOv8 Models
+# CoreML Export for YOLO26 Models
 
-Deploying computer vision models on Apple devices like iPhones and Macs requires a format that ensures seamless performance.
+Apple ships dedicated AI silicon — the Neural Engine — in every modern iPhone, iPad, and Mac, and [CoreML](https://developer.apple.com/documentation/coreml) is Ultralytics' supported path for deploying models to it today. Exporting [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models to CoreML turns a trained `.pt` checkpoint into a native `.mlpackage` that runs all seven YOLO tasks on-device at low latency, with no network connection and no data leaving the device.
 
-The CoreML export format allows you to optimize your [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models for efficient object detection in iOS and macOS applications. In this guide, we'll walk you through the steps for converting your models to the CoreML format, making it easier for your models to perform well on Apple devices.
+!!! tip "Run YOLO on the Apple Neural Engine today with the official mobile apps"
 
-## CoreML
+    The official [Ultralytics YOLO iOS SDK](https://github.com/ultralytics/yolo-ios-app) and [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) run CoreML exports on the Apple Neural Engine out of the box — real-time camera inference, single-image prediction, and automatic model download for all seven YOLO26 tasks, including Depth. For Android NPU deployment, see the [Qualcomm QNN integration](qnn.md).
 
-<p align="center">
-  <img width="100%" src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/0c757e32-3a9f-422e-9526-efde5f663ccd" alt="CoreML Overview">
-</p>
+!!! important "Official mobile input sizes"
 
-[CoreML](https://developer.apple.com/documentation/coreml) is Apple's foundational machine learning framework that builds upon Accelerate, BNNS, and Metal Performance Shaders. It provides a machine-learning model format that seamlessly integrates into iOS applications and supports tasks such as image analysis, natural language processing, audio-to-text conversion, and sound analysis.
+    Export classification models at `imgsz=224`. Export detect, segment, semantic, depth, pose, and OBB models at
+    `imgsz=640`. This 224/640 standard is shared by the official CoreML, LiteRT, and QNN mobile assets.
 
-Applications can take advantage of Core ML without the need to have a network connection or API calls because the Core ML framework works using on-device computing. This means model inference can be performed locally on the user's device.
+!!! note "Apple's future Core AI format"
 
-## Key Features of CoreML Models
-
-Apple's CoreML framework offers robust features for on-device machine learning. Here are the key features that make CoreML a powerful tool for developers:
-
-- **Comprehensive Model Support**: Converts and runs models from popular frameworks like TensorFlow, PyTorch, scikit-learn, XGBoost, and LibSVM.
+    Apple has introduced the new [Core AI framework and `.aimodel` format](coreai.md) for the iOS 27 and macOS 27 generation, but Ultralytics does not currently export it. CoreML remains the supported format for current Ultralytics releases and broader Apple device compatibility.
 
 <p align="center">
-  <img width="100%" src="https://apple.github.io/coremltools/docs-guides/_images/introduction-coremltools.png" alt="CoreML Supported Models">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/hfSK3Mk5P0I"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Export Ultralytics YOLO26 to CoreML for 2x Fast Inference on Apple Devices 🚀
 </p>
 
-- **On-device Machine Learning**: Ensures data privacy and swift processing by executing models directly on the user's device, eliminating the need for network connectivity.
+## What is CoreML?
 
-- **Performance and Optimization**: Uses the device's CPU, GPU, and Neural Engine for optimal performance with minimal power and memory usage. Offers tools for model compression and optimization while maintaining accuracy.
+<p align="center">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/coreml-overview.avif" alt="Apple CoreML deployment pipeline">
+</p>
 
-- **Ease of Integration**: Provides a unified format for various model types and a user-friendly API for seamless integration into apps. Supports domain-specific tasks through frameworks like Vision and Natural Language.
+CoreML (styled "Core ML" by Apple) is Apple's on-device [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) framework. It loads models in the modern **ML Program** format — the `.mlpackage` bundle the Ultralytics exporter produces — and schedules them across the device's CPU, GPU, and **Apple Neural Engine (ANE)**, the dedicated NPU in every Apple-silicon chip. Because everything runs locally, inference works offline, adds no network latency, and keeps user data on the device.
 
-- **Advanced Features**: Includes on-device training capabilities for personalized experiences, asynchronous predictions for interactive ML experiences, and model inspection and validation tools.
+CoreML integrates directly with Apple's [Vision framework](https://developer.apple.com/documentation/vision), which handles image scaling and orientation on the way into the model — this is how the Ultralytics iOS SDK feeds camera frames to YOLO with effectively zero preprocessing cost.
 
-## CoreML Deployment Options
+## Why Export YOLO26 to CoreML?
 
-Before we look at the code for exporting YOLOv8 models to the CoreML format, let's understand where CoreML models are usually used.
+- **Neural Engine speed**: CoreML schedules supported operations on Apple's Neural Engine for low-latency on-device inference. See the physical-device table below, and benchmark your exact export on your target hardware.
+- **NMS-free by design**: YOLO26 is [end-to-end](https://www.ultralytics.com/glossary/non-maximum-suppression-nms), so the exported graph needs no NMS pipeline and decode is sub-millisecond. Older detection models like YOLO11 can embed a CoreML NMS pipeline with `nms=True`.
+- **Private and offline**: All computation stays on the device — no cloud round-trips, no API keys, full [data privacy](https://www.ultralytics.com/glossary/data-privacy).
+- **One export, the whole ecosystem**: The same `.mlpackage` runs on iOS, iPadOS, macOS, watchOS, tvOS, and visionOS, and powers the official Ultralytics [iOS SDK](https://github.com/ultralytics/yolo-ios-app) and [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app).
 
-CoreML offers various deployment options for machine learning models, including:
+## Measured Performance
 
-- **On-Device Deployment**: This method directly integrates CoreML models into your iOS app. It's particularly advantageous for ensuring low latency, enhanced privacy (since data remains on the device), and offline functionality. This approach, however, may be limited by the device's hardware capabilities, especially for larger and more complex models. On-device deployment can be executed in the following two ways.
+End-to-end single-image inference for the standardized `v8.3.0` YOLO26n INT8 CoreML assets on an
+[iPhone 17 Pro](https://support.apple.com/en-us/125090) with 12 GB memory and iOS 26.5.2. Its A19 Pro has a 6-core CPU
+(2 Performance and 4 Efficiency cores), 6-core GPU with Neural Accelerators, and 16-core Neural Engine. Each cell
+shows the **total time** (preprocessing + inference + postprocessing, excluding
+annotation) with the per-stage split beneath it. On iOS, Vision performs input scaling inside the inference request,
+so preprocessing is reported as 0 and its cost is included in inference.
 
-    - **Embedded Models**: These models are included in the app bundle and are immediately accessible. They are ideal for small models that do not require frequent updates.
+| Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>Core ML `.cpuOnly`<br>(ms)</sup> | CPU + ANE preferred<br><sup>Core ML `.cpuAndNeuralEngine`<br>(ms)</sup> |
+| ------------- | -------- | --------------------------- | -------------------------------------------- | ----------------------------------------------------------------------- |
+| YOLO26n       | Detect   | 640                         | 9.2<br><sup>0.0 / 9.2 / 0.0</sup>            | **3.2**<br><sup>0.0 / 3.2 / 0.0</sup>                                   |
+| YOLO26n-seg   | Segment  | 640                         | 12.6<br><sup>0.0 / 12.0 / 0.5</sup>          | **4.8**<br><sup>0.0 / 4.2 / 0.6</sup>                                   |
+| YOLO26n-sem   | Semantic | 640                         | 9.7<br><sup>0.0 / 9.2 / 0.5</sup>            | **4.6**<br><sup>0.0 / 4.2 / 0.5</sup>                                   |
+| YOLO26n-depth | Depth    | 640                         | 25.0<br><sup>0.0 / 24.1 / 0.9</sup>          | **5.3**<br><sup>0.0 / 4.5 / 0.9</sup>                                   |
+| YOLO26n-cls   | Classify | 224                         | 2.2<br><sup>0.0 / 2.2 / 0.0</sup>            | **1.9**<br><sup>0.0 / 1.9 / 0.0</sup>                                   |
+| YOLO26n-pose  | Pose     | 640                         | 11.9<br><sup>0.0 / 11.9 / 0.0</sup>          | **3.9**<br><sup>0.0 / 3.9 / 0.0</sup>                                   |
+| YOLO26n-obb   | OBB      | 640                         | 10.6<br><sup>0.0 / 10.6 / 0.0</sup>          | **3.4**<br><sup>0.0 / 3.4 / 0.0</sup>                                   |
 
-    - **Downloaded Models**: These models are fetched from a server as needed. This approach is suitable for larger models or those needing regular updates. It helps keep the app bundle size smaller.
+- The exact `v8.3.0` release assets declare 224×224 inputs for classification and 640×640 for every other task.
+- **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`, measured through the [iOS SDK's](https://github.com/ultralytics/yolo-ios-app) per-stage timing via the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) benchmark harness in profile mode (optimized native code). CPU/accelerator order alternated between tasks in one sequential sweep. CPU rows request Core ML `.cpuOnly`; CPU + ANE preferred rows request `.cpuAndNeuralEngine`, with final operation placement controlled by Core ML. Sustained real-time camera operation runs higher because it includes the capture and scaling pipeline plus thermal settling. A historical pre-standard camera sweep measured 11.3 ms/frame for YOLO26n detect and 16.5 ms/frame for YOLO26n Depth on the same device — see the [iOS SDK performance doc](https://github.com/ultralytics/yolo-ios-app/blob/main/docs/performance.md) for steady-state profiling.
+- Compare the Android CPU/GPU results in the [LiteRT integration](litert.md#measured-performance) and Snapdragon NPU results in the [Qualcomm QNN integration](qnn.md#measured-performance).
 
-- **Cloud-Based Deployment**: CoreML models are hosted on servers and accessed by the iOS app through API requests. This scalable and flexible option enables easy model updates without app revisions. It's ideal for complex models or large-scale apps requiring regular updates. However, it does require an internet connection and may pose latency and security issues​.
-
-## Exporting YOLOv8 Models to CoreML
-
-Exporting YOLOv8 to CoreML enables optimized, on-device machine learning performance within Apple's ecosystem, offering benefits in terms of efficiency, security, and seamless integration with iOS, macOS, watchOS, and tvOS platforms.
+## Exporting YOLO26 Models to CoreML
 
 ### Installation
 
 To install the required package, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
         ```bash
-        # Install the required package for YOLOv8
+        # Install the required package for YOLO26
         pip install ultralytics
         ```
 
-For detailed instructions and best practices related to the installation process, check our [YOLOv8 Installation guide](../quickstart.md). While installing the required packages for YOLOv8, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
+The `coremltools` converter is installed automatically on first export. Export runs on macOS or x86 Linux; for detailed instructions and best practices, check our [installation guide](../quickstart.md) and the [Common Issues guide](../guides/yolo-common-issues.md).
 
 ### Usage
 
-Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
+The CoreML format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation with CoreML run on macOS only. Export your model, then load the exported model to run inference or validate its accuracy.
 
-!!! Example "Usage"
+!!! example "Export"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        # Load a YOLO26 model
+        model = YOLO("yolo26n.pt")
 
-        # Export the model to CoreML format
-        model.export(format="coreml")  # creates 'yolov8n.mlpackage'
-
-        # Load the exported CoreML model
-        coreml_model = YOLO("yolov8n.mlpackage")
-
-        # Run inference
-        results = coreml_model("https://ultralytics.com/images/bus.jpg")
+        # Export to CoreML with INT8 weight quantization, matching the official app models
+        model.export(format="coreml", quantize=8, imgsz=640)  # use imgsz=224 for classification
         ```
 
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to CoreML format
-        yolo export model=yolov8n.pt format=coreml  # creates 'yolov8n.mlpackage''
-
-        # Run inference with the exported model
-        yolo predict model=yolov8n.mlpackage source='https://ultralytics.com/images/bus.jpg'
+        # Export a YOLO26n PyTorch model to CoreML format with INT8 weight quantization
+        yolo export model=yolo26n.pt format=coreml quantize=8 imgsz=640 # use imgsz=224 for classification
         ```
+
+!!! example "Predict"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported CoreML model (macOS)
+        model = YOLO("yolo26n.mlpackage")
+
+        # Run inference
+        results = model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with the exported CoreML model
+        yolo predict model=yolo26n.mlpackage source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+!!! example "Validate"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported CoreML model (macOS)
+        model = YOLO("yolo26n.mlpackage")
+
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Validate the exported CoreML model
+        yolo val model=yolo26n.mlpackage data=coco8.yaml
+        ```
+
+### Export Arguments
+
+| Argument   | Type             | Default    | Description                                                                                                                                                                                                                                                           |
+| ---------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'coreml'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                                    |
+| `imgsz`    | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                     |
+| `quantize` | `int` or `str`   | `None`     | Quantization precision (weight-only for CoreML): `16` (FP16), `8` (INT8), `"w8a16"` (INT8 weights with FP16 activations), or `32`/unset (FP32). Unset NMS ML Programs use FP16 for Xcode preview; pass `32` to override. Replaces the deprecated `half`/`int8` flags. |
+| `nms`      | `bool`           | `False`    | Embeds a CoreML NMS pipeline. Detection models only (ignored with a warning for other tasks); not needed for NMS-free YOLO26, use for earlier models like YOLO11.                                                                                                     |
+| `dynamic`  | `bool`           | `False`    | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                                                                                               |
+| `batch`    | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                               |
+| `device`   | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                                       |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
-## Deploying Exported YOLOv8 CoreML Models
+### Targeting the Neural Engine
 
-Having successfully exported your Ultralytics YOLOv8 models to CoreML, the next critical phase is deploying these models effectively. For detailed guidance on deploying CoreML models in various environments, check out these resources:
+CoreML chooses hardware via `MLModelConfiguration.computeUnits`. The Ultralytics iOS SDK defaults to `.cpuAndNeuralEngine` on iOS 16+ rather than `.all`: in a real-time camera app the GPU is already busy compositing the preview and overlays, so excluding it avoids contention and frame-time jitter while the ANE does the heavy lifting. Pin `.cpuOnly` only for compatibility testing — the table above shows what it costs.
 
-- **[CoreML Tools](https://apple.github.io/coremltools/docs-guides/)**: This guide includes instructions and examples to convert models from TensorFlow, PyTorch, and other libraries to Core ML.
+Running a CoreML model from Python on a **Mac host** (via Ultralytics or `coremltools`) follows the same rule: Ultralytics loads with `ComputeUnit.CPU_AND_NE` (macOS 13+, falling back to `CPU_ONLY` on older macOS), keeping inference on the Neural Engine (~3× faster than CPU). This also avoids a current macOS host limitation where the default `ComputeUnit.ALL` / `CPU_AND_GPU` — which add the GPU/MPSGraph compile path — **abort the process** with an `Error: MLIR pass manager failed` assertion on `coremltools` 9.x.
 
-- **[ML and Vision](https://developer.apple.com/videos/ml-vision)**: A collection of comprehensive videos that cover various aspects of using and implementing CoreML models.
+## Deploying Exported YOLO26 CoreML Models
 
-- **[Integrating a Core ML Model into Your App](https://developer.apple.com/documentation/coreml/integrating_a_core_ml_model_into_your_app)**: A comprehensive guide on integrating a CoreML model into an iOS application, detailing steps from preparing the model to implementing it in the app for various functionalities.
+The fastest path is the official [Ultralytics YOLO iOS SDK](https://github.com/ultralytics/yolo-ios-app), the same Swift package that powers the Ultralytics iOS app and the [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app). It resolves official model names automatically, downloads and caches the `.mlpackage`, and returns fully decoded results:
+
+```swift
+import UltralyticsYOLO
+
+// Loads the official INT8 model (downloaded and cached on first use), then runs inference
+let yolo = YOLO("yolo26n", task: .detect) { result in
+    if case .success(let model) = result {
+        let results = model(uiImage)  // boxes, labels, confidences, timing
+    }
+}
+```
+
+For camera apps, drop in the SDK's `YOLOView` for real-time inference with native overlays, or use the [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) for cross-platform apps that share one codebase with Android.
+
+Integrating a raw `.mlpackage` yourself is also straightforward with Apple's stack — load it with `MLModel`, wrap it in a `VNCoreMLRequest`, and feed images through `VNImageRequestHandler`. These resources cover the details:
+
+- **[Integrating a Core ML Model into Your App](https://developer.apple.com/documentation/coreml/integrating-a-core-ml-model-into-your-app)**: Apple's guide to bundling and calling a CoreML model.
+- **[CoreML Tools](https://apple.github.io/coremltools/docs-guides/)**: Conversion, quantization, and optimization reference for the `coremltools` toolchain that powers this export.
+- **[Xcode Core ML Performance Reports](https://developer.apple.com/videos/)**: Per-layer device placement and latency profiling for your exact model and device.
+
+Ship the model either embedded in the app bundle (instant availability, ideal for nano/small models) or downloaded on first run and cached (smaller binary, easy model updates). The official apps combine both approaches: default nano models are bundled for immediate use, while larger variants download on demand and are cached locally.
+
+## Recommended Workflow
+
+1. **Train** your model with Ultralytics [Train mode](../modes/train.md), or start from the official YOLO26 weights
+2. **Export** with `model.export(format="coreml", quantize=8, imgsz=640)` on macOS or x86 Linux (`imgsz=224` for classification)
+3. **Verify** accuracy with `model.val()` on a Mac, and profile with an Xcode Core ML Performance Report on your target device
+4. **Deploy** with the iOS SDK, the Flutter plugin, or your own Vision integration, targeting `.cpuAndNeuralEngine`
 
 ## Summary
 
-In this guide, we went over how to export Ultralytics YOLOv8 models to CoreML format. By following the steps outlined in this guide, you can ensure maximum compatibility and performance when exporting YOLOv8 models to CoreML.
+In this guide, you learned how to export Ultralytics YOLO26 models to CoreML's `.mlpackage` format, quantize them for the Apple Neural Engine, and deploy them at single-digit-millisecond latencies — either through the official iOS SDK and Flutter plugin or your own Vision integration. For other deployment targets, browse the [integration guide page](../integrations/index.md), and compare formats with [Benchmark mode](../modes/benchmark.md).
 
-For further details on usage, visit the [CoreML official documentation](https://developer.apple.com/documentation/coreml).
+## FAQ
 
-Also, if you'd like to know more about other Ultralytics YOLOv8 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of valuable resources and insights there.
+### How do I export YOLO26 models to CoreML format?
+
+Run `model.export(format="coreml", imgsz=640)` in Python or `yolo export model=yolo26n.pt format=coreml imgsz=640`
+from the CLI on macOS or x86 Linux. Use `imgsz=224` for classification and add `quantize=8` to match the official
+app models. The export produces a `yolo26n.mlpackage` ML Program ready for Xcode, the iOS SDK, or the Flutter plugin.
+
+### Do I need `nms=True` when exporting YOLO26?
+
+No. YOLO26 is NMS-free end-to-end, so the exported graph already emits final detections and decode costs well under a millisecond. The `nms=True` option exists for earlier detection models such as YOLO11, where it embeds a CoreML NMS pipeline so your app does not have to implement suppression. CoreML NMS pipelines only support object detection, so `nms=True` is ignored with a warning for other tasks like segmentation and pose.
+
+### Which precision should I use — FP16 or INT8?
+
+The official Ultralytics app models ship as INT8, which minimizes download size and runs at the speeds in the table above. `quantize=16` (FP16) is a conservative alternative with essentially no accuracy loss. Validate your exact export with `model.val()` on a Mac before shipping.
+
+### How do I make sure inference runs on the Neural Engine?
+
+Set `MLModelConfiguration.computeUnits = .cpuAndNeuralEngine` (the iOS SDK default on iOS 16+). Avoid `.all` in camera apps — the GPU is busy compositing the preview, and scheduling inference there causes frame-time jitter. Confirm placement with an Xcode Core ML Performance Report.
+
+### Can I run and validate CoreML models with the Ultralytics CLI?
+
+Yes, on macOS: `yolo predict model=yolo26n.mlpackage source=image.jpg` and `yolo val model=yolo26n.mlpackage data=coco8.yaml` work like any other format. CoreML execution requires Apple hardware, so these modes are unavailable on Linux and Windows.
+
+### What is the fastest way to get YOLO26 running in an iOS or Flutter app?
+
+Use the official [Ultralytics YOLO iOS SDK](https://github.com/ultralytics/yolo-ios-app) (Swift Package) or the [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app). Both load official models by name with automatic download and caching, run them on the Neural Engine, and include complete real-time camera UIs — the measured performance table above was produced with exactly this stack.

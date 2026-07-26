@@ -1,69 +1,166 @@
-// Function that applies light/dark theme based on the user's preference
-const applyAutoTheme = () => {
-  // Determine the user's preferred color scheme
-  const prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-  // Apply the appropriate attributes based on the user's preference
-  if (prefersLight) {
-    document.body.setAttribute("data-md-color-scheme", "default");
-    document.body.setAttribute("data-md-color-primary", "indigo");
-  } else if (prefersDark) {
-    document.body.setAttribute("data-md-color-scheme", "slate");
-    document.body.setAttribute("data-md-color-primary", "black");
+// Apply theme colors based on dark/light mode
+const applyTheme = (isDark) => {
+  document.body.setAttribute("data-md-color-scheme", isDark ? "slate" : "default");
+  document.body.setAttribute("data-md-color-primary", isDark ? "black" : "indigo");
+};
+
+// Sync widget theme with Material theme
+const syncWidgetTheme = () => {
+  const isDark = document.body.getAttribute("data-md-color-scheme") === "slate";
+  document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
+};
+
+// Check and apply appropriate theme based on system/user preference
+const checkTheme = () => {
+  const palette = JSON.parse(localStorage.getItem(".__palette") || "{}");
+  if (palette.index === 0) {
+    applyTheme(window.matchMedia("(prefers-color-scheme: dark)").matches);
+    syncWidgetTheme();
   }
 };
 
-// Function that checks and applies light/dark theme based on the user's preference (if auto theme is enabled)
-function checkAutoTheme() {
-  // Array of supported language codes -> each language has its own palette (stored in local storage)
-  const supportedLangCodes = ["en", "zh", "ko", "ja", "ru", "de", "fr", "es", "pt", "it", "tr", "vi", "nl"];
-  // Get the URL path
-  const path = window.location.pathname;
-  // Extract the language code from the URL (assuming it's in the format /xx/...)
-  const langCode = path.split("/")[1];
-  // Check if the extracted language code is in the supported languages
-  const isValidLangCode = supportedLangCodes.includes(langCode);
-  // Construct the local storage key based on the language code if valid, otherwise default to the root key
-  const localStorageKey = isValidLangCode ? `/${langCode}/.__palette` : "/.__palette";
-  // Retrieve the palette from local storage using the constructed key
-  const palette = localStorage.getItem(localStorageKey);
-  if (palette) {
-    // Check if the palette's index is 0 (auto theme)
-    const paletteObj = JSON.parse(palette);
-    if (paletteObj && paletteObj.index === 0) {
-      applyAutoTheme();
-    }
-  }
-}
-
-// Run function when the script loads
-checkAutoTheme();
-
-// Re-run the function when the user's preference changes (when the user changes their system theme)
-window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", checkAutoTheme);
-window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", checkAutoTheme);
-
-// Re-run the function when the palette changes (e.g. user switched from dark theme to auto theme)
-// ! We can't use window.addEventListener("storage", checkAutoTheme) because it will NOT be triggered on the current tab
-// ! So we have to use the following workaround:
-// Get the palette input for auto theme
-var autoThemeInput = document.getElementById("__palette_1");
-if (autoThemeInput) {
-  // Add a click event listener to the input
-  autoThemeInput.addEventListener("click", function () {
-    // Check if the auto theme is selected
-    if (autoThemeInput.checked) {
-      // Re-run the function after a short delay (to ensure that the palette has been updated)
-      setTimeout(applyAutoTheme);
-    }
+function syncEmbedTheme() {
+  const isDark = document.body.getAttribute("data-md-color-scheme") === "slate";
+  document.querySelectorAll("iframe").forEach((iframe) => {
+    const targetOrigin = iframe.src ? new URL(iframe.src, window.location.href).origin : window.location.origin;
+    iframe.contentWindow?.postMessage({ type: "ul-theme", theme: isDark ? "dark" : "light" }, targetOrigin);
+    iframe.addEventListener("load", syncEmbedTheme, { once: true });
   });
 }
 
-// Add iframe navigation
-window.onhashchange = function() {
-    window.parent.postMessage({
-        type: 'navigation',
-        hash: window.location.pathname + window.location.search + window.location.hash
-    }, '*');
-};
+// Initialize theme handling on page load
+document.addEventListener("DOMContentLoaded", () => {
+  checkTheme();
+  syncWidgetTheme();
+  syncEmbedTheme();
+
+  // Watch for system theme changes
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", checkTheme);
+
+  // Watch for theme toggle changes
+  document.getElementById("__palette_1")?.addEventListener("change", (e) => {
+    if (e.target.checked) setTimeout(checkTheme);
+  });
+
+  // Watch for Material theme changes and sync to widget
+  new MutationObserver(syncWidgetTheme).observe(document.body, {
+    attributes: true,
+    attributeFilter: ["data-md-color-scheme"],
+  });
+
+  // Sync embed
+  new MutationObserver(syncEmbedTheme).observe(document.body, { attributeFilter: ["data-md-color-scheme"] });
+});
+
+// Ultralytics Chat Widget ---------------------------------------------------------------------------------------------
+document.addEventListener("DOMContentLoaded", () => {
+  const ultralyticsChat = new UltralyticsChat({
+    welcome: {
+      title: "Hello 👋",
+      message: "Ask about YOLO, tutorials, training, export, deployment, or troubleshooting.",
+      chatExamples: [
+        "What's new in SAM 3?",
+        "How can I get started with YOLO26?",
+        "How does Enterprise Licensing work?",
+      ],
+      searchExamples: [
+        "YOLO26 quickstart",
+        "custom dataset training",
+        "model export formats",
+        "object detection tutorial",
+        "hyperparameter tuning",
+      ],
+    },
+  });
+
+  const headerElement = document.querySelector(".md-header__inner");
+  const searchContainer = headerElement?.querySelector(".md-header__source");
+
+  if (headerElement && searchContainer) {
+    const searchBar = document.createElement("div");
+    searchBar.className = "ult-header-search";
+    const hotkey = /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? "⌘K" : "Ctrl+K";
+    searchBar.innerHTML = `
+      <button class="ult-search-button" title="Search documentation (${hotkey})" aria-label="Search documentation">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <span>Search</span>
+        <span class="ult-search-hotkey" aria-hidden="true">${hotkey}</span>
+      </button>
+    `;
+    headerElement.insertBefore(searchBar, searchContainer);
+
+    const defaultSearchToggle = headerElement.querySelector('label[for="__search"]');
+    const defaultSearchInput = document.getElementById("__search");
+    const defaultSearchDialog = document.querySelector(".md-search");
+    if (defaultSearchToggle) {
+      defaultSearchToggle.setAttribute("aria-hidden", "true");
+      defaultSearchToggle.style.display = "none";
+    }
+    if (defaultSearchInput) {
+      defaultSearchInput.setAttribute("tabindex", "-1");
+      defaultSearchInput.setAttribute("aria-hidden", "true");
+    }
+    if (defaultSearchDialog) defaultSearchDialog.style.display = "none";
+
+    searchBar.querySelector(".ult-search-button").addEventListener("click", () => {
+      ultralyticsChat?.toggle(true, "search");
+    });
+  }
+});
+
+// Fix language switcher links to preserve current page path, query string, and hash
+(() => {
+  function fixLanguageLinks() {
+    const path = location.pathname;
+    const links = document.querySelectorAll(".md-select__link[hreflang]");
+    if (!links.length) return;
+
+    // Derive language codes from the actual links (config-driven)
+    const langCodes = Array.from(links)
+      .map((link) => link.getAttribute("hreflang"))
+      .filter(Boolean);
+    const defaultLang =
+      Array.from(links)
+        .find((link) => link.getAttribute("href") === "/")
+        ?.getAttribute("hreflang") || "en";
+
+    // Extract base path (without leading slash and language prefix)
+    let basePath = path.startsWith("/") ? path.slice(1) : path;
+    for (const code of langCodes) {
+      if (code === defaultLang) continue;
+      const prefix = `${code}/`;
+      if (basePath === code || basePath === prefix) {
+        basePath = "";
+        break;
+      }
+      if (basePath.startsWith(prefix)) {
+        basePath = basePath.slice(prefix.length);
+        break;
+      }
+    }
+
+    // Preserve query string and hash
+    const suffix = location.search + location.hash;
+
+    // Update all language links
+    links.forEach((link) => {
+      const lang = link.getAttribute("hreflang");
+      link.href =
+        lang === defaultLang
+          ? `${location.origin}/${basePath}${suffix}`
+          : `${location.origin}/${lang}/${basePath}${suffix}`;
+    });
+  }
+
+  // Run on load and navigation
+  fixLanguageLinks();
+
+  if (typeof document$ !== "undefined") {
+    document$.subscribe(() => setTimeout(fixLanguageLinks, 50));
+  }
+})();

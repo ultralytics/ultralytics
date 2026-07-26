@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Learn how to install Ultralytics using pip, conda, or Docker. Follow our step-by-step guide for a seamless setup of YOLOv8 with thorough instructions.
-keywords: Ultralytics, YOLOv8, Install Ultralytics, pip, conda, Docker, GitHub, machine learning, object detection
+description: Learn how to install Ultralytics using pip, conda, or Docker. Follow our step-by-step guide for a seamless setup of Ultralytics YOLO.
+keywords: Ultralytics, YOLO26, YOLO11, Install Ultralytics, pip, conda, Docker, GitHub, machine learning, object detection
 ---
 
-## Install Ultralytics
+# Install Ultralytics
 
-Ultralytics provides various installation methods including pip, conda, and Docker. Install YOLOv8 via the `ultralytics` pip package for the latest stable release or by cloning the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) for the most up-to-date version. Docker can be used to execute the package in an isolated container, avoiding local installation.
+Ultralytics offers a variety of installation methods, including pip, conda, and Docker. You can install YOLO via the `ultralytics` pip package for the latest stable release, or by cloning the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) for the most current version. Docker is also an option to run the package in an isolated container, which avoids local installation.
 
 <p align="center">
   <br>
@@ -19,23 +19,22 @@ Ultralytics provides various installation methods including pip, conda, and Dock
   <strong>Watch:</strong> Ultralytics YOLO Quick Start Guide
 </p>
 
-!!! Example "Install"
+!!! example "Install"
 
-    <p align="left" style="margin-bottom: -20px;">![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ultralytics?logo=python&logoColor=gold)<p>
+    ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ultralytics?logo=python&logoColor=gold)
 
     === "Pip install (recommended)"
 
-        Install the `ultralytics` package using pip, or update an existing installation by running `pip install -U ultralytics`. Visit the Python Package Index (PyPI) for more details on the `ultralytics` package: [https://pypi.org/project/ultralytics/](https://pypi.org/project/ultralytics/).
+        Install or update the `ultralytics` package using pip by running `pip install -U ultralytics`. For more details on the `ultralytics` package, visit the [Python Package Index (PyPI)](https://pypi.org/project/ultralytics/).
 
-        [![PyPI - Version](https://img.shields.io/pypi/v/ultralytics?logo=pypi&logoColor=white)](https://pypi.org/project/ultralytics/)
-        [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics)
+        [![PyPI - Version](https://img.shields.io/pypi/v/ultralytics?logo=pypi&logoColor=white)](https://pypi.org/project/ultralytics/) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://clickpy.clickhouse.com/dashboard/ultralytics)
 
         ```bash
-        # Install the ultralytics package from PyPI
-        pip install ultralytics
+        # Install or upgrade the ultralytics package from PyPI
+        pip install -U ultralytics
         ```
 
-        You can also install the `ultralytics` package directly from the GitHub [repository](https://github.com/ultralytics/ultralytics). This might be useful if you want the latest development version. Make sure to have the Git command-line tool installed on your system. The `@main` command installs the `main` branch and may be modified to another branch, i.e. `@my-branch`, or removed entirely to default to `main` branch.
+        You can also install `ultralytics` directly from the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics). This can be useful if you want the latest development version. Ensure you have the Git command-line tool installed, and then run:
 
         ```bash
         # Install the ultralytics package from GitHub
@@ -44,29 +43,26 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 
     === "Conda install"
 
-        Conda is an alternative package manager to pip which may also be used for installation. Visit Anaconda for more details at [https://anaconda.org/conda-forge/ultralytics](https://anaconda.org/conda-forge/ultralytics). Ultralytics feedstock repository for updating the conda package is at [https://github.com/conda-forge/ultralytics-feedstock/](https://github.com/conda-forge/ultralytics-feedstock/).
+        Conda can be used as an alternative package manager to pip. For more details, visit [Anaconda](https://anaconda.org/conda-forge/ultralytics). The Ultralytics feedstock repository for updating the conda package is available at [GitHub](https://github.com/conda-forge/ultralytics-feedstock/).
 
-        [![Conda Version](https://img.shields.io/conda/vn/conda-forge/ultralytics?logo=condaforge)](https://anaconda.org/conda-forge/ultralytics)
-        [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics)
-        [![Conda Recipe](https://img.shields.io/badge/recipe-ultralytics-green.svg)](https://anaconda.org/conda-forge/ultralytics)
-        [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics)
+        [![Conda Version](https://img.shields.io/conda/vn/conda-forge/ultralytics?logo=condaforge)](https://anaconda.org/conda-forge/ultralytics) [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics) [![Conda Recipe](https://img.shields.io/badge/recipe-ultralytics-green.svg)](https://anaconda.org/conda-forge/ultralytics) [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics)
 
         ```bash
         # Install the ultralytics package using conda
         conda install -c conda-forge ultralytics
         ```
 
-        !!! Note
+        !!! note
 
-            If you are installing in a CUDA environment best practice is to install `ultralytics`, `pytorch` and `pytorch-cuda` in the same command to allow the conda package manager to resolve any conflicts, or else to install `pytorch-cuda` last to allow it override the CPU-specific `pytorch` package if necessary.
+            If you are installing in a CUDA environment, it is best practice to install `ultralytics`, `pytorch`, and `pytorch-cuda` in the same command. This allows the conda package manager to resolve any conflicts. Alternatively, install `pytorch-cuda` last to override the CPU-specific `pytorch` package if necessary.
             ```bash
             # Install all packages together using conda
-            conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics
+            conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=12.1 ultralytics
             ```
 
         ### Conda Docker Image
 
-        Ultralytics Conda Docker images are also available from [DockerHub](https://hub.docker.com/r/ultralytics/ultralytics). These images are based on [Miniconda3](https://docs.conda.io/projects/miniconda/en/latest/) and are an simple way to start using `ultralytics` in a Conda environment.
+        Ultralytics Conda Docker images are also available on [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics). These images are based on [Miniconda3](https://www.anaconda.com/docs/main) and provide a straightforward way to start using `ultralytics` in a Conda environment.
 
         ```bash
         # Set image name as a variable
@@ -76,16 +72,17 @@ Ultralytics provides various installation methods including pip, conda, and Dock
         sudo docker pull $t
 
         # Run the ultralytics image in a container with GPU support
-        sudo docker run -it --ipc=host --gpus all $t  # all GPUs
-        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # specify GPUs
+        sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t                         # all GPUs
+        sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t # specify GPUs
         ```
+
+        On Linux, CDI device requests require Docker >= 28.2.0 and NVIDIA Container Toolkit >= 1.18. The legacy `--gpus all` flag can lose GPU access after host daemon reloads, so upgrade older Linux hosts and use `--device` instead. See the [Docker Quickstart Guide](guides/docker-quickstart.md) for details.
 
     === "Git clone"
 
-        Clone the `ultralytics` repository if you are interested in contributing to the development or wish to experiment with the latest source code. After cloning, navigate into the directory and install the package in editable mode `-e` using pip.
+        Clone the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) if you are interested in contributing to development or wish to experiment with the latest source code. After cloning, navigate into the directory and install the package in editable mode `-e` using pip.
 
-        [![GitHub last commit](https://img.shields.io/github/last-commit/ultralytics/ultralytics?logo=github)](https://github.com/ultralytics/ultralytics)
-        [![GitHub commit activity](https://img.shields.io/github/commit-activity/t/ultralytics/ultralytics)](https://github.com/ultralytics/ultralytics)
+        [![GitHub last commit](https://img.shields.io/github/last-commit/ultralytics/ultralytics?logo=github)](https://github.com/ultralytics/ultralytics) [![GitHub commit activity](https://img.shields.io/github/commit-activity/t/ultralytics/ultralytics)](https://github.com/ultralytics/ultralytics)
 
         ```bash
         # Clone the ultralytics repository
@@ -100,19 +97,18 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 
     === "Docker"
 
-        Utilize Docker to effortlessly execute the `ultralytics` package in an isolated container, ensuring consistent and smooth performance across various environments. By choosing one of the official `ultralytics` images from [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), you not only avoid the complexity of local installation but also benefit from access to a verified working environment. Ultralytics offers 5 main supported Docker images, each designed to provide high compatibility and efficiency for different platforms and use cases:
+        Use Docker to execute the `ultralytics` package in an isolated container, ensuring consistent performance across various environments. By selecting one of the official `ultralytics` images from [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), you avoid the complexity of local installation and gain access to a verified working environment. Ultralytics offers six main supported Docker images, each designed for high compatibility and efficiency:
 
-        [![Docker Image Version](https://img.shields.io/docker/v/ultralytics/ultralytics?sort=semver&logo=docker)](https://hub.docker.com/r/ultralytics/ultralytics)
-        [![Docker Pulls](https://img.shields.io/docker/pulls/ultralytics/ultralytics)](https://hub.docker.com/r/ultralytics/ultralytics)
+        [![Docker Image Version](https://img.shields.io/docker/v/ultralytics/ultralytics?sort=semver&logo=docker)](https://hub.docker.com/r/ultralytics/ultralytics) [![Docker Pulls](https://img.shields.io/docker/pulls/ultralytics/ultralytics)](https://hub.docker.com/r/ultralytics/ultralytics)
 
         - **Dockerfile:** GPU image recommended for training.
-        - **Dockerfile-arm64:** Optimized for ARM64 architecture, allowing deployment on devices like Raspberry Pi and other ARM64-based platforms.
-        - **Dockerfile-cpu:** Ubuntu-based CPU-only version suitable for inference and environments without GPUs.
-        - **Dockerfile-jetson:** Tailored for NVIDIA Jetson devices, integrating GPU support optimized for these platforms.
+        - **Dockerfile-arm64:** Optimized for ARM64 architecture, suitable for deployment on devices like Raspberry Pi and other ARM64-based platforms.
+        - **Dockerfile-cpu:** Ubuntu-based CPU-only version, suitable for inference and environments without GPUs.
+        - **Dockerfile-jetson:** Tailored for [NVIDIA Jetson](guides/nvidia-jetson.md) devices, integrating GPU support optimized for these platforms.
         - **Dockerfile-python:** Minimal image with just Python and necessary dependencies, ideal for lightweight applications and development.
-        - **Dockerfile-conda:** Based on Miniconda3 with conda installation of ultralytics package.
+        - **Dockerfile-conda:** Based on Miniconda3 with a conda installation of the `ultralytics` package.
 
-        Below are the commands to get the latest image and execute it:
+        Here are the commands to get the latest image and execute it:
 
         ```bash
         # Set image name as a variable
@@ -122,38 +118,118 @@ Ultralytics provides various installation methods including pip, conda, and Dock
         sudo docker pull $t
 
         # Run the ultralytics image in a container with GPU support
-        sudo docker run -it --ipc=host --gpus all $t  # all GPUs
-        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # specify GPUs
+        sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t                         # all GPUs
+        sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t # specify GPUs
         ```
 
-        The above command initializes a Docker container with the latest `ultralytics` image. The `-it` flag assigns a pseudo-TTY and maintains stdin open, enabling you to interact with the container. The `--ipc=host` flag sets the IPC (Inter-Process Communication) namespace to the host, which is essential for sharing memory between processes. The `--gpus all` flag enables access to all available GPUs inside the container, which is crucial for tasks that require GPU computation.
+        On Linux, CDI device requests require Docker >= 28.2.0 and NVIDIA Container Toolkit >= 1.18. The legacy `--gpus all` flag can lose GPU access after host daemon reloads, so upgrade older Linux hosts and use `--device` instead. See the [Docker Quickstart Guide](guides/docker-quickstart.md) for details.
 
-        Note: To work with files on your local machine within the container, use Docker volumes for mounting a local directory into the container:
+        The above command initializes a Docker container with the latest `ultralytics` image. The `-it` flags assign a pseudo-TTY and keep stdin open, allowing interaction with the container. The `--ipc=host` flag sets the IPC (Inter-Process Communication) namespace to the host, which is essential for sharing memory between processes. The `--device nvidia.com/gpu=all` flag grants access to all available GPUs inside the container through [CDI](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html), crucial for tasks requiring GPU computation.
+
+        Note: To work with files on your local machine within the container, use Docker volumes to mount a local directory into the container:
 
         ```bash
         # Mount local directory to a directory inside the container
-        sudo docker run -it --ipc=host --gpus all -v /path/on/host:/path/in/container $t
+        sudo docker run -it --ipc=host --device nvidia.com/gpu=all -v /path/on/host:/path/in/container $t
         ```
 
-        Alter `/path/on/host` with the directory path on your local machine, and `/path/in/container` with the desired path inside the Docker container for accessibility.
+        Replace `/path/on/host` with the directory path on your local machine, and `/path/in/container` with the desired path inside the Docker container.
 
-        For advanced Docker usage, feel free to explore the [Ultralytics Docker Guide](./guides/docker-quickstart.md).
+        For advanced Docker usage, explore the [Ultralytics Docker Guide](guides/docker-quickstart.md).
 
 See the `ultralytics` [pyproject.toml](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) file for a list of dependencies. Note that all examples above install all required dependencies.
 
-!!! Tip "Tip"
+!!! tip
 
-    PyTorch requirements vary by operating system and CUDA requirements, so it's recommended to install PyTorch first following instructions at [https://pytorch.org/get-started/locally](https://pytorch.org/get-started/locally).
+    [PyTorch](https://www.ultralytics.com/glossary/pytorch) requirements vary by operating system and CUDA requirements, so install PyTorch first by following the instructions at [PyTorch](https://pytorch.org/get-started/locally/).
 
     <a href="https://pytorch.org/get-started/locally/">
-        <img width="800" alt="PyTorch Installation Instructions" src="https://user-images.githubusercontent.com/26833433/228650108-ab0ec98a-b328-4f40-a40d-95355e8a84e3.png">
+        <img width="800" alt="PyTorch installation selector for different platforms" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pytorch-installation-instructions.avif">
     </a>
+
+## Headless Server Installation
+
+For server environments without a display (e.g., cloud VMs, Docker containers, CI/CD pipelines), use the `ultralytics-opencv-headless` package. This is identical to the standard `ultralytics` package but depends on `opencv-python-headless` instead of `opencv-python`, avoiding unnecessary GUI dependencies and potential `libGL` errors.
+
+!!! example "Headless Install"
+
+    ```bash
+    pip install ultralytics-opencv-headless
+    ```
+
+Both packages provide the same functionality and API. The headless variant simply excludes OpenCV's GUI components that require display libraries.
+
+## Advanced Installation
+
+While the standard installation methods cover most use cases, you might need a more tailored setup for development or custom configurations.
+
+!!! example "Advanced Methods"
+
+    === "Install from Fork"
+
+        If you need persistent custom modifications, you can fork the Ultralytics repository, make changes to `pyproject.toml` or other code, and install from your fork.
+
+        1.  **Fork** the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) to your own GitHub account.
+        2.  **Clone** your fork locally:
+            ```bash
+            git clone https://github.com/YOUR_USERNAME/ultralytics.git
+            cd ultralytics
+            ```
+        3.  **Create a new branch** for your changes:
+            ```bash
+            git checkout -b my-custom-branch
+            ```
+        4.  **Make your modifications** to `pyproject.toml` or other files as needed.
+        5.  **Commit and push** your changes:
+            ```bash
+            git add .
+            git commit -m "My custom changes"
+            git push origin my-custom-branch
+            ```
+        6.  **Install** using pip with the `git+https` syntax, pointing to your branch:
+            ```bash
+            pip install git+https://github.com/YOUR_USERNAME/ultralytics.git@my-custom-branch
+            ```
+
+    === "Local Clone and Install"
+
+        Clone the repository locally, modify files as needed, and install in editable mode.
+
+        1.  **Clone** the Ultralytics repository:
+            ```bash
+            git clone https://github.com/ultralytics/ultralytics
+            cd ultralytics
+            ```
+        2.  **Make your modifications** to `pyproject.toml` or other files as needed.
+        3.  **Install** the package in editable mode (`-e`). Pip will use your modified `pyproject.toml` to resolve dependencies:
+            ```bash
+            pip install -e .
+            ```
+
+        This approach is useful for development or testing local changes before committing.
+
+    === "Use requirements.txt"
+
+        Specify a custom Ultralytics fork in your `requirements.txt` file to ensure consistent installations across your team.
+
+        ```text title="requirements.txt"
+        # Install ultralytics from a specific git branch
+        git+https://github.com/YOUR_USERNAME/ultralytics.git@my-custom-branch
+
+        # Other project dependencies
+        flask
+        ```
+
+        Install dependencies from the file:
+        ```bash
+        pip install -r requirements.txt
+        ```
 
 ## Use Ultralytics with CLI
 
-The Ultralytics command line interface (CLI) allows for simple single-line commands without the need for a Python environment. CLI requires no customization or Python code. You can simply run all tasks from the terminal with the `yolo` command. Check out the [CLI Guide](usage/cli.md) to learn more about using YOLOv8 from the command line.
+The Ultralytics command-line interface (CLI) allows for simple single-line commands without needing a Python environment. CLI requires no customization or Python code; run all tasks from the terminal with the `yolo` command. For more on using YOLO from the command line, see the [CLI Guide](usage/cli.md).
 
-!!! Example
+!!! example
 
     === "Syntax"
 
@@ -161,44 +237,85 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
         ```bash
         yolo TASK MODE ARGS
         ```
-
-        - `TASK` (optional) is one of ([detect](tasks/detect.md), [segment](tasks/segment.md), [classify](tasks/classify.md), [pose](tasks/pose.md))
-        - `MODE` (required) is one of ([train](modes/train.md), [val](modes/val.md), [predict](modes/predict.md), [export](modes/export.md), [track](modes/track.md))
+        - `TASK` (optional) is one of ([detect](tasks/detect.md), [segment](tasks/segment.md), [semantic](tasks/semantic.md), [depth](tasks/depth.md), [classify](tasks/classify.md), [pose](tasks/pose.md), [obb](tasks/obb.md))
+        - `MODE` (required) is one of ([train](modes/train.md), [val](modes/val.md), [predict](modes/predict.md), [export](modes/export.md), [track](modes/track.md), [benchmark](modes/benchmark.md))
         - `ARGS` (optional) are `arg=value` pairs like `imgsz=640` that override defaults.
 
         See all `ARGS` in the full [Configuration Guide](usage/cfg.md) or with the `yolo cfg` CLI command.
 
     === "Train"
 
-        Train a detection model for 10 epochs with an initial learning_rate of 0.01
+        Train a detection model for 10 [epochs](https://www.ultralytics.com/glossary/epoch) with an initial learning rate of 0.01:
         ```bash
-        yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
+        yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
         ```
 
     === "Predict"
 
         Predict a YouTube video using a pretrained segmentation model at image size 320:
         ```bash
-        yolo predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+        yolo predict model=yolo26n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
         ```
 
     === "Val"
 
-        Val a pretrained detection model at batch-size 1 and image size 640:
+        Validate a pretrained detection model with a batch size of 1 and image size of 640:
         ```bash
-        yolo val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640
+        yolo val model=yolo26n.pt data=coco8.yaml batch=1 imgsz=640
         ```
 
     === "Export"
 
-        Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
+        Export a YOLO26n classification model to ONNX format with an image size of 224x128 (no TASK required):
         ```bash
-        yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
+        yolo export model=yolo26n-cls.pt format=onnx imgsz=224,128
+        ```
+
+    === "Count"
+
+        Count objects in a video or live stream using YOLO26:
+        ```bash
+        yolo solutions count show=True
+
+        yolo solutions count source="path/to/video.mp4" # specify video file path
+        ```
+
+    === "Workout"
+
+        Monitor workout exercises using a YOLO26 pose model:
+        ```bash
+        yolo solutions workout show=True
+
+        yolo solutions workout source="path/to/video.mp4" # specify video file path
+
+        # Use keypoints for ab-workouts
+        yolo solutions workout kpts="[5, 11, 13]" # left side
+        yolo solutions workout kpts="[6, 12, 14]" # right side
+        ```
+
+    === "Queue"
+
+        Use YOLO26 to count objects in a designated queue or region:
+        ```bash
+        yolo solutions queue show=True
+
+        yolo solutions queue source="path/to/video.mp4" # specify video file path
+
+        yolo solutions queue region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]" # configure queue coordinates
+        ```
+
+    === "Inference with Streamlit"
+
+        Perform object detection, instance segmentation, or pose estimation in a web browser using [Streamlit](reference/solutions/streamlit_inference.md):
+        ```bash
+        yolo solutions inference
+
+        yolo solutions inference model="path/to/model.pt" # use model fine-tuned with Ultralytics Python package
         ```
 
     === "Special"
 
-        Run special commands to see version, view settings, run checks and more:
+        Run special commands to see the version, view settings, run checks, and more:
         ```bash
         yolo help
         yolo checks
@@ -206,35 +323,37 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
         yolo settings
         yolo copy-cfg
         yolo cfg
+        yolo solutions help
         ```
 
-!!! Warning "Warning"
+!!! warning
 
-    Arguments must be passed as `arg=val` pairs, split by an equals `=` sign and delimited by spaces between pairs. Do not use `--` argument prefixes or commas `,` between arguments.
+    Arguments must be passed as `arg=value` pairs, split by an equals `=` sign and delimited by spaces. Do not use `--` argument prefixes or commas `,` between arguments.
 
-    - `yolo predict model=yolov8n.pt imgsz=640 conf=0.25`  ✅
-    - `yolo predict model yolov8n.pt imgsz 640 conf 0.25`  ❌ (missing `=`)
-    - `yolo predict model=yolov8n.pt, imgsz=640, conf=0.25`  ❌ (do not use `,`)
-    - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25`  ❌ (do not use `--`)
+    - `yolo predict model=yolo26n.pt imgsz=640 conf=0.25`  ✅
+    - `yolo predict model yolo26n.pt imgsz 640 conf 0.25`  ❌ (missing `=`)
+    - `yolo predict model=yolo26n.pt, imgsz=640, conf=0.25`  ❌ (do not use `,`)
+    - `yolo predict --model yolo26n.pt --imgsz 640 --conf 0.25`  ❌ (do not use `--`)
+    - `yolo solution model=yolo26n.pt imgsz=640 conf=0.25` ❌ (use `solutions`, not `solution`)
 
 [CLI Guide](usage/cli.md){ .md-button }
 
 ## Use Ultralytics with Python
 
-YOLOv8's Python interface allows for seamless integration into your Python projects, making it easy to load, run, and process the model's output. Designed with simplicity and ease of use in mind, the Python interface enables users to quickly implement object detection, segmentation, and classification in their projects. This makes YOLOv8's Python interface an invaluable tool for anyone looking to incorporate these functionalities into their Python projects.
+The Ultralytics YOLO Python interface offers seamless integration into Python projects, making it easy to load, run, and process model outputs. Designed for simplicity, the Python interface allows users to quickly implement [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](tasks/segment.md), [semantic segmentation](tasks/semantic.md), [depth estimation](tasks/depth.md), and [classification](tasks/classify.md). This makes the YOLO Python interface an invaluable tool for incorporating these functionalities into Python projects.
 
-For example, users can load a model, train it, evaluate its performance on a validation set, and even export it to ONNX format with just a few lines of code. Check out the [Python Guide](usage/python.md) to learn more about using YOLOv8 within your Python projects.
+For instance, users can load a model, train it, evaluate its performance, and export it to ONNX format with just a few lines of code. Explore the [Python Guide](usage/python.md) to learn more about using YOLO within your Python projects.
 
-!!! Example
+!!! example
 
     ```python
     from ultralytics import YOLO
 
     # Create a new YOLO model from scratch
-    model = YOLO("yolov8n.yaml")
+    model = YOLO("yolo26n.yaml")
 
     # Load a pretrained YOLO model (recommended for training)
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo26n.pt")
 
     # Train the model using the 'coco8.yaml' dataset for 3 epochs
     results = model.train(data="coco8.yaml", epochs=3)
@@ -253,16 +372,17 @@ For example, users can load a model, train it, evaluate its performance on a val
 
 ## Ultralytics Settings
 
-The Ultralytics library provides a powerful settings management system to enable fine-grained control over your experiments. By making use of the `SettingsManager` housed within the `ultralytics.utils` module, users can readily access and alter their settings. These are stored in a YAML file and can be viewed or modified either directly within the Python environment or via the Command-Line Interface (CLI).
+The Ultralytics library includes a `SettingsManager` for fine-grained control over experiments, allowing users to access and modify settings easily. Stored in a JSON file within the environment's user configuration directory, these settings can be viewed or modified in the Python environment or via the Command-Line Interface (CLI).
 
 ### Inspecting Settings
 
-To gain insight into the current configuration of your settings, you can view them directly:
+To view the current configuration of your settings:
 
-!!! Example "View settings"
+!!! example "View settings"
 
     === "Python"
-        You can use Python to view your settings. Start by importing the `settings` object from the `ultralytics` module. Print and return settings using the following commands:
+
+        Use Python to view your settings by importing the `settings` object from the `ultralytics` module. Print and return settings with these commands:
         ```python
         from ultralytics import settings
 
@@ -274,19 +394,21 @@ To gain insight into the current configuration of your settings, you can view th
         ```
 
     === "CLI"
-        Alternatively, the command-line interface allows you to check your settings with a simple command:
+
+        The command-line interface allows you to check your settings with:
         ```bash
         yolo settings
         ```
 
 ### Modifying Settings
 
-Ultralytics allows users to easily modify their settings. Changes can be performed in the following ways:
+Ultralytics makes it easy to modify settings in the following ways:
 
-!!! Example "Update settings"
+!!! example "Update settings"
 
     === "Python"
-        Within the Python environment, call the `update` method on the `settings` object to change your settings:
+
+        In Python, use the `update` method on the `settings` object:
         ```python
         from ultralytics import settings
 
@@ -301,7 +423,8 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
         ```
 
     === "CLI"
-        If you prefer using the command-line interface, the following commands will allow you to modify your settings:
+
+        To modify settings using the command-line interface:
         ```bash
         # Update a setting
         yolo settings runs_dir='/path/to/runs'
@@ -315,25 +438,121 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
 
 ### Understanding Settings
 
-The table below provides an overview of the settings available for adjustment within Ultralytics. Each setting is outlined along with an example value, the data type, and a brief description.
+The table below overviews the adjustable settings within Ultralytics, including example values, data types, and descriptions.
 
 | Name               | Example Value         | Data Type | Description                                                                                                      |
 | ------------------ | --------------------- | --------- | ---------------------------------------------------------------------------------------------------------------- |
-| `settings_version` | `'0.0.4'`             | `str`     | Ultralytics _settings_ version (different from Ultralytics [pip](https://pypi.org/project/ultralytics/) version) |
-| `datasets_dir`     | `'/path/to/datasets'` | `str`     | The directory where the datasets are stored                                                                      |
-| `weights_dir`      | `'/path/to/weights'`  | `str`     | The directory where the model weights are stored                                                                 |
-| `runs_dir`         | `'/path/to/runs'`     | `str`     | The directory where the experiment runs are stored                                                               |
-| `uuid`             | `'a1b2c3d4'`          | `str`     | The unique identifier for the current settings                                                                   |
-| `sync`             | `True`                | `bool`    | Whether to sync analytics and crashes to HUB                                                                     |
-| `api_key`          | `''`                  | `str`     | Ultralytics HUB [API Key](https://hub.ultralytics.com/settings?tab=api+keys)                                     |
-| `clearml`          | `True`                | `bool`    | Whether to use ClearML logging                                                                                   |
-| `comet`            | `True`                | `bool`    | Whether to use [Comet ML](https://bit.ly/yolov8-readme-comet) for experiment tracking and visualization          |
-| `dvc`              | `True`                | `bool`    | Whether to use [DVC for experiment tracking](https://dvc.org/doc/dvclive/ml-frameworks/yolo) and version control |
-| `hub`              | `True`                | `bool`    | Whether to use [Ultralytics HUB](https://hub.ultralytics.com) integration                                        |
-| `mlflow`           | `True`                | `bool`    | Whether to use MLFlow for experiment tracking                                                                    |
-| `neptune`          | `True`                | `bool`    | Whether to use Neptune for experiment tracking                                                                   |
-| `raytune`          | `True`                | `bool`    | Whether to use Ray Tune for hyperparameter tuning                                                                |
-| `tensorboard`      | `True`                | `bool`    | Whether to use TensorBoard for visualization                                                                     |
-| `wandb`            | `True`                | `bool`    | Whether to use Weights & Biases logging                                                                          |
+| `settings_version` | `'0.0.6'`             | `str`     | Ultralytics _settings_ version (distinct from the Ultralytics [pip] version)                                     |
+| `datasets_dir`     | `'/path/to/datasets'` | `str`     | Directory where datasets are stored                                                                              |
+| `weights_dir`      | `'/path/to/weights'`  | `str`     | Directory where model weights are stored                                                                         |
+| `runs_dir`         | `'/path/to/runs'`     | `str`     | Directory where experiment runs are stored                                                                       |
+| `uuid`             | `'a1b2c3d4'`          | `str`     | Unique identifier for the current settings                                                                       |
+| `sync`             | `True`                | `bool`    | Option to sync analytics and crashes to [Ultralytics Platform]                                                   |
+| `api_key`          | `''`                  | `str`     | [Ultralytics Platform] API Key                                                                                   |
+| `clearml`          | `True`                | `bool`    | Option to use [ClearML] logging                                                                                  |
+| `comet`            | `True`                | `bool`    | Option to use [Comet ML] for experiment tracking and visualization                                               |
+| `dvc`              | `True`                | `bool`    | Option to use [DVC for experiment tracking] and version control                                                  |
+| `hub`              | `True`                | `bool`    | Option to use [Ultralytics Platform] integration                                                                 |
+| `mlflow`           | `True`                | `bool`    | Option to use [MLFlow] for experiment tracking                                                                   |
+| `neptune`          | `True`                | `bool`    | Option to use [Neptune] for experiment tracking                                                                  |
+| `raytune`          | `True`                | `bool`    | Option to use [Ray Tune] for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) |
+| `tensorboard`      | `False`               | `bool`    | Option to use [TensorBoard] for visualization                                                                    |
+| `wandb`            | `False`               | `bool`    | Option to use [Weights & Biases] logging                                                                         |
+| `vscode_msg`       | `True`                | `bool`    | When a VS Code terminal is detected, enables a prompt to download the [Ultralytics-Snippets] extension.          |
 
-As you navigate through your projects or experiments, be sure to revisit these settings to ensure that they are optimally configured for your needs.
+Revisit these settings as you progress through projects or experiments to ensure optimal configuration.
+
+## FAQ
+
+### How do I install Ultralytics using pip?
+
+Install Ultralytics with pip using:
+
+```bash
+pip install -U ultralytics
+```
+
+This installs the latest stable release of the `ultralytics` package from [PyPI](https://pypi.org/project/ultralytics/). To install the development version directly from GitHub:
+
+```bash
+pip install git+https://github.com/ultralytics/ultralytics.git
+```
+
+Ensure the Git command-line tool is installed on your system.
+
+### Can I install Ultralytics YOLO using conda?
+
+Yes, install Ultralytics YOLO using conda with:
+
+```bash
+conda install -c conda-forge ultralytics
+```
+
+This method is a great alternative to pip, ensuring compatibility with other packages. For CUDA environments, install `ultralytics`, `pytorch`, and `pytorch-cuda` together to resolve conflicts:
+
+```bash
+conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=12.1 ultralytics
+```
+
+For more instructions, see the [Conda quickstart guide](guides/conda-quickstart.md).
+
+### What are the advantages of using Docker to run Ultralytics YOLO?
+
+Docker provides an isolated, consistent environment for Ultralytics YOLO, ensuring smooth performance across systems and avoiding local installation complexities. Official Docker images are available on [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), with variants for GPU, CPU, ARM64, [NVIDIA Jetson](guides/nvidia-jetson.md), and Conda. To pull and run the latest image:
+
+```bash
+# Pull the latest ultralytics image from Docker Hub
+sudo docker pull ultralytics/ultralytics:latest
+
+# Run the ultralytics image in a container with GPU support
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest
+```
+
+For detailed Docker instructions, see the [Docker quickstart guide](guides/docker-quickstart.md).
+
+### How do I clone the Ultralytics repository for development?
+
+Clone the Ultralytics repository and set up a development environment with:
+
+```bash
+# Clone the ultralytics repository
+git clone https://github.com/ultralytics/ultralytics
+
+# Navigate to the cloned directory
+cd ultralytics
+
+# Install the package in editable mode for development
+pip install -e .
+```
+
+This allows contributions to the project or experimentation with the latest source code. For details, visit the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics).
+
+### Why should I use Ultralytics YOLO CLI?
+
+The Ultralytics YOLO CLI simplifies running object detection tasks without Python code, enabling single-line commands for training, validation, and prediction directly from your terminal. The basic syntax is:
+
+```bash
+yolo TASK MODE ARGS
+```
+
+For example, to train a detection model:
+
+```bash
+yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
+```
+
+Explore more commands and usage examples in the full [CLI Guide](usage/cli.md).
+
+<!-- Article Links -->
+
+[Ultralytics Platform]: https://platform.ultralytics.com
+[pip]: https://pypi.org/project/ultralytics/
+[DVC for experiment tracking]: https://dvc.org/doc/dvclive/ml-frameworks/yolo
+[Comet ML]: https://bit.ly/yolov8-readme-comet
+[ClearML]: ./integrations/clearml.md
+[MLFlow]: ./integrations/mlflow.md
+[Neptune]: https://neptune.ai/
+[Tensorboard]: ./integrations/tensorboard.md
+[Ray Tune]: ./integrations/ray-tune.md
+[Weights & Biases]: ./integrations/weights-biases.md
+[Ultralytics-Snippets]: ./integrations/vscode.md

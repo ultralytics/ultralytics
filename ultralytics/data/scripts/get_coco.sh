@@ -1,5 +1,6 @@
 #!/bin/bash
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Download COCO 2017 dataset https://cocodataset.org
 # Example usage: bash data/scripts/get_coco.sh
 # parent
@@ -11,11 +12,11 @@
 if [ "$#" -gt 0 ]; then
   for opt in "$@"; do
     case "${opt}" in
-    --train) train=true ;;
-    --val) val=true ;;
-    --test) test=true ;;
-    --segments) segments=true ;;
-    --sama) sama=true ;;
+      --train) train=true ;;
+      --val) val=true ;;
+      --test) test=true ;;
+      --segments) segments=true ;;
+      --sama) sama=true ;;
     esac
   done
 else
@@ -28,7 +29,7 @@ fi
 
 # Download/unzip labels
 d='../datasets' # unzip directory
-url=https://github.com/ultralytics/yolov5/releases/download/v1.0/
+url=https://github.com/ultralytics/assets/releases/download/v0.0.0/
 if [ "$segments" == "true" ]; then
   f='coco2017labels-segments.zip' # 169 MB
 elif [ "$sama" == "true" ]; then

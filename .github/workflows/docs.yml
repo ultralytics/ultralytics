@@ -1,0 +1,124 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Test and publish docs to https://docs.ultralytics.com
+# Ignores the following Docs rules to match Google-style docstrings:
+# D100: Missing docstring in public module
+# D104: Missing docstring in public package
+# D203: 1 blank line required before class docstring
+# D205: 1 blank line required between summary line and description
+# D212: Multi-line docstring summary should start at the first line
+# D213: Multi-line docstring summary should start at the second line
+# D401: First line of docstring should be in imperative mood
+# D406: Section name should end with a newline
+# D407: Missing dashed underline after section
+# D413: Missing blank line after last section
+
+name: Publish Docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      publish_docs:
+        description: "Publish Docs to https://docs.ultralytics.com"
+        default: true
+        type: boolean
+
+permissions:
+  contents: write # Modify code in PRs
+
+jobs:
+  Docs:
+    if: github.repository == 'ultralytics/ultralytics'
+    runs-on: ubuntu-latest
+    env:
+      BRANCH: ${{ github.head_ref || github.ref_name }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+        with:
+          # Fetch depth 0 required to capture full docs author history
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          token: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          ref: ${{ env.BRANCH }}
+          fetch-depth: 0
+      - uses: ultralytics/actions/setup-uv@main
+        with:
+          python-version: "3.14"
+      - name: Install Dependencies
+        run: |
+          uv venv
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+          uv pip install -e ".[dev]" ruff --extra-index-url https://download.pytorch.org/whl/cpu
+      - name: Ruff fixes
+        continue-on-error: true
+        run: |
+          ruff check \
+          --fix \
+          --unsafe-fixes \
+          --extend-select F,I,D,UP,RUF,FA \
+          --target-version py38 \
+          --ignore BLE001,D100,D104,D203,D205,D212,D213,D401,D406,D407,D413,RUF001,RUF002,RUF012,S110 \
+          .
+      - name: Update Docs Reference Section and Push Changes
+        continue-on-error: true
+        run: |
+          git config --global user.name "UltralyticsAssistant"
+          git config --global user.email "web@ultralytics.com"
+          npm install --global prettier prettier-plugin-sh
+          python docs/build_reference.py
+          git pull origin "$BRANCH"
+          git add .
+          git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
+          if [[ "${{ github.event_name }}" == "pull_request" ]] && ! git diff --staged --quiet; then
+            git commit -m "Auto-update Ultralytics Docs Reference by https://ultralytics.com/actions"
+            git push
+          else
+            echo "No changes to commit"
+          fi
+      - name: Ruff checks
+        run: |
+          ruff check \
+          --extend-select F,I,D,UP,RUF,FA \
+          --target-version py38 \
+          --ignore BLE001,D100,D104,D203,D205,D212,D213,D401,D406,D407,D413,RUF001,RUF002,RUF012,S110 \
+          .
+      - name: Build Docs and Check for Warnings
+        run: |
+          python docs/build_docs.py
+      - name: Commit and Push Docs changes
+        continue-on-error: true
+        if: always()
+        run: |
+          git pull origin "$BRANCH"
+          git add --update  # only add updated files
+          git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
+          if [[ "${{ github.event_name }}" == "pull_request" ]] && ! git diff --staged --quiet; then
+            git commit -m "Auto-update Ultralytics Docs by https://ultralytics.com/actions"
+            git push
+          else
+            echo "No changes to commit"
+          fi
+      - name: Publish Docs to https://docs.ultralytics.com
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_docs == 'true')
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          VERCEL_DOCS_DEPLOY_HOOK: ${{ secrets.VERCEL_DOCS_DEPLOY_HOOK }}
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          if [[ "$EVENT_NAME" == "push" ]]; then
+            if [[ "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
+              BEFORE_SHA=$(git rev-list --max-parents=0 "$CURRENT_SHA")
+            fi
+            changed_files=$(git diff --name-only "$BEFORE_SHA" "$CURRENT_SHA" -- docs/ mkdocs.yml mkdocs.yaml)
+            if [[ -z "$changed_files" ]]; then
+              echo "No docs source changes."
+              exit 0
+            fi
+            echo "$changed_files"
+          fi
+
+          curl --fail --silent --show-error --retry 3 --request POST "$VERCEL_DOCS_DEPLOY_HOOK"

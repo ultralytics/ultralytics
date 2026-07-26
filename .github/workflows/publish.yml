@@ -1,7 +1,8 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
-# Publish pip package to PyPI https://pypi.org/project/ultralytics/ and Docs to https://docs.ultralytics.com
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-name: Publish to PyPI and Deploy Docs
+# Publish pip package to PyPI https://pypi.org/project/ultralytics/
+
+name: Publish to PyPI
 
 on:
   push:
@@ -11,207 +12,191 @@ on:
       pypi:
         type: boolean
         description: Publish to PyPI
-      docs:
-        type: boolean
-        description: Deploy Docs
+
+concurrency:
+  group: ${{ github.workflow }}
+  queue: max
 
 jobs:
-  publish:
-    if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
-    name: Publish
-    runs-on: macos-14
+  check:
+    if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      increment: ${{ steps.check_pypi.outputs.increment }}
+      current_tag: ${{ steps.check_pypi.outputs.current_tag }}
+      previous_tag: ${{ steps.check_pypi.outputs.previous_tag }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
-          fetch-depth: "0" # pulls all commits (needed correct last updated dates in Docs)
-      - name: Git config
-        run: |
-          git config --global user.name "UltralyticsAssistant"
-          git config --global user.email "web@ultralytics.com"
-      - name: Set up Python environment
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: "pip" # caching pip dependencies
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip wheel build twine
-          pip install -e ".[dev]" openai --extra-index-url https://download.pytorch.org/whl/cpu
-      - name: Check PyPI version
+          python-version: "3.x"
+      - uses: ultralytics/actions/setup-uv@main
+      - run: uv pip install --system --no-cache ultralytics-actions
+      - id: check_pypi
         shell: python
+        env:
+          PYPI_DISPATCH: ${{ github.event.inputs.pypi }}
         run: |
           import os
-          import ultralytics
-          from ultralytics.utils.checks import check_latest_pypi_version
-          latest_pypi_version = check_latest_pypi_version()
-          v_local = tuple(map(int, ultralytics.__version__.split('.')))
-          v_pypi = tuple(map(int, latest_pypi_version.split('.')))
-          print(f'Local version is {v_local}')
-          print(f'PyPI version is {v_pypi}')
-          d = [a - b for a, b in zip(v_local, v_pypi)]  # diff
-          increment_patch = (d[0] == d[1] == 0) and (0 < d[2] < 3)  # publish if patch version increments by 1 or 2
-          increment_minor = (d[0] == 0) and (d[1] == 1) and v_local[2] == 0  # publish if minor version increments
-          increment = increment_patch or increment_minor
-          os.system(f'echo "increment={increment}" >> $GITHUB_OUTPUT')
-          os.system(f'echo "version={ultralytics.__version__}" >> $GITHUB_OUTPUT')
-          os.system(f'echo "previous_version={latest_pypi_version}" >> $GITHUB_OUTPUT')
-          if increment:
-              print('Local version is higher than PyPI version. Publishing new version to PyPI ✅.')
-        id: check_pypi
-      - name: Publish new tag
-        if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
-        run: |
-          git tag -a "v${{ steps.check_pypi.outputs.version }}" -m "$(git log -1 --pretty=%B)" || true  # i.e. "v0.1.2 commit message"
-          git push origin "v${{ steps.check_pypi.outputs.version }}" || true
-      - name: Publish new release
-        if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
+          from actions.utils import check_pypi_version
+          local_version, online_version, publish = check_pypi_version()
+          publish = publish or os.environ.get("PYPI_DISPATCH") == "true"  # manual recovery re-run
+          os.system(f'echo "increment={publish}" >> $GITHUB_OUTPUT')
+          os.system(f'echo "current_tag=v{local_version}" >> $GITHUB_OUTPUT')
+          if online_version != local_version:  # empty on recovery re-runs so summarize falls back to the true previous tag
+              os.system(f'echo "previous_tag=v{online_version}" >> $GITHUB_OUTPUT')
+          if publish:
+              print('Ready to publish new version to PyPI ✅.')
+      - name: Tag and Release
+        if: steps.check_pypi.outputs.increment == 'True'
         env:
-          OPENAI_AZURE_API_KEY: ${{ secrets.OPENAI_AZURE_API_KEY }}
-          OPENAI_AZURE_ENDPOINT: ${{ secrets.OPENAI_AZURE_ENDPOINT }}
-          OPENAI_AZURE_API_VERSION: ${{ secrets.OPENAI_AZURE_API_VERSION }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CURRENT_TAG: ${{ steps.check_pypi.outputs.version }}
-          PREVIOUS_TAG: ${{ steps.check_pypi.outputs.previous_version }}
-        shell: python
+          CURRENT_TAG: ${{ steps.check_pypi.outputs.current_tag }}
+          PREVIOUS_TAG: ${{ steps.check_pypi.outputs.previous_tag }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          import openai
-          import os
-          import requests
-          import json
-          import subprocess
-
-          # Retrieve environment variables
-          OPENAI_AZURE_API_KEY = os.getenv('OPENAI_AZURE_API_KEY')
-          OPENAI_AZURE_ENDPOINT = os.getenv('OPENAI_AZURE_ENDPOINT')
-          OPENAI_AZURE_API_VERSION = os.getenv('OPENAI_AZURE_API_VERSION')
-          GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
-          CURRENT_TAG = os.getenv('CURRENT_TAG')
-          PREVIOUS_TAG = os.getenv('PREVIOUS_TAG')
-
-          # Check for required environment variables
-          if not all([OPENAI_AZURE_API_KEY, OPENAI_AZURE_ENDPOINT, OPENAI_AZURE_API_VERSION, GITHUB_TOKEN, CURRENT_TAG, PREVIOUS_TAG]):
-              print(OPENAI_AZURE_API_KEY)
-              print(OPENAI_AZURE_ENDPOINT)
-              print(OPENAI_AZURE_API_VERSION)
-              print(GITHUB_TOKEN)
-              print(CURRENT_TAG)
-              print(PREVIOUS_TAG)
-              raise ValueError("One or more required environment variables are missing.")
-
-          latest_tag = f"v{CURRENT_TAG}"
-          previous_tag = f"v{PREVIOUS_TAG}"
-          repo = 'ultralytics/ultralytics'
-          headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3.diff"}
-
-          # Get the diff between the tags
-          url = f"https://api.github.com/repos/{repo}/compare/{previous_tag}...{latest_tag}"
-          response = requests.get(url, headers=headers)
-          diff = response.text if response.status_code == 200 else f"Failed to get diff: {response.content}"
-
-          # Set up OpenAI client
-          client = openai.AzureOpenAI(
-              api_key=OPENAI_AZURE_API_KEY,
-              api_version=OPENAI_AZURE_API_VERSION,
-              azure_endpoint=OPENAI_AZURE_ENDPOINT
-          )
-
-          # Prepare messages for OpenAI completion
-          messages = [
-              {
-                  "role": "system",
-                  "content": "You are an Ultralytics AI assistant skilled in software development and technical communication. Your task is to summarize GitHub releases from Ultralytics in a way that is detailed, accurate, and understandable to both expert developers and non-expert users. Focus on highlighting the key changes and their impact in simple and intuitive terms."
-              },
-              {
-                  "role": "user",
-                  "content": f"Summarize the updates made in the [Ultralytics](https://ultralytics.com) '{latest_tag}' tag, focusing on major changes, their purpose, and potential impact. Keep the summary clear and suitable for a broad audience. Add emojis to enliven the summary. Reply directly with a summary along these example guidelines, though feel free to adjust as appropriate:\n\n"
-                             f"### 🌟 Summary (single-line synopsis)\n"
-                             f"### 📊 Key Changes (bullet points highlighting any major changes)\n"
-                             f"### 🎯 Purpose & Impact (bullet points explaining any benefits and potential impact to users)\n"
-                             f"\n\nHere's the release diff:\n\n{diff[:96000]}",
-              }
-          ]
-
-          try:
-              completion = client.chat.completions.create(model="gpt-4o-2024-05-13", messages=messages)
-              summary = completion.choices[0].message.content.strip()
-          except openai.error.OpenAIError as e:
-              print(f"Failed to generate summary: {e}")
-              raise
-
-          # Get the latest commit message
-          commit_message = subprocess.run(['git', 'log', '-1', '--pretty=%B'], check=True, text=True, capture_output=True).stdout.split("\n")[0].strip()
-
-          # Prepare release data
-          release = {
-              'tag_name': latest_tag,
-              'name': f"{latest_tag} - {commit_message}",
-              'body': summary,
-              'draft': False,
-              'prerelease': False
-          }
-
-          # Create the release on GitHub
-          release_url = f"https://api.github.com/repos/{repo}/releases"
-          release_response = requests.post(release_url, headers=headers, data=json.dumps(release))
-          if release_response.status_code == 201:
-              print(f'Successfully created release {latest_tag}')
-          else:
-              print(f'Failed to create release {latest_tag}: {release_response.content}')
-      - name: Publish to PyPI
-        continue-on-error: true
-        if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
-        env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          python -m build
-          python -m twine upload dist/* -u __token__ -p $PYPI_TOKEN
-      - name: Deploy Docs
-        continue-on-error: true
-        if: (github.event_name == 'push' || github.event.inputs.docs == 'true') && github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
-        env:
-          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY_DOCS }}
-        run: |
-          export JUPYTER_PLATFORM_DIRS=1
-          python docs/build_docs.py
-          git clone https://github.com/ultralytics/docs.git docs-repo
-          cd docs-repo
-          git checkout gh-pages || git checkout -b gh-pages
-          rm -rf *
-          cp -R ../site/* .
-          echo "$INDEXNOW_KEY" > "$INDEXNOW_KEY.txt"
-          git add .
-          LATEST_HASH=$(git rev-parse --short=7 HEAD)
-          git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }} - $LATEST_HASH'"
-          git push https://$PERSONAL_ACCESS_TOKEN@github.com/ultralytics/docs.git gh-pages
-      - name: Extract PR Details
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            PR_JSON=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }})
-            PR_NUMBER=${{ github.event.pull_request.number }}
-            PR_TITLE=$(echo $PR_JSON | jq -r '.title')
-          else
-            COMMIT_SHA=${{ github.event.after }}
-            PR_JSON=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/search/issues?q=repo:${{ github.repository }}+is:pr+is:merged+sha:$COMMIT_SHA")
-            PR_NUMBER=$(echo $PR_JSON | jq -r '.items[0].number')
-            PR_TITLE=$(echo $PR_JSON | jq -r '.items[0].title')
+          if [ -z "$(git ls-remote --tags origin "refs/tags/$CURRENT_TAG")" ]; then
+            git config --global user.name "UltralyticsAssistant"
+            git config --global user.email "web@ultralytics.com"
+            git tag -a "$CURRENT_TAG" -m "$(git log -1 --pretty=%B)"
+            git push origin "$CURRENT_TAG"
           fi
-          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
-          echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
-      - name: Notify on Slack (Success)
-        if: success() && github.event_name == 'push' && steps.check_pypi.outputs.increment == 'True'
-        uses: slackapi/slack-github-action@v1.26.0
+          if ! gh release view "$CURRENT_TAG" >/dev/null 2>&1; then
+            [ -n "$PREVIOUS_TAG" ] || git fetch --unshallow --tags # summarize resolves the previous tag from git history
+            ultralytics-actions-summarize-release
+          fi
+          uv cache prune --ci
+
+  build:
+    needs: check
+    if: needs.check.outputs.increment == 'True'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
-          payload: |
-            {"text": "<!channel> GitHub Actions success for ${{ github.workflow }} ✅\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* NEW 'ultralytics ${{ steps.check_pypi.outputs.version }}' pip package published 😃\n*Job Status:* ${{ job.status }}\n*Pull Request:* <https://github.com/${{ github.repository }}/pull/${{ env.PR_NUMBER }}> ${{ env.PR_TITLE }}\n"}
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
-      - name: Notify on Slack (Failure)
-        if: failure()
-        uses: slackapi/slack-github-action@v1.26.0
+          python-version: "3.x"
+      - uses: ultralytics/actions/setup-uv@main
+      - run: uv pip install --system --no-cache build
+      - name: Build ultralytics
+        run: python -m build --outdir dist/
+      - name: Build ultralytics-opencv-headless
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("pyproject.toml")
+          text = path.read_text()
+          text = text.replace('name = "ultralytics"', 'name = "ultralytics-opencv-headless"', 1)
+          text = "\n".join(
+              (
+                  'description = "Ultralytics YOLO 🚀 for SOTA computer vision in server, container, and headless environments."'
+                  if line.startswith("description = ")
+                  else line
+              )
+              for line in text.splitlines()
+          ) + "\n"
+          text = text.replace('"opencv-python>=', '"opencv-python-headless>=', 1)
+          path.write_text(text)
+          PY
+          python -m build --outdir dist/
+          git checkout pyproject.toml
+      - uses: actions/upload-artifact@v7
         with:
-          payload: |
-            {"text": "<!channel> GitHub Actions error for ${{ github.workflow }} ❌\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n*Job Status:* ${{ job.status }}\n*Pull Request:* <https://github.com/${{ github.repository }}/pull/${{ env.PR_NUMBER }}> ${{ env.PR_TITLE }}\n"}
+          name: dist
+          path: dist/
+      - run: uv cache prune --ci
+
+  publish:
+    needs: [check, build]
+    if: needs.check.outputs.increment == 'True'
+    runs-on: ubuntu-latest
+    environment: # for GitHub Deployments tab
+      name: Release - PyPI
+      url: https://pypi.org/p/ultralytics
+    permissions:
+      id-token: write # for PyPI trusted publishing
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        id: publish
+        continue-on-error: true
+        with:
+          skip-existing: true # tolerate recovery re-runs after partial failures
+      - name: Clean partial attestations # leftover *.publish.attestation files make the retry fail pre-existence checks
+        if: steps.publish.outcome == 'failure'
+        run: |
+          rm -f dist/*.publish.attestation
+          sleep 30
+      - name: Retry publish # transient sigstore/Rekor or PyPI network failures
+        if: steps.publish.outcome == 'failure'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+
+  sbom:
+    needs: [check, build, publish]
+    if: needs.check.outputs.increment == 'True'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+      - uses: ultralytics/actions/setup-uv@main
+      - run: |
+          uv venv sbom-env
+          uv pip install -e .
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
+          VIRTUAL_ENV: sbom-env
+      - uses: anchore/sbom-action@v0
+        with:
+          format: spdx-json
+          output-file: sbom.spdx.json
+          path: sbom-env
+      - run: gh release upload ${{ needs.check.outputs.current_tag }} sbom.spdx.json --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify:
+    needs: [check, publish, sbom]
+    if: always() && needs.check.outputs.increment == 'True'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Get release title
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ needs.check.outputs.current_tag }}
+        run: |
+          TITLE=$(gh release view "$TAG" --json name -q .name 2>/dev/null | tr -d '\n\r"\\') || TITLE=""
+          TITLE=$(printf '%s' "$TITLE" | sed -E "s@#([0-9]+)@<https://github.com/$GH_REPO/pull/\1|#\1>@g")
+          echo "title=$TITLE" >> "$GITHUB_OUTPUT"
+      - name: Notify Success
+        if: needs.publish.result == 'success' && needs.sbom.result == 'success' && github.event_name == 'push'
+        uses: slackapi/slack-github-action@v4.0.0
+        with:
+          webhook-type: incoming-webhook
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
+          payload: |
+            text: "<!subteam^S082BPCRAJ3> *${{ github.workflow }}* ✅ `${{ github.repository }}` ${{ steps.release.outputs.title || needs.check.outputs.current_tag }}  <https://github.com/${{ github.repository }}/releases/tag/${{ needs.check.outputs.current_tag }}|*Release*>  ·  <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Run*>"
+      - name: Notify Failure
+        if: needs.publish.result != 'success' || needs.sbom.result != 'success'
+        uses: slackapi/slack-github-action@v4.0.0
+        with:
+          webhook-type: incoming-webhook
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
+          payload: |
+            text: "<!subteam^S082BPCRAJ3> *${{ github.workflow }}* ❌ `${{ github.repository }}` ${{ needs.check.outputs.current_tag }}  <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Run*>"

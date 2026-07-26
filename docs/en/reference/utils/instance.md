@@ -1,23 +1,24 @@
 ---
+title: utils.instance API Reference
 description: Explore Ultralytics utilities for bounding boxes and instances, providing detailed documentation on handling bbox formats, conversions, and more.
 keywords: Ultralytics, bounding boxes, Instances, bbox formats, conversions, AI, deep learning, YOLO, xyxy, xywh, ltwh
 ---
 
 # Reference for `ultralytics/utils/instance.py`
 
-!!! Note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/instance.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/instance.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/instance.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/instance.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/instance.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
-<br><br>
+<br>
 
 ## ::: ultralytics.utils.instance.Bboxes
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.instance.Instances
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.instance._ntuple
 

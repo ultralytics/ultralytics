@@ -1,15 +1,16 @@
 ---
+title: models.yolo.detect.predict API Reference
 description: Explore the Ultralytics YOLO Detection Predictor. Learn how to implement and use the DetectionPredictor class for object detection in Python.
 keywords: YOLO, Ultralytics, DetectionPredictor, object detection, Python, machine learning, AI, non_max_suppression
 ---
 
 # Reference for `ultralytics/models/yolo/detect/predict.py`
 
-!!! Note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/detect/predict.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/detect/predict.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/yolo/detect/predict.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/detect/predict.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/detect/predict.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
-<br><br>
+<br>
 
 ## ::: ultralytics.models.yolo.detect.predict.DetectionPredictor
 

@@ -1,83 +1,104 @@
 ---
+title: nn.tasks API Reference
 description: Dive into the intricacies of YOLO tasks.py. Learn about DetectionModel, PoseModel and more for powerful AI development.
 keywords: Ultralytics, YOLO, nn tasks, DetectionModel, PoseModel, RTDETRDetectionModel, model weights, parse model, AI development
 ---
 
 # Reference for `ultralytics/nn/tasks.py`
 
-!!! Note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/nn/tasks.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
-<br><br>
+<br>
 
 ## ::: ultralytics.nn.tasks.BaseModel
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.DetectionModel
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.OBBModel
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.SegmentationModel
 
-<br><br>
+<br><br><hr><br>
+
+## ::: ultralytics.nn.tasks.SemanticSegmentationModel
+
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.PoseModel
 
-<br><br>
+<br><br><hr><br>
+
+## ::: ultralytics.nn.tasks.DepthModel
+
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.HumanModel
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.ClassificationModel
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.RTDETRDetectionModel
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.WorldModel
 
-<br><br>
+<br><br><hr><br>
+
+## ::: ultralytics.nn.tasks.YOLOEModel
+
+<br><br><hr><br>
+
+## ::: ultralytics.nn.tasks.YOLOESegModel
+
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.Ensemble
 
-<br><br>
+<br><br><hr><br>
+
+## ::: ultralytics.nn.tasks._SafeLoad
+
+<br><br><hr><br>
+
+## ::: ultralytics.nn.tasks._initialize_yolo_model
+
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.temporary_modules
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.torch_safe_load
 
-<br><br>
+<br><br><hr><br>
 
-## ::: ultralytics.nn.tasks.attempt_load_weights
+## ::: ultralytics.nn.tasks.load_checkpoint
 
-<br><br>
-
-## ::: ultralytics.nn.tasks.attempt_load_one_weight
-
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.parse_model
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.yaml_model_load
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.guess_model_scale
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.guess_model_task
 

@@ -1,39 +1,54 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
+import shutil
 import threading
 import time
 from http import HTTPStatus
 from pathlib import Path
+from typing import Any
+from urllib.parse import parse_qs, urlparse
 
-import requests
-
-from ultralytics.hub.utils import HELP_MSG, HUB_WEB_ROOT, PREFIX, TQDM
-from ultralytics.utils import IS_COLAB, LOGGER, SETTINGS, __version__, checks, emojis
+from ultralytics import __version__
+from ultralytics.hub.utils import HELP_MSG, HUB_WEB_ROOT, PREFIX
+from ultralytics.utils import IS_COLAB, LOGGER, SETTINGS, TQDM, checks
 from ultralytics.utils.errors import HUBModelError
 
 AGENT_NAME = f"python-{__version__}-colab" if IS_COLAB else f"python-{__version__}-local"
 
 
 class HUBTrainingSession:
-    """
-    HUB training session for Ultralytics HUB YOLO models. Handles model initialization, heartbeats, and checkpointing.
+    """HUB training session for Ultralytics HUB YOLO models.
+
+    This class encapsulates the functionality for interacting with Ultralytics HUB during model training, including
+    model creation, metrics tracking, and checkpoint uploading.
 
     Attributes:
         model_id (str): Identifier for the YOLO model being trained.
         model_url (str): URL for the model in Ultralytics HUB.
-        rate_limits (dict): Rate limits for different API calls (in seconds).
-        timers (dict): Timers for rate limiting.
-        metrics_queue (dict): Queue for the model's metrics.
-        model (dict): Model data fetched from Ultralytics HUB.
+        rate_limits (dict[str, int]): Rate limits for different API calls in seconds.
+        timers (dict[str, Any]): Timers for rate limiting.
+        metrics_queue (dict[str, Any]): Queue for the model's metrics.
+        metrics_upload_failed_queue (dict[str, Any]): Queue for metrics that failed to upload.
+        model (Any): Model data fetched from Ultralytics HUB.
+        model_file (str): Path to the model file.
+        train_args (dict[str, Any]): Arguments for training the model.
+        client (Any): Client for interacting with Ultralytics HUB.
+        filename (str): Filename of the model.
+
+    Examples:
+        Create a training session with a model URL
+        >>> session = HUBTrainingSession("https://hub.ultralytics.com/models/example-model")
+        >>> session.upload_metrics()
     """
 
-    def __init__(self, identifier):
-        """
-        Initialize the HUBTrainingSession with the provided model identifier.
+    def __init__(self, identifier: str):
+        """Initialize the HUBTrainingSession with the provided model identifier.
 
         Args:
-            identifier (str): Model identifier used to initialize the HUB training session.
-                It can be a URL string or a model key with specific format.
+            identifier (str): Model identifier used to initialize the HUB training session. It can be a URL string or a
+                model key with specific format.
 
         Raises:
             ValueError: If the provided model identifier is invalid.
@@ -48,6 +63,8 @@ class HUBTrainingSession:
         self.timers = {}  # holds timers in ultralytics/utils/callbacks/hub.py
         self.model = None
         self.model_url = None
+        self.model_file = None
+        self.train_args = None
 
         # Parse input
         api_key, model_id, self.filename = self._parse_identifier(identifier)
@@ -59,23 +76,32 @@ class HUBTrainingSession:
         # Initialize client
         self.client = HUBClient(credentials)
 
-        # Load models if authenticated
-        if self.client.authenticated:
+        # Load models
+        try:
             if model_id:
                 self.load_model(model_id)  # load existing model
             else:
                 self.model = self.client.model()  # load empty model
+        except Exception:
+            if identifier.startswith(f"{HUB_WEB_ROOT}/models/") and not self.client.authenticated:
+                LOGGER.warning(
+                    f"{PREFIX}Please log in using 'yolo login API_KEY'. "
+                    "You can find your API Key at: https://hub.ultralytics.com/settings?tab=api+keys."
+                )
 
     @classmethod
-    def create_session(cls, identifier, args=None):
-        """Class method to create an authenticated HUBTrainingSession or return None."""
+    def create_session(cls, identifier: str, args: dict[str, Any] | None = None):
+        """Create an authenticated HUBTrainingSession or return None.
+
+        Args:
+            identifier (str): Model identifier used to initialize the HUB training session.
+            args (dict[str, Any], optional): Arguments for creating a new model if identifier is not a HUB model URL.
+
+        Returns:
+            session (HUBTrainingSession | None): An authenticated session or None if creation fails.
+        """
         try:
             session = cls(identifier)
-            if not session.client.authenticated:
-                if identifier.startswith(f"{HUB_WEB_ROOT}/models/"):
-                    LOGGER.warning(f"{PREFIX}WARNING ⚠️ Login to Ultralytics HUB with 'yolo hub login API_KEY'.")
-                    exit()
-                return None
             if args and not identifier.startswith(f"{HUB_WEB_ROOT}/models/"):  # not a HUB model URL
                 session.create_model(args)
                 assert session.model.id, "HUB model not loaded correctly"
@@ -84,22 +110,41 @@ class HUBTrainingSession:
         except (PermissionError, ModuleNotFoundError, AssertionError):
             return None
 
-    def load_model(self, model_id):
-        """Loads an existing model from Ultralytics HUB using the provided model identifier."""
+    def load_model(self, model_id: str):
+        """Load an existing model from Ultralytics HUB using the provided model identifier.
+
+        Args:
+            model_id (str): The identifier of the model to load.
+
+        Raises:
+            ValueError: If the specified HUB model does not exist.
+        """
         self.model = self.client.model(model_id)
         if not self.model.data:  # then model does not exist
-            raise ValueError(emojis("❌ The specified HUB model does not exist"))  # TODO: improve error handling
+            raise HUBModelError(f"❌ Model not found: '{model_id}'. Verify the model ID is correct.")
 
         self.model_url = f"{HUB_WEB_ROOT}/models/{self.model.id}"
+        if self.model.is_trained():
+            LOGGER.info(f"Loading trained HUB model {self.model_url} 🚀")
+            url = self.model.get_weights_url("best")  # download URL with auth
+            self.model_file = checks.check_file(url, download_dir=Path(SETTINGS["weights_dir"]) / "hub" / self.model.id)
+            return
 
+        # Set training args and start heartbeats for HUB to monitor agent
         self._set_train_args()
-
-        # Start heartbeats for HUB to monitor agent
         self.model.start_heartbeat(self.rate_limits["heartbeat"])
         LOGGER.info(f"{PREFIX}View model at {self.model_url} 🚀")
 
-    def create_model(self, model_args):
-        """Initializes a HUB training session with the specified model identifier."""
+    def create_model(self, model_args: dict[str, Any]):
+        """Initialize a HUB training session with the specified model arguments.
+
+        Args:
+            model_args (dict[str, Any]): Arguments for creating the model, including batch size, epochs, image size,
+                etc.
+
+        Returns:
+            (None): If the model could not be created.
+        """
         payload = {
             "config": {
                 "batchSize": model_args.get("batch", -1),
@@ -122,10 +167,8 @@ class HUBTrainingSession:
 
         self.model.create_model(payload)
 
-        # Model could not be created
-        # TODO: improve error handling
         if not self.model.id:
-            return None
+            raise HUBModelError(f"❌ Failed to create model '{self.filename}' on Ultralytics HUB. Please try again.")
 
         self.model_url = f"{HUB_WEB_ROOT}/models/{self.model.id}"
 
@@ -135,69 +178,48 @@ class HUBTrainingSession:
         LOGGER.info(f"{PREFIX}View model at {self.model_url} 🚀")
 
     @staticmethod
-    def _parse_identifier(identifier):
-        """
-        Parses the given identifier to determine the type of identifier and extract relevant components.
+    def _parse_identifier(identifier: str):
+        """Parse the given identifier to determine the type and extract relevant components.
 
         The method supports different identifier formats:
-            - A HUB URL, which starts with HUB_WEB_ROOT followed by '/models/'
-            - An identifier containing an API key and a model ID separated by an underscore
-            - An identifier that is solely a model ID of a fixed length
+            - A HUB model URL https://hub.ultralytics.com/models/MODEL
+            - A HUB model URL with API Key https://hub.ultralytics.com/models/MODEL?api_key=APIKEY
             - A local filename that ends with '.pt' or '.yaml'
 
         Args:
             identifier (str): The identifier string to be parsed.
 
         Returns:
-            (tuple): A tuple containing the API key, model ID, and filename as applicable.
+            api_key (str | None): Extracted API key if present.
+            model_id (str | None): Extracted model ID if present.
+            filename (str | None): Extracted filename if present.
 
         Raises:
             HUBModelError: If the identifier format is not recognized.
         """
-
-        # Initialize variables
         api_key, model_id, filename = None, None, None
-
-        # Check if identifier is a HUB URL
-        if identifier.startswith(f"{HUB_WEB_ROOT}/models/"):
-            # Extract the model_id after the HUB_WEB_ROOT URL
-            model_id = identifier.split(f"{HUB_WEB_ROOT}/models/")[-1]
+        if identifier.endswith((".pt", ".yaml")):
+            filename = identifier
+        elif identifier.startswith(f"{HUB_WEB_ROOT}/models/"):
+            parsed_url = urlparse(identifier)
+            model_id = Path(parsed_url.path).stem  # handle possible final backslash robustly
+            query_params = parse_qs(parsed_url.query)  # dictionary, i.e. {"api_key": ["API_KEY_HERE"]}
+            api_key = query_params.get("api_key", [None])[0]
         else:
-            # Split the identifier based on underscores only if it's not a HUB URL
-            parts = identifier.split("_")
-
-            # Check if identifier is in the format of API key and model ID
-            if len(parts) == 2 and len(parts[0]) == 42 and len(parts[1]) == 20:
-                api_key, model_id = parts
-            # Check if identifier is a single model ID
-            elif len(parts) == 1 and len(parts[0]) == 20:
-                model_id = parts[0]
-            # Check if identifier is a local filename
-            elif identifier.endswith(".pt") or identifier.endswith(".yaml"):
-                filename = identifier
-            else:
-                raise HUBModelError(
-                    f"model='{identifier}' could not be parsed. Check format is correct. "
-                    f"Supported formats are Ultralytics HUB URL, apiKey_modelId, modelId, local pt or yaml file."
-                )
-
+            raise HUBModelError(f"model='{identifier} invalid, correct format is {HUB_WEB_ROOT}/models/MODEL_ID")
         return api_key, model_id, filename
 
     def _set_train_args(self):
-        """
-        Initializes training arguments and creates a model entry on the Ultralytics HUB.
+        """Initialize training arguments and create a model entry on the Ultralytics HUB.
 
-        This method sets up training arguments based on the model's state and updates them with any additional
-        arguments provided. It handles different states of the model, such as whether it's resumable, pretrained,
-        or requires specific file setup.
+        This method sets up training arguments based on the model's state and updates them with any additional arguments
+        provided. It handles different states of the model, such as whether it's resumable, pretrained, or requires
+        specific file setup.
 
         Raises:
             ValueError: If the model is already trained, if required dataset information is missing, or if there are
                 issues with the provided training arguments.
         """
-        if self.model.is_trained():
-            raise ValueError(emojis(f"Model is already trained and uploaded to {self.model_url} 🚀"))
-
         if self.model.is_resumable():
             # Model has saved weights
             self.train_args = {"data": self.model.get_dataset_url(), "resume": True}
@@ -221,17 +243,34 @@ class HUBTrainingSession:
     def request_queue(
         self,
         request_func,
-        retry=3,
-        timeout=30,
-        thread=True,
-        verbose=True,
-        progress_total=None,
-        stream_response=None,
+        retry: int = 3,
+        timeout: int = 30,
+        thread: bool = True,
+        verbose: bool = True,
+        progress_total: int | None = None,
+        stream_response: bool | None = None,
         *args,
         **kwargs,
     ):
+        """Execute request_func with retries, timeout handling, optional threading, and progress tracking.
+
+        Args:
+            request_func (callable): The function to execute.
+            retry (int): Number of retry attempts.
+            timeout (int): Maximum time to wait for the request to complete.
+            thread (bool): Whether to run the request in a separate thread.
+            verbose (bool): Whether to log detailed messages.
+            progress_total (int, optional): Total size for progress tracking.
+            stream_response (bool, optional): Whether to stream the response.
+            *args (Any): Additional positional arguments for request_func.
+            **kwargs (Any): Additional keyword arguments for request_func.
+
+        Returns:
+            (requests.Response | None): The response object if thread=False, otherwise None.
+        """
+
         def retry_request():
-            """Attempts to call `request_func` with retries, timeout, and optional threading."""
+            """Attempt to call request_func with retries, timeout, and optional threading."""
             t0 = time.time()  # Record the start time for the timeout
             response = None
             for i in range(retry + 1):
@@ -264,14 +303,14 @@ class HUBTrainingSession:
                         LOGGER.warning(f"{PREFIX}{message} {HELP_MSG} ({response.status_code})")
 
                 if not self._should_retry(response.status_code):
-                    LOGGER.warning(f"{PREFIX}Request failed. {HELP_MSG} ({response.status_code}")
+                    LOGGER.warning(f"{PREFIX}Request failed. {HELP_MSG} ({response.status_code})")
                     break  # Not an error that should be retried, exit loop
 
                 time.sleep(2**i)  # Exponential backoff for retries
 
             # if request related to metrics upload and exceed retries
             if response is None and kwargs.get("metrics"):
-                self.metrics_upload_failed_queue.update(kwargs.get("metrics", None))
+                self.metrics_upload_failed_queue.update(kwargs.get("metrics"))
 
             return response
 
@@ -283,8 +322,8 @@ class HUBTrainingSession:
             return retry_request()
 
     @staticmethod
-    def _should_retry(status_code):
-        """Determines if a request should be retried based on the HTTP status code."""
+    def _should_retry(status_code: int) -> bool:
+        """Determine if a request should be retried based on the HTTP status code."""
         retry_codes = {
             HTTPStatus.REQUEST_TIMEOUT,
             HTTPStatus.BAD_GATEWAY,
@@ -292,14 +331,13 @@ class HUBTrainingSession:
         }
         return status_code in retry_codes
 
-    def _get_failure_message(self, response: requests.Response, retry: int, timeout: int):
-        """
-        Generate a retry message based on the response status code.
+    def _get_failure_message(self, response, retry: int, timeout: int) -> str:
+        """Generate a retry message based on the response status code.
 
         Args:
-            response: The HTTP response object.
-            retry: The number of retry attempts allowed.
-            timeout: The maximum timeout duration.
+            response (requests.Response): The HTTP response object.
+            retry (int): The number of retry attempts allowed.
+            timeout (int): The maximum timeout duration.
 
         Returns:
             (str): The retry message.
@@ -330,8 +368,7 @@ class HUBTrainingSession:
         map: float = 0.0,
         final: bool = False,
     ) -> None:
-        """
-        Upload a model checkpoint to Ultralytics HUB.
+        """Upload a model checkpoint to Ultralytics HUB.
 
         Args:
             epoch (int): The current training epoch.
@@ -340,50 +377,44 @@ class HUBTrainingSession:
             map (float): Mean average precision of the model.
             final (bool): Indicates if the model is the final model after training.
         """
-        if Path(weights).is_file():
-            progress_total = Path(weights).stat().st_size if final else None  # Only show progress if final
-            self.request_queue(
-                self.model.upload_model,
-                epoch=epoch,
-                weights=weights,
-                is_best=is_best,
-                map=map,
-                final=final,
-                retry=10,
-                timeout=3600,
-                thread=not final,
-                progress_total=progress_total,
-                stream_response=True,
-            )
-        else:
-            LOGGER.warning(f"{PREFIX}WARNING ⚠️ Model upload issue. Missing model {weights}.")
+        weights = Path(weights)
+        if not weights.is_file():
+            last = weights.with_name(f"last{weights.suffix}")
+            if final and last.is_file():
+                LOGGER.warning(
+                    f"{PREFIX} Model 'best.pt' not found, copying 'last.pt' to 'best.pt' and uploading. "
+                    "This often happens when resuming training in transient environments like Google Colab. "
+                    "For more reliable training, consider using Ultralytics HUB Cloud. "
+                    "Learn more at https://docs.ultralytics.com/platform."
+                )
+                shutil.copy(last, weights)  # copy last.pt to best.pt
+            else:
+                LOGGER.warning(f"{PREFIX} Model upload issue. Missing model {weights}.")
+                return
+
+        self.request_queue(
+            self.model.upload_model,
+            epoch=epoch,
+            weights=str(weights),
+            is_best=is_best,
+            map=map,
+            final=final,
+            retry=10,
+            timeout=3600,
+            thread=not final,
+            progress_total=weights.stat().st_size if final else None,  # only show progress if final
+            stream_response=True,
+        )
 
     @staticmethod
-    def _show_upload_progress(content_length: int, response: requests.Response) -> None:
-        """
-        Display a progress bar to track the upload progress of a file download.
-
-        Args:
-            content_length (int): The total size of the content to be downloaded in bytes.
-            response (requests.Response): The response object from the file download request.
-
-        Returns:
-            None
-        """
+    def _show_upload_progress(content_length: int, response) -> None:
+        """Display a progress bar to track the upload progress of a file download."""
         with TQDM(total=content_length, unit="B", unit_scale=True, unit_divisor=1024) as pbar:
             for data in response.iter_content(chunk_size=1024):
                 pbar.update(len(data))
 
     @staticmethod
-    def _iterate_content(response: requests.Response) -> None:
-        """
-        Process the streamed HTTP response data.
-
-        Args:
-            response (requests.Response): The response object from the file download request.
-
-        Returns:
-            None
-        """
+    def _iterate_content(response) -> None:
+        """Process the streamed HTTP response data."""
         for _ in response.iter_content(chunk_size=1024):
             pass  # Do nothing with data chunks

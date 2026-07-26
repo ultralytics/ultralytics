@@ -1,39 +1,40 @@
 ---
+title: utils.callbacks.wb API Reference
 description: Learn how Ultralytics YOLO integrates with WandB using custom callbacks for logging metrics and visualizations.
 keywords: Ultralytics, YOLO, WandB, callbacks, logging, metrics, visualizations, AI, machine learning
 ---
 
 # Reference for `ultralytics/utils/callbacks/wb.py`
 
-!!! Note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/wb.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/wb.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/callbacks/wb.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/wb.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/wb.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
-<br><br>
+<br>
 
 ## ::: ultralytics.utils.callbacks.wb._custom_table
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.callbacks.wb._plot_curve
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.callbacks.wb._log_plots
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.callbacks.wb.on_pretrain_routine_start
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.callbacks.wb.on_fit_epoch_end
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.callbacks.wb.on_train_epoch_end
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.callbacks.wb.on_train_end
 

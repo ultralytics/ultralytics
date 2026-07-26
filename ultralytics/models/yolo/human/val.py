@@ -1,5 +1,9 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+from __future__ import annotations
+
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import torch
@@ -12,25 +16,53 @@ from ultralytics.utils.metrics import HumanMetrics, box_iou
 
 
 class HumanValidator(DetectionValidator):
+    """A class extending the DetectionValidator class for validation based on a human model.
+
+    This validator evaluates detection quality with the usual box metrics and, for every true positive box, the
+    accuracy of the predicted weight, height, gender, age and ethnicity.
+
+    Attributes:
+        args (dict): Arguments for the validator including task set to "human".
+        metrics (HumanMetrics): Metrics object for detection and human attribute evaluation.
+
+    Methods:
+        build_dataset: Build the HumanDataset for validation.
+        preprocess: Preprocess batch by converting human attributes to float.
+        postprocess: Postprocess YOLO predictions to extract human attributes.
+        get_desc: Return description of evaluation metrics in string format.
+        save_one_txt: Save YOLO-Human detections to a text file in normalized coordinates.
+
+    Examples:
+        >>> from ultralytics.models.yolo.human import HumanValidator
+        >>> args = dict(model="yolov8n-human.pt", data="coco8-human.yaml")
+        >>> validator = HumanValidator(args=args)
+        >>> validator()
     """
-    A class extending the DetectionValidator class for validation based on a human model.
 
-    Example:
-        ```python
-        from ultralytics.models.yolo.human import HumanValidator
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None) -> None:
+        """Initialize a HumanValidator object for human attribute validation.
 
-        args = dict(model='yolov8n-human.pt', data='coco8.yaml')
-        validator = HumanValidator(args=args)
-        validator()
-        ```
-    """
-
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
-        super().__init__(dataloader, save_dir, pbar, args, _callbacks)
+        Args:
+            dataloader (torch.utils.data.DataLoader, optional): DataLoader to be used for validation.
+            save_dir (Path | str, optional): Directory to save results.
+            args (dict, optional): Arguments for the validator including task set to "human".
+            _callbacks (dict, optional): Dictionary of callback functions to be executed during validation.
+        """
+        super().__init__(dataloader, save_dir, args, _callbacks)
         self.args.task = "human"
-        self.metrics = HumanMetrics(save_dir=self.save_dir, plot=True, on_plot=self.on_plot)
+        self.metrics = HumanMetrics()
 
-    def build_dataset(self, img_path, mode="val", batch=None):
+    def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None) -> HumanDataset:
+        """Build the HumanDataset for validation.
+
+        Args:
+            img_path (str): Path to the folder containing images.
+            mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
+            batch (int, optional): Size of batches, this is for `rect`.
+
+        Returns:
+            (HumanDataset): Dataset object configured for the specified mode.
+        """
         cfg = self.args
         return HumanDataset(
             img_path=img_path,
@@ -48,121 +80,77 @@ class HumanValidator(DetectionValidator):
             fraction=cfg.fraction if mode == "train" else 1.0,
         )
 
-    def preprocess(self, batch):
-        """Preprocesses batch by converting masks to float and sending to device."""
+    def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
+        """Preprocess batch by converting human attributes to float."""
         batch = super().preprocess(batch)
-        batch["attributes"] = batch["attributes"].to(self.device).float()
+        batch["attributes"] = batch["attributes"].float()
         return batch
 
-    def _prepare_batch(self, si, batch):
-        idx = batch["batch_idx"] == si
-        attributes = batch["attributes"][idx]
-        return {"attributes": attributes, **super()._prepare_batch(si, batch)}
+    def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:
+        """Postprocess YOLO predictions, moving the human attributes out of the 'extra' field."""
+        preds = super().postprocess(preds)
+        for pred in preds:
+            pred["attributes"] = pred.pop("extra")
+        return preds
 
-    def update_metrics(self, preds, batch):
-        """Metrics."""
-        for si, pred in enumerate(preds):
-            self.seen += 1
-            npr = len(pred)
-            stat = dict(
-                conf=torch.zeros(0, device=self.device),
-                pred_cls=torch.zeros(0, device=self.device),
-                tp=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device),
-            )
-            pbatch = self._prepare_batch(si, batch)
-            cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
-            nl = len(cls)
-            stat["target_cls"] = cls
-            stat["target_img"] = cls.unique()
-            if npr == 0:
-                if nl:
-                    for k in self.stats.keys():
-                        self.stats[k].append(stat[k])
-                    if self.args.plots:
-                        self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
-                continue
-
-            # Predictions
-            if self.args.single_cls:
-                pred[:, 5] = 0
-            predn = self._prepare_pred(pred, pbatch)
-            stat["conf"] = predn[:, 4]
-            stat["pred_cls"] = predn[:, 5]
-
-            # Evaluate
-            if nl:
-                stat["tp"], iou = self._process_batch(predn, bbox, cls)
-                self._process_attributes(predn[:, 6:], pbatch["attributes"], iou)
-                if self.args.plots:
-                    self.confusion_matrix.process_batch(predn, bbox, cls)
-            for k in self.stats.keys():
-                self.stats[k].append(stat[k])
-
-            # Save
-            if self.args.save_json:
-                self.pred_to_json(predn, batch["im_file"][si])
-            if self.args.save_txt:
-                file = self.save_dir / "labels" / f'{Path(batch["im_file"][si]).stem}.txt'
-                self.save_one_txt(predn, self.args.save_conf, pbatch["ori_shape"], file)
-
-    def _process_batch(self, detections, gt_bboxes, gt_cls):
-        """
-        Return correct prediction matrix.
+    def _prepare_batch(self, si: int, batch: dict[str, Any]) -> dict[str, Any]:
+        """Prepare a batch for processing by attaching the ground truth human attributes.
 
         Args:
-            detections (torch.Tensor): Tensor of shape [N, 6] representing detections.
-                Each detection is of the format: x1, y1, x2, y2, conf, class.
-            labels (torch.Tensor): Tensor of shape [M, 5] representing labels.
-                Each label is of the format: class, x1, y1, x2, y2.
+            si (int): Sample index within the batch.
+            batch (dict[str, Any]): Dictionary containing batch data.
 
         Returns:
-            (torch.Tensor): Correct prediction matrix of shape [N, 10] for 10 IoU levels.
+            (dict[str, Any]): Prepared batch including the ground truth `attributes` of the sample.
         """
-        iou = box_iou(gt_bboxes, detections[:, :4])
-        return self.match_predictions(detections[:, 5], gt_cls, iou), iou
+        pbatch = super()._prepare_batch(si, batch)
+        pbatch["attributes"] = batch["attributes"][batch["batch_idx"] == si]
+        return pbatch
 
-    def _process_attributes(self, pred_attrs, gt_attrs, iou, iou_thres=0.5):
-        """
-        Process Human Attributes and compute the accuracy.
+    def _process_batch(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> dict[str, np.ndarray]:
+        """Return the correct prediction matrix and accumulate the human attribute accuracies.
 
         Args:
-            predn_attrs (torch.Tensor): The predictions of attributes with shape [M, 11].
-            gt_attrs (torch.Tensor): The grounding truth of attributes with shape [N, 5].
-            iou (torch.Tensor): The iou values between gt boxes and predicted human boxes with shape [N, M],
-                and it's used to choose the true positive to evaluate attributes.
-            iou_thres (float): The iou threshold to determine true positive samples, default: 0.5.
+            preds (dict[str, torch.Tensor]): Dictionary containing prediction data with 'bboxes', 'cls' and
+                'attributes' keys.
+            batch (dict[str, Any]): Batch dictionary containing ground truth 'bboxes', 'cls' and 'attributes'.
 
         Returns:
-            The accuracy for each human attribute.
+            (dict[str, np.ndarray]): Dictionary containing 'tp' key with correct prediction matrix of shape (N, 10)
+                for 10 IoU levels.
+        """
+        tp = super()._process_batch(preds, batch)
+        if batch["cls"].shape[0] and preds["cls"].shape[0]:
+            iou = box_iou(batch["bboxes"], preds["bboxes"])
+            self._process_attributes(preds["attributes"], batch["attributes"], iou)
+        return tp
+
+    def _process_attributes(
+        self, pred_attrs: torch.Tensor, gt_attrs: torch.Tensor, iou: torch.Tensor, iou_thres: float = 0.5
+    ) -> None:
+        """Accumulate the per-attribute accuracy of the true positive predictions.
+
+        Args:
+            pred_attrs (torch.Tensor): The predicted attributes with shape (M, 11).
+            gt_attrs (torch.Tensor): The ground truth attributes with shape (N, 5).
+            iou (torch.Tensor): The IoU values between ground truth and predicted boxes with shape (N, M), used to
+                choose the true positives whose attributes are evaluated.
+            iou_thres (float): The IoU threshold that determines true positive samples.
         """
         values, indices = iou.max(1)
-        indices = indices[values >= iou_thres]  # indices for tp
-        gt_attrs = gt_attrs[values >= iou_thres]
-        pred_attrs = Human(pred_attrs[indices])
-        weight = gt_attrs[:, 0]
-        height = gt_attrs[:, 1]
-        gender = gt_attrs[:, 2]
-        age = gt_attrs[:, 3]
-        ethnicity = gt_attrs[:, 4]
-        acc_w = 1 - (pred_attrs.weight - weight).abs() / weight
-        acc_h = 1 - (pred_attrs.height - height).abs() / height
-        acc_g = (pred_attrs.cls_gender == gender).float()
-        acc_a = 1 - (pred_attrs.age - age).abs() / age
-        acc_e = (pred_attrs.cls_ethnicity == ethnicity).float()
+        tp = values >= iou_thres
+        gt_attrs = gt_attrs[tp]
+        if not gt_attrs.shape[0]:
+            return
+        pred_attrs = Human(pred_attrs[indices[tp]])
+        weight, height, gender, age, ethnicity = (gt_attrs[:, i] for i in range(5))
+        self.metrics.attrs_stats["weight"].append((1 - (pred_attrs.weight - weight).abs() / weight).clip(0, 1))
+        self.metrics.attrs_stats["height"].append((1 - (pred_attrs.height - height).abs() / height).clip(0, 1))
+        self.metrics.attrs_stats["gender"].append((pred_attrs.cls_gender == gender).float())
+        self.metrics.attrs_stats["age"].append((1 - (pred_attrs.age - age).abs() / age).clip(0, 1))
+        self.metrics.attrs_stats["ethnicity"].append((pred_attrs.cls_ethnicity == ethnicity).float())
 
-        self.metrics.attrs_stats["weight"].append(acc_w.clip(0, 1))
-        self.metrics.attrs_stats["height"].append(acc_h.clip(0, 1))
-        self.metrics.attrs_stats["gender"].append(acc_g)
-        self.metrics.attrs_stats["age"].append(acc_a.clip(0, 1))
-        self.metrics.attrs_stats["ethnicity"].append(acc_e)
-
-    def save_one_txt(self, predn, save_conf, shape, file):
-        """Save YOLO detections to a txt file in normalized coordinates in a specific format."""
-        im = np.zeros((shape[0], shape[1]), dtype=np.uint8)
-        result = Results(im, path=None, names=self.names, boxes=predn[:, :6], human=predn[:, 6:])
-        result.save_txt(file, save_conf=save_conf)
-
-    def get_desc(self):
+    def get_desc(self) -> str:
         """Return a formatted description of evaluation metrics."""
         return ("%22s" + "%11s" * 11) % (
             "Class",
@@ -178,3 +166,20 @@ class HumanValidator(DetectionValidator):
             "acc(A)",  # age
             "acc(E)",  # ethnicity
         )
+
+    def save_one_txt(self, predn: dict[str, torch.Tensor], save_conf: bool, shape: tuple[int, int], file: Path) -> None:
+        """Save YOLO-Human detections to a text file in normalized coordinates.
+
+        Args:
+            predn (dict[str, torch.Tensor]): Prediction dict with keys 'bboxes', 'conf', 'cls' and 'attributes'.
+            save_conf (bool): Whether to save confidence scores.
+            shape (tuple[int, int]): Shape of the original image (height, width).
+            file (Path): Output file path to save detections.
+        """
+        Results(
+            np.zeros((shape[0], shape[1]), dtype=np.uint8),
+            path=None,
+            names=self.names,
+            boxes=torch.cat([predn["bboxes"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
+            human=predn["attributes"],
+        ).save_txt(file, save_conf=save_conf)

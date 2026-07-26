@@ -110,7 +110,7 @@ ov_model = torch2openvino(model, im, output_dir="resnet18_openvino_model")
 
 The directory contains a fixed-name `model.xml` and `model.bin` pair:
 
-```
+```text
 resnet18_openvino_model/
 ├── model.xml
 └── model.bin
@@ -152,7 +152,7 @@ keras_model = onnx2saved_model("resnet18.onnx", output_dir="resnet18_saved_model
 
 The function returns a Keras model and also generates TFLite files (`.tflite`) inside the output directory:
 
-```
+```text
 resnet18_saved_model/
 ├── saved_model.pb
 ├── variables/
@@ -195,7 +195,7 @@ torch2ncnn(model, im, output_dir="resnet18_ncnn_model")
 
 The directory contains fixed-name param and bin files along with a Python wrapper:
 
-```
+```text
 resnet18_ncnn_model/
 ├── model.ncnn.param
 ├── model.ncnn.bin
@@ -227,7 +227,7 @@ torch2paddle(model, im, output_dir="resnet18_paddle_model")
 
 The directory contains the PaddlePaddle model and parameter files:
 
-```
+```text
 resnet18_paddle_model/
 ├── model.pdmodel
 └── model.pdiparams
@@ -251,7 +251,7 @@ torch2executorch(model, im, output_dir="resnet18_executorch_model")
 
 The exported `.pte` file is saved inside the output directory:
 
-```
+```text
 resnet18_executorch_model/
 └── model.pte
 ```

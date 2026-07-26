@@ -212,8 +212,6 @@ class FASTTracker(BYTETracker):
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
         if r_tracked_stracks and detections_second:
             dists = matching.iou_distance(r_tracked_stracks, detections_second)
-            if self.args.fuse_score:
-                dists = matching.fuse_score(dists, detections_second)
             matches, u_track, _ = matching.linear_assignment(dists, thresh=0.5)
             self._apply_matches(matches, r_tracked_stracks, detections_second, activated, refind)
         else:
@@ -240,9 +238,12 @@ class FASTTracker(BYTETracker):
             det = detections[inew]
             if det.score < self.args.new_track_thresh:
                 continue
-            if suppress_on and len(active_stack):
-                if bbox_ioa(det.xyxy[None, :], active_stack, iou=True).max() >= self.init_iou_suppress:
-                    continue
+            if (
+                suppress_on
+                and len(active_stack)
+                and bbox_ioa(det.xyxy[None, :], active_stack, iou=True).max() >= self.init_iou_suppress
+            ):
+                continue
             det.activate(self.kalman_filter, self.frame_id)
             activated.append(det)
             active_stack = np.concatenate([active_stack, det.xyxy[None, :]], axis=0)
@@ -339,10 +340,11 @@ class FASTTracker(BYTETracker):
             if track.was_recently_occluded and (self.frame_id - track.last_occluded_frame > self.occ_reappear_window):
                 track.was_recently_occluded = False
 
-            if track.state != TrackState.Lost:
-                # Give occluded tracks a grace period before marking lost.
-                if track.not_matched > 2 and (
-                    not track.is_occluded or track.occluded_len > self.active_occ_to_lost_thresh
-                ):
-                    track.mark_lost()
-                    lost_stracks.append(track)
+            # Give occluded tracks a grace period before marking lost.
+            if (
+                track.state != TrackState.Lost
+                and track.not_matched > 2
+                and (not track.is_occluded or track.occluded_len > self.active_occ_to_lost_thresh)
+            ):
+                track.mark_lost()
+                lost_stracks.append(track)

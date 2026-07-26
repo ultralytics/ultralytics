@@ -107,7 +107,7 @@ class LiteRTBackend(BaseBackend):
         if self.nhwc:
             if self.task == "segment" and len(y) > 1 and y[1].ndim == 4:
                 y[1] = np.transpose(y[1], (0, 3, 1, 2))  # protos NHWC → NCHW
-            elif self.task == "semantic" and len(y) == 1 and y[0].ndim == 4:
+            elif self.task in {"semantic", "depth"} and len(y) == 1 and y[0].ndim == 4:
                 y[0] = np.transpose(y[0], (0, 3, 1, 2))  # logits NHWC → NCHW
 
         return y

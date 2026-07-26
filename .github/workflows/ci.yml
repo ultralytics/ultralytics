@@ -153,10 +153,6 @@ jobs:
             torchvision: "0.9.0"
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        if: matrix.os != 'cpu-latest'
-        with:
-          python-version: ${{ matrix.python }}
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: ${{ matrix.python }}
@@ -307,10 +303,6 @@ jobs:
             torchvision: "0.26.0"
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        if: matrix.os != 'cpu-latest'
-        with:
-          python-version: ${{ matrix.python }}
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: ${{ matrix.python }}

@@ -140,7 +140,7 @@ def on_pretrain_routine_start(trainer):
             config=vars(trainer.args),
             id=latest_run.resolve().name.split("-", 2)[2]
             if resuming
-            else f"{name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            else f"{name}_{datetime.now().astimezone().strftime('%Y%m%d_%H%M%S')}",
             resume="allow" if resuming else None,
             dir=str(trainer.save_dir),
         )

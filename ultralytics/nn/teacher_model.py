@@ -19,10 +19,8 @@ from pathlib import Path
 import torch
 from torch import nn
 
-# EUPE, DUNE and TIPS ship as source checkouts rather than installable packages, so their code is read from disk.
-# Resolve the parent directory from ``TEACHER_REPO_ROOT`` so no host or username is baked into the package, defaulting
-# to ``~/dev`` which is where every cluster host keeps them. Weights always go through a cache (HuggingFace or torch
-# hub), never a hardcoded location.
+# EUPE, DUNE and TIPS are source checkouts, not installable packages, so their code is read from disk. Override
+# ``TEACHER_REPO_ROOT`` to relocate them. Weights always come from a cache (HuggingFace or torch hub).
 TEACHER_REPO_ROOT = Path(os.environ.get("TEACHER_REPO_ROOT", Path.home() / "dev"))
 
 # Pipeline normalization that arrives at ``encode()``. The classification trainer at
@@ -417,21 +415,19 @@ class DINOv3Teacher(TeacherModel):
 class TIPSTeacher(TeacherModel):
     """TIPS teacher (https://arxiv.org/abs/2410.16512), covering both v1 and v2 checkpoints.
 
-    TIPS ViTs carry two CLS-style tokens: the first is trained against the noisy web caption, the second against a
-    synthetic caption. The paper assigns the first to global image tasks ("In global image tasks, we use the [CLS] token
-    that corresponds to the noisy image label"), so ``encode`` returns that one. ``self.head`` is ``nn.Identity``
-    (``tips/pytorch/image_encoder.py:739``), so ``forward_features`` already yields the final normed feature.
+    Two CLS tokens are produced, trained on the noisy web caption and on a synthetic caption. ``encode`` returns the
+    first, which the paper assigns to global image tasks. ``self.head`` is ``nn.Identity`` (tips/pytorch/image_encoder.py:739), so
+    ``forward_features`` is already the final feature.
 
-    Weights ship as ``.npz`` arrays rather than torch checkpoints. Every released v1-HR and v2 vision checkpoint stores
-    ``pos_embed`` at ``(1, 1025, D)`` (1 CLS + a 32x32 grid), so all variants build at ``img_size=448`` regardless of
-    version, with the v1/v2 difference carried entirely by the weights.
+    Every v1-HR and v2 checkpoint stores ``pos_embed`` as ``(1, 1025, D)``, one CLS plus a 32x32 patch-14 grid, so all variants
+    build at ``img_size=448`` and only the weights differ by version.
 
     Attributes:
-        model: The TIPS VisionTransformer built from the local tips repo.
+        model: TIPS VisionTransformer loaded from the local tips checkout.
     """
 
-    # TIPS consumes raw [0, 1] pixels: ``tips/pytorch/run_image_encoder_inference.py:39-40`` sets mean 0 / std 1, so
-    # unlike EUPE and DINOv3 this is a real conversion rather than a no-op when ``normalize_input=True``.
+    # Raw [0, 1] pixels (run_image_encoder_inference.py:40-41). Unlike EUPE and DINOv3, ``_prep`` is a real
+    # conversion here rather than a no-op, so callers scoring TIPS must opt into ``normalize_input``.
     IMAGE_MEAN = (0.0, 0.0, 0.0)
     IMAGE_STD = (1.0, 1.0, 1.0)
     TIPS_REPO = str(TEACHER_REPO_ROOT / "tips")
@@ -484,13 +480,14 @@ class TIPSTeacher(TeacherModel):
         import numpy as np
 
         cfg = self.CONFIGS[variant]
-        # Load the encoder module straight off disk. ``image_encoder.py`` imports only stdlib and torch, so it needs no
-        # package context, and this avoids putting a sibling checkout on ``sys.path`` where it could shadow imports.
-        spec = importlib.util.spec_from_file_location("tips_image_encoder", f"{self.TIPS_REPO}/pytorch/image_encoder.py")
+        # ``image_encoder.py`` imports only stdlib and torch, so load it by path instead of putting a sibling
+        # checkout on ``sys.path`` where it would shadow real packages.
+        spec = importlib.util.spec_from_file_location(
+            "tips_image_encoder", f"{self.TIPS_REPO}/pytorch/image_encoder.py"
+        )
         image_encoder = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(image_encoder)
-        # Construction args mirror ``tips/pytorch/run_image_encoder_inference.py:60-70``. ``block_chunks=0`` keeps the
-        # blocks in a flat ModuleList so the checkpoint's key names match.
+        # Args mirror run_image_encoder_inference.py:100-107. ``block_chunks=0`` keeps blocks flat so key names match.
         self.model = getattr(image_encoder, cfg["builder"])(
             img_size=cfg["imgsz"],
             patch_size=14,
@@ -528,18 +525,17 @@ class TIPSTeacher(TeacherModel):
 class DUNETeacher(TeacherModel):
     """DUNE teacher (https://arxiv.org/abs/2503.14405) via the local naver/dune hub entrypoints.
 
-    Loads the bare student encoder (``encoder_only=True``), not the full model with its per-teacher projectors. EUPE
-    Table 1 measures DUNE-B at 42.5 IN1k-KNN with a footnote attributing the gap to "benchmarking only the encoder part
-    without adapter head", so encoder-only numbers are expected to sit well below DUNE's published dense-task results.
+    Loads the bare student encoder, not the per-teacher projectors. EUPE Table 1 reports DUNE-B at 42.5 IN1k-KNN,
+    footnoted as "benchmarking only the encoder part without adapter head", so low encoder-only numbers are expected.
 
-    Only the 448-resolution checkpoints are wired up. Naver also ships 336 variants as separate weights.
+    Only the 448 checkpoints are wired up. Naver also ships 336 variants as separate weights.
 
     Attributes:
         model: The DUNE student encoder from the local dune repo.
     """
 
-    # DUNE normalizes with ImageNet stats (``dune/data/transform.py:9-39``), matching the pipeline, so ``_prep`` is a
-    # no-op here. Stated rather than inherited so the assumption is checkable against the reference repo.
+    # ImageNet stats (dune/data/transform.py:5-7), same as the pipeline, so ``_prep`` is a no-op. Stated rather than
+    # inherited to keep the claim checkable.
     IMAGE_MEAN = (0.485, 0.456, 0.406)
     IMAGE_STD = (0.229, 0.224, 0.225)
     DUNE_REPO = str(TEACHER_REPO_ROOT / "dune")

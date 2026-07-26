@@ -33,7 +33,7 @@ def yolo_cls_features(model, imgs: torch.Tensor) -> torch.Tensor:
     """Read the CLS-equivalent feature out of a YOLO classification model.
 
     Feature path matches ImageEncoderModel.loss() (nn/image_encoder.py:201-208): backbone layers 0-9 -> Classify head
-    conv (512->1280, 1x1) -> AdaptiveAvgPool2d(1) -> flatten.
+    conv (1x1, to a fixed 1280) -> AdaptiveAvgPool2d(1) -> flatten, the CLS stand-in.
 
     Args:
         model: YOLO classification model (ClassificationModel or ImageEncoderModel).
@@ -45,8 +45,6 @@ def yolo_cls_features(model, imgs: torch.Tensor) -> torch.Tensor:
     x = imgs
     for m in model.model[:-1]:
         x = m(x)
-    # head.conv: Conv(512->1280, k=1) on the 7x7 map. head.pool: AdaptiveAvgPool2d(1), a global average that stands in
-    # for a CLS token.
     head = model.model[-1]
     return head.pool(head.conv(x)).flatten(1)
 

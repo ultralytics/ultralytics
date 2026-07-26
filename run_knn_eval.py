@@ -67,8 +67,8 @@ def _load_teacher(spec, imgsz, device):
     if imgsz % mult:
         print(f"Error: {spec} has patch stride {mult}, so imgsz {imgsz} would be cropped to {imgsz // mult * mult}.")
         sys.exit(1)
-    # normalize_input=True rewrites the loader's ImageNet-normalized tensor into each teacher's own training
-    # distribution. That is a real conversion for TIPS (raw [0, 1]) and a no-op for the ImageNet-stat teachers.
+    # normalize_input=True converts the loader's ImageNet-normalized tensor to each teacher's own training
+    # distribution: a real conversion for TIPS (raw [0, 1]), a no-op for the ImageNet-stat teachers.
     teacher = build_teacher_model(spec, device=device, normalize_input=True)
     return teacher, lambda m, imgs: m.encode(imgs).cls, spec
 

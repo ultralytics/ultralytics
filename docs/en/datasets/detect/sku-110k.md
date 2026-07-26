@@ -1,6 +1,12 @@
 ---
 title: SKU-110K Detection Dataset
 comments: true
+creator:
+    name: SKU-110K Authors
+    url: https://github.com/eg4000/SKU110K_CVPR19
+license:
+    name: Research-Only
+    url: https://github.com/eg4000/SKU110K_CVPR19#dataset
 description: SKU-110K is a single-class retail-shelf object detection dataset of 11,743 densely packed images (8,219 train / 588 val / 2,936 test) for training YOLO models.
 keywords: SKU-110K, dataset, object detection, retail shelf images, densely packed objects, single class, deep learning, computer vision, YOLO26, Ultralytics
 ---
@@ -11,13 +17,13 @@ The SKU-110K dataset is a single-class [object detection](../../tasks/detect.md)
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/_gRqR-miFPE"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/7d1XWgh1pmk"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train YOLOv10 on SKU-110k Dataset using Ultralytics | Retail Dataset
+  <strong>Watch:</strong> How to Train Ultralytics YOLO26 to Detect Every Product on a Retail Shelf | SKU-110K 🛒
 </p>
 
 ![SKU-110K dataset densely packed retail shelf detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/densely-packed-retail-shelf.avif)

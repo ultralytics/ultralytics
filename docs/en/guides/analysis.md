@@ -15,11 +15,12 @@ The design is deliberately model-free: because the extractor needs no prediction
 ```python
 from ultralytics.data.build import build_yolo_dataset
 from ultralytics.data.utils import check_det_dataset
+from ultralytics.utils import DEFAULT_CFG
 from ultralytics.utils.analysis import ImagePropertyExtractor
 
 # Dataset-only, no model. Labels are augmented in place and returned for chaining.
 data = check_det_dataset("coco128.yaml")
-dataset = build_yolo_dataset(None, data["val"], 1, data, mode="val", rect=False, stride=32)
+dataset = build_yolo_dataset(DEFAULT_CFG, data["val"], 1, data, mode="val", rect=False, stride=32)
 labels = ImagePropertyExtractor(dataset).labels  # list[dict], each with an "im_properties" entry
 ```
 

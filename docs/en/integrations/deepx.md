@@ -140,6 +140,8 @@ The DEEPX format supports the [Export](../modes/export.md), [Predict](../modes/p
 | `format`   | `str`            | `'deepx'`      | Target format for the exported model, defining compatibility with DEEPX NPU hardware.                                                              |
 | `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. DEEPX export requires a square input — pass an integer (e.g., `640`) or a tuple where height equals width. |
 | `quantize` | `int` or `str`   | `8`/auto       | Quantization precision. `8` (INT8) is required for DEEPX export and auto-enabled if not specified. Replaces the deprecated `half`/`int8` flags.    |
+| `simplify` | `bool`           | `True`         | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                            |
+| `opset`    | `int`            | `None`         | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                   |
 | `data`     | `str`            | `'coco8.yaml'` | Dataset configuration file used for INT8 calibration. Specifies the calibration image source.                                                      |
 | `device`   | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`) or CPU (`device=cpu`).                                                                        |
 | `optimize` | `bool`           | `False`        | Enables higher compiler optimization which reduces inference latency and increases compilation time.                                               |
@@ -270,7 +272,7 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
     Add the following lines at the end of the file:
 
-    ```
+    ```text
     dtparam=pciex1
     dtparam=pciex1_gen=3
     ```

@@ -1,6 +1,12 @@
 ---
 title: COCO8-Grayscale Detection Dataset
 comments: true
+creator:
+    name: Ultralytics
+    url: https://www.ultralytics.com/
+license:
+    name: CC-BY-4.0
+    url: https://cocodataset.org/#termsofuse
 description: Explore the Ultralytics COCO8-Grayscale dataset, a versatile and manageable set of 8 images perfect for testing object detection models and training pipelines.
 keywords: COCO8-Grayscale, Ultralytics, dataset, object detection, YOLO26, training, validation, machine learning, computer vision
 ---
@@ -26,7 +32,7 @@ The [Ultralytics](https://www.ultralytics.com/) COCO8-Grayscale dataset is a com
 
 COCO8-Grayscale mirrors [COCO8](coco8.md)—the first 8 images from the COCO train 2017 set, split into 4 for training and 4 for validation across all 80 COCO object classes—but each image is stored as a single-channel (`channels: 1`) grayscale image in [YOLO label format](../index.md):
 
-```
+```text
 coco8-grayscale/
 ├── images/
 │   ├── train/   # 4 images

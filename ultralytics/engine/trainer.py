@@ -310,7 +310,7 @@ class BaseTrainer:
             LOGGER.warning(f"'channels_last=True' is only supported on CUDA, ignoring on '{self.device.type}'.")
         self.set_model_attributes()
 
-        # Build model for QAT (skipped on resume, where the checkpoint already carries the ModelOpt state)
+        # Build model for QAT (skipped when an already-quantized model is handed to the trainer)
         if self.args.quantize == 8 and not hasattr(self.model, "_modelopt_state"):
             self.build_quantized_model()
 

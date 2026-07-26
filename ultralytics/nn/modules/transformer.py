@@ -6,8 +6,8 @@ from __future__ import annotations
 import math
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 from torch.nn.init import constant_, xavier_uniform_
 
 from ultralytics.utils.torch_utils import TORCH_1_11
@@ -54,7 +54,7 @@ class TransformerEncoderLayer(nn.Module):
         cm: int = 2048,
         num_heads: int = 8,
         dropout: float = 0.0,
-        act: nn.Module = nn.GELU(),
+        act: nn.Module | None = None,
         normalize_before: bool = False,
     ):
         """Initialize the TransformerEncoderLayer with specified parameters.
@@ -85,7 +85,7 @@ class TransformerEncoderLayer(nn.Module):
         self.dropout1 = nn.Dropout(dropout)
         self.dropout2 = nn.Dropout(dropout)
 
-        self.act = act
+        self.act = nn.GELU() if act is None else act
         self.normalize_before = normalize_before
 
     @staticmethod
@@ -181,7 +181,7 @@ class AIFI(TransformerEncoderLayer):
         cm: int = 2048,
         num_heads: int = 8,
         dropout: float = 0,
-        act: nn.Module = nn.GELU(),
+        act: nn.Module | None = None,
         normalize_before: bool = False,
     ):
         """Initialize the AIFI instance with specified parameters.
@@ -616,7 +616,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
         n_heads: int = 8,
         d_ffn: int = 1024,
         dropout: float = 0.0,
-        act: nn.Module = nn.ReLU(),
+        act: nn.Module | None = None,
         n_levels: int = 4,
         n_points: int = 4,
     ):
@@ -645,7 +645,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
 
         # FFN
         self.linear1 = nn.Linear(d_model, d_ffn)
-        self.act = act
+        self.act = nn.ReLU() if act is None else act
         self.dropout3 = nn.Dropout(dropout)
         self.linear2 = nn.Linear(d_ffn, d_model)
         self.dropout4 = nn.Dropout(dropout)

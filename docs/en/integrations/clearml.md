@@ -79,7 +79,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         model = YOLO(f"{model_variant}.pt")
 
         # Step 4: Setting Up Training Arguments
-        args = dict(data="coco8.yaml", epochs=16)
+        args = {"data": "coco8.yaml", "epochs": 16}
         task.connect(args)
 
         # Step 5: Initiating Model Training
@@ -249,7 +249,7 @@ task.set_parameter("model_variant", model_variant)
 model = YOLO(f"{model_variant}.pt")
 
 # Step 4: Setting Up Training Arguments
-args = dict(data="coco8.yaml", epochs=16)
+args = {"data": "coco8.yaml", "epochs": 16}
 task.connect(args)
 
 # Step 5: Initiating Model Training

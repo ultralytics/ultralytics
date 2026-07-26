@@ -186,7 +186,7 @@ auto tensor = from_blob(input, {1, 3, 640, 640});
 const auto result = module.forward(tensor);
 ```
 
-Example Android integration (Kotlin Activity). This sample decodes the raw `(1, 84, 8400)` output of a YOLO11 export and therefore performs its own NMS. YOLO26 exports are end-to-end (NMS-free) and instead return `(1, 300, 6)` predictions in `[x1, y1, x2, y2, confidence, class]` format, so only the confidence filtering step is required:
+Example Android integration (Kotlin Activity). ExecuTorch export disables the end-to-end (NMS-free) branch, so YOLO11 and YOLO26 models both emit the raw `(1, 4 + nc, 8400)` tensor and your app must run its own NMS. The sample below assumes the 80-class COCO shape `(1, 84, 8400)`:
 
 ```kotlin
 // ...
@@ -205,7 +205,7 @@ fun runObjectDetection() {
 
     // Load the model.
     // Copy the model from the app's assets to storage (to get a file path to the model).
-    // `model.pte` is the file produced inside the exported `yolo11n_executorch_model` directory.
+    // `model.pte` is the file produced inside the exported `yolo26n_executorch_model` directory.
     val modelFileName = "model.pte"
     val outputFile = File(filesDir, modelFileName)
     if (!outputFile.exists()) { // In your app, you may need a way to deploy newer models

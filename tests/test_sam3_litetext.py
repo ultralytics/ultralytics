@@ -247,9 +247,9 @@ class TestReparameterize:
         repmixer_layers = [ly for ly in enc.transformer if isinstance(ly, RepMixerBlock)]
         assert len(repmixer_layers) == 2, "MCT should have 2 RepMixerBlock bookend layers"
         for layer in repmixer_layers:
-            assert hasattr(
-                layer.token_mixer, "reparam_conv"
-            ), "RepMixer.token_mixer should have reparam_conv after reparameterize()"
+            assert hasattr(layer.token_mixer, "reparam_conv"), (
+                "RepMixer.token_mixer should have reparam_conv after reparameterize()"
+            )
 
     def test_reparameterize_preserves_output(self):
         """Encoder output must be identical before and after reparameterize() (within fp32 tolerance)."""
@@ -267,9 +267,9 @@ class TestReparameterize:
         with torch.no_grad():
             out_after = enc.encoder(tokens, return_all_tokens=False)
 
-        assert torch.allclose(
-            out_before, out_after, atol=1e-4
-        ), f"reparameterize() changed model output; max diff={( out_before - out_after).abs().max().item():.2e}"
+        assert torch.allclose(out_before, out_after, atol=1e-4), (
+            f"reparameterize() changed model output; max diff={(out_before - out_after).abs().max().item():.2e}"
+        )
 
     def test_student_encoder_reparameterize_no_error(self):
         """TextStudentEncoder.reparameterize() must not raise on any variant."""
@@ -368,9 +368,9 @@ class TestBuildSam3ImageModel:
         from ultralytics.models.sam.sam3.text_encoder_student import TextStudentEncoder
 
         model = build_sam3_image_model(fake_name)
-        assert isinstance(
-            model.backbone.language_backbone, TextStudentEncoder
-        ), f"Expected TextStudentEncoder for {fake_name}"
+        assert isinstance(model.backbone.language_backbone, TextStudentEncoder), (
+            f"Expected TextStudentEncoder for {fake_name}"
+        )
 
     def test_standard_sam3_uses_ve_encoder(self):
         """Verify standard sam3.pt routes to VETextEncoder."""
@@ -410,15 +410,14 @@ class TestSAM3LiteTextPredictor:
         """Create SAM3SemanticPredictor with the local checkpoint for end-to-end testing."""
         from ultralytics.models.sam.predict import SAM3SemanticPredictor
 
-        overrides = dict(
-            conf=0.1,
-            task="segment",
-            mode="predict",
-            model=_DEFAULT_CKPT,
-            half=False,
-            save=False,
-            verbose=False,
-        )
+        overrides = {
+            "conf": 0.1,
+            "task": "segment",
+            "mode": "predict",
+            "model": _DEFAULT_CKPT,
+            "save": False,
+            "verbose": False,
+        }
         return SAM3SemanticPredictor(overrides=overrides)
 
     def test_encoder_type_after_load(self, predictor):

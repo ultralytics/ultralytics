@@ -8,11 +8,11 @@ keywords: SAM 3 LiteText, SAM3 lightweight, MobileCLIP text encoder, knowledge d
 
 **SAM 3 LiteText** replaces the heavy 353 M-parameter CLIP ViT-L text encoder in [SAM 3](sam-3.md) with a compact [MobileCLIP](https://arxiv.org/abs/2311.17049)-based student encoder trained via knowledge distillation. The ViT-H image encoder and all other components are unchanged, making LiteText a **drop-in replacement** that uses the same `SAM3SemanticPredictor` interface.
 
-| Model variant     | Student backbone | Text-encoder params | Reduction vs SAM 3 |
-| ----------------- | ---------------- | ------------------: | ------------------: |
-| sam3-litetext-s0  | MobileCLIP-S0    |             42.5 M  |              ~88 %  |
-| sam3-litetext-s1  | MobileCLIP-S1    |             63.5 M  |              ~82 %  |
-| sam3-litetext-l   | MobileCLIP2-L    |            123.8 M  |              ~65 %  |
+| Model variant    | Student backbone | Text-encoder params | Reduction vs SAM 3 |
+| ---------------- | ---------------- | ------------------: | -----------------: |
+| sam3-litetext-s0 | MobileCLIP-S0    |              42.5 M |              ~88 % |
+| sam3-litetext-s1 | MobileCLIP-S1    |              63.5 M |              ~82 % |
+| sam3-litetext-l  | MobileCLIP2-L    |             123.8 M |              ~65 % |
 
 ## Overview
 
@@ -81,14 +81,13 @@ The interface is identical to standard SAM 3. Simply provide the path to a LiteT
         ```python
         from ultralytics.models.sam.predict import SAM3SemanticPredictor
 
-        overrides = dict(
-            conf=0.25,
-            task="segment",
-            mode="predict",
-            model="sam3_litetext_mobileclip_s0_ctx16.pt",  # or full path
-            half=False,
-            save=True,
-        )
+        overrides = {
+            "conf": 0.25,
+            "task": "segment",
+            "mode": "predict",
+            "model": "sam3_litetext_mobileclip_s0_ctx16.pt",  # or full path
+            "save": True,
+        }
         predictor = SAM3SemanticPredictor(overrides=overrides)
         results = predictor(source="image.jpg", text=["dog"])
 
@@ -105,13 +104,13 @@ The interface is identical to standard SAM 3. Simply provide the path to a LiteT
         ```python
         from ultralytics.models.sam.predict import SAM3SemanticPredictor
 
-        overrides = dict(
-            conf=0.25,
-            task="segment",
-            mode="predict",
-            model="sam3_litetext_mobileclip_s0_ctx16.pt",
-            save=True,
-        )
+        overrides = {
+            "conf": 0.25,
+            "task": "segment",
+            "mode": "predict",
+            "model": "sam3_litetext_mobileclip_s0_ctx16.pt",
+            "save": True,
+        }
         predictor = SAM3SemanticPredictor(overrides=overrides)
         results = predictor(source="image.jpg", text=["cat", "dog", "person"])
 
@@ -121,12 +120,12 @@ The interface is identical to standard SAM 3. Simply provide the path to a LiteT
 
 ### Choosing the right checkpoint
 
-| Use case                              | Recommended variant |
-| ------------------------------------- | ------------------- |
-| Fastest inference / edge deployment   | S0 ctx16            |
-| Balanced quality vs. speed            | S1 ctx16            |
-| Best segmentation accuracy            | L ctx16             |
-| Long text descriptions (> 10 tokens)  | any ctx32 variant   |
+| Use case                             | Recommended variant |
+| ------------------------------------ | ------------------- |
+| Fastest inference / edge deployment  | S0 ctx16            |
+| Balanced quality vs. speed           | S1 ctx16            |
+| Best segmentation accuracy           | L ctx16             |
+| Long text descriptions (> 10 tokens) | any ctx32 variant   |
 
 ## Architecture
 
@@ -143,9 +142,9 @@ Both helpers operate on the **basename only**, so they are not confused by direc
 
 The backbone is a `MobileCLIPTextTransformer` with three variants:
 
-| Variant | `model_name` | Layers | Heads | Hidden dim | Architecture notes          |
-| ------- | ------------ | -----: | ----: | ---------: | --------------------------- |
-| S0      | `mct`        |      4 |     8 |        512 | RepMixer bookend blocks     |
+| Variant | `model_name` | Layers | Heads | Hidden dim | Architecture notes            |
+| ------- | ------------ | -----: | ----: | ---------: | ----------------------------- |
+| S0      | `mct`        |      4 |     8 |        512 | RepMixer bookend blocks       |
 | S1      | `base`       |     12 |     8 |        512 | Standard multi-head attention |
 | L       | `base`       |     12 |    12 |        768 | Standard multi-head attention |
 
@@ -161,13 +160,13 @@ The `mct` architecture (S0) wraps the first and last two transformer layers with
 
 ## Comparison with Standard SAM 3
 
-| Property                      | SAM 3 (standard)    | SAM 3 LiteText S0    | SAM 3 LiteText S1    | SAM 3 LiteText L     |
-| ----------------------------- | ------------------- | -------------------- | -------------------- | -------------------- |
-| Text encoder                  | CLIP ViT-L          | MobileCLIP-S0 (MCT)  | MobileCLIP-S1        | MobileCLIP2-L        |
-| Text encoder params           | 353 M               | 42.5 M (−88 %)       | 63.5 M (−82 %)       | 123.8 M (−65 %)      |
-| Image encoder                 | ViT-H (unchanged)   | ViT-H (unchanged)    | ViT-H (unchanged)    | ViT-H (unchanged)    |
-| Predictor class               | SAM3SemanticPredictor | SAM3SemanticPredictor | SAM3SemanticPredictor | SAM3SemanticPredictor |
-| API change needed             | —                   | None                 | None                 | None                 |
+| Property            | SAM 3 (standard)      | SAM 3 LiteText S0     | SAM 3 LiteText S1     | SAM 3 LiteText L      |
+| ------------------- | --------------------- | --------------------- | --------------------- | --------------------- |
+| Text encoder        | CLIP ViT-L            | MobileCLIP-S0 (MCT)   | MobileCLIP-S1         | MobileCLIP2-L         |
+| Text encoder params | 353 M                 | 42.5 M (−88 %)        | 63.5 M (−82 %)        | 123.8 M (−65 %)       |
+| Image encoder       | ViT-H (unchanged)     | ViT-H (unchanged)     | ViT-H (unchanged)     | ViT-H (unchanged)     |
+| Predictor class     | SAM3SemanticPredictor | SAM3SemanticPredictor | SAM3SemanticPredictor | SAM3SemanticPredictor |
+| API change needed   | —                     | None                  | None                  | None                  |
 
 !!! tip "When to use LiteText"
 

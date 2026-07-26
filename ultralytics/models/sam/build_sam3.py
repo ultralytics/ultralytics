@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import os
 
-import torch.nn as nn
+from torch import nn
 
 from ultralytics.nn.modules.transformer import MLP
 from ultralytics.utils.patches import torch_load
@@ -89,7 +89,12 @@ def _detect_litetext_backbone(checkpoint_path: str) -> str | None:
     # Ultralytics/HuggingFace convention: sam3-litetext-{s0,s1,l}.pt
     # or sam3_litetext_mobileclip_{s0,s1,2_l}_ctx*.pt
     if "litetext" in name or "lite-text" in name:
-        if "litetext-l" in name or "litetext_l" in name or "_2_l" in name or (name.endswith("_l.pt") or "_l_ctx" in name):
+        if (
+            "litetext-l" in name
+            or "litetext_l" in name
+            or "_2_l" in name
+            or (name.endswith("_l.pt") or "_l_ctx" in name)
+        ):
             return "L"
         if "litetext-s1" in name or "litetext_s1" in name or "_s1_" in name:
             return "S1"
@@ -515,11 +520,11 @@ def build_interactive_sam3(checkpoint_path: str, compile=None, with_backbone=Tru
         no_obj_embed_spatial=True,
         proj_tpos_enc_in_obj_ptrs=True,
         use_signed_tpos_enc_to_obj_ptrs=True,
-        sam_mask_decoder_extra_args=dict(
-            dynamic_multimask_via_stability=True,
-            dynamic_multimask_stability_delta=0.05,
-            dynamic_multimask_stability_thresh=0.98,
-        ),
+        sam_mask_decoder_extra_args={
+            "dynamic_multimask_via_stability": True,
+            "dynamic_multimask_stability_delta": 0.05,
+            "dynamic_multimask_stability_thresh": 0.98,
+        },
     )
 
     # Load checkpoint if provided

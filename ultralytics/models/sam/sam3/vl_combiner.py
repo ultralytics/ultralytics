@@ -6,12 +6,11 @@
 
 from __future__ import annotations
 
+import contextlib
 from copy import copy
 
-import contextlib
-
 import torch
-import torch.nn as nn
+from torch import nn
 
 try:
     from torch.nn.attention import SDPBackend, sdpa_kernel
@@ -26,6 +25,7 @@ except ImportError:
         """Stub for SDPBackend on PyTorch < 2.0."""
 
         MATH = EFFICIENT_ATTENTION = FLASH_ATTENTION = None
+
 
 from .necks import Sam3DualViTDetNeck
 

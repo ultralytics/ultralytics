@@ -382,8 +382,8 @@ class YOLOE(Model):
                 are computed.
             visual_prompts (dict[str, list]): Dictionary containing visual prompts for the model. Must include 'bboxes'
                 and 'cls' keys when non-empty.
-            refer_image (str | PIL.Image | np.ndarray | list, optional): Reference image for visual prompts. Pass a
-                list to merge prompts from multiple reference images, with one set of 'bboxes' and 'cls' per image.
+            refer_image (str | PIL.Image | np.ndarray | list, optional): Reference image for visual prompts. Pass a list
+                to merge prompts from multiple reference images, with one set of 'bboxes' and 'cls' per image.
             predictor (callable): Custom predictor class for visual prompt predictions. Defaults to
                 YOLOEVPDetectPredictor.
             **kwargs (Any): Additional keyword arguments passed to the predictor.

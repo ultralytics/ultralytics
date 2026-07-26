@@ -145,7 +145,7 @@ def _convert_bohb_search_space(space):
         par = "/".join(str(p) for p in path)
         sampler = domain.get_sampler()
         if isinstance(sampler, Quantized):
-            raise ValueError("TuneBOHB does not support quantized search spaces with the current ConfigSpace version.")
+            raise TypeError("TuneBOHB does not support quantized search spaces with the current ConfigSpace version.")
 
         if isinstance(domain, Float) and isinstance(sampler, (Uniform, LogUniform)):
             cs.add(
@@ -163,7 +163,7 @@ def _convert_bohb_search_space(space):
         elif isinstance(domain, Categorical) and isinstance(sampler, Uniform):
             cs.add(ConfigSpace.CategoricalHyperparameter(par, choices=domain.categories))
         else:
-            raise ValueError(
+            raise TypeError(
                 f"TuneBOHB does not support parameters of type {type(domain).__name__} "
                 f"with sampler type {type(domain.sampler).__name__}."
             )
@@ -365,7 +365,7 @@ def run_ray_tune(
     """
     LOGGER.info("💡 Learn about RayTune at https://docs.ultralytics.com/integrations/ray-tune")
     try:
-        checks.check_requirements("ray[tune]")
+        checks.check_requirements("ray[tune]", constrain=["pydantic>=2.0,<2.12"])
 
         import ray
         from ray import tune
@@ -427,7 +427,10 @@ def run_ray_tune(
 
         # Set trial-specific name for W&B logging
         try:
-            trial_id = tune.get_trial_id()  # Get current trial ID (e.g., "2c2fc_00000")
+            if hasattr(tune, "get_context"):
+                trial_id = tune.get_context().get_trial_id()  # Ray ≥2.7, get current trial ID (e.g., "tune_c1c1ce99")
+            else:
+                trial_id = tune.get_trial_id()  # Ray <2.7
             trial_suffix = trial_id.split("_")[-1] if "_" in trial_id else trial_id
             config["name"] = f"{base_name}_{trial_suffix}"
         except Exception:
@@ -478,7 +481,7 @@ def run_ray_tune(
     tune_dir = get_save_dir(
         get_cfg(
             DEFAULT_CFG,
-            {**train_args, **{"exist_ok": train_args.pop("resume", False)}},  # resume w/ same tune_dir
+            {**train_args, "exist_ok": train_args.pop("resume", False)},  # resume w/ same tune_dir
         ),
         name=train_args.pop("name", "tune"),  # runs/{task}/{tune_dir}
     )  # must be absolute dir

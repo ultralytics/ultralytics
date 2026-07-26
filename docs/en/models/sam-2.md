@@ -14,6 +14,10 @@ keywords: SAM 2, SAM 2.1, SAM-2, Segment Anything, video segmentation, image seg
 
 SAM 2, the successor to Meta's [Segment Anything Model (SAM)](sam.md), is a cutting-edge tool designed for comprehensive object segmentation in both images and videos. It excels in handling complex visual data through a unified, promptable model architecture that supports real-time processing and zero-shot generalization.
 
+!!! tip "SAM 2 on Ultralytics Platform"
+
+    SAM 2.1 models power the [smart annotation feature](https://www.ultralytics.com/annotate) on [Ultralytics Platform](https://platform.ultralytics.com), enabling click-based segmentation for fast dataset labeling. See the [annotation guide](../platform/data/annotation.md) for details.
+
 ![SAM 2 Example Results](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sa-v-dataset.avif)
 
 ## Key Features
@@ -208,7 +212,7 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
         from ultralytics.models.sam import SAM2VideoPredictor
 
         # Create SAM2VideoPredictor
-        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="sam2_b.pt")
+        overrides = {"conf": 0.25, "task": "segment", "mode": "predict", "imgsz": 1024, "model": "sam2_b.pt"}
         predictor = SAM2VideoPredictor(overrides=overrides)
 
         # Run inference with single point
@@ -256,7 +260,7 @@ It offers three significant enhancements:
         from ultralytics.models.sam import SAM2DynamicInteractivePredictor
 
         # Create SAM2DynamicInteractivePredictor
-        overrides = dict(conf=0.01, task="segment", mode="predict", imgsz=1024, model="sam2_t.pt", save=False)
+        overrides = {"conf": 0.01, "task": "segment", "mode": "predict", "imgsz": 1024, "model": "sam2_t.pt", "save": False}
         predictor = SAM2DynamicInteractivePredictor(overrides=overrides, max_obj_num=10)
 
         # Define a category by box prompt

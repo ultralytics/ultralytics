@@ -83,13 +83,13 @@ SAM speeds measured with PyTorch, YOLO speeds measured with ONNX Runtime. Tests 
 
 MobileSAM retains the same pipeline as the original [SAM](sam.md), including pre-processing, post-processing, and all interfaces. This means you can transition from SAM to MobileSAM with minimal changes to your workflow.
 
-The key difference is the image encoder: MobileSAM replaces the original ViT-H encoder (632M parameters) with a much smaller Tiny-ViT encoder (5M parameters). On a single GPU, MobileSAM processes an image in about 12ms (8ms for the encoder, 4ms for the mask decoder).
+The key difference is the image encoder: MobileSAM replaces the original ViT-H encoder (637M parameters) with a much smaller Tiny-ViT encoder (5M parameters). On a single GPU, MobileSAM processes an image in about 12ms (8ms for the encoder, 4ms for the mask decoder).
 
 ### ViT-Based Image Encoder Comparison
 
 | Image Encoder | Original SAM | MobileSAM |
 | ------------- | ------------ | --------- |
-| Parameters    | 611M         | 5M        |
+| Parameters    | 637M         | 5M        |
 | Speed         | 452ms        | 8ms       |
 
 ### Prompt-Guided Mask Decoder
@@ -103,7 +103,7 @@ The key difference is the image encoder: MobileSAM replaces the original ViT-H e
 
 | Whole Pipeline (Enc+Dec) | Original SAM | MobileSAM |
 | ------------------------ | ------------ | --------- |
-| Parameters               | 615M         | 9.66M     |
+| Parameters               | 641M         | 9.66M     |
 | Speed                    | 456ms        | 12ms      |
 
 The performance of MobileSAM and the original SAM is illustrated below using both point and box prompts.
@@ -159,24 +159,18 @@ Download the MobileSAM pretrained weights from [Ultralytics assets](https://gith
         # Load the model
         model = SAM("mobile_sam.pt")
 
-        # Predict a segment based on a single point prompt
-        model.predict("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
+        # Predict a segment based on a single box prompt
+        model.predict("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
 
-        # Predict multiple segments based on multiple points prompt
-        model.predict("ultralytics/assets/zidane.jpg", points=[[400, 370], [900, 370]], labels=[1, 1])
-
-        # Predict a segment based on multiple points prompt per object
-        model.predict("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
-
-        # Predict a segment using both positive and negative prompts.
-        model.predict("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
+        # Predict multiple segments based on multiple box prompts
+        model.predict("ultralytics/assets/zidane.jpg", bboxes=[[439, 437, 524, 709], [114, 196, 313, 708]])
         ```
 
 Both `MobileSAM` and `SAM` share the same API. For more usage details, see the [SAM documentation](sam.md).
 
 ### Automatically Build Segmentation Datasets Using a Detection Model
 
-To automatically annotate your dataset with the Ultralytics framework, use the `auto_annotate` function as shown below:
+To automatically [annotate your dataset](https://www.ultralytics.com/annotate) with the Ultralytics framework, use the `auto_annotate` function as shown below:
 
 !!! example
 
@@ -213,7 +207,7 @@ Read the full [MobileSAM paper on arXiv](https://arxiv.org/pdf/2306.14289).
 
 ### What Is MobileSAM and How Does It Differ from the Original SAM Model?
 
-MobileSAM is a lightweight, fast [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) model optimized for mobile and edge applications. It maintains the same pipeline as the original SAM but replaces the large ViT-H encoder (632M parameters) with a compact Tiny-ViT encoder (5M parameters). This results in MobileSAM being about 5 times smaller and 7 times faster than the original SAM, operating at roughly 12ms per image versus SAM's 456ms. Explore more about MobileSAM's implementation on the [MobileSAM GitHub repository](https://github.com/ChaoningZhang/MobileSAM).
+MobileSAM is a lightweight, fast [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) model optimized for mobile and edge applications. It maintains the same pipeline as the original SAM but replaces the large ViT-H encoder (637M parameters) with a compact Tiny-ViT encoder (5M parameters). This results in MobileSAM being about 5 times smaller and 7 times faster than the original SAM, operating at roughly 12ms per image versus SAM's 456ms. Explore more about MobileSAM's implementation on the [MobileSAM GitHub repository](https://github.com/ChaoningZhang/MobileSAM).
 
 ### How Can I Test MobileSAM Using Ultralytics?
 

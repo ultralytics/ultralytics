@@ -31,8 +31,19 @@ class CoreMLBackend(BaseBackend):
         import coremltools as ct
 
         LOGGER.info(f"Loading {weight} for CoreML inference...")
-        self.model = ct.models.MLModel(weight)
-        self.dynamic = self.model.get_spec().description.input[0].type.HasField("multiArrayType")
+        # Run on the Neural Engine (CPU_AND_NE): ~3x faster than CPU, and the default ComputeUnit.ALL / CPU_AND_GPU
+        # abort the process via an MPSGraph compiler bug on macOS hosts (coremltools 9.x). CPU_AND_NE needs macOS >= 13,
+        # so fall back to CPU_ONLY below that. CoreML inference is macOS-only, so this applies wherever the backend runs.
+        # Exception: RT-DETR loses FP16 accuracy and runs slower on the Neural Engine alone, so route it through ALL.
+        meta = dict(ct.utils.load_spec(str(weight)).description.metadata.userDefined)
+        default_unit = ct.ComputeUnit.ALL if meta.get("head") == "RTDETRDecoder" else ct.ComputeUnit.CPU_AND_NE
+        try:
+            self.model = ct.models.MLModel(weight, compute_units=default_unit)
+        except Exception:
+            self.model = ct.models.MLModel(weight, compute_units=ct.ComputeUnit.CPU_ONLY)
+        spec = self.model.get_spec()
+        self.input_name = spec.description.input[0].name
+        self.dynamic = spec.description.input[0].type.HasField("multiArrayType")
 
         # Load metadata
         self.apply_metadata(dict(self.model.user_defined_metadata))
@@ -50,7 +61,7 @@ class CoreMLBackend(BaseBackend):
         h, w = im.shape[1:3]
 
         im = im.transpose(0, 3, 1, 2) if self.dynamic else Image.fromarray((im[0] * 255).astype("uint8"))
-        y = self.model.predict({"image": im})
+        y = self.model.predict({self.input_name: im})
         if "confidence" in y:  # NMS included
             from ultralytics.utils.ops import xywh2xyxy
 

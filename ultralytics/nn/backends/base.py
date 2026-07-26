@@ -4,8 +4,38 @@ from __future__ import annotations
 
 import ast
 from abc import ABC, abstractmethod
+from pathlib import Path
+from typing import Any
 
 import torch
+
+
+def read_tflite_metadata(file: str | Path) -> dict | None:
+    """Read Ultralytics metadata embedded in a ``.tflite`` file.
+
+    Ultralytics appends metadata to the end of ``.tflite`` flatbuffers as a zip entry (``metadata.json`` for
+    litert-torch/single-file exports, or a single literal-dict entry for legacy onnx2tf exports). Returns the parsed
+    metadata dict, or ``None`` if the file has no readable embedded metadata.
+
+    Args:
+        file (str | Path): Path to the ``.tflite`` model file.
+
+    Returns:
+        (dict | None): Parsed metadata dictionary, or ``None`` if absent or unreadable.
+    """
+    import json
+    import zipfile
+
+    try:
+        with zipfile.ZipFile(file, "r") as zf:
+            names = zf.namelist()
+            if "metadata.json" in names:
+                return json.loads(zf.read("metadata.json"))
+            if names:  # legacy onnx2tf exports store a single Python-literal dict entry
+                return ast.literal_eval(zf.read(names[0]).decode("utf-8"))
+    except (zipfile.BadZipFile, SyntaxError, ValueError, KeyError, json.JSONDecodeError):
+        return None
+    return None
 
 
 class BaseBackend(ABC):
@@ -21,7 +51,7 @@ class BaseBackend(ABC):
         nhwc (bool): Whether the model expects NHWC input format instead of NCHW.
         stride (int): Model stride, typically 32 for YOLO models.
         names (dict): Dictionary mapping class indices to class names.
-        task (str | None): The task type (detect, segment, classify, pose, obb).
+        task (str | None): The task type (detect, segment, semantic, classify, pose, obb).
         batch (int): Batch size for inference.
         imgsz (tuple): Input image size as (height, width).
         channels (int): Number of input channels, typically 3 for RGB.
@@ -62,16 +92,22 @@ class BaseBackend(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def forward(self, im: torch.Tensor) -> torch.Tensor | list[torch.Tensor]:
+    def forward(self, im: torch.Tensor) -> Any:
         """Run inference on the input image tensor.
 
         Args:
             im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
 
         Returns:
-            (torch.Tensor | list[torch.Tensor]): Model output as a single tensor or list of tensors.
+            (Any): The raw output from the model's forward pass, which may require post-processing.
         """
         raise NotImplementedError
+
+    def __call__(self, *args, **kwargs) -> Any:
+        """Allow the backend instance to be called directly to perform inference, forwarding arguments to the `forward`
+        method.
+        """
+        return self.forward(*args, **kwargs)
 
     def apply_metadata(self, metadata: dict | None) -> None:
         """Process and apply model metadata to backend attributes.

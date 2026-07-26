@@ -1,4 +1,5 @@
 ---
+title: YOLO26 Training with Google Colab
 comments: true
 description: Learn how to efficiently train Ultralytics YOLO26 models using Google Colab's powerful cloud-based environment. Start your project with ease.
 keywords: YOLO26, Google Colab, machine learning, deep learning, model training, GPU, TPU, cloud computing, Jupyter Notebook, Ultralytics
@@ -103,7 +104,7 @@ If you'd like to dive deeper into Google Colab, here are a few resources to guid
 
 - **[Image Segmentation with Ultralytics YOLO26 on Google Colab](https://www.ultralytics.com/blog/image-segmentation-with-ultralytics-yolo11-on-google-colab)**: Explore how to perform image segmentation tasks using YOLO26 in the Google Colab environment, with practical examples using datasets like the Roboflow Carparts Segmentation Dataset.
 
-- **[Curated Notebooks](https://colab.google/notebooks/)**: Here you can explore a series of organized and educational notebooks, each grouped by specific topic areas.
+- **[Curated Notebooks](https://developers.google.com/colab)**: Here you can explore a series of organized and educational notebooks, each grouped by specific topic areas.
 
 - **[Google Colab's Medium Page](https://medium.com/google-colab)**: You can find tutorials, updates, and community contributions here that can help you better understand and utilize this tool.
 
@@ -130,7 +131,7 @@ Google Colab offers several advantages for training YOLO26 models:
 - **Integration with Google Drive:** Easily store and access datasets and models.
 - **Collaboration:** Share notebooks with others and collaborate in real-time.
 
-For more information on why you should use Google Colab, explore the [training guide](../modes/train.md) and visit the [Google Colab page](https://colab.google/notebooks/).
+For more information on why you should use Google Colab, explore the [training guide](../modes/train.md) and visit the [Google Colab page](https://developers.google.com/colab).
 
 ### How can I handle Google Colab session timeouts during YOLO26 training?
 

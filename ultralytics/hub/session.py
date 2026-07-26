@@ -303,7 +303,7 @@ class HUBTrainingSession:
                         LOGGER.warning(f"{PREFIX}{message} {HELP_MSG} ({response.status_code})")
 
                 if not self._should_retry(response.status_code):
-                    LOGGER.warning(f"{PREFIX}Request failed. {HELP_MSG} ({response.status_code}")
+                    LOGGER.warning(f"{PREFIX}Request failed. {HELP_MSG} ({response.status_code})")
                     break  # Not an error that should be retried, exit loop
 
                 time.sleep(2**i)  # Exponential backoff for retries
@@ -385,7 +385,7 @@ class HUBTrainingSession:
                     f"{PREFIX} Model 'best.pt' not found, copying 'last.pt' to 'best.pt' and uploading. "
                     "This often happens when resuming training in transient environments like Google Colab. "
                     "For more reliable training, consider using Ultralytics HUB Cloud. "
-                    "Learn more at https://docs.ultralytics.com/hub/cloud-training."
+                    "Learn more at https://docs.ultralytics.com/platform."
                 )
                 shutil.copy(last, weights)  # copy last.pt to best.pt
             else:

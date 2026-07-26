@@ -1,4 +1,5 @@
 ---
+title: nn.backends.paddle API Reference
 description: Explore PaddleBackend for Baidu PaddlePaddle inference, supporting deployment with Paddle Inference engine on various hardware platforms.
 keywords: Ultralytics, PaddleBackend, PaddlePaddle inference, Baidu Paddle, Paddle Inference, deep learning, model deployment
 ---
@@ -7,7 +8,7 @@ keywords: Ultralytics, PaddleBackend, PaddlePaddle inference, Baidu Paddle, Padd
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/paddle.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/paddle.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/paddle.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/paddle.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

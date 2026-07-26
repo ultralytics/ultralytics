@@ -1,4 +1,5 @@
 ---
+title: data.loaders API Reference
 description: Explore detailed documentation on Ultralytics data loaders including SourceTypes, LoadStreams, and more. Enhance your ML workflows with our comprehensive guides.
 keywords: Ultralytics, data loaders, SourceTypes, LoadStreams, LoadScreenshots, LoadImagesAndVideos, LoadPilAndNumpy, LoadTensor, ML workflows
 ---
@@ -7,7 +8,7 @@ keywords: Ultralytics, data loaders, SourceTypes, LoadStreams, LoadScreenshots, 
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/loaders.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/loaders.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/loaders.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/loaders.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

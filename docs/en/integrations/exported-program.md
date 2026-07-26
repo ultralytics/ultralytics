@@ -60,10 +60,10 @@ ExportedProgram export requires PyTorch 2.9 or higher. No extra dependencies bey
 
 ### Export Arguments
 
-| Argument | Type            | Default | Description                                |
-| -------- | --------------- | ------- | ------------------------------------------ |
-| `imgsz`  | `int` or `list` | `640`   | Image size for model input (height, width) |
-| `batch`  | `int`           | `1`     | Batch size for export                      |
+| Argument | Type            | Default | Description                                    |
+| -------- | --------------- | ------- | ---------------------------------------------- |
+| `imgsz`  | `int` or `list` | `640`   | Image size for model input (height, width)     |
+| `batch`  | `int`           | `1`     | Batch size for export                          |
 | `device` | `str`           | `'cpu'` | Device to use for export (`'cpu'` or `'cuda'`) |
 
 ### Output

@@ -1,6 +1,12 @@
 ---
 title: COCO Detection Dataset
 comments: true
+creator:
+    name: COCO Consortium
+    url: https://cocodataset.org/
+license:
+    name: CC-BY-4.0
+    url: https://cocodataset.org/#termsofuse
 description: Explore the COCO dataset for object detection and segmentation. Learn about its structure, usage, pretrained models, and key features.
 keywords: COCO dataset, object detection, segmentation, benchmarking, computer vision, pose estimation, YOLO models, COCO annotations
 ---

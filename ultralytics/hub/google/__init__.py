@@ -8,11 +8,10 @@ import time
 
 
 class GCPRegions:
-    """
-    A class for managing and analyzing Google Cloud Platform (GCP) regions.
+    """A class for managing and analyzing Google Cloud Platform (GCP) regions.
 
-    This class provides functionality to initialize, categorize, and analyze GCP regions based on their
-    geographical location, tier classification, and network latency.
+    This class provides functionality to initialize, categorize, and analyze GCP regions based on their geographical
+    location, tier classification, and network latency.
 
     Attributes:
         regions (dict[str, tuple[int, str, str]]): A dictionary of GCP regions with their tier, city, and country.
@@ -82,8 +81,7 @@ class GCPRegions:
 
     @staticmethod
     def _ping_region(region: str, attempts: int = 1) -> tuple[str, float, float, float, float]:
-        """
-        Ping a specified GCP region and measure network latency statistics.
+        """Ping a specified GCP region and measure network latency statistics.
 
         Args:
             region (str): The GCP region identifier to ping (e.g., 'us-central1').
@@ -126,8 +124,7 @@ class GCPRegions:
         tier: int | None = None,
         attempts: int = 1,
     ) -> list[tuple[str, float, float, float, float]]:
-        """
-        Determine the GCP regions with the lowest latency based on ping tests.
+        """Determine the GCP regions with the lowest latency based on ping tests.
 
         Args:
             top (int, optional): Number of top regions to return.
@@ -136,8 +133,8 @@ class GCPRegions:
             attempts (int, optional): Number of ping attempts per region.
 
         Returns:
-            (list[tuple[str, float, float, float, float]]): List of tuples containing region information and
-                latency statistics. Each tuple contains (region, mean_latency, std_dev, min_latency, max_latency).
+            (list[tuple[str, float, float, float, float]]): List of tuples containing region information and latency
+                statistics. Each tuple contains (region, mean_latency, std_dev, min_latency, max_latency).
 
         Examples:
             >>> regions = GCPRegions()

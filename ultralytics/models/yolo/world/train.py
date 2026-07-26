@@ -17,15 +17,13 @@ from ultralytics.utils.torch_utils import unwrap_model
 
 def on_pretrain_routine_end(trainer) -> None:
     """Set up model classes and text encoder at the end of the pretrain routine."""
-    if RANK in {-1, 0}:
-        # Set class names for evaluation
-        names = [name.split("/", 1)[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
-        unwrap_model(trainer.ema.ema).set_classes(names, cache_clip_model=False)
+    # Set on all ranks: validation runs on every rank, but txt_feats/nc are not DDP buffers so they don't sync
+    names = [name.split("/", 1)[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
+    unwrap_model(trainer.ema.ema).set_classes(names, cache_clip_model=False)
 
 
 class WorldTrainer(DetectionTrainer):
-    """
-    A trainer class for fine-tuning YOLO World models on close-set datasets.
+    """A trainer class for fine-tuning YOLO World models on close-set datasets.
 
     This trainer extends the DetectionTrainer to support training YOLO World models, which combine visual and textual
     features for improved object detection and understanding. It handles text embedding generation and caching to
@@ -53,14 +51,13 @@ class WorldTrainer(DetectionTrainer):
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks=None):
-        """
-        Initialize a WorldTrainer object with given arguments.
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks: dict | None = None):
+        """Initialize a WorldTrainer object with given arguments.
 
         Args:
             cfg (dict[str, Any]): Configuration for the trainer.
             overrides (dict[str, Any], optional): Configuration overrides.
-            _callbacks (list[Any], optional): List of callback functions.
+            _callbacks (dict, optional): Dictionary of callback functions.
         """
         if overrides is None:
             overrides = {}
@@ -69,8 +66,7 @@ class WorldTrainer(DetectionTrainer):
         self.text_embeddings = None
 
     def get_model(self, cfg=None, weights: str | None = None, verbose: bool = True) -> WorldModel:
-        """
-        Return WorldModel initialized with specified config and weights.
+        """Return WorldModel initialized with specified config and weights.
 
         Args:
             cfg (dict[str, Any] | str, optional): Model configuration.
@@ -95,8 +91,7 @@ class WorldTrainer(DetectionTrainer):
         return model
 
     def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
-        """
-        Build YOLO Dataset for training or validation.
+        """Build YOLO Dataset for training or validation.
 
         Args:
             img_path (str): Path to the folder containing images.
@@ -115,11 +110,10 @@ class WorldTrainer(DetectionTrainer):
         return dataset
 
     def set_text_embeddings(self, datasets: list[Any], batch: int | None) -> None:
-        """
-        Set text embeddings for datasets to accelerate training by caching category names.
+        """Set text embeddings for datasets to accelerate training by caching category names.
 
-        This method collects unique category names from all datasets, then generates and caches text embeddings
-        for these categories to improve training efficiency.
+        This method collects unique category names from all datasets, then generates and caches text embeddings for
+        these categories to improve training efficiency.
 
         Args:
             datasets (list[Any]): List of datasets from which to extract category names.
@@ -141,8 +135,7 @@ class WorldTrainer(DetectionTrainer):
         self.text_embeddings = text_embeddings
 
     def generate_text_embeddings(self, texts: list[str], batch: int, cache_dir: Path) -> dict[str, torch.Tensor]:
-        """
-        Generate text embeddings for a list of text samples.
+        """Generate text embeddings for a list of text samples.
 
         Args:
             texts (list[str]): List of text samples to encode.

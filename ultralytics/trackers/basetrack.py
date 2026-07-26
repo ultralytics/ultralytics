@@ -1,15 +1,11 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Module defines the base classes and structures for object tracking in YOLO."""
 
-from collections import OrderedDict
 from typing import Any
-
-import numpy as np
 
 
 class TrackState:
-    """
-    Enumeration class representing the possible states of an object being tracked.
+    """Enumeration class representing the possible states of an object being tracked.
 
     Attributes:
         New (int): State when the object is newly detected.
@@ -20,7 +16,7 @@ class TrackState:
     Examples:
         >>> state = TrackState.New
         >>> if state == TrackState.New:
-        >>>     print("Object is newly detected.")
+        ...     print("Object is newly detected.")
     """
 
     New = 0
@@ -30,22 +26,16 @@ class TrackState:
 
 
 class BaseTrack:
-    """
-    Base class for object tracking, providing foundational attributes and methods.
+    """Base class for object tracking, providing foundational attributes and methods.
 
     Attributes:
         _count (int): Class-level counter for unique track IDs.
         track_id (int): Unique identifier for the track.
         is_activated (bool): Flag indicating whether the track is currently active.
         state (TrackState): Current state of the track.
-        history (OrderedDict): Ordered history of the track's states.
-        features (list): List of features extracted from the object for tracking.
-        curr_feature (Any): The current feature of the object being tracked.
         score (float): The confidence score of the tracking.
         start_frame (int): The frame number where tracking started.
         frame_id (int): The most recent frame ID processed by the track.
-        time_since_update (int): Frames passed since the last update.
-        location (tuple): The location of the object in the context of multi-camera tracking.
 
     Methods:
         end_frame: Returns the ID of the last frame where the object was tracked.
@@ -71,14 +61,9 @@ class BaseTrack:
         self.track_id = 0
         self.is_activated = False
         self.state = TrackState.New
-        self.history = OrderedDict()
-        self.features = []
-        self.curr_feature = None
         self.score = 0
         self.start_frame = 0
         self.frame_id = 0
-        self.time_since_update = 0
-        self.location = (np.inf, np.inf)
 
     @property
     def end_frame(self) -> int:

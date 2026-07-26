@@ -18,8 +18,7 @@ except (ImportError, AssertionError):
 
 
 def _log_scalars(scalars: dict, step: int = 0) -> None:
-    """
-    Log scalars to the NeptuneAI experiment logger.
+    """Log scalars to the NeptuneAI experiment logger.
 
     Args:
         scalars (dict): Dictionary of scalar values to log to NeptuneAI.
@@ -35,11 +34,10 @@ def _log_scalars(scalars: dict, step: int = 0) -> None:
 
 
 def _log_images(imgs_dict: dict, group: str = "") -> None:
-    """
-    Log images to the NeptuneAI experiment logger.
+    """Log images to the NeptuneAI experiment logger.
 
-    This function logs image data to Neptune.ai when a valid Neptune run is active. Images are organized
-    under the specified group name.
+    This function logs image data to Neptune.ai when a valid Neptune run is active. Images are organized under the
+    specified group name.
 
     Args:
         imgs_dict (dict): Dictionary of images to log, with keys as image names and values as image data.
@@ -108,15 +106,9 @@ def on_train_end(trainer) -> None:
     """Log final results, plots, and model weights at the end of training."""
     if run:
         # Log final results, CM matrix + PR plots
-        files = [
-            "results.png",
-            "confusion_matrix.png",
-            "confusion_matrix_normalized.png",
-            *(f"{x}_curve.png" for x in ("F1", "PR", "P", "R")),
-        ]
-        files = [(trainer.save_dir / f) for f in files if (trainer.save_dir / f).exists()]  # filter
-        for f in files:
-            _log_plot(title=f.stem, plot_path=f)
+        for f in [*trainer.plots.keys(), *trainer.validator.plots.keys()]:
+            if "batch" not in f.name:
+                _log_plot(title=f.stem, plot_path=f)
         # Log the final model
         run[f"weights/{trainer.args.name or trainer.args.task}/{trainer.best.name}"].upload(File(str(trainer.best)))
 

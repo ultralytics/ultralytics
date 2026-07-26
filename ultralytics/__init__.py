@@ -1,9 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-__version__ = "8.3.203"
+__version__ = "8.4.106"
 
 import importlib
 import os
+from typing import TYPE_CHECKING
 
 # Set ENV variables (place before imports)
 if not os.environ.get("OMP_NUM_THREADS"):
@@ -17,7 +18,7 @@ settings = SETTINGS
 
 MODELS = ("YOLO", "YOLOWorld", "YOLOE", "NAS", "SAM", "FastSAM", "RTDETR")
 
-__all__ = (
+__all__ = (  # noqa: PLE0604
     "__version__",
     "ASSETS",
     *MODELS,
@@ -25,6 +26,10 @@ __all__ = (
     "download",
     "settings",
 )
+
+if TYPE_CHECKING:
+    # Enable hints for type checkers
+    from ultralytics.models import YOLO, YOLOWorld, YOLOE, NAS, SAM, FastSAM, RTDETR  # noqa
 
 
 def __getattr__(name: str):

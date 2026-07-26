@@ -116,7 +116,9 @@ class RTDETRValidator(DetectionValidator):
             hyp=self.args,
             rect=False,  # no rect
             cache=self.args.cache or None,
+            single_cls=self.args.single_cls or False,
             prefix=colorstr(f"{mode}: "),
+            classes=self.args.classes,
             data=self.data,
         )
 
@@ -148,7 +150,7 @@ class RTDETRValidator(DetectionValidator):
         bboxes, scores, labels = preds.split((4, 1, 1), dim=-1)
         bboxes = ops.xywh2xyxy(bboxes) * self.args.imgsz
         scores, labels = scores.squeeze(-1), labels.squeeze(-1)
-        masks = scores > self.args.conf
+        masks = [(score > self.args.conf).nonzero().squeeze(1)[: self.args.max_det] for score in scores]
 
         return [
             {"bboxes": bbox[m], "conf": score[m], "cls": label[m]}

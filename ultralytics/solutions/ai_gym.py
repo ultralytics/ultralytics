@@ -56,11 +56,11 @@ class AIGym(BaseSolution):
             im0 (np.ndarray): Input image for processing.
 
         Returns:
-            (SolutionResults): Contains processed image `plot_im`, 'workout_count' (list[int] of completed reps,
-                one entry per currently tracked individual), 'workout_stage' (list[str] of current stages),
-                'workout_angle' (list[float] of current angles), and 'total_tracks' (int, total number of tracked
-                individuals). All per-track lists are aligned with the currently visible tracks so that
-                ``len(results.workout_count) == results.total_tracks``.
+            (SolutionResults): Contains processed image `plot_im`, 'workout_count' (list[int] of completed reps, one
+                entry per currently tracked individual), 'workout_stage' (list[str] of current stages), 'workout_angle'
+                (list[float] of current angles), and 'total_tracks' (int, total number of tracked individuals). All
+                per-track lists are aligned with the currently visible tracks so that ``len(results.workout_count)
+                == results.total_tracks``.
 
         Examples:
             >>> gym = AIGym()

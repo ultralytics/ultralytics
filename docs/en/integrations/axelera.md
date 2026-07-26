@@ -64,7 +64,7 @@ For turnkey solutions, Axelera partners with manufacturers to provide systems pr
 
 - **Metis Compute Board**: A standalone edge device pairing the Metis AIPU with a Rockchip RK3588 ARM CPU.
 - **Workstations**: Enterprise towers from **Dell** (Precision 3460XE) and **Lenovo** (ThinkStation P360 Ultra).
-- **Industrial PCs**: Ruggedized systems from **Advantech** and **Aetina** designed for [manufacturing automation](https://www.ultralytics.com/solutions/ai-in-manufacturing).
+- **Industrial PCs**: Ruggedized systems from **Advantech** and **Aetina** designed for [manufacturing automation](https://www.ultralytics.com/solutions/computer-vision-in-manufacturing).
 
 ## Supported Tasks
 
@@ -136,7 +136,7 @@ For detailed instructions, see our [Ultralytics Installation guide](../quickstar
 
     The kernel driver is installed separately from the Python SDK packages, so after upgrading the SDK (for example 1.6 to 1.7) you must install the matching driver version. An out-of-sync driver leaves the device unavailable: `axdevice` reports the required version and fails to open the device.
 
-    ```
+    ```text
     [libaxldev.c:285] Found kernel driver version 1.4.16, but at least version 1.4.18 is required. Please update the kernel driver
     ERROR: AXR_ERROR_CONNECTION_ERROR: Failed to open device metis-0:4:0
     ```
@@ -248,7 +248,7 @@ For all export options, see the [Export Mode documentation](../modes/export.md).
 
 ### Output Structure
 
-```
+```text
 yolo26n_axelera_model/
 ├── yolo26n.axm                  # Axelera model file
 ├── compiler_config_final.toml  # Compiler configuration used for the build
@@ -273,7 +273,7 @@ Ultralytics YOLO on Axelera hardware enables advanced edge computing solutions:
 
 - **Smart Retail**: Real-time [object counting](../guides/object-counting.md) and [heatmap analytics](../guides/heatmaps.md) for store optimization.
 - **Industrial Safety**: Low-latency [PPE detection](../datasets/detect/construction-ppe.md) in manufacturing environments.
-- **Drone Analytics**: High-speed [object detection](../tasks/detect.md) on UAVs for [agriculture](https://www.ultralytics.com/solutions/ai-in-agriculture) and search-and-rescue.
+- **Drone Analytics**: High-speed [object detection](../tasks/detect.md) on UAVs for [agriculture](https://www.ultralytics.com/solutions/computer-vision-in-agriculture) and search-and-rescue.
 - **Traffic Systems**: Edge-based [license plate recognition](https://www.ultralytics.com/blog/using-ultralytics-yolo11-for-automatic-number-plate-recognition) and [speed estimation](../guides/speed-estimation.md).
 
 ## Recommended Workflow

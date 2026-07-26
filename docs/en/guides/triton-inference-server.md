@@ -43,7 +43,7 @@ Using Triton Inference Server with [Ultralytics YOLO26](../models/yolo26.md) pro
 
 Ensure you have the following prerequisites before proceeding:
 
-- Docker or Podman installed on your machine
+- Docker (>= 28.2.0, with [NVIDIA Container Toolkit](docker-quickstart.md) >= 1.18 for CDI GPU access) or Podman installed on your machine
 - Install `ultralytics`:
     ```bash
     pip install ultralytics
@@ -157,8 +157,8 @@ tag = "nvcr.io/nvidia/tritonserver:26.02-py3"  # 16.17 GB (Compressed Size)
 
 subprocess.call(f"{runtime} pull {tag}", shell=True)
 
-# GPU flags differ between Docker and Podman
-gpu_flags = "--device nvidia.com/gpu=all" if runtime == "podman" else "--runtime=nvidia --gpus all"
+# CDI GPU request works identically on Docker and Podman
+gpu_flags = "--device nvidia.com/gpu=all"
 
 container_name = "triton_server"
 
@@ -279,8 +279,8 @@ Setting up [Ultralytics YOLO26](../models/yolo26.md) with [NVIDIA Triton Inferen
     runtime = "docker"  # set to "podman" to use Podman
     subprocess.call(f"{runtime} pull {tag}", shell=True)
 
-    # GPU flags differ between Docker and Podman
-    gpu_flags = "--device nvidia.com/gpu=all" if runtime == "podman" else "--runtime=nvidia --gpus all"
+    # CDI GPU request works identically on Docker and Podman
+    gpu_flags = "--device nvidia.com/gpu=all"
 
     container_name = "triton_server"
     subprocess.call(

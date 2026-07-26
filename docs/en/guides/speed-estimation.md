@@ -29,7 +29,7 @@ keywords: Ultralytics YOLO26, speed estimation, object tracking, vehicle speed, 
 ## Advantages of Speed Estimation
 
 - **Efficient Traffic Control:** Accurate speed estimation aids in managing traffic flow, enhancing safety, and reducing congestion on roadways.
-- **Precise Autonomous Navigation:** In autonomous systems like [self-driving cars](https://www.ultralytics.com/solutions/ai-in-automotive), reliable speed estimation ensures safe and accurate vehicle navigation.
+- **Precise Autonomous Navigation:** In autonomous systems like [self-driving cars](https://www.ultralytics.com/solutions/computer-vision-in-automotive), reliable speed estimation ensures safe and accurate vehicle navigation.
 - **Enhanced Surveillance Security:** Speed estimation in surveillance analytics helps identify unusual behaviors or potential threats, improving the effectiveness of security measures.
 
 ## Real World Applications

@@ -1,4 +1,5 @@
 ---
+title: YOLO26 ClearML Integration for MLOps
 comments: true
 description: Discover how to integrate YOLO26 with ClearML to streamline your MLOps workflow, automate experiments, and enhance model management effortlessly.
 keywords: YOLO26, ClearML, MLOps, Ultralytics, machine learning, object detection, model training, automation, experiment management
@@ -16,7 +17,7 @@ MLOps bridges the gap between creating and deploying [machine learning](https://
   <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clearml-overview.avif" alt="ClearML MLOps platform dashboard">
 </p>
 
-[ClearML](https://www.clear.ml/) is an innovative open-source MLOps platform that is skillfully designed to automate, monitor, and orchestrate machine learning workflows. Its key features include automated logging of all training and inference data for full experiment reproducibility, an intuitive web UI for easy [data visualization](https://www.ultralytics.com/glossary/data-visualization) and analysis, advanced hyperparameter [optimization algorithms](https://www.ultralytics.com/glossary/optimization-algorithm), and robust model management for efficient deployment across various platforms.
+[ClearML](https://clear.ml/) is an innovative open-source MLOps platform that is skillfully designed to automate, monitor, and orchestrate machine learning workflows. Its key features include automated logging of all training and inference data for full experiment reproducibility, an intuitive web UI for easy [data visualization](https://www.ultralytics.com/glossary/data-visualization) and analysis, advanced hyperparameter [optimization algorithms](https://www.ultralytics.com/glossary/optimization-algorithm), and robust model management for efficient deployment across various platforms.
 
 ## YOLO26 Training with ClearML
 
@@ -78,7 +79,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         model = YOLO(f"{model_variant}.pt")
 
         # Step 4: Setting Up Training Arguments
-        args = dict(data="coco8.yaml", epochs=16)
+        args = {"data": "coco8.yaml", "epochs": 16}
         task.connect(args)
 
         # Step 5: Initiating Model Training
@@ -248,7 +249,7 @@ task.set_parameter("model_variant", model_variant)
 model = YOLO(f"{model_variant}.pt")
 
 # Step 4: Setting Up Training Arguments
-args = dict(data="coco8.yaml", epochs=16)
+args = {"data": "coco8.yaml", "epochs": 16}
 task.connect(args)
 
 # Step 5: Initiating Model Training

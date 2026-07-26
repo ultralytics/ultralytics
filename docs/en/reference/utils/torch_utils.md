@@ -1,4 +1,5 @@
 ---
+title: utils.torch_utils API Reference
 description: Explore valuable torch utilities from Ultralytics for optimized model performance, including device selection, model fusion, and inference optimization.
 keywords: Ultralytics, torch utils, model optimization, device selection, inference optimization, model fusion, CPU info, PyTorch tools
 ---
@@ -39,6 +40,10 @@ keywords: Ultralytics, torch utils, model optimization, device selection, infere
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.torch_utils.parse_device
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.torch_utils.select_device
 
 <br><br><hr><br>
@@ -72,10 +77,6 @@ keywords: Ultralytics, torch utils, model optimization, device selection, infere
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.torch_utils.get_flops
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.torch_utils.get_flops_with_torch_profiler
 
 <br><br><hr><br>
 

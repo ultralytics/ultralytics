@@ -1,4 +1,5 @@
 ---
+title: engine.results API Reference
 description: Explore the details of Ultralytics engine results including classes like BaseTensor, Results, Boxes, Masks, Keypoints, Probs, and OBB to handle inference results efficiently.
 keywords: Ultralytics, engine results, BaseTensor, Results class, Boxes, Masks, Keypoints, Probs, OBB, inference results, machine learning, PyTorch
 ---
@@ -16,6 +17,10 @@ keywords: Ultralytics, engine results, BaseTensor, Results class, Boxes, Masks, 
 <br><br><hr><br>
 
 ## ::: ultralytics.engine.results.SemanticMask
+
+<br><br><hr><br>
+
+## ::: ultralytics.engine.results.DepthMap
 
 <br><br><hr><br>
 

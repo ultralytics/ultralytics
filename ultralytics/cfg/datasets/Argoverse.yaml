@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Argoverse-HD dataset (ring-front-center camera) by Argo AI: https://www.cs.cmu.edu/~mengtial/proj/streaming/
-# Documentation: https://docs.ultralytics.com/datasets/detect/argoverse/
+# Documentation: https://docs.ultralytics.com/datasets/detect/argoverse
 # Example usage: yolo train data=Argoverse.yaml
 # parent
 # ├── ultralytics

@@ -1,4 +1,5 @@
 ---
+title: data.build API Reference
 description: Explore the functionality and examples of data builders like InfiniteDataLoader and various YOLO dataset builders in Ultralytics.
 keywords: Ultralytics, Data Builders, InfiniteDataLoader, YOLO dataset, build.py, AI, Machine Learning
 ---

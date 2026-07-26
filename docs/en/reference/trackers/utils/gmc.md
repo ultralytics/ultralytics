@@ -1,4 +1,5 @@
 ---
+title: trackers.utils.gmc API Reference
 description: Explore the Generalized Motion Compensation (GMC) class for tracking and object detection with methods like ORB, SIFT, ECC, and more.
 keywords: GMC, Generalized Motion Compensation, Ultralytics, tracking, object detection, ORB, SIFT, ECC, Sparse Optical Flow, computer vision, video frames
 ---

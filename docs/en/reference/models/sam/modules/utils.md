@@ -1,4 +1,5 @@
 ---
+title: models.sam.modules.utils API Reference
 description: Explore the detailed API reference for Ultralytics SAM and SAM 2 models.
 keywords: Ultralytics, SAM, SAM 2, API Reference, models, window partition, data processing, YOLO
 ---

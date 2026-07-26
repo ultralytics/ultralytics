@@ -1,4 +1,5 @@
 ---
+title: utils.export.rknn API Reference
 description: RKNN export utilities for converting ONNX models to RKNN format for Rockchip NPUs with floating-point and INT8 quantized export support.
 keywords: Ultralytics, RKNN, model export, ONNX to RKNN, Rockchip, NPU, RK3588, INT8 quantization, FP16, edge AI, embedded systems, neural network, hardware acceleration
 ---

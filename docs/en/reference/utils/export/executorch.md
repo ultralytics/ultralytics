@@ -1,4 +1,5 @@
 ---
+title: utils.export.executorch API Reference
 description: Explore the Ultralytics ExecuTorch export utility for converting YOLO models to ExecuTorch (.pte) format for efficient on-device inference on mobile and edge devices.
 keywords: Ultralytics, ExecuTorch, YOLO, model export, PyTorch, edge AI, mobile deployment, on-device inference, XNNPACK, pte format, embedded systems
 ---

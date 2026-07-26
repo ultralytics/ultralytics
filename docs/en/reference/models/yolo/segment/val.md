@@ -1,4 +1,5 @@
 ---
+title: models.yolo.segment.val API Reference
 description: Explore the YOLO Segmentation Validator module for validating segment models. Understand its usage, metrics, and implementation within the Ultralytics framework.
 keywords: YOLO, segmentation, validator, Ultralytics, model validation, machine learning, deep learning, AI, computer vision
 ---

@@ -13,7 +13,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 
-from ultralytics.engine.exporter import EXPORT_ENVS  # noqa: E402
+from ultralytics.engine.exporter import EXPORT_ENVS  # noqa: E402, RUF100
 
 
 def isolated_env_ids():
@@ -33,6 +33,7 @@ def build_env(env_id, root):
     python = venv / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
     package = f"{REPO}[{','.join(recipe['extras'])}]"
     indexes = [token for flag, url in recipe["indexes"] for token in (flag, url)]
+    index_strategy = ["--index-strategy", "unsafe-best-match"] if indexes else []
     torch = [f"torch{recipe['torch']}"] if recipe["torch"] else []
     subprocess.run(
         [
@@ -47,8 +48,9 @@ def build_env(env_id, root):
             *torch,
             *recipe["requirements"],
             *indexes,
-            "--index-strategy",
-            "unsafe-best-match",
+            *index_strategy,
+            "--torch-backend",
+            "cpu",
         ],
         check=True,
     )

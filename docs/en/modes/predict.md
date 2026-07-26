@@ -38,14 +38,14 @@ Here's why you should consider YOLO26's predict mode for your various inference 
 - **Performance:** Engineered for real-time, high-speed processing without sacrificing [accuracy](https://www.ultralytics.com/glossary/accuracy).
 - **Ease of Use:** Intuitive Python and CLI interfaces for rapid deployment and testing.
 - **Highly Customizable:** Various settings and parameters to tune the model's inference behavior according to your specific requirements.
-- **Production Ready:** Deploy models as API endpoints on [Ultralytics Platform](https://platform.ultralytics.com) with auto-scaling and monitoring, or run inference locally.
+- **Production Ready:** Deploy models as [Ultralytics Platform inference endpoints](../platform/deploy/endpoints.md) with auto-scaling and monitoring, or run inference locally.
 
 ### Key Features of Predict Mode
 
 YOLO26's predict mode is designed to be robust and versatile, featuring:
 
 - **Multiple Data Source Compatibility:** Whether your data is in the form of individual images, a collection of images, video files, or real-time video streams, predict mode has you covered.
-- **Streaming Mode:** Use the streaming feature to generate a memory-efficient generator of `Results` objects. Enable this by setting `stream=True` in the predictor's call method.
+- **Streaming Mode:** Use the streaming feature to generate a memory-efficient generator of `Results` objects. Enable this by setting `stream=True` in the predictor's call method. Unlike the default behavior (`stream=False`), which returns a list containing all results, `stream=True` yields results one at a time, making it especially useful for long videos and live streams.
 - **Batch Processing:** Process multiple images or video frames in a single batch, further reducing total inference time.
 - **Integration Friendly:** Easily integrate with existing data pipelines and other software components, thanks to its flexible API.
 
@@ -368,7 +368,7 @@ Below are code examples for using each source type:
 
         Example `.streams` text file:
 
-        ```
+        ```text
         rtsp://example.com/media1.mp4
         rtsp://example.com/media2.mp4
         rtmp://example2.com/live
@@ -453,22 +453,21 @@ The below table contains valid Ultralytics image formats.
 
     HEIC/HEIF formats require `pi-heif`, which is installed automatically on first use. AVIF is supported natively by Pillow.
 
-| Image Suffixes | Example Predict Command              | Reference                                                                  |
-| -------------- | ------------------------------------ | -------------------------------------------------------------------------- |
-| `.avif`        | `yolo predict source=image.avif`     | [AV1 Image File Format](https://en.wikipedia.org/wiki/AVIF)                |
-| `.bmp`         | `yolo predict source=image.bmp`      | [Microsoft BMP File Format](https://en.wikipedia.org/wiki/BMP_file_format) |
-| `.dng`         | `yolo predict source=image.dng`      | [Adobe DNG](https://en.wikipedia.org/wiki/Digital_Negative)                |
-| `.heic`        | `yolo predict source=image.heic`     | [High Efficiency Image Format](https://en.wikipedia.org/wiki/HEIF)         |
-| `.heif`        | `yolo predict source=image.heif`     | [High Efficiency Image Format](https://en.wikipedia.org/wiki/HEIF)         |
-| `.jp2`         | `yolo predict source=image.jp2`      | [JPEG 2000](https://en.wikipedia.org/wiki/JPEG_2000)                       |
-| `.jpeg`        | `yolo predict source=image.jpeg`     | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                 |
-| `.jpeg2000`    | `yolo predict source=image.jpeg2000` | [JPEG 2000](https://en.wikipedia.org/wiki/JPEG_2000)                       |
-| `.jpg`         | `yolo predict source=image.jpg`      | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                 |
-| `.mpo`         | `yolo predict source=image.mpo`      | [Multi Picture Object](https://fileinfo.com/extension/mpo)                 |
-| `.png`         | `yolo predict source=image.png`      | [Portable Network Graphics](https://en.wikipedia.org/wiki/PNG)             |
-| `.tif`         | `yolo predict source=image.tif`      | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                |
-| `.tiff`        | `yolo predict source=image.tiff`     | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                |
-| `.webp`        | `yolo predict source=image.webp`     | [WebP](https://en.wikipedia.org/wiki/WebP)                                 |
+| Image Suffixes | Example Predict Command          | Reference                                                                  |
+| -------------- | -------------------------------- | -------------------------------------------------------------------------- |
+| `.avif`        | `yolo predict source=image.avif` | [AV1 Image File Format](https://en.wikipedia.org/wiki/AVIF)                |
+| `.bmp`         | `yolo predict source=image.bmp`  | [Microsoft BMP File Format](https://en.wikipedia.org/wiki/BMP_file_format) |
+| `.dng`         | `yolo predict source=image.dng`  | [Adobe DNG](https://en.wikipedia.org/wiki/Digital_Negative)                |
+| `.heic`        | `yolo predict source=image.heic` | [High Efficiency Image Format](https://en.wikipedia.org/wiki/HEIF)         |
+| `.heif`        | `yolo predict source=image.heif` | [High Efficiency Image Format](https://en.wikipedia.org/wiki/HEIF)         |
+| `.jp2`         | `yolo predict source=image.jp2`  | [JPEG 2000](https://en.wikipedia.org/wiki/JPEG_2000)                       |
+| `.jpeg`        | `yolo predict source=image.jpeg` | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                 |
+| `.jpg`         | `yolo predict source=image.jpg`  | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                 |
+| `.mpo`         | `yolo predict source=image.mpo`  | [Multi Picture Object](https://fileinfo.com/extension/mpo)                 |
+| `.png`         | `yolo predict source=image.png`  | [Portable Network Graphics](https://en.wikipedia.org/wiki/PNG)             |
+| `.tif`         | `yolo predict source=image.tif`  | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                |
+| `.tiff`        | `yolo predict source=image.tiff` | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                |
+| `.webp`        | `yolo predict source=image.webp` | [WebP](https://en.wikipedia.org/wiki/WebP)                                 |
 
 ### Videos
 
@@ -530,7 +529,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 
 ### Results by Task
 
-Each prediction returns one `Results` object per image or frame. The common fields above are always available, while the
+Which fields below populate depends on your model's task — [compare detection, segmentation, classification, pose, OBB, semantic segmentation, and depth estimation](../tasks/index.md) if you haven't picked one yet. Each prediction returns one `Results` object per image or frame. The common fields above are always available, while the
 task-specific prediction data is stored in the fields below. Coordinate, confidence, and probability tensors are
 `torch.float32` unless half precision is used, then `torch.float16`. After `result.numpy()`, tensors become NumPy arrays with matching NumPy dtypes.
 Instance masks are `torch.uint8` binary tensors, while semantic masks use the smallest practical integer dtype for class
@@ -962,11 +961,15 @@ This script will run predictions on each frame of the video, visualize the resul
 [football player detect]: https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/football-players-detection.avif
 [human fall detect]: https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/person-fall-detection.avif
 
+## What's Next
+
+Ready to move past a pretrained model? [Confirm your task fits your problem](../tasks/index.md), format your own data with the [Datasets guide](../datasets/index.md), then [train on it](train.md).
+
 ## FAQ
 
 ### What is Ultralytics YOLO and its predict mode for real-time inference?
 
-Ultralytics YOLO is a state-of-the-art model for real-time [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [classification](../tasks/classify.md). Its **predict mode** allows users to perform high-speed inference on various data sources such as images, videos, and live streams. Designed for performance and versatility, it also offers batch processing and streaming modes. For more details on its features, check out the [Ultralytics YOLO predict mode](#key-features-of-predict-mode).
+Ultralytics YOLO is a state-of-the-art model for real-time [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), and [classification](../tasks/classify.md). Its **predict mode** allows users to perform high-speed inference on various data sources such as images, videos, and live streams. Designed for performance and versatility, it also offers batch processing and streaming modes. For more details on its features, check out the [Ultralytics YOLO predict mode](#key-features-of-predict-mode).
 
 ### How can I run inference using Ultralytics YOLO on different data sources?
 
@@ -979,6 +982,20 @@ To optimize inference speed and manage memory efficiently, you can use the strea
 ### What inference arguments does Ultralytics YOLO support?
 
 The `model.predict()` method in YOLO supports various arguments such as `conf`, `iou`, `imgsz`, `device`, and more. These arguments allow you to customize the inference process, setting parameters like confidence thresholds, image size, and the device used for computation. Detailed descriptions of these arguments can be found in the [inference arguments](#inference-arguments) section.
+
+### How do I extract embeddings from a YOLO model?
+
+Use `model.embed(source)` to extract feature embeddings from the second-to-last layer, or pass `embed=[layer_index]` to `model.predict()` to choose specific layers.
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolo26n.pt")
+source = "https://ultralytics.com/images/bus.jpg"
+
+results = model.predict(source)  # Results objects
+embeddings = model.embed(source)  # list of torch.Tensor embeddings
+```
 
 ### How can I visualize and save the results of YOLO predictions?
 

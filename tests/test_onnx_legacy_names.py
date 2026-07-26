@@ -42,7 +42,7 @@ def _assert_names_valid(meta: dict) -> dict:
         meta (dict): The `custom_metadata_map` returned by an ORT session.
 
     Returns:
-        dict: `names` from model in dictionary fomat'
+        dict: `names` from model in dictionary format.
     """
     assert "names" in meta, "ONNX metadata is missing the 'names' key"
     assert meta["names"] is not None, "'names' value in ONNX metadata is None"
@@ -111,8 +111,6 @@ def test_export_onnx_legacy_names_absent(end2end, isolated_model, tmp_path):
 
     file = corrupt_model.export(format="onnx", dynamic=True, imgsz=32, end2end=end2end)
 
-    import onnxruntime as ort
-
     meta = ort.InferenceSession(str(file)).get_modelmeta().custom_metadata_map
     names = _assert_names_valid(meta)
 
@@ -144,8 +142,6 @@ def test_export_onnx_legacy_names_none(end2end, isolated_model, tmp_path):
 
     file = corrupt_model.export(format="onnx", dynamic=True, imgsz=32, end2end=end2end)
 
-    import onnxruntime as ort
-
     meta = ort.InferenceSession(str(file)).get_modelmeta().custom_metadata_map
     names = _assert_names_valid(meta)
 
@@ -175,8 +171,6 @@ def test_export_onnx_legacy_names_list(end2end, isolated_model, tmp_path):
 
     file = corrupt_model.export(format="onnx", dynamic=True, imgsz=32, end2end=end2end)
 
-    import onnxruntime as ort
-
     meta = ort.InferenceSession(str(file)).get_modelmeta().custom_metadata_map
     names = _assert_names_valid(meta)  # ensures dict with int keys and str values
 
@@ -187,7 +181,7 @@ def test_export_onnx_legacy_names_list(end2end, isolated_model, tmp_path):
 
 @pytest.mark.parametrize("end2end", [False, True])
 def test_export_onnx_legacy_names_string_keys(end2end, isolated_model, tmp_path):
-    """Export mmodel where key is string instead of int.
+    """Export model where key is string instead of int.
 
     Args:
         end2end (bool): Whether to test end-to-end export mode.
@@ -201,8 +195,6 @@ def test_export_onnx_legacy_names_string_keys(end2end, isolated_model, tmp_path)
     corrupt_model = YOLO(corrupt_path)
 
     file = corrupt_model.export(format="onnx", dynamic=True, imgsz=32, end2end=end2end)
-
-    import onnxruntime as ort
 
     meta = ort.InferenceSession(str(file)).get_modelmeta().custom_metadata_map
     names = _assert_names_valid(meta)  # verifies int keys specifically
@@ -229,8 +221,6 @@ def test_export_onnx_legacy_names_int_values(end2end, isolated_model, tmp_path):
 
     file = corrupt_model.export(format="onnx", dynamic=True, imgsz=32, end2end=end2end)
 
-    import onnxruntime as ort
-
     meta = ort.InferenceSession(str(file)).get_modelmeta().custom_metadata_map
     names = _assert_names_valid(meta)  # verifies str values specifically
 
@@ -255,8 +245,6 @@ def test_export_onnx_legacy_names_mixed_types(end2end, isolated_model, tmp_path)
     corrupt_model = YOLO(corrupt_path)
 
     file = corrupt_model.export(format="onnx", dynamic=True, imgsz=32, end2end=end2end)
-
-    import onnxruntime as ort
 
     meta = ort.InferenceSession(str(file)).get_modelmeta().custom_metadata_map
     names = _assert_names_valid(meta)  # full dict/int-key/str-value check

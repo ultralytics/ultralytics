@@ -1,4 +1,5 @@
 ---
+title: hub.google.__init__ API Reference
 description: Reference for the GCPRegions class in Ultralytics, which provides functionality for testing and analyzing latency across Google Cloud Platform regions.
 keywords: Ultralytics, GCP, Google Cloud Platform, regions, latency testing, cloud computing, networking, performance analysis
 ---

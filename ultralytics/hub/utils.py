@@ -126,12 +126,24 @@ def smart_request(
     @TryExcept(verbose=verbose)
     def func(func_method, func_url, **func_kwargs):
         """Make HTTP requests with retries and timeouts, with optional progress tracking."""
+        import requests  # scoped as slow import
+
         r = None  # response
         t0 = time.time()  # initial time for timer
         for i in range(retry + 1):
             if (time.time() - t0) > timeout:
                 break
-            r = requests_with_progress(func_method, func_url, **func_kwargs)  # i.e. get(url, data, json, files)
+            try:
+                r = requests_with_progress(
+                    func_method, func_url, timeout=timeout, **func_kwargs
+                )  # socket timeout per request
+            except requests.exceptions.RequestException as e:  # transient network error: retry within the loop
+                if verbose:
+                    LOGGER.warning(f"{PREFIX}{e} {HELP_MSG} (#{code})")
+                if i >= retry:
+                    break
+                time.sleep(2**i)  # exponential backoff
+                continue
             if r.status_code < 300:  # return codes in the 2xx range are generally considered "good" or "successful"
                 break
             try:

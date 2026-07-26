@@ -55,7 +55,7 @@ ExportedProgram export requires PyTorch 2.9 or higher. No extra dependencies bey
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n.pt format=exported_program  # creates 'yolo11n.pt2'
+        yolo export model=yolo11n.pt format=exported_program # creates 'yolo11n.pt2'
         ```
 
 ### Export Arguments

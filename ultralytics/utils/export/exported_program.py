@@ -17,8 +17,7 @@ def torch2exported_program(
     metadata: dict | None = None,
     prefix: str = "",
 ) -> Path:
-    """
-    Export a PyTorch model to torch.export ExportedProgram (.pt2) format.
+    """Export a PyTorch model to torch.export ExportedProgram (.pt2) format.
 
     Args:
         model (torch.nn.Module): The PyTorch model to export.

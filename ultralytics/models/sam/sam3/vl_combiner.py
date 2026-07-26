@@ -9,7 +9,7 @@ from __future__ import annotations
 from copy import copy
 
 import torch
-import torch.nn as nn
+from torch import nn
 from torch.nn.attention import SDPBackend, sdpa_kernel
 
 from .necks import Sam3DualViTDetNeck

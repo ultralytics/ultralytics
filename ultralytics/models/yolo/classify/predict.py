@@ -36,7 +36,7 @@ class ClassificationPredictor(BasePredictor):
         - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None, if_set_batch_explicitly: bool=False):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize the ClassificationPredictor with the specified configuration and set task to 'classify'.
 
         This constructor initializes a ClassificationPredictor instance, which extends BasePredictor for classification
@@ -46,9 +46,8 @@ class ClassificationPredictor(BasePredictor):
             cfg (dict): Default configuration dictionary containing prediction settings.
             overrides (dict, optional): Configuration overrides that take precedence over cfg.
             _callbacks (dict, optional): Dictionary of callback functions to be executed during prediction.
-            if_set_batch_explicitly (bool, optional): Whether to set the batch size explicitly.
         """
-        super().__init__(cfg, overrides, _callbacks, if_set_batch_explicitly)
+        super().__init__(cfg, overrides, _callbacks)
         self.args.task = "classify"
 
     def setup_source(self, source):
@@ -70,7 +69,8 @@ class ClassificationPredictor(BasePredictor):
                 [self.transforms(Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))) for im in img], dim=0
             )
         img = (img if isinstance(img, torch.Tensor) else torch.from_numpy(img)).to(self.model.device)
-        return img.half() if self.model.fp16 else img.float()  # Convert uint8 to fp16/32
+        img = img.half() if self.model.fp16 else img.float()  # Convert uint8 to fp16/32
+        return img
 
     def postprocess(self, preds, img, orig_imgs):
         """Process predictions to return Results objects with classification probabilities.

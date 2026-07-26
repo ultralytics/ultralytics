@@ -31,7 +31,7 @@ class SegmentationPredictor(DetectionPredictor):
         >>> predictor.predict_cli()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None, if_set_batch_explicitly: bool=False):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize the SegmentationPredictor with configuration, overrides, and callbacks.
 
         This class specializes in processing segmentation model outputs, handling both bounding boxes and masks in the
@@ -41,9 +41,8 @@ class SegmentationPredictor(DetectionPredictor):
             cfg (dict): Configuration for the predictor.
             overrides (dict, optional): Configuration overrides that take precedence over cfg.
             _callbacks (dict, optional): Dictionary of callback functions to be invoked during prediction.
-            if_set_batch_explicitly (bool, optional): Whether to set the batch size explicitly.
         """
-        super().__init__(cfg, overrides, _callbacks, if_set_batch_explicitly)
+        super().__init__(cfg, overrides, _callbacks)
         self.args.task = "segment"
 
     def postprocess(self, preds, img, orig_imgs):
@@ -107,6 +106,6 @@ class SegmentationPredictor(DetectionPredictor):
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
         if masks is not None:
             keep = masks.amax((-2, -1)) > 0  # only keep predictions with masks
-            if not all(keep):  # most predictions have masks
+            if not (all(keep) or getattr(self, "_feats", None) is not None):  # skip filter if native ReID enabled
                 pred, masks = pred[keep], masks[keep]  # indexing is slow
         return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks)

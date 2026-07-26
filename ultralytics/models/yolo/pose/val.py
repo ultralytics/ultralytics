@@ -29,13 +29,13 @@ class PoseValidator(DetectionValidator):
         preprocess: Preprocess batch by converting keypoints data to float and moving it to the device.
         get_desc: Return description of evaluation metrics in string format.
         init_metrics: Initialize pose estimation metrics for YOLO model.
+        postprocess: Postprocess YOLO predictions to extract and reshape keypoints for pose estimation.
         _prepare_batch: Prepare a batch for processing by converting keypoints to float and scaling to original
             dimensions.
-        _prepare_pred: Prepare and scale keypoints in predictions for pose processing.
         _process_batch: Return correct prediction matrix by computing Intersection over Union (IoU) between detections
             and ground truth.
-        plot_val_samples: Plot and save validation set samples with ground truth bounding boxes and keypoints.
-        plot_predictions: Plot and save model predictions with bounding boxes and keypoints.
+        gather_stats: Gather stats from all GPUs.
+        scale_preds: Scale predictions to the original image size.
         save_one_txt: Save YOLO pose detections to a text file in normalized coordinates.
         pred_to_json: Convert YOLO predictions to COCO JSON format.
         eval_json: Evaluate object detection model using COCO JSON format.
@@ -102,7 +102,12 @@ class PoseValidator(DetectionValidator):
         self.kpt_shape = self.data["kpt_shape"]
         is_pose = self.kpt_shape == [17, 3]
         nkpt = self.kpt_shape[0]
-        self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
+        if sigmas := self.data.get("kpt_oks_sigmas"):  # optional custom OKS sigmas from the dataset YAML
+            self.sigma = np.array(sigmas, dtype=np.float32).flatten()
+            if len(self.sigma) != nkpt or not np.all(self.sigma > 0):
+                raise ValueError(f"'kpt_oks_sigmas' must be {nkpt} positive values, got {sigmas}")
+        else:
+            self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
 
     def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:
         """Postprocess YOLO predictions to extract and reshape keypoints for pose estimation.
@@ -123,9 +128,8 @@ class PoseValidator(DetectionValidator):
                 - 'keypoints': Reshaped keypoint coordinates with shape (-1, *self.kpt_shape)
 
         Notes:
-            If no keypoints are present in a prediction (empty keypoints), that prediction is skipped and continues
-            to the next one. The keypoints are extracted from the 'extra' field which contains additional
-            task-specific data beyond basic detection.
+            The keypoints are extracted from the 'extra' field which contains additional task-specific data beyond
+            basic detection.
         """
         preds = super().postprocess(preds)
         for pred in preds:
@@ -140,11 +144,11 @@ class PoseValidator(DetectionValidator):
             batch (dict[str, Any]): Dictionary containing batch data with keys like 'keypoints', 'batch_idx', etc.
 
         Returns:
-            (dict[str, Any]): Prepared batch with keypoints scaled to original image dimensions.
+            (dict[str, Any]): Prepared batch with keypoints scaled to model input (letterboxed) image dimensions.
 
         Notes:
             This method extends the parent class's _prepare_batch method by adding keypoint processing.
-            Keypoints are scaled from normalized coordinates to original image dimensions.
+            Keypoints are scaled from normalized coordinates to the model input (letterboxed) image dimensions.
         """
         pbatch = super()._prepare_batch(si, batch)
         kpts = batch["keypoints"][batch["batch_idx"] == si]
@@ -220,7 +224,7 @@ class PoseValidator(DetectionValidator):
         format, and appends the results with keypoints to the internal JSON dictionary (self.jdict).
 
         Args:
-            predn (dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', 'cls', and 'kpts'
+            predn (dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', 'cls', and 'keypoints'
                 tensors.
             pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
 
@@ -230,7 +234,7 @@ class PoseValidator(DetectionValidator):
             before saving to the JSON dictionary.
         """
         super().pred_to_json(predn, pbatch)
-        kpts = predn["kpts"]
+        kpts = predn["keypoints"]
         for i, k in enumerate(kpts.flatten(1, 2).tolist()):
             self.jdict[-len(kpts) + i]["keypoints"] = k  # keypoints
 
@@ -238,7 +242,7 @@ class PoseValidator(DetectionValidator):
         """Scales predictions to the original image size."""
         return {
             **super().scale_preds(predn, pbatch),
-            "kpts": ops.scale_coords(
+            "keypoints": ops.scale_coords(
                 pbatch["imgsz"],
                 predn["keypoints"].clone(),
                 pbatch["ori_shape"],

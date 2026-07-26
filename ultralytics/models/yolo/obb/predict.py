@@ -27,16 +27,15 @@ class OBBPredictor(DetectionPredictor):
         >>> predictor.predict_cli()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None, if_set_batch_explicitly: bool=False):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize OBBPredictor with optional model and data configuration overrides.
 
         Args:
             cfg (dict, optional): Default configuration for the predictor.
             overrides (dict, optional): Configuration overrides that take precedence over the default config.
             _callbacks (dict, optional): Dictionary of callback functions to be invoked during prediction.
-            if_set_batch_explicitly (bool, optional): Whether to set the batch size explicitly.
         """
-        super().__init__(cfg, overrides, _callbacks, if_set_batch_explicitly)
+        super().__init__(cfg, overrides, _callbacks)
         self.args.task = "obb"
 
     def construct_result(self, pred, img, orig_img, img_path):

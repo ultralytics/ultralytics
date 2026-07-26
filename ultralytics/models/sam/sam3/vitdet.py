@@ -19,10 +19,9 @@ from functools import partial
 from typing import Callable
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-import torch.utils.checkpoint as checkpoint
-from torch import Tensor
+from torch import Tensor, nn
+from torch.utils import checkpoint
 
 from ultralytics.models.sam.modules.blocks import PatchEmbed
 from ultralytics.models.sam.modules.utils import (
@@ -540,8 +539,9 @@ class ViT(nn.Module):
 
         return outputs
 
-    def set_imgsz(self, imgsz: list[int] = [1008, 1008]):
+    def set_imgsz(self, imgsz: list[int] | None = None):
         """Setup rel pos embeddings and rope freqs for a new input image size."""
+        imgsz = imgsz if imgsz is not None else [1008, 1008]
         for block in self.blocks:
             if block.window_size != 0:
                 continue

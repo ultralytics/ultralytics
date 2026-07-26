@@ -32,7 +32,7 @@ class FastSAMPredictor(SegmentationPredictor):
         set_prompts: Set prompts to be used during inference.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None, if_set_batch_explicitly: bool=False):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize the FastSAMPredictor with configuration and callbacks.
 
         This initializes a predictor specialized for Fast SAM (Segment Anything Model) segmentation tasks. The predictor
@@ -43,9 +43,8 @@ class FastSAMPredictor(SegmentationPredictor):
             cfg (dict): Configuration for the predictor.
             overrides (dict, optional): Configuration overrides.
             _callbacks (dict, optional): Dictionary of callback functions.
-            if_set_batch_explicitly (bool, optional): Whether to set the batch size explicitly.
         """
-        super().__init__(cfg, overrides, _callbacks, if_set_batch_explicitly)
+        super().__init__(cfg, overrides, _callbacks)
         self.prompts = {}
 
     def postprocess(self, preds, img, orig_imgs):
@@ -69,7 +68,7 @@ class FastSAMPredictor(SegmentationPredictor):
                 [0, 0, result.orig_shape[1], result.orig_shape[0]], device=result.boxes.data.device, dtype=torch.float32
             )
             boxes = adjust_bboxes_to_image_border(result.boxes.xyxy, result.orig_shape)
-            idx = torch.nonzero(box_iou(full_box[None], boxes) > 0.9).flatten()
+            idx = torch.nonzero(box_iou(full_box[None], boxes)[0] > 0.9).flatten()
             if idx.numel() != 0:
                 result.boxes.xyxy[idx] = full_box
 
@@ -142,9 +141,9 @@ class FastSAMPredictor(SegmentationPredictor):
                 similarity = self._clip_inference(crop_ims, texts)
                 text_idx = torch.argmax(similarity, dim=-1)  # (M, )
                 if len(filter_idx):
-                    # Remap text_idx to its original index before filter
-                    ori_idxs = [i for i in range(len(result)) if i not in filter_idx]
-                    text_idx = torch.tensor(ori_idxs[int(text_idx)], device=self.device)
+                    # Remap text_idx to its original index before filtering (supports multiple text prompts)
+                    ori_idxs = torch.tensor([i for i in range(len(result)) if i not in filter_idx], device=self.device)
+                    text_idx = ori_idxs[text_idx]
                 idx[text_idx] = True
 
             prompt_results.append(result[idx])

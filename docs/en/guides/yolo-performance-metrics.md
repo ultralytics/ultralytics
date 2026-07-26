@@ -179,7 +179,7 @@ Remember, the YOLO26 and Ultralytics community is an invaluable asset. Engaging 
 
 ### What is the significance of Mean Average Precision (mAP) in evaluating YOLO26 model performance?
 
-Mean Average Precision (mAP) is crucial for evaluating YOLO26 models as it provides a single metric encapsulating precision and recall across multiple classes. mAP@0.50 measures precision at an IoU threshold of 0.50, focusing on the model's ability to detect objects correctly. mAP@0.50:0.95 averages precision across a range of IoU thresholds, offering a comprehensive assessment of detection performance. High mAP scores indicate that the model effectively balances precision and recall, essential for applications like [autonomous driving](https://www.ultralytics.com/solutions/ai-in-automotive) and surveillance systems where both accurate detection and minimal false alarms are critical.
+Mean Average Precision (mAP) is crucial for evaluating YOLO26 models as it provides a single metric encapsulating precision and recall across multiple classes. mAP@0.50 measures precision at an IoU threshold of 0.50, focusing on the model's ability to detect objects correctly. mAP@0.50:0.95 averages precision across a range of IoU thresholds, offering a comprehensive assessment of detection performance. High mAP scores indicate that the model effectively balances precision and recall, essential for applications like [autonomous driving](https://www.ultralytics.com/solutions/computer-vision-in-automotive) and surveillance systems where both accurate detection and minimal false alarms are critical.
 
 ### How do I interpret the Intersection over Union (IoU) value for YOLO26 object detection?
 
@@ -187,7 +187,7 @@ Intersection over Union (IoU) measures the overlap between the predicted and gro
 
 ### Why is the F1 Score important for evaluating YOLO26 models in object detection?
 
-The F1 Score is important for evaluating YOLO26 models because it provides a harmonic mean of precision and recall, balancing both false positives and false negatives. It is particularly valuable when dealing with imbalanced datasets or applications where either precision or recall alone is insufficient. A high F1 Score indicates that the model effectively detects objects while minimizing both missed detections and false alarms, making it suitable for critical applications like [security systems](security-alarm-system.md) and [medical imaging](https://www.ultralytics.com/solutions/ai-in-healthcare).
+The F1 Score is important for evaluating YOLO26 models because it provides a harmonic mean of precision and recall, balancing both false positives and false negatives. It is particularly valuable when dealing with imbalanced datasets or applications where either precision or recall alone is insufficient. A high F1 Score indicates that the model effectively detects objects while minimizing both missed detections and false alarms, making it suitable for critical applications like [security systems](security-alarm-system.md) and [medical imaging](https://www.ultralytics.com/solutions/computer-vision-in-healthcare).
 
 ### What are the key advantages of using Ultralytics YOLO26 for real-time object detection?
 

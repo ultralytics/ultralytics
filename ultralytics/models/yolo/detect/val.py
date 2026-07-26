@@ -203,7 +203,7 @@ class DetectionValidator(BaseValidator):
                 self.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
                 if self.args.visualize:
                     self.confusion_matrix.plot_matches(
-                        batch["img"][si],
+                        batch["img"][si].to(device),  # plot_matches builds tensors on the image device
                         pbatch["im_file"],
                         self.save_dir,
                         self.args.show_labels,

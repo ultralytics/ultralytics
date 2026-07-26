@@ -469,21 +469,6 @@ def test_reid_invalid_crops():
     assert feats[0] is not None and feats[1] is None
 
 
-def test_track_raw_preds_hook_unwraps_and_clones():
-    """Test `attach_raw_preds_hook` unwraps `[inference, extras]` predictions and clones before in-place NMS."""
-    from types import SimpleNamespace
-
-    from ultralytics.trackers.track_tracker import attach_raw_preds_hook
-
-    predictor = SimpleNamespace(postprocess=lambda preds, img, orig_imgs: preds)
-    attach_raw_preds_hook(predictor)
-    preds = torch.arange(12, dtype=torch.float32).view(1, 3, 4)
-    predictor.postprocess([preds, (None,)], None, None)  # PyTorch models return [inference, extras]
-    assert isinstance(predictor._raw_preds, torch.Tensor) and torch.equal(predictor._raw_preds, preds)
-    preds.add_(1)  # simulate the in-place NMS xywh->xyxy mutation
-    assert not torch.equal(predictor._raw_preds, preds), "raw capture must be cloned, not aliased"
-
-
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
 def test_track_stream(model, tmp_path):

@@ -130,6 +130,8 @@ class BaseBackend(ABC):
                 metadata[k] = int(v)
             elif k in {"imgsz", "names", "kpt_shape", "kpt_names", "args", "end2end"} and isinstance(v, str):
                 metadata[k] = ast.literal_eval(v)
+        if isinstance(metadata.get("kpt_names"), dict):  # JSON metadata (TorchScript, CoreML, LiteRT) stringifies keys
+            metadata["kpt_names"] = {int(k): v for k, v in metadata["kpt_names"].items()}
 
         # Handle models exported with end-to-end NMS
         metadata["end2end"] = metadata.get("end2end", False) or metadata.get("args", {}).get("nms", False)

@@ -873,8 +873,9 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
     class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
     classification_ids = set()
 
-    # Local path override: caller owns image layout under {path}/images/{split}; we only write labels there.
-    local_mode = (user_path := dataset_record.get("path")) and not is_classification
+    # Local path override: caller owns image layout under {path}/images/{split}; we only write labels there. Depth
+    # targets must still be fetched, and a failed fetch unlinks its paired image, so depth keeps the download path.
+    local_mode = (user_path := dataset_record.get("path")) and not (is_classification or is_depth)
 
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
     _h = hashlib.sha256()

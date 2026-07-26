@@ -529,7 +529,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 
 ### Results by Task
 
-Which fields below populate depends on your model's task — [compare detection, segmentation, classification, pose, OBB, and semantic segmentation](../tasks/index.md) if you haven't picked one yet. Each prediction returns one `Results` object per image or frame. The common fields above are always available, while the
+Which fields below populate depends on your model's task — [compare detection, segmentation, classification, pose, OBB, semantic segmentation, and depth estimation](../tasks/index.md) if you haven't picked one yet. Each prediction returns one `Results` object per image or frame. The common fields above are always available, while the
 task-specific prediction data is stored in the fields below. Coordinate, confidence, and probability tensors are
 `torch.float32` unless half precision is used, then `torch.float16`. After `result.numpy()`, tensors become NumPy arrays with matching NumPy dtypes.
 Instance masks are `torch.uint8` binary tensors, while semantic masks use the smallest practical integer dtype for class
@@ -969,7 +969,7 @@ Ready to move past a pretrained model? [Confirm your task fits your problem](../
 
 ### What is Ultralytics YOLO and its predict mode for real-time inference?
 
-Ultralytics YOLO is a state-of-the-art model for real-time [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [classification](../tasks/classify.md). Its **predict mode** allows users to perform high-speed inference on various data sources such as images, videos, and live streams. Designed for performance and versatility, it also offers batch processing and streaming modes. For more details on its features, check out the [Ultralytics YOLO predict mode](#key-features-of-predict-mode).
+Ultralytics YOLO is a state-of-the-art model for real-time [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), and [classification](../tasks/classify.md). Its **predict mode** allows users to perform high-speed inference on various data sources such as images, videos, and live streams. Designed for performance and versatility, it also offers batch processing and streaming modes. For more details on its features, check out the [Ultralytics YOLO predict mode](#key-features-of-predict-mode).
 
 ### How can I run inference using Ultralytics YOLO on different data sources?
 

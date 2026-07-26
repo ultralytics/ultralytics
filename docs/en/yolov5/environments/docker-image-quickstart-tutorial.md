@@ -39,36 +39,14 @@ Next, install the NVIDIA Container Toolkit. The commands below are typical for D
         | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
     ```
 
-    Update the package lists and install the nvidia-container-toolkit package:
+    Update the package lists and install the NVIDIA Container Toolkit:
 
     ```bash
     sudo apt-get update
     ```
 
-    Install Latest version of nvidia-container-toolkit:
-
     ```bash
-    sudo apt-get install -y nvidia-container-toolkit \
-      nvidia-container-toolkit-base libnvidia-container-tools \
-      libnvidia-container1
-    ```
-
-    ??? info "Optional: Install specific version of nvidia-container-toolkit"
-
-        Optionally, you can install a specific version of the nvidia-container-toolkit by setting the `NVIDIA_CONTAINER_TOOLKIT_VERSION` environment variable:
-
-        ```bash
-        export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
-        sudo apt-get install -y \
-          nvidia-container-toolkit=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
-          nvidia-container-toolkit-base=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
-          libnvidia-container-tools=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
-          libnvidia-container1=${NVIDIA_CONTAINER_TOOLKIT_VERSION}
-        ```
-
-    ```bash
-    sudo nvidia-ctk runtime configure --runtime=docker
-    sudo systemctl restart docker
+    sudo apt-get install -y nvidia-container-toolkit
     ```
 
 === "RHEL/CentOS/Fedora/Amazon Linux"
@@ -78,48 +56,19 @@ Next, install the NVIDIA Container Toolkit. The commands below are typical for D
       | sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo
     ```
 
-    Update the package lists and install the nvidia-container-toolkit package:
-
     ```bash
-    sudo dnf clean expire-cache
-    sudo dnf check-update
+    sudo dnf install -y nvidia-container-toolkit
     ```
 
-    ```bash
-    sudo dnf install \
-      nvidia-container-toolkit \
-      nvidia-container-toolkit-base \
-      libnvidia-container-tools \
-      libnvidia-container1
-    ```
+### Verify CDI Devices with Docker
 
-    ??? info "Optional: Install specific version of nvidia-container-toolkit"
-
-        Optionally, you can install a specific version of the nvidia-container-toolkit by setting the `NVIDIA_CONTAINER_TOOLKIT_VERSION` environment variable:
-
-        ```bash
-        export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
-        sudo dnf install -y \
-          nvidia-container-toolkit-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
-          nvidia-container-toolkit-base-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
-          libnvidia-container-tools-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
-          libnvidia-container1-${NVIDIA_CONTAINER_TOOLKIT_VERSION}
-        ```
-
-    ```bash
-    sudo nvidia-ctk runtime configure --runtime=docker
-    sudo systemctl restart docker
-    ```
-
-### Verify NVIDIA Runtime with Docker
-
-Run `docker info | grep -i runtime` to ensure that `nvidia` appears in the list of runtimes:
+Run `nvidia-ctk cdi list` to ensure the GPU CDI devices are available (the toolkit's `nvidia-cdi-refresh` service generates and maintains the spec automatically on toolkit >= 1.18):
 
 ```bash
-docker info | grep -i runtime
+nvidia-ctk cdi list
 ```
 
-You should see `nvidia` listed as one of the available runtimes.
+You should see entries such as `nvidia.com/gpu=0` and `nvidia.com/gpu=all`. On Linux, CDI device requests require Docker >= 28.2.0 and NVIDIA Container Toolkit >= 1.18. The legacy `--gpus all` flag can lose GPU access after host daemon reloads, so upgrade older Linux hosts and use `--device` instead.
 
 ## Step 1: Pull the YOLOv5 Docker Image
 
@@ -150,14 +99,14 @@ sudo docker run -it --ipc=host $t
 
 ### Using GPU
 
-To enable GPU access within the container, use the `--gpus` flag. This requires the NVIDIA Container Toolkit to be installed correctly.
+To enable GPU access within the container, use the `--device nvidia.com/gpu=...` [CDI](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html) flag. This requires the NVIDIA Container Toolkit to be installed correctly.
 
 ```bash
 # Run with access to all available GPUs
-sudo docker run -it --runtime=nvidia --ipc=host --gpus all $t
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t
 
 # Run with access to specific GPUs (e.g., GPUs 2 and 3)
-sudo docker run -it --runtime=nvidia --ipc=host --gpus '"device=2,3"' $t
+sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t
 ```
 
 Refer to the [Docker run reference](https://docs.docker.com/engine/containers/run/) for more details on command options.
@@ -168,7 +117,7 @@ To work with your local files (datasets, model weights, etc.) inside the contain
 
 ```bash
 # Mount /path/on/host (your local machine) to /path/in/container (inside the container)
-sudo docker run -it --runtime=nvidia --ipc=host --gpus all -v /path/on/host:/path/in/container $t
+sudo docker run -it --ipc=host --device nvidia.com/gpu=all -v /path/on/host:/path/in/container $t
 ```
 
 Replace `/path/on/host` with the actual path on your machine and `/path/in/container` with the desired path inside the Docker container (e.g., `/usr/src/datasets`).

@@ -21,12 +21,25 @@ ViT blocks are dim-preserving (c_out == c_in == dim); the YAML parser injects di
 from __future__ import annotations
 
 import math
+from contextlib import nullcontext
+from functools import partial
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 from ultralytics.nn.modules.conv import Conv
+from ultralytics.utils.torch_utils import TORCH_2_3
+
+if TORCH_2_3:
+    from torch.nn.attention import SDPBackend, sdpa_kernel
+
+    # On this backbone's fp16 activations cuDNN's fused kernel pairs a finite forward with a NaN query gradient
+    # (dK and dV stay finite), so GradScaler skips every AMP step and training stalls at step 0. Flash,
+    # mem-efficient and math all agree with fp32 on the same inputs, so restrict dispatch to those three.
+    _sdpa_backends = partial(sdpa_kernel, [SDPBackend.FLASH_ATTENTION, SDPBackend.EFFICIENT_ATTENTION, SDPBackend.MATH])
+else:  # torch<2.3 predates the backend selector and never dispatches attention to cuDNN
+    _sdpa_backends = nullcontext
 
 __all__ = (
     "MLP",
@@ -135,7 +148,8 @@ class SelfAttention(nn.Module):
         q, k, v = (t.transpose(1, 2) for t in qkv.unbind(2))
         if rope is not None:
             q, k = _rope_qk(q, k, *rope)
-        y = F.scaled_dot_product_attention(q, k, v)
+        with _sdpa_backends():
+            y = F.scaled_dot_product_attention(q, k, v)
         return self.proj(y.transpose(1, 2).reshape(B, N, C))
 
 

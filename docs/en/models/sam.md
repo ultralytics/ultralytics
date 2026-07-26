@@ -121,7 +121,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         from ultralytics.models.sam import Predictor as SAMPredictor
 
         # Create SAMPredictor
-        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="mobile_sam.pt")
+        overrides = {"conf": 0.25, "task": "segment", "mode": "predict", "imgsz": 1024, "model": "mobile_sam.pt"}
         predictor = SAMPredictor(overrides=overrides)
 
         # Set image
@@ -150,7 +150,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         from ultralytics.models.sam import Predictor as SAMPredictor
 
         # Create SAMPredictor
-        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="mobile_sam.pt")
+        overrides = {"conf": 0.25, "task": "segment", "mode": "predict", "imgsz": 1024, "model": "mobile_sam.pt"}
         predictor = SAMPredictor(overrides=overrides)
 
         # Segment with additional args

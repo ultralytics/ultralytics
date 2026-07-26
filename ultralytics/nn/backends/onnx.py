@@ -84,7 +84,17 @@ class ONNXBackend(BaseBackend):
                 f"{providers[0] if isinstance(providers[0], str) else providers[0][0]}"
             )
 
-            self.session = onnxruntime.InferenceSession(weight, providers=providers)
+            try:
+                self.session = onnxruntime.InferenceSession(weight, providers=providers)
+            except onnxruntime.capi.onnxruntime_pybind11_state.InvalidProtobuf as e:
+                # ONNX Runtime reports an unparsable graph as a raw protobuf error naming neither the problem
+                # nor a remedy. Only this one type is caught: other load failures are execution-provider or
+                # model-support issues, where the runtime's own message is the useful one.
+                raise TypeError(
+                    f"ERROR ❌️ {weight} is not a loadable ONNX model — the file is empty, truncated or corrupted "
+                    f"({type(e).__name__}: {e}).\nRecommend fixes are to re-export it with "
+                    f"'yolo export model=yolo26n.pt format=onnx', or to re-download the file."
+                ) from e
             self.output_names = [x.name for x in self.session.get_outputs()]
 
             # Get metadata

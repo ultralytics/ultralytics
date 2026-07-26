@@ -25,6 +25,8 @@ REID_ASSETS = frozenset(f"yolo26{k}-reid.onnx" for k in "nsmlx")
 class ReID:
     """ReID encoder. Routes `.pt` to the YOLO predictor path; everything else to `AutoBackend`."""
 
+    is_reid = False  # True only for reid-task `.pt` checkpoints, whose head already outputs the embedding
+
     def __init__(self, model: str, imgsz: int = 224, device: str | torch.device | None = None, fp16: bool = False):
         """Initialize encoder for re-identification.
 
@@ -57,12 +59,15 @@ class ReID:
                 self.imgsz = int(
                     margs.get("imgsz", self.imgsz) if isinstance(margs, dict) else getattr(margs, "imgsz", self.imgsz)
                 )
-                self.model(warmup, embed=None, imgsz=self.imgsz, verbose=False, save=False)  # warm up ReidPredictor
+                # Warm up ReidPredictor so subsequent calls return Results carrying embeddings
+                self.model(warmup, imgsz=self.imgsz, device=self.device, verbose=False, save=False)
             else:
-                self.model(warmup, embed=[len(self.model.model.model) - 2], verbose=False, save=False)
+                # Initialize predictor with embed=[idx] so subsequent calls return embeddings.
+                self.model(
+                    warmup, embed=[len(self.model.model.model) - 2], device=self.device, verbose=False, save=False
+                )
             self.fp16 = False
         else:
-            self.is_reid = False
             from pathlib import Path
 
             if Path(str(model)).name in REID_ASSETS:
@@ -94,9 +99,8 @@ class ReID:
         """
         return [save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))]
 
-    def _crops_to_tensor(self, img: np.ndarray, dets: np.ndarray) -> torch.Tensor:
-        """Crop detections from img and stack into a normalized BCHW float tensor at self.imgsz."""
-        crops = self._crop_detections(img, dets)
+    def _crops_to_tensor(self, crops: list[np.ndarray]) -> torch.Tensor:
+        """Stack a list of valid image crops into a normalized BCHW float tensor at self.imgsz."""
         batch = torch.empty(len(crops), 3, self.imgsz, self.imgsz, dtype=torch.float32)
         for i, c in enumerate(crops):
             t = torch.from_numpy(np.ascontiguousarray(c[..., ::-1])).permute(2, 0, 1).unsqueeze(0).float() / 255.0
@@ -107,42 +111,52 @@ class ReID:
         return batch.half() if self.fp16 else batch
 
     @torch.no_grad()
-    def __call__(self, img: np.ndarray, dets: np.ndarray) -> list[np.ndarray]:
+    def __call__(self, img: np.ndarray, dets: np.ndarray) -> list[np.ndarray | None]:
         """Extract embeddings for detected objects."""
+        crops = self._crop_detections(img, dets)
+        valid = [bool(c.size) for c in crops]
+        valid_crops = [crop for crop, keep in zip(crops, valid) if keep]
+        if not valid_crops:
+            return [None] * len(crops)
+
         if self.is_pt:
-            crops = self._crop_detections(img, dets)
             if self.is_reid:  # ReidPredictor returns Results; pull the head's normalized embedding
-                results = self.model.predictor(crops)
-                return [r.embeddings.data.cpu().numpy() for r in results]
-            feats = self.model.predictor(crops)
-            if len(feats) != dets.shape[0] and feats[0].shape[0] == dets.shape[0]:
-                feats = feats[0]  # batched prediction with non-PyTorch backend
-            return [f.cpu().numpy() for f in feats]
-        batch = self._crops_to_tensor(img, dets)
-        bs, n = self.batch_size, batch.shape[0]
-        if bs is None or n == bs:
-            feats = self.model(batch)
-        else:  # fixed-batch model (e.g. static ONNX): run in chunks of bs, padding the last partial chunk
-            outs = []
-            for s in range(0, n, bs):
-                chunk = batch[s : s + bs]
-                if chunk.shape[0] < bs:
-                    chunk = torch.cat([chunk, chunk[-1:].expand(bs - chunk.shape[0], *chunk.shape[1:])], 0)
-                outs.append(self.model(chunk))
-            feats = torch.cat(outs, 0)[:n]
-        return [f.cpu().numpy() for f in feats]
+                valid_feats = [r.embeddings.data.cpu().numpy() for r in self.model.predictor(valid_crops)]
+            else:
+                feats = self.model.predictor(valid_crops)
+                if len(feats) != len(valid_crops) and feats[0].shape[0] == len(valid_crops):
+                    feats = feats[0]  # batched prediction with non-PyTorch backend
+                valid_feats = [f.cpu().numpy() for f in feats]
+        else:
+            batch = self._crops_to_tensor(valid_crops)
+            bs, n = self.batch_size, batch.shape[0]
+            if bs is None or n == bs:
+                feats = self.model(batch)
+            else:  # fixed-batch model (e.g. static ONNX): run in chunks of bs, padding the last partial chunk
+                outs = []
+                for s in range(0, n, bs):
+                    chunk = batch[s : s + bs]
+                    if chunk.shape[0] < bs:
+                        chunk = torch.cat([chunk, chunk[-1:].expand(bs - chunk.shape[0], *chunk.shape[1:])], 0)
+                    outs.append(self.model(chunk))
+                feats = torch.cat(outs, 0)[:n]
+            valid_feats = [f.cpu().numpy() for f in feats]
+
+        valid_feats = iter(valid_feats)
+        return [next(valid_feats) if keep else None for keep in valid]
 
 
-def build_encoder(with_reid: bool, model: str | None):
+def build_encoder(with_reid: bool, model: str | None, device: str | torch.device | None = None):
     """Return a ReID encoder, the native-features pass-through, or None.
 
     Args:
         with_reid (bool): Whether ReID is enabled at all.
         model (str | None): `"auto"` returns a callable that converts pre-extracted backbone features to numpy arrays;
             any other value loads a `ReID` model from that path. Ignored when `with_reid` is False.
+        device (str | torch.device | None): Inference device for the ReID model; defaults to CUDA if available.
 
     Returns:
-        (Callable | None): A `(img, dets) -> list[np.ndarray]` encoder, or None when ReID is disabled.
+        (Callable | None): A `(img, dets) -> list[np.ndarray | None]` encoder, or None when ReID is disabled.
     """
     if not with_reid:
         return None
@@ -154,7 +168,7 @@ def build_encoder(with_reid: bool, model: str | None):
             return [f.cpu().numpy() for f in feats]
 
         return _auto_encoder
-    return ReID(model)
+    return ReID(model, device=device)
 
 
 def smooth_feature(

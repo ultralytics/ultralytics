@@ -13,6 +13,7 @@ from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import (
     ClassificationModel,
+    DepthModel,
     DetectionModel,
     OBBModel,
     PoseModel,
@@ -125,6 +126,12 @@ class YOLO(Model):
                 "validator": yolo.reid.ReidValidator,
                 "predictor": yolo.reid.ReidPredictor,
             },
+            "depth": {
+                "model": DepthModel,
+                "trainer": yolo.depth.DepthTrainer,
+                "validator": yolo.depth.DepthValidator,
+                "predictor": yolo.depth.DepthPredictor,
+            },
             "semantic": {
                 "model": SemanticSegmentationModel,
                 "trainer": yolo.semantic.SemanticSegmentationTrainer,
@@ -181,7 +188,7 @@ class YOLOWorld(Model):
         return {
             "detect": {
                 "model": WorldModel,
-                "validator": yolo.detect.DetectionValidator,
+                "validator": yolo.world.WorldValidator,
                 "predictor": yolo.detect.DetectionPredictor,
                 "trainer": yolo.world.WorldTrainer,
             }
@@ -329,7 +336,7 @@ class YOLOE(Model):
         # Verify no background class is present
         assert " " not in classes
         assert isinstance(self.model, YOLOEModel)
-        if sorted(list(self.model.names.values())) != sorted(classes):
+        if sorted(self.model.names.values()) != sorted(classes):
             if embeddings is None:
                 embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
             self.model.set_classes(classes, embeddings)
@@ -413,7 +420,7 @@ class YOLOE(Model):
                         "task": self.model.task,
                         "mode": "predict",
                         "save": False,
-                        "verbose": refer_image is None,
+                        "verbose": kwargs.get("verbose", self.overrides.get("verbose", refer_image is None)),
                         "batch": 1,
                         "device": args.device,
                         "quantize": args.quantize,
@@ -430,7 +437,7 @@ class YOLOE(Model):
             self.model.model[-1].nc = num_cls
             self.model.names = [f"object{i}" for i in range(num_cls)]
             self.predictor.set_prompts(visual_prompts.copy())
-            self.predictor.setup_model(model=self.model)
+            self.predictor.setup_model(model=self.model, verbose=self.predictor.args.verbose)
 
             if refer_image is None and source is not None:
                 dataset = load_inference_source(source)

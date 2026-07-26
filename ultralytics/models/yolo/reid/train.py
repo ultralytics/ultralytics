@@ -26,7 +26,7 @@ class ReidTrainer(ClassificationTrainer):
     Attributes:
         model (ReidModel): The ReID model to be trained.
         data (dict): Dataset information including identity names and count.
-        loss_names (list[str]): Names of loss components: ['ce_loss', 'tri_loss'].
+        loss_names (tuple): Names of the loss items, derived from the loss dict returned by the criterion.
 
     Examples:
         >>> from ultralytics.models.yolo.reid import ReidTrainer
@@ -155,7 +155,6 @@ class ReidTrainer(ClassificationTrainer):
 
     def get_validator(self):
         """Return a ReidValidator instance."""
-        self.loss_names = ["ce_loss", "tri_loss"]
         return yolo.reid.ReidValidator(self.test_loader, self.save_dir, args=copy(self.args), _callbacks=self.callbacks)
 
     def plot_training_samples(self, batch, ni):
@@ -172,7 +171,7 @@ class ReidTrainer(ClassificationTrainer):
         loss items are omitted to keep results.csv and plots clean.
 
         Args:
-            loss_items (list | None): Loss tensor items.
+            loss_items (dict | None): Loss items keyed by component name.
             prefix (str): Prefix for loss names.
 
         Returns:
@@ -180,8 +179,4 @@ class ReidTrainer(ClassificationTrainer):
         """
         if prefix == "val":
             return [] if loss_items is None else {}
-        keys = [f"{prefix}/{x}" for x in self.loss_names]
-        if loss_items is None:
-            return keys
-        loss_items = [round(float(x), 5) for x in loss_items]
-        return dict(zip(keys, loss_items))
+        return super().label_loss_items(loss_items, prefix)

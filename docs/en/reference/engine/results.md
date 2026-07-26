@@ -20,6 +20,10 @@ keywords: Ultralytics, engine results, BaseTensor, Results class, Boxes, Masks, 
 
 <br><br><hr><br>
 
+## ::: ultralytics.engine.results.DepthMap
+
+<br><br><hr><br>
+
 ## ::: ultralytics.engine.results.Results
 
 <br><br><hr><br>

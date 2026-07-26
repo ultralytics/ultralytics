@@ -419,7 +419,7 @@ class ConfusionMatrix(DataExportMixin):
         """
         gt_cls, gt_bboxes = batch["cls"], batch["bboxes"]
         if self.matches is not None:  # only if visualization is enabled
-            self.matches = {k: defaultdict(list) for k in {"TP", "FP", "FN", "GT"}}
+            self.matches = {k: defaultdict(list) for k in ("TP", "FP", "FN", "GT")}
             for i in range(gt_cls.shape[0]):
                 self._append_matches("GT", batch, i)  # store GT
         is_obb = gt_bboxes.shape[1] == 5  # check if boxes contains angle for OBB
@@ -596,7 +596,7 @@ class ConfusionMatrix(DataExportMixin):
         if ticklabels != "auto":
             ax.set_xticklabels(ticklabels, fontsize=tick_fontsize, rotation=90, ha="center")
             ax.set_yticklabels(ticklabels, fontsize=tick_fontsize)
-        for s in {"left", "right", "bottom", "top", "outline"}:
+        for s in ("left", "right", "bottom", "top", "outline"):
             if s != "outline":
                 ax.spines[s].set_visible(False)  # Confusion matrix plot don't have outline
             cbar.ax.spines[s].set_visible(False)
@@ -846,6 +846,7 @@ def ap_per_class(
         n_l = nt[ci]  # number of labels
         n_p = i.sum()  # number of predictions
         if n_p == 0 or n_l == 0:
+            prec_values.append(np.zeros_like(x))  # keep one row per class, aligned with `ap` and `names`
             continue
 
         # Accumulate FPs and TPs
@@ -989,27 +990,29 @@ class Metric(SimpleClass):
 
     @property
     def mcenter_offset(self) -> float:
-        """Return the mean TP-RMSE Center Offset over all detected classes.
+        """Return the mean TP-RMSE center offset over all detected classes.
 
         Returns:
-            (float): The mcenter_offset of all classes
+            (float): Mean normalized center offset averaged over the classes present in `ap_class_index`, matching how
+                `mp`, `mr`, `map50` and `map` are averaged.
         """
-        return self.center_rmse.mean() if len(self.center_rmse) else 0.0
+        if not len(self.center_rmse) or not len(self.ap_class_index):
+            return 0.0
+        return float(self.center_rmse[self.ap_class_index].mean())
 
     def mean_results(self) -> list[float]:
         """Return mean of results, mp, mr, map50, map."""
         metrics = [self.mp, self.mr, self.map50, self.map]
-        # as segmentation models also use base metrics, it is important to assure
-        # that it is possible to use that metric
-        if self.center_rmse is not None and len(self.center_rmse):
+        # Segment and Pose metrics reuse this class for their box results but never populate center_rmse.
+        if len(self.center_rmse):
             metrics.append(self.mcenter_offset)
         return metrics
 
     def class_result(self, i: int) -> tuple[float, float, float, float, float]:
         """Return class-aware result, p[i], r[i], ap50[i], ap[i], center_offset[i]: if the model is (detect, obb)."""
         metrics = [self.p[i], self.r[i], self.ap50[i], self.ap[i]]
-        if self.center_rmse is not None and len(self.center_rmse):
-            metrics.append(self.center_rmse[i])
+        if len(self.center_rmse):
+            metrics.append(self.center_rmse[self.ap_class_index[i]])  # center_rmse is indexed by class id
         return tuple(metrics)
 
     @property
@@ -1023,7 +1026,7 @@ class Metric(SimpleClass):
     def fitness(self) -> float:
         """Return model fitness as a weighted combination of metrics."""
         w = [0.0, 0.0, 0.0, 1.0]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
-        return (np.nan_to_num(np.array(self.mean_results()[:4])) * w).sum()
+        return float((np.nan_to_num(np.array(self.mean_results()[:4])) * w).sum())
 
     def update(self, results: tuple):
         """Update the evaluation metrics with a new set of results.
@@ -1169,7 +1172,14 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.names = names if names is not None else {}
         self.box = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
-        self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[], tp_center_offset=[])
+        self.stats = {
+            "tp": [],
+            "conf": [],
+            "pred_cls": [],
+            "target_cls": [],
+            "target_img": [],
+            "tp_center_offset": [],
+        }
         self.nt_per_class = None
         self.nt_per_image = None
 
@@ -1180,7 +1190,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
             stat (dict[str, Any]): Dictionary containing new statistical values to append. Keys should match existing
                 keys in self.stats.
         """
-        for k in self.stats.keys():
+        for k in self.stats:
             self.stats[k].append(stat[k])
         # Unit tests and some programmatic calls may omit image names.
         im_name = stat.get("im_name", f"image_{len(self.box.image_metrics)}")
@@ -1281,8 +1291,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
 
         The returned list length matches `self.keys` so it can be used directly in formatted outputs.
         """
-        base = list(self.box.mean_results())
-        return base
+        return self.box.mean_results()
 
     def class_result(self, i: int) -> tuple[float, float, float, float]:
         """Return the result of evaluating the performance of an object detection model on a specific class."""
@@ -1307,9 +1316,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
     def results_dict(self) -> dict[str, float]:
         """Return dictionary of computed performance metrics and statistics."""
         keys = [*self.keys, "fitness"]
-        # include center_rmse (self.center_rmse) after mean_results
-        mean_vals = list(self.mean_results())
-        values = ((float(x) if hasattr(x, "item") else x) for x in ([*mean_vals, self.fitness]))
+        values = ((float(x) if hasattr(x, "item") else x) for x in ([*self.mean_results(), self.fitness]))
         return dict(zip(keys, values))
 
     @property
@@ -1888,7 +1895,7 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
         fig, ax = plt.subplots(1, 1, figsize=(10, 6), tight_layout=True)
         names = list(self.names.values()) if self.names else [str(i) for i in range(self.nc)]
         x = np.arange(self.nc)
-        bars = ax.bar(x, self._per_class_iou, color=[list(c / 255.0 for c in colors(i, False)) for i in range(self.nc)])
+        bars = ax.bar(x, self._per_class_iou, color=[[c / 255.0 for c in colors(i, False)] for i in range(self.nc)])
         ax.set_xlabel("Class")
         ax.set_ylabel("IoU")
         ax.set_title("Per-Class IoU")

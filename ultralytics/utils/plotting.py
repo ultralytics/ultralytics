@@ -747,8 +747,8 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     ax[3].hist2d(x["width"], x["height"], bins=50, cmap=subplot_3_4_color)
     ax[3].set_xlabel("width")
     ax[3].set_ylabel("height")
-    for a in {0, 1, 2, 3}:
-        for s in {"top", "right", "left", "bottom"}:
+    for a in (0, 1, 2, 3):
+        for s in ("top", "right", "left", "bottom"):
             ax[a].spines[s].set_visible(False)
 
     fname = save_dir / "labels.jpg"
@@ -817,7 +817,7 @@ def save_one_box(
 @threaded
 def plot_images(
     labels: dict[str, Any],
-    images: torch.Tensor | np.ndarray = np.zeros((0, 3, 640, 640), dtype=np.float32),
+    images: torch.Tensor | np.ndarray | None = None,
     paths: list[str] | None = None,
     fname: str = "images.jpg",
     names: dict[int, str] | None = None,
@@ -859,7 +859,8 @@ def plot_images(
         - 3 channels: Used as-is (standard RGB)
         - 4+ channels: Cropped to first 3 channels
     """
-    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images", "semantic_mask", "depth"}:
+    images = np.zeros((0, 3, 640, 640), dtype=np.float32) if images is None else images
+    for k in ("cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images", "semantic_mask", "depth"):
         if k not in labels:
             continue
         if k == "cls" and labels[k].ndim == 2:
@@ -1068,13 +1069,11 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
                 columns = (
                     loss_keys[:loss_mid] + metric_keys[:metric_mid] + loss_keys[loss_mid:] + metric_keys[metric_mid:]
                 )
-
-                import math
-
-                n = len(columns)
-                n_cols = math.ceil(n / 2)
-                fig, ax = plt.subplots(2, n_cols, figsize=(n_cols + 2, 6), tight_layout=True)
+                n_cols = math.ceil(len(columns) / 2)  # ceil so an odd column count still gets a subplot
+                fig, ax = plt.subplots(2, n_cols, figsize=(2 * n_cols + 2, 6), tight_layout=True)
                 ax = ax.ravel()
+                for a in ax[len(columns) :]:
+                    a.set_visible(False)  # hide the spare subplot left over by an odd column count
             x = data.select(data.columns[0]).to_numpy().flatten()
             for i, j in enumerate(columns):
                 y = data.select(j).to_numpy().flatten().astype("float")
@@ -1314,7 +1313,7 @@ def feature_visualization(x, module_type: str, stage: int, n: int = 32, save_dir
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
 
-    for m in {"Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder"}:  # all model heads
+    for m in ("Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder"):  # all model heads
         if m in module_type:
             return
     if isinstance(x, torch.Tensor):

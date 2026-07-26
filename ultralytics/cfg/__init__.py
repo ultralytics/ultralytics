@@ -202,6 +202,10 @@ CFG_FLOAT_KEYS = frozenset(
         "box",
         "cls",
         "dfl",
+        "pose",
+        "kobj",
+        "rle",
+        "angle",
         "dlog",
         "dgrad",
         "dis",
@@ -234,6 +238,7 @@ CFG_FRACTION_KEYS = frozenset(
         "mixup",
         "cutmix",
         "copy_paste",
+        "erasing",
         "conf",
         "iou",
         "fraction",
@@ -829,7 +834,8 @@ def handle_yolo_solutions(args: list[str]) -> None:
                 "--server.headless",
                 "true",
                 overrides.pop("model", "yolo26n.pt"),
-            ]
+            ],
+            check=False,
         )
     else:
         import cv2  # Only needed for cap and vw functionality

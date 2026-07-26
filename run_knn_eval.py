@@ -1,21 +1,23 @@
 """Run kNN evaluation on a distilled encoder run directory or on a released reference encoder.
 
 Usage:
-    python run_knn_eval.py <gpu_id> <run_dir|teacher_spec> [--imgsz N] [--crop_ratio R] [--norm N] [--csv PATH] [--wandb]
+    python run_knn_eval.py <gpu_id> <run_dir|teacher_spec> [--imgsz N] [--crop_ratio R] [--csv PATH] [--wandb]
 
-A target matching ``TEACHER_REGISTRY`` in either form (``tips:v2b14`` or ``tips_v2b14``) is read as a teacher spec and
-scored under the same k=20 / T=0.07 protocol as our students. Anything else is a run directory, where weights/best.pt
-and the model config come from args.yaml automatically, warning and falling back to last.pt when best.pt is absent.
+Everything is scored at k=20 / T=0.07. A target is either a ``TEACHER_REGISTRY`` key (``tips:v2b14`` or
+``tips_v2b14``) or a run directory, which supplies weights/best.pt plus its model config from args.yaml, falling back
+to last.pt with a warning.
 
---imgsz sets the eval resolution (default 224), and the loader batch scales down with imgsz to hold activation memory
-roughly constant. --crop_ratio selects the published eval protocol (bicubic shortest-side resize to imgsz/ratio, then
-a center crop), which is what DINOv2/TIPS/EUPE kNN numbers are measured under. Pass 0.875 to match them, or 1.0 to
-isolate interpolation from crop. Absent, the Ultralytics bilinear ratio-1.0 transform is used, as in every existing
-table row. --norm picks the input normalization: 'unit' (default) is the Ultralytics [0, 1] the loader has always
-emitted, 'imagenet' matches the stats distillation trained under. Training val also used bicubic, so
-``--norm imagenet --crop_ratio 1.0`` is the exact training-time preprocessing. --csv appends
-one result row per call so a sweep stays readable while it runs. With --wandb, updates the finished WandB run's summary
-with knn/top1 (run directories only).
+Preprocessing is derived, not passed, because it is a property of how the weights were fed. A distilled run
+(``teachers`` in args.yaml) and every released encoder take the 'imagenet' entry in ``KNN_PROTOCOLS``, a CE
+classification run takes 'unit'. See that table for what reading one family through the other's entry costs.
+
+Flags:
+    --imgsz       eval resolution, default 224. Batch scales down with it to hold activation memory ~constant.
+    --crop_ratio  center-crop ratio, default 1.0. 0.875 is the 256/224 protocol DINOv2/TIPS/EUPE publish under, and
+                  as a research override it blocks --wandb.
+    --csv         append one row per call, so a sweep stays readable while it runs.
+    --wandb       overwrite the finished run's knn/top1 summary, run directories only. History keeps the
+                  pre-overwrite value.
 
 Examples:
     python run_knn_eval.py 3 /data/shared-datasets/fatih-runs/classify/yolo-next-encoder/phase1-d1-eupe-vitb16
@@ -29,16 +31,19 @@ from pathlib import Path
 import torch
 
 from ultralytics import YOLO
-from ultralytics.data import ClassificationDataset
-from ultralytics.data.build import build_dataloader
 from ultralytics.utils import YAML
-from ultralytics.utils.knn_eval import extract_features, knn_accuracy, yolo_cls_features
+from ultralytics.utils.knn_eval import build_knn_loaders, extract_features, knn_accuracy, yolo_cls_features
 
 IMAGENET = "/data/shared-datasets/imagenet"
 
 
 def _update_wandb(run_dir, knn_top1):
-    """Update a finished WandB run's summary with kNN top-1 accuracy."""
+    """Overwrite a finished WandB run's knn/top1 summary with a re-measured value.
+
+    It overwrites knn/top1 rather than adding a key because that is the key every reader hits (four scripts under
+    .claude/skills/wandb-check), so a new one would leave all of them on the stale number. Nothing is lost: history is
+    append-only and the summary is its last point, so the pre-overwrite value stays readable through scan_history.
+    """
     link = Path(run_dir) / "wandb" / "latest-run"
     if not link.is_symlink():
         print("  WandB: no wandb/latest-run symlink found")
@@ -64,7 +69,7 @@ def _load_teacher(spec, imgsz, device):
         device (torch.device): Device to load onto.
 
     Returns:
-        (tuple): (model, feature_fn, name).
+        (tuple): (model, feature_fn, name, protocol).
     """
     from ultralytics.nn.teacher_model import TEACHER_REGISTRY, build_teacher_model
 
@@ -72,22 +77,21 @@ def _load_teacher(spec, imgsz, device):
     if imgsz % mult:
         print(f"Error: {spec} has patch stride {mult}, so imgsz {imgsz} would be cropped to {imgsz // mult * mult}.")
         sys.exit(1)
-    # normalize_input=True converts to each teacher's own training distribution, a real conversion for TIPS (raw
-    # [0, 1]) and a no-op for the ImageNet-stat teachers. It assumes ImageNet-normalized input, so pair with
-    # ``--norm imagenet``: the loader's default is raw [0, 1] and would be misread as normalized.
+    # Rebases input onto each teacher's own distribution: a real shift for TIPS (raw [0, 1]), a no-op for the
+    # rest. It reads its input as ImageNet-normalized, hence the "imagenet" protocol below.
     teacher = build_teacher_model(spec, device=device, normalize_input=True)
-    return teacher, lambda m, imgs: m.encode(imgs).cls, spec
+    return teacher, lambda m, imgs: m.encode(imgs).cls, spec, "imagenet"
 
 
 def _load_run_dir(run_dir, device):
-    """Build a distilled student from a run directory's checkpoint and args.yaml.
+    """Build a student from a run directory's checkpoint and args.yaml, and resolve its eval protocol.
 
     Args:
         run_dir (Path): Training run directory.
         device (torch.device): Device to load onto.
 
     Returns:
-        (tuple): (model, feature_fn, name).
+        (tuple): (model, feature_fn, name, protocol).
     """
     weight_path = run_dir / "weights" / "best.pt"
     if not weight_path.exists():
@@ -101,10 +105,15 @@ def _load_run_dir(run_dir, device):
     if not args_yaml.exists():
         print(f"Error: no args.yaml in {run_dir}")
         sys.exit(1)
-    model_cfg = YAML.load(args_yaml).get("model")
+    args = YAML.load(args_yaml)
+    model_cfg = args.get("model")
     if not model_cfg:
         print(f"Error: no 'model:' key in {args_yaml}")
         sys.exit(1)
+    # Distillation feeds ImageNet stats, CE classification raw [0, 1]. ClassificationTrainer records this on the
+    # checkpoint (classify/train.py:168-170) but ImageEncoderTrainer overrides get_dataloader without calling up, so
+    # no distilled checkpoint carries it and args.yaml is the only record. Stamping it there would retire this line.
+    protocol = "imagenet" if args.get("teachers") else "unit"
     print(f"  weights: {weight_path}")
     print(f"  model_cfg: {model_cfg}")
 
@@ -115,14 +124,12 @@ def _load_run_dir(run_dir, device):
     loaded = model.model.load_state_dict(state, strict=False)
     print(f"  Loaded: {len(state) - len(loaded.unexpected_keys)}/{len(state)} keys")
     model.model.to(device).float()
-    return model.model, yolo_cls_features, run_dir.name
+    return model.model, yolo_cls_features, run_dir.name, protocol
 
 
 def main():
     """Run kNN evaluation on a run directory or a released reference encoder."""
     from ultralytics.nn.teacher_model import (
-        PIPELINE_IMAGE_MEAN,
-        PIPELINE_IMAGE_STD,
         TEACHER_REGISTRY,
         resolve_teacher_key,
     )
@@ -139,17 +146,13 @@ def main():
         return value
 
     imgsz = int(pop("--imgsz") or 224)
-    crop_ratio = float(pop("--crop_ratio") or 0)
-    norm = pop("--norm") or "unit"
-    if norm not in {"unit", "imagenet"}:
-        print(f"Error: --norm must be 'unit' or 'imagenet', got {norm!r}.")
-        sys.exit(1)
+    crop_ratio = float(pop("--crop_ratio") or 1.0)
     csv_path = pop("--csv")
     use_wandb = "--wandb" in argv
     positional = [a for a in argv if not a.startswith("--")]
 
     if len(positional) < 2:
-        print("Usage: run_knn_eval.py <gpu> <target> [--imgsz N] [--crop_ratio R] [--norm unit|imagenet] [--csv P]")
+        print("Usage: run_knn_eval.py <gpu> <target> [--imgsz N] [--crop_ratio R] [--csv PATH] [--wandb]")
         sys.exit(1)
 
     gpu_id, target = int(positional[0]), resolve_teacher_key(positional[1])
@@ -157,8 +160,8 @@ def main():
     if use_wandb and is_teacher:
         print("Error: --wandb writes to a training run's summary, which a released teacher does not have.")
         sys.exit(1)
-    if use_wandb and (crop_ratio or norm != "unit"):
-        print("Error: the knn/top1 summary key has no protocol axis, so a non-default transform would overwrite it.")
+    if use_wandb and crop_ratio != 1.0:
+        print(f"Error: crop_ratio {crop_ratio} is a research override, so its result cannot claim the knn/top1 key.")
         sys.exit(1)
 
     device = torch.device(f"cuda:{gpu_id}")
@@ -167,53 +170,10 @@ def main():
     print(f"  wandb: {'on' if use_wandb else 'off'}")
 
     # Resolve the target before the ImageNet scan so a bad spec or resolution fails in milliseconds, not minutes.
-    model, feature_fn, name = (
+    model, feature_fn, name, protocol = (
         _load_teacher(target, imgsz, device) if is_teacher else _load_run_dir(Path(target), device)
     )
-
-    from types import SimpleNamespace
-
-    root = Path(IMAGENET)
-    ds_args = SimpleNamespace(
-        imgsz=imgsz,
-        cache=False,
-        fraction=1.0,
-        auto_augment="",
-        erasing=0.0,
-        scale=0.92,
-        fliplr=0.5,
-        flipud=0.0,
-        hsv_h=0.015,
-        hsv_s=0.4,
-        hsv_v=0.4,
-    )
-    train_ds = ClassificationDataset(str(root / "train"), args=ds_args, augment=False, prefix="knn-train")
-    val_ds = ClassificationDataset(str(root / "val"), args=ds_args, augment=False, prefix="knn-val")
-    # ``classify_transforms`` welds resize to crop and rejects ``crop_fraction`` (augment.py:2812 raises), so the
-    # transform is built here. Its DEFAULT_MEAN/STD = (0,0,0)/(1,1,1) is raw [0, 1], while distillation trains under
-    # ImageNet stats (train_image_encoder.py:553), so ``--norm imagenet`` is what a distilled student and every
-    # released encoder expect. ``--crop_ratio`` also switches to the published bicubic resize/crop protocol
-    # (eupe/eval/knn.py:199-203 asserts the 256/224 ratio, eupe/data/transforms.py:132 uses BICUBIC). Defaults
-    # reproduce ``classify_transforms(size=imgsz)`` exactly.
-    import torchvision.transforms as T
-
-    from ultralytics.data.augment import DEFAULT_MEAN, DEFAULT_STD
-
-    mean, std = (PIPELINE_IMAGE_MEAN, PIPELINE_IMAGE_STD) if norm == "imagenet" else (DEFAULT_MEAN, DEFAULT_STD)
-    resize = round(imgsz / (crop_ratio or 1.0))
-    interp = T.InterpolationMode.BICUBIC if crop_ratio else T.InterpolationMode.BILINEAR
-    train_ds.torch_transforms = val_ds.torch_transforms = T.Compose(
-        [
-            T.Resize(resize, interpolation=interp),
-            T.CenterCrop(imgsz),
-            T.ToTensor(),
-            T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std)),
-        ]
-    )
-    print(f"  transform: resize {resize} {interp.value} -> crop {imgsz}, norm={norm} (ratio {crop_ratio or 1.0})")
-    bs = max(8, round(256 * (224 / imgsz) ** 2))  # hold activation memory ~constant across imgsz
-    train_loader = build_dataloader(train_ds, bs, 8, shuffle=False, rank=-1)
-    val_loader = build_dataloader(val_ds, bs, 8, shuffle=False, rank=-1)
+    train_loader, val_loader, num_classes = build_knn_loaders(Path(IMAGENET), imgsz, protocol, crop_ratio)
 
     t0 = time.time()
     train_feats, train_labels = extract_features(model, train_loader, device, feature_fn)
@@ -225,7 +185,7 @@ def main():
         val_labels,
         k=20,
         temp=0.07,
-        num_classes=len(train_ds.base.classes),
+        num_classes=num_classes,
         device=device,
     )
     elapsed = time.time() - t0
@@ -236,7 +196,7 @@ def main():
         with open(csv_path, "a", encoding="utf-8") as f:
             if header:
                 f.write("model,imgsz,crop_ratio,norm,top1,seconds\n")
-            f.write(f"{name},{imgsz},{crop_ratio or 1.0},{norm},{top1:.2f},{elapsed:.0f}\n")
+            f.write(f"{name},{imgsz},{crop_ratio},{protocol},{top1:.2f},{elapsed:.0f}\n")
         print(f"  appended to {csv_path}")
 
     if use_wandb:

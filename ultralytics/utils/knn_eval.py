@@ -21,14 +21,63 @@ equivalent softmax(sim/T) voting but with multi-GPU broadcast/gather -- unnecess
 Default hyperparameters: k=20, T=0.07 (used by DINO, EUPE Table 1, RADIO, DINOv2).
 """
 
-import logging
-
 import torch
 import torch.nn.functional as F
 
+from ultralytics.data import ClassificationDataset
+from ultralytics.data.augment import DEFAULT_MEAN, DEFAULT_STD, classify_transforms
+from ultralytics.data.build import build_dataloader
+from ultralytics.nn.teacher_model import PIPELINE_IMAGE_MEAN, PIPELINE_IMAGE_STD
+from ultralytics.utils import LOGGER
 from ultralytics.utils.torch_utils import autocast
 
-logger = logging.getLogger("ultralytics")
+# classify_transforms kwargs per family of weights, matching how each was fed during training: distillation and every
+# released encoder under ImageNet stats (train_image_encoder.py:552), CE classification under raw [0, 1]
+# (dataset.py:1044). Reading one family through the other's entry is silent, not an error, and costs real accuracy:
+# it scored a distilled backbone 1.4 top-1 low and TIPS v2 B/14 3.8 low against its published 79.8.
+KNN_PROTOCOLS = {
+    "imagenet": {"mean": PIPELINE_IMAGE_MEAN, "std": PIPELINE_IMAGE_STD, "interpolation": "BICUBIC"},
+    "unit": {"mean": DEFAULT_MEAN, "std": DEFAULT_STD, "interpolation": "BILINEAR"},
+}
+
+
+def build_knn_loaders(root, imgsz, protocol, crop_ratio=1.0):
+    """Build the (train bank, val query) dataloader pair for ImageNet kNN eval.
+
+    Both splits get one shared transform, as in EUPE (eval/knn.py:310 builds a single transform and passes it to the
+    bank at :313 and the query loader at :207-212) and DINOv2.
+
+    Args:
+        root (Path): ImageNet root holding train/ and val/ subdirectories.
+        imgsz (int): Eval resolution.
+        protocol (str): Key into ``KNN_PROTOCOLS``, naming how the weights under test were fed.
+        crop_ratio (float, optional): Center-crop ratio. 1.0 resizes the shortest side straight to imgsz, 0.875
+            reproduces the 256/224 protocol DINOv2, TIPS and EUPE publish under.
+
+    Returns:
+        (tuple): (train_loader, val_loader, num_classes).
+    """
+    from types import SimpleNamespace
+
+    kwargs = KNN_PROTOCOLS[protocol]
+    # augment=False reads only these three (dataset.py: cache :1024, scale :1030, imgsz :1044).
+    args = SimpleNamespace(imgsz=imgsz, cache=False, scale=0.92)
+    train_ds = ClassificationDataset(str(root / "train"), args=args, augment=False, prefix="knn-train")
+    val_ds = ClassificationDataset(str(root / "val"), args=args, augment=False, prefix="knn-val")
+    transforms = classify_transforms(size=imgsz, **kwargs)
+    if crop_ratio != 1.0:
+        # classify_transforms welds resize to crop (augment.py:2820-2821), so widening its Resize is the only way to
+        # reach the published resize-larger-then-crop protocol.
+        transforms.transforms[0].size = round(imgsz / crop_ratio)
+    train_ds.torch_transforms = val_ds.torch_transforms = transforms
+    LOGGER.info(f"kNN transform: {protocol}, crop_ratio {crop_ratio}, {transforms.transforms[0]}")
+    bs = max(8, round(256 * (224 / imgsz) ** 2))  # hold activation memory ~constant across imgsz
+    workers = 4  # both splits build a pool each, and shared NFS hosts EPERM-remount at 8+ per host
+    return (
+        build_dataloader(train_ds, bs, workers, shuffle=False, rank=-1),
+        build_dataloader(val_ds, bs, workers, shuffle=False, rank=-1),
+        len(train_ds.base.classes),
+    )
 
 
 def yolo_cls_features(model, imgs: torch.Tensor) -> torch.Tensor:
@@ -80,8 +129,7 @@ def extract_features(model, dataloader, device, feature_fn=yolo_cls_features):
         imgs = batch["img"].to(device, non_blocking=True).float()
         labels = batch["cls"].to(device, non_blocking=True)
 
-        # fp32 is part of the protocol and ``.float()`` casts only the tensor, not the kernels (measured: a forward
-        # under an outer autocast shifts features ~5e-3), so the promotion is disabled where the protocol is defined.
+        # .float() casts the tensor but not the kernels: under an inherited autocast, features shift ~5e-3.
         with autocast(False, device=device.type):
             features = F.normalize(feature_fn(model, imgs), dim=1, p=2)
 

@@ -27,6 +27,8 @@ from ultralytics.data.utils import IMG_FORMATS
 from ultralytics.models.yolo.classify.train import ClassificationTrainer
 from ultralytics.nn.image_encoder import ImageEncoderModel
 from ultralytics.nn.teacher_model import (
+    PIPELINE_IMAGE_MEAN,
+    PIPELINE_IMAGE_STD,
     TEACHER_REGISTRY,
     build_teacher_model,
     encode_teacher_batch,
@@ -41,9 +43,6 @@ from ultralytics.utils.torch_utils import unwrap_model
 # crashing DataLoader workers despite wds.warn_and_continue. Standard for web-crawled pipelines.
 Image.MAX_IMAGE_PIXELS = None
 
-# ImageNet normalization (used by EUPE, DINOv3, SigLIP2, SAM3 -- standard for ViT models)
-IMAGENET_MEAN = (0.485, 0.456, 0.406)
-IMAGENET_STD = (0.229, 0.224, 0.225)
 TEACHER_STATS_STEPS = 500
 TEACHER_STATS_CHUNK = 4096
 
@@ -535,8 +534,8 @@ class ImageEncoderTrainer(ClassificationTrainer):
         if mode == "train":
             return classify_augmentations_distill(
                 size=sz,
-                mean=IMAGENET_MEAN,
-                std=IMAGENET_STD,
+                mean=PIPELINE_IMAGE_MEAN,
+                std=PIPELINE_IMAGE_STD,
                 hflip=self.args.fliplr,
                 vflip=self.args.flipud,
                 erasing=self.args.erasing,
@@ -550,7 +549,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
                 solarize=getattr(self.args, "solarize", 0.0),
                 interpolation="BICUBIC",
             )
-        return classify_transforms(size=sz, mean=IMAGENET_MEAN, std=IMAGENET_STD, interpolation="BICUBIC")
+        return classify_transforms(size=sz, mean=PIPELINE_IMAGE_MEAN, std=PIPELINE_IMAGE_STD, interpolation="BICUBIC")
 
     def build_dataset(self, img_path, mode: str = "train", batch=None):
         """Build dataset from WebDataset shards, image folder, or list of image folders.
@@ -793,38 +792,14 @@ class ImageEncoderTrainer(ClassificationTrainer):
 
     def _knn_at(self, model, imgsz):
         """Return ImageNet kNN top-1 at the given imgsz, caching a loader pair per size."""
-        from ultralytics.utils.knn_eval import extract_features, knn_accuracy
+        from ultralytics.utils.knn_eval import build_knn_loaders, extract_features, knn_accuracy
 
         loaders = self._knn_state.setdefault("loaders", {})
         if imgsz not in loaders:
-            from types import SimpleNamespace
-
-            from ultralytics.data import ClassificationDataset
-            from ultralytics.data.build import build_dataloader
-
-            root = self._knn_state["path"]
-            args = SimpleNamespace(
-                imgsz=imgsz,
-                cache=False,
-                fraction=1.0,
-                auto_augment="",
-                erasing=0.0,
-                crop_fraction=1.0,
-                scale=0.92,
-                fliplr=0.5,
-                flipud=0.0,
-                hsv_h=0.015,
-                hsv_s=0.4,
-                hsv_v=0.4,
-            )
-            bs = max(8, round(256 * (224 / imgsz) ** 2))  # hold activation memory ~constant across imgsz
-            train_ds = ClassificationDataset(str(root / "train"), args=args, augment=False, prefix="knn-train")
-            val_ds = ClassificationDataset(str(root / "val"), args=args, augment=False, prefix="knn-val")
-            loaders[imgsz] = (
-                build_dataloader(train_ds, bs, 8, shuffle=False, rank=-1),
-                build_dataloader(val_ds, bs, 8, shuffle=False, rank=-1),
-            )
-            self._knn_state["num_classes"] = len(train_ds.base.classes)
+            # "imagenet" to match what _build_transforms feeds the student (:552), not the loader default.
+            train, val, num_classes = build_knn_loaders(self._knn_state["path"], imgsz, "imagenet")
+            loaders[imgsz] = (train, val)
+            self._knn_state["num_classes"] = num_classes
 
         train_loader, val_loader = loaders[imgsz]
         train_feats, train_labels = extract_features(model, train_loader, self.device)

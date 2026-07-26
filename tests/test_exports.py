@@ -106,10 +106,13 @@ def test_export_onnx_parity(end2end, isolated_model):
         assert pt_det[-1].long() == matched[-1].long(), (
             f"Class mismatch at IoU={best_iou:.3f}: pt={pt_det[-1]}, onnx={matched[-1]}"
         )
-        assert torch.allclose(pt_det[:4], matched[:4], atol=15.0), (
+        # Tolerances sized to observed cross-platform FP32 ONNX/PyTorch variance (max ~10 px / ~0.11 conf on
+        # M4 CPU at imgsz=640) plus ~2 px / ~0.014 headroom for x86/Windows/ARM ONNX Runtime differences. A real
+        # export regression shifts boxes by >=32 px (one stride) or conf by >=0.2, well outside these bounds.
+        assert torch.allclose(pt_det[:4], matched[:4], atol=12.0), (
             f"Box mismatch at IoU={best_iou:.3f}: pt={pt_det[:4]}, onnx={matched[:4]}"
         )
-        assert torch.allclose(pt_det[-2], matched[-2], atol=0.15), (
+        assert torch.allclose(pt_det[-2], matched[-2], atol=0.12), (
             f"Confidence mismatch: pt={pt_det[-2]:.4f}, onnx={matched[-2]:.4f}"
         )
 

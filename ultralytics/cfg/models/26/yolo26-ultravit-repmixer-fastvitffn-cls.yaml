@@ -1,0 +1,38 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# YOLO26-UltraViT-repmixer-fastvitffn-cls: RepMixer stages 1-3 with the FastViT-exact ConvFFN + MHSA stage 4.
+# Lane B phase1 isolation rung: identical to yolo26-ultravit-repmixer-cls.yaml except the RepUltraViTBlock
+# 4th arg fastvit_ffn=True, which runs a DW7x7+BN at input width BEFORE the 1x1 PW expansion (paper-exact
+# FastViT ConvFFN), vs the base DW3x3+BN at hidden width after. Stage 4 keeps the base MHSABlock
+# (conv_ffn=True, head_dim=32); no dinop5 bundle. Isolates the FastViT DW7x7 ConvFFN effect from the
+# dinop5 P5 bundle carried by yolo26-ultravit-repmixer-fastvitffn-dinop5-cls.yaml.
+# Backbone rows 0-8 == yolo26-ultravit-repmixer-fastvitffn.yaml layers 0-8, so cls/distilled weights
+# cover 100% of the det backbone. Blocks in ultralytics/nn/modules/vit_blocks.py.
+
+# Parameters
+nc: 1000 # number of classes
+
+scales:
+  # [depth, width, max_channels]
+  n: [0.20, 0.25, 1152]
+  s: [0.20, 0.50, 1152]
+  m: [0.25, 1.00, 512]
+  l: [0.35, 1.00, 512]
+  x: [0.35, 1.50, 512]
+
+# UltraViT backbone: RepMixer stages 1-3 (FastViT ConvFFN) + MHSA stage 4, strides 4/8/16/32
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]] # 0 P1/2 stem
+  - [-1, 1, Conv, [96, 3, 2]] # 1 P2/4 stem
+  - [-1, 5, RepUltraViTBlock, [3, True, 0.00001, True]] # 2 stage1 P2/4
+  - [-1, 1, Conv, [192, 3, 2]] # 3 P3/8 downsample
+  - [-1, 5, RepUltraViTBlock, [3, True, 0.00001, True]] # 4 stage2 P3/8
+  - [-1, 1, Conv, [384, 3, 2]] # 5 P4/16 downsample
+  - [-1, 20, RepUltraViTBlock, [3, True, 0.00001, True]] # 6 stage3 P4/16
+  - [-1, 1, Conv, [1152, 3, 2]] # 7 P5/32 downsample
+  - [-1, 5, MHSABlock, [0, 4, True, 0.00001, True, 32]] # 8 stage4 P5/32
+
+# Head
+head:
+  - [-1, 1, Classify, [nc]] # 9 AdaptiveAvgPool + Conv1x1 + Linear

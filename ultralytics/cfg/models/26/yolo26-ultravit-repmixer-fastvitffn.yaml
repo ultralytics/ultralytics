@@ -1,0 +1,41 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Lane A candidate A2: yolo26-ultravit-repmixer.yaml with the paper-exact FastViT ConvFFN order.
+# Motivation: real FastViT ConvFFN runs a DW7x7+BN at input width BEFORE the 1x1 expansion; ours runs
+# a DW3x3+BN at hidden width AFTER it. `fastvit_ffn=True` (RepUltraViTBlock's 4th arg) switches to the
+# paper-exact form. P5 head_dim stays 32 (single-knob vs the repmixer baseline, isolated from A1).
+nc: 80
+end2end: True
+reg_max: 1
+scales:
+  n: [0.20, 0.25, 1152]
+  s: [0.20, 0.50, 1152]
+  m: [0.25, 1.00, 512]
+  l: [0.35, 1.00, 512]
+  x: [0.35, 1.50, 512]
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [96, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [3, True, 0.00001, True]]
+  - [-1, 1, Conv, [192, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [3, True, 0.00001, True]]
+  - [-1, 1, Conv, [384, 3, 2]]
+  - [-1, 20, RepUltraViTBlock, [3, True, 0.00001, True]]
+  - [-1, 1, Conv, [1152, 3, 2]]
+  - [-1, 5, MHSABlock, [0, 4, True, 0.00001, True, 32]]
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]]
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, 2, C3k2, [256, True]]
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 11], 1, Concat, [1]]
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 8], 1, Concat, [1]]
+  - [-1, 1, C3k2, [1024, True, 0.5, True]]
+  - [[14, 17, 20], 1, Detect, [nc]]

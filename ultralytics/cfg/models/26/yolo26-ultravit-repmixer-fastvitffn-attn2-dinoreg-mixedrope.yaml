@@ -1,0 +1,48 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Positional-encoding arm over the attn2-dinoreg baseline.
+# P5 attention uses RoPE-Mixed, with learned per-head 2D rotary frequencies.
+# Every other setting is held at the dinoreg control, so positional encoding is the only
+# variable. Storage tokens carry no patch position, so RoPE2DBlock leaves their K/V prefix
+# unrotated.
+#
+# Lane A detector counterpart of the matching -cls yaml. Backbone rows 0-8 match it, so phase-1
+# distilled weights cover 100% of the det backbone. P5 adds DINO-style qkv/proj biases, four
+# per-block storage tokens, and 64-wide heads.
+# Family s-x. Scale n is unsupported: head_dim 64 does not divide n's 288-wide P5.
+
+nc: 80
+end2end: True
+reg_max: 1
+
+scales:
+  s: [0.20, 0.50, 1152]
+  m: [0.25, 1.00, 512]
+  l: [0.35, 1.00, 512]
+  x: [0.35, 1.50, 512]
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [96, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [3, True, 0.00001, True]]
+  - [-1, 1, Conv, [192, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [3, True, 0.00001, True]]
+  - [-1, 1, Conv, [384, 3, 2]]
+  - [-1, 20, RepUltraViTBlock, [3, True, 0.00001, True]]
+  - [-1, 1, Conv, [1152, 3, 2]]
+  - [-1, 8, MixedRoPE2D, [0, 4, True, 0.00001, True, 64, True, True, False, 4]]
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]]
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, 2, C3k2, [256, True]]
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 11], 1, Concat, [1]]
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 8], 1, Concat, [1]]
+  - [-1, 1, C3k2, [1024, True, 0.5, True]]
+  - [[14, 17, 20], 1, Detect, [nc]]

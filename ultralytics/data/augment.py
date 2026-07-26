@@ -54,6 +54,7 @@ class BaseTransform:
         labels = self.apply_image(labels, params)
         labels = self.apply_instances(labels, params)
         labels = self.apply_semantic(labels, params)
+        labels = self.apply_depth(labels, params)
         return labels
 
     def get_params(self, labels):
@@ -99,6 +100,18 @@ class BaseTransform:
 
         Args:
             labels (dict): Dictionary containing 'semantic_mask'.
+            params (dict | None): Parameters from get_params.
+
+        Returns:
+            (dict): Updated labels dictionary.
+        """
+        return labels
+
+    def apply_depth(self, labels, params=None):
+        """Apply transformation to depth map.
+
+        Args:
+            labels (dict): Dictionary containing 'depth'.
             params (dict | None): Parameters from get_params.
 
         Returns:
@@ -332,6 +345,7 @@ class BaseMixTransform(BaseTransform):
         labels = self.apply_image(labels, params)
         labels = self.apply_instances(labels, params)
         labels = self.apply_semantic(labels, params)
+        labels = self.apply_depth(labels, params)
         labels.pop("mix_labels", None)
         return labels
 
@@ -1173,10 +1187,11 @@ class RandomPerspective(BaseTransform):
         M = params["M"]
         size = params["size"]
         if (size[0] != img.shape[1] or size[1] != img.shape[0]) or (M != np.eye(3)).any():  # image changed
+            # 4 values: cv2 tiles borderValue in blocks of 4, so a 3-tuple zeroes every 4th multispectral channel
             if self.perspective:
-                img = cv2.warpPerspective(img, M, dsize=size, borderValue=(114, 114, 114))
+                img = cv2.warpPerspective(img, M, dsize=size, borderValue=(114, 114, 114, 114))
             else:  # affine
-                img = cv2.warpAffine(img, M[:2], dsize=size, borderValue=(114, 114, 114))
+                img = cv2.warpAffine(img, M[:2], dsize=size, borderValue=(114, 114, 114, 114))
             if img.ndim == 2:
                 img = img[..., None]
         labels["img"] = img
@@ -1353,6 +1368,26 @@ class RandomPerspective(BaseTransform):
             else:
                 mask = cv2.warpAffine(mask, M[:2], dsize=size, flags=cv2.INTER_NEAREST, borderValue=255)
         labels["semantic_mask"] = mask
+        return labels
+
+    def apply_depth(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Apply the same projective warp to metric depth maps.
+
+        Depth values remain in meters; only their spatial support is warped. Nearest-neighbor interpolation avoids
+        manufacturing spurious near-zero "valid" pixels when sparse or invalid regions border real depth.
+        """
+        depth = labels.get("depth")
+        if depth is None:
+            return labels
+
+        M = params["M"]
+        size = params["size"]
+        if (size[0] != depth.shape[1] or size[1] != depth.shape[0]) or (M != np.eye(3)).any():
+            if self.perspective:
+                depth = cv2.warpPerspective(depth, M, dsize=size, flags=cv2.INTER_NEAREST, borderValue=0)
+            else:
+                depth = cv2.warpAffine(depth, M[:2], dsize=size, flags=cv2.INTER_NEAREST, borderValue=0)
+        labels["depth"] = depth
         return labels
 
     @staticmethod
@@ -1599,6 +1634,25 @@ class RandomFlip(BaseTransform):
                 labels["semantic_mask"] = np.ascontiguousarray(np.flipud(labels["semantic_mask"]))
             elif params["direction"] == "horizontal":
                 labels["semantic_mask"] = np.ascontiguousarray(np.fliplr(labels["semantic_mask"]))
+        return labels
+
+    def apply_depth(self, labels: dict[str, Any], params: dict[str, Any]) -> dict[str, Any]:
+        """Apply flip to the paired metric depth map.
+
+        Args:
+            labels (dict[str, Any]): Dictionary containing 'depth'.
+            params (dict): Parameters from get_params.
+
+        Returns:
+            (dict): Updated labels with flipped (or unchanged) depth map.
+        """
+        if labels.get("depth") is None:
+            return labels
+        if params["flip"]:
+            if params["direction"] == "vertical":
+                labels["depth"] = np.ascontiguousarray(np.flipud(labels["depth"]))
+            elif params["direction"] == "horizontal":
+                labels["depth"] = np.ascontiguousarray(np.fliplr(labels["depth"]))
         return labels
 
 
@@ -2116,19 +2170,17 @@ class Albumentations(BaseTransform):
                 else transforms
             )
 
-            # Compose transforms with support for bboxes, keypoints, and masks
+            # Compose transforms, 'idx' tracks which instances survive bbox filtering so keypoints/segments follow
             self.contains_spatial = any(transform.__class__.__name__ in spatial_transforms for transform in T)
-            if self.contains_spatial:
-                # Add both bbox and keypoint parameters for full support
-                self.transform = A.Compose(
+            self.transform = (
+                A.Compose(
                     T,
-                    bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]),
-                    keypoint_params=A.KeypointParams(
-                        format="xy", label_fields=["keypoint_labels"], remove_invisible=False
-                    ),
+                    bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels", "idx"]),
+                    keypoint_params=A.KeypointParams(format="xy", remove_invisible=False),
                 )
-            else:
-                self.transform = A.Compose(T)
+                if self.contains_spatial
+                else A.Compose(T)
+            )
             if hasattr(self.transform, "set_random_seed"):
                 # Required for deterministic transforms in albumentations>=1.4.21
                 self.transform.set_random_seed(torch.initial_seed())
@@ -2149,6 +2201,7 @@ class Albumentations(BaseTransform):
                 - 'img': np.ndarray representing the image
                 - 'cls': np.ndarray of class labels
                 - 'instances': object containing bounding boxes and other instance information
+                - 'semantic_mask': optional np.ndarray of semantic class IDs
 
         Returns:
             (dict[str, Any]): The input dictionary with augmented image and updated annotations.
@@ -2177,134 +2230,51 @@ class Albumentations(BaseTransform):
 
         if self.contains_spatial:
             cls = labels["cls"]
-            if len(cls):
-                labels["instances"].convert_bbox("xywh")
-                labels["instances"].normalize(*im.shape[:2][::-1])
-                bboxes = labels["instances"].bboxes
-                num_instances_orig = len(cls)
-
-                # Prepare transform arguments
-                transform_args = {"image": im, "bboxes": bboxes, "class_labels": cls}
-
-                # Collect all keypoints: pose keypoints + segment points (treated as keypoints)
-                # Both are xy coordinates that need the same spatial transformation
-                all_keypoints = []
-                keypoint_labels = []
-
-                # Add keypoints if present (for pose tasks)
-                keypoints = labels["instances"].keypoints
-                num_kpts_per_instance = 0
-                if keypoints is not None and len(keypoints):
-                    # Albumentations expects keypoints in (x, y) format, shape (N*num_kpts, 2)
-                    # YOLO keypoints are (N, num_kpts, 2 or 3) where last dim might include visibility
-                    num_kpts_per_instance = keypoints.shape[1]
-                    kpts_xy = keypoints[..., :2].reshape(-1, 2)  # Flatten to (N*num_kpts, 2)
-                    all_keypoints.extend(kpts_xy.tolist())
-                    # Label each keypoint with its instance index (for pose keypoints: 0 to N-1)
-                    keypoint_labels.extend([i // num_kpts_per_instance for i in range(len(kpts_xy))])
-
-                # Add segments if present (for segmentation tasks)
-                # Treat segment polygon points as keypoints for efficient transformation
-                # This avoids costly mask conversion (polygons2masks -> transform -> masks2segments)
-                segments = labels["instances"].segments
-                num_seg_points_per_instance = 0
-                if segments is not None and len(segments):
-                    # Segments shape: (N, M, 2) where M is points per segment
-                    num_seg_points_per_instance = segments.shape[1]
-                    seg_points = segments.reshape(-1, 2)  # Flatten to (N*M, 2)
-                    all_keypoints.extend(seg_points.tolist())
-                    # Label each segment point with its instance index + offset to distinguish from pose kpts
-                    # Use instance_idx + num_instances_orig to separate segment labels from pose labels
-                    keypoint_labels.extend(
-                        [num_instances_orig + (i // num_seg_points_per_instance) for i in range(len(seg_points))]
-                    )
-
-                # Set keypoints in transform args
-                transform_args["keypoints"] = all_keypoints if all_keypoints else []
-                transform_args["keypoint_labels"] = keypoint_labels if keypoint_labels else []
-
-                # Apply transformation
-                new = self.transform(**transform_args)
-
-                if len(new["class_labels"]) > 0:  # skip update if no bbox in new im
+            mask = labels.get("semantic_mask")
+            if len(cls) or mask is not None:
+                instances = labels["instances"]
+                instances.convert_bbox("xywh")
+                h, w = im.shape[:2]
+                instances.normalize(w, h)
+                bboxes = instances.bboxes
+                # Pose keypoints and segment vertices are both xy points, so transform them together as keypoints
+                keypoints, segments = instances.keypoints, instances.segments
+                nkpt = keypoints.shape[1] if keypoints is not None and len(keypoints) else 0
+                nseg = segments.shape[1] if len(segments) else 0
+                points = [
+                    x for x in (keypoints[..., :2] if nkpt else None, segments if nseg else None) if x is not None
+                ]
+                points = np.concatenate(points, 1).reshape(-1, 2) * (w, h) if points else np.zeros((0, 2), np.float32)
+                new = self.transform(
+                    image=im,
+                    bboxes=bboxes,
+                    class_labels=cls,
+                    idx=np.arange(len(cls)),
+                    keypoints=points,
+                    **({"mask": mask} if mask is not None else {}),
+                )
+                if len(new["class_labels"]) > 0 or mask is not None:  # only box-only samples skip on losing all boxes
                     labels["img"] = new["image"]
                     labels["cls"] = np.array(new["class_labels"]).reshape(-1, 1)
-                    bboxes = np.array(new["bboxes"], dtype=np.float32)
-                    num_instances = len(new["class_labels"])
-                    h, w = new["image"].shape[:2]
-
-                    # Reconstruct keypoints and segments using keypoint_labels to track instances
-                    # Albumentations keeps all keypoints but may filter some bboxes
-                    # We need to use labels to identify which points belong to kept instances
-                    if "keypoints" in new and len(new["keypoints"]):
-                        new_kpts_array = np.array(new["keypoints"])
-                        new_kpt_labels = np.array(new["keypoint_labels"])
-
-                        # Expected total based on ORIGINAL instance count
-                        total_pose_kpts_orig = num_instances_orig * num_kpts_per_instance
-                        total_seg_points_orig = num_instances_orig * num_seg_points_per_instance
-                        expected_total = total_pose_kpts_orig + total_seg_points_orig
-
-                        if len(new_kpts_array) == expected_total:
-                            # Extract pose keypoints if present
-                            if keypoints is not None and len(keypoints) and num_kpts_per_instance > 0:
-                                # Labels 0 to num_instances_orig-1 are pose keypoints
-                                pose_mask = new_kpt_labels < num_instances_orig
-                                pose_kpts_flat = new_kpts_array[pose_mask]
-                                new_kpt_labels[pose_mask]
-
-                                # Reshape to (N_orig, num_kpts, 2) then filter to kept instances
-                                pose_kpts = pose_kpts_flat.reshape(num_instances_orig, num_kpts_per_instance, 2)
-
-                                # Find which original instances were kept (their bboxes are in new["bboxes"])
-                                # Since we can't directly know, assume first N instances were kept
-                                # This is a limitation - in practice bboxes are kept if they remain valid
-                                pose_kpts = pose_kpts[:num_instances]
-
-                                # Preserve visibility information if it existed (3rd dimension)
-                                if keypoints.shape[2] == 3:
-                                    visibility = keypoints[:num_instances, :, 2:3]
-                                    # Update visibility for out-of-bounds keypoints
-                                    out_mask = (
-                                        (pose_kpts[..., 0] < 0)
-                                        | (pose_kpts[..., 1] < 0)
-                                        | (pose_kpts[..., 0] > w)
-                                        | (pose_kpts[..., 1] > h)
-                                    )
-                                    visibility = visibility.copy()
-                                    visibility[out_mask] = 0
-                                    pose_kpts = np.concatenate([pose_kpts, visibility], axis=2)
-                                labels["instances"].keypoints = pose_kpts
-
-                            # Extract segment points if present
-                            if segments is not None and len(segments) and num_seg_points_per_instance > 0:
-                                # Labels >= num_instances_orig are segment points
-                                seg_mask = new_kpt_labels >= num_instances_orig
-                                seg_kpts_flat = new_kpts_array[seg_mask]
-
-                                # Reshape to (N_orig, num_seg_points, 2) then filter to kept instances
-                                seg_points = seg_kpts_flat.reshape(num_instances_orig, num_seg_points_per_instance, 2)
-                                seg_points = seg_points[:num_instances]
-
-                                # Clip segment points to image boundaries and derive bboxes
-                                # Similar to RandomPerspective.apply_segments
-                                seg_bboxes = np.array([segment2box(seg, w, h) for seg in seg_points], dtype=np.float32)
-                                # Clip segments to their bounding boxes
-                                seg_points[..., 0] = seg_points[..., 0].clip(seg_bboxes[:, 0:1], seg_bboxes[:, 2:3])
-                                seg_points[..., 1] = seg_points[..., 1].clip(seg_bboxes[:, 1:2], seg_bboxes[:, 3:4])
-                                labels["instances"].segments = seg_points
-                                # Update bboxes from segments for better accuracy
-                                bboxes = seg_bboxes
-                        else:
-                            LOGGER.warning(
-                                f"Keypoint count mismatch after Albumentations: "
-                                f"expected {expected_total}, got {len(new_kpts_array)}. "
-                                f"Skipping keypoint/segment update."
-                            )
-                            if keypoints is not None:
-                                labels["instances"].keypoints = None
-
-                labels["instances"].update(bboxes=bboxes)
+                    bboxes = np.array(new["bboxes"], dtype=np.float32).reshape(-1, 4)
+                    if mask is not None:
+                        labels["semantic_mask"] = new["mask"]
+                    if nkpt or nseg:
+                        i = np.array(new["idx"], dtype=int).reshape(-1)  # instances surviving the bbox filters
+                        h, w = new["image"].shape[:2]
+                        points = np.array(new["keypoints"], dtype=np.float32).reshape(-1, nkpt + nseg, 2)
+                        points /= (w, h)  # in-place to keep float32
+                        points = points[i]
+                        if nkpt:
+                            kpts = points[:, :nkpt]
+                            if keypoints.shape[2] == 3:  # restore visibility, hiding points warped out of the image
+                                vis = keypoints[i, :, 2:3]
+                                vis[(kpts < 0).any(-1) | (kpts > 1).any(-1)] = 0
+                                kpts = np.concatenate((kpts, vis), 2)
+                            instances.keypoints = kpts
+                        if nseg:
+                            instances.segments = points[:, nkpt:]
+                instances.update(bboxes=bboxes)
         else:
             labels["img"] = self.transform(image=labels["img"])["image"]  # transformed
 
@@ -2435,6 +2405,10 @@ class Format(BaseTransform):
         nl = params.get("nl", 0)
 
         if self.return_mask:
+            if self.mask_ratio > min(h, w):
+                raise ValueError(
+                    f"mask_ratio={self.mask_ratio} downsamples imgsz={(h, w)} masks to zero size; use mask_ratio <= {min(h, w)}"
+                )
             if nl:
                 masks, instances, cls = self._format_segments(instances, cls, w, h)
                 masks = torch.from_numpy(masks)
@@ -3086,6 +3060,48 @@ def classify_augmentations(
     ]
 
     return T.Compose(primary_tfl + secondary_tfl + final_tfl)
+
+
+class DepthFormat(Format):
+    """Format transform for monocular depth estimation: image via Format, depth map resized and tensorized.
+
+    Mirrors SemanticFormat: the base Format.apply_image converts the image (HWC BGR -> CHW RGB tensor), and the
+    apply_depth hook (run after apply_image in BaseTransform.__call__) resizes the paired depth map to the letterboxed
+    image size and emits it as a (1, H, W) float tensor.
+    """
+
+    def apply_depth(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Resize depth to the formatted image size (nearest) and emit a (1, H, W) float tensor.
+
+        Args:
+            labels (dict[str, Any]): Dictionary with 'img' (already a CHW tensor) and optionally 'depth'.
+            params (dict[str, Any] | None): Unused parameters for API compatibility.
+
+        Returns:
+            (dict[str, Any]): Updated labels with 'depth' as a (1, H, W) float tensor.
+        """
+        depth = labels.get("depth")
+        if depth is None or "img" not in labels:
+            return labels
+        _, h, w = labels["img"].shape
+        if depth.shape[:2] != (h, w):
+            depth = cv2.resize(depth, (w, h), interpolation=cv2.INTER_NEAREST)
+        labels["depth"] = torch.from_numpy(np.ascontiguousarray(depth[None])).float()
+        return labels
+
+    def apply_instances(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Remove instance-level keys not needed for depth estimation.
+
+        Args:
+            labels (dict[str, Any]): Dictionary to clean up.
+            params (dict[str, Any] | None): Unused parameters for API compatibility.
+
+        Returns:
+            (dict[str, Any]): Updated labels with unused keys removed.
+        """
+        for k in ("cls", "instances", "resized_shape", "ori_shape", "ratio_pad"):
+            labels.pop(k, None)
+        return labels
 
 
 # NOTE: keep this class for backward compatibility

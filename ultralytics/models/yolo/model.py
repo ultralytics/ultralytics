@@ -13,6 +13,7 @@ from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import (
     ClassificationModel,
+    DepthModel,
     DetectionModel,
     OBBModel,
     PoseModel,
@@ -117,6 +118,12 @@ class YOLO(Model):
                 "trainer": yolo.obb.OBBTrainer,
                 "validator": yolo.obb.OBBValidator,
                 "predictor": yolo.obb.OBBPredictor,
+            },
+            "depth": {
+                "model": DepthModel,
+                "trainer": yolo.depth.DepthTrainer,
+                "validator": yolo.depth.DepthValidator,
+                "predictor": yolo.depth.DepthPredictor,
             },
             "semantic": {
                 "model": SemanticSegmentationModel,
@@ -322,7 +329,7 @@ class YOLOE(Model):
         # Verify no background class is present
         assert " " not in classes
         assert isinstance(self.model, YOLOEModel)
-        if sorted(list(self.model.names.values())) != sorted(classes):
+        if sorted(self.model.names.values()) != sorted(classes):
             if embeddings is None:
                 embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
             self.model.set_classes(classes, embeddings)

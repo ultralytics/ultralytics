@@ -29,7 +29,7 @@ The Ultralytics command line interface (CLI) provides a straightforward way to u
         ```
 
         Where:
-        - `TASK` (optional) is one of [detect, segment, semantic, classify, pose, obb]
+        - `TASK` (optional) is one of [detect, segment, semantic, depth, classify, pose, obb]
         - `MODE` (required) is one of [train, val, predict, export, track, benchmark]
         - `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults.
 
@@ -82,7 +82,7 @@ The Ultralytics command line interface (CLI) provides a straightforward way to u
 
 Where:
 
-- `TASK` (optional) is one of `[detect, segment, semantic, classify, pose, obb]`. If not explicitly passed, YOLO will attempt to infer the `TASK` from the model type.
+- `TASK` (optional) is one of `[detect, segment, semantic, depth, classify, pose, obb]`. If not explicitly passed, YOLO will attempt to infer the `TASK` from the model type.
 - `MODE` (required) is one of `[train, val, predict, export, track, benchmark]`
 - `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults. For a full list of available `ARGS`, see the [Configuration](cfg.md) page and `default.yaml`.
 
@@ -417,7 +417,7 @@ This command uses the `train` mode with specific arguments. For a full list of a
 
 ### What tasks can I perform with the Ultralytics YOLO CLI?
 
-The Ultralytics YOLO CLI supports various tasks, including [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented bounding box detection](../tasks/obb.md). You can also perform operations like:
+The Ultralytics YOLO CLI supports various tasks, including [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented bounding box detection](../tasks/obb.md). You can also perform operations like:
 
 - **Train a Model**: Run `yolo train data=<data.yaml> model=<model.pt> epochs=<num>`.
 - **Run Predictions**: Use `yolo predict model=<model.pt> source=<data_source> imgsz=<image_size>`.

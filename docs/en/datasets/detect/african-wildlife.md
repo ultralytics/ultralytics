@@ -1,6 +1,12 @@
 ---
 title: African Wildlife Detection Dataset
 comments: true
+creator:
+    name: Bianca Ferreira
+    type: Person
+    url: https://www.kaggle.com/datasets/biancaferreira/african-wildlife
+license:
+    name: None
 description: Train YOLO object detection models on the African Wildlife Dataset — 1,504 images across 4 classes (buffalo, elephant, rhino, zebra) with automatic download.
 keywords: African Wildlife Dataset, object detection, computer vision, YOLO26, buffalo, elephant, rhino, zebra, wildlife conservation, animal detection
 ---
@@ -111,7 +117,7 @@ The African Wildlife Dataset comprises a wide variety of images showcasing diver
 
 ## Citations, License and Acknowledgments
 
-We'd like to thank the original dataset author, [Bianca Ferreira](https://www.kaggle.com/biancaferreira/datasets), for releasing this dataset to the community. The Ultralytics team has updated and adapted it internally so it can be used seamlessly with [Ultralytics YOLO](https://www.ultralytics.com/yolo) models. This dataset is available under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
+We'd like to thank the original dataset author, [Bianca Ferreira](https://www.kaggle.com/datasets/biancaferreira/african-wildlife), for releasing this dataset to the community. The Ultralytics team has updated and adapted it internally so it can be used seamlessly with [Ultralytics YOLO](https://www.ultralytics.com/yolo) models. The source dataset does not specify a license.
 
 If you use this dataset in your research, please cite it using the mentioned details:
 
@@ -126,7 +132,7 @@ If you use this dataset in your research, please cite it using the mentioned det
             title   = {African Wildlife Detection Dataset (Ultralytics YOLO Adaptation)},
             url     = {https://docs.ultralytics.com/datasets/detect/african-wildlife/},
             note    = {Original dataset by Bianca Ferreira; adapted for Ultralytics YOLO by Glenn Jocher and Muhammad Rizwan Munawar},
-            license = {AGPL-3.0},
+            license = {Not specified},
             version = {1.0.0},
             year    = {2024}
         }
@@ -175,4 +181,4 @@ The YAML configuration file for the African Wildlife Dataset, named `african-wil
 
 ### What license is the African Wildlife Dataset released under?
 
-The African Wildlife Dataset is available under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE). It was originally released on Kaggle by [Bianca Ferreira](https://www.kaggle.com/biancaferreira/datasets) and adapted by Ultralytics for seamless use with [Ultralytics YOLO](https://www.ultralytics.com/yolo) models. If you use the dataset in your research, please cite it using the BibTeX entry in the [Citations](#citations-license-and-acknowledgments) section.
+The [source dataset](https://www.kaggle.com/datasets/biancaferreira/african-wildlife) does not specify a license. It was originally published on Kaggle by Bianca Ferreira and adapted by Ultralytics for seamless use with [Ultralytics YOLO](https://www.ultralytics.com/yolo) models. If you use the dataset in your research, please cite it using the BibTeX entry in the [Citations](#citations-license-and-acknowledgments) section.

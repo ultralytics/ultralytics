@@ -1,14 +1,15 @@
 ---
+title: Extract and Crop Objects with YOLO26
 comments: true
-description: Learn how to crop and extract objects using Ultralytics YOLO11 for focused analysis, reduced data volume, and enhanced precision.
-keywords: Ultralytics, YOLO11, object cropping, object detection, image processing, video analysis, AI, machine learning
+description: Detect and crop objects from images and videos with Ultralytics YOLO26, saving each detection to disk for focused analysis and dataset building.
+keywords: Ultralytics, YOLO26, object cropping, object extraction, object detection, dataset creation, image processing, video analysis, AI, machine learning
 ---
 
-# Object Cropping using Ultralytics YOLO11
+# Object Cropping using Ultralytics YOLO26
 
 ## What is Object Cropping?
 
-Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics/) involves isolating and extracting specific detected objects from an image or video. The YOLO11 model capabilities are utilized to accurately identify and delineate objects, enabling precise cropping for further analysis or manipulation.
+Object cropping with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) involves isolating and extracting specific detected objects from an image or video. The YOLO26 model capabilities are utilized to accurately identify and delineate objects, enabling precise cropping for further analysis or manipulation.
 
 <p align="center">
   <br>
@@ -23,16 +24,20 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
 ## Advantages of Object Cropping
 
-- **Focused Analysis**: YOLO11 facilitates targeted object cropping, allowing for in-depth examination or processing of individual items within a scene.
+- **Focused Analysis**: YOLO26 facilitates targeted object cropping, allowing for in-depth examination or processing of individual items within a scene.
 - **Reduced Data Volume**: By extracting only relevant objects, object cropping helps in minimizing data size, making it efficient for storage, transmission, or subsequent computational tasks.
-- **Enhanced Precision**: YOLO11's [object detection](https://www.ultralytics.com/glossary/object-detection) [accuracy](https://www.ultralytics.com/glossary/accuracy) ensures that the cropped objects maintain their spatial relationships, preserving the integrity of the visual information for detailed analysis.
+- **Enhanced Precision**: YOLO26's [object detection](https://www.ultralytics.com/glossary/object-detection) [accuracy](https://www.ultralytics.com/glossary/accuracy) ensures that the cropped objects maintain their spatial relationships, preserving the integrity of the visual information for detailed analysis.
 
 ## Visuals
 
-|                                                                                Airport Luggage                                                                                 |
-| :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Conveyor Belt at Airport Suitcases Cropping using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/suitcases-cropping-airport-conveyor-belt.avif) |
-|                                                      Suitcases Cropping at airport conveyor belt using Ultralytics YOLO11                                                      |
+|                                                                                 Airport Luggage                                                                                 |
+| :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| ![Conveyor Belt at Airport Suitcases Cropping using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/suitcases-cropping-airport-conveyor-belt.avif) |
+|                                                      Suitcases Cropping at airport conveyor belt using Ultralytics YOLO26                                                       |
+
+## Crop Objects with YOLO26
+
+Pass your video to the `ObjectCropper` solution and it detects objects each frame and saves every detection as a separate image. Restrict cropping to specific `classes`, raise `conf` to keep only confident detections, and set `crop_dir` to choose where the crops are written.
 
 !!! example "Object Cropping using Ultralytics YOLO"
 
@@ -40,7 +45,7 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
         ```bash
         # Crop the objects
-        yolo solutions crop show=True
+        yolo solutions crop
 
         # Pass a source video
         yolo solutions crop source="path/to/video.mp4"
@@ -61,8 +66,7 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
         # Initialize object cropper
         cropper = solutions.ObjectCropper(
-            show=True,  # display the output
-            model="yolo11n.pt",  # model for object cropping, e.g., yolo11x.pt.
+            model="yolo26n.pt",  # model for object cropping, e.g., yolo26x.pt.
             classes=[0, 2],  # crop specific classes such as person and car with the COCO pretrained model.
             # conf=0.5,  # adjust confidence threshold for the objects.
             # crop_dir="cropped-detections",  # set the directory name for cropped detections
@@ -84,7 +88,7 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-        When you provide the optional `crop_dir` argument, every cropped object is written to that folder with filenames that include the source image name and class. This makes it easy to inspect detections or build downstream datasets without writing extra code.
+        When you provide the optional `crop_dir` argument, every cropped object is written to that folder with sequentially numbered filenames (e.g. `crop_1.jpg`, `crop_2.jpg`). This makes it easy to inspect detections or build downstream datasets without writing extra code.
 
 ### `ObjectCropper` Arguments
 
@@ -100,22 +104,22 @@ Moreover, the following visualization arguments are available for use:
 
 ## FAQ
 
-### What is object cropping in Ultralytics YOLO11 and how does it work?
+### What is object cropping in Ultralytics YOLO26 and how does it work?
 
-Object cropping using [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) involves isolating and extracting specific objects from an image or video based on YOLO11's detection capabilities. This process allows for focused analysis, reduced data volume, and enhanced [precision](https://www.ultralytics.com/glossary/precision) by leveraging YOLO11 to identify objects with high accuracy and crop them accordingly. For an in-depth tutorial, refer to the [object cropping example](#object-cropping-using-ultralytics-yolo11).
+Object cropping using [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) involves isolating and extracting specific objects from an image or video based on YOLO26's detection capabilities. This process allows for focused analysis, reduced data volume, and enhanced [precision](https://www.ultralytics.com/glossary/precision) by leveraging YOLO26 to identify objects with high accuracy and crop them accordingly. For an in-depth tutorial, refer to the [object cropping example](#crop-objects-with-yolo26).
 
-### Why should I use Ultralytics YOLO11 for object cropping over other solutions?
+### Why should I use Ultralytics YOLO26 for object cropping over other solutions?
 
-Ultralytics YOLO11 stands out due to its precision, speed, and ease of use. It allows detailed and accurate object detection and cropping, essential for [focused analysis](#advantages-of-object-cropping) and applications needing high data integrity. Moreover, YOLO11 integrates seamlessly with tools like [OpenVINO](../integrations/openvino.md) and [TensorRT](../integrations/tensorrt.md) for deployments requiring real-time capabilities and optimization on diverse hardware. Explore the benefits in the [guide on model export](../modes/export.md).
+Ultralytics YOLO26 stands out due to its precision, speed, and ease of use. It allows detailed and accurate object detection and cropping, essential for [focused analysis](#advantages-of-object-cropping) and applications needing high data integrity. Moreover, YOLO26 integrates seamlessly with tools like [OpenVINO](../integrations/openvino.md) and [TensorRT](../integrations/tensorrt.md) for deployments requiring real-time capabilities and optimization on diverse hardware. Explore the benefits in the [guide on model export](../modes/export.md).
 
 ### How can I reduce the data volume of my dataset using object cropping?
 
-By using Ultralytics YOLO11 to crop only relevant objects from your images or videos, you can significantly reduce the data size, making it more efficient for storage and processing. This process involves training the model to detect specific objects and then using the results to crop and save these portions only. For more information on exploiting Ultralytics YOLO11's capabilities, visit our [quickstart guide](../quickstart.md).
+By using Ultralytics YOLO26 to crop only relevant objects from your images or videos, you can significantly reduce the data size, making it more efficient for storage and processing. This process involves training the model to detect specific objects and then using the results to crop and save these portions only. For more information on exploiting Ultralytics YOLO26's capabilities, visit our [quickstart guide](../quickstart.md).
 
-### Can I use Ultralytics YOLO11 for real-time video analysis and object cropping?
+### Can I use Ultralytics YOLO26 for real-time video analysis and object cropping?
 
-Yes, Ultralytics YOLO11 can process real-time video feeds to detect and crop objects dynamically. The model's high-speed inference capabilities make it ideal for real-time applications such as [surveillance](security-alarm-system.md), sports analysis, and automated inspection systems. Check out the [tracking](../modes/track.md) and [prediction modes](../modes/predict.md) to understand how to implement real-time processing.
+Yes, Ultralytics YOLO26 can process real-time video feeds to detect and crop objects dynamically. The model's high-speed inference capabilities make it ideal for real-time applications such as [surveillance](security-alarm-system.md), sports analysis, and automated inspection systems. Check out the [tracking](../modes/track.md) and [prediction modes](../modes/predict.md) to understand how to implement real-time processing.
 
-### What are the hardware requirements for efficiently running YOLO11 for object cropping?
+### What are the hardware requirements for efficiently running YOLO26 for object cropping?
 
-Ultralytics YOLO11 is optimized for both CPU and GPU environments, but to achieve optimal performance, especially for real-time or high-volume inference, a dedicated GPU (e.g., NVIDIA Tesla, RTX series) is recommended. For deployment on lightweight devices, consider using [CoreML](../integrations/coreml.md) for iOS or [TFLite](../integrations/tflite.md) for Android. More details on supported devices and formats can be found in our [model deployment options](../guides/model-deployment-options.md).
+Ultralytics YOLO26 is optimized for both CPU and GPU environments, but to achieve optimal performance, especially for real-time or high-volume inference, a dedicated GPU (e.g., NVIDIA Tesla, RTX series) is recommended. For deployment on lightweight devices, consider using [CoreML](../integrations/coreml.md) for iOS or [LiteRT](../integrations/litert.md) for Android. More details on supported devices and formats can be found in our [model deployment options](../guides/model-deployment-options.md).

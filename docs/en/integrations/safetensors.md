@@ -109,14 +109,15 @@ Exporting YOLO models to SafeTensors is straightforward:
 
 When exporting to SafeTensors format, you can specify the following arguments:
 
-| Argument | Type            | Default | Description                                            |
-| -------- | --------------- | ------- | ------------------------------------------------------ |
-| `format` | `str`           | `None`  | Target format: `'safetensors'`                         |
-| `imgsz`  | `int` or `list` | `640`   | Image size for model input                             |
-| `half`   | `bool`          | `False` | Export model in FP16 (half precision) for smaller size |
-| `int8`   | `bool`          | `False` | Enable INT8 quantization (requires calibration data)   |
-| `batch`  | `int`           | `1`     | Batch size for export                                  |
-| `device` | `str`           | `None`  | Device to use for export (`'cpu'`, `'cuda:0'`)         |
+| Argument   | Type             | Default         | Description                                                                                                                             |
+| ---------- | ---------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'safetensors'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
+| `imgsz`    | `int` or `tuple` | `640`           | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
+| `quantize` | `int` or `str`   | `None`          | Weight precision. `None` (or `32`) keeps FP32 weights, `16` stores FP16 weights for a ~50% smaller file.                                |
+| `batch`    | `int`            | `1`             | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `device`   | `str`            | `None`          | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                         |
+
+See [Quantization Options](../modes/export.md#quantization-options) for full details on the `quantize` argument.
 
 ### Export Examples
 
@@ -130,8 +131,8 @@ Export with different configurations:
         from ultralytics import YOLO
 
         model = YOLO("yolo11n.pt")
-        # Export with half precision for ~50% smaller file size
-        model.export(format="safetensors", half=True)
+        # Export FP16 weights for a ~50% smaller file
+        model.export(format="safetensors", quantize=16)
         # Creates 'yolo11n_fp16.safetensors' file
         ```
 
@@ -143,18 +144,7 @@ Export with different configurations:
         model = YOLO("yolo11n.pt")
         # Export with specific batch size
         model.export(format="safetensors", batch=4)
-        # Creates 'yolo11n_b4.safetensors' file
-        ```
-
-    === "Combined Options"
-
-        ```python
-        from ultralytics import YOLO
-
-        model = YOLO("yolo11n.pt")
-        # Export with FP16 and batch size
-        model.export(format="safetensors", half=True, batch=2)
-        # Creates 'yolo11n_b2_fp16.safetensors' file
+        # Creates 'yolo11n.safetensors' file
         ```
 
 ### Output Structure
@@ -212,13 +202,15 @@ print(f"mAP50-95: {metrics.box.map}")
 
 SafeTensors export works with all YOLO task types:
 
-| Task           | Model Example     | Export Command                                         |
-| -------------- | ----------------- | ------------------------------------------------------ |
-| Detection      | `yolo11n.pt`      | `yolo export model=yolo11n.pt format=safetensors`      |
-| Segmentation   | `yolo11n-seg.pt`  | `yolo export model=yolo11n-seg.pt format=safetensors`  |
-| Classification | `yolo11n-cls.pt`  | `yolo export model=yolo11n-cls.pt format=safetensors`  |
-| Pose           | `yolo11n-pose.pt` | `yolo export model=yolo11n-pose.pt format=safetensors` |
-| OBB            | `yolo11n-obb.pt`  | `yolo export model=yolo11n-obb.pt format=safetensors`  |
+| Task           | Model Example      | Export Command                                          |
+| -------------- | ------------------ | ------------------------------------------------------- |
+| Detection      | `yolo11n.pt`       | `yolo export model=yolo11n.pt format=safetensors`       |
+| Segmentation   | `yolo11n-seg.pt`   | `yolo export model=yolo11n-seg.pt format=safetensors`   |
+| Classification | `yolo11n-cls.pt`   | `yolo export model=yolo11n-cls.pt format=safetensors`   |
+| Pose           | `yolo11n-pose.pt`  | `yolo export model=yolo11n-pose.pt format=safetensors`  |
+| OBB            | `yolo11n-obb.pt`   | `yolo export model=yolo11n-obb.pt format=safetensors`   |
+| Semantic       | `yolo26n-sem.pt`   | `yolo export model=yolo26n-sem.pt format=safetensors`   |
+| Depth          | `yolo26n-depth.pt` | `yolo export model=yolo26n-depth.pt format=safetensors` |
 
 !!! note
 
@@ -261,7 +253,7 @@ Key takeaways:
 - **Security**: No arbitrary code execution during model loading
 - **Single file**: Everything is contained in one `.safetensors` file (metadata embedded)
 - **Simple export**: Use `format='safetensors'` to export
-- **Full compatibility**: Works with all YOLO tasks (detect, segment, classify, pose, obb)
+- **Full compatibility**: Works with all YOLO tasks (detect, segment, classify, pose, obb, semantic, depth)
 - **Flexible options**: Support for FP16 and batch size configuration
 
 ## FAQ
@@ -297,7 +289,7 @@ SafeTensors exported models are optimized for inference. For training, use the o
 
 ### Why is the SafeTensors file larger than the .pt file?
 
-PyTorch `.pt` files use compression, while SafeTensors stores raw tensor data for faster memory-mapped access. The larger file size is a tradeoff for significantly faster loading times. Use `half=True` during export to reduce file size by ~50% with FP16 precision.
+PyTorch `.pt` files use compression, while SafeTensors stores raw tensor data for faster memory-mapped access. The larger file size is a tradeoff for significantly faster loading times. Use `quantize=16` during export to reduce file size by ~50% with FP16 precision.
 
 ### Is SafeTensors compatible with Hugging Face Hub?
 

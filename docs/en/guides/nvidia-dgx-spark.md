@@ -1,15 +1,16 @@
 ---
+title: YOLO26 on NVIDIA DGX Spark
 comments: true
-description: Learn to deploy Ultralytics YOLO11 on NVIDIA DGX Spark with our detailed guide. Explore performance benchmarks and maximize AI capabilities on this compact desktop AI supercomputer.
-keywords: Ultralytics, YOLO11, NVIDIA DGX Spark, AI deployment, performance benchmarks, deep learning, TensorRT, computer vision, GB10 Grace Blackwell
+description: Learn to deploy Ultralytics YOLO26 on NVIDIA DGX Spark with our detailed guide. Explore performance benchmarks and maximize AI capabilities on this compact desktop AI supercomputer.
+keywords: Ultralytics, YOLO26, NVIDIA DGX Spark, AI deployment, performance benchmarks, deep learning, TensorRT, computer vision, GB10 Grace Blackwell
 ---
 
-# Quick Start Guide: NVIDIA DGX Spark with Ultralytics YOLO11
+# Quick Start Guide: NVIDIA DGX Spark with Ultralytics YOLO26
 
-This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLO11 on [NVIDIA DGX Spark](https://www.nvidia.com/en-us/products/workstations/dgx-spark/), NVIDIA's compact desktop AI supercomputer. Additionally, it showcases performance benchmarks to demonstrate the capabilities of YOLO11 on this powerful system.
+This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLO26 on [NVIDIA DGX Spark](https://www.nvidia.com/en-us/products/workstations/dgx-spark/), NVIDIA's compact desktop AI supercomputer. Additionally, it showcases performance benchmarks to demonstrate the capabilities of YOLO26 on this powerful system.
 
 <p align="center">
-  <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/nvidia-dgx-spark.avif" alt="NVIDIA DGX Spark">
+  <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/nvidia-dgx-spark.avif" alt="NVIDIA DGX Spark AI workstation overview">
 </p>
 
 !!! note
@@ -19,6 +20,17 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
 ## What is NVIDIA DGX Spark?
 
 NVIDIA DGX Spark is a compact desktop AI supercomputer powered by the NVIDIA GB10 Grace Blackwell Superchip. It delivers up to 1 petaFLOP of AI computing performance with FP4 precision, making it ideal for developers, researchers, and data scientists who need powerful AI capabilities in a desktop form factor.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/VHGfpOrPh-s"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Get up to 1000 FPS with Ultralytics YOLO26 on NVIDIA DGX Spark | <a href="https://docs.ultralytics.com/integrations/tensorrt">TensorRT</a> & Batch Inference
+</p>
 
 ### Key Specifications
 
@@ -54,7 +66,7 @@ DGX Spark comes with a built-in [DGX Dashboard](https://docs.nvidia.com/dgx/dgx-
 - **Integrated JupyterLab**: Access local Jupyter Notebooks for development
 
 <p align="center">
-  <img width="1024" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/dgx-dashboard.avif" alt="NVIDIA DGX Dashboard">
+  <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/nvidia-dgx-dashboard.avif" alt="NVIDIA DGX management dashboard interface">
 </p>
 
 #### Accessing the Dashboard
@@ -67,7 +79,7 @@ DGX Spark comes with a built-in [DGX Dashboard](https://docs.nvidia.com/dgx/dgx-
 
     ```bash
     # Open an SSH tunnel
-    ssh -L 11000:localhost:11000 <username>@<IP or spark-abcd.local>
+    ssh -L 11000:localhost:11000 username@spark-abcd.local
 
     # Then open in browser
     # http://localhost:11000
@@ -83,12 +95,14 @@ DGX Spark comes with a built-in [DGX Dashboard](https://docs.nvidia.com/dgx/dgx-
 
 ## Quick Start with Docker
 
-The fastest way to get started with Ultralytics YOLO11 on NVIDIA DGX Spark is to run with pre-built docker images. The same Docker image that supports Jetson AGX Thor (JetPack 7.0) works on DGX Spark with DGX OS.
+The fastest way to get started with Ultralytics YOLO26 on NVIDIA DGX Spark is to run with pre-built docker images. The same Docker image that supports Jetson AGX Thor (JetPack 7.0) works on DGX Spark with DGX OS.
 
 ```bash
 t=ultralytics/ultralytics:latest-nvidia-arm64
-sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t
+sudo docker pull $t && sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t
 ```
+
+The CDI device request above applies to DGX Spark running DGX OS. On Jetson AGX Thor, launch the same image with `--runtime=nvidia` instead, as shown in the [NVIDIA Jetson guide](nvidia-jetson.md).
 
 After this is done, skip to [Use TensorRT on NVIDIA DGX Spark section](#use-tensorrt-on-nvidia-dgx-spark).
 
@@ -155,7 +169,7 @@ Among all the model export formats supported by Ultralytics, TensorRT offers the
 
 ### Convert Model to TensorRT and Run Inference
 
-The YOLO11n model in PyTorch format is converted to TensorRT to run inference with the exported model.
+The YOLO26n model in PyTorch format is converted to TensorRT to run inference with the exported model.
 
 !!! example
 
@@ -164,14 +178,14 @@ The YOLO11n model in PyTorch format is converted to TensorRT to run inference wi
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLO11n PyTorch model
-        model = YOLO("yolo11n.pt")
+        # Load a YOLO26n PyTorch model
+        model = YOLO("yolo26n.pt")
 
         # Export the model to TensorRT
-        model.export(format="engine")  # creates 'yolo11n.engine'
+        model.export(format="engine")  # creates 'yolo26n.engine'
 
         # Load the exported TensorRT model
-        trt_model = YOLO("yolo11n.engine")
+        trt_model = YOLO("yolo26n.engine")
 
         # Run inference
         results = trt_model("https://ultralytics.com/images/bus.jpg")
@@ -180,11 +194,11 @@ The YOLO11n model in PyTorch format is converted to TensorRT to run inference wi
     === "CLI"
 
         ```bash
-        # Export a YOLO11n PyTorch model to TensorRT format
-        yolo export model=yolo11n.pt format=engine # creates 'yolo11n.engine'
+        # Export a YOLO26n PyTorch model to TensorRT format
+        yolo export model=yolo26n.pt format=engine # creates 'yolo26n.engine'
 
         # Run inference with the exported model
-        yolo predict model=yolo11n.engine source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo26n.engine source='https://ultralytics.com/images/bus.jpg'
         ```
 
 !!! note
@@ -304,25 +318,25 @@ To reproduce the above Ultralytics benchmarks on all export [formats](../modes/e
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLO11n PyTorch model
-        model = YOLO("yolo11n.pt")
+        # Load a YOLO26n PyTorch model
+        model = YOLO("yolo26n.pt")
 
-        # Benchmark YOLO11n speed and accuracy on the COCO128 dataset for all export formats
+        # Benchmark YOLO26n speed and accuracy on the COCO128 dataset for all export formats
         results = model.benchmark(data="coco128.yaml", imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
-        # Benchmark YOLO11n speed and accuracy on the COCO128 dataset for all export formats
-        yolo benchmark model=yolo11n.pt data=coco128.yaml imgsz=640
+        # Benchmark YOLO26n speed and accuracy on the COCO128 dataset for all export formats
+        yolo benchmark model=yolo26n.pt data=coco128.yaml imgsz=640
         ```
 
     Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results, use a dataset with a large number of images, e.g., `data='coco.yaml'` (5000 val images).
 
 ## Best Practices for NVIDIA DGX Spark
 
-When using NVIDIA DGX Spark, there are a couple of best practices to follow in order to enable maximum performance running YOLO11.
+When using NVIDIA DGX Spark, there are a couple of best practices to follow in order to enable maximum performance running YOLO26.
 
 1. **Monitor System Performance**
 
@@ -339,7 +353,7 @@ When using NVIDIA DGX Spark, there are a couple of best practices to follow in o
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolo11n.engine")
+    model = YOLO("yolo26n.engine")
     results = model.predict(source="path/to/images", batch=16)
     ```
 
@@ -348,8 +362,8 @@ When using NVIDIA DGX Spark, there are a couple of best practices to follow in o
     For best performance, export models with FP16 or INT8 precision:
 
     ```bash
-    yolo export model=yolo11n.pt format=engine half=True # FP16
-    yolo export model=yolo11n.pt format=engine int8=True # INT8
+    yolo export model=yolo26n.pt format=engine quantize=16 # FP16
+    yolo export model=yolo26n.pt format=engine quantize=8  # INT8
     ```
 
 ## System Updates (Founders Edition)
@@ -382,25 +396,25 @@ sudo reboot
 
 ## Next Steps
 
-For further learning and support, see the [Ultralytics YOLO11 Docs](../index.md).
+For further learning and support, see the [Ultralytics YOLO26 Docs](../index.md).
 
 ## FAQ
 
-### How do I deploy Ultralytics YOLO11 on NVIDIA DGX Spark?
+### How do I deploy Ultralytics YOLO26 on NVIDIA DGX Spark?
 
-Deploying Ultralytics YOLO11 on NVIDIA DGX Spark is straightforward. You can use the pre-built Docker image for quick setup or manually install the required packages. Detailed steps for each approach can be found in sections [Quick Start with Docker](#quick-start-with-docker) and [Start with Native Installation](#start-with-native-installation).
+Deploying Ultralytics YOLO26 on NVIDIA DGX Spark is straightforward. You can use the pre-built Docker image for quick setup or manually install the required packages. Detailed steps for each approach can be found in sections [Quick Start with Docker](#quick-start-with-docker) and [Start with Native Installation](#start-with-native-installation).
 
-### What performance can I expect from YOLO11 on NVIDIA DGX Spark?
+### What performance can I expect from YOLO26 on NVIDIA DGX Spark?
 
-YOLO11 models deliver excellent performance on DGX Spark thanks to the GB10 Grace Blackwell Superchip. The TensorRT format provides the best inference performance. Check the [Detailed Comparison Table](#detailed-comparison-table) section for specific benchmark results across different model sizes and formats.
+YOLO26 models deliver excellent performance on DGX Spark thanks to the GB10 Grace Blackwell Superchip. The TensorRT format provides the best inference performance. Check the [Detailed Comparison Table](#detailed-comparison-table) section for specific benchmark results across different model sizes and formats.
 
-### Why should I use TensorRT for YOLO11 on DGX Spark?
+### Why should I use TensorRT for YOLO26 on DGX Spark?
 
-TensorRT is highly recommended for deploying YOLO11 models on DGX Spark due to its optimal performance. It accelerates inference by leveraging the Blackwell GPU capabilities, ensuring maximum efficiency and speed. Learn more in the [Use TensorRT on NVIDIA DGX Spark](#use-tensorrt-on-nvidia-dgx-spark) section.
+TensorRT is highly recommended for deploying YOLO26 models on DGX Spark due to its optimal performance. It accelerates inference by leveraging the Blackwell GPU capabilities, ensuring maximum efficiency and speed. Learn more in the [Use TensorRT on NVIDIA DGX Spark](#use-tensorrt-on-nvidia-dgx-spark) section.
 
-### How does DGX Spark compare to Jetson devices for YOLO11?
+### How does DGX Spark compare to Jetson devices for YOLO26?
 
-DGX Spark offers significantly more compute power than Jetson devices with up to 1 PFLOP of AI performance and 128GB unified memory, compared to Jetson AGX Thor's 2070 TFLOPS and 128GB memory. DGX Spark is designed as a desktop AI supercomputer, while Jetson devices are embedded systems optimized for edge deployment.
+DGX Spark offers up to 1 PFLOP of AI performance and 128GB unified memory, compared to Jetson AGX Thor's 2070 TFLOPS and 128GB memory. DGX Spark is designed as a desktop AI supercomputer, while Jetson devices are embedded systems optimized for edge deployment.
 
 ### Can I use the same Docker image for DGX Spark and Jetson AGX Thor?
 

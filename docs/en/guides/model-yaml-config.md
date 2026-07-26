@@ -8,7 +8,7 @@ keywords: Ultralytics, YOLO, model architecture, YAML configuration, neural netw
 
 The model YAML configuration file serves as the architectural blueprint for Ultralytics neural networks. It defines how layers connect, what parameters each module uses, and how the entire network scales across different model sizes.
 
-<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/yaml-configuration-guide.avif" alt="Model YAML configuration workflow.">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yaml-configuration-guide.avif" alt="Model YAML configuration workflow.">
 
 ## Configuration Structure
 
@@ -36,7 +36,7 @@ kpt_shape: [17, 3] # pose models only
 
 !!! tip "Reduce redundancy with `scales`"
 
-    The `scales` parameter lets you generate multiple model sizes from a single base YAML. For instance, when you load `yolo11n.yaml`, Ultralytics reads the base `yolo11.yaml` and applies the `n` scaling factors (`depth=0.50`, `width=0.25`) to build the nano variant.
+    The `scales` parameter lets you generate multiple model sizes from a single base YAML. For instance, when you load `yolo26n.yaml`, Ultralytics reads the base `yolo26.yaml` and applies the `n` scaling factors (`depth=0.50`, `width=0.25`) to build the nano variant.
 
 !!! note "`nc` and `kpt_shape` are dataset-dependent"
 
@@ -134,7 +134,7 @@ Modules are organized by functionality and defined in the [Ultralytics modules d
 | ------------- | --------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
 | `TorchVision` | Load any torchvision model        | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, model_name, weights, unwrap, truncate, split]` |
 | `Index`       | Extract specific tensor from list | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, index]`                                        |
-| `Detect`      | YOLO detection head               | [head.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/head.py)   | `[nc, anchors, ch]`                                      |
+| `Detect`      | YOLO detection head               | [head.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/head.py)   | `[nc]`                                                   |
 
 !!! info "Complete Module List"
 
@@ -202,11 +202,17 @@ Ultralytics uses a three-tier system in [`parse_model`](https://github.com/ultra
 
 ```python
 # Core resolution logic
-m = getattr(torch.nn, m[3:]) if "nn." in m else getattr(torchvision.ops, m[4:]) if "ops." in m else globals()[m]
+m = (
+    getattr(torch.nn, m[3:])
+    if "nn." in m
+    else getattr(torchvision.ops, m[16:])
+    if "torchvision.ops." in m
+    else globals()[m]
+)
 ```
 
 1. **PyTorch modules**: Names starting with `'nn.'` → `torch.nn` namespace
-2. **TorchVision operations**: Names starting with `'ops.'` → `torchvision.ops` namespace
+2. **TorchVision operations**: Names starting with `'torchvision.ops.'` → `torchvision.ops` namespace
 3. **Ultralytics modules**: All other names → global namespace via imports
 
 ### Module Import Chain
@@ -231,7 +237,7 @@ from ultralytics.nn.modules import (  # noqa: F401
 
 Modifying the source code is the most versatile way to integrate your custom modules, but it can be tricky. To define and use a custom module, follow these steps:
 
-1. **Install Ultralytics in development mode** using the Git clone method from the [Quickstart guide](https://docs.ultralytics.com/quickstart/#git-clone).
+1. **Install Ultralytics in development mode** using the Git clone method from the [Quickstart guide](../quickstart.md#how-do-i-clone-the-ultralytics-repository-for-development).
 
 2. **Define your module** in [`ultralytics/nn/modules/block.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py):
 
@@ -451,7 +457,7 @@ Yes. You can use any supported module, including TorchVision backbones, or defin
 
 ### How do I scale my model for different sizes (nano, small, medium, etc.)?
 
-Use the [`scales` section](#parameters-section) in your YAML to define scaling factors for depth, width, and max channels. The model will automatically apply these when you load the base YAML file with the scale appended to the filename (e.g., `yolo11n.yaml`).
+Use the [`scales` section](#parameters-section) in your YAML to define scaling factors for depth, width, and max channels. The model will automatically apply these when you load the base YAML file with the scale appended to the filename (e.g., `yolo26n.yaml`).
 
 ### What does the `[from, repeats, module, args]` format mean?
 

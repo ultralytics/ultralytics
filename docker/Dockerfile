@@ -4,7 +4,7 @@
 # Image is CUDA-optimized for YOLO single/multi-GPU training and inference
 
 # Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:25.02-py3
-FROM pytorch/pytorch:2.9.1-cuda12.8-cudnn9-runtime
+FROM pytorch/pytorch:2.11.0-cuda12.8-cudnn9-runtime
 
 # Set environment variables
 # Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library"
@@ -13,6 +13,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_BREAK_SYSTEM_PACKAGES=1 \
+    UV_BREAK_SYSTEM_PACKAGES=1 \
     MKL_THREADING_LAYER=GNU \
     OMP_NUM_THREADS=1 \
     TF_CPP_MIN_LOG_LEVEL=3 \
@@ -39,11 +40,10 @@ WORKDIR /ultralytics
 COPY . .
 RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config && \
     sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml
-ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
+ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
 # Install pip packages (uv already installed in base image)
-RUN uv pip install --system -e "." albumentations faster-coco-eval wandb && \
-    # Remove extra build files \
+RUN uv pip install --system --no-cache -e "." albumentations faster-coco-eval && \
     rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 
 # Usage --------------------------------------------------------------------------------------------------------------
@@ -52,8 +52,10 @@ RUN uv pip install --system -e "." albumentations faster-coco-eval wandb && \
 # Example (build): t=ultralytics/ultralytics:latest && docker build -f docker/Dockerfile -t $t .
 # Example (push): docker push $t
 # Example (pull): t=ultralytics/ultralytics:latest && docker pull $t
-# Example (run-gpu): docker run -it --ipc=host --runtime=nvidia --gpus all $t
-# Example (run-gpu-subset): docker run -it --ipc=host --runtime=nvidia --gpus "device=2,3" $t
-# Note: device=2,3 maps to CUDA 0,1 inside the container.
-# Example (run-with-volume): docker run -it --ipc=host --runtime=nvidia --gpus all -v "$PWD/shared/datasets:/datasets" $t
+# Example (run-gpu): docker run -it --ipc=host --device nvidia.com/gpu=all $t
+# Example (run-gpu-subset): docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t
+# Note: CDI devices 2,3 appear as cuda:0,1 inside the container.
+# Example (run-with-volume): docker run -it --ipc=host --device nvidia.com/gpu=all -v "$PWD/shared/datasets:/datasets" $t
+# CDI requires Docker >= 28.2.0 and nvidia-container-toolkit >= 1.18.
+# Legacy --gpus all can lose GPU access after host systemd daemon reloads (nvidia-container-toolkit#48).
 # Example (tag-release): t=ultralytics/ultralytics:latest tnew=ultralytics/ultralytics:vX.Y && docker tag $t $tnew && docker push $tnew

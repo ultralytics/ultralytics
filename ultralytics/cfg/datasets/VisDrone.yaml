@@ -1,12 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # VisDrone2019-DET dataset https://github.com/VisDrone/VisDrone-Dataset by Tianjin University
-# Documentation: https://docs.ultralytics.com/datasets/detect/visdrone/
+# Documentation: https://docs.ultralytics.com/datasets/detect/visdrone
 # Example usage: yolo train data=VisDrone.yaml
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── VisDrone ← downloads here (2.3 GB)
+#     └── VisDrone ← downloads here (~2 GB)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
 path: VisDrone # dataset root dir

@@ -2,7 +2,7 @@
 
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
-import torch.nn as nn
+from torch import nn
 
 from ultralytics.nn.modules.transformer import MLP
 from ultralytics.utils.patches import torch_load
@@ -138,7 +138,7 @@ def build_sam3_image_model(checkpoint_path: str, enable_segmentation: bool = Tru
     Args:
         checkpoint_path: Optional path to model checkpoint
         enable_segmentation: Whether to enable segmentation head
-        compile: To enable compilation, set to "default"
+        compile: Whether to enable compilation of the model
 
     Returns:
         A SAM3 image model
@@ -258,8 +258,13 @@ def build_sam3_image_model(checkpoint_path: str, enable_segmentation: bool = Tru
 def build_interactive_sam3(checkpoint_path: str, compile=None, with_backbone=True) -> SAM3Model:
     """Build the SAM3 Tracker module for video tracking.
 
+    Args:
+        checkpoint_path (str): Path to model checkpoint.
+        compile (str | None): Compilation mode for the vision backbone.
+        with_backbone (bool): Whether to include the vision backbone in the model.
+
     Returns:
-        Sam3TrackerPredictor: Wrapped SAM3 Tracker module
+        (SAM3Model): A configured and initialized SAM3 model.
     """
     # Create model components
     memory_encoder = MemoryEncoder(out_dim=64, interpol_size=[1152, 1152])
@@ -328,11 +333,11 @@ def build_interactive_sam3(checkpoint_path: str, compile=None, with_backbone=Tru
         no_obj_embed_spatial=True,
         proj_tpos_enc_in_obj_ptrs=True,
         use_signed_tpos_enc_to_obj_ptrs=True,
-        sam_mask_decoder_extra_args=dict(
-            dynamic_multimask_via_stability=True,
-            dynamic_multimask_stability_delta=0.05,
-            dynamic_multimask_stability_thresh=0.98,
-        ),
+        sam_mask_decoder_extra_args={
+            "dynamic_multimask_via_stability": True,
+            "dynamic_multimask_stability_delta": 0.05,
+            "dynamic_multimask_stability_thresh": 0.98,
+        },
     )
 
     # Load checkpoint if provided

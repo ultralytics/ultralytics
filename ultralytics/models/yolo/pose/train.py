@@ -8,7 +8,7 @@ from typing import Any
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import PoseModel
-from ultralytics.utils import DEFAULT_CFG
+from ultralytics.utils import DEFAULT_CFG, RANK
 
 
 class PoseTrainer(yolo.detect.DetectionTrainer):
@@ -21,7 +21,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         args (dict): Configuration arguments for training.
         model (PoseModel): The pose estimation model being trained.
         data (dict): Dataset configuration including keypoint shape information.
-        loss_names (tuple): Names of the loss components used in training.
+        loss_names (tuple): Names of the loss components, derived from the loss dict returned by the criterion.
 
     Methods:
         get_model: Retrieve a pose estimation model with specified configuration.
@@ -32,18 +32,18 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
 
     Examples:
         >>> from ultralytics.models.yolo.pose import PoseTrainer
-        >>> args = dict(model="yolo11n-pose.pt", data="coco8-pose.yaml", epochs=3)
+        >>> args = dict(model="yolo26n-pose.pt", data="coco8-pose.yaml", epochs=3)
         >>> trainer = PoseTrainer(overrides=args)
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks: dict | None = None):
         """Initialize a PoseTrainer object for training YOLO pose estimation models.
 
         Args:
             cfg (dict, optional): Default configuration dictionary containing training parameters.
             overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
-            _callbacks (list, optional): List of callback functions to be executed during training.
+            _callbacks (dict, optional): Dictionary of callback functions to be executed during training.
 
         Notes:
             This trainer will automatically set the task to 'pose' regardless of what is provided in overrides.
@@ -70,8 +70,14 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         Returns:
             (PoseModel): Initialized pose estimation model.
         """
-        model = PoseModel(
-            cfg, nc=self.data["nc"], ch=self.data["channels"], data_kpt_shape=self.data["kpt_shape"], verbose=verbose
+        model = self.set_model_names_for_load(
+            PoseModel(
+                cfg,
+                nc=self.data["nc"],
+                ch=self.data["channels"],
+                data_kpt_shape=self.data["kpt_shape"],
+                verbose=verbose and RANK == -1,
+            )
         )
         if weights:
             model.load(weights)
@@ -90,7 +96,6 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
 
     def get_validator(self):
         """Return an instance of the PoseValidator class for validation."""
-        self.loss_names = "box_loss", "pose_loss", "kobj_loss", "cls_loss", "dfl_loss"
         return yolo.pose.PoseValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

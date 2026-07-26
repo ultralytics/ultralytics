@@ -1,4 +1,5 @@
 ---
+title: nn.autobackend API Reference
 description: Get to know more about Ultralytics nn.autobackend.check_class_names functionality. Optimize your YOLO models seamlessly.
 keywords: Ultralytics, AutoBackend, check_class_names, YOLO, YOLO models, optimization
 ---
@@ -7,7 +8,7 @@ keywords: Ultralytics, AutoBackend, check_class_names, YOLO, YOLO models, optimi
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/autobackend.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/autobackend.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/autobackend.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/autobackend.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

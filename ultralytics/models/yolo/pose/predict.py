@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG, ops
 
@@ -25,7 +27,7 @@ class PosePredictor(DetectionPredictor):
         >>> predictor.predict_cli()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize PosePredictor for pose estimation tasks.
 
         Sets up a PosePredictor instance, configuring it for pose detection tasks and handling device-specific warnings
@@ -34,7 +36,7 @@ class PosePredictor(DetectionPredictor):
         Args:
             cfg (Any): Configuration for the predictor.
             overrides (dict, optional): Configuration overrides that take precedence over cfg.
-            _callbacks (list, optional): List of callback functions to be invoked during prediction.
+            _callbacks (dict, optional): Dictionary of callback functions to be invoked during prediction.
         """
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "pose"
@@ -62,6 +64,5 @@ class PosePredictor(DetectionPredictor):
         # Scale keypoints coordinates to match the original image dimensions
         pred_kpts = ops.scale_coords(img.shape[2:], pred_kpts, orig_img.shape)
         result.update(keypoints=pred_kpts)
-        if hasattr(self.model, "kpt_names") and self.model.kpt_names is not None:
-            result.kpt_names = self.model.kpt_names
+        result.kpt_names = getattr(self.model, "kpt_names", None)
         return result

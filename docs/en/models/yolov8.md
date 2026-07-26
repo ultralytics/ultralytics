@@ -10,7 +10,7 @@ keywords: YOLOv8, real-time object detection, YOLO series, Ultralytics, computer
 
 YOLOv8 was released by Ultralytics on January 10, 2023, offering cutting-edge performance in terms of accuracy and speed. Building upon the advancements of previous YOLO versions, YOLOv8 introduced new features and optimizations that make it an ideal choice for various [object detection](https://www.ultralytics.com/blog/a-guide-to-deep-dive-into-object-detection-in-2025) tasks in a wide range of applications.
 
-![Ultralytics YOLOv8](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov8-comparison-plots.avif)
+![YOLOv8 performance comparison charts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov8-comparison-plots.avif)
 
 <p align="center">
   <br>
@@ -176,7 +176,7 @@ Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for obj
 
 !!! tip "Ultralytics YOLOv8 Publication"
 
-    Ultralytics has not published a formal research paper for YOLOv8 due to the rapidly evolving nature of the models. We focus on advancing the technology and making it easier to use, rather than producing static documentation. For the most up-to-date information on YOLO architecture, features, and usage, please refer to our [GitHub repository](https://github.com/ultralytics/ultralytics) and [documentation](https://docs.ultralytics.com/).
+    Ultralytics has not published a formal research paper for YOLOv8 due to the rapidly evolving nature of the models. We focus on advancing the technology and making it easier to use, rather than producing static documentation. For the most up-to-date information on YOLO architecture, features, and usage, please refer to our [GitHub repository](https://github.com/ultralytics/ultralytics) and [documentation](../index.md).
 
 If you use the YOLOv8 model or any other software from this repository in your work, please cite it using the following format:
 
@@ -250,13 +250,13 @@ Yes, YOLOv8 models can be benchmarked for performance in terms of speed and accu
         from ultralytics.utils.benchmarks import benchmark
 
         # Benchmark on GPU
-        benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+        benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, device=0)
         ```
 
     === "CLI"
 
         ```bash
-        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 device=0
         ```
 
 For additional information, check the [Performance Metrics](#performance-metrics) section.

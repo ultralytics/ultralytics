@@ -22,11 +22,11 @@ def bbox_iof(polygon1: np.ndarray, bbox2: np.ndarray, eps: float = 1e-6) -> np.n
 
     Args:
         polygon1 (np.ndarray): Polygon coordinates with shape (N, 8).
-        bbox2 (np.ndarray): Bounding boxes with shape (N, 4).
+        bbox2 (np.ndarray): Bounding boxes with shape (M, 4).
         eps (float, optional): Small value to prevent division by zero.
 
     Returns:
-        (np.ndarray): IoF scores with shape (N, 1) or (N, M) if bbox2 is (M, 4).
+        (np.ndarray): IoF scores with shape (N, M).
 
     Notes:
         Polygon format: [x1, y1, x2, y2, x3, y3, x4, y4].
@@ -94,7 +94,7 @@ def load_yolo_dota(data_root: str, split: str = "train") -> list[dict[str, Any]]
         with open(lb_file, encoding="utf-8") as f:
             lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
             lb = np.array(lb, dtype=np.float32)
-        annos.append(dict(ori_size=(h, w), label=lb, filepath=im_file))
+        annos.append({"ori_size": (h, w), "label": lb, "filepath": im_file})
     return annos
 
 
@@ -111,7 +111,7 @@ def get_windows(
         im_size (tuple[int, int]): Original image size, (H, W).
         crop_sizes (tuple[int, ...], optional): Crop size of windows.
         gaps (tuple[int, ...], optional): Gap between crops.
-        im_rate_thr (float, optional): Threshold of windows areas divided by image areas.
+        im_rate_thr (float, optional): Threshold for the ratio of image area within a window to the total window area.
         eps (float, optional): Epsilon value for math operations.
 
     Returns:
@@ -291,7 +291,7 @@ def split_trainval(
     for r in rates:
         crop_sizes.append(int(crop_size / r))
         gaps.append(int(gap / r))
-    for split in {"train", "val"}:
+    for split in ("train", "val"):
         split_images_and_labels(data_root, save_dir, split, crop_sizes, gaps)
 
 

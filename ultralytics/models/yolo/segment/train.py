@@ -17,7 +17,7 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
     functionality including model initialization, validation, and visualization.
 
     Attributes:
-        loss_names (tuple[str]): Names of the loss components used during training.
+        loss_names (tuple[str]): Names of the loss components, derived from the loss dict returned by the criterion.
 
     Examples:
         >>> from ultralytics.models.yolo.segment import SegmentationTrainer
@@ -26,13 +26,13 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks: dict | None = None):
         """Initialize a SegmentationTrainer object.
 
         Args:
             cfg (dict): Configuration dictionary with default training settings.
             overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
-            _callbacks (list, optional): List of callback functions to be executed during training.
+            _callbacks (dict, optional): Dictionary of callback functions to be executed during training.
         """
         if overrides is None:
             overrides = {}
@@ -55,7 +55,9 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
             >>> model = trainer.get_model(cfg="yolo26n-seg.yaml")
             >>> model = trainer.get_model(weights="yolo26n-seg.pt", verbose=False)
         """
-        model = SegmentationModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
+        model = self.set_model_names_for_load(
+            SegmentationModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
+        )
         if weights:
             model.load(weights)
 
@@ -63,7 +65,6 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
 
     def get_validator(self):
         """Return an instance of SegmentationValidator for validation of YOLO model."""
-        self.loss_names = "box_loss", "seg_loss", "cls_loss", "dfl_loss", "sem_loss"
         return yolo.segment.SegmentationValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

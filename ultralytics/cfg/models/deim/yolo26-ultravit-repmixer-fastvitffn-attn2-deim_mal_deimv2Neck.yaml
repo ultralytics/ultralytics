@@ -55,6 +55,7 @@ head:
   - [[-1, 11], 1, Add, []]
   - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 26 F5, pan_blocks.1
 
+
   # Args: [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
   #        learnt_init_query, enable_cuda_acceleration, one_to_many_groups, dab_sine_embedding,
   #        efficient_msdeformable_attn, query_select_method, reg_max, reg_scale, layer_scale, mlp_act,

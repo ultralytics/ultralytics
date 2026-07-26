@@ -41,6 +41,7 @@ __all__ = (
     "DFineDecoder",
     "Pose",
     "RTDETRDecoder",
+    "RTDETRDecoderEfficient",
     "RTDETRDecoderv2",
     "Segment",
     "YOLOEDetect",
@@ -1472,6 +1473,7 @@ class RTDETRDecoder(nn.Module):
     """
 
     export = False  # export mode
+    max_det = 300  # max detections per image
     shapes = []
     anchors = torch.empty(0)
     valid_mask = torch.empty(0)
@@ -1722,21 +1724,23 @@ class RTDETRDecoder(nn.Module):
         """Post-process predictions to select top-k detections.
 
         Args:
-            boxes (torch.Tensor): Predicted bounding boxes with shape (batch_size, num_queries, 4)
-                in format [cx, cy, w, h].
+            boxes (torch.Tensor): Predicted bounding boxes with shape (batch_size, num_queries, 4) in format [cx, cy, w,
+                h].
             scores (torch.Tensor): Class scores with shape (batch_size, num_queries, nc).
 
         Returns:
-            (torch.Tensor): Processed predictions with shape (batch_size, num_queries, 6) and last
-                dimension format [cx, cy, w, h, max_class_prob, class_index].
+            (torch.Tensor): Processed predictions with shape (batch_size, num_queries, 6) and last dimension format [cx,
+                cy, w, h, max_class_prob, class_index].
         """
         if self.disable_topk:
             scores, class_idx = scores.max(dim=-1, keepdim=True)  # (bs, nq, 1), (bs, nq, 1)
             return torch.cat([boxes, scores, class_idx.float()], dim=-1)  # (bs, nq, 6)
-        scores, index = scores.flatten(1).topk(self.num_queries)
-        query_idx = index // self.nc
-        boxes = boxes.gather(dim=1, index=query_idx.unsqueeze(-1).expand(-1, -1, 4))
-        return torch.cat([boxes, scores[..., None], (index % self.nc)[..., None].float()], dim=-1)
+        k = min(self.num_queries, self.max_det) if self.export else self.num_queries
+        scores, index = scores.flatten(1).topk(k)
+        # CoreML MIL lacks integer floor-div and mod lowering: use torch.div(rounding_mode="floor") and (index - q*nc).
+        query_idx = torch.div(index, self.nc, rounding_mode="floor")
+        boxes = boxes.gather(dim=1, index=query_idx.unsqueeze(-1).expand(-1, -1, 4).long())
+        return torch.cat([boxes, scores[..., None], (index - query_idx * self.nc)[..., None].float()], dim=-1)
 
     def _extend_attn_mask_for_o2m(
         self,
@@ -2009,7 +2013,21 @@ class RTDETRDecoder(nn.Module):
 
 
 class RTDETRDecoderv2(RTDETRDecoder):
-    """RT-DETR decoder variant with DEIM-style input projection and v2 deformable attention."""
+    """RT-DETR decoder variant applying AMP-safe DEIM efficiency wins on top of RTDETRDecoder.
+
+    Deltas from the base decoder:
+        - Identity input projection when backbone channels already match the hidden dim.
+        - RT-DETR v2 multiscale deformable cross-attention (supports per-level sampling points).
+        - Narrower, deeper query-position MLP.
+        - enc_output Linear+LayerNorm projection dropped; proposals are scored directly from the
+          masked encoder memory.
+        - Query-position embedding computed once per forward from the initial reference points
+          and reused across all decoder layers.
+        - learnt_init_query and dab_sine_embedding are unsupported and raise ValueError to keep
+          the module tree minimal.
+    """
+
+    _UNSUPPORTED_FLAGS = ("learnt_init_query", "dab_sine_embedding")
 
     @staticmethod
     def _build_input_proj(ch: tuple, hd: int) -> nn.ModuleList:
@@ -2032,14 +2050,7 @@ class RTDETRDecoderv2(RTDETRDecoder):
     ) -> nn.Module:
         """Build the RT-DETR v2 decoder layer implementation."""
         return DeformableTransformerDecoderLayerv2(
-            hd,
-            nh,
-            d_ffn,
-            dropout,
-            act,
-            n_levels,
-            ndp,
-            enable_cuda_acceleration=enable_cuda_acceleration,
+            hd, nh, d_ffn, dropout, act, n_levels, ndp, enable_cuda_acceleration=enable_cuda_acceleration
         )
 
     @staticmethod
@@ -2052,6 +2063,126 @@ class RTDETRDecoderv2(RTDETRDecoder):
         if dab_sine_embedding:
             return RTDETRDecoder._build_query_pos_heads(hd, dab_sine_embedding, act_mlp)
         return MLP(4, hd, hd, num_layers=3, act=act_mlp), None
+
+    def __init__(
+        self,
+        nc: int = 80,
+        ch: tuple = (512, 1024, 2048),
+        hd: int = 256,
+        nq: int = 300,
+        ndp: int | list[int] = 4,
+        nh: int = 8,
+        ndl: int = 6,
+        d_ffn: int = 1024,
+        dropout: float = 0.0,
+        act: str = "relu",
+        eval_idx: int = -1,
+        nd: int = 100,
+        label_noise_ratio: float = 0.5,
+        box_noise_scale: float = 1.0,
+        learnt_init_query: bool = False,
+        enable_cuda_acceleration: bool = False,
+        one_to_many_groups: int = 0,
+        dab_sine_embedding: bool = False,
+        efficient_msdeformable_attn: bool = False,
+        o2m_topk_mode: str = "unshared",
+        mlp_act: str = "relu",
+    ):
+        """Initialize RTDETRDecoderv2 and apply AMP-safe efficiencies over the RTDETRDecoder base."""
+        for name, value in zip(self._UNSUPPORTED_FLAGS, (learnt_init_query, dab_sine_embedding)):
+            if value:
+                raise ValueError(f"RTDETRDecoderv2 does not support {name}=True.")
+        if efficient_msdeformable_attn and isinstance(ndp, list):
+            raise ValueError("RTDETRDecoderv2 requires integer ndp when efficient_msdeformable_attn=True.")
+
+        super().__init__(
+            nc=nc, ch=ch, hd=hd, nq=nq, ndp=ndp, nh=nh, ndl=ndl,
+            d_ffn=d_ffn, dropout=dropout, act=act, eval_idx=eval_idx,
+            nd=nd, label_noise_ratio=label_noise_ratio, box_noise_scale=box_noise_scale,
+            learnt_init_query=False, enable_cuda_acceleration=enable_cuda_acceleration,
+            one_to_many_groups=one_to_many_groups, dab_sine_embedding=False,
+            efficient_msdeformable_attn=efficient_msdeformable_attn, o2m_topk_mode=o2m_topk_mode, mlp_act=mlp_act,
+        )
+
+        del self.enc_output
+        self.decoder.fixed_query_pos = True
+
+    def _project_encoder_features(self, feats: torch.Tensor) -> torch.Tensor:
+        """Score proposals directly from masked encoder memory, skipping the dropped enc_output projection."""
+        return self.valid_mask.to(feats.dtype) * feats
+
+
+class RTDETRDecoderEfficient(RTDETRDecoder):
+    """RT-DETR decoder with v2-style efficiency tweaks while preserving the base attention path.
+
+    This variant keeps the original RTDETRDecoder cross-attention implementation and sampling layout, so it uses
+    scalar decoder points with MSDeformAttn instead of the RT-DETR v2 per-level MSDeformAttnv2 path.
+    """
+
+    _UNSUPPORTED_FLAGS = ("learnt_init_query",)
+
+    @staticmethod
+    def _build_input_proj(ch: tuple, hd: int) -> nn.ModuleList:
+        """Keep matching backbone channels as identity and project only mismatched ones."""
+        return nn.ModuleList(
+            nn.Identity() if x == hd else nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd))
+            for x in ch
+        )
+
+    @staticmethod
+    def _build_query_pos_heads(
+        hd: int,
+        _dab_sine_embedding: bool,
+        act_mlp: nn.Module,
+    ) -> tuple[nn.Module, nn.Module | None]:
+        """Build DEIM-style query-position MLPs for the efficient RT-DETR decoder."""
+        return MLP(4, hd, hd, num_layers=3, act=act_mlp), None
+
+    def __init__(
+        self,
+        nc: int = 80,
+        ch: tuple = (512, 1024, 2048),
+        hd: int = 256,
+        nq: int = 300,
+        ndp: int = 4,
+        nh: int = 8,
+        ndl: int = 6,
+        d_ffn: int = 1024,
+        dropout: float = 0.0,
+        act: str = "relu",
+        eval_idx: int = -1,
+        nd: int = 100,
+        label_noise_ratio: float = 0.5,
+        box_noise_scale: float = 1.0,
+        learnt_init_query: bool = False,
+        enable_cuda_acceleration: bool = False,
+        one_to_many_groups: int = 0,
+        efficient_msdeformable_attn: bool = False,
+        o2m_topk_mode: str = "unshared",
+        mlp_act: str = "relu",
+    ):
+        """Initialize RTDETRDecoderEfficient with base RT-DETR attention and v2-style lightweight projections."""
+        for name, value in zip(self._UNSUPPORTED_FLAGS, (learnt_init_query,)):
+            if value:
+                raise ValueError(f"RTDETRDecoderEfficient does not support {name}=True.")
+        if isinstance(ndp, list):
+            raise ValueError("RTDETRDecoderEfficient requires integer ndp.")
+
+        super().__init__(
+            nc=nc, ch=ch, hd=hd, nq=nq, ndp=ndp, nh=nh, ndl=ndl,
+            d_ffn=d_ffn, dropout=dropout, act=act, eval_idx=eval_idx,
+            nd=nd, label_noise_ratio=label_noise_ratio, box_noise_scale=box_noise_scale,
+            learnt_init_query=False, enable_cuda_acceleration=enable_cuda_acceleration,
+            one_to_many_groups=one_to_many_groups, dab_sine_embedding=False,
+            efficient_msdeformable_attn=efficient_msdeformable_attn, o2m_topk_mode=o2m_topk_mode, mlp_act=mlp_act,
+        )
+
+        del self.enc_output
+        self.decoder.fixed_query_pos = True
+
+    def _project_encoder_features(self, feats: torch.Tensor) -> torch.Tensor:
+        """Score proposals directly from masked encoder memory, skipping the dropped enc_output projection."""
+        return self.valid_mask.to(feats.dtype) * feats
 
 
 class DFineDecoder(RTDETRDecoder):

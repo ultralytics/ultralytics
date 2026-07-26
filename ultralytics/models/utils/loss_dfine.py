@@ -47,6 +47,8 @@ class DfineLoss(nn.Module):
         alpha: float = 0.25,
         matcher: dict[str, Any] | None = None,
         debug_new_giou_loss: bool = False,
+        focaler_d: float = 0.0,
+        focaler_u: float = 1.0,
     ):
         super().__init__()
         if loss_gain is None:
@@ -78,6 +80,13 @@ class DfineLoss(nn.Module):
         self.rank_gain = self.loss_gain.get("rank", 0.0)
         self.rank = RankLoss() if self.rank_gain > 0 else None
 
+        # Focaler-IoU (Zhang & Zhang, 2024): linear-interval remap of raw IoU used as an additive
+        # modulation of the GIoU loss. Identity remap (0.0, 1.0) is a no-op; only non-default
+        # (d, u) engages the modulation. Ge et al. (2025) report a +1.4 mAP@50:95 gain on RT-DETR-R18.
+        self.focaler_d = focaler_d
+        self.focaler_u = focaler_u
+        self.use_focaler = focaler_u > focaler_d and (focaler_d > 0.0 or focaler_u < 1.0)
+
         # Cache FGL targets per forward pass (DEIM-style) for normal and DN branches.
         self.fgl_targets = None
         self.fgl_targets_dn = None
@@ -96,7 +105,12 @@ class DfineLoss(nn.Module):
     def _aligned_giou_loss(self, pred_bboxes: torch.Tensor, gt_bboxes: torch.Tensor) -> torch.Tensor:
         """Compute the configured aligned GIoU loss vector for matched xywh boxes."""
         giou_fn = aligned_giou_new if self.debug_new_giou_loss else aligned_giou
-        return 1.0 - giou_fn(pred_bboxes, gt_bboxes, xywh=True)
+        loss = 1.0 - giou_fn(pred_bboxes, gt_bboxes, xywh=True)
+        if self.use_focaler:
+            iou = aligned_box_iou(pred_bboxes, gt_bboxes, xywh=True)
+            iou_focaler = ((iou - self.focaler_d) / (self.focaler_u - self.focaler_d)).clamp(0.0, 1.0)
+            loss = loss + iou - iou_focaler
+        return loss
 
     def _match(
         self,

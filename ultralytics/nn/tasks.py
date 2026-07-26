@@ -74,6 +74,7 @@ from ultralytics.nn.modules import (
     Pose,
     Pose26,
     DFineDecoder,
+    PooledMHSABlock,
     PResNet,
     RepC3,
     RepConv,
@@ -84,6 +85,7 @@ from ultralytics.nn.modules import (
     ResNetLayer,
     RoPE2DBlock,
     RTDETRDecoder,
+    RTDETRDecoderEfficient,
     RTDETRDecoderv2,
     SCDown,
     SpatialPriorModulev2,
@@ -2040,7 +2042,14 @@ def parse_model(d, ch, verbose=True):
             args.append([ch[x] for x in f])
         elif m is ImagePoolingAttn:
             args.insert(1, [ch[x] for x in f])  # channels as second arg
-        elif m in {RTDETRDecoder, RTDETRDecoderv2, DFineDecoder, DeimDecoder, DeimLayerNormDecoder}:  # special case, channels arg must be passed in index 1
+        elif m in {
+            RTDETRDecoder,
+            RTDETRDecoderEfficient,
+            RTDETRDecoderv2,
+            DFineDecoder,
+            DeimDecoder,
+            DeimLayerNormDecoder,
+        }:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
         elif m is CBLinear:
             c2 = args[0]

@@ -154,6 +154,7 @@ def clean_train_args(train_args: dict) -> tuple[list, str | None]:
     if isinstance(train_args.get("name"), str):
         orig = train_args["name"]
         cleaned = re.sub(r"[Cc](?:onv)?[Nn]ext[A-Za-z0-9]*", "", orig)
+        cleaned = re.sub(r"[Ee][Uu][Pp][Ee][A-Za-z0-9]*", "", cleaned)
         cleaned = re.sub(r"_+", "_", cleaned).strip("_")
         if cleaned != orig:
             old_name = orig
@@ -298,15 +299,17 @@ def main() -> None:
         if isinstance(ta, dict):
             dropped, old_name = clean_train_args(ta)
             if dropped:
-                print(f"  clean-args: dropped {len(dropped)} key(s): {dropped}")
+                print(f"  clean-args (train_args): dropped {len(dropped)} key(s): {dropped}")
             if old_name is not None:
-                print(f"  clean-args: renamed {old_name!r} -> {ta['name']!r}")
+                print(f"  clean-args (train_args): renamed {old_name!r} -> {ta['name']!r}")
         m_args = getattr(model, "args", None)
-        if m_args is not None and not isinstance(m_args, dict):
-            for k in [a for a in vars(m_args) if a in DISTILL_ARG_KEYS]:
-                delattr(m_args, k)
-            if isinstance(ta, dict) and "name" in ta:
-                m_args.name = ta["name"]
+        m_dict = m_args if isinstance(m_args, dict) else (vars(m_args) if m_args is not None else None)
+        if m_dict is not None:
+            m_dropped, m_old = clean_train_args(m_dict)
+            if m_dropped:
+                print(f"  clean-args (model.args): dropped {len(m_dropped)} key(s)")
+            if m_old is not None:
+                print(f"  clean-args (model.args): renamed to {m_dict['name']!r}")
 
     print(f"saving: {out}")
     save_clean(src, model, out)

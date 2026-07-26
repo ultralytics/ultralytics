@@ -53,8 +53,8 @@ def env_bool(name: str, default: bool = False) -> bool:
 
 
 # PyTorch Multi-GPU DDP Constants
-RANK = int(os.getenv("RANK", -1))
-LOCAL_RANK = int(os.getenv("LOCAL_RANK", -1))  # https://pytorch.org/docs/stable/elastic/run.html
+RANK = int(os.getenv("RANK", "-1"))
+LOCAL_RANK = int(os.getenv("LOCAL_RANK", "-1"))  # https://pytorch.org/docs/stable/elastic/run.html
 
 # Other Constants
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
@@ -79,7 +79,7 @@ TORCH_VERSION = str(torch.__version__)  # Normalize torch.__version__ (PyTorch>1
 TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
 # onnxruntime-migraphx wheel index; pinned to ROCm 7.2 as MIGraphX wheels are release-coupled
 ROCM_EXTRA_INDEX = "--extra-index-url https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/"
-IS_VSCODE = os.environ.get("TERM_PROGRAM", False) == "vscode"
+IS_VSCODE = os.environ.get("TERM_PROGRAM") == "vscode"
 RKNN_CHIPS = frozenset(
     {
         "rk3588",
@@ -132,7 +132,7 @@ HELP_MSG = """
 
             yolo TASK MODE ARGS
 
-            Where   TASK (optional) is one of [detect, segment, semantic, classify, pose, obb]
+            Where   TASK (optional) is one of [detect, segment, semantic, classify, pose, obb, depth]
                     MODE (required) is one of [train, val, predict, export, track, benchmark]
                     ARGS (optional) are any number of custom "arg=value" pairs like "imgsz=320" that override defaults.
                         See all ARGS at https://docs.ultralytics.com/usage/cfg or with "yolo cfg"
@@ -164,7 +164,7 @@ HELP_MSG = """
 
 # Settings and Environment Variables
 torch.set_printoptions(linewidth=320, precision=4, profile="default")
-np.set_printoptions(linewidth=320, formatter=dict(float_kind="{:11.5g}".format))  # format short g, %precision=5
+np.set_printoptions(linewidth=320, formatter={"float_kind": "{:11.5g}".format})  # format short g, %precision=5
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warnings in Colab
@@ -728,7 +728,7 @@ def is_ubuntu() -> bool:
         return False
 
 
-def is_debian(codenames: list[str] | None | str = None) -> list[bool] | bool:
+def is_debian(codenames: list[str] | str | None = None) -> list[bool] | bool:
     """Check if the OS is Debian.
 
     Args:
@@ -828,7 +828,7 @@ def is_jetson(jetpack=None) -> bool:
     jetson = "tegra" in DEVICE_MODEL
     if jetson and jetpack:
         try:
-            content = open("/etc/nv_tegra_release").read()
+            content = Path("/etc/nv_tegra_release").read_text()
             version_map = {4: "R32", 5: "R35", 6: "R36", 7: "R38"}  # JetPack to L4T major version mapping
             return jetpack in version_map and version_map[jetpack] in content
         except Exception:
@@ -1104,7 +1104,6 @@ class TryExcept(contextlib.ContextDecorator):
 
     def __enter__(self):
         """Execute when entering TryExcept context, initialize instance."""
-        pass
 
     def __exit__(self, exc_type, value, traceback):
         """Define behavior when exiting a 'with' block, print error message if necessary."""
@@ -1151,7 +1150,7 @@ class Retry(contextlib.ContextDecorator):
                     self._attempts += 1
                     LOGGER.warning(f"Retry {self._attempts}/{self.times} failed: {e}")
                     if self._attempts >= self.times:
-                        raise e
+                        raise
                     time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay
 
         return wrapped_func
@@ -1168,7 +1167,8 @@ def threaded(func):
         func (callable): The function to be potentially executed in a separate thread.
 
     Returns:
-        (callable): A wrapper function that either returns a daemon thread or the direct function result.
+        (callable): A wrapper function that either returns a thread or the direct function result. The thread is
+            non-daemon so interpreter shutdown joins it before module teardown, avoiding teardown races.
 
     Examples:
         >>> @threaded
@@ -1182,7 +1182,9 @@ def threaded(func):
     def wrapper(*args, **kwargs):
         """Multi-thread a given function based on 'threaded' kwarg and return the thread or function result."""
         if kwargs.pop("threaded", True):  # run in thread
-            thread = threading.Thread(target=func, args=args, kwargs=kwargs, daemon=True)
+            # Non-daemon so interpreter shutdown joins the thread before module teardown; a daemon thread still
+            # running at exit can be killed mid-C-call, aborting the process (e.g. 'FATAL: exception not rethrown').
+            thread = threading.Thread(target=func, args=args, kwargs=kwargs, daemon=False)
             thread.start()
             return thread
         else:

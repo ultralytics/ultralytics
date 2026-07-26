@@ -211,9 +211,31 @@ def verify_image(args: tuple) -> tuple:
     return (im_file, cls), nf, nc, msg
 
 
+def verify_image_depth(args: tuple) -> tuple:
+    """Verify that an image and its paired depth .npy map exist and are readable."""
+    im_file, depth_file, prefix = args
+    # Number (found, missing, corrupt), message
+    nf, nm, nc, msg = 0, 0, 0, ""
+    try:
+        msg, shape = check_image(im_file)
+        msg = f"{prefix}{msg}" if msg else ""
+        if not os.path.isfile(depth_file):
+            nm = 1
+            msg = f"{prefix}{im_file}: ignoring image with missing depth map {depth_file}"
+            return None, None, nf, nm, nc, msg
+        depth = np.load(depth_file, mmap_mode="r", allow_pickle=False)
+        assert depth.ndim == 2, f"depth map {depth_file} expected a 2D array, got shape {depth.shape}"
+        nf = 1
+        return im_file, shape, nf, nm, nc, msg
+    except Exception as e:
+        nc = 1
+        msg = f"{prefix}{im_file}: ignoring corrupt image/depth: {e}"
+    return None, None, nf, nm, nc, msg
+
+
 def verify_image_mask(args: tuple) -> tuple:
     """Verify that an image and its semantic mask exist, are readable, and have matching shapes."""
-    im_file, mask_file, prefix = args
+    im_file, mask_file, prefix, check_bit_depth = args
     # Number (found, missing, corrupt), message
     nf, nm, nc, msg = 0, 0, 0, ""
     try:
@@ -229,16 +251,20 @@ def verify_image_mask(args: tuple) -> tuple:
             mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
             assert mask is not None, f"mask file {mask_file} is unreadable"
             assert mask.shape[:2] == shape, f"mask size {mask.shape[:2]} does not match image size {shape}"
+            is_1bit = False
+            if check_bit_depth:
+                with Image.open(mask_file) as im:
+                    is_1bit = im.mode == "1"
             nf = 1
         else:
             nm = 1
             msg = f"{prefix}{im_file}: ignoring image with missing mask {mask_file}"
-            return None, None, None, nm, nf, nc, msg
-        return im_file, mask_file, shape, nm, nf, nc, msg
+            return None, None, None, None, nm, nf, nc, msg
+        return im_file, mask_file, shape, is_1bit, nm, nf, nc, msg
     except Exception as e:
         nc = 1
         msg = f"{prefix}{im_file}: ignoring corrupt image/mask: {e}"
-    return None, None, None, nm, nf, nc, msg
+    return None, None, None, None, nm, nf, nc, msg
 
 
 def verify_image_label(args: tuple) -> list:
@@ -440,12 +466,12 @@ def convert_ndjson_to_yolo_if_needed(data: str | Path) -> str | Path:
     """Convert an NDJSON dataset or Platform dataset URI to YOLO format."""
     data = normalize_platform_uri(data)  # accept Platform web URLs (https://platform.ultralytics.com/.../datasets/...)
     data_str = str(data)
-    if data_str.endswith(".ndjson") or (data_str.startswith("ul://") and "/datasets/" in data_str):
+    if clean_url(data_str).endswith(".ndjson") or (data_str.startswith("ul://") and "/datasets/" in data_str):
         import asyncio
 
         from ultralytics.data.converter import convert_ndjson_to_yolo
 
-        return asyncio.run(convert_ndjson_to_yolo(check_file(data)))
+        return asyncio.run(convert_ndjson_to_yolo(data))
     return data
 
 
@@ -551,7 +577,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
                 LOGGER.info(f"Running {s} ...")
                 subprocess.run(s.split(), check=True)
             else:  # python script
-                exec(s, {"yaml": data})
+                exec(s, {"yaml": data})  # noqa: S102
             dt = f"({round(time.time() - t, 1)}s)"
             s = f"success ✅ {dt}, saved to {colorstr('bold', DATASETS_DIR)}" if r in {0, None} else f"failure {dt} ❌"
             LOGGER.info(f"Dataset download {s}\n")
@@ -633,13 +659,11 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
         LOGGER.warning("Dataset 'split=test' not found, using 'split=val' instead.")
         test_set = val_set
 
-    nc = len([x for x in (data_dir / "train").glob("*") if x.is_dir()])  # number of classes
-    names = [x.name for x in (data_dir / "train").iterdir() if x.is_dir()]  # class names list
-    names = dict(enumerate(sorted(names)))
     if (ndjson_names := data_dir / ".ndjson.yaml").is_file():
         names = YAML.load(ndjson_names)["names"]
-        if len(names) != nc:
-            raise ValueError(f"NDJSON class names length {len(names)} does not match directory count {nc}")
+    else:
+        names = dict(enumerate(sorted(x.name for x in (data_dir / "train").iterdir() if x.is_dir())))
+    nc = len(names)
 
     # Print to console
     for k, v in {"train": train_set, "val": val_set, "test": test_set}.items():
@@ -655,10 +679,11 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
                     raise FileNotFoundError(f"{dataset} '{k}:' no training images found")
                 else:
                     LOGGER.warning(f"{prefix} found {nf} images in {nd} classes (no images found)")
-            elif nd != nc:
+            elif nd != nc and not ndjson_names.is_file():
                 LOGGER.error(f"{prefix} found {nf} images in {nd} classes (requires {nc} classes, not {nd})")
             else:
-                LOGGER.info(f"{prefix} found {nf} images in {nd} classes ✅ ")
+                class_count = f"{nd}/{nc}" if ndjson_names.is_file() else nd
+                LOGGER.info(f"{prefix} found {nf} images in {class_count} classes ✅ ")
 
     return {"train": train_set, "val": val_set, "test": test_set, "nc": nc, "names": names, "channels": 3}
 
@@ -717,7 +742,7 @@ class HUBDatasetStats:
                 data = check_det_dataset(yaml_path, autodownload)  # dict
                 data["path"] = data_dir  # YAML path should be set to '' (relative) or parent (absolute)
             except Exception as e:
-                raise Exception("error/HUB/dataset_stats/init") from e
+                raise RuntimeError("error/HUB/dataset_stats/init") from e
 
         self.hub_dir = Path(f"{data['path']}-hub")
         self.im_dir = self.hub_dir / "images"

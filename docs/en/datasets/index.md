@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Explore Ultralytics' diverse datasets for vision tasks like detection, segmentation, semantic segmentation, classification, and more. Enhance your projects with high-quality annotated data.
-keywords: Ultralytics, datasets, computer vision, object detection, instance segmentation, semantic segmentation, pose estimation, image classification, multi-object tracking
+description: Explore Ultralytics' diverse datasets for vision tasks like detection, segmentation, semantic segmentation, depth estimation, classification, and more. Enhance your projects with high-quality annotated data.
+keywords: Ultralytics, datasets, computer vision, object detection, instance segmentation, semantic segmentation, depth estimation, pose estimation, image classification, multi-object tracking
 ---
 
 # Datasets Overview
 
-Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), semantic segmentation, pose estimation, classification, and multi-object tracking. Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets.
+Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), semantic segmentation, depth estimation, pose estimation, classification, and multi-object tracking. Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets.
 
 <p align="center">
   <br>
@@ -64,6 +64,14 @@ Semantic segmentation assigns a class label to every pixel in an image, producin
 - [Cityscapes](semantic/cityscapes.md): Urban street-scene semantic segmentation dataset with 19 train classes.
 - [Cityscapes8](semantic/cityscapes8.md): A compact 8-image Cityscapes subset for quick semantic segmentation pipeline checks.
 - [ADE20K](semantic/ade20k.md): Scene parsing dataset with 150 semantic classes.
+
+## [Depth Estimation](depth/index.md)
+
+Monocular depth estimation predicts a per-pixel depth map in meters from a single RGB image, supporting 3D scene reconstruction, robot navigation, and AR/VR applications.
+
+- [NYU Depth V2](depth/nyu-depth-v2.md): Standard indoor depth benchmark captured with a Microsoft Kinect v1.
+- [KITTI](depth/kitti.md): Real-world outdoor autonomous-driving scenes with Velodyne LiDAR depth.
+- [Depth8](depth/depth8.md): A compact 8-image SUN RGB-D subset for quick pipeline checks.
 
 ## [Pose Estimation](pose/index.md)
 
@@ -213,7 +221,7 @@ The platform streamlines the transition from dataset management to model trainin
 Ultralytics YOLO models provide several unique features for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks:
 
 - **Real-time Performance**: High-speed inference and training capabilities for time-sensitive applications.
-- **Versatility**: Support for detection, instance segmentation, semantic segmentation, classification, and pose estimation tasks in a unified framework.
+- **Versatility**: Support for detection, instance segmentation, semantic segmentation, depth estimation, classification, and pose estimation tasks in a unified framework.
 - **Pretrained Models**: Access to high-performing, pretrained models for various applications, reducing training time.
 - **Extensive Community Support**: Active community and comprehensive documentation for troubleshooting and development.
 - **Easy Integration**: Simple API for integrating with existing projects and workflows.

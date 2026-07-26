@@ -157,7 +157,7 @@ def test_rocm_utils_benchmarks():
     ProfileModels(
         [MODEL],
         imgsz=32,
-        half=False,
+        quantize=32,
         min_time=1,
         num_timed_runs=3,
         num_warmup_runs=1,
@@ -253,7 +253,7 @@ def test_rocm_onnx_export_simplify():
 @pytest.mark.skipif(not MIGRAPHX_AVAILABLE, reason="MIGraphX Execution Provider not available")
 def test_rocm_onnx_half_precision():
     """Test FP16 ONNX export and inference on ROCm with MIGraphX EP."""
-    file = YOLO(MODEL).export(format="onnx", half=True, imgsz=32)
+    file = YOLO(MODEL).export(format="onnx", quantize=16, imgsz=32)
     os.environ.pop("CUDA_VISIBLE_DEVICES", None)  # select_device("cpu") side effect from export
     model = YOLO(file)
     results = model(SOURCE, imgsz=32, device=DEVICES[0])
@@ -288,16 +288,16 @@ def test_rocm_onnx_io_binding():
 @pytest.mark.slow
 @pytest.mark.skipif(not DEVICES, reason="No ROCm devices available")
 @pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch, simplify, nms",
+    "task, dynamic, batch, simplify, nms",
     [
-        (task, dynamic, int8, half, batch, simplify, nms)
-        for task, dynamic, int8, half, batch, simplify, nms in product(
-            TASKS, [True, False], [False], [False], [1, 2], [True, False], [True, False]
+        (task, dynamic, batch, simplify, nms)
+        for task, dynamic, batch, simplify, nms in product(
+            sorted(TASKS), [True, False], [1, 2], [True, False], [True, False]
         )
         if not ((task == "classify" and nms) or (task == "obb" and nms))  # NMS not applicable for classify/obb
     ],
 )
-def test_rocm_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
+def test_rocm_export_onnx_matrix(task, dynamic, batch, simplify, nms):
     """Test YOLO ONNX export and inference across all tasks and parameter combinations on ROCm."""
     if MIGRAPHX_AVAILABLE and task == "segment":
         pytest.xfail("MIGraphX v7.2 does not support Resize with keep_aspect_ratio_policy used in segment models")
@@ -307,8 +307,6 @@ def test_rocm_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms
         format="onnx",
         imgsz=32,
         dynamic=dynamic,
-        int8=int8,
-        half=half,
         batch=batch,
         simplify=simplify,
         nms=nms,

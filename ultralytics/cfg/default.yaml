@@ -3,7 +3,7 @@
 # Global configuration YAML with settings and hyperparameters for YOLO training, validation, prediction and export
 # For documentation see https://docs.ultralytics.com/usage/cfg
 
-task: detect # (str) YOLO task, i.e. detect, segment, semantic, classify, pose, obb
+task: detect # (str) YOLO task, i.e. detect, segment, semantic, depth, classify, pose, obb
 mode: train # (str) YOLO mode, i.e. train, val, predict, export, track, benchmark
 
 # Train settings -------------------------------------------------------------------------------------------------------
@@ -39,6 +39,7 @@ profile: False # (bool) profile ONNX/TensorRT speeds during training for loggers
 freeze: # (int | list, optional) freeze first N layers (int) or specific layer indices (list)
 multi_scale: 0.0 # (float) multi-scale range as a fraction of imgsz; sizes are rounded to stride multiples
 compile: False # (bool | str) enable torch.compile() backend='inductor'; True="default", False=off, or "default|reduce-overhead|max-autotune-no-cudagraphs"
+channels_last: False # (bool) use channels_last (NHWC) memory format for conv train/inference; CUDA-only, speeds up Tensor-Core GPUs
 
 # Segmentation
 overlap_mask: True # (bool) merge instance masks into one mask during training (segment only)
@@ -87,8 +88,8 @@ format: torchscript # (str) target format, e.g. torchscript|onnx|openvino|engine
 keras: False # (bool) TF SavedModel only (format=saved_model); enable Keras layers during export
 optimize: False # (bool) DEEPX only; higher compiler optimization (slower compile, faster inference)
 dynamic: False # (bool) dynamic shapes for torchscript, onnx, openvino, engine, coreml; enable variable image sizes
-simplify: True # (bool) ONNX/engine only; run graph simplifier for cleaner ONNX before runtime conversion
-opset: # (int, optional) ONNX/engine only; opset version for export; leave unset to use a tested default
+simplify: True # (bool) supported ONNX-based exports (see export table); simplify intermediate ONNX graph
+opset: # (int, optional) supported ONNX-based exports (see export table); intermediate ONNX opset version
 workspace: # (float, optional) engine (TensorRT) only; workspace size in GiB, e.g. 4
 nms: False # (bool) fuse NMS into exported model when backend supports; if True, conf/iou apply (agnostic_nms except coreml)
 
@@ -110,6 +111,9 @@ pose: 12.0 # (float) pose loss gain (pose tasks)
 kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)
 rle: 1.0 # (float) rle loss gain (pose tasks)
 angle: 1.0 # (float) oriented angle loss gain (obb tasks)
+dlog: 1.0 # (float) depth log (SILog) loss gain (depth tasks)
+dgrad: 0.5 # (float) depth gradient loss gain (depth tasks)
+dlam: 1.0 # (float) depth SILog variance focus: 1.0=scale-invariant, 0.0=log-RMSE (depth tasks)
 nbs: 64 # (int) nominal batch size used for loss normalization
 hsv_h: 0.015 # (float) HSV hue augmentation fraction
 hsv_s: 0.7 # (float) HSV saturation augmentation fraction

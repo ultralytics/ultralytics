@@ -31,10 +31,8 @@ from ultralytics.nn.teacher_model import PIPELINE_IMAGE_MEAN, PIPELINE_IMAGE_STD
 from ultralytics.utils import LOGGER
 from ultralytics.utils.torch_utils import autocast
 
-# classify_transforms kwargs per family of weights, matching how each was fed during training: distillation and every
-# released encoder under ImageNet stats (train_image_encoder.py:552), CE classification under raw [0, 1]
-# (dataset.py:1044). Reading one family through the other's entry is silent, not an error, and costs real accuracy:
-# it scored a distilled backbone 1.4 top-1 low and TIPS v2 B/14 3.8 low against its published 79.8.
+# classify_transforms kwargs matching how each family of weights was fed: distillation and released encoders under
+# ImageNet stats, CE classification under raw [0, 1]. Picking the wrong entry is silent and cost 1.4 to 3.8 top-1.
 KNN_PROTOCOLS = {
     "imagenet": {"mean": PIPELINE_IMAGE_MEAN, "std": PIPELINE_IMAGE_STD, "interpolation": "BICUBIC"},
     "unit": {"mean": DEFAULT_MEAN, "std": DEFAULT_STD, "interpolation": "BILINEAR"},

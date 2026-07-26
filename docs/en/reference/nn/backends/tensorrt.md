@@ -1,4 +1,5 @@
 ---
+title: nn.backends.tensorrt API Reference
 description: Explore TensorRTBackend for high-performance GPU inference with NVIDIA TensorRT, optimizing YOLO models for production deployment.
 keywords: Ultralytics, TensorRTBackend, TensorRT inference, NVIDIA TensorRT, GPU inference, .engine models, production deployment, deep learning
 ---

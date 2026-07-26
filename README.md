@@ -1,6 +1,6 @@
 <div align="center">
   <p>
-    <a href="https://platform.ultralytics.com/?utm_source=github&utm_medium=referral&utm_campaign=platform_launch&utm_content=banner&utm_term=ultralytics_github" target="_blank">
+    <a href="https://www.ultralytics.com/events/yolovision?utm_source=github&utm_medium=social&utm_campaign=yolovision26&utm_content=banner" target="_blank">
       <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png" alt="Ultralytics YOLO banner"></a>
   </p>
 
@@ -18,6 +18,11 @@
     <a href="https://www.kaggle.com/models/ultralytics/yolo26"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open Ultralytics In Kaggle"></a>
     <a href="https://mybinder.org/v2/gh/ultralytics/ultralytics/HEAD?labpath=examples%2Ftutorial.ipynb"><img src="https://mybinder.org/badge_logo.svg" alt="Open Ultralytics In Binder"></a>
 </div>
+</div>
+<br>
+
+<div align="center">
+  <a href="https://trendshift.io/repositories/1556?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-1556" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/1556" alt="ultralytics%2Fultralytics | Trendshift" width="250" height="55"/></a>
 </div>
 <br>
 
@@ -117,7 +122,7 @@ Discover more examples in the YOLO [Python Docs](https://docs.ultralytics.com/us
 
 ## ✨ Models
 
-Ultralytics supports a wide range of YOLO models, from early versions like [YOLOv3](https://docs.ultralytics.com/models/yolov3) to the latest [YOLO26](https://docs.ultralytics.com/models/yolo26). The tables below showcase YOLO26 models pretrained on [COCO](https://docs.ultralytics.com/datasets/detect/coco) for [Detection](https://docs.ultralytics.com/tasks/detect), [Segmentation](https://docs.ultralytics.com/tasks/segment), and [Pose Estimation](https://docs.ultralytics.com/tasks/pose). [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic) models are pretrained on [Cityscapes](https://docs.ultralytics.com/datasets/semantic/cityscapes), and [Classification](https://docs.ultralytics.com/tasks/classify) models are pretrained on [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet). [Tracking](https://docs.ultralytics.com/modes/track) mode is compatible with Detection, Segmentation, and Pose models. All [Models](https://docs.ultralytics.com/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
+Ultralytics supports a wide range of YOLO models, from early versions like [YOLOv3](https://docs.ultralytics.com/models/yolov3) to the latest [YOLO26](https://docs.ultralytics.com/models/yolo26). The tables below showcase YOLO26 models pretrained on [COCO](https://docs.ultralytics.com/datasets/detect/coco) for [Detection](https://docs.ultralytics.com/tasks/detect), [Segmentation](https://docs.ultralytics.com/tasks/segment), and [Pose Estimation](https://docs.ultralytics.com/tasks/pose). [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic) models are pretrained on [Cityscapes](https://docs.ultralytics.com/datasets/semantic/cityscapes), [Depth Estimation](https://docs.ultralytics.com/tasks/depth) models are pretrained on a broad multi-dataset mix and evaluated on [NYU Depth V2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html), and [Classification](https://docs.ultralytics.com/tasks/classify) models are pretrained on [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet). [Tracking](https://docs.ultralytics.com/modes/track) mode is compatible with Detection, Segmentation, and Pose models. All [Models](https://docs.ultralytics.com/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
 <a href="https://docs.ultralytics.com/tasks" target="_blank">
     <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/docs/ultralytics-yolov8-tasks-banner.avif" alt="Ultralytics YOLO supported tasks">
@@ -176,6 +181,27 @@ See the [Semantic Segmentation Docs](https://docs.ultralytics.com/tasks/semantic
 
 </details>
 
+<details><summary>Depth Estimation (NYU Depth V2)</summary>
+
+See the [Depth Estimation Docs](https://docs.ultralytics.com/tasks/depth) for usage examples. These models are pretrained on a broad multi-dataset mix and evaluated on the [NYU Depth V2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html) Eigen test split, predicting per-pixel depth in meters.
+
+| Model                                                                                            | size<br><sup>(pixels)</sup> | delta1<sup>NYU</sup> | abs_rel<sup>NYU</sup> | rmse<sup>NYU</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| ------------------------------------------------------------------------------------------------ | --------------------------- | -------------------- | --------------------- | ------------------ | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
+| [YOLO26n-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-depth.pt) | 768                         | 0.882                | 0.109                 | 0.414              | 272.0 ± 27.2                         | 2.7 ± 0.1                                 | 6.4                      | 46.9                    |
+| [YOLO26s-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-depth.pt) | 768                         | 0.896                | 0.104                 | 0.399              | 393.7 ± 13.1                         | 3.8 ± 0.0                                 | 13.2                     | 67.9                    |
+| [YOLO26m-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-depth.pt) | 768                         | 0.921                | 0.089                 | 0.364              | 621.5 ± 49.7                         | 6.0 ± 0.1                                 | 23.3                     | 130.7                   |
+| [YOLO26l-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-depth.pt) | 768                         | 0.930                | 0.083                 | 0.351              | 821.9 ± 50.7                         | 7.7 ± 0.1                                 | 27.7                     | 157.2                   |
+| [YOLO26x-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-depth.pt) | 768                         | 0.933                | 0.080                 | 0.344              | 1240.9 ± 73.3                        | 13.6 ± 0.2                                | 57.0                     | 302.0                   |
+
+- **delta1<sup>NYU</sup>** is the percentage of pixels where the predicted depth is within a factor of 1.25 of the ground truth, on the NYU Depth V2 Eigen test split (654 images) with multi-scale + horizontal-flip TTA and log-least-squares alignment.
+- Single-scale accuracy without TTA is reproducible with `yolo depth val model=yolo26n-depth.pt data=nyu-depth.yaml imgsz=768 device=0` (substitute `model=` for each size), which uses median (scale-only) alignment and scores lower: delta1 0.785 (n), 0.786 (s), 0.827 (m), 0.839 (l), 0.843 (x).
+- **abs_rel** is the mean absolute relative error between predicted and ground-truth depth values.
+- **rmse** is the root mean squared error in meters.
+- **Speed** is inference-only latency (pre/post-processing excluded) at `imgsz=768`, `batch=1`, reported as mean ± std over timed runs after warmup. **CPU ONNX** is ONNX Runtime fp32 on a 32-core Intel Xeon (Skylake); **T4 TensorRT10** is TensorRT fp16 on a Tesla T4.
+- **params** and **FLOPs** are measured at 768×768, the training resolution of the released weights.
+
+</details>
+
 <details><summary>Classification (ImageNet)</summary>
 
 Consult the [Classification Docs](https://docs.ultralytics.com/tasks/classify) for usage examples. These models are trained on [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet), covering 1000 classes.
@@ -212,7 +238,7 @@ See the [Pose Estimation Docs](https://docs.ultralytics.com/tasks/pose) for usag
 
 <details><summary>Oriented Bounding Boxes (DOTAv1)</summary>
 
-Check the [OBB Docs](https://docs.ultralytics.com/tasks/obb) for usage examples. These models are trained on [DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v2#dota-v10/), including 15 classes.
+Check the [OBB Docs](https://docs.ultralytics.com/tasks/obb) for usage examples. These models are trained on [DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v2#dota-v10), including 15 classes.
 
 | Model                                                                                        | size<br><sup>(pixels)</sup> | mAP<sup>test<br>50-95(e2e)</sup> | mAP<sup>test<br>50(e2e)</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
 | -------------------------------------------------------------------------------------------- | --------------------------- | -------------------------------- | ----------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |

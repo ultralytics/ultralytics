@@ -1,4 +1,5 @@
 ---
+title: YOLO26 on NVIDIA Jetson Setup & Benchmarks
 comments: true
 description: Learn to deploy Ultralytics YOLO26 on NVIDIA Jetson devices with our detailed guide. Explore performance benchmarks and maximize AI capabilities.
 keywords: Ultralytics, YOLO26, NVIDIA Jetson, JetPack, AI deployment, performance benchmarks, embedded systems, deep learning, TensorRT, computer vision
@@ -27,7 +28,7 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
 
 !!! note
 
-    This guide has been tested with [NVIDIA Jetson AGX Thor Developer Kit (Jetson T5000)](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-thor) running the latest stable JetPack release of [JP7.0](https://developer.nvidia.com/embedded/jetpack/downloads), [NVIDIA Jetson AGX Orin Developer Kit (64GB)](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin) running JetPack release of [JP6.2](https://developer.nvidia.com/embedded/jetpack-sdk-62), [NVIDIA Jetson Orin Nano Super Developer Kit](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit) running JetPack release of [JP6.1](https://developer.nvidia.com/embedded/jetpack-sdk-61), [Seeed Studio reComputer J4012](https://www.seeedstudio.com/reComputer-J4012-p-5586.html) which is based on NVIDIA Jetson Orin NX 16GB running JetPack release of [JP6.0](https://developer.nvidia.com/embedded/jetpack-sdk-60)/ JetPack release of [JP5.1.3](https://developer.nvidia.com/embedded/jetpack-sdk-513) and [Seeed Studio reComputer J1020 v2](https://www.seeedstudio.com/reComputer-J1020-v2-p-5498.html) which is based on NVIDIA Jetson Nano 4GB running JetPack release of [JP4.6.1](https://developer.nvidia.com/embedded/jetpack-sdk-461). It is expected to work across all the NVIDIA Jetson hardware lineup, including the latest and legacy devices.
+    This guide has been tested with [NVIDIA Jetson AGX Thor Developer Kit (Jetson T5000)](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-thor) and [NVIDIA Jetson AGX Orin Developer Kit (64GB)](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin) running the latest stable [JetPack 7.2](https://developer.nvidia.com/embedded/jetpack/downloads), [NVIDIA Jetson Orin Nano Super Developer Kit](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit) running JetPack release of [JP6.1](https://developer.nvidia.com/embedded/jetpack-sdk-61), [Seeed Studio reComputer J4012](https://www.seeedstudio.com/reComputer-J4012-p-5586.html) which is based on NVIDIA Jetson Orin NX 16GB running JetPack release of [JP6.0](https://developer.nvidia.com/embedded/jetpack-sdk-60)/ JetPack release of [JP5.1.3](https://developer.nvidia.com/embedded/jetpack-sdk-513) and [Seeed Studio reComputer J1020 v2](https://www.seeedstudio.com/reComputer-J1020-v2-p-5498.html) which is based on NVIDIA Jetson Nano 4GB running JetPack release of [JP4.6.1](https://developer.nvidia.com/embedded/jetpack-sdk-461). It is expected to work across all the NVIDIA Jetson hardware lineup, including the latest and legacy devices.
 
 ## What is NVIDIA Jetson?
 
@@ -37,27 +38,27 @@ NVIDIA Jetson is a series of embedded computing boards designed to bring acceler
 
 [NVIDIA Jetson AGX Thor](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-thor/) is the latest iteration of the NVIDIA Jetson family based on NVIDIA Blackwell architecture which brings drastically improved AI performance when compared to the previous generations. The table below compares a few of the Jetson devices in the ecosystem.
 
-|                   | Jetson AGX Thor(T5000)                                           | Jetson AGX Orin 64GB                                              | Jetson Orin NX 16GB                                              | Jetson Orin Nano Super                                        | Jetson AGX Xavier                                           | Jetson Xavier NX                                              | Jetson Nano                                   |
-| ----------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------- |
-| AI Performance    | 2070 TFLOPS                                                      | 275 TOPS                                                          | 100 TOPS                                                         | 67 TOPS                                                       | 32 TOPS                                                     | 21 TOPS                                                       | 472 GFLOPS                                    |
-| GPU               | 2560-core NVIDIA Blackwell architecture GPU with 96 Tensor Cores | 2048-core NVIDIA Ampere architecture GPU with 64 Tensor Cores     | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores    | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores | 512-core NVIDIA Volta architecture GPU with 64 Tensor Cores | 384-core NVIDIA Volta™ architecture GPU with 48 Tensor Cores | 128-core NVIDIA Maxwell™ architecture GPU    |
-| GPU Max Frequency | 1.57 GHz                                                         | 1.3 GHz                                                           | 918 MHz                                                          | 1020 MHz                                                      | 1377 MHz                                                    | 1100 MHz                                                      | 921MHz                                        |
-| CPU               | 14-core Arm® Neoverse®-V3AE 64-bit CPU 1MB L2 + 16MB L3        | 12-core NVIDIA Arm® Cortex A78AE v8.2 64-bit CPU 3MB L2 + 6MB L3 | 8-core NVIDIA Arm® Cortex A78AE v8.2 64-bit CPU 2MB L2 + 4MB L3 | 6-core Arm® Cortex®-A78AE v8.2 64-bit CPU 1.5MB L2 + 4MB L3 | 8-core NVIDIA Carmel Arm®v8.2 64-bit CPU 8MB L2 + 4MB L3   | 6-core NVIDIA Carmel Arm®v8.2 64-bit CPU 6MB L2 + 4MB L3     | Quad-Core Arm® Cortex®-A57 MPCore processor |
-| CPU Max Frequency | 2.6 GHz                                                          | 2.2 GHz                                                           | 2.0 GHz                                                          | 1.7 GHz                                                       | 2.2 GHz                                                     | 1.9 GHz                                                       | 1.43GHz                                       |
-| Memory            | 128GB 256-bit LPDDR5X 273GB/s                                    | 64GB 256-bit LPDDR5 204.8GB/s                                     | 16GB 128-bit LPDDR5 102.4GB/s                                    | 8GB 128-bit LPDDR5 102 GB/s                                   | 32GB 256-bit LPDDR4x 136.5GB/s                              | 8GB 128-bit LPDDR4x 59.7GB/s                                  | 4GB 64-bit LPDDR4 25.6GB/s                    |
+|                   | Jetson AGX Thor(T5000)                                           | Jetson AGX Orin 64GB                                             | Jetson Orin NX 16GB                                             | Jetson Orin Nano Super                                        | Jetson AGX Xavier                                           | Jetson Xavier NX                                             | Jetson Nano                                 |
+| ----------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------- |
+| AI Performance    | 2070 TFLOPS                                                      | 275 TOPS                                                         | 100 TOPS                                                        | 67 TOPS                                                       | 32 TOPS                                                     | 21 TOPS                                                      | 472 GFLOPS                                  |
+| GPU               | 2560-core NVIDIA Blackwell architecture GPU with 96 Tensor Cores | 2048-core NVIDIA Ampere architecture GPU with 64 Tensor Cores    | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores   | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores | 512-core NVIDIA Volta architecture GPU with 64 Tensor Cores | 384-core NVIDIA Volta™ architecture GPU with 48 Tensor Cores | 128-core NVIDIA Maxwell™ architecture GPU   |
+| GPU Max Frequency | 1.57 GHz                                                         | 1.3 GHz                                                          | 918 MHz                                                         | 1020 MHz                                                      | 1377 MHz                                                    | 1100 MHz                                                     | 921MHz                                      |
+| CPU               | 14-core Arm® Neoverse®-V3AE 64-bit CPU 1MB L2 + 16MB L3          | 12-core NVIDIA Arm® Cortex A78AE v8.2 64-bit CPU 3MB L2 + 6MB L3 | 8-core NVIDIA Arm® Cortex A78AE v8.2 64-bit CPU 2MB L2 + 4MB L3 | 6-core Arm® Cortex®-A78AE v8.2 64-bit CPU 1.5MB L2 + 4MB L3   | 8-core NVIDIA Carmel Arm®v8.2 64-bit CPU 8MB L2 + 4MB L3    | 6-core NVIDIA Carmel Arm®v8.2 64-bit CPU 6MB L2 + 4MB L3     | Quad-Core Arm® Cortex®-A57 MPCore processor |
+| CPU Max Frequency | 2.6 GHz                                                          | 2.2 GHz                                                          | 2.0 GHz                                                         | 1.7 GHz                                                       | 2.2 GHz                                                     | 1.9 GHz                                                      | 1.43GHz                                     |
+| Memory            | 128GB 256-bit LPDDR5X 273GB/s                                    | 64GB 256-bit LPDDR5 204.8GB/s                                    | 16GB 128-bit LPDDR5 102.4GB/s                                   | 8GB 128-bit LPDDR5 102 GB/s                                   | 32GB 256-bit LPDDR4x 136.5GB/s                              | 8GB 128-bit LPDDR4x 59.7GB/s                                 | 4GB 64-bit LPDDR4 25.6GB/s                  |
 
 For a more detailed comparison table, please visit the **Compare Specifications** section of [official NVIDIA Jetson page](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems).
 
 ## What is NVIDIA JetPack?
 
-[NVIDIA JetPack SDK](https://developer.nvidia.com/embedded/jetpack) powering the Jetson modules is the most comprehensive solution and provides full development environment for building end-to-end accelerated AI applications and shortens time to market. JetPack includes Jetson Linux with bootloader, Linux kernel, Ubuntu desktop environment, and a complete set of libraries for acceleration of GPU computing, multimedia, graphics, and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). It also includes samples, documentation, and developer tools for both host computer and developer kit, and supports higher level SDKs such as [DeepStream](https://docs.ultralytics.com/guides/deepstream-nvidia-jetson) for streaming video analytics, Isaac for robotics, and Riva for conversational AI.
+[NVIDIA JetPack SDK](https://developer.nvidia.com/embedded/jetpack) powering the Jetson modules is the most comprehensive solution and provides full development environment for building end-to-end accelerated AI applications and shortens time to market. JetPack includes Jetson Linux with bootloader, Linux kernel, Ubuntu desktop environment, and a complete set of libraries for acceleration of GPU computing, multimedia, graphics, and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). It also includes samples, documentation, and developer tools for both host computer and developer kit, and supports higher level SDKs such as [DeepStream](deepstream-nvidia-jetson.md) for streaming video analytics, Isaac for robotics, and Riva for conversational AI.
 
 ## Flash JetPack to NVIDIA Jetson
 
 The first step after getting your hands on an NVIDIA Jetson device is to flash NVIDIA JetPack to the device. There are several different ways of flashing NVIDIA Jetson devices.
 
-1. If you own an official NVIDIA Development Kit such as the Jetson AGX Thor Developer Kit, you can [download an image and prepare a bootable USB stick to flash JetPack to the included SSD](https://docs.nvidia.com/jetson/agx-thor-devkit/user-guide/latest/quick_start.html).
-2. If you own an official NVIDIA Development Kit such as the Jetson Orin Nano Developer Kit, you can [download an image and prepare an SD card with JetPack for booting the device](https://developer.nvidia.com/embedded/learn/get-started-jetson-orin-nano-devkit).
+1. For JetPack 7.2 on an official Jetson AGX Thor, AGX Orin, or Orin Nano Developer Kit, download the unified Jetson ISO, write it to a USB flash drive, and follow the device-specific quick start for [AGX Thor](https://docs.nvidia.com/jetson/agx-thor-devkit/user-guide/latest/quick_start.html), [AGX Orin](https://docs.nvidia.com/jetson/agx-orin-devkit/user-guide/latest/quick_start.html), or [Orin Nano](https://docs.nvidia.com/jetson/orin-nano-devkit/user-guide/latest/quick_start.html). Starting with JetPack 7.2, Orin Nano no longer uses a downloadable SD-card image; the ISO USB installs Jetson Linux onto the device's microSD card or NVMe SSD.
+2. If you intentionally use JetPack 6 on a Jetson Orin Nano Developer Kit, follow NVIDIA's [JetPack 6.x update and SD-card instructions](https://docs.nvidia.com/jetson/orin-nano-devkit/user-guide/latest/update_firmware.html).
 3. If you own any other NVIDIA Development Kit, you can [flash JetPack to the device using SDK Manager](https://docs.nvidia.com/sdk-manager/install-with-sdkm-jetson/index.html).
 4. If you own a Seeed Studio reComputer J4012 device, you can [flash JetPack to the included SSD](https://wiki.seeedstudio.com/reComputer_J4012_Flash_Jetpack/) and if you own a Seeed Studio reComputer J1020 v2 device, you can [flash JetPack to the eMMC/ SSD](https://wiki.seeedstudio.com/reComputer_J2021_J202_Flash_Jetpack/).
 5. If you own any other third-party device powered by the NVIDIA Jetson module, it is recommended to follow [command-line flashing](https://docs.nvidia.com/jetson/archives/r35.5.0/DeveloperGuide/IN/QuickStart.html).
@@ -76,9 +77,9 @@ The below table highlights NVIDIA JetPack versions supported by different NVIDIA
 | Jetson TX2        | ✅        | ❌        | ❌        | ❌        |
 | Jetson Xavier NX  | ✅        | ✅        | ❌        | ❌        |
 | Jetson AGX Xavier | ✅        | ✅        | ❌        | ❌        |
-| Jetson AGX Orin   | ❌        | ✅        | ✅        | ❌        |
-| Jetson Orin NX    | ❌        | ✅        | ✅        | ❌        |
-| Jetson Orin Nano  | ❌        | ✅        | ✅        | ❌        |
+| Jetson AGX Orin   | ❌        | ✅        | ✅        | ✅        |
+| Jetson Orin NX    | ❌        | ✅        | ✅        | ✅        |
+| Jetson Orin Nano  | ❌        | ✅        | ✅        | ✅        |
 | Jetson AGX Thor   | ❌        | ❌        | ❌        | ✅        |
 
 ## Quick Start with Docker
@@ -106,12 +107,16 @@ The fastest way to get started with Ultralytics YOLO26 on NVIDIA Jetson is to ru
     sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
     ```
 
-=== "JetPack 7"
+=== "JetPack 7.0 (Thor/DGX Spark)"
 
     ```bash
     t=ultralytics/ultralytics:latest-nvidia-arm64
     sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
     ```
+
+!!! note "JetPack 7 Docker scope"
+
+    The public `latest-nvidia-arm64` image currently owns only the JetPack 7.0 Thor/DGX Spark path. For JetPack 7.2 on Thor or Orin, use the native installation below until the public image is explicitly validated and updated for those combinations.
 
 After this is done, skip to [Use TensorRT on NVIDIA Jetson section](#use-tensorrt-on-nvidia-jetson).
 
@@ -119,7 +124,7 @@ After this is done, skip to [Use TensorRT on NVIDIA Jetson section](#use-tensorr
 
 For a native installation without Docker, please refer to the steps below.
 
-### Run on JetPack 7.0
+### Run on JetPack 7.2
 
 #### Install Ultralytics Package
 
@@ -147,9 +152,9 @@ Here we will install Ultralytics package on the Jetson with optional dependencie
 
 #### Install PyTorch and Torchvision
 
-The above ultralytics installation will install Torch and Torchvision. However, these 2 packages installed via pip are not compatible to run on Jetson AGX Thor which comes with JetPack 7.0 and CUDA 13. Therefore, we need to manually install them.
+The above ultralytics installation will install Torch and Torchvision. However, these 2 packages installed via pip are not compatible to run on JetPack 7.2 devices with CUDA 13. Therefore, we need to manually install them.
 
-Install `torch` and `torchvision` according to JP7.0
+Install `torch` and `torchvision` according to JP7.2
 
 ```bash
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
@@ -302,6 +307,12 @@ pip install onnxruntime_gpu-1.17.0-cp38-cp38-linux_aarch64.whl
 
 Among all the model export formats supported by Ultralytics, TensorRT offers the highest inference performance on NVIDIA Jetson devices, making it our top recommendation for Jetson deployments. For setup instructions and advanced usage, see our [dedicated TensorRT integration guide](../integrations/tensorrt.md).
 
+You can also export from the browser without configuring the build environment locally. In the [Ultralytics Platform model Export tab](../platform/train/models.md#nvidia-jetson-tensorrt-targets), select TensorRT and the intended Jetson target. Thor selections are validated on physical Thor hardware. The six Orin selections currently produce AGX-Orin-built candidate engines; validate them on the intended Orin SKU before deployment.
+
+!!! warning "TensorRT engines are device-specific"
+
+    TensorRT profiles and tunes an engine on its build GPU. Match the target's GPU architecture and TensorRT/CUDA runtime, and validate every downloaded engine on the deployment device. Same-architecture Orin SKUs are not an automatic portability guarantee, and INT8 calibration should use the target device for best results.
+
 ### Convert Model to TensorRT and Run Inference
 
 The YOLO26n model in PyTorch format is converted to TensorRT to run inference with the exported model.
@@ -344,6 +355,10 @@ The YOLO26n model in PyTorch format is converted to TensorRT to run inference wi
 
 [NVIDIA Deep Learning Accelerator (DLA)](https://developer.nvidia.com/deep-learning-accelerator) is a specialized hardware component built into NVIDIA Jetson devices that optimizes deep learning inference for energy efficiency and performance. By offloading tasks from the GPU (freeing it up for more intensive processes), DLA enables models to run with lower power consumption while maintaining high throughput, ideal for embedded systems and real-time AI applications.
 
+!!! warning "TensorRT 11.0 and DLA"
+
+    DLA is not supported in TensorRT 11.0 and is planned to return in a later release, so DLA export requires TensorRT 10.x. On JetPack 6.x/7.x, export with a TensorRT 10.x build to use DLA, or use the GPU for TensorRT 11.0 engines.
+
 The following Jetson devices are equipped with DLA hardware:
 
 | Jetson Device            | DLA Cores | DLA Max Frequency |
@@ -365,7 +380,7 @@ The following Jetson devices are equipped with DLA hardware:
         model = YOLO("yolo26n.pt")
 
         # Export the model to TensorRT with DLA enabled (only works with FP16 or INT8)
-        model.export(format="engine", device="dla:0", half=True)  # dla:0 or dla:1 corresponds to the DLA cores
+        model.export(format="engine", device="dla:0", quantize=16)  # dla:0 or dla:1 corresponds to the DLA cores
 
         # Load the exported TensorRT model
         trt_model = YOLO("yolo26n.engine")
@@ -379,7 +394,7 @@ The following Jetson devices are equipped with DLA hardware:
         ```bash
         # Export a YOLO26n PyTorch model to TensorRT format with DLA enabled (only works with FP16 or INT8)
         # Once DLA core number is specified at export, it will use the same core at inference
-        yolo export model=yolo26n.pt format=engine device="dla:0" half=True # dla:0 or dla:1 corresponds to the DLA cores
+        yolo export model=yolo26n.pt format=engine device="dla:0" quantize=16 # dla:0 or dla:1 corresponds to the DLA cores
 
         # Run inference with the exported model on the DLA
         yolo predict model=yolo26n.engine source='https://ultralytics.com/images/bus.jpg'
@@ -896,7 +911,7 @@ Non-essential background services (Bluetooth, connectivity managers, unused hard
 systemctl list-units --type=service --state=running
 
 # Disable a service
-sudo systemctl disable <service-name>
+sudo systemctl disable SERVICE_NAME
 ```
 
 ### 3. Profile Memory Usage

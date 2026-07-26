@@ -1,4 +1,5 @@
 ---
+title: OBB Dataset Formats for YOLO
 comments: true
 description: Discover OBB dataset formats for Ultralytics YOLO models. Learn about their structure, application, and format conversions to enhance your object detection training.
 keywords: Oriented Bounding Box, OBB Datasets, YOLO, Ultralytics, Object Detection, Dataset Formats
@@ -37,6 +38,28 @@ The Ultralytics framework uses a YAML file format to define the dataset and mode
     ```yaml
     --8<-- "ultralytics/cfg/datasets/dota8.yaml"
     ```
+
+Each of `train`, `val`, and `test` accepts a directory, a list of directories, or a `*.txt` file listing one image path per line (paths starting with `./` resolve relative to the `*.txt` file). A `*.txt` file is useful to train on a subset of a directory, skip unlabeled images, or combine images from multiple sources into one split.
+
+!!! example "Image paths as a `*.txt` file"
+
+    === "dataset.yaml"
+
+        ```yaml
+        path: datasets/dota8 # dataset root
+        train: train.txt # a directory, a list e.g. [images/a, images/b], or a *.txt file
+        val: val.txt
+        names:
+          0: plane
+        ```
+
+    === "train.txt"
+
+        ```text
+        ./images/im0.jpg
+        ./images/im1.jpg
+        /data/shared/im2.jpg
+        ```
 
 ## Usage
 

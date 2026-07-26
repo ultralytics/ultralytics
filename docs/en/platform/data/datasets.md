@@ -1,4 +1,6 @@
 ---
+plans: [free, pro, enterprise]
+title: Dataset Management
 comments: true
 description: Learn how to upload, manage, and organize datasets in Ultralytics Platform for YOLO model training with automatic processing and statistics.
 keywords: Ultralytics Platform, datasets, dataset management, dataset versioning, YOLO, data upload, training data, computer vision, machine learning
@@ -11,6 +13,10 @@ keywords: Ultralytics Platform, datasets, dataset management, dataset versioning
 ## Upload Dataset
 
 Ultralytics Platform accepts multiple upload formats for flexibility.
+
+!!! tip "Already have data elsewhere?"
+
+    If you already have datasets in [Ultralytics HUB](../integrations/ultralytics-hub.md) or [Roboflow](../integrations/roboflow.md), use [Integrations](../integrations/index.md) to import them directly — no manual export or re-upload needed. Data in [Google Cloud Storage](../integrations/google-cloud-storage.md), [Amazon S3](../integrations/amazon-s3.md), or [Azure Blob Storage](../integrations/azure-blob-storage.md) can be used in place through **Cloud storage**. Enterprise workspaces can use [On Premise](../integrations/on-premise.md) to index and train on local data without sending pixels to Platform.
 
 ### Supported Formats
 
@@ -31,20 +37,19 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 === "Videos"
 
-    Videos are automatically extracted to frames on the client side at 1 FPS (max 100 frames per video).
+    Videos are uploaded to the regional ingest worker and extracted at 1 FPS, up to 100 frames per video. For longer videos, the worker increases the interval to sample no more than 100 frames across the duration. The container and codec must be decodable by the processing worker — see [Video Codec Support](#video-codec-support).
 
     | Format | Extensions | Extraction            | Max Size |
     | ------ | ---------- | --------------------- | -------- |
     | MP4    | `.mp4`     | 1 FPS, max 100 frames | 1 GB     |
     | WebM   | `.webm`    | 1 FPS, max 100 frames | 1 GB     |
     | MOV    | `.mov`     | 1 FPS, max 100 frames | 1 GB     |
-    | AVI    | `.avi`     | 1 FPS, max 100 frames | 1 GB     |
     | MKV    | `.mkv`     | 1 FPS, max 100 frames | 1 GB     |
     | M4V    | `.m4v`     | 1 FPS, max 100 frames | 1 GB     |
 
     !!! info "Video Frame Extraction"
 
-        Video frames are extracted at 1 frame per second in the browser before upload. A 60-second video produces 60 frames. The maximum is 100 frames per video — for videos longer than ~100 seconds, 100 frames are evenly sampled across the full duration.
+        A 60-second video produces up to 60 WebP frames. For videos longer than 100 seconds, the worker samples at a wider interval so the result stays within 100 frames.
 
 === "Archives"
 
@@ -56,6 +61,21 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
     | TAR    | `.tar` `.tar.gz` `.tgz` | Compressed or raw | 10 GB  | 20 GB  | 50 GB      |
     | NDJSON | `.ndjson`               | Dataset export    | 10 GB  | 20 GB  | 50 GB      |
 
+### Video Codec Support
+
+The file extension alone isn't enough: a video can still fail if its codec cannot be decoded by the Platform ingest worker.
+
+!!! tip "Use H.264 MP4"
+
+    H.264 video in an MP4 container has the broadest support across major browsers and is the safest choice. If a video won't upload, re-encode it with [FFmpeg](https://ffmpeg.org/):
+
+    ```bash
+    ffmpeg -i input.mov \
+      -c:v libx264 -pix_fmt yuv420p \
+      -c:a aac -movflags +faststart \
+      output.mp4
+    ```
+
 ### Preparing Your Dataset
 
 The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), [COCO](https://cocodataset.org/#format-data), [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format), and raw (unannotated) uploads:
@@ -64,7 +84,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Use the standard YOLO directory structure with a `data.yaml` file:
 
-    ```
+    ```text
     my-dataset/
     ├── images/
     │   ├── train/
@@ -101,7 +121,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Use JSON annotation files with the standard [COCO structure](https://cocodataset.org/#format-data):
 
-    ```
+    ```text
     my-coco-dataset/
     ├── train/
     │   ├── _annotations.coco.json
@@ -129,7 +149,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Classification uploads are auto-detected from common folder layouts:
 
-    ```
+    ```text
     split/class/image.jpg
     class/split/image.jpg
     class/image.jpg
@@ -137,7 +157,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Example:
 
-    ```
+    ```text
     my-classify-dataset/
     ├── train/
     │   ├── cats/
@@ -167,31 +187,31 @@ For task-specific format details, see [supported tasks](index.md#supported-tasks
 
 ### Upload Process
 
-1. Navigate to `Datasets` in the sidebar
-2. Click `New Dataset` or drag files into the upload zone
+To create a dataset:
+
+1. Navigate to `Annotate` in the sidebar
+2. Click `New Dataset`
 3. Select the task type (see [supported tasks](index.md#supported-tasks))
 4. Add a name and optional description
 5. Set visibility (public or private) and optional license (see [available licenses](#available-licenses))
-6. Click `Create`
+6. Add files and click `Create & Upload`, or click `Create Dataset` to start with an empty dataset
 
-![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-upload-dialog-task-selector.avif)
+![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.ul.run/i/9a60591229e11552b91f805de387893e.avif)<!-- screenshot -->
+To add files to an existing dataset, open its dataset page and either drag the files onto the gallery or click the upload icon in the page header. The upload icon opens your browser's native file picker directly because the dataset task is already defined.
 
 After upload, the platform processes your data through a multi-stage pipeline:
 
 ```mermaid
 graph LR
-    A[Upload] --> B[Validate]
-    B --> C[Normalize]
-    C --> D[Thumbnail]
-    D --> E[Parse Labels]
-    E --> F[Statistics]
+    A[Upload]:::start --> B[Validate]:::proc
+    B --> C[Normalize]:::proc
+    C --> D[Thumbnail]:::proc
+    D --> E[Parse Labels]:::proc
+    E --> F[Statistics]:::out
 
-    style A fill:#4CAF50,color:#fff
-    style B fill:#2196F3,color:#fff
-    style C fill:#2196F3,color:#fff
-    style D fill:#2196F3,color:#fff
-    style E fill:#2196F3,color:#fff
-    style F fill:#9C27B0,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 1. **Validation**: Format and size checks
@@ -200,8 +220,7 @@ graph LR
 4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format) and COCO format labels extracted
 5. **Statistics**: Class distributions and image dimensions computed
 
-![Ultralytics Platform Datasets Upload Progress Bar](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-upload-progress-bar.avif)
-
+![Ultralytics Platform Datasets Upload Progress Bar](https://cdn.ul.run/i/5ed3a283c82984bbc109ac647d26f73f.avif)<!-- screenshot -->
 ??? tip "Validate Before Upload"
 
     You can validate your dataset locally before uploading:
@@ -228,7 +247,7 @@ Open the [Clustering](#clustering) panel from the gallery toolbar to explore you
 | **Compact** | Smaller thumbnails for quick scanning                                             |
 | **Table**   | List with thumbnail, filename, dimensions, size, split, classes, and label counts |
 
-![Ultralytics Platform Datasets Gallery Grid View With Annotations](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-gallery-grid-view-with-annotations.avif)
+![Ultralytics Platform Datasets Gallery Grid View With Annotations](https://cdn.ul.run/i/1d9140731cab4a43d3d5cc74925aab67.avif)<!-- screenshot -->
 
 ### Sorting and Filtering
 
@@ -251,16 +270,16 @@ Images can be sorted and filtered for efficient browsing:
 
 === "Filters"
 
-    | Filter           | Options                             |
-    | ---------------- | ----------------------------------- |
-    | **Split filter** | Train, Val, Test, or All            |
-    | **Label filter** | All, Labeled, or Unlabeled          |
-    | **Class filter** | Filter by class name                |
-    | **Search**       | Filter images by filename           |
+    | Filter           | Options                               |
+    | ---------------- | ------------------------------------- |
+    | **Split filter** | Train, Val, Test, or All              |
+    | **Annotations**  | All images, Annotated, or Unannotated |
+    | **Class filter** | Filter by class name                  |
+    | **Search**       | Filter images by filename             |
 
 !!! tip "Finding Unlabeled Images"
 
-    Use the label filter set to `Unlabeled` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
+    Use the `Annotations` filter set to `Unannotated` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
 
 ### Fullscreen Viewer
 
@@ -270,7 +289,7 @@ Click any image to open the fullscreen viewer with:
 - **Metadata**: Filename, dimensions, split badge, annotation count
 - **Annotations**: Toggle annotation overlay visibility
 - **Class Breakdown**: Per-class label counts with color indicators
-- **Edit**: Enter annotation mode to add or modify labels
+- **Annotate**: When you have edit access, annotation controls are active immediately when the fullscreen viewer opens on desktop
 - **Download**: Download the original image file
 - **Delete**: Delete the image from the dataset
 - **Zoom**: `Cmd/Ctrl+Scroll`, `Cmd/Ctrl++`, or `Cmd/Ctrl+=` to zoom in, and `Cmd/Ctrl+-` to zoom out
@@ -278,7 +297,7 @@ Click any image to open the fullscreen viewer with:
 - **Pan**: Hold `Space` and drag to pan the canvas when zoomed
 - **Pixel view**: Toggle pixelated rendering for close inspection
 
-![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-fullscreen-viewer-with-metadata-panel.avif)
+![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.ul.run/i/94b50fcde4feb9a2ae540138010a1d6c.avif)<!-- screenshot -->
 
 ### Filter by Split
 
@@ -294,7 +313,7 @@ Filter images by their dataset split:
 
 The `Clustering` panel projects your dataset into an interactive 2D scatter plot where visually similar images sit close together. Use it to surface clusters, spot duplicates and outliers, and inspect how splits or classes are distributed across your data — without leaving the gallery. Open it from the scatter-chart icon in the gallery toolbar on any dataset page.
 
-![Ultralytics Platform Datasets Clustering Empty State](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-clustering-empty-state.avif)
+![Ultralytics Platform Datasets Clustering Empty State](https://cdn.ul.run/i/6b607c81c3713c24e2dddb52fb9131a7.avif)<!-- screenshot -->
 
 ### Running Analysis
 
@@ -310,7 +329,7 @@ Analysis runs in the background and can take a few minutes depending on the size
 
 Once analysis completes, the panel shows a 2D scatter of all analyzed images. Gallery filters (split, class, labeled/unlabeled) dim out-of-filter points so you can focus on the subset you care about.
 
-![Ultralytics Platform Datasets Clustering Scatter Plot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-clustering.avif)
+![Ultralytics Platform Datasets Clustering Scatter Plot](https://cdn.ul.run/i/ccc3e7d7437108d8ab9abbfe2bcaa800.avif)<!-- screenshot -->
 
 #### Color By
 
@@ -325,7 +344,7 @@ Change how data points are shaded with the `Color by` dropdown in the panel tool
 | **Size**        | File size                            |
 | **Annotations** | Number of annotations per image      |
 
-![Ultralytics Platform Datasets Clustering Color Modes](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-clustering-color-modes.avif)
+![Ultralytics Platform Datasets Clustering Color Modes](https://cdn.ul.run/i/e2fb69fd844afa3724433aa37dd7c36b.avif)<!-- screenshot -->
 
 #### Lasso Selection
 
@@ -371,8 +390,7 @@ Manage annotation classes for your dataset:
 - **Edit class colors**: Click a color swatch to change the class color
 - **Add new class**: Use the input at the bottom to add classes
 
-![Ultralytics Platform Datasets Classes Tab Histogram And Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-classes-tab-histogram-and-table.avif)
-
+![Ultralytics Platform Datasets Classes Tab Histogram And Table](https://cdn.ul.run/i/4436768ff6dd3de4184b44ddec5fb042.avif)<!-- screenshot -->
 !!! note "Log Scale for Imbalanced Datasets"
 
     If your dataset has class imbalance (e.g., 10,000 "person" annotations but only 50 "bicycle"), use the `Log Scale` toggle on the class histogram to visualize all classes clearly.
@@ -383,21 +401,23 @@ This tab appears when the dataset has images.
 
 Automatic statistics computed from your dataset:
 
-| Chart                    | Description                                                    |
-| ------------------------ | -------------------------------------------------------------- |
-| **Split Distribution**   | Donut chart of train/val/test image counts and labeled percent |
-| **Top Classes**          | Donut chart of the 10 most frequent annotation classes         |
-| **Image Widths**         | Histogram of image width distribution with mean                |
-| **Image Heights**        | Histogram of image height distribution with mean               |
-| **Points per Instance**  | Polygon vertex or keypoint count per annotation (segment/pose) |
-| **Annotation Locations** | 2D heatmap of bounding box center positions                    |
-| **Image Dimensions**     | 2D width vs height heatmap with aspect ratio guide lines       |
+| Chart                       | Description                                                           |
+| --------------------------- | --------------------------------------------------------------------- |
+| **Split Distribution**      | Donut chart of train/val/test image counts and labeled percent        |
+| **Top Classes**             | Donut chart of the 10 most frequent annotation classes                |
+| **Image Dimensions**        | Histogram of image width and height distribution (overlaid) with mean |
+| **Points per Instance**     | Polygon vertex or keypoint count per annotation (segment/pose)        |
+| **Annotation Locations**    | 2D heatmap of bounding box center positions                           |
+| **Image File Size**         | Histogram of image file size distribution                             |
+| **Image Formats**           | Distribution of source image formats (JPG, PNG, etc.)                 |
+| **Bounding Box Dimensions** | Histogram of bounding box width and height (overlaid)                 |
+| **Objects per Image**       | Histogram of annotation count per image                               |
+| **Image Dimensions 2D**     | 2D width vs height heatmap with aspect ratio guide lines              |
 
-![Ultralytics Platform Datasets Charts Tab Statistics Grid](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-charts-tab-statistics-grid.avif)
-
+![Ultralytics Platform Datasets Charts Tab Statistics Grid](https://cdn.ul.run/i/7f75c56ff648ab3dfa612ba732283a6f.avif)<!-- screenshot -->
 !!! tip "Statistics Caching"
 
-    Statistics are cached for 5 minutes. Changes to annotations will be reflected after the cache expires.
+    The Platform caches computed statistics and invalidates them when images, annotations, classes, or splits change.
 
 !!! info "Fullscreen Heatmaps"
 
@@ -407,18 +427,19 @@ Automatic statistics computed from your dataset:
 
 View all models trained on this dataset in a searchable table:
 
-| Column   | Description               |
-| -------- | ------------------------- |
-| Name     | Model name with link      |
-| Project  | Parent project with icon  |
-| Status   | Training status badge     |
-| Task     | YOLO task type            |
-| Epochs   | Best epoch / total epochs |
-| mAP50-95 | Mean average precision    |
-| mAP50    | mAP at IoU 0.50           |
-| Created  | Creation date             |
+| Column   | Description                                         |
+| -------- | --------------------------------------------------- |
+| Name     | Model name with link                                |
+| Project  | Parent project with icon                            |
+| Version  | Immutable dataset version used for training, if any |
+| Status   | Training status badge                               |
+| Task     | YOLO task type                                      |
+| Epochs   | Best epoch / total epochs                           |
+| mAP50-95 | Mean average precision                              |
+| mAP50    | mAP at IoU 0.50                                     |
+| Created  | Creation date                                       |
 
-![Ultralytics Platform Datasets Models Tab Trained Models Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-models-tab-trained-models-table.avif)
+![Ultralytics Platform Datasets Models Tab Trained Models Table](https://cdn.ul.run/i/5e87bcfacfc0d7f1d25cc1415a70a40c.avif)<!-- screenshot -->
 
 ### Errors Tab
 
@@ -430,8 +451,7 @@ Images that failed processing are listed here with:
 - **Error table**: Filename, user-friendly error description, fix hints, and preview thumbnail
 - Common errors include corrupted files, unsupported formats, images too small (min 28px), and unsupported color modes
 
-![Ultralytics Platform Datasets Errors Tab Processing Failures](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-errors-tab-processing-failures.avif)
-
+![Ultralytics Platform Datasets Errors Tab Processing Failures](https://cdn.ul.run/i/bdf0b8ce26f807b8633305f27d3fbccd.avif)<!-- screenshot -->
 ??? info "Common Processing Errors"
 
     | Error                      | Cause                                   | Fix                                    |
@@ -454,6 +474,7 @@ Create immutable NDJSON snapshots of your dataset for reproducible training. Eac
 | Annotations | Annotation count at time of snapshot |
 | Size        | NDJSON export file size              |
 | Created     | When the version was created         |
+| Actions     | Download, restore, or delete         |
 
 To create a version:
 
@@ -461,9 +482,17 @@ To create a version:
 2. Optionally enter a description (e.g., "Added 500 training images" or "Fixed mislabeled classes")
 3. Click **+ New Version**
 4. The new version appears in the table
-5. Download the version separately from the table when needed
+5. Use the row actions to download, restore, or delete the version
 
-Each version is numbered sequentially (v1, v2, v3...) and stored permanently. You can download any previous version at any time from the versions table.
+Each version is numbered sequentially (v1, v2, v3...). You can download a saved version while it remains in the versions table.
+
+!!! warning "Restoring a Version"
+
+    Restore permanently replaces the dataset's current images, splits, classes, and annotations with the selected snapshot. The rebuild can take several minutes and cannot be undone unless you first save the current state as another version.
+
+!!! tip "Save a Version While Training"
+
+    Enable **Save Dataset Version** in the [Cloud Training dialog](../train/cloud-training.md#save-dataset-version-optional) to link a model to the exact dataset used for training. The Platform reuses a matching version when the dataset contents have not changed and creates a new version only when they have.
 
 !!! note "Ready Datasets Only"
 
@@ -483,16 +512,15 @@ Export your dataset for offline use with an NDJSON download from the dataset hea
 
 To export:
 
-1. Click the **Export** button in the dataset header
+1. Click the **Download** button (download icon) in the dataset header
 2. Download the current NDJSON snapshot directly
 3. Use the **Versions** tab when you want an immutable numbered snapshot you can re-download later
 
-![Ultralytics Platform Datasets Export Ndjson Download](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-export-ndjson-download.avif)
-
+![Ultralytics Platform Datasets Export Ndjson Download](https://cdn.ul.run/i/46ba78e4a1e8489108dd1d999d59e7a7.avif)<!-- screenshot -->
 The NDJSON format stores one JSON object per line. The first line contains dataset metadata, followed by one line per image:
 
 ```json
-{"type": "dataset", "task": "detect", "name": "my-dataset", "description": "...", "url": "https://platform.ultralytics.com/...", "class_names": {"0": "person", "1": "car"}, "version": 1, "created_at": "2026-01-15T10:00:00Z", "updated_at": "2026-02-20T14:30:00Z"}
+{"type": "dataset", "task": "detect", "name": "my-dataset", "description": "...", "bytes": 12345678, "url": "https://platform.ultralytics.com/...", "class_names": {"0": "person", "1": "car"}, "version": 1, "created_at": "2026-01-15T10:00:00Z", "updated_at": "2026-02-20T14:30:00Z"}
 {"type": "image", "file": "img001.jpg", "url": "https://...", "width": 640, "height": 480, "split": "train", "annotations": {"boxes": [[0, 0.5, 0.5, 0.2, 0.3]]}}
 {"type": "image", "file": "img002.jpg", "url": "https://...", "width": 1280, "height": 720, "split": "val"}
 ```
@@ -515,8 +543,7 @@ Right-click any image in **Grid** or **Compact** view to access quick actions:
 | **Download**      | Download the original image file                |
 | **Delete**        | Delete the image from the dataset               |
 
-![Ultralytics Platform Datasets Image Card Context Menu](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-image-card-context-menu.avif)
-
+![Ultralytics Platform Datasets Image Card Context Menu](https://cdn.ul.run/i/a5dd2918d992405d4f2fe7e6b51a76cc.avif)<!-- screenshot -->
 !!! tip "Single vs Bulk"
 
     The image context menu operates on a **single image**. For bulk operations on multiple images, use **Table** view with checkbox selection.
@@ -545,8 +572,7 @@ Redistribute all images across train, validation, and test splits using custom r
 3. Review the live image count preview to confirm the distribution
 4. Click **Apply** to randomly reassign all images according to your percentages
 
-![Ultralytics Platform Datasets Split Redistribution Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-split-redistribution-dialog.avif)
-
+![Ultralytics Platform Datasets Split Redistribution Dialog](https://cdn.ul.run/i/cddfa652da98b5c8bcbd89894e33c2c9.avif)<!-- screenshot -->
 The dialog provides three ways to set your target split ratios:
 
 | Method   | Description                                                                                  |
@@ -573,9 +599,11 @@ Delete multiple images at once:
 
 Reference Platform datasets using the `ul://` URI format (see [Using Platform Datasets](../api/index.md#using-platform-datasets)):
 
-```
+```text
 ul://username/datasets/dataset-slug
 ```
+
+You can also paste a dataset or model web URL directly (e.g. `https://platform.ultralytics.com/username/datasets/dataset-slug`); it is automatically rewritten to the `ul://` URI. Passing a list of datasets fine-tunes one base model across each in series, for example `model.train(data=["ul://username/datasets/a", "ul://username/datasets/b"])`.
 
 Use this URI to train models from anywhere:
 
@@ -633,10 +661,10 @@ The Platform supports the following licenses for datasets:
 
 Control who can see your dataset:
 
-| Setting     | Description                     |
-| ----------- | ------------------------------- |
-| **Private** | Only you can access             |
-| **Public**  | Anyone can view on Explore page |
+| Setting     | Description                                      |
+| ----------- | ------------------------------------------------ |
+| **Private** | You and permitted workspace members can access   |
+| **Public**  | Anyone can view, including from the Explore page |
 
 Visibility is set when creating a dataset in the `New Dataset` dialog using a toggle switch. Public datasets are visible on the [Explore](../explore.md) page.
 
@@ -655,7 +683,7 @@ Dataset metadata is edited inline directly on the dataset page — no dialog nee
 
 ## Clone Dataset
 
-When viewing a public dataset you do not own, click `Clone Dataset` to create a copy in your workspace. The clone includes all images, annotations, and class definitions. If the original dataset has a copyleft license, the clone inherits it and the license selector is locked.
+When viewing a public dataset you do not own, click `Clone Dataset` to open the clone dialog. Review the destination workspace, name, visibility, and license, then confirm the clone. The copy includes all images, annotations, and class definitions. Public source datasets stay public by default in workspaces whose default visibility is public; Enterprise workspace clones default to private. If the original dataset has a copyleft license, the clone inherits it and the license selector is locked.
 
 ## Star and Share
 
@@ -666,9 +694,8 @@ When viewing a public dataset you do not own, click `Clone Dataset` to create a 
 
 Delete a dataset you no longer need:
 
-1. Open dataset actions menu
-2. Click `Delete`
-3. Confirm in the dialog: "This will move [name] to trash. You can restore it within 30 days."
+1. Click the **Delete dataset** trash icon in the dataset header
+2. Confirm in the dialog: "This will move [name] to trash. You can restore it within 30 days."
 
 !!! note "Trash and Restore"
 
@@ -685,13 +712,14 @@ Start training directly from your dataset:
 
 ```mermaid
 graph LR
-    A[Dataset] --> B[New Model]
-    B --> C[Select Project]
-    C --> D[Configure]
-    D --> E[Start Training]
+    A[Dataset]:::start --> B[New Model]:::proc
+    B --> C[Select Project]:::proc
+    C --> D[Configure]:::proc
+    D --> E[Start Training]:::out
 
-    style A fill:#2196F3,color:#fff
-    style E fill:#4CAF50,color:#fff
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef out fill:#9C27B0,color:#fff
 ```
 
 See [Cloud Training](../train/cloud-training.md) for details.
@@ -712,14 +740,14 @@ Your data is processed and stored in your selected region (US, EU, or AP). Image
 
 Ultralytics Platform uses **Content-Addressable Storage (CAS)** for efficient storage:
 
-- **Deduplication**: Identical images uploaded by different users are stored only once
+- **Deduplication**: Identical image bytes in the same data region reuse the same underlying object
 - **Integrity**: XXH3-128 hashing ensures data integrity
-- **Efficiency**: Reduces storage costs and speeds up processing
+- **Efficiency**: Clones reuse CAS objects instead of copying image bytes, while still counting toward the destination workspace's storage quota
 - **Regional**: Data stays in your selected region (US, EU, or AP)
 
 ### Can I add images to an existing dataset?
 
-Yes, drag and drop files onto the dataset page or use the upload button to add additional images. New statistics will be computed automatically.
+Yes. Drag files onto the dataset gallery or click the upload icon in the page header, which opens your browser's native file picker directly. New statistics are computed automatically after processing.
 
 ### How do I move images between splits?
 
@@ -757,4 +785,4 @@ Ultralytics Platform supports YOLO labels, COCO JSON, Ultralytics NDJSON, and ra
 
 ### Can I annotate the same dataset for multiple task types?
 
-Yes. Each image stores annotations for all 5 task types (detect, segment, pose, OBB, classify) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training — annotations for other tasks are preserved and reappear when you switch back.
+Yes. Each image stores annotations for all 6 task types (detect, segment, semantic, pose, OBB, classify) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training — annotations for other tasks are preserved and reappear when you switch back.

@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Any
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 from ultralytics.utils.metrics import CITYSCAPES_WEIGHT, OKS_SIGMA, RLE_WEIGHT
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
@@ -95,15 +95,16 @@ class DFLoss(nn.Module):
         self.reg_max = reg_max
 
     def __call__(self, pred_dist: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        """Return sum of left and right DFL losses from https://ieeexplore.ieee.org/document/9792391."""
+        """Return sum of left and right DFL losses from https://arxiv.org/abs/2006.04388."""
         target = target.clamp_(0, self.reg_max - 1 - 0.01)
         tl = target.long()  # target left
         tr = tl + 1  # target right
         wl = tr - target  # weight left
         wr = 1 - wl  # weight right
-        return (
-            F.cross_entropy(pred_dist, tl.view(-1), reduction="none").view(tl.shape) * wl
-            + F.cross_entropy(pred_dist, tr.view(-1), reduction="none").view(tl.shape) * wr
+        # Compute log_softmax once, then two gathers; cross_entropy(x, t) = -log_softmax(x).gather(t)
+        logp = F.log_softmax(pred_dist, dim=1)
+        return -(
+            logp.gather(1, tl.view(-1, 1)).view(tl.shape) * wl + logp.gather(1, tr.view(-1, 1)).view(tl.shape) * wr
         ).mean(-1, keepdim=True)
 
 
@@ -128,7 +129,7 @@ class BboxLoss(nn.Module):
         stride: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute IoU and DFL losses for bounding boxes."""
-        weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
+        weight = target_scores[fg_mask].sum(-1, keepdim=True)
         iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 
@@ -211,6 +212,8 @@ class RLELoss(nn.Module):
 class RotatedBboxLoss(BboxLoss):
     """Criterion class for computing training losses for rotated bounding boxes."""
 
+    floor = 0.01
+
     def __init__(self, reg_max: int):
         """Initialize the RotatedBboxLoss module with regularization maximum and DFL settings."""
         super().__init__(reg_max)
@@ -228,8 +231,8 @@ class RotatedBboxLoss(BboxLoss):
         stride: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute IoU and DFL losses for rotated bounding boxes."""
-        weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
-        iou = probiou(pred_bboxes[fg_mask], target_bboxes[fg_mask])
+        weight = target_scores[fg_mask].sum(-1, keepdim=True)
+        iou = probiou(pred_bboxes[fg_mask], target_bboxes[fg_mask], floor=self.floor)
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 
         # DFL loss
@@ -351,6 +354,7 @@ class v8DetectionLoss:
         self.device = device
 
         self.use_dfl = m.reg_max > 1
+        self.loss_names = "box_loss", "cls_loss", "dfl_loss" if self.use_dfl else "l1_loss"
 
         # Class weights for handling imbalanced datasets
         self.class_weights = getattr(model, "class_weights", None)
@@ -456,7 +460,7 @@ class v8DetectionLoss:
         return (
             (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor),
             loss,
-            loss.detach(),
+            dict(zip(self.loss_names, loss.detach())),
         )  # loss(box, cls, dfl)
 
     def parse_output(
@@ -469,11 +473,13 @@ class v8DetectionLoss:
         self,
         preds: dict[str, torch.Tensor] | tuple[torch.Tensor, dict[str, torch.Tensor]],
         batch: dict[str, torch.Tensor],
-    ) -> tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         return self.loss(self.parse_output(preds), batch)
 
-    def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    def loss(
+        self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate detection loss using assigned targets."""
         batch_size = preds["boxes"].shape[0]
         loss, loss_detach = self.get_assigned_targets_and_loss(preds, batch)[1:]
@@ -488,10 +494,13 @@ class v8SegmentationLoss(v8DetectionLoss):
     ):  # model must be de-paralleled
         """Initialize the v8SegmentationLoss class with model parameters and mask overlap setting."""
         super().__init__(model, tal_topk, tal_topk2)
+        self.loss_names = ("box_loss", "seg_loss", *self.loss_names[1:], "sem_loss")
         self.overlap = model.args.overlap_mask
         self.bcedice_loss = BCEDiceLoss(weight_bce=0.5, weight_dice=0.5)
 
-    def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    def loss(
+        self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate and return the combined loss for detection and segmentation."""
         pred_masks, proto = preds["mask_coefficient"].permute(0, 2, 1).contiguous(), preds["proto"]
         loss = torch.zeros(5, device=self.device)  # box, seg, cls, dfl, semantic
@@ -525,19 +534,19 @@ class v8SegmentationLoss(v8DetectionLoss):
                 imgsz,
             )
             if pred_semantic is not None:
-                sem_masks = batch["sem_masks"].to(self.device)  # NxHxW
-                sem_masks = F.one_hot(sem_masks.long(), num_classes=self.nc).permute(0, 3, 1, 2).float()  # NxCxHxW
-
+                sem_idx = batch["sem_masks"].to(self.device).long().unsqueeze(1)  # Nx1xHxW
                 if self.overlap:
-                    mask_zero = masks == 0  # NxHxW
-                    sem_masks[mask_zero.unsqueeze(1).expand_as(sem_masks)] = 0
+                    present = masks != 0  # NxHxW
                 else:
                     batch_idx = batch["batch_idx"].view(-1)  # [total_instances]
+                    present = torch.zeros(batch_size, *masks.shape[-2:], dtype=torch.bool, device=self.device)
                     for i in range(batch_size):
                         instance_mask_i = masks[batch_idx == i]  # [num_instances_i, H, W]
-                        if len(instance_mask_i) == 0:
-                            continue
-                        sem_masks[i, :, instance_mask_i.sum(dim=0) == 0] = 0
+                        if len(instance_mask_i):
+                            present[i] = instance_mask_i.sum(dim=0) != 0
+                # One-hot targets zeroed at uncovered pixels, without F.one_hot's int64 NxHxWxC intermediate
+                sem_masks = torch.zeros(sem_idx.shape[0], self.nc, *sem_idx.shape[2:], device=self.device)
+                sem_masks.scatter_(1, sem_idx, present.unsqueeze(1).float())  # NxCxHxW
 
                 loss[4] = self.bcedice_loss(pred_semantic, sem_masks)
                 loss[4] *= self.hyp.box  # seg gain
@@ -549,7 +558,7 @@ class v8SegmentationLoss(v8DetectionLoss):
                 loss[4] += (pred_semantic * 0).sum()
 
         loss[1] *= self.hyp.box  # seg gain
-        return loss * batch_size, loss.detach()  # loss(box, seg, cls, dfl, semantic)
+        return loss * batch_size, dict(zip(self.loss_names, loss.detach()))  # loss(box, seg, cls, dfl, semantic)
 
     @staticmethod
     def single_mask_loss(
@@ -590,7 +599,7 @@ class v8SegmentationLoss(v8DetectionLoss):
 
         Args:
             fg_mask (torch.Tensor): A binary tensor of shape (BS, N_anchors) indicating which anchors are positive.
-            masks (torch.Tensor): Ground truth masks of shape (BS, H, W) if `overlap` is False, otherwise (BS, ?, H, W).
+            masks (torch.Tensor): Ground truth masks, shape (BS, H, W) if `overlap` else (N_instances_in_batch, H, W).
             target_gt_idx (torch.Tensor): Indexes of ground truth objects for each anchor of shape (BS, N_anchors).
             target_bboxes (torch.Tensor): Ground truth bounding boxes for each anchor of shape (BS, N_anchors, 4).
             batch_idx (torch.Tensor): Batch indices of shape (N_labels_in_batch, 1).
@@ -618,12 +627,12 @@ class v8SegmentationLoss(v8DetectionLoss):
         # Normalize to mask size
         mxyxy = target_bboxes_normalized * torch.tensor([mask_w, mask_h, mask_w, mask_h], device=proto.device)
 
-        for i, single_i in enumerate(zip(fg_mask, target_gt_idx, pred_masks, proto, mxyxy, marea, masks)):
-            fg_mask_i, target_gt_idx_i, pred_masks_i, proto_i, mxyxy_i, marea_i, masks_i = single_i
+        for i, single_i in enumerate(zip(fg_mask, target_gt_idx, pred_masks, proto, mxyxy, marea)):
+            fg_mask_i, target_gt_idx_i, pred_masks_i, proto_i, mxyxy_i, marea_i = single_i
             if fg_mask_i.any():
                 mask_idx = target_gt_idx_i[fg_mask_i]
                 if self.overlap:
-                    gt_mask = masks_i == (mask_idx + 1).view(-1, 1, 1)
+                    gt_mask = masks[i] == (mask_idx + 1).view(-1, 1, 1)
                     gt_mask = gt_mask.float()
                 else:
                     gt_mask = masks[batch_idx.view(-1) == i][mask_idx]
@@ -645,6 +654,7 @@ class v8PoseLoss(v8DetectionLoss):
     def __init__(self, model: torch.nn.Module, tal_topk: int = 10, tal_topk2: int = 10):  # model must be de-paralleled
         """Initialize v8PoseLoss with model parameters and keypoint-specific loss functions."""
         super().__init__(model, tal_topk, tal_topk2)
+        self.loss_names = ("box_loss", "pose_loss", "kobj_loss", *self.loss_names[1:])
         self.kpt_shape = model.model[-1].kpt_shape
         self.bce_pose = nn.BCEWithLogitsLoss()
         is_pose = self.kpt_shape == [17, 3]
@@ -652,7 +662,9 @@ class v8PoseLoss(v8DetectionLoss):
         sigmas = torch.from_numpy(OKS_SIGMA).to(self.device) if is_pose else torch.ones(nkpt, device=self.device) / nkpt
         self.keypoint_loss = KeypointLoss(sigmas=sigmas)
 
-    def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    def loss(
+        self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate the total loss and detach it for pose estimation."""
         pred_kpts = preds["kpts"].permute(0, 2, 1).contiguous()
         loss = torch.zeros(5, device=self.device)  # box, kpt_location, kpt_visibility, cls, dfl
@@ -687,7 +699,7 @@ class v8PoseLoss(v8DetectionLoss):
         loss[1] *= self.hyp.pose  # pose gain
         loss[2] *= self.hyp.kobj  # kobj gain
 
-        return loss * batch_size, loss.detach()  # loss(box, pose, kobj, cls, dfl)
+        return loss * batch_size, dict(zip(self.loss_names, loss.detach()))  # loss(box, pose, kobj, cls, dfl)
 
     @staticmethod
     def kpts_decode(anchor_points: torch.Tensor, pred_kpts: torch.Tensor) -> torch.Tensor:
@@ -777,15 +789,13 @@ class v8PoseLoss(v8DetectionLoss):
         # Select target keypoints using helper method
         selected_keypoints = self._select_target_keypoints(keypoints, batch_idx, target_gt_idx, masks)
 
-        # Divide coordinates by stride
-        selected_keypoints[..., :2] /= stride_tensor.view(1, -1, 1, 1)
-
         kpts_loss = 0
         kpts_obj_loss = 0
 
         if masks.any():
             target_bboxes /= stride_tensor
             gt_kpt = selected_keypoints[masks]
+            gt_kpt[..., :2] /= stride_tensor.view(1, -1).expand(masks.shape[0], -1)[masks][:, None, None]
             area = xyxy2xywh(target_bboxes[masks])[:, 2:].prod(1, keepdim=True)
             pred_kpt = pred_kpts[masks]
             kpt_mask = gt_kpt[..., 2] != 0 if gt_kpt.shape[-1] == 3 else torch.full_like(gt_kpt[..., 0], True)
@@ -798,7 +808,7 @@ class v8PoseLoss(v8DetectionLoss):
 
 
 class PoseLoss26(v8PoseLoss):
-    """Criterion class for computing training losses for YOLOv8 pose estimation with RLE loss support."""
+    """Criterion class for computing training losses for YOLO26 pose estimation with RLE loss support."""
 
     def __init__(
         self, model: torch.nn.Module, tal_topk: int = 10, tal_topk2: int | None = None
@@ -811,11 +821,14 @@ class PoseLoss26(v8PoseLoss):
         self.flow_model = model.model[-1].flow_model if hasattr(model.model[-1], "flow_model") else None
         if self.flow_model is not None:
             self.rle_loss = RLELoss(use_target_weight=True).to(self.device)
+            self.loss_names += ("rle_loss",)
             self.target_weights = (
                 torch.from_numpy(RLE_WEIGHT).to(self.device) if is_pose else torch.ones(nkpt, device=self.device)
             )
 
-    def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    def loss(
+        self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate the total loss and detach it for pose estimation."""
         pred_kpts = preds["kpts"].permute(0, 2, 1).contiguous()
         loss = torch.zeros(
@@ -864,7 +877,8 @@ class PoseLoss26(v8PoseLoss):
         if self.rle_loss is not None:
             loss[5] *= self.hyp.rle  # rle gain
 
-        return loss * batch_size, loss.detach()  # loss(box, kpt_location, kpt_visibility, cls, dfl[, rle])
+        # loss(box, kpt_location, kpt_visibility, cls, dfl[, rle])
+        return loss * batch_size, dict(zip(self.loss_names, loss.detach()))
 
     @staticmethod
     def kpts_decode(anchor_points: torch.Tensor, pred_kpts: torch.Tensor) -> torch.Tensor:
@@ -949,9 +963,6 @@ class PoseLoss26(v8PoseLoss):
         # Select target keypoints using inherited helper method
         selected_keypoints = self._select_target_keypoints(keypoints, batch_idx, target_gt_idx, masks)
 
-        # Divide coordinates by stride
-        selected_keypoints[..., :2] /= stride_tensor.view(1, -1, 1, 1)
-
         kpts_loss = 0
         kpts_obj_loss = 0
         rle_loss = 0
@@ -959,6 +970,7 @@ class PoseLoss26(v8PoseLoss):
         if masks.any():
             target_bboxes /= stride_tensor
             gt_kpt = selected_keypoints[masks]
+            gt_kpt[..., :2] /= stride_tensor.view(1, -1).expand(masks.shape[0], -1)[masks][:, None, None]
             area = xyxy2xywh(target_bboxes[masks])[:, 2:].prod(1, keepdim=True)
             pred_kpt = pred_kpts[masks]
             kpt_mask = gt_kpt[..., 2] != 0 if gt_kpt.shape[-1] == 3 else torch.full_like(gt_kpt[..., 0], True)
@@ -976,11 +988,11 @@ class PoseLoss26(v8PoseLoss):
 class v8ClassificationLoss:
     """Criterion class for computing training losses for classification."""
 
-    def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Compute the classification loss between predictions and true labels."""
         preds = preds[1] if isinstance(preds, (list, tuple)) else preds
         loss = F.cross_entropy(preds, batch["cls"], reduction="mean")
-        return loss, loss.detach()
+        return loss, {"loss": loss.detach()}
 
 
 class v8OBBLoss(v8DetectionLoss):
@@ -989,6 +1001,7 @@ class v8OBBLoss(v8DetectionLoss):
     def __init__(self, model: torch.nn.Module, tal_topk=10, tal_topk2: int | None = None):
         """Initialize v8OBBLoss with model, assigner, and rotated bbox loss; model must be de-paralleled."""
         super().__init__(model, tal_topk=tal_topk)
+        self.loss_names = (*self.loss_names, "angle_loss")
         self.assigner = RotatedTaskAlignedAssigner(
             topk=tal_topk,
             num_classes=self.nc,
@@ -1017,7 +1030,9 @@ class v8OBBLoss(v8DetectionLoss):
             out[batch_idx, within_idx] = packed_targets
         return out
 
-    def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    def loss(
+        self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate and return the loss for oriented bounding box detection."""
         loss = torch.zeros(4, device=self.device)  # box, cls, dfl, angle
         pred_distri, pred_scores, pred_angle = (
@@ -1050,7 +1065,7 @@ class v8OBBLoss(v8DetectionLoss):
             ) from e
 
         # Pboxes
-        pred_bboxes = self.bbox_decode(anchor_points, pred_distri, pred_angle)  # xyxy, (b, h*w, 4)
+        pred_bboxes = self.bbox_decode(anchor_points, pred_distri, pred_angle)  # xywhr, (b, h*w, 5)
 
         bboxes_for_assigner = pred_bboxes.clone().detach()
         # Only the first four elements need to be scaled
@@ -1068,7 +1083,10 @@ class v8OBBLoss(v8DetectionLoss):
 
         # Cls loss
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
-        loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+        bce_loss = self.bce(pred_scores, target_scores.to(dtype))  # BCE
+        if self.class_weights is not None:
+            bce_loss *= self.class_weights
+        loss[1] = bce_loss.sum() / target_scores_sum
 
         # Bbox loss
         if fg_mask.sum():
@@ -1084,7 +1102,7 @@ class v8OBBLoss(v8DetectionLoss):
                 imgsz,
                 stride_tensor,
             )
-            weight = target_scores.sum(-1)[fg_mask]
+            weight = target_scores[fg_mask].sum(-1)
             loss[3] = self.calculate_angle_loss(
                 pred_bboxes, target_bboxes, fg_mask, weight, target_scores_sum
             )  # angle loss
@@ -1096,7 +1114,7 @@ class v8OBBLoss(v8DetectionLoss):
         loss[2] *= self.hyp.dfl  # dfl gain
         loss[3] *= self.hyp.angle  # angle gain
 
-        return loss * batch_size, loss.detach()  # loss(box, cls, dfl, angle)
+        return loss * batch_size, dict(zip(self.loss_names, loss.detach()))  # loss(box, cls, dfl, angle)
 
     def bbox_decode(
         self, anchor_points: torch.Tensor, pred_dist: torch.Tensor, pred_angle: torch.Tensor
@@ -1148,6 +1166,97 @@ class v8OBBLoss(v8DetectionLoss):
         return ang_loss.sum() / target_scores_sum
 
 
+class DepthLoss26:
+    """Criterion class for computing training losses for YOLO depth estimation.
+
+    Uses scale-invariant log loss (SILog) + gradient-matching loss, following the Depth Anything approach. SILog handles
+    scale ambiguity while gradient loss preserves edges.
+    """
+
+    def __init__(self, model: torch.nn.Module):
+        """Initialize DepthLoss26."""
+        device = next(model.parameters()).device
+        self.device = device
+        h = model.args  # hyperparameters
+        self.silog_weight = h.dlog
+        self.grad_weight = h.dgrad
+        self.silog_lambda = h.dlam  # 1.0 = scale-invariant, 0.0 = log-RMSE
+        self.grad_scales = 4
+        self.loss_names = "dlog_loss", "dgrad_loss"
+
+    @staticmethod
+    def _grad_l1(pred_log: torch.Tensor, gt_log: torch.Tensor, valid_f: torch.Tensor) -> torch.Tensor:
+        """L1 between predicted and GT log-depth spatial gradients (dx, dy), gated by the valid mask.
+
+        Each gradient is zeroed unless both contributing pixels are valid, so edges are only
+        matched where GT is defined.
+        """
+        pred_dx = (pred_log[:, :, :, 1:] - pred_log[:, :, :, :-1]) * valid_f[:, :, :, 1:] * valid_f[:, :, :, :-1]
+        gt_dx = (gt_log[:, :, :, 1:] - gt_log[:, :, :, :-1]) * valid_f[:, :, :, 1:] * valid_f[:, :, :, :-1]
+        pred_dy = (pred_log[:, :, 1:, :] - pred_log[:, :, :-1, :]) * valid_f[:, :, 1:, :] * valid_f[:, :, :-1, :]
+        gt_dy = (gt_log[:, :, 1:, :] - gt_log[:, :, :-1, :]) * valid_f[:, :, 1:, :] * valid_f[:, :, :-1, :]
+        return F.l1_loss(pred_dx, gt_dx) + F.l1_loss(pred_dy, gt_dy)
+
+    def __call__(
+        self, preds: dict[str, torch.Tensor] | torch.Tensor, batch: dict[str, torch.Tensor]
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        """Calculate depth estimation loss.
+
+        Args:
+            preds (dict | torch.Tensor): Dict with "depth" key or raw tensor of (B, 1, H, W) predicted depth.
+            batch (dict): Dict with "depth" key holding (B, H, W) ground truth depth in meters.
+
+        Returns:
+            loss_sum (torch.Tensor): Total loss scaled by batch size.
+            loss_items (dict[str, torch.Tensor]): Detached silog/gradient losses keyed by loss_names.
+        """
+        loss = torch.zeros(2, device=self.device)
+        pred_depth = preds["depth"] if isinstance(preds, dict) else preds
+        gt_depth = batch["depth"].to(self.device)
+
+        if gt_depth.ndim == 3:
+            gt_depth = gt_depth.unsqueeze(1)
+
+        if gt_depth.shape[-2:] != pred_depth.shape[-2:]:
+            pred_depth = F.interpolate(pred_depth, size=gt_depth.shape[-2:], mode="bilinear", align_corners=True)
+
+        valid = gt_depth > 0.001
+        if valid.sum() < 10:
+            # Keep the result attached so BaseTrainer's unconditional backward() works.
+            return pred_depth.sum() * 0.0, dict(zip(self.loss_names, loss.detach()))
+
+        pred_valid = pred_depth[valid]
+        gt_valid = gt_depth[valid]
+
+        pred_valid = pred_valid.clamp(min=0.001)
+
+        log_diff = torch.log(pred_valid) - torch.log(gt_valid)
+        # Centered variance form: non-negative by construction and fp16-stable near convergence.
+        m = log_diff.mean()
+        silog = torch.sqrt(((log_diff - m) ** 2).mean() + (1.0 - self.silog_lambda) * m**2 + 1e-6)
+        loss[0] = silog * self.silog_weight
+
+        # Multi-scale gradient-matching loss.
+        pred_log = torch.log(pred_depth.clamp(min=0.001))
+        gt_log = torch.log(gt_depth.clamp(min=0.001))
+        valid_f = valid.float()
+        grad_loss = self._grad_l1(pred_log, gt_log, valid_f)
+        for _ in range(1, max(self.grad_scales, 1)):
+            if pred_log.shape[-1] < 4 or pred_log.shape[-2] < 4:
+                break
+            vp = F.avg_pool2d(valid_f, 2)
+            if vp.mean() < 0.5:  # skip sparse GT (LiDAR)
+                break
+            denom = vp.clamp(min=1e-6)
+            pred_log = F.avg_pool2d(pred_log * valid_f, 2) / denom
+            gt_log = F.avg_pool2d(gt_log * valid_f, 2) / denom
+            valid_f = (vp > 0).float()
+            grad_loss = grad_loss + self._grad_l1(pred_log, gt_log, valid_f)
+        loss[1] = grad_loss * self.grad_weight
+
+        return loss * pred_depth.shape[0], dict(zip(self.loss_names, loss.detach()))
+
+
 class E2EDetectLoss:
     """Criterion class for computing training losses for end-to-end detection."""
 
@@ -1156,14 +1265,16 @@ class E2EDetectLoss:
         self.one2many = v8DetectionLoss(model, tal_topk=10)
         self.one2one = v8DetectionLoss(model, tal_topk=1)
 
-    def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         preds = preds[1] if isinstance(preds, tuple) else preds
         one2many = preds["one2many"]
         loss_one2many = self.one2many(one2many, batch)
         one2one = preds["one2one"]
         loss_one2one = self.one2one(one2one, batch)
-        return loss_one2many[0] + loss_one2one[0], loss_one2many[1] + loss_one2one[1]
+        return loss_one2many[0] + loss_one2one[0], {
+            k: loss_one2many[1][k] + loss_one2one[1][k] for k in loss_one2many[1]
+        }
 
 
 class E2ELoss:
@@ -1182,7 +1293,7 @@ class E2ELoss:
         # final gain
         self.final_o2m = 0.1
 
-    def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         preds = self.one2many.parse_output(preds)
         one2many, one2one = preds["one2many"], preds["one2one"]
@@ -1207,6 +1318,7 @@ class TVPDetectLoss:
     def __init__(self, model: torch.nn.Module, tal_topk=10, tal_topk2: int | None = None):
         """Initialize TVPDetectLoss with task-prompt and visual-prompt criteria using the provided model."""
         self.vp_criterion = v8DetectionLoss(model, tal_topk, tal_topk2)
+        self.loss_names = tuple(k[:-5] for k in self.vp_criterion.loss_names)  # strip "_loss" suffix
         # NOTE: store following info as it's changeable in __call__
         self.hyp = self.vp_criterion.hyp
         self.ori_nc = self.vp_criterion.nc
@@ -1217,20 +1329,21 @@ class TVPDetectLoss:
         """Parse model predictions to extract features."""
         return self.vp_criterion.parse_output(preds)
 
-    def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate the loss for text-visual prompt detection."""
         return self.loss(self.parse_output(preds), batch)
 
-    def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    def loss(
+        self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate the loss for text-visual prompt detection."""
         if self.ori_nc == preds["scores"].shape[1]:
             loss = torch.zeros(3, device=self.vp_criterion.device, requires_grad=True)
-            return loss, loss.detach()
+            return loss, dict(zip(self.loss_names, loss.detach()))
 
         preds["scores"] = self._get_vp_features(preds)
         vp_loss = self.vp_criterion(preds, batch)
-        box_loss = vp_loss[0][1]
-        return box_loss, vp_loss[1]
+        return vp_loss[0][1], dict(zip(self.loss_names, vp_loss[1].values()))
 
     def _get_vp_features(self, preds: dict[str, torch.Tensor]) -> list[torch.Tensor]:
         """Extract visual-prompt features from the model output."""
@@ -1246,26 +1359,28 @@ class TVPDetectLoss:
 class TVPSegmentLoss(TVPDetectLoss):
     """Criterion class for computing training losses for text-visual prompt segmentation."""
 
-    def __init__(self, model: torch.nn.Module, tal_topk=10):
+    def __init__(self, model: torch.nn.Module, tal_topk=10, tal_topk2: int | None = None):
         """Initialize TVPSegmentLoss with task-prompt and visual-prompt criteria using the provided model."""
         super().__init__(model)
-        self.vp_criterion = v8SegmentationLoss(model, tal_topk)
+        self.vp_criterion = v8SegmentationLoss(model, tal_topk, tal_topk2)
+        self.loss_names = tuple(k[:-5] for k in self.vp_criterion.loss_names if k != "sem_loss")  # strip "_loss"
         self.hyp = self.vp_criterion.hyp
 
-    def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate the loss for text-visual prompt segmentation."""
         return self.loss(self.parse_output(preds), batch)
 
-    def loss(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    def loss(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate the loss for text-visual prompt segmentation."""
         if self.ori_nc == preds["scores"].shape[1]:
             loss = torch.zeros(4, device=self.vp_criterion.device, requires_grad=True)
-            return loss, loss.detach()
+            return loss, dict(zip(self.loss_names, loss.detach()))
 
         preds["scores"] = self._get_vp_features(preds)
         vp_loss = self.vp_criterion(preds, batch)
         cls_loss = vp_loss[0][2]
-        return cls_loss, vp_loss[1]
+        # zip drops the trailing "sem_loss" item to match the logged columns
+        return cls_loss, dict(zip(self.loss_names, vp_loss[1].values()))
 
 
 class SemanticSegmentationLoss(nn.Module):
@@ -1289,13 +1404,16 @@ class SemanticSegmentationLoss(nn.Module):
         self.dtype = next(model.parameters()).dtype
         data_name = Path(str(getattr(model.args, "data", "") or "")).stem.lower()
         self.use_cityscapes_weight = data_name in {"cityscapes", "cityscapes8"} and self.nc == len(CITYSCAPES_WEIGHT)
+        weight = getattr(model, "class_weights", None)  # cls_pw frequency weights, else hardcoded Cityscapes
+        if weight is None and self.use_cityscapes_weight:
+            weight = torch.from_numpy(CITYSCAPES_WEIGHT)
+        weight = None if weight is None else weight.to(device=self.device, dtype=self.dtype)
         if self.nc == 1:
-            self.ce = nn.BCEWithLogitsLoss()
+            self.ce = nn.BCEWithLogitsLoss(reduction="sum")  # binary: class weighting intentionally unsupported
         else:
-            self.ce = nn.CrossEntropyLoss(ignore_index=255).to(device=self.device, dtype=self.dtype)
-            if self.use_cityscapes_weight:
+            self.ce = nn.CrossEntropyLoss(ignore_index=255, reduction="sum").to(device=self.device, dtype=self.dtype)
+            if weight is not None:
                 # Non-persistent: weight is a deterministic constant, no need to serialize into ckpt state_dict.
-                weight = torch.from_numpy(CITYSCAPES_WEIGHT).to(device=self.device, dtype=self.dtype)
                 self.ce.register_buffer("weight", weight, persistent=False)
 
     def _resize_masks(self, masks, target_shape):
@@ -1306,27 +1424,24 @@ class SemanticSegmentationLoss(nn.Module):
             )
         return masks
 
-    def _ce_loss(self, preds, masks):
+    def _ce_loss(self, preds, masks, valid):
         """Compute cross-entropy on flattened pixels to avoid the CUDA nll_loss2d path."""
+        flat = masks.reshape(-1)
         if self.nc == 1:
-            flat = masks.reshape(-1)
-            valid = flat != 255
             logits = preds.reshape(-1)[valid]
             target = flat[valid].float()
+            denominator = valid.sum()
         else:
             logits = preds.permute(0, 2, 3, 1).reshape(-1, self.nc)
-            target = masks.reshape(-1).long()
-        return self.ce(logits, target)
+            target = flat.long()
+            denominator = valid.sum() if self.ce.weight is None else self.ce.weight[target[valid]].sum()
+        return self.ce(logits, target) / denominator.clamp_min(1)
 
-    def _dice_loss(self, preds, masks):
+    def _dice_loss(self, preds, masks, valid):
         """Compute Dice loss excluding ignore pixels."""
         if self.nc == 1:
-            return self._binary_dice_loss(preds, masks)
+            return self._binary_dice_loss(preds, masks, valid)
         flat_target = masks.reshape(-1)
-        valid = flat_target != 255
-        if not valid.any():
-            return preds.sum() * 0
-
         pred_soft = F.softmax(preds, dim=1)
         target = flat_target[valid].long()
         flat_pred = pred_soft.float().permute(0, 2, 3, 1).reshape(-1, self.nc)[valid]
@@ -1337,12 +1452,12 @@ class SemanticSegmentationLoss(nn.Module):
         cardinality = pred_sum + target_sum
         return (1.0 - (2.0 * intersection + 1.0) / (cardinality + 1.0)).mean()
 
-    def _binary_dice_loss(self, preds, masks):
+    def _binary_dice_loss(self, preds, masks, valid):
         """Compute Dice loss for single-class (binary) segmentation.
 
         Pixels with value 255 are excluded from Dice terms to match BCE valid-pixel filtering.
         """
-        valid = (masks != 255).float()
+        valid = valid.reshape_as(masks).float()
         pred_soft = preds.squeeze(1).sigmoid()
         target = (masks == 1).float()
         intersection = (pred_soft * target * valid).sum()
@@ -1357,7 +1472,8 @@ class SemanticSegmentationLoss(nn.Module):
             batch (dict): Batch dict with 'semantic_mask' [B, H, W] containing class IDs (255=ignore).
 
         Returns:
-            (tuple[torch.Tensor, torch.Tensor]): (total_loss * batch_size, detached loss items [ce, dice, aux]).
+            (tuple[torch.Tensor, dict[str, torch.Tensor]]): Total loss * batch_size and a dict of detached loss items
+                (ce_loss, dice_loss, aux_loss).
         """
         # Unpack auxiliary logits when present.
         aux_logits = None
@@ -1365,21 +1481,22 @@ class SemanticSegmentationLoss(nn.Module):
             preds, aux_logits = preds
 
         masks = batch["semantic_mask"].to(preds.device)
+        valid = masks.reshape(-1) != 255
         if preds.shape[2:] != masks.shape[1:]:
             preds = F.interpolate(preds, size=masks.shape[1:], mode="bilinear", align_corners=False)
 
         # Main cross-entropy and Dice loss.
-        ce_loss = self._ce_loss(preds, masks)
-        dice_loss = self._dice_loss(preds, masks)
+        ce_loss = self._ce_loss(preds, masks, valid)
+        dice_loss = self._dice_loss(preds, masks, valid)
         total = ce_loss + dice_loss
 
-        # Auxiliary cross-entropy loss. Match ce_loss dtype so torch.stack below succeeds under AMP.
+        # Auxiliary cross-entropy loss. Match ce_loss dtype so adding to total succeeds under AMP.
         aux_loss = torch.tensor(0.0, device=preds.device, dtype=ce_loss.dtype)
         if aux_logits is not None:
             if aux_logits.shape[2:] != masks.shape[1:]:
                 aux_logits = F.interpolate(aux_logits, size=masks.shape[1:], mode="bilinear", align_corners=False)
-            aux_loss = self._ce_loss(aux_logits, masks) * 0.4
+            aux_loss = self._ce_loss(aux_logits, masks, valid) * 0.4
             total += aux_loss
 
-        loss_items = torch.stack([ce_loss, dice_loss, aux_loss]).detach()
+        loss_items = {"ce_loss": ce_loss.detach(), "dice_loss": dice_loss.detach(), "aux_loss": aux_loss.detach()}
         return total * preds.shape[0], loss_items

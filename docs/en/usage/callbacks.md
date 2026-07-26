@@ -1,4 +1,5 @@
 ---
+title: Training Callbacks
 comments: true
 description: Explore Ultralytics callbacks for training, validation, exporting, and prediction. Learn how to use and customize them for your ML models.
 keywords: Ultralytics, callbacks, training, validation, export, prediction, ML models, YOLO, Python, machine learning
@@ -233,9 +234,9 @@ def save_on_object(predictor):
 
 
 model.add_callback("on_predict_postprocess_end", save_on_object)
-results = model("pedestrians.mp4", stream=True, save=True)
+results_stream = model("pedestrians.mp4", stream=True, save=True)
 
-for results in results:
+for result in results_stream:
     pass
 ```
 

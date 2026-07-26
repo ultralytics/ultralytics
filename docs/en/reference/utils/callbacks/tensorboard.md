@@ -1,4 +1,5 @@
 ---
+title: utils.callbacks.tensorboard API Reference
 description: Learn how to integrate and use TensorBoard with Ultralytics for effective model training visualization.
 keywords: Ultralytics, TensorBoard, callbacks, machine learning, training visualization, logging
 ---

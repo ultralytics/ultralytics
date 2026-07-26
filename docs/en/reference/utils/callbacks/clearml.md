@@ -1,4 +1,5 @@
 ---
+title: utils.callbacks.clearml API Reference
 description: Learn how to integrate ClearML with Ultralytics YOLO using detailed callbacks for pretraining, training, validation, and final logging.
 keywords: Ultralytics, YOLO, ClearML, integration, callbacks, pretraining, training, validation, logging, AI, machine learning
 ---

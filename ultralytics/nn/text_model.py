@@ -6,10 +6,10 @@ from abc import abstractmethod
 from pathlib import Path
 
 import torch
-import torch.nn as nn
 from PIL import Image
+from torch import nn
 
-from ultralytics.utils import checks
+from ultralytics.utils import WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import smart_inference_mode
 
 try:
@@ -37,12 +37,10 @@ class TextModel(nn.Module):
     @abstractmethod
     def tokenize(self, texts):
         """Convert input texts to tokens for model processing."""
-        pass
 
     @abstractmethod
     def encode_text(self, texts, dtype):
         """Encode tokenized texts into normalized feature vectors."""
-        pass
 
 
 class CLIP(TextModel):
@@ -80,7 +78,7 @@ class CLIP(TextModel):
             device (torch.device): Device to load the model on.
         """
         super().__init__()
-        self.model, self.image_preprocess = clip.load(size, device=device)
+        self.model, self.image_preprocess = clip.load(size, device=device, download_root=str(WEIGHTS_DIR / "clip"))
         self.to(device)
         self.device = device
         self.eval()

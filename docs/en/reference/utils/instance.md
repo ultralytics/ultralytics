@@ -1,4 +1,5 @@
 ---
+title: utils.instance API Reference
 description: Explore Ultralytics utilities for bounding boxes and instances, providing detailed documentation on handling bbox formats, conversions, and more.
 keywords: Ultralytics, bounding boxes, Instances, bbox formats, conversions, AI, deep learning, YOLO, xyxy, xywh, ltwh
 ---

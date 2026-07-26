@@ -1,4 +1,5 @@
 ---
+title: models.sam.modules.memory_attention API Reference
 description: Explore detailed documentation of various SAM 2 encoder modules such as MemoryAttentionLayer, MemoryAttention, available in Ultralytics' repository.
 keywords: Ultralytics, SAM 2 encoder, MemoryAttentionLayer, MemoryAttention
 ---

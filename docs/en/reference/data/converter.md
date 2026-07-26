@@ -1,4 +1,5 @@
 ---
+title: data.converter API Reference
 description: Explore comprehensive data conversion tools for YOLO models including COCO, DOTA, and YOLO bbox2segment converters.
 keywords: Ultralytics, data conversion, YOLO models, COCO, DOTA, YOLO bbox2segment, machine learning, annotations
 ---
@@ -56,5 +57,9 @@ keywords: Ultralytics, data conversion, YOLO models, COCO, DOTA, YOLO bbox2segme
 <br><br><hr><br>
 
 ## ::: ultralytics.data.converter.convert_ndjson_to_yolo
+
+<br><br><hr><br>
+
+## ::: ultralytics.data.converter._convert_ndjson_to_yolo
 
 <br><br>

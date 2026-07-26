@@ -1,4 +1,5 @@
 ---
+title: models.fastsam.utils API Reference
 description: Explore the utility functions in FastSAM for adjusting bounding boxes and calculating IoU, benefiting computer vision projects.
 keywords: FastSAM, bounding boxes, IoU, Ultralytics, image processing, computer vision
 ---

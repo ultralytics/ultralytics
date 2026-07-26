@@ -1,7 +1,7 @@
 """Run kNN evaluation on a distilled encoder run directory or on a released reference encoder.
 
 Usage:
-    python run_knn_eval.py <gpu_id> <run_dir|teacher_spec> [--imgsz N] [--crop_ratio R] [--csv PATH] [--wandb]
+    python run_knn_eval.py <gpu_id> <run_dir|teacher_spec> [--imgsz N] [--crop_ratio R] [--norm N] [--csv PATH] [--wandb]
 
 A target matching ``TEACHER_REGISTRY`` in either form (``tips:v2b14`` or ``tips_v2b14``) is read as a teacher spec and
 scored under the same k=20 / T=0.07 protocol as our students. Anything else is a run directory, where weights/best.pt
@@ -11,8 +11,11 @@ and the model config come from args.yaml automatically, warning and falling back
 roughly constant. --crop_ratio selects the published eval protocol (bicubic shortest-side resize to imgsz/ratio, then
 a center crop), which is what DINOv2/TIPS/EUPE kNN numbers are measured under. Pass 0.875 to match them, or 1.0 to
 isolate interpolation from crop. Absent, the Ultralytics bilinear ratio-1.0 transform is used, as in every existing
-table row. --csv appends one result row per call so a sweep stays readable while it runs. With --wandb, updates the
-finished WandB run's summary with knn/top1 (run directories only).
+table row. --norm picks the input normalization: 'unit' (default) is the Ultralytics [0, 1] the loader has always
+emitted, 'imagenet' matches the stats distillation trained under. Training val also used bicubic, so
+``--norm imagenet --crop_ratio 1.0`` is the exact training-time preprocessing. --csv appends
+one result row per call so a sweep stays readable while it runs. With --wandb, updates the finished WandB run's summary
+with knn/top1 (run directories only).
 
 Examples:
     python run_knn_eval.py 3 /data/shared-datasets/fatih-runs/classify/yolo-next-encoder/phase1-d1-eupe-vitb16
@@ -69,8 +72,9 @@ def _load_teacher(spec, imgsz, device):
     if imgsz % mult:
         print(f"Error: {spec} has patch stride {mult}, so imgsz {imgsz} would be cropped to {imgsz // mult * mult}.")
         sys.exit(1)
-    # normalize_input=True converts the loader's ImageNet-normalized tensor to each teacher's own training
-    # distribution: a real conversion for TIPS (raw [0, 1]), a no-op for the ImageNet-stat teachers.
+    # normalize_input=True converts to each teacher's own training distribution, a real conversion for TIPS (raw
+    # [0, 1]) and a no-op for the ImageNet-stat teachers. It assumes ImageNet-normalized input, so pair with
+    # ``--norm imagenet``: the loader's default is raw [0, 1] and would be misread as normalized.
     teacher = build_teacher_model(spec, device=device, normalize_input=True)
     return teacher, lambda m, imgs: m.encode(imgs).cls, spec
 
@@ -116,7 +120,12 @@ def _load_run_dir(run_dir, device):
 
 def main():
     """Run kNN evaluation on a run directory or a released reference encoder."""
-    from ultralytics.nn.teacher_model import TEACHER_REGISTRY, resolve_teacher_key
+    from ultralytics.nn.teacher_model import (
+        PIPELINE_IMAGE_MEAN,
+        PIPELINE_IMAGE_STD,
+        TEACHER_REGISTRY,
+        resolve_teacher_key,
+    )
 
     argv = sys.argv[1:]
 
@@ -131,12 +140,16 @@ def main():
 
     imgsz = int(pop("--imgsz") or 224)
     crop_ratio = float(pop("--crop_ratio") or 0)
+    norm = pop("--norm") or "unit"
+    if norm not in {"unit", "imagenet"}:
+        print(f"Error: --norm must be 'unit' or 'imagenet', got {norm!r}.")
+        sys.exit(1)
     csv_path = pop("--csv")
     use_wandb = "--wandb" in argv
     positional = [a for a in argv if not a.startswith("--")]
 
     if len(positional) < 2:
-        print("Usage: run_knn_eval.py <gpu> <run_dir|teacher_spec> [--imgsz N] [--crop_ratio R] [--csv PATH] [--wandb]")
+        print("Usage: run_knn_eval.py <gpu> <target> [--imgsz N] [--crop_ratio R] [--norm unit|imagenet] [--csv P]")
         sys.exit(1)
 
     gpu_id, target = int(positional[0]), resolve_teacher_key(positional[1])
@@ -144,8 +157,8 @@ def main():
     if use_wandb and is_teacher:
         print("Error: --wandb writes to a training run's summary, which a released teacher does not have.")
         sys.exit(1)
-    if use_wandb and crop_ratio:
-        print("Error: the knn/top1 summary key has no protocol axis, so a --crop_ratio result would overwrite it.")
+    if use_wandb and (crop_ratio or norm != "unit"):
+        print("Error: the knn/top1 summary key has no protocol axis, so a non-default transform would overwrite it.")
         sys.exit(1)
 
     device = torch.device(f"cuda:{gpu_id}")
@@ -176,24 +189,28 @@ def main():
     )
     train_ds = ClassificationDataset(str(root / "train"), args=ds_args, augment=False, prefix="knn-train")
     val_ds = ClassificationDataset(str(root / "val"), args=ds_args, augment=False, prefix="knn-val")
-    if crop_ratio:
-        # ``classify_transforms`` welds resize to crop and rejects ``crop_fraction`` (augment.py:2812 raises), so the
-        # published protocol is built here: eupe/eval/knn.py:199-203 asserts a 256/224 ratio, transforms.py:132 BICUBIC.
-        import torchvision.transforms as T
+    # ``classify_transforms`` welds resize to crop and rejects ``crop_fraction`` (augment.py:2812 raises), so the
+    # transform is built here. Its DEFAULT_MEAN/STD = (0,0,0)/(1,1,1) is raw [0, 1], while distillation trains under
+    # ImageNet stats (train_image_encoder.py:553), so ``--norm imagenet`` is what a distilled student and every
+    # released encoder expect. ``--crop_ratio`` also switches to the published bicubic resize/crop protocol
+    # (eupe/eval/knn.py:199-203 asserts the 256/224 ratio, eupe/data/transforms.py:132 uses BICUBIC). Defaults
+    # reproduce ``classify_transforms(size=imgsz)`` exactly.
+    import torchvision.transforms as T
 
-        resize = round(imgsz / crop_ratio)
+    from ultralytics.data.augment import DEFAULT_MEAN, DEFAULT_STD
 
-        from ultralytics.data.augment import DEFAULT_MEAN, DEFAULT_STD
-
-        train_ds.torch_transforms = val_ds.torch_transforms = T.Compose(
-            [
-                T.Resize(resize, interpolation=T.InterpolationMode.BICUBIC),
-                T.CenterCrop(imgsz),
-                T.ToTensor(),
-                T.Normalize(mean=torch.tensor(DEFAULT_MEAN), std=torch.tensor(DEFAULT_STD)),
-            ]
-        )
-        print(f"  published protocol: resize {resize} bicubic -> center crop {imgsz} (ratio {crop_ratio})")
+    mean, std = (PIPELINE_IMAGE_MEAN, PIPELINE_IMAGE_STD) if norm == "imagenet" else (DEFAULT_MEAN, DEFAULT_STD)
+    resize = round(imgsz / (crop_ratio or 1.0))
+    interp = T.InterpolationMode.BICUBIC if crop_ratio else T.InterpolationMode.BILINEAR
+    train_ds.torch_transforms = val_ds.torch_transforms = T.Compose(
+        [
+            T.Resize(resize, interpolation=interp),
+            T.CenterCrop(imgsz),
+            T.ToTensor(),
+            T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std)),
+        ]
+    )
+    print(f"  transform: resize {resize} {interp.value} -> crop {imgsz}, norm={norm} (ratio {crop_ratio or 1.0})")
     bs = max(8, round(256 * (224 / imgsz) ** 2))  # hold activation memory ~constant across imgsz
     train_loader = build_dataloader(train_ds, bs, 8, shuffle=False, rank=-1)
     val_loader = build_dataloader(val_ds, bs, 8, shuffle=False, rank=-1)
@@ -218,8 +235,8 @@ def main():
         header = not Path(csv_path).exists()
         with open(csv_path, "a", encoding="utf-8") as f:
             if header:
-                f.write("model,imgsz,crop_ratio,top1,seconds\n")
-            f.write(f"{name},{imgsz},{crop_ratio or 1.0},{top1:.2f},{elapsed:.0f}\n")
+                f.write("model,imgsz,crop_ratio,norm,top1,seconds\n")
+            f.write(f"{name},{imgsz},{crop_ratio or 1.0},{norm},{top1:.2f},{elapsed:.0f}\n")
         print(f"  appended to {csv_path}")
 
     if use_wandb:

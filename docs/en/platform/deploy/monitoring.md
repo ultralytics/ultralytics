@@ -1,0 +1,326 @@
+---
+plans: [free, pro, enterprise]
+title: Deployment Monitoring
+comments: true
+description: Monitor deployed YOLO models on Ultralytics Platform with real-time metrics, request logs, and performance dashboards.
+keywords: Ultralytics Platform, monitoring, metrics, logs, deployment, performance, YOLO, observability
+---
+
+# Monitoring
+
+[Ultralytics Platform](https://platform.ultralytics.com) provides [monitoring for deployed endpoints](../../guides/model-monitoring-and-maintenance.md). Track request metrics, view logs, and check health status with automatic polling.
+
+![Ultralytics Platform Deploy Page Overview Cards And World Map](https://cdn.ul.run/i/39e125429eb799c95eb006398e8ab6a4.avif)<!-- screenshot -->
+
+## Deployments Dashboard
+
+The `Deploy` page in the sidebar serves as the monitoring dashboard for all your deployments. It combines the world map, overview metrics, and deployment management in one view. See [Dedicated Endpoints](endpoints.md) for creating and managing deployments.
+
+```mermaid
+graph TB
+    subgraph Dashboard
+        Map[World Map]:::proc --- Cards[Overview Cards]:::proc
+        Cards --- List[Deployments List]:::decide
+    end
+    subgraph "Per Deployment"
+        Metrics[Metrics Row]:::out
+        Health[Health Check]:::out
+        Logs[Logs Tab]:::out
+        Code[Code Tab]:::out
+        Predict[Predict Tab]:::out
+    end
+    List --> Metrics
+    List --> Health
+    List --> Logs
+    List --> Code
+    List --> Predict
+
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
+```
+
+### Overview Cards
+
+Four summary cards at the top of the page show:
+
+![Ultralytics Platform Deploy Page Four Overview Cards](https://cdn.ul.run/i/4ee4595697397d7ffc102fed995168c1.avif)<!-- screenshot -->
+
+| Metric                   | Description                   |
+| ------------------------ | ----------------------------- |
+| **Total Requests (24h)** | Requests across all endpoints |
+| **Active Deployments**   | Currently running endpoints   |
+| **Error Rate (24h)**     | Percentage of failed requests |
+| **P95 Latency (24h)**    | 95th percentile response time |
+
+!!! warning "Error Rate Alert"
+
+    The error rate card highlights in red when the rate exceeds 5%. Check the `Logs` tab on individual deployments to diagnose errors.
+
+### World Map
+
+The interactive world map shows:
+
+- **Region pins** for all 42 available regions
+- **Green pins** for deployed regions
+- **Animated blue pins** for regions with active deployments in progress
+- **Pin size** varies based on deployment status and latency
+
+![Ultralytics Platform Deploy Page World Map With Deployed Regions](https://cdn.ul.run/i/af47d4f67a807072155765ce3861a9c4.avif)<!-- screenshot -->
+
+### Deployments List
+
+Below the overview cards, the deployments list shows all endpoints across your projects. Use the view mode toggle to switch between:
+
+| View        | Description                                                                  |
+| ----------- | ---------------------------------------------------------------------------- |
+| **Cards**   | Full detail cards with metrics, logs, code, and predict tabs                 |
+| **Compact** | Grid of smaller cards (1-4 columns) with key metrics                         |
+| **Table**   | DataTable with sortable columns: Name, Region, Status, Requests, P95, Errors |
+
+!!! tip "Real-Time Updates"
+
+    The dashboard polls every 15 seconds for deployment status updates. When deployments are in a transitional state (`creating`, `deploying`, or `stopping`), polling increases to every 3 seconds. Per-deployment metrics refresh every 60 seconds. Click the refresh button for immediate updates.
+
+## Per-Deployment Metrics
+
+Each deployment card (in cards view) shows real-time metrics:
+
+### Metrics Row
+
+| Metric          | Description                   |
+| --------------- | ----------------------------- |
+| **Requests**    | Request count (24h) with icon |
+| **P95 Latency** | 95th percentile response time |
+| **Error Rate**  | Percentage of failed requests |
+
+Metrics are fetched from the sparkline API endpoint and refresh every 60 seconds.
+
+### Health Check
+
+Running deployments show a health check indicator:
+
+| Indicator         | Meaning                          |
+| ----------------- | -------------------------------- |
+| **Green heart**   | Healthy — shows response latency |
+| **Red heart**     | Unhealthy — shows error message  |
+| **Spinning icon** | Health check in progress         |
+
+Health checks auto-retry every 20 seconds when unhealthy. Click the refresh icon to manually trigger a health check. The health check uses a 55-second timeout to accommodate cold starts on scale-to-zero endpoints.
+
+![Ultralytics Platform Deployment Card Health Check Healthy With Latency](https://cdn.ul.run/i/c1c2da5731737f6afbd70b12eb144f9f.avif)<!-- screenshot -->
+!!! info "Cold Start Tolerance"
+
+    The health-check request allows up to 55 seconds so a scale-to-zero endpoint has time to start.
+
+## Logs
+
+Each deployment card includes a `Logs` tab for viewing recent log entries:
+
+![Ultralytics Platform Deployment Card Logs Tab With Severity Filter](https://cdn.ul.run/i/f7b9acee12aab29e7b05f1f77d44d65e.avif)<!-- screenshot -->
+
+### Log Entries
+
+Each log entry shows:
+
+| Field         | Description                             |
+| ------------- | --------------------------------------- |
+| **Severity**  | Color-coded bar (see below)             |
+| **Timestamp** | Request time (local format)             |
+| **Message**   | Log content                             |
+| **HTTP info** | Status code and latency (if applicable) |
+
+=== "Severity Levels"
+
+    Filter logs by severity using the filter buttons:
+
+    | Level        | Color    | Description         |
+    | ------------ | -------- | ------------------- |
+    | **DEBUG**    | Gray     | Debug messages      |
+    | **INFO**     | Blue     | Normal requests     |
+    | **WARNING**  | Yellow   | Non-critical issues |
+    | **ERROR**    | Red      | Failed requests     |
+    | **CRITICAL** | Dark Red | Critical failures   |
+
+=== "Log Controls"
+
+    | Control     | Description                         |
+    | ----------- | ----------------------------------- |
+    | **Errors**  | Filter to ERROR and WARNING entries |
+    | **All**     | Show all log entries                |
+    | **Copy**    | Copy all visible logs to clipboard  |
+    | **Refresh** | Reload log entries                  |
+
+The UI shows the 20 most recent entries. The API defaults to 50 entries per request (max 200).
+
+!!! tip "Debugging Workflow"
+
+    When investigating errors: first click **Errors** to filter to ERROR and WARNING entries, then review timestamps and HTTP status codes. Copy logs to clipboard for sharing with your team.
+
+## Code Examples
+
+Each deployment card includes a `Code` tab showing ready-to-use API code with your actual endpoint URL and API key:
+
+=== "Python"
+
+    ```python
+    import requests
+
+    # Deployment endpoint
+    url = "https://predict-abc123.run.app/predict"
+
+    # Headers with your deployment API key
+    headers = {"Authorization": "Bearer YOUR_API_KEY"}
+
+    # Inference parameters
+    data = {"conf": 0.25, "iou": 0.7, "imgsz": 640}
+
+    # Send image for inference
+    with open("image.jpg", "rb") as f:
+        response = requests.post(url, headers=headers, data=data, files={"file": f})
+
+    print(response.json())
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    // Build form data with image and parameters
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+    formData.append("conf", "0.25");
+    formData.append("iou", "0.7");
+    formData.append("imgsz", "640");
+
+    // Send image for inference
+    const response = await fetch(
+      "https://predict-abc123.run.app/predict",
+      {
+        method: "POST",
+        headers: { Authorization: "Bearer YOUR_API_KEY" },
+        body: formData,
+      }
+    );
+
+    const result = await response.json();
+    console.log(result);
+    ```
+
+=== "cURL"
+
+    ```bash
+    # Send image for inference
+    curl -X POST "https://predict-abc123.run.app/predict" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
+      -F "file=@image.jpg" \
+      -F "conf=0.25" \
+      -F "iou=0.7" \
+      -F "imgsz=640"
+    ```
+
+!!! note "Auto-Populated Credentials"
+
+    When viewing the `Code` tab in the platform, your actual endpoint URL and API key are automatically filled in. Copy the code and run it directly. See [API Keys](../account/api-keys.md) to generate a key.
+
+## Deployment Predict
+
+The `Predict` tab on each deployment card provides an inline predict panel — the same interface as the model's `Predict` tab, but running inference through the deployment endpoint instead of the shared service. This is useful for testing a deployed endpoint directly from the browser. See [Inference](inference.md) for parameter details and response formats.
+
+## API Endpoints
+
+### Monitoring Overview
+
+```http
+GET /api/monitoring
+```
+
+Returns aggregated metrics for all deployments owned by the authenticated user. Workspace-aware via optional `owner` query parameter.
+
+### Deployment Metrics
+
+```http
+GET /api/deployments/{deploymentId}/metrics?sparkline=true&range=24h
+```
+
+Returns sparkline data and summary metrics for a specific deployment. Refresh interval: 60 seconds.
+
+| Parameter   | Type   | Description                                   |
+| ----------- | ------ | --------------------------------------------- |
+| `sparkline` | bool   | Include sparkline data                        |
+| `range`     | string | Time range: `1h`, `6h`, `24h`, `7d`, or `30d` |
+
+### Deployment Logs
+
+```http
+GET /api/deployments/{deploymentId}/logs?limit=50&severity=ERROR,WARNING
+```
+
+Returns recent log entries with optional severity filter and pagination.
+
+| Parameter   | Type   | Description                                   |
+| ----------- | ------ | --------------------------------------------- |
+| `limit`     | int    | Max entries to return (default: 50, max: 200) |
+| `severity`  | string | Comma-separated severity filter               |
+| `pageToken` | string | Pagination token from previous response       |
+
+### Deployment Health
+
+```http
+GET /api/deployments/{deploymentId}/health
+```
+
+Returns health check status with response latency.
+
+```json
+{
+    "healthy": true,
+    "status": 200,
+    "latencyMs": 142,
+    "serverTiming": { "db": 8, "ping": 142, "total": 150 }
+}
+```
+
+## Performance Optimization
+
+Use monitoring data to optimize your deployments:
+
+=== "High Latency"
+
+    If latency is too high:
+
+    1. Verify the model size is appropriate
+    2. Consider a closer region
+    3. Check the image size sent with each request
+
+    !!! example "Reducing Latency"
+
+        Try a smaller `imgsz` value and compare the resulting latency and accuracy for your model. Deploy to a region
+        closer to callers to reduce network latency.
+
+=== "High Error Rate"
+
+    If errors are occurring:
+
+    1. Review error logs in the `Logs` tab
+    2. Check request format (multipart form required)
+    3. Verify API key is valid
+    4. Retry a request and compare its timestamp with the deployment logs
+
+=== "Scaling Issues"
+
+    If hitting capacity:
+
+    1. Reduce the inference image size or use a smaller model
+    2. Deploy additional endpoints and distribute requests between them
+    3. Retry transient failures with backoff
+
+## FAQ
+
+### How long is data retained?
+
+The metrics API supports selectable windows from 1 hour through 30 days. The deployment card shows the 20 most recent
+log entries; the logs API can return up to 200 entries per request and supports pagination.
+
+### Can I monitor multiple endpoints together?
+
+Yes, the deployments page shows all endpoints with aggregated overview cards. Use the table view to compare performance across deployments.

@@ -1,18 +1,19 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from typing import Any
+
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
 
 
 class VisionEye(BaseSolution):
-    """
-    A class to manage object detection and vision mapping in images or video streams.
+    """A class to manage object detection and vision mapping in images or video streams.
 
-    This class extends the BaseSolution class and provides functionality for detecting objects,
-    mapping vision points, and annotating results with bounding boxes and labels.
+    This class extends the BaseSolution class and provides functionality for detecting objects, mapping vision points,
+    and annotating results with bounding boxes and labels.
 
     Attributes:
-        vision_point (Tuple[int, int]): Coordinates (x, y) where vision will view objects and draw tracks.
+        vision_point (tuple[int, int]): Coordinates (x, y) where vision will view objects and draw tracks.
 
     Methods:
         process: Process the input image to detect objects, annotate them, and apply vision mapping.
@@ -24,9 +25,8 @@ class VisionEye(BaseSolution):
         >>> print(f"Total detected instances: {results.total_tracks}")
     """
 
-    def __init__(self, **kwargs):
-        """
-        Initialize the VisionEye class for detecting objects and applying vision mapping.
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the VisionEye class for detecting objects and applying vision mapping.
 
         Args:
             **kwargs (Any): Keyword arguments passed to the parent class and for configuring vision_point.
@@ -35,12 +35,11 @@ class VisionEye(BaseSolution):
         # Set the vision point where the system will view objects and draw tracks
         self.vision_point = self.CFG["vision_point"]
 
-    def process(self, im0):
-        """
-        Perform object detection, vision mapping, and annotation on the input image.
+    def process(self, im0) -> SolutionResults:
+        """Perform object detection, vision mapping, and annotation on the input image.
 
         Args:
-            im0 (numpy.ndarray): The input image for detection and annotation.
+            im0 (np.ndarray): The input image for detection and annotation.
 
         Returns:
             (SolutionResults): Object containing the annotated image and tracking statistics.
@@ -59,7 +58,7 @@ class VisionEye(BaseSolution):
         for cls, t_id, box, conf in zip(self.clss, self.track_ids, self.boxes, self.confs):
             # Annotate the image with bounding boxes, labels, and vision mapping
             annotator.box_label(box, label=self.adjust_box_label(cls, conf, t_id), color=colors(int(t_id), True))
-            annotator.visioneye(box, self.vision_point)
+            annotator.visioneye(self.get_enclosing_box(box), self.vision_point)
 
         plot_im = annotator.result()
         self.display_output(plot_im)  # Display the annotated output using the base class function

@@ -108,15 +108,15 @@ def test_rocm_predict_sam():
     model(ASSETS / "zidane.jpg", points=[[[900, 370], [1000, 100]]], labels=[[1, 1]], device=DEVICES[0])
 
     predictor = SAMPredictor(
-        overrides=dict(
-            conf=0.25,
-            task="segment",
-            mode="predict",
-            imgsz=1024,
-            model=WEIGHTS_DIR / "mobile_sam.pt",
-            device=DEVICES[0],
-            half=True,
-        )
+        overrides={
+            "conf": 0.25,
+            "task": "segment",
+            "mode": "predict",
+            "imgsz": 1024,
+            "model": WEIGHTS_DIR / "mobile_sam.pt",
+            "device": DEVICES[0],
+            "half": True,
+        }
     )
     predictor.set_image(ASSETS / "zidane.jpg")
     predictor.reset_image()

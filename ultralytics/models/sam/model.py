@@ -103,9 +103,9 @@ class SAM(Model):
             >>> for r in results:
             ...     print(f"Detected {len(r.masks)} masks")
         """
-        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024)
+        overrides = {"conf": 0.25, "task": "segment", "mode": "predict", "imgsz": 1024}
         kwargs = {**overrides, **kwargs}
-        prompts = dict(bboxes=bboxes, points=points, labels=labels)
+        prompts = {"bboxes": bboxes, "points": points, "labels": labels}
         return super().predict(source, stream, prompts=prompts, **kwargs)
 
     def __call__(self, source=None, stream: bool = False, bboxes=None, points=None, labels=None, **kwargs):
@@ -155,7 +155,7 @@ class SAM(Model):
         """Provide a mapping from the 'segment' task to its corresponding 'Predictor'.
 
         Returns:
-            (dict[str, dict[str, Type[Predictor]]]): A dictionary mapping the 'segment' task to its corresponding
+            (dict[str, dict[str, type[Predictor]]]): A dictionary mapping the 'segment' task to its corresponding
                 Predictor class. For SAM2 models, it maps to SAM2Predictor, otherwise to the standard Predictor.
 
         Examples:

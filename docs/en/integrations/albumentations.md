@@ -1,4 +1,5 @@
 ---
+title: Albumentations Augmentation for YOLO26
 comments: true
 description: Learn how to use Albumentations with YOLO26 to enhance data augmentation, improve model performance, and streamline your computer vision projects.
 keywords: Albumentations, YOLO26, data augmentation, Ultralytics, computer vision, object detection, model training, image transformations, machine learning
@@ -8,7 +9,7 @@ keywords: Albumentations, YOLO26, data augmentation, Ultralytics, computer visio
 
 When you are building [computer vision models](../models/index.md), the quality and variety of your [training data](../datasets/index.md) can play a big role in how well your model performs. Albumentations offers a fast, flexible, and efficient way to apply a wide range of image transformations that can improve your model's ability to adapt to real-world scenarios. It easily integrates with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) and can help you create robust datasets for [object detection](../tasks/detect.md), [segmentation](../tasks/segment.md), and [classification](../tasks/classify.md) tasks.
 
-By using Albumentations, you can boost your YOLO26 training data with techniques like geometric transformations and color adjustments. In this article, we'll see how Albumentations can improve your [data augmentation](../guides/preprocessing_annotated_data.md) process and make your [YOLO26 projects](../solutions/index.md) even more impactful. Let's get started!
+By using Albumentations, you can boost your YOLO26 training data with techniques like geometric transformations and color adjustments. In this article, we'll see how Albumentations can improve your [data augmentation](../guides/preprocessing-annotated-data.md) process and make your [YOLO26 projects](../solutions/index.md) even more impactful. Let's get started!
 
 ## Albumentations for Image Augmentation
 
@@ -25,7 +26,7 @@ Albumentations offers many useful features that simplify complex image augmentat
 - **Wide Range of Transformations**: Albumentations offers over [70 different transformations](https://github.com/albumentations-team/albumentations?tab=readme-ov-file#list-of-augmentations), including geometric changes (e.g., rotation, flipping), color adjustments (e.g., brightness, contrast), and noise addition (e.g., Gaussian noise). Having multiple options enables the creation of highly diverse and robust training datasets.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/albumentations-augmentation.avif" alt="Example of Image Augmentations">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/albumentations-augmentation.avif" alt="Albumentations augmentation examples">
 </p>
 
 - **High Performance Optimization**: Built on OpenCV and NumPy, Albumentations uses advanced optimization techniques like SIMD (Single Instruction, Multiple Data), which processes multiple data points simultaneously to speed up processing. It handles large datasets quickly, making it one of the fastest options available for image augmentation.
@@ -122,7 +123,7 @@ Here are the parameters and values used in this integration:
 
 - **p**: The probability of applying the blur. In the integration, p=0.01, so there's a 1% chance that this blur will be applied to each image. The low probability allows for occasional blur effects, introducing a bit of variation to help the model generalize without over-blurring the images.
 
-<img width="776" alt="An Example of the Blur Augmentation" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/albumentations-blur.avif">
+<img width="776" alt="Albumentations Blur augmentation result" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/albumentations-blur.avif">
 
 ### Median Blur
 
@@ -136,7 +137,7 @@ Here are the parameters and values used in this integration:
 
 The image below shows an example of this augmentation applied to an image.
 
-<img width="764" alt="An Example of the MedianBlur Augmentation" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/albumentations-median-blur.avif">
+<img width="764" alt="Albumentations MedianBlur augmentation" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/albumentations-median-blur.avif">
 
 ### Grayscale
 
@@ -152,7 +153,7 @@ Here are the parameters and values used in this integration:
 
 The image below shows an example of this grayscale transformation applied.
 
-<img width="759" alt="An Example of the ToGray Augmentation" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/albumentations-grayscale.avif">
+<img width="759" alt="Albumentations grayscale conversion" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/albumentations-grayscale.avif">
 
 ### Contrast Limited Adaptive Histogram Equalization (CLAHE)
 
@@ -168,7 +169,7 @@ Here are the parameters and values used in this integration:
 
 The image below shows an example of the CLAHE transformation applied.
 
-<img width="760" alt="An Example of the CLAHE Augmentation" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/albumentations-CLAHE.avif">
+<img width="760" alt="Albumentations CLAHE contrast enhancement" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/albumentations-CLAHE.avif">
 
 ## Using Custom Albumentations Transforms
 
@@ -255,7 +256,7 @@ If you are interested in learning more about Albumentations, check out the follo
 
 - **[Albumentations Documentation](https://albumentations.ai/docs/)**: The official documentation provides a full range of supported transformations and advanced usage techniques.
 
-- **[Ultralytics Albumentations Guide](https://docs.ultralytics.com/reference/data/augment/?h=albumentation#ultralytics.data.augment.Albumentations)**: Get a closer look at the details of the function that facilitate this integration.
+- **[Ultralytics Albumentations Guide](../reference/data/augment.md#ultralytics.data.augment.Albumentations)**: Get a closer look at the details of the function that facilitate this integration.
 
 - **[Albumentations GitHub Repository](https://github.com/albumentations-team/albumentations/)**: The repository includes examples, benchmarks, and discussions to help you get started with customizing augmentations.
 

@@ -28,7 +28,7 @@ class QueueManager(BaseSolution):
 
     Examples:
         >>> cap = cv2.VideoCapture("path/to/video.mp4")
-        >>> queue_manager = QueueManager(region=[100, 100, 200, 200, 300, 300])
+        >>> queue_manager = QueueManager(region=[(20, 400), (1080, 400), (1080, 360), (20, 360)])
         >>> while cap.isOpened():
         ...     success, im0 = cap.read()
         ...     if not success:
@@ -51,8 +51,8 @@ class QueueManager(BaseSolution):
             im0 (np.ndarray): Input image for processing, typically a frame from a video stream.
 
         Returns:
-            (SolutionResults): Contains processed image `im0`, 'queue_count' (int, number of objects in the queue) and
-                'total_tracks' (int, total number of tracked objects).
+            (SolutionResults): Contains processed image `plot_im`, 'queue_count' (int, number of objects in the queue)
+                and 'total_tracks' (int, total number of tracked objects).
 
         Examples:
             >>> queue_manager = QueueManager()

@@ -15,7 +15,7 @@ keywords: Neptune, YOLO26, Ultralytics, experiment tracking, MLOps, model regist
 Ultralytics YOLO26 integrates with Neptune to streamline [experiment tracking](https://www.ultralytics.com/glossary/experiment-tracking). This integration allows you to automatically log training metrics, visualize model predictions, and store model artifacts without writing custom logging code.
 
 <p align="center">
-  <img width="800" src="https://docs.neptune.ai/img/app/app_preview.png" alt="Neptune.ai Dashboard Overview">
+  <img width="800" src="https://docs.neptune.ai/img/app/app_preview.png" alt="Neptune.ai ML experiment tracking dashboard">
 </p>
 
 ## Key Features
@@ -74,7 +74,6 @@ The securest way to handle credentials is via environment variables. Note that t
     import os
 
     os.environ["NEPTUNE_API_TOKEN"] = "your_long_api_token_here"
-    os.environ["NEPTUNE_PROJECT"] = "your_workspace/your_project"
     ```
 
 ## Usage
@@ -112,18 +111,24 @@ The following diagram illustrates how the Ultralytics Training pipeline interact
 
 ```mermaid
 graph LR
-    A[YOLO Training Loop] --> B{Neptune Callback}
-    B -->|Log Scalars| C[Loss, mAP, LR]
-    B -->|Log Images| D[Mosaics, Preds]
-    B -->|Log Artifacts| E[Model Weights]
-    B -->|Log Metadata| F[Hyperparameters]
+    A[YOLO Training Loop]:::start --> B{Neptune Callback}:::decide
+    B -->|Log Scalars| C[Loss, mAP, LR]:::proc
+    B -->|Log Images| D[Mosaics, Preds]:::proc
+    B -->|Log Artifacts| E[Model Weights]:::proc
+    B -->|Log Metadata| F[Hyperparameters]:::proc
 
-    C --> G[Neptune Server]
+    C --> G[Neptune Server]:::extern
     D --> G
     E --> G
     F --> G
 
-    G --> H[Neptune Web Dashboard]
+    G --> H[Neptune Web Dashboard]:::out
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
+    classDef extern fill:#607D8B,color:#fff
 ```
 
 ### What is Logged?

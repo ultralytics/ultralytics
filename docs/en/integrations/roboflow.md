@@ -2,18 +2,19 @@
 comments: true
 description: Learn how to label data and export datasets in YOLO format using Roboflow for training Ultralytics models.
 keywords: Roboflow, Ultralytics YOLO, data labeling, computer vision, dataset export
+title: Roboflow Data Labeling for YOLO
 ---
 
 # Roboflow
 
-[Roboflow](https://roboflow.com/?ref=ultralytics) provides tools for [data labeling](https://www.ultralytics.com/glossary/data-labeling) and dataset export in various formats, including YOLO. This guide covers labeling, exporting, and deploying data for [Ultralytics YOLO](../models/index.md) models.
+Roboflow provides tools for [data labeling](https://www.ultralytics.com/glossary/data-labeling) and dataset export in various formats, including YOLO. This guide covers labeling, exporting, and deploying data for [Ultralytics YOLO](../models/index.md) models.
 
 !!! question "Licensing"
 
     Ultralytics offers two licensing options to accommodate different use cases:
 
     - **AGPL-3.0 License**: This [OSI-approved open-source license](https://www.ultralytics.com/legal/agpl-3-0-software-license) is ideal for students and enthusiasts, promoting open collaboration and knowledge sharing. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for more details.
-    - **Enterprise License**: Designed for commercial use, this license allows for the seamless integration of Ultralytics software and AI models into commercial products and services. If your scenario involves commercial applications, please reach out via [Ultralytics Licensing](https://www.ultralytics.com/license).
+    - **Enterprise License**: For development and production use, this license enables seamless integration of Ultralytics software and AI models into business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. To get started, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
 
     For more details see the [Ultralytics Licensing page](https://www.ultralytics.com/license).
 
@@ -89,7 +90,7 @@ Health Check might suggest changes to enhance performance, such as addressing cl
 To export your data, you need to create a dataset version, which is a snapshot of your dataset at a specific point in time. Click "Versions" in the sidebar, then "Create New Version." Here, you can apply preprocessing steps and [data augmentations](https://www.ultralytics.com/glossary/data-augmentation) to potentially enhance model robustness.
 
 <p align="center">
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/creating-dataset-version-on-roboflow.avif" alt="Creating a dataset version on Roboflow with preprocessing and augmentation options" width="800">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/creating-dataset-version-on-roboflow.avif" alt="Creating Roboflow dataset version with augmentation" width="800">
 </p>
 
 For each selected augmentation, a pop-up allows you to fine-tune its parameters such as brightness. Proper augmentation can significantly improve model generalization, a key concept discussed in our [model training tips guide](../guides/model-training-tips.md).
@@ -99,7 +100,7 @@ For each selected augmentation, a pop-up allows you to fine-tune its parameters 
 Once your dataset version is generated, you can export it in various formats suitable for model training. Click the "Export Dataset" button on the version page.
 
 <p align="center">
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/exporting-dataset.avif" alt="Exporting a dataset from Roboflow" width="800">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/exporting-dataset.avif" alt="Roboflow dataset export to YOLO format" width="800">
 </p>
 
 Select the "YOLO26" format for compatibility with Ultralytics training pipelines. You are now ready to train your custom [YOLO26](../models/yolo26.md) model. Refer to the [Ultralytics Train mode documentation](../modes/train.md) for detailed instructions on initiating training with your exported dataset.
@@ -149,7 +150,7 @@ When you run the code above, you will be asked to authenticate (usually via an A
 To test your model and find deployment instructions for supported SDKs, go to the "Deploy" tab in the Roboflow sidebar. At the top of this page, a widget will appear allowing you to test your model using your webcam or by uploading images or videos.
 
 <p align="center">
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/running-inference-example-image.avif" alt="Running inference on an example image using the Roboflow deployment widget" width="800">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/running-inference-example-image.avif" alt="Roboflow deployment widget for model inference" width="800">
 </p>
 
 Your uploaded model can also be used as a labeling assistant, suggesting annotations on new images based on its training.
@@ -164,7 +165,7 @@ After uploading a model, access the model evaluation tool via your model page on
 <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/roboflow-model-evaluation.avif" alt="Initiating a Roboflow model evaluation" width="800">
 </p>
 
-This tool displays a [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix) illustrating model performance and an interactive vector analysis plot using [CLIP](https://openai.com/research/clip) embeddings. These features help identify areas for model improvement.
+This tool displays a [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix) illustrating model performance and an interactive vector analysis plot using [CLIP](https://openai.com/index/clip/) embeddings. These features help identify areas for model improvement.
 
 The confusion matrix pop-up:
 
@@ -177,7 +178,7 @@ Hover over cells to see values, and click cells to view corresponding images wit
 Click "Vector Analysis" for a scatter plot visualizing image similarity based on CLIP embeddings. Images closer together are semantically similar. Dots represent images, colored from white (good performance) to red (poor performance).
 
 <p align="center">
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/vector-analysis-plot.avif" alt="A vector analysis plot in Roboflow using CLIP embeddings" width="800">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/vector-analysis-plot.avif" alt="Roboflow vector analysis plot using CLIP embeddings" width="800">
 </p>
 
 Vector Analysis helps:

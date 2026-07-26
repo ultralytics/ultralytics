@@ -116,7 +116,7 @@ The snippets are named in the most descriptive way possible, but this means ther
 
 <p align="center">
   <br>
-    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/incomplete-snippet-example.avif" alt="Incomplete Snippet Example">
+    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/incomplete-snippet-example.avif" alt="VS Code incomplete code snippet preview">
   <br>
   Typing <code>ex-yolo-p</code> will <em>still</em> arrive at the correct snippet.
 </p>
@@ -172,7 +172,7 @@ However, since Ultralytics supports numerous [tasks](../tasks/index.md), when [w
 
 <p align="center">
   <br>
-    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/results-loop-options.avif" alt="Results Loop Options">
+    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/results-loop-options.avif" alt="VS Code YOLO results visualization options">
   <br>
   Once tabbed to the <code>boxes</code> field, a dropdown menu appears to allow selection of another attribute as required.
 </p>
@@ -188,7 +188,7 @@ There are over 💯 keyword arguments for all the various Ultralytics [tasks](..
     ```python
     model.predict(
         source=src,  # (str, optional) source directory for images or videos
-        imgsz=640,  # (int | list) input images size as int or list[w,h] for predict
+        imgsz=640,  # (int | list) input images size as int or list[h,w] for predict
         conf=0.25,  # (float) minimum confidence threshold
         iou=0.7,  # (float) intersection over union (IoU) threshold for NMS
         vid_stride=1,  # (int) video frame-rate stride
@@ -240,7 +240,7 @@ If you use VS Code and have started to see a message prompting you to install th
 
 1. Install Ultralytics-snippets and the message will no longer be shown 😆!
 
-2. You can be using `yolo settings vscode_msg False` to disable the message from showing without having to install the extension. You can learn more about the [Ultralytics Settings](../quickstart.md#ultralytics-settings) on the [quickstart](../quickstart.md) page if you're unfamiliar.
+2. You can use `yolo settings vscode_msg=False` to disable the message from showing without having to install the extension. You can learn more about the [Ultralytics Settings](../quickstart.md#ultralytics-settings) on the [quickstart](../quickstart.md) page if you're unfamiliar.
 
 ### I have an idea for a new Ultralytics code snippet, how can I get one added?
 

@@ -13,7 +13,7 @@ class InstanceSegmentation(BaseSolution):
     drawing segmented masks with bounding boxes and labels.
 
     Attributes:
-        model (str): The segmentation model to use for inference.
+        model (YOLO): The segmentation model instance used for inference.
         line_width (int): Width of the bounding box and text lines.
         names (dict[int, str]): Dictionary mapping class indices to class names.
         clss (list[int]): List of detected class indices.

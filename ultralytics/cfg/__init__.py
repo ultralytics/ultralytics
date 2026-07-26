@@ -22,7 +22,6 @@ from ultralytics.utils import (
     LOGGER,
     RANK,
     ROOT,
-    RUNS_DIR,
     SETTINGS,
     SETTINGS_FILE,
     STR_OR_PATH,
@@ -57,13 +56,14 @@ SOLUTION_MAP = {
 
 # Define valid tasks and modes
 MODES = frozenset({"train", "val", "predict", "export", "track", "benchmark"})
-TASKS = frozenset({"detect", "segment", "classify", "pose", "obb", "semantic"})
+TASKS = frozenset({"detect", "segment", "classify", "pose", "obb", "semantic", "depth"})
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
+    "depth": "depth8.yaml",
     "semantic": "cityscapes8.yaml",
 }
 TASK2CALIBRATIONDATA = {
@@ -72,6 +72,7 @@ TASK2CALIBRATIONDATA = {
     "classify": "imagenet100",
     "pose": "coco8-pose.yaml",
     "obb": "dota128.yaml",
+    "depth": "depth8.yaml",
     "semantic": "cityscapes8.yaml",
 }
 TASK2MODEL = {
@@ -80,6 +81,7 @@ TASK2MODEL = {
     "classify": "yolo26n-cls.pt",
     "pose": "yolo26n-pose.pt",
     "obb": "yolo26n-obb.pt",
+    "depth": "yolo26n-depth.pt",
     "semantic": "yolo26n-sem.pt",
 }
 TASK2METRIC = {
@@ -88,6 +90,7 @@ TASK2METRIC = {
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
+    "depth": "metrics/delta1",
     "semantic": "metrics/mIoU",
 }
 
@@ -167,7 +170,7 @@ CLI_HELP_MSG = f"""
         yolo solutions help
 
     Docs: https://docs.ultralytics.com
-    Solutions: https://docs.ultralytics.com/solutions/
+    Platform: https://platform.ultralytics.com
     Community: https://community.ultralytics.com
     GitHub: https://github.com/ultralytics/ultralytics
     """
@@ -199,6 +202,12 @@ CFG_FLOAT_KEYS = frozenset(
         "box",
         "cls",
         "dfl",
+        "pose",
+        "kobj",
+        "rle",
+        "angle",
+        "dlog",
+        "dgrad",
         "dis",
         "degrees",
         "shear",
@@ -229,10 +238,12 @@ CFG_FRACTION_KEYS = frozenset(
         "mixup",
         "cutmix",
         "copy_paste",
+        "erasing",
         "conf",
         "iou",
         "fraction",
         "multi_scale",
+        "dlam",
     }
 )
 CFG_INT_KEYS = frozenset(
@@ -289,6 +300,7 @@ CFG_BOOL_KEYS = frozenset(
         "simplify",
         "nms",
         "profile",
+        "channels_last",
         "end2end",
         "cls_remap",
     }
@@ -510,7 +522,7 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
 
         project = args.project or ""
         if not Path(project).is_absolute():
-            base = ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR
+            base = ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else Path(SETTINGS["runs_dir"])
             worker = os.environ.get("PYTEST_XDIST_WORKER")
             if worker and TESTS_RUNNING:  # isolate parallel pytest-xdist workers
                 base = base / worker
@@ -822,7 +834,8 @@ def handle_yolo_solutions(args: list[str]) -> None:
                 "--server.headless",
                 "true",
                 overrides.pop("model", "yolo26n.pt"),
-            ]
+            ],
+            check=False,
         )
     else:
         import cv2  # Only needed for cap and vw functionality

@@ -202,12 +202,12 @@ class ClassificationValidator(BaseValidator):
             >>> preds = torch.rand(16, 10)  # 16 images, 10 classes
             >>> validator.plot_predictions(batch, preds, 0)
         """
-        batched_preds = dict(
-            img=batch["img"],
-            batch_idx=torch.arange(batch["img"].shape[0]),
-            cls=torch.argmax(preds, dim=1),
-            conf=torch.amax(preds, dim=1),
-        )
+        batched_preds = {
+            "img": batch["img"],
+            "batch_idx": torch.arange(batch["img"].shape[0]),
+            "cls": torch.argmax(preds, dim=1),
+            "conf": torch.amax(preds, dim=1),
+        }
         plot_images(
             batched_preds,
             fname=self.save_dir / f"val_batch{ni}_pred.jpg",

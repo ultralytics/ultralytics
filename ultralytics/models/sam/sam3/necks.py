@@ -9,7 +9,7 @@ from __future__ import annotations
 from copy import deepcopy
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 
 class Sam3DualViTDetNeck(nn.Module):

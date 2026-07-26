@@ -65,7 +65,7 @@ jobs:
             tags: "latest"
             platforms: "linux/amd64"
             runs_on: "ubuntu-latest"
-            derivatives: "Dockerfile-export,Dockerfile-runner"
+            derivatives: "Dockerfile-runner,Dockerfile-export"
           - dockerfile: "Dockerfile-python"
             tags: "latest-python"
             platforms: "linux/amd64"

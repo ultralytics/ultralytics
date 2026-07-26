@@ -40,7 +40,7 @@ Install Ultralytics and run your first prediction in under a minute — no datas
         sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest
         ```
 
-        GPU, CPU-only, ARM64, [Jetson](guides/nvidia-jetson.md), Python-slim, and Conda variants are all on [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics). CDI device requests require Docker >= 28.2.0 and NVIDIA Container Toolkit >= 1.18; on older hosts, use the legacy `--runtime=nvidia --gpus all` flags instead. See the [Docker Quickstart Guide](guides/docker-quickstart.md) for volume mounts and all six image variants.
+        GPU, CPU-only, ARM64, [Jetson](guides/nvidia-jetson.md), Python-slim, and Conda variants are all on [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics). On Linux, CDI device requests require Docker >= 28.2.0 and NVIDIA Container Toolkit >= 1.18. The legacy `--gpus all` flag can lose GPU access after host daemon reloads, so upgrade older Linux hosts and use `--device` instead. See the [Docker Quickstart Guide](guides/docker-quickstart.md) for volume mounts and every image variant.
 
     === "Git clone"
 
@@ -74,7 +74,7 @@ Run inference from the terminal with the `yolo` command:
 yolo predict model=yolo26n.pt
 ```
 
-`predict` here is the **mode** — what to do with the model. Modes are `train`, `val`, `predict`, `export`, `track`, and `benchmark`. YOLO infers the **task** (`detect`, `segment`, `semantic`, `classify`, `pose`, `obb`) from the model file itself, so you rarely need to set it explicitly.
+`predict` here is the **mode** — what to do with the model. Modes are `train`, `val`, `predict`, `export`, `track`, and `benchmark`. YOLO infers the **task** (`detect`, `segment`, `semantic`, `depth`, `classify`, `pose`, `obb`) from the model file itself, so you rarely need to set it explicitly.
 
 This downloads the pretrained `yolo26n.pt` checkpoint automatically, runs it on the bundled example images, and saves the annotated results to `runs/detect/predict/`.
 

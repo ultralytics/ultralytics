@@ -17,7 +17,7 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
     functionality including model initialization, validation, and visualization.
 
     Attributes:
-        loss_names (tuple[str]): Names of the loss components used during training.
+        loss_names (tuple[str]): Names of the loss components, derived from the loss dict returned by the criterion.
 
     Examples:
         >>> from ultralytics.models.yolo.segment import SegmentationTrainer
@@ -65,7 +65,6 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
 
     def get_validator(self):
         """Return an instance of SegmentationValidator for validation of YOLO model."""
-        self.loss_names = "box_loss", "seg_loss", "cls_loss", "dfl_loss", "sem_loss"
         return yolo.segment.SegmentationValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

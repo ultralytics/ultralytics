@@ -4,7 +4,7 @@ comments: true
 creator:
     name: Yann LeCun
     type: Person
-    url: https://yann.lecun.com/exdb/mnist/
+    url: https://engineering.nyu.edu/faculty/yann-lecun
 license:
     name: None
 description: Train YOLO image classification models on MNIST, a benchmark of 70,000 28x28 grayscale handwritten digit images in 10 classes, split 60k/10k.

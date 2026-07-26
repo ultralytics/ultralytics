@@ -3,10 +3,22 @@
 from __future__ import annotations
 
 import shlex
+import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 from ultralytics.utils import LOGGER, YAML
+
+
+def check_atc() -> None:
+    """Raise if the CANN ATC compiler is not on PATH."""
+    if not shutil.which("atc"):
+        raise FileNotFoundError(
+            "Ascend export requires the CANN toolkit 'atc' compiler, which was not found on PATH. Install CANN and "
+            "source its environment, e.g. `source /usr/local/Ascend/ascend-toolkit/set_env.sh`. "
+            "See https://docs.ultralytics.com/integrations/ascend/"
+        )
 
 
 def onnx2ascend(
@@ -34,6 +46,7 @@ def onnx2ascend(
     Returns:
         (str): Path to the exported Ascend model directory.
     """
+    check_atc()
     output_dir = Path(output_dir).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -49,7 +62,8 @@ def onnx2ascend(
     ]  # argv list avoids shell metacharacter issues in onnx_file/output_dir paths
     LOGGER.info(f"\n{prefix} starting export with ATC for {name}...")
     LOGGER.info(f"{prefix} running '{shlex.join(cmd)}'")
-    subprocess.run(cmd, check=True, cwd=output_dir)  # ATC litters kernel_meta/ and fusion_result.json in the CWD
+    with tempfile.TemporaryDirectory() as scratch:  # ATC drops kernel_meta/ and fusion_result.json in its CWD
+        subprocess.run(cmd, check=True, cwd=scratch)
 
     if metadata is not None:
         YAML.save(output_dir / "metadata.yaml", metadata)

@@ -732,6 +732,11 @@ class Exporter:
                     "Using default name='Ascend310B4'."
                 )
                 self.args.name = "Ascend310B4"
+            if not str(self.args.name).startswith("Ascend"):
+                raise ValueError(
+                    f"Invalid Ascend SoC name='{self.args.name}'. Expected a CANN --soc_version such as "
+                    f"'Ascend310P3' or 'Ascend310B4'. See https://docs.ultralytics.com/integrations/ascend/"
+                )
             if self.args.quantize is None:
                 self.args.quantize = 16  # Ascend AI Core convolutions accept only FP16/INT8 inputs, never FP32
         if fmt == "qnn":
@@ -1473,13 +1478,9 @@ class Exporter:
     @try_export
     def export_ascend(self, prefix=colorstr("Ascend:")):  # noqa: B008
         """Export YOLO model to Huawei Ascend offline model (.om) format."""
-        from ultralytics.utils.export.ascend import onnx2ascend
+        from ultralytics.utils.export.ascend import check_atc, onnx2ascend
 
-        assert shutil.which("atc"), (
-            "Ascend export requires the CANN toolkit 'atc' compiler, which was not found on PATH. Install CANN and "
-            "source its environment, e.g. `source /usr/local/Ascend/ascend-toolkit/set_env.sh`. "
-            "See https://docs.ultralytics.com/integrations/ascend/"
-        )
+        check_atc()  # before the ONNX trace, so a missing toolchain does not cost a full export first
         if self.args.opset and self.args.opset > 17:
             LOGGER.warning(f"{prefix} the CANN ONNX parser requires opset<=17, setting opset=17.")
         self.args.opset = min(self.args.opset or 17, 17)

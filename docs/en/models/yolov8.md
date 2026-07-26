@@ -176,7 +176,7 @@ Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for obj
 
 !!! tip "Ultralytics YOLOv8 Publication"
 
-    Ultralytics has not published a formal research paper for YOLOv8 due to the rapidly evolving nature of the models. We focus on advancing the technology and making it easier to use, rather than producing static documentation. For the most up-to-date information on YOLO architecture, features, and usage, please refer to our [GitHub repository](https://github.com/ultralytics/ultralytics) and [documentation](https://docs.ultralytics.com/).
+    Ultralytics has not published a formal research paper for YOLOv8 due to the rapidly evolving nature of the models. We focus on advancing the technology and making it easier to use, rather than producing static documentation. For the most up-to-date information on YOLO architecture, features, and usage, please refer to our [GitHub repository](https://github.com/ultralytics/ultralytics) and [documentation](../index.md).
 
 If you use the YOLOv8 model or any other software from this repository in your work, please cite it using the following format:
 
@@ -250,13 +250,13 @@ Yes, YOLOv8 models can be benchmarked for performance in terms of speed and accu
         from ultralytics.utils.benchmarks import benchmark
 
         # Benchmark on GPU
-        benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+        benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, device=0)
         ```
 
     === "CLI"
 
         ```bash
-        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 device=0
         ```
 
 For additional information, check the [Performance Metrics](#performance-metrics) section.

@@ -11,7 +11,6 @@ from __future__ import annotations
 import numpy as np
 import torch
 from torch import nn
-from torchvision.ops.roi_align import RoIAlign
 
 from ultralytics.nn.modules.transformer import MLP
 from ultralytics.nn.modules.utils import _get_clones, inverse_sigmoid
@@ -265,11 +264,13 @@ class TransformerDecoder(nn.Module):
             self.compilable_stored_size = None
             self.coord_cache = {}
 
-        self.roi_pooler = (
-            RoIAlign(output_size=7, spatial_scale=1, sampling_ratio=-1, aligned=True)
-            if interaction_layer is not None
-            else None
-        )
+        if interaction_layer is not None:
+            # Scoped for import ultralytics speed: ROI align requires optional torchvision ops.
+            from torchvision.ops.roi_align import RoIAlign
+
+            self.roi_pooler = RoIAlign(output_size=7, spatial_scale=1, sampling_ratio=-1, aligned=True)
+        else:
+            self.roi_pooler = None
         if frozen:
             for p in self.parameters():
                 p.requires_grad_(False)
@@ -301,8 +302,8 @@ class TransformerDecoder(nn.Module):
         # assign layer index to each layer so that some layers can decide what to do
         # based on which layer index they are (e.g. cross attention to memory bank only
         # in selected layers)
-        for layer_idx, layer in enumerate(self.layers):
-            layer.layer_idx = layer_idx
+        for layer_idx, decoder_layer in enumerate(self.layers):
+            decoder_layer.layer_idx = layer_idx
 
     @staticmethod
     def _get_coords(H, W, device, dtype):

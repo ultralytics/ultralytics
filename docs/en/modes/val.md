@@ -183,6 +183,10 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
 
 For more details see the [`DataExportMixin` class documentation](../reference/utils/__init__.md#ultralytics.utils.__init__.DataExportMixin).
 
+## What's Next
+
+Happy with the metrics? [Export the model](export.md) to a deployment format. If accuracy is off, [go back and retrain](train.md) with different [hyperparameters](../guides/hyperparameter-tuning.md) or more training data.
+
 ## FAQ
 
 ### How do I validate my YOLO26 model with Ultralytics?
@@ -242,7 +246,7 @@ These benefits ensure that your models are evaluated thoroughly and can be optim
 
 ### Can I validate my YOLO26 model using a custom dataset?
 
-Yes, you can validate your YOLO26 model using a [custom dataset](https://docs.ultralytics.com/datasets/). Specify the `data` argument with the path to your dataset configuration file. This file should include the path to the [validation data](https://www.ultralytics.com/glossary/validation-data).
+Yes, you can validate your YOLO26 model using a [custom dataset](../datasets/index.md). Specify the `data` argument with the path to your dataset configuration file. This file should include the path to the [validation data](https://www.ultralytics.com/glossary/validation-data).
 
 !!! note
 

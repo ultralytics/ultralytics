@@ -19,7 +19,7 @@ class TensorRTBackend(BaseBackend):
     """NVIDIA TensorRT inference backend for GPU-accelerated deployment.
 
     Loads and runs inference with NVIDIA TensorRT serialized engines (.engine files). Supports both TensorRT 7-9 and
-    TensorRT 10+ APIs, dynamic input shapes, FP16 precision, and DLA core offloading.
+    TensorRT 10/11 APIs, dynamic input shapes, FP16 precision, and DLA core offloading.
     """
 
     def load_model(self, weight: str | Path) -> None:
@@ -63,15 +63,16 @@ class TensorRTBackend(BaseBackend):
             self.apply_metadata(metadata)
         try:
             self.context = engine.create_execution_context()
-        except Exception as e:
+        except Exception:
             LOGGER.error("TensorRT model exported with a different version than expected\n")
-            raise e
+            raise
 
         # Setup bindings
         self.bindings = OrderedDict()
         self.output_names = []
         self.fp16 = False
         self.dynamic = False
+        # TensorRT 10 and 11 both drop the legacy binding API in favor of named I/O tensors
         self.is_trt10 = not hasattr(engine, "num_bindings")
         num = range(engine.num_io_tensors) if self.is_trt10 else range(engine.num_bindings)
 

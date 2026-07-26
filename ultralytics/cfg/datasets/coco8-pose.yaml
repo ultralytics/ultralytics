@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # COCO8-pose dataset (first 8 images from COCO train2017) by Ultralytics
-# Documentation: https://docs.ultralytics.com/datasets/pose/coco8-pose/
+# Documentation: https://docs.ultralytics.com/datasets/pose/coco8-pose
 # Example usage: yolo train data=coco8-pose.yaml
 # parent
 # ├── ultralytics

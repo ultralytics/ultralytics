@@ -1123,8 +1123,8 @@ class DetMetrics(SimpleClass, DataExportMixin):
 
         Args:
             names (dict[int, str], optional): Dictionary of class names.
-            iou_metrics (list[float], optional): Extra IoU thresholds to report mAP at, e.g. [0.75, 0.90, 0.95].
-                Valid range is 0.50–0.95 in steps of 0.05. Thresholds outside this range are clamped.
+            iou_metrics (list[float], optional): Extra IoU thresholds to report mAP at, e.g. [0.75, 0.90, 0.95]. Valid
+                range is 0.50–0.95 in steps of 0.05. Thresholds outside this range are clamped.
         """
         self.names = names if names is not None else {}
         self.box = Metric()
@@ -1207,7 +1207,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
 
     def _iou_idx(self, t: float) -> int:
         """Convert a normalized IoU threshold to its index in the 0.50–0.95 evaluation grid (step 0.05)."""
-        return int(round((t - 0.5) / 0.05))
+        return round((t - 0.5) / 0.05)
 
     def _extra_maps(self) -> list[float]:
         """Return mean AP at each threshold in self.iou_metrics, or zeros when no data is available."""

@@ -1,12 +1,15 @@
 ---
+title: YOLO26 on Raspberry Pi: Setup & Benchmarks
 comments: true
-description: Learn how to deploy Ultralytics YOLO26 on Raspberry Pi with our comprehensive guide. Get performance benchmarks, setup instructions, and best practices.
+description: Deploy Ultralytics YOLO26 on Raspberry Pi 4 and 5 with install steps, NCNN export for fastest inference, camera setup, and benchmarks across ten formats.
 keywords: Ultralytics, YOLO26, Raspberry Pi, setup, guide, benchmarks, computer vision, object detection, NCNN, Docker, camera modules
 ---
 
 # Quick Start Guide: Raspberry Pi with Ultralytics YOLO26
 
-This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLO26 on [Raspberry Pi](https://www.raspberrypi.com/) devices. Additionally, it showcases performance benchmarks to demonstrate the capabilities of YOLO26 on these small and powerful devices.
+[Raspberry Pi](https://www.raspberrypi.com/) is a small, affordable computer that runs [Ultralytics YOLO26](../models/yolo26.md) for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) at the edge — no GPU required. This guide walks you through deploying YOLO26 on Raspberry Pi 4 and 5: flashing the OS, installing Ultralytics, exporting to [NCNN](../integrations/ncnn.md) for the fastest [inference](../modes/predict.md) on ARM, and running predictions on a live camera feed. It also includes performance benchmarks across ten export formats so you can pick the best speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) trade-off for your hardware.
+
+Jump to [setting up Ultralytics](#set-up-ultralytics), [exporting to NCNN and running inference](#use-ncnn-on-raspberry-pi), [benchmarks](#raspberry-pi-5-yolo26-benchmarks), or [camera inference](#use-raspberry-pi-camera).
 
 <p align="center">
   <br>
@@ -49,29 +52,29 @@ The first thing to do after getting your hands on a Raspberry Pi is to flash a m
 
 ## Set Up Ultralytics
 
-There are two ways of setting up Ultralytics package on Raspberry Pi to build your next [Computer Vision](https://www.ultralytics.com/glossary/computer-vision-cv) project. You can use either of them.
+You can set up the Ultralytics package on Raspberry Pi in two ways for your next [Computer Vision](https://www.ultralytics.com/glossary/computer-vision-cv) project:
 
 - [Start with Docker](#start-with-docker)
 - [Start without Docker](#start-without-docker)
 
 ### Start with Docker
 
-The fastest way to get started with Ultralytics YOLO26 on Raspberry Pi is to run with pre-built docker image for Raspberry Pi.
+The fastest way to get started with Ultralytics YOLO26 on Raspberry Pi is to run with a pre-built Docker image for Raspberry Pi.
 
-Execute the below command to pull the Docker container and run on Raspberry Pi. This is based on [arm64v8/debian](https://hub.docker.com/r/arm64v8/debian) docker image which contains Debian 12 (Bookworm) in a Python3 environment.
+Execute the below command to pull the Docker container and run on Raspberry Pi. This is based on the [arm64v8/ubuntu](https://hub.docker.com/r/arm64v8/ubuntu) Docker image, which runs Ubuntu 24.04 in a Python3 environment.
 
 ```bash
 t=ultralytics/ultralytics:latest-arm64
 sudo docker pull $t && sudo docker run -it --ipc=host $t
 ```
 
-After this is done, skip to [Use NCNN on Raspberry Pi section](#use-ncnn-on-raspberry-pi).
+The Docker image already includes Ultralytics, so you can go straight to [exporting your model to NCNN](#use-ncnn-on-raspberry-pi).
 
 ### Start without Docker
 
 #### Install Ultralytics Package
 
-Here we will install Ultralytics package on the Raspberry Pi with optional dependencies so that we can export the [PyTorch](https://www.ultralytics.com/glossary/pytorch) models to other different formats.
+Here we will install Ultralytics package on the Raspberry Pi with optional dependencies so that we can export the [PyTorch](https://www.ultralytics.com/glossary/pytorch) models to other formats.
 
 1. Update packages list, install pip and upgrade to latest
 
@@ -95,11 +98,7 @@ Here we will install Ultralytics package on the Raspberry Pi with optional depen
 
 ## Use NCNN on Raspberry Pi
 
-Out of all the model export formats supported by Ultralytics, [NCNN](https://docs.ultralytics.com/integrations/ncnn/) delivers the best inference performance when working with Raspberry Pi devices because NCNN is highly optimized for mobile/ embedded platforms (such as ARM architecture).
-
-## Convert Model to NCNN and Run Inference
-
-The YOLO26n model in PyTorch format is converted to NCNN to run inference with the exported model.
+Out of all the model [export formats](../modes/export.md) supported by Ultralytics, [NCNN](../integrations/ncnn.md) delivers the best inference performance on Raspberry Pi devices because it is highly optimized for mobile/embedded platforms such as ARM architecture. Convert your YOLO26n PyTorch model to NCNN, then run inference with the exported model:
 
 !!! example
 
@@ -133,7 +132,7 @@ The YOLO26n model in PyTorch format is converted to NCNN to run inference with t
 
 !!! tip
 
-    For more details about supported export options, visit the [Ultralytics documentation page on deployment options](https://docs.ultralytics.com/guides/model-deployment-options/).
+    For more details about supported export options, see the [model deployment options guide](model-deployment-options.md).
 
 ## YOLO26 Performance Improvements over YOLO11
 
@@ -171,7 +170,7 @@ YOLO26 is specifically designed to run on hardware-constrained devices such as t
 
 ## Raspberry Pi 5 YOLO26 Benchmarks
 
-YOLO26 benchmarks were run by the Ultralytics team on ten different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN, ExecuTorch. Benchmarks were run on a Raspberry Pi 5 at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
+YOLO26 [benchmarks](../modes/benchmark.md) were run by the Ultralytics team on ten different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN, ExecuTorch. Benchmarks were run on a Raspberry Pi 5 at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
 
 ### Comparison Chart
 
@@ -222,7 +221,7 @@ The below table represents the benchmark results for two different models (YOLO2
 
     !!! note
 
-        Inference time does not include pre/ post-processing.
+        Inference time does not include pre/post-processing.
 
 ### Reproduce Our Results
 
@@ -277,9 +276,9 @@ rpicam-hello
 
 ### Inference with Camera
 
-There are 2 methods of using the Raspberry Pi Camera to run inference on YOLO26 models.
+There are two methods of using the Raspberry Pi Camera to run inference on YOLO26 models.
 
-!!! usage
+!!! example "Run inference with the Raspberry Pi camera"
 
     === "Method 1"
 
@@ -359,7 +358,7 @@ There are 2 methods of using the Raspberry Pi Camera to run inference on YOLO26 
 
 !!! tip
 
-    Check our document on [Inference Sources](https://docs.ultralytics.com/modes/predict/#inference-sources) if you want to change the image/video input type
+    Check our document on [Inference Sources](../modes/predict.md#inference-sources) if you want to change the image/video input type
 
 ## Best Practices when using Raspberry Pi
 
@@ -403,7 +402,7 @@ There are a couple of best practices to follow in order to enable maximum perfor
 
 ## Next Steps
 
-You have successfully set up YOLO on your Raspberry Pi. For further learning and support, visit [Ultralytics YOLO26 Docs](../index.md) and [Kashmir World Foundation](https://www.kashmirworldfoundation.org/).
+You have successfully set up YOLO26 on your Raspberry Pi. To go further, explore [Predict mode](../modes/predict.md) for more inference options, [Export mode](../modes/export.md) for additional deployment formats, or the [NVIDIA Jetson guide](nvidia-jetson.md) if you need more compute at the edge. For the complete documentation, visit the [Ultralytics YOLO26 Docs](../index.md).
 
 ## Acknowledgments and Citations
 
@@ -436,7 +435,7 @@ For detailed instructions, refer to the [Start without Docker](#start-without-do
 
 ### Why should I use Ultralytics YOLO26's NCNN format on Raspberry Pi for AI tasks?
 
-Ultralytics YOLO26's NCNN format is highly optimized for mobile and embedded platforms, making it ideal for running AI tasks on Raspberry Pi devices. NCNN maximizes inference performance by leveraging ARM architecture, providing faster and more efficient processing compared to other formats. For more details on supported export options, visit the [Ultralytics documentation page on deployment options](https://docs.ultralytics.com/guides/model-deployment-options/).
+Ultralytics YOLO26's NCNN format is highly optimized for mobile and embedded platforms, making it ideal for running AI tasks on Raspberry Pi devices. NCNN maximizes inference performance by leveraging ARM architecture, providing faster and more efficient processing compared to other formats. For more details on supported export formats, see the [model export options](model-deployment-options.md).
 
 ### How can I convert a YOLO26 model to NCNN format for use on Raspberry Pi?
 

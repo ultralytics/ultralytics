@@ -8,6 +8,7 @@ import os
 import time
 import urllib
 from dataclasses import dataclass
+from io import BytesIO
 from pathlib import Path
 from threading import Thread
 from typing import Any
@@ -33,7 +34,7 @@ class SourceTypes:
     Attributes:
         stream (bool): Flag indicating if the input source is a video stream.
         screenshot (bool): Flag indicating if the input source is a screenshot.
-        from_img (bool): Flag indicating if the input source is an image file.
+        from_img (bool): Flag indicating if the input source is an in-memory image (PIL/numpy) or list of images.
         tensor (bool): Flag indicating if the input source is a tensor.
 
     Examples:
@@ -117,43 +118,47 @@ class LoadStreams:
         self.imgs = [[] for _ in range(n)]  # images
         self.shape = [[] for _ in range(n)]  # image shapes
         self.sources = [ops.clean_str(x).replace(os.sep, "_") for x in sources]  # clean source names for later
-        for i, s in enumerate(sources):  # index, source
-            # Start thread to read frames from video stream
-            st = f"{i + 1}/{n}: {s}... "
-            if urllib.parse.urlparse(s).hostname in {"www.youtube.com", "youtube.com", "youtu.be"}:  # YouTube video
-                # YouTube format i.e. 'https://www.youtube.com/watch?v=Jsn8D3aC840' or 'https://youtu.be/Jsn8D3aC840'
-                s = get_best_youtube_url(s)
-            s = int(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
-            if s == 0 and (IS_COLAB or IS_KAGGLE):
-                raise NotImplementedError(
-                    "'source=0' webcam not supported in Colab and Kaggle notebooks. "
-                    "Try running 'source=0' in a local environment."
-                )
-            self.caps[i] = cv2.VideoCapture(s)  # store video capture object
-            if not self.caps[i].isOpened():
-                raise ConnectionError(f"{st}Failed to open {s}")
-            w = int(self.caps[i].get(cv2.CAP_PROP_FRAME_WIDTH))
-            h = int(self.caps[i].get(cv2.CAP_PROP_FRAME_HEIGHT))
-            fps = self.caps[i].get(cv2.CAP_PROP_FPS)  # warning: may return 0 or nan
-            self.frames[i] = max(int(self.caps[i].get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float(
-                "inf"
-            )  # infinite stream fallback
-            self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
+        try:
+            for i, s in enumerate(sources):  # index, source
+                # Start thread to read frames from video stream
+                st = f"{i + 1}/{n}: {s}... "
+                if urllib.parse.urlparse(s).hostname in {"www.youtube.com", "youtube.com", "youtu.be"}:  # YouTube video
+                    # YouTube format i.e. 'https://www.youtube.com/watch?v=Jsn8D3aC840' or 'https://youtu.be/Jsn8D3aC840'
+                    s = get_best_youtube_url(s)
+                s = int(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
+                if s == 0 and (IS_COLAB or IS_KAGGLE):
+                    raise NotImplementedError(
+                        "'source=0' webcam not supported in Colab and Kaggle notebooks. "
+                        "Try running 'source=0' in a local environment."
+                    )
+                self.caps[i] = cv2.VideoCapture(s)  # store video capture object
+                if not self.caps[i].isOpened():
+                    raise ConnectionError(f"{st}Failed to open {s}")
+                w = int(self.caps[i].get(cv2.CAP_PROP_FRAME_WIDTH))
+                h = int(self.caps[i].get(cv2.CAP_PROP_FRAME_HEIGHT))
+                fps = self.caps[i].get(cv2.CAP_PROP_FPS)  # warning: may return 0 or nan
+                self.frames[i] = max(int(self.caps[i].get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float(
+                    "inf"
+                )  # infinite stream fallback
+                self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
 
-            success, im = self.caps[i].read()  # guarantee first frame
-            im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)[..., None] if self.cv2_flag == cv2.IMREAD_GRAYSCALE else im
-            if not success or im is None:
-                raise ConnectionError(f"{st}Failed to read images from {s}")
-            self.imgs[i].append(im)
-            self.shape[i] = im.shape
-            self.threads[i] = Thread(target=self.update, args=([i, self.caps[i], s]), daemon=True)
-            LOGGER.info(f"{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)")
-            self.threads[i].start()
+                success, im = self.caps[i].read()  # guarantee first frame
+                if not success or im is None:
+                    raise ConnectionError(f"{st}Failed to read images from {s}")
+                im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)[..., None] if self.cv2_flag == cv2.IMREAD_GRAYSCALE else im
+                self.imgs[i].append(im)
+                self.shape[i] = im.shape
+                self.threads[i] = Thread(target=self.update, args=([i, self.caps[i], s]), daemon=True)
+                LOGGER.info(f"{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)")
+                self.threads[i].start()
+        except Exception:
+            self.close()  # release opened captures and stop started threads before re-raising
+            raise
         LOGGER.info("")  # newline
 
     def update(self, i: int, cap: cv2.VideoCapture, stream: str):
         """Read stream frames in daemon thread and update image buffer."""
-        n, f = 0, self.frames[i]  # frame number, frame array
+        n, f = 0, self.frames[i]  # frame number, total frames
         while self.running and cap.isOpened() and n < (f - 1):
             if len(self.imgs[i]) < 30:  # keep a <=30-image buffer
                 n += 1
@@ -178,9 +183,11 @@ class LoadStreams:
         """Terminate stream loader, stop threads, and release video capture resources."""
         self.running = False  # stop flag for Thread
         for thread in self.threads:
-            if thread.is_alive():
+            if thread is not None and thread.is_alive():
                 thread.join(timeout=5)  # Add timeout
         for cap in self.caps:  # Iterate through the stored VideoCapture objects
+            if cap is None:
+                continue
             try:
                 cap.release()  # release video capture
             except Exception as e:
@@ -220,7 +227,7 @@ class LoadStreams:
 
     def __len__(self) -> int:
         """Return the number of video streams in the LoadStreams object."""
-        return self.bs  # 1E12 frames = 32 streams at 30 FPS for 30 years
+        return self.bs
 
 
 class LoadScreenshots:
@@ -452,7 +459,7 @@ class LoadImagesAndVideos:
                     imgs.append(im0)
                     info.append(f"image {self.count + 1}/{self.nf} {path}: ")
                 self.count += 1  # move to the next file
-                if self.count >= self.ni:  # end of image list
+                if self.count >= self.ni and imgs:  # end of image list, flush only a non-empty batch
                     break
 
         return paths, imgs, info
@@ -506,30 +513,47 @@ class LoadPilAndNumpy:
         """
         if not isinstance(im0, list):
             im0 = [im0]
+        if not im0:  # an empty batch otherwise fails unnamed inside np.stack in Predictor.preprocess
+            raise FileNotFoundError("No images found in source, predict requires at least one image.")
         # use `image{i}.jpg` when Image.filename returns an empty path.
         self.paths = [getattr(im, "filename", "") or f"image{i}.jpg" for i, im in enumerate(im0)]
-        pil_flag = "L" if channels == 1 else "RGB"  # grayscale or RGB
-        self.im0 = [self._single_check(im, pil_flag) for im in im0]
+        self.im0 = [self._single_check(im, channels) for im in im0]
         self.mode = "image"
         self.bs = len(self.im0)
+        self.count = 0
 
     @staticmethod
-    def _single_check(im: Image.Image | np.ndarray, flag: str = "RGB") -> np.ndarray:
-        """Validate and format an image to a NumPy array.
+    def _single_check(im: Image.Image | np.ndarray, channels: int = 3) -> np.ndarray:
+        """Validate an image and normalize its channel count.
 
         Notes:
             - PIL inputs are converted to NumPy and returned in OpenCV-compatible BGR order for color images.
-            - NumPy inputs are returned as-is (no channel-order conversion is applied).
+            - NumPy color inputs are assumed to use OpenCV-compatible BGR order.
         """
-        assert isinstance(im, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(im)}"
-        if isinstance(im, Image.Image):
+        if not isinstance(im, (Image.Image, np.ndarray)):
+            raise TypeError(f"Expected PIL/np.ndarray image type, but got {type(im)}")
+        pil = isinstance(im, Image.Image)
+        if pil:
+            flag = "L" if channels == 1 else "RGB"
             im = np.asarray(im.convert(flag))
-            # Add a new axis if grayscale; convert RGB -> BGR for OpenCV compatibility.
             im = im[..., None] if flag == "L" else im[..., ::-1]
-            im = np.ascontiguousarray(im)  # contiguous
-        elif im.ndim == 2:  # grayscale in numpy form
-            im = im[..., None]
-        return im
+        im = np.atleast_3d(im)
+        # Both routes validate here: a zero dimension divides by zero in LetterBox, and a batched array reads
+        # shape[2] as a channel count it is not. Raised rather than asserted so `python -O` keeps the check.
+        if im.ndim != 3 or not all(im.shape):
+            raise ValueError(f"Expected a single (H, W, C) image, but got array of shape {im.shape}")
+        if pil:
+            return np.ascontiguousarray(im)
+        c = im.shape[2]
+        if c == channels:
+            return im
+        if c == 2:  # gray + alpha
+            im, c = im[..., :1], 1
+        if c == 1:
+            return np.repeat(im, channels, axis=2)
+        if channels == 1:
+            return cv2.cvtColor(im, cv2.COLOR_BGRA2GRAY if c == 4 else cv2.COLOR_BGR2GRAY)[..., None]
+        return np.ascontiguousarray(im[..., :3])
 
     def __len__(self) -> int:
         """Return the length of the 'im0' attribute, representing the number of loaded images."""
@@ -580,7 +604,8 @@ class LoadTensor:
         self.im0 = self._single_check(im0)
         self.bs = self.im0.shape[0]
         self.mode = "image"
-        self.paths = [getattr(im, "filename", f"image{i}.jpg") for i, im in enumerate(im0)]
+        self.paths = [f"image{i}.jpg" for i in range(self.bs)]
+        self.count = 0
 
     @staticmethod
     def _single_check(im: torch.Tensor, stride: int = 32) -> torch.Tensor:
@@ -594,9 +619,9 @@ class LoadTensor:
                 raise ValueError(s)
             LOGGER.warning(s)
             im = im.unsqueeze(0)
-        if im.shape[2] % stride or im.shape[3] % stride:
-            raise ValueError(s)
-        if im.max() > 1.0 + torch.finfo(im.dtype).eps:  # torch.float32 eps is 1.2e-07
+        if not all(im.shape) or im.shape[2] % stride or im.shape[3] % stride:
+            raise ValueError(s)  # a zero dimension reaches im.max() below on an empty tensor
+        if im.max() > 1.0 + (torch.finfo(im.dtype).eps if im.is_floating_point() else 0):
             LOGGER.warning(
                 f"torch.Tensor inputs should be normalized 0.0-1.0 but max value is {im.max()}. Dividing input by 255."
             )
@@ -626,9 +651,11 @@ def autocast_list(source: list[Any]) -> list[Image.Image | np.ndarray]:
     files = []
     for im in source:
         if isinstance(im, (str, Path)):  # filename or uri
-            files.append(
-                ImageOps.exif_transpose(Image.open(urllib.request.urlopen(im) if str(im).startswith("http") else im))
-            )
+            if str(im).startswith("http"):  # requests follows HTTP 308 redirects that urllib lacks pre-3.11
+                import requests  # scoped as slow import
+
+                im = BytesIO(requests.get(im).content)
+            files.append(ImageOps.exif_transpose(Image.open(im)))
         elif isinstance(im, (Image.Image, np.ndarray)):  # PIL or np Image
             files.append(im)
         else:

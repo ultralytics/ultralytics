@@ -116,10 +116,12 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
     === "Prompt inference"
 
         ```python
+        import cv2
+
         from ultralytics.models.sam import Predictor as SAMPredictor
 
         # Create SAMPredictor
-        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="mobile_sam.pt")
+        overrides = {"conf": 0.25, "task": "segment", "mode": "predict", "imgsz": 1024, "model": "mobile_sam.pt"}
         predictor = SAMPredictor(overrides=overrides)
 
         # Set image
@@ -148,7 +150,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         from ultralytics.models.sam import Predictor as SAMPredictor
 
         # Create SAMPredictor
-        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="mobile_sam.pt")
+        overrides = {"conf": 0.25, "task": "segment", "mode": "predict", "imgsz": 1024, "model": "mobile_sam.pt"}
         predictor = SAMPredictor(overrides=overrides)
 
         # Segment with additional args
@@ -273,7 +275,7 @@ model("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
 model("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
 
 # Segment with multiple points prompt
-model("ultralytics/assets/zidane.jpg", points=[[400, 370], [900, 370]], labels=[[1, 1]])
+model("ultralytics/assets/zidane.jpg", points=[[400, 370], [900, 370]], labels=[1, 1])
 
 # Segment with multiple points prompt per object
 model("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 1]])

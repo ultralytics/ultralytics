@@ -107,7 +107,7 @@ Let's get started.
 
 6. The following is a sample view of the populated DataFrame:
 
-    ```
+    ```text
                                                            0    1    2    3    4    5
     '0000a16e4b057580_jpg.rf.00ab48988370f64f5ca8ea4...'  0.0  0.0  0.0  0.0  0.0  7.0
     '0000a16e4b057580_jpg.rf.7e6dce029fb67f01eb19aa7...'  0.0  0.0  0.0  0.0  0.0  7.0
@@ -173,7 +173,7 @@ The rows index the label files, each corresponding to an image in your dataset, 
 4. Next, we create the directories and dataset YAML files for each split.
 
     ```python
-    import datetime
+    from datetime import datetime, timezone
 
     supported_extensions = [".jpg", ".jpeg", ".png"]
 
@@ -185,7 +185,8 @@ The rows index the label files, each corresponding to an image in your dataset, 
         images.extend(sorted((dataset_path / "images").rglob(f"*{ext}")))
 
     # Create the necessary directories and dataset YAML files
-    save_path = Path(dataset_path / f"{datetime.date.today().isoformat()}_{ksplit}-Fold_Cross-val")
+    date = datetime.now(timezone.utc).date().isoformat()
+    save_path = Path(dataset_path / f"{date}_{ksplit}-Fold_Cross-val")
     save_path.mkdir(parents=True, exist_ok=True)
     ds_yamls = []
 
@@ -270,7 +271,7 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
         )  # include any additional train arguments
     ```
 
-3. You can also use [Ultralytics data.utils.autosplit](https://docs.ultralytics.com/reference/data/utils/) function for automatic dataset splitting:
+3. You can also use [Ultralytics data.split.autosplit](../reference/data/split.md) function for automatic dataset splitting:
 
     ```python
     from ultralytics.data.split import autosplit
@@ -313,7 +314,7 @@ For a comprehensive guide, see the [K-Fold Dataset Split](#k-fold-dataset-split)
 
 ### Why should I use Ultralytics YOLO for object detection?
 
-Ultralytics YOLO offers state-of-the-art, real-time object detection with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency. It's versatile, supporting multiple [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as detection, segmentation, and classification. Additionally, it integrates seamlessly with tools like [Ultralytics Platform](https://docs.ultralytics.com/platform/) for no-code model training and deployment. For more details, explore the benefits and features on our [Ultralytics YOLO page](https://www.ultralytics.com/yolo).
+Ultralytics YOLO offers state-of-the-art, real-time object detection with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency. It's versatile, supporting multiple [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as [detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [classification](../tasks/classify.md). Additionally, it integrates seamlessly with tools like [Ultralytics Platform](../platform/index.md) for no-code model training and deployment. For more details, explore the benefits and features on our [Ultralytics YOLO page](https://www.ultralytics.com/yolo).
 
 ### How can I ensure my annotations are in the correct format for Ultralytics YOLO?
 

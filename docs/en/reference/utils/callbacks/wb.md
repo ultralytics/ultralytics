@@ -1,4 +1,5 @@
 ---
+title: utils.callbacks.wb API Reference
 description: Learn how Ultralytics YOLO integrates with WandB using custom callbacks for logging metrics and visualizations.
 keywords: Ultralytics, YOLO, WandB, callbacks, logging, metrics, visualizations, AI, machine learning
 ---
@@ -7,7 +8,7 @@ keywords: Ultralytics, YOLO, WandB, callbacks, logging, metrics, visualizations,
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/wb.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/wb.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/wb.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/wb.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

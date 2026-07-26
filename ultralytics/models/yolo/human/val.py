@@ -18,8 +18,8 @@ from ultralytics.utils.metrics import HumanMetrics, box_iou
 class HumanValidator(DetectionValidator):
     """A class extending the DetectionValidator class for validation based on a human model.
 
-    This validator evaluates detection quality with the usual box metrics and, for every true positive box, the
-    accuracy of the predicted weight, height, gender, age and ethnicity.
+    This validator evaluates detection quality with the usual box metrics and, for every true positive box, the accuracy
+    of the predicted weight, height, gender, age and ethnicity.
 
     Attributes:
         args (dict): Arguments for the validator including task set to "human".
@@ -111,13 +111,13 @@ class HumanValidator(DetectionValidator):
         """Return the correct prediction matrix and accumulate the human attribute accuracies.
 
         Args:
-            preds (dict[str, torch.Tensor]): Dictionary containing prediction data with 'bboxes', 'cls' and
-                'attributes' keys.
+            preds (dict[str, torch.Tensor]): Dictionary containing prediction data with 'bboxes', 'cls' and 'attributes'
+                keys.
             batch (dict[str, Any]): Batch dictionary containing ground truth 'bboxes', 'cls' and 'attributes'.
 
         Returns:
-            (dict[str, np.ndarray]): Dictionary containing 'tp' key with correct prediction matrix of shape (N, 10)
-                for 10 IoU levels.
+            (dict[str, np.ndarray]): Dictionary containing 'tp' key with correct prediction matrix of shape (N, 10) for
+                10 IoU levels.
         """
         tp = super()._process_batch(preds, batch)
         if batch["cls"].shape[0] and preds["cls"].shape[0]:

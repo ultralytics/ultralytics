@@ -1301,8 +1301,8 @@ class ClassificationDataset:
 class HumanDataset(YOLODataset):
     """Dataset class for loading YOLO-Human labels.
 
-    Each label row holds 10 columns: class, bounding box in normalized `xywh` and the five human attributes weight
-    (kg), height (cm), gender, age (years) and ethnicity.
+    Each label row holds 10 columns: class, bounding box in normalized `xywh` and the five human attributes weight (kg),
+    height (cm), gender, age (years) and ethnicity.
 
     Methods:
         get_labels: Return list of label dictionaries including human attributes.

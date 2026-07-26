@@ -230,8 +230,8 @@ class Instances:
             bboxes (np.ndarray): Bounding boxes with shape (N, 4).
             segments (np.ndarray, optional): Segmentation masks.
             keypoints (np.ndarray, optional): Keypoints with shape (N, 17, 3) in format (x, y, visible).
-            attributes (np.ndarray, optional): Human attributes with shape (N, 5) in format
-                (weight, height, gender, age, ethnicity).
+            attributes (np.ndarray, optional): Human attributes with shape (N, 5) in format (weight, height, gender,
+                age, ethnicity).
             bbox_format (str): Format of bboxes.
             normalized (bool): Whether the coordinates are normalized.
         """

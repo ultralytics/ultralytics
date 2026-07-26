@@ -95,7 +95,7 @@ Validate trained YOLOv8n-human model accuracy on the COCO8-human dataset. No arg
     === "CLI"
 
         ```bash
-        yolo human val model=yolov8n-human.pt  # val official model
+        yolo human val model=yolov8n-human.pt # val official model
         yolo human val model=path/to/best.pt  # val custom model
         ```
 
@@ -120,7 +120,7 @@ Use a trained YOLOv8n-human model to run predictions on images.
     === "CLI"
 
         ```bash
-        yolo human predict model=yolov8n-human.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
+        yolo human predict model=yolov8n-human.pt source='https://ultralytics.com/images/bus.jpg' # predict with official model
         yolo human predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
         ```
 
@@ -147,7 +147,7 @@ Export a YOLOv8n-human model to a different format like ONNX, CoreML, etc.
     === "CLI"
 
         ```bash
-        yolo export model=yolov8n-human.pt format=onnx  # export official model
+        yolo export model=yolov8n-human.pt format=onnx # export official model
         yolo export model=path/to/best.pt format=onnx  # export custom trained model
         ```
 

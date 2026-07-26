@@ -44,24 +44,24 @@ Box coordinates must be in **normalized xywh** format (from 0 to 1). If your box
 
     !!! Biological Classes
 
-          | value | class   |
-          |-------|---------|
-          | 0     | Females |
-          | 1     | Males   |
+            | value | class   |
+            |-------|---------|
+            | 0     | Females |
+            | 1     | Males   |
 
 - Age: Age is annotated as an integer. This numerical value represents the person's age in years and is essential for demographic analysis and age-related studies.
 - Ethnicity: Ethnicity is categorized into six distinct groups, each represented by an integer:
 
     !!! Ethnicity Classes
 
-          | value | class          |
-          |-------|----------------|
-          | 0     | Asian          |
-          | 1     | White          |
-          | 2     | Middle Eastern |
-          | 3     | Indian         |
-          | 4     | Latino         |
-          | 5     | Black          |
+            | value | class          |
+            |-------|----------------|
+            | 0     | Asian          |
+            | 1     | White          |
+            | 2     | Middle Eastern |
+            | 3     | Indian         |
+            | 4     | Latino         |
+            | 5     | Black          |
 
 These categories help in the study of diverse populations and enable the development of models that are inclusive and non-biased.
 

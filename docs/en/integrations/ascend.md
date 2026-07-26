@@ -132,7 +132,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 After a successful export, a model directory is created with the following layout:
 
     yolo26n_ascend_model/
-    ├── yolo26n_Ascend310P3.om  # Compiled Ascend offline model (AI Core executable)
+    ├── yolo26n_Ascend310B4.om  # Compiled Ascend offline model (AI Core executable)
     └── metadata.yaml           # Model metadata (classes, image size, task, etc.)
 
 The `.om` file is the compiled offline model that the CANN runtime loads on the device. Its name carries the target SoC so the artifact is self-describing; keep one `.om` per directory, since the loader picks the single model it finds there. The `metadata.yaml` contains class names, image size, and other information used by the Ultralytics inference pipeline.

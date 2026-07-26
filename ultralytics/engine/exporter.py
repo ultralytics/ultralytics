@@ -877,7 +877,7 @@ class Exporter:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
 
-        if model.task == "semantic" and fmt in {"qnn", "coreml"}:
+        if model.task == "semantic" and fmt in {"qnn", "coreml", "ascend"}:
             # NPU-targeted semantic exports ship a compact uint8 class map instead of float logits: emitting logits
             # forces consumers to dequantize and argmax ~20M floats on the CPU every frame (measured erratic
             # 123-1065 ms on Hexagon). Not applied to LiteRT, where the GPU delegate cannot compile ArgMax (int64
@@ -1776,11 +1776,12 @@ class QNNModel(ExportWrapper):
 class ClassMapModel(ExportWrapper):
     """Reduces semantic-segmentation logits to a compact integer class map for export.
 
-    Applied to QNN and Core ML semantic exports, where the argmax runs on the NPU: deployment consumers want per-pixel
-    class indices, and shipping float logits instead forces a dequantize + argmax over large tensors (~8M values at the
-    standard 640px mobile input) on the consumer's CPU every frame - measured as both slow and highly variable on mobile
-    NPUs. The argmax cannot live in the model's own forward because it is non-differentiable (training needs logits), so
-    it is attached here at export time, mirroring how `NMSModel` adds suppression only for export.
+    Applied to QNN, Core ML and Ascend semantic exports, where the argmax runs on the NPU: deployment consumers want
+    per-pixel class indices, and shipping float logits instead forces a dequantize + argmax over large tensors (~8M
+    values at the standard 640px mobile input) on the consumer's CPU every frame - measured as both slow and highly
+    variable on mobile NPUs. The argmax cannot live in the model's own forward because it is non-differentiable
+    (training needs logits), so it is attached here at export time, mirroring how `NMSModel` adds suppression only for
+    export.
 
     Attributes:
         task (str): The wrapped model's task ("semantic").

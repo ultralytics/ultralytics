@@ -34,7 +34,7 @@ YOLOv9's advancements are deeply rooted in addressing the challenges posed by in
 
 The Information Bottleneck Principle reveals a fundamental challenge in deep learning: as data passes through successive layers of a network, the potential for information loss increases. This phenomenon is mathematically represented as:
 
-```python
+```text
 I(X, X) >= I(X, f_theta(X)) >= I(X, g_phi(f_theta(X)))
 ```
 

@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Learn about data management in Ultralytics Platform including dataset upload, annotation tools, and statistics visualization for YOLO model training.
 keywords: Ultralytics Platform, data management, datasets, annotation, YOLO, computer vision, data preparation, labeling
@@ -24,11 +25,13 @@ Data preparation is the foundation of successful [computer vision](https://www.u
 The Data section of Ultralytics Platform helps you:
 
 - **Upload** images, videos, and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON)
+- **Connect** [Google Cloud Storage](../integrations/google-cloud-storage.md), [Amazon S3](../integrations/amazon-s3.md), or [Azure Blob Storage](../integrations/azure-blob-storage.md) and use your data in place without uploading a copy
+- **Keep pixels on premise** with Enterprise [On Premise](../integrations/on-premise.md) CPU/GPU workers
 - **Annotate** with manual drawing tools and SAM-powered smart labeling — choose from [SAM 2.1](../../models/sam-2.md) or the new [SAM 3](../../models/sam-3.md)
 - **Analyze** your data with statistics and visualizations
 - **Export** in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for local training
 
-![Ultralytics Platform Data Overview Sidebar Datasets](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-data-overview-sidebar-datasets.avif)
+![Ultralytics Platform Data Overview Sidebar Datasets](https://cdn.ul.run/i/c6f7198b77344ed8d712d8c34ec82459.avif)<!-- screenshot -->
 
 ## Workflow
 
@@ -52,7 +55,7 @@ graph LR
 
 ## Supported Tasks
 
-Ultralytics Platform supports all 6 YOLO task types:
+Ultralytics Platform datasets support 6 of the 7 YOLO task types — [depth](../../tasks/depth.md) datasets are coming soon (depth models and prediction are already supported):
 
 | Task                                             | Description                                                     | Annotation Tool   |
 | ------------------------------------------------ | --------------------------------------------------------------- | ----------------- |
@@ -73,7 +76,7 @@ Ultralytics Platform supports all 6 YOLO task types:
 
 Ultralytics Platform uses Content-Addressable Storage (CAS) for efficient data management:
 
-- **Deduplication**: Identical images stored only once via XXH3-128 hashing
+- **Deduplication**: Identical image bytes in the same data region reuse one CAS object via XXH3-128 hashing
 - **Integrity**: Hash-based addressing ensures data integrity
 - **Efficiency**: Optimized storage and fast processing
 
@@ -113,7 +116,7 @@ Dataset pages can show up to six tabs, depending on the dataset state and your p
 | **Versions** | Create and download immutable NDJSON snapshots for reproducible training     |
 | **Errors**   | Images that failed processing with error details and fix guidance            |
 
-`Classes` and `Charts` appear when the dataset has images. `Errors` appears only when processing failures exist. `Versions` appears for owners, or for non-owners when versions already exist.
+`Classes` and `Charts` appear when the dataset has images. `Errors` appears only when processing failures exist. `Versions` appears when you have edit access, or in read-only mode when versions already exist.
 
 ### Clustering
 
@@ -185,4 +188,4 @@ Yes! Use the dataset URI format to train locally:
     model.train(data="ul://username/datasets/my-dataset", epochs=100)
     ```
 
-Or export your dataset in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for fully offline training.
+Or export your dataset in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) to transfer its metadata, splits, annotations, and signed image URLs.

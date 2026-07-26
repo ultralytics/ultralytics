@@ -79,9 +79,9 @@ download: |
   # Download
   dir = Path(yaml["path"])  # dataset root dir
   urls = [
-      f"{ASSETS_URL}/VOCtrainval_06-Nov-2007.zip",  # 446MB, 5012 images
-      f"{ASSETS_URL}/VOCtest_06-Nov-2007.zip",  # 438MB, 4953 images
-      f"{ASSETS_URL}/VOCtrainval_11-May-2012.zip",  # 1.95GB, 17126 images
+      f"{ASSETS_URL}/VOCtrainval_06-Nov-2007.zip",  # 446MB, 5011 images
+      f"{ASSETS_URL}/VOCtest_06-Nov-2007.zip",  # 438MB, 4952 images
+      f"{ASSETS_URL}/VOCtrainval_11-May-2012.zip",  # 1.95GB, 17125 images
   ]
   download(urls, dir=dir / "images", threads=3, exist_ok=True)  # download and unzip over existing (required)
 

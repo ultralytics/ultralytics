@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import os
 from copy import deepcopy
 
 import numpy as np
@@ -17,7 +16,7 @@ def check_train_batch_size(
     model: torch.nn.Module,
     imgsz: int = 640,
     amp: bool = True,
-    batch: int | float = -1,
+    batch: float = -1,
     max_num_obj: int = 1,
     dataset_size: int = 0,
 ) -> int:
@@ -82,7 +81,7 @@ def autobatch(
 
     # Inspect CUDA memory
     gb = 1 << 30  # bytes to GiB (1024 ** 3)
-    d = f"CUDA:{os.getenv('CUDA_VISIBLE_DEVICES', '0').strip()[0]}"  # 'CUDA:0'
+    d = f"CUDA:{device.index}"  # 'CUDA:0'
     properties = torch.cuda.get_device_properties(device)  # device properties
     t = properties.total_memory / gb  # GiB total
     r = torch.cuda.memory_reserved(device) / gb  # GiB reserved

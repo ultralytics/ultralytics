@@ -7,8 +7,8 @@ from typing import Any
 
 import torch
 import torch.distributed as dist
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 from ultralytics.utils.loss import FocalLoss, MALoss, VarifocalLoss
 from ultralytics.utils.metrics import bbox_iou
@@ -92,9 +92,7 @@ class DETRLoss(nn.Module):
         if loss_gain is None:
             loss_gain = {"class": 1, "bbox": 5, "giou": 2, "no_object": 0.1, "mask": 1, "dice": 1}
         self.nc = nc
-        if matcher is None:
-            matcher = {}
-        self.matcher = HungarianMatcher(**matcher)
+        self.matcher = HungarianMatcher(**{"cost_gain": {"class": 2, "bbox": 5, "giou": 2}, **(matcher or {})})
         self.loss_gain = loss_gain
         self.aux_loss = aux_loss
         self.fl = FocalLoss(gamma, alpha) if use_fl else None

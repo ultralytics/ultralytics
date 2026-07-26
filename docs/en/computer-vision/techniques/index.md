@@ -65,17 +65,17 @@ Computer vision techniques are the algorithmic building blocks that turn raw ima
 
 ## Quick reference
 
-| Technique | Output | Real-time capable | Best for |
-|---|---|---|---|
-| [Image Classification](#image-classification) | Single class label | Yes | Scene-level recognition |
-| [Object Detection](#object-detection) | Bounding boxes + labels | Yes | Multi-object localisation |
-| [Instance Segmentation](#instance-segmentation) | Per-object pixel masks | Yes | Precise shape extraction |
-| [Semantic Segmentation](#semantic-segmentation) | Dense pixel class map | Partial | Scene understanding |
-| [Object Tracking](#object-tracking) | IDs across frames | Yes | Video analysis, counting |
-| [Pose Estimation](#pose-estimation) | Keypoint coordinates | Yes | Human movement analysis |
-| [OBB Detection](#oriented-bounding-box-detection-obb) | Rotated bounding boxes | Yes | Aerial and rotated objects |
-| [Optical Flow](#optical-flow) | Per-pixel motion vectors | Partial | Motion without identity |
-| [Depth Estimation](#depth-estimation-and-3d-vision) | Distance per pixel | Partial | Spatial reasoning |
+| Technique                                             | Output                   | Real-time capable | Best for                   |
+| ----------------------------------------------------- | ------------------------ | ----------------- | -------------------------- |
+| [Image Classification](#image-classification)         | Single class label       | Yes               | Scene-level recognition    |
+| [Object Detection](#object-detection)                 | Bounding boxes + labels  | Yes               | Multi-object localisation  |
+| [Instance Segmentation](#instance-segmentation)       | Per-object pixel masks   | Yes               | Precise shape extraction   |
+| [Semantic Segmentation](#semantic-segmentation)       | Dense pixel class map    | Partial           | Scene understanding        |
+| [Object Tracking](#object-tracking)                   | IDs across frames        | Yes               | Video analysis, counting   |
+| [Pose Estimation](#pose-estimation)                   | Keypoint coordinates     | Yes               | Human movement analysis    |
+| [OBB Detection](#oriented-bounding-box-detection-obb) | Rotated bounding boxes   | Yes               | Aerial and rotated objects |
+| [Optical Flow](#optical-flow)                         | Per-pixel motion vectors | Partial           | Motion without identity    |
+| [Depth Estimation](#depth-estimation-and-3d-vision)   | Distance per pixel       | Partial           | Spatial reasoning          |
 
 ---
 
@@ -322,15 +322,15 @@ Monocular depth estimation infers the relative distance of each pixel from a sin
 
 ## Choosing the right technique
 
-| Visual question | Technique |
-|---|---|
-| What class is this entire image? | [Image Classification](../../tasks/classify.md) |
-| Where are specific objects, with bounding boxes? | [Object Detection](../../tasks/detect.md) |
-| Where are objects, with pixel-precise outlines? | [Instance Segmentation](../../tasks/segment.md) |
-| What class does every pixel belong to? | [Semantic Segmentation](../../tasks/semantic.md) |
-| Where are objects across video frames, with identity? | [Object Tracking](../../modes/track.md) |
-| What is the posture or joint configuration of a subject? | [Pose Estimation](../../tasks/pose.md) |
-| Where are rotated or angled objects in aerial imagery? | [OBB Detection](../../tasks/obb.md) |
+| Visual question                                          | Technique                                        |
+| -------------------------------------------------------- | ------------------------------------------------ |
+| What class is this entire image?                         | [Image Classification](../../tasks/classify.md)  |
+| Where are specific objects, with bounding boxes?         | [Object Detection](../../tasks/detect.md)        |
+| Where are objects, with pixel-precise outlines?          | [Instance Segmentation](../../tasks/segment.md)  |
+| What class does every pixel belong to?                   | [Semantic Segmentation](../../tasks/semantic.md) |
+| Where are objects across video frames, with identity?    | [Object Tracking](../../modes/track.md)          |
+| What is the posture or joint configuration of a subject? | [Pose Estimation](../../tasks/pose.md)           |
+| Where are rotated or angled objects in aerial imagery?   | [OBB Detection](../../tasks/obb.md)              |
 
 For a full end-to-end walkthrough of how these techniques fit into a real project, see the [steps of a CV project guide](../../guides/steps-of-a-cv-project.md).
 

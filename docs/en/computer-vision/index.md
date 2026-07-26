@@ -351,15 +351,15 @@ Computer vision systems are categorised by the specific tasks they perform on vi
 
 <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pose-estimation-examples.avif" alt="YOLO pose estimation with human body keypoint detection" width="1920" height="541" loading="lazy" style="width:100%;height:auto;border-radius:12px;">
 
-| Capability | What it does | Common applications |
-|---|---|---|
-| [Object Detection](../tasks/detect.md) | Locates specific items and draws [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) around them within a single frame | [Object counting](../guides/object-counting.md), [security alarms](../guides/security-alarm-system.md), [live inference](../guides/streamlit-live-inference.md) |
-| [Object Tracking and Motion Tracking](../modes/track.md) | Follows objects across video frames, analysing movement trajectories, velocity, and behavioural patterns | [Speed estimation](../guides/speed-estimation.md), [queue management](../guides/queue-management.md), [zone tracking](../guides/trackzone.md) |
-| [Instance Segmentation](../tasks/segment.md) | Outlines individual object boundaries at pixel level, distinguishing each instance separately | [Instance segmentation with tracking](../guides/instance-segmentation-and-tracking.md), [object cropping](../guides/object-cropping.md), medical imaging |
-| [Image Classification](../tasks/classify.md) | Assigns a single label to an entire image, identifying what is present or sorting into categories | Product sorting, content moderation, medical diagnosis |
-| [Pose Estimation](../tasks/pose.md) | Detects key body landmarks to map human or animal posture and joint positions | [Workouts monitoring](../guides/workouts-monitoring.md), ergonomics, sports analytics |
-| [Oriented Bounding Box (OBB)](../tasks/obb.md) | Detects objects with rotated bounding boxes that capture true object orientation | Aerial imagery, satellite analysis, warehouse robotics |
-| [Semantic Segmentation](../tasks/semantic.md) | Labels every pixel by class category across the entire scene | Autonomous driving, land use mapping, scene understanding |
+| Capability                                               | What it does                                                                                                                           | Common applications                                                                                                                                             |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Object Detection](../tasks/detect.md)                   | Locates specific items and draws [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) around them within a single frame | [Object counting](../guides/object-counting.md), [security alarms](../guides/security-alarm-system.md), [live inference](../guides/streamlit-live-inference.md) |
+| [Object Tracking and Motion Tracking](../modes/track.md) | Follows objects across video frames, analysing movement trajectories, velocity, and behavioural patterns                               | [Speed estimation](../guides/speed-estimation.md), [queue management](../guides/queue-management.md), [zone tracking](../guides/trackzone.md)                   |
+| [Instance Segmentation](../tasks/segment.md)             | Outlines individual object boundaries at pixel level, distinguishing each instance separately                                          | [Instance segmentation with tracking](../guides/instance-segmentation-and-tracking.md), [object cropping](../guides/object-cropping.md), medical imaging        |
+| [Image Classification](../tasks/classify.md)             | Assigns a single label to an entire image, identifying what is present or sorting into categories                                      | Product sorting, content moderation, medical diagnosis                                                                                                          |
+| [Pose Estimation](../tasks/pose.md)                      | Detects key body landmarks to map human or animal posture and joint positions                                                          | [Workouts monitoring](../guides/workouts-monitoring.md), ergonomics, sports analytics                                                                           |
+| [Oriented Bounding Box (OBB)](../tasks/obb.md)           | Detects objects with rotated bounding boxes that capture true object orientation                                                       | Aerial imagery, satellite analysis, warehouse robotics                                                                                                          |
+| [Semantic Segmentation](../tasks/semantic.md)            | Labels every pixel by class category across the entire scene                                                                           | Autonomous driving, land use mapping, scene understanding                                                                                                       |
 
 ## Computer Vision Market and Adoption
 
@@ -634,12 +634,12 @@ For teams piloting a computer vision project, the [YOLO](https://www.ultralytics
 
 Define the specific visual problem before selecting a model architecture:
 
-| If you need to | Use this task | Ultralytics docs |
-|---|---|---|
-| Sort items into categories | Image Classification | [Classify](../tasks/classify.md) |
-| Count or locate items in a frame | Object Detection | [Detect](../tasks/detect.md) |
-| Analyse exact object shape or boundary | Instance Segmentation | [Segment](../tasks/segment.md) |
-| Follow movement across video frames | Object Tracking | [Track](../modes/track.md) |
+| If you need to                         | Use this task         | Ultralytics docs                 |
+| -------------------------------------- | --------------------- | -------------------------------- |
+| Sort items into categories             | Image Classification  | [Classify](../tasks/classify.md) |
+| Count or locate items in a frame       | Object Detection      | [Detect](../tasks/detect.md)     |
+| Analyse exact object shape or boundary | Instance Segmentation | [Segment](../tasks/segment.md)   |
+| Follow movement across video frames    | Object Tracking       | [Track](../modes/track.md)       |
 
 Aligning the technical task with the business objective from the outset avoids costly rework and ensures the system produces actionable output. For a full walkthrough of how a computer vision project comes together from scoping to deployment, see the [steps of a CV project guide](../guides/steps-of-a-cv-project.md). For teams deploying at commercial scale, see [Ultralytics licensing](https://ultralytics.com/license) for production use across all model variants.
 

@@ -168,33 +168,33 @@ pip install ultralytics
 
 ## All Projects at a Glance
 
-| Project | Difficulty | Technique |
-|---|---|---|
-| [Security Alarm System](#1-security-alarm-system) | Beginner | Object detection |
-| [Object Counting](#2-object-counting) | Beginner | Detection + counting |
-| [Live Inference App](#3-live-inference-app) | Beginner | Detection, Streamlit |
-| [Object Blurring & Anonymisation](#4-object-blurring-and-anonymisation) | Beginner | Segmentation |
-| [Image Classification](#5-image-classification) | Beginner | Classification |
-| [Object Cropping](#6-object-cropping) | Beginner | Detection, region extraction |
-| [Visual Similarity Search](#7-visual-similarity-search) | Beginner | Feature embeddings |
-| [Workout & Rep Counter](#8-workout-and-rep-counter) | Intermediate | Pose estimation |
-| [Parking Management System](#9-parking-management-system) | Intermediate | Detection, occupancy logic |
-| [Queue Management System](#10-queue-management-system) | Intermediate | Detection + tracking |
-| [Speed Estimation](#11-speed-estimation) | Intermediate | Tracking, velocity |
-| [Heatmap Generation](#12-heatmap-generation) | Intermediate | Tracking, density mapping |
-| [Region & Zone Counting](#13-region-and-zone-counting) | Intermediate | Tracking, region logic |
-| [Distance Calculation](#14-distance-calculation) | Intermediate | Detection, spatial reasoning |
-| [Instance Segmentation with Tracking](#15-instance-segmentation-with-tracking) | Intermediate | Segmentation + tracking |
-| [Analytics Dashboard](#16-analytics-dashboard) | Intermediate | Detection, visualisation |
-| [Vision Eye: Perspective Mapping](#17-vision-eye-perspective-mapping) | Intermediate | Detection, homography |
-| [Pose Estimation & Ergonomics](#18-pose-estimation-and-ergonomics) | Intermediate | Pose estimation |
-| [Rotated Object Detection](#19-rotated-object-detection-obb) | Advanced | OBB, aerial imagery |
-| [Tiled Inference for Large Images](#20-tiled-inference-for-large-images) | Advanced | SAHI, sliced inference |
-| [Open-Vocabulary Detection](#21-open-vocabulary-detection) | Advanced | YOLO-World, text prompts |
-| [Zero-Shot Segmentation](#22-zero-shot-segmentation) | Advanced | SAM 2, promptable masks |
-| [Defect & Anomaly Detection](#23-defect-and-anomaly-detection) | Advanced | Custom training |
-| [Edge Deployment: Jetson and Raspberry Pi](#24-edge-deployment-jetson-and-raspberry-pi) | Advanced | TensorRT, ONNX, embedded |
-| [Fine-Tune on Custom Dataset](#25-fine-tune-on-custom-dataset) | Advanced | Transfer learning |
+| Project                                                                                 | Difficulty   | Technique                    |
+| --------------------------------------------------------------------------------------- | ------------ | ---------------------------- |
+| [Security Alarm System](#1-security-alarm-system)                                       | Beginner     | Object detection             |
+| [Object Counting](#2-object-counting)                                                   | Beginner     | Detection + counting         |
+| [Live Inference App](#3-live-inference-app)                                             | Beginner     | Detection, Streamlit         |
+| [Object Blurring & Anonymisation](#4-object-blurring-and-anonymisation)                 | Beginner     | Segmentation                 |
+| [Image Classification](#5-image-classification)                                         | Beginner     | Classification               |
+| [Object Cropping](#6-object-cropping)                                                   | Beginner     | Detection, region extraction |
+| [Visual Similarity Search](#7-visual-similarity-search)                                 | Beginner     | Feature embeddings           |
+| [Workout & Rep Counter](#8-workout-and-rep-counter)                                     | Intermediate | Pose estimation              |
+| [Parking Management System](#9-parking-management-system)                               | Intermediate | Detection, occupancy logic   |
+| [Queue Management System](#10-queue-management-system)                                  | Intermediate | Detection + tracking         |
+| [Speed Estimation](#11-speed-estimation)                                                | Intermediate | Tracking, velocity           |
+| [Heatmap Generation](#12-heatmap-generation)                                            | Intermediate | Tracking, density mapping    |
+| [Region & Zone Counting](#13-region-and-zone-counting)                                  | Intermediate | Tracking, region logic       |
+| [Distance Calculation](#14-distance-calculation)                                        | Intermediate | Detection, spatial reasoning |
+| [Instance Segmentation with Tracking](#15-instance-segmentation-with-tracking)          | Intermediate | Segmentation + tracking      |
+| [Analytics Dashboard](#16-analytics-dashboard)                                          | Intermediate | Detection, visualisation     |
+| [Vision Eye: Perspective Mapping](#17-vision-eye-perspective-mapping)                   | Intermediate | Detection, homography        |
+| [Pose Estimation & Ergonomics](#18-pose-estimation-and-ergonomics)                      | Intermediate | Pose estimation              |
+| [Rotated Object Detection](#19-rotated-object-detection-obb)                            | Advanced     | OBB, aerial imagery          |
+| [Tiled Inference for Large Images](#20-tiled-inference-for-large-images)                | Advanced     | SAHI, sliced inference       |
+| [Open-Vocabulary Detection](#21-open-vocabulary-detection)                              | Advanced     | YOLO-World, text prompts     |
+| [Zero-Shot Segmentation](#22-zero-shot-segmentation)                                    | Advanced     | SAM 2, promptable masks      |
+| [Defect & Anomaly Detection](#23-defect-and-anomaly-detection)                          | Advanced     | Custom training              |
+| [Edge Deployment: Jetson and Raspberry Pi](#24-edge-deployment-jetson-and-raspberry-pi) | Advanced     | TensorRT, ONNX, embedded     |
+| [Fine-Tune on Custom Dataset](#25-fine-tune-on-custom-dataset)                          | Advanced     | Transfer learning            |
 
 ---
 
@@ -229,7 +229,6 @@ Detect people or vehicles entering a restricted zone in real time and trigger an
         # Pass a source video
         yolo solutions security source="path/to/video.mp4"
         ```
-
 
 ![AI-powered security alarm system with object detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/security-alarm-system-ultralytics-yolov8.avif)
 
@@ -266,7 +265,6 @@ Count objects passing through a frame or crossing a defined line. One of the mos
         yolo solutions count source="path/to/video.mp4"
         ```
 
-
 ![Fish and conveyor belt object counting using Ultralytics YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/conveyor-belt-packets-counting.avif)
 
 **Guide:** [Object Counting](../../guides/object-counting.md) · **Task:** [Object Detection](../../tasks/detect.md)
@@ -285,7 +283,6 @@ Build and deploy a browser-based live inference app in under 20 lines of code us
         yolo streamlit-predict
         ```
 
-
 ![Fish detection running in a Streamlit browser app using Ultralytics YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/fish-detection-ultralytics-yolov8.avif)
 
 **Guide:** [Streamlit Live Inference](../../guides/streamlit-live-inference.md) · **Mode:** [Predict](../../modes/predict.md)
@@ -301,8 +298,9 @@ Automatically blur faces, license plates, or any detected object class to anonym
     === "Python"
 
         ```python
-        from ultralytics import YOLO
         import cv2
+
+        from ultralytics import YOLO
 
         model = YOLO("yolo26n-seg.pt")
         results = model("path/to/image.jpg")
@@ -323,7 +321,6 @@ Automatically blur faces, license plates, or any detected object class to anonym
         # Pass a source video
         yolo solutions blur source="path/to/video.mp4"
         ```
-
 
 ![Personal protective equipment detection showing people detected in a workplace — a common object blurring use case](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/personal-protective-equipment-detection.avif)
 
@@ -347,7 +344,6 @@ Classify an entire image into a category. It's the simplest computer vision task
         print(results[0].probs.top5)  # top-5 class predictions
         ```
 
-
 ![YOLO image classification examples showing labelled predictions across object categories](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/image-classification-examples.avif)
 
 **Task:** [Image Classification](../../tasks/classify.md) · **Mode:** [Train](../../modes/train.md)
@@ -363,8 +359,9 @@ Detect objects and automatically crop each one into a separate image file. Usefu
     === "Python"
 
         ```python
-        from ultralytics import YOLO
         import cv2
+
+        from ultralytics import YOLO
 
         model = YOLO("yolo26n.pt")
         results = model("path/to/image.jpg")
@@ -374,7 +371,6 @@ Detect objects and automatically crop each one into a separate image file. Usefu
             crop = results[0].orig_img[y1:y2, x1:x2]
             cv2.imwrite(f"crop_{i}.jpg", crop)
         ```
-
 
 ![Suitcase cropping on airport conveyor belt using YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/suitcases-cropping-airport-conveyor-belt.avif)
 
@@ -397,7 +393,6 @@ Find visually similar images in a dataset using YOLO feature embeddings and near
         results = model.embed(["image1.jpg", "image2.jpg", "image3.jpg"])
         # results contains feature vectors for similarity comparison
         ```
-
 
 ![Visual similarity search with CLIP and Ultralytics YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clip-image-retrieval.avif)
 
@@ -438,7 +433,6 @@ Count exercise repetitions in real time by tracking joint angles from pose keypo
         yolo solutions workout source="path/to/video.mp4"
         ```
 
-
 ![Real-time push-up and pull-up rep counting with YOLO pose estimation](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pushups-counting.avif)
 
 **Guide:** [Workouts Monitoring](../../guides/workouts-monitoring.md) · **Task:** [Pose Estimation](../../tasks/pose.md)
@@ -473,7 +467,6 @@ Monitor a car park in real time. Draw parking zones, detect vehicles, and track 
         # Pass a source video
         yolo solutions parking source="path/to/video.mp4"
         ```
-
 
 ![Aerial view parking management system using Ultralytics YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/parking-management-aerial-view-ultralytics-yolov8.avif)
 
@@ -510,7 +503,6 @@ Count and monitor people queuing in a defined region. Estimate queue length and 
         yolo solutions queue source="path/to/video.mp4"
         ```
 
-
 ![Queue management at airport ticket counter using Ultralytics YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/queue-management-airport-ticket-counter-ultralytics-yolov8.avif)
 
 **Guide:** [Queue Management](../../guides/queue-management.md) · **Task:** [Object Detection](../../tasks/detect.md)
@@ -545,7 +537,6 @@ Estimate vehicle speed from a video stream without radar or physical sensors. Tr
         # Pass a source video
         yolo solutions speed source="path/to/video.mp4"
         ```
-
 
 ![Speed estimation on road using Ultralytics YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/speed-estimation-on-road-using-ultralytics-yolov8.avif)
 
@@ -582,7 +573,6 @@ Generate density heatmaps from object movement data across video frames. Visuali
         yolo solutions heatmap source="path/to/video.mp4"
         ```
 
-
 ![Ultralytics YOLO transportation heatmap showing movement density](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-transportation-heatmap.avif)
 
 **Guide:** [Heatmaps](../../guides/heatmaps.md) · **Mode:** [Track](../../modes/track.md)
@@ -618,7 +608,6 @@ Count objects entering or exiting custom polygonal regions. Useful for restricte
         yolo solutions region source="path/to/video.mp4"
         ```
 
-
 ![People counting in different regions using Ultralytics YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/people-counting-different-region-ultralytics-yolov8.avif)
 
 **Guides:** [Region Counting](../../guides/region-counting.md) · [Track Zone](../../guides/trackzone.md)
@@ -644,7 +633,6 @@ Calculate the real-world distance between any two detected objects in a frame. U
         distance.calculate(source="path/to/video.mp4")
         ```
 
-
 ![Distance calculation between objects using Ultralytics YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/distance-calculation.avif)
 
 **Guide:** [Distance Calculation](../../guides/distance-calculation.md) · **Task:** [Object Detection](../../tasks/detect.md)
@@ -665,7 +653,6 @@ Combine pixel-level segmentation masks with object tracking to follow the exact 
         model = YOLO("yolo26n-seg.pt")
         results = model.track(source="path/to/video.mp4", persist=True, show=True)
         ```
-
 
 ![Ultralytics instance segmentation with object tracking](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-instance-segmentation-object-tracking.avif)
 
@@ -702,7 +689,6 @@ Generate bar charts, line graphs, and pie charts from detection data in real tim
         yolo solutions analytics source="path/to/video.mp4"
         ```
 
-
 ![YOLO analytics line graph, bar plot and pie chart](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-line-graph.avif)
 
 **Guide:** [Analytics](../../guides/analytics.md) · **Task:** [Object Detection](../../tasks/detect.md)
@@ -727,7 +713,6 @@ Map detected object positions from camera perspective onto a bird's-eye view usi
 
         vision_eye.process(source="path/to/video.mp4")
         ```
-
 
 ![Vision Eye object mapping with tracking using Ultralytics YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/visioneye-object-mapping-with-tracking.avif)
 
@@ -754,7 +739,6 @@ Detect human body keypoints and analyse joint angles to monitor posture, flag un
             print(keypoints)
         ```
 
-
 ![YOLO pose estimation showing human body keypoints for ergonomics and posture analysis](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pose-estimation-examples.avif)
 
 **Task:** [Pose Estimation](../../tasks/pose.md) · **Guide:** [Workouts Monitoring](../../guides/workouts-monitoring.md)
@@ -780,7 +764,6 @@ Detect objects at arbitrary rotation angles using oriented bounding boxes. This 
         results = model("path/to/aerial-image.jpg")
         results[0].show()  # displays rotated bounding boxes
         ```
-
 
 ![Ship and vehicle detection using oriented bounding boxes with YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ships-detection-using-obb.avif)
 
@@ -816,7 +799,6 @@ Run inference on very large images (satellite imagery, medical scans, industrial
         )
         ```
 
-
 ![SAHI sliced inference overview for large image detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sahi-sliced-inference-overview.avif)
 
 **Guide:** [SAHI Tiled Inference](../../guides/sahi-tiled-inference.md)
@@ -841,7 +823,6 @@ Detect any object described in natural language without retraining. YOLO-World a
         results[0].show()
         ```
 
-
 ![YOLO-World open vocabulary detection with text prompt class names](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-world-prompt-class-names-overview.avif)
 
 **Model:** [YOLO-World](../../models/yolo-world.md)
@@ -865,7 +846,6 @@ Segment any object using point, box, or text prompts with no training on your sp
         results = model("path/to/image.jpg", bboxes=[[100, 100, 400, 400]])
         results[0].show()
         ```
-
 
 ![SAM 2 zero-shot segmentation on SA-V dataset](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sa-v-dataset.avif)
 
@@ -896,7 +876,6 @@ Train a custom YOLO model to detect defects, damage, or anomalies specific to yo
         results = model("path/to/product-image.jpg")
         ```
 
-
 ![Crack segmentation sample showing infrastructure defect detection using YOLO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/crack-segmentation-sample.avif)
 
 **Guide:** [Steps of a CV Project](../../guides/steps-of-a-cv-project.md) · **Mode:** [Train](../../modes/train.md)
@@ -922,7 +901,6 @@ Export a trained YOLO model to TensorRT (Jetson) or ONNX/TFLite (Raspberry Pi) a
         # export for Raspberry Pi (ONNX)
         model.export(format="onnx")
         ```
-
 
 ![Ultralytics YOLO on NVIDIA Jetson ecosystem for edge deployment](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/nvidia-jetson-ecosystem.avif)
 
@@ -956,7 +934,6 @@ Adapt a pretrained YOLO26 model to detect your own object classes using transfer
         print(metrics.box.map)  # mAP50-95
         ```
 
-
 ![Training from scratch vs transfer learning comparison — fine-tuning a pretrained YOLO model on a custom dataset](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/training-from-scratch-vs-transfer-learning.avif)
 
 **Guide:** [Steps of a CV Project](../../guides/steps-of-a-cv-project.md) · **Mode:** [Train](../../modes/train.md)
@@ -965,15 +942,15 @@ Adapt a pretrained YOLO26 model to detect your own object classes using transfer
 
 ## Choose by Technique
 
-| Technique | Beginner project | Intermediate project | Advanced project |
-|---|---|---|---|
-| Object Detection | [Object Counting](#2-object-counting) | [Speed Estimation](#11-speed-estimation) | [Defect Detection](#23-defect-and-anomaly-detection) |
-| Instance Segmentation | [Object Blurring](#4-object-blurring-and-anonymisation) | [Segmentation + Tracking](#15-instance-segmentation-with-tracking) | [Tiled Inference](#20-tiled-inference-for-large-images) |
-| Image Classification | [Image Classification](#5-image-classification) | - | [Fine-Tune on Custom Data](#25-fine-tune-on-custom-dataset) |
-| Pose Estimation | - | [Workout Counter](#8-workout-and-rep-counter) · [Pose Estimation](#18-pose-estimation-and-ergonomics) | - |
-| Object Tracking | [Object Counting](#2-object-counting) | [Heatmap Generation](#12-heatmap-generation) | - |
-| OBB Detection | - | - | [Rotated Object Detection](#19-rotated-object-detection-obb) |
-| Foundation Models | - | - | [Open-Vocabulary Detection](#21-open-vocabulary-detection) · [SAM 2](#22-zero-shot-segmentation) |
+| Technique             | Beginner project                                        | Intermediate project                                                                                  | Advanced project                                                                                 |
+| --------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Object Detection      | [Object Counting](#2-object-counting)                   | [Speed Estimation](#11-speed-estimation)                                                              | [Defect Detection](#23-defect-and-anomaly-detection)                                             |
+| Instance Segmentation | [Object Blurring](#4-object-blurring-and-anonymisation) | [Segmentation + Tracking](#15-instance-segmentation-with-tracking)                                    | [Tiled Inference](#20-tiled-inference-for-large-images)                                          |
+| Image Classification  | [Image Classification](#5-image-classification)         | -                                                                                                     | [Fine-Tune on Custom Data](#25-fine-tune-on-custom-dataset)                                      |
+| Pose Estimation       | -                                                       | [Workout Counter](#8-workout-and-rep-counter) · [Pose Estimation](#18-pose-estimation-and-ergonomics) | -                                                                                                |
+| Object Tracking       | [Object Counting](#2-object-counting)                   | [Heatmap Generation](#12-heatmap-generation)                                                          | -                                                                                                |
+| OBB Detection         | -                                                       | -                                                                                                     | [Rotated Object Detection](#19-rotated-object-detection-obb)                                     |
+| Foundation Models     | -                                                       | -                                                                                                     | [Open-Vocabulary Detection](#21-open-vocabulary-detection) · [SAM 2](#22-zero-shot-segmentation) |
 
 ---
 
@@ -1009,14 +986,14 @@ Adapt a pretrained YOLO26 model to detect your own object classes using transfer
 
 Not sure where to go after your first project? Here are natural progressions:
 
-| You built this | Try this next |
-|---|---|
-| [Object Counting](#2-object-counting) | [Region & Zone Counting](#13-region-and-zone-counting) → [Heatmap Generation](#12-heatmap-generation) |
-| [Security Alarm System](#1-security-alarm-system) | [Distance Calculation](#14-distance-calculation) → [Analytics Dashboard](#16-analytics-dashboard) |
-| [Workout Counter](#8-workout-and-rep-counter) | [Pose Estimation & Ergonomics](#18-pose-estimation-and-ergonomics) → [Fine-Tune on Custom Dataset](#25-fine-tune-on-custom-dataset) |
-| [Parking Management](#9-parking-management-system) | [Speed Estimation](#11-speed-estimation) → [Vision Eye](#17-vision-eye-perspective-mapping) |
-| [Image Classification](#5-image-classification) | [Object Detection](#1-security-alarm-system) → [Fine-Tune on Custom Dataset](#25-fine-tune-on-custom-dataset) |
-| [Tiled Inference](#20-tiled-inference-for-large-images) | [Rotated Object Detection](#19-rotated-object-detection-obb) → [Defect Detection](#23-defect-and-anomaly-detection) |
+| You built this                                          | Try this next                                                                                                                       |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| [Object Counting](#2-object-counting)                   | [Region & Zone Counting](#13-region-and-zone-counting) → [Heatmap Generation](#12-heatmap-generation)                               |
+| [Security Alarm System](#1-security-alarm-system)       | [Distance Calculation](#14-distance-calculation) → [Analytics Dashboard](#16-analytics-dashboard)                                   |
+| [Workout Counter](#8-workout-and-rep-counter)           | [Pose Estimation & Ergonomics](#18-pose-estimation-and-ergonomics) → [Fine-Tune on Custom Dataset](#25-fine-tune-on-custom-dataset) |
+| [Parking Management](#9-parking-management-system)      | [Speed Estimation](#11-speed-estimation) → [Vision Eye](#17-vision-eye-perspective-mapping)                                         |
+| [Image Classification](#5-image-classification)         | [Object Detection](#1-security-alarm-system) → [Fine-Tune on Custom Dataset](#25-fine-tune-on-custom-dataset)                       |
+| [Tiled Inference](#20-tiled-inference-for-large-images) | [Rotated Object Detection](#19-rotated-object-detection-obb) → [Defect Detection](#23-defect-and-anomaly-detection)                 |
 
 ---
 

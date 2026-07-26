@@ -54,15 +54,15 @@ Computer vision has moved from research labs into production across nearly every
 
 ## Industry overview
 
-| Industry | Key use cases | Difficulty | Primary technique |
-|---|---|---|---|
-| [Retail](#retail) | Loss prevention, footfall, queue analysis | Beginner | Detection + Tracking |
-| [Healthcare](#healthcare-and-medical-imaging) | Anomaly detection, tissue classification | Advanced | Segmentation |
-| [Manufacturing](#manufacturing-and-quality-control) | Defect detection, assembly verification | Intermediate | Detection + OBB |
-| [Agriculture](#agriculture) | Crop monitoring, yield counting | Intermediate | Detection |
-| [Sports](#sports-and-performance-analysis) | Player tracking, biomechanics | Intermediate | Pose + Tracking |
-| [Security](#security-and-surveillance) | Intrusion, crowd management | Beginner | Detection + Tracking |
-| [Autonomous vehicles](#autonomous-vehicles-and-adas) | Road users, obstacles, signs | Advanced | Detection + Depth |
+| Industry                                             | Key use cases                             | Difficulty   | Primary technique    |
+| ---------------------------------------------------- | ----------------------------------------- | ------------ | -------------------- |
+| [Retail](#retail)                                    | Loss prevention, footfall, queue analysis | Beginner     | Detection + Tracking |
+| [Healthcare](#healthcare-and-medical-imaging)        | Anomaly detection, tissue classification  | Advanced     | Segmentation         |
+| [Manufacturing](#manufacturing-and-quality-control)  | Defect detection, assembly verification   | Intermediate | Detection + OBB      |
+| [Agriculture](#agriculture)                          | Crop monitoring, yield counting           | Intermediate | Detection            |
+| [Sports](#sports-and-performance-analysis)           | Player tracking, biomechanics             | Intermediate | Pose + Tracking      |
+| [Security](#security-and-surveillance)               | Intrusion, crowd management               | Beginner     | Detection + Tracking |
+| [Autonomous vehicles](#autonomous-vehicles-and-adas) | Road users, obstacles, signs              | Advanced     | Detection + Depth    |
 
 !!! tip "Prerequisites"
 
@@ -281,7 +281,6 @@ Computer vision makes security systems proactive rather than reactive - detectin
     === "Python"
 
         ```python
-        from ultralytics import YOLO
         from ultralytics import solutions
 
         # Security alarm that triggers on new object detection
@@ -291,6 +290,7 @@ Computer vision makes security systems proactive rather than reactive - detectin
         )
 
         import cv2
+
         cap = cv2.VideoCapture("feed.mp4")
         while cap.isOpened():
             ret, frame = cap.read()
@@ -355,13 +355,13 @@ Computer vision is a core sensing modality for any system that navigates or oper
 
 ## Choosing where to start
 
-| If you want to... | Start here |
-|---|---|
-| Prototype quickly with no training | [Computer Vision Projects](../projects/index.md) - 25+ ready-to-run examples |
-| Understand the underlying techniques | [Computer Vision Techniques](../techniques/index.md) |
-| Build for a specific industry | The relevant section above |
-| Train on your own data | [Train a custom model](../../modes/train.md) |
-| Deploy to edge hardware | [NVIDIA Jetson](../../guides/nvidia-jetson.md) · [Raspberry Pi](../../guides/raspberry-pi.md) |
+| If you want to...                    | Start here                                                                                    |
+| ------------------------------------ | --------------------------------------------------------------------------------------------- |
+| Prototype quickly with no training   | [Computer Vision Projects](../projects/index.md) - 25+ ready-to-run examples                  |
+| Understand the underlying techniques | [Computer Vision Techniques](../techniques/index.md)                                          |
+| Build for a specific industry        | The relevant section above                                                                    |
+| Train on your own data               | [Train a custom model](../../modes/train.md)                                                  |
+| Deploy to edge hardware              | [NVIDIA Jetson](../../guides/nvidia-jetson.md) · [Raspberry Pi](../../guides/raspberry-pi.md) |
 
 ---
 

@@ -300,7 +300,7 @@ Some export formats have architecture or task restrictions:
 | **Axelera**  | Detect models only; INT8 only                               |
 | **DeepX**    | INT8 only                                                   |
 | **Hailo**    | INT8 HEF output; select the target Hailo architecture       |
-| **Ascend**   | FP16 .om output; Ascend310P targets today, 310B coming soon |
+| **Huawei**   | FP16 .om output; Ascend310P targets today, 310B coming soon |
 | **Qualcomm** | Fixed W8A16 quantization; end-to-end export is unavailable  |
 
 !!! note "Additional Export Rules"

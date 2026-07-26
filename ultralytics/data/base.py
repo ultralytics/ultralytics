@@ -57,8 +57,8 @@ class BaseDataset(Dataset):
         im_hw0 (list): List of original image dimensions (h, w).
         im_hw (list): List of resized image dimensions (h, w).
         npy_files (list[Path]): List of numpy file paths.
-        cache (str | None): Cache setting ('ram', 'disk' to cache beside source images, a custom disk cache path, or
-            None for no caching).
+        cache (str | None): Cache setting ('ram', 'disk', or None for no caching).
+        cache_dir (Path | None): Directory holding the *.npy disk caches, or None to cache beside source images.
         transforms (callable): Image transformation function.
         batch_shapes (np.ndarray): Batch shapes for rectangular training.
         batch (np.ndarray): Batch index of each image.
@@ -215,7 +215,7 @@ class BaseDataset(Dataset):
                 if keypoints is not None:
                     self.labels[i]["keypoints"] = keypoints[j]
             if self.single_cls:
-                self.labels[i]["cls"][:, 0] = 0
+                self.labels[i]["cls"][:] = 0
 
     def load_image(
         self, i: int, rect_mode: bool = True, resize_short: bool = False

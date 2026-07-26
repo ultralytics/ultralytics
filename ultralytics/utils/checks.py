@@ -51,6 +51,7 @@ from ultralytics.utils import (
     clean_url,
     colorstr,
     downloads,
+    env_bool,
     is_github_action_running,
     url2file,
 )
@@ -113,17 +114,20 @@ def get_distribution_name(import_name: str) -> str:
 
 @functools.lru_cache
 def parse_version(version="0.0.0") -> tuple:
-    """Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
+    """Convert a version string to a tuple of integers from its release segments, ignoring prefixes and suffixes.
+
+    Not PEP 440: pre-release/dev/post/local suffixes are dropped, so '1.0rc1', '1.0.post1', and '1.0+cu118' all compare
+    equal to '1.0'. Use the `packaging` library where exact pre-release ordering matters.
 
     Args:
-        version (str): Version string, i.e. '2.0.1+cpu'
+        version (str): Version string, i.e. '2.0.1+cpu', '4.13.0.92', or 'v2.1'
 
     Returns:
-        (tuple): Tuple of integers representing the numeric part of the version, i.e. (2, 0, 1)
+        (tuple): Tuple of integers representing the release segments, at least 3 long, i.e. (2, 0, 1)
     """
     try:
-        nums = [int(x) for x in re.findall(r"\d+", version)[:3]]
-        return tuple(nums + [0] * (3 - len(nums)))  # pad to 3, i.e. '2.0.1+cpu' -> (2, 0, 1), '2' -> (2, 0, 0)
+        nums = [int(x) for x in re.search(r"\d+(?:\.\d+)*", version).group(0).split(".")]
+        return tuple(nums + [0] * (3 - len(nums)))  # keep all release segments, ignore 'v' prefix and '+cu118'/'rc1'
     except Exception as e:
         LOGGER.warning(f"failure for parse_version({version}), returning (0, 0, 0): {e}")
         return 0, 0, 0
@@ -204,7 +208,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
 def check_uv():
     """Check if uv package manager is installed and can run successfully."""
     try:
-        return subprocess.run(["uv", "-V"], capture_output=True).returncode == 0
+        return subprocess.run(["uv", "-V"], capture_output=True, check=False).returncode == 0
     except FileNotFoundError:
         return False
 
@@ -252,7 +256,14 @@ def check_version(
             name = current  # assigned package name to 'name' arg
             current = metadata.version(current)  # get version string from package name
         except metadata.PackageNotFoundError as e:
-            if hard:
+            if re.fullmatch(
+                r"v\d+(\.\d+)*([-_.]?(a|b|c|rc|alpha|beta|pre|preview)[-_.]?\d*)?"
+                r"([-_.]?(post|rev|r)[-_.]?\d*)?([-_.]?dev[-_.]?\d*)?(\+[\w.-]+)?",
+                current,
+                re.IGNORECASE,
+            ):
+                pass
+            elif hard:
                 raise ModuleNotFoundError(f"{current} package is required but not installed") from e
             else:
                 return False
@@ -267,8 +278,6 @@ def check_version(
     ):
         return True
 
-    op = ""
-    version = ""
     result = True
     c = parse_version(current)  # '1.2.3' -> (1, 2, 3)
     for r in required.strip(",").split(","):
@@ -276,17 +285,16 @@ def check_version(
         if not op:
             op = ">="  # assume >= if no op passed
         v = parse_version(version)  # '1.2.3' -> (1, 2, 3)
-        if op == "==" and c != v:
-            result = False
-        elif op == "!=" and c == v:
-            result = False
-        elif op == ">=" and not (c >= v):
-            result = False
-        elif op == "<=" and not (c <= v):
-            result = False
-        elif op == ">" and not (c > v):
-            result = False
-        elif op == "<" and not (c < v):
+        n = max(len(c), len(v))  # pad to equal length so 4-segment pins like '!=4.13.0.90' compare exactly
+        cn, vn = c + (0,) * (n - len(c)), v + (0,) * (n - len(v))
+        if (
+            (op == "==" and cn != vn)
+            or (op == "!=" and cn == vn)
+            or (op == ">=" and not (cn >= vn))
+            or (op == "<=" and not (cn <= vn))
+            or (op == ">" and not (cn > vn))
+            or (op == "<" and not (cn < vn))
+        ):
             result = False
     if not result:
         warning = f"{name}{required} is required, but {name}=={current} is currently installed {msg}"
@@ -455,8 +463,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     """
     prefix = colorstr("red", "bold", "requirements:")
 
-    if os.environ.get("ULTRALYTICS_SKIP_REQUIREMENTS_CHECKS", "0") == "1":
-        LOGGER.info(f"{prefix} ULTRALYTICS_SKIP_REQUIREMENTS_CHECKS=1 detected, skipping requirements check.")
+    if env_bool("ULTRALYTICS_SKIP_REQUIREMENTS_CHECKS"):
+        LOGGER.info(f"{prefix} ULTRALYTICS_SKIP_REQUIREMENTS_CHECKS detected, skipping requirements check.")
         return True
 
     if isinstance(requirements, Path):  # requirements.txt file
@@ -842,7 +850,7 @@ def collect_system_info():
     for r in parse_requirements(package=get_distribution_name("ultralytics")):
         try:
             current = metadata.version(r.name)
-            is_met = "✅ " if check_version(current, str(r.specifier), name=r.name, hard=True) else "❌ "
+            is_met = "✅ " if check_version(current, str(r.specifier), name=r.name) else "❌ "
         except metadata.PackageNotFoundError:
             current = "(not installed)"
             is_met = "❌ "
@@ -943,7 +951,9 @@ def check_multiple_install():
     import sys
 
     try:
-        result = subprocess.run([sys.executable, "-m", "pip", "show", "ultralytics"], capture_output=True, text=True)
+        result = subprocess.run(
+            [sys.executable, "-m", "pip", "show", "ultralytics"], capture_output=True, text=True, check=False
+        )
         install_msg = (
             f"Install your local copy in editable mode with 'pip install -e {ROOT.parent}' to avoid "
             "issues. See https://docs.ultralytics.com/quickstart/"
@@ -952,7 +962,9 @@ def check_multiple_install():
             if "not found" in result.stderr.lower():  # Package not pip-installed but locally imported
                 LOGGER.warning(f"Ultralytics not found via pip but importing from: {ROOT}. {install_msg}")
             return
-        yolo_path = (Path(re.findall(r"location:\s+(.+)", result.stdout, flags=re.I)[-1]) / "ultralytics").resolve()
+        yolo_path = (
+            Path(re.findall(r"location:\s+(.+)", result.stdout, flags=re.IGNORECASE)[-1]) / "ultralytics"
+        ).resolve()
         if not yolo_path.samefile(ROOT.resolve()):
             LOGGER.warning(
                 f"Multiple Ultralytics installations detected. The `yolo` command uses: {yolo_path}, "
@@ -1055,7 +1067,7 @@ def is_intel():
 
     # Check GPU via xpu-smi
     try:
-        result = subprocess.run(["xpu-smi", "discovery"], capture_output=True, text=True, timeout=5)
+        result = subprocess.run(["xpu-smi", "discovery"], capture_output=True, text=True, timeout=5, check=False)
         return "intel" in result.stdout.lower()
     except Exception:  # broad clause to capture all Intel GPU exception types
         return False
@@ -1070,7 +1082,10 @@ def is_sudo_available() -> bool:
     if WINDOWS:
         return False
     cmd = "sudo --version"
-    return subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+    return (
+        subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False).returncode
+        == 0
+    )
 
 
 # Run checks and define constants

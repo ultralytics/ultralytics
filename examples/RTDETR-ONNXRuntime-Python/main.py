@@ -120,7 +120,7 @@ class RTDETR:
 
         # Ensure the classes are a list
         if not isinstance(self.classes, list):
-            raise ValueError("Classes should be a list of class names.")
+            raise TypeError("Classes should be a list of class names.")
 
         # Generate a color palette for drawing bounding boxes
         self.color_palette: np.ndarray = np.random.uniform(0, 255, size=(len(self.classes), 3))

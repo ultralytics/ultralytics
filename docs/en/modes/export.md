@@ -80,7 +80,7 @@ Adjusting these parameters allows for customization of the export process to fit
 
 ## Export Formats
 
-Available YOLO26 export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n.onnx`. Usage examples are shown for your model after export completes. Models can also be exported directly from the browser on [Ultralytics Platform](https://platform.ultralytics.com) without any local setup.
+Available YOLO26 export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n.onnx`. Usage examples are shown for your model after export completes. Models can also be exported directly from the browser on [Ultralytics Platform](../platform/train/models.md#export-model) without any local setup.
 
 {% include "macros/export-table.md" %}
 
@@ -92,7 +92,7 @@ Use the `quantize` argument to request the export precision. String values are c
 | ---------------------------------- | --------------- | ------------------------------------------------------------------------------- |
 | `8`, `"8"`, `"int8"`, `"w8a8"`     | `8`             | INT8 weights and activations                                                    |
 | `16`, `"16"`, `"fp16"`, `"w16a16"` | `16`            | FP16 weights and activations                                                    |
-| `32`, `"32"`, `"fp32"`, `"w32a32"` | `32`            | FP32 export; same precision as leaving `quantize` unset                         |
+| `32`, `"32"`, `"fp32"`, `"w32a32"` | `32`            | FP32 export; same as unset except CoreML NMS ML Programs, which default to FP16 |
 | `"w8a16"`                          | `"w8a16"`       | INT8 weights with 16-bit activations (FP16; INT16 on LiteRT)                    |
 | `"w8a32"`                          | `"w8a32"`       | INT8 weights with FP32 activations (LiteRT dynamic INT8, no calibration needed) |
 
@@ -107,7 +107,7 @@ Not every export format supports every precision. Explicit `quantize` requests e
 | ONNX          | ✅                | ✅                | ✅         | ❌                | INT8 uses ONNX Runtime static quantization and calibration data.                                                                                                                                                                                        |
 | OpenVINO      | ✅                | ✅                | ✅         | ❌                | INT8 uses NNCF post-training quantization.                                                                                                                                                                                                              |
 | TensorRT      | ✅                | ✅                | ✅         | ❌                | INT8 needs representative calibration data.                                                                                                                                                                                                             |
-| CoreML        | ✅                | ✅                | ✅         | ✅                | CoreML INT8 is weight quantization; W8A16 uses INT8 weights with FP16 activations.                                                                                                                                                                      |
+| CoreML        | ✅¹               | ✅                | ✅         | ✅                | CoreML INT8 is weight quantization; W8A16 uses INT8 weights with FP16 activations. ¹Unset NMS ML Programs default to FP16.                                                                                                                              |
 | TF SavedModel | ✅                | ❌                | ✅         | ❌                | INT8 export uses TensorFlow calibration.                                                                                                                                                                                                                |
 | TF GraphDef   | ✅                | ❌                | ❌         | ❌                | No export-time precision conversion.                                                                                                                                                                                                                    |
 | Edge TPU      | ❌                | ❌                | ✅ auto    | ❌                | Edge TPU requires INT8; it is auto-enabled when unset.                                                                                                                                                                                                  |
@@ -123,6 +123,10 @@ Not every export format supports every precision. Explicit `quantize` requests e
 | LiteRT        | ✅                | ❌                | ✅         | ✅                | Static INT8 (`8`) and `"w8a16"` (int8 weights + **int16** activations) use calibration data; also supports `"w8a32"` dynamic INT8 (no calibration). `quantize=16` is not a separate export; an FP32 model runs in FP16 at runtime via the GPU delegate. |
 
 For INT8 and W8A16 exports, provide representative calibration data with `data`, such as `data="coco8.yaml"`, unless the target integration documents a default or auto-enabled behavior. The LiteRT `"w8a32"` (dynamic INT8) scheme needs no calibration data.
+
+## What's Next
+
+Find your deployment target's integration guide — [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [CoreML](../integrations/coreml.md), and more are on the [full integrations list](../integrations/index.md) — for how to run the exported model.
 
 ## FAQ
 
@@ -219,7 +223,7 @@ Understanding and configuring export arguments is crucial for optimizing model p
 - **`format:`** The target format for the exported model (e.g., `onnx`, `torchscript`, `tensorflow`).
 - **`imgsz:`** Desired image size for the model input (e.g., `640` or `(height, width)`).
 - **`quantize:`** Quantization precision, such as `8`/`"int8"`, `16`/`"fp16"`, `32`/`"fp32"`, or the mixed weight/activation schemes `"w8a16"` and `"w8a32"` (LiteRT dynamic INT8) on supported formats. See [Quantization Options](#quantization-options).
-- **`optimize:`** Applies specific optimizations for mobile or constrained environments.
+- **`optimize:`** Enables higher compiler optimization for DEEPX exports.
 
 For deployment on specific hardware platforms, consider using specialized export formats like [TensorRT](../integrations/tensorrt.md) for NVIDIA GPUs, [CoreML](../integrations/coreml.md) for Apple devices, or [Edge TPU](../integrations/edge-tpu.md) for Google Coral devices.
 

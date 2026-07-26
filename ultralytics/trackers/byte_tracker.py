@@ -317,8 +317,10 @@ class BYTETracker:
     def _input_for(self, img: np.ndarray | None, feats: np.ndarray | None, mask: np.ndarray) -> Any:
         """Return the per-detection auxiliary input for ``init_track``.
 
-        Default behavior preserves the legacy flow: when ``feats`` is provided it is sliced by the
-        detection mask, otherwise the raw frame ``img`` is passed through.
+        When ``feats`` is provided it is sliced by the detection mask. Trackers with a native
+        (``model="auto"``) ReID encoder get None when feats are missing (e.g. user-supplied
+        detections), so ``init_track`` falls back to the no-encoding path instead of feeding the
+        BGR frame into the auto encoder. External ReID models always take the frame.
 
         Args:
             img (np.ndarray | None): Current BGR frame.
@@ -326,10 +328,12 @@ class BYTETracker:
             mask (np.ndarray): Boolean mask used to slice ``feats``.
 
         Returns:
-            (Any): The auxiliary payload (features or image) to hand to ``init_track``.
+            (Any): The auxiliary payload (features, image or None) to hand to ``init_track``.
         """
         if feats is not None and len(feats):
             return feats[mask]
+        if getattr(self, "encoder", None) is not None and getattr(self.args, "model", "auto") == "auto":
+            return None
         return img
 
     def _split_tracked(self) -> tuple[list[STrack], list[STrack]]:

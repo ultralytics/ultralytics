@@ -247,7 +247,8 @@ class ParkingManagement(BaseSolution):
             region_polygon = np.array(region["points"], dtype=np.int32).reshape((-1, 1, 2))
             region_occupied = False
             for box, cls in zip(self.boxes, self.clss):
-                xc, yc = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
+                x0, y0, x1, y1 = self.get_enclosing_box(box)
+                xc, yc = int((x0 + x1) / 2), int((y0 + y1) / 2)
                 inside_distance = cv2.pointPolygonTest(region_polygon, (xc, yc), False)
                 if inside_distance >= 0:
                     # cv2.circle(im0, (xc, yc), radius=self.line_width * 4, color=self.dc, thickness=-1)

@@ -4,8 +4,8 @@
 from __future__ import annotations
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
@@ -58,7 +58,7 @@ __all__ = (
 class DFL(nn.Module):
     """Integral module of Distribution Focal Loss (DFL).
 
-    Proposed in Generalized Focal Loss https://ieeexplore.ieee.org/document/9792391
+    Proposed in Generalized Focal Loss https://arxiv.org/abs/2006.04388
     """
 
     def __init__(self, c1: int = 16):
@@ -153,7 +153,7 @@ class HGBlock(nn.Module):
         n: int = 6,
         lightconv: bool = False,
         shortcut: bool = False,
-        act: nn.Module = nn.ReLU(),
+        act: nn.Module | None = None,
     ):
         """Initialize HGBlock with specified parameters.
 
@@ -168,6 +168,7 @@ class HGBlock(nn.Module):
             act (nn.Module): Activation function.
         """
         super().__init__()
+        act = nn.ReLU() if act is None else act
         block = LightConv if lightconv else Conv
         self.m = nn.ModuleList(block(c1 if i == 0 else cm, cm, k=k, act=act) for i in range(n))
         self.sc = Conv(c1 + n * cm, c2 // 2, 1, 1, act=act)  # squeeze conv
@@ -1321,7 +1322,7 @@ class Attention(nn.Module):
             [self.key_dim, self.key_dim, self.head_dim], dim=2
         )
 
-        attn = (q.transpose(-2, -1) @ k) * self.scale
+        attn = (q * self.scale).transpose(-2, -1) @ k
         attn = attn.softmax(dim=-1)
         x = (v @ attn.transpose(-2, -1)).view(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
         x = self.proj(x)
@@ -1676,11 +1677,17 @@ class AAttn(nn.Module):
 
         self.num_heads = num_heads
         self.head_dim = head_dim = dim // num_heads
-        all_head_dim = head_dim * self.num_heads
+        self.all_head_dim = all_head_dim = head_dim * self.num_heads
 
         self.qkv = Conv(dim, all_head_dim * 3, 1, act=False)
         self.proj = Conv(all_head_dim, dim, 1, act=False)
-        self.pe = Conv(all_head_dim, dim, 7, 1, 3, g=dim, act=False)
+        self.pe = Conv(all_head_dim, all_head_dim, 7, 1, 3, g=all_head_dim, act=False)
+
+    def __setstate__(self, state):
+        """Add missing all_head_dim attribute to old checkpoints."""
+        super().__setstate__(state)
+        if not hasattr(self, "all_head_dim"):
+            self.all_head_dim = self.head_dim * self.num_heads
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Process the input tensor through the area-attention.
@@ -1691,31 +1698,31 @@ class AAttn(nn.Module):
         Returns:
             (torch.Tensor): Output tensor after area-attention.
         """
-        B, C, H, W = x.shape
+        B, _, H, W = x.shape
         N = H * W
 
         qkv = self.qkv(x).flatten(2).transpose(1, 2)
         if self.area > 1:
-            qkv = qkv.reshape(B * self.area, N // self.area, C * 3)
+            qkv = qkv.reshape(B * self.area, N // self.area, self.all_head_dim * 3)
             B, N, _ = qkv.shape
         q, k, v = (
             qkv.view(B, N, self.num_heads, self.head_dim * 3)
             .permute(0, 2, 3, 1)
             .split([self.head_dim, self.head_dim, self.head_dim], dim=2)
         )
-        attn = (q.transpose(-2, -1) @ k) * (self.head_dim**-0.5)
+        attn = (q * (self.head_dim**-0.5)).transpose(-2, -1) @ k
         attn = attn.softmax(dim=-1)
         x = v @ attn.transpose(-2, -1)
         x = x.permute(0, 3, 1, 2)
         v = v.permute(0, 3, 1, 2)
 
         if self.area > 1:
-            x = x.reshape(B // self.area, N * self.area, C)
-            v = v.reshape(B // self.area, N * self.area, C)
+            x = x.reshape(B // self.area, N * self.area, self.all_head_dim)
+            v = v.reshape(B // self.area, N * self.area, self.all_head_dim)
             B, N, _ = x.shape
 
-        x = x.reshape(B, H, W, C).permute(0, 3, 1, 2).contiguous()
-        v = v.reshape(B, H, W, C).permute(0, 3, 1, 2).contiguous()
+        x = x.reshape(B, H, W, self.all_head_dim).permute(0, 3, 1, 2).contiguous()
+        v = v.reshape(B, H, W, self.all_head_dim).permute(0, 3, 1, 2).contiguous()
 
         x = x + self.pe(v)
         return self.proj(x)
@@ -1988,17 +1995,18 @@ class Proto26(Proto):
         self.feat_fuse = Conv(ch[0], c_, k=3)
         self.semseg = nn.Sequential(Conv(ch[0], c_, k=3), Conv(c_, c_, k=3), nn.Conv2d(c_, nc, 1))
 
-    def forward(self, x: torch.Tensor, return_semseg: bool = True) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, return_semantic: bool = True) -> torch.Tensor:
         """Perform a forward pass by fusing multi-scale feature maps and generating proto masks."""
         feat = x[0]
         for i, f in enumerate(self.feat_refine):
             up_feat = f(x[i + 1])
-            up_feat = F.interpolate(up_feat, size=feat.shape[2:], mode="nearest")
+            # Constant scale (P4/P5 -> P3) keeps the upsample static for dynamic-shape CoreML export
+            up_feat = F.interpolate(up_feat, scale_factor=2 ** (i + 1), mode="nearest")
             feat = feat + up_feat
         p = super().forward(self.feat_fuse(feat))
-        if self.training and return_semseg:
-            semseg = self.semseg(feat)
-            return (p, semseg)
+        if self.training and return_semantic:
+            semantic = self.semseg(feat)
+            return (p, semantic)
         return p
 
     def fuse(self):

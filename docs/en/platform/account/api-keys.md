@@ -1,4 +1,6 @@
 ---
+plans: [free, pro, enterprise]
+title: API Key Management
 comments: true
 description: Create and manage API keys for Ultralytics Platform with secure AES-256-GCM encryption for remote training and programmatic access.
 keywords: Ultralytics Platform, API keys, authentication, remote training, security, access control
@@ -8,19 +10,18 @@ keywords: Ultralytics Platform, API keys, authentication, remote training, secur
 
 [Ultralytics Platform](https://platform.ultralytics.com) API keys enable secure programmatic access for remote training, inference, and automation. Create named keys with AES-256-GCM encryption for different use cases.
 
-![Ultralytics Platform Settings Profile Tab Api Keys Section With Key List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-api-keys-section-with-key-list.avif)
+![Ultralytics Platform Settings API Keys Tab Key List](https://cdn.ul.run/i/f2c74d17fe21805f988c87adbc456674.avif)<!-- screenshot -->
 
 ## Create API Key
 
 Create a new API key:
 
-1. Go to **Settings > Profile**
-2. Scroll to the **API Keys** section
-3. Click **Create Key**
-4. Enter a name for the key (e.g., "Training Server")
-5. Click **Create Key**
+1. Go to **Settings > API Keys**
+2. Click **Create Key**
+3. Enter a name for the key (e.g., "Training Server")
+4. Click **Create Key**
 
-![Ultralytics Platform Settings Profile Tab Create Api Key Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-create-api-key-dialog.avif)
+![Ultralytics Platform Settings API Keys Tab Create API Key Dialog](https://cdn.ul.run/i/263a91df7402a10d57923827fe00aa0b.avif)<!-- screenshot -->
 
 ### Key Name
 
@@ -32,19 +33,19 @@ Give your key a descriptive name:
 
 ### Key Display
 
-After creation, the key is displayed once:
+After creation, the key is displayed in a confirmation dialog:
 
-![Ultralytics Platform Settings Profile Tab Api Key Created Copy Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-api-key-created-copy-dialog.avif)
-
+![Ultralytics Platform Settings API Keys Tab API Key Created Copy Dialog](https://cdn.ul.run/i/9d54f61a64e1d9887f622d64834d7d2e.avif)<!-- screenshot -->
 !!! tip "Copy Your Key"
 
-    Copy your key after creation for easy reference. Keys are also visible in the key list — the platform decrypts and displays full key values so you can copy them anytime.
+    Copy your key after creation for easy reference. Keys are also visible in the key list — the platform decrypts and
+    displays full key values so you can copy them anytime.
 
 ## Key Format
 
 API keys follow this format:
 
-```
+```text
 ul_a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4
 ```
 
@@ -55,7 +56,7 @@ ul_a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4
 ### Key Security
 
 - Keys are stored with **AES-256-GCM encryption**
-- Authentication uses SHA-256 hash for fast prefix lookup and hash comparison
+- Authentication uses a SHA-256 hash for a fast indexed lookup
 - Full key values are never stored in plaintext
 
 ## Using API Keys
@@ -84,20 +85,6 @@ Set the key using the YOLO CLI:
 yolo settings api_key="YOUR_API_KEY"
 ```
 
-### In Code
-
-Use the key in your Python scripts:
-
-```python
-import os
-
-# From environment (recommended)
-api_key = os.environ.get("ULTRALYTICS_API_KEY")
-
-# Or directly (not recommended for production)
-api_key = "YOUR_API_KEY"
-```
-
 ### HTTP Headers
 
 Include the key in API requests:
@@ -113,13 +100,11 @@ See the [REST API Reference](../api/index.md) for all available endpoints.
 
 Enable metric streaming with your key.
 
-!!! warning "Package Version Requirement"
+Install or update the Ultralytics package before starting:
 
-    Platform integration requires **ultralytics>=8.4.14**. Lower versions will NOT work with Platform.
-
-    ```bash
-    pip install "ultralytics>=8.4.14"
-    ```
+```bash
+pip install -U ultralytics
+```
 
 ```bash
 export ULTRALYTICS_API_KEY="YOUR_API_KEY"
@@ -132,9 +117,9 @@ See [Cloud Training](../train/cloud-training.md#remote-training) for the complet
 
 ### View Keys
 
-All keys are listed in `Settings > Profile` under the API Keys section:
+All keys are listed on the `Settings > API Keys` tab:
 
-Each key card shows the key name, the full decrypted key value (copyable), relative creation time, and a revoke button.
+Each key card shows the key name, copyable key value, relative creation time, usage count, and a revoke button.
 
 ### Revoke Key
 
@@ -199,7 +184,7 @@ Rotate keys periodically for security:
 
 ### Invalid Key Error
 
-```
+```text
 Error: Invalid API key
 ```
 
@@ -208,11 +193,11 @@ Solutions:
 1. Verify key is copied correctly (including the `ul_` prefix)
 2. Check key hasn't been revoked
 3. Confirm environment variable is set
-4. Ensure you're using `ultralytics>=8.4.14`
+4. Ensure you're using `ultralytics>=8.4.104`
 
 ### Permission Denied
 
-```
+```text
 Error: Permission denied for this operation
 ```
 
@@ -224,7 +209,7 @@ Solutions:
 
 ### Rate Limited
 
-```
+```text
 Error: Rate limit exceeded
 ```
 
@@ -232,7 +217,7 @@ Solutions:
 
 1. Reduce request frequency — see the [rate limit table](../api/index.md#per-api-key-limits) for per-endpoint limits
 2. Implement exponential backoff using the `Retry-After` header
-3. Use a [dedicated endpoint](../deploy/endpoints.md) for unlimited inference throughput
+3. Use a [dedicated endpoint](../deploy/endpoints.md) when you need isolated inference capacity
 
 ## FAQ
 
@@ -246,7 +231,7 @@ Keys don't expire automatically. They remain valid until revoked. Consider imple
 
 ### Can I see my key after creation?
 
-Yes, full key values are visible in the key list on `Settings > Profile`. The Platform decrypts and displays your keys so you can copy them anytime.
+Yes, full key values are visible in the key list on `Settings > API Keys`. The Platform decrypts and displays your keys so you can copy them anytime.
 
 ### Are keys region-specific?
 

@@ -51,7 +51,7 @@ class DotProductScoring(torch.nn.Module):
         """Compute dot-product scores between hs and prompt."""
         # hs has shape (num_layer, bs, num_query, d_model)
         # prompt has shape (seq, bs, d_model)
-        # prompt_mask has shape (bs, seq), where 1 is valid and 0 is padding
+        # prompt_mask has shape (bs, seq), where 1 is padding and 0 is valid
         assert hs.dim() == 4 and prompt.dim() == 3 and prompt_mask.dim() == 2
 
         # apply MLP on prompt if specified
@@ -123,9 +123,8 @@ class TransformerWrapper(nn.Module):
     def _reset_parameters(self):
         """Initialize the parameters of the model."""
         for n, p in self.named_parameters():
-            if p.dim() > 1:
-                if "box_embed" not in n and "query_embed" not in n and "reference_points" not in n:
-                    nn.init.xavier_uniform_(p)
+            if p.dim() > 1 and "box_embed" not in n and "query_embed" not in n and "reference_points" not in n:
+                nn.init.xavier_uniform_(p)
 
 
 def get_valid_ratio(mask):

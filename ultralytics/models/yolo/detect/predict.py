@@ -54,7 +54,7 @@ class DetectionPredictor(BasePredictor):
         preds = nms.non_max_suppression(
             preds,
             self.args.conf,
-            self.args.iou,
+            kwargs.pop("iou", self.args.iou),  # allow callers (e.g. TrackTrack loose-NMS recovery) to override IoU
             self.args.classes,
             self.args.agnostic_nms,
             max_det=self.args.max_det,

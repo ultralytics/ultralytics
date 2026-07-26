@@ -1,4 +1,5 @@
 ---
+title: models.sam.amg API Reference
 description: Explore the detailed API reference for Ultralytics SAM/AMG models, including functions for mask stability scores, crop box generation, and more.
 keywords: Ultralytics, SAM, AMG, API Reference, models, mask stability, crop boxes, data processing, YOLO
 ---
@@ -7,7 +8,7 @@ keywords: Ultralytics, SAM, AMG, API Reference, models, mask stability, crop box
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/amg.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/amg.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/amg.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/amg.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

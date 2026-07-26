@@ -300,7 +300,4 @@ class SegmentationValidator(DetectionValidator):
             / "annotations"
             / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
         )  # annotations
-        stats = super().coco_evaluate(stats, pred_json, anno_json, ["bbox", "segm"], suffix=["Box", "Mask"])
-        self.metrics.seg.map50 = stats["metrics/mAP50(M)"]
-        self.metrics.seg.map = stats["metrics/mAP50-95(M)"]
-        return stats
+        return super().coco_evaluate(stats, pred_json, anno_json, ["bbox", "segm"], suffix=["Box", "Mask"])

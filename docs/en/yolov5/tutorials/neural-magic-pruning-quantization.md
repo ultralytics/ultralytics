@@ -145,16 +145,18 @@ An example request, using Python's `requests` package:
 
 ```python
 import json
+from contextlib import ExitStack
 
 import requests
 
 # list of images for inference (local files on client side)
 path = ["basilica.jpg"]
-files = [("request", open(img, "rb")) for img in path]
 
 # send request over HTTP to /predict/from_files endpoint
 url = "http://0.0.0.0:5543/predict/from_files"
-resp = requests.post(url=url, files=files)
+with ExitStack() as stack:
+    files = [("request", stack.enter_context(open(img, "rb"))) for img in path]
+    resp = requests.post(url=url, files=files)
 
 # response is returned in JSON
 annotations = json.loads(resp.text)  # dictionary of annotation results

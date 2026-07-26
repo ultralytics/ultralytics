@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 import os
 
 from ultralytics.data.utils import img2label_paths
@@ -32,7 +34,6 @@ def test_img2label_paths_default():
     label_paths = img2label_paths(IMAGE_PATHS)
 
     assert label_paths == LABELS_PATHS_DEFAULT, "Label paths do not match expected output"
-    return
 
 
 def test_img2label_paths_custom():
@@ -47,4 +48,3 @@ def test_img2label_paths_custom():
     assert label_paths_nested == LABELS_PATHS_NESTED, (
         "Label paths with complex custom directory do not match expected output"
     )
-    return

@@ -67,7 +67,6 @@ class SemanticSegmentationTrainer(DetectionTrainer):
 
     def get_validator(self):
         """Return a SemanticSegmentationValidator for model evaluation."""
-        self.loss_names = "ce_loss", "dice_loss", "aux_loss"
         return yolo.semantic.SemanticSegmentationValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
@@ -93,7 +92,7 @@ class SemanticSegmentationTrainer(DetectionTrainer):
             shape = labels[idx].get("shape")
             try:
                 mask = dataset.load_mask(idx, image_shape=tuple(shape) if shape is not None else None)
-            except Exception:
+            except Exception:  # noqa: S112
                 continue
             if include_class is not None:
                 mask[~np.isin(mask, include_class)] = 255
@@ -124,7 +123,7 @@ class SemanticSegmentationTrainer(DetectionTrainer):
             return
 
         _, ax = plt.subplots(1, 1, figsize=(8, 6), tight_layout=True)
-        bars = ax.bar(range(nc), pixel_counts, color=[list(c / 255.0 for c in colors(i, False)) for i in range(nc)])
+        bars = ax.bar(range(nc), pixel_counts, color=[[c / 255.0 for c in colors(i, False)] for i in range(nc)])
         ax.set_xlabel("Class")
         ax.set_ylabel("Pixels")
         ax.set_title("Training Labels Class Distribution")

@@ -66,7 +66,7 @@ results = model(image)
 
 **Error message:**
 
-```
+```text
 RuntimeError: Expected input[1, 0, 640, 640] to have 3 channels, but got 0 channels instead
 ```
 

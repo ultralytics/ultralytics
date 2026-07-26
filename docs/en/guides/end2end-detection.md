@@ -187,10 +187,10 @@ However, `end2end=False` combined with `nms=True` is a valid configuration — i
 
 ### What does the max_det parameter control in end-to-end models?
 
-The [`max_det`](../modes/predict.md#inference-arguments) parameter (default: 300) sets the maximum number of detections the one-to-one head can output per image. You can adjust it at inference or export time:
+The [`max_det`](../modes/predict.md#inference-arguments) parameter (default: 300) sets the maximum number of detections returned per image. You can adjust it at inference or export time:
 
 ```python
-model.predict("image.jpg", max_det=100)  # fewer detections, slightly faster
+model.predict("image.jpg", max_det=100)  # fewer detections
 model.export(format="onnx", max_det=500)  # more detections for dense scenes
 ```
 

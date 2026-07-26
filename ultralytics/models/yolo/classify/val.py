@@ -45,7 +45,7 @@ class ClassificationValidator(BaseValidator):
 
     Examples:
         >>> from ultralytics.models.yolo.classify import ClassificationValidator
-        >>> args = dict(model="yolo11n-cls.pt", data="imagenet10")
+        >>> args = dict(model="yolo26n-cls.pt", data="imagenet10")
         >>> validator = ClassificationValidator(args=args)
         >>> validator()
 
@@ -53,14 +53,14 @@ class ClassificationValidator(BaseValidator):
         Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None) -> None:
         """Initialize ClassificationValidator with dataloader, save directory, and other parameters.
 
         Args:
             dataloader (torch.utils.data.DataLoader, optional): DataLoader to use for validation.
             save_dir (str | Path, optional): Directory to save results.
             args (dict, optional): Arguments containing model and validation configuration.
-            _callbacks (list, optional): List of callback functions to be called during validation.
+            _callbacks (dict, optional): Dictionary of callback functions to be called during validation.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.targets = None
@@ -78,12 +78,12 @@ class ClassificationValidator(BaseValidator):
         self.nc = len(model.names)
         self.pred = []
         self.targets = []
-        self.confusion_matrix = ConfusionMatrix(names=model.names)
+        self.confusion_matrix = ConfusionMatrix(names=model.names, task="classify")
 
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess input batch by moving data to device and converting to appropriate dtype."""
         batch["img"] = batch["img"].to(self.device, non_blocking=self.device.type == "cuda")
-        batch["img"] = batch["img"].half() if self.args.half else batch["img"].float()
+        batch["img"] = batch["img"].half() if self.args.quantize == 16 else batch["img"].float()
         batch["cls"] = batch["cls"].to(self.device, non_blocking=self.device.type == "cuda")
         return batch
 
@@ -202,12 +202,12 @@ class ClassificationValidator(BaseValidator):
             >>> preds = torch.rand(16, 10)  # 16 images, 10 classes
             >>> validator.plot_predictions(batch, preds, 0)
         """
-        batched_preds = dict(
-            img=batch["img"],
-            batch_idx=torch.arange(batch["img"].shape[0]),
-            cls=torch.argmax(preds, dim=1),
-            conf=torch.amax(preds, dim=1),
-        )
+        batched_preds = {
+            "img": batch["img"],
+            "batch_idx": torch.arange(batch["img"].shape[0]),
+            "cls": torch.argmax(preds, dim=1),
+            "conf": torch.amax(preds, dim=1),
+        }
         plot_images(
             batched_preds,
             fname=self.save_dir / f"val_batch{ni}_pred.jpg",

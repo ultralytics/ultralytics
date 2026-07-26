@@ -1,4 +1,5 @@
 ---
+title: trackers.byte_tracker API Reference
 description: Explore the BYTETracker module in Ultralytics for state-of-the-art object tracking using Kalman filtering. Learn about its classes, methods, and attributes.
 keywords: Ultralytics, BYTETracker, object tracking, Kalman filter, YOLOv8, documentation
 ---
@@ -7,7 +8,7 @@ keywords: Ultralytics, BYTETracker, object tracking, Kalman filter, YOLOv8, docu
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/byte_tracker.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/byte_tracker.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/byte_tracker.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/byte_tracker.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

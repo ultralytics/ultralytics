@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr, torch_utils
+from ultralytics.utils.torch_utils import smart_inference_mode
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -38,6 +39,7 @@ def _log_scalars(scalars: dict, step: int = 0) -> None:
             WRITER.add_scalar(k, v, step)
 
 
+@smart_inference_mode()
 def _log_tensorboard_graph(trainer) -> None:
     """Log model graph to TensorBoard.
 
@@ -56,9 +58,10 @@ def _log_tensorboard_graph(trainer) -> None:
     """
     # Input image
     imgsz = trainer.args.imgsz
+    ch = trainer.data.get("channels", 3)
     imgsz = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz
     p = next(trainer.model.parameters())  # for device, type
-    im = torch.zeros((1, 3, *imgsz), device=p.device, dtype=p.dtype)  # input image (must be zeros, not empty)
+    im = torch.zeros((1, ch, *imgsz), device=p.device, dtype=p.dtype)  # input image (must be zeros, not empty)
 
     # Try simple method first (YOLO)
     try:

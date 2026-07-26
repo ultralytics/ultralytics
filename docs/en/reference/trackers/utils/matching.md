@@ -1,4 +1,5 @@
 ---
+title: trackers.utils.matching API Reference
 description: Explore the utility functions for matching in trackers used by Ultralytics, including linear assignment, IoU distance, embedding distance, and more.
 keywords: Ultralytics, matching utils, linear assignment, IoU distance, embedding distance, fuse score, tracking, Python, documentation
 ---
@@ -7,7 +8,7 @@ keywords: Ultralytics, matching utils, linear assignment, IoU distance, embeddin
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/matching.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/matching.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/matching.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/matching.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

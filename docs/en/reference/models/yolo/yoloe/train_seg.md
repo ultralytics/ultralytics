@@ -1,4 +1,5 @@
 ---
+title: models.yolo.yoloe.train_seg API Reference
 description: Documentation for YOLOE segmentation trainer classes in Ultralytics, supporting different training approaches including standard training, linear probing, training from scratch, and visual prompt training.
 keywords: YOLOE, segmentation, trainers, YOLOESegTrainer, YOLOEPESegTrainer, YOLOESegTrainerFromScratch, YOLOESegVPTrainer, linear probing, visual prompts, Ultralytics, deep learning
 ---
@@ -7,7 +8,7 @@ keywords: YOLOE, segmentation, trainers, YOLOESegTrainer, YOLOEPESegTrainer, YOL
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/yoloe/train_seg.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/yoloe/train_seg.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/yoloe/train_seg.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/yoloe/train_seg.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

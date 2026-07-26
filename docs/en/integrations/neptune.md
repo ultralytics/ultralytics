@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Integrate Neptune with Ultralytics YOLO11 to track experiments, visualize metrics, log model checkpoints, and organize training metadata.
-keywords: Neptune, YOLO11, Ultralytics, experiment tracking, MLOps, model registry, visualization, computer vision
+description: Integrate Neptune with Ultralytics YOLO26 to track experiments, visualize metrics, log model checkpoints, and organize training metadata.
+keywords: Neptune, YOLO26, Ultralytics, experiment tracking, MLOps, model registry, visualization, computer vision
 ---
 
 !!! warning "Neptune acquisition and SaaS deprecation"
@@ -12,10 +12,10 @@ keywords: Neptune, YOLO11, Ultralytics, experiment tracking, MLOps, model regist
 
 [Neptune](https://neptune.ai/) is a metadata store for MLOps, built for teams that run a lot of experiments. It gives you a single place to log, store, display, organize, compare, and query all your model building metadata.
 
-Ultralytics YOLO11 integrates with Neptune to streamline [experiment tracking](https://www.ultralytics.com/glossary/experiment-tracking). This integration allows you to automatically log training metrics, visualize model predictions, and store model artifacts without writing custom logging code.
+Ultralytics YOLO26 integrates with Neptune to streamline [experiment tracking](https://www.ultralytics.com/glossary/experiment-tracking). This integration allows you to automatically log training metrics, visualize model predictions, and store model artifacts without writing custom logging code.
 
 <p align="center">
-  <img width="800" src="https://docs.neptune.ai/img/app/app_preview.png" alt="Neptune.ai Dashboard Overview">
+  <img width="800" src="https://docs.neptune.ai/img/app/app_preview.png" alt="Neptune.ai ML experiment tracking dashboard">
 </p>
 
 ## Key Features
@@ -74,16 +74,15 @@ The securest way to handle credentials is via environment variables. Note that t
     import os
 
     os.environ["NEPTUNE_API_TOKEN"] = "your_long_api_token_here"
-    os.environ["NEPTUNE_PROJECT"] = "your_workspace/your_project"
     ```
 
 ## Usage
 
-Once configured, you can start training your YOLO11 models. The Neptune integration works automatically when the `neptune` package is installed and the integration is enabled in settings.
+Once configured, you can start training your YOLO26 models. The Neptune integration works automatically when the `neptune` package is installed and the integration is enabled in settings.
 
 ### Training Example
 
-!!! example "Train YOLO11 with Neptune Logging"
+!!! example "Train YOLO26 with Neptune Logging"
 
     === "Python"
 
@@ -91,7 +90,7 @@ Once configured, you can start training your YOLO11 models. The Neptune integrat
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
 
         # Train the model
         # Pass the Neptune project slug as the 'project' argument (workspace/name)
@@ -112,18 +111,24 @@ The following diagram illustrates how the Ultralytics Training pipeline interact
 
 ```mermaid
 graph LR
-    A[YOLO Training Loop] --> B{Neptune Callback}
-    B -->|Log Scalars| C[Loss, mAP, LR]
-    B -->|Log Images| D[Mosaics, Preds]
-    B -->|Log Artifacts| E[Model Weights]
-    B -->|Log Metadata| F[Hyperparameters]
+    A[YOLO Training Loop]:::start --> B{Neptune Callback}:::decide
+    B -->|Log Scalars| C[Loss, mAP, LR]:::proc
+    B -->|Log Images| D[Mosaics, Preds]:::proc
+    B -->|Log Artifacts| E[Model Weights]:::proc
+    B -->|Log Metadata| F[Hyperparameters]:::proc
 
-    C --> G[Neptune Server]
+    C --> G[Neptune Server]:::extern
     D --> G
     E --> G
     F --> G
 
-    G --> H[Neptune Web Dashboard]
+    G --> H[Neptune Web Dashboard]:::out
+
+    classDef start fill:#4CAF50,color:#fff
+    classDef proc fill:#2196F3,color:#fff
+    classDef decide fill:#FF9800,color:#fff
+    classDef out fill:#9C27B0,color:#fff
+    classDef extern fill:#607D8B,color:#fff
 ```
 
 ### What is Logged?

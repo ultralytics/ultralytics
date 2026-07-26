@@ -32,7 +32,9 @@ def find_free_network_port() -> int:
     import random
     import socket
 
-    for port in random.sample(range(10000, 32768), 10):
+    # SystemRandom as init_seeds() seeds the global RNG earlier in this process, which would hand every concurrent
+    # DDP launch on a host the same candidate list
+    for port in random.SystemRandom().sample(range(10000, 32768), 10):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
                 s.bind(("127.0.0.1", port))

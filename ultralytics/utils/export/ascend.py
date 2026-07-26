@@ -50,37 +50,19 @@ def onnx2ascend(
     output_dir = Path(output_dir).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # CANN dereferences the optional score-threshold input when it is omitted from ONNX NonMaxSuppression nodes.
-    # NMSModel already filters scores by a positive confidence threshold, so an explicit zero preserves its semantics.
-    import onnx
-    from onnx import TensorProto, helper
-
-    model = onnx.load(onnx_file)
-    modified = False
-    for i, node in enumerate(model.graph.node):
-        if node.op_type == "NonMaxSuppression" and len(node.input) == 4:
-            threshold_name = f"ascend_nms_score_threshold_{i}"
-            node.input.append(threshold_name)
-            model.graph.initializer.append(helper.make_tensor(threshold_name, TensorProto.FLOAT, [1], [0.0]))
-            modified = True
-
+    cmd = [
+        "atc",
+        f"--model={Path(onnx_file).resolve()}",  # absolute: ATC runs with cwd=output_dir
+        "--framework=5",  # 5 = ONNX
+        f"--output={output_dir / f'{Path(onnx_file).stem}_{name}'}",  # ATC appends the .om suffix
+        "--input_format=NCHW",
+        f"--input_shape=images:{batch},{channels},{imgsz[0]},{imgsz[1]}",
+        f"--soc_version={name}",
+        "--precision_mode=force_fp16",  # Ascend AI Core convolutions reject FP32 inputs
+    ]  # argv list avoids shell metacharacter issues in onnx_file/output_dir paths
+    LOGGER.info(f"\n{prefix} starting export with ATC for {name}...")
+    LOGGER.info(f"{prefix} running '{shlex.join(cmd)}'")
     with tempfile.TemporaryDirectory() as scratch:  # ATC drops kernel_meta/ and fusion_result.json in its CWD
-        model_file = Path(onnx_file).resolve()
-        if modified:
-            model_file = Path(scratch) / model_file.name
-            onnx.save(model, model_file)
-        cmd = [
-            "atc",
-            f"--model={model_file}",
-            "--framework=5",  # 5 = ONNX
-            f"--output={output_dir / f'{Path(onnx_file).stem}_{name}'}",  # ATC appends the .om suffix
-            "--input_format=NCHW",
-            f"--input_shape=images:{batch},{channels},{imgsz[0]},{imgsz[1]}",
-            f"--soc_version={name}",
-            "--precision_mode=force_fp16",  # Ascend AI Core convolutions reject FP32 inputs
-        ]  # argv list avoids shell metacharacter issues in onnx_file/output_dir paths
-        LOGGER.info(f"\n{prefix} starting export with ATC for {name}...")
-        LOGGER.info(f"{prefix} running '{shlex.join(cmd)}'")
         subprocess.run(cmd, check=True, cwd=scratch)
 
     if metadata is not None:

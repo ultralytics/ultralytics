@@ -1086,6 +1086,17 @@ class Exporter:
             except Exception as e:
                 LOGGER.warning(f"{prefix} simplifier failure: {e}")
 
+        # CANN requires the optional score-threshold input on ONNX NonMaxSuppression nodes. Scores were already
+        # filtered by args.conf in NMSModel, so zero preserves the graph's semantics.
+        if self.args.format == "ascend":
+            for i, node in enumerate(model_onnx.graph.node):
+                if node.op_type == "NonMaxSuppression" and len(node.input) == 4:
+                    threshold_name = f"ascend_nms_score_threshold_{i}"
+                    node.input.append(threshold_name)
+                    model_onnx.graph.initializer.append(
+                        onnx.helper.make_tensor(threshold_name, onnx.TensorProto.FLOAT, [1], [0.0])
+                    )
+
         # Metadata
         for k, v in self.metadata.items():
             meta = model_onnx.metadata_props.add()

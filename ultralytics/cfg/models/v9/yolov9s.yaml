@@ -3,7 +3,7 @@
 # YOLOv9s object detection model with P3/8 - P5/32 outputs
 # Model docs: https://docs.ultralytics.com/models/yolov9
 # Task docs: https://docs.ultralytics.com/tasks/detect
-# 917 layers, 7318368 parameters, 27.6 GFLOPs
+# 544 layers, 7318368 parameters, 27.6 GFLOPs
 
 # Parameters
 nc: 80 # number of classes
@@ -38,4 +38,4 @@ head:
   - [[-1, 9], 1, Concat, [1]] # cat head P5
   - [-1, 1, RepNCSPELAN4, [256, 256, 128, 3]] # 21 (P5/32-large)
 
-  - [[15, 18, 21], 1, Detect, [nc]] # Detect(P3, P4 P5)
+  - [[15, 18, 21], 1, Detect, [nc]] # Detect(P3, P4, P5)

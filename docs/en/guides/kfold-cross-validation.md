@@ -108,7 +108,7 @@ K-Fold splitting works on one row per image, but a detection image holds many ob
 
 6. The resulting DataFrame has one row per image and one column per class, holding the count of each class in that image:
 
-    ```
+    ```text
                0    1    2    3
     1 (103)  1.0  0.0  0.0  0.0
     1 (121)  1.0  0.0  0.0  0.0
@@ -171,7 +171,7 @@ Each row is a pseudo feature-vector that summarizes an image by its class compos
 4. Next, we create the directories and dataset YAML files for each split.
 
     ```python
-    import datetime
+    from datetime import datetime, timezone
 
     import yaml
 
@@ -182,7 +182,8 @@ Each row is a pseudo feature-vector that summarizes an image by its class compos
     labels_by_stem = {label.stem: label for label in labels}
 
     # Create the necessary directories and dataset YAML files
-    save_path = Path(dataset_path / f"{datetime.date.today().isoformat()}_{ksplit}-Fold_Cross-val")
+    date = datetime.now(timezone.utc).date().isoformat()
+    save_path = Path(dataset_path / f"{date}_{ksplit}-Fold_Cross-val")
     save_path.mkdir(parents=True, exist_ok=True)
     ds_yamls = []
 

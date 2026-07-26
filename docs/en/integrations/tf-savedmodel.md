@@ -19,7 +19,7 @@ The TensorFlow SavedModel format is part of the TensorFlow ecosystem developed b
   <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tf-savedmodel-overview.avif" alt="TensorFlow SavedModel export format structure">
 </p>
 
-The TF SavedModel has a key advantage: its compatibility. It works well with [TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving), TensorFlow Lite, and TensorFlow.js. This compatibility makes it easier to share and deploy models across various platforms, including web and mobile applications. The TF SavedModel format is useful both for research and production. It provides a unified way to manage your models, ensuring they are ready for any application.
+The TF SavedModel has a key advantage: its compatibility. It works well with [TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving), [LiteRT](litert.md) (formerly TensorFlow Lite), and TensorFlow.js. This compatibility makes it easier to share and deploy models across various platforms, including web and mobile applications. The TF SavedModel format is useful both for research and production. It provides a unified way to manage your models, ensuring they are ready for any application.
 
 ## Key Features of TF SavedModels
 
@@ -141,6 +141,7 @@ The TF SavedModel format supports the [Export](../modes/export.md), [Predict](..
 | `imgsz`    | `int` or `tuple` | `640`           | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                |
 | `keras`    | `bool`           | `False`         | Enables export to Keras format, providing compatibility with TensorFlow serving and APIs.                                                                                                                                                                        |
 | `quantize` | `int` or `str`   | `None`          | Quantization precision: `8` (INT8/PTQ; needs calibration `data`/`fraction`) or `32`/unset (FP32). FP16 is not supported for SavedModel export. Replaces the deprecated `int8` flag.                                                                              |
+| `opset`    | `int`            | `None`          | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                                                                                 |
 | `nms`      | `bool`           | `False`         | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                                                                                              |
 | `batch`    | `int`            | `1`             | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
 | `data`     | `str`            | `'coco8.yaml'`  | Path to the [dataset](../datasets/index.md) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                                              |
@@ -210,7 +211,7 @@ Refer to the [Ultralytics Export documentation](../modes/export.md) for more det
 The TensorFlow SavedModel format offers several advantages for [model deployment](https://www.ultralytics.com/glossary/model-deployment):
 
 - **Portability:** It provides a language-neutral format, making it easy to share and deploy models across different environments.
-- **Compatibility:** Integrates seamlessly with tools like TensorFlow Serving, TensorFlow Lite, and TensorFlow.js, which are essential for deploying models on various platforms, including web and mobile applications.
+- **Compatibility:** Integrates seamlessly with tools like TensorFlow Serving, [LiteRT](litert.md), and TensorFlow.js, which are essential for deploying models on various platforms, including web and mobile applications.
 - **Complete encapsulation:** Encodes the model architecture, weights, and compilation information, allowing for straightforward sharing and training continuation.
 
 For more benefits and deployment options, check out the [Ultralytics YOLO model deployment options](../guides/model-deployment-options.md).

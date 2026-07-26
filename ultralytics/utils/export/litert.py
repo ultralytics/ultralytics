@@ -121,13 +121,11 @@ def torch2litert(
             calib_samples = []
             for batch in calibration_dataset:
                 imgs = batch["img"].cpu().float() / 255.0
-                # litert-torch traces a fixed batch; feed whole batches matching im's batch dim (skip a partial tail).
-                if imgs.shape[0] == im.shape[0]:
-                    calib_samples.append({"args_0": imgs.numpy()})
-            assert calib_samples, (
-                f"No calibration batches of size {im.shape[0]} were collected; the calibration dataset needs at least "
-                f"'batch={im.shape[0]}' images for static LiteRT quantization (reduce 'batch' or add more 'data')."
-            )
+                # litert-torch traces a fixed batch; tile under-sized batches up to im's batch dim (repeats are
+                # statistics-identical for calibration)
+                if imgs.shape[0] < im.shape[0]:
+                    imgs = imgs.repeat(-(-im.shape[0] // imgs.shape[0]), 1, 1, 1)[: im.shape[0]]
+                calib_samples.append({"args_0": imgs.numpy()})
             qt.load_quantization_recipe(recipe.static_wi8_ai8() if static_int8 else recipe.static_wi8_ai16())
             # Keep FP32 graph input/output (weights/activations stay int8/int16 internally): matches the historical
             # onnx2tf "fp32 in/out" contract that downstream consumers (LiteRT GPU delegate, on-device runtimes) expect,

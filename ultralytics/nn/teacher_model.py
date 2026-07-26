@@ -12,10 +12,18 @@ Teacher abstraction inspired by:
 from __future__ import annotations
 
 import math
+import os
 from dataclasses import dataclass
+from pathlib import Path
 
 import torch
-import torch.nn as nn
+from torch import nn
+
+# EUPE, DUNE and TIPS ship as source checkouts rather than installable packages, so their code is read from disk.
+# Resolve the parent directory from ``TEACHER_REPO_ROOT`` so no host or username is baked into the package, defaulting
+# to ``~/dev`` which is where every cluster host keeps them. Weights always go through a cache (HuggingFace or torch
+# hub), never a hardcoded location.
+TEACHER_REPO_ROOT = Path(os.environ.get("TEACHER_REPO_ROOT", Path.home() / "dev"))
 
 # Pipeline normalization that arrives at ``encode()``. The classification trainer at
 # ``ultralytics/models/yolo/classify/train_image_encoder.py:38-39`` applies these stats via
@@ -211,7 +219,7 @@ class EUPETeacher(TeacherModel):
     IMAGE_MEAN = (0.485, 0.456, 0.406)
     IMAGE_STD = (0.229, 0.224, 0.225)
 
-    EUPE_REPO = "/home/fatih/dev/eupe"
+    EUPE_REPO = str(TEACHER_REPO_ROOT / "eupe")
     CONFIGS = {
         "vitb16": {
             "hub_name": "eupe_vitb16",
@@ -303,6 +311,27 @@ class DINOv3Teacher(TeacherModel):
     IMAGE_STD = (0.229, 0.224, 0.225)
 
     CONFIGS = {
+        "vits16": {
+            "hf_model": "facebook/dinov3-vits16-pretrain-lvd1689m",
+            "embed_dim": 384,
+            "num_patches": 196,
+            "imgsz": 224,
+            "n_registers": 4,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 16,
+            "token_types": ("cls", "patches"),
+        },
+        # ViT-S+ shares ViT-S's 384 width and 4 registers, differing in depth and a SwiGLU FFN (29M vs 21M).
+        "vits16plus": {
+            "hf_model": "facebook/dinov3-vits16plus-pretrain-lvd1689m",
+            "embed_dim": 384,
+            "num_patches": 196,
+            "imgsz": 224,
+            "n_registers": 4,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 16,
+            "token_types": ("cls", "patches"),
+        },
         "vitb16": {
             "hf_model": "facebook/dinov3-vitb16-pretrain-lvd1689m",
             "embed_dim": 768,
@@ -383,6 +412,187 @@ class DINOv3Teacher(TeacherModel):
         cls = hidden[:, 0] if "cls" in self.token_types else None
         patches = hidden[:, 1 + self._n_registers :]  # skip CLS + registers
         return TeacherOutput(cls=cls, patches=patches)
+
+
+class TIPSTeacher(TeacherModel):
+    """TIPS teacher (https://arxiv.org/abs/2410.16512), covering both v1 and v2 checkpoints.
+
+    TIPS ViTs carry two CLS-style tokens: the first is trained against the noisy web caption, the second against a
+    synthetic caption. The paper assigns the first to global image tasks ("In global image tasks, we use the [CLS] token
+    that corresponds to the noisy image label"), so ``encode`` returns that one. ``self.head`` is ``nn.Identity``
+    (``tips/pytorch/image_encoder.py:739``), so ``forward_features`` already yields the final normed feature.
+
+    Weights ship as ``.npz`` arrays rather than torch checkpoints. Every released v1-HR and v2 vision checkpoint stores
+    ``pos_embed`` at ``(1, 1025, D)`` (1 CLS + a 32x32 grid), so all variants build at ``img_size=448`` regardless of
+    version, with the v1/v2 difference carried entirely by the weights.
+
+    Attributes:
+        model: The TIPS VisionTransformer built from the local tips repo.
+    """
+
+    # TIPS consumes raw [0, 1] pixels: ``tips/pytorch/run_image_encoder_inference.py:39-40`` sets mean 0 / std 1, so
+    # unlike EUPE and DINOv3 this is a real conversion rather than a no-op when ``normalize_input=True``.
+    IMAGE_MEAN = (0.0, 0.0, 0.0)
+    IMAGE_STD = (1.0, 1.0, 1.0)
+    TIPS_REPO = str(TEACHER_REPO_ROOT / "tips")
+
+    CONFIGS = {
+        "v1s14": {
+            "builder": "vit_small",
+            "url": "https://storage.googleapis.com/tips_data/v1_0/checkpoints/pytorch/tips_oss_s14_highres_distilled_vision.npz",
+            "embed_dim": 384,
+            "num_patches": 1024,
+            "imgsz": 448,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 14,
+            "token_types": ("cls", "patches"),
+        },
+        "v1b14": {
+            "builder": "vit_base",
+            "url": "https://storage.googleapis.com/tips_data/v1_0/checkpoints/pytorch/tips_oss_b14_highres_distilled_vision.npz",
+            "embed_dim": 768,
+            "num_patches": 1024,
+            "imgsz": 448,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 14,
+            "token_types": ("cls", "patches"),
+        },
+        "v2b14": {
+            "builder": "vit_base",
+            "url": "https://storage.googleapis.com/tips_data/v2_0/checkpoints/pytorch/tips_v2_oss_b14_vision.npz",
+            "embed_dim": 768,
+            "num_patches": 1024,
+            "imgsz": 448,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 14,
+            "token_types": ("cls", "patches"),
+        },
+    }
+
+    def __init__(self, variant: str = "v2b14", device: torch.device = None):
+        """Initialize a TIPS teacher from a local .npz vision checkpoint.
+
+        Args:
+            variant (str): Model variant ('v1s14', 'v1b14' or 'v2b14').
+            device (torch.device, optional): Device to load the model on.
+        """
+        super().__init__()
+        if variant not in self.CONFIGS:
+            raise ValueError(f"Unknown TIPS variant '{variant}'. Supported: {list(self.CONFIGS)}")
+        import importlib.util
+
+        import numpy as np
+
+        cfg = self.CONFIGS[variant]
+        # Load the encoder module straight off disk. ``image_encoder.py`` imports only stdlib and torch, so it needs no
+        # package context, and this avoids putting a sibling checkout on ``sys.path`` where it could shadow imports.
+        spec = importlib.util.spec_from_file_location("tips_image_encoder", f"{self.TIPS_REPO}/pytorch/image_encoder.py")
+        image_encoder = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(image_encoder)
+        # Construction args mirror ``tips/pytorch/run_image_encoder_inference.py:60-70``. ``block_chunks=0`` keeps the
+        # blocks in a flat ModuleList so the checkpoint's key names match.
+        self.model = getattr(image_encoder, cfg["builder"])(
+            img_size=cfg["imgsz"],
+            patch_size=14,
+            ffn_layer="mlp",
+            block_chunks=0,
+            init_values=1.0,
+            interpolate_antialias=True,
+            interpolate_offset=0.0,
+        )
+        cache = Path(torch.hub.get_dir()) / "checkpoints" / "tips"
+        cache.mkdir(parents=True, exist_ok=True)
+        ckpt = cache / Path(cfg["url"]).name
+        if not ckpt.exists():
+            torch.hub.download_url_to_file(cfg["url"], ckpt)
+        weights = np.load(ckpt, allow_pickle=False)
+        self.model.load_state_dict({k: torch.from_numpy(weights[k]) for k in weights.files})
+        self._freeze(cfg, device)
+
+    @torch.no_grad()
+    def encode(self, image: torch.Tensor) -> TeacherOutput:
+        """Encode images via the TIPS vision encoder.
+
+        Args:
+            image (torch.Tensor): Preprocessed image tensor (B, 3, H, W).
+
+        Returns:
+            (TeacherOutput): First CLS token (B, D) and patch features, skipping the second CLS token.
+        """
+        image = self._prep(image)
+        out = self.model.forward_features(image)
+        cls = out["x_norm_1st_clstoken"].squeeze(1) if "cls" in self.token_types else None
+        return TeacherOutput(cls=cls, patches=out["x_norm_patchtokens"])
+
+
+class DUNETeacher(TeacherModel):
+    """DUNE teacher (https://arxiv.org/abs/2503.14405) via the local naver/dune hub entrypoints.
+
+    Loads the bare student encoder (``encoder_only=True``), not the full model with its per-teacher projectors. EUPE
+    Table 1 measures DUNE-B at 42.5 IN1k-KNN with a footnote attributing the gap to "benchmarking only the encoder part
+    without adapter head", so encoder-only numbers are expected to sit well below DUNE's published dense-task results.
+
+    Only the 448-resolution checkpoints are wired up. Naver also ships 336 variants as separate weights.
+
+    Attributes:
+        model: The DUNE student encoder from the local dune repo.
+    """
+
+    # DUNE normalizes with ImageNet stats (``dune/data/transform.py:9-39``), matching the pipeline, so ``_prep`` is a
+    # no-op here. Stated rather than inherited so the assumption is checkable against the reference repo.
+    IMAGE_MEAN = (0.485, 0.456, 0.406)
+    IMAGE_STD = (0.229, 0.224, 0.225)
+    DUNE_REPO = str(TEACHER_REPO_ROOT / "dune")
+
+    CONFIGS = {
+        "vits14": {
+            "hub_name": "dune_vitsmall_14_448_encoder",
+            "embed_dim": 384,
+            "num_patches": 1024,
+            "imgsz": 448,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 14,
+            "token_types": ("cls", "patches"),
+        },
+        "vitb14": {
+            "hub_name": "dune_vitbase_14_448_encoder",
+            "embed_dim": 768,
+            "num_patches": 1024,
+            "imgsz": 448,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 14,
+            "token_types": ("cls", "patches"),
+        },
+    }
+
+    def __init__(self, variant: str = "vitb14", device: torch.device = None):
+        """Initialize a DUNE teacher from the local dune repo.
+
+        Args:
+            variant (str): Model variant ('vits14' or 'vitb14').
+            device (torch.device, optional): Device to load the model on.
+        """
+        super().__init__()
+        if variant not in self.CONFIGS:
+            raise ValueError(f"Unknown DUNE variant '{variant}'. Supported: {list(self.CONFIGS)}")
+        cfg = self.CONFIGS[variant]
+        self.model = torch.hub.load(self.DUNE_REPO, cfg["hub_name"], source="local")
+        self._freeze(cfg, device)
+
+    @torch.no_grad()
+    def encode(self, image: torch.Tensor) -> TeacherOutput:
+        """Encode images via the DUNE student encoder.
+
+        Args:
+            image (torch.Tensor): Preprocessed image tensor (B, 3, H, W).
+
+        Returns:
+            (TeacherOutput): CLS and patch features, with register tokens already dropped by ``forward_features``.
+        """
+        image = self._prep(image)
+        out = self.model.forward_features(image)
+        cls = out["x_norm_clstoken"] if "cls" in self.token_types else None
+        return TeacherOutput(cls=cls, patches=out["x_norm_patchtokens"])
 
 
 class SigLIP2Teacher(TeacherModel):
@@ -707,6 +917,8 @@ TEACHER_REGISTRY = {}
 for _prefix, _cls in [
     ("eupe", EUPETeacher),
     ("dinov3", DINOv3Teacher),
+    ("tips", TIPSTeacher),
+    ("dune", DUNETeacher),
     ("siglip2", SigLIP2Teacher),
     ("moonvit", MoonViTTeacher),
 ]:

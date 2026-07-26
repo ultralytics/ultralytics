@@ -1,16 +1,20 @@
-"""Run kNN evaluation on a distilled encoder run directory.
+"""Run kNN evaluation on a distilled encoder run directory or on a released reference encoder.
 
 Usage:
-    python run_knn_eval.py <gpu_id> <run_dir> [--imgsz N] [--wandb]
+    python run_knn_eval.py <gpu_id> <run_dir|teacher_spec> [--imgsz N] [--csv PATH] [--wandb]
 
-Finds weights/best.pt and model config from args.yaml automatically, warning and falling back to
-last.pt when best.pt is absent.
---imgsz sets the eval resolution (default 224); the loader batch scales down with imgsz to hold
-activation memory roughly constant. With --wandb, updates the finished WandB run's summary with knn/top1.
+A target matching ``TEACHER_REGISTRY`` in either form (``tips:v2b14`` or ``tips_v2b14``) is read as a teacher spec (e.g. ``tips:v2b14``, ``dune:vits14``,
+``eupe:vitb16``), scoring a released encoder under the same k=20 / T=0.07 protocol as our students. Anything else is a
+run directory, where weights/best.pt and the model config come from args.yaml automatically, warning and falling back
+to last.pt when best.pt is absent.
+
+--imgsz sets the eval resolution (default 224), and the loader batch scales down with imgsz to hold activation memory
+roughly constant. --csv appends one result row per call so a sweep stays readable while it runs. With --wandb, updates
+the finished WandB run's summary with knn/top1 (run directories only).
 
 Examples:
     python run_knn_eval.py 3 /data/shared-datasets/fatih-runs/classify/yolo-next-encoder/phase1-d1-eupe-vitb16
-    python run_knn_eval.py 3 /home/fatih/runs/classify/yolo-next-encoder/phase1-yolo26l-eupe-vitb16 --wandb
+    python run_knn_eval.py 6 tips:v2b14 --imgsz 518 --csv /home/fatih/runs/knn-reference.csv
 """
 
 import sys
@@ -22,7 +26,8 @@ import torch
 from ultralytics import YOLO
 from ultralytics.data import ClassificationDataset
 from ultralytics.data.build import build_dataloader
-from ultralytics.utils.knn_eval import extract_features, knn_accuracy
+from ultralytics.utils import YAML
+from ultralytics.utils.knn_eval import extract_features, knn_accuracy, yolo_cls_features
 
 IMAGENET = "/data/shared-datasets/imagenet"
 
@@ -45,25 +50,39 @@ def _update_wandb(run_dir, knn_top1):
         print(f"  WandB update failed: {e}")
 
 
-def main():
-    """Run kNN evaluation on a run directory."""
-    args_list = sys.argv[1:]
-    use_wandb = "--wandb" in args_list
-    imgsz = 224
-    if "--imgsz" in args_list:
-        i = args_list.index("--imgsz")
-        imgsz = int(args_list[i + 1])
-        del args_list[i : i + 2]
-    argv = [a for a in args_list if not a.startswith("--")]
+def _load_teacher(spec, imgsz, device):
+    """Build a frozen released encoder from a TEACHER_REGISTRY spec.
 
-    if len(argv) < 2:
-        print("Usage: python run_knn_eval.py <gpu_id> <run_dir> [--imgsz N] [--wandb]")
+    Args:
+        spec (str): Registry key such as 'tips:v2b14' or 'dune:vits14'.
+        imgsz (int): Eval resolution, which must be a whole number of patches.
+        device (torch.device): Device to load onto.
+
+    Returns:
+        (tuple): (model, feature_fn, name).
+    """
+    from ultralytics.nn.teacher_model import TEACHER_REGISTRY, build_teacher_model
+
+    mult = TEACHER_REGISTRY[spec]["imgsz_multiple"]
+    if imgsz % mult:
+        print(f"Error: {spec} has patch stride {mult}, so imgsz {imgsz} would be cropped to {imgsz // mult * mult}.")
         sys.exit(1)
+    # normalize_input=True rewrites the loader's ImageNet-normalized tensor into each teacher's own training
+    # distribution. That is a real conversion for TIPS (raw [0, 1]) and a no-op for the ImageNet-stat teachers.
+    teacher = build_teacher_model(spec, device=device, normalize_input=True)
+    return teacher, lambda m, imgs: m.encode(imgs).cls, spec
 
-    gpu_id = int(argv[0])
-    run_dir = Path(argv[1])
 
-    # Validate run directory
+def _load_run_dir(run_dir, device):
+    """Build a distilled student from a run directory's checkpoint and args.yaml.
+
+    Args:
+        run_dir (Path): Training run directory.
+        device (torch.device): Device to load onto.
+
+    Returns:
+        (tuple): (model, feature_fn, name).
+    """
     weight_path = run_dir / "weights" / "best.pt"
     if not weight_path.exists():
         weight_path = run_dir / "weights" / "last.pt"
@@ -72,28 +91,67 @@ def main():
         print(f"Error: no weights found in {run_dir / 'weights'}")
         sys.exit(1)
 
-    # Get model config from args.yaml
     args_yaml = run_dir / "args.yaml"
     if not args_yaml.exists():
         print(f"Error: no args.yaml in {run_dir}")
         sys.exit(1)
-    model_cfg = None
-    for line in args_yaml.read_text().splitlines():
-        if line.startswith("model:"):
-            model_cfg = line.split(":", 1)[1].strip()
-            break
+    model_cfg = YAML.load(args_yaml).get("model")
     if not model_cfg:
         print(f"Error: no 'model:' key in {args_yaml}")
         sys.exit(1)
-
-    device = torch.device(f"cuda:{gpu_id}")
-    print(f"Evaluating: {run_dir.name}")
     print(f"  weights: {weight_path}")
     print(f"  model_cfg: {model_cfg}")
+
+    model = YOLO(model_cfg)
+    ckpt = torch.load(str(weight_path), map_location="cpu", weights_only=False)
+    src = ckpt.get("ema") or ckpt.get("model")
+    state = src.float().state_dict()
+    loaded = model.model.load_state_dict(state, strict=False)
+    print(f"  Loaded: {len(state) - len(loaded.unexpected_keys)}/{len(state)} keys")
+    model.model.to(device).float()
+    return model.model, yolo_cls_features, run_dir.name
+
+
+def main():
+    """Run kNN evaluation on a run directory or a released reference encoder."""
+    from ultralytics.nn.teacher_model import TEACHER_REGISTRY, resolve_teacher_key
+
+    argv = sys.argv[1:]
+
+    def pop(flag):
+        """Remove ``flag`` and its value from argv, returning the value or None."""
+        if flag not in argv:
+            return None
+        i = argv.index(flag)
+        value = argv[i + 1]
+        del argv[i : i + 2]
+        return value
+
+    imgsz = int(pop("--imgsz") or 224)
+    csv_path = pop("--csv")
+    use_wandb = "--wandb" in argv
+    positional = [a for a in argv if not a.startswith("--")]
+
+    if len(positional) < 2:
+        print("Usage: python run_knn_eval.py <gpu_id> <run_dir|teacher_spec> [--imgsz N] [--csv PATH] [--wandb]")
+        sys.exit(1)
+
+    gpu_id, target = int(positional[0]), resolve_teacher_key(positional[1])
+    is_teacher = target in TEACHER_REGISTRY
+    if use_wandb and is_teacher:
+        print("Error: --wandb writes to a training run's summary, which a released teacher does not have.")
+        sys.exit(1)
+
+    device = torch.device(f"cuda:{gpu_id}")
+    print(f"Evaluating: {target}")
     print(f"  imgsz: {imgsz}")
     print(f"  wandb: {'on' if use_wandb else 'off'}")
 
-    # Build dataloaders
+    # Resolve the target before the ImageNet scan so a bad spec or resolution fails in milliseconds, not minutes.
+    model, feature_fn, name = (
+        _load_teacher(target, imgsz, device) if is_teacher else _load_run_dir(Path(target), device)
+    )
+
     from types import SimpleNamespace
 
     root = Path(IMAGENET)
@@ -116,21 +174,10 @@ def main():
     bs = max(8, round(256 * (224 / imgsz) ** 2))  # hold activation memory ~constant across imgsz
     train_loader = build_dataloader(train_ds, bs, 8, shuffle=False, rank=-1)
     val_loader = build_dataloader(val_ds, bs, 8, shuffle=False, rank=-1)
-    num_classes = len(train_ds.base.classes)
 
-    # Load model from yaml + distillation checkpoint
-    model = YOLO(model_cfg)
-    ckpt = torch.load(str(weight_path), map_location="cpu", weights_only=False)
-    src = ckpt.get("ema") or ckpt.get("model")
-    state = src.float().state_dict()
-    loaded = model.model.load_state_dict(state, strict=False)
-    print(f"  Loaded: {len(state) - len(loaded.unexpected_keys)}/{len(state)} keys")
-    model.model.to(device).float()
-
-    # Evaluate
     t0 = time.time()
-    train_feats, train_labels = extract_features(model.model, train_loader, device)
-    val_feats, val_labels = extract_features(model.model, val_loader, device)
+    train_feats, train_labels = extract_features(model, train_loader, device, feature_fn)
+    val_feats, val_labels = extract_features(model, val_loader, device, feature_fn)
     top1 = knn_accuracy(
         train_feats,
         train_labels,
@@ -138,13 +185,22 @@ def main():
         val_labels,
         k=20,
         temp=0.07,
-        num_classes=num_classes,
+        num_classes=len(train_ds.base.classes),
         device=device,
     )
-    print(f"\nkNN top-1: {top1:.2f}% ({time.time() - t0:.0f}s)")
+    elapsed = time.time() - t0
+    print(f"\nkNN top-1: {top1:.2f}% ({elapsed:.0f}s)")
+
+    if csv_path:
+        header = not Path(csv_path).exists()
+        with open(csv_path, "a", encoding="utf-8") as f:
+            if header:
+                f.write("model,imgsz,top1,seconds\n")
+            f.write(f"{name},{imgsz},{top1:.2f},{elapsed:.0f}\n")
+        print(f"  appended to {csv_path}")
 
     if use_wandb:
-        _update_wandb(run_dir, top1)
+        _update_wandb(Path(target), top1)
 
 
 if __name__ == "__main__":

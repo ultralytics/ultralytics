@@ -29,24 +29,48 @@ import torch.nn.functional as F
 logger = logging.getLogger("ultralytics")
 
 
-@torch.no_grad()
-def extract_features(model, dataloader, device):
-    """Extract L2-normalized CLS features from backbone.
+def yolo_cls_features(model, imgs: torch.Tensor) -> torch.Tensor:
+    """Read the CLS-equivalent feature out of a YOLO classification model.
 
     Feature path matches ImageEncoderModel.loss() (nn/image_encoder.py:201-208): backbone layers 0-9 -> Classify head
-    conv (512->1280, 1x1) -> AdaptiveAvgPool2d(1) -> flatten. L2-normalization follows RADIO _build_database
-    (examples/knn_classification.py:355) and EUPE ModelWithNormalize (eupe/eval/utils.py:30-36).
+    conv (512->1280, 1x1) -> AdaptiveAvgPool2d(1) -> flatten.
+
+    Args:
+        model: YOLO classification model (ClassificationModel or ImageEncoderModel).
+        imgs (torch.Tensor): Batch of images (B, 3, H, W).
+
+    Returns:
+        (torch.Tensor): Un-normalized features (B, D).
+    """
+    x = imgs
+    for m in model.model[:-1]:
+        x = m(x)
+    # head.conv: Conv(512->1280, k=1) on the 7x7 map. head.pool: AdaptiveAvgPool2d(1), a global average that stands in
+    # for a CLS token.
+    head = model.model[-1]
+    return head.pool(head.conv(x)).flatten(1)
+
+
+@torch.no_grad()
+def extract_features(model, dataloader, device, feature_fn=yolo_cls_features):
+    """Extract L2-normalized CLS features from a backbone.
+
+    L2-normalization follows RADIO _build_database (examples/knn_classification.py:355) and EUPE ModelWithNormalize
+    (eupe/eval/utils.py:30-36).
 
     Uses fp32 for feature extraction (matching our val precision rules in val_image_encoder.py:61-72 and UNIC convention
     at unic/main_unic.py:432).
 
     Args:
-        model: YOLO classification model (ClassificationModel or ImageEncoderModel).
+        model: Model to read features from, matching ``feature_fn``.
         dataloader: DataLoader yielding {"img": tensor, "cls": tensor}.
         device: torch.device for computation.
+        feature_fn (Callable, optional): Maps ``(model, imgs)`` to un-normalized features (B, D). Defaults to the YOLO
+            classification path. ``run_knn_eval.py`` passes a ``TeacherModel.encode`` reader to score a released
+            reference encoder under the same protocol.
 
     Returns:
-        (tuple): (features, labels) tensors on CPU. features shape (N, 1280), labels shape (N,).
+        (tuple): (features, labels) tensors on CPU. features shape (N, D), labels shape (N,).
     """
     was_training = model.training
     model.eval()
@@ -56,19 +80,7 @@ def extract_features(model, dataloader, device):
         imgs = batch["img"].to(device, non_blocking=True).float()
         labels = batch["cls"].to(device, non_blocking=True)
 
-        # Backbone forward: layers 0-9 (Conv, C3k2, C2PSA etc.), same path as image_encoder.py:201-203
-        x = imgs
-        for m in model.model[:-1]:
-            x = m(x)
-
-        # CLS feature via Classify head internals (image_encoder.py:205-208)
-        # head.conv: Conv(512->1280, k=1) on 7x7 feature map
-        # head.pool: AdaptiveAvgPool2d(1) -> global average = CLS-equivalent token
-        head = model.model[-1]
-        features = head.pool(head.conv(x)).flatten(1)  # (B, 1280)
-
-        # L2-normalize per RADIO _build_database:355 and EUPE ModelWithNormalize
-        features = F.normalize(features, dim=1, p=2)
+        features = F.normalize(feature_fn(model, imgs), dim=1, p=2)
 
         all_features.append(features.cpu())
         all_labels.append(labels.cpu().long().squeeze())

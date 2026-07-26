@@ -492,15 +492,15 @@ Set `class_mode` when initializing the model to control how the class embeddings
         # Run inference on an image, using the provided visual prompts as guidance
         results1 = model.predict_memory(
             "ultralytics/assets/bus.jpg",
-            visual_prompts=dict(
-                bboxes=np.array(
+            visual_prompts={
+                "bboxes": np.array(
                     [
                         [221.52, 405.8, 344.98, 857.54],  # Box enclosing person
                     ]
                 ),
                 # A string cls also pulls in the text embedding and blends it with the visual prompt embedding
-                cls=["person"],
-            ),
+                "cls": ["person"],
+            },
             vp_weight={"person": 0.5},  # weight of the visual prompt relative to the text embedding, per class
             predictor=YOLOEVPDetectPredictor,
         )
@@ -508,14 +508,14 @@ Set `class_mode` when initializing the model to control how the class embeddings
         # Add another visual prompt on the same image
         results2 = model.predict_memory(
             "ultralytics/assets/bus.jpg",
-            visual_prompts=dict(
-                bboxes=np.array(
+            visual_prompts={
+                "bboxes": np.array(
                     [
                         [120, 425, 160, 445],  # Box enclosing glasses
                     ]
                 ),
-                cls=[0],  # an int cls stores a visual-only entry named "object0" in the memory bank
-            ),
+                "cls": [0],  # an int cls stores a visual-only entry named "object0" in the memory bank
+            },
             predictor=YOLOEVPDetectPredictor,
         )
 

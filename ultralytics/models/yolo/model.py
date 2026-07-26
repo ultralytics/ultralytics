@@ -550,9 +550,9 @@ class YOLOE(Model):
 
             # init the memory bank if not exists
             if not hasattr(self, "memory_bank"):
-                self.memory_bank = dict()
+                self.memory_bank = {}
             if not hasattr(self, "vp_weight_dict"):
-                self.vp_weight_dict = dict()
+                self.vp_weight_dict = {}
 
             # update the memory bank with new visual prompt embeddings
             assert len(visual_prompts["cls"]) == vpe.shape[0]

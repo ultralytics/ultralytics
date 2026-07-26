@@ -3,8 +3,9 @@
 # Copyright (C) 2024 Apple Inc. All Rights Reserved.
 # Modified for EfficientSAM3 and ported into Ultralytics by SimonZeng7108528.
 
+from __future__ import annotations
+
 import math
-from typing import List, Optional, Tuple, Union
 
 import torch
 import torch.nn.functional as F
@@ -64,7 +65,7 @@ class SEBlock(nn.Module):
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         """Apply squeeze-and-excitation channel recalibration to the input feature map."""
-        b, c, h, w = inputs.size()
+        _b, c, h, w = inputs.size()
         x = F.avg_pool2d(inputs, kernel_size=[h, w])
         x = self.reduce(x)
         x = F.relu(x)
@@ -145,7 +146,7 @@ class MobileOneBlock(nn.Module):
             )
 
             if num_conv_branches > 0:
-                rbr_conv = list()
+                rbr_conv = []
                 for _ in range(self.num_conv_branches):
                     rbr_conv.append(self._conv_bn(kernel_size=kernel_size, padding=padding))
                 self.rbr_conv = nn.ModuleList(rbr_conv)
@@ -204,7 +205,7 @@ class MobileOneBlock(nn.Module):
 
         self.inference_mode = True
 
-    def _get_kernel_bias(self) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _get_kernel_bias(self) -> tuple[torch.Tensor, torch.Tensor]:
         kernel_scale = 0
         bias_scale = 0
         if self.rbr_scale is not None:
@@ -229,7 +230,7 @@ class MobileOneBlock(nn.Module):
         bias_final = bias_conv + bias_scale + bias_identity
         return kernel_final, bias_final
 
-    def _fuse_bn_tensor(self, branch: Union[nn.Sequential, nn.BatchNorm2d]) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _fuse_bn_tensor(self, branch: nn.Sequential | nn.BatchNorm2d) -> tuple[torch.Tensor, torch.Tensor]:
         if isinstance(branch, nn.Sequential):
             kernel = branch.conv.weight
             running_mean = branch.bn.running_mean
@@ -287,7 +288,7 @@ class MobileOneBlock(nn.Module):
 
 
 class LayerNormFP32(nn.LayerNorm):
-    """LayerNorm that casts input to float32 before normalisation and back to the original dtype.
+    """LayerNorm that casts input to float32 before normalization and back to the original dtype.
 
     Args:
         normalized_shape (int | list | torch.Size): Input shape from an expected input.
@@ -297,9 +298,9 @@ class LayerNormFP32(nn.LayerNorm):
 
     def __init__(
         self,
-        normalized_shape: Union[int, List[int], torch.Size],
-        eps: Optional[float] = 1e-5,
-        elementwise_affine: Optional[bool] = True,
+        normalized_shape: int | list[int] | torch.Size,
+        eps: float | None = 1e-5,
+        elementwise_affine: bool | None = True,
         *args,
         **kwargs,
     ):
@@ -323,7 +324,7 @@ def get_normalization_layer(norm_type: str, num_features: int) -> nn.Module:
 
     Args:
         norm_type (str): One of ``"layer_norm"`` or ``"layer_norm_fp32"``.
-        num_features (int): Number of features (channels) to normalise.
+        num_features (int): Number of features (channels) to normalize.
 
     Returns:
         (nn.Module): The requested normalization layer.
@@ -351,8 +352,8 @@ class LearnablePositionalEmbedding(nn.Module):
         self,
         num_embeddings: int,
         embedding_dim: int,
-        padding_idx: Optional[int] = None,
-        interpolation_mode: Optional[str] = "bilinear",
+        padding_idx: int | None = None,
+        interpolation_mode: str | None = "bilinear",
         *args,
         **kwargs,
     ):
@@ -403,9 +404,9 @@ class PositionalEmbedding(nn.Module):
         self,
         num_embeddings: int,
         embedding_dim: int,
-        padding_idx: Optional[int] = None,
-        is_learnable: Optional[bool] = False,
-        interpolation_mode: Optional[str] = "bilinear",
+        padding_idx: int | None = None,
+        is_learnable: bool | None = False,
+        interpolation_mode: str | None = "bilinear",
         *args,
         **kwargs,
     ):
@@ -440,9 +441,9 @@ class MultiHeadAttention(nn.Module):
         self,
         embed_dim: int,
         num_heads: int,
-        attn_dropout: Optional[float] = 0.0,
-        bias: Optional[bool] = True,
-        output_dim: Optional[int] = None,
+        attn_dropout: float | None = 0.0,
+        bias: bool | None = True,
+        output_dim: int | None = None,
         *args,
         **kwargs,
     ) -> None:
@@ -463,9 +464,9 @@ class MultiHeadAttention(nn.Module):
     def forward(
         self,
         x_q: torch.Tensor,
-        x_kv: Optional[torch.Tensor] = None,
-        key_padding_mask: Optional[torch.Tensor] = None,
-        attn_mask: Optional[torch.Tensor] = None,
+        x_kv: torch.Tensor | None = None,
+        key_padding_mask: torch.Tensor | None = None,
+        attn_mask: torch.Tensor | None = None,
         *args,
         **kwargs,
     ) -> torch.Tensor:
@@ -514,12 +515,12 @@ class TransformerEncoder(nn.Module):
         self,
         embed_dim: int,
         ffn_latent_dim: int,
-        num_heads: Optional[int] = 8,
-        attn_dropout: Optional[float] = 0.0,
-        dropout: Optional[float] = 0.0,
-        ffn_dropout: Optional[float] = 0.0,
-        transformer_norm_layer: Optional[str] = "layer_norm",
-        stochastic_dropout: Optional[float] = 0.0,
+        num_heads: int | None = 8,
+        attn_dropout: float | None = 0.0,
+        dropout: float | None = 0.0,
+        ffn_dropout: float | None = 0.0,
+        transformer_norm_layer: str | None = "layer_norm",
+        stochastic_dropout: float | None = 0.0,
         *args,
         **kwargs,
     ) -> None:
@@ -544,9 +545,9 @@ class TransformerEncoder(nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        x_prev: Optional[torch.Tensor] = None,
-        key_padding_mask: Optional[torch.Tensor] = None,
-        attn_mask: Optional[torch.Tensor] = None,
+        x_prev: torch.Tensor | None = None,
+        key_padding_mask: torch.Tensor | None = None,
+        attn_mask: torch.Tensor | None = None,
         *args,
         **kwargs,
     ) -> torch.Tensor:
@@ -586,8 +587,8 @@ class ConvFFN(nn.Module):
         self,
         in_channels: int,
         context_size: int,
-        hidden_channels: Optional[int] = None,
-        out_channels: Optional[int] = None,
+        hidden_channels: int | None = None,
+        out_channels: int | None = None,
         act_layer: nn.Module = nn.GELU,
         drop: float = 0.0,
     ) -> None:
@@ -748,7 +749,7 @@ class RepMixerBlock(nn.Module):
         drop_path (float): Stochastic depth rate. Default is 0.0.
         use_layer_scale (bool): Whether to use layer-scale. Default is True.
         layer_scale_init_value (float): Initial value for layer-scale. Default is 1e-5.
-        inference_mode (bool): If True, uses reparameterised convs. Default is False.
+        inference_mode (bool): If True, uses reparameterized convs. Default is False.
     """
 
     def __init__(
@@ -843,8 +844,8 @@ class MobileCLIPTextTransformer(nn.Module):
             - ``no_pos_embedding`` (bool): Skip positional embeddings. Default False.
             - ``embed_dropout`` (float): Dropout on embeddings. Default 0.
         projection_dim (int): Dimension of the output projection layer.
-        skip_embeddings (bool): If True, skip building the embedding layer and positional embedding
-            (the caller supplies pre-computed embeddings). Default is False.
+        skip_embeddings (bool): If True, skip building the embedding layer and positional embedding (the caller supplies
+            pre-computed embeddings). Default is False.
     """
 
     def __init__(self, cfg: dict, projection_dim: int, skip_embeddings: bool = False, *args, **kwargs) -> None:
@@ -914,7 +915,7 @@ class MobileCLIPTextTransformer(nn.Module):
             )
             self.transformer.extend([RepMixerBlock(dim=model_dim)])
         else:
-            raise ValueError(f"Unrecognised text encoder variant: {variant!r}")
+            raise ValueError(f"Unrecognized text encoder variant: {variant!r}")
 
         self.final_layer_norm = get_normalization_layer(num_features=model_dim, norm_type=norm_layer)
         self.projection_layer = nn.Parameter(torch.empty(model_dim, self.projection_dim))
@@ -979,7 +980,7 @@ class MobileCLIPTextTransformer(nn.Module):
     def encode_text(
         self,
         text: torch.Tensor,
-        key_padding_mask: Optional[torch.Tensor] = None,
+        key_padding_mask: torch.Tensor | None = None,
         return_all_tokens: bool = False,
         input_is_embeddings: bool = False,
         *args,
@@ -1036,7 +1037,7 @@ class MobileCLIPTextTransformer(nn.Module):
     def forward(
         self,
         text_tokens: torch.Tensor,
-        key_padding_mask: Optional[torch.Tensor] = None,
+        key_padding_mask: torch.Tensor | None = None,
         return_all_tokens: bool = False,
         input_is_embeddings: bool = False,
         *args,

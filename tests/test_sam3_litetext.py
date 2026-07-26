@@ -181,7 +181,7 @@ class TestTextStudentEncoder:
         enc = self._make_encoder(context_length=16)
         enc.eval()
         with torch.no_grad():
-            mask, memory, _ = enc(["test prompt"])
+            _mask, memory, _ = enc(["test prompt"])
         assert memory.shape[0] == 16
 
 

@@ -14,9 +14,9 @@ from .mobile_clip import MobileCLIPTextTransformer
 class TextStudentEncoder(nn.Module):
     """Lightweight SAM3 text encoder backed by a MobileCLIP text transformer.
 
-    This encoder replaces the heavy CLIP ViT-L text encoder (353 M params) with a compact MobileCLIP transformer
-    (42–124 M params depending on the variant).  It tokenises input strings with the standard OpenAI CLIP BPE
-    vocabulary and projects the transformer output to the SAM3 model dimension.
+    This encoder replaces the heavy CLIP ViT-L text encoder (353 M params) with a compact MobileCLIP transformer (42–124
+    M params depending on the variant). It tokenises input strings with the standard OpenAI CLIP BPE vocabulary and
+    projects the transformer output to the SAM3 model dimension.
 
     Three backbone variants are available:
 

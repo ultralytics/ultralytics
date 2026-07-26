@@ -231,8 +231,8 @@ def _peek_litetext_pos_embed_length(checkpoint_path: str) -> int | None:
     - ``*_fixed.pt`` — already saved at the **operational** context length (e.g. 16 or 32).
     - Hypothetical raw checkpoints — saved with the original pre-training length (e.g. 77).
 
-    By peeking at the stored tensor shape we can build ``TextStudentEncoder`` at exactly the
-    right size so that :func:`torch.nn.Module.load_state_dict` never encounters a shape mismatch.
+    By peeking at the stored tensor shape we can build ``TextStudentEncoder`` at exactly the right size so that
+    :func:`torch.nn.Module.load_state_dict` never encounters a shape mismatch.
 
     Args:
         checkpoint_path (str): Path to the LiteText checkpoint file.
@@ -280,22 +280,22 @@ def build_sam3_image_model(
 ):
     """Build a SAM3 semantic image model, optionally with a lightweight LiteText encoder.
 
-    The function auto-detects whether ``checkpoint_path`` refers to a SAM3-LiteText checkpoint by inspecting
-    the filename. Filenames containing ``"litetext-s0"``, ``"litetext-s1"``, or ``"litetext-l"`` (case-insensitive),
-    or the original EfficientSAM3 naming (``"efficient_sam3_text_*"``), will use
-    :class:`~ultralytics.models.sam.sam3.text_encoder_student.TextStudentEncoder` instead of the default heavy
-    CLIP ViT-L text encoder.
+    The function auto-detects whether ``checkpoint_path`` refers to a SAM3-LiteText checkpoint by inspecting the
+    filename. Filenames containing ``"litetext-s0"``, ``"litetext-s1"``, or ``"litetext-l"`` (case-insensitive), or the
+    original EfficientSAM3 naming (``"efficient_sam3_text_*"``), will use
+    :class:`~ultralytics.models.sam.sam3.text_encoder_student.TextStudentEncoder` instead of the default heavy CLIP
+    ViT-L text encoder.
 
-    The operational context length is also auto-detected from the filename (``ctx16`` → 16, ``ctx32`` → 32),
-    falling back to 16 when not specified. Pass ``litetext_context_length`` explicitly to override.
+    The operational context length is also auto-detected from the filename (``ctx16`` → 16, ``ctx32`` → 32), falling
+    back to 16 when not specified. Pass ``litetext_context_length`` explicitly to override.
 
     Args:
         checkpoint_path (str): Path to the model checkpoint file.
         enable_segmentation (bool): Whether to attach the segmentation head. Default is True.
         compile (bool): Whether to JIT-compile the vision backbone. Default is False.
-        litetext_context_length (int | None): Operational context length for LiteText checkpoints. When ``None``
-            the value is auto-detected from the filename (``ctx16`` / ``ctx32``), defaulting to 16. Ignored for
-            standard SAM3 checkpoints.
+        litetext_context_length (int | None): Operational context length for LiteText checkpoints. When ``None`` the
+            value is auto-detected from the filename (``ctx16`` / ``ctx32``), defaulting to 16. Ignored for standard
+            SAM3 checkpoints.
 
     Returns:
         (SAM3SemanticModel): Configured and weight-loaded SAM3 model ready for evaluation.

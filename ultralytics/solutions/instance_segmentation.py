@@ -13,7 +13,7 @@ class InstanceSegmentation(BaseSolution):
     drawing segmented masks with bounding boxes and labels.
 
     Attributes:
-        model (str): The segmentation model to use for inference.
+        model (YOLO): The segmentation model instance used for inference.
         line_width (int): Width of the bounding box and text lines.
         names (dict[int, str]): Dictionary mapping class indices to class names.
         clss (list[int]): List of detected class indices.
@@ -39,9 +39,9 @@ class InstanceSegmentation(BaseSolution):
 
         Args:
             **kwargs (Any): Keyword arguments passed to the BaseSolution parent class including:
-                - model (str): Model name or path, defaults to "yolo11n-seg.pt".
+                - model (str): Model name or path, defaults to "yolo26n-seg.pt".
         """
-        kwargs["model"] = kwargs.get("model", "yolo11n-seg.pt")
+        kwargs["model"] = kwargs.get("model", "yolo26n-seg.pt")
         super().__init__(**kwargs)
 
         self.show_conf = self.CFG.get("show_conf", True)

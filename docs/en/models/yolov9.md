@@ -1,4 +1,5 @@
 ---
+title: YOLOv9 Object Detection with PGI and GELAN
 comments: true
 description: Explore YOLOv9, a leap in real-time object detection, featuring innovations like PGI and GELAN, and achieving new benchmarks in efficiency and accuracy.
 keywords: YOLOv9, object detection, real-time, PGI, GELAN, deep learning, MS COCO, AI, neural networks, model efficiency, accuracy, Ultralytics
@@ -19,7 +20,7 @@ YOLOv9 marks a significant advancement in real-time object detection, introducin
   <strong>Watch:</strong> YOLOv9 Training on Custom Data using Ultralytics | Industrial Package Dataset
 </p>
 
-![YOLOv9 performance comparison](https://github.com/ultralytics/docs/releases/download/0/yolov9-performance-comparison.avif)
+![YOLOv9 performance comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov9-performance-comparison.avif)
 
 ## Introduction to YOLOv9
 
@@ -33,7 +34,7 @@ YOLOv9's advancements are deeply rooted in addressing the challenges posed by in
 
 The Information Bottleneck Principle reveals a fundamental challenge in deep learning: as data passes through successive layers of a network, the potential for information loss increases. This phenomenon is mathematically represented as:
 
-```python
+```text
 I(X, X) >= I(X, f_theta(X)) >= I(X, g_phi(f_theta(X)))
 ```
 
@@ -61,11 +62,11 @@ PGI is a novel concept introduced in YOLOv9 to combat the information bottleneck
 
 GELAN represents a strategic architectural advancement, enabling YOLOv9 to achieve superior parameter utilization and computational efficiency. Its design allows for flexible integration of various computational blocks, making YOLOv9 adaptable to a wide range of applications without sacrificing speed or accuracy.
 
-![YOLOv9 architecture comparison](https://github.com/ultralytics/docs/releases/download/0/yolov9-architecture-comparison.avif)
+![YOLOv9 architecture comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov9-architecture-comparison.avif)
 
 ## YOLOv9 Benchmarks
 
-Benchmarking in YOLOv9 using [Ultralytics](https://docs.ultralytics.com/modes/benchmark/) involves evaluating the performance of your trained and validated model in real-world scenarios. This process includes:
+Benchmarking in YOLOv9 using [Ultralytics](../modes/benchmark.md) involves evaluating the performance of your trained and validated model in real-world scenarios. This process includes:
 
 - **Performance Evaluation:** Assessing the model's speed and accuracy.
 - **Export Formats:** Testing the model across different export formats to ensure it meets the necessary standards and performs well in various environments.
@@ -192,15 +193,17 @@ We would like to acknowledge the YOLOv9 authors for their significant contributi
     === "BibTeX"
 
         ```bibtex
-        @article{wang2024yolov9,
+        @inproceedings{wang2024yolov9,
           title={YOLOv9: Learning What You Want to Learn Using Programmable Gradient Information},
-          author={Wang, Chien-Yao  and Liao, Hong-Yuan Mark},
-          booktitle={arXiv preprint arXiv:2402.13616},
-          year={2024}
+          author={Wang, Chien-Yao and Yeh, I-Hau and Liao, Hong-Yuan Mark},
+          booktitle={Computer Vision -- ECCV 2024},
+          pages={1--21},
+          year={2024},
+          organization={Springer Nature Switzerland}
         }
         ```
 
-The original YOLOv9 paper can be found on [arXiv](https://arxiv.org/pdf/2402.13616). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov9). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
+The official YOLOv9 paper was published in the [Springer ECCV 2024 proceedings](https://link.springer.com/chapter/10.1007/978-3-031-72751-1_1), with a preprint on [arXiv](https://arxiv.org/pdf/2402.13616). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov9). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
 ## FAQ
 

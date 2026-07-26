@@ -7,7 +7,7 @@ import math
 
 import numpy as np
 import torch
-import torch.nn as nn
+from torch import nn
 
 __all__ = (
     "CBAM",
@@ -157,7 +157,7 @@ class LightConv(nn.Module):
         conv2 (DWConv): Depthwise convolution layer.
     """
 
-    def __init__(self, c1, c2, k=1, act=nn.ReLU()):
+    def __init__(self, c1, c2, k=1, act=None):
         """Initialize LightConv layer with given parameters.
 
         Args:
@@ -167,6 +167,7 @@ class LightConv(nn.Module):
             act (nn.Module): Activation function.
         """
         super().__init__()
+        act = nn.ReLU() if act is None else act
         self.conv1 = Conv(c1, c2, 1, act=False)
         self.conv2 = DWConv(c2, c2, k, act=act)
 
@@ -257,7 +258,7 @@ class ConvTranspose(nn.Module):
         return self.act(self.bn(self.conv_transpose(x)))
 
     def forward_fuse(self, x):
-        """Apply activation and convolution transpose operation to input.
+        """Apply convolution transpose and activation to input.
 
         Args:
             x (torch.Tensor): Input tensor.
@@ -296,7 +297,7 @@ class Focus(nn.Module):
     def forward(self, x):
         """Apply Focus operation and convolution to input tensor.
 
-        Input shape is (B, C, W, H) and output shape is (B, 4C, W/2, H/2).
+        Input shape is (B, C, H, W) and output shape is (B, c2, H/2, W/2).
 
         Args:
             x (torch.Tensor): Input tensor.

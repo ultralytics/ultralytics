@@ -38,7 +38,7 @@ def _log_plot(title: str, plot_path: str) -> None:
 
     Args:
         title (str): The title of the plot.
-        plot_path (str): The path to the saved image file.
+        plot_path (str | Path): The path to the saved image file.
     """
     import matplotlib.image as mpimg
     import matplotlib.pyplot as plt
@@ -66,7 +66,7 @@ def on_pretrain_routine_start(trainer) -> None:
             PatchedMatplotlib.update_current_task(None)
         else:
             task = Task.init(
-                project_name=trainer.args.project or "Ultralytics",
+                project_name=str(trainer.args.project or "Ultralytics").lstrip("/") or "Ultralytics",
                 task_name=trainer.args.name,
                 tags=["Ultralytics"],
                 output_uri=True,
@@ -77,7 +77,7 @@ def on_pretrain_routine_start(trainer) -> None:
                 "ClearML Initialized a new task. If you want to run remotely, "
                 "please add clearml-init and connect your arguments before initializing YOLO."
             )
-        task.connect(vars(trainer.args), name="General")
+        task.connect(vars(trainer.args), name="General", ignore_remote_overrides=True)
     except Exception as e:
         LOGGER.warning(f"ClearML installed but not initialized correctly, not logging this run. {e}")
 

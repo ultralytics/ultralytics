@@ -1,12 +1,18 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import os
 import shutil
 import sys
 import tempfile
+from typing import TYPE_CHECKING
 
 from . import USER_CONFIG_DIR
 from .torch_utils import TORCH_1_9
+
+if TYPE_CHECKING:
+    from ultralytics.engine.trainer import BaseTrainer
 
 
 def find_free_network_port() -> int:
@@ -17,15 +23,30 @@ def find_free_network_port() -> int:
 
     Returns:
         (int): The available network port number.
+
+    Notes:
+        Candidates are drawn below the default OS ephemeral floor (32768 on Linux, 49152 on macOS and Windows)
+        because the port is released here and rebound later by the DDP subprocess. An ephemeral port can be handed to
+        any outbound connection in that window, which surfaces as an EADDRINUSE rendezvous failure at launch.
     """
+    import random
     import socket
 
+    # SystemRandom as init_seeds() seeds the global RNG earlier in this process, which would hand every concurrent
+    # DDP launch on a host the same candidate list
+    for port in random.SystemRandom().sample(range(10000, 32768), 10):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind(("127.0.0.1", port))
+                return port
+            except OSError:
+                continue  # in use by an explicit listener, try the next candidate
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(("127.0.0.1", 0))
-        return s.getsockname()[1]  # port
+        s.bind(("127.0.0.1", 0))  # no non-ephemeral candidate available, fall back to an ephemeral port
+        return s.getsockname()[1]
 
 
-def generate_ddp_file(trainer):
+def generate_ddp_file(trainer: BaseTrainer) -> str:
     """Generate a DDP (Distributed Data Parallel) file for multi-GPU training.
 
     This function creates a temporary Python file that enables distributed training across multiple GPUs. The file
@@ -40,6 +61,8 @@ def generate_ddp_file(trainer):
 
     Notes:
         The generated file is saved in the USER_CONFIG_DIR/DDP directory and includes:
+        - Process group initialization, done before importing ultralytics so that RANK and LOCAL_RANK are only
+          trusted inside a real DDP context
         - Trainer class import
         - Configuration overrides from the trainer arguments
         - Model path configuration
@@ -47,9 +70,17 @@ def generate_ddp_file(trainer):
     """
     module, name = f"{trainer.__class__.__module__}.{trainer.__class__.__name__}".rsplit(".", 1)
 
+    # Serialize augmentations to JSON-safe dicts to avoid NameError in DDP subprocess
+    overrides = vars(trainer.args).copy()
+    if overrides.get("augmentations") is not None:
+        import albumentations as A
+
+        overrides["augmentations"] = [A.to_dict(t) for t in overrides["augmentations"]]
+
     content = f"""
 # Ultralytics Multi-GPU training temp file (should be automatically deleted after use)
-overrides = {vars(trainer.args)}
+from pathlib import Path, PosixPath  # For model arguments stored as Path instead of str
+overrides = {overrides}
 
 if __name__ == "__main__":
     import os
@@ -59,7 +90,7 @@ if __name__ == "__main__":
     import torch.distributed as dist
 
     LOCAL_RANK = int(os.getenv("LOCAL_RANK"))
-    torch.cuda.set_device(LOCAL_RANK)
+    torch.cuda.set_device(int("{trainer.args.device}".split(",")[LOCAL_RANK]))  # world_size > 1 is a multi-device string
     os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
     dist.init_process_group(
         backend="nccl" if dist.is_nccl_available() else "gloo",
@@ -70,6 +101,11 @@ if __name__ == "__main__":
 
     from {module} import {name}
     from ultralytics.utils import DEFAULT_CFG_DICT
+
+    # Deserialize augmentations from dicts back to Albumentations transform objects
+    if overrides.get("augmentations") is not None:
+        import albumentations as A
+        overrides["augmentations"] = [A.from_dict(t) for t in overrides["augmentations"]]
 
     cfg = DEFAULT_CFG_DICT.copy()
     cfg.update(save_dir='')   # handle the extra key 'save_dir'
@@ -93,7 +129,7 @@ if __name__ == "__main__":
     return file.name
 
 
-def generate_ddp_command(trainer):
+def generate_ddp_command(trainer: BaseTrainer) -> tuple[list[str], str]:
     """Generate command for distributed training.
 
     Args:
@@ -123,7 +159,7 @@ def generate_ddp_command(trainer):
     return cmd, file
 
 
-def ddp_cleanup(trainer, file):
+def ddp_cleanup(trainer: BaseTrainer, file: str) -> None:
     """Delete temporary file if created during distributed data parallel (DDP) training.
 
     This function checks if the provided file contains the trainer's ID in its name, indicating it was created as a

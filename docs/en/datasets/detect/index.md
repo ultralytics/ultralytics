@@ -20,17 +20,39 @@ The Ultralytics YOLO format is a dataset configuration format that allows you to
     --8<-- "ultralytics/cfg/datasets/coco8.yaml"
     ```
 
+Each of `train`, `val`, and `test` accepts a directory, a list of directories, or a `*.txt` file listing one image path per line (paths starting with `./` resolve relative to the `*.txt` file). A `*.txt` file is useful to train on a subset of a directory, skip unlabeled images, or combine images from multiple sources into one split.
+
+!!! example "Image paths as a `*.txt` file"
+
+    === "dataset.yaml"
+
+        ```yaml
+        path: datasets/coco8 # dataset root
+        train: train.txt # a directory, a list e.g. [images/a, images/b], or a *.txt file
+        val: val.txt
+        names:
+          0: person
+        ```
+
+    === "train.txt"
+
+        ```text
+        ./images/im0.jpg
+        ./images/im1.jpg
+        /data/shared/im2.jpg
+        ```
+
 Labels for this format should be exported to YOLO format with one `*.txt` file per image. If there are no objects in an image, no `*.txt` file is required. The `*.txt` file should be formatted with one row per object in `class x_center y_center width height` format. Box coordinates must be in **normalized xywh** format (from 0 to 1). If your boxes are in pixels, you should divide `x_center` and `width` by image width, and `y_center` and `height` by image height. Class numbers should be zero-indexed (start with 0).
 
-<p align="center"><img width="750" src="https://github.com/ultralytics/docs/releases/download/0/two-persons-tie.avif" alt="Example labeled image"></p>
+<p align="center"><img width="750" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie.avif" alt="YOLO labeled image with bounding boxes on persons and tie"></p>
 
 The label file corresponding to the above image contains 2 persons (class `0`) and a tie (class `27`):
 
-<p align="center"><img width="428" src="https://github.com/ultralytics/docs/releases/download/0/two-persons-tie-1.avif" alt="Example label file"></p>
+<p align="center"><img width="428" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie-1.avif" alt="YOLO format label file with normalized coordinates"></p>
 
 When using the Ultralytics YOLO format, organize your training and validation images and labels as shown in the [COCO8 dataset](coco8.md) example below.
 
-<p align="center"><img width="800" src="https://github.com/ultralytics/docs/releases/download/0/two-persons-tie-2.avif" alt="Example dataset directory structure"></p>
+<p align="center"><img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie-2.avif" alt="YOLO dataset directory structure with train and val folders"></p>
 
 #### Usage Example
 
@@ -85,7 +107,7 @@ An NDJSON dataset file contains:
         }
         ```
 
-    === "Image record (lines 2+)"
+    === "Detect"
 
         ```json
         {
@@ -97,20 +119,99 @@ An NDJSON dataset file contains:
             "split": "train",
             "annotations": {
                 "boxes": [
-                    [0, 0.52481, 0.37629, 0.28394, 0.41832],
-                    [1, 0.73526, 0.29847, 0.19275, 0.33691]
+                    [0, 0.525, 0.376, 0.284, 0.418],
+                    [1, 0.735, 0.298, 0.193, 0.337]
                 ]
             }
         }
         ```
 
-**Annotation formats by task:**
+        Format: `[class_id, x_center, y_center, width, height]`
 
-- **Detection:** `"annotations": {"boxes": [[class_id, x_center, y_center, width, height], ...]}`
-- **Segmentation:** `"annotations": {"segments": [[class_id, x1, y1, x2, y2, ...], ...]}`
-- **Pose:** `"annotations": {"pose": [[class_id, x1, y1, v1, x2, y2, v2, ...], ...]}`
-- **OBB:** `"annotations": {"obb": [[class_id, x_center, y_center, width, height, angle], ...]}`
-- **Classification:** `"annotations": {"classification": [class_id]}`
+    === "Segment"
+
+        ```json
+        {
+            "type": "image",
+            "file": "image1.jpg",
+            "url": "https://www.url.com/path/to/image1.jpg",
+            "width": 640,
+            "height": 480,
+            "split": "train",
+            "annotations": {
+                "segments": [
+                    [0, 0.681, 0.485, 0.670, 0.487, 0.676, 0.487, 0.688, 0.515],
+                    [1, 0.422, 0.315, 0.438, 0.330, 0.445, 0.328, 0.450, 0.320]
+                ]
+            }
+        }
+        ```
+
+        Format: `[class_id, x1, y1, x2, y2, x3, y3, ...]`
+
+    === "Pose"
+
+        ```json
+        {
+            "type": "image",
+            "file": "image1.jpg",
+            "url": "https://www.url.com/path/to/image1.jpg",
+            "width": 640,
+            "height": 480,
+            "split": "train",
+            "annotations": {
+                "pose": [
+                    [0, 0.523, 0.376, 0.283, 0.418, 0.374, 0.169, 2, 0.364, 0.178, 2],
+                    [0, 0.735, 0.298, 0.193, 0.337, 0.412, 0.225, 2, 0.408, 0.231, 2]
+                ]
+            }
+        }
+        ```
+
+        Format: `[class_id, x_center, y_center, width, height, x1, y1, v1, x2, y2, v2, ...]`
+
+        Keypoints follow bbox as repeated `(x, y, v)` triplets where `v` is visibility: 0=not labeled, 1=labeled but occluded, 2=labeled and visible. The keypoint count is dataset-specific (e.g., COCO pose has 17 keypoints = 51 values after bbox).
+
+    === "OBB"
+
+        ```json
+        {
+            "type": "image",
+            "file": "image1.jpg",
+            "url": "https://www.url.com/path/to/image1.jpg",
+            "width": 640,
+            "height": 480,
+            "split": "train",
+            "annotations": {
+                "obb": [
+                    [0, 0.480, 0.352, 0.568, 0.356, 0.572, 0.400, 0.484, 0.396],
+                    [1, 0.711, 0.274, 0.759, 0.278, 0.755, 0.322, 0.707, 0.318]
+                ]
+            }
+        }
+        ```
+
+        Format: `[class_id, x1, y1, x2, y2, x3, y3, x4, y4]`
+
+        The four corner points define the oriented bounding box in clockwise order starting from the top-left corner. All coordinates are normalized (0-1).
+
+    === "Classify"
+
+        ```json
+        {
+            "type": "image",
+            "file": "image1.jpg",
+            "url": "https://www.url.com/path/to/image1.jpg",
+            "width": 640,
+            "height": 480,
+            "split": "train",
+            "annotations": {
+                "classification": [0]
+            }
+        }
+        ```
+
+        Format: `[class_id]`
 
 #### Usage Example
 
@@ -156,8 +257,12 @@ Here is a list of the supported datasets and a brief description for each:
 - [COCO8](coco8.md): A smaller subset of the first 4 images from COCO train and COCO val, suitable for quick tests.
 - [COCO8-Grayscale](coco8-grayscale.md): A grayscale version of COCO8 created by converting RGB to grayscale, useful for single-channel model evaluation.
 - [COCO8-Multispectral](coco8-multispectral.md): A 10-channel multispectral version of COCO8 created by interpolating RGB wavelengths, useful for spectral-aware model evaluation.
-- [COCO128](coco128.md): A smaller subset of the first 128 images from COCO train and COCO val, suitable for tests.
-- [Construction-PPE](construction-ppe.md): A dataset featuring construction site workers with labeled safety gear such as helmets, vests, gloves, boots, and goggles, including missing-equipment annotations like no_helmet, no_googles for real-world compliance monitoring.
+- [COCO12-Formats](coco12-formats.md): A test dataset with 12 images covering 12 supported image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) for validating image loading pipelines.
+- [COCO16](https://github.com/ultralytics/assets/releases/download/v0.0.0/coco16.zip): A subset of the first 16 images from COCO train2017 (8 train + 8 val), suitable for quick tests.
+- [COCO32](https://github.com/ultralytics/assets/releases/download/v0.0.0/coco32.zip): A subset of the first 32 images from COCO train2017 (16 train + 16 val), suitable for quick tests.
+- [COCO64](https://github.com/ultralytics/assets/releases/download/v0.0.0/coco64.zip): A subset of the first 64 images from COCO train2017 (32 train + 32 val), suitable for quick tests.
+- [COCO128](coco128.md): A smaller subset of the first 128 images from COCO train2017, suitable for tests.
+- [Construction-PPE](construction-ppe.md): A dataset featuring construction site workers with labeled safety gear such as helmets, vests, gloves, boots, and goggles, including missing-equipment annotations like no_helmet, no_goggle for real-world compliance monitoring.
 - [Global Wheat 2020](globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
 - [HomeObjects-3K](homeobjects-3k.md): A dataset of indoor household items including beds, chairs, TVs, and more—ideal for applications in smart home automation, robotics, augmented reality, and room layout analysis.
 - [KITTI](kitti.md): A dataset featuring real-world driving scenes with stereo, LiDAR, and GPS/IMU data, used here for **2D object detection** tasks such as identifying cars, pedestrians, and cyclists in urban, rural, and highway environments.
@@ -168,7 +273,7 @@ Here is a list of the supported datasets and a brief description for each:
 - [Roboflow 100](roboflow-100.md): A diverse object detection benchmark with 100 datasets spanning seven imagery domains for comprehensive model evaluation.
 - [Signature](signature.md): A dataset featuring images of various documents with annotated signatures, supporting document verification and fraud detection research.
 - [SKU-110K](sku-110k.md): A dataset featuring dense object detection in retail environments with over 11K images and 1.7 million [bounding boxes](https://www.ultralytics.com/glossary/bounding-box).
-- [TT100K](tt100k.md): Explore the Tsinghua-Tencent 100K (TT100K) traffic sign dataset with 100,000 street view images and 30,000+ annotated traffic signs for robust detection and classification.
+- [TT100K](tt100k.md): Explore the Tsinghua-Tencent 100K (TT100K) traffic sign dataset with 16,817 street-view images across 221 sign categories for robust detection and classification.
 - [VisDrone](visdrone.md): A dataset containing object detection and multi-object tracking data from drone-captured imagery with over 10K images and video sequences.
 - [VOC](voc.md): The Pascal Visual Object Classes (VOC) dataset for object detection and segmentation with 20 object classes and over 11K images.
 - [xView](xview.md): A dataset for object detection in overhead imagery with 60 object categories and over 1 million annotated objects.
@@ -196,6 +301,10 @@ You can easily convert labels from the popular [COCO dataset](coco.md) format to
 This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format. The process transforms the JSON-based COCO annotations into the simpler text-based YOLO format, making it compatible with [Ultralytics YOLO models](../../models/yolo26.md).
 
 Remember to double-check if the dataset you want to use is compatible with your model and follows the necessary format conventions. Properly formatted datasets are crucial for training successful object detection models.
+
+## What's Next
+
+With your dataset formatted, [start training your model](../../modes/train.md). Not sure which pretrained model to start from? Compare options in the [YOLO26 model family](../../models/yolo26.md).
 
 ## FAQ
 

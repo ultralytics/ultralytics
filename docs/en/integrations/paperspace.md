@@ -1,4 +1,5 @@
 ---
+title: YOLO26 Training on Paperspace Gradient
 comments: true
 description: Simplify YOLO26 training with Paperspace Gradient's all-in-one MLOps platform. Access GPUs, automate workflows, and deploy with ease.
 keywords: YOLO26, Paperspace Gradient, MLOps, machine learning, training, GPUs, Jupyter notebooks, model deployment, AI, cloud platform
@@ -13,7 +14,7 @@ This is where a platform like Paperspace Gradient can make things simpler. Paper
 ## Paperspace
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/paperspace-overview.avif" alt="Paperspace Overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/paperspace-overview.avif" alt="Paperspace GPU cloud computing for ML training">
 </p>
 
 [Paperspace](https://www.paperspace.com/), launched in 2014 by University of Michigan graduates and acquired by DigitalOcean in 2023, is a cloud platform specifically designed for machine learning. It provides users with powerful GPUs, collaborative Jupyter notebooks, a container service for deployments, automated workflows for machine learning tasks, and high-performance virtual machines. These features aim to streamline the entire machine learning development process, from coding to deployment.
@@ -21,7 +22,7 @@ This is where a platform like Paperspace Gradient can make things simpler. Paper
 ## Paperspace Gradient
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/paperspace-gradient-overview.avif" alt="Paperspace Gradient Overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/paperspace-gradient-overview.avif" alt="Paperspace Gradient cloud ML platform">
 </p>
 
 Paperspace Gradient is a suite of tools designed to make working with AI and machine learning in the cloud much faster and easier. Gradient addresses the entire [machine learning lifecycle](https://www.ultralytics.com/blog/measuring-ai-performance-to-weigh-the-impact-of-your-innovations), from building and training models to deploying them.
@@ -34,7 +35,7 @@ Paperspace Gradient makes training a YOLO26 model possible with a few clicks. Th
 
 Sign in and then click on the "Start Machine" button shown in the image below. In a few seconds, a managed GPU environment will start up, and then you can run the notebook's cells.
 
-![Training YOLO26 Using Paperspace Gradient](https://github.com/ultralytics/docs/releases/download/0/start-machine-button.avif)
+![Training YOLO26 Using Paperspace Gradient](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/start-machine-button.avif)
 
 Explore more capabilities of YOLO26 and Paperspace Gradient in a discussion with Glenn Jocher, Ultralytics founder, and James Skelton from Paperspace. Watch the discussion below.
 
@@ -108,7 +109,7 @@ Ultralytics YOLO26 stands out for its real-time object detection capabilities an
 
 ### Can I deploy my YOLO26 model on edge devices using Paperspace Gradient?
 
-Yes, you can deploy YOLO26 models on edge devices using Paperspace Gradient. The platform supports various deployment formats like [TFLite](../integrations/tflite.md) and [Edge TPU](../integrations/edge-tpu.md), which are optimized for edge devices. After training your model on Gradient, refer to our [export guide](../modes/export.md) for instructions on converting your model to the desired format.
+Yes, you can deploy YOLO26 models on edge devices using Paperspace Gradient. The platform supports various deployment formats like [LiteRT](../integrations/litert.md) and [Edge TPU](../integrations/edge-tpu.md), which are optimized for edge devices. After training your model on Gradient, refer to our [export guide](../modes/export.md) for instructions on converting your model to the desired format.
 
 ### How does experiment tracking in Paperspace Gradient help improve YOLO26 training?
 

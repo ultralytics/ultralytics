@@ -9,8 +9,8 @@ import numpy as np
 import onnxruntime as ort
 import torch
 
-from ultralytics.utils import ASSETS, YAML
-from ultralytics.utils.checks import check_requirements, check_yaml
+from ultralytics.utils import ASSETS, ROOT, YAML
+from ultralytics.utils.checks import check_requirements
 
 
 class YOLOv8:
@@ -60,7 +60,7 @@ class YOLOv8:
         self.iou_thres = iou_thres
 
         # Load the class names from the COCO dataset
-        self.classes = YAML.load(check_yaml("coco8.yaml"))["names"]
+        self.classes = YAML.load(ROOT / "cfg/datasets/coco8.yaml")["names"]
 
         # Generate a color palette for the classes
         self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))
@@ -243,8 +243,8 @@ class YOLOv8:
 
         # Store the shape of the input for later use
         input_shape = model_inputs[0].shape
-        self.input_width = input_shape[2]
-        self.input_height = input_shape[3]
+        self.input_height = input_shape[2]
+        self.input_width = input_shape[3]
 
         # Preprocess the image data
         img_data, pad = self.preprocess()

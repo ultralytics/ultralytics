@@ -30,10 +30,34 @@ from ultralytics.utils.git import GitRepo
 from ultralytics.utils.patches import imread, imshow, imwrite, torch_save  # for patches
 from ultralytics.utils.tqdm import TQDM  # noqa
 
-# PyTorch Multi-GPU DDP Constants
+
+def env_bool(name: str, default: bool = False) -> bool:
+    """Parse a boolean environment variable, accepting common truthy strings.
+
+    Accepts "1", "true", "yes", "on", "y", "t" (case-insensitive, whitespace-trimmed) as True; any other set value is
+    False. The default is returned only when the variable is unset, not when it is set to an empty string.
+
+    Args:
+        name (str): Environment variable name.
+        default (bool): Value returned when the variable is unset.
+
+    Returns:
+        (bool): Parsed boolean value.
+
+    Examples:
+        >>> env_bool("YOLO_UNSET_EXAMPLE_VAR", True)  # returns the default when the variable is unset
+        True
+    """
+    v = os.environ.get(name)
+    return default if v is None else v.strip().lower() in {"1", "true", "yes", "on", "y", "t"}
+
+
+# PyTorch Multi-GPU DDP Constants, trusted only once the process group exists so that RANK/LOCAL_RANK left in the
+# environment by a launcher outside a DDP run are not mistaken for one (ultralytics/utils/dist.py initializes the
+# group before importing this package)
 if getattr(torch.distributed, "is_initialized", lambda: False)():
-    RANK = int(os.getenv("RANK", -1))
-    LOCAL_RANK = int(os.getenv("LOCAL_RANK", -1))  # https://pytorch.org/docs/stable/elastic/run.html
+    RANK = int(os.getenv("RANK", "-1"))
+    LOCAL_RANK = int(os.getenv("LOCAL_RANK", "-1"))  # https://pytorch.org/docs/stable/elastic/run.html
 else:
     RANK = LOCAL_RANK = -1
 
@@ -43,10 +67,13 @@ FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLO
 ASSETS = ROOT / "assets"  # default images
 ASSETS_URL = "https://github.com/ultralytics/assets/releases/download/v0.0.0"  # assets GitHub URL
+# Configurable Platform URL for debugging (e.g. ULTRALYTICS_PLATFORM_URL=http://localhost:3000)
+PLATFORM_URL = os.getenv("ULTRALYTICS_PLATFORM_URL", "https://platform.ultralytics.com").rstrip("/")
 DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
-AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"  # global auto-install mode
-VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
+AUTOINSTALL = env_bool("YOLO_AUTOINSTALL", True)  # global auto-install mode
+VERBOSE = env_bool("YOLO_VERBOSE", True)  # global verbose mode
+SAFE_LOAD = env_bool("ULTRALYTICS_SAFE_LOAD")  # opt-in weights_only model loading
 LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
 MACOS_VERSION = platform.mac_ver()[0] if MACOS else None
@@ -55,7 +82,7 @@ ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = str(torch.__version__)  # Normalize torch.__version__ (PyTorch>1.9 returns TorchVersion objects)
 TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
-IS_VSCODE = os.environ.get("TERM_PROGRAM", False) == "vscode"
+IS_VSCODE = os.environ.get("TERM_PROGRAM") == "vscode"
 RKNN_CHIPS = frozenset(
     {
         "rk3588",
@@ -71,6 +98,16 @@ RKNN_CHIPS = frozenset(
         "rv1126b",
     }
 )  # Rockchip processors available for export
+QNN_HTP_ARCHS = frozenset(
+    {
+        "68",  # Snapdragon 888
+        "69",  # Snapdragon 8 Gen 1
+        "73",  # Snapdragon 8 Gen 2 / X Elite
+        "75",  # Snapdragon 8 Gen 3
+        "79",  # Snapdragon 8 Elite
+        "81",  # Snapdragon 8 Elite Gen 5
+    }
+)  # Qualcomm Hexagon HTP architecture versions available for QNN export
 HELP_MSG = """
     Examples for running Ultralytics:
 
@@ -83,8 +120,8 @@ HELP_MSG = """
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.yaml")  # build a new model from scratch
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n.yaml")  # build a new model from scratch
+        model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
 
         # Use the model
         results = model.train(data="coco8.yaml", epochs=3)  # train the model
@@ -98,22 +135,22 @@ HELP_MSG = """
 
             yolo TASK MODE ARGS
 
-            Where   TASK (optional) is one of [detect, segment, classify, pose, obb]
+            Where   TASK (optional) is one of [detect, segment, semantic, classify, pose, obb, depth]
                     MODE (required) is one of [train, val, predict, export, track, benchmark]
                     ARGS (optional) are any number of custom "arg=value" pairs like "imgsz=320" that override defaults.
                         See all ARGS at https://docs.ultralytics.com/usage/cfg or with "yolo cfg"
 
         - Train a detection model for 10 epochs with an initial learning_rate of 0.01
-            yolo detect train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
+            yolo detect train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
 
         - Predict a YouTube video using a pretrained segmentation model at image size 320:
-            yolo segment predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+            yolo segment predict model=yolo26n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
 
         - Val a pretrained detection model at batch-size 1 and image size 640:
-            yolo detect val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
+            yolo detect val model=yolo26n.pt data=coco8.yaml batch=1 imgsz=640
 
-        - Export a YOLO11n classification model to ONNX format at image size 224 by 128 (no TASK required)
-            yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
+        - Export a YOLO26n classification model to ONNX format at image size 224 by 128 (no TASK required)
+            yolo export model=yolo26n-cls.pt format=onnx imgsz=224,128
 
         - Run special commands:
             yolo help
@@ -130,7 +167,7 @@ HELP_MSG = """
 
 # Settings and Environment Variables
 torch.set_printoptions(linewidth=320, precision=4, profile="default")
-np.set_printoptions(linewidth=320, formatter=dict(float_kind="{:11.5g}".format))  # format short g, %precision=5
+np.set_printoptions(linewidth=320, formatter={"float_kind": "{:11.5g}".format})  # format short g, %precision=5
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warnings in Colab
@@ -144,6 +181,7 @@ warnings.filterwarnings("ignore", category=FutureWarning, module="timm")  # mobi
 warnings.filterwarnings("ignore", category=torch.jit.TracerWarning)  # ONNX/TorchScript export tracer warnings
 warnings.filterwarnings("ignore", category=UserWarning, message=".*prim::Constant.*")  # ONNX shape warning
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="coremltools")  # CoreML np.bool deprecation
+logging.getLogger("coremltools").setLevel(logging.ERROR)  # Suppress native binary load failures on non-macOS
 
 # Precompiled type tuples for faster isinstance() checks
 FLOAT_OR_INT = (float, int)
@@ -164,7 +202,7 @@ class DataExportMixin:
         tojson: Deprecated alias for `to_json()`.
 
     Examples:
-        >>> model = YOLO("yolo11n.pt")
+        >>> model = YOLO("yolo26n.pt")
         >>> results = model("image.jpg")
         >>> df = results.to_df()
         >>> print(df)
@@ -353,7 +391,7 @@ def plt_settings(rcparams=None, backend="Agg"):
 
     Examples:
         >>> @plt_settings({"font.size": 12})
-        >>> def plot_function():
+        ... def plot_function():
         ...     plt.figure()
         ...     plt.plot([1, 2, 3])
         ...     plt.show()
@@ -373,6 +411,22 @@ def plt_settings(rcparams=None, backend="Agg"):
             """Set rc parameters and backend, call the original function, and restore the settings."""
             import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
 
+            # Prepend Arial Unicode for non-Latin text (CJK, Arabic, etc.); matplotlib falls back if missing
+            if "font.sans-serif" not in rcparams and not wrapper._fonts_registered:
+                from matplotlib import font_manager
+
+                # Register any fonts in Ultralytics config dir (e.g. Arial.Unicode.ttf) with matplotlib
+                known = {f.fname for f in font_manager.fontManager.ttflist}
+                for f in USER_CONFIG_DIR.glob("*.ttf"):
+                    if str(f) not in known:
+                        font_manager.fontManager.addfont(str(f))
+                wrapper._fonts_registered = True
+            rc = (
+                rcparams
+                if "font.sans-serif" in rcparams
+                else {**rcparams, "font.sans-serif": ["Arial Unicode MS", *plt.rcParams.get("font.sans-serif", [])]}
+            )
+
             original_backend = plt.get_backend()
             switch = backend.lower() != original_backend.lower()
             if switch:
@@ -381,7 +435,7 @@ def plt_settings(rcparams=None, backend="Agg"):
 
             # Plot with backend and always revert to original backend
             try:
-                with plt.rc_context(rcparams):
+                with plt.rc_context(rc):
                     result = func(*args, **kwargs)
             finally:
                 if switch:
@@ -389,6 +443,7 @@ def plt_settings(rcparams=None, backend="Agg"):
                     plt.switch_backend(original_backend)
             return result
 
+        wrapper._fonts_registered = False
         return wrapper
 
     return decorator
@@ -485,7 +540,7 @@ class ThreadingLocked:
     Examples:
         >>> from ultralytics.utils import ThreadingLocked
         >>> @ThreadingLocked()
-        >>> def my_function():
+        ... def my_function():
         ...    # Your code here
     """
 
@@ -604,11 +659,23 @@ class YAML:
 
         # Try loading YAML with fallback for problematic characters
         try:
-            data = instance.yaml.load(s, Loader=instance.SafeLoader) or {}
-        except Exception:
+            data = instance.yaml.load(s, Loader=instance.SafeLoader)
+        except Exception as e:
             # Remove problematic characters and retry
             s = re.sub(r"[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+", "", s)
-            data = instance.yaml.load(s, Loader=instance.SafeLoader) or {}
+            try:
+                data = instance.yaml.load(s, Loader=instance.SafeLoader)
+            except Exception:
+                raise ValueError(
+                    f"YAML syntax error in '{file}': {e}\nVerify YAML with https://ray.run/tools/yaml-formatter"
+                ) from None
+
+        if data is None:  # empty file, comments only, or explicit 'null'
+            data = {}
+        elif not isinstance(data, dict):  # reject non-mapping YAML (scalar/list) with a clear error, not a cryptic one
+            raise ValueError(
+                f"'{file}' is not a valid YAML mapping. Verify YAML with https://ray.run/tools/yaml-formatter"
+            )
 
         # Check for accidental user-error None strings (should be 'null' in YAML)
         if "None" in data.values():
@@ -643,10 +710,10 @@ DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
 
 def read_device_model() -> str:
-    """Read the device model information from the system and cache it for quick access.
+    """Read the device model information from the system.
 
     Returns:
-        (str): Kernel release information.
+        (str): Platform release string in lowercase, used to identify device models like Jetson or Raspberry Pi.
     """
     return platform.release().lower()
 
@@ -664,7 +731,7 @@ def is_ubuntu() -> bool:
         return False
 
 
-def is_debian(codenames: list[str] | None | str = None) -> list[bool] | bool:
+def is_debian(codenames: list[str] | str | None = None) -> list[bool] | bool:
     """Check if the OS is Debian.
 
     Args:
@@ -764,12 +831,25 @@ def is_jetson(jetpack=None) -> bool:
     jetson = "tegra" in DEVICE_MODEL
     if jetson and jetpack:
         try:
-            content = open("/etc/nv_tegra_release").read()
-            version_map = {4: "R32", 5: "R35", 6: "R36"}  # JetPack to L4T major version mapping
+            content = Path("/etc/nv_tegra_release").read_text()
+            version_map = {4: "R32", 5: "R35", 6: "R36", 7: "R38"}  # JetPack to L4T major version mapping
             return jetpack in version_map and version_map[jetpack] in content
         except Exception:
             return False
     return jetson
+
+
+def is_dgx() -> bool:
+    """Check if the current script is running inside a DGX (NVIDIA Data Center GPU), DGX-Ready or DGX Spark system.
+
+    Returns:
+        (bool): True if running in a DGX or DGX-Ready or DGX Spark system, False otherwise.
+    """
+    try:
+        with open("/etc/dgx-release") as f:
+            return "DGX" in f.read()
+    except FileNotFoundError:
+        return False
 
 
 def is_online() -> bool:
@@ -778,7 +858,7 @@ def is_online() -> bool:
     Returns:
         (bool): True if connection is successful, False otherwise.
     """
-    if str(os.getenv("YOLO_OFFLINE", "")).lower() == "true":
+    if env_bool("YOLO_OFFLINE"):
         return False
 
     for host in ("one.one.one.one", "dns.google"):
@@ -943,7 +1023,7 @@ def colorstr(*input):
 
     Examples:
         >>> colorstr("blue", "bold", "hello world")
-        >>> "\033[34m\033[1mhello world\033[0m"
+        "\033[34m\033[1mhello world\033[0m"
 
     Notes:
         Supported Colors and Styles:
@@ -991,7 +1071,7 @@ def remove_colorstr(input_string):
 
     Examples:
         >>> remove_colorstr(colorstr("blue", "bold", "hello world"))
-        >>> "hello world"
+        "hello world"
     """
     ansi_escape = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
     return ansi_escape.sub("", input_string)
@@ -1010,14 +1090,14 @@ class TryExcept(contextlib.ContextDecorator):
     Examples:
         As a decorator:
         >>> @TryExcept(msg="Error occurred in func", verbose=True)
-        >>> def func():
-        >>> # Function logic here
-        >>>     pass
+        ... def func():
+        ...     # Function logic here
+        ...     pass
 
         As a context manager:
         >>> with TryExcept(msg="Error occurred in block", verbose=True):
-        >>> # Code block here
-        >>>     pass
+        ...     # Code block here
+        ...     pass
     """
 
     def __init__(self, msg="", verbose=True):
@@ -1027,7 +1107,6 @@ class TryExcept(contextlib.ContextDecorator):
 
     def __enter__(self):
         """Execute when entering TryExcept context, initialize instance."""
-        pass
 
     def __exit__(self, exc_type, value, traceback):
         """Define behavior when exiting a 'with' block, print error message if necessary."""
@@ -1050,9 +1129,9 @@ class Retry(contextlib.ContextDecorator):
     Examples:
         Example usage as a decorator:
         >>> @Retry(times=3, delay=2)
-        >>> def test_func():
-        >>> # Replace with function logic that may raise exceptions
-        >>>     return True
+        ... def test_func():
+        ...     # Replace with function logic that may raise exceptions
+        ...     return True
     """
 
     def __init__(self, times=3, delay=2):
@@ -1074,7 +1153,7 @@ class Retry(contextlib.ContextDecorator):
                     self._attempts += 1
                     LOGGER.warning(f"Retry {self._attempts}/{self.times} failed: {e}")
                     if self._attempts >= self.times:
-                        raise e
+                        raise
                     time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay
 
         return wrapped_func
@@ -1091,7 +1170,8 @@ def threaded(func):
         func (callable): The function to be potentially executed in a separate thread.
 
     Returns:
-        (callable): A wrapper function that either returns a daemon thread or the direct function result.
+        (callable): A wrapper function that either returns a thread or the direct function result. The thread is
+            non-daemon so interpreter shutdown joins it before module teardown, avoiding teardown races.
 
     Examples:
         >>> @threaded
@@ -1105,7 +1185,9 @@ def threaded(func):
     def wrapper(*args, **kwargs):
         """Multi-thread a given function based on 'threaded' kwarg and return the thread or function result."""
         if kwargs.pop("threaded", True):  # run in thread
-            thread = threading.Thread(target=func, args=args, kwargs=kwargs, daemon=True)
+            # Non-daemon so interpreter shutdown joins the thread before module teardown; a daemon thread still
+            # running at exit can be killed mid-C-call, aborting the process (e.g. 'FATAL: exception not rethrown').
+            thread = threading.Thread(target=func, args=args, kwargs=kwargs, daemon=False)
             thread.start()
             return thread
         else:
@@ -1404,14 +1486,14 @@ def deprecation_warn(arg, new_arg=None):
 
 
 def clean_url(url):
-    """Strip auth from URL, i.e. https://url.com/file.txt?auth -> https://url.com/file.txt."""
+    """Strip auth from URL, i.e. `https://example.com/path/file.txt?auth` -> `https://example.com/path/file.txt`."""
     url = Path(url).as_posix().replace(":/", "://")  # Pathlib turns :// -> :/, as_posix() for Windows
-    return unquote(url).split("?", 1)[0]  # '%2F' to '/', split https://url.com/file.txt?auth
+    return unquote(url).split("?", 1)[0]  # '%2F' to '/', split authentication query strings
 
 
 def url2file(url):
-    """Convert URL to filename, i.e. https://url.com/file.txt?auth -> file.txt."""
-    return Path(clean_url(url)).name
+    """Convert URL to filename, i.e. `https://example.com/path/file.txt?auth` -> `file.txt`."""
+    return Path(clean_url(url)).name or "download"
 
 
 def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:

@@ -121,7 +121,9 @@ def recognize(args) -> None:
 def identify_shelves(args, embed, gallery) -> None:
     """Detect products in each shelf image, embed every crop, and save an annotated copy per image."""
     detector = YOLO(args.detector)
-    for result in detector.predict(args.source, imgsz=args.det_imgsz, conf=args.conf, device=args.device, verbose=False):
+    for result in detector.predict(
+        args.source, imgsz=args.det_imgsz, conf=args.conf, device=args.device, verbose=False
+    ):
         src = Path(result.path)
         boxes = result.boxes.xyxy.cpu().numpy().astype(int)
         if not len(boxes):
@@ -160,7 +162,9 @@ def parse_args():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     io = p.add_mutually_exclusive_group(required=True)
     io.add_argument("--source", help="full shelf image or folder, runs the detector then identifies each crop")
-    io.add_argument("--crops", help="pre-cropped product image or folder, skips the detector and identifies each directly")
+    io.add_argument(
+        "--crops", help="pre-cropped product image or folder, skips the detector and identifies each directly"
+    )
     p.add_argument(
         "--detector",
         default="ul://fatih-enterprise/yolo26-sku-detection/yolo26l-sku-detector-sku-110k",

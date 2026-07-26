@@ -1,3 +1,5 @@
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 // On-device SKU recognition: detect products in a shelf photo with the YOLO CoreML detector, embed each
 // crop with the ReID CoreML model, and assign it to a folder-per-SKU gallery by a top-k cosine vote.
 // This is the iOS/CoreML counterpart of the Python sku_recognition.py --source pipeline.

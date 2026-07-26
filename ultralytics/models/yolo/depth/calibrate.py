@@ -212,8 +212,10 @@ def fit_calibration_selective(
         return None
     res = select_calibration_cv(pairs, margin=margin)
     res["images"] = len(pairs)
-    head.cal_a.fill_(res["a"])
-    head.cal_b.fill_(res["b"])
+    # On CUDA the buffers are inference tensors (the device move ran under inference_mode); reassign instead
+    # of an in-place fill_ so the write is legal and the buffers stay normal/saveable for model.save().
+    head.cal_a = torch.full_like(head.cal_a, res["a"])
+    head.cal_b = torch.full_like(head.cal_b, res["b"])
     scores = " ".join(f"{n}={v:.4f}" for n, v in res["cv_scores"].items())
     LOGGER.info(
         f"Depth calibration selected '{res['name']}' (a={res['a']:.4f} b={res['b']:.4f}); CV held-out δ1 {scores}"

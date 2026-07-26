@@ -39,6 +39,8 @@ yolo export model=yolo26n-sem.pt format=onnx opset=12  # semantic
 
 See the [Export documentation](https://docs.ultralytics.com/modes/export) for more options.
 
+[YOLOE](https://docs.ultralytics.com/models/yoloe) models must have their vocabulary baked in with `set_classes()` before export — see [YOLOE Export Usage](https://docs.ultralytics.com/models/yoloe#export-usage).
+
 To run a half-precision model, export with `quantize=16` **on a GPU** (on CPU, `quantize=16` is ignored and the export stays FP32). The example detects the FP16 input type and runs it automatically:
 
 ```bash

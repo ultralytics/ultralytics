@@ -84,7 +84,7 @@ class DetectionValidator(BaseValidator):
         self.is_coco = (
             isinstance(val, str)
             and "coco" in val
-            and (val.endswith(f"{os.sep}val2017.txt") or val.endswith(f"{os.sep}test-dev2017.txt"))
+            and (val.endswith((f"{os.sep}val2017.txt", f"{os.sep}test-dev2017.txt")))
         )  # is COCO
         self.is_lvis = isinstance(val, str) and "lvis" in val and not self.is_coco  # is LVIS
         self.class_map = converter.coco80_to_coco91_class() if self.is_coco else list(range(1, len(model.names) + 1))
@@ -113,9 +113,10 @@ class DetectionValidator(BaseValidator):
             (list[dict[str, torch.Tensor]]): Processed predictions after NMS, where each dict contains 'bboxes', 'conf',
                 'cls', and 'extra' tensors.
         """
-        _tc = lambda p: (p.float() if p.dtype == torch.float16 else p).cpu() if isinstance(p, torch.Tensor) else p  # MPS: NMS variable shapes pollute graph cache
-        if (isinstance(preds, torch.Tensor) and preds.device.type == "mps") or (isinstance(preds, (list, tuple)) and preds and isinstance(preds[0], torch.Tensor) and preds[0].device.type == "mps"):
-            preds = _tc(preds) if isinstance(preds, torch.Tensor) else type(preds)(_tc(p) for p in preds)
+        if isinstance(preds, (list, tuple)):
+            preds = preds[0]  # select only inference output
+        if preds.device.type == "mps":  # MPS: variable-shape NMS ops pollute the graph cache, run on CPU instead
+            preds = preds.float().cpu()
         outputs = nms.non_max_suppression(
             preds,
             self.args.conf,
@@ -176,8 +177,10 @@ class DetectionValidator(BaseValidator):
             preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             batch (dict[str, Any]): Batch data containing ground truth.
         """
-        if torch.is_tensor(batch.get("batch_idx")) and batch["batch_idx"].device.type == "mps":  # MPS: boolean indexing + box_iou variable shapes
-            batch.update({k: batch[k].cpu() for k in ("batch_idx", "cls", "bboxes") if torch.is_tensor(batch.get(k))})
+        device = preds[0]["bboxes"].device  # postprocess moves predictions to CPU on MPS, follow it with annotations
+        if device != batch["batch_idx"].device:
+            keys = ("batch_idx", "cls", "bboxes", "keypoints", "masks")
+            batch.update({k: batch[k].to(device) for k in keys if torch.is_tensor(batch.get(k))})
         for si, pred in enumerate(preds):
             self.seen += 1
             pbatch = self._prepare_batch(si, batch)
@@ -250,10 +253,10 @@ class DetectionValidator(BaseValidator):
         if RANK == 0:
             gathered_stats = [None] * dist.get_world_size()
             dist.gather_object(self.metrics.stats, gathered_stats, dst=0)
-            merged_stats = {key: [] for key in self.metrics.stats.keys()}
+            merged_stats = {key: [] for key in self.metrics.stats}
             for stats_dict in gathered_stats:
-                for key in merged_stats:
-                    merged_stats[key].extend(stats_dict[key])
+                for key, value in stats_dict.items():
+                    merged_stats[key].extend(value)
             gathered_jdict = [None] * dist.get_world_size()
             dist.gather_object(self.jdict, gathered_jdict, dst=0)
             self.jdict = []

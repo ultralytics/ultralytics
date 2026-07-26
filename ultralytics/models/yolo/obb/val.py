@@ -131,7 +131,7 @@ class OBBValidator(DetectionValidator):
         imgsz = batch["img"].shape[2:]
         ratio_pad = batch["ratio_pad"][si]
         if cls.shape[0]:
-            bbox[..., :4].mul_(torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]])  # target boxes
+            bbox[..., :4].mul_(torch.tensor(imgsz, device=bbox.device)[[1, 0, 1, 0]])  # target boxes
         return {
             "cls": cls,
             "bboxes": bbox,
@@ -256,7 +256,8 @@ class OBBValidator(DetectionValidator):
             pred_json = self.save_dir / "predictions.json"  # predictions
             pred_txt = self.save_dir / "predictions_txt"  # predictions
             pred_txt.mkdir(parents=True, exist_ok=True)
-            data = json.load(open(pred_json))
+            with open(pred_json) as f:
+                data = json.load(f)
             # Save split results
             LOGGER.info(f"Saving predictions with DOTA format to {pred_txt}...")
             for d in data:

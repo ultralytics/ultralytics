@@ -311,17 +311,6 @@ class BasePredictor:
             if self.args.save or self.args.save_txt:
                 (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
-            # Warmup model
-            if not self.done_warmup:
-                self.model.warmup(
-                    imgsz=(
-                        1 if self.model.format in {"pt", "triton"} else self.dataset.bs,
-                        self.model.channels,
-                        *self.imgsz,
-                    )
-                )
-                self.done_warmup = True
-
             self.seen, self.speed, self.pixels, self.windows, self.batch = 0, None, None, [], None
             px = 0  # inference pixels summed per image, so a mixed-shape source averages rather than reports its last
             profilers = (
@@ -338,6 +327,12 @@ class BasePredictor:
                 # Preprocess
                 with profilers[0]:
                     im = self.preprocess(im0s)
+
+                # Warmup model on the real input, since a shape the model has not seen compiles on first use and a
+                # square imgsz dummy never matches a letterboxed batch. Untimed, so the first inference below is clean.
+                if not self.done_warmup:
+                    self.model.warmup(imgsz=im.shape)
+                    self.done_warmup = True
 
                 # Inference
                 with profilers[1]:

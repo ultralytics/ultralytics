@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, monitoring, metrics, logs, deployment, performan
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides [monitoring for deployed endpoints](../../guides/model-monitoring-and-maintenance.md). Track request metrics, view logs, and check health status with automatic polling.
 
-![Ultralytics Platform Deploy Page Overview Cards And World Map](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-overview-cards-and-world-map.avif)
+![Ultralytics Platform Deploy Page Overview Cards And World Map](https://cdn.ul.run/i/39e125429eb799c95eb006398e8ab6a4.avif)<!-- screenshot -->
 
 ## Deployments Dashboard
 
@@ -44,7 +44,7 @@ graph TB
 
 Four summary cards at the top of the page show:
 
-![Ultralytics Platform Deploy Page Four Overview Cards](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-four-overview-cards.avif)
+![Ultralytics Platform Deploy Page Four Overview Cards](https://cdn.ul.run/i/4ee4595697397d7ffc102fed995168c1.avif)<!-- screenshot -->
 
 | Metric                   | Description                   |
 | ------------------------ | ----------------------------- |
@@ -66,7 +66,7 @@ The interactive world map shows:
 - **Animated blue pins** for regions with active deployments in progress
 - **Pin size** varies based on deployment status and latency
 
-![Ultralytics Platform Deploy Page World Map With Deployed Regions](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-world-map-with-deployed-regions.avif)
+![Ultralytics Platform Deploy Page World Map With Deployed Regions](https://cdn.ul.run/i/af47d4f67a807072155765ce3861a9c4.avif)<!-- screenshot -->
 
 ### Deployments List
 
@@ -80,7 +80,7 @@ Below the overview cards, the deployments list shows all endpoints across your p
 
 !!! tip "Real-Time Updates"
 
-    The dashboard polls every 15 seconds for deployment status updates. When deployments are in a transitional state (`creating`, `deploying`, or `stopping`), polling increases to every 3 seconds. Metric charts refresh every 60 seconds. Click the refresh button for immediate updates.
+    The dashboard polls every 15 seconds for deployment status updates. When deployments are in a transitional state (`creating`, `deploying`, or `stopping`), polling increases to every 3 seconds. Per-deployment metrics refresh every 60 seconds. Click the refresh button for immediate updates.
 
 ## Per-Deployment Metrics
 
@@ -108,17 +108,16 @@ Running deployments show a health check indicator:
 
 Health checks auto-retry every 20 seconds when unhealthy. Click the refresh icon to manually trigger a health check. The health check uses a 55-second timeout to accommodate cold starts on scale-to-zero endpoints.
 
-![Ultralytics Platform Deployment Card Health Check Healthy With Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deployment-card-health-check-healthy-with-latency.avif)
-
+![Ultralytics Platform Deployment Card Health Check Healthy With Latency](https://cdn.ul.run/i/c1c2da5731737f6afbd70b12eb144f9f.avif)<!-- screenshot -->
 !!! info "Cold Start Tolerance"
 
-    The health check uses a 55-second timeout to account for cold starts on scale-to-zero endpoints (up to ~45 seconds in worst case). Once the endpoint warms up, health checks complete in milliseconds.
+    The health-check request allows up to 55 seconds so a scale-to-zero endpoint has time to start.
 
 ## Logs
 
 Each deployment card includes a `Logs` tab for viewing recent log entries:
 
-![Ultralytics Platform Deployment Card Logs Tab With Severity Filter](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deployment-card-logs-tab-with-severity-filter.avif)
+![Ultralytics Platform Deployment Card Logs Tab With Severity Filter](https://cdn.ul.run/i/f7b9acee12aab29e7b05f1f77d44d65e.avif)<!-- screenshot -->
 
 ### Log Entries
 
@@ -289,14 +288,14 @@ Use monitoring data to optimize your deployments:
 
     If latency is too high:
 
-    1. Check instance count (may need more)
-    2. Verify model size is appropriate
-    3. Consider a closer region
-    4. Check image sizes being sent
+    1. Verify the model size is appropriate
+    2. Consider a closer region
+    3. Check the image size sent with each request
 
     !!! example "Reducing Latency"
 
-        Switch from `imgsz=1280` to `imgsz=640` for a ~4x speedup with minimal accuracy loss for most use cases. Deploy to a region closer to your users for lower network latency.
+        Try a smaller `imgsz` value and compare the resulting latency and accuracy for your model. Deploy to a region
+        closer to callers to reduce network latency.
 
 === "High Error Rate"
 
@@ -305,52 +304,22 @@ Use monitoring data to optimize your deployments:
     1. Review error logs in the `Logs` tab
     2. Check request format (multipart form required)
     3. Verify API key is valid
-    4. Check rate limits
+    4. Retry a request and compare its timestamp with the deployment logs
 
 === "Scaling Issues"
 
     If hitting capacity:
 
-    1. Consider multiple regions
-    2. Optimize request batching
-    3. Increase CPU and memory resources
+    1. Reduce the inference image size or use a smaller model
+    2. Deploy additional endpoints and distribute requests between them
+    3. Retry transient failures with backoff
 
 ## FAQ
 
 ### How long is data retained?
 
-| Data Type   | Retention |
-| ----------- | --------- |
-| **Metrics** | 30 days   |
-| **Logs**    | 7 days    |
-
-### Can I set up external monitoring?
-
-Yes, endpoint URLs work with external monitoring tools:
-
-- Uptime monitoring (Pingdom, UptimeRobot)
-- APM tools (Datadog, New Relic)
-- Custom health checks via the `/health` endpoint
-
-### How accurate are the latency numbers?
-
-Latency metrics measure:
-
-- **P50**: Median response time
-- **P95**: 95th percentile
-- **P99**: 99th percentile
-
-These represent server-side processing time, not including network latency to your users.
-
-### Why are my metrics delayed?
-
-Metrics have a ~2 minute delay due to:
-
-- Metrics aggregation pipeline
-- Aggregation windows
-- Dashboard caching
-
-For real-time debugging, check logs which are near-instant.
+The metrics API supports selectable windows from 1 hour through 30 days. The deployment card shows the 20 most recent
+log entries; the logs API can return up to 200 entries per request and supports pagination.
 
 ### Can I monitor multiple endpoints together?
 

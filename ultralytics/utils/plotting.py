@@ -460,8 +460,8 @@ class Annotator:
         Args:
             masks (torch.Tensor | np.ndarray): Predicted masks with shape [n, h, w].
             colors (list[list[int]]): Colors for predicted masks, [[r, g, b] * n].
-            im_gpu (torch.Tensor | None): Image on GPU with shape [3, h, w], range [0, 1]. Used only when
-                retina_masks is True; otherwise masks are upsampled to the annotated image and this is ignored.
+            im_gpu (torch.Tensor | None): Image on GPU with shape [3, h, w], range [0, 1]. Used only when retina_masks
+                is True; otherwise masks are upsampled to the annotated image and this is ignored.
             alpha (float, optional): Mask transparency: 0.0 fully transparent, 1.0 opaque.
             retina_masks (bool, optional): Whether masks are already at the annotated image resolution.
         """

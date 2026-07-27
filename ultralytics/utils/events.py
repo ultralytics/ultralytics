@@ -45,8 +45,8 @@ def _shipped_archs() -> frozenset:
 def _arch(model) -> str:
     """Return the shipped architecture a model is built from, i.e. 'yolo11n-seg', else 'custom'.
 
-    The config travels inside a checkpoint, so fine-tuned models report the architecture they descend from however
-    many generations back. Unrecognized architectures collapse to 'custom' so private config names never leave.
+    The config travels inside a checkpoint, so fine-tuned models report the architecture they descend from however many
+    generations back. Unrecognized architectures collapse to 'custom' so private config names never leave.
     """
     desc = getattr(model, "description", "").split()  # exported models name the arch here instead of a YAML
     stem = Path((getattr(model.model, "yaml", None) or {}).get("yaml_file", "")).stem

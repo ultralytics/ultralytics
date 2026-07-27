@@ -122,7 +122,7 @@ class Events:
                     params["provider"] = devices[0] if devices else None
                     params["arch"] = _arch(model)
                     params["quantize"] = cfg.quantize or model.metadata.get("args", {}).get("quantize") or 32
-                    params["imgsz"] = max(predictor.imgsz)  # the resolved shape, not the requested one
+                    params["imgsz"] = "x".join(map(str, predictor.shape))  # real shape; the long side is imgsz
                     params["batch"] = min(predictor.dataset.bs, predictor.seen)  # as the Speed log reports it
                     params["nc"] = len(model.names)  # class count drives head width and NMS cost
                     params["n"] = predictor.seen

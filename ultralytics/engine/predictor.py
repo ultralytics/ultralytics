@@ -90,6 +90,7 @@ class BasePredictor:
         source_type (SimpleNamespace): Type of input source.
         seen (int): Number of images processed.
         speed (dict[str, float] | None): Per-image preprocess, inference and postprocess times in ms, once run.
+        shape (tuple[int, int] | None): Height and width of the inference tensor, once a run completes.
         windows (list[str]): List of window names for visualization.
         batch (tuple): Current batch data.
         results (list[Any]): Current batch results.
@@ -145,6 +146,7 @@ class BasePredictor:
         self.source_type = None
         self.seen = 0
         self.speed = None  # per-image speeds, set once a run completes
+        self.shape = None  # inference tensor shape, set once a run completes
         self.windows = []
         self.screen = None  # cached screen resolution (width, height) for show=True scaling
         self.batch = None
@@ -320,7 +322,7 @@ class BasePredictor:
                 )
                 self.done_warmup = True
 
-            self.seen, self.speed, self.windows, self.batch = 0, None, [], None
+            self.seen, self.speed, self.shape, self.windows, self.batch = 0, None, None, [], None
             profilers = (
                 ops.Profile(device=self.device),
                 ops.Profile(device=self.device),
@@ -388,6 +390,7 @@ class BasePredictor:
         if self.seen:
             t = tuple(x.t / self.seen * 1e3 for x in profilers)  # speeds per image
             self.speed = dict(zip(("preprocess", "inference", "postprocess"), t))
+            self.shape = tuple(im.shape[2:])  # inference shape, which rect letterboxing makes source-dependent
             if self.args.verbose:
                 LOGGER.info(
                     f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "

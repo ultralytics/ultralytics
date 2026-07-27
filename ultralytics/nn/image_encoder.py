@@ -15,8 +15,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 from ultralytics.nn.tasks import ClassificationModel
 from ultralytics.nn.teacher_model import safe_key

@@ -17,16 +17,16 @@ from ultralytics.nn.tasks import guess_model_scale
 from ultralytics.utils import YAML
 
 RECIPES = {
-    "default": dict(lr0=3e-4, weight_decay=0.05, warmup_epochs=1, epochs=10, momentum=0.9, grad_clip=3.0, beta2=None),
+    "default": {"lr0": 3e-4, "weight_decay": 0.05, "warmup_epochs": 1, "epochs": 10, "momentum": 0.9, "grad_clip": 3.0, "beta2": None},
     # EUPE Stage 2: proxy->student distillation (arXiv:2603.22387 Sec 4.1, ssl_default_config.yaml:131-147)
     # Same loss as ours (0.9cos+0.1L1, Eq.5-6). beta2=None -> uses default 0.999 matching EUPE
-    "eupe": dict(lr0=2e-5, weight_decay=1e-4, warmup_epochs=1, epochs=30, momentum=0.9, grad_clip=3.0, beta2=None),
+    "eupe": {"lr0": 2e-5, "weight_decay": 1e-4, "warmup_epochs": 1, "epochs": 30, "momentum": 0.9, "grad_clip": 3.0, "beta2": None},
     # AM-RADIO: multi-teacher distillation (arXiv:2312.06709 Sec 4, Eq.2-3)
     # Same loss as ours (0.9cos+0.1L1). beta2=0.95 from MobileCLIP2 (training/configs/run_dfndr2b.sh)
-    "radio": dict(lr0=1e-3, weight_decay=0.02, warmup_epochs=1, epochs=30, momentum=0.9, grad_clip=1.0, beta2=0.95),
+    "radio": {"lr0": 1e-3, "weight_decay": 0.02, "warmup_epochs": 1, "epochs": 30, "momentum": 0.9, "grad_clip": 1.0, "beta2": 0.95},
     # UNIC (ECCV 2024) reproduction used for phase1-b1-unic-eupe-vitb16 (R1 ablation baseline).
     # lr0/wd/warmup matched from /data/shared-datasets/fatih-runs/.../phase1-b1-unic-eupe-vitb16/args.yaml.
-    "unic": dict(lr0=6e-4, weight_decay=0.03, warmup_epochs=2, epochs=30, momentum=0.9, grad_clip=3.0, beta2=None),
+    "unic": {"lr0": 6e-4, "weight_decay": 0.03, "warmup_epochs": 2, "epochs": 30, "momentum": 0.9, "grad_clip": 3.0, "beta2": None},
     # DINOv3-aligned recipe — addresses the fastvit-s × 7-source collapse to chance-level kNN
     # observed in fvs-fm/fvs-ad. Mirrors three published recipes that converge with hybrid-ViT
     # students under multi-source distillation:
@@ -59,47 +59,47 @@ RECIPES = {
     #   gaussian_blur=0.5 → DINOv3 averaged across two-view asymmetric (g1=1.0 / g2=0.1); UNIC uses 0.2
     #   solarize=0.2     → DINOv3 g2-only; applied uniformly to single view here
     #   erasing=0.0      → DINOv3 / EUPE / UNIC / DUNE / AM-RADIO do NOT use random erasing
-    "dinov3": dict(
-        lr0=2e-4,
-        weight_decay=0.04,
-        wd_end=0.2,
-        warmup_epochs=1,
-        epochs=114,
-        momentum=0.9,
-        grad_clip=3.0,
-        beta2=None,
-        auto_augment=None,
-        erasing=0.0,
-        hsv_h=0.1,
-        hsv_s=0.2,
-        hsv_v=0.4,
-        grayscale=0.2,
-        gaussian_blur=0.5,
-        solarize=0.2,
-    ),
+    "dinov3": {
+        "lr0": 2e-4,
+        "weight_decay": 0.04,
+        "wd_end": 0.2,
+        "warmup_epochs": 1,
+        "epochs": 114,
+        "momentum": 0.9,
+        "grad_clip": 3.0,
+        "beta2": None,
+        "auto_augment": None,
+        "erasing": 0.0,
+        "hsv_h": 0.1,
+        "hsv_s": 0.2,
+        "hsv_v": 0.4,
+        "grayscale": 0.2,
+        "gaussian_blur": 0.5,
+        "solarize": 0.2,
+    },
     # dinov3 photometric augs + radio-style constant wd. Addresses dinov3 backbone
     # weight magnitude collapse (memory project_dinov3_weight_collapse): dinov3 wd
     # 0.04->0.2 schedule drove 7x layer-0 L2 shrink vs radio at matched 7-src recipe,
     # breaking phase-2 det (P=R=mAP=0). Lowers wd to 0.02 + drops the schedule (wd_end
     # omitted) so weight magnitudes track the radio sibling while keeping the dinov3
     # photometric augs that won kNN +0.9pp at the same config.
-    "dinov3_lowwd": dict(
-        lr0=2e-4,
-        weight_decay=0.02,
-        warmup_epochs=1,
-        epochs=114,
-        momentum=0.9,
-        grad_clip=3.0,
-        beta2=None,
-        auto_augment=None,
-        erasing=0.0,
-        hsv_h=0.1,
-        hsv_s=0.2,
-        hsv_v=0.4,
-        grayscale=0.2,
-        gaussian_blur=0.5,
-        solarize=0.2,
-    ),
+    "dinov3_lowwd": {
+        "lr0": 2e-4,
+        "weight_decay": 0.02,
+        "warmup_epochs": 1,
+        "epochs": 114,
+        "momentum": 0.9,
+        "grad_clip": 3.0,
+        "beta2": None,
+        "auto_augment": None,
+        "erasing": 0.0,
+        "hsv_h": 0.1,
+        "hsv_s": 0.2,
+        "hsv_v": 0.4,
+        "grayscale": 0.2,
+        "gaussian_blur": 0.5,
+        "solarize": 0.2,
+    },
 }
 
 # ColorJitter probability arm: wraps the jitter in RandomApply(p=0.8) per the reference recipes already
@@ -113,17 +113,7 @@ NBS_CANONICAL = 512
 
 _MULTIRES_RECIPE = Path(_REPO_ROOT) / "cfg" / "recipes" / "eupe-multires.yaml"
 
-DATA_7SRC_DEFAULT = ",".join(
-    [
-        "/data/shared-datasets/imagenet",
-        "/data/shared-datasets/coco",
-        "/data/shared-datasets/yoloe26_data/Objects365v1/images/train",
-        "/data/shared-datasets/yoloe26_data/mixed_grounding/gqa/paired/train",
-        "/data/shared-datasets/yoloe26_data/flickr/paired/train",
-        "/data/shared-datasets/DOTAv1-split/paired/train",
-        "/data/shared-datasets/SODA-A-split/images/train",
-    ]
-)
+DATA_7SRC_DEFAULT = "/data/shared-datasets/imagenet,/data/shared-datasets/coco,/data/shared-datasets/yoloe26_data/Objects365v1/images/train,/data/shared-datasets/yoloe26_data/mixed_grounding/gqa/paired/train,/data/shared-datasets/yoloe26_data/flickr/paired/train,/data/shared-datasets/DOTAv1-split/paired/train,/data/shared-datasets/SODA-A-split/images/train"
 
 
 def _pop_flag(argv: list[str], flag: str, is_bool: bool = False) -> tuple[list[str], str]:
@@ -369,15 +359,15 @@ def main(argv: list[str]) -> None:
         # trains at the target effective batch, and lr0/warmup scale off it.
         nbs = int(nbs_override) if nbs_override else max(global_batch, NBS_CANONICAL)
         scale = max(1.0, nbs / NBS_CANONICAL)
-        schedule = dict(
-            epochs=epochs or r["epochs"],
-            batch=global_batch,
-            imgsz=224,
-            nbs=nbs,
-            lr0=float(lr_override or r["lr0"]) * scale,
-            warmup_epochs=r["warmup_epochs"] * scale,
-            weight_decay=r["weight_decay"],
-        )
+        schedule = {
+            "epochs": epochs or r["epochs"],
+            "batch": global_batch,
+            "imgsz": 224,
+            "nbs": nbs,
+            "lr0": float(lr_override or r["lr0"]) * scale,
+            "warmup_epochs": r["warmup_epochs"] * scale,
+            "weight_decay": r["weight_decay"],
+        }
     momentum_v = continuation_args.get("momentum", r["momentum"])
     grad_clip_v = continuation_args.get("grad_clip", r["grad_clip"])
     beta2_v = continuation_args.get("beta2", r["beta2"])

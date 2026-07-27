@@ -60,7 +60,6 @@ This guide covers two supported conversion workflows. The first is cloud convers
 
     For YOLO workflows in this guide, the expected starting point is a `.pt` checkpoint, whether you convert through Luxonis Hub or with local Luxonis tooling. You can use your own trained checkpoint or start from an official Ultralytics pretrained model such as those listed on the [YOLO26 models page](../models/yolo26.md#performance-metrics).
 
-
 ## Conversion Path 1: Cloud Conversion with Luxonis Hub
 
 [Luxonis Hub](https://hub.luxonis.com/) provides a hosted conversion workflow for turning supported YOLO source models into deployable artifacts for `RVC2` or `RVC4`. For most users, the recommended starting point is [Quick Conversion](https://docs.luxonis.com/cloud/hubai/quick-conversion), which is the fastest path from a raw model file to a compiled Luxonis output without managing full model history in the registry.
@@ -172,7 +171,6 @@ As described in the Luxonis [Conversion to ONNX](https://docs.luxonis.com/softwa
         pip install .
         ```
 
-
 !!! example "Convert a YOLO model to an `ONNX` NN Archive:"
 
     === "CLI"
@@ -200,7 +198,7 @@ And create a shared folder as specified [here](https://docs.luxonis.com/software
     === "CLI"
 
         ```bash
-        modelconverter convert rvc4 --path archives/<nn_archive>.tar.xz
+        modelconverter convert rvc4 --path archives/ < nn_archive > .tar.xz
         ```
 
 If you plan to [quantize](https://www.ultralytics.com/glossary/model-quantization) the model, provide calibration data as part of the ModelConverter invocation.

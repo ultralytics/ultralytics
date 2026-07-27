@@ -547,7 +547,7 @@ In the following example, we demonstrate how to utilize YOLO26's tracking capabi
     cap = cv2.VideoCapture(video_path)
 
     # Store the track history
-    track_history = defaultdict(lambda: [])
+    track_history = defaultdict(list)
 
     # Loop through the video frames
     while cap.isOpened():
@@ -773,7 +773,7 @@ To visualize object tracks over multiple video frames, you can use the YOLO mode
     model = YOLO("yolo26n.pt")
     video_path = "path/to/video.mp4"
     cap = cv2.VideoCapture(video_path)
-    track_history = defaultdict(lambda: [])
+    track_history = defaultdict(list)
 
     while cap.isOpened():
         success, frame = cap.read()

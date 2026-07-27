@@ -49,6 +49,7 @@ class DistillationModel(nn.Module):
         loss: Compute combined detection and distillation loss.
         loss_sl2: Compute score-weighted L2 distillation loss for a feature pair.
         decouple_outputs: Normalize teacher/student head outputs across train/val formats.
+        fuse: Fuse and return the student model for inference and export.
         train: Set training mode while keeping teacher frozen.
 
     Examples:
@@ -67,8 +68,13 @@ class DistillationModel(nn.Module):
             student_model (nn.Module): Student model module to be trained.
         """
         super().__init__()
+        ch = student_model.yaml.get("channels", 3)
         if isinstance(teacher_model, (str, Path)):
             teacher_model = load_checkpoint(teacher_model)[0]
+            if teacher_model.yaml.get("channels", 3) != ch:
+                weights = teacher_model
+                teacher_model = type(weights)(weights.yaml.copy(), ch=ch, nc=weights.yaml["nc"], verbose=False)
+                teacher_model.load(weights)
         device = next(student_model.parameters()).device
         self.teacher_model = teacher_model.to(device)
         self._freeze_teacher()
@@ -86,8 +92,9 @@ class DistillationModel(nn.Module):
         imgsz = student_model.args.imgsz
         student_model.eval()
         with torch.no_grad():
-            teacher_model(torch.zeros(2, 3, imgsz, imgsz).to(device))
-            student_model(torch.zeros(2, 3, imgsz, imgsz).to(device))
+            im = torch.zeros(2, ch, imgsz, imgsz, device=device)
+            teacher_model(im)
+            student_model(im)
         student_model.train()
         teacher_output = [self._teacher_feats[idx] for idx in self.feats_idx]
         student_output = [self._student_feats[idx] for idx in self.feats_idx]
@@ -192,6 +199,11 @@ class DistillationModel(nn.Module):
             return self.loss(x, *args, **kwargs)
         return self.student_model.predict(x, *args, **kwargs)
 
+    def fuse(self, verbose: bool = True):
+        """Fuse and return the student model, dropping the training-only distillation wrapper."""
+        self._remove_feature_hooks()
+        return self.student_model.fuse(verbose=verbose)
+
     def loss(self, batch, preds=None):
         """Compute loss.
 
@@ -203,8 +215,9 @@ class DistillationModel(nn.Module):
         if not self.training:  # for loss calculation during validation while training
             if preds is None:
                 preds = self.student_model(batch["img"])
-            regular_loss, regular_loss_detach = self.student_model.loss(batch, preds)
-            return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, loss_distill])
+            regular_loss, loss_items = self.student_model.loss(batch, preds)
+            loss_items["dis_loss"] = loss_distill.detach()
+            return torch.cat([regular_loss, loss_distill]), loss_items
 
         # Clear feature dicts before forward passes
         self._teacher_feats.clear()
@@ -214,7 +227,7 @@ class DistillationModel(nn.Module):
             self.teacher_model(batch["img"])  # hooks capture teacher features
         preds = self.student_model(batch["img"])  # hooks capture student features
 
-        regular_loss, regular_loss_detach = self.student_model.loss(batch, preds)
+        regular_loss, loss_items = self.student_model.loss(batch, preds)
         teacher_head_feat = self._teacher_feats[self.feats_idx[-1]]
         teacher_scores = (
             self.decouple_outputs(teacher_head_feat, branch="one2many")["scores"]
@@ -231,9 +244,9 @@ class DistillationModel(nn.Module):
                 self.loss_sl2(student_feat, teacher_feat, feat_idx=i, teacher_scores=teacher_scores) * self.dis
             )
 
-        distill_loss_detach = loss_distill.detach()
+        loss_items["dis_loss"] = loss_distill.detach()
         loss_distill = loss_distill * batch["img"].shape[0]
-        return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, distill_loss_detach])
+        return torch.cat([regular_loss, loss_distill]), loss_items
 
     def loss_sl2(
         self, student_feat: torch.Tensor, teacher_feat: torch.Tensor, feat_idx: int, teacher_scores: tuple

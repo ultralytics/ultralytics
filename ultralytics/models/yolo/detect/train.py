@@ -30,7 +30,7 @@ class DetectionTrainer(BaseTrainer):
     Attributes:
         model (DetectionModel): The YOLO detection model being trained.
         data (dict): Dictionary containing dataset information including class names and number of classes.
-        loss_names (tuple): Names of the loss components used in training (box_loss, cls_loss, dfl_loss).
+        loss_names (tuple): Names of the loss components, derived from the loss dict returned by the criterion.
 
     Methods:
         build_dataset: Build YOLO dataset for training or validation.
@@ -39,7 +39,6 @@ class DetectionTrainer(BaseTrainer):
         set_model_attributes: Set model attributes based on dataset information.
         get_model: Return a YOLO detection model.
         get_validator: Return a validator for model evaluation.
-        label_loss_items: Return a loss dictionary with labeled training loss items.
         progress_string: Return a formatted string of training progress.
         plot_training_samples: Plot training samples with their annotations.
         plot_training_labels: Create a labeled training plot of the YOLO model.
@@ -148,6 +147,12 @@ class DetectionTrainer(BaseTrainer):
         if getattr(self.model, "end2end", False):
             self.model.set_head_attr(max_det=self.args.max_det)
 
+    def set_model_names_for_load(self, model):
+        """Set target dataset names before loading weights so cls heads can remap by name."""
+        if getattr(self.args, "cls_remap", True) and self.data.get("names"):
+            model.names = self.data["names"]
+        return model
+
     def get_class_counts(self):
         """Return per-class instance counts from the training dataset labels."""
         classes = np.concatenate([lb["cls"].flatten() for lb in self.train_loader.dataset.labels], 0)
@@ -190,34 +195,18 @@ class DetectionTrainer(BaseTrainer):
         Returns:
             (DetectionModel): YOLO detection model.
         """
-        model = DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
+        model = self.set_model_names_for_load(
+            DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
+        )
         if weights:
             model.load(weights)
         return model
 
     def get_validator(self):
         """Return a DetectionValidator for YOLO model validation."""
-        self.loss_names = "box_loss", "cls_loss", "dfl_loss"
         return yolo.detect.DetectionValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
-
-    def label_loss_items(self, loss_items: list[float] | None = None, prefix: str = "train"):
-        """Return a loss dict with labeled training loss items tensor.
-
-        Args:
-            loss_items (list[float], optional): List of loss values.
-            prefix (str): Prefix for keys in the returned dictionary.
-
-        Returns:
-            (dict | list): Dictionary of labeled loss items if loss_items is provided, otherwise list of keys.
-        """
-        keys = [f"{prefix}/{x}" for x in self.loss_names]
-        if loss_items is not None:
-            loss_items = [round(float(x), 5) for x in loss_items]  # convert tensors to 5 decimal place floats
-            return dict(zip(keys, loss_items))
-        else:
-            return keys
 
     def progress_string(self):
         """Return a formatted string of training progress with epoch, GPU memory, loss, instances and size."""

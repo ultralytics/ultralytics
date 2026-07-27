@@ -125,7 +125,7 @@ for box in results[0].boxes.xyxy.cpu():
 
 With existing `x y w h` bounding box data, convert to segments using the `yolo_bbox2segment` function. Organize the files for images and annotations as follows:
 
-```
+```text
 data
 |__ images
     ├─ 001.jpg

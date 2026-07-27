@@ -59,7 +59,8 @@ class DistanceCalculation(BaseSolution):
             self.left_mouse_count += 1
             if self.left_mouse_count <= 2:
                 for box, track_id in zip(self.boxes, self.track_ids):
-                    if box[0] < x < box[2] and box[1] < y < box[3] and track_id not in self.selected_boxes:
+                    x0, y0, x1, y1 = self.get_enclosing_box(box)
+                    if x0 < x < x1 and y0 < y < y1 and track_id not in self.selected_boxes:
                         self.selected_boxes[track_id] = box
 
         elif event == cv2.EVENT_RBUTTONDOWN:
@@ -105,7 +106,10 @@ class DistanceCalculation(BaseSolution):
         if len(self.selected_boxes) == 2:
             # Calculate centroids of selected boxes
             self.centroids.extend(
-                [[int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2)] for box in self.selected_boxes.values()]
+                [
+                    [int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2)]
+                    for box in map(self.get_enclosing_box, self.selected_boxes.values())
+                ]
             )
             # Calculate Euclidean distance between centroids
             pixels_distance = math.sqrt(

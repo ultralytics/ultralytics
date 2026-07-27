@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-__version__ = "8.4.83"
+__version__ = "8.4.107"
 
 import importlib
 import os
@@ -18,7 +18,7 @@ settings = SETTINGS
 
 MODELS = ("YOLO", "YOLOWorld", "YOLOE", "NAS", "SAM", "FastSAM", "RTDETR")
 
-__all__ = (
+__all__ = (  # noqa: PLE0604
     "__version__",
     "ASSETS",
     *MODELS,

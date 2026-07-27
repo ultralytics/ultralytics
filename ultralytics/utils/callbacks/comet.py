@@ -9,7 +9,7 @@ from typing import Any
 import cv2
 import numpy as np
 
-from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, ops
+from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, env_bool, ops
 from ultralytics.utils.metrics import ClassifyMetrics, DetMetrics, OBBMetrics, PoseMetrics, SegmentMetrics
 
 try:
@@ -63,28 +63,28 @@ def _get_comet_model_name() -> str:
 
 def _get_eval_batch_logging_interval() -> int:
     """Get the evaluation batch logging interval from environment variable or use default value 1."""
-    return int(os.getenv("COMET_EVAL_BATCH_LOGGING_INTERVAL", 1))
+    return int(os.getenv("COMET_EVAL_BATCH_LOGGING_INTERVAL", "1"))
 
 
 def _get_max_image_predictions_to_log() -> int:
     """Get the maximum number of image predictions to log from environment variables."""
-    return int(os.getenv("COMET_MAX_IMAGE_PREDICTIONS", 100))
+    return int(os.getenv("COMET_MAX_IMAGE_PREDICTIONS", "100"))
 
 
 def _scale_confidence_score(score: float) -> float:
     """Scale the confidence score by a factor specified in environment variable."""
-    scale = float(os.getenv("COMET_MAX_CONFIDENCE_SCORE", 100.0))
+    scale = float(os.getenv("COMET_MAX_CONFIDENCE_SCORE", "100.0"))
     return score * scale
 
 
 def _should_log_confusion_matrix() -> bool:
     """Determine if the confusion matrix should be logged based on environment variable settings."""
-    return os.getenv("COMET_EVAL_LOG_CONFUSION_MATRIX", "false").lower() == "true"
+    return env_bool("COMET_EVAL_LOG_CONFUSION_MATRIX", False)
 
 
 def _should_log_image_predictions() -> bool:
     """Determine whether to log image predictions based on environment variable."""
-    return os.getenv("COMET_EVAL_LOG_IMAGE_PREDICTIONS", "true").lower() == "true"
+    return env_bool("COMET_EVAL_LOG_IMAGE_PREDICTIONS", True)
 
 
 def _resume_or_create_experiment(args: SimpleNamespace) -> None:

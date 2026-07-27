@@ -35,7 +35,7 @@ class CPUInfo:
             if sys.platform == "darwin":
                 # Query macOS sysctl for the CPU brand string
                 s = subprocess.run(
-                    ["sysctl", "-n", "machdep.cpu.brand_string"], capture_output=True, text=True
+                    ["sysctl", "-n", "machdep.cpu.brand_string"], capture_output=True, text=True, check=False
                 ).stdout.strip()
                 if s:
                     return CPUInfo._clean(s)

@@ -94,7 +94,7 @@ if __name__ == "__main__":
 
 result:
 
-```
+```text
 True
 SPP time: 0.5373051166534424
 SPPF time: 0.20780706405639648

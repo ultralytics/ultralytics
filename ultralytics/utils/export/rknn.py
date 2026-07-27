@@ -21,6 +21,7 @@ def onnx2rknn(
     dataset: Path | str | None = None,
     metadata: dict | None = None,
     prefix: str = "",
+    batch: int = 1,
 ) -> str:
     """Export an ONNX model to RKNN format for Rockchip NPUs with optional INT8 quantization.
 
@@ -34,6 +35,7 @@ def onnx2rknn(
             them to this internal image-path list.
         metadata (dict | None): Metadata saved as ``metadata.yaml``.
         prefix (str): Prefix for log messages.
+        batch (int): Inference batch size applied by RKNN Toolkit after loading the batch-1 ONNX model.
 
     Returns:
         (str): Path to the exported ``_rknn_model`` directory.
@@ -75,7 +77,7 @@ def onnx2rknn(
     build_kwargs = {"do_quantization": use_int8}
     if use_int8:
         build_kwargs["dataset"] = str(dataset)
-    _check_rknn_return(rknn.build(**build_kwargs), "build")
+    _check_rknn_return(rknn.build(**build_kwargs, rknn_batch_size=batch), "build")
     _check_rknn_return(rknn.export_rknn(str(output_dir / f"{Path(onnx_file).stem}-{name}.rknn")), "export_rknn")
     if metadata:
         YAML.save(output_dir / "metadata.yaml", metadata)

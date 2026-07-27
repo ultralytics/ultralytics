@@ -20,7 +20,7 @@ scales:
 
 # Per-scale variables resolved into module args as string tokens (see parse_model in tasks.py).
 scale_args:
-  n: {ndl: 3, efficient_ms: True}
+  n: {ndl: 4, efficient_ms: True}
   s: {ndl: 3, efficient_ms: False}
 
 # YOLO26 CSP backbone

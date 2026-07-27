@@ -301,9 +301,10 @@ def format_signature(
     pairs = [
         (arg, defaults[idx - default_offset] if idx >= default_offset else None) for idx, arg in enumerate(combined)
     ]
-    if is_class:  # a constructor is called as Class(...), so the bound self/cls is never passed
-        pairs = [(arg, default) for arg, default in pairs if arg.arg not in {"self", "cls"}]
-        posonly = [arg for arg in posonly if arg.arg not in {"self", "cls"}]
+    # A constructor is called as Class(...), so drop __init__'s leading bound parameter — and only that one,
+    # since `cls` is a real argument elsewhere (e.g. BOTrack(xywh, score, cls, feat=None)).
+    if is_class and pairs and pairs[0][0].arg in {"self", "cls"}:
+        pairs, posonly = pairs[1:], posonly[1:]
     for idx, (arg, default) in enumerate(pairs):
         params.append(_format_parameter(arg, default, src))
         if posonly and idx == len(posonly) - 1:

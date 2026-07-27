@@ -146,10 +146,9 @@ class Events:
                     }
                     params["flags"] = ",".join(k for k, v in flags.items() if v) or None
                     params["arch"] = _arch(unwrap_model(run.model))  # DDP and EMA both wrap away the .yaml
+                    params["ngpu"] = run.world_size if run.world_size > 1 else None  # only a count above one informs
                     if device.type == "cuda":  # makes hours comparable
                         params["GPU"] = get_gpu_info(device.index or 0)
-                    # only a count above one informs, and NPU runs need it too, so it sits outside the CUDA guard
-                    params["ngpu"] = run.world_size if run.world_size > 1 else None
                 except Exception:
                     pass
             elif cfg.mode in {"predict", "track"}:  # track runs the predictor too, and is most of the video inference

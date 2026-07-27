@@ -1,0 +1,50 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Ultralytics YOLO26 object detection model with P4/16 - P5/32 outputs
+# P3 detection head is removed; p4p5-wide neck/head on Fatih (renamed from p4p5-ultravit for family-naming consistency)'s
+# encoder-experiments backbone (RepUltraViTBlock stages + MHSABlock at P5,
+# FastViT-family reparam mixer + ConvFFN, depth 0.2 design point).
+# Backbone source: ultralytics-main worktree, encoder-experiments branch.
+# Model docs: https://docs.ultralytics.com/models/yolo26
+# Task docs: https://docs.ultralytics.com/tasks/detect
+
+# Parameters
+nc: 80 # number of classes
+end2end: True # whether to use end-to-end mode
+reg_max: 1 # DFL bins
+scales: # model compound scaling constants (Fatih's design point)
+  # [depth, width, max_channels]
+  s: [0.20, 0.50, 960]
+
+# Fatih's encoder-experiments backbone
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [96, 3, 2]] # 1-P2/4
+  - [-1, 4, RepUltraViTBlock, [3, True, 0.00001, True]] # 2
+  - [-1, 1, Conv, [192, 3, 2]] # 3-P3/8
+  - [-1, 8, RepUltraViTBlock, [3, True, 0.00001, True]] # 4
+  - [-1, 1, Conv, [384, 3, 2]] # 5-P4/16
+  - [-1, 20, RepUltraViTBlock, [3, True, 0.00001, True]] # 6
+  - [-1, 1, Conv, [1152, 3, 2]] # 7-P5/32
+  - [-1, 8, MHSABlock, [0, 4, True, 0.00001, True, 32]] # 8
+
+# p4p5-wide neck/head: P3 head removed, P3 as context-only path, Detect(P4, P5)
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]] # cat backbone P4
+  - [-1, 2, C3k2, [768, True]] # 11 widened
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]] # cat backbone P3
+  - [-1, 2, C3k2, [384, True]] # 14 widened P3 intermediate (context only, no head)
+
+  - [-1, 1, Conv, [384, 3, 2]]
+  - [[-1, 11], 1, Concat, [1]] # cat head P4
+  - [-1, 2, C3k2, [768, True]] # 17 widened (P4/16)
+
+  - [-1, 1, Conv, [768, 3, 2]]
+  - [[-1, 8], 1, Concat, [1]] # cat backbone P5
+  - [-1, 1, C3k2, [1024, True, 0.5, True]] # 20 (P5/32-large)
+
+  - [[17, 20], 1, Detect, [nc]] # Detect(P4, P5)

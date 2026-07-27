@@ -68,6 +68,8 @@ from ultralytics.nn.modules import (
     ResNetLayer,
     RTDETRDecoder,
     SCDown,
+    MHSABlock,
+    RepUltraViTBlock,
     Scale,
     ScaledAdd,
     StripAttn,
@@ -1997,7 +1999,7 @@ def parse_model(d, ch, verbose=True):
             args = [ch[f], *args]
         elif m is CAA:
             args = [ch[f], *args]
-        elif m in frozenset({StripAttn, MogaGate}):
+        elif m in frozenset({StripAttn, MogaGate, MHSABlock, RepUltraViTBlock}):
             args = [ch[f], *args]
         elif m is ScaledAdd:
             c2 = ch[f[-1]]

@@ -65,6 +65,11 @@ from .block import (
     Scale,
     TorchVision,
 )
+from .vit_blocks import (
+    MHSABlock,
+    RepUltraViTBlock,
+    UltraViTBlock,
+)
 from .conv import (
     CBAM,
     ChannelAttention,
@@ -189,6 +194,9 @@ __all__ = (
     "RepVGGDW",
     "ResNetLayer",
     "SCDown",
+    "MHSABlock",
+    "RepUltraViTBlock",
+    "UltraViTBlock",
     "Scale",
     "ScaledAdd",
     "StripAttn",

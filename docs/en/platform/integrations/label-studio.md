@@ -36,11 +36,11 @@ Upload the archive exactly as Label Studio produced it. Platform looks for `clas
 
 Label Studio offers [several export formats](https://labelstud.io/guide/export). For image detection and segmentation:
 
-| Label Studio Format | Works | Notes                                                              |
-| ------------------- | ----- | ------------------------------------------------------------------ |
-| **YOLO**            | Best  | Ships `classes.txt`, so your label names carry over                 |
-| **COCO**            | Yes   | Platform reads COCO JSON annotations and category names             |
-| **Pascal VOC XML**  | No    | XML label files cannot be read                                      |
+| Label Studio Format | Works | Notes                                                   |
+| ------------------- | ----- | ------------------------------------------------------- |
+| **YOLO**            | Best  | Ships `classes.txt`, so your label names carry over     |
+| **COCO**            | Yes   | Platform reads COCO JSON annotations and category names |
+| **Pascal VOC XML**  | No    | XML label files cannot be read                          |
 
 !!! warning "Pascal VOC imports without annotations"
 

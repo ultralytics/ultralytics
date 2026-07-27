@@ -496,6 +496,10 @@ def get_flops(model, imgsz=640):
 
     if not thop:
         return 0.0  # if not installed return 0.0 GFLOPs
+    thop_version = getattr(thop, "__version__", "0")
+    safe_profile = check_version(thop_version, "2.1.0")
+    if not safe_profile:
+        LOGGER.warning(f"Using safe FLOPs compatibility mode for ultralytics-thop {thop_version}.")
 
     try:
         model = unwrap_model(model)
@@ -506,13 +510,16 @@ def get_flops(model, imgsz=640):
             # Method 1: Use stride-based input tensor
             stride = max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32  # max stride
             im = torch.empty((1, p.shape[1], stride, stride), device=p.device, dtype=p.dtype)  # input image in BCHW
-            flops = thop.profile(model, inputs=[im], verbose=False)[0] / 1e9 * 2  # stride GFLOPs
+            profile_model = model if safe_profile else deepcopy(model)
+            flops = thop.profile(profile_model, inputs=[im], verbose=False)[0] / 1e9 * 2  # stride GFLOPs
             return flops * imgsz[0] / stride * imgsz[1] / stride  # imgsz GFLOPs
         except Exception:
             # Method 2: Use actual image size (required for RTDETR models)
             im = torch.empty((1, p.shape[1], *imgsz), device=p.device, dtype=p.dtype)  # input image in BCHW format
-            return thop.profile(model, inputs=[im], verbose=False)[0] / 1e9 * 2  # imgsz GFLOPs
-    except Exception:
+            profile_model = model if safe_profile else deepcopy(model)
+            return thop.profile(profile_model, inputs=[im], verbose=False)[0] / 1e9 * 2  # imgsz GFLOPs
+    except Exception as e:
+        LOGGER.warning(f"FLOPs calculation failed: {e}")
         return 0.0
 
 

@@ -2,7 +2,7 @@
 """Phase 2: Downstream evaluation with distilled backbone.
 
 Usage:
-    python run_enc_distill_phase2.py <gpu> <phase1_weights> <mode> [name] [phase1_wandb_id] [epochs] [patience]
+    python run_enc_distill_phase2.py <gpu> <parent_weights> <mode> [name] [parent_wandb_id] [epochs] [patience]
     python run_enc_distill_phase2.py <gpu> --resume <last.pt>
 
     mode: "inet_finetune" (ImageNet MuSGD ft), "inet_linear_probe" (ImageNet AdamW linear probe),
@@ -12,14 +12,16 @@ Usage:
           yolo26s-obb.pt-aligned recipe), "multi_det_finetune" (sequential per-dataset
           det fine-tune + val over a list of YOLO-format datasets; logs per-dataset and
           macro-averaged mAP to a CSV, on the multi-det recipe profile),
-          "obj365v1_det_pretrain" (Objects365-v1 detection pretrain, 150 epochs, any backbone,
-          on the obj365-pretrain profile; its output checkpoint is then COCO fine-tuned with
-          --recipe coco-adapt, since it is no longer a pristine distilled backbone)
+          "obj365v1_det_pretrain" or "obj365v2_det_pretrain" (Objects365 detection pretrain,
+          150 epochs, any backbone, on the obj365-pretrain profile; its output checkpoint is
+          then COCO fine-tuned with --recipe coco-adapt, since it is no longer a pristine
+          distilled backbone)
 
-    obj365v1_det_pretrain is the only mode taking multiple GPUs ("0,1,2,3"): grad_clip is a train arg and
-    nfs_sync starts in the runner, so neither rides a callback DDP drops. muon_w and log_config still do,
-    so stay on an AdamW profile and expect W&B to lose the lineage fields under DDP (args.yaml keeps them).
-    Keep batch divisible by the GPU count: trainer.py floors batch_size // world_size silently.
+    The obj365 detection modes are the only modes taking multiple GPUs ("0,1,2,3"): grad_clip is a
+    train arg and nfs_sync starts in the runner, so neither rides a callback DDP drops. muon_w and
+    log_config still do, so stay on an AdamW profile and expect W&B to lose the lineage fields under
+    DDP (args.yaml keeps them). Keep batch divisible by the GPU count: trainer.py floors
+    batch_size // world_size silently.
 
 Flags:
     --resume <path>: resume from checkpoint (all single-dataset modes)
@@ -125,12 +127,11 @@ def _export_hf_token() -> None:
 
 
 _COCO_DET_MODES = ("coco_det_finetune", "coco_det_finetune_frozen")
+_OBJ365_DATA = {"obj365v1_det_pretrain": "Objects365v1.yaml", "obj365v2_det_pretrain": "Objects365.yaml"}
 # Single-dataset profile modes, so the generic override block must not re-apply lr/batch/nbs.
-_SCALED_MODES = (*_COCO_DET_MODES, "dota_obb_finetune", "obj365v1_det_pretrain")
+_SCALED_MODES = (*_COCO_DET_MODES, "dota_obb_finetune", *_OBJ365_DATA)
 # Modes that build a detection/OBB model rather than a classifier.
 _DET_MODES = (*_SCALED_MODES, "coco_pose_finetune")
-# The only mode allowed multiple GPUs. See the DDP guard in main().
-_DDP_CAPABLE_MODE = "obj365v1_det_pretrain"
 
 _AUG_ARGS = dict(
     hsv_h=0.015,
@@ -173,7 +174,7 @@ def _infer_model_yaml(phase1_weights: str, head_suffix: str = "") -> str:
         args_yaml = w.parent.parent / "args.yaml"
         cls_yaml = YAML.load(args_yaml).get("model") if args_yaml.exists() else w.stem + ".yaml"
         w = Path(str(cls_yaml))
-    # A det yaml with a resolvable scale is already the answer: obj365v1_det_pretrain checkpoints record a det
+    # A det yaml with a resolvable scale is already the answer: obj365 pretrain checkpoints record a det
     # yaml in args.yaml, and demanding a cls yaml here sent them to _checkpoint_cls_yaml, which raises.
     if not guess_model_scale(cls_yaml):
         cls_yaml = _checkpoint_cls_yaml(chain[-1] if chain else w)
@@ -746,11 +747,11 @@ def main(argv: list[str]) -> None:
         else resume_args.get("pretrained", "runs/classify/yolo-next-encoder/phase1-d7-dinov3-convnextb/weights/best.pt")
     )
     mode = argv[2] if len(argv) > 2 else ("inet_linear_probe" if resume_args.get("freeze") else "inet_finetune")
-    if "," in gpu and mode != _DDP_CAPABLE_MODE:
+    if "," in gpu and mode not in _OBJ365_DATA:
         raise SystemExit(
             f"ERROR: mode={mode!r} needs a single GPU. dist.py:79 rebuilds the trainer per DDP child with "
             f"no callbacks, so muon_w and log_config no-op and the recipe silently changes. Only "
-            f"{_DDP_CAPABLE_MODE} is DDP-safe. Got gpu={gpu!r}."
+            f"{tuple(_OBJ365_DATA)} are DDP-safe. Got gpu={gpu!r}."
         )
     name = argv[3] if len(argv) > 3 else resume_args.get("name", f"phase2-{mode}-d7")
     phase1_wandb_id = argv[4] if len(argv) > 4 else ""
@@ -800,6 +801,7 @@ def main(argv: list[str]) -> None:
         "coco_pose_finetune": "downstream-coco-pose",
         "dota_obb_finetune": "downstream-dota-obb",
         "obj365v1_det_pretrain": "pretrain-obj365-det",
+        "obj365v2_det_pretrain": "pretrain-obj365v2-det",
     }.get(mode, "downstream-imagenet")
 
     model = YOLO(model_yaml)
@@ -881,7 +883,7 @@ def main(argv: list[str]) -> None:
             model.add_callback("on_train_start", muon_w.override(0.4355))
         if mode == "coco_det_finetune_frozen":
             train_args["freeze"] = 9
-    elif mode == "obj365v1_det_pretrain":
+    elif mode in _OBJ365_DATA:
         det_args = _load_recipe(
             recipe_name or "obj365-pretrain",
             model_yaml,
@@ -892,7 +894,7 @@ def main(argv: list[str]) -> None:
             nbs=nbs_override,
             backbone_lr_ratio=backbone_lr_ratio_override,
         )
-        train_args.update(data="Objects365v1.yaml", **det_args)
+        train_args.update(data=_OBJ365_DATA[mode], **det_args)
         if det_args["optimizer"] == "MuSGD":
             model.add_callback("on_train_start", muon_w.override(0.4355))
     elif mode == "coco_pose_finetune":

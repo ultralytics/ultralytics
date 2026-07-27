@@ -1,9 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import functools
 import json
 import random
-import re
 import time
 from pathlib import Path
 from threading import Thread
@@ -18,7 +16,6 @@ from ultralytics.utils import (
     ONLINE,
     PYTHON_VERSION,
     RANK,
-    ROOT,
     TESTS_RUNNING,
     TORCH_VERSION,
 )
@@ -36,23 +33,15 @@ def _post(url: str, data: dict, timeout: float = 5.0) -> None:
         pass
 
 
-@functools.lru_cache(maxsize=1)
-def _shipped_archs() -> frozenset:
-    """Return the stems of the model configs shipped with the package, cached to keep _arch free of disk I/O."""
-    return frozenset(p.stem for p in (ROOT / "cfg" / "models").rglob("*.yaml"))
-
-
 def _arch(model) -> str:
-    """Return the shipped architecture a model is built from, i.e. 'yolo11n-seg', else 'custom'.
+    """Return the architecture a model is built from, i.e. 'yolo11n-seg'.
 
     The config travels inside a checkpoint, so fine-tuned models report the architecture they descend from however many
-    generations back. Unrecognized architectures collapse to 'custom' so private config names never leave.
+    generations back.
     """
     desc = getattr(model, "description", "").split()  # exported models name the arch here instead of a YAML
     stem = Path((getattr(model.model, "yaml", None) or {}).get("yaml_file", "")).stem
-    stem = stem or (desc[1].lower() if len(desc) > 1 else "")
-    scaled = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", stem)  # most configs ship unscaled, i.e. yolo11n -> yolo11
-    return stem if {stem, scaled} & _shipped_archs() else "custom"  # membership, never a user-built glob pattern
+    return stem or (desc[1].lower() if len(desc) > 1 else None)
 
 
 class Events:

@@ -314,11 +314,15 @@ class AnalysisReport(SimpleClass, DataExportMixin):
             )
         notes.extend(
             [
-                ("**Strength** is based on the Spearman rank correlation magnitude: "
-                "strong (>=0.5), moderate (>=0.3), weak (>=0.1), otherwise negligible. Full numeric correlations are "
-                "available in `correlations.json` and `per_image_analysis.csv`."),
-                ("Property definitions, how to interpret each score, and suggestions for improving your model or "
-                "dataset from these results are in the [analysis guide](https://docs.ultralytics.com/guides/analysis/)."),
+                (
+                    "**Strength** is based on the Spearman rank correlation magnitude: "
+                    "strong (>=0.5), moderate (>=0.3), weak (>=0.1), otherwise negligible. Full numeric correlations are "
+                    "available in `correlations.json` and `per_image_analysis.csv`."
+                ),
+                (
+                    "Property definitions, how to interpret each score, and suggestions for improving your model or "
+                    "dataset from these results are in the [analysis guide](https://docs.ultralytics.com/guides/analysis/)."
+                ),
             ]
         )
         lines += ["", "## How to read this report", ""] + [f"- {n}" for n in notes]

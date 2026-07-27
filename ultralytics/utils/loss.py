@@ -539,7 +539,7 @@ class v8SegmentationLoss(v8DetectionLoss):
                     present = masks != 0  # NxHxW
                 else:
                     batch_idx = batch["batch_idx"].view(-1)  # [total_instances]
-                    present = torch.ones(batch_size, *masks.shape[-2:], dtype=torch.bool, device=self.device)
+                    present = torch.zeros(batch_size, *masks.shape[-2:], dtype=torch.bool, device=self.device)
                     for i in range(batch_size):
                         instance_mask_i = masks[batch_idx == i]  # [num_instances_i, H, W]
                         if len(instance_mask_i):

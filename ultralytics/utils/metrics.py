@@ -846,6 +846,7 @@ def ap_per_class(
         n_l = nt[ci]  # number of labels
         n_p = i.sum()  # number of predictions
         if n_p == 0 or n_l == 0:
+            prec_values.append(np.zeros_like(x))  # keep one row per class, aligned with `ap` and `names`
             continue
 
         # Accumulate FPs and TPs

@@ -32,7 +32,7 @@ Your Labelbox annotation names become the dataset's class names, and pixel coord
 
 !!! warning "Mask and point projects import without annotations"
 
-    Only bounding boxes and polygons are read today. A project labeled entirely with the segmentation-mask (brush) tool, points, or polylines imports its images and class names but no annotations, and no error is raised. You can spot it on the dataset page: an imported dataset that kept its labels shows a labeled and annotation count next to the image count, and one that lost them shows the image count alone.
+    Only bounding boxes and polygons are read today. A project labeled entirely with the segmentation-mask (brush) tool, points, or polylines imports its images and class names but no annotations, and no error is raised. You can spot it on the dataset page: an imported dataset that kept its labels shows a labeled and annotation count next to the image count, and one that lost them shows neither.
 
 !!! note "Image URLs must be reachable"
 

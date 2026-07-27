@@ -148,8 +148,7 @@ class Events:
                     params["arch"] = _arch(unwrap_model(run.model))  # DDP and EMA both wrap away the .yaml
                     if device.type == "cuda":  # makes hours comparable
                         params["GPU"] = get_gpu_info(device.index or 0)
-                        # only a count carries information, since one GPU is implied by GPU alone; without it the
-                        # whole run's hours would be attributed to a single device
+                        # only a count informs, since GPU alone implies one; without it hours land on a single device
                         params["ngpu"] = run.world_size if run.world_size > 1 else None
                 except Exception:
                     pass

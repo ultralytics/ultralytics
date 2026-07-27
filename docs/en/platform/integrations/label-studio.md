@@ -15,10 +15,22 @@ Until then there is a short path that works today, because Label Studio exports 
 
 ## Import from Label Studio Today
 
-1. In Label Studio, open your project and click **Export**.
-2. Choose the **[YOLO](https://labelstud.io/guide/export)** format. COCO works too.
-3. [Upload the exported ZIP](../data/datasets.md) to Platform as a new dataset.
-4. [Edit the annotations](../data/annotation.md), [train](../train/index.md), and [deploy](../deploy/index.md) without leaving the workspace.
+1. **Export from Label Studio.** Open your project and click **Export**.
+2. **Pick the format.** Choose **[YOLO](https://labelstud.io/guide/export)** — COCO works too — and click **Export** to download the archive.
+3. **Upload to Platform.** [Create a new dataset](../data/datasets.md) from the ZIP.
+4. **Train.** [Edit the annotations](../data/annotation.md), [train](../train/index.md), and [deploy](../deploy/index.md) without leaving the workspace.
+
+### Export with the API
+
+Label Studio's [export API](https://labelstud.io/guide/export) returns the same archive, with the format in `exportType`:
+
+```bash
+curl -X GET "https://<your-label-studio>/api/projects/<project-id>/export?exportType=YOLO&download_all_tasks=true" \
+  -H "Authorization: Bearer <your-token>" \
+  -o dataset.zip
+```
+
+Use `exportType=COCO` for the COCO variant. Large projects should use the [snapshot endpoints](https://labelstud.io/guide/export) instead, which create the export as a background job and then download it by ID.
 
 A Label Studio YOLO export carries its class list alongside the labels, and Platform reads it:
 

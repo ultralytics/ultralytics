@@ -12,11 +12,33 @@ title: Labelbox Dataset Import - Ultralytics Platform
 
 ## Import from Labelbox
 
-1. **Export from Labelbox.** Open the [labeling project](https://docs.labelbox.com/docs/export-labels) or [catalog](https://docs.labelbox.com/docs/export-from-catalog) you want to bring over, go to the **Data Rows** tab, select **All**, and click **Export data**. Labelbox runs the export as a background job — watch for it in [Notifications](https://app.labelbox.com/notifications) and download the NDJSON file once the job finishes.
-2. **Upload to Platform.** Create a new dataset and upload the `.ndjson` file, or paste a direct link to it. You can also start from **Settings > [Integrations](index.md) > Labelbox**.
-3. **Train.** Once processing finishes, [edit the annotations](../data/annotation.md) and [train](../train/index.md) exactly like any other Platform dataset.
+1. **Export from Labelbox.** Open the [labeling project](https://docs.labelbox.com/docs/export-labels) or [catalog](https://docs.labelbox.com/docs/export-from-catalog) you want to bring over and go to the **Data Rows** tab. Select **All**, click **Export data**, choose the fields to include, and confirm.
+2. **Download the file.** Labelbox runs the export as a background job. Watch for it in [Notifications](https://app.labelbox.com/notifications) and click **Download** when it finishes to save the `.ndjson` file.
+3. **Upload to Platform.** Create a new dataset and upload the `.ndjson` file, or paste a direct link to it. You can also start from **Settings > [Integrations](index.md) > Labelbox**.
+4. **Train.** Once processing finishes, [edit the annotations](../data/annotation.md) and [train](../train/index.md) exactly like any other Platform dataset.
 
 Unlike [CVAT](cvat.md) and [Label Studio](label-studio.md), there is no format to choose — Labelbox's own export is the supported one.
+
+### Export with the SDK
+
+Labelbox also offers the export task in its Python SDK, which is the easier route for a repeatable pipeline. Stream the task and write **one JSON object per line**:
+
+```python
+import json
+
+import labelbox
+
+client = labelbox.Client(api_key="YOUR_LABELBOX_API_KEY")
+export_task = labelbox.ExportTask.get_task(client, "YOUR_EXPORT_TASK_ID")
+
+with open("dataset.ndjson", "w") as f:
+    for data_row in export_task.get_buffered_stream():
+        f.write(json.dumps(data_row.json) + "\n")
+```
+
+!!! warning "Write NDJSON, not a JSON array"
+
+    NDJSON is one JSON object per line. `json.dump(list_of_rows, f)` writes a single array instead, and Platform skips any line that is not a JSON object — the import finds no data rows at all. Use the loop above, or `"\n".join(json.dumps(r) for r in rows)`.
 
 ## What Gets Imported
 
@@ -28,7 +50,38 @@ Platform recognizes the Labelbox format on its own and maps bounding boxes and p
 | Polygon                                          | [Segment](../../datasets/segment/index.md) |
 | Segmentation mask, point, polyline, relationship | Not yet                                    |
 
-Your Labelbox annotation names become the dataset's class names, and pixel coordinates are normalized using the image dimensions recorded in the export. A catalog export with no annotations imports as an unlabeled image dataset, ready to label in Platform's [annotation editor](../data/annotation.md).
+Each object's `name` becomes the class name — so a `"name": "Dog"` annotation imports as the class `Dog`, not its lowercase `value` — and pixel coordinates are normalized against the `media_attributes` dimensions in the export. A catalog export with no annotations imports as an unlabeled image dataset, ready to label in Platform's [annotation editor](../data/annotation.md).
+
+A single data row looks like this, trimmed to the fields Platform reads:
+
+```json
+{
+  "data_row": {
+    "external_id": "000000000307.jpg",
+    "row_data": "https://storage.labelbox.com/...?Expires=...&Signature=..."
+  },
+  "media_attributes": { "height": 480, "width": 640, "mime_type": "image/jpeg" },
+  "projects": {
+    "<project-id>": {
+      "labels": [
+        {
+          "annotations": {
+            "objects": [
+              {
+                "name": "Dog",
+                "annotation_kind": "ImageBoundingBox",
+                "bounding_box": { "top": 200.0, "left": 407.0, "height": 172.0, "width": 176.0 }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+Everything else in the export — `embeddings`, `metadata_fields`, `attachments`, `project_details` — is ignored. The embeddings are worth deselecting when you export: in a sample export they were around four-fifths of the file, against a fifth for the fields Platform actually reads.
 
 !!! warning "Mask and point projects import without annotations"
 

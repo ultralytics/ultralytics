@@ -15,10 +15,23 @@ Until then there is a short path that works today, because CVAT already exports 
 
 ## Import from CVAT Today
 
-1. In CVAT, open your task or project and choose **Export dataset**.
-2. Select the **[Ultralytics YOLO](https://docs.cvat.ai/docs/dataset_management/formats/format-yolo-ultralytics/)** format matching your task — CVAT lists Detection, Segmentation, Oriented Bounding Boxes, and Pose separately — and include the images.
-3. [Upload the exported ZIP](../data/datasets.md) to Platform as a new dataset.
-4. [Edit the annotations](../data/annotation.md), [train](../train/index.md), and [deploy](../deploy/index.md) without leaving the workspace.
+1. **Export from CVAT.** Open your task and choose **Actions > Export task dataset** (from a job it is **Menu > Export job dataset**).
+2. **Pick the format.** Choose the **[Ultralytics YOLO](https://docs.cvat.ai/docs/dataset_management/formats/format-yolo-ultralytics/)** entry matching your task — CVAT lists `Ultralytics YOLO Detection 1.0`, `Ultralytics YOLO Segmentation 1.0`, `Ultralytics YOLO Oriented Bounding Boxes 1.0`, and `Ultralytics YOLO Pose 1.0` separately.
+3. **Turn on Save images**, name the `.zip`, and click **OK**. Without the images the archive holds annotations only, and Platform has nothing to import.
+4. **Download the archive.** The export runs in the background — collect it from CVAT's [Requests](https://docs.cvat.ai/docs/workspace/requests-page/) page when it finishes.
+5. **Upload to Platform.** [Create a new dataset](../data/datasets.md) from the ZIP.
+6. **Train.** [Edit the annotations](../data/annotation.md), [train](../train/index.md), and [deploy](../deploy/index.md) without leaving the workspace.
+
+### Export with the CLI
+
+[CVAT's CLI](https://docs.cvat.ai/docs/api_sdk/cli/) exports the same archive from a terminal:
+
+```bash
+pip install cvat-cli
+cvat-cli task export-dataset --format "Ultralytics YOLO Detection 1.0" 103 dataset.zip
+```
+
+Replace `103` with your task ID and the format string with the variant matching your task.
 
 CVAT's Ultralytics YOLO export produces the layout Platform expects, so nothing needs converting:
 

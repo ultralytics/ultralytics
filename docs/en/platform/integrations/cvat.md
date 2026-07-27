@@ -54,11 +54,11 @@ CVAT offers [many export formats](https://docs.cvat.ai/docs/dataset_management/f
 
 !!! warning "Pascal VOC imports without annotations"
 
-    Platform does not read Pascal VOC XML labels, and a VOC export fails quietly rather than loudly: the images import, the annotations do not, and the dataset picks up a single class named after the export's image folder. Choose Ultralytics YOLO or COCO instead.
+    Platform does not read Pascal VOC XML labels, and a VOC export fails quietly rather than loudly: the images import, the annotations do not, and a VOC export with more than a handful of images also picks up a single class named after its image folder. Choose Ultralytics YOLO or COCO instead.
 
 ## What the Integration Will Add
 
-Picking the right export format is the step the integration removes. Once it ships, you will export from CVAT however you like, upload it, and Platform will map the annotations to the matching [YOLO task](../data/index.md#supported-tasks) itself.
+Picking the right export format is the step the integration removes. Once it ships, you will export any of CVAT's image detection and segmentation formats, upload it, and Platform will map the annotations to the matching [YOLO task](../data/index.md#supported-tasks) itself.
 
 - **No format to choose** — CVAT's image detection and segmentation exports map to a YOLO dataset with label names preserved
 - **One workspace** — labeling, training, and deployment stop spanning separate tools and a conversion script

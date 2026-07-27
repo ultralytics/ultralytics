@@ -24,9 +24,17 @@ Until then there is a short path that works today, because Label Studio's YOLO w
 
     Label Studio's `YOLO` and `COCO` options write label files without the images, because your images normally live behind the URLs Label Studio was pointed at. Uploading one of those archives to Platform gives you a dataset with no images. Pick the **with Images** variant instead.
 
-### Export with the SDK
+### Export with the API
 
-Label Studio's SDK ships an [`export_yolo_with_images.py` example](https://github.com/HumanSignal/label-studio-sdk/blob/master/examples/export_yolo_with_images.py) for a repeatable pipeline. It creates a JSON export snapshot, downloads it, and runs the bundled converter locally to produce the YOLO directory with images alongside it — zip that directory and upload it the same way.
+Label Studio's [export API](https://labelstud.io/guide/export) returns the same archive, with the format name in `exportType`:
+
+```bash
+curl -X GET "https://<your-label-studio>/api/projects/<project-id>/export?exportType=YOLO_WITH_IMAGES&download_all_tasks=true" \
+  -H "Authorization: Bearer <your-token>" \
+  -o dataset.zip
+```
+
+`COCO_WITH_IMAGES` and `YOLO_OBB_WITH_IMAGES` work the same way. Large projects should use the [snapshot endpoints](https://labelstud.io/guide/export) instead, which create the export as a background job and download it by ID; the SDK's [`export_yolo_with_images.py`](https://github.com/HumanSignal/label-studio-sdk/blob/master/examples/export_yolo_with_images.py) example does exactly that.
 
 A Label Studio YOLO export carries its class list alongside the labels, and Platform reads it:
 
@@ -57,7 +65,7 @@ Label Studio offers [several export formats](https://labelstud.io/guide/export).
 
 ## What the Integration Will Add
 
-Picking the right export format is the step the integration removes. Once it ships, you will export from Label Studio however you like, upload it, and Platform will map the annotations to the matching [YOLO task](../data/index.md#supported-tasks) itself.
+Picking the right export format is the step the integration removes. Once it ships, you will export any of Label Studio's image detection and segmentation formats, upload it, and Platform will map the annotations to the matching [YOLO task](../data/index.md#supported-tasks) itself.
 
 - **No format to choose** — Label Studio's image detection and segmentation exports map to a YOLO dataset with label names preserved
 - **One workspace** — labeling, training, and deployment stop spanning separate tools and a conversion script

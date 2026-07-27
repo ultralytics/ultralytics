@@ -148,8 +148,15 @@ class SelfAttention(nn.Module):
         q, k, v = (t.transpose(1, 2) for t in qkv.unbind(2))
         if rope is not None:
             q, k = _rope_qk(q, k, *rope)
-        with _sdpa_backends():
-            y = F.scaled_dot_product_attention(q, k, v)
+        if torch.onnx.is_in_onnx_export() and q.dtype == torch.float16:
+            softmax_scale = 2.0
+            logits = torch.matmul(q * (q.shape[-1] ** -0.5 / softmax_scale), k.transpose(-2, -1))
+            logits = ((logits - logits.amax(dim=-1, keepdim=True)) * softmax_scale).clamp(min=-20)
+            attn = logits.exp()
+            y = torch.matmul(attn / attn.sum(dim=-1, keepdim=True), v)
+        else:
+            with _sdpa_backends():
+                y = F.scaled_dot_product_attention(q, k, v)
         return self.proj(y.transpose(1, 2).reshape(B, N, C))
 
 

@@ -216,7 +216,7 @@ def _format_parameter(arg: ast.arg, default: ast.AST | None, src: str) -> str:
         rendered += f": {annotation}"
     default_value = _format_default(default, src)
     if default_value is not None:
-        rendered += f" = {default_value}"
+        rendered += f" = {default_value}" if annotation else f"={default_value}"  # PEP 8 spacing
     return rendered
 
 
@@ -298,8 +298,14 @@ def format_signature(
     default_offset = total_regular - len(defaults)
 
     combined = posonly + regular
-    for idx, arg in enumerate(combined):
-        default = defaults[idx - default_offset] if idx >= default_offset else None
+    pairs = [
+        (arg, defaults[idx - default_offset] if idx >= default_offset else None) for idx, arg in enumerate(combined)
+    ]
+    # A constructor is called as Class(...), so drop __init__'s leading bound parameter — and only that one,
+    # since `cls` is a real argument elsewhere (e.g. BOTrack(xywh, score, cls, feat=None)).
+    if is_class and pairs and pairs[0][0].arg in {"self", "cls"}:
+        pairs, posonly = pairs[1:], posonly[1:]
+    for idx, (arg, default) in enumerate(pairs):
         params.append(_format_parameter(arg, default, src))
         if posonly and idx == len(posonly) - 1:
             params.append("/")
@@ -324,7 +330,7 @@ def format_signature(
 
     return_annotation = (
         _format_annotation(node.returns, src)
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.returns
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.returns and not is_class
         else None
     )
 
@@ -335,6 +341,8 @@ def format_signature(
 
     if len(signature) <= SIGNATURE_LINE_LENGTH or not params:
         return signature
+    if is_class:  # the raw source of a long constructor is `def __init__(self, ...)`, not the call form
+        return "{}(\n    {},\n)".format(name, ",\n    ".join(params))
 
     raw_signature = _get_definition_signature(node, src)
     return raw_signature or signature
@@ -391,13 +399,16 @@ def _parse_returns(lines: list[str]) -> list[ReturnDoc]:
         text = textwrap.dedent("\n".join(block)).strip()
         if not text:
             continue
-        match = RETURNS_RE.match(text)
+        first_line, *rest = text.splitlines()
+        match = RETURNS_RE.match(first_line)
         if match:
             type_hint, desc = match.groups()
             cleaned_type = type_hint.strip()
             if cleaned_type.startswith("(") and cleaned_type.endswith(")"):
                 cleaned_type = cleaned_type[1:-1].strip()
-            entries.append(ReturnDoc(type=cleaned_type, description=_normalize_text(desc.strip())))
+            # Continuation lines carry the rest of the sentence; dedent them so _normalize_text reflows the paragraph.
+            description = "\n".join([desc.strip(), textwrap.dedent("\n".join(rest))]).strip()
+            entries.append(ReturnDoc(type=cleaned_type, description=_normalize_text(description)))
         else:
             entries.append(ReturnDoc(type=None, description=_normalize_text(text)))
     return entries
@@ -600,10 +611,12 @@ def parse_class(node: ast.ClassDef, module_path: str, src: str) -> DocItem:
     """Parse a class node, merging __init__ docs and collecting methods."""
     class_doc = parse_google_docstring(ast.get_docstring(node))
 
-    init_node: ast.FunctionDef | ast.AsyncFunctionDef | None = next(
-        (n for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == "__init__"),
-        None,
-    )
+    methods_or_init = [n for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
+    init_node = next((n for n in methods_or_init if n.name == "__init__"), None)
+    # The class definition runs to the end of its __init__, or to its first method when it declares none;
+    # 0 leaves _collect_source_block on its own end_lineno fallback for classes that define no methods at all.
+    first_method = next((n for n in methods_or_init if n is not init_node), None)
+    class_end = min([first_method.lineno, *(d.lineno for d in first_method.decorator_list)]) - 1 if first_method else 0
     signature_params: list[ParameterDoc] = []
     if init_node:
         init_doc = parse_google_docstring(ast.get_docstring(init_node))
@@ -633,7 +646,7 @@ def parse_class(node: ast.ClassDef, module_path: str, src: str) -> DocItem:
         bases=bases,
         children=methods,
         module_path=module_path,
-        source=_collect_source_block(src, node, end_line=init_node.end_lineno if init_node else node.lineno),
+        source=_collect_source_block(src, node, end_line=init_node.end_lineno if init_node else class_end),
     )
 
 
@@ -782,7 +795,8 @@ def render_docstring(
 
     sections: dict[str, str] = {}
 
-    if merged_params:
+    # A table whose Type and Description cells are all empty repeats the signature above it and nothing else.
+    if merged_params and any(p.type or p.description.strip() for p in merged_params):
         rows = []
         for p in merged_params:
             default_val = f"`{p.default}`" if p.default not in (None, "") else "*required*"

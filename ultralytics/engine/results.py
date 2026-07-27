@@ -481,7 +481,6 @@ class Results(SimpleClass, DataExportMixin):
         font: str = "Arial.ttf",
         pil: bool = False,
         img: np.ndarray | None = None,
-        im_gpu: torch.Tensor | None = None,
         kpt_radius: int = 5,
         kpt_line: bool = True,
         labels: bool = True,
@@ -503,7 +502,6 @@ class Results(SimpleClass, DataExportMixin):
             font (str): Font to use for text.
             pil (bool): Whether to return the image as a PIL Image.
             img (np.ndarray | None): Image to plot on. If None, uses original image.
-            im_gpu (torch.Tensor | None): Normalized image on GPU, forwarded to the annotator for mask plotting.
             kpt_radius (int): Radius of drawn keypoints.
             kpt_line (bool): Whether to draw lines connecting keypoints.
             labels (bool): Whether to plot labels of bounding boxes.
@@ -555,7 +553,7 @@ class Results(SimpleClass, DataExportMixin):
                 if pred_boxes and color_mode == "class"
                 else reversed(range(len(pred_masks)))
             )
-            annotator.masks(pred_mask_data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
+            annotator.masks(pred_mask_data, colors=[colors(x, True) for x in idx])
 
         # Plot Detect results
         if pred_boxes is not None and show_boxes:

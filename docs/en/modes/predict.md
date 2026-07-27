@@ -868,7 +868,6 @@ The `plot()` method supports various arguments to customize the output:
 | `font`       | `str`                  | Font name for text annotations.                                            | `'Arial.ttf'`     |
 | `pil`        | `bool`                 | Return image as a PIL Image object.                                        | `False`           |
 | `img`        | `np.ndarray`           | Alternative image for plotting. Uses the original image if `None`.         | `None`            |
-| `im_gpu`     | `torch.Tensor`         | GPU-accelerated image for faster mask plotting. Shape: (1, 3, 640, 640).   | `None`            |
 | `kpt_radius` | `int`                  | Radius for drawn keypoints.                                                | `5`               |
 | `kpt_line`   | `bool`                 | Connect keypoints with lines.                                              | `True`            |
 | `labels`     | `bool`                 | Include class labels in annotations.                                       | `True`            |

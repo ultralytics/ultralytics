@@ -13,6 +13,7 @@ from ultralytics.utils.checks import check_suffix
 from ultralytics.utils.downloads import is_url
 
 from .backends import (
+    AscendBackend,
     AxeleraBackend,
     CoreMLBackend,
     DeepXBackend,
@@ -117,6 +118,7 @@ class AutoBackend(nn.Module):
             | Qualcomm QNN          | *_qnn.onnx        |
             | LiteRT                | *.tflite          |
             | Hailo                 | *_hailo_model/    |
+            | Huawei Ascend         | *_ascend_model/   |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
@@ -163,6 +165,7 @@ class AutoBackend(nn.Module):
         "qnn": QNNBackend,
         "litert": LiteRTBackend,
         "hailo": HailoBackend,
+        "ascend": AscendBackend,
     }
 
     @torch.no_grad()

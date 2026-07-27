@@ -20,10 +20,6 @@ keywords: Ultralytics, YOLO, utils, telemetry, analytics, events, anonymization,
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.events._shipped_archs
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.events._arch
 
 <br><br>

@@ -819,9 +819,17 @@ def render_docstring(
         sections["returns"] = f"**Returns**\n\n{table}"
 
     if doc.examples:
-        code_block = "\n\n".join(f"```python\n{example.strip()}\n```" for example in doc.examples if example.strip())
-        if code_block:
-            sections["examples"] = f"**Examples**\n\n{code_block}\n\n"
+        # Google-style Examples interleave captions with >>> runs; fence only the runs so the captions stay prose.
+        blocks: list[str] = []
+        for paragraph in (p.strip() for example in doc.examples for p in re.split(r"\n\s*\n", example.strip())):
+            lines = paragraph.splitlines()
+            prompt = next((i for i, line in enumerate(lines) if line.lstrip().startswith(">>>")), 0)
+            if prompt:
+                blocks.append("\n".join(lines[:prompt]).strip())
+            if paragraph:
+                blocks.append(_code_fence("\n".join(lines[prompt:]).strip()))
+        if blocks:
+            sections["examples"] = "**Examples**\n\n" + "\n\n".join(blocks) + "\n\n"
 
     if doc.notes:
         note_text = "\n\n".join(doc.notes).strip()

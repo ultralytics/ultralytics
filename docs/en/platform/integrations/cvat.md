@@ -9,7 +9,7 @@ title: CVAT Dataset Import - Ultralytics Platform
 
 # CVAT Integration
 
-Direct [CVAT](https://www.cvat.ai/) imports are coming to [Ultralytics Platform](https://platform.ultralytics.com), so that any CVAT export uploads as-is with no format to choose.
+Direct [CVAT](https://www.cvat.ai/) imports are coming to [Ultralytics Platform](https://platform.ultralytics.com), so that a CVAT export uploads as-is with no format to choose.
 
 Until then there is a short path that works today, because CVAT already exports in the Ultralytics YOLO layout Platform reads.
 
@@ -28,10 +28,10 @@ Until then there is a short path that works today, because CVAT already exports 
 
 ```bash
 pip install cvat-cli
-cvat-cli task export-dataset --format "Ultralytics YOLO Detection 1.0" 103 dataset.zip
+cvat-cli project export-dataset --format "Ultralytics YOLO Detection 1.0" --with-images yes 104 dataset.zip
 ```
 
-Replace `103` with your task ID and the format string with the variant matching your task.
+Replace `104` with your project ID and the format string with the variant matching your task. `--with-images yes` is the CLI equivalent of the **Save images** switch; without it the archive holds annotations only.
 
 CVAT's Ultralytics YOLO export produces the layout Platform expects, so nothing needs converting:
 
@@ -49,7 +49,7 @@ CVAT offers [many export formats](https://docs.cvat.ai/docs/dataset_management/f
 | CVAT Format          | Works  | Notes                                                                                        |
 | -------------------- | ------ | -------------------------------------------------------------------------------------------- |
 | **Ultralytics YOLO** | Best   | Ships `data.yaml`, so your label names come across intact                                    |
-| **COCO 1.0**         | Yes    | Platform reads COCO JSON annotations and category names                                      |
+| **COCO 1.0**         | Yes    | Read too; a mix of polygons and boxes imports as segment, and the box-only ones are dropped  |
 | **YOLO 1.1**         | Partly | Boxes import, but its `obj.names` file is not read — classes arrive as `class0`, `class1`, … |
 
 !!! warning "Pascal VOC imports without annotations"
@@ -60,7 +60,7 @@ CVAT offers [many export formats](https://docs.cvat.ai/docs/dataset_management/f
 
 Picking the right export format is the step the integration removes. Once it ships, you will export from CVAT however you like, upload it, and Platform will map the annotations to the matching [YOLO task](../data/index.md#supported-tasks) itself.
 
-- **No format to choose** — every CVAT export maps to a YOLO dataset with label names preserved
+- **No format to choose** — CVAT's image detection and segmentation exports map to a YOLO dataset with label names preserved
 - **One workspace** — labeling, training, and deployment stop spanning separate tools and a conversion script
 - **Keep annotating** — imported datasets open in Platform's [annotation editor](../data/annotation.md), including SAM-powered smart annotation
 - **Train immediately** — datasets are ready for [cloud training](../train/cloud-training.md) as soon as they finish processing

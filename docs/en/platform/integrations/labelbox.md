@@ -30,6 +30,7 @@ import labelbox
 
 client = labelbox.Client(api_key="YOUR_LABELBOX_API_KEY")
 export_task = labelbox.ExportTask.get_task(client, "YOUR_EXPORT_TASK_ID")
+export_task.wait_till_done()  # streaming a task that isn't COMPLETE raises
 
 with open("dataset.ndjson", "w") as f:
     f.writelines(json.dumps(data_row.json) + "\n" for data_row in export_task.get_buffered_stream())
@@ -43,11 +44,11 @@ with open("dataset.ndjson", "w") as f:
 
 Platform recognizes the Labelbox format on its own and maps bounding boxes and polygons to the matching [YOLO task type](../data/index.md#supported-tasks):
 
-| Labelbox Annotation                              | Imported                                   |
-| ------------------------------------------------ | ------------------------------------------ |
-| Bounding box                                     | [Detect](../../datasets/detect/index.md)   |
-| Polygon                                          | [Segment](../../datasets/segment/index.md) |
-| Segmentation mask, point, polyline, relationship | Not yet                                    |
+| Labelbox Annotation                                              | Imported                                   |
+| ---------------------------------------------------------------- | ------------------------------------------ |
+| Bounding box                                                     | [Detect](../../datasets/detect/index.md)   |
+| Polygon                                                          | [Segment](../../datasets/segment/index.md) |
+| Segmentation mask, point, polyline, relationship, classification | Not yet                                    |
 
 Each object's `name` becomes the class name — so a `"name": "Dog"` annotation imports as the class `Dog`, not its lowercase `value` — and pixel coordinates are normalized against the `media_attributes` dimensions in the export. A catalog export with no annotations imports as an unlabeled image dataset, ready to label in Platform's [annotation editor](../data/annotation.md).
 
@@ -84,12 +85,12 @@ Everything else in the export — `embeddings`, `metadata_fields`, `attachments`
 
 !!! warning "Mask and point projects import without annotations"
 
-    Only bounding boxes and polygons are read today. A project labeled entirely with the segmentation-mask (brush) tool, points, or polylines imports its images and class names but no annotations, and no error is raised. You can spot it on the dataset page: an imported dataset that kept its labels shows a labeled and annotation count next to the image count, and one that lost them shows neither.
+    Only bounding boxes and polygons are read today, and only from an object annotation — image-level classifications live elsewhere in the export and are skipped. A project labeled entirely with the segmentation-mask (brush) tool, points, polylines, or classifications imports its images but no annotations, and no error is raised. You can spot it on the dataset page: an imported dataset that kept its labels shows a labeled and annotation count next to the image count, and one that lost them shows neither.
 
 !!! note "Upload the export while its links are fresh"
 
     A Labelbox export references each image by signed URL rather than embedding the pixels, and those signatures expire. Platform downloads the images from those URLs, probing a sample before it starts, so an export whose links have all lapsed fails immediately and tells you why — re-export from Labelbox and upload the new file. An export that is only partly expired imports the images it can still reach and skips the rest, so upload soon after exporting.
 
-!!! tip "Mixed annotations import as segment"
+!!! warning "In a mixed export, the boxes are dropped"
 
-    An export containing both bounding boxes and polygons is imported as a segment dataset. Polygons need at least three points to be read.
+    An export containing both bounding boxes and polygons is imported as a segment dataset, and a segment dataset carries polygon geometry only — the box annotations are not used for training or included in version exports. Export boxes and polygons as separate Labelbox projects if you need both. Polygons also need at least three points to be read.

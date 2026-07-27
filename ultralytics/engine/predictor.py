@@ -380,6 +380,18 @@ class BasePredictor:
                 self.run_callbacks("on_predict_batch_end")
                 yield from self.results
 
+            # Final results, under the lock: seen is reset by every run, so reading it outside could divide this run's
+            # profilers by a concurrent run's count. px and profilers are locals and are already private to this run.
+            if seen := self.seen:
+                t = tuple(x.t / seen * 1e3 for x in profilers)  # speeds per image
+                self.speed = dict(zip(("preprocess", "inference", "postprocess"), t))
+                self.pixels = round(px / seen)  # mean area, pairing with speeds that are themselves per-image means
+                if self.args.verbose:
+                    LOGGER.info(
+                        f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
+                        f"{(min(self.args.batch, seen), getattr(self.model, 'channels', 3), *im.shape[2:])}" % t
+                    )
+
         # Release assets
         for v in self.vid_writer.values():
             if isinstance(v, cv2.VideoWriter):
@@ -388,16 +400,6 @@ class BasePredictor:
         if self.args.show:
             cv2.destroyAllWindows()  # close any open windows
 
-        # Print final results
-        if seen := self.seen:  # snapshot, so a concurrent reset cannot divide by zero
-            t = tuple(x.t / seen * 1e3 for x in profilers)  # speeds per image
-            self.speed = dict(zip(("preprocess", "inference", "postprocess"), t))
-            self.pixels = round(px / seen)  # mean area, pairing with speeds that are themselves per-image means
-            if self.args.verbose:
-                LOGGER.info(
-                    f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
-                    f"{(min(self.args.batch, seen), getattr(self.model, 'channels', 3), *im.shape[2:])}" % t
-                )
         if self.args.save or self.args.save_txt or self.args.save_crop:
             nl = len(list(self.save_dir.glob("labels/*.txt")))  # number of labels
             s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ""

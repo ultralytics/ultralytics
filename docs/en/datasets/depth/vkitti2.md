@@ -71,7 +71,7 @@ To train a YOLO26n-Depth model on the Virtual KITTI 2 dataset with an image size
 
 ## Pretrained Models
 
-The YOLO26 depth family (`yolo26n-depth.pt`, `yolo26s-depth.pt`, `yolo26m-depth.pt`, `yolo26l-depth.pt`, `yolo26x-depth.pt`) auto-downloads from the [v8.4.0 release](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth) and is trained on the broad multi-dataset mix that Virtual KITTI 2 is part of.
+The YOLO26 depth family (`yolo26n-depth.pt`, `yolo26s-depth.pt`, `yolo26m-depth.pt`, `yolo26l-depth.pt`, `yolo26x-depth.pt`) auto-downloads from Ultralytics releases and is trained on the broad multi-dataset mix that Virtual KITTI 2 is part of. Explore [YOLO26x-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth) on Ultralytics Platform.
 
 ## Citations and Acknowledgments
 

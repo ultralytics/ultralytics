@@ -233,11 +233,11 @@ For detailed configuration options, visit the [Configuration](../usage/cfg.md) p
 
 Ultralytics YOLO26 offers various pretrained models for [object detection](detect.md), [instance segmentation](segment.md), [semantic segmentation](semantic.md), and [pose estimation](pose.md). These models are pretrained on the COCO dataset, Cityscapes for semantic segmentation, or ImageNet for classification tasks. Here are some of the available models:
 
-- [YOLO26n](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt)
-- [YOLO26s](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s.pt)
-- [YOLO26m](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m.pt)
-- [YOLO26l](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l.pt)
-- [YOLO26x](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x.pt)
+- [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n)
+- [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s)
+- [YOLO26m](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m)
+- [YOLO26l](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l)
+- [YOLO26x](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x)
 
 For a detailed list and performance metrics, refer to the [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26) section.
 

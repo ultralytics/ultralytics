@@ -1,8 +1,8 @@
-# COCO detection fine-tune, distilled backbone. DEIM AdamW transplant at backbone_lr_ratio
-# 0.02: the ablation winner for a distilled backbone (ultravit-x 0.5291 vs 0.5191 at 1.0x).
-# source: phase2-coco-det-ultravit-x-repmixer-attn2-deim-adamw/args.yaml (verified equal)
+# COCO detection fine-tune, distilled non-conv backbone. DEIM AdamW transplant at backbone_lr_ratio
+# 0.1: ultravit-x reached 0.52575 at ep31 vs 0.52117 at 0.02x and 0.51213 at 1.0x.
+# source: phase2-coco-det-ultravit-x-repmixer-attn2-deim-adamw-bbratio0p1/args.yaml
 auto_augment: randaugment
-backbone_lr_ratio: 0.02
+backbone_lr_ratio: 0.1
 batch: 64
 box: 9.83241
 close_mosaic: 10

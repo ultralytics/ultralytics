@@ -853,9 +853,8 @@ def main(argv: list[str]) -> None:
             **_AUG_ARGS,
         )
     elif mode in _COCO_DET_MODES:
-        # coco-preserve holds the distilled backbone at backbone_lr_ratio 0.02 (the COCO ablation winner, ultravit-x
-        # 0.5291 vs 0.5191 at 1.0x). A CE/conv/scratch backbone has nothing distilled to preserve and takes
-        # `--recipe coco-adapt` instead.
+        # coco-preserve is for a distilled non-conv backbone. A CE/conv/scratch backbone has nothing distilled to
+        # preserve and takes `--recipe coco-adapt` instead.
         det_args = _load_recipe(
             recipe_name or "coco-preserve",
             model_yaml,

@@ -12,9 +12,8 @@ from pathlib import Path
 
 sys.path.insert(0, "/root/autodl-tmp/code/ultravit-lane-b")
 
-from ultralytics import RTDETR  # noqa: E402
-
-from t4_bench_common import Variant, run_benchmark  # noqa: E402
+from t4_bench_common import Variant, run_benchmark
+from ultralytics import RTDETR
 
 ESAT = {"dinov3splus": 0.0, "ffnattn2": -6.38, "attn2": 9.22}
 ARCHS = ["dinov3splus", "ffnattn2", "attn2"]
@@ -34,12 +33,12 @@ ENGINE_1011 = Path("/root/autodl-tmp/data/trt1011-engines")
 OUT = Path("/root/autodl-tmp/data/t4_rca_arms.csv")
 
 
-def make(name, weights, onnx, engine):
+def make(name, weights, onnx, engine, state):
     """Wrap prebuilt artifacts in a Variant, taking fused metrics from the checkpoint."""
     model = RTDETR(str(weights))
     model.fuse()
     _, params, _, gflops = model.info(imgsz=640)
-    return Variant(name, Path(weights), onnx, engine, RTDETR, params / 1e6, gflops)
+    return Variant(name, Path(weights), onnx, engine, RTDETR, params / 1e6, gflops, state)
 
 
 variants = []
@@ -51,13 +50,14 @@ for arch in ARCHS:
             ESAT_DIR / TRAINED_PT[arch],
             ESAT_DIR / f"{stem}{SUFFIX}.onnx",
             ENGINE_1011 / f"{stem}{SUFFIX}.engine",
+            "trained",
         )
     )
     for arm in ("zerobias", "nonzerobias"):
         weights = RANDOM_DIR / f"{arch}_{arm}.pt"
         onnx = next(RANDOM_DIR.glob(f"*{arch}_{arm}*.onnx"))
         engine = next(RANDOM_DIR.glob(f"*{arch}_{arm}*.engine"))
-        variants.append(make(f"{arm}-{arch}", weights, onnx, engine))
+        variants.append(make(f"{arm}-{arch}", weights, onnx, engine, arm))
 
 for v in variants:
     print(f"  {v.name:<24} {v.params_m:6.2f}M  engine={v.engine.name[:60]}", flush=True)

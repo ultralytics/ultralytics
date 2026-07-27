@@ -28,7 +28,7 @@ from ultralytics.data import ClassificationDataset
 from ultralytics.data.augment import DEFAULT_MEAN, DEFAULT_STD, classify_transforms
 from ultralytics.data.build import build_dataloader
 from ultralytics.nn.teacher_model import PIPELINE_IMAGE_MEAN, PIPELINE_IMAGE_STD
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, TQDM
 from ultralytics.utils.torch_utils import autocast
 
 # classify_transforms kwargs matching how each family of weights was fed: distillation and released encoders under
@@ -123,7 +123,7 @@ def extract_features(model, dataloader, device, feature_fn=yolo_cls_features):
     model.eval()
     all_features, all_labels = [], []
 
-    for batch in dataloader:
+    for batch in TQDM(dataloader, desc=f"{dataloader.dataset.prefix}features"):
         imgs = batch["img"].to(device, non_blocking=True).float()
         labels = batch["cls"].to(device, non_blocking=True)
 
@@ -185,7 +185,7 @@ def knn_accuracy(
     correct = 0
     total = 0
 
-    for i in range(0, len(val_features), chunk_size):
+    for i in TQDM(range(0, len(val_features), chunk_size), desc="knn-vote"):
         chunk_feats = val_features[i : i + chunk_size].to(device)
         chunk_labels = val_labels[i : i + chunk_size].to(device)
 

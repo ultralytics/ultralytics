@@ -149,6 +149,18 @@ def materialize_yaml(name, yaml, outdir, model_cls):
     return ckpt
 
 
+def pinned_fp32_attn(onnx, engine):
+    """Build the FP16 engine through Esat's builder, with attention softmax and norm internals pinned to fp32.
+
+    This is the Lane B engine build. Without the pin DINOv3 decomposed attention overflows fp16, and the `debug`
+    flag is his, so these engines match the ones his published numbers came from. The import is local because
+    `working_dir` only exists in the Lane B checkout.
+    """
+    from working_dir.export_deimv2 import build_engine_fp16
+
+    build_engine_fp16(onnx, engine, half=True, fp32_attn=True, debug=True)
+
+
 def build_variant(name, weights, outdir, imgsz=640, device="0", model_cls=YOLO, engine_builder=None):
     """Export the FP32 ONNX and FP16 engine for one architecture, reusing whatever already exists at that imgsz.
 
@@ -160,8 +172,7 @@ def build_variant(name, weights, outdir, imgsz=640, device="0", model_cls=YOLO, 
         device (str): CUDA device index used for the export.
         model_cls (type): Facade that resolves the task, YOLO for Lane A and RTDETR for the DEIM yamls.
         engine_builder (Callable, optional): Called as ``(onnx_path, engine_path)`` instead of the stock engine
-            export. Lane B passes ``working_dir/export_deimv2.build_engine_fp16``, which pins attention softmax and
-            norm internals to fp32, without which DINOv3 decomposed attention overflows fp16. Lane A needs no pin.
+            export. Lane B passes ``pinned_fp32_attn``. Lane A needs no pin.
 
     Returns:
         (Variant): The variant with artifact paths, facade and fused model metrics populated.

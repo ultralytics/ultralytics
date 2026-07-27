@@ -12,9 +12,8 @@ import sys
 # sys.path mutation ahead of imports, so this needs no E402 suppression, which the formatter strips anyway.
 sys.path.insert(0, os.environ.get("ULTRA_CHECKOUT", "/root/autodl-tmp/code/ultravit-lane-b"))
 
-from t4_bench_common import build_variant, run_benchmark
+from t4_bench_common import build_variant, pinned_fp32_attn, run_benchmark
 from ultralytics import RTDETR
-from working_dir.export_deimv2 import build_engine_fp16
 
 BASELINE = "dinov3splus"
 YAMLS = {
@@ -28,12 +27,5 @@ YAMLS = {
 ENGINE_DIR = "/root/autodl-tmp/data/t4-laneb-x-recheck-engines"
 CSV_PATH = "/root/autodl-tmp/data/t4_laneb_x_protocol0727.csv"  # not the _recheck_results.csv, that holds an older run
 
-
-# Esat's builder with his --debug flag, so these engines match the ones his published numbers came from.
-def pinned(onnx, engine):
-    """Build the engine with attention softmax and norm internals pinned to fp32."""
-    build_engine_fp16(onnx, engine, half=True, fp32_attn=True, debug=True)
-
-
-variants = [build_variant(tag, y, ENGINE_DIR, model_cls=RTDETR, engine_builder=pinned) for tag, y in YAMLS.items()]
+variants = [build_variant(tag, y, ENGINE_DIR, model_cls=RTDETR, engine_builder=pinned_fp32_attn) for tag, y in YAMLS.items()]
 run_benchmark(variants, BASELINE, CSV_PATH)

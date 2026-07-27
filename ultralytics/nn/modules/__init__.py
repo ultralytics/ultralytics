@@ -123,7 +123,6 @@ from .transformer import (
     TransformerLayer,
 )
 from .vit_blocks import (
-    AnchorPoolQueryMix,
     ConvSyncBN,
     DINOv3RoPE2D,
     FastViTBlock,
@@ -142,7 +141,6 @@ from .vit_blocks import (
 
 __all__ = (
     "AIFI",
-    "AnchorPoolQueryMix",
     "C1",
     "C2",
     "C2PSA",

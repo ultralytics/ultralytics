@@ -42,7 +42,6 @@ LANES = {
         "ffnattn2",  # bridge, the incumbent every UltraViT arm is judged against
         {
             "conv": ("yolo26{s}.yaml", "nsmlx"),
-            "anchorpool": ("yolo26{s}-ultravit-anchorpool.yaml", "nsmlx"),
             "attn2": ("yolo26{s}-ultravit-attn2.yaml", "nsmlx"),
             "base": ("yolo26{s}-ultravit.yaml", "nsmlx"),
             "dinoreg": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg.yaml", "smlx"),
@@ -70,7 +69,6 @@ LANES = {
             "yolo27-deim": ("yolo27{s}-deim-detr.yaml", "ml"),
             "yolo27-vit": ("yolo27{s}-vit-detr.yaml", "x"),
             "dinov3splus": ("deim_dinov3splus_sta_l6_xl.yaml", "x"),
-            "anchorpool": ("yolo26{s}-ultravit-anchorpool-deim_mal_deimv2Neck.yaml", "nsmlx"),
             "attn2": ("yolo26{s}-ultravit-attn2-deim_mal_deimv2Neck.yaml", "nsmlx"),
             "base": ("yolo26{s}-ultravit-deim_mal_deimv2Neck.yaml", "nsmlx"),
             "dinop5": ("yolo26{s}-ultravit-repmixer-dinop5-deim_mal_deimv2Neck.yaml", "smlx"),

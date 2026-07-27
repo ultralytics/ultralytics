@@ -35,9 +35,9 @@ CVAT offers [many export formats](https://docs.cvat.ai/docs/dataset_management/f
 
 | CVAT Format          | Works  | Notes                                                                                        |
 | -------------------- | ------ | -------------------------------------------------------------------------------------------- |
-| **Ultralytics YOLO** | Best   | Ships `data.yaml`, so your label names come across intact                                     |
-| **COCO 1.0**         | Yes    | Platform reads COCO JSON annotations and category names                                       |
-| **YOLO 1.1**         | Partly | Boxes import, but its `obj.names` file is not read — classes arrive as `class0`, `class1`, …  |
+| **Ultralytics YOLO** | Best   | Ships `data.yaml`, so your label names come across intact                                    |
+| **COCO 1.0**         | Yes    | Platform reads COCO JSON annotations and category names                                      |
+| **YOLO 1.1**         | Partly | Boxes import, but its `obj.names` file is not read — classes arrive as `class0`, `class1`, … |
 
 !!! warning "Pascal VOC XML is not supported"
 

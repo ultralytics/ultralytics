@@ -34,11 +34,11 @@ archive.zip/
 
 Label Studio offers [several export formats](https://labelstud.io/guide/export). For image detection and segmentation:
 
-| Label Studio Format | Works | Notes                                                              |
-| ------------------- | ----- | ------------------------------------------------------------------ |
+| Label Studio Format | Works | Notes                                                                |
+| ------------------- | ----- | -------------------------------------------------------------------- |
 | **YOLO**            | Best  | Ships `classes.txt` and `notes.json`, so your label names carry over |
-| **COCO**            | Yes   | Platform reads COCO JSON annotations and category names             |
-| **Pascal VOC XML**  | No    | XML label files cannot be read                                      |
+| **COCO**            | Yes   | Platform reads COCO JSON annotations and category names              |
+| **Pascal VOC XML**  | No    | XML label files cannot be read                                       |
 
 !!! warning "Pascal VOC XML is not supported"
 

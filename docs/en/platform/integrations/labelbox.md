@@ -20,14 +20,19 @@ Unlike [CVAT](cvat.md) and [Label Studio](label-studio.md), there is no format t
 
 ## What Gets Imported
 
-Platform recognizes the Labelbox format on its own and maps each annotation to the matching [YOLO task type](../data/index.md#supported-tasks):
+Platform recognizes the Labelbox format on its own and maps bounding boxes and polygons to the matching [YOLO task type](../data/index.md#supported-tasks):
 
-| Labelbox Annotation | Platform Task                              |
-| ------------------- | ------------------------------------------ |
-| Bounding box        | [Detect](../../datasets/detect/index.md)   |
-| Polygon             | [Segment](../../datasets/segment/index.md) |
+| Labelbox Annotation                              | Imported                                   |
+| ------------------------------------------------ | ------------------------------------------ |
+| Bounding box                                     | [Detect](../../datasets/detect/index.md)   |
+| Polygon                                          | [Segment](../../datasets/segment/index.md) |
+| Segmentation mask, point, polyline, relationship | Not yet                                    |
 
 Your Labelbox annotation names become the dataset's class names, and pixel coordinates are normalized using the image dimensions recorded in the export. A catalog export with no annotations imports as an unlabeled image dataset, ready to label in Platform's [annotation editor](../data/annotation.md).
+
+!!! warning "Mask and point projects import without annotations"
+
+    Only bounding boxes and polygons are read today. A project labeled entirely with the segmentation-mask (brush) tool, points, or polylines imports its images and class names but no annotations, and no error is raised. Check the dataset's annotation count after import.
 
 !!! note "Image URLs must be reachable"
 
@@ -35,4 +40,4 @@ Your Labelbox annotation names become the dataset's class names, and pixel coord
 
 !!! tip "Mixed annotations import as segment"
 
-    An export containing both bounding boxes and polygons is imported as a segment dataset.
+    An export containing both bounding boxes and polygons is imported as a segment dataset. Polygons need at least three points to be read.

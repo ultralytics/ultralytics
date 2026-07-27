@@ -16,7 +16,7 @@ Until then there is a short path that works today, because CVAT already exports 
 ## Import from CVAT Today
 
 1. In CVAT, open your task or project and choose **Export dataset**.
-2. Select the **[Ultralytics YOLO](https://docs.cvat.ai/docs/dataset_management/formats/format-yolo-ultralytics/)** format that matches your task, and include the images.
+2. Select the **[Ultralytics YOLO](https://docs.cvat.ai/docs/dataset_management/formats/format-yolo-ultralytics/)** format matching your task — CVAT lists Detection, Segmentation, Oriented Bounding Boxes, and Pose separately — and include the images.
 3. [Upload the exported ZIP](../data/datasets.md) to Platform as a new dataset.
 4. [Edit the annotations](../data/annotation.md), [train](../train/index.md), and [deploy](../deploy/index.md) without leaving the workspace.
 
@@ -39,9 +39,9 @@ CVAT offers [many export formats](https://docs.cvat.ai/docs/dataset_management/f
 | **COCO 1.0**         | Yes    | Platform reads COCO JSON annotations and category names                                      |
 | **YOLO 1.1**         | Partly | Boxes import, but its `obj.names` file is not read — classes arrive as `class0`, `class1`, … |
 
-!!! warning "Pascal VOC XML is not supported"
+!!! warning "Pascal VOC imports without annotations"
 
-    Platform cannot read XML label files and flags them during upload. Choose Ultralytics YOLO or COCO instead.
+    Platform does not read Pascal VOC XML labels, and a VOC export fails quietly rather than loudly: the images import, the annotations do not, and the dataset picks up a single class named after the export's image folder. Choose Ultralytics YOLO or COCO instead.
 
 ## What the Integration Will Add
 

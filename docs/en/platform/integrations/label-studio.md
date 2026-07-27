@@ -20,29 +20,31 @@ Until then there is a short path that works today, because Label Studio exports 
 3. [Upload the exported ZIP](../data/datasets.md) to Platform as a new dataset.
 4. [Edit the annotations](../data/annotation.md), [train](../train/index.md), and [deploy](../deploy/index.md) without leaving the workspace.
 
-A Label Studio YOLO export carries its class list alongside the labels, and Platform reads both files:
+A Label Studio YOLO export carries its class list alongside the labels, and Platform reads it:
 
 ```
 archive.zip/
-├── classes.txt        # class names Platform reads
-├── notes.json         # also read, when classes.txt is absent
+├── classes.txt        # class names Platform reads first
+├── notes.json         # fallback, used only when classes.txt is missing or empty
 ├── images/
 └── labels/
 ```
+
+Upload the archive exactly as Label Studio produced it. Platform looks for `classes.txt` and `notes.json` at the root of the archive, so re-zipping the export inside another folder loses your label names and the classes import as `class0`, `class1`, and so on.
 
 ## Choosing an Export Format
 
 Label Studio offers [several export formats](https://labelstud.io/guide/export). For image detection and segmentation:
 
-| Label Studio Format | Works | Notes                                                                |
-| ------------------- | ----- | -------------------------------------------------------------------- |
-| **YOLO**            | Best  | Ships `classes.txt` and `notes.json`, so your label names carry over |
-| **COCO**            | Yes   | Platform reads COCO JSON annotations and category names              |
-| **Pascal VOC XML**  | No    | XML label files cannot be read                                       |
+| Label Studio Format | Works | Notes                                                              |
+| ------------------- | ----- | ------------------------------------------------------------------ |
+| **YOLO**            | Best  | Ships `classes.txt`, so your label names carry over                 |
+| **COCO**            | Yes   | Platform reads COCO JSON annotations and category names             |
+| **Pascal VOC XML**  | No    | XML label files cannot be read                                      |
 
-!!! warning "Pascal VOC XML is not supported"
+!!! warning "Pascal VOC imports without annotations"
 
-    Platform cannot read XML label files and flags them during upload. Choose YOLO or COCO instead.
+    Platform does not read Pascal VOC XML labels, and a VOC export fails quietly rather than loudly: the images import and the annotations do not. Choose YOLO or COCO instead.
 
 ## What the Integration Will Add
 

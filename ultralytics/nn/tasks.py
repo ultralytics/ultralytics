@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import contextlib
 import pickle
 import re
@@ -224,8 +226,7 @@ class BaseModel(torch.nn.Module):
             thop = None  # conda support without 'ultralytics-thop' installed
 
         c = m == self.model[-1] and isinstance(x, list)  # is final layer list, copy input as inplace fix
-        # profile a copy: thop leaves float64 total_ops/total_params buffers on modules, incl. the shared default_act
-        flops = thop.profile(deepcopy(m), inputs=[x.copy() if c else x], verbose=False)[0] / 1e9 * 2 if thop else 0
+        flops = thop.profile(m, inputs=[x.copy() if c else x], verbose=False)[0] / 1e9 * 2 if thop else 0
         t = time_sync()
         for _ in range(10):
             m(x.copy() if c else x)
@@ -339,7 +340,7 @@ class BaseModel(torch.nn.Module):
         if verbose:
             LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")
 
-    def _remap_cls_by_names(self, csd, src_model, verbose=True):
+    def _remap_cls_by_names(self, csd: dict[str, torch.Tensor], src_model: torch.nn.Module, verbose: bool = True):
         """Remap pretrained classification head rows to current class order by name.
 
         Copies rows from pretrained cls layers into the current model's state_dict where the destination class name
@@ -922,6 +923,56 @@ class RTDETRDetectionModel(DetectionModel):
             verbose (bool): Print additional information during initialization.
         """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    def _remap_cls_by_names(self, csd: dict[str, torch.Tensor], src_model: torch.nn.Module, verbose: bool = True):
+        """Remap RT-DETR decoder cls-head rows by class name.
+
+        Overrides BaseModel's YOLO-specific implementation: RT-DETR's classification tensors live under
+        `score_head` and `class_embed` inside `RTDETRDecoder` rather than `Detect.cv3`. All of them are
+        row-per-class, including the training-only `denoising_class_embed` embedding, so matched class rows
+        transfer even when source and target `nc` differ; any residual shape mismatch is dropped by
+        `intersect_dicts`.
+
+        Args:
+            csd (dict): Pretrained checkpoint state_dict (will be mutated).
+            src_model (torch.nn.Module): Pretrained module, used to read `.names`.
+            verbose (bool): Log mapping summary.
+
+        Returns:
+            (int): Number of cls tensors remapped (counted toward "Transferred" log line).
+        """
+        src_names = getattr(src_model, "names", None)
+        tgt_names = getattr(self, "names", None)
+        if not (isinstance(src_names, dict) and isinstance(tgt_names, dict)):
+            return 0
+        # Skip default placeholder names {0:"0", 1:"1", ...} (also catches empty dicts)
+        if any(all(str(k) == str(v) for k, v in n.items()) for n in (src_names, tgt_names)):
+            return 0
+
+        src_lookup = {str(v).strip().lower(): k for k, v in src_names.items()}
+        tgt_nc = len(tgt_names)
+        idx = torch.tensor(
+            [src_lookup.get(str(tgt_names[k]).strip().lower(), -1) for k in range(tgt_nc)], dtype=torch.long
+        )
+        n_match = int((idx >= 0).sum())
+        # Skip if nothing matches, or class names already share order and count (intersect_dicts handles it directly)
+        if n_match == 0 or (len(src_names) == tgt_nc and torch.equal(idx, torch.arange(tgt_nc))):
+            return 0
+
+        valid = idx >= 0
+        state_dict = self.state_dict()
+        cls_keys = {k for k in csd if ("score_head" in k or "class_embed" in k) and k in state_dict}
+        remapped = 0
+        for k in cls_keys:
+            v_src, v_tgt = csd[k], state_dict[k]
+            if v_src.ndim != v_tgt.ndim or v_src.shape[1:] != v_tgt.shape[1:]:
+                continue
+            v_tgt[valid] = v_src[idx[valid]].to(v_tgt.dtype)
+            csd.pop(k)  # prevent intersect_dicts from copying these rows in the wrong (source) order
+            remapped += 1
+        if verbose and remapped:
+            LOGGER.info(f"Remapped {n_match}/{tgt_nc} decoder cls head rows from pretrained weights by class name")
+        return remapped
 
     def _apply(self, fn):
         """Apply a function to all tensors in the model, including decoder anchors and valid mask.
@@ -1753,11 +1804,31 @@ def torch_safe_load(weight, safe_only=None):
     try:
         ckpt = _load()
 
-    except RuntimeError as e:
+    except (RuntimeError, EOFError, pickle.UnpicklingError) as e:
+        # An unreadable file reaches the loader as one of three internal errors depending on how it is damaged:
+        # RuntimeError for a truncated zip, EOFError for an empty one, UnpicklingError for bytes that are not a
+        # pickle at all (an image or archive renamed .pt). They are one user-facing condition, so they share one
+        # handler and one message.
+        if isinstance(e, RuntimeError) and "PytorchStreamReader" not in str(e):
+            raise  # an unrelated RuntimeError is a real failure, not a damaged file
+        if safe_only and isinstance(e, pickle.UnpicklingError):
+            # weights_only=True refused a global outside the allow-list: a format problem, not a damaged file
+            raise TypeError(
+                emojis(
+                    f"ERROR ❌️ {weight} references types outside the supported Ultralytics checkpoint format. "
+                    f"Use an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
+                )
+            ) from e
         # Recover only a corrupt cached official asset requested by bare name; never touch user-supplied paths.
         name = Path(str(weight)).name
-        if "PytorchStreamReader" not in str(e) or str(weight) != name or name not in GITHUB_ASSETS_NAMES:
-            raise
+        if str(weight) != name or name not in GITHUB_ASSETS_NAMES:
+            raise TypeError(
+                emojis(
+                    f"ERROR ❌️ {weight} is not a loadable checkpoint — the file is empty, truncated or corrupted "
+                    f"({type(e).__name__}: {e}).\nRecommend fixes are to re-download or re-export the file, or to "
+                    f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
+                )
+            ) from e
         LOGGER.warning(f"Corrupt cache {file}, re-downloading {weight}...")
         Path(file).unlink(missing_ok=True)
         file = attempt_download_asset(weight)
@@ -1800,18 +1871,6 @@ def torch_safe_load(weight, safe_only=None):
         )
         check_requirements(e.name)  # install missing module
         ckpt = torch_load(file, map_location="cpu")
-
-    except pickle.UnpicklingError as e:
-        # weights_only=True encountered a global outside the allow-list. The default (weights_only=False) path can also
-        # raise this for a corrupt or legacy file, so re-raise verbatim there to preserve existing behavior.
-        if not safe_only:
-            raise
-        raise TypeError(
-            emojis(
-                f"ERROR ❌️ {weight} references types outside the supported Ultralytics checkpoint format. "
-                f"Use an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
-            )
-        ) from e
 
     if not isinstance(ckpt, dict):
         # File is likely a YOLO instance saved with i.e. torch.save(model, "saved_model.pt")

@@ -95,7 +95,7 @@ def env_info(imgsz, variants):
     }
 
 
-def build_variant(name, weights, outdir, imgsz=640, device="0", model_cls=YOLO):
+def build_variant(name, weights, outdir, imgsz=640, device="0", model_cls=YOLO, engine_builder=None):
     """Export the FP32 ONNX and FP16 engine for one architecture, reusing whatever already exists at that imgsz.
 
     Args:
@@ -105,6 +105,9 @@ def build_variant(name, weights, outdir, imgsz=640, device="0", model_cls=YOLO):
         imgsz (int): Square input size baked into both exports and into the artifact stem.
         device (str): CUDA device index used for the export.
         model_cls (type): Facade that resolves the task, YOLO for Lane A and RTDETR for the DEIM yamls.
+        engine_builder (Callable, optional): Called as ``(onnx_path, engine_path)`` instead of the stock engine
+            export. Lane B passes ``working_dir/export_deimv2.build_engine_fp16``, which pins attention softmax and
+            norm internals to fp32, without which DINOv3 decomposed attention overflows fp16. Lane A needs no pin.
 
     Returns:
         (Variant): The variant with artifact paths, facade and fused model metrics populated.
@@ -112,12 +115,21 @@ def build_variant(name, weights, outdir, imgsz=640, device="0", model_cls=YOLO):
     outdir = Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
     onnx, engine = outdir / f"{name}-{imgsz}.onnx", outdir / f"{name}-{imgsz}.engine"
-    for path, fmt, extra in ((onnx, "onnx", {}), (engine, "engine", {"half": True})):
-        if not path.exists():  # export mutates the model in place, so each one gets a fresh instance
-            exported = model_cls(str(weights)).export(
-                format=fmt, imgsz=imgsz, device=device, batch=1, verbose=False, **extra
-            )
-            shutil.move(str(exported), path)
+
+    def export(fmt, path, **extra):
+        """Export one format from a fresh instance, since export mutates the model in place."""
+        exported = model_cls(str(weights)).export(
+            format=fmt, imgsz=imgsz, device=device, batch=1, verbose=False, **extra
+        )
+        shutil.move(str(exported), path)
+
+    if not onnx.exists():
+        export("onnx", onnx)
+    if not engine.exists():
+        if engine_builder:
+            engine_builder(onnx, engine)
+        else:
+            export("engine", engine, half=True)
     model = model_cls(str(weights))
     model.fuse()  # so params and GFLOPs describe the deployed graph
     _, params, _, gflops = model.info(imgsz=imgsz)

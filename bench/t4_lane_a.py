@@ -2,7 +2,10 @@
 """T4 latency for every Lane A architecture that carries a registered number, remeasured in one session.
 
 Lane A is the YOLO26 conv-head detector, so the YOLO facade resolves the task and the stock Ultralytics engine
-export applies. The fp32 attention pin Lane B needs has nothing to pin here.
+export applies. Six of these architectures do carry MHSA, so Lane B's fp32 attention pin would have something to act
+on, and it is deliberately not used: stock export is how the shipped detector is actually deployed, and it keeps
+these rows continuous with every earlier Lane A measurement. The cost is that Lane A and Lane B TRT absolutes are
+not cross-comparable, only their within-lane ratios are.
 
 Nine of these ten cover every phase2 run in the orc db, one per distinct (yaml, scale). The registered numbers they
 replace were produced across many sessions under a timer and a weight state that are both now known to be wrong, and

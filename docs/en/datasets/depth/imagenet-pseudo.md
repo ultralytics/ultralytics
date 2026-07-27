@@ -66,11 +66,11 @@ The pseudo-labeled ImageNet data is not trained on in isolation; it is consumed 
 
 Pretrained YOLO26-Depth models auto-download from the Ultralytics [v8.4.0 assets release](https://github.com/ultralytics/assets/releases/tag/v8.4.0) when first referenced by name:
 
-- [YOLO26n-Depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-depth.pt)
-- [YOLO26s-Depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-depth.pt)
-- [YOLO26m-Depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-depth.pt)
-- [YOLO26l-Depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-depth.pt)
-- [YOLO26x-Depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-depth.pt)
+- [YOLO26n-Depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth)
+- [YOLO26s-Depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s-depth)
+- [YOLO26m-Depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m-depth)
+- [YOLO26l-Depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-depth)
+- [YOLO26x-Depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth)
 
 ## Citations and Acknowledgments
 

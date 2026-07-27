@@ -20,39 +20,39 @@ keywords: platform callbacks, training callbacks, console logging, YOLO11 traini
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.callbacks.platform.\_interp_plot
+## ::: ultralytics.utils.callbacks.platform._interp_plot
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.callbacks.platform.\_validation_payload
+## ::: ultralytics.utils.callbacks.platform._validation_payload
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.callbacks.platform.\_sanitize_json_value
+## ::: ultralytics.utils.callbacks.platform._sanitize_json_value
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.callbacks.platform.\_send
+## ::: ultralytics.utils.callbacks.platform._send
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.callbacks.platform.\_send_async
+## ::: ultralytics.utils.callbacks.platform._send_async
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.callbacks.platform.\_handle_control_response
+## ::: ultralytics.utils.callbacks.platform._handle_control_response
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.callbacks.platform.\_upload_model
+## ::: ultralytics.utils.callbacks.platform._upload_model
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.callbacks.platform.\_get_environment_info
+## ::: ultralytics.utils.callbacks.platform._get_environment_info
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.callbacks.platform.\_get_project_name
+## ::: ultralytics.utils.callbacks.platform._get_project_name
 
 <br><br><hr><br>
 

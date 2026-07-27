@@ -38,7 +38,7 @@ def _arch(model):
     The config travels inside a checkpoint, so fine-tuned models report the architecture they descend from however many
     generations back.
     """
-    desc = getattr(model, "description", "").split()  # exported models name the arch here instead of a YAML
+    desc = f"{getattr(model, 'description', '')}".split()  # exported models name the arch here instead of a YAML
     yaml = getattr(getattr(model, "model", None), "yaml", None) or {}  # SAM backends have no .model
     stem = Path(yaml.get("yaml_file", "")).stem or (desc[1] if len(desc) > 1 else "")
     return stem.lower()[:100] or None  # lowercased so one arch cannot split into two cells; 100 is the GA4 limit
@@ -113,17 +113,17 @@ class Events:
             if cfg.mode == "export":
                 params["format"] = cfg.format
             elif cfg.mode in {"predict", "track"}:  # track runs the predictor too, and is most of the video inference
-                try:  # every read is inside the guard, so nothing can raise into a user's prediction run
+                # Every read is inside the guard, so nothing can raise into a user's prediction run, and the reads run
+                # cheapest and safest first so a raise costs the fewest fields. Insertion order is also drop order.
+                try:
+                    params["n"] = predictor.seen  # predictor state this file's own owner sets, so it cannot raise
+                    params["pixels"] = predictor.pixels  # mean inference area, which FLOPs scale with; sqrt for a side
+                    for k, v in (predictor.speed or {}).items():  # absent when a run processed no images
+                        params[f"{k}_ms"] = round(v, 3)
+                    params["batch"] = min(getattr(predictor.dataset, "bs", 0), predictor.seen) or None
                     model = predictor.model
                     params["format"] = model.format
-                    params["arch"] = _arch(model)
-                    meta = getattr(model, "metadata", None) or {}
-                    params["quantize"] = str(meta.get("args", {}).get("quantize") or cfg.quantize or 32)
-                    h, w = predictor.shape or (0, 0)  # rect letterboxing makes the inference shape source-dependent
-                    params["pixels"] = h * w or None  # inference area, which FLOPs scale with; sqrt() for a square edge
-                    params["batch"] = min(getattr(predictor.dataset, "bs", 0), predictor.seen) or None
                     params["nc"] = len(getattr(model, "names", None) or ()) or None  # drives head width and NMS
-                    params["n"] = predictor.seen
                     # toggles that move inference time enormously, read as applied rather than as requested:
                     # attempt_compile replaces predictor.model, and cfg.end2end is a tri-state request not a state
                     flags = {
@@ -132,8 +132,9 @@ class Events:
                         "augment": cfg.augment,
                     }
                     params["flags"] = ",".join(k for k, v in flags.items() if v) or None
-                    for k, v in (predictor.speed or {}).items():  # absent when a run processed no images
-                        params[f"{k}_ms"] = round(v, 3)
+                    params["arch"] = _arch(model)  # reads into model.description and model.model.yaml
+                    meta = getattr(model, "metadata", None) or {}
+                    params["quantize"] = str(meta.get("args", {}).get("quantize") or cfg.quantize or 32)
                     if device.type == "cuda":  # CUDA is already initialized here, so this costs nothing
                         params["GPU"] = get_gpu_info(device.index or 0)
                     session = getattr(model, "session", None)  # ONNX Runtime provider, else OpenVINO device
@@ -142,7 +143,8 @@ class Events:
                     params["provider"] = devices[0] if devices else None  # last: least reliable read
                 except Exception:
                     pass
-            params = {k: v for k, v in params.items() if v is not None}  # GA4 discards nulls regardless
+            # GA4 discards nulls regardless, and rejects any event over 25 params outright, so cap rather than lose it
+            params = dict([(k, v) for k, v in params.items() if v is not None][:25])
             self.events.append({"name": cfg.mode, "params": params})
 
         # Check rate limit and return early if under limit

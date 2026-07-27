@@ -926,7 +926,7 @@ class Exporter:
             "names": model.names,
             "args": {k: str(v) if isinstance(v, Path) else v for k, v in self.args if k in fmt_keys},
             "channels": model.yaml.get("channels", 3),
-            "end2end": getattr(model, "end2end", False),
+            "end2end": getattr(model, "end2end", False) or isinstance(model.model[-1], RTDETRDecoder),
         }  # model metadata
         if self.deim_fp32_pinning:
             self.metadata["deim_fp32_pinning"] = True

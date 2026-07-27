@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import copy
 import math
 
@@ -130,12 +132,17 @@ def multi_scale_deformable_attn_pytorch(
     """
     bs, _, num_heads, embed_dims = value.shape
     _, num_queries, _, num_total_points, _ = sampling_locations.shape
-    split_sizes = num_points_list if num_points_list is not None else num_total_points // len(value_spatial_shapes)
 
-    # (bs, num_keys, num_heads, embed_dims) -> tuple of (bs*num_heads, embed_dims, H*W) per level
-    value_list = value.permute(0, 2, 3, 1).flatten(0, 1).split([h * w for h, w in value_spatial_shapes], dim=-1)
-    # Map to grid_sample coords in [-1, 1] and split per level: tuple of (bs*num_heads, num_queries, points_l, 2)
-    sampling_grids = (2 * sampling_locations - 1).permute(0, 2, 1, 3, 4).flatten(0, 1).split(split_sizes, dim=-2)
+    # (bs, num_keys, num_heads, embed_dims) -> (bs*num_heads, embed_dims, H*W)
+    value = value.permute(0, 2, 3, 1).flatten(0, 1)
+    # Map to grid_sample coords in [-1, 1]: (bs*num_heads, num_queries, num_total_points, 2)
+    sampling_grids = (2 * sampling_locations - 1).permute(0, 2, 1, 3, 4).flatten(0, 1)
+    if len(value_spatial_shapes) == 1:
+        value_list, sampling_grids = (value,), (sampling_grids,)
+    else:
+        split_sizes = num_points_list if num_points_list is not None else num_total_points // len(value_spatial_shapes)
+        value_list = value.split([h * w for h, w in value_spatial_shapes], dim=-1)
+        sampling_grids = sampling_grids.split(split_sizes, dim=-2)
 
     sampling_value_list = []
     for level, (h, w) in enumerate(value_spatial_shapes):

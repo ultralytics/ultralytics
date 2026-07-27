@@ -106,7 +106,7 @@ To train a YOLO26n-Depth model on the Hypersim dataset with an image size of 640
 
 ## Pretrained Models
 
-The YOLO26 depth family (`yolo26n-depth.pt`, `yolo26s-depth.pt`, `yolo26m-depth.pt`, `yolo26l-depth.pt`, `yolo26x-depth.pt`) auto-downloads from the [v8.4.0 release](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-depth.pt) and is trained on the broad multi-dataset mix that Hypersim is part of.
+The YOLO26 depth family (`yolo26n-depth.pt`, `yolo26s-depth.pt`, `yolo26m-depth.pt`, `yolo26l-depth.pt`, `yolo26x-depth.pt`) auto-downloads from the [v8.4.0 release](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth) and is trained on the broad multi-dataset mix that Hypersim is part of.
 
 ## Citations and Acknowledgments
 

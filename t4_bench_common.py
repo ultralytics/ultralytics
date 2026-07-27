@@ -86,6 +86,7 @@ class Variant:
 
 def env_info(imgsz, variants):
     """Collect the software, hardware and artifact provenance a latency number is only valid under."""
+    providers = onnxruntime.get_available_providers()
     return {
         "timer": TIMER,
         "python": platform.python_version(),
@@ -102,6 +103,13 @@ def env_info(imgsz, variants):
         "init_seed": SEED,
         "bias_fill": BIAS_FILL,
         **{m: __import__(m).__version__ for m in ("onnxruntime", "tensorrt", "onnx")},
+        # Which provider the onnx row actually ran on, recorded rather than required. Installing onnxruntime beside
+        # onnxruntime-gpu shadows the GPU build, and the rows measured before 2026-07-27 silently took the CPU path
+        # because of it. This mirrors the selection in ultralytics/nn/backends/onnx.py, which asks for CUDA then CPU.
+        "onnx_providers_available": providers,
+        "onnx_provider_used": "CUDAExecutionProvider"
+        if "CUDAExecutionProvider" in providers
+        else "CPUExecutionProvider",
         "artifacts": {v.name: {a: str(getattr(v, a)) for a in ("weights", "onnx", "engine")} for v in variants},
     }
 
@@ -278,8 +286,6 @@ def run_benchmark(variants, baseline, out_csv, imgsz=640, device="0"):
         imgsz (int): Square input size, which must match the size the artifacts were exported at.
         device (str): CUDA device index passed to the predictor.
     """
-    providers = onnxruntime.get_available_providers()
-    assert "CUDAExecutionProvider" in providers, f"install onnxruntime-gpu, the onnx row would be CPU: {providers}"
     out_csv = Path(out_csv)
     image = np.zeros((imgsz, imgsz, 3), dtype=np.uint8)
     print(f"=== timer {TIMER}, {len(variants)} variants, baseline {baseline}", flush=True)

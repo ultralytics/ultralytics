@@ -644,6 +644,7 @@ nav:
       - Google Colab: integrations/google-colab.md
       - Gradio: integrations/gradio.md
       - Hailo: integrations/hailo.md
+      - Huawei Ascend: integrations/ascend.md
       - IBM Watsonx: integrations/ibm-watsonx.md
       - JupyterLab: integrations/jupyterlab.md
       - Kaggle: integrations/kaggle.md
@@ -836,6 +837,7 @@ nav:
       - nn:
           - autobackend: reference/nn/autobackend.md
           - backends:
+              - ascend: reference/nn/backends/ascend.md
               - axelera: reference/nn/backends/axelera.md
               - base: reference/nn/backends/base.md
               - coreml: reference/nn/backends/coreml.md
@@ -927,6 +929,7 @@ nav:
           - errors: reference/utils/errors.md
           - events: reference/utils/events.md
           - export:
+              - ascend: reference/utils/export/ascend.md
               - axelera: reference/utils/export/axelera.md
               - coreml: reference/utils/export/coreml.md
               - deepx: reference/utils/export/deepx.md

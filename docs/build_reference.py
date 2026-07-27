@@ -280,16 +280,9 @@ def format_signature(
         return ""
 
     if isinstance(node, ast.ClassDef):
-        init_method = next(
-            (n for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == "__init__"),
-            None,
-        )
-        args = (
-            init_method.args
-            if init_method
-            else ast.arguments(
-                posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]
-            )
+        # parse_class passes the ClassDef only when no __init__ exists anywhere in its in-module chain, so `Name()`.
+        args = ast.arguments(
+            posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]
         )
     else:
         args = node.args
@@ -624,7 +617,7 @@ def _class_init(node: ast.ClassDef) -> ast.FunctionDef | ast.AsyncFunctionDef | 
 def _inherited_init(
     node: ast.ClassDef, class_nodes: dict[str, ast.ClassDef], seen: set[str] | None = None
 ) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
-    """Return the nearest __init__ inherited from a base class defined in the same module."""
+    """Return the first __init__ found depth-first through base classes defined in the same module."""
     seen = seen if seen is not None else {node.name}
     for base in node.bases:
         name = getattr(base, "id", None)
@@ -652,6 +645,9 @@ def parse_class(node: ast.ClassDef, module_path: str, src: str, class_nodes: dic
     signature_params: list[ParameterDoc] = []
     if init_node:
         init_doc = parse_google_docstring(ast.get_docstring(init_node))
+        if init_node is not own_init:
+            # An inherited __init__ documents the signature we render, but its prose describes the base class.
+            init_doc = ParsedDocstring(params=init_doc.params)
         class_doc = merge_docstrings(class_doc, init_doc, ignore_summary=True)
         signature_params = collect_signature_parameters(init_node.args, src, skip_self=True)
 

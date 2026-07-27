@@ -2,6 +2,7 @@
 
 import json
 import random
+import re
 import time
 from pathlib import Path
 from threading import Thread
@@ -16,6 +17,7 @@ from ultralytics.utils import (
     ONLINE,
     PYTHON_VERSION,
     RANK,
+    ROOT,
     TESTS_RUNNING,
     TORCH_VERSION,
 )
@@ -38,7 +40,8 @@ def _arch(model) -> str:
     desc = getattr(model, "description", "").split()  # exported models name the arch here instead of a YAML
     stem = Path((getattr(model.model, "yaml", None) or {}).get("yaml_file", "")).stem
     stem = stem or (desc[1].lower() if len(desc) > 1 else "")
-    return stem if f"{stem}.pt" in GITHUB_ASSETS_NAMES else "custom"
+    unified = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", stem)  # configs ship unscaled, i.e. yolo11n-seg -> yolo11-seg
+    return stem if any((ROOT / "cfg" / "models").rglob(f"{unified}.yaml")) else "custom"
 
 
 class Events:

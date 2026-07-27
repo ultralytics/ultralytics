@@ -393,11 +393,11 @@ class BasePredictor:
                     f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
                     f"{(min(self.args.batch, self.seen), getattr(self.model, 'channels', 3), *im.shape[2:])}" % t
                 )
+        self.run_callbacks("on_predict_end")  # everything is known here, so fire before the label glob below
         if self.args.save or self.args.save_txt or self.args.save_crop:
             nl = len(list(self.save_dir.glob("labels/*.txt")))  # number of labels
             s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ""
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
-        self.run_callbacks("on_predict_end")
 
     def setup_model(self, model, verbose: bool = True):
         """Initialize YOLO model with given parameters and set it to evaluation mode.

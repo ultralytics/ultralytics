@@ -130,7 +130,8 @@ class Events:
                     # both resolved: 'auto' is the default, and it picks the optimizer by iteration count and fits
                     # its own lr0, logging that it ignores cfg.lr0 - so cfg would be wrong on most runs
                     params["optimizer"] = type(run.optimizer).__name__
-                    params["lr0"] = run.optimizer.param_groups[0]["initial_lr"]
+                    # min, since MuSGD splits every group in two and puts the finetuning lr*3 half first
+                    params["lr0"] = min(g["initial_lr"] for g in run.optimizer.param_groups)
                     flags = {
                         "pretrained": bool(cfg.pretrained),
                         "cos_lr": cfg.cos_lr,

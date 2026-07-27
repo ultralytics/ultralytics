@@ -2,7 +2,7 @@
 plans: [free, pro, enterprise]
 title: Trained Model Management
 comments: true
-description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 19 deployment formats.
+description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 20 deployment formats.
 keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT, CoreML, YOLO
 ---
 
@@ -59,7 +59,7 @@ graph LR
     B --> D[Predict]:::proc
     B --> E[Export]:::proc
     B --> F[Deploy]:::proc
-    E --> G[19 Formats]:::out
+    E --> G[20 Formats]:::out
     F --> H[Endpoint]:::out
 
     classDef start fill:#4CAF50,color:#fff
@@ -150,7 +150,7 @@ Run interactive inference directly in the browser:
 
 ### Export Tab
 
-Export your model to 19 deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
+Export your model to 20 deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
 
 ### Deploy Tab
 
@@ -197,7 +197,7 @@ graph LR
     classDef out fill:#9C27B0,color:#fff
 ```
 
-Export your model to 19 deployment formats:
+Export your model to 20 deployment formats:
 
 1. Navigate to the **Export** tab
 2. Select target format
@@ -212,7 +212,7 @@ Connect [Slack alerts](../integrations/slack.md) to receive a message when an ex
 
 ### Supported Formats
 
-The Platform supports export to [19 deployment formats](../../modes/export.md#export-formats): ONNX, TorchScript, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, LiteRT, TF Edge TPU, PaddlePaddle, NCNN, MNN, RKNN, Qualcomm (QNN), IMX500, Axelera, ExecuTorch, DeepX, and Hailo.
+The Platform supports export to [20 deployment formats](../../modes/export.md#export-formats): ONNX, TorchScript, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, LiteRT, TF Edge TPU, PaddlePaddle, NCNN, MNN, RKNN, Qualcomm (QNN), IMX500, Axelera, ExecuTorch, DeepX, Hailo, and Huawei Ascend.
 
 ### Format Selection Guide
 
@@ -294,13 +294,14 @@ Export jobs progress through the following statuses:
 
 Some export formats have architecture or task restrictions:
 
-| Format       | Restriction                                                |
-| ------------ | ---------------------------------------------------------- |
-| **IMX500**   | Available only for `YOLOv8n` and `YOLO11n`; INT8 only      |
-| **Axelera**  | Detect models only; INT8 only                              |
-| **DeepX**    | INT8 only                                                  |
-| **Hailo**    | INT8 HEF output; select the target Hailo architecture      |
-| **Qualcomm** | Fixed W8A16 quantization; end-to-end export is unavailable |
+| Format       | Restriction                                                 |
+| ------------ | ----------------------------------------------------------- |
+| **IMX500**   | Available only for `YOLOv8n` and `YOLO11n`; INT8 only       |
+| **Axelera**  | Detect models only; INT8 only                               |
+| **DeepX**    | INT8 only                                                   |
+| **Hailo**    | INT8 HEF output; select the target Hailo architecture       |
+| **Huawei**   | FP16 .om output; Ascend310P targets today, 310B coming soon |
+| **Qualcomm** | Fixed W8A16 quantization; end-to-end export is unavailable  |
 
 !!! note "Additional Export Rules"
 
@@ -375,7 +376,7 @@ Remove a model you no longer need:
 - [**Inference**](../deploy/inference.md): Test models in the browser with the Predict tab
 - [**Endpoints**](../deploy/endpoints.md): Deploy models to production with dedicated endpoints
 - [**Cloud Training**](cloud-training.md): Configure and run training jobs on cloud GPUs
-- [**Export Formats**](../../modes/export.md): Full guide to all 19 export formats
+- [**Export Formats**](../../modes/export.md): Full guide to all 20 export formats
 
 ## FAQ
 

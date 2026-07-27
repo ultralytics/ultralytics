@@ -739,7 +739,9 @@ class GroundingDataset(YOLODataset):
                     bboxes.append(box)
                     if ann.get("segmentation") is not None:
                         if len(ann["segmentation"]) == 0:
-                            segments.append(box)
+                            cx, cy, bw, bh = box[1:]
+                            x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2
+                            segments.append([cls, x1, y1, x2, y1, x2, y2, x1, y2])  # segments2boxes returns the box
                             continue
                         elif len(ann["segmentation"]) > 1:
                             s = merge_multi_segment(ann["segmentation"])

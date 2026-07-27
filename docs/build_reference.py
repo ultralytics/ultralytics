@@ -141,18 +141,23 @@ def _with_reference_title(header_content: str, module_path: str) -> str:
     return header_content.replace("---\n", f"---\ntitle: {title}\n", 1)
 
 
+def _existing_frontmatter(md_filepath: Path) -> str:
+    """Return a page's leading YAML frontmatter block, or "" when it has none.
+
+    Anchored to the top of the file: splitting on every `---` also matches Markdown table separators, which folds page
+    content into the header when the generator runs over its own output instead of a freshly cloned stub.
+    """
+    if not md_filepath.exists():
+        return ""
+    match = re.match(r"---\n.*?\n---\n", md_filepath.read_text(), flags=re.DOTALL)
+    return f"{match.group()}\n" if match else ""
+
+
 def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: list[str], functions: list[str]) -> Path:
     """Create a minimal Markdown reference stub."""
     md_filepath = REFERENCE_DIR / py_filepath.relative_to(PACKAGE_DIR).with_suffix(".md")
-    exists = md_filepath.exists()
 
-    header_content = ""
-    if exists:
-        current = md_filepath.read_text()
-        if current.startswith("---"):
-            parts = current.split("---", 2)
-            if len(parts) > 2:
-                header_content = f"---{parts[1]}---\n\n"
+    header_content = _existing_frontmatter(md_filepath)
     if not header_content:
         header_content = (
             f"---\ndescription: Reference for `{module_path}` in the Ultralytics package.\n"
@@ -275,16 +280,9 @@ def format_signature(
         return ""
 
     if isinstance(node, ast.ClassDef):
-        init_method = next(
-            (n for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == "__init__"),
-            None,
-        )
-        args = (
-            init_method.args
-            if init_method
-            else ast.arguments(
-                posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]
-            )
+        # parse_class passes the ClassDef only when no __init__ exists anywhere in its in-module chain, so `Name()`.
+        args = ast.arguments(
+            posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]
         )
     else:
         args = node.args
@@ -609,19 +607,63 @@ def parse_function(
     )
 
 
-def parse_class(node: ast.ClassDef, module_path: str, src: str) -> DocItem:
+def _class_init(node: ast.ClassDef) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
+    """Return the class's own __init__, if it declares one."""
+    return next(
+        (n for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == "__init__"), None
+    )
+
+
+def _mro(node: ast.ClassDef, class_nodes: dict[str, ast.ClassDef], stack: tuple[str, ...] = ()) -> list[ast.ClassDef]:
+    """Return the C3 linearization of a class over the base classes defined in the same module.
+
+    Bases from other modules are unresolvable here and drop out, which in rare multiple-inheritance shapes reorders the
+    in-module classes that remain — an absent base can no longer delay a sibling from becoming the next head. Resolving
+    that needs the imports, not the AST. A cyclic or inconsistent hierarchy stops early rather than looping.
+    """
+    bases = [
+        class_nodes[n] for n in (getattr(b, "id", None) for b in node.bases) if n in class_nodes and n not in stack
+    ]
+    sequences = [_mro(base, class_nodes, (*stack, node.name)) for base in bases] + [bases]
+    linearized = [node]
+    while any(sequences):
+        head = next(
+            (s[0] for s in sequences if s and not any(s[0] in rest[1:] for rest in sequences)),
+            None,
+        )
+        if head is None:
+            break
+        linearized.append(head)
+        sequences = [[c for c in s if c is not head] for s in sequences]
+    return linearized
+
+
+def _inherited_init(
+    node: ast.ClassDef, class_nodes: dict[str, ast.ClassDef]
+) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
+    """Return the __init__ Python binds for a class that declares none, following its method resolution order."""
+    return next((init for base in _mro(node, class_nodes)[1:] if (init := _class_init(base))), None)
+
+
+def parse_class(node: ast.ClassDef, module_path: str, src: str, class_nodes: dict[str, ast.ClassDef]) -> DocItem:
     """Parse a class node, merging __init__ docs and collecting methods."""
     class_doc = parse_google_docstring(ast.get_docstring(node))
 
-    methods_or_init = [n for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
-    init_node = next((n for n in methods_or_init if n.name == "__init__"), None)
-    # The class definition runs to the end of its __init__, or to its first method when it declares none;
+    own_init = _class_init(node)
+    # A subclass that declares no __init__ is still constructed with its base's signature, so document that one.
+    init_node = own_init or _inherited_init(node, class_nodes)
+    # The class definition runs to the end of its own __init__, or to its first method when it declares none;
     # 0 leaves _collect_source_block on its own end_lineno fallback for classes that define no methods at all.
-    first_method = next((n for n in methods_or_init if n is not init_node), None)
+    first_method = next(
+        (n for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n is not own_init), None
+    )
     class_end = min([first_method.lineno, *(d.lineno for d in first_method.decorator_list)]) - 1 if first_method else 0
     signature_params: list[ParameterDoc] = []
     if init_node:
         init_doc = parse_google_docstring(ast.get_docstring(init_node))
+        if init_node is not own_init:
+            # An inherited __init__ documents the signature we render, but its prose describes the base class.
+            init_doc = ParsedDocstring(params=init_doc.params)
         class_doc = merge_docstrings(class_doc, init_doc, ignore_summary=True)
         signature_params = collect_signature_parameters(init_node.args, src, skip_self=True)
 
@@ -631,7 +673,7 @@ def parse_class(node: ast.ClassDef, module_path: str, src: str) -> DocItem:
 
     methods: list[DocItem] = []
     for child in node.body:
-        if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)) and child is not init_node:
+        if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)) and child is not own_init:
             method_doc = parse_function(child, module_path, src, parent=f"{module_path}.{node.name}")
             if method_doc:
                 methods.append(method_doc)
@@ -648,7 +690,7 @@ def parse_class(node: ast.ClassDef, module_path: str, src: str) -> DocItem:
         bases=bases,
         children=methods,
         module_path=module_path,
-        source=_collect_source_block(src, node, end_line=init_node.end_lineno if init_node else class_end),
+        source=_collect_source_block(src, node, end_line=own_init.end_lineno if own_init else class_end),
     )
 
 
@@ -669,9 +711,10 @@ def parse_module(py_filepath: Path) -> DocumentedModule | None:
     classes: list[DocItem] = []
     functions: list[DocItem] = []
 
+    class_nodes = {n.name: n for n in tree.body if isinstance(n, ast.ClassDef)}
     for node in tree.body:
         if isinstance(node, ast.ClassDef):
-            classes.append(parse_class(node, module_path, src))
+            classes.append(parse_class(node, module_path, src, class_nodes))
         elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             func = parse_function(node, module_path, src, parent=None)
             if func:
@@ -1044,11 +1087,7 @@ def create_markdown(module: DocumentedModule) -> Path:
     md_filepath = REFERENCE_DIR / module.path.relative_to(PACKAGE_DIR).with_suffix(".md")
     exists = md_filepath.exists()
 
-    header_content = ""
-    if exists:
-        for part in md_filepath.read_text().split("---"):
-            if "description:" in part or "comments:" in part:
-                header_content += f"---{part}---\n\n"
+    header_content = _existing_frontmatter(md_filepath)
     if not header_content:
         header_content = (
             f"---\ndescription: Reference for `{module.module_path}` in the Ultralytics package.\n"

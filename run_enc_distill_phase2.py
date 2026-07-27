@@ -247,6 +247,15 @@ def _load_recipe(name: str, model_yaml: str, **deltas: str | int | None) -> dict
         raise SystemExit(f"unknown recipe '{name}'. Available: {sorted(p.stem for p in _RECIPE_DIR.glob('*.yaml'))}")
     recipe = YAML.load(path)
     deltas = {k: _RECIPE_DELTA_CASTS[k](v) for k, v in deltas.items() if v}
+    epochs_by_scale = recipe.pop("_epochs_by_scale", None)
+    if epochs_by_scale:
+        scale = guess_model_scale(model_yaml)
+        expected = epochs_by_scale.get(scale)
+        if expected is None:
+            raise SystemExit(f"{path} has no epoch count for model scale {scale!r}")
+        if "epochs" in deltas and deltas["epochs"] != expected:
+            raise SystemExit(f"{path} requires {expected} epochs for {scale.upper()} scale")
+        deltas["epochs"] = expected
     # A published profile holds only the keys _published_det_args does not return, and scales them to the batch itself.
     shipped = recipe.pop("_shipped_from", None)
     if shipped:

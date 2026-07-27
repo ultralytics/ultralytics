@@ -143,12 +143,14 @@ class Events:
                         "dropout": cfg.dropout > 0,
                         "early_stop": run.epoch + 1 < run.epochs,  # .stop is also set on the last planned epoch
                         "resume": bool(cfg.resume),  # fitness carries over, epochs and hours do not
-                        "ddp": run.world_size > 1,
                     }
                     params["flags"] = ",".join(k for k, v in flags.items() if v) or None
                     params["arch"] = _arch(unwrap_model(run.model))  # DDP and EMA both wrap away the .yaml
                     if device.type == "cuda":  # makes hours comparable
                         params["GPU"] = get_gpu_info(device.index or 0)
+                        # only a count carries information, since one GPU is implied by GPU alone; without it the
+                        # whole run's hours would be attributed to a single device
+                        params["ngpu"] = run.world_size if run.world_size > 1 else None
                 except Exception:
                     pass
             elif cfg.mode in {"predict", "track"}:  # track runs the predictor too, and is most of the video inference

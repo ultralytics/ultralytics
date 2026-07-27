@@ -249,18 +249,19 @@ def profile_variant(variant, image, imgsz, device):
     }
 
 
-def summarize_rounds(per_round, variants, baseline):
-    """Reduce per-round records to one row per variant and format, with paired deltas against the baseline."""
+def summarize_rounds(per_round, variants, baselines):
+    """Reduce per-round records to one row per variant and format, with paired deltas against the variant's baseline."""
     series = {}
     for record in per_round:  # one list per variant and format, in round order, so zip() pairs them correctly
         for fmt in FORMATS:
             series.setdefault((record["variant"], fmt), []).append(record[f"{fmt}_inf"])
-    base_median = {fmt: float(np.median(series[baseline, fmt])) for fmt in FORMATS}
 
     rows = []
     for variant in variants:
+        baseline = baselines[variant.name]
         for fmt in FORMATS:
             own, ref = series[variant.name, fmt], series[baseline, fmt]
+            base_median = float(np.median(ref))
             median = float(np.median(own))
             rows.append(
                 {
@@ -269,7 +270,7 @@ def summarize_rounds(per_round, variants, baseline):
                     "params_M_fused": round(variant.params_m, 2),
                     "gflops_fused": round(variant.gflops, 1),
                     "median_ms": round(median, 4),
-                    "delta_vs_base_pct": round(100 * (median - base_median[fmt]) / base_median[fmt], 2),
+                    "delta_vs_base_pct": round(100 * (median - base_median) / base_median, 2),
                     "ab_wins": "" if variant.name == baseline else f"{sum(a < b for a, b in zip(own, ref))}/{ROUNDS}",
                     "baseline": baseline,
                     "weights_state": variant.weights_state,
@@ -287,19 +288,21 @@ def write_csv(path, rows):
         writer.writerows(rows)
 
 
-def run_benchmark(variants, baseline, out_csv, imgsz=640, device="0"):
+def run_benchmark(variants, baselines, out_csv, imgsz=640, device="0"):
     """Run ROUNDS order-balanced rounds over every variant and write the summary, per-round and provenance files.
 
     Args:
         variants (list[Variant]): Variants to compare, all artifacts already built.
-        baseline (str): Name of the variant every delta is taken against.
+        baselines (dict): Maps each variant name to the name of the variant its delta is taken against. Keying it
+            per variant is what lets one suite span scales, since a row only means architecture when its baseline
+            is at its own scale.
         out_csv (str | Path): Summary CSV path. Per-round rows and provenance go beside it.
         imgsz (int): Square input size, which must match the size the artifacts were exported at.
         device (str): CUDA device index passed to the predictor.
     """
     out_csv = Path(out_csv)
     image = np.zeros((imgsz, imgsz, 3), dtype=np.uint8)
-    print(f"=== timer {TIMER}, {len(variants)} variants, baseline {baseline}", flush=True)
+    print(f"=== timer {TIMER}, {len(variants)} variants, {len(set(baselines.values()))} baselines", flush=True)
 
     per_round = []
     for rnd in range(ROUNDS):
@@ -315,16 +318,16 @@ def run_benchmark(variants, baseline, out_csv, imgsz=640, device="0"):
             summary = " ".join(f"{f}={timings[f]['inf']:7.3f}" for f in FORMATS)
             print(f"  round {rnd + 1}/{ROUNDS} {variant.name:<24} {summary}", flush=True)
 
-    rows = summarize_rounds(per_round, variants, baseline)
+    rows = summarize_rounds(per_round, variants, baselines)
     write_csv(out_csv, rows)
     write_csv(out_csv.with_suffix(".rounds.csv"), per_round)
     out_csv.with_suffix(".env.json").write_text(json.dumps(env_info(imgsz, variants), indent=2))
 
-    print(f"\n=== medians vs {baseline}", flush=True)
+    print("\n=== medians", flush=True)
     for row in rows:
         print(
             f"  {row['variant']:<24}{row['format']:<6}{row['median_ms']:9.4f}"
-            f"{row['delta_vs_base_pct']:+8.2f}%  {row['ab_wins']}",
+            f"{row['delta_vs_base_pct']:+8.2f}% vs {row['baseline']:<12}{row['ab_wins']}",
             flush=True,
         )
     print(f"\nwrote {out_csv} plus .rounds.csv and .env.json", flush=True)

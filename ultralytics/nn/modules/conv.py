@@ -463,7 +463,7 @@ class RepConv(nn.Module):
             gamma = branch.bn.weight
             beta = branch.bn.bias
             eps = branch.bn.eps
-        elif isinstance(branch, nn.BatchNorm2d):
+        elif isinstance(branch, nn.modules.batchnorm._BatchNorm):  # SyncBatchNorm from DDP is not a BatchNorm2d
             if not hasattr(self, "id_tensor"):
                 input_dim = self.c1 // self.g
                 kernel_value = np.zeros((self.c1, input_dim, 3, 3), dtype=np.float32)

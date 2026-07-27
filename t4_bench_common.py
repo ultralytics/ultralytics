@@ -11,6 +11,14 @@ paired per-round deltas and A/B win counts. A single-pass mean cannot separate a
 
 The formats run back to back with nothing between them, so the slower ones preheat the card ahead of the TensorRT
 reading exactly as profile_depth.py does. Run telemetry from a separate process, never inside this loop.
+
+Environment, all three required or the numbers are not comparable:
+
+- ``onnxruntime-gpu``, never plain ``onnxruntime``. The CPU build still runs, roughly 170x slower, and would be
+  recorded as the onnx row, so ``run_benchmark`` refuses to start without a CUDA provider.
+- ``tensorrt`` pinned to the version being compared against, currently 10.11.0.33 to match Esat. A 10.11 to 10.16
+  change alone moved architecture ratios by about 3pp.
+- Engines are TensorRT-version-locked, so build and time them in the same interpreter.
 """
 
 import csv
@@ -21,6 +29,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
+import onnxruntime
 import torch
 
 import ultralytics
@@ -197,6 +206,8 @@ def run_benchmark(variants, baseline, out_csv, imgsz=640, device="0"):
         imgsz (int): Square input size, which must match the size the artifacts were exported at.
         device (str): CUDA device index passed to the predictor.
     """
+    providers = onnxruntime.get_available_providers()
+    assert "CUDAExecutionProvider" in providers, f"install onnxruntime-gpu, the onnx row would be CPU: {providers}"
     out_csv = Path(out_csv)
     image = np.zeros((imgsz, imgsz, 3), dtype=np.uint8)
     print(f"=== timer {TIMER}, {len(variants)} variants, baseline {baseline}", flush=True)

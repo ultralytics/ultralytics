@@ -34,10 +34,11 @@ ROUNDS = 8
 TIMER = "predictor-speed"  # rows measured before 2026-07-27 used "cuda-events"
 
 # Ordered format table: name -> (Variant attribute holding the artifact, extra predict kwargs). The order is the
-# protocol, not a preference, so formats are never selectable and never reordered.
+# protocol, not a preference, so formats are never selectable and never reordered. `half` rather than `quantize`
+# because the bench checkouts span both spellings and newer versions still forward `half`.
 FORMATS = {
-    "pt16": ("weights", {"quantize": 16}),
-    "pt32": ("weights", {"quantize": 32}),
+    "pt16": ("weights", {"half": True}),
+    "pt32": ("weights", {"half": False}),
     "onnx": ("onnx", {}),
     "trt": ("engine", {}),
 }
@@ -104,7 +105,7 @@ def build_variant(name, weights, outdir, imgsz=640, device="0", model_cls=YOLO):
     outdir = Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
     onnx, engine = outdir / f"{name}-{imgsz}.onnx", outdir / f"{name}-{imgsz}.engine"
-    for path, fmt, extra in ((onnx, "onnx", {}), (engine, "engine", {"quantize": 16})):
+    for path, fmt, extra in ((onnx, "onnx", {}), (engine, "engine", {"half": True})):
         if not path.exists():  # export mutates the model in place, so each one gets a fresh instance
             exported = model_cls(str(weights)).export(
                 format=fmt, imgsz=imgsz, device=device, batch=1, verbose=False, **extra
@@ -122,7 +123,7 @@ def profile_model(model, image, **predict_kwargs):
     Args:
         model (Model): Loaded model in any backend the predictor supports.
         image (np.ndarray): HWC uint8 input reused for every call.
-        **predict_kwargs (Any): Forwarded to the predictor, typically imgsz, device and quantize.
+        **predict_kwargs (Any): Forwarded to the predictor, typically imgsz, device and half.
 
     Returns:
         (dict): Sigma-clipped mean inference ms under `inf`, its standard deviation under `inf_std`, and preprocess plus

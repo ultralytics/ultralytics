@@ -115,26 +115,31 @@ class Events:
             elif cfg.mode in {"predict", "track"}:  # track runs the predictor too, and is most of the video inference
                 try:  # every read is inside the guard, so nothing can raise into a user's prediction run
                     model = predictor.model
-                    session = getattr(model, "session", None)  # ONNX Runtime provider, else OpenVINO device
-                    ov = getattr(model, "ov_compiled_model", None)  # an Arc GPU run must not look like CPU
-                    devices = session.get_providers() if session else ov.get_property("EXECUTION_DEVICES") if ov else []
                     params["format"] = model.format
-                    params["provider"] = devices[0] if devices else None
                     params["arch"] = _arch(model)
                     meta = getattr(model, "metadata", None) or {}
-                    params["quantize"] = str(cfg.quantize or meta.get("args", {}).get("quantize") or 32)
+                    params["quantize"] = str(meta.get("args", {}).get("quantize") or cfg.quantize or 32)
                     params["imgsz"] = "x".join(map(str, predictor.shape or ())) or None  # long side is imgsz
                     params["batch"] = min(getattr(predictor.dataset, "bs", 0), predictor.seen) or None
                     params["nc"] = len(getattr(model, "names", None) or ()) or None  # drives head width and NMS
                     params["n"] = predictor.seen
                     params["torch"] = TORCH_VERSION
-                    # toggles that move inference time enormously: compile alone is ~1000x on the first batch
-                    flags = ("compile", "augment", "end2end", "channels_last")
-                    params["flags"] = ",".join(f for f in flags if getattr(cfg, f, False)) or None
+                    # toggles that move inference time enormously, read as applied rather than as requested:
+                    # attempt_compile replaces predictor.model, and cfg.end2end is a tri-state request not a state
+                    flags = {
+                        "compile": hasattr(model, "_orig_mod"),
+                        "end2end": getattr(model, "end2end", False),
+                        "augment": cfg.augment,
+                    }
+                    params["flags"] = ",".join(k for k, v in flags.items() if v) or None
                     for k, v in (predictor.speed or {}).items():  # absent when a run processed no images
                         params[f"{k}_ms"] = round(v, 3)
                     if device.type == "cuda":  # CUDA is already initialized here, so this costs nothing
                         params["GPU"] = get_gpu_info(device.index or 0)
+                    session = getattr(model, "session", None)  # ONNX Runtime provider, else OpenVINO device
+                    ov = getattr(model, "ov_compiled_model", None)  # an Arc GPU run must not look like CPU
+                    devices = session.get_providers() if session else ov.get_property("EXECUTION_DEVICES") if ov else []
+                    params["provider"] = devices[0] if devices else None  # last: least reliable read
                 except Exception:
                     pass
             params = {k: v for k, v in params.items() if v is not None}  # GA4 discards nulls regardless

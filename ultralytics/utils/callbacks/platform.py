@@ -22,6 +22,7 @@ from ultralytics.utils import (
     Retry,
     colorstr,
 )
+from ultralytics.utils.events import events
 
 PREFIX = colorstr("Platform: ")
 PLATFORM_API_URL = os.getenv("PLATFORM_API_URL", f"{PLATFORM_URL}/api/webhooks")
@@ -523,8 +524,9 @@ def on_model_save(trainer):
 
 
 def on_train_end(trainer):
-    """Log final results, upload best model, and send validation plot data."""
-    ctx = getattr(trainer, "platform", None)
+    """Run events on train end once fitness and duration are known, then log final results and upload best model."""
+    events(trainer.args, trainer.device, trainer)
+    ctx = getattr(trainer, "platform", None)  # set only by on_pretrain_routine_start, so unset without an API key
     if not ctx or RANK not in {-1, 0} or not trainer.args.project:
         return
 
@@ -598,14 +600,40 @@ def on_train_end(trainer):
     LOGGER.info(f"{PREFIX}View results at {url}")
 
 
-callbacks = (
-    {
-        "on_pretrain_routine_start": on_pretrain_routine_start,
-        "on_pretrain_routine_end": on_pretrain_routine_end,
-        "on_fit_epoch_end": on_fit_epoch_end,
-        "on_model_save": on_model_save,
-        "on_train_end": on_train_end,
-    }
-    if _api_key
-    else {}
-)
+def on_val_start(validator):
+    """Run events on validation start, when the user asked for validation.
+
+    A trainer runs its own final validation on a copy of the trainer's args, whose mode is still 'train'. Since an event
+    is named for its mode, firing here would send a second 'train' event indistinguishable from the training one.
+    """
+    if validator.args.mode == "val":
+        events(validator.args, validator.device)
+
+
+def on_predict_end(predictor):
+    """Run events on predict end, once per-image speeds are known."""
+    events(predictor.args, predictor.device, predictor)
+
+
+def on_export_start(exporter):
+    """Run events on export start."""
+    events(exporter.args, exporter.device)
+
+
+callbacks = {
+    # Anonymous analytics, gated only by the documented sync setting inside Events
+    "on_val_start": on_val_start,
+    "on_predict_end": on_predict_end,
+    "on_export_start": on_export_start,
+    "on_train_end": on_train_end,  # sends the train event, then uploads results if a Platform run is in flight
+    **(
+        {
+            "on_pretrain_routine_start": on_pretrain_routine_start,
+            "on_pretrain_routine_end": on_pretrain_routine_end,
+            "on_fit_epoch_end": on_fit_epoch_end,
+            "on_model_save": on_model_save,
+        }
+        if _api_key
+        else {}
+    ),
+}

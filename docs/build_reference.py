@@ -31,8 +31,6 @@ PACKAGE_DIR = REPO_ROOT / "ultralytics"
 REFERENCE_DIR = PACKAGE_DIR.parent / "docs/en/reference"
 GITHUB_REPO = "ultralytics/ultralytics"
 SIGNATURE_LINE_LENGTH = 120
-# Use Font Awesome brand GitHub icon (CSS already loaded via mkdocs.yml and HTML head)
-GITHUB_ICON = '<i class="fa-brands fa-github" aria-hidden="true" style="margin-right:6px;"></i>'
 
 MKDOCS_YAML = PACKAGE_DIR.parent / "mkdocs.yml"
 INCLUDE_SPECIAL_METHODS = {
@@ -683,10 +681,10 @@ def _render_table(headers: list[str], rows: list[list[str]], level: int, title: 
         return ""
 
     def _clean_cell(value: str | None) -> str:
-        """Normalize table cell values for Markdown output."""
+        """Normalize table cell values for Markdown output, escaping pipes so unions stay in one column."""
         if value is None:
             return ""
-        return str(value).replace("\n", "<br>").strip()
+        return str(value).replace("\n", "<br>").replace("|", r"\|").strip()
 
     rows = [[_clean_cell(c) for c in row] for row in rows]
     table_lines = ["| " + " | ".join(headers) + " |", "| " + " | ".join("---" for _ in headers) + " |"]
@@ -759,7 +757,7 @@ def render_source_panel(item: DocItem, module_url: str, module_path: str) -> str
     return (
         "<details>\n"
         f"<summary>{summary}</summary>\n\n"
-        f'<a href="{source_url}">{GITHUB_ICON}View on GitHub</a>\n'
+        f'<a href="{source_url}">View on GitHub</a>\n'
         f"{_code_fence(item.source)}\n"
         "</details>\n"
     )

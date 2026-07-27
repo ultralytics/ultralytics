@@ -5,14 +5,11 @@ These are RTDETR-family yamls, so the RTDETR facade resolves the task. Timing, r
 t4_bench_common, which reads the predictor's speed["inference"] exactly as profile_depth.py and ProfileModels do.
 """
 
-# ruff: noqa: E402  every import below has to follow the sys.path setup
-
 import os
 import sys
-import warnings
 
-warnings.filterwarnings("ignore")
-# Checkout root first, so ultralytics, working_dir and t4_bench_common all come from the same commit.
+# Checkout root first, so ultralytics, working_dir and t4_bench_common all come from the same commit. Ruff permits a
+# sys.path mutation ahead of imports, so this needs no E402 suppression, which the formatter strips anyway.
 sys.path.insert(0, os.environ.get("ULTRA_CHECKOUT", "/root/autodl-tmp/code/ultravit-lane-b"))
 
 from t4_bench_common import build_variant, run_benchmark
@@ -29,7 +26,7 @@ YAMLS = {
     "ffnattn2-p4win": "yolo26x-ultravit-repmixer-fastvitffn-attn2-p4win-deim_mal_deimv2Neck.yaml",
 }
 ENGINE_DIR = "/root/autodl-tmp/data/t4-laneb-x-recheck-engines"
-CSV_PATH = "/root/autodl-tmp/data/t4_laneb_x_recheck_results.csv"
+CSV_PATH = "/root/autodl-tmp/data/t4_laneb_x_protocol0727.csv"  # not the _recheck_results.csv, that holds an older run
 
 
 # Esat's builder with his --debug flag, so these engines match the ones his published numbers came from.

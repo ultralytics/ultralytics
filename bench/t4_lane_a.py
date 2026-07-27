@@ -42,7 +42,7 @@ YAMLS = {
     "uvit-x-attn2-p4win": "yolo26x-ultravit-repmixer-fastvitffn-attn2-p4win.yaml",
 }
 ENGINE_DIR = "/root/autodl-tmp/data/t4-lane-a-engines"
-CSV_PATH = "/root/autodl-tmp/data/t4_lane_a_results.csv"
+CSV_PATH = "/root/autodl-tmp/data/t4_lane_a_protocol0727.csv"  # not t4_lane_a_results.csv, that holds an older run
 
 variants = [build_variant(tag, y, ENGINE_DIR) for tag, y in YAMLS.items()]
 run_benchmark(variants, BASELINE, CSV_PATH)

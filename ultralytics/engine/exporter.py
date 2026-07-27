@@ -24,6 +24,7 @@ DEEPX                   | `deepx`                   | yolo26n_deepx_model/
 Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 LiteRT                  | `litert`                  | yolo26n.tflite
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
+Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -58,6 +59,7 @@ Inference:
                          yolo26n_deepx_model        # DEEPX
                          yolo26n_qnn.onnx           # Qualcomm QNN
                          yolo26n.tflite             # LiteRT
+                         yolo26n_ascend_model       # Huawei Ascend
 """
 
 from __future__ import annotations
@@ -250,6 +252,15 @@ def export_formats():
             ["name", "quantize", "data", "fraction", "simplify", "conf", "iou"],
             "base",
         ],
+        [
+            "Huawei Ascend",
+            "ascend",
+            "_ascend_model",
+            False,
+            False,
+            ["batch", "name", "quantize", "opset", "simplify", "nms"],
+            "base",
+        ],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -389,7 +400,7 @@ EXPORT_ENVS = {
 
 
 # Export precision support per format. Unset/32 requests are FP32 except for formats listed in FP32_UNSUPPORTED_FORMATS.
-FP16_FORMATS = frozenset({"torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn", "rknn"})
+FP16_FORMATS = frozenset({"torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn", "rknn", "ascend"})
 INT8_FORMATS = frozenset(
     {
         "onnx",
@@ -411,7 +422,7 @@ W8A16_FORMATS = frozenset(
     {"coreml", "imx", "qnn", "litert"}
 )  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
-FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo"})
+FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend"})
 # (label, supporting formats) per quantize precision, used to list valid options in errors. 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS.
 QUANTIZE_PRECISIONS = (
     ("16 (FP16)", FP16_FORMATS),
@@ -557,6 +568,8 @@ class Exporter:
             fmt = "engine"
         if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"}:  # 'coreml' aliases
             fmt = "coreml"
+        if fmt in {"huawei", "cann", "om"}:  # 'ascend' aliases
+            fmt = self.args.format = "ascend"
         if fmt in {"tflite", "tfjs"}:  # deprecated formats, replaced by the unified Google LiteRT export
             LOGGER.warning(
                 f"format='{fmt}' is deprecated as of 8.4.83 and has been replaced by the unified Google LiteRT "
@@ -712,6 +725,22 @@ class Exporter:
                 self.args.quantize = 8
             elif self.args.quantize is None:
                 self.args.quantize = 16
+        if fmt == "ascend":
+            # No SoC allowlist: valid --soc_version values depend on which Ascend-cann-kernels-* packages are
+            # installed, so a hardcoded list would reject valid targets. ATC reports an unknown SoC itself.
+            if not self.args.name:
+                LOGGER.warning(
+                    "Huawei Ascend export requires a missing 'name' arg for the target SoC. "
+                    "Using default name='Ascend310B4'."
+                )
+                self.args.name = "Ascend310B4"
+            if not str(self.args.name).startswith("Ascend"):
+                raise ValueError(
+                    f"Invalid Ascend SoC name='{self.args.name}'. Expected a CANN --soc_version such as "
+                    f"'Ascend310P3' or 'Ascend310B4'. See https://docs.ultralytics.com/integrations/ascend/"
+                )
+            if self.args.quantize is None:
+                self.args.quantize = 16  # Ascend AI Core convolutions accept only FP16/INT8 inputs, never FP32
         if fmt == "qnn":
             if not self.args.name:
                 LOGGER.warning(
@@ -852,7 +881,7 @@ class Exporter:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
 
-        if model.task == "semantic" and fmt in {"qnn", "coreml"}:
+        if model.task == "semantic" and fmt in {"qnn", "coreml", "ascend"}:
             # NPU-targeted semantic exports ship a compact uint8 class map instead of float logits: emitting logits
             # forces consumers to dequantize and argmax ~20M floats on the CPU every frame (measured erratic
             # 123-1065 ms on Hexagon). Not applied to LiteRT, where the GPU delegate cannot compile ArgMax (int64
@@ -1063,6 +1092,17 @@ class Exporter:
 
             except Exception as e:
                 LOGGER.warning(f"{prefix} simplifier failure: {e}")
+
+        # CANN requires the optional score-threshold input on ONNX NonMaxSuppression nodes. Scores were already
+        # filtered by args.conf in NMSModel, so zero preserves the graph's semantics.
+        if self.args.format == "ascend":
+            for i, node in enumerate(model_onnx.graph.node):
+                if node.op_type == "NonMaxSuppression" and len(node.input) == 4:
+                    threshold_name = f"ascend_nms_score_threshold_{i}"
+                    node.input.append(threshold_name)
+                    model_onnx.graph.initializer.append(
+                        onnx.helper.make_tensor(threshold_name, onnx.TensorProto.FLOAT, [1], [0.0])
+                    )
 
         # Metadata
         for k, v in self.metadata.items():
@@ -1457,6 +1497,26 @@ class Exporter:
         )
 
     @try_export
+    def export_ascend(self, prefix=colorstr("Ascend:")):  # noqa: B008
+        """Export YOLO model to Huawei Ascend offline model (.om) format."""
+        from ultralytics.utils.export.ascend import _check_atc, onnx2ascend
+
+        _check_atc()  # before the ONNX trace, so a missing toolchain does not cost a full export first
+        if self.args.opset and self.args.opset > 17:
+            LOGGER.warning(f"{prefix} the CANN ONNX parser requires opset<=17, setting opset=17.")
+        self.args.opset = min(self.args.opset or 17, 17)
+        return onnx2ascend(
+            onnx_file=self.export_onnx(),
+            output_dir=self.file.parent / f"{self.file.stem}_ascend_model",
+            name=self.args.name,
+            imgsz=self.imgsz,
+            batch=self.args.batch,
+            channels=self.im.shape[1],
+            metadata=self.metadata,
+            prefix=prefix,
+        )
+
+    @try_export
     def export_imx(self, prefix=colorstr("IMX:")):  # noqa: B008
         """Export YOLO model to IMX format."""
         assert LINUX, (
@@ -1735,11 +1795,12 @@ class QNNModel(ExportWrapper):
 class ClassMapModel(ExportWrapper):
     """Reduces semantic-segmentation logits to a compact integer class map for export.
 
-    Applied to QNN and Core ML semantic exports, where the argmax runs on the NPU: deployment consumers want per-pixel
-    class indices, and shipping float logits instead forces a dequantize + argmax over large tensors (~8M values at the
-    standard 640px mobile input) on the consumer's CPU every frame - measured as both slow and highly variable on mobile
-    NPUs. The argmax cannot live in the model's own forward because it is non-differentiable (training needs logits), so
-    it is attached here at export time, mirroring how `NMSModel` adds suppression only for export.
+    Applied to QNN, Core ML and Ascend semantic exports, where the argmax runs on the NPU: deployment consumers want
+    per-pixel class indices, and shipping float logits instead forces a dequantize + argmax over large tensors (~8M
+    values at the standard 640px mobile input) on the consumer's CPU every frame - measured as both slow and highly
+    variable on mobile NPUs. The argmax cannot live in the model's own forward because it is non-differentiable
+    (training needs logits), so it is attached here at export time, mirroring how `NMSModel` adds suppression only for
+    export.
 
     Attributes:
         task (str): The wrapped model's task ("semantic").

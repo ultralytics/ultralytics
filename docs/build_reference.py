@@ -383,9 +383,8 @@ def _parse_named_entries(lines: list[str]) -> list[ParameterDoc]:
         match = SECTION_ENTRY_RE.match(first_line)
         if match:
             name, type_hint, desc = match.groups()
-            description = " ".join(desc.split())
-            if rest:
-                description = f"{description}\n" + "\n".join(rest)
+            # Dedent continuations so _normalize_text reflows a wrapped sentence; lists and code keep their breaks.
+            description = "\n".join([" ".join(desc.split()), textwrap.dedent("\n".join(rest))]).strip()
             entries.append(ParameterDoc(name=name, type=type_hint, description=_normalize_text(description)))
         else:
             entries.append(ParameterDoc(name=text, type=None, description=""))
@@ -442,8 +441,11 @@ def _normalize_text(text: str) -> str:
     """Normalize text while preserving Markdown structures like tables, admonitions, and code blocks."""
     if not text:
         return ""
-    # Check if text contains Markdown structures that need line preservation
-    if any(marker in text for marker in ("|", "!!!", "```", "\n#", "\n- ", "\n* ", "\n1. ", "\n    ")):
+    # Check if text contains Markdown structures that need line preservation. The table check is line-anchored:
+    # a bare pipe is usually a union type in prose ("Array[M, 4] | Array[M, 5]"), not a table.
+    if re.search(r"(?m)^\s*\|", text) or any(
+        marker in text for marker in ("!!!", "```", "\n#", "\n- ", "\n* ", "\n1. ", "\n    ")
+    ):
         # Preserve Markdown formatting - just strip trailing whitespace from lines
         return "\n".join(line.rstrip() for line in text.splitlines()).strip()
     # Simple text - collapse single newlines within paragraphs

@@ -126,7 +126,9 @@ class Events:
                     params["hours"] = round((time.time() - run.train_time_start) / 3600, 4)
                     params["n"] = len(run.train_loader.dataset)  # train split size, matching predict's n
                     if run.best_fitness is not None:  # None when a run never validated
-                        params["fitness"] = round(float(run.best_fitness), 5)  # mAP50-95 for detect, task-agnostic
+                        # a per-task composite, so only comparable within a task: mAP50-95 for detect, but the sum
+                        # of box and mask mAP50-95 for segment, so it reaches 2
+                        params["fitness"] = round(float(run.best_fitness), 5)
                     # both resolved: 'auto' is the default, and it picks the optimizer by iteration count and fits
                     # its own lr0, logging that it ignores cfg.lr0 - so cfg would be wrong on most runs
                     params["optimizer"] = type(run.optimizer).__name__

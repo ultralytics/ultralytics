@@ -39,15 +39,9 @@ cloud workflow; the worker never forwards an image from your mounted dataset.
 
 ## Before You Start
 
-Choose a computer that can access your datasets and remain powered on while Platform is using them.
-
-|                  | Minimum                                                               | Recommended                                    |
-| ---------------- | --------------------------------------------------------------------- | ---------------------------------------------- |
-| Operating system | 64-bit Linux, Mac with an M-series chip, or 64-bit Windows with WSL 2 | Current OS and Docker releases                 |
-| CPU              | 4 cores                                                               | 8 or more cores for training                   |
-| Memory           | 8 GB RAM                                                              | 16 GB or more                                  |
-| Storage          | 20 GB plus space for datasets and models                              | SSD with twice your working dataset size free  |
-| Network          | Outbound HTTPS                                                        | Stable broadband for the first Docker download |
+Choose a Linux computer, an Apple silicon Mac, or a 64-bit Windows computer that can access your datasets and remain
+powered on while Platform is using them. Allow enough free storage for the datasets, model runs, and Docker images, and
+ensure the computer can make outbound HTTPS connections.
 
 A GPU is optional. Every computer can ingest datasets and train models on its CPU. A compatible NVIDIA GPU can accelerate larger training jobs.
 
@@ -58,14 +52,13 @@ A GPU is optional. Every computer can ingest datasets and train models on its CP
 ## Connect Your Computer
 
 1. Open [Ultralytics Platform](https://platform.ultralytics.com) on the computer that can access your datasets.
-2. Go to `Settings > Integrations` and select **Connect** on the **On Premise** card.
-3. Review the prefilled settings:
-    - **Machine name:** a recognizable name for this computer
-    - **Dataset folder:** where you keep source datasets
-    - **Models folder:** where Platform saves trained models
+2. Go to `Settings > Integrations` and select **On Premise** from the integration list.
+3. Review the prefilled **Dataset folder on this machine** and **Models folder on this machine** paths.
 4. Select **Create install command**.
 5. Open the terminal named in the dialog, copy the command, paste it, and press Enter.
-6. Leave the dialog open until the progress indicator shows **Connected**.
+6. Keep the Integrations page open until the progress indicator shows **Connected**.
+
+![Ultralytics Platform On Premise Integration Setup](https://cdn.ul.run/i/8c220a591df1fdf949840d7047a9314d.avif)<!-- screenshot -->
 
 Platform fills in the folders and one-time connection token before you copy the command. The generated command follows the format below:
 
@@ -123,13 +116,16 @@ The setup command creates these folders, installs and starts Docker when needed,
 
 The installer runs one container and selects the [official Ultralytics base image](../../guides/docker-quickstart.md) for the host:
 
-| Host                               | Base image                             |
-| ---------------------------------- | -------------------------------------- |
-| Apple Silicon or ARM64 Linux       | `ultralytics/ultralytics:latest-arm64` |
-| x86-64 CPU                         | `ultralytics/ultralytics:latest-cpu`   |
-| x86-64 with a supported NVIDIA GPU | `ultralytics/ultralytics:latest`       |
+| Host                               | Base image pattern                        |
+| ---------------------------------- | ----------------------------------------- |
+| Apple silicon or ARM64 Linux       | `ultralytics/ultralytics:<version>-arm64` |
+| x86-64 CPU                         | `ultralytics/ultralytics:<version>-cpu`   |
+| x86-64 with a supported NVIDIA GPU | `ultralytics/ultralytics:<version>`       |
 
-The installer tracks the latest official image for each host. The worker adds its connectivity dependencies without reinstalling Ultralytics. It detects CUDA at runtime, so an NVIDIA host still runs one container rather than separate CPU and GPU workers. These lightweight images support local ingest and training; Platform's existing cloud services handle model prediction and export after the best checkpoint uploads.
+The installer selects a version-pinned official image for the host. The worker adds its connectivity dependencies
+without reinstalling Ultralytics. It detects CUDA during setup, so an NVIDIA host still runs one container rather than
+separate CPU and GPU workers. Platform's cloud services handle model prediction and export after the best checkpoint
+uploads.
 
 !!! warning "Use CDI for GPU access"
 
@@ -166,7 +162,7 @@ Annotations and dataset organization are saved in your Platform workspace, but e
 
 Start training through the normal Platform training dialog:
 
-1. Open a project and select **Train Model**.
+1. Open a project and select **New Model**.
 2. Choose the On Premise dataset.
 3. Select a model and training settings.
 4. Start training.

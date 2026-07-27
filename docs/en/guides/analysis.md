@@ -18,11 +18,12 @@ Three composition patterns cover the common use cases:
 from ultralytics import YOLO
 from ultralytics.data.build import build_yolo_dataset
 from ultralytics.data.utils import check_det_dataset
+from ultralytics.utils import DEFAULT_CFG
 from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
 
 # Path 1: dataset-only, no model. Labels are augmented in place (platform-friendly, consume in JS/TS).
 data = check_det_dataset("coco128.yaml")
-dataset = build_yolo_dataset(None, data["val"], 1, data, mode="val", rect=False, stride=32)
+dataset = build_yolo_dataset(DEFAULT_CFG, data["val"], 1, data, mode="val", rect=False, stride=32)
 labels = ImagePropertyExtractor(dataset).labels  # list[dict], each with an "im_properties" entry
 
 # Path 2: full analysis after model.val(). Use score_labels=True to enable ObjectLab.

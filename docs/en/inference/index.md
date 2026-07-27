@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Ultralytics Inference for Rust is a high-performance YOLO inference library and CLI built on ONNX Runtime, with GPU acceleration and zero Python runtime.
-keywords: Ultralytics Inference, Rust, YOLO, ONNX Runtime, object detection, segmentation, pose, OBB, classification, semantic segmentation, CUDA, TensorRT, CoreML, edge AI, real-time inference
+keywords: Ultralytics Inference, Rust, YOLO, ONNX Runtime, object detection, segmentation, pose, OBB, classification, semantic segmentation, depth estimation, CUDA, TensorRT, CoreML, edge AI, real-time inference
 ---
 
 # Ultralytics Inference for Rust
@@ -20,7 +20,7 @@ The project ships as a single crate, `ultralytics-inference`, that you can use t
 
 - **Native speed and a small footprint.** Compiles to a native binary with no interpreter, ideal for servers, containers, and [edge devices](https://www.ultralytics.com/glossary/edge-ai).
 - **Memory safety.** Rust's ownership model removes whole classes of runtime errors without a garbage collector.
-- **All YOLO tasks.** Detect, segment, pose, OBB, classify, and semantic segmentation from one API.
+- **All YOLO tasks.** Detect, segment, pose, OBB, classify, semantic segmentation, and depth estimation from one API.
 - **Broad hardware support.** CPU plus CUDA, TensorRT, CoreML, OpenVINO, DirectML, ROCm, and XNNPACK execution providers selected at build time.
 - **GPU-side preprocessing.** An optional fused CUDA kernel keeps letterbox, normalize, and layout conversion on the device for a zero-copy input path.
 - **Auto-download.** Known YOLO model names and sample assets download automatically on first use.
@@ -55,7 +55,7 @@ Rust 1.89 or newer is required. The [video](#cargo-features) feature additionall
     ```toml
     # Or add it manually to Cargo.toml
     [dependencies]
-    ultralytics-inference = "0.0.27"
+    ultralytics-inference = "0.0.30"
     ```
 
 ## CLI quickstart
@@ -75,6 +75,15 @@ ultralytics-inference predict --task segment --source image.jpg
 # Pose on a video, shown live in a window
 ultralytics-inference predict --task pose --source video.mp4 --show
 
+# Depth estimation (auto-downloads yolo26n-depth.onnx)
+ultralytics-inference predict --task depth --source image.jpg
+
+# Depth with the DepthAnything-style palette (disparity is already the default)
+ultralytics-inference predict --task depth --source image.jpg --colormap spectral
+
+# Depth normalized by depth value instead (near = low color, far = high color)
+ultralytics-inference predict --task depth --source image.jpg --depth-viz metric
+
 # Tune thresholds and filter to specific classes
 ultralytics-inference predict --source image.jpg --conf 0.5 --iou 0.45 --classes "0,1,2"
 
@@ -84,19 +93,21 @@ ultralytics-inference predict --source images/ --device cuda:0 --half
 
 Common flags:
 
-| Flag             | Default        | Description                                                           |
-| ---------------- | -------------- | --------------------------------------------------------------------- |
-| `--model`, `-m`  | `yolo26n.onnx` | Path to an ONNX model; a known YOLO name is downloaded automatically. |
-| `--task`         | `detect`       | One of `detect`, `segment`, `pose`, `obb`, `classify`, `semantic`.    |
-| `--source`, `-s` | sample         | Image, directory, glob, video, webcam index, or URL.                  |
-| `--conf`         | `0.25`         | Confidence threshold.                                                 |
-| `--iou`          | `0.7`          | IoU threshold for non-maximum suppression.                            |
-| `--imgsz`        | model metadata | Inference image size.                                                 |
-| `--device`       | `cpu`          | Execution device, for example `cuda:0`, `coreml`, `tensorrt:0`.       |
-| `--half`         | `false`        | FP16 half-precision inference.                                        |
-| `--save`         | `true`         | Save annotated results to `runs/<task>/predict`.                      |
-| `--show`         | `false`        | Display results in a window.                                          |
-| `--classes`      | all            | Filter detections by class IDs, for example `"0,1,2"`.                |
+| Flag             | Default        | Description                                                                                   |
+| ---------------- | -------------- | --------------------------------------------------------------------------------------------- |
+| `--model`, `-m`  | `yolo26n.onnx` | Path to an ONNX model; a known YOLO name is downloaded automatically.                         |
+| `--task`         | `detect`       | One of `detect`, `segment`, `pose`, `obb`, `classify`, `semantic`, `depth`.                   |
+| `--source`, `-s` | sample         | Image, directory, glob, video, webcam index, or URL.                                          |
+| `--conf`         | `0.25`         | Confidence threshold.                                                                         |
+| `--iou`          | `0.7`          | IoU threshold for non-maximum suppression.                                                    |
+| `--imgsz`        | model metadata | Inference image size.                                                                         |
+| `--device`       | `cpu`          | Execution device, for example `cuda:0`, `coreml`, `tensorrt:0`.                               |
+| `--half`         | `false`        | FP16 half-precision inference.                                                                |
+| `--save`         | `true`         | Save annotated results to `runs/<task>/predict`.                                              |
+| `--show`         | `false`        | Display results in a window.                                                                  |
+| `--classes`      | all            | Filter detections by class IDs, for example `"0,1,2"`.                                        |
+| `--colormap`     | `jet`          | Depth colormap: `jet`, `inferno`, `spectral`, or `gray` (depth only).                         |
+| `--depth-viz`    | `disparity`    | Depth normalization: `disparity` (inverse depth, near = high color) or `metric` (depth only). |
 
 ## Library quickstart
 
@@ -297,30 +308,59 @@ Each task populates a different field on `Results`. Each tab below is a complete
     }
     ```
 
+=== "Depth"
+
+    ```rust
+    use ultralytics_inference::YOLOModel;
+
+    fn main() -> Result<(), Box<dyn std::error::Error>> {
+        let mut model = YOLOModel::load("yolo26n-depth.onnx")?;
+        let results = model.predict_default()?;
+
+        for result in &results {
+            if let Some(depth) = &result.depth {
+                let (h, w) = depth.data.dim(); // per-pixel depth map shape (H, W), meters
+                println!("depth map {h}x{w}");
+
+                // Valid pixels only (depth > 0); None when the map has none.
+                if let (Some(min), Some(max)) = (depth.min_depth(), depth.max_depth()) {
+                    println!("  range {min:.2}-{max:.2} m");
+                }
+
+                // Read the depth of any pixel directly, in meters.
+                println!("  center {:.2} m", depth.data[[h / 2, w / 2]]);
+            }
+        }
+
+        Ok(())
+    }
+    ```
+
 ## Supported tasks
 
 All Ultralytics [tasks](../tasks/index.md) are supported. When `--model` is omitted, the matching nano model for the selected task is downloaded automatically.
 
-| Task                  | `--task`   | Output                        | Default model       |
-| --------------------- | ---------- | ----------------------------- | ------------------- |
-| Detection             | `detect`   | Bounding boxes and classes    | `yolo26n.onnx`      |
-| Instance segmentation | `segment`  | Boxes plus per-instance masks | `yolo26n-seg.onnx`  |
-| Pose                  | `pose`     | Boxes plus keypoints          | `yolo26n-pose.onnx` |
-| Oriented boxes        | `obb`      | Rotated bounding boxes        | `yolo26n-obb.onnx`  |
-| Classification        | `classify` | Class probabilities           | `yolo26n-cls.onnx`  |
-| Semantic segmentation | `semantic` | Per-pixel class map           | `yolo26n-sem.onnx`  |
+| Task                  | `--task`   | Output                        | Default model        |
+| --------------------- | ---------- | ----------------------------- | -------------------- |
+| Detection             | `detect`   | Bounding boxes and classes    | `yolo26n.onnx`       |
+| Instance segmentation | `segment`  | Boxes plus per-instance masks | `yolo26n-seg.onnx`   |
+| Pose                  | `pose`     | Boxes plus keypoints          | `yolo26n-pose.onnx`  |
+| Oriented boxes        | `obb`      | Rotated bounding boxes        | `yolo26n-obb.onnx`   |
+| Classification        | `classify` | Class probabilities           | `yolo26n-cls.onnx`   |
+| Semantic segmentation | `semantic` | Per-pixel class map           | `yolo26n-sem.onnx`   |
+| Depth estimation      | `depth`    | Per-pixel depth map in meters | `yolo26n-depth.onnx` |
 
 ## Model compatibility
 
 Any Ultralytics model exported to ONNX can be loaded from a local file. Auto-download is available for standard YOLO26, YOLO11, and YOLOv8 model names in sizes `n`, `s`, `m`, `l`, and `x`:
 
-| Model family | Auto-downloadable variants                                            |
-| ------------ | --------------------------------------------------------------------- |
-| YOLO26       | `yolo26{n,s,m,l,x}.onnx`, `-seg`, `-pose`, `-obb`, `-cls`, and `-sem` |
-| YOLO11       | `yolo11{n,s,m,l,x}.onnx`, `-seg`, `-pose`, `-obb`, and `-cls`         |
-| YOLOv8       | `yolov8{n,s,m,l,x}.onnx`, `-seg`, `-pose`, `-obb`, and `-cls`         |
+| Model family | Auto-downloadable variants                                                      |
+| ------------ | ------------------------------------------------------------------------------- |
+| YOLO26       | `yolo26{n,s,m,l,x}.onnx`, `-seg`, `-pose`, `-obb`, `-cls`, `-sem`, and `-depth` |
+| YOLO11       | `yolo11{n,s,m,l,x}.onnx`, `-seg`, `-pose`, `-obb`, and `-cls`                   |
+| YOLOv8       | `yolov8{n,s,m,l,x}.onnx`, `-seg`, `-pose`, `-obb`, and `-cls`                   |
 
-Semantic segmentation (`-sem`) is YOLO26-only.
+Semantic segmentation (`-sem`) and depth estimation (`-depth`) are YOLO26-only.
 
 ## Input sources
 
@@ -367,7 +407,7 @@ On NVIDIA hardware, the `cuda` feature enables the CUDA execution provider, and 
 cargo build --release --features cuda-preprocess
 ```
 
-The fast path is used automatically, with no API change, when all of the following hold: the feature is compiled in, the device is CUDA or TensorRT, the task is detect, segment, pose, OBB, or semantic segmentation, and the model uses FP32 input. It is enabled by default and can be turned off per model:
+The fast path is used automatically, with no API change, when all of the following hold: the feature is compiled in, the device is CUDA or TensorRT, the task is detect, segment, pose, OBB, semantic segmentation, or depth estimation, and the model uses FP32 input. It is enabled by default and can be turned off per model:
 
 ```rust
 use ultralytics_inference::{Device, InferenceConfig};
@@ -409,7 +449,7 @@ cargo install ultralytics-inference --features cuda,tensorrt
 
 ```toml
 [dependencies]
-ultralytics-inference = { version = "0.0.27", features = ["video"] }
+ultralytics-inference = { version = "0.0.30", features = ["video"] }
 ```
 
 ## Output and saving
@@ -423,7 +463,7 @@ runs/
         └── image.jpg     # annotated result
 ```
 
-The subfolder matches the task (`runs/segment/`, `runs/pose/`, and so on). For video sources the annotated output is written as a video file; pass `--save-frames` to write individual frames instead. For the `semantic` task, `--save-json` writes per-pixel class-map PNGs under a `results/` subfolder. Annotated image and video saving require the `annotate` feature; semantic class-map PNG export does not. Video input and output require the `video` feature.
+The subfolder matches the task (`runs/segment/`, `runs/pose/`, and so on). For video sources the annotated output is written as a video file; pass `--save-frames` to write individual frames instead. For the `semantic` task, `--save-json` writes per-pixel class-map PNGs under a `results/` subfolder. For the `depth` task the annotated image is written side by side, with the original next to the colorized depth map. Annotated image and video saving require the `annotate` feature; semantic class-map PNG export does not. Video input and output require the `video` feature.
 
 ## FAQ
 

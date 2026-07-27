@@ -1,6 +1,12 @@
 ---
 title: COCO128 Detection Dataset
 comments: true
+creator:
+    name: Ultralytics
+    url: https://www.ultralytics.com/
+license:
+    name: CC-BY-4.0
+    url: https://cocodataset.org/#termsofuse
 description: Explore the Ultralytics COCO128 dataset, a versatile and manageable set of 128 images perfect for testing object detection models and training pipelines.
 keywords: COCO128, Ultralytics, dataset, object detection, YOLO26, training, validation, machine learning, computer vision
 ---
@@ -28,7 +34,7 @@ This dataset is intended for use with [Ultralytics Platform](https://platform.ul
 
 COCO128 contains the first 128 images from the COCO train 2017 set, covering all 80 COCO object classes in [YOLO label format](../index.md). The same 128 images serve as both the training and validation split, keeping it lightweight for quick sanity checks:
 
-```
+```text
 coco128/
 ├── images/
 │   └── train2017/   # 128 images (used for both train and val)

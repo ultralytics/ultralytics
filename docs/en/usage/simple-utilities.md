@@ -125,7 +125,7 @@ for box in results[0].boxes.xyxy.cpu():
 
 With existing `x y w h` bounding box data, convert to segments using the `yolo_bbox2segment` function. Organize the files for images and annotations as follows:
 
-```
+```text
 data
 |__ images
     ├─ 001.jpg
@@ -475,6 +475,8 @@ Also see the [`Annotator` Reference Page](../reference/utils/plotting.md#ultraly
 !!! example "Sweep Annotation using Ultralytics Utilities"
 
     ```python
+    import sys
+
     import cv2
     import numpy as np
 
@@ -488,7 +490,7 @@ Also see the [`Annotator` Reference Page](../reference/utils/plotting.md#ultraly
 
     if not cap.isOpened():
         print("Error: Could not open video.")
-        exit()
+        sys.exit()
 
     # Initialize the video writer object.
     w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))

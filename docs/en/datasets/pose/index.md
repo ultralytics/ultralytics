@@ -25,13 +25,13 @@ Here is an example of the label format for a pose estimation task:
 
 Format with 2D keypoints
 
-```
+```text
 <class-index> <x> <y> <width> <height> <px1> <py1> <px2> <py2> ... <pxn> <pyn>
 ```
 
 Format with keypoint visibility (includes visibility per point)
 
-```
+```text
 <class-index> <x> <y> <width> <height> <px1> <py1> <p1-visibility> <px2> <py2> <p2-visibility> <pxn> <pyn> <pn-visibility>
 ```
 
@@ -144,7 +144,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 
 ### Tiger-Pose
 
-- **Description**: The [Ultralytics](https://www.ultralytics.com/) Tiger-Pose dataset comprises 263 images sourced from a [YouTube video](https://www.youtube.com/watch?v=MIBAT6BGE6U), with 210 images allocated for training and 53 for validation.
+- **Description**: The [Ultralytics](https://www.ultralytics.com/) Tiger-Pose dataset comprises 263 images sourced from a [YouTube video](https://youtu.be/Gc6K5eKrTNQ), with 210 images allocated for training and 53 for validation.
 - **Label Format**: Same as Ultralytics YOLO format as described above, with 12 keypoints for animal pose and no visibility dimension.
 - **Number of Classes**: 1 (tiger).
 - **Keypoints**: 12 keypoints.

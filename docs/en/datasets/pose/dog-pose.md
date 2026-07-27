@@ -1,6 +1,12 @@
 ---
 title: Dog-Pose Estimation Dataset
 comments: true
+creator:
+    name: Stanford Vision Lab
+    url: http://vision.stanford.edu/aditya86/ImageNetDogs/
+license:
+    name: Research-Only
+    url: https://www.image-net.org/download.php
 description: "Explore the Ultralytics Dog-Pose dataset: 6,773 training and 1,703 validation images with 24 keypoints per dog, for canine pose estimation with YOLO26."
 keywords: Dog-Pose, Ultralytics, pose estimation dataset, YOLO26, machine learning, computer vision, training data
 ---
@@ -35,7 +41,7 @@ For a specific breed or a different animal altogether, [Ultralytics Platform](ht
 - **Download size**: ~337 MB.
 - **Layout**:
 
-    ```
+    ```text
     datasets/dog-pose/
     ├── images/{train,val}
     └── labels/{train,val}

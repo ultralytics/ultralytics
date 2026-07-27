@@ -156,8 +156,9 @@ class LQE(nn.Module):
 
     def forward(self, scores, pred_corners):
         B, L, _ = pred_corners.size()
-        prob = F.softmax(pred_corners.reshape(B, L, 4, self.reg_max+1), dim=-1)
-        prob_topk, _ = prob.topk(self.k, dim=-1)
+        prob = F.softmax(pred_corners.reshape(-1, self.reg_max + 1), dim=-1)
+        topk_ind = prob.topk(self.k, dim=-1).indices
+        prob_topk = prob.gather(-1, topk_ind).reshape(B, L, 4, self.k)
         stat = torch.cat([prob_topk, prob_topk.mean(dim=-1, keepdim=True)], dim=-1)
         quality_score = self.reg_conf(stat.reshape(B, L, -1))
         return scores + quality_score

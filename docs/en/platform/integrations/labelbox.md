@@ -12,7 +12,7 @@ title: Labelbox Dataset Import - Ultralytics Platform
 
 ## Import from Labelbox
 
-1. **Export from Labelbox.** Export the [labeling project](https://docs.labelbox.com/docs/export-labels) or [catalog](https://docs.labelbox.com/docs/export-from-catalog) you want to bring over. Labelbox exports produce an NDJSON file.
+1. **Export from Labelbox.** Open the [labeling project](https://docs.labelbox.com/docs/export-labels) or [catalog](https://docs.labelbox.com/docs/export-from-catalog) you want to bring over, go to the **Data Rows** tab, select **All**, and click **Export data**. Labelbox runs the export as a background job — watch for it in [Notifications](https://app.labelbox.com/notifications) and download the NDJSON file once the job finishes.
 2. **Upload to Platform.** Create a new dataset and upload the `.ndjson` file, or paste a direct link to it. You can also start from **Settings > [Integrations](index.md) > Labelbox**.
 3. **Train.** Once processing finishes, [edit the annotations](../data/annotation.md) and [train](../train/index.md) exactly like any other Platform dataset.
 

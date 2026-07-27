@@ -8,6 +8,7 @@ from threading import Thread
 from urllib.request import Request, urlopen
 
 from ultralytics import SETTINGS, __version__
+from ultralytics.cfg import MODES, TASKS
 from ultralytics.utils import (
     ARGV,
     ENVIRONMENT,
@@ -99,8 +100,9 @@ class Events:
             device (torch.device | str, optional): The device type (e.g., 'cpu', 'cuda').
             run (BasePredictor | BaseTrainer, optional): The completed run, read for the mode's result fields.
         """
-        if not self.enabled:
-            # Events disabled, do nothing
+        # An event is named for its mode, so an arbitrary mode becomes an arbitrary event name, and GA4 drops every new
+        # name once a property reaches 500 of them - eventually the real ones.
+        if not self.enabled or cfg.mode not in MODES or cfg.task not in TASKS:
             return
 
         # Attempt to enqueue a new event

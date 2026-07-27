@@ -25,14 +25,11 @@ from ultralytics import RTDETR, YOLO
 
 DATA = Path("/root/autodl-tmp/data")
 
-# Lane A is the YOLO26 conv-head detector, so the YOLO facade resolves the task and export is stock Ultralytics,
-# without Lane B's fp32 attention pin. That is a choice rather than a non-issue since six of these carry MHSA. It
-# matches how the detector ships and keeps these rows continuous with earlier Lane A ones, so only within-lane
-# ratios travel. Lane B is RTDETR-family and takes the pin, without which DINOv3 attention overflows fp16.
+# Lane A exports stock, Lane B with the fp32 attention pin DINOv3 needs to survive fp16. Six Lane A entries carry
+# MHSA and would also move under a pin, so only within-lane ratios travel.
 SUITES = {
-    # Nine of these eleven cover every phase2 run in the orc db, one per distinct (yaml, scale). The registered
-    # numbers they replace were produced across many sessions under a timer and a weight state both now known to be
-    # wrong, and two architectures carry two conflicting values each. Depth-matched dinop5 and p4win are new rows.
+    # Nine of the eleven cover every orc phase2 run, one per distinct (yaml, scale), replacing registered numbers
+    # taken across sessions under a wrong timer and weight state, two of them conflicting. Two rows are new.
     "lane-a": (
         "conv-x",
         YOLO,
@@ -51,9 +48,7 @@ SUITES = {
             "uvit-x-attn2-p4win": "yolo26x-ultravit-repmixer-fastvitffn-attn2-p4win.yaml",
         },
     ),
-    # At X the raw dinop5 win over attn2 was 3.66pp, and matching P5 depth cut it to 0.64pp for +7.09M params, so
-    # most of it was depth rather than token-SwiGLU. This is the same four arms at m and l, one conv baseline each,
-    # to see whether that collapse holds below X.
+    # Depth-matching cut dinop5's win over attn2 from 3.66pp to 0.64pp at X. Does that collapse hold below X?
     "lane-a-ml": (
         "conv-m",
         YOLO,
@@ -69,9 +64,9 @@ SUITES = {
             "uvit-l-dinop5-depthmatched": "yolo26l-ultravit-repmixer-fastvitffn-dinop5-depthmatched.yaml",
         },
     ),
-    # The six yolo27-detr scales from detr_decoder_clean2, the reference arms every Lane B detector row is compared
-    # against at its own scale. The family changes across the ladder: n and s carry RTDETRDecoderEfficient on a CSP
-    # trunk, m and l swap in DeimDecoder, x and xxl swap the trunk for a plain ViT.
+    # The detr_decoder_clean2 reference arms every Lane B row is compared against at its own scale. The family
+    # changes along the ladder: CSP trunk with RTDETRDecoderEfficient at n and s, DeimDecoder at m and l, plain ViT
+    # trunk at x and xxl.
     "laneb-baselines": (
         "yolo27x",
         RTDETR,
@@ -85,9 +80,8 @@ SUITES = {
             "yolo27xxl": "yolo27xxl-vit-detr.yaml",
         },
     ),
-    # Five UltraViT backbones on the same DEIMv2 neck. The baseline is the yolo27 arm at this scale, which every
-    # Lane B row is now measured against. DINOv3-S+ stays as a row, since it is what these were designed to replace
-    # and the earlier runs are all against it.
+    # Five UltraViT backbones on one DEIMv2 neck. DINOv3-S+ is a row, not the baseline, so these stay readable
+    # against both the yolo27 arm and every earlier run.
     "laneb-x": (
         "yolo27x",
         RTDETR,

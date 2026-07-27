@@ -46,6 +46,7 @@ from ultralytics.nn.modules import (
     Concat,
     Conv,
     Conv2,
+    ConvSyncBN,
     ConvTranspose,
     DINOv3,
     DINOv3RoPE2D,
@@ -94,6 +95,10 @@ from ultralytics.nn.modules import (
     TorchVision,
     Timm,
     UltraViTBlock,
+    VITBlock,
+    VITDownsample2x,
+    VITPatchStem,
+    VITTokenToSpatial,
     WindowMHSABlock,
     WorldDetect,
     YOLOEDetect,
@@ -1886,6 +1891,10 @@ def parse_model(d, ch, verbose=True):
             scale = next(iter(scales.keys()))
             LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
         depth, width, max_channels = scales[scale]
+    # Per-scale variables resolvable as string tokens in module names/args (e.g. `ndl`, `efficient_ms`).
+    # Empty dict for any yaml that does not opt in via a top-level `scale_args:` block, so this is a
+    # no-op for every existing yaml. See yolo27-detr.yaml for canonical usage.
+    scale_args = (d.get("scale_args") or {}).get(scale, {}) if scale else {}
 
     if act:
         Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU()
@@ -1900,6 +1909,7 @@ def parse_model(d, ch, verbose=True):
         {
             Classify,
             Conv,
+            ConvSyncBN,
             ConvTranspose,
             GhostConv,
             Bottleneck,
@@ -1955,6 +1965,8 @@ def parse_model(d, ch, verbose=True):
         }
     )
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
+        if isinstance(m, str) and m in scale_args:
+            m = scale_args[m]
         m = (
             getattr(torch.nn, m[3:])
             if "nn." in m
@@ -1962,10 +1974,15 @@ def parse_model(d, ch, verbose=True):
             if "torchvision.ops." in m
             else globals()[m]
         )  # get module
+        if isinstance(args, str) and args in scale_args:
+            args = scale_args[args]
         for j, a in enumerate(args):
             if isinstance(a, str):
                 with contextlib.suppress(ValueError):
-                    args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
+                    if a in scale_args:
+                        args[j] = scale_args[a]
+                    else:
+                        args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in base_modules:
             c1, c2 = ch[f], args[0]
@@ -2001,6 +2018,8 @@ def parse_model(d, ch, verbose=True):
                 WindowMHSABlock,
                 PooledMHSABlock,
                 AnchorPoolQueryMix,
+                VITBlock,
+                VITTokenToSpatial,
             }
         ):
             args = [ch[f], *args]
@@ -2051,7 +2070,7 @@ def parse_model(d, ch, verbose=True):
             DeimLayerNormDecoder,
         }:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
-        elif m is CBLinear:
+        elif m in frozenset({CBLinear, VITPatchStem}):
             c2 = args[0]
             c1 = ch[f]
             args = [c1, c2, *args[1:]]
@@ -2095,7 +2114,7 @@ def yaml_model_load(path):
         LOGGER.warning(f"Ultralytics YOLO P6 models now use -p6 suffix. Renaming {path.stem} to {new_stem}.")
         path = path.with_name(new_stem + path.suffix)
 
-    unified_path = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
+    unified_path = re.sub(r"(\d+)(xxl|[nslmx])(.+)?$", r"\1\3", str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
     yaml_file = check_yaml(unified_path, hard=False) or check_yaml(path)
     d = YAML.load(yaml_file)  # model dict
     d["scale"] = guess_model_scale(path)
@@ -2104,16 +2123,16 @@ def yaml_model_load(path):
 
 
 def guess_model_scale(model_path):
-    """Extract the size character n, s, m, l, or x of the model's scale from the model path.
+    """Extract the size name n, s, m, l, x, or xxl of the model's scale from the model path.
 
     Args:
         model_path (str | Path): The path to the YOLO model's YAML file.
 
     Returns:
-        (str): The size character of the model's scale (n, s, m, l, or x), or empty string if not found.
+        (str): The size name of the model's scale (n, s, m, l, x, or xxl), or empty string if not found.
     """
     try:
-        return re.search(r"yolo(e-)?[v]?\d+([nslmx])", Path(model_path).stem).group(2)
+        return re.search(r"yolo(e-)?[v]?\d+(xxl|[nslmx])", Path(model_path).stem).group(2)
     except AttributeError:
         return ""
 

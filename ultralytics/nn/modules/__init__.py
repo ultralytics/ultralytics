@@ -124,6 +124,7 @@ from .transformer import (
 )
 from .vit_blocks import (
     AnchorPoolQueryMix,
+    ConvSyncBN,
     DINOv3RoPE2D,
     FastViTBlock,
     MHSABlock,
@@ -132,6 +133,10 @@ from .vit_blocks import (
     RepUltraViTBlock,
     RoPE2DBlock,
     UltraViTBlock,
+    VITBlock,
+    VITDownsample2x,
+    VITPatchStem,
+    VITTokenToSpatial,
     WindowMHSABlock,
 )
 
@@ -182,6 +187,7 @@ __all__ = (
     "ContrastiveHead",
     "Conv",
     "Conv2",
+    "ConvSyncBN",
     "ConvTranspose",
     "DWConv",
     "DWConvTranspose2d",
@@ -237,6 +243,10 @@ __all__ = (
     "TransformerEncoderLayer",
     "TransformerLayer",
     "UltraViTBlock",
+    "VITBlock",
+    "VITDownsample2x",
+    "VITPatchStem",
+    "VITTokenToSpatial",
     "WorldDetect",
     "WindowMHSABlock",
     "YOLOEDetect",

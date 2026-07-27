@@ -148,18 +148,30 @@ def test_resume_incomplete(task, weight, data, tmp_path):
 def test_nan_recovery():
     """Test NaN loss detection and recovery during training."""
     nan_injected = [False]
+    recoveries = []
 
     def inject_nan(trainer):
         """Inject NaN into loss during batch processing to test recovery mechanism."""
-        if trainer.epoch == 1 and trainer.tloss is not None and not nan_injected[0]:
+        if trainer.epoch == 1 and trainer.loss is not None and not nan_injected[0]:
+            trainer.loss *= torch.tensor(float("nan"))
             trainer.tloss *= torch.tensor(float("nan"))
             nan_injected[0] = True
 
     overrides = {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32, "epochs": 3}
     trainer = detect.DetectionTrainer(overrides=overrides)
+    handle_nan_recovery = trainer._handle_nan_recovery
+
+    def track_nan_recovery(epoch):
+        """Record whether the trainer recovered the deliberately corrupted epoch."""
+        recovered = handle_nan_recovery(epoch)
+        recoveries.append(recovered)
+        return recovered
+
+    trainer._handle_nan_recovery = track_nan_recovery
     trainer.add_callback("on_train_batch_end", inject_nan)
     trainer.train()
     assert nan_injected[0], "NaN injection failed"
+    assert any(recoveries), "NaN recovery was not triggered"
 
 
 def test_train_reuses_loaded_checkpoint_model(monkeypatch):

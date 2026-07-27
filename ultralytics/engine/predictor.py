@@ -34,6 +34,7 @@ Usage - formats:
                               yolo26n_deepx_model        # DEEPX
                               yolo26n_qnn.onnx           # Qualcomm QNN
                               yolo26n.tflite             # LiteRT
+                              yolo26n_ascend_model       # Huawei Ascend
 """
 
 from __future__ import annotations
@@ -183,7 +184,7 @@ class BasePredictor:
             if self.args.visualize and (not self.source_type.tensor)
             else False
         )
-        return self.model(im, augment=self.args.augment, visualize=visualize, embed=self.args.embed, *args, **kwargs)
+        return self.model(im, *args, augment=self.args.augment, visualize=visualize, embed=self.args.embed, **kwargs)
 
     def pre_transform(self, im: list[np.ndarray]) -> list[np.ndarray]:
         """Pre-transform input image before inference.

@@ -44,12 +44,12 @@ Upload the archive exactly as Label Studio produced it. Platform looks for `clas
 
 Label Studio offers [several export formats](https://labelstud.io/guide/export). For image detection and segmentation:
 
-| Label Studio Format  | Works | Notes                                                              |
-| -------------------- | ----- | ------------------------------------------------------------------ |
-| **YOLO with Images** | Best  | Ships `classes.txt` and the images, so a single upload is enough    |
+| Label Studio Format  | Works | Notes                                                                                |
+| -------------------- | ----- | ------------------------------------------------------------------------------------ |
+| **YOLO with Images** | Best  | Ships `classes.txt` and the images, so a single upload is enough                     |
 | **COCO with Images** | Yes   | Read too; a mix of polygons and boxes imports as segment, dropping the box-only ones |
-| **YOLO** / **COCO**  | No    | Annotation files only — the dataset imports with no images          |
-| **Pascal VOC XML**   | No    | XML label files cannot be read                                      |
+| **YOLO** / **COCO**  | No    | Annotation files only — the dataset imports with no images                           |
+| **Pascal VOC XML**   | No    | XML label files cannot be read                                                       |
 
 !!! warning "Pascal VOC imports without annotations"
 

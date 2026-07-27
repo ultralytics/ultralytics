@@ -33,15 +33,16 @@ def _post(url: str, data: dict, timeout: float = 5.0) -> None:
         pass
 
 
-def _arch(model) -> str:
-    """Return the architecture a model is built from, i.e. 'yolo11n-seg'.
+def _arch(model):
+    """Return the architecture a model is built from, i.e. 'yolo11n-seg', or None if it cannot be determined.
 
     The config travels inside a checkpoint, so fine-tuned models report the architecture they descend from however many
     generations back.
     """
     desc = getattr(model, "description", "").split()  # exported models name the arch here instead of a YAML
     stem = Path((getattr(model.model, "yaml", None) or {}).get("yaml_file", "")).stem
-    return stem or (desc[1].lower() if len(desc) > 1 else None)
+    stem = stem or (desc[1].lower() if len(desc) > 1 else "")
+    return stem[:100] or None  # 100 chars is the GA4 param value limit
 
 
 class Events:
@@ -120,9 +121,9 @@ class Events:
                     params["format"] = model.format
                     params["provider"] = devices[0] if devices else None
                     params["arch"] = _arch(model)
-                    params["quantize"] = cfg.quantize or model.metadata.get("args", {}).get("quantize")
+                    params["quantize"] = cfg.quantize or model.metadata.get("args", {}).get("quantize") or 32
                     params["imgsz"] = max(predictor.imgsz)  # the resolved shape, not the requested one
-                    params["batch"] = predictor.dataset.bs
+                    params["batch"] = min(predictor.dataset.bs, predictor.seen)  # as the Speed log reports it
                     params["nc"] = len(model.names)  # class count drives head width and NMS cost
                     params["n"] = predictor.seen
                     params["torch"] = TORCH_VERSION

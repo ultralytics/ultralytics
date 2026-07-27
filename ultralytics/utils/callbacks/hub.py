@@ -85,13 +85,7 @@ def on_val_start(validator):
 
 def on_predict_end(predictor):
     """Run events on predict end, once per-image speeds are known."""
-    events(
-        predictor.args,
-        predictor.device,
-        model=getattr(predictor, "model", None),
-        speed=getattr(predictor, "speed", None),
-        n=getattr(predictor, "seen", 0),
-    )
+    events(predictor.args, predictor.device, model=predictor.model, speed=predictor.speed, n=predictor.seen)
 
 
 def on_export_start(exporter):

@@ -1,11 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from __future__ import annotations
-
-import functools
 import json
 import random
-import re
 import time
 from pathlib import Path
 from threading import Thread
@@ -20,7 +16,6 @@ from ultralytics.utils import (
     ONLINE,
     PYTHON_VERSION,
     RANK,
-    ROOT,
     TESTS_RUNNING,
     TORCH_VERSION,
 )
@@ -38,63 +33,12 @@ def _post(url: str, data: dict, timeout: float = 5.0) -> None:
         pass
 
 
-@functools.lru_cache(maxsize=1)
-def _shipped_archs() -> frozenset[str]:
-    """Return the stems of the model configs shipped with the package, i.e. {'yolo26', 'yolo11-seg', ...}."""
-    return frozenset(p.stem for p in (ROOT / "cfg" / "models").rglob("*.yaml"))
-
-
 def _arch(model) -> str:
-    """Return the shipped architecture a model is built from, i.e. 'yolo11n-seg'.
-
-    Fine-tuned checkpoints report their true architecture even though their filename is anonymized, since the
-    source config travels inside the checkpoint. User-authored architectures collapse to 'custom' so that private
-    config filenames are never transmitted.
-
-    Args:
-        model (AutoBackend): The loaded inference model.
-
-    Returns:
-        (str): The scaled architecture name, or 'custom' if it is not one shipped with the package.
-    """
-    stem = Path((getattr(getattr(model, "model", None), "yaml", None) or {}).get("yaml_file", "")).stem
-    if not stem:  # exported models carry the name in their metadata description rather than a source config
-        match = re.search(r"Ultralytics (\S+) model", getattr(model, "description", "") or "")
-        stem = match.group(1).lower() if match else ""
-    unified = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", stem)  # configs ship unscaled, i.e. yolo11n-seg -> yolo11-seg
-    return stem if unified in _shipped_archs() else "custom"
-
-
-def _predict_params(cfg, device, model, speed, n) -> dict:
-    """Return the deployment and timing fields describing a completed prediction run.
-
-    Args:
-        cfg (IterableSimpleNamespace): The configuration the run used.
-        device (torch.device | str): The device inference ran on.
-        model (AutoBackend): The loaded inference model.
-        speed (dict[str, float] | None): Per-image preprocess, inference and postprocess times in milliseconds.
-        n (int): Number of images processed.
-
-    Returns:
-        (dict): Fields to attach to the predict event.
-    """
-    names = getattr(model, "names", None)
-    session = getattr(model, "session", None)  # ONNX Runtime: the provider drives latency as much as the format
-    params = {
-        "format": getattr(model, "format", None),
-        "provider": session.get_providers()[0] if session is not None else None,
-        "arch": _arch(model),
-        "precision": 16 if getattr(model, "fp16", False) else cfg.quantize,
-        "imgsz": cfg.imgsz if isinstance(cfg.imgsz, int) else max(cfg.imgsz),
-        "batch": cfg.batch,
-        "nc": len(names) if names else None,  # class count drives head width and NMS cost
-        "n": n,
-        "torch": TORCH_VERSION,
-        **{f"{k}_ms": round(v, 3) for k, v in (speed or {}).items()},
-    }
-    if getattr(device, "type", None) == "cuda":  # CUDA is already initialized here, so this adds no context or cost
-        params["GPU"] = get_gpu_info(device.index or 0)
-    return params
+    """Return the shipped architecture a model is built from, i.e. 'yolo11n-seg', else 'custom'."""
+    desc = getattr(model, "description", "").split()  # exported models name the arch here instead of a YAML
+    stem = Path((getattr(model.model, "yaml", None) or {}).get("yaml_file", "")).stem
+    stem = stem or (desc[1].lower() if len(desc) > 1 else "")
+    return stem if f"{stem}.pt" in GITHUB_ASSETS_NAMES else "custom"
 
 
 class Events:
@@ -148,7 +92,7 @@ class Events:
         Args:
             cfg (IterableSimpleNamespace): The configuration object containing mode and task information.
             device (torch.device | str, optional): The device type (e.g., 'cpu', 'cuda').
-            model (AutoBackend, optional): The loaded inference model, for prediction runs.
+            model (AutoBackend, optional): The loaded model, for prediction runs.
             speed (dict[str, float], optional): Per-image speeds in milliseconds, for prediction runs.
             n (int, optional): Number of images processed, for prediction runs.
         """
@@ -167,10 +111,23 @@ class Events:
             if cfg.mode == "export":
                 params["format"] = cfg.format
             elif cfg.mode == "predict":
-                try:
-                    params.update(_predict_params(cfg, device, model, speed, n))
+                try:  # never raise, warn or delay inside a user's prediction run
+                    session = getattr(model, "session", None)  # provider drives latency as much as format does
+                    params["format"] = model.format
+                    params["provider"] = session.get_providers()[0] if session else None
+                    params["arch"] = _arch(model)
+                    params["quantize"] = 16 if model.fp16 else cfg.quantize  # as validator.py records it
+                    params["imgsz"] = cfg.imgsz if isinstance(cfg.imgsz, int) else max(cfg.imgsz)
+                    params["batch"] = cfg.batch
+                    params["nc"] = len(model.names)  # class count drives head width and NMS cost
+                    params["n"] = n
+                    params["torch"] = TORCH_VERSION
+                    for k, v in (speed or {}).items():
+                        params[f"{k}_ms"] = round(v, 3)
+                    if device.type == "cuda":  # CUDA is already initialized here, so this costs nothing
+                        params["GPU"] = get_gpu_info(device.index or 0)
                 except Exception:
-                    pass  # analytics must never raise, warn or delay inside a user's prediction run
+                    pass
             self.events.append({"name": cfg.mode, "params": params})
 
         # Check rate limit and return early if under limit

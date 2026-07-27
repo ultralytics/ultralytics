@@ -386,13 +386,12 @@ class BasePredictor:
 
         # Print final results
         if self.seen:
-            keys = ("preprocess", "inference", "postprocess")
-            self.speed = dict(zip(keys, (x.t / self.seen * 1e3 for x in profilers)))  # speeds per image
+            t = tuple(x.t / self.seen * 1e3 for x in profilers)  # speeds per image
+            self.speed = dict(zip(("preprocess", "inference", "postprocess"), t))
             if self.args.verbose:
                 LOGGER.info(
                     f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
-                    f"{(min(self.args.batch, self.seen), getattr(self.model, 'channels', 3), *im.shape[2:])}"
-                    % tuple(self.speed.values())
+                    f"{(min(self.args.batch, self.seen), getattr(self.model, 'channels', 3), *im.shape[2:])}" % t
                 )
         if self.args.save or self.args.save_txt or self.args.save_crop:
             nl = len(list(self.save_dir.glob("labels/*.txt")))  # number of labels

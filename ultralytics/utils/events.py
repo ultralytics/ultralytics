@@ -40,9 +40,9 @@ def _arch(model):
     generations back.
     """
     desc = getattr(model, "description", "").split()  # exported models name the arch here instead of a YAML
-    stem = Path((getattr(model.model, "yaml", None) or {}).get("yaml_file", "")).stem
-    stem = stem or (desc[1].lower() if len(desc) > 1 else "")
-    return stem[:100] or None  # 100 chars is the GA4 param value limit
+    yaml = getattr(getattr(model, "model", None), "yaml", None) or {}  # SAM backends have no .model
+    stem = Path(yaml.get("yaml_file", "")).stem or (desc[1] if len(desc) > 1 else "")
+    return stem.lower()[:100] or None  # lowercased so one arch cannot split into two cells; 100 is the GA4 limit
 
 
 class Events:
@@ -121,18 +121,23 @@ class Events:
                     params["format"] = model.format
                     params["provider"] = devices[0] if devices else None
                     params["arch"] = _arch(model)
-                    params["quantize"] = cfg.quantize or model.metadata.get("args", {}).get("quantize") or 32
-                    params["imgsz"] = "x".join(map(str, predictor.shape))  # real shape; the long side is imgsz
-                    params["batch"] = min(predictor.dataset.bs, predictor.seen)  # as the Speed log reports it
-                    params["nc"] = len(model.names)  # class count drives head width and NMS cost
+                    meta = getattr(model, "metadata", None) or {}
+                    params["quantize"] = str(cfg.quantize or meta.get("args", {}).get("quantize") or 32)
+                    params["imgsz"] = "x".join(map(str, predictor.shape or ())) or None  # long side is imgsz
+                    params["batch"] = min(getattr(predictor.dataset, "bs", 0), predictor.seen) or None
+                    params["nc"] = len(getattr(model, "names", None) or ()) or None  # drives head width and NMS
                     params["n"] = predictor.seen
                     params["torch"] = TORCH_VERSION
+                    # toggles that move inference time enormously: compile alone is ~1000x on the first batch
+                    flags = ("compile", "augment", "end2end", "channels_last")
+                    params["flags"] = ",".join(f for f in flags if getattr(cfg, f, False)) or None
                     for k, v in (predictor.speed or {}).items():  # absent when a run processed no images
                         params[f"{k}_ms"] = round(v, 3)
                     if device.type == "cuda":  # CUDA is already initialized here, so this costs nothing
                         params["GPU"] = get_gpu_info(device.index or 0)
                 except Exception:
                     pass
+            params = {k: v for k, v in params.items() if v is not None}  # GA4 discards nulls regardless
             self.events.append({"name": cfg.mode, "params": params})
 
         # Check rate limit and return early if under limit

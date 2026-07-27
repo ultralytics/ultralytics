@@ -387,14 +387,14 @@ class BasePredictor:
             cv2.destroyAllWindows()  # close any open windows
 
         # Print final results
-        if self.seen:
-            t = tuple(x.t / self.seen * 1e3 for x in profilers)  # speeds per image
+        if seen := self.seen:  # snapshot, so a concurrent reset cannot divide by zero
+            t = tuple(x.t / seen * 1e3 for x in profilers)  # speeds per image
             self.speed = dict(zip(("preprocess", "inference", "postprocess"), t))
             self.shape = tuple(im.shape[2:])  # inference shape, which rect letterboxing makes source-dependent
             if self.args.verbose:
                 LOGGER.info(
                     f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
-                    f"{(min(self.args.batch, self.seen), getattr(self.model, 'channels', 3), *im.shape[2:])}" % t
+                    f"{(min(self.args.batch, seen), getattr(self.model, 'channels', 3), *self.shape)}" % t
                 )
         if self.args.save or self.args.save_txt or self.args.save_crop:
             nl = len(list(self.save_dir.glob("labels/*.txt")))  # number of labels

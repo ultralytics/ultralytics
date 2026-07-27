@@ -114,12 +114,10 @@ class Events:
             if cfg.mode == "export":
                 params["format"] = cfg.format
             elif cfg.mode == "train":
-                # Same guard discipline as predict below: every read inside the try, cheapest and safest first, so a
-                # raise into a user's training run is impossible and costs the fewest fields when it happens.
+                # Guarded and ordered exactly as predict below, for the same reasons
                 try:
-                    # the grouping key, since fitness only compares within a dataset; stem only, never a path, so a
-                    # YAML and a dataset directory of the same name share a cell. Grounding datasets pass a dict,
-                    # whose repr would carry a path fragment rather than a name.
+                    # the grouping key, since fitness only compares within a dataset; stem so a YAML and a directory
+                    # of the same name share a cell, and never a path - a grounding dict's repr would carry one
                     params["data"] = Path(cfg.data).stem[:100] if isinstance(cfg.data, (str, Path)) else None
                     params["imgsz"] = cfg.imgsz
                     # epochs this session, to stay consistent with hours; a resumed run restores an absolute epoch
@@ -129,9 +127,8 @@ class Events:
                     params["n"] = len(run.train_loader.dataset)  # train split size, matching predict's n
                     if run.best_fitness is not None:  # None when a run never validated
                         params["fitness"] = round(float(run.best_fitness), 5)  # mAP50-95 for detect, task-agnostic
-                    # both resolved, since 'auto' picks the optimizer by iteration count and fits its own lr0,
-                    # logging that it ignores cfg.lr0 - which is the default path, so cfg would be wrong far more
-                    # often than right, and would merge every auto run into one cell
+                    # both resolved: 'auto' is the default, and it picks the optimizer by iteration count and fits
+                    # its own lr0, logging that it ignores cfg.lr0 - so cfg would be wrong on most runs
                     params["optimizer"] = type(run.optimizer).__name__
                     params["lr0"] = run.optimizer.param_groups[0]["initial_lr"]
                     flags = {

@@ -8,8 +8,8 @@ rather than another runner. Suites naming yamls that this checkout does not carr
 Scale comes from the filename, and a scale-less stem silently resolves to the first scales key, so every entry
 carries an explicit size letter. The two-letter xxl needs the widened scale regex in tasks.py to resolve at all.
 
-`delta_vs_base_pct` is an architecture comparison only between rows at the baseline's scale. Rows at another scale
-are in the same suite to share its thermal state, and their delta against it is scale, not architecture.
+A suite names one baseline per scale, so every row's `delta_vs_base_pct` is an architecture comparison. Naming a
+single baseline instead makes the suite a scale ladder, where the delta is scale rather than architecture.
 """
 
 import sys
@@ -22,38 +22,23 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from t4_bench_common import build_variant, pinned_fp32_attn, run_benchmark
 from ultralytics import RTDETR, YOLO
+from ultralytics.nn.tasks import guess_model_scale
 
 DATA = Path("/root/autodl-tmp/data")
 
 # Lane A exports stock, Lane B with the fp32 attention pin DINOv3 needs to survive fp16. Six Lane A entries carry
 # MHSA and would also move under a pin, so only within-lane ratios travel.
 SUITES = {
-    # Nine of the eleven cover every orc phase2 run, one per distinct (yaml, scale), replacing registered numbers
-    # taken across sessions under a wrong timer and weight state, two of them conflicting. Two rows are new.
+    # Covers every orc phase2 run, one per distinct (yaml, scale), replacing registered numbers taken across
+    # sessions under a wrong timer and weight state, two of them conflicting. The dinop5 arms carry the open
+    # question: depth-matching cut their win over attn2 from 3.66pp to 0.64pp at X, so does that hold below X?
     "lane-a": (
-        "conv-x",
+        {"s": "conv-s", "m": "conv-m", "l": "conv-l", "x": "conv-x"},
         YOLO,
         None,
         {
             "conv-s": "yolo26s.yaml",
             "uvit-s-attn2-s480": "yolo26s-ultravit-repmixer-fastvitffn-attn2-s480.yaml",
-            "uvit-l-attn2": "yolo26l-ultravit-repmixer-fastvitffn-attn2.yaml",
-            "conv-x": "yolo26x.yaml",
-            "uvit-x-plain": "yolo26x-ultravit.yaml",
-            "uvit-x-dinop5": "yolo26x-ultravit-repmixer-fastvitffn-dinop5.yaml",
-            "uvit-x-dinop5-depthmatched": "yolo26x-ultravit-repmixer-fastvitffn-dinop5-depthmatched.yaml",
-            "uvit-x-attn2": "yolo26x-ultravit-repmixer-fastvitffn-attn2.yaml",
-            "uvit-x-attn2-dinoreg": "yolo26x-ultravit-repmixer-fastvitffn-attn2-dinoreg.yaml",
-            "uvit-x-attn2-p4pooled": "yolo26x-ultravit-repmixer-fastvitffn-attn2-p4pooled.yaml",
-            "uvit-x-attn2-p4win": "yolo26x-ultravit-repmixer-fastvitffn-attn2-p4win.yaml",
-        },
-    ),
-    # Depth-matching cut dinop5's win over attn2 from 3.66pp to 0.64pp at X. Does that collapse hold below X?
-    "lane-a-ml": (
-        "conv-m",
-        YOLO,
-        None,
-        {
             "conv-m": "yolo26m.yaml",
             "uvit-m-attn2": "yolo26m-ultravit-repmixer-fastvitffn-attn2.yaml",
             "uvit-m-dinop5": "yolo26m-ultravit-repmixer-fastvitffn-dinop5.yaml",
@@ -62,6 +47,14 @@ SUITES = {
             "uvit-l-attn2": "yolo26l-ultravit-repmixer-fastvitffn-attn2.yaml",
             "uvit-l-dinop5": "yolo26l-ultravit-repmixer-fastvitffn-dinop5.yaml",
             "uvit-l-dinop5-depthmatched": "yolo26l-ultravit-repmixer-fastvitffn-dinop5-depthmatched.yaml",
+            "conv-x": "yolo26x.yaml",
+            "uvit-x-plain": "yolo26x-ultravit.yaml",
+            "uvit-x-dinop5": "yolo26x-ultravit-repmixer-fastvitffn-dinop5.yaml",
+            "uvit-x-dinop5-depthmatched": "yolo26x-ultravit-repmixer-fastvitffn-dinop5-depthmatched.yaml",
+            "uvit-x-attn2": "yolo26x-ultravit-repmixer-fastvitffn-attn2.yaml",
+            "uvit-x-attn2-dinoreg": "yolo26x-ultravit-repmixer-fastvitffn-attn2-dinoreg.yaml",
+            "uvit-x-attn2-p4pooled": "yolo26x-ultravit-repmixer-fastvitffn-attn2-p4pooled.yaml",
+            "uvit-x-attn2-p4win": "yolo26x-ultravit-repmixer-fastvitffn-attn2-p4win.yaml",
         },
     ),
     # The detr_decoder_clean2 reference arms every Lane B row is compared against at its own scale. The family
@@ -103,5 +96,7 @@ SUITES = {
 suite = sys.argv[1]
 baseline, model_cls, engine_builder, yamls = SUITES[suite]
 engines = DATA / f"t4-{suite}-engines"
+# The filename is the authority on scale, the same rule parse_model resolves the model by.
+baselines = {t: baseline if isinstance(baseline, str) else baseline[guess_model_scale(y)] for t, y in yamls.items()}
 variants = [build_variant(t, y, engines, model_cls=model_cls, engine_builder=engine_builder) for t, y in yamls.items()]
-run_benchmark(variants, baseline, DATA / f"t4_{suite.replace('-', '_')}_protocol0727.csv")
+run_benchmark(variants, baselines, DATA / f"t4_{suite.replace('-', '_')}_protocol0727.csv")

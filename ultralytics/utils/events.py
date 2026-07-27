@@ -122,7 +122,7 @@ class Events:
             }
             if cfg.mode == "export":
                 params["format"] = cfg.format
-            elif cfg.mode == "predict":
+            elif cfg.mode in {"predict", "track"}:  # track runs the predictor too, and is most of the video inference
                 try:  # every read is inside the guard, so nothing can raise into a user's prediction run
                     model = predictor.model
                     session = getattr(model, "session", None)  # ONNX Runtime provider, else OpenVINO device
@@ -137,7 +137,7 @@ class Events:
                     params["nc"] = len(model.names)  # class count drives head width and NMS cost
                     params["n"] = predictor.seen
                     params["torch"] = TORCH_VERSION
-                    for k, v in predictor.speed.items():
+                    for k, v in (predictor.speed or {}).items():  # absent when a run processed no images
                         params[f"{k}_ms"] = round(v, 3)
                     if device.type == "cuda":  # CUDA is already initialized here, so this costs nothing
                         params["GPU"] = get_gpu_info(device.index or 0)

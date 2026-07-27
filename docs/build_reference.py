@@ -340,6 +340,8 @@ def format_signature(
 
     if len(signature) <= SIGNATURE_LINE_LENGTH or not params:
         return signature
+    if is_class:  # the raw source of a long constructor is `def __init__(self, ...)`, not the call form
+        return "{}(\n    {},\n)".format(name, ",\n    ".join(params))
 
     raw_signature = _get_definition_signature(node, src)
     return raw_signature or signature

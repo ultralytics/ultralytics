@@ -1,11 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """T4 latency for every Lane A architecture that carries a registered number, remeasured in one session.
 
-Lane A is the YOLO26 conv-head detector, so the YOLO facade resolves the task and the stock Ultralytics engine
-export applies. Six of these architectures do carry MHSA, so Lane B's fp32 attention pin would have something to act
-on, and it is deliberately not used: stock export is how the shipped detector is actually deployed, and it keeps
-these rows continuous with every earlier Lane A measurement. The cost is that Lane A and Lane B TRT absolutes are
-not cross-comparable, only their within-lane ratios are.
+Lane A is the YOLO26 conv-head detector, so the YOLO facade resolves the task. Export is stock Ultralytics, without
+Lane B's fp32 attention pin, which is a choice rather than a non-issue since six of these carry MHSA. It matches how
+the detector ships and keeps these rows continuous with earlier Lane A ones, so only within-lane ratios travel.
 
 Nine of these ten cover every phase2 run in the orc db, one per distinct (yaml, scale). The registered numbers they
 replace were produced across many sessions under a timer and a weight state that are both now known to be wrong, and

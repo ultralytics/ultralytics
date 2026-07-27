@@ -303,11 +303,13 @@ class BasePredictor:
             # Setup source every time predict is called
             self.setup_source(source if source is not None else self.args.source)
 
-            # Sync per-box embedding flag on the head every call (args persist across predictor reuse).
-            # Restrict to the detect task: Segment/Pose/OBB heads append their own extra channels
-            # (mask coefficients, keypoints, angle) that would collide with the embedding columns.
+            # Sync the per-box embedding flag on the eager PyTorch detect head every call (args persist
+            # across predictor reuse). Skip exported backends: TorchScript modules are not Python-indexable
+            # and other formats bake this in at export time. Restrict to the detect task: Segment/Pose/OBB
+            # heads append their own extra channels (mask coefficients, keypoints, angle) that would collide.
             det_model = getattr(self.model, "model", None)
-            head = det_model.model[-1] if hasattr(det_model, "model") else None
+            eager = isinstance(det_model, torch.nn.Module) and not isinstance(det_model, torch.jit.ScriptModule)
+            head = det_model.model[-1] if eager and hasattr(det_model, "model") else None
             if hasattr(head, "embed_boxes"):
                 head.embed_boxes = self.args.embed_boxes and self.args.task == "detect"
                 if self.args.embed_boxes and self.args.task != "detect":

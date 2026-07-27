@@ -91,13 +91,13 @@ class Events:
             and (IS_PIP_PACKAGE or GIT.origin == "https://github.com/ultralytics/ultralytics.git")
         )
 
-    def __call__(self, cfg, device=None, owner=None) -> None:
+    def __call__(self, cfg, device=None, run=None) -> None:
         """Queue an event and flush the queue asynchronously when the rate limit elapses.
 
         Args:
             cfg (IterableSimpleNamespace): The configuration object containing mode and task information.
             device (torch.device | str, optional): The device type (e.g., 'cpu', 'cuda').
-            owner (BasePredictor | BaseTrainer, optional): The completed run, read for the mode's result fields.
+            run (BasePredictor | BaseTrainer, optional): The completed run, read for the mode's result fields.
         """
         if not self.enabled:
             # Events disabled, do nothing
@@ -117,36 +117,37 @@ class Events:
                 # Same guard discipline as predict below: every read inside the try, cheapest and safest first, so a
                 # raise into a user's training run is impossible and costs the fewest fields when it happens.
                 try:
-                    # the grouping key, since fitness only compares within a dataset; basename, never a path. Grounding
-                    # datasets pass a dict, whose repr would carry a path fragment rather than a name.
-                    params["data"] = Path(cfg.data).name[:100] if isinstance(cfg.data, (str, Path)) else None
+                    # the grouping key, since fitness only compares within a dataset; stem only, never a path, so a
+                    # YAML and a dataset directory of the same name share a cell. Grounding datasets pass a dict,
+                    # whose repr would carry a path fragment rather than a name.
+                    params["data"] = Path(cfg.data).stem[:100] if isinstance(cfg.data, (str, Path)) else None
                     params["imgsz"] = cfg.imgsz
                     # epochs this session, to stay consistent with hours; a resumed run restores an absolute epoch
-                    params["epochs_done"] = owner.epoch + 1 - owner.start_epoch
-                    params["batch"] = owner.batch_size  # resolved, since autobatch and OOM retries both move it
-                    params["hours"] = round((time.time() - owner.train_time_start) / 3600, 4)
-                    params["nimg"] = len(owner.train_loader.dataset)
-                    if owner.best_fitness is not None:  # None when a run never validated
-                        params["fitness"] = round(float(owner.best_fitness), 5)  # mAP50-95 for detect, task-agnostic
+                    params["epochs_done"] = run.epoch + 1 - run.start_epoch
+                    params["batch"] = run.batch_size  # resolved, since autobatch and OOM retries both move it
+                    params["hours"] = round((time.time() - run.train_time_start) / 3600, 4)
+                    params["n"] = len(run.train_loader.dataset)  # train split size, matching predict's n
+                    if run.best_fitness is not None:  # None when a run never validated
+                        params["fitness"] = round(float(run.best_fitness), 5)  # mAP50-95 for detect, task-agnostic
                     # both resolved, since 'auto' picks the optimizer by iteration count and fits its own lr0,
                     # logging that it ignores cfg.lr0 - which is the default path, so cfg would be wrong far more
                     # often than right, and would merge every auto run into one cell
-                    params["optimizer"] = type(owner.optimizer).__name__
-                    params["lr0"] = owner.optimizer.param_groups[0]["initial_lr"]
+                    params["optimizer"] = type(run.optimizer).__name__
+                    params["lr0"] = run.optimizer.param_groups[0]["initial_lr"]
                     flags = {
                         "pretrained": bool(cfg.pretrained),
                         "cos_lr": cfg.cos_lr,
-                        "amp": owner.amp,  # as applied: check_amp() turns a requested True off on unsupported hardware
+                        "amp": run.amp,  # as applied: check_amp() turns a requested True off on unsupported hardware
                         "rect": cfg.rect,
                         "multi_scale": bool(cfg.multi_scale),
                         "freeze": bool(cfg.freeze),  # freeze=0 and freeze=[] both freeze nothing
                         "dropout": cfg.dropout > 0,
-                        "early_stop": owner.epoch + 1 < owner.epochs,  # .stop is also set on the last planned epoch
+                        "early_stop": run.epoch + 1 < run.epochs,  # .stop is also set on the last planned epoch
                         "resume": bool(cfg.resume),  # fitness carries over, epochs and hours do not
-                        "ddp": owner.world_size > 1,
+                        "ddp": run.world_size > 1,
                     }
                     params["flags"] = ",".join(k for k, v in flags.items() if v) or None
-                    params["arch"] = _arch(unwrap_model(owner.model))  # DDP and EMA both wrap away the .yaml
+                    params["arch"] = _arch(unwrap_model(run.model))  # DDP and EMA both wrap away the .yaml
                     if device.type == "cuda":  # makes hours comparable
                         params["GPU"] = get_gpu_info(device.index or 0)
                 except Exception:
@@ -155,12 +156,12 @@ class Events:
                 # Every read is inside the guard, so nothing can raise into a user's prediction run, and the reads run
                 # cheapest and safest first so a raise costs the fewest fields. Insertion order is also drop order.
                 try:
-                    params["n"] = owner.seen  # predictor state this file's own owner sets, so it cannot raise
-                    params["pixels"] = owner.pixels  # mean inference area, which FLOPs scale with; sqrt for a side
-                    for k, v in (owner.speed or {}).items():  # absent when a run processed no images
+                    params["n"] = run.seen  # predictor state this file's own owner sets, so it cannot raise
+                    params["pixels"] = run.pixels  # mean inference area, which FLOPs scale with; sqrt for a side
+                    for k, v in (run.speed or {}).items():  # absent when a run processed no images
                         params[f"{k}_ms"] = round(v, 3)
-                    params["batch"] = min(getattr(owner.dataset, "bs", 0), owner.seen) or None
-                    model = owner.model
+                    params["batch"] = min(getattr(run.dataset, "bs", 0), run.seen) or None
+                    model = run.model
                     params["format"] = model.format
                     params["nc"] = len(getattr(model, "names", None) or ()) or None  # drives head width and NMS
                     # toggles that move inference time enormously, read as applied rather than as requested:

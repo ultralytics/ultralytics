@@ -17,17 +17,18 @@ which TensorRT specializes on them and the resulting ratios are wrong by up to 5
 
 Environment:
 
-- ``onnxruntime-gpu``, not ``onnxruntime``. CPU build is 170x slower and lands in the onnx row.
+- ``onnxruntime-gpu``, not ``onnxruntime``. CPU build is 170x slower and lands in the onnx row. Installing both
+  shadows the GPU build, which is how an entire published onnx column was measured on CPU without anyone noticing.
+- A ``select_device`` that leaves ``CUDA_VISIBLE_DEVICES`` alone. Older ones blank it for a CPU device, and because
+  the CPU row runs first, that masks the GPU for the whole interpreter and every later format raises.
 - ``tensorrt==10.11.0.33``. Version alone moves ratios 3pp.
 - Build and time engines in one interpreter, they are version-locked.
 """
 
 import csv
 import json
-import os
 import platform
 import shutil
-from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -44,7 +45,6 @@ ROUNDS = 8
 SEED = 0
 BIAS_FILL = 1e-3
 TIMER = "predictor-speed"  # rows measured before 2026-07-27 used "cuda-events"
-_UNSET = object()  # distinguishes an absent CUDA_VISIBLE_DEVICES from one set to the empty string
 
 # Ordered format table: name -> (Variant attribute holding the artifact, extra predict kwargs, timed runs). The
 # order is the protocol, not a preference, so formats are never selectable and never reordered. Warmup is a tenth
@@ -220,37 +220,14 @@ def profile_model(model, image, runs, **predict_kwargs):
     return {"inf": mean, "inf_std": float(clipped.std()), "total": float(np.mean(pre)) + mean + float(np.mean(post))}
 
 
-@contextmanager
-def cuda_visible_devices_restored():
-    """Put CUDA_VISIBLE_DEVICES back exactly as found, unset or set, after a block that may blank it.
-
-    `select_device` before Ultralytics 8.4 blanks the variable to force a CPU device, which latches
-    `torch.cuda.is_available()` off for the rest of the interpreter, so every GPU format measured after the CPU row
-    raises `Invalid CUDA 'device=0'`. The two lanes pin different Ultralytics vintages and neither is ours to edit
-    mid-round, so the restore lives with the caller that asks for CPU. `_UNSET` keeps an absent variable distinct from
-    one that is legitimately empty.
-    """
-    before = os.environ.get("CUDA_VISIBLE_DEVICES", _UNSET)
-    try:
-        yield
-    finally:
-        if before is _UNSET:
-            os.environ.pop("CUDA_VISIBLE_DEVICES", None)
-        else:
-            os.environ["CUDA_VISIBLE_DEVICES"] = before
-
-
 def profile_variant(variant, image, imgsz, device):
     """Profile every format back to back in FORMATS order, through the variant's own facade, with no gap between."""
-    timings = {}
-    for fmt, (attr, extra, runs) in FORMATS.items():
-        kwargs = {"device": device, **extra}
-        with ExitStack() as stack:
-            if kwargs["device"] == "cpu":
-                stack.enter_context(cuda_visible_devices_restored())
-            model = variant.model_cls(str(getattr(variant, attr)))
-            timings[fmt] = profile_model(model, image, runs, imgsz=imgsz, **kwargs)
-    return timings
+    return {
+        fmt: profile_model(
+            variant.model_cls(str(getattr(variant, attr))), image, runs, imgsz=imgsz, **{"device": device, **extra}
+        )
+        for fmt, (attr, extra, runs) in FORMATS.items()
+    }
 
 
 def summarize_rounds(per_round, variants, baseline):

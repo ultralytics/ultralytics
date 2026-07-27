@@ -77,11 +77,11 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 
         | Model                                                                                     | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>A100 TensorRT<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         | ----------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
-        | [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov8n-oiv7.pt) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
-        | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov8s-oiv7.pt) | 640                   | 27.7                 | 183.1                          | 1.40                                | 11.4               | 29.7              |
-        | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov8m-oiv7.pt) | 640                   | 33.6                 | 408.5                          | 2.26                                | 26.2               | 80.6              |
-        | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov8l-oiv7.pt) | 640                   | 34.9                 | 596.9                          | 2.43                                | 44.1               | 167.4             |
-        | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov8x-oiv7.pt) | 640                   | 36.3                 | 860.6                          | 3.56                                | 68.7               | 260.6             |
+        | [YOLOv8n](https://platform.ultralytics.com/ultralytics/yolov8) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
+        | [YOLOv8s](https://platform.ultralytics.com/ultralytics/yolov8) | 640                   | 27.7                 | 183.1                          | 1.40                                | 11.4               | 29.7              |
+        | [YOLOv8m](https://platform.ultralytics.com/ultralytics/yolov8) | 640                   | 33.6                 | 408.5                          | 2.26                                | 26.2               | 80.6              |
+        | [YOLOv8l](https://platform.ultralytics.com/ultralytics/yolov8) | 640                   | 34.9                 | 596.9                          | 2.43                                | 44.1               | 167.4             |
+        | [YOLOv8x](https://platform.ultralytics.com/ultralytics/yolov8) | 640                   | 36.3                 | 860.6                          | 3.56                                | 68.7               | 260.6             |
 
     === "Segmentation (COCO)"
 
@@ -118,7 +118,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
         | [YOLOv8m-pose](https://platform.ultralytics.com/ultralytics/yolov8/yolov8m-pose)       | 640                   | 65.0                  | 88.8               | 456.3                          | 2.00                                | 26.4               | 81.0              |
         | [YOLOv8l-pose](https://platform.ultralytics.com/ultralytics/yolov8/yolov8l-pose)       | 640                   | 67.6                  | 90.0               | 784.5                          | 2.59                                | 44.4               | 168.6             |
         | [YOLOv8x-pose](https://platform.ultralytics.com/ultralytics/yolov8/yolov8x-pose)       | 640                   | 69.2                  | 90.2               | 1607.1                         | 3.73                                | 69.4               | 263.2             |
-        | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov8x-pose-p6.pt) | 1280                  | 71.6                  | 91.2               | 4088.7                         | 10.04                               | 99.1               | 1066.4            |
+        | [YOLOv8x-pose-p6](https://platform.ultralytics.com/ultralytics/yolov8) | 1280                  | 71.6                  | 91.2               | 4088.7                         | 10.04                               | 99.1               | 1066.4            |
 
     === "OBB (DOTAv1)"
 

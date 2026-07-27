@@ -36,12 +36,17 @@ def _post(url: str, data: dict, timeout: float = 5.0) -> None:
 
 
 def _arch(model) -> str:
-    """Return the shipped architecture a model is built from, i.e. 'yolo11n-seg', else 'custom'."""
+    """Return the shipped architecture a model is built from, i.e. 'yolo11n-seg', else 'custom'.
+
+    The config travels inside a checkpoint, so fine-tuned models report the architecture they descend from however
+    many generations back. Unrecognized architectures collapse to 'custom' so private config names never leave.
+    """
     desc = getattr(model, "description", "").split()  # exported models name the arch here instead of a YAML
     stem = Path((getattr(model.model, "yaml", None) or {}).get("yaml_file", "")).stem
     stem = stem or (desc[1].lower() if len(desc) > 1 else "")
-    unified = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", stem)  # configs ship unscaled, i.e. yolo11n-seg -> yolo11-seg
-    return stem if any((ROOT / "cfg" / "models").rglob(f"{unified}.yaml")) else "custom"
+    scaled = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", stem)  # most configs ship unscaled, i.e. yolo11n -> yolo11
+    shipped = {p.stem for p in (ROOT / "cfg" / "models").rglob("*.yaml")}  # membership, never a user-built pattern
+    return stem if {stem, scaled} & shipped else "custom"
 
 
 class Events:
@@ -89,15 +94,13 @@ class Events:
             and (IS_PIP_PACKAGE or GIT.origin == "https://github.com/ultralytics/ultralytics.git")
         )
 
-    def __call__(self, cfg, device=None, model=None, speed=None, n=0) -> None:
+    def __call__(self, cfg, device=None, predictor=None) -> None:
         """Queue an event and flush the queue asynchronously when the rate limit elapses.
 
         Args:
             cfg (IterableSimpleNamespace): The configuration object containing mode and task information.
             device (torch.device | str, optional): The device type (e.g., 'cpu', 'cuda').
-            model (AutoBackend, optional): The loaded model, for prediction runs.
-            speed (dict[str, float], optional): Per-image speeds in milliseconds, for prediction runs.
-            n (int, optional): Number of images processed, for prediction runs.
+            predictor (BasePredictor, optional): The completed predictor, read for benchmarking fields.
         """
         if not self.enabled:
             # Events disabled, do nothing
@@ -114,18 +117,19 @@ class Events:
             if cfg.mode == "export":
                 params["format"] = cfg.format
             elif cfg.mode == "predict":
-                try:  # never raise, warn or delay inside a user's prediction run
+                try:  # every read is inside the guard, so nothing can raise into a user's prediction run
+                    model = predictor.model
                     session = getattr(model, "session", None)  # provider drives latency as much as format does
                     params["format"] = model.format
                     params["provider"] = session.get_providers()[0] if session else None
                     params["arch"] = _arch(model)
-                    params["quantize"] = 16 if model.fp16 else cfg.quantize  # as validator.py records it
-                    params["imgsz"] = cfg.imgsz if isinstance(cfg.imgsz, int) else max(cfg.imgsz)
-                    params["batch"] = cfg.batch
+                    params["quantize"] = cfg.quantize or model.metadata.get("args", {}).get("quantize")
+                    params["imgsz"] = max(predictor.imgsz)  # the resolved shape, not the requested one
+                    params["batch"] = predictor.dataset.bs
                     params["nc"] = len(model.names)  # class count drives head width and NMS cost
-                    params["n"] = n
+                    params["n"] = predictor.seen
                     params["torch"] = TORCH_VERSION
-                    for k, v in (speed or {}).items():
+                    for k, v in predictor.speed.items():
                         params[f"{k}_ms"] = round(v, 3)
                     if device.type == "cuda":  # CUDA is already initialized here, so this costs nothing
                         params["GPU"] = get_gpu_info(device.index or 0)

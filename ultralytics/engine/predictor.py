@@ -89,7 +89,7 @@ class BasePredictor:
         plotted_img (np.ndarray): Last plotted image.
         source_type (SimpleNamespace): Type of input source.
         seen (int): Number of images processed.
-        speed (dict[str, float]): Per-image preprocess, inference and postprocess times in milliseconds.
+        speed (dict[str, float] | None): Per-image preprocess, inference and postprocess times in ms, once run.
         windows (list[str]): List of window names for visualization.
         batch (tuple): Current batch data.
         results (list[Any]): Current batch results.
@@ -320,7 +320,7 @@ class BasePredictor:
                 )
                 self.done_warmup = True
 
-            self.seen, self.windows, self.batch = 0, [], None
+            self.seen, self.speed, self.windows, self.batch = 0, None, [], None
             profilers = (
                 ops.Profile(device=self.device),
                 ops.Profile(device=self.device),

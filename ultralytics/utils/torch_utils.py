@@ -130,16 +130,8 @@ def get_cpu_info():
 @functools.lru_cache
 def get_gpu_info(index):
     """Return a string with system GPU information, i.e. 'Tesla T4, 15102MiB'."""
-    from ultralytics.utils import PERSISTENT_CACHE  # avoid circular import error
-
-    key = f"gpu_info_{index}"  # per index, since devices on a multi-GPU host differ
-    if key not in PERSISTENT_CACHE:
-        try:
-            properties = torch.cuda.get_device_properties(index)
-            PERSISTENT_CACHE[key] = f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
-        except Exception:
-            pass
-    return PERSISTENT_CACHE.get(key, "unknown")
+    properties = torch.cuda.get_device_properties(index)
+    return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
 
 
 def parse_device(device: str | int | list | tuple | torch.device = "") -> str:

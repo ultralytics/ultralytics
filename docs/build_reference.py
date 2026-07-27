@@ -617,14 +617,23 @@ def _class_init(node: ast.ClassDef) -> ast.FunctionDef | ast.AsyncFunctionDef | 
 def _inherited_init(
     node: ast.ClassDef, class_nodes: dict[str, ast.ClassDef], seen: set[str] | None = None
 ) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
-    """Return the first __init__ found depth-first through base classes defined in the same module."""
+    """Return the first __init__ found breadth-first through base classes defined in the same module.
+
+    Every direct base is checked before any grandparent, matching Python: in `class D(B, C)` where only `C` defines
+    `__init__`, D is constructed with C's signature even though B's ancestors also define one.
+    """
     seen = seen if seen is not None else {node.name}
+    bases = []
     for base in node.bases:
         name = getattr(base, "id", None)
-        if not name or name in seen or name not in class_nodes:
-            continue
-        seen.add(name)
-        if init := (_class_init(class_nodes[name]) or _inherited_init(class_nodes[name], class_nodes, seen)):
+        if name and name not in seen and name in class_nodes:
+            seen.add(name)
+            bases.append(class_nodes[name])
+    for base in bases:
+        if init := _class_init(base):
+            return init
+    for base in bases:
+        if init := _inherited_init(base, class_nodes, seen):
             return init
     return None
 

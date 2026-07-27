@@ -116,8 +116,7 @@ class Events:
             elif cfg.mode == "train":
                 # Guarded and ordered exactly as predict below, for the same reasons
                 try:
-                    # the grouping key, since fitness only compares within a dataset; stem so a YAML and a directory
-                    # of the same name share a cell, and never a path - a grounding dict's repr would carry one
+                    # grouping key; stem unifies YAML and directory, and isinstance keeps a dict repr's path out
                     params["data"] = Path(cfg.data).stem[:100] if isinstance(cfg.data, (str, Path)) else None
                     params["imgsz"] = cfg.imgsz
                     # epochs this session, to stay consistent with hours; a resumed run restores an absolute epoch
@@ -126,11 +125,9 @@ class Events:
                     params["hours"] = round((time.time() - run.train_time_start) / 3600, 4)
                     params["n"] = len(run.train_loader.dataset)  # train split size, matching predict's n
                     if run.best_fitness is not None:  # None when a run never validated
-                        # a per-task composite, so only comparable within a task: mAP50-95 for detect, but the sum
-                        # of box and mask mAP50-95 for segment, so it reaches 2
+                        # a per-task composite: mAP50-95 for detect, box+mask for segment, so compare within a task
                         params["fitness"] = round(float(run.best_fitness), 5)
-                    # both resolved: 'auto' is the default, and it picks the optimizer by iteration count and fits
-                    # its own lr0, logging that it ignores cfg.lr0 - so cfg would be wrong on most runs
+                    # both resolved: the default 'auto' fits its own optimizer and lr0, ignoring cfg.lr0
                     params["optimizer"] = type(run.optimizer).__name__
                     # min, since MuSGD splits every group in two and puts the finetuning lr*3 half first
                     params["lr0"] = min(g["initial_lr"] for g in run.optimizer.param_groups)
@@ -153,8 +150,7 @@ class Events:
                 except Exception:
                     pass
             elif cfg.mode in {"predict", "track"}:  # track runs the predictor too, and is most of the video inference
-                # Every read is inside the guard, so nothing can raise into a user's prediction run, and the reads run
-                # cheapest and safest first so a raise costs the fewest fields. Insertion order is also drop order.
+                # Reads inside the guard so nothing can raise into a user's run, cheapest first; order is drop order
                 try:
                     params["n"] = run.seen  # predictor state this file's own owner sets, so it cannot raise
                     params["pixels"] = run.pixels  # mean inference area, which FLOPs scale with; sqrt for a side
@@ -164,8 +160,7 @@ class Events:
                     model = run.model
                     params["format"] = model.format
                     params["nc"] = len(getattr(model, "names", None) or ()) or None  # drives head width and NMS
-                    # toggles that move inference time enormously, read as applied rather than as requested:
-                    # attempt_compile replaces predictor.model, and cfg.end2end is a tri-state request not a state
+                    # toggles that move inference time, as applied: compile replaces .model, end2end is tri-state
                     flags = {
                         "compile": hasattr(model, "_orig_mod"),
                         "end2end": getattr(model, "end2end", False),
@@ -183,7 +178,7 @@ class Events:
                     params["provider"] = devices[0] if devices else None  # last: least reliable read
                 except Exception:
                     pass
-            # GA4 discards nulls regardless, and rejects any event over 25 params outright, so cap rather than lose it
+            # nulls are dropped anyway, and an event over 25 params is rejected outright, so cap rather than lose it
             params = dict([(k, v) for k, v in params.items() if v is not None][:25])
             self.events.append({"name": cfg.mode, "params": params})
 

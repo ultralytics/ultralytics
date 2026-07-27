@@ -9,8 +9,11 @@ seriously, shifted cross-architecture ratios by up to 2.9pp because arms self-he
 Kept from the previous harness and absent from both colleague harnesses: balanced paired rounds, a named baseline,
 paired per-round deltas and A/B win counts. A single-pass mean cannot separate a real win from thermal ordering.
 
-The formats run back to back with nothing between them, so the slower ones preheat the card ahead of the TensorRT
-reading exactly as profile_depth.py does. Run telemetry from a separate process, never inside this loop.
+The formats run back to back with nothing between them, so the GPU rows preheat the card ahead of the TensorRT
+reading. Run telemetry from a separate process, never inside this loop.
+
+An untrained yaml is never benchmarked as built. `materialize_yaml` fills its exactly-zero biases first, without
+which TensorRT specializes on them and the resulting ratios are wrong by up to 5.3pp in the flattering direction.
 
 Environment:
 
@@ -35,19 +38,20 @@ from ultralytics import YOLO
 from ultralytics.utils.benchmarks import ProfileModels
 from ultralytics.utils.torch_utils import get_gpu_info
 
-WARMUP = 10
-RUNS = 100
 ROUNDS = 8
+SEED = 0
+BIAS_FILL = 1e-3
 TIMER = "predictor-speed"  # rows measured before 2026-07-27 used "cuda-events"
 
-# Ordered format table: name -> (Variant attribute holding the artifact, extra predict kwargs). The order is the
-# protocol, not a preference, so formats are never selectable and never reordered. `half` rather than `quantize`
-# because the bench checkouts span both spellings and newer versions still forward `half`.
+# Ordered format table: name -> (Variant attribute holding the artifact, extra predict kwargs, timed runs). The
+# order is the protocol, not a preference, so formats are never selectable and never reordered. Warmup is a tenth
+# of the runs. The CPU row is roughly 200x slower per call at X scale, hence its smaller count. `half` rather than
+# `quantize` because the bench checkouts span both spellings and newer versions still forward `half`.
 FORMATS = {
-    "pt16": ("weights", {"half": True}),
-    "pt32": ("weights", {"half": False}),
-    "onnx": ("onnx", {}),
-    "trt": ("engine", {}),
+    "pt_cpu": ("weights", {"device": "cpu", "half": False}, 20),
+    "pt16": ("weights", {"half": True}, 100),
+    "onnx": ("onnx", {}, 100),
+    "trt": ("engine", {}, 100),
 }
 
 
@@ -87,12 +91,47 @@ def env_info(imgsz, variants):
         "ultralytics_path": ultralytics.__file__,
         "imgsz": imgsz,
         "batch": 1,
-        "warmup": WARMUP,
-        "timed_runs": RUNS,
+        "timed_runs": {fmt: runs for fmt, (_, _, runs) in FORMATS.items()},
         "rounds": ROUNDS,
+        "init_seed": SEED,
+        "bias_fill": BIAS_FILL,
         **{m: __import__(m).__version__ for m in ("onnxruntime", "tensorrt", "onnx")},
         "artifacts": {v.name: {a: str(getattr(v, a)) for a in ("weights", "onnx", "engine")} for v in variants},
     }
+
+
+def materialize_yaml(name, yaml, outdir, model_cls):
+    """Build an untrained yaml into a checkpoint whose biases are never exactly zero.
+
+    Standard PyTorch and DEIM init leave 78-85% of biases at exactly zero, and benchmarking that state is not latency
+    equivalent to benchmarking trained weights. The shift is signed and per-architecture (baseline +0.97%, ffnattn2
+    -2.35%, attn2 -3.99% against trained), so normalizing a zero-bias arm to a zero-bias baseline amplifies it and
+    erased 78% of a real attention penalty. Filling those biases makes the shift near-uniform, leaving the absolute 2-3%
+    high but the ratio within 1.1pp of trained. Every yaml goes through here for that reason.
+
+    The fill value is not tuned to imitate trained weights, which run two orders of magnitude larger (median absolute
+    bias 0.12 to 0.15). Only zero-ness matters. Where TensorRT acts on it is unresolved, since the exported ONNX graphs
+    of the two arms are near-identical, same `Add`, `Conv` and `Gemm` counts and 1 to 5 `Identity` nodes apart, export
+    having already fused most biases into the convolution weights.
+
+    Returns:
+        (Path): The written checkpoint.
+    """
+    ckpt = Path(outdir) / f"{name}-init.pt"
+    if ckpt.exists():
+        return ckpt
+    torch.manual_seed(SEED)
+    model = model_cls(str(yaml)).model
+    touched = 0
+    with torch.no_grad():
+        for param_name, p in model.named_parameters():
+            if param_name.endswith(".bias") and not torch.count_nonzero(p):
+                p.fill_(BIAS_FILL)
+                touched += 1
+    model.args = {"model": str(yaml)}
+    torch.save({"model": model.half().eval(), "epoch": -1, "version": "bench"}, ckpt)
+    print(f"  {ckpt.name}: filled {touched} zero biases with {BIAS_FILL}", flush=True)
+    return ckpt
 
 
 def build_variant(name, weights, outdir, imgsz=640, device="0", model_cls=YOLO, engine_builder=None):
@@ -100,7 +139,7 @@ def build_variant(name, weights, outdir, imgsz=640, device="0", model_cls=YOLO, 
 
     Args:
         name (str): Short tag, also the artifact filename stem.
-        weights (str | Path): Trained checkpoint or model yaml.
+        weights (str | Path): Trained checkpoint, or a model yaml that `materialize_yaml` turns into one.
         outdir (str | Path): Directory the artifacts are written to.
         imgsz (int): Square input size baked into both exports and into the artifact stem.
         device (str): CUDA device index used for the export.
@@ -115,6 +154,8 @@ def build_variant(name, weights, outdir, imgsz=640, device="0", model_cls=YOLO, 
     outdir = Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
     onnx, engine = outdir / f"{name}-{imgsz}.onnx", outdir / f"{name}-{imgsz}.engine"
+    if Path(weights).suffix == ".yaml":
+        weights = materialize_yaml(name, weights, outdir, model_cls)
 
     def export(fmt, path, **extra):
         """Export one format from a fresh instance, since export mutates the model in place."""
@@ -136,22 +177,23 @@ def build_variant(name, weights, outdir, imgsz=640, device="0", model_cls=YOLO, 
     return Variant(name, Path(weights), onnx, engine, model_cls, params / 1e6, gflops)
 
 
-def profile_model(model, image, **predict_kwargs):
-    """Warm up, collect RUNS predictor speed records, sigma clip, and return inference and pipeline means.
+def profile_model(model, image, runs, **predict_kwargs):
+    """Warm up, collect `runs` predictor speed records, sigma clip, and return inference and pipeline means.
 
     Args:
         model (Model): Loaded model in any backend the predictor supports.
         image (np.ndarray): HWC uint8 input reused for every call.
+        runs (int): Timed calls to collect. A tenth as many warmup calls run first.
         **predict_kwargs (Any): Forwarded to the predictor, typically imgsz, device and half.
 
     Returns:
         (dict): Sigma-clipped mean inference ms under `inf`, its standard deviation under `inf_std`, and preprocess plus
             inference plus postprocess under `total`.
     """
-    for _ in range(WARMUP):
+    for _ in range(max(2, runs // 10)):
         model(image, verbose=False, **predict_kwargs)
     pre, inf, post = [], [], []
-    for _ in range(RUNS):
+    for _ in range(runs):
         speed = model(image, verbose=False, **predict_kwargs)[0].speed
         pre.append(speed["preprocess"])
         inf.append(speed["inference"])
@@ -164,8 +206,10 @@ def profile_model(model, image, **predict_kwargs):
 def profile_variant(variant, image, imgsz, device):
     """Profile every format back to back in FORMATS order, through the variant's own facade, with no gap between."""
     return {
-        fmt: profile_model(variant.model_cls(str(getattr(variant, attr))), image, imgsz=imgsz, device=device, **extra)
-        for fmt, (attr, extra) in FORMATS.items()
+        fmt: profile_model(
+            variant.model_cls(str(getattr(variant, attr))), image, runs, imgsz=imgsz, **{"device": device, **extra}
+        )
+        for fmt, (attr, extra, runs) in FORMATS.items()
     }
 
 

@@ -303,11 +303,17 @@ class BasePredictor:
             # Setup source every time predict is called
             self.setup_source(source if source is not None else self.args.source)
 
-            # Sync per-box embedding flag on the head every call (args persist across predictor reuse)
+            # Sync per-box embedding flag on the head every call (args persist across predictor reuse).
+            # Restrict to the detect task: Segment/Pose/OBB heads append their own extra channels
+            # (mask coefficients, keypoints, angle) that would collide with the embedding columns.
             det_model = getattr(self.model, "model", None)
             head = det_model.model[-1] if hasattr(det_model, "model") else None
             if hasattr(head, "embed_boxes"):
-                head.embed_boxes = self.args.embed_boxes
+                head.embed_boxes = self.args.embed_boxes and self.args.task == "detect"
+                if self.args.embed_boxes and self.args.task != "detect":
+                    LOGGER.warning(
+                        f"'embed_boxes=True' is only supported for the detect task, ignoring for '{self.args.task}'."
+                    )
 
             # Check if save_dir/ label file exists
             if self.args.save or self.args.save_txt:

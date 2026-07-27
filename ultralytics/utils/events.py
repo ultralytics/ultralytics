@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import functools
 import json
 import random
 import re
@@ -35,6 +36,12 @@ def _post(url: str, data: dict, timeout: float = 5.0) -> None:
         pass
 
 
+@functools.lru_cache(maxsize=1)
+def _shipped_archs() -> frozenset:
+    """Return the stems of the model configs shipped with the package, cached to keep _arch free of disk I/O."""
+    return frozenset(p.stem for p in (ROOT / "cfg" / "models").rglob("*.yaml"))
+
+
 def _arch(model) -> str:
     """Return the shipped architecture a model is built from, i.e. 'yolo11n-seg', else 'custom'.
 
@@ -45,8 +52,7 @@ def _arch(model) -> str:
     stem = Path((getattr(model.model, "yaml", None) or {}).get("yaml_file", "")).stem
     stem = stem or (desc[1].lower() if len(desc) > 1 else "")
     scaled = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", stem)  # most configs ship unscaled, i.e. yolo11n -> yolo11
-    shipped = {p.stem for p in (ROOT / "cfg" / "models").rglob("*.yaml")}  # membership, never a user-built pattern
-    return stem if {stem, scaled} & shipped else "custom"
+    return stem if {stem, scaled} & _shipped_archs() else "custom"  # membership, never a user-built glob pattern
 
 
 class Events:
@@ -119,9 +125,11 @@ class Events:
             elif cfg.mode == "predict":
                 try:  # every read is inside the guard, so nothing can raise into a user's prediction run
                     model = predictor.model
-                    session = getattr(model, "session", None)  # provider drives latency as much as format does
+                    session = getattr(model, "session", None)  # ONNX Runtime provider, else OpenVINO device
+                    ov = getattr(model, "ov_compiled_model", None)  # an Arc GPU run must not look like CPU
+                    devices = session.get_providers() if session else ov.get_property("EXECUTION_DEVICES") if ov else []
                     params["format"] = model.format
-                    params["provider"] = session.get_providers()[0] if session else None
+                    params["provider"] = devices[0] if devices else None
                     params["arch"] = _arch(model)
                     params["quantize"] = cfg.quantize or model.metadata.get("args", {}).get("quantize")
                     params["imgsz"] = max(predictor.imgsz)  # the resolved shape, not the requested one

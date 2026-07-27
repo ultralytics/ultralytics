@@ -19,7 +19,7 @@ from ultralytics.utils import (
     TESTS_RUNNING,
     TORCH_VERSION,
 )
-from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
+from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info, unwrap_model
 
 
 def _post(url: str, data: dict, timeout: float = 5.0) -> None:
@@ -39,7 +39,8 @@ def _arch(model):
     generations back.
     """
     desc = f"{getattr(model, 'description', '')}".split()  # exported models name the arch here instead of a YAML
-    yaml = getattr(getattr(model, "model", None), "yaml", None) or {}  # SAM backends have no .model
+    # a trainer holds the config on the model itself, a predictor one level down on the backend; SAM has no .model
+    yaml = getattr(model, "yaml", None) or getattr(getattr(model, "model", None), "yaml", None) or {}
     stem = Path(yaml.get("yaml_file", "")).stem or (desc[1] if len(desc) > 1 else "")
     return stem.lower()[:100] or None  # lowercased so one arch cannot split into two cells; 100 is the GA4 limit
 
@@ -90,13 +91,13 @@ class Events:
             and (IS_PIP_PACKAGE or GIT.origin == "https://github.com/ultralytics/ultralytics.git")
         )
 
-    def __call__(self, cfg, device=None, predictor=None) -> None:
+    def __call__(self, cfg, device=None, run=None) -> None:
         """Queue an event and flush the queue asynchronously when the rate limit elapses.
 
         Args:
             cfg (IterableSimpleNamespace): The configuration object containing mode and task information.
             device (torch.device | str, optional): The device type (e.g., 'cpu', 'cuda').
-            predictor (BasePredictor, optional): The completed predictor, read for benchmarking fields.
+            run (BasePredictor | BaseTrainer, optional): The completed run, read for the mode's result fields.
         """
         if not self.enabled:
             # Events disabled, do nothing
@@ -112,20 +113,54 @@ class Events:
             }
             if cfg.mode == "export":
                 params["format"] = cfg.format
-            elif cfg.mode in {"predict", "track"}:  # track runs the predictor too, and is most of the video inference
-                # Every read is inside the guard, so nothing can raise into a user's prediction run, and the reads run
-                # cheapest and safest first so a raise costs the fewest fields. Insertion order is also drop order.
+            elif cfg.mode == "train":
+                # Guarded and ordered exactly as predict below, for the same reasons
                 try:
-                    params["n"] = predictor.seen  # predictor state this file's own owner sets, so it cannot raise
-                    params["pixels"] = predictor.pixels  # mean inference area, which FLOPs scale with; sqrt for a side
-                    for k, v in (predictor.speed or {}).items():  # absent when a run processed no images
+                    # grouping key; stem unifies YAML and directory, and isinstance keeps a dict repr's path out
+                    params["data"] = Path(cfg.data).stem[:100] if isinstance(cfg.data, (str, Path)) else None
+                    params["imgsz"] = cfg.imgsz
+                    # epochs this session, to stay consistent with hours; a resumed run restores an absolute epoch
+                    params["epochs_done"] = run.epoch + 1 - run.start_epoch
+                    params["batch"] = run.batch_size  # resolved, since autobatch and OOM retries both move it
+                    params["hours"] = round((time.time() - run.train_time_start) / 3600, 4)
+                    params["n"] = len(run.train_loader.dataset)  # train split size, matching predict's n
+                    if run.best_fitness is not None:  # None when a run never validated
+                        # a per-task composite: mAP50-95 for detect, box+mask for segment, so compare within a task
+                        params["fitness"] = round(float(run.best_fitness), 5)
+                    # both resolved: the default 'auto' fits its own optimizer and lr0, ignoring cfg.lr0
+                    params["optimizer"] = type(run.optimizer).__name__
+                    # min, since MuSGD splits every group in two and puts the finetuning lr*3 half first
+                    params["lr0"] = min(g["initial_lr"] for g in run.optimizer.param_groups)
+                    flags = {
+                        "pretrained": bool(cfg.pretrained),
+                        "cos_lr": cfg.cos_lr,
+                        "amp": run.amp,  # as applied: check_amp() turns a requested True off on unsupported hardware
+                        "rect": cfg.rect,
+                        "multi_scale": bool(cfg.multi_scale),
+                        "freeze": bool(cfg.freeze),  # freeze=0 and freeze=[] both freeze nothing
+                        "dropout": cfg.dropout > 0,
+                        "early_stop": run.epoch + 1 < run.epochs,  # .stop is also set on the last planned epoch
+                        "resume": bool(cfg.resume),  # fitness carries over, epochs and hours do not
+                        "ddp": run.world_size > 1,
+                    }
+                    params["flags"] = ",".join(k for k, v in flags.items() if v) or None
+                    params["arch"] = _arch(unwrap_model(run.model))  # DDP and EMA both wrap away the .yaml
+                    if device.type == "cuda":  # makes hours comparable
+                        params["GPU"] = get_gpu_info(device.index or 0)
+                except Exception:
+                    pass
+            elif cfg.mode in {"predict", "track"}:  # track runs the predictor too, and is most of the video inference
+                # Reads inside the guard so nothing can raise into a user's run, cheapest first; order is drop order
+                try:
+                    params["n"] = run.seen  # predictor state this file's own owner sets, so it cannot raise
+                    params["pixels"] = run.pixels  # mean inference area, which FLOPs scale with; sqrt for a side
+                    for k, v in (run.speed or {}).items():  # absent when a run processed no images
                         params[f"{k}_ms"] = round(v, 3)
-                    params["batch"] = min(getattr(predictor.dataset, "bs", 0), predictor.seen) or None
-                    model = predictor.model
+                    params["batch"] = min(getattr(run.dataset, "bs", 0), run.seen) or None
+                    model = run.model
                     params["format"] = model.format
                     params["nc"] = len(getattr(model, "names", None) or ()) or None  # drives head width and NMS
-                    # toggles that move inference time enormously, read as applied rather than as requested:
-                    # attempt_compile replaces predictor.model, and cfg.end2end is a tri-state request not a state
+                    # toggles that move inference time, as applied: compile replaces .model, end2end is tri-state
                     flags = {
                         "compile": hasattr(model, "_orig_mod"),
                         "end2end": getattr(model, "end2end", False),
@@ -143,7 +178,7 @@ class Events:
                     params["provider"] = devices[0] if devices else None  # last: least reliable read
                 except Exception:
                     pass
-            # GA4 discards nulls regardless, and rejects any event over 25 params outright, so cap rather than lose it
+            # nulls are dropped anyway, and an event over 25 params is rejected outright, so cap rather than lose it
             params = dict([(k, v) for k, v in params.items() if v is not None][:25])
             self.events.append({"name": cfg.mode, "params": params})
 

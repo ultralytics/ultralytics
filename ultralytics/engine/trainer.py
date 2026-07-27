@@ -1091,7 +1091,7 @@ class BaseTrainer:
         for module_name, module in unwrap_model(model).named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
-                if param.ndim >= 2 and use_muon:
+                if param.ndim in {2, 4} and use_muon:  # muon only orthogonalizes matrices and conv filters
                     g[3][fullname] = param  # muon params
                 elif "bias" in fullname:  # bias (no decay)
                     g[2][fullname] = param

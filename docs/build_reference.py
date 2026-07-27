@@ -617,8 +617,9 @@ def _class_init(node: ast.ClassDef) -> ast.FunctionDef | ast.AsyncFunctionDef | 
 def _mro(node: ast.ClassDef, class_nodes: dict[str, ast.ClassDef], stack: tuple[str, ...] = ()) -> list[ast.ClassDef]:
     """Return the C3 linearization of a class over the base classes defined in the same module.
 
-    Bases from other modules are unresolvable here and simply drop out, which shortens the linearization without
-    reordering what remains. A cyclic or inconsistent hierarchy stops early rather than looping.
+    Bases from other modules are unresolvable here and drop out, which in rare multiple-inheritance shapes reorders
+    the in-module classes that remain — an absent base can no longer delay a sibling from becoming the next head.
+    Resolving that needs the imports, not the AST. A cyclic or inconsistent hierarchy stops early rather than looping.
     """
     bases = [
         class_nodes[n] for n in (getattr(b, "id", None) for b in node.bases) if n in class_nodes and n not in stack

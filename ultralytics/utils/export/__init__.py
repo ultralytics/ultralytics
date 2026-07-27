@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from .ascend import onnx2ascend
 from .axelera import torch2axelera
 from .coreml import torch2coreml
 from .deepx import onnx2deepx
@@ -17,6 +18,7 @@ from .torchscript import torch2torchscript
 
 __all__ = [
     "keras2pb",
+    "onnx2ascend",
     "onnx2deepx",
     "onnx2engine",
     "onnx2mnn",

@@ -44,10 +44,9 @@ def _hmiou_distance(tracks_a: list[TTSTrack], tracks_b: list[TTSTrack]) -> tuple
 def _angle_distance(
     tracks: list[TTSTrack], dets: list[TTSTrack], frame_id: int, pairs: tuple[np.ndarray, np.ndarray], delta_t: int = 3
 ) -> np.ndarray:
-    """Return angle distance for the `(track, det)` index `pairs` only.
+    """Return angle distance for the IoU-supported `(track, det)` index `pairs` only.
 
-    Evaluated per candidate pair rather than over the full `(N, M)` grid: `_cost_matrix` overwrites every pair
-    without IoU support with a constant, so computing those would be discarded work that grows as `O(N*M)`.
+    `_cost_matrix` overwrites unsupported pairs, so a full `(N, M)` grid would compute discarded work.
     """
     track_idx, det_idx = pairs
     track_boxes = np.stack([tracks[i].get_history_box(frame_id, delta_t) for i in track_idx])  # (P, 4)

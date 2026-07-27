@@ -1,15 +1,17 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""T4 latency for one named suite of architectures, measured in a single paired session.
+"""T4 TensorRT latency for one lane at one scale, measured in a single paired session.
 
-Run as ``python bench/t4_bench.py <suite>``. Every suite shares the protocol in t4_bench_common, which reads the
-predictor's speed["inference"] exactly as profile_depth.py and ProfileModels do, so a new suite is a dict entry
-rather than another runner. Suites naming yamls that this checkout does not carry simply are not run from it.
+Run as ``python bench/t4_bench.py <lane>-<scale>``, e.g. `lane-a-x` or `lane-b-n`. Each session profiles that
+scale's baseline, every arm that exists at that scale, and a bridge arm. Only TensorRT is timed, the other formats
+run once afterwards into a `.formats.csv` sidecar, see t4_bench_common for why.
 
-Scale comes from the filename, and a scale-less stem silently resolves to the first scales key, so every entry
-carries an explicit size letter. The two-letter xxl needs the widened scale regex in tasks.py to resolve at all.
+The bridge is the one arm carried by every session at a scale. Deltas from two sessions are not directly
+comparable, since re-measuring the baseline in each leaves 1.0 to 1.5pp of scatter, but the bridge anchors them:
+an arm's ratio against the bridge inside its own session transfers exactly. Adding one yaml therefore costs a
+session of baseline, bridge and that yaml, not a rerun of everything at that scale.
 
-A suite names one baseline per scale, so every row's `delta_vs_base_pct` is an architecture comparison. Naming a
-single baseline instead makes the suite a scale ladder, where the delta is scale rather than architecture.
+Scale comes from the filename, and a scale-less stem silently resolves to the first scales key, so every entry has
+its size letter substituted in. Arms absent at a scale are simply not in that session.
 """
 
 import sys
@@ -22,81 +24,89 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from t4_bench_common import build_variant, pinned_fp32_attn, run_benchmark
 from ultralytics import RTDETR, YOLO
-from ultralytics.nn.tasks import guess_model_scale
 
 DATA = Path("/root/autodl-tmp/data")
 
-# Lane A exports stock, Lane B with the fp32 attention pin DINOv3 needs to survive fp16. Six Lane A entries carry
-# MHSA and would also move under a pin, so only within-lane ratios travel.
-SUITES = {
-    # Covers every orc phase2 run, one per distinct (yaml, scale), replacing registered numbers taken across
-    # sessions under a wrong timer and weight state, two of them conflicting. The dinop5 arms carry the open
-    # question: depth-matching cut their win over attn2 from 3.66pp to 0.64pp at X, so does that hold below X?
+# lane -> (facade, engine builder, baseline tag prefix, bridge tag, {arm tag: (yaml template, scales it exists at)}).
+#
+# Lane A is the YOLO26 conv-head detector against its own conv baseline, exported stock. Lane B is the DETR
+# detector against the yolo27-detr baseline at the same scale, exported with the fp32 attention pin DINOv3 needs to
+# survive fp16. Six Lane A arms carry MHSA and would also move under a pin, so only within-lane ratios travel.
+#
+# Arms retired as obsolete and absent here: fracrope, headdim64, attn2lite.
+LANES = {
     "lane-a": (
-        {"s": "conv-s", "m": "conv-m", "l": "conv-l", "x": "conv-x"},
         YOLO,
         None,
+        "conv",
+        "ffnattn2",  # bridge, the incumbent every UltraViT arm is judged against
         {
-            "conv-s": "yolo26s.yaml",
-            "uvit-s-attn2-s480": "yolo26s-ultravit-repmixer-fastvitffn-attn2-s480.yaml",
-            "conv-m": "yolo26m.yaml",
-            "uvit-m-attn2": "yolo26m-ultravit-repmixer-fastvitffn-attn2.yaml",
-            "uvit-m-dinop5": "yolo26m-ultravit-repmixer-fastvitffn-dinop5.yaml",
-            "uvit-m-dinop5-depthmatched": "yolo26m-ultravit-repmixer-fastvitffn-dinop5-depthmatched.yaml",
-            "conv-l": "yolo26l.yaml",
-            "uvit-l-attn2": "yolo26l-ultravit-repmixer-fastvitffn-attn2.yaml",
-            "uvit-l-dinop5": "yolo26l-ultravit-repmixer-fastvitffn-dinop5.yaml",
-            "uvit-l-dinop5-depthmatched": "yolo26l-ultravit-repmixer-fastvitffn-dinop5-depthmatched.yaml",
-            "conv-x": "yolo26x.yaml",
-            "uvit-x-plain": "yolo26x-ultravit.yaml",
-            "uvit-x-dinop5": "yolo26x-ultravit-repmixer-fastvitffn-dinop5.yaml",
-            "uvit-x-dinop5-depthmatched": "yolo26x-ultravit-repmixer-fastvitffn-dinop5-depthmatched.yaml",
-            "uvit-x-attn2": "yolo26x-ultravit-repmixer-fastvitffn-attn2.yaml",
-            "uvit-x-attn2-dinoreg": "yolo26x-ultravit-repmixer-fastvitffn-attn2-dinoreg.yaml",
-            "uvit-x-attn2-p4pooled": "yolo26x-ultravit-repmixer-fastvitffn-attn2-p4pooled.yaml",
-            "uvit-x-attn2-p4win": "yolo26x-ultravit-repmixer-fastvitffn-attn2-p4win.yaml",
+            "conv": ("yolo26{s}.yaml", "nsmlx"),
+            "anchorpool": ("yolo26{s}-ultravit-anchorpool.yaml", "nsmlx"),
+            "attn2": ("yolo26{s}-ultravit-attn2.yaml", "nsmlx"),
+            "base": ("yolo26{s}-ultravit.yaml", "nsmlx"),
+            "dinoreg": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg.yaml", "smlx"),
+            "dinorope": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg-dinorope.yaml", "smlx"),
+            "fastvitffn": ("yolo26{s}-ultravit-repmixer-fastvitffn.yaml", "nsmlx"),
+            "ffnattn2": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2.yaml", "nsmlx"),
+            "dinop5": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5.yaml", "smlx"),
+            "dinop5-depthmatched": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-depthmatched.yaml", "nsmlx"),
+            "mixedrope": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg-mixedrope.yaml", "smlx"),
+            "p4pooled": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-p4pooled.yaml", "nsmlx"),
+            "p4win": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-p4win.yaml", "x"),
+            "repmixer": ("yolo26{s}-ultravit-repmixer.yaml", "nsmlx"),
+            "s480": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-s480.yaml", "s"),
         },
     ),
-    # The detr_decoder_clean2 reference arms every Lane B row is compared against at its own scale. The family
-    # changes along the ladder: CSP trunk with RTDETRDecoderEfficient at n and s, DeimDecoder at m and l, plain ViT
-    # trunk at x and xxl.
-    "laneb-baselines": (
-        "yolo27x",
+    "lane-b": (
         RTDETR,
         pinned_fp32_attn,
+        "yolo27",
+        "ffnattn2",
         {
-            "yolo27n": "yolo27n-detr.yaml",
-            "yolo27s": "yolo27s-detr.yaml",
-            "yolo27m": "yolo27m-deim-detr.yaml",
-            "yolo27l": "yolo27l-deim-detr.yaml",
-            "yolo27x": "yolo27x-vit-detr.yaml",
-            "yolo27xxl": "yolo27xxl-vit-detr.yaml",
-        },
-    ),
-    # Five UltraViT backbones on one DEIMv2 neck. DINOv3-S+ is a row, not the baseline, so these stay readable
-    # against both the yolo27 arm and every earlier run.
-    "laneb-x": (
-        "yolo27x",
-        RTDETR,
-        pinned_fp32_attn,
-        {
-            "yolo27x": "yolo27x-vit-detr.yaml",
-            "dinov3splus": "deim_dinov3splus_sta_l6_xl.yaml",
-            "ffnattn2": "yolo26x-ultravit-repmixer-fastvitffn-attn2-deim_mal_deimv2Neck.yaml",
-            "fastvitffn-dinop5": "yolo26x-ultravit-repmixer-fastvitffn-dinop5-deim_mal_deimv2Neck.yaml",
-            "repmixer-dinop5": "yolo26x-ultravit-repmixer-dinop5-deim_mal_deimv2Neck.yaml",
-            "fastvitffn-dinop5-depthmatched": (
-                "yolo26x-ultravit-repmixer-fastvitffn-dinop5-depthmatched-deim_mal_deimv2Neck.yaml"
+            # The detr_decoder_clean2 reference arms. The family changes along the ladder: CSP trunk with
+            # RTDETRDecoderEfficient at n and s, DeimDecoder at m and l, plain ViT trunk at x.
+            "yolo27": ("yolo27{s}-detr.yaml", "ns"),
+            "yolo27-deim": ("yolo27{s}-deim-detr.yaml", "ml"),
+            "yolo27-vit": ("yolo27{s}-vit-detr.yaml", "x"),
+            "dinov3splus": ("deim_dinov3splus_sta_l6_xl.yaml", "x"),
+            "anchorpool": ("yolo26{s}-ultravit-anchorpool-deim_mal_deimv2Neck.yaml", "nsmlx"),
+            "attn2": ("yolo26{s}-ultravit-attn2-deim_mal_deimv2Neck.yaml", "nsmlx"),
+            "base": ("yolo26{s}-ultravit-deim_mal_deimv2Neck.yaml", "nsmlx"),
+            "dinop5": ("yolo26{s}-ultravit-repmixer-dinop5-deim_mal_deimv2Neck.yaml", "smlx"),
+            "dinoreg": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg-deim_mal_deimv2Neck.yaml", "x"),
+            "dinorope": (
+                "yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg-dinorope-deim_mal_deimv2Neck.yaml",
+                "x",
             ),
-            "ffnattn2-p4win": "yolo26x-ultravit-repmixer-fastvitffn-attn2-p4win-deim_mal_deimv2Neck.yaml",
+            "fastvitffn": ("yolo26{s}-ultravit-repmixer-fastvitffn-deim_mal_deimv2Neck.yaml", "nsmlx"),
+            "fastvitffn-dinop5": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-deim_mal_deimv2Neck.yaml", "smlx"),
+            "fastvitffn-dinop5-depthmatched": (
+                "yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-depthmatched-deim_mal_deimv2Neck.yaml",
+                "x",
+            ),
+            "ffnattn2": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-deim_mal_deimv2Neck.yaml", "nsmlx"),
+            "mixedrope": (
+                "yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg-mixedrope-deim_mal_deimv2Neck.yaml",
+                "x",
+            ),
+            "p4deep": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-p4deep-deim_mal_deimv2Neck.yaml", "x"),
+            "p4pooled": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-p4pooled-deim_mal_deimv2Neck.yaml", "x"),
+            "p4win": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-p4win-deim_mal_deimv2Neck.yaml", "x"),
+            "repmixer": ("yolo26{s}-ultravit-repmixer-deim_mal_deimv2Neck.yaml", "nsmlx"),
+            "s480": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-s480-deim_mal_deimv2Neck.yaml", "s"),
         },
     ),
 }
 
-suite = sys.argv[1]
-baseline, model_cls, engine_builder, yamls = SUITES[suite]
-engines = DATA / f"t4-{suite}-engines"
-# The filename is the authority on scale, the same rule parse_model resolves the model by.
-baselines = {t: baseline if isinstance(baseline, str) else baseline[guess_model_scale(y)] for t, y in yamls.items()}
+session = sys.argv[1]
+lane, scale = session.rsplit("-", 1)
+model_cls, engine_builder, base_prefix, bridge, arms = LANES[lane]
+yamls = {tag: t.format(s=scale) for tag, (t, scales) in arms.items() if scale in scales}
+# Lane B's baseline changes file along the ladder, so it is whichever arm carries the baseline prefix at this scale.
+baseline = next(tag for tag in yamls if tag.startswith(base_prefix))
+assert bridge in yamls, f"{session} has no bridge arm, so its ratios cannot be anchored to another session"
+
+engines = DATA / f"t4-{lane}-{scale}-engines"
 variants = [build_variant(t, y, engines, model_cls=model_cls, engine_builder=engine_builder) for t, y in yamls.items()]
-run_benchmark(variants, baselines, DATA / f"t4_{suite.replace('-', '_')}_protocol0727.csv")
+run_benchmark(variants, dict.fromkeys(yamls, baseline), DATA / f"t4_{session.replace('-', '_')}.csv", session)

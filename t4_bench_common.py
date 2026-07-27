@@ -12,13 +12,11 @@ paired per-round deltas and A/B win counts. A single-pass mean cannot separate a
 The formats run back to back with nothing between them, so the slower ones preheat the card ahead of the TensorRT
 reading exactly as profile_depth.py does. Run telemetry from a separate process, never inside this loop.
 
-Environment, all three required or the numbers are not comparable:
+Environment:
 
-- ``onnxruntime-gpu``, never plain ``onnxruntime``. The CPU build still runs, roughly 170x slower, and would be
-  recorded as the onnx row, so ``run_benchmark`` refuses to start without a CUDA provider.
-- ``tensorrt`` pinned to the version being compared against, currently 10.11.0.33 to match Esat. A 10.11 to 10.16
-  change alone moved architecture ratios by about 3pp.
-- Engines are TensorRT-version-locked, so build and time them in the same interpreter.
+- ``onnxruntime-gpu``, not ``onnxruntime``. CPU build is 170x slower and lands in the onnx row.
+- ``tensorrt==10.11.0.33``. Version alone moves ratios 3pp.
+- Build and time engines in one interpreter, they are version-locked.
 """
 
 import csv

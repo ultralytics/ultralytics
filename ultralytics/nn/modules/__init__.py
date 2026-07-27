@@ -107,7 +107,6 @@ from .transformer import (
     TransformerLayer,
 )
 from .vit_blocks import (
-    AnchorPoolQueryMix,
     DINOv3RoPE2D,
     FastViTBlock,
     MHSABlock,
@@ -140,7 +139,6 @@ __all__ = (
     "A2C2f",
     "AConv",
     "ADown",
-    "AnchorPoolQueryMix",
     "Attention",
     "BNContrastiveHead",
     "Bottleneck",

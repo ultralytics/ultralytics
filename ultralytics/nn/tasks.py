@@ -28,7 +28,6 @@ from ultralytics.nn.modules import (
     A2C2f,
     AConv,
     ADown,
-    AnchorPoolQueryMix,
     Bottleneck,
     BottleneckCSP,
     C2f,
@@ -276,9 +275,6 @@ class BaseModel(torch.nn.Module):
                     m.forward = m.forward_fuse
                 if isinstance(m, RoPE2DBlock):
                     m.switch_to_deploy()  # rebake the RoPE cos/sin buffers at the current grid for deploy
-                if isinstance(m, AnchorPoolQueryMix):
-                    m.fuse()
-                    m.forward = m.forward_fuse
                 if isinstance(m, RepUltraViTBlock):
                     m.fuse()
                 if isinstance(m, Detect) and getattr(m, "end2end", False):
@@ -2123,7 +2119,6 @@ def parse_model(d, ch, verbose=True):
                 MixedRoPE2D,
                 WindowMHSABlock,
                 PooledMHSABlock,
-                AnchorPoolQueryMix,
             }
         ):
             args = [ch[f], *args]

@@ -51,6 +51,7 @@ class DetectionPredictor(BasePredictor):
             >>> processed_results = predictor.postprocess(preds, img, orig_imgs)
         """
         save_feats = getattr(self, "_feats", None) is not None
+        embed_boxes = self.args.embed_boxes
         preds = nms.non_max_suppression(
             preds,
             self.args.conf,
@@ -58,7 +59,8 @@ class DetectionPredictor(BasePredictor):
             self.args.classes,
             self.args.agnostic_nms,
             max_det=self.args.max_det,
-            nc=0 if self.args.task == "detect" else len(self.model.names),
+            # pass real nc so per-box embedding columns are treated as `extra`, not classes
+            nc=len(self.model.names) if embed_boxes or self.args.task != "detect" else 0,
             end2end=getattr(self.model, "end2end", False),
             rotated=self.args.task == "obb",
             return_idxs=save_feats,
@@ -119,4 +121,5 @@ class DetectionPredictor(BasePredictor):
             (Results): Results object containing the original image, image path, class names, and scaled bounding boxes.
         """
         pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
-        return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6])
+        embeddings = pred[:, 6:] if self.args.embed_boxes and pred.shape[1] > 6 else None
+        return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], embeddings=embeddings)

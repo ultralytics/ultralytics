@@ -86,6 +86,7 @@ class Detect(nn.Module):
     strides = torch.empty(0)  # init
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
     xyxy = False  # xyxy or xywh output
+    embed_boxes = False  # attach per-box cls-branch (cv3 pre-logit) embeddings to predictions
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """Initialize the YOLO detection layer with specified number of classes and channels.
@@ -152,6 +153,11 @@ class Detect(nn.Module):
             return {}
         bs = x[0].shape[0]  # batch size
         boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
+        if self.embed_boxes:  # split cls branch at its last conv to expose the pre-logit embedding
+            embeds = [cls_head[i][:-1](x[i]) for i in range(self.nl)]  # (bs, c3, H, W) per level
+            scores = torch.cat([cls_head[i][-1](embeds[i]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1)
+            embeds = torch.cat([e.view(bs, e.shape[1], -1) for e in embeds], dim=-1)  # (bs, c3, anchors)
+            return {"boxes": boxes, "scores": scores, "feats": x, "embeds": embeds}
         scores = torch.cat([cls_head[i](x[i]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1)
         return {"boxes": boxes, "scores": scores, "feats": x}
 
@@ -182,7 +188,10 @@ class Detect(nn.Module):
         """
         # Inference path
         dbox = self._get_decode_boxes(x)
-        return torch.cat((dbox, x["scores"].sigmoid()), 1)
+        y = torch.cat((dbox, x["scores"].sigmoid()), 1)
+        if "embeds" in x:  # ride per-box embeddings as extra columns through postprocess/NMS
+            y = torch.cat((y, x["embeds"]), 1)
+        return y
 
     def _get_decode_boxes(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
         """Get decoded boxes based on anchors and strides."""
@@ -228,10 +237,13 @@ class Detect(nn.Module):
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6) and last
                 dimension format [x1, y1, x2, y2, max_class_prob, class_index].
         """
-        boxes, scores = preds.split([4, self.nc], dim=-1)
+        boxes, scores, extra = preds.split([4, self.nc, preds.shape[-1] - 4 - self.nc], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
         boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
-        return torch.cat([boxes, scores, conf], dim=-1)
+        out = torch.cat([boxes, scores, conf], dim=-1)
+        if extra.shape[-1]:  # carry per-box embeddings alongside the kept boxes
+            out = torch.cat([out, extra.gather(dim=1, index=idx.expand(-1, -1, extra.shape[-1]))], dim=-1)
+        return out
 
     def get_topk_index(self, scores: torch.Tensor, max_det: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Get top-k indices from scores.

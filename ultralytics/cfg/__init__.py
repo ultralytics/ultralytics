@@ -288,6 +288,7 @@ CFG_BOOL_KEYS = frozenset(
         "augment",
         "agnostic_nms",
         "retina_masks",
+        "embed_boxes",
         "show_boxes",
         "keras",
         "optimize",

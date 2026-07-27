@@ -302,6 +302,12 @@ class BasePredictor:
             # Setup source every time predict is called
             self.setup_source(source if source is not None else self.args.source)
 
+            # Sync per-box embedding flag on the head every call (args persist across predictor reuse)
+            det_model = getattr(self.model, "model", None)
+            head = det_model.model[-1] if hasattr(det_model, "model") else None
+            if hasattr(head, "embed_boxes"):
+                head.embed_boxes = self.args.embed_boxes
+
             # Check if save_dir/ label file exists
             if self.args.save or self.args.save_txt:
                 (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)

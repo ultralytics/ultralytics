@@ -251,6 +251,7 @@ class Results(SimpleClass, DataExportMixin):
         speed: dict[str, float] | None = None,
         semantic_mask: torch.Tensor | None = None,
         depth: torch.Tensor | None = None,
+        embeddings: torch.Tensor | None = None,
     ) -> None:
         """Initialize the Results class for storing and manipulating inference results.
 
@@ -266,6 +267,7 @@ class Results(SimpleClass, DataExportMixin):
             semantic_mask (torch.Tensor | None): A 2D tensor of class IDs for semantic segmentation results.
             depth (torch.Tensor | None): A 2D float tensor of per-pixel depth values (H, W).
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
+            embeddings (torch.Tensor | None): A 2D tensor of shape (N, D) with a per-detection embedding vector.
 
         Notes:
             For the default pose model, keypoint indices for human body pose estimation are:
@@ -283,11 +285,12 @@ class Results(SimpleClass, DataExportMixin):
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
         self.semantic_mask = SemanticMask(semantic_mask, self.orig_shape) if semantic_mask is not None else None
         self.depth = DepthMap(depth, self.orig_shape) if depth is not None else None
+        self.embeddings = BaseTensor(embeddings, self.orig_shape) if embeddings is not None else None
         self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
         self.path = path
         self.save_dir = None
-        self._keys = "boxes", "masks", "probs", "keypoints", "obb", "semantic_mask", "depth"
+        self._keys = "boxes", "masks", "probs", "keypoints", "obb", "semantic_mask", "depth", "embeddings"
 
     def __getitem__(self, idx):
         """Return a Results object for a specific index of inference results.
@@ -332,6 +335,7 @@ class Results(SimpleClass, DataExportMixin):
         keypoints: torch.Tensor | None = None,
         semantic_mask: torch.Tensor | None = None,
         depth: torch.Tensor | None = None,
+        embeddings: torch.Tensor | None = None,
     ):
         """Update the Results object with new detection data.
 
@@ -348,6 +352,7 @@ class Results(SimpleClass, DataExportMixin):
             semantic_mask (torch.Tensor | None): A tensor of shape (H, W) containing class IDs for semantic
                 segmentation.
             depth (torch.Tensor | None): A tensor of shape (H, W) containing per-pixel depth values.
+            embeddings (torch.Tensor | None): A tensor of shape (N, D) with a per-detection embedding vector.
 
         Examples:
             >>> results = model("image.jpg")
@@ -368,6 +373,8 @@ class Results(SimpleClass, DataExportMixin):
             self.semantic_mask = SemanticMask(semantic_mask, self.orig_shape)
         if depth is not None:
             self.depth = DepthMap(depth, self.orig_shape)
+        if embeddings is not None:
+            self.embeddings = BaseTensor(embeddings, self.orig_shape)
 
     def _apply(self, fn: str, *args, **kwargs):
         """Apply a function to all non-empty attributes and return a new Results object with modified attributes.

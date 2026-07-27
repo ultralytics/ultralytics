@@ -291,6 +291,47 @@ YOLO depth estimation returns one `Results` object per image. Each result stores
 
 For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 
+### Colorizing the depth map
+
+The raw depth map is a single-channel float array in meters — useful for computation, but hard to read directly. To turn it into a color image, use the `colorize_depth` helper in `ultralytics.utils.plotting`, which maps the `(H, W)` depth array to a `(H, W, 3)` BGR `uint8` image (invalid pixels `<= 0` are rendered black).
+
+`result.plot()` already blends this colorization over the input image using the defaults (`cmap="jet"`, `mode="disparity"`); call `colorize_depth` directly when you want a standalone colored depth image or a different colormap or normalization.
+
+!!! example "Colorize a predicted depth map"
+
+    === "Python"
+
+        ```python
+        import cv2
+
+        from ultralytics import YOLO
+        from ultralytics.utils.plotting import colorize_depth
+
+        model = YOLO("yolo26n-depth.pt")
+        result = model("https://ultralytics.com/images/bus.jpg")[0]
+
+        depth = result.depth.data.cpu().numpy()  # (H, W) float32, meters
+
+        # Colorize with near = warm and save
+        cv2.imwrite("depth_colored.png", colorize_depth(depth, cmap="spectral"))  # (H, W, 3) BGR uint8
+
+        # Fix the range to 0-20 m so the same color means the same distance across frames
+        cv2.imwrite("depth_metric.png", colorize_depth(depth, vmin=0.0, vmax=20.0, cmap="inferno", mode="metric"))
+
+        # Blended overlay straight from the Results object (uses cmap="jet", mode="disparity")
+        result.save("depth_overlay.png")
+        ```
+
+Every colormap runs cool/dark → warm/bright. The `mode` decides which end is near, and `vmin`/`vmax` lock the range across frames so a color always means the same distance.
+
+| Argument | Value                 | Description                                                                                                           |
+| -------- | --------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `cmap`   | `jet` (default)       | High-contrast blue → green → red, the palette `result.plot()` uses.                                                   |
+| `cmap`   | `inferno`             | Black → purple → orange → yellow. Perceptually uniform, colorblind-friendly, readable in grayscale.                   |
+| `cmap`   | `spectral`            | Red → yellow → green → blue (matplotlib `Spectral_r`).                                                                |
+| `mode`   | `disparity` (default) | Normalizes inverse depth (`1/d`) between the 2nd and 98th percentiles; warm marks near and far outliers are absorbed. |
+| `mode`   | `metric`              | Normalizes depth in meters linearly between `vmin` and `vmax`; warm marks far, so colors track true distance.         |
+
 ## Export
 
 Export a YOLO26n-depth model to a different format like ONNX, CoreML, etc.

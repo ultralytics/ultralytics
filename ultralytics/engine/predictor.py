@@ -34,6 +34,7 @@ Usage - formats:
                               yolo26n_deepx_model        # DEEPX
                               yolo26n_qnn.onnx           # Qualcomm QNN
                               yolo26n.tflite             # LiteRT
+                              yolo26n_ascend_model       # Huawei Ascend
 """
 
 from __future__ import annotations

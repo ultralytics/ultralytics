@@ -144,8 +144,8 @@ def _with_reference_title(header_content: str, module_path: str) -> str:
 def _existing_frontmatter(md_filepath: Path) -> str:
     """Return a page's leading YAML frontmatter block, or "" when it has none.
 
-    Anchored to the top of the file: splitting on every `---` also matches Markdown table separators, which folds
-    page content into the header when the generator runs over its own output instead of a freshly cloned stub.
+    Anchored to the top of the file: splitting on every `---` also matches Markdown table separators, which folds page
+    content into the header when the generator runs over its own output instead of a freshly cloned stub.
     """
     if not md_filepath.exists():
         return ""

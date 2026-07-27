@@ -19,7 +19,6 @@ from ultralytics.utils import (
     TESTS_RUNNING,
     TORCH_VERSION,
 )
-from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES
 from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
 
 
@@ -76,6 +75,7 @@ class Events:
             "cli": Path(ARGV[0]).name == "yolo",
             "install": "git" if GIT.is_repo else "pip" if IS_PIP_PACKAGE else "other",
             "python": PYTHON_VERSION.rsplit(".", 1)[0],  # i.e. 3.13
+            "torch": TORCH_VERSION,
             "CPU": get_cpu_info(),
             "version": __version__,
             "env": ENVIRONMENT,
@@ -107,7 +107,7 @@ class Events:
             params = {
                 **self.metadata,
                 "task": cfg.task,
-                "model": cfg.model if cfg.model in GITHUB_ASSETS_NAMES else "custom",
+                "model": Path(str(cfg.model)).name[:100] if cfg.model else None,  # basename, never a path
                 "device": str(device),
             }
             if cfg.mode == "export":
@@ -119,11 +119,11 @@ class Events:
                     params["arch"] = _arch(model)
                     meta = getattr(model, "metadata", None) or {}
                     params["quantize"] = str(meta.get("args", {}).get("quantize") or cfg.quantize or 32)
-                    params["imgsz"] = "x".join(map(str, predictor.shape or ())) or None  # long side is imgsz
+                    h, w = predictor.shape or (0, 0)  # rect letterboxing makes the inference shape source-dependent
+                    params["pixels"] = h * w or None  # inference area, which FLOPs scale with; sqrt() for a square edge
                     params["batch"] = min(getattr(predictor.dataset, "bs", 0), predictor.seen) or None
                     params["nc"] = len(getattr(model, "names", None) or ()) or None  # drives head width and NMS
                     params["n"] = predictor.seen
-                    params["torch"] = TORCH_VERSION
                     # toggles that move inference time enormously, read as applied rather than as requested:
                     # attempt_compile replaces predictor.model, and cfg.end2end is a tri-state request not a state
                     flags = {

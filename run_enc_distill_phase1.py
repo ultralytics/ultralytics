@@ -16,102 +16,12 @@ from ultralytics.models.yolo.classify.train_image_encoder import ImageEncoderTra
 from ultralytics.nn.tasks import guess_model_scale
 from ultralytics.utils import YAML
 
-RECIPES = {
-    "default": dict(lr0=3e-4, weight_decay=0.05, warmup_epochs=1, epochs=10, momentum=0.9, grad_clip=3.0, beta2=None),
-    # EUPE Stage 2: proxy->student distillation (arXiv:2603.22387 Sec 4.1, ssl_default_config.yaml:131-147)
-    # Same loss as ours (0.9cos+0.1L1, Eq.5-6). beta2=None -> uses default 0.999 matching EUPE
-    "eupe": dict(lr0=2e-5, weight_decay=1e-4, warmup_epochs=1, epochs=30, momentum=0.9, grad_clip=3.0, beta2=None),
-    # AM-RADIO: multi-teacher distillation (arXiv:2312.06709 Sec 4, Eq.2-3)
-    # Same loss as ours (0.9cos+0.1L1). beta2=0.95 from MobileCLIP2 (training/configs/run_dfndr2b.sh)
-    "radio": dict(lr0=1e-3, weight_decay=0.02, warmup_epochs=1, epochs=30, momentum=0.9, grad_clip=1.0, beta2=0.95),
-    # UNIC (ECCV 2024) reproduction used for phase1-b1-unic-eupe-vitb16 (R1 ablation baseline).
-    # lr0/wd/warmup matched from /data/shared-datasets/fatih-runs/.../phase1-b1-unic-eupe-vitb16/args.yaml.
-    "unic": dict(lr0=6e-4, weight_decay=0.03, warmup_epochs=2, epochs=30, momentum=0.9, grad_clip=3.0, beta2=None),
-    # DINOv3-aligned recipe — addresses the fastvit-s × 7-source collapse to chance-level kNN
-    # observed in fvs-fm/fvs-ad. Mirrors three published recipes that converge with hybrid-ViT
-    # students under multi-source distillation:
-    #   DINOv3 ConvNeXt-T distill ``configs/train/distillation_convnext/convnext_tiny_p16.yaml``:
-    #     lr peak=2e-4, warmup=80/500 ep (16%), wd schedule 0.04→0.2, clip_grad=3.0,
-    #     adamw beta2 default 0.999.
-    #   EUPE SSL ``configs/ssl_default_config.yaml`` optim+schedules: lr=1e-3, wd=0.04→0.4,
-    #     beta2=0.999, multi-crop (2 global @224 + 8 local @96).
-    #   UNIC ``main_unic.py:485-521`` photometric stack: ColorJitter(0.4/0.4/0.2/0.1)@0.8,
-    #     Grayscale@0.2, GaussianBlur(k=9, σ=(0.1, 5.0))@0.2, RandomSolarize(thr=0.5)@0.2.
-    # We adopt single-crop at 224 (multi-crop deferred until loss-path adapter exists).
-    #
-    # Knob → reference mapping:
-    #   lr0=2e-4         → DINOv3 distillation_convnext/convnext_tiny_p16.yaml schedules.lr.peak
-    #   warmup_epochs=1  → matches wave-1 radio recipe (effective 2 ep at batch=1024 after Goyal scale).
-    #                      Pinned to wave-1 for clean A/B; the 5x lower lr already addresses the
-    #                      ep~7 BN-coupling fragility that drove wave-1 fastvit divergence,
-    #                      so longer warmup is not needed.
-    #   weight_decay=0.04 + wd_end=0.2 → DINOv3 schedules.weight_decay.{start, peak} (callbacks/wd_schedule.py)
-    #   grad_clip=3.0    → DINOv3 optim.clip_grad
-    #   beta2=None       → falls through to AdamW default 0.999 (DINOv3 / EUPE convention)
-    #   auto_augment=""  → disables Ultralytics RandAugment, falls back to plain ColorJitter +
-    #                      our DINOv3-style additions (Grayscale / GaussianBlur / Solarize). Without
-    #                      this, RandAugment is on by default (DEFAULT_CFG) and Ultralytics auto-
-    #                      disables ColorJitter, breaking alignment with DINOv3.
-    #   hsv_h=0.1, hsv_s=0.2, hsv_v=0.4 → maps to T.ColorJitter(brightness=0.4, contrast=0.4,
-    #                      saturation=0.2, hue=0.1), matching DINOv3 DataAugmentationDINO exactly
-    #                      (Ultralytics's classify_augmentations binds brightness=contrast=hsv_v).
-    #   grayscale=0.2    → DINOv3 / UNIC / DUNE
-    #   gaussian_blur=0.5 → DINOv3 averaged across two-view asymmetric (g1=1.0 / g2=0.1); UNIC uses 0.2
-    #   solarize=0.2     → DINOv3 g2-only; applied uniformly to single view here
-    #   erasing=0.0      → DINOv3 / EUPE / UNIC / DUNE / AM-RADIO do NOT use random erasing
-    "dinov3": dict(
-        lr0=2e-4,
-        weight_decay=0.04,
-        wd_end=0.2,
-        warmup_epochs=1,
-        epochs=114,
-        momentum=0.9,
-        grad_clip=3.0,
-        beta2=None,
-        auto_augment=None,
-        erasing=0.0,
-        hsv_h=0.1,
-        hsv_s=0.2,
-        hsv_v=0.4,
-        grayscale=0.2,
-        gaussian_blur=0.5,
-        solarize=0.2,
-    ),
-    # dinov3 photometric augs + radio-style constant wd. Addresses dinov3 backbone
-    # weight magnitude collapse (memory project_dinov3_weight_collapse): dinov3 wd
-    # 0.04->0.2 schedule drove 7x layer-0 L2 shrink vs radio at matched 7-src recipe,
-    # breaking phase-2 det (P=R=mAP=0). Lowers wd to 0.02 + drops the schedule (wd_end
-    # omitted) so weight magnitudes track the radio sibling while keeping the dinov3
-    # photometric augs that won kNN +0.9pp at the same config.
-    "dinov3_lowwd": dict(
-        lr0=2e-4,
-        weight_decay=0.02,
-        warmup_epochs=1,
-        epochs=114,
-        momentum=0.9,
-        grad_clip=3.0,
-        beta2=None,
-        auto_augment=None,
-        erasing=0.0,
-        hsv_h=0.1,
-        hsv_s=0.2,
-        hsv_v=0.4,
-        grayscale=0.2,
-        gaussian_blur=0.5,
-        solarize=0.2,
-    ),
-}
-
-# ColorJitter probability arm: wraps the jitter in RandomApply(p=0.8) per the reference recipes already
-# cited in the "dinov3" recipe comment above. Not comparable to any dinov3_lowwd arm.
-RECIPES["dinov3_lowwd_jitter"] = {**RECIPES["dinov3_lowwd"], "color_jitter": 0.8}
-
 # Reference global step-batch the recipes' lr0 and warmup_epochs are tuned for. When
 # per_gpu_batch * world_size exceeds this, lr0 and warmup_epochs scale linearly and nbs rises
 # to the global batch so wd_eff stays at the recipe value.
 NBS_CANONICAL = 512
 
-_MULTIRES_RECIPE = Path(_REPO_ROOT) / "cfg" / "recipes" / "eupe-multires.yaml"
+_PHASE1_RECIPE = Path(_REPO_ROOT) / "cfg" / "recipes" / "phase1.yaml"
 
 DATA_7SRC_DEFAULT = ",".join(
     [
@@ -147,6 +57,24 @@ def _load_train_args(resume: str) -> dict:
     return torch.load(Path(resume), map_location="cpu", weights_only=False)["train_args"]
 
 
+def _load_source_args(checkpoint: str) -> dict:
+    """Load source arguments from adjacent YAML without deserializing checkpoint weights.
+
+    Args:
+        checkpoint (str): Source checkpoint path.
+
+    Returns:
+        (dict): Saved training arguments.
+    """
+    checkpoint = Path(checkpoint)
+    args_yaml = checkpoint.parent.parent / "args.yaml"
+    return (
+        YAML.load(args_yaml)
+        if checkpoint.parent.name == "weights" and args_yaml.exists()
+        else _load_train_args(checkpoint)
+    )
+
+
 def main(argv: list[str]) -> None:
     """Launch a fresh phase 1 run or resume from a checkpoint.
 
@@ -166,19 +94,16 @@ def main(argv: list[str]) -> None:
             Active only when the dataset is a ConcatDataset (multi-source ``data=`` arg).
         --optimizer <name>: ultralytics optimizer name (default ``AdamW``). ``MuSGD`` swaps in
             Muon-based updates for distillation ablations. Recipe ``beta2`` is ignored when non-AdamW.
-        --proj_hidden_dim <1280|1536>: adaptor MLP hidden width. 1280 matches the YOLO Classify projection
-        (ultralytics/nn/modules/head.py: 819). 1536 matches EUPE Stage 1 (arXiv:2603.22387 Section 4.1).
+        --proj_hidden_dim <1280|1536>: override the profile's adaptor MLP hidden width.
         --normalize_teacher_input: presence-only flag (no value). When set, convert the pipeline's ImageNet-normalized
             input to each teacher's training-time distribution: no-op for EUPE/DINOv3 (which already match ImageNet
             stats), SigLIP-style ``2x - 1`` for SigLIP2/MoonViT/SAM3. Default off matches all existing phase1 anchors.
             On resume, inherits from the checkpoint when not re-passed.
-        --standardize_teacher_outputs: estimate fixed per-channel CLS and patch statistics over 500 teacher-only
-            iterations before training, then standardize all teacher targets. Default off preserves existing runs.
         --high_res_final_epochs <imgsz:epochs>: e.g. "640:12" runs the student at <imgsz> for the last <epochs>
             epochs (DINOv3 high-resolution adaptation) so its frozen P5 attention meets the larger token count it
             will see at detection resolution. DINOv3 and EUPE teachers use the same size in that tail.
             ``--hires_tail`` is the legacy alias. Unset = student runs at ``imgsz`` throughout.
-        --eupe_multires: start a separate 15-epoch EUPE Stage 3-style continuation from the positional ``.pt`` model.
+        --eupe_multires: start a separate 15-epoch EUPE Stage 3-style post-training run from the positional ``.pt``.
             Uses independent student/teacher scales from 256, 384, and 512, effective batch 512, lr0 2e-4, and wd 0.02.
         --parent_wandb_id <id>: original Phase 1 W&B run recorded as lineage on a new multi-resolution run.
         --knn_every <epochs>: run ImageNet kNN every N epochs. Default 5.
@@ -198,15 +123,16 @@ def main(argv: list[str]) -> None:
     args, sample_t_str = _pop_flag(args, "--sample_t")
     args, optimizer = _pop_flag(args, "--optimizer")
     args, norm_in_str = _pop_flag(args, "--normalize_teacher_input", is_bool=True)
-    args, norm_out_str = _pop_flag(args, "--standardize_teacher_outputs", is_bool=True)
     args, loss_type = _pop_flag(args, "--loss_type")
     args, high_res_final_epochs = _pop_flag(args, "--high_res_final_epochs")  # "<imgsz>:<epochs>" e.g. "384:12"
     args, _hires_legacy = _pop_flag(args, "--hires_tail")  # legacy alias for --high_res_final_epochs
     args, eupe_multires_str = _pop_flag(args, "--eupe_multires", is_bool=True)
     args, parent_wandb_id = _pop_flag(args, "--parent_wandb_id")
     args, knn_every_str = _pop_flag(args, "--knn_every")
+    if unknown_flags := [arg for arg in args if arg.startswith("--")]:
+        raise ValueError(f"Unknown arguments: {', '.join(unknown_flags)}")
 
-    continuation_overrides = [
+    post_training_overrides = [
         flag
         for value, flag in (
             (cos_w, "--cos_weight"),
@@ -230,29 +156,15 @@ def main(argv: list[str]) -> None:
     sample_t = float(sample_t_str) if sample_t_str else 0.0
     optimizer = optimizer or "AdamW"
     normalize_teacher_input = bool(norm_in_str)
-    standardize_teacher_outputs = bool(norm_out_str)
     loss_type = loss_type or "cos_l1"
     high_res_final_epochs = high_res_final_epochs or _hires_legacy or None
     eupe_multires = bool(eupe_multires_str)
-    multires_recipe = YAML.load(_MULTIRES_RECIPE) if eupe_multires else {}
+    recipe_cfg = YAML.load(_PHASE1_RECIPE)
+    multires_recipe = recipe_cfg["post_training"]["eupe_multires"] if eupe_multires else {}
 
     if resume:
         resume = paths.patch_resume(resume)
     resume_args = _load_train_args(resume) if resume else {}
-    proj_hidden_dim = int(proj_hidden_dim_str or resume_args.get("proj_hidden_dim", 1280))
-    if proj_hidden_dim not in (1280, 1536):
-        raise ValueError(f"--proj_hidden_dim must be 1280 or 1536, got {proj_hidden_dim}")
-    knn_every = int(knn_every_str) if knn_every_str else int(resume_args.get("knn_every", 5))
-    if knn_every < 1:
-        raise ValueError(f"--knn_every must be positive, got {knn_every}")
-
-    # Bool flags are presence-only: ``_pop_flag(is_bool=True)`` returns ``""`` when absent, so there's no way for a
-    # resume to express "stay True". Inherit from the checkpoint when the CLI didn't re-pass the flag, so the drift
-    # guard below doesn't fire spuriously on every resume of a normalize-on run.
-    if resume_args and not norm_in_str:
-        normalize_teacher_input = bool(resume_args.get("normalize_teacher_input", False))
-    if resume_args and not norm_out_str:
-        standardize_teacher_outputs = bool(resume_args.get("standardize_teacher_outputs", False))
 
     gpu = args[0] if args else "0"
     teachers = args[1] if len(args) > 1 else resume_args.get("teachers", "eupe:vitb16")
@@ -263,9 +175,28 @@ def main(argv: list[str]) -> None:
     model_yaml = args[4] if len(args) > 4 else "yolo26s-cls.yaml"
     data = args[5] if len(args) > 5 else resume_args.get("data", DATA_7SRC_DEFAULT)
     epochs = int(args[6]) if len(args) > 6 else resume_args.get("epochs")
-    r = RECIPES[recipe]
+    r = {**recipe_cfg["defaults"], **recipe_cfg["profiles"][recipe]}
+    checkpoint_args = resume_args or (_load_source_args(model_yaml) if str(model_yaml).endswith(".pt") else {})
+    proj_hidden_dim = int(
+        proj_hidden_dim_str
+        or (checkpoint_args.get("proj_hidden_dim", 1280) if checkpoint_args else r["proj_hidden_dim"])
+    )
+    if proj_hidden_dim not in (1280, 1536):
+        raise ValueError(f"--proj_hidden_dim must be 1280 or 1536, got {proj_hidden_dim}")
+    standardize_teacher_outputs = bool(
+        checkpoint_args.get("standardize_teacher_outputs", False)
+        if checkpoint_args
+        else r["standardize_teacher_outputs"]
+    )
+    knn_every = int(knn_every_str) if knn_every_str else int(resume_args.get("knn_every", 5))
+    if knn_every < 1:
+        raise ValueError(f"--knn_every must be positive, got {knn_every}")
 
-    continuation_args = {}
+    # Presence-only flags cannot express a saved True value. With no explicit override, resumes inherit the checkpoint.
+    if resume_args and not norm_in_str:
+        normalize_teacher_input = bool(resume_args.get("normalize_teacher_input", False))
+
+    post_training_args = {}
     if eupe_multires:
         if resume or fork_from or high_res_final_epochs:
             raise ValueError("--eupe_multires requires a fresh run without --resume, --fork_from, or high-res tail")
@@ -274,44 +205,41 @@ def main(argv: list[str]) -> None:
         if len(args) <= 2:
             raise ValueError("--eupe_multires requires a new run name as the third positional argument")
         if epochs is not None and epochs != multires_recipe["epochs"]:
-            raise ValueError(
-                f"--eupe_multires fixes the continuation to {multires_recipe['epochs']} epochs, got {epochs}"
-            )
+            raise ValueError(f"--eupe_multires fixes post-training to {multires_recipe['epochs']} epochs, got {epochs}")
         if lr_override:
             raise ValueError(f"--eupe_multires fixes lr0 at {multires_recipe['lr0']} and does not accept --lr")
         if nbs_override and int(nbs_override) != multires_recipe["nbs"]:
             raise ValueError(f"--eupe_multires fixes effective batch at {multires_recipe['nbs']}")
-        if continuation_overrides:
+        if post_training_overrides:
             raise ValueError(
-                f"--eupe_multires inherits {', '.join(continuation_overrides)} from its checkpoint. Drop the override."
+                f"--eupe_multires inherits {', '.join(post_training_overrides)} from its checkpoint. Drop the override."
             )
         checkpoint = Path(model_yaml).resolve()
-        args_yaml = checkpoint.parent.parent / "args.yaml" if checkpoint.parent.name == "weights" else None
-        continuation_args = YAML.load(args_yaml) if args_yaml and args_yaml.exists() else _load_train_args(model_yaml)
-        parent_teachers = continuation_args.get("teachers", teachers)
-        parent_data = continuation_args.get("data", data)
+        post_training_args = checkpoint_args
+        parent_teachers = post_training_args.get("teachers", teachers)
+        parent_data = post_training_args.get("data", data)
         if len(args) > 1 and teachers != parent_teachers:
-            raise ValueError(f"Continuation teacher mismatch: checkpoint={parent_teachers!r} vs cli={teachers!r}")
+            raise ValueError(f"Post-training teacher mismatch: checkpoint={parent_teachers!r} vs cli={teachers!r}")
         if len(args) > 5 and data != parent_data:
-            raise ValueError(f"Continuation data mismatch: checkpoint={parent_data!r} vs cli={data!r}")
+            raise ValueError(f"Post-training data mismatch: checkpoint={parent_data!r} vs cli={data!r}")
         teachers, data = parent_teachers, parent_data
         if teachers != "dinov3:vitl16":
             raise ValueError(f"--eupe_multires currently requires dinov3:vitl16, got {teachers!r}")
-        if continuation_args.get("distill_path", "adaptor") != "adaptor":
+        if post_training_args.get("distill_path", "adaptor") != "adaptor":
             raise ValueError("--eupe_multires requires the P5 adaptor loss path, not feat_map/P4 supervision")
-        if continuation_args.get("optimizer", "AdamW") != "AdamW":
+        if post_training_args.get("optimizer", "AdamW") != "AdamW":
             raise ValueError("--eupe_multires requires an AdamW Phase 1 checkpoint")
 
-        cos_weight = float(continuation_args.get("cos_weight", 0.9))
-        l1_weight = float(continuation_args.get("l1_weight", 0.1))
-        cls_l1 = bool(continuation_args.get("cls_l1", False))
-        distill_path = continuation_args.get("distill_path", "adaptor")
-        adaptor_arch = continuation_args.get("adaptor_arch", "mlp")
-        proj_hidden_dim = int(continuation_args.get("proj_hidden_dim", 1280) or 1280)
-        sample_t = float(continuation_args.get("sample_t", 0.0))
-        normalize_teacher_input = bool(continuation_args.get("normalize_teacher_input", False))
-        standardize_teacher_outputs |= bool(continuation_args.get("standardize_teacher_outputs", False))
-        loss_type = continuation_args.get("loss_type", "cos_l1")
+        cos_weight = float(post_training_args.get("cos_weight", 0.9))
+        l1_weight = float(post_training_args.get("l1_weight", 0.1))
+        cls_l1 = bool(post_training_args.get("cls_l1", False))
+        distill_path = post_training_args.get("distill_path", "adaptor")
+        adaptor_arch = post_training_args.get("adaptor_arch", "mlp")
+        proj_hidden_dim = int(post_training_args.get("proj_hidden_dim", 1280) or 1280)
+        sample_t = float(post_training_args.get("sample_t", 0.0))
+        normalize_teacher_input = bool(post_training_args.get("normalize_teacher_input", False))
+        standardize_teacher_outputs = bool(post_training_args.get("standardize_teacher_outputs", False))
+        loss_type = post_training_args.get("loss_type", "cos_l1")
         optimizer = "AdamW"
         parent_wandb_id = parent_wandb_id or wandb_config.resolve_run_id_by_name(checkpoint.parents[1].name)
     elif parent_wandb_id:
@@ -328,7 +256,6 @@ def main(argv: list[str]) -> None:
             ("sample_t", sample_t, 0.0),
             ("optimizer", optimizer, "AdamW"),
             ("normalize_teacher_input", normalize_teacher_input, False),
-            ("standardize_teacher_outputs", standardize_teacher_outputs, False),
             ("loss_type", loss_type, "cos_l1"),
             ("high_res_final_epochs", high_res_final_epochs, None),
             ("knn_every", knn_every, 5),
@@ -360,7 +287,7 @@ def main(argv: list[str]) -> None:
                 f"{multires_recipe['nbs']}, got {global_batch}"
             )
         schedule = {**multires_recipe, "batch": global_batch}
-        print(f"[recipe] {_MULTIRES_RECIPE.name} -> {schedule}")
+        print(f"[recipe] {_PHASE1_RECIPE.name}:eupe_multires -> {schedule}")
     else:
         global_batch = (
             int(batch_override) * world_size if batch_override else int(resume_args.get("batch", 64 * world_size))
@@ -378,9 +305,9 @@ def main(argv: list[str]) -> None:
             warmup_epochs=r["warmup_epochs"] * scale,
             weight_decay=r["weight_decay"],
         )
-    momentum_v = continuation_args.get("momentum", r["momentum"])
-    grad_clip_v = continuation_args.get("grad_clip", r["grad_clip"])
-    beta2_v = continuation_args.get("beta2", r["beta2"])
+    momentum_v = post_training_args.get("momentum", r["momentum"])
+    grad_clip_v = post_training_args.get("grad_clip", r["grad_clip"])
+    beta2_v = post_training_args.get("beta2", r["beta2"])
 
     # A .pt model arg forks a finished run's trained backbone: pretrained=True then skips the
     # reset_parameters() wipe in ImageEncoderTrainer.get_model that would re-randomize the loaded
@@ -393,7 +320,7 @@ def main(argv: list[str]) -> None:
             f"binds to the scales-block's first key."
         )
     model = YOLO(model_yaml)
-    continuation_log = (
+    post_training_log = (
         {
             "stage": "eupe_multires",
             "multires_sizes": multires_recipe["multires_sizes"],
@@ -428,7 +355,7 @@ def main(argv: list[str]) -> None:
             grad_clip=grad_clip_v,
             beta2=beta2_v,
             wandb_group="distill",
-            **continuation_log,
+            **post_training_log,
         ),
     )
     train_args = dict(
@@ -473,8 +400,8 @@ def main(argv: list[str]) -> None:
     # Recipe-driven aug overrides — applied only when present so legacy recipes inherit
     # Ultralytics's DEFAULT_CFG (auto_augment=randaugment, erasing=0.4, hsv_h=0.015, hsv_s=hsv_v=0.4).
     # Reference recipes (DINOv3 / EUPE / UNIC / DUNE) explicitly disable RandAugment + RandomErasing
-    # and rely on a hand-tuned photometric stack — see RECIPES["dinov3"] docstring above.
-    aug_source = continuation_args if eupe_multires else r
+    # and rely on a hand-tuned photometric stack defined by the selected Phase 1 profile.
+    aug_source = post_training_args if eupe_multires else r
     for k in (
         "wd_end",
         "auto_augment",

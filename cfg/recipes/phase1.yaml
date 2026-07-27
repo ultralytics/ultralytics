@@ -1,0 +1,54 @@
+defaults:
+  beta2:
+  epochs: 114
+  grad_clip: 3.0
+  momentum: 0.9
+  proj_hidden_dim: 1536
+  standardize_teacher_outputs: true
+  warmup_epochs: 1
+
+profiles:
+  default:
+    lr0: 0.0003
+    weight_decay: 0.05
+  eupe:
+    lr0: 0.00002
+    weight_decay: 0.0001
+  radio:
+    beta2: 0.95
+    grad_clip: 1.0
+    lr0: 0.001
+    weight_decay: 0.02
+  unic:
+    lr0: 0.0006
+    warmup_epochs: 2
+    weight_decay: 0.03
+  dinov3_lowwd: &dinov3_lowwd
+    auto_augment:
+    erasing: 0.0
+    gaussian_blur: 0.5
+    grayscale: 0.2
+    hsv_h: 0.1
+    hsv_s: 0.2
+    hsv_v: 0.4
+    lr0: 0.0002
+    solarize: 0.2
+    weight_decay: 0.02
+  dinov3:
+    <<: *dinov3_lowwd
+    wd_end: 0.2
+    weight_decay: 0.04
+  dinov3_lowwd_jitter:
+    <<: *dinov3_lowwd
+    color_jitter: 0.8
+
+post_training:
+  eupe_multires:
+    batch: 512
+    epochs: 15
+    imgsz: 256
+    lr0: 0.0002
+    multires_sizes: [256, 384, 512]
+    nbs: 512
+    warmup_epochs: 1
+    weight_decay: 0.02

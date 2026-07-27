@@ -26,6 +26,7 @@ Environment:
 """
 
 import csv
+import hashlib
 import json
 import platform
 import shutil
@@ -46,15 +47,19 @@ SEED = 0
 BIAS_FILL = 1e-3
 TIMER = "predictor-speed"  # rows measured before 2026-07-27 used "cuda-events"
 
-# Ordered format table: name -> (Variant attribute holding the artifact, extra predict kwargs, timed runs). The
-# order is the protocol, not a preference, so formats are never selectable and never reordered. Warmup is a tenth
-# of the runs. The CPU row is roughly 200x slower per call at X scale, hence its smaller count. `half` rather than
-# `quantize` because the bench checkouts span both spellings and newer versions still forward `half`.
-FORMATS = {
+# Format tables: name -> (Variant attribute holding the artifact, extra predict kwargs, timed runs). Warmup is a
+# tenth of the runs. `half` rather than `quantize` because the bench checkouts span both spellings and newer
+# versions still forward `half`.
+#
+# Only TensorRT is timed in the paired rounds. The other three used to run back to back ahead of it, which cooled
+# the card on the CPU row and then reheated it at an architecture-dependent rate, a confound balanced round order
+# cannot cancel. They also cost about 25 minutes per suite against 1.5 for TensorRT. They now run once per variant
+# after the rounds, into a sidecar, as export health rather than a paired comparison.
+TIMED_FORMATS = {"trt": ("engine", {}, 100)}
+SIDECAR_FORMATS = {
     "pt_cpu": ("weights", {"device": "cpu", "half": False}, 20),
     "pt16": ("weights", {"half": True}, 100),
     "onnx": ("onnx", {}, 100),
-    "trt": ("engine", {}, 100),
 }
 
 
@@ -72,6 +77,7 @@ class Variant:
         gflops (float): Fused GFLOPs at the export resolution.
         weights_state (str): `trained` or `materialized`, carried into the CSV because a materialized absolute reads 2
             to 3% high and this repo derives every other architecture's absolute from the baseline's.
+        source (str): The yaml or checkpoint this was built from, so a row names its own graph rather than a tag.
     """
 
     name: str
@@ -82,6 +88,7 @@ class Variant:
     params_m: float
     gflops: float
     weights_state: str = "trained"
+    source: str = ""
 
 
 def env_info(imgsz, variants):
@@ -98,7 +105,7 @@ def env_info(imgsz, variants):
         "ultralytics_path": ultralytics.__file__,
         "imgsz": imgsz,
         "batch": 1,
-        "timed_runs": {fmt: runs for fmt, (_, _, runs) in FORMATS.items()},
+        "timed_runs": {fmt: runs for fmt, (_, _, runs) in {**TIMED_FORMATS, **SIDECAR_FORMATS}.items()},
         "rounds": ROUNDS,
         "init_seed": SEED,
         "bias_fill": BIAS_FILL,
@@ -165,7 +172,7 @@ def build_variant(name, weights, outdir, imgsz=640, device="0", model_cls=YOLO, 
     """Export the FP32 ONNX and FP16 engine for one architecture, reusing whatever already exists at that imgsz.
 
     Args:
-        name (str): Short tag, also the artifact filename stem.
+        name (str): Short tag, also the artifact filename stem, which additionally carries an identity hash.
         weights (str | Path): Trained checkpoint, or a model yaml that `materialize_yaml` turns into one.
         outdir (str | Path): Directory the artifacts are written to.
         imgsz (int): Square input size baked into both exports and into the artifact stem.
@@ -179,10 +186,20 @@ def build_variant(name, weights, outdir, imgsz=640, device="0", model_cls=YOLO, 
     """
     outdir = Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
-    onnx, engine = outdir / f"{name}-{imgsz}.onnx", outdir / f"{name}-{imgsz}.engine"
+    source = str(weights)
     materialized = Path(weights).suffix == ".yaml"
     if materialized:
         weights = materialize_yaml(name, weights, outdir, model_cls)
+    # Artifacts are keyed by what produced them, not by tag. A tag-keyed cache silently reuses an engine built
+    # from a different yaml, a different bias fill or a different TensorRT, each of which moves the number.
+    import tensorrt  # local, so a checkout without it can still import this module to inspect the suite table
+
+    key = hashlib.sha256(
+        Path(weights).read_bytes()  # the materialized checkpoint, so bias fill and init seed are already in it
+        + f"|{BIAS_FILL}|{SEED}|{model_cls.__name__}|{imgsz}|{tensorrt.__version__}|"
+        f"{getattr(engine_builder, '__name__', 'stock')}".encode()
+    ).hexdigest()[:8]
+    onnx, engine = outdir / f"{name}-{imgsz}-{key}.onnx", outdir / f"{name}-{imgsz}-{key}.engine"
 
     def export(fmt, path, **extra):
         """Export one format from a fresh instance, since export mutates the model in place."""
@@ -210,6 +227,7 @@ def build_variant(name, weights, outdir, imgsz=640, device="0", model_cls=YOLO, 
         params / 1e6,
         gflops,
         "materialized" if materialized else "trained",
+        source,
     )
 
 
@@ -239,40 +257,47 @@ def profile_model(model, image, runs, **predict_kwargs):
     return {"inf": mean, "inf_std": float(clipped.std()), "total": float(np.mean(pre)) + mean + float(np.mean(post))}
 
 
-def profile_variant(variant, image, imgsz, device):
-    """Profile every format back to back in FORMATS order, through the variant's own facade, with no gap between."""
+def profile_variant(variant, image, imgsz, device, formats=None):
+    """Profile the given formats back to back through the variant's own facade, with no gap between."""
     return {
         fmt: profile_model(
             variant.model_cls(str(getattr(variant, attr))), image, runs, imgsz=imgsz, **{"device": device, **extra}
         )
-        for fmt, (attr, extra, runs) in FORMATS.items()
+        for fmt, (attr, extra, runs) in (formats or TIMED_FORMATS).items()
     }
 
 
-def summarize_rounds(per_round, variants, baselines):
+def summarize_rounds(per_round, variants, baselines, session):
     """Reduce per-round records to one row per variant and format, with paired deltas against the variant's baseline."""
     series = {}
     for record in per_round:  # one list per variant and format, in round order, so zip() pairs them correctly
-        for fmt in FORMATS:
+        for fmt in TIMED_FORMATS:
             series.setdefault((record["variant"], fmt), []).append(record[f"{fmt}_inf"])
 
     rows = []
     for variant in variants:
         baseline = baselines[variant.name]
-        for fmt in FORMATS:
+        for fmt in TIMED_FORMATS:
             own, ref = series[variant.name, fmt], series[baseline, fmt]
             base_median = float(np.median(ref))
             median = float(np.median(own))
             rows.append(
                 {
+                    "session": session,
                     "variant": variant.name,
                     "format": fmt,
                     "params_M_fused": round(variant.params_m, 2),
                     "gflops_fused": round(variant.gflops, 1),
                     "median_ms": round(median, 4),
+                    # Both medians, because deltas from two sessions may only be chained through their ratios. The
+                    # percentage points are not additive: -6.56 against -9.58 is 3.02pp but a 3.34% latency ratio.
+                    "base_median_ms": round(base_median, 4),
+                    "ratio_vs_base": round(median / base_median, 6),
                     "delta_vs_base_pct": round(100 * (median - base_median) / base_median, 2),
                     "ab_wins": "" if variant.name == baseline else f"{sum(a < b for a, b in zip(own, ref))}/{ROUNDS}",
                     "baseline": baseline,
+                    "yaml": variant.source,
+                    "engine": variant.engine.name,
                     "weights_state": variant.weights_state,
                     "timer": TIMER,
                 }
@@ -288,7 +313,7 @@ def write_csv(path, rows):
         writer.writerows(rows)
 
 
-def run_benchmark(variants, baselines, out_csv, imgsz=640, device="0"):
+def run_benchmark(variants, baselines, out_csv, session, imgsz=640, device="0"):
     """Run ROUNDS order-balanced rounds over every variant and write the summary, per-round and provenance files.
 
     Args:
@@ -296,7 +321,9 @@ def run_benchmark(variants, baselines, out_csv, imgsz=640, device="0"):
         baselines (dict): Maps each variant name to the name of the variant its delta is taken against. Keying it
             per variant is what lets one suite span scales, since a row only means architecture when its baseline
             is at its own scale.
-        out_csv (str | Path): Summary CSV path. Per-round rows and provenance go beside it.
+        out_csv (str | Path): Summary CSV path. Per-round rows, other formats and provenance go beside it.
+        session (str): Identifies this measurement session, since a delta is only exact against arms measured in
+            the same one. Chaining across sessions needs a bridge arm present in both.
         imgsz (int): Square input size, which must match the size the artifacts were exported at.
         device (str): CUDA device index passed to the predictor.
     """
@@ -315,13 +342,24 @@ def run_benchmark(variants, baselines, out_csv, imgsz=640, device="0"):
                     **{f"{f}_{k}": round(v, 4) for f, t in timings.items() for k, v in t.items()},
                 }
             )
-            summary = " ".join(f"{f}={timings[f]['inf']:7.3f}" for f in FORMATS)
+            summary = " ".join(f"{f}={timings[f]['inf']:7.3f}" for f in TIMED_FORMATS)
             print(f"  round {rnd + 1}/{ROUNDS} {variant.name:<24} {summary}", flush=True)
 
-    rows = summarize_rounds(per_round, variants, baselines)
+    rows = summarize_rounds(per_round, variants, baselines, session)
     write_csv(out_csv, rows)
     write_csv(out_csv.with_suffix(".rounds.csv"), per_round)
     out_csv.with_suffix(".env.json").write_text(json.dumps(env_info(imgsz, variants), indent=2))
+
+    # Export health, once per variant and outside the rounds so it cannot preheat the card for the timed format.
+    print("\n=== other formats, one pass, not paired", flush=True)
+    sidecar = []
+    for variant in variants:
+        timings = profile_variant(variant, image, imgsz, device, SIDECAR_FORMATS)
+        sidecar += [
+            {"variant": variant.name, "format": f, **{k: round(v, 4) for k, v in t.items()}} for f, t in timings.items()
+        ]
+        print(f"  {variant.name:<24}" + " ".join(f"{f}={timings[f]['inf']:8.3f}" for f in SIDECAR_FORMATS), flush=True)
+    write_csv(out_csv.with_suffix(".formats.csv"), sidecar)
 
     print("\n=== medians", flush=True)
     for row in rows:
@@ -330,4 +368,4 @@ def run_benchmark(variants, baselines, out_csv, imgsz=640, device="0"):
             f"{row['delta_vs_base_pct']:+8.2f}% vs {row['baseline']:<12}{row['ab_wins']}",
             flush=True,
         )
-    print(f"\nwrote {out_csv} plus .rounds.csv and .env.json", flush=True)
+    print(f"\nwrote {out_csv} plus .rounds.csv, .formats.csv and .env.json", flush=True)

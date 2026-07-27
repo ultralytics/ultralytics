@@ -34,9 +34,9 @@ Your Labelbox annotation names become the dataset's class names, and pixel coord
 
     Only bounding boxes and polygons are read today. A project labeled entirely with the segmentation-mask (brush) tool, points, or polylines imports its images and class names but no annotations, and no error is raised. You can spot it on the dataset page: an imported dataset that kept its labels shows a labeled and annotation count next to the image count, and one that lost them shows neither.
 
-!!! note "Image URLs must be reachable"
+!!! note "Upload the export while its links are fresh"
 
-    A Labelbox export references each image by URL rather than embedding the pixels. Platform downloads the images from those URLs, probing a sample first, so the import fails fast and tells you why if the images cannot be reached.
+    A Labelbox export references each image by signed URL rather than embedding the pixels, and those signatures expire. Platform downloads the images from those URLs, probing a sample before it starts, so an export whose links have all lapsed fails immediately and tells you why — re-export from Labelbox and upload the new file. An export that is only partly expired imports the images it can still reach and skips the rest, so upload soon after exporting.
 
 !!! tip "Mixed annotations import as segment"
 

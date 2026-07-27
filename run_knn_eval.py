@@ -4,8 +4,7 @@ Usage:
     python run_knn_eval.py <gpu_id> <run_dir|teacher_spec> [--imgsz N] [--crop_ratio R] [--csv PATH] [--wandb]
 
 Everything is scored at k=20 / T=0.07. A target is either a ``TEACHER_REGISTRY`` key (``tips:v2b14`` or
-``tips_v2b14``) or a run directory, which supplies weights/best.pt plus its model config from args.yaml, falling back
-to last.pt with a warning.
+``tips_v2b14``) or a run directory, which supplies weights/best.pt, falling back to last.pt with a warning.
 
 Preprocessing is derived, not passed, because it is a property of how the weights were fed. A distilled run
 (``teachers`` in args.yaml) and every released encoder take the 'imagenet' entry in ``KNN_PROTOCOLS``, a CE
@@ -30,7 +29,7 @@ from pathlib import Path
 
 import torch
 
-from ultralytics import YOLO
+from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import YAML
 from ultralytics.utils.knn_eval import build_knn_loaders, extract_features, knn_accuracy, yolo_cls_features
 
@@ -101,30 +100,14 @@ def _load_run_dir(run_dir, device):
         print(f"Error: no weights found in {run_dir / 'weights'}")
         sys.exit(1)
 
-    args_yaml = run_dir / "args.yaml"
-    if not args_yaml.exists():
-        print(f"Error: no args.yaml in {run_dir}")
-        sys.exit(1)
-    args = YAML.load(args_yaml)
-    model_cfg = args.get("model")
-    if not model_cfg:
-        print(f"Error: no 'model:' key in {args_yaml}")
-        sys.exit(1)
     # Distillation feeds ImageNet stats, CE classification raw [0, 1]. ClassificationTrainer records this on the
     # checkpoint (classify/train.py:168-170) but ImageEncoderTrainer overrides get_dataloader without calling up, so
     # no distilled checkpoint carries it and args.yaml is the only record. Stamping it there would retire this line.
-    protocol = "imagenet" if args.get("teachers") else "unit"
+    protocol = "imagenet" if YAML.load(run_dir / "args.yaml").get("teachers") else "unit"
     print(f"  weights: {weight_path}")
-    print(f"  model_cfg: {model_cfg}")
 
-    model = YOLO(model_cfg)
-    ckpt = torch.load(str(weight_path), map_location="cpu", weights_only=False)
-    src = ckpt.get("ema") or ckpt.get("model")
-    state = src.float().state_dict()
-    loaded = model.model.load_state_dict(state, strict=False)
-    print(f"  Loaded: {len(state) - len(loaded.unexpected_keys)}/{len(state)} keys")
-    model.model.to(device).float()
-    return model.model, yolo_cls_features, run_dir.name, protocol
+    # The checkpoint carries its own architecture and load_checkpoint prefers ema, so args.yaml's model: key goes unread.
+    return load_checkpoint(weight_path, device=device)[0], yolo_cls_features, run_dir.name, protocol
 
 
 def main():

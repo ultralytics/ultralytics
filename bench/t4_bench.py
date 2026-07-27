@@ -51,6 +51,24 @@ SUITES = {
             "uvit-x-attn2-p4win": "yolo26x-ultravit-repmixer-fastvitffn-attn2-p4win.yaml",
         },
     ),
+    # At X the raw dinop5 win over attn2 was 3.66pp, and matching P5 depth cut it to 0.64pp for +7.09M params, so
+    # most of it was depth rather than token-SwiGLU. This is the same four arms at m and l, one conv baseline each,
+    # to see whether that collapse holds below X.
+    "lane-a-ml": (
+        "conv-m",
+        YOLO,
+        None,
+        {
+            "conv-m": "yolo26m.yaml",
+            "uvit-m-attn2": "yolo26m-ultravit-repmixer-fastvitffn-attn2.yaml",
+            "uvit-m-dinop5": "yolo26m-ultravit-repmixer-fastvitffn-dinop5.yaml",
+            "uvit-m-dinop5-depthmatched": "yolo26m-ultravit-repmixer-fastvitffn-dinop5-depthmatched.yaml",
+            "conv-l": "yolo26l.yaml",
+            "uvit-l-attn2": "yolo26l-ultravit-repmixer-fastvitffn-attn2.yaml",
+            "uvit-l-dinop5": "yolo26l-ultravit-repmixer-fastvitffn-dinop5.yaml",
+            "uvit-l-dinop5-depthmatched": "yolo26l-ultravit-repmixer-fastvitffn-dinop5-depthmatched.yaml",
+        },
+    ),
     # The six yolo27-detr scales from detr_decoder_clean2, the reference arms every Lane B detector row is compared
     # against at its own scale. The family changes across the ladder: n and s carry RTDETRDecoderEfficient on a CSP
     # trunk, m and l swap in DeimDecoder, x and xxl swap the trunk for a plain ViT.
@@ -67,12 +85,15 @@ SUITES = {
             "yolo27xxl": "yolo27xxl-vit-detr.yaml",
         },
     ),
-    # Five UltraViT backbones on the same DEIMv2 neck, against the DINOv3-S+ arm they were designed to replace.
+    # Five UltraViT backbones on the same DEIMv2 neck. The baseline is the yolo27 arm at this scale, which every
+    # Lane B row is now measured against. DINOv3-S+ stays as a row, since it is what these were designed to replace
+    # and the earlier runs are all against it.
     "laneb-x": (
-        "dinov3splus",
+        "yolo27x",
         RTDETR,
         pinned_fp32_attn,
         {
+            "yolo27x": "yolo27x-vit-detr.yaml",
             "dinov3splus": "deim_dinov3splus_sta_l6_xl.yaml",
             "ffnattn2": "yolo26x-ultravit-repmixer-fastvitffn-attn2-deim_mal_deimv2Neck.yaml",
             "fastvitffn-dinop5": "yolo26x-ultravit-repmixer-fastvitffn-dinop5-deim_mal_deimv2Neck.yaml",

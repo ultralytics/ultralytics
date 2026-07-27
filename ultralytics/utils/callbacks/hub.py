@@ -83,10 +83,15 @@ def on_val_start(validator):
         events(validator.args, validator.device)
 
 
-def on_predict_start(predictor):
-    """Run events on predict start."""
-    backend = getattr(getattr(predictor, "model", None), "backend", None)
-    events(predictor.args, predictor.device, backend=backend)
+def on_predict_end(predictor):
+    """Run events on predict end, once per-image speeds are known."""
+    events(
+        predictor.args,
+        predictor.device,
+        model=getattr(predictor, "model", None),
+        speed=getattr(predictor, "speed", None),
+        n=getattr(predictor, "seen", 0),
+    )
 
 
 def on_export_start(exporter):
@@ -103,7 +108,7 @@ callbacks = (
         "on_train_end": on_train_end,
         "on_train_start": on_train_start,
         "on_val_start": on_val_start,
-        "on_predict_start": on_predict_start,
+        "on_predict_end": on_predict_end,
         "on_export_start": on_export_start,
     }
     if SETTINGS["hub"] is True

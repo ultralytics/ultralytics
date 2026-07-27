@@ -17,8 +17,8 @@ keywords: Ultralytics, data collection, YOLO, Python package, Google Analytics, 
 ### What We Collect
 
 - **Usage Metrics**: These metrics help us understand how frequently and in what ways the package is utilized, what features are favored, and the typical command-line arguments that are used.
-- **System Information**: We collect general non-identifiable information about your computing environment to ensure our package performs well across various systems.
-- **Performance Data**: Understanding the performance of our models during training, validation, and inference helps us in identifying optimization opportunities.
+- **System Information**: We collect general non-identifiable information about your computing environment to ensure our package performs well across various systems. This includes your CPU and GPU model names, operating system, and Python and PyTorch versions.
+- **Performance Data**: Understanding the performance of our models during training, validation, and inference helps us in identifying optimization opportunities. For inference this includes per-image preprocess, inference, and postprocess times, alongside the model architecture, deployment format, execution provider, precision, image size, batch size, and class count that produced them.
 
 For more information about Google Analytics and [data privacy](https://www.ultralytics.com/glossary/data-privacy), visit [Google Analytics Privacy](https://support.google.com/analytics/answer/6004245).
 

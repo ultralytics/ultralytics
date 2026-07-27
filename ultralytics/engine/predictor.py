@@ -89,6 +89,7 @@ class BasePredictor:
         plotted_img (np.ndarray): Last plotted image.
         source_type (SimpleNamespace): Type of input source.
         seen (int): Number of images processed.
+        speed (dict[str, float]): Per-image preprocess, inference and postprocess times in milliseconds.
         windows (list[str]): List of window names for visualization.
         batch (tuple): Current batch data.
         results (list[Any]): Current batch results.
@@ -143,6 +144,7 @@ class BasePredictor:
         self.plotted_img = None
         self.source_type = None
         self.seen = 0
+        self.speed = None  # per-image speeds, set once a run completes
         self.windows = []
         self.screen = None  # cached screen resolution (width, height) for show=True scaling
         self.batch = None
@@ -383,12 +385,15 @@ class BasePredictor:
             cv2.destroyAllWindows()  # close any open windows
 
         # Print final results
-        if self.args.verbose and self.seen:
-            t = tuple(x.t / self.seen * 1e3 for x in profilers)  # speeds per image
-            LOGGER.info(
-                f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
-                f"{(min(self.args.batch, self.seen), getattr(self.model, 'channels', 3), *im.shape[2:])}" % t
-            )
+        if self.seen:
+            keys = ("preprocess", "inference", "postprocess")
+            self.speed = dict(zip(keys, (x.t / self.seen * 1e3 for x in profilers)))  # speeds per image
+            if self.args.verbose:
+                LOGGER.info(
+                    f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
+                    f"{(min(self.args.batch, self.seen), getattr(self.model, 'channels', 3), *im.shape[2:])}"
+                    % tuple(self.speed.values())
+                )
         if self.args.save or self.args.save_txt or self.args.save_crop:
             nl = len(list(self.save_dir.glob("labels/*.txt")))  # number of labels
             s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ""

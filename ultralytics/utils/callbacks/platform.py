@@ -524,8 +524,9 @@ def on_model_save(trainer):
 
 
 def on_train_end(trainer):
-    """Log final results, upload best model, and send validation plot data."""
-    ctx = getattr(trainer, "platform", None)
+    """Run events on train end once fitness and duration are known, then log final results and upload best model."""
+    events(trainer.args, trainer.device, trainer)
+    ctx = getattr(trainer, "platform", None)  # set only by on_pretrain_routine_start, so unset without an API key
     if not ctx or RANK not in {-1, 0} or not trainer.args.project:
         return
 
@@ -599,14 +600,13 @@ def on_train_end(trainer):
     LOGGER.info(f"{PREFIX}View results at {url}")
 
 
-def on_train_start(trainer):
-    """Run events on train start."""
-    events(trainer.args, trainer.device)
-
-
 def on_val_start(validator):
-    """Run events on validation start."""
-    if not validator.training:
+    """Run events on validation start, when the user asked for validation.
+
+    A trainer runs its own final validation on a copy of the trainer's args, whose mode is still 'train'. Since an event
+    is named for its mode, firing here would send a second 'train' event indistinguishable from the training one.
+    """
+    if validator.args.mode == "val":
         events(validator.args, validator.device)
 
 
@@ -622,17 +622,16 @@ def on_export_start(exporter):
 
 callbacks = {
     # Anonymous analytics, gated only by the documented sync setting inside Events
-    "on_train_start": on_train_start,
     "on_val_start": on_val_start,
     "on_predict_end": on_predict_end,
     "on_export_start": on_export_start,
+    "on_train_end": on_train_end,  # sends the train event, then uploads results if a Platform run is in flight
     **(
         {
             "on_pretrain_routine_start": on_pretrain_routine_start,
             "on_pretrain_routine_end": on_pretrain_routine_end,
             "on_fit_epoch_end": on_fit_epoch_end,
             "on_model_save": on_model_save,
-            "on_train_end": on_train_end,
         }
         if _api_key
         else {}

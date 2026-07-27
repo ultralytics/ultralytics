@@ -45,6 +45,7 @@ class TensorFlowBackend(BaseBackend):
         if self.format == "saved_model":
             LOGGER.info(f"Loading {weight} for TensorFlow SavedModel inference...")
             self.model = tf.saved_model.load(weight)
+            self.infer_device = "cpu"
             # Load metadata
             metadata_file = Path(weight) / "metadata.yaml"
             if metadata_file.exists():
@@ -65,6 +66,7 @@ class TensorFlowBackend(BaseBackend):
             with open(weight, "rb") as f:
                 gd.ParseFromString(f.read())
             self.frozen_func = wrap_frozen_graph(gd, inputs="x:0", outputs=gd_outputs(gd))
+            self.infer_device = "cpu"
 
             # Try to find metadata
             try:
@@ -97,6 +99,7 @@ class TensorFlowBackend(BaseBackend):
                 experimental_delegates=[load_delegate(delegate, options={"device": device})],
             )
             self.device = torch.device("cpu")  # Edge TPU runs on CPU from PyTorch's perspective
+            self.infer_device = "edgetpu"
 
             self.interpreter.allocate_tensors()
             self.input_details = self.interpreter.get_input_details()

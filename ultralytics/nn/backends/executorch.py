@@ -40,6 +40,7 @@ class ExecuTorchBackend(BaseBackend):
 
         program = Runtime.get().load_program(str(model_file))
         self.model = program.load_method("forward")
+        self.infer_device = "cpu"  # ExecuTorch runtime always executes on CPU
 
         # Load metadata
         if metadata_file.exists():

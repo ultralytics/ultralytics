@@ -35,6 +35,7 @@ class LiteRTBackend(BaseBackend):
 
         LOGGER.info(f"Loading {tflite_file} for LiteRT inference...")
         self.interpreter = Interpreter(str(tflite_file))
+        self.infer_device = "cpu"
         self.interpreter.allocate_tensors()
         self.input_details = self.interpreter.get_input_details()
         self.output_details = self.interpreter.get_output_details()

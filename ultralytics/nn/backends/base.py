@@ -58,6 +58,7 @@ class BaseBackend(ABC):
         end2end (bool): Whether the model includes end-to-end NMS post-processing.
         dynamic (bool): Whether the model supports dynamic input shapes.
         metadata (dict): Model metadata dictionary containing export configuration.
+        infer_device (str): Actual hardware the backend runs on, e.g. 'cpu', 'cuda:0', 'npu', 'edgetpu'.
     """
 
     def __init__(self, weight: str | torch.nn.Module, device: torch.device | str, fp16: bool = False):
@@ -80,6 +81,7 @@ class BaseBackend(ABC):
         self.dynamic = False
         self.metadata = {}
         self.model = None
+        self.infer_device = str(device)  # actual inference device; backends override this after load_model()
         self.load_model(weight)
 
     @abstractmethod

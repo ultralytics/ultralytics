@@ -48,6 +48,7 @@ class RKNNBackend(BaseBackend):
         ret = self.model.init_runtime()
         if ret != 0:
             raise RuntimeError(f"Failed to init RKNN runtime: {ret}")
+        self.infer_device = "npu"
 
         # Load metadata
         metadata_file = w.parent / "metadata.yaml"

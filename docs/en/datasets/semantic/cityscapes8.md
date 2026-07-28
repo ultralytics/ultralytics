@@ -51,8 +51,6 @@ The Cityscapes8 dataset configuration is defined in a dataset YAML file, which s
 
 ## Usage
 
-You can also manage Cityscapes8 and train semantic segmentation models in the cloud with [Ultralytics Platform](https://platform.ultralytics.com/).
-
 To train a YOLO26n-sem model on the Cityscapes8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 1024, use the following examples. For a full list of training options, see the [YOLO Training documentation](../../modes/train.md).
 
 !!! example "Train Example"
@@ -75,6 +73,8 @@ To train a YOLO26n-sem model on the Cityscapes8 dataset for 100 [epochs](https:/
         # Train YOLO26n-sem on Cityscapes8 using the command line
         yolo semantic train data=cityscapes8.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
         ```
+
+You can also manage Cityscapes8 and train semantic segmentation models in the cloud with [Ultralytics Platform](https://platform.ultralytics.com/).
 
 ## Citations, License and Acknowledgments
 

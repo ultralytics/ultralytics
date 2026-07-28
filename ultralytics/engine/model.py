@@ -428,7 +428,7 @@ class Model(torch.nn.Module):
         self._check_is_pytorch_model()
         return self.model.info(detailed=detailed, verbose=verbose, imgsz=imgsz)
 
-    def fuse(self) -> Model:
+    def fuse(self, verbose: bool = True) -> Model:
         """Fuse Conv2d and BatchNorm2d layers in the model for optimized inference.
 
         This method iterates through the model's modules and fuses consecutive Conv2d and BatchNorm2d layers into a
@@ -439,13 +439,16 @@ class Model(torch.nn.Module):
         bias) into the preceding Conv2d layer's weights and biases. This results in a single Conv2d layer that
         performs both convolution and normalization in one step.
 
+        Args:
+            verbose (bool): Whether to print model information after fusion.
+
         Examples:
             >>> model = Model("yolo26n.pt")
             >>> model.fuse()
             >>> # Model is now fused and ready for optimized inference
         """
         self._check_is_pytorch_model()
-        self.model = self.model.fuse()  # DistillationModel fuses to its student, so adopt the return
+        self.model = self.model.fuse(verbose=verbose)  # DistillationModel fuses to its student, so adopt the return
         return self
 
     def embed(

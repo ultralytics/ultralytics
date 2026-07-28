@@ -301,7 +301,6 @@ class Annotator:
             )
         if input_is_tensor and self.pil:
             im = im.cpu().numpy()
-            input_is_tensor = False
         if not input_is_pil:
             if im.shape[2] == 1:  # handle grayscale
                 im = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
@@ -669,8 +668,7 @@ class Annotator:
 
     def show(self, title: str | None = None):
         """Show the annotated image."""
-        self._to_numpy()
-        im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert BGR NumPy array to RGB PIL Image
+        im = Image.fromarray(self.result()[..., ::-1])  # Convert BGR NumPy array to RGB PIL Image
         if IS_COLAB or IS_KAGGLE:  # cannot use IS_JUPYTER as it runs for all IPython environments
             try:
                 display(im)  # noqa - display() function only available in ipython environments
@@ -681,8 +679,7 @@ class Annotator:
 
     def save(self, filename: str = "image.jpg"):
         """Save the annotated image to 'filename'."""
-        self._to_numpy()
-        cv2.imwrite(filename, np.asarray(self.im))
+        cv2.imwrite(filename, self.result())
 
     @staticmethod
     def get_bbox_dimension(bbox: tuple | list):

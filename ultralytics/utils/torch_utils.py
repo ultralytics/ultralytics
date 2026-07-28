@@ -479,9 +479,9 @@ def model_info_for_loggers(trainer):
 def get_flops(model, imgsz=640):
     """Calculate FLOPs (floating point operations) for a model in GFLOPs.
 
-    Attempts two calculation methods: first with stride-based tensors for efficiency, fitting MACs as a linear
-    function of image area so that size-independent layers are not scaled, then falls back to full image size if
-    needed (e.g., for RTDETR models). Returns 0.0 if thop library is unavailable or calculation fails.
+    Attempts two calculation methods: first with stride-based tensors for efficiency, fitting MACs as a linear function
+    of image area so that size-independent layers are not scaled, then falls back to full image size if needed (e.g.,
+    for RTDETR models). Returns 0.0 if thop library is unavailable or calculation fails.
 
     Args:
         model (nn.Module): The model to calculate FLOPs for.

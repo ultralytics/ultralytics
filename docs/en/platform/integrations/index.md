@@ -3,7 +3,7 @@ plans: [free, pro, enterprise]
 title: Platform Integrations
 comments: true
 description: Connect Ultralytics Platform to Slack, existing tools, cloud storage, and Enterprise On Premise compute and datasets.
-keywords: Ultralytics Platform, integrations, Slack, alerts, data import, Roboflow, Ultralytics HUB, cloud storage, GCS, Amazon S3, Azure Blob Storage, On Premise, dataset migration, YOLO, computer vision
+keywords: Ultralytics Platform, integrations, Slack, alerts, data import, Roboflow, Labelbox, CVAT, Label Studio, Ultralytics HUB, cloud storage, GCS, Amazon S3, Azure Blob Storage, On Premise, dataset migration, YOLO, computer vision
 ---
 
 # Integrations
@@ -21,7 +21,8 @@ All integrations are managed from your account settings:
 3. Follow the connection prompts
 
 HUB and Roboflow imports start with a preview so you can review what will be transferred and confirm that you have
-enough [storage](../account/billing.md). Cloud storage connections verify list and read access before anything is saved.
+enough [storage](../account/billing.md). Labelbox needs no connection at all — upload the export file and Platform reads
+it directly. Cloud storage connections verify list and read access before anything is saved.
 
 ## Available Integrations
 
@@ -30,6 +31,9 @@ enough [storage](../account/billing.md). Cloud storage connections verify list a
 | [**Slack**](slack.md)                               | Posts selected job results to one Slack channel     |
 | [**Ultralytics HUB**](ultralytics-hub.md)           | Imports datasets, projects, models, and balance     |
 | [**Roboflow**](roboflow.md)                         | Imports datasets                                    |
+| [**Labelbox**](labelbox.md)                         | Imports NDJSON exports as datasets                  |
+| [**CVAT**](cvat.md)                                 | Imports CVAT image datasets — coming soon           |
+| [**Label Studio**](label-studio.md)                 | Imports Label Studio image datasets — coming soon   |
 | [**Google Cloud Storage**](google-cloud-storage.md) | Indexes datasets in place from your GCS buckets     |
 | [**Amazon S3**](amazon-s3.md)                       | Indexes datasets in place from your S3 buckets      |
 | [**Azure Blob Storage**](azure-blob-storage.md)     | Indexes datasets in place from your blob containers |

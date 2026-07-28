@@ -1,0 +1,31 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Lane A classifier for the DINO-P5 RoPE-Mixed backbone, l640 scale retune. Rows 0-8 match
+# yolo26-ultravit-repmixer-fastvitffn-dinop5-mixedrope-l640.yaml, its detector twin.
+# l trades trunk depth for a wider P5, widened through max_channels rather than width, which would
+# scale the classifier head too.
+# n caps at 1024 so head_dim 64 divides its P5, which is what blocked n before. s, m and x are unchanged.
+
+nc: 1000
+
+scales:
+  # [depth, width, max_channels]
+  n: [0.20, 0.25, 1024]
+  s: [0.20, 0.50, 1152]
+  m: [0.25, 1.00, 512]
+  l: [0.28, 1.00, 640]
+  x: [0.35, 1.50, 512]
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [96, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [3, True, 0.00001, True]]
+  - [-1, 1, Conv, [192, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [3, True, 0.00001, True]]
+  - [-1, 1, Conv, [384, 3, 2]]
+  - [-1, 20, RepUltraViTBlock, [3, True, 0.00001, True]]
+  - [-1, 1, Conv, [1152, 3, 2]]
+  - [-1, 5, MixedRoPE2D, [0, 4, True, 0.00001, False, 64, True, True, True, 4]]
+
+head:
+  - [-1, 1, Classify, [nc]]

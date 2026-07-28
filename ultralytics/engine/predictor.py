@@ -329,9 +329,7 @@ class BasePredictor:
                     im = self.preprocess(im0s)
 
                 if not self.done_warmup:
-                    self.model.warmup(
-                        imgsz=(1 if self.model.format in {"pt", "triton"} else im.shape[0], *im.shape[1:])
-                    )
+                    self.model.warmup(im=im)
                     self.done_warmup = True
 
                 # Inference

@@ -351,7 +351,7 @@ class ProfileModels:
             engine_file = file.with_suffix(".engine")
             if file.suffix in {".pt", ".yaml", ".yml"}:
                 model = YOLO(str(file))
-                model.fuse(verbose=False)  # suppress default-size summary before model.info()
+                model.fuse(verbose=False)
                 model_info = model.info(imgsz=self.imgsz)
                 if self.trt and self.device.type != "cpu" and not engine_file.is_file():
                     engine_file = model.export(

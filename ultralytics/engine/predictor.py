@@ -318,12 +318,6 @@ class BasePredictor:
                 ops.Profile(device=self.device),
                 ops.Profile(device=self.device),
             )
-            # Fixed-shape backends letterbox to the square imgsz, so their warmup shape is already
-            # correct — warm them here, before im exists, so the dummy never overlaps it in memory
-            if not self.done_warmup and self.model.format not in {"pt", "triton"}:
-                self.model.warmup(imgsz=(self.dataset.bs, self.model.channels, *self.imgsz))
-                self.done_warmup = True
-
             self.run_callbacks("on_predict_start")
             for batch in self.dataset:
                 self.batch = batch
@@ -334,11 +328,10 @@ class BasePredictor:
                 with profilers[0]:
                     im = self.preprocess(im0s)
 
-                # Only pt/triton reach this: they letterbox to a rectangle the square imgsz dummy
-                # never matches, so warm on the real shape. Batch 1 as before, so the dummy costs
-                # one batch-1 tensor alongside im rather than a full batch.
                 if not self.done_warmup:
-                    self.model.warmup(imgsz=(1, *im.shape[1:]))
+                    self.model.warmup(
+                        imgsz=(1 if self.model.format in {"pt", "triton"} else im.shape[0], *im.shape[1:])
+                    )
                     self.done_warmup = True
 
                 # Inference

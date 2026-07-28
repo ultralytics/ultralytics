@@ -438,6 +438,10 @@ def on_pretrain_routine_start(trainer):
         _handle_control_response(trainer, ctx, response)
     else:
         LOGGER.warning(f"{PREFIX}Training will not be tracked on Platform")
+        # Capture started above, before this call could fail. Clearing trainer.platform makes
+        # on_train_end return early, so this is the last chance to stop it — otherwise the daemon
+        # flush thread keeps redirecting the user's stdout and POSTing to a Platform we just gave up on.
+        ctx["console_logger"].stop_capture()
         trainer.platform = None  # Disable further callbacks
 
 

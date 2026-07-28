@@ -63,7 +63,7 @@ def normalize_platform_uri(uri):
     """Rewrite an Ultralytics Platform web URL to its ul:// URI so it can be loaded directly as data or model.
 
     Args:
-        uri (str | Path): Resource identifier, e.g. "https://platform.ultralytics.com/user/datasets/slug".
+        uri (str | Path): Resource identifier, e.g. an Ultralytics Platform web URL ending in "/user/datasets/slug".
 
     Returns:
         (str | Path): "ul://user/datasets/slug" for Platform web URLs, otherwise the input unchanged.

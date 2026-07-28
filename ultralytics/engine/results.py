@@ -15,7 +15,6 @@ from typing import Any
 import numpy as np
 import torch
 
-from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, ops
 from ultralytics.utils.plotting import Annotator, colors, save_one_box
 
@@ -482,7 +481,6 @@ class Results(SimpleClass, DataExportMixin):
         font: str = "Arial.ttf",
         pil: bool = False,
         img: np.ndarray | None = None,
-        im_gpu: torch.Tensor | None = None,
         kpt_radius: int = 5,
         kpt_line: bool = True,
         labels: bool = True,
@@ -504,7 +502,6 @@ class Results(SimpleClass, DataExportMixin):
             font (str): Font to use for text.
             pil (bool): Whether to return the image as a PIL Image.
             img (np.ndarray | None): Image to plot on. If None, uses original image.
-            im_gpu (torch.Tensor | None): Normalized image on GPU for faster mask plotting.
             kpt_radius (int): Radius of drawn keypoints.
             kpt_line (bool): Whether to draw lines connecting keypoints.
             labels (bool): Whether to plot labels of bounding boxes.
@@ -549,15 +546,6 @@ class Results(SimpleClass, DataExportMixin):
         # Plot Segment results
         if pred_masks and show_masks:
             pred_mask_data = torch.as_tensor(pred_masks.data)  # no-op for torch, converts a numpy() result
-            if im_gpu is None:
-                img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
-                im_gpu = (
-                    torch.as_tensor(img, dtype=torch.float16, device=pred_mask_data.device)
-                    .permute(2, 0, 1)
-                    .flip(0)
-                    .contiguous()
-                    / 255
-                )
             idx = (
                 pred_boxes.id
                 if pred_boxes and pred_boxes.is_track and color_mode == "instance"
@@ -565,7 +553,7 @@ class Results(SimpleClass, DataExportMixin):
                 if pred_boxes and color_mode == "class"
                 else reversed(range(len(pred_masks)))
             )
-            annotator.masks(pred_mask_data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
+            annotator.masks(pred_mask_data, colors=[colors(x, True) for x in idx])
 
         # Plot Detect results
         if pred_boxes is not None and show_boxes:

@@ -89,6 +89,8 @@ class BasePredictor:
         plotted_img (np.ndarray): Last plotted image.
         source_type (SimpleNamespace): Type of input source.
         seen (int): Number of images processed.
+        speed (dict[str, float] | None): Per-image preprocess, inference and postprocess times in ms, once run.
+        pixels (int | None): Mean per-image inference area in pixels, once a run completes.
         windows (list[str]): List of window names for visualization.
         batch (tuple): Current batch data.
         results (list[Any]): Current batch results.
@@ -143,6 +145,8 @@ class BasePredictor:
         self.plotted_img = None
         self.source_type = None
         self.seen = 0
+        self.speed = None  # per-image speeds, set once a run completes
+        self.pixels = None  # mean per-image inference area, set once a run completes
         self.windows = []
         self.screen = None  # cached screen resolution (width, height) for show=True scaling
         self.batch = None
@@ -318,7 +322,8 @@ class BasePredictor:
                 )
                 self.done_warmup = True
 
-            self.seen, self.windows, self.batch = 0, [], None
+            self.seen, self.speed, self.pixels, self.windows, self.batch = 0, None, None, [], None
+            px = 0  # inference pixels summed per image, so a mixed-shape source averages rather than reports its last
             profilers = (
                 ops.Profile(device=self.device),
                 ops.Profile(device=self.device),
@@ -351,6 +356,7 @@ class BasePredictor:
                 try:
                     for i in range(n):
                         self.seen += 1
+                        px += im.shape[2] * im.shape[3]
                         self.results[i].speed = {
                             "preprocess": profilers[0].dt * 1e3 / n,
                             "inference": profilers[1].dt * 1e3 / n,
@@ -374,6 +380,18 @@ class BasePredictor:
                 self.run_callbacks("on_predict_batch_end")
                 yield from self.results
 
+            # Final results, under the lock: seen is reset by every run, so reading it outside could divide this run's
+            # profilers by a concurrent run's count. px and profilers are locals and are already private to this run.
+            if seen := self.seen:
+                t = tuple(x.t / seen * 1e3 for x in profilers)  # speeds per image
+                self.speed = dict(zip(("preprocess", "inference", "postprocess"), t))
+                self.pixels = round(px / seen)  # mean area, pairing with speeds that are themselves per-image means
+                if self.args.verbose:
+                    LOGGER.info(
+                        f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
+                        f"{(min(self.args.batch, seen), getattr(self.model, 'channels', 3), *im.shape[2:])}" % t
+                    )
+
         # Release assets
         for v in self.vid_writer.values():
             if isinstance(v, cv2.VideoWriter):
@@ -382,13 +400,6 @@ class BasePredictor:
         if self.args.show:
             cv2.destroyAllWindows()  # close any open windows
 
-        # Print final results
-        if self.args.verbose and self.seen:
-            t = tuple(x.t / self.seen * 1e3 for x in profilers)  # speeds per image
-            LOGGER.info(
-                f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
-                f"{(min(self.args.batch, self.seen), getattr(self.model, 'channels', 3), *im.shape[2:])}" % t
-            )
         if self.args.save or self.args.save_txt or self.args.save_crop:
             nl = len(list(self.save_dir.glob("labels/*.txt")))  # number of labels
             s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ""
@@ -470,7 +481,6 @@ class BasePredictor:
                 boxes=self.args.show_boxes,
                 conf=self.args.show_conf,
                 labels=self.args.show_labels,
-                im_gpu=None if self.args.retina_masks else im[i],
             )
 
         # Save results

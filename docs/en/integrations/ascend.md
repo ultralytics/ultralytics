@@ -42,14 +42,14 @@ Ascend export supports all seven Ultralytics tasks. Detection, instance segmenta
 
 ## Supported Devices
 
-Pass the target SoC with `name`; ATC bakes it into the `.om` as `--soc_version`, so it must match the board you deploy to. Locally you can compile for any SoC your CANN installation provides kernels for. On [Ultralytics Platform](https://platform.ultralytics.com), the 310B targets are listed as coming soon while their operator kernels are added to the build image.
+Pass the target SoC with `name`; ATC bakes it into the `.om` as `--soc_version`, so it must match the board you deploy to. Locally you can compile for any SoC your CANN installation provides kernels for. [Ultralytics Platform](https://platform.ultralytics.com) supports the Ascend310P1, Ascend310P3, Ascend310B1, and Ascend310B4 targets.
 
-| `name`        | Devices                           | Local export | Platform    |
-| :------------ | :-------------------------------- | :----------- | :---------- |
-| `Ascend310P3` | Atlas 300I Pro, Atlas 300V Pro    | ✅           | ✅          |
-| `Ascend310P1` | Atlas 300I                        | ✅           | ✅          |
-| `Ascend310B4` | OrangePi AIPro 20T, Atlas 200I A2 | ✅           | Coming soon |
-| `Ascend310B1` | OrangePi AIPro 8T                 | ✅           | Coming soon |
+| `name`        | Devices                           | Local export | Platform |
+| :------------ | :-------------------------------- | :----------- | :------- |
+| `Ascend310P3` | Atlas 300I Pro, Atlas 300V Pro    | ✅           | ✅       |
+| `Ascend310P1` | Atlas 300I                        | ✅           | ✅       |
+| `Ascend310B4` | OrangePi AIPro 20T, Atlas 200I A2 | ✅           | ✅       |
+| `Ascend310B1` | OrangePi AIPro 8T                 | ✅           | ✅       |
 
 ## Export to Ascend: Converting Your YOLO Model
 

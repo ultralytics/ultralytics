@@ -239,7 +239,7 @@ In YOLO26, **MuSGD** is a hybrid optimizer that combines standard **SGD** update
 
 It is **recommended for longer YOLO26 training runs and larger datasets**, where orthogonalized Muon updates can help stabilize optimization.
 
-Only parameters with `param.ndim >= 2` (such as convolutional weights) receive the Muon style update together with SGD, while lower dimensional parameters like batch normalization layers and bias terms remain on standard SGD.
+Only 2D linear weights and 4D convolutional filters (reshaped to 2D) receive the Muon style update together with SGD, while all other parameters, such as batch normalization weights and bias terms, remain on standard SGD.
 
 When `optimizer=auto` is used, Ultralytics automatically selects **MuSGD** for longer training runs (typically when iterations > 10000). For shorter runs, the trainer falls back to **AdamW**.
 

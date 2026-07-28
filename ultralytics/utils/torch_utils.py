@@ -117,14 +117,7 @@ def autocast(enabled: bool, device: str = "cuda"):
 @functools.lru_cache
 def get_cpu_info():
     """Return a string with system CPU information, i.e. 'Apple M2'."""
-    from ultralytics.utils import PERSISTENT_CACHE  # avoid circular import error
-
-    if "cpu_info" not in PERSISTENT_CACHE:
-        try:
-            PERSISTENT_CACHE["cpu_info"] = CPUInfo.name()
-        except Exception:
-            pass
-    return PERSISTENT_CACHE.get("cpu_info", "unknown")
+    return CPUInfo.name()
 
 
 @functools.lru_cache

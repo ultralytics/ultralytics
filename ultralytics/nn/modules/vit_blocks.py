@@ -9,11 +9,7 @@ dense cos/sin tables into one initializer each rather than per-frequency Constan
 Registered in `ultralytics.nn.modules.__init__` and imported by `ultralytics.nn.tasks` so `parse_model` resolves
 them through `globals()[m]`. All blocks are dim-preserving (C_in == C_out, H/W unchanged).
 
-Export validation (2026-04-23, RTX PRO 6000 Blackwell, imgsz=224, bs=1 fp16):
-    yolo26s-fastvit-cls    5.05 M   228 ONNX nodes   1.948 ms   (conv baseline 1.83 ms, 234 nodes)
-    yolo26l-fastvit-cls   14.77 M   804 ONNX nodes   2.652 ms
-
-Must-build export paths pass across the UltraViT and legacy FastViT YAMLs: TorchScript, ONNX opset17, OpenVINO, CoreML, TFLite, TensorRT,
+Must-build export paths pass across the UltraViT YAMLs: TorchScript, ONNX opset17, OpenVINO, CoreML, TFLite, TensorRT,
 PaddlePaddle (x2paddle>=1.6.0, needs the indexed QKV split in MHSABlock), RKNN (rknn-toolkit2>=2.3.2). RKNN still
 requires an isolated venv (its AutoUpdate downgrades torch 2.9→2.4 + cudnn 9.10→9.1, contaminating the primary env).
 """

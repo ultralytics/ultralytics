@@ -1,8 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # YOLO26-UltraViT-cls: RepMixer (FastViT, arXiv:2303.14189) stages 1-3 + MHSA stage 4.
-# Successor to the retired yolo26-fastvit-cls.yaml: conv-mirrored scale table (its old [5.0, ...]
-# entries inflated the shared det neck 2.7-2.8x), SiLU (GELU lowers to un-fused fp32 erf under TensorRT),
+# Conv-mirrored scale table, SiLU (GELU lowers to un-fused fp32 erf under TensorRT),
 # LayerScale 1e-5 on every residual, ConvMlp DW7x7 FFN in attention blocks, head_dim=32 pin
 # (num_heads=0 sentinel derives heads per scale: n 9, s 18, m/l 16, x 24).
 # Backbone == yolo26-ultravit.yaml layers 0-8, so cls/distilled weights cover 100% of the

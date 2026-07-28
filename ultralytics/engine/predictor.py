@@ -324,14 +324,14 @@ class BasePredictor:
                 self.run_callbacks("on_predict_batch_start")
                 paths, im0s, s = self.batch
 
+                # Warmup untimed on the real shape, since a square imgsz dummy rarely matches a letterboxed batch
+                if not self.done_warmup:
+                    self.model.warmup(imgsz=self.preprocess(im0s).shape)
+                    self.done_warmup = True
+
                 # Preprocess
                 with profilers[0]:
                     im = self.preprocess(im0s)
-
-                # Warmup untimed on the real shape, since a square imgsz dummy never matches a letterboxed batch
-                if not self.done_warmup:
-                    self.model.warmup(imgsz=im.shape)
-                    self.done_warmup = True
 
                 # Inference
                 with profilers[1]:

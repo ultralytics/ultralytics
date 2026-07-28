@@ -218,6 +218,7 @@ parser.add_argument("--workers", type=int,default=8)  # workers
 parser.add_argument("--save_period", type=int,default=5)  # save period
 
 parser.add_argument("--data", type=str, default=None) # DATA_CONFIG key: old_engine_data, yedata, coco128, coco128_seg
+parser.add_argument("--fraction", type=float, default=1.0)  # fraction of training dataset to use: 0.05 = 5%
 parser.add_argument("--refer_data", type=str, default=None) # override the reference-data YAML for YOLOEVPTrainer visual-prompt val
 
 
@@ -413,6 +414,7 @@ train_args=dict( data=data,
     momentum=args.momentum,
     weight_decay=args.weight_decay,
     single_cls=single_cls, # for YOLOEPEFreeTrainer
+    fraction=args.fraction, # for YOLOEVPTrainer fast smoke
     freeze=freeze, # for YOLOEVPTrainer
     refer_data=refer_data, # for YOLOEVPTrainer
     save_json=args.save_json,

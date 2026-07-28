@@ -1,14 +1,15 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """T4 TensorRT latency for one lane at one scale, measured in a single paired session.
 
-Run as ``python bench/t4_bench.py <lane>-<scale>``, e.g. `lane-a-x` or `lane-b-n`. Each session profiles that
-scale's baseline, every arm that exists at that scale, and a bridge arm. Only TensorRT is timed, the other formats
-run once afterwards into a `.formats.csv` sidecar, see t4_bench_common for why.
+Run as ``python bench/t4_bench.py <lane>-<scale> [arm,arm]``, e.g. `lane-a-x` or `lane-b-n repmixer`. Given no arm
+list a session profiles that scale's baseline, its bridge and every arm that exists there. Only TensorRT is timed,
+the other formats run once afterwards into a `.formats.csv` sidecar, see t4_bench_common for why.
 
 The bridge is the one arm carried by every session at a scale. Deltas from two sessions are not directly
 comparable, since re-measuring the baseline in each leaves 1.0 to 1.5pp of scatter, but the bridge anchors them:
-an arm's ratio against the bridge inside its own session transfers exactly. Adding one yaml therefore costs a
-session of baseline, bridge and that yaml, not a rerun of everything at that scale.
+an arm's ratio against the bridge inside its own session transfers exactly. A second argument, a comma list of
+arm tags, spends that: `lane-a-x dinop5-mixedrope` times only that arm against the baseline and bridge, so one
+new yaml costs three measurements rather than a rerun of the scale.
 
 Scale comes from the filename, and a scale-less stem silently resolves to the first scales key, so every entry has
 its size letter substituted in. Arms absent at a scale are simply not in that session.
@@ -49,6 +50,7 @@ LANES = {
             "fastvitffn": ("yolo26{s}-ultravit-repmixer-fastvitffn.yaml", "nsmlx"),
             "ffnattn2": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2.yaml", "nsmlx"),
             "dinop5": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5.yaml", "smlx"),
+            "dinop5-mixedrope": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope.yaml", "smlx"),
             "dinop5-depthmatched": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-depthmatched.yaml", "nsmlx"),
             "mixedrope": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg-mixedrope.yaml", "smlx"),
             "p4pooled": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-p4pooled.yaml", "nsmlx"),
@@ -79,6 +81,10 @@ LANES = {
             ),
             "fastvitffn": ("yolo26{s}-ultravit-repmixer-fastvitffn-deim_mal_deimv2Neck.yaml", "nsmlx"),
             "fastvitffn-dinop5": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-deim_mal_deimv2Neck.yaml", "smlx"),
+            "fastvitffn-dinop5-mixedrope": (
+                "yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-deim_mal_deimv2Neck.yaml",
+                "smlx",
+            ),
             "fastvitffn-dinop5-depthmatched": (
                 "yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-depthmatched-deim_mal_deimv2Neck.yaml",
                 "x",
@@ -97,13 +103,19 @@ LANES = {
     ),
 }
 
-session = sys.argv[1]
+session, *only = sys.argv[1:]
 lane, scale = session.rsplit("-", 1)
 model_cls, engine_builder, base_prefix, bridge, arms = LANES[lane]
 yamls = {tag: t.format(s=scale) for tag, (t, scales) in arms.items() if scale in scales}
 # Lane B's baseline changes file along the ladder, so it is whichever arm carries the baseline prefix at this scale.
 baseline = next(tag for tag in yamls if tag.startswith(base_prefix))
 assert bridge in yamls, f"{session} has no bridge arm, so its ratios cannot be anchored to another session"
+if only:  # append session, carrying the named arms plus the baseline and bridge that anchor them
+    (arg,) = only  # unpack, so a stray extra argument fails here rather than being ignored
+    want = set(arg.split(","))
+    assert want <= set(yamls), f"{sorted(want - set(yamls))} absent from {session}, which would bench anchors alone"
+    yamls = {t: y for t, y in yamls.items() if t in want | {baseline, bridge}}
+    session += "-" + arg  # its own session id, since it is its own measurement occasion
 
 engines = DATA / f"t4-{lane}-{scale}-engines"
 variants = [build_variant(t, y, engines, model_cls=model_cls, engine_builder=engine_builder) for t, y in yamls.items()]

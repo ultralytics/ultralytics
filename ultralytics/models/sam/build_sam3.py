@@ -362,15 +362,17 @@ def _load_checkpoint(model, checkpoint, interactive=False):
     # The rename is a no op on SAM 3.0 checkpoints, which already use the sam2_convs name.
     ckpt = {k.replace("interactive_convs", "sam2_convs"): v for k, v in ckpt.items()}
     # SAM 3.1 nests the tracker one level deeper and keeps a 16 slot multiplex video head beside the
-    # interactive one. Only the interactive prompt encoder and mask decoder are mapped, because the image
-    # point path uses those alone and the multiplex video modules have incompatible shapes.
-    ckpt.update(
-        {
-            k.replace("tracker.model.interactive_sam_", "tracker.sam_"): v
-            for k, v in ckpt.items()
-            if "interactive_sam_" in k
-        }
-    )
+    # interactive one. Map only the modules the image point path uses, because the multiplex video
+    # modules have incompatible shapes. Every rename below is a no op on SAM 3.0 checkpoints.
+    # no_mem_embed matters most: the mask decoder adds it to the image embedding, so leaving it
+    # randomly initialized makes point prompts differ from one process to the next.
+    for src, dst in (
+        ("tracker.model.interactive_sam_", "tracker.sam_"),
+        ("tracker.model.interactivity_no_mem_embed", "tracker.no_mem_embed"),
+        ("tracker.model.interactive_mask_downsample", "tracker.mask_downsample"),
+        ("tracker.model.obj_ptr_proj", "tracker.obj_ptr_proj"),
+    ):
+        ckpt.update({k.replace(src, dst): v for k, v in ckpt.items() if src in k})
     sam3_image_ckpt = {k.replace("detector.", ""): v for k, v in ckpt.items() if "detector" in k}
     if interactive:
         sam3_image_ckpt.update(

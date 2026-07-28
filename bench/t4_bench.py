@@ -1,9 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """T4 TensorRT latency for one lane at one scale, measured in a single paired session.
 
-Run as ``python bench/t4_bench.py <lane>-<scale> [arm,arm]``, e.g. `lane-a-x` or `lane-b-n repmixer`. Given no arm
-list a session profiles that scale's baseline, its bridge and every arm that exists there. Only TensorRT is timed,
-the other formats run once afterwards into a `.formats.csv` sidecar, see t4_bench_common for why.
+Run as ``python bench/t4_bench.py <lane>-<scale> [arm,arm] [warmup=N]``, e.g. `lane-a-x` or `lane-b-n repmixer`.
+Given no arm list a session profiles that scale's baseline, its bridge and every arm that exists there. Only
+TensorRT is timed, the other formats run once afterwards into a `.formats.csv` sidecar, see t4_bench_common for
+why. `warmup=N` overrides the standard conditioning and marks the session exploratory, see run_benchmark.
 
 The bridge is the one arm carried by every session at a scale. Deltas from two sessions are not directly
 comparable, since re-measuring the baseline in each leaves 1.0 to 1.5pp of scatter, but the bridge anchors them:
@@ -26,7 +27,7 @@ from pathlib import Path
 # which the formatter strips anyway.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from t4_bench_common import build_variant, pinned_fp32_attn, run_benchmark
+from t4_bench_common import build_variant, parse_session, pinned_fp32_attn, run_benchmark
 from ultralytics import RTDETR, YOLO
 
 DATA = Path("/root/autodl-tmp/data")
@@ -70,6 +71,12 @@ LANES = {
             # The shipping pair, one P5 attention block at n and s and more from m upward.
             "dinop5-hybrid": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-hybrid.yaml", "nsmlx"),
             "dinop5-mixedrope-hybrid": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-hybrid.yaml", "nsmlx"),
+            # s and l only, spending their latency margin on P5 width: s 576 to 640, l 640 to 768.
+            "dinop5-hybrid-wide": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-hybrid-wide.yaml", "sl"),
+            "dinop5-mixedrope-hybrid-wide": (
+                "yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-hybrid-wide.yaml",
+                "sl",
+            ),
         },
     ),
     "lane-b": (
@@ -116,8 +123,7 @@ LANES = {
     ),
 }
 
-session, *only = sys.argv[1:]
-lane, scale = session.rsplit("-", 1)
+lane, scale, session, only, warmup = parse_session(sys.argv[1:])
 model_cls, engine_builder, base_prefix, bridge, arms = LANES[lane]
 yamls = {tag: t.format(s=scale) for tag, (t, scales) in arms.items() if scale in scales}
 # Lane B's baseline changes file along the ladder, so it is whichever arm carries the baseline prefix at this scale.
@@ -135,4 +141,11 @@ engines = DATA / f"t4-{lane}-{scale}-engines"
 variants = [
     build_variant(t, y, engines, imgsz, model_cls=model_cls, engine_builder=engine_builder) for t, y in yamls.items()
 ]
-run_benchmark(variants, dict.fromkeys(yamls, baseline), DATA / f"t4_{session.replace('-', '_')}.csv", session, imgsz)
+run_benchmark(
+    variants,
+    dict.fromkeys(yamls, baseline),
+    DATA / f"t4_{session.replace('-', '_')}.csv",
+    session,
+    imgsz,
+    warmup=warmup,
+)

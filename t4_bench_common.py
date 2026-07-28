@@ -48,8 +48,8 @@ SEED = 0
 BIAS_FILL = 1e-3
 TIMER = "predictor-speed"  # rows measured before 2026-07-27 used "cuda-events"
 
-# Format tables: name -> (Variant attribute holding the artifact, extra predict kwargs, timed runs). Warmup is a
-# tenth of the runs. `half` rather than `quantize` because the bench checkouts span both spellings and newer
+# Format tables: name -> (Variant attribute holding the artifact, extra predict kwargs, timed runs). Warmup defaults to a
+# tenth of the runs and only a `warmup=N` sweep changes it. `half` rather than `quantize` because the bench checkouts span both spellings and newer
 # versions still forward `half`.
 #
 # Only TensorRT is timed in the paired rounds. The other three used to run back to back ahead of it, which cooled
@@ -92,7 +92,27 @@ class Variant:
     source: str = ""
 
 
-def env_info(imgsz, variants):
+def parse_session(argv):
+    """Split ``<lane>-<scale> [arm,arm] [warmup=N]`` into the lane, the scale, the session id and the warmup override.
+
+    A warmup override is its own measurement occasion, so it goes into the session id. That keeps an exploratory
+    sweep from writing over the standard run's csv, rounds and env files, and keeps its rows visibly outside the
+    standard cohort. The suffix lands after the lane and scale are read off, so it cannot be mistaken for the scale.
+
+    Returns:
+        (str): Lane name, `lane-a` or `lane-b`.
+        (str): Scale letter.
+        (str): Session id, carrying a `-w{N}` suffix when an override was given.
+        (list): The remaining arguments, at most one comma-joined arm list.
+        (int | None): The warmup override, or None to keep the tenth-of-runs default.
+    """
+    warmup = next((int(a.split("=")[1]) for a in argv if a.startswith("warmup=")), None)
+    session, *rest = (a for a in argv if not a.startswith("warmup="))
+    lane, scale = session.rsplit("-", 1)
+    return lane, scale, session if warmup is None else f"{session}-w{warmup}", rest, warmup
+
+
+def env_info(imgsz, variants, warmup):
     """Collect the software, hardware and artifact provenance a latency number is only valid under."""
     providers = onnxruntime.get_available_providers()
     return {
@@ -107,6 +127,9 @@ def env_info(imgsz, variants):
         "imgsz": imgsz,
         "batch": 1,
         "timed_runs": {fmt: runs for fmt, (_, _, runs) in {**TIMED_FORMATS, **SIDECAR_FORMATS}.items()},
+        # Resolved rather than the override, so a standard session is self-describing. Sidecar formats always take
+        # the default, since they are export health and not a paired comparison.
+        "timed_warmup": {fmt: runs // 10 if warmup is None else warmup for fmt, (_, _, runs) in TIMED_FORMATS.items()},
         "rounds": ROUNDS,
         "init_seed": SEED,
         "bias_fill": BIAS_FILL,
@@ -243,20 +266,21 @@ def build_variant(name, weights, outdir, imgsz, device="0", model_cls=YOLO, engi
     )
 
 
-def profile_model(model, image, runs, **predict_kwargs):
+def profile_model(model, image, runs, warmup, **predict_kwargs):
     """Warm up, collect `runs` predictor speed records, sigma clip, and return inference and pipeline means.
 
     Args:
         model (Model): Loaded model in any backend the predictor supports.
         image (np.ndarray): HWC uint8 input reused for every call.
-        runs (int): Timed calls to collect. A tenth as many warmup calls run first.
+        runs (int): Timed calls to collect.
+        warmup (int): Untimed calls made first, which also set how hot the card is when timing starts.
         **predict_kwargs (Any): Forwarded to the predictor, typically imgsz, device and half.
 
     Returns:
         (dict): Sigma-clipped mean inference ms under `inf`, its standard deviation under `inf_std`, and preprocess plus
             inference plus postprocess under `total`.
     """
-    for _ in range(runs // 10):
+    for _ in range(warmup):
         model(image, verbose=False, **predict_kwargs)
     pre, inf, post = [], [], []
     for _ in range(runs):
@@ -269,17 +293,22 @@ def profile_model(model, image, runs, **predict_kwargs):
     return {"inf": mean, "inf_std": float(clipped.std()), "total": float(np.mean(pre)) + mean + float(np.mean(post))}
 
 
-def profile_variant(variant, image, imgsz, device, formats=None):
+def profile_variant(variant, image, imgsz, device, formats=None, warmup=None):
     """Profile the given formats back to back through the variant's own facade, with no gap between."""
     return {
         fmt: profile_model(
-            variant.model_cls(str(getattr(variant, attr))), image, runs, imgsz=imgsz, **{"device": device, **extra}
+            variant.model_cls(str(getattr(variant, attr))),
+            image,
+            runs,
+            runs // 10 if warmup is None else warmup,
+            imgsz=imgsz,
+            **{"device": device, **extra},
         )
         for fmt, (attr, extra, runs) in (formats or TIMED_FORMATS).items()
     }
 
 
-def summarize_rounds(per_round, variants, baselines, session, imgsz):
+def summarize_rounds(per_round, variants, baselines, session, imgsz, warmup):
     """Reduce per-round records to one row per variant and format, with paired deltas against the variant's baseline."""
     series = {}
     for record in per_round:  # one list per variant and format, in round order, so zip() pairs them correctly
@@ -315,6 +344,9 @@ def summarize_rounds(per_round, variants, baselines, session, imgsz):
                     "engine": variant.engine.name,
                     "weights_state": variant.weights_state,
                     "timer": TIMER,
+                    # Beside timer because both name the cohort a row belongs to, and unlike runs and rounds this
+                    # one varies per invocation, so a row cannot be placed without it. Resolved, not the override.
+                    "warmup": TIMED_FORMATS[fmt][2] // 10 if warmup is None else warmup,
                 }
             )
     return rows
@@ -328,7 +360,7 @@ def write_csv(path, rows):
         writer.writerows(rows)
 
 
-def run_benchmark(variants, baselines, out_csv, session, imgsz, device="0"):
+def run_benchmark(variants, baselines, out_csv, session, imgsz, device="0", warmup=None):
     """Run ROUNDS order-balanced rounds over every variant and write the summary, per-round and provenance files.
 
     Args:
@@ -341,6 +373,8 @@ def run_benchmark(variants, baselines, out_csv, session, imgsz, device="0"):
             the same one. Chaining across sessions needs a bridge arm present in both.
         imgsz (int): Square input size, which must match the size the artifacts were exported at.
         device (str): CUDA device index passed to the predictor.
+        warmup (int, optional): Untimed calls before each timed block, overriding the tenth-of-runs default. Rows
+            measured under an override are exploratory and must not be ingested against the standard cohort.
     """
     out_csv = Path(out_csv)
     image = np.zeros((imgsz, imgsz, 3), dtype=np.uint8)
@@ -349,7 +383,7 @@ def run_benchmark(variants, baselines, out_csv, session, imgsz, device="0"):
     per_round = []
     for rnd in range(ROUNDS):
         for variant in variants if rnd % 2 == 0 else variants[::-1]:
-            timings = profile_variant(variant, image, imgsz, device)
+            timings = profile_variant(variant, image, imgsz, device, warmup=warmup)
             per_round.append(
                 {
                     "round": rnd,
@@ -360,10 +394,10 @@ def run_benchmark(variants, baselines, out_csv, session, imgsz, device="0"):
             summary = " ".join(f"{f}={timings[f]['inf']:7.3f}" for f in TIMED_FORMATS)
             print(f"  round {rnd + 1}/{ROUNDS} {variant.name:<24} {summary}", flush=True)
 
-    rows = summarize_rounds(per_round, variants, baselines, session, imgsz)
+    rows = summarize_rounds(per_round, variants, baselines, session, imgsz, warmup)
     write_csv(out_csv, rows)
     write_csv(out_csv.with_suffix(".rounds.csv"), per_round)
-    out_csv.with_suffix(".env.json").write_text(json.dumps(env_info(imgsz, variants), indent=2))
+    out_csv.with_suffix(".env.json").write_text(json.dumps(env_info(imgsz, variants, warmup), indent=2))
 
     # Export health, once per variant and outside the rounds so it cannot preheat the card for the timed format.
     print("\n=== other formats, one pass, not paired", flush=True)

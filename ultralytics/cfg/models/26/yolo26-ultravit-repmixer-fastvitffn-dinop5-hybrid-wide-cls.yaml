@@ -1,12 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Lane A classifier for the DINO-P5 backbone, depth-hybrid scaling. Rows 0-8 match
-# yolo26-ultravit-repmixer-fastvitffn-dinop5-hybrid-s640.yaml, its detector twin.
-# One P5 attention block at n and s where a single block is fastest, two at m and l and three at x. Every scale
-# resolves to a trunk already measured faster than both the conv and yolo27 baselines. l keeps the wider P5 from
-# the l640 retune, taken through max_channels rather than width, which would scale the neck and head too.
-# n caps at 1024 so head_dim 64 divides its P5. The raw P5 arg is 1280 and every scale but s caps below it,
-# so raising s to max_channels 1280 widens s P5 from 576 to 640 and leaves the other four scales untouched.
+# yolo26-ultravit-repmixer-fastvitffn-dinop5-hybrid-wide.yaml, its detector twin.
+# The capacity sibling of yolo26-ultravit-repmixer-fastvitffn-dinop5-hybrid.yaml, spending the
+# latency margin both baselines leave at s and l. Only those two scales differ: the raw P5 arg rises to 1280, s
+# caps at 1280 for a P5 of 640 rather than 576, and l caps at 768 rather than 640. n, m and x cap below either way
+# and resolve to the plain hybrid's measured graphs. 704 and 832 are unavailable at l, the head's attention C3k2
+# needs a multiple of 128. Neither widened cell is measured yet.
 
 nc: 1000
 
@@ -17,7 +17,7 @@ scales:
   n: [0.18, 0.25, 1024]
   s: [0.18, 0.50, 1280]
   m: [0.25, 1.00, 512]
-  l: [0.24, 1.00, 640]
+  l: [0.24, 1.00, 768]
   x: [0.35, 1.50, 512]
 
 backbone:

@@ -152,6 +152,14 @@ class YOLODataset(BaseDataset):
         self.label_files = img2label_paths(self.im_files)
         return self.label_files
 
+    def get_cache_suffix(self) -> str:
+        """Return the label cache file suffix, letting subclasses key the cache on their own settings.
+
+        Returns:
+            (str): Cache file suffix (e.g., '.cache').
+        """
+        return ".cache"
+
     def get_cache_hash(self) -> str:
         """Return the hash used to validate a label cache against the current dataset files.
 
@@ -276,7 +284,7 @@ class YOLODataset(BaseDataset):
             (list[dict]): List of label dictionaries, each containing information about an image and its annotations.
         """
         label_files = self.get_label_files()
-        cache_path = Path(label_files[0]).parent.with_suffix(".cache")
+        cache_path = Path(label_files[0]).parent.with_suffix(self.get_cache_suffix())
         cache, exists = self._load_or_scan_cache(cache_path, self.get_cache_hash())
 
         # Display cache
@@ -1318,3 +1326,117 @@ class ClassificationDataset:
             x["msgs"] = msgs  # warnings
             save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
             return samples
+
+
+class VisualPromptDataset(YOLODataset):
+    """Dataset that samples N reference images per class for visual prompt embedding extraction.
+
+    Unlike the standard YOLODataset which loads every image, this dataset picks `num_shot` images per class from the
+    reference (train) split and caches only those. It is used to build the visual prompt embeddings a YOLOE model is
+    validated with, so evaluation reads the reference data instead of reusing the validation dataloader.
+
+    Attributes:
+        num_shot (int): Number of reference images sampled per class.
+
+    Methods:
+        get_cache_suffix: Return a cache suffix that encodes num_shot so different shot counts do not collide.
+        cache_labels: Sample num_shot images per class from the reference split and cache their labels.
+    """
+
+    def __init__(self, *args, num_shot: int = 16, **kwargs):
+        """Initialize the VisualPromptDataset.
+
+        Args:
+            num_shot (int): Number of reference images sampled per class. Default is 16.
+            *args (Any): Additional positional arguments for the parent class.
+            **kwargs (Any): Additional keyword arguments for the parent class.
+        """
+        self.num_shot = num_shot
+        super().__init__(*args, **kwargs)
+
+    def get_cache_suffix(self) -> str:
+        """Return a cache suffix keyed on num_shot (e.g., '.vps16.cache')."""
+        return f".vps{self.num_shot}.cache"
+
+    def cache_labels(self, path: Path = Path("./labels.cache")) -> dict:
+        """Sample num_shot images per class from the reference split and cache their labels.
+
+        Args:
+            path (Path): Path where to save the cache file.
+
+        Returns:
+            (dict): Dictionary containing sampled labels and cache metadata.
+        """
+        import random
+
+        # Optionally follow a train.txt ordering for reproducibility with the generation script
+        stem_to_label = {Path(f).stem: f for f in self.label_files}
+        files_to_process = self.label_files
+        candidates = [Path(self.label_files[0]).parents[i] / "train.txt" for i in range(3, 0, -1)]
+        candidates.append(Path("../datasets/lvis/train.txt"))
+        train_txt = next((p for p in candidates if p.exists()), None)
+        if train_txt:
+            LOGGER.info(f"{self.prefix}Syncing with {train_txt}...")
+            with open(train_txt) as f:
+                stems = (Path(line.strip()).stem for line in f)
+                ordered = [stem_to_label[s] for s in stems if s in stem_to_label]
+            if ordered:
+                files_to_process = ordered
+
+        # Build class -> image and image -> labels mappings
+        cls_file_map, file_label_map = defaultdict(list), {}
+        for label_file in TQDM(files_to_process, desc=f"{self.prefix}Reading labels...", total=len(files_to_process)):
+            if not Path(label_file).exists():
+                continue
+            with open(label_file) as f:
+                labels = f.readlines()
+            if not labels:
+                continue
+            im_file = label_file.replace("/labels/", "/images/").replace(".txt", ".jpg")
+            for c in sorted({int(line.split()[0]) for line in labels}):
+                cls_file_map[c].append(im_file)
+            file_label_map[im_file] = labels
+
+        # Sample num_shot images per class
+        LOGGER.info(f"{self.prefix}Sampling {self.num_shot} images per class...")
+        random.seed(0)
+        cls_sample = {c: random.sample(files, k=min(self.num_shot, len(files))) for c, files in cls_file_map.items()}
+
+        # Read the sampled images and keep only the labels of the sampled class
+        x, nf, ne, nc, msgs = {"labels": []}, 0, 0, 0, []
+        for c, files in TQDM(cls_sample.items(), desc=f"{self.prefix}Processing samples...", total=len(cls_sample)):
+            for im_file in files:
+                valid = [line for line in file_label_map[im_file] if int(line.split()[0]) == c]
+                lb = [list(map(float, line.strip().split()[:5])) for line in valid if len(line.strip().split()) >= 5]
+                if not lb:
+                    ne += 1
+                    continue
+                im = cv2.imread(im_file)
+                if im is None:
+                    nc += 1
+                    continue
+                nf += 1
+                lb = np.array(lb, dtype=np.float32)
+                x["labels"].append(
+                    {
+                        "im_file": im_file,
+                        "shape": im.shape[:2],
+                        "cls": lb[:, 0:1],
+                        "bboxes": lb[:, 1:],
+                        "segments": [],
+                        "keypoints": None,
+                        "normalized": True,
+                        "bbox_format": "xywh",
+                    }
+                )
+
+        if nf == 0:
+            LOGGER.warning(f"{self.prefix}No labels found in {path}. {HELP_URL}")
+        LOGGER.info(f"{self.prefix}Visual prompt sampling complete: {nf} images, {ne} empty, {nc} corrupt")
+
+        x["hash"] = self.get_cache_hash()
+        x["results"] = nf, 0, ne, nc, len(self.im_files)
+        x["msgs"] = msgs
+        if x["labels"]:
+            save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
+        return x

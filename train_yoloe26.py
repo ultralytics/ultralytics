@@ -410,7 +410,7 @@ train_args=dict( data=data,
     weight_decay=args.weight_decay,
     single_cls=single_cls, # for YOLOEPEFreeTrainer
     freeze=freeze, # for YOLOEVPTrainer
-    # refer_data=refer_data, # for YOLOEVPTrainer)
+    refer_data=refer_data, # for YOLOEVPTrainer
     save_json=args.save_json,
     )
 

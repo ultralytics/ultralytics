@@ -9,15 +9,15 @@ from typing import Any
 import torch
 from torch.nn import functional as F
 
-from ultralytics.data import YOLOConcatDataset, build_dataloader, build_yolo_dataset
+from ultralytics.data import VisualPromptDataset, YOLOConcatDataset, build_dataloader, build_yolo_dataset
 from ultralytics.data.augment import LoadVisualPrompt
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.models.yolo.segment import SegmentationValidator
 from ultralytics.nn.modules.head import YOLOEDetect
 from ultralytics.nn.tasks import YOLOEModel
-from ultralytics.utils import LOGGER, TQDM
-from ultralytics.utils.torch_utils import select_device, smart_inference_mode
+from ultralytics.utils import LOGGER, TQDM, colorstr
+from ultralytics.utils.torch_utils import select_device, smart_inference_mode, unwrap_model
 
 
 class YOLOEDetectValidator(DetectionValidator):
@@ -204,6 +204,108 @@ class YOLOEDetectValidator(DetectionValidator):
                 tpe = model.get_text_pe(names)
                 model.set_classes(names, tpe)
                 stats = super().__call__(model=deepcopy(model))
+        return stats
+
+
+class YOLOEDetectVpValidator(YOLOEDetectValidator):
+    """YOLOE detection validator that always evaluates with visual prompts extracted from reference data.
+
+    During training the base validator reuses its own validation dataloader (or falls back to text prompts) to build
+    visual prompt embeddings, so it never reads a separate reference set. This subclass instead samples reference images
+    per class with `VisualPromptDataset` and extracts the visual prompt embeddings from them, giving a correct
+    visual-prompt evaluation both during training and standalone.
+    """
+
+    def get_vpe_dataloader(self, data: dict[str, Any]) -> torch.utils.data.DataLoader:
+        """Build a dataloader over reference images sampled per class for visual prompt embedding extraction.
+
+        Args:
+            data (dict): Dataset configuration dictionary; reference images are read from its ``train`` split.
+
+        Returns:
+            (torch.utils.data.DataLoader): Dataloader yielding reference samples with visual prompts.
+        """
+        dataset = VisualPromptDataset(
+            img_path=data["train"],
+            imgsz=self.args.imgsz,
+            batch_size=self.args.batch,
+            augment=False,
+            hyp=self.args,
+            rect=False,
+            cache=self.args.cache or None,
+            single_cls=False,
+            stride=int(self.stride),
+            pad=0.0,
+            prefix=colorstr("vpe: "),
+            task=self.args.task,
+            classes=self.args.classes,
+            data=data,
+            fraction=1.0,
+            num_shot=16,
+        )
+        dataset.transforms.append(LoadVisualPrompt())
+        return build_dataloader(
+            dataset,
+            self.args.batch,
+            self.args.workers,
+            shuffle=False,
+            rank=-1,
+        )
+
+    @smart_inference_mode()
+    def __call__(
+        self,
+        trainer: Any | None = None,
+        model: YOLOEModel | str | None = None,
+        vp_weight: float = 1.0,
+    ) -> dict[str, Any]:
+        """Run validation using visual prompt embeddings extracted from the reference dataset.
+
+        Args:
+            trainer (object, optional): Trainer object containing the model and device. When provided, visual prompts
+                are built from ``args.refer_data`` if set, otherwise from the validation dataset YAML's train split.
+            model (YOLOEModel | str, optional): Model to validate or path to model weights. Required if trainer is None.
+            vp_weight (float): Weight for combining visual and text embeddings as ``vpe * w + tpe * (1 - w)``.
+                Default 1.0 uses pure visual prompts.
+
+        Returns:
+            (dict): Validation statistics including mAP, precision and recall.
+        """
+        if trainer is not None:
+            self.device = trainer.device
+            model = trainer.ema.ema
+            # Prefer an explicit reference dataset; fall back to the validation split's train images.
+            data = check_det_dataset(self.args.refer_data or self.args.data["val"]["yolo_data"][0])
+        else:
+            self.device = select_device(self.args.device, verbose=False)
+            if isinstance(model, (str, Path)):
+                from ultralytics.nn.tasks import load_checkpoint
+
+                model, _ = load_checkpoint(model, device=self.device)  # model, ckpt
+            model.eval().to(self.device)
+            data = check_det_dataset(self.args.refer_data or self.args.data)
+
+        self.stride = max(int(unwrap_model(model).stride.max() if model else 0), 32)
+
+        LOGGER.info("Validate using the visual prompt.")
+        if vp_weight < 1.0:
+            LOGGER.info(f"Using vp_weight {vp_weight} to combine visual and text prompt embeddings.")
+
+        self.args.half = False  # force float32 for stable visual prompt extraction
+        names = [name.split("/", 1)[0] for name in list(data["names"].values())]
+
+        dataloader = self.get_vpe_dataloader(data)
+        vpe = self.get_visual_pe(dataloader, model)
+
+        if vp_weight < 1.0:
+            vpe = vpe * vp_weight + (1.0 - vp_weight) * model.get_text_pe(names)
+
+        model.set_classes(names, vpe)
+
+        if trainer is not None:
+            stats = DetectionValidator.__call__(self, trainer, model)
+        else:
+            stats = DetectionValidator.__call__(self, model=model)
         return stats
 
 

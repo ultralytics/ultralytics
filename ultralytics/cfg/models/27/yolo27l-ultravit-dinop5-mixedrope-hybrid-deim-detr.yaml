@@ -6,7 +6,7 @@
 
 nc: 80
 scales:
-  l: [1.0, 1.0, 640]
+  l: [1.0, 1.0, 768]
 scale_args:
   l: {ndl: 4}
 backbone:
@@ -17,7 +17,7 @@ backbone:
 - [-1, 1, RepUltraViTBlock, [3, true, 1.0e-05, true]]
 - [-1, 1, Conv, [384, 3, 2]]
 - [-1, 5, RepUltraViTBlock, [3, true, 1.0e-05, true]]
-- [-1, 1, Conv, [640, 3, 2]]
+- [-1, 1, Conv, [768, 3, 2]]
 - [-1, 2, MixedRoPE2D, [0, 4, true, 1.0e-05, false, 64, true, true, true, 4]]
 head:
 - [-1, 1, nn.Upsample, [None, 2, nearest]]

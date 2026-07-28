@@ -88,16 +88,10 @@ ARMS = {
     "dinop5-l640": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-l640.yaml", "nl"),
     "dinop5-mixedrope-l640": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-l640.yaml", "nl"),
     "dinop5-depthmatched-l640": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-depthmatched-l640.yaml", "nsl"),
-    # The shipping pair, one P5 attention block at n and s and more from m upward. The non-RoPE one is absent at x
-    # because its x trunk is dinop5-depthmatched's, already an arm here, so a second yaml would be the same graph
-    # under a name that misses its cached engine. The RoPE one is a graph of its own, hand derived off the 27-row
-    # vit-detr trunk that gen_lane_b.py cannot remap by row position.
+    # The shipping pair, one P5 block at n and s, more from m up. dinop5-hybrid stops at l because its x graph is
+    # dinop5-depthmatched's, already an arm. The RoPE x arm is hand written, gen_lane_b.py cannot remap vit-detr.
     "dinop5-hybrid": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-hybrid.yaml", "nsml"),
     "dinop5-mixedrope-hybrid": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-hybrid.yaml", "nsmlx"),
-    # s and l only, spending the latency margin both baselines leave there on P5 width: s 576 to 640, l 640 to 768.
-    # A capacity test at two scales rather than a new family, since n, m and x resolve to the plain hybrid.
-    "dinop5-hybrid-wide": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-hybrid-wide.yaml", "sl"),
-    "dinop5-mixedrope-hybrid-wide": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-hybrid-wide.yaml", "sl"),
 }
 
 lane, scale, session, only, warmup = parse_session(sys.argv[1:])

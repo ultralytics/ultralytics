@@ -263,7 +263,7 @@ class Annotator:
     """Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
 
     Attributes:
-        im (Image.Image | np.ndarray): The image to annotate.
+        im (Image.Image | np.ndarray | torch.Tensor): The image to annotate.
         pil (bool): Whether to use PIL or cv2 for drawing annotations.
         font (ImageFont.truetype | ImageFont.load_default): Font used for text annotations.
         lw (int): Line width for drawing.
@@ -292,8 +292,16 @@ class Annotator:
         """Initialize the Annotator class with image and line width along with color palette for keypoints and limbs."""
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
         input_is_pil = isinstance(im, Image.Image)
+        input_is_tensor = isinstance(im, torch.Tensor)
         self.pil = pil or non_ascii or input_is_pil
         self.lw = line_width or max(round(sum(im.size if input_is_pil else im.shape) / 2 * 0.003), 2)
+        if input_is_tensor:
+            assert im.ndim == 3 and im.shape[2] == 3 and im.dtype == torch.uint8, (
+                f"Expected HWC uint8 tensor image with 3 channels, but got shape {tuple(im.shape)} and dtype {im.dtype}."
+            )
+        if input_is_tensor and self.pil:
+            im = im.cpu().numpy()
+            input_is_tensor = False
         if not input_is_pil:
             if im.shape[2] == 1:  # handle grayscale
                 im = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
@@ -316,8 +324,10 @@ class Annotator:
             if check_version(pil_version, "9.2.0"):
                 self.font.getsize = lambda x: self.font.getbbox(x)[2:4]  # text width, height
         else:  # use cv2
-            assert im.data.contiguous, "Image not contiguous. Apply np.ascontiguousarray(im) to Annotator input images."
-            self.im = im if im.flags.writeable else im.copy()
+            assert im.is_contiguous() if input_is_tensor else im.data.contiguous, (
+                "Image not contiguous. Apply contiguous() or np.ascontiguousarray(im) to Annotator input images."
+            )
+            self.im = im if input_is_tensor or im.flags.writeable else im.copy()
             self.tf = max(self.lw - 1, 1)  # font thickness
             self.sf = self.lw / 3  # font scale
         # Pose
@@ -408,6 +418,7 @@ class Annotator:
             >>> annotator = Annotator(im0, line_width=10)
             >>> annotator.box_label(box=[10, 20, 30, 40], label="person")
         """
+        self._to_numpy()
         txt_color = self.get_txt_color(color, txt_color)
         if isinstance(box, (torch.Tensor, np.ndarray)):
             box = box.tolist()
@@ -466,23 +477,28 @@ class Annotator:
             # Convert to numpy first
             self.im = np.asarray(self.im).copy()
         if isinstance(masks, np.ndarray):
+            self._to_numpy()
             overlay = self.im.copy()
             for i, mask in enumerate(masks):
                 overlay[mask.astype(bool)] = colors[i]
             self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
         elif len(masks):
             # Use scale_masks to properly remove padding and upsample, convert bool to float first
-            masks = ops.scale_masks(masks[None].float(), self.im.shape[:2])[0] > 0.5
-            colors = torch.tensor(colors, device=masks.device, dtype=torch.float32) / 255.0  # shape(n,3)
+            tensor_image = isinstance(self.im, torch.Tensor)
+            device = self.im.device if tensor_image else masks.device
+            masks = ops.scale_masks(masks[None].to(device).float(), self.im.shape[:2])[0] > 0.5
+            colors = torch.tensor(colors, device=device, dtype=torch.float32) / 255.0  # shape(n,3)
             colors = colors[:, None, None]  # shape(n,1,1,3)
             masks = masks.unsqueeze(3)  # shape(n,h,w,1)
             # prod/amax rather than cumprod[-1]/max().values: same result without the (n,h,w,*) intermediates
             mcs = (masks * (colors * alpha)).amax(0)  # shape(h,w,3)
             inv_alpha_masks = (1 - masks * alpha).prod(0)  # shape(h,w,1)
-            im = torch.from_numpy(self.im).to(masks.device).float() / 255.0  # shape(h,w,3), BGR to match colors
-            self.im[:] = ((im * inv_alpha_masks + mcs) * 255).byte().cpu().numpy()
+            im = self.im.float() / 255.0 if tensor_image else torch.from_numpy(self.im).to(device).float() / 255.0
+            im = ((im * inv_alpha_masks + mcs) * 255).byte()
+            self.im[:] = im if tensor_image else im.cpu().numpy()
         if self.pil:
             # Convert im back to PIL and update draw
+            self._to_numpy()
             self.fromarray(self.im)
 
     def semantic_mask(self, mask, alpha: float = 0.5, ignore_index: int = 255):
@@ -493,6 +509,7 @@ class Annotator:
             alpha (float, optional): Mask transparency: 0.0 fully transparent, 1.0 opaque.
             ignore_index (int, optional): Class index to ignore (e.g., 255 for void/ignore).
         """
+        self._to_numpy()
         if self.pil:
             # Convert to numpy first
             self.im = np.asarray(self.im).copy()
@@ -521,6 +538,7 @@ class Annotator:
             cmap (str): Colormap, one of "inferno", "jet", "spectral". See `colorize_depth`.
             mode (str): "metric" or "disparity" normalization. See `colorize_depth`.
         """
+        self._to_numpy()
         if self.pil:
             self.im = np.asarray(self.im).copy()
         heat = colorize_depth(depth, cmap=cmap, mode=mode)  # BGR, matching the Annotator buffer convention
@@ -555,6 +573,7 @@ class Annotator:
             - If self.pil is True, converts image to numpy array and back to PIL.
         """
         radius = radius if radius is not None else self.lw
+        self._to_numpy()
         if self.pil:
             # Convert to numpy first
             self.im = np.asarray(self.im).copy()
@@ -611,6 +630,7 @@ class Annotator:
             anchor (str, optional): Text anchor position ('top' or 'bottom').
             box_color (tuple, optional): Box background color with optional alpha.
         """
+        self._to_numpy()
         if self.pil:
             w, h = self.font.getsize(text)
             if anchor == "bottom":  # start y from font bottom
@@ -636,13 +656,20 @@ class Annotator:
         self.im = im if isinstance(im, Image.Image) else Image.fromarray(im)
         self.draw = ImageDraw.Draw(self.im)
 
+    def _to_numpy(self):
+        """Move a tensor image to CPU only when a CPU drawing operation requires it."""
+        if isinstance(self.im, torch.Tensor):
+            self.im = self.im.cpu().numpy()
+
     def result(self, pil=False):
         """Return annotated image as array or PIL image."""
+        self._to_numpy()
         im = np.asarray(self.im)  # self.im is in BGR
         return Image.fromarray(im[..., ::-1]) if pil else im
 
     def show(self, title: str | None = None):
         """Show the annotated image."""
+        self._to_numpy()
         im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert BGR NumPy array to RGB PIL Image
         if IS_COLAB or IS_KAGGLE:  # cannot use IS_JUPYTER as it runs for all IPython environments
             try:
@@ -654,6 +681,7 @@ class Annotator:
 
     def save(self, filename: str = "image.jpg"):
         """Save the annotated image to 'filename'."""
+        self._to_numpy()
         cv2.imwrite(filename, np.asarray(self.im))
 
     @staticmethod

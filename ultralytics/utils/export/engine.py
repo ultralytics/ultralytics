@@ -6,6 +6,7 @@ import json
 import types
 from pathlib import Path
 
+import numpy as np
 import torch
 
 from ultralytics.utils import IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, is_dgx, is_jetson
@@ -164,8 +165,6 @@ def modelopt_quantize_onnx(
     # Synthetic calibration input matching the ONNX input's real rank and dtype. AutoCast only needs
     # representative shapes and ranges, so fit the image sized `shape` to the input rank; this keeps the
     # 4D float image path unchanged while giving non image inputs (e.g. 2D int token ids) a valid tensor.
-    import numpy as np
-
     tt = input_proto.type.tensor_type
     rank = len(tt.shape.dim)
     np_dtype = onnx.helper.tensor_dtype_to_np_dtype(tt.elem_type)

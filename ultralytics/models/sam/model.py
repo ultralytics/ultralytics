@@ -137,11 +137,14 @@ class SAM(Model):
     def export(self, **kwargs):
         """Export SAM3 model to ONNX or TensorRT format.
 
-        For SAM3 models, this exports 3 separate files (image encoder, language encoder, decoder)
-        into a directory. Other SAM variants are not currently supported for export.
+        Writes four to six module files into a directory next to the checkpoint, named
+        ``<stem>_onnx`` or ``<stem>_engine``: vision encoder, text encoder, decoder, and a
+        geometry free text decoder, plus a prompt encoder and mask decoder when the checkpoint
+        carries interactive weights. The directory suffix is what selects the inference backend,
+        so keep it when moving the directory. Other SAM variants are not supported for export.
 
         Args:
-            **kwargs: Export arguments. Key options:
+            **kwargs (Any): Export arguments. Key options:
                 format (str): ``"onnx"`` or ``"engine"`` (TensorRT).
                 imgsz (int): Image size (must be divisible by 14). Default 1008.
                 half (bool): FP16 export. For TRT, enables mixed precision.
@@ -152,10 +155,11 @@ class SAM(Model):
             (str): Path to the output directory.
 
         Examples:
-            >>> from ultralytics import SAM
-            >>> model = SAM("sam3.pt")
-            >>> model.export(format="onnx", imgsz=644)
-            >>> model.export(format="engine", imgsz=644, half=True)
+            Export a SAM3 checkpoint to ONNX, then to TensorRT engines::
+
+                model = SAM("sam3.pt")
+                model.export(format="onnx", imgsz=1008)
+                model.export(format="engine", imgsz=1008, half=True)
         """
         if not self.is_sam3:
             raise NotImplementedError("Export is only supported for SAM3 models.")

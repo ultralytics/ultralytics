@@ -2,10 +2,12 @@
 
 """SAM3 ONNX/TensorRT export pipeline.
 
-Exports SAM3SemanticModel as 3 separate ONNX modules:
-  1. Vision Encoder  - ViT backbone + FPN neck
+Exports SAM3SemanticModel as four to six separate ONNX modules:
+  1. Vision Encoder  - ViT backbone + FPN neck, plus the SAM2 neck when interactive weights are present
   2. Text Encoder    - CLIP text encoder + projection to 256-dim
-  3. Decoder         - DETR encoder-decoder + mask heads
+  3. Decoder         - DETR encoder-decoder + mask heads, with the geometry encoder folded in
+  4. Text Decoder    - the same graph without geometry, so a text only prompt carries no ignored box
+  5. Prompt Encoder and 6. Mask Decoder - point prompts, exported only when interactive weights load
 
 TensorRT FP16 compatibility fixes applied during export:
   - ViT attention: separate Q/K/V projections, SDPA with pre-computed scale,
@@ -25,7 +27,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ultralytics.utils import LOGGER
-
 
 # ---------------------------------------------------------------------------
 # TRT-compatible sine position encoding
@@ -259,6 +260,7 @@ class SAM3VisionEncoderONNX(nn.Module):
     """
 
     def __init__(self, model, imgsz=1008, sam2_convs=None):
+        """Wrap the vision backbone, tracing at ``imgsz`` and optionally emitting the SAM2 neck."""
         super().__init__()
         neck = model.backbone.vision_backbone
         trunk = neck.trunk
@@ -367,6 +369,7 @@ class SAM3TextEncoderONNX(nn.Module):
     """ONNX wrapper for SAM3 text encoder (CLIP encoder + projection to 256-dim)."""
 
     def __init__(self, model):
+        """Wrap the language backbone of ``model``."""
         super().__init__()
         self.language_backbone = model.backbone.language_backbone
 
@@ -402,11 +405,11 @@ class SAM3PromptEncoderONNX(nn.Module):
     """
 
     def __init__(self, tracker_model):
+        """Wrap the interactive prompt encoder of ``tracker_model``."""
         super().__init__()
         pe = tracker_model.sam_prompt_encoder
         self.pe_layer = pe.pe_layer
         self.input_image_size = pe.input_image_size
-        self.embed_dim = pe.embed_dim
         self.image_embedding_size = pe.image_embedding_size
 
         # Copy label embedding weights
@@ -417,7 +420,8 @@ class SAM3PromptEncoderONNX(nn.Module):
         self.register_buffer("dense_pe", pe.get_dense_pe())
 
     def forward(self, point_coords: torch.Tensor, point_labels: torch.Tensor):
-        B, N, _ = point_coords.shape
+        """Embed point prompts into sparse and dense embeddings plus the dense positional encoding."""
+        B, _, _ = point_coords.shape
 
         # Add padding point (label=-1) at the end — same as original with pad=True
         pad_coords = torch.zeros(B, 1, 2, dtype=point_coords.dtype, device=point_coords.device)
@@ -473,6 +477,7 @@ class SAM3MaskDecoderONNX(nn.Module):
     """
 
     def __init__(self, tracker_model, multimask_output=False):
+        """Wrap the interactive mask decoder of ``tracker_model``."""
         super().__init__()
         self.mask_decoder = tracker_model.sam_mask_decoder
         # conv_s0 (256→32) and conv_s1 (256→64) project raw FPN features
@@ -499,6 +504,7 @@ class SAM3MaskDecoderONNX(nn.Module):
         high_res_feat_0: torch.Tensor,
         high_res_feat_1: torch.Tensor,
     ):
+        """Decode point prompts into masks and IoU scores from the SAM2 neck features."""
         # Add no_mem_embed bias (matches PyTorch: vision_feats[-1] + no_mem_embed)
         image_embeddings = image_embeddings + self.no_mem_embed
 
@@ -542,6 +548,7 @@ class SAM3DecoderONNX(nn.Module):
     """
 
     def __init__(self, model, with_geometry: bool = True):
+        """Wrap the DETR decoder, tracing the geometry encoder only when ``with_geometry``."""
         super().__init__()
         self.model = model
         self.with_geometry = with_geometry
@@ -738,7 +745,7 @@ def export_sam3_onnx(
     imgsz: int = 1008,
     prefix: str = "SAM3 ONNX:",
 ) -> list[str]:
-    """Export SAM3SemanticModel as 3 ONNX files from a .pt checkpoint.
+    """Export SAM3SemanticModel as separate ONNX files from a .pt checkpoint.
 
     Args:
         checkpoint_path: Path to SAM3 checkpoint (.pt).
@@ -750,7 +757,7 @@ def export_sam3_onnx(
         prefix: Log prefix.
 
     Returns:
-        List of 3 ONNX file paths.
+        (list[str]): Exported ONNX file paths, four without the point prompt modules and six with.
     """
     from ultralytics.models.sam.build_sam3 import build_sam3_image_model
     from ultralytics.utils.checks import check_requirements
@@ -979,7 +986,7 @@ def export_sam3_engine(
         prefix: Log prefix.
 
     Returns:
-        List of 3 engine file paths.
+        (list[str]): Built TensorRT engine file paths, one per exported ONNX module.
     """
     from ultralytics.utils.checks import check_requirements
     from ultralytics.utils.export.engine import onnx2engine
@@ -1019,7 +1026,7 @@ def export_sam3_engine(
         dims = model_onnx.graph.input[0].type.tensor_type.shape.dim
         input_shape = tuple(d.dim_value if d.dim_value > 0 else 1 for d in dims)
         while len(input_shape) < 4:
-            input_shape = input_shape + (1,)
+            input_shape = (*input_shape, 1)
         input_shape = input_shape[:4]
 
         engine_file = str(engine_dir / onnx_file.name.replace(".onnx", ".engine"))

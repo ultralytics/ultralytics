@@ -2416,13 +2416,13 @@ class SAM3SemanticPredictor(SAM3Predictor):
           negative point is meaningless on its own).
 
         Args:
-            im: Preprocessed image tensor.
-            features: Vision encoder output from forward_image.
-            points: Point coordinates [N, 2] or [num_obj, num_pts, 2] in original-image pixels.
-            labels: Point labels, 1=foreground, 0=background. None defaults to all-foreground.
+            im (torch.Tensor): Preprocessed image tensor.
+            features (dict): Vision encoder output from forward_image.
+            points (np.ndarray | list): Point coordinates [N, 2] or [num_obj, num_pts, 2] in original-image pixels.
+            labels (np.ndarray | list | None): Point labels, 1=foreground, 0=background. None means all-foreground.
 
         Returns:
-            dict with "_point_mode" flag, masks, and iou_scores for postprocess.
+            (dict): The "_point_mode" flag, masks, and iou_scores for postprocess.
         """
         points = torch.as_tensor(points, dtype=self.torch_dtype, device=self.device)
         if points.ndim == 1:

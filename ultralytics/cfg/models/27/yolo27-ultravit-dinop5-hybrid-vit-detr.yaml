@@ -2,8 +2,9 @@
 
 # Lane B arm: yolo27-vit-detr with its trunk replaced by the one from yolo26-ultravit-repmixer-fastvitffn-
 # dinop5-hybrid, which at x is the same three-block trunk dinop5-depthmatched has, so this file is that graph under
-# the shipping name and t4_bench.py stops the arm at l rather than timing one graph twice. Hand derived rather than
-# generated, since bench/gen_lane_b.py cannot remap this baseline's 27-row dual-branch trunk by row position.
+# the shipping name and t4_bench.py benches the arm at n, s and l alone rather than timing one graph under two
+# names. Hand derived rather than generated, since bench/gen_lane_b.py cannot remap this baseline's 27-row
+# dual-branch trunk by row position.
 # Neck, decoder and scale_args are the baseline's, and the trunk's repeats and Conv channels are pre-divided against
 # this family's multipliers. Its three input projections are the Conv form rather than the baseline's nn.Identity,
 # which assumes a 256-channel trunk this one is not, so what it measures is the trunk plus the projections its widths

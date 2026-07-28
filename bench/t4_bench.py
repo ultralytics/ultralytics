@@ -15,8 +15,8 @@ new yaml costs three measurements rather than a rerun of the scale.
 Scale comes from the filename, and a scale-less stem silently resolves to the first scales key, so every entry has
 its size letter substituted in. Arms absent at a scale are simply not in that session. Both lanes now draw from one
 arm table, so a full Lane B session carries every arm its scale has rather than the handful that had a hand-written
-stem: n 6 to 8, s 10 to 14, m and l 9 to 13, and x 17 to 14 as the retired arms go. The added cost is mostly the
-sidecar formats, around 2.5 min a variant against 1.5 for the entire TensorRT pass, so prefer the arm list.
+stem. The added cost is mostly the sidecar formats, around 2.5 min a variant against 1.5 for the entire TensorRT
+pass, so prefer the arm list. The session header prints the count, which drifts as arms retire.
 
 Every arm in a session runs at the baseline's deployed input size, from `IMGSZ` below, since a paired comparison
 only holds at one size. Lane A deploys at 640 throughout, Lane B does not.
@@ -67,9 +67,10 @@ FAMILY = {"n": "detr", "s": "detr", "m": "deim-detr", "l": "deim-detr", "x": "vi
 
 # arm tag -> (Lane A yaml template, scales it exists at). Lane B carries exactly these trunks.
 #
-# Arms retired as obsolete and absent here: fracrope, headdim64, attn2lite, and p4deep, which never had a Lane A
-# trunk to swap in. dinov3splus is absent because it was promoted rather than retired, its ViT and spatial-adapter
-# trunk is what yolo27-vit-detr spells out, so it is the x baseline now.
+# Arms retired as obsolete and absent here: fracrope, headdim64, attn2lite, p4deep, which never had a Lane A trunk
+# to swap in, and the l640 probes for mixedrope and depthmatched, whose winning l cell became the hybrid pair's and
+# which never had a trained run behind them. dinov3splus is absent because it was promoted rather than retired, its
+# ViT and spatial-adapter trunk is what yolo27-vit-detr spells out, so it is the x baseline now.
 ARMS = {
     "attn2": ("yolo26{s}-ultravit-attn2.yaml", "nsmlx"),
     "base": ("yolo26{s}-ultravit.yaml", "nsmlx"),
@@ -86,12 +87,11 @@ ARMS = {
     "p4win": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-p4win.yaml", "x"),
     "s480": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-s480.yaml", "s"),
     "dinop5-l640": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-l640.yaml", "nl"),
-    "dinop5-mixedrope-l640": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-l640.yaml", "nl"),
-    "dinop5-depthmatched-l640": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-depthmatched-l640.yaml", "nsl"),
     # The shipping pair, one yaml each covering n through x. Both x arms are hand written, gen_lane_b.py cannot
-    # remap the 27-row vit-detr trunk by row position. dinop5-hybrid stops at l because its Lane B x graph is
-    # dinop5-depthmatched's, already an arm here, so benching it again would time one graph under two names.
-    "dinop5-hybrid": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-hybrid.yaml", "nsml"),
+    # remap the 27-row vit-detr trunk by row position. dinop5-hybrid is benched at n, s and l, the scales a
+    # hybrid-named measurement exists for. At m and x it shares dinop5-depthmatched's scales row and so builds that
+    # exact graph, and those two deltas carry over rather than being timed under a second name.
+    "dinop5-hybrid": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-hybrid.yaml", "nsl"),
     "dinop5-mixedrope-hybrid": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-hybrid.yaml", "nsmlx"),
 }
 

@@ -68,8 +68,8 @@ FAMILY = {"n": "detr", "s": "detr", "m": "deim-detr", "l": "deim-detr", "x": "vi
 # arm tag -> (Lane A yaml template, scales it exists at). Lane B carries exactly these trunks.
 #
 # Arms retired as obsolete and absent here: fracrope, headdim64, attn2lite, p4deep, which never had a Lane A trunk
-# to swap in, and the l640 probes for mixedrope and depthmatched, whose winning l cell became the hybrid pair's and
-# which never had a trained run behind them. dinov3splus is absent because it was promoted rather than retired, its
+# to swap in, and the whole l640 probe family, whose winning l cell became the hybrid pair's and which never had a
+# trained run behind it. dinov3splus is absent because it was promoted rather than retired, its
 # ViT and spatial-adapter trunk is what yolo27-vit-detr spells out, so it is the x baseline now.
 ARMS = {
     "attn2": ("yolo26{s}-ultravit-attn2.yaml", "nsmlx"),
@@ -86,7 +86,6 @@ ARMS = {
     "mixedrope": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg-mixedrope.yaml", "smlx"),
     "p4win": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-p4win.yaml", "x"),
     "s480": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-s480.yaml", "s"),
-    "dinop5-l640": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-l640.yaml", "nl"),
     # The shipping pair, one yaml each covering n through x. Both x arms are hand written, gen_lane_b.py cannot
     # remap the 27-row vit-detr trunk by row position. dinop5-hybrid is benched at n, s and l, the scales a
     # hybrid-named measurement exists for. At m and x it shares dinop5-depthmatched's scales row and so builds that

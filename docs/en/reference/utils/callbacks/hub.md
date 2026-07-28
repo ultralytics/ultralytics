@@ -30,20 +30,4 @@ keywords: Ultralytics, callbacks, pretrain, model save, train start, train end, 
 
 ## ::: ultralytics.utils.callbacks.hub.on_train_end
 
-<br><br><hr><br>
-
-## ::: ultralytics.utils.callbacks.hub.on_train_start
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.callbacks.hub.on_val_start
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.callbacks.hub.on_predict_start
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.callbacks.hub.on_export_start
-
 <br><br>

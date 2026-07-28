@@ -867,7 +867,7 @@ The `plot()` method supports various arguments to customize the output:
 | `font_size`  | `float`                      | Text font size. Scales with image size if `None`.                          | `None`            |
 | `font`       | `str`                        | Font name for text annotations.                                            | `'Arial.ttf'`     |
 | `pil`        | `bool`                       | Return image as a PIL Image object.                                        | `False`           |
-| `img`        | `np.ndarray \| torch.Tensor` | Alternative image for plotting. Tensor images must be HWC BGR uint8.       | `None`            |
+| `img`        | `np.ndarray \| torch.Tensor` | Alternative image. Tensors must be contiguous HWC BGR uint8.               | `None`            |
 | `kpt_radius` | `int`                        | Radius for drawn keypoints.                                                | `5`               |
 | `kpt_line`   | `bool`                       | Connect keypoints with lines.                                              | `True`            |
 | `labels`     | `bool`                       | Include class labels in annotations.                                       | `True`            |

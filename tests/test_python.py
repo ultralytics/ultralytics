@@ -938,17 +938,18 @@ def test_annotator_depth_map():
 
 
 def test_annotator_tensor_image():
-    """Annotator keeps tensor images on-device through mask compositing and materializes them for CPU drawing."""
+    """Annotator accepts tensor images and matches Results.plot compositing pixels."""
     from ultralytics.engine.results import Results
     from ultralytics.utils.plotting import Annotator
 
-    ann = Annotator(torch.zeros((16, 16, 3), dtype=torch.uint8))
-    ann.masks(torch.ones((1, 16, 16), dtype=torch.bool), [[255, 0, 0]])
-    assert isinstance(ann.im, torch.Tensor)
-    ann.box_label([1, 1, 8, 8])
-    assert isinstance(ann.result(), np.ndarray)
-    result = Results(np.zeros((16, 16, 3), dtype=np.uint8), path="image.jpg", names={}, masks=torch.ones((1, 16, 16)))
-    assert result.plot(img=torch.zeros((16, 16, 3), dtype=torch.uint8), boxes=False).shape == (16, 16, 3)
+    image = torch.zeros((16, 16, 3), dtype=torch.uint8)
+    masks = torch.ones((1, 16, 16), dtype=torch.bool)
+    ann = Annotator(image)
+    ann.masks(masks, [[255, 0, 0]])
+    assert ann.result()[0, 0].tolist() == [127, 0, 0]
+    result = Results(np.zeros((16, 16, 3), dtype=np.uint8), path="image.jpg", names={}, masks=masks)
+    expected = result.plot(img=np.zeros((16, 16, 3), dtype=np.uint8), boxes=False)
+    np.testing.assert_array_equal(result.plot(img=torch.zeros_like(image), boxes=False), expected)
 
 
 def test_results_update_probs():

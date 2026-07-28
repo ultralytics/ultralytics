@@ -262,6 +262,8 @@ def colorize_depth(
 class Annotator:
     """Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
 
+    Tensor images must be contiguous HWC BGR uint8.
+
     Attributes:
         im (Image.Image | np.ndarray | torch.Tensor): The image to annotate.
         pil (bool): Whether to use PIL or cv2 for drawing annotations.
@@ -299,8 +301,8 @@ class Annotator:
             assert im.ndim == 3 and im.shape[2] == 3 and im.dtype == torch.uint8, (
                 f"Expected HWC uint8 tensor image with 3 channels, but got shape {tuple(im.shape)} and dtype {im.dtype}."
             )
-        if input_is_tensor and self.pil:
-            im = im.cpu().numpy()
+            if self.pil or im.device.type == "cpu":
+                im, input_is_tensor = im.cpu().numpy(), False
         if not input_is_pil:
             if im.shape[2] == 1:  # handle grayscale
                 im = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
@@ -492,7 +494,7 @@ class Annotator:
             # prod/amax rather than cumprod[-1]/max().values: same result without the (n,h,w,*) intermediates
             mcs = (masks * (colors * alpha)).amax(0)  # shape(h,w,3)
             inv_alpha_masks = (1 - masks * alpha).prod(0)  # shape(h,w,1)
-            im = self.im.float() / 255.0 if tensor_image else torch.from_numpy(self.im).to(device).float() / 255.0
+            im = (self.im if tensor_image else torch.from_numpy(self.im)).to(device).float() / 255.0
             im = ((im * inv_alpha_masks + mcs) * 255).byte()
             self.im[:] = im if tensor_image else im.cpu().numpy()
         if self.pil:

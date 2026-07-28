@@ -943,12 +943,12 @@ def test_annotator_tensor_image():
     from ultralytics.utils.plotting import Annotator
 
     ann = Annotator(torch.zeros((16, 16, 3), dtype=torch.uint8))
-    ann.masks(np.ones((1, 16, 16), dtype=bool), [[255, 0, 0]])
+    ann.masks(torch.ones((1, 16, 16), dtype=torch.bool), [[255, 0, 0]])
     assert isinstance(ann.im, torch.Tensor)
     ann.box_label([1, 1, 8, 8])
     assert isinstance(ann.result(), np.ndarray)
-    result = Results(torch.zeros((1, 3, 16, 16)), path="image.jpg", names={}, masks=torch.ones((1, 16, 16)))
-    assert result.plot(boxes=False).shape == (16, 16, 3)
+    result = Results(np.zeros((16, 16, 3), dtype=np.uint8), path="image.jpg", names={}, masks=torch.ones((1, 16, 16)))
+    assert result.plot(img=torch.zeros((16, 16, 3), dtype=torch.uint8), boxes=False).shape == (16, 16, 3)
 
 
 def test_results_update_probs():

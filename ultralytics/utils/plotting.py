@@ -475,9 +475,6 @@ class Annotator:
         if self.pil:
             # Convert to numpy first
             self.im = np.asarray(self.im).copy()
-        tensor_image = isinstance(self.im, torch.Tensor)
-        if tensor_image:
-            masks = torch.as_tensor(masks, device=self.im.device)
         if isinstance(masks, np.ndarray):
             self._to_numpy()
             overlay = self.im.copy()
@@ -486,19 +483,20 @@ class Annotator:
             self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
         elif len(masks):
             # Use scale_masks to properly remove padding and upsample, convert bool to float first
-            masks = ops.scale_masks(masks[None].float(), self.im.shape[:2])[0] > 0.5
-            colors = torch.tensor(colors, device=masks.device, dtype=torch.float32) / 255.0  # shape(n,3)
+            tensor_image = isinstance(self.im, torch.Tensor)
+            device = self.im.device if tensor_image else masks.device
+            masks = ops.scale_masks(masks[None].to(device).float(), self.im.shape[:2])[0] > 0.5
+            colors = torch.tensor(colors, device=device, dtype=torch.float32) / 255.0  # shape(n,3)
             colors = colors[:, None, None]  # shape(n,1,1,3)
             masks = masks.unsqueeze(3)  # shape(n,h,w,1)
             # prod/amax rather than cumprod[-1]/max().values: same result without the (n,h,w,*) intermediates
             mcs = (masks * (colors * alpha)).amax(0)  # shape(h,w,3)
             inv_alpha_masks = (1 - masks * alpha).prod(0)  # shape(h,w,1)
-            im = self.im.float() / 255.0 if tensor_image else torch.from_numpy(self.im).to(masks.device).float() / 255.0
+            im = self.im.float() / 255.0 if tensor_image else torch.from_numpy(self.im).to(device).float() / 255.0
             im = ((im * inv_alpha_masks + mcs) * 255).byte()
             self.im[:] = im if tensor_image else im.cpu().numpy()
         if self.pil:
             # Convert im back to PIL and update draw
-            self._to_numpy()
             self.fromarray(self.im)
 
     def semantic_mask(self, mask, alpha: float = 0.5, ignore_index: int = 255):

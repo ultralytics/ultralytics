@@ -1,12 +1,13 @@
-# Ultralytics AGPL-3.0 License - https://ultralytics.com/license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 """SAM3 multi-file inference backend for ONNX and TensorRT.
 
-Supports 3-module architecture: vision encoder, text encoder, decoder.
-I/O matches the export wrappers in ultralytics/utils/export/sam3_onnx.py:
-  - Vision encoder: images → fpn_feat_0/1/2, fpn_pos_2
+Loads four to six modules, matching the export wrappers in ultralytics/utils/export/sam3_onnx.py:
+  - Vision encoder: images → fpn_feat_0/1/2, fpn_pos_2 (plus sam2_feat_0/1/2 when the SAM2 neck is exported)
   - Text encoder:   tokens → text_features [B,32,256], text_mask [B,32]
-  - Decoder:        fpn features + prompt_features + prompt_mask → predictions
+  - Decoder:        fpn features + prompt_features + prompt_mask + input_boxes/input_boxes_labels → predictions
+  - Text decoder:   the same without the geometry inputs, used for text only prompts
+  - Prompt encoder and mask decoder: point prompts, exported only when interactive weights are present
 """
 
 from __future__ import annotations
@@ -20,11 +21,20 @@ import torch
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
 
+_ONNX_DTYPES = {
+    "tensor(float16)": np.float16,
+    "tensor(float)": np.float32,
+    "tensor(int32)": np.int32,
+    "tensor(int64)": np.int64,
+    "tensor(bool)": np.bool_,
+}
+
 
 class _BackboneProxy:
     """Proxy so ``predictor.model.backbone.forward_image(im)`` works."""
 
-    def __init__(self, backend: "SAM3Backend"):
+    def __init__(self, backend: SAM3Backend):
+        """Bind the proxy to its owning backend."""
         self._backend = backend
 
     def forward_image(self, im: torch.Tensor) -> dict:
@@ -41,6 +51,8 @@ class SAM3Backend:
 
     Attributes:
         names (list[str]): Current class names.
+        device (torch.device): Device the outputs are placed on.
+        fp16 (bool): Whether half precision is requested.
         task (str): Always ``"segment"``.
         stride (int): 14 (ViT patch size).
         text_embeddings (dict): Cached text encoder outputs.
@@ -48,11 +60,21 @@ class SAM3Backend:
         has_point_modules (bool): Whether prompt encoder + mask decoder are available.
     """
 
+    # Grounding masks are raw logits, so the predictor thresholds them at zero. Mirrors SAM2Model.
+    mask_threshold: float = 0.0
+
     _FILE_STEMS = ("sam3_vision_encoder", "sam3_text_encoder", "sam3_decoder")
     _TEXT_DECODER = "sam3_decoder_text"
     _POINT_STEMS = ("sam3_prompt_encoder", "sam3_mask_decoder")
 
     def __init__(self, model_dir: str | Path, device: torch.device | str = "cpu", fp16: bool = False):
+        """Load every exported SAM3 module found in ``model_dir``.
+
+        Args:
+            model_dir (str | Path): Directory holding the exported ``.onnx`` or ``.engine`` files.
+            device (torch.device | str): Device to run on and place outputs on.
+            fp16 (bool): Whether to request half precision.
+        """
         self.device = torch.device(device) if isinstance(device, str) else device
         self.fp16 = fp16
         self.names: list[str] = []
@@ -75,20 +97,30 @@ class SAM3Backend:
     # ------------------------------------------------------------------
 
     def _detect_format(self) -> str:
-        onnx_files = list(self._model_dir.glob("*.onnx"))
-        engine_files = list(self._model_dir.glob("*.engine"))
-        if len(onnx_files) >= 3:
-            return "onnx"
-        if len(engine_files) >= 3:
-            return "engine"
+        """Return ``"onnx"`` or ``"engine"`` based on which required files the directory holds."""
+        for ext, fmt in (("onnx", "onnx"), ("engine", "engine")):
+            if all((self._model_dir / f"{s}.{ext}").exists() for s in self._FILE_STEMS):
+                return fmt
         raise FileNotFoundError(
-            f"Need 3 model files (.onnx or .engine) in {self._model_dir}. "
-            f"Found {len(onnx_files)} ONNX, {len(engine_files)} engine."
+            f"Need {', '.join(self._FILE_STEMS)} as .onnx or .engine in {self._model_dir}, found neither set."
         )
 
-    def _has_point_files(self, ext: str) -> bool:
-        """Check if both point prompt module files exist."""
-        return all((self._model_dir / f"{s}.{ext}").exists() for s in self._POINT_STEMS)
+    def _stems_to_load(self, ext: str) -> list[str]:
+        """Return every module stem present on disk, and record whether point prompts are available."""
+        stems = list(self._FILE_STEMS)
+        if (self._model_dir / f"{self._TEXT_DECODER}.{ext}").exists():
+            stems.append(self._TEXT_DECODER)
+        if all((self._model_dir / f"{s}.{ext}").exists() for s in self._POINT_STEMS):
+            stems.extend(self._POINT_STEMS)
+            self.has_point_modules = True
+        return stems
+
+    def _loaded_desc(self) -> str:
+        """Return a human readable list of the modules that were loaded."""
+        desc = "vision encoder, text encoder, decoder"
+        if self._has_text_decoder:
+            desc += ", text decoder"
+        return desc + (", prompt encoder, mask decoder" if self.has_point_modules else "")
 
     @property
     def _has_text_decoder(self) -> bool:
@@ -114,42 +146,29 @@ class SAM3Backend:
         providers = self._ort_providers(cuda)
         LOGGER.info(f"SAM3Backend ONNX: using {providers[0] if isinstance(providers[0], str) else providers[0][0]}")
 
-        paths = {s: self._model_dir / f"{s}.onnx" for s in self._FILE_STEMS}
-        for s, p in paths.items():
-            assert p.exists(), f"Missing: {p}"
+        stems = self._stems_to_load("onnx")
+        paths = {s: self._model_dir / f"{s}.onnx" for s in stems}
+        for s in self._FILE_STEMS:
+            assert paths[s].exists(), f"Missing: {paths[s]}"
 
         so = ort.SessionOptions()
         so.log_severity_level = 3
 
-        self._vis_session = ort.InferenceSession(str(paths[self._FILE_STEMS[0]]), sess_options=so, providers=providers)
-        self._txt_session = ort.InferenceSession(str(paths[self._FILE_STEMS[1]]), sess_options=so, providers=providers)
-        self._dec_session = ort.InferenceSession(str(paths[self._FILE_STEMS[2]]), sess_options=so, providers=providers)
-        self._sessions = dict(zip(self._FILE_STEMS, (self._vis_session, self._txt_session, self._dec_session)))
-
-        text_dec = self._model_dir / f"{self._TEXT_DECODER}.onnx"
-        if text_dec.exists():
-            self._sessions[self._TEXT_DECODER] = ort.InferenceSession(
-                str(text_dec), sess_options=so, providers=providers
-            )
-
-        if self._has_point_files("onnx"):
-            pe_path = self._model_dir / f"{self._POINT_STEMS[0]}.onnx"
-            md_path = self._model_dir / f"{self._POINT_STEMS[1]}.onnx"
-            self._pe_session = ort.InferenceSession(str(pe_path), sess_options=so, providers=providers)
-            self._md_session = ort.InferenceSession(str(md_path), sess_options=so, providers=providers)
-            self._sessions.update(zip(self._POINT_STEMS, (self._pe_session, self._md_session)))
-            self.has_point_modules = True
-            LOGGER.info("SAM3Backend ONNX: loaded vision encoder, text encoder, decoder, prompt encoder, mask decoder")
-        else:
-            LOGGER.info("SAM3Backend ONNX: loaded vision encoder, text encoder, decoder")
+        self._sessions = {
+            s: ort.InferenceSession(str(p), sess_options=so, providers=providers) for s, p in paths.items()
+        }
+        LOGGER.info(f"SAM3Backend ONNX: loaded {self._loaded_desc()}")
 
     @staticmethod
     def _ort_providers(cuda: bool) -> list:
+        """Return the ONNX Runtime provider list, preferring CUDA when it is available."""
         import onnxruntime as ort
 
-        available = ort.get_available_providers()
-        if cuda and "CUDAExecutionProvider" in available:
-            return ["CUDAExecutionProvider", "CPUExecutionProvider"]
+        if cuda and "CUDAExecutionProvider" in ort.get_available_providers():
+            # All modules stay resident, and the decoder attention allocates in hundreds of megabytes.
+            # The default arena grows by doubling, which reserves far more than that and can fail the
+            # next large allocation, so ask it for exactly what each node needs instead.
+            return [("CUDAExecutionProvider", {"arena_extend_strategy": "kSameAsRequested"}), "CPUExecutionProvider"]
         return ["CPUExecutionProvider"]
 
     # ---- TensorRT ----------------------------------------------------
@@ -164,34 +183,17 @@ class SAM3Backend:
 
         logger = trt.Logger(trt.Logger.ERROR)
 
-        paths = {s: self._model_dir / f"{s}.engine" for s in self._FILE_STEMS}
-        for s, p in paths.items():
-            assert p.exists(), f"Missing: {p}"
+        stems = self._stems_to_load("engine")
+        paths = {s: self._model_dir / f"{s}.engine" for s in stems}
+        for s in self._FILE_STEMS:
+            assert paths[s].exists(), f"Missing: {paths[s]}"
 
         self._trt_contexts: dict = {}
         self._trt_engines: dict = {}
         self._trt_io_dtypes: dict[str, dict[str, torch.dtype]] = {}
         self._cuda_stream = torch.cuda.Stream(device=self.device)
 
-        _np2torch = {
-            np.float16: torch.float16,
-            np.float32: torch.float32,
-            np.int32: torch.int32,
-            np.int64: torch.int64,
-            np.bool_: torch.bool,
-        }
-
-        all_stems = list(self._FILE_STEMS)
-        if (self._model_dir / f"{self._TEXT_DECODER}.engine").exists():
-            paths[self._TEXT_DECODER] = self._model_dir / f"{self._TEXT_DECODER}.engine"
-            all_stems.append(self._TEXT_DECODER)
-        if self._has_point_files("engine"):
-            point_paths = {s: self._model_dir / f"{s}.engine" for s in self._POINT_STEMS}
-            paths.update(point_paths)
-            all_stems.extend(self._POINT_STEMS)
-            self.has_point_modules = True
-
-        for stem in all_stems:
+        for stem in stems:
             with open(paths[stem], "rb") as f, trt.Runtime(logger) as runtime:
                 try:
                     meta_len = int.from_bytes(f.read(4), byteorder="little")
@@ -204,46 +206,34 @@ class SAM3Backend:
             # Only per-tensor dtypes are needed at load time; _run_trt sets shapes and
             # allocates all output buffers at runtime (outputs can be dynamic).
             io_dt = {
-                engine.get_tensor_name(i): _np2torch.get(
-                    trt.nptype(engine.get_tensor_dtype(engine.get_tensor_name(i))), torch.float32
-                )
-                for i in range(engine.num_io_tensors)
+                name: torch.from_numpy(np.empty(0, dtype=trt.nptype(engine.get_tensor_dtype(name)))).dtype
+                for name in map(engine.get_tensor_name, range(engine.num_io_tensors))
             }
 
             self._trt_engines[stem] = engine
             self._trt_contexts[stem] = ctx
             self._trt_io_dtypes[stem] = io_dt
 
-        modules = "vision encoder, text encoder, decoder"
-        if self.has_point_modules:
-            modules += ", prompt encoder, mask decoder"
-        LOGGER.info(f"SAM3Backend TRT: loaded {modules}")
+        LOGGER.info(f"SAM3Backend TRT: loaded {self._loaded_desc()}")
 
     # ------------------------------------------------------------------
     # Inference helpers
     # ------------------------------------------------------------------
 
-    def _run_onnx(self, session, feed: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
-        """Run ONNX session. Filters feed to match model inputs, casts dtypes. Returns name→array dict."""
-        _type_map = {
-            "tensor(float16)": np.float16,
-            "tensor(float)": np.float32,
-            "tensor(int32)": np.int32,
-            "tensor(int64)": np.int64,
-            "tensor(bool)": np.bool_,
-        }
-        filtered = {}
-        for inp in session.get_inputs():
-            if inp.name in feed:
-                v = feed[inp.name]
-                dt = _type_map.get(inp.type)
-                if dt is not None and hasattr(v, "dtype") and v.dtype != dt:
-                    v = v.astype(dt)
-                filtered[inp.name] = v
+    @staticmethod
+    def _run_onnx(session, feed: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
+        """Run an ONNX session, casting each input to the dtype the graph declares.
 
-        raw = session.run(None, filtered)
-        out_names = [o.name for o in session.get_outputs()]
-        return dict(zip(out_names, raw))
+        Args:
+            session (onnxruntime.InferenceSession): Session to run.
+            feed (dict[str, np.ndarray]): Input name to array, matching the graph inputs.
+
+        Returns:
+            (dict[str, np.ndarray]): Output name to array.
+        """
+        cast = {i.name: feed[i.name].astype(_ONNX_DTYPES[i.type], copy=False) for i in session.get_inputs()}
+        raw = session.run(None, cast)
+        return {o.name: v for o, v in zip(session.get_outputs(), raw)}
 
     def _run_trt(self, stem: str, feed: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
         """Run TRT engine. Auto-casts input dtypes, sets dynamic input shapes. Returns name->tensor dict."""
@@ -280,8 +270,11 @@ class SAM3Backend:
         return out_bufs
 
     def _run(self, stem: str, feed: dict) -> dict[str, torch.Tensor]:
-        """Run module ``stem`` on either backend. Accepts tensors or arrays (both runners
-        re-cast dtypes) and always returns torch tensors on ``self.device``."""
+        """Run module ``stem`` on either backend.
+
+        Accepts tensors or arrays, both runners re-cast dtypes, and always returns torch tensors
+        on ``self.device``.
+        """
         if self._format == "onnx":
             np_feed = {k: (v.cpu().numpy() if isinstance(v, torch.Tensor) else np.asarray(v)) for k, v in feed.items()}
             out = self._run_onnx(self._sessions[stem], np_feed)
@@ -378,13 +371,12 @@ class SAM3Backend:
             "prompt_mask": prompt_mask,
         }
         # An ignored box is not neutral, it appends a geometry token that shifts the presence logit,
-        # so a text only prompt uses the graph exported without geometry when that graph is available.
-        if input_boxes is None and self._has_text_decoder:
-            return self._run(self._TEXT_DECODER, feed)
+        # so a text only prompt must use the graph exported without geometry.
         if input_boxes is None:
-            bs = prompt_mask.shape[0] if hasattr(prompt_mask, "shape") else 1
-            input_boxes = np.zeros((bs, 1, 4), dtype=np.float32)
-            input_boxes_labels = np.full((bs, 1), -10, dtype=np.int32)
+            assert self._has_text_decoder, (
+                f"Text only prompts need {self._TEXT_DECODER} in {self._model_dir}. Re-export this model."
+            )
+            return self._run(self._TEXT_DECODER, feed)
         feed["input_boxes"] = input_boxes
         feed["input_boxes_labels"] = input_boxes_labels
         return self._run(self._FILE_STEMS[2], feed)
@@ -401,44 +393,38 @@ class SAM3Backend:
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Run point-based segmentation: prompt encoder + mask decoder.
 
-        Uses SAM2 neck features (``_sam2_feat_*``) when available, falling back
-        to SAM3 FPN features (``_fpn_feat_*``). The SAM2 neck has separate
-        learned weights matched to the mask decoder.
+        Requires the SAM2 neck features (``_sam2_feat_*``), whose learned weights match the mask
+        decoder.
 
         Args:
-            img_out: Dict from forward_image (with _sam2_feat_* or _fpn_feat_* cached).
-            point_coords: [B, N, 2] float32 — point coordinates in pixel space.
-            point_labels: [B, N] int32 — 1=foreground, 0=background.
+            img_out (dict): Dict from forward_image, with ``_sam2_feat_*`` cached.
+            point_coords (np.ndarray): [B, N, 2] float32 point coordinates in pixel space.
+            point_labels (np.ndarray): [B, N] int32, 1=foreground, 0=background.
 
         Returns:
-            (masks, iou_scores): masks [B, num_masks, H, W], scores [B, num_masks].
+            masks (torch.Tensor): [B, num_masks, H, W] predicted masks.
+            iou_scores (torch.Tensor): [B, num_masks] quality scores.
         """
         assert self.has_point_modules, "Point prompt modules not found. Re-export with prompt_encoder + mask_decoder."
 
-        # The point-prompt mask decoder REQUIRES the SAM2 neck features (separate
-        # learned weights). The SAM3 FPN features are a different feature space
-        # (cosine ~0.42) and produce scattered, broken masks. Falling back to them
-        # is only a last resort for old exports — warn loudly so it isn't silent.
-        # forward_image always sets the three sam2 keys together, so one check suffices.
-        has_sam2 = "_sam2_feat_0" in img_out
-        if not has_sam2:
-            LOGGER.warning(
-                "SAM3Backend: point prompt requested but the vision encoder has no sam2_feat_* outputs. "
-                "Falling back to SAM3 FPN features — masks will be WRONG. "
-                "Re-export the vision encoder with the SAM2 neck (sam2_feat_0/1/2)."
-            )
-        prefix = "_sam2_feat_" if has_sam2 else "_fpn_feat_"
+        # The mask decoder is trained against the SAM2 neck, whose weights are separate from the SAM3
+        # FPN. Substituting the SAM3 features gives a different feature space (cosine ~0.42) and
+        # scattered masks, so refuse rather than return wrong output. forward_image always sets the
+        # three sam2 keys together, so one check suffices.
+        assert "_sam2_feat_0" in img_out, (
+            "Point prompts need a vision encoder exported with the SAM2 neck (sam2_feat_0/1/2). Re-export this model."
+        )
 
         pe_out = self._run(self._POINT_STEMS[0], {"point_coords": point_coords, "point_labels": point_labels})
         md_out = self._run(
             self._POINT_STEMS[1],
             {
-                "image_embeddings": img_out[f"{prefix}2"],
+                "image_embeddings": img_out["_sam2_feat_2"],
                 "image_pe": pe_out["dense_pe"],
                 "sparse_prompt_embeddings": pe_out["sparse_embeddings"],
                 "dense_prompt_embeddings": pe_out["dense_embeddings"],
-                "high_res_feat_0": img_out[f"{prefix}0"],
-                "high_res_feat_1": img_out[f"{prefix}1"],
+                "high_res_feat_0": img_out["_sam2_feat_0"],
+                "high_res_feat_1": img_out["_sam2_feat_1"],
             },
         )
         return md_out["masks"], md_out["iou_scores"]
@@ -461,7 +447,7 @@ class SAM3Backend:
 
         tokens_list = []
         for t in text:
-            enc = [sot] + tokenizer.encode(t) + [eot]
+            enc = [sot, *tokenizer.encode(t), eot]
             enc = enc[:32] if len(enc) > 32 else enc + [0] * (32 - len(enc))
             tokens_list.append(enc)
 
@@ -494,17 +480,16 @@ class SAM3Backend:
         """Run grounding: select cached text features + optional box prompts -> run decoder.
 
         Args:
-            backbone_out: Dict from forward_image.
-            text_ids: [nc] class indices into cached text_embeddings.
-            geometric_prompt: Optional Prompt object with box_embeddings and box_labels.
+            backbone_out (dict): Dict from forward_image.
+            text_ids (torch.Tensor): [nc] class indices into cached text_embeddings.
+            geometric_prompt (Any): Optional Prompt object with box_embeddings and box_labels.
 
         Returns:
-            dict with pred_logits, pred_boxes, pred_masks, presence_logits.
+            (dict[str, torch.Tensor]): pred_logits, pred_boxes, pred_masks, presence_logits.
         """
         assert self.text_embeddings, "Call set_classes() first"
 
         ids = text_ids.cpu().numpy() if isinstance(text_ids, torch.Tensor) else np.asarray(text_ids)
-        nc = len(ids)
 
         feats_all = self.text_embeddings["text_features"]  # [32, N_total, 256] (seq-first)
         masks_all = self.text_embeddings["text_mask"]  # [N_total, 32]
@@ -525,27 +510,19 @@ class SAM3Backend:
                 boxes_per_call = np.asarray(be, dtype=np.float32).transpose(1, 0, 2)  # (B, N, 4)
                 labels_per_call = np.asarray(bl, dtype=np.int32).transpose(1, 0)  # (B, N)
 
-        if nc == 1:
-            return self._run_decoder(
+        # One decoder call per class, concatenated. The decoder batch is static at one.
+        results = [
+            self._run_decoder(
                 img_out=backbone_out,
-                prompt_features=feats_all[:, ids, :],  # [32, 1, 256]
-                prompt_mask=masks_all[ids],  # [1, 32]
+                prompt_features=feats_all[:, [i], :],  # [32, 1, 256]
+                prompt_mask=masks_all[[i]],  # [1, 32]
                 input_boxes=boxes_per_call,
                 input_boxes_labels=labels_per_call,
             )
-
-        # Multi-class: run decoder per-class, concatenate
-        results = []
-        for i in range(nc):
-            r = self._run_decoder(
-                img_out=backbone_out,
-                prompt_features=feats_all[:, [ids[i]], :],
-                prompt_mask=masks_all[[ids[i]]],
-                input_boxes=boxes_per_call,
-                input_boxes_labels=labels_per_call,
-            )
-            results.append(r)
-
+            for i in ids
+        ]
+        if len(results) == 1:
+            return results[0]
         return {k: torch.cat([r[k] for r in results], dim=0) for k in results[0]}
 
     # ------------------------------------------------------------------
@@ -553,40 +530,31 @@ class SAM3Backend:
     # ------------------------------------------------------------------
 
     def set_imgsz(self, imgsz) -> None:
-        """No-op. Image size baked into model."""
+        """Ignore the requested size, the exported graphs bake in the size they were traced at."""
 
     def eval(self):
+        """Return self, the exported graphs are always in inference mode."""
         return self
 
     def to(self, device):
+        """Move subsequent outputs to ``device`` and return self."""
         self.device = torch.device(device) if isinstance(device, str) else device
         return self
 
     def half(self):
+        """Request half precision and return self."""
         self.fp16 = True
         return self
 
     def float(self):
+        """Request full precision and return self."""
         self.fp16 = False
         return self
 
     def parameters(self):
+        """Return an empty iterator, the exported graphs expose no torch parameters."""
         return iter([])
 
-    # ------------------------------------------------------------------
-    # Cleanup
-    # ------------------------------------------------------------------
-
-    def release(self) -> None:
-        """Free resources."""
-        if self._format == "onnx":
-            for attr in ("_vis_session", "_txt_session", "_dec_session", "_pe_session", "_md_session"):
-                if hasattr(self, attr):
-                    delattr(self, attr)
-        else:
-            self._trt_contexts.clear()
-            self._trt_engines.clear()
-        self.text_embeddings.clear()
-
     def __repr__(self) -> str:
+        """Return a summary of the loaded directory, format, device, and class names."""
         return f"SAM3Backend(format={self._format!r}, dir={str(self._model_dir)!r}, device={self.device}, names={self.names})"

@@ -9,7 +9,7 @@ title: CVAT Dataset Import - Ultralytics Platform
 
 # CVAT Integration
 
-Direct [CVAT](https://www.cvat.ai/) imports are coming to [Ultralytics Platform](https://platform.ultralytics.com), so that a CVAT export uploads as-is with no format to choose.
+Direct [CVAT](https://www.cvat.ai/) imports are coming to [Ultralytics Platform](https://platform.ultralytics.com), so that a CVAT image detection or segmentation export uploads as-is with no format to choose.
 
 Until then there is a short path that works today, because CVAT already exports in the Ultralytics YOLO layout Platform reads.
 
@@ -54,7 +54,7 @@ CVAT offers [many export formats](https://docs.cvat.ai/docs/dataset_management/f
 
 !!! warning "Pascal VOC imports without annotations"
 
-    Platform does not read Pascal VOC XML labels, and a VOC export fails quietly rather than loudly: the images import, the annotations do not, and a VOC export with more than a handful of images also picks up a single class named after its image folder. Choose Ultralytics YOLO or COCO instead.
+    Platform does not read Pascal VOC XML labels, and a VOC export fails quietly rather than loudly: the images import, the annotations do not, and a VOC export of five or more images also picks up a single class named after its image folder. Choose Ultralytics YOLO or COCO instead.
 
 ## What the Integration Will Add
 

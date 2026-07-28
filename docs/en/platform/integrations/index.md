@@ -32,8 +32,8 @@ it directly. Cloud storage connections verify list and read access before anythi
 | [**Ultralytics HUB**](ultralytics-hub.md)           | Imports datasets, projects, models, and balance     |
 | [**Roboflow**](roboflow.md)                         | Imports datasets                                    |
 | [**Labelbox**](labelbox.md)                         | Imports NDJSON exports as datasets                  |
-| [**CVAT**](cvat.md)                                 | Imports CVAT exports as datasets — coming soon      |
-| [**Label Studio**](label-studio.md)                 | Imports Label Studio exports — coming soon          |
+| [**CVAT**](cvat.md)                                 | Imports CVAT image datasets — coming soon           |
+| [**Label Studio**](label-studio.md)                 | Imports Label Studio image datasets — coming soon   |
 | [**Google Cloud Storage**](google-cloud-storage.md) | Indexes datasets in place from your GCS buckets     |
 | [**Amazon S3**](amazon-s3.md)                       | Indexes datasets in place from your S3 buckets      |
 | [**Azure Blob Storage**](azure-blob-storage.md)     | Indexes datasets in place from your blob containers |

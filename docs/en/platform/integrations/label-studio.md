@@ -9,7 +9,7 @@ title: Label Studio Dataset Import - Ultralytics Platform
 
 # Label Studio Integration
 
-Direct [Label Studio](https://labelstud.io/) imports are coming to [Ultralytics Platform](https://platform.ultralytics.com), so that a raw project export uploads as-is with no format to choose.
+Direct [Label Studio](https://labelstud.io/) imports are coming to [Ultralytics Platform](https://platform.ultralytics.com), so that a raw image detection or segmentation export uploads as-is with no format to choose.
 
 Until then there is a short path that works today, because Label Studio's YOLO with Images export is a layout Platform reads, class list included.
 
@@ -30,11 +30,11 @@ Label Studio's [export API](https://labelstud.io/guide/export) returns the same 
 
 ```bash
 curl -X GET "https://<your-label-studio>/api/projects/<project-id>/export?exportType=YOLO_WITH_IMAGES&download_all_tasks=true" \
-  -H "Authorization: Bearer <your-token>" \
+  -H "Authorization: Token <your-legacy-token>" \
   -o dataset.zip
 ```
 
-`COCO_WITH_IMAGES` and `YOLO_OBB_WITH_IMAGES` work the same way. Large projects should use the [snapshot endpoints](https://labelstud.io/guide/export) instead, which create the export as a background job and download it by ID; the SDK's [`export_yolo_with_images.py`](https://github.com/HumanSignal/label-studio-sdk/blob/master/examples/export_yolo_with_images.py) example does exactly that.
+`COCO_WITH_IMAGES` and `YOLO_OBB_WITH_IMAGES` work the same way. Newer [personal access tokens](https://labelstud.io/guide/access_tokens) are exchanged for a short-lived bearer token before use, so check which token type your instance issues. Large projects should use the [snapshot endpoints](https://labelstud.io/guide/export) instead, which create the export as a background job and download it by ID; the SDK's [`export_yolo_with_images.py`](https://github.com/HumanSignal/label-studio-sdk/blob/master/examples/export_yolo_with_images.py) example does exactly that.
 
 A Label Studio YOLO export carries its class list alongside the labels, and Platform reads it:
 

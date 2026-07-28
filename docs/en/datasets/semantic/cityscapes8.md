@@ -39,7 +39,7 @@ cityscapes8/
 
 Masks are paired with images via the `masks_dir: masks` field, and `label_mapping` converts source Cityscapes label IDs into the 19 contiguous train IDs described in the [full Cityscapes dataset structure](cityscapes.md#dataset-structure).
 
-Explore [Cityscapes8 on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/cityscapes8) to browse every image with its segmentation masks and clone it to train in the cloud.
+Ultralytics Platform provides tools for browsing images and annotations, managing datasets, and training models in the cloud.
 
 ## Dataset YAML
 

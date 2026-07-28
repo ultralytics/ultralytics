@@ -479,8 +479,9 @@ def model_info_for_loggers(trainer):
 def get_flops(model, imgsz=640):
     """Calculate FLOPs (floating point operations) for a model in GFLOPs.
 
-    Attempts two calculation methods: first with a stride-based tensor for efficiency, then falls back to full image
-    size if needed (e.g., for RTDETR models). Returns 0.0 if thop library is unavailable or calculation fails.
+    Attempts two calculation methods: first with stride-based tensors for efficiency, fitting MACs as a linear
+    function of image area so that size-independent layers are not scaled, then falls back to full image size if
+    needed (e.g., for RTDETR models). Returns 0.0 if thop library is unavailable or calculation fails.
 
     Args:
         model (nn.Module): The model to calculate FLOPs for.
@@ -503,11 +504,16 @@ def get_flops(model, imgsz=640):
         if not isinstance(imgsz, list):
             imgsz = [imgsz, imgsz]  # expand if int/float
         try:
-            # Method 1: Use stride-based input tensor
+            # Method 1: Fit MACs = slope * area + const from two stride-sized inputs
             stride = max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32  # max stride
             im = torch.empty((1, p.shape[1], stride, stride), device=p.device, dtype=p.dtype)  # input image in BCHW
-            flops = thop.profile(model, inputs=[im], verbose=False)[0] / 1e9 * 2  # stride GFLOPs
-            return flops * imgsz[0] / stride * imgsz[1] / stride  # imgsz GFLOPs
+            macs = thop.profile(model, inputs=[im], verbose=False)[0]  # MACs at area stride^2
+            slope, const = macs / stride**2, 0.0  # MACs per pixel, and MACs independent of image size
+            if any(isinstance(m, nn.Linear) for m in model.modules()):  # a Linear may run on pooled or text features
+                im2 = torch.empty((1, p.shape[1], stride, stride * 2), device=p.device, dtype=p.dtype)  # twice the area
+                macs2 = thop.profile(model, inputs=[im2], verbose=False)[0]  # MACs at area 2 * stride^2
+                slope, const = (macs2 - macs) / stride**2, 2 * macs - macs2  # solve MACs = slope * area + const
+            return (slope * imgsz[0] * imgsz[1] + const) / 1e9 * 2  # imgsz GFLOPs
         except Exception:
             # Method 2: Use actual image size (required for RTDETR models)
             im = torch.empty((1, p.shape[1], *imgsz), device=p.device, dtype=p.dtype)  # input image in BCHW format

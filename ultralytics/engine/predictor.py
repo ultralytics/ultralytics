@@ -329,7 +329,9 @@ class BasePredictor:
                     im = self.preprocess(im0s)
 
                 # Warmup on the real letterboxed shape, since a square imgsz dummy rarely matches it.
-                # Batch stays as before so the dummy never doubles the input buffer alongside im.
+                # Batch stays as before: 1 for pt/triton, the real batch for backends that need it.
+                # The latter allocates its dummy while im is resident, so peak memory holds one extra
+                # input tensor on the first batch; pre-PR the dummy was freed before im existed.
                 if not self.done_warmup:
                     bs = 1 if self.model.format in {"pt", "triton"} else im.shape[0]
                     self.model.warmup(imgsz=(bs, *im.shape[1:]))

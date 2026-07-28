@@ -328,9 +328,11 @@ class BasePredictor:
                 with profilers[0]:
                     im = self.preprocess(im0s)
 
-                # Warmup on the real letterboxed shape, since a square imgsz dummy rarely matches it
+                # Warmup on the real letterboxed shape, since a square imgsz dummy rarely matches it.
+                # Batch stays as before so the dummy never doubles the input buffer alongside im.
                 if not self.done_warmup:
-                    self.model.warmup(imgsz=im.shape)
+                    bs = 1 if self.model.format in {"pt", "triton"} else im.shape[0]
+                    self.model.warmup(imgsz=(bs, *im.shape[1:]))
                     self.done_warmup = True
 
                 # Inference

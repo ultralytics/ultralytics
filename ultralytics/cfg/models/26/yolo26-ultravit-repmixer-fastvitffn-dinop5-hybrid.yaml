@@ -2,10 +2,12 @@
 
 # Lane A detector for the DINO-P5 backbone, depth-hybrid scaling. Rows 0-8 match
 # yolo26-ultravit-repmixer-fastvitffn-dinop5-hybrid-cls.yaml, its classifier twin.
-# One P5 attention block at n and s where a single block is fastest, two at m and l and three at x. Every scale
-# resolves to a trunk already measured faster than both the conv and yolo27 baselines. l keeps the wider P5 from
-# the l640 retune, taken through max_channels rather than width, which would scale the neck and head too.
-# n caps at 1024 so head_dim 64 divides its P5.
+# One P5 attention block at n and s, two at m and l, three at x, from round(8 * depth).
+# P5 width is set per scale through max_channels rather than width, so only P5 and the head's last C3k2 move:
+# 768 at l, spending the latency margin both baselines leave there.
+# n caps at 1024 so head_dim 64 divides its P5. 704 and 832 are unavailable at l, the head's attention
+# C3k2 needs a multiple of 128.
+# s stays at 576 because widening it to 640 lost the conv baseline on Lane A, the only failing cell.
 
 nc: 80
 end2end: True
@@ -18,7 +20,7 @@ scales:
   n: [0.18, 0.25, 1024]
   s: [0.18, 0.50, 1152]
   m: [0.25, 1.00, 512]
-  l: [0.24, 1.00, 640]
+  l: [0.24, 1.00, 768]
   x: [0.35, 1.50, 512]
 
 backbone:

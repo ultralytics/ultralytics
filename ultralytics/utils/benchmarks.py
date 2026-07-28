@@ -144,19 +144,7 @@ def benchmark(
             if export_format == "paddle":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
                 assert model.task != "obb", "Paddle OBB bug https://github.com/PaddlePaddle/Paddle/issues/72024"
-                assert (LINUX and not IS_JETSON) or MACOS, "Windows and Jetson Paddle exports not supported yet"
-                # PaddlePaddle export works standalone on Python 3.13 but its native protobuf clashes with the
-                # protobuf>=6.31.1 that TensorFlow loads earlier in this shared benchmark process, causing a segfault.
-                assert not IS_PYTHON_MINIMUM_3_13, (
-                    "PaddlePaddle not benchmarked on Python>=3.13 (protobuf ABI conflict with TensorFlow)"
-                )
             if export_format == "mnn":
-                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 MNN exports not supported yet"
-                # MNN export works standalone on Python 3.13 but its ONNX-parsing protobuf clashes with the
-                # protobuf>=6.31.1 that TensorFlow loads earlier in this shared benchmark process, aborting the run.
-                assert not IS_PYTHON_MINIMUM_3_13, (
-                    "MNN not benchmarked on Python>=3.13 (protobuf ABI conflict with TensorFlow)"
-                )
             if export_format == "ncnn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
             if export_format == "imx":

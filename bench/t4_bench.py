@@ -12,7 +12,10 @@ arm tags, spends that: `lane-a-x dinop5-mixedrope` times only that arm against t
 new yaml costs three measurements rather than a rerun of the scale.
 
 Scale comes from the filename, and a scale-less stem silently resolves to the first scales key, so every entry has
-its size letter substituted in. Arms absent at a scale are simply not in that session.
+its size letter substituted in. Arms absent at a scale are simply not in that session. Both lanes now draw from one
+arm table, so a full Lane B session carries every arm its scale has rather than the handful that had a hand-written
+stem: n 6 to 8, s 10 to 14, m and l 9 to 13, and x 17 to 14 as the retired arms go. The added cost is mostly the
+sidecar formats, around 2.5 min a variant against 1.5 for the entire TensorRT pass, so prefer the arm list.
 
 Every arm in a session runs at the baseline's deployed input size, from `IMGSZ` below, since a paired comparison
 only holds at one size. Lane A deploys at 640 throughout, Lane B does not.
@@ -28,6 +31,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from t4_bench_common import build_variant, pinned_fp32_attn, run_benchmark
 from ultralytics import RTDETR, YOLO
+from ultralytics.nn.tasks import yaml_model_load
 
 DATA = Path("/root/autodl-tmp/data")
 
@@ -35,87 +39,59 @@ DATA = Path("/root/autodl-tmp/data")
 # at 512, so timing those at 640 measures an operating point nobody ships.
 IMGSZ = {("lane-b", "n"): 480, ("lane-b", "s"): 512, ("lane-b", "m"): 512}
 
-# lane -> (facade, engine builder, baseline tag prefix, bridge tag, {arm tag: (yaml template, scales it exists at)}).
+# lane -> (facade, engine builder, baseline tag, bridge tag, baseline yaml template, arm yaml template).
 #
 # Lane A is the YOLO26 conv-head detector against its own conv baseline, exported stock. Lane B is the DETR
-# detector against the yolo27-detr baseline at the same scale, exported with the fp32 attention pin DINOv3 needs to
-# survive fp16. Six Lane A arms carry MHSA and would also move under a pin, so only within-lane ratios travel.
+# detector against the yolo27 baseline of its scale's family, see FAMILY, exported with the fp32 attention pin
+# DINOv3 needs to survive fp16. Six Lane A arms carry MHSA and would also move under a pin, so only within-lane ratios travel.
 #
-# Arms retired as obsolete and absent here: fracrope, headdim64, attn2lite.
+# A Lane B arm is its baseline with only the trunk swapped for the Lane A arm's, so its name is derivable from the
+# tag and the scale's baseline family and it needs no second stem table. A `None` arm template means the lane uses
+# the Lane A stem in ARMS.
 LANES = {
-    "lane-a": (
-        YOLO,
-        None,
-        "conv",
-        "ffnattn2",  # bridge, the incumbent every UltraViT arm is judged against
-        {
-            "conv": ("yolo26{s}.yaml", "nsmlx"),
-            "attn2": ("yolo26{s}-ultravit-attn2.yaml", "nsmlx"),
-            "base": ("yolo26{s}-ultravit.yaml", "nsmlx"),
-            "dinoreg": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg.yaml", "smlx"),
-            "dinorope": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg-dinorope.yaml", "smlx"),
-            "fastvitffn": ("yolo26{s}-ultravit-repmixer-fastvitffn.yaml", "nsmlx"),
-            "ffnattn2": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2.yaml", "nsmlx"),
-            "dinop5": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5.yaml", "smlx"),
-            "dinop5-mixedrope": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope.yaml", "smlx"),
-            "dinop5-depthmatched": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-depthmatched.yaml", "nsmlx"),
-            "mixedrope": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg-mixedrope.yaml", "smlx"),
-            "p4pooled": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-p4pooled.yaml", "nsmlx"),
-            "p4win": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-p4win.yaml", "x"),
-            "repmixer": ("yolo26{s}-ultravit-repmixer.yaml", "nsmlx"),
-            "s480": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-s480.yaml", "s"),
-        },
-    ),
+    "lane-a": (YOLO, None, "conv", "ffnattn2", "yolo26{s}.yaml", None),
     "lane-b": (
         RTDETR,
         pinned_fp32_attn,
-        "yolo27",
-        "ffnattn2",
-        {
-            # The detr_decoder_clean2 reference arms. The family changes along the ladder: CSP trunk with
-            # RTDETRDecoderEfficient at n and s, DeimDecoder at m and l, plain ViT trunk at x.
-            "yolo27": ("yolo27{s}-detr.yaml", "ns"),
-            "yolo27-deim": ("yolo27{s}-deim-detr.yaml", "ml"),
-            "yolo27-vit": ("yolo27{s}-vit-detr.yaml", "x"),
-            "dinov3splus": ("deim_dinov3splus_sta_l6_xl.yaml", "x"),
-            "attn2": ("yolo26{s}-ultravit-attn2-deim_mal_deimv2Neck.yaml", "nsmlx"),
-            "base": ("yolo26{s}-ultravit-deim_mal_deimv2Neck.yaml", "nsmlx"),
-            "dinop5": ("yolo26{s}-ultravit-repmixer-dinop5-deim_mal_deimv2Neck.yaml", "smlx"),
-            "dinoreg": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg-deim_mal_deimv2Neck.yaml", "x"),
-            "dinorope": (
-                "yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg-dinorope-deim_mal_deimv2Neck.yaml",
-                "x",
-            ),
-            "fastvitffn": ("yolo26{s}-ultravit-repmixer-fastvitffn-deim_mal_deimv2Neck.yaml", "nsmlx"),
-            "fastvitffn-dinop5": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-deim_mal_deimv2Neck.yaml", "smlx"),
-            "fastvitffn-dinop5-mixedrope": (
-                "yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-deim_mal_deimv2Neck.yaml",
-                "smlx",
-            ),
-            "fastvitffn-dinop5-depthmatched": (
-                "yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-depthmatched-deim_mal_deimv2Neck.yaml",
-                "x",
-            ),
-            "ffnattn2": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-deim_mal_deimv2Neck.yaml", "nsmlx"),
-            "mixedrope": (
-                "yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg-mixedrope-deim_mal_deimv2Neck.yaml",
-                "x",
-            ),
-            "p4deep": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-p4deep-deim_mal_deimv2Neck.yaml", "x"),
-            "p4pooled": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-p4pooled-deim_mal_deimv2Neck.yaml", "x"),
-            "p4win": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-p4win-deim_mal_deimv2Neck.yaml", "x"),
-            "repmixer": ("yolo26{s}-ultravit-repmixer-deim_mal_deimv2Neck.yaml", "nsmlx"),
-            "s480": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-s480-deim_mal_deimv2Neck.yaml", "s"),
-        },
+        "yolo27",  # baseline
+        "ffnattn2",  # bridge, the incumbent every UltraViT arm is judged against
+        "yolo27{s}-{f}.yaml",
+        "yolo27{s}-ultravit-{tag}-{f}.yaml",
     ),
+}
+
+# The baseline family each scale deploys, which also names its yaml: CSP trunk with RTDETRDecoderEfficient at n and
+# s, DeimDecoder at m and l, ViT + Spatial Tuning Adapter at x.
+FAMILY = {"n": "detr", "s": "detr", "m": "deim-detr", "l": "deim-detr", "x": "vit-detr"}
+
+# arm tag -> (Lane A yaml template, scales it exists at). Lane B carries exactly these trunks.
+#
+# Arms retired as obsolete and absent here: fracrope, headdim64, attn2lite, and p4deep, which never had a Lane A
+# trunk to swap in. dinov3splus is absent because it was promoted rather than retired, its ViT and spatial-adapter
+# trunk is what yolo27-vit-detr spells out, so it is the x baseline now.
+ARMS = {
+    "attn2": ("yolo26{s}-ultravit-attn2.yaml", "nsmlx"),
+    "base": ("yolo26{s}-ultravit.yaml", "nsmlx"),
+    "dinop5-depthmatched": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-depthmatched.yaml", "nsmlx"),
+    "fastvitffn": ("yolo26{s}-ultravit-repmixer-fastvitffn.yaml", "nsmlx"),
+    "ffnattn2": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2.yaml", "nsmlx"),
+    "p4pooled": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-p4pooled.yaml", "nsmlx"),
+    "repmixer": ("yolo26{s}-ultravit-repmixer.yaml", "nsmlx"),
+    "dinop5": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5.yaml", "smlx"),
+    "dinop5-mixedrope": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope.yaml", "smlx"),
+    "dinoreg": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg.yaml", "smlx"),
+    "dinorope": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg-dinorope.yaml", "smlx"),
+    "mixedrope": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg-mixedrope.yaml", "smlx"),
+    "p4win": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-p4win.yaml", "x"),
+    "s480": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-s480.yaml", "s"),
 }
 
 session, *only = sys.argv[1:]
 lane, scale = session.rsplit("-", 1)
-model_cls, engine_builder, base_prefix, bridge, arms = LANES[lane]
-yamls = {tag: t.format(s=scale) for tag, (t, scales) in arms.items() if scale in scales}
-# Lane B's baseline changes file along the ladder, so it is whichever arm carries the baseline prefix at this scale.
-baseline = next(tag for tag in yamls if tag.startswith(base_prefix))
+model_cls, engine_builder, baseline, bridge, base_yaml, arm_yaml = LANES[lane]
+sub = {"s": scale, "f": FAMILY[scale]}
+yamls = {baseline: base_yaml.format(**sub)}
+yamls |= {t: (arm_yaml or a).format(**sub, tag=t) for t, (a, scales) in ARMS.items() if scale in scales}
 assert bridge in yamls, f"{session} has no bridge arm, so its ratios cannot be anchored to another session"
 if only:  # append session, carrying the named arms plus the baseline and bridge that anchor them
     (arg,) = only  # unpack, so a stray extra argument fails here rather than being ignored
@@ -125,6 +101,11 @@ if only:  # append session, carrying the named arms plus the baseline and bridge
     session += "-" + arg  # its own session id, since it is its own measurement occasion
 
 imgsz = IMGSZ.get((lane, scale), 640)
+# Resolve every name before building any of them, so a session carrying more arms than intended, or a name that does
+# not fit the derived form, shows up now rather than after the exports ahead of it have already run.
+print(f"=== {session} at {imgsz}px, {len(yamls)} variants: {' '.join(yamls)}", flush=True)
+for y in yamls.values():
+    yaml_model_load(y)
 engines = DATA / f"t4-{lane}-{scale}-engines"
 variants = [
     build_variant(t, y, engines, imgsz, model_cls=model_cls, engine_builder=engine_builder) for t, y in yamls.items()

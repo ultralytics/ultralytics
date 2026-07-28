@@ -217,7 +217,8 @@ parser.add_argument("--max_det", type=int,default=1000)  # max det
 parser.add_argument("--workers", type=int,default=8)  # workers
 parser.add_argument("--save_period", type=int,default=5)  # save period
 
-parser.add_argument("--data", type=str, default=None) # fast_verify or objv1_only
+parser.add_argument("--data", type=str, default=None) # DATA_CONFIG key: old_engine_data, yedata, coco128, coco128_seg
+parser.add_argument("--refer_data", type=str, default=None) # override the reference-data YAML for YOLOEVPTrainer visual-prompt val
 
 
 parser.add_argument("--optimizer",type=str, default="MuSGD") # "MuSGD"
@@ -378,6 +379,9 @@ elif args.trainer=="YOLOESegTrainerSegHead":
 else:
     print("trainer_class:", args.trainer)
     raise ValueError("trainer_class must be YOLOETrainerFromScratch, YOLOEVPTrainer, YOLOEPEFreeTrainer, YOLOESegTrainerFromScratch, or YOLOESegTrainerSegHead")
+
+if args.refer_data is not None:  # CLI override wins over the per-trainer default
+    refer_data = args.refer_data
 
 trainer_class =eval( args.trainer)
 

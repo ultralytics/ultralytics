@@ -526,7 +526,7 @@ class Results(SimpleClass, DataExportMixin):
         """
         assert color_mode in {"instance", "class"}, f"Expected color_mode='instance' or 'class', not {color_mode}."
         if img is None and isinstance(self.orig_img, torch.Tensor):
-            img = (self.orig_img[0].detach().permute(1, 2, 0).contiguous() * 255).byte().cpu().numpy()
+            img = (self.orig_img[0].detach().permute(1, 2, 0).contiguous() * 255).byte()
 
         names = self.names
         is_obb = self.obb is not None

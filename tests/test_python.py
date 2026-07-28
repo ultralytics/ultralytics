@@ -939,13 +939,16 @@ def test_annotator_depth_map():
 
 def test_annotator_tensor_image():
     """Annotator keeps tensor images on-device through mask compositing and materializes them for CPU drawing."""
+    from ultralytics.engine.results import Results
     from ultralytics.utils.plotting import Annotator
 
     ann = Annotator(torch.zeros((16, 16, 3), dtype=torch.uint8))
-    ann.masks(torch.ones((1, 16, 16), dtype=torch.bool), [[255, 0, 0]])
+    ann.masks(np.ones((1, 16, 16), dtype=bool), [[255, 0, 0]])
     assert isinstance(ann.im, torch.Tensor)
     ann.box_label([1, 1, 8, 8])
     assert isinstance(ann.result(), np.ndarray)
+    result = Results(torch.zeros((1, 3, 16, 16)), path="image.jpg", names={}, masks=torch.ones((1, 16, 16)))
+    assert result.plot(boxes=False).shape == (16, 16, 3)
 
 
 def test_results_update_probs():

@@ -51,7 +51,7 @@ class Profile(contextlib.ContextDecorator):
         self.device = device
         dev = str(device) if device else ""
         self.cuda = dev.startswith("cuda")
-        self.mps = dev.startswith("mps")
+        self.mps = dev.startswith("mps") and hasattr(torch, "mps")  # torch.mps landed in 2.0, MPS device in 1.12
 
     def __enter__(self):
         """Start timing."""

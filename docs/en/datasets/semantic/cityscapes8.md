@@ -39,8 +39,6 @@ cityscapes8/
 
 Masks are paired with images via the `masks_dir: masks` field, and `label_mapping` converts source Cityscapes label IDs into the 19 contiguous train IDs described in the [full Cityscapes dataset structure](cityscapes.md#dataset-structure).
 
-Ultralytics Platform provides tools for browsing images and annotations, managing datasets, and training models in the cloud.
-
 ## Dataset YAML
 
 The Cityscapes8 dataset configuration is defined in a dataset YAML file, which specifies dataset paths, class names, and other essential metadata. You can review the official `cityscapes8.yaml` file in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/cityscapes8.yaml). The YAML includes a download URL for the small packaged subset.
@@ -52,6 +50,8 @@ The Cityscapes8 dataset configuration is defined in a dataset YAML file, which s
     ```
 
 ## Usage
+
+You can also manage Cityscapes8 and train semantic segmentation models in the cloud with [Ultralytics Platform](https://platform.ultralytics.com/).
 
 To train a YOLO26n-sem model on the Cityscapes8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 1024, use the following examples. For a full list of training options, see the [YOLO Training documentation](../../modes/train.md).
 

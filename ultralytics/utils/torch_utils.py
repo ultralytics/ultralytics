@@ -115,7 +115,6 @@ def autocast(enabled: bool, device: str = "cuda"):
 
 
 @functools.lru_cache
-@functools.lru_cache
 def get_cpu_info():
     """Return a string with system CPU information, i.e. 'Apple M2'."""
     return CPUInfo.name()

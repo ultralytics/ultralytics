@@ -781,6 +781,10 @@ class GroundingDataset(YOLODataset):
                     "texts": texts,
                 }
             )
+        if self.augment and self.fraction < 1.0:  # reduce training fraction
+            n = round(len(x["labels"]) * self.fraction)
+            x["labels"] = x["labels"][:n]
+            self.im_files = self.im_files[:n]
         x["hash"] = get_hash(self.json_file)
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
@@ -807,6 +811,10 @@ class GroundingDataset(YOLODataset):
             except (AssertionError, AttributeError, KeyError):
                 raise RuntimeError(f"Invalid or corrupted cache file: {cache_path}")
             self.im_files = [str(label["im_file"]) for label in labels]
+            if self.augment and self.fraction < 1.0:  # reduce training fraction
+                n = round(len(labels) * self.fraction)
+                labels = labels[:n]
+                self.im_files = self.im_files[:n]
             if LOCAL_RANK in {-1, 0}:
                 LOGGER.info(f"Loaded {len(labels)} labels from {cache_path}")
             return labels

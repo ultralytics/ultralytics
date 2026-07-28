@@ -18,6 +18,7 @@ class CPUInfo:
 
     Methods:
         name: Return the normalized CPU name using platform-specific sources with robust fallbacks.
+        _sysctl: Read a macOS sysctl string through libc.
         _clean: Normalize and prettify common vendor brand strings and frequency patterns.
         __str__: Return the normalized CPU name for string contexts.
 
@@ -31,7 +32,7 @@ class CPUInfo:
     @staticmethod
     def _sysctl(key: str) -> str:
         """Read a macOS sysctl string through libc, since spawning `sysctl` costs milliseconds."""
-        libc = ctypes.CDLL(None, use_errno=True)
+        libc = ctypes.CDLL(None)
         libc.sysctlbyname.restype = ctypes.c_int
         libc.sysctlbyname.argtypes = [
             ctypes.c_char_p,

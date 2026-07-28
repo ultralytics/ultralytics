@@ -31,6 +31,7 @@ __all__ = (
     "DetectO2OObjTap",
     "DetectO2OSA",
     "DetectO2OSAD",
+    "DetectO2OShared",
     "DetectO2OStem",
     "DetectZero",
     "Pose",
@@ -373,6 +374,78 @@ class DetectAux(Detect):
         super().bias_init()
         for i, aux in enumerate(self.aux_fg):
             aux[-1].bias.data[:] = math.log(5 / (640 / self.stride[i]) ** 2)  # ~object density per anchor
+
+
+class DetectO2OShared(Detect):
+    """YOLO Detect head where each branch's box and cls towers share their first block.
+
+    Identical to Detect, but both the one2many and one2one branches replace the separate first layer of their box (cv2)
+    and cls (cv3) towers with a single shared per-level stem that outputs c3 channels, then feed it to the remaining two
+    layers of each tower. The cls tower keeps its two layers unchanged (it already consumes c3); the box tower's first
+    remaining Conv takes c3 instead of c2. The two branches use independent stems: the one2one stem (which runs on the
+    optionally detached features and is the deployed path) is a depthwise-separable block matching the cls tower's
+    original first block, while the one2many stem is a dense 3x3 Conv since fuse() drops it before inference.
+
+    Attributes:
+        one2many_stem (nn.ModuleList): Per-level shared dense 3x3 Conv (-> c3) feeding the one2many towers; set to None
+            by fuse().
+        one2one_stem (nn.ModuleList): Per-level shared depthwise-separable block (-> c3) feeding the one2one towers.
+
+    Examples:
+        Create an end-to-end detection head with shared box/cls stems on both branches
+        >>> detect = DetectO2OShared(nc=80, end2end=True, ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = detect(x)
+    """
+
+    def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
+        """Initialize the detection head with a shared box/cls stem and two trimmed towers per branch.
+
+        Args:
+            nc (int): Number of classes.
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
+        """
+        super().__init__(nc, reg_max, end2end, ch)
+        c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
+        # shared first block (-> c3), then box tower minus its first Conv (now takes c3) and the cls tower minus its
+        # first block (unchanged as it already takes c3)
+        self.one2many_stem = nn.ModuleList(Conv(x, c3, 3) for x in ch)  # dense 3x3; dropped at inference by fuse()
+        self.cv2 = nn.ModuleList(nn.Sequential(Conv(c3, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for _ in ch)
+        self.cv3 = nn.ModuleList(
+            nn.Sequential(nn.Sequential(DWConv(c3, c3, 3), Conv(c3, c3, 1)), nn.Conv2d(c3, self.nc, 1)) for _ in ch
+        )
+        if end2end:
+            # depthwise-separable stem for the deployed branch, matching the cls tower's original first block
+            self.one2one_stem = nn.ModuleList(nn.Sequential(DWConv(x, x, 3), Conv(x, c3, 1)) for x in ch)
+            self.one2one_cv2 = copy.deepcopy(self.cv2)
+            self.one2one_cv3 = copy.deepcopy(self.cv3)
+
+    def forward(
+        self, x: list[torch.Tensor]
+    ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        """Run each branch's head on its own shared-stem feature (one2one on the optionally detached features)."""
+        preds = dict()
+        if self.one2many_stem is not None:  # dropped together with the one2many head by fuse()
+            feats = [self.one2many_stem[i](x[i]) for i in range(self.nl)]
+            preds = self.forward_head(feats, **self.one2many)
+        if self.end2end:
+            feats = [xi.detach() for xi in x] if self.detach_one2one else x
+            feats = [self.one2one_stem[i](feats[i]) for i in range(self.nl)]
+            one2one = self.forward_head(feats, **self.one2one)
+            preds = {"one2many": preds, "one2one": one2one}
+        if self.training:
+            return preds
+        y = self._inference(preds["one2one"] if self.end2end else preds)
+        if self.end2end:
+            y = self.postprocess(y.permute(0, 2, 1))
+        return y if self.export else (y, preds)
+
+    def fuse(self) -> None:
+        """Remove the one2many head and its stem for inference optimization."""
+        super().fuse()
+        self.one2many_stem = None
 
 
 class SA(nn.Module):

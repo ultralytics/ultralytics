@@ -1,10 +1,11 @@
 """Run kNN evaluation on a distilled encoder run directory or on a released reference encoder.
 
 Usage:
-    python run_knn_eval.py <gpu_id> <run_dir|teacher_spec> [--imgsz N] [--crop_ratio R] [--csv PATH] [--wandb]
+    python run_knn_eval.py <gpu_id> <run_name|run_dir|teacher_spec> [--imgsz N] [--crop_ratio R] [--csv PATH] [--wandb]
 
 Everything is scored at k=20 / T=0.07. A target is either a ``TEACHER_REGISTRY`` key (``tips:v2b14`` or
-``tips_v2b14``) or a run directory, which supplies weights/best.pt, falling back to last.pt with a warning.
+``tips_v2b14``) or a run, which supplies weights/best.pt, falling back to last.pt with a warning. A run is a bare
+name, resolved against ``paths.NFS_MIRROR_ROOT``, or an absolute path. Other relative forms are rejected.
 
 Preprocessing is derived, not passed, because it is a property of how the weights were fed. A distilled run
 (``teachers`` in args.yaml) and every released encoder take the 'imagenet' entry in ``KNN_PROTOCOLS``, a CE
@@ -19,7 +20,8 @@ Flags:
                   pre-overwrite value.
 
 Examples:
-    python run_knn_eval.py 3 /data/shared-datasets/fatih-runs/classify/yolo-next-encoder/phase1-d1-eupe-vitb16
+    python run_knn_eval.py 3 phase1-d1-eupe-vitb16
+    python run_knn_eval.py 3 /home/fatih/runs/yolo-next-encoder/phase1-d1-eupe-vitb16
     python run_knn_eval.py 6 tips:v2b14 --imgsz 518 --csv /home/fatih/runs/knn-reference.csv
 """
 
@@ -29,6 +31,7 @@ from pathlib import Path
 
 import torch
 
+from callbacks import paths
 from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import YAML
 from ultralytics.utils.knn_eval import build_knn_loaders, extract_features, knn_accuracy, yolo_cls_features
@@ -147,6 +150,17 @@ def main():
         print(f"Error: crop_ratio {crop_ratio} is a research override, so its result cannot claim the knn/top1 key.")
         sys.exit(1)
 
+    # Resolved once so _load_run_dir and _update_wandb cannot disagree. Bare names go to NFS, not cwd. Checked on
+    # the raw string because Path() normalizes "./foo" and "foo/" to "foo", which would then pass as a bare name.
+    run_dir = None
+    if not is_teacher:
+        run_dir = Path(target).expanduser()
+        if not run_dir.is_absolute():
+            if target in {"", ".", ".."} or "/" in target:
+                print(f"Error: run target must be a bare run name or an absolute path, got {target!r}")
+                sys.exit(1)
+            run_dir = paths.NFS_MIRROR_ROOT / target
+
     device = torch.device(f"cuda:{gpu_id}")
     print(f"Evaluating: {target}")
     print(f"  imgsz: {imgsz}")
@@ -154,7 +168,7 @@ def main():
 
     # Resolve the target before the ImageNet scan so a bad spec or resolution fails in milliseconds, not minutes.
     model, feature_fn, name, protocol = (
-        _load_teacher(target, imgsz, device) if is_teacher else _load_run_dir(Path(target), device)
+        _load_teacher(target, imgsz, device) if is_teacher else _load_run_dir(run_dir, device)
     )
     train_loader, val_loader, num_classes = build_knn_loaders(Path(IMAGENET), imgsz, protocol, crop_ratio)
 
@@ -183,7 +197,7 @@ def main():
         print(f"  appended to {csv_path}")
 
     if use_wandb:
-        _update_wandb(Path(target), top1)
+        _update_wandb(run_dir, top1)
 
 
 if __name__ == "__main__":

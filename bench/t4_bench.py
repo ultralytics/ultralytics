@@ -42,8 +42,8 @@ IMGSZ = {("lane-b", "n"): 480, ("lane-b", "s"): 512, ("lane-b", "m"): 512}
 # detector against the yolo27-detr baseline at the same scale, exported with the fp32 attention pin DINOv3 needs to
 # survive fp16. Six Lane A arms carry MHSA and would also move under a pin, so only within-lane ratios travel.
 #
-# Arms retired as obsolete and absent here: fracrope, headdim64, attn2lite, and the l640 probes for mixedrope and
-# depthmatched, whose winning l cell became the hybrid pair's and which never had a trained run behind them.
+# Arms retired as obsolete and absent here: fracrope, headdim64, attn2lite, and the whole l640 probe family,
+# whose winning l cell became the hybrid pair's and which never had a trained run behind it.
 LANES = {
     "lane-a": (
         YOLO,
@@ -66,7 +66,6 @@ LANES = {
             "p4win": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-p4win.yaml", "x"),
             "repmixer": ("yolo26{s}-ultravit-repmixer.yaml", "nsmlx"),
             "s480": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-s480.yaml", "s"),
-            "dinop5-l640": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-l640.yaml", "nl"),
             # The shipping pair, one yaml each covering n through x. dinop5-hybrid is benched at n, s and l, the
             # scales a hybrid-named measurement exists for. At m and x it shares dinop5-depthmatched's scales row and
             # so builds that exact graph, and those two deltas carry over rather than being timed under a second name.

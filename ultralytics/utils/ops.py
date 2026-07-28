@@ -25,7 +25,6 @@ class Profile(contextlib.ContextDecorator):
         t (float): Accumulated time in seconds.
         device (torch.device): Device used for model inference.
         cuda (bool): Whether CUDA is being used for timing synchronization.
-        mps (bool): Whether MPS is being used for timing synchronization.
 
     Examples:
         Use as a context manager to time code execution
@@ -45,13 +44,11 @@ class Profile(contextlib.ContextDecorator):
 
         Args:
             t (float): Initial accumulated time in seconds.
-            device (torch.device, optional): Device used for model inference to enable accelerator synchronization.
+            device (torch.device, optional): Device used for model inference to enable CUDA synchronization.
         """
         self.t = t
         self.device = device
-        dev = str(device) if device else ""
-        self.cuda = dev.startswith("cuda")
-        self.mps = dev.startswith("mps") and hasattr(torch, "mps")  # torch.mps landed in 2.0, MPS device in 1.12
+        self.cuda = bool(device and str(device).startswith("cuda"))
 
     def __enter__(self):
         """Start timing."""
@@ -68,11 +65,9 @@ class Profile(contextlib.ContextDecorator):
         return f"Elapsed time is {self.t} s"
 
     def time(self):
-        """Get current time, draining queued accelerator work first so it is attributed to the right block."""
+        """Get current time with CUDA synchronization if applicable."""
         if self.cuda:
             torch.cuda.synchronize(self.device)
-        elif self.mps:
-            torch.mps.synchronize()
         return time.perf_counter()
 
 

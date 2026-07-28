@@ -428,7 +428,7 @@ class Model(torch.nn.Module):
         self._check_is_pytorch_model()
         return self.model.info(detailed=detailed, verbose=verbose, imgsz=imgsz)
 
-    def fuse(self, verbose: bool = True) -> Model:
+    def fuse(self, verbose: bool = True, imgsz: int | list[int, int] = 640) -> Model:
         """Fuse Conv2d and BatchNorm2d layers in the model for optimized inference.
 
         This method iterates through the model's modules and fuses consecutive Conv2d and BatchNorm2d layers into a
@@ -441,6 +441,7 @@ class Model(torch.nn.Module):
 
         Args:
             verbose (bool): Whether to print model information after fusion.
+            imgsz (int | list[int, int]): Input image size used for FLOPs calculation.
 
         Examples:
             >>> model = Model("yolo26n.pt")
@@ -448,7 +449,8 @@ class Model(torch.nn.Module):
             >>> # Model is now fused and ready for optimized inference
         """
         self._check_is_pytorch_model()
-        self.model = self.model.fuse(verbose=verbose)  # DistillationModel fuses to its student, so adopt the return
+        # DistillationModel fuses to its student, so adopt the return
+        self.model = self.model.fuse(verbose=verbose, imgsz=imgsz)
         return self
 
     def embed(

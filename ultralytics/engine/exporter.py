@@ -832,8 +832,7 @@ class Exporter:
             p.requires_grad = False
         model.eval()
         model.float()
-        model = model.fuse(verbose=False)
-        model.info(imgsz=self.imgsz)
+        model = model.fuse(imgsz=self.imgsz)
 
         if fmt == "imx":
             from ultralytics.utils.export.imx import FXModel

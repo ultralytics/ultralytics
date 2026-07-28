@@ -3,7 +3,7 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 from ultralytics.nn.modules.utils import _get_clones
 from ultralytics.utils.ops import xywh2xyxy

@@ -17,8 +17,8 @@ from typing import Any
 import numpy as np
 import torch
 import torch.distributed as dist
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 from ultralytics import __version__
 from ultralytics.utils import (
@@ -117,14 +117,7 @@ def autocast(enabled: bool, device: str = "cuda"):
 @functools.lru_cache
 def get_cpu_info():
     """Return a string with system CPU information, i.e. 'Apple M2'."""
-    from ultralytics.utils import PERSISTENT_CACHE  # avoid circular import error
-
-    if "cpu_info" not in PERSISTENT_CACHE:
-        try:
-            PERSISTENT_CACHE["cpu_info"] = CPUInfo.name()
-        except Exception:
-            pass
-    return PERSISTENT_CACHE.get("cpu_info", "unknown")
+    return CPUInfo.name()
 
 
 @functools.lru_cache
@@ -327,10 +320,9 @@ def fuse_conv_and_bn(conv, bn):
         >>> bn = nn.BatchNorm2d(16)
         >>> fused_conv = fuse_conv_and_bn(conv, bn)
     """
-    # Compute fused weights
-    w_conv = conv.weight.view(conv.out_channels, -1)
-    w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
-    conv.weight.data = torch.mm(w_bn, w_conv).view(conv.weight.shape)
+    # Compute fused weights: Conv2d weight is [out_channels, in_channels // groups, kH, kW], scale along axis 0
+    bn_scale = bn.weight.div(torch.sqrt(bn.eps + bn.running_var))
+    conv.weight.data = conv.weight * bn_scale.view(-1, 1, 1, 1)
 
     # Compute fused bias
     b_conv = (
@@ -339,7 +331,7 @@ def fuse_conv_and_bn(conv, bn):
         else conv.bias
     )
     b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fused_bias = torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn
+    fused_bias = bn_scale * b_conv + b_bn
 
     if conv.bias is None:
         conv.register_parameter("bias", nn.Parameter(fused_bias))
@@ -366,10 +358,11 @@ def fuse_deconv_and_bn(deconv, bn):
     """
     if isinstance(bn, nn.Identity):  # ConvTranspose(bn=False) leaves bn as nn.Identity, nothing to fuse
         return deconv.requires_grad_(False)
-    # Compute fused weights
-    w_deconv = deconv.weight.view(deconv.out_channels, -1)
-    w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
-    deconv.weight.data = torch.mm(w_bn, w_deconv).view(deconv.weight.shape)
+    # Compute fused weights: ConvTranspose2d weight is [in_channels, out_channels // groups, kH, kW], so the
+    # per-output-channel BN scale applies along axis 1 (group-mapped from axis 0), not axis 0 as for Conv2d.
+    bn_scale = bn.weight.div(torch.sqrt(bn.eps + bn.running_var))
+    w_scale = bn_scale.view(deconv.groups, -1).repeat_interleave(deconv.in_channels // deconv.groups, 0)
+    deconv.weight.data = deconv.weight * w_scale[:, :, None, None]
 
     # Compute fused bias
     b_conv = (
@@ -378,7 +371,7 @@ def fuse_deconv_and_bn(deconv, bn):
         else deconv.bias
     )
     b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fused_bias = torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn
+    fused_bias = bn_scale * b_conv + b_bn
 
     if deconv.bias is None:
         deconv.register_parameter("bias", nn.Parameter(fused_bias))
@@ -506,47 +499,14 @@ def get_flops(model, imgsz=640):
             # Method 1: Use stride-based input tensor
             stride = max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32  # max stride
             im = torch.empty((1, p.shape[1], stride, stride), device=p.device, dtype=p.dtype)  # input image in BCHW
-            flops = thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1e9 * 2  # stride GFLOPs
+            flops = thop.profile(model, inputs=[im], verbose=False)[0] / 1e9 * 2  # stride GFLOPs
             return flops * imgsz[0] / stride * imgsz[1] / stride  # imgsz GFLOPs
         except Exception:
             # Method 2: Use actual image size (required for RTDETR models)
             im = torch.empty((1, p.shape[1], *imgsz), device=p.device, dtype=p.dtype)  # input image in BCHW format
-            return thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1e9 * 2  # imgsz GFLOPs
+            return thop.profile(model, inputs=[im], verbose=False)[0] / 1e9 * 2  # imgsz GFLOPs
     except Exception:
         return 0.0
-
-
-def get_flops_with_torch_profiler(model, imgsz=640):
-    """Compute model FLOPs using torch profiler (alternative to thop package, but 2-10x slower).
-
-    Args:
-        model (nn.Module): The model to calculate FLOPs for.
-        imgsz (int | list, optional): Input image size.
-
-    Returns:
-        (float): The model's GFLOPs (billions of floating point operations).
-    """
-    if not TORCH_2_0:  # torch profiler implemented in torch>=2.0
-        return 0.0
-    model = unwrap_model(model)
-    p = next(model.parameters())
-    if not isinstance(imgsz, list):
-        imgsz = [imgsz, imgsz]  # expand if int/float
-    try:
-        # Use stride size for input tensor
-        stride = (max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32) * 2  # max stride
-        im = torch.empty((1, p.shape[1], stride, stride), device=p.device, dtype=p.dtype)  # input image in BCHW
-        with torch.profiler.profile(with_flops=True) as prof:
-            model(im)
-        flops = sum(x.flops for x in prof.key_averages()) / 1e9
-        flops = flops * imgsz[0] / stride * imgsz[1] / stride  # 640x640 GFLOPs
-    except Exception:
-        # Use actual image size for input tensor (i.e. required for RTDETR models)
-        im = torch.empty((1, p.shape[1], *imgsz), device=p.device, dtype=p.dtype)  # input image in BCHW format
-        with torch.profiler.profile(with_flops=True) as prof:
-            model(im)
-        flops = sum(x.flops for x in prof.key_averages()) / 1e9
-    return flops
 
 
 def initialize_weights(model):
@@ -741,11 +701,16 @@ class ModelEMA:
             d = self.decay(self.updates)
 
             msd = unwrap_model(model).state_dict()  # model state_dict
+            ema_v, model_v = [], []
             for k, v in self.ema.state_dict().items():
                 if v.dtype.is_floating_point:  # true for FP16 and FP32
-                    v *= d
-                    v += (1 - d) * msd[k].detach()
-                    # assert v.dtype == msd[k].dtype == torch.float32, f'{k}: EMA {v.dtype},  model {msd[k].dtype}'
+                    ema_v.append(v)
+                    model_v.append(msd[k])
+            if ema_v and TORCH_2_0 and (TORCH_2_4 or ema_v[0].device.type != "mps"):  # one kernel launch per op
+                torch._foreach_lerp_(ema_v, model_v, 1 - d)
+            else:  # _foreach_lerp_ needs torch>=2.0 and, on MPS, torch>=2.4
+                for v, m in zip(ema_v, model_v):
+                    v.mul_(d).add_(m, alpha=1 - d)
 
     def update_attr(self, model, include=(), exclude=("process_group", "reducer")):
         """Copy attributes from model to EMA, with options to include/exclude certain attributes.
@@ -786,7 +751,7 @@ def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, A
         return {}
 
     metadata = {
-        "date": datetime.now().isoformat(),
+        "date": datetime.now().astimezone().isoformat(),
         "version": __version__,
         "license": "AGPL-3.0 License (https://ultralytics.com/license)",
         "docs": "https://docs.ultralytics.com",
@@ -858,7 +823,7 @@ def cuda_memory_usage(device=None):
     Yields:
         (dict): A dictionary with a key 'memory' initialized to 0, which will be updated with the reserved memory.
     """
-    cuda_info = dict(memory=0)
+    cuda_info = {"memory": 0}
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
         try:
@@ -911,7 +876,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
             m = m.half() if hasattr(m, "half") and isinstance(x, torch.Tensor) and x.dtype is torch.float16 else m
             tf, tb, t = 0, 0, [0, 0, 0]  # dt forward, backward
             try:
-                flops = thop.profile(deepcopy(m), inputs=[x], verbose=False)[0] / 1e9 * 2 if thop else 0  # GFLOPs
+                flops = thop.profile(m, inputs=[x], verbose=False)[0] / 1e9 * 2 if thop else 0  # GFLOPs
             except Exception:
                 flops = 0
 
@@ -935,10 +900,10 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                         with cuda_memory_usage(device) as cuda_info:
                             anchors = int(sum((x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist()))
                             # Envelope of the detect-loss memory peaks: TaskAlignedAssigner.get_box_metrics holds ~6
-                            # simultaneous (bs, max_num_obj, anchors) fp32 buffers (mask_in_gts, overlaps, bbox_scores,
-                            # gathered pd_scores, pow temps + align_metric); the cls path holds ~6 (bs, anchors, nc)
-                            # fp32-equivalents (int64 target_scores + torch.where output, fg_scores_mask, then
-                            # pred/target/unreduced-BCE in v8DetectionLoss)
+                            # simultaneous (bs, max_num_obj, anchors) fp32 buffers (overlaps, bbox_scores, gathered
+                            # pd_scores, two pow temps + align_metric); the cls path holds ~6 (bs, anchors, nc)
+                            # fp32-equivalents (pred/target + two op temps of the unreduced BCE in v8DetectionLoss:
+                            # ~4 in pure fp32, ~6 under AMP where autocast upcasts both BCE inputs to fp32 copies)
                             sim = (
                                 torch.randn(x.shape[0], 6 * max_num_obj, anchors, device=device, dtype=torch.float32),
                                 torch.randn(x.shape[0], anchors, 6 * len(m.names), device=device, dtype=torch.float32),

@@ -159,7 +159,7 @@ def modelopt_quantize_onnx(
         )
         return out_file
 
-    import modelopt.onnx.autocast as autocast
+    from modelopt.onnx import autocast
 
     # Synthetic calibration input matching the ONNX input's real rank and dtype. AutoCast only needs
     # representative shapes and ranges, so fit the image sized `shape` to the input rank; this keeps the

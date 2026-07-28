@@ -19,10 +19,9 @@ from functools import partial
 from typing import Callable
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-import torch.utils.checkpoint as checkpoint
-from torch import Tensor
+from torch import Tensor, nn
+from torch.utils import checkpoint
 
 from ultralytics.models.sam.modules.blocks import PatchEmbed
 from ultralytics.models.sam.modules.utils import (

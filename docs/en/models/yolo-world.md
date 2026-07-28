@@ -299,7 +299,7 @@ This approach provides a powerful means of customizing state-of-the-art [object 
 | ----------------------------------------------------------------- | ----------------------------------------------------------- | ------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Objects365v1](https://opendatalab.com/OpenDataLab/Objects365_v1) | Detection                                                   | 609k    | 9621k | [objects365_train.json](https://opendatalab.com/OpenDataLab/Objects365_v1)                                                                    |
 | [GQA](https://cs.stanford.edu/people/dorarad/gqa/about.html)      | [Grounding](https://www.ultralytics.com/glossary/grounding) | 621k    | 3681k | [final_mixed_train_no_coco.json](https://huggingface.co/GLIPModel/GLIP/resolve/main/mdetr_annotations/final_mixed_train_no_coco.json)         |
-| [Flickr30k](https://shannon.cs.illinois.edu/DenotationGraph/)     | Grounding                                                   | 149k    | 641k  | [final_flickr_separateGT_train.json](https://huggingface.co/GLIPModel/GLIP/resolve/main/mdetr_annotations/final_flickr_separateGT_train.json) |
+| [Flickr30k](https://github.com/BryanPlummer/flickr30k_entities)   | Grounding                                                   | 149k    | 641k  | [final_flickr_separateGT_train.json](https://huggingface.co/GLIPModel/GLIP/resolve/main/mdetr_annotations/final_flickr_separateGT_train.json) |
 
 - Val data
 
@@ -322,22 +322,22 @@ This approach provides a powerful means of customizing state-of-the-art [object 
         from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
 
         # Option 1: Use Python dictionary
-        data = dict(
-            train=dict(
-                yolo_data=["Objects365.yaml"],
-                grounding_data=[
-                    dict(
-                        img_path="flickr30k/images",
-                        json_file="flickr30k/final_flickr_separateGT_train.json",
-                    ),
-                    dict(
-                        img_path="GQA/images",
-                        json_file="GQA/final_mixed_train_no_coco.json",
-                    ),
+        data = {
+            "train": {
+                "yolo_data": ["Objects365.yaml"],
+                "grounding_data": [
+                    {
+                        "img_path": "flickr30k/images",
+                        "json_file": "flickr30k/final_flickr_separateGT_train.json",
+                    },
+                    {
+                        "img_path": "GQA/images",
+                        "json_file": "GQA/final_mixed_train_no_coco.json",
+                    },
                 ],
-            ),
-            val=dict(yolo_data=["lvis.yaml"]),
-        )
+            },
+            "val": {"yolo_data": ["lvis.yaml"]},
+        }
 
         # Option 2: Use YAML file (yolo_world_data.yaml)
         # train:

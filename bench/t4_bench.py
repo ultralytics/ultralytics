@@ -13,6 +13,9 @@ new yaml costs three measurements rather than a rerun of the scale.
 
 Scale comes from the filename, and a scale-less stem silently resolves to the first scales key, so every entry has
 its size letter substituted in. Arms absent at a scale are simply not in that session.
+
+Every arm in a session runs at the baseline's deployed input size, from `IMGSZ` below, since a paired comparison
+only holds at one size. Lane A deploys at 640 throughout, Lane B does not.
 """
 
 import sys
@@ -27,6 +30,10 @@ from t4_bench_common import build_variant, pinned_fp32_attn, run_benchmark
 from ultralytics import RTDETR, YOLO
 
 DATA = Path("/root/autodl-tmp/data")
+
+# The size each lane's baseline deploys at, per scale, defaulting to 640. yolo27-detr trains n at 480 and s and m
+# at 512, so timing those at 640 measures an operating point nobody ships.
+IMGSZ = {("lane-b", "n"): 480, ("lane-b", "s"): 512, ("lane-b", "m"): 512}
 
 # lane -> (facade, engine builder, baseline tag prefix, bridge tag, {arm tag: (yaml template, scales it exists at)}).
 #
@@ -117,6 +124,9 @@ if only:  # append session, carrying the named arms plus the baseline and bridge
     yamls = {t: y for t, y in yamls.items() if t in want | {baseline, bridge}}
     session += "-" + arg  # its own session id, since it is its own measurement occasion
 
+imgsz = IMGSZ.get((lane, scale), 640)
 engines = DATA / f"t4-{lane}-{scale}-engines"
-variants = [build_variant(t, y, engines, model_cls=model_cls, engine_builder=engine_builder) for t, y in yamls.items()]
-run_benchmark(variants, dict.fromkeys(yamls, baseline), DATA / f"t4_{session.replace('-', '_')}.csv", session)
+variants = [
+    build_variant(t, y, engines, imgsz, model_cls=model_cls, engine_builder=engine_builder) for t, y in yamls.items()
+]
+run_benchmark(variants, dict.fromkeys(yamls, baseline), DATA / f"t4_{session.replace('-', '_')}.csv", session, imgsz)

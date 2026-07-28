@@ -458,12 +458,12 @@ def model_info_for_loggers(trainer):
     if trainer.args.profile:  # profile ONNX and TensorRT times
         from ultralytics.utils.benchmarks import ProfileModels
 
-        results = ProfileModels([trainer.last], device=trainer.device).run()[0]
+        results = ProfileModels([trainer.last], device=trainer.device, imgsz=trainer.args.imgsz).run()[0]
         results.pop("model/name")
     else:  # only return PyTorch times from most recent validation
         results = {
             "model/parameters": get_num_params(trainer.model),
-            "model/GFLOPs": round(get_flops(trainer.model), 3),
+            "model/GFLOPs": round(get_flops(trainer.model, trainer.args.imgsz), 3),
         }
     results["model/speed_PyTorch(ms)"] = round(trainer.validator.speed["inference"], 3)
     return results

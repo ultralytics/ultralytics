@@ -328,8 +328,7 @@ class BasePredictor:
                 with profilers[0]:
                     im = self.preprocess(im0s)
 
-                # Warmup model on the real input, since a shape the model has not seen compiles on first use and a
-                # square imgsz dummy never matches a letterboxed batch. Untimed, so the first inference below is clean.
+                # Warmup untimed on the real shape, since a square imgsz dummy never matches a letterboxed batch
                 if not self.done_warmup:
                     self.model.warmup(imgsz=im.shape)
                     self.done_warmup = True

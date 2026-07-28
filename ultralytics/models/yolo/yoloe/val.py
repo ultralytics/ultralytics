@@ -291,7 +291,7 @@ class YOLOEDetectVpValidator(YOLOEDetectValidator):
         if vp_weight < 1.0:
             LOGGER.info(f"Using vp_weight {vp_weight} to combine visual and text prompt embeddings.")
 
-        self.args.half = False  # force float32 for stable visual prompt extraction
+        self.args.quantize = None  # force float32 img: this branch gates half on quantize==16, matching the base validator
         names = [name.split("/", 1)[0] for name in list(data["names"].values())]
 
         dataloader = self.get_vpe_dataloader(data)

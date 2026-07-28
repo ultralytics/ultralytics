@@ -160,6 +160,10 @@ class TaskAlignedAssigner(nn.Module):
         # Assigned target
         target_labels, target_bboxes, target_scores = self.get_targets(gt_labels, gt_bboxes, target_gt_idx, fg_mask)
 
+        if self.dup_sup and self.topk2 != self.topk:
+            # use the pre-narrowing candidate pool (topk per GT) — post-narrowing mask_pos has 1 anchor/GT
+            self._stash_dup_pairs(align_metric, pd_scores, gt_labels, mask_pos_pre, mask_gt)
+
         # Normalize
         align_metric *= mask_pos
         pos_align_metrics = align_metric.amax(dim=-1, keepdim=True)  # b, max_num_obj
@@ -167,13 +171,12 @@ class TaskAlignedAssigner(nn.Module):
         norm_align_metric = (align_metric * pos_overlaps / (pos_align_metrics + self.eps)).amax(-2).unsqueeze(-1)
         target_scores = target_scores * norm_align_metric
 
-        if self.o2f_k and self.o2f_T > 0 and self.topk2 != self.topk:
+        if self.o2f_k and self.topk2 != self.topk:
+            # always active when o2f is on: at T=0 ambiguous anchors get explicit 0 labels (hard negatives);
+            # skipping this block would leave them as full TAL positives via topk2=1+K
             target_scores, fg_mask = self.apply_o2f_soft_labels(
                 target_scores, fg_mask, align_metric, pd_scores, gt_labels, mask_gt
             )
-
-        if self.dup_sup and self.topk2 != self.topk:
-            self._stash_dup_pairs(align_metric, pd_scores, gt_labels, mask_pos, mask_gt)
 
         if self.monitor:
             self._update_mon(
@@ -305,7 +308,7 @@ class TaskAlignedAssigner(nn.Module):
             mask_gt (torch.Tensor): Valid GT mask, shape (bs, n_max_boxes, 1).
         """
         bs, n_gt, _ = align_metric.shape
-        certain = align_metric.argmax(-1)  # (b, n_gt) top-align positive per GT
+        certain = (align_metric * mask_pos).argmax(-1)  # (b, n_gt) top-align positive per GT
         ind = torch.zeros([2, bs, n_gt], dtype=torch.long, device=gt_labels.device)
         ind[0] = torch.arange(end=bs, device=gt_labels.device).view(-1, 1).expand(-1, n_gt)
         ind[1] = gt_labels.squeeze(-1).clamp(min=0)

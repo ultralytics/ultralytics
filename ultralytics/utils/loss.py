@@ -1240,12 +1240,14 @@ class E2ELoss:
         gt_labels = c_m["gt_labels"]  # (b, n_gt, 1)
         b, n_gt = gt_labels.shape[:2]
         lab_anchor = gt_labels.long().squeeze(-1).gather(1, c_m["gt_idx"])  # GT class per anchor (b, A)
-        tp = one2many["scores"].sigmoid().gather(1, lab_anchor.unsqueeze(1)).squeeze(1)  # (b, A)
-        tp = tp * c_m["fg_mask"]
-        s_star = torch.zeros(b, n_gt, device=tp.device, dtype=tp.dtype)
-        s_star.scatter_reduce_(1, c_m["gt_idx"], tp, reduce="amax")  # o2m best score per GT
+        with torch.no_grad():  # teacher is detached — distill must not optimize the o2m head
+            tp = one2many["scores"].sigmoid().gather(1, lab_anchor.unsqueeze(1)).squeeze(1)  # (b, A)
+            tp = tp * c_m["fg_mask"]
+            s_star = torch.zeros(b, n_gt, device=tp.device, dtype=tp.dtype)
+            s_star.scatter_reduce_(1, c_m["gt_idx"], tp, reduce="amax")  # o2m best score per GT
+            target = s_star.gather(1, c_o["gt_idx"])
         fg_o = c_o["fg_mask"].bool()
-        target = s_star.gather(1, c_o["gt_idx"])[fg_o]
+        target = target[fg_o]
         lab_o = gt_labels.long().squeeze(-1).gather(1, c_o["gt_idx"])[fg_o]
         mask = target > 0  # GTs where the teacher has a winner
         if not mask.any():

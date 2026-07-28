@@ -47,7 +47,6 @@ from ultralytics.utils import (
     ARM64,
     ASSETS,
     IS_DOCKER,
-    IS_JETSON,
     LINUX,
     LOGGER,
     MACOS,

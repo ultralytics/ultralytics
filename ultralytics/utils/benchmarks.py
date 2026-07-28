@@ -144,7 +144,6 @@ def benchmark(
             if export_format == "paddle":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
                 assert model.task != "obb", "Paddle OBB bug https://github.com/PaddlePaddle/Paddle/issues/72024"
-            if export_format == "mnn":
             if export_format == "ncnn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
             if export_format == "imx":

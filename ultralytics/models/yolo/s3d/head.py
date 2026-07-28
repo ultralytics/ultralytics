@@ -84,8 +84,9 @@ def _deep_branch(in_ch: int, out_ch: int, hidden: int = 64) -> nn.Sequential:
 class Stereo3DDetHead(Detect):
     """Multi-scale stereo 3D detection head (Pose-pattern).
 
-    Receives P3/P4/P5 feature maps from FPN+PAN neck, plus optional cost volume features that are fed ONLY to depth
-    branches (lr_distance, depth) at P3 scale. This keeps P3/P4/P5 clean for 2D detection, avoiding 2D-3D task conflict.
+    Receives P3/P4/P5 feature maps from FPN+PAN neck, plus optional cost volume features that are fed to the depth
+    branches (lr_distance, depth) at every scale, pooled to each scale's grid. This keeps P3/P4/P5 clean for 2D
+    detection, avoiding 2D-3D task conflict, while keeping the right image reachable from every depth prediction.
 
     Args:
         nc: Number of classes.
@@ -121,15 +122,11 @@ class Stereo3DDetHead(Detect):
         depth_hidden = max(ch[0] // 2, 64)  # wider hidden for depth-critical branches
 
         # Per-scale aux branches (like Pose.cv4)
-        # Depth branches at P3 (scale 0) get cost volume concat → wider input
+        # Depth branches get the cost volume concatenated at EVERY scale → wider input
         self.aux = nn.ModuleDict()
         for name, out_c in self.aux_specs.items():
             if name in ("lr_distance", "depth"):
-                branches = []
-                for i, x in enumerate(ch):
-                    in_ch = x + self.cv_ch if i == 0 else x  # P3 gets cost vol
-                    branches.append(_deep_branch(in_ch, out_c, depth_hidden))
-                self.aux[name] = nn.ModuleList(branches)
+                self.aux[name] = nn.ModuleList(_deep_branch(x + self.cv_ch, out_c, depth_hidden) for x in ch)
             else:
                 self.aux[name] = nn.ModuleList(_branch(x, out_c, hidden) for x in ch)
 
@@ -150,15 +147,24 @@ class Stereo3DDetHead(Detect):
     ) -> dict[str, torch.Tensor]:
         """Forward pass: compute detection + aux predictions.
 
-        If cost volume is present (4th element in x), it is separated and
-        concatenated with P3 ONLY for depth branches (lr_distance, depth).
-        2D detection (box/cls) uses clean P3/P4/P5 features.
+        If cost volume is present (4th element in x), it is separated and concatenated into the depth
+        branches (lr_distance, depth) at EVERY scale, pooled to each scale's grid. It is the only
+        right-image path into those branches, so a scale that misses it predicts depth monocularly no
+        matter how it is trained (guarded by test_stereo_reaches_every_scale). 2D detection (box/cls)
+        uses clean P3/P4/P5 features.
         """
-        # Separate cost volume from feature maps
-        cost_vol = None
+        # Separate cost volume from feature maps, then pool it onto each scale's grid. The channel axis
+        # encodes disparity in input pixels, which is grid-independent, so spatial pooling is meaningful.
+        cost_vols = None
         if self.cv_ch > 0 and len(x) > self.nl:
             cost_vol = x[self.nl]
             x = list(x[: self.nl])
+            cost_vols = [
+                cost_vol
+                if f.shape[-2:] == cost_vol.shape[-2:]
+                else nn.functional.adaptive_avg_pool2d(cost_vol, f.shape[-2:])
+                for f in x
+            ]
 
         # 2D detection on clean features
         preds = super().forward_head(x, box_head, cls_head)  # {boxes, scores, feats}
@@ -170,9 +176,8 @@ class Stereo3DDetHead(Detect):
                 feats = []
                 for i in range(self.nl):
                     feat = x[i]
-                    # Concat cost volume with P3 only for depth branches
-                    if cost_vol is not None and i == 0 and name in ("lr_distance", "depth"):
-                        feat = torch.cat([feat, cost_vol], dim=1)
+                    if cost_vols is not None and name in ("lr_distance", "depth"):
+                        feat = torch.cat([feat, cost_vols[i]], dim=1)
                     feats.append(branches[i](feat).view(bs, out_c, -1))
                 preds[name] = torch.cat(feats, -1)  # [B, C, HW_total]
 

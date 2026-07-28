@@ -88,8 +88,9 @@ ARMS = {
     "dinop5-l640": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-l640.yaml", "nl"),
     "dinop5-mixedrope-l640": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-l640.yaml", "nl"),
     "dinop5-depthmatched-l640": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-depthmatched-l640.yaml", "nsl"),
-    # The shipping pair, one P5 block at n and s, more from m up. dinop5-hybrid stops at l because its x graph is
-    # dinop5-depthmatched's, already an arm. The RoPE x arm is hand written, gen_lane_b.py cannot remap vit-detr.
+    # The shipping pair, one yaml each covering n through x. Both x arms are hand written, gen_lane_b.py cannot
+    # remap the 27-row vit-detr trunk by row position. dinop5-hybrid stops at l because its Lane B x graph is
+    # dinop5-depthmatched's, already an arm here, so benching it again would time one graph under two names.
     "dinop5-hybrid": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-hybrid.yaml", "nsml"),
     "dinop5-mixedrope-hybrid": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-hybrid.yaml", "nsmlx"),
 }

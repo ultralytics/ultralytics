@@ -67,6 +67,9 @@ LANES = {
             "dinop5-l640": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-l640.yaml", "nl"),
             "dinop5-mixedrope-l640": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-l640.yaml", "nl"),
             "dinop5-depthmatched-l640": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-depthmatched-l640.yaml", "nsl"),
+            # The shipping pair, one P5 attention block at n and s and more from m upward.
+            "dinop5-hybrid": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-hybrid.yaml", "nsmlx"),
+            "dinop5-mixedrope-hybrid": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-hybrid.yaml", "nsmlx"),
         },
     ),
     "lane-b": (

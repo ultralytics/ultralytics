@@ -47,6 +47,7 @@ from ultralytics.utils import (
     ARM64,
     ASSETS,
     IS_DOCKER,
+    IS_JETSON,
     LINUX,
     LOGGER,
     MACOS,
@@ -143,6 +144,9 @@ def benchmark(
             if export_format == "paddle":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
                 assert model.task != "obb", "Paddle OBB bug https://github.com/PaddlePaddle/Paddle/issues/72024"
+                assert (LINUX and not IS_JETSON) or MACOS, "Windows and Jetson Paddle exports not supported yet"
+            if export_format == "mnn":
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 MNN exports not supported yet"
             if export_format == "ncnn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
             if export_format == "imx":

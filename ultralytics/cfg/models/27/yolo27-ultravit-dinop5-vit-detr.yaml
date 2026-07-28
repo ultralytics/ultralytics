@@ -1,0 +1,103 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Lane B arm: yolo27-vit-detr with its trunk replaced by the one from yolo26-ultravit-repmixer-fastvitffn-dinop5.
+# Neck, decoder and scale_args are the baseline's, and the trunk's repeats and Conv channels are pre-divided against
+# this family's multipliers. Its three input projections are the Conv form rather than the baseline's nn.Identity,
+# which assumes a 256-channel trunk this one is not, so what it measures is the trunk plus the projections its widths
+# require.
+
+nc: 80 # number of classes
+
+scales:
+  # [depth, width, max_channels]
+  x: [1.00, 1.00, 1024]
+
+# Per-scale variables resolved into module args as string tokens (see parse_model in tasks.py).
+scale_args:
+  x:
+    vit_dim: 384
+    vit_heads: 6
+    vit_ffn_ratio: 6
+    vit_ffn: swiglu
+    sta_c1: 64
+    sta_c2: 128
+    sta_c3: 256
+    fuse_c: 256
+    input_proj_module: Conv
+    input_proj_args: [256, 1, 1, None, 1, 1, False]
+    ndl: 6
+
+backbone:
+  - [-1, 1, Conv, [96, 3, 2]]
+  - [-1, 1, Conv, [144, 3, 2]]
+  - [-1, 2, RepUltraViTBlock, [3, True, 1e-05, True]]
+  - [-1, 1, Conv, [288, 3, 2]]
+  - [-1, 2, RepUltraViTBlock, [3, True, 1e-05, True]]
+  - [-1, 1, Conv, [576, 3, 2]]
+  - [-1, 7, RepUltraViTBlock, [3, True, 1e-05, True]]
+  - [-1, 1, Conv, [768, 3, 2]]
+  - [-1, 2, MHSABlock, [0, 4, True, 1e-05, False, 64, False, True, True, True, 4]]
+
+head:
+  - [8, 1, input_proj_module, input_proj_args] # 9 input_proj.2
+  - [-1, 1, AIFI, [1024, 8]] # 10
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 11 Y5
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 12
+  - [6, 1, input_proj_module, input_proj_args] # 13 input_proj.1
+  - [[-2, -1], 1, Add, []] # 14
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 15
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 16 Y4
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 17
+  - [4, 1, input_proj_module, input_proj_args] # 18 input_proj.0
+  - [[-2, -1], 1, Add, []] # 19
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 20 X3
+
+  - [-1, 1, SCDown, [256, 3, 2, False]] # 21
+  - [[-1, 16], 1, Add, []] # 22
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 23 F4
+
+  - [-1, 1, SCDown, [256, 3, 2, False]] # 24
+  - [[-1, 11], 1, Add, []] # 25
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 26 F5
+
+  # DeimDecoder. Args:
+  # [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
+  #  learnt_init_query, enable_cuda_acceleration, one_to_many_groups, dab_sine_embedding,
+  #  efficient_msdeformable_attn, query_select_method, reg_max, reg_scale, layer_scale, mlp_act,
+  #  o2m_topk_mode, use_gateway, share_bbox_head, share_score_head]
+  - [
+      [20, 23, 26],
+      1,
+      DeimDecoder,
+      [
+        nc,
+        256,
+        300,
+        [3, 6, 3],
+        8,
+        ndl,
+        2048,
+        0.0,
+        "silu",
+        -1,
+        100,
+        0.5,
+        1.0,
+        False,
+        False,
+        0,
+        False,
+        False,
+        "default",
+        32,
+        4.0,
+        1.0,
+        "silu",
+        "unshared",
+        True,
+        False,
+        False,
+      ],
+    ] # 27

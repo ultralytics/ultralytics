@@ -1,0 +1,83 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Lane B arm: yolo27-deim-detr with its trunk replaced by the one from yolo26-ultravit-repmixer-fastvitffn-
+# attn2-dinoreg-mixedrope. Neck, decoder and scale_args are the baseline's, and the trunk's repeats and Conv channels
+# are pre-divided against this family's multipliers. It therefore isolates the backbone.
+
+nc: 80 # number of classes
+
+scales:
+  # [depth, width, max_channels]
+  l: [1.00, 1.00, 512]
+
+# Per-scale variables resolved into module args as string tokens (see parse_model in tasks.py).
+scale_args:
+  l: { ndl: 4 }
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [96, 3, 2]]
+  - [-1, 2, RepUltraViTBlock, [3, True, 1e-05, True]]
+  - [-1, 1, Conv, [192, 3, 2]]
+  - [-1, 2, RepUltraViTBlock, [3, True, 1e-05, True]]
+  - [-1, 1, Conv, [384, 3, 2]]
+  - [-1, 7, RepUltraViTBlock, [3, True, 1e-05, True]]
+  - [-1, 1, Conv, [1152, 3, 2]]
+  - [-1, 3, MixedRoPE2D, [0, 4, True, 1e-05, True, 64, True, True, False, 4]]
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]] # cat backbone P4
+  - [-1, 2, C3k2, [512, True]] # 11
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]] # cat backbone P3
+  - [-1, 2, C3k2, [256, True]] # 14 (P3/8-small)
+
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 11], 1, Concat, [1]] # cat head P4
+  - [-1, 2, C3k2, [512, True]] # 17 (P4/16-medium)
+
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 8], 1, Concat, [1]] # cat head P5
+  - [-1, 1, C3k2, [1024, True, 0.5, True]] # 20 (P5/32-large)
+
+  # DeimDecoder. Args (ch is auto-filled from `from` refs). Positional order:
+  # [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
+  #  learnt_init_query, enable_cuda_acceleration, one_to_many_groups, dab_sine_embedding,
+  #  efficient_msdeformable_attn, query_select_method, reg_max, reg_scale, layer_scale, mlp_act,
+  #  o2m_topk_mode, use_gateway, share_bbox_head, share_score_head]. `ndl` is resolved per scale via `scale_args`.
+  - [
+      [14, 17, 20],
+      1,
+      DeimDecoder,
+      [
+        nc,
+        256,
+        300,
+        [3, 6, 3],
+        8,
+        ndl,
+        2048,
+        0.0,
+        "silu",
+        -1,
+        100,
+        0.5,
+        1.0,
+        False,
+        False,
+        0,
+        False,
+        False,
+        "default",
+        32,
+        4.0,
+        1.0,
+        "silu",
+        "unshared",
+        True,
+        False,
+        False,
+      ],
+    ]

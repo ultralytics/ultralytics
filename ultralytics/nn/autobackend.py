@@ -315,7 +315,7 @@ class AutoBackend(nn.Module):
         if not self.end2end:
             import torchvision  # noqa (import here triggers torchvision NMS use in nms.py)
         if self.format in {"pt", "torchscript", "onnx", "engine", "saved_model", "pb", "triton"} and (
-            self.device.type in {"cuda", "mps"} or self.format == "triton"
+            self.device.type != "cpu" or self.format == "triton"
         ):
             im = torch.empty(*imgsz, dtype=torch.half if self.fp16 else torch.float, device=self.device)  # input
             for _ in range(2 if self.format == "torchscript" else 1):

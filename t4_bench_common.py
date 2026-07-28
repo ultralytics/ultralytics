@@ -39,6 +39,7 @@ import torch
 
 import ultralytics
 from ultralytics import YOLO
+from ultralytics.nn.tasks import yaml_model_load
 from ultralytics.utils.benchmarks import ProfileModels
 from ultralytics.utils.torch_utils import get_gpu_info
 
@@ -121,7 +122,7 @@ def env_info(imgsz, variants):
     }
 
 
-def materialize_yaml(name, yaml, outdir, model_cls):
+def materialize_yaml(name, yaml, outdir, ident, model_cls):
     """Build an untrained yaml into a checkpoint whose biases are never exactly zero.
 
     Standard PyTorch and DEIM init leaves whole bias tensors at exactly zero, and benchmarking that state is not latency
@@ -137,10 +138,19 @@ def materialize_yaml(name, yaml, outdir, model_cls):
     near-identical, same `Add`, `Conv` and `Gemm` counts and 1 to 5 `Identity` nodes apart, so whatever TensorRT does
     with a constant-zero weight it does during engine build, not at export.
 
+    Args:
+        name (str): Short tag, which alone would not identify the checkpoint.
+        yaml (str | Path): Model yaml to build.
+        outdir (str | Path): Directory the checkpoint is written to.
+        ident (str): Hash of every input this checkpoint depends on, the yaml, the bias fill, the seed and the
+            facade. Tags are stable across arm generations, so a tag-keyed name serves a checkpoint built from the
+            previous yaml behind that tag.
+        model_cls (type): Facade that resolves the task.
+
     Returns:
         (Path): The written checkpoint.
     """
-    ckpt = Path(outdir) / f"{name}-init-fill{BIAS_FILL:g}.pt"  # fill in the stem so editing it cannot serve a stale one
+    ckpt = Path(outdir) / f"{name}-{ident}.pt"
     if ckpt.exists():
         return ckpt
     torch.manual_seed(SEED)
@@ -168,7 +178,7 @@ def pinned_fp32_attn(onnx, engine):
     build_engine_fp16(onnx, engine, half=True, fp32_attn=True, debug=True)
 
 
-def build_variant(name, weights, outdir, imgsz=640, device="0", model_cls=YOLO, engine_builder=None):
+def build_variant(name, weights, outdir, imgsz, device="0", model_cls=YOLO, engine_builder=None):
     """Export the FP32 ONNX and FP16 engine for one architecture, reusing whatever already exists at that imgsz.
 
     Args:
@@ -188,16 +198,18 @@ def build_variant(name, weights, outdir, imgsz=640, device="0", model_cls=YOLO, 
     outdir.mkdir(parents=True, exist_ok=True)
     source = str(weights)
     materialized = Path(weights).suffix == ".yaml"
-    if materialized:
-        weights = materialize_yaml(name, weights, outdir, model_cls)
     # Artifacts are keyed by what produced them, not by tag. A tag-keyed cache silently reuses an engine built
-    # from a different yaml, a different bias fill or a different TensorRT, each of which moves the number.
+    # from a different yaml, a different bias fill or a different TensorRT, each of which moves the number. A yaml
+    # is identified by its resolved config and a trained checkpoint by its bytes. Never a materialized checkpoint's
+    # bytes, which carry the save timestamp and so name when it was written rather than what it holds.
+    ident = repr(yaml_model_load(weights)).encode() if materialized else Path(weights).read_bytes()
+    ident += f"|{BIAS_FILL}|{SEED}|{model_cls.__name__}".encode()  # everything the checkpoint itself depends on
+    if materialized:
+        weights = materialize_yaml(name, weights, outdir, hashlib.sha256(ident).hexdigest()[:8], model_cls)
     import tensorrt  # local, so a checkout without it can still import this module to inspect the suite table
 
     key = hashlib.sha256(
-        Path(weights).read_bytes()  # the materialized checkpoint, so bias fill and init seed are already in it
-        + f"|{BIAS_FILL}|{SEED}|{model_cls.__name__}|{imgsz}|{tensorrt.__version__}|"
-        f"{getattr(engine_builder, '__name__', 'stock')}".encode()
+        ident + f"|{imgsz}|{tensorrt.__version__}|{getattr(engine_builder, '__name__', 'stock')}".encode()
     ).hexdigest()[:8]
     onnx, engine = outdir / f"{name}-{imgsz}-{key}.onnx", outdir / f"{name}-{imgsz}-{key}.engine"
 
@@ -267,7 +279,7 @@ def profile_variant(variant, image, imgsz, device, formats=None):
     }
 
 
-def summarize_rounds(per_round, variants, baselines, session):
+def summarize_rounds(per_round, variants, baselines, session, imgsz):
     """Reduce per-round records to one row per variant and format, with paired deltas against the variant's baseline."""
     series = {}
     for record in per_round:  # one list per variant and format, in round order, so zip() pairs them correctly
@@ -285,6 +297,9 @@ def summarize_rounds(per_round, variants, baselines, session):
                 {
                     "session": session,
                     "variant": variant.name,
+                    # The operating size, because a row measured at 512 and one at 640 are otherwise
+                    # indistinguishable in the ledger and the two are not comparable.
+                    "imgsz": imgsz,
                     "format": fmt,
                     "params_M_fused": round(variant.params_m, 2),
                     "gflops_fused": round(variant.gflops, 1),
@@ -313,7 +328,7 @@ def write_csv(path, rows):
         writer.writerows(rows)
 
 
-def run_benchmark(variants, baselines, out_csv, session, imgsz=640, device="0"):
+def run_benchmark(variants, baselines, out_csv, session, imgsz, device="0"):
     """Run ROUNDS order-balanced rounds over every variant and write the summary, per-round and provenance files.
 
     Args:
@@ -345,7 +360,7 @@ def run_benchmark(variants, baselines, out_csv, session, imgsz=640, device="0"):
             summary = " ".join(f"{f}={timings[f]['inf']:7.3f}" for f in TIMED_FORMATS)
             print(f"  round {rnd + 1}/{ROUNDS} {variant.name:<24} {summary}", flush=True)
 
-    rows = summarize_rounds(per_round, variants, baselines, session)
+    rows = summarize_rounds(per_round, variants, baselines, session, imgsz)
     write_csv(out_csv, rows)
     write_csv(out_csv.with_suffix(".rounds.csv"), per_round)
     out_csv.with_suffix(".env.json").write_text(json.dumps(env_info(imgsz, variants), indent=2))

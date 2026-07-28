@@ -2226,7 +2226,12 @@ class SAM3SemanticPredictor(SAM3Predictor):
         if model_path.is_dir() and (model_path.name.endswith("_onnx") or model_path.name.endswith("_engine")):
             from ultralytics.nn.backends.sam3 import SAM3Backend
 
-            return SAM3Backend(model_path, device=self.args.device or "cpu")
+            backend = SAM3Backend(model_path, device=self.args.device or "cpu")
+            # The graphs are traced at a fixed size, so adopt it instead of letting the caller's
+            # default reach a graph that can only reject it.
+            if backend.imgsz:
+                self.args.imgsz = backend.imgsz
+            return backend
 
         from .build_sam3 import build_sam3_image_model  # slow import
 

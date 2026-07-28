@@ -91,10 +91,21 @@ class SAM3Backend:
         self._format = self._detect_format()
         LOGGER.info(f"SAM3Backend: detected {self._format.upper()} in {self._model_dir}")
         self._load_models()
+        self.imgsz = self._baked_imgsz()
 
-    # ------------------------------------------------------------------
-    # Format detection & loading
-    # ------------------------------------------------------------------
+    def _baked_imgsz(self) -> int | None:
+        """Return the image size the vision encoder was traced at, or None if it cannot be read.
+
+        Read from the loaded module rather than the metadata, so directories written before the
+        exporter recorded imgsz still report the only size they accept.
+        """
+        try:
+            stem = self._FILE_STEMS[0]
+            if self._format == "onnx":
+                return int(self._sessions[stem].get_inputs()[0].shape[2]) or None
+            return int(self._trt_engines[stem].get_tensor_shape("images")[2]) or None
+        except Exception:  # an unreadable shape must not stop the model from loading
+            return None
 
     def _detect_format(self) -> str:
         """Return ``"onnx"`` or ``"engine"`` based on which required files the directory holds."""
@@ -135,8 +146,6 @@ class SAM3Backend:
         else:
             self._load_tensorrt()
 
-    # ---- ONNX --------------------------------------------------------
-
     def _load_onnx(self) -> None:
         cuda = self.device.type != "cpu" and torch.cuda.is_available()
         check_requirements(("onnxruntime-gpu" if cuda else "onnxruntime",))
@@ -170,8 +179,6 @@ class SAM3Backend:
             # next large allocation, so ask it for exactly what each node needs instead.
             return [("CUDAExecutionProvider", {"arena_extend_strategy": "kSameAsRequested"}), "CPUExecutionProvider"]
         return ["CPUExecutionProvider"]
-
-    # ---- TensorRT ----------------------------------------------------
 
     def _load_tensorrt(self) -> None:
         check_requirements(("tensorrt",))
@@ -215,10 +222,6 @@ class SAM3Backend:
             self._trt_io_dtypes[stem] = io_dt
 
         LOGGER.info(f"SAM3Backend TRT: loaded {self._loaded_desc()}")
-
-    # ------------------------------------------------------------------
-    # Inference helpers
-    # ------------------------------------------------------------------
 
     @staticmethod
     def _run_onnx(session, feed: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
@@ -285,10 +288,6 @@ class SAM3Backend:
         }
         return self._run_trt(stem, cuda_feed)
 
-    # ------------------------------------------------------------------
-    # Vision encoder
-    # ------------------------------------------------------------------
-
     def forward_image(self, im: torch.Tensor) -> dict:
         """Run vision encoder.
 
@@ -320,10 +319,6 @@ class SAM3Backend:
 
         return result
 
-    # ------------------------------------------------------------------
-    # Text encoder
-    # ------------------------------------------------------------------
-
     def forward_text(self, tokens: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Run text encoder on pre-tokenized text.
 
@@ -337,10 +332,6 @@ class SAM3Backend:
             tokens = tokens.cpu().numpy()
         out = self._run(self._FILE_STEMS[1], {"tokens": tokens.astype(np.int64)})
         return out["text_features"].cpu().numpy(), out["text_mask"].cpu().numpy()
-
-    # ------------------------------------------------------------------
-    # Decoder
-    # ------------------------------------------------------------------
 
     def _run_decoder(
         self,
@@ -380,10 +371,6 @@ class SAM3Backend:
         feed["input_boxes"] = input_boxes
         feed["input_boxes_labels"] = input_boxes_labels
         return self._run(self._FILE_STEMS[2], feed)
-
-    # ------------------------------------------------------------------
-    # Point prompt inference (prompt encoder + mask decoder)
-    # ------------------------------------------------------------------
 
     def forward_points(
         self,
@@ -429,10 +416,6 @@ class SAM3Backend:
         )
         return md_out["masks"], md_out["iou_scores"]
 
-    # ------------------------------------------------------------------
-    # set_classes
-    # ------------------------------------------------------------------
-
     def set_classes(self, text: list[str]) -> None:
         """Tokenize text, run text encoder per-class, cache results."""
         try:
@@ -469,10 +452,6 @@ class SAM3Backend:
             "text_mask": np.concatenate(all_masks, axis=0),  # [N, 32]
         }
         self.names = text
-
-    # ------------------------------------------------------------------
-    # forward_grounding (main entry point)
-    # ------------------------------------------------------------------
 
     def forward_grounding(
         self, backbone_out: dict, text_ids: torch.Tensor, geometric_prompt=None
@@ -525,12 +504,18 @@ class SAM3Backend:
             return results[0]
         return {k: torch.cat([r[k] for r in results], dim=0) for k in results[0]}
 
-    # ------------------------------------------------------------------
-    # Compatibility stubs
-    # ------------------------------------------------------------------
-
     def set_imgsz(self, imgsz) -> None:
-        """Ignore the requested size, the exported graphs bake in the size they were traced at."""
+        """Warn when the requested size differs from the one the graphs were traced at.
+
+        Args:
+            imgsz (int | list[int]): Size the predictor intends to letterbox to.
+        """
+        want = imgsz[0] if isinstance(imgsz, (list, tuple)) else imgsz
+        if self.imgsz and want and want != self.imgsz:
+            LOGGER.warning(
+                f"SAM3Backend: this export only accepts imgsz={self.imgsz}, got {want}. "
+                f"Pass imgsz={self.imgsz}, or re-export at {want}."
+            )
 
     def eval(self):
         """Return self, the exported graphs are always in inference mode."""

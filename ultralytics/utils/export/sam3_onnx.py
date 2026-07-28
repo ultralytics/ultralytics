@@ -28,10 +28,6 @@ import torch.nn.functional as F
 
 from ultralytics.utils import LOGGER
 
-# ---------------------------------------------------------------------------
-# TRT-compatible sine position encoding
-# ---------------------------------------------------------------------------
-
 
 def _compute_sine_pos_enc(shape, device, dtype=torch.float32, num_pos_feats=128, temperature=10000):
     """Compute 2D sine position encoding compatible with TensorRT (no cumsum)."""
@@ -52,11 +48,6 @@ def _compute_sine_pos_enc(shape, device, dtype=torch.float32, num_pos_feats=128,
     pos_x = torch.stack((pos_x[:, :, :, 0::2].sin(), pos_x[:, :, :, 1::2].cos()), dim=4).flatten(3)
     pos_y = torch.stack((pos_y[:, :, :, 0::2].sin(), pos_y[:, :, :, 1::2].cos()), dim=4).flatten(3)
     return torch.cat((pos_y, pos_x), dim=3).permute(0, 3, 1, 2)
-
-
-# ---------------------------------------------------------------------------
-# TRT-friendly nn.MultiheadAttention replacement
-# ---------------------------------------------------------------------------
 
 
 class _MHAWithPrecomputedScale(nn.Module):
@@ -163,11 +154,6 @@ def _replace_mha_modules(model):
                     setattr(module, name, _MHAWithPrecomputedScale(child))
                     count += 1
     return count
-
-
-# ---------------------------------------------------------------------------
-# ONNX Wrapper: Vision Encoder
-# ---------------------------------------------------------------------------
 
 
 class _ViTBlockONNX(nn.Module):
@@ -360,11 +346,6 @@ class SAM3VisionEncoderONNX(nn.Module):
         return fpn_feat_0, fpn_feat_1, fpn_feat_2, self.fpn_pos_2.expand(batch_size, -1, -1, -1)
 
 
-# ---------------------------------------------------------------------------
-# ONNX Wrapper: Text Encoder
-# ---------------------------------------------------------------------------
-
-
 class SAM3TextEncoderONNX(nn.Module):
     """ONNX wrapper for SAM3 text encoder (CLIP encoder + projection to 256-dim)."""
 
@@ -380,11 +361,6 @@ class SAM3TextEncoderONNX(nn.Module):
         text_memory = text_memory.transpose(0, 1)
         text_features = self.language_backbone.resizer(text_memory)
         return text_features, text_attention_mask
-
-
-# ---------------------------------------------------------------------------
-# ONNX Wrapper: SAM Prompt Encoder (for point prompts)
-# ---------------------------------------------------------------------------
 
 
 class SAM3PromptEncoderONNX(nn.Module):
@@ -452,11 +428,6 @@ class SAM3PromptEncoderONNX(nn.Module):
         return embed, dense, self.dense_pe
 
 
-# ---------------------------------------------------------------------------
-# ONNX Wrapper: SAM Mask Decoder (for point prompts)
-# ---------------------------------------------------------------------------
-
-
 class SAM3MaskDecoderONNX(nn.Module):
     """ONNX wrapper for SAM mask decoder (embeddings + features → masks + scores).
 
@@ -522,11 +493,6 @@ class SAM3MaskDecoderONNX(nn.Module):
             high_res_features=[feat_s0, feat_s1],
         )
         return masks, iou_scores
-
-
-# ---------------------------------------------------------------------------
-# ONNX Wrapper: Decoder (DETR, for text/bbox prompts)
-# ---------------------------------------------------------------------------
 
 
 class SAM3DecoderONNX(nn.Module):
@@ -640,11 +606,6 @@ class SAM3DecoderONNX(nn.Module):
         return out["pred_logits"], out["pred_boxes"], out["pred_masks"], out["presence_logit_dec"]
 
 
-# ---------------------------------------------------------------------------
-# ONNX preparation
-# ---------------------------------------------------------------------------
-
-
 def _prepare_for_onnx_export(model):
     """Prepare SAM3SemanticModel for TRT-friendly ONNX export.
 
@@ -691,11 +652,6 @@ def _prepare_for_onnx_export(model):
         model.geometry_encoder._export_roi_grid_sample = True
 
 
-# ---------------------------------------------------------------------------
-# ONNX post-processing
-# ---------------------------------------------------------------------------
-
-
 def _onnx_postprocess(f, metadata, half=False, device_type="cpu", prefix="SAM3 ONNX:"):
     """Post-process: shape inference + metadata + IR version limit.
 
@@ -729,11 +685,6 @@ def _onnx_postprocess(f, metadata, half=False, device_type="cpu", prefix="SAM3 O
             LOGGER.warning(f"{prefix} FP16 conversion failure for {Path(f).name}: {e}")
 
     onnx.save(model_onnx, f)
-
-
-# ---------------------------------------------------------------------------
-# Main ONNX export
-# ---------------------------------------------------------------------------
 
 
 def export_sam3_onnx(
@@ -964,11 +915,6 @@ def export_sam3_onnx(
     return exported_files
 
 
-# ---------------------------------------------------------------------------
-# TensorRT engine export
-# ---------------------------------------------------------------------------
-
-
 def export_sam3_engine(
     onnx_dir: str,
     half: bool = True,
@@ -1029,6 +975,11 @@ def export_sam3_engine(
             input_shape = (*input_shape, 1)
         input_shape = input_shape[:4]
 
+        # Carry the ONNX metadata into the engine so the backend can recover the size the graph was
+        # traced at. Without it an engine directory cannot say what imgsz it needs.
+        engine_metadata = {p.key: p.value for p in model_onnx.metadata_props}
+        engine_metadata.update(component=onnx_file.stem, author="Ultralytics", task="segment")
+
         engine_file = str(engine_dir / onnx_file.name.replace(".onnx", ".engine"))
 
         # Modules with a dynamic axis need a custom build with an optimization profile. They honor
@@ -1042,7 +993,7 @@ def export_sam3_engine(
                 engine_file=engine_file,
                 half=half,
                 workspace=workspace,
-                metadata={"component": onnx_file.stem, "author": "Ultralytics", "task": "segment"},
+                metadata=engine_metadata,
                 verbose=verbose,
                 prefix=prefix,
             )
@@ -1054,7 +1005,7 @@ def export_sam3_engine(
                 quantize=16 if half else None,
                 dynamic=False,
                 shape=input_shape,
-                metadata={"component": onnx_file.stem, "author": "Ultralytics", "task": "segment"},
+                metadata=engine_metadata,
                 verbose=verbose,
                 prefix=prefix,
             )

@@ -878,3 +878,38 @@ def test_configurable_depth_range():
     criterion = model.init_criterion()
     assert criterion.depth_log_min == pytest.approx(math.log(0.2))
     assert criterion.depth_log_range == pytest.approx(math.log(2.5 / 0.2))
+
+
+@pytest.mark.parametrize("imgsz", [(384, 1248), (640, 640)])
+def test_stereo_reaches_every_scale(imgsz):
+    """Depth and disparity at EVERY FPN scale must be a function of the right image.
+
+    The cost volume is the only right-image path into the depth branches. If it is concatenated at one
+    scale only, objects whose anchors land on the other scales are decoded monocularly by construction —
+    no amount of training can recover stereo for them.
+
+    eval() is mandatory: in train mode backbone layers 0-1 run on the concatenated [2B, 3, H, W] siamese
+    batch, so BatchNorm mixes left/right statistics and the left path acquires a spurious right-image
+    dependence at every scale, which would make this test pass for the wrong reason.
+    """
+    import torch
+
+    h, w = imgsz
+    model = YOLO(MODEL).model.eval()
+    x = torch.rand(1, 6, h, w, requires_grad=True)
+    preds = model(x)[1]
+
+    offset, magnitudes = 0, {}
+    for stride in (int(s) for s in model.stride.tolist()):
+        gh, gw = h // stride, w // stride
+        idx = offset + (gh // 2) * gw + gw // 2  # centre anchor of this scale
+        offset += gh * gw
+        for key in ("depth", "lr_distance"):
+            grad = torch.autograd.grad(preds[key][0, 0, idx], x, retain_graph=True)[0]
+            magnitudes[f"{key}@stride{stride}"] = grad[:, 3:].abs().sum().item()
+
+    # Guards the flat-index -> scale mapping: the strides must tile the anchor axis exactly.
+    assert offset == preds["depth"].shape[2], f"anchor mapping wrong: {offset} != {preds['depth'].shape[2]}"
+
+    blind = {k: v for k, v in magnitudes.items() if v == 0.0}
+    assert not blind, f"no right-image gradient at {sorted(blind)}; all magnitudes: {magnitudes}"

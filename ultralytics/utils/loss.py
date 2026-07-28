@@ -108,7 +108,7 @@ class BboxLoss(nn.Module):
     def __init__(
         self,
         reg_max: int = 16,
-        l1_feat: bool = False,
+        l1_scale: str = "norm",
         smooth_l1: bool = False,
         smooth_l1_beta: float = 1.0,
         center: float = 0.0,
@@ -116,7 +116,9 @@ class BboxLoss(nn.Module):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
         self.dfl_loss = DFLoss(reg_max) if reg_max > 1 else None
-        self.l1_feat = l1_feat  # when reg_max==1, compute box L1 in feature-map (grid) scale instead of normalized
+        if l1_scale not in {"norm", "feat", "pixel"}:
+            raise ValueError(f"l1_scale must be 'norm', 'feat' or 'pixel', not {l1_scale}")
+        self.l1_scale = l1_scale  # when reg_max==1, scale of the box L1 loss: image-normalized, grid, or pixels
         self.smooth_l1 = smooth_l1  # when reg_max==1, use Smooth L1 (Huber) instead of L1 for box regression
         self.smooth_l1_beta = smooth_l1_beta  # transition point between the quadratic and linear regions
         self.center = center  # when reg_max==1, gain of an auxiliary box-center offset L1 loss (0=off)
@@ -145,13 +147,14 @@ class BboxLoss(nn.Module):
             loss_dfl = loss_dfl.sum() / target_scores_sum
         else:
             target_ltrb = bbox2dist(anchor_points, target_bboxes)
-            if not self.l1_feat:  # default: normalize ltrb by image size; else keep feature-map (grid) scale
-                target_ltrb = target_ltrb * stride
-                target_ltrb[..., 0::2] /= imgsz[1]
-                target_ltrb[..., 1::2] /= imgsz[0]
+            if self.l1_scale != "feat":  # 'feat' keeps the raw feature-map (grid) scale
+                target_ltrb = target_ltrb * stride  # grid -> pixels
                 pred_dist = pred_dist * stride
-                pred_dist[..., 0::2] /= imgsz[1]
-                pred_dist[..., 1::2] /= imgsz[0]
+                if self.l1_scale == "norm":  # pixels -> image-normalized
+                    target_ltrb[..., 0::2] /= imgsz[1]
+                    target_ltrb[..., 1::2] /= imgsz[0]
+                    pred_dist[..., 0::2] /= imgsz[1]
+                    pred_dist[..., 1::2] /= imgsz[0]
             pred_ltrb, tgt_ltrb = pred_dist[fg_mask], target_ltrb[fg_mask]
             if self.smooth_l1:
                 reg = F.smooth_l1_loss(pred_ltrb, tgt_ltrb, reduction="none", beta=self.smooth_l1_beta)
@@ -541,7 +544,7 @@ class v8DetectionLoss:
             raise ValueError("small_center_fill and stride_val_thr are alternative candidate-selection strategies")
         self.bbox_loss = BboxLoss(
             m.reg_max,
-            l1_feat=getattr(h, "l1_feat", False),
+            l1_scale=getattr(h, "l1_scale", "norm"),
             smooth_l1=getattr(h, "smooth_l1", False),
             smooth_l1_beta=getattr(h, "smooth_l1_beta", 1.0),
             center=getattr(h, "center", 0.0),

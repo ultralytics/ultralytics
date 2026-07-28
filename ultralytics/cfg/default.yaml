@@ -150,7 +150,7 @@ small_center_fill: False # (bool) replace under-covered GT candidate masks with 
 small_center_fill_branch: o2m # (str) end-to-end branch using small_center_fill: 'o2o', 'o2m', or 'both'
 small_center_fill_k: 4 # (int) minimum/exact P3 candidate count for under-covered GTs
 dfl: 1.5 # (float) distribution focal loss gain
-l1_feat: False # (bool) when reg_max=1, compute box L1 loss in feature-map (grid) scale instead of image-normalized
+l1_scale: norm # (str) when reg_max=1, box L1 loss scale: 'norm' (image-normalized), 'feat' (feature-map grid), 'pixel' (absolute pixels)
 smooth_l1: False # (bool) when reg_max=1, use Smooth L1 (Huber) loss for box regression instead of L1
 smooth_l1_beta: 1.0 # (float) transition point between the quadratic and linear regions of smooth_l1
 center: 0.0 # (float) when reg_max=1, gain of an auxiliary box-center offset ((r-l)/2, (b-t)/2) L1 loss (0=off)

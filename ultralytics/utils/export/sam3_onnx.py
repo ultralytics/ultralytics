@@ -23,8 +23,8 @@ import math
 from pathlib import Path
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 from ultralytics.utils import LOGGER
 
@@ -1030,7 +1030,7 @@ def _autocast_fp16_onnx(onnx_file: str, opt_dynamic: int, prefix: str) -> str:
     from ultralytics.utils.checks import check_requirements
 
     check_requirements("nvidia-modelopt[onnx]>=0.44")
-    import modelopt.onnx.autocast as autocast
+    from modelopt.onnx import autocast
 
     calib = {}
     for inp in onnx.load(onnx_file, load_external_data=False).graph.input:

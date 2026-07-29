@@ -242,8 +242,9 @@ class KalmanFilterXYAH:
     ) -> np.ndarray:
         """Compute gating distance between state distribution and measurements.
 
-        A suitable threshold for the `"maha"` metric is the 95% chi-square quantile `scipy.stats.chi2.ppf(0.95, df)`,
-        with 4 degrees of freedom (9.4877) when `only_position` is False and 2 (5.9915) otherwise.
+        A suitable threshold for the returned squared Mahalanobis distance is the 95th-percentile chi-square value:
+        9.4877 for 4 degrees of freedom when `only_position` is False, and 5.9915 for 2 otherwise. The `"gaussian"`
+        metric returns a squared Euclidean distance, for which this threshold does not apply.
 
         Args:
             mean (np.ndarray): Mean vector over the state distribution (8 dimensional).

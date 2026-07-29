@@ -543,7 +543,7 @@ class LoadPilAndNumpy:
         if im.ndim != 3 or not all(im.shape):
             raise ValueError(f"Expected a single (H, W, C) image, but got array of shape {im.shape}")
         if pil:
-            return np.ascontiguousarray(im)
+            return im
         c = im.shape[2]
         if c == channels:
             return im
@@ -553,7 +553,7 @@ class LoadPilAndNumpy:
             return np.repeat(im, channels, axis=2)
         if channels == 1:
             return cv2.cvtColor(im, cv2.COLOR_BGRA2GRAY if c == 4 else cv2.COLOR_BGR2GRAY)[..., None]
-        return np.ascontiguousarray(im[..., :3])
+        return im[..., :3]
 
     def __len__(self) -> int:
         """Return the length of the 'im0' attribute, representing the number of loaded images."""

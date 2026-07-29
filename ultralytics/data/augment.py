@@ -2506,7 +2506,7 @@ class SemanticFormat(Format):
             labels["img"] = self._format_img(img)
         mask = labels.get("semantic_mask")
         if mask is not None:
-            labels["semantic_mask"] = torch.from_numpy(mask).to(torch.int32)
+            labels["semantic_mask"] = torch.from_numpy(np.ascontiguousarray(mask)).to(torch.int32)
         return labels
 
     def apply_instances(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -3015,7 +3015,7 @@ class DepthFormat(Format):
         _, h, w = labels["img"].shape
         if depth.shape[:2] != (h, w):
             depth = cv2.resize(depth, (w, h), interpolation=cv2.INTER_NEAREST)
-        labels["depth"] = torch.from_numpy(depth[None]).float()
+        labels["depth"] = torch.from_numpy(np.ascontiguousarray(depth[None])).float()
         return labels
 
     def apply_instances(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:

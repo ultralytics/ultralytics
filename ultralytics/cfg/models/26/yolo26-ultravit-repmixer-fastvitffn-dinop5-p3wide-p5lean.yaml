@@ -1,13 +1,15 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# dinop5-p3deep with one P5 attention block drained at m, l and x, where P5 runs furthest over the conv floor.
+# p3wide with the P5 attention drained at m, l and x. p3wide clears the conv P3 floor but leaves P5
+# far over it, which is what cost p3deep those three scales.
 
 nc: 80
 end2end: True
 reg_max: 1
 
 scales:
-  # [depth, width, max_channels]. n and s resolve to one P5 block either way, so they match the parent arm exactly. Resolved blocks P2/P3/P4/P5: 1/2/3/1 n, 1/2/3/1 s, 1/2/4/1 m, 1/2/4/1 l, 2/3/6/2 x
+  # [depth, width, max_channels]. Resolved blocks P2/P3/P4/P5: 1/2/3/1 n, 1/2/3/1 s, 1/2/4/1 m, 1/2/4/1 l,
+  # 2/3/6/2 x. n and s resolve to one P5 block either way, so they match p3wide exactly.
   n: [0.20, 0.25, 1024]
   s: [0.20, 0.50, 1152]
   m: [0.25, 1.00, 512]
@@ -19,7 +21,7 @@ backbone:
   - [-1, 1, Conv, [96, 3, 2]]
   - [-1, 5, RepUltraViTBlock, [3, True, 0.00001, True]]
   - [-1, 1, Conv, [192, 3, 2]]
-  - [-1, 8, RepUltraViTBlock, [3, True, 0.00001, True]]
+  - [-1, 8, RepUltraViTBlock, [6, True, 0.00001, True]]
   - [-1, 1, Conv, [384, 3, 2]]
   - [-1, 16, RepUltraViTBlock, [3, True, 0.00001, True]]
   - [-1, 1, Conv, [1152, 3, 2]]

@@ -78,6 +78,9 @@ LANES = {
             # arm that clears that floor, and it changes no block family, so a null result falsifies the P3
             # capacity hypothesis rather than a mixer swap.
             "dinop5-p3wide": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3wide.yaml", "nsmlx"),
+            # p3wide carrying the same P5 drain, so P3 clears the floor at the three scales where leaving P5 alone
+            # is what cost p3deep. It is not an isolation, it moves two stages.
+            "dinop5-p3wide-p5lean": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3wide-p5lean.yaml", "mlx"),
             # At m, attn2 and dinop5-hybrid resolve to identical blocks, channels and params, yet attn2 measures
             # 2.8pp faster. The gap is inside the MHSABlock, so these two split it: head_dim 64 to 32 is attn2's
             # head shape at identical params, and dropping the storage tokens returns the sequence to 20x20.

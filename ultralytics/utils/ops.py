@@ -724,10 +724,9 @@ def linear_sum_assignment(cost_matrix):
     present. SciPy is imported lazily so it never slows `import ultralytics`. For a rectangular matrix only min(rows,
     columns) entries are matched.
 
-    The NumPy fallback expects finite costs: an `inf` entry marks a forbidden assignment (matching SciPy), while `NaN`
-    is not rejected (SciPy raises), so callers must sanitize NaN upstream (e.g. the RT-DETR matcher zeros NaN/inf
-    beforehand). The two backends may return a different equal-cost assignment under exact ties, but the total cost is
-    identical.
+    The NumPy fallback supports `+inf` as a forbidden assignment and raises `ValueError("cost matrix is infeasible")`
+    when no assignment exists; callers must sanitize `NaN` and `-inf`. The two backends may return a different
+    equal-cost assignment under exact ties, but the total cost is identical.
 
     The NumPy fallback is validated against SciPy with exact optimal-cost parity across ~6.9k randomized cases (every
     shape including empty/tall/wide, ties, negatives, IoU- and RT-DETR-style matrices, `maximize` via negation,
@@ -740,7 +739,7 @@ def linear_sum_assignment(cost_matrix):
         300 x 300     28ms    1.5ms
 
     Args:
-        cost_matrix (np.ndarray | torch.Tensor): Cost matrix with shape (N, M) and finite values.
+        cost_matrix (np.ndarray | torch.Tensor): Cost matrix with shape (N, M); `+inf` forbids assignments.
 
     Returns:
         row_ind (np.ndarray): Row indices of the optimal assignment, sorted ascending, with length min(N, M).
@@ -767,7 +766,7 @@ def _linear_sum_assignment_numpy(a):
     """Solve the rectangular linear sum assignment problem with NumPy (Jonker-Volgenant SciPy-free fallback).
 
     Args:
-        a (np.ndarray): Cost matrix of shape (N, M) with dtype float64 and finite values.
+        a (np.ndarray): Float64 cost matrix of shape (N, M); `+inf` forbids assignments.
 
     Returns:
         row_ind (np.ndarray): Row indices of the optimal assignment, sorted ascending, with length min(N, M).
@@ -790,8 +789,11 @@ def _linear_sum_assignment_numpy(a):
             cur = a[i0 - 1] - u[i0] - v[1:]
             improve = (~used[1:]) & (cur < minv[1:])
             minv[1:][improve], way[1:][improve] = cur[improve], j0
-            j1 = int(np.argmin(np.where(used[1:], np.inf, minv[1:]))) + 1
-            delta = minv[j1]
+            candidates = np.where(used[1:], np.inf, minv[1:])
+            j1 = int(np.argmin(candidates)) + 1
+            delta = candidates[j1 - 1]
+            if delta == np.inf:
+                raise ValueError("cost matrix is infeasible")
             u[p[used]] += delta
             v[used] -= delta
             minv[~used] -= delta

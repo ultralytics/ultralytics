@@ -50,7 +50,7 @@ LANES = {
         YOLO,
         None,
         "conv",
-        "ffnattn2",  # bridge, the incumbent every UltraViT arm is judged against
+        "ffnattn2",  # bridge, the arm carried by every session so ratios cross sessions
         {
             "conv": ("yolo26{s}.yaml", "nsmlx"),
             "attn2": ("yolo26{s}-ultravit-attn2.yaml", "nsmlx"),
@@ -67,27 +67,24 @@ LANES = {
             # Incumbent pair, the control the stage-balanced pair is judged against.
             "dinop5-hybrid": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-hybrid.yaml", "nsmlx"),
             "dinop5-mixedrope-hybrid": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-hybrid.yaml", "nsmlx"),
-            # The incumbent trunk with one block moved from P4 to P3. s is the cell to watch, the incumbent's
-            # thinnest margin over the conv baseline, and this spends MACs at four times the resolution it frees them.
+            # dinop5-hybrid with one block moved P4 to P3, spending MACs at 4x the resolution it frees them.
             "dinop5-p3deep": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep.yaml", "nsmlx"),
-            # p3deep won at n and s and lost at m, l and x, so the exchange it makes is priced by where the T4 sits
-            # on the bandwidth to compute curve. p3deep2 takes a second step, p5lean drains P5, the stage furthest
-            # over the conv floor at m, l and x, and the combined arm does both.
+            # p3deep won at n and s, lost at m, l and x. p3deep2 doubles the exchange, p5lean drains P5 instead,
+            # and p3deep2-p5lean stacks both.
             "dinop5-p3deep2": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep2.yaml", "nsmlx"),
             "dinop5-p5lean": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p5lean.yaml", "mlx"),
             "dinop5-p3deep2-p5lean": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep2-p5lean.yaml", "mlx"),
-            # P3 reaches the conv floor by width instead of depth, mlp_ratio 3 to 6 on the P3 row alone. The only
-            # arm that clears that floor, and it changes no block family, so a null result falsifies the P3
-            # capacity hypothesis rather than a mixer swap.
+            # P3 to the conv floor by width, mlp_ratio 3 to 6, and p3wide-p5lean adds the drain. Deltas in the ledger.
             "dinop5-p3wide": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3wide.yaml", "nsmlx"),
-            # p3wide carrying the same P5 drain, so P3 clears the floor at the three scales where leaving P5 alone
-            # is what cost p3deep. It is not an isolation, it moves two stages.
             "dinop5-p3wide-p5lean": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3wide-p5lean.yaml", "mlx"),
-            # At m, ffnattn2 and dinop5-hybrid resolve to identical blocks and channels and sit 0.13% apart on
-            # params, yet ffnattn2 measures 2.8pp faster, so the gap is inside the MHSABlock. Their P5 args differ
-            # in six places. head_dim and the storage tokens are both measured and neither explains it, this
-            # prices conv_ffn against swiglu, and qkv_bias and proj_bias stay unmeasured. ffnattn2 keeps NCHW
-            # through a ConvMlp, dinop5 permutes to a SwiGLU token FFN, for 40.6k more params at m.
+            # p5lean and p3wide both carry p3deep's P4 to P3 move, so neither prices its own change. These apply
+            # that one change to dinop5-hybrid instead. hybrid-p5lean is l only because it resolves to the already
+            # ledgered dinop5 graph at m and x, where ffnattn2 bridges the ratio across sessions.
+            "dinop5-hybrid-p5lean": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-hybrid-p5lean.yaml", "l"),
+            "dinop5-hybrid-p3wide": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-hybrid-p3wide.yaml", "nsmlx"),
+            # At m, ffnattn2 beats dinop5-hybrid by 2.8pp on near-identical params, so the gap is inside the
+            # MHSABlock. head_dim and storage tokens are measured and explain neither. This prices ConvMlp against
+            # the SwiGLU token FFN, leaving qkv_bias and proj_bias unmeasured.
             "dinop5-p3deep-convffn": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep-convffn.yaml", "nsmlx"),
             # The baseline itself with only C2PSA swapped for the dinop5 attention, so P2 and P3 sit exactly at the
             # conv floor. A whole-operator substitution, not an attention-type isolation: C2PSA attends inside a

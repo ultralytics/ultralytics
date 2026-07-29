@@ -2217,6 +2217,9 @@ class SAM3Predictor(SAM2Predictor):
 class SAM3SemanticPredictor(SAM3Predictor):
     """Segment Anything Model 3 (SAM3) Predictor for image segmentation tasks."""
 
+    _interactive = False  # geometry chosen for the image being preprocessed
+    _features_interactive = None  # geometry the cached self.features were encoded with
+
     def get_model(self):
         """Retrieve and initialize the Segment Anything Model 3 (SAM3) for image segmentation tasks."""
         from pathlib import Path
@@ -2237,9 +2240,15 @@ class SAM3SemanticPredictor(SAM3Predictor):
 
         return build_sam3_image_model(self.args.model, compile=self.args.compile)
 
+    def __call__(self, source=None, model=None, stream: bool = False, *args, **kwargs):
+        """Record the prompts before running, because preprocessing needs them to pick the geometry."""
+        self.prompts = {**self.prompts, **{k: kwargs[k] for k in ("bboxes", "points", "labels", "text") if k in kwargs}}
+        return super().__call__(source, model, stream, *args, **kwargs)
+
     @smart_inference_mode()
     def get_im_features(self, im):
         """Extract image features using the model's backbone."""
+        self._features_interactive = self._interactive
         return self.model.backbone.forward_image(im)
 
     def pre_transform(self, im):
@@ -2265,8 +2274,23 @@ class SAM3SemanticPredictor(SAM3Predictor):
             1
         """
         assert len(im) == 1, "SAM model does not currently support batched inference"
-        letterbox = LetterBox(self.imgsz, auto=False, center=False, scale_fill=True)  # hardcode here for sam3
+        # Grounding was trained on a stretched image while the interactive modules were trained on a
+        # padded one, so give each the geometry it expects or a click lands on the wrong pixel. This
+        # runs before the prompts are consumed, so it is the one place the choice is made.
+        self._interactive = self._prompts_are_interactive()
+        letterbox = LetterBox(self.imgsz, auto=False, center=False, scale_fill=not self._interactive)
         return [letterbox(image=x) for x in im]
+
+    def _prompts_are_interactive(self):
+        """Whether the pending prompts are served by the prompt encoder and mask decoder, not grounding."""
+        geometric = self.prompts.get("points") is not None or self.prompts.get("bboxes") is not None
+        has_points = hasattr(self.model, "forward_points") and self.model.has_point_modules
+        return geometric and self.prompts.get("text") is None and has_points
+
+    def _letterbox_ratio(self, src_shape):
+        """Return the scale a padded letterbox applies, with the image pinned to the top left corner."""
+        dst_h, dst_w = self.imgsz if isinstance(self.imgsz, (list, tuple)) else (self.imgsz, self.imgsz)
+        return min(dst_h / src_shape[0], dst_w / src_shape[1])
 
     def _prepare_geometric_prompts(self, src_shape, bboxes=None, labels=None):
         """Prepare prompts by normalizing bounding boxes and points to the destination shape."""
@@ -2383,8 +2407,14 @@ class SAM3SemanticPredictor(SAM3Predictor):
                 result_masks = None
                 boxes_out = torch.zeros((0, 6), device=masks.device)
             else:
+                # The masks span the padded square, so drop the padding before mapping back.
+                r = self._letterbox_ratio(orig_img.shape[:2])
+                dst_h, dst_w = img.shape[2:]
+                mh, mw = kept_masks.shape[-2:]
+                h = min(mh, round(mh * orig_img.shape[0] * r / dst_h))
+                w = min(mw, round(mw * orig_img.shape[1] * r / dst_w))
                 result_masks = (
-                    F.interpolate(kept_masks.float()[None], orig_img.shape[:2], mode="bilinear")[0]
+                    F.interpolate(kept_masks.float()[None, ..., :h, :w], orig_img.shape[:2], mode="bilinear")[0]
                     > self.model.mask_threshold
                 )
                 boxes_out = batched_mask_to_box(result_masks)
@@ -2399,16 +2429,24 @@ class SAM3SemanticPredictor(SAM3Predictor):
         labels = self.prompts.pop("labels", labels)
         text = self.prompts.pop("text", text)
         points = self.prompts.pop("points", points)
+        # Cached features carry the geometry they were encoded with, so drop them when it changes.
+        if self._features_interactive != self._interactive:
+            self.features = None
         features = self.get_im_features(im) if self.features is None else self.features
 
-        # Point prompt path: route through prompt encoder + mask decoder
-        if points is not None and hasattr(self.model, "forward_points") and self.model.has_point_modules:
-            return self._inference_points(im, features, points, labels)
+        if self._interactive:
+            # A box is its two corners, tagged with the labels the prompt encoder reserves for them,
+            # so it segments what it encloses instead of matching lookalikes.
+            if points is None:
+                points = torch.as_tensor(bboxes, dtype=torch.float32).reshape(-1, 2, 2)
+                labels = torch.full(points.shape[:-1], 2, dtype=torch.int32)
+                labels[:, 1] = 3  # 2 = box top left, 3 = box bottom right
+            return self._inference_points(features, points, labels)
 
         prompts = self._prepare_geometric_prompts(self.batch[1][0].shape[:2], bboxes, labels)
         return self._inference_features(features, *prompts, text=text)
 
-    def _inference_points(self, im, features, points, labels):
+    def _inference_points(self, features, points, labels):
         """Run point-based segmentation through prompt encoder + mask decoder.
 
         Point grouping (how many objects/masks are produced) depends on the input:
@@ -2423,7 +2461,6 @@ class SAM3SemanticPredictor(SAM3Predictor):
           negative point is meaningless on its own).
 
         Args:
-            im (torch.Tensor): Preprocessed image tensor.
             features (dict): Vision encoder output from forward_image.
             points (np.ndarray | list): Point coordinates [N, 2] or [num_obj, num_pts, 2] in original-image pixels.
             labels (np.ndarray | list | None): Point labels, 1=foreground, 0=background. None means all-foreground.
@@ -2439,12 +2476,9 @@ class SAM3SemanticPredictor(SAM3Predictor):
             labels = np.ones(points.shape[:-1])
         labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
 
-        # Scale points from original image coords to model input coords (scale_fill stretch)
-        src_shape = self.batch[1][0].shape[:2]  # (H, W)
-        dst_h, dst_w = im.shape[2:]
-        point_coords = points.clone().float()
-        point_coords[..., 0] *= dst_w / src_shape[1]
-        point_coords[..., 1] *= dst_h / src_shape[0]
+        # Scale points into model input coords, one ratio for both axes because the letterbox pads
+        # rather than stretches on this path.
+        point_coords = points.clone().float() * self._letterbox_ratio(self.batch[1][0].shape[:2])
 
         # Build per-object groups of (coords [num_pts, 2], labels [num_pts]).
         if point_coords.ndim == 3:  # explicit [num_obj, num_pts, 2]

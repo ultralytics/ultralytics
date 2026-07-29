@@ -455,7 +455,7 @@ runs/
         └── image.jpg     # annotated result
 ```
 
-The subfolder matches the task (`runs/segment/`, `runs/pose/`, and so on). For video sources the annotated output is written as a video file; pass `--save-frames` to write individual frames instead. For the `semantic` task, `--save-json` writes per-pixel class-map PNGs under a `results/` subfolder. For the `depth` task the annotated image is written side by side, with the original next to the colorized depth map. Annotated image and video saving require the `annotate` feature; semantic class-map PNG export does not. Video input and output require the `video` feature.
+The subfolder matches the task (`runs/segment/`, `runs/pose/`, and so on). For video sources the annotated output is written as a video file; pass `--save-frames` to write individual frames instead. For the `semantic` task, `--save-json` writes per-pixel class-map PNGs under a `results/` subfolder. For the `depth` task the colorized depth map is blended over the source image, matching the Ultralytics Python `plot()` output. Annotated image and video saving require the `annotate` feature; semantic class-map PNG export does not. Video input and output require the `video` feature.
 
 ## FAQ
 

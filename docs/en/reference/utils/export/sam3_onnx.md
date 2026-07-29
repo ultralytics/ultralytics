@@ -64,10 +64,6 @@ keywords: Ultralytics, ultralytics.utils.export.sam3_onnx, API reference, YOLO, 
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.export.sam3_onnx._autocast_fp16_onnx
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.export.sam3_onnx._gridsample_mode_for_trt
 
 <br><br><hr><br>

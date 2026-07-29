@@ -1,0 +1,38 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# attn2-s480 with one RepUltraViT block moved from P4 to P3. Widths and stage interfaces are unchanged, so this
+# isolates high-resolution stage depth. A P3 block costs 400.0M MACs against a P4 block's 376.9M, making the trade
+# +23.0M MACs while dropping 172.5k params, which tests the small-object deficit without a latency or head change.
+
+nc: 80
+end2end: True
+reg_max: 1
+
+scales:
+  s: [0.20, 0.50, 960]
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [96, 3, 2]]
+  - [-1, 4, RepUltraViTBlock, [3, True, 0.00001, True]]
+  - [-1, 1, Conv, [192, 3, 2]]
+  - [-1, 15, RepUltraViTBlock, [3, True, 0.00001, True]] # 2 -> 3 resolved blocks
+  - [-1, 1, Conv, [384, 3, 2]]
+  - [-1, 15, RepUltraViTBlock, [3, True, 0.00001, True]] # 4 -> 3 resolved blocks
+  - [-1, 1, Conv, [1152, 3, 2]]
+  - [-1, 8, MHSABlock, [0, 4, True, 0.00001, True, 32]]
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]]
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, 2, C3k2, [256, True]]
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 11], 1, Concat, [1]]
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 8], 1, Concat, [1]]
+  - [-1, 1, C3k2, [1024, True, 0.5, True]]
+  - [[14, 17, 20], 1, Detect, [nc]]

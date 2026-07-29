@@ -82,13 +82,9 @@ To use Vulkan acceleration, specify the Vulkan device when running inference:
 
     Ensure you have Vulkan drivers installed for your GPU. Most modern GPU drivers include Vulkan support by default. You can verify Vulkan availability using tools like `vulkaninfo` on Linux or the Vulkan SDK on Windows.
 
-## Export to NCNN: Converting Your YOLO26 Model
-
-You can expand model compatibility and deployment flexibility by converting YOLO26 models to NCNN format.
-
 ## Supported Tasks
 
-NCNN export supports the standard Ultralytics YOLO26 task set.
+NCNN export supports all seven Ultralytics tasks. Detection, instance segmentation, pose, OBB, and classification cover the YOLO26, YOLO11, and YOLOv8 families; semantic segmentation and depth estimation are YOLO26-only.
 
 | Task                                          | Supported |
 | :-------------------------------------------- | :-------- |
@@ -98,6 +94,11 @@ NCNN export supports the standard Ultralytics YOLO26 task set.
 | [Pose Estimation](../tasks/pose.md)           | ✅        |
 | [OBB Detection](../tasks/obb.md)              | ✅        |
 | [Classification](../tasks/classify.md)        | ✅        |
+| [Depth Estimation](../tasks/depth.md)         | ✅        |
+
+## Export to NCNN: Converting Your YOLO26 Model
+
+You can expand model compatibility and deployment flexibility by converting YOLO26 models to NCNN format.
 
 ### Installation
 

@@ -75,6 +75,20 @@ While ONNX models are commonly used on CPUs, they can also be deployed on the fo
 
 - **Web Browsers**: ONNX can run directly in web browsers, powering interactive and dynamic web-based AI applications.
 
+## Supported Tasks
+
+ONNX export supports all seven Ultralytics tasks. Detection, instance segmentation, pose, OBB, and classification cover the YOLO26, YOLO11, and YOLOv8 families; semantic segmentation and depth estimation are YOLO26-only.
+
+| Task                                          | Supported |
+| :-------------------------------------------- | :-------- |
+| [Object Detection](../tasks/detect.md)        | ✅        |
+| [Instance Segmentation](../tasks/segment.md)  | ✅        |
+| [Semantic Segmentation](../tasks/semantic.md) | ✅        |
+| [Pose Estimation](../tasks/pose.md)           | ✅        |
+| [OBB Detection](../tasks/obb.md)              | ✅        |
+| [Classification](../tasks/classify.md)        | ✅        |
+| [Depth Estimation](../tasks/depth.md)         | ✅        |
+
 ## Exporting YOLO26 Models to ONNX
 
 You can expand model compatibility and deployment flexibility by converting YOLO26 models to ONNX format. [Ultralytics YOLO26](../models/yolo26.md) provides a straightforward export process that can significantly enhance your model's performance across different platforms.

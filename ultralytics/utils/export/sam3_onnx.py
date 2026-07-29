@@ -1019,43 +1019,6 @@ def export_sam3_engine(
     return exported_engines
 
 
-def _autocast_fp16_onnx(onnx_file: str, opt_dynamic: int, prefix: str) -> str:
-    """Convert an ONNX module to mixed FP16/FP32 with ModelOpt AutoCast.
-
-    AutoCast assigns FP16 per node but keeps nodes whose observed range overflows FP16 in FP32, which is what lets the
-    detection decoder run mostly in FP16 without the text path overflowing. Calibration data is synthesized for every
-    input from its rank and dtype (dynamic dims use ``opt_dynamic``). Returns the path to the converted ONNX.
-    """
-    import numpy as np
-    import onnx
-
-    from ultralytics.utils.checks import check_requirements
-
-    check_requirements("nvidia-modelopt[onnx]>=0.44")
-    from modelopt.onnx import autocast
-
-    calib = {}
-    for inp in onnx.load(onnx_file, load_external_data=False).graph.input:
-        tt = inp.type.tensor_type
-        dims = [d.dim_value if d.dim_value > 0 else opt_dynamic for d in tt.shape.dim]
-        dtype = onnx.helper.tensor_dtype_to_np_dtype(tt.elem_type)
-        if dtype == np.bool_:
-            calib[inp.name] = np.zeros(dims, dtype=np.bool_)
-        elif np.issubdtype(dtype, np.integer):
-            calib[inp.name] = np.ones(dims, dtype=dtype)
-        else:
-            calib[inp.name] = np.random.randn(*dims).astype(dtype)
-    LOGGER.info(f"{prefix} converting {Path(onnx_file).name} to mixed FP16/FP32 with ModelOpt AutoCast...")
-    out_file = str(Path(onnx_file).with_suffix(".mixed.onnx"))
-    onnx.save(
-        autocast.convert_to_mixed_precision(
-            onnx_file, low_precision_type="fp16", keep_io_types=True, calibration_data=calib
-        ),
-        out_file,
-    )
-    return out_file
-
-
 def _gridsample_mode_for_trt(onnx_file: str, prefix: str) -> bytes:
     """Return the ONNX bytes with GridSample renamed from the opset 20 mode to the TensorRT one.
 
@@ -1102,7 +1065,9 @@ def _build_decoder_engine_dynamic(
     from ultralytics.utils.export.engine import write_engine
 
     if half:
-        onnx_file = _autocast_fp16_onnx(onnx_file, opt_dynamic, prefix)
+        from ultralytics.utils.export.engine import modelopt_quantize_onnx
+
+        onnx_file = modelopt_quantize_onnx(onnx_file, quantize=16, dynamic_dim=opt_dynamic, prefix=prefix)
 
     logger = trt.Logger(trt.Logger.INFO if verbose else trt.Logger.WARNING)
     builder = trt.Builder(logger)

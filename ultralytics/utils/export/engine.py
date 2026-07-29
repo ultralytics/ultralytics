@@ -99,6 +99,7 @@ def modelopt_quantize_onnx(
     dataset=None,
     shape: tuple[int, int, int, int] = (1, 3, 640, 640),
     dynamic: bool = False,
+    dynamic_dim: int = 1,
     prefix: str = "",
 ) -> str:
     """Bake reduced precision into an ONNX model for TensorRT 11 strongly-typed builds using NVIDIA ModelOpt.
@@ -114,6 +115,7 @@ def modelopt_quantize_onnx(
             Required when ``quantize=8``.
         shape (tuple[int, int, int, int]): Input shape (batch, channels, height, width) used for dynamic calibration.
         dynamic (bool): Whether the ONNX model uses dynamic input shapes.
+        dynamic_dim (int): Size to substitute for symbolic dimensions when synthesizing calibration data.
         prefix (str): Prefix for log messages.
 
     Returns:
@@ -162,27 +164,30 @@ def modelopt_quantize_onnx(
 
     from modelopt.onnx import autocast
 
-    # Synthetic calibration input matching the ONNX input's real rank and dtype. AutoCast only needs
-    # representative shapes and ranges, so fit the image sized `shape` to the input rank; this keeps the
-    # 4D float image path unchanged while giving non image inputs (e.g. 2D int token ids) a valid tensor.
-    tt = input_proto.type.tensor_type
-    rank = len(tt.shape.dim)
-    np_dtype = onnx.helper.tensor_dtype_to_np_dtype(tt.elem_type)
-    calib_shape = (tuple(shape) + (1,) * rank)[:rank]
-    calib = (
-        np.random.randint(0, 100, size=calib_shape).astype(np_dtype)
-        if np.issubdtype(np_dtype, np.integer)
-        else np.random.randn(*calib_shape).astype(np_dtype)
-    )
+    # AutoCast only needs representative shapes and ranges, so synthesize one tensor per graph input
+    # from its own declared rank and dtype. A single 4D float image reproduces the original behavior,
+    # while multi input graphs also get valid token ids, masks and symbolic dims.
+    calib = {}
+    for inp in onnx.load(onnx_file, load_external_data=False).graph.input:
+        tt = inp.type.tensor_type
+        dims = [d.dim_value if d.dim_value > 0 else dynamic_dim for d in tt.shape.dim]
+        if not dims:  # a scalar input still needs an array
+            dims = [1]
+        if inp.name == input_name and len(dims) == len(shape):
+            dims = list(shape)  # the image input keeps the requested calibration size
+        np_dtype = onnx.helper.tensor_dtype_to_np_dtype(tt.elem_type)
+        if np_dtype == np.bool_:
+            calib[inp.name] = np.zeros(dims, dtype=np.bool_)
+        elif np.issubdtype(np_dtype, np.integer):
+            calib[inp.name] = np.random.randint(0, 100, size=dims).astype(np_dtype)
+        else:
+            calib[inp.name] = np.random.randn(*dims).astype(np_dtype)
 
     out_file = str(Path(onnx_file).with_suffix(".fp16.onnx"))
     LOGGER.info(f"{prefix} converting ONNX to FP16 mixed precision with ModelOpt AutoCast...")
     onnx.save(
         autocast.convert_to_mixed_precision(
-            onnx_file,
-            low_precision_type="fp16",
-            keep_io_types=True,
-            calibration_data={input_name: calib},
+            onnx_file, low_precision_type="fp16", keep_io_types=True, calibration_data=calib
         ),
         out_file,
     )

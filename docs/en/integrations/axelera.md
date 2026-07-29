@@ -68,7 +68,7 @@ For turnkey solutions, Axelera partners with manufacturers to provide systems pr
 
 ## Supported Tasks
 
-The following tasks are supported across YOLOv8, YOLO11, and YOLO26 models.
+The following tasks are supported across YOLOv8, YOLO11, and YOLO26 models. Depth estimation is not supported: the depth head emits operators the Metis AIPU compiler cannot lower.
 
 | Task                                          | YOLOv8 | YOLO11 | YOLO26              |
 | :-------------------------------------------- | :----- | :----- | :------------------ |
@@ -78,6 +78,7 @@ The following tasks are supported across YOLOv8, YOLO11, and YOLO26 models.
 | [Semantic Segmentation](../tasks/semantic.md) | ❌     | ❌     | ✅                  |
 | [Oriented Bounding Boxes](../tasks/obb.md)    | ✅     | ✅     | ✅                  |
 | [Classification](../tasks/classify.md)        | ✅     | ✅     | ✅                  |
+| [Depth Estimation](../tasks/depth.md)         | ❌     | ❌     | ❌                  |
 
 !!! note
 

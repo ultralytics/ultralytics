@@ -23,6 +23,12 @@ OpenVINO, short for Open Visual Inference & [Neural Network](https://www.ultraly
   <strong>Watch:</strong> How to Export Ultralytics YOLO26 to Intel OpenVINO Format for Faster Inference 🚀
 </p>
 
+## Supported Tasks
+
+OpenVINO export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+
+{% include "macros/supported-tasks.md" %}
+
 ## Usage Examples
 
 The OpenVINO format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy on Intel CPU, integrated/discrete GPU, or NPU.

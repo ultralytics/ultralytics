@@ -46,7 +46,7 @@ class STrack(BaseTrack):
 
     Examples:
         Initialize and activate a new track
-        >>> track = STrack(xywh=[100, 200, 50, 80, 0], score=0.9, cls="person")
+        >>> track = STrack(xywh=np.array([100, 200, 50, 80, 0]), score=0.9, cls="person")
         >>> track.activate(kalman_filter=KalmanFilterXYAH(), frame_id=1)
     """
 
@@ -135,8 +135,9 @@ class STrack(BaseTrack):
 
         Examples:
             Update the state of a track with new detection information
-            >>> track = STrack([100, 200, 50, 80, 0], score=0.9, cls=0)
-            >>> new_track = STrack([105, 205, 55, 85, 0], score=0.95, cls=0)
+            >>> track = STrack(np.array([100, 200, 50, 80, 0]), score=0.9, cls=0)
+            >>> track.activate(KalmanFilterXYAH(), 1)
+            >>> new_track = STrack(np.array([105, 205, 55, 85, 0]), score=0.95, cls=0)
             >>> track.update(new_track, 2)
         """
         self.frame_id = frame_id
@@ -171,7 +172,7 @@ class STrack(BaseTrack):
     @property
     def xyxy(self) -> np.ndarray:
         """Convert bounding box from (top left x, top left y, width, height) to (min x, min y, max x, max y) format."""
-        ret = self.tlwh.copy()
+        ret = self.tlwh  # already a fresh array, safe to mutate
         ret[2:] += ret[:2]
         return ret
 

@@ -227,21 +227,23 @@ class BaseModel(torch.nn.Module):
 
         c = m == self.model[-1] and isinstance(x, list)  # is final layer list, copy input as inplace fix
         flops = thop.profile(m, inputs=[x.copy() if c else x], verbose=False)[0] / 1e9 * 2 if thop else 0
-        t = time_sync()
+        device = next(self.parameters()).device
+        t = time_sync(device)
         for _ in range(10):
             m(x.copy() if c else x)
-        dt.append((time_sync() - t) * 100)
+        dt.append((time_sync(device) - t) * 100)
         if m == self.model[0]:
             LOGGER.info(f"{'time (ms)':>10s} {'GFLOPs':>10s} {'params':>10s}  module")
         LOGGER.info(f"{dt[-1]:10.2f} {flops:10.2f} {m.np:10.0f}  {m.type}")
         if c:
             LOGGER.info(f"{sum(dt):10.2f} {'-':>10s} {'-':>10s}  Total")
 
-    def fuse(self, verbose=True):
+    def fuse(self, verbose=True, imgsz=640):
         """Fuse Conv/ConvTranspose and BatchNorm layers, and reparameterize RepConv/RepVGGDW for improved efficiency.
 
         Args:
             verbose (bool): Whether to print model information after fusion.
+            imgsz (int | list): Input image size used for FLOPs calculation.
 
         Returns:
             (torch.nn.Module): The fused model is returned.
@@ -266,7 +268,7 @@ class BaseModel(torch.nn.Module):
                     m.forward = m.forward_fuse
                 if isinstance(m, Detect) and getattr(m, "end2end", False):
                     m.fuse()  # remove one2many head
-            self.info(verbose=verbose)
+            self.info(verbose=verbose, imgsz=imgsz)
 
         return self
 

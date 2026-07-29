@@ -1592,7 +1592,7 @@ class RandomFlip(BaseTransform):
                 img = np.flipud(img)
             elif params["direction"] == "horizontal":
                 img = np.fliplr(img)
-        labels["img"] = np.ascontiguousarray(img)
+        labels["img"] = img
         return labels
 
     def apply_instances(self, labels: dict[str, Any], params: dict[str, Any]) -> dict[str, Any]:
@@ -1631,9 +1631,9 @@ class RandomFlip(BaseTransform):
             return labels
         if params["flip"]:
             if params["direction"] == "vertical":
-                labels["semantic_mask"] = np.ascontiguousarray(np.flipud(labels["semantic_mask"]))
+                labels["semantic_mask"] = np.flipud(labels["semantic_mask"])
             elif params["direction"] == "horizontal":
-                labels["semantic_mask"] = np.ascontiguousarray(np.fliplr(labels["semantic_mask"]))
+                labels["semantic_mask"] = np.fliplr(labels["semantic_mask"])
         return labels
 
     def apply_depth(self, labels: dict[str, Any], params: dict[str, Any]) -> dict[str, Any]:
@@ -1650,9 +1650,9 @@ class RandomFlip(BaseTransform):
             return labels
         if params["flip"]:
             if params["direction"] == "vertical":
-                labels["depth"] = np.ascontiguousarray(np.flipud(labels["depth"]))
+                labels["depth"] = np.flipud(labels["depth"])
             elif params["direction"] == "horizontal":
-                labels["depth"] = np.ascontiguousarray(np.fliplr(labels["depth"]))
+                labels["depth"] = np.fliplr(labels["depth"])
         return labels
 
 

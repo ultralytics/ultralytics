@@ -160,7 +160,9 @@ class ClassificationTrainer(BaseTrainer):
                     f"All {original_count} samples in '{mode}' split filtered out: every sample had class index >= "
                     f"model nc={nc}. Reset the model's class count or align dataset class indices."
                 )
-        loader = build_dataloader(dataset, batch_size, self.args.workers, rank=rank, drop_last=self.args.compile)
+        loader = build_dataloader(
+            dataset, batch_size, self.args.workers, rank=rank, drop_last=self.args.compile, device=self.device
+        )
         # Attach inference transforms
         if mode != "train":
             if is_parallel(self.model):
@@ -171,8 +173,8 @@ class ClassificationTrainer(BaseTrainer):
 
     def preprocess_batch(self, batch: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
         """Preprocess a batch of images and classes."""
-        batch["img"] = batch["img"].to(self.device, non_blocking=self.device.type == "cuda")
-        batch["cls"] = batch["cls"].to(self.device, non_blocking=self.device.type == "cuda")
+        batch["img"] = batch["img"].to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
+        batch["cls"] = batch["cls"].to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
         return batch
 
     def progress_string(self) -> str:

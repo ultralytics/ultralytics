@@ -160,9 +160,8 @@ def smooth_feature(
         alpha (float): EMA weight on the existing `smooth` (``1.0`` keeps it unchanged).
 
     Returns:
-        curr (np.ndarray | None): The normalized current feature as float32, or None when `feat` is zero-norm (carries
-            no appearance information, so the caller should leave its features unchanged).
-        smooth (np.ndarray | None): The updated, renormalized smoothed feature as float32.
+        curr (np.ndarray | None): The normalized float32 feature, or None when `feat` has zero norm.
+        smooth (np.ndarray | None): The updated, normalized float32 feature.
     """
     feat = np.asarray(feat, dtype=np.float32)  # the stored state is float32 whatever dtype the ReID backend returned
     norm = np.linalg.norm(feat)

@@ -45,6 +45,7 @@ TORCH_2_0 = check_version(TORCH_VERSION, "2.0.0")
 TORCH_2_1 = check_version(TORCH_VERSION, "2.1.0")
 TORCH_2_3 = check_version(TORCH_VERSION, "2.3.0")
 TORCH_2_4 = check_version(TORCH_VERSION, "2.4.0")
+TORCH_2_5 = check_version(TORCH_VERSION, "2.5.0")
 TORCH_2_8 = check_version(TORCH_VERSION, "2.8.0")
 TORCH_2_9 = check_version(TORCH_VERSION, "2.9.0")
 TORCH_2_10 = check_version(TORCH_VERSION, "2.10.0")
@@ -118,7 +119,7 @@ def autocast(enabled: bool, device: str = "cuda"):
         import torch_npu
 
         return torch_npu.npu.amp.autocast(enabled=enabled)
-    elif TORCH_1_13 and device != "mps":
+    elif TORCH_1_13 and (device != "mps" or TORCH_2_5):
         return torch.amp.autocast(device, enabled=enabled)
     else:
         return torch.cuda.amp.autocast(enabled)

@@ -102,8 +102,10 @@ class ObjectCounter(BaseSolution):
         # but only from outside: a track already inside has had the containment check on every frame since it entered.
         elif len(self.region) > 2 and (
             self.r_s.contains(self.Point(current_centroid))
-            or not self.r_s.contains(self.Point(prev_position))
-            and self.r_s.intersects(self.LineString([prev_position, current_centroid]))
+            or (
+                not self.r_s.contains(self.Point(prev_position))
+                and self.r_s.intersects(self.LineString([prev_position, current_centroid]))
+            )
         ):
             # Judge direction by the object's dominant motion axis over its recent track, not by the
             # region's shape; a ~5-frame baseline is robust to tracker jitter where a 1-frame delta is not.

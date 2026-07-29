@@ -98,13 +98,13 @@ class ObjectCounter(BaseSolution):
                     self.classwise_count[self.names[cls]]["OUT"] += 1
                 self.counted_ids.append(track_id)
 
-        # An object fast enough to straddle the region leaves no centroid inside it, so count the swept segment too,
-        # but only from outside: a track already inside has had the containment check on every frame since it entered.
+        # An object fast enough to straddle the region leaves no centroid inside it, so count a crossing segment
+        # too, but only from outside: a track already inside has had the containment check since it entered.
         elif len(self.region) > 2 and (
             self.r_s.contains(self.Point(current_centroid))
             or (
                 not self.r_s.contains(self.Point(prev_position))
-                and self.r_s.intersects(self.LineString([prev_position, current_centroid]))
+                and self.r_s.crosses(self.LineString([prev_position, current_centroid]))
             )
         ):
             # Judge direction by the object's dominant motion axis over its recent track, not by the

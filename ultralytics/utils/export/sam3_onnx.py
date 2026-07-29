@@ -946,7 +946,7 @@ def export_sam3_engine(
         # FP16 through mixed precision (ModelOpt AutoCast keeps overflow prone nodes in FP32), which
         # keeps the detection decoder accurate and builds identically on TensorRT 10 and 11. The
         # static vision and text encoders go through onnx2engine.
-        shared = dict(workspace=workspace, metadata=engine_metadata, verbose=verbose, prefix=prefix)
+        shared = {"workspace": workspace, "metadata": engine_metadata, "verbose": verbose, "prefix": prefix}
         if onnx_file.stem in _DYNAMIC_MODULES:
             _build_decoder_engine_dynamic(str(onnx_file), engine_file, half=half, **shared)
         else:

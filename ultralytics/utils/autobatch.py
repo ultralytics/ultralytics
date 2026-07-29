@@ -112,7 +112,7 @@ def autobatch(
         ]
         fit_x, fit_y = zip(*xy) if xy else ([], [])
         p = np.polyfit(fit_x, fit_y, deg=1)  # first-degree (linear) polynomial fit
-        b = int((round(f * fraction) - p[1]) / p[0])  # y intercept (optimal batch size)
+        b = int((round(t * fraction - r) - p[1]) / p[0])  # y intercept (optimal batch size)
         if None in results:  # some sizes failed
             i = results.index(None)  # first fail index
             if b >= batch_sizes[i]:  # y intercept above failure point

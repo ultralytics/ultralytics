@@ -49,6 +49,7 @@ from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.plotting import plot_results
 from ultralytics.utils.torch_utils import (
+    TORCH_1_11,
     TORCH_2_0,
     TORCH_2_4,
     EarlyStopping,
@@ -384,12 +385,13 @@ class BaseTrainer:
         if self.world_size > 1:
             # static_graph=True permits params used >1 time per forward (e.g. flow_model in
             # o2m+o2o pose loss branches) under torch.compile.
+            ddp_kwargs = {"static_graph": bool(self.args.compile)} if TORCH_1_11 else {}
             self.model = nn.parallel.DistributedDataParallel(
                 self.model,
                 device_ids=[self.device.index],
-                static_graph=bool(self.args.compile),
                 broadcast_buffers=False,
                 find_unused_parameters=not bool(self.args.compile),
+                **ddp_kwargs,
             )
 
         # Batch size

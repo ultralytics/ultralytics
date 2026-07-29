@@ -112,7 +112,7 @@ def autocast(enabled: bool, device: str = "cuda"):
         import torch_npu
 
         return torch_npu.npu.amp.autocast(enabled=enabled)
-    elif TORCH_1_13:
+    elif TORCH_1_13 and device != "mps":
         return torch.amp.autocast(device, enabled=enabled)
     else:
         return torch.cuda.amp.autocast(enabled)
@@ -820,23 +820,24 @@ def convert_optimizer_state_dict_to_fp16(state_dict):
 def cuda_memory_usage(device=None):
     """Monitor and manage CUDA or NPU memory usage.
 
-    This function empties the active accelerator cache, yields a dictionary containing memory usage information, and
-    then records the amount of memory reserved on the specified device.
+    This function empties the active accelerator cache, records the baseline reserved memory, yields a dictionary
+    containing memory usage information, and then records the additional memory reserved on the specified device.
 
     Args:
         device (torch.device, optional): The CUDA or NPU device to query memory usage for.
 
     Yields:
-        (dict): A dictionary with a key 'memory' initialized to 0, which will be updated with the reserved memory.
+        (dict): A dictionary with a key 'memory' initialized to 0, updated with additional reserved memory.
     """
     info = {"memory": 0}
     accelerator = torch.npu if device is not None and device.type == "npu" else torch.cuda
     if accelerator.is_available():
         accelerator.empty_cache()
+        baseline = accelerator.memory_reserved(device)
         try:
             yield info
         finally:
-            info["memory"] = accelerator.memory_reserved(device)
+            info["memory"] = accelerator.memory_reserved(device) - baseline
     else:
         yield info
 

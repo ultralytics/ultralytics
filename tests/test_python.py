@@ -184,7 +184,8 @@ def test_select_ascend_devices(monkeypatch):
         def __str__(self):
             return f"{self.type}:{self.index}" if self.index is not None else self.type
 
-    set_calls, autocast_calls, sync_calls = [], [], []
+    set_calls, autocast_calls, cuda_autocast_calls, sync_calls = [], [], [], []
+    memory = iter((100, 140))
     npu = SimpleNamespace(
         is_available=lambda: True,
         device_count=lambda: 2,
@@ -192,6 +193,8 @@ def test_select_ascend_devices(monkeypatch):
         get_device_name=lambda i: f"Mock NPU {i}",
         amp=SimpleNamespace(autocast=lambda **kwargs: autocast_calls.append(kwargs)),
         synchronize=sync_calls.append,
+        empty_cache=lambda: None,
+        memory_reserved=lambda device=None: next(memory),
     )
     monkeypatch.setitem(sys.modules, "torch_npu", SimpleNamespace(npu=npu))
     monkeypatch.setattr(torch_utils.torch, "npu", npu, raising=False)
@@ -205,14 +208,50 @@ def test_select_ascend_devices(monkeypatch):
     monkeypatch.setattr(torch_utils, "TORCH_1_13", True)
     torch_utils.autocast(True, device="npu")
     assert autocast_calls == [{"enabled": True}]
+    monkeypatch.setattr(torch_utils.torch.cuda.amp, "autocast", cuda_autocast_calls.append)
+    torch_utils.autocast(False, device="mps")
+    assert cuda_autocast_calls == [False]
     from ultralytics.utils.ops import Profile
 
     profile = Profile(device=Device("npu", 1))
     profile.time()
     assert sync_calls == [profile.device]
+    with torch_utils.cuda_memory_usage(Device("npu", 1)) as memory_info:
+        pass
+    assert memory_info["memory"] == 40
     for device in ("npu:0,0", "npu:2", "npu:bad"):
         with pytest.raises(ValueError, match="Invalid NPU"):
             torch_utils.select_device(device, verbose=False)
+
+
+def test_ascend_autobatch_memory(monkeypatch):
+    """Test NPU AutoBatch targets total memory without double-counting the reserved baseline."""
+    import importlib
+    from types import SimpleNamespace
+
+    autobatch = importlib.import_module("ultralytics.utils.autobatch")
+
+    class Model:
+        yaml = {"channels": 3}
+
+        def parameters(self):
+            yield SimpleNamespace(device=SimpleNamespace(type="npu", index=0))
+
+    gb = 1 << 30
+    npu = SimpleNamespace(
+        get_device_properties=lambda device: SimpleNamespace(total_memory=10 * gb, name="Mock NPU"),
+        memory_reserved=lambda device: 2 * gb,
+        memory_allocated=lambda device: gb,
+        empty_cache=lambda: None,
+    )
+    monkeypatch.setattr(autobatch.torch, "npu", npu, raising=False)
+    monkeypatch.setattr(
+        autobatch,
+        "profile_ops",
+        lambda *args, **kwargs: [[0, 0, float(b), 0, 0, (), ()] for b in (1, 2, 4, 8, 16)],
+    )
+    monkeypatch.setattr(autobatch.np, "polyfit", lambda *args, **kwargs: np.array([1.0, 0.0]))
+    assert autobatch.autobatch(Model(), imgsz=32, fraction=0.6) == 4
 
 
 def test_model_forward():

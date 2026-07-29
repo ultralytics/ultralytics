@@ -16,8 +16,7 @@ support for every AMD runtime or accelerator.
 
 ## Support at a Glance
 
-Unless a row says otherwise, this table describes the Ultralytics Python package used for training, validation, export,
-and prediction.
+This table describes the Ultralytics Python package used for training, validation, export, and prediction.
 
 | AMD product or runtime                           | Ultralytics support | Usage or status                                                                                                                                    |
 | :----------------------------------------------- | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------- |

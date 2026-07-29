@@ -722,10 +722,9 @@ def linear_sum_assignment(cost_matrix):
     present. SciPy is imported lazily so it never slows `import ultralytics`. For a rectangular matrix only min(rows,
     columns) entries are matched.
 
-    The NumPy fallback matches SciPy's handling of non-finite costs: `+inf` marks a forbidden assignment, `NaN` and
-    `-inf` raise `ValueError("matrix contains invalid numeric entries")`, and a matrix with no feasible assignment
-    raises `ValueError("cost matrix is infeasible")`. The two backends may return a different equal-cost assignment
-    under exact ties, but the total cost is identical.
+    The NumPy fallback supports `+inf` as a forbidden assignment and raises `ValueError("cost matrix is infeasible")`
+    when no assignment exists; callers must sanitize `NaN` and `-inf`. The two backends may return a different
+    equal-cost assignment under exact ties, but the total cost is identical.
 
     The NumPy fallback is validated against SciPy with exact optimal-cost parity across ~6.9k randomized cases (every
     shape including empty/tall/wide, ties, negatives, IoU- and RT-DETR-style matrices, `maximize` via negation,
@@ -774,8 +773,6 @@ def _linear_sum_assignment_numpy(a):
     n, m = a.shape
     if n == 0 or m == 0:
         return np.empty(0, dtype=np.intp), np.empty(0, dtype=np.intp)
-    if np.isnan(a).any() or (a == -np.inf).any():  # +inf is a forbidden assignment, these are not costs
-        raise ValueError("matrix contains invalid numeric entries")
     transposed = n > m
     if transposed:
         a, n, m = a.T, m, n  # ensure rows <= columns
@@ -790,14 +787,10 @@ def _linear_sum_assignment_numpy(a):
             cur = a[i0 - 1] - u[i0] - v[1:]
             improve = (~used[1:]) & (cur < minv[1:])
             minv[1:][improve], way[1:][improve] = cur[improve], j0
-            candidates = np.where(used[1:], np.inf, minv[1:])  # only unvisited columns can extend the path
+            candidates = np.where(used[1:], np.inf, minv[1:])
             j1 = int(np.argmin(candidates)) + 1
             delta = candidates[j1 - 1]
             if delta == np.inf:
-                # No unvisited column is reachable from this row: the matrix has no feasible
-                # assignment. Reading `minv[j1]` instead would take the value of an already
-                # visited column, and `argmin` over an all-inf array returns index 0, so the
-                # path would revisit that column forever.
                 raise ValueError("cost matrix is infeasible")
             u[p[used]] += delta
             v[used] -= delta

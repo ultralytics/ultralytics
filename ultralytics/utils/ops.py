@@ -599,9 +599,9 @@ def scale_masks(
 def guided_filter(x: torch.Tensor, guide: torch.Tensor, radius: int = 8, eps: float = 1e-4) -> torch.Tensor:
     """Refine a dense map so its edges follow those of a guide image.
 
-    Dense heads predict below input resolution and upsample, which softens every boundary. Fitting the map to the
-    guide with a local linear model snaps those boundaries back onto real image edges. Output keeps the scale of
-    `x`, so metric values stay metric.
+    Dense heads predict below input resolution and upsample, which softens every boundary. Fitting the map to the guide
+    with a local linear model snaps those boundaries back onto real image edges. Output keeps the scale of `x`, so
+    metric values stay metric.
 
     Args:
         x (torch.Tensor): Dense map to refine with shape (B, 1, H, W).

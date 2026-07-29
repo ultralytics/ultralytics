@@ -203,6 +203,7 @@ Available YOLO26-seg export formats are in the table below. You can export to an
 
     CoreML embedded NMS pipelines (`nms=True`) only support object detection models. Segmentation exports to CoreML warn and force `nms=False`, producing a raw model without NMS.
 
+{% set model_name = "yolo26n-seg" %}
 {% include "macros/export-table.md" %}
 
 See full `export` details in the [Export](../modes/export.md) page.

@@ -1427,15 +1427,17 @@ def test_utils_ops():
 
     make_divisible(17, torch.tensor([8]))
 
-    boxes = torch.rand(10, 4)  # xywh
-    torch.allclose(boxes, xyxy2xywh(xywh2xyxy(boxes)))
-    torch.allclose(boxes, xyxy2xywhn(xywhn2xyxy(boxes)))
-    torch.allclose(boxes, ltwh2xywh(xywh2ltwh(boxes)))
-    torch.allclose(boxes, xyxy2ltwh(ltwh2xyxy(boxes)))
+    # xywh, offset off zero where a relative comparison degenerates, plus one exact zero center held to atol
+    boxes = torch.cat((torch.rand(9, 4) + 1, torch.tensor([[0.0, 0.0, 1.0, 1.0]])))
+    assert torch.allclose(boxes, xyxy2xywh(xywh2xyxy(boxes)))
+    assert torch.allclose(boxes, xyxy2xywhn(xywhn2xyxy(boxes)))
+    assert torch.allclose(boxes, ltwh2xywh(xywh2ltwh(boxes)))
+    assert torch.allclose(boxes, xyxy2ltwh(ltwh2xyxy(boxes)))
 
-    boxes = torch.rand(10, 5)  # xywhr for OBB
-    boxes[:, 4] = torch.randn(10) * 30
-    torch.allclose(boxes, xyxyxyxy2xywhr(xywhr2xyxyxyxy(boxes)), rtol=1e-3)
+    boxes = torch.rand(10, 5) + 1  # xywhr for OBB
+    boxes[:, 2] += 1  # xyxyxyxy2xywhr canonicalizes w < h into w > h, so the fixture must start there
+    boxes[:, 4] = torch.rand(10) * np.pi - np.pi / 4  # and inside its documented [-pi/4, 3pi/4) angle range
+    assert torch.allclose(boxes, xyxyxyxy2xywhr(xywhr2xyxyxyxy(boxes)), rtol=1e-3, atol=1e-5)  # angle spans 0
 
     # segment2box must not drop a polygon lying on the left image edge (all x == 0) to a zero box
     assert segment2box(np.array([[0, 100], [0, 150], [0, 200]]), 640, 640).tolist() == [0, 100, 0, 200]

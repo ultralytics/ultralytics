@@ -64,6 +64,8 @@ from .block import (
 )
 from .vit_blocks import (
     ConvSyncBN,
+    MHSABlock,
+    RepUltraViTBlock,
     VITBlock,
     VITDownsample2x,
     VITPatchStem,
@@ -180,6 +182,7 @@ __all__ = (
     "LayerNorm2d",
     "LightConv",
     "MLPBlock",
+    "MHSABlock",
     "MSDeformAttn",
     "MaxSigmoidAttnBlock",
     "Pose",
@@ -191,6 +194,7 @@ __all__ = (
     "RepConv",
     "RepNCSPELAN4",
     "RepNCSPELAN5",
+    "RepUltraViTBlock",
     "RepVGGDW",
     "ResNetLayer",
     "SCDown",

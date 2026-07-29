@@ -62,12 +62,14 @@ from ultralytics.nn.modules import (
     ImagePoolingAttn,
     Index,
     LRPCHead,
+    MHSABlock,
     Pose,
     Pose26,
     RepC3,
     RepConv,
     RepNCSPELAN4,
     RepNCSPELAN5,
+    RepUltraViTBlock,
     RepVGGDW,
     ResNetLayer,
     RTDETRDecoder,
@@ -275,6 +277,8 @@ class BaseModel(torch.nn.Module):
                 if isinstance(m, RepVGGDW):
                     m.fuse()
                     m.forward = m.forward_fuse
+                if isinstance(m, RepUltraViTBlock):
+                    m.fuse()
                 if isinstance(m, Detect) and getattr(m, "end2end", False):
                     m.fuse()  # remove one2many head
             self.info(verbose=verbose, imgsz=imgsz)
@@ -2225,7 +2229,8 @@ def parse_model(d, ch, verbose=True):
                     args.extend((True, 1.2))
             if m is C2fCIB:
                 legacy = False
-        elif m is AIFI:
+        elif m in frozenset({AIFI, MHSABlock, RepUltraViTBlock, VITBlock, VITTokenToSpatial}):
+            c2 = ch[f]
             args = [ch[f], *args]
         elif m in frozenset({HGStem, HGBlock}):
             c1, cm, c2 = ch[f], args[0], args[1]
@@ -2286,10 +2291,6 @@ def parse_model(d, ch, verbose=True):
             c2 = args[0]
             c1 = ch[f]
             args = [c1, *args]
-        elif m in frozenset({VITBlock, VITTokenToSpatial}):
-            # Dim-preserving on token / spatial tensors; inject dim = ch[f] as first init arg.
-            c2 = ch[f]
-            args = [c2, *args]
         else:
             c2 = ch[f]
 

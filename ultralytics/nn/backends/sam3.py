@@ -89,21 +89,27 @@ class SAM3Backend:
         assert self._model_dir.is_dir(), f"Model directory not found: {self._model_dir}"
 
         self._format = self._detect_format()
-        LOGGER.info(f"SAM3Backend: detected {self._format.upper()} in {self._model_dir}")
-        self._load_models()
+        self.has_point_modules = all((self._model_dir / f"{s}.{self._format}").exists() for s in self._POINT_STEMS)
+        # An ONNX session binds to an execution provider when it is created, and the caller usually
+        # picks a device after construction, so defer loading and read the traced size from the file.
+        # TensorRT is CUDA only, so there is nothing to wait for and the engine can report its shape.
+        self._loaded = False
+        if self._format == "engine":
+            self._load_models()
         self.imgsz = self._baked_imgsz()
+        LOGGER.info(f"SAM3Backend: detected {self._format.upper()} in {self._model_dir} at imgsz {self.imgsz}")
 
     def _baked_imgsz(self) -> int | None:
-        """Return the image size the vision encoder was traced at, or None if it cannot be read.
-
-        Read from the loaded module rather than the metadata, so directories written before the
-        exporter recorded imgsz still report the only size they accept.
-        """
+        """Return the image size the vision encoder was traced at, or None if it cannot be read."""
+        stem = self._FILE_STEMS[0]
         try:
-            stem = self._FILE_STEMS[0]
-            if self._format == "onnx":
-                return int(self._sessions[stem].get_inputs()[0].shape[2]) or None
-            return int(self._trt_engines[stem].get_tensor_shape("images")[2]) or None
+            if self._format == "engine":
+                return int(self._trt_engines[stem].get_tensor_shape("images")[2]) or None
+            import onnx
+
+            f = self._model_dir / f"{stem}.onnx"
+            shape = onnx.load(str(f), load_external_data=False).graph.input[0].type.tensor_type.shape
+            return int(shape.dim[2].dim_value) or None
         except Exception:  # an unreadable shape must not stop the model from loading
             return None
 
@@ -141,10 +147,12 @@ class SAM3Backend:
         )
 
     def _load_models(self) -> None:
+        """Load every module once, on first use, for whichever device is current by then."""
         if self._format == "onnx":
             self._load_onnx()
         else:
             self._load_tensorrt()
+        self._loaded = True
 
     def _load_onnx(self) -> None:
         cuda = self.device.type != "cpu" and torch.cuda.is_available()
@@ -278,9 +286,22 @@ class SAM3Backend:
         Accepts tensors or arrays, both runners re-cast dtypes, and always returns torch tensors
         on ``self.device``.
         """
+        if not self._loaded:
+            self._load_models()
         if self._format == "onnx":
             np_feed = {k: (v.cpu().numpy() if isinstance(v, torch.Tensor) else np.asarray(v)) for k, v in feed.items()}
-            out = self._run_onnx(self._sessions[stem], np_feed)
+            try:
+                out = self._run_onnx(self._sessions[stem], np_feed)
+            except Exception as e:
+                # Every module stays resident and the decoder attention allocates in hundreds of
+                # megabytes, so a smaller card can run out part way through. Keep serving the request
+                # on CPU rather than failing, and stay there so later prompts do not retry and fail.
+                if self.device.type == "cpu" or "alloc" not in str(e).lower():
+                    raise
+                LOGGER.warning(f"SAM3Backend ONNX: {self.device} ran out of memory, falling back to CPU. {e!s:.120}")
+                self.to("cpu")
+                self._load_models()
+                out = self._run_onnx(self._sessions[stem], np_feed)
             return {k: torch.from_numpy(v).to(self.device) for k, v in out.items()}
         cuda_feed = {
             k: (v.to(self.device) if isinstance(v, torch.Tensor) else torch.from_numpy(np.asarray(v)).to(self.device))
@@ -522,8 +543,19 @@ class SAM3Backend:
         return self
 
     def to(self, device):
-        """Move subsequent outputs to ``device`` and return self."""
-        self.device = torch.device(device) if isinstance(device, str) else device
+        """Move the loaded modules to ``device`` and return self.
+
+        ONNX Runtime picks its execution provider when a session is created, so moving between CPU
+        and CUDA has to rebuild the sessions. Without that a caller asking for CUDA keeps running the
+        graphs on CPU. TensorRT engines are always CUDA, so they only record the new device.
+
+        Args:
+            device (torch.device | str): Device to run on and place outputs on.
+        """
+        device = torch.device(device) if isinstance(device, str) else device
+        if self._loaded and self._format == "onnx" and device.type != self.device.type:
+            self._loaded = False  # sessions are bound to a provider, so reload for the new one
+        self.device = device
         return self
 
     def half(self):

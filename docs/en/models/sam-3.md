@@ -350,6 +350,94 @@ SAM 3 maintains full backward compatibility with SAM 2's visual prompting for si
 
         Using `SAM("sam3.pt")` with visual prompts (points/boxes/masks) will segment **only the specific object** at that location, just like SAM 2. To segment **all instances of a concept**, use `SAM3SemanticPredictor` with text or exemplar prompts as shown above.
 
+## Export to ONNX and TensorRT
+
+SAM 3 exports to ONNX and to TensorRT engines for faster inference. Because SAM 3 is several
+cooperating networks rather than one graph, an export is a **directory** of modules instead of a
+single file.
+
+!!! example "Export SAM 3"
+
+    === "Python"
+
+        ```python
+        from ultralytics import SAM
+
+        model = SAM("sam3.pt")
+
+        # One call goes all the way to TensorRT, writing the ONNX modules on the way
+        model.export(format="engine", imgsz=1008, half=True)  # -> sam3_engine/
+
+        # Or stop at ONNX
+        model.export(format="onnx", imgsz=1008)  # -> sam3_onnx/
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo export model=sam3.pt format=engine imgsz=1008
+        ```
+
+The export writes four modules, plus a prompt encoder and mask decoder when the checkpoint carries
+interactive weights:
+
+| Module                | Purpose                                                               |
+| --------------------- | --------------------------------------------------------------------- |
+| `sam3_vision_encoder` | ViT backbone and FPN neck                                             |
+| `sam3_text_encoder`   | Text encoder and projection                                           |
+| `sam3_decoder`        | DETR decoder with the geometry encoder, used for box exemplars        |
+| `sam3_decoder_text`   | The same graph without geometry, so a text prompt carries no box      |
+| `sam3_prompt_encoder` | Point prompt embedding, exported when interactive weights are present |
+| `sam3_mask_decoder`   | Point prompt masks, exported when interactive weights are present     |
+
+### Running an exported model
+
+Load the directory exactly like a checkpoint. The backend is chosen from the trailing `_onnx` or
+`_engine` in the directory name, so keep that suffix if you move it.
+
+!!! example "Predict with an exported SAM 3"
+
+    === "Python"
+
+        ```python
+        from ultralytics import SAM
+
+        model = SAM("sam3_engine")  # or sam3_onnx
+
+        results = model.predict("path/to/image.jpg", text=["person"])
+        results = model.predict("path/to/image.jpg", bboxes=[[100, 150, 300, 400]])
+        results = model.predict("path/to/image.jpg", points=[[900, 370]], labels=[1])
+        ```
+
+The exported graphs are traced at a fixed image size, and the model reports the size it was built
+with, so `imgsz` does not have to be passed at predict time.
+
+!!! warning "Fixed image size"
+
+    An exported directory only accepts the size it was traced at, 1008 by default. Export again if
+    you need another size. Point prompt modules can only be exported at 1008, because the
+    interactive prompt encoder is built at that size.
+
+### Benchmarks
+
+Median milliseconds on an RTX 4000 Ada at 1008x1008, encode timed once per image and the prompt
+stages reusing those features. Compare like precision with like: most of the gain from `half=True`
+is the precision change, not the backend.
+
+| Backend     | Precision | Encode | Text  | Box   | Point |
+| ----------- | --------- | ------ | ----- | ----- | ----- |
+| PyTorch     | FP32      | 501.7  | 123.2 | 122.3 | n/a   |
+| PyTorch     | FP16      | 113.5  | 61.7  | 59.7  | n/a   |
+| TensorRT 10 | FP32      | 309.6  | 113.9 | 114.8 | 5.2   |
+| TensorRT 10 | FP16      | 81.1   | 53.8  | 53.0  | 4.9   |
+
+`half=True` is the single biggest win at roughly 4.4x on encode, and TensorRT adds about 1.4x on top
+of it at matching precision. Point prompts cost about 5 ms because they reuse the cached image
+features and only run the prompt encoder and mask decoder.
+
+ONNX runs on CPU or CUDA. Every module stays resident, so it is the most memory hungry of the three
+backends and falls back to CPU with a warning if the GPU cannot hold it.
+
 ## Performance Benchmarks
 
 ### Image Segmentation
@@ -431,7 +519,7 @@ Speed benchmarked on NVIDIA RTX PRO 6000 with `torch==2.9.1` and `ultralytics==8
 
 - **SAM 3**: Best for open-vocabulary concept segmentation, finding all instances of a concept with text or exemplar prompts
 - **SAM 2**: Best for interactive single-object segmentation in images and videos with geometric prompts
-- **YOLO26**: Best for real-time, high-speed segmentation with NMS-free end-to-end inference, [exportable to many formats](../modes/export.md#export-formats) for deployment on GPUs, CPUs, and edge devices
+- **YOLO26**: Best for real-time, high-speed segmentation with NMS-free end-to-end inference, [exportable to many formats](../modes/export.md#export-formats) for deployment on GPUs, CPUs, and edge devices. SAM 3 exports to ONNX and TensorRT only, see [Export to ONNX and TensorRT](#export-to-onnx-and-tensorrt)
 
 ## SAM Comparison vs YOLO
 

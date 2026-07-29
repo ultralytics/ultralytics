@@ -68,16 +68,17 @@ For turnkey solutions, Axelera partners with manufacturers to provide systems pr
 
 ## Supported Tasks
 
-The following tasks are supported across YOLOv8, YOLO11, and YOLO26 models.
+Object detection, pose estimation, OBB detection, and classification are supported across the YOLOv8, YOLO11, and YOLO26 families, while semantic segmentation is a YOLO26-only task. Depth estimation is not supported: the depth head emits `Exp`, `Pow`, `Clip`, and `align_corners` bilinear `Resize` operators, none of which the Metis AIPU compiler accelerates.
 
 | Task                                          | YOLOv8 | YOLO11 | YOLO26              |
 | :-------------------------------------------- | :----- | :----- | :------------------ |
 | [Object Detection](../tasks/detect.md)        | ✅     | ✅     | ✅                  |
-| [Pose Estimation](../tasks/pose.md)           | ✅     | ✅     | ✅                  |
 | [Instance Segmentation](../tasks/segment.md)  | ✅     | ✅     | ⚠️ Voyager SDK only |
 | [Semantic Segmentation](../tasks/semantic.md) | ❌     | ❌     | ✅                  |
-| [Oriented Bounding Boxes](../tasks/obb.md)    | ✅     | ✅     | ✅                  |
+| [Pose Estimation](../tasks/pose.md)           | ✅     | ✅     | ✅                  |
+| [OBB Detection](../tasks/obb.md)              | ✅     | ✅     | ✅                  |
 | [Classification](../tasks/classify.md)        | ✅     | ✅     | ✅                  |
+| [Depth Estimation](../tasks/depth.md)         | ❌     | ❌     | ❌                  |
 
 !!! note
 

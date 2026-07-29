@@ -35,7 +35,7 @@ The Ultralytics exporter first writes an intermediate ONNX graph, then invokes A
 
 ## Supported Tasks
 
-Ascend export supports all seven Ultralytics tasks. Detection, instance segmentation, pose, OBB, and classification cover the YOLO26, YOLO11, and YOLOv8 families; semantic segmentation and depth estimation are YOLO26-only.
+Huawei Ascend export supports all seven Ultralytics tasks. Detection, instance segmentation, pose, OBB, and classification cover the YOLO26, YOLO11, and YOLOv8 families; semantic segmentation and depth estimation are YOLO26-only.
 
 | Task                                          | Supported |
 | :-------------------------------------------- | :-------- |

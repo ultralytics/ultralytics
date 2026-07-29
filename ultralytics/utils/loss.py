@@ -1766,7 +1766,7 @@ class E2ELoss:
         if self.aux_fg:  # class-agnostic foreground supervision on the head-input (trunk) features
             # the aux branch is training-only, so "aux_fg" is absent at validation (eval mode); report 0 there
             aux = (
-                self.aux_fg * self.aux_fg_loss(preds["aux_fg"], self.aux_target())
+                self.aux_fg * self.aux_fg_loss(preds["aux_fg"], *self.aux_target())
                 if "aux_fg" in preds
                 else total.new_zeros(())
             )
@@ -1789,33 +1789,42 @@ class E2ELoss:
         takes over. The ambiguous degree stays below 1 so an ambiguous anchor never outranks the one2one positive.
 
         Returns:
-            (torch.Tensor): Per-anchor foreground target with shape (bs, num_anchors), values in [0, 1].
+            target (torch.Tensor): Per-anchor foreground target with shape (bs, num_anchors), values in [0, 1].
+            norm (torch.Tensor | None): Explicit normalization denominator, or None to normalize by the target sum.
         """
         if self.aux_fg_tgt != "mix":
             branch = self.one2many if self.aux_fg_tgt == "o2m" else self.one2one
-            return branch.fg_score if self.aux_fg_iou else branch.fg_mask
+            return (branch.fg_score if self.aux_fg_iou else branch.fg_mask), None
         o2o_pos = self.one2one.fg_mask.to(self.one2many.fg_score.dtype)  # hard 1.0 at the single o2o positive per GT
         amb = self.one2many.fg_score if self.aux_fg_iou else self.one2many.fg_mask.to(o2o_pos.dtype)
-        return torch.maximum(o2o_pos, self.aux_fg_t_cur * amb)  # ambiguous degree < 1 never outranks the o2o positive
+        target = torch.maximum(o2o_pos, self.aux_fg_t_cur * amb)  # ambiguous degree < 1 never outranks the o2o positive
+        # Normalize by the participating anchor count |o2o U o2m| rather than the target sum. The ambiguous degree decays
+        # to 0, which shrinks sum(target) by roughly the same factor as the o2m weight decay and would leave the trunk
+        # gradient nearly flat late in training; counting each contributing anchor once keeps the denominator fixed so
+        # the o2m decay transmits cleanly and aux_fg_t changes only the target shape. The union (not the sum of the two
+        # counts) is correct because the o2o positives are a subset of the o2m foreground in all but pathological cases.
+        return target, (self.one2one.fg_mask.bool() | self.one2many.fg_mask.bool()).sum()
 
     @staticmethod
-    def aux_fg_loss(aux_pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        """Class-agnostic foreground BCE toward the one2many target, normalized by the target sum.
+    def aux_fg_loss(aux_pred: torch.Tensor, target: torch.Tensor, norm: torch.Tensor | None = None) -> torch.Tensor:
+        """Class-agnostic foreground BCE toward the one2many target.
 
-        For a hard 0/1 foreground mask the denominator is the positive count; for the IoU soft label it is the sum of
-        soft targets, matching how the one2many cls loss normalizes.
+        Normalized by ``norm`` when given, otherwise by the target sum: the positive count for a hard 0/1 mask, or the
+        sum of soft targets for the IoU label, matching how the one2many cls loss normalizes.
 
         Args:
             aux_pred (torch.Tensor): Foreground logits with shape (bs, 1, num_anchors).
-            target (torch.Tensor): One2many foreground target with shape (bs, num_anchors); a hard 0/1 mask or the
-                class-agnostic IoU soft label (per-anchor max of the o2m cls target).
+            target (torch.Tensor): Foreground target with shape (bs, num_anchors); a hard 0/1 mask, the class-agnostic
+                IoU soft label (per-anchor max of the cls target), or the graded mix target.
+            norm (torch.Tensor, optional): Explicit denominator, used by the mix target to keep the loss magnitude
+                independent of the scheduled target composition.
 
         Returns:
             (torch.Tensor): Scalar foreground auxiliary loss (0 when there are no positives).
         """
         t = target.unsqueeze(1).to(aux_pred.dtype)  # (bs, 1, num_anchors)
         loss = F.binary_cross_entropy_with_logits(aux_pred.float(), t.float(), reduction="none")
-        return loss.sum() / t.sum().clamp(min=1)
+        return loss.sum() / (t.sum() if norm is None else norm).clamp(min=1).float()
 
     @staticmethod
     def distill_loss(

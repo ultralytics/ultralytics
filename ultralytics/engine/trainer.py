@@ -260,7 +260,7 @@ class BaseTrainer:
         """Initialize and set the DistributedDataParallel parameters for training."""
         device_type = self.args.device.split(":", 1)[0]
         device_type = device_type if device_type in {"npu", "xpu"} else "cuda"
-        devices = self.args.device[4:].split(",") if device_type != "cuda" else self.args.device.split(",")
+        devices = self.args.device.split(":", 1)[-1].split(",")
         index = int(devices[LOCAL_RANK])  # world_size > 1 guarantees a multi-device string
         self.device = torch.device(device_type, index)
         self.accelerator = get_torch_device_backend(self.device)

@@ -118,7 +118,7 @@ def autocast(enabled: bool, device: str = "cuda"):
         import torch_npu
 
         return torch_npu.npu.amp.autocast(enabled=enabled)
-    elif TORCH_1_13:
+    elif TORCH_1_13 and device != "mps":
         return torch.amp.autocast(device, enabled=enabled)
     else:
         return torch.cuda.amp.autocast(enabled)
@@ -837,14 +837,14 @@ def convert_optimizer_state_dict_to_fp16(state_dict):
 def cuda_memory_usage(device=None):
     """Monitor and manage accelerator memory usage.
 
-    This function empties the active accelerator cache, records the baseline reserved memory, yields a dictionary
-    containing memory usage information, and then records the additional memory reserved on the specified device.
+    This function empties the active accelerator cache, yields a dictionary containing memory usage information, and
+    then records the reserved memory on the specified device.
 
     Args:
         device (torch.device, optional): The accelerator device to query memory usage for.
 
     Yields:
-        (dict): A dictionary with a key 'memory' initialized to 0, updated with additional reserved memory.
+        (dict): A dictionary with a key 'memory' initialized to 0, updated with reserved memory.
     """
     info = {"memory": 0}
     if device is not None and device.type in {"cpu", "mps"}:
@@ -853,11 +853,10 @@ def cuda_memory_usage(device=None):
     accelerator = get_torch_device_backend(device or "cuda")
     if accelerator.is_available() and hasattr(accelerator, "memory_reserved"):
         accelerator.empty_cache()
-        baseline = accelerator.memory_reserved(device)
         try:
             yield info
         finally:
-            info["memory"] = accelerator.memory_reserved(device) - baseline
+            info["memory"] = accelerator.memory_reserved(device)
     else:
         yield info
 
@@ -911,9 +910,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                 flops = 0
 
             try:
-                if isinstance(m, nn.Module):
-                    m.zero_grad(set_to_none=True)
-                mem = x.numel() * x.element_size() / 1e9 if device.type not in {"cpu", "mps"} else 0
+                mem = 0
                 for _ in range(n):
                     with cuda_memory_usage(device) as cuda_info:
                         t[0] = time_sync(device)

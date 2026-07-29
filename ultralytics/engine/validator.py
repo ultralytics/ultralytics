@@ -168,8 +168,6 @@ class BaseValidator:
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()
         else:
-            device_type = str(self.args.device).split(":", 1)[0]
-            device_type = device_type if device_type in {"npu", "xpu"} else "cuda"
             if str(self.args.model).endswith(".yaml") and model is None:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
@@ -180,6 +178,8 @@ class BaseValidator:
                     model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
             with torch_distributed_zero_first(LOCAL_RANK):
                 self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)
+            device_type = str(self.args.device).split(":", 1)[0]
+            device_type = device_type if device_type in {"npu", "xpu"} else "cuda"
             model = AutoBackend(
                 model=model or self.args.model,
                 # DDP ranks reuse the device assigned in trainer._setup_ddp()

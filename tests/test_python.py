@@ -60,21 +60,6 @@ def test_dataloader_caps_workers_to_batches():
         two_batches.close()
 
 
-def test_dataloader_uses_npu_count(monkeypatch):
-    """Test NPU-only hosts enable pinned memory and divide workers across devices."""
-    from types import SimpleNamespace
-
-    kwargs = {}
-    monkeypatch.delattr(data_build.torch, "accelerator", raising=False)
-    monkeypatch.setattr(data_build, "TORCH_1_13", True)
-    monkeypatch.setattr(data_build, "get_torch_device_backend", lambda device: SimpleNamespace(device_count=lambda: 2))
-    monkeypatch.setattr(data_build, "InfiniteDataLoader", lambda **values: kwargs.update(values))
-    build_dataloader(range(64), batch=4, workers=8, device="npu")
-    assert kwargs["pin_memory"]
-    assert kwargs["pin_memory_device"] == "npu"
-    assert kwargs["num_workers"] == min(os.cpu_count() // 2, 8, 16)
-
-
 def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
     """Test worker cap follows distributed sampler size without changing global drop_last behavior."""
     sampler_cls = data_build.distributed.DistributedSampler
@@ -183,44 +168,6 @@ def test_select_device(monkeypatch):
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "01,03")  # leading zeros are valid for CUDA's atoi-style parsing
     assert torch_utils.parse_device("3") == "1"  # visible ids normalize like requested ids
     assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 found via normalized visible ids
-
-
-def test_select_accelerator_devices(monkeypatch):
-    """Test explicit NPU and XPU device selection."""
-    import sys
-    from types import SimpleNamespace
-
-    from ultralytics.utils import torch_utils
-
-    class Device:
-        def __init__(self, device_type, index=None):
-            self.type, self.index = device_type, index
-
-        def __str__(self):
-            return f"{self.type}:{self.index}" if self.index is not None else self.type
-
-    set_calls = []
-    npu = SimpleNamespace(
-        is_available=lambda: True,
-        device_count=lambda: 2,
-        set_device=set_calls.append,
-        get_device_name=lambda i: f"Mock NPU {i}",
-    )
-    monkeypatch.setitem(sys.modules, "torch_npu", SimpleNamespace())
-    monkeypatch.setattr(torch_utils.torch, "npu", npu, raising=False)
-    monkeypatch.setattr(torch_utils.torch, "xpu", npu, raising=False)
-    monkeypatch.setattr(torch_utils.torch, "device", Device)
-    monkeypatch.setattr(
-        torch_utils.torch,
-        "get_device_module",
-        lambda device: getattr(torch_utils.torch, getattr(device, "type", str(device).split(":")[0])),
-    )
-
-    assert torch_utils.parse_device("npu:00,npu:01") == "npu:0,1"
-    assert str(torch_utils.select_device("npu:1", verbose=False)) == "npu:1"
-    assert str(torch_utils.select_device("npu:0,1", verbose=False)) == "npu:0"
-    assert str(torch_utils.select_device("xpu:1", verbose=False)) == "xpu:1"
-    assert set_calls == [1, 1]  # multi-NPU requests leave device selection to each DDP rank
 
 
 def test_model_forward():

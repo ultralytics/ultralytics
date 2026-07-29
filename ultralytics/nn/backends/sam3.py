@@ -83,13 +83,11 @@ class SAM3Backend:
         self.text_embeddings: dict = {}
         self.backbone = _BackboneProxy(self)
 
-        self.has_point_modules = False
-
         self._model_dir = Path(model_dir)
         assert self._model_dir.is_dir(), f"Model directory not found: {self._model_dir}"
 
         self._format = self._detect_format()
-        self.has_point_modules = all((self._model_dir / f"{s}.{self._format}").exists() for s in self._POINT_STEMS)
+        self.has_point_modules = self._present(self._POINT_STEMS)
         # An ONNX session binds to an execution provider when it is created, and the caller usually
         # picks a device after construction, so defer loading and read the traced size from the file.
         # TensorRT is CUDA only, so there is nothing to wait for and the engine can report its shape.
@@ -113,23 +111,26 @@ class SAM3Backend:
         except Exception:  # an unreadable shape must not stop the model from loading
             return None
 
+    def _present(self, stems, ext: str | None = None) -> bool:
+        """Whether every stem exists in the model directory with the given extension."""
+        return all((self._model_dir / f"{s}.{ext or self._format}").exists() for s in stems)
+
     def _detect_format(self) -> str:
         """Return ``"onnx"`` or ``"engine"`` based on which required files the directory holds."""
-        for ext, fmt in (("onnx", "onnx"), ("engine", "engine")):
-            if all((self._model_dir / f"{s}.{ext}").exists() for s in self._FILE_STEMS):
-                return fmt
+        for ext in ("onnx", "engine"):
+            if self._present(self._FILE_STEMS, ext):
+                return ext
         raise FileNotFoundError(
             f"Need {', '.join(self._FILE_STEMS)} as .onnx or .engine in {self._model_dir}, found neither set."
         )
 
-    def _stems_to_load(self, ext: str) -> list[str]:
-        """Return every module stem present on disk, and record whether point prompts are available."""
+    def _stems_to_load(self) -> list[str]:
+        """Return every module stem present on disk."""
         stems = list(self._FILE_STEMS)
-        if (self._model_dir / f"{self._TEXT_DECODER}.{ext}").exists():
+        if self._present([self._TEXT_DECODER]):
             stems.append(self._TEXT_DECODER)
-        if all((self._model_dir / f"{s}.{ext}").exists() for s in self._POINT_STEMS):
+        if self.has_point_modules:
             stems.extend(self._POINT_STEMS)
-            self.has_point_modules = True
         return stems
 
     def _loaded_desc(self) -> str:
@@ -163,7 +164,7 @@ class SAM3Backend:
         providers = self._ort_providers(cuda)
         LOGGER.info(f"SAM3Backend ONNX: using {providers[0] if isinstance(providers[0], str) else providers[0][0]}")
 
-        stems = self._stems_to_load("onnx")
+        stems = self._stems_to_load()
         paths = {s: self._model_dir / f"{s}.onnx" for s in stems}
         for s in self._FILE_STEMS:
             assert paths[s].exists(), f"Missing: {paths[s]}"
@@ -198,7 +199,7 @@ class SAM3Backend:
 
         logger = trt.Logger(trt.Logger.ERROR)
 
-        stems = self._stems_to_load("engine")
+        stems = self._stems_to_load()
         paths = {s: self._model_dir / f"{s}.engine" for s in stems}
         for s in self._FILE_STEMS:
             assert paths[s].exists(), f"Missing: {paths[s]}"

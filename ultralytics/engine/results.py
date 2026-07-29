@@ -480,7 +480,7 @@ class Results(SimpleClass, DataExportMixin):
         font_size: float | None = None,
         font: str = "Arial.ttf",
         pil: bool = False,
-        img: np.ndarray | None = None,
+        img: np.ndarray | torch.Tensor | None = None,
         kpt_radius: int = 5,
         kpt_line: bool = True,
         labels: bool = True,
@@ -501,7 +501,8 @@ class Results(SimpleClass, DataExportMixin):
             font_size (float | None): Font size for text. If None, scaled to image size.
             font (str): Font to use for text.
             pil (bool): Whether to return the image as a PIL Image.
-            img (np.ndarray | None): Image to plot on. If None, uses original image.
+            img (np.ndarray | torch.Tensor | None): Image to plot on. Tensor images must be contiguous HWC BGR uint8. If
+                None, uses the original image.
             kpt_radius (int): Radius of drawn keypoints.
             kpt_line (bool): Whether to draw lines connecting keypoints.
             labels (bool): Whether to plot labels of bounding boxes.

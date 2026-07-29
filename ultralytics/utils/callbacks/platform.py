@@ -402,9 +402,11 @@ def on_pretrain_routine_start(trainer):
             ctx["model_id"],
         )
 
-    # Start console capture with batching (5 lines or 5 seconds)
+    # Console capture with batching (5 lines or 5 seconds). Built here, but not started until Platform
+    # has accepted the run below: capturing first left the user's stdout redirected through a dead
+    # integration whenever training_started failed, and its final flush would post a console chunk
+    # carrying no model_id.
     ctx["console_logger"] = ConsoleLogger(batch_size=5, flush_interval=5.0, on_flush=send_console_output)
-    ctx["console_logger"].start_capture()
 
     # Collect environment info (W&B-style metadata)
     environment = _get_environment_info()
@@ -434,6 +436,7 @@ def on_pretrain_routine_start(trainer):
             ctx["model_slug"] = response["modelSlug"]
             url = f"{PLATFORM_URL}/{project}/{ctx['model_slug']}"
             LOGGER.info(f"{PREFIX}View model at {url}")
+        ctx["console_logger"].start_capture()  # only now: the run is tracked and model_id is known
         # Note: trainer.stop is set in on_pretrain_routine_end (after _setup_train resets it)
         _handle_control_response(trainer, ctx, response)
     else:

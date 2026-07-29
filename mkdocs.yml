@@ -683,6 +683,10 @@ nav:
           - Slack: platform/integrations/slack.md
           - Ultralytics HUB: platform/integrations/ultralytics-hub.md
           - Roboflow: platform/integrations/roboflow.md
+          - Labelbox: platform/integrations/labelbox.md
+          - LabelMe: platform/integrations/labelme.md
+          - CVAT: platform/integrations/cvat.md
+          - Label Studio: platform/integrations/label-studio.md
           - Google Cloud Storage: platform/integrations/google-cloud-storage.md
           - Amazon S3: platform/integrations/amazon-s3.md
           - Azure Blob Storage: platform/integrations/azure-blob-storage.md

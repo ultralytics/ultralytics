@@ -17,6 +17,7 @@ class TrackState:
         >>> state = TrackState.New
         >>> if state == TrackState.New:
         ...     print("Object is newly detected.")
+        Object is newly detected.
     """
 
     New = 0
@@ -51,7 +52,8 @@ class BaseTrack:
         Initialize a new track and mark it as lost:
         >>> track = BaseTrack()
         >>> track.mark_lost()
-        >>> print(track.state)  # Output: 2 (TrackState.Lost)
+        >>> print(track.state)
+        2
     """
 
     _count = 0

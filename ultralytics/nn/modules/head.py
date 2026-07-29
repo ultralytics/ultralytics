@@ -11,7 +11,8 @@ import torch.nn.functional as F
 from torch import nn
 from torch.nn.init import constant_, xavier_uniform_
 
-from ultralytics.utils import NOT_MACOS14
+from ultralytics.utils import NOT_MACOS14, TORCH_VERSION
+from ultralytics.utils.checks import check_version
 from ultralytics.utils.tal import dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, smart_inference_mode
 
@@ -655,7 +656,7 @@ class Pose(Detect):
         else:
             y = kpts.clone()
             if ndim == 3:
-                if NOT_MACOS14:
+                if NOT_MACOS14 and not (y.device.type == "mps" and check_version(TORCH_VERSION, "<2.5.0")):
                     y[:, 2::ndim].sigmoid_()
                 else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
                     y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
@@ -772,7 +773,7 @@ class Pose26(Pose):
         else:
             y = kpts.clone()
             if ndim == 3:
-                if NOT_MACOS14:
+                if NOT_MACOS14 and not (y.device.type == "mps" and check_version(TORCH_VERSION, "<2.5.0")):
                     y[:, 2::ndim].sigmoid_()
                 else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
                     y[:, 2::ndim] = y[:, 2::ndim].sigmoid()

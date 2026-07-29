@@ -12,7 +12,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from ultralytics.utils import NOT_MACOS14
+from ultralytics.utils import NOT_MACOS14, TORCH_VERSION
+from ultralytics.utils.checks import check_version
 
 
 class Profile(contextlib.ContextDecorator):
@@ -185,7 +186,7 @@ def clip_boxes(boxes, shape):
     """
     h, w = shape[:2]  # supports both HWC or HW shapes
     if isinstance(boxes, torch.Tensor):  # faster individually
-        if NOT_MACOS14:
+        if NOT_MACOS14 and not (boxes.device.type == "mps" and check_version(TORCH_VERSION, "<2.5.0")):
             boxes[..., 0].clamp_(0, w)  # x1
             boxes[..., 1].clamp_(0, h)  # y1
             boxes[..., 2].clamp_(0, w)  # x2
@@ -213,7 +214,7 @@ def clip_coords(coords, shape):
     """
     h, w = shape[:2]  # supports both HWC or HW shapes
     if isinstance(coords, torch.Tensor):
-        if NOT_MACOS14:
+        if NOT_MACOS14 and not (coords.device.type == "mps" and check_version(TORCH_VERSION, "<2.5.0")):
             coords[..., 0].clamp_(0, w)  # x
             coords[..., 1].clamp_(0, h)  # y
         else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878

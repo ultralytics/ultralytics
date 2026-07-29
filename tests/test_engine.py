@@ -449,5 +449,10 @@ def test_ascend_training_paths(monkeypatch):
     trainer.optimizer = SimpleNamespace(zero_grad=lambda: None)
     trainer.scaler = SimpleNamespace(unscale_=lambda _: None, step=lambda _: None, update=lambda: None)
     trainer.ema = None
+    monkeypatch.setattr(trainer_module, "TORCH_2_0", True)
     trainer.optimizer_step()
     assert clip_kwargs["foreach"] is False
+    clip_kwargs.clear()
+    monkeypatch.setattr(trainer_module, "TORCH_2_0", False)
+    trainer.optimizer_step()
+    assert "foreach" not in clip_kwargs

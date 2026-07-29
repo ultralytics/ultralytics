@@ -243,7 +243,7 @@ class Detect(nn.Module):
         Returns:
             (torch.Tensor, torch.Tensor, torch.Tensor): Top scores, class indices, and filtered indices.
         """
-        _, anchors, nc = scores.shape  # i.e. shape(16,8400,80)
+        batch_size, anchors, nc = scores.shape  # i.e. shape(16,8400,80)
         # Use max_det directly during export for TensorRT compatibility (requires k to be constant),
         # otherwise use min(max_det, anchors) for safety with small inputs during Python inference
         k = max_det if self.export else min(max_det, anchors)
@@ -255,7 +255,11 @@ class Detect(nn.Module):
         ori_index = scores.max(dim=-1)[0].topk(k)[1].unsqueeze(-1)
         scores = scores.gather(dim=1, index=ori_index.expand(-1, -1, nc))
         scores, index = scores.flatten(1).topk(k)
-        idx = ori_index.gather(dim=1, index=(index // nc).unsqueeze(-1))
+        idx = (
+            ori_index[torch.arange(batch_size)[..., None], index // nc]
+            if self.format == "coreml"
+            else ori_index.gather(dim=1, index=(index // nc).unsqueeze(-1))
+        )
         return scores[..., None], (index % nc)[..., None].float(), idx
 
     def fuse(self) -> None:

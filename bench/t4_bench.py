@@ -41,8 +41,10 @@ IMGSZ = {("lane-b", "n"): 480, ("lane-b", "s"): 512, ("lane-b", "m"): 512}
 # Lane A exports stock, Lane B with the fp32 attention pin DINOv3 needs to survive fp16, so only within-lane ratios
 # travel.
 #
-# Retired and absent: fracrope, headdim64, attn2lite, the l640 family, and the dinop5, dinop5-mixedrope and
-# dinop5-depthmatched variants the hybrid pair superseded. Their yamls stay, historical rows reference them.
+# Retired and absent. The yamls are gone for fracrope, headdim64, attn2lite and the l640 family. They stay for the
+# dinop5, dinop5-mixedrope, dinop5-depthmatched, dinop5-p3deep-hd32 and dinop5-p3deep-noreg variants, whose
+# observation rows name them. Most were superseded rather than outrun, several measured faster than the conv
+# baseline, so check t4-latency-observations.csv and the legacy t4-derived-latency.csv rather than assuming.
 LANES = {
     "lane-a": (
         YOLO,
@@ -81,11 +83,12 @@ LANES = {
             # p3wide carrying the same P5 drain, so P3 clears the floor at the three scales where leaving P5 alone
             # is what cost p3deep. It is not an isolation, it moves two stages.
             "dinop5-p3wide-p5lean": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3wide-p5lean.yaml", "mlx"),
-            # At m, attn2 and dinop5-hybrid resolve to identical blocks, channels and params, yet attn2 measures
-            # 2.8pp faster. The gap is inside the MHSABlock, so these two split it: head_dim 64 to 32 is attn2's
-            # head shape at identical params, and dropping the storage tokens returns the sequence to 20x20.
-            "dinop5-p3deep-hd32": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep-hd32.yaml", "nsmlx"),
-            "dinop5-p3deep-noreg": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep-noreg.yaml", "nsmlx"),
+            # At m, ffnattn2 and dinop5-hybrid resolve to identical blocks and channels and sit 0.13% apart on
+            # params, yet ffnattn2 measures 2.8pp faster, so the gap is inside the MHSABlock. Their P5 args differ
+            # in six places. head_dim and the storage tokens are both measured and neither explains it, this
+            # prices conv_ffn against swiglu, and qkv_bias and proj_bias stay unmeasured. ffnattn2 keeps NCHW
+            # through a ConvMlp, dinop5 permutes to a SwiGLU token FFN, for 40.6k more params at m.
+            "dinop5-p3deep-convffn": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep-convffn.yaml", "nsmlx"),
             # The baseline itself with only C2PSA swapped for the dinop5 attention, so P2 and P3 sit exactly at the
             # conv floor. A whole-operator substitution, not an attention-type isolation: C2PSA attends inside a
             # half-width split while MHSABlock runs at full width.

@@ -12,7 +12,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from ultralytics.utils import NOT_MACOS14
+from ultralytics.utils import NOT_MACOS14, TORCH_VERSION
+from ultralytics.utils.checks import check_version
 from ultralytics.utils.torch_utils import get_torch_device_backend
 
 
@@ -187,12 +188,12 @@ def clip_boxes(boxes, shape):
     """
     h, w = shape[:2]  # supports both HWC or HW shapes
     if isinstance(boxes, torch.Tensor):  # faster individually
-        if NOT_MACOS14:
+        if NOT_MACOS14 and not (boxes.device.type == "mps" and check_version(TORCH_VERSION, "<2.5.0")):
             boxes[..., 0].clamp_(0, w)  # x1
             boxes[..., 1].clamp_(0, h)  # y1
             boxes[..., 2].clamp_(0, w)  # x2
             boxes[..., 3].clamp_(0, h)  # y2
-        else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
+        else:  # MPS strided in-place bug on macOS 14 or torch<2.5
             boxes[..., 0] = boxes[..., 0].clamp(0, w)
             boxes[..., 1] = boxes[..., 1].clamp(0, h)
             boxes[..., 2] = boxes[..., 2].clamp(0, w)
@@ -215,10 +216,10 @@ def clip_coords(coords, shape):
     """
     h, w = shape[:2]  # supports both HWC or HW shapes
     if isinstance(coords, torch.Tensor):
-        if NOT_MACOS14:
+        if NOT_MACOS14 and not (coords.device.type == "mps" and check_version(TORCH_VERSION, "<2.5.0")):
             coords[..., 0].clamp_(0, w)  # x
             coords[..., 1].clamp_(0, h)  # y
-        else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
+        else:  # MPS strided in-place bug on macOS 14 or torch<2.5
             coords[..., 0] = coords[..., 0].clamp(0, w)
             coords[..., 1] = coords[..., 1].clamp(0, h)
     else:  # np.array

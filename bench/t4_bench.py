@@ -102,6 +102,7 @@ ARMS = {
     "dinop5-p3wide": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3wide.yaml", "nsml"),
     # Stage-balanced pair, every P stage above both lanes' baselines at every scale.
     "dinop5-stagebal": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-stagebal.yaml", "nsmlx"),
+    "dinop5-stagefloor": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-stagefloor.yaml", "l"),
     "dinop5-mixedrope-stagebal": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-stagebal.yaml", "nsmlx"),
 }
 

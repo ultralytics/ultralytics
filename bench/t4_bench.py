@@ -103,6 +103,10 @@ LANES = {
             # conv floor. A whole-operator substitution, not an attention-type isolation: C2PSA attends inside a
             # half-width split while MHSABlock runs at full width.
             "convtrunk-dinop5": ("yolo26{s}-convtrunk-dinop5.yaml", "nsmlx"),
+            "p23yolo26-p45attn2-tokenmlp": (
+                "yolo26{s}-ultravit-repmixer-fastvitffn-p23yolo26-p45attn2-tokenmlp.yaml",
+                "x",
+            ),
             # Stage-balanced pair, every P stage above both lanes' baselines at every scale. n is the cell to watch,
             # most added FLOPs against the thinnest measured margin.
             "dinop5-stagebal": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-stagebal.yaml", "nsmlx"),

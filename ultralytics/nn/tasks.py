@@ -275,7 +275,7 @@ class BaseModel(torch.nn.Module):
                     m.forward = m.forward_fuse
                 if isinstance(m, RoPE2DBlock):
                     m.switch_to_deploy()  # rebake the RoPE cos/sin buffers at the current grid for deploy
-                if isinstance(m, RepUltraViTBlock):
+                if isinstance(m, (RepUltraViTBlock, MHSABlock)):
                     m.fuse()
                 if isinstance(m, Detect) and getattr(m, "end2end", False):
                     m.fuse()  # remove one2many head

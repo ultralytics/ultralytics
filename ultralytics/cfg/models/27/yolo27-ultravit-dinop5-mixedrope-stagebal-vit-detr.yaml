@@ -1,10 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Lane B arm: yolo27-vit-detr with its trunk swapped for
-# yolo26-ultravit-repmixer-fastvitffn-dinop5-mixedrope-stagebal.yaml at x.
-# Hand derived, gen_lane_b.py cannot remap this baseline's 27-row dual-branch trunk by row position.
-# Trunk repeats and channels are pre-resolved under identity multipliers, read off the built Lane A model.
-# Input projections are Conv rather than the baseline's nn.Identity, which assumes a 256-channel trunk this is not.
+# Lane B arm: yolo27-vit-detr trunk swapped for yolo26-ultravit-repmixer-fastvitffn-dinop5-mixedrope-stagebal at x.
+# Hand derived, gen_lane_b.py cannot remap the 27-row trunk. Conv input projections, the trunk is not 256-wide.
 
 nc: 80 # number of classes
 

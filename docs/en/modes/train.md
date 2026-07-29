@@ -124,6 +124,8 @@ Multi-GPU training allows for more efficient utilization of available hardware r
     python -m torch.distributed.run --nproc_per_node 2 your_training_script.py
     ```
 
+Intel GPU training uses `device=xpu:0`, or multiple XPU IDs with a PyTorch build that provides XCCL.
+
 ### Huawei Ascend NPU Training
 
 Ultralytics supports training and validation on Huawei Ascend NPUs through

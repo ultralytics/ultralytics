@@ -74,6 +74,14 @@ LANES = {
             "dinop5-p3deep2": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep2.yaml", "nsmlx"),
             "dinop5-p5lean": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p5lean.yaml", "mlx"),
             "dinop5-p3deep2-p5lean": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep2-p5lean.yaml", "mlx"),
+            # Fourth link in that chain, P2 raw 5 to 8. P2 is the stage the chain left under the conv floor, and
+            # only the retired stagebal pair below ever moved it. Params barely move but a P2 block costs more MACs
+            # than a P3 one, and the thin cells are s and m, where the parent sits at -1.31% and -3.47%. At n and s
+            # the parent resolves to dinop5-p3deep2, so that is the in-session comparator there.
+            "dinop5-p3deep2-p5lean-p2deep": (
+                "yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep2-p5lean-p2deep.yaml",
+                "nsmlx",
+            ),
             # P3 to the conv floor by width, mlp_ratio 3 to 6, and p3wide-p5lean adds the drain. Deltas in the ledger.
             "dinop5-p3wide": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3wide.yaml", "nsmlx"),
             "dinop5-p3wide-p5lean": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3wide-p5lean.yaml", "mlx"),

@@ -38,6 +38,11 @@ your_dataset/
 Install the LabelMe Toolkit by following LabelMe's
 [toolkit installation guide](https://labelme.io/docs/install-toolkit). The toolkit and its exports run locally.
 
+!!! info "LabelMe Pro is required for the export"
+
+    `export-to-yolo` is part of the LabelMe Pro Toolkit, and downloading its installer requires a LabelMe sign-in.
+    This is a LabelMe product requirement; the resulting ZIP can be uploaded on any Platform plan.
+
 Verify the installation, then list every label found in the source dataset:
 
 ```bash

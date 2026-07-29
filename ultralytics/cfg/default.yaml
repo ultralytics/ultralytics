@@ -119,6 +119,8 @@ o2o_quality: False # (bool) DetectO2OObjBox quality mode: branch regresses the o
 aux_fg: 0.0 # (float) DetectAux training-only class-agnostic foreground auxiliary loss gain (BCE toward the o2m foreground; 0=disable)
 aux_fg_iou: False # (bool) when aux_fg>0, use the o2m IoU soft label as the foreground target (same as the o2m cls target) instead of a hard 0/1 target
 aux_fg_end: 0.0 # (float) when aux_fg>0, fraction of epochs over which the aux gain linearly decays to exactly 0 (e.g. 0.6 = off after 60% of training; 0=disable, follow the o2m schedule only, which floors at 0.1)
+aux_fg_tgt: o2m # (str) assignment supplying the aux foreground target: dense 'o2m', single-anchor 'o2o', or 'mix' (o2f-style: 1 at the o2o positive, decaying degree at o2m-only anchors)
+aux_fg_t: 0.5 # (float) when aux_fg_tgt='mix', initial degree of the o2m-only (ambiguous) anchors, decayed linearly to 0 across training
 vfl: False # (bool) use Varifocal Loss instead of BCE for classification
 vfl_o2m: True # (bool) when vfl=True, also apply Varifocal Loss to the one2many branch (False = one2one branch only)
 vfl_norm: False # (bool) when vfl=True, normalize Varifocal Loss by positive count instead of target score sum

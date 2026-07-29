@@ -504,7 +504,9 @@ class v8DetectionLoss:
         self.cache_obj_assign = False  # o2m branch: cache fg_mask/target_bboxes for the o2o objectness target
         self.obj_fg = None  # o2m foreground mask, copied onto the o2o loss by E2ELoss each step
         self.obj_gt_bboxes = None  # o2m matched-GT boxes (pixels), copied onto the o2o loss by E2ELoss each step
-        self.obj_fg_score = None  # o2m class-agnostic soft label (per-anchor max of the cls target), for the aux target
+        self.cache_fg = False  # cache this branch's foreground mask/soft label for the DetectAux foreground target
+        self.fg_mask = None  # this branch's foreground mask, read by E2ELoss to build the aux target
+        self.fg_score = None  # this branch's class-agnostic soft label (per-anchor max of the cls target)
         self.small_cls_gain = 1.0  # P3 positive GT-class cls up-gradient gain (small objects); set by E2ELoss
         self.small_cls_area = 0.0  # >0 switches to continuous area-based weighting (letterbox px^2); 0 = P3 binary
         self.small_target_gamma = 1.0  # <1 raises small-object TAL targets; set on the one2one loss by E2ELoss
@@ -677,7 +679,9 @@ class v8DetectionLoss:
 
         if self.cache_obj_assign:  # o2m branch: expose foreground + matched-GT boxes for the o2o objectness target
             self.obj_fg, self.obj_gt_bboxes = fg_mask, target_bboxes
-            self.obj_fg_score = target_scores.amax(-1)  # class-agnostic soft label (IoU-weighted, == o2m cls target)
+        if self.cache_fg:  # expose this branch's assignment for the DetectAux class-agnostic foreground target
+            self.fg_mask = fg_mask
+            self.fg_score = target_scores.amax(-1)  # class-agnostic soft label (IoU-weighted, == this branch's cls tgt)
 
         cls_target, cls_target_sum = target_scores, target_scores_sum
 
@@ -1616,13 +1620,28 @@ class E2ELoss:
             self.one2one.cls_hard = True  # decouple cls (hard) from the IoU quality branch
         if self.one2one.small_target_gamma < 1.0 and self.one2one.cls_hard:
             raise ValueError("o2o_small_target_gamma cannot be combined with o2o_cls_hard or o2o_quality")
-        # training-only class-agnostic foreground auxiliary (DetectAux head): dense BCE toward the o2m foreground,
-        # o2m assignment; needs the o2m assignment, so it requires the one2many branch to be trained
+        # training-only class-agnostic foreground auxiliary (DetectAux head); the o2o branch takes detached features, so
+        # this is the only path that shapes the trunk besides the o2m loss. Requires the one2many branch to be trained.
         self.aux_fg = (
             getattr(model.args, "aux_fg", 0.0) if hasattr(model.model[-1], "aux_fg") and self.train_o2m else 0.0
         )
-        # aux target: the o2m IoU soft label (same as the o2m cls target) instead of a hard 0/1 foreground mask
+        # aux target: the IoU soft label (same as that branch's cls target) instead of a hard 0/1 foreground mask
         self.aux_fg_iou = getattr(model.args, "aux_fg_iou", False)
+        # which assignment supplies the aux target: the dense 'o2m' foreground, the single-anchor 'o2o' foreground, or
+        # 'mix' (o2f-style): 1 at the o2o positive and a decaying degree at o2m-only anchors, so the trunk supervision
+        # slides from dense to o2o-shaped as the o2o branch takes over, without contradicting the o2m head early on.
+        self.aux_fg_tgt = getattr(model.args, "aux_fg_tgt", "o2m")
+        if self.aux_fg_tgt not in {"o2m", "o2o", "mix"}:
+            raise ValueError(f"aux_fg_tgt must be 'o2m', 'o2o', or 'mix', not {self.aux_fg_tgt!r}")
+        if self.aux_fg:  # cache only the assignments the selected target needs
+            self.one2many.cache_fg = self.aux_fg_tgt in {"o2m", "mix"}
+            self.one2one.cache_fg = self.aux_fg_tgt in {"o2o", "mix"}
+        # mix mode: initial degree of the o2m-only ("ambiguous") anchors, decayed linearly to 0 across training. Kept
+        # below 1 so an ambiguous anchor never outranks the o2o positive (which is a hard 1.0 in mix mode).
+        self.aux_fg_t = getattr(model.args, "aux_fg_t", 0.5)
+        if not 0 <= self.aux_fg_t < 1:
+            raise ValueError(f"aux_fg_t must be in [0, 1), not {self.aux_fg_t}")
+        self.aux_fg_t_cur = self.aux_fg_t  # decayed each epoch by update()
         # >0 linearly decays the aux gain to exactly 0 over this fraction of epochs, on top of the o2m schedule (which
         # floors at final_o2m and so never removes the aux gradient). Deep supervision helps early optimization but
         # late in training the trunk gradient it injects no longer shrinks with the 100x LR decay, acting as a noise
@@ -1631,8 +1650,7 @@ class E2ELoss:
         if self.aux_fg_end < 0:
             raise ValueError(f"aux_fg_end must be non-negative, not {self.aux_fg_end}")
         self.aux_fg_w = 1.0  # aux schedule multiplier, updated per epoch by update()
-        # cache the o2m foreground mask for the objectness (quality uses the o2o assign) or foreground auxiliary target
-        self.one2many.cache_obj_assign = (self.one2one.obj and self.train_o2m and not quality) or bool(self.aux_fg)
+        self.one2many.cache_obj_assign = self.one2one.obj and self.train_o2m and not quality  # quality uses o2o assign
         if self.one2one.obj and hasattr(model.model[-1], "obj_fuse"):
             head = model.model[-1]
             # recall mode trains cls on the fused logit; quality mode trains cls alone and multiplies at inference
@@ -1745,14 +1763,40 @@ class E2ELoss:
             rank = self.one2one.rank_gain * self.one2one.rank_loss
             total = torch.cat((total, (self.o2o * rank * batch_size).view(1)))
             loss_items = torch.cat((loss_items, rank.detach().view(1)))
-        if self.aux_fg:  # class-agnostic foreground supervision on the head-input features (o2m assignment)
+        if self.aux_fg:  # class-agnostic foreground supervision on the head-input (trunk) features
             # the aux branch is training-only, so "aux_fg" is absent at validation (eval mode); report 0 there
-            target = self.one2many.obj_fg_score if self.aux_fg_iou else self.one2many.obj_fg
-            aux = self.aux_fg * self.aux_fg_loss(preds["aux_fg"], target) if "aux_fg" in preds else total.new_zeros(())
+            aux = (
+                self.aux_fg * self.aux_fg_loss(preds["aux_fg"], self.aux_target())
+                if "aux_fg" in preds
+                else total.new_zeros(())
+            )
             # scaled by the one2many branch weight (o2m schedule) and by the optional aux_fg_end anneal-to-zero ramp
             total = torch.cat((total, (self.aux_fg_w * self.o2m * aux * batch_size).view(1)))
             loss_items = torch.cat((loss_items, aux.detach().view(1)))
         return total, loss_items
+
+    def aux_target(self) -> torch.Tensor:
+        """Build the class-agnostic foreground target for the DetectAux branch from the cached assignments.
+
+        Three sources, selected by ``aux_fg_tgt``. ``o2m`` is the dense one2many foreground (~topk anchors per GT), the
+        signal that already trains the trunk through the one2many loss. ``o2o`` is the single one2one positive per GT,
+        which matches what is deployed but marks every other one2many positive as background, contradicting the
+        one2many head that is training those same anchors as positives.
+
+        ``mix`` resolves that contradiction the way one-to-few does: the one2one positive gets a hard 1.0 and the
+        one2many-only ("ambiguous") anchors get a degree ``aux_fg_t_cur`` that decays to 0 across training. Early on the
+        target is close to the dense one2many foreground, and it slides to a pure one2one target as the one2one branch
+        takes over. The ambiguous degree stays below 1 so an ambiguous anchor never outranks the one2one positive.
+
+        Returns:
+            (torch.Tensor): Per-anchor foreground target with shape (bs, num_anchors), values in [0, 1].
+        """
+        if self.aux_fg_tgt != "mix":
+            branch = self.one2many if self.aux_fg_tgt == "o2m" else self.one2one
+            return branch.fg_score if self.aux_fg_iou else branch.fg_mask
+        o2o_pos = self.one2one.fg_mask.to(self.one2many.fg_score.dtype)  # hard 1.0 at the single o2o positive per GT
+        amb = self.one2many.fg_score if self.aux_fg_iou else self.one2many.fg_mask.to(o2o_pos.dtype)
+        return torch.maximum(o2o_pos, self.aux_fg_t_cur * amb)  # ambiguous degree < 1 never outranks the o2o positive
 
     @staticmethod
     def aux_fg_loss(aux_pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
@@ -1830,6 +1874,8 @@ class E2ELoss:
             self.o2f_loss.assigner.o2f_t = self.o2f_decay(self.updates)
         if self.aux_fg and self.aux_fg_end:
             self.aux_fg_w = self.aux_fg_decay(self.updates)
+        if self.aux_fg and self.aux_fg_tgt == "mix":  # slide the aux target from dense o2m toward pure o2o
+            self.aux_fg_t_cur = self.aux_fg_t * max(1 - self.updates / max(self.one2one.hyp.epochs - 1, 1), 0)
 
     def decay(self, x) -> float:
         """Calculate the decayed weight for one-to-many loss based on the current update step."""

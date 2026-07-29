@@ -721,10 +721,10 @@ def linear_sum_assignment(cost_matrix):
     present. SciPy is imported lazily so it never slows `import ultralytics`. For a rectangular matrix only min(rows,
     columns) entries are matched.
 
-    The NumPy fallback expects finite costs: an `inf` entry marks a forbidden assignment (matching SciPy), while `NaN`
-    is not rejected (SciPy raises), so callers must sanitize NaN upstream (e.g. the RT-DETR matcher zeros NaN/inf
-    beforehand). The two backends may return a different equal-cost assignment under exact ties, but the total cost is
-    identical.
+    The NumPy fallback expects finite costs: an `inf` entry marks a forbidden assignment (matching SciPy), and a matrix
+    with no feasible assignment raises `ValueError("cost matrix is infeasible")` as SciPy does. `NaN` is not rejected
+    (SciPy raises), so callers must sanitize NaN upstream (e.g. the RT-DETR matcher zeros NaN/inf beforehand). The two
+    backends may return a different equal-cost assignment under exact ties, but the total cost is identical.
 
     The NumPy fallback is validated against SciPy with exact optimal-cost parity across ~6.9k randomized cases (every
     shape including empty/tall/wide, ties, negatives, IoU- and RT-DETR-style matrices, `maximize` via negation,
@@ -787,8 +787,15 @@ def _linear_sum_assignment_numpy(a):
             cur = a[i0 - 1] - u[i0] - v[1:]
             improve = (~used[1:]) & (cur < minv[1:])
             minv[1:][improve], way[1:][improve] = cur[improve], j0
-            j1 = int(np.argmin(np.where(used[1:], np.inf, minv[1:]))) + 1
-            delta = minv[j1]
+            candidates = np.where(used[1:], np.inf, minv[1:])  # only unvisited columns can extend the path
+            j1 = int(np.argmin(candidates)) + 1
+            delta = candidates[j1 - 1]
+            if not np.isfinite(delta):
+                # No unvisited column is reachable from this row: the matrix has no feasible
+                # assignment. Reading `minv[j1]` instead would take the value of an already
+                # visited column, and `argmin` over an all-inf array returns index 0, so the
+                # path would revisit that column forever.
+                raise ValueError("cost matrix is infeasible")
             u[p[used]] += delta
             v[used] -= delta
             minv[~used] -= delta

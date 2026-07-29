@@ -1889,3 +1889,37 @@ def test_semantic_polygon_data():
     model = YOLO("yolo26n-sem.pt")
     model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, close_mosaic=1)
     model.val(data="coco8-seg.yaml")
+
+
+def test_linear_sum_assignment_numpy_infeasible():
+    """The NumPy fallback must reject an infeasible cost matrix instead of looping forever.
+
+    `inf` marks a forbidden assignment. When no unvisited column is reachable from the current row,
+    every entry of the masked candidate array is `inf`, `np.argmin` returns index 0, and that index
+    can point at a column the path has already visited, so the augmenting loop revisits it forever.
+    SciPy raises `ValueError("cost matrix is infeasible")` for the same inputs.
+    """
+    from ultralytics.utils.ops import _linear_sum_assignment_numpy
+
+    infeasible = [
+        np.array([[1.0, np.inf], [2.0, np.inf]]),  # two rows, one usable column
+        np.array([[np.inf, np.inf], [np.inf, np.inf]]),  # nothing assignable
+        np.array([[np.inf, np.inf, np.inf], [2.0, 0.0, 5.0], [3.0, 2.0, 2.0]]),  # one forbidden row
+        np.array([[np.inf, np.inf, np.inf, np.inf], [1.0, 2.0, 3.0, 4.0]]),  # wide, forbidden row
+    ]
+    for cost in infeasible:
+        with pytest.raises(ValueError, match="infeasible"):
+            _linear_sum_assignment_numpy(cost.copy())
+
+
+def test_linear_sum_assignment_numpy_feasible_with_inf():
+    """`inf` entries that still leave a feasible assignment must keep working."""
+    from ultralytics.utils.ops import _linear_sum_assignment_numpy
+
+    cost = np.array([[np.inf, 1.0, 3.0], [2.0, 0.0, 5.0], [3.0, 2.0, 2.0]])
+    row_ind, col_ind = _linear_sum_assignment_numpy(cost.copy())
+    assert cost[row_ind, col_ind].sum() == 5.0
+
+    rect = np.array([[1.0, np.inf, 3.0, 4.0], [np.inf, 2.0, np.inf, 5.0]])
+    row_ind, col_ind = _linear_sum_assignment_numpy(rect.copy())
+    assert rect[row_ind, col_ind].sum() == 3.0

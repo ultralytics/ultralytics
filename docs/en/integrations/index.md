@@ -25,9 +25,9 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Albumentations](albumentations.md): Enhance your Ultralytics models with powerful image augmentations to improve model robustness and generalization.
 
-- [AMD](amd.md): Train, validate, and run Ultralytics models on supported AMD GPUs with PyTorch ROCm, with a clear breakdown of MIGraphX, DirectML, and Ryzen AI NPU availability.
-
 - [Amazon SageMaker](amazon-sagemaker.md): Leverage Amazon SageMaker to efficiently build, train, and deploy Ultralytics models, providing an all-in-one platform for the ML lifecycle.
+
+- [AMD](amd.md): Train, validate, and run Ultralytics models on supported AMD GPUs with PyTorch ROCm, with a clear breakdown of MIGraphX, DirectML, and Ryzen AI NPU availability.
 
 - [ClearML](clearml.md): Automate your Ultralytics ML workflows, monitor experiments, and foster team collaboration.
 

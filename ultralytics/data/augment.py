@@ -422,7 +422,7 @@ class BaseMixTransform(BaseTransform):
             return labels
 
         mix_texts = [*labels["texts"], *(item for x in labels["mix_labels"] for item in x["texts"])]
-        mix_texts = list({tuple(x) for x in mix_texts})
+        mix_texts = list(dict.fromkeys(tuple(x) for x in mix_texts))
         text2id = {text: i for i, text in enumerate(mix_texts)}
 
         for label in [labels] + labels["mix_labels"]:

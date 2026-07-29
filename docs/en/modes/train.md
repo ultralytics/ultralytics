@@ -161,9 +161,9 @@ source /usr/local/Ascend/ascend-toolkit/set_env.sh
         yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 device=npu:0,1
         ```
 
-The standard training features, including AMP, validation, checkpointing, resume, and AutoBatch, use the active NPU.
-Multiple NPU IDs launch distributed training through HCCL. See the [Huawei Ascend integration guide](../integrations/ascend.md)
-for model export and deployment after training.
+The standard training features, including AMP, validation, checkpointing, and resume, use the active NPU. AutoBatch is
+available for single-NPU training, while multiple NPU IDs launch distributed training through HCCL. See the
+[Huawei Ascend integration guide](../integrations/ascend.md) for model export and deployment after training.
 
 ### Idle GPU Training
 

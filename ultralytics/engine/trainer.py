@@ -267,6 +267,8 @@ class BaseTrainer:
         self.accelerator.set_device(index)
         if device_type == "cuda":
             os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
+        elif device_type == "xpu" and not (hasattr(dist, "is_xccl_available") and dist.is_xccl_available()):
+            raise RuntimeError("Multi-XPU training requires XCCL, which is not available in this PyTorch build.")
         dist.init_process_group(
             backend={"npu": "hccl", "xpu": "xccl"}.get(device_type, "nccl" if dist.is_nccl_available() else "gloo"),
             timeout=timedelta(seconds=10800),  # 3 hours

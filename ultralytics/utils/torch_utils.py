@@ -118,7 +118,7 @@ def autocast(enabled: bool, device: str = "cuda"):
         import torch_npu
 
         return torch_npu.npu.amp.autocast(enabled=enabled)
-    elif TORCH_1_13 and device != "mps":
+    elif TORCH_1_13:
         return torch.amp.autocast(device, enabled=enabled)
     else:
         return torch.cuda.amp.autocast(enabled)
@@ -911,6 +911,8 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                 flops = 0
 
             try:
+                if isinstance(m, nn.Module):
+                    m.zero_grad(set_to_none=True)
                 mem = x.numel() * x.element_size() / 1e9 if device.type not in {"cpu", "mps"} else 0
                 for _ in range(n):
                     with cuda_memory_usage(device) as cuda_info:

@@ -65,10 +65,13 @@ def test_dataloader_uses_npu_count(monkeypatch):
     from types import SimpleNamespace
 
     kwargs = {}
+    monkeypatch.delattr(data_build.torch, "accelerator", raising=False)
+    monkeypatch.setattr(data_build, "TORCH_1_13", True)
     monkeypatch.setattr(data_build, "get_torch_device_backend", lambda device: SimpleNamespace(device_count=lambda: 2))
     monkeypatch.setattr(data_build, "InfiniteDataLoader", lambda **values: kwargs.update(values))
     build_dataloader(range(64), batch=4, workers=8, device="npu")
     assert kwargs["pin_memory"]
+    assert kwargs["pin_memory_device"] == "npu"
     assert kwargs["num_workers"] == min(os.cpu_count() // 2, 8, 16)
 
 

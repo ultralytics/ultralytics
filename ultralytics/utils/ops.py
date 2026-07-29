@@ -49,9 +49,8 @@ class Profile(contextlib.ContextDecorator):
         """
         self.t = t
         self.device = device
-        self.accelerator = (
-            get_torch_device_backend(device) if device and getattr(device, "type", None) not in {"cpu", "mps"} else None
-        )
+        device_type = getattr(device, "type", str(device).split(":")[0] if device else None)
+        self.accelerator = get_torch_device_backend(device_type) if device_type in {"cuda", "npu", "xpu"} else None
 
     def __enter__(self):
         """Start timing."""
@@ -69,7 +68,7 @@ class Profile(contextlib.ContextDecorator):
 
     def time(self):
         """Get current time with accelerator synchronization if applicable."""
-        if self.accelerator is not None and hasattr(self.accelerator, "synchronize"):
+        if self.accelerator is not None:
             self.accelerator.synchronize(self.device)
         return time.perf_counter()
 

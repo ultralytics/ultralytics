@@ -246,6 +246,10 @@ To reproduce the above Ultralytics benchmarks on all [export formats](../modes/e
 
     Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results, use a dataset with a large number of images, e.g., `data='coco.yaml'` (5000 val images).
 
+!!! note "LiteRT export runs off-device"
+
+    `litert-converter` ships no `aarch64` Linux wheel, so `format=litert` export is only supported on Linux x86_64 and macOS, not on the Raspberry Pi itself. Export the `.tflite` model on a Linux x86_64 machine or a Mac, copy it to the Raspberry Pi, and use the Pi for inference.
+
 ## Use Raspberry Pi Camera
 
 When using Raspberry Pi for Computer Vision projects, it can be essential to grab real-time video feeds to perform inference. The onboard MIPI CSI connector on the Raspberry Pi allows you to connect official Raspberry PI camera modules. In this guide, we have used a [Raspberry Pi Camera Module 3](https://www.raspberrypi.com/products/camera-module-3/) to grab the video feeds and perform inference using YOLO26 models.

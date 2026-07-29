@@ -36,7 +36,7 @@ The ideal format depends on your model's intended operational context and hardwa
 
 Here is a short description of each format and when to reach for it. For the full export walkthrough, see the [export documentation](../modes/export.md); for the side-by-side criteria, jump to the [comparison table](#deployment-options-compared).
 
-- **PyTorch** (`.pt`): The native training and inference format, offering maximum flexibility and CUDA GPU acceleration — ideal for research and prototyping with no export step required.
+- **PyTorch** (`.pt`): The native training and inference format, offering maximum flexibility and GPU acceleration through NVIDIA CUDA or [AMD ROCm](../integrations/amd.md) — ideal for research and prototyping with no export step required.
 - **[TorchScript](../integrations/torchscript.md)** (`torchscript`): Serializes the model for a Python-free C++ runtime, suited to production systems where Python is unavailable.
 - **[ONNX](../integrations/onnx.md)** (`onnx`): A framework-agnostic interchange format with broad cross-platform and hardware support through ONNX Runtime.
 - **[OpenVINO](../integrations/openvino.md)** (`openvino`): Intel's toolkit for optimized inference on Intel CPUs, integrated GPUs, and NPUs, common in IoT and [edge computing](https://www.ultralytics.com/glossary/edge-computing).

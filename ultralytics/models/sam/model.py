@@ -161,6 +161,12 @@ class SAM(Model):
         carries interactive weights. The directory suffix is what selects the inference backend,
         so keep it when moving the directory. Other SAM variants are not supported for export.
 
+        ``format="engine"`` goes all the way from the checkpoint on its own: it exports the ONNX
+        modules first and then builds the engines from them, leaving both directories behind. There
+        is no need to call ``format="onnx"`` beforehand, and doing so only exports it twice. The
+        engine path always writes FP32 ONNX regardless of ``half``, because TensorRT applies FP16
+        itself through mixed precision.
+
         Args:
             **kwargs (Any): Export arguments. Key options:
                 format (str): ``"onnx"`` or ``"engine"`` (TensorRT).
@@ -173,11 +179,15 @@ class SAM(Model):
             (str): Path to the output directory.
 
         Examples:
-            Export a SAM3 checkpoint to ONNX, then to TensorRT engines::
+            One call takes the checkpoint all the way to TensorRT, writing the ONNX modules on the
+            way and returning the engine directory::
 
                 model = SAM("sam3.pt")
-                model.export(format="onnx", imgsz=1008)
                 model.export(format="engine", imgsz=1008, half=True)
+
+            Export only the ONNX modules::
+
+                model.export(format="onnx", imgsz=1008)
         """
         if not self.is_sam3:
             raise NotImplementedError("Export is only supported for SAM3 models.")

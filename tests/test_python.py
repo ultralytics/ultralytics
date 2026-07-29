@@ -20,7 +20,8 @@ import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
-from ultralytics.data.build import build_dataloader, load_inference_source
+from ultralytics.data.build import build_dataloader, build_yolo_dataset, load_inference_source
+from ultralytics.data.dataset import ClassificationDataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.utils import (
     ARM64,
@@ -100,6 +101,18 @@ def test_cfg_rejects_fuzzed_values():
         with pytest.raises((TypeError, ValueError), match=key):
             get_cfg(overrides={key: value})
     assert get_cfg(overrides={"auto_augment": None}).auto_augment is None
+
+
+def test_dataset_split_fraction():
+    """Test fraction subsamples the train split as a scalar and both splits as a [train, val] list."""
+    data = check_det_dataset("coco8.yaml")
+    scalar, split = get_cfg(overrides={"fraction": 0.5}), get_cfg(overrides={"fraction": [0.5, 0.25]})
+    assert len(build_yolo_dataset(scalar, data["train"], 1, data, mode="train")) == 2  # 4 images * 0.5
+    assert len(build_yolo_dataset(scalar, data["val"], 1, data, mode="val")) == 4  # scalar leaves val untouched
+    assert len(build_yolo_dataset(split, data["train"], 1, data, mode="train")) == 2  # 4 images * 0.5
+    assert len(build_yolo_dataset(split, data["val"], 1, data, mode="val")) == 1  # 4 images * 0.25
+    cls = check_cls_dataset("imagenet10")
+    assert len(ClassificationDataset(cls["train"], args=split, augment=True).samples) == 6  # 12 images * 0.5
 
 
 def skip_rpi_semantic():

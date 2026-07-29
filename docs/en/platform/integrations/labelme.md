@@ -1,17 +1,18 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Export an offline LabelMe dataset to YOLO format, upload it to Ultralytics Platform, and start training.
-keywords: Ultralytics Platform, LabelMe, labelmetk, YOLO export, dataset import, offline annotation, integrations, computer vision
-title: LabelMe YOLO Dataset Import - Ultralytics Platform
+description: Convert LabelMe JSON annotations to YOLO format, upload the dataset to Ultralytics Platform, and train a computer vision model.
+keywords: Ultralytics Platform, LabelMe, LabelMe to YOLO, LabelMe JSON to YOLO, labelmetk, YOLO export, dataset import, offline annotation, computer vision
+title: LabelMe to YOLO Dataset Export - Ultralytics Platform
 ---
 
-# LabelMe Integration
+# Export LabelMe Annotations to YOLO and Ultralytics Platform
 
-[LabelMe](https://labelme.io/) is an offline image annotation tool, so there is no cloud account or API key to connect
-to [Ultralytics Platform](https://platform.ultralytics.com). The complete integration is a local workflow: annotate in
-LabelMe, export the annotations to YOLO format with the LabelMe Toolkit, and upload the resulting ZIP as a Platform
-dataset.
+[LabelMe](https://labelme.io/) is an offline image annotation tool with an
+[open-source Python application](https://github.com/wkentaro/labelme). There is no live LabelMe connection or API key
+to configure in [Ultralytics Platform](https://platform.ultralytics.com). The complete integration is a local workflow:
+annotate in LabelMe, convert the LabelMe JSON annotations to YOLO format with the LabelMe Toolkit, and upload the
+resulting ZIP as a Platform dataset.
 
 ## 1. Annotate the Images in LabelMe
 
@@ -21,7 +22,8 @@ containing your images. LabelMe saves each image's annotations in a matching JSO
 
 For the YOLO detection workflow in this guide, draw rectangles around each object and assign a class name. The
 [LabelMe starter guide](https://labelme.io/docs/starter-guide) covers opening images, drawing shapes, and saving
-annotations.
+annotations, while the [LabelMe dataset guide](https://labelme.io/docs/dataset-guide) covers reviewing and preparing a
+complete annotated dataset.
 
 Your source directory should contain the images and LabelMe JSON files:
 

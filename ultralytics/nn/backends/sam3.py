@@ -17,16 +17,9 @@ from pathlib import Path
 import numpy as np
 import torch
 
+from ultralytics.nn.backends.onnx import _ORT_DTYPES
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
-
-_ONNX_DTYPES = {
-    "tensor(float16)": np.float16,
-    "tensor(float)": np.float32,
-    "tensor(int32)": np.int32,
-    "tensor(int64)": np.int64,
-    "tensor(bool)": np.bool_,
-}
 
 
 class _BackboneProxy:
@@ -241,7 +234,7 @@ class SAM3Backend:
         Returns:
             (dict[str, np.ndarray]): Output name to array.
         """
-        cast = {i.name: feed[i.name].astype(_ONNX_DTYPES[i.type], copy=False) for i in session.get_inputs()}
+        cast = {i.name: feed[i.name].astype(_ORT_DTYPES[i.type][1], copy=False) for i in session.get_inputs()}
         raw = session.run(None, cast)
         return {o.name: v for o, v in zip(session.get_outputs(), raw)}
 
@@ -444,17 +437,9 @@ class SAM3Backend:
             check_requirements("git+https://github.com/ultralytics/CLIP.git")
             import clip
 
-        tokenizer = clip.simple_tokenizer.SimpleTokenizer()
-        sot = tokenizer.encoder["<|startoftext|>"]
-        eot = tokenizer.encoder["<|endoftext|>"]
-
-        tokens_list = []
-        for t in text:
-            enc = [sot, *tokenizer.encode(t), eot]
-            enc = enc[:32] if len(enc) > 32 else enc + [0] * (32 - len(enc))
-            tokens_list.append(enc)
-
-        tokens = np.array(tokens_list, dtype=np.int64)
+        # Use the tokenizer callable, as the PyTorch text encoder does. Truncating by hand drops the
+        # end of text token on long prompts, and the encoder pools its features from that token.
+        tokens = clip.simple_tokenizer.SimpleTokenizer()(text, context_length=32).numpy().astype(np.int64)
 
         # Run per-class (static batch=1)
         # Text encoder outputs: text_features [32, 1, 256] (seq-first), text_mask [1, 32]

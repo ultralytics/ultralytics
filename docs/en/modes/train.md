@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn how to efficiently train object detection models using YOLO26 with comprehensive instructions on settings, augmentation, and hardware utilization.
-keywords: Ultralytics, YOLO26, model training, deep learning, object detection, GPU training, Huawei Ascend NPU, dataset augmentation, hyperparameter tuning, model performance, apple silicon training
+keywords: Ultralytics, YOLO26, model training, deep learning, object detection, GPU training, AMD ROCm, Huawei Ascend NPU, dataset augmentation, hyperparameter tuning, model performance, apple silicon training
 ---
 
 # Model Training with Ultralytics YOLO
@@ -123,6 +123,10 @@ Multi-GPU training allows for more efficient utilization of available hardware r
     ```bash
     python -m torch.distributed.run --nproc_per_node 2 your_training_script.py
     ```
+
+AMD GPU training uses a PyTorch ROCm build with the standard `device=0` or `device=cuda:0` syntax. See the
+[AMD integration guide](../integrations/amd.md) for installation and the current MIGraphX, DirectML, and Ryzen AI NPU
+support status.
 
 Intel GPU training uses `device=xpu:0`, or multiple XPU IDs with a PyTorch build that provides XCCL.
 

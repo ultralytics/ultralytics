@@ -36,9 +36,9 @@ from ultralytics.data.loaders import (
     autocast_list,
 )
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import RANK, colorstr, get_torch_device_backend
+from ultralytics.utils import RANK, colorstr
 from ultralytics.utils.checks import check_file
-from ultralytics.utils.torch_utils import TORCH_2_0
+from ultralytics.utils.torch_utils import TORCH_2_0, get_torch_device_backend
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
@@ -321,6 +321,7 @@ def build_dataloader(
     rank: int = -1,
     drop_last: bool = False,
     pin_memory: bool = True,
+    device: torch.device | str = "cuda",
 ) -> InfiniteDataLoader:
     """Create and return an InfiniteDataLoader for training or validation.
 
@@ -332,6 +333,7 @@ def build_dataloader(
         rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
         drop_last (bool, optional): Whether to drop the last incomplete batch.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
+        device (torch.device | str, optional): Device used by the dataloader consumer.
 
     Returns:
         (InfiniteDataLoader): A dataloader that can be used for training or validation.
@@ -353,7 +355,8 @@ def build_dataloader(
     samples = len(sampler) if sampler is not None else dataset_len
     drop_last = drop_last and bool(batch) and dataset_len % batch != 0
     batches = (samples // batch if drop_last else math.ceil(samples / batch)) if batch else 0
-    nd = get_torch_device_backend().device_count()
+    device_type = getattr(device, "type", str(device).split(":")[0])
+    nd = get_torch_device_backend(device).device_count() if device_type not in {"cpu", "mps"} else 0
     # Do not create more worker processes than final loader batches. Single-batch loaders run in-process to avoid
     # persistent DataLoader worker pools that add overhead and can stall tiny datasets while holding CUDA context.
     nw = min(os.cpu_count() // max(nd, 1), workers, 0 if batches <= 1 else batches)  # number of workers

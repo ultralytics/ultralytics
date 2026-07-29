@@ -65,10 +65,9 @@ def test_dataloader_uses_npu_count(monkeypatch):
     from types import SimpleNamespace
 
     kwargs = {}
-    monkeypatch.setattr(data_build.torch.cuda, "is_available", lambda: False)
-    monkeypatch.setattr(data_build.torch, "npu", SimpleNamespace(device_count=lambda: 2), raising=False)
+    monkeypatch.setattr(data_build, "get_torch_device_backend", lambda device: SimpleNamespace(device_count=lambda: 2))
     monkeypatch.setattr(data_build, "InfiniteDataLoader", lambda **values: kwargs.update(values))
-    build_dataloader(range(64), batch=4, workers=8)
+    build_dataloader(range(64), batch=4, workers=8, device="npu")
     assert kwargs["pin_memory"]
     assert kwargs["num_workers"] == min(os.cpu_count() // 2, 8, 16)
 
@@ -183,8 +182,8 @@ def test_select_device(monkeypatch):
     assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 found via normalized visible ids
 
 
-def test_select_ascend_devices(monkeypatch):
-    """Test explicit single- and multi-NPU device selection."""
+def test_select_accelerator_devices(monkeypatch):
+    """Test explicit NPU and XPU device selection."""
     import sys
     from types import SimpleNamespace
 
@@ -206,12 +205,19 @@ def test_select_ascend_devices(monkeypatch):
     )
     monkeypatch.setitem(sys.modules, "torch_npu", SimpleNamespace())
     monkeypatch.setattr(torch_utils.torch, "npu", npu, raising=False)
+    monkeypatch.setattr(torch_utils.torch, "xpu", npu, raising=False)
     monkeypatch.setattr(torch_utils.torch, "device", Device)
+    monkeypatch.setattr(
+        torch_utils.torch,
+        "get_device_module",
+        lambda device: getattr(torch_utils.torch, getattr(device, "type", str(device).split(":")[0])),
+    )
 
     assert torch_utils.parse_device("npu:00,npu:01") == "npu:0,1"
     assert str(torch_utils.select_device("npu:1", verbose=False)) == "npu:1"
     assert str(torch_utils.select_device("npu:0,1", verbose=False)) == "npu:0"
-    assert set_calls == [1]  # multi-NPU requests leave device selection to each DDP rank
+    assert str(torch_utils.select_device("xpu:1", verbose=False)) == "xpu:1"
+    assert set_calls == [1, 1]  # multi-NPU requests leave device selection to each DDP rank
 
 
 def test_model_forward():

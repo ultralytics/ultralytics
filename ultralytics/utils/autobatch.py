@@ -8,8 +8,8 @@ from copy import deepcopy
 import numpy as np
 import torch
 
-from ultralytics.utils import DEFAULT_CFG, LOGGER, colorstr, get_torch_device_backend
-from ultralytics.utils.torch_utils import autocast, profile_ops
+from ultralytics.utils import DEFAULT_CFG, LOGGER, colorstr
+from ultralytics.utils.torch_utils import autocast, get_torch_device_backend, profile_ops
 
 
 def check_train_batch_size(

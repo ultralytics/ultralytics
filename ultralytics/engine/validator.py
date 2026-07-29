@@ -41,12 +41,13 @@ import torch.distributed as dist
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import LOCAL_RANK, LOGGER, RANK, TQDM, callbacks, colorstr, emojis, get_torch_device_backend
+from ultralytics.utils import LOCAL_RANK, LOGGER, RANK, TQDM, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.ops import Profile, linear_sum_assignment
 from ultralytics.utils.torch_utils import (
     attempt_compile,
     autocast,
+    get_torch_device_backend,
     select_device,
     smart_inference_mode,
     torch_distributed_zero_first,
@@ -167,7 +168,8 @@ class BaseValidator:
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()
         else:
-            npu = str(self.args.device).startswith("npu")
+            device_type = str(self.args.device).split(":", 1)[0]
+            device_type = device_type if device_type in {"npu", "xpu"} else "cuda"
             if str(self.args.model).endswith(".yaml") and model is None:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
@@ -183,9 +185,7 @@ class BaseValidator:
                 # DDP ranks reuse the device assigned in trainer._setup_ddp()
                 device=select_device(self.args.device)
                 if RANK == -1
-                else torch.device(
-                    "npu" if npu else "cuda", get_torch_device_backend(self.args.device).current_device()
-                ),
+                else torch.device(device_type, get_torch_device_backend(self.args.device).current_device()),
                 dnn=self.args.dnn,
                 data=self.args.data,
                 fp16=self.args.quantize == 16,

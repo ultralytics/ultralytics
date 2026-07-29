@@ -12,20 +12,20 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from ultralytics.utils import NOT_MACOS14, get_torch_device_backend
+from ultralytics.utils import NOT_MACOS14
+from ultralytics.utils.torch_utils import get_torch_device_backend
 
 
 class Profile(contextlib.ContextDecorator):
     """Ultralytics Profile class for timing code execution.
 
     Use as a decorator with @Profile() or as a context manager with 'with Profile():'. Provides accurate timing
-    measurements with CUDA and NPU synchronization support.
+    measurements with accelerator synchronization support.
 
     Attributes:
         t (float): Accumulated time in seconds.
         device (torch.device): Device used for model inference.
-        cuda (bool): Whether CUDA is being used for timing synchronization.
-        npu (bool): Whether an NPU is being used for timing synchronization.
+        accelerator (module): PyTorch device module used for timing synchronization.
 
     Examples:
         Use as a context manager to time code execution
@@ -49,8 +49,9 @@ class Profile(contextlib.ContextDecorator):
         """
         self.t = t
         self.device = device
-        self.cuda = bool(device and str(device).startswith("cuda"))
-        self.npu = bool(device and str(device).startswith("npu"))
+        self.accelerator = (
+            get_torch_device_backend(device) if device and getattr(device, "type", None) not in {"cpu", "mps"} else None
+        )
 
     def __enter__(self):
         """Start timing."""
@@ -68,8 +69,8 @@ class Profile(contextlib.ContextDecorator):
 
     def time(self):
         """Get current time with accelerator synchronization if applicable."""
-        if self.cuda or self.npu:
-            get_torch_device_backend(self.device).synchronize(self.device)
+        if self.accelerator is not None and hasattr(self.accelerator, "synchronize"):
+            self.accelerator.synchronize(self.device)
         return time.perf_counter()
 
 

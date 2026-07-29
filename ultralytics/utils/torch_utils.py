@@ -31,7 +31,6 @@ from ultralytics.utils import (
     TORCHVISION_VERSION,
     WINDOWS,
     colorstr,
-    get_torch_device_backend,
 )
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.cpu import CPUInfo
@@ -59,6 +58,12 @@ if WINDOWS and check_version(TORCH_VERSION, "==2.4.0"):  # reject version 2.4.0 
         "Known issue with torch==2.4.0 on Windows with CPU, recommend upgrading to torch>=2.4.1 to resolve "
         "https://github.com/ultralytics/ultralytics/issues/15049"
     )
+
+
+def get_torch_device_backend(device: torch.device | str):
+    """Return the PyTorch module that owns the selected device backend."""
+    device_type = getattr(device, "type", str(device).split(":")[0])
+    return torch.get_device_module(device_type) if hasattr(torch, "get_device_module") else getattr(torch, device_type)
 
 
 @contextmanager
@@ -160,17 +165,18 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
     if isinstance(device, torch.device):
         if device.type == "cuda" and device.index is None:
             return ""  # indexless torch.device('cuda') means the current CUDA device, i.e. the '' default request
-        if device.type == "npu":
-            return "npu" if device.index is None else f"npu:{device.index}"
+        if device.type in {"npu", "xpu"}:
+            return device.type if device.index is None else f"{device.type}:{device.index}"
     device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
     if device == "cuda":
         device = "0"
-    if device.startswith("npu"):
-        indices = device[3:].lstrip(":").replace("npu:", "")
-        indices = ",".join(str(int(x)) if x.isdigit() else x for x in indices.split(",") if x)
-        return f"npu:{indices}" if indices else "npu"
+    for backend in ("npu", "xpu"):
+        if device.startswith(backend):
+            indices = device[len(backend) :].lstrip(":").replace(f"{backend}:", "")
+            indices = ",".join(str(int(x)) if x.isdigit() else x for x in indices.split(",") if x)
+            return f"{backend}:{indices}" if indices else backend
     device = ",".join(str(int(x)) if x.isdigit() else x for x in device.split(",") if x)  # "0,,01" -> "0,1"
     # Visible physical ids normalized like requested ids and truncated to the torch device count, mirroring CUDA's
     # atoi-style parsing and its stop at the first invalid CVD entry
@@ -206,8 +212,8 @@ def select_device(device="", newline=False, verbose=True):
 
     Args:
         device (str | torch.device, optional): Device string or torch.device object. Options include 'cpu', 'cuda', '0',
-            '0,1,2,3', 'mps', 'npu', 'npu:0', 'npu:0,1', or '-1' for auto-select. Defaults to auto-selecting the first
-            available GPU, or CPU if no GPU is available.
+            '0,1,2,3', 'mps', 'npu:0', 'npu:0,1', 'xpu:0', 'xpu:0,1', or '-1' for auto-select. Defaults to auto-selecting
+            the first available GPU, or CPU if no GPU is available.
         newline (bool, optional): If True, adds a newline at the end of the log string.
         verbose (bool, optional): If True, logs the device information.
 
@@ -229,40 +235,50 @@ def select_device(device="", newline=False, verbose=True):
         the current device untouched.
     """
     if isinstance(device, torch.device):
-        if device.type not in {"cuda", "npu"}:
-            return device  # other torch.device inputs pass through; CUDA/NPU inputs canonicalize and validate below
+        if device.type not in {"cuda", "npu", "xpu"}:
+            return device  # other torch.device inputs pass through; accelerator inputs canonicalize and validate below
     elif str(device).startswith(("tpu", "intel", "vulkan")):
         return device
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{TORCH_VERSION} "
     device = parse_device(device)
 
-    # Huawei Ascend NPU
-    if device.startswith("npu"):
-        try:
-            import torch_npu  # noqa
-        except ImportError:
-            raise ValueError(f"Invalid NPU 'device={device}'. Install 'torch_npu' at https://github.com/Ascend/pytorch")
+    if device.startswith(("npu", "xpu")):
+        device_type = device.split(":", 1)[0]
+        if device_type == "npu":
+            try:
+                import torch_npu  # noqa
+            except ImportError:
+                raise ValueError(
+                    f"Invalid NPU 'device={device}'. Install 'torch_npu' at https://github.com/Ascend/pytorch"
+                )
+        if not hasattr(torch, device_type):
+            raise ValueError(f"Invalid {device_type.upper()} 'device={device}' requested. Backend is not available.")
+        backend = get_torch_device_backend(device_type)
+        if not backend.is_available():
+            raise ValueError(f"Invalid {device_type.upper()} 'device={device}' requested. Backend is not available.")
 
-        if not hasattr(torch, "npu") or not torch.npu.is_available():
-            raise ValueError(f"Invalid NPU 'device={device}' requested. Ascend NPU is not available.")
-
-        requested = ["0"] if device == "npu" else device[4:].split(",")
+        requested = ["0"] if device == device_type else device[4:].split(",")
         indices = [int(x) for x in requested if x.isdigit()]
         if not indices or len(indices) != len(requested) or len(indices) != len(set(indices)):
-            raise ValueError(f"Invalid NPU 'device={device}' format. Use 'npu', 'npu:0', or 'npu:0,1'.")
-        n = torch.npu.device_count()
+            raise ValueError(
+                f"Invalid {device_type.upper()} 'device={device}' format. "
+                f"Use '{device_type}', '{device_type}:0', or '{device_type}:0,1'."
+            )
+        n = backend.device_count()
         if any(idx >= n for idx in indices):
-            raise ValueError(f"Invalid NPU 'device={device}' requested. Only {n} NPU(s) available.")
+            raise ValueError(
+                f"Invalid {device_type.upper()} 'device={device}' requested. Only {n} device(s) available."
+            )
 
         if len(indices) == 1:
-            torch.npu.set_device(indices[0])  # multi-NPU DDP ranks each pin their own device in trainer._setup_ddp()
+            backend.set_device(indices[0])  # multi-device DDP ranks each pin their device in trainer._setup_ddp()
         if verbose:
             space = " " * len(s)
             for i, idx in enumerate(indices):
-                s += f"{'' if i == 0 else space}NPU:{idx} ({torch.npu.get_device_name(idx)})\n"
+                s += f"{'' if i == 0 else space}{device_type.upper()}:{idx} ({backend.get_device_name(idx)})\n"
             LOGGER.info(s if newline else s.rstrip())
-        return torch.device("npu", indices[0])
+        return torch.device(device_type, indices[0])
 
     cpu = device == "cpu"
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
@@ -311,9 +327,10 @@ def select_device(device="", newline=False, verbose=True):
 
 def time_sync(device: torch.device | None = None):
     """Return PyTorch-accurate time."""
-    accelerator = get_torch_device_backend(device)
-    if accelerator.is_available():
-        accelerator.synchronize()
+    if device is None or device.type not in {"cpu", "mps"}:
+        accelerator = get_torch_device_backend(device or "cuda")
+        if accelerator.is_available() and hasattr(accelerator, "synchronize"):
+            accelerator.synchronize()
     return time.time()
 
 
@@ -818,20 +835,23 @@ def convert_optimizer_state_dict_to_fp16(state_dict):
 
 @contextmanager
 def cuda_memory_usage(device=None):
-    """Monitor and manage CUDA or NPU memory usage.
+    """Monitor and manage accelerator memory usage.
 
     This function empties the active accelerator cache, records the baseline reserved memory, yields a dictionary
     containing memory usage information, and then records the additional memory reserved on the specified device.
 
     Args:
-        device (torch.device, optional): The CUDA or NPU device to query memory usage for.
+        device (torch.device, optional): The accelerator device to query memory usage for.
 
     Yields:
         (dict): A dictionary with a key 'memory' initialized to 0, updated with additional reserved memory.
     """
     info = {"memory": 0}
-    accelerator = get_torch_device_backend(device)
-    if accelerator.is_available():
+    if device is not None and device.type in {"cpu", "mps"}:
+        yield info
+        return
+    accelerator = get_torch_device_backend(device or "cuda")
+    if accelerator.is_available() and hasattr(accelerator, "memory_reserved"):
         accelerator.empty_cache()
         baseline = accelerator.memory_reserved(device)
         try:
@@ -875,8 +895,9 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
         f"{'input':>24s}{'output':>24s}"
     )
     gc.collect()  # attempt to free unused memory
-    accelerator = get_torch_device_backend(device)
-    accelerator.empty_cache()
+    accelerator = get_torch_device_backend(device) if device.type not in {"cpu", "mps"} else None
+    if accelerator is not None:
+        accelerator.empty_cache()
     for x in input if isinstance(input, list) else [input]:
         x = x.to(device)
         x.requires_grad = True
@@ -890,7 +911,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                 flops = 0
 
             try:
-                mem = x.numel() * x.element_size() / 1e9 if device.type in {"cuda", "npu"} else 0
+                mem = x.numel() * x.element_size() / 1e9 if device.type not in {"cpu", "mps"} else 0
                 for _ in range(n):
                     with cuda_memory_usage(device) as cuda_info:
                         t[0] = time_sync(device)
@@ -928,7 +949,8 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                 results.append(None)
             finally:
                 gc.collect()  # attempt to free unused memory
-                accelerator.empty_cache()
+                if accelerator is not None:
+                    accelerator.empty_cache()
     return results
 
 

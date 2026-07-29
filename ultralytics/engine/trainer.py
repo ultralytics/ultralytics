@@ -42,7 +42,6 @@ from ultralytics.utils import (
     clean_url,
     colorstr,
     emojis,
-    get_torch_device_backend,
 )
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
@@ -58,6 +57,7 @@ from ultralytics.utils.torch_utils import (
     attempt_compile,
     autocast,
     convert_optimizer_state_dict_to_fp16,
+    get_torch_device_backend,
     init_seeds,
     one_cycle,
     parse_device,
@@ -133,6 +133,7 @@ class BaseTrainer:
         self.check_resume(overrides)
         self.args.device = parse_device(self.args.device)  # canonical string, resolves '-1' auto-selection once
         self.device = select_device(self.args.device)
+        self.accelerator = get_torch_device_backend(self.device) if self.device.type not in {"cpu", "mps"} else None
         self.validator = None
         self.metrics = None
         self.plots = {}
@@ -257,16 +258,17 @@ class BaseTrainer:
 
     def _setup_ddp(self):
         """Initialize and set the DistributedDataParallel parameters for training."""
-        npu = self.args.device.startswith("npu")
-        devices = self.args.device[4:].split(",") if npu else self.args.device.split(",")
+        device_type = self.args.device.split(":", 1)[0]
+        device_type = device_type if device_type in {"npu", "xpu"} else "cuda"
+        devices = self.args.device[4:].split(",") if device_type != "cuda" else self.args.device.split(",")
         index = int(devices[LOCAL_RANK])  # world_size > 1 guarantees a multi-device string
-        accelerator = get_torch_device_backend("npu" if npu else "cuda")
-        accelerator.set_device(index)
-        self.device = torch.device("npu" if npu else "cuda", index)
-        if not npu:
+        self.device = torch.device(device_type, index)
+        self.accelerator = get_torch_device_backend(self.device)
+        self.accelerator.set_device(index)
+        if device_type == "cuda":
             os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
         dist.init_process_group(
-            backend="hccl" if npu else "nccl" if dist.is_nccl_available() else "gloo",
+            backend={"npu": "hccl", "xpu": "xccl"}.get(device_type, "nccl" if dist.is_nccl_available() else "gloo"),
             timeout=timedelta(seconds=10800),  # 3 hours
             rank=RANK,
             world_size=self.world_size,
@@ -369,7 +371,7 @@ class BaseTrainer:
             self.scaler = torch_npu.npu.amp.GradScaler(enabled=self.amp)
         else:
             self.scaler = (
-                torch.amp.GradScaler("cuda", enabled=self.amp)
+                torch.amp.GradScaler(self.device.type if self.device.type == "xpu" else "cuda", enabled=self.amp)
                 if TORCH_2_4
                 else torch.cuda.amp.GradScaler(enabled=self.amp)
             )
@@ -667,10 +669,9 @@ class BaseTrainer:
             if fraction:
                 return __import__("psutil").virtual_memory().percent / 100
         elif self.device.type != "cpu":
-            accelerator = get_torch_device_backend(self.device)
-            memory = accelerator.memory_reserved()
+            memory = self.accelerator.memory_reserved()
             if fraction:
-                total = accelerator.get_device_properties(self.device).total_memory
+                total = self.accelerator.get_device_properties(self.device).total_memory
         return ((memory / total) if total > 0 else 0) if fraction else (memory / 2**30)
 
     def _clear_memory(self, threshold: float | None = None):
@@ -685,7 +686,7 @@ class BaseTrainer:
         elif self.device.type == "cpu":
             return
         else:
-            get_torch_device_backend(self.device).empty_cache()
+            self.accelerator.empty_cache()
 
     def read_results_csv(self):
         """Read results.csv into a dictionary using polars."""

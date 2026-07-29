@@ -86,6 +86,13 @@ ARMS = {
     # gen_lane_b.py cannot remap the 27-row vit-detr trunk by row position.
     "dinop5-hybrid": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-hybrid.yaml", "nsmlx"),
     "dinop5-mixedrope-hybrid": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-hybrid.yaml", "nsmlx"),
+    # P3-rebalanced trunks. In Lane A, p3deep beat the incumbent at n and s and lost at m, l and x, while draining
+    # P5 recovered that loss and more, so p3deep2-p5lean leads at m and l. p3wide reaches a comparable P3 by
+    # mlp_ratio rather than by block count. Only p3deep has an x arm, hand written like the other two above.
+    "dinop5-p3deep": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep.yaml", "nsmlx"),
+    "dinop5-p5lean": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p5lean.yaml", "ml"),
+    "dinop5-p3deep2-p5lean": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep2-p5lean.yaml", "ml"),
+    "dinop5-p3wide": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3wide.yaml", "nsml"),
     # Stage-balanced pair, every P stage above both lanes' baselines at every scale.
     "dinop5-stagebal": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-stagebal.yaml", "nsmlx"),
     "dinop5-mixedrope-stagebal": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-stagebal.yaml", "nsmlx"),

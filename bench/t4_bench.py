@@ -91,7 +91,14 @@ ARMS = {
     # mlp_ratio rather than by block count. Only p3deep has an x arm, hand written like the other two above.
     "dinop5-p3deep": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep.yaml", "nsmlx"),
     "dinop5-p5lean": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p5lean.yaml", "ml"),
-    "dinop5-p3deep2-p5lean": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep2-p5lean.yaml", "ml"),
+    # p3deep2-p5lean reaches n and s, where the P5 drain rounds away and it resolves to p3deep2 exactly, so the
+    # one tag covers both. p2deep adds the P2 block that closes the last stage under the floor at n, s, m and x,
+    # l staying at 0.71 because the conv baseline doubles depth there and this trunk does not.
+    "dinop5-p3deep2-p5lean": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep2-p5lean.yaml", "nsml"),
+    "dinop5-p3deep2-p5lean-p2deep": (
+        "yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep2-p5lean-p2deep.yaml",
+        "nsml",
+    ),
     "dinop5-p3wide": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3wide.yaml", "nsml"),
     # Stage-balanced pair, every P stage above both lanes' baselines at every scale.
     "dinop5-stagebal": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-stagebal.yaml", "nsmlx"),

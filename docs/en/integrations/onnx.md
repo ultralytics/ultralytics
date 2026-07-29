@@ -77,7 +77,7 @@ While ONNX models are commonly used on CPUs, they can also be deployed on the fo
 
 ## Supported Tasks
 
-ONNX export supports all seven Ultralytics tasks across every Ultralytics model family. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+ONNX export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
 
 {% include "macros/supported-tasks.md" %}
 

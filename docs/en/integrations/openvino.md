@@ -25,7 +25,7 @@ OpenVINO, short for Open Visual Inference & [Neural Network](https://www.ultraly
 
 ## Supported Tasks
 
-OpenVINO export supports all seven Ultralytics tasks across every Ultralytics model family. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+OpenVINO export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
 
 {% include "macros/supported-tasks.md" %}
 

@@ -45,7 +45,7 @@ TFLite Edge TPU offers various deployment options for machine learning models, i
 
 ## Supported Tasks
 
-Edge TPU export supports six of the seven Ultralytics tasks across every Ultralytics model family. Semantic segmentation is available only with YOLO26, the only family that ships that head. Depth estimation is not supported because its INT8 model emits an `EXP` v2 operator that the Edge TPU compiler cannot parse.
+Edge TPU export supports six of the seven Ultralytics tasks. Semantic segmentation is available only with YOLO26, the only family that ships that head. Depth estimation is not supported because its INT8 model emits an `EXP` v2 operator that the Edge TPU compiler cannot parse.
 
 {% set unsupported = ["depth"] %}
 {% include "macros/supported-tasks.md" %}

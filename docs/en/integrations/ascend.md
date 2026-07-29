@@ -35,7 +35,7 @@ The Ultralytics exporter first writes an intermediate ONNX graph, then invokes A
 
 ## Supported Tasks
 
-Huawei Ascend export supports all seven Ultralytics tasks across every Ultralytics model family. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+Huawei Ascend export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
 
 {% include "macros/supported-tasks.md" %}
 

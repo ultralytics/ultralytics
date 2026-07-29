@@ -47,7 +47,7 @@ ExecuTorch models can be deployed across various edge and mobile platforms:
 
 ## Supported Tasks
 
-ExecuTorch export supports all seven Ultralytics tasks across every Ultralytics model family. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+ExecuTorch export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
 
 {% include "macros/supported-tasks.md" %}
 

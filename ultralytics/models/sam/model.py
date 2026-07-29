@@ -171,7 +171,7 @@ class SAM(Model):
             **kwargs (Any): Export arguments. Key options:
             format (str): ``"onnx"`` or ``"engine"`` (TensorRT).
             imgsz (int): Image size (must be divisible by 14). Default 1008.
-            half (bool): FP16 export. For TRT, enables mixed precision.
+            half (bool): FP16 export, also accepted as the CLI spelling quantize=16.
             device (str): Export device. Default ``"cpu"``.
             opset (int): ONNX opset version. Default 20.
 
@@ -198,7 +198,9 @@ class SAM(Model):
         assert fmt in {"onnx", "engine"}, f"SAM3 export supports format='onnx' or 'engine', got '{fmt}'"
 
         imgsz = kwargs.pop("imgsz", 1008)
-        half = kwargs.pop("half", False)
+        # The CLI rewrites half into quantize, so accept both spellings or FP16 is silently dropped.
+        quantize = kwargs.pop("quantize", None)
+        half = kwargs.pop("half", quantize == 16)
         device = kwargs.pop("device", "cpu")
         opset = kwargs.pop("opset", 20)
         workspace = kwargs.pop("workspace", None)

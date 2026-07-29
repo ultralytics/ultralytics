@@ -64,14 +64,15 @@ class KalmanFilterXYAH:
                 and height h.
 
         Returns:
-            mean (np.ndarray): Mean vector (8-dimensional) of the new track. Unobserved velocities are initialized to 0.
-            covariance (np.ndarray): Covariance matrix (8x8 dimensional) of the new track.
+            mean (np.ndarray): Float64 mean vector (8-dimensional) with zero-initialized velocities.
+            covariance (np.ndarray): Float64 covariance matrix (8x8 dimensional).
 
         Examples:
             >>> kf = KalmanFilterXYAH()
             >>> measurement = np.array([100, 50, 1.5, 200])
             >>> mean, covariance = kf.initiate(measurement)
         """
+        measurement = np.asarray(measurement, dtype=np.float64)
         mean_pos = measurement
         mean_vel = np.zeros_like(mean_pos)
         mean = np.r_[mean_pos, mean_vel]
@@ -320,8 +321,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
                 height.
 
         Returns:
-            mean (np.ndarray): Mean vector (8 dimensional) of the new track. Unobserved velocities are initialized to 0.
-            covariance (np.ndarray): Covariance matrix (8x8 dimensional) of the new track.
+            mean (np.ndarray): Float64 mean vector (8 dimensional) with zero-initialized velocities.
+            covariance (np.ndarray): Float64 covariance matrix (8x8 dimensional).
 
         Examples:
             >>> kf = KalmanFilterXYWH()
@@ -339,6 +340,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
              [ 0.      0.      0.      0.      0.      0.      1.5625  0.    ]
              [ 0.      0.      0.      0.      0.      0.      0.      6.25  ]]
         """
+        measurement = np.asarray(measurement, dtype=np.float64)
         mean_pos = measurement
         mean_vel = np.zeros_like(mean_pos)
         mean = np.r_[mean_pos, mean_vel]

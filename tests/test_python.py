@@ -1912,6 +1912,25 @@ def test_linear_sum_assignment_numpy_infeasible():
             _linear_sum_assignment_numpy(cost.copy())
 
 
+def test_linear_sum_assignment_numpy_rejects_invalid_entries():
+    """`NaN` and `-inf` are not costs, and SciPy rejects them with a different message than infeasibility.
+
+    Reporting them as "cost matrix is infeasible" would point at the assignment rather than at the
+    input, so they are validated up front the way SciPy does.
+    """
+    from ultralytics.utils.ops import _linear_sum_assignment_numpy
+
+    invalid = [
+        np.array([[1.0, np.nan], [2.0, 3.0]]),
+        np.array([[np.nan, np.nan], [np.nan, np.nan]]),
+        np.array([[-np.inf, 1.0], [2.0, 3.0]]),
+        np.array([[-np.inf, np.inf], [2.0, 3.0]]),
+    ]
+    for cost in invalid:
+        with pytest.raises(ValueError, match="invalid numeric entries"):
+            _linear_sum_assignment_numpy(cost.copy())
+
+
 def test_linear_sum_assignment_numpy_feasible_with_inf():
     """`inf` entries that still leave a feasible assignment must keep working."""
     from ultralytics.utils.ops import _linear_sum_assignment_numpy

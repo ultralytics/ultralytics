@@ -326,7 +326,8 @@ def xywh2ltwh(x):
     Returns:
         (np.ndarray | torch.Tensor): Bounding box coordinates in ltwh format.
     """
-    y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
+    y = empty_like(x)
+    y[...] = x  # width and height unchanged
     y[..., 0] = x[..., 0] - x[..., 2] / 2  # top left x
     y[..., 1] = x[..., 1] - x[..., 3] / 2  # top left y
     return y
@@ -356,7 +357,8 @@ def ltwh2xywh(x):
     Returns:
         (np.ndarray | torch.Tensor): Bounding box coordinates in xywh format.
     """
-    y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
+    y = empty_like(x)
+    y[...] = x  # width and height unchanged
     y[..., 0] = x[..., 0] + x[..., 2] / 2  # center x
     y[..., 1] = x[..., 1] + x[..., 3] / 2  # center y
     return y
@@ -708,8 +710,12 @@ def clean_str(s):
 
 
 def empty_like(x):
-    """Create empty torch.Tensor or np.ndarray with same shape and dtype as input."""
-    return torch.empty_like(x, dtype=x.dtype) if isinstance(x, torch.Tensor) else np.empty_like(x, dtype=x.dtype)
+    """Create empty torch.Tensor or np.ndarray with same shape as input, in its dtype if it holds fractions else
+    float32, so that halved coordinates are not truncated into an integer buffer.
+    """
+    if isinstance(x, torch.Tensor):
+        return torch.empty_like(x, dtype=x.dtype if x.is_floating_point() or x.is_complex() else torch.float32)
+    return np.empty_like(x, dtype=x.dtype if np.issubdtype(x.dtype, np.inexact) else np.float32)
 
 
 _assignment_solver = None  # resolved once on first call: SciPy's solver if installed, else the NumPy fallback

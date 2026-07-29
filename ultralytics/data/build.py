@@ -38,7 +38,7 @@ from ultralytics.data.loaders import (
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.utils import RANK, colorstr
 from ultralytics.utils.checks import check_file
-from ultralytics.utils.torch_utils import TORCH_1_13, TORCH_2_0, get_torch_device_backend
+from ultralytics.utils.torch_utils import TORCH_1_13, TORCH_2_0, TORCH_2_7, get_torch_device_backend
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
@@ -364,9 +364,7 @@ def build_dataloader(
     generator.manual_seed(6148914691236517205 + RANK)
     pin_memory = nd > 0 and pin_memory
     pin_memory_device = (
-        device_type
-        if pin_memory and device_type in {"npu", "xpu"} and TORCH_1_13 and not hasattr(torch, "accelerator")
-        else None
+        device_type if pin_memory and device_type in {"npu", "xpu"} and TORCH_1_13 and not TORCH_2_7 else None
     )
     return InfiniteDataLoader(
         dataset=dataset,

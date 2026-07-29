@@ -501,35 +501,21 @@ class SAM3DecoderONNX(nn.Module):
         # A box prompt appends geometry tokens to the text prompt. An ignored box is not neutral, it
         # shifts the presence logit, so the text only graph omits geometry exactly as forward_grounding does.
         if self.with_geometry:
-            # Build a Prompt object from input_boxes / input_boxes_labels.
-            # input_boxes: [B, N, 4] -> reshape to (N, B, 4) for sequence-first convention
-            # input_boxes_labels: [B, N] int -> (N, B) ; values: 1=pos, 0=neg, -10=ignore (padding)
-            boxes_seq_first = input_boxes.transpose(0, 1)  # (N, B, 4)
-            # box_mask: True = padded position to ignore
-            box_mask = input_boxes_labels == -10  # (B, N)
-            # Replace -10 in labels with 0 (will be masked out anyway)
-            labels_clean = (
-                torch.where(
-                    input_boxes_labels == -10,
-                    torch.zeros_like(input_boxes_labels),
-                    input_boxes_labels,
-                )
-                .transpose(0, 1)
-                .long()
-            )
-
+            # Boxes and labels arrive batch first and the encoder wants sequence first. Label -10 marks
+            # padding, which the mask already excludes, so those entries are zeroed to keep the embedding valid.
+            pad = input_boxes_labels == -10
             geo_feats, geo_masks = self.model.geometry_encoder(
                 geo_prompt=Prompt(
-                    box_embeddings=boxes_seq_first,
-                    box_mask=box_mask,
-                    box_labels=labels_clean,
+                    box_embeddings=input_boxes.transpose(0, 1),
+                    box_mask=pad,
+                    box_labels=torch.where(pad, torch.zeros_like(input_boxes_labels), input_boxes_labels)
+                    .transpose(0, 1)
+                    .long(),
                 ),
                 img_feats=img_feats,
                 img_sizes=vis_feat_sizes,
                 img_pos_embeds=img_pos_embeds,
             )
-
-            # Concatenate text + geometry (text first, then geometry)
             prompt = torch.cat([prompt, geo_feats], dim=0)
             pmask = torch.cat([pmask, geo_masks], dim=1)
 

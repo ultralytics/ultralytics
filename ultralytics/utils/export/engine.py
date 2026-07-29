@@ -189,6 +189,22 @@ def modelopt_quantize_onnx(
     return out_file
 
 
+def write_engine(output_file: Path | str, serialized: bytes, metadata: dict | None = None) -> None:
+    """Write a serialized TensorRT engine, prefixed with a length tagged JSON metadata header.
+
+    Args:
+        output_file (Path | str): Path to write the engine to.
+        serialized (bytes): The serialized TensorRT engine.
+        metadata (dict | None): Metadata to prefix the engine with, or None to write the engine alone.
+    """
+    with open(output_file, "wb") as f:
+        if metadata is not None:
+            meta = json.dumps(metadata)
+            f.write(len(meta).to_bytes(4, byteorder="little", signed=True))
+            f.write(meta.encode())
+        f.write(serialized)
+
+
 def onnx2engine(
     onnx_file: str,
     output_file: Path | str | None = None,
@@ -429,10 +445,5 @@ def onnx2engine(
         engine = None if engine is None else engine.serialize()
     if engine is None:
         raise RuntimeError("TensorRT engine build failed, check logs for errors")
-    with open(output_file, "wb") as t:
-        if metadata is not None:
-            meta = json.dumps(metadata)
-            t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
-            t.write(meta.encode())
-        t.write(engine)
+    write_engine(output_file, engine, metadata)
     return str(output_file)

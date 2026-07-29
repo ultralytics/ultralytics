@@ -796,7 +796,8 @@ def export_sam3_onnx(
     # the optional sam2_feat_* outputs (when sam2_convs is present) are not needed here.
     fpn0, fpn1, fpn2, fpos2 = vis_out[:4]
 
-    del tracker_model_for_neck
+    if not has_point_weights:
+        del tracker_model_for_neck  # nothing else needs it, so release it before tracing the rest
 
     # Text Encoder
     LOGGER.info(f"{prefix} exporting text encoder (opset {opset})...")
@@ -848,10 +849,10 @@ def export_sam3_onnx(
     )
 
     if has_point_weights:
-        # SAM Prompt Encoder (for point prompts)
+        # SAM Prompt Encoder (for point prompts). Reuse the model already built for the neck rather
+        # than loading the multi gigabyte checkpoint a second time.
         LOGGER.info(f"{prefix} exporting SAM prompt encoder (opset {opset})...")
-        tracker_model = build_interactive_sam3(checkpoint_path)
-        tracker_model = tracker_model.to(device).eval()
+        tracker_model = tracker_model_for_neck
 
         prompt_enc = SAM3PromptEncoderONNX(tracker_model).to(device).eval()
         dummy_pts = torch.tensor([[[500.0, 500.0]]], dtype=dtype, device=device)
@@ -1096,9 +1097,9 @@ def _build_decoder_engine_dynamic(
     precision is honored identically on TensorRT 10 and 11 (the FP16 builder flag was removed in TensorRT 11). Without
     ``half`` the engine is FP32.
     """
-    import json
-
     import tensorrt as trt
+
+    from ultralytics.utils.export.engine import write_engine
 
     if half:
         onnx_file = _autocast_fp16_onnx(onnx_file, opt_dynamic, prefix)
@@ -1139,9 +1140,4 @@ def _build_decoder_engine_dynamic(
     serialized = builder.build_serialized_network(network, config)
     if serialized is None:
         raise RuntimeError("TensorRT engine build failed")
-    with open(engine_file, "wb") as f:
-        if metadata is not None:
-            meta = json.dumps(metadata)
-            f.write(len(meta).to_bytes(4, byteorder="little", signed=True))
-            f.write(meta.encode())
-        f.write(serialized)
+    write_engine(engine_file, serialized, metadata)

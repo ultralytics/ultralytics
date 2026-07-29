@@ -378,7 +378,9 @@ Inference runs on CPU by default. GPU and accelerator backends are compiled in a
 | `cuda:0`      | `Device::Cuda(0)`     | `cuda`        | NVIDIA GPU            |
 | `tensorrt:0`  | `Device::TensorRt(0)` | `tensorrt`    | NVIDIA GPU, optimized |
 | `coreml`      | `Device::CoreMl`      | `coreml`      | Apple Silicon / macOS |
-| `openvino`    | `Device::OpenVino`    | `openvino`    | Intel CPU / iGPU      |
+| `intel:cpu`   | `Device::IntelCpu`    | `openvino`    | Intel CPU             |
+| `intel:gpu`   | `Device::IntelGpu`    | `openvino`    | Intel GPU             |
+| `intel:npu`   | `Device::IntelNpu`    | `openvino`    | Intel NPU             |
 | `directml:0`  | `Device::DirectMl(0)` | `directml`    | Windows GPU           |
 | `rocm:0`      | `Device::Rocm(0)`     | `rocm`        | AMD GPU               |
 | `xnnpack`     | `Device::Xnnpack`     | `xnnpack`     | Optimized CPU         |

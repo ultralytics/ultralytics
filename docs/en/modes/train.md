@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn how to efficiently train object detection models using YOLO26 with comprehensive instructions on settings, augmentation, and hardware utilization.
-keywords: Ultralytics, YOLO26, model training, deep learning, object detection, GPU training, dataset augmentation, hyperparameter tuning, model performance, apple silicon training
+keywords: Ultralytics, YOLO26, model training, deep learning, object detection, GPU training, Huawei Ascend NPU, dataset augmentation, hyperparameter tuning, model performance, apple silicon training
 ---
 
 # Model Training with Ultralytics YOLO
@@ -27,7 +27,7 @@ Training a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl
 
 Here are some compelling reasons to opt for YOLO26's Train mode:
 
-- **Efficiency:** Make the most out of your hardware, whether you're on a single-GPU setup or scaling across multiple GPUs.
+- **Efficiency:** Make the most out of your hardware, whether you're using one GPU/NPU or distributed training.
 - **Versatility:** Train on custom datasets in addition to readily available ones like COCO, VOC, and ImageNet.
 - **User-Friendly:** Simple yet powerful CLI and Python interfaces for a straightforward training experience.
 - **Hyperparameter Flexibility:** A broad range of customizable hyperparameters to fine-tune model performance. For deeper control, you can [customize the trainer](../guides/custom-trainer.md) itself.
@@ -38,7 +38,7 @@ Here are some compelling reasons to opt for YOLO26's Train mode:
 The following are some notable features of YOLO26's Train mode:
 
 - **Automatic Dataset Download:** Dataset configurations with a download source are downloaded automatically on first use, e.g., `yolo train data=coco8.yaml`. See the [Datasets overview](../datasets/index.md) for supported formats and datasets.
-- **Multi-GPU Support:** Scale your training efforts seamlessly across multiple GPUs to expedite the process.
+- **Multi-GPU/NPU Support:** Scale training across multiple NVIDIA GPUs or Huawei Ascend NPUs.
 - **Hyperparameter Configuration:** The option to modify hyperparameters through YAML configuration files or CLI arguments.
 - **Visualization and Monitoring:** Real-time tracking of training metrics and visualization of the learning process for better insights.
 
@@ -123,6 +123,47 @@ Multi-GPU training allows for more efficient utilization of available hardware r
     ```bash
     python -m torch.distributed.run --nproc_per_node 2 your_training_script.py
     ```
+
+### Huawei Ascend NPU Training
+
+Ultralytics supports training and validation on Huawei Ascend NPUs through
+[`torch_npu`](https://github.com/Ascend/pytorch). Install mutually compatible CANN, PyTorch, and `torch_npu`
+versions by following the [Ascend Extension for PyTorch installation guide](https://github.com/Ascend/pytorch#installation),
+then source the CANN environment before starting Ultralytics:
+
+```bash
+source /usr/local/Ascend/ascend-toolkit/set_env.sh
+```
+
+!!! example "Ascend NPU Training Example"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.pt")
+
+        # Train on one Ascend NPU
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device="npu:0")
+
+        # Train across two Ascend NPUs with HCCL
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device="npu:0,1")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Train on one Ascend NPU
+        yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 device=npu:0
+
+        # Train across two Ascend NPUs with HCCL
+        yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 device=npu:0,1
+        ```
+
+The standard training features, including AMP, validation, checkpointing, resume, and AutoBatch, use the active NPU.
+Multiple NPU IDs launch distributed training through HCCL. See the [Huawei Ascend integration guide](../integrations/ascend.md)
+for model export and deployment after training.
 
 ### Idle GPU Training
 
@@ -258,9 +299,9 @@ See the implementation in `ultralytics/optim/muon.py` and the optimizer auto-sel
     The `batch` argument can be configured in three ways:
 
     - **Fixed [Batch Size](https://www.ultralytics.com/glossary/batch-size)**: Set an integer value (e.g., `batch=16`), specifying the number of images per batch directly.
-    - **Auto Mode (60% GPU Memory)**: Use `batch=-1` to automatically adjust batch size for approximately 60% CUDA memory utilization.
-    - **Auto Mode with Utilization Fraction**: Set a fraction value (e.g., `batch=0.70`) to adjust batch size based on the specified fraction of GPU memory usage.
-    - **OOM Auto-Retry**: If a CUDA out-of-memory error occurs during the first epoch, the trainer automatically halves the batch size and retries (up to 3 times). This only applies to single-GPU training; multi-GPU (DDP) training will raise the error immediately.
+    - **Auto Mode (60% GPU/NPU Memory)**: Use `batch=-1` to automatically adjust batch size for approximately 60% GPU/NPU memory utilization.
+    - **Auto Mode with Utilization Fraction**: Set a fraction value (e.g., `batch=0.70`) to adjust batch size based on the specified fraction of GPU/NPU memory usage.
+    - **OOM Auto-Retry**: If a GPU/NPU out-of-memory error occurs during the first epoch, the trainer automatically halves the batch size and retries (up to 3 times). This only applies to single-accelerator training; distributed training will raise the error immediately.
 
 ## Augmentation Settings and Hyperparameters
 

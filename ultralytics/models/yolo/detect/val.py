@@ -70,7 +70,7 @@ class DetectionValidator(BaseValidator):
         """
         for k, v in batch.items():
             if isinstance(v, torch.Tensor):
-                batch[k] = v.to(self.device, non_blocking=self.device.type == "cuda")
+                batch[k] = v.to(self.device, non_blocking=self.device.type in {"cuda", "npu"})
         batch["img"] = (batch["img"].half() if self.args.quantize == 16 else batch["img"].float()) / 255
         return batch
 

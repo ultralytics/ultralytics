@@ -94,7 +94,7 @@ def autocast(enabled: bool, device: str = "cuda"):
 
     Args:
         enabled (bool): Whether to enable automatic mixed precision.
-        device (str, optional): The device to use for autocast.
+        device (str, optional): Device type to use for autocast, e.g. "cuda" or "npu".
 
     Returns:
         (torch.amp.autocast): The appropriate autocast context manager.
@@ -106,10 +106,14 @@ def autocast(enabled: bool, device: str = "cuda"):
 
     Notes:
         - For PyTorch versions 1.13 and newer, it uses `torch.amp.autocast`.
-        - For older versions, it uses `torch.cuda.amp.autocast`.
+        - For older versions, it uses the backend-specific AMP context.
     """
     if TORCH_1_13:
         return torch.amp.autocast(device, enabled=enabled)
+    elif device == "npu":
+        import torch_npu
+
+        return torch_npu.npu.amp.autocast(enabled=enabled)
     else:
         return torch.cuda.amp.autocast(enabled)
 
@@ -152,13 +156,20 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
         persisted under one environment (e.g. resumed checkpoint args) address the same physical GPUs only in that
         environment.
     """
-    if isinstance(device, torch.device) and device.type == "cuda" and device.index is None:
-        return ""  # indexless torch.device('cuda') means the current CUDA device, i.e. the '' default request
+    if isinstance(device, torch.device):
+        if device.type == "cuda" and device.index is None:
+            return ""  # indexless torch.device('cuda') means the current CUDA device, i.e. the '' default request
+        if device.type == "npu":
+            return "npu" if device.index is None else f"npu:{device.index}"
     device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
     if device == "cuda":
         device = "0"
+    if device.startswith("npu"):
+        indices = device[3:].lstrip(":").replace("npu:", "")
+        indices = ",".join(str(int(x)) if x.isdigit() else x for x in indices.split(",") if x)
+        return f"npu:{indices}" if indices else "npu"
     device = ",".join(str(int(x)) if x.isdigit() else x for x in device.split(",") if x)  # "0,,01" -> "0,1"
     # Visible physical ids normalized like requested ids and truncated to the torch device count, mirroring CUDA's
     # atoi-style parsing and its stop at the first invalid CVD entry
@@ -194,8 +205,8 @@ def select_device(device="", newline=False, verbose=True):
 
     Args:
         device (str | torch.device, optional): Device string or torch.device object. Options include 'cpu', 'cuda', '0',
-            '0,1,2,3', 'mps', 'npu', 'npu:0', or '-1' for auto-select. Defaults to auto-selecting the first available
-            GPU, or CPU if no GPU is available.
+            '0,1,2,3', 'mps', 'npu', 'npu:0', 'npu:0,1', or '-1' for auto-select. Defaults to auto-selecting the first
+            available GPU, or CPU if no GPU is available.
         newline (bool, optional): If True, adds a newline at the end of the log string.
         verbose (bool, optional): If True, logs the device information.
 
@@ -217,8 +228,8 @@ def select_device(device="", newline=False, verbose=True):
         the current device untouched.
     """
     if isinstance(device, torch.device):
-        if device.type != "cuda":
-            return device  # non-CUDA torch.device inputs pass through; cuda ones canonicalize via parse_device below
+        if device.type not in {"cuda", "npu"}:
+            return device  # other torch.device inputs pass through; CUDA/NPU inputs canonicalize and validate below
     elif str(device).startswith(("tpu", "intel", "vulkan")):
         return device
 
@@ -235,23 +246,22 @@ def select_device(device="", newline=False, verbose=True):
         if not hasattr(torch, "npu") or not torch.npu.is_available():
             raise ValueError(f"Invalid NPU 'device={device}' requested. Ascend NPU is not available.")
 
-        # Parse 'npu' or 'npu:N' (multi-NPU not yet supported)
-        suffix = device[3:]
-        if suffix == "":
-            idx = 0
-        elif suffix.startswith(":") and suffix[1:].isdigit():
-            idx = int(suffix[1:])
-        else:
-            raise ValueError(f"Invalid NPU 'device={device}' format. Use 'npu' or 'npu:0'.")
-
+        requested = ["0"] if device == "npu" else device[4:].split(",")
+        indices = [int(x) for x in requested if x.isdigit()]
+        if not indices or len(indices) != len(requested) or len(indices) != len(set(indices)):
+            raise ValueError(f"Invalid NPU 'device={device}' format. Use 'npu', 'npu:0', or 'npu:0,1'.")
         n = torch.npu.device_count()
-        if idx >= n:
+        if any(idx >= n for idx in indices):
             raise ValueError(f"Invalid NPU 'device={device}' requested. Only {n} NPU(s) available.")
 
-        torch.npu.set_device(idx)
+        if len(indices) == 1:
+            torch.npu.set_device(indices[0])  # multi-NPU DDP ranks each pin their own device in trainer._setup_ddp()
         if verbose:
-            LOGGER.info(f"{s}NPU:{idx} ({torch.npu.get_device_name(idx)})\n")
-        return torch.device(f"npu:{idx}")
+            space = " " * len(s)
+            for i, idx in enumerate(indices):
+                s += f"{'' if i == 0 else space}NPU:{idx} ({torch.npu.get_device_name(idx)})\n"
+            LOGGER.info(s if newline else s.rstrip())
+        return torch.device("npu", indices[0])
 
     cpu = device == "cpu"
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
@@ -298,9 +308,11 @@ def select_device(device="", newline=False, verbose=True):
     return torch.device(arg)
 
 
-def time_sync():
+def time_sync(device: torch.device | None = None):
     """Return PyTorch-accurate time."""
-    if torch.cuda.is_available():
+    if device is not None and device.type == "npu":
+        torch.npu.synchronize()
+    elif torch.cuda.is_available():
         torch.cuda.synchronize()
     return time.time()
 
@@ -699,9 +711,11 @@ class ModelEMA:
                 if v.dtype.is_floating_point:  # true for FP16 and FP32
                     ema_v.append(v)
                     model_v.append(msd[k])
-            if ema_v and TORCH_2_0 and (TORCH_2_4 or ema_v[0].device.type != "mps"):  # one kernel launch per op
+            if (
+                ema_v and TORCH_2_0 and ema_v[0].device.type != "npu" and (TORCH_2_4 or ema_v[0].device.type != "mps")
+            ):  # one kernel launch per op
                 torch._foreach_lerp_(ema_v, model_v, 1 - d)
-            else:  # _foreach_lerp_ needs torch>=2.0 and, on MPS, torch>=2.4
+            else:  # _foreach_lerp_ needs torch>=2.0, MPS torch>=2.4, and is unavailable on NPU
                 for v, m in zip(ema_v, model_v):
                     v.mul_(d).add_(m, alpha=1 - d)
 
@@ -804,27 +818,27 @@ def convert_optimizer_state_dict_to_fp16(state_dict):
 
 @contextmanager
 def cuda_memory_usage(device=None):
-    """Monitor and manage CUDA memory usage.
+    """Monitor and manage CUDA or NPU memory usage.
 
-    This function checks if CUDA is available and, if so, empties the CUDA cache to free up unused memory. It then
-    yields a dictionary containing memory usage information, which can be updated by the caller. Finally, it updates the
-    dictionary with the amount of memory reserved by CUDA on the specified device.
+    This function empties the active accelerator cache, yields a dictionary containing memory usage information, and
+    then records the amount of memory reserved on the specified device.
 
     Args:
-        device (torch.device, optional): The CUDA device to query memory usage for.
+        device (torch.device, optional): The CUDA or NPU device to query memory usage for.
 
     Yields:
         (dict): A dictionary with a key 'memory' initialized to 0, which will be updated with the reserved memory.
     """
-    cuda_info = {"memory": 0}
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
+    info = {"memory": 0}
+    accelerator = torch.npu if device is not None and device.type == "npu" else torch.cuda
+    if accelerator.is_available():
+        accelerator.empty_cache()
         try:
-            yield cuda_info
+            yield info
         finally:
-            cuda_info["memory"] = torch.cuda.memory_reserved(device)
+            info["memory"] = accelerator.memory_reserved(device)
     else:
-        yield cuda_info
+        yield info
 
 
 def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
@@ -860,7 +874,8 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
         f"{'input':>24s}{'output':>24s}"
     )
     gc.collect()  # attempt to free unused memory
-    torch.cuda.empty_cache()
+    accelerator = torch.npu if device.type == "npu" else torch.cuda
+    accelerator.empty_cache()
     for x in input if isinstance(input, list) else [input]:
         x = x.to(device)
         x.requires_grad = True
@@ -877,12 +892,12 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                 mem = 0
                 for _ in range(n):
                     with cuda_memory_usage(device) as cuda_info:
-                        t[0] = time_sync()
+                        t[0] = time_sync(device)
                         y = m(x)
-                        t[1] = time_sync()
+                        t[1] = time_sync(device)
                         try:
                             (sum(yi.sum() for yi in y) if isinstance(y, list) else y).sum().backward()
-                            t[2] = time_sync()
+                            t[2] = time_sync(device)
                         except Exception:  # no backward method
                             # print(e)  # for debug
                             t[2] = float("nan")
@@ -912,7 +927,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                 results.append(None)
             finally:
                 gc.collect()  # attempt to free unused memory
-                torch.cuda.empty_cache()
+                accelerator.empty_cache()
     return results
 
 

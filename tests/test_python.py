@@ -170,6 +170,45 @@ def test_select_device(monkeypatch):
     assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 found via normalized visible ids
 
 
+def test_select_ascend_devices(monkeypatch):
+    """Test single- and multi-NPU requests validate devices without moving the parent process for DDP."""
+    import sys
+    from types import SimpleNamespace
+
+    from ultralytics.utils import torch_utils
+
+    class Device:
+        def __init__(self, device_type, index=None):
+            self.type, self.index = device_type, index
+
+        def __str__(self):
+            return f"{self.type}:{self.index}" if self.index is not None else self.type
+
+    set_calls, autocast_calls = [], []
+    npu = SimpleNamespace(
+        is_available=lambda: True,
+        device_count=lambda: 2,
+        set_device=set_calls.append,
+        get_device_name=lambda i: f"Mock NPU {i}",
+        amp=SimpleNamespace(autocast=lambda **kwargs: autocast_calls.append(kwargs)),
+    )
+    monkeypatch.setitem(sys.modules, "torch_npu", SimpleNamespace(npu=npu))
+    monkeypatch.setattr(torch_utils.torch, "npu", npu, raising=False)
+    monkeypatch.setattr(torch_utils.torch, "device", Device)
+
+    assert torch_utils.parse_device("npu:00,npu:01") == "npu:0,1"
+    assert str(torch_utils.select_device("npu", verbose=False)) == "npu:0"
+    assert str(torch_utils.select_device("npu:1", verbose=False)) == "npu:1"
+    assert str(torch_utils.select_device("npu:0,1", verbose=False)) == "npu:0"
+    assert set_calls == [0, 1]  # multi-NPU requests leave device selection to each DDP rank
+    monkeypatch.setattr(torch_utils, "TORCH_1_13", False)
+    torch_utils.autocast(True, device="npu")
+    assert autocast_calls == [{"enabled": True}]
+    for device in ("npu:0,0", "npu:2", "npu:bad"):
+        with pytest.raises(ValueError, match="Invalid NPU"):
+            torch_utils.select_device(device, verbose=False)
+
+
 def test_model_forward():
     """Test the forward pass of the YOLO model."""
     model = YOLO(CFG)

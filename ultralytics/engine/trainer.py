@@ -49,6 +49,7 @@ from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.plotting import plot_results
 from ultralytics.utils.torch_utils import (
+    TORCH_2_0,
     TORCH_2_4,
     EarlyStopping,
     ModelEMA,
@@ -254,12 +255,18 @@ class BaseTrainer:
 
     def _setup_ddp(self):
         """Initialize and set the DistributedDataParallel parameters for training."""
-        index = int(self.args.device.split(",")[LOCAL_RANK])  # world_size > 1 guarantees a multi-device string
-        torch.cuda.set_device(index)
-        self.device = torch.device("cuda", index)
-        os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
+        npu = self.args.device.startswith("npu")
+        devices = self.args.device[4:].split(",") if npu else self.args.device.split(",")
+        index = int(devices[LOCAL_RANK])  # world_size > 1 guarantees a multi-device string
+        if npu:
+            torch.npu.set_device(index)
+            self.device = torch.device("npu", index)
+        else:
+            torch.cuda.set_device(index)
+            self.device = torch.device("cuda", index)
+            os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
         dist.init_process_group(
-            backend="nccl" if dist.is_nccl_available() else "gloo",
+            backend="hccl" if npu else "nccl" if dist.is_nccl_available() else "gloo",
             timeout=timedelta(seconds=10800),  # 3 hours
             rank=RANK,
             world_size=self.world_size,
@@ -356,9 +363,16 @@ class BaseTrainer:
             self.amp = self.amp.int()  # gloo errors with boolean
             dist.broadcast(self.amp, src=0)  # broadcast from rank 0 to all other ranks
         self.amp = bool(self.amp)  # as boolean
-        self.scaler = (
-            torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
-        )
+        if self.device.type == "npu":
+            import torch_npu
+
+            self.scaler = torch_npu.npu.amp.GradScaler(enabled=self.amp)
+        else:
+            self.scaler = (
+                torch.amp.GradScaler("cuda", enabled=self.amp)
+                if TORCH_2_4
+                else torch.cuda.amp.GradScaler(enabled=self.amp)
+            )
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
@@ -379,7 +393,7 @@ class BaseTrainer:
             )
 
         # Batch size
-        if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
+        if self.batch_size < 1 and RANK == -1:  # single-accelerator only, estimate best batch size
             self.args.batch = self.batch_size = self.auto_batch()
         self._build_train_pipeline()
         self.validator = self.get_validator()
@@ -466,7 +480,7 @@ class BaseTrainer:
 
                 # Forward
                 try:
-                    with autocast(self.amp):
+                    with autocast(self.amp, device=self.device.type):
                         batch = self.preprocess_batch(batch)
                         if self.args.compile:
                             # Decouple inference and loss calculations for improved compile performance
@@ -502,12 +516,13 @@ class BaseTrainer:
                     ):
                         raise
                     if epoch > self.start_epoch or self._oom_retries >= 3 or RANK != -1:
-                        raise  # only auto-reduce during first epoch on single GPU, max 3 retries
+                        raise  # only auto-reduce during first epoch on a single accelerator, max 3 retries
                     self._oom_retries += 1
                     old_batch = self.batch_size
                     self.args.batch = self.batch_size = max(self.batch_size // 2, 1)
+                    error = f"{self.device.type.upper()} out of memory" if is_oom else "CUDA backend memory error"
                     LOGGER.warning(
-                        f"{'CUDA out of memory' if is_oom else 'CUDA backend memory error'} with batch={old_batch}. "
+                        f"{error} with batch={old_batch}. "
                         f"Reducing to batch={self.batch_size} and retrying ({self._oom_retries}/3)."
                     )
                     batch = loss = preds = None
@@ -541,7 +556,7 @@ class BaseTrainer:
                         ("%11s" * 2 + "%11.4g" * (2 + loss_length))
                         % (
                             f"{epoch + 1}/{self.epochs}",
-                            f"{self._get_memory():.3g}G",  # (GB) GPU memory util
+                            f"{self._get_memory():.3g}G",  # (GB) GPU/NPU memory utilization
                             *self.tloss.values(),  # losses
                             batch.get("cls", batch["img"]).shape[0],  # no. of instances
                             batch["img"].shape[-1],  # imgsz, i.e 640
@@ -650,6 +665,10 @@ class BaseTrainer:
             memory = torch.mps.driver_allocated_memory()
             if fraction:
                 return __import__("psutil").virtual_memory().percent / 100
+        elif self.device.type == "npu":
+            memory = torch.npu.memory_reserved()
+            if fraction:
+                total = torch.npu.get_device_properties(self.device).total_memory
         elif self.device.type != "cpu":
             memory = torch.cuda.memory_reserved()
             if fraction:
@@ -665,6 +684,8 @@ class BaseTrainer:
         gc.collect()
         if self.device.type == "mps":
             torch.mps.empty_cache()
+        elif self.device.type == "npu":
+            torch.npu.empty_cache()
         elif self.device.type == "cpu":
             return
         else:
@@ -820,7 +841,10 @@ class BaseTrainer:
     def optimizer_step(self):
         """Perform a single step of the training optimizer with gradient clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
-        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
+        if self.device.type == "npu" and TORCH_2_0:
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0, foreach=False)
+        else:
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
         self.scaler.step(self.optimizer)
         self.scaler.update()
         self.optimizer.zero_grad()

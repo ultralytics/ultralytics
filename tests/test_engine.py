@@ -415,3 +415,39 @@ def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrain
 
     assert captured["cfg"] == checkpoint_model.yaml, "Checkpoint config was not used"
     assert captured["weights"] is (checkpoint_model if uses_weights else None), "Unexpected weights loaded"
+
+
+def test_ascend_training_paths(monkeypatch):
+    """Test HCCL rank binding and the NPU-safe gradient clipping path without Ascend hardware."""
+    import ultralytics.engine.trainer as trainer_module
+
+    class Device:
+        def __init__(self, device_type, index=None):
+            self.type, self.index = device_type, index
+
+    set_calls, process_group, clip_kwargs = [], {}, {}
+    monkeypatch.setattr(trainer_module, "LOCAL_RANK", 1)
+    monkeypatch.setattr(trainer_module, "RANK", 1)
+    monkeypatch.setattr(trainer_module.torch, "npu", SimpleNamespace(set_device=set_calls.append), raising=False)
+    monkeypatch.setattr(trainer_module.torch, "device", Device)
+    monkeypatch.setattr(trainer_module.dist, "init_process_group", lambda **kwargs: process_group.update(kwargs))
+    monkeypatch.setattr(
+        trainer_module.torch.nn.utils,
+        "clip_grad_norm_",
+        lambda *args, **kwargs: clip_kwargs.update(kwargs),
+    )
+
+    trainer = object.__new__(BaseTrainer)
+    trainer.args = SimpleNamespace(device="npu:0,2")
+    trainer.world_size = 2
+    trainer._setup_ddp()
+    assert (trainer.device.type, trainer.device.index) == ("npu", 2)
+    assert set_calls == [2]
+    assert process_group["backend"] == "hccl"
+
+    trainer.model = torch.nn.Linear(1, 1)
+    trainer.optimizer = SimpleNamespace(zero_grad=lambda: None)
+    trainer.scaler = SimpleNamespace(unscale_=lambda _: None, step=lambda _: None, update=lambda: None)
+    trainer.ema = None
+    trainer.optimizer_step()
+    assert clip_kwargs["foreach"] is False

@@ -179,10 +179,13 @@ class BaseValidator:
                 self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)
             model = AutoBackend(
                 model=model or self.args.model,
-                # DDP ranks reuse the device assigned in trainer._setup_ddp() via torch.cuda.set_device()
+                # DDP ranks reuse the device assigned in trainer._setup_ddp()
                 device=select_device(self.args.device)
                 if RANK == -1
-                else torch.device("cuda", torch.cuda.current_device()),
+                else torch.device(
+                    "npu" if self.args.device.startswith("npu") else "cuda",
+                    torch.npu.current_device() if self.args.device.startswith("npu") else torch.cuda.current_device(),
+                ),
                 dnn=self.args.dnn,
                 data=self.args.data,
                 fp16=self.args.quantize == 16,

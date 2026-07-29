@@ -64,16 +64,15 @@ class KalmanFilterXYAH:
                 and height h.
 
         Returns:
-            mean (np.ndarray): Float64 mean vector (8-dimensional) of the new track. Unobserved velocities are
-                initialized to 0.
-            covariance (np.ndarray): Float64 covariance matrix (8x8 dimensional) of the new track.
+            mean (np.ndarray): Float64 mean vector (8-dimensional) with zero-initialized velocities.
+            covariance (np.ndarray): Float64 covariance matrix (8x8 dimensional).
 
         Examples:
             >>> kf = KalmanFilterXYAH()
             >>> measurement = np.array([100, 50, 1.5, 200])
             >>> mean, covariance = kf.initiate(measurement)
         """
-        measurement = np.asarray(measurement, dtype=np.float64)  # the filter's matrices are float64; keep one dtype
+        measurement = np.asarray(measurement, dtype=np.float64)
         mean_pos = measurement
         mean_vel = np.zeros_like(mean_pos)
         mean = np.r_[mean_pos, mean_vel]
@@ -95,9 +94,9 @@ class KalmanFilterXYAH:
         """Run Kalman filter prediction step.
 
         Args:
-            mean (np.ndarray): The 8-dimensional float64 mean vector of the object state at the previous time step.
-            covariance (np.ndarray): The 8x8-dimensional float64 covariance matrix of the object state at the previous
-                time step.
+            mean (np.ndarray): The 8-dimensional mean vector of the object state at the previous time step.
+            covariance (np.ndarray): The 8x8-dimensional covariance matrix of the object state at the previous time
+                step.
 
         Returns:
             mean (np.ndarray): Mean vector of the predicted state.
@@ -132,8 +131,8 @@ class KalmanFilterXYAH:
         """Project state distribution to measurement space.
 
         Args:
-            mean (np.ndarray): The state's float64 mean vector (8 dimensional array).
-            covariance (np.ndarray): The state's float64 covariance matrix (8x8 dimensional).
+            mean (np.ndarray): The state's mean vector (8 dimensional array).
+            covariance (np.ndarray): The state's covariance matrix (8x8 dimensional).
             confidence (float, optional): Detection confidence; when set, scales measurement noise by max(1 -
                 confidence, 0.05) (NSA-Kalman).
 
@@ -165,8 +164,8 @@ class KalmanFilterXYAH:
         """Run Kalman filter prediction step for multiple object states (Vectorized version).
 
         Args:
-            mean (np.ndarray): The Nx8 dimensional float64 mean matrix of the object states at the previous step.
-            covariance (np.ndarray): The Nx8x8 float64 covariance matrix of the object states at the previous step.
+            mean (np.ndarray): The Nx8 dimensional mean matrix of the object states at the previous time step.
+            covariance (np.ndarray): The Nx8x8 covariance matrix of the object states at the previous time step.
 
         Returns:
             mean (np.ndarray): Mean matrix of the predicted states with shape (N, 8).
@@ -206,8 +205,8 @@ class KalmanFilterXYAH:
         """Run Kalman filter correction step.
 
         Args:
-            mean (np.ndarray): The predicted state's float64 mean vector (8 dimensional).
-            covariance (np.ndarray): The state's float64 covariance matrix (8x8 dimensional).
+            mean (np.ndarray): The predicted state's mean vector (8 dimensional).
+            covariance (np.ndarray): The state's covariance matrix (8x8 dimensional).
             measurement (np.ndarray): The 4 dimensional measurement vector (x, y, a, h), where (x, y) is the center
                 position, a the aspect ratio, and h the height of the bounding box.
             confidence (float, optional): Detection confidence; when set, scales measurement noise by max(1 -
@@ -322,9 +321,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
                 height.
 
         Returns:
-            mean (np.ndarray): Float64 mean vector (8 dimensional) of the new track. Unobserved velocities are
-                initialized to 0.
-            covariance (np.ndarray): Float64 covariance matrix (8x8 dimensional) of the new track.
+            mean (np.ndarray): Float64 mean vector (8 dimensional) with zero-initialized velocities.
+            covariance (np.ndarray): Float64 covariance matrix (8x8 dimensional).
 
         Examples:
             >>> kf = KalmanFilterXYWH()
@@ -342,7 +340,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
              [ 0.      0.      0.      0.      0.      0.      1.5625  0.    ]
              [ 0.      0.      0.      0.      0.      0.      0.      6.25  ]]
         """
-        measurement = np.asarray(measurement, dtype=np.float64)  # the filter's matrices are float64; keep one dtype
+        measurement = np.asarray(measurement, dtype=np.float64)
         mean_pos = measurement
         mean_vel = np.zeros_like(mean_pos)
         mean = np.r_[mean_pos, mean_vel]
@@ -364,9 +362,9 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         """Run Kalman filter prediction step.
 
         Args:
-            mean (np.ndarray): The 8-dimensional float64 mean vector of the object state at the previous time step.
-            covariance (np.ndarray): The 8x8-dimensional float64 covariance matrix of the object state at the previous
-                time step.
+            mean (np.ndarray): The 8-dimensional mean vector of the object state at the previous time step.
+            covariance (np.ndarray): The 8x8-dimensional covariance matrix of the object state at the previous time
+                step.
 
         Returns:
             mean (np.ndarray): Mean vector of the predicted state.
@@ -401,8 +399,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         """Project state distribution to measurement space.
 
         Args:
-            mean (np.ndarray): The state's float64 mean vector (8 dimensional array).
-            covariance (np.ndarray): The state's float64 covariance matrix (8x8 dimensional).
+            mean (np.ndarray): The state's mean vector (8 dimensional array).
+            covariance (np.ndarray): The state's covariance matrix (8x8 dimensional).
             confidence (float, optional): Detection confidence; when set, scales measurement noise by max(1 -
                 confidence, 0.05) (NSA-Kalman).
 
@@ -434,8 +432,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         """Run Kalman filter prediction step (Vectorized version).
 
         Args:
-            mean (np.ndarray): The Nx8 dimensional float64 mean matrix of the object states at the previous step.
-            covariance (np.ndarray): The Nx8x8 float64 covariance matrix of the object states at the previous step.
+            mean (np.ndarray): The Nx8 dimensional mean matrix of the object states at the previous time step.
+            covariance (np.ndarray): The Nx8x8 covariance matrix of the object states at the previous time step.
 
         Returns:
             mean (np.ndarray): Mean matrix of the predicted states with shape (N, 8).
@@ -475,8 +473,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         """Run Kalman filter correction step.
 
         Args:
-            mean (np.ndarray): The predicted state's float64 mean vector (8 dimensional).
-            covariance (np.ndarray): The state's float64 covariance matrix (8x8 dimensional).
+            mean (np.ndarray): The predicted state's mean vector (8 dimensional).
+            covariance (np.ndarray): The state's covariance matrix (8x8 dimensional).
             measurement (np.ndarray): The 4 dimensional measurement vector (x, y, w, h), where (x, y) is the center
                 position, w the width, and h the height of the bounding box.
             confidence (float, optional): Detection confidence; when set, scales measurement noise by max(1 -

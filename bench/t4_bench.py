@@ -111,6 +111,10 @@ LANES = {
                 "yolo26{s}-ultravit-repmixer-fastvitffn-tokenmlp-stagefloor.yaml",
                 "nsml",
             ),
+            "tokenmlp-stagebalance": (
+                "yolo26{s}-ultravit-repmixer-fastvitffn-tokenmlp-stagebalance.yaml",
+                "sm",
+            ),
             "tokenmlp-p45floor": (
                 "yolo26{s}-ultravit-repmixer-fastvitffn-tokenmlp-p45floor.yaml",
                 "x",

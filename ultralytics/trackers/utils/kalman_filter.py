@@ -25,7 +25,6 @@ class KalmanFilterXYAH:
         project: Project the state distribution to measurement space.
         multi_predict: Run the Kalman filter prediction step (vectorized version).
         update: Run the Kalman filter correction step.
-        gating_distance: Compute the gating distance between state distribution and measurements.
 
     Examples:
         Initialize the Kalman filter and create a track from a measurement
@@ -231,56 +230,6 @@ class KalmanFilterXYAH:
         new_mean = mean + np.dot(innovation, kalman_gain.T)
         new_covariance = covariance - np.linalg.multi_dot((kalman_gain, projected_cov, kalman_gain.T))
         return new_mean, new_covariance
-
-    def gating_distance(
-        self,
-        mean: np.ndarray,
-        covariance: np.ndarray,
-        measurements: np.ndarray,
-        only_position: bool = False,
-        metric: str = "maha",
-    ) -> np.ndarray:
-        """Compute gating distance between state distribution and measurements.
-
-        A suitable distance threshold can be obtained from `chi2inv95`. If `only_position` is False, the chi-square
-        distribution has 4 degrees of freedom, otherwise 2.
-
-        Args:
-            mean (np.ndarray): Mean vector over the state distribution (8 dimensional).
-            covariance (np.ndarray): Covariance of the state distribution (8x8 dimensional).
-            measurements (np.ndarray): An (N, 4) matrix of N measurements, each in format (x, y, a, h) where (x, y) is
-                the bounding box center position, a the aspect ratio, and h the height.
-            only_position (bool, optional): If True, distance computation is done with respect to box center position
-                only.
-            metric (str, optional): The metric to use for calculating the distance. Options are 'gaussian' for the
-                squared Euclidean distance and 'maha' for the squared Mahalanobis distance.
-
-        Returns:
-            (np.ndarray): Returns an array of length N, where the i-th element contains the squared distance between
-                (mean, covariance) and `measurements[i]`.
-
-        Examples:
-            Compute gating distance using Mahalanobis metric:
-            >>> kf = KalmanFilterXYAH()
-            >>> mean = np.array([0, 0, 1, 1, 0, 0, 0, 0])
-            >>> covariance = np.eye(8)
-            >>> measurements = np.array([[1, 1, 1, 1], [2, 2, 1, 1]])
-            >>> distances = kf.gating_distance(mean, covariance, measurements, only_position=False, metric="maha")
-        """
-        mean, covariance = self.project(mean, covariance)
-        if only_position:
-            mean, covariance = mean[:2], covariance[:2, :2]
-            measurements = measurements[:, :2]
-
-        d = measurements - mean
-        if metric == "gaussian":
-            return np.sum(d * d, axis=1)
-        elif metric == "maha":
-            cholesky_factor = np.linalg.cholesky(covariance)
-            z = np.linalg.solve(cholesky_factor, d.T)
-            return np.sum(z * z, axis=0)  # square maha
-        else:
-            raise ValueError("Invalid distance metric")
 
 
 class KalmanFilterXYWH(KalmanFilterXYAH):

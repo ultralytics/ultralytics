@@ -395,7 +395,7 @@ class BaseTrainer:
             )
 
         # Batch size
-        if self.batch_size < 1 and RANK == -1:  # single-accelerator only, estimate best batch size
+        if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
             self.args.batch = self.batch_size = self.auto_batch()
         self._build_train_pipeline()
         self.validator = self.get_validator()
@@ -518,7 +518,7 @@ class BaseTrainer:
                     ):
                         raise
                     if epoch > self.start_epoch or self._oom_retries >= 3 or RANK != -1:
-                        raise  # only auto-reduce during first epoch on a single accelerator, max 3 retries
+                        raise  # only auto-reduce during first epoch on single GPU, max 3 retries
                     self._oom_retries += 1
                     old_batch = self.batch_size
                     self.args.batch = self.batch_size = max(self.batch_size // 2, 1)
@@ -558,7 +558,7 @@ class BaseTrainer:
                         ("%11s" * 2 + "%11.4g" * (2 + loss_length))
                         % (
                             f"{epoch + 1}/{self.epochs}",
-                            f"{self._get_memory():.3g}G",  # (GB) GPU/NPU memory utilization
+                            f"{self._get_memory():.3g}G",  # (GB) GPU memory util
                             *self.tloss.values(),  # losses
                             batch.get("cls", batch["img"]).shape[0],  # no. of instances
                             batch["img"].shape[-1],  # imgsz, i.e 640

@@ -27,7 +27,7 @@ Training a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl
 
 Here are some compelling reasons to opt for YOLO26's Train mode:
 
-- **Efficiency:** Make the most out of your hardware, whether you're using one GPU/NPU or distributed training.
+- **Efficiency:** Make the most out of your hardware, whether you're on a single-GPU setup or scaling across multiple GPUs.
 - **Versatility:** Train on custom datasets in addition to readily available ones like COCO, VOC, and ImageNet.
 - **User-Friendly:** Simple yet powerful CLI and Python interfaces for a straightforward training experience.
 - **Hyperparameter Flexibility:** A broad range of customizable hyperparameters to fine-tune model performance. For deeper control, you can [customize the trainer](../guides/custom-trainer.md) itself.
@@ -38,7 +38,7 @@ Here are some compelling reasons to opt for YOLO26's Train mode:
 The following are some notable features of YOLO26's Train mode:
 
 - **Automatic Dataset Download:** Dataset configurations with a download source are downloaded automatically on first use, e.g., `yolo train data=coco8.yaml`. See the [Datasets overview](../datasets/index.md) for supported formats and datasets.
-- **Multi-GPU/NPU Support:** Scale training across multiple NVIDIA GPUs or Huawei Ascend NPUs.
+- **Multi-GPU Support:** Scale your training efforts seamlessly across multiple GPUs to expedite the process.
 - **Hyperparameter Configuration:** The option to modify hyperparameters through YAML configuration files or CLI arguments.
 - **Visualization and Monitoring:** Real-time tracking of training metrics and visualization of the learning process for better insights.
 
@@ -299,9 +299,9 @@ See the implementation in `ultralytics/optim/muon.py` and the optimizer auto-sel
     The `batch` argument can be configured in three ways:
 
     - **Fixed [Batch Size](https://www.ultralytics.com/glossary/batch-size)**: Set an integer value (e.g., `batch=16`), specifying the number of images per batch directly.
-    - **Auto Mode (60% GPU/NPU Memory)**: Use `batch=-1` to automatically adjust batch size for approximately 60% GPU/NPU memory utilization.
-    - **Auto Mode with Utilization Fraction**: Set a fraction value (e.g., `batch=0.70`) to adjust batch size based on the specified fraction of GPU/NPU memory usage.
-    - **OOM Auto-Retry**: If a GPU/NPU out-of-memory error occurs during the first epoch, the trainer automatically halves the batch size and retries (up to 3 times). This only applies to single-accelerator training; distributed training will raise the error immediately.
+    - **Auto Mode (60% GPU Memory)**: Use `batch=-1` to automatically adjust batch size for approximately 60% CUDA memory utilization.
+    - **Auto Mode with Utilization Fraction**: Set a fraction value (e.g., `batch=0.70`) to adjust batch size based on the specified fraction of GPU memory usage.
+    - **OOM Auto-Retry**: If a CUDA out-of-memory error occurs during the first epoch, the trainer automatically halves the batch size and retries (up to 3 times). This only applies to single-GPU training; multi-GPU (DDP) training will raise the error immediately.
 
 ## Augmentation Settings and Hyperparameters
 

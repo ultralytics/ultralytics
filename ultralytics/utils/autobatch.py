@@ -1,5 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""Functions for estimating the best YOLO batch size to use a fraction of available GPU or NPU memory in PyTorch."""
+"""Functions for estimating the best YOLO batch size to use a fraction of the available GPU memory in PyTorch."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ def check_train_batch_size(
         model (torch.nn.Module): YOLO model to check batch size for.
         imgsz (int, optional): Image size used for training.
         amp (bool, optional): Use automatic mixed precision if True.
-        batch (int | float, optional): Fraction of GPU or NPU memory to use. If -1, use default.
+        batch (int | float, optional): Fraction of GPU memory to use. If -1, use default.
         max_num_obj (int, optional): The maximum number of objects from dataset.
         dataset_size (int, optional): Total number of training images. If > 0, batch size will not exceed this value.
 
@@ -34,7 +34,7 @@ def check_train_batch_size(
         (int): Optimal batch size computed using the autobatch() function.
 
     Notes:
-        If 0.0 < batch < 1.0, it's used as the fraction of GPU or NPU memory to use.
+        If 0.0 < batch < 1.0, it's used as the fraction of GPU memory to use.
         Otherwise, a default fraction of 0.6 is used.
     """
     with autocast(enabled=amp, device=next(model.parameters()).device.type):
@@ -55,7 +55,7 @@ def autobatch(
     max_num_obj: int = 1,
     dataset_size: int = 0,
 ) -> int:
-    """Automatically estimate the best YOLO batch size to use a fraction of available GPU or NPU memory.
+    """Automatically estimate the best YOLO batch size to use a fraction of the available GPU memory.
 
     Args:
         model (torch.nn.Module): YOLO model to compute batch size for.
@@ -70,18 +70,16 @@ def autobatch(
     """
     # Check device
     prefix = colorstr("AutoBatch: ")
-    LOGGER.info(
-        f"{prefix}Computing optimal batch size for imgsz={imgsz} at {fraction * 100}% GPU/NPU memory utilization."
-    )
+    LOGGER.info(f"{prefix}Computing optimal batch size for imgsz={imgsz} at {fraction * 100}% GPU memory utilization.")
     device = next(model.parameters()).device  # get model device
     if device.type in {"cpu", "mps"}:
-        LOGGER.warning(f"{prefix}intended for CUDA or NPU devices, using default batch-size {batch_size}")
+        LOGGER.warning(f"{prefix}intended for GPU devices, using default batch-size {batch_size}")
         return batch_size
     if device.type == "cuda" and torch.backends.cudnn.benchmark:
         LOGGER.warning(f"{prefix}Requires torch.backends.cudnn.benchmark=False, using default batch-size {batch_size}")
         return batch_size
 
-    # Inspect GPU/NPU memory
+    # Inspect GPU memory
     accelerator = torch.npu if device.type == "npu" else torch.cuda
     gb = 1 << 30  # bytes to GiB (1024 ** 3)
     d = f"{device.type.upper()}:{device.index}"

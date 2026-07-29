@@ -310,10 +310,9 @@ def select_device(device="", newline=False, verbose=True):
 
 def time_sync(device: torch.device | None = None):
     """Return PyTorch-accurate time."""
-    if device is not None and device.type == "npu":
-        torch.npu.synchronize()
-    elif torch.cuda.is_available():
-        torch.cuda.synchronize()
+    accelerator = torch.npu if device is not None and device.type == "npu" else torch.cuda
+    if accelerator.is_available():
+        accelerator.synchronize()
     return time.time()
 
 

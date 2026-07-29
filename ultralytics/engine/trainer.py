@@ -259,12 +259,10 @@ class BaseTrainer:
         npu = self.args.device.startswith("npu")
         devices = self.args.device[4:].split(",") if npu else self.args.device.split(",")
         index = int(devices[LOCAL_RANK])  # world_size > 1 guarantees a multi-device string
-        if npu:
-            torch.npu.set_device(index)
-            self.device = torch.device("npu", index)
-        else:
-            torch.cuda.set_device(index)
-            self.device = torch.device("cuda", index)
+        accelerator = torch.npu if npu else torch.cuda
+        accelerator.set_device(index)
+        self.device = torch.device("npu" if npu else "cuda", index)
+        if not npu:
             os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
         dist.init_process_group(
             backend="hccl" if npu else "nccl" if dist.is_nccl_available() else "gloo",
@@ -667,14 +665,11 @@ class BaseTrainer:
             memory = torch.mps.driver_allocated_memory()
             if fraction:
                 return __import__("psutil").virtual_memory().percent / 100
-        elif self.device.type == "npu":
-            memory = torch.npu.memory_reserved()
-            if fraction:
-                total = torch.npu.get_device_properties(self.device).total_memory
         elif self.device.type != "cpu":
-            memory = torch.cuda.memory_reserved()
+            accelerator = torch.npu if self.device.type == "npu" else torch.cuda
+            memory = accelerator.memory_reserved()
             if fraction:
-                total = torch.cuda.get_device_properties(self.device).total_memory
+                total = accelerator.get_device_properties(self.device).total_memory
         return ((memory / total) if total > 0 else 0) if fraction else (memory / 2**30)
 
     def _clear_memory(self, threshold: float | None = None):
@@ -686,12 +681,10 @@ class BaseTrainer:
         gc.collect()
         if self.device.type == "mps":
             torch.mps.empty_cache()
-        elif self.device.type == "npu":
-            torch.npu.empty_cache()
         elif self.device.type == "cpu":
             return
         else:
-            torch.cuda.empty_cache()
+            (torch.npu if self.device.type == "npu" else torch.cuda).empty_cache()
 
     def read_results_csv(self):
         """Read results.csv into a dictionary using polars."""

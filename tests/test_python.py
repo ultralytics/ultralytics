@@ -60,6 +60,21 @@ def test_dataloader_caps_workers_to_batches():
         two_batches.close()
 
 
+def test_dataloader_uses_npu_count(monkeypatch):
+    """Test NPU-only hosts enable pinned memory and divide workers across devices."""
+    from types import SimpleNamespace
+
+    kwargs = {}
+    monkeypatch.setattr(data_build.torch.cuda, "device_count", lambda: 0)
+    monkeypatch.setattr(
+        data_build.torch, "npu", SimpleNamespace(is_available=lambda: True, device_count=lambda: 2), raising=False
+    )
+    monkeypatch.setattr(data_build, "InfiniteDataLoader", lambda **values: kwargs.update(values))
+    build_dataloader(range(64), batch=4, workers=8)
+    assert kwargs["pin_memory"]
+    assert kwargs["num_workers"] == min(os.cpu_count() // 2, 8, 16)
+
+
 def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
     """Test worker cap follows distributed sampler size without changing global drop_last behavior."""
     sampler_cls = data_build.distributed.DistributedSampler

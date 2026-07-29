@@ -68,10 +68,8 @@ class Profile(contextlib.ContextDecorator):
 
     def time(self):
         """Get current time with accelerator synchronization if applicable."""
-        if self.cuda:
-            torch.cuda.synchronize(self.device)
-        elif self.npu:
-            torch.npu.synchronize(self.device)
+        if self.cuda or self.npu:
+            (torch.npu if self.npu else torch.cuda).synchronize(self.device)
         return time.perf_counter()
 
 

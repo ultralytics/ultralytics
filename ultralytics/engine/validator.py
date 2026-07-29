@@ -167,6 +167,8 @@ class BaseValidator:
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()
         else:
+            npu = self.args.device.startswith("npu")
+            accelerator = torch.npu if npu else torch.cuda
             if str(self.args.model).endswith(".yaml") and model is None:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
@@ -182,10 +184,7 @@ class BaseValidator:
                 # DDP ranks reuse the device assigned in trainer._setup_ddp()
                 device=select_device(self.args.device)
                 if RANK == -1
-                else torch.device(
-                    "npu" if self.args.device.startswith("npu") else "cuda",
-                    torch.npu.current_device() if self.args.device.startswith("npu") else torch.cuda.current_device(),
-                ),
+                else torch.device("npu" if npu else "cuda", accelerator.current_device()),
                 dnn=self.args.dnn,
                 data=self.args.data,
                 fp16=self.args.quantize == 16,

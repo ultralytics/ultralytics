@@ -353,7 +353,7 @@ def build_dataloader(
     samples = len(sampler) if sampler is not None else dataset_len
     drop_last = drop_last and bool(batch) and dataset_len % batch != 0
     batches = (samples // batch if drop_last else math.ceil(samples / batch)) if batch else 0
-    nd = torch.cuda.device_count()  # number of CUDA devices
+    nd = (torch.npu if hasattr(torch, "npu") and torch.npu.is_available() else torch.cuda).device_count()
     # Do not create more worker processes than final loader batches. Single-batch loaders run in-process to avoid
     # persistent DataLoader worker pools that add overhead and can stall tiny datasets while holding CUDA context.
     nw = min(os.cpu_count() // max(nd, 1), workers, 0 if batches <= 1 else batches)  # number of workers

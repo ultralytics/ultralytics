@@ -1894,10 +1894,10 @@ def test_semantic_polygon_data():
 def test_linear_sum_assignment_numpy_infeasible():
     """The NumPy fallback must reject an infeasible cost matrix instead of looping forever.
 
-    `inf` marks a forbidden assignment. When no unvisited column is reachable from the current row,
-    every entry of the masked candidate array is `inf`, `np.argmin` returns index 0, and that index
-    can point at a column the path has already visited, so the augmenting loop revisits it forever.
-    SciPy raises `ValueError("cost matrix is infeasible")` for the same inputs.
+    `inf` marks a forbidden assignment. When no unvisited column is reachable from the current row, every entry of the
+    masked candidate array is `inf`, `np.argmin` returns index 0, and that index can point at a column the path has
+    already visited, so the augmenting loop revisits it forever. SciPy raises `ValueError("cost matrix is infeasible")`
+    for the same inputs.
     """
     from ultralytics.utils.ops import _linear_sum_assignment_numpy
 

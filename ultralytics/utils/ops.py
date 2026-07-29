@@ -14,18 +14,19 @@ import torch.nn.functional as F
 
 from ultralytics.utils import NOT_MACOS14, TORCH_VERSION
 from ultralytics.utils.checks import check_version
+from ultralytics.utils.torch_utils import get_torch_device_backend
 
 
 class Profile(contextlib.ContextDecorator):
     """Ultralytics Profile class for timing code execution.
 
     Use as a decorator with @Profile() or as a context manager with 'with Profile():'. Provides accurate timing
-    measurements with CUDA synchronization support for GPU operations.
+    measurements with accelerator synchronization support.
 
     Attributes:
         t (float): Accumulated time in seconds.
         device (torch.device): Device used for model inference.
-        cuda (bool): Whether CUDA is being used for timing synchronization.
+        accelerator (module): PyTorch device module used for timing synchronization.
 
     Examples:
         Use as a context manager to time code execution
@@ -45,11 +46,12 @@ class Profile(contextlib.ContextDecorator):
 
         Args:
             t (float): Initial accumulated time in seconds.
-            device (torch.device, optional): Device used for model inference to enable CUDA synchronization.
+            device (torch.device, optional): Device used for model inference to enable accelerator synchronization.
         """
         self.t = t
         self.device = device
-        self.cuda = bool(device and str(device).startswith("cuda"))
+        device_type = getattr(device, "type", str(device).split(":")[0] if device else None)
+        self.accelerator = get_torch_device_backend(device_type) if device_type in {"cuda", "npu", "xpu"} else None
 
     def __enter__(self):
         """Start timing."""
@@ -66,9 +68,9 @@ class Profile(contextlib.ContextDecorator):
         return f"Elapsed time is {self.t} s"
 
     def time(self):
-        """Get current time with CUDA synchronization if applicable."""
-        if self.cuda:
-            torch.cuda.synchronize(self.device)
+        """Get current time with accelerator synchronization if applicable."""
+        if self.accelerator is not None:
+            self.accelerator.synchronize(self.device)
         return time.perf_counter()
 
 

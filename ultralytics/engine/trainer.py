@@ -49,12 +49,15 @@ from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.plotting import plot_results
 from ultralytics.utils.torch_utils import (
+    TORCH_1_11,
+    TORCH_2_0,
     TORCH_2_4,
     EarlyStopping,
     ModelEMA,
     attempt_compile,
     autocast,
     convert_optimizer_state_dict_to_fp16,
+    get_torch_device_backend,
     init_seeds,
     one_cycle,
     parse_device,
@@ -130,6 +133,7 @@ class BaseTrainer:
         self.check_resume(overrides)
         self.args.device = parse_device(self.args.device)  # canonical string, resolves '-1' auto-selection once
         self.device = select_device(self.args.device)
+        self.accelerator = get_torch_device_backend(self.device) if self.device.type not in {"cpu", "mps"} else None
         self.validator = None
         self.metrics = None
         self.plots = {}
@@ -254,12 +258,19 @@ class BaseTrainer:
 
     def _setup_ddp(self):
         """Initialize and set the DistributedDataParallel parameters for training."""
-        index = int(self.args.device.split(",")[LOCAL_RANK])  # world_size > 1 guarantees a multi-device string
-        torch.cuda.set_device(index)
-        self.device = torch.device("cuda", index)
-        os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
+        device_type = self.args.device.split(":", 1)[0]
+        device_type = device_type if device_type in {"npu", "xpu"} else "cuda"
+        devices = self.args.device.split(":", 1)[-1].split(",")
+        index = int(devices[LOCAL_RANK])  # world_size > 1 guarantees a multi-device string
+        self.device = torch.device(device_type, index)
+        self.accelerator = get_torch_device_backend(self.device)
+        self.accelerator.set_device(index)
+        if device_type == "cuda":
+            os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
+        elif device_type == "xpu" and not (hasattr(dist, "is_xccl_available") and dist.is_xccl_available()):
+            raise RuntimeError("Multi-XPU training requires XCCL, which is not available in this PyTorch build.")
         dist.init_process_group(
-            backend="nccl" if dist.is_nccl_available() else "gloo",
+            backend={"npu": "hccl", "xpu": "xccl"}.get(device_type, "nccl" if dist.is_nccl_available() else "gloo"),
             timeout=timedelta(seconds=10800),  # 3 hours
             rank=RANK,
             world_size=self.world_size,
@@ -356,9 +367,16 @@ class BaseTrainer:
             self.amp = self.amp.int()  # gloo errors with boolean
             dist.broadcast(self.amp, src=0)  # broadcast from rank 0 to all other ranks
         self.amp = bool(self.amp)  # as boolean
-        self.scaler = (
-            torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
-        )
+        if self.device.type == "npu":
+            import torch_npu
+
+            self.scaler = torch_npu.npu.amp.GradScaler(enabled=self.amp)
+        else:
+            self.scaler = (
+                torch.amp.GradScaler(self.device.type if self.device.type == "xpu" else "cuda", enabled=self.amp)
+                if TORCH_2_4
+                else torch.cuda.amp.GradScaler(enabled=self.amp)
+            )
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
@@ -370,12 +388,13 @@ class BaseTrainer:
         if self.world_size > 1:
             # static_graph=True permits params used >1 time per forward (e.g. flow_model in
             # o2m+o2o pose loss branches) under torch.compile.
+            ddp_kwargs = {"static_graph": bool(self.args.compile)} if TORCH_1_11 else {}
             self.model = nn.parallel.DistributedDataParallel(
                 self.model,
                 device_ids=[self.device.index],
-                static_graph=bool(self.args.compile),
                 broadcast_buffers=False,
                 find_unused_parameters=not bool(self.args.compile),
+                **ddp_kwargs,
             )
 
         # Batch size
@@ -466,7 +485,7 @@ class BaseTrainer:
 
                 # Forward
                 try:
-                    with autocast(self.amp):
+                    with autocast(self.amp, device=self.device.type):
                         batch = self.preprocess_batch(batch)
                         if self.args.compile:
                             # Decouple inference and loss calculations for improved compile performance
@@ -506,8 +525,9 @@ class BaseTrainer:
                     self._oom_retries += 1
                     old_batch = self.batch_size
                     self.args.batch = self.batch_size = max(self.batch_size // 2, 1)
+                    error = f"{self.device.type.upper()} out of memory" if is_oom else "CUDA backend memory error"
                     LOGGER.warning(
-                        f"{'CUDA out of memory' if is_oom else 'CUDA backend memory error'} with batch={old_batch}. "
+                        f"{error} with batch={old_batch}. "
                         f"Reducing to batch={self.batch_size} and retrying ({self._oom_retries}/3)."
                     )
                     batch = loss = preds = None
@@ -651,9 +671,9 @@ class BaseTrainer:
             if fraction:
                 return __import__("psutil").virtual_memory().percent / 100
         elif self.device.type != "cpu":
-            memory = torch.cuda.memory_reserved()
+            memory = self.accelerator.memory_reserved()
             if fraction:
-                total = torch.cuda.get_device_properties(self.device).total_memory
+                total = self.accelerator.get_device_properties(self.device).total_memory
         return ((memory / total) if total > 0 else 0) if fraction else (memory / 2**30)
 
     def _clear_memory(self, threshold: float | None = None):
@@ -668,7 +688,7 @@ class BaseTrainer:
         elif self.device.type == "cpu":
             return
         else:
-            torch.cuda.empty_cache()
+            self.accelerator.empty_cache()
 
     def read_results_csv(self):
         """Read results.csv into a dictionary using polars."""
@@ -820,7 +840,10 @@ class BaseTrainer:
     def optimizer_step(self):
         """Perform a single step of the training optimizer with gradient clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
-        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
+        if self.device.type == "npu" and TORCH_2_0:
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0, foreach=False)
+        else:
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
         self.scaler.step(self.optimizer)
         self.scaler.update()
         self.optimizer.zero_grad()

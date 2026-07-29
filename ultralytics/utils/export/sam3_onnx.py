@@ -1,20 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""SAM3 ONNX/TensorRT export pipeline.
-
-Exports SAM3SemanticModel as four to six separate ONNX modules:
-  1. Vision Encoder  - ViT backbone + FPN neck, plus the SAM2 neck when interactive weights are present
-  2. Text Encoder    - CLIP text encoder + projection to 256-dim
-  3. Decoder         - DETR encoder-decoder + mask heads, with the geometry encoder folded in
-  4. Text Decoder    - the same graph without geometry, so a text only prompt carries no ignored box
-  5. Prompt Encoder and 6. Mask Decoder - point prompts, exported only when interactive weights load
-
-TensorRT FP16 compatibility fixes applied during export:
-  - ViT attention: separate Q/K/V projections, SDPA with pre-computed scale,
-    rotate_half RoPE, static window partition shapes
-  - DETR attention: nn.MultiheadAttention replaced with manual attention using
-    pre-computed scale constant (eliminates dynamic Sqrt ops)
-  - GELU: nn.GELU(approximate='tanh') traces to native ONNX Gelu op (opset 20)
-"""
 
 from __future__ import annotations
 

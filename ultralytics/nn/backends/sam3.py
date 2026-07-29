@@ -1,10 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""SAM3 multi-file inference backend for ONNX and TensorRT.
-
-Loads the four to six modules written by ultralytics/utils/export/sam3_onnx.py and serves text, box
-and point prompts from them. The prompt encoder and mask decoder are present only when the
-checkpoint carried interactive weights.
-"""
 
 from __future__ import annotations
 

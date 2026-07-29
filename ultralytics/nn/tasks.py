@@ -105,7 +105,7 @@ from ultralytics.nn.modules import (
     YOLOESegment26,
     v10Detect,
 )
-from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, RANK, WINDOWS, YAML, colorstr, emojis
+from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, WINDOWS, YAML, colorstr, emojis
 from ultralytics.utils.class_map import is_default_numeric_names, names_to_list, remap_class_row_state_dict
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
@@ -974,22 +974,6 @@ class RTDETRDetectionModel(DetectionModel):
             return DfineLoss(nc=self.nc, **loss_cfg)
         return RTDETRDetectionLoss(nc=self.nc, **loss_cfg)
 
-    def _maybe_trap_nonfinite_dfine_boxes(self, pred_boxes: torch.Tensor, enabled: bool) -> None:
-        """Save NaN.pth and abort when DFine predicted boxes become nonfinite in debug mode."""
-        if not enabled or (not torch.isnan(pred_boxes).any() and not torch.isinf(pred_boxes).any()):
-            return
-
-        args = getattr(self, "args", None)
-        save_dir = args.get("save_dir") if isinstance(args, dict) else getattr(args, "save_dir", None)
-        save_path = Path(save_dir) / "weights" / "NaN.pth" if save_dir else Path("./NaN.pth")
-
-        if RANK in {-1, 0}:
-            state = {key.removeprefix("module."): value for key, value in self.state_dict().items()}
-            save_path.parent.mkdir(parents=True, exist_ok=True)
-            torch.save({"model": state}, save_path)
-
-        raise RuntimeError(f"Nonfinite RT-DETR predicted boxes detected. Saved weights to {save_path}")
-
     @staticmethod
     def _cast_floating_loss_inputs_fp32(value):
         """Recursively cast floating loss inputs to FP32 while preserving non-floating tensors."""
@@ -1062,8 +1046,6 @@ class RTDETRDetectionModel(DetectionModel):
 
         dec_bboxes = torch.cat([enc_bboxes.unsqueeze(0), dec_bboxes])  # (7, bs, 300, 4)
         dec_scores = torch.cat([enc_scores.unsqueeze(0), dec_scores])
-
-        self._maybe_trap_nonfinite_dfine_boxes(dec_bboxes, enabled=supports_dfine)
 
         args = getattr(self, "args", None)
         debug_new_giou_loss = (

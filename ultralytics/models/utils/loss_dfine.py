@@ -10,7 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ultralytics.nn.modules.dfine_utils import bbox2distance
-from ultralytics.utils.loss import FocalLoss, MALoss, RankLoss, VarifocalLoss
+from ultralytics.utils.loss import FocalLoss, MALoss, RankLoss, StableDINOLoss, VarifocalLoss
 
 from .box_ops import aligned_box_iou, aligned_giou, aligned_giou_new, box_cxcywh_to_xyxy
 from .ops import HungarianMatcher
@@ -40,11 +40,18 @@ class DfineLoss(nn.Module):
         use_fl: bool = True,
         use_vfl: bool = True,
         use_mal: bool = False,
+        use_stable_dino: bool = False,
         use_union_set: bool = False,
         use_uni_match: bool = False,
         uni_match_ind: int = 0,
         gamma: float = 1.5,
         alpha: float = 0.25,
+        stable_alpha: float = 0.25,
+        stable_gamma: float = 2.0,
+        stable_quality_beta: float = 2.0,
+        stable_normalize_targets: bool = True,
+        stable_gain: float = 1.0,
+        stable_dn_gain: float = 1.0,
         matcher: dict[str, Any] | None = None,
         debug_new_giou_loss: bool = False,
         focaler_d: float = 0.0,
@@ -72,7 +79,21 @@ class DfineLoss(nn.Module):
         self.matcher = HungarianMatcher(**matcher)
         self.fl = FocalLoss(gamma, alpha) if use_fl else None
         self.vfl = VarifocalLoss(gamma, alpha) if use_vfl else None
+        if use_mal and use_stable_dino:
+            raise ValueError("MAL and Stable-DINO are alternative classification losses; enable only one")
         self.mal = MALoss(gamma, alpha) if use_mal else None
+        self.stable_dino = (
+            StableDINOLoss(
+                alpha=stable_alpha,
+                gamma=stable_gamma,
+                quality_beta=stable_quality_beta,
+                normalize_targets=stable_normalize_targets,
+            )
+            if use_stable_dino
+            else None
+        )
+        self.stable_gain = stable_gain
+        self.stable_dn_gain = stable_dn_gain
 
         self.kl_loss = nn.KLDivLoss(reduction="none")
         self.fgl_gain = self.loss_gain.get("fgl", 0.0)
@@ -212,7 +233,12 @@ class DfineLoss(nn.Module):
         one_hot = one_hot[..., :-1]
         gt_scores = gt_scores.view(bs, nq, 1) * one_hot
 
-        if self.mal is not None:
+        class_gain = self.loss_gain["class"]
+        if self.stable_dino is not None:
+            loss_cls = self.stable_dino(pred_scores, gt_scores, one_hot)
+            loss_cls /= max(global_num_gts, 1.0) / nq
+            class_gain *= self.stable_dn_gain if "_dn" in postfix else self.stable_gain
+        elif self.mal is not None:
             loss_cls = self.mal(pred_scores, gt_scores, one_hot)
             loss_cls /= max(global_num_gts, 1.0) / nq
         elif self.fl:
@@ -223,7 +249,7 @@ class DfineLoss(nn.Module):
             loss_cls /= max(global_num_gts, 1.0) / nq
         else:
             loss_cls = F.binary_cross_entropy_with_logits(pred_scores, gt_scores, reduction="none").mean(1).sum()
-        return {name_class: loss_cls.squeeze() * self.loss_gain["class"]}
+        return {name_class: loss_cls.squeeze() * class_gain}
 
     def _get_loss_bbox(
         self, pred_bboxes: torch.Tensor, gt_bboxes: torch.Tensor, norm_boxes: float, postfix: str = ""

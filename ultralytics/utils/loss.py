@@ -142,6 +142,58 @@ class MALoss(nn.Module):
         return loss.mean(1).sum()
 
 
+class StableDINOLoss(nn.Module):
+    """Position-supervised classification loss from Stable-DINO.
+
+    Matched queries use a detached, IoU-derived soft target and an error-aware focal weight. Unmatched
+    queries retain the standard focal negative term. The optional per-image normalization rescales the
+    largest positive quality target to 1, matching the official Stable-DINO criterion.
+    """
+
+    def __init__(
+        self,
+        alpha: float = 0.25,
+        gamma: float = 2.0,
+        quality_beta: float = 2.0,
+        normalize_targets: bool = True,
+    ):
+        """Initialize the Stable-DINO position-supervised classification loss.
+
+        Args:
+            alpha (float): Positive focal weight. Negatives use ``1 - alpha``.
+            gamma (float): Error-aware focal exponent.
+            quality_beta (float): Exponent applied to matched IoU targets.
+            normalize_targets (bool): Rescale each image's largest positive target to 1.
+        """
+        super().__init__()
+        if not 0 <= alpha <= 1:
+            raise ValueError(f"alpha must be in [0, 1], got {alpha}")
+        if gamma < 0 or quality_beta < 0:
+            raise ValueError(f"gamma and quality_beta must be non-negative, got {gamma} and {quality_beta}")
+        self.alpha = alpha
+        self.gamma = gamma
+        self.quality_beta = quality_beta
+        self.normalize_targets = normalize_targets
+
+    def forward(self, pred_score: torch.Tensor, gt_score: torch.Tensor, label: torch.Tensor) -> torch.Tensor:
+        """Compute Stable-DINO classification loss from logits, matched IoUs, and one-hot labels."""
+        pred_score = pred_score.float()
+        pred_prob = pred_score.sigmoid()
+        label = label.to(dtype=pred_score.dtype)
+        target_score = gt_score.to(dtype=pred_score.dtype).pow(self.quality_beta)
+
+        if self.normalize_targets:
+            max_target = target_score.amax(dim=(1, 2), keepdim=True)
+            normalizer = (1.0 / (max_target + 1e-8)).clamp(min=1.0)
+            target_score = (target_score * normalizer).clamp(max=1.0)
+        target_score = target_score.detach()
+
+        positive_weight = self.alpha * (target_score - pred_prob).abs().pow(self.gamma) * label
+        negative_weight = (1.0 - self.alpha) * pred_prob.pow(self.gamma) * (1.0 - label)
+        bce = F.binary_cross_entropy_with_logits(pred_score, target_score, reduction="none")
+        return (bce * (positive_weight + negative_weight)).mean(1).sum()
+
+
 class DFLoss(nn.Module):
     """Criterion class for computing Distribution Focal Loss (DFL)."""
 

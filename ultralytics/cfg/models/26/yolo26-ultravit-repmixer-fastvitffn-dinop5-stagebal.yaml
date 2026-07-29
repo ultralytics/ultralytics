@@ -1,17 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Lane A DINO-P5 detector, stage-balanced scaling, one yaml covering n through x.
-# Every P stage carries more backbone parameters than both the yolo26 conv baseline and the yolo27 baseline of its
-# scale, and total parameters clear the conv baseline at every scale. The incumbent depth-hybrid yaml did not: it ran
-# P2 at 0.47x to 0.76x and P3 at 0.31x to 0.49x of the conv baseline, having moved that capacity into P5, which is the
-# standing suspicion behind its AP_small deficit.
-# The capacity is paid for by shrinking P4 raw repeats from 20 to 8, P5 raw repeats from 8 to 3 and P5 raw channels
-# from 1152 to 768, then widening P2 and P3 instead. P5 buys its capacity through width, which is free per scale, not
-# depth, which is not: `depth` is one scalar setting every stage's block count at once, so a raw repeat large enough
-# to give n two P5 blocks gives x seven.
-# n and s take max_channels 1024 rather than 768 because the cap also bounds the head's final C3k2, so trimming P5
-# there drops total parameters under the conv baseline. l takes 848 with width 0.75, which resolves that head to 640.
-# Divisibility: P5 needs a multiple of 64 for head_dim 64, and the head's attention C3k2 needs a multiple of 128.
+# Lane A DINO-P5 detector, one yaml for n through x. Every P stage beats both lanes' baselines at every scale, paid
+# for by cutting P4 repeats 20 to 8 and P5 repeats 8 to 3 and widening P2 and P3 instead.
+# max_channels bounds the head's final C3k2 as well as P5, so it cannot be lowered to trim P5 alone.
+# Divisibility: P5 needs a multiple of 64, that head C3k2 a multiple of 128.
 
 nc: 80
 end2end: True

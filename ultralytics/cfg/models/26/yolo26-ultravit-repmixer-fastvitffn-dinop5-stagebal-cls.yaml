@@ -1,9 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Lane A classifier for the DINO-P5 backbone, stage-balanced scaling. Rows 0-8 match
-# yolo26-ultravit-repmixer-fastvitffn-dinop5-stagebal.yaml, its detector twin, which carries the derivation.
-# max_channels still bounds the head's final C3k2 in the detector, so the caps here are the detector's rather than
-# anything this classifier needs, keeping the distilled backbone byte-identical across the two.
+# Lane A classifier for the DINO-P5 backbone. Rows 0-8 match its detector twin
+# yolo26-ultravit-repmixer-fastvitffn-dinop5-stagebal.yaml and must stay identical to it, so the caps below are the
+# detector's rather than anything this file needs.
 
 nc: 1000
 

@@ -1,9 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Lane A DINO-P5 detector with RoPE-Mixed attention, stage-balanced scaling, one yaml covering n through x.
-# Row 8 is the only difference from yolo26-ultravit-repmixer-fastvitffn-dinop5-stagebal.yaml, which carries the
-# derivation of the scales block and the raw rows. MixedRoPE2D adds one learned frequency per P5 channel, which is
-# why the two differ by a few hundred parameters and not at all in FLOPs.
+# Lane A DINO-P5 detector with RoPE-Mixed attention, one yaml for n through x.
+# Row 8 is the only difference from yolo26-ultravit-repmixer-fastvitffn-dinop5-stagebal.yaml, which carries the notes.
 
 nc: 80
 end2end: True

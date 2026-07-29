@@ -38,13 +38,11 @@ IMGSZ = {("lane-b", "n"): 480, ("lane-b", "s"): 512, ("lane-b", "m"): 512}
 
 # lane -> (facade, engine builder, baseline tag prefix, bridge tag, {arm tag: (yaml template, scales it exists at)}).
 #
-# Lane A is the YOLO26 conv-head detector against its own conv baseline, exported stock. Lane B is the DETR
-# detector against the yolo27-detr baseline at the same scale, exported with the fp32 attention pin DINOv3 needs to
-# survive fp16. Six Lane A arms carry MHSA and would also move under a pin, so only within-lane ratios travel.
+# Lane A exports stock, Lane B with the fp32 attention pin DINOv3 needs to survive fp16, so only within-lane ratios
+# travel.
 #
-# Arms retired as obsolete and absent here: fracrope, headdim64, attn2lite, the whole l640 probe family, whose
-# winning l cell became the hybrid pair's and which never had a trained run behind it, and the dinop5, dinop5-mixedrope
-# and dinop5-depthmatched search variants the hybrid pair superseded. Their yamls stay, historical rows reference them.
+# Retired and absent: fracrope, headdim64, attn2lite, the l640 family, and the dinop5, dinop5-mixedrope and
+# dinop5-depthmatched variants the hybrid pair superseded. Their yamls stay, historical rows reference them.
 LANES = {
     "lane-a": (
         YOLO,
@@ -64,13 +62,11 @@ LANES = {
             "p4win": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-p4win.yaml", "x"),
             "repmixer": ("yolo26{s}-ultravit-repmixer.yaml", "nsmlx"),
             "s480": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-s480.yaml", "s"),
-            # The incumbent pair, one yaml each covering n through x, carried at every scale as the control the
-            # stage-balanced pair is judged against.
+            # Incumbent pair, the control the stage-balanced pair is judged against.
             "dinop5-hybrid": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-hybrid.yaml", "nsmlx"),
             "dinop5-mixedrope-hybrid": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-hybrid.yaml", "nsmlx"),
-            # Stage-balanced pair, the answer to the hybrid pair's P2 and P3 sitting at 0.31x to 0.76x of the conv
-            # baseline. Every P stage clears both lanes' baselines at every scale, paid for out of P4 and P5 repeats.
-            # n is the cell to watch: it carries the most added FLOPs against the thinnest measured margin.
+            # Stage-balanced pair, every P stage above both lanes' baselines at every scale. n is the cell to watch,
+            # most added FLOPs against the thinnest measured margin.
             "dinop5-stagebal": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-stagebal.yaml", "nsmlx"),
             "dinop5-mixedrope-stagebal": (
                 "yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-stagebal.yaml",

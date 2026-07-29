@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Lane B X detector spending half its YOLO26 P2 parameter gap while retaining the faster plain token MLP at P5.
+# Lane B X detector generated from yolo27x-vit-detr.yaml and yolo26x-ultravit-290726.yaml.
 
 nc: 80
 

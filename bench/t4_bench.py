@@ -60,6 +60,11 @@ LANES = {
         "yolo27{s}-ultravit-{tag}-{f}.yaml",
     ),
 }
+FINAL_ARMS = {
+    "tokenmlp-stagefloor": ("yolo27{s}-ultravit-290726.yaml", "nl"),
+    "tokenmlp-stagebalance": ("yolo27{s}-ultravit-290726.yaml", "sm"),
+    "tokenmlp-p2wide": ("yolo27{s}-ultravit-290726.yaml", "x"),
+}
 
 # The baseline family each scale deploys, which also names its yaml: CSP trunk with RTDETRDecoderEfficient at n and
 # s, DeimDecoder at m and l, ViT + Spatial Tuning Adapter at x.
@@ -104,10 +109,8 @@ ARMS = {
         "yolo26{s}-ultravit-repmixer-fastvitffn-p23yolo26-p45attn2-tokenmlp.yaml",
         "x",
     ),
-    "tokenmlp-stagefloor": ("yolo26{s}-ultravit-repmixer-fastvitffn-tokenmlp-stagefloor.yaml", "nsml"),
-    "tokenmlp-stagebalance": ("yolo26{s}-ultravit-repmixer-fastvitffn-tokenmlp-stagebalance.yaml", "sm"),
+    "tokenmlp-stagefloor-control": ("yolo26{s}-ultravit-repmixer-fastvitffn-tokenmlp-stagefloor.yaml", "sm"),
     "tokenmlp-p45floor": ("yolo26{s}-ultravit-repmixer-fastvitffn-tokenmlp-p45floor.yaml", "x"),
-    "tokenmlp-p2wide": ("yolo26{s}-ultravit-repmixer-fastvitffn-tokenmlp-p2wide.yaml", "x"),
     "dinop5-p2stagefloor-p5cap512": (
         "yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p2stagefloor-p5cap512.yaml",
         "s",
@@ -123,6 +126,8 @@ model_cls, engine_builder, baseline, bridge, base_yaml, arm_yaml = LANES[lane]
 sub = {"s": scale, "f": FAMILY[scale]}
 yamls = {baseline: base_yaml.format(**sub)}
 yamls |= {t: (arm_yaml or a).format(**sub, tag=t) for t, (a, scales) in ARMS.items() if scale in scales}
+if lane == "lane-b":
+    yamls |= {t: a.format(**sub) for t, (a, scales) in FINAL_ARMS.items() if scale in scales}
 assert bridge in yamls, f"{session} has no bridge arm, so its ratios cannot be anchored to another session"
 if only:  # append session, carrying the named arms plus the baseline and bridge that anchor them
     (arg,) = only  # unpack, so a stray extra argument fails here rather than being ignored

@@ -68,7 +68,8 @@ For detailed instructions and best practices related to the installation process
 
 !!! note
 
-    Export is currently only supported for detection models. More model support will be coming in the future.
+    RKNN export supports detection, instance segmentation, classification, pose estimation, oriented bounding box
+    (OBB), semantic segmentation, and depth estimation models.
 
 The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on Rockchip NPU hardware. Export your model, then load the exported model to run inference or validate its accuracy. By default, RKNN export uses the floating-point build path (`quantize=16`) for FP16-capable Rockchip targets. Use `quantize=8` to build an INT8-quantized RKNN model with calibration data. RKNN export does not expose a separate FP32 mode; the FP16 default does not request FP32.
 
@@ -79,24 +80,24 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLO26 model
-        model = YOLO("yolo26n.pt")
+        # Load a YOLO26 model (replace with any supported task model)
+        model = YOLO("yolo26n-obb.pt")
 
         # Export the model to RKNN format
-        model.export(format="rknn", name="rk3588")  # creates '/yolo26n_rknn_model'
+        model.export(format="rknn", name="rk3588")  # creates '/yolo26n-obb_rknn_model'
 
         # Export an INT8-quantized RKNN model with calibration data
-        model.export(format="rknn", name="rk3588", quantize=8, data="coco8.yaml")
+        model.export(format="rknn", name="rk3588", quantize=8, data="dota8.yaml")
         ```
 
     === "CLI"
 
         ```bash
-        # Export a YOLO26n PyTorch model to RKNN format
-        yolo export model=yolo26n.pt format=rknn name=rk3588 # creates '/yolo26n_rknn_model'
+        # Export a YOLO26n-obb PyTorch model to RKNN format
+        yolo export model=yolo26n-obb.pt format=rknn name=rk3588 # creates '/yolo26n-obb_rknn_model'
 
         # Export an INT8-quantized RKNN model with calibration data
-        yolo export model=yolo26n.pt format=rknn name=rk3588 quantize=8 data=coco8.yaml
+        yolo export model=yolo26n-obb.pt format=rknn name=rk3588 quantize=8 data=dota8.yaml
         ```
 
 !!! example "Predict"
@@ -107,17 +108,17 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
         from ultralytics import YOLO
 
         # Load the exported RKNN model
-        model = YOLO("./yolo26n_rknn_model")
+        model = YOLO("./yolo26n-obb_rknn_model")
 
         # Run inference
-        results = model("https://ultralytics.com/images/bus.jpg")
+        results = model("https://ultralytics.com/images/boats.jpg")
         ```
 
     === "CLI"
 
         ```bash
         # Run inference with the exported RKNN model
-        yolo predict model=./yolo26n_rknn_model source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=./yolo26n-obb_rknn_model source='https://ultralytics.com/images/boats.jpg'
         ```
 
 !!! example "Validate"
@@ -128,17 +129,17 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
         from ultralytics import YOLO
 
         # Load the exported RKNN model
-        model = YOLO("./yolo26n_rknn_model")
+        model = YOLO("./yolo26n-obb_rknn_model")
 
-        # Validate accuracy on the COCO8 dataset
-        metrics = model.val(data="coco8.yaml")
+        # Validate accuracy on the DOTA8 dataset
+        metrics = model.val(data="dota8.yaml")
         ```
 
     === "CLI"
 
         ```bash
         # Validate the exported RKNN model
-        yolo val model=./yolo26n_rknn_model data=coco8.yaml
+        yolo val model=./yolo26n-obb_rknn_model data=dota8.yaml
         ```
 
 ### Export Arguments

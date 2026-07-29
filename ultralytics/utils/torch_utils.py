@@ -108,12 +108,12 @@ def autocast(enabled: bool, device: str = "cuda"):
         - For PyTorch versions 1.13 and newer, it uses `torch.amp.autocast`.
         - For older versions, it uses the backend-specific AMP context.
     """
-    if TORCH_1_13:
-        return torch.amp.autocast(device, enabled=enabled)
-    elif device == "npu":
+    if device == "npu":
         import torch_npu
 
         return torch_npu.npu.amp.autocast(enabled=enabled)
+    elif TORCH_1_13:
+        return torch.amp.autocast(device, enabled=enabled)
     else:
         return torch.cuda.amp.autocast(enabled)
 

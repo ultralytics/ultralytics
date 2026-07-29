@@ -184,13 +184,14 @@ def test_select_ascend_devices(monkeypatch):
         def __str__(self):
             return f"{self.type}:{self.index}" if self.index is not None else self.type
 
-    set_calls, autocast_calls = [], []
+    set_calls, autocast_calls, sync_calls = [], [], []
     npu = SimpleNamespace(
         is_available=lambda: True,
         device_count=lambda: 2,
         set_device=set_calls.append,
         get_device_name=lambda i: f"Mock NPU {i}",
         amp=SimpleNamespace(autocast=lambda **kwargs: autocast_calls.append(kwargs)),
+        synchronize=sync_calls.append,
     )
     monkeypatch.setitem(sys.modules, "torch_npu", SimpleNamespace(npu=npu))
     monkeypatch.setattr(torch_utils.torch, "npu", npu, raising=False)
@@ -201,9 +202,14 @@ def test_select_ascend_devices(monkeypatch):
     assert str(torch_utils.select_device("npu:1", verbose=False)) == "npu:1"
     assert str(torch_utils.select_device("npu:0,1", verbose=False)) == "npu:0"
     assert set_calls == [0, 1]  # multi-NPU requests leave device selection to each DDP rank
-    monkeypatch.setattr(torch_utils, "TORCH_1_13", False)
+    monkeypatch.setattr(torch_utils, "TORCH_1_13", True)
     torch_utils.autocast(True, device="npu")
     assert autocast_calls == [{"enabled": True}]
+    from ultralytics.utils.ops import Profile
+
+    profile = Profile(device=Device("npu", 1))
+    profile.time()
+    assert sync_calls == [profile.device]
     for device in ("npu:0,0", "npu:2", "npu:bad"):
         with pytest.raises(ValueError, match="Invalid NPU"):
             torch_utils.select_device(device, verbose=False)

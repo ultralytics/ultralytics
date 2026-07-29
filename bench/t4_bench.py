@@ -68,12 +68,21 @@ LANES = {
             # The incumbent trunk with one block moved from P4 to P3. s is the cell to watch, the incumbent's
             # thinnest margin over the conv baseline, and this spends MACs at four times the resolution it frees them.
             "dinop5-p3deep": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep.yaml", "nsmlx"),
-            # p3deep won at n and s and lost at m and l, so the exchange it makes is priced by where the T4 sits on
-            # the bandwidth to compute curve. p3deep2 takes a second step and belongs at s. p5lean drains P5, the
-            # stage furthest over the conv floor at m, l and x, and the combined arm does both.
+            # p3deep won at n and s and lost at m, l and x, so the exchange it makes is priced by where the T4 sits
+            # on the bandwidth to compute curve. p3deep2 takes a second step, p5lean drains P5, the stage furthest
+            # over the conv floor at m, l and x, and the combined arm does both.
             "dinop5-p3deep2": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep2.yaml", "nsmlx"),
             "dinop5-p5lean": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p5lean.yaml", "mlx"),
             "dinop5-p3deep2-p5lean": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep2-p5lean.yaml", "mlx"),
+            # P3 reaches the conv floor by width instead of depth, mlp_ratio 3 to 6 on the P3 row alone. The only
+            # arm that clears that floor, and it changes no block family, so a null result falsifies the P3
+            # capacity hypothesis rather than a mixer swap.
+            "dinop5-p3wide": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3wide.yaml", "nsmlx"),
+            # At m, attn2 and dinop5-hybrid resolve to identical blocks, channels and params, yet attn2 measures
+            # 2.8pp faster. The gap is inside the MHSABlock, so these two split it: head_dim 64 to 32 is attn2's
+            # head shape at identical params, and dropping the storage tokens returns the sequence to 20x20.
+            "dinop5-p3deep-hd32": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep-hd32.yaml", "nsmlx"),
+            "dinop5-p3deep-noreg": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep-noreg.yaml", "nsmlx"),
             # The baseline itself with only C2PSA swapped for the dinop5 attention, so P2 and P3 sit exactly at the
             # conv floor. A whole-operator substitution, not an attention-type isolation: C2PSA attends inside a
             # half-width split while MHSABlock runs at full width.

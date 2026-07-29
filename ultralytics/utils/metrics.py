@@ -109,6 +109,8 @@ def bbox_iou(
     GIoU: bool = False,
     DIoU: bool = False,
     CIoU: bool = False,
+    ShapeIoU: bool = False,
+    scale: float = 0.0,
     eps: float = 1e-7,
 ) -> torch.Tensor:
     """Calculate the Intersection over Union (IoU) between bounding boxes.
@@ -125,10 +127,14 @@ def bbox_iou(
         GIoU (bool, optional): If True, calculate Generalized IoU.
         DIoU (bool, optional): If True, calculate Distance IoU.
         CIoU (bool, optional): If True, calculate Complete IoU.
+        ShapeIoU (bool, optional): If True, calculate Shape IoU, whose center-distance and shape penalties are weighted
+            by the shape of `box2` (the ground truth box).
+        scale (float, optional): Shape IoU shape-weight exponent, a dataset-dependent scale factor. 0 weights width and
+            height equally, larger values put more weight on the longer ground truth side.
         eps (float, optional): A small value to avoid division by zero.
 
     Returns:
-        (torch.Tensor): IoU, GIoU, DIoU, or CIoU values depending on the specified flags.
+        (torch.Tensor): IoU, GIoU, DIoU, CIoU, or Shape IoU values depending on the specified flags.
     """
     # Get the coordinates of bounding boxes
     if xywh:  # transform from xywh to xyxy
@@ -152,6 +158,20 @@ def bbox_iou(
 
     # IoU
     iou = inter / union
+    if ShapeIoU:  # https://arxiv.org/abs/2312.17663, box2 shape weights the center distance and the shape penalty
+        w2s, h2s = w2.pow(scale), h2.pow(scale)
+        ww = 2 * w2s / (w2s + h2s + eps)  # eps guards zero-sized GT boxes, which give 0/0 for scale>0
+        hh = 2 * h2s / (w2s + h2s + eps)
+        cw = b1_x2.maximum(b2_x2) - b1_x1.minimum(b2_x1)  # convex (smallest enclosing box) width
+        ch = b1_y2.maximum(b2_y2) - b1_y1.minimum(b2_y1)  # convex height
+        c2 = cw.pow(2) + ch.pow(2) + eps  # convex diagonal squared
+        rho2 = (
+            hh * (b2_x1 + b2_x2 - b1_x1 - b1_x2).pow(2) + ww * (b2_y1 + b2_y2 - b1_y1 - b1_y2).pow(2)
+        ) / 4  # shape-weighted center dist**2
+        omega_w = hh * (w1 - w2).abs() / w1.maximum(w2)
+        omega_h = ww * (h1 - h2).abs() / h1.maximum(h2)
+        shape = (1 - (-omega_w).exp()).pow(4) + (1 - (-omega_h).exp()).pow(4)  # shape cost
+        return iou - rho2 / c2 - 0.5 * shape  # Shape-IoU
     if CIoU or DIoU or GIoU:
         cw = b1_x2.maximum(b2_x2) - b1_x1.minimum(b2_x1)  # convex (smallest enclosing box) width
         ch = b1_y2.maximum(b2_y2) - b1_y1.minimum(b2_y1)  # convex height

@@ -29,6 +29,8 @@ class TaskAlignedAssigner(nn.Module):
         stride_val_size (int | float): When stride_val_thr, override the shared min-wh threshold & enlarge value.
         small_center_fill (bool): Replace under-covered ground-truth candidate masks with nearest P3 anchors.
         small_center_fill_k (int): Exact number of P3 candidates used when filling an under-covered ground truth.
+        shape_iou (bool): Score the alignment metric and the classification soft label with Shape-IoU, not CIoU.
+        shape_iou_scale (float): Shape-IoU shape-weight exponent, a dataset-dependent scale factor.
         eps (float): A small value to prevent division by zero.
     """
 
@@ -83,6 +85,8 @@ class TaskAlignedAssigner(nn.Module):
         self.stride_val_size = None  # when stride_val_thr, shared threshold & enlarge value (None -> stride_val)
         self.small_center_fill = False  # replace an under-covered GT mask with its nearest P3 anchors
         self.small_center_fill_k = 4
+        self.shape_iou = False  # score the align metric and the cls soft label with Shape-IoU instead of CIoU
+        self.shape_iou_scale = 0.0  # Shape-IoU shape-weight exponent (dataset-dependent scale factor)
         self.eps = eps
 
     @torch.no_grad()
@@ -323,7 +327,11 @@ class TaskAlignedAssigner(nn.Module):
         Returns:
             (torch.Tensor): IoU values between each pair of boxes.
         """
-        return bbox_iou(gt_bboxes, pd_bboxes, xywh=False, CIoU=True).squeeze(-1).clamp_(0)
+        if self.shape_iou:  # Shape-IoU weights by box2's shape, so the GT goes second (CIoU is order-independent)
+            iou = bbox_iou(pd_bboxes, gt_bboxes, xywh=False, ShapeIoU=True, scale=self.shape_iou_scale)
+        else:
+            iou = bbox_iou(gt_bboxes, pd_bboxes, xywh=False, CIoU=True)
+        return iou.squeeze(-1).clamp_(0)
 
     def select_topk_candidates(self, metrics, topk_mask=None):
         """Select the top-k candidates based on the given metrics.

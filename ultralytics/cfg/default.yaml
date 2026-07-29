@@ -159,6 +159,8 @@ l1_scale: norm # (str) when reg_max=1, box L1 loss scale: 'norm' (image-normaliz
 smooth_l1: False # (bool) when reg_max=1, use Smooth L1 (Huber) loss for box regression instead of L1
 smooth_l1_beta: 1.0 # (float) transition point between the quadratic and linear regions of smooth_l1
 center: 0.0 # (float) when reg_max=1, gain of an auxiliary box-center offset ((r-l)/2, (b-t)/2) L1 loss (0=off)
+shape_iou: False # (bool) use Shape-IoU instead of CIoU for the box loss and the TAL align metric/cls soft label
+shape_iou_scale: 0.0 # (float) when shape_iou=True, shape-weight exponent (dataset-dependent; 0=weight w and h equally)
 pose: 12.0 # (float) pose loss gain (pose tasks)
 kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)
 rle: 1.0 # (float) rle loss gain (pose tasks)

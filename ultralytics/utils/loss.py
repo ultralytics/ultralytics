@@ -112,6 +112,8 @@ class BboxLoss(nn.Module):
         smooth_l1: bool = False,
         smooth_l1_beta: float = 1.0,
         center: float = 0.0,
+        shape_iou: bool = False,
+        shape_iou_scale: float = 0.0,
     ):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
@@ -122,6 +124,8 @@ class BboxLoss(nn.Module):
         self.smooth_l1 = smooth_l1  # when reg_max==1, use Smooth L1 (Huber) instead of L1 for box regression
         self.smooth_l1_beta = smooth_l1_beta  # transition point between the quadratic and linear regions
         self.center = center  # when reg_max==1, gain of an auxiliary box-center offset L1 loss (0=off)
+        self.shape_iou = shape_iou  # use Shape-IoU instead of CIoU for the box regression loss
+        self.shape_iou_scale = shape_iou_scale  # Shape-IoU shape-weight exponent (dataset-dependent scale factor)
 
     def forward(
         self,
@@ -137,7 +141,14 @@ class BboxLoss(nn.Module):
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute IoU and DFL losses for bounding boxes."""
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
-        iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
+        iou = bbox_iou(
+            pred_bboxes[fg_mask],
+            target_bboxes[fg_mask],
+            xywh=False,
+            CIoU=not self.shape_iou,
+            ShapeIoU=self.shape_iou,
+            scale=self.shape_iou_scale,
+        )
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 
         # DFL loss
@@ -540,6 +551,8 @@ class v8DetectionLoss:
         self.assigner.stride_val_size = getattr(h, "stride_val_size", None)
         self.assigner.small_center_fill = getattr(h, "small_center_fill", False)
         self.assigner.small_center_fill_k = getattr(h, "small_center_fill_k", 4)
+        self.assigner.shape_iou = getattr(h, "shape_iou", False)
+        self.assigner.shape_iou_scale = getattr(h, "shape_iou_scale", 0.0)
         if self.assigner.small_center_fill_k < 1:
             raise ValueError(f"small_center_fill_k must be at least 1, not {self.assigner.small_center_fill_k}")
         if self.assigner.small_center_fill and self.assigner.stride_val_thr:
@@ -550,6 +563,8 @@ class v8DetectionLoss:
             smooth_l1=getattr(h, "smooth_l1", False),
             smooth_l1_beta=getattr(h, "smooth_l1_beta", 1.0),
             center=getattr(h, "center", 0.0),
+            shape_iou=getattr(h, "shape_iou", False),
+            shape_iou_scale=getattr(h, "shape_iou_scale", 0.0),
         ).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 

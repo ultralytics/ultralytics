@@ -241,7 +241,9 @@ class GMC:
         spatialDistances = np.asarray(spatialDistances).reshape(-1, 2)
         meanSpatialDistances = np.mean(spatialDistances, 0)
         stdSpatialDistances = np.std(spatialDistances, 0)
-        inliers = np.abs(spatialDistances - meanSpatialDistances) < 2.5 * stdSpatialDistances
+        # Non-strict, so a zero-variance pair keeps its matches instead of rejecting every one of them; a
+        # deviation landing exactly on the bound counts as an inlier rather than an outlier.
+        inliers = np.abs(spatialDistances - meanSpatialDistances) <= 2.5 * stdSpatialDistances
 
         # Keep matched point pairs that survive the outlier filter
         good = inliers.all(axis=1)

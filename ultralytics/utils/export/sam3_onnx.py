@@ -354,6 +354,10 @@ class SAM3PromptEncoderONNX(nn.Module):
         # Copy label embedding weights
         self.register_buffer("embed_bg", pe.point_embeddings[0].weight)  # label=0 (background)
         self.register_buffer("embed_fg", pe.point_embeddings[1].weight)  # label=1 (foreground)
+        # Labels 2 and 3 are a box's two corners. Without them a box cannot be expressed as a box and
+        # the only way to use one is as a visual exemplar, which segments lookalikes instead.
+        self.register_buffer("embed_box_tl", pe.point_embeddings[2].weight)  # label=2 (box top left)
+        self.register_buffer("embed_box_br", pe.point_embeddings[3].weight)  # label=3 (box bottom right)
         self.register_buffer("embed_pad", pe.not_a_point_embed.weight)  # label=-1 (padding)
         self.register_buffer("no_mask_embed", pe.no_mask_embed.weight)
         self.register_buffer("dense_pe", pe.get_dense_pe())
@@ -379,6 +383,8 @@ class SAM3PromptEncoderONNX(nn.Module):
         embed = point_pe
         embed = embed + torch.where(labels_3d == 0, self.embed_bg, torch.zeros_like(self.embed_bg))
         embed = embed + torch.where(labels_3d == 1, self.embed_fg, torch.zeros_like(self.embed_fg))
+        embed = embed + torch.where(labels_3d == 2, self.embed_box_tl, torch.zeros_like(self.embed_box_tl))
+        embed = embed + torch.where(labels_3d == 3, self.embed_box_br, torch.zeros_like(self.embed_box_br))
         # Padding point: zero out PE and add padding embedding
         is_pad = (labels_3d == -1).float()
         embed = embed * (1.0 - is_pad) + is_pad * self.embed_pad
@@ -695,13 +701,11 @@ def export_sam3_onnx(
     # Only neck levels 0 to 2 are checked because scalp discards the last level, which SAM 3.1 no longer ships
     point_modules = ("sam_prompt_encoder", "sam_mask_decoder", "sam2_convs.0", "sam2_convs.1", "sam2_convs.2")
     has_point_weights = not any(m in k for k in tracker_model_for_neck.missing_keys for m in point_modules)
-    # The interactive model is built at 1008, so its prompt encoder emits a 72x72 dense embedding.
-    # Resizing only the semantic model would pair that with an imgsz/14 feature map and the mask
-    # decoder would not trace. Refuse rather than write a graph whose shapes cannot line up.
-    assert not (has_point_weights and imgsz != 1008), (
-        f"Point prompt modules can only be exported at imgsz=1008, got {imgsz}. The interactive prompt "
-        f"encoder is fixed at 1008, so its embedding would not match a {imgsz // 14}x{imgsz // 14} feature map."
-    )
+    # The interactive model is built at 1008, so resize it too or its prompt encoder would emit a
+    # 72x72 dense embedding that cannot pair with an imgsz/14 feature map in the mask decoder.
+    if has_point_weights and imgsz != 1008:
+        LOGGER.info(f"{prefix} setting interactive model image size to {imgsz}x{imgsz}...")
+        tracker_model_for_neck.set_imgsz((imgsz, imgsz))
     if not has_point_weights:
         sam2_convs = None
     if sam2_convs is None:
@@ -798,13 +802,13 @@ def export_sam3_onnx(
             },
         )
 
-        # SAM Mask Decoder (for point prompts)
-        # Use multimask_output=True to produce 3 candidate masks + IoU scores.
-        # The best mask is selected at runtime by argmax(iou_scores).
-        # PyTorch SAM3 uses multimask=True for 1-point prompts, and multimask=True
-        # with best-mask selection also improves multi-point quality.
-        LOGGER.info(f"{prefix} exporting SAM mask decoder (opset {opset}, multimask=True)...")
-        mask_dec = SAM3MaskDecoderONNX(tracker_model, multimask_output=True).to(device).eval()
+        # SAM Mask Decoder (for point prompts). Export with multimask_output=False, which is what the
+        # PyTorch predictor uses. SAM3 enables dynamic_multimask_via_stability, so that path returns
+        # the most stable mask instead of the highest scoring one. Exporting the three candidates and
+        # picking argmax(iou) at runtime chooses a different, often broken, mask because the score
+        # head ranks a shredded candidate above the clean one.
+        LOGGER.info(f"{prefix} exporting SAM mask decoder (opset {opset}, stability selected)...")
+        mask_dec = SAM3MaskDecoderONNX(tracker_model, multimask_output=False).to(device).eval()
 
         with torch.no_grad():
             sparse_dummy, dense_dummy, dpe_dummy = prompt_enc(dummy_pts, dummy_lbl)

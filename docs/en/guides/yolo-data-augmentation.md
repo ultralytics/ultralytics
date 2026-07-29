@@ -327,7 +327,7 @@ Then launch the training with the Python API:
 - **Ultralytics' implementation**: [CopyPaste](../reference/data/augment.md#ultralytics.data.augment.CopyPaste)
 - **Note**:
     - As pictured in the gif below, the `copy_paste` augmentation can be used to copy objects from one image to another.
-    - Once an object is copied, regardless of the `copy_paste_mode`, its Intersection over Area (IoA) is computed with all objects in the source image. If all IoA values are below `0.3` (30%), the object is pasted into the target image. If at least one IoA value is above `0.3`, the object is not pasted into the target image.
+    - Once an object is selected for copying, its IoA is computed against all objects already present in the target image, regardless of `copy_paste_mode`. The object is pasted only if all IoA values are below `0.3` (30%); it is not pasted if any IoA value is `0.3` or higher.
     - The IoA threshold cannot be changed with the current implementation and is set to `0.3` by default.
 
 |                                                               **`copy_paste` off**                                                               |                                               **`copy_paste` on with `copy_paste_mode=flip`**                                               |                                                       **Visualize the `copy_paste` process**                                                        |

@@ -596,6 +596,33 @@ def scale_masks(
     return F.interpolate(masks[..., top:bottom, left:right].float(), shape, mode=mode)  # NCHW masks
 
 
+def guided_filter(x: torch.Tensor, guide: torch.Tensor, radius: int = 8, eps: float = 1e-4) -> torch.Tensor:
+    """Refine a dense map so its edges follow those of a guide image.
+
+    Dense heads predict below input resolution and upsample, which softens every boundary. Fitting the map to the
+    guide with a local linear model snaps those boundaries back onto real image edges. Output keeps the scale of
+    `x`, so metric values stay metric.
+
+    Args:
+        x (torch.Tensor): Dense map to refine with shape (B, 1, H, W).
+        guide (torch.Tensor): Single-channel guide image with shape (B, 1, H, W), values in [0, 1].
+        radius (int): Box filter radius in pixels.
+        eps (float): Regularization; larger values keep the map closer to its unrefined form.
+
+    Returns:
+        (torch.Tensor): Refined map with shape (B, 1, H, W).
+    """
+
+    def box(t: torch.Tensor) -> torch.Tensor:
+        """Separable box blur, O(radius) per pixel instead of the O(radius^2) of a square kernel."""
+        t = F.avg_pool2d(t, (2 * radius + 1, 1), stride=1, padding=(radius, 0), count_include_pad=False)
+        return F.avg_pool2d(t, (1, 2 * radius + 1), stride=1, padding=(0, radius), count_include_pad=False)
+
+    mean_g, mean_x = box(guide), box(x)
+    a = (box(guide * x) - mean_g * mean_x) / (box(guide * guide) - mean_g * mean_g + eps)
+    return box(a) * guide + box(mean_x - a * mean_g)
+
+
 def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool = False, padding: bool = True):
     """Rescale segment coordinates from img1_shape to img0_shape.
 

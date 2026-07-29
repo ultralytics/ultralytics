@@ -1,0 +1,42 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# p3deep2 with the P5 attention drained at m, l and x, the only shape that reaches the conv floor at P3
+# without falling far under it at P4.
+
+nc: 80
+end2end: True
+reg_max: 1
+
+scales:
+  # [depth, width, max_channels]. n and s resolve to one P5 block either way, so they match the parent arm exactly.. Resolved blocks P2/P3/P4/P5: 1/3/2/1 n, 1/3/2/1 s, 1/3/3/1 m, 1/3/3/1 l, 2/5/4/2 x
+  n: [0.20, 0.25, 1024]
+  s: [0.20, 0.50, 1152]
+  m: [0.25, 1.00, 512]
+  l: [0.24, 1.00, 768]
+  x: [0.36, 1.50, 512]
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [96, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [3, True, 0.00001, True]]
+  - [-1, 1, Conv, [192, 3, 2]]
+  - [-1, 13, RepUltraViTBlock, [3, True, 0.00001, True]]
+  - [-1, 1, Conv, [384, 3, 2]]
+  - [-1, 11, RepUltraViTBlock, [3, True, 0.00001, True]]
+  - [-1, 1, Conv, [1152, 3, 2]]
+  - [-1, 5, MHSABlock, [0, 4, True, 0.00001, False, 64, False, True, True, True, 4]]
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]]
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, 2, C3k2, [256, True]]
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 11], 1, Concat, [1]]
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 8], 1, Concat, [1]]
+  - [-1, 1, C3k2, [1024, True, 0.5, True]]
+  - [[14, 17, 20], 1, Detect, [nc]]

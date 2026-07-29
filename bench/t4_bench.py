@@ -68,6 +68,16 @@ LANES = {
             # The incumbent trunk with one block moved from P4 to P3. s is the cell to watch, the incumbent's
             # thinnest margin over the conv baseline, and this spends MACs at four times the resolution it frees them.
             "dinop5-p3deep": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep.yaml", "nsmlx"),
+            # p3deep won at n and s and lost at m and l, so the exchange it makes is priced by where the T4 sits on
+            # the bandwidth to compute curve. p3deep2 takes a second step and belongs at s. p5lean drains P5, the
+            # stage furthest over the conv floor at m, l and x, and the combined arm does both.
+            "dinop5-p3deep2": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep2.yaml", "nsmlx"),
+            "dinop5-p5lean": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p5lean.yaml", "mlx"),
+            "dinop5-p3deep2-p5lean": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep2-p5lean.yaml", "mlx"),
+            # The baseline itself with only C2PSA swapped for the dinop5 attention, so P2 and P3 sit exactly at the
+            # conv floor. A whole-operator substitution, not an attention-type isolation: C2PSA attends inside a
+            # half-width split while MHSABlock runs at full width.
+            "convtrunk-dinop5": ("yolo26{s}-convtrunk-dinop5.yaml", "nsmlx"),
             # Stage-balanced pair, every P stage above both lanes' baselines at every scale. n is the cell to watch,
             # most added FLOPs against the thinnest measured margin.
             "dinop5-stagebal": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-stagebal.yaml", "nsmlx"),

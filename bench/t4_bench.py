@@ -82,6 +82,11 @@ LANES = {
                 "yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3deep2-p5lean-p2deep.yaml",
                 "nsmlx",
             ),
+            # Use FFN width to stay just above each conv stage floor without carrying excess P3/P4 blocks.
+            "dinop5-p2stagefloor-p5cap512": (
+                "yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p2stagefloor-p5cap512.yaml",
+                "sm",
+            ),
             # P3 to the conv floor by width, mlp_ratio 3 to 6, and p3wide-p5lean adds the drain. Deltas in the ledger.
             "dinop5-p3wide": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3wide.yaml", "nsmlx"),
             "dinop5-p3wide-p5lean": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p3wide-p5lean.yaml", "mlx"),

@@ -19,6 +19,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from ultralytics.engine.model import Model
+from ultralytics.utils import LOGGER
 from ultralytics.utils.torch_utils import model_info
 
 from .predict import Predictor, SAM2Predictor, SAM3Predictor, SAM3SemanticPredictor
@@ -192,6 +193,8 @@ class SAM(Model):
         """
         if not self.is_sam3:
             raise NotImplementedError("Export is only supported for SAM3 models.")
+        if self.is_exported_dir:
+            raise NotImplementedError(f"{self.ckpt_path} is already exported. Export from the .pt checkpoint instead.")
 
         from ultralytics.utils.export.sam3_onnx import export_sam3_engine, export_sam3_onnx
 
@@ -243,6 +246,9 @@ class SAM(Model):
             >>> info = sam.info()
             >>> print(info[0])  # Print summary information
         """
+        if self.is_exported_dir:
+            LOGGER.info(repr(self.model))  # exported modules are graphs, not torch layers to summarize
+            return None
         return model_info(self.model, detailed=detailed, verbose=verbose)
 
     @property

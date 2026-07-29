@@ -949,6 +949,21 @@ def test_annotator_depth_map():
     assert ann.result().shape == (16, 16, 3)
 
 
+def test_annotator_tensor_image():
+    """Annotator accepts tensor images and matches Results.plot compositing pixels."""
+    from ultralytics.engine.results import Results
+    from ultralytics.utils.plotting import Annotator
+
+    image = torch.zeros((16, 16, 3), dtype=torch.uint8)
+    masks = torch.ones((1, 16, 16), dtype=torch.bool)
+    ann = Annotator(image)
+    ann.masks(masks, [[255, 0, 0]])
+    assert ann.result()[0, 0].tolist() == [127, 0, 0]
+    result = Results(np.zeros((16, 16, 3), dtype=np.uint8), path="image.jpg", names={}, masks=masks)
+    expected = result.plot(img=np.zeros((16, 16, 3), dtype=np.uint8), boxes=False)
+    np.testing.assert_array_equal(result.plot(img=torch.zeros_like(image), boxes=False), expected)
+
+
 def test_results_update_probs():
     """Test that Results.update(probs=...) wraps the tensor in Probs like the sibling attributes."""
     from ultralytics.engine.results import Probs, Results

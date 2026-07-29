@@ -327,7 +327,8 @@ class BaseValidator:
         correct_class = true_classes[:, None] == pred_classes
         iou = iou * correct_class  # zero out the wrong classes
         iou = iou.cpu().numpy()
-        for i, threshold in enumerate(self.iouv.cpu().tolist()):
+        iou_thresholds = self.iouv.cpu().tolist()
+        for i, threshold in enumerate(iou_thresholds):
             if use_scipy:
                 cost_matrix = iou * (iou >= threshold)
                 if cost_matrix.any():

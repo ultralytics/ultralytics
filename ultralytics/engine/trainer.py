@@ -896,7 +896,7 @@ class BaseTrainer:
 
     def save_metrics(self, metrics):
         """Save training metrics to a CSV file."""
-        keys, vals = list(metrics.keys()), list(metrics.values())
+        keys, vals = metrics.keys(), metrics.values()
         n = len(metrics) + 2  # number of cols
         t = time.time() - self.train_time_start
         self.csv.parent.mkdir(parents=True, exist_ok=True)  # ensure parent directory exists

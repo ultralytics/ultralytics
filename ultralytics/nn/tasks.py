@@ -1167,7 +1167,7 @@ class WorldModel(DetectionModel):
         txt_feats = (self.txt_feats if txt_feats is None else txt_feats).to(device=x.device, dtype=x.dtype)
         if txt_feats.shape[0] != x.shape[0] or self.model[-1].export:
             txt_feats = txt_feats.expand(x.shape[0], -1, -1)
-        ori_txt_feats = txt_feats.clone()
+        ori_txt_feats = txt_feats
         y, dt, embeddings = [], [], []  # outputs
         embed = frozenset(embed) if embed else {-1}
         max_idx = max(embed)

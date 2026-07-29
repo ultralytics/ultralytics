@@ -422,7 +422,7 @@ class BaseMixTransform(BaseTransform):
             return labels
 
         mix_texts = [*labels["texts"], *(item for x in labels["mix_labels"] for item in x["texts"])]
-        mix_texts = list({tuple(x) for x in mix_texts})
+        mix_texts = list(dict.fromkeys(tuple(x) for x in mix_texts))
         text2id = {text: i for i, text in enumerate(mix_texts)}
 
         for label in [labels] + labels["mix_labels"]:
@@ -2506,7 +2506,7 @@ class SemanticFormat(Format):
             labels["img"] = self._format_img(img)
         mask = labels.get("semantic_mask")
         if mask is not None:
-            labels["semantic_mask"] = torch.from_numpy(mask.copy()).to(torch.int32)
+            labels["semantic_mask"] = torch.from_numpy(mask).to(torch.int32)
         return labels
 
     def apply_instances(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -3015,7 +3015,7 @@ class DepthFormat(Format):
         _, h, w = labels["img"].shape
         if depth.shape[:2] != (h, w):
             depth = cv2.resize(depth, (w, h), interpolation=cv2.INTER_NEAREST)
-        labels["depth"] = torch.from_numpy(np.ascontiguousarray(depth[None])).float()
+        labels["depth"] = torch.from_numpy(depth[None]).float()
         return labels
 
     def apply_instances(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:

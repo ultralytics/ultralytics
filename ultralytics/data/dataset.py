@@ -354,6 +354,8 @@ class YOLODataset(BaseDataset):
     @staticmethod
     def _get_neg_texts(category_freq: dict) -> list[str]:
         """Get negative text samples with frequency above the dataset threshold."""
+        if not category_freq:
+            return []
         threshold = min(max(category_freq.values()), 100)
         return [k for k, v in category_freq.items() if v >= threshold]
 
@@ -414,7 +416,7 @@ class YOLODataset(BaseDataset):
         new_batch = {}
         batch = [dict(sorted(b.items())) for b in batch]  # make sure the keys are in the same order
         keys = batch[0].keys()
-        values = list(zip(*[list(b.values()) for b in batch]))
+        values = list(zip(*[b.values() for b in batch]))
         for i, k in enumerate(keys):
             value = values[i]
             if k in {"img", "text_feats", "semantic_mask", "sem_masks", "depth"}:

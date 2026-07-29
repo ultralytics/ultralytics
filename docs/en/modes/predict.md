@@ -755,7 +755,7 @@ For more details see the [`Keypoints` class documentation](../reference/engine/r
 
 ### Probs
 
-`Probs` object can be used index, get `top1` and `top5` indices and scores of classification.
+`Probs` object can be used to index, get `top1` and `top5` indices and scores of classification.
 
 !!! example "Probs"
 

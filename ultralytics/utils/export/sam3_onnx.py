@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """SAM3 ONNX/TensorRT export pipeline.
 
 Exports SAM3SemanticModel as four to six separate ONNX modules:
@@ -53,8 +52,7 @@ def _compute_sine_pos_enc(shape, device, dtype=torch.float32, num_pos_feats=128,
 class _MHAWithPrecomputedScale(nn.Module):
     """Drop-in replacement for nn.MultiheadAttention that uses pre-computed scale.
 
-    Eliminates dynamic Sqrt ops in the ONNX graph. TRT's FP16 attention kernel
-    handles this pattern correctly.
+    Eliminates dynamic Sqrt ops in the ONNX graph. TRT's FP16 attention kernel handles this pattern correctly.
     """
 
     def __init__(self, mha: nn.MultiheadAttention):
@@ -135,8 +133,8 @@ class _MHAWithPrecomputedScale(nn.Module):
 def _replace_mha_modules(model):
     """Replace nn.MultiheadAttention in DETR + geometry encoder + segmentation head with TRT-friendly version.
 
-    Only replaces modules under model.transformer.*, model.geometry_encoder.*, and
-    model.segmentation_head.*. Skips language backbone (CLIP) which has different conventions.
+    Only replaces modules under model.transformer.*, model.geometry_encoder.*, and model.segmentation_head.*. Skips
+    language backbone (CLIP) which has different conventions.
     """
     count = 0
     targets = []
@@ -159,9 +157,8 @@ def _replace_mha_modules(model):
 class _ViTBlockONNX(nn.Module):
     """Single ViT block rewritten for TRT FP16 precision.
 
-    Performs attention inline with separate Q/K/V + SDPA(scale=) + rotate_half RoPE.
-    This produces an ONNX graph that TRT's FP16 kernels handle accurately
-    (cosine 0.9999 per block vs 0.994 from the default Block.forward path).
+    Performs attention inline with separate Q/K/V + SDPA(scale=) + rotate_half RoPE. This produces an ONNX graph that
+    TRT's FP16 kernels handle accurately (cosine 0.9999 per block vs 0.994 from the default Block.forward path).
     """
 
     def __init__(self, block):
@@ -237,12 +234,11 @@ class _ViTBlockONNX(nn.Module):
 class SAM3VisionEncoderONNX(nn.Module):
     """ONNX wrapper for SAM3 vision encoder with TRT FP16 compatibility.
 
-    Uses _ViTBlockONNX for each ViT block to produce a TRT-friendly ONNX graph.
-    Pre-computes position embeddings and FPN sine position encoding as buffers.
+    Uses _ViTBlockONNX for each ViT block to produce a TRT-friendly ONNX graph. Pre-computes position embeddings and FPN
+    sine position encoding as buffers.
 
-    Outputs both SAM3 FPN features (for DETR decoder) and SAM2 FPN features
-    (for point prompt mask decoder). The SAM3 backbone has a DUAL neck with
-    separate learned weights: ``convs`` for SAM3 and ``sam2_convs`` for SAM2.
+    Outputs both SAM3 FPN features (for DETR decoder) and SAM2 FPN features (for point prompt mask decoder). The SAM3
+    backbone has a DUAL neck with separate learned weights: ``convs`` for SAM3 and ``sam2_convs`` for SAM2.
     """
 
     def __init__(self, model, imgsz=1008, sam2_convs=None):
@@ -366,9 +362,8 @@ class SAM3TextEncoderONNX(nn.Module):
 class SAM3PromptEncoderONNX(nn.Module):
     """ONNX wrapper for SAM prompt encoder (points → sparse/dense embeddings).
 
-    Reimplements point embedding inline to avoid advanced boolean indexing
-    (point_embedding[labels == X] = ...) which traces poorly to ONNX.
-    Uses torch.where with label-based selection instead.
+    Reimplements point embedding inline to avoid advanced boolean indexing (point_embedding[labels == X] = ...) which
+    traces poorly to ONNX. Uses torch.where with label-based selection instead.
 
     Inputs:
         point_coords: [B, N, 2] float32 — point coordinates in pixel space
@@ -431,8 +426,8 @@ class SAM3PromptEncoderONNX(nn.Module):
 class SAM3MaskDecoderONNX(nn.Module):
     """ONNX wrapper for SAM mask decoder (embeddings + features → masks + scores).
 
-    Takes prompt embeddings from the prompt encoder and image features from the
-    vision encoder, produces segmentation masks and quality scores.
+    Takes prompt embeddings from the prompt encoder and image features from the vision encoder, produces segmentation
+    masks and quality scores.
 
     Inputs:
         image_embeddings:         [B, 256, 72, 72] — fpn_feat_2 from vision encoder
@@ -498,9 +493,9 @@ class SAM3MaskDecoderONNX(nn.Module):
 class SAM3DecoderONNX(nn.Module):
     """ONNX wrapper for SAM3 decoder (geometry encoder + DETR encoder-decoder + mask heads).
 
-    Folds the geometry encoder into the decoder so the engine accepts raw box prompts
-    as additional inputs. The geometry encoder produces box embeddings which are
-    concatenated with the text prompt features before being fed to the DETR encoder.
+    Folds the geometry encoder into the decoder so the engine accepts raw box prompts as additional inputs. The geometry
+    encoder produces box embeddings which are concatenated with the text prompt features before being fed to the DETR
+    encoder.
 
     Inputs:
         fpn_feat_0/1/2, fpn_pos_2  : From vision encoder
@@ -509,8 +504,8 @@ class SAM3DecoderONNX(nn.Module):
         input_boxes                : [B, num_boxes, 4] normalized CxCyWH (use zeros + label=-10 for "no boxes")
         input_boxes_labels         : [B, num_boxes] int32 (1=positive, 0=negative, -10=ignore/padding)
 
-    All nn.MultiheadAttention modules are replaced with TRT-friendly manual attention
-    using pre-computed scale constants (no dynamic Sqrt).
+    All nn.MultiheadAttention modules are replaced with TRT-friendly manual attention using pre-computed scale constants
+    (no dynamic Sqrt).
     """
 
     def __init__(self, model, with_geometry: bool = True):
@@ -655,8 +650,8 @@ def _prepare_for_onnx_export(model):
 def _onnx_postprocess(f, metadata, half=False, device_type="cpu", prefix="SAM3 ONNX:"):
     """Post-process: shape inference + metadata + IR version limit.
 
-    onnxslim is deliberately not run: it corrupts SAM3 subgraphs such as RoI align and the
-    complex attention patterns, so the modules are exported without simplification.
+    onnxslim is deliberately not run: it corrupts SAM3 subgraphs such as RoI align and the complex attention patterns,
+    so the modules are exported without simplification.
     """
     import onnx
     from onnx import shape_inference
@@ -841,7 +836,7 @@ def export_sam3_onnx(
         {"input_boxes": {1: "num_boxes"}, "input_boxes_labels": {1: "num_boxes"}},
     )
 
-    # Text only decoder. A box prompt appends geometry tokens, and even a box labelled as ignored
+    # Text only decoder. A box prompt appends geometry tokens, and even a box labeled as ignored
     # shifts the presence logit and suppresses detections, so text prompts need a graph without them.
     LOGGER.info(f"{prefix} exporting text only decoder (opset {opset})...")
     _export(
@@ -1026,10 +1021,9 @@ def export_sam3_engine(
 def _autocast_fp16_onnx(onnx_file: str, opt_dynamic: int, prefix: str) -> str:
     """Convert an ONNX module to mixed FP16/FP32 with ModelOpt AutoCast.
 
-    AutoCast assigns FP16 per node but keeps nodes whose observed range overflows FP16 in FP32,
-    which is what lets the detection decoder run mostly in FP16 without the text path overflowing.
-    Calibration data is synthesized for every input from its rank and dtype (dynamic dims use
-    ``opt_dynamic``). Returns the path to the converted ONNX.
+    AutoCast assigns FP16 per node but keeps nodes whose observed range overflows FP16 in FP32, which is what lets the
+    detection decoder run mostly in FP16 without the text path overflowing. Calibration data is synthesized for every
+    input from its rank and dtype (dynamic dims use ``opt_dynamic``). Returns the path to the converted ONNX.
     """
     import numpy as np
     import onnx
@@ -1064,10 +1058,9 @@ def _autocast_fp16_onnx(onnx_file: str, opt_dynamic: int, prefix: str) -> str:
 def _gridsample_mode_for_trt(onnx_file: str, prefix: str) -> bytes:
     """Return the ONNX bytes with GridSample renamed from the opset 20 mode to the TensorRT one.
 
-    TensorRT does not recognise the opset 20 ``linear`` mode name and silently samples nearest
-    neighbour instead, which corrupts the ROI features behind box prompts. onnxruntime accepts only
-    ``linear``, so the rename is applied to the bytes handed to the TensorRT parser and the exported
-    ONNX file stays spec compliant.
+    TensorRT does not recognize the opset 20 ``linear`` mode name and silently samples nearest neighbor instead, which
+    corrupts the ROI features behind box prompts. onnxruntime accepts only ``linear``, so the rename is applied to the
+    bytes handed to the TensorRT parser and the exported ONNX file stays spec compliant.
     """
     import onnx
 
@@ -1098,10 +1091,10 @@ def _build_decoder_engine_dynamic(
 ) -> None:
     """Build a TensorRT engine for an ONNX module with dynamic dimensions.
 
-    Detects symbolic dims and adds an optimization profile [min_dynamic, opt_dynamic, max_dynamic].
-    With ``half`` the module is converted to mixed FP16/FP32 by ModelOpt AutoCast and built as a
-    strongly-typed network, so the per-node precision is honored identically on TensorRT 10 and 11
-    (the FP16 builder flag was removed in TensorRT 11). Without ``half`` the engine is FP32.
+    Detects symbolic dims and adds an optimization profile [min_dynamic, opt_dynamic, max_dynamic]. With ``half`` the
+    module is converted to mixed FP16/FP32 by ModelOpt AutoCast and built as a strongly-typed network, so the per-node
+    precision is honored identically on TensorRT 10 and 11 (the FP16 builder flag was removed in TensorRT 11). Without
+    ``half`` the engine is FP32.
     """
     import json
 

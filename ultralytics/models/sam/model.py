@@ -51,8 +51,8 @@ class SAM(Model):
         """Initialize the SAM (Segment Anything Model) instance.
 
         Args:
-            model (str): Path to a pre-trained ``.pt`` or ``.pth`` checkpoint, or to a SAM3 export
-                directory whose name ends in ``_onnx`` or ``_engine``.
+            model (str): Path to a pre-trained ``.pt`` or ``.pth`` checkpoint, or to a SAM3 export directory whose name
+                ends in ``_onnx`` or ``_engine``.
 
         Raises:
             NotImplementedError: If the path is neither such a checkpoint nor such a directory.
@@ -117,7 +117,7 @@ class SAM(Model):
             >>> for r in results:
             ...     print(f"Detected {len(r.masks)} masks")
         """
-        # An export states the size it was traced at, so honour that over the checkpoint default.
+        # An export states the size it was traced at, so honor that over the checkpoint default.
         imgsz = getattr(self.model, "imgsz", None) if self.is_exported_dir else None
         overrides = {"conf": 0.25, "task": "segment", "mode": "predict", "imgsz": imgsz or 1024}
         kwargs = {**overrides, **kwargs}
@@ -169,11 +169,11 @@ class SAM(Model):
 
         Args:
             **kwargs (Any): Export arguments. Key options:
-                format (str): ``"onnx"`` or ``"engine"`` (TensorRT).
-                imgsz (int): Image size (must be divisible by 14). Default 1008.
-                half (bool): FP16 export. For TRT, enables mixed precision.
-                device (str): Export device. Default ``"cpu"``.
-                opset (int): ONNX opset version. Default 20.
+            format (str): ``"onnx"`` or ``"engine"`` (TensorRT).
+            imgsz (int): Image size (must be divisible by 14). Default 1008.
+            half (bool): FP16 export. For TRT, enables mixed precision.
+            device (str): Export device. Default ``"cpu"``.
+            opset (int): ONNX opset version. Default 20.
 
         Returns:
             (str): Path to the output directory.

@@ -2316,8 +2316,8 @@ class SAM3SemanticPredictor(SAM3Predictor):
         ``inference_features``.
 
         Returns:
-            (pred_masks, pred_boxes): surviving masks and boxes, where each box row is
-            [x1, y1, x2, y2, score, cls] in normalized coordinates (pre-interpolation).
+            (pred_masks, pred_boxes): surviving masks and boxes, where each box row is [x1, y1, x2, y2, score, cls] in
+                normalized coordinates (pre-interpolation).
         """
         import torchvision
 

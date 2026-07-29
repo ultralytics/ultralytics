@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """SAM3 multi-file inference backend for ONNX and TensorRT.
 
 Loads four to six modules, matching the export wrappers in ultralytics/utils/export/sam3_onnx.py:
@@ -45,9 +44,8 @@ class _BackboneProxy:
 class SAM3Backend:
     """Multi-file inference backend for SAM3 ONNX and TensorRT models.
 
-    Manages three core model files (vision encoder, text encoder, decoder) plus
-    two optional point-prompt modules (prompt encoder, mask decoder). Presents
-    a unified interface compatible with ``SAM3SemanticPredictor``.
+    Manages three core model files (vision encoder, text encoder, decoder) plus two optional point-prompt modules
+    (prompt encoder, mask decoder). Presents a unified interface compatible with ``SAM3SemanticPredictor``.
 
     Attributes:
         names (list[str]): Current class names.

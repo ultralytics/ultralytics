@@ -12,11 +12,11 @@ from ultralytics.utils.ops import xywh2xyxy
 def roi_align_grid_sample(img_feats: torch.Tensor, boxes: torch.Tensor, output_size: int, sampling_ratio: int = 8):
     """ROIAlign built from grid_sample so it exports without the TensorRT ROIAlign plugin.
 
-    TensorRT parses the ONNX RoiAlign op through its version compatible plugin library, which the
-    pip TensorRT wheels omit. grid_sample maps to the natively supported GridSample op instead, so the
-    detection decoder builds with no extra libraries. This matches torchvision.ops.roi_align with
-    aligned=False and a fixed sampling_ratio (torchvision default is adaptive, which a static graph
-    cannot express, so a higher fixed ratio is used to approximate the same pooling integral).
+    TensorRT parses the ONNX RoiAlign op through its version compatible plugin library, which the pip TensorRT wheels
+    omit. grid_sample maps to the natively supported GridSample op instead, so the detection decoder builds with no
+    extra libraries. This matches torchvision.ops.roi_align with aligned=False and a fixed sampling_ratio (torchvision
+    default is adaptive, which a static graph cannot express, so a higher fixed ratio is used to approximate the same
+    pooling integral).
 
     Args:
         img_feats (torch.Tensor): Feature map with shape (1, C, H, W).

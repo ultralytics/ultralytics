@@ -167,8 +167,8 @@ class BaseValidator:
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()
         else:
-            npu = self.args.device.startswith("npu")
-            accelerator = get_torch_device_backend("npu" if npu else "cuda")
+            npu = str(self.args.device).startswith("npu")
+            accelerator = get_torch_device_backend(self.args.device)
             if str(self.args.model).endswith(".yaml") and model is None:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)

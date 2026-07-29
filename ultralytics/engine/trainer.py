@@ -1100,8 +1100,6 @@ class BaseTrainer:
                     g[1][fullname] = param
                 else:  # weight (with decay)
                     g[0][fullname] = param
-        if not use_muon:
-            g = [x.values() for x in g[:3]]  # convert to list of params
 
         optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "MuSGD", "auto"}
         name = {x.lower(): x for x in optimizers}.get(str(name).lower(), str(name))
@@ -1118,13 +1116,29 @@ class BaseTrainer:
             )
 
         num_params = [len(g[0]), len(g[1]), len(g[2])]  # number of param groups
-        g[2] = {"params": g[2], **optim_args, "param_group": "bias"}
-        g[0] = {"params": g[0], **optim_args, "weight_decay": decay, "param_group": "weight"}
-        g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0, "param_group": "bn"}
+        blr = getattr(self.args, "blr_ratio", 1.0)  # backbone LR ratio: backbone params train at lr * blr
+        prefixes = tuple(f"model.{i}." for i in range(len(unwrap_model(model).yaml["backbone"]))) if blr != 1.0 else ()
+        settings = [
+            {"weight_decay": decay, "param_group": "weight"},
+            {"weight_decay": 0.0, "param_group": "bn"},
+            {"param_group": "bias"},
+        ]
         muon, sgd = (0.2, 1.0)
         if use_muon:
             num_params[0] = len(g[3])  # update number of params
-            g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True, "param_group": "muon"}
+            settings.append({"weight_decay": decay, "use_muon": True, "param_group": "muon"})
+        groups = []
+        for params, s in zip(g, settings):
+            splits = [(params, {})]
+            if prefixes:  # discounted backbone LR: backbone params form a separate group at lr * blr
+                splits = [
+                    ({k: v for k, v in params.items() if k.startswith(prefixes)}, {"lr": lr * blr}),
+                    ({k: v for k, v in params.items() if not k.startswith(prefixes)}, {}),
+                ]
+            for p, extra in splits:
+                groups.append({"params": p if use_muon else list(p.values()), **optim_args, **s, **extra})
+        g = groups
+        if use_muon:
             import re
 
             # higher lr for certain parameters in MuSGD when finetuning

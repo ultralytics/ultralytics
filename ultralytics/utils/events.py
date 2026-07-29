@@ -148,7 +148,7 @@ class Events:
                     params["arch"] = _arch(unwrap_model(run.model))  # DDP and EMA both wrap away the .yaml
                     params["ngpu"] = run.world_size if run.world_size > 1 else None  # only a count above one informs
                     if device.type == "cuda":  # makes hours comparable
-                        params["GPU"] = get_gpu_info(device.index or 0)
+                        params["GPU"] = get_gpu_info(device.index or 0).rsplit(", ", 1)[0]
                 except Exception:
                     pass
             elif cfg.mode in {"predict", "track"}:  # track runs the predictor too, and is most of the video inference
@@ -173,7 +173,7 @@ class Events:
                     meta = getattr(model, "metadata", None) or {}
                     params["quantize"] = str(meta.get("args", {}).get("quantize") or cfg.quantize or 32)
                     if device.type == "cuda":  # CUDA is already initialized here, so this costs nothing
-                        params["GPU"] = get_gpu_info(device.index or 0)
+                        params["GPU"] = get_gpu_info(device.index or 0).rsplit(", ", 1)[0]
                     session = getattr(model, "session", None)  # ONNX Runtime provider, else OpenVINO device
                     ov = getattr(model, "ov_compiled_model", None)  # an Arc GPU run must not look like CPU
                     devices = session.get_providers() if session else ov.get_property("EXECUTION_DEVICES") if ov else []

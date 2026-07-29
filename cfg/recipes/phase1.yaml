@@ -1,6 +1,6 @@
 defaults:
   beta2:
-  epochs: 114
+  epochs: 120
   grad_clip: 3.0
   momentum: 0.9
   proj_hidden_dim: 1536

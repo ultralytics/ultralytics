@@ -96,6 +96,23 @@ class TransformerEncoderLayer(nn.Module):
         """Add position embeddings to the tensor if provided."""
         return tensor if pos is None else tensor + pos
 
+    def _forward_attention(
+        self,
+        q: torch.Tensor,
+        k: torch.Tensor,
+        value: torch.Tensor,
+        attn_mask: torch.Tensor | None = None,
+        key_padding_mask: torch.Tensor | None = None,
+    ) -> torch.Tensor:
+        """Run multi-head attention in FP32 on CUDA for AMP numerical stability."""
+        with torch.autocast(
+            device_type=value.device.type,
+            dtype=torch.float32,
+            enabled=value.is_cuda,
+        ):
+            output = self.ma(q, k, value=value, attn_mask=attn_mask, key_padding_mask=key_padding_mask)[0]
+        return output.to(value.dtype)
+
     def forward_post(
         self,
         src: torch.Tensor,
@@ -115,7 +132,7 @@ class TransformerEncoderLayer(nn.Module):
             (torch.Tensor): Output tensor after attention and feedforward.
         """
         q = k = self.with_pos_embed(src, pos)
-        src2 = self.ma(q, k, value=src, attn_mask=src_mask, key_padding_mask=src_key_padding_mask)[0]
+        src2 = self._forward_attention(q, k, src, src_mask, src_key_padding_mask)
         src = src + self.dropout1(src2)
         src = self.norm1(src)
         src2 = self.fc2(self.dropout(self.act(self.fc1(src))))
@@ -142,7 +159,7 @@ class TransformerEncoderLayer(nn.Module):
         """
         src2 = self.norm1(src)
         q = k = self.with_pos_embed(src2, pos)
-        src2 = self.ma(q, k, value=src2, attn_mask=src_mask, key_padding_mask=src_key_padding_mask)[0]
+        src2 = self._forward_attention(q, k, src2, src_mask, src_key_padding_mask)
         src = src + self.dropout1(src2)
         src2 = self.norm2(src)
         src2 = self.fc2(self.dropout(self.act(self.fc1(src2))))

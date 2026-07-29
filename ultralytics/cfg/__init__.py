@@ -436,7 +436,12 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
                     )
                 cfg[k] = float(v)
-            if k in CFG_FLOAT_KEYS and isinstance(v, FLOAT_OR_INT) and k in CFG_FLOAT_MIN and not cfg[k] >= CFG_FLOAT_MIN[k]:
+            if (
+                k in CFG_FLOAT_KEYS
+                and isinstance(v, FLOAT_OR_INT)
+                and k in CFG_FLOAT_MIN
+                and not cfg[k] >= CFG_FLOAT_MIN[k]
+            ):
                 raise ValueError(f"'{k}={v}' is an invalid value. '{k}' must be >= {CFG_FLOAT_MIN[k]}.")
             elif k == "scale":
                 if isinstance(v, (list, tuple)):

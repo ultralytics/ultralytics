@@ -3,7 +3,7 @@
 
 Run as ``python bench/gen_lane_b.py <tag> <lane-a-stem> [scales]``, e.g.
 
-    python bench/gen_lane_b.py dinop5-hybrid yolo26-ultravit-repmixer-fastvitffn-dinop5-hybrid nsl
+    python bench/gen_lane_b.py dinop5-hybrid yolo26-ultravit-repmixer-fastvitffn-dinop5-hybrid nsml
 
 Repeats and channel args are emitted already resolved, under identity multipliers. The older hand-written arms
 pre-divided each by the baseline's own depth and width, which breaks once the trunk wants a channel above the

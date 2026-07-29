@@ -67,31 +67,28 @@ FAMILY = {"n": "detr", "s": "detr", "m": "deim-detr", "l": "deim-detr", "x": "vi
 
 # arm tag -> (Lane A yaml template, scales it exists at). Lane B carries exactly these trunks.
 #
-# Arms retired as obsolete and absent here: fracrope, headdim64, attn2lite, p4deep, which never had a Lane A trunk
-# to swap in, and the whole l640 probe family, whose winning l cell became the hybrid pair's and which never had a
-# trained run behind it. dinov3splus is absent because it was promoted rather than retired, its
-# ViT and spatial-adapter trunk is what yolo27-vit-detr spells out, so it is the x baseline now.
+# Retired and absent: fracrope, headdim64, attn2lite, p4deep, which never had a Lane A trunk to swap in, the l640
+# family, and the dinop5, dinop5-mixedrope and dinop5-depthmatched variants the hybrid pair superseded.
+# dinov3splus was promoted rather than retired, its trunk is what yolo27-vit-detr spells out, so it is the x baseline.
 ARMS = {
     "attn2": ("yolo26{s}-ultravit-attn2.yaml", "nsmlx"),
     "base": ("yolo26{s}-ultravit.yaml", "nsmlx"),
-    "dinop5-depthmatched": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-depthmatched.yaml", "nsmlx"),
     "fastvitffn": ("yolo26{s}-ultravit-repmixer-fastvitffn.yaml", "nsmlx"),
     "ffnattn2": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2.yaml", "nsmlx"),
     "p4pooled": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-p4pooled.yaml", "nsmlx"),
     "repmixer": ("yolo26{s}-ultravit-repmixer.yaml", "nsmlx"),
-    "dinop5": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5.yaml", "smlx"),
-    "dinop5-mixedrope": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope.yaml", "smlx"),
     "dinoreg": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg.yaml", "smlx"),
     "dinorope": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg-dinorope.yaml", "smlx"),
     "mixedrope": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-dinoreg-mixedrope.yaml", "smlx"),
     "p4win": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-p4win.yaml", "x"),
     "s480": ("yolo26{s}-ultravit-repmixer-fastvitffn-attn2-s480.yaml", "s"),
-    # The shipping pair, one yaml each covering n through x. Both x arms are hand written, gen_lane_b.py cannot
-    # remap the 27-row vit-detr trunk by row position. dinop5-hybrid is benched at n, s and l, the scales a
-    # hybrid-named measurement exists for. At m and x it shares dinop5-depthmatched's scales row and so builds that
-    # exact graph, and those two deltas carry over rather than being timed under a second name.
-    "dinop5-hybrid": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-hybrid.yaml", "nsl"),
+    # Incumbent pair, the control the stage-balanced pair is judged against. Both x arms are hand written,
+    # gen_lane_b.py cannot remap the 27-row vit-detr trunk by row position.
+    "dinop5-hybrid": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-hybrid.yaml", "nsmlx"),
     "dinop5-mixedrope-hybrid": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-hybrid.yaml", "nsmlx"),
+    # Stage-balanced pair, every P stage above both lanes' baselines at every scale.
+    "dinop5-stagebal": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-stagebal.yaml", "nsmlx"),
+    "dinop5-mixedrope-stagebal": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-mixedrope-stagebal.yaml", "nsmlx"),
 }
 
 lane, scale, session, only, warmup = parse_session(sys.argv[1:])

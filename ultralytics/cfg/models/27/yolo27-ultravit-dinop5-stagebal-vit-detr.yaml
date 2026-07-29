@@ -1,9 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Lane B arm: yolo27-vit-detr with its trunk swapped for
-# yolo26-ultravit-repmixer-fastvitffn-dinop5-hybrid.yaml at x.
-# Hand derived, gen_lane_b.py cannot remap this baseline's 27-row dual-branch trunk by row position.
-# Trunk repeats and channels are pre-divided against this family's multipliers.
+# Lane B arm: yolo27-vit-detr with its trunk swapped for yolo26-ultravit-repmixer-fastvitffn-dinop5-stagebal.yaml at
+# x. Hand derived, gen_lane_b.py cannot remap this baseline's 27-row dual-branch trunk by row position.
+# Trunk repeats and channels are pre-resolved under identity multipliers, read off the built Lane A model.
 # Input projections are Conv rather than the baseline's nn.Identity, which assumes a 256-channel trunk this is not.
 
 nc: 80 # number of classes
@@ -28,15 +27,15 @@ scale_args:
     ndl: 6
 
 backbone:
-  - [-1, 1, Conv, [96, 3, 2]]
-  - [-1, 1, Conv, [144, 3, 2]]
-  - [-1, 2, RepUltraViTBlock, [3, True, 1e-05, True]]
-  - [-1, 1, Conv, [288, 3, 2]]
-  - [-1, 2, RepUltraViTBlock, [3, True, 1e-05, True]]
-  - [-1, 1, Conv, [576, 3, 2]]
-  - [-1, 7, RepUltraViTBlock, [3, True, 1e-05, True]]
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [152, 3, 2]]
+  - [-1, 4, RepUltraViTBlock, [3, True, 1e-05, True]]
+  - [-1, 1, Conv, [352, 3, 2]]
+  - [-1, 4, RepUltraViTBlock, [3, True, 1e-05, True]]
+  - [-1, 1, Conv, [672, 3, 2]]
+  - [-1, 4, RepUltraViTBlock, [3, True, 1e-05, True]]
   - [-1, 1, Conv, [768, 3, 2]]
-  - [-1, 3, MHSABlock, [0, 4, True, 1e-05, False, 64, False, True, True, True, 4]]
+  - [-1, 2, MHSABlock, [0, 8.5, True, 1e-05, False, 64, False, True, True, True, 4]]
 
 head:
   - [8, 1, input_proj_module, input_proj_args] # 9 input_proj.2

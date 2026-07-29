@@ -1623,6 +1623,14 @@ class E2ELoss:
         )
         # aux target: the o2m IoU soft label (same as the o2m cls target) instead of a hard 0/1 foreground mask
         self.aux_fg_iou = getattr(model.args, "aux_fg_iou", False)
+        # >0 linearly decays the aux gain to exactly 0 over this fraction of epochs, on top of the o2m schedule (which
+        # floors at final_o2m and so never removes the aux gradient). Deep supervision helps early optimization but
+        # late in training the trunk gradient it injects no longer shrinks with the 100x LR decay, acting as a noise
+        # floor that blocks fine convergence; annealing it out frees the final epochs (including close_mosaic).
+        self.aux_fg_end = getattr(model.args, "aux_fg_end", 0.0)
+        if self.aux_fg_end < 0:
+            raise ValueError(f"aux_fg_end must be non-negative, not {self.aux_fg_end}")
+        self.aux_fg_w = 1.0  # aux schedule multiplier, updated per epoch by update()
         # cache the o2m foreground mask for the objectness (quality uses the o2o assign) or foreground auxiliary target
         self.one2many.cache_obj_assign = (self.one2one.obj and self.train_o2m and not quality) or bool(self.aux_fg)
         if self.one2one.obj and hasattr(model.model[-1], "obj_fuse"):
@@ -1741,8 +1749,8 @@ class E2ELoss:
             # the aux branch is training-only, so "aux_fg" is absent at validation (eval mode); report 0 there
             target = self.one2many.obj_fg_score if self.aux_fg_iou else self.one2many.obj_fg
             aux = self.aux_fg * self.aux_fg_loss(preds["aux_fg"], target) if "aux_fg" in preds else total.new_zeros(())
-            # scaled by the one2many branch weight, so it decays on the o2m schedule and vanishes with the aux head
-            total = torch.cat((total, (self.o2m * aux * batch_size).view(1)))
+            # scaled by the one2many branch weight (o2m schedule) and by the optional aux_fg_end anneal-to-zero ramp
+            total = torch.cat((total, (self.aux_fg_w * self.o2m * aux * batch_size).view(1)))
             loss_items = torch.cat((loss_items, aux.detach().view(1)))
         return total, loss_items
 
@@ -1820,10 +1828,16 @@ class E2ELoss:
             self.o2o = max(self.total - self.o2m, 0)
         if self.o2f:
             self.o2f_loss.assigner.o2f_t = self.o2f_decay(self.updates)
+        if self.aux_fg and self.aux_fg_end:
+            self.aux_fg_w = self.aux_fg_decay(self.updates)
 
     def decay(self, x) -> float:
         """Calculate the decayed weight for one-to-many loss based on the current update step."""
         return max(1 - x / max(self.one2one.hyp.epochs - 1, 1), 0) * (self.o2m_copy - self.final_o2m) + self.final_o2m
+
+    def aux_fg_decay(self, x) -> float:
+        """Decay the foreground auxiliary weight linearly to 0 over the first aux_fg_end fraction of epochs."""
+        return max(1 - x / max(self.aux_fg_end * (self.one2one.hyp.epochs - 1), 1), 0)
 
     def o2f_decay(self, x) -> float:
         """Decay o2f_t linearly from o2f_max_t to o2f_min_t over the first half of epochs, then to 0 over the second."""

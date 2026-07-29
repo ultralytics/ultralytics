@@ -268,6 +268,14 @@ CFG_INT_MIN = {  # minimum valid values for integer arguments used as divisors, 
     "vid_stride": 1,
     "seed": 0,
 }
+CFG_FLOAT_MIN = {  # minimum valid values for float arguments that must be non-negative
+    "dis": 0.0,
+    "box": 0.0,
+    "cls": 0.0,
+    "dfl": 0.0,
+    "pose": 0.0,
+    "kobj": 0.0,
+}
 CFG_BOOL_KEYS = frozenset(
     {  # boolean-only arguments
         "save",
@@ -428,6 +436,8 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
                     )
                 cfg[k] = float(v)
+            if k in CFG_FLOAT_KEYS and k in CFG_FLOAT_MIN and not cfg.get(k, 0) >= CFG_FLOAT_MIN[k]:
+                raise ValueError(f"'{k}={cfg[k]}' is an invalid value. '{k}' must be >= {CFG_FLOAT_MIN[k]}.")
             elif k == "scale":
                 if isinstance(v, (list, tuple)):
                     if len(v) != 2 or not all(isinstance(x, (int, float)) for x in v):

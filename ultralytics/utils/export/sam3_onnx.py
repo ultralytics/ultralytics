@@ -230,9 +230,9 @@ class _ViTBlockONNX(nn.Module):
 class SAM3VisionEncoderONNX(nn.Module):
     """ONNX wrapper for the vision encoder, emitting both necks.
 
-    Wraps every ViT block for TRT FP16 accuracy and precomputes the position encodings as buffers.
-    The backbone has two necks with separate weights, ``convs`` for the decoder and ``sam2_convs``
-    for point prompts, so both sets of features are returned.
+    Wraps every ViT block for TRT FP16 accuracy and precomputes the position encodings as buffers. The backbone has two
+    necks with separate weights, ``convs`` for the decoder and ``sam2_convs`` for point prompts, so both sets of
+    features are returned.
     """
 
     def __init__(self, model, imgsz=1008, sam2_convs=None):
@@ -461,8 +461,8 @@ class SAM3MaskDecoderONNX(nn.Module):
 class SAM3DecoderONNX(nn.Module):
     """ONNX wrapper for the DETR decoder and mask heads.
 
-    Folds the geometry encoder in so the graph accepts raw box prompts, whose embeddings are
-    concatenated with the text features. Box labels are 1 positive, 0 negative, -10 padding.
+    Folds the geometry encoder in so the graph accepts raw box prompts, whose embeddings are concatenated with the text
+    features. Box labels are 1 positive, 0 negative, -10 padding.
     """
 
     def __init__(self, model, with_geometry: bool = True):

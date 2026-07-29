@@ -50,10 +50,7 @@ def _compute_sine_pos_enc(shape, device, dtype=torch.float32, num_pos_feats=128,
 
 
 class _MHAWithPrecomputedScale(nn.Module):
-    """Drop-in replacement for nn.MultiheadAttention that uses pre-computed scale.
-
-    Eliminates dynamic Sqrt ops in the ONNX graph. TRT's FP16 attention kernel handles this pattern correctly.
-    """
+    """Drop in nn.MultiheadAttention replacement with a constant scale, leaving no dynamic Sqrt in ONNX."""
 
     def __init__(self, mha: nn.MultiheadAttention):
         super().__init__()
@@ -155,10 +152,9 @@ def _replace_mha_modules(model):
 
 
 class _ViTBlockONNX(nn.Module):
-    """Single ViT block rewritten for TRT FP16 precision.
+    """ViT block with inline attention, separate Q/K/V and rotate_half RoPE.
 
-    Performs attention inline with separate Q/K/V + SDPA(scale=) + rotate_half RoPE. This produces an ONNX graph that
-    TRT's FP16 kernels handle accurately (cosine 0.9999 per block vs 0.994 from the default Block.forward path).
+    TRT FP16 reaches cosine 0.9999 per block on this graph against 0.994 for the default forward.
     """
 
     def __init__(self, block):
@@ -232,13 +228,11 @@ class _ViTBlockONNX(nn.Module):
 
 
 class SAM3VisionEncoderONNX(nn.Module):
-    """ONNX wrapper for SAM3 vision encoder with TRT FP16 compatibility.
+    """ONNX wrapper for the vision encoder, emitting both necks.
 
-    Uses _ViTBlockONNX for each ViT block to produce a TRT-friendly ONNX graph. Pre-computes position embeddings and FPN
-    sine position encoding as buffers.
-
-    Outputs both SAM3 FPN features (for DETR decoder) and SAM2 FPN features (for point prompt mask decoder). The SAM3
-    backbone has a DUAL neck with separate learned weights: ``convs`` for SAM3 and ``sam2_convs`` for SAM2.
+    Wraps every ViT block for TRT FP16 accuracy and precomputes the position encodings as buffers.
+    The backbone has two necks with separate weights, ``convs`` for the decoder and ``sam2_convs``
+    for point prompts, so both sets of features are returned.
     """
 
     def __init__(self, model, imgsz=1008, sam2_convs=None):
@@ -360,19 +354,9 @@ class SAM3TextEncoderONNX(nn.Module):
 
 
 class SAM3PromptEncoderONNX(nn.Module):
-    """ONNX wrapper for SAM prompt encoder (points → sparse/dense embeddings).
+    """ONNX wrapper turning point prompts into sparse and dense embeddings.
 
-    Reimplements point embedding inline to avoid advanced boolean indexing (point_embedding[labels == X] = ...) which
-    traces poorly to ONNX. Uses torch.where with label-based selection instead.
-
-    Inputs:
-        point_coords: [B, N, 2] float32 — point coordinates in pixel space
-        point_labels: [B, N] int32 — 1=foreground, 0=background
-
-    Outputs:
-        sparse_embeddings: [B, N+1, 256] — point embeddings (N points + 1 padding)
-        dense_embeddings:  [B, 256, 72, 72] — spatial embedding (no-mask default)
-        dense_pe:          [1, 256, 72, 72] — positional encoding for mask decoder
+    Embeds points inline rather than with boolean indexing, which traces poorly to ONNX.
     """
 
     def __init__(self, tracker_model):
@@ -424,23 +408,7 @@ class SAM3PromptEncoderONNX(nn.Module):
 
 
 class SAM3MaskDecoderONNX(nn.Module):
-    """ONNX wrapper for SAM mask decoder (embeddings + features → masks + scores).
-
-    Takes prompt embeddings from the prompt encoder and image features from the vision encoder, produces segmentation
-    masks and quality scores.
-
-    Inputs:
-        image_embeddings:         [B, 256, 72, 72] — fpn_feat_2 from vision encoder
-        image_pe:                 [1, 256, 72, 72] — positional encoding from prompt encoder
-        sparse_prompt_embeddings: [B, N+1, 256] — from prompt encoder
-        dense_prompt_embeddings:  [B, 256, 72, 72] — from prompt encoder
-        high_res_feat_0:          [B, 256, 288, 288] — fpn_feat_0 from vision encoder
-        high_res_feat_1:          [B, 256, 144, 144] — fpn_feat_1 from vision encoder
-
-    Outputs:
-        masks:      [B, num_masks, 288, 288] — predicted masks (1 or 3 depending on multimask)
-        iou_scores: [B, num_masks] — quality scores for each mask
-    """
+    """ONNX wrapper turning prompt embeddings and vision features into masks and quality scores."""
 
     def __init__(self, tracker_model, multimask_output=False):
         """Wrap the interactive mask decoder of ``tracker_model``."""
@@ -491,21 +459,10 @@ class SAM3MaskDecoderONNX(nn.Module):
 
 
 class SAM3DecoderONNX(nn.Module):
-    """ONNX wrapper for SAM3 decoder (geometry encoder + DETR encoder-decoder + mask heads).
+    """ONNX wrapper for the DETR decoder and mask heads.
 
-    Folds the geometry encoder into the decoder so the engine accepts raw box prompts as additional inputs. The geometry
-    encoder produces box embeddings which are concatenated with the text prompt features before being fed to the DETR
-    encoder.
-
-    Inputs:
-        fpn_feat_0/1/2, fpn_pos_2  : From vision encoder
-        prompt_features            : From text encoder, [seq, B, 256]
-        prompt_mask                : From text encoder, [B, seq] (True=valid)
-        input_boxes                : [B, num_boxes, 4] normalized CxCyWH (use zeros + label=-10 for "no boxes")
-        input_boxes_labels         : [B, num_boxes] int32 (1=positive, 0=negative, -10=ignore/padding)
-
-    All nn.MultiheadAttention modules are replaced with TRT-friendly manual attention using pre-computed scale constants
-    (no dynamic Sqrt).
+    Folds the geometry encoder in so the graph accepts raw box prompts, whose embeddings are
+    concatenated with the text features. Box labels are 1 positive, 0 negative, -10 padding.
     """
 
     def __init__(self, model, with_geometry: bool = True):
@@ -989,34 +946,22 @@ def export_sam3_engine(
         # FP16 through mixed precision (ModelOpt AutoCast keeps overflow prone nodes in FP32), which
         # keeps the detection decoder accurate and builds identically on TensorRT 10 and 11. The
         # static vision and text encoders go through onnx2engine.
-        dynamic_modules = {"sam3_decoder", "sam3_decoder_text", "sam3_prompt_encoder", "sam3_mask_decoder"}
-        if onnx_file.stem in dynamic_modules:
-            _build_decoder_engine_dynamic(
-                onnx_file=str(onnx_file),
-                engine_file=engine_file,
-                half=half,
-                workspace=workspace,
-                metadata=engine_metadata,
-                verbose=verbose,
-                prefix=prefix,
-            )
+        shared = dict(workspace=workspace, metadata=engine_metadata, verbose=verbose, prefix=prefix)
+        if onnx_file.stem in _DYNAMIC_MODULES:
+            _build_decoder_engine_dynamic(str(onnx_file), engine_file, half=half, **shared)
         else:
             onnx2engine(
-                onnx_file=str(onnx_file),
-                output_file=engine_file,
-                workspace=workspace,
-                quantize=16 if half else None,
-                dynamic=False,
-                shape=input_shape,
-                metadata=engine_metadata,
-                verbose=verbose,
-                prefix=prefix,
+                str(onnx_file), engine_file, quantize=16 if half else None, dynamic=False, shape=input_shape, **shared
             )
         exported_engines.append(engine_file)
         LOGGER.info(f"{prefix} saved {Path(engine_file).name} ({'mixed FP16' if half else 'FP32'})")
 
     LOGGER.info(f"{prefix} export complete -> {engine_dir}")
     return exported_engines
+
+
+# Modules with a symbolic dimension need the custom builder with an optimization profile.
+_DYNAMIC_MODULES = frozenset({"sam3_decoder", "sam3_decoder_text", "sam3_prompt_encoder", "sam3_mask_decoder"})
 
 
 def _gridsample_mode_for_trt(onnx_file: str, prefix: str) -> bytes:

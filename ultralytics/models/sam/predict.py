@@ -2383,8 +2383,10 @@ class SAM3SemanticPredictor(SAM3Predictor):
                 result_masks = None
                 boxes_out = torch.zeros((0, 6), device=masks.device)
             else:
-                # Masks are raw logits — threshold at 0.0 (matching PyTorch SAM mask_threshold)
-                result_masks = F.interpolate(kept_masks.float()[None], orig_img.shape[:2], mode="bilinear")[0] > 0.0
+                result_masks = (
+                    F.interpolate(kept_masks.float()[None], orig_img.shape[:2], mode="bilinear")[0]
+                    > self.model.mask_threshold
+                )
                 boxes_out = batched_mask_to_box(result_masks)
                 cls = torch.arange(kept_masks.shape[0], dtype=torch.int32, device=masks.device)
                 boxes_out = torch.cat([boxes_out, kept_scores[:, None], cls[:, None].float()], dim=-1)

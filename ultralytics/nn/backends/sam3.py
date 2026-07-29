@@ -1,12 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """SAM3 multi-file inference backend for ONNX and TensorRT.
 
-Loads four to six modules, matching the export wrappers in ultralytics/utils/export/sam3_onnx.py:
-  - Vision encoder: images → fpn_feat_0/1/2, fpn_pos_2 (plus sam2_feat_0/1/2 when the SAM2 neck is exported)
-  - Text encoder:   tokens → text_features [B,32,256], text_mask [B,32]
-  - Decoder:        fpn features + prompt_features + prompt_mask + input_boxes/input_boxes_labels → predictions
-  - Text decoder:   the same without the geometry inputs, used for text only prompts
-  - Prompt encoder and mask decoder: point prompts, exported only when interactive weights are present
+Loads the four to six modules written by ultralytics/utils/export/sam3_onnx.py and serves text, box
+and point prompts from them. The prompt encoder and mask decoder are present only when the
+checkpoint carried interactive weights.
 """
 
 from __future__ import annotations
@@ -37,8 +34,7 @@ class _BackboneProxy:
 class SAM3Backend:
     """Multi-file inference backend for SAM3 ONNX and TensorRT models.
 
-    Manages three core model files (vision encoder, text encoder, decoder) plus two optional point-prompt modules
-    (prompt encoder, mask decoder). Presents a unified interface compatible with ``SAM3SemanticPredictor``.
+    Presents one interface over both formats for ``SAM3SemanticPredictor``.
 
     Attributes:
         names (list[str]): Current class names.
@@ -354,7 +350,7 @@ class SAM3Backend:
         input_boxes: np.ndarray | None = None,
         input_boxes_labels: np.ndarray | None = None,
     ) -> dict[str, torch.Tensor]:
-        """Run decoder with FPN features + prompt + optional box prompts.
+        """Run the decoder on FPN features, a prompt, and optional box prompts.
 
         Args:
             img_out: Dict from forward_image (with _fpn_feat_* and _fpn_pos_2 cached).
@@ -391,10 +387,9 @@ class SAM3Backend:
         point_coords: np.ndarray,
         point_labels: np.ndarray,
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        """Run point-based segmentation: prompt encoder + mask decoder.
+        """Run point prompts through the prompt encoder and mask decoder.
 
-        Requires the SAM2 neck features (``_sam2_feat_*``), whose learned weights match the mask
-        decoder.
+        Requires the SAM2 neck features, whose weights match the mask decoder.
 
         Args:
             img_out (dict): Dict from forward_image, with ``_sam2_feat_*`` cached.
@@ -461,7 +456,7 @@ class SAM3Backend:
     def forward_grounding(
         self, backbone_out: dict, text_ids: torch.Tensor, geometric_prompt=None
     ) -> dict[str, torch.Tensor]:
-        """Run grounding: select cached text features + optional box prompts -> run decoder.
+        """Select cached text features, add any box prompts, and run the decoder.
 
         Args:
             backbone_out (dict): Dict from forward_image.

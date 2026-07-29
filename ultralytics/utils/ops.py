@@ -737,7 +737,7 @@ def linear_sum_assignment(cost_matrix):
         300 x 300     28ms    1.5ms
 
     Args:
-        cost_matrix (np.ndarray | torch.Tensor): Cost matrix with shape (N, M) and finite values.
+        cost_matrix (np.ndarray | torch.Tensor): Cost matrix with shape (N, M); `+inf` forbids assignments.
 
     Returns:
         row_ind (np.ndarray): Row indices of the optimal assignment, sorted ascending, with length min(N, M).
@@ -764,7 +764,7 @@ def _linear_sum_assignment_numpy(a):
     """Solve the rectangular linear sum assignment problem with NumPy (Jonker-Volgenant SciPy-free fallback).
 
     Args:
-        a (np.ndarray): Cost matrix of shape (N, M) with dtype float64 and finite values.
+        a (np.ndarray): Float64 cost matrix of shape (N, M); `+inf` forbids assignments.
 
     Returns:
         row_ind (np.ndarray): Row indices of the optimal assignment, sorted ascending, with length min(N, M).

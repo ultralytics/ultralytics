@@ -1513,7 +1513,8 @@ class Exporter:
                 prefix=prefix,
             )
         finally:
-            Path(f_onnx).unlink(missing_ok=True)  # INT8 graphs hold normalized coordinates, so they are not reusable
+            if self.args.quantize == 8:  # INT8 graphs hold normalized coordinates, so they are not reusable
+                Path(f_onnx).unlink(missing_ok=True)
 
     @try_export
     def export_ascend(self, prefix=colorstr("Ascend:")):  # noqa: B008

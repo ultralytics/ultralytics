@@ -4,6 +4,8 @@ description: Ultralytics Inference for Rust is a high-performance YOLO inference
 keywords: Ultralytics Inference, Rust, YOLO, ONNX Runtime, object detection, segmentation, pose, OBB, classification, semantic segmentation, depth estimation, CUDA, TensorRT, CoreML, edge AI, real-time inference
 ---
 
+# Ultralytics Inference for Rust
+
 <div align="center">
     <a href="https://github.com/ultralytics/inference"><img src="https://img.shields.io/badge/GitHub-ultralytics%2Finference-181717?logo=github&logoColor=white" alt="Ultralytics Inference GitHub"></a>
     <a href="https://crates.io/crates/ultralytics-inference"><img src="https://img.shields.io/crates/v/ultralytics-inference?logo=rust&logoColor=white&label=crates.io&color=CE422B" alt="Ultralytics Inference Crates.io"></a>
@@ -11,8 +13,6 @@ keywords: Ultralytics Inference, Rust, YOLO, ONNX Runtime, object detection, seg
     <a href="https://crates.io/crates/ultralytics-inference"><img src="https://img.shields.io/crates/d/ultralytics-inference?logo=rust&logoColor=white&label=downloads&color=CE422B" alt="Ultralytics Inference Downloads"></a>
     <a href="https://crates.io/crates/ultralytics-inference"><img src="https://img.shields.io/crates/msrv/ultralytics-inference?logo=rust&logoColor=white&color=CE422B" alt="Ultralytics Inference MSRV"></a>
 </div>
-
-# Ultralytics Inference for Rust
 
 [Ultralytics Inference](https://github.com/ultralytics/inference) is a high-performance [YOLO](https://www.ultralytics.com/yolo) inference library and command-line tool written in [Rust](https://rust-lang.org/). It runs exported [ONNX](../integrations/onnx.md) models through [ONNX Runtime](https://onnxruntime.ai/) to deliver fast, memory-safe predictions on images, videos, webcams, and streams, with no Python runtime required at inference time.
 

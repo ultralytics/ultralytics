@@ -366,7 +366,7 @@ single file.
         model = SAM("sam3.pt")
 
         # One call goes all the way to TensorRT, writing the ONNX modules on the way
-        model.export(format="engine", imgsz=1008, half=True)  # -> sam3_engine/
+        model.export(format="engine", imgsz=1008, quantize=16)  # -> sam3_engine/
 
         # Or stop at ONNX
         model.export(format="onnx", imgsz=1008)  # -> sam3_onnx/
@@ -375,7 +375,7 @@ single file.
     === "CLI"
 
         ```bash
-        yolo export model=sam3.pt format=engine imgsz=1008 half=True
+        yolo export model=sam3.pt format=engine imgsz=1008 quantize=16
         ```
 
         Only `format=onnx` and `format=engine` are supported, and `format` must be given because the

@@ -171,7 +171,8 @@ class SAM(Model):
             **kwargs (Any): Export arguments. Key options:
             format (str): ``"onnx"`` or ``"engine"`` (TensorRT).
             imgsz (int): Image size (must be divisible by 14). Default 1008.
-            half (bool): FP16 export, also accepted as the CLI spelling quantize=16.
+            quantize (int): 16 for FP16. For TensorRT this enables mixed precision.
+            half (bool): Deprecated alias for ``quantize=16``.
             device (str): Export device. Default ``"cpu"``.
             opset (int): ONNX opset version. Default 20.
 
@@ -183,7 +184,7 @@ class SAM(Model):
             way and returning the engine directory::
 
                 model = SAM("sam3.pt")
-                model.export(format="engine", imgsz=1008, half=True)
+                model.export(format="engine", imgsz=1008, quantize=16)
 
             Export only the ONNX modules::
 

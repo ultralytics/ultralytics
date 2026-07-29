@@ -773,6 +773,13 @@ def export_sam3_onnx(
     # Only neck levels 0 to 2 are checked because scalp discards the last level, which SAM 3.1 no longer ships
     point_modules = ("sam_prompt_encoder", "sam_mask_decoder", "sam2_convs.0", "sam2_convs.1", "sam2_convs.2")
     has_point_weights = not any(m in k for k in tracker_model_for_neck.missing_keys for m in point_modules)
+    # The interactive model is built at 1008, so its prompt encoder emits a 72x72 dense embedding.
+    # Resizing only the semantic model would pair that with an imgsz/14 feature map and the mask
+    # decoder would not trace. Refuse rather than write a graph whose shapes cannot line up.
+    assert not (has_point_weights and imgsz != 1008), (
+        f"Point prompt modules can only be exported at imgsz=1008, got {imgsz}. The interactive prompt "
+        f"encoder is fixed at 1008, so its embedding would not match a {imgsz // 14}x{imgsz // 14} feature map."
+    )
     if not has_point_weights:
         sam2_convs = None
     if sam2_convs is None:

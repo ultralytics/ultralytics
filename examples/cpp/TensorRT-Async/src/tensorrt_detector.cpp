@@ -68,10 +68,12 @@ void TensorRTDetector::Logger::log(Severity severity, const char* message) noexc
 }
 
 TensorRTDetector::TensorRTDetector(
-    const std::string& engine_path, float confidence_threshold, float iou_threshold
+    const std::string& engine_path, int expected_class_count, float confidence_threshold, float iou_threshold
 )
     : confidence_threshold_(confidence_threshold), iou_threshold_(iou_threshold) {
     try {
+        if (expected_class_count <= 0) throw std::invalid_argument("expected class count must be positive");
+
         const std::vector<char> serialized_engine = ReadEngine(engine_path);
         runtime_.reset(nvinfer1::createInferRuntime(logger_));
         if (!runtime_) throw std::runtime_error("failed to create TensorRT runtime");
@@ -118,11 +120,19 @@ TensorRTDetector::TensorRTDetector(
         const std::size_t input_elements = TensorVolume(input_shape, input_name_.c_str());
         const std::size_t output_elements = TensorVolume(output_shape, output_name_.c_str());
 
-        channel_major_output_ = output_shape.d[1] < output_shape.d[2];
-        num_attributes_ = channel_major_output_ ? output_shape.d[1] : output_shape.d[2];
+        const int expected_attributes = expected_class_count + 4;
+        const bool channel_major = output_shape.d[1] == expected_attributes;
+        const bool anchor_major = output_shape.d[2] == expected_attributes;
+        if (channel_major == anchor_major) {
+            throw std::runtime_error(
+                "output shape does not contain exactly one 4+classes axis; check --labels and export a raw YOLOv8 "
+                "detection model"
+            );
+        }
+        channel_major_output_ = channel_major;
+        num_attributes_ = expected_attributes;
         num_candidates_ = channel_major_output_ ? output_shape.d[2] : output_shape.d[1];
-        num_classes_ = num_attributes_ - 4;
-        if (num_classes_ <= 0) throw std::runtime_error("YOLOv8 output has no class scores");
+        num_classes_ = expected_class_count;
 
         input_bytes_ = input_elements * sizeof(float);
         output_bytes_ = output_elements * sizeof(float);

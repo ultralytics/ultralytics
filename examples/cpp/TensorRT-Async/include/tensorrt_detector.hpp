@@ -23,7 +23,9 @@ struct InferenceTiming {
 
 class TensorRTDetector {
 public:
-    TensorRTDetector(const std::string& engine_path, float confidence_threshold, float iou_threshold);
+    TensorRTDetector(
+        const std::string& engine_path, int expected_class_count, float confidence_threshold, float iou_threshold
+    );
     ~TensorRTDetector();
 
     TensorRTDetector(const TensorRTDetector&) = delete;

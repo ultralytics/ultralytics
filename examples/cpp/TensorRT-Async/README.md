@@ -72,7 +72,7 @@ Linux：
 ./build/yolo_tensorrt_async --engine ./yolov8n_fp16.engine --camera 0 --width 1280 --height 720
 ```
 
-自定义数据集需提供每行一个类别名的 UTF-8 文本：
+自定义数据集需提供每行一个类别名的 UTF-8 文本，行数必须与模型类别数一致，并用于确定 TensorRT 输出布局：
 
 ```powershell
 .\build\Release\yolo_tensorrt_async.exe --engine .\best_fp16.engine --labels .\classes.txt

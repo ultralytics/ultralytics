@@ -76,6 +76,12 @@ std::string RequireValue(int& index, int argc, char** argv) {
     return argv[++index];
 }
 
+std::size_t ParseQueueCapacity(int& index, int argc, char** argv) {
+    const long long capacity = std::stoll(RequireValue(index, argc, argv));
+    if (capacity <= 0) throw std::invalid_argument("queue capacities must be greater than zero");
+    return static_cast<std::size_t>(capacity);
+}
+
 Options ParseOptions(int argc, char** argv) {
     Options options;
     for (int i = 1; i < argc; ++i) {
@@ -97,9 +103,9 @@ Options ParseOptions(int argc, char** argv) {
         } else if (argument == "--labels") {
             options.labels_path = RequireValue(i, argc, argv);
         } else if (argument == "--input-queue") {
-            options.input_queue_size = std::stoul(RequireValue(i, argc, argv));
+            options.input_queue_size = ParseQueueCapacity(i, argc, argv);
         } else if (argument == "--output-queue") {
-            options.output_queue_size = std::stoul(RequireValue(i, argc, argv));
+            options.output_queue_size = ParseQueueCapacity(i, argc, argv);
         } else {
             throw std::invalid_argument("unknown option: " + argument);
         }
@@ -122,14 +128,8 @@ Options ParseOptions(int argc, char** argv) {
     return options;
 }
 
-std::vector<std::string> LoadLabels(const std::string& path, int class_count) {
-    if (path.empty()) {
-        if (class_count == static_cast<int>(yolo::CocoNames().size())) return yolo::CocoNames();
-        std::vector<std::string> labels;
-        labels.reserve(static_cast<std::size_t>(class_count));
-        for (int i = 0; i < class_count; ++i) labels.push_back("class_" + std::to_string(i));
-        return labels;
-    }
+std::vector<std::string> LoadLabels(const std::string& path) {
+    if (path.empty()) return yolo::CocoNames();
 
     std::ifstream file(path);
     if (!file) throw std::runtime_error("cannot open labels file: " + path);
@@ -182,14 +182,12 @@ void DrawOverlay(
 }
 
 int Run(const Options& options) {
-    yolo::TensorRTDetector detector(options.engine_path, options.confidence, options.iou);
-    const std::vector<std::string> labels = LoadLabels(options.labels_path, detector.classCount());
+    const std::vector<std::string> labels = LoadLabels(options.labels_path);
+    yolo::TensorRTDetector detector(
+        options.engine_path, static_cast<int>(labels.size()), options.confidence, options.iou
+    );
     std::cout << "Engine ready: " << detector.inputWidth() << 'x' << detector.inputHeight()
               << ", classes=" << detector.classCount() << '\n';
-    if (labels.size() != static_cast<std::size_t>(detector.classCount())) {
-        std::cerr << "Warning: loaded " << labels.size() << " labels for " << detector.classCount()
-                  << " model classes; missing names will use class_<id>.\n";
-    }
 
     yolo::LatestQueue<FramePacket> input_queue(options.input_queue_size);
     yolo::LatestQueue<DisplayPacket> output_queue(options.output_queue_size);

@@ -14,15 +14,20 @@ from ultralytics.utils import LOGGER
 class _NormalizeCoords(torch.nn.Module):
     """Wrap a model so box (and pose keypoint) coordinates are output normalized to [0, 1].
 
-    LiteRT exports trace the raw PyTorch model, whose detection output concatenates pixel-space box coordinates
-    (0-imgsz) with [0, 1] class scores in a single tensor. A single per-tensor INT8 scale cannot represent both ranges,
-    so the scores collapse to zero. Normalizing coordinates to [0, 1] keeps the whole tensor in a unit range so
-    quantization preserves score resolution; ``LiteRTBackend`` denormalizes by image size at runtime.
+    LiteRT and INT8 RKNN exports trace the raw PyTorch model, whose detection output concatenates pixel-space box
+    coordinates (0-imgsz) with [0, 1] class scores in a single tensor. A single per-tensor INT8 scale cannot represent
+    both ranges, so the scores collapse to zero. Normalizing coordinates to [0, 1] keeps the whole tensor in a unit
+    range so quantization preserves score resolution; ``LiteRTBackend`` and ``RKNNBackend`` denormalize by image size at
+    runtime.
 
     Only the coordinate channels are divided — x/width and y/height — so the divisor is uniform-magnitude and quantizes
     cleanly to a single per-tensor scale. (Multiplying the whole tensor by a mixed-magnitude per-channel vector instead
     would round the small coordinate factors to zero and destroy box accuracy.) Per-axis division also supports
-    non-square ``imgsz``; ``LiteRTBackend`` denormalizes by width/height to match.
+    non-square ``imgsz``; the backends denormalize by width/height to match.
+
+    Slices follow the head's own concatenation boundaries (box | class scores | mask coefficients or angle) instead of
+    one ``4:`` tail slice: rknn-toolkit2 gives each concat input its own scale only while every slice maps 1:1 onto one
+    of them, and a slice straddling two inputs inherits the pixel-range scale this wrapper exists to avoid.
     """
 
     def __init__(self, model: torch.nn.Module, h: int, w: int, task: str, nc: int, kpt_shape: tuple | None):
@@ -49,7 +54,9 @@ class _NormalizeCoords(torch.nn.Module):
             kpts = torch.cat([kpts[:, :, :2] / kpt_wh, kpts[:, :, 2:]], dim=2)  # normalize x, y; keep conf
             parts.append(kpts.reshape(b, -1, a))
         else:
-            parts.append(det[:, 4:])  # class scores (+ mask coefficients / angle)
+            parts.append(det[:, 4 : 4 + self.nc])  # class scores
+            if det.shape[1] > 4 + self.nc:
+                parts.append(det[:, 4 + self.nc :])  # segment mask coefficients / obb angle
         det = torch.cat(parts, dim=1)
         return (det, *y[1:]) if isinstance(y, (tuple, list)) else det
 

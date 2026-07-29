@@ -1064,9 +1064,30 @@ class Exporter:
             self.args.opset = opset  # for NMSModel
             self.args.simplify = True  # fix OBB runtime error related to topk
 
+        model = NMSModel(self.model, self.args) if self.args.nms else self.model
+        # rknn-toolkit2 quantizes output0 with one per-tensor scale, which the pixel-space box channels set: every
+        # score <= 1.0 then rounds to zero. Reuse the LiteRT normalizer so the whole tensor is unit-range
+        # (RKNNBackend denormalizes at runtime). Floating-point RKNN builds keep pixel coordinates.
+        if (
+            self.args.format == "rknn"
+            and self.args.quantize == 8
+            and self.model.task in {"detect", "segment", "pose", "obb"}
+            and not self.metadata["end2end"]
+        ):
+            from ultralytics.utils.export.litert import _NormalizeCoords
+
+            model = _NormalizeCoords(
+                model,
+                int(self.im.shape[2]),
+                int(self.im.shape[3]),
+                self.model.task,
+                len(self.metadata["names"]),
+                self.metadata.get("kpt_shape"),
+            )
+
         with arange_patch(dynamic=bool(dynamic), quantize=self.args.quantize, fmt=self.args.format):
             torch2onnx(
-                NMSModel(self.model, self.args) if self.args.nms else self.model,
+                model,
                 self.im,
                 f,
                 opset=opset,
@@ -1480,16 +1501,19 @@ class Exporter:
             output_dir.mkdir(parents=True, exist_ok=True)
             rknn_dataset = output_dir / "dataset.txt"
             rknn_dataset.write_text("\n".join(str(Path(x).resolve()) for x in image_paths) + "\n")
-        return onnx2rknn(
-            onnx_file=f_onnx,
-            output_dir=output_dir,
-            name=self.args.name,
-            quantize=self.args.quantize,
-            batch=self.args.batch,
-            dataset=rknn_dataset,
-            metadata=self.metadata,
-            prefix=prefix,
-        )
+        try:
+            return onnx2rknn(
+                onnx_file=f_onnx,
+                output_dir=output_dir,
+                name=self.args.name,
+                quantize=self.args.quantize,
+                batch=self.args.batch,
+                dataset=rknn_dataset,
+                metadata=self.metadata,
+                prefix=prefix,
+            )
+        finally:
+            Path(f_onnx).unlink(missing_ok=True)  # INT8 graphs hold normalized coordinates, so they are not reusable
 
     @try_export
     def export_ascend(self, prefix=colorstr("Ascend:")):  # noqa: B008

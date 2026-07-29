@@ -65,6 +65,23 @@ class RKNNBackend(BaseBackend):
         Returns:
             (list): Model predictions as a list of output arrays.
         """
+        h, w = im.shape[2:4]
         im = (im.cpu().numpy() * 255).astype("uint8")
         im = im if isinstance(im, (list, tuple)) else [im]
-        return self.model.inference(inputs=im)
+        y = self.model.inference(inputs=im)
+        # INT8 exports normalize box (and pose keypoint) coordinates to [0, 1] so a single per-tensor scale does not
+        # collapse the class scores (see _NormalizeCoords); undo it here. Floating-point builds are already in pixels.
+        if (
+            self.metadata.get("args", {}).get("quantize") == 8
+            and self.task in {"detect", "segment", "pose", "obb"}
+            and not self.end2end
+        ):
+            kpt_start = 4 + len(self.names)  # pose keypoints follow the box (4) and class-score (nc) channels
+            for x in y:
+                if x.ndim == 3:
+                    x[:, [0, 2]] *= w
+                    x[:, [1, 3]] *= h
+                    if self.task == "pose":
+                        x[:, kpt_start::3] *= w
+                        x[:, kpt_start + 1 :: 3] *= h
+        return y

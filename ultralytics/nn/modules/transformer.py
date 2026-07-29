@@ -104,14 +104,23 @@ class TransformerEncoderLayer(nn.Module):
         attn_mask: torch.Tensor | None = None,
         key_padding_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
-        """Run multi-head attention in FP32 on CUDA for AMP numerical stability."""
-        with torch.autocast(
-            device_type=value.device.type,
-            dtype=torch.float32,
-            enabled=value.is_cuda,
-        ):
-            output = self.ma(q, k, value=value, attn_mask=attn_mask, key_padding_mask=key_padding_mask)[0]
-        return output.to(value.dtype)
+        """Run multi-head attention in its parameter dtype and restore the activation dtype."""
+        output_dtype = value.dtype
+        attention_dtype = self.ma.in_proj_weight.dtype
+        q, k, value = (x.to(attention_dtype) for x in (q, k, value))
+        if attn_mask is not None and torch.is_floating_point(attn_mask):
+            attn_mask = attn_mask.to(attention_dtype)
+        if key_padding_mask is not None and torch.is_floating_point(key_padding_mask):
+            key_padding_mask = key_padding_mask.to(attention_dtype)
+        with torch.autocast(device_type=value.device.type, enabled=False):
+            output = self.ma(
+                q,
+                k,
+                value=value,
+                attn_mask=attn_mask,
+                key_padding_mask=key_padding_mask,
+            )[0]
+        return output.to(output_dtype)
 
     def forward_post(
         self,
@@ -194,6 +203,13 @@ class AIFI(TransformerEncoderLayer):
     This class extends TransformerEncoderLayer to work with 2D feature maps by adding 2D sine-cosine positional
     embeddings and handling the spatial dimensions appropriately.
     """
+
+    def _apply(self, fn):
+        """Keep AIFI attention in FP32 when converting the surrounding model to FP16."""
+        super()._apply(fn)
+        if self.ma.in_proj_weight.dtype == torch.float16:
+            self.ma.float()
+        return self
 
     def __init__(
         self,

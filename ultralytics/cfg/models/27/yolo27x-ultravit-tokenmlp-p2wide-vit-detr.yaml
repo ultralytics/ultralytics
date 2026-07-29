@@ -1,0 +1,79 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Lane B X detector spending half its YOLO26 P2 parameter gap while retaining the faster plain token MLP at P5.
+
+nc: 80
+
+scales:
+  x: [1.00, 1.00, 1024]
+
+scale_args:
+  x:
+    input_proj_module: Conv
+    input_proj_args: [256, 1, 1, None, 1, 1, False]
+    ndl: 6
+
+backbone:
+  - [-1, 1, Conv, [96, 3, 2]]
+  - [-1, 1, Conv, [144, 3, 2]]
+  - [-1, 2, RepUltraViTBlock, [4.0, True, 0.00001, True]]
+  - [-1, 1, Conv, [288, 3, 2]]
+  - [-1, 2, RepUltraViTBlock, [3.0, True, 0.00001, True]]
+  - [-1, 1, Conv, [576, 3, 2]]
+  - [-1, 4, RepUltraViTBlock, [5.305556, True, 0.00001, True]]
+  - [-1, 1, Conv, [768, 3, 2]]
+  - [-1, 3, MHSABlock, [0, 4.041667, True, 0.00001, False, 64]]
+
+head:
+  - [8, 1, input_proj_module, input_proj_args]
+  - [-1, 1, AIFI, [1024, 8]]
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]]
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [6, 1, input_proj_module, input_proj_args]
+  - [[-2, -1], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]]
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]]
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [4, 1, input_proj_module, input_proj_args]
+  - [[-2, -1], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]]
+  - [-1, 1, SCDown, [256, 3, 2, False]]
+  - [[-1, 16], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]]
+  - [-1, 1, SCDown, [256, 3, 2, False]]
+  - [[-1, 11], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]]
+  - [
+      [20, 23, 26],
+      1,
+      DeimDecoder,
+      [
+        nc,
+        256,
+        300,
+        [3, 6, 3],
+        8,
+        ndl,
+        2048,
+        0.0,
+        "silu",
+        -1,
+        100,
+        0.5,
+        1.0,
+        False,
+        False,
+        0,
+        False,
+        False,
+        "default",
+        32,
+        4.0,
+        1.0,
+        "silu",
+        "unshared",
+        True,
+        False,
+        False,
+      ],
+    ]

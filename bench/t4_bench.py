@@ -106,6 +106,7 @@ ARMS = {
     ),
     "tokenmlp-stagefloor": ("yolo26{s}-ultravit-repmixer-fastvitffn-tokenmlp-stagefloor.yaml", "nsml"),
     "tokenmlp-p45floor": ("yolo26{s}-ultravit-repmixer-fastvitffn-tokenmlp-p45floor.yaml", "x"),
+    "tokenmlp-p2wide": ("yolo26{s}-ultravit-repmixer-fastvitffn-tokenmlp-p2wide.yaml", "x"),
     "dinop5-p2stagefloor-p5cap512": (
         "yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-p2stagefloor-p5cap512.yaml",
         "s",

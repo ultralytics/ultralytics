@@ -890,7 +890,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                 flops = 0
 
             try:
-                mem = 0
+                mem = x.numel() * x.element_size() / 1e9 if device.type in {"cuda", "npu"} else 0
                 for _ in range(n):
                     with cuda_memory_usage(device) as cuda_info:
                         t[0] = time_sync(device)

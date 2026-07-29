@@ -127,7 +127,9 @@ def benchmark(
                 continue
 
             # Checks
-            if export_format == "edgetpu":
+            if export_format == "pb":
+                assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
+            elif export_format == "edgetpu":
                 assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
                 assert shutil.which("edgetpu_compiler"), "Edge TPU benchmark requires edgetpu_compiler"
             elif export_format == "coreml":
@@ -209,6 +211,7 @@ def benchmark(
             emoji = "❎"  # indicates export succeeded
 
             # Predict
+            assert model.task != "pose" or export_format != "pb", "GraphDef Pose inference is not supported"
             assert export_format != "edgetpu", "inference not supported"
             assert export_format != "coreml" or platform.system() == "Darwin", "inference requires macOS>=10.13"
             assert export_format != "axelera", "inference only supported on Axelera hardware"

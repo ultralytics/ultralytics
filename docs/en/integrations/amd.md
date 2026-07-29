@@ -1,10 +1,11 @@
 ---
+title: AMD GPU Training with Ultralytics YOLO and ROCm
 comments: true
 description: Train and run Ultralytics YOLO on supported AMD GPUs with PyTorch ROCm, and understand the current status of MIGraphX, DirectML, and Ryzen AI NPU support.
 keywords: AMD, ROCm, Radeon, Instinct, Ryzen AI, MIGraphX, DirectML, PyTorch ROCm, AMD GPU training, Ultralytics, YOLO
 ---
 
-# AMD Integration for Ultralytics YOLO
+# AMD GPU Training with Ultralytics YOLO and ROCm
 
 Ultralytics supports training, validation, and inference on compatible AMD GPUs through
 [PyTorch ROCm](https://pytorch.org/get-started/locally/). PyTorch intentionally exposes ROCm devices through the same
@@ -23,7 +24,7 @@ This table describes the Ultralytics Python package used for training, validatio
 | AMD Instinct and supported Radeon GPUs with ROCm | ✅                  | Train, validate, and run native PyTorch models with `device=0` or `device=cuda:0`.                                                                 |
 | Multi-GPU ROCm                                   | ✅                  | Use `device=0,1` or `device=[0, 1]`; distributed execution follows the installed PyTorch ROCm stack.                                               |
 | ROCm Automatic Mixed Precision (AMP)             | ⚠️                  | Available when the installed PyTorch and ROCm versions pass Ultralytics AMP checks; use `amp=False` if incompatible.                               |
-| ONNX export                                      | ✅                  | Export is supported, but the ONNX file does not by itself provide an AMD-accelerated runtime.                                                      |
+| [ONNX export](onnx.md)                           | ✅                  | Export is supported, but the ONNX file does not by itself provide an AMD-accelerated runtime.                                                      |
 | MIGraphX inference                               | 🚧                  | Not available in the current Python package; implementation work is tracked in [PR #24137](https://github.com/ultralytics/ultralytics/pull/24137). |
 | AMD Docker image and AMD hardware CI             | 🚧                  | Also tracked in [PR #24137](https://github.com/ultralytics/ultralytics/pull/24137), not provided by ROCm device selection alone.                   |
 | Windows DirectML                                 | ❌ Python           | No DirectML training or prediction backend in the Python package.                                                                                  |
@@ -76,7 +77,7 @@ should report the HIP version supplied by the ROCm build.
 
 ## Train on an AMD GPU
 
-Use the same device arguments as standard GPU training.
+Use the same device arguments as standard [Ultralytics Train mode](../modes/train.md).
 
 !!! example "ROCm Training"
 
@@ -104,7 +105,7 @@ Use the same device arguments as standard GPU training.
         yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 device=0,1
         ```
 
-Validation and prediction use the same device selection:
+[Validation](../modes/val.md) and [prediction](../modes/predict.md) use the same device selection:
 
 ```bash
 yolo detect val model=path/to/best.pt data=coco8.yaml device=0

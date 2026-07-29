@@ -29,7 +29,7 @@ The Ultralytics exporter first writes an intermediate ONNX graph, then invokes A
 
 - **Dedicated AI Core**: Compiled models execute on the Ascend AI Core rather than the host CPU, delivering substantially higher throughput for real-time camera pipelines.
 - **Host-side compilation**: ATC needs no attached NPU, so export runs in CI, in containers, or on a laptop.
-- **ONNX-first**: The standard Ultralytics ONNX export feeds directly into the CANN toolchain with no proprietary intermediate format.
+- **ONNX-first**: The standard [Ultralytics ONNX export](onnx.md) feeds directly into the CANN toolchain with no proprietary intermediate format.
 - **Static shapes**: The input shape is baked into the `.om` at compile time, removing runtime shape negotiation overhead.
 - **Multi-device targeting**: The same ONNX graph compiles for any supported SoC by changing `name`.
 

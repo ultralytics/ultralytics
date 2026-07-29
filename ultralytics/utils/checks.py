@@ -72,12 +72,27 @@ def normalize_platform_uri(uri):
     return f"ul://{s[len(PLATFORM_URL) + 1 :].strip('/')}" if s.startswith(f"{PLATFORM_URL}/") else uri
 
 
-def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
+def clean_specifier(spec):
+    """Clean a version specifier string by removing any 'extra' requirements.
+
+    Args:
+        spec (str): Version specifier string.
+
+    Returns:
+        (str): Cleaned version specifier string.
+    """
+    spec = re.sub(r'\s*and\s+extra\s*==\s*"[^"]+"', "", spec)
+    spec = re.sub(r'\s*;\s*extra\s*==\s*"[^"]+"', "", spec)
+    return re.sub(r"\s*;\s*$", "", spec)
+
+
+def parse_requirements(file_path=ROOT.parent / "requirements.txt", package="", include_extra=False):
     """Parse a requirements.txt file, ignoring lines that start with '#' and any text after '#'.
 
     Args:
         file_path (Path): Path to the requirements.txt file.
         package (str, optional): Python package to use instead of requirements.txt file.
+        include_extra (bool, optional): Include requirements from optional 'extra' dependency groups.
 
     Returns:
         requirements (list[SimpleNamespace]): List of parsed requirements as SimpleNamespace objects with `name` and
@@ -88,7 +103,9 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
         >>> parse_requirements(package="ultralytics")
     """
     if package:
-        requires = [x for x in metadata.distribution(package).requires if "extra == " not in x]
+        requires = [
+            clean_specifier(x) for x in metadata.distribution(package).requires if include_extra or "extra == " not in x
+        ]
     else:
         requires = Path(file_path).read_text().splitlines()
 
@@ -392,6 +409,27 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
     return check_version(PYTHON_VERSION, minimum, name="Python", hard=hard, verbose=verbose)
 
 
+@functools.lru_cache
+def check_ultralytics_requirements(name: str) -> str:
+    """Return the Ultralytics pyproject.toml version specifier for a package, keeping it the single source of truth.
+
+    Args:
+        name (str): Name of the package to look up.
+
+    Returns:
+        (str): Version specifier, i.e. '>=1.23.0', or '' if the package has no unconditional Ultralytics requirement.
+    """
+    try:
+        requirements = parse_requirements(package="ultralytics", include_extra=True)
+    except metadata.PackageNotFoundError:  # ultralytics run from source without being pip-installed
+        return ""
+    specifiers = {x.specifier for x in requirements if x.name == name}
+    if len(specifiers) != 1:
+        return ""  # no requirement, or platform-conditional pins that only pip can disambiguate
+    specifier = specifiers.pop()
+    return "" if ";" in specifier else specifier  # environment markers are not evaluated by check_version()
+
+
 @TryExcept()
 def check_apt_requirements(requirements):
     """Check if apt packages are installed and install missing ones.
@@ -483,6 +521,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             r_stripped = candidate.rpartition("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
             match = re.match(r"([a-zA-Z0-9-_]+)([<>!=~]+.*)?", r_stripped)
             name, required = match[1], match[2].strip() if match[2] else ""
+            if not required:  # no version specifier passed, fall back to the Ultralytics pyproject.toml requirement
+                required = check_ultralytics_requirements(name)
             try:
                 if check_version(metadata.version(name), required):
                     satisfied = True

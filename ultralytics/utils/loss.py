@@ -1636,12 +1636,24 @@ class E2ELoss:
         if self.aux_fg:  # cache only the assignments the selected target needs
             self.one2many.cache_fg = self.aux_fg_tgt in {"o2m", "mix"}
             self.one2one.cache_fg = self.aux_fg_tgt in {"o2o", "mix"}
-        # mix mode: initial degree of the o2m-only ("ambiguous") anchors, decayed linearly to 0 across training. Kept
-        # below 1 so an ambiguous anchor never outranks the o2o positive (which is a hard 1.0 in mix mode).
+        # mix mode: initial degree of the o2m-only ("ambiguous") anchors, decayed linearly to 0. Kept below 1 so an
+        # ambiguous anchor never outranks the o2o positive (which is a hard 1.0 in mix mode).
         self.aux_fg_t = getattr(model.args, "aux_fg_t", 0.5)
         if not 0 <= self.aux_fg_t < 1:
             raise ValueError(f"aux_fg_t must be in [0, 1), not {self.aux_fg_t}")
         self.aux_fg_t_cur = self.aux_fg_t  # decayed each epoch by update()
+        # fraction of epochs over which the ambiguous degree reaches 0. There are ~topk-1 times more ambiguous anchors
+        # than o2o positives, so even a small degree still carries a comparable share of the target mass; ending the
+        # decay early (e.g. 0.7) leaves the trunk a real stretch of pure o2o supervision instead of only the last epoch.
+        self.aux_fg_t_end = getattr(model.args, "aux_fg_t_end", 1.0)
+        if not 0 < self.aux_fg_t_end <= 1:
+            raise ValueError(f"aux_fg_t_end must be in (0, 1], not {self.aux_fg_t_end}")
+        # branch weight carrying the aux term: 'o2m' follows the one2many decay, 'const' keeps it flat, 'o2o' follows the
+        # growing one2one weight. With a mix target sliding toward pure o2o, the o2m schedule throttles the o2o-shaped
+        # supervision exactly when the o2o branch takes over, so 'const' (or 'o2o') resolves that contradiction.
+        self.aux_fg_sched = getattr(model.args, "aux_fg_sched", "o2m")
+        if self.aux_fg_sched not in {"o2m", "const", "o2o"}:
+            raise ValueError(f"aux_fg_sched must be 'o2m', 'const', or 'o2o', not {self.aux_fg_sched!r}")
         # >0 linearly decays the aux gain to exactly 0 over this fraction of epochs, on top of the o2m schedule (which
         # floors at final_o2m and so never removes the aux gradient). Deep supervision helps early optimization but
         # late in training the trunk gradient it injects no longer shrinks with the 100x LR decay, acting as a noise
@@ -1770,8 +1782,9 @@ class E2ELoss:
                 if "aux_fg" in preds
                 else total.new_zeros(())
             )
-            # scaled by the one2many branch weight (o2m schedule) and by the optional aux_fg_end anneal-to-zero ramp
-            total = torch.cat((total, (self.aux_fg_w * self.o2m * aux * batch_size).view(1)))
+            # scaled by the aux_fg_sched branch weight and by the optional aux_fg_end anneal-to-zero ramp
+            sched = {"o2m": self.o2m, "const": 1.0, "o2o": self.o2o}[self.aux_fg_sched]
+            total = torch.cat((total, (self.aux_fg_w * sched * aux * batch_size).view(1)))
             loss_items = torch.cat((loss_items, aux.detach().view(1)))
         return total, loss_items
 
@@ -1882,17 +1895,17 @@ class E2ELoss:
         if self.o2f:
             self.o2f_loss.assigner.o2f_t = self.o2f_decay(self.updates)
         if self.aux_fg and self.aux_fg_end:
-            self.aux_fg_w = self.aux_fg_decay(self.updates)
+            self.aux_fg_w = self.aux_fg_ramp(self.updates, self.aux_fg_end)
         if self.aux_fg and self.aux_fg_tgt == "mix":  # slide the aux target from dense o2m toward pure o2o
-            self.aux_fg_t_cur = self.aux_fg_t * max(1 - self.updates / max(self.one2one.hyp.epochs - 1, 1), 0)
+            self.aux_fg_t_cur = self.aux_fg_t * self.aux_fg_ramp(self.updates, self.aux_fg_t_end)
 
     def decay(self, x) -> float:
         """Calculate the decayed weight for one-to-many loss based on the current update step."""
         return max(1 - x / max(self.one2one.hyp.epochs - 1, 1), 0) * (self.o2m_copy - self.final_o2m) + self.final_o2m
 
-    def aux_fg_decay(self, x) -> float:
-        """Decay the foreground auxiliary weight linearly to 0 over the first aux_fg_end fraction of epochs."""
-        return max(1 - x / max(self.aux_fg_end * (self.one2one.hyp.epochs - 1), 1), 0)
+    def aux_fg_ramp(self, x, end) -> float:
+        """Ramp linearly from 1 to 0 over the first ``end`` fraction of epochs (1.0 spans the whole run)."""
+        return max(1 - x / max(end * (self.one2one.hyp.epochs - 1), 1), 0)
 
     def o2f_decay(self, x) -> float:
         """Decay o2f_t linearly from o2f_max_t to o2f_min_t over the first half of epochs, then to 0 over the second."""

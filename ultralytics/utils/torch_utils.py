@@ -119,7 +119,9 @@ def autocast(enabled: bool, device: str = "cuda"):
         import torch_npu
 
         return torch_npu.npu.amp.autocast(enabled=enabled)
-    elif TORCH_1_13 and (device != "mps" or TORCH_2_5):
+    elif TORCH_1_13 and device == "mps" and not TORCH_2_5:
+        return torch.amp.autocast("cuda", enabled=False)
+    elif TORCH_1_13:
         return torch.amp.autocast(device, enabled=enabled)
     else:
         return torch.cuda.amp.autocast(enabled)

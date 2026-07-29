@@ -30,7 +30,6 @@ and prediction.
 | Windows DirectML                                 | ❌ Python           | No DirectML training or prediction backend in the Python package.                                                                                  |
 | Ryzen AI NPU                                     | ❌                  | No native Ultralytics NPU integration; external ONNX/Vitis AI workflows are community-managed.                                                     |
 | AMD CPUs                                         | ✅ CPU              | Use `device=cpu`; this is standard CPU execution, not an AMD-specific acceleration backend.                                                        |
-| Ultralytics Inference for Rust                   | ✅ Inference        | The separate Rust ONNX Runtime project provides optional `rocm` and `directml` execution providers, but no training.                               |
 
 !!! note "Check AMD and PyTorch compatibility first"
 
@@ -49,7 +48,7 @@ See the official [PyTorch HIP semantics](https://docs.pytorch.org/docs/stable/no
 !!! important
 
     In the Python package, use `device=0` or `device=cuda:0` for PyTorch ROCm. Do not use `device=rocm:0`; `rocm` is not
-    a PyTorch device type. The separate Rust inference project uses its own `rocm:0` device string.
+    a PyTorch device type.
 
 ## Install PyTorch ROCm
 
@@ -137,10 +136,6 @@ validation, exporting an ONNX model should not be described as native MIGraphX s
 
 The Ultralytics Python package has no DirectML backend for Windows training or prediction. DirectML is distinct from
 ROCm, and a working ROCm environment does not enable `device=directml`.
-
-The separate [Ultralytics Inference for Rust](../inference/index.md) project can run exported ONNX models through
-optional ONNX Runtime ROCm and DirectML execution providers. That is an inference-only Rust workflow and does not add
-DirectML or `rocm:0` devices to Python training.
 
 ### Ryzen AI NPU
 

@@ -12,7 +12,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from ultralytics.utils import NOT_MACOS14
+from ultralytics.utils import NOT_MACOS14, get_torch_device_backend
 
 
 class Profile(contextlib.ContextDecorator):
@@ -69,7 +69,7 @@ class Profile(contextlib.ContextDecorator):
     def time(self):
         """Get current time with accelerator synchronization if applicable."""
         if self.cuda or self.npu:
-            (torch.npu if self.npu else torch.cuda).synchronize(self.device)
+            get_torch_device_backend(self.device).synchronize(self.device)
         return time.perf_counter()
 
 

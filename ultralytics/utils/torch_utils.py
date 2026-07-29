@@ -31,6 +31,7 @@ from ultralytics.utils import (
     TORCHVISION_VERSION,
     WINDOWS,
     colorstr,
+    get_torch_device_backend,
 )
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.cpu import CPUInfo
@@ -310,7 +311,7 @@ def select_device(device="", newline=False, verbose=True):
 
 def time_sync(device: torch.device | None = None):
     """Return PyTorch-accurate time."""
-    accelerator = torch.npu if device is not None and device.type == "npu" else torch.cuda
+    accelerator = get_torch_device_backend(device)
     if accelerator.is_available():
         accelerator.synchronize()
     return time.time()
@@ -829,7 +830,7 @@ def cuda_memory_usage(device=None):
         (dict): A dictionary with a key 'memory' initialized to 0, updated with additional reserved memory.
     """
     info = {"memory": 0}
-    accelerator = torch.npu if device is not None and device.type == "npu" else torch.cuda
+    accelerator = get_torch_device_backend(device)
     if accelerator.is_available():
         accelerator.empty_cache()
         baseline = accelerator.memory_reserved(device)
@@ -874,7 +875,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
         f"{'input':>24s}{'output':>24s}"
     )
     gc.collect()  # attempt to free unused memory
-    accelerator = torch.npu if device.type == "npu" else torch.cuda
+    accelerator = get_torch_device_backend(device)
     accelerator.empty_cache()
     for x in input if isinstance(input, list) else [input]:
         x = x.to(device)

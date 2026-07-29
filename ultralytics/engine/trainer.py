@@ -42,6 +42,7 @@ from ultralytics.utils import (
     clean_url,
     colorstr,
     emojis,
+    get_torch_device_backend,
 )
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
@@ -259,7 +260,7 @@ class BaseTrainer:
         npu = self.args.device.startswith("npu")
         devices = self.args.device[4:].split(",") if npu else self.args.device.split(",")
         index = int(devices[LOCAL_RANK])  # world_size > 1 guarantees a multi-device string
-        accelerator = torch.npu if npu else torch.cuda
+        accelerator = get_torch_device_backend("npu" if npu else "cuda")
         accelerator.set_device(index)
         self.device = torch.device("npu" if npu else "cuda", index)
         if not npu:
@@ -666,7 +667,7 @@ class BaseTrainer:
             if fraction:
                 return __import__("psutil").virtual_memory().percent / 100
         elif self.device.type != "cpu":
-            accelerator = torch.npu if self.device.type == "npu" else torch.cuda
+            accelerator = get_torch_device_backend(self.device)
             memory = accelerator.memory_reserved()
             if fraction:
                 total = accelerator.get_device_properties(self.device).total_memory
@@ -684,7 +685,7 @@ class BaseTrainer:
         elif self.device.type == "cpu":
             return
         else:
-            (torch.npu if self.device.type == "npu" else torch.cuda).empty_cache()
+            get_torch_device_backend(self.device).empty_cache()
 
     def read_results_csv(self):
         """Read results.csv into a dictionary using polars."""

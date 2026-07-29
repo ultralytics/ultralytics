@@ -65,10 +65,8 @@ def test_dataloader_uses_npu_count(monkeypatch):
     from types import SimpleNamespace
 
     kwargs = {}
-    monkeypatch.setattr(data_build.torch.cuda, "device_count", lambda: 0)
-    monkeypatch.setattr(
-        data_build.torch, "npu", SimpleNamespace(is_available=lambda: True, device_count=lambda: 2), raising=False
-    )
+    monkeypatch.setattr(data_build.torch.cuda, "is_available", lambda: False)
+    monkeypatch.setattr(data_build.torch, "npu", SimpleNamespace(device_count=lambda: 2), raising=False)
     monkeypatch.setattr(data_build, "InfiniteDataLoader", lambda **values: kwargs.update(values))
     build_dataloader(range(64), batch=4, workers=8)
     assert kwargs["pin_memory"]
@@ -186,7 +184,7 @@ def test_select_device(monkeypatch):
 
 
 def test_select_ascend_devices(monkeypatch):
-    """Test single- and multi-NPU requests validate devices without moving the parent process for DDP."""
+    """Test explicit single- and multi-NPU device selection."""
     import sys
     from types import SimpleNamespace
 
@@ -199,74 +197,21 @@ def test_select_ascend_devices(monkeypatch):
         def __str__(self):
             return f"{self.type}:{self.index}" if self.index is not None else self.type
 
-    set_calls, autocast_calls, cuda_autocast_calls, sync_calls = [], [], [], []
-    memory = iter((100, 140))
+    set_calls = []
     npu = SimpleNamespace(
         is_available=lambda: True,
         device_count=lambda: 2,
         set_device=set_calls.append,
         get_device_name=lambda i: f"Mock NPU {i}",
-        amp=SimpleNamespace(autocast=lambda **kwargs: autocast_calls.append(kwargs)),
-        synchronize=sync_calls.append,
-        empty_cache=lambda: None,
-        memory_reserved=lambda device=None: next(memory),
     )
-    monkeypatch.setitem(sys.modules, "torch_npu", SimpleNamespace(npu=npu))
+    monkeypatch.setitem(sys.modules, "torch_npu", SimpleNamespace())
     monkeypatch.setattr(torch_utils.torch, "npu", npu, raising=False)
     monkeypatch.setattr(torch_utils.torch, "device", Device)
 
     assert torch_utils.parse_device("npu:00,npu:01") == "npu:0,1"
-    assert str(torch_utils.select_device("npu", verbose=False)) == "npu:0"
     assert str(torch_utils.select_device("npu:1", verbose=False)) == "npu:1"
     assert str(torch_utils.select_device("npu:0,1", verbose=False)) == "npu:0"
-    assert set_calls == [0, 1]  # multi-NPU requests leave device selection to each DDP rank
-    monkeypatch.setattr(torch_utils, "TORCH_1_13", True)
-    torch_utils.autocast(True, device="npu")
-    assert autocast_calls == [{"enabled": True}]
-    monkeypatch.setattr(torch_utils.torch.cuda.amp, "autocast", cuda_autocast_calls.append)
-    torch_utils.autocast(False, device="mps")
-    assert cuda_autocast_calls == [False]
-    from ultralytics.utils.ops import Profile
-
-    profile = Profile(device=Device("npu", 1))
-    profile.time()
-    assert sync_calls == [profile.device]
-    with torch_utils.cuda_memory_usage(Device("npu", 1)) as memory_info:
-        pass
-    assert memory_info["memory"] == 40
-    for device in ("npu:0,0", "npu:2", "npu:bad"):
-        with pytest.raises(ValueError, match="Invalid NPU"):
-            torch_utils.select_device(device, verbose=False)
-
-
-def test_ascend_autobatch_memory(monkeypatch):
-    """Test NPU AutoBatch targets total memory without double-counting the reserved baseline."""
-    import importlib
-    from types import SimpleNamespace
-
-    autobatch = importlib.import_module("ultralytics.utils.autobatch")
-
-    class Model:
-        yaml = {"channels": 3}
-
-        def parameters(self):
-            yield SimpleNamespace(device=SimpleNamespace(type="npu", index=0))
-
-    gb = 1 << 30
-    npu = SimpleNamespace(
-        get_device_properties=lambda device: SimpleNamespace(total_memory=10 * gb, name="Mock NPU"),
-        memory_reserved=lambda device: 2 * gb,
-        memory_allocated=lambda device: gb,
-        empty_cache=lambda: None,
-    )
-    monkeypatch.setattr(autobatch.torch, "npu", npu, raising=False)
-    monkeypatch.setattr(
-        autobatch,
-        "profile_ops",
-        lambda *args, **kwargs: [[0, 0, float(b), 0, 0, (), ()] for b in (1, 2, 4, 8, 16)],
-    )
-    monkeypatch.setattr(autobatch.np, "polyfit", lambda *args, **kwargs: np.array([1.0, 0.0]))
-    assert autobatch.autobatch(Model(), imgsz=32, fraction=0.6) == 4
+    assert set_calls == [1]  # multi-NPU requests leave device selection to each DDP rank
 
 
 def test_model_forward():

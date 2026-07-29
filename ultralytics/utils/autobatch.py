@@ -8,7 +8,7 @@ from copy import deepcopy
 import numpy as np
 import torch
 
-from ultralytics.utils import DEFAULT_CFG, LOGGER, colorstr
+from ultralytics.utils import DEFAULT_CFG, LOGGER, colorstr, get_torch_device_backend
 from ultralytics.utils.torch_utils import autocast, profile_ops
 
 
@@ -80,7 +80,7 @@ def autobatch(
         return batch_size
 
     # Inspect GPU memory
-    accelerator = torch.npu if device.type == "npu" else torch.cuda
+    accelerator = get_torch_device_backend(device)
     gb = 1 << 30  # bytes to GiB (1024 ** 3)
     d = f"{device.type.upper()}:{device.index}"
     properties = accelerator.get_device_properties(device)  # device properties

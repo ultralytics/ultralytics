@@ -31,6 +31,13 @@ from ultralytics.utils.patches import imread, imshow, imwrite, torch_save  # for
 from ultralytics.utils.tqdm import TQDM  # noqa
 
 
+def get_torch_device_backend(device: torch.device | str | None = None):
+    """Return CUDA by default, or NPU for an explicit or available Ascend device."""
+    if device is not None:
+        return torch.npu if str(device).startswith("npu") else torch.cuda
+    return torch.cuda if torch.cuda.is_available() else getattr(torch, "npu", torch.cuda)
+
+
 def env_bool(name: str, default: bool = False) -> bool:
     """Parse a boolean environment variable, accepting common truthy strings.
 

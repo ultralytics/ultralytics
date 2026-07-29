@@ -36,7 +36,7 @@ from ultralytics.data.loaders import (
     autocast_list,
 )
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import RANK, colorstr
+from ultralytics.utils import RANK, colorstr, get_torch_device_backend
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.torch_utils import TORCH_2_0
 
@@ -353,7 +353,7 @@ def build_dataloader(
     samples = len(sampler) if sampler is not None else dataset_len
     drop_last = drop_last and bool(batch) and dataset_len % batch != 0
     batches = (samples // batch if drop_last else math.ceil(samples / batch)) if batch else 0
-    nd = (torch.npu if hasattr(torch, "npu") and torch.npu.is_available() else torch.cuda).device_count()
+    nd = get_torch_device_backend().device_count()
     # Do not create more worker processes than final loader batches. Single-batch loaders run in-process to avoid
     # persistent DataLoader worker pools that add overhead and can stall tiny datasets while holding CUDA context.
     nw = min(os.cpu_count() // max(nd, 1), workers, 0 if batches <= 1 else batches)  # number of workers

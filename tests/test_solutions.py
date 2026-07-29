@@ -258,6 +258,32 @@ def test_object_counter_polygon_reentry_after_inside_spawn():
     )
 
 
+def test_object_counter_polygon_straddle_crossing():
+    """A track that steps over a thin band between frames is counted from the segment it swept."""
+    counter = solutions.ObjectCounter(region=[(20, 360), (1080, 360), (1080, 400), (20, 400)], show=False)
+    counter.initialize_region()
+    track = [(550.0, 250.0), (550.0, 330.0), (550.0, 410.0)]  # 80 px steps: no centroid ever lands in the 40 px band
+    for i in range(1, len(track)):
+        counter.track_history[1] = track[: i + 1]
+        counter.count_objects(track[i], 1, track[i - 1], 0)
+    assert (counter.in_count, counter.out_count) == (1, 0), (
+        f"crossed downward without a sample inside, expected IN, got in={counter.in_count} out={counter.out_count}"
+    )
+
+
+def test_object_counter_polygon_tangent_not_counted():
+    """A track running along the region border never enters it, so it must not be counted."""
+    counter = solutions.ObjectCounter(region=[(20, 360), (1080, 360), (1080, 400), (20, 400)], show=False)
+    counter.initialize_region()
+    track = [(500.0, 400.0), (540.0, 400.0), (580.0, 400.0)]  # along the bottom edge, touching but never inside
+    for i in range(1, len(track)):
+        counter.track_history[1] = track[: i + 1]
+        counter.count_objects(track[i], 1, track[i - 1], 0)
+    assert (counter.in_count, counter.out_count) == (0, 0), (
+        f"grazed the border without entering, expected no count, got in={counter.in_count} out={counter.out_count}"
+    )
+
+
 def test_left_click_selection():
     """Test distance calculation left click selection functionality."""
     dc = solutions.DistanceCalculation()

@@ -159,6 +159,7 @@ class Predictor(BasePredictor):
 
         Examples:
             >>> predictor = Predictor()
+            >>> predictor.imgsz = [1024, 1024]  # normally set by setup_source()
             >>> image = np.random.rand(480, 640, 3)  # Single HWC image
             >>> transformed = predictor.pre_transform([image])
             >>> print(len(transformed))
@@ -2267,7 +2268,8 @@ class SAM3SemanticPredictor(SAM3Predictor):
             AssertionError: If the input list contains more than one image.
 
         Examples:
-            >>> predictor = Predictor()
+            >>> predictor = SAM3SemanticPredictor()
+            >>> predictor.imgsz = [1024, 1024]  # normally set by setup_source()
             >>> image = np.random.rand(480, 640, 3)  # Single HWC image
             >>> transformed = predictor.pre_transform([image])
             >>> print(len(transformed))

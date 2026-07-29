@@ -849,7 +849,11 @@ def test_results(model: str, tmp_path):
     """Test YOLO model results processing and output in various formats."""
     if IS_RASPBERRYPI and model == "yolo26n-sem.pt":
         skip_rpi_semantic()
-    im = "https://cdn.ul.run/i/186929a91ceb270e952fe4dd27ba0f18.webp" if model == "yolo26n-obb.pt" else SOURCE
+    im = (
+        "https://cdn.ul.run/i/186929a91ceb270e952fe4dd27ba0f18.webp"  # boats.jpg
+        if model == "yolo26n-obb.pt"
+        else SOURCE
+    )
     is_semantic = "semantic" in model or "-sem" in model
     results = YOLO(WEIGHTS_DIR / model)([im, im], imgsz=32 if is_semantic else 160)
     for r in results:

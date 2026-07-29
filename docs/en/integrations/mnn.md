@@ -26,6 +26,20 @@ keywords: Ultralytics, YOLO26, MNN, model export, machine learning, deployment, 
   <strong>Watch:</strong> How to Export Ultralytics YOLO26 to MNN Format | Speed up Inference on Mobile Devices📱
 </p>
 
+## Supported Tasks
+
+MNN export supports all seven Ultralytics tasks. Detection, instance segmentation, pose, OBB, and classification cover the YOLO26, YOLO11, and YOLOv8 families; semantic segmentation and depth estimation are YOLO26-only.
+
+| Task                                          | Supported |
+| :-------------------------------------------- | :-------- |
+| [Object Detection](../tasks/detect.md)        | ✅        |
+| [Instance Segmentation](../tasks/segment.md)  | ✅        |
+| [Semantic Segmentation](../tasks/semantic.md) | ✅        |
+| [Pose Estimation](../tasks/pose.md)           | ✅        |
+| [OBB Detection](../tasks/obb.md)              | ✅        |
+| [Classification](../tasks/classify.md)        | ✅        |
+| [Depth Estimation](../tasks/depth.md)         | ✅        |
+
 ## Export to MNN: Converting Your YOLO26 Model
 
 You can expand model compatibility and deployment flexibility by converting [Ultralytics YOLO](../models/yolo26.md) models to MNN format. This conversion optimizes your models for mobile and embedded environments, ensuring efficient performance on resource-constrained devices.

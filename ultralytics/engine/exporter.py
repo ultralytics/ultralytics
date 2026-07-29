@@ -385,7 +385,8 @@ EXPORT_ENVS = {
         ],
         # DeepX export is only supported on non-aarch64 Linux.
         "env": {},
-        "smoke": ["yolo export format=deepx model=yolo26n.pt imgsz=32 data=coco8.yaml"],
+        # INT8 is forced for DEEPX, so 'data' defaults to each task's calibration dataset
+        "smoke": [f"yolo export format=deepx model={model} imgsz=32" for model in TASK2MODEL.values()],
     },
     "litert": {
         "python": "3.13",

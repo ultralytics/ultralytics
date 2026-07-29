@@ -69,11 +69,25 @@ ONNX models are often deployed on CPUs due to their compatibility with ONNX Runt
 
 While ONNX models are commonly used on CPUs, they can also be deployed on the following platforms:
 
-- **GPU Acceleration**: ONNX fully supports GPU acceleration, particularly NVIDIA CUDA. This enables efficient execution on NVIDIA GPUs for tasks that demand high computational power.
+- **GPU Acceleration**: ONNX fully supports GPU acceleration, particularly NVIDIA CUDA. For native training and inference on AMD GPUs, use [PyTorch ROCm](amd.md); an ONNX file still requires an AMD-compatible runtime.
 
-- **Edge and Mobile Devices**: ONNX extends to edge and mobile devices, perfect for on-device and real-time inference scenarios. It's lightweight and compatible with edge hardware, and serves as the basis for vendor NPU formats such as [Qualcomm QNN](qnn.md) for Snapdragon devices and [RKNN](rockchip-rknn.md) for Rockchip NPUs.
+- **Edge and Mobile Devices**: ONNX extends to edge and mobile devices, perfect for on-device and real-time inference scenarios. It's lightweight and compatible with edge hardware, and serves as the basis for vendor NPU formats such as [Huawei Ascend](ascend.md), [Qualcomm QNN](qnn.md) for Snapdragon devices, and [RKNN](rockchip-rknn.md) for Rockchip NPUs.
 
 - **Web Browsers**: ONNX can run directly in web browsers, powering interactive and dynamic web-based AI applications.
+
+## Supported Tasks
+
+ONNX export supports all seven Ultralytics tasks. Detection, instance segmentation, pose, OBB, and classification cover the YOLO26, YOLO11, and YOLOv8 families; semantic segmentation and depth estimation are YOLO26-only.
+
+| Task                                          | Supported |
+| :-------------------------------------------- | :-------- |
+| [Object Detection](../tasks/detect.md)        | ✅        |
+| [Instance Segmentation](../tasks/segment.md)  | ✅        |
+| [Semantic Segmentation](../tasks/semantic.md) | ✅        |
+| [Pose Estimation](../tasks/pose.md)           | ✅        |
+| [OBB Detection](../tasks/obb.md)              | ✅        |
+| [Classification](../tasks/classify.md)        | ✅        |
+| [Depth Estimation](../tasks/depth.md)         | ✅        |
 
 ## Exporting YOLO26 Models to ONNX
 

@@ -51,9 +51,23 @@ Here's how you can deploy with TF GraphDef efficiently across various platforms.
 
 - **Specialized Hardware:** TF GraphDef's platform-agnostic nature allows it to target custom hardware, such as accelerators and TPUs (Tensor Processing Units). These devices can provide performance advantages for computationally intensive models.
 
+## Supported Tasks
+
+TF GraphDef export supports all seven Ultralytics tasks. Detection, instance segmentation, pose, OBB, and classification cover the YOLO26, YOLO11, and YOLOv8 families; semantic segmentation and depth estimation are YOLO26-only.
+
+| Task                                          | Supported |
+| :-------------------------------------------- | :-------- |
+| [Object Detection](../tasks/detect.md)        | ✅        |
+| [Instance Segmentation](../tasks/segment.md)  | ✅        |
+| [Semantic Segmentation](../tasks/semantic.md) | ✅        |
+| [Pose Estimation](../tasks/pose.md)           | ✅        |
+| [OBB Detection](../tasks/obb.md)              | ✅        |
+| [Classification](../tasks/classify.md)        | ✅        |
+| [Depth Estimation](../tasks/depth.md)         | ✅        |
+
 ## Exporting YOLO26 Models to TF GraphDef
 
-You can convert your YOLO26 object detection model to the TF GraphDef format, which is compatible with various systems, to improve its performance across platforms.
+You can convert your YOLO26 model to the TF GraphDef format, which is compatible with various systems, to improve its performance across platforms.
 
 ### Installation
 

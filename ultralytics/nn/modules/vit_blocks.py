@@ -138,7 +138,7 @@ class RepUltraViTBlock(UltraViTBlock):
 
     @torch.no_grad()
     def fuse(self):
-        """Fold the token-mixer branches, residual, and ConvFFN normalization for deploy."""
+        """Fold the token-mixer branches, LayerScale, and ConvFFN normalization for deploy."""
         if isinstance(self.mixer, nn.Conv2d):
             return
         self.mixer.fuse_convs()
@@ -156,6 +156,11 @@ class RepUltraViTBlock(UltraViTBlock):
         self.mixer = mixer
         self.ffn_dw = fuse_conv_and_bn(self.ffn_dw, self.ffn_bn)
         del self.ffn_bn
+        if hasattr(self, "ls1"):
+            del self.ls1
+        if hasattr(self, "ls2"):
+            self.ffn_pw2.weight.mul_(self.ls2[:, None])
+            del self.ls2
 
 
 class MHSABlock(nn.Module):
@@ -198,7 +203,7 @@ class MHSABlock(nn.Module):
         ffn_pw1 (nn.Conv2d): ConvMlp 1x1 conv to hidden dim.
         ffn_pw2 (nn.Conv2d): ConvMlp 1x1 conv back to c.
         act (nn.Module): FFN activation, GELU or SiLU (see UltraViTBlock on the TensorRT fusion difference).
-        ls1 (nn.Parameter): Optional LayerScale on the attention residual (does not fold away at inference).
+        ls1 (nn.Parameter): Optional LayerScale on the attention residual, folded into `proj` for deploy.
         ls2 (nn.Parameter): Optional LayerScale on the FFN residual, shaped (C, 1, 1) for the ConvMlp path and (C,) for
             the token path.
     """
@@ -271,6 +276,25 @@ class MHSABlock(nn.Module):
         """Rotary extension point, a no-op here. RoPE2DBlock subclasses rotate q/k by their positional tables."""
         return q, k
 
+    @torch.no_grad()
+    def fuse(self):
+        """Fold LayerScale into the attention and FFN output projections for deploy."""
+        if hasattr(self, "ffn_bn"):
+            self.ffn_dw = fuse_conv_and_bn(self.ffn_dw, self.ffn_bn)
+            del self.ffn_bn
+        if hasattr(self, "ls1"):
+            self.proj.weight.mul_(self.ls1[:, None])
+            if self.proj.bias is not None:
+                self.proj.bias.mul_(self.ls1)
+            del self.ls1
+        if hasattr(self, "ls2"):
+            projection = self.ffn_pw2 if hasattr(self, "ffn_pw2") else self.fc2
+            scale = self.ls2.flatten()
+            projection.weight.mul_(scale[:, None] if isinstance(projection, nn.Linear) else scale[:, None, None, None])
+            if projection.bias is not None:
+                projection.bias.mul_(scale)
+            del self.ls2
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass: 4D → tokens (+ storage) → SA → drop storage → FFN (token Linear/SwiGLU or ConvMlp) → 4D."""
         b, c, h, w = x.shape
@@ -307,7 +331,9 @@ class MHSABlock(nn.Module):
         ls2 = getattr(self, "ls2", None)
         if getattr(self, "ffn_dw", None) is not None:
             x = t.transpose(1, 2).reshape(b, c, h, w)
-            f = self.ffn_pw2(self.act(self.ffn_pw1(self.ffn_bn(self.ffn_dw(x)))))
+            f = self.ffn_dw(x)
+            f = self.ffn_bn(f) if hasattr(self, "ffn_bn") else f
+            f = self.ffn_pw2(self.act(self.ffn_pw1(f)))
             return x + (f if ls2 is None else ls2 * f)
         n2 = self.ln2(t)
         if getattr(self, "swiglu", False):  # getattr: pre-swiglu checkpoints still load and run

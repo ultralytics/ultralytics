@@ -173,13 +173,16 @@ def modelopt_quantize_onnx(
         dims = [d.dim_value if d.dim_value > 0 else dynamic_dim for d in tt.shape.dim]
         if not dims:  # a scalar input still needs an array
             dims = [1]
-        if inp.name == input_name and len(dims) == len(shape):
-            dims = list(shape)  # the image input keeps the requested calibration size
+        # Only a dynamic image input needs the caller's size; a declared shape is already correct and
+        # must be kept, otherwise a non image first input would be calibrated at the wrong shape.
+        if inp.name == input_name and len(dims) == len(shape) and any(d.dim_value <= 0 for d in tt.shape.dim):
+            dims = list(shape)
         np_dtype = onnx.helper.tensor_dtype_to_np_dtype(tt.elem_type)
         if np_dtype == np.bool_:
             calib[inp.name] = np.zeros(dims, dtype=np.bool_)
         elif np.issubdtype(np_dtype, np.integer):
-            calib[inp.name] = np.random.randint(0, 100, size=dims).astype(np_dtype)
+            # Integer inputs are usually indices into an embedding, so keep them small and in range.
+            calib[inp.name] = np.ones(dims, dtype=np_dtype)
         else:
             calib[inp.name] = np.random.randn(*dims).astype(np_dtype)
 

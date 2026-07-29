@@ -1163,6 +1163,8 @@ class ClassificationDataset:
         """
         import torchvision  # scope for faster 'import ultralytics'
 
+        from ultralytics.data.build import get_split_fraction  # scope to avoid a circular import
+
         # Base class assigned as attribute rather than used as base class to allow for scoping slow torchvision import
         if TORCHVISION_0_18:  # 'allow_empty' argument first introduced in torchvision 0.18
             self.base = torchvision.datasets.ImageFolder(root=root, allow_empty=True)
@@ -1173,8 +1175,8 @@ class ClassificationDataset:
         self.root = self.base.root
 
         # Initialize attributes
-        if augment and args.fraction < 1.0:  # reduce training fraction
-            self.samples = self.samples[: round(len(self.samples) * args.fraction)]
+        if augment and (fraction := get_split_fraction(args.fraction, "train")) < 1.0:  # reduce training fraction
+            self.samples = self.samples[: round(len(self.samples) * fraction)]
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files

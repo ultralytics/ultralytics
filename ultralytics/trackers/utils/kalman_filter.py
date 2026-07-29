@@ -242,8 +242,8 @@ class KalmanFilterXYAH:
     ) -> np.ndarray:
         """Compute gating distance between state distribution and measurements.
 
-        A suitable distance threshold is the 95% chi-square quantile `scipy.stats.chi2.ppf(0.95, df)`, where the
-        distribution has 4 degrees of freedom (9.4877) when `only_position` is False and 2 (5.9915) otherwise.
+        A suitable threshold for the `"maha"` metric is the 95% chi-square quantile `scipy.stats.chi2.ppf(0.95, df)`,
+        with 4 degrees of freedom (9.4877) when `only_position` is False and 2 (5.9915) otherwise.
 
         Args:
             mean (np.ndarray): Mean vector over the state distribution (8 dimensional).

@@ -72,6 +72,12 @@ so preprocessing is reported as 0 and its cost is included in inference.
 - **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`, measured through the [iOS SDK's](https://github.com/ultralytics/yolo-ios-app) per-stage timing via the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) benchmark harness in profile mode (optimized native code). CPU/accelerator order alternated between tasks in one sequential sweep. CPU rows request Core ML `.cpuOnly`; CPU + ANE preferred rows request `.cpuAndNeuralEngine`, with final operation placement controlled by Core ML. Sustained real-time camera operation runs higher because it includes the capture and scaling pipeline plus thermal settling. A historical pre-standard camera sweep measured 11.3 ms/frame for YOLO26n detect and 16.5 ms/frame for YOLO26n Depth on the same device — see the [iOS SDK performance doc](https://github.com/ultralytics/yolo-ios-app/blob/main/docs/performance.md) for steady-state profiling.
 - Compare the Android CPU/GPU results in the [LiteRT integration](litert.md#measured-performance) and Snapdragon NPU results in the [Qualcomm QNN integration](qnn.md#measured-performance).
 
+## Supported Tasks
+
+CoreML export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+
+{% include "macros/supported-tasks.md" %}
+
 ## Exporting YOLO26 Models to CoreML
 
 ### Installation

@@ -279,11 +279,7 @@ class SimpleClass:
         ...         self.x = 10
         ...         self.y = "hello"
         >>> obj = MyClass()
-        >>> print(obj)
-        __main__.MyClass object with attributes:
-
-        x: 10
-        y: 'hello'
+        >>> text = str(obj)  # "<module>.MyClass object with attributes:" followed by "x: 10" and "y: 'hello'"
 
     Notes:
         - This class is designed to be subclassed. It provides a convenient way to inspect object attributes.
@@ -1018,7 +1014,7 @@ def colorstr(*input):
 
     Examples:
         >>> colorstr("blue", "bold", "hello world")
-        "\033[34m\033[1mhello world\033[0m"
+        '\x1b[34m\x1b[1mhello world\x1b[0m'
 
     Notes:
         Supported Colors and Styles:
@@ -1066,7 +1062,7 @@ def remove_colorstr(input_string):
 
     Examples:
         >>> remove_colorstr(colorstr("blue", "bold", "hello world"))
-        "hello world"
+        'hello world'
     """
     ansi_escape = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
     return ansi_escape.sub("", input_string)
@@ -1505,7 +1501,6 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
 # Check first-install steps
 PREFIX = colorstr("Ultralytics: ")
 SETTINGS = SettingsManager()  # initialize settings
-PERSISTENT_CACHE = JSONDict(USER_CONFIG_DIR / "persistent_cache.json")  # initialize persistent cache
 DATASETS_DIR = Path(SETTINGS["datasets_dir"])  # global datasets directory
 WEIGHTS_DIR = Path(SETTINGS["weights_dir"])  # global weights directory
 RUNS_DIR = Path(SETTINGS["runs_dir"])  # global runs directory

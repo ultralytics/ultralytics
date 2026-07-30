@@ -54,44 +54,44 @@ SOLUTION_MAP = {
     "help": None,
 }
 
-# Define valid tasks and modes
-MODES = frozenset({"train", "val", "predict", "export", "track", "benchmark"})
-TASKS = frozenset({"detect", "segment", "classify", "pose", "obb", "semantic", "depth"})
+# Define valid tasks and modes, ordered as they appear across the docs and Ultralytics Platform
+MODES = ("train", "val", "predict", "export", "track", "benchmark")
+TASKS = ("detect", "segment", "semantic", "depth", "classify", "pose", "obb")
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
+    "semantic": "cityscapes8.yaml",
+    "depth": "depth8.yaml",
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
-    "depth": "depth8.yaml",
-    "semantic": "cityscapes8.yaml",
 }
 TASK2CALIBRATIONDATA = {
     "detect": "coco128.yaml",
     "segment": "coco128-seg.yaml",
+    "semantic": "cityscapes8.yaml",
+    "depth": "depth8.yaml",
     "classify": "imagenet100",
     "pose": "coco8-pose.yaml",
     "obb": "dota128.yaml",
-    "depth": "depth8.yaml",
-    "semantic": "cityscapes8.yaml",
 }
 TASK2MODEL = {
     "detect": "yolo26n.pt",
     "segment": "yolo26n-seg.pt",
+    "semantic": "yolo26n-sem.pt",
+    "depth": "yolo26n-depth.pt",
     "classify": "yolo26n-cls.pt",
     "pose": "yolo26n-pose.pt",
     "obb": "yolo26n-obb.pt",
-    "depth": "yolo26n-depth.pt",
-    "semantic": "yolo26n-sem.pt",
 }
 TASK2METRIC = {
     "detect": "metrics/mAP50-95(B)",
     "segment": "metrics/mAP50-95(M)",
+    "semantic": "metrics/mIoU",
+    "depth": "metrics/delta1",
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
-    "depth": "metrics/delta1",
-    "semantic": "metrics/mIoU",
 }
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
@@ -925,7 +925,7 @@ def smart_value(v: str) -> Any:
         3.14
         >>> smart_value("True")
         True
-        >>> smart_value("None")
+        >>> print(smart_value("None"))
         None
         >>> smart_value("some_string")
         'some_string'
@@ -1137,9 +1137,6 @@ def copy_default_cfg() -> None:
 
     Examples:
         >>> copy_default_cfg()
-        # Output: default.yaml copied to /path/to/current/directory/default_copy.yaml
-        # Example YOLO command with this new custom cfg:
-        #   yolo cfg='/path/to/current/directory/default_copy.yaml' imgsz=320 batch=8
 
     Notes:
         - The new configuration file is created in the current working directory.

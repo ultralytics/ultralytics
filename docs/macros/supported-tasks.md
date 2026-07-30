@@ -1,10 +1,9 @@
-{% set unsupported = unsupported or [] %}
-| Task | Supported |
+| Task                                          | Supported |
 | :-------------------------------------------- | :-------- |
-| [Object Detection](../tasks/detect.md) | {{ "❌" if "detect" in unsupported else "✅" }} |
-| [Instance Segmentation](../tasks/segment.md) | {{ "❌" if "segment" in unsupported else "✅" }} |
-| [Semantic Segmentation](../tasks/semantic.md) | {{ "❌" if "semantic" in unsupported else "✅" }} |
-| [Pose Estimation](../tasks/pose.md) | {{ "❌" if "pose" in unsupported else "✅" }} |
-| [OBB Detection](../tasks/obb.md) | {{ "❌" if "obb" in unsupported else "✅" }} |
-| [Classification](../tasks/classify.md) | {{ "❌" if "classify" in unsupported else "✅" }} |
-| [Depth Estimation](../tasks/depth.md) | {{ "❌" if "depth" in unsupported else "✅" }} |
+| [Object Detection](../tasks/detect.md)        | ✅        |
+| [Instance Segmentation](../tasks/segment.md)  | ✅        |
+| [Semantic Segmentation](../tasks/semantic.md) | ✅        |
+| [Pose Estimation](../tasks/pose.md)           | ✅        |
+| [OBB Detection](../tasks/obb.md)              | ✅        |
+| [Classification](../tasks/classify.md)        | ✅        |
+| [Depth Estimation](../tasks/depth.md)         | ✅        |

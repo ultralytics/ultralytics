@@ -31,6 +31,7 @@ serializes the overrides dict, not the model callback list). nfs_sync is started
 by this runner directly, so it no longer depends on a callback. For multi-GPU,
 subclass ClassificationTrainer and register inside __init__ instead.
 """
+from __future__ import annotations
 
 import os
 import re

@@ -42,7 +42,7 @@ def run_paths(name: str, exist_ok: bool = False) -> dict:
     Returns:
         (dict): Kwargs with ``project``, ``name``, ``save_dir``, ``exist_ok``.
     """
-    return dict(project=WANDB_PROJECT, name=name, save_dir=str(LOCAL_ROOT / name), exist_ok=exist_ok)
+    return {"project": WANDB_PROJECT, "name": name, "save_dir": str(LOCAL_ROOT / name), "exist_ok": exist_ok}
 
 
 def multi_results_csv(parent_name: str, root: Path = NFS_MIRROR_ROOT) -> Path:

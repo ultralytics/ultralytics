@@ -53,13 +53,13 @@ YOLO12 supports a variety of computer vision tasks. The table below shows task s
 
     Only detection weights (`yolo12n.pt`, `yolo12s.pt`, `yolo12m.pt`, `yolo12l.pt`, `yolo12x.pt`) are released on [ultralytics/assets](https://github.com/ultralytics/assets/releases). Segmentation, classification, pose, and OBB architectures are defined in [ultralytics/cfg/models/12/](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/12), so those variants support training from scratch from the `.yaml` config, but no pretrained `.pt` files are currently available for them. For pretrained segmentation, pose, classification, or OBB checkpoints, Ultralytics recommends [YOLO11](yolo11.md) or [YOLO26](yolo26.md).
 
-| Model Type                                                                                                     | Task                                   | Pretrained Weights | Inference | Validation | Training | Export |
-| -------------------------------------------------------------------------------------------------------------- | -------------------------------------- | ------------------ | --------- | ---------- | -------- | ------ |
-| [YOLO12](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12.yaml)           | [Detection](../tasks/detect.md)        | ✅                 | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-seg](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-seg.yaml)   | [Segmentation](../tasks/segment.md)    | ❌                 | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-pose](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-pose.yaml) | [Pose](../tasks/pose.md)               | ❌                 | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-cls](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-cls.yaml)   | [Classification](../tasks/classify.md) | ❌                 | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-obb](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-obb.yaml)   | [OBB](../tasks/obb.md)                 | ❌                 | ✅        | ✅         | ✅       | ✅     |
+| Model Type                                                                                                     | Task                                   | Pretrained Weights | Training | Validation | Inference | Export |
+| -------------------------------------------------------------------------------------------------------------- | -------------------------------------- | ------------------ | -------- | ---------- | --------- | ------ |
+| [YOLO12](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12.yaml)           | [Detection](../tasks/detect.md)        | ✅                 | ✅       | ✅         | ✅        | ✅     |
+| [YOLO12-seg](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-seg.yaml)   | [Segmentation](../tasks/segment.md)    | ❌                 | ✅       | ✅         | ✅        | ✅     |
+| [YOLO12-cls](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-cls.yaml)   | [Classification](../tasks/classify.md) | ❌                 | ✅       | ✅         | ✅        | ✅     |
+| [YOLO12-pose](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-pose.yaml) | [Pose](../tasks/pose.md)               | ❌                 | ✅       | ✅         | ✅        | ✅     |
+| [YOLO12-obb](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-obb.yaml)   | [OBB](../tasks/obb.md)                 | ❌                 | ✅       | ✅         | ✅        | ✅     |
 
 All YOLO12 architectures support every mode once a trained checkpoint is available. The `Pretrained Weights` column indicates only whether Ultralytics publishes an official pretrained `.pt` on [ultralytics/assets](https://github.com/ultralytics/assets/releases): for segmentation, pose, classification, and OBB, you must train your own checkpoint from the corresponding `.yaml` before running inference, validation, or export.
 
@@ -88,7 +88,7 @@ YOLO12 demonstrates significant [accuracy](https://www.ultralytics.com/glossary/
 
 This section provides examples for training and inference with YOLO12. For more comprehensive documentation on these and other modes (including [Validation](../modes/val.md) and [Export](../modes/export.md)), consult the dedicated [Predict](../modes/predict.md) and [Train](../modes/train.md) pages.
 
-The examples below focus on YOLO12 [Detect](../tasks/detect.md) models (for object detection). For other supported tasks (segmentation, classification, oriented object detection, and pose estimation), refer to the respective task-specific documentation: [Segment](../tasks/segment.md), [Classify](../tasks/classify.md), [OBB](../tasks/obb.md), and [Pose](../tasks/pose.md).
+The examples below focus on YOLO12 [Detect](../tasks/detect.md) models (for object detection). For other supported tasks (segmentation, classification, pose estimation, and oriented object detection), refer to the respective task-specific documentation: [Segment](../tasks/segment.md), [Classify](../tasks/classify.md), [Pose](../tasks/pose.md), and [OBB](../tasks/obb.md).
 
 !!! example
 
@@ -197,4 +197,4 @@ By default, the Ultralytics YOLO12 implementation does _not_ require FlashAttent
 
 ### Where can I find usage examples and more detailed documentation for YOLO12?
 
-This page provides basic [usage examples](#usage-examples) for training and inference. For comprehensive documentation on these and other modes, including [Validation](../modes/val.md) and [Export](../modes/export.md), consult the dedicated [Predict](../modes/predict.md) and [Train](../modes/train.md) pages. For task-specific information (segmentation, classification, oriented object detection, and pose estimation), refer to the respective documentation: [Segment](../tasks/segment.md), [Classify](../tasks/classify.md), [OBB](../tasks/obb.md), and [Pose](../tasks/pose.md). These resources provide in-depth guidance for effectively utilizing YOLO12 in various scenarios.
+This page provides basic [usage examples](#usage-examples) for training and inference. For comprehensive documentation on these and other modes, including [Validation](../modes/val.md) and [Export](../modes/export.md), consult the dedicated [Predict](../modes/predict.md) and [Train](../modes/train.md) pages. For task-specific information (segmentation, classification, pose estimation, and oriented object detection), refer to the respective documentation: [Segment](../tasks/segment.md), [Classify](../tasks/classify.md), [Pose](../tasks/pose.md), and [OBB](../tasks/obb.md). These resources provide in-depth guidance for effectively utilizing YOLO12 in various scenarios.

@@ -606,9 +606,15 @@ def _onnx_postprocess(f, metadata, half=False, device_type="cpu", prefix="SAM3 O
     if half and device_type == "cpu":
         try:
             from onnxruntime.transformers import float16
+            from onnxruntime.transformers.onnx_model import OnnxModel
 
             LOGGER.info(f"{prefix} converting {Path(f).name} to FP16...")
             model_onnx = float16.convert_float_to_float16(model_onnx, keep_io_types=True)
+            # keep_io_types wraps every input in a cast appended after the node that consumes it,
+            # which is not a sorted graph and fails the checker, so put the nodes back in order.
+            sorted_model = OnnxModel(model_onnx)
+            sorted_model.topological_sort()
+            model_onnx = sorted_model.model
         except Exception as e:
             LOGGER.warning(f"{prefix} FP16 conversion failure for {Path(f).name}: {e}")
 

@@ -39,6 +39,7 @@ COMMON_WEIGHTS = [
 
 SLOW_WEIGHTS = [
     "sam2.1_b.pt",
+    "yoloe-26n-seg-pf.pt",
 ]
 
 DATASETS = [

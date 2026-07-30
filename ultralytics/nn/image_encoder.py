@@ -15,8 +15,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 from ultralytics.nn.tasks import ClassificationModel
 from ultralytics.nn.teacher_model import safe_key
@@ -64,9 +64,15 @@ class ImageEncoderLoss:
     dune/teachers/config.py:25,36).
 
     Attributes:
+        ITEM_NAMES (dict): Loss component names by distillation path.
         cos_weight (float): Alpha in EUPE Eq.5.
         l1_weight (float): Beta in EUPE Eq.5.
     """
+
+    ITEM_NAMES = {
+        "adaptor": ("cls_cos", "patch_cos", "patch_l1"),
+        "feat_map": ("feat_p3", "feat_p4", "feat_p5"),
+    }
 
     def __init__(
         self,
@@ -205,14 +211,16 @@ class ImageEncoderLoss:
                 "_teacher_keys" listing the active teacher keys.
 
         Returns:
-            (tuple): (total_loss, stacked loss_items for all teachers).
+            total_loss (torch.Tensor): Summed loss across teachers.
+            loss_items (dict[str, torch.Tensor]): Named loss components for all teachers.
         """
         teacher_keys = batch["_teacher_keys"]
         first = next(iter(preds.values()))
         dev = first[0].device
         total_loss = torch.tensor(0.0, device=dev)
-        all_items = []
+        loss_items = {}
         patch_align_mode = batch.get("_patch_align_mode", "bilinear")
+        names = self.ITEM_NAMES["feat_map" if self.distill_path == "feat_map" else "adaptor"]
 
         for key in teacher_keys:
             if self.distill_path == "feat_map":
@@ -224,9 +232,9 @@ class ImageEncoderLoss:
                 t_patch = self._align_patch_tokens(s_patch, batch[key]["patches"], mode=patch_align_mode)
                 loss_i, items_i = self._teacher_loss(s_cls, s_patch, t_cls, t_patch)
             total_loss = total_loss + loss_i
-            all_items.extend(items_i)
+            loss_items.update({f"{key}/{name}": item for name, item in zip(names, items_i)})
 
-        return total_loss, torch.stack(all_items)
+        return total_loss, loss_items
 
 
 class ImageEncoderModel(ClassificationModel):
@@ -273,8 +281,7 @@ class ImageEncoderModel(ClassificationModel):
                 "embed_dim", "num_patches", "token_types". If None, defaults to a single EUPE-ViT-B teacher for
                 backward compat.
             proj_hidden_dim (int, optional): Adaptor MLP hidden dimension. None uses the 1280-wide YOLO Classify
-                projection (ultralytics/nn/modules/head.py:819). EUPE uses 1536 in Stage 1 (arXiv:2603.22387
-                Section 4.1).
+            projection (ultralytics/nn/modules/head.py: 819). EUPE uses 1536 in Stage 1 (arXiv:2603.22387 Section 4.1).
             loss_cfg (dict, optional): Loss config with keys cos_weight, l1_weight, cls_l1, loss_type, distill_path.
                 None = EUPE defaults.
             distill_path (str): "adaptor" (default, cos+L1 on final-stage CLS+patch through adaptor MLP) or "feat_map"
@@ -396,13 +403,13 @@ class ImageEncoderModel(ClassificationModel):
         result = self.criterion(teacher_preds, batch)
 
         # Nan instrumentation: log diagnostic info on first nan occurrence per training run
-        if result[1].isnan().any() and not getattr(self, "_nan_logged", False):
+        if not getattr(self, "_nan_logged", False) and result[0].isnan():
             self._nan_logged = True
             import logging
 
             log = logging.getLogger("ultralytics")
             log.warning("NAN DETECTED in loss items. Diagnostic dump:")
-            log.warning(f"  loss_items: {result[1].tolist()}")
+            log.warning(f"  loss_items: {result[1]}")
             log.warning(
                 f"  features: nan={features.isnan().any()}, inf={features.isinf().any()}, "
                 f"max={features.abs().max():.4f}, dtype={features.dtype}"

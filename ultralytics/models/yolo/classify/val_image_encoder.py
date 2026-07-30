@@ -123,7 +123,7 @@ class ImageEncoderValidator(BaseValidator):
         Must update here because base validator calls get_stats() before finalize_metrics().
         """
         if getattr(self, "loss", None) is not None:
-            self.metrics._loss = float(self.loss.sum())
+            self.metrics._loss = float(sum(self.loss.values()))
         return self.metrics.results_dict
 
     def get_desc(self):

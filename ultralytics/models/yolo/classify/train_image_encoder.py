@@ -25,7 +25,7 @@ from callbacks.distill_aug import classify_augmentations_distill
 from ultralytics.data.augment import classify_transforms
 from ultralytics.data.utils import IMG_FORMATS
 from ultralytics.models.yolo.classify.train import ClassificationTrainer
-from ultralytics.nn.image_encoder import ImageEncoderModel
+from ultralytics.nn.image_encoder import ImageEncoderLoss, ImageEncoderModel
 from ultralytics.nn.teacher_model import (
     PIPELINE_IMAGE_MEAN,
     PIPELINE_IMAGE_STD,
@@ -725,12 +725,9 @@ class ImageEncoderTrainer(ClassificationTrainer):
         from ultralytics.models.yolo.classify.val_image_encoder import ImageEncoderValidator
 
         dp = getattr(self.model, "distill_path", "adaptor")
-        sub = ("cls_cos", "patch_cos", "patch_l1") if dp != "feat_map" else ("feat_p3", "feat_p4", "feat_p5")
+        sub = ImageEncoderLoss.ITEM_NAMES["feat_map" if dp == "feat_map" else "adaptor"]
         self._loss_sub = sub
-        self.loss_names = []
-        for sk in self._safe_keys:
-            self.loss_names.extend([f"{sk}/{s}" for s in sub])
-        self.loss_names.extend(list(sub))
+        self.loss_names = tuple(f"{sk}/{s}" for sk in self._safe_keys for s in sub)
 
         # Define epoch-based x-axis so aggregate metrics align across backfilled and new runs
         try:
@@ -819,22 +816,19 @@ class ImageEncoderTrainer(ClassificationTrainer):
         """Return labeled loss items for WandB logging.
 
         Args:
-            loss_items (torch.Tensor, optional): Loss items tensor.
+            loss_items (dict, optional): Named loss items.
             prefix (str, optional): Prefix for loss names.
 
         Returns:
             (dict | list): Labeled loss dict or list of keys.
         """
-        keys = [f"{prefix}/{x}" for x in self.loss_names]
+        result = super().label_loss_items(loss_items, prefix)
         if loss_items is None:
-            return keys
-        loss_items = [round(float(x), 5) for x in loss_items]
-        # Append teacher-averaged aggregate losses.
-        n = len(self._safe_keys)
-        m = len(getattr(self, "_loss_sub", ("cls_cos", "patch_cos", "patch_l1")))
-        for i in range(m):
-            loss_items.append(round(sum(loss_items[j * m + i] for j in range(n)) / n, 5))
-        result = dict(zip(keys, loss_items))
+            return result + [f"{prefix}/{name}" for name in self._loss_sub]
+        for name in self._loss_sub:
+            result[f"{prefix}/{name}"] = round(
+                sum(result[f"{prefix}/{sk}/{name}"] for sk in self._safe_keys) / len(self._safe_keys), 5
+            )
         result["epoch"] = self.epoch + 1
         return result
 

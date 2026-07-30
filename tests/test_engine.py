@@ -16,6 +16,7 @@ from ultralytics.engine.exporter import Exporter
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo import classify, depth, detect, obb, pose, segment, semantic
 from ultralytics.nn.distill_model import DistillationModel
+from ultralytics.nn.image_encoder import ImageEncoderLoss
 from ultralytics.nn.tasks import DetectionModel, load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, WEIGHTS_DIR
 from ultralytics.utils.torch_utils import unwrap_model
@@ -205,7 +206,9 @@ def test_distill_resume(tmp_path: Path):
 
 
 def test_distill_grayscale(tmp_path: Path):
-    """Test knowledge distillation on a single-channel dataset (https://github.com/ultralytics/ultralytics/issues/25066)."""
+    """Test knowledge distillation on a single-channel dataset
+    (https://github.com/ultralytics/ultralytics/issues/25066).
+    """
     teacher = DetectionModel("yolo26n.yaml", ch=3, nc=80, verbose=False)
     teacher_path = tmp_path / "teacher.pt"
     torch.save({"model": teacher}, teacher_path)
@@ -214,6 +217,27 @@ def test_distill_grayscale(tmp_path: Path):
     model = DistillationModel(teacher_model=teacher_path, student_model=student)
     assert isinstance(model, DistillationModel)
     assert model.teacher_model.yaml["channels"] == 1
+
+
+def test_image_encoder_loss_items():
+    """Test backbone distillation returns loss items compatible with the shared trainer."""
+    batch = {"_teacher_keys": ["t1", "t2"]}
+    preds = {}
+    for key in batch["_teacher_keys"]:
+        batch[key] = {"cls": torch.randn(2, 4), "patches": torch.randn(2, 9, 4)}
+        preds[key] = (torch.randn(2, 4, requires_grad=True), torch.randn(2, 9, 4, requires_grad=True))
+
+    loss, items = ImageEncoderLoss()(preds, batch)
+
+    assert tuple(items) == (
+        "t1/cls_cos",
+        "t1/patch_cos",
+        "t1/patch_l1",
+        "t2/cls_cos",
+        "t2/patch_cos",
+        "t2/patch_l1",
+    )
+    loss.backward()
 
 
 @pytest.mark.parametrize(

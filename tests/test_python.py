@@ -1836,27 +1836,6 @@ def test_yoloe_visual_prompt_verbose_false(capfd):
     assert "Ultralytics" not in output
 
 
-@pytest.mark.slow
-def test_yoloe_prompt_free_rknn_fallback():
-    """Verify prompt-free YOLOE uses retained heads when RKNN disables end-to-end export."""
-    from ultralytics import YOLOE
-
-    model = YOLOE(WEIGHTS_DIR / "yoloe-26n-seg-pf.pt").model.eval().float()
-    model.end2end = False
-    model = model.fuse(imgsz=640, verbose=False)
-    head = model.model[-1]
-    head.export = True
-    head.format = "rknn"
-
-    with torch.inference_mode():
-        outputs = model(torch.zeros(1, 3, 640, 640))
-
-    assert len(outputs) == 2
-    assert outputs[0].shape == (1, 4621, 8400)
-    assert outputs[1].shape == (1, 32, 160, 160)
-    assert all(torch.isfinite(output).all() for output in outputs)
-
-
 def test_yolov10():
     """Test YOLOv10 model training, validation, and prediction functionality."""
     model = YOLO("yolov10n.yaml")

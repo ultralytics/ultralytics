@@ -1202,8 +1202,7 @@ class YOLOEDetect(Detect):
         """Process features with fused text embeddings to generate detections for prompt-free model."""
         boxes, scores, index = [], [], []
         bs = x[0].shape[0]
-        # Prompt-free fusion removes the one-to-many heads. RKNN disables end2end export, so use the retained
-        # one-to-one heads when the regular heads are unavailable.
+        # Prompt-free fusion removes the one-to-many heads.
         cv2 = self.one2one_cv2 if self.end2end or self.cv2 is None else self.cv2
         cv3 = self.one2one_cv3 if self.end2end or self.cv3 is None else self.cv3
         for i in range(self.nl):

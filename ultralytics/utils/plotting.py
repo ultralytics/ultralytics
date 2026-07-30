@@ -1315,7 +1315,7 @@ def _detach(x: Any) -> Any:
     return x
 
 
-def gradcam(
+def class_activation_map(
     model,
     im: torch.Tensor,
     paths: list[str],

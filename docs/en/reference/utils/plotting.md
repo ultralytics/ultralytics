@@ -68,6 +68,6 @@ keywords: ultralytics, plotting, utilities, documentation, data visualization, a
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.plotting.gradcam
+## ::: ultralytics.utils.plotting.class_activation_map
 
 <br><br>

@@ -55,7 +55,7 @@ from ultralytics.data.augment import LetterBox
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops
 from ultralytics.utils.checks import check_imgsz, check_imshow
-from ultralytics.utils.plotting import gradcam
+from ultralytics.utils.plotting import class_activation_map
 from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode
 
 STREAM_WARNING = """
@@ -183,9 +183,9 @@ class BasePredictor:
 
     def inference(self, im: torch.Tensor, *args, **kwargs):
         """Run inference on a given image using the specified model and arguments."""
-        skip = self.source_type.tensor or self.args.augment or self.args.embed  # unsupported with Grad-CAM++
+        skip = self.source_type.tensor or self.args.augment or self.args.embed  # unsupported with activation maps
         if self.args.visualize and self.model.format == "pt" and not skip:
-            return gradcam(
+            return class_activation_map(
                 self.model,
                 im,
                 self.batch[0],

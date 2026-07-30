@@ -152,6 +152,9 @@ class GMC:
         except Exception as e:
             LOGGER.warning(f"findTransformECC failed; using identity warp. {e}")
 
+        # Store current frame data for next iteration
+        self.prevFrame = frame.copy()
+
         return H
 
     def apply_features(self, raw_frame: np.ndarray, detections: list | None = None) -> np.ndarray:

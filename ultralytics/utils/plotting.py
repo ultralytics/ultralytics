@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import math
 from collections.abc import Callable
 from pathlib import Path
@@ -16,6 +17,7 @@ from PIL import __version__ as pil_version
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, TryExcept, ops, plt_settings, threaded
 from ultralytics.utils.checks import check_font, check_version, is_ascii
 from ultralytics.utils.files import increment_path
+from ultralytics.utils.torch_utils import TORCH_1_10
 
 
 def _gaussian_filter1d(y, sigma: int = 3, truncate: float = 4.0) -> np.ndarray:
@@ -1376,7 +1378,9 @@ def class_activation_map(
     head = model.model.model[-1]  # AutoBackend -> PyTorch model -> head
     head.shape = head.shapes = None  # rebuild the anchor caches, inference tensors in them break the autograd graph
     handles = [head.register_forward_pre_hook(pre_hook), head.register_forward_hook(hook)]
-    with torch.inference_mode(False), torch.enable_grad():
+    # smart_inference_mode() wraps the caller in inference_mode from torch 1.10 and in no_grad below it, and only the
+    # former has to be left before autograd will record anything.
+    with torch.inference_mode(False) if TORCH_1_10 else contextlib.nullcontext(), torch.enable_grad():
         try:
             im = im.clone().requires_grad_(True)  # model parameters have requires_grad=False, so seed the graph here
             preds = model(im, *args, **kwargs)
@@ -1393,7 +1397,7 @@ def class_activation_map(
         if int(keep.sum(1).amax()) > n:
             LOGGER.warning(f"Explaining the {n} strongest predictions per image out of {int(keep.sum(1).amax())}.")
         rank = torch.arange(n, device=s.device) % keep.sum(1, keepdim=True).clamp(min=1)  # short images repeat
-        order = s.masked_fill(~keep, -torch.inf).argsort(1, descending=True).gather(1, rank)  # (B, n)
+        order = s.masked_fill(~keep, float("-inf")).argsort(1, descending=True).gather(1, rank)  # (B, n)
         cam = None
         for k in range(n):
             levels = []

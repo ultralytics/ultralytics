@@ -1206,8 +1206,9 @@ class YOLOEDetect(Detect):
         """Process features with fused text embeddings to generate detections for prompt-free model."""
         boxes, scores, index = [], [], []
         bs = x[0].shape[0]
-        cv2 = self.cv2 if not self.end2end else self.one2one_cv2
-        cv3 = self.cv3 if not self.end2end else self.one2one_cv3
+        # Prompt-free fusion removes the one-to-many heads.
+        cv2 = self.one2one_cv2 if self.end2end or self.cv2 is None else self.cv2
+        cv3 = self.one2one_cv3 if self.end2end or self.cv3 is None else self.cv3
         for i in range(self.nl):
             cls_feat = cv3[i](x[i])
             loc_feat = cv2[i](x[i])
@@ -1349,9 +1350,9 @@ class YOLOESegment(YOLOEDetect):
         """Process features with fused text embeddings to generate detections for prompt-free model."""
         boxes, scores, index = [], [], []
         bs = x[0].shape[0]
-        cv2 = self.cv2 if not self.end2end else self.one2one_cv2
-        cv3 = self.cv3 if not self.end2end else self.one2one_cv3
-        cv5 = self.cv5 if not self.end2end else self.one2one_cv5
+        cv2 = self.one2one_cv2 if self.end2end or self.cv2 is None else self.cv2
+        cv3 = self.one2one_cv3 if self.end2end or self.cv3 is None else self.cv3
+        cv5 = self.one2one_cv5 if self.end2end or self.cv5 is None else self.cv5
         for i in range(self.nl):
             cls_feat = cv3[i](x[i])
             loc_feat = cv2[i](x[i])

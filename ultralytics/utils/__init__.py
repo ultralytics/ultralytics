@@ -445,16 +445,7 @@ def plt_settings(rcparams=None, backend="Agg"):
 
 
 class _StdoutStreamHandler(logging.StreamHandler):
-    """A StreamHandler that always resolves the current sys.stdout, honoring a later redirect."""
-
-    @property
-    def stream(self):
-        """Return the current sys.stdout instead of the stream bound when the handler was created."""
-        return sys.stdout
-
-    @stream.setter
-    def stream(self, value):
-        """No-op: this handler always resolves sys.stdout dynamically instead of storing a fixed stream."""
+    """Marks the StreamHandler set_logging installs, so a later call replaces only that handler."""
 
 
 def set_logging(name="LOGGING_NAME", verbose=True):
@@ -514,7 +505,7 @@ def set_logging(name="LOGGING_NAME", verbose=True):
                 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
     # Create and configure the StreamHandler with the appropriate formatter and level
-    stream_handler = _StdoutStreamHandler()
+    stream_handler = _StdoutStreamHandler(sys.stdout)
     stream_handler.setFormatter(formatter)
     stream_handler.setLevel(level)
 

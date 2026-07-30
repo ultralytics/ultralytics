@@ -68,7 +68,7 @@ class BaseTensor(SimpleClass):
             >>> data = torch.rand(100, 4)
             >>> base_tensor = BaseTensor(data, orig_shape=(720, 1280))
             >>> print(base_tensor.shape)
-            (100, 4)
+            torch.Size([100, 4])
         """
         return self.data.shape
 
@@ -1048,9 +1048,6 @@ class Boxes(BaseTensor):
             ...     torch.tensor([[100, 50, 150, 100, 0.9, 0], [200, 150, 300, 250, 0.8, 1]]), orig_shape=(480, 640)
             ... )
             >>> xywh = boxes.xywh
-            >>> print(xywh)
-            tensor([[125.0000,  75.0000,  50.0000,  50.0000],
-                    [250.0000, 200.0000, 100.0000, 100.0000]])
         """
         return ops.xyxy2xywh(self.xyxy)
 

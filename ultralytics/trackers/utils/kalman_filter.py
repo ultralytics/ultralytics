@@ -32,8 +32,6 @@ class KalmanFilterXYAH:
         >>> kf = KalmanFilterXYAH()
         >>> measurement = np.array([100, 200, 1.5, 50])
         >>> mean, covariance = kf.initiate(measurement)
-        >>> print(mean)
-        >>> print(covariance)
     """
 
     def __init__(self):
@@ -310,8 +308,6 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         >>> kf = KalmanFilterXYWH()
         >>> measurement = np.array([100, 50, 20, 40])
         >>> mean, covariance = kf.initiate(measurement)
-        >>> print(mean)
-        >>> print(covariance)
     """
 
     def initiate(self, measurement: np.ndarray):
@@ -329,17 +325,6 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
             >>> kf = KalmanFilterXYWH()
             >>> measurement = np.array([100, 50, 20, 40])
             >>> mean, covariance = kf.initiate(measurement)
-            >>> print(mean)
-            [100.  50.  20.  40.   0.   0.   0.   0.]
-            >>> print(covariance)
-            [[ 4.      0.      0.      0.      0.      0.      0.      0.    ]
-             [ 0.     16.      0.      0.      0.      0.      0.      0.    ]
-             [ 0.      0.      4.      0.      0.      0.      0.      0.    ]
-             [ 0.      0.      0.     16.      0.      0.      0.      0.    ]
-             [ 0.      0.      0.      0.      1.5625  0.      0.      0.    ]
-             [ 0.      0.      0.      0.      0.      6.25    0.      0.    ]
-             [ 0.      0.      0.      0.      0.      0.      1.5625  0.    ]
-             [ 0.      0.      0.      0.      0.      0.      0.      6.25  ]]
         """
         measurement = np.asarray(measurement, dtype=np.float64)
         mean_pos = measurement

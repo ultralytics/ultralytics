@@ -459,9 +459,7 @@ def set_logging(name="LOGGING_NAME", verbose=True):
         (logging.Logger): Configured logger object.
 
     Examples:
-        >>> set_logging(name="ultralytics", verbose=True)
-        >>> logger = logging.getLogger("ultralytics")
-        >>> logger.info("This is an info message")
+        >>> logger = set_logging(name="ultralytics", verbose=True)
 
     Notes:
         - On Windows, this function attempts to reconfigure stdout to use UTF-8 encoding if possible.

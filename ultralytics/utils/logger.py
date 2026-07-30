@@ -541,8 +541,8 @@ class SystemLogger:
 
         Examples:
             >>> logger = SystemLogger()
-            >>> logger.get_metrics()["cpu"]  # CPU percentage
-            >>> logger.get_metrics(rates=True)["network"]["recv_mbs"]  # MB/s download rate
+            >>> cpu_percent = logger.get_metrics()["cpu"]
+            >>> download_rate = logger.get_metrics(rates=True)["network"]["recv_mbs"]  # MB/s
         """
         import psutil  # scoped as slow import
 

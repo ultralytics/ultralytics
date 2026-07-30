@@ -85,7 +85,7 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
 
     Examples:
         >>> from ultralytics.utils.checks import parse_requirements
-        >>> parse_requirements(package="ultralytics")
+        >>> requirements = parse_requirements(package="ultralytics")
     """
     if package:
         requires = [x for x in metadata.distribution(package).requires if "extra == " not in x]
@@ -450,16 +450,16 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         >>> from ultralytics.utils.checks import check_requirements
 
         Check a requirements.txt file
-        >>> check_requirements("path/to/requirements.txt")
+        >>> met = check_requirements("path/to/requirements.txt")
 
         Check a single package
-        >>> check_requirements("ultralytics>=8.3.200", cmds="--index-url https://download.pytorch.org/whl/cpu")
+        >>> met = check_requirements("ultralytics>=8.3.200", cmds="--index-url https://download.pytorch.org/whl/cpu")
 
         Check multiple packages
-        >>> check_requirements(["numpy", "ultralytics"])
+        >>> met = check_requirements(["numpy", "ultralytics"])
 
         Check with interchangeable packages
-        >>> check_requirements([("onnxruntime", "onnxruntime-gpu"), "numpy"])
+        >>> met = check_requirements([("onnxruntime", "onnxruntime-gpu"), "numpy"])
     """
     prefix = colorstr("red", "bold", "requirements:")
 

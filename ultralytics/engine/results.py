@@ -936,10 +936,14 @@ class Boxes(BaseTensor):
         >>> boxes_data = torch.tensor([[100, 50, 150, 100, 0.9, 0], [200, 150, 300, 250, 0.8, 1]])
         >>> orig_shape = (480, 640)  # height, width
         >>> boxes = Boxes(boxes_data, orig_shape)
-        >>> print(boxes.xyxy)
-        >>> print(boxes.conf)
-        >>> print(boxes.cls)
-        >>> print(boxes.xywhn)
+        >>> print(boxes.xyxy.shape)
+        torch.Size([2, 4])
+        >>> print(boxes.conf.shape)
+        torch.Size([2])
+        >>> print(boxes.cls.shape)
+        torch.Size([2])
+        >>> print(boxes.xywhn.shape)
+        torch.Size([2, 4])
     """
 
     def __init__(self, boxes: torch.Tensor | np.ndarray, orig_shape: tuple[int, int]) -> None:
@@ -1211,7 +1215,9 @@ class Keypoints(BaseTensor):
         >>> orig_shape = (480, 640)  # Original image shape (height, width)
         >>> keypoints = Keypoints(keypoints_data, orig_shape)
         >>> print(keypoints.xy.shape)  # Access xy coordinates
-        >>> print(keypoints.conf)  # Access confidence values
+        torch.Size([1, 17, 2])
+        >>> print(keypoints.conf.shape)  # Access confidence values
+        torch.Size([1, 17])
         >>> keypoints_cpu = keypoints.cpu()  # Move keypoints to CPU
     """
 
@@ -1429,9 +1435,12 @@ class OBB(BaseTensor):
     Examples:
         >>> boxes = torch.tensor([[100, 50, 150, 100, 30, 0.9, 0]])  # xywhr, conf, cls
         >>> obb = OBB(boxes, orig_shape=(480, 640))
-        >>> print(obb.xyxyxyxy)
-        >>> print(obb.conf)
-        >>> print(obb.cls)
+        >>> print(obb.xyxyxyxy.shape)
+        torch.Size([1, 4, 2])
+        >>> print(obb.conf.shape)
+        torch.Size([1])
+        >>> print(obb.cls.shape)
+        torch.Size([1])
     """
 
     def __init__(self, boxes: torch.Tensor | np.ndarray, orig_shape: tuple[int, int]) -> None:

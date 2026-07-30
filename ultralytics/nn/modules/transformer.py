@@ -101,11 +101,15 @@ class TransformerEncoderLayer(nn.Module):
         attn_mask: torch.Tensor | None = None,
         key_padding_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
-        """Run multi-head attention in its parameter dtype and restore the activation dtype.
+        """Run multi-head attention in FP32 and restore the activation dtype.
 
         The Q·Kᵀ scores overflow the FP16 range (65504) once encoder activations grow, and softmax(inf) is NaN,
-        which poisons every loss term and the gradients. Running attention outside autocast in the parameter
-        dtype keeps the scores in range and matches amp=False numerics without adding parameters.
+        which poisons every loss term and the gradients. Running attention outside autocast in FP32 keeps the
+        scores in range and matches amp=False numerics without adding parameters. The weights are upcast here
+        instead of being pinned to FP32 on the module because a pinned dtype is a Python-side attribute that
+        tracing cannot capture: exported graphs are converted to FP16 wholesale by the inference backends, which
+        would leave FP32 activations feeding FP16 projections. Upcasting inside forward is recorded as part of
+        the graph, so exported models keep running attention in FP32 no matter how the weights are stored.
 
         Args:
             q (torch.Tensor): Query tensor.
@@ -117,16 +121,36 @@ class TransformerEncoderLayer(nn.Module):
         Returns:
             (torch.Tensor): Attention output in the dtype of `value`.
         """
+        ma = self.ma
         output_dtype = value.dtype
-        attention_dtype = self.ma.in_proj_weight.dtype
-        q, k, value = (x.to(attention_dtype) for x in (q, k, value))
+        # nn.MultiheadAttention projects in its own parameter dtype, so drop to the functional form to upcast both
+        # the activations and the weights. Inputs are batch-first, the functional form is sequence-first.
+        q, k, value = (x.float().transpose(0, 1) for x in (q, k, value))
         if attn_mask is not None and torch.is_floating_point(attn_mask):
-            attn_mask = attn_mask.to(attention_dtype)
+            attn_mask = attn_mask.float()
         if key_padding_mask is not None and torch.is_floating_point(key_padding_mask):
-            key_padding_mask = key_padding_mask.to(attention_dtype)
+            key_padding_mask = key_padding_mask.float()
         with torch.autocast(device_type=value.device.type, enabled=False):
-            output = self.ma(q, k, value=value, attn_mask=attn_mask, key_padding_mask=key_padding_mask)[0]
-        return output.to(output_dtype)
+            output = F.multi_head_attention_forward(
+                q,
+                k,
+                value,
+                ma.embed_dim,
+                ma.num_heads,
+                ma.in_proj_weight.float(),
+                ma.in_proj_bias.float(),
+                ma.bias_k,
+                ma.bias_v,
+                ma.add_zero_attn,
+                ma.dropout,
+                ma.out_proj.weight.float(),
+                ma.out_proj.bias.float(),
+                training=self.training,
+                key_padding_mask=key_padding_mask,
+                need_weights=False,
+                attn_mask=attn_mask,
+            )[0]
+        return output.transpose(0, 1).to(output_dtype)
 
     def forward_post(
         self,
@@ -230,13 +254,6 @@ class AIFI(TransformerEncoderLayer):
             normalize_before (bool): Whether to apply normalization before attention and feedforward.
         """
         super().__init__(c1, cm, num_heads, dropout, act, normalize_before)
-
-    def _apply(self, fn):
-        """Keep the attention in FP32 when the surrounding model is converted to FP16 for inference."""
-        super()._apply(fn)
-        if self.ma.in_proj_weight.dtype == torch.float16:
-            self.ma.float()
-        return self
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass for the AIFI transformer layer.

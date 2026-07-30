@@ -1029,7 +1029,7 @@ class Exporter:
     @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):  # noqa: B008
         """Export YOLO model to ONNX format."""
-        requirements = ["onnx>=1.12.0,<2.0.0"]
+        requirements = ["onnx>=1.16.1,<1.19.0" if self.args.format == "rknn" else "onnx>=1.12.0,<2.0.0"]
         if self.args.simplify or (self.args.format == "onnx" and self.args.quantize == 8):
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
@@ -1066,9 +1066,28 @@ class Exporter:
             self.args.opset = opset  # for NMSModel
             self.args.simplify = True  # fix OBB runtime error related to topk
 
+        model = NMSModel(self.model, self.args) if self.args.nms else self.model
+        # Normalize coordinates by input size so RKNN's per-tensor INT8 scale preserves class scores.
+        if (
+            self.args.format == "rknn"
+            and self.args.quantize == 8
+            and self.model.task in {"detect", "segment", "pose", "obb"}
+            and not self.metadata["end2end"]
+        ):
+            from ultralytics.utils.export.engine import _NormalizeCoords
+
+            model = _NormalizeCoords(
+                model,
+                int(self.im.shape[2]),
+                int(self.im.shape[3]),
+                self.model.task,
+                len(self.metadata["names"]),
+                self.metadata.get("kpt_shape"),
+            )
+
         with arange_patch(dynamic=bool(dynamic), quantize=self.args.quantize, fmt=self.args.format):
             torch2onnx(
-                NMSModel(self.model, self.args) if self.args.nms else self.model,
+                model,
                 self.im,
                 f,
                 opset=opset,
@@ -1482,16 +1501,20 @@ class Exporter:
             output_dir.mkdir(parents=True, exist_ok=True)
             rknn_dataset = output_dir / "dataset.txt"
             rknn_dataset.write_text("\n".join(str(Path(x).resolve()) for x in image_paths) + "\n")
-        return onnx2rknn(
-            onnx_file=f_onnx,
-            output_dir=output_dir,
-            name=self.args.name,
-            quantize=self.args.quantize,
-            batch=self.args.batch,
-            dataset=rknn_dataset,
-            metadata=self.metadata,
-            prefix=prefix,
-        )
+        try:
+            return onnx2rknn(
+                onnx_file=f_onnx,
+                output_dir=output_dir,
+                name=self.args.name,
+                quantize=self.args.quantize,
+                batch=self.args.batch,
+                dataset=rknn_dataset,
+                metadata=self.metadata,
+                prefix=prefix,
+            )
+        finally:
+            if self.args.quantize == 8:  # INT8 graphs hold normalized coordinates, so they are not reusable
+                Path(f_onnx).unlink(missing_ok=True)
 
     @try_export
     def export_ascend(self, prefix=colorstr("Ascend:")):  # noqa: B008

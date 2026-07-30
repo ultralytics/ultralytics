@@ -20,7 +20,8 @@ class HUBModelError(Exception):
         ...     # Code that might fail to find a model
         ...     raise HUBModelError("Custom model not found message")
         ... except HUBModelError as e:
-        ...     print(e)  # Displays the emoji-enhanced error message
+        ...     print(e)
+        Custom model not found message
     """
 
     def __init__(self, message: str = "Model not found. Please check model URL and try again."):

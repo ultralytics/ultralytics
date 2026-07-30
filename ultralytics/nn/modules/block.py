@@ -1512,6 +1512,7 @@ class C2fPSA(C2f):
         >>> x = torch.randn(1, 64, 128, 128)
         >>> output = model(x)
         >>> print(output.shape)
+        torch.Size([1, 64, 128, 128])
     """
 
     def __init__(self, c1: int, c2: int, n: int = 1, e: float = 0.5):

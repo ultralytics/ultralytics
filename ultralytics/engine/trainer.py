@@ -1157,6 +1157,7 @@ class BaseTrainer:
         if use_muon:
             num_params[0] = len(g[3])  # update number of params
             g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True, "param_group": "muon"}
+            # higher lr for certain parameters in MuSGD when finetuning
             target = unwrap_model(model)
             head = getattr(target, "student_model", target).model[-1]
             heads = (getattr(head, "cv3", None), getattr(head, "one2one_cv3", None))

@@ -1337,10 +1337,6 @@ class TVPDetectLoss:
         self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
     ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate the loss for text-visual prompt detection."""
-        if self.ori_nc == preds["scores"].shape[1]:
-            loss = torch.zeros(3, device=self.vp_criterion.device, requires_grad=True)
-            return loss, dict(zip(self.loss_names, loss.detach()))
-
         preds["scores"] = self._get_vp_features(preds)
         vp_loss = self.vp_criterion(preds, batch)
         return vp_loss[0][1], dict(zip(self.loss_names, vp_loss[1].values()))
@@ -1372,10 +1368,6 @@ class TVPSegmentLoss(TVPDetectLoss):
 
     def loss(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate the loss for text-visual prompt segmentation."""
-        if self.ori_nc == preds["scores"].shape[1]:
-            loss = torch.zeros(4, device=self.vp_criterion.device, requires_grad=True)
-            return loss, dict(zip(self.loss_names, loss.detach()))
-
         preds["scores"] = self._get_vp_features(preds)
         vp_loss = self.vp_criterion(preds, batch)
         cls_loss = vp_loss[0][2]

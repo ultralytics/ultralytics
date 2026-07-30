@@ -42,7 +42,6 @@ ye_v4_json="yolo-enterprise/pipeline_outputs/train/v4/merged.json"
 ye_v5_json="yolo-enterprise/pipeline_outputs/train/v5/merged_simplified.json"
 
 
-refer_data_yaml=os.path.abspath(f"/data/shared-datasets/louis_data/lvis_train_vps.yaml")
 
 
 
@@ -219,7 +218,6 @@ parser.add_argument("--save_period", type=int,default=5)  # save period
 
 parser.add_argument("--data", type=str, default=None) # DATA_CONFIG key: old_engine_data, yedata, coco128, coco128_seg
 parser.add_argument("--fraction", type=float, default=1.0)  # fraction of training dataset to use: 0.05 = 5%
-parser.add_argument("--refer_data", type=str, default=None) # override the reference-data YAML for YOLOEVPTrainer visual-prompt val
 
 
 parser.add_argument("--optimizer",type=str, default="MuSGD") # "MuSGD"
@@ -292,7 +290,6 @@ if args.trainer == "YOLOETrainerFromScratch" or args.trainer== "YOLOESegTrainerF
                 freeze.append(f"{head_index}.{name}")
 
 
-    refer_data=None
     single_cls=False
 elif args.trainer == "YOLOEVPTrainer":
     print("Using YOLOEVPTrainer for training.")
@@ -323,7 +320,6 @@ elif args.trainer == "YOLOEVPTrainer":
             freeze.append(f"{head_index}.{name}")
 
 
-    refer_data=refer_data_yaml
     single_cls=False
 elif args.trainer == "YOLOEPEFreeTrainer":
 
@@ -353,7 +349,6 @@ elif args.trainer == "YOLOEPEFreeTrainer":
             f"{head_index}.one2one_cv3.2.0",
             f"{head_index}.one2one_cv3.2.1",
         ])
-    refer_data=None
     single_cls=True
 
 
@@ -373,7 +368,6 @@ elif args.trainer=="YOLOESegTrainerSegHead":
         else:
             train_layers.append(f"{head_index}.{name}")
 
-    refer_data=None
     single_cls=False
 
 
@@ -381,8 +375,6 @@ else:
     print("trainer_class:", args.trainer)
     raise ValueError("trainer_class must be YOLOETrainerFromScratch, YOLOEVPTrainer, YOLOEPEFreeTrainer, YOLOESegTrainerFromScratch, or YOLOESegTrainerSegHead")
 
-if args.refer_data is not None:  # CLI override wins over the per-trainer default
-    refer_data = args.refer_data
 
 trainer_class =eval( args.trainer)
 
@@ -416,7 +408,6 @@ train_args=dict( data=data,
     single_cls=single_cls, # for YOLOEPEFreeTrainer
     fraction=args.fraction, # for YOLOEVPTrainer fast smoke
     freeze=freeze, # for YOLOEVPTrainer
-    refer_data=refer_data, # for YOLOEVPTrainer
     save_json=args.save_json,
     )
 

@@ -138,4 +138,5 @@ cfg: # (str, optional) path to a config.yaml that overrides defaults
 
 # Tracker settings ------------------------------------------------------------------------------------------------------
 tracker: tracktrack.yaml # (str) tracker config: botsort.yaml, bytetrack.yaml, ocsort.yaml, deepocsort.yaml, fasttrack.yaml, tracktrack.yaml
-refer_data: # (str, optional) path to a reference dataset YAML for YOLOE visual-prompt validation; embeddings are extracted from this data instead of the validation split
+
+

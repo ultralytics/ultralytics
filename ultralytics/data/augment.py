@@ -2563,7 +2563,12 @@ class LoadVisualPrompt(BaseTransform):
         """
         imgsz = labels["img"].shape[1:]
         bboxes, masks = None, None
-        if "bboxes" in labels:
+        if "segments" in labels and labels["segments"] and any(len(s) > 0 for s in labels["segments"]):
+            # Denormalize polygon segments → pixel coordinates → binary masks
+            h, w = imgsz
+            segs_px = [(s * [w, h]).reshape(-1) for s in labels["segments"]]
+            masks = polygons2masks(imgsz, segs_px, color=1, downsample_ratio=1)
+        elif "bboxes" in labels:
             bboxes = labels["bboxes"]
             bboxes = xywh2xyxy(bboxes) * torch.tensor(imgsz)[[1, 0, 1, 0]]  # denormalize boxes
         elif "masks" in labels:

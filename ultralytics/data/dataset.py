@@ -1415,8 +1415,26 @@ class VisualPromptDataset(YOLODataset):
         for c, files in TQDM(cls_sample.items(), desc=f"{self.prefix}Processing samples...", total=len(cls_sample)):
             for im_file in files:
                 valid = [line for line in file_label_map[im_file] if int(line.split()[0]) == c]
-                lb = [list(map(float, line.strip().split()[:5])) for line in valid if len(line.strip().split()) >= 5]
-                if not lb:
+                if not valid:
+                    ne += 1
+                    continue
+                cls_list, bbox_list, seg_list = [], [], []
+                for line in valid:
+                    parts = line.strip().split()
+                    if len(parts) < 5:
+                        continue
+                    cls_list.append(float(parts[0]))
+                    pts = [float(p) for p in parts[1:]]
+                    if len(parts) == 5:
+                        # bbox format: cx cy w h
+                        bbox_list.append(pts)
+                        seg_list.append(np.empty((0, 2), dtype=np.float32))
+                    else:
+                        # polygon format → tight-fit xywh bbox + store segments
+                        seg = np.array([[pts[i], pts[i + 1]] for i in range(0, len(pts), 2)], dtype=np.float32)
+                        seg_list.append(seg)
+                        bbox_list.append(segments2boxes([seg])[0].tolist())
+                if not cls_list:
                     ne += 1
                     continue
                 im = cv2.imread(im_file)
@@ -1424,14 +1442,13 @@ class VisualPromptDataset(YOLODataset):
                     nc += 1
                     continue
                 nf += 1
-                lb = np.array(lb, dtype=np.float32)
                 x["labels"].append(
                     {
                         "im_file": im_file,
                         "shape": im.shape[:2],
-                        "cls": lb[:, 0:1],
-                        "bboxes": lb[:, 1:],
-                        "segments": [],
+                        "cls": np.array(cls_list, dtype=np.float32).reshape(-1, 1),
+                        "bboxes": np.array(bbox_list, dtype=np.float32),
+                        "segments": seg_list,
                         "keypoints": None,
                         "normalized": True,
                         "bbox_format": "xywh",

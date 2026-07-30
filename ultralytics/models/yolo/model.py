@@ -23,7 +23,7 @@ from ultralytics.nn.tasks import (
     YOLOEModel,
     YOLOESegModel,
 )
-from ultralytics.utils import ROOT, YAML
+from ultralytics.utils import LOGGER, ROOT, YAML
 
 
 class YOLO(Model):
@@ -349,20 +349,32 @@ class YOLOE(Model):
 
         Args:
             validator (callable, optional): A callable validator function. If None, a default validator is loaded.
-            load_vp (bool): Whether to load visual prompts. If False, text prompts are used.
-            refer_data (str, optional): Path to the reference data for visual prompts.
+            load_vp (bool): Whether to use visual prompts. If True, ``YOLOEDetectVpValidator`` is used automatically.
+            refer_data (str, optional): Path to a dataset YAML for building visual prompt embeddings. When
+                None, the validation dataset's own training split is used.
             **kwargs (Any): Additional keyword arguments to override default settings.
 
         Returns:
-            (dict): Validation statistics containing metrics computed during validation.
+            (dict): Validation statistics. On COCO and LVIS these are the annotation-API scores, which
+                ``self.metrics`` does not carry.
         """
-        custom = {"rect": not load_vp}  # method defaults
-        args = {**self.overrides, **custom, **kwargs, "mode": "val"}  # highest priority args on the right
+        if load_vp:
+            from .yoloe.val import YOLOEDetectVpValidator
 
-        validator = (validator or self._smart_load("validator"))(args=args, _callbacks=self.callbacks)
-        validator(model=self.model, load_vp=load_vp, refer_data=refer_data)
+            vp_args = {**kwargs, "rect": not load_vp, "mode": "val"}
+            validator = (validator or YOLOEDetectVpValidator)(args=vp_args, _callbacks=self.callbacks)
+            stats = validator(model=self.model, refer_data=refer_data)
+        else:
+            custom = {"rect": not load_vp}
+            args = {**self.overrides, **custom, **kwargs, "mode": "val"}
+            validator = (validator or self._smart_load("validator"))(args=args, _callbacks=self.callbacks)
+            stats = validator(model=self.model)
         self.metrics = validator.metrics
-        return validator.metrics
+        LOGGER.warning(
+            "YOLOE.val() returns a stats dict, not the metrics object other YOLO models return. On COCO/LVIS "
+            "it holds the annotation-API scores; 'model.metrics' keeps the lower internally matched ones."
+        )
+        return stats
 
     def predict(
         self,

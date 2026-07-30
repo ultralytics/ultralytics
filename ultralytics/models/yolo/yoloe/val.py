@@ -44,7 +44,7 @@ class YOLOEDetectValidator(DetectionValidator):
         >>> stats = validator(model=model, load_vp=False)
 
         Validate with visual prompts
-        >>> stats = validator(model=model, refer_data="path/to/data.yaml", load_vp=True)
+        >>> stats = validator(model=model, load_vp=True)
     """
 
     @smart_inference_mode()
@@ -134,19 +134,16 @@ class YOLOEDetectValidator(DetectionValidator):
         self,
         trainer: Any | None = None,
         model: YOLOEModel | str | None = None,
-        refer_data: str | None = None,
         load_vp: bool = False,
     ) -> dict[str, Any]:
         """Run validation on the model using either text or visual prompt embeddings.
 
         This method validates the model using either text prompts or visual prompts, depending on the load_vp flag. It
-        supports validation during training (using a trainer object) or standalone validation with a provided model. For
-        visual prompts, reference data can be specified to extract embeddings from a different dataset.
+        supports validation during training (using a trainer object) or standalone validation with a provided model.
 
         Args:
             trainer (object, optional): Trainer object containing the model and device.
             model (YOLOEModel | str, optional): Model to validate. Required if trainer is not provided.
-            refer_data (str, optional): Path to reference data for visual prompts.
             load_vp (bool): Whether to load visual prompts. If False, text prompts are used.
 
         Returns:
@@ -169,8 +166,6 @@ class YOLOEDetectValidator(DetectionValidator):
                 model.set_classes(names, tpe)
             stats = super().__call__(trainer, model)
         else:
-            if refer_data is not None:
-                assert load_vp, "Refer data is only used for visual prompt validation."
             self.device = select_device(self.args.device, verbose=False)
 
             if isinstance(model, (str, Path)):
@@ -178,17 +173,8 @@ class YOLOEDetectValidator(DetectionValidator):
 
                 model, _ = load_checkpoint(model, device=self.device)  # model, ckpt
             model.eval().to(self.device)
-            data = check_det_dataset(refer_data or self.args.data)
+            data = check_det_dataset(self.args.data)
             names = [name.split("/", 1)[0] for name in list(data["names"].values())]
-
-            if refer_data is not None:
-                eval_data = check_det_dataset(self.args.data)
-                eval_names = [name.split("/", 1)[0] for name in list(eval_data["names"].values())]
-                if names != eval_names:
-                    LOGGER.warning(
-                        f"Class names from refer data {names} do not match evaluation dataset {eval_names}. "
-                        f"This may lead to incorrect validation results."
-                    )
 
             if load_vp:
                 LOGGER.info("Validate using the visual prompt.")
@@ -218,6 +204,9 @@ class YOLOEDetectVpValidator(YOLOEDetectValidator):
 
     def get_vpe_dataloader(self, data: dict[str, Any]) -> torch.utils.data.DataLoader:
         """Build a dataloader over reference images sampled per class for visual prompt embedding extraction.
+
+        Overrides the base-class bbox-based loader with `VisualPromptDataset`, which samples `num_shot` images per class
+        from the dataset's training split and draws precise polygon-based VP masks via stored segments.
 
         Args:
             data (dict): Dataset configuration dictionary; reference images are read from its ``train`` split.
@@ -257,14 +246,16 @@ class YOLOEDetectVpValidator(YOLOEDetectValidator):
         self,
         trainer: Any | None = None,
         model: YOLOEModel | str | None = None,
+        refer_data: str | None = None,
         vp_weight: float = 1.0,
     ) -> dict[str, Any]:
         """Run validation using visual prompt embeddings extracted from the reference dataset.
 
         Args:
-            trainer (object, optional): Trainer object containing the model and device. When provided, visual prompts
-                are built from ``args.refer_data`` if set, otherwise from the validation dataset YAML's train split.
+            trainer (object, optional): Trainer object containing the model and device.
             model (YOLOEModel | str, optional): Model to validate or path to model weights. Required if trainer is None.
+            refer_data (str, optional): Path to a dataset YAML for building visual prompt embeddings. When
+                None, the validation dataset's own training split is used.
             vp_weight (float): Weight for combining visual and text embeddings as ``vpe * w + tpe * (1 - w)``.
                 Default 1.0 uses pure visual prompts.
 
@@ -274,8 +265,7 @@ class YOLOEDetectVpValidator(YOLOEDetectValidator):
         if trainer is not None:
             self.device = trainer.device
             model = trainer.ema.ema
-            # Prefer an explicit reference dataset; fall back to the validation split's train images.
-            data = check_det_dataset(self.args.refer_data or self.args.data["val"]["yolo_data"][0])
+            data = check_det_dataset(refer_data or self.args.data["val"]["yolo_data"][0])
         else:
             self.device = select_device(self.args.device, verbose=False)
             if isinstance(model, (str, Path)):
@@ -283,7 +273,7 @@ class YOLOEDetectVpValidator(YOLOEDetectValidator):
 
                 model, _ = load_checkpoint(model, device=self.device)  # model, ckpt
             model.eval().to(self.device)
-            data = check_det_dataset(self.args.refer_data or self.args.data)
+            data = check_det_dataset(refer_data or self.args.data)
 
         self.stride = max(int(unwrap_model(model).stride.max() if model else 0), 32)
 
@@ -294,7 +284,24 @@ class YOLOEDetectVpValidator(YOLOEDetectValidator):
         self.args.quantize = None  # force float32 img: this branch gates half on quantize==16, matching the base validator
         names = [name.split("/", 1)[0] for name in list(data["names"].values())]
 
-        dataloader = self.get_vpe_dataloader(data)
+        if refer_data is not None:
+            # External reference dataset → load all images directly (no per-class sampling)
+            if not data.get("train"):
+                LOGGER.warning(
+                    f"'train' key missing in {refer_data} — using 'val' split as fallback for VPE extraction. "
+                    f"Consider specifying a 'train' split for reproducible per-class sampling."
+                )
+            img_path = data["train"] or data["val"]
+            LOGGER.info(f"Using refer data: {refer_data} (split: {'train' if data.get('train') else 'val'})")
+            dataset = build_yolo_dataset(self.args, img_path, self.args.batch, data, mode="val", rect=False)
+            if isinstance(dataset, YOLOConcatDataset):
+                for d in dataset.datasets:
+                    d.transforms.append(LoadVisualPrompt())
+            else:
+                dataset.transforms.append(LoadVisualPrompt())
+            dataloader = build_dataloader(dataset, self.args.batch, self.args.workers, shuffle=False, rank=-1)
+        else:
+            dataloader = self.get_vpe_dataloader(data)
         vpe = self.get_visual_pe(dataloader, model)
 
         if vp_weight < 1.0:

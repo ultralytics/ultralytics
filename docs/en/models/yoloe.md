@@ -488,6 +488,9 @@ Model validation on a dataset is streamlined as follows:
     === "Visual Prompt"
 
         By default it's using the provided dataset to extract visual embeddings for each category.
+        The validation dataset's training split is used as the reference set to build per-class
+        visual prompt embeddings (VPE) via `VisualPromptDataset` — 16 images are sampled per class
+        and polygon segments are used to draw precise VP masks.
 
         ```python
         from ultralytics import YOLOE
@@ -499,18 +502,9 @@ Model validation on a dataset is streamlined as follows:
         metrics = model.val(data="coco128-seg.yaml", load_vp=True)
         ```
 
-        Alternatively we could use another dataset as a reference dataset to extract visual embeddings for each category.
-        Note this reference dataset should have exactly the same categories as provided dataset.
-
-        ```python
-        from ultralytics import YOLOE
-
-        # Create a YOLOE model
-        model = YOLOE("yoloe-26l-seg.pt")  # or select yoloe-26s/m-seg.pt for different sizes
-
-        # Conduct model validation on the COCO128-seg example dataset
-        metrics = model.val(data="coco128-seg.yaml", load_vp=True, refer_data="coco.yaml")
-        ```
+        The validation dataset's training split is automatically used to build per-class visual prompt
+        embeddings (VPE) via `VisualPromptDataset`, sampling 16 images per class and using polygon segments
+        for precise VP masks.
 
 
     === "Prompt Free"
@@ -704,6 +698,13 @@ The export process is similar to other YOLO models, with the added flexibility o
             freeze=freeze,
         )
         ```
+
+        !!! note "Visual prompt validation"
+
+            During training, per-class visual prompt embeddings (VPE) are extracted from the **validation
+            dataset's own training split**. The `VisualPromptDataset` samples 16 images per class and uses
+            **polygon-format labels** to draw precise VP masks.  No separate reference dataset is needed —
+            your validation data is also the VPE source.
 
         Convert back to segmentation model after training. Only needed if you converted segmentation model to detection model before training.
 

@@ -1306,17 +1306,6 @@ def plot_tune_results(results_file: str = "tune_results.ndjson", exclude_zero_fi
     _save_one_file(results_file.with_name("tune_fitness.png"))
 
 
-def _detach(x: Any) -> Any:
-    """Detach every tensor in a nested structure of lists, tuples and dicts from the autograd graph."""
-    if isinstance(x, torch.Tensor):
-        return x.detach()
-    if isinstance(x, dict):
-        return {k: _detach(v) for k, v in x.items()}
-    if isinstance(x, (list, tuple)):
-        return type(x)(_detach(v) for v in x)
-    return x
-
-
 def class_activation_map(
     model,
     im: torch.Tensor,
@@ -1330,17 +1319,9 @@ def class_activation_map(
 ) -> Any:
     """Run inference and save a class activation heatmap for each image of the batch.
 
-    The map is built with LayerCAM weighting: each position of the feature maps entering the head is weighted by its own
-    positive gradient towards the predicted class score, so the heatmap shows the pixels that raised that score.
-    Channel-pooled weightings such as Grad-CAM and Grad-CAM++ are not used here. A detector spreads its predictions over
-    anchors, so pooling the gradient over space mixes every object together and the map stops depending on the class at
-    all.
-
-    Each prediction is explained on its own, and every head level is scaled to its own peak before the levels and then
-    the predictions are combined with an element-wise maximum. Gradient magnitude varies a lot between levels and
-    between predictions, so without this the strongest one sets the color scale and the rest fades into the background.
-    A large object is a clear case: it is predicted on the coarsest level, where one prediction reaches only a couple of
-    cells, while the evidence that fills its shape sits on the finer levels below.
+    LayerCAM weights each head-input position by its positive gradient toward the predicted class score. Each prediction
+    and head level is normalized independently before taking their element-wise maximum, preventing stronger predictions
+    or levels from hiding weaker ones.
 
     Args:
         model (torch.nn.Module): AutoBackend wrapping a PyTorch model.
@@ -1423,4 +1404,15 @@ def class_activation_map(
         heatmap = cv2.addWeighted(cv2.applyColorMap(c, cv2.COLORMAP_JET), 0.5, img, 0.5, 0)
         cv2.imwrite(str(f), heatmap)
         LOGGER.info(f"Saving {f}... (LayerCAM)")
-    return _detach(preds)
+
+    def detach(x):
+        """Detach tensors in nested model outputs from the autograd graph."""
+        if isinstance(x, torch.Tensor):
+            return x.detach()
+        if isinstance(x, dict):
+            return {k: detach(v) for k, v in x.items()}
+        if isinstance(x, (list, tuple)):
+            return type(x)(detach(v) for v in x)
+        return x
+
+    return detach(preds)

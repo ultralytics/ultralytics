@@ -64,10 +64,6 @@ keywords: ultralytics, plotting, utilities, documentation, data visualization, a
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.plotting._detach
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.plotting.class_activation_map
 
 <br><br>

@@ -78,15 +78,15 @@ Together, these updates improve the accuracy-latency tradeoff across model scale
 
 YOLO26 supports the standard Ultralytics task set across five model scales:
 
-| Model        | Filenames                                                                                      | Task                                          | Inference | Validation | Training | Export |
-| ------------ | ---------------------------------------------------------------------------------------------- | --------------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLO26       | `yolo26n.pt` `yolo26s.pt` `yolo26m.pt` `yolo26l.pt` `yolo26x.pt`                               | [Detection](../tasks/detect.md)               | ✅        | ✅         | ✅       | ✅     |
-| YOLO26-seg   | `yolo26n-seg.pt` `yolo26s-seg.pt` `yolo26m-seg.pt` `yolo26l-seg.pt` `yolo26x-seg.pt`           | [Instance Segmentation](../tasks/segment.md)  | ✅        | ✅         | ✅       | ✅     |
-| YOLO26-sem   | `yolo26n-sem.pt` `yolo26s-sem.pt` `yolo26m-sem.pt` `yolo26l-sem.pt` `yolo26x-sem.pt`           | [Semantic Segmentation](../tasks/semantic.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLO26-depth | `yolo26n-depth.pt` `yolo26s-depth.pt` `yolo26m-depth.pt` `yolo26l-depth.pt` `yolo26x-depth.pt` | [Depth Estimation](../tasks/depth.md)         | ✅        | ✅         | ✅       | ✅     |
-| YOLO26-cls   | `yolo26n-cls.pt` `yolo26s-cls.pt` `yolo26m-cls.pt` `yolo26l-cls.pt` `yolo26x-cls.pt`           | [Classification](../tasks/classify.md)        | ✅        | ✅         | ✅       | ✅     |
-| YOLO26-pose  | `yolo26n-pose.pt` `yolo26s-pose.pt` `yolo26m-pose.pt` `yolo26l-pose.pt` `yolo26x-pose.pt`      | [Pose/Keypoints](../tasks/pose.md)            | ✅        | ✅         | ✅       | ✅     |
-| YOLO26-obb   | `yolo26n-obb.pt` `yolo26s-obb.pt` `yolo26m-obb.pt` `yolo26l-obb.pt` `yolo26x-obb.pt`           | [Oriented Detection](../tasks/obb.md)         | ✅        | ✅         | ✅       | ✅     |
+| Model        | Filenames                                                                                      | Task                                          | Training | Validation | Inference | Export |
+| ------------ | ---------------------------------------------------------------------------------------------- | --------------------------------------------- | -------- | ---------- | --------- | ------ |
+| YOLO26       | `yolo26n.pt` `yolo26s.pt` `yolo26m.pt` `yolo26l.pt` `yolo26x.pt`                               | [Detection](../tasks/detect.md)               | ✅       | ✅         | ✅        | ✅     |
+| YOLO26-seg   | `yolo26n-seg.pt` `yolo26s-seg.pt` `yolo26m-seg.pt` `yolo26l-seg.pt` `yolo26x-seg.pt`           | [Instance Segmentation](../tasks/segment.md)  | ✅       | ✅         | ✅        | ✅     |
+| YOLO26-sem   | `yolo26n-sem.pt` `yolo26s-sem.pt` `yolo26m-sem.pt` `yolo26l-sem.pt` `yolo26x-sem.pt`           | [Semantic Segmentation](../tasks/semantic.md) | ✅       | ✅         | ✅        | ✅     |
+| YOLO26-depth | `yolo26n-depth.pt` `yolo26s-depth.pt` `yolo26m-depth.pt` `yolo26l-depth.pt` `yolo26x-depth.pt` | [Depth Estimation](../tasks/depth.md)         | ✅       | ✅         | ✅        | ✅     |
+| YOLO26-cls   | `yolo26n-cls.pt` `yolo26s-cls.pt` `yolo26m-cls.pt` `yolo26l-cls.pt` `yolo26x-cls.pt`           | [Classification](../tasks/classify.md)        | ✅       | ✅         | ✅        | ✅     |
+| YOLO26-pose  | `yolo26n-pose.pt` `yolo26s-pose.pt` `yolo26m-pose.pt` `yolo26l-pose.pt` `yolo26x-pose.pt`      | [Pose/Keypoints](../tasks/pose.md)            | ✅       | ✅         | ✅        | ✅     |
+| YOLO26-obb   | `yolo26n-obb.pt` `yolo26s-obb.pt` `yolo26m-obb.pt` `yolo26l-obb.pt` `yolo26x-obb.pt`           | [Oriented Detection](../tasks/obb.md)         | ✅       | ✅         | ✅        | ✅     |
 
 This unified framework covers real-time detection, instance segmentation, semantic segmentation, monocular depth estimation, classification, pose estimation, and oriented object detection with training, validation, inference, and export support.
 

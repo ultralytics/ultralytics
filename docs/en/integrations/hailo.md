@@ -216,7 +216,7 @@ yolo11n_hailo_model/
 
 - `*.hef` is the compiled model loaded by HailoRT.
 - `metadata.yaml` preserves model names, task, input size, stride, and Hailo target information.
-- `nms_config.json` records the generated HailoRT NMS configuration for YOLOv8 and YOLO11 detection models. YOLO26 detection and all non-detection tasks (segmentation, semantic, classification, pose, OBB) do not use this file.
+- `nms_config.json` records the generated HailoRT NMS configuration for YOLOv8 and YOLO11 detection models. YOLO26 detection and all non-detection tasks (segmentation, semantic, depth, classification, pose, OBB) do not use this file.
 
 The intermediate ONNX graph is removed after compilation.
 

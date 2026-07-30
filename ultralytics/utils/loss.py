@@ -15,7 +15,7 @@ from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import autocast
 
-from .metrics import bbox_iou, probiou
+from .metrics import bbox_iou, probiou, wiou_dist
 from .tal import bbox2dist, rbox2dist
 
 
@@ -114,6 +114,10 @@ class BboxLoss(nn.Module):
         center: float = 0.0,
         shape_iou: bool = False,
         shape_iou_scale: float = 0.0,
+        wiou: bool = False,
+        wiou_alpha: float = 1.7,
+        wiou_delta: float = 2.7,
+        wiou_momentum: float = 0.01,
     ):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
@@ -126,6 +130,13 @@ class BboxLoss(nn.Module):
         self.center = center  # when reg_max==1, gain of an auxiliary box-center offset L1 loss (0=off)
         self.shape_iou = shape_iou  # use Shape-IoU instead of CIoU for the box regression loss
         self.shape_iou_scale = shape_iou_scale  # Shape-IoU shape-weight exponent (dataset-dependent scale factor)
+        if wiou and shape_iou:
+            raise ValueError("wiou and shape_iou are alternative box regression losses")
+        self.wiou = wiou  # use Wise-IoU v3 instead of CIoU for the box regression loss
+        self.wiou_alpha = wiou_alpha  # base of the non-monotonic focusing coefficient
+        self.wiou_delta = wiou_delta  # outlier degree left unscaled (r == 1 at beta == delta)
+        self.wiou_momentum = wiou_momentum  # EMA momentum of the mean IoU loss normalizing the outlier degree
+        self.register_buffer("iou_mean", torch.tensor(1.0))  # running mean IoU loss, WIoU's outlier-degree denominator
 
     def forward(
         self,
@@ -141,15 +152,25 @@ class BboxLoss(nn.Module):
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute IoU and DFL losses for bounding boxes."""
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
-        iou = bbox_iou(
-            pred_bboxes[fg_mask],
-            target_bboxes[fg_mask],
-            xywh=False,
-            CIoU=not self.shape_iou,
-            ShapeIoU=self.shape_iou,
-            scale=self.shape_iou_scale,
-        )
-        loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
+        if self.wiou:  # WIoU v3: distance attention on the plain IoU loss, scaled by the non-monotonic focusing gain
+            pred_fg, target_fg = pred_bboxes[fg_mask], target_bboxes[fg_mask]
+            l_iou = 1.0 - bbox_iou(pred_fg, target_fg, xywh=False)
+            if torch.is_grad_enabled():  # keep the mean on the training distribution (validation runs under no_grad)
+                self.iou_mean.mul_(1.0 - self.wiou_momentum).add_(self.wiou_momentum * l_iou.detach().mean())
+            beta = l_iou.detach() / self.iou_mean  # outlier degree: <1 for high-quality anchors, >1 for outliers
+            # gain peaks at ordinary anchors and decays toward both harmful outliers (large beta) and easy ones (beta~0)
+            r = beta / (self.wiou_delta * torch.pow(self.wiou_alpha, beta - self.wiou_delta))
+            loss_iou = (r * wiou_dist(pred_fg, target_fg) * l_iou * weight).sum() / target_scores_sum
+        else:
+            iou = bbox_iou(
+                pred_bboxes[fg_mask],
+                target_bboxes[fg_mask],
+                xywh=False,
+                CIoU=not self.shape_iou,
+                ShapeIoU=self.shape_iou,
+                scale=self.shape_iou_scale,
+            )
+            loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 
         # DFL loss
         if self.dfl_loss:
@@ -567,6 +588,10 @@ class v8DetectionLoss:
             center=getattr(h, "center", 0.0),
             shape_iou=getattr(h, "shape_iou", False),
             shape_iou_scale=getattr(h, "shape_iou_scale", 0.0),
+            wiou=getattr(h, "wiou", False),
+            wiou_alpha=getattr(h, "wiou_alpha", 1.7),
+            wiou_delta=getattr(h, "wiou_delta", 2.7),
+            wiou_momentum=getattr(h, "wiou_momentum", 0.01),
         ).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 

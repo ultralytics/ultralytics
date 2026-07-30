@@ -191,6 +191,32 @@ def bbox_iou(
     return iou  # IoU
 
 
+def wiou_dist(box1: torch.Tensor, box2: torch.Tensor, eps: float = 1e-7) -> torch.Tensor:
+    """Calculate the Wise-IoU distance attention factor between bounding boxes in (x1, y1, x2, y2) format.
+
+    Multiplying the plain IoU loss by this factor gives WIoU v1: the loss of a box whose center is far from the target
+    is amplified, while the aspect-ratio penalty of CIoU is dropped. The convex diagonal is detached so the factor
+    cannot be reduced by growing the enclosing box, leaving the center distance as the only path for the gradient.
+
+    Args:
+        box1 (torch.Tensor): Predicted boxes, with the last dimension being 4.
+        box2 (torch.Tensor): Ground truth boxes, with the last dimension being 4.
+        eps (float, optional): A small value to avoid division by zero.
+
+    Returns:
+        (torch.Tensor): Distance attention factor in [1, e), with the same shape as the inputs.
+
+    References:
+        https://arxiv.org/abs/2301.10051
+    """
+    b1_x1, b1_y1, b1_x2, b1_y2 = box1.chunk(4, -1)
+    b2_x1, b2_y1, b2_x2, b2_y2 = box2.chunk(4, -1)
+    rho2 = ((b2_x1 + b2_x2 - b1_x1 - b1_x2).pow(2) + (b2_y1 + b2_y2 - b1_y1 - b1_y2).pow(2)) / 4  # center dist**2
+    cw = b1_x2.maximum(b2_x2) - b1_x1.minimum(b2_x1)  # convex (smallest enclosing box) width
+    ch = b1_y2.maximum(b2_y2) - b1_y1.minimum(b2_y1)  # convex height
+    return (rho2 / (cw.pow(2) + ch.pow(2) + eps).detach()).exp()
+
+
 def mask_iou(mask1: torch.Tensor, mask2: torch.Tensor, eps: float = 1e-7) -> torch.Tensor:
     """Calculate masks IoU.
 

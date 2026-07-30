@@ -427,7 +427,7 @@ class LoadImagesAndVideos:
 
                 if success:
                     success, im0 = self.cap.retrieve()
-                    if success:
+                    if success and im0 is not None:
                         if self.cv2_flag == cv2.IMREAD_GRAYSCALE:
                             im0 = cv2.cvtColor(im0, cv2.COLOR_BGR2GRAY)[..., None]
                         self.frame += 1

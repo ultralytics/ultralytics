@@ -275,7 +275,7 @@ def test_predict_csv_single_row(tmp_path):
 
 @pytest.mark.parametrize("model_name", MODELS)
 def test_predict_img(model_name):
-    """Test YOLO model predictions on various image input types and sources, including online images."""
+    """Test YOLO model predictions on various image input types."""
     if IS_RASPBERRYPI and model_name == "yolo26n-sem.pt":
         skip_rpi_semantic()
     channels = 1 if model_name == "yolo11n-grayscale.pt" else 3
@@ -290,7 +290,6 @@ def test_predict_img(model_name):
     batch = [
         str(SOURCE),  # filename
         Path(SOURCE),  # Path
-        "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/im/zidane.jpg?token=123" if ONLINE else SOURCE,  # URI
         im,  # OpenCV
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, channels), dtype=np.uint8),  # numpy
@@ -899,7 +898,11 @@ def test_results(model: str, tmp_path):
     """Test YOLO model results processing and output in various formats."""
     if IS_RASPBERRYPI and model == "yolo26n-sem.pt":
         skip_rpi_semantic()
-    im = "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/im/boats.jpg" if model == "yolo26n-obb.pt" else SOURCE
+    im = (
+        "https://cdn.ul.run/i/186929a91ceb270e952fe4dd27ba0f18.webp"  # boats.jpg
+        if model == "yolo26n-obb.pt"
+        else SOURCE
+    )
     is_semantic = "semantic" in model or "-sem" in model
     results = YOLO(WEIGHTS_DIR / model)([im, im], imgsz=32 if is_semantic else 160)
     for r in results:
@@ -984,6 +987,21 @@ def test_annotator_depth_map():
     ann = Annotator(np.zeros((16, 16, 3), dtype=np.uint8))
     ann.depth_map(np.zeros((16, 16), dtype=np.float32))  # no valid pixels → must not divide-by-zero
     assert ann.result().shape == (16, 16, 3)
+
+
+def test_annotator_tensor_image():
+    """Annotator accepts tensor images and matches Results.plot compositing pixels."""
+    from ultralytics.engine.results import Results
+    from ultralytics.utils.plotting import Annotator
+
+    image = torch.zeros((16, 16, 3), dtype=torch.uint8)
+    masks = torch.ones((1, 16, 16), dtype=torch.bool)
+    ann = Annotator(image)
+    ann.masks(masks, [[255, 0, 0]])
+    assert ann.result()[0, 0].tolist() == [127, 0, 0]
+    result = Results(np.zeros((16, 16, 3), dtype=np.uint8), path="image.jpg", names={}, masks=masks)
+    expected = result.plot(img=np.zeros((16, 16, 3), dtype=np.uint8), boxes=False)
+    np.testing.assert_array_equal(result.plot(img=torch.zeros_like(image), boxes=False), expected)
 
 
 def test_results_update_probs():

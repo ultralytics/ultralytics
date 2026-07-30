@@ -53,6 +53,8 @@ def torch2openvino(
             model=ov_model,
             calibration_dataset=calibration_dataset,
             preset=nncf.QuantizationPreset.MIXED,
+            # Calibrate on the full dataset like other INT8 backends, not nncf's 300-batch default
+            subset_size=calibration_dataset.get_length() or 300,
             ignored_scope=ignored_scope,
         )
 

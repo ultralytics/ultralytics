@@ -294,14 +294,14 @@ Export jobs progress through the following statuses:
 
 Some export formats have architecture or task restrictions:
 
-| Format       | Restriction                                                 |
-| ------------ | ----------------------------------------------------------- |
-| **IMX500**   | Available only for `YOLOv8n` and `YOLO11n`; INT8 only       |
-| **Axelera**  | Detect models only; INT8 only                               |
-| **DeepX**    | INT8 only                                                   |
-| **Hailo**    | INT8 HEF output; select the target Hailo architecture       |
-| **Huawei**   | FP16 .om output; Ascend310P targets today, 310B coming soon |
-| **Qualcomm** | Fixed W8A16 quantization; end-to-end export is unavailable  |
+| Format       | Restriction                                                                     |
+| ------------ | ------------------------------------------------------------------------------- |
+| **IMX500**   | Available only for `YOLOv8n` and `YOLO11n`; INT8 only                           |
+| **Axelera**  | Detect models only; INT8 only                                                   |
+| **DeepX**    | INT8 only                                                                       |
+| **Hailo**    | INT8 HEF output; select the target Hailo architecture                           |
+| **Huawei**   | FP16 .om output; Ascend310P1, Ascend310P3, Ascend310B1, and Ascend310B4 targets |
+| **Qualcomm** | Fixed W8A16 quantization; end-to-end export is unavailable                      |
 
 !!! note "Additional Export Rules"
 

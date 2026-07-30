@@ -670,15 +670,14 @@ def test_export_executorch_matrix(task):
 
 
 @pytest.mark.skipif(
-    not (WINDOWS or (LINUX and ARM64)) or sys.version_info < (3, 11),
-    reason="onnxruntime-qnn ships prebuilt wheels only for Windows (x64/ARM64) and Linux ARM64 on Python>=3.11",
+    not (WINDOWS or LINUX) or sys.version_info < (3, 11),
+    reason="onnxruntime-qnn ships prebuilt wheels only for Windows and Linux on Python>=3.11",
 )
 def test_export_qnn(isolated_model):
     """Test YOLO export to Qualcomm QNN format via the ONNX Runtime QNN Execution Provider."""
     import importlib.util
 
-    # QNN EP ships either as the 'onnxruntime_qnn' plugin module (Windows/Linux-aarch64) or as a provider library
-    # bundled in onnxruntime/capi (Linux x86-64). Skip cleanly only when neither is present.
+    # QNN EP ships either as the 'onnxruntime_qnn' plugin module or as a provider library bundled in onnxruntime/capi.
     has_qnn = importlib.util.find_spec("onnxruntime_qnn") is not None
     if not has_qnn and importlib.util.find_spec("onnxruntime") is not None:
         import onnxruntime

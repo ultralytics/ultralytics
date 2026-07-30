@@ -37,12 +37,10 @@ The IMX500 works with quantized models. Quantization makes models smaller and fa
 
 ## Supported Tasks
 
-Currently, you can only export models that include the following tasks to IMX500 format.
+IMX500 export supports four of the seven Ultralytics tasks, and only for the YOLOv8n and YOLO11n models noted below; exporting a semantic segmentation, OBB, or depth estimation model raises an error.
 
-- [Object Detection](../tasks/detect.md)
-- [Pose Estimation](../tasks/pose.md)
-- [Classification](../tasks/classify.md)
-- [Instance segmentation](../tasks/segment.md)
+{% set unsupported = ["semantic", "obb", "depth"] %}
+{% include "macros/supported-tasks.md" %}
 
 !!! note "Supported model variants"
 

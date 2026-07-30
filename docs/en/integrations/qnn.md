@@ -110,17 +110,9 @@ and NPU numbers are ONNX Runtime QNN (`onnxruntime-qnn==2.2.0`, INT8 weights / 1
 
 ## Supported Tasks
 
-QNN export supports the standard task set available in each model family, including YOLO26 semantic segmentation.
+Qualcomm QNN export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
 
-| Task                                          | Supported |
-| :-------------------------------------------- | :-------- |
-| [Object Detection](../tasks/detect.md)        | ✅        |
-| [Instance Segmentation](../tasks/segment.md)  | ✅        |
-| [Semantic Segmentation](../tasks/semantic.md) | ✅        |
-| [Pose Estimation](../tasks/pose.md)           | ✅        |
-| [OBB Detection](../tasks/obb.md)              | ✅        |
-| [Classification](../tasks/classify.md)        | ✅        |
-| [Depth Estimation](../tasks/depth.md)         | ✅        |
+{% include "macros/supported-tasks.md" %}
 
 ## Export to QNN: Converting Your YOLO Model
 

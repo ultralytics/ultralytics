@@ -444,56 +444,82 @@ class DINOv3Teacher(TeacherModel):
         return TeacherOutput(cls=cls, patches=patches)
 
 
-class DINOv2Teacher(DINOv3Teacher):
-    """DINOv2 distilled teacher via HuggingFace transformers (https://arxiv.org/abs/2304.07193).
+class DINOv2Teacher(TeacherModel):
+    """DINOv2 distilled teacher via the official torch hub models (https://arxiv.org/abs/2304.07193).
 
     Attributes:
-        model: The DINOv2 backbone from HuggingFace transformers.
+        model: The DINOv2 backbone from the local official repository.
     """
 
-    FAMILY = "DINOv2"
+    DINOV2_REPO = str(TEACHER_REPO_ROOT / "dinov2")
     CONFIGS = {
         "vits14": {
-            "hf_model": "facebook/dinov2-small",
+            "hub_name": "dinov2_vits14",
             "embed_dim": 384,
             "num_patches": 256,
             "imgsz": 224,
-            "n_registers": 0,
             "dynamic_imgsz": True,
             "imgsz_multiple": 14,
             "token_types": ("cls", "patches"),
         },
         "vits14_reg": {
-            "hf_model": "facebook/dinov2-small-with-registers",
+            "hub_name": "dinov2_vits14_reg",
             "embed_dim": 384,
             "num_patches": 256,
             "imgsz": 224,
-            "n_registers": 4,
             "dynamic_imgsz": True,
             "imgsz_multiple": 14,
             "token_types": ("cls", "patches"),
         },
         "vitb14": {
-            "hf_model": "facebook/dinov2-base",
+            "hub_name": "dinov2_vitb14",
             "embed_dim": 768,
             "num_patches": 256,
             "imgsz": 224,
-            "n_registers": 0,
             "dynamic_imgsz": True,
             "imgsz_multiple": 14,
             "token_types": ("cls", "patches"),
         },
         "vitb14_reg": {
-            "hf_model": "facebook/dinov2-base-with-registers",
+            "hub_name": "dinov2_vitb14_reg",
             "embed_dim": 768,
             "num_patches": 256,
             "imgsz": 224,
-            "n_registers": 4,
             "dynamic_imgsz": True,
             "imgsz_multiple": 14,
             "token_types": ("cls", "patches"),
         },
     }
+
+    def __init__(self, variant: str = "vits14", device: torch.device = None):
+        """Initialize a DINOv2 teacher from the official local checkout.
+
+        Args:
+            variant (str): Model variant ('vits14', 'vits14_reg', 'vitb14' or 'vitb14_reg').
+            device (torch.device, optional): Device to load the model on.
+        """
+        super().__init__()
+        if variant not in self.CONFIGS:
+            raise ValueError(f"Unknown DINOv2 variant '{variant}'. Supported: {list(self.CONFIGS)}")
+        cfg = self.CONFIGS[variant]
+        self.model = torch.hub.load(self.DINOV2_REPO, cfg["hub_name"], source="local", pretrained=True)
+        self._freeze(cfg, device)
+
+    @torch.no_grad()
+    def encode(self, image: torch.Tensor) -> TeacherOutput:
+        """Encode images via the official DINOv2 model.
+
+        Args:
+            image (torch.Tensor): Preprocessed image tensor (B, 3, H, W).
+
+        Returns:
+            (TeacherOutput): CLS and patch features with register tokens excluded.
+        """
+        out = self.model.forward_features(self._prep(image))
+        return TeacherOutput(
+            cls=out["x_norm_clstoken"] if "cls" in self.token_types else None,
+            patches=out["x_norm_patchtokens"],
+        )
 
 
 class TIPSTeacher(TeacherModel):

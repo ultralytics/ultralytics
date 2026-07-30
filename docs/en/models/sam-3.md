@@ -370,6 +370,7 @@ single file.
 
         # Or stop at ONNX
         model.export(format="onnx", imgsz=1008)  # -> sam3_onnx/
+        model.export(format="onnx", imgsz=1008, quantize=16)  # the same modules at half the size
         ```
 
     === "CLI"
@@ -418,8 +419,25 @@ with, so `imgsz` does not have to be passed at predict time.
 !!! warning "Fixed image size"
 
     An exported directory only accepts the size it was traced at, 1008 by default. Export again if
-    you need another size. Point prompt modules can only be exported at 1008, because the
-    interactive prompt encoder is built at that size.
+    you need another size.
+
+    A checkpoint predicts at 1036, the nearest multiple of the 14 pixel patch size to the 1024
+    default, so export with `imgsz=1036` if you want the exported model to reproduce checkpoint
+    results pixel for pixel.
+
+### Precision
+
+`quantize=16` means something different for each format, because ONNX stores a precision while
+TensorRT chooses one while it builds:
+
+| Export            | What `quantize=16` does                                                                                    |
+| ----------------- | ---------------------------------------------------------------------------------------------------------- |
+| `format="onnx"`   | Writes FP16 weights, keeping the inputs and outputs FP32 and the overflow prone operators at FP32          |
+| `format="engine"` | Writes FP32 ONNX and lets TensorRT assign precision per node, so the few operators that overflow stay FP32 |
+
+Half precision roughly halves the files and never moved mask agreement below 0.99 IoU against the
+FP32 checkpoint in testing, so it is the default worth using. FP16 ONNX is also the only ONNX build
+that fits a 12 GB card, since FP32 exhausts it and falls back to CPU.
 
 ## Performance Benchmarks
 

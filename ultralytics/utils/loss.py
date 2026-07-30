@@ -1678,9 +1678,6 @@ class E2ELoss:
         self.aux_fg_tgt = getattr(model.args, "aux_fg_tgt", "o2m")
         if self.aux_fg_tgt not in {"o2m", "o2o", "mix"}:
             raise ValueError(f"aux_fg_tgt must be 'o2m', 'o2o', or 'mix', not {self.aux_fg_tgt!r}")
-        if self.aux_fg:  # cache only the assignments the selected target needs
-            self.one2many.cache_fg = self.aux_fg_tgt in {"o2m", "mix"}
-            self.one2one.cache_fg = self.aux_fg_tgt in {"o2o", "mix"}
         # mix mode: initial degree of the o2m-only ("ambiguous") anchors, decayed linearly to 0. Kept below 1 so an
         # ambiguous anchor never outranks the o2o positive (which is a hard 1.0 in mix mode).
         self.aux_fg_t = getattr(model.args, "aux_fg_t", 0.5)
@@ -1696,9 +1693,14 @@ class E2ELoss:
         # branch weight carrying the aux term: 'o2m' follows the one2many decay, 'const' keeps it flat, 'o2o' follows the
         # growing one2one weight. With a mix target sliding toward pure o2o, the o2m schedule throttles the o2o-shaped
         # supervision exactly when the o2o branch takes over, so 'const' (or 'o2o') resolves that contradiction.
+        # 'split' instead weights each anchor by the branches that supervise it (see aux_weights).
         self.aux_fg_sched = getattr(model.args, "aux_fg_sched", "o2m")
-        if self.aux_fg_sched not in {"o2m", "const", "o2o"}:
-            raise ValueError(f"aux_fg_sched must be 'o2m', 'const', or 'o2o', not {self.aux_fg_sched!r}")
+        if self.aux_fg_sched not in {"o2m", "const", "o2o", "split"}:
+            raise ValueError(f"aux_fg_sched must be 'o2m', 'const', 'o2o', or 'split', not {self.aux_fg_sched!r}")
+        if self.aux_fg:  # cache the assignments the target and the per-anchor weights need
+            both = self.aux_fg_tgt == "mix" or self.aux_fg_sched == "split"  # split weights need both foregrounds
+            self.one2many.cache_fg = both or self.aux_fg_tgt == "o2m"
+            self.one2one.cache_fg = both or self.aux_fg_tgt == "o2o"
         # >0 linearly decays the aux gain to exactly 0 over this fraction of epochs, on top of the o2m schedule (which
         # floors at final_o2m and so never removes the aux gradient). Deep supervision helps early optimization but
         # late in training the trunk gradient it injects no longer shrinks with the 100x LR decay, acting as a noise
@@ -1823,12 +1825,13 @@ class E2ELoss:
         if self.aux_fg:  # class-agnostic foreground supervision on the head-input (trunk) features
             # the aux branch is training-only, so "aux_fg" is absent at validation (eval mode); report 0 there
             aux = (
-                self.aux_fg * self.aux_fg_loss(preds["aux_fg"], *self.aux_target())
+                self.aux_fg * self.aux_fg_loss(preds["aux_fg"], *self.aux_target(), self.aux_weights())
                 if "aux_fg" in preds
                 else total.new_zeros(())
             )
-            # scaled by the aux_fg_sched branch weight and by the optional aux_fg_end anneal-to-zero ramp
-            sched = {"o2m": self.o2m, "const": 1.0, "o2o": self.o2o}[self.aux_fg_sched]
+            # scaled by the aux_fg_sched branch weight and by the optional aux_fg_end anneal-to-zero ramp; 'split'
+            # applies its weights per anchor inside the loss, so the outer scalar is 1
+            sched = {"o2m": self.o2m, "const": 1.0, "o2o": self.o2o, "split": 1.0}[self.aux_fg_sched]
             total = torch.cat((total, (self.aux_fg_w * sched * aux * batch_size).view(1)))
             loss_items = torch.cat((loss_items, aux.detach().view(1)))
         return total, loss_items
@@ -1863,8 +1866,37 @@ class E2ELoss:
         # counts) is correct because the o2o positives are a subset of the o2m foreground in all but pathological cases.
         return target, (self.one2one.fg_mask.bool() | self.one2many.fg_mask.bool()).sum()
 
+    def aux_weights(self) -> torch.Tensor | None:
+        """Build per-anchor aux loss weights for ``aux_fg_sched='split'``, or None for the scalar schedules.
+
+        Each anchor is weighted by the branches that supervise it, so the two populations follow opposite schedules
+        instead of sharing one scalar: an anchor positive under the one2many assignment only carries the decaying
+        ``o2m`` weight, an anchor positive under the one2one assignment only carries the growing ``o2o`` weight, and an
+        anchor claimed by both carries their sum. Background is supervised as a negative by both branches, so it also
+        takes the sum, which keeps background suppression at full strength across training.
+
+        Since ``o2o = total - o2m`` the sum is a constant 1.0, so the o2o positives (a subset of the o2m foreground in
+        all but pathological cases) hold a flat weight that always dominates the decaying o2m-only anchors. Averaging
+        the two instead would invert that ordering early on, when the o2m weight alone exceeds the mean.
+
+        Returns:
+            (torch.Tensor | None): Per-anchor weights with shape (bs, num_anchors), or None when unused.
+        """
+        if self.aux_fg_sched != "split":
+            return None
+        o2o, o2m = self.one2one.fg_mask.bool(), self.one2many.fg_mask.bool()
+        w = o2o.new_full(o2o.shape, self.o2m + self.o2o, dtype=torch.float)  # both branches: overlap and background
+        w[o2m & ~o2o] = self.o2m  # o2m-only positives follow the decaying one2many weight
+        w[o2o & ~o2m] = self.o2o  # o2o-only positives follow the growing one2one weight
+        return w
+
     @staticmethod
-    def aux_fg_loss(aux_pred: torch.Tensor, target: torch.Tensor, norm: torch.Tensor | None = None) -> torch.Tensor:
+    def aux_fg_loss(
+        aux_pred: torch.Tensor,
+        target: torch.Tensor,
+        norm: torch.Tensor | None = None,
+        weight: torch.Tensor | None = None,
+    ) -> torch.Tensor:
         """Class-agnostic foreground BCE toward the one2many target.
 
         Normalized by ``norm`` when given, otherwise by the target sum: the positive count for a hard 0/1 mask, or the
@@ -1876,12 +1908,15 @@ class E2ELoss:
                 IoU soft label (per-anchor max of the cls target), or the graded mix target.
             norm (torch.Tensor, optional): Explicit denominator, used by the mix target to keep the loss magnitude
                 independent of the scheduled target composition.
+            weight (torch.Tensor, optional): Per-anchor weights with shape (bs, num_anchors) from the split schedule.
 
         Returns:
             (torch.Tensor): Scalar foreground auxiliary loss (0 when there are no positives).
         """
         t = target.unsqueeze(1).to(aux_pred.dtype)  # (bs, 1, num_anchors)
         loss = F.binary_cross_entropy_with_logits(aux_pred.float(), t.float(), reduction="none")
+        if weight is not None:
+            loss = loss * weight.unsqueeze(1).float()
         return loss.sum() / (t.sum() if norm is None else norm).clamp(min=1).float()
 
     @staticmethod

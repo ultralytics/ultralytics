@@ -1587,17 +1587,6 @@ def test_nn_depth_head_no_dead_parameters():
     assert not unused, f"parameters with no gradient: {unused}"
 
 
-@pytest.mark.skipif(not ONLINE, reason="environment is offline")
-def test_hub():
-    """Test Ultralytics HUB functionalities."""
-    from ultralytics.hub import export_fmts_hub, logout
-    from ultralytics.hub.utils import smart_request
-
-    export_fmts_hub()
-    logout()
-    smart_request("GET", "https://github.com", progress=True)
-
-
 @pytest.fixture
 def image():
     """Load and return an image from a predefined source (OpenCV BGR)."""

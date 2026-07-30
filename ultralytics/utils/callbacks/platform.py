@@ -379,7 +379,7 @@ def on_pretrain_routine_start(trainer):
     project, name = _get_project_name(trainer)
     LOGGER.info(f"{PREFIX}Streaming training metrics to Platform")
 
-    # Single dict for all platform callback state (like trainer.hub_session for HUB callbacks)
+    # Single dict for all platform callback state
     ctx = {
         "model_id": None,
         "run_id": None,

@@ -125,7 +125,6 @@ class BaseTrainer:
             overrides (dict, optional): Configuration overrides.
             _callbacks (dict, optional): Dictionary of callback functions.
         """
-        self.hub_session = overrides.pop("session", None)  # HUB
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
         self.args.device = parse_device(self.args.device)  # canonical string, resolves '-1' auto-selection once
@@ -1234,7 +1233,6 @@ class MultiTrainer:
                         "project": str(self.save_dir),  # nest per-dataset runs inside the sweep directory
                         "name": name,
                         "resume": False,
-                        "session": None,
                     }
                     run = SimpleNamespace(
                         project=overrides["project"],
@@ -1255,7 +1253,7 @@ class MultiTrainer:
                             [
                                 *_YOLO_CLI_COMMAND,
                                 "train",
-                                *(f"{k}={v}" for k, v in overrides.items() if k != "session"),
+                                *(f"{k}={v}" for k, v in overrides.items()),
                             ],
                             check=True,
                         )

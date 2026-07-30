@@ -984,7 +984,7 @@ def print_args(args: dict | None = None, show_file=True, show_func=False):
     """
 
     def strip_auth(v):
-        """Clean longer Ultralytics HUB URLs by stripping potential authentication information."""
+        """Clean longer URLs by stripping potential authentication information."""
         return clean_url(v) if (isinstance(v, str) and v.startswith("http") and len(v) > 100) else v
 
     x = inspect.currentframe().f_back  # previous frame

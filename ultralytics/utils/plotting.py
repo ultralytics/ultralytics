@@ -1328,15 +1328,15 @@ def class_activation_map(
 ) -> Any:
     """Run inference and save a class activation heatmap for each image of the batch.
 
-    The map is built with LayerCAM weighting: each position of the feature maps entering the head is weighted by its
-    own positive gradient towards the predicted class score, so the heatmap shows the pixels that raised that score.
-    Channel-pooled weightings such as Grad-CAM and Grad-CAM++ are not used here. A detector spreads its predictions
-    over anchors, so pooling the gradient over space mixes every object together and the map stops depending on the
-    class at all.
+    The map is built with LayerCAM weighting: each position of the feature maps entering the head is weighted by its own
+    positive gradient towards the predicted class score, so the heatmap shows the pixels that raised that score.
+    Channel-pooled weightings such as Grad-CAM and Grad-CAM++ are not used here. A detector spreads its predictions over
+    anchors, so pooling the gradient over space mixes every object together and the map stops depending on the class at
+    all.
 
     Each prediction is explained on its own and its map is scaled to its own peak before all of them are combined with
     an element-wise maximum. Gradient magnitude varies a lot between predictions, so without this the single strongest
-    object sets the colour scale and everything else fades into the background.
+    object sets the color scale and everything else fades into the background.
 
     Args:
         model (torch.nn.Module): AutoBackend wrapping a PyTorch model.

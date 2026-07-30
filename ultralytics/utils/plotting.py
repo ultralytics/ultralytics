@@ -1370,7 +1370,7 @@ def class_activation_map(
         if isinstance(raw, dict):  # Detect and subclasses, end2end heads predict from their one2one branch
             s = raw.get("one2one", raw)["scores"]  # (B, nc, anchors)
         elif isinstance(raw, tuple):  # RTDETRDecoder, raw = (dec_bboxes, dec_scores, ...)
-            s = raw[1].squeeze(0).transpose(1, 2)  # (B, nc, queries)
+            s = raw[1][-1].transpose(1, 2)  # last decoder layer, (B, nc, queries)
         else:  # Classify (B, nc), SemanticSegment (B, nc, h, w), Depth (B, 1, h, w)
             s = raw
         scores.append(s.reshape(*s.shape[:2], -1))  # class logits, (B, nc, predictions)

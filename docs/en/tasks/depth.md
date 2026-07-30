@@ -371,7 +371,6 @@ Export a YOLO26n-depth model to a different format like ONNX, CoreML, etc.
 
 Available YOLO26 depth estimation export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-depth.onnx`. Usage examples are shown for your model after export completes.
 
-{% set model_name = "yolo26n-depth" %}
 {% include "macros/export-table.md" %}
 
 See full `export` details in the [Export](../modes/export.md) page.

@@ -1334,9 +1334,11 @@ def class_activation_map(
     anchors, so pooling the gradient over space mixes every object together and the map stops depending on the class at
     all.
 
-    Each prediction is explained on its own and its map is scaled to its own peak before all of them are combined with
-    an element-wise maximum. Gradient magnitude varies a lot between predictions, so without this the single strongest
-    object sets the color scale and everything else fades into the background.
+    Each prediction is explained on its own, and every head level is scaled to its own peak before the levels and then
+    the predictions are combined with an element-wise maximum. Gradient magnitude varies a lot between levels and
+    between predictions, so without this the strongest one sets the color scale and the rest fades into the background.
+    A large object is a clear case: it is predicted on the coarsest level, where one prediction reaches only a couple of
+    cells, while the evidence that fills its shape sits on the finer levels below.
 
     Args:
         model (torch.nn.Module): AutoBackend wrapping a PyTorch model.
@@ -1394,13 +1396,16 @@ def class_activation_map(
         order = s.masked_fill(~keep, -torch.inf).argsort(1, descending=True).gather(1, rank)  # (B, n)
         cam = None
         for k in range(n):
-            level = 0
+            levels = []
             grads = torch.autograd.grad(s.gather(1, order[:, k : k + 1]).sum(), acts, retain_graph=k < n - 1)
             for a, g in zip(acts, grads):
                 c = (g.float().clamp(min=0) * a.float()).sum(1, keepdim=True)  # LayerCAM, per-position weighting
                 c = c.clamp(min=0)  # activations can be negative, keep only evidence for the prediction
-                level = level + torch.nn.functional.interpolate(c, im.shape[2:], mode="bilinear", align_corners=False)
-            level = level / level.amax((2, 3), keepdim=True).clamp(min=1e-7)  # predictions differ in gradient scale
+                c = torch.nn.functional.interpolate(c, im.shape[2:], mode="bilinear", align_corners=False)
+                levels.append(c / c.amax((2, 3), keepdim=True).clamp(min=1e-7))
+            # The level a prediction is made on peaks far higher than the rest, so summing raw would shrink the
+            # broader evidence the other levels hold down to a faint background.
+            level = torch.stack(levels).amax(0)
             cam = level if cam is None else torch.maximum(cam, level)
 
     cam = (cam.squeeze(1) * 255).byte().cpu().numpy()  # (B, H, W), maps are already scaled to [0, 1]

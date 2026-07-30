@@ -55,11 +55,10 @@ def build_knn_loaders(root, imgsz, protocol, crop_ratio=1.0):
     Returns:
         (tuple): (train_loader, val_loader, num_classes).
     """
-    from types import SimpleNamespace
+    from ultralytics.cfg import get_cfg
 
     kwargs = KNN_PROTOCOLS[protocol]
-    # augment=False reads only these three (dataset.py: cache :1024, scale :1030, imgsz :1044).
-    args = SimpleNamespace(imgsz=imgsz, cache=False, scale=0.92)
+    args = get_cfg(overrides={"imgsz": imgsz, "cache": False, "scale": 0.92})
     train_ds = ClassificationDataset(str(root / "train"), args=args, augment=False, prefix="knn-train")
     val_ds = ClassificationDataset(str(root / "val"), args=args, augment=False, prefix="knn-val")
     transforms = classify_transforms(size=imgsz, **kwargs)

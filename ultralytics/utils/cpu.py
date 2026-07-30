@@ -23,10 +23,8 @@ class CPUInfo:
         __str__: Return the normalized CPU name for string contexts.
 
     Examples:
-        >>> CPUInfo.name()
-        'Apple M4 Pro'
-        >>> str(CPUInfo())
-        'Intel Core i7-9750H 2.60GHz'
+        >>> name = CPUInfo.name()
+        >>> text = str(CPUInfo())
     """
 
     @staticmethod

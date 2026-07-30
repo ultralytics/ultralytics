@@ -714,6 +714,87 @@ class SigLIP2Teacher(TeacherModel):
         return TeacherOutput(cls=out.pooler_output, patches=out.last_hidden_state)
 
 
+class MobileCLIPTeacher(TeacherModel):
+    """MobileCLIP teacher via HuggingFace-hosted OpenCLIP checkpoints."""
+
+    IMAGE_MEAN = (0.0, 0.0, 0.0)
+    IMAGE_STD = (1.0, 1.0, 1.0)
+
+    CONFIGS = {
+        "s0": {
+            "model": "MobileCLIP2-S0",
+            "pretrained_image": True,
+            "embed_dim": 512,
+            "num_patches": 49,
+            "imgsz": 224,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 32,
+            "token_types": ("cls", "patches"),
+        },
+        "s1": {
+            "model": "MobileCLIP-S1",
+            "pretrained": "datacompdr",
+            "embed_dim": 512,
+            "num_patches": 49,
+            "imgsz": 224,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 32,
+            "token_types": ("cls", "patches"),
+        },
+        "s2": {
+            "model": "MobileCLIP-S2",
+            "pretrained": "datacompdr",
+            "embed_dim": 512,
+            "num_patches": 49,
+            "imgsz": 224,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 32,
+            "token_types": ("cls", "patches"),
+        },
+    }
+
+    def __init__(self, variant: str = "s0", device: torch.device = None):
+        """Initialize a MobileCLIP teacher.
+
+        Args:
+            variant (str): Model size.
+            device (torch.device, optional): Device to load the model on.
+        """
+        super().__init__()
+        if variant not in self.CONFIGS:
+            raise ValueError(f"Unknown MobileCLIP variant '{variant}'. Supported: {list(self.CONFIGS)}")
+        import open_clip
+
+        cfg = self.CONFIGS[variant]
+        self.model = open_clip.create_model(
+            cfg["model"], pretrained=cfg.get("pretrained"), pretrained_image=cfg.get("pretrained_image", False)
+        ).visual
+        self._freeze(cfg, device)
+
+    @torch.no_grad()
+    def encode(self, image: torch.Tensor) -> TeacherOutput:
+        """Encode images into pooled and spatial MobileCLIP features.
+
+        Args:
+            image (torch.Tensor): Preprocessed image tensor (B, 3, H, W).
+
+        Returns:
+            (TeacherOutput): Pooled and projected spatial features.
+        """
+        features = self.model.trunk.forward_features(self._prep(image))
+        patches = self.model.trunk.get_classifier()(features.flatten(2).transpose(1, 2))
+        return TeacherOutput(cls=patches.mean(1), patches=patches)
+
+
+class MobileCLIP2Teacher(MobileCLIPTeacher):
+    """MobileCLIP2 teacher via HuggingFace-hosted OpenCLIP checkpoints."""
+
+    CONFIGS = {
+        "s0": {**MobileCLIPTeacher.CONFIGS["s0"], "pretrained": "dfndr2b", "pretrained_image": False},
+        "s2": {**MobileCLIPTeacher.CONFIGS["s2"], "model": "MobileCLIP2-S2", "pretrained": "dfndr2b"},
+    }
+
+
 class SAM3Teacher(TeacherModel):
     """SAM3.1 ViT-L teacher using ultralytics' built-in SAM3 backbone.
 
@@ -981,6 +1062,8 @@ for _prefix, _cls in [
     ("tips", TIPSTeacher),
     ("dune", DUNETeacher),
     ("siglip2", SigLIP2Teacher),
+    ("mobileclip", MobileCLIPTeacher),
+    ("mobileclip2", MobileCLIP2Teacher),
     ("moonvit", MoonViTTeacher),
 ]:
     for _variant, _cfg in _cls.CONFIGS.items():

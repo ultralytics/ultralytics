@@ -102,6 +102,27 @@ def test_cfg_rejects_fuzzed_values():
     assert get_cfg(overrides={"auto_augment": None}).auto_augment is None
 
 
+def test_knn_loaders_use_full_classification_config(monkeypatch, tmp_path):
+    """Test kNN loaders pass the full configuration required by classification datasets."""
+    from types import SimpleNamespace
+
+    from ultralytics.utils import knn_eval
+
+    def classification_dataset(*_, args, **__):
+        assert vars(DEFAULT_CFG).keys() <= vars(args).keys()
+        return SimpleNamespace(base=SimpleNamespace(classes=range(1000)))
+
+    monkeypatch.setattr(knn_eval, "ClassificationDataset", classification_dataset)
+    monkeypatch.setattr(
+        knn_eval,
+        "classify_transforms",
+        lambda **_: SimpleNamespace(transforms=[SimpleNamespace(size=224)]),
+    )
+    monkeypatch.setattr(knn_eval, "build_dataloader", lambda dataset, *_, **__: dataset)
+    train, val, num_classes = knn_eval.build_knn_loaders(tmp_path, 224, "imagenet")
+    assert train is not val and num_classes == 1000
+
+
 def skip_rpi_semantic():
     """Skip semantic segmentation tests on Raspberry Pi due to memory constraints."""
     if IS_RASPBERRYPI:

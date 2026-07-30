@@ -1,0 +1,46 @@
+# Ultralytics YOLO26 object detection model with Custom Small-Object Modules (P3-P5)
+# Modules: SSEDown_two (SPD downsample), C3k2_SWTCC_two (SWTCC + spatial att), CFFM_two (weighted fusion)
+nc: 80
+end2end: True
+reg_max: 1
+scales:
+  n: [0.50, 0.25, 1024]
+  s: [0.50, 0.50, 1024]
+  m: [0.50, 1.00, 512]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.50, 512]
+
+# backbone: SSEDown + SWTCC on P2/P3 shallow stages
+backbone:
+  # [from, repeats, module, args]  — C3k2_SWTCC_two args: [c2, shortcut, e]
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, SSEDown_two, [128]] # 1-P2/4
+  - [-1, 2, C3k2_SWTCC_two, [256, True, 0.25]] # 2
+  - [-1, 1, SSEDown_two, [256]] # 3-P3/8
+  - [-1, 2, C3k2_SWTCC_two, [512, True, 0.25]] # 4
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
+  - [-1, 2, C3k2, [512, True]] # 6
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
+  - [-1, 2, C3k2, [1024, True]] # 8
+  - [-1, 1, SPPF, [1024, 5, 3, True]] # 9
+  - [-1, 2, C2PSA, [1024]] # 10
+
+# head: CFFM_two fusion + SWTCC on P3 detect branch
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 11
+  - [[-1, 6], 1, CFFM_two, [512]] # 12 cat P5↑ + P4
+  - [-1, 2, C3k2, [512, True]] # 13
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 14
+  - [[-1, 4], 1, CFFM_two, [256]] # 15 cat P4↑ + P3
+  - [-1, 2, C3k2_SWTCC_two, [256, True]] # 16 (P3/8-small)
+
+  - [-1, 1, Conv, [256, 3, 2]] # 17
+  - [[-1, 13], 1, CFFM_two, [512]] # 18 cat P3↓ + P4
+  - [-1, 2, C3k2, [512, True]] # 19 (P4/16-medium)
+
+  - [-1, 1, Conv, [512, 3, 2]] # 20
+  - [[-1, 10], 1, CFFM_two, [1024]] # 21 cat P4↓ + P5
+  - [-1, 1, C3k2, [1024, True, 0.5, True]] # 22 (P5/32-large)
+
+  - [[16, 19, 22], 1, Detect, [nc]] # Detect(P3, P4, P5)

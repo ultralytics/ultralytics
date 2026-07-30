@@ -4,8 +4,8 @@
 from __future__ import annotations
 
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
-from torch import nn
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
@@ -52,6 +52,9 @@ __all__ = (
     "ResNetLayer",
     "SCDown",
     "TorchVision",
+    "C3k2_SWTCC_two",
+    "SSEDown_two",
+    "CFFM_two"
 )
 
 
@@ -153,7 +156,7 @@ class HGBlock(nn.Module):
         n: int = 6,
         lightconv: bool = False,
         shortcut: bool = False,
-        act: nn.Module | None = None,
+        act: nn.Module = nn.ReLU(),
     ):
         """Initialize HGBlock with specified parameters.
 
@@ -168,7 +171,6 @@ class HGBlock(nn.Module):
             act (nn.Module): Activation function.
         """
         super().__init__()
-        act = nn.ReLU() if act is None else act
         block = LightConv if lightconv else Conv
         self.m = nn.ModuleList(block(c1 if i == 0 else cm, cm, k=k, act=act) for i in range(n))
         self.sc = Conv(c1 + n * cm, c2 // 2, 1, 1, act=act)  # squeeze conv
@@ -2000,8 +2002,7 @@ class Proto26(Proto):
         feat = x[0]
         for i, f in enumerate(self.feat_refine):
             up_feat = f(x[i + 1])
-            # Constant scale (P4/P5 -> P3) keeps the upsample static for dynamic-shape CoreML export
-            up_feat = F.interpolate(up_feat, scale_factor=2 ** (i + 1), mode="nearest")
+            up_feat = F.interpolate(up_feat, size=feat.shape[2:], mode="nearest")
             feat = feat + up_feat
         p = super().forward(self.feat_fuse(feat))
         if self.training and return_semantic:
@@ -2073,3 +2074,161 @@ class RealNVP(nn.Module):
             self.float()
         z, log_det = self.backward_p(x)
         return self.prior.log_prob(z) + log_det
+class CFFM_two(nn.Module):
+
+    """
+
+    Cross-Feature Fusion Module (最佳版)
+
+    - 权重决策基于全局融合上下文
+
+    - 主路径加权 + residual 全局融合，避免信息稀释
+
+    """
+
+    def __init__(self, c1_list, c2):
+
+        super().__init__()
+
+        c1a, c1b = c1_list
+
+        self.proj1 = Conv(c1a, c2, 1, 1)
+
+        self.proj2 = Conv(c1b, c2, 1, 1)
+
+        
+
+        # 用于提供全局上下文和 residual
+
+        self.fuse = Conv(c2 * 2, c2, 1, 1)
+
+        
+
+        # 注意力在全局上下文中计算权重
+
+        self.att = nn.Sequential(
+
+            nn.AdaptiveAvgPool2d(1),
+
+            nn.Conv2d(c2, c2 // 4, 1, bias=False),
+
+            nn.ReLU(inplace=True),
+
+            nn.Conv2d(c2 // 4, 2, 1, bias=True)
+
+        )
+
+
+
+    def forward(self, x):
+
+        x1, x2 = x
+
+        f1 = self.proj1(x1)   # 上采样语义分支
+
+        f2 = self.proj2(x2)   # 本层细节分支
+
+        
+
+        fused = self.fuse(torch.cat([f1, f2], dim=1))  # 全局上下文
+
+        
+
+        w = self.att(fused)                    # [B, 2, 1, 1]
+
+        w = torch.softmax(w, dim=1)            # w1 + w2 = 1
+        # w = torch.sigmoid(self.att(fused))
+        w1, w2 = w[:, 0:1], w[:, 1:2]
+
+        
+
+        out = f1 * w1 + f2 * w2                 # 主加权路径
+
+        return out + fused                      # residual 防止损失
+
+class SWTCCBlock(nn.Module):
+    """Multi-scale depthwise conv with spatial attention for small-object features."""
+
+    def __init__(self, c: int):
+        super().__init__()
+        self.wave_high = nn.Conv2d(c, c, 3, 1, 1, groups=c)
+        self.wave_low = nn.Conv2d(c, c, 5, 1, 2, groups=c)
+        self.spatial_att = nn.Sequential(nn.Conv2d(2, 1, 7, padding=3, bias=False), nn.Sigmoid())
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        y = self.wave_high(x) + self.wave_low(x)
+        sa = self.spatial_att(torch.cat([torch.mean(y, 1, keepdim=True), torch.max(y, 1, keepdim=True)[0]], dim=1))
+        return y * sa
+
+
+class C3k2_SWTCC_two(C2f):
+    """CSP bottleneck with stacked SWTCC blocks and optional outer residual (1x1 proj when c1 != c2)."""
+
+    def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = False, e: float = 0.5):
+        super().__init__(c1, c2, n, False, g=1, e=e)
+        self.m = nn.ModuleList(SWTCCBlock(self.c) for _ in range(n))
+        self.add = shortcut
+        self.sc = Conv(c1, c2, 1, 1) if shortcut and c1 != c2 else None
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        out = super().forward(x)
+        if self.add:
+            return out + (x if self.sc is None else self.sc(x))
+        return out
+
+    def forward_split(self, x: torch.Tensor) -> torch.Tensor:
+        """Match ``forward`` residual when exporter swaps C2f to ``forward_split``."""
+        out = super().forward_split(x)
+        if self.add:
+            return out + (x if self.sc is None else self.sc(x))
+        return out
+
+class SSEDown_two(nn.Module):
+
+    """
+
+    针对小目标设计的空间保留下采样：SPD + SE 净化
+
+    """
+
+    def __init__(self, c1, c2, k=3, s=2, p=1):
+
+        super().__init__()
+
+        self.conv = Conv(c1 * 4, c2, 1, 1)
+
+        self.se = nn.Sequential(
+
+            nn.AdaptiveAvgPool2d(1),
+
+            nn.Conv2d(c2, c2 // 16, 1),
+
+            nn.ReLU(inplace=True),
+
+            nn.Conv2d(c2 // 16, c2, 1),
+
+            nn.Sigmoid()
+
+        )
+
+
+
+    def forward(self, x):
+
+        # SPD 操作：无像素丢失的下采样
+
+        patch1 = x[..., 0::2, 0::2]
+
+        patch2 = x[..., 1::2, 0::2]
+
+        patch3 = x[..., 0::2, 1::2]
+
+        patch4 = x[..., 1::2, 1::2]
+
+        x = torch.cat([patch1, patch2, patch3, patch4], dim=1)
+
+        
+
+        y = self.conv(x)
+
+        return y * self.se(y)

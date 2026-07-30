@@ -59,6 +59,9 @@ from .block import (
     ResNetLayer,
     SCDown,
     TorchVision,
+    C3k2_SWTCC_two,
+    CFFM_two,
+    SSEDown_two
 )
 from .conv import (
     CBAM,
@@ -80,7 +83,6 @@ from .head import (
     OBB,
     OBB26,
     Classify,
-    Depth,
     Detect,
     LRPCHead,
     Pose,
@@ -153,7 +155,6 @@ __all__ = (
     "DWConvTranspose2d",
     "DeformableTransformerDecoder",
     "DeformableTransformerDecoderLayer",
-    "Depth",
     "Detect",
     "Focus",
     "GhostBottleneck",
@@ -191,4 +192,5 @@ __all__ = (
     "YOLOESegment",
     "YOLOESegment26",
     "v10Detect",
+    "C3k2_SWTCC_two",
 )

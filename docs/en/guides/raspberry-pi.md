@@ -1,13 +1,13 @@
 ---
 title: YOLO26 on Raspberry Pi: Setup & Benchmarks
 comments: true
-description: Deploy Ultralytics YOLO26 on Raspberry Pi 4 and 5 with install steps, NCNN export for fastest inference, camera setup, and benchmarks across ten formats.
+description: Deploy Ultralytics YOLO26 on Raspberry Pi 4 and 5 with install steps, NCNN export for fastest inference, camera setup, and benchmarks across eight formats.
 keywords: Ultralytics, YOLO26, Raspberry Pi, setup, guide, benchmarks, computer vision, object detection, NCNN, Docker, camera modules
 ---
 
 # Quick Start Guide: Raspberry Pi with Ultralytics YOLO26
 
-[Raspberry Pi](https://www.raspberrypi.com/) is a small, affordable computer that runs [Ultralytics YOLO26](../models/yolo26.md) for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) at the edge — no GPU required. This guide walks you through deploying YOLO26 on Raspberry Pi 4 and 5: flashing the OS, installing Ultralytics, exporting to [NCNN](../integrations/ncnn.md) for the fastest [inference](../modes/predict.md) on ARM, and running predictions on a live camera feed. It also includes performance benchmarks across ten export formats so you can pick the best speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) trade-off for your hardware.
+[Raspberry Pi](https://www.raspberrypi.com/) is a small, affordable computer that runs [Ultralytics YOLO26](../models/yolo26.md) for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) at the edge — no GPU required. This guide walks you through deploying YOLO26 on Raspberry Pi 4 and 5: flashing the OS, installing Ultralytics, exporting to [NCNN](../integrations/ncnn.md) for the fastest [inference](../modes/predict.md) on ARM, and running predictions on a live camera feed. It also includes performance benchmarks across eight export formats so you can pick the best speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) trade-off for your hardware.
 
 Jump to [setting up Ultralytics](#set-up-ultralytics), [exporting to NCNN and running inference](#use-ncnn-on-raspberry-pi), [benchmarks](#raspberry-pi-5-yolo26-benchmarks), or [camera inference](#use-raspberry-pi-camera).
 
@@ -170,7 +170,7 @@ YOLO26 is specifically designed to run on hardware-constrained devices such as t
 
 ## Raspberry Pi 5 YOLO26 Benchmarks
 
-YOLO26 [benchmarks](../modes/benchmark.md) were run by the Ultralytics team on ten different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN, ExecuTorch. Benchmarks were run on a Raspberry Pi 5 at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
+YOLO26 [benchmarks](../modes/benchmark.md) were run by the Ultralytics team on eight different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, MNN, NCNN, ExecuTorch, LiteRT. Benchmarks were run on a Raspberry Pi 5 at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
 
 ### Comparison Chart
 
@@ -178,12 +178,12 @@ We have only included benchmarks for YOLO26n and YOLO26s models because other mo
 
 <figure style="text-align: center;">
     <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/raspberry-pi-yolo26-benchmarks.avif" alt="YOLO26 benchmarks on RPi 5">
-    <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics 8.4.1</figcaption>
+    <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics 8.4.108</figcaption>
 </figure>
 
 ### Detailed Comparison Table
 
-The below table represents the benchmark results for two different models (YOLO26n, YOLO26s) across ten different formats (PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN, ExecuTorch), running on a Raspberry Pi 5, giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
+The below table represents the benchmark results for two different models (YOLO26n, YOLO26s) across eight different formats (PyTorch, TorchScript, ONNX, OpenVINO, MNN, NCNN, ExecuTorch, LiteRT), running on a Raspberry Pi 5, giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
 
 !!! tip "Performance"
 
@@ -191,33 +191,29 @@ The below table represents the benchmark results for two different models (YOLO2
 
         | Format        | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
         |---------------|--------|-------------------|-------------|------------------------|
-        | PyTorch       | ✅      | 5.3               | 0.4798      | 302.15                |
-        | TorchScript   | ✅      | 9.8              | 0.4764      | 357.58                |
-        | ONNX          | ✅      | 9.5              | 0.4764      | 130.33                |
-        | OpenVINO      | ✅      | 9.6              | 0.4818      | 70.74                 |
-        | TF SavedModel | ✅      | 24.6              | 0.4764      | 213.58                |
-        | TF GraphDef   | ✅      | 9.5              | 0.4764      | 213.5                |
-        | TF Lite       | ✅      | 9.9              | 0.4764      | 251.41                |
-        | MNN           | ✅      | 9.4              | 0.4784      | 90.89                |
-        | NCNN          | ✅      | 9.4              | 0.4805      | 67.69                 |
-        | ExecuTorch    | ✅      | 9.4              | 0.4764      | 148.36                 |
+        | PyTorch       | ✅      | 5.3               | 0.4760       | 299.09                |
+        | TorchScript   | ✅      | 9.8              | 0.4734      | 353.20                |
+        | ONNX          | ✅      | 9.5              | 0.4734      | 125.99                |
+        | OpenVINO      | ✅      | 9.6              | 0.4734      | 104.55                 |
+        | MNN           | ✅      | 9.4              | 0.4749      | 91.87                |
+        | NCNN          | ✅      | 9.4              | 0.4784      | 67.03                 |
+        | ExecuTorch    | ✅      | 9.4              | 0.4772      | 144.83                 |
+        | LiteRT        | ✅      | 9.8              | 0.4730      | 245.5                 |
 
     === "YOLO26s"
 
         | Format        | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
         |---------------|--------|-------------------|-------------|------------------------|
-        | PyTorch       | ✅      | 19.5              | 0.5740      | 836.54                 |
-        | TorchScript   | ✅      | 36.8              | 0.5665      | 1032.25               |
-        | ONNX          | ✅      | 36.5              | 0.5665      | 351.96                |
-        | OpenVINO      | ✅      | 36.7              | 0.5654      | 158.6                |
-        | TF SavedModel | ✅      | 92.2               | 0.5665      | 507.6                |
-        | TF GraphDef   | ✅      | 36.5              | 0.5665      | 525.64                 |
-        | TF Lite       | ✅      | 36.9               | 0.5665      | 805.3               |
-        | MNN           | ✅      | 36.4              | 0.5644      | 236.47                |
-        | NCNN          | ✅      | 36.4              | 0.5697      | 168.47                |
-        | ExecuTorch    | ✅      | 36.5              | 0.5665      | 388.72                |
+        | PyTorch       | ✅      | 19.5              | 0.5703      | 848.65                 |
+        | TorchScript   | ✅      | 36.8              | 0.5632      | 1053.24               |
+        | ONNX          | ✅      | 36.5              | 0.5632      | 355.69                |
+        | OpenVINO      | ✅      | 36.7              | 0.5632      | 281.78                |
+        | MNN           | ✅      | 36.4              | 0.5614      | 237.24                |
+        | NCNN          | ✅      | 36.4              | 0.5684      | 172.88                |
+        | ExecuTorch    | ✅      | 36.5              | 0.5670      | 376.48                |
+        | LiteRT        | ✅      | 36.8              | 0.5630      | 795.00                |
 
-    Benchmarked with Ultralytics 8.4.1
+    Benchmarked with Ultralytics 8.4.108
 
     !!! note
 
@@ -249,6 +245,10 @@ To reproduce the above Ultralytics benchmarks on all [export formats](../modes/e
         ```
 
     Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results, use a dataset with a large number of images, e.g., `data='coco.yaml'` (5000 val images).
+
+!!! note "LiteRT export runs off-device"
+
+    `litert-converter` ships no `aarch64` Linux wheel, so `format=litert` export is only supported on Linux x86_64 and macOS, not on the Raspberry Pi itself. Export the `.tflite` model on a Linux x86_64 machine or a Mac, copy it to the Raspberry Pi, and use the Pi for inference.
 
 ## Use Raspberry Pi Camera
 

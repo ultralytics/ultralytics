@@ -29,7 +29,7 @@ All YOLO26 base models were trained on COCO at **640x640** resolution using the 
 Key design choices across all sizes:
 
 - **End-to-end training** (`end2end=True`) with NMS-free one-to-one head
-- **[MuSGD](../modes/train.md#musgd-optimizer) optimizer** combining SGD with Muon-style orthogonalized updates for weight matrices (parameters with `ndim >= 2`, such as conv and linear weights)
+- **[MuSGD](../modes/train.md#musgd-optimizer) optimizer** combining SGD with Muon-style orthogonalized updates for weight matrices (2D linear weights and 4D conv filters, which are reshaped to 2D)
 - **Heavy mosaic augmentation** (~0.9-1.0 probability) disabled in the last 10 epochs (`close_mosaic=10`)
 - **Aggressive scale augmentation** (0.56-0.95) to handle objects at different sizes
 - **Minimal rotation/shear** for most sizes, keeping geometric distortion low

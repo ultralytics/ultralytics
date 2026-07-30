@@ -255,7 +255,11 @@ class Detect(nn.Module):
         ori_index = scores.max(dim=-1)[0].topk(k)[1].unsqueeze(-1)
         scores = scores.gather(dim=1, index=ori_index.expand(-1, -1, nc))
         scores, index = scores.flatten(1).topk(k)
-        idx = ori_index[torch.arange(batch_size)[..., None], index // nc]  # original index
+        idx = (
+            ori_index[torch.arange(batch_size)[..., None], index // nc]
+            if self.format == "coreml"
+            else ori_index.gather(dim=1, index=(index // nc).unsqueeze(-1))
+        )
         return scores[..., None], (index % nc)[..., None].float(), idx
 
     def fuse(self) -> None:

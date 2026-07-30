@@ -239,6 +239,7 @@ CFG_FRACTION_KEYS = frozenset(
         "cutmix",
         "copy_paste",
         "erasing",
+        "albumentations_p",
         "conf",
         "iou",
         "fraction",

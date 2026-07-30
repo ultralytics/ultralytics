@@ -2085,7 +2085,7 @@ class Albumentations(BaseTransform):
     Notes:
         - Requires Albumentations version 1.0.3 or higher.
         - Spatial transforms are handled differently to ensure bbox compatibility.
-        - Some transforms are applied with very low probability (0.01) by default.
+        - The default transforms are applied with probability `p`, in addition to the `p` pipeline gate.
     """
 
     def __init__(self, p: float = 1.0, transforms: list | None = None) -> None:
@@ -2096,7 +2096,8 @@ class Albumentations(BaseTransform):
         contrast, RandomGamma, and image quality reduction through compression.
 
         Args:
-            p (float): Probability of applying the augmentations. Must be between 0 and 1.
+            p (float): Probability of applying the augmentations, also used as the probability of each default
+                transform. Must be between 0 and 1.
             transforms (list | None): List of custom Albumentations transforms. If None, uses default transforms.
         """
         self.p = p
@@ -2158,13 +2159,13 @@ class Albumentations(BaseTransform):
             # Transforms, use custom transforms if provided, otherwise use defaults
             T = (
                 [
-                    A.Blur(p=0.01),
-                    A.MedianBlur(p=0.01),
-                    A.ToGray(p=0.01),
-                    A.CLAHE(p=0.01),
-                    A.RandomBrightnessContrast(p=0.0),
-                    A.RandomGamma(p=0.0),
-                    A.ImageCompression(quality_range=(75, 100), p=0.0),
+                    A.Blur(p=self.p),
+                    A.MedianBlur(p=self.p),
+                    A.ToGray(p=self.p),
+                    A.CLAHE(p=self.p),
+                    A.RandomBrightnessContrast(p=self.p),
+                    A.RandomGamma(p=self.p),
+                    A.ImageCompression(quality_range=(75, 100), p=self.p),
                 ]
                 if transforms is None
                 else transforms
@@ -2832,7 +2833,7 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace):
             pre_transform,
             MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
             CutMix(dataset, pre_transform=pre_transform, p=hyp.cutmix),
-            Albumentations(p=1.0, transforms=getattr(hyp, "augmentations", None)),
+            Albumentations(p=hyp.albumentations_p, transforms=getattr(hyp, "augmentations", None)),
             RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
             RandomFlip(direction="vertical", p=hyp.flipud, flip_idx=flip_idx),
             RandomFlip(direction="horizontal", p=hyp.fliplr, flip_idx=flip_idx),

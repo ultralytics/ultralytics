@@ -68,7 +68,7 @@ For turnkey solutions, Axelera partners with manufacturers to provide systems pr
 
 ## Supported Tasks
 
-The following tasks are supported across YOLOv8, YOLO11, and YOLO26 models. Depth estimation is not supported: the depth head emits operators the Metis AIPU compiler cannot lower.
+Depth estimation is not supported: the depth head emits operators the Metis AIPU compiler cannot lower. YOLO26 segmentation is not supported by Ultralytics `export` either, but can still be deployed through the Voyager SDK as described below.
 
 {% set unsupported = ["depth", "yolo26-segment"] %}
 {% include "macros/supported-tasks.md" %}

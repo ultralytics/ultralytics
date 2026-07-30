@@ -178,7 +178,7 @@ CFG_FLOAT_KEYS = frozenset(
         "box",
         "cls",
         "cls_pw",
-        "o2o_neg_focal_gamma",
+        "neg_focal_gamma",
         "o2o_pos_cls",
         "o2o_small_target_full",
         "o2o_small_target_end",
@@ -222,7 +222,7 @@ CFG_FRACTION_KEYS = frozenset(
         "multi_scale",
         "o2f_max_t",
         "o2f_min_t",
-        "o2o_neg_margin",
+        "neg_margin",
         "o2o_small_target_gamma",
     }
 )

@@ -505,8 +505,9 @@ class v8DetectionLoss:
         m = model.model[-1]  # Detect() module
         self.bce = nn.BCEWithLogitsLoss(reduction="none")
         self.vfl = VarifocalLoss() if getattr(h, "vfl", False) else None
-        self.neg_focal_gamma = 0.0
-        self.neg_margin = 0.0  # negative-only probability margin; negatives predicting below it are dropped from cls
+        # negative-only BCE reweighting on every head by detached (p - neg_margin).clamp(0) ** neg_focal_gamma
+        self.neg_focal_gamma = getattr(h, "neg_focal_gamma", 0.0)
+        self.neg_margin = getattr(h, "neg_margin", 0.0)
         self.cls_hard = False
         self.pos_cls = False  # enable the positive-only GT-class auxiliary term for one2one only
         self.pos_cls_p3_only = False
@@ -616,7 +617,7 @@ class v8DetectionLoss:
         With ``neg_focal_gamma>0`` the BCE path downweights only negative classes by detached ``p**gamma`` while
         preserving the original BCE gradients and soft targets for positives. ``neg_margin>0`` first subtracts the
         margin, so negatives predicting below it drop out of the loss entirely; with ``neg_focal_gamma=0`` that
-        truncation is the only effect and surviving negatives keep unit weight.
+        truncation is the only effect and surviving negatives keep unit weight. Both apply to every head.
 
         With ``cls_hard=True`` positive classification targets are binarized to 1.0 and the loss is normalized by the
         positive count. Box and DFL targets are unaffected.
@@ -1536,8 +1537,6 @@ class E2EDetectLoss:
             "o2o",
             "both",
         }
-        self.one2one.neg_focal_gamma = getattr(model.args, "o2o_neg_focal_gamma", 0.0)
-        self.one2one.neg_margin = getattr(model.args, "o2o_neg_margin", 0.0)
         self.o2f_loss = self.one2one if self.o2f_branch == "o2o" else self.one2many
         self.o2f_loss.assigner.o2f = self.o2f
         self.o2f_loss.assigner.o2f_iou = getattr(model.args, "o2f_iou", "amb_max")
@@ -1626,8 +1625,6 @@ class E2ELoss:
             "o2o",
             "both",
         }
-        self.one2one.neg_focal_gamma = getattr(model.args, "o2o_neg_focal_gamma", 0.0)
-        self.one2one.neg_margin = getattr(model.args, "o2o_neg_margin", 0.0)
         self.one2one.cls_hard = getattr(model.args, "o2o_cls_hard", False)
         self.pos_cls = getattr(model.args, "o2o_pos_cls", 0.0) if loss_fn is v8DetectionLoss else 0.0
         self.one2one.pos_cls = bool(self.pos_cls)

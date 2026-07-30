@@ -105,6 +105,7 @@ box: 7.5 # (float) box loss gain
 cls: 0.5 # (float) classification loss gain
 cls_pw: 0.0 # (float) class weights power for handling class imbalance (0.0=disable, 1.0=full inverse frequency)
 o2o_neg_focal_gamma: 0.0 # (float) one2one BCE negative-only focal gamma (0.0=disable)
+o2o_neg_margin: 0.0 # (float) one2one BCE negative-only probability margin; negatives predicting below it get zero weight (0.0=disable)
 o2o_cls_hard: False # (bool) use hard 0/1 classification targets for one2one instead of IoU soft targets
 o2o_pos_cls: 0.0 # (float) one2one positive-only GT-class classification loss gain (0.0=disable)
 o2o_pos_cls_p3_only: False # (bool) restrict o2o_pos_cls to matched positives on the finest P3 level

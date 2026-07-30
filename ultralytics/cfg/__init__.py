@@ -222,6 +222,7 @@ CFG_FRACTION_KEYS = frozenset(
         "multi_scale",
         "o2f_max_t",
         "o2f_min_t",
+        "o2o_neg_margin",
         "o2o_small_target_gamma",
     }
 )

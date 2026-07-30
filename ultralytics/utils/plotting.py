@@ -1321,8 +1321,9 @@ def gradcam(model, im: torch.Tensor, paths: list[str], save_dir: Path, *args, co
     Grad-CAM++ weights each channel of the feature maps entering the model head by its positive gradient contribution
     to the predicted class scores, so the heatmap shows the pixels the model actually used to make its predictions.
     Compared to Grad-CAM it weights each spatial position separately, which keeps every instance visible when an image
-    holds many objects of the same class. The maps of all head levels (P3, P4, P5) are summed so that evidence for
-    small and large objects ends up in one overlay.
+    holds many objects of the same class. Each head level (P3, P4, P5) is scaled to its own peak before the levels are
+    combined, otherwise the level holding the strongest object sets the colour scale and the rest fades into the
+    background.
 
     Args:
         model (torch.nn.Module): AutoBackend wrapping a PyTorch model.
@@ -1366,7 +1367,7 @@ def gradcam(model, im: torch.Tensor, paths: list[str], save_dir: Path, *args, co
                 handle.remove()
         s = torch.cat(scores, 2).amax(1)  # (B, predictions) best class logit of each prediction
         keep = (s.sigmoid() >= conf) | (s == s.amax(1, keepdim=True))  # top prediction alone if none above conf
-        cam = 0
+        cams = []
         for a, g in zip(acts, torch.autograd.grad((s * keep).sum(), acts)):
             a, g = a.float(), g.float()
             g2 = g * g
@@ -1374,10 +1375,11 @@ def gradcam(model, im: torch.Tensor, paths: list[str], save_dir: Path, *args, co
             aij = g2 / (2 * g2 + a.clamp(min=0).sum((2, 3), keepdim=True) * g2 * g + 1e-7)
             w = (aij * g.clamp(min=0)).sum((2, 3), keepdim=True)  # channel weights
             level = (w * a).sum(1, keepdim=True).clamp(min=0)
-            cam = cam + torch.nn.functional.interpolate(level, im.shape[2:], mode="bilinear", align_corners=False)
+            level = torch.nn.functional.interpolate(level, im.shape[2:], mode="bilinear", align_corners=False)
+            cams.append(level / level.amax((2, 3), keepdim=True).clamp(min=1e-7))  # levels differ in scale
+        cam = torch.stack(cams).amax(0)
 
-    cam = cam.squeeze(1)  # (B, H, W)
-    cam = (cam / cam.amax((1, 2), keepdim=True).clamp(min=1e-7) * 255).byte().cpu().numpy()
+    cam = (cam.squeeze(1) * 255).byte().cpu().numpy()  # (B, H, W), levels are already scaled to [0, 1]
     ims = (im.detach()[:, :3].float() * 255).byte().permute(0, 2, 3, 1).cpu().numpy()[..., ::-1]  # RGB to BGR
     save_dir.mkdir(parents=True, exist_ok=True)
     for c, img, p in zip(cam, ims, paths):

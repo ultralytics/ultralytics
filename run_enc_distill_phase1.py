@@ -223,8 +223,8 @@ def main(argv: list[str]) -> None:
         if len(args) > 5 and data != parent_data:
             raise ValueError(f"Post-training data mismatch: checkpoint={parent_data!r} vs cli={data!r}")
         teachers, data = parent_teachers, parent_data
-        if teachers != "dinov3:vitl16":
-            raise ValueError(f"--eupe_multires currently requires dinov3:vitl16, got {teachers!r}")
+        if teachers not in {"dinov3:vitl16", "dinov3:convnextl"}:
+            raise ValueError(f"--eupe_multires does not support {teachers!r}")
         if post_training_args.get("distill_path", "adaptor") != "adaptor":
             raise ValueError("--eupe_multires requires the P5 adaptor loss path, not feat_map/P4 supervision")
         if post_training_args.get("optimizer", "AdamW") != "AdamW":

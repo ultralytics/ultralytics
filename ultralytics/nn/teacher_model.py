@@ -361,6 +361,16 @@ class DINOv3Teacher(TeacherModel):
             # CLS is token 0 in last_hidden_state (verified: shape [1, 50, 1024] = 1 CLS + 49 patches)
             "token_types": ("cls", "patches"),
         },
+        "convnextl": {
+            "hf_model": "facebook/dinov3-convnext-large-pretrain-lvd1689m",
+            "embed_dim": 1536,
+            "num_patches": 49,
+            "imgsz": 224,
+            "n_registers": 0,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 32,
+            "token_types": ("cls", "patches"),
+        },
         "vit7b": {
             "hf_model": "facebook/dinov3-vit7b16-pretrain-lvd1689m",
             "embed_dim": 4096,
@@ -377,7 +387,7 @@ class DINOv3Teacher(TeacherModel):
         """Initialize DINOv3 teacher from HuggingFace.
 
         Args:
-            variant (str): Model variant ('vitb16', 'vitl16', 'convnextb', or 'vit7b').
+            variant (str): Model variant ('vitb16', 'vitl16', 'convnextb', 'convnextl', or 'vit7b').
             device (torch.device, optional): Device to load the model on.
         """
         super().__init__()
@@ -416,11 +426,11 @@ class TIPSTeacher(TeacherModel):
     """TIPS teacher (https://arxiv.org/abs/2410.16512), covering both v1 and v2 checkpoints.
 
     Two CLS tokens are produced, trained on the noisy web caption and on a synthetic caption. ``encode`` returns the
-    first, which the paper assigns to global image tasks. ``self.head`` is ``nn.Identity`` (tips/pytorch/image_encoder.py:739), so
-    ``forward_features`` is already the final feature.
+    first, which the paper assigns to global image tasks. ``self.head`` is ``nn.Identity``
+    (tips/pytorch/image_encoder.py:739), so ``forward_features`` is already the final feature.
 
-    Every v1-HR and v2 checkpoint stores ``pos_embed`` as ``(1, 1025, D)``, one CLS plus a 32x32 patch-14 grid, so all variants
-    build at ``img_size=448`` and only the weights differ by version.
+    Every v1-HR and v2 checkpoint stores ``pos_embed`` as ``(1, 1025, D)``, one CLS plus a 32x32 patch-14 grid, so all
+    variants build at ``img_size=448`` and only the weights differ by version.
 
     Attributes:
         model: TIPS VisionTransformer loaded from the local tips checkout.

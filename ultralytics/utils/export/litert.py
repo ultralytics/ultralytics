@@ -9,56 +9,7 @@ from pathlib import Path
 import torch
 
 from ultralytics.utils import LOGGER
-
-
-class _NormalizeCoords(torch.nn.Module):
-    """Wrap a model so box (and pose keypoint) coordinates are output normalized to [0, 1].
-
-    LiteRT and INT8 RKNN exports trace the raw PyTorch model, whose detection output concatenates pixel-space box
-    coordinates (0-imgsz) with [0, 1] class scores in a single tensor. A single per-tensor INT8 scale cannot represent
-    both ranges, so the scores collapse to zero. Normalizing coordinates to [0, 1] keeps the whole tensor in a unit
-    range so quantization preserves score resolution; ``LiteRTBackend`` and ``RKNNBackend`` denormalize by image size at
-    runtime.
-
-    Only the coordinate channels are divided — x/width and y/height — so the divisor is uniform-magnitude and quantizes
-    cleanly to a single per-tensor scale. (Multiplying the whole tensor by a mixed-magnitude per-channel vector instead
-    would round the small coordinate factors to zero and destroy box accuracy.) Per-axis division also supports
-    non-square ``imgsz``; the backends denormalize by width/height to match.
-
-    Slices follow the head's own concatenation boundaries (box | class scores | mask coefficients or angle) instead of
-    one ``4:`` tail slice: rknn-toolkit2 gives each concat input its own scale only while every slice maps 1:1 onto one
-    of them, and a slice straddling two inputs inherits the pixel-range scale this wrapper exists to avoid.
-    """
-
-    def __init__(self, model: torch.nn.Module, h: int, w: int, task: str, nc: int, kpt_shape: tuple | None):
-        """Initialize with the wrapped model, input height/width, task, class count and optional keypoint shape."""
-        super().__init__()
-        self.model = model
-        self.h = h
-        self.w = w
-        self.task = task
-        self.nc = nc
-        self.kpt_shape = kpt_shape
-
-    def forward(self, x: torch.Tensor):
-        """Run the wrapped model and normalize coordinate channels of the detection output to [0, 1]."""
-        y = self.model(x)
-        det = y[0] if isinstance(y, (tuple, list)) else y  # segment returns (detections, protos)
-        box_wh = torch.tensor([self.w, self.h, self.w, self.h], dtype=det.dtype, device=det.device).view(1, 4, 1)
-        parts = [det[:, :4] / box_wh]  # box xywh: x,w by width; y,h by height
-        if self.task == "pose" and self.kpt_shape:
-            parts.append(det[:, 4 : 4 + self.nc])  # class scores
-            b, _, a = det.shape
-            kpts = det[:, 4 + self.nc :].view(b, self.kpt_shape[0], self.kpt_shape[1], a)
-            kpt_wh = torch.tensor([self.w, self.h], dtype=det.dtype, device=det.device).view(1, 1, 2, 1)
-            kpts = torch.cat([kpts[:, :, :2] / kpt_wh, kpts[:, :, 2:]], dim=2)  # normalize x, y; keep conf
-            parts.append(kpts.reshape(b, -1, a))
-        else:
-            parts.append(det[:, 4 : 4 + self.nc])  # class scores
-            if det.shape[1] > 4 + self.nc:
-                parts.append(det[:, 4 + self.nc :])  # segment mask coefficients / obb angle
-        det = torch.cat(parts, dim=1)
-        return (det, *y[1:]) if isinstance(y, (tuple, list)) else det
+from ultralytics.utils.export.engine import _NormalizeCoords
 
 
 def torch2litert(
@@ -104,7 +55,7 @@ def torch2litert(
     file = Path(file)
     quant_tag = "_int8" if static_int8 else "_w8a16" if static_int16 else "_w8a32" if dynamic_int8 else ""
 
-    # Normalize coordinate channels to [0, 1] so INT8 quantization preserves scores (denormalized in LiteRTBackend).
+    # Normalize coordinate channels by input size so INT8 quantization preserves scores (denormalized in LiteRTBackend).
     # End-to-end models output post-NMS pixel coordinates in FP32 (no scale collapse), so they are left as-is.
     meta = metadata or {}
     task = meta.get("task")

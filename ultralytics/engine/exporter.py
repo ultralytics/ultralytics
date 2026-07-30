@@ -1065,16 +1065,14 @@ class Exporter:
             self.args.simplify = True  # fix OBB runtime error related to topk
 
         model = NMSModel(self.model, self.args) if self.args.nms else self.model
-        # rknn-toolkit2 quantizes output0 with one per-tensor scale, which the pixel-space box channels set: every
-        # score <= 1.0 then rounds to zero. Reuse the LiteRT normalizer so the whole tensor is unit-range
-        # (RKNNBackend denormalizes at runtime). Floating-point RKNN builds keep pixel coordinates.
+        # Normalize coordinates by input size so RKNN's per-tensor INT8 scale preserves class scores.
         if (
             self.args.format == "rknn"
             and self.args.quantize == 8
             and self.model.task in {"detect", "segment", "pose", "obb"}
             and not self.metadata["end2end"]
         ):
-            from ultralytics.utils.export.litert import _NormalizeCoords
+            from ultralytics.utils.export.engine import _NormalizeCoords
 
             model = _NormalizeCoords(
                 model,

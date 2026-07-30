@@ -750,7 +750,7 @@ class Exporter:
                 self.args.name = "73"
             self.args.name = str(self.args.name).lower().lstrip("v")  # accept '73', 'v73', or a supported SoC
             assert self.args.name in QNN_HTP_TARGETS, (
-                f"Invalid Qualcomm QNN target '{self.args.name}'. Valid targets are {QNN_HTP_TARGETS.keys()}."
+                f"Invalid Qualcomm QNN target '{self.args.name}'. Valid targets are {tuple(QNN_HTP_TARGETS)}."
             )
         if self.args.nms and model.task in {"semantic", "depth"}:
             LOGGER.warning(f"'nms=True' is not valid for {model.task} models. Forcing 'nms=False'.")

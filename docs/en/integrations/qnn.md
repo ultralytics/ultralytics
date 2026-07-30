@@ -116,7 +116,7 @@ Qualcomm QNN export supports all seven Ultralytics tasks. Semantic segmentation 
 
 ## Export to QNN: Converting Your YOLO Model
 
-Export an Ultralytics YOLO model to QNN format for deployment on Snapdragon hardware. The context binary is finalized for a target Hexagon Tensor Processor (HTP) architecture or supported SoC, which you select with the `name` argument — the same argument used to target a chip in [RKNN export](rockchip-rknn.md).
+Export an Ultralytics YOLO model to QNN format for deployment on Qualcomm hardware. The context binary is finalized for a target Hexagon Tensor Processor (HTP) architecture or supported SoC, which you select with the `name` argument — the same argument used to target a chip in [RKNN export](rockchip-rknn.md).
 
 ### Supported HTP Targets
 
@@ -273,7 +273,7 @@ The `yolo26n_qnn.onnx` file embeds the QNN context binary and is loaded by ONNX 
 
 ## Deploying Exported YOLO QNN Models
 
-QNN models run on Qualcomm Snapdragon hardware, making on-device [model deployment](https://www.ultralytics.com/glossary/model-deployment) straightforward. On a Snapdragon device with `onnxruntime-qnn` installed, run the exported model directly with the Ultralytics API (`yolo predict`/`yolo val`, see [Usage](#usage) above) — Ultralytics loads the HTP context binary through the [ONNX Runtime QNN Execution Provider](https://onnxruntime.ai/docs/execution-providers/QNN-ExecutionProvider.html).
+QNN models run on supported Qualcomm hardware, making on-device [model deployment](https://www.ultralytics.com/glossary/model-deployment) straightforward. On a compatible device with `onnxruntime-qnn` installed, run the exported model directly with the Ultralytics API (`yolo predict`/`yolo val`, see [Usage](#usage) above) — Ultralytics loads the HTP context binary through the [ONNX Runtime QNN Execution Provider](https://onnxruntime.ai/docs/execution-providers/QNN-ExecutionProvider.html).
 
 For custom pipelines, you can also load the context-binary [ONNX](https://onnx.ai/) directly with ONNX Runtime. `onnxruntime-qnn` is a plugin Execution Provider, so register it at runtime:
 
@@ -304,7 +304,7 @@ These target-side components come from the board vendor's QAIRT/QNN-enabled BSP;
 
 1. **Train** your model using Ultralytics [Train Mode](../modes/train.md)
 2. **Export** to QNN format using `model.export(format="qnn", name="iq-8275", imgsz=640)` on a supported platform (use `imgsz=224` for classification)
-3. **Deploy** the exported `*_qnn.onnx` file to your Snapdragon device
+3. **Deploy** the exported `*_qnn.onnx` file to your Qualcomm device
 4. **Run** inference with ONNX Runtime and the QNN Execution Provider using the HTP backend
 
 ## Real-World Applications

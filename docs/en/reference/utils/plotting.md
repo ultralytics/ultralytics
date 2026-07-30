@@ -64,6 +64,10 @@ keywords: ultralytics, plotting, utilities, documentation, data visualization, a
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.plotting.feature_visualization
+## ::: ultralytics.utils.plotting._detach
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.plotting.gradcam
 
 <br><br>

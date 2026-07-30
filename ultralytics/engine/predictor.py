@@ -55,7 +55,7 @@ from ultralytics.data.augment import LetterBox
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops
 from ultralytics.utils.checks import check_imgsz, check_imshow
-from ultralytics.utils.files import increment_path
+from ultralytics.utils.plotting import gradcam
 from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode
 
 STREAM_WARNING = """
@@ -183,12 +183,10 @@ class BasePredictor:
 
     def inference(self, im: torch.Tensor, *args, **kwargs):
         """Run inference on a given image using the specified model and arguments."""
-        visualize = (
-            increment_path(self.save_dir / Path(self.batch[0][0]).stem, mkdir=True)
-            if self.args.visualize and (not self.source_type.tensor)
-            else False
-        )
-        return self.model(im, *args, augment=self.args.augment, visualize=visualize, embed=self.args.embed, **kwargs)
+        skip = self.source_type.tensor or self.args.augment or self.args.embed  # unsupported with Grad-CAM++
+        if self.args.visualize and self.model.format == "pt" and not skip:
+            return gradcam(self.model, im, self.batch[0], self.save_dir, *args, conf=self.args.conf, **kwargs)
+        return self.model(im, *args, augment=self.args.augment, embed=self.args.embed, **kwargs)
 
     def pre_transform(self, im: list[np.ndarray]) -> list[np.ndarray]:
         """Pre-transform input image before inference.

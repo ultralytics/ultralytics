@@ -1304,37 +1304,86 @@ def plot_tune_results(results_file: str = "tune_results.ndjson", exclude_zero_fi
     _save_one_file(results_file.with_name("tune_fitness.png"))
 
 
-@plt_settings()
-def feature_visualization(x, module_type: str, stage: int, n: int = 32, save_dir: Path = Path("runs/detect/exp")):
-    """Visualize feature maps of a given model module during inference.
+def _detach(x: Any) -> Any:
+    """Detach every tensor in a nested structure of lists, tuples and dicts from the autograd graph."""
+    if isinstance(x, torch.Tensor):
+        return x.detach()
+    if isinstance(x, dict):
+        return {k: _detach(v) for k, v in x.items()}
+    if isinstance(x, (list, tuple)):
+        return type(x)(_detach(v) for v in x)
+    return x
+
+
+def gradcam(model, im: torch.Tensor, paths: list[str], save_dir: Path, *args, conf: float = 0.25, **kwargs) -> Any:
+    """Run inference and save a Grad-CAM++ heatmap for each image of the batch.
+
+    Grad-CAM++ weights each channel of the feature maps entering the model head by its positive gradient contribution
+    to the predicted class scores, so the heatmap shows the pixels the model actually used to make its predictions.
+    Compared to Grad-CAM it weights each spatial position separately, which keeps every instance visible when an image
+    holds many objects of the same class. The maps of all head levels (P3, P4, P5) are summed so that evidence for
+    small and large objects ends up in one overlay.
 
     Args:
-        x (torch.Tensor): Features to be visualized.
-        module_type (str): Module type.
-        stage (int): Module stage within the model.
-        n (int, optional): Maximum number of feature maps to plot.
-        save_dir (Path, optional): Directory to save results.
+        model (torch.nn.Module): AutoBackend wrapping a PyTorch model.
+        im (torch.Tensor): Preprocessed images of shape (B, 3, H, W).
+        paths (list[str]): Source path of each image of the batch, used to name the saved overlays.
+        save_dir (Path): Directory to save the overlays in.
+        *args (Any): Additional positional arguments passed to the model forward.
+        conf (float): Score threshold above which a prediction contributes to the heatmap.
+        **kwargs (Any): Additional keyword arguments passed to the model forward.
+
+    Returns:
+        (Any): Model predictions, detached from the autograd graph.
     """
-    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+    acts, scores = [], []
 
-    for m in ("Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder"):  # all model heads
-        if m in module_type:
-            return
-    if isinstance(x, torch.Tensor):
-        _, channels, height, width = x.shape  # batch, channels, height, width
-        if height > 1 and width > 1:
-            f = save_dir / f"stage{stage}_{module_type.rsplit('.', 1)[-1]}_features.png"  # filename
+    def pre_hook(module, inputs):
+        """Capture the feature maps entering the head, before heads like WorldDetect overwrite them in place."""
+        x = inputs[0]
+        acts.extend(a for a in (x if isinstance(x, (list, tuple)) else [x]) if a.ndim == 4)
 
-            blocks = torch.chunk(x[0].cpu(), channels, dim=0)  # select batch index 0, block by channels
-            n = min(n, channels)  # number of plots
-            _, ax = plt.subplots(math.ceil(n / 8), 8, tight_layout=True)  # n/8 rows x 8 cols
-            ax = ax.ravel()
-            plt.subplots_adjust(wspace=0.05, hspace=0.05)
-            for i in range(n):
-                ax[i].imshow(blocks[i].squeeze())  # cmap='gray'
-                ax[i].axis("off")
+    def hook(module, inputs, output):
+        """Capture the class logits leaving the head."""
+        raw = output[1] if isinstance(output, tuple) else output  # heads returning (predictions, raw) keep the raw
+        if isinstance(raw, dict):  # Detect and subclasses, end2end heads predict from their one2one branch
+            s = raw.get("one2one", raw)["scores"]  # (B, nc, anchors)
+        elif isinstance(raw, tuple):  # RTDETRDecoder, raw = (dec_bboxes, dec_scores, ...)
+            s = raw[1].squeeze(0).transpose(1, 2)  # (B, nc, queries)
+        else:  # Classify (B, nc), SemanticSegment (B, nc, h, w), Depth (B, 1, h, w)
+            s = raw
+        scores.append(s.reshape(*s.shape[:2], -1))  # class logits, (B, nc, predictions)
 
-            LOGGER.info(f"Saving {f}... ({n}/{channels})")
-            plt.savefig(f, dpi=300, bbox_inches="tight")
-            plt.close()
-            np.save(str(f.with_suffix(".npy")), x[0].cpu().numpy())  # npy save
+    head = model.model.model[-1]  # AutoBackend -> PyTorch model -> head
+    head.shape = head.shapes = None  # rebuild the anchor caches, inference tensors in them break the autograd graph
+    handles = [head.register_forward_pre_hook(pre_hook), head.register_forward_hook(hook)]
+    with torch.inference_mode(False), torch.enable_grad():
+        try:
+            im = im.clone().requires_grad_(True)  # model parameters have requires_grad=False, so seed the graph here
+            preds = model(im, *args, **kwargs)
+        finally:
+            for handle in handles:
+                handle.remove()
+        s = torch.cat(scores, 2).amax(1)  # (B, predictions) best class logit of each prediction
+        keep = (s.sigmoid() >= conf) | (s == s.amax(1, keepdim=True))  # top prediction alone if none above conf
+        cam = 0
+        for a, g in zip(acts, torch.autograd.grad((s * keep).sum(), acts)):
+            a, g = a.float(), g.float()
+            g2 = g * g
+            # Grad-CAM++ position weights, activations are clamped as the derivation assumes them non-negative
+            aij = g2 / (2 * g2 + a.clamp(min=0).sum((2, 3), keepdim=True) * g2 * g + 1e-7)
+            w = (aij * g.clamp(min=0)).sum((2, 3), keepdim=True)  # channel weights
+            level = (w * a).sum(1, keepdim=True).clamp(min=0)
+            cam = cam + torch.nn.functional.interpolate(level, im.shape[2:], mode="bilinear", align_corners=False)
+
+    cam = cam.squeeze(1)  # (B, H, W)
+    cam = (cam / cam.amax((1, 2), keepdim=True).clamp(min=1e-7) * 255).byte().cpu().numpy()
+    ims = (im.detach()[:, :3].float() * 255).byte().permute(0, 2, 3, 1).cpu().numpy()[..., ::-1]  # RGB to BGR
+    save_dir.mkdir(parents=True, exist_ok=True)
+    for c, img, p in zip(cam, ims, paths):
+        f = increment_path(save_dir / f"{Path(p).stem}_cam.jpg")
+        img = np.ascontiguousarray(img if img.shape[2] == 3 else img[..., :1].repeat(3, 2))  # grayscale to BGR
+        heatmap = cv2.addWeighted(cv2.applyColorMap(c, cv2.COLORMAP_JET), 0.5, img, 0.5, 0)
+        cv2.imwrite(str(f), heatmap)
+        LOGGER.info(f"Saving {f}... (Grad-CAM++)")
+    return _detach(preds)

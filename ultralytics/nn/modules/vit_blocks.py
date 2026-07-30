@@ -45,12 +45,12 @@ else:  # torch<2.3 predates the backend selector and never dispatches attention 
     _sdpa_backends = nullcontext
 
 __all__ = (
+    "MLP",
     "AnchorPoolQueryMix",
     "ConvSyncBN",
     "FastViTBlock",
     "FracRoPE2D",
     "LayerScale",
-    "MLP",
     "MHSABlock",
     "PooledMHSABlock",
     "RepUltraViTBlock",
@@ -96,11 +96,8 @@ class UltraViTBlock(nn.Module):
         ls2 (nn.Parameter): Optional LayerScale on the FFN residual.
     """
 
-    def __init__(
-        self, c: int, mlp_ratio: float = 3.0, silu: bool = False, ls: float = 0.0, fastvit_ffn: bool = False
-    ):
-        """Initialize UltraViTBlock with dim c, FFN expansion ratio, activation choice, LayerScale init, and FFN order.
-        """
+    def __init__(self, c: int, mlp_ratio: float = 3.0, silu: bool = False, ls: float = 0.0, fastvit_ffn: bool = False):
+        """Initialize UltraViTBlock with dim c, FFN expansion ratio, activation choice, LayerScale init, and FFN order."""
         super().__init__()
         self.mixer_dw = nn.Conv2d(c, c, 3, padding=1, groups=c, bias=False)
         self.mixer_bn = nn.BatchNorm2d(c)
@@ -171,7 +168,9 @@ class RepUltraViTBlock(UltraViTBlock):
         self.mixer.fuse_convs()
         c = self.mixer.conv
         scale = getattr(self, "ls1", None)
-        scale = torch.ones(c.out_channels, 1, 1, device=c.weight.device, dtype=c.weight.dtype) if scale is None else scale
+        scale = (
+            torch.ones(c.out_channels, 1, 1, device=c.weight.device, dtype=c.weight.dtype) if scale is None else scale
+        )
         identity = torch.zeros_like(c.weight)
         identity[:, :, 1, 1] = 1
         weight = c.weight * scale[:, None] + identity * (1 - scale[:, None])
@@ -332,7 +331,8 @@ class MHSABlock(nn.Module):
         n2 = self.ln2(t)
         if getattr(self, "swiglu", False):  # getattr: pre-swiglu checkpoints still load and run
             x1, x2 = self.fc1(n2).chunk(2, dim=-1)
-            f = self.fc2(F.silu(x1) * x2)  # functional silu: export/fuse can't flip it inplace on the chunk view (block.py SwiGLUFFN)
+            # functional silu: export/fuse can't flip it inplace on the chunk view (block.py SwiGLUFFN)
+            f = self.fc2(F.silu(x1) * x2)
         else:
             f = self.fc2(self.act(self.fc1(n2)))
         t = t + (f if ls2 is None else ls2 * f)

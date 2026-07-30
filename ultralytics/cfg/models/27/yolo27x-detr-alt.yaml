@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # YOLO27x-DETR-Alt: UltraViT RepMixer/FastViT-FFN/Attn2 backbone with a DeimDecoder head.
-# Uses the HybridEncoder and explicit decoder conventions from yolo27x-detr-flat.yaml.
+# Uses the HybridEncoder and explicit decoder conventions from yolo27-vit-detr.yaml.
 # Task: detect.
 
 nc: 80 # number of classes

@@ -24,6 +24,7 @@ __all__ = (
     "OBB",
     "Classify",
     "Detect",
+    "DetectAlign",
     "DetectAux",
     "DetectO2OObj",
     "DetectO2OObjBox",
@@ -588,6 +589,94 @@ class DetectO2OSAD(Detect):
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
         return y if self.export else (y, preds)
+
+
+class DetectAlign(Detect):
+    """YOLO Detect head that gates the classification feature with a localization-derived spatial weight.
+
+    Identical to Detect, but splits each branch's box and cls towers at their output conv: the two tower layers run
+    first, then a per-level 1x1 conv turns the box (localization) feature into a single-channel spatial weight
+    ``sigmoid(align(reg_feat))`` that multiplies the cls feature before the cls output conv. Anchors whose localization
+    feature looks good keep their class feature while poorly localized ones are suppressed, so the class score and the
+    box quality are read from the same evidence. Box regression itself is unchanged, and the one2many and one2one
+    branches each own a weight conv (the one2one one is the deployed path). The weight convs are bias-initialized to 2
+    (gate ~0.88) so the gate starts close to an identity and leaves the cls bias prior intact.
+
+    Attributes:
+        one2many_align (nn.ModuleList): Per-level 1x1 conv mapping the one2many box feature to the alignment logit; set
+            to None by fuse().
+        one2one_align (nn.ModuleList): Per-level 1x1 conv mapping the one2one box feature to the alignment logit.
+
+    Examples:
+        Create an end-to-end detection head with localization-gated classification
+        >>> detect = DetectAlign(nc=80, end2end=True, ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = detect(x)
+    """
+
+    def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
+        """Initialize the detection head plus the per-branch alignment-weight convs.
+
+        Args:
+            nc (int): Number of classes.
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
+        """
+        super().__init__(nc, reg_max, end2end, ch)
+        c2 = max(16, ch[0] // 4, self.reg_max * 4)  # box-tower channels, matches Detect.cv2
+        self.one2many_align = nn.ModuleList(nn.Conv2d(c2, 1, 1) for _ in ch)
+        if end2end:
+            self.one2one_align = nn.ModuleList(nn.Conv2d(c2, 1, 1) for _ in ch)
+
+    @property
+    def one2many(self):
+        """Returns the one-to-many head components and its alignment-weight convs."""
+        return dict(box_head=self.cv2, cls_head=self.cv3, align=self.one2many_align)
+
+    @property
+    def one2one(self):
+        """Returns the one-to-one head components and its alignment-weight convs."""
+        return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, align=self.one2one_align)
+
+    def init_o2o_from_o2m(self):
+        """Copy the one2many box/cls/align weights into the one2one branch (o2o-only fine-tuning init)."""
+        super().init_o2o_from_o2m()
+        self.one2one["align"].load_state_dict(self.one2many["align"].state_dict())
+
+    def bias_init(self):
+        """Initialize Detect biases plus the alignment gate prior, starting the gate near identity."""
+        super().bias_init()
+        for align in self.one2many_align:
+            align.bias.data.fill_(2.0)  # sigmoid(2) ~ 0.88, so the cls bias prior set above survives the gate
+        if self.end2end:
+            for align in self.one2one_align:
+                align.bias.data.fill_(2.0)
+
+    def forward_head(
+        self,
+        x: list[torch.Tensor],
+        box_head: torch.nn.Module = None,
+        cls_head: torch.nn.Module = None,
+        align: torch.nn.Module = None,
+    ) -> dict[str, torch.Tensor]:
+        """Predict boxes from the box tower and classes from the cls feature gated by the localization weight."""
+        if box_head is None or cls_head is None:  # for fused inference
+            return dict()
+        bs = x[0].shape[0]  # batch size
+        boxes, scores = [], []
+        for i in range(self.nl):
+            reg_feat = box_head[i][:-1](x[i])  # box tower without its output conv
+            cls_feat = cls_head[i][:-1](x[i])  # cls tower without its output conv
+            boxes.append(box_head[i][-1](reg_feat).view(bs, 4 * self.reg_max, -1))
+            w = align[i](reg_feat).sigmoid()  # (bs,1,h,w) spatial weight, broadcast over the cls channels
+            scores.append(cls_head[i][-1](cls_feat * w).view(bs, self.nc, -1))
+        return dict(boxes=torch.cat(boxes, -1), scores=torch.cat(scores, -1), feats=x)
+
+    def fuse(self) -> None:
+        """Remove the one2many head and its alignment convs for inference optimization."""
+        super().fuse()
+        self.one2many_align = None
 
 
 class DetectZero(Detect):

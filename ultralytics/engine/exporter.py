@@ -105,7 +105,7 @@ from ultralytics.utils import (
     LOGGER,
     MACOS,
     MACOS_VERSION,
-    QNN_HTP_ARCHS,
+    QNN_HTP_TARGETS,
     RKNN_CHIPS,
     SETTINGS,
     TORCH_VERSION,
@@ -748,10 +748,9 @@ class Exporter:
                     "Using default name='73' (Snapdragon 8 Gen 2)."
                 )
                 self.args.name = "73"
-            self.args.name = str(self.args.name).lower().lstrip("v")  # accept '73' or 'v73'
-            assert self.args.name in QNN_HTP_ARCHS, (
-                f"Invalid HTP architecture '{self.args.name}' for Qualcomm QNN export. Valid archs are {QNN_HTP_ARCHS} "
-                "(Snapdragon 888/8Gen1/8Gen2/8Gen3/8Elite/8EliteGen5 respectively)."
+            self.args.name = str(self.args.name).lower().lstrip("v")  # accept '73', 'v73', or a supported SoC
+            assert self.args.name in QNN_HTP_TARGETS, (
+                f"Invalid Qualcomm QNN target '{self.args.name}'. Valid targets are {QNN_HTP_TARGETS.keys()}."
             )
         if self.args.nms and model.task in {"semantic", "depth"}:
             LOGGER.warning(f"'nms=True' is not valid for {model.task} models. Forcing 'nms=False'.")

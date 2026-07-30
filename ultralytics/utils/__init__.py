@@ -93,16 +93,16 @@ RKNN_CHIPS = frozenset(
         "rv1126b",
     }
 )  # Rockchip processors available for export
-QNN_HTP_ARCHS = frozenset(
-    {
-        "68",  # Snapdragon 888
-        "69",  # Snapdragon 8 Gen 1
-        "73",  # Snapdragon 8 Gen 2 / X Elite
-        "75",  # Snapdragon 8 Gen 3
-        "79",  # Snapdragon 8 Elite
-        "81",  # Snapdragon 8 Elite Gen 5
-    }
-)  # Qualcomm Hexagon HTP architecture versions available for QNN export
+QNN_HTP_TARGETS = {
+    "68": ("htp_arch", "68"),  # Snapdragon 888
+    "69": ("htp_arch", "69"),  # Snapdragon 8 Gen 1
+    "73": ("htp_arch", "73"),  # Snapdragon 8 Gen 2 / X Elite
+    "75": ("htp_arch", "75"),  # Snapdragon 8 Gen 3
+    "79": ("soc_model", "69"),  # Snapdragon 8 Elite (SM8750)
+    "81": ("htp_arch", "81"),  # Snapdragon 8 Elite Gen 5
+    "iq-8275": ("soc_model", "82"),  # Dragonwing IQ-8275
+    "qcs8275": ("soc_model", "82"),
+}  # Qualcomm Hexagon HTP targets and their ONNX Runtime QNN provider option
 HELP_MSG = """
     Examples for running Ultralytics:
 

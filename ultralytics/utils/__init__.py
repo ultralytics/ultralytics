@@ -444,6 +444,19 @@ def plt_settings(rcparams=None, backend="Agg"):
     return decorator
 
 
+class _StdoutStreamHandler(logging.StreamHandler):
+    """A StreamHandler that always resolves the current sys.stdout, honoring a later redirect."""
+
+    @property
+    def stream(self):
+        """Return the current sys.stdout instead of the stream bound when the handler was created."""
+        return sys.stdout
+
+    @stream.setter
+    def stream(self, value):
+        """No-op: this handler always resolves sys.stdout dynamically instead of storing a fixed stream."""
+
+
 def set_logging(name="LOGGING_NAME", verbose=True):
     """Set up logging with UTF-8 encoding and configurable verbosity.
 
@@ -501,12 +514,15 @@ def set_logging(name="LOGGING_NAME", verbose=True):
                 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
     # Create and configure the StreamHandler with the appropriate formatter and level
-    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler = _StdoutStreamHandler()
     stream_handler.setFormatter(formatter)
     stream_handler.setLevel(level)
 
     # Set up the logger
     logger = logging.getLogger(name)
+    # getLogger returns the same object, so replace only the handler a prior call installed, leaving foreign ones
+    for h in [h for h in logger.handlers if isinstance(h, _StdoutStreamHandler)]:
+        logger.removeHandler(h)
     logger.setLevel(level)
     logger.addHandler(stream_handler)
     logger.propagate = False

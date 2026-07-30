@@ -200,7 +200,7 @@ class Model(torch.nn.Module):
         from urllib.parse import urlsplit
 
         url = urlsplit(model)
-        return url.netloc and url.path and url.scheme in {"http", "grpc"}
+        return bool(url.netloc and url.path and url.scheme in {"http", "grpc"})
 
     @staticmethod
     def is_hub_model(model: str) -> bool:

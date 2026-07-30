@@ -118,6 +118,9 @@ class BboxLoss(nn.Module):
         wiou_alpha: float = 1.7,
         wiou_delta: float = 2.7,
         wiou_momentum: float = 0.01,
+        aiou: str | None = None,
+        aiou_momentum: float = 0.01,
+        nc: int = 80,
     ):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
@@ -130,13 +133,59 @@ class BboxLoss(nn.Module):
         self.center = center  # when reg_max==1, gain of an auxiliary box-center offset L1 loss (0=off)
         self.shape_iou = shape_iou  # use Shape-IoU instead of CIoU for the box regression loss
         self.shape_iou_scale = shape_iou_scale  # Shape-IoU shape-weight exponent (dataset-dependent scale factor)
-        if wiou and shape_iou:
-            raise ValueError("wiou and shape_iou are alternative box regression losses")
+        if aiou and aiou not in {"v3", "v4"}:
+            raise ValueError(f"aiou must be 'v3', 'v4' or None, not {aiou}")
+        if sum((bool(aiou), wiou, shape_iou)) > 1:
+            raise ValueError("aiou, wiou and shape_iou are alternative box regression losses")
         self.wiou = wiou  # use Wise-IoU v3 instead of CIoU for the box regression loss
         self.wiou_alpha = wiou_alpha  # base of the non-monotonic focusing coefficient
         self.wiou_delta = wiou_delta  # outlier degree left unscaled (r == 1 at beta == delta)
         self.wiou_momentum = wiou_momentum  # EMA momentum of the mean IoU loss normalizing the outlier degree
         self.register_buffer("iou_mean", torch.tensor(1.0))  # running mean IoU loss, WIoU's outlier-degree denominator
+        self.aiou = aiou  # use AIoU v3/v4 instead of CIoU for the box regression loss
+        self.aiou_momentum = aiou_momentum  # EMA momentum of the per-class mean losses AIoU normalizes against
+        self.nc = nc
+        # AIoU keeps one mean per class so a class regressed worse than the dataset average is not treated as outliers.
+        # 0.8 matches the reference initialization: an untrained detector starts far from the mean quality it converges to
+        self.register_buffer("iou_mean_cls", torch.full((nc,), 0.8))  # per-class running mean IoU loss
+        self.register_buffer("conf_mean_cls", torch.full((nc,), 0.8))  # per-class running mean confidence loss (v4)
+
+    def aiou_gain(
+        self, loss: torch.Tensor, mean_cls: torch.Tensor, cls_idx: torch.Tensor, offset: float, eps: float = 1e-7
+    ) -> torch.Tensor:
+        """Compute AIoU's adaptive dynamic non-monotonic focusing gain for one quality signal.
+
+        The gain has the same shape as WIoU v3's -- it peaks at ordinary positives and decays toward both harmful
+        outliers (large outlier degree) and easy ones -- but it is not hyper-parameterized: `delta` follows the running
+        mean quality of the anchor's own class and `alpha` is solved from it, so the focus tracks each class's quality
+        distribution as training progresses instead of a fixed curve tuned for the dataset average.
+
+        Args:
+            loss (torch.Tensor): Detached per-positive loss of the quality signal, 1 - IoU or 1 - confidence, shape (n,
+                1).
+            mean_cls (torch.Tensor): Per-class running mean of `loss`, shape (nc,), updated in place while training.
+            cls_idx (torch.Tensor): Target class of each positive anchor, shape (n,).
+            offset (float): Constant added to the mean quality in the denominator. It sets the gain at the two crossings
+                to 1 / (mean + offset), so a class whose mean quality is low is scaled up as a whole.
+            eps (float, optional): A small value to avoid division by zero.
+
+        Returns:
+            (torch.Tensor): Focusing gain, shape (n, 1).
+
+        References:
+            https://peerj.com/articles/cs-2347/
+        """
+        if torch.is_grad_enabled():  # keep the means on the training distribution (validation runs under no_grad)
+            count = cls_idx.bincount(minlength=self.nc)
+            seen = count > 0  # classes absent from this batch hold their mean instead of decaying toward zero
+            batch = torch.zeros_like(mean_cls).index_add_(0, cls_idx, loss.flatten().float())[seen] / count[seen]
+            mean_cls[seen] = mean_cls[seen].lerp(batch, self.aiou_momentum)
+        mean_loss = mean_cls[cls_idx].unsqueeze(-1)  # class mean loss of each positive
+        mean = 1.0 - mean_loss  # class mean quality of each positive
+        beta = loss / (mean_loss * mean).clamp_(min=eps)  # outlier degree, rescaled by the mean quality
+        delta = (1.5 * mean.pow(2) + mean + 0.9).clamp_(min=1.535)  # gain-1 crossing, floored at its value at mean=0.4
+        alpha = (0.5 / delta).pow(1.0 / (0.5 - delta))  # solved so the gain is 1 at both beta=0.5 and beta=delta
+        return beta / ((mean + offset) * delta * alpha.pow(beta - delta))
 
     def forward(
         self,
@@ -149,10 +198,24 @@ class BboxLoss(nn.Module):
         fg_mask: torch.Tensor,
         imgsz: torch.Tensor,
         stride: torch.Tensor,
+        target_labels: torch.Tensor | None = None,
+        pred_scores: torch.Tensor | None = None,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute IoU and DFL losses for bounding boxes."""
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
-        if self.wiou:  # WIoU v3: distance attention on the plain IoU loss, scaled by the non-monotonic focusing gain
+        if self.aiou:  # AIoU: decoupled distance attention on the plain IoU loss, per-class adaptive focusing gain
+            pred_fg, target_fg = pred_bboxes[fg_mask], target_bboxes[fg_mask]
+            l_iou = 1.0 - bbox_iou(pred_fg, target_fg, xywh=False)
+            cls_idx = target_labels.long().clamp_(0, self.nc - 1)  # background entries are masked out by fg_mask below
+            cls_fg = cls_idx[fg_mask]
+            # v4 multiplies in a second gain, so the paper pairs its IoU term with the larger (weaker) offset
+            gain = self.aiou_gain(l_iou.detach(), self.iou_mean_cls, cls_fg, 0.2 if self.aiou == "v3" else 0.3)
+            if self.aiou == "v4":  # second gain on the confidence loss of the assigned class, damping both
+                # under-confident positives (likely mislabeled) and over-confident ones (nothing left to learn)
+                l_conf = 1.0 - pred_scores.detach().sigmoid().gather(2, cls_idx.unsqueeze(-1))[fg_mask]
+                gain = gain * self.aiou_gain(l_conf, self.conf_mean_cls, cls_fg, 0.3)
+            loss_iou = (gain * wiou_dist(pred_fg, target_fg, decoupled=True) * l_iou * weight).sum() / target_scores_sum
+        elif self.wiou:  # WIoU v3: distance attention on the plain IoU loss, scaled by the non-monotonic focusing gain
             pred_fg, target_fg = pred_bboxes[fg_mask], target_bboxes[fg_mask]
             l_iou = 1.0 - bbox_iou(pred_fg, target_fg, xywh=False)
             if torch.is_grad_enabled():  # keep the mean on the training distribution (validation runs under no_grad)
@@ -592,6 +655,9 @@ class v8DetectionLoss:
             wiou_alpha=getattr(h, "wiou_alpha", 1.7),
             wiou_delta=getattr(h, "wiou_delta", 2.7),
             wiou_momentum=getattr(h, "wiou_momentum", 0.01),
+            aiou=getattr(h, "aiou", None),
+            aiou_momentum=getattr(h, "aiou_momentum", 0.01),
+            nc=self.nc,
         ).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 
@@ -792,6 +858,8 @@ class v8DetectionLoss:
                 fg_mask,
                 imgsz,
                 stride_tensor,
+                target_labels,
+                pred_scores,
             )
 
         loss[0] *= self.hyp.box  # box gain

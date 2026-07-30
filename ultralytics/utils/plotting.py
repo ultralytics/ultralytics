@@ -1344,7 +1344,8 @@ def gradcam(
         paths (list[str]): Source path of each image of the batch, used to name the saved overlays.
         save_dir (Path): Directory to save the overlays in.
         *args (Any): Additional positional arguments passed to the model forward.
-        conf (float): Score threshold above which a prediction contributes to the heatmap.
+        conf (float): Score threshold a prediction must pass to contribute, falling back to the single best prediction
+            for images where nothing passes it, so that a near miss can still be inspected.
         classes (int | list[int], optional): Only let these class ids contribute, as in the predict `classes` filter.
         topk (int): Maximum number of predictions to explain per image, each one costing a backward pass.
         **kwargs (Any): Additional keyword arguments passed to the model forward.
@@ -1382,7 +1383,8 @@ def gradcam(
                 handle.remove()
         s = torch.cat(scores, 2)  # (B, nc, predictions) class logits
         if classes is not None:
-            s = s[:, torch.as_tensor(classes, device=s.device).flatten()]  # heatmap for the requested classes only
+            cls = torch.as_tensor(classes, dtype=torch.long, device=s.device)
+            s = s[:, cls.flatten()]  # heatmap for the requested classes only
         s = s.amax(1)  # (B, predictions) best class logit of each prediction
         keep = (s.sigmoid() >= conf) | (s == s.amax(1, keepdim=True))  # top prediction alone if none above conf
         n = min(int(keep.sum(1).amax()), topk)  # predictions to explain, one backward pass each
@@ -1396,12 +1398,15 @@ def gradcam(
             grads = torch.autograd.grad(s.gather(1, order[:, k : k + 1]).sum(), acts, retain_graph=k < n - 1)
             for a, g in zip(acts, grads):
                 c = (g.float().clamp(min=0) * a.float()).sum(1, keepdim=True)  # LayerCAM, per-position weighting
+                c = c.clamp(min=0)  # activations can be negative, keep only evidence for the prediction
                 level = level + torch.nn.functional.interpolate(c, im.shape[2:], mode="bilinear", align_corners=False)
             level = level / level.amax((2, 3), keepdim=True).clamp(min=1e-7)  # predictions differ in gradient scale
             cam = level if cam is None else torch.maximum(cam, level)
 
-    cam = (cam.squeeze(1) * 255).byte().cpu().numpy()  # (B, H, W), levels are already scaled to [0, 1]
-    ims = (im.detach()[:, :3].float() * 255).byte().permute(0, 2, 3, 1).cpu().numpy()[..., ::-1]  # RGB to BGR
+    cam = (cam.squeeze(1) * 255).byte().cpu().numpy()  # (B, H, W), maps are already scaled to [0, 1]
+    ims = im.detach()[:, :3].float()
+    lo, hi = ims.amin((2, 3), keepdim=True), ims.amax((2, 3), keepdim=True)  # classify inputs are mean-std normalized
+    ims = ((ims - lo) / (hi - lo).clamp(min=1e-7) * 255).byte().permute(0, 2, 3, 1).cpu().numpy()[..., ::-1]  # to BGR
     save_dir.mkdir(parents=True, exist_ok=True)
     for c, img, p in zip(cam, ims, paths):
         f = increment_path(save_dir / f"{Path(p).stem}_cam.jpg")

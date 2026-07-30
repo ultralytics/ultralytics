@@ -185,7 +185,16 @@ class BasePredictor:
         """Run inference on a given image using the specified model and arguments."""
         skip = self.source_type.tensor or self.args.augment or self.args.embed  # unsupported with Grad-CAM++
         if self.args.visualize and self.model.format == "pt" and not skip:
-            return gradcam(self.model, im, self.batch[0], self.save_dir, *args, conf=self.args.conf, **kwargs)
+            return gradcam(
+                self.model,
+                im,
+                self.batch[0],
+                self.save_dir,
+                *args,
+                conf=self.args.conf,
+                classes=self.args.classes,
+                **kwargs,
+            )
         return self.model(im, *args, augment=self.args.augment, embed=self.args.embed, **kwargs)
 
     def pre_transform(self, im: list[np.ndarray]) -> list[np.ndarray]:

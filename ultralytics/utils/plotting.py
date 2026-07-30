@@ -1315,15 +1315,28 @@ def _detach(x: Any) -> Any:
     return x
 
 
-def gradcam(model, im: torch.Tensor, paths: list[str], save_dir: Path, *args, conf: float = 0.25, **kwargs) -> Any:
-    """Run inference and save a Grad-CAM++ heatmap for each image of the batch.
+def gradcam(
+    model,
+    im: torch.Tensor,
+    paths: list[str],
+    save_dir: Path,
+    *args,
+    conf: float = 0.25,
+    classes=None,
+    topk: int = 16,
+    **kwargs,
+) -> Any:
+    """Run inference and save a class activation heatmap for each image of the batch.
 
-    Grad-CAM++ weights each channel of the feature maps entering the model head by its positive gradient contribution
-    to the predicted class scores, so the heatmap shows the pixels the model actually used to make its predictions.
-    Compared to Grad-CAM it weights each spatial position separately, which keeps every instance visible when an image
-    holds many objects of the same class. Each head level (P3, P4, P5) is scaled to its own peak before the levels are
-    combined, otherwise the level holding the strongest object sets the colour scale and the rest fades into the
-    background.
+    The map is built with LayerCAM weighting: each position of the feature maps entering the head is weighted by its
+    own positive gradient towards the predicted class score, so the heatmap shows the pixels that raised that score.
+    Channel-pooled weightings such as Grad-CAM and Grad-CAM++ are not used here. A detector spreads its predictions
+    over anchors, so pooling the gradient over space mixes every object together and the map stops depending on the
+    class at all.
+
+    Each prediction is explained on its own and its map is scaled to its own peak before all of them are combined with
+    an element-wise maximum. Gradient magnitude varies a lot between predictions, so without this the single strongest
+    object sets the colour scale and everything else fades into the background.
 
     Args:
         model (torch.nn.Module): AutoBackend wrapping a PyTorch model.
@@ -1332,6 +1345,8 @@ def gradcam(model, im: torch.Tensor, paths: list[str], save_dir: Path, *args, co
         save_dir (Path): Directory to save the overlays in.
         *args (Any): Additional positional arguments passed to the model forward.
         conf (float): Score threshold above which a prediction contributes to the heatmap.
+        classes (int | list[int], optional): Only let these class ids contribute, as in the predict `classes` filter.
+        topk (int): Maximum number of predictions to explain per image, each one costing a backward pass.
         **kwargs (Any): Additional keyword arguments passed to the model forward.
 
     Returns:
@@ -1365,19 +1380,25 @@ def gradcam(model, im: torch.Tensor, paths: list[str], save_dir: Path, *args, co
         finally:
             for handle in handles:
                 handle.remove()
-        s = torch.cat(scores, 2).amax(1)  # (B, predictions) best class logit of each prediction
+        s = torch.cat(scores, 2)  # (B, nc, predictions) class logits
+        if classes is not None:
+            s = s[:, torch.as_tensor(classes, device=s.device).flatten()]  # heatmap for the requested classes only
+        s = s.amax(1)  # (B, predictions) best class logit of each prediction
         keep = (s.sigmoid() >= conf) | (s == s.amax(1, keepdim=True))  # top prediction alone if none above conf
-        cams = []
-        for a, g in zip(acts, torch.autograd.grad((s * keep).sum(), acts)):
-            a, g = a.float(), g.float()
-            g2 = g * g
-            # Grad-CAM++ position weights, activations are clamped as the derivation assumes them non-negative
-            aij = g2 / (2 * g2 + a.clamp(min=0).sum((2, 3), keepdim=True) * g2 * g + 1e-7)
-            w = (aij * g.clamp(min=0)).sum((2, 3), keepdim=True)  # channel weights
-            level = (w * a).sum(1, keepdim=True).clamp(min=0)
-            level = torch.nn.functional.interpolate(level, im.shape[2:], mode="bilinear", align_corners=False)
-            cams.append(level / level.amax((2, 3), keepdim=True).clamp(min=1e-7))  # levels differ in scale
-        cam = torch.stack(cams).amax(0)
+        n = min(int(keep.sum(1).amax()), topk)  # predictions to explain, one backward pass each
+        if int(keep.sum(1).amax()) > n:
+            LOGGER.warning(f"Explaining the {n} strongest predictions per image out of {int(keep.sum(1).amax())}.")
+        rank = torch.arange(n, device=s.device) % keep.sum(1, keepdim=True).clamp(min=1)  # short images repeat
+        order = s.masked_fill(~keep, -torch.inf).argsort(1, descending=True).gather(1, rank)  # (B, n)
+        cam = None
+        for k in range(n):
+            level = 0
+            grads = torch.autograd.grad(s.gather(1, order[:, k : k + 1]).sum(), acts, retain_graph=k < n - 1)
+            for a, g in zip(acts, grads):
+                c = (g.float().clamp(min=0) * a.float()).sum(1, keepdim=True)  # LayerCAM, per-position weighting
+                level = level + torch.nn.functional.interpolate(c, im.shape[2:], mode="bilinear", align_corners=False)
+            level = level / level.amax((2, 3), keepdim=True).clamp(min=1e-7)  # predictions differ in gradient scale
+            cam = level if cam is None else torch.maximum(cam, level)
 
     cam = (cam.squeeze(1) * 255).byte().cpu().numpy()  # (B, H, W), levels are already scaled to [0, 1]
     ims = (im.detach()[:, :3].float() * 255).byte().permute(0, 2, 3, 1).cpu().numpy()[..., ::-1]  # RGB to BGR
@@ -1387,5 +1408,5 @@ def gradcam(model, im: torch.Tensor, paths: list[str], save_dir: Path, *args, co
         img = np.ascontiguousarray(img if img.shape[2] == 3 else img[..., :1].repeat(3, 2))  # grayscale to BGR
         heatmap = cv2.addWeighted(cv2.applyColorMap(c, cv2.COLORMAP_JET), 0.5, img, 0.5, 0)
         cv2.imwrite(str(f), heatmap)
-        LOGGER.info(f"Saving {f}... (Grad-CAM++)")
+        LOGGER.info(f"Saving {f}... (LayerCAM)")
     return _detach(preds)

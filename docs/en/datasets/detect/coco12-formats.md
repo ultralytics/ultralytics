@@ -1,6 +1,12 @@
 ---
 title: COCO12-Formats Detection Dataset
 comments: true
+creator:
+    name: Ultralytics
+    url: https://www.ultralytics.com/
+license:
+    name: CC-BY-4.0
+    url: https://cocodataset.org/#termsofuse
 description: Explore the Ultralytics COCO12-Formats dataset, a test dataset featuring 12 supported image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) for validating image loading pipelines.
 keywords: COCO12-Formats, Ultralytics, dataset, image formats, object detection, YOLO, AVIF, BMP, DNG, HEIC, JP2, JPEG, PNG, TIFF, WebP, MPO
 ---
@@ -41,7 +47,7 @@ The dataset includes one image for each of 12 supported format extensions define
 
 ## Dataset Structure
 
-```
+```text
 coco12-formats/
 ├── images/
 │   ├── train/          # 6 images (avif, bmp, dng, heic, jpeg, jpg)

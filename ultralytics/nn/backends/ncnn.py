@@ -64,9 +64,10 @@ class NCNNBackend(BaseBackend):
         Returns:
             (list[np.ndarray]): Model predictions as a list of numpy arrays, one per output layer.
         """
-        mat_in = self.pyncnn.Mat(im[0].cpu().numpy())
-        with self.net.create_extractor() as ex:
-            ex.input(self.net.input_names()[0], mat_in)
-            # Sort output names as temporary fix for pnnx issue
-            y = [np.array(ex.extract(x)[1])[None] for x in sorted(self.net.output_names())]
-        return y
+        outputs = []
+        for sample in im.cpu().numpy():
+            with self.net.create_extractor() as ex:
+                ex.input(self.net.input_names()[0], self.pyncnn.Mat(sample))
+                # Sort output names as temporary fix for pnnx issue
+                outputs.append([np.array(ex.extract(x)[1]) for x in sorted(self.net.output_names())])
+        return [np.stack(y) for y in zip(*outputs)]

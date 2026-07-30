@@ -50,12 +50,15 @@ from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.plotting import plot_results
 from ultralytics.utils.torch_utils import (
+    TORCH_1_11,
+    TORCH_2_0,
     TORCH_2_4,
     EarlyStopping,
     ModelEMA,
     attempt_compile,
     autocast,
     convert_optimizer_state_dict_to_fp16,
+    get_torch_device_backend,
     init_seeds,
     one_cycle,
     parse_device,
@@ -97,8 +100,9 @@ class BaseTrainer:
         best_fitness (float): The best fitness value achieved.
         fitness (float): Current fitness value.
         loss (torch.Tensor): Current loss value.
-        tloss (torch.Tensor): Running mean of loss items.
-        loss_names (list): List of loss names.
+        tloss (dict): Running mean of loss items.
+        loss_names (tuple): Names of loss items, derived from the loss dict returned by the criterion on the first
+            batch.
         csv (Path): Path to results CSV file.
         metrics (dict): Dictionary of metrics.
         plots (dict): Dictionary of plots.
@@ -130,6 +134,7 @@ class BaseTrainer:
         self.check_resume(overrides)
         self.args.device = parse_device(self.args.device)  # canonical string, resolves '-1' auto-selection once
         self.device = select_device(self.args.device)
+        self.accelerator = get_torch_device_backend(self.device) if self.device.type not in {"cpu", "mps"} else None
         self.validator = None
         self.metrics = None
         self.plots = {}
@@ -192,7 +197,7 @@ class BaseTrainer:
         self.fitness = None
         self.loss = None
         self.tloss = None
-        self.loss_names = ["Loss"]
+        self.loss_names = ()
         self.csv = self.save_dir / "results.csv"
         if self.csv.exists() and not self.args.resume:
             self.csv.unlink()
@@ -232,8 +237,6 @@ class BaseTrainer:
                 cmd, file = generate_ddp_command(self)
                 LOGGER.info(f"{colorstr('DDP:')} debug command {' '.join(cmd)}")
                 subprocess.run(cmd, check=True)
-            except Exception as e:
-                raise e
             finally:
                 if file is not None:
                     ddp_cleanup(self, str(file))
@@ -249,14 +252,26 @@ class BaseTrainer:
             self.lf = lambda x: max(1 - x / self.epochs, 0) * (1.0 - self.args.lrf) + self.args.lrf  # linear
         self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
 
+    def _get_warmup_iterations(self, num_batches):
+        """Return warmup iterations, leaving at least the final epoch for regular training."""
+        warmup_epochs = min(self.args.warmup_epochs, max(self.epochs - 1, 0))
+        return round(warmup_epochs * num_batches) if warmup_epochs > 0 else 0
+
     def _setup_ddp(self):
         """Initialize and set the DistributedDataParallel parameters for training."""
-        index = int(self.args.device.split(",")[LOCAL_RANK])  # world_size > 1 guarantees a multi-device string
-        torch.cuda.set_device(index)
-        self.device = torch.device("cuda", index)
-        os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
+        device_type = self.args.device.split(":", 1)[0]
+        device_type = device_type if device_type in {"npu", "xpu"} else "cuda"
+        devices = self.args.device.split(":", 1)[-1].split(",")
+        index = int(devices[LOCAL_RANK])  # world_size > 1 guarantees a multi-device string
+        self.device = torch.device(device_type, index)
+        self.accelerator = get_torch_device_backend(self.device)
+        self.accelerator.set_device(index)
+        if device_type == "cuda":
+            os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
+        elif device_type == "xpu" and not (hasattr(dist, "is_xccl_available") and dist.is_xccl_available()):
+            raise RuntimeError("Multi-XPU training requires XCCL, which is not available in this PyTorch build.")
         dist.init_process_group(
-            backend="nccl" if dist.is_nccl_available() else "gloo",
+            backend={"npu": "hccl", "xpu": "xccl"}.get(device_type, "nccl" if dist.is_nccl_available() else "gloo"),
             timeout=timedelta(seconds=10800),  # 3 hours
             rank=RANK,
             world_size=self.world_size,
@@ -268,10 +283,16 @@ class BaseTrainer:
         self.train_loader = self.get_dataloader(
             self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
         )
+        final_batch_size = len(self.train_loader.sampler) % self.train_loader.batch_size or self.train_loader.batch_size
+        if self.args.imgsz < 2 * self.stride and not self.train_loader.drop_last and final_batch_size == 1:
+            raise ValueError(
+                f"final batch=1 training at imgsz={self.args.imgsz} gives BatchNorm a single value per channel; "
+                f"change batch or use imgsz >= {2 * self.stride}"
+            )
         # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
         self.test_loader = self.get_dataloader(
             self.data.get("val") or self.data.get("test"),
-            batch_size=batch_size if self.args.task in {"obb", "semantic"} else batch_size * 2,
+            batch_size=batch_size if self.args.task in {"obb", "semantic", "depth"} else batch_size * 2,
             rank=LOCAL_RANK,
             mode="val",
         )
@@ -292,6 +313,12 @@ class BaseTrainer:
         """Configure model, optimizer, dataloaders, and training utilities before the training loop."""
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
+        # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, but numerically wrong
+        # on MPS and no benefit on CPU
+        if self.args.channels_last and self.device.type == "cuda":
+            self.model = self.model.to(memory_format=torch.channels_last)
+        elif self.args.channels_last:
+            LOGGER.warning(f"'channels_last=True' is only supported on CUDA, ignoring on '{self.device.type}'.")
         self.set_model_attributes()
 
         # Compile model (knowledge distillation runs the wrapped model eagerly and relies on
@@ -341,9 +368,16 @@ class BaseTrainer:
             self.amp = self.amp.int()  # gloo errors with boolean
             dist.broadcast(self.amp, src=0)  # broadcast from rank 0 to all other ranks
         self.amp = bool(self.amp)  # as boolean
-        self.scaler = (
-            torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
-        )
+        if self.device.type == "npu":
+            import torch_npu
+
+            self.scaler = torch_npu.npu.amp.GradScaler(enabled=self.amp)
+        else:
+            self.scaler = (
+                torch.amp.GradScaler(self.device.type if self.device.type == "xpu" else "cuda", enabled=self.amp)
+                if TORCH_2_4
+                else torch.cuda.amp.GradScaler(enabled=self.amp)
+            )
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
@@ -355,22 +389,20 @@ class BaseTrainer:
         if self.world_size > 1:
             # static_graph=True permits params used >1 time per forward (e.g. flow_model in
             # o2m+o2o pose loss branches) under torch.compile.
+            ddp_kwargs = {"static_graph": bool(self.args.compile)} if TORCH_1_11 else {}
             self.model = nn.parallel.DistributedDataParallel(
                 self.model,
                 device_ids=[self.device.index],
-                static_graph=bool(self.args.compile),
                 broadcast_buffers=False,
                 find_unused_parameters=not bool(self.args.compile),
+                **ddp_kwargs,
             )
 
         # Batch size
         if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
             self.args.batch = self.batch_size = self.auto_batch()
-
         self._build_train_pipeline()
         self.validator = self.get_validator()
-        if self.args.distill_model is not None and "dis_loss" not in self.loss_names:
-            self.loss_names += ("dis_loss",)
         self.ema = ModelEMA(self.model)
         self.set_class_weights()  # compute class weights after dataloader is ready
         if RANK in {-1, 0}:
@@ -391,7 +423,7 @@ class BaseTrainer:
         self._setup_train()
 
         nb = len(self.train_loader)  # number of batches
-        nw = max(round(self.args.warmup_epochs * nb), 100) if self.args.warmup_epochs > 0 else -1  # warmup iterations
+        nw = self._get_warmup_iterations(nb)
         last_opt_step = -1
         self.epoch_time = None
         self.epoch_time_start = time.time()
@@ -426,32 +458,35 @@ class BaseTrainer:
                 self.train_loader.reset()
 
             if RANK in {-1, 0}:
-                LOGGER.info(self.progress_string())
+                if self.loss_names:
+                    LOGGER.info(self.progress_string())
                 pbar = TQDM(enumerate(self.train_loader), total=nb)
             self.tloss = None
             for i, batch in pbar:
                 self.run_callbacks("on_train_batch_start")
                 # Warmup
                 ni = i + nb * epoch
-                if ni <= nw:
+                if ni < nw:
                     xi = [0, nw]  # x interp
                     self.accumulate = max(1, int(np.interp(ni, xi, [1, self.args.nbs / self.batch_size]).round()))
                     for x in self.optimizer.param_groups:
                         # Bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
-                        x["lr"] = np.interp(
-                            ni,
-                            xi,
-                            [
-                                self.args.warmup_bias_lr if x.get("param_group") == "bias" else 0.0,
-                                x["initial_lr"] * self.lf(epoch),
-                            ],
+                        x["lr"] = float(
+                            np.interp(
+                                ni,
+                                xi,
+                                [
+                                    self.args.warmup_bias_lr if x.get("param_group") == "bias" else 0.0,
+                                    x["initial_lr"] * self.lf(epoch),
+                                ],
+                            )
                         )
                         if "momentum" in x:
-                            x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
+                            x["momentum"] = float(np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum]))
 
                 # Forward
                 try:
-                    with autocast(self.amp):
+                    with autocast(self.amp, device=self.device.type):
                         batch = self.preprocess_batch(batch)
                         if self.args.compile:
                             # Decouple inference and loss calculations for improved compile performance
@@ -462,16 +497,28 @@ class BaseTrainer:
                         self.loss = loss.sum()
                         if RANK != -1:
                             self.loss *= self.world_size
+                        if not self.loss_names:  # derive loss names from the criterion's loss dict on first batch
+                            self.loss_names = tuple(self.loss_items)
+                            if RANK in {-1, 0}:
+                                LOGGER.info(self.progress_string())
+                                self.metrics.update(dict.fromkeys(self.label_loss_items(prefix="val"), 0.0))
                         self.tloss = (
-                            self.loss_items if self.tloss is None else (self.tloss * i + self.loss_items) / (i + 1)
+                            self.loss_items
+                            if self.tloss is None
+                            else {k: (self.tloss[k] * i + v) / (i + 1) for k, v in self.loss_items.items()}
                         )
 
                     # Backward
                     self.scaler.scale(self.loss).backward()
                 except RuntimeError as e:
-                    is_oom = isinstance(e, torch.cuda.OutOfMemoryError)
+                    is_oom = "out of memory" in str(e).lower()  # torch.cuda.OutOfMemoryError requires torch>=1.13
                     if not is_oom and not any(
-                        s in str(e) for s in ("CUDNN_STATUS_INTERNAL_ERROR", "unable to find an engine")
+                        s in str(e)
+                        for s in (
+                            "CUBLAS_STATUS_ALLOC_FAILED",
+                            "CUDNN_STATUS_INTERNAL_ERROR",
+                            "unable to find an engine",
+                        )
                     ):
                         raise
                     if epoch > self.start_epoch or self._oom_retries >= 3 or RANK != -1:
@@ -479,8 +526,9 @@ class BaseTrainer:
                     self._oom_retries += 1
                     old_batch = self.batch_size
                     self.args.batch = self.batch_size = max(self.batch_size // 2, 1)
+                    error = f"{self.device.type.upper()} out of memory" if is_oom else "CUDA backend memory error"
                     LOGGER.warning(
-                        f"{'CUDA out of memory' if is_oom else 'CUDA backend memory error'} with batch={old_batch}. "
+                        f"{error} with batch={old_batch}. "
                         f"Reducing to batch={self.batch_size} and retrying ({self._oom_retries}/3)."
                     )
                     batch = loss = preds = None
@@ -489,7 +537,7 @@ class BaseTrainer:
                     self._build_train_pipeline()  # rebuild dataloaders, optimizer, scheduler
                     self.scheduler.last_epoch = self.start_epoch - 1
                     nb = len(self.train_loader)
-                    nw = max(round(self.args.warmup_epochs * nb), 100) if self.args.warmup_epochs > 0 else -1
+                    nw = self._get_warmup_iterations(nb)
                     last_opt_step = -1
                     self.optimizer.zero_grad()
                     break  # restart epoch loop with reduced batch size
@@ -509,13 +557,13 @@ class BaseTrainer:
 
                 # Log
                 if RANK in {-1, 0}:
-                    loss_length = self.tloss.shape[0] if len(self.tloss.shape) else 1
+                    loss_length = len(self.tloss)
                     pbar.set_description(
                         ("%11s" * 2 + "%11.4g" * (2 + loss_length))
                         % (
                             f"{epoch + 1}/{self.epochs}",
                             f"{self._get_memory():.3g}G",  # (GB) GPU memory util
-                            *(self.tloss if loss_length > 1 else torch.unsqueeze(self.tloss, 0)),  # losses
+                            *self.tloss.values(),  # losses
                             batch.get("cls", batch["img"]).shape[0],  # no. of instances
                             batch["img"].shape[-1],  # imgsz, i.e 640
                         )
@@ -571,6 +619,7 @@ class BaseTrainer:
             if self.args.time:
                 mean_epoch_time = (t - self.train_time_start) / (epoch - self.start_epoch + 1)
                 self.epochs = self.args.epochs = math.ceil(self.args.time * 3600 / mean_epoch_time)
+                nw = self._get_warmup_iterations(nb)
                 self._setup_scheduler()
                 self.scheduler.last_epoch = self.epoch  # do not move
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
@@ -604,7 +653,8 @@ class BaseTrainer:
 
     def auto_batch(self, max_num_obj=0, dataset_size=0):
         """Calculate optimal batch size based on model and device memory constraints."""
-        max_imgsz = int(self.args.imgsz * (1 + self.args.multi_scale))  # need not be stride-aligned
+        # Stride-aligned to match the true multi-scale max size; pyramid heads require stride-multiple inputs
+        max_imgsz = math.ceil(self.args.imgsz * (1 + self.args.multi_scale) / self.stride) * self.stride
         return check_train_batch_size(
             model=self.model,
             imgsz=max_imgsz,
@@ -622,9 +672,9 @@ class BaseTrainer:
             if fraction:
                 return __import__("psutil").virtual_memory().percent / 100
         elif self.device.type != "cpu":
-            memory = torch.cuda.memory_reserved()
+            memory = self.accelerator.memory_reserved()
             if fraction:
-                total = torch.cuda.get_device_properties(self.device).total_memory
+                total = self.accelerator.get_device_properties(self.device).total_memory
         return ((memory / total) if total > 0 else 0) if fraction else (memory / 2**30)
 
     def _clear_memory(self, threshold: float | None = None):
@@ -639,7 +689,7 @@ class BaseTrainer:
         elif self.device.type == "cpu":
             return
         else:
-            torch.cuda.empty_cache()
+            self.accelerator.empty_cache()
 
     def read_results_csv(self):
         """Read results.csv into a dictionary using polars."""
@@ -672,7 +722,11 @@ class BaseTrainer:
             for k, v in ema.state_dict().items():
                 if isinstance(v, torch.Tensor) and not torch.isfinite(v).all() and torch.isfinite(model_sd[k]).all():
                     v.copy_(model_sd[k])
-        ema = deepcopy(ema).half()
+        # Serialize NCHW regardless of channels_last training: released versions fuse with .view(), which crashes on
+        # NHWC-strided checkpoint weights, and trainer/predictor re-apply channels_last at setup anyway.
+        ema = deepcopy(ema).half().to(memory_format=torch.contiguous_format)
+        if hasattr(ema, "criterion"):
+            ema.criterion = None  # strip training-only state from the serialization snapshot
         # Clamp fp16 serialization overflow without mutating the live EMA.
         for v in ema.state_dict().values():
             if isinstance(v, torch.Tensor) and v.is_floating_point():
@@ -690,9 +744,9 @@ class BaseTrainer:
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "scaler": self.scaler.state_dict(),
                 "train_args": vars(self.args),  # save as dict
-                "train_metrics": {**self.metrics, **{"fitness": self.fitness}},
+                "train_metrics": {**self.metrics, "fitness": self.fitness},
                 "train_results": self.read_results_csv(),
-                "date": datetime.now().isoformat(),
+                "date": datetime.now().astimezone().isoformat(),
                 "version": __version__,
                 "git": {
                     "root": str(GIT.root),
@@ -735,6 +789,7 @@ class BaseTrainer:
                 "pose",
                 "obb",
                 "semantic",
+                "depth",
             }:
                 data = check_det_dataset(self.args.data)
                 if "yaml_file" in data:
@@ -786,7 +841,10 @@ class BaseTrainer:
     def optimizer_step(self):
         """Perform a single step of the training optimizer with gradient clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
-        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.args.grad_clip)
+        if self.device.type == "npu" and TORCH_2_0:
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.args.grad_clip, foreach=False)
+        else:
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.args.grad_clip)
         self.scaler.step(self.optimizer)
         self.scaler.update()
         self.optimizer.zero_grad()
@@ -813,7 +871,7 @@ class BaseTrainer:
         if metrics is None:
             return None, None
         fitness = metrics.pop("fitness", -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
-        if not self.best_fitness or self.best_fitness < fitness:
+        if self.best_fitness is None or self.best_fitness < fitness:
             self.best_fitness = fitness
         return metrics, fitness
 
@@ -834,12 +892,10 @@ class BaseTrainer:
         raise NotImplementedError("build_dataset function not implemented in trainer")
 
     def label_loss_items(self, loss_items=None, prefix="train"):
-        """Return a loss dict with labeled training loss items, or a list of loss names if loss_items is None.
-
-        Notes:
-            This is not needed for classification but necessary for segmentation & detection.
-        """
-        return {"loss": loss_items} if loss_items is not None else ["loss"]
+        """Return a loss dict with labeled training loss items, or a list of loss names if loss_items is None."""
+        if loss_items is None:
+            return [f"{prefix}/{x}" for x in self.loss_names]
+        return {f"{prefix}/{k}": round(float(v), 5) for k, v in loss_items.items()}
 
     def set_model_attributes(self):
         """Set or update model parameters before training."""
@@ -847,11 +903,9 @@ class BaseTrainer:
 
     def set_class_weights(self):
         """Compute and set class weights for handling class imbalance. Override in subclasses."""
-        pass
 
     def build_targets(self, preds, targets):
         """Build target tensors for training YOLO model."""
-        pass
 
     def progress_string(self):
         """Return a string describing training progress."""
@@ -860,11 +914,9 @@ class BaseTrainer:
     # TODO: may need to put these following functions into callback
     def plot_training_samples(self, batch, ni):
         """Plot training samples during YOLO training."""
-        pass
 
     def plot_training_labels(self):
         """Plot training labels for YOLO model."""
-        pass
 
     def save_metrics(self, metrics):
         """Save training metrics to a CSV file."""
@@ -933,6 +985,7 @@ class BaseTrainer:
                     "val",
                     "plots",
                     "distill_model",
+                    "save_dir",
                 ):  # allow arg updates to reduce memory or update device on resume
                     if k in overrides:
                         setattr(self.args, k, overrides[k])
@@ -964,15 +1017,14 @@ class BaseTrainer:
             self.ema = ModelEMA(self.model)  # validation with EMA creates inference tensors that can't be updated
             self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())
             self.ema.updates = ckpt["updates"]
-        self.best_fitness = ckpt.get("best_fitness", 0.0)
+        self.best_fitness = ckpt.get("best_fitness")
 
     def _handle_nan_recovery(self, epoch):
-        """Detect and recover from NaN/Inf loss and fitness collapse by loading last checkpoint."""
+        """Detect and recover from NaN/Inf loss by loading last checkpoint."""
         loss_nan = self.loss is not None and not self.loss.isfinite()
         fitness_nan = self.fitness is not None and not np.isfinite(self.fitness)
-        fitness_collapse = self.best_fitness and self.best_fitness > 0 and self.fitness == 0
-        corrupted = RANK in {-1, 0} and loss_nan and (fitness_nan or fitness_collapse)
-        reason = "Loss NaN/Inf" if loss_nan else "Fitness NaN/Inf" if fitness_nan else "Fitness collapse"
+        corrupted = RANK in {-1, 0} and (loss_nan or fitness_nan)
+        reason = "Loss NaN/Inf" if loss_nan else "Fitness NaN/Inf"
         if RANK != -1:  # DDP: broadcast to all ranks
             broadcast_list = [corrupted if RANK == 0 else None]
             dist.broadcast_object_list(broadcast_list, 0)
@@ -1058,6 +1110,8 @@ class BaseTrainer:
         """
         g = [{}, {}, {}, {}]  # optimizer parameter groups
         bn = tuple(v for k, v in nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
+        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSprop", "SGD", "MuSGD", "auto"}
+        name = {x.lower(): x for x in optimizers}.get(str(name).lower(), str(name))
         if name == "auto":
             LOGGER.info(
                 f"{colorstr('optimizer:')} 'optimizer=auto' found, "
@@ -1074,8 +1128,8 @@ class BaseTrainer:
         for module_name, module in unwrap_model(model).named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
-                if param.ndim in {2, 4} and use_muon:
-                    g[3][fullname] = param  # muon params (2D linear, 4D conv; other shapes fail Newton-Schulz)
+                if param.ndim in {2, 4} and use_muon:  # muon only orthogonalizes matrices and conv filters
+                    g[3][fullname] = param  # muon params
                 elif "bias" in fullname:  # bias (no decay)
                     g[2][fullname] = param
                 elif isinstance(module, bn) or "logit_scale" in fullname or fullname.endswith(".freqs"):
@@ -1084,14 +1138,12 @@ class BaseTrainer:
                     g[1][fullname] = param
                 else:  # weight (with decay)
                     g[0][fullname] = param
-        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "MuSGD", "auto"}
-        name = {x.lower(): x for x in optimizers}.get(str(name).lower(), str(name))
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
-            optim_args = dict(lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
-        elif name == "RMSProp":
-            optim_args = dict(lr=lr, momentum=momentum)
+            optim_args = {"lr": lr, "betas": (momentum, 0.999), "weight_decay": 0.0}
+        elif name == "RMSprop":
+            optim_args = {"lr": lr, "momentum": momentum}
         elif name == "SGD" or name == "MuSGD":
-            optim_args = dict(lr=lr, momentum=momentum, nesterov=True)
+            optim_args = {"lr": lr, "momentum": momentum, "nesterov": True}
         else:
             raise NotImplementedError(
                 f"Optimizer '{name}' not found in list of available optimizers {optimizers}. "
@@ -1109,6 +1161,7 @@ class BaseTrainer:
             g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True, "param_group": "muon"}
             groups.append(g[3])
 
+        # higher lr for certain parameters in MuSGD when finetuning
         # Split each group into cls-head boost (MuSGD only, lr * 3), backbone (lr * ratio to preserve distilled
         # features), and base. Boost is MuSGD-only so an AdamW backbone_lr_ratio arm gets no head boost. Empty
         # subgroups are dropped, so a plain ratio 1.0 run keeps the flat weight/bn/bias grouping unchanged.
@@ -1140,7 +1193,7 @@ class BaseTrainer:
                 g_.append({"params": p_bb, **x, "lr": lr * ratio})
             g_.append({"params": p_base, **x})
         g = g_
-        optimizer = getattr(optim, name, partial(MuSGD, muon=muon, sgd=sgd))(params=g)
+        optimizer = (partial(MuSGD, muon=muon, sgd=sgd) if use_muon else getattr(optim, name))(params=g)
 
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "

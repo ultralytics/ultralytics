@@ -41,6 +41,12 @@ The first step after getting your hands on a Rockchip-based device is to flash a
 - [Radxa Rock 5B Getting Started Guide](https://docs.radxa.com/en/rock5/rock5b)
 - [Radxa Zero 3W Getting Started Guide](https://docs.radxa.com/en/zero/zero3)
 
+## Supported Tasks
+
+RKNN export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+
+{% include "macros/supported-tasks.md" %}
+
 ## Export to RKNN: Converting Your YOLO26 Model
 
 Export an Ultralytics YOLO26 model to RKNN format and run inference with the exported model.
@@ -66,10 +72,6 @@ For detailed instructions and best practices related to the installation process
 
 ### Usage
 
-!!! note
-
-    Export is currently only supported for detection models. More model support will be coming in the future.
-
 The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on Rockchip NPU hardware. Export your model, then load the exported model to run inference or validate its accuracy. By default, RKNN export uses the floating-point build path (`quantize=16`) for FP16-capable Rockchip targets. Use `quantize=8` to build an INT8-quantized RKNN model with calibration data. RKNN export does not expose a separate FP32 mode; the FP16 default does not request FP32.
 
 !!! example "Export"
@@ -79,24 +81,24 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLO26 model
-        model = YOLO("yolo26n.pt")
+        # Load a YOLO26 model (replace with any supported task model)
+        model = YOLO("yolo26n-obb.pt")
 
         # Export the model to RKNN format
-        model.export(format="rknn", name="rk3588")  # creates '/yolo26n_rknn_model'
+        model.export(format="rknn", name="rk3588")  # creates '/yolo26n-obb_rknn_model'
 
         # Export an INT8-quantized RKNN model with calibration data
-        model.export(format="rknn", name="rk3588", quantize=8, data="coco8.yaml")
+        model.export(format="rknn", name="rk3588", quantize=8, data="dota8.yaml")
         ```
 
     === "CLI"
 
         ```bash
-        # Export a YOLO26n PyTorch model to RKNN format
-        yolo export model=yolo26n.pt format=rknn name=rk3588 # creates '/yolo26n_rknn_model'
+        # Export a YOLO26n-obb PyTorch model to RKNN format
+        yolo export model=yolo26n-obb.pt format=rknn name=rk3588 # creates '/yolo26n-obb_rknn_model'
 
         # Export an INT8-quantized RKNN model with calibration data
-        yolo export model=yolo26n.pt format=rknn name=rk3588 quantize=8 data=coco8.yaml
+        yolo export model=yolo26n-obb.pt format=rknn name=rk3588 quantize=8 data=dota8.yaml
         ```
 
 !!! example "Predict"
@@ -107,17 +109,17 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
         from ultralytics import YOLO
 
         # Load the exported RKNN model
-        model = YOLO("./yolo26n_rknn_model")
+        model = YOLO("./yolo26n-obb_rknn_model")
 
         # Run inference
-        results = model("https://ultralytics.com/images/bus.jpg")
+        results = model("https://ultralytics.com/images/boats.jpg")
         ```
 
     === "CLI"
 
         ```bash
         # Run inference with the exported RKNN model
-        yolo predict model=./yolo26n_rknn_model source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=./yolo26n-obb_rknn_model source='https://ultralytics.com/images/boats.jpg'
         ```
 
 !!! example "Validate"
@@ -128,17 +130,17 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
         from ultralytics import YOLO
 
         # Load the exported RKNN model
-        model = YOLO("./yolo26n_rknn_model")
+        model = YOLO("./yolo26n-obb_rknn_model")
 
-        # Validate accuracy on the COCO8 dataset
-        metrics = model.val(data="coco8.yaml")
+        # Validate accuracy on the DOTA8 dataset
+        metrics = model.val(data="dota8.yaml")
         ```
 
     === "CLI"
 
         ```bash
         # Validate the exported RKNN model
-        yolo val model=./yolo26n_rknn_model data=coco8.yaml
+        yolo val model=./yolo26n-obb_rknn_model data=dota8.yaml
         ```
 
 ### Export Arguments
@@ -150,6 +152,8 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
 | `batch`    | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                     |
 | `name`     | `str`            | `'rk3588'` | Specifies the Rockchip target. `rk3588`, `rk3576`, `rk3566`, `rk3568`, `rk3562`, `rk2118`, and `rv1126b` support FP16 (`quantize=16` or unset) and INT8 (`quantize=8`); `rv1103`, `rv1106`, `rv1103b`, and `rv1106b` are INT8-only (`quantize=8` or unset). |
 | `quantize` | `int` or `str`   | `None`     | Quantization precision: unset or `16` builds FP16 for FP16-capable targets; unset auto-enables INT8 for INT8-only targets; `8` builds INT8. RKNN export has no separate FP32 mode. Replaces the deprecated `half`/`int8` flags.                             |
+| `simplify` | `bool`           | `True`     | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                                                                     |
+| `opset`    | `int`            | `None`     | Specifies the ONNX opset version for the intermediate ONNX graph. Defaults to 19 if unset, and values above 19 are reduced to 19.                                                                                                                           |
 | `data`     | `str`            | `None`     | Dataset YAML used for INT8 calibration. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task.                                                                                                               |
 | `fraction` | `float`          | `1.0`      | Fraction of calibration images to use for INT8 quantization.                                                                                                                                                                                                |
 | `device`   | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                                                                                                                   |

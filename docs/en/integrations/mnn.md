@@ -26,6 +26,12 @@ keywords: Ultralytics, YOLO26, MNN, model export, machine learning, deployment, 
   <strong>Watch:</strong> How to Export Ultralytics YOLO26 to MNN Format | Speed up Inference on Mobile Devices📱
 </p>
 
+## Supported Tasks
+
+MNN export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+
+{% include "macros/supported-tasks.md" %}
+
 ## Export to MNN: Converting Your YOLO26 Model
 
 You can expand model compatibility and deployment flexibility by converting [Ultralytics YOLO](../models/yolo26.md) models to MNN format. This conversion optimizes your models for mobile and embedded environments, ensuring efficient performance on resource-constrained devices.
@@ -120,7 +126,11 @@ The MNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
 | `format`   | `str`            | `'mnn'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
 | `imgsz`    | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
 | `quantize` | `int` or `str`   | `None`  | Quantization precision: `16` (FP16), `8` (INT8 weight quantization), or `32`/unset (FP32). Replaces the deprecated `half`/`int8` flags. |
+| `simplify` | `bool`           | `True`  | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                 |
+| `opset`    | `int`            | `None`  | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                        |
 | `batch`    | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `dynamic`  | `bool`           | `False` | Enables dynamic input image dimensions. Cannot be combined with `nms=True`.                                                             |
+| `nms`      | `bool`           | `False` | Adds NMS for detect and pose models. Cannot be combined with `dynamic=True`.                                                            |
 | `device`   | `str`            | `None`  | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                         |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).

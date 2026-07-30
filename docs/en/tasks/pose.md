@@ -94,11 +94,11 @@ Train a YOLO26-pose model on the COCO8-pose dataset. The [COCO8-pose dataset](..
         yolo pose train data=coco8-pose.yaml model=yolo26n-pose.yaml pretrained=yolo26n-pose.pt epochs=100 imgsz=640
         ```
 
-See full `train` mode details in the [Train](../modes/train.md) page. Pose models can also be trained on cloud GPUs through [Ultralytics Platform](https://platform.ultralytics.com).
+See full `train` mode details in the [Train](../modes/train.md) page. Pose models can also be trained with [Ultralytics Platform cloud training](../platform/train/cloud-training.md).
 
 ### Dataset format
 
-YOLO pose dataset format can be found in detail in the [Dataset Guide](../datasets/pose/index.md). To convert your existing dataset from other formats (like [COCO](../datasets/pose/coco.md) etc.) to YOLO format, please use the [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics. [Ultralytics Platform](https://platform.ultralytics.com) also supports pose annotation with built-in skeleton templates for person, hand, face, and custom keypoint layouts.
+YOLO pose dataset format can be found in detail in the [Dataset Guide](../datasets/pose/index.md). To convert your existing dataset from other formats (like [COCO](../datasets/pose/coco.md) etc.) to YOLO format, please use the [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics. [Ultralytics Platform annotation](../platform/data/annotation.md) also supports pose labels with built-in skeleton templates for person, hand, face, and custom keypoint layouts.
 
 For custom pose estimation tasks, you can also explore specialized datasets like [Tiger-Pose](../datasets/pose/tiger-pose.md) for animal pose estimation, [Hand Keypoints](../datasets/pose/hand-keypoints.md) for hand tracking, or [Dog-Pose](../datasets/pose/dog-pose.md) for canine pose analysis.
 
@@ -215,6 +215,7 @@ Export a YOLO26n Pose model to a different format like ONNX, CoreML, etc. This a
 
 Available YOLO26-pose export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-pose.onnx`. Usage examples are shown for your model after export completes.
 
+{% set model_name = "yolo26n-pose" %}
 {% include "macros/export-table.md" %}
 
 See full `export` details in the [Export](../modes/export.md) page.
@@ -240,7 +241,7 @@ model = YOLO("yolo26n-pose.pt")  # load a pretrained model (recommended for trai
 results = model.train(data="your-dataset.yaml", epochs=100, imgsz=640)
 ```
 
-For comprehensive details on training, refer to the [Train Section](#train). You can also use [Ultralytics Platform](https://platform.ultralytics.com) for a no-code approach to training custom pose estimation models.
+For comprehensive details on training, refer to the [Train Section](#train). You can also use [Ultralytics Platform cloud training](../platform/train/cloud-training.md) for a no-code approach to training custom pose estimation models.
 
 ### How do I validate a trained YOLO26-pose model?
 

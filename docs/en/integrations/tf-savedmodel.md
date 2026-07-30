@@ -45,6 +45,12 @@ TF SavedModel provides a range of options to deploy your machine learning models
 
 - **TensorFlow Runtime:** TensorFlow Runtime (`tfrt`) is a high-performance runtime for executing [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) graphs. It provides lower-level APIs for loading and running TF SavedModels in C++ environments. TensorFlow Runtime offers better performance compared to the standard TensorFlow runtime. It is suitable for deployment scenarios that require low-latency inference and tight integration with existing C++ codebases.
 
+## Supported Tasks
+
+TF SavedModel export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+
+{% include "macros/supported-tasks.md" %}
+
 ## Exporting YOLO26 Models to TF SavedModel
 
 By exporting YOLO26 models to the TF SavedModel format, you enhance their adaptability and ease of deployment across various platforms.
@@ -141,6 +147,7 @@ The TF SavedModel format supports the [Export](../modes/export.md), [Predict](..
 | `imgsz`    | `int` or `tuple` | `640`           | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                |
 | `keras`    | `bool`           | `False`         | Enables export to Keras format, providing compatibility with TensorFlow serving and APIs.                                                                                                                                                                        |
 | `quantize` | `int` or `str`   | `None`          | Quantization precision: `8` (INT8/PTQ; needs calibration `data`/`fraction`) or `32`/unset (FP32). FP16 is not supported for SavedModel export. Replaces the deprecated `int8` flag.                                                                              |
+| `opset`    | `int`            | `None`          | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                                                                                 |
 | `nms`      | `bool`           | `False`         | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                                                                                              |
 | `batch`    | `int`            | `1`             | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
 | `data`     | `str`            | `'coco8.yaml'`  | Path to the [dataset](../datasets/index.md) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                                              |

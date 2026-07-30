@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import contextlib
 import pickle
 import re
@@ -44,6 +46,7 @@ from ultralytics.nn.modules import (
     Conv,
     Conv2,
     ConvTranspose,
+    Depth,
     Detect,
     DINOv3RoPE2D,
     DWConv,
@@ -98,6 +101,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import REMOTE_FILE_PREFIXES, check_file, check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     CLIPDistillationLoss,
+    DepthLoss26,
     E2ELoss,
     PoseLoss26,
     SemanticSegmentationLoss,
@@ -196,7 +200,7 @@ class BaseModel(torch.nn.Module):
             (torch.Tensor): The last output of the model.
         """
         y, dt, embeddings = [], [], []  # outputs
-        embed = frozenset(embed) if embed is not None else {-1}
+        embed = frozenset(embed) if embed else {-1}
         max_idx = max(embed)
         for m in self.model:
             if m.f != -1:  # if not from previous layer
@@ -235,22 +239,24 @@ class BaseModel(torch.nn.Module):
             thop = None  # conda support without 'ultralytics-thop' installed
 
         c = m == self.model[-1] and isinstance(x, list)  # is final layer list, copy input as inplace fix
-        flops = thop.profile(m, inputs=[x.copy() if c else x], verbose=False)[0] / 1e9 * 2 if thop else 0  # GFLOPs
-        t = time_sync()
+        flops = thop.profile(m, inputs=[x.copy() if c else x], verbose=False)[0] / 1e9 * 2 if thop else 0
+        device = next(self.parameters()).device
+        t = time_sync(device)
         for _ in range(10):
             m(x.copy() if c else x)
-        dt.append((time_sync() - t) * 100)
+        dt.append((time_sync(device) - t) * 100)
         if m == self.model[0]:
             LOGGER.info(f"{'time (ms)':>10s} {'GFLOPs':>10s} {'params':>10s}  module")
         LOGGER.info(f"{dt[-1]:10.2f} {flops:10.2f} {m.np:10.0f}  {m.type}")
         if c:
             LOGGER.info(f"{sum(dt):10.2f} {'-':>10s} {'-':>10s}  Total")
 
-    def fuse(self, verbose=True):
+    def fuse(self, verbose=True, imgsz=640):
         """Fuse Conv/ConvTranspose and BatchNorm layers, and reparameterize RepConv/RepVGGDW for improved efficiency.
 
         Args:
             verbose (bool): Whether to print model information after fusion.
+            imgsz (int | list): Input image size used for FLOPs calculation.
 
         Returns:
             (torch.nn.Module): The fused model is returned.
@@ -279,7 +285,7 @@ class BaseModel(torch.nn.Module):
                     m.fuse()
                 if isinstance(m, Detect) and getattr(m, "end2end", False):
                     m.fuse()  # remove one2many head
-            self.info(verbose=verbose)
+            self.info(verbose=verbose, imgsz=imgsz)
 
         return self
 
@@ -314,7 +320,7 @@ class BaseModel(torch.nn.Module):
         Returns:
             (BaseModel): An updated BaseModel object.
         """
-        self = super()._apply(fn)
+        super()._apply(fn)
         m = self.model[-1]  # Detect()
         if isinstance(
             m, Detect
@@ -353,7 +359,7 @@ class BaseModel(torch.nn.Module):
         if verbose:
             LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")
 
-    def _remap_cls_by_names(self, csd, src_model, verbose=True):
+    def _remap_cls_by_names(self, csd: dict[str, torch.Tensor], src_model: torch.nn.Module, verbose: bool = True):
         """Remap pretrained classification head rows to current class order by name.
 
         Copies rows from pretrained cls layers into the current model's state_dict where the destination class name
@@ -553,7 +559,7 @@ class DetectionModel(BaseModel):
         Returns:
             (tuple[torch.Tensor, None]): Augmented inference output and None for train output.
         """
-        if getattr(self, "end2end", False) or self.__class__.__name__ != "DetectionModel":
+        if getattr(self, "end2end", False) or type(self.model[-1]) is not Detect:
             LOGGER.warning("Model does not support 'augment=True', reverting to single-scale prediction.")
             return self._predict_once(x)
         img_size = x.shape[-2:]  # height, width
@@ -742,7 +748,7 @@ class SemanticSegmentationModel(BaseModel):
 
     def _apply(self, fn):
         """Apply a function to all tensors in the model."""
-        self = super()._apply(fn)
+        super()._apply(fn)
         m = self.model[-1]
         if isinstance(m, SemanticSegment):
             m.stride = fn(m.stride)
@@ -787,7 +793,28 @@ class PoseModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the PoseModel."""
-        return E2ELoss(self, PoseLoss26) if getattr(self, "end2end", False) else v8PoseLoss(self)
+        loss = PoseLoss26 if self.end2end or isinstance(self.model[-1], Pose26) else v8PoseLoss
+        return E2ELoss(self, loss) if self.end2end else loss(self)
+
+
+class DepthModel(DetectionModel):
+    """YOLO depth estimation model.
+
+    This class extends DetectionModel for monocular depth estimation, using YOLO backbone + FPN with a DPT-style dense
+    depth decoder head. Follows the Depth Anything approach adapted to YOLO architecture.
+
+    Examples:
+        >>> model = DepthModel("yolo26n-depth.yaml", ch=3)
+        >>> results = model(image_tensor)
+    """
+
+    def __init__(self, cfg="yolo26n-depth.yaml", ch=3, nc=None, verbose=True):
+        """Initialize YOLO Depth model."""
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    def init_criterion(self):
+        """Initialize the depth loss criterion."""
+        return DepthLoss26(self)
 
 
 class ClassificationModel(BaseModel):
@@ -1036,6 +1063,56 @@ class RTDETRDetectionModel(DetectionModel):
         """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
+    def _remap_cls_by_names(self, csd: dict[str, torch.Tensor], src_model: torch.nn.Module, verbose: bool = True):
+        """Remap RT-DETR decoder cls-head rows by class name.
+
+        Overrides BaseModel's YOLO-specific implementation: RT-DETR's classification tensors live under
+        `score_head` and `class_embed` inside `RTDETRDecoder` rather than `Detect.cv3`. All of them are
+        row-per-class, including the training-only `denoising_class_embed` embedding, so matched class rows
+        transfer even when source and target `nc` differ; any residual shape mismatch is dropped by
+        `intersect_dicts`.
+
+        Args:
+            csd (dict): Pretrained checkpoint state_dict (will be mutated).
+            src_model (torch.nn.Module): Pretrained module, used to read `.names`.
+            verbose (bool): Log mapping summary.
+
+        Returns:
+            (int): Number of cls tensors remapped (counted toward "Transferred" log line).
+        """
+        src_names = getattr(src_model, "names", None)
+        tgt_names = getattr(self, "names", None)
+        if not (isinstance(src_names, dict) and isinstance(tgt_names, dict)):
+            return 0
+        # Skip default placeholder names {0:"0", 1:"1", ...} (also catches empty dicts)
+        if any(all(str(k) == str(v) for k, v in n.items()) for n in (src_names, tgt_names)):
+            return 0
+
+        src_lookup = {str(v).strip().lower(): k for k, v in src_names.items()}
+        tgt_nc = len(tgt_names)
+        idx = torch.tensor(
+            [src_lookup.get(str(tgt_names[k]).strip().lower(), -1) for k in range(tgt_nc)], dtype=torch.long
+        )
+        n_match = int((idx >= 0).sum())
+        # Skip if nothing matches, or class names already share order and count (intersect_dicts handles it directly)
+        if n_match == 0 or (len(src_names) == tgt_nc and torch.equal(idx, torch.arange(tgt_nc))):
+            return 0
+
+        valid = idx >= 0
+        state_dict = self.state_dict()
+        cls_keys = {k for k in csd if ("score_head" in k or "class_embed" in k) and k in state_dict}
+        remapped = 0
+        for k in cls_keys:
+            v_src, v_tgt = csd[k], state_dict[k]
+            if v_src.ndim != v_tgt.ndim or v_src.shape[1:] != v_tgt.shape[1:]:
+                continue
+            v_tgt[valid] = v_src[idx[valid]].to(v_tgt.dtype)
+            csd.pop(k)  # prevent intersect_dicts from copying these rows in the wrong (source) order
+            remapped += 1
+        if verbose and remapped:
+            LOGGER.info(f"Remapped {n_match}/{tgt_nc} decoder cls head rows from pretrained weights by class name")
+        return remapped
+
     def _apply(self, fn):
         """Apply a function to all tensors in the model, including decoder anchors and valid mask.
 
@@ -1045,7 +1122,7 @@ class RTDETRDetectionModel(DetectionModel):
         Returns:
             (RTDETRDetectionModel): An updated RTDETRDetectionModel object.
         """
-        self = super()._apply(fn)
+        super()._apply(fn)
         m = self.model[-1]
         m.anchors = fn(m.anchors)
         m.valid_mask = fn(m.valid_mask)
@@ -1066,7 +1143,7 @@ class RTDETRDetectionModel(DetectionModel):
 
         Returns:
             (torch.Tensor): Total loss value.
-            (torch.Tensor): Main three losses in a tensor.
+            (dict): Main three losses in a dict.
         """
         if not hasattr(self, "criterion"):
             self.criterion = self.init_criterion()
@@ -1099,9 +1176,11 @@ class RTDETRDetectionModel(DetectionModel):
             (dec_bboxes, dec_scores), targets, dn_bboxes=dn_bboxes, dn_scores=dn_scores, dn_meta=dn_meta
         )
         # NOTE: There are like 12 losses in RTDETR, backward with all losses but only show the main three losses.
-        return sum(loss.values()), torch.as_tensor(
-            [loss[k].detach() for k in ["loss_giou", "loss_class", "loss_bbox"]], device=img.device
-        )
+        return sum(loss.values()), {
+            "giou_loss": loss["loss_giou"].detach(),
+            "cls_loss": loss["loss_class"].detach(),
+            "l1_loss": loss["loss_bbox"].detach(),
+        }
 
     def predict(self, x, profile=False, visualize=False, batch=None, augment=False, embed=None):
         """Perform a forward pass through the model.
@@ -1118,7 +1197,7 @@ class RTDETRDetectionModel(DetectionModel):
             (torch.Tensor): Model's output tensor.
         """
         y, dt, embeddings = [], [], []  # outputs
-        embed = frozenset(embed) if embed is not None else {-1}
+        embed = frozenset(embed) if embed else {-1}
         max_idx = max(embed)
         for m in self.model[:-1]:  # except the head part
             if m.f != -1:  # if not from previous layer
@@ -1228,7 +1307,7 @@ class WorldModel(DetectionModel):
             txt_feats = txt_feats.expand(x.shape[0], -1, -1)
         ori_txt_feats = txt_feats.clone()
         y, dt, embeddings = [], [], []  # outputs
-        embed = frozenset(embed) if embed is not None else {-1}
+        embed = frozenset(embed) if embed else {-1}
         max_idx = max(embed)
         for m in self.model:  # except the head part
             if m.f != -1:  # if not from previous layer
@@ -1468,7 +1547,7 @@ class YOLOEModel(DetectionModel):
         """
         y, dt, embeddings = [], [], []  # outputs
         b = x.shape[0]
-        embed = frozenset(embed) if embed is not None else {-1}
+        embed = frozenset(embed) if embed else {-1}
         max_idx = max(embed)
         for m in self.model:  # except the head part
             if m.f != -1:  # if not from previous layer
@@ -1565,9 +1644,7 @@ class YOLOESegModel(YOLOEModel, SegmentationModel):
                 else self.init_criterion()
             )
 
-        if preds is None:
-            preds = self.forward(batch["img"], tpe=batch.get("txt_feats", None), vpe=batch.get("visuals", None))
-        return self.criterion(preds, batch)
+        return super().loss(batch, preds)
 
 
 class Ensemble(torch.nn.ModuleList):
@@ -1741,12 +1818,13 @@ class _SafeLoad:
         import inspect
         import pathlib
         import pkgutil
+        import sys
 
         import torch.nn.modules as torch_nn
 
         import ultralytics.nn.modules as ul_nn
-        import ultralytics.nn.tasks as ul_tasks
 
+        ul_tasks = sys.modules[__name__]
         allow = []
 
         def _scan(pkg):
@@ -1755,8 +1833,8 @@ class _SafeLoad:
                 for info in pkgutil.iter_modules(pkg.__path__, f"{pkg.__name__}."):
                     try:
                         mods.append(importlib.import_module(info.name))
-                    except Exception:  # optional/oddball submodule — skip
-                        continue
+                    except Exception as e:
+                        LOGGER.debug(f"Skipping optional module {info.name}: {e}")
             for mod in mods:
                 for name, klass in inspect.getmembers(mod, inspect.isclass):
                     if issubclass(klass, nn.Module):
@@ -1795,9 +1873,19 @@ class _SafeLoad:
             (_getattr, "builtins.getattr"),  # non-det YOLOv8, YOLO11 ckpts (restrict to nn.Module attrs)
         ]
         if WINDOWS:
-            allow += [pathlib.WindowsPath, (pathlib.WindowsPath, "pathlib.PosixPath")]
+            allow += [
+                pathlib.WindowsPath,
+                (pathlib.WindowsPath, "pathlib.WindowsPath"),
+                (pathlib.WindowsPath, "pathlib.PosixPath"),
+                (pathlib.WindowsPath, f"{pathlib.PosixPath.__module__}.{pathlib.PosixPath.__qualname__}"),
+            ]
         else:
-            allow += [pathlib.PosixPath, (pathlib.PosixPath, "pathlib.WindowsPath")]
+            allow += [
+                pathlib.PosixPath,
+                (pathlib.PosixPath, "pathlib.PosixPath"),
+                (pathlib.PosixPath, "pathlib.WindowsPath"),
+                (pathlib.PosixPath, f"{pathlib.WindowsPath.__module__}.{pathlib.WindowsPath.__qualname__}"),
+            ]
         return allow
 
 
@@ -1856,11 +1944,31 @@ def torch_safe_load(weight, safe_only=None):
     try:
         ckpt = _load()
 
-    except RuntimeError as e:
+    except (RuntimeError, EOFError, pickle.UnpicklingError) as e:
+        # An unreadable file reaches the loader as one of three internal errors depending on how it is damaged:
+        # RuntimeError for a truncated zip, EOFError for an empty one, UnpicklingError for bytes that are not a
+        # pickle at all (an image or archive renamed .pt). They are one user-facing condition, so they share one
+        # handler and one message.
+        if isinstance(e, RuntimeError) and "PytorchStreamReader" not in str(e):
+            raise  # an unrelated RuntimeError is a real failure, not a damaged file
+        if safe_only and isinstance(e, pickle.UnpicklingError):
+            # weights_only=True refused a global outside the allow-list: a format problem, not a damaged file
+            raise TypeError(
+                emojis(
+                    f"ERROR ❌️ {weight} references types outside the supported Ultralytics checkpoint format. "
+                    f"Use an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
+                )
+            ) from e
         # Recover only a corrupt cached official asset requested by bare name; never touch user-supplied paths.
         name = Path(str(weight)).name
-        if "PytorchStreamReader" not in str(e) or str(weight) != name or name not in GITHUB_ASSETS_NAMES:
-            raise
+        if str(weight) != name or name not in GITHUB_ASSETS_NAMES:
+            raise TypeError(
+                emojis(
+                    f"ERROR ❌️ {weight} is not a loadable checkpoint — the file is empty, truncated or corrupted "
+                    f"({type(e).__name__}: {e}).\nRecommend fixes are to re-download or re-export the file, or to "
+                    f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
+                )
+            ) from e
         LOGGER.warning(f"Corrupt cache {file}, re-downloading {weight}...")
         Path(file).unlink(missing_ok=True)
         file = attempt_download_asset(weight)
@@ -1903,18 +2011,6 @@ def torch_safe_load(weight, safe_only=None):
         )
         check_requirements(e.name)  # install missing module
         ckpt = torch_load(file, map_location="cpu")
-
-    except pickle.UnpicklingError as e:
-        # weights_only=True encountered a global outside the allow-list. The default (weights_only=False) path can also
-        # raise this for a corrupt or legacy file, so re-raise verbatim there to preserve existing behavior.
-        if not safe_only:
-            raise
-        raise TypeError(
-            emojis(
-                f"ERROR ❌️ {weight} references types outside the supported Ultralytics checkpoint format. "
-                f"Use an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
-            )
-        ) from e
 
     if not isinstance(ckpt, dict):
         # File is likely a YOLO instance saved with i.e. torch.save(model, "saved_model.pt")
@@ -2088,7 +2184,7 @@ def parse_model(d, ch, verbose=True):
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in base_modules:
             c1, c2 = ch[f], args[0]
-            if c2 != nc:  # if c2 != nc (e.g., Classify() output)
+            if m is not Classify:  # Classify() output must stay at nc; every other layer scales by width
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
             if m is C2fAttn:  # set 1) embed channels and 2) num heads
                 args[1] = make_divisible(min(args[1], max_channels // 2) * width, 8)
@@ -2158,6 +2254,8 @@ def parse_model(d, ch, verbose=True):
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
                 m.legacy = legacy
+        elif m is Depth:
+            args = [*args[:1], [ch[x] for x in f]]  # c_mid, ch tuple; drops the legacy mode arg old checkpoints store
         elif m is SemanticSegment:
             args.append([ch[x] for x in f])  # nc, ch tuple
         elif m is v10Detect:
@@ -2238,7 +2336,7 @@ def guess_model_task(model):
         model (torch.nn.Module | dict | str | Path): PyTorch model, model configuration dict, or model file path.
 
     Returns:
-        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'obb', 'semantic').
+        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'obb', 'semantic', 'depth').
     """
 
     def cfg2task(cfg):
@@ -2256,6 +2354,8 @@ def guess_model_task(model):
             return "pose"
         if "obb" in m:
             return "obb"
+        if "depth" in m:
+            return "depth"
 
     # Guess from model cfg
     if isinstance(model, dict):
@@ -2280,6 +2380,8 @@ def guess_model_task(model):
                 return "pose"
             elif isinstance(m, OBB):
                 return "obb"
+            elif isinstance(m, Depth):
+                return "depth"
             elif isinstance(m, (Detect, WorldDetect, YOLOEDetect, v10Detect)):
                 return "detect"
 
@@ -2296,6 +2398,8 @@ def guess_model_task(model):
             return "pose"
         elif "-obb" in model.stem or "obb" in model.parts:
             return "obb"
+        elif "-depth" in model.stem or "depth" in model.parts:
+            return "depth"
         elif "detect" in model.parts:
             return "detect"
 

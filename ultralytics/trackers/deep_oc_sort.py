@@ -123,7 +123,7 @@ class DeepOCSortTrack(OCSortTrack):
         t = H[:2, 2]
 
         # Build 8x8 transform: rotate (x,y) and (vx,vy), identity for (a,h) and (va,vh)
-        R8x8 = np.eye(8, dtype=np.float32)
+        R8x8 = np.eye(8)  # float64 holds any homography exactly; a narrower one would round the float64 methods
         R8x8[:2, :2] = R  # rotate position (x, y)
         R8x8[4:6, 4:6] = R  # rotate velocity (vx, vy)
         # indices 2,3 (a,h) and 6,7 (va,vh) remain identity
@@ -223,20 +223,6 @@ class DeepOCSORT(OCSORT):
             )
             for (xywh, s, c) in zip(bboxes, results.conf, results.cls)
         ]
-
-    def _input_for(self, img: np.ndarray | None, feats: np.ndarray | None, mask: np.ndarray) -> np.ndarray | None:
-        """Return what `init_track` should receive.
-
-        For `model="auto"` (native-features mode) the encoder iterates a per-detection feature
-        tensor, so we must hand it `feats[mask]`. If the upstream pipeline didn't populate
-        `feats` (e.g. user-supplied detections), return None so `init_track` falls back
-        to the no-encoding path instead of feeding a BGR frame into the auto encoder. For
-        external ReID models, `init_track` always wants the BGR frame.
-        """
-        use_native = self.encoder is not None and getattr(self.args, "model", "auto") == "auto"
-        if use_native:
-            return feats[mask] if (feats is not None and len(feats)) else None
-        return img
 
     def _pre_first_associate(
         self,

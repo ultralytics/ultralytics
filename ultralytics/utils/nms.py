@@ -64,10 +64,15 @@ def non_max_suppression(
         classes = torch.tensor(classes, device=prediction.device)
 
     if prediction.shape[-1] == 6 or end2end:  # end-to-end model (BNC, i.e. 1,300,6)
-        output = [pred[pred[:, 4] > conf_thres] for pred in prediction]
-        if classes is not None:
-            output = [pred[(pred[:, 5:6] == classes).any(1)] for pred in output]
-        return [pred[:max_det] for pred in output]  # apply max_det after classes filter
+        output, keepi = [], []
+        for pred in prediction:
+            mask = pred[:, 4] > conf_thres
+            if classes is not None:
+                mask &= (pred[:, 5:6] == classes).any(1)
+            idx = mask.nonzero(as_tuple=False).view(-1)[:max_det]
+            output.append(pred[idx])
+            keepi.append(idx)
+        return (output, keepi) if return_idxs else output
 
     bs = prediction.shape[0]  # batch size (BCN, i.e. 1,84,6300)
     nc = nc or (prediction.shape[1] - 4)  # number of classes
@@ -88,6 +93,7 @@ def non_max_suppression(
     t = time.time()
     output = [torch.zeros((0, 6 + extra), device=prediction.device)] * bs
     keepi = [torch.zeros((0, 1), device=prediction.device)] * bs  # to store the kept idxs
+    use_torchvision = prediction.device.type not in {"npu", "xpu"} and "torchvision" in sys.modules
     for xi, (x, xk) in enumerate(zip(prediction, xinds)):  # image index, (preds, preds indices)
         # Apply constraints
         # x[((x[:, 2:4] < min_wh) | (x[:, 2:4] > max_wh)).any(1), 4] = 0  # width-height
@@ -147,8 +153,8 @@ def non_max_suppression(
             i = TorchNMS.fast_nms(boxes, scores, iou_thres, iou_func=batch_probiou)
         else:
             boxes = x[:, :4] + c  # boxes (offset by class)
-            # Speed strategy: torchvision if already imported (preloaded by warmup/val/streams), else TorchNMS (no slow import)
-            if "torchvision" in sys.modules:
+            # Use torchvision if already imported and supported; its NMS has no NPU/XPU kernels.
+            if use_torchvision:
                 import torchvision  # scope as slow import
 
                 i = torchvision.ops.nms(boxes, scores, iou_thres)

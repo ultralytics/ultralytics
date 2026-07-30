@@ -98,9 +98,9 @@ Train YOLO26n-obb on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.
 
 ### Dataset format
 
-OBB dataset format can be found in detail in the [Dataset Guide](../datasets/obb/index.md). The YOLO OBB format designates bounding boxes by their four corner points with coordinates normalized between 0 and 1, following this structure. [Ultralytics Platform](https://platform.ultralytics.com) supports OBB annotation with a dedicated oriented bounding box drawing tool:
+OBB dataset format can be found in detail in the [Dataset Guide](../datasets/obb/index.md). The YOLO OBB format designates bounding boxes by their four corner points with coordinates normalized between 0 and 1, following this structure. [Ultralytics Platform annotation](../platform/data/annotation.md) supports OBB labels with a dedicated oriented bounding box drawing tool:
 
-```
+```text
 class_index x1 y1 x2 y2 x3 y3 x4 y4
 ```
 
@@ -226,6 +226,7 @@ Export a YOLO26n-obb model to a different format like ONNX, CoreML, etc.
 
 Available YOLO26-obb export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-obb.onnx`. Usage examples are shown for your model after export completes.
 
+{% set model_name = "yolo26n-obb" %}
 {% include "macros/export-table.md" %}
 
 See full `export` details in the [Export](../modes/export.md) page.

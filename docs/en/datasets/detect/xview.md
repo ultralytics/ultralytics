@@ -1,6 +1,11 @@
 ---
 title: xView Detection Dataset
 comments: true
+creator:
+    name: Defense Innovation Unit
+    url: https://www.diu.mil/
+license:
+    name: CC-BY-NC-SA-4.0
 description: Train YOLO26 on the xView satellite dataset - 1M+ object instances across 60 classes in 0.3 m WorldView-3 imagery with automatic GeoJSON-to-YOLO conversion.
 keywords: xView dataset, satellite imagery, overhead imagery, object detection, remote sensing, YOLO26, xView download, WorldView-3, bounding boxes, computer vision
 ---
@@ -22,7 +27,7 @@ Building on benchmarks like [COCO](coco.md), xView targets overhead imagery, whe
 
     The xView dataset is **not** downloaded automatically. Register at the [DIUx xView 2018 Challenge](https://challenge.xviewdataset.org/) website to download `train_images.zip` (~15 GB), `train_labels.zip`, and `val_images.zip` (~5 GB), then extract them under `datasets/xView/` so that it contains:
 
-    ```
+    ```text
     datasets/xView/
     ├── train_images/          # 847 TIF satellite images
     ├── val_images/            # 282 TIF images (no public labels)

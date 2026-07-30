@@ -45,6 +45,12 @@ ExecuTorch models can be deployed across various edge and mobile platforms:
 
 - **IoT Devices**: Integrate into IoT devices for on-device inference without cloud connectivity requirements.
 
+## Supported Tasks
+
+ExecuTorch export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+
+{% include "macros/supported-tasks.md" %}
+
 ## Exporting Ultralytics YOLO26 Models to ExecuTorch
 
 Converting Ultralytics YOLO26 models to ExecuTorch format enables efficient deployment on mobile and edge devices.
@@ -151,7 +157,7 @@ When exporting to ExecuTorch format, you can specify the following arguments:
 
 The ExecuTorch export creates a directory containing the model and metadata:
 
-```
+```text
 yolo26n_executorch_model/
 ├── model.pte               # ExecuTorch model file
 └── metadata.yaml           # Model metadata (classes, image size, etc.)

@@ -25,7 +25,7 @@ class ClassificationTrainer(BaseTrainer):
     Attributes:
         model (ClassificationModel): The classification model to be trained.
         data (dict[str, Any]): Dictionary containing dataset information including class names and number of classes.
-        loss_names (list[str]): Names of the loss functions used during training.
+        loss_names (tuple): Names of the loss items, derived from the loss dict returned by the criterion.
         validator (ClassificationValidator): Validator instance for model evaluation.
 
     Methods:
@@ -37,7 +37,6 @@ class ClassificationTrainer(BaseTrainer):
         preprocess_batch: Preprocess a batch of images and classes.
         progress_string: Return a formatted string showing training progress.
         get_validator: Return an instance of ClassificationValidator.
-        label_loss_items: Return a loss dict with labeled training loss items.
         final_eval: Evaluate trained model and save validation results.
         plot_training_samples: Plot training samples with their annotations.
 
@@ -146,7 +145,7 @@ class ClassificationTrainer(BaseTrainer):
 
         # Filter out samples with class indices >= nc (prevents CUDA assertion errors)
         nc = self.data.get("nc", 0)
-        dataset_nc = len(dataset.base.classes)
+        dataset_nc = max(x[1] for x in dataset.samples) + 1
         if nc and dataset_nc > nc:
             extra_classes = dataset.base.classes[nc:]
             original_count = len(dataset.samples)
@@ -161,7 +160,9 @@ class ClassificationTrainer(BaseTrainer):
                     f"All {original_count} samples in '{mode}' split filtered out: every sample had class index >= "
                     f"model nc={nc}. Reset the model's class count or align dataset class indices."
                 )
-        loader = build_dataloader(dataset, batch_size, self.args.workers, rank=rank, drop_last=self.args.compile)
+        loader = build_dataloader(
+            dataset, batch_size, self.args.workers, rank=rank, drop_last=self.args.compile, device=self.device
+        )
         # Attach inference transforms
         if mode != "train":
             if is_parallel(self.model):
@@ -172,8 +173,8 @@ class ClassificationTrainer(BaseTrainer):
 
     def preprocess_batch(self, batch: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
         """Preprocess a batch of images and classes."""
-        batch["img"] = batch["img"].to(self.device, non_blocking=self.device.type == "cuda")
-        batch["cls"] = batch["cls"].to(self.device, non_blocking=self.device.type == "cuda")
+        batch["img"] = batch["img"].to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
+        batch["cls"] = batch["cls"].to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
         return batch
 
     def progress_string(self) -> str:
@@ -188,26 +189,9 @@ class ClassificationTrainer(BaseTrainer):
 
     def get_validator(self):
         """Return an instance of ClassificationValidator for validation."""
-        self.loss_names = ["loss"]
         return yolo.classify.ClassificationValidator(
             self.test_loader, self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
-
-    def label_loss_items(self, loss_items: torch.Tensor | None = None, prefix: str = "train"):
-        """Return a loss dict with labeled training loss items tensor.
-
-        Args:
-            loss_items (torch.Tensor, optional): Loss tensor items.
-            prefix (str, optional): Prefix to prepend to loss names.
-
-        Returns:
-            (dict | list): Dictionary of labeled loss items if loss_items is provided, otherwise list of keys.
-        """
-        keys = [f"{prefix}/{x}" for x in self.loss_names]
-        if loss_items is None:
-            return keys
-        loss_items = [round(float(loss_items), 5)]
-        return dict(zip(keys, loss_items))
 
     def plot_training_samples(self, batch: dict[str, torch.Tensor], ni: int):
         """Plot training samples with their annotations.

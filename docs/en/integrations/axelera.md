@@ -68,7 +68,7 @@ For turnkey solutions, Axelera partners with manufacturers to provide systems pr
 
 ## Supported Tasks
 
-The following tasks are supported across YOLOv8, YOLO11, and YOLO26 models.
+The following tasks are supported across YOLOv8, YOLO11, and YOLO26 models. Depth estimation is not supported: the depth head emits operators the Metis AIPU compiler cannot lower.
 
 | Task                                          | YOLOv8 | YOLO11 | YOLO26              |
 | :-------------------------------------------- | :----- | :----- | :------------------ |
@@ -78,6 +78,7 @@ The following tasks are supported across YOLOv8, YOLO11, and YOLO26 models.
 | [Semantic Segmentation](../tasks/semantic.md) | ❌     | ❌     | ✅                  |
 | [Oriented Bounding Boxes](../tasks/obb.md)    | ✅     | ✅     | ✅                  |
 | [Classification](../tasks/classify.md)        | ✅     | ✅     | ✅                  |
+| [Depth Estimation](../tasks/depth.md)         | ❌     | ❌     | ❌                  |
 
 !!! note
 
@@ -136,7 +137,7 @@ For detailed instructions, see our [Ultralytics Installation guide](../quickstar
 
     The kernel driver is installed separately from the Python SDK packages, so after upgrading the SDK (for example 1.6 to 1.7) you must install the matching driver version. An out-of-sync driver leaves the device unavailable: `axdevice` reports the required version and fails to open the device.
 
-    ```
+    ```text
     [libaxldev.c:285] Found kernel driver version 1.4.16, but at least version 1.4.18 is required. Please update the kernel driver
     ERROR: AXR_ERROR_CONNECTION_ERROR: Failed to open device metis-0:4:0
     ```
@@ -248,7 +249,7 @@ For all export options, see the [Export Mode documentation](../modes/export.md).
 
 ### Output Structure
 
-```
+```text
 yolo26n_axelera_model/
 ├── yolo26n.axm                  # Axelera model file
 ├── compiler_config_final.toml  # Compiler configuration used for the build

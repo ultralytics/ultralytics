@@ -143,7 +143,7 @@ def on_pretrain_routine_start(trainer):
             # cap name in the run id so wandb's "run-{id}-{plot}" artifact names stay under its 128-char limit
             id=latest_run.resolve().name.split("-", 2)[2]
             if resuming
-            else f"{name[:50]}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            else f"{name[:50]}_{datetime.now().astimezone().strftime('%Y%m%d_%H%M%S')}",
             resume="allow" if resuming else None,
             dir=str(trainer.save_dir),
         )

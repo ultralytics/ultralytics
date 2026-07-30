@@ -254,7 +254,12 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
     check_cmd = "edgetpu_compiler --version"
     help_url = "https://coral.ai/docs/edgetpu/compiler/"
     assert LINUX, f"export only supported on Linux. See {help_url}"
-    if subprocess.run(check_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True).returncode != 0:
+    if (
+        subprocess.run(
+            check_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, check=False
+        ).returncode
+        != 0
+    ):
         LOGGER.info(f"\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}")
         sudo = "sudo " if is_sudo_available() else ""
         for c in (
@@ -281,7 +286,7 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
         str(tflite_file),
     ]  # argv list avoids shell metacharacter issues in output_dir/tflite_file paths
     LOGGER.info(f"{prefix} running '{shlex.join(cmd)}'")
-    subprocess.run(cmd)
+    subprocess.run(cmd, check=True)
     return str(Path(output_dir) / f"{Path(tflite_file).stem}_edgetpu.tflite")
 
 

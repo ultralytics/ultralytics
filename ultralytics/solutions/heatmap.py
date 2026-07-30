@@ -86,11 +86,14 @@ class Heatmap(ObjectCounter):
                 object count), and 'total_tracks' (int, total number of tracked objects).
         """
         if not self.initialized:
-            self.heatmap = np.zeros_like(im0, dtype=np.float32)
+            self.heatmap = np.zeros(im0.shape[:2], dtype=np.float32)
             self.initialized = True  # Initialize heatmap only once
 
         self.extract_tracks(im0)  # Extract tracks
         self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
+
+        if self.region is not None:
+            self.annotator.draw_region(reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2)
 
         # Iterate over bounding boxes, track ids and classes index
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
@@ -98,7 +101,6 @@ class Heatmap(ObjectCounter):
             self.heatmap_effect(box)
 
             if self.region is not None:
-                self.annotator.draw_region(reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2)
                 self.store_tracking_history(track_id, box)  # Store track history
                 # Get previous position if available
                 prev_position = None

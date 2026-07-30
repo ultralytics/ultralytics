@@ -13,6 +13,10 @@ on:
         type: boolean
         description: Publish to PyPI
 
+concurrency:
+  group: ${{ github.workflow }}
+  queue: max
+
 jobs:
   check:
     if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher' && github.ref == 'refs/heads/main'
@@ -25,10 +29,10 @@ jobs:
       previous_tag: ${{ steps.check_pypi.outputs.previous_tag }}
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
-      - uses: astral-sh/setup-uv@v7
+      - uses: ultralytics/actions/setup-uv@main
       - run: uv pip install --system --no-cache ultralytics-actions
       - id: check_pypi
         shell: python
@@ -73,10 +77,10 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
-      - uses: astral-sh/setup-uv@v7
+      - uses: ultralytics/actions/setup-uv@main
       - run: uv pip install --system --no-cache build
       - name: Build ultralytics
         run: python -m build --outdir dist/
@@ -122,8 +126,20 @@ jobs:
           name: dist
           path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
+        id: publish
+        continue-on-error: true
         with:
           skip-existing: true # tolerate recovery re-runs after partial failures
+      - name: Clean partial attestations # leftover *.publish.attestation files make the retry fail pre-existence checks
+        if: steps.publish.outcome == 'failure'
+        run: |
+          rm -f dist/*.publish.attestation
+          sleep 30
+      - name: Retry publish # transient sigstore/Rekor or PyPI network failures
+        if: steps.publish.outcome == 'failure'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
 
   sbom:
     needs: [check, build, publish]
@@ -133,10 +149,10 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
-      - uses: astral-sh/setup-uv@v7
+      - uses: ultralytics/actions/setup-uv@main
       - run: |
           uv venv sbom-env
           uv pip install -e .
@@ -170,7 +186,7 @@ jobs:
           echo "title=$TITLE" >> "$GITHUB_OUTPUT"
       - name: Notify Success
         if: needs.publish.result == 'success' && needs.sbom.result == 'success' && github.event_name == 'push'
-        uses: slackapi/slack-github-action@v3.0.3
+        uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
@@ -178,7 +194,7 @@ jobs:
             text: "<!subteam^S082BPCRAJ3> *${{ github.workflow }}* ✅ `${{ github.repository }}` ${{ steps.release.outputs.title || needs.check.outputs.current_tag }}  <https://github.com/${{ github.repository }}/releases/tag/${{ needs.check.outputs.current_tag }}|*Release*>  ·  <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Run*>"
       - name: Notify Failure
         if: needs.publish.result != 'success' || needs.sbom.result != 'success'
-        uses: slackapi/slack-github-action@v3.0.3
+        uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}

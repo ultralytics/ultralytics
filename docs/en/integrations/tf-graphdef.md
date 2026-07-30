@@ -55,8 +55,15 @@ Here's how you can deploy with TF GraphDef efficiently across various platforms.
 
 TF GraphDef export supports six of the seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads. Pose models can be exported, but Ultralytics GraphDef inference is not currently supported for them.
 
-{% set unsupported = ["obb"] %}
-{% include "macros/supported-tasks.md" %}
+| Task                                          | Supported |
+| :-------------------------------------------- | :-------- |
+| [Object Detection](../tasks/detect.md)        | ✅        |
+| [Instance Segmentation](../tasks/segment.md)  | ✅        |
+| [Semantic Segmentation](../tasks/semantic.md) | ✅        |
+| [Pose Estimation](../tasks/pose.md)           | ✅        |
+| [OBB Detection](../tasks/obb.md)              | ❌        |
+| [Classification](../tasks/classify.md)        | ✅        |
+| [Depth Estimation](../tasks/depth.md)         | ✅        |
 
 ## Exporting YOLO26 Models to TF GraphDef
 

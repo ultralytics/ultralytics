@@ -1141,7 +1141,7 @@ class BaseTrainer:
         if use_muon:
             import re
 
-            # higher lr for certain parameters in MuSGD when finetuning
+            # higher lr (args.cls_lr_mult, default 3x) for certain parameters in MuSGD when finetuning
             # proto.semseg is the checkpoint parameter name for YOLO26 semantic auxiliary heads.
             pattern = re.compile(r"(?=.*23)(?=.*cv3)|proto\.semseg|SemanticSegment")
             g_ = []  # new param groups
@@ -1149,7 +1149,12 @@ class BaseTrainer:
                 p = x.pop("params")
                 p1 = [v for k, v in p.items() if pattern.search(k)]
                 p2 = [v for k, v in p.items() if not pattern.search(k)]
-                g_.extend([{"params": p1, **x, "lr": lr * 3}, {"params": p2, **x}])
+                g_.extend(
+                    [
+                        {"params": p1, **x, "lr": lr * self.args.cls_lr_mult},
+                        {"params": p2, **x},
+                    ]
+                )
             g = g_
         optimizer = getattr(optim, name, partial(MuSGD, muon=muon, sgd=sgd))(params=g)
 

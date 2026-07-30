@@ -45,6 +45,12 @@ TF SavedModel provides a range of options to deploy your machine learning models
 
 - **TensorFlow Runtime:** TensorFlow Runtime (`tfrt`) is a high-performance runtime for executing [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) graphs. It provides lower-level APIs for loading and running TF SavedModels in C++ environments. TensorFlow Runtime offers better performance compared to the standard TensorFlow runtime. It is suitable for deployment scenarios that require low-latency inference and tight integration with existing C++ codebases.
 
+## Supported Tasks
+
+TF SavedModel export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+
+{% include "macros/supported-tasks.md" %}
+
 ## Exporting YOLO26 Models to TF SavedModel
 
 By exporting YOLO26 models to the TF SavedModel format, you enhance their adaptability and ease of deployment across various platforms.

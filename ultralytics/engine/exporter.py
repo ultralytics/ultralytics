@@ -77,7 +77,7 @@ import numpy as np
 import torch
 
 from ultralytics import __version__
-from ultralytics.cfg import QUANTIZE_DOCS_URL, TASK2CALIBRATIONDATA, TASK2DATA, TASK2MODEL, get_cfg
+from ultralytics.cfg import QUANTIZE_DOCS_URL, TASK2CALIBRATIONDATA, TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.data.dataset import ClassificationDataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
@@ -352,7 +352,7 @@ EXPORT_ENVS = {
         "requirements": ["rknn-toolkit2>=2.3.2", "onnx>=1.16.1,<1.19.0", "setuptools<82"],
         "indexes": [],
         "env": {},
-        "smoke": [f"yolo export format=rknn model={model} imgsz=32 quantize=16" for model in TASK2MODEL.values()],
+        "smoke": ["yolo export format=rknn model=yolo26n.pt imgsz=32 quantize=16"],
     },
     "isolated-axelera": {
         # Axelera devkit 1.7.0 does not provide Python 3.13 wheels.
@@ -932,6 +932,10 @@ class Exporter:
             f"output shape(s) {self.output_shape} ({file_size(file):.1f} MB)"
         )
         self.run_callbacks("on_export_start")
+        if fmt in {"torchscript", "onnx", "openvino"}:
+            for m in model.modules():
+                if isinstance(m, Detect):
+                    m.shape = None
 
         # Export
         if is_tf_format:

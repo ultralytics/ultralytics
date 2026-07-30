@@ -1334,7 +1334,7 @@ def feature_visualization(x, module_type: str, stage: int, n: int = 32, save_dir
             ax = ax.ravel()
             plt.subplots_adjust(wspace=0.05, hspace=0.05)
             for i in range(n):
-                ax[i].imshow(blocks[i].squeeze())  # cmap='gray'
+                ax[i].imshow(blocks[i].squeeze().numpy())  # cmap='gray'
                 ax[i].axis("off")
 
             LOGGER.info(f"Saving {f}... ({n}/{channels})")

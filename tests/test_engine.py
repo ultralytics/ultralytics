@@ -415,3 +415,25 @@ def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrain
 
     assert captured["cfg"] == checkpoint_model.yaml, "Checkpoint config was not used"
     assert captured["weights"] is (checkpoint_model if uses_weights else None), "Unexpected weights loaded"
+
+
+@pytest.mark.parametrize("end2end", [False, True])
+def test_pose_model_init_criterion_selects_loss_by_head(end2end):
+    """Pose (non-Pose26 head) must use v8PoseLoss and Pose26 must use PoseLoss26, regardless of end2end."""
+    from ultralytics.nn.tasks import PoseModel, yaml_model_load
+    from ultralytics.utils.loss import PoseLoss26, v8PoseLoss
+
+    def build(yaml_name):
+        cfg = yaml_model_load(yaml_name)
+        cfg["end2end"] = end2end
+        model = PoseModel(cfg, nc=2, data_kpt_shape=[17, 3], verbose=False)
+        model.args = get_cfg()
+        return model
+
+    pose_criterion = build("yolov8n-pose.yaml").init_criterion()
+    pose26_criterion = build("yolo26n-pose.yaml").init_criterion()
+    pose_loss = pose_criterion.one2many if end2end else pose_criterion
+    pose26_loss = pose26_criterion.one2many if end2end else pose26_criterion
+
+    assert type(pose_loss) is v8PoseLoss, f"Pose head with end2end={end2end} must use v8PoseLoss"
+    assert type(pose26_loss) is PoseLoss26, f"Pose26 head with end2end={end2end} must use PoseLoss26"

@@ -307,6 +307,7 @@ class DINOv3Teacher(TeacherModel):
     # DINOv3 preprocessing uses ImageNet stats (Meta DINOv3 release, dinov3 reference processor).
     IMAGE_MEAN = (0.485, 0.456, 0.406)
     IMAGE_STD = (0.229, 0.224, 0.225)
+    FAMILY = "DINOv3"
 
     CONFIGS = {
         "vits16": {
@@ -350,6 +351,26 @@ class DINOv3Teacher(TeacherModel):
             "imgsz_multiple": 16,
             "token_types": ("cls", "patches"),
         },
+        "convnextt": {
+            "hf_model": "facebook/dinov3-convnext-tiny-pretrain-lvd1689m",
+            "embed_dim": 768,
+            "num_patches": 49,
+            "imgsz": 224,
+            "n_registers": 0,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 32,
+            "token_types": ("cls", "patches"),
+        },
+        "convnexts": {
+            "hf_model": "facebook/dinov3-convnext-small-pretrain-lvd1689m",
+            "embed_dim": 768,
+            "num_patches": 49,
+            "imgsz": 224,
+            "n_registers": 0,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 32,
+            "token_types": ("cls", "patches"),
+        },
         "convnextb": {
             "hf_model": "facebook/dinov3-convnext-base-pretrain-lvd1689m",
             "embed_dim": 1024,
@@ -387,12 +408,13 @@ class DINOv3Teacher(TeacherModel):
         """Initialize DINOv3 teacher from HuggingFace.
 
         Args:
-            variant (str): Model variant ('vitb16', 'vitl16', 'convnextb', 'convnextl', or 'vit7b').
+            variant (str): Model variant such as 'vitb16', 'vitl16', 'convnextt', 'convnexts', 'convnextb', 'convnextl',
+                or 'vit7b'.
             device (torch.device, optional): Device to load the model on.
         """
         super().__init__()
         if variant not in self.CONFIGS:
-            raise ValueError(f"Unknown DINOv3 variant '{variant}'. Supported: {list(self.CONFIGS)}")
+            raise ValueError(f"Unknown {self.FAMILY} variant '{variant}'. Supported: {list(self.CONFIGS)}")
         from transformers import AutoModel
 
         cfg = self.CONFIGS[variant]
@@ -420,6 +442,58 @@ class DINOv3Teacher(TeacherModel):
         cls = hidden[:, 0] if "cls" in self.token_types else None
         patches = hidden[:, 1 + self._n_registers :]  # skip CLS + registers
         return TeacherOutput(cls=cls, patches=patches)
+
+
+class DINOv2Teacher(DINOv3Teacher):
+    """DINOv2 distilled teacher via HuggingFace transformers (https://arxiv.org/abs/2304.07193).
+
+    Attributes:
+        model: The DINOv2 backbone from HuggingFace transformers.
+    """
+
+    FAMILY = "DINOv2"
+    CONFIGS = {
+        "vits14": {
+            "hf_model": "facebook/dinov2-small",
+            "embed_dim": 384,
+            "num_patches": 256,
+            "imgsz": 224,
+            "n_registers": 0,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 14,
+            "token_types": ("cls", "patches"),
+        },
+        "vits14_reg": {
+            "hf_model": "facebook/dinov2-small-with-registers",
+            "embed_dim": 384,
+            "num_patches": 256,
+            "imgsz": 224,
+            "n_registers": 4,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 14,
+            "token_types": ("cls", "patches"),
+        },
+        "vitb14": {
+            "hf_model": "facebook/dinov2-base",
+            "embed_dim": 768,
+            "num_patches": 256,
+            "imgsz": 224,
+            "n_registers": 0,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 14,
+            "token_types": ("cls", "patches"),
+        },
+        "vitb14_reg": {
+            "hf_model": "facebook/dinov2-base-with-registers",
+            "embed_dim": 768,
+            "num_patches": 256,
+            "imgsz": 224,
+            "n_registers": 4,
+            "dynamic_imgsz": True,
+            "imgsz_multiple": 14,
+            "token_types": ("cls", "patches"),
+        },
+    }
 
 
 class TIPSTeacher(TeacherModel):
@@ -922,6 +996,7 @@ class TorchScriptTeacher(TeacherModel):
 TEACHER_REGISTRY = {}
 for _prefix, _cls in [
     ("eupe", EUPETeacher),
+    ("dinov2", DINOv2Teacher),
     ("dinov3", DINOv3Teacher),
     ("tips", TIPSTeacher),
     ("dune", DUNETeacher),

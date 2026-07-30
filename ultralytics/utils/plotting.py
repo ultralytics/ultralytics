@@ -106,8 +106,10 @@ class Colors:
     Examples:
         >>> from ultralytics.utils.plotting import Colors
         >>> colors = Colors()
-        >>> colors(5, True)  # Returns BGR format: (221, 111, 255)
-        >>> colors(5, False)  # Returns RGB format: (255, 111, 221)
+        >>> colors(5, True)  # BGR format
+        (221, 111, 255)
+        >>> colors(5, False)  # RGB format
+        (255, 111, 221)
     """
 
     def __init__(self):

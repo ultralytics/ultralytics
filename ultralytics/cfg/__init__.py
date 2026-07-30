@@ -608,6 +608,7 @@ def check_dict_alignment(
         ...     check_dict_alignment(base_cfg, custom_cfg)
         ... except SyntaxError:
         ...     print("Mismatched keys found")
+        Mismatched keys found
 
     Notes:
         - Suggests corrections for mismatched keys based on similarity to valid keys.

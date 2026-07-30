@@ -638,6 +638,10 @@ class Hiera(nn.Module):
         >>> output_features = model(input_tensor)
         >>> for feat in output_features:
         ...     print(feat.shape)
+        torch.Size([1, 96, 56, 56])
+        torch.Size([1, 192, 28, 28])
+        torch.Size([1, 384, 14, 14])
+        torch.Size([1, 768, 7, 7])
     """
 
     def __init__(
@@ -777,6 +781,10 @@ class Hiera(nn.Module):
             >>> output_features = model(input_tensor)
             >>> for feat in output_features:
             ...     print(feat.shape)
+            torch.Size([1, 96, 56, 56])
+            torch.Size([1, 192, 28, 28])
+            torch.Size([1, 384, 14, 14])
+            torch.Size([1, 768, 7, 7])
         """
         x = self.patch_embed(x)
         # x: (B, H, W, C)

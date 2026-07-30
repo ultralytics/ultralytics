@@ -1284,7 +1284,8 @@ class Keypoints(BaseTensor):
         Examples:
             >>> keypoints = Keypoints(torch.rand(1, 17, 3), orig_shape=(640, 640))  # 1 detection, 17 keypoints
             >>> conf = keypoints.conf
-            >>> print(conf.shape)  # torch.Size([1, 17])
+            >>> print(conf.shape)
+            torch.Size([1, 17])
         """
         return self.data[..., 2] if self.has_visible else None
 

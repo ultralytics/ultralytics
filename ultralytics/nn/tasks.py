@@ -138,6 +138,7 @@ class BaseModel(torch.nn.Module):
         Create a BaseModel instance
         >>> model = BaseModel()
         >>> model.info()  # Display model information
+        (1, 0, 0, 0.0)
     """
 
     def forward(self, x, *args, **kwargs):

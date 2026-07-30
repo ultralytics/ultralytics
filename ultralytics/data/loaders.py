@@ -593,6 +593,7 @@ class LoadTensor:
         >>> loader = LoadTensor(tensor)
         >>> paths, images, info = next(iter(loader))
         >>> print(f"Processed {len(images)} images")
+        Processed 1 images
     """
 
     def __init__(self, im0: torch.Tensor) -> None:

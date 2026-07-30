@@ -238,15 +238,19 @@ def check_version(
     Examples:
         Check if current version is exactly 22.04
         >>> check_version(current="22.04", required="==22.04")
+        True
 
         Check if current version is greater than or equal to 22.04
         >>> check_version(current="22.10", required="22.04")  # assumes '>=' inequality if none passed
+        True
 
         Check if current version is less than or equal to 22.04
         >>> check_version(current="22.04", required="<=22.04")
+        True
 
         Check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
         >>> check_version(current="21.10", required=">20.04,<22.04")
+        True
     """
     if not current:  # if current is '' or None
         LOGGER.warning(f"invalid check_version({current}, {required}) requested, please check values.")

@@ -35,6 +35,7 @@ class TwoWayTransformer(nn.Module):
         >>> point_embedding = torch.randn(1, 100, 256)
         >>> output_queries, output_image = transformer(image_embedding, image_pe, point_embedding)
         >>> print(output_queries.shape, output_image.shape)
+        torch.Size([1, 100, 256]) torch.Size([1, 1024, 256])
     """
 
     def __init__(

@@ -43,6 +43,22 @@ TFLite Edge TPU offers various deployment options for machine learning models, i
 
 - **Hybrid Deployment**: A hybrid approach combines on-device and cloud deployment and offers a versatile and scalable solution for deploying machine learning models. Advantages include on-device processing for quick responses and [cloud computing](https://www.ultralytics.com/glossary/cloud-computing) for more complex computations.
 
+## Supported Tasks
+
+Edge TPU export supports six of the seven Ultralytics tasks. Semantic segmentation is available only with YOLO26, the only family that ships that head. Depth estimation is not supported because its INT8 model emits an `EXP` v2 operator that the Edge TPU compiler cannot parse.
+
+| Task                                          | Supported |
+| :-------------------------------------------- | :-------- |
+| [Object Detection](../tasks/detect.md)        | ✅        |
+| [Instance Segmentation](../tasks/segment.md)  | ✅        |
+| [Semantic Segmentation](../tasks/semantic.md) | ✅        |
+| [Pose Estimation](../tasks/pose.md)           | ✅        |
+| [OBB Detection](../tasks/obb.md)              | ✅        |
+| [Classification](../tasks/classify.md)        | ✅        |
+| [Depth Estimation](../tasks/depth.md)         | ❌        |
+
+The Edge TPU compiler maps the operations it supports onto the accelerator and leaves the rest on the CPU, so task support does not mean every operation runs on the TPU.
+
 ## Exporting YOLO26 Models to TFLite Edge TPU
 
 You can expand model compatibility and deployment flexibility by converting YOLO26 models to TensorFlow Edge TPU.

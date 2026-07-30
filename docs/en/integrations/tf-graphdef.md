@@ -51,9 +51,23 @@ Here's how you can deploy with TF GraphDef efficiently across various platforms.
 
 - **Specialized Hardware:** TF GraphDef's platform-agnostic nature allows it to target custom hardware, such as accelerators and TPUs (Tensor Processing Units). These devices can provide performance advantages for computationally intensive models.
 
+## Supported Tasks
+
+TF GraphDef export supports six of the seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads. Pose models can be exported, but Ultralytics GraphDef inference is not currently supported for them.
+
+| Task                                          | Supported |
+| :-------------------------------------------- | :-------- |
+| [Object Detection](../tasks/detect.md)        | ✅        |
+| [Instance Segmentation](../tasks/segment.md)  | ✅        |
+| [Semantic Segmentation](../tasks/semantic.md) | ✅        |
+| [Pose Estimation](../tasks/pose.md)           | ✅        |
+| [OBB Detection](../tasks/obb.md)              | ❌        |
+| [Classification](../tasks/classify.md)        | ✅        |
+| [Depth Estimation](../tasks/depth.md)         | ✅        |
+
 ## Exporting YOLO26 Models to TF GraphDef
 
-You can convert your YOLO26 object detection model to the TF GraphDef format, which is compatible with various systems, to improve its performance across platforms.
+You can convert your YOLO26 model to the TF GraphDef format, which is compatible with various systems, to improve its performance across platforms.
 
 ### Installation
 
@@ -74,7 +88,7 @@ For detailed instructions and best practices related to the installation process
 
 All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
-The TF GraphDef format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy.
+The TF GraphDef format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes, except that pose models currently support export only. Export your model, then load the exported model to run inference or validate its accuracy.
 
 !!! example "Export"
 

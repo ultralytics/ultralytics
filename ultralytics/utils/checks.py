@@ -450,7 +450,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         >>> from ultralytics.utils.checks import check_requirements
 
         Check a requirements.txt file
-        >>> met = check_requirements("path/to/requirements.txt")
+        >>> met = check_requirements(Path("path/to/requirements.txt"))
 
         Check a single package
         >>> met = check_requirements("ultralytics>=8.3.200", cmds="--index-url https://download.pytorch.org/whl/cpu")

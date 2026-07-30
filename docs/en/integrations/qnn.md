@@ -120,21 +120,41 @@ Export an Ultralytics YOLO model to QNN format for deployment on Snapdragon hard
 
 ### Supported HTP Targets
 
-Pass the target architecture or SoC via `name` (e.g. `name="73"` or `name="iq-8275"`). Valid values:
+Pass the target architecture or SoC via `name` (e.g. `name="73"` or `name="iq-8275"`). Support is determined by
+the HTP target, so the Snapdragon rows below are representative platforms rather than an exhaustive list of every SoC.
+Dragonwing devices are listed explicitly.
 
-| `name`                 | Hexagon HTP | Snapdragon platform                   |
-| :--------------------- | :---------- | :------------------------------------ |
-| `68`                   | v68         | Snapdragon 888                        |
-| `69`                   | v69         | Snapdragon 8 Gen 1 / 8+ Gen 1         |
-| `73`                   | v73         | Snapdragon 8 Gen 2, X Elite (default) |
-| `75`                   | v75         | Snapdragon 8 Gen 3                    |
-| `79`                   | v79         | Snapdragon 8 Elite                    |
-| `81`                   | v81         | Snapdragon 8 Elite Gen 5              |
-| `iq-8275` or `qcs8275` | v75         | Dragonwing IQ-8275 (QNN SoC model 82) |
+| Status         | `name`                 | Hexagon HTP | Example device or platform                      |
+| :------------- | :--------------------- | :---------- | :---------------------------------------------- |
+| ✅ Supported   | `68`                   | v68         | Snapdragon 888                                  |
+| ✅ Supported   | `69`                   | v69         | Snapdragon 8 Gen 1 / 8+ Gen 1                   |
+| ✅ Supported   | `73`                   | v73         | Snapdragon 8 Gen 2, X Elite (default)           |
+| ✅ Supported   | `75`                   | v75         | Snapdragon 8 Gen 3                              |
+| ✅ Supported   | `79`                   | v79         | Snapdragon 8 Elite                              |
+| ✅ Supported   | `81`                   | v81         | Snapdragon 8 Elite Gen 5                        |
+| ✅ Supported   | `iq-8275` or `qcs8275` | v75         | Dragonwing IQ-8275 / QCS8275 (QNN SoC model 82) |
+| ❌ Unsupported | —                      | v66         | Dragonwing IQ-615 / QCS615                      |
 
-!!! note "Dragonwing IQ-615"
+Dragonwing IQ-615 cannot use Ultralytics QNN context-binary export because ONNX Runtime does not expose its v66 DSP as
+an offline HTP target. A standard ONNX export can still be integrated separately with a CPU or GPU execution provider
+supported by the board BSP.
 
-    Dragonwing IQ-615 uses a Hexagon v66 DSP, which is not an offline HTP target exposed by the ONNX Runtime QNN Execution Provider. Ultralytics QNN context-binary export therefore does not support IQ-615. A standard ONNX export can still be integrated separately with a CPU or GPU execution provider supported by the board BSP.
+!!! example "Export for Dragonwing IQ-8275"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("best.pt")
+        model.export(format="qnn", name="iq-8275", imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo export model=best.pt format=qnn name=iq-8275 imgsz=640
+        ```
 
 !!! note "Platform support"
 
@@ -169,15 +189,15 @@ The QNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
         # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
-        # Export to Qualcomm QNN format (INT8, enforced automatically) for Dragonwing IQ-8275
-        model.export(format="qnn", name="iq-8275", imgsz=640)  # use imgsz=224 for classification
+        # Export to Qualcomm QNN format (INT8, enforced automatically) for the default v73 HTP target
+        model.export(format="qnn", name="73", imgsz=640)  # use imgsz=224 for classification
         ```
 
     === "CLI"
 
         ```bash
-        # Export a YOLO26n PyTorch model for Dragonwing IQ-8275
-        yolo export model=yolo26n.pt format=qnn name=iq-8275 imgsz=640 # use imgsz=224 for classification
+        # Export a YOLO26n PyTorch model for the default v73 HTP target
+        yolo export model=yolo26n.pt format=qnn name=73 imgsz=640 # use imgsz=224 for classification
         ```
 
 !!! example "Predict"

@@ -924,7 +924,7 @@ def smart_value(v: str) -> Any:
         3.14
         >>> smart_value("True")
         True
-        >>> smart_value("None")
+        >>> print(smart_value("None"))
         None
         >>> smart_value("some_string")
         'some_string'
@@ -1136,9 +1136,6 @@ def copy_default_cfg() -> None:
 
     Examples:
         >>> copy_default_cfg()
-        # Output: default.yaml copied to /path/to/current/directory/default_copy.yaml
-        # Example YOLO command with this new custom cfg:
-        #   yolo cfg='/path/to/current/directory/default_copy.yaml' imgsz=320 batch=8
 
     Notes:
         - The new configuration file is created in the current working directory.

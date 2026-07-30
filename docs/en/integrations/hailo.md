@@ -45,20 +45,6 @@ The exporter performs these stages automatically:
 
 YOLOv8 and YOLO11 detection models use HailoRT YOLO NMS in the compiled pipeline. YOLO26 detection models use their NMS-free one-to-one outputs, so the exporter selects a different output and quantization path automatically. YOLOv8/YOLO11 segmentation, pose, and OBB compile the raw head tensors, which Ultralytics decodes at inference, and YOLOv8/YOLO11/YOLO26 classification runs softmax on chip so the HEF returns class probabilities directly. For YOLO26 semantic segmentation the exporter follows the accelerator: Hailo-8/8L (DFC v3.x) return classifier logits for host upsampling and reduction, while Hailo-10/15 (DFC v5.x) compile multi-class ArgMax heads on chip and return a compact class map. Single-class heads use the host-logit path on every target because they require a threshold instead of ArgMax. YOLO26 depth models compile the dense logit conv in `a16` and rebuild the metric depth map on the host (the clamp/exp and learned log-affine calibration that follow the head), so the quantizer keeps its widest range on the raw logit. Users do not need to find ONNX end nodes, write a Hailo model script (`.alls`), or create an NMS JSON manually.
 
-## Supported Tasks
-
-Hailo export supports all seven Ultralytics tasks, with model-family limits: instance segmentation, pose estimation, and OBB detection are YOLOv8/YOLO11 only (YOLO26-seg, YOLO26-pose, and YOLO26-OBB are rejected), while semantic segmentation and depth estimation are YOLO26-only. See [Supported Models and Hardware](#supported-models-and-hardware) for per-family and per-accelerator detail.
-
-| Task                                          | Supported |
-| :-------------------------------------------- | :-------- |
-| [Object Detection](../tasks/detect.md)        | ✅        |
-| [Instance Segmentation](../tasks/segment.md)  | ✅        |
-| [Semantic Segmentation](../tasks/semantic.md) | ✅        |
-| [Pose Estimation](../tasks/pose.md)           | ✅        |
-| [OBB Detection](../tasks/obb.md)              | ✅        |
-| [Classification](../tasks/classify.md)        | ✅        |
-| [Depth Estimation](../tasks/depth.md)         | ✅        |
-
 ## Installation
 
 Install Ultralytics and download the DFC wheel for your target hardware from the Hailo Developer Zone (free registration required):
@@ -114,9 +100,19 @@ model.export(format="hailo", name="hailo8l", imgsz=640)
 
 ## Supported Models and Hardware
 
-The Hailo ecosystem covers a broad range of computer vision workloads, but the Ultralytics `format="hailo"` exporter currently validates standard YOLO detection, segmentation, pose, OBB, classification, semantic segmentation, and depth estimation heads. Hardware validation is listed separately below.
+The Hailo ecosystem covers a broad range of computer vision workloads, but the Ultralytics `format="hailo"` exporter currently validates standard YOLO detection, segmentation, pose, OBB, classification, semantic segmentation, and depth estimation heads. The task table describes the available exporter paths; hardware validation is listed separately below.
 
-Specialized detection families such as YOLOv10, YOLO-World, YOLOE, and RT-DETR are unsupported. Ultralytics rejects these model families before compilation instead of producing an unvalidated HEF.
+| Ultralytics task          | Direct Hailo export | Supported model families | Notes                                                                                        |
+| :------------------------ | :-----------------: | :----------------------- | :------------------------------------------------------------------------------------------- |
+| Object detection          |         ✅          | YOLOv8, YOLO11, YOLO26   | Standard Ultralytics `Detect` heads, including custom models                                 |
+| Instance segmentation     |         ✅          | YOLOv8, YOLO11           | Raw head tensors decoded by Ultralytics at inference; YOLO26-seg is not currently supported  |
+| Image classification      |         ✅          | YOLOv8, YOLO11, YOLO26   | Softmax runs on chip; the HEF returns class probabilities directly                           |
+| Pose estimation           |         ✅          | YOLOv8, YOLO11           | Raw head tensors decoded by Ultralytics at inference; YOLO26-pose is not currently supported |
+| Oriented object detection |         ✅          | YOLOv8, YOLO11           | Raw head tensors decoded by Ultralytics at inference; YOLO26-OBB is not currently supported  |
+| Semantic segmentation     |         ✅          | YOLO26                   | Hailo-8/8L and single-class heads return logits; Hailo-10/15 bakes multi-class maps          |
+| Depth estimation          |         ✅          | YOLO26                   | Dense logit compiled in `a16`; Ultralytics rebuilds the metric depth map at inference        |
+
+Specialized detection families such as YOLOv10, YOLO-World, YOLOE, and RT-DETR are also ❌ unsupported. Ultralytics rejects these tasks and model families before compilation instead of producing an unvalidated HEF.
 
 | Model family                         | Hailo-8 / Hailo-8L | Hailo-10 / Hailo-15 | Output                                                        |
 | :----------------------------------- | :----------------: | :-----------------: | :------------------------------------------------------------ |
@@ -220,7 +216,7 @@ yolo11n_hailo_model/
 
 - `*.hef` is the compiled model loaded by HailoRT.
 - `metadata.yaml` preserves model names, task, input size, stride, and Hailo target information.
-- `nms_config.json` records the generated HailoRT NMS configuration for YOLOv8 and YOLO11 detection models. YOLO26 detection and all non-detection tasks (segmentation, pose, OBB, classification, semantic, depth) do not use this file.
+- `nms_config.json` records the generated HailoRT NMS configuration for YOLOv8 and YOLO11 detection models. YOLO26 detection and all non-detection tasks (segmentation, pose, OBB, classification, semantic) do not use this file.
 
 The intermediate ONNX graph is removed after compilation.
 

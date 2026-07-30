@@ -502,6 +502,20 @@ def model_info_for_loggers(trainer):
     return results
 
 
+def _attention_ops(m, x, y):
+    """Count the query-key and attention-value matmuls of an attention block for THOP.
+
+    Both run functionally on reshaped tensors, so no child-module hook observes them and the block would otherwise be
+    charged only for its qkv/proj/pe convolutions. Each output element of the two products costs one multiply-add over
+    the contracted axis, giving `tokens**2 * (key_dim + head_dim)` per head.
+    """
+    b, _, h, w = x[0].shape
+    area = getattr(m, "area", 1)  # area attention attends within that many independent groups, AAttn only
+    tokens = h * w // area
+    key_dim = getattr(m, "key_dim", m.head_dim)  # Attention narrows q and k by attn_ratio, AAttn does not
+    m.total_ops += b * area * m.num_heads * tokens * tokens * (key_dim + m.head_dim)
+
+
 def get_flops(model, imgsz=640):
     """Calculate FLOPs (floating point operations) for a model in GFLOPs.
 
@@ -524,13 +538,18 @@ def get_flops(model, imgsz=640):
         return 0.0  # if not installed return 0.0 GFLOPs
 
     try:
+        from ultralytics.nn.modules.block import AAttn, Attention  # imported here: block.py imports this module
+
         model = unwrap_model(model)
         p = next(model.parameters())
         if not isinstance(imgsz, list):
             imgsz = [imgsz, imgsz]  # expand if int/float
         stride = max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32  # max stride
         im = torch.empty((1, p.shape[1], *imgsz), device=p.device, dtype=p.dtype)  # input image in BCHW format
-        return thop.profile(model, inputs=[im], stride=stride, verbose=False)[0] / 1e9 * 2  # imgsz GFLOPs
+        # attention costs scale with the square of the image area, so THOP measures a model carrying one directly
+        # rather than extrapolating it from a stride-sized sample; models without attention keep the fast path.
+        custom_ops = {Attention: _attention_ops, AAttn: _attention_ops}
+        return thop.profile(model, inputs=[im], stride=stride, custom_ops=custom_ops, verbose=False)[0] / 1e9 * 2
     except Exception:
         return 0.0
 

@@ -832,7 +832,7 @@ class Exporter:
             p.requires_grad = False
         model.eval()
         model.float()
-        model = model.fuse()
+        model = model.fuse(imgsz=self.imgsz)
 
         if fmt == "imx":
             from ultralytics.utils.export.imx import FXModel
@@ -932,6 +932,10 @@ class Exporter:
             f"output shape(s) {self.output_shape} ({file_size(file):.1f} MB)"
         )
         self.run_callbacks("on_export_start")
+        if fmt in {"torchscript", "onnx", "openvino"}:
+            for m in model.modules():
+                if isinstance(m, Detect):
+                    m.shape = None
 
         # Export
         if is_tf_format:
@@ -980,6 +984,8 @@ class Exporter:
 
             data = check_cls_dataset(self.args.data, split=self.args.split)
             dataset = ClassificationDataset(data[self.args.split or "val"], args=cfg, augment=False)
+            if self.args.fraction < 1.0:
+                dataset.samples = dataset.samples[: round(len(dataset.samples) * self.args.fraction)]
             # INT8 backends divide images by 255, so emit uint8 [0, 255] center-cropped like classify inference
             dataset.torch_transforms = T.Compose([T.Resize(cfg.imgsz), T.CenterCrop(cfg.imgsz), T.PILToTensor()])
         else:

@@ -187,6 +187,16 @@ def test_int8_calibration_validates_split():
         exporter.get_int8_calibration_dataloader()
 
 
+def test_int8_calibration_classify_fraction():
+    """Check classification INT8 calibration respects fraction (#25469)."""
+    exporter = object.__new__(Exporter)
+    exporter.model = SimpleNamespace(task="classify")
+    exporter.args = get_cfg(overrides={"data": "imagenet10", "fraction": 0.5, "batch": 1})
+    exporter.imgsz = [32]
+    dataloader = exporter.get_int8_calibration_dataloader()
+    assert len(dataloader.dataset) == 6  # imagenet10 val has 12 images, fraction=0.5 keeps 6
+
+
 def test_export_rknn_batch_expansion(monkeypatch, tmp_path):
     """Check RKNN calibrates batch 1 before Toolkit expands to the requested batch."""
     calls = {}

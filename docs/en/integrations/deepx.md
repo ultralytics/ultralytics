@@ -351,7 +351,7 @@ The export creates a directory (e.g., `yolo26n_deepx_model/`) containing:
 
 ### Can I deploy custom-trained models on DEEPX hardware?
 
-Yes. Any model trained using [Ultralytics Train Mode](../modes/train.md) and exported with `format="deepx"` can be deployed on DEEPX NPU hardware, provided it uses supported layer operations. Export supports all seven Ultralytics tasks: detection, instance segmentation, semantic segmentation, pose estimation, oriented bounding box (OBB), classification, and depth estimation.
+Yes. Any model trained using [Ultralytics Train Mode](../modes/train.md) and exported with `format="deepx"` can be deployed on DEEPX NPU hardware, provided it uses supported layer operations. Export supports all seven Ultralytics tasks: detection, instance segmentation, semantic segmentation, depth estimation, classification, pose estimation, and oriented bounding box (OBB).
 
 ### How many calibration images should I use for DEEPX export?
 

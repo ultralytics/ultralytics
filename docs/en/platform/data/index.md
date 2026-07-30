@@ -62,9 +62,9 @@ Ultralytics Platform datasets support 6 of the 7 YOLO task types — [depth](../
 | **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes                            | Rectangle tool    |
 | **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks                          | Polygon tool      |
 | **[Semantic](../../datasets/semantic/index.md)** | Semantic segmentation with per-class pixel regions              | Polygon tool      |
+| **[Classify](../../datasets/classify/index.md)** | Image-level classification                                      | Class selector    |
 | **[Pose](../../datasets/pose/index.md)**         | Keypoint estimation with built-in and custom skeleton templates | Keypoint tool     |
 | **[OBB](../../datasets/obb/index.md)**           | Oriented bounding boxes for rotated objects                     | Oriented box tool |
-| **[Classify](../../datasets/classify/index.md)** | Image-level classification                                      | Class selector    |
 
 !!! info "Task Type Selection"
 

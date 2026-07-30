@@ -16,6 +16,7 @@ import torch.nn.functional as F
 from torch import nn
 
 from ultralytics.nn.modules.head import Detect, RTDETRDecoder
+from ultralytics.utils import LOGGER
 from ultralytics.utils.torch_utils import copy_attr
 
 from .tasks import load_checkpoint
@@ -33,6 +34,17 @@ class FeatureHook:
         """Write the layer output into the shared dict keyed by layer index."""
         self.feat_dict[self.idx] = output
 
+    def __getstate__(self):
+        """Return state with the captured features dropped, for pickling and deepcopy.
+
+        `DistillationModel.__getstate__` rebinds its own cache attributes to fresh dicts, but hook instances stored in
+        the submodules' `_forward_hooks` still reference the original populated dicts. Those hold graph-attached (and,
+        after validation, inference-mode) tensors which `deepcopy` refuses to copy, so `ModelEMA(model)` would crash
+        mid-training (e.g. during NaN recovery). `DistillationModel.__setstate__` re-registers hooks bound to the new
+        caches, so emptying the reference here is safe and also keeps captured features out of checkpoints.
+        """
+        return {**self.__dict__, "feat_dict": {}}
+
 
 class InputHook:
     """Picklable forward pre-hook that stores a module's input tensor into a shared dict.
@@ -49,6 +61,10 @@ class InputHook:
     def __call__(self, module, args):
         """Write the first positional input into the shared dict keyed by the configured key."""
         self.feat_dict[self.key] = args[0]
+
+    def __getstate__(self):
+        """Return state with the captured tensor dropped, for pickling and deepcopy (see `FeatureHook.__getstate__`)."""
+        return {**self.__dict__, "feat_dict": {}}
 
 
 class DistillationModel(nn.Module):
@@ -92,6 +108,7 @@ class DistillationModel(nn.Module):
             )
         self._parse_distill_config(student_model.args)
         self._init_feature_dicts()
+        self._clear_distill_hooks()  # teacher/student may be reused from a checkpoint wrapper: never stack hooks
         self._register_neck_hooks()
         self._register_saliency_hooks()
         self._register_decoder_hooks()
@@ -130,6 +147,25 @@ class DistillationModel(nn.Module):
             (nn.Module): Student model, ready to be pickled as a standalone checkpoint.
         """
         return self.student_model
+
+    def load_kd_state(self, other: "DistillationModel") -> None:
+        """Copy the KD-only trained weights (neck / query projectors) from a checkpoint wrapper into this one.
+
+        `__init__` always builds freshly initialized projectors, so resuming a KD run would otherwise restart them
+        from random weights while the student continues from its trained state, spiking the distillation loss. Called
+        by the trainer when it rebuilds the wrapper from a resumed checkpoint.
+
+        Args:
+            other (DistillationModel): Wrapper unpickled from the checkpoint to copy projector weights from.
+        """
+        for name in ("projector", "query_projector"):
+            src, dst = getattr(other, name, None), getattr(self, name, None)
+            if src is None or dst is None:
+                continue
+            try:
+                dst.load_state_dict(src.state_dict())
+            except RuntimeError as e:  # KD config changed between runs, keep the fresh projector
+                LOGGER.warning(f"Could not restore distillation '{name}' from checkpoint, using new weights: {e}")
 
     @staticmethod
     def get_distill_layers(model):
@@ -381,6 +417,7 @@ class DistillationModel(nn.Module):
         """Set train mode while keeping the teacher frozen in eval mode."""
         super().train(mode)
         self._freeze_teacher()
+        self._clear_feat_caches()  # drop tensors captured in the other mode (inference/graph tensors block deepcopy)
         return self
 
     def forward(self, x, *args, **kwargs):
@@ -502,9 +539,15 @@ class DistillationModel(nn.Module):
         return tuple(self._feat_norm_saliency(t) for t in teacher_outputs)
 
     def _clear_feat_caches(self):
-        """Clear every hook-captured cache. Called at the start of each loss() forward."""
+        """Clear every hook-captured cache in place, keeping the dict identities the hooks hold.
+
+        Called around each loss() forward and on every train/eval mode switch, so no graph-attached or inference-mode
+        tensor outlives the step that produced it (they would otherwise block `deepcopy`, e.g. in `ModelEMA`).
+        """
         for k in self._FEAT_DICT_KEYS:
-            getattr(self, k).clear()
+            cache = getattr(self, k, None)  # tolerate calls before _init_feature_dicts (e.g. train() during __init__)
+            if cache is not None:
+                cache.clear()
 
     def _neck_loss(self):
         """Score-weighted L2 loss summed over the FPN levels feeding the decoder, scaled by `self.dis`.
@@ -668,6 +711,7 @@ class DistillationModel(nn.Module):
             loss_distill = loss_distill + dec_loss
 
         distill_loss_detach = loss_distill.detach()
+        self._clear_feat_caches()  # release the captured graph tensors; the loss graph keeps what backward needs
         return self._concat_losses(regular_loss, loss_distill, regular_loss_detach, distill_loss_detach)
 
     @staticmethod
@@ -711,6 +755,31 @@ class DistillationModel(nn.Module):
         return self.student_model.model
 
     @property
+    def nc(self):
+        """Expose the student's class count."""
+        return self.student_model.nc
+
+    @nc.setter
+    def nc(self, value) -> None:
+        """Forward class-count updates to the student model.
+
+        `DetectionTrainer.set_model_attributes` writes `nc` / `names` / `args` onto `trainer.model`. On a fresh run that
+        is still the bare student (the KD wrapper is built later), but on resume the trainer already holds the wrapper,
+        so without this delegation the student would never get `nc` and `init_criterion()` would fail.
+        """
+        self.student_model.nc = value
+
+    @property
+    def names(self):
+        """Expose the student's class names."""
+        return self.student_model.names
+
+    @names.setter
+    def names(self, value) -> None:
+        """Forward class-name updates to the student model."""
+        self.student_model.names = value
+
+    @property
     def criterion(self):
         """Expose the student model's loss criterion."""
         return self.student_model.criterion
@@ -723,6 +792,24 @@ class DistillationModel(nn.Module):
     def init_criterion(self):
         """Initialize the loss criterion via the student model."""
         return self.student_model.init_criterion()
+
+    @property
+    def end2end(self):
+        """Expose the student's end2end flag (a `BaseModel` property, so `copy_attr` cannot carry it over).
+
+        `DetectionTrainer.set_model_attributes` reads it without a default, and on resume the trainer already holds the
+        wrapper at that point (the fresh-start path wraps only after `set_model_attributes`).
+        """
+        return getattr(self.student_model, "end2end", False)
+
+    @end2end.setter
+    def end2end(self, value) -> None:
+        """Forward end2end updates to the student model."""
+        self.student_model.end2end = value
+
+    def set_head_attr(self, **kwargs):
+        """Forward head attribute updates (e.g. `max_det`) to the student model."""
+        return self.student_model.set_head_attr(**kwargs)
 
     def fuse(self, verbose: bool = True):
         """Fuse student model layers for inference speedup."""

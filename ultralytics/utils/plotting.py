@@ -1318,11 +1318,11 @@ def _detach(x: Any) -> Any:
 def gradcam(model, im: torch.Tensor, paths: list[str], save_dir: Path, *args, conf: float = 0.25, **kwargs) -> Any:
     """Run inference and save a Grad-CAM++ heatmap for each image of the batch.
 
-    Grad-CAM++ weights each channel of the feature maps entering the model head by its positive gradient contribution
-    to the predicted class scores, so the heatmap shows the pixels the model actually used to make its predictions.
+    Grad-CAM++ weights each channel of the feature maps entering the model head by its positive gradient contribution to
+    the predicted class scores, so the heatmap shows the pixels the model actually used to make its predictions.
     Compared to Grad-CAM it weights each spatial position separately, which keeps every instance visible when an image
-    holds many objects of the same class. The maps of all head levels (P3, P4, P5) are summed so that evidence for
-    small and large objects ends up in one overlay.
+    holds many objects of the same class. The maps of all head levels (P3, P4, P5) are summed so that evidence for small
+    and large objects ends up in one overlay.
 
     Args:
         model (torch.nn.Module): AutoBackend wrapping a PyTorch model.

@@ -117,8 +117,8 @@ class Analytics(BaseSolution):
             update_required = frame_number % self.update_every == 0 or self.last_plot_im is None
             if update_required:
                 self.last_plot_im = self.update_graph(frame_number=frame_number)
+                self.total_counts = 0
             plot_im = self.last_plot_im
-            self.total_counts = 0
         elif self.type in {"pie", "bar", "area"}:
             from collections import Counter
 

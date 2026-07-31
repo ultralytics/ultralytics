@@ -181,7 +181,8 @@ class STrack(BaseTrack):
         """Convert bounding box from tlwh format to center-x-center-y-aspect-height (xyah) format."""
         ret = np.asarray(tlwh).copy()
         ret[:2] += ret[2:] / 2
-        ret[2] /= max(ret[3], 1e-6)
+        ret[3] = max(ret[3], 1e-6)
+        ret[2] /= ret[3]
         return ret
 
     @property

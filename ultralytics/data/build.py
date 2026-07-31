@@ -177,12 +177,8 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         self.epoch = 0
         self.shuffle = shuffle
         self.total_size = len(dataset)
-        # Ensure all ranks have a batch
-        if math.ceil(self.total_size / batch_size) < num_replicas:
-            self.batch_size = 1
-            dataset.rect = False  # force non-rect because of possible shape mismatch
-        else:
-            self.batch_size = batch_size
+        # ensure all ranks have a sample if batch size >= total size; degenerates to round-robin sampler
+        self.batch_size = 1 if batch_size >= self.total_size else batch_size
         self.num_batches = math.ceil(self.total_size / self.batch_size)
 
     def _get_rank_indices(self) -> tuple[int, int]:
@@ -199,7 +195,7 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         end_batch = start_batch + batches_for_this_rank
 
         # Convert batch indices to sample indices
-        start_idx = start_batch * self.batch_size
+        start_idx = min(start_batch * self.batch_size, self.total_size)
         end_idx = min(end_batch * self.batch_size, self.total_size)
 
         return start_idx, end_idx
@@ -354,9 +350,8 @@ def build_dataloader(
         if rank == -1
         else distributed.DistributedSampler(dataset, shuffle=shuffle)
         if shuffle
-        else ContiguousDistributedSampler(dataset, batch_size=batch)
+        else ContiguousDistributedSampler(dataset)
     )
-    batch = getattr(sampler, "batch_size", batch)  # sampler may shrink batch so every rank gets one
     samples = len(sampler) if sampler is not None else dataset_len
     drop_last = drop_last and bool(batch) and dataset_len % batch != 0
     batches = (samples // batch if drop_last else math.ceil(samples / batch)) if batch else 0

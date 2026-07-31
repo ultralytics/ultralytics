@@ -2088,7 +2088,7 @@ def parse_model(d, ch, verbose=True):
             args = [c1, c2, *args[1:]]
         elif m is StereoCostVolume:
             c1 = ch[f]
-            c2 = args[0]  # output channels, NOT width-scaled
+            c2 = args[0] + 1  # refined channels (NOT width-scaled) + the soft-argmin disparity channel
             args = [c1, *args]
         elif m is CBFuse:
             c2 = ch[f[-1]]

@@ -913,3 +913,94 @@ def test_stereo_reaches_every_scale(imgsz):
 
     blind = {k: v for k, v in magnitudes.items() if v == 0.0}
     assert not blind, f"no right-image gradient at {sorted(blind)}; all magnitudes: {magnitudes}"
+
+
+@pytest.mark.parametrize("true_disp_px", [3.0, 7.5, 12.25])
+def test_cost_volume_recovers_known_disparity(true_disp_px):
+    """The soft-argmin readout must recover a known disparity from a synthetic shifted pair.
+
+    This is the learnability gate for the stereo cue: a model-free NCC block matcher recovers per-object
+    disparity on real KITTI to ~1 px, so the readout is the only thing that can lose it. A conv over the
+    cost channels cannot express peak position at all; soft-argmin over the disparity grid can, and being
+    an expectation it is continuous, so it must also land between grid levels.
+    """
+    import torch
+
+    from ultralytics.nn.modules.block import StereoCostVolume
+
+    c1, groups, levels = 32, 4, 48
+    cv = StereoCostVolume(c1, 64, levels, groups).eval()
+    H, W = 64, 320
+    # Grid spans 0..32 feature px at this width, so true_disp_px is interior and sub-level.
+    cv.set_disparity_range(0.0, 32.0 / W)
+
+    torch.manual_seed(0)
+    # Spatially smooth features, so correlation varies with disparity the way real features do.
+    base = torch.randn(1, c1, H, W * 2)
+    base = torch.nn.functional.avg_pool2d(base, 5, 1, 2)
+    xs = torch.arange(W, dtype=torch.float32) + W // 2
+
+    def sample(shift):
+        gx = ((xs - shift) / (2 * W - 1) * 2 - 1).view(1, 1, -1).expand(1, H, W)
+        gy = (torch.arange(H, dtype=torch.float32) / (H - 1) * 2 - 1).view(1, -1, 1).expand(1, H, W)
+        return torch.nn.functional.grid_sample(base, torch.stack([gx, gy], -1), align_corners=True)
+
+    # Real stereo puts a left-image point at u_R = u_L - d, i.e. right[x] == left[x + d], so the right
+    # view samples the base image at a NEGATIVE offset. Getting this sign backwards silently produces an
+    # unmatchable pair, which is why the module's own convention is pinned by the real-KITTI argmax.
+    left, right = sample(0.0), sample(-true_disp_px)
+
+    with torch.no_grad():
+        out = cv((left, right))
+    # Channel 0 is the [0,1] readout; convert back to feature pixels via the grid.
+    disp_px = float(cv.to_disparity(out[:, :1]).median()) * W
+
+    assert abs(disp_px - true_disp_px) < 2.0, f"recovered {disp_px:.2f} px, expected {true_disp_px:.2f} px"
+
+
+def test_cost_volume_disparity_grid_is_resolution_invariant():
+    """The width-normalized grid must give the same disparity in *normalized* units at any input width.
+
+    Offsets are stored as a fraction of image width (what a stereo rig physically fixes) and converted to
+    feature pixels at forward time, so one checkpoint serves rectangular and square imgsz alike. Storing
+    raw pixel offsets instead is what made the grid silently mis-scaled per dataset and per imgsz.
+    """
+    import torch
+
+    from ultralytics.nn.modules.block import StereoCostVolume
+
+    cv = StereoCostVolume(32, 64, 32, 4).eval()
+    cv.set_disparity_range(0.01, 0.10)
+    torch.manual_seed(0)
+    for W in (160, 320):
+        left = torch.nn.functional.avg_pool2d(torch.randn(1, 32, 48, W), 5, 1, 2)
+        with torch.no_grad():
+            # roll(-k) gives out[x] == left[x + k], the real stereo relation for disparity k.
+            out = cv((left, left.roll(shifts=-int(0.05 * W), dims=-1)))
+        # A 0.05*W shift is 0.05 in normalized units at BOTH widths.
+        assert abs(float(cv.to_disparity(out[:, :1]).median()) - 0.05) < 0.02, f"width {W} mis-scaled"
+
+
+def test_cost_volume_correlation_is_spatially_centred():
+    """Correlation must run on spatially-centred features, or the disparity gradient starves at init.
+
+    Cosine similarity of raw post-activation features is DC-dominated: measured on real KITTI pairs it is
+    ~0.92 at EVERY disparity offset (3.8% dynamic range), versus 32% once each channel's spatial mean is
+    removed. Without centering there is almost no disparity signal to descend on.
+    """
+    import torch
+
+    from ultralytics.nn.modules.block import StereoCostVolume
+
+    cv = StereoCostVolume(32, 64, 24, 4).eval()
+    torch.manual_seed(0)
+    # Strong positive DC offset, as post-SiLU backbone features have.
+    feats = torch.nn.functional.avg_pool2d(torch.randn(1, 32, 48, 256), 5, 1, 2) + 5.0
+
+    costs = []
+    for shift in (2, 10, 24):
+        with torch.no_grad():
+            out = cv((feats, feats.roll(shifts=-shift, dims=-1)))
+        costs.append(float(cv.to_disparity(out[:, :1]).median()))
+    # Centred correlation keeps the readout responsive to disparity despite the DC offset.
+    assert max(costs) - min(costs) > 1e-3, f"readout is flat across disparities: {costs}"

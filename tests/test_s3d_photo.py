@@ -104,5 +104,5 @@ def test_kitti_recipe_yaml_builds():
     model = YOLO("yolo26n-s3d-kitti.yaml")
     core = model.model
     cv = next(m for m in core.model if isinstance(m, StereoCostVolume))
-    assert len(cv.disparities) == 48
+    assert cv.num_levels == 64
     assert core.init_criterion().photometric_loss is True

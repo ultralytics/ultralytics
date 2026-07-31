@@ -65,7 +65,7 @@ head:
   - [-1, 2, C3k2, [256, True]] # 16 (P3/8, clean — no cost vol)
 
   # Stereo cost volume (separate, NOT merged into P3)
-  - [1, 1, StereoCostVolume, [64, 48, 48]] # 17: [B, 64, H/8, W/8]
+  - [1, 1, StereoCostVolume, [64, 64, 4]] # 17: [c2, num_levels, groups] -> [B, 1+64, H/8, W/8]
 
   # Bottom-up PAN from clean P3
   - [16, 1, Conv, [256, 3, 2]]

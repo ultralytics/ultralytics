@@ -155,10 +155,11 @@ class Stereo3DDetHead(Detect):
         """
         # Separate cost volume from feature maps, then pool it onto each scale's grid. The channel axis
         # encodes disparity in input pixels, which is grid-independent, so spatial pooling is meaningful.
-        cost_vols = None
+        cost_vols, cv_disparity = None, None
         if self.cv_ch > 0 and len(x) > self.nl:
             cost_vol = x[self.nl]
             x = list(x[: self.nl])
+            cv_disparity = cost_vol[:, :1]  # StereoCostVolume soft-argmin readout, [0,1] over its grid
             cost_vols = [
                 cost_vol
                 if f.shape[-2:] == cost_vol.shape[-2:]
@@ -168,6 +169,8 @@ class Stereo3DDetHead(Detect):
 
         # 2D detection on clean features
         preds = super().forward_head(x, box_head, cls_head)  # {boxes, scores, feats}
+        if cv_disparity is not None:
+            preds["cv_disparity"] = cv_disparity  # [B, 1, H/8, W/8], for direct disparity supervision
 
         if aux_branches is not None:
             bs = x[0].shape[0]

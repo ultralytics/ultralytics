@@ -16,6 +16,7 @@ from ultralytics.models.yolo.s3d.dataset import Stereo3DDetDataset
 from ultralytics.models.yolo.s3d.head import DEPTH_MAX, DEPTH_MIN
 from ultralytics.models.yolo.s3d.model import Stereo3DDetModel
 from ultralytics.models.yolo.s3d.preprocess import preprocess_stereo_batch
+from ultralytics.nn.modules.block import StereoCostVolume
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.plotting import Annotator, VisualizationConfig, colors, plot_labels, plot_stereo3d_boxes
 from ultralytics.utils.torch_utils import unwrap_model
@@ -96,14 +97,21 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         # visual diversity that forces the backbone to learn richer features.
         label_dir = root / "labels" / train_split
 
-        # Scan label files for class IDs present in the dataset (up to 200 files)
+        # Scan label files for class IDs present in the dataset (up to 200 files), and for the
+        # width-normalized disparities they contain — fields 1 and 5 are the left/right box centres,
+        # so their difference IS disparity/width, the grid StereoCostVolume needs to sample.
         class_ids: set[int] = set()
+        disparities: list[float] = []
         for f in sorted(label_dir.glob("*.txt"))[:200]:
             with open(f) as fh:
                 for line in fh:
                     parts = line.strip().split()
                     if parts:
                         class_ids.add(int(parts[0]))
+                        if len(parts) > 5:
+                            d = float(parts[1]) - float(parts[5])
+                            if d > 0:
+                                disparities.append(d)
 
         if nc == 1:
             if len(class_ids) > 1:
@@ -159,10 +167,35 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             "baseline": data_cfg.get("baseline"),
             "depth_min": data_cfg.get("depth_min", DEPTH_MIN),
             "depth_max": data_cfg.get("depth_max", DEPTH_MAX),
+            "disparity_range": self._disparity_range(disparities, data_cfg),
             "mean_dims": mean_dims,
             "std_dims": std_dims,
             "pseudo_labels": data_cfg.get("pseudo_labels", {}),
         }
+
+    @staticmethod
+    def _disparity_range(disparities: list[float], data_cfg: dict) -> tuple[float, float] | None:
+        """Width-normalized disparity range for the cost volume grid, from the scanned labels.
+
+        An explicit `disparity_range: [min, max]` in the dataset YAML wins. Otherwise the range is the
+        [p1, p99] of observed disparities widened by 20%, so the grid covers the tail without spending
+        levels on disparities the dataset never contains. Returns None when nothing can be inferred,
+        leaving the module's KITTI-like default in place.
+        """
+        explicit = data_cfg.get("disparity_range")
+        if explicit is not None:
+            lo, hi = (float(v) for v in explicit)
+            return lo, hi
+        if len(disparities) < 32:
+            LOGGER.warning(
+                "s3d: only %d labelled disparities found — keeping the default cost-volume disparity grid. "
+                "Set `disparity_range: [min, max]` (width-normalized) in the dataset YAML to target it.",
+                len(disparities),
+            )
+            return None
+        lo, hi = (float(v) for v in np.percentile(disparities, (1, 99)))
+        pad = 0.2 * (hi - lo)
+        return max(lo - pad, 0.0), hi + pad
 
     def build_dataset(self, img_path, mode: str = "train", batch: int | None = None):
         """Build Stereo3DDetDataset when given our descriptor; fallback to detection dataset otherwise.
@@ -240,6 +273,20 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             if verbose and RANK == -1:
                 LOGGER.info(f"Loaded weights from {weights}")
         model.model[-1].depth_dfl._set_range(float(self.data["depth_min"]), float(self.data["depth_max"]))
+
+        disp_range = self.data.get("disparity_range")
+        if disp_range is not None:
+            for m in model.model:
+                if isinstance(m, StereoCostVolume):
+                    m.set_disparity_range(*disp_range)
+                    if verbose and RANK == -1:
+                        LOGGER.info(
+                            "s3d: cost-volume disparity grid set to %.5f..%.5f of image width "
+                            "(%d levels, %d correlation groups)",
+                            *disp_range,
+                            m.num_levels,
+                            m.groups,
+                        )
 
         return model
 

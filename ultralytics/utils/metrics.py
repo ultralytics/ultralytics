@@ -191,19 +191,16 @@ def bbox_iou(
     return iou  # IoU
 
 
-def wiou_dist(box1: torch.Tensor, box2: torch.Tensor, decoupled: bool = False, eps: float = 1e-7) -> torch.Tensor:
+def wiou_dist(box1: torch.Tensor, box2: torch.Tensor, eps: float = 1e-7) -> torch.Tensor:
     """Calculate the Wise-IoU distance attention factor between bounding boxes in (x1, y1, x2, y2) format.
 
     Multiplying the plain IoU loss by this factor gives WIoU v1: the loss of a box whose center is far from the target
-    is amplified, while the aspect-ratio penalty of CIoU is dropped. The convex box is detached so the factor cannot be
-    reduced by growing the enclosing box, leaving the center distance as the only path for the gradient.
+    is amplified, while the aspect-ratio penalty of CIoU is dropped. The convex diagonal is detached so the factor
+    cannot be reduced by growing the enclosing box, leaving the center distance as the only path for the gradient.
 
     Args:
         box1 (torch.Tensor): Predicted boxes, with the last dimension being 4.
         box2 (torch.Tensor): Ground truth boxes, with the last dimension being 4.
-        decoupled (bool, optional): If True, normalize the x and y center offsets by the convex width and height
-            separately instead of by the shared convex diagonal, giving the AIoU v1 factor. Under the shared diagonal a
-            box that is far off along one axis is damped by the convex extent the *other* axis contributes.
         eps (float, optional): A small value to avoid division by zero.
 
     Returns:
@@ -211,17 +208,13 @@ def wiou_dist(box1: torch.Tensor, box2: torch.Tensor, decoupled: bool = False, e
 
     References:
         https://arxiv.org/abs/2301.10051
-        https://peerj.com/articles/cs-2347/
     """
     b1_x1, b1_y1, b1_x2, b1_y2 = box1.chunk(4, -1)
     b2_x1, b2_y1, b2_x2, b2_y2 = box2.chunk(4, -1)
-    dx2 = (b2_x1 + b2_x2 - b1_x1 - b1_x2).pow(2) / 4  # center dist**2 along x
-    dy2 = (b2_y1 + b2_y2 - b1_y1 - b1_y2).pow(2) / 4  # center dist**2 along y
+    rho2 = ((b2_x1 + b2_x2 - b1_x1 - b1_x2).pow(2) + (b2_y1 + b2_y2 - b1_y1 - b1_y2).pow(2)) / 4  # center dist**2
     cw = b1_x2.maximum(b2_x2) - b1_x1.minimum(b2_x1)  # convex (smallest enclosing box) width
     ch = b1_y2.maximum(b2_y2) - b1_y1.minimum(b2_y1)  # convex height
-    if decoupled:  # halved so the two per-axis ratios span the same [0, 1) as the single diagonal ratio below
-        return (0.5 * (dx2 / cw.pow(2).add(eps).detach() + dy2 / ch.pow(2).add(eps).detach())).exp()
-    return ((dx2 + dy2) / (cw.pow(2) + ch.pow(2) + eps).detach()).exp()
+    return (rho2 / (cw.pow(2) + ch.pow(2) + eps).detach()).exp()
 
 
 def mask_iou(mask1: torch.Tensor, mask2: torch.Tensor, eps: float = 1e-7) -> torch.Tensor:

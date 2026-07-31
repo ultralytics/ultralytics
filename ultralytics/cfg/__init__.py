@@ -187,7 +187,6 @@ CFG_FLOAT_KEYS = frozenset(
         "wiou_alpha",
         "wiou_delta",
         "wiou_momentum",
-        "aiou_momentum",
         "stride_val_size",
         "small_object_crop_size",
         "small_object_crop_max_scale",

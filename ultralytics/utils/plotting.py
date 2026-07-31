@@ -1374,8 +1374,10 @@ def class_activation_map(
                 handle.remove()
         s = torch.cat(scores, 2)  # (B, nc, predictions) class logits
         if classes is not None:
-            cls = torch.as_tensor(classes, dtype=torch.long, device=s.device)
-            s = s[:, cls.flatten()]  # heatmap for the requested classes only
+            cls = torch.as_tensor(classes, dtype=torch.long, device=s.device).flatten()
+            cls = cls[cls < s.shape[1]]  # drop ids beyond this model's output channels, e.g. depth/single-class heads
+            if len(cls):
+                s = s[:, cls]  # heatmap for the requested classes only
         s = s.amax(1)  # (B, predictions) best class logit of each prediction
         keep = (s.sigmoid() >= conf) | (s == s.amax(1, keepdim=True))  # top prediction alone if none above conf
         n = min(int(keep.sum(1).amax()), topk)  # predictions to explain, one backward pass each

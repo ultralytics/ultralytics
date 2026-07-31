@@ -248,7 +248,7 @@ class Analytics(BaseSolution):
         self.ax.set_ylabel(self.y_label, color=self.fg_color, fontsize=self.fontsize - 3)
 
         # Add and format legend (skip for pie charts which manage their own legend)
-        if self.type != "pie":
+        if plot != "pie":
             legend = self.ax.legend(loc="upper left", fontsize=13, facecolor=self.bg_color, edgecolor=self.bg_color)
             for text in legend.get_texts():
                 text.set_color(self.fg_color)

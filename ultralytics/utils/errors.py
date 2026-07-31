@@ -7,7 +7,7 @@ class HUBModelError(Exception):
     """Exception raised when a model cannot be found or retrieved from Ultralytics HUB.
 
     This custom exception is used specifically for handling errors related to model fetching in Ultralytics YOLO. The
-    error message is processed to include emojis for better user experience.
+    message is passed through `emojis()`, which strips non-ASCII characters on Windows so the text stays printable.
 
     Attributes:
         message (str): The error message displayed when the exception is raised.
@@ -25,9 +25,6 @@ class HUBModelError(Exception):
 
     def __init__(self, message: str = "Model not found. Please check model URL and try again."):
         """Initialize a HUBModelError exception.
-
-        This exception is raised when a requested model is not found or cannot be retrieved from Ultralytics HUB. The
-        message is processed to include emojis for better user experience.
 
         Args:
             message (str, optional): The error message to display when the exception is raised.

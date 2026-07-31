@@ -51,8 +51,9 @@ class OCSortTrack(STrack):
             frame_id (int): Frame id at which the track is created.
         """
         super().activate(kalman_filter, frame_id)
-        self.last_observation = self.xyxy.copy()
-        self.observations[frame_id] = self.xyxy.copy()
+        obs = self.xyxy.astype(np.float32)  # Keep observations in detection-space precision.
+        self.last_observation = obs
+        self.observations[frame_id] = obs
         self._saved_mean = self.mean.copy()
         self._saved_covariance = self.covariance.copy()
 

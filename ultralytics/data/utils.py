@@ -519,9 +519,10 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
             data["val"] = data.pop("validation")  # replace 'validation' key with 'val' key
     if split and not data.get(split):
         raise FileNotFoundError(f"{dataset} '{split}:' images not found ❌")
-    # Compare against None, not membership: a bare `names:` key parses to None, and `len(None)` below
-    # would raise an internal TypeError instead of the clear errors this block already raises.
-    if data.get("names") is None and data.get("nc") is None:
+    # Compare `names` against None, not membership: a bare `names:` key parses to None, and `len(None)`
+    # below would raise an internal TypeError instead of the clear errors this block already raises.
+    # `nc` stays a membership test so a valueless `nc:` still reaches its own "must be an integer" error.
+    if data.get("names") is None and "nc" not in data:
         raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
     if "nc" in data and not isinstance(data["nc"], int):
         try:

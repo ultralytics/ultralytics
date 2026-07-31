@@ -228,10 +228,12 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
                 msg = r.json().get("error", r.reason)
             except Exception:
                 msg = r.reason
-            if r.status_code in {401, 403, 404}:
-                # The key or the run is permanently gone, so disable the integration. Without this the
-                # warning below is captured by our own ConsoleLogger, flushed back as another
-                # console_output event, and rejected again — a self-feeding POST loop every flush.
+            if r.status_code == 401:
+                # The credential itself is rejected, so every later request fails identically: disable
+                # the integration. Without this the warning below is captured by our own ConsoleLogger,
+                # flushed back as another console_output event, and rejected again — a self-feeding POST
+                # loop every flush. Only 401 is credential-scoped; 403/404 concern one model or run, and
+                # clearing a process-global key for those would silently kill unrelated later runs.
                 _api_key = None
             LOGGER.warning(f"{PREFIX}{msg}")
             return None  # Don't retry client errors (except 408 timeout, 429 rate limit)

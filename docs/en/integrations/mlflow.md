@@ -32,7 +32,7 @@ Ensure MLflow is installed. If not, install it using pip:
 pip install mlflow
 ```
 
-Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this is controlled by the settings `mlflow` key. See the [settings](../quickstart.md#ultralytics-settings) page for more info.
+Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this is controlled by the settings `mlflow` key. See the [settings](../usage/settings.md) page for more info.
 
 !!! example "Update Ultralytics MLflow Settings"
 
@@ -140,7 +140,7 @@ To set up MLflow logging with Ultralytics YOLO, you first need to ensure MLflow 
 pip install mlflow
 ```
 
-Next, enable MLflow logging in Ultralytics settings. This can be controlled using the `mlflow` key. For more information, see the [settings guide](../quickstart.md#ultralytics-settings).
+Next, enable MLflow logging in Ultralytics settings. This can be controlled using the `mlflow` key. For more information, see the [settings guide](../usage/settings.md).
 
 !!! example "Update Ultralytics MLflow Settings"
 
@@ -190,7 +190,7 @@ Yes, you can disable MLflow logging for Ultralytics YOLO by updating the setting
 yolo settings mlflow=False
 ```
 
-For further customization and resetting settings, refer to the [settings guide](../quickstart.md#ultralytics-settings).
+For further customization and resetting settings, refer to the [settings guide](../usage/settings.md).
 
 ### How can I start and stop an MLflow server for Ultralytics YOLO tracking?
 

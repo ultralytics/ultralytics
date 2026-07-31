@@ -240,7 +240,7 @@ If you use VS Code and have started to see a message prompting you to install th
 
 1. Install Ultralytics-snippets and the message will no longer be shown 😆!
 
-2. You can use `yolo settings vscode_msg=False` to disable the message from showing without having to install the extension. You can learn more about the [Ultralytics Settings](../quickstart.md#ultralytics-settings) on the [quickstart](../quickstart.md) page if you're unfamiliar.
+2. You can use `yolo settings vscode_msg=False` to disable the message from showing without having to install the extension. You can learn more about [Ultralytics Settings](../usage/settings.md) if you're unfamiliar.
 
 ### I have an idea for a new Ultralytics code snippet, how can I get one added?
 

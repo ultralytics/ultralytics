@@ -557,7 +557,6 @@ class Annotator:
     def kpts(
         self,
         kpts,
-        shape: tuple = (640, 640),
         radius: int | None = None,
         kpt_line: bool = True,
         conf_thres: float = 0.25,
@@ -567,7 +566,6 @@ class Annotator:
 
         Args:
             kpts (torch.Tensor): Keypoints, shape [17, 3] (x, y, confidence).
-            shape (tuple, optional): Image shape (h, w).
             radius (int, optional): Keypoint radius.
             kpt_line (bool, optional): Draw lines between keypoints.
             conf_thres (float, optional): Confidence threshold.
@@ -589,12 +587,12 @@ class Annotator:
         for i, k in enumerate(kpts):
             color_k = kpt_color or (self.kpt_color[i].tolist() if is_pose else colors(i))
             x_coord, y_coord = k[0], k[1]
-            if x_coord % shape[1] != 0 and y_coord % shape[0] != 0:
-                if len(k) == 3:
-                    conf = k[2]
-                    if conf < conf_thres:
-                        continue
-                cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, color_k, -1, lineType=cv2.LINE_AA)
+            if len(k) == 3:
+                if k[2] < conf_thres:
+                    continue
+            elif x_coord == 0 and y_coord == 0:  # (0, 0) marks a missing keypoint when there is no confidence channel
+                continue
+            cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, color_k, -1, lineType=cv2.LINE_AA)
 
         if kpt_line:
             ndim = kpts.shape[-1]
@@ -606,9 +604,9 @@ class Annotator:
                     conf2 = kpts[(sk[1] - 1), 2]
                     if conf1 < conf_thres or conf2 < conf_thres:
                         continue
-                if pos1[0] % shape[1] == 0 or pos1[1] % shape[0] == 0 or pos1[0] < 0 or pos1[1] < 0:
+                elif pos1 == (0, 0) or pos2 == (0, 0):  # (0, 0) marks a missing keypoint without a confidence channel
                     continue
-                if pos2[0] % shape[1] == 0 or pos2[1] % shape[0] == 0 or pos2[0] < 0 or pos2[1] < 0:
+                if min(pos1 + pos2) < 0:
                     continue
                 cv2.line(
                     self.im,

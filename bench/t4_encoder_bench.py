@@ -278,16 +278,17 @@ def parity(model: nn.Module, sample: torch.Tensor, onnx: Path, engine: Path, dev
     actual_trt = backend(sample.to(device, dtype=torch.float16 if backend.fp16 else torch.float32)).cpu().float()
 
     def compare(actual):
-        return {
+        result = {
             "cosine": float(F.cosine_similarity(expected.flatten(1), actual.flatten(1)).mean()),
             "relative_norm_error": float((actual.norm() - expected.norm()).abs() / expected.norm()),
         }
+        result["passed"] = result["cosine"] >= 0.999 and result["relative_norm_error"] <= 0.01
+        return result
 
     onnx_result, trt_result = compare(actual_onnx), compare(actual_trt)
     assert expected.shape == actual_onnx.shape == actual_trt.shape
     assert torch.isfinite(actual_onnx).all() and torch.isfinite(actual_trt).all()
-    assert onnx_result["cosine"] >= 0.999 and onnx_result["relative_norm_error"] <= 0.01
-    assert trt_result["cosine"] >= 0.999 and trt_result["relative_norm_error"] <= 0.01
+    assert onnx_result["passed"]
     return {"shape": list(expected.shape), "onnx": onnx_result, "trt": trt_result}
 
 
@@ -473,6 +474,7 @@ def main():
                 "onnx_relative_norm_error": variant.parity["onnx"]["relative_norm_error"],
                 "trt_cosine": variant.parity["trt"]["cosine"],
                 "trt_relative_norm_error": variant.parity["trt"]["relative_norm_error"],
+                "trt_parity_passed": variant.parity["trt"]["passed"],
             }
             for variant in variants
         ],

@@ -603,6 +603,7 @@ class Results(SimpleClass, DataExportMixin):
             for i, k in enumerate(reversed(self.keypoints.cpu().numpy().data)):  # one host transfer, no per-kpt syncs
                 annotator.kpts(
                     k,
+                    self.orig_shape,
                     radius=kpt_radius,
                     kpt_line=kpt_line,
                     kpt_color=colors(i, True) if color_mode == "instance" else None,

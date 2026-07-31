@@ -557,6 +557,7 @@ class Annotator:
     def kpts(
         self,
         kpts,
+        shape: tuple = (640, 640),
         radius: int | None = None,
         kpt_line: bool = True,
         conf_thres: float = 0.25,
@@ -566,6 +567,7 @@ class Annotator:
 
         Args:
             kpts (torch.Tensor): Keypoints, shape [17, 3] (x, y, confidence).
+            shape (tuple, optional): Image shape (h, w).
             radius (int, optional): Keypoint radius.
             kpt_line (bool, optional): Draw lines between keypoints.
             conf_thres (float, optional): Confidence threshold.

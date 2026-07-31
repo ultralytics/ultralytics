@@ -252,15 +252,17 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
         r.raise_for_status()
         return r.json()
 
+    # A console_output send must emit nothing through the ultralytics logger at ANY level: ConsoleLogger
+    # captures whatever it emits and flushes it back as the next chunk, which fails the same way — a
+    # self-feeding loop. That includes Retry's per-attempt warning and the debug line below, which does
+    # reach the buffer whenever the logger is set to DEBUG. Retrying still has to happen: _flush_buffer
+    # clears the buffer before calling us, so a dropped chunk is gone for good.
+    quiet = event == "console_output"
     try:
-        # Console chunks are sent once, unretried: Retry logs a warning per failed attempt, and for a
-        # console_output event ConsoleLogger captures that warning and flushes it back as the next
-        # chunk, so a persistent 5xx or transport failure would self-feed exactly like a 4xx. Losing a
-        # chunk costs nothing — the next flush carries the content. Only the debug line below runs on
-        # failure, and it is below the logger's level, so nothing re-enters the buffer.
-        return send_once() if event == "console_output" else Retry(times=retry, delay=1)(send_once)()
+        return Retry(times=retry, delay=1, verbose=not quiet)(send_once)()
     except Exception as e:
-        LOGGER.debug(f"{PREFIX}Failed to send {event}: {e}")
+        if not quiet:
+            LOGGER.debug(f"{PREFIX}Failed to send {event}: {e}")
         return None
 
 

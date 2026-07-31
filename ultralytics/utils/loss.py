@@ -1676,11 +1676,13 @@ class E2ELoss:
         self.aux_fg_tgt = getattr(model.args, "aux_fg_tgt", "o2m")
         if self.aux_fg_tgt not in {"o2m", "o2o", "mix"}:
             raise ValueError(f"aux_fg_tgt must be 'o2m', 'o2o', or 'mix', not {self.aux_fg_tgt!r}")
-        # mix mode: initial degree of the o2m-only ("ambiguous") anchors, decayed linearly to 0. Kept below 1 so an
-        # ambiguous anchor never outranks the o2o positive (which is a hard 1.0 in mix mode).
+        # mix mode: initial degree of the o2m-only ("ambiguous") anchors, decayed linearly to 0. Capped at 1 so an
+        # ambiguous anchor never exceeds the o2o positive (a hard 1.0 in mix mode); above 1 the ambiguous term would
+        # override it and push the target out of [0, 1]. At exactly 1 the two tie, which reproduces the dense o2m
+        # target for the single epoch before the decay starts, so 1 is the natural o2m end of the schedule.
         self.aux_fg_t = getattr(model.args, "aux_fg_t", 0.5)
-        if not 0 <= self.aux_fg_t < 1:
-            raise ValueError(f"aux_fg_t must be in [0, 1), not {self.aux_fg_t}")
+        if not 0 <= self.aux_fg_t <= 1:
+            raise ValueError(f"aux_fg_t must be in [0, 1], not {self.aux_fg_t}")
         self.aux_fg_t_cur = self.aux_fg_t  # decayed each epoch by update()
         # fraction of epochs over which the ambiguous degree reaches 0. There are ~topk-1 times more ambiguous anchors
         # than o2o positives, so even a small degree still carries a comparable share of the target mass; ending the
@@ -1845,7 +1847,7 @@ class E2ELoss:
         ``mix`` resolves that contradiction the way one-to-few does: the one2one positive gets a hard 1.0 and the
         one2many-only ("ambiguous") anchors get a degree ``aux_fg_t_cur`` that decays to 0 across training. Early on the
         target is close to the dense one2many foreground, and it slides to a pure one2one target as the one2one branch
-        takes over. The ambiguous degree stays below 1 so an ambiguous anchor never outranks the one2one positive.
+        takes over. The ambiguous degree is capped at 1 so an ambiguous anchor never exceeds the one2one positive.
 
         Returns:
             target (torch.Tensor): Per-anchor foreground target with shape (bs, num_anchors), values in [0, 1].
@@ -1856,7 +1858,7 @@ class E2ELoss:
             return (branch.fg_score if self.aux_fg_iou else branch.fg_mask), None
         o2o_pos = self.one2one.fg_mask.to(self.one2many.fg_score.dtype)  # hard 1.0 at the single o2o positive per GT
         amb = self.one2many.fg_score if self.aux_fg_iou else self.one2many.fg_mask.to(o2o_pos.dtype)
-        target = torch.maximum(o2o_pos, self.aux_fg_t_cur * amb)  # ambiguous degree < 1 never outranks the o2o positive
+        target = torch.maximum(o2o_pos, self.aux_fg_t_cur * amb)  # degree <= 1 never exceeds the o2o positive's 1.0
         # Normalize by the participating anchor count |o2o U o2m| rather than the target sum. The ambiguous degree decays
         # to 0, which shrinks sum(target) by roughly the same factor as the o2m weight decay and would leave the trunk
         # gradient nearly flat late in training; counting each contributing anchor once keeps the denominator fixed so

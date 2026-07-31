@@ -121,7 +121,7 @@ aux_fg: 0.0 # (float) DetectAux training-only class-agnostic foreground auxiliar
 aux_fg_iou: False # (bool) when aux_fg>0, use the o2m IoU soft label as the foreground target (same as the o2m cls target) instead of a hard 0/1 target
 aux_fg_end: 0.0 # (float) when aux_fg>0, fraction of epochs over which the aux gain linearly decays to exactly 0 (e.g. 0.6 = off after 60% of training; 0=disable, follow the o2m schedule only, which floors at 0.1)
 aux_fg_tgt: o2m # (str) assignment supplying the aux foreground target: dense 'o2m', single-anchor 'o2o', or 'mix' (o2f-style: 1 at the o2o positive, decaying degree at o2m-only anchors)
-aux_fg_t: 0.5 # (float) when aux_fg_tgt='mix', initial degree of the o2m-only (ambiguous) anchors, decayed linearly to 0
+aux_fg_t: 0.5 # (float) when aux_fg_tgt='mix', initial degree of the o2m-only (ambiguous) anchors in [0, 1], decayed linearly to 0 (1.0 starts from the dense o2m target)
 aux_fg_t_end: 1.0 # (float) when aux_fg_tgt='mix', fraction of epochs over which the ambiguous degree reaches 0 (1.0=last epoch; 0.7 leaves the final 30% on a pure o2o target)
 aux_fg_sched: o2m # (str) branch weight carrying the aux loss: 'o2m' (decays 0.8->0.1), 'const' (flat 1.0), 'o2o' (grows 0.2->0.9), or 'split' (per-anchor: o2m-only positives decay with o2m, o2o-only grow with o2o, overlap and background take their sum = 1.0)
 vfl: False # (bool) use Varifocal Loss instead of BCE for classification

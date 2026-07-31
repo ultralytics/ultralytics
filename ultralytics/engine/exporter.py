@@ -942,10 +942,6 @@ class Exporter:
             f"output shape(s) {self.output_shape} ({file_size(file):.1f} MB)"
         )
         self.run_callbacks("on_export_start")
-        if fmt in {"torchscript", "onnx", "openvino"}:
-            for m in model.modules():
-                if isinstance(m, Detect):
-                    m.shape = None
 
         # Export
         if is_tf_format:

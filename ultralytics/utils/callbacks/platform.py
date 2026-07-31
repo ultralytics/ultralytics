@@ -268,6 +268,8 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
     """Publish a model checkpoint to its configured Platform storage location."""
     from ultralytics.utils.uploads import safe_upload
 
+    if not _api_key:
+        return None
     model_path = Path(model_path)
     if not model_path.exists():
         LOGGER.warning(f"{PREFIX}Model file not found: {model_path}")

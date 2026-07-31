@@ -216,7 +216,7 @@ def hash_state_dict(model: nn.Module) -> str:
     for name, tensor in sorted(model.state_dict().items()):
         tensor = tensor.detach().cpu().contiguous()
         digest.update(f"{name}|{tuple(tensor.shape)}|{tensor.dtype}".encode())
-        digest.update(tensor.view(torch.uint8).numpy())
+        digest.update(tensor.numpy())
     return digest.hexdigest()
 
 

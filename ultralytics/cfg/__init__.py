@@ -710,6 +710,9 @@ def handle_yolo_hub(args: list[str]) -> None:
     """
     from ultralytics import hub
 
+    if not args:
+        LOGGER.warning("No hub command provided. Usage: yolo hub login [API_KEY] or yolo hub logout")
+        return
     if args[0] == "login":
         key = args[1] if len(args) > 1 else ""
         # Log in to Ultralytics HUB using the provided API key

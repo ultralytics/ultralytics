@@ -133,10 +133,13 @@ def resolve_platform_uri(uri, hard=True):
 
     # Handle error responses. The platform sends an actionable message with every one of them — which a
     # HEAD response could never carry — so append it to our own wording instead of discarding it.
+    # Only the platform's own JSON `error` field is echoed. A non-JSON body is discarded rather than
+    # passed through: an intermediary proxy or WAF error page can quote the request's Authorization
+    # header, which would then land in the user's console and in any log they paste into an issue.
     try:
         detail = str(r.json().get("error", "")).strip()
     except Exception:
-        detail = r.text.strip()
+        detail = ""
     detail = f" {detail[:500]}" if detail else ""
 
     if r.status_code == 401:
@@ -235,13 +238,18 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
             except Exception:
                 msg = r.reason
             if r.status_code == 401:
-                # The credential itself is rejected, so every later request fails identically: disable
-                # the integration. Without this the warning below is captured by our own ConsoleLogger,
-                # flushed back as another console_output event, and rejected again — a self-feeding POST
-                # loop every flush. Only 401 is credential-scoped; 403/404 concern one model or run, and
-                # clearing a process-global key for those would silently kill unrelated later runs.
+                # The credential itself is rejected, so every later request fails identically — disable
+                # the integration rather than keep sending. Only 401 is credential-scoped: 403 and 404
+                # concern one model or run, and clearing a process-global key for those would silently
+                # kill Platform tracking for unrelated later runs in the same process.
                 _api_key = None
-            LOGGER.warning(f"{PREFIX}{msg}")
+            if event != "console_output":
+                # Never log a console_output failure: ConsoleLogger captures this warning, flushes it
+                # back as another console_output event, and it is rejected again — a self-feeding POST
+                # loop at every flush interval, for as long as the rejection lasts. Reporting the
+                # failure to ship logs *through the logs being shipped* is the loop. Any other event
+                # type still warns, so a persistent rejection is never silent.
+                LOGGER.warning(f"{PREFIX}{msg}")
             return None  # Don't retry client errors (except 408 timeout, 429 rate limit)
         r.raise_for_status()
         return r.json()

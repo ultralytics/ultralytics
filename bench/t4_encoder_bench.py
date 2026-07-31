@@ -241,7 +241,15 @@ def load_feature(spec: ModelSpec, weights_dir: Path) -> tuple[nn.Module, torch.T
         mean = torch.tensor(teacher.IMAGE_MEAN).view(1, 3, 1, 1)
         std = torch.tensor(teacher.IMAGE_STD).view(1, 3, 1, 1)
         model = ReferenceFeature(teacher).eval()
-        return model, (image - mean) / std, hash_state_dict(model)
+        source_sha256 = hash_state_dict(model)
+        if spec.source.startswith("tips:"):
+            tips = teacher.model
+            patches = (IMGSZ // tips.patch_size) ** 2
+            pos_embed = tips.interpolate_pos_encoding(
+                torch.empty(1, patches + 1, tips.pos_embed.shape[-1]), IMGSZ, IMGSZ
+            ).detach()
+            tips.pos_embed = nn.Parameter(pos_embed, requires_grad=False)
+        return model, (image - mean) / std, source_sha256
 
     checkpoint = weights_dir / f"{spec.source}.pt"
     model = YOLOFeature(load_checkpoint(checkpoint, device="cpu", fuse=True)[0]).eval()

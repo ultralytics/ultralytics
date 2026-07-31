@@ -574,8 +574,6 @@ class v8DetectionLoss:
         self.assigner.stride_val_size = getattr(h, "stride_val_size", None)
         self.assigner.small_center_fill = getattr(h, "small_center_fill", False)
         self.assigner.small_center_fill_k = getattr(h, "small_center_fill_k", 4)
-        self.assigner.shape_iou = getattr(h, "shape_iou", False)
-        self.assigner.shape_iou_scale = getattr(h, "shape_iou_scale", 0.0)
         if self.assigner.small_center_fill_k < 1:
             raise ValueError(f"small_center_fill_k must be at least 1, not {self.assigner.small_center_fill_k}")
         if self.assigner.small_center_fill and self.assigner.stride_val_thr:

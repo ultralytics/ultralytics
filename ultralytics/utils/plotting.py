@@ -519,12 +519,13 @@ class Annotator:
         if self.pil:
             # Convert to numpy first
             self.im = np.asarray(self.im).copy()
-        overlay = np.zeros_like(self.im)
+        mask = mask.astype(np.intp, copy=False)  # class IDs index the palette below
+        palette = np.zeros((int(mask.max(initial=0)) + 1, 3), self.im.dtype)  # class ID -> BGR
         for cls_id in np.unique(mask):
             if cls_id == ignore_index:
                 continue
-            overlay[mask == cls_id] = colors(int(cls_id), True)
-        self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
+            palette[cls_id] = colors(int(cls_id), True)
+        self.im = cv2.addWeighted(self.im, 1 - alpha, np.take(palette, mask, axis=0), alpha, 0)
         if self.pil:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)

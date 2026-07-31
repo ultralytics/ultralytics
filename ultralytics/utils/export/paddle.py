@@ -49,6 +49,11 @@ def torch2paddle(
 
     import x2paddle
     from x2paddle.convert import pytorch2paddle
+    from x2paddle.op_mapper.pytorch2paddle import prim2code
+
+    # x2paddle 1.6.0 codegen for pooling asserts reads exec() results from locals(), which PEP 667 broke in Python
+    # 3.13. The assert only re-checks pooling args that torch already validated during tracing, so skip emitting it.
+    prim2code.prim_assert = lambda layer, **kwargs: None
 
     LOGGER.info(f"\n{prefix} starting export with X2Paddle {x2paddle.__version__}...")
 

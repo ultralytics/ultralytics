@@ -40,7 +40,7 @@ Choose an official Ultralytics model or one of your own completed models:
 | **Official**    | YOLO26 (recommended), YOLO11, YOLOv8, and YOLOv5 project models     |
 | **Your Models** | Your completed or uploaded models, organized by project, for tuning |
 
-The selector filters official models to tasks compatible with the selected dataset. YOLO26 includes [Detect](../../tasks/detect.md), [Segment](../../tasks/segment.md), [Semantic](../../tasks/semantic.md), [Depth](../../tasks/depth.md), [Pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), and [Classify](../../tasks/classify.md) variants in sizes from nano to xlarge.
+The selector filters official models to tasks compatible with the selected dataset. YOLO26 includes [Detect](../../tasks/detect.md), [Segment](../../tasks/segment.md), [Semantic](../../tasks/semantic.md), [Depth](../../tasks/depth.md), [Classify](../../tasks/classify.md), [Pose](../../tasks/pose.md), and [OBB](../../tasks/obb.md) variants in sizes from nano to xlarge.
 
 ### Step 2: Select Dataset
 

@@ -152,6 +152,7 @@ class GMC:
         except Exception as e:
             LOGGER.warning(f"findTransformECC failed; using identity warp. {e}")
 
+        self.prevFrame = frame.copy()
         return H
 
     def apply_features(self, raw_frame: np.ndarray, detections: list | None = None) -> np.ndarray:
@@ -241,7 +242,8 @@ class GMC:
         spatialDistances = np.asarray(spatialDistances).reshape(-1, 2)
         meanSpatialDistances = np.mean(spatialDistances, 0)
         stdSpatialDistances = np.std(spatialDistances, 0)
-        inliers = np.abs(spatialDistances - meanSpatialDistances) < 2.5 * stdSpatialDistances
+        # Include exact-boundary and zero-variance matches.
+        inliers = np.abs(spatialDistances - meanSpatialDistances) <= 2.5 * stdSpatialDistances
 
         # Keep matched point pairs that survive the outlier filter
         good = inliers.all(axis=1)

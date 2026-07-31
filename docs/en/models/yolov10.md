@@ -210,9 +210,9 @@ For training YOLOv10 on a custom dataset:
 
 The YOLOv10 model series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
 
-| Model   | Filenames                                                             | Tasks                                  | Inference | Validation | Training | Export |
-| ------- | --------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLOv10 | `yolov10n.pt` `yolov10s.pt` `yolov10m.pt` `yolov10l.pt` `yolov10x.pt` | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| Model   | Filenames                                                             | Tasks                                  | Training | Validation | Inference | Export |
+| ------- | --------------------------------------------------------------------- | -------------------------------------- | -------- | ---------- | --------- | ------ |
+| YOLOv10 | `yolov10n.pt` `yolov10s.pt` `yolov10m.pt` `yolov10l.pt` `yolov10x.pt` | [Object Detection](../tasks/detect.md) | ✅       | ✅         | ✅        | ✅     |
 
 ## Exporting YOLOv10
 

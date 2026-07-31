@@ -70,7 +70,7 @@ class DetectionValidator(BaseValidator):
         """
         for k, v in batch.items():
             if isinstance(v, torch.Tensor):
-                batch[k] = v.to(self.device, non_blocking=self.device.type == "cuda")
+                batch[k] = v.to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
         batch["img"] = (batch["img"].half() if self.args.quantize == 16 else batch["img"].float()) / 255
         return batch
 
@@ -347,6 +347,7 @@ class DetectionValidator(BaseValidator):
             rank=-1,
             drop_last=self.args.compile,
             pin_memory=self.training,
+            device=self.device,
         )
 
     def plot_val_samples(self, batch: dict[str, Any], ni: int) -> None:

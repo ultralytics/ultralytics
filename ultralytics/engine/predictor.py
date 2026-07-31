@@ -56,7 +56,7 @@ from ultralytics.data.augment import LetterBox
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops
 from ultralytics.utils.checks import check_imgsz, check_imshow
-from ultralytics.utils.files import increment_path
+from ultralytics.utils.plotting import class_activation_map
 from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode
 
 STREAM_WARNING = """
@@ -90,6 +90,8 @@ class BasePredictor:
         plotted_img (np.ndarray): Last plotted image.
         source_type (SimpleNamespace): Type of input source.
         seen (int): Number of images processed.
+        speed (dict[str, float] | None): Per-image preprocess, inference and postprocess times in ms, once run.
+        pixels (int | None): Mean per-image inference area in pixels, once a run completes.
         windows (list[str]): List of window names for visualization.
         batch (tuple): Current batch data.
         results (list[Any]): Current batch results.
@@ -144,6 +146,8 @@ class BasePredictor:
         self.plotted_img = None
         self.source_type = None
         self.seen = 0
+        self.speed = None  # per-image speeds, set once a run completes
+        self.pixels = None  # mean per-image inference area, set once a run completes
         self.windows = []
         self.screen = None  # cached screen resolution (width, height) for show=True scaling
         self.batch = None
@@ -180,12 +184,19 @@ class BasePredictor:
 
     def inference(self, im: torch.Tensor, *args, **kwargs):
         """Run inference on a given image using the specified model and arguments."""
-        visualize = (
-            increment_path(self.save_dir / Path(self.batch[0][0]).stem, mkdir=True)
-            if self.args.visualize and (not self.source_type.tensor)
-            else False
-        )
-        return self.model(im, *args, augment=self.args.augment, visualize=visualize, embed=self.args.embed, **kwargs)
+        skip = self.source_type.tensor or self.args.augment or self.args.embed  # unsupported with activation maps
+        if self.args.visualize and self.model.format == "pt" and not skip:
+            return class_activation_map(
+                self.model,
+                im,
+                self.batch[0],
+                self.save_dir,
+                *args,
+                conf=self.args.conf,
+                classes=self.args.classes,
+                **kwargs,
+            )
+        return self.model(im, *args, augment=self.args.augment, embed=self.args.embed, **kwargs)
 
     def pre_transform(self, im: list[np.ndarray]) -> list[np.ndarray]:
         """Pre-transform input image before inference.
@@ -311,18 +322,8 @@ class BasePredictor:
             if self.args.save or self.args.save_txt:
                 (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
-            # Warmup model
-            if not self.done_warmup:
-                self.model.warmup(
-                    imgsz=(
-                        1 if self.model.format in {"pt", "triton"} else self.dataset.bs,
-                        self.model.channels,
-                        *self.imgsz,
-                    )
-                )
-                self.done_warmup = True
-
-            self.seen, self.windows, self.batch = 0, [], None
+            self.seen, self.speed, self.pixels, self.windows, self.batch = 0, None, None, [], None
+            px = 0  # inference pixels summed per image, so a mixed-shape source averages rather than reports its last
             profilers = (
                 ops.Profile(device=self.device),
                 ops.Profile(device=self.device),
@@ -337,6 +338,10 @@ class BasePredictor:
                 # Preprocess
                 with profilers[0]:
                     im = self.preprocess(im0s)
+
+                if not self.done_warmup:
+                    self.model.warmup(im=im)
+                    self.done_warmup = True
 
                 # Inference
                 with profilers[1]:
@@ -355,6 +360,7 @@ class BasePredictor:
                 try:
                     for i in range(n):
                         self.seen += 1
+                        px += im.shape[2] * im.shape[3]
                         self.results[i].speed = {
                             "preprocess": profilers[0].dt * 1e3 / n,
                             "inference": profilers[1].dt * 1e3 / n,
@@ -378,6 +384,18 @@ class BasePredictor:
                 self.run_callbacks("on_predict_batch_end")
                 yield from self.results
 
+            # Final results, under the lock: seen is reset by every run, so reading it outside could divide this run's
+            # profilers by a concurrent run's count. px and profilers are locals and are already private to this run.
+            if seen := self.seen:
+                t = tuple(x.t / seen * 1e3 for x in profilers)  # speeds per image
+                self.speed = dict(zip(("preprocess", "inference", "postprocess"), t))
+                self.pixels = round(px / seen)  # mean area, pairing with speeds that are themselves per-image means
+                if self.args.verbose:
+                    LOGGER.info(
+                        f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
+                        f"{(min(self.args.batch, seen), getattr(self.model, 'channels', 3), *im.shape[2:])}" % t
+                    )
+
         # Release assets
         for v in self.vid_writer.values():
             if isinstance(v, cv2.VideoWriter):
@@ -386,13 +404,6 @@ class BasePredictor:
         if self.args.show:
             cv2.destroyAllWindows()  # close any open windows
 
-        # Print final results
-        if self.args.verbose and self.seen:
-            t = tuple(x.t / self.seen * 1e3 for x in profilers)  # speeds per image
-            LOGGER.info(
-                f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
-                f"{(min(self.args.batch, self.seen), getattr(self.model, 'channels', 3), *im.shape[2:])}" % t
-            )
         if self.args.save or self.args.save_txt or self.args.save_crop:
             nl = len(list(self.save_dir.glob("labels/*.txt")))  # number of labels
             s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ""
@@ -474,7 +485,6 @@ class BasePredictor:
                 boxes=self.args.show_boxes,
                 conf=self.args.show_conf,
                 labels=self.args.show_labels,
-                im_gpu=None if self.args.retina_masks else im[i],
             )
 
         # Save results

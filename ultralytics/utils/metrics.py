@@ -456,24 +456,26 @@ class ConfusionMatrix(DataExportMixin):
         else:
             matches = np.zeros((0, 3))
 
-        n = matches.shape[0] > 0
         m0, m1, _ = matches.transpose().astype(int)
+        # matches is deduplicated on both columns, so each gt and each detection appears at most once
+        gt_match = np.full(len(gt_classes), -1)
+        gt_match[m0] = m1
+        matched_det = set(m1.tolist())
         for i, gc in enumerate(gt_classes):
-            j = m0 == i
-            if n and sum(j) == 1:
-                dc = detection_classes[m1[j].item()]
+            if (di := gt_match[i].item()) >= 0:
+                dc = detection_classes[di]
                 self.matrix[dc, gc] += 1  # TP if class is correct else both an FP and an FN
                 if dc == gc:
-                    self._append_matches("TP", detections, m1[j].item())
+                    self._append_matches("TP", detections, di)
                 else:
-                    self._append_matches("FP", detections, m1[j].item())
+                    self._append_matches("FP", detections, di)
                     self._append_matches("FN", batch, i)
             else:
                 self.matrix[self.nc, gc] += 1  # FN
                 self._append_matches("FN", batch, i)
 
         for i, dc in enumerate(detection_classes):
-            if not any(m1 == i):
+            if i not in matched_det:
                 self.matrix[dc, self.nc] += 1  # FP
                 self._append_matches("FP", detections, i)
 

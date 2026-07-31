@@ -516,6 +516,39 @@ def _attention_ops(m, x, y):
     m.total_ops += b * area * m.num_heads * tokens * tokens * (key_dim + m.head_dim)
 
 
+def _contrastive_ops(m, x, y):
+    """Count the region-text similarity einsum of a contrastive head for THOP.
+
+    It pairs every spatial position with every text embedding over the channel axis functionally, so no child-module
+    hook observes it. A YOLOE head whose text embeddings have been fused into its classify branch keeps the module but
+    drops the einsum, and is charged nothing.
+    """
+    if not hasattr(m, "logit_scale"):
+        return  # reparameterized head: forward_fuse passes the features straight through
+    b, c, h, w = x[0].shape
+    m.total_ops += b * x[1].shape[1] * c * h * w
+
+
+def _max_sigmoid_ops(m, x, y):
+    """Count the guide-embedding einsum of a max-sigmoid attention block for THOP.
+
+    Same functional pairing as a contrastive head, but over the `nh * hc` channels the block re-projects its input to
+    rather than the channels it receives.
+    """
+    b, _, h, w = x[0].shape
+    m.total_ops += b * x[1].shape[1] * m.nh * m.hc * h * w
+
+
+def _image_pool_ops(m, x, y):
+    """Count the query-key and attention-value matmuls of image-pooling attention for THOP.
+
+    Both products run functionally between the text embeddings and the `nf` feature maps pooled to `k**2` patches each,
+    contracting `nh * hc` channels per output element.
+    """
+    text = x[1]
+    m.total_ops += 2 * text.shape[0] * m.nh * m.hc * text.shape[1] * m.k**2 * m.nf
+
+
 def get_flops(model, imgsz=640):
     """Calculate FLOPs (floating point operations) for a model in GFLOPs.
 
@@ -538,7 +571,15 @@ def get_flops(model, imgsz=640):
         return 0.0  # if not installed return 0.0 GFLOPs
 
     try:
-        from ultralytics.nn.modules.block import AAttn, Attention  # imported here: block.py imports this module
+        # imported here: block.py imports this module
+        from ultralytics.nn.modules.block import (
+            AAttn,
+            Attention,
+            BNContrastiveHead,
+            ContrastiveHead,
+            ImagePoolingAttn,
+            MaxSigmoidAttnBlock,
+        )
 
         model = unwrap_model(model)
         p = next(model.parameters())
@@ -547,9 +588,17 @@ def get_flops(model, imgsz=640):
         attn = tuple(m for m in model.modules() if isinstance(m, (Attention, AAttn)))
         # attention costs scale with the square of the image area, so a model carrying one is measured at full size;
         # stride= extrapolates from a stride-sized sample, which is affine in area and would land ~97% low on it.
+        # The open-vocabulary rules below stay affine in area, so they extrapolate correctly and need no full size.
         stride = None if attn else max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32  # max stride
         im = torch.empty((1, p.shape[1], *imgsz), device=p.device, dtype=p.dtype)  # input image in BCHW format
-        custom_ops = {Attention: _attention_ops, AAttn: _attention_ops} if attn else None
+        custom_ops = {
+            Attention: _attention_ops,
+            AAttn: _attention_ops,
+            ContrastiveHead: _contrastive_ops,
+            BNContrastiveHead: _contrastive_ops,
+            MaxSigmoidAttnBlock: _max_sigmoid_ops,
+            ImagePoolingAttn: _image_pool_ops,
+        }
         return thop.profile(model, inputs=[im], stride=stride, custom_ops=custom_ops, verbose=False)[0] / 1e9 * 2
     except Exception:
         return 0.0

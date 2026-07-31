@@ -269,11 +269,8 @@ class Compose:
         Examples:
             >>> transforms = [RandomFlip(), RandomPerspective(degrees=10, translate=0.1, scale=0.1)]
             >>> compose = Compose(transforms)
-            >>> print(compose)
-            Compose([
-                RandomFlip(),
-                RandomPerspective(degrees=10, translate=0.1, scale=0.1)
-            ])
+            >>> "RandomFlip" in repr(compose) and "RandomPerspective" in repr(compose)
+            True
         """
         return f"{self.__class__.__name__}({', '.join([f'{t}' for t in self.transforms])})"
 
@@ -422,8 +419,8 @@ class BaseMixTransform(BaseTransform):
             return labels
 
         mix_texts = [*labels["texts"], *(item for x in labels["mix_labels"] for item in x["texts"])]
-        mix_texts = list({tuple(x) for x in mix_texts})
-        text2id = {text: i for i, text in enumerate(mix_texts)}
+        mix_texts = [list(x) for x in dict.fromkeys(tuple(x) for x in mix_texts)]
+        text2id = {tuple(text): i for i, text in enumerate(mix_texts)}
 
         for label in [labels] + labels["mix_labels"]:
             for i, cls in enumerate(label["cls"].squeeze(-1).tolist()):
@@ -1427,7 +1424,7 @@ class RandomPerspective(BaseTransform):
             >>> box2 = np.array([[10, 10, 90, 90], [5, 5, 45, 45]]).T
             >>> candidates = random_perspective.box_candidates(box1, box2)
             >>> print(candidates)
-            [True True]
+            [ True  True]
         """
         w1, h1 = box1[2] - box1[0], box1[3] - box1[1]
         w2, h2 = box2[2] - box2[0], box2[3] - box2[1]

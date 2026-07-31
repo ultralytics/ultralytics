@@ -348,8 +348,8 @@ def test_analytics_graph_not_supported():
 
 def test_analytics_line_chart_accumulates_across_update_window():
     """Test that line-chart total_counts accumulates over update_every frames and resets only after graph update."""
-    update_every = 3
-    analytics = solutions.Analytics(analytics_type="line", update_every=update_every, show=SHOW)
+    analytics = solutions.Analytics(analytics_type="line", show=SHOW)
+    analytics.update_every = 3
     im0 = np.zeros((640, 480, 3), dtype=np.uint8)
 
     with patch.object(analytics, "extract_tracks", lambda im0: setattr(analytics, "boxes", [0, 1])):

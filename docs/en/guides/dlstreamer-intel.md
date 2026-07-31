@@ -35,7 +35,7 @@ Documentation](https://docs.openedgeplatform.intel.com/2026.1/edge-ai-libraries/
 
 Before you begin, ensure the following are installed and configured on your Intel system:
 
-- **Ubuntu 24.04** with Intel GPU/NPU drivers installed (check [installation guide](https://docs.openedgeplatform.intel.com/2026.1/edge-ai-libraries/dlstreamer/get_started/install/install_guide_ubuntu.html))
+- **Ubuntu 24.04** with Intel GPU/NPU drivers installed (check [installation guide](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/install/install_guide_ubuntu.html))
 
 - **docker engine** (check [installation guide](https://docs.docker.com/engine/install/ubuntu/))
 

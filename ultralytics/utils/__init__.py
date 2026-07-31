@@ -93,16 +93,16 @@ RKNN_CHIPS = frozenset(
         "rv1126b",
     }
 )  # Rockchip processors available for export
-QNN_HTP_ARCHS = frozenset(
-    {
-        "68",  # Snapdragon 888
-        "69",  # Snapdragon 8 Gen 1
-        "73",  # Snapdragon 8 Gen 2 / X Elite
-        "75",  # Snapdragon 8 Gen 3
-        "79",  # Snapdragon 8 Elite
-        "81",  # Snapdragon 8 Elite Gen 5
-    }
-)  # Qualcomm Hexagon HTP architecture versions available for QNN export
+QNN_HTP_TARGETS = {
+    "68": ("htp_arch", "68"),  # Snapdragon 888
+    "69": ("htp_arch", "69"),  # Snapdragon 8 Gen 1
+    "73": ("htp_arch", "73"),  # Snapdragon 8 Gen 2 / X Elite
+    "75": ("htp_arch", "75"),  # Snapdragon 8 Gen 3
+    "79": ("soc_model", "69"),  # Snapdragon 8 Elite (SM8750)
+    "81": ("htp_arch", "81"),  # Snapdragon 8 Elite Gen 5
+    "iq-8275": ("soc_model", "82"),  # Dragonwing IQ-8275
+    "qcs8275": ("soc_model", "82"),
+}  # Qualcomm Hexagon HTP targets and their ONNX Runtime QNN provider option
 HELP_MSG = """
     Examples for running Ultralytics:
 
@@ -498,11 +498,14 @@ def set_logging(name="LOGGING_NAME", verbose=True):
 
     # Create and configure the StreamHandler with the appropriate formatter and level
     stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.set_name("ultralytics.utils.set_logging")
     stream_handler.setFormatter(formatter)
     stream_handler.setLevel(level)
 
     # Set up the logger
     logger = logging.getLogger(name)
+    for h in [h for h in logger.handlers if h.name == stream_handler.name]:
+        logger.removeHandler(h)
     logger.setLevel(level)
     logger.addHandler(stream_handler)
     logger.propagate = False
@@ -1125,10 +1128,11 @@ class Retry(contextlib.ContextDecorator):
         ...     return True
     """
 
-    def __init__(self, times=3, delay=2):
+    def __init__(self, times=3, delay=2, verbose=True):
         """Initialize Retry class with specified number of retries and delay."""
         self.times = times
         self.delay = delay
+        self.verbose = verbose  # False when the caller's own logging would feed back into its retries
         self._attempts = 0
 
     def __call__(self, func):
@@ -1142,7 +1146,8 @@ class Retry(contextlib.ContextDecorator):
                     return func(*args, **kwargs)
                 except Exception as e:
                     self._attempts += 1
-                    LOGGER.warning(f"Retry {self._attempts}/{self.times} failed: {e}")
+                    if self.verbose:
+                        LOGGER.warning(f"Retry {self._attempts}/{self.times} failed: {e}")
                     if self._attempts >= self.times:
                         raise
                     time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay

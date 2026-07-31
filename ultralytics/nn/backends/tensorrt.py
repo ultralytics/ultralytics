@@ -110,6 +110,12 @@ class TensorRTBackend(BaseBackend):
             im = torch.from_numpy(np.empty(shape, dtype=dtype)).to(self.device)
             self.bindings[name] = Binding(name, dtype, shape, im, int(im.data_ptr()))
 
+        # DEIM engines built with TensorRT >=10.13 carry auxiliary outputs that exist only to break a faulty fusion
+        # (see `_add_deim_fusion_barrier`). They still need bindings, but must not reach postprocessing.
+        declared = (metadata or {}).get("output_names")
+        if declared:
+            self.output_names = [n for n in self.output_names if n in set(declared)]
+
         self.binding_addrs = OrderedDict((n, d.ptr) for n, d in self.bindings.items())
         self.model = engine
 

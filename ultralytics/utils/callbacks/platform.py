@@ -223,8 +223,7 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
     if model_id:
         payload["modelId"] = model_id
 
-    @Retry(times=retry, delay=1)
-    def post():
+    def send_once():
         global _api_key
         r = requests.post(
             f"{PLATFORM_API_URL}/training/metrics",
@@ -243,19 +242,23 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
                 # concern one model or run, and clearing a process-global key for those would silently
                 # kill Platform tracking for unrelated later runs in the same process.
                 _api_key = None
-            if event != "console_output":
-                # Never log a console_output failure: ConsoleLogger captures this warning, flushes it
-                # back as another console_output event, and it is rejected again — a self-feeding POST
-                # loop at every flush interval, for as long as the rejection lasts. Reporting the
-                # failure to ship logs *through the logs being shipped* is the loop. Any other event
-                # type still warns, so a persistent rejection is never silent.
+            # Logging a console_output failure feeds ConsoleLogger, which flushes it straight back as
+            # another console_output event that is rejected again — a self-feeding POST loop. A 401 is
+            # exempt: _api_key is now cleared, so _send short-circuits and the captured warning cannot
+            # produce another request, and staying silent would hide the shutdown from the user.
+            if event != "console_output" or r.status_code == 401:
                 LOGGER.warning(f"{PREFIX}{msg}")
             return None  # Don't retry client errors (except 408 timeout, 429 rate limit)
         r.raise_for_status()
         return r.json()
 
     try:
-        return post()
+        # Console chunks are sent once, unretried: Retry logs a warning per failed attempt, and for a
+        # console_output event ConsoleLogger captures that warning and flushes it back as the next
+        # chunk, so a persistent 5xx or transport failure would self-feed exactly like a 4xx. Losing a
+        # chunk costs nothing — the next flush carries the content. Only the debug line below runs on
+        # failure, and it is below the logger's level, so nothing re-enters the buffer.
+        return send_once() if event == "console_output" else Retry(times=retry, delay=1)(send_once)()
     except Exception as e:
         LOGGER.debug(f"{PREFIX}Failed to send {event}: {e}")
         return None

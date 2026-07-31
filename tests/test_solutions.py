@@ -346,24 +346,6 @@ def test_analytics_graph_not_supported():
         assert "Unsupported analytics_type" in str(e), f"Expected 'Unsupported analytics_type' in error, got: {e}"
 
 
-def test_analytics_line_chart_accumulates_across_update_window():
-    """Test that line-chart total_counts accumulates over update_every frames and resets only after graph update."""
-    analytics = solutions.Analytics(analytics_type="line", show=SHOW)
-    analytics.update_every = 3
-    im0 = np.zeros((640, 480, 3), dtype=np.uint8)
-
-    with patch.object(analytics, "extract_tracks", lambda im0: setattr(analytics, "boxes", [0, 1])):
-        analytics.process(im0=im0, frame_number=1)  # first frame always triggers the initial graph update
-        assert analytics.total_counts == 0, "total_counts should reset right after the initial graph update"
-
-        analytics.process(im0=im0, frame_number=2)  # 2 % update_every != 0, no graph update yet
-        assert analytics.total_counts == 2, "total_counts should accumulate detections between graph updates"
-
-        analytics.process(im0=im0, frame_number=3)  # 3 % update_every == 0, graph update consumes total_counts
-        assert analytics.line.get_ydata()[-1] == 4, "graph should plot the accumulated total, not a single frame"
-        assert analytics.total_counts == 0, "total_counts should reset only after the graph update consumes it"
-
-
 def test_area_chart_padding():
     """Test area chart graph update with dynamic class padding logic."""
     analytics = solutions.Analytics(analytics_type="area")

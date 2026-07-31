@@ -198,7 +198,7 @@ The below table represents the benchmark results for two different models (YOLO2
         | MNN           | ✅      | 9.4              | 0.4749      | 91.87                |
         | NCNN          | ✅      | 9.4              | 0.4784      | 67.03                 |
         | ExecuTorch    | ✅      | 9.4              | 0.4772      | 144.83                 |
-        | LiteRT        | ✅      | 9.8              | 0.4730      | 245.5                 |
+        | LiteRT        | ✅      | 9.8              | 0.4730      | 123.30                 |
 
     === "YOLO26s"
 
@@ -211,7 +211,7 @@ The below table represents the benchmark results for two different models (YOLO2
         | MNN           | ✅      | 36.4              | 0.5614      | 237.24                |
         | NCNN          | ✅      | 36.4              | 0.5684      | 172.88                |
         | ExecuTorch    | ✅      | 36.5              | 0.5670      | 376.48                |
-        | LiteRT        | ✅      | 36.8              | 0.5630      | 795.00                |
+        | LiteRT        | ✅      | 36.8              | 0.5630      | 360.00                |
 
     Benchmarked with Ultralytics 8.4.108
 

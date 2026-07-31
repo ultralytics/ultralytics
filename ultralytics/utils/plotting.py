@@ -604,7 +604,7 @@ class Annotator:
                     conf2 = kpts[(sk[1] - 1), 2]
                     if conf1 < conf_thres or conf2 < conf_thres:
                         continue
-                elif pos1 == (0, 0) or pos2 == (0, 0):  # (0, 0) marks a missing keypoint without a confidence channel
+                elif not (kpts[sk[0] - 1, :2].any() and kpts[sk[1] - 1, :2].any()):  # (0, 0) marks a missing keypoint
                     continue
                 if min(pos1 + pos2) < 0:
                     continue

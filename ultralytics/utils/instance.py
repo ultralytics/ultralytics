@@ -152,7 +152,7 @@ class Bboxes:
         """
         assert isinstance(boxes_list, (list, tuple))
         if not boxes_list:
-            return cls(np.empty(0))
+            return cls(np.empty((0, 4)))
         assert all(isinstance(box, Bboxes) for box in boxes_list)
 
         if len(boxes_list) == 1:
@@ -451,7 +451,7 @@ class Instances:
         """
         assert isinstance(instances_list, (list, tuple))
         if not instances_list:
-            return cls(np.empty(0))
+            return cls(np.empty((0, 4)))
         assert all(isinstance(instance, Instances) for instance in instances_list)
 
         if len(instances_list) == 1:

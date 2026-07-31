@@ -1794,6 +1794,14 @@ def torch_safe_load(weight, safe_only=None):
         # RuntimeError for a truncated zip, EOFError for an empty one, UnpicklingError for bytes that are not a
         # pickle at all (an image or archive renamed .pt). They are one user-facing condition, so they share one
         # handler and one message.
+        if isinstance(e, RuntimeError) and "TorchScript" in str(e):
+            raise TypeError(
+                emojis(
+                    f"ERROR ❌️ {weight} is a TorchScript archive, not an Ultralytics PyTorch checkpoint.\n"
+                    f"Load the original .pt weights, or export again with format='torchscript' and load that "
+                    f"file directly."
+                )
+            ) from e
         if isinstance(e, RuntimeError) and "PytorchStreamReader" not in str(e):
             raise  # an unrelated RuntimeError is a real failure, not a damaged file
         if safe_only and isinstance(e, pickle.UnpicklingError):

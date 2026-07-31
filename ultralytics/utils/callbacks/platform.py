@@ -104,7 +104,10 @@ def resolve_platform_uri(uri, hard=True):
     try:
         for attempt in range(5):
             try:
-                r = requests.head(url, headers=headers, allow_redirects=False, timeout=timeout)
+                # GET, not HEAD: a HEAD response carries no body by protocol, which discarded the
+                # actionable message the platform sends with every error. Success is a 302 with an
+                # empty body, so with allow_redirects=False this costs nothing on the hot path.
+                r = requests.get(url, headers=headers, allow_redirects=False, timeout=timeout)
                 if r.status_code in {408, 429} or r.status_code >= 500:
                     raise requests.exceptions.HTTPError(f"HTTP {r.status_code}", response=r)
                 break
@@ -141,9 +144,8 @@ def resolve_platform_uri(uri, hard=True):
     if r.status_code == 409:
         raise RuntimeError(f"Resource not ready: {uri}. Dataset may still be processing.")
 
-    # Unexpected response
-    r.raise_for_status()
-    raise RuntimeError(f"Unexpected response from platform for '{uri}': {r.status_code}")
+    # Unexpected response — surface the platform's own message rather than a bare status line
+    raise RuntimeError(f"Platform error for '{uri}' (HTTP {r.status_code}): {r.text[:500] or r.reason}")
 
 
 def _interp_plot(plot, n=101):
@@ -206,12 +208,15 @@ def _sanitize_json_value(value):
 
 def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
     """Send event to Platform endpoint with retry logic."""
+    if not _api_key:
+        return None
     payload = {"event": event, "project": project, "name": name, "data": _sanitize_json_value(data)}
     if model_id:
         payload["modelId"] = model_id
 
     @Retry(times=retry, delay=1)
     def post():
+        global _api_key
         r = requests.post(
             f"{PLATFORM_API_URL}/training/metrics",
             json=payload,
@@ -223,6 +228,11 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
                 msg = r.json().get("error", r.reason)
             except Exception:
                 msg = r.reason
+            if r.status_code in {401, 403, 404}:
+                # The key or the run is permanently gone, so disable the integration. Without this the
+                # warning below is captured by our own ConsoleLogger, flushed back as another
+                # console_output event, and rejected again — a self-feeding POST loop every flush.
+                _api_key = None
             LOGGER.warning(f"{PREFIX}{msg}")
             return None  # Don't retry client errors (except 408 timeout, 429 rate limit)
         r.raise_for_status()

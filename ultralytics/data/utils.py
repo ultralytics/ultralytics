@@ -519,7 +519,9 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
             data["val"] = data.pop("validation")  # replace 'validation' key with 'val' key
     if split and not data.get(split):
         raise FileNotFoundError(f"{dataset} '{split}:' images not found ❌")
-    if "names" not in data and "nc" not in data:
+    # Compare against None, not membership: a bare `names:` key parses to None, and `len(None)` below
+    # would raise an internal TypeError instead of the clear errors this block already raises.
+    if data.get("names") is None and data.get("nc") is None:
         raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
     if "nc" in data and not isinstance(data["nc"], int):
         try:
@@ -529,9 +531,9 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
             data["nc"] = int(nc)
         except (TypeError, ValueError):
             raise SyntaxError(emojis(f"{dataset} 'nc: {data['nc']}' must be an integer ❌."))
-    if "names" in data and "nc" in data and len(data["names"]) != data["nc"]:
+    if data.get("names") is not None and data.get("nc") is not None and len(data["names"]) != data["nc"]:
         raise SyntaxError(emojis(f"{dataset} 'names' length {len(data['names'])} and 'nc: {data['nc']}' must match."))
-    if "names" not in data:
+    if data.get("names") is None:
         data["names"] = [f"class_{i}" for i in range(data["nc"])]
     else:
         data["nc"] = len(data["names"])

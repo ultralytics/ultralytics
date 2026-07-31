@@ -156,8 +156,8 @@ def smart_request(
                 elif r.status_code == 429:  # rate limit
                     h = r.headers  # response headers
                     m = (
-                        f"Rate limit reached ({h['X-RateLimit-Remaining']}/{h['X-RateLimit-Limit']}). "
-                        f"Please retry after {h['Retry-After']}s."
+                        f"Rate limit reached ({h.get('X-RateLimit-Remaining', '?')}/{h.get('X-RateLimit-Limit', '?')}). "
+                        f"Please retry after {h.get('Retry-After', '?')}s."
                     )
                 if verbose:
                     LOGGER.warning(f"{PREFIX}{m} {HELP_MSG} ({r.status_code} #{code})")

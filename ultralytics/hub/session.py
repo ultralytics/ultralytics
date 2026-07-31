@@ -347,8 +347,8 @@ class HUBTrainingSession:
         elif response.status_code == HTTPStatus.TOO_MANY_REQUESTS:  # rate limit
             headers = response.headers
             return (
-                f"Rate limit reached ({headers['X-RateLimit-Remaining']}/{headers['X-RateLimit-Limit']}). "
-                f"Please retry after {headers['Retry-After']}s."
+                f"Rate limit reached ({headers.get('X-RateLimit-Remaining', '?')}/{headers.get('X-RateLimit-Limit', '?')}). "
+                f"Please retry after {headers.get('Retry-After', '?')}s."
             )
         else:
             try:

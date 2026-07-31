@@ -1039,10 +1039,25 @@ class BaseTrainer:
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
         use_muon = name == "MuSGD"
+        dense_only = use_muon and self.args.muon_dense_only
+        skip_muon = set()  # ids of the head's final box/cls conv weights, excluded from Muon when dense_only
+        if dense_only:
+            heads = [
+                b[k]
+                for m in unwrap_model(model).modules()  # Detect exposes its branches via one2many/one2one
+                for b in (getattr(m, "one2many", None), getattr(m, "one2one", None))
+                if b
+                for k in ("box_head", "cls_head")
+                if b.get(k)
+            ]
+            skip_muon = {id(s[-1].weight) for h in heads for s in h if isinstance(s[-1], nn.Conv2d)}
         for module_name, module in unwrap_model(model).named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
-                if param.ndim >= 2 and use_muon:
+                is_muon = param.ndim >= 2 and use_muon
+                if is_muon and dense_only:  # grouped/depthwise convs and output convs are not dense matrices
+                    is_muon = getattr(module, "groups", 1) == 1 and id(param) not in skip_muon
+                if is_muon:
                     g[3][fullname] = param  # muon params
                 elif "bias" in fullname:  # bias (no decay)
                     g[2][fullname] = param
@@ -1068,13 +1083,12 @@ class BaseTrainer:
                 "Request support for additional optimizers at https://github.com/ultralytics/ultralytics."
             )
 
-        num_params = [len(g[0]), len(g[1]), len(g[2])]  # number of param groups
+        num_params = [len(g[0]), len(g[1]), len(g[2]), len(g[3]) if use_muon else 0]  # number of param groups
         g[2] = {"params": g[2], **optim_args, "param_group": "bias"}
         g[0] = {"params": g[0], **optim_args, "weight_decay": decay, "param_group": "weight"}
         g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0, "param_group": "bn"}
         muon, sgd = (0.2, 1.0)
         if use_muon:
-            num_params[0] = len(g[3])  # update number of params
             g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True, "param_group": "muon"}
             import re
 
@@ -1090,10 +1104,13 @@ class BaseTrainer:
                 p2 = [v for k, v in p.items() if not pattern.search(k)]
                 g_.extend([{"params": p1, **x, "lr": lr * 3}, {"params": p2, **x}])
             g = g_
-        optimizer = getattr(optim, name, partial(MuSGD, muon=muon, sgd=sgd))(params=g)
+        optimizer = getattr(optim, name, partial(MuSGD, muon=muon, sgd=sgd, conv_scale=self.args.muon_conv_scale))(
+            params=g
+        )
 
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
             f"{num_params[1]} weight(decay=0.0), {num_params[0]} weight(decay={decay}), {num_params[2]} bias(decay=0.0)"
+            + (f", {num_params[3]} muon(decay={decay})" if use_muon else "")
         )
         return optimizer

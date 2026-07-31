@@ -54,6 +54,7 @@ def muon_update(
     momentum: torch.Tensor | list[torch.Tensor],
     beta: float = 0.95,
     nesterov: bool = True,
+    conv_scale: bool = True,
 ) -> torch.Tensor | list[torch.Tensor]:
     """Compute Muon optimizer updates with momentum and orthogonalization.
 
@@ -68,6 +69,9 @@ def muon_update(
         momentum (torch.Tensor | list[torch.Tensor]): Momentum buffer tensor(s), modified in-place.
         beta (float, optional): Momentum coefficient for exponential moving average. Default: 0.95.
         nesterov (bool, optional): Whether to use Nesterov momentum acceleration. Default: True.
+        conv_scale (bool, optional): Take the scale from the reshaped 2D matrix, so conv filters scale by sqrt(max(1,
+            out / (in * kh * kw))). False takes it from the raw tensor's last two dims, which leaves every
+            conv filter unscaled. Default: True.
 
     Returns:
         (torch.Tensor | list[torch.Tensor]): Orthogonalized update tensor(s), each with the gradient's shape and dtype.
@@ -84,7 +88,7 @@ def muon_update(
         - With Nesterov: update = beta * momentum + (1-beta) * grad.
         - Without Nesterov: update = momentum.
         - 4D tensors (conv filters) are reshaped to 2D as (out_channels, in_channels*height*width) for orthogonalization.
-        - Final updates are scaled by sqrt(max(1, rows / cols)) of that 2D matrix, as in the reference implementation.
+        - Final updates are scaled by sqrt(max(1, rows / cols)), taken from that 2D matrix when conv_scale.
     """
     single = isinstance(grad, torch.Tensor)
     grads, momentums = ([grad], [momentum]) if single else (grad, momentum)
@@ -98,7 +102,8 @@ def muon_update(
     buckets = {}  # group matrices transposed to rows <= cols by (rows,) for batched orthogonalization
     for i, u in enumerate(updates):
         m = u.view(len(u), -1) if u.ndim == 4 else u
-        scale = max(1, m.size(0) / m.size(1)) ** 0.5  # from the 2D matrix, i.e. (out, in * kh * kw) for conv filters
+        s = m if conv_scale else grads[i]  # 2D matrix (out, in * kh * kw) for conv filters, or the raw kernel
+        scale = max(1, s.size(-2) / s.size(-1)) ** 0.5
         transpose = m.size(0) > m.size(1)
         if transpose:
             m = m.T
@@ -125,10 +130,12 @@ class MuSGD(optim.Optimizer):
         params (Iterable): Parameters to optimize or dicts defining parameter groups.
         muon (float, optional): Weight factor for Muon updates in hybrid mode. Default: 0.5.
         sgd (float, optional): Weight factor for SGD updates in hybrid mode. Default: 0.5.
+        conv_scale (bool, optional): Scale conv Muon updates by their reshaped 2D matrix shape. Default: True.
 
     Attributes:
         muon (float): Scaling factor applied to Muon learning rate.
         sgd (float): Scaling factor applied to SGD learning rate in hybrid mode.
+        conv_scale (bool): Whether conv filter updates are scaled by their reshaped 2D matrix shape.
 
     Examples:
         >>> param_groups = [
@@ -170,6 +177,7 @@ class MuSGD(optim.Optimizer):
         use_muon: bool = False,
         muon: float = 0.5,
         sgd: float = 0.5,
+        conv_scale: bool = True,
     ):
         """Initialize MuSGD optimizer with hybrid Muon and SGD capabilities.
 
@@ -182,6 +190,8 @@ class MuSGD(optim.Optimizer):
             use_muon (bool): Whether to enable Muon updates.
             muon (float): Scaling factor for Muon component.
             sgd (float): Scaling factor for SGD component.
+            conv_scale (bool): Take the Muon update scale from the reshaped 2D matrix, scaling conv filters by
+                sqrt(max(1, out / (in * kh * kw))) instead of leaving them unscaled.
         """
         defaults = dict(
             lr=lr,
@@ -193,6 +203,7 @@ class MuSGD(optim.Optimizer):
         super().__init__(params, defaults)
         self.muon = muon
         self.sgd = sgd
+        self.conv_scale = conv_scale
 
     @torch.no_grad()
     def step(self, closure=None):
@@ -235,6 +246,7 @@ class MuSGD(optim.Optimizer):
                     [self.state[p]["momentum_buffer"] for p in params],
                     beta=momentum,
                     nesterov=nesterov,
+                    conv_scale=self.conv_scale,
                 )
                 torch._foreach_add_(params, updates, alpha=-(lr * self.muon))
                 buffers = [self.state[p]["momentum_buffer_SGD"] for p in params]

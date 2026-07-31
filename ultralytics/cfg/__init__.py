@@ -281,6 +281,8 @@ CFG_BOOL_KEYS = frozenset(
         "nms",
         "profile",
         "end2end",
+        "muon_dense_only",
+        "muon_conv_scale",
         "vfl",
         "vfl_o2m",
         "o2o_cls_hard",

@@ -98,6 +98,8 @@ lr0: 0.01 # (float) initial learning rate (SGD=1e-2, Adam/AdamW=1e-3)
 lrf: 0.01 # (float) final LR fraction; final LR = lr0 * lrf
 momentum: 0.937 # (float) SGD momentum or Adam beta1
 weight_decay: 0.0005 # (float) weight decay (L2 regularization)
+muon_dense_only: False # (bool) when optimizer='MuSGD', restrict the Muon group to dense matrices; grouped/depthwise convs and the head's final box/cls convs fall back to plain SGD
+muon_conv_scale: False # (bool) when optimizer='MuSGD', scale conv Muon updates by sqrt(max(1, out/(in*kh*kw))) from the reshaped 2D matrix as in reference Muon; False leaves conv updates unscaled
 warmup_epochs: 3.0 # (float) warmup epochs (fractions allowed)
 warmup_momentum: 0.8 # (float) initial momentum during warmup
 warmup_bias_lr: 0.1 # (float) bias learning rate during warmup

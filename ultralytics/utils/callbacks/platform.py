@@ -131,21 +131,27 @@ def resolve_platform_uri(uri, hard=True):
     if 300 <= r.status_code < 400 and "location" in r.headers:
         return r.headers["location"]  # Return signed URL
 
-    # Handle error responses
+    # Handle error responses. The platform sends an actionable message with every one of them — which a
+    # HEAD response could never carry — so append it to our own wording instead of discarding it.
+    try:
+        detail = str(r.json().get("error", "")).strip()
+    except Exception:
+        detail = r.text.strip()
+    detail = f" {detail[:500]}" if detail else ""
+
     if r.status_code == 401:
-        raise ValueError(f"Invalid ULTRALYTICS_API_KEY for '{uri}'")
+        raise ValueError(f"Invalid ULTRALYTICS_API_KEY for '{uri}'.{detail}")
     if r.status_code == 403:
-        raise PermissionError(f"Access denied for '{uri}'. Check dataset/model visibility settings.")
+        raise PermissionError(f"Access denied for '{uri}'. Check dataset/model visibility settings.{detail}")
     if r.status_code == 404:
         if hard:
-            raise FileNotFoundError(f"Not found on platform: {uri}")
-        LOGGER.warning(f"Not found on platform: {uri}")
+            raise FileNotFoundError(f"Not found on platform: {uri}.{detail}")
+        LOGGER.warning(f"Not found on platform: {uri}.{detail}")
         return None
     if r.status_code == 409:
-        raise RuntimeError(f"Resource not ready: {uri}. Dataset may still be processing.")
+        raise RuntimeError(f"Resource not ready: {uri}. Dataset may still be processing.{detail}")
 
-    # Unexpected response — surface the platform's own message rather than a bare status line
-    raise RuntimeError(f"Platform error for '{uri}' (HTTP {r.status_code}): {r.text[:500] or r.reason}")
+    raise RuntimeError(f"Platform error for '{uri}' (HTTP {r.status_code}).{detail or f' {r.reason}'}")
 
 
 def _interp_plot(plot, n=101):

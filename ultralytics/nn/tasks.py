@@ -1786,6 +1786,13 @@ def torch_safe_load(weight, safe_only=None):
                     return torch_load(file, map_location="cpu", weights_only=True)
             return torch_load(file, map_location="cpu")
 
+    # A TorchScript archive reaches us two ways: weights_only=True raises, while the default path silently
+    # returns a ScriptModule. One condition, one message.
+    torchscript_error = emojis(
+        f"ERROR ❌️ {weight} is a TorchScript archive, not an Ultralytics PyTorch checkpoint.\n"
+        f"Load the original .pt weights, or export again with format='torchscript' and load that file directly."
+    )
+
     try:
         ckpt = _load()
 
@@ -1795,13 +1802,7 @@ def torch_safe_load(weight, safe_only=None):
         # pickle at all (an image or archive renamed .pt). They are one user-facing condition, so they share one
         # handler and one message.
         if isinstance(e, RuntimeError) and "TorchScript archive" in str(e):
-            raise TypeError(
-                emojis(
-                    f"ERROR ❌️ {weight} is a TorchScript archive, not an Ultralytics PyTorch checkpoint.\n"
-                    f"Load the original .pt weights, or export again with format='torchscript' and load that "
-                    f"file directly."
-                )
-            ) from e
+            raise TypeError(torchscript_error) from e
         if isinstance(e, RuntimeError) and "PytorchStreamReader" not in str(e):
             raise  # an unrelated RuntimeError is a real failure, not a damaged file
         if safe_only and isinstance(e, pickle.UnpicklingError):
@@ -1864,6 +1865,9 @@ def torch_safe_load(weight, safe_only=None):
         )
         check_requirements(e.name)  # install missing module
         ckpt = torch_load(file, map_location="cpu")
+
+    if isinstance(ckpt, torch.jit.ScriptModule):
+        raise TypeError(torchscript_error)  # default path: torch.load dispatched to torch.jit.load and succeeded
 
     if not isinstance(ckpt, dict):
         # File is likely a YOLO instance saved with i.e. torch.save(model, "saved_model.pt")

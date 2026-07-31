@@ -84,7 +84,7 @@ def muon_update(
         - With Nesterov: update = beta * momentum + (1-beta) * grad.
         - Without Nesterov: update = momentum.
         - 4D tensors (conv filters) are reshaped to 2D as (out_channels, in_channels*height*width) for orthogonalization.
-        - Final updates are scaled by sqrt(max(1, dim[-2] / dim[-1])) to account for parameter dimensions.
+        - Final updates are scaled by sqrt(max(1, rows / cols)) of that 2D matrix, as in the reference implementation.
     """
     single = isinstance(grad, torch.Tensor)
     grads, momentums = ([grad], [momentum]) if single else (grad, momentum)
@@ -95,21 +95,21 @@ def muon_update(
         torch._foreach_add_(updates, grads, alpha=1 - beta)
     else:
         updates = list(momentums)
-    buckets = {}  # group matrices transposed to rows <= cols by (rows, scale) for batched orthogonalization
+    buckets = {}  # group matrices transposed to rows <= cols by (rows,) for batched orthogonalization
     for i, u in enumerate(updates):
         m = u.view(len(u), -1) if u.ndim == 4 else u
+        scale = max(1, m.size(0) / m.size(1)) ** 0.5  # from the 2D matrix, i.e. (out, in * kh * kw) for conv filters
         transpose = m.size(0) > m.size(1)
         if transpose:
             m = m.T
-        scale = max(1, grads[i].size(-2) / grads[i].size(-1)) ** 0.5
-        buckets.setdefault((m.size(0), scale, m.device, m.dtype), []).append((i, m, transpose))
-    for (_, scale, _, _), items in buckets.items():
-        n = max(m.size(1) for _, m, _ in items)
+        buckets.setdefault((m.size(0), m.device, m.dtype), []).append((i, m, transpose, scale))
+    for items in buckets.values():
+        n = max(m.size(1) for _, m, _, _ in items)
         # zero-pad columns so different shapes share one batched call (zeros stay zero through Newton-Schulz)
-        X = torch.stack([torch.nn.functional.pad(m, (0, n - m.size(1))) for _, m, _ in items])
-        X = zeropower_via_newtonschulz5(X).to(grads[items[0][0]].dtype).mul_(scale)
-        for j, (i, m, transpose) in enumerate(items):
-            x = X[j, :, : m.size(1)]
+        X = torch.stack([torch.nn.functional.pad(m, (0, n - m.size(1))) for _, m, _, _ in items])
+        X = zeropower_via_newtonschulz5(X).to(grads[items[0][0]].dtype)
+        for j, (i, m, transpose, scale) in enumerate(items):
+            x = X[j, :, : m.size(1)] * scale
             updates[i] = (x.T if transpose else x).reshape(grads[i].shape)
     return updates[0] if single else updates
 

@@ -869,6 +869,8 @@ def handle_yolo_solutions(args: list[str]) -> None:
                     break
         finally:
             cap.release()
+            if solution_name != "crop":
+                vw.release()
 
 
 def parse_key_value_pair(pair: str = "key=value") -> tuple:

@@ -104,9 +104,7 @@ def resolve_platform_uri(uri, hard=True):
     try:
         for attempt in range(5):
             try:
-                # GET, not HEAD: a HEAD response carries no body by protocol, which discarded the
-                # actionable message the platform sends with every error. Success is a 302 with an
-                # empty body, so with allow_redirects=False this costs nothing on the hot path.
+                # GET not HEAD: a HEAD response carries no body, so every platform error message was lost.
                 r = requests.get(url, headers=headers, allow_redirects=False, timeout=timeout)
                 if r.status_code in {408, 429} or r.status_code >= 500:
                     raise requests.exceptions.HTTPError(f"HTTP {r.status_code}", response=r)
@@ -131,11 +129,8 @@ def resolve_platform_uri(uri, hard=True):
     if 300 <= r.status_code < 400 and "location" in r.headers:
         return r.headers["location"]  # Return signed URL
 
-    # Handle error responses. The platform sends an actionable message with every one of them — which a
-    # HEAD response could never carry — so append it to our own wording instead of discarding it.
-    # Only the platform's own JSON `error` field is echoed. A non-JSON body is discarded rather than
-    # passed through: an intermediary proxy or WAF error page can quote the request's Authorization
-    # header, which would then land in the user's console and in any log they paste into an issue.
+    # Echo only the platform's own JSON `error`: a proxy or WAF error page can quote our Authorization
+    # header, and it would land in the user's console.
     try:
         detail = str(r.json().get("error", "")).strip()
     except Exception:
@@ -236,27 +231,19 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
                 msg = r.json().get("error", r.reason)
             except Exception:
                 msg = r.reason
+            # Only 401 is credential-scoped; 403/404 concern one run and must not disable the process.
             if r.status_code == 401:
-                # The credential itself is rejected, so every later request fails identically — disable
-                # the integration rather than keep sending. Only 401 is credential-scoped: 403 and 404
-                # concern one model or run, and clearing a process-global key for those would silently
-                # kill Platform tracking for unrelated later runs in the same process.
                 _api_key = None
-            # Logging a console_output failure feeds ConsoleLogger, which flushes it straight back as
-            # another console_output event that is rejected again — a self-feeding POST loop. A 401 is
-            # exempt: _api_key is now cleared, so _send short-circuits and the captured warning cannot
-            # produce another request, and staying silent would hide the shutdown from the user.
+            # A console_output failure must not be logged: ConsoleLogger flushes the warning back as the
+            # next chunk, which fails again. 401 is safe — the cleared key short-circuits _send.
             if event != "console_output" or r.status_code == 401:
                 LOGGER.warning(f"{PREFIX}{msg}")
             return None  # Don't retry client errors (except 408 timeout, 429 rate limit)
         r.raise_for_status()
         return r.json()
 
-    # A console_output send must emit nothing through the ultralytics logger at ANY level: ConsoleLogger
-    # captures whatever it emits and flushes it back as the next chunk, which fails the same way — a
-    # self-feeding loop. That includes Retry's per-attempt warning and the debug line below, which does
-    # reach the buffer whenever the logger is set to DEBUG. Retrying still has to happen: _flush_buffer
-    # clears the buffer before calling us, so a dropped chunk is gone for good.
+    # Same loop as above, so a console_output send stays silent at every level — including Retry's
+    # per-attempt warning. It must still retry: _flush_buffer clears the buffer before calling us.
     quiet = event == "console_output"
     try:
         return Retry(times=retry, delay=1, verbose=not quiet)(send_once)()

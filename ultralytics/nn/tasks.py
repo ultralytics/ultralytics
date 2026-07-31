@@ -1786,8 +1786,7 @@ def torch_safe_load(weight, safe_only=None):
                     return torch_load(file, map_location="cpu", weights_only=True)
             return torch_load(file, map_location="cpu")
 
-    # A TorchScript archive reaches us two ways: weights_only=True raises, while the default path silently
-    # returns a ScriptModule. One condition, one message.
+    # weights_only=True raises on a TorchScript archive; the default path returns a ScriptModule instead.
     torchscript_error = emojis(
         f"ERROR ❌️ {weight} is a TorchScript archive, not an Ultralytics PyTorch checkpoint.\n"
         f"Load the original .pt weights, or export again with format='torchscript' and load that file directly."

@@ -49,6 +49,7 @@ from pathlib import Path
 
 _REPO_ROOT = str(Path(__file__).resolve().parent)
 os.environ["PYTHONPATH"] = _REPO_ROOT + os.pathsep + os.environ.get("PYTHONPATH", "")
+os.environ.setdefault("OMP_NUM_THREADS", "1")  # before torch: BLAS pools size at init, ignore torch.set_num_threads
 
 import torch
 

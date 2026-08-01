@@ -299,8 +299,8 @@ class RefineDetectionTrainer(DetectionTrainer):
         if not isinstance(weights, nn.Module):
             return super().get_model(cfg, weights, verbose)
         head, names = weights.model[-1], self.data["names"]
-        src = {str(v).strip().lower(): k for k, v in weights.names.items()}
-        index = torch.tensor([src.get(str(v).strip().lower(), -1) for v in names.values()])
+        index = weights.cls_index_map(weights.names, names)
+        assert index is not None, "the pretrained model and the dataset must both name their classes"
         if head.nc != len(names) or not torch.equal(index, torch.arange(head.nc)):
             for cv3 in (head.cv3, getattr(head, "one2one_cv3", None)):
                 for i, seq in enumerate(cv3 or ()):
@@ -311,7 +311,9 @@ class RefineDetectionTrainer(DetectionTrainer):
                     conv.bias.data[index >= 0] = seq[-1].bias.data[index[index >= 0]]
                     seq[-1] = conv
             head.nc, head.no = len(names), len(names) + 4 * head.reg_max
-            LOGGER.info(f"Grew the cls head from {len(src)} to {len(names)} classes, {int((index < 0).sum())} new")
+            LOGGER.info(
+                f"Grew the cls head from {len(weights.names)} to {len(names)} classes, {int((index < 0).sum())} new"
+            )
         return weights
 
     def setup_model(self):
@@ -322,8 +324,13 @@ class RefineDetectionTrainer(DetectionTrainer):
         )
         model = unwrap_model(self.model)
         head, i = model.model[-1], len(model.model) - 1
-        if not isinstance(head, RefineDetect):  # already attached when resuming
-            classes = [self.args.classes] if isinstance(self.args.classes, int) else list(self.args.classes)
+        classes = [self.args.classes] if isinstance(self.args.classes, int) else list(self.args.classes)
+        if isinstance(head, RefineDetect):  # resumed run, or a model refined by an earlier run
+            assert head.refine_index.tolist() == classes, (
+                f"the model already refines classes {head.refine_index.tolist()}, which does not match "
+                f"classes={classes}. Pass those classes, or start from a model that refines no classes yet."
+            )
+        else:
             RefineDetect.attach(head, classes)
         freeze = [str(j) for j in range(i)]  # backbone and neck
         for name, _ in head.named_children():
@@ -339,19 +346,23 @@ class RefineDetectionTrainer(DetectionTrainer):
     def _setup_train(self):
         """Mask the gradients of the untuned classification rows and snapshot their weights."""
         super()._setup_train()
-        head = unwrap_model(self.model).model[-1]
-        tuned = set(head.refine_index.tolist())
-        rows = torch.tensor([c for c in range(head.nc) if c not in tuned], device=self.device)
+        tuned = set(unwrap_model(self.model).model[-1].refine_index.tolist())
         self.untuned_rows = []
-        for cv3 in (head.cv3, getattr(head, "one2one_cv3", None)):
-            for seq in cv3 or []:
-                for p in (seq[-1].weight, seq[-1].bias):
-                    p.register_hook(partial(self._mask_rows, rows=rows))
-                    self.untuned_rows.append((p, rows, p.detach()[rows].clone()))
+        # the EMA is restored as well: it is what gets validated and saved, and the optimizer moves the rows of the
+        # live model for the length of a step, which the EMA would otherwise average in
+        for model in (unwrap_model(self.model), self.ema.ema):
+            head = model.model[-1]
+            rows = torch.tensor([c for c in range(head.nc) if c not in tuned], device=self.device)
+            for cv3 in (head.cv3, getattr(head, "one2one_cv3", None)):
+                for seq in cv3 or []:
+                    for p in (seq[-1].weight, seq[-1].bias):
+                        if p.requires_grad:  # EMA parameters carry no gradient
+                            p.register_hook(partial(self._mask_rows, rows=rows))
+                        self.untuned_rows.append((p, rows, p.detach()[rows].clone()))
 
     def optimizer_step(self):
         """Step the optimizer, then undo its weight decay and momentum on the untuned classification rows."""
-        super().optimizer_step()
+        super().optimizer_step()  # also updates the EMA, restored below along with the model
         with torch.no_grad():
             for p, rows, weights in self.untuned_rows:
                 p[rows] = weights

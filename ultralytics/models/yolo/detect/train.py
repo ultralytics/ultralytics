@@ -334,8 +334,7 @@ class RefineDetectionTrainer(DetectionTrainer):
                 pe[:, index >= 0] = weights.pe[:, index[index >= 0]]
                 weights.pe = pe
             LOGGER.info(
-                f"Extended the cls head from {len(weights.names)} to {len(names)} classes, "
-                f"{int((index < 0).sum())} new"
+                f"Extended the cls head from {len(weights.names)} to {len(names)} classes, {int((index < 0).sum())} new"
             )
         return weights
 

@@ -29,15 +29,26 @@ def test_special_modes() -> None:
     run("yolo cfg")
 
 
-def test_settings_migration_preserves_api_key(tmp_path: Path) -> None:
-    """Verify settings schema changes retain valid existing values and remove retired keys."""
+@pytest.mark.parametrize("api_key", ["legacy_hub_key", "ul_" + "a" * 40])
+def test_settings_migration(tmp_path: Path, api_key: str) -> None:
+    """Verify schema migration preserves user settings and only retains Platform API keys."""
     from ultralytics.utils import SettingsManager
 
     settings_file = tmp_path / "settings.json"
-    settings_file.write_text(json.dumps({"settings_version": "0.0.6", "api_key": "ul_saved", "hub": True}))
+    settings_file.write_text(
+        json.dumps(
+            {
+                "settings_version": "0.0.6",
+                "runs_dir": "/custom/runs",
+                "api_key": api_key,
+                "hub": True,
+            }
+        )
+    )
     settings = SettingsManager(settings_file, version="0.0.7")
 
-    assert settings["api_key"] == "ul_saved"
+    assert settings["runs_dir"] == "/custom/runs"
+    assert settings["api_key"] == (api_key if api_key.startswith("ul_") else "")
     assert settings["settings_version"] == "0.0.7"
     assert "hub" not in settings
 

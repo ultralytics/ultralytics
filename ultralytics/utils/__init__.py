@@ -1439,6 +1439,8 @@ class SettingsManager(JSONDict):
                 f"{self.help_msg}"
             )
             valid = {k: v for k, v in self.items() if k in self.defaults and isinstance(v, type(self.defaults[k]))}
+            if not re.fullmatch(r"ul_[0-9a-f]{40}", valid.get("api_key", "")):
+                valid["api_key"] = ""  # discard legacy HUB keys, which cannot authenticate with Platform
             valid["settings_version"] = self.version
             self.clear()
             self.update({**self.defaults, **valid})

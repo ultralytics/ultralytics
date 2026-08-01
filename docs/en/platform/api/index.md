@@ -1993,7 +1993,7 @@ yolo check
 === "CLI (Recommended)"
 
     ```bash
-    yolo settings api_key=YOUR_API_KEY
+    yolo login YOUR_API_KEY
     ```
 
 === "Environment Variable"

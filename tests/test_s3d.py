@@ -1004,3 +1004,29 @@ def test_cost_volume_correlation_is_spatially_centred():
         costs.append(float(cv.to_disparity(out[:, :1]).median()))
     # Centred correlation keeps the readout responsive to disparity despite the DC offset.
     assert max(costs) - min(costs) > 1e-3, f"readout is flat across disparities: {costs}"
+
+
+def test_decode_anchor_count_ignores_single_scale_maps():
+    """`hw_total` must come from a per-anchor aux map, never from a single-scale map like cv_disparity.
+
+    The aux maps are [B, C, HW_total] and detections index into them by flat anchor index. The head also
+    emits cv_disparity on one scale's grid ([B, 1, H/8, W/8]); taking shape[2] off that yields the grid
+    HEIGHT, which silently clamps every detection into the first few anchors. It zeroes every 3D metric
+    while leaving 2D detection and all training losses untouched — so nothing else in this suite, and no
+    loss curve, reveals it.
+    """
+    import torch
+
+    from ultralytics.models.yolo.s3d.preprocess import PER_ANCHOR_AUX_KEYS
+
+    hw_total, h8, w8 = 6300, 48, 156
+    # cv_disparity deliberately FIRST, which is the dict order forward_head produces.
+    outputs = {
+        "cv_disparity": torch.zeros(1, 1, h8, w8),
+        "lr_distance": torch.zeros(1, 1, hw_total),
+        "depth": torch.zeros(1, 1, hw_total),
+        "dimensions": torch.zeros(1, 3, hw_total),
+    }
+    resolved = next((outputs[k].shape[2] for k in PER_ANCHOR_AUX_KEYS if k in outputs and outputs[k].ndim == 3), 0)
+    assert resolved == hw_total, f"resolved {resolved}, expected {hw_total} (cv_disparity would give {h8})"
+    assert "cv_disparity" not in PER_ANCHOR_AUX_KEYS

@@ -23,10 +23,14 @@ import torch
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.data.stereo.box3d import Box3D
-from ultralytics.models.yolo.s3d.head import DEPTH_BINS, DEPTH_MAX, DEPTH_MIN
+from ultralytics.models.yolo.s3d.head import AUX_SPECS, DEPTH_BINS, DEPTH_MAX, DEPTH_MIN
 from ultralytics.models.yolo.s3d.orientation import decode_orientation
 from ultralytics.utils import LOGGER
 from ultralytics.utils.nms import non_max_suppression
+
+# Head outputs carried per anchor as [B, C, HW_total]. Derived from the head's own spec so a new aux
+# branch is covered automatically; the two split-out channels are named separately by forward_head.
+PER_ANCHOR_AUX_KEYS = (*AUX_SPECS, "lr_logvar", "depth_bins")
 
 # =============================================================================
 # Configuration Defaults
@@ -199,6 +203,16 @@ def decode_stereo3d_outputs(
     results_per_batch: list[list[Box3D]] = []
     eps = 1e-6
 
+    # Anchor count for sampling the aux maps, which are all [B, C, HW_total]. Taken from the known
+    # per-anchor keys rather than "whatever key comes first": the head also emits maps on a single
+    # scale's grid (cv_disparity is [B, 1, H/8, W/8]), and reading shape[2] off one of those yields the
+    # grid HEIGHT, which then clamps every detection's flat index into the first few anchors and zeroes
+    # every 3D metric while leaving the 2D detections and all training losses untouched.
+    hw_total = next(
+        (outputs[k].shape[2] for k in PER_ANCHOR_AUX_KEYS if k in outputs and outputs[k].ndim == 3),
+        0,
+    )
+
     for b in range(bs):
         # Calibration per sample
         if calib is None or len(calib) == 0:
@@ -242,9 +256,6 @@ def decode_stereo3d_outputs(
             confidence = float(conf.item())
 
             # Map kept index -> flat index for sampling aux maps [B, C, HW_total]
-            # Find hw_total from any available aux key
-            _aux_keys = [k for k in outputs if k not in ("det", "boxes", "scores", "feats")]
-            hw_total = outputs[_aux_keys[0]].shape[2] if _aux_keys else 0
             if idx_b is not None and j < idx_b.numel():
                 flat_idx = int(idx_b[j].item())
                 flat_idx = max(0, min(hw_total - 1, flat_idx))

@@ -1379,7 +1379,7 @@ class SettingsManager(JSONDict):
         /new/runs/dir
     """
 
-    def __init__(self, file=SETTINGS_FILE, version="0.0.6"):
+    def __init__(self, file=SETTINGS_FILE, version="0.0.7"):
         """Initialize the SettingsManager with default settings and load user settings."""
         import hashlib
         import uuid
@@ -1403,7 +1403,6 @@ class SettingsManager(JSONDict):
             "clearml": True,  # ClearML integration
             "comet": True,  # Comet integration
             "dvc": True,  # DVC integration
-            "hub": True,  # Ultralytics HUB integration
             "mlflow": True,  # MLflow integration
             "neptune": True,  # Neptune integration
             "raytune": True,  # Ray Tune integration
@@ -1429,17 +1428,27 @@ class SettingsManager(JSONDict):
             self._validate_settings()
 
     def _validate_settings(self):
-        """Validate the current settings and reset if necessary."""
+        """Validate settings and migrate valid values to the current schema."""
         correct_keys = frozenset(self.keys()) == frozenset(self.defaults.keys())
         correct_types = all(isinstance(self.get(k), type(v)) for k, v in self.defaults.items())
         correct_version = self.get("settings_version", "") == self.version
 
         if not (correct_keys and correct_types and correct_version):
             LOGGER.warning(
-                "Ultralytics settings reset to default values. This may be due to a possible problem "
-                f"with your settings or a recent ultralytics package update. {self.help_msg}"
+                "Ultralytics settings updated to the latest schema. Existing values were preserved where possible. "
+                f"{self.help_msg}"
             )
-            self.reset()
+            valid = {k: v for k, v in self.items() if k in self.defaults and isinstance(v, type(self.defaults[k]))}
+            if not re.fullmatch(r"ul_[0-9a-f]{40}", valid.get("api_key", "")):
+                if valid.get("api_key"):
+                    LOGGER.warning(
+                        f"Legacy HUB API key removed. Get a Platform API key from {PLATFORM_URL}/settings?tab=api-keys "
+                        "and run 'yolo login API_KEY'."
+                    )
+                valid["api_key"] = ""  # discard legacy HUB keys, which cannot authenticate with Platform
+            valid["settings_version"] = self.version
+            self.clear()
+            self.update({**self.defaults, **valid})
 
         if self.get("datasets_dir") == self.get("runs_dir"):
             LOGGER.warning(

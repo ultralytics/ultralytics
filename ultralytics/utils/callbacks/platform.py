@@ -37,7 +37,6 @@ def slugify(text):
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS.get("platform", False) is True or os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
     _api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
     assert _api_key  # verify API key is present
 
@@ -399,7 +398,7 @@ def on_pretrain_routine_start(trainer):
     project, name = _get_project_name(trainer)
     LOGGER.info(f"{PREFIX}Streaming training metrics to Platform")
 
-    # Single dict for all platform callback state (like trainer.hub_session for HUB callbacks)
+    # Single dict for all platform callback state
     ctx = {
         "model_id": None,
         "run_id": None,

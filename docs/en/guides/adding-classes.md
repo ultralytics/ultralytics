@@ -22,40 +22,34 @@ This trainer freezes the whole model except a small branch on the detection head
 
 !!! tip "No suitable base model?"
 
-    If no trained model covers your domain, or the classes you need are far from anything a pretrained detector knows, use [YOLOE](../models/yoloe.md) instead. It detects classes from text prompts with no training at all, and `set_classes()` bakes your class list into the weights so [CLIP](https://www.ultralytics.com/glossary/contrastive-language-image-pre-training-clip) is not needed at inference:
+    If no trained model covers your domain, build the base model with [YOLOE](../models/yoloe.md). It names classes from text with no training, and `get_vocab()` bakes that class list into the classification head, leaving a plain detector that needs no [CLIP](https://www.ultralytics.com/glossary/contrastive-language-image-pre-training-clip) at inference and costs the same to run.
 
-    ```python
-    from ultralytics import YOLOE
-
-    names = ["person", "bus", "rhino"]  # every class the model should detect, in the order you want them indexed
-
-    model = YOLOE("yoloe-26n-seg.pt")
-    model.model.eval()
-    model.model.get_vocab(names)  # embeds the names and fuses them into the cls head
-    model.save("yoloe-fused.pt")
-
-    model = YOLOE("yoloe-fused.pt")
-    model.predict("https://ultralytics.com/images/bus.jpg")
-    ```
-
-    After fusing, the classification head is a plain convolution like a standard YOLO head, so inference costs the same.
-
-    A fused YOLOE **Detect** model can then be tuned with `RefineDetectionTrainer` like any other base model. Convert the segmentation checkpoint to a detection model first, as described in [YOLOE training](../models/yoloe.md#train-usage):
+    Convert the segmentation checkpoint to a detection model first, as described in [YOLOE training](../models/yoloe.md#train-usage), then fuse your class list into it:
 
     ```python
     from ultralytics import YOLOE
     from ultralytics.utils.patches import torch_load
 
-    names = ["person", "bus", "rhino"]  # the same full list of class names
+    names = ["person", "bus", "rhino"]  # every class the model should detect, in the dataset YAML order
 
-    model = YOLOE("yoloe-26n.yaml")
+    model = YOLOE("yoloe-26n.yaml")  # a Detect model, the released checkpoints are Segment
     model.load(torch_load("yoloe-26n-seg.pt")["model"])
     model.model.eval()
-    model.model.get_vocab(names)
+    model.model.get_vocab(names)  # embeds the names and fuses them into the cls head
     model.save("yoloe-det-fused.pt")
     ```
 
-    Segmentation checkpoints stay segmentation models and are not accepted, since this trainer is Detect only.
+    That checkpoint is then a base model like any other, so load it with `YOLO` and tune the classes that need it:
+
+    ```python
+    from ultralytics import YOLO
+    from ultralytics.models.yolo.detect import RefineDetectionTrainer
+
+    model = YOLO("yoloe-det-fused.pt")
+    model.train(data="data.yaml", epochs=50, classes=[2], trainer=RefineDetectionTrainer)  # tune "rhino"
+    ```
+
+    Keep `names` in the same order as the dataset YAML, so `classes` indexes the same list in both. Segmentation checkpoints stay segmentation models and are not accepted, since this trainer is Detect only.
 
 ## Quickstart
 

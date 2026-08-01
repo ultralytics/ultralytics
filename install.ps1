@@ -26,7 +26,7 @@ if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
 }
 
 Info "installing $package on Python $pythonVersion, this may take a few minutes..."
-uv tool install --upgrade --python $pythonVersion $package
+uv tool install --upgrade --python-preference only-managed --python $pythonVersion $package
 uv tool update-shell # add the tool directory to PATH for new terminals
 $env:Path = "$(uv tool dir --bin);$env:Path"
 

@@ -43,7 +43,7 @@ if ! has uv; then
 fi
 
 info "installing $package on Python $python_version, this may take a few minutes..."
-uv tool install --upgrade --python "$python_version" "$package"
+uv tool install --upgrade --python-preference only-managed --python "$python_version" "$package"
 uv tool update-shell || true # add the tool directory to PATH in your shell profile
 PATH="$(uv tool dir --bin 2> /dev/null || echo "$bin_dir"):$PATH"
 export PATH

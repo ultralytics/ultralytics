@@ -378,7 +378,7 @@ class BaseModel(torch.nn.Module):
         """
         src_names = getattr(src_model, "names", None)
         tgt_names = getattr(self, "names", None)
-        idx = self.cls_index_map(src_names, tgt_names)
+        idx = BaseModel.cls_index_map(src_names, tgt_names)
         if idx is None:
             return 0
         src_nc, tgt_nc = len(src_names), len(tgt_names)
@@ -953,7 +953,7 @@ class RTDETRDetectionModel(DetectionModel):
         """
         src_names = getattr(src_model, "names", None)
         tgt_names = getattr(self, "names", None)
-        idx = self.cls_index_map(src_names, tgt_names)
+        idx = BaseModel.cls_index_map(src_names, tgt_names)
         if idx is None:
             return 0
         tgt_nc = len(tgt_names)

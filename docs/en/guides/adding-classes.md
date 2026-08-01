@@ -4,7 +4,7 @@ description: Add a new class to a trained Ultralytics YOLO model, or tune an exi
 keywords: add class to YOLO, incremental learning, catastrophic forgetting, fine-tune single class, RefineDetectionTrainer, Ultralytics YOLO, object detection
 ---
 
-# Adding Classes to a Trained Model
+# Adding and Fine-Tuning Classes on a Trained Model
 
 `RefineDetectionTrainer` tunes the classes you name and leaves every other class of a trained detection model untouched. Use it to add a class a pretrained model does not have, or to improve one it already predicts, without collecting the original dataset again.
 

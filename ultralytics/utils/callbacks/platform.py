@@ -37,7 +37,6 @@ def slugify(text):
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS.get("platform", False) is True or os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
     _api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
     assert _api_key  # verify API key is present
 
@@ -104,7 +103,8 @@ def resolve_platform_uri(uri, hard=True):
     try:
         for attempt in range(5):
             try:
-                r = requests.head(url, headers=headers, allow_redirects=False, timeout=timeout)
+                # GET not HEAD: a HEAD response carries no body, so every platform error message was lost.
+                r = requests.get(url, headers=headers, allow_redirects=False, timeout=timeout)
                 if r.status_code in {408, 429} or r.status_code >= 500:
                     raise requests.exceptions.HTTPError(f"HTTP {r.status_code}", response=r)
                 break
@@ -128,22 +128,27 @@ def resolve_platform_uri(uri, hard=True):
     if 300 <= r.status_code < 400 and "location" in r.headers:
         return r.headers["location"]  # Return signed URL
 
-    # Handle error responses
+    # Echo only the platform's own JSON `error`: a proxy or WAF error page can quote our Authorization
+    # header, and it would land in the user's console.
+    try:
+        detail = str(r.json().get("error", "")).strip()
+    except Exception:
+        detail = ""
+    detail = f" {detail[:500]}" if detail else ""
+
     if r.status_code == 401:
-        raise ValueError(f"Invalid ULTRALYTICS_API_KEY for '{uri}'")
+        raise ValueError(f"Invalid ULTRALYTICS_API_KEY for '{uri}'.{detail}")
     if r.status_code == 403:
-        raise PermissionError(f"Access denied for '{uri}'. Check dataset/model visibility settings.")
+        raise PermissionError(f"Access denied for '{uri}'. Check dataset/model visibility settings.{detail}")
     if r.status_code == 404:
         if hard:
-            raise FileNotFoundError(f"Not found on platform: {uri}")
-        LOGGER.warning(f"Not found on platform: {uri}")
+            raise FileNotFoundError(f"Not found on platform: {uri}.{detail}")
+        LOGGER.warning(f"Not found on platform: {uri}.{detail}")
         return None
     if r.status_code == 409:
-        raise RuntimeError(f"Resource not ready: {uri}. Dataset may still be processing.")
+        raise RuntimeError(f"Resource not ready: {uri}. Dataset may still be processing.{detail}")
 
-    # Unexpected response
-    r.raise_for_status()
-    raise RuntimeError(f"Unexpected response from platform for '{uri}': {r.status_code}")
+    raise RuntimeError(f"Platform error for '{uri}' (HTTP {r.status_code}).{detail or f' {r.reason}'}")
 
 
 def _interp_plot(plot, n=101):
@@ -206,12 +211,14 @@ def _sanitize_json_value(value):
 
 def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
     """Send event to Platform endpoint with retry logic."""
+    if not _api_key:
+        return None
     payload = {"event": event, "project": project, "name": name, "data": _sanitize_json_value(data)}
     if model_id:
         payload["modelId"] = model_id
 
-    @Retry(times=retry, delay=1)
-    def post():
+    def send_once():
+        global _api_key
         r = requests.post(
             f"{PLATFORM_API_URL}/training/metrics",
             json=payload,
@@ -223,15 +230,25 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
                 msg = r.json().get("error", r.reason)
             except Exception:
                 msg = r.reason
-            LOGGER.warning(f"{PREFIX}{msg}")
+            # Only 401 is credential-scoped; 403/404 concern one run and must not disable the process.
+            if r.status_code == 401:
+                _api_key = None
+            # A console_output failure must not be logged: ConsoleLogger flushes the warning back as the
+            # next chunk, which fails again. 401 is safe — the cleared key short-circuits _send.
+            if event != "console_output" or r.status_code == 401:
+                LOGGER.warning(f"{PREFIX}{msg}")
             return None  # Don't retry client errors (except 408 timeout, 429 rate limit)
         r.raise_for_status()
         return r.json()
 
+    # Same loop as above, so a console_output send stays silent at every level — including Retry's
+    # per-attempt warning. It must still retry: _flush_buffer clears the buffer before calling us.
+    quiet = event == "console_output"
     try:
-        return post()
+        return Retry(times=retry, delay=1, verbose=not quiet)(send_once)()
     except Exception as e:
-        LOGGER.debug(f"{PREFIX}Failed to send {event}: {e}")
+        if not quiet:
+            LOGGER.debug(f"{PREFIX}Failed to send {event}: {e}")
         return None
 
 
@@ -258,6 +275,8 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
     """Publish a model checkpoint to its configured Platform storage location."""
     from ultralytics.utils.uploads import safe_upload
 
+    if not _api_key:
+        return None
     model_path = Path(model_path)
     if not model_path.exists():
         LOGGER.warning(f"{PREFIX}Model file not found: {model_path}")

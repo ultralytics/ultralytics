@@ -93,16 +93,16 @@ RKNN_CHIPS = frozenset(
         "rv1126b",
     }
 )  # Rockchip processors available for export
-QNN_HTP_ARCHS = frozenset(
-    {
-        "68",  # Snapdragon 888
-        "69",  # Snapdragon 8 Gen 1
-        "73",  # Snapdragon 8 Gen 2 / X Elite
-        "75",  # Snapdragon 8 Gen 3
-        "79",  # Snapdragon 8 Elite
-        "81",  # Snapdragon 8 Elite Gen 5
-    }
-)  # Qualcomm Hexagon HTP architecture versions available for QNN export
+QNN_HTP_TARGETS = {
+    "68": ("htp_arch", "68"),  # Snapdragon 888
+    "69": ("htp_arch", "69"),  # Snapdragon 8 Gen 1
+    "73": ("htp_arch", "73"),  # Snapdragon 8 Gen 2 / X Elite
+    "75": ("htp_arch", "75"),  # Snapdragon 8 Gen 3
+    "79": ("soc_model", "69"),  # Snapdragon 8 Elite (SM8750)
+    "81": ("htp_arch", "81"),  # Snapdragon 8 Elite Gen 5
+    "iq-8275": ("soc_model", "82"),  # Dragonwing IQ-8275
+    "qcs8275": ("soc_model", "82"),
+}  # Qualcomm Hexagon HTP targets and their ONNX Runtime QNN provider option
 HELP_MSG = """
     Examples for running Ultralytics:
 
@@ -279,11 +279,7 @@ class SimpleClass:
         ...         self.x = 10
         ...         self.y = "hello"
         >>> obj = MyClass()
-        >>> print(obj)
-        __main__.MyClass object with attributes:
-
-        x: 10
-        y: 'hello'
+        >>> text = str(obj)  # "<module>.MyClass object with attributes:" followed by "x: 10" and "y: 'hello'"
 
     Notes:
         - This class is designed to be subclassed. It provides a convenient way to inspect object attributes.
@@ -502,11 +498,14 @@ def set_logging(name="LOGGING_NAME", verbose=True):
 
     # Create and configure the StreamHandler with the appropriate formatter and level
     stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.set_name("ultralytics.utils.set_logging")
     stream_handler.setFormatter(formatter)
     stream_handler.setLevel(level)
 
     # Set up the logger
     logger = logging.getLogger(name)
+    for h in [h for h in logger.handlers if h.name == stream_handler.name]:
+        logger.removeHandler(h)
     logger.setLevel(level)
     logger.addHandler(stream_handler)
     logger.propagate = False
@@ -1018,7 +1017,7 @@ def colorstr(*input):
 
     Examples:
         >>> colorstr("blue", "bold", "hello world")
-        "\033[34m\033[1mhello world\033[0m"
+        '\x1b[34m\x1b[1mhello world\x1b[0m'
 
     Notes:
         Supported Colors and Styles:
@@ -1066,7 +1065,7 @@ def remove_colorstr(input_string):
 
     Examples:
         >>> remove_colorstr(colorstr("blue", "bold", "hello world"))
-        "hello world"
+        'hello world'
     """
     ansi_escape = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
     return ansi_escape.sub("", input_string)
@@ -1129,10 +1128,11 @@ class Retry(contextlib.ContextDecorator):
         ...     return True
     """
 
-    def __init__(self, times=3, delay=2):
+    def __init__(self, times=3, delay=2, verbose=True):
         """Initialize Retry class with specified number of retries and delay."""
         self.times = times
         self.delay = delay
+        self.verbose = verbose  # False when the caller's own logging would feed back into its retries
         self._attempts = 0
 
     def __call__(self, func):
@@ -1146,7 +1146,8 @@ class Retry(contextlib.ContextDecorator):
                     return func(*args, **kwargs)
                 except Exception as e:
                     self._attempts += 1
-                    LOGGER.warning(f"Retry {self._attempts}/{self.times} failed: {e}")
+                    if self.verbose:
+                        LOGGER.warning(f"Retry {self._attempts}/{self.times} failed: {e}")
                     if self._attempts >= self.times:
                         raise
                     time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay
@@ -1427,17 +1428,20 @@ class SettingsManager(JSONDict):
             self._validate_settings()
 
     def _validate_settings(self):
-        """Validate the current settings and reset if necessary."""
+        """Validate settings and migrate valid values to the current schema."""
         correct_keys = frozenset(self.keys()) == frozenset(self.defaults.keys())
         correct_types = all(isinstance(self.get(k), type(v)) for k, v in self.defaults.items())
         correct_version = self.get("settings_version", "") == self.version
 
         if not (correct_keys and correct_types and correct_version):
             LOGGER.warning(
-                "Ultralytics settings reset to default values. This may be due to a possible problem "
-                f"with your settings or a recent ultralytics package update. {self.help_msg}"
+                "Ultralytics settings updated to the latest schema. Existing values were preserved where possible. "
+                f"{self.help_msg}"
             )
-            self.reset()
+            valid = {k: v for k, v in self.items() if k in self.defaults and isinstance(v, type(self.defaults[k]))}
+            valid["settings_version"] = self.version
+            self.clear()
+            self.update({**self.defaults, **valid})
 
         if self.get("datasets_dir") == self.get("runs_dir"):
             LOGGER.warning(

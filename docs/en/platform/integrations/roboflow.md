@@ -32,8 +32,8 @@ Roboflow projects are mapped to the matching [YOLO task type](../data/index.md#s
 | --------------------------- | -------------------------------------------- |
 | Object Detection            | [Detect](../../datasets/detect/index.md)     |
 | Instance Segmentation       | [Segment](../../datasets/segment/index.md)   |
-| Keypoint Detection          | [Pose](../../datasets/pose/index.md)         |
 | Single-Label Classification | [Classify](../../datasets/classify/index.md) |
+| Keypoint Detection          | [Pose](../../datasets/pose/index.md)         |
 
 !!! note "Where to find your Roboflow API key"
 

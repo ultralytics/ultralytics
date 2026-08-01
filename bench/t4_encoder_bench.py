@@ -91,6 +91,7 @@ INTERNAL_RUNS = {
 EXPLORATORY_YAMLS = {
     "ultravit-l-stagematch-cls": "yolo26l-ultravit-290726-stagematch-cls.yaml",
     "ultravit-l-stagematch-deep-cls": "yolo26l-ultravit-290726-stagematch-deep-cls.yaml",
+    "ultravit-l-stagematch-p4deep-cls": "yolo26l-ultravit-290726-stagematch-p4deep-cls.yaml",
     "ultravit-l-deepbal-cls": "yolo26l-ultravit-290726-deepbal-cls.yaml",
     "ultravit-l-deepbal-p5lean-cls": "yolo26l-ultravit-290726-deepbal-p5lean-cls.yaml",
 }

@@ -54,7 +54,29 @@ Request an Enterprise License for commercial use at [Ultralytics Licensing](http
 
     [:octicons-arrow-right-24: Learn more](guides/knowledge-distillation.md)
 
+<div class="ult-hero" markdown>
+
+## One-Line Install
+
+Run one command and you are done. The script installs Python for you if you do not have it, then installs the `yolo` command.
+
+=== "macOS and Linux"
+
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/ultralytics/ultralytics/main/install.sh | sh
+    ```
+
+=== "Windows"
+
+    ```powershell
+    powershell -c "irm https://raw.githubusercontent.com/ultralytics/ultralytics/main/install.ps1 | iex"
+    ```
+
+</div>
+
 ## Get Started in Two Commands
+
+Already have Python? Install the package with pip instead.
 
 ```bash
 # Install the ultralytics package from PyPI

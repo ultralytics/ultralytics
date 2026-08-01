@@ -6,6 +6,34 @@ keywords: Ultralytics, YOLO26, YOLO11, Install Ultralytics, pip, conda, Docker, 
 
 # Install Ultralytics
 
+<div class="ult-hero" markdown>
+
+## One-Line Install
+
+Run one command and you are done. The script installs Python for you if you do not have it, then installs the `yolo` command.
+
+=== "macOS and Linux"
+
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/ultralytics/ultralytics/main/install.sh | sh
+    ```
+
+=== "Windows"
+
+    ```powershell
+    powershell -c "irm https://raw.githubusercontent.com/ultralytics/ultralytics/main/install.ps1 | iex"
+    ```
+
+Then run your first prediction:
+
+```bash
+yolo predict model=yolo26n.pt source=https://ultralytics.com/images/bus.jpg
+```
+
+</div>
+
+The script uses [uv](https://docs.astral.sh/uv/) to download a private Python 3.12 and install `ultralytics` in its own environment, so it does not touch any Python you already have. Set `ULTRALYTICS_PYTHON` to pick a different Python version. To use Ultralytics as a library inside your own project, use one of the methods below instead.
+
 Ultralytics offers a variety of installation methods, including pip, conda, and Docker. You can install YOLO via the `ultralytics` pip package for the latest stable release, or by cloning the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) for the most current version. Docker is also an option to run the package in an isolated container, which avoids local installation.
 
 <p align="center">

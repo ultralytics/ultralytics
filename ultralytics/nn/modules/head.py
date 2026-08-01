@@ -1907,18 +1907,20 @@ class v10Detect(Detect):
 class RefineDetect(Detect):
     """Detect head with an extra branch that refines the predictions of a subset of classes.
 
-    The branch reads the same neck features as `cv2`/`cv3` and predicts a class logit delta for the refined classes plus
-    a box distribution delta gated by the refined class confidence. It is zero-initialized, so an attached head starts
-    out numerically identical to the head it replaces, and it lets a few classes be tuned while the base head stays
-    frozen. Heads are converted in place with `attach` instead of being built by `parse_model`.
+    A branch reads the same neck features as `cv2`/`cv3` and predicts a class logit delta for the classes it refines
+    plus a box distribution delta gated by their confidence. It is zero-initialized, so an attached head starts out
+    numerically identical to the head it replaces, and it lets a few classes be tuned while the base head stays frozen.
+    Heads are converted in place with `attach` instead of being built by `parse_model`, and `attach` stacks a further
+    branch on an already converted head so classes can be added in more than one session.
 
     Attributes:
-        refine_index (torch.Tensor): Indices of the classes predicted by the refinement branch.
-        refine (nn.ModuleList): One-to-many refinement branch, one sequence per detection layer.
-        one2one_refine (nn.ModuleList): One-to-one refinement branch, present on end-to-end heads only.
+        refine_index (torch.Tensor): Class indices of all branches, concatenated in branch order.
+        refine_splits (torch.Tensor): Number of classes each branch refines.
+        refine (nn.ModuleList): One-to-many refinement branches, each holding one sequence per detection layer.
+        one2one_refine (nn.ModuleList): One-to-one refinement branches, present on end-to-end heads only.
 
     Methods:
-        attach: Convert a Detect head in place into a RefineDetect head.
+        attach: Convert a Detect head in place into a RefineDetect head, or stack a branch on one.
         forward_head: Add the refinement branch outputs to the base head predictions.
 
     Examples:
@@ -1928,13 +1930,19 @@ class RefineDetect(Detect):
 
     @classmethod
     def attach(cls, head: Detect, classes: list[int]) -> None:
-        """Convert a Detect head in place into a RefineDetect head with a zero-initialized refinement branch.
+        """Add a zero-initialized refinement branch, converting the head in place on the first call.
 
         Args:
             head (Detect): Head to convert, taken from a detection model.
-            classes (list[int]): Class indices the refinement branch predicts.
+            classes (list[int]): Class indices the new branch predicts.
         """
-        assert type(head) in {Detect, v10Detect}, f"RefineDetect supports Detect heads only, not {type(head).__name__}"
+        stacked = isinstance(head, RefineDetect)  # a branch from an earlier session is already attached
+        assert stacked or type(head) in {Detect, v10Detect, YOLOEDetect}, (
+            f"RefineDetect supports Detect heads only, not {type(head).__name__}"
+        )
+        assert not isinstance(head, YOLOEDetect) or head.is_fused, (
+            "the YOLOE head must have its classes fused in first, see YOLOEModel.get_vocab()"
+        )
         assert max(classes) < head.nc, f"classes={classes} out of range for a {head.nc}-class head"
         ch = [m[0].conv.in_channels for m in head.cv2]  # neck channels, one per detection layer
         no = len(classes) + 4 * head.reg_max  # refinement branch outputs per anchor
@@ -1950,29 +1958,54 @@ class RefineDetect(Detect):
             for m in branch:
                 nn.init.zeros_(m[-1].weight)
                 nn.init.zeros_(m[-1].bias)
-            head.add_module(name, branch)
-        head.register_buffer("refine_index", torch.tensor(classes, dtype=torch.long), persistent=True)
-        head.__class__ = cls
+            if stacked:
+                getattr(head, name).append(branch)
+            else:
+                head.add_module(name, nn.ModuleList([branch]))
+        index = torch.tensor(classes, dtype=torch.long)
+        splits = torch.tensor([len(classes)], dtype=torch.long)
+        if stacked:
+            index = torch.cat([head.refine_index, index.to(head.refine_index)])
+            splits = torch.cat([head.refine_splits, splits.to(head.refine_splits)])
+        head.register_buffer("refine_index", index, persistent=True)
+        head.register_buffer("refine_splits", splits, persistent=True)
+        if not stacked:
+            head.__class__ = RefineYOLOEDetect if isinstance(head, YOLOEDetect) else cls
 
     def forward_head(
-        self, x: list[torch.Tensor], box_head: torch.nn.Module = None, cls_head: torch.nn.Module = None
+        self, x: list[torch.Tensor], box_head: torch.nn.Module = None, cls_head: torch.nn.Module = None, **kwargs
     ) -> dict[str, torch.Tensor]:
         """Add the refinement branch class and box deltas to the base head predictions."""
-        preds = super().forward_head(x, box_head=box_head, cls_head=cls_head)
+        preds = super().forward_head(x, box_head=box_head, cls_head=cls_head, **kwargs)
         if not preds:  # fused head, nothing to refine
             return preds
         refine = self.refine if cls_head is self.cv3 else self.one2one_refine
-        bs, nr = x[0].shape[0], len(self.refine_index)
-        r = torch.cat([refine[i](x[i]).view(bs, nr + 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
-        scores = preds["scores"].index_add(1, self.refine_index, r[:, :nr])
-        gate = scores.index_select(1, self.refine_index).sigmoid().amax(1, keepdim=True).detach()
-        preds["scores"], preds["boxes"] = scores, preds["boxes"] + gate * r[:, nr:]
+        feats = preds["feats"]  # the feature maps alone, YOLOE heads also take text embeddings in x
+        bs, scores, boxes, start = feats[0].shape[0], preds["scores"], preds["boxes"], 0
+        for branch, nr in zip(refine, self.refine_splits.tolist()):
+            r = torch.cat([branch[i](feats[i]).view(bs, nr + 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
+            index = self.refine_index[start : start + nr]
+            scores = scores.index_add(1, index, r[:, :nr])
+            gate = scores.index_select(1, index).sigmoid().amax(1, keepdim=True).detach()
+            boxes = boxes + gate * r[:, nr:]
+            start += nr
+        preds["scores"], preds["boxes"] = scores, boxes
         return preds
 
     def fuse(self) -> None:
         """Remove the one2many head and its refinement branch for inference optimization."""
         super().fuse()
         self.refine = None
+
+
+class RefineYOLOEDetect(RefineDetect, YOLOEDetect):
+    """RefineDetect for a YOLOE head whose classes are already fused into the classification branch."""
+
+    def fuse(self, txt_feats: torch.Tensor = None) -> None:
+        """Remove the one2many head and its refinement branch for inference optimization."""
+        YOLOEDetect.fuse(self, txt_feats)
+        if txt_feats is None:
+            self.refine = None
 
 
 class SemanticSegment(nn.Module):

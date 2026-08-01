@@ -35,7 +35,22 @@ This trainer freezes the whole model except a small branch on the detection head
     model.predict("https://ultralytics.com/images/bus.jpg")
     ```
 
-    After fusing, the classification head is a plain convolution like a standard YOLO head, so inference costs the same. The checkpoint stays a YOLOE model and cannot be passed to `RefineDetectionTrainer`.
+    After fusing, the classification head is a plain convolution like a standard YOLO head, so inference costs the same.
+
+    A fused YOLOE **detect** model can then be tuned with `RefineDetectionTrainer` like any other base model. Convert the segmentation checkpoint to a detection model first, as described in [YOLOE training](../models/yoloe.md#train-usage):
+
+    ```python
+    from ultralytics import YOLOE
+    from ultralytics.utils.patches import torch_load
+
+    model = YOLOE("yoloe-26n.yaml")
+    model.load(torch_load("yoloe-26n-seg.pt")["model"])
+    model.model.eval()
+    model.model.get_vocab(names)  # your full class list
+    model.save("yoloe-det-fused.pt")
+    ```
+
+    Segmentation checkpoints stay segmentation models and are not accepted, since this trainer is detect only.
 
 ## Quickstart
 
@@ -136,7 +151,18 @@ Far fewer than a full retrain, because only a small branch is being trained. A f
 
 ### Can I add a second class later?
 
-Not to the same checkpoint. Training from a model that already refines a different set of classes is rejected rather than silently tuning the old set. Add all the classes you need in one run by passing them together, for example `classes=[80, 81]`.
+Yes. Training a model that was already tuned stacks a second branch on it and freezes the first, so the classes of the earlier session keep their predictions:
+
+```python
+from ultralytics import YOLO
+from ultralytics.models.yolo.detect import RefineDetectionTrainer
+
+# session 1 adds class 80, session 2 adds class 81 and keeps class 80
+model = YOLO("runs/detect/train/weights/best.pt")
+model.train(data="data-2.yaml", epochs=50, classes=[81], trainer=RefineDetectionTrainer)
+```
+
+Each session adds another branch and about 1% inference cost, so pass the classes together as `classes=[80, 81]` when you know them up front.
 
 ### Why is my new class not detected at all?
 

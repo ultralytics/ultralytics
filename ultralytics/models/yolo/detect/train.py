@@ -268,6 +268,10 @@ class RefineDetectionTrainer(DetectionTrainer):
     the dataset and restricts validation to them. The dataset YAML must therefore define all classes of the pretrained
     model plus any new one, in the order the tuned model should use: classes missing from it are dropped from the head.
 
+    Training an already tuned model stacks a second branch on it and freezes the first, so classes can be added in
+    several sessions, each keeping the classes of the sessions before it. Every branch costs about 1% of inference, so
+    prefer passing the classes together when they are known up front.
+
     Examples:
         >>> from ultralytics import YOLO
         >>> from ultralytics.models.yolo.detect import RefineDetectionTrainer
@@ -279,6 +283,11 @@ class RefineDetectionTrainer(DetectionTrainer):
     def _mask_rows(grad: torch.Tensor, rows: torch.Tensor) -> torch.Tensor:
         """Zero the gradient rows of the classes that are not tuned."""
         return grad.index_fill(0, rows, 0.0)
+
+    @staticmethod
+    def _refined_classes(head) -> list[int] | None:
+        """Return the classes of the head's newest refinement branch, or None if it has none."""
+        return head.refine_index[-int(head.refine_splits[-1]) :].tolist() if isinstance(head, RefineDetect) else None
 
     def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True):
         """Return the pretrained model with its classification head grown to the classes of the dataset.
@@ -311,6 +320,10 @@ class RefineDetectionTrainer(DetectionTrainer):
                     conv.bias.data[index >= 0] = seq[-1].bias.data[index[index >= 0]]
                     seq[-1] = conv
             head.nc, head.no = len(names), len(names) + 4 * head.reg_max
+            if getattr(weights, "pe", None) is not None:  # a fused YOLOE head reads its class count off these
+                pe = torch.zeros(weights.pe.shape[0], len(names), weights.pe.shape[2]).to(weights.pe)
+                pe[:, index >= 0] = weights.pe[:, index[index >= 0]]
+                weights.pe = pe
             LOGGER.info(
                 f"Grew the cls head from {len(weights.names)} to {len(names)} classes, {int((index < 0).sum())} new"
             )
@@ -325,17 +338,13 @@ class RefineDetectionTrainer(DetectionTrainer):
         model = unwrap_model(self.model)
         head, i = model.model[-1], len(model.model) - 1
         classes = [self.args.classes] if isinstance(self.args.classes, int) else list(self.args.classes)
-        if isinstance(head, RefineDetect):  # resumed run, or a model refined by an earlier run
-            assert head.refine_index.tolist() == classes, (
-                f"the model already refines classes {head.refine_index.tolist()}, which does not match "
-                f"classes={classes}. Pass those classes, or start from a model that refines no classes yet."
-            )
-        else:
+        if self._refined_classes(head) != classes:  # a resumed run already carries the branch for these classes
             RefineDetect.attach(head, classes)
         freeze = [str(j) for j in range(i)]  # backbone and neck
         for name, _ in head.named_children():
             if name in {"refine", "one2one_refine"}:
-                continue  # the refinement branch is the only fully trainable module
+                freeze += [f"{i}.{name}.{b}" for b in range(len(getattr(head, name)) - 1)]  # earlier sessions
+                continue  # the branch of this session is the only fully trainable module
             # cls branches keep their last layer trainable, its untuned rows are masked in optimizer_step()
             freeze += (
                 [f"{i}.{name}.{s}.{k}" for s in range(head.nl) for k in (0, 1)] if "cv3" in name else [f"{i}.{name}"]
@@ -346,7 +355,7 @@ class RefineDetectionTrainer(DetectionTrainer):
     def _setup_train(self):
         """Mask the gradients of the untuned classification rows and snapshot their weights."""
         super()._setup_train()
-        tuned = set(unwrap_model(self.model).model[-1].refine_index.tolist())
+        tuned = set(self._refined_classes(unwrap_model(self.model).model[-1]))  # classes of this session only
         self.untuned_rows = []
         # the EMA is restored as well: it is what gets validated and saved, and the optimizer moves the rows of the
         # live model for the length of a step, which the EMA would otherwise average in

@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Classifier twin of the L-only narrow P4-deep YOLO26 stage-matched arm.
+# Classifier twin of UltraViT 010826-1, the L-only narrow P4-deep stage-matched arm.
 
 nc: 1000
 

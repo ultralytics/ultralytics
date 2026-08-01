@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# L-only depth-first YOLO26 stage-matched arm with the production detector head unchanged.
+# UltraViT 010826-2, the L-only depth-first stage-matched arm with the production detector head unchanged.
 
 nc: 80
 end2end: True

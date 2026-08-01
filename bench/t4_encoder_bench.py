@@ -90,8 +90,8 @@ INTERNAL_RUNS = {
 
 EXPLORATORY_YAMLS = {
     "ultravit-l-stagematch-cls": "yolo26l-ultravit-290726-stagematch-cls.yaml",
-    "ultravit-l-stagematch-deep-cls": "yolo26l-ultravit-290726-stagematch-deep-cls.yaml",
-    "ultravit-l-stagematch-p4deep-cls": "yolo26l-ultravit-290726-stagematch-p4deep-cls.yaml",
+    "ultravit-l-010826-1-cls": "yolo26l-ultravit-010826-1-cls.yaml",
+    "ultravit-l-010826-2-cls": "yolo26l-ultravit-010826-2-cls.yaml",
     "ultravit-l-deepbal-cls": "yolo26l-ultravit-290726-deepbal-cls.yaml",
     "ultravit-l-deepbal-p5lean-cls": "yolo26l-ultravit-290726-deepbal-p5lean-cls.yaml",
 }
@@ -460,7 +460,7 @@ def main():
     """Prepare, validate, and profile the requested 224 encoder cohort."""
     parser = argparse.ArgumentParser()
     parser.add_argument("session")
-    parser.add_argument("models", nargs="?", help="comma-separated display names; omit for the full suite")
+    parser.add_argument("models", nargs="?", help="comma-separated display names. Omit for the full suite")
     parser.add_argument("--weights-dir", type=Path, default=DEFAULT_WEIGHTS)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--device", type=int, default=0)

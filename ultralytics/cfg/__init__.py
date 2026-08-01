@@ -20,6 +20,7 @@ from ultralytics.utils import (
     FLOAT_OR_INT,
     IS_VSCODE,
     LOGGER,
+    PLATFORM_URL,
     RANK,
     ROOT,
     SETTINGS,
@@ -165,6 +166,8 @@ CLI_HELP_MSG = f"""
         yolo checks
         yolo version
         yolo settings
+        yolo login API_KEY
+        yolo logout
         yolo copy-cfg
         yolo cfg
         yolo solutions help
@@ -692,33 +695,35 @@ def merge_equals_args(args: list[str]) -> list[str]:
     return new_args
 
 
-def handle_yolo_hub(args: list[str]) -> None:
-    """Handle Ultralytics HUB command-line interface (CLI) commands for authentication.
+def handle_yolo_login(args: list[str]) -> None:
+    """Log in to Ultralytics Platform with an API key or remove the saved key."""
+    if args[0] == "logout":
+        SETTINGS["api_key"] = ""
+        LOGGER.info("Logged out ✅. To log in again, use 'yolo login API_KEY'.")
+        return
 
-    This function processes Ultralytics HUB CLI commands such as login and logout. It should be called when executing a
-    script with arguments related to HUB authentication.
+    api_key_url = f"{PLATFORM_URL}/settings?tab=api-keys"
+    if len(args) < 2:
+        LOGGER.info(f"Get an API key from {api_key_url} and then run 'yolo login API_KEY'.")
+        return
 
-    Args:
-        args (list[str]): A list of command line arguments. The first argument should be either 'login' or 'logout'. For
-            'login', an optional second argument can be the API key.
+    import requests  # scoped as slow import
 
-    Examples:
-        $ yolo login YOUR_API_KEY
-
-    Notes:
-        - The function imports the 'hub' module from ultralytics to perform login and logout operations.
-        - For the 'login' command, if no API key is provided, an empty string is passed to the login function.
-        - The 'logout' command does not require any additional arguments.
-    """
-    from ultralytics import hub
-
-    if args[0] == "login":
-        key = args[1] if len(args) > 1 else ""
-        # Log in to Ultralytics HUB using the provided API key
-        hub.login(key)
-    elif args[0] == "logout":
-        # Log out from Ultralytics HUB
-        hub.logout()
+    try:
+        response = requests.get(
+            f"{PLATFORM_URL}/api/settings",
+            headers={"Authorization": f"Bearer {args[1]}"},
+            timeout=30,
+        )
+        if response.status_code == 200:
+            SETTINGS["api_key"] = args[1]
+            LOGGER.info("New authentication successful ✅")
+        elif response.status_code == 401:
+            LOGGER.warning("Invalid API key")
+        else:
+            response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        LOGGER.warning(f"Authentication request failed, check your connection: {e}")
 
 
 def handle_yolo_settings(args: list[str]) -> None:
@@ -989,12 +994,11 @@ def entrypoint(debug: str = "") -> None:
         "version": lambda: LOGGER.info(__version__),
         "settings": lambda: handle_yolo_settings(args[1:]),
         "cfg": lambda: YAML.print(DEFAULT_CFG_PATH),
-        "hub": lambda: handle_yolo_hub(args[1:]),
-        "login": lambda: handle_yolo_hub(args),
-        "logout": lambda: handle_yolo_hub(args),
+        "login": lambda: handle_yolo_login(args),
+        "logout": lambda: handle_yolo_login(args),
         "copy-cfg": copy_default_cfg,
         "solutions": lambda: handle_yolo_solutions(args[1:]),
-        "help": lambda: LOGGER.info(CLI_HELP_MSG),  # help below hub for -h flag precedence
+        "help": lambda: LOGGER.info(CLI_HELP_MSG),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 

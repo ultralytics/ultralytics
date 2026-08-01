@@ -103,7 +103,7 @@ export-base = [
     "packaging>=26.0; platform_machine == 'aarch64' and platform_system == 'Linux' and python_version >= '3.9'", # IMX export bug
 ]
 export-legacy-torch = [
-    "numpy<2",
+    "numpy<3",
     "setuptools<81.0.0; python_version >= '3.9'",  # legacy torch's torch_version imports pkg_resources, removed in setuptools>=81
 ]
 export-tensorflow = [
@@ -127,7 +127,7 @@ export-executorch = [
 ]
 export-deepx = [
     "dx_com",
-    "numpy<2",
+    "numpy<3",
 ]
 export-litert = [  # LiteRT export, Linux x86 and macOS (litert-torch trace + ai-edge-litert/quantizer)
     "litert-torch>=0.9.0; (platform_system == 'Linux' and platform_machine == 'x86_64') or platform_system == 'Darwin'",

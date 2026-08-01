@@ -340,6 +340,8 @@ class BaseModel(torch.nn.Module):
         model = weights["model"] if isinstance(weights, dict) else weights  # torchvision models are not dicts
         csd = model.float().state_dict()  # checkpoint state_dict as FP32
 
+        # Drop rows past the first yaml row divergence (e.g. cls rows from det's SPPF onward in cls -> det transfer)
+        csd = self._drop_mismatched_rows(csd, model, verbose=verbose)
         # Remap classification head rows by class-name when nc differs (e.g. Obj365 -> COCO fine-tune)
         cls_remapped = self._remap_cls_by_names(csd, model, verbose=verbose)
 
@@ -349,7 +351,7 @@ class BaseModel(torch.nn.Module):
         first_conv = "model.0.conv.weight"  # hard-coded to yolo models for now
         # mostly used to boost multi-channel training
         state_dict = self.state_dict()
-        if first_conv not in updated_csd and first_conv in state_dict:
+        if first_conv not in updated_csd and first_conv in state_dict and first_conv in csd:
             c1, c2, h, w = state_dict[first_conv].shape
             cc1, cc2, ch, cw = csd[first_conv].shape
             if ch == h and cw == w:
@@ -358,6 +360,39 @@ class BaseModel(torch.nn.Module):
                 len_updated_csd += 1
         if verbose:
             LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")
+
+    def _drop_mismatched_rows(self, csd: dict[str, torch.Tensor], src_model: torch.nn.Module, verbose: bool = True):
+        """Drop checkpoint rows past the longest common yaml row prefix with this model.
+
+        Rows past the first differing yaml row feed from different inputs (a cls checkpoint's C2PSA follows C3k2
+        directly, det's follows an SPPF the checkpoint never saw), so their weights are dropped instead of partially
+        aliasing into the divergent rows by name/shape coincidence (e.g. cls C2PSA BN stats landing inside det SPPF).
+
+        Args:
+            csd (dict): Pretrained checkpoint state_dict.
+            src_model (torch.nn.Module): Pretrained module, used to read its `.yaml` row specs.
+            verbose (bool): Log the dropped row range.
+
+        Returns:
+            (dict): `csd` without the rows past the shared prefix, or unchanged when yamls are absent or fully shared.
+        """
+        src_yaml, dst_yaml = getattr(src_model, "yaml", {}), getattr(self, "yaml", {})
+        if not (isinstance(src_yaml, dict) and src_yaml.get("backbone") and dst_yaml.get("backbone")):
+            return csd
+        src_rows = src_yaml["backbone"] + src_yaml.get("head", [])
+        dst_rows = dst_yaml["backbone"] + dst_yaml.get("head", [])
+        shared = next(
+            (i for i, (s, d) in enumerate(zip(src_rows, dst_rows)) if s != d), min(len(src_rows), len(dst_rows))
+        )
+        if shared == len(src_rows) or shared == 0:  # fully shared, or unrelated archs where name matching still applies
+            return csd
+        if verbose:
+            LOGGER.info(f"Dropped checkpoint rows {shared}-{len(src_rows) - 1}: yaml rows diverge at row {shared}")
+        return {
+            k: v
+            for k, v in csd.items()
+            if not (k.startswith("model.") and (i := k.split(".")[1]).isdigit() and int(i) >= shared)
+        }
 
     def _remap_cls_by_names(self, csd: dict[str, torch.Tensor], src_model: torch.nn.Module, verbose: bool = True):
         """Remap pretrained classification head rows to current class order by name.

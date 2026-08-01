@@ -64,6 +64,8 @@ FINAL_ARMS = {
     "tokenmlp-stagefloor": ("yolo27{s}-ultravit-290726.yaml", "nl"),
     "tokenmlp-stagebalance": ("yolo27{s}-ultravit-290726.yaml", "sm"),
     "tokenmlp-p2wide": ("yolo27{s}-ultravit-290726.yaml", "x"),
+    "ultravit-010826-1": ("yolo27{s}-ultravit-010826-1.yaml", "l"),
+    "ultravit-010826-2": ("yolo27{s}-ultravit-010826-2.yaml", "l"),
 }
 
 # The baseline family each scale deploys, which also names its yaml: CSP trunk with RTDETRDecoderEfficient at n and

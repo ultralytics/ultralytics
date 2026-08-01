@@ -118,6 +118,9 @@ LANES = {
                 "x",
             ),
             "tokenmlp-p2wide": ("yolo26{s}-ultravit-290726.yaml", "x"),
+            "tokenmlp-stagematch": ("yolo26{s}-ultravit-290726-stagematch.yaml", "l"),
+            "tokenmlp-deepbal": ("yolo26{s}-ultravit-290726-deepbal.yaml", "l"),
+            "tokenmlp-deepbal-p5lean": ("yolo26{s}-ultravit-290726-deepbal-p5lean.yaml", "l"),
             # Stage-balanced pair, every P stage above both lanes' baselines at every scale. n is the cell to watch,
             # most added FLOPs against the thinnest measured margin.
             "dinop5-stagebal": ("yolo26{s}-ultravit-repmixer-fastvitffn-dinop5-stagebal.yaml", "nsmlx"),

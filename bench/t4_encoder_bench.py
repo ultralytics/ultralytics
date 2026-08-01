@@ -30,10 +30,12 @@ from torch import nn
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import ultralytics
-from t4_bench_common import ROUNDS, write_csv
+from t4_bench_common import BIAS_FILL, ROUNDS, SEED, materialize_yaml, write_csv
+from ultralytics import YOLO
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.nn.tasks import load_checkpoint
+from ultralytics.nn.tasks import load_checkpoint, yaml_model_load
 from ultralytics.nn.teacher_model import PIPELINE_IMAGE_MEAN, PIPELINE_IMAGE_STD
+from ultralytics.utils import ROOT
 from ultralytics.utils.benchmarks import ProfileModels
 from ultralytics.utils.export.engine import best_onnx_opset, onnx2engine, torch2onnx
 from ultralytics.utils.knn_eval import yolo_cls_features
@@ -45,6 +47,7 @@ TIMED = 100
 REFERENCE_BASELINE = "dinov3:vits16"
 DEFAULT_WEIGHTS = Path("/root/autodl-tmp/data/encoder-224-weights")
 DEFAULT_OUTPUT = Path("/root/autodl-tmp/data/t4-encoder-224")
+MODEL_ROOT = ROOT / "cfg/models/26"
 SCRIPT_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 GIT_COMMIT = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
 
@@ -83,6 +86,12 @@ INTERNAL_RUNS = {
         "yolo26l-sppf-cls",
     ),
     "ultravit-x-attn2-cls": ("ph1-12src-ultravit-x-attn2-dinov3-vitl16", "yolo26x-sppf-cls"),
+}
+
+EXPLORATORY_YAMLS = {
+    "ultravit-l-stagematch-cls": "yolo26l-ultravit-290726-stagematch-cls.yaml",
+    "ultravit-l-deepbal-cls": "yolo26l-ultravit-290726-deepbal-cls.yaml",
+    "ultravit-l-deepbal-p5lean-cls": "yolo26l-ultravit-290726-deepbal-p5lean-cls.yaml",
 }
 
 
@@ -251,7 +260,12 @@ def load_feature(spec: ModelSpec, weights_dir: Path) -> tuple[nn.Module, torch.T
             tips.pos_embed = nn.Parameter(pos_embed, requires_grad=False)
         return model, (image - mean) / std, source_sha256
 
-    checkpoint = weights_dir / f"{spec.source}.pt"
+    if spec.source.endswith(".yaml"):
+        yaml = MODEL_ROOT / spec.source
+        ident = repr(yaml_model_load(yaml)).encode() + f"|{BIAS_FILL}|{SEED}|{YOLO.__name__}".encode()
+        checkpoint = materialize_yaml(spec.name, yaml, weights_dir, hashlib.sha256(ident).hexdigest()[:8], YOLO)
+    else:
+        checkpoint = weights_dir / f"{spec.source}.pt"
     model = YOLOFeature(load_checkpoint(checkpoint, device="cpu", fuse=True)[0]).eval()
     mean = torch.tensor(PIPELINE_IMAGE_MEAN).view(1, 3, 1, 1)
     std = torch.tensor(PIPELINE_IMAGE_STD).view(1, 3, 1, 1)
@@ -452,12 +466,15 @@ def main():
     args = parser.parse_args()
 
     specs = suite()
-    by_name = {spec.name: spec for spec in specs}
+    available = specs + [
+        ModelSpec(name, source, "yolo26l-sppf-cls", False) for name, source in EXPLORATORY_YAMLS.items()
+    ]
+    by_name = {spec.name: spec for spec in available}
     if args.models:
         requested = set(args.models.split(","))
         assert requested <= set(by_name), f"unknown models: {sorted(requested - set(by_name))}"
         requested |= {by_name[name].baseline for name in requested}
-        specs = [spec for spec in specs if spec.name in requested]
+        specs = [spec for spec in available if spec.name in requested]
     assert len({spec.name for spec in specs}) == len(specs)
     assert all(spec.baseline in {item.name for item in specs} for spec in specs)
 

@@ -14,19 +14,24 @@ Usage:
           macro-averaged mAP to a CSV, on the multi-det recipe profile),
           "obj365v1_det_pretrain" (Objects365-v1 detection pretrain, 150 epochs, any backbone,
           on the obj365-pretrain profile; its output checkpoint is then COCO fine-tuned with
-          --recipe coco-adapt, since it is no longer a pristine distilled backbone)
+          --recipe coco-after-o365, coco-adapt args on the published post-objv1 epoch ladder,
+          since it is no longer a pristine distilled backbone)
 
     obj365v1_det_pretrain is the only mode taking multiple GPUs ("0,1,2,3"): grad_clip is a train arg and
-    nfs_sync starts in the runner, so neither rides a callback DDP drops. muon_w and log_config still do,
-    so stay on an AdamW profile and expect W&B to lose the lineage fields under DDP (args.yaml keeps them).
+    nfs_sync starts in the runner, so neither rides a callback DDP drops. muon_w is a train arg read by
+    build_optimizer (DDP-safe). log_config still rides a callback, so under DDP the W&B run misses the
+    parent-run fields (args.yaml keeps them).
     Keep batch divisible by the GPU count: trainer.py floors batch_size // world_size silently.
 
 Flags:
-    --resume <path>: resume from checkpoint (all single-dataset modes)
+    --resume <path>: resume from checkpoint (all single-dataset modes). MuSGD checkpoints saved before
+                muon_w became a train arg lack it in train_args and resume at the 0.2 default, relaunch
+                those from the recipe instead.
     --fork_from <parent_id>:<fork_step>: wandb-fork continuation (all single-dataset modes)
     --recipe <name>: coco/multi_det/obj365 modes. Recipe profile stem under cfg/recipes/, defaulting to
                 the mode's profile (coco-preserve, multi-det, obj365-pretrain). Use coco-adapt for a
-                non-distilled backbone, multi-det-musgd-cos or yolo26-published-{det,multi-det} for MuSGD.
+                non-distilled backbone, coco-after-o365 after an obj365 pretrain, multi-det-musgd-cos or
+                yolo26-published-{det,multi-det,objv1} for MuSGD.
     --lr <val>: override the profile lr0 (det modes) or the final lr0 (other modes).
     --batch <int>: override the profile batch (det modes), applied as-is for other modes.
     --nbs <int>: override the profile nbs. A bare --batch already carries the profile's
@@ -53,7 +58,7 @@ os.environ.setdefault("OMP_NUM_THREADS", "1")  # before torch: BLAS pools size a
 
 import torch
 
-from callbacks import muon_w, nfs_sync, paths, wandb_config
+from callbacks import nfs_sync, paths, wandb_config
 from ultralytics import YOLO
 from ultralytics.data.utils import IMG_FORMATS
 from ultralytics.nn.tasks import guess_model_scale, load_checkpoint
@@ -265,13 +270,16 @@ def _load_recipe(name: str, model_yaml: str, **deltas: str | int | None) -> dict
         # wd_eff = wd * batch / nbs, so a bare --batch holds the profile's batch:nbs ratio instead of its literal nbs.
         recipe["nbs"] = max(1, round(recipe["nbs"] * deltas["batch"] / recipe["batch"]))
     recipe.update(deltas)
+    if recipe["optimizer"] == "MuSGD" and "muon_w" not in recipe:
+        raise SystemExit(f"{path} uses MuSGD but sets no muon_w, add it or the run silently trains at 0.2")
     # The only pre-launch view of the resolved recipe: args.yaml lands after the trainer starts, and a published
     # profile's lr0/nbs/warmup_epochs come from the downloaded checkpoint.
     print(
         f"[recipe] {path} {f'+ declared deltas {deltas}' if deltas else '(no deltas)'} -> "
         f"optimizer={recipe['optimizer']} batch={recipe['batch']} nbs={recipe['nbs']} lr0={recipe['lr0']:.5f} "
         f"lrf={recipe['lrf']} cos_lr={recipe['cos_lr']} warmup_epochs={recipe['warmup_epochs']:.3f} "
-        f"epochs={recipe['epochs']} backbone_lr_ratio={recipe['backbone_lr_ratio']}"
+        f"epochs={recipe['epochs']} backbone_lr_ratio={recipe['backbone_lr_ratio']} "
+        f"muon_w={recipe.get('muon_w', '-')}"
     )
     return recipe
 
@@ -306,8 +314,9 @@ def _resolve_dataset_list(datasets_arg: str) -> list[Path]:
     return yamls
 
 
-# Published-recipe train_args copied verbatim from the shipped yolo26{size}.pt (the rest are budget/infra we hold
-# fixed across arms, or MuSGD weights that ride the muon_w callback). lr0/nbs/warmup_epochs get batch-scaled below.
+# Published-recipe train_args copied verbatim from a shipped checkpoint (yolo26{size}.pt or
+# yolo26{size}-objv1-150.pt via _shipped_from). The rest are budget/infra we hold fixed across arms,
+# muon_w is an allowed custom train arg read by build_optimizer, lr0/nbs/warmup_epochs get batch-scaled below.
 _PUB_RECIPE_KEYS = (
     "lrf",
     "momentum",
@@ -336,6 +345,7 @@ _PUB_RECIPE_KEYS = (
     "copy_paste_mode",
     "auto_augment",
     "erasing",
+    "muon_w",
 )
 
 
@@ -616,10 +626,7 @@ def _run_multi_det(
                 iters_per_epoch=iters_per_ep,
             ),
         )
-        # sgd_w/cls_w/o2m/detach_epoch from the MuSGD recipe are not train_args (cfg validator rejects), so muon_w
-        # rides in via callback. It is a MuSGD-only weight, absent for the AdamW deim arm.
-        if det_args["optimizer"] == "MuSGD":
-            model.add_callback("on_train_start", muon_w.override(0.4355))
+        # sgd_w/cls_w/o2m/detach_epoch from the MuSGD recipe are not train_args (cfg validator rejects).
         train_args = dict(
             device=gpu,
             project=paths.WANDB_PROJECT,
@@ -750,7 +757,7 @@ def main(argv: list[str]) -> None:
     if "," in gpu and mode != _DDP_CAPABLE_MODE:
         raise SystemExit(
             f"ERROR: mode={mode!r} needs a single GPU. dist.py:79 rebuilds the trainer per DDP child with "
-            f"no callbacks, so muon_w and log_config no-op and the recipe silently changes. Only "
+            f"no callbacks, so log_config no-ops and W&B misses the parent-run fields. Only "
             f"{_DDP_CAPABLE_MODE} is DDP-safe. Got gpu={gpu!r}."
         )
     name = argv[3] if len(argv) > 3 else resume_args.get("name", f"phase2-{mode}-d7")
@@ -805,8 +812,6 @@ def main(argv: list[str]) -> None:
 
     model = YOLO(model_yaml)
     # Standard pretrained= flow transfers the backbone via intersect_dicts (layers 0-8, or 0-10 for -sppf cls yamls).
-    if mode == "inet_finetune":
-        model.add_callback("on_train_start", muon_w.override(0.1))
     model.add_callback(
         "on_pretrain_routine_start",
         wandb_config.log_config(
@@ -876,10 +881,6 @@ def main(argv: list[str]) -> None:
             backbone_lr_ratio=backbone_lr_ratio_override,
         )
         train_args.update(data="coco.yaml", **det_args)
-        # sgd_w/cls_w/o2m/detach_epoch from the yolo26s.pt MuSGD recipe are not exposed as train_args (cfg
-        # validator rejects), so muon_w rides in via callback. It is a MuSGD-only weight, absent for AdamW.
-        if det_args["optimizer"] == "MuSGD":
-            model.add_callback("on_train_start", muon_w.override(0.4355))
         if mode == "coco_det_finetune_frozen":
             train_args["freeze"] = 9
     elif mode == "obj365v1_det_pretrain":
@@ -894,8 +895,6 @@ def main(argv: list[str]) -> None:
             backbone_lr_ratio=backbone_lr_ratio_override,
         )
         train_args.update(data="Objects365v1.yaml", **det_args)
-        if det_args["optimizer"] == "MuSGD":
-            model.add_callback("on_train_start", muon_w.override(0.4355))
     elif mode == "coco_pose_finetune":
         train_args.update(
             data="coco-pose.yaml",
@@ -946,6 +945,7 @@ def main(argv: list[str]) -> None:
             f"warmup_epochs={obb_warmup:.3f} (scale={obb_scale:.2f}x vs canonical bs=32)"
         )
         train_args.update(
+            muon_w=0.5,
             data="DOTAv1.yaml",
             epochs=epochs or 50,
             batch=obb_batch,
@@ -984,9 +984,9 @@ def main(argv: list[str]) -> None:
             auto_augment="randaugment",
             optimizer="MuSGD",
         )
-        model.add_callback("on_train_start", muon_w.override(0.5))
     elif mode == "inet_finetune":
         train_args.update(
+            muon_w=0.1,
             data="/data/shared-datasets/imagenet",
             epochs=epochs or 50,
             batch=256,

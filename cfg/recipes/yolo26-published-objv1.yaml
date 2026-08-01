@@ -1,0 +1,15 @@
+# Objects365v1 pretrain with the shipped yolo26{size}-objv1-150.pt recipe. `_shipped_from` pulls
+# per-size aug, loss weights, muon_w, and batch-scaled lr0/nbs/warmup from the checkpoint, and
+# batch 128 matches the shipped runs so nothing rescales. Known infidelity: sgd_w/cls_w/o2m/
+# detach_epoch are not train args and stay at branch defaults. No grad_clip key: main() passes it.
+_shipped_from: yolo26{size}-objv1-150.pt
+backbone_lr_ratio: 1.0
+batch: 128
+close_mosaic: 8
+end2end: true
+epochs: 150
+imgsz: 640
+kobj: 1.0
+optimizer: MuSGD
+patience: 100
+pose: 12.0

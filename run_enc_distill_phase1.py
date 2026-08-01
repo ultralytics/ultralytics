@@ -332,8 +332,8 @@ def main(argv: list[str]) -> None:
         if eupe_multires
         else {}
     )
-    # beta2 and muon_w are registered inside ImageEncoderTrainer, and nfs_sync starts in its _setup_train,
-    # so both survive DDP respawn. grad_clip is a plain train arg now, read straight from self.args.
+    # beta2 is registered inside ImageEncoderTrainer, and nfs_sync starts in its _setup_train, so both
+    # survive DDP respawn. grad_clip and muon_w are plain train args now, read straight from self.args.
     model.add_callback(
         "on_pretrain_routine_start",
         wandb_config.log_config(

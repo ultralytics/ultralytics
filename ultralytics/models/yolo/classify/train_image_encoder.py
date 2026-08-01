@@ -252,13 +252,12 @@ class ImageEncoderTrainer(ClassificationTrainer):
                     )
 
         # Register hooks here (not in runner): dist.py:57 only serializes self.args to DDP workers.
-        from callbacks import beta2_override, muon_w, wd_schedule  # runner-local package
+        from callbacks import beta2_override, wd_schedule  # runner-local package
 
         beta2_v = getattr(self.args, "beta2", None)
-        muon_w_v = getattr(self.args, "muon_w", None)
-        for v, mod in ((beta2_v, beta2_override), (muon_w_v, muon_w)):
-            if v is not None:
-                self.add_callback("on_train_start", mod.override(float(v)))
+        muon_w_v = getattr(self.args, "muon_w", None)  # read by build_optimizer, logged below only
+        if beta2_v is not None:
+            self.add_callback("on_train_start", beta2_override.override(float(beta2_v)))
 
         # WD cosine schedule: DINOv3 / DINOv2 / EUPE all ramp weight_decay from a small start
         # value to a larger end value over training. Reference shapes:

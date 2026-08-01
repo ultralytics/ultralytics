@@ -118,6 +118,7 @@ class BboxLoss(nn.Module):
         wiou_alpha: float = 1.7,
         wiou_delta: float = 2.7,
         wiou_momentum: float = 0.01,
+        wiou_rmin: float = 0.0,
     ):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
@@ -136,6 +137,7 @@ class BboxLoss(nn.Module):
         self.wiou_alpha = wiou_alpha  # base of the non-monotonic focusing coefficient
         self.wiou_delta = wiou_delta  # outlier degree left unscaled (r == 1 at beta == delta)
         self.wiou_momentum = wiou_momentum  # EMA momentum of the mean IoU loss normalizing the outlier degree
+        self.wiou_rmin = wiou_rmin  # floor on the focusing coefficient (0=none), limits high-IoU down-weighting
         self.register_buffer("iou_mean", torch.tensor(1.0))  # running mean IoU loss, WIoU's outlier-degree denominator
 
     def forward(
@@ -160,6 +162,7 @@ class BboxLoss(nn.Module):
             beta = l_iou.detach() / self.iou_mean  # outlier degree: <1 for high-quality anchors, >1 for outliers
             # gain peaks at ordinary anchors and decays toward both harmful outliers (large beta) and easy ones (beta~0)
             r = beta / (self.wiou_delta * torch.pow(self.wiou_alpha, beta - self.wiou_delta))
+            r.clamp_(min=self.wiou_rmin)  # keep a share of the gradient on high-IoU boxes (0 = paper behaviour)
             loss_iou = (r * wiou_dist(pred_fg, target_fg) * l_iou * weight).sum() / target_scores_sum
         else:
             iou = bbox_iou(
@@ -590,6 +593,7 @@ class v8DetectionLoss:
             wiou_alpha=getattr(h, "wiou_alpha", 1.7),
             wiou_delta=getattr(h, "wiou_delta", 2.7),
             wiou_momentum=getattr(h, "wiou_momentum", 0.01),
+            wiou_rmin=getattr(h, "wiou_rmin", 0.0),
         ).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 

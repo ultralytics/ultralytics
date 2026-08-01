@@ -27,6 +27,7 @@ __all__ = (
     "Detect",
     "Pose",
     "RTDETRDecoder",
+    "RefineDetect",
     "Segment",
     "SemanticSegment",
     "YOLOEDetect",
@@ -1901,6 +1902,77 @@ class v10Detect(Detect):
     def fuse(self):
         """Remove the one2many head for inference optimization."""
         self.cv2 = self.cv3 = None
+
+
+class RefineDetect(Detect):
+    """Detect head with an extra branch that refines the predictions of a subset of classes.
+
+    The branch reads the same neck features as `cv2`/`cv3` and predicts a class logit delta for the refined classes plus
+    a box distribution delta gated by the refined class confidence. It is zero-initialized, so an attached head starts
+    out numerically identical to the head it replaces, and it lets a few classes be tuned while the base head stays
+    frozen. Heads are converted in place with `attach` instead of being built by `parse_model`.
+
+    Attributes:
+        refine_index (torch.Tensor): Indices of the classes predicted by the refinement branch.
+        refine (nn.ModuleList): One-to-many refinement branch, one sequence per detection layer.
+        one2one_refine (nn.ModuleList): One-to-one refinement branch, present on end-to-end heads only.
+
+    Methods:
+        attach: Convert a Detect head in place into a RefineDetect head.
+        forward_head: Add the refinement branch outputs to the base head predictions.
+
+    Examples:
+        >>> head = Detect(nc=80, ch=(256, 512, 1024))
+        >>> RefineDetect.attach(head, classes=[0, 5])
+    """
+
+    @classmethod
+    def attach(cls, head: Detect, classes: list[int]) -> None:
+        """Convert a Detect head in place into a RefineDetect head with a zero-initialized refinement branch.
+
+        Args:
+            head (Detect): Head to convert, taken from a detection model.
+            classes (list[int]): Class indices the refinement branch predicts.
+        """
+        assert type(head) in {Detect, v10Detect}, f"RefineDetect supports Detect heads only, not {type(head).__name__}"
+        assert max(classes) < head.nc, f"classes={classes} out of range for a {head.nc}-class head"
+        ch = [m[0].conv.in_channels for m in head.cv2]  # neck channels, one per detection layer
+        no = len(classes) + 4 * head.reg_max  # refinement branch outputs per anchor
+        for name in ("refine", "one2one_refine") if hasattr(head, "one2one_cv3") else ("refine",):
+            branch = nn.ModuleList(  # same depthwise layout as cv3, at a quarter of its width
+                nn.Sequential(
+                    nn.Sequential(DWConv(x, x, 3), Conv(x, c, 1)),
+                    nn.Sequential(DWConv(c, c, 3), Conv(c, c, 1)),
+                    nn.Conv2d(c, no, 1),
+                )
+                for x, c in ((x, max(16, x // 4)) for x in ch)
+            )
+            for m in branch:
+                nn.init.zeros_(m[-1].weight)
+                nn.init.zeros_(m[-1].bias)
+            head.add_module(name, branch)
+        head.register_buffer("refine_index", torch.tensor(classes, dtype=torch.long), persistent=True)
+        head.__class__ = cls
+
+    def forward_head(
+        self, x: list[torch.Tensor], box_head: torch.nn.Module = None, cls_head: torch.nn.Module = None
+    ) -> dict[str, torch.Tensor]:
+        """Add the refinement branch class and box deltas to the base head predictions."""
+        preds = super().forward_head(x, box_head=box_head, cls_head=cls_head)
+        if not preds:  # fused head, nothing to refine
+            return preds
+        refine = self.refine if cls_head is self.cv3 else self.one2one_refine
+        bs, nr = x[0].shape[0], len(self.refine_index)
+        r = torch.cat([refine[i](x[i]).view(bs, nr + 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
+        scores = preds["scores"].index_add(1, self.refine_index, r[:, :nr])
+        gate = scores.index_select(1, self.refine_index).sigmoid().amax(1, keepdim=True).detach()
+        preds["scores"], preds["boxes"] = scores, preds["boxes"] + gate * r[:, nr:]
+        return preds
+
+    def fuse(self) -> None:
+        """Remove the one2many head and its refinement branch for inference optimization."""
+        super().fuse()
+        self.refine = None
 
 
 class SemanticSegment(nn.Module):

@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 import random
 from copy import copy
+from functools import partial
 from typing import Any
 
 import numpy as np
@@ -14,6 +15,7 @@ from torch import nn
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
+from ultralytics.nn.modules.head import RefineDetect
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.patches import override_configs
@@ -251,3 +253,105 @@ class DetectionTrainer(BaseTrainer):
         n = len(train_dataset)
         del train_dataset  # free memory
         return super().auto_batch(max_num_obj, dataset_size=n)
+
+
+class RefineDetectionTrainer(DetectionTrainer):
+    """A DetectionTrainer that tunes a subset of classes while leaving the other classes untouched.
+
+    The detection head gets a zero-initialized RefineDetect branch, and everything else is frozen except the last layer
+    of the classification branches, where only the rows of the tuned classes receive updates. A pretrained model can
+    therefore learn a new class or improve an existing one while the class scores of every other class stay exactly as
+    they were. Boxes are shared by all classes, so the box deltas of the refinement branch move the boxes of the few
+    anchors where a tuned class is confident.
+
+    The tuned classes are selected with the `classes` argument, which also drops the labels of the other classes from
+    the dataset and restricts validation to them. The dataset YAML must therefore define all classes of the pretrained
+    model plus any new one, in the order the tuned model should use: classes missing from it are dropped from the head.
+
+    Examples:
+        >>> from ultralytics import YOLO
+        >>> from ultralytics.models.yolo.detect import RefineDetectionTrainer
+        >>> model = YOLO("yolo26n.pt")
+        >>> model.train(data="coco8.yaml", epochs=10, classes=[0, 5], trainer=RefineDetectionTrainer)
+    """
+
+    @staticmethod
+    def _mask_rows(grad: torch.Tensor, rows: torch.Tensor) -> torch.Tensor:
+        """Zero the gradient rows of the classes that are not tuned."""
+        return grad.index_fill(0, rows, 0.0)
+
+    def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True):
+        """Return the pretrained model with its classification head grown to the classes of the dataset.
+
+        The pretrained model is tuned in place instead of being rebuilt from its YAML, because the width of the
+        classification branch depends on the class count, so rebuilding it for one added class discards the pretrained
+        weights of every class. New classes get a zero weight and the standard Detect bias, so they predict nothing
+        until they are trained, and shared classes keep their pretrained rows even when the dataset reorders them.
+
+        Args:
+            cfg (str, optional): Path to model configuration file, used when there are no pretrained weights.
+            weights (torch.nn.Module, optional): Pretrained model to tune.
+            verbose (bool): Whether to display model information.
+
+        Returns:
+            (DetectionModel): YOLO detection model.
+        """
+        if not isinstance(weights, nn.Module):
+            return super().get_model(cfg, weights, verbose)
+        head, names = weights.model[-1], self.data["names"]
+        src = {str(v).strip().lower(): k for k, v in weights.names.items()}
+        index = torch.tensor([src.get(str(v).strip().lower(), -1) for v in names.values()])
+        if head.nc != len(names) or not torch.equal(index, torch.arange(head.nc)):
+            for cv3 in (head.cv3, getattr(head, "one2one_cv3", None)):
+                for i, seq in enumerate(cv3 or ()):
+                    conv = nn.Conv2d(seq[-1].in_channels, len(names), 1).to(seq[-1].weight)
+                    nn.init.zeros_(conv.weight)
+                    conv.bias.data[:] = math.log(5 / len(names) / (640 / head.stride[i]) ** 2)  # Detect.bias_init
+                    conv.weight.data[index >= 0] = seq[-1].weight.data[index[index >= 0]]
+                    conv.bias.data[index >= 0] = seq[-1].bias.data[index[index >= 0]]
+                    seq[-1] = conv
+            head.nc, head.no = len(names), len(names) + 4 * head.reg_max
+            LOGGER.info(f"Grew the cls head from {len(src)} to {len(names)} classes, {int((index < 0).sum())} new")
+        return weights
+
+    def setup_model(self):
+        """Attach the refinement branch to the detection head and freeze everything the tuned classes do not own."""
+        ckpt = super().setup_model()
+        assert self.args.classes is not None, (
+            f"{self.__class__.__name__} requires 'classes' to select the classes to tune, e.g. classes=[0, 5]."
+        )
+        model = unwrap_model(self.model)
+        head, i = model.model[-1], len(model.model) - 1
+        if not isinstance(head, RefineDetect):  # already attached when resuming
+            classes = [self.args.classes] if isinstance(self.args.classes, int) else list(self.args.classes)
+            RefineDetect.attach(head, classes)
+        freeze = [str(j) for j in range(i)]  # backbone and neck
+        for name, _ in head.named_children():
+            if name in {"refine", "one2one_refine"}:
+                continue  # the refinement branch is the only fully trainable module
+            # cls branches keep their last layer trainable, its untuned rows are masked in optimizer_step()
+            freeze += (
+                [f"{i}.{name}.{s}.{k}" for s in range(head.nl) for k in (0, 1)] if "cv3" in name else [f"{i}.{name}"]
+            )
+        self.args.freeze = freeze
+        return ckpt
+
+    def _setup_train(self):
+        """Mask the gradients of the untuned classification rows and snapshot their weights."""
+        super()._setup_train()
+        head = unwrap_model(self.model).model[-1]
+        tuned = set(head.refine_index.tolist())
+        rows = torch.tensor([c for c in range(head.nc) if c not in tuned], device=self.device)
+        self.untuned_rows = []
+        for cv3 in (head.cv3, getattr(head, "one2one_cv3", None)):
+            for seq in cv3 or []:
+                for p in (seq[-1].weight, seq[-1].bias):
+                    p.register_hook(partial(self._mask_rows, rows=rows))
+                    self.untuned_rows.append((p, rows, p.detach()[rows].clone()))
+
+    def optimizer_step(self):
+        """Step the optimizer, then undo its weight decay and momentum on the untuned classification rows."""
+        super().optimizer_step()
+        with torch.no_grad():
+            for p, rows, weights in self.untuned_rows:
+                p[rows] = weights

@@ -1915,7 +1915,6 @@ class RefineDetect(Detect):
 
     Attributes:
         refine_index (torch.Tensor): Class indices of all branches, concatenated in branch order.
-        refine_splits (torch.Tensor): Number of classes each branch refines.
         refine (nn.ModuleList): One-to-many refinement branches, each holding one sequence per detection layer.
         one2one_refine (nn.ModuleList): One-to-one refinement branches, present on end-to-end heads only.
 
@@ -1944,6 +1943,7 @@ class RefineDetect(Detect):
             "the YOLOE head must have its classes fused in first, see YOLOEModel.get_vocab()"
         )
         assert max(classes) < head.nc, f"classes={classes} out of range for a {head.nc}-class head"
+        assert head.cv2 is not None, "the head was fused for inference, reload the model to refine it"
         ch = [m[0].conv.in_channels for m in head.cv2]  # neck channels, one per detection layer
         no = len(classes) + 4 * head.reg_max  # refinement branch outputs per anchor
         for name in ("refine", "one2one_refine") if hasattr(head, "one2one_cv3") else ("refine",):
@@ -1963,14 +1963,17 @@ class RefineDetect(Detect):
             else:
                 head.add_module(name, nn.ModuleList([branch]))
         index = torch.tensor(classes, dtype=torch.long)
-        splits = torch.tensor([len(classes)], dtype=torch.long)
         if stacked:
             index = torch.cat([head.refine_index, index.to(head.refine_index)])
-            splits = torch.cat([head.refine_splits, splits.to(head.refine_splits)])
         head.register_buffer("refine_index", index, persistent=True)
-        head.register_buffer("refine_splits", splits, persistent=True)
         if not stacked:
             head.__class__ = RefineYOLOEDetect if isinstance(head, YOLOEDetect) else cls
+
+    @property
+    def refine_splits(self) -> list[int]:
+        """Number of classes each refinement branch predicts, read off its output convolution."""
+        branches = self.one2one_refine if self.refine is None else self.refine
+        return [m[0][-1].out_channels - 4 * self.reg_max for m in branches]
 
     def forward_head(
         self, x: list[torch.Tensor], box_head: torch.nn.Module = None, cls_head: torch.nn.Module = None, **kwargs
@@ -1982,7 +1985,8 @@ class RefineDetect(Detect):
         refine = self.refine if cls_head is self.cv3 else self.one2one_refine
         feats = preds["feats"]  # the feature maps alone, YOLOE heads also take text embeddings in x
         bs, scores, boxes, start = feats[0].shape[0], preds["scores"], preds["boxes"], 0
-        for branch, nr in zip(refine, self.refine_splits.tolist()):
+        for branch in refine:
+            nr = branch[0][-1].out_channels - 4 * self.reg_max  # classes this branch refines
             r = torch.cat([branch[i](feats[i]).view(bs, nr + 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
             index = self.refine_index[start : start + nr]
             scores = scores.index_add(1, index, r[:, :nr])

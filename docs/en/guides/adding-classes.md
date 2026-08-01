@@ -17,7 +17,7 @@ This trainer freezes the whole model except a small branch on the detection head
     - **The [backbone](https://www.ultralytics.com/glossary/backbone) learns nothing new.** Your class is recognized from the features the pretrained model already has. This works when the new class looks like something the model has seen, such as a rhino against a [COCO](../datasets/detect/coco.md) model that knows elephants and cows. It works poorly for a domain the backbone has never encountered, such as X-ray, satellite or microscopy imagery.
     - **The dataset YAML must list every class of the pretrained model**, in the order the tuned model should use, plus the new names. Classes missing from it are dropped from the head.
     - **The base model must be trained.** An untrained or randomly initialized backbone has no features to reuse, so there is nothing to freeze and nothing to build on. Start from a pretrained checkpoint.
-    - **Detect only.** Segment, pose and obb are work in progress.
+    - **Detect only.** Segment, Pose and OBB are work in progress.
 
 !!! tip "No suitable base model?"
 
@@ -26,9 +26,11 @@ This trainer freezes the whole model except a small branch on the detection head
     ```python
     from ultralytics import YOLOE
 
+    names = ["person", "bus", "rhino"]  # every class the model should detect, in the order you want them indexed
+
     model = YOLOE("yoloe-26n-seg.pt")
     model.model.eval()
-    model.model.get_vocab(["person", "bus", "rhino"])  # sets the classes and fuses them into the cls head
+    model.model.get_vocab(names)  # embeds the names and fuses them into the cls head
     model.save("yoloe-fused.pt")
 
     model = YOLOE("yoloe-fused.pt")
@@ -37,20 +39,22 @@ This trainer freezes the whole model except a small branch on the detection head
 
     After fusing, the classification head is a plain convolution like a standard YOLO head, so inference costs the same.
 
-    A fused YOLOE **detect** model can then be tuned with `RefineDetectionTrainer` like any other base model. Convert the segmentation checkpoint to a detection model first, as described in [YOLOE training](../models/yoloe.md#train-usage):
+    A fused YOLOE **Detect** model can then be tuned with `RefineDetectionTrainer` like any other base model. Convert the segmentation checkpoint to a detection model first, as described in [YOLOE training](../models/yoloe.md#train-usage):
 
     ```python
     from ultralytics import YOLOE
     from ultralytics.utils.patches import torch_load
 
+    names = ["person", "bus", "rhino"]  # the same full list of class names
+
     model = YOLOE("yoloe-26n.yaml")
     model.load(torch_load("yoloe-26n-seg.pt")["model"])
     model.model.eval()
-    model.model.get_vocab(names)  # your full class list
+    model.model.get_vocab(names)
     model.save("yoloe-det-fused.pt")
     ```
 
-    Segmentation checkpoints stay segmentation models and are not accepted, since this trainer is detect only.
+    Segmentation checkpoints stay segmentation models and are not accepted, since this trainer is Detect only.
 
 ## Quickstart
 
@@ -123,7 +127,7 @@ The cost for one added class, measured at 640 pixels after `fuse`:
 | [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26) | 10.01M to 10.25M | +1.1%  |
 | [YOLO26m](https://platform.ultralytics.com/ultralytics/yolo26) | 21.90M to 22.31M | +1.0%  |
 
-The result is a normal checkpoint. Predict, [val](../modes/val.md), `fuse` and [export](../modes/export.md) all work as usual.
+The result is a normal checkpoint. [Prediction](../modes/predict.md), [validation](../modes/val.md) and [export](../modes/export.md) all work as usual.
 
 ## Example Results
 
@@ -168,6 +172,6 @@ Each session adds another branch and about 1% inference cost, so pass the classe
 
 Check that the class index in `classes` matches its position in the dataset YAML, and that the label files use that same index. If the trainer reports zero instances during training, the labels were filtered out because their indices do not match.
 
-### Can I use this for segment, pose or obb?
+### Can I use this for Segment, Pose or OBB?
 
 Not yet. Those tasks are work in progress. For related approaches see [Knowledge Distillation](knowledge-distillation.md) and the [fine-tuning guide](finetuning-guide.md).

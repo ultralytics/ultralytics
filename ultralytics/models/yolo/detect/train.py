@@ -287,10 +287,10 @@ class RefineDetectionTrainer(DetectionTrainer):
     @staticmethod
     def _refined_classes(head) -> list[int] | None:
         """Return the classes of the head's newest refinement branch, or None if it has none."""
-        return head.refine_index[-int(head.refine_splits[-1]) :].tolist() if isinstance(head, RefineDetect) else None
+        return head.refine_index[-head.refine_splits[-1] :].tolist() if isinstance(head, RefineDetect) else None
 
     def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True):
-        """Return the pretrained model with its classification head grown to the classes of the dataset.
+        """Return the pretrained model with its classification head extended to the classes of the dataset.
 
         The pretrained model is tuned in place instead of being rebuilt from its YAML, because the width of the
         classification branch depends on the class count, so rebuilding it for one added class discards the pretrained
@@ -319,13 +319,23 @@ class RefineDetectionTrainer(DetectionTrainer):
                     conv.weight.data[index >= 0] = seq[-1].weight.data[index[index >= 0]]
                     conv.bias.data[index >= 0] = seq[-1].bias.data[index[index >= 0]]
                     seq[-1] = conv
+            if isinstance(head, RefineDetect):  # branches of earlier sessions address classes by index
+                moved = torch.full((head.nc,), -1, dtype=torch.long)
+                moved[index[index >= 0]] = torch.arange(len(names))[index >= 0]
+                refined = moved.to(head.refine_index)[head.refine_index]
+                assert (refined >= 0).all(), (
+                    f"the dataset drops classes {[weights.names[c] for c in head.refine_index[refined < 0].tolist()]}, "
+                    "which an earlier session refined. Keep every refined class in the dataset YAML."
+                )
+                head.refine_index = refined
             head.nc, head.no = len(names), len(names) + 4 * head.reg_max
             if getattr(weights, "pe", None) is not None:  # a fused YOLOE head reads its class count off these
                 pe = torch.zeros(weights.pe.shape[0], len(names), weights.pe.shape[2]).to(weights.pe)
                 pe[:, index >= 0] = weights.pe[:, index[index >= 0]]
                 weights.pe = pe
             LOGGER.info(
-                f"Grew the cls head from {len(weights.names)} to {len(names)} classes, {int((index < 0).sum())} new"
+                f"Extended the cls head from {len(weights.names)} to {len(names)} classes, "
+                f"{int((index < 0).sum())} new"
             )
         return weights
 
@@ -338,8 +348,12 @@ class RefineDetectionTrainer(DetectionTrainer):
         model = unwrap_model(self.model)
         head, i = model.model[-1], len(model.model) - 1
         classes = [self.args.classes] if isinstance(self.args.classes, int) else list(self.args.classes)
-        if self._refined_classes(head) != classes:  # a resumed run already carries the branch for these classes
-            RefineDetect.attach(head, classes)
+        if self.resume:  # the branch of the interrupted session is already attached
+            assert self._refined_classes(head) == classes, (
+                f"the run being resumed refines classes {self._refined_classes(head)}, not classes={classes}."
+            )
+        else:
+            RefineDetect.attach(head, classes)  # a new session always gets its own branch
         freeze = [str(j) for j in range(i)]  # backbone and neck
         for name, _ in head.named_children():
             if name in {"refine", "one2one_refine"}:

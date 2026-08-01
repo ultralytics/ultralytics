@@ -166,6 +166,8 @@ CLI_HELP_MSG = f"""
         yolo checks
         yolo version
         yolo settings
+        yolo login API_KEY
+        yolo logout
         yolo copy-cfg
         yolo cfg
         yolo solutions help

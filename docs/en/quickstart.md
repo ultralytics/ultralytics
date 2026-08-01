@@ -321,6 +321,8 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
         yolo checks
         yolo version
         yolo settings
+        yolo login API_KEY
+        yolo logout
         yolo copy-cfg
         yolo cfg
         yolo solutions help

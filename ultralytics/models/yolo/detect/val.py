@@ -179,7 +179,6 @@ class DetectionValidator(BaseValidator):
         imgsz = batch["img"].shape[2:]
         ratio_pad = batch["ratio_pad"][si]
         im_file = batch["im_file"][si]
-        stem = Path(im_file).stem
         if cls.shape[0]:
             bbox = ops.xywh2xyxy(bbox) * torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]]  # target boxes
         return {
@@ -189,7 +188,6 @@ class DetectionValidator(BaseValidator):
             "imgsz": imgsz,
             "ratio_pad": ratio_pad,
             "im_file": im_file,
-            "image_id": self.image_ids[str(im_file)] if self.training else int(stem) if stem.isnumeric() else stem,
         }
 
     def _prepare_pred(self, pred: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
@@ -249,6 +247,14 @@ class DetectionValidator(BaseValidator):
             if save_json or self.args.save_txt:
                 predn_scaled = self.scale_preds(predn, pbatch)
             if save_json:
+                stem = Path(pbatch["im_file"]).stem
+                pbatch["image_id"] = (
+                    self.image_ids[str(pbatch["im_file"])]
+                    if self.training and self.args.task == "detect"
+                    else int(stem)
+                    if stem.isnumeric()
+                    else stem
+                )
                 self.pred_to_json(predn_scaled, pbatch)
             if self.args.save_txt:
                 self.save_one_txt(

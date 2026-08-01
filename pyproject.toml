@@ -69,8 +69,8 @@ dependencies = [
     "pillow>=7.1.2",
     "pyyaml>=5.3.1",
     "requests>=2.23.0",
-    "torch>=1.8.0",
-    "torch>=1.8.0,!=2.4.0; sys_platform == 'win32'", # Windows CPU errors w/ 2.4.0 https://github.com/ultralytics/ultralytics/issues/15049
+    "torch!=2.4.0,>=1.8.0",
+    "torch!=2.4.0,>=1.8.0,!=2.4.0; sys_platform == 'win32'", # Windows CPU errors w/ 2.4.0 https://github.com/ultralytics/ultralytics/issues/15049
     "torchvision>=0.9.0",
     "psutil>=5.8.0", # system utilization
     "polars>=0.20.0",
@@ -122,7 +122,7 @@ export-coreml = [
 ]
 export-executorch = [
     "executorch",
-    "torch>=2.12.0,<2.13.0; platform_system == 'Linux' and platform_machine == 'aarch64'",
+    "torch>=2.12.0,<2.14.0; platform_system == 'Linux' and platform_machine == 'aarch64'",
     "numpy<=2.3.5",
 ]
 export-deepx = [
@@ -140,7 +140,7 @@ export = [
     "ultralytics[export-coreml]",
     "ultralytics[export-litert]",
     # Raspberry Pi Python 3.11 ExecuTorch inference requires the last known-good Linux ARM64 Torch 2.12 stack.
-    "torch>=2.12.0,<2.13.0; platform_system == 'Linux' and platform_machine == 'aarch64' and python_version == '3.11'",
+    "torch>=2.12.0,<2.14.0; platform_system == 'Linux' and platform_machine == 'aarch64' and python_version == '3.11'",
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching

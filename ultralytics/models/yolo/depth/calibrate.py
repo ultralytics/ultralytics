@@ -300,8 +300,8 @@ def calibrate_checkpoint(
             | raw | calibrated) for the first val batches into this directory.
         dataset_hash (str, optional): Immutable dataset manifest identity used for calibration.
         validation_split (str, optional): Dataset-root-relative split used to collect calibration images.
-        max_depth (float): Maximum valid GT depth in meters; pixels beyond it are excluded from the fit and the
-            held-out δ1 scoring, matching the val metrics' Eigen protocol.
+        max_depth (float): Maximum valid GT depth in meters; pixels beyond it are excluded from the fit and the held-out
+            δ1 scoring, matching the val metrics' Eigen protocol.
     """
     from copy import deepcopy
 

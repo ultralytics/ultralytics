@@ -17,6 +17,7 @@ This trainer freezes the whole model except a small branch on the detection head
     - **The [backbone](https://www.ultralytics.com/glossary/backbone) learns nothing new.** Your class is recognized from the features the pretrained model already has. This works when the new class looks like something the model has seen, such as a rhino against a [COCO](../datasets/detect/coco.md) model that knows elephants and cows. It works poorly for a domain the backbone has never encountered, such as X-ray, satellite or microscopy imagery.
     - **The dataset YAML must list every class of the pretrained model**, in the order the tuned model should use, plus the new names. Classes missing from it are dropped from the head.
     - **The base model must be trained.** An untrained or randomly initialized backbone has no features to reuse, so there is nothing to freeze and nothing to build on. Start from a pretrained checkpoint.
+    - **Tuning an existing class can make it worse elsewhere.** Nothing here protects a class from its own training data. Tuning `person`, learned from tens of thousands of COCO images, on ten images of your site pulls it towards those ten images, and it can lose accuracy on everything else. The guarantee covers the classes you do not name, not the ones you do. Tune an existing class only when you have enough images to represent it, or add your own class instead and leave the original alone.
     - **Detect only.** Segment, Pose and OBB are work in progress.
 
 !!! tip "No suitable base model?"
@@ -129,19 +130,58 @@ The cost for one added class, measured at 640 pixels after `fuse`:
 
 The result is a normal checkpoint. [Prediction](../modes/predict.md), [validation](../modes/val.md) and [export](../modes/export.md) all work as usual.
 
-## Example Results
+## Worked Example: Adding `rhino` to a COCO Model
 
-A YOLO26n COCO model tuned for 30 epochs on 559 `rhino` boxes reaches **0.649** mAP50 and **0.591** mAP50-95 on that class. COCO class scores differ from the pretrained model by 5.7e-14, which is floating point noise.
+COCO has no rhino, so a pretrained model calls rhinos elephants, cows and horses. This example adds `rhino` as class 80 using the [African Wildlife](../datasets/detect/african-wildlife.md) images.
 
-The pretrained model calls rhinos elephants, cows and horses. The tuned model adds `rhino` and leaves every COCO detection at its original confidence:
+**1. Label the images with the target class index.** The dataset ships with its own four classes, so its labels are rewritten to COCO indices: `elephant` becomes 20 and `zebra` becomes 22, both of which COCO already has, and `rhino` becomes the new 80.
 
-```text
-base : [('elephant', 0.7)]
-tuned: [('elephant', 0.7), ('rhino', 0.65)]
+**2. Write the dataset YAML** with all 80 COCO names plus the new one:
 
-base : [('elephant', 0.77), ('horse', 0.42), ('elephant', 0.41)]
-tuned: [('elephant', 0.77), ('rhino', 0.6), ('horse', 0.42), ('elephant', 0.41), ('rhino', 0.38)]
+```yaml
+# rhino.yaml
+path: ../datasets/african-wildlife
+train: images/train
+val: images/val
+
+names:
+    0: person
+    1: bicycle
+    # ... the remaining COCO names, unchanged ...
+    79: toothbrush
+    80: rhino
 ```
+
+**3. Train.** Only `rhino` is annotated, and only `rhino` is tuned:
+
+```python
+from ultralytics import YOLO
+from ultralytics.models.yolo.detect import RefineDetectionTrainer
+
+model = YOLO("yolo26n.pt")
+model.train(data="rhino.yaml", epochs=30, classes=[80], trainer=RefineDetectionTrainer)
+```
+
+**4. Results.** 559 `rhino` boxes, 30 epochs:
+
+| Metric                                        | Value   |
+| --------------------------------------------- | ------- |
+| `rhino` mAP50                                 | 0.649   |
+| `rhino` mAP50-95                              | 0.591   |
+| COCO class score max change vs the base model | 5.7e-14 |
+| Params                                        | +2.6%   |
+| GFLOPs                                        | +1.2%   |
+
+The score change is floating point noise, so the 80 COCO classes predict exactly what they did before. Detections on three images from the set:
+
+| Image    | Pretrained                                     | Tuned                                                                              |
+| -------- | ---------------------------------------------- | ---------------------------------------------------------------------------------- |
+| rhino 1  | `elephant 0.70`                                | `elephant 0.70`, **`rhino 0.65`**                                                  |
+| rhino 2  | `elephant 0.77`, `horse 0.42`, `elephant 0.41` | `elephant 0.77`, **`rhino 0.60`**, `horse 0.42`, `elephant 0.41`, **`rhino 0.38`** |
+| elephant | `elephant 0.88`, `elephant 0.83`               | `elephant 0.88`, `elephant 0.83`                                                   |
+| zebra    | `zebra 0.95`, `zebra 0.35`                     | `zebra 0.95`, `zebra 0.35`                                                         |
+
+The wrong `elephant` and `horse` guesses stay, because nothing tells the model they are wrong. The new class is added next to them, and picking the higher score at inference is enough to separate them.
 
 ## FAQ
 
@@ -166,7 +206,9 @@ model = YOLO("runs/detect/train/weights/best.pt")
 model.train(data="data-2.yaml", epochs=50, classes=[81], trainer=RefineDetectionTrainer)
 ```
 
-Each session adds another branch and about 1% inference cost, so pass the classes together as `classes=[80, 81]` when you know them up front.
+Every session adds a branch that stays in the model forever, and the cost adds up. On YOLO26n each branch is about **+2.6% parameters** and **+1.2% GFLOPs**, so three sessions land near +8% parameters and +4% GFLOPs, while one session tuning three classes costs the same as one session tuning one. The branch width does not depend on how many classes it refines, only the output convolution does.
+
+Pass the classes together as `classes=[80, 81]` whenever you know them up front, and keep stacking for classes that genuinely arrive later.
 
 ### How do I resume an interrupted run?
 
@@ -180,9 +222,17 @@ model = YOLO("runs/detect/train/weights/last.pt")
 model.train(resume=True, trainer=RefineDetectionTrainer)
 ```
 
+Resume from `last.pt`, not `best.pt`. Only `last.pt` carries the optimizer state and the epoch counter, and `best.pt` is treated as a finished model, which starts a new session and stacks a second branch instead of continuing the first.
+
+Three things to watch:
+
+- **Pass `trainer` again.** It is not stored in the checkpoint.
+- **Do not change `classes`.** The run being resumed already owns a branch, and the trainer refuses to continue if the two disagree. Change `epochs`, `data` or `classes` only by starting a new session.
+- **Check the branch count afterwards** with `len(model.model.model[-1].refine)` if you are unsure. Resuming leaves it unchanged, and a new session increases it by one.
+
 !!! warning
 
-    `trainer` is not stored in the checkpoint. Leaving it out falls back to the standard trainer, which trains the whole model and loses the guarantee that the other classes stay unchanged. This applies to any further training of a tuned checkpoint, not only to resuming.
+    Leaving `trainer` out falls back to the standard trainer, which trains the whole model and silently loses the guarantee that the other classes stay unchanged. There is no error, so check the training log for `Freezing layer` lines if you are unsure the right trainer ran. This applies to any further training of a tuned checkpoint, not only to resuming.
 
 ### Why is my new class not detected at all?
 

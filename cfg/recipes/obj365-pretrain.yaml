@@ -3,7 +3,8 @@
 # backbone_lr_ratio 1.0: over ~91.3M images seen (150 x 608,606), 0.02 leaves the backbone unchanged.
 # Output is no longer a pristine distilled backbone, so COCO fine-tune it with --recipe coco-adapt.
 # No grad_clip key: main() passes it, and profiles must not carry it when reseeded from args.yaml.
-# source: cfg/recipes/coco-adapt.yaml, epochs 70->150, patience 100->150
+# source: cfg/recipes/coco-adapt.yaml, epochs 70->150, patience 100->150, warmup_epochs 0.0->0.3
+# (the o365 references warm up 1ep at b128 and 2000 iter at b32, 0.3ep at b64 sits between).
 auto_augment: randaugment
 backbone_lr_ratio: 1.0
 batch: 64
@@ -38,6 +39,6 @@ scale: 0.9
 shear: 0.00136
 translate: 0.27484
 warmup_bias_lr: 0.0
-warmup_epochs: 0.0
+warmup_epochs: 0.3
 warmup_momentum: 0.9
 weight_decay: 0.000125

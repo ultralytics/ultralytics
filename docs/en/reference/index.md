@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Browse the Ultralytics Python API reference, auto-generated from source for cfg, data, engine, hub, models, nn, optim, solutions, trackers, and utils.
-keywords: Ultralytics, YOLO, API reference, Python, documentation, cfg, data, engine, hub, models, nn, optim, solutions, trackers, utils
+description: Browse the Ultralytics Python API reference, auto-generated from package source.
+keywords: Ultralytics, YOLO, API reference, Python, documentation
 ---
 
 # Ultralytics Python API Reference

@@ -22,7 +22,7 @@ This trainer freezes the whole model except a small branch on the detection head
 
 !!! tip "No suitable base model?"
 
-    If no trained model covers your domain, build the base model with [YOLOE](../models/yoloe.md). It names classes from text with no training, and `get_vocab()` bakes that class list into the classification head, leaving a plain detector that needs no [CLIP](https://www.ultralytics.com/glossary/contrastive-language-image-pre-training-clip) at inference and costs the same to run.
+    If no trained model covers your domain, build the base model with [YOLOE](../models/yoloe.md). It names classes from text with no training, and `get_vocab()` bakes that class list into the classification head, leaving a plain detector that needs no text encoder at inference and costs the same to run.
 
     Convert the segmentation checkpoint to a detection model first, as described in [YOLOE training](../models/yoloe.md#train-usage), then fuse your class list into it:
 

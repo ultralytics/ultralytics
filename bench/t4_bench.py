@@ -119,6 +119,8 @@ LANES = {
             ),
             "tokenmlp-p2wide": ("yolo26{s}-ultravit-290726.yaml", "x"),
             "tokenmlp-stagematch": ("yolo26{s}-ultravit-290726-stagematch.yaml", "l"),
+            "ultravit-010826-2a": ("yolo26{s}-ultravit-010826-2a.yaml", "s"),
+            "ultravit-010826-2b": ("yolo26{s}-ultravit-010826-2b.yaml", "s"),
             "ultravit-010826-1": ("yolo26{s}-ultravit-010826-1.yaml", "l"),
             "ultravit-010826-2": ("yolo26{s}-ultravit-010826-2.yaml", "l"),
             "tokenmlp-deepbal": ("yolo26{s}-ultravit-290726-deepbal.yaml", "l"),

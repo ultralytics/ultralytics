@@ -1,0 +1,36 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# S detector with the 010826-2 stage pattern reduced to 2/2/2/1 blocks.
+
+nc: 80
+end2end: True
+reg_max: 1
+
+scales:
+  s: [0.33, 0.50, 1024]
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [128, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [1.5, True, 0.00001, True]]
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [1.625, True, 0.00001, True]]
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [1.0, True, 0.00001, True]]
+  - [-1, 1, Conv, [1024, 3, 2]]
+  - [-1, 1, MHSABlock, [0, 2.25, True, 0.00001, False, 64]]
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]]
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, 2, C3k2, [256, True]]
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 11], 1, Concat, [1]]
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 8], 1, Concat, [1]]
+  - [-1, 1, C3k2, [1024, True, 0.5, True]]
+  - [[14, 17, 20], 1, Detect, [nc]]

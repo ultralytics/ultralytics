@@ -470,7 +470,7 @@ def test_reid_invalid_crops():
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
-def test_track_stream(model, tmp_path):
+def test_track_stream(model, tmp_path, solution_assets):
     """Test streaming tracking on a short video with all built-in trackers and various GMC/ReID configurations.
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
@@ -483,7 +483,7 @@ def test_track_stream(model, tmp_path):
         return
     from ultralytics.trackers.track import TRACKER_MAP
 
-    video_url = f"{ASSETS_URL}/decelera_portrait_min.mov"
+    video_url = solution_assets("track_video")
     model = YOLO(model)
 
     # Default end-to-end run for all built-in trackers

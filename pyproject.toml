@@ -19,7 +19,7 @@
 # For comprehensive documentation and usage instructions, visit: https://docs.ultralytics.com
 
 [build-system]
-requires = ["setuptools>=70.0.0,<=82.0.1", "wheel"]
+requires = ["setuptools>=70.0.0,<=83.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 # Project settings -----------------------------------------------------------------------------------------------------
@@ -104,7 +104,7 @@ export-base = [
 ]
 export-legacy-torch = [
     "numpy<2",
-    "setuptools<81.0.0; python_version >= '3.9'",  # legacy torch's torch_version imports pkg_resources, removed in setuptools>=81
+    "setuptools<84.0.0; python_version >= '3.9'",  # legacy torch's torch_version imports pkg_resources, removed in setuptools>=81
 ]
 export-tensorflow = [
     "numpy<2.0.0; python_version < '3.13'", # TF 2.20 compatibility

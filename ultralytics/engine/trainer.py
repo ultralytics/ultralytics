@@ -593,10 +593,7 @@ class BaseTrainer:
             # Validation
             final_epoch = epoch + 1 >= self.epochs
             if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
-                gc.collect()  # always collect CPU-side garbage before validation
-                if self.device.type == "cuda":
-                    torch.cuda.empty_cache()  # release PyTorch CUDA allocator cache
-                self._clear_memory(None if self.device.type == "mps" else 0.5)  # prevent VRAM spike
+                self._clear_memory()  # unconditional cpu + accelerator cleanup before validation
                 self.metrics, self.fitness = self.validate()
 
             # NaN recovery

@@ -76,6 +76,8 @@ The Ultralytics command line interface (CLI) provides a straightforward way to u
         yolo checks
         yolo version
         yolo settings
+        yolo login API_KEY
+        yolo logout
         yolo copy-cfg
         yolo cfg
         ```

@@ -3,7 +3,14 @@
 # so images seen align with the shipped pipeline. NOT epoch-comparable to coco-adapt reference
 # arms, and the n entry aligns epochs only (the published n recipe is an independent tune).
 # source: cfg/recipes/coco-adapt.yaml, _epochs_by_scale n300/s120/m100/l90/x70 -> n245/s70/m80/l60/x40
+# _aug_by_scale applies the published yolo26 COCO det mixup/copy_paste/scale ladder (base row = s tier).
 _epochs_by_scale: { n: 245, s: 70, m: 80, l: 60, x: 40 }
+_aug_by_scale:
+  n: { mixup: 0.01216, copy_paste: 0.07504, scale: 0.56232 }
+  s: {}
+  m: { mixup: 0.42713, copy_paste: 0.30413, scale: 0.95 }
+  l: { mixup: 0.42713, copy_paste: 0.40413, scale: 0.95 }
+  x: { mixup: 0.42713, copy_paste: 0.40413, scale: 0.95 }
 auto_augment: randaugment
 backbone_lr_ratio: 1.0
 batch: 64

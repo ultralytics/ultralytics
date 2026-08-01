@@ -1,7 +1,15 @@
-# COCO detection fine-tune, non-distilled backbone (CE, conv, scratch). Same DEIM AdamW transplant
-# as coco-preserve at backbone_lr_ratio 1.0: there is no distilled backbone to preserve.
-# source: phase2-coco-det-conv-x-sppf-deim-adamw-ratio1p0/args.yaml (verified equal)
+# COCO fine-tune, non-distilled backbone (CE, conv, scratch): same DEIM AdamW transplant as
+# coco-preserve at backbone_lr_ratio 1.0, there is no distilled backbone to preserve.
+# source: phase2-coco-det-conv-x-sppf-deim-adamw-ratio1p0/args.yaml, which ran the s-tier aug row
+# at x. _aug_by_scale = published yolo26 COCO det aug ladder, so non-s launches deviate from that
+# source on mixup/copy_paste/scale.
 _epochs_by_scale: { n: 300, s: 120, m: 100, l: 90, x: 70 }
+_aug_by_scale:
+  n: { mixup: 0.01216, copy_paste: 0.07504, scale: 0.56232 }
+  s: {}
+  m: { mixup: 0.42713, copy_paste: 0.30413, scale: 0.95 }
+  l: { mixup: 0.42713, copy_paste: 0.40413, scale: 0.95 }
+  x: { mixup: 0.42713, copy_paste: 0.40413, scale: 0.95 }
 auto_augment: randaugment
 backbone_lr_ratio: 1.0
 batch: 64

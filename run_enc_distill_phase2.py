@@ -232,7 +232,8 @@ def _assert_backbone_compatible(phase1_weights: str, model_yaml: str) -> None:
 
 
 # The checked-in profile is the authoritative recipe snapshot, so a no-flag launch reproduces its reference arm instead
-# of inheriting a drifted code default. A non-distilled backbone on coco takes `--recipe coco-adapt`.
+# of inheriting a drifted code default (keys listed under `_aug_by_scale` resolve per model size and may deviate from
+# the reference arm, see the profile header). A non-distilled backbone on coco takes `--recipe coco-adapt`.
 _RECIPE_DIR = Path(_REPO_ROOT) / "cfg" / "recipes"
 _RECIPE_DELTA_CASTS = dict(epochs=int, patience=int, batch=int, lr0=float, nbs=int, backbone_lr_ratio=float)
 
@@ -253,9 +254,9 @@ def _load_recipe(name: str, model_yaml: str, **deltas: str | int | None) -> dict
         raise SystemExit(f"unknown recipe '{name}'. Available: {sorted(p.stem for p in _RECIPE_DIR.glob('*.yaml'))}")
     recipe = YAML.load(path)
     deltas = {k: _RECIPE_DELTA_CASTS[k](v) for k, v in deltas.items() if v}
+    scale = guess_model_scale(model_yaml)
     epochs_by_scale = recipe.pop("_epochs_by_scale", None)
     if epochs_by_scale:
-        scale = guess_model_scale(model_yaml)
         expected = epochs_by_scale.get(scale)
         if expected is None:
             raise SystemExit(f"{path} has no epoch count for model scale {scale!r}")
@@ -269,6 +270,12 @@ def _load_recipe(name: str, model_yaml: str, **deltas: str | int | None) -> dict
     elif "batch" in deltas and "nbs" not in deltas:
         # wd_eff = wd * batch / nbs, so a bare --batch holds the profile's batch:nbs ratio instead of its literal nbs.
         recipe["nbs"] = max(1, round(recipe["nbs"] * deltas["batch"] / recipe["batch"]))
+    aug_by_scale = recipe.pop("_aug_by_scale", None)
+    if aug_by_scale:
+        aug = aug_by_scale.get(scale)
+        if aug is None:
+            raise SystemExit(f"{path} has no aug entry for model scale {scale!r}")
+        recipe.update(aug)
     recipe.update(deltas)
     if recipe["optimizer"] == "MuSGD" and "muon_w" not in recipe:
         raise SystemExit(f"{path} uses MuSGD but sets no muon_w, add it or the run silently trains at 0.2")
@@ -279,6 +286,7 @@ def _load_recipe(name: str, model_yaml: str, **deltas: str | int | None) -> dict
         f"optimizer={recipe['optimizer']} batch={recipe['batch']} nbs={recipe['nbs']} lr0={recipe['lr0']:.5f} "
         f"lrf={recipe['lrf']} cos_lr={recipe['cos_lr']} warmup_epochs={recipe['warmup_epochs']:.3f} "
         f"epochs={recipe['epochs']} backbone_lr_ratio={recipe['backbone_lr_ratio']} "
+        f"mixup={recipe['mixup']} copy_paste={recipe['copy_paste']} scale={recipe['scale']} "
         f"muon_w={recipe.get('muon_w', '-')}"
     )
     return recipe

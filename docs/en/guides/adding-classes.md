@@ -18,7 +18,7 @@ This trainer freezes the whole model except a small branch on the detection head
     - **The dataset YAML must list every class of the pretrained model**, in the order the tuned model should use, plus the new names. Classes missing from it are dropped from the head.
     - **The base model must be trained.** An untrained or randomly initialized backbone has no features to reuse, so there is nothing to freeze and nothing to build on. Start from a pretrained checkpoint.
     - **Tuning an existing class can make it worse elsewhere.** Nothing here protects a class from its own training data. Tuning `person`, learned from tens of thousands of COCO images, on ten images of your site pulls it towards those ten images, and it can lose accuracy on everything else. The guarantee covers the classes you do not name, not the ones you do. Tune an existing class only when you have enough images to represent it, or add your own class instead and leave the original alone.
-    - **Detect only.** Segment, Semantic, Depth, Classify, Pose and OBB are work in progress.
+    - **Detect only.** Segment, Semantic, Classify, Pose and OBB are work in progress.
 
 !!! tip "No suitable base model?"
 
@@ -234,4 +234,4 @@ Check that the class index in `classes` matches its position in the dataset YAML
 
 ### Can I use this for the other tasks?
 
-Not yet. `RefineDetectionTrainer` covers Detect only. Segment, Semantic, Depth, Classify, Pose and OBB are work in progress. For related approaches see [Knowledge Distillation](knowledge-distillation.md) and the [fine-tuning guide](finetuning-guide.md).
+Not yet. `RefineDetectionTrainer` covers Detect only. Segment, Semantic, Classify, Pose and OBB are work in progress. For related approaches see [Knowledge Distillation](knowledge-distillation.md) and the [fine-tuning guide](finetuning-guide.md).

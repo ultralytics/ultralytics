@@ -223,7 +223,6 @@ class Analytics(BaseSolution):
                 # Create the legend using labels from the bars
                 for bar, label in zip(bars, labels):
                     bar.set_label(label)  # Assign label to each bar
-                self.ax.legend(loc="upper left", fontsize=13, facecolor=self.fg_color, edgecolor=self.fg_color)
             elif plot == "pie":
                 total = sum(counts)
                 percentages = [size / total * 100 for size in counts]
@@ -247,11 +246,12 @@ class Analytics(BaseSolution):
         self.ax.set_xlabel(self.x_label, color=self.fg_color, fontsize=self.fontsize - 3)
         self.ax.set_ylabel(self.y_label, color=self.fg_color, fontsize=self.fontsize - 3)
 
-        # Add and format legend (skip for pie charts which manage their own legend)
-        if plot != "pie":
-            legend = self.ax.legend(loc="upper left", fontsize=13, facecolor=self.bg_color, edgecolor=self.bg_color)
-            for text in legend.get_texts():
-                text.set_color(self.fg_color)
+        # Add and format legend
+        legend = self.ax.get_legend() or self.ax.legend(
+            loc="upper left", fontsize=13, facecolor=self.bg_color, edgecolor=self.bg_color
+        )
+        for text in legend.get_texts():
+            text.set_color(self.fg_color)
 
         # Redraw graph, update view, capture, and display the updated plot
         self.ax.relim()

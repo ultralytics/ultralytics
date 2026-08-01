@@ -168,6 +168,22 @@ model.train(data="data-2.yaml", epochs=50, classes=[81], trainer=RefineDetection
 
 Each session adds another branch and about 1% inference cost, so pass the classes together as `classes=[80, 81]` when you know them up front.
 
+### How do I resume an interrupted run?
+
+Pass the trainer again along with `resume=True`:
+
+```python
+from ultralytics import YOLO
+from ultralytics.models.yolo.detect import RefineDetectionTrainer
+
+model = YOLO("runs/detect/train/weights/last.pt")
+model.train(resume=True, trainer=RefineDetectionTrainer)
+```
+
+!!! warning
+
+    `trainer` is not stored in the checkpoint. Leaving it out falls back to the standard trainer, which trains the whole model and loses the guarantee that the other classes stay unchanged. This applies to any further training of a tuned checkpoint, not only to resuming.
+
 ### Why is my new class not detected at all?
 
 Check that the class index in `classes` matches its position in the dataset YAML, and that the label files use that same index. If the trainer reports zero instances during training, the labels were filtered out because their indices do not match.

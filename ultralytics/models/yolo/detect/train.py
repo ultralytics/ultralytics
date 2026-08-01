@@ -270,7 +270,8 @@ class RefineDetectionTrainer(DetectionTrainer):
 
     Training an already tuned model stacks a second branch on it and freezes the first, so classes can be added in
     several sessions, each keeping the classes of the sessions before it. Every branch costs about 1% of inference, so
-    prefer passing the classes together when they are known up front.
+    prefer passing the classes together when they are known up front. Resuming needs this trainer passed again, since
+    `trainer` is not stored in the checkpoint and the default one would train the whole model.
 
     Examples:
         >>> from ultralytics import YOLO

@@ -1123,7 +1123,7 @@ class BaseTrainer:
             {"weight_decay": 0.0, "param_group": "bn"},
             {"param_group": "bias"},
         ]
-        muon, sgd = (0.2, 1.0)
+        muon, sgd = self.args.muon, self.args.sgd
         if use_muon:
             num_params[0] = len(g[3])  # update number of params
             settings.append({"weight_decay": decay, "use_muon": True, "param_group": "muon"})

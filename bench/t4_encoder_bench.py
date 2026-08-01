@@ -89,13 +89,16 @@ INTERNAL_RUNS = {
 }
 
 EXPLORATORY_YAMLS = {
-    "ultravit-s-010826-2a-cls": "yolo26s-ultravit-010826-2a-cls.yaml",
-    "ultravit-s-010826-2b-cls": "yolo26s-ultravit-010826-2b-cls.yaml",
-    "ultravit-l-stagematch-cls": "yolo26l-ultravit-290726-stagematch-cls.yaml",
-    "ultravit-l-010826-1-cls": "yolo26l-ultravit-010826-1-cls.yaml",
-    "ultravit-l-010826-2-cls": "yolo26l-ultravit-010826-2-cls.yaml",
-    "ultravit-l-deepbal-cls": "yolo26l-ultravit-290726-deepbal-cls.yaml",
-    "ultravit-l-deepbal-p5lean-cls": "yolo26l-ultravit-290726-deepbal-p5lean-cls.yaml",
+    "ultravit-s-010826-2a-cls": ("yolo26s-ultravit-010826-2a-cls.yaml", "yolo26s-sppf-cls"),
+    "ultravit-s-010826-2b-cls": ("yolo26s-ultravit-010826-2b-cls.yaml", "yolo26s-sppf-cls"),
+    "ultravit-l-stagematch-cls": ("yolo26l-ultravit-290726-stagematch-cls.yaml", "yolo26l-sppf-cls"),
+    "ultravit-l-010826-1-cls": ("yolo26l-ultravit-010826-1-cls.yaml", "yolo26l-sppf-cls"),
+    "ultravit-l-010826-2-cls": ("yolo26l-ultravit-010826-2-cls.yaml", "yolo26l-sppf-cls"),
+    "ultravit-l-deepbal-cls": ("yolo26l-ultravit-290726-deepbal-cls.yaml", "yolo26l-sppf-cls"),
+    "ultravit-l-deepbal-p5lean-cls": (
+        "yolo26l-ultravit-290726-deepbal-p5lean-cls.yaml",
+        "yolo26l-sppf-cls",
+    ),
 }
 
 
@@ -470,9 +473,7 @@ def main():
     args = parser.parse_args()
 
     specs = suite()
-    available = specs + [
-        ModelSpec(name, source, "yolo26l-sppf-cls", False) for name, source in EXPLORATORY_YAMLS.items()
-    ]
+    available = specs + [ModelSpec(name, source, baseline, False) for name, (source, baseline) in EXPLORATORY_YAMLS.items()]
     by_name = {spec.name: spec for spec in available}
     if args.models:
         requested = set(args.models.split(","))

@@ -192,24 +192,31 @@ def _add_deim_fusion_barrier(network, trt) -> list[str]:
     """Stop TensorRT from fusing across the DEIM deformable-attention grid sampling, and return the tensors marked.
 
     TensorRT >=10.13 miscompiles the fused deformable cross-attention region of the DEIM decoder: engines lose most of
-    their mAP (coco8 mAP50-95 0.745 -> 0.19) and differ from build to build. It is not a precision issue - pure FP32
-    engines are affected too and FP32 pinning of these layers produces NaN - so the only effective remedy is to break
-    the fusion. Marking a tensor as a network output forbids fusing across it; doing that for the grid sampling
-    outputs (one per decoder layer and feature level) restores parity with ONNX Runtime.
+    their mAP (coco8 mAP50-95 0.745 -> 0.19), differ from build to build, and on TensorRT 11 can emit NaN. It is not a
+    precision issue - pure FP32 engines are affected too and FP32 pinning of these layers produces NaN - so the only
+    effective remedy is to break the fusion. Marking a tensor as a network output forbids fusing across it.
+
+    Both sides of the grid sampling have to be marked: >=10.13 needs its outputs, while TensorRT 11 needs its inputs
+    (the per-feature-level value tensors). Marking the layer's whole floating point I/O covers both and is derived from
+    the graph structure, so it does not depend on ONNX node numbering, which shifts between checkpoints.
 
     The extra tensors are auxiliary: `metadata["output_names"]` records the real model outputs so `TensorRTBackend`
     can ignore them at inference time.
     """
-    grid_sample_re = re.compile(r"/cross_attn/.*GridSample")
     marked = []
+    seen = set()
     for i in range(network.num_layers):
         layer = network.get_layer(i)
-        for output_idx in range(layer.num_outputs):
-            tensor = layer.get_output(output_idx)
-            if tensor.is_network_output or tensor.dtype not in {trt.float32, trt.float16}:
+        if "GridSample" not in (layer.name or ""):
+            continue
+        tensors = [layer.get_input(j) for j in range(layer.num_inputs)]
+        tensors += [layer.get_output(j) for j in range(layer.num_outputs)]
+        for tensor in tensors:
+            if tensor is None or tensor.is_network_output or tensor.name in seen:
                 continue
-            if grid_sample_re.search(tensor.name or ""):
+            if tensor.dtype in {trt.float32, trt.float16}:
                 network.mark_output(tensor)
+                seen.add(tensor.name)
                 marked.append(tensor.name)
     return marked
 
@@ -505,7 +512,7 @@ def onnx2engine(
 
     # TensorRT >=10.13 miscompiles the fused DEIM deformable cross-attention; break that fusion and record the real
     # outputs so the runtime can ignore the auxiliary ones
-    if deim_fp32_pinning and not is_trt11 and check_version(trt.__version__, ">=10.13.0"):
+    if deim_fp32_pinning and check_version(trt.__version__, ">=10.13.0"):
         model_outputs = [network.get_output(i).name for i in range(network.num_outputs)]
         marked = _add_deim_fusion_barrier(network, trt)
         if marked:
@@ -515,13 +522,13 @@ def onnx2engine(
                 f"{prefix} DEIM accuracy on TensorRT {trt.__version__}: added a fusion barrier at "
                 f"{len(marked)} deformable-attention tensors."
             )
-        # The barrier is not sufficient on every DEIM variant for these two releases: yolo27x-detr-alt still loses
-        # ~45% of its mAP on 10.13/10.14 (only global fusion inhibition recovers it, which is not shippable), while
-        # 10.15/10.16 are restored to FP32 parity.
-        if check_version(trt.__version__, ">=10.13.0,<10.15.0"):
+        # The barrier is not sufficient for every DEIM variant on 10.14: yolo27x-detr-alt still loses ~45% of its
+        # mAP there (only global fusion inhibition recovers it, which is not shippable). Every other release from
+        # 10.13 onwards, including TensorRT 11, reaches FP32 parity for all three checkpoints.
+        if check_version(trt.__version__, ">=10.14.0,<10.15.0"):
             LOGGER.warning(
                 f"{prefix} TensorRT {trt.__version__} miscompiles some DEIM decoders even with the fusion barrier; "
-                "validate mAP for this checkpoint, or export with TensorRT <=10.12 or >=10.15."
+                "validate mAP for this checkpoint, or export with a different TensorRT release."
             )
 
     # Write file

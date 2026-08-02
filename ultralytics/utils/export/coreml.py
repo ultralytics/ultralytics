@@ -21,12 +21,12 @@ _new_ones_patch_lock = threading.RLock()
 def _new_ones_coreml_patch():
     """Temporarily replace Tensor.new_ones with an equivalent coremltools can convert.
 
-    coremltools has no registered conversion for 'new_ones', which breaks CoreML export for
-    models using dynamic anchor generation (see ultralytics/utils/tal.py make_anchors()).
-    This substitutes a mathematically identical torch.ones() call, active only during tracing.
+    coremltools has no registered conversion for 'new_ones', which breaks CoreML export for models using dynamic anchor
+    generation (see ultralytics/utils/tal.py make_anchors()). This substitutes a mathematically identical torch.ones()
+    call, active only during tracing.
 
-    Guarded by a lock since this mutates the global Tensor.new_ones method; without it,
-    concurrent exports could save/restore each other's patched state.
+    Guarded by a lock since this mutates the global Tensor.new_ones method; without it, concurrent exports could
+    save/restore each other's patched state.
     """
     with _new_ones_patch_lock:
         original = torch.Tensor.new_ones

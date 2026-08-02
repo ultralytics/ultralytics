@@ -13,7 +13,7 @@ import torch
 
 from callbacks import paths, wandb_config
 from ultralytics import YOLO
-from ultralytics.models.yolo.classify.train_image_encoder import ImageEncoderTrainer
+from ultralytics.models.yolo.classify.train_image_encoder import KNN_EVERY_DEFAULT, ImageEncoderTrainer
 from ultralytics.nn.tasks import guess_model_scale
 from ultralytics.utils import YAML
 
@@ -189,7 +189,7 @@ def main(argv: list[str]) -> None:
         if checkpoint_args
         else r["standardize_teacher_outputs"]
     )
-    knn_every = int(knn_every_str) if knn_every_str else int(resume_args.get("knn_every", 10))
+    knn_every = int(knn_every_str) if knn_every_str else int(resume_args.get("knn_every", KNN_EVERY_DEFAULT))
     if knn_every < 1:
         raise ValueError(f"--knn_every must be positive, got {knn_every}")
 
@@ -259,7 +259,7 @@ def main(argv: list[str]) -> None:
             ("normalize_teacher_input", normalize_teacher_input, False),
             ("loss_type", loss_type, "cos_l1"),
             ("high_res_final_epochs", high_res_final_epochs, None),
-            ("knn_every", knn_every, 10),
+            ("knn_every", knn_every, KNN_EVERY_DEFAULT),
         ):
             prev = resume_args.get(key, default)
             if now != prev:

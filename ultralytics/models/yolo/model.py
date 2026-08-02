@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import torch
 
 from ultralytics.cfg import get_cfg
@@ -224,6 +225,8 @@ class YOLOE(Model):
         set_vocab: Set vocabulary and class names for the YOLOE model.
         get_vocab: Get vocabulary for the given class names.
         set_classes: Set the model's class names and embeddings for detection.
+        save_prompt_embeddings: Save the current prompt embeddings and class names to an NPZ file.
+        load_prompt_embeddings: Load prompt embeddings and class names from an NPZ file.
         val: Validate the model using text or visual prompts.
         predict: Run prediction on images, videos, directories, streams, etc.
 
@@ -329,7 +332,8 @@ class YOLOE(Model):
         # Verify no background class is present
         assert " " not in classes
         assert isinstance(self.model, YOLOEModel)
-        if sorted(self.model.names.values()) != sorted(classes):
+        names = self.model.names.values() if isinstance(self.model.names, dict) else self.model.names
+        if embeddings is not None or sorted(names) != sorted(classes):
             if embeddings is None:
                 embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
             self.model.set_classes(classes, embeddings)
@@ -337,6 +341,76 @@ class YOLOE(Model):
         # Reset method class names
         if self.predictor:
             self.predictor.model.names = self.model.names
+
+    def _prompt_embedding_model(self) -> str:
+        """Return the checkpoint identifier used to bind prompt embeddings to this model."""
+        source = self.overrides.get("pretrained") or getattr(self.model, "pt_path", None) or self.ckpt_path
+        source = source if isinstance(source, (str, Path)) else self.model.yaml["yaml_file"]
+        model = Path(source).stem
+        return model[:-4] if model.endswith("-seg") else model
+
+    def save_prompt_embeddings(self, file: str | Path) -> Path:
+        """Save the current prompt embeddings and class names to an NPZ file.
+
+        Args:
+            file (str | Path): Destination NPZ file path.
+
+        Returns:
+            (Path): Path to the saved NPZ file.
+
+        Raises:
+            ValueError: If prompt embeddings have not been set or are invalid.
+        """
+        assert isinstance(self.model, YOLOEModel)
+        embeddings = getattr(self.model, "pe", None)
+        if not isinstance(embeddings, torch.Tensor) or embeddings.ndim != 3 or embeddings.shape[0] != 1:
+            raise ValueError("Prompt embeddings must be set before they can be saved.")
+        names = list(self.model.names.values()) if isinstance(self.model.names, dict) else list(self.model.names)
+        if embeddings.shape[1] != len(names) or not torch.isfinite(embeddings).all():
+            raise ValueError("Prompt embeddings must be finite and match the number of class names.")
+
+        file = Path(file)
+        if file.suffix.lower() != ".npz":
+            raise ValueError(f"Prompt embedding file must have an '.npz' suffix, not '{file.suffix}'.")
+        np.savez_compressed(
+            file,
+            embeddings=embeddings.detach().cpu().float().numpy(),
+            names=np.asarray(names, dtype=np.str_),
+            model=np.asarray(self._prompt_embedding_model(), dtype=np.str_),
+        )
+        return file
+
+    def load_prompt_embeddings(self, file: str | Path) -> None:
+        """Load prompt embeddings and class names from a model-bound NPZ file.
+
+        Args:
+            file (str | Path): Source NPZ file path created by :meth:`save_prompt_embeddings`.
+
+        Raises:
+            ValueError: If the file is invalid or belongs to a different YOLOE architecture.
+        """
+        assert isinstance(self.model, YOLOEModel)
+        with np.load(file, allow_pickle=False) as data:
+            if set(data.files) != {"embeddings", "names", "model"}:
+                raise ValueError("Prompt embedding file must contain 'embeddings', 'names', and 'model'.")
+            embeddings, names, model = data["embeddings"], data["names"], data["model"]
+
+        if model.ndim != 0 or model.dtype.kind != "U":
+            raise ValueError("Prompt embedding model identifier must be a scalar string.")
+        model_name = str(model.item())
+        if model_name != self._prompt_embedding_model():
+            raise ValueError(
+                f"Prompt embeddings for model '{model_name}' cannot be loaded into '{self._prompt_embedding_model()}'."
+            )
+        if names.ndim != 1 or names.dtype.kind != "U":
+            raise ValueError("Prompt embedding class names must be a one-dimensional string array.")
+        if embeddings.dtype != np.float32 or embeddings.ndim != 3 or embeddings.shape[0] != 1:
+            raise ValueError("Prompt embeddings must be a float32 array with shape (1, classes, dimensions).")
+        if embeddings.shape[1] != len(names) or embeddings.shape[2] != self.model.model[-1].embed:
+            raise ValueError("Prompt embedding shape does not match the class names or model embedding dimension.")
+        if not np.isfinite(embeddings).all():
+            raise ValueError("Prompt embeddings must contain only finite values.")
+        self.set_classes(names.tolist(), torch.from_numpy(embeddings.copy()).to(next(self.model.parameters()).device))
 
     def val(
         self,

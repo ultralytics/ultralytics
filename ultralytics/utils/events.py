@@ -203,3 +203,35 @@ class Events:
 
 
 events = Events()
+
+
+def on_train_end(trainer):
+    """Record an anonymous training event after final metrics are available."""
+    events(trainer.args, trainer.device, trainer)
+
+
+def on_val_start(validator):
+    """Record an anonymous standalone validation event.
+
+    A trainer's final validation retains mode=train, so the guard prevents a duplicate train event.
+    """
+    if validator.args.mode == "val":
+        events(validator.args, validator.device)
+
+
+def on_predict_end(predictor):
+    """Record an anonymous prediction event after per-image speeds are available."""
+    events(predictor.args, predictor.device, predictor)
+
+
+def on_export_start(exporter):
+    """Record an anonymous export event."""
+    events(exporter.args, exporter.device)
+
+
+callbacks = {
+    "on_train_end": on_train_end,
+    "on_val_start": on_val_start,
+    "on_predict_end": on_predict_end,
+    "on_export_start": on_export_start,
+}

@@ -745,6 +745,7 @@ class BaseTrainer:
             student_model = self.get_model(cfg=cfg, weights=weights.student_model, verbose=RANK in {-1, 0})
             student_model.args = self.args
             model = DistillationModel(student_model=student_model, teacher_model=weights.teacher_model)
+            model.load_kd_state(weights)  # keep the trained projectors instead of the freshly initialized ones
             model.criterion = None
             self.model = model
         else:

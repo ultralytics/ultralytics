@@ -96,6 +96,32 @@ class TransformerEncoderLayer(nn.Module):
         """Add position embeddings to the tensor if provided."""
         return tensor if pos is None else tensor + pos
 
+    def _forward_attention(
+        self,
+        q: torch.Tensor,
+        k: torch.Tensor,
+        value: torch.Tensor,
+        attn_mask: torch.Tensor | None = None,
+        key_padding_mask: torch.Tensor | None = None,
+    ) -> torch.Tensor:
+        """Run multi-head attention in its parameter dtype and restore the activation dtype."""
+        output_dtype = value.dtype
+        attention_dtype = self.ma.in_proj_weight.dtype
+        q, k, value = (x.to(attention_dtype) for x in (q, k, value))
+        if attn_mask is not None and torch.is_floating_point(attn_mask):
+            attn_mask = attn_mask.to(attention_dtype)
+        if key_padding_mask is not None and torch.is_floating_point(key_padding_mask):
+            key_padding_mask = key_padding_mask.to(attention_dtype)
+        with torch.autocast(device_type=value.device.type, enabled=False):
+            output = self.ma(
+                q,
+                k,
+                value=value,
+                attn_mask=attn_mask,
+                key_padding_mask=key_padding_mask,
+            )[0]
+        return output.to(output_dtype)
+
     def forward_post(
         self,
         src: torch.Tensor,
@@ -115,7 +141,7 @@ class TransformerEncoderLayer(nn.Module):
             (torch.Tensor): Output tensor after attention and feedforward.
         """
         q = k = self.with_pos_embed(src, pos)
-        src2 = self.ma(q, k, value=src, attn_mask=src_mask, key_padding_mask=src_key_padding_mask)[0]
+        src2 = self._forward_attention(q, k, src, src_mask, src_key_padding_mask)
         src = src + self.dropout1(src2)
         src = self.norm1(src)
         src2 = self.fc2(self.dropout(self.act(self.fc1(src))))
@@ -142,7 +168,7 @@ class TransformerEncoderLayer(nn.Module):
         """
         src2 = self.norm1(src)
         q = k = self.with_pos_embed(src2, pos)
-        src2 = self.ma(q, k, value=src2, attn_mask=src_mask, key_padding_mask=src_key_padding_mask)[0]
+        src2 = self._forward_attention(q, k, src2, src_mask, src_key_padding_mask)
         src = src + self.dropout1(src2)
         src2 = self.norm2(src)
         src2 = self.fc2(self.dropout(self.act(self.fc1(src2))))
@@ -177,6 +203,13 @@ class AIFI(TransformerEncoderLayer):
     This class extends TransformerEncoderLayer to work with 2D feature maps by adding 2D sine-cosine positional
     embeddings and handling the spatial dimensions appropriately.
     """
+
+    def _apply(self, fn):
+        """Keep AIFI attention in FP32 when converting the surrounding model to FP16."""
+        super()._apply(fn)
+        if self.ma.in_proj_weight.dtype == torch.float16:
+            self.ma.float()
+        return self
 
     def __init__(
         self,

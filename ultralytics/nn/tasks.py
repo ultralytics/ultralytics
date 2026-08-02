@@ -998,7 +998,7 @@ class RTDETRDetectionModel(DetectionModel):
             (torch.Tensor): Total loss value.
             (torch.Tensor): Main three losses in a tensor.
         """
-        if not hasattr(self, "criterion"):
+        if getattr(self, "criterion", None) is None:  # None means "rebuild" (e.g. trainer resets it on resume)
             self.criterion = self.init_criterion()
 
         img = batch["img"]
@@ -1276,7 +1276,7 @@ class WorldModel(DetectionModel):
             batch (dict): Batch to compute loss on.
             preds (torch.Tensor | list[torch.Tensor], optional): Predictions.
         """
-        if not hasattr(self, "criterion"):
+        if getattr(self, "criterion", None) is None:  # None means "rebuild" (e.g. trainer resets it on resume)
             self.criterion = self.init_criterion()
 
         if preds is None:

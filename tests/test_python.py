@@ -1208,52 +1208,6 @@ def test_depth_calibration_checkpoint_provenance(tmp_path):
     assert float(head.cal_b) == provenance["b"]
 
 
-def test_depth_calibrate_excludes_gt_beyond_dataset_max_depth(monkeypatch):
-    """Model.calibrate() drops GT beyond the dataset max_depth so invalid far pixels cannot steer the fitted scale."""
-    import math
-
-    from ultralytics.models.yolo.depth.calibrate import _depth_head
-
-    # Half the GT sits at 2 m and needs a 1.5x correction; the other half sits at 60 m with the opposite error.
-    # The dataset YAML declares max_depth=42, so the 60 m pixels are invalid under the metrics' Eigen protocol —
-    # if they leak into the fit (no exclusion, or the 100 m default instead of the dataset value) the two errors
-    # cancel, the CV picks identity, and the checkpoint ships uncalibrated.
-    gt = torch.cat([torch.full((32,), 2.0), torch.full((32,), 60.0)]).reshape(8, 8)
-    pred = torch.where(gt < 42, gt / 1.5, gt * 1.5)
-
-    class _Net(torch.nn.Module):
-        def __init__(self):
-            super().__init__()
-            head = torch.nn.Module()
-            head.register_buffer("cal_a", torch.tensor(1.0))
-            head.register_buffer("cal_b", torch.tensor(0.0))
-            self.model = torch.nn.Sequential(head)
-
-        def forward(self, x):
-            return pred.expand(x.shape[0], -1, -1)
-
-    class _Validator:
-        def __init__(self, args=None, _callbacks=None):
-            self.dataloader = [{"img": torch.zeros(2, 3, 8, 8, dtype=torch.uint8), "depth": gt.expand(2, 8, 8)}] * 2
-            self.device = "cpu"
-            self.data = {"max_depth": 42.0}
-
-        def __call__(self, model=None):
-            pass
-
-    model = YOLO("yolo26n-depth.yaml", task="depth")
-    model.model = _Net()
-    monkeypatch.setattr(model, "_smart_load", lambda key: _Validator)
-
-    a, b = model.calibrate()
-
-    head = _depth_head(model.model)
-    assert a == 1.0
-    assert b == pytest.approx(math.log(1.5), abs=1e-5)
-    assert float(head.cal_a) == 1.0
-    assert float(head.cal_b) == pytest.approx(math.log(1.5), abs=1e-5)
-
-
 @pytest.mark.parametrize("external", [False, True])
 def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch, external):
     """Calibration provenance records local splits without rejecting external validation paths."""

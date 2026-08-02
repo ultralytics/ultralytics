@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Phase 1: Encoder distillation pretraining on DataComp-12M."""
+"""Phase 1: Encoder distillation pretraining on the 7-source mix, 12-source with the domain pools."""
 
 import os
 import sys

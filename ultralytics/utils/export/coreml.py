@@ -17,9 +17,9 @@ from ultralytics.utils.checks import check_requirements
 def _new_ones_coreml_patch():
     """Temporarily replace Tensor.new_ones with an equivalent coremltools can convert.
 
-    coremltools has no registered conversion for 'new_ones', which breaks CoreML export for
-    models using dynamic anchor generation (see ultralytics/utils/tal.py make_anchors()).
-    This substitutes a mathematically identical torch.ones() call, active only during tracing.
+    coremltools has no registered conversion for 'new_ones', which breaks CoreML export for models using dynamic anchor
+    generation (see ultralytics/utils/tal.py make_anchors()). This substitutes a mathematically identical torch.ones()
+    call, active only during tracing.
     """
     original = torch.Tensor.new_ones
 

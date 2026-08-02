@@ -326,6 +326,7 @@ class DetectionValidator(BaseValidator):
         stats = self.metrics.results_dict
         if self.training and self.args.task == "detect":
             coco_stats = self.coco_evaluate({}, self.jdict, self.coco_gt)
+            stats["metrics/mAR(B)"] = coco_stats["metrics/mAR(B)"]
             for size in "small", "medium", "large":
                 stats[f"metrics/mAP_{size}(B)"] = coco_stats[f"metrics/mAP_{size}(B)"]
                 stats[f"metrics/mAR_{size}(B)"] = coco_stats[f"metrics/mAR_{size}(B)"]
@@ -533,8 +534,8 @@ class DetectionValidator(BaseValidator):
     ) -> dict[str, Any]:
         """Evaluate COCO/LVIS metrics using faster-coco-eval library.
 
-        Performs evaluation using the faster-coco-eval library to compute mAP metrics for object detection. Updates the
-        provided stats dictionary with computed metrics including mAP50, mAP50-95, and LVIS-specific metrics if
+        Performs evaluation using the faster-coco-eval library to compute COCO metrics for object detection. Updates the
+        provided stats dictionary with computed metrics including mAP50, mAP50-95, mAR, and LVIS-specific metrics if
         applicable.
 
         Args:
@@ -579,13 +580,11 @@ class DetectionValidator(BaseValidator):
                     # update mAP50-95 and mAP50
                     stats[f"metrics/mAP50({suffix[i][0]})"] = val.stats_as_dict["AP_50"]
                     stats[f"metrics/mAP50-95({suffix[i][0]})"] = val.stats_as_dict["AP_all"]
-                    # record mAP for small, medium, large objects as well
-                    stats["metrics/mAP_small(B)"] = val.stats_as_dict["AP_small"]
-                    stats["metrics/mAP_medium(B)"] = val.stats_as_dict["AP_medium"]
-                    stats["metrics/mAP_large(B)"] = val.stats_as_dict["AP_large"]
-                    stats["metrics/mAR_small(B)"] = val.stats_as_dict["AR_small"]
-                    stats["metrics/mAR_medium(B)"] = val.stats_as_dict["AR_medium"]
-                    stats["metrics/mAR_large(B)"] = val.stats_as_dict["AR_large"]
+                    if iou_type == "bbox":
+                        stats["metrics/mAR(B)"] = val.stats_as_dict["AR_all"]
+                        for size in "small", "medium", "large":
+                            stats[f"metrics/mAP_{size}(B)"] = val.stats_as_dict[f"AP_{size}"]
+                            stats[f"metrics/mAR_{size}(B)"] = val.stats_as_dict[f"AR_{size}"]
                     # update fitness
                     stats["fitness"] = 0.9 * val.stats_as_dict["AP_all"] + 0.1 * val.stats_as_dict["AP_50"]
 

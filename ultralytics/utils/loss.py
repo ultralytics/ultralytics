@@ -1834,9 +1834,10 @@ class E2ELoss:
                 else total.new_zeros(())
             )
             # scaled by the aux_fg_sched branch weight and by the optional aux_fg_end anneal-to-zero ramp; 'split'
-            # applies its weights per anchor inside the loss, so the outer scalar is 1
-            sched = {"o2m": self.o2m, "const": 1.0, "o2o": self.o2o, "split": 1.0}[self.aux_fg_sched]
-            total = torch.cat((total, (self.aux_fg_w * sched * aux * batch_size).view(1)))
+            # applies its weights per anchor inside the loss, so the outer scalar is 1. Folded in before logging so
+            # the aux_fg_sched choice is visible in aux_fg_loss, unlike the other components which log raw values.
+            aux = aux * {"o2m": self.o2m, "const": 1.0, "o2o": self.o2o, "split": 1.0}[self.aux_fg_sched]
+            total = torch.cat((total, (self.aux_fg_w * aux * batch_size).view(1)))
             loss_items = torch.cat((loss_items, aux.detach().view(1)))
         return total, loss_items
 

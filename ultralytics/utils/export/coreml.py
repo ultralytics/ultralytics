@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from pathlib import Path
 from typing import Any
 
@@ -10,6 +11,32 @@ from torch import nn
 
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
+
+
+@contextlib.contextmanager
+def _new_ones_coreml_patch():
+    """Temporarily replace Tensor.new_ones with an equivalent coremltools can convert.
+
+    coremltools has no registered conversion for 'new_ones', which breaks CoreML export for
+    models using dynamic anchor generation (see ultralytics/utils/tal.py make_anchors()).
+    This substitutes a mathematically identical torch.ones() call, active only during tracing.
+    """
+    original = torch.Tensor.new_ones
+
+    def patched(self, size, dtype=None, **kwargs):
+        if isinstance(size, torch.Tensor):
+            shape = (int(size),) if size.dim() == 0 else tuple(int(s) for s in size)
+        elif isinstance(size, int):
+            shape = (size,)
+        else:
+            shape = tuple(size)
+        return torch.ones(shape, dtype=dtype or self.dtype, device=self.device)
+
+    torch.Tensor.new_ones = patched
+    try:
+        yield
+    finally:
+        torch.Tensor.new_ones = original
 
 
 class IOSDetectModel(nn.Module):
@@ -195,7 +222,8 @@ def torch2coreml(
     import coremltools as ct
 
     LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
-    ts = torch.jit.trace(model.eval(), im, strict=False)  # TorchScript model
+    with _new_ones_coreml_patch():
+        ts = torch.jit.trace(model.eval(), im, strict=False)  # TorchScript model
     fp16 = quantize == 16
     weight_int8 = quantize in {8, "w8a16"}
 

@@ -638,7 +638,6 @@ def check_dict_alignment(
             "adaptor_arch",
             "sample_t",
             "beta2",
-            "muon_w",
             "nfs_sync",
             # DINOv3 / UNIC / DUNE encoder-distillation knobs surfaced through DDP-serialised args.
             # ``wd_end``: half-cosine target weight_decay (callbacks/wd_schedule.py); reference

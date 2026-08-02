@@ -2,7 +2,7 @@
 """CE-on-ImageNet supervised pretrain matching exp5b-ce-baseline (single-GPU only).
 
 Recipe: byte-exact match to exp5b-ce-baseline (encoder-distillation.md baselines
-table line: batch=256 nbs=256 MuSGD lr=0.1 muon_w=0.1 warmup_epochs=0 cos_lr).
+table line: batch=256 nbs=256 MuSGD lr=0.1 muon=0.1 warmup_epochs=0 cos_lr).
 Epochs compressed 200 -> 114 to match the phase-1 distill epoch budget. Output
 weights are intended as arch-matched CE baselines for downstream finetuning.
 
@@ -25,8 +25,8 @@ Flags:
         per-arch summary of recipe, reference top-1, single-gpu constraint,
         and data path.
 
-Single-GPU only: muon_w + wandb_config callbacks are registered via
-model.add_callback() and silently no-op under DDP respawn (utils/dist.py:79
+Single-GPU only: the wandb_config callback is registered via
+model.add_callback() and silently no-ops under DDP respawn (utils/dist.py:79
 serializes the overrides dict, not the model callback list). nfs_sync is started
 by this runner directly, so it no longer depends on a callback. For multi-GPU,
 subclass ClassificationTrainer and register inside __init__ instead.
@@ -43,7 +43,7 @@ os.environ.setdefault("OMP_NUM_THREADS", "1")  # before torch: BLAS pools size a
 
 import torch
 
-from callbacks import muon_w, nfs_sync, paths, wandb_config
+from callbacks import nfs_sync, paths, wandb_config
 from ultralytics import YOLO
 
 
@@ -89,7 +89,7 @@ def main(argv: list[str]) -> None:
         raise ValueError(
             f"Single-GPU only (gpu={gpu!r}). Callbacks added via model.add_callback() "
             f"silently no-op under DDP. For multi-GPU, subclass ClassificationTrainer "
-            f"and register muon_w / wandb_config inside __init__."
+            f"and register wandb_config inside __init__."
         )
 
     model_yaml = args[1] if len(args) > 1 else resume_args.get("model", "yolo26s-cls.yaml")
@@ -115,13 +115,11 @@ def main(argv: list[str]) -> None:
     notes = notes_override or None
 
     model = YOLO(model_yaml)
-    model.add_callback("on_train_start", muon_w.override(0.1))
     model.add_callback(
         "on_pretrain_routine_start",
         wandb_config.log_config(
             model=model_yaml,
             recipe="exp5b-114ep",
-            muon_w=0.1,
             wandb_group="ce-pretrain-imagenet",
             tags=tags,
             notes=notes,
@@ -136,6 +134,8 @@ def main(argv: list[str]) -> None:
         workers=4,
         pretrained=False,
         optimizer="MuSGD",
+        muon=0.1,
+        sgd=1.0,
         seed=0,
         deterministic=True,
         cos_lr=True,

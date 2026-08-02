@@ -333,7 +333,7 @@ def main(argv: list[str]) -> None:
         else {}
     )
     # beta2 is registered inside ImageEncoderTrainer, and nfs_sync starts in its _setup_train, so both
-    # survive DDP respawn. grad_clip and muon_w are plain train args now, read straight from self.args.
+    # survive DDP respawn. grad_clip and muon/sgd are plain train args now, read straight from self.args.
     model.add_callback(
         "on_pretrain_routine_start",
         wandb_config.log_config(

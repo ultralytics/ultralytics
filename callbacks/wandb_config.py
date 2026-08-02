@@ -4,7 +4,7 @@ Usage:
     from callbacks import wandb_config
 
     # CE experiments: pass params explicitly
-    model.add_callback("on_pretrain_routine_start", wandb_config.log_config(loss_mode="ce", muon_w=0.1))
+    model.add_callback("on_pretrain_routine_start", wandb_config.log_config(loss_mode="ce"))
 
     # Text-aligned experiments: picks up attrs from TextClassificationTrainer
     model.add_callback("on_pretrain_routine_start", wandb_config.log_config())
@@ -21,7 +21,7 @@ from ultralytics.utils import YAML
 
 from . import paths
 
-EXTRA_ATTRS = ("loss_mode", "muon_w", "use_clip_classifier", "teacher_variant", "teacher_temps", "grad_clip_norm")
+EXTRA_ATTRS = ("loss_mode", "use_clip_classifier", "teacher_variant", "teacher_temps", "grad_clip_norm")
 _WANDB_INTERNAL_PREFIX = "_"
 
 
@@ -100,9 +100,7 @@ def fork_and_attach(
     import wandb
 
     if use_native_fork:
-        run = wandb.init(
-            entity=entity, project=project, name=name, fork_from=f"{parent_run_id}?_step={fork_step}"
-        )
+        run = wandb.init(entity=entity, project=project, name=name, fork_from=f"{parent_run_id}?_step={fork_step}")
         forked_id = run.id
         run.finish()
     else:

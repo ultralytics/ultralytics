@@ -256,7 +256,6 @@ class ImageEncoderTrainer(ClassificationTrainer):
         from callbacks import beta2_override, wd_schedule  # runner-local package
 
         beta2_v = getattr(self.args, "beta2", None)
-        muon_w_v = getattr(self.args, "muon_w", None)  # read by build_optimizer, logged below only
         if beta2_v is not None:
             self.add_callback("on_train_start", beta2_override.override(float(beta2_v)))
 
@@ -287,7 +286,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
                 for name, sk in zip(self.teachers, self._safe_keys)
             }
             LOGGER.info(
-                f"ImageEncoderTrainer hooks: beta2={beta2_v} muon_w={muon_w_v} wd_end={wd_end_v} "
+                f"ImageEncoderTrainer hooks: beta2={beta2_v} muon={self.args.muon} wd_end={wd_end_v} "
                 f"nfs_sync={getattr(self.args, 'nfs_sync', False)} (starts in _setup_train)"
             )
             LOGGER.info(

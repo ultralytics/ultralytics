@@ -1154,8 +1154,6 @@ class BaseTrainer:
         g[2] = {"params": g[2], **optim_args, "param_group": "bias"}
         g[0] = {"params": g[0], **optim_args, "weight_decay": decay, "param_group": "weight"}
         g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0, "param_group": "bn"}
-        # muon_w: optional custom cfg key (allowed_custom_keys), default 0.2
-        muon, sgd = (self.args.get("muon_w", 0.2), 1.0)
         groups = [g[0], g[1], g[2]]
         if use_muon:
             num_params[0] = len(g[3])  # update number of params
@@ -1194,7 +1192,9 @@ class BaseTrainer:
                 g_.append({"params": p_bb, **x, "lr": lr * ratio})
             g_.append({"params": p_base, **x})
         g = g_
-        optimizer = (partial(MuSGD, muon=muon, sgd=sgd) if use_muon else getattr(optim, name))(params=g)
+        optimizer = (partial(MuSGD, muon=self.args.muon, sgd=self.args.sgd) if use_muon else getattr(optim, name))(
+            params=g
+        )
 
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "

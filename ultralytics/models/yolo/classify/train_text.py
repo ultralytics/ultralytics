@@ -127,7 +127,6 @@ class TextClassificationTrainer(ClassificationTrainer):
         self.teacher_variant = overrides.pop("teacher_variant", "s4")
         self.use_clip_classifier = overrides.pop("use_clip_classifier", False)
         self.prompt_ensemble = overrides.pop("prompt_ensemble", False)
-        self.muon_w = overrides.pop("muon_w", 0.1)
         self.teacher_temps = overrides.pop("teacher_temps", None)
         self.teachers = self.teacher_variant.split("+")
         self.teacher_dims = []
@@ -136,14 +135,6 @@ class TextClassificationTrainer(ClassificationTrainer):
         self.text_similarity = None
         self.teacher_img_embeds = None
         super().__init__(cfg, overrides, _callbacks)
-
-    def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
-        """Build optimizer and override MuSGD muon weight (core hardcodes 0.2, published baseline uses 0.1)."""
-        optimizer = super().build_optimizer(model, name, lr, momentum, decay, iterations)
-        if hasattr(optimizer, "muon"):
-            optimizer.muon = self.muon_w
-            LOGGER.info(f"MuSGD muon weight overridden to {self.muon_w}")
-        return optimizer
 
     def get_model(self, cfg=None, weights=None, verbose: bool = True):
         """Return TextClassificationModel configured for text-aligned training.
@@ -283,9 +274,7 @@ class TextClassificationTrainer(ClassificationTrainer):
 
         from ultralytics.nn.image_model import build_image_model
 
-        LOGGER.info(
-            f"Pre-computing MobileCLIP2-{teacher_name} image embeddings (one-time, ~30 min for ImageNet)..."
-        )
+        LOGGER.info(f"Pre-computing MobileCLIP2-{teacher_name} image embeddings (one-time, ~30 min for ImageNet)...")
         teacher = build_image_model(f"mobileclip2:{teacher_name}", device=self.device)
         n = len(dataset)
         # Detect embed dim from a probe forward pass
@@ -326,7 +315,10 @@ class TextClassificationTrainer(ClassificationTrainer):
             )
             if len(self.teachers) > 1:
                 batch["txt_feats_teachers"] = torch.cat(
-                    [e.to(device=batch["img"].device, dtype=batch["img"].dtype) for e in self.text_embeddings_per_teacher],
+                    [
+                        e.to(device=batch["img"].device, dtype=batch["img"].dtype)
+                        for e in self.text_embeddings_per_teacher
+                    ],
                     dim=-1,
                 )
         return batch

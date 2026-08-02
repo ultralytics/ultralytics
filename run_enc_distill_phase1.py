@@ -107,7 +107,7 @@ def main(argv: list[str]) -> None:
         --eupe_multires: start a separate 15-epoch EUPE Stage 3-style post-training run from the positional ``.pt``.
             Uses independent student/teacher scales from 256, 384, and 512, effective batch 512, lr0 2e-4, and wd 0.02.
         --parent_wandb_id <id>: original Phase 1 W&B run recorded as lineage on a new multi-resolution run.
-        --knn_every <epochs>: run ImageNet kNN every N epochs. Default 5.
+        --knn_every <epochs>: run ImageNet kNN every N epochs. Default 10.
     """
     args = argv[1:]
     args, resume = _pop_flag(args, "--resume")
@@ -189,7 +189,7 @@ def main(argv: list[str]) -> None:
         if checkpoint_args
         else r["standardize_teacher_outputs"]
     )
-    knn_every = int(knn_every_str) if knn_every_str else int(resume_args.get("knn_every", 5))
+    knn_every = int(knn_every_str) if knn_every_str else int(resume_args.get("knn_every", 10))
     if knn_every < 1:
         raise ValueError(f"--knn_every must be positive, got {knn_every}")
 
@@ -259,7 +259,7 @@ def main(argv: list[str]) -> None:
             ("normalize_teacher_input", normalize_teacher_input, False),
             ("loss_type", loss_type, "cos_l1"),
             ("high_res_final_epochs", high_res_final_epochs, None),
-            ("knn_every", knn_every, 5),
+            ("knn_every", knn_every, 10),
         ):
             prev = resume_args.get(key, default)
             if now != prev:

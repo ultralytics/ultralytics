@@ -754,7 +754,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
         self._sync_validator_sizes(self.validator)
         metrics, fitness = super().validate()
         if metrics is not None and "path" in self._knn_state:
-            knn = self._knn_eval(getattr(self.args, "knn_every", 5))
+            knn = self._knn_eval(getattr(self.args, "knn_every", 10))
             metrics["knn/top1"] = round(knn[224], 4) if knn else float("nan")
             if self._high_res_imgsz:  # stable column: operating-res kNN in the tail, nan otherwise
                 metrics["knn/top1_hr"] = (
@@ -762,7 +762,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
                 )
         return metrics, fitness
 
-    def _knn_eval(self, every_n=5):
+    def _knn_eval(self, every_n=10):
         """Run kNN accuracy eval on ImageNet (k=20, T=0.07). Skips non-Nth epochs.
 
         Always evaluates at 224 (the cross-run reference); during the high-res tail also at the student's

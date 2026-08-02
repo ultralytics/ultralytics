@@ -24,10 +24,10 @@ from .utils import bias_init_with_prob, linear_init
 __all__ = (
     "OBB",
     "OBB26",
-    "Detect3D",
     "Classify",
     "Depth",
     "Detect",
+    "Detect3D",
     "Pose",
     "RTDETRDecoder",
     "Segment",
@@ -600,9 +600,9 @@ class Detect3D(Detect):
     """Lightweight MonoCon/MonoDLE-inspired monocular 3D head for YOLO11 and end-to-end YOLO26.
 
     The deploy-time head predicts a box-relative projected center, direct log-depth, class-mean dimension residuals,
-    12-bin observation angle, and a 3D localization-quality score. During training, a projected
-    eight-corner auxiliary output supplies MonoCon-style contextual supervision. Public inference output remains eight
-    values per detection: ``center_x, center_y, depth, sin(alpha), cos(alpha), h, w, l``.
+    12-bin observation angle, and a 3D localization-quality score. During training, a projected eight-corner auxiliary
+    output supplies MonoCon-style contextual supervision. Public inference output remains eight values per detection:
+    ``center_x, center_y, depth, sin(alpha), cos(alpha), h, w, l``.
     """
 
     def __init__(

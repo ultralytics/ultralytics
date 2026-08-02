@@ -299,8 +299,8 @@ class Results(SimpleClass, DataExportMixin):
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
             semantic_mask (torch.Tensor | None): A 2D tensor of class IDs for semantic segmentation results.
             depth (torch.Tensor | None): A 2D float tensor of per-pixel depth values (H, W).
-            d3_params (torch.Tensor | np.ndarray | None): An (N, 8) array containing projected center, depth,
-                sin/cos orientation, and height/width/length for each detection.
+            d3_params (torch.Tensor | np.ndarray | None): An (N, 8) array containing projected center, depth, sin/cos
+                orientation, and height/width/length for each detection.
             p2 (torch.Tensor | np.ndarray | None): Optional (3, 4) camera projection matrix for 3D visualization.
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
 

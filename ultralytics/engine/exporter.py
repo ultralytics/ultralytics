@@ -1057,7 +1057,7 @@ class Exporter:
             elif isinstance(self.model, DetectionModel):
                 # Anchor-based heads return ``(batch, channels, anchors)``. YOLO26's end-to-end
                 # Detect3D path returns ``(batch, max_det, channels)`` instead, so only the
-                # batch dimension is dynamic; labelling axis 2 as anchors is incorrect there.
+                # batch dimension is dynamic; labeling axis 2 as anchors is incorrect there.
                 dynamic["output0"] = (
                     {0: "batch"}
                     if self.model.task == "detect3d" and getattr(self.model, "end2end", False)

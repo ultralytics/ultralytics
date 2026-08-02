@@ -14,8 +14,8 @@ from .utils import set_detect3d_quality_power
 class Detection3DPredictor(DetectionPredictor):
     """A class extending the DetectionPredictor class for prediction based on a 3D detection model.
 
-    This predictor handles inference for YOLO models trained for 3D detection, processing output with
-    3D parameters (depth, position, dimensions, rotation).
+    This predictor handles inference for YOLO models trained for 3D detection, processing output with 3D parameters
+    (depth, position, dimensions, rotation).
 
     Attributes:
         args (dict): Configuration arguments for the predictor.

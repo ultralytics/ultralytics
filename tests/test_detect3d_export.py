@@ -1,3 +1,4 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Release-facing export and runtime checks for the public Detect3D interface."""
 
 import json

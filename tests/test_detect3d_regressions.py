@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from __future__ import annotations
 
 import math
@@ -9,6 +11,7 @@ import numpy as np
 import pytest
 import torch
 
+from ultralytics.cfg import DEFAULT_CFG
 from ultralytics.data.augment import (
     Format,
     LetterBox,
@@ -29,7 +32,7 @@ from ultralytics.models.yolo.detect3d.val import (
 )
 from ultralytics.nn.modules.head import Detect3D
 from ultralytics.nn.tasks import Detection3DModel
-from ultralytics.cfg import DEFAULT_CFG
+from ultralytics.utils import nms
 from ultralytics.utils.geometry3d import (
     backproject_points,
     backproject_points_torch,
@@ -44,12 +47,10 @@ from ultralytics.utils.instance import Instances
 from ultralytics.utils.loss import (
     E2EDetect3DLoss,
     E2ELoss,
-    v8Detection3DLoss,
     quality_focal_loss_with_logits,
+    v8Detection3DLoss,
     weighted_smooth_l1_loss_fp32,
 )
-from ultralytics.utils import nms
-
 
 P2_WITH_TRANSLATION = np.array([[700.0, 3.0, 620.0, -350.0], [2.0, 710.0, 180.0, 70.0], [0.001, 0.002, 1.0, 0.2]])
 

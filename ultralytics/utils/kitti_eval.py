@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """KITTI object label I/O and official-style R40 evaluation for monocular 3D detection.
 
 The R40 matching and threshold semantics are an adapted NumPy/OpenCV implementation of the public
@@ -249,8 +248,8 @@ def d3_box_overlap(boxes: KittiAnnotation, query_boxes: KittiAnnotation) -> np.n
 def paired_d3_box_overlap(boxes: KittiAnnotation, query_boxes: KittiAnnotation) -> np.ndarray:
     """Return exact rotated 3D IoU for aligned pairs of bottom-centered KITTI camera boxes.
 
-    Unlike :func:`d3_box_overlap`, this helper computes only ``boxes[i]`` against ``query_boxes[i]``. It is intended
-    for matched-pair diagnostics, where constructing a full ``N x N`` overlap matrix would waste memory and polygon
+    Unlike :func:`d3_box_overlap`, this helper computes only ``boxes[i]`` against ``query_boxes[i]``. It is intended for
+    matched-pair diagnostics, where constructing a full ``N x N`` overlap matrix would waste memory and polygon
     intersections. Invalid or non-positive boxes receive IoU zero.
     """
     if len(boxes) != len(query_boxes):

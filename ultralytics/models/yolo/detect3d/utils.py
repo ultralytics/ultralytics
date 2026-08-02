@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """Small runtime helpers shared by Detect3D train, validation, and prediction paths."""
 
 from __future__ import annotations

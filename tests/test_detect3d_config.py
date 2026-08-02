@@ -1,3 +1,4 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Configuration contracts for the public Detect3D training entry points."""
 
 from ultralytics.cfg import DEFAULT_CFG, TASK2METRIC, TASK2MODEL

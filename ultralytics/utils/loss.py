@@ -10,7 +10,6 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from ultralytics.utils.metrics import CITYSCAPES_WEIGHT, OKS_SIGMA, RLE_WEIGHT
 from ultralytics.utils.geometry3d import (
     backproject_points_torch,
     boxes3d_corners_torch,
@@ -20,6 +19,7 @@ from ultralytics.utils.geometry3d import (
     project_points_torch,
     wrap_angle_torch,
 )
+from ultralytics.utils.metrics import CITYSCAPES_WEIGHT, OKS_SIGMA, RLE_WEIGHT
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import autocast
@@ -536,8 +536,8 @@ class v8Detection3DLoss(v8DetectionLoss):
 
     It keeps YOLO's 2D task-aligned assignment, but balances 3D regression per ground-truth object instead of letting
     low 2D IoU suppress the hardest 3D targets. The 3D objective combines box-relative projected center, direct
-    log-depth regression, class-mean dimension residuals, 12-bin observation angle, disentangled
-    camera-space corners, projected-corner auxiliary context, and a learned localization-quality score.
+    log-depth regression, class-mean dimension residuals, 12-bin observation angle, disentangled camera-space corners,
+    projected-corner auxiliary context, and a learned localization-quality score.
     """
 
     def __init__(

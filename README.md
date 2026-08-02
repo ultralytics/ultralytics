@@ -152,19 +152,19 @@ KITTI camera coordinates and dimensions in meters, with `rotation_y` in radians.
 ```bash
 # Train a lightweight YOLO26n Detect3D model.
 yolo detect3d train model=yolo26n-3d.yaml pretrained=yolo26n.pt data=/path/to/kitti3d.yaml \
-    epochs=100 imgsz=1280 rect=True batch=16 device=0 seed=0 deterministic=True cos_lr=True
+  epochs=100 imgsz=1280 rect=True batch=16 device=0 seed=0 deterministic=True cos_lr=True
 
 # Run generic metrics and the full KITTI R40 evaluation.
 yolo detect3d val model=/path/to/best.pt data=/path/to/kitti3d.yaml \
-    split=val imgsz=1280 rect=True device=0 kitti_eval=full plots=True
+  split=val imgsz=1280 rect=True device=0 kitti_eval=full plots=True
 
 # Project 3D boxes using one calibration file or a directory of stem-matched files.
 yolo detect3d predict model=/path/to/best.pt source=/path/to/images calib=/path/to/calib \
-    imgsz=1280 device=0 save=True
+  imgsz=1280 device=0 save=True
 
 # Export a static KITTI-shaped ONNX model; use dynamic=True when variable shapes are required.
 yolo detect3d export model=/path/to/best.pt format=onnx imgsz='[416,1280]' \
-    batch=1 opset=17 simplify=True dynamic=False
+  batch=1 opset=17 simplify=True dynamic=False
 ```
 
 Contributor-provided evaluation checkpoints, logs, curves, KITTI R40 metrics, and checksums are available in the

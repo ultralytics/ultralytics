@@ -1,3 +1,4 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Tests for Detect3D-specific training result plots."""
 
 from __future__ import annotations

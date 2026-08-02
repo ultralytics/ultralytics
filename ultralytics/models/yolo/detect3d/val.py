@@ -31,7 +31,6 @@ from ultralytics.utils.plotting import plot_images
 
 from .utils import set_detect3d_quality_power
 
-
 _D3_ERROR_NAMES = ("dist", "xc", "yc", "w3d", "h3d", "l3d", "ry_deg")
 _D3_DISTANCE_RANGES = (
     ("0_20m", 0.0, 20.0),

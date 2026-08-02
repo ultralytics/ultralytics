@@ -1,3 +1,4 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Focused tests for the final Mono3D quality and depth objectives."""
 
 from __future__ import annotations

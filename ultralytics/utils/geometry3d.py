@@ -1,12 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """Shared projective-geometry helpers for monocular 3D detection."""
 
 from __future__ import annotations
 
 import numpy as np
 import torch
-
 
 DEFAULT_KITTI_P2 = np.array(
     [[721.5377, 0.0, 609.5593, 0.0], [0.0, 721.5377, 172.854, 0.0], [0.0, 0.0, 1.0, 0.0]],
@@ -184,10 +182,10 @@ def paired_boxes3d_iou_torch(
 ) -> torch.Tensor:
     """Return exact rotated 3D IoU for aligned camera-coordinate boxes using only Torch operations.
 
-    Boxes use geometric centers, KITTI ``(h, w, l)`` dimensions, and yaw around the camera Y axis. The BEV
-    intersection is the convex hull of at most 24 fixed candidates: eight contained corners and sixteen pairwise
-    edge intersections. Computation remains FP32 inside autocast so the result is suitable as a stable quality target.
-    Invalid or non-positive boxes receive IoU zero.
+    Boxes use geometric centers, KITTI ``(h, w, l)`` dimensions, and yaw around the camera Y axis. The BEV intersection
+    is the convex hull of at most 24 fixed candidates: eight contained corners and sixteen pairwise edge intersections.
+    Computation remains FP32 inside autocast so the result is suitable as a stable quality target. Invalid or
+    non-positive boxes receive IoU zero.
     """
     if centers_a.shape != dims_a.shape or centers_b.shape != dims_b.shape or centers_a.shape != centers_b.shape:
         raise ValueError(

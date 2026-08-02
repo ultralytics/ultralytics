@@ -13,7 +13,6 @@ from torch import nn
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
 
-
 _new_ones_patch_lock = threading.RLock()
 
 

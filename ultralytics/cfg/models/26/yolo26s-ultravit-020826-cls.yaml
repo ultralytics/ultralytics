@@ -1,0 +1,22 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# S-only narrow P4-deep classifier in the 010826-1 style, backbone identical to yolo26s-ultravit-020826.
+
+nc: 1000
+
+scales:
+  s: [1.00, 1.00, 512]
+
+backbone:
+  - [-1, 1, Conv, [32, 3, 2]]
+  - [-1, 1, Conv, [48, 3, 2]]
+  - [-1, 2, RepUltraViTBlock, [2.171875, True, 0.00001, True]]
+  - [-1, 1, Conv, [96, 3, 2]]
+  - [-1, 2, RepUltraViTBlock, [2.5, True, 0.00001, True]]
+  - [-1, 1, Conv, [192, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [1.25, True, 0.00001, True]]
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [-1, 1, MHSABlock, [0, 0.625, True, 0.00001, False, 64]]
+
+head:
+  - [-1, 1, Classify, [nc]]

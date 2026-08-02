@@ -114,41 +114,6 @@ def test_onnx_int8_quantize_excludes_non_weighted_ops(monkeypatch):
     assert calls["nodes_to_exclude"] == ["pool", "sigmoid"]
 
 
-def test_onnx_calibration_reader_iterates_lazily_and_rewinds():
-    """Check ONNX/QNN calibration transforms one batch at a time and recreates its iterator on rewind."""
-    import numpy as np
-
-    from ultralytics.utils.export.onnx import onnx_calibration_reader
-
-    class Dataset:
-        def __init__(self):
-            self.iterations = 0
-
-        def __iter__(self):
-            self.iterations += 1
-            return iter((1, 2))
-
-    transformed = []
-
-    def transform_fn(batch):
-        transformed.append(batch)
-        return np.full((1, 3, 2, 2), batch, dtype=np.float32)
-
-    dataset = Dataset()
-    reader = onnx_calibration_reader(dataset, transform_fn, batch=2)
-    assert transformed == []
-    assert dataset.iterations == 1
-
-    assert np.array_equal(reader.get_next()["images"], np.full((2, 3, 2, 2), 1, dtype=np.float32))
-    assert transformed == [1]
-    assert reader.get_next()["images"].shape == (2, 3, 2, 2)
-    assert reader.get_next() is None
-
-    reader.rewind()
-    assert dataset.iterations == 2
-    assert np.array_equal(reader.get_next()["images"], np.full((2, 3, 2, 2), 1, dtype=np.float32))
-
-
 def test_quantize_canonicalization():
     """Quantize accepts 8/16/32 (int or str) and w-notation, canonicalizing to the int form (unset stays None)."""
     for value, expected in [

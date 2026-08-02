@@ -1055,9 +1055,16 @@ class Exporter:
             elif isinstance(self.model, DepthModel):
                 dynamic["output0"] = {0: "batch", 2: "height", 3: "width"}  # shape(1,1,640,640) dense map, not anchors
             elif isinstance(self.model, DetectionModel):
-                dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 84, 8400)
+                # Anchor-based heads return ``(batch, channels, anchors)``. YOLO26's end-to-end
+                # Detect3D path returns ``(batch, max_det, channels)`` instead, so only the
+                # batch dimension is dynamic; labelling axis 2 as anchors is incorrect there.
+                dynamic["output0"] = (
+                    {0: "batch"}
+                    if self.model.task == "detect3d" and getattr(self.model, "end2end", False)
+                    else {0: "batch", 2: "anchors"}
+                )
             if self.args.nms:  # only batch size is dynamic with NMS
-                dynamic["output0"].pop(2)
+                dynamic["output0"].pop(2, None)
         if self.args.nms and self.model.task == "obb":
             self.args.opset = opset  # for NMSModel
             self.args.simplify = True  # fix OBB runtime error related to topk

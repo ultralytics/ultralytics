@@ -14,9 +14,17 @@ from typing import Any
 
 import numpy as np
 import torch
+from PIL import Image
 
 from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, ops
-from ultralytics.utils.plotting import Annotator, colors, save_one_box
+from ultralytics.utils.geometry3d import backproject_points
+from ultralytics.utils.plotting import (
+    Annotator,
+    colors,
+    compute_box_3d_corners,
+    draw_3d_box_on_image,
+    save_one_box,
+)
 
 
 class BaseTensor(SimpleClass):
@@ -188,6 +196,31 @@ class DepthMap(BaseTensor):
         return 1
 
 
+class D3Params(BaseTensor):
+    """Per-detection monocular 3D outputs in native-image coordinates, shape (N, 8)."""
+
+    def __init__(self, data: torch.Tensor | np.ndarray, orig_shape: tuple[int, int]) -> None:
+        """Validate and store decoded center, depth, orientation, and dimension outputs."""
+        if data.ndim not in {1, 2} or data.shape[-1] != 8:
+            raise ValueError(f"Detect3D parameters must have shape (N, 8), got {tuple(data.shape)}")
+        super().__init__(data, orig_shape)
+
+    @property
+    def center(self):
+        """Projected 3D geometric centers in native-image pixels, shape (N, 2)."""
+        return self.data[..., :2]
+
+    @property
+    def depth(self):
+        """Camera-axis depth in meters, shape (N,)."""
+        return self.data[..., 2]
+
+    @property
+    def dimensions(self):
+        """Object dimensions in (height, width, length) order, shape (N, 3)."""
+        return self.data[..., 5:8]
+
+
 class Results(SimpleClass, DataExportMixin):
     """A class for storing and manipulating inference results.
 
@@ -250,6 +283,8 @@ class Results(SimpleClass, DataExportMixin):
         speed: dict[str, float] | None = None,
         semantic_mask: torch.Tensor | None = None,
         depth: torch.Tensor | None = None,
+        d3_params: torch.Tensor | np.ndarray | None = None,
+        p2: torch.Tensor | np.ndarray | None = None,
     ) -> None:
         """Initialize the Results class for storing and manipulating inference results.
 
@@ -264,6 +299,9 @@ class Results(SimpleClass, DataExportMixin):
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
             semantic_mask (torch.Tensor | None): A 2D tensor of class IDs for semantic segmentation results.
             depth (torch.Tensor | None): A 2D float tensor of per-pixel depth values (H, W).
+            d3_params (torch.Tensor | np.ndarray | None): An (N, 8) array containing projected center, depth,
+                sin/cos orientation, and height/width/length for each detection.
+            p2 (torch.Tensor | np.ndarray | None): Optional (3, 4) camera projection matrix for 3D visualization.
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
 
         Notes:
@@ -282,11 +320,17 @@ class Results(SimpleClass, DataExportMixin):
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
         self.semantic_mask = SemanticMask(semantic_mask, self.orig_shape) if semantic_mask is not None else None
         self.depth = DepthMap(depth, self.orig_shape) if depth is not None else None
+        if d3_params is not None and self.boxes is not None and len(d3_params) != len(self.boxes):
+            raise ValueError("d3_params must contain one row per detection box")
+        self.d3_params = D3Params(d3_params, self.orig_shape) if d3_params is not None else None
+        if p2 is not None and tuple(p2.shape) != (3, 4):
+            raise ValueError(f"P2 must have shape (3, 4), got {tuple(p2.shape)}")
+        self.p2 = p2
         self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
         self.path = path
         self.save_dir = None
-        self._keys = "boxes", "masks", "probs", "keypoints", "obb", "semantic_mask", "depth"
+        self._keys = "boxes", "masks", "probs", "keypoints", "obb", "semantic_mask", "depth", "d3_params"
 
     def __getitem__(self, idx):
         """Return a Results object for a specific index of inference results.
@@ -331,6 +375,8 @@ class Results(SimpleClass, DataExportMixin):
         keypoints: torch.Tensor | None = None,
         semantic_mask: torch.Tensor | None = None,
         depth: torch.Tensor | None = None,
+        d3_params: torch.Tensor | np.ndarray | None = None,
+        p2: torch.Tensor | np.ndarray | None = None,
     ):
         """Update the Results object with new detection data.
 
@@ -347,6 +393,8 @@ class Results(SimpleClass, DataExportMixin):
             semantic_mask (torch.Tensor | None): A tensor of shape (H, W) containing class IDs for semantic
                 segmentation.
             depth (torch.Tensor | None): A tensor of shape (H, W) containing per-pixel depth values.
+            d3_params (torch.Tensor | np.ndarray | None): An (N, 8) array of decoded monocular 3D parameters.
+            p2 (torch.Tensor | np.ndarray | None): Optional (3, 4) camera projection matrix.
 
         Examples:
             >>> results = model("image.jpg")
@@ -367,6 +415,14 @@ class Results(SimpleClass, DataExportMixin):
             self.semantic_mask = SemanticMask(semantic_mask, self.orig_shape)
         if depth is not None:
             self.depth = DepthMap(depth, self.orig_shape)
+        if d3_params is not None:
+            if self.boxes is not None and len(d3_params) != len(self.boxes):
+                raise ValueError("d3_params must contain one row per detection box")
+            self.d3_params = D3Params(d3_params, self.orig_shape)
+        if p2 is not None:
+            if tuple(p2.shape) != (3, 4):
+                raise ValueError(f"P2 must have shape (3, 4), got {tuple(p2.shape)}")
+            self.p2 = p2
 
     def _apply(self, fn: str, *args, **kwargs):
         """Apply a function to all non-empty attributes and return a new Results object with modified attributes.
@@ -471,7 +527,7 @@ class Results(SimpleClass, DataExportMixin):
             >>> results = model("path/to/image.jpg")
             >>> new_result = results[0].new()
         """
-        return Results(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed)
+        return Results(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed, p2=self.p2)
 
     def plot(
         self,
@@ -492,6 +548,7 @@ class Results(SimpleClass, DataExportMixin):
         filename: str | None = None,
         color_mode: str = "class",
         txt_color: tuple[int, int, int] = (255, 255, 255),
+        p2: torch.Tensor | np.ndarray | None = None,
     ) -> np.ndarray:
         """Plot detection results on an input BGR image.
 
@@ -609,6 +666,35 @@ class Results(SimpleClass, DataExportMixin):
                     kpt_color=colors(i, True) if color_mode == "instance" else None,
                 )
 
+        # Plot projected 3D boxes only when calibration is supplied explicitly or attached to this result.
+        projection = p2 if p2 is not None else self.p2
+        if self.d3_params is not None and pred_boxes is not None and projection is not None:
+            projection = (
+                projection.detach().cpu().numpy() if isinstance(projection, torch.Tensor) else np.asarray(projection)
+            )
+            d3_data = self.d3_params.data
+            d3_data = d3_data.detach().cpu().numpy() if isinstance(d3_data, torch.Tensor) else np.asarray(d3_data)
+            plot_img = np.asarray(annotator.im).copy() if annotator.pil else annotator.im
+            for d3 in np.atleast_2d(d3_data):
+                center, depth = d3[None, :2], np.asarray([d3[2]])
+                if depth[0] <= 0 or not np.isfinite(d3).all():
+                    continue
+                center_xyz = backproject_points(center, depth, projection)[0]
+                h3d, w3d, l3d = d3[5:8]
+                x_cam, y_center, z_cam = center_xyz
+                y_bottom = y_center + h3d * 0.5
+                alpha = np.arctan2(d3[3], d3[4])
+                rotation_y = alpha + np.arctan2(x_cam, z_cam)
+                corners = compute_box_3d_corners(h3d, w3d, l3d, x_cam, y_bottom, z_cam, rotation_y)
+                if np.any(corners[:, 2] <= 1e-3):
+                    continue
+                corners_h = np.column_stack((corners, np.ones(8)))
+                projected = corners_h @ projection.T
+                corners_2d = projected[:, :2] / projected[:, 2:3]
+                draw_3d_box_on_image(plot_img, corners_2d, color=(0, 255, 0), thickness=annotator.lw)
+            if annotator.pil:
+                annotator.im = Image.fromarray(plot_img)
+
         # Show results
         if show:
             annotator.show(self.path)
@@ -725,6 +811,8 @@ class Results(SimpleClass, DataExportMixin):
         Notes:
             - The file will contain one line per detection or classification with the following structure:
               - For detections: `class x_center y_center width height [confidence] [track_id]`
+              - Detect3D appends `center_x center_y depth sin_alpha cos_alpha h_3d w_3d l_3d`
+                before the optional confidence and track ID.
               - For classifications: `confidence class_name`
               - For masks and keypoints, the specific formats will vary accordingly.
             - The function will create the output directory if it does not exist.
@@ -757,6 +845,8 @@ class Results(SimpleClass, DataExportMixin):
                     if kpts[j].has_visible:
                         kpt = torch.cat((torch.as_tensor(kpt), torch.as_tensor(kpts[j].conf)[..., None]), 2)
                     line += (*kpt.reshape(-1).tolist(),)
+                if self.d3_params is not None:
+                    line += (*self.d3_params[j].data.reshape(-1).tolist(),)
                 line += (conf,) * save_conf + (() if id is None else (id,))
                 texts.append(("%g " * len(line)).rstrip() % line)
 
@@ -901,6 +991,21 @@ class Results(SimpleClass, DataExportMixin):
                 }
                 if kpt.has_visible:
                     result["keypoints"]["visible"] = k[:, 2].astype(float).round(decimals).tolist()
+            if self.d3_params is not None:
+                d3 = self.d3_params[i].data
+                d3 = d3.detach().cpu().numpy() if isinstance(d3, torch.Tensor) else np.asarray(d3)
+                # Keep projected center normalization consistent with the 2D box summary; depth and dimensions stay
+                # in meters. The nested shape mirrors the existing ``box``/``keypoints`` summary API.
+                result["box3d"] = {
+                    "center_x": round(float(d3[0] / w), decimals),
+                    "center_y": round(float(d3[1] / h), decimals),
+                    "depth": round(float(d3[2]), decimals),
+                    "sin_alpha": round(float(d3[3]), decimals),
+                    "cos_alpha": round(float(d3[4]), decimals),
+                    "height": round(float(d3[5]), decimals),
+                    "width": round(float(d3[6]), decimals),
+                    "length": round(float(d3[7]), decimals),
+                }
             results.append(result)
 
         return results

@@ -16,6 +16,7 @@ from torch.nn import functional as F
 from ultralytics.data.utils import polygons2masks, polygons2masks_overlap
 from ultralytics.utils import LOGGER, IterableSimpleNamespace, colorstr, deprecation_warn
 from ultralytics.utils.checks import check_version
+from ultralytics.utils.geometry3d import image_transform_matrix, transform_projection
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
 from ultralytics.utils.ops import segment2box, xywh2xyxy, xyxyxyxy2xywhr
@@ -1596,7 +1597,7 @@ class RandomFlip(BaseTransform):
         """Apply flip to object instances.
 
         Args:
-            labels (dict[str, Any]): Dictionary containing 'instances'.
+            labels (dict[str, Any]): Dictionary containing 'instances' and optionally 'd3_params'.
             params (dict): Parameters from get_params.
 
         Returns:
@@ -1609,6 +1610,18 @@ class RandomFlip(BaseTransform):
                 instances.flipud(params["h"])
             elif params["direction"] == "horizontal":
                 instances.fliplr(params["w"])
+                # Mirror camera-space labels and the projection matrix together with the image.
+                d3_params = labels.get("d3_params")
+                if d3_params is not None:
+                    d3_params = d3_params.clone() if isinstance(d3_params, torch.Tensor) else d3_params.copy()
+                    d3_params[:, 1] = -d3_params[:, 1]  # camera x
+                    d3_params[:, 6] = (math.pi - d3_params[:, 6] + math.pi) % (2 * math.pi) - math.pi
+                    labels["d3_params"] = d3_params
+                if labels.get("p2_aug") is not None:
+                    width = labels["img"].shape[1]
+                    h_flip = np.array([[-1.0, 0.0, width - 1.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+                    camera_mirror = np.diag([-1.0, 1.0, 1.0, 1.0])
+                    labels["p2_aug"] = transform_projection(labels["p2_aug"] @ camera_mirror, h_flip)
             if params["flip_idx"] is not None and instances.keypoints is not None:
                 instances.keypoints = np.ascontiguousarray(instances.keypoints[:, params["flip_idx"], :])
         labels["instances"] = instances
@@ -1869,6 +1882,14 @@ class LetterBox(BaseTransform):
             labels = self._update_labels(labels, params["ratio"], params["left"], params["top"], params["orig_shape"])
         if labels.get("ratio_pad"):
             labels["ratio_pad"] = (labels["ratio_pad"], (params["left"], params["top"]))  # for evaluation
+        if labels.get("p2_aug") is not None:
+            h_letterbox = image_transform_matrix(
+                scale_x=params["new_unpad"][0] / params["orig_shape"][1],
+                scale_y=params["new_unpad"][1] / params["orig_shape"][0],
+                translate_x=params["left"],
+                translate_y=params["top"],
+            )
+            labels["p2_aug"] = transform_projection(labels["p2_aug"], h_letterbox)
         return labels
 
     @staticmethod
@@ -2167,8 +2188,18 @@ class Albumentations(BaseTransform):
                 else transforms
             )
 
-            # Compose transforms
-            self.contains_spatial = any(transform.__class__.__name__ in spatial_transforms for transform in T)
+            # Compose containers such as OneOf/SomeOf can hide a spatial transform one or more levels down. Recursing
+            # here is required for detect3d, whose dataset rejects any custom spatial operation that cannot update P2.
+            def iter_transforms(items):
+                for transform in items:
+                    yield transform
+                    children = getattr(transform, "transforms", None)
+                    if children is not None:
+                        yield from iter_transforms(children)
+
+            self.contains_spatial = any(
+                transform.__class__.__name__ in spatial_transforms for transform in iter_transforms(T)
+            )
             self.transform = (
                 A.Compose(T, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
                 if self.contains_spatial
@@ -2230,7 +2261,10 @@ class Albumentations(BaseTransform):
                 bboxes = labels["instances"].bboxes
                 # TODO: add supports of segments and keypoints
                 new = self.transform(
-                    image=im, bboxes=bboxes, class_labels=cls, **({"mask": mask} if mask is not None else {})
+                    image=im,
+                    bboxes=bboxes,
+                    class_labels=cls,
+                    **({"mask": mask} if mask is not None else {}),
                 )
                 if len(new["class_labels"]) > 0 or mask is not None:  # only box-only samples skip on losing all boxes
                     labels["img"] = new["image"]
@@ -2256,6 +2290,7 @@ class Format(BaseTransform):
         return_mask (bool): Whether to return instance masks for segmentation.
         return_keypoint (bool): Whether to return keypoints for pose estimation.
         return_obb (bool): Whether to return oriented bounding boxes.
+        return_3d (bool): Whether to return 3D detection parameters.
         mask_ratio (int): Downsample ratio for masks.
         mask_overlap (bool): Whether to overlap masks.
         batch_idx (bool): Whether to keep batch indexes.
@@ -2281,6 +2316,7 @@ class Format(BaseTransform):
         return_mask: bool = False,
         return_keypoint: bool = False,
         return_obb: bool = False,
+        return_3d: bool = False,
         mask_ratio: int = 4,
         mask_overlap: bool = True,
         batch_idx: bool = True,
@@ -2297,6 +2333,7 @@ class Format(BaseTransform):
             return_mask (bool): If True, returns instance masks for segmentation tasks.
             return_keypoint (bool): If True, returns keypoints for pose estimation tasks.
             return_obb (bool): If True, returns oriented bounding boxes.
+            return_3d (bool): If True, returns 3D detection parameters.
             mask_ratio (int): Downsample ratio for masks.
             mask_overlap (bool): If True, allows mask overlap.
             batch_idx (bool): If True, keeps batch indexes.
@@ -2307,6 +2344,7 @@ class Format(BaseTransform):
         self.return_mask = return_mask  # set False when training detection only
         self.return_keypoint = return_keypoint
         self.return_obb = return_obb
+        self.return_3d = return_3d
         self.mask_ratio = mask_ratio
         self.mask_overlap = mask_overlap
         self.batch_idx = batch_idx  # keep the batch indexes
@@ -2413,6 +2451,26 @@ class Format(BaseTransform):
         if self.normalize:
             labels["bboxes"][:, [0, 2]] /= w
             labels["bboxes"][:, [1, 3]] /= h
+        # Handle 3D params: concatenate d3_params to bboxes for batch processing
+        if self.return_3d:
+            d3_params = labels.pop("d3_params", None)
+            if d3_params is not None:
+                d3_params = torch.from_numpy(d3_params) if isinstance(d3_params, np.ndarray) else d3_params
+                if nl:
+                    if len(d3_params) != nl:
+                        raise ValueError(f"d3_params and instances are misaligned: {len(d3_params)} != {nl}")
+                    labels["bboxes"] = torch.cat([labels["bboxes"], d3_params], dim=-1)
+                else:
+                    labels["bboxes"] = torch.zeros((0, 11))
+            d3_valid = labels.pop("d3_valid", None)
+            if d3_valid is None:
+                d3_valid = torch.ones((nl, 1), dtype=torch.bool)
+            else:
+                d3_valid = torch.from_numpy(d3_valid) if isinstance(d3_valid, np.ndarray) else d3_valid
+                d3_valid = d3_valid.reshape(-1, 1).bool()
+                if len(d3_valid) != nl:
+                    raise ValueError(f"d3_valid and instances are misaligned: {len(d3_valid)} != {nl}")
+            labels["d3_valid"] = d3_valid
         # Then we can use collate_fn
         if self.batch_idx:
             labels["batch_idx"] = torch.zeros(nl)

@@ -20,6 +20,54 @@ from ultralytics.utils.files import increment_path
 from ultralytics.utils.torch_utils import TORCH_1_10
 
 
+def compute_box_3d_corners(h, w, length, x, y, z, ry):
+    """Return the eight camera-coordinate corners of a KITTI box with a bottom-center location."""
+    x_corners = np.array([length / 2, length / 2, -length / 2, -length / 2] * 2, dtype=np.float64)
+    y_corners = np.array([0, 0, 0, 0, -h, -h, -h, -h], dtype=np.float64)
+    z_corners = np.array([w / 2, -w / 2, -w / 2, w / 2] * 2, dtype=np.float64)
+    c, s = np.cos(ry), np.sin(ry)
+    rotation = np.array([[c, 0, s], [0, 1, 0], [-s, 0, c]], dtype=np.float64)
+    corners = rotation @ np.stack((x_corners, y_corners, z_corners))
+    corners += np.array([[x], [y], [z]], dtype=np.float64)
+    return corners.T
+
+
+def project_3d_to_image(corners_3d, p2):
+    """Project camera-coordinate points into the image with a 3x4 projection matrix."""
+    corners_3d = np.asarray(corners_3d, dtype=np.float64)
+    p2 = np.asarray(p2, dtype=np.float64).reshape(3, 4)
+    corners_h = np.column_stack((corners_3d, np.ones(len(corners_3d), dtype=np.float64)))
+    projected = corners_h @ p2.T
+    with np.errstate(divide="ignore", invalid="ignore"):
+        return projected[:, :2] / projected[:, 2:3]
+
+
+def draw_3d_box_on_image(image, corners_2d, color=(0, 255, 0), thickness=2, clip_rect=None):
+    """Draw a projected cuboid while clipping every edge to an image rectangle."""
+    image_h, image_w = image.shape[:2]
+    clip_rect = (0, 0, image_w, image_h) if clip_rect is None else clip_rect
+    rx, ry, rw, rh = (int(v) for v in clip_rect)
+    rx, ry = max(rx, 0), max(ry, 0)
+    rw, rh = min(rw, image_w - rx), min(rh, image_h - ry)
+    corners_2d = np.asarray(corners_2d, dtype=np.float64)
+    if rw <= 0 or rh <= 0 or corners_2d.shape != (8, 2) or not np.isfinite(corners_2d).all():
+        return
+
+    roi = image[ry : ry + rh, rx : rx + rw]
+    int_limit = np.iinfo(np.int32).max // 4
+    points = np.clip(np.rint(corners_2d - np.array([rx, ry])), -int_limit, int_limit).astype(np.int32)
+
+    def draw_edge(start, end):
+        visible, p1, p2 = cv2.clipLine((0, 0, rw, rh), tuple(points[start]), tuple(points[end]))
+        if visible:
+            cv2.line(roi, p1, p2, color, thickness, lineType=cv2.LINE_AA)
+
+    for i in range(4):
+        draw_edge(i, (i + 1) % 4)
+        draw_edge(i + 4, (i + 1) % 4 + 4)
+        draw_edge(i, i + 4)
+
+
 def _gaussian_filter1d(y, sigma: int = 3, truncate: float = 4.0) -> np.ndarray:
     """Smooth a 1D array with a Gaussian kernel (NumPy replacement for scipy.ndimage.gaussian_filter1d).
 
@@ -839,6 +887,9 @@ def plot_images(
     conf_thres: float = 0.25,
     show_labels: bool = True,
     show_conf: bool = True,
+    p2s: list | None = None,
+    ori_shapes: list | None = None,
+    p2s_augmented: bool = False,
 ) -> np.ndarray | None:
     """Plot image grid with labels, bounding boxes, masks, and keypoints.
 
@@ -856,6 +907,9 @@ def plot_images(
         conf_thres (float): Confidence threshold for displaying detections.
         show_labels (bool): Whether to display class labels.
         show_conf (bool): Whether to display confidence values.
+        p2s (list | None): Per-image 3x4 camera projection matrices for drawing 3D boxes.
+        ori_shapes (list | None): Per-image original image shapes as (height, width).
+        p2s_augmented (bool): Whether each projection matrix already maps into the displayed model-input image.
 
     Returns:
         (np.ndarray | None): Plotted image grid as a numpy array if save is False, None otherwise.
@@ -870,6 +924,8 @@ def plot_images(
         - 3 channels: Used as-is (standard RGB)
         - 4+ channels: Cropped to first 3 channels
     """
+    # Plotting runs in a background thread, so do not replace tensors in the caller's live batch dictionary.
+    labels = labels.copy()
     images = np.zeros((0, 3, 640, 640), dtype=np.float32) if images is None else images
     for k in ("cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images", "semantic_mask", "depth"):
         if k not in labels:
@@ -903,6 +959,7 @@ def plot_images(
     bs, _, h, w = images.shape  # batch size, _, height, width
     bs = min(bs, max_subplots)  # limit plot images
     ns = np.ceil(bs**0.5)  # number of subplots (square)
+    display_h, display_w = h, w
     if np.max(images[0]) <= 1:
         images *= 255  # de-normalise (optional)
 
@@ -945,8 +1002,9 @@ def plot_images(
                 boxes[..., 0] += x
                 boxes[..., 1] += y
                 is_obb = boxes.shape[-1] == 5  # xywhr
-                boxes = ops.xywhr2xyxyxyxy(boxes) if is_obb else ops.xywh2xyxy(boxes)
-                for j, box in enumerate(boxes.astype(np.int64).tolist()):
+                boxes_plot = boxes[..., :4] if boxes.shape[-1] > 5 else boxes
+                boxes_plot = ops.xywhr2xyxyxyxy(boxes_plot) if is_obb else ops.xywh2xyxy(boxes_plot)
+                for j, box in enumerate(boxes_plot.astype(np.int64).tolist()):
                     c = classes[j]
                     color = colors(c)
                     c = names.get(c, c) if names else c
@@ -955,6 +1013,36 @@ def plot_images(
                         label = f"{c}" if show_labels else ""
                         label += f" {conf_text}".strip() if show_conf else ""
                         annotator.box_label(box, label, color=color)
+
+                if boxes.shape[-1] == 11 and p2s is not None and i < len(p2s) and p2s[i] is not None:
+                    p2 = np.asarray(p2s[i], dtype=np.float64).reshape(3, 4)
+                    if ori_shapes is not None and i < len(ori_shapes) and isinstance(ori_shapes[i], (tuple, list)):
+                        orig_h, orig_w = (int(v) for v in ori_shapes[i][:2])
+                    else:
+                        orig_h, orig_w = display_h, display_w
+                    letterbox_gain = min(display_h / orig_h, display_w / orig_w)
+                    pad_left = (display_w - round(orig_w * letterbox_gain)) / 2.0
+                    pad_top = (display_h - round(orig_h * letterbox_gain)) / 2.0
+                    for j, d3 in enumerate(boxes[:, 4:]):
+                        if conf is not None and conf[j] <= conf_thres:
+                            continue
+                        z, x3d, y3d, w3d, h3d, l3d, rotation_y = d3
+                        corners_3d = compute_box_3d_corners(h3d, w3d, l3d, x3d, y3d, z, rotation_y)
+                        if not np.isfinite(corners_3d).all() or np.any(corners_3d[:, 2] <= 1e-3):
+                            continue
+                        corners_2d = project_3d_to_image(corners_3d, p2)
+                        if not p2s_augmented:
+                            corners_2d[:, 0] = corners_2d[:, 0] * letterbox_gain + pad_left
+                            corners_2d[:, 1] = corners_2d[:, 1] * letterbox_gain + pad_top
+                        if scale < 1:
+                            corners_2d *= scale
+                        corners_2d += np.array([x, y])
+                        image_rgb = np.asarray(annotator.im)
+                        image_bgr = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
+                        draw_3d_box_on_image(
+                            image_bgr, corners_2d, color=(0, 255, 0), thickness=2, clip_rect=(x, y, w, h)
+                        )
+                        annotator.fromarray(cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB))
 
             elif len(classes):
                 for c in classes:
@@ -1097,6 +1185,132 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
         plt.close()
         if on_plot:
             on_plot(fname)
+
+
+_DETECT3D_LOSS_NAMES = (
+    "center3d_loss",
+    "depth_loss",
+    "alpha_loss",
+    "dim_loss",
+    "corner3d_loss",
+    "keypoint3d_loss",
+    "quality3d_loss",
+)
+_DETECT3D_2D_METRICS = (
+    "metrics/precision(B)",
+    "metrics/recall(B)",
+    "metrics/mAP50(B)",
+    "metrics/mAP50-95(B)",
+)
+_DETECT3D_2D_LOSSES = ("box_loss", "cls_loss", "l1_loss", "dfl_loss")
+
+
+def _detect3d_result_columns(data) -> tuple[list[str], list[str]]:
+    """Select active 3D curves and secondary 2D diagnostics from a Detect3D results table."""
+    available = set(data.columns)
+    loss_columns = []
+    for loss_name in _DETECT3D_LOSS_NAMES:
+        for split in ("train", "val"):
+            key = f"{split}/{loss_name}"
+            if key not in available:
+                continue
+            values = data.get_column(key).cast(float, strict=False).to_numpy().reshape(-1)
+            finite = values[np.isfinite(values)]
+            if finite.size and np.any(finite != 0.0):
+                loss_columns.append(key)
+
+    metric_columns = [
+        key
+        for key in data.columns
+        if key != "3d/fitness"
+        and (
+            key.startswith("3d/")
+            or (key.startswith("metrics/") and any(token in key.lower() for token in ("3d", "bev", "aos")))
+        )
+    ]
+    aggregate_ap3d = "kitti/AP3D_R40_moderate"
+    if aggregate_ap3d in available:
+        metric_columns.append(aggregate_ap3d)
+    elif not any("ap3d" in key.lower() for key in metric_columns):
+        metric_columns.extend(key for key in data.columns if key.startswith("kitti/") and "_AP3D_R40_moderate" in key)
+
+    priorities = (
+        "map50(3d)",
+        "map50-95(3d)",
+        "precision(3d)",
+        "recall(3d)",
+        "ap3d",
+        "iou3d_recall_0.7",
+        "iou3d_recall_0.5",
+        "match_recall",
+        "iou3d_mean",
+        "dist_mae",
+        "xc_mae",
+        "yc_mae",
+        "ry_deg_mae",
+        "w3d_mae",
+        "h3d_mae",
+        "l3d_mae",
+    )
+
+    def metric_order(key):
+        name = key.lower()
+        return next(((i, data.columns.index(key)) for i, token in enumerate(priorities) if token in name), (99, 0))
+
+    metric_columns.sort(key=metric_order)
+    losses_2d = [
+        key
+        for loss_name in _DETECT3D_2D_LOSSES
+        for split in ("train", "val")
+        if (key := f"{split}/{loss_name}") in available
+    ]
+    metrics_2d = [key for key in _DETECT3D_2D_METRICS if key in available]
+    return metric_columns + loss_columns, losses_2d + metrics_2d
+
+
+def _plot_result_columns(data, columns: list[str], output: Path, title: str, on_plot: Callable | None) -> None:
+    """Plot selected numeric result columns in a dynamically sized figure."""
+    if not columns:
+        LOGGER.warning(f"No columns available for {title!r}; skipping {output.name}")
+        return
+
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+
+    ncols = min(5, len(columns))
+    nrows = math.ceil(len(columns) / ncols)
+    fig, axes = plt.subplots(nrows, ncols, figsize=(4.2 * ncols, 3.2 * nrows), squeeze=False)
+    axes = axes.ravel()
+    x = data.select(data.columns[0]).to_numpy().reshape(-1)
+    for axis, key in zip(axes, columns):
+        y = data.get_column(key).cast(float, strict=False).to_numpy().reshape(-1)
+        axis.plot(x, y, marker=".", label="results", linewidth=1.8, markersize=5)
+        if len(y):
+            axis.plot(x, _gaussian_filter1d(y, sigma=3), ":", label="smooth", linewidth=1.8)
+        axis.set_title(key, fontsize=10)
+        axis.grid(alpha=0.2)
+    for axis in axes[len(columns) :]:
+        axis.remove()
+    axes[0].legend(fontsize=8)
+    fig.suptitle(title, fontsize=14)
+    fig.tight_layout(rect=(0, 0, 1, 0.98))
+    fig.savefig(output, dpi=200)
+    plt.close(fig)
+    if on_plot:
+        on_plot(output)
+
+
+@plt_settings()
+def plot_detect3d_results(file: str | Path, on_plot: Callable | None = None) -> None:
+    """Plot primary Detect3D curves and secondary 2D diagnostics into separate figures."""
+    import polars as pl
+
+    file = Path(file)
+    if not file.is_file():
+        raise FileNotFoundError(f"Detect3D results CSV not found: {file}")
+    data = pl.read_csv(file, infer_schema_length=None)
+    columns_3d, columns_2d = _detect3d_result_columns(data)
+    _plot_result_columns(data, columns_3d, file.parent / "results.png", "Detect3D training", on_plot)
+    _plot_result_columns(data, columns_2d, file.parent / "results_2d.png", "2D detection diagnostics", on_plot)
 
 
 @plt_settings()

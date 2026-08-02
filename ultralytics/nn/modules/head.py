@@ -12,6 +12,7 @@ from torch import nn
 from torch.nn.init import constant_, xavier_uniform_
 
 from ultralytics.utils import NOT_MACOS14
+from ultralytics.utils.geometry3d import decode_alpha_multibin
 from ultralytics.utils.tal import dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, smart_inference_mode
 
@@ -22,6 +23,8 @@ from .utils import bias_init_with_prob, linear_init
 
 __all__ = (
     "OBB",
+    "OBB26",
+    "Detect3D",
     "Classify",
     "Depth",
     "Detect",
@@ -558,6 +561,243 @@ class OBB26(OBB):
             )  # OBB theta logits (raw output without sigmoid transformation)
             preds["angle"] = angle
         return preds
+
+
+class _Mono3DGeometryBranch(nn.Module):
+    """Lightweight geometry tower with a training-only projected-corner auxiliary output."""
+
+    def __init__(
+        self,
+        c1: int,
+        hidden: int,
+        primary_channels: int = 7,
+        auxiliary_channels: int = 16,
+    ):
+        super().__init__()
+        self.stem = nn.Sequential(Conv(c1, hidden, 3), Conv(hidden, hidden, 3))
+        self.primary = nn.Conv2d(hidden, primary_channels, 1)
+        self.auxiliary = nn.Conv2d(hidden, auxiliary_channels, 1)
+
+    def forward(self, x: torch.Tensor, with_auxiliary: bool = False) -> tuple[torch.Tensor, torch.Tensor | None]:
+        feature = self.stem(x)
+        return self.primary(feature), self.auxiliary(feature) if with_auxiliary else None
+
+
+class _Mono3DDirectionBranch(nn.Module):
+    """MultiBin direction branch for observation-angle prediction."""
+
+    def __init__(self, c1: int, hidden: int, output_channels: int):
+        super().__init__()
+        self.stem = nn.Sequential(Conv(c1, hidden, 3), Conv(hidden, hidden, 3))
+        self.output = nn.Conv2d(hidden, output_channels, 1)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Predict direction logits from a scale-specific feature map."""
+        return self.output(self.stem(x))
+
+
+class Detect3D(Detect):
+    """Lightweight MonoCon/MonoDLE-inspired monocular 3D head for YOLO11 and end-to-end YOLO26.
+
+    The deploy-time head predicts a box-relative projected center, direct log-depth, class-mean dimension residuals,
+    12-bin observation angle, and a 3D localization-quality score. During training, a projected
+    eight-corner auxiliary output supplies MonoCon-style contextual supervision. Public inference output remains eight
+    values per detection: ``center_x, center_y, depth, sin(alpha), cos(alpha), h, w, l``.
+    """
+
+    def __init__(
+        self,
+        nc: int = 80,
+        reg_max=16,
+        end2end=False,
+        ch: tuple = (),
+    ):
+        """Initialize the geometry and orientation towers.
+
+        Args:
+            nc (int): Number of object classes.
+            reg_max (int): Number of 2D box-regression bins.
+            end2end (bool): Whether the parent YOLO head uses O2M/O2O end-to-end training.
+            ch (tuple): Input channel width for every detection scale.
+        """
+        super().__init__(nc, reg_max, end2end, ch)
+        self.nd = 8  # stable public decoded result interface
+        self.num_alpha_bins = 12
+        self.geo_channels = 7  # center offset(2), log-depth(1), log-dim residual(3), q3d(1)
+        self.aux_channels = 16  # projected offsets for eight 3D corners, training only
+        self.nr = self.geo_channels + 2 * self.num_alpha_bins
+        self.no = nc + self.reg_max * 4 + self.nr
+        self._fused3d = False
+        # Detect's compatibility getter normally infers this from one2one modules. Set it explicitly before creating
+        # the independent 3D O2O towers so their construction cannot be mistaken for a non-end-to-end head.
+        self._end2end = bool(end2end)
+        self.quality3d_power = 0.5
+
+        hidden = max(64, ch[0] // 2)
+        self.cv4 = nn.ModuleList(_Mono3DGeometryBranch(x, hidden, self.geo_channels, self.aux_channels) for x in ch)
+        self.cv5 = nn.ModuleList(_Mono3DDirectionBranch(x, hidden, 2 * self.num_alpha_bins) for x in ch)
+        if end2end:
+            # O2M and O2O use independently trained 2D boxes and assignments. Their box-relative center targets are
+            # therefore different, so sharing one raw 3D prediction would impose contradictory geometry supervision.
+            self.one2one_cv4 = copy.deepcopy(self.cv4)
+            self.one2one_cv5 = copy.deepcopy(self.cv5)
+
+        # Default priors are overwritten by Detection3DTrainer from dataset class names and saved in checkpoints.
+        generic_prior = torch.tensor((1.5, 1.6, 3.9), dtype=torch.float32).repeat(nc, 1)  # h, w, l
+        self.register_buffer("dim_priors", generic_prior)
+
+    def set_quality3d_power(self, power: float) -> None:
+        """Set the non-negative exponent used to blend localization quality into class confidence."""
+        power = float(power)
+        if not math.isfinite(power) or power < 0.0:
+            raise ValueError(f"quality3d_power must be finite and non-negative, got {power}")
+        self.quality3d_power = power
+
+    @property
+    def one2many(self):
+        return {
+            "box_head": self.cv2,
+            "cls_head": self.cv3,
+            "d3_geo_head": None if self._fused3d else self.cv4,
+            "d3_dir_head": None if self._fused3d else self.cv5,
+        }
+
+    @property
+    def one2one(self):
+        return {
+            "box_head": self.one2one_cv2,
+            "cls_head": self.one2one_cv3,
+            "d3_geo_head": self.one2one_cv4,
+            "d3_dir_head": self.one2one_cv5,
+        }
+
+    def set_dim_priors(self, names: dict[int, str] | list[str] | tuple[str, ...], priors=None) -> None:
+        """Configure per-class (h,w,l) dimension means from dataset names or an explicit array/dictionary."""
+        known = {
+            "car": (1.529757, 1.618807, 3.892148),
+            "van": (2.186056, 1.912689, 5.141021),
+            "truck": (3.364393, 2.612866, 9.227866),
+            "pedestrian": (1.760000, 0.660000, 0.840000),
+            "cyclist": (1.730000, 0.600000, 1.760000),
+        }
+        ordered_names = [str(names[i]) for i in range(self.nc)] if isinstance(names, dict) else [str(x) for x in names]
+        if len(ordered_names) != self.nc:
+            raise ValueError(f"Expected {self.nc} class names, got {len(ordered_names)}")
+
+        if priors is None:
+            values = [known.get(name.lower(), (1.5, 1.6, 3.9)) for name in ordered_names]
+        elif isinstance(priors, dict):
+            values = []
+            for index, name in enumerate(ordered_names):
+                value = priors.get(name, priors.get(name.lower(), priors.get(index)))
+                if value is None:
+                    value = known.get(name.lower(), (1.5, 1.6, 3.9))
+                values.append(value)
+        else:
+            values = priors
+        tensor = torch.as_tensor(values, dtype=self.dim_priors.dtype, device=self.dim_priors.device)
+        if tensor.shape != self.dim_priors.shape or not torch.isfinite(tensor).all() or (tensor <= 0).any():
+            raise ValueError(
+                f"dimension_priors must be finite positive (h,w,l) values of shape {self.dim_priors.shape}"
+            )
+        self.dim_priors.copy_(tensor)
+
+    def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
+        """Decode raw Mono3D values and retain the existing eight-parameter Results interface."""
+        d3_raw = x["d3_params"]
+        if d3_raw.shape[1] != self.nr:
+            raise RuntimeError(f"Detect3D requires {self.nr} raw channels, but checkpoint produces {d3_raw.shape[1]}")
+
+        # Decode the 2D box first. The projected 3D center is represented relative to its 2D box, so the same target is
+        # used on P3/P4/P5 rather than changing scale with feature stride.
+        dbox = self._get_decode_boxes(x)
+        if self.end2end or self.xyxy:
+            box_center = (dbox[:, :2] + dbox[:, 2:4]) * 0.5
+            box_size = (dbox[:, 2:4] - dbox[:, :2]).clamp_min(1.0)
+        else:
+            box_center, box_size = dbox[:, :2], dbox[:, 2:4].clamp_min(1.0)
+        center = box_center + d3_raw[:, :2] * box_size
+
+        log_depth = d3_raw[:, 2].float()
+        depth = log_depth.clamp(math.log(0.1), math.log(200.0)).exp().unsqueeze(1).to(d3_raw.dtype)
+
+        class_index = x["scores"].argmax(1)
+        priors = self.dim_priors.to(device=d3_raw.device, dtype=torch.float32)[class_index]
+        dim_residual = d3_raw[:, 3:6].permute(0, 2, 1).float().clamp(-4.0, 4.0)
+        dimensions = (priors * dim_residual.exp()).permute(0, 2, 1).to(d3_raw.dtype)
+
+        direction = d3_raw[:, self.geo_channels :].permute(0, 2, 1)
+        alpha = decode_alpha_multibin(
+            direction[..., : self.num_alpha_bins], direction[..., self.num_alpha_bins :]
+        ).unsqueeze(1)
+        sin_alpha, cos_alpha = alpha.sin(), alpha.cos()
+
+        # q3d is a learned localization-quality ranker used only to re-rank class confidence.
+        quality = d3_raw[:, 6:7].sigmoid().pow(self.quality3d_power)
+        scores = x["scores"].sigmoid() * quality
+        d3_params = torch.cat((center, depth, sin_alpha, cos_alpha, dimensions), dim=1)
+        return torch.cat((dbox, scores, d3_params), dim=1)
+
+    def forward_head(
+        self,
+        x: list[torch.Tensor],
+        box_head: torch.nn.Module = None,
+        cls_head: torch.nn.Module = None,
+        d3_geo_head: torch.nn.Module = None,
+        d3_dir_head: torch.nn.Module = None,
+    ) -> dict[str, torch.Tensor]:
+        """Return 2D predictions, deploy-time raw 3D values, and optional training-only projected corners."""
+        preds = super().forward_head(x, box_head, cls_head)
+        if not preds or d3_geo_head is None or d3_dir_head is None:
+            return preds
+        bs = x[0].shape[0]
+        geometry, auxiliary = [], []
+        with_auxiliary = self.training and not self.export
+        for i in range(self.nl):
+            primary, aux = d3_geo_head[i](x[i], with_auxiliary=with_auxiliary)
+            geometry.append(primary.view(bs, self.geo_channels, -1))
+            if aux is not None:
+                auxiliary.append(aux.view(bs, self.aux_channels, -1))
+        direction = [d3_dir_head[i](x[i]).view(bs, 2 * self.num_alpha_bins, -1) for i in range(self.nl)]
+        preds["d3_params"] = torch.cat((torch.cat(geometry, 2), torch.cat(direction, 2)), 1)
+        if auxiliary:
+            preds["d3_aux"] = torch.cat(auxiliary, 2)
+        return preds
+
+    def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
+        """Select one best class per end-to-end anchor and keep decoded 3D values aligned row by row.
+
+        Dimensions are decoded with the anchor's highest-scoring class prior in :meth:`_inference`. Allowing a secondary
+        class from the same anchor into the final top-k would therefore attach the wrong class prior to that row.
+        """
+        boxes, scores, d3_params = preds.split([4, self.nc, self.nd], dim=-1)
+        best_scores, best_class = scores.max(dim=-1, keepdim=True)
+        k = self.max_det if self.export else min(self.max_det, boxes.shape[1])
+        best_scores, idx = best_scores.topk(k, dim=1)
+        best_class = best_class.gather(dim=1, index=idx)
+        boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
+        d3_params = d3_params.gather(dim=1, index=idx.expand(-1, -1, self.nd))
+        return torch.cat([boxes, best_scores, best_class.to(best_scores.dtype), d3_params], dim=-1)
+
+    def fuse(self) -> None:
+        """Remove the end-to-end one-to-many towers while retaining the deploy-time one-to-one path."""
+        self.cv2 = self.cv3 = self.cv4 = self.cv5 = None
+        self._fused3d = True
+
+    def bias_init(self):
+        """Initialize depth, neutral residuals, MultiBin direction, and q3d priors."""
+        super().bias_init()
+        geometry_heads = (self.cv4, self.one2one_cv4) if self.end2end else (self.cv4,)
+        direction_heads = (self.cv5, self.one2one_cv5) if self.end2end else (self.cv5,)
+        for geometry_head in geometry_heads:
+            for branch in geometry_head:
+                branch.primary.bias.data.zero_()
+                branch.primary.bias.data[6] = -3.0
+                branch.primary.bias.data[2] = math.log(18.0)
+                branch.auxiliary.bias.data.zero_()
+        for direction_head in direction_heads:
+            for branch in direction_head:
+                (branch.output if hasattr(branch, "output") else branch[-1]).bias.data.zero_()
 
 
 class Pose(Detect):

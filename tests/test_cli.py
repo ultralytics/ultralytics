@@ -73,9 +73,11 @@ def test_platform_login(monkeypatch) -> None:
 
 
 def test_cli_imports_defer_torchvision() -> None:
-    """Verify startup imports do not load torchvision or SAM3 geometry."""
+    """Verify startup imports defer heavyweight dependencies, torchvision, and SAM3 geometry."""
     code = (
         "import sys; "
+        "import ultralytics; "
+        "assert not {'cv2', 'numpy', 'torch'} & sys.modules.keys(); "
         "from ultralytics import YOLO; "
         "from ultralytics.models.sam import Predictor; "
         "assert 'torchvision' not in sys.modules; "

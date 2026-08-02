@@ -755,7 +755,7 @@ def test_platform_job_transport(monkeypatch, tmp_path):
         captured.update(url=url, **kwargs)
         return SimpleNamespace(status_code=200, json=lambda: {"received": True}, raise_for_status=lambda: None)
 
-    monkeypatch.setattr(platform, "requests", SimpleNamespace(post=post), raising=False)
+    monkeypatch.setattr("requests.post", post)
     monkeypatch.setattr(platform, "_api_key", "api-key")
     monkeypatch.setattr(platform, "PLATFORM_API_URL", "https://example.test/api/webhooks")
     assert platform._send("epoch_end", {"epoch": 0}, "user/project", "model") == {"received": True}

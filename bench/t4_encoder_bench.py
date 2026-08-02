@@ -92,6 +92,8 @@ EXPLORATORY_YAMLS = {
     "ultravit-s-010826-2a-cls": ("yolo26s-ultravit-010826-2a-cls.yaml", "yolo26s-sppf-cls"),
     "ultravit-s-010826-2b-cls": ("yolo26s-ultravit-010826-2b-cls.yaml", "yolo26s-sppf-cls"),
     "ultravit-s-020826-cls": ("yolo26s-ultravit-020826-cls.yaml", "yolo26s-sppf-cls"),
+    "ultravit-s-020826-1-cls": ("yolo26s-ultravit-020826-1-cls.yaml", "yolo26s-sppf-cls"),
+    "ultravit-s-020826-2-cls": ("yolo26s-ultravit-020826-2-cls.yaml", "yolo26s-sppf-cls"),
     "ultravit-l-stagematch-cls": ("yolo26l-ultravit-290726-stagematch-cls.yaml", "yolo26l-sppf-cls"),
     "ultravit-l-010826-1-cls": ("yolo26l-ultravit-010826-1-cls.yaml", "yolo26l-sppf-cls"),
     "ultravit-l-010826-2-cls": ("yolo26l-ultravit-010826-2-cls.yaml", "yolo26l-sppf-cls"),

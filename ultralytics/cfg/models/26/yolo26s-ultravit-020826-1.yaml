@@ -1,0 +1,38 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# 020826 with YOLO26-S conv rows at stem through P3. Every RepMixer arm loses 7-11% relative COCO AP_small even at
+# P3 param parity, so the small-object fix is the block type, not the budget. P4 and P5 stay exactly 020826
+# (527K deep-narrow P4, conv-budget MHSA P5). No attn2 components, all blocks export TRT fp16 clean.
+
+nc: 80
+end2end: True
+reg_max: 1
+
+scales:
+  s: [1.00, 1.00, 512]
+
+backbone:
+  - [-1, 1, Conv, [32, 3, 2]]
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, C3k2, [128, False, 0.25]]
+  - [-1, 1, Conv, [128, 3, 2]]
+  - [-1, 1, C3k2, [256, False, 0.25]]
+  - [-1, 1, Conv, [192, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [1.25, True, 0.00001, True]]
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [-1, 1, MHSABlock, [0, 0.625, True, 0.00001, False, 64]]
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]]
+  - [-1, 1, C3k2, [256, True]]
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, 1, C3k2, [128, True]]
+  - [-1, 1, Conv, [128, 3, 2]]
+  - [[-1, 11], 1, Concat, [1]]
+  - [-1, 1, C3k2, [256, True]]
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 8], 1, Concat, [1]]
+  - [-1, 1, C3k2, [512, True, 0.5, True]]
+  - [[14, 17, 20], 1, Detect, [nc]]

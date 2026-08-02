@@ -15,22 +15,21 @@ def onnx_calibration_reader(dataset, transform_fn, input_name: str = "images", b
 
     class _CalibrationReader(CalibrationDataReader):
         def __init__(self):
-            """Materialize calibration inputs as `{input_name: float32_NCHW}` dicts."""
-            self.samples = []
-            for b in dataset:
-                im = transform_fn(b)
-                if batch and im.shape[0] != batch:  # tile up to the static batch dimension
-                    im = np.tile(im, (-(-batch // im.shape[0]), 1, 1, 1))[:batch]
-                self.samples.append({input_name: im})
-            self.iterator = iter(self.samples)
+            """Initialize calibration dataset iteration."""
+            self.iterator = iter(dataset)
 
         def get_next(self):
             """Return the next calibration sample, or None when exhausted."""
-            return next(self.iterator, None)
+            if (b := next(self.iterator, None)) is None:
+                return None
+            im = transform_fn(b)
+            if batch and im.shape[0] != batch:  # tile up to the static batch dimension
+                im = np.tile(im, (-(-batch // im.shape[0]), 1, 1, 1))[:batch]
+            return {input_name: im}
 
         def rewind(self):
             """Reset the iterator for an additional calibration pass."""
-            self.iterator = iter(self.samples)
+            self.iterator = iter(dataset)
 
     return _CalibrationReader()
 

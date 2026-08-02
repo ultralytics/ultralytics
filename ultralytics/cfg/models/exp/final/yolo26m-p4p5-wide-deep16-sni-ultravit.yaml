@@ -12,22 +12,19 @@
 nc: 80 # number of classes
 end2end: True # whether to use end-to-end mode
 reg_max: 1 # DFL bins
-scales: # model compound scaling constants (Fatih's design point)
-  # [depth, width, max_channels]
-  s: [0.20, 0.50, 960]
+scales:
+  m: [0.25, 1.00, 512]
 
-# ultravit encoder backbone (same as yolo26-p4p5-ultravit.yaml)
 backbone:
-  # [from, repeats, module, args]
-  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
-  - [-1, 1, Conv, [96, 3, 2]] # 1-P2/4
-  - [-1, 4, RepUltraViTBlock, [3, True, 0.00001, True]] # 2
-  - [-1, 1, Conv, [192, 3, 2]] # 3-P3/8
-  - [-1, 8, RepUltraViTBlock, [3, True, 0.00001, True]] # 4
-  - [-1, 1, Conv, [384, 3, 2]] # 5-P4/16
-  - [-1, 20, RepUltraViTBlock, [3, True, 0.00001, True]] # 6
-  - [-1, 1, Conv, [1152, 3, 2]] # 7-P5/32
-  - [-1, 8, MHSABlock, [0, 4, True, 0.00001, True, 32]] # 8
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [96, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [6.0, True, 0.00001, True]]
+  - [-1, 1, Conv, [192, 3, 2]]
+  - [-1, 8, RepUltraViTBlock, [4.75, True, 0.00001, True]]
+  - [-1, 1, Conv, [384, 3, 2]]
+  - [-1, 8, RepUltraViTBlock, [4.25, True, 0.00001, True]]
+  - [-1, 1, Conv, [1152, 3, 2]]
+  - [-1, 5, MHSABlock, [0, 4.75, True, 0.00001, False, 64]]
 
 # p4p5-wide-deep16-sni neck/head: P3 head removed, P3 as context-only path, Detect(P4, P5)
 head:

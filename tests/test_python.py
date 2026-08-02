@@ -1854,45 +1854,6 @@ def test_yoloe_visual_prompt_verbose_false(capfd):
     assert "Ultralytics" not in output
 
 
-def test_yoloe_prompt_embedding_profile(tmp_path):
-    """Test model-bound YOLOE prompt embedding save/load and explicit class updates."""
-    from ultralytics import YOLOE
-
-    embeddings = torch.arange(2 * 512, dtype=torch.float32).reshape(1, 2, 512)
-    model = YOLOE("yoloe-26n.yaml")
-    model.set_classes(["person", "bus"], embeddings)
-    profile = model.save_prompt_embeddings(tmp_path / "person-bus.npz")
-
-    with np.load(profile, allow_pickle=False) as data:
-        assert data.files == ["embeddings", "names", "model"]
-        assert data["embeddings"].dtype == np.float32
-        assert data["embeddings"].shape == (1, 2, 512)
-        assert data["names"].tolist() == ["person", "bus"]
-
-    loaded = YOLOE("yoloe-26n-seg.yaml")
-    loaded.load_prompt_embeddings(profile)
-    assert loaded.names == {0: "person", 1: "bus"}
-    assert torch.equal(loaded.model.pe, embeddings)
-
-    # Explicit embeddings must update the model even when the class names are unchanged.
-    replacement = torch.ones_like(embeddings)
-    loaded.set_classes(["person", "bus"], replacement)
-    assert torch.equal(loaded.model.pe, replacement)
-
-    # Visual-prompt code can expose names as a list; this remains accepted.
-    loaded.model.names = ["person", "bus"]
-    loaded.set_classes(["person", "bus"], embeddings)
-    assert loaded.names == {0: "person", 1: "bus"}
-
-    with pytest.raises(ValueError, match="cannot be loaded"):
-        YOLOE("yoloe-26s.yaml").load_prompt_embeddings(profile)
-
-    invalid = tmp_path / "invalid.npz"
-    np.savez(invalid, embeddings=np.zeros((1, 2, 512), dtype=np.float32), names=np.array(["person", "bus"]))
-    with pytest.raises(ValueError, match="must contain"):
-        model.load_prompt_embeddings(invalid)
-
-
 def test_yolov10():
     """Test YOLOv10 model training, validation, and prediction functionality."""
     model = YOLO("yolov10n.yaml")

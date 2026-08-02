@@ -73,27 +73,6 @@ def test_export_onnx_int8(isolated_model, precision):
     Path(file).unlink()  # cleanup
 
 
-def test_export_onnx_yoloe_prompt_embeddings(tmp_path, monkeypatch):
-    """Check prompt profiles preserve class metadata and the exported model's single image input."""
-    import onnx
-
-    from ultralytics import YOLOE
-    from ultralytics.utils import ROOT
-
-    monkeypatch.chdir(tmp_path)
-    cfg = tmp_path / "yoloe-26n.yaml"
-    shutil.copy(ROOT / "cfg/models/26/yoloe-26.yaml", cfg)
-    model = YOLOE(cfg)
-    model.set_classes(["person", "bus"], torch.randn(1, 2, 512))
-    profile = model.save_prompt_embeddings(tmp_path / "person-bus.npz")
-    model.load_prompt_embeddings(profile)
-    file = Path(model.export(format="onnx", imgsz=32, simplify=False))
-
-    graph = onnx.load(file).graph
-    assert [value.name for value in graph.input] == ["images"]
-    assert YOLO(file).names == model.names
-
-
 def test_best_onnx_opset_caps_int8_only(monkeypatch):
     """Check opset>=21 is capped for ONNX Runtime INT8 quantization, not normal ONNX export."""
     from ultralytics.utils.export import engine

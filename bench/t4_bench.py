@@ -67,8 +67,9 @@ FINAL_ARMS = {
     "ultravit-010826-1": ("yolo27{s}-ultravit-010826-1.yaml", "l"),
     "ultravit-010826-2": ("yolo27{s}-ultravit-010826-2.yaml", "l"),
     "ultravit-020826": ("yolo27{s}-ultravit-020826.yaml", "s"),
-    "ultravit-020826-1": ("yolo27{s}-ultravit-020826-1.yaml", "s"),
-    "ultravit-020826-2": ("yolo27{s}-ultravit-020826-2.yaml", "s"),
+    "ultravit-020826-1": ("yolo27{s}-ultravit-020826-1.yaml", "ns"),
+    "ultravit-020826-2": ("yolo27{s}-ultravit-020826-2.yaml", "ns"),
+    "ultravit-020826-3": ("yolo27{s}-ultravit-020826-3.yaml", "n"),
 }
 
 # The baseline family each scale deploys, which also names its yaml: CSP trunk with RTDETRDecoderEfficient at n and

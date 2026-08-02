@@ -624,7 +624,9 @@ class Model(torch.nn.Module):
             args["data"] = data
         validator = self._smart_load("validator")(args=args, _callbacks=self.callbacks)
         validator(model=self.model)  # builds the dataloader and reports metrics with the current calibration
-        res = fit_calibration_selective(self.model, validator.dataloader, validator.device)
+        res = fit_calibration_selective(
+            self.model, validator.dataloader, validator.device, max_depth=validator.data.get("max_depth") or 100.0
+        )
         if res is None:
             return None
         LOGGER.info("Call model.save(...) to persist the calibration.")

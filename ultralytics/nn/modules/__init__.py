@@ -122,7 +122,16 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
-from .vit_blocks import FastViTBlock, FracRoPE2D, MHSABlock, PooledMHSABlock, RepUltraViTBlock, UltraViTBlock
+from .vit_blocks import (
+    DINOv3RoPE2D,
+    FastViTBlock,
+    MHSABlock,
+    MixedRoPE2D,
+    PooledMHSABlock,
+    RepUltraViTBlock,
+    RoPE2DBlock,
+    UltraViTBlock,
+)
 
 __all__ = (
     "AIFI",
@@ -177,7 +186,7 @@ __all__ = (
     "DFineDecoder",
     "FastViTBlock",
     "Focus",
-    "FracRoPE2D",
+    "DINOv3RoPE2D",
     "GhostBottleneck",
     "GhostConv",
     "HGBlock",
@@ -194,6 +203,7 @@ __all__ = (
     "LightConv",
     "MLPBlock",
     "MHSABlock",
+    "MixedRoPE2D",
     "MSDeformAttn",
     "MSDeformAttnv2",
     "MaxSigmoidAttnBlock",
@@ -209,6 +219,7 @@ __all__ = (
     "RepNCSPELAN4",
     "RepNCSPELAN5",
     "RepUltraViTBlock",
+    "RoPE2DBlock",
     "RepVGGDW",
     "ResNetLayer",
     "SCDown",

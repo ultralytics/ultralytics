@@ -56,9 +56,9 @@ from ultralytics.nn.modules import (
     DeimLayerNormDecoder,
     DWConv,
     DWConvTranspose2d,
+    DINOv3RoPE2D,
     FastViTBlock,
     Focus,
-    FracRoPE2D,
     GhostBottleneck,
     GhostConv,
     HGBlock,
@@ -68,6 +68,7 @@ from ultralytics.nn.modules import (
     LayerNorm2d,
     LRPCHead,
     MHSABlock,
+    MixedRoPE2D,
     Pose,
     Pose26,
     DFineDecoder,
@@ -80,6 +81,7 @@ from ultralytics.nn.modules import (
     RepUltraViTBlock,
     RepVGGDW,
     ResNetLayer,
+    RoPE2DBlock,
     RTDETRDecoder,
     RTDETRDecoderEfficient,
     RTDETRDecoderv2,
@@ -272,7 +274,7 @@ class BaseModel(torch.nn.Module):
                 if isinstance(m, RepVGGDW):
                     m.fuse()
                     m.forward = m.forward_fuse
-                if isinstance(m, FracRoPE2D):
+                if isinstance(m, RoPE2DBlock):
                     m.switch_to_deploy(m.rope_hw[0])  # rebake RoPE buffers at the current grid for deploy
                 if isinstance(m, RepUltraViTBlock):
                     m.fuse()  # collapse RepConv mixer + residual + LayerScale + ffn_bn for deploy
@@ -1963,7 +1965,19 @@ def parse_model(d, ch, verbose=True):
                     args.extend((True, 1.2))
             if m is C2fCIB:
                 legacy = False
-        elif m in frozenset({AIFI, UltraViTBlock, RepUltraViTBlock, FastViTBlock, MHSABlock, PooledMHSABlock, FracRoPE2D}):
+        elif m in frozenset(
+            {
+                AIFI,
+                UltraViTBlock,
+                RepUltraViTBlock,
+                FastViTBlock,
+                MHSABlock,
+                PooledMHSABlock,
+                RoPE2DBlock,
+                DINOv3RoPE2D,
+                MixedRoPE2D,
+            }
+        ):
             args = [ch[f], *args]
         elif m in frozenset({HGStem, HGBlock}):
             c1, cm, c2 = ch[f], args[0], args[1]

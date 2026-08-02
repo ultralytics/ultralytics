@@ -63,7 +63,7 @@ def normalize_platform_uri(uri):
     """Rewrite an Ultralytics Platform web URL to its ul:// URI so it can be loaded directly as data or model.
 
     Args:
-        uri (str | Path): Resource identifier, e.g. "https://platform.ultralytics.com/user/datasets/slug".
+        uri (str | Path): Resource identifier, e.g. an Ultralytics Platform web URL ending in "/user/datasets/slug".
 
     Returns:
         (str | Path): "ul://user/datasets/slug" for Platform web URLs, otherwise the input unchanged.
@@ -897,8 +897,8 @@ def check_amp(model):
     device = next(model.parameters()).device  # get model device
     prefix = colorstr("AMP: ")
     if device.type in {"cpu", "mps"}:
-        return False  # AMP only used on CUDA devices
-    else:
+        return False  # AMP only used on accelerator devices
+    elif device.type == "cuda":
         # GPUs that have issues with AMP
         pattern = re.compile(
             r"(nvidia|geforce|quadro|tesla).*?(1660|1650|1630|t400|t550|t600|t1000|t1200|t2000|k40m)", re.IGNORECASE
@@ -917,7 +917,7 @@ def check_amp(model):
         batch = [im] * 8
         imgsz = max(256, int(model.stride.max() * 4))  # max stride P5-32 and P6-64
         a = m(batch, imgsz=imgsz, device=device, verbose=False)[0].boxes.data  # FP32 inference
-        with autocast(enabled=True):
+        with autocast(enabled=True, device=device.type):
             b = m(batch, imgsz=imgsz, device=device, verbose=False)[0].boxes.data  # AMP inference
         del m
         return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance
@@ -984,7 +984,7 @@ def print_args(args: dict | None = None, show_file=True, show_func=False):
     """
 
     def strip_auth(v):
-        """Clean longer Ultralytics HUB URLs by stripping potential authentication information."""
+        """Clean longer URLs by stripping potential authentication information."""
         return clean_url(v) if (isinstance(v, str) and v.startswith("http") and len(v) > 100) else v
 
     x = inspect.currentframe().f_back  # previous frame

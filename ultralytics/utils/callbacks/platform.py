@@ -22,6 +22,7 @@ from ultralytics.utils import (
     Retry,
     colorstr,
 )
+from ultralytics.utils.events import events
 
 PREFIX = colorstr("Platform: ")
 PLATFORM_API_URL = os.getenv("PLATFORM_API_URL", f"{PLATFORM_URL}/api/webhooks")
@@ -36,7 +37,6 @@ def slugify(text):
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS.get("platform", False) is True or os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
     _api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
     assert _api_key  # verify API key is present
 
@@ -103,7 +103,8 @@ def resolve_platform_uri(uri, hard=True):
     try:
         for attempt in range(5):
             try:
-                r = requests.head(url, headers=headers, allow_redirects=False, timeout=timeout)
+                # GET not HEAD: a HEAD response carries no body, so every platform error message was lost.
+                r = requests.get(url, headers=headers, allow_redirects=False, timeout=timeout)
                 if r.status_code in {408, 429} or r.status_code >= 500:
                     raise requests.exceptions.HTTPError(f"HTTP {r.status_code}", response=r)
                 break
@@ -127,22 +128,27 @@ def resolve_platform_uri(uri, hard=True):
     if 300 <= r.status_code < 400 and "location" in r.headers:
         return r.headers["location"]  # Return signed URL
 
-    # Handle error responses
+    # Echo only the platform's own JSON `error`: a proxy or WAF error page can quote our Authorization
+    # header, and it would land in the user's console.
+    try:
+        detail = str(r.json().get("error", "")).strip()
+    except Exception:
+        detail = ""
+    detail = f" {detail[:500]}" if detail else ""
+
     if r.status_code == 401:
-        raise ValueError(f"Invalid ULTRALYTICS_API_KEY for '{uri}'")
+        raise ValueError(f"Invalid ULTRALYTICS_API_KEY for '{uri}'.{detail}")
     if r.status_code == 403:
-        raise PermissionError(f"Access denied for '{uri}'. Check dataset/model visibility settings.")
+        raise PermissionError(f"Access denied for '{uri}'. Check dataset/model visibility settings.{detail}")
     if r.status_code == 404:
         if hard:
-            raise FileNotFoundError(f"Not found on platform: {uri}")
-        LOGGER.warning(f"Not found on platform: {uri}")
+            raise FileNotFoundError(f"Not found on platform: {uri}.{detail}")
+        LOGGER.warning(f"Not found on platform: {uri}.{detail}")
         return None
     if r.status_code == 409:
-        raise RuntimeError(f"Resource not ready: {uri}. Dataset may still be processing.")
+        raise RuntimeError(f"Resource not ready: {uri}. Dataset may still be processing.{detail}")
 
-    # Unexpected response
-    r.raise_for_status()
-    raise RuntimeError(f"Unexpected response from platform for '{uri}': {r.status_code}")
+    raise RuntimeError(f"Platform error for '{uri}' (HTTP {r.status_code}).{detail or f' {r.reason}'}")
 
 
 def _interp_plot(plot, n=101):
@@ -205,12 +211,14 @@ def _sanitize_json_value(value):
 
 def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
     """Send event to Platform endpoint with retry logic."""
+    if not _api_key:
+        return None
     payload = {"event": event, "project": project, "name": name, "data": _sanitize_json_value(data)}
     if model_id:
         payload["modelId"] = model_id
 
-    @Retry(times=retry, delay=1)
-    def post():
+    def send_once():
+        global _api_key
         r = requests.post(
             f"{PLATFORM_API_URL}/training/metrics",
             json=payload,
@@ -222,15 +230,25 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
                 msg = r.json().get("error", r.reason)
             except Exception:
                 msg = r.reason
-            LOGGER.warning(f"{PREFIX}{msg}")
+            # Only 401 is credential-scoped; 403/404 concern one run and must not disable the process.
+            if r.status_code == 401:
+                _api_key = None
+            # A console_output failure must not be logged: ConsoleLogger flushes the warning back as the
+            # next chunk, which fails again. 401 is safe — the cleared key short-circuits _send.
+            if event != "console_output" or r.status_code == 401:
+                LOGGER.warning(f"{PREFIX}{msg}")
             return None  # Don't retry client errors (except 408 timeout, 429 rate limit)
         r.raise_for_status()
         return r.json()
 
+    # Same loop as above, so a console_output send stays silent at every level — including Retry's
+    # per-attempt warning. It must still retry: _flush_buffer clears the buffer before calling us.
+    quiet = event == "console_output"
     try:
-        return post()
+        return Retry(times=retry, delay=1, verbose=not quiet)(send_once)()
     except Exception as e:
-        LOGGER.debug(f"{PREFIX}Failed to send {event}: {e}")
+        if not quiet:
+            LOGGER.debug(f"{PREFIX}Failed to send {event}: {e}")
         return None
 
 
@@ -257,6 +275,8 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
     """Publish a model checkpoint to its configured Platform storage location."""
     from ultralytics.utils.uploads import safe_upload
 
+    if not _api_key:
+        return None
     model_path = Path(model_path)
     if not model_path.exists():
         LOGGER.warning(f"{PREFIX}Model file not found: {model_path}")
@@ -378,7 +398,7 @@ def on_pretrain_routine_start(trainer):
     project, name = _get_project_name(trainer)
     LOGGER.info(f"{PREFIX}Streaming training metrics to Platform")
 
-    # Single dict for all platform callback state (like trainer.hub_session for HUB callbacks)
+    # Single dict for all platform callback state
     ctx = {
         "model_id": None,
         "run_id": None,
@@ -401,9 +421,11 @@ def on_pretrain_routine_start(trainer):
             ctx["model_id"],
         )
 
-    # Start console capture with batching (5 lines or 5 seconds)
+    # Console capture with batching (5 lines or 5 seconds). Built here, but not started until Platform
+    # has accepted the run below: capturing first left the user's stdout redirected through a dead
+    # integration whenever training_started failed, and its final flush would post a console chunk
+    # carrying no model_id.
     ctx["console_logger"] = ConsoleLogger(batch_size=5, flush_interval=5.0, on_flush=send_console_output)
-    ctx["console_logger"].start_capture()
 
     # Collect environment info (W&B-style metadata)
     environment = _get_environment_info()
@@ -433,6 +455,7 @@ def on_pretrain_routine_start(trainer):
             ctx["model_slug"] = response["modelSlug"]
             url = f"{PLATFORM_URL}/{project}/{ctx['model_slug']}"
             LOGGER.info(f"{PREFIX}View model at {url}")
+        ctx["console_logger"].start_capture()  # only now: the run is tracked and model_id is known
         # Note: trainer.stop is set in on_pretrain_routine_end (after _setup_train resets it)
         _handle_control_response(trainer, ctx, response)
     else:
@@ -523,8 +546,9 @@ def on_model_save(trainer):
 
 
 def on_train_end(trainer):
-    """Log final results, upload best model, and send validation plot data."""
-    ctx = getattr(trainer, "platform", None)
+    """Run events on train end once fitness and duration are known, then log final results and upload best model."""
+    events(trainer.args, trainer.device, trainer)
+    ctx = getattr(trainer, "platform", None)  # set only by on_pretrain_routine_start, so unset without an API key
     if not ctx or RANK not in {-1, 0} or not trainer.args.project:
         return
 
@@ -598,14 +622,40 @@ def on_train_end(trainer):
     LOGGER.info(f"{PREFIX}View results at {url}")
 
 
-callbacks = (
-    {
-        "on_pretrain_routine_start": on_pretrain_routine_start,
-        "on_pretrain_routine_end": on_pretrain_routine_end,
-        "on_fit_epoch_end": on_fit_epoch_end,
-        "on_model_save": on_model_save,
-        "on_train_end": on_train_end,
-    }
-    if _api_key
-    else {}
-)
+def on_val_start(validator):
+    """Run events on validation start, when the user asked for validation.
+
+    A trainer runs its own final validation on a copy of the trainer's args, whose mode is still 'train'. Since an event
+    is named for its mode, firing here would send a second 'train' event indistinguishable from the training one.
+    """
+    if validator.args.mode == "val":
+        events(validator.args, validator.device)
+
+
+def on_predict_end(predictor):
+    """Run events on predict end, once per-image speeds are known."""
+    events(predictor.args, predictor.device, predictor)
+
+
+def on_export_start(exporter):
+    """Run events on export start."""
+    events(exporter.args, exporter.device)
+
+
+callbacks = {
+    # Anonymous analytics, gated only by the documented sync setting inside Events
+    "on_val_start": on_val_start,
+    "on_predict_end": on_predict_end,
+    "on_export_start": on_export_start,
+    "on_train_end": on_train_end,  # sends the train event, then uploads results if a Platform run is in flight
+    **(
+        {
+            "on_pretrain_routine_start": on_pretrain_routine_start,
+            "on_pretrain_routine_end": on_pretrain_routine_end,
+            "on_fit_epoch_end": on_fit_epoch_end,
+            "on_model_save": on_model_save,
+        }
+        if _api_key
+        else {}
+    ),
+}

@@ -15,7 +15,6 @@ from typing import Any
 import numpy as np
 import torch
 
-from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, ops
 from ultralytics.utils.plotting import Annotator, colors, save_one_box
 
@@ -69,7 +68,7 @@ class BaseTensor(SimpleClass):
             >>> data = torch.rand(100, 4)
             >>> base_tensor = BaseTensor(data, orig_shape=(720, 1280))
             >>> print(base_tensor.shape)
-            (100, 4)
+            torch.Size([100, 4])
         """
         return self.data.shape
 
@@ -481,8 +480,7 @@ class Results(SimpleClass, DataExportMixin):
         font_size: float | None = None,
         font: str = "Arial.ttf",
         pil: bool = False,
-        img: np.ndarray | None = None,
-        im_gpu: torch.Tensor | None = None,
+        img: np.ndarray | torch.Tensor | None = None,
         kpt_radius: int = 5,
         kpt_line: bool = True,
         labels: bool = True,
@@ -503,8 +501,8 @@ class Results(SimpleClass, DataExportMixin):
             font_size (float | None): Font size for text. If None, scaled to image size.
             font (str): Font to use for text.
             pil (bool): Whether to return the image as a PIL Image.
-            img (np.ndarray | None): Image to plot on. If None, uses original image.
-            im_gpu (torch.Tensor | None): Normalized image on GPU for faster mask plotting.
+            img (np.ndarray | torch.Tensor | None): Image to plot on. Tensor images must be contiguous HWC BGR uint8. If
+                None, uses the original image.
             kpt_radius (int): Radius of drawn keypoints.
             kpt_line (bool): Whether to draw lines connecting keypoints.
             labels (bool): Whether to plot labels of bounding boxes.
@@ -549,15 +547,6 @@ class Results(SimpleClass, DataExportMixin):
         # Plot Segment results
         if pred_masks and show_masks:
             pred_mask_data = torch.as_tensor(pred_masks.data)  # no-op for torch, converts a numpy() result
-            if im_gpu is None:
-                img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
-                im_gpu = (
-                    torch.as_tensor(img, dtype=torch.float16, device=pred_mask_data.device)
-                    .permute(2, 0, 1)
-                    .flip(0)
-                    .contiguous()
-                    / 255
-                )
             idx = (
                 pred_boxes.id
                 if pred_boxes and pred_boxes.is_track and color_mode == "instance"
@@ -565,7 +554,7 @@ class Results(SimpleClass, DataExportMixin):
                 if pred_boxes and color_mode == "class"
                 else reversed(range(len(pred_masks)))
             )
-            annotator.masks(pred_mask_data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
+            annotator.masks(pred_mask_data, colors=[colors(x, True) for x in idx])
 
         # Plot Detect results
         if pred_boxes is not None and show_boxes:
@@ -1071,9 +1060,6 @@ class Boxes(BaseTensor):
             ...     torch.tensor([[100, 50, 150, 100, 0.9, 0], [200, 150, 300, 250, 0.8, 1]]), orig_shape=(480, 640)
             ... )
             >>> xywh = boxes.xywh
-            >>> print(xywh)
-            tensor([[125.0000,  75.0000,  50.0000,  50.0000],
-                    [250.0000, 200.0000, 100.0000, 100.0000]])
         """
         return ops.xyxy2xywh(self.xyxy)
 

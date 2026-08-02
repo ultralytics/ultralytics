@@ -101,7 +101,7 @@ To train a YOLO26n-depth model on the ARKitScenes dataset with an image size of 
 
 ## Pretrained Models
 
-The YOLO26 depth family is trained on the broad multi-dataset depth pretraining mix that ARKitScenes is part of. These models auto-download from the latest Ultralytics release, for example [YOLO26x-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-depth.pt) from v8.4.0, and span a range of sizes for different accuracy and resource requirements.
+The YOLO26 depth family is trained on the broad multi-dataset depth pretraining mix that ARKitScenes is part of. These models auto-download from the latest Ultralytics release, for example [YOLO26x-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth) from v8.4.0, and span a range of sizes for different accuracy and resource requirements.
 
 ## Citations and Acknowledgments
 

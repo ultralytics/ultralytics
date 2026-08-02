@@ -198,7 +198,7 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 - **abs_rel** 是预测深度与真实深度之间的平均绝对相对误差。
 - **rmse** 是均方根误差（单位为米）。
 - **速度** 为纯推理延迟（不含前/后处理），在 `imgsz=768`、`batch=1` 下测得，经预热后取多次计时运行的均值 ± 标准差。**CPU ONNX** 为在 32 核 Intel Xeon (Skylake) 上以 ONNX Runtime fp32 运行；**T4 TensorRT10** 为在 Tesla T4 上以 TensorRT fp16 运行。
-- **参数** 和 **FLOPs** 在 768×768 下测量。<br>使用 `yolo depth val data=nyu-depth.yaml device=0 imgsz=768` 复现结果。
+- **参数** 和 **FLOPs** 在 768×768（已发布权重的训练分辨率）下测量。
 
 </details>
 

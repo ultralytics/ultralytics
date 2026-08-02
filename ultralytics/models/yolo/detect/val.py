@@ -558,7 +558,7 @@ class DetectionValidator(BaseValidator):
             (dict[str, Any]): Updated stats dictionary containing the computed COCO/LVIS evaluation metrics.
         """
         if len(self.jdict):
-            LOGGER.info("\nEvaluating faster-coco-eval mAP...")
+            (LOGGER.debug if self.training else LOGGER.info)("\nEvaluating faster-coco-eval mAP...")
             try:
                 for x in pred_json, anno_json:
                     if isinstance(x, (str, Path)):

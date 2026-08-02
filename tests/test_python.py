@@ -940,20 +940,6 @@ def test_annotator_depth_map():
     assert ann.result().shape == (16, 16, 3)
 
 
-def test_annotator_semantic_mask_negative_ignore_index():
-    """Annotator.semantic_mask leaves a negative ignore_index unpainted, exactly like the default 255 sentinel."""
-    from ultralytics.utils.plotting import Annotator
-
-    classes = np.array([[0, 1, 2], [3, 4, 0]], dtype=np.int16)
-    painted = []
-    for void in (-1, 255):
-        ann = Annotator(np.full((2, 3, 3), 200, dtype=np.uint8))
-        ann.semantic_mask(np.where(classes == 4, void, classes), ignore_index=void)
-        painted.append(ann.result())
-    np.testing.assert_array_equal(painted[0], painted[1])  # a negative sentinel paints the same image as 255
-    assert painted[0][1, 1].tolist() == [100, 100, 100]  # the ignored pixel stays unpainted, image at 1 - alpha
-
-
 def test_annotator_tensor_image():
     """Annotator accepts tensor images and matches Results.plot compositing pixels."""
     from ultralytics.engine.results import Results

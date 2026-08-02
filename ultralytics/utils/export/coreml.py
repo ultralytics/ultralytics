@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +14,9 @@ from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
 
 
+_new_ones_patch_lock = threading.RLock()
+
+
 @contextlib.contextmanager
 def _new_ones_coreml_patch():
     """Temporarily replace Tensor.new_ones with an equivalent coremltools can convert.
@@ -20,23 +24,27 @@ def _new_ones_coreml_patch():
     coremltools has no registered conversion for 'new_ones', which breaks CoreML export for
     models using dynamic anchor generation (see ultralytics/utils/tal.py make_anchors()).
     This substitutes a mathematically identical torch.ones() call, active only during tracing.
+
+    Guarded by a lock since this mutates the global Tensor.new_ones method; without it,
+    concurrent exports could save/restore each other's patched state.
     """
-    original = torch.Tensor.new_ones
+    with _new_ones_patch_lock:
+        original = torch.Tensor.new_ones
 
-    def patched(self, size, dtype=None, **kwargs):
-        if isinstance(size, torch.Tensor):
-            shape = (int(size),) if size.dim() == 0 else tuple(int(s) for s in size)
-        elif isinstance(size, int):
-            shape = (size,)
-        else:
-            shape = tuple(size)
-        return torch.ones(shape, dtype=dtype or self.dtype, device=self.device)
+        def patched(self, size, dtype=None, **kwargs):
+            if isinstance(size, torch.Tensor):
+                shape = (int(size),) if size.dim() == 0 else tuple(int(s) for s in size)
+            elif isinstance(size, int):
+                shape = (size,)
+            else:
+                shape = tuple(size)
+            return torch.ones(shape, dtype=dtype or self.dtype, device=self.device)
 
-    torch.Tensor.new_ones = patched
-    try:
-        yield
-    finally:
-        torch.Tensor.new_ones = original
+        torch.Tensor.new_ones = patched
+        try:
+            yield
+        finally:
+            torch.Tensor.new_ones = original
 
 
 class IOSDetectModel(nn.Module):

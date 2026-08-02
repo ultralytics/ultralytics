@@ -64,6 +64,7 @@ ASSETS = ROOT / "assets"  # default images
 ASSETS_URL = "https://github.com/ultralytics/assets/releases/download/v0.0.0"  # assets GitHub URL
 # Configurable Platform URL for debugging (e.g. ULTRALYTICS_PLATFORM_URL=http://localhost:3000)
 PLATFORM_URL = os.getenv("ULTRALYTICS_PLATFORM_URL", "https://platform.ultralytics.com").rstrip("/")
+PLATFORM_API_URL = os.getenv("PLATFORM_API_URL", f"{PLATFORM_URL}/api/webhooks")
 DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
 AUTOINSTALL = env_bool("YOLO_AUTOINSTALL", True)  # global auto-install mode
@@ -1442,10 +1443,10 @@ class SettingsManager(JSONDict):
             if not re.fullmatch(r"ul_[0-9a-f]{40}", valid.get("api_key", "")):
                 if valid.get("api_key"):
                     LOGGER.warning(
-                        f"Legacy HUB API key removed. Get a Platform API key from {PLATFORM_URL}/settings?tab=api-keys "
+                        f"Legacy API key removed. Get a Platform API key from {PLATFORM_URL}/settings?tab=api-keys "
                         "and run 'yolo login API_KEY'."
                     )
-                valid["api_key"] = ""  # discard legacy HUB keys, which cannot authenticate with Platform
+                valid["api_key"] = ""  # discard legacy keys, which cannot authenticate with Platform
             valid["settings_version"] = self.version
             self.clear()
             self.update({**self.defaults, **valid})

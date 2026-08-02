@@ -18,15 +18,15 @@ Usage:
           since it is no longer a pristine distilled backbone)
 
     obj365v1_det_pretrain is the only mode taking multiple GPUs ("0,1,2,3"): grad_clip is a train arg and
-    nfs_sync starts in the runner, so neither rides a callback DDP drops. muon_w is a train arg read by
+    nfs_sync starts in the runner, so neither rides a callback DDP drops. muon/sgd are train args read by
     build_optimizer (DDP-safe). log_config still rides a callback, so under DDP the W&B run misses the
     parent-run fields (args.yaml keeps them).
     Keep batch divisible by the GPU count: trainer.py floors batch_size // world_size silently.
 
 Flags:
-    --resume <path>: resume from checkpoint (all single-dataset modes). MuSGD checkpoints saved before
-                muon_w became a train arg lack it in train_args and resume at the 0.2 default, relaunch
-                those from the recipe instead.
+    --resume <path>: resume from checkpoint (all single-dataset modes). Checkpoints saved before
+                muon/sgd became train args lack them in train_args and error at build_optimizer,
+                relaunch those from the recipe instead.
     --fork_from <parent_id>:<fork_step>: wandb-fork continuation (all single-dataset modes)
     --recipe <name>: coco/multi_det/obj365 modes. Recipe profile stem under cfg/recipes/, defaulting to
                 the mode's profile (coco-preserve, multi-det, obj365-pretrain). Use coco-adapt for a
@@ -150,6 +150,10 @@ _AUG_ARGS = dict(
     erasing=0.4,
     crop_fraction=1,
 )
+
+# Every-mode defaults kept out of recipe profiles, recipes override via a later merge.
+# muon/sgd 0.5/0.5 suggested by Jing.
+_TRAIN_DEFAULTS = {"grad_clip": 1.0, "muon": 0.5, "sgd": 0.5}
 
 
 def _infer_model_yaml(phase1_weights: str, head_suffix: str = "") -> str:
@@ -277,8 +281,11 @@ def _load_recipe(name: str, model_yaml: str, **deltas: str | int | None) -> dict
             raise SystemExit(f"{path} has no aug entry for model scale {scale!r}")
         recipe.update(aug)
     recipe.update(deltas)
-    if recipe["optimizer"] == "MuSGD" and "muon_w" not in recipe:
-        raise SystemExit(f"{path} uses MuSGD but sets no muon_w, add it or the run silently trains at 0.2")
+    if recipe["optimizer"] == "MuSGD" and not {"muon", "sgd"} <= recipe.keys():
+        raise SystemExit(
+            f"{path} uses MuSGD but sets no muon/sgd, add both or the run silently trains at the "
+            f"{_TRAIN_DEFAULTS['muon']}/{_TRAIN_DEFAULTS['sgd']} script default"
+        )
     # The only pre-launch view of the resolved recipe: args.yaml lands after the trainer starts, and a published
     # profile's lr0/nbs/warmup_epochs come from the downloaded checkpoint.
     print(
@@ -287,7 +294,7 @@ def _load_recipe(name: str, model_yaml: str, **deltas: str | int | None) -> dict
         f"lrf={recipe['lrf']} cos_lr={recipe['cos_lr']} warmup_epochs={recipe['warmup_epochs']:.3f} "
         f"epochs={recipe['epochs']} backbone_lr_ratio={recipe['backbone_lr_ratio']} "
         f"mixup={recipe['mixup']} copy_paste={recipe['copy_paste']} scale={recipe['scale']} "
-        f"muon_w={recipe.get('muon_w', '-')}"
+        f"muon={recipe.get('muon', '-')} sgd={recipe.get('sgd', '-')}"
     )
     return recipe
 
@@ -324,7 +331,8 @@ def _resolve_dataset_list(datasets_arg: str) -> list[Path]:
 
 # Published-recipe train_args copied verbatim from a shipped checkpoint (yolo26{size}.pt or
 # yolo26{size}-objv1-150.pt via _shipped_from). The rest are budget/infra we hold fixed across arms,
-# muon_w is an allowed custom train arg read by build_optimizer, lr0/nbs/warmup_epochs get batch-scaled below.
+# lr0/nbs/warmup_epochs get batch-scaled below. Shipped ckpts predate the muon_w/sgd_w -> muon/sgd
+# rename, so the old keys are extracted and renamed in the returned dict.
 _PUB_RECIPE_KEYS = (
     "lrf",
     "momentum",
@@ -354,6 +362,7 @@ _PUB_RECIPE_KEYS = (
     "auto_augment",
     "erasing",
     "muon_w",
+    "sgd_w",
 )
 
 
@@ -376,6 +385,7 @@ def _published_det_args(asset: str, model_yaml: str, batch: int) -> dict:
         raise SystemExit(f"{pt_name} train_args is missing published-recipe keys {missing}")
     bscale = batch / ta["batch"]
     out = {k: ta[k] for k in _PUB_RECIPE_KEYS}
+    out["muon"], out["sgd"] = out.pop("muon_w"), out.pop("sgd_w")
     out.update(
         lr0=ta["lr0"] * bscale, nbs=max(1, round(ta["nbs"] * bscale)), warmup_epochs=ta["warmup_epochs"] * bscale
     )
@@ -634,22 +644,22 @@ def _run_multi_det(
                 iters_per_epoch=iters_per_ep,
             ),
         )
-        # sgd_w/cls_w/o2m/detach_epoch from the MuSGD recipe are not train_args (cfg validator rejects).
-        train_args = dict(
-            device=gpu,
-            project=paths.WANDB_PROJECT,
-            name=basename,
-            save_dir=str(parent_save_dir / basename),
-            exist_ok=False,
-            dropout=0,
-            amp=True,
-            deterministic=True,
-            workers=4,
-            data=str(ds_yaml),
-            # Not in the recipe profile: a recipe key enters resume_args above, compared per sub-run.
-            grad_clip=1.0,
+        # cls_w/o2m/detach_epoch from the MuSGD recipe are not train_args (cfg validator rejects).
+        train_args = {
+            "device": gpu,
+            "project": paths.WANDB_PROJECT,
+            "name": basename,
+            "save_dir": str(parent_save_dir / basename),
+            "exist_ok": False,
+            "dropout": 0,
+            "amp": True,
+            "deterministic": True,
+            "workers": 4,
+            "data": str(ds_yaml),
+            # Only recipe keys enter the per-sub-run resume_args comparison above.
+            **_TRAIN_DEFAULTS,
             **recipe_args,
-        )
+        }
         # Nest the NFS mirror under the parent so different parents' same-basename sub-runs (e.g. two parents both
         # training `aerial-cows`) don't collide on the flat `NFS_MIRROR_ROOT / Path(save_dir).name` mapping.
         sync_stop = nfs_sync.start(train_args["save_dir"], paths.NFS_MIRROR_ROOT / parent_name, exclude=("weights/",))
@@ -841,8 +851,7 @@ def main(argv: list[str]) -> None:
         seed=seed,
         deterministic=True,
         workers=4,
-        # Passed for every mode rather than per-profile, so profiles stay verbatim args.yaml snapshots.
-        grad_clip=1.0,
+        **_TRAIN_DEFAULTS,
     )
     if mode == "inet_linear_probe":
         train_args.update(
@@ -953,7 +962,8 @@ def main(argv: list[str]) -> None:
             f"warmup_epochs={obb_warmup:.3f} (scale={obb_scale:.2f}x vs canonical bs=32)"
         )
         train_args.update(
-            muon_w=0.5,
+            muon=0.5,
+            sgd=1.0,
             data="DOTAv1.yaml",
             epochs=epochs or 50,
             batch=obb_batch,
@@ -994,7 +1004,8 @@ def main(argv: list[str]) -> None:
         )
     elif mode == "inet_finetune":
         train_args.update(
-            muon_w=0.1,
+            muon=0.1,
+            sgd=1.0,
             data="/data/shared-datasets/imagenet",
             epochs=epochs or 50,
             batch=256,

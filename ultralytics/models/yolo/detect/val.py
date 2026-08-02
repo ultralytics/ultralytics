@@ -51,7 +51,6 @@ class DetectionValidator(BaseValidator):
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
-        task = self.args.task
         self.is_coco = False
         self.is_lvis = False
         self.class_map = None
@@ -59,12 +58,8 @@ class DetectionValidator(BaseValidator):
         self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
         self.metrics = DetMetrics()
-        if dataloader is not None and task == "detect":
-            self.image_ids = {str(path): i for i, path in enumerate(dataloader.dataset.im_files, 1)}
-            check_requirements("faster-coco-eval>=1.6.7")
-            from faster_coco_eval import COCO
-
-            self.coco_gt = COCO(self._build_coco_ground_truth(dataloader.dataset))
+        self.coco_gt = None
+        self.official_gt = False  # True when per-epoch GT is the official COCO annotations json
 
     def _build_coco_ground_truth(self, dataset) -> dict[str, list[dict[str, Any]]]:
         """Build COCO ground truth from the loaded YOLO detection labels."""
@@ -119,9 +114,22 @@ class DetectionValidator(BaseValidator):
             and (val.endswith((f"{os.sep}val2017.txt", f"{os.sep}test-dev2017.txt")))
         )  # is COCO
         self.is_lvis = isinstance(val, str) and "lvis" in val and not self.is_coco  # is LVIS
+        if self.training and self.args.task == "detect" and self.coco_gt is None:
+            check_requirements("faster-coco-eval>=1.6.7")
+            from faster_coco_eval import COCO
+
+            # COCO val2017 uses the official annotations (mask areas, iscrowd) so per-epoch metrics match eval_json
+            anno_json = self.data["path"] / "annotations" / "instances_val2017.json"
+            self.official_gt = self.is_coco and val.endswith(f"{os.sep}val2017.txt") and anno_json.is_file()
+            if self.official_gt:
+                self.image_ids = {str(p): int(Path(p).stem) for p in self.dataloader.dataset.im_files}
+                self.coco_gt = COCO(str(anno_json))
+            else:
+                self.image_ids = {str(p): i for i, p in enumerate(self.dataloader.dataset.im_files, 1)}
+                self.coco_gt = COCO(self._build_coco_ground_truth(self.dataloader.dataset))
         self.class_map = (
             converter.coco80_to_coco91_class()
-            if self.is_coco and not self.training
+            if self.is_coco and (not self.training or self.official_gt)
             else list(range(1, len(model.names) + 1))
         )
         self.args.save_json |= self.args.val and (self.is_coco or self.is_lvis) and not self.training  # run final val
@@ -178,7 +186,6 @@ class DetectionValidator(BaseValidator):
         ori_shape = batch["ori_shape"][si]
         imgsz = batch["img"].shape[2:]
         ratio_pad = batch["ratio_pad"][si]
-        im_file = batch["im_file"][si]
         if cls.shape[0]:
             bbox = ops.xywh2xyxy(bbox) * torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]]  # target boxes
         return {
@@ -187,7 +194,7 @@ class DetectionValidator(BaseValidator):
             "ori_shape": ori_shape,
             "imgsz": imgsz,
             "ratio_pad": ratio_pad,
-            "im_file": im_file,
+            "im_file": batch["im_file"][si],
         }
 
     def _prepare_pred(self, pred: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
@@ -326,10 +333,10 @@ class DetectionValidator(BaseValidator):
         stats = self.metrics.results_dict
         if self.training and self.args.task == "detect":
             coco_stats = self.coco_evaluate({}, self.jdict, self.coco_gt)
-            stats["metrics/mAR(B)"] = coco_stats["metrics/mAR(B)"]
-            for size in "small", "medium", "large":
-                stats[f"metrics/mAP_{size}(B)"] = coco_stats[f"metrics/mAP_{size}(B)"]
-                stats[f"metrics/mAR_{size}(B)"] = coco_stats[f"metrics/mAR_{size}(B)"]
+            if not self.official_gt:
+                # Rebuilt-GT buckets are bbox-area estimates: keep overall mAP and fitness on DetMetrics
+                coco_stats = {k: v for k, v in coco_stats.items() if "mAR" in k or "mAP_" in k}
+            stats.update(coco_stats)
         return stats
 
     def print_results(self) -> None:

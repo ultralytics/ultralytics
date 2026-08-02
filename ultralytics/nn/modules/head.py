@@ -1947,10 +1947,10 @@ class RefineDetect(Detect):
         ch = [m[0].conv.in_channels for m in head.cv2]  # neck channels, one per detection layer
         no = len(classes) + 4 * head.reg_max  # refinement branch outputs per anchor
         for name in ("refine", "one2one_refine") if hasattr(head, "one2one_cv3") else ("refine",):
-            branch = nn.ModuleList(  # same depthwise layout as cv3, at a quarter of its width
+            branch = nn.ModuleList(  # same depthwise blocks as cv3, a quarter as wide and twice as deep
                 nn.Sequential(
                     nn.Sequential(DWConv(x, x, 3), Conv(x, c, 1)),
-                    nn.Sequential(DWConv(c, c, 3), Conv(c, c, 1)),
+                    *(nn.Sequential(DWConv(c, c, 3), Conv(c, c, 1)) for _ in range(3)),
                     nn.Conv2d(c, no, 1),
                 )
                 for x, c in ((x, max(16, x // 4)) for x in ch)

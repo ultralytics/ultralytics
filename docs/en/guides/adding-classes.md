@@ -110,7 +110,7 @@ Label files only need boxes for the classes you tune. Everything else is ignored
 
 ## What Changes in the Model
 
-The detection head gains a small refinement branch, one block per detection level, built from the same depthwise layers as the existing classification branch at a quarter of its width. It predicts a class score adjustment for the tuned classes and a box adjustment gated by their confidence, and starts zero-initialized so an attached model predicts exactly what it did before training.
+The detection head gains a small refinement branch, one per detection level, built from the same depthwise blocks as the existing classification branch, a quarter as wide and twice as deep. It predicts a class score adjustment for the tuned classes and a box adjustment gated by their confidence, and starts zero-initialized so an attached model predicts exactly what it did before training.
 
 Everything else is frozen, including [batch normalization](https://www.ultralytics.com/glossary/batch-normalization) statistics. The classification output rows of the untuned classes are restored after every optimizer step, so weight decay and momentum cannot move them either.
 
@@ -118,9 +118,9 @@ The cost for one added class, measured at 640 pixels after `fuse`:
 
 | Model                                                          | Parameters       | GFLOPs |
 | -------------------------------------------------------------- | ---------------- | ------ |
-| [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26) | 2.57M to 2.64M   | +1.2%  |
-| [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26) | 10.01M to 10.25M | +1.1%  |
-| [YOLO26m](https://platform.ultralytics.com/ultralytics/yolo26) | 21.90M to 22.31M | +1.0%  |
+| [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26) | 2.42M to 2.47M   | +1.7%  |
+| [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26) | 9.51M to 9.68M   | +1.5%  |
+| [YOLO26m](https://platform.ultralytics.com/ultralytics/yolo26) | 20.44M to 20.72M | +1.3%  |
 
 The result is a normal checkpoint. [Prediction](../modes/predict.md), [validation](../modes/val.md) and [export](../modes/export.md) all work as usual.
 
@@ -160,18 +160,18 @@ model.train(data="rhino.yaml", epochs=30, classes=[80], trainer=RefineDetectionT
 
 | Metric                                        | Value   |
 | --------------------------------------------- | ------- |
-| `rhino` mAP50                                 | 0.649   |
-| `rhino` mAP50-95                              | 0.591   |
+| `rhino` mAP50                                 | 0.747   |
+| `rhino` mAP50-95                              | 0.672   |
 | COCO class score max change vs the base model | 5.7e-14 |
-| Params                                        | +2.6%   |
-| GFLOPs                                        | +1.2%   |
+| Params                                        | +2.0%   |
+| GFLOPs                                        | +1.7%   |
 
 The score change is floating point noise, so the 80 COCO classes predict exactly what they did before. Detections on three images from the set:
 
 | Image    | Pretrained                                     | Tuned                                                                              |
 | -------- | ---------------------------------------------- | ---------------------------------------------------------------------------------- |
-| rhino 1  | `elephant 0.70`                                | `elephant 0.70`, **`rhino 0.65`**                                                  |
-| rhino 2  | `elephant 0.77`, `horse 0.42`, `elephant 0.41` | `elephant 0.77`, **`rhino 0.60`**, `horse 0.42`, `elephant 0.41`, **`rhino 0.38`** |
+| rhino 1  | `elephant 0.45`, `cow 0.34`                    | **`rhino 0.97`**, `elephant 0.45`, `cow 0.34`                                      |
+| rhino 2  | `elephant 0.77`, `horse 0.42`, `elephant 0.41` | **`rhino 0.85`**, `elephant 0.77`, **`rhino 0.58`**, `horse 0.42`, `elephant 0.41` |
 | elephant | `elephant 0.88`, `elephant 0.83`               | `elephant 0.88`, `elephant 0.83`                                                   |
 | zebra    | `zebra 0.95`, `zebra 0.35`                     | `zebra 0.95`, `zebra 0.35`                                                         |
 
@@ -200,7 +200,7 @@ model = YOLO("runs/detect/train/weights/best.pt")
 model.train(data="data-2.yaml", epochs=50, classes=[81], trainer=RefineDetectionTrainer)
 ```
 
-Every session adds a branch that stays in the model forever, and the cost adds up. On YOLO26n each branch is about **+2.6% parameters** and **+1.2% GFLOPs**, so three sessions land near +8% parameters and +4% GFLOPs, while one session tuning three classes costs the same as one session tuning one. The branch width does not depend on how many classes it refines, only the output convolution does.
+Every session adds a branch that stays in the model forever, and the cost adds up. On YOLO26n each branch is about **+2.0% parameters** and **+1.7% GFLOPs**, so three sessions land near +6% parameters and +5% GFLOPs, while one session tuning three classes costs the same as one session tuning one. The branch width does not depend on how many classes it refines, only the output convolution does.
 
 Pass the classes together as `classes=[80, 81]` whenever you know them up front, and keep stacking for classes that genuinely arrive later.
 

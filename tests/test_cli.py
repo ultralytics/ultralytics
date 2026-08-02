@@ -78,6 +78,8 @@ def test_cli_imports_defer_torchvision() -> None:
         "import sys; "
         "import ultralytics; "
         "assert not {'cv2', 'numpy', 'torch'} & sys.modules.keys(); "
+        "import ultralytics.utils.patches; "
+        "assert ultralytics.utils.imread is ultralytics.utils.patches.imread; "
         "from ultralytics import YOLO; "
         "from ultralytics.models.sam import Predictor; "
         "assert 'torchvision' not in sys.modules; "

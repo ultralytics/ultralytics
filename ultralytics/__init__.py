@@ -6,13 +6,9 @@ import importlib
 import os
 from typing import TYPE_CHECKING
 
-from autoimport import lazy_import
-
 # Set ENV variables (place before imports)
 if not os.environ.get("OMP_NUM_THREADS"):
     os.environ["OMP_NUM_THREADS"] = "1"  # default for reduced CPU utilization during training
-
-_utils = lazy_import("ultralytics.utils")
 
 MODELS = ("YOLO", "YOLOWorld", "YOLOE", "NAS", "SAM", "FastSAM", "RTDETR")
 
@@ -40,9 +36,11 @@ def __getattr__(name: str):
     if name in MODELS:
         return getattr(importlib.import_module("ultralytics.models"), name)
     if name in {"ASSETS", "SETTINGS"}:
-        return getattr(_utils, name)
+        return getattr(importlib.import_module("ultralytics.utils"), name)
     if name == "settings":
-        return _utils.SETTINGS
+        return importlib.import_module("ultralytics.utils").SETTINGS
+    if name == "utils":
+        return importlib.import_module("ultralytics.utils")
     if name == "checks":
         return importlib.import_module("ultralytics.utils.checks").check_yolo
     if name == "download":

@@ -1892,12 +1892,12 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
 class DepthMetrics(SimpleClass, DataExportMixin):
     """Monocular depth estimation metrics: delta1-3, abs_rel, rmse, silog.
 
-    Metrics are finalized per image, then averaged across the val set so every image weighs equally regardless of
-    its valid-pixel count, matching the per-sample averaging used by Depth Anything V2 and Monodepth2. Images with
-    fewer than 10 scored pixels (valid gt carrying a finite prediction) are skipped entirely, the same floor Depth
-    Anything V2 applies to its own valid mask. Per-image results are accumulated in float64 on CPU, so DDP reduction
-    is still a plain sum-then-all_reduce. Following the standard Eigen evaluation protocol, pixels with gt outside
-    (min_depth, max_depth) are excluded and predictions are clamped into that range.
+    Metrics are finalized per image, then averaged across the val set so every image weighs equally regardless of its
+    valid-pixel count, matching the per-sample averaging used by Depth Anything V2 and Monodepth2. Images with fewer
+    than 10 scored pixels (valid gt carrying a finite prediction) are skipped entirely, the same floor Depth Anything V2
+    applies to its own valid mask. Per-image results are accumulated in float64 on CPU, so DDP reduction is still a
+    plain sum-then-all_reduce. Following the standard Eigen evaluation protocol, pixels with gt outside (min_depth,
+    max_depth) are excluded and predictions are clamped into that range.
 
     Attributes:
         min_depth (float): Minimum valid depth in meters.

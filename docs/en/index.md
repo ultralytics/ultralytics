@@ -48,9 +48,9 @@ Explore the Ultralytics Docs, a comprehensive resource covering the YOLO package
 
 Request an Enterprise License for commercial use at [Ultralytics Licensing](https://www.ultralytics.com/license?utm_source=docs.ultralytics.com&utm_medium=referral&utm_content=license_inline_link).
 
-!!! tip "🚀 New: Depth Estimation"
+!!! tip "🚀 New: Monocular Depth Estimation"
 
-    Turn a single photo into a depth map — a distance in meters for every pixel.
+    Turn a single photo into a depth map, a distance in meters for every pixel.
 
     [:octicons-arrow-right-24: Learn more](tasks/depth.md)
 

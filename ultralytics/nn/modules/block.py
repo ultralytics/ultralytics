@@ -1145,9 +1145,7 @@ class C2fRep(nn.Module):
     identity-over-residual gradient-diversity problem that plain RepC3 hits.
     """
 
-    def __init__(
-        self, c1: int, c2: int, n: int = 1, shortcut: bool = False, g: int = 1, e: float = 0.5
-    ):
+    def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = False, g: int = 1, e: float = 0.5):
         """Initialize C2fRep with RepConv blocks."""
         super().__init__()
         self.c = int(c2 * e)
@@ -1429,10 +1427,14 @@ class Attention(nn.Module):
         q, k, v = qkv.view(B, self.num_heads, self.key_dim * 2 + self.head_dim, N).split(
             [self.key_dim, self.key_dim, self.head_dim], dim=2
         )
+        with torch.autocast(device_type=x.device.type, enabled=False):
+            attn = (q.float().transpose(-2, -1) @ k.float()) * self.scale
+            attn = attn.softmax(dim=-1)
 
-        attn = (q * self.scale).transpose(-2, -1) @ k
-        attn = attn.softmax(dim=-1)
-        x = (v @ attn.transpose(-2, -1)).view(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
+        # attn = (q * self.scale).transpose(-2, -1) @ k
+        # attn = attn.softmax(dim=-1)
+        # x = (v @ attn.transpose(-2, -1)).view(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
+        x = (v @ attn.transpose(-2, -1).to(v.dtype)).view(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
         x = self.proj(x)
         return x
 

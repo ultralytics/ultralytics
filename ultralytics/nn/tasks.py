@@ -2311,8 +2311,8 @@ def yaml_model_load(path):
         LOGGER.warning(f"Ultralytics YOLO P6 models now use -p6 suffix. Renaming {path.stem} to {new_stem}.")
         path = path.with_name(new_stem + path.suffix)
 
-    unified_path = re.sub(r"(\d+)(xxl|[nslmx])(.+)?$", r"\1\3", str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
-    yaml_file = check_yaml(path, hard=False) or check_yaml(unified_path)
+    unified_path = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
+    yaml_file = check_yaml(unified_path, hard=False) or check_yaml(path)
     d = YAML.load(yaml_file)  # model dict
     d["scale"] = guess_model_scale(path)
     d["yaml_file"] = str(path)
@@ -2320,16 +2320,16 @@ def yaml_model_load(path):
 
 
 def guess_model_scale(model_path):
-    """Extract the size name n, s, m, l, x, or xxl of the model's scale from the model path.
+    """Extract the size character n, s, m, l, or x of the model's scale from the model path.
 
     Args:
         model_path (str | Path): The path to the YOLO model's YAML file.
 
     Returns:
-        (str): The size name of the model's scale (n, s, m, l, x, or xxl), or empty string if not found.
+        (str): The size character of the model's scale (n, s, m, l, or x), or empty string if not found.
     """
     try:
-        return re.search(r"yolo(e-)?[v]?\d+(xxl|[nslmx])", Path(model_path).stem).group(2)
+        return re.search(r"yolo(e-)?[v]?\d+([nslmx])", Path(model_path).stem).group(2)
     except AttributeError:
         return ""
 

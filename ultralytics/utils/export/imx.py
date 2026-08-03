@@ -207,9 +207,9 @@ def _patch_mct_sensitivity() -> None:
     """Replace non-finite MCT mixed-precision sensitivity scores with a large finite penalty.
 
     MCT scores each layer's quantization candidates by output distortion, and a KL divergence overflow on hopeless
-    low-bit candidates can produce NaN. Those scores are passed unchecked to the PuLP solver, which raises
-    `PulpError: Cannot multiply variables with NaN/inf values` and kills the export. A penalty score keeps the
-    candidate out of the solution the solver would have picked anyway.
+    low-bit candidates can produce NaN. Those scores are passed unchecked to the PuLP solver, which raises `PulpError:
+    Cannot multiply variables with NaN/inf values` and kills the export. A penalty score keeps the candidate out of the
+    solution the solver would have picked anyway.
     """
     from model_compression_toolkit.core.common.mixed_precision.search_methods import linear_programming
 

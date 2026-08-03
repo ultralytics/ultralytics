@@ -8,7 +8,7 @@ from copy import deepcopy
 from pathlib import Path
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
@@ -36,9 +36,11 @@ from ultralytics.nn.modules import (
     C2fPSA,
     C3Ghost,
     C3k2,
+    C3k2_SWTCC_two,
     C3x,
     CBFuse,
     CBLinear,
+    CFFM_two,
     Classify,
     Concat,
     Conv,
@@ -67,15 +69,13 @@ from ultralytics.nn.modules import (
     Segment,
     Segment26,
     SemanticSegment,
+    SSEDown_two,
     TorchVision,
     WorldDetect,
     YOLOEDetect,
     YOLOESegment,
     YOLOESegment26,
     v10Detect,
-    C3k2_SWTCC_two,
-    CFFM_two,
-    SSEDown_two
 )
 from ultralytics.utils import (
     DEFAULT_CFG_DICT,
@@ -1971,11 +1971,11 @@ def parse_model(d, ch, verbose=True):
             c1 = ch[f]
             c2 = args[0]
             c2 = make_divisible(min(c2, max_channels) * width, 8)
-            args = [c1, c2, *args[1:]] 
-            
+            args = [c1, c2, *args[1:]]
+
         elif m is CFFM_two:
             c1_list = [ch[x] for x in f]
-            c2 = args[0] #  修改为 0
+            c2 = args[0]  #  修改为 0
             c2 = make_divisible(min(c2, max_channels) * width, 8)
             args = [c1_list, c2]
         else:

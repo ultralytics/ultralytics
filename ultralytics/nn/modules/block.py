@@ -4,8 +4,8 @@
 from __future__ import annotations
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
@@ -37,9 +37,11 @@ __all__ = (
     "C2fPSA",
     "C3Ghost",
     "C3k2",
+    "C3k2_SWTCC_two",
     "C3x",
     "CBFuse",
     "CBLinear",
+    "CFFM_two",
     "ContrastiveHead",
     "GhostBottleneck",
     "HGBlock",
@@ -51,10 +53,8 @@ __all__ = (
     "RepVGGDW",
     "ResNetLayer",
     "SCDown",
-    "TorchVision",
-    "C3k2_SWTCC_two",
     "SSEDown_two",
-    "CFFM_two"
+    "TorchVision",
 )
 
 
@@ -2074,16 +2074,14 @@ class RealNVP(nn.Module):
             self.float()
         z, log_det = self.backward_p(x)
         return self.prior.log_prob(z) + log_det
+
+
 class CFFM_two(nn.Module):
-
-    """
-
-    Cross-Feature Fusion Module (最佳版)
+    """Cross-Feature Fusion Module (最佳版).
 
     - 权重决策基于全局融合上下文
 
     - 主路径加权 + residual 全局融合，避免信息稀释
-
     """
 
     def __init__(self, c1_list, c2):
@@ -2096,55 +2094,39 @@ class CFFM_two(nn.Module):
 
         self.proj2 = Conv(c1b, c2, 1, 1)
 
-        
-
         # 用于提供全局上下文和 residual
 
         self.fuse = Conv(c2 * 2, c2, 1, 1)
 
-        
-
         # 注意力在全局上下文中计算权重
 
         self.att = nn.Sequential(
-
             nn.AdaptiveAvgPool2d(1),
-
             nn.Conv2d(c2, c2 // 4, 1, bias=False),
-
             nn.ReLU(inplace=True),
-
-            nn.Conv2d(c2 // 4, 2, 1, bias=True)
-
+            nn.Conv2d(c2 // 4, 2, 1, bias=True),
         )
-
-
 
     def forward(self, x):
 
         x1, x2 = x
 
-        f1 = self.proj1(x1)   # 上采样语义分支
+        f1 = self.proj1(x1)  # 上采样语义分支
 
-        f2 = self.proj2(x2)   # 本层细节分支
-
-        
+        f2 = self.proj2(x2)  # 本层细节分支
 
         fused = self.fuse(torch.cat([f1, f2], dim=1))  # 全局上下文
 
-        
+        w = self.att(fused)  # [B, 2, 1, 1]
 
-        w = self.att(fused)                    # [B, 2, 1, 1]
-
-        w = torch.softmax(w, dim=1)            # w1 + w2 = 1
+        w = torch.softmax(w, dim=1)  # w1 + w2 = 1
         # w = torch.sigmoid(self.att(fused))
         w1, w2 = w[:, 0:1], w[:, 1:2]
 
-        
+        out = f1 * w1 + f2 * w2  # 主加权路径
 
-        out = f1 * w1 + f2 * w2                 # 主加权路径
+        return out + fused  # residual 防止损失
 
-        return out + fused                      # residual 防止损失
 
 class SWTCCBlock(nn.Module):
     """Multi-scale depthwise conv with spatial attention for small-object features."""
@@ -2183,13 +2165,9 @@ class C3k2_SWTCC_two(C2f):
             return out + (x if self.sc is None else self.sc(x))
         return out
 
+
 class SSEDown_two(nn.Module):
-
-    """
-
-    针对小目标设计的空间保留下采样：SPD + SE 净化
-
-    """
+    """针对小目标设计的空间保留下采样：SPD + SE 净化."""
 
     def __init__(self, c1, c2, k=3, s=2, p=1):
 
@@ -2198,20 +2176,12 @@ class SSEDown_two(nn.Module):
         self.conv = Conv(c1 * 4, c2, 1, 1)
 
         self.se = nn.Sequential(
-
             nn.AdaptiveAvgPool2d(1),
-
             nn.Conv2d(c2, c2 // 16, 1),
-
             nn.ReLU(inplace=True),
-
             nn.Conv2d(c2 // 16, c2, 1),
-
-            nn.Sigmoid()
-
+            nn.Sigmoid(),
         )
-
-
 
     def forward(self, x):
 
@@ -2226,8 +2196,6 @@ class SSEDown_two(nn.Module):
         patch4 = x[..., 1::2, 1::2]
 
         x = torch.cat([patch1, patch2, patch3, patch4], dim=1)
-
-        
 
         y = self.conv(x)
 

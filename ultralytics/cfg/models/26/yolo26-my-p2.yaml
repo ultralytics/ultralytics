@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Ultralytics YOLO26 object detection model with Custom Small-Object Modules (P2-P5)
 # Modules: SSEDown_two (SPD downsample), C3k2_SWTCC_two (SWTCC + spatial att), CFFM_two (weighted fusion)
 nc: 80

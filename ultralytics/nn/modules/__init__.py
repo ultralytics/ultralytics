@@ -43,9 +43,11 @@ from .block import (
     C2fPSA,
     C3Ghost,
     C3k2,
+    C3k2_SWTCC_two,
     C3x,
     CBFuse,
     CBLinear,
+    CFFM_two,
     ContrastiveHead,
     GhostBottleneck,
     HGBlock,
@@ -58,10 +60,8 @@ from .block import (
     RepVGGDW,
     ResNetLayer,
     SCDown,
+    SSEDown_two,
     TorchVision,
-    C3k2_SWTCC_two,
-    CFFM_two,
-    SSEDown_two
 )
 from .conv import (
     CBAM,
@@ -141,6 +141,7 @@ __all__ = (
     "C2fPSA",
     "C3Ghost",
     "C3k2",
+    "C3k2_SWTCC_two",
     "C3x",
     "CBFuse",
     "CBLinear",
@@ -192,5 +193,4 @@ __all__ = (
     "YOLOESegment",
     "YOLOESegment26",
     "v10Detect",
-    "C3k2_SWTCC_two",
 )

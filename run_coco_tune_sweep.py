@@ -15,6 +15,8 @@ import os
 import statistics
 from pathlib import Path
 
+os.environ.setdefault("OMP_NUM_THREADS", "1")  # before W&B: BLAS pools size at init, ignore torch.set_num_threads
+
 ENTITY = "fca"
 PROJECT = "yolo-next-encoder"
 SWEEP_NAME = "tune-coco-ultravit-s-290726"

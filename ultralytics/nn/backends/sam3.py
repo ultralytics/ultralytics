@@ -79,16 +79,22 @@ class SAM3Backend:
         LOGGER.info(f"SAM3Backend: detected {self._format.upper()} in {self._model_dir} at imgsz {self.imgsz}")
 
     def _baked_imgsz(self) -> int | None:
-        """Return the image size the vision encoder was traced at, or None if it cannot be read."""
+        """Return the image size the vision encoder was traced at.
+
+        None when the graph is dynamic in height and width, or when the shape cannot be read, so the
+        caller's own image size is left alone instead of being overridden by a symbolic dimension.
+        """
         stem = self._FILE_STEMS[0]
         try:
             if self._format == "engine":
-                return int(self._trt_engines[stem].get_tensor_shape("images")[2]) or None
-            import onnx
+                size = int(self._trt_engines[stem].get_tensor_shape("images")[2])
+            else:
+                import onnx
 
-            f = self._model_dir / f"{stem}.onnx"
-            shape = onnx.load(str(f), load_external_data=False).graph.input[0].type.tensor_type.shape
-            return int(shape.dim[2].dim_value) or None
+                f = self._model_dir / f"{stem}.onnx"
+                shape = onnx.load(str(f), load_external_data=False).graph.input[0].type.tensor_type.shape
+                size = int(shape.dim[2].dim_value)
+            return size if size > 0 else None  # a dynamic axis reports 0 in ONNX and -1 in TensorRT
         except Exception:  # an unreadable shape must not stop the model from loading
             return None
 
@@ -124,7 +130,7 @@ class SAM3Backend:
     @property
     def _has_text_decoder(self) -> bool:
         """Whether the geometry free decoder used for text only prompts was exported."""
-        return self._TEXT_DECODER in getattr(self, "_sessions", {}) or self._TEXT_DECODER in getattr(
+        return self._TEXT_DECODER in getattr(self, "_onnx_paths", {}) or self._TEXT_DECODER in getattr(
             self, "_trt_contexts", {}
         )
 
@@ -153,10 +159,25 @@ class SAM3Backend:
         so = ort.SessionOptions()
         so.log_severity_level = 3
 
-        self._sessions = {
-            s: ort.InferenceSession(str(p), sess_options=so, providers=providers) for s, p in paths.items()
-        }
-        LOGGER.info(f"SAM3Backend ONNX: loaded {self._loaded_desc()}")
+        # Sessions are created on first use, not here. A text prompt never touches the prompt encoder
+        # or mask decoder, and holding every module resident costs gigabytes that a smaller card does
+        # not have, which used to fail the whole load rather than the modules actually being asked for.
+        self._onnx_paths = paths
+        self._session_opts = (so, providers)
+        self._sessions = {}
+        LOGGER.info(f"SAM3Backend ONNX: found {self._loaded_desc()}, loading each on first use")
+
+    def _session(self, stem: str):
+        """Return the session for ``stem``, creating it the first time it is asked for."""
+        if stem not in self._sessions:
+            import onnxruntime as ort
+
+            so, providers = self._session_opts
+            LOGGER.info(f"SAM3Backend ONNX: loading {stem}")
+            self._sessions[stem] = ort.InferenceSession(
+                str(self._onnx_paths[stem]), sess_options=so, providers=providers
+            )
+        return self._sessions[stem]
 
     @staticmethod
     def _ort_providers(cuda: bool) -> list:
@@ -273,17 +294,17 @@ class SAM3Backend:
         if self._format == "onnx":
             np_feed = {k: (v.cpu().numpy() if isinstance(v, torch.Tensor) else np.asarray(v)) for k, v in feed.items()}
             try:
-                out = self._run_onnx(self._sessions[stem], np_feed)
+                out = self._run_onnx(self._session(stem), np_feed)
             except Exception as e:
-                # Every module stays resident and the decoder attention allocates in hundreds of
-                # megabytes, so a smaller card can run out part way through. Keep serving the request
-                # on CPU rather than failing, and stay there so later prompts do not retry and fail.
+                # The decoder attention allocates in hundreds of megabytes, so a smaller card can
+                # still run out part way through even loading one module at a time. Keep serving the
+                # request on CPU rather than failing, and stay there so later prompts do not retry.
                 if self.device.type == "cpu" or "alloc" not in str(e).lower():
                     raise
                 LOGGER.warning(f"SAM3Backend ONNX: {self.device} ran out of memory, falling back to CPU. {e!s:.120}")
                 self.to("cpu")
                 self._load_models()
-                out = self._run_onnx(self._sessions[stem], np_feed)
+                out = self._run_onnx(self._session(stem), np_feed)
             return {k: torch.from_numpy(v).to(self.device) for k, v in out.items()}
         cuda_feed = {
             k: (v.to(self.device) if isinstance(v, torch.Tensor) else torch.from_numpy(np.asarray(v)).to(self.device))
@@ -404,7 +425,17 @@ class SAM3Backend:
             "Point prompts need a vision encoder exported with the SAM2 neck (sam2_feat_0/1/2). Re-export this model."
         )
 
-        pe_out = self._run(self._POINT_STEMS[0], {"point_coords": point_coords, "point_labels": point_labels})
+        # A dynamic prompt encoder reads the feature grid off the image embedding, because the dense
+        # embedding, its positional encoding and the coordinate scale all follow from that grid. Both
+        # runners drop feed keys the graph does not declare, so a static export ignores it.
+        pe_out = self._run(
+            self._POINT_STEMS[0],
+            {
+                "point_coords": point_coords,
+                "point_labels": point_labels,
+                "image_embeddings": img_out["_sam2_feat_2"],
+            },
+        )
         md_out = self._run(
             self._POINT_STEMS[1],
             {

@@ -44,7 +44,15 @@ keywords: Ultralytics, ultralytics.utils.export.sam3_onnx, API reference, YOLO, 
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.export.sam3_onnx._axial_rope
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.export.sam3_onnx._replace_mha_modules
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.export.sam3_onnx._dense_pos_enc
 
 <br><br><hr><br>
 
@@ -61,6 +69,10 @@ keywords: Ultralytics, ultralytics.utils.export.sam3_onnx, API reference, YOLO, 
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.export.sam3_onnx.export_sam3_engine
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.export.sam3_onnx._spatial_profile
 
 <br><br><hr><br>
 

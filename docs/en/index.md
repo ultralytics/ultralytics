@@ -48,11 +48,11 @@ Explore the Ultralytics Docs, a comprehensive resource covering the YOLO package
 
 Request an Enterprise License for commercial use at [Ultralytics Licensing](https://www.ultralytics.com/license?utm_source=docs.ultralytics.com&utm_medium=referral&utm_content=license_inline_link).
 
-!!! tip "🚀 New: Knowledge Distillation"
+!!! tip "🚀 New: Depth Estimation"
 
-    Train smaller YOLO models with guidance from a larger teacher model — no extra inference cost, just better accuracy.
+    Predict a per-pixel depth map in meters from a single RGB image with the YOLO26 depth models.
 
-    [:octicons-arrow-right-24: Learn more](guides/knowledge-distillation.md)
+    [:octicons-arrow-right-24: Learn more](tasks/depth.md)
 
 ## Get Started in Two Commands
 

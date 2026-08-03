@@ -3,8 +3,12 @@
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 import torch
+
+from ultralytics.utils.torch_utils import autocast
 
 DEFAULT_KITTI_P2 = np.array(
     [[721.5377, 0.0, 609.5593, 0.0], [0.0, 721.5377, 172.854, 0.0], [0.0, 0.0, 1.0, 0.0]],
@@ -69,7 +73,7 @@ def project_points_torch(points: torch.Tensor, p2: torch.Tensor) -> torch.Tensor
     original_dtype = points.dtype
     # Explicit casts alone are insufficient inside an outer AMP context: bmm would still autocast these operands back
     # to FP16, where ordinary KITTI terms such as focal_length * 100m exceed 65504 before perspective division.
-    with torch.autocast(device_type=points.device.type, enabled=False):
+    with autocast(enabled=False, device=points.device.type):
         points_f = points.float()
         p2_f = p2.float()
         if p2_f.ndim == 2:
@@ -86,7 +90,7 @@ def project_points_torch(points: torch.Tensor, p2: torch.Tensor) -> torch.Tensor
 def backproject_points_torch(uv: torch.Tensor, depth: torch.Tensor, p2: torch.Tensor) -> torch.Tensor:
     """Torch equivalent of :func:`backproject_points`, supporting one P2 per point."""
     original_dtype = uv.dtype
-    with torch.autocast(device_type=uv.device.type, enabled=False):
+    with autocast(enabled=False, device=uv.device.type):
         uv_f, depth_f, p2_f = uv.float(), depth.float().reshape(-1), p2.float()
         if p2_f.ndim == 2:
             p2_f = p2_f.unsqueeze(0).expand(uv_f.shape[0], -1, -1)
@@ -112,16 +116,16 @@ def backproject_points_torch(uv: torch.Tensor, depth: torch.Tensor, p2: torch.Te
 
 def wrap_angle_torch(angle: torch.Tensor) -> torch.Tensor:
     """Wrap angles in radians to the half-open interval [-pi, pi)."""
-    return torch.remainder(angle + torch.pi, 2.0 * torch.pi) - torch.pi
+    return torch.remainder(angle + math.pi, 2.0 * math.pi) - math.pi
 
 
 def encode_alpha_multibin(alpha: torch.Tensor, num_bins: int = 12) -> tuple[torch.Tensor, torch.Tensor]:
     """Encode observation angle ``alpha`` as a nearest-bin class and a bounded residual."""
     if num_bins < 2:
         raise ValueError(f"num_bins must be at least 2, got {num_bins}")
-    bin_size = 2.0 * torch.pi / num_bins
-    wrapped = torch.remainder(alpha, 2.0 * torch.pi)
-    bin_index = torch.floor(torch.remainder(wrapped + bin_size * 0.5, 2.0 * torch.pi) / bin_size).long()
+    bin_size = 2.0 * math.pi / num_bins
+    wrapped = torch.remainder(alpha, 2.0 * math.pi)
+    bin_index = torch.floor(torch.remainder(wrapped + bin_size * 0.5, 2.0 * math.pi) / bin_size).long()
     bin_center = bin_index.to(alpha.dtype) * bin_size
     residual = wrap_angle_torch(alpha - bin_center)
     return bin_index, residual
@@ -134,7 +138,7 @@ def decode_alpha_multibin(bin_logits: torch.Tensor, residual_logits: torch.Tenso
             f"Expected matching (..., num_bins>=2) tensors, got {bin_logits.shape} and {residual_logits.shape}"
         )
     num_bins = bin_logits.shape[-1]
-    bin_size = 2.0 * torch.pi / num_bins
+    bin_size = 2.0 * math.pi / num_bins
     bin_index = bin_logits.argmax(-1, keepdim=True)
     residual = residual_logits.gather(-1, bin_index).squeeze(-1).tanh() * (bin_size * 0.5)
     alpha = bin_index.squeeze(-1).to(bin_logits.dtype) * bin_size + residual
@@ -206,7 +210,7 @@ def paired_boxes3d_iou_torch(
         raise ValueError("All paired 3D box tensors must be on the same device")
 
     output_shape = prefix
-    with torch.autocast(device_type=centers_a.device.type, enabled=False):
+    with autocast(enabled=False, device=centers_a.device.type):
         ca, da = centers_a.float().reshape(-1, 3), dims_a.float().reshape(-1, 3)
         cb, db = centers_b.float().reshape(-1, 3), dims_b.float().reshape(-1, 3)
         ya, yb = yaws_a.float().reshape(-1), yaws_b.float().reshape(-1)
@@ -291,7 +295,7 @@ def paired_boxes3d_iou_torch(
             candidates[..., 1] - centroid[:, None, 1],
             candidates[..., 0] - centroid[:, None, 0],
         )
-        angles = torch.where(candidate_mask, angles, angles.new_full(angles.shape, 4.0 * torch.pi))
+        angles = torch.where(candidate_mask, angles, angles.new_full(angles.shape, 4.0 * math.pi))
         order = angles.argsort(1)
         ordered = candidates.gather(1, order[..., None].expand(-1, -1, 2))
 

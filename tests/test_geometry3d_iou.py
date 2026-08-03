@@ -11,6 +11,8 @@ import torch
 from ultralytics.utils.geometry3d import paired_boxes3d_iou_torch
 from ultralytics.utils.kitti_eval import build_kitti_predictions, paired_d3_box_overlap
 
+TORCH_ASSERT_CLOSE = getattr(torch.testing, "assert_close", torch.testing.assert_allclose)
+
 
 def _kitti_annotation(centers: np.ndarray, dims: np.ndarray, yaws: np.ndarray):
     """Build bottom-centered KITTI annotations from geometric-center boxes."""
@@ -43,7 +45,7 @@ def test_paired_boxes3d_iou_known_geometries():
 
     result = paired_boxes3d_iou_torch(centers_a, dims_a, yaws_a, centers_b, dims_b, yaws_b)
 
-    torch.testing.assert_close(result, torch.tensor([1.0, 1.0, 0.0, 0.0, 0.0, 0.125, 0.25]), atol=2e-6, rtol=0)
+    TORCH_ASSERT_CLOSE(result, torch.tensor([1.0, 1.0, 0.0, 0.0, 0.0, 0.125, 0.25]), atol=2e-6, rtol=0)
 
 
 def test_paired_boxes3d_iou_matches_opencv_kitti_evaluator():
@@ -91,11 +93,11 @@ def test_paired_boxes3d_iou_handles_batched_shapes_and_invalid_boxes():
     dims = torch.ones((2, 3, 3))
     dims[0, 0, 0] = 0.0
     dims[0, 1, 1] = -1.0
-    dims[0, 2, 2] = torch.nan
-    dims[1, 0, 0] = torch.inf
-    centers[1, 1, 2] = torch.nan
+    dims[0, 2, 2] = float("nan")
+    dims[1, 0, 0] = float("inf")
+    centers[1, 1, 2] = float("nan")
     yaws = torch.zeros((2, 3, 1))
-    yaws[1, 2, 0] = torch.inf
+    yaws[1, 2, 0] = float("inf")
 
     result = paired_boxes3d_iou_torch(centers, dims, yaws, torch.zeros_like(centers), torch.ones_like(dims), yaws)
 
@@ -104,6 +106,7 @@ def test_paired_boxes3d_iou_handles_batched_shapes_and_invalid_boxes():
     assert torch.equal(result, torch.zeros_like(result))
 
 
+@pytest.mark.skipif(not hasattr(torch, "autocast"), reason="torch.autocast is unavailable")
 def test_paired_boxes3d_iou_stays_fp32_under_cpu_autocast():
     """Verify paired 3D IoU remains FP32 under CPU autocast."""
     centers = torch.tensor([[40.0, 1.0, 103.6], [0.0, 0.0, 20.0]])
@@ -113,10 +116,11 @@ def test_paired_boxes3d_iou_stays_fp32_under_cpu_autocast():
         result = paired_boxes3d_iou_torch(centers, dims, yaws, centers, dims, yaws + math.pi)
 
     assert result.dtype == torch.float32
-    torch.testing.assert_close(result, torch.ones(2), atol=5e-5, rtol=0)
+    TORCH_ASSERT_CLOSE(result, torch.ones(2), atol=5e-5, rtol=0)
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA is not available")
+@pytest.mark.skipif(not hasattr(torch, "autocast"), reason="torch.autocast is unavailable")
 def test_paired_boxes3d_iou_uses_cuda_under_amp():
     """Verify paired 3D IoU runs on CUDA under automatic mixed precision."""
     centers = torch.tensor([[0.0, 0.0, 20.0]], device="cuda", dtype=torch.float16)
@@ -126,4 +130,4 @@ def test_paired_boxes3d_iou_uses_cuda_under_amp():
         result = paired_boxes3d_iou_torch(centers, dims, yaws, centers, dims, yaws + math.pi / 2)
 
     assert result.is_cuda and result.dtype == torch.float32
-    torch.testing.assert_close(result, torch.tensor([0.25], device="cuda"), atol=2e-4, rtol=0)
+    TORCH_ASSERT_CLOSE(result, torch.tensor([0.25], device="cuda"), atol=2e-4, rtol=0)

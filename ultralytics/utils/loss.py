@@ -783,7 +783,7 @@ class v8Detection3DLoss(v8DetectionLoss):
                 bin_logits = direction[:, : self.head.num_alpha_bins]
                 residual_logits = direction[:, self.head.num_alpha_bins :]
                 residual_pred = residual_logits.gather(1, bin_target[:, None]).tanh() * (
-                    torch.pi / self.head.num_alpha_bins
+                    math.pi / self.head.num_alpha_bins
                 )
                 alpha_cls = F.cross_entropy(bin_logits, bin_target, reduction="none")[:, None]
                 alpha_reg = F.smooth_l1_loss(residual_pred, residual_target[:, None], beta=0.1, reduction="none")
@@ -792,7 +792,7 @@ class v8Detection3DLoss(v8DetectionLoss):
                 # inference, but at initialization it would route every sample through bin 0 and send contradictory
                 # corner gradients to one residual head until the classification logits happen to switch bins.
                 pred_alpha_for_corner = wrap_angle_torch(
-                    bin_target.to(residual_pred.dtype) * (2.0 * torch.pi / self.head.num_alpha_bins)
+                    bin_target.to(residual_pred.dtype) * (2.0 * math.pi / self.head.num_alpha_bins)
                     + residual_pred[:, 0]
                 )
 

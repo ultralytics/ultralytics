@@ -52,6 +52,8 @@ from ultralytics.utils.loss import (
     weighted_smooth_l1_loss_fp32,
 )
 
+TORCH_ASSERT_CLOSE = getattr(torch.testing, "assert_close", torch.testing.assert_allclose)
+
 P2_WITH_TRANSLATION = np.array([[700.0, 3.0, 620.0, -350.0], [2.0, 710.0, 180.0, 70.0], [0.001, 0.002, 1.0, 0.2]])
 
 
@@ -134,9 +136,10 @@ def test_full_p2_projection_round_trip_numpy_and_torch():
     xyz_t = torch.tensor(xyz)
     p2_t = torch.tensor(P2_WITH_TRANSLATION)
     uv_t = project_points_torch(xyz_t, p2_t)
-    torch.testing.assert_close(backproject_points_torch(uv_t, xyz_t[:, 2], p2_t), xyz_t, atol=1e-5, rtol=1e-5)
+    TORCH_ASSERT_CLOSE(backproject_points_torch(uv_t, xyz_t[:, 2], p2_t), xyz_t, atol=1e-5, rtol=1e-5)
 
 
+@pytest.mark.skipif(not hasattr(torch, "autocast"), reason="torch.autocast is unavailable")
 def test_project_points_torch_disables_outer_autocast():
     """Verify torch projection disables an enclosing autocast context."""
     points = torch.tensor([[40.0, 5.0, 103.6]], dtype=torch.float32)
@@ -159,6 +162,7 @@ def test_project_points_torch_disables_outer_autocast():
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA is not available")
+@pytest.mark.skipif(not hasattr(torch, "autocast"), reason="torch.autocast is unavailable")
 def test_project_points_torch_avoids_fp16_projection_overflow():
     """Verify torch projection avoids FP16 overflow."""
     points = torch.tensor([[40.0, 5.0, 103.6]], device="cuda")
@@ -267,7 +271,7 @@ def test_detect3d_valid_mask_uses_native_box_height_and_configured_geometry(tmp_
     assert formatted["d3_valid"].dtype == torch.bool
     assert formatted["d3_valid"].shape == (len(rows), 1)
     batch = YOLODataset.collate_fn([formatted])
-    torch.testing.assert_close(batch["d3_valid"], formatted["d3_valid"])
+    TORCH_ASSERT_CLOSE(batch["d3_valid"], formatted["d3_valid"])
     assert batch["bboxes"].shape == (len(rows), 11)
 
 
@@ -453,7 +457,7 @@ def test_results_preserve_3d_params_and_plot_with_explicit_calibration():
     )
 
     assert isinstance(result.d3_params, D3Params)
-    torch.testing.assert_close(result.cpu().d3_params.data, d3)
+    TORCH_ASSERT_CLOSE(result.cpu().d3_params.data, d3)
     np.testing.assert_allclose(result.numpy().d3_params.data, d3.numpy())
     np.testing.assert_allclose(result[:1].d3_params.data.numpy(), d3.numpy())
     plotted = result.plot(p2=p2)
@@ -500,9 +504,11 @@ def test_predictor_maps_3d_center_to_native_image():
             ]
         ]
     )
-    result = predictor.construct_result(pred, torch.zeros(1, 3, 640, 640), np.zeros((375, 1242, 3)), "x.png")
+    result = predictor.construct_result(
+        pred, torch.zeros(1, 3, 640, 640), np.zeros((375, 1242, 3), dtype=np.uint8), "x.png"
+    )
     expected_center = torch.tensor([621.0, -238.6969])
-    torch.testing.assert_close(result.d3_params.center[0], expected_center)
+    TORCH_ASSERT_CLOSE(result.d3_params.center[0], expected_center)
 
 
 def test_predictor_attaches_single_calibration_and_plots_3d(tmp_path):
@@ -514,7 +520,9 @@ def test_predictor_attaches_single_calibration_and_plots_3d(tmp_path):
     predictor.args = SimpleNamespace(calib=str(calib))
     pred = torch.tensor([[200.0, 140.0, 440.0, 300.0, 0.9, 0.0, 320.0, 200.0, 20.0, 0.0, 1.0, 1.5, 1.8, 4.0]])
 
-    result = predictor.construct_result(pred, torch.zeros(1, 3, 640, 640), np.zeros((640, 640, 3)), "frame.png")
+    result = predictor.construct_result(
+        pred, torch.zeros(1, 3, 640, 640), np.zeros((640, 640, 3), dtype=np.uint8), "frame.png"
+    )
 
     np.testing.assert_allclose(result.p2, parse_calib_p2(str(calib)))
     plotted = result.plot()
@@ -533,7 +541,10 @@ def test_predictor_matches_calibration_directory_by_image_stem(tmp_path):
     pred = torch.empty((0, 14))
 
     result = predictor.construct_result(
-        pred, torch.zeros(1, 3, 640, 640), np.zeros((640, 640, 3)), "/images/000001.png"
+        pred,
+        torch.zeros(1, 3, 640, 640),
+        np.zeros((640, 640, 3), dtype=np.uint8),
+        "/images/000001.png",
     )
 
     np.testing.assert_allclose(result.p2, parse_calib_p2(str(calib)))
@@ -551,7 +562,7 @@ def test_predictor_rejects_missing_stem_matched_calibration(tmp_path):
         predictor.construct_result(
             torch.empty((0, 14)),
             torch.zeros(1, 3, 640, 640),
-            np.zeros((640, 640, 3)),
+            np.zeros((640, 640, 3), dtype=np.uint8),
             "/images/000001.png",
         )
 
@@ -570,7 +581,7 @@ def test_detect3d_validator_keeps_only_the_highest_class_per_anchor():
     output = validator.postprocess(prediction)[0]
 
     assert output["cls"].tolist() == [0.0]
-    torch.testing.assert_close(output["extra"], torch.arange(8, dtype=torch.float32).view(1, 8))
+    TORCH_ASSERT_CLOSE(output["extra"], torch.arange(8, dtype=torch.float32).view(1, 8))
 
 
 def test_detect3d_validator_aligns_raw_q3d_through_nms_without_changing_eight_value_output():
@@ -597,7 +608,7 @@ def test_detect3d_validator_aligns_raw_q3d_through_nms_without_changing_eight_va
     output = validator.postprocess((prediction, raw))[0]
 
     assert output["extra"].shape == (2, 8)
-    torch.testing.assert_close(output["q3d"], raw_d3[0, 6, [1, 0]].sigmoid())
+    TORCH_ASSERT_CLOSE(output["q3d"], raw_d3[0, 6, [1, 0]].sigmoid())
 
 
 def test_yolo26_validator_aligns_raw_q3d_through_end2end_topk():
@@ -628,7 +639,7 @@ def test_yolo26_validator_aligns_raw_q3d_through_end2end_topk():
     output = validator.postprocess((prediction, raw))[0]
 
     assert output["extra"].shape == (3, 8)
-    torch.testing.assert_close(output["q3d"], quality.gather(1, topk_indices)[0])
+    TORCH_ASSERT_CLOSE(output["q3d"], quality.gather(1, topk_indices)[0])
 
 
 def test_detect3d_inference_preserves_raw_outputs_for_validation_loss():
@@ -658,12 +669,12 @@ def test_detect3d_inference_preserves_raw_outputs_for_validation_loss():
 
     decoded = head._inference(raw)
 
-    torch.testing.assert_close(raw["d3_params"], raw_d3)
+    TORCH_ASSERT_CLOSE(raw["d3_params"], raw_d3)
     boxes = head._get_decode_boxes(raw)
     expected_center = boxes[:, :2] + raw_d3[:, :2] * boxes[:, 2:4]
-    torch.testing.assert_close(decoded[:, 7:9], expected_center)
-    torch.testing.assert_close(decoded[:, 9], torch.full_like(decoded[:, 9], 20.0))
-    torch.testing.assert_close(decoded[:, 12:15], target_dims.view(1, 3, 1).expand_as(decoded[:, 12:15]))
+    TORCH_ASSERT_CLOSE(decoded[:, 7:9], expected_center)
+    TORCH_ASSERT_CLOSE(decoded[:, 9], torch.full_like(decoded[:, 9], 20.0))
+    TORCH_ASSERT_CLOSE(decoded[:, 12:15], target_dims.view(1, 3, 1).expand_as(decoded[:, 12:15]))
 
     half_raw = {key: value for key, value in raw.items()}
     half_raw["d3_params"] = raw_d3.half()
@@ -690,7 +701,7 @@ def test_detect3d_direct_layout_and_decode():
     raw["d3_params"][:, 2].fill_(math.log(20.0))
     decoded = head._inference(raw)
     depth = decoded[:, 4 + head.nc + 2]
-    torch.testing.assert_close(depth, torch.full_like(depth, 20.0))
+    TORCH_ASSERT_CLOSE(depth, torch.full_like(depth, 20.0))
 
 
 def test_detect3d_bias_init_uses_log_depth_and_neutral_multibin_priors():
@@ -701,11 +712,11 @@ def test_detect3d_bias_init_uses_log_depth_and_neutral_multibin_priors():
 
     for branch in head.cv4:
         assert branch.primary.bias[2].item() == pytest.approx(math.log(18.0))
-        torch.testing.assert_close(branch.primary.bias[3:6], torch.zeros(3))
+        TORCH_ASSERT_CLOSE(branch.primary.bias[3:6], torch.zeros(3))
         assert branch.primary.bias[6].item() == pytest.approx(-3.0)
-        torch.testing.assert_close(branch.auxiliary.bias, torch.zeros(16))
+        TORCH_ASSERT_CLOSE(branch.auxiliary.bias, torch.zeros(16))
     for branch in head.cv5:
-        torch.testing.assert_close(branch.output.bias, torch.zeros(24))
+        TORCH_ASSERT_CLOSE(branch.output.bias, torch.zeros(24))
 
 
 def test_quality3d_power_reaches_native_models_through_runtime_wrappers():
@@ -784,36 +795,36 @@ def test_detect3d_end2end_postprocess_keeps_only_best_class_per_anchor():
     result = head.postprocess(predictions)
 
     assert result.shape == (1, 2, 6 + head.nd)
-    torch.testing.assert_close(result[0, :, 4], torch.tensor([0.90, 0.80]))
-    torch.testing.assert_close(result[0, :, 5], torch.tensor([0.0, 0.0]))
-    torch.testing.assert_close(result[0, 0, 6:], torch.full((head.nd,), 11.0))
-    torch.testing.assert_close(result[0, 1, 6:], torch.full((head.nd,), 22.0))
+    TORCH_ASSERT_CLOSE(result[0, :, 4], torch.tensor([0.90, 0.80]))
+    TORCH_ASSERT_CLOSE(result[0, :, 5], torch.tensor([0.0, 0.0]))
+    TORCH_ASSERT_CLOSE(result[0, 0, 6:], torch.full((head.nd,), 11.0))
+    TORCH_ASSERT_CLOSE(result[0, 1, 6:], torch.full((head.nd,), 22.0))
 
 
 def test_multibin_round_trip_and_camera_corner_geometry():
     """Verify MultiBin round-tripping and camera-space corner geometry."""
-    alpha = torch.tensor([-torch.pi + 1e-4, -0.4, 0.0, 0.7, torch.pi - 1e-4])
+    alpha = torch.tensor([-math.pi + 1e-4, -0.4, 0.0, 0.7, math.pi - 1e-4])
     bin_index, residual = encode_alpha_multibin(alpha, 12)
     logits = torch.full((len(alpha), 12), -20.0)
     logits.scatter_(1, bin_index[:, None], 20.0)
     residual_logits = torch.zeros_like(logits)
-    half_bin = torch.pi / 12
+    half_bin = math.pi / 12
     residual_logits.scatter_(
         1,
         bin_index[:, None],
         torch.atanh((residual / half_bin).clamp(-0.999, 0.999))[:, None],
     )
     decoded = decode_alpha_multibin(logits, residual_logits)
-    torch.testing.assert_close(wrap_angle_torch(decoded - alpha), torch.zeros_like(alpha), atol=1e-4, rtol=0)
+    TORCH_ASSERT_CLOSE(wrap_angle_torch(decoded - alpha), torch.zeros_like(alpha), atol=1e-4, rtol=0)
 
     center = torch.tensor([[0.0, 1.0, 10.0]])
     dims = torch.tensor([[2.0, 2.0, 4.0]])
     corners = boxes3d_corners_torch(center, dims, torch.tensor([0.0]))
     assert corners.shape == (1, 8, 3)
-    torch.testing.assert_close(corners[..., 0].amin(1), torch.tensor([-2.0]))
-    torch.testing.assert_close(corners[..., 0].amax(1), torch.tensor([2.0]))
-    torch.testing.assert_close(corners[..., 1].amin(1), torch.tensor([0.0]))
-    torch.testing.assert_close(corners[..., 1].amax(1), torch.tensor([2.0]))
+    TORCH_ASSERT_CLOSE(corners[..., 0].amin(1), torch.tensor([-2.0]))
+    TORCH_ASSERT_CLOSE(corners[..., 0].amax(1), torch.tensor([2.0]))
+    TORCH_ASSERT_CLOSE(corners[..., 1].amin(1), torch.tensor([0.0]))
+    TORCH_ASSERT_CLOSE(corners[..., 1].amax(1), torch.tensor([2.0]))
 
 
 def test_corner_rotation_uses_target_bin_but_quality_uses_inference_bin():
@@ -922,12 +933,12 @@ def test_detect3d_fuse_preserves_eval_output_and_end2end_deploy_towers(config):
     model = Detection3DModel(config, ch=3, nc=3, verbose=False).eval()
     image = torch.randn(1, 3, 64, 96)
 
-    with torch.inference_mode():
+    with torch.no_grad():
         before = model.predict(image)[0]
         model.fuse(verbose=False)
         after, raw = model.predict(image)
 
-    torch.testing.assert_close(after, before)
+    TORCH_ASSERT_CLOSE(after, before)
     head = model.model[-1]
     if head.end2end:
         assert head.cv2 is None and head.cv3 is None and head._fused3d
@@ -1432,7 +1443,7 @@ def test_extended_3d_diagnostic_recall_denominator_keeps_gt_without_predictions(
     validator._update_d3_stats(pred, batch)
 
     assert validator.d3_err == [] and validator.d3_diagnostics == []
-    torch.testing.assert_close(validator.d3_gt_depths[0], torch.tensor([10.0, 50.0]))
+    TORCH_ASSERT_CLOSE(validator.d3_gt_depths[0], torch.tensor([10.0, 50.0]))
 
 
 def test_calibration_and_3d_label_validation_are_strict(tmp_path):

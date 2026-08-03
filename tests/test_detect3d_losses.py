@@ -18,6 +18,8 @@ from ultralytics.utils.loss import (
     v8Detection3DLoss,
 )
 
+TORCH_ASSERT_CLOSE = getattr(torch.testing, "assert_close", torch.testing.assert_allclose)
+
 
 class _SingleTargetAssigner:
     """Assign the only prediction to the only target for deterministic 3D loss tests."""
@@ -100,7 +102,7 @@ def test_release_defaults_use_iou_quality_and_bounded_direct_depth_behavior():
     explicit_loss, _, explicit_criterion = _controlled_loss({"depth_z": 0.1, "depth_z_tau": 2.0})
 
     assert default_criterion.depth_z == explicit_criterion.depth_z == pytest.approx(0.1)
-    torch.testing.assert_close(default_loss, explicit_loss)
+    TORCH_ASSERT_CLOSE(default_loss, explicit_loss)
 
 
 def test_geometry_gain_scales_geometry_only_without_changing_2d_alpha_or_quality():
@@ -113,8 +115,8 @@ def test_geometry_gain_scales_geometry_only_without_changing_2d_alpha_or_quality
     assert baseline_criterion.d3_geometry_gain == pytest.approx(1.0)
     assert scaled_criterion.d3_geometry_gain == pytest.approx(2.0)
     assert torch.all(baseline[active_geometry_indices] > 0.0)
-    torch.testing.assert_close(scaled[active_geometry_indices], baseline[active_geometry_indices] * 2.0)
-    torch.testing.assert_close(scaled[unchanged_indices], baseline[unchanged_indices])
+    TORCH_ASSERT_CLOSE(scaled[active_geometry_indices], baseline[active_geometry_indices] * 2.0)
+    TORCH_ASSERT_CLOSE(scaled[unchanged_indices], baseline[unchanged_indices])
 
 
 def test_quality3d_uses_exact_paired_iou_target():

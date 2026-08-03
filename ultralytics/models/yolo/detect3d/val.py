@@ -41,7 +41,7 @@ _D3_DISTANCE_RANGES = (
 
 def _average_ranks(values: torch.Tensor) -> torch.Tensor:
     """Return zero-based average ranks, assigning equal values the same rank."""
-    order = torch.argsort(values, stable=True)
+    order = torch.argsort(values)
     sorted_values = values[order]
     ranks = torch.empty_like(values, dtype=torch.float64)
     start = 0
@@ -637,8 +637,8 @@ class Detection3DValidator(DetectionValidator):
         err = torch.zeros((gt.shape[0], 7), device=gt.device)
         err[:, :6] = (pr[:, :6] - gt[:, :6]).abs()  # meters
         # rotation_y absolute angular error in degrees, wrap-aware
-        d_ang = (pr[:, 6] - gt[:, 6] + torch.pi) % (2 * torch.pi) - torch.pi
-        err[:, 6] = d_ang.abs() * 180.0 / torch.pi
+        d_ang = (pr[:, 6] - gt[:, 6] + math.pi) % (2 * math.pi) - math.pi
+        err[:, 6] = d_ang.abs() * 180.0 / math.pi
         self.d3_err.append(err.cpu())
         if getattr(self, "extended_d3_diagnostics", False):
             # Invalid decoded boxes cannot form a 3D true positive. Their GT remains in the recall denominator, while
@@ -688,7 +688,7 @@ class Detection3DValidator(DetectionValidator):
 
         alpha = torch.atan2(extra[:, 3], extra[:, 4])
         rotation_y = alpha + torch.atan2(x_cam, z_cam.clamp_min(1e-12))
-        rotation_y = (rotation_y + torch.pi) % (2 * torch.pi) - torch.pi
+        rotation_y = (rotation_y + math.pi) % (2 * math.pi) - math.pi
         return torch.stack((z_cam, x_cam, y_bottom, w3d, h3d, l3d, rotation_y), dim=1)
 
     def get_stats(self) -> dict[str, Any]:

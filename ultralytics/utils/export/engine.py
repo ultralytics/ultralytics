@@ -358,7 +358,7 @@ def onnx2engine(
     # TensorRT 11 is strongly-typed and removed the FP16/INT8 builder flags and INT8 calibrator, so reduced
     # precision must be baked into the ONNX graph with NVIDIA ModelOpt before parsing (FP16 AutoCast, INT8 Q/DQ)
     if is_trt11 and (use_fp16 or use_int8):
-        onnx_file = modelopt_quantize_onnx(onnx_file, quantize, dataset, shape, dynamic, prefix)
+        onnx_file = modelopt_quantize_onnx(onnx_file, quantize, dataset, shape, dynamic, prefix=prefix)
 
     # Read ONNX file
     parser = trt.OnnxParser(network, logger)

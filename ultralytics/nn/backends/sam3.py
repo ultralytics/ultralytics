@@ -76,7 +76,33 @@ class SAM3Backend:
         if self._format == "engine":
             self._load_models()
         self.imgsz = self._baked_imgsz()
-        LOGGER.info(f"SAM3Backend: detected {self._format.upper()} in {self._model_dir} at imgsz {self.imgsz}")
+        self.imgsz_range = None if self.imgsz else self._dynamic_imgsz_range()
+        LOGGER.info(f"SAM3Backend: detected {self._format.upper()} in {self._model_dir} at {self._accepted_imgsz()}")
+
+    def _accepted_imgsz(self) -> str:
+        """Describe the image size this export accepts, for logging and for the warning that rejects one."""
+        if self.imgsz:
+            return f"imgsz {self.imgsz}"
+        return f"imgsz {self.imgsz_range[0]} to {self.imgsz_range[1]}" if self.imgsz_range else "any imgsz"
+
+    def _dynamic_imgsz_range(self) -> tuple[int, int] | None:
+        """Return the smallest and largest image size a dynamic export accepts, or None if unreadable.
+
+        TensorRT is asked for its optimization profile, which is what actually constrains it. ONNX has
+        no such bound in the graph, so the range the export recorded is read back from the metadata.
+        """
+        stem = self._FILE_STEMS[0]
+        try:
+            if self._format == "engine":
+                lo, _, hi = self._trt_engines[stem].get_tensor_profile_shape("images", 0)
+                return int(lo[2]), int(hi[2])
+            import onnx
+
+            f = self._model_dir / f"{stem}.onnx"
+            meta = {p.key: p.value for p in onnx.load(str(f), load_external_data=False).metadata_props}
+            return json.loads(meta["min_imgsz"])[0], json.loads(meta["imgsz"])[0]
+        except Exception:  # an export without a recorded range simply has no bound to check against
+            return None
 
     def _baked_imgsz(self) -> int | None:
         """Return the image size the vision encoder was traced at.
@@ -529,16 +555,23 @@ class SAM3Backend:
         return {k: torch.cat([r[k] for r in results], dim=0) for k in results[0]}
 
     def set_imgsz(self, imgsz) -> None:
-        """Warn when the requested size differs from the one the graphs were traced at.
+        """Warn when the requested size is one the graphs cannot serve.
+
+        A fixed export accepts a single size and a dynamic one a range, and asking either for anything else fails far
+        from here, as an unreadable TensorRT profile error or a silently wrong result.
 
         Args:
             imgsz (int | list[int]): Size the predictor intends to letterbox to.
         """
         want = imgsz[0] if isinstance(imgsz, (list, tuple)) else imgsz
-        if self.imgsz and want and want != self.imgsz:
+        if not want:
+            return
+        fixed = self.imgsz and want != self.imgsz
+        outside = self.imgsz_range and not self.imgsz_range[0] <= want <= self.imgsz_range[1]
+        if fixed or outside:
             LOGGER.warning(
-                f"SAM3Backend: this export only accepts imgsz={self.imgsz}, got {want}. "
-                f"Pass imgsz={self.imgsz}, or re-export at {want}."
+                f"SAM3Backend: this export only accepts {self._accepted_imgsz()}, got {want}. "
+                f"Pass a size it accepts, or re-export covering {want}."
             )
 
     def eval(self):

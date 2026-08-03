@@ -419,6 +419,10 @@ Load the directory exactly like a checkpoint. The backend is chosen from the tra
 A default export is traced at one image size, and the model reports the size it was built with, so
 `imgsz` does not have to be passed at predict time.
 
+An ONNX directory loads each module the first time a prompt needs it, so a text prompt never pays for
+the point modules and the first prompt of a given type is slower than the rest. TensorRT engines are
+all loaded up front.
+
 !!! warning "Fixed image size"
 
     An exported directory only accepts the size it was traced at, 1008 by default. Export again if

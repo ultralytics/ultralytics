@@ -43,17 +43,15 @@ def _compute_sine_pos_enc(shape, device, dtype=torch.float32, num_pos_feats=128,
 def _axial_rope(height, width, head_dim, theta=10000.0, pt_size=None, device=None):
     """Build the rotate_half RoPE cos and sin tables for a height by width patch grid.
 
-    Mirrors ``compute_axial_cis`` followed by ``repeat_interleave(2)``, but writes the polar form as a plain cos and sin
-    so no complex tensor reaches ONNX, and takes the grid size as tensors so the graph can be traced with a dynamic
-    image size. ``pt_size`` is the grid the frequencies were trained on, which interpolated RoPE rescales the positions
-    to.
+    Mirrors ``compute_axial_cis`` then ``repeat_interleave(2)``, but as plain cos and sin so no complex tensor reaches
+    ONNX, and takes the grid as tensors so a dynamic image size can be traced.
 
     Args:
         height (int | torch.Tensor): Patch grid height.
         width (int | torch.Tensor): Patch grid width.
         head_dim (int): Attention head dimension.
         theta (float): RoPE frequency base.
-        pt_size (int | None): Pretrain grid size, or None to leave the positions unscaled.
+        pt_size (int | None): Grid the frequencies were trained on, which rescales the positions, or None to leave them.
         device (torch.device | None): Device to build the tables on.
 
     Returns:
@@ -423,8 +421,8 @@ class SAM3TextEncoderONNX(nn.Module):
 def _dense_pos_enc(height, width, gaussian):
     """Build the random frequency positional encoding for a height by width grid.
 
-    Mirrors ``PositionEmbeddingRandom.forward`` but broadcasts two ranges instead of taking the cumulative sum of a
-    literally sized grid of ones, so the grid can come from a traced shape.
+    Mirrors ``PositionEmbeddingRandom.forward`` but broadcasts two ranges rather than summing a literally sized grid of
+    ones, so the grid can come from a traced shape.
 
     Args:
         height (int | torch.Tensor): Grid height.
@@ -447,8 +445,8 @@ class SAM3PromptEncoderONNX(nn.Module):
     """ONNX wrapper turning point prompts into sparse and dense embeddings.
 
     Embeds points inline rather than with boolean indexing, which traces poorly to ONNX. With ``dynamic`` the graph
-    takes the image embedding as a third input, purely to read the feature grid off it, because everything this module
-    bakes in follows from that grid.
+    takes the image embedding as a third input purely to read the feature grid off it, since everything this module
+    would otherwise bake in follows from that grid.
     """
 
     def __init__(self, tracker_model, dynamic: bool = False):
@@ -888,7 +886,7 @@ def export_sam3_onnx(
         output_names_vis += ["sam2_feat_0", "sam2_feat_1", "sam2_feat_2"]
 
     # fpn_pos_2 shares level 2's grid with fpn_feat_2, and each sam2 output shares its FPN level's
-    vis_axes = _lvl(("fpn_feat_0", 0), ("fpn_feat_1", 1), ("fpn_feat_2", 2), ("fpn_pos_2", 2))
+    vis_axes = _lvl(*_FPN_TENSORS)
     if dynamic:
         vis_axes["images"] = {2: "height", 3: "width"}
         if sam2_convs is not None:
@@ -920,7 +918,7 @@ def export_sam3_onnx(
     LOGGER.info(f"{prefix} exporting decoder (opset {opset})...")
     decoder = SAM3DecoderONNX(model).to(device).eval()
     dec_axes = {
-        **_lvl(("fpn_feat_0", 0), ("fpn_feat_1", 1), ("fpn_feat_2", 2), ("fpn_pos_2", 2)),
+        **_lvl(*_FPN_TENSORS),
         **mask_axes,
     }
 
@@ -1150,23 +1148,24 @@ _DYNAMIC_MODULES = frozenset({"sam3_decoder", "sam3_decoder_text", "sam3_prompt_
 # An FPN level's grid is this multiple of the patch grid, so a level's bounds follow from the image size
 _FPN_LEVEL_SCALE = (4, 2, 1)
 
+# Every tensor the vision encoder and decoder exchange, paired with the FPN level whose grid it is on
+_FPN_TENSORS = (("fpn_feat_0", 0), ("fpn_feat_1", 1), ("fpn_feat_2", 2), ("fpn_pos_2", 2))
+
 
 def _spatial_profile(
     model_onnx, min_imgsz: int, max_imgsz: int, stride: int = 14, token_bounds: tuple[int, int] = (1, 32)
 ) -> dict[str, tuple]:
     """Map each dynamically sized input to the (min, opt, max) shapes its optimization profile needs.
 
-    The export names every symbolic spatial dimension after the FPN level it belongs to, so the level is read straight
-    back off the name and turned into a grid range. TensorRT needs this because a profile is per input, and the levels
-    sit at different multiples of the patch grid.
+    A profile is per input and the FPN levels sit at different multiples of the patch grid, so the level is read back
+    off the symbolic dimension name the export gave it and turned into a grid range.
 
     Args:
         model_onnx (onnx.ModelProto): The loaded graph to read input shapes from.
         min_imgsz (int): Smallest image size the graph accepts.
         max_imgsz (int): Largest image size the graph accepts.
         stride (int): ViT patch size.
-        token_bounds (tuple[int, int]): Min and max for a symbolic dimension that is not spatial, such as the prompt
-            token count, when it shares an input with a spatial one.
+        token_bounds (tuple[int, int]): Bounds for a non spatial symbolic dimension sharing an input with a spatial one.
 
     Returns:
         (dict[str, tuple]): Input name to (min shape, opt shape, max shape), only for spatial inputs.
@@ -1245,9 +1244,8 @@ def _build_decoder_engine_dynamic(
     if half:
         from ultralytics.utils.export.engine import modelopt_quantize_onnx
 
-        # AutoCast runs a reference pass in onnxruntime on CPU. Calibrate at the smallest shape the
-        # profile allows, because the vision encoder at the largest one needs over a hundred gigabytes
-        # and the ranges AutoCast collects are what matter, not the size it saw them at.
+        # AutoCast runs a reference pass on CPU, and the vision encoder at the largest profile shape
+        # needs over a hundred gigabytes for it. Only the ranges it collects matter, so use the smallest.
         onnx_file = modelopt_quantize_onnx(
             onnx_file,
             quantize=16,

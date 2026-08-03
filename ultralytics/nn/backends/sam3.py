@@ -159,9 +159,8 @@ class SAM3Backend:
         so = ort.SessionOptions()
         so.log_severity_level = 3
 
-        # Sessions are created on first use, not here. A text prompt never touches the prompt encoder
-        # or mask decoder, and holding every module resident costs gigabytes that a smaller card does
-        # not have, which used to fail the whole load rather than the modules actually being asked for.
+        # Sessions are created on first use. A text prompt never touches the prompt encoder or mask
+        # decoder, and holding every module resident cost a smaller card gigabytes it does not have.
         self._onnx_paths = paths
         self._session_opts = (so, providers)
         self._sessions = {}

@@ -50,7 +50,7 @@ Request an Enterprise License for commercial use at [Ultralytics Licensing](http
 
 !!! tip "🚀 New: Depth Estimation"
 
-    Predict a per-pixel depth map in meters from a single RGB image with the YOLO26 depth models.
+    Turn a single photo into a depth map — a distance in meters for every pixel.
 
     [:octicons-arrow-right-24: Learn more](tasks/depth.md)
 

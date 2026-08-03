@@ -931,10 +931,10 @@ class Exporter:
         if self.deim_fp32_pinning:
             self.metadata["deim_fp32_pinning"] = True
         if fmt == "coreml":
-            # CoreML GPU (MPSGraph) compiles the HGNetv2/ResNet/ViT backbones but aborts the MLIR pass manager on the
+            # CoreML GPU (MPSGraph) compiles the HGNetv2/ResNet backbones but aborts the MLIR pass manager on the
             # YOLO CSP trunk, so only whitelisted backbones take the faster ALL path; the rest use the Neural Engine.
             backbone = {str(x[2]) for x in model.yaml.get("backbone", [])}
-            gpu_safe = bool(backbone & {"HGStem", "ResNetLayer", "VITPatchStem"})
+            gpu_safe = bool(backbone & {"HGStem", "ResNetLayer"})
             self.metadata["coreml_compute_units"] = "ALL" if gpu_safe else "CPU_AND_NE"
         if self.dla is not None:
             self.metadata["dla"] = self.dla  # make sure `AutoBackend` uses correct dla device if it has one

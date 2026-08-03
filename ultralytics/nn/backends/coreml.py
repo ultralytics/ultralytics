@@ -31,7 +31,7 @@ class CoreMLBackend(BaseBackend):
         import coremltools as ct
 
         LOGGER.info(f"Loading {weight} for CoreML inference...")
-        # Compute unit is resolved at export from the model backbone (see Exporter.metadata): HGNetv2/ResNet/ViT
+        # Compute unit is resolved at export from the model backbone (see Exporter.metadata): HGNetv2/ResNet
         # backbones are MPSGraph-safe and ~3x faster on the GPU (ALL) path; the YOLO CSP trunk aborts the MLIR pass
         # manager on GPU (and gains nothing from the Neural Engine), so it uses CPU_AND_NE. That needs macOS >= 13,
         # so the fallback below covers older hosts and packages exported before this field existed.

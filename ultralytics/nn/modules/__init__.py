@@ -63,13 +63,8 @@ from .block import (
     TorchVision,
 )
 from .vit_blocks import (
-    ConvSyncBN,
     MHSABlock,
     RepUltraViTBlock,
-    VITBlock,
-    VITDownsample2x,
-    VITPatchStem,
-    VITTokenToSpatial,
 )
 from .conv import (
     CBAM,
@@ -162,7 +157,6 @@ __all__ = (
     "ContrastiveHead",
     "Conv",
     "Conv2",
-    "ConvSyncBN",
     "ConvTranspose",
     "DWConv",
     "DWConvTranspose2d",
@@ -206,10 +200,6 @@ __all__ = (
     "TransformerBlock",
     "TransformerEncoderLayer",
     "TransformerLayer",
-    "VITBlock",
-    "VITDownsample2x",
-    "VITPatchStem",
-    "VITTokenToSpatial",
     "WorldDetect",
     "YOLOEDetect",
     "YOLOESegment",

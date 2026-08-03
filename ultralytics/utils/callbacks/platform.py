@@ -8,24 +8,24 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from math import isfinite
 from pathlib import Path
-from time import sleep, time
+from time import time
 
 from ultralytics.utils import (
     ENVIRONMENT,
     GIT,
     LOGGER,
+    PLATFORM_API_URL,
     PLATFORM_URL,
     PYTHON_VERSION,
-    RANK,
     SETTINGS,
     TESTS_RUNNING,
     Retry,
     colorstr,
 )
-from ultralytics.utils.events import events
 
 PREFIX = colorstr("Platform: ")
-PLATFORM_API_URL = os.getenv("PLATFORM_API_URL", f"{PLATFORM_URL}/api/webhooks")
+_api_key = None
+_executor = ThreadPoolExecutor(max_workers=10)
 
 
 def slugify(text):
@@ -33,117 +33,6 @@ def slugify(text):
     if not text:
         return text
     return re.sub(r"-+", "-", re.sub(r"[^a-z0-9\s-]", "", str(text).lower()).replace(" ", "-")).strip("-")[:128]
-
-
-try:
-    assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS.get("platform", False) is True or os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
-    _api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
-    assert _api_key  # verify API key is present
-
-    import requests
-
-    from ultralytics.utils.logger import ConsoleLogger, SystemLogger
-    from ultralytics.utils.torch_utils import model_info_for_loggers
-
-    _executor = ThreadPoolExecutor(max_workers=10)  # Bounded thread pool for async operations
-
-except (AssertionError, ImportError):
-    _api_key = None
-
-
-def resolve_platform_uri(uri, hard=True):
-    """Resolve ul:// URIs to signed URLs by authenticating with Ultralytics Platform.
-
-    Formats:
-        ul://username/datasets/slug  -> Returns signed URL to NDJSON file
-        ul://username/project/model  -> Returns signed URL to .pt file
-
-    Args:
-        uri (str): Platform URI starting with "ul://".
-        hard (bool): Whether to raise an error if resolution fails.
-
-    Returns:
-        (str | None): Signed URL on success, None if not found and hard=False.
-
-    Raises:
-        ValueError: If API key is missing/invalid or URI format is wrong.
-        PermissionError: If access is denied.
-        RuntimeError: If resource is not ready (e.g., dataset still processing).
-        FileNotFoundError: If resource not found and hard=True.
-        ConnectionError: If network request fails and hard=True.
-    """
-    import requests
-
-    path = uri[5:]  # Remove "ul://"
-    parts = path.split("/")
-
-    api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
-    if not api_key:
-        raise ValueError(f"ULTRALYTICS_API_KEY required for '{uri}'. Get key at {PLATFORM_URL}/settings")
-
-    base = PLATFORM_API_URL
-    headers = {"Authorization": f"Bearer {api_key}"}
-
-    # ul://username/datasets/slug
-    if len(parts) == 3 and parts[1] == "datasets":
-        username, _, slug = parts
-        url = f"{base}/datasets/{username}/{slug}/export"
-
-    # ul://username/project/model
-    elif len(parts) == 3:
-        username, project, model = parts
-        url = f"{base}/models/{username}/{project}/{model}/download"
-
-    else:
-        raise ValueError(f"Invalid platform URI: {uri}. Use ul://user/datasets/name or ul://user/project/model")
-
-    # (connect_timeout, read_timeout) — short connect so retries are fast, long read for server-side generation
-    timeout = (10, 3600) if "/datasets/" in url else (10, 90)
-
-    try:
-        for attempt in range(5):
-            try:
-                r = requests.head(url, headers=headers, allow_redirects=False, timeout=timeout)
-                if r.status_code in {408, 429} or r.status_code >= 500:
-                    raise requests.exceptions.HTTPError(f"HTTP {r.status_code}", response=r)
-                break
-            except (
-                requests.exceptions.ConnectionError,
-                requests.exceptions.ReadTimeout,
-                requests.exceptions.HTTPError,
-            ) as e:
-                if attempt >= 4:
-                    raise
-                delay = 2 * (2**attempt)  # 2s, 4s, 8s, 16s backoff
-                LOGGER.warning(f"Retry {attempt + 1}/5 for {uri} in {delay}s: {e}")
-                sleep(delay)
-    except Exception as e:
-        if hard:
-            raise ConnectionError(f"Failed to resolve {uri}: {e}") from e
-        LOGGER.warning(f"Failed to resolve {uri}: {e}")
-        return None
-
-    # Handle redirect responses (301, 302, 303, 307, 308)
-    if 300 <= r.status_code < 400 and "location" in r.headers:
-        return r.headers["location"]  # Return signed URL
-
-    # Handle error responses
-    if r.status_code == 401:
-        raise ValueError(f"Invalid ULTRALYTICS_API_KEY for '{uri}'")
-    if r.status_code == 403:
-        raise PermissionError(f"Access denied for '{uri}'. Check dataset/model visibility settings.")
-    if r.status_code == 404:
-        if hard:
-            raise FileNotFoundError(f"Not found on platform: {uri}")
-        LOGGER.warning(f"Not found on platform: {uri}")
-        return None
-    if r.status_code == 409:
-        raise RuntimeError(f"Resource not ready: {uri}. Dataset may still be processing.")
-
-    # Unexpected response
-    r.raise_for_status()
-    raise RuntimeError(f"Unexpected response from platform for '{uri}': {r.status_code}")
 
 
 def _interp_plot(plot, n=101):
@@ -206,12 +95,16 @@ def _sanitize_json_value(value):
 
 def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
     """Send event to Platform endpoint with retry logic."""
+    if not _api_key:
+        return None
+    import requests  # scoped as slow import
+
     payload = {"event": event, "project": project, "name": name, "data": _sanitize_json_value(data)}
     if model_id:
         payload["modelId"] = model_id
 
-    @Retry(times=retry, delay=1)
-    def post():
+    def send_once():
+        global _api_key
         r = requests.post(
             f"{PLATFORM_API_URL}/training/metrics",
             json=payload,
@@ -223,21 +116,26 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
                 msg = r.json().get("error", r.reason)
             except Exception:
                 msg = r.reason
-            LOGGER.warning(f"{PREFIX}{msg}")
+            # Only 401 is credential-scoped; 403/404 concern one run and must not disable the process.
+            if r.status_code == 401:
+                _api_key = None
+            # A console_output failure must not be logged: ConsoleLogger flushes the warning back as the
+            # next chunk, which fails again. 401 is safe — the cleared key short-circuits _send.
+            if event != "console_output" or r.status_code == 401:
+                LOGGER.warning(f"{PREFIX}{msg}")
             return None  # Don't retry client errors (except 408 timeout, 429 rate limit)
         r.raise_for_status()
         return r.json()
 
+    # Same loop as above, so a console_output send stays silent at every level — including Retry's
+    # per-attempt warning. It must still retry: _flush_buffer clears the buffer before calling us.
+    quiet = event == "console_output"
     try:
-        return post()
+        return Retry(times=retry, delay=1, verbose=not quiet)(send_once)()
     except Exception as e:
-        LOGGER.debug(f"{PREFIX}Failed to send {event}: {e}")
+        if not quiet:
+            LOGGER.debug(f"{PREFIX}Failed to send {event}: {e}")
         return None
-
-
-def _send_async(event, data, project, name, model_id=None):
-    """Send event asynchronously using bounded thread pool."""
-    _executor.submit(_send, event, data, project, name, model_id)
 
 
 def _handle_control_response(trainer, ctx, response):
@@ -258,6 +156,8 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
     """Publish a model checkpoint to its configured Platform storage location."""
     from ultralytics.utils.uploads import safe_upload
 
+    if not _api_key:
+        return None
     model_path = Path(model_path)
     if not model_path.exists():
         LOGGER.warning(f"{PREFIX}Model file not found: {model_path}")
@@ -265,6 +165,7 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
     model_size = model_path.stat().st_size
     if os.getenv("PLATFORM_API_URL"):
         return {"modelPath": str(model_path.resolve()), "modelSize": model_size}
+    import requests  # scoped as slow import
 
     # Get signed upload URL from Platform (server sanitizes filename for storage safety)
     @Retry(times=3, delay=2)
@@ -373,13 +274,19 @@ def _get_project_name(trainer):
 
 def on_pretrain_routine_start(trainer):
     """Initialize Platform logging at training start."""
-    if RANK not in {-1, 0} or not trainer.args.project:
+    global _api_key
+    if TESTS_RUNNING or not trainer.args.project:
+        return
+    _api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
+    if not _api_key:
         return
 
     project, name = _get_project_name(trainer)
     LOGGER.info(f"{PREFIX}Streaming training metrics to Platform")
 
-    # Single dict for all platform callback state (like trainer.hub_session for HUB callbacks)
+    from ultralytics.utils.logger import ConsoleLogger
+
+    # Single dict for all platform callback state
     ctx = {
         "model_id": None,
         "run_id": None,
@@ -394,7 +301,8 @@ def on_pretrain_routine_start(trainer):
     # Create callback to send console output to Platform
     def send_console_output(content, line_count, chunk_id):
         """Send batched console output to Platform webhook."""
-        _send_async(
+        _executor.submit(
+            _send,
             "console_output",
             {"chunkId": chunk_id, "content": content, "lineCount": line_count},
             project,
@@ -455,7 +363,7 @@ def on_pretrain_routine_end(trainer):
 def on_fit_epoch_end(trainer):
     """Log training and system metrics at epoch end."""
     ctx = getattr(trainer, "platform", None)
-    if not ctx or RANK not in {-1, 0} or not trainer.args.project:
+    if not ctx:
         return
 
     project, name = _get_project_name(trainer)
@@ -468,6 +376,8 @@ def on_fit_epoch_end(trainer):
     model_info = None
     if trainer.epoch == 0:
         try:
+            from ultralytics.utils.torch_utils import model_info_for_loggers
+
             info = model_info_for_loggers(trainer)
             model_info = {
                 "parameters": info.get("model/parameters", 0),
@@ -481,6 +391,8 @@ def on_fit_epoch_end(trainer):
     system = {}
     try:
         if not ctx["system_logger"]:
+            from ultralytics.utils.logger import SystemLogger
+
             ctx["system_logger"] = SystemLogger(all_drives=True)
         system = ctx["system_logger"].get_metrics(rates=True)
     except Exception:
@@ -507,7 +419,7 @@ def on_fit_epoch_end(trainer):
 def on_model_save(trainer):
     """Upload model checkpoint (rate limited to every 15 min)."""
     ctx = getattr(trainer, "platform", None)
-    if not ctx or RANK not in {-1, 0} or not trainer.args.project:
+    if not ctx:
         return
     # Rate limit to every 15 minutes (900 seconds)
     if time() - ctx["last_upload"] < 900:
@@ -527,10 +439,9 @@ def on_model_save(trainer):
 
 
 def on_train_end(trainer):
-    """Run events on train end once fitness and duration are known, then log final results and upload best model."""
-    events(trainer.args, trainer.device, trainer)
+    """Log final training results and upload the best model to Platform."""
     ctx = getattr(trainer, "platform", None)  # set only by on_pretrain_routine_start, so unset without an API key
-    if not ctx or RANK not in {-1, 0} or not trainer.args.project:
+    if not ctx:
         return
 
     project, name = _get_project_name(trainer)
@@ -603,40 +514,10 @@ def on_train_end(trainer):
     LOGGER.info(f"{PREFIX}View results at {url}")
 
 
-def on_val_start(validator):
-    """Run events on validation start, when the user asked for validation.
-
-    A trainer runs its own final validation on a copy of the trainer's args, whose mode is still 'train'. Since an event
-    is named for its mode, firing here would send a second 'train' event indistinguishable from the training one.
-    """
-    if validator.args.mode == "val":
-        events(validator.args, validator.device)
-
-
-def on_predict_end(predictor):
-    """Run events on predict end, once per-image speeds are known."""
-    events(predictor.args, predictor.device, predictor)
-
-
-def on_export_start(exporter):
-    """Run events on export start."""
-    events(exporter.args, exporter.device)
-
-
 callbacks = {
-    # Anonymous analytics, gated only by the documented sync setting inside Events
-    "on_val_start": on_val_start,
-    "on_predict_end": on_predict_end,
-    "on_export_start": on_export_start,
-    "on_train_end": on_train_end,  # sends the train event, then uploads results if a Platform run is in flight
-    **(
-        {
-            "on_pretrain_routine_start": on_pretrain_routine_start,
-            "on_pretrain_routine_end": on_pretrain_routine_end,
-            "on_fit_epoch_end": on_fit_epoch_end,
-            "on_model_save": on_model_save,
-        }
-        if _api_key
-        else {}
-    ),
+    "on_pretrain_routine_start": on_pretrain_routine_start,
+    "on_pretrain_routine_end": on_pretrain_routine_end,
+    "on_fit_epoch_end": on_fit_epoch_end,
+    "on_model_save": on_model_save,
+    "on_train_end": on_train_end,
 }

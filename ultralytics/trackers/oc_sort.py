@@ -51,9 +51,7 @@ class OCSortTrack(STrack):
             frame_id (int): Frame id at which the track is created.
         """
         super().activate(kalman_filter, frame_id)
-        obs = self.xyxy.astype(np.float32)  # Keep observations in detection-space precision.
-        self.last_observation = obs
-        self.observations[frame_id] = obs
+        self._record_observation(self.xyxy.astype(np.float32), frame_id)  # detection-space precision
         self._saved_mean = self.mean.copy()
         self._saved_covariance = self.covariance.copy()
 
@@ -64,10 +62,7 @@ class OCSortTrack(STrack):
             new_track (STrack): Matched detection for this frame.
             frame_id (int): Current frame id.
         """
-        obs = new_track.xyxy.copy()
-        self.last_observation = obs
-        self.observations[frame_id] = obs
-        self._prune_observations()
+        self._record_observation(new_track.xyxy.copy(), frame_id)
         super().update(new_track, frame_id)
         self._saved_mean = self.mean.copy()
         self._saved_covariance = self.covariance.copy()
@@ -81,9 +76,7 @@ class OCSortTrack(STrack):
             frame_id (int): Current frame id.
             new_id (bool): If True, assign a fresh track id instead of reusing the old one.
         """
-        obs = new_track.xyxy.copy()
-        self.last_observation = obs
-        self.observations[frame_id] = obs
+        self._record_observation(new_track.xyxy.copy(), frame_id)
         super().re_activate(new_track, frame_id, new_id)
         self._saved_mean = self.mean.copy()
         self._saved_covariance = self.covariance.copy()
@@ -93,6 +86,12 @@ class OCSortTrack(STrack):
     def _xyxy_center(xyxy: np.ndarray) -> np.ndarray:
         """Return `(cx, cy)` center of an xyxy bounding box."""
         return np.array([(xyxy[0] + xyxy[2]) / 2, (xyxy[1] + xyxy[3]) / 2])
+
+    def _record_observation(self, obs: np.ndarray, frame_id: int) -> None:
+        """Store `obs` as the latest observation for `frame_id` and bound the retained history."""
+        self.last_observation = obs
+        self.observations[frame_id] = obs
+        self._prune_observations()
 
     def _prune_observations(self) -> None:
         """Drop old observations beyond `delta_t + 2` to bound memory while keeping enough for velocity."""

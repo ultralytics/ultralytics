@@ -1462,6 +1462,7 @@ class Attention(nn.Module):
     """
 
     fp32 = False  # compute attention scores in fp32; set via the fp32_attn hyperparameter
+    sdpa = False  # use the fused scaled_dot_product_attention kernel; set via the sdpa_attn hyperparameter
 
     def __init__(self, dim: int, num_heads: int = 8, attn_ratio: float = 0.5):
         """Initialize multi-head attention module.
@@ -1498,15 +1499,26 @@ class Attention(nn.Module):
             [self.key_dim, self.key_dim, self.head_dim], dim=2
         )
 
-        if self.fp32:
-            # Attention scores in fp32: under AMP the q@k matmul overflows fp16 once activations grow large
-            with torch.autocast(device_type=x.device.type, enabled=False):
-                attn = (q.float().transpose(-2, -1) @ k.float()) * self.scale
-                attn = attn.softmax(dim=-1)
+        if self.sdpa:
+            # contiguous() is required, otherwise the memory-efficient kernel rejects
+            # the transposed inputs and torch silently falls back to the slower math backend.
+            x = F.scaled_dot_product_attention(
+                q.transpose(-2, -1).contiguous(),
+                k.transpose(-2, -1).contiguous(),
+                v.transpose(-2, -1).contiguous(),
+                scale=self.scale,
+            ).transpose(-2, -1)
         else:
-            attn = (q.transpose(-2, -1) @ k) * self.scale
-            attn = attn.softmax(dim=-1)
-        x = (v @ attn.transpose(-2, -1).to(v.dtype)).view(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
+            if self.fp32:
+                # Attention scores in fp32: under AMP the q@k matmul overflows fp16 once activations grow large
+                with torch.autocast(device_type=x.device.type, enabled=False):
+                    attn = (q.float().transpose(-2, -1) @ k.float()) * self.scale
+                    attn = attn.softmax(dim=-1)
+            else:
+                attn = (q.transpose(-2, -1) @ k) * self.scale
+                attn = attn.softmax(dim=-1)
+            x = v @ attn.transpose(-2, -1).to(v.dtype)
+        x = x.reshape(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
         x = self.proj(x)
         return x
 

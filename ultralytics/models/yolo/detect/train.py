@@ -147,6 +147,7 @@ class DetectionTrainer(BaseTrainer):
         self.model.names = self.data["names"]  # attach class names to model
         self.model.args = self.args  # attach hyperparameters to model
         Attention.fp32 = self.args.fp32_attn  # toggle fp32 attention scores
+        Attention.sdpa = self.args.sdpa_attn  # toggle the fused attention kernel
         if getattr(self.model, "end2end", False):
             # Detach one2one from the backbone only in the standard one2many-aux mode; with o24 (or no aux) let it train too.
             self.model.set_head_attr(max_det=self.args.max_det, detach_one2one=self.args.o2m and not self.args.o24)

@@ -171,7 +171,11 @@ class SAM(Model):
         Args:
             **kwargs (Any): Export arguments. Key options:
             format (str): ``"onnx"`` or ``"engine"`` (TensorRT).
-            imgsz (int): Image size (must be divisible by 14). Default 1008.
+            imgsz (int): Image size (must be divisible by 14). Default 1008. With ``dynamic`` this is
+                the largest size the export accepts.
+            dynamic (bool): Accept any image size from ``min_imgsz`` to ``imgsz`` instead of only
+                ``imgsz``, so one export serves several sizes. Default False.
+            min_imgsz (int): Smallest size accepted when ``dynamic``. Defaults to half of ``imgsz``.
             quantize (int): 16 for FP16. ONNX stores FP16 weights behind FP32 inputs and outputs,
                 TensorRT instead picks a precision per node.
             half (bool): Deprecated alias for ``quantize=16``.
@@ -203,6 +207,8 @@ class SAM(Model):
         assert fmt in {"onnx", "engine"}, f"SAM3 export supports format='onnx' or 'engine', got '{fmt}'"
 
         imgsz = kwargs.pop("imgsz", 1008)
+        dynamic = kwargs.pop("dynamic", False)
+        min_imgsz = kwargs.pop("min_imgsz", None)
         # The CLI rewrites half into quantize, so accept both spellings or FP16 is silently dropped.
         quantize = kwargs.pop("quantize", None)
         half = kwargs.pop("half", quantize == 16)
@@ -219,6 +225,8 @@ class SAM(Model):
             opset=opset,
             half=onnx_half,
             imgsz=imgsz if isinstance(imgsz, int) else imgsz[0],
+            dynamic=dynamic,
+            min_imgsz=min_imgsz,
         )
         onnx_dir = str(Path(onnx_files[0]).parent)
 

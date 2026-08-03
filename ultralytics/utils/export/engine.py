@@ -100,6 +100,7 @@ def modelopt_quantize_onnx(
     shape: tuple[int, int, int, int] = (1, 3, 640, 640),
     dynamic: bool = False,
     dynamic_dim: int = 1,
+    calib_shapes: dict[str, tuple] | None = None,
     prefix: str = "",
 ) -> str:
     """Bake reduced precision into an ONNX model for TensorRT 11 strongly-typed builds using NVIDIA ModelOpt.
@@ -116,6 +117,9 @@ def modelopt_quantize_onnx(
         shape (tuple[int, int, int, int]): Input shape (batch, channels, height, width) used for dynamic calibration.
         dynamic (bool): Whether the ONNX model uses dynamic input shapes.
         dynamic_dim (int): Size to substitute for symbolic dimensions when synthesizing calibration data.
+        calib_shapes (dict[str, tuple] | None): Exact calibration shape per input name, overriding the synthesized
+            one. Needed when several inputs carry related symbolic dimensions, such as feature pyramid levels that
+            must stay at their fixed ratio for the graph to run at all.
         prefix (str): Prefix for log messages.
 
     Returns:
@@ -173,9 +177,11 @@ def modelopt_quantize_onnx(
         dims = [d.dim_value if d.dim_value > 0 else dynamic_dim for d in tt.shape.dim]
         if not dims:  # a scalar input still needs an array
             dims = [1]
+        if calib_shapes and inp.name in calib_shapes:
+            dims = list(calib_shapes[inp.name])
         # Only a dynamic image input needs the caller's size; a declared shape is already correct and
         # must be kept, otherwise a non image first input would be calibrated at the wrong shape.
-        if inp.name == input_name and len(dims) == len(shape) and any(d.dim_value <= 0 for d in tt.shape.dim):
+        elif inp.name == input_name and len(dims) == len(shape) and any(d.dim_value <= 0 for d in tt.shape.dim):
             dims = list(shape)
         np_dtype = onnx.helper.tensor_dtype_to_np_dtype(tt.elem_type)
         if np_dtype == np.bool_:

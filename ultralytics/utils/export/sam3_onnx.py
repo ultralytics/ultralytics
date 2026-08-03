@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import math
 from pathlib import Path
 
@@ -13,15 +14,21 @@ from ultralytics.utils import LOGGER
 
 
 def _compute_sine_pos_enc(shape, device, dtype=torch.float32, num_pos_feats=128, temperature=10000):
-    """Compute 2D sine position encoding compatible with TensorRT (no cumsum)."""
+    """Compute 2D sine position encoding compatible with TensorRT (no cumsum).
+
+    ``height`` and ``width`` may be traced tensors, so the grid is built by broadcasting two ranges
+    instead of reshaping to a literal size, which would bake the size into the graph.
+    """
     _, _, height, width = shape
     scale = 2 * math.pi
 
-    y = torch.arange(1, height + 1, dtype=dtype, device=device).view(1, height, 1).expand(1, height, width)
-    x = torch.arange(1, width + 1, dtype=dtype, device=device).view(1, 1, width).expand(1, height, width)
+    rows = torch.arange(1, height + 1, dtype=dtype, device=device)
+    cols = torch.arange(1, width + 1, dtype=dtype, device=device)
+    y = (rows[:, None] * torch.ones_like(cols)[None, :])[None]
+    x = (torch.ones_like(rows)[:, None] * cols[None, :])[None]
 
-    y = y / (height + 1e-6) * scale
-    x = x / (width + 1e-6) * scale
+    y = y / (rows[-1] + 1e-6) * scale
+    x = x / (cols[-1] + 1e-6) * scale
 
     dim_t = torch.arange(num_pos_feats, dtype=dtype, device=device)
     dim_t = temperature ** (2 * (dim_t // 2) / num_pos_feats)
@@ -31,6 +38,41 @@ def _compute_sine_pos_enc(shape, device, dtype=torch.float32, num_pos_feats=128,
     pos_x = torch.stack((pos_x[:, :, :, 0::2].sin(), pos_x[:, :, :, 1::2].cos()), dim=4).flatten(3)
     pos_y = torch.stack((pos_y[:, :, :, 0::2].sin(), pos_y[:, :, :, 1::2].cos()), dim=4).flatten(3)
     return torch.cat((pos_y, pos_x), dim=3).permute(0, 3, 1, 2)
+
+
+def _axial_rope(height, width, head_dim, theta=10000.0, pt_size=None, device=None):
+    """Build the rotate_half RoPE cos and sin tables for a height by width patch grid.
+
+    Mirrors ``compute_axial_cis`` followed by ``repeat_interleave(2)``, but writes the polar form as
+    a plain cos and sin so no complex tensor reaches ONNX, and takes the grid size as tensors so the
+    graph can be traced with a dynamic image size. ``pt_size`` is the grid the frequencies were
+    trained on, which interpolated RoPE rescales the positions to.
+
+    Args:
+        height (int | torch.Tensor): Patch grid height.
+        width (int | torch.Tensor): Patch grid width.
+        head_dim (int): Attention head dimension.
+        theta (float): RoPE frequency base.
+        pt_size (int | None): Pretrain grid size, or None to leave the positions unscaled.
+        device (torch.device | None): Device to build the tables on.
+
+    Returns:
+        (tuple[torch.Tensor, torch.Tensor]): cos and sin, both (height * width, head_dim).
+    """
+    freqs = 1.0 / (theta ** (torch.arange(0, head_dim, 4, device=device)[: head_dim // 4].float() / head_dim))
+    t = torch.arange(height * width, dtype=torch.float32, device=device)
+    scale = 1.0 if pt_size is None else pt_size / width
+    t_x = (t % width).float() * scale
+    t_y = torch.div(t, width, rounding_mode="floor").float() * scale
+    angles = torch.cat([torch.outer(t_x, freqs), torch.outer(t_y, freqs)], dim=-1)
+
+    # Doubling each entry with stack and flatten, the way the rest of this file does, rather than
+    # repeat_interleave, whose lowering transposes a tensor the exporter cannot infer a rank for.
+    def _pair(v):
+        """Repeat every value along the last axis twice, matching repeat_interleave(2, dim=-1)."""
+        return torch.stack((v, v), dim=-1).flatten(-2)
+
+    return _pair(angles.cos()), _pair(angles.sin())
 
 
 class _MHAWithPrecomputedScale(nn.Module):
@@ -141,7 +183,7 @@ class _ViTBlockONNX(nn.Module):
     TRT FP16 reaches cosine 0.9999 per block on this graph against 0.994 for the default forward.
     """
 
-    def __init__(self, block):
+    def __init__(self, block, dynamic=False):
         super().__init__()
         self.norm1 = block.norm1
         self.norm2 = block.norm2
@@ -156,7 +198,14 @@ class _ViTBlockONNX(nn.Module):
         self.mlp = block.mlp
         self.window_size = block.window_size
         self.use_rope = block.attn.use_rope
-        if self.use_rope and hasattr(block.attn, "freqs_cos"):
+        # A windowed block always attends over window_size squared positions, so its table is the
+        # same at every image size. Only a global block sees the image grid and needs one built to fit.
+        self.dynamic_rope = dynamic and self.window_size == 0 and self.use_rope
+        if self.dynamic_rope:
+            self.head_dim = block.attn.head_dim
+            self.rope_theta = block.attn.rope_theta
+            self.rope_pt = block.attn.rope_pt_size[0] if block.attn.rope_interp else None
+        elif self.use_rope and hasattr(block.attn, "freqs_cos"):
             self.register_buffer("freqs_cos", block.attn.freqs_cos)
             self.register_buffer("freqs_sin", block.attn.freqs_sin)
 
@@ -166,7 +215,7 @@ class _ViTBlockONNX(nn.Module):
         a, b = x.unbind(-1)
         return torch.stack((-b, a), dim=-1).flatten(-2)
 
-    def forward(self, x):
+    def forward(self, x, rope=None):
         shortcut = x
         x = self.norm1(x)
         B, H, W, C = x.shape
@@ -189,8 +238,11 @@ class _ViTBlockONNX(nn.Module):
         v = self.v_proj(x).reshape(Bw, L, self.num_heads, -1).transpose(1, 2)
 
         if self.use_rope:
-            cos = self.freqs_cos.unsqueeze(0).unsqueeze(0)
-            sin = self.freqs_sin.unsqueeze(0).unsqueeze(0)
+            # A dynamic table is built once by the encoder and handed down. Deriving the grid here
+            # instead makes the tracer follow the shape through every preceding block and crash.
+            freqs_cos, freqs_sin = rope if self.dynamic_rope else (self.freqs_cos, self.freqs_sin)
+            cos = freqs_cos.unsqueeze(0).unsqueeze(0)
+            sin = freqs_sin.unsqueeze(0).unsqueeze(0)
             q = q.float() * cos + self._rotate_half(q.float()) * sin
             k = k.float() * cos + self._rotate_half(k.float()) * sin
 
@@ -219,8 +271,14 @@ class SAM3VisionEncoderONNX(nn.Module):
     features are returned.
     """
 
-    def __init__(self, model, imgsz=1008, sam2_convs=None):
-        """Wrap the vision backbone, tracing at ``imgsz`` and optionally emitting the SAM2 neck."""
+    def __init__(self, model, imgsz=1008, sam2_convs=None, dynamic=False, max_imgsz=None):
+        """Wrap the vision backbone, tracing at ``imgsz`` and optionally emitting the SAM2 neck.
+
+        With ``dynamic`` the graph accepts any square size up to ``max_imgsz``. The absolute position
+        embedding is tiled, and tiling repeats with the pretrain period, so one table built for the
+        largest grid can simply be cropped for a smaller one. The FPN sine encoding normalizes by the
+        grid it covers, so that one has to be rebuilt for every input and cannot be cropped.
+        """
         super().__init__()
         neck = model.backbone.vision_backbone
         trunk = neck.trunk
@@ -236,14 +294,21 @@ class SAM3VisionEncoderONNX(nn.Module):
             self.sam2_convs = sam2_convs
 
         patch_size = trunk.patch_size
+        self.dynamic = dynamic
         self.h_patches = imgsz // patch_size
         self.w_patches = imgsz // patch_size
+        # The tiled table has to cover the largest grid the graph will ever be fed.
+        table_patches = (max_imgsz or imgsz) // patch_size if dynamic else self.h_patches
         self.hidden_size = trunk.blocks[0].mlp.fc1.in_features
         self.full_attn_ids = trunk.full_attn_ids
         self.pretrain_use_cls_token = trunk.pretrain_use_cls_token
 
         # Wrap each block with the TRT-friendly inline attention
-        self.blocks = nn.ModuleList([_ViTBlockONNX(blk) for blk in trunk.blocks])
+        self.blocks = nn.ModuleList([_ViTBlockONNX(blk, dynamic=dynamic) for blk in trunk.blocks])
+        global_attn = next((b for b in self.blocks if b.dynamic_rope), None)
+        self.rope_head_dim = global_attn.head_dim if global_attn else 0
+        self.rope_theta = global_attn.rope_theta if global_attn else 0.0
+        self.rope_pt = global_attn.rope_pt if global_attn else None
 
         # Pre-compute ViT position embeddings
         if trunk.pos_embed is not None:
@@ -254,26 +319,33 @@ class SAM3VisionEncoderONNX(nn.Module):
             pos_embed_2d = pos_embed_spatial.reshape(1, pretrain_size, pretrain_size, self.hidden_size).permute(
                 0, 3, 1, 2
             )
-            rh = self.h_patches // pretrain_size + 1
-            rw = self.w_patches // pretrain_size + 1
-            pos_embed_2d = pos_embed_2d.tile([1, 1, rh, rw])[:, :, : self.h_patches, : self.w_patches]
-            pos_embed_flat = pos_embed_2d.permute(0, 2, 3, 1).reshape(
-                1, self.h_patches * self.w_patches, self.hidden_size
-            )
-            self.register_buffer("vit_pos_embed", pos_embed_flat)
+            rh = table_patches // pretrain_size + 1
+            rw = table_patches // pretrain_size + 1
+            pos_embed_2d = pos_embed_2d.tile([1, 1, rh, rw])[:, :, :table_patches, :table_patches]
+            if dynamic:  # keep it square so the forward pass can crop it to the grid it is given
+                self.register_buffer("vit_pos_embed", pos_embed_2d)
+            else:
+                self.register_buffer(
+                    "vit_pos_embed",
+                    pos_embed_2d.permute(0, 2, 3, 1).reshape(1, self.h_patches * self.w_patches, self.hidden_size),
+                )
         else:
             self.vit_pos_embed = None
 
-        # Pre-compute FPN sine position encoding for level 2
-        fpn_hidden_size = 256
-        num_pos_feats = fpn_hidden_size // 2
-        fpn_pos = _compute_sine_pos_enc(
-            shape=(1, fpn_hidden_size, self.h_patches, self.w_patches),
-            device=torch.device("cpu"),
-            dtype=torch.float32,
-            num_pos_feats=num_pos_feats,
-        )
-        self.register_buffer("fpn_pos_2", fpn_pos)
+        # Pre-compute FPN sine position encoding for level 2, unless the grid is only known per call
+        self.fpn_hidden_size = 256
+        if dynamic:
+            self.fpn_pos_2 = None
+        else:
+            self.register_buffer(
+                "fpn_pos_2",
+                _compute_sine_pos_enc(
+                    shape=(1, self.fpn_hidden_size, self.h_patches, self.w_patches),
+                    device=torch.device("cpu"),
+                    dtype=torch.float32,
+                    num_pos_feats=self.fpn_hidden_size // 2,
+                ),
+            )
 
     def forward(self, images: torch.Tensor):
         """Forward: patch embed -> pos embed -> ViT blocks -> dual FPN -> outputs.
@@ -283,15 +355,23 @@ class SAM3VisionEncoderONNX(nn.Module):
         """
         batch_size = images.shape[0]
 
-        x = self.patch_embed(images)
-        x_flat = x.flatten(1, 2)
+        x = self.patch_embed(images)  # (B, H, W, C), so the grid is already the shape to follow
         if self.vit_pos_embed is not None:
-            x_flat = x_flat + self.vit_pos_embed
-        x = x_flat.view(batch_size, self.h_patches, self.w_patches, -1)
+            if self.dynamic:
+                h, w = x.shape[1], x.shape[2]
+                x = x + self.vit_pos_embed[:, :, :h, :w].permute(0, 2, 3, 1)
+            else:
+                x = x.flatten(1, 2).add(self.vit_pos_embed).view(batch_size, self.h_patches, self.w_patches, -1)
+
+        # Every global block shares one grid and one RoPE config, so build the table once here where
+        # the shape is still one op from the input, and reuse it.
+        rope = None
+        if self.dynamic and self.rope_head_dim:
+            rope = _axial_rope(x.shape[1], x.shape[2], self.rope_head_dim, self.rope_theta, self.rope_pt, x.device)
 
         x = self.ln_pre(x)
         for i, blk in enumerate(self.blocks):
-            x = blk(x)
+            x = blk(x, rope)
             if i == self.full_attn_ids[-1]:
                 x = self.ln_post(x)
 
@@ -302,22 +382,25 @@ class SAM3VisionEncoderONNX(nn.Module):
         fpn_feat_1 = self.fpn_convs[1](feats)
         fpn_feat_2 = self.fpn_convs[2](feats)
 
+        if self.dynamic:  # the encoding normalizes by its own grid, so it cannot be cropped
+            fpn_pos = _compute_sine_pos_enc(
+                shape=(1, self.fpn_hidden_size, fpn_feat_2.shape[2], fpn_feat_2.shape[3]),
+                device=fpn_feat_2.device,
+                dtype=torch.float32,
+                num_pos_feats=self.fpn_hidden_size // 2,
+            ).to(fpn_feat_2.dtype)
+        else:
+            fpn_pos = self.fpn_pos_2
+        fpn_pos = fpn_pos.expand(batch_size, -1, -1, -1)
+
         if self.has_sam2_neck:
             # SAM2 FPN (for point-prompt mask decoder — separate learned weights)
             sam2_feat_0 = self.sam2_convs[0](feats)
             sam2_feat_1 = self.sam2_convs[1](feats)
             sam2_feat_2 = self.sam2_convs[2](feats)
-            return (
-                fpn_feat_0,
-                fpn_feat_1,
-                fpn_feat_2,
-                self.fpn_pos_2.expand(batch_size, -1, -1, -1),
-                sam2_feat_0,
-                sam2_feat_1,
-                sam2_feat_2,
-            )
+            return fpn_feat_0, fpn_feat_1, fpn_feat_2, fpn_pos, sam2_feat_0, sam2_feat_1, sam2_feat_2
 
-        return fpn_feat_0, fpn_feat_1, fpn_feat_2, self.fpn_pos_2.expand(batch_size, -1, -1, -1)
+        return fpn_feat_0, fpn_feat_1, fpn_feat_2, fpn_pos
 
 
 class SAM3TextEncoderONNX(nn.Module):
@@ -337,19 +420,47 @@ class SAM3TextEncoderONNX(nn.Module):
         return text_features, text_attention_mask
 
 
+def _dense_pos_enc(height, width, gaussian):
+    """Build the random frequency positional encoding for a height by width grid.
+
+    Mirrors ``PositionEmbeddingRandom.forward`` but broadcasts two ranges instead of taking the
+    cumulative sum of a literally sized grid of ones, so the grid can come from a traced shape.
+
+    Args:
+        height (int | torch.Tensor): Grid height.
+        width (int | torch.Tensor): Grid width.
+        gaussian (torch.Tensor): The (2, num_pos_feats) random frequency matrix.
+
+    Returns:
+        (torch.Tensor): Encoding of shape (1, 2 * num_pos_feats, height, width).
+    """
+    rows = torch.arange(1, height + 1, dtype=gaussian.dtype, device=gaussian.device)
+    cols = torch.arange(1, width + 1, dtype=gaussian.dtype, device=gaussian.device)
+    # cumsum of ones minus a half is 0.5, 1.5, ... normalized by the grid it was built on
+    y = ((rows - 0.5) / rows[-1])[:, None] * torch.ones_like(cols)[None, :]
+    x = torch.ones_like(rows)[:, None] * ((cols - 0.5) / cols[-1])[None, :]
+    coords = 2 * math.pi * ((2 * torch.stack([x, y], dim=-1) - 1) @ gaussian)
+    return torch.cat([coords.sin(), coords.cos()], dim=-1).permute(2, 0, 1)[None]
+
+
 class SAM3PromptEncoderONNX(nn.Module):
     """ONNX wrapper turning point prompts into sparse and dense embeddings.
 
-    Embeds points inline rather than with boolean indexing, which traces poorly to ONNX.
+    Embeds points inline rather than with boolean indexing, which traces poorly to ONNX. With
+    ``dynamic`` the graph takes the image embedding as a third input, purely to read the feature grid
+    off it, because everything this module bakes in follows from that grid.
     """
 
-    def __init__(self, tracker_model):
+    def __init__(self, tracker_model, dynamic: bool = False):
         """Wrap the interactive prompt encoder of ``tracker_model``."""
         super().__init__()
         pe = tracker_model.sam_prompt_encoder
         self.pe_layer = pe.pe_layer
         self.input_image_size = pe.input_image_size
         self.image_embedding_size = pe.image_embedding_size
+        self.dynamic = dynamic
+        # The image is a whole number of patches, so the grid recovers the pixel size it came from
+        self.patch_size = pe.input_image_size[0] // pe.image_embedding_size[0]
 
         # Copy label embedding weights
         self.register_buffer("embed_bg", pe.point_embeddings[0].weight)  # label=0 (background)
@@ -360,11 +471,18 @@ class SAM3PromptEncoderONNX(nn.Module):
         self.register_buffer("embed_box_br", pe.point_embeddings[3].weight)  # label=3 (box bottom right)
         self.register_buffer("embed_pad", pe.not_a_point_embed.weight)  # label=-1 (padding)
         self.register_buffer("no_mask_embed", pe.no_mask_embed.weight)
-        self.register_buffer("dense_pe", pe.get_dense_pe())
+        if not dynamic:  # a dynamic grid rebuilds this per call, so baking a table would only bloat the graph
+            self.register_buffer("dense_pe", pe.get_dense_pe())
 
-    def forward(self, point_coords: torch.Tensor, point_labels: torch.Tensor):
+    def forward(self, point_coords: torch.Tensor, point_labels: torch.Tensor, image_embeddings: torch.Tensor = None):
         """Embed point prompts into sparse and dense embeddings plus the dense positional encoding."""
         B, _, _ = point_coords.shape
+        if self.dynamic:
+            grid_h, grid_w = image_embeddings.shape[2], image_embeddings.shape[3]
+            image_size = (grid_h * self.patch_size, grid_w * self.patch_size)
+        else:
+            grid_h, grid_w = self.image_embedding_size
+            image_size = self.input_image_size
 
         # Add padding point (label=-1) at the end — same as original with pad=True
         pad_coords = torch.zeros(B, 1, 2, dtype=point_coords.dtype, device=point_coords.device)
@@ -373,7 +491,7 @@ class SAM3PromptEncoderONNX(nn.Module):
         labels = torch.cat([point_labels, pad_labels], dim=1)  # (B, N+1)
 
         # Positional encoding of coordinates (shift by 0.5 to pixel center)
-        point_pe = self.pe_layer.forward_with_coords(coords + 0.5, self.input_image_size)  # (B, N+1, 256)
+        point_pe = self.pe_layer.forward_with_coords(coords + 0.5, image_size)  # (B, N+1, 256)
 
         # Add label-specific embeddings using torch.where (ONNX-friendly)
         # For each label value, add the corresponding embedding
@@ -390,11 +508,15 @@ class SAM3PromptEncoderONNX(nn.Module):
         embed = embed * (1.0 - is_pad) + is_pad * self.embed_pad
 
         # Dense embeddings (no mask input — use no_mask_embed)
-        dense = self.no_mask_embed.reshape(1, -1, 1, 1).expand(
-            B, -1, self.image_embedding_size[0], self.image_embedding_size[1]
-        )
+        dense = self.no_mask_embed.reshape(1, -1, 1, 1).expand(B, -1, grid_h, grid_w)
 
-        return embed, dense, self.dense_pe
+        # The encoding normalizes by its own grid, so a dynamic one has to be rebuilt per call
+        dense_pe = (
+            _dense_pos_enc(grid_h, grid_w, self.pe_layer.positional_encoding_gaussian_matrix)
+            if self.dynamic
+            else self.dense_pe
+        )
+        return embed, dense, dense_pe
 
 
 class SAM3MaskDecoderONNX(nn.Module):
@@ -534,7 +656,7 @@ class SAM3DecoderONNX(nn.Module):
         return out["pred_logits"], out["pred_boxes"], out["pred_masks"], out["presence_logit_dec"]
 
 
-def _prepare_for_onnx_export(model):
+def _prepare_for_onnx_export(model, dynamic=False):
     """Prepare SAM3SemanticModel for TRT-friendly ONNX export.
 
     Applies FP16 compatibility fixes:
@@ -542,6 +664,11 @@ def _prepare_for_onnx_export(model):
     2. DETR attention: replace nn.MultiheadAttention with pre-computed scale version
     3. GELU: replace with tanh-approximate (traces to native ONNX Gelu op)
     4. Disable activation checkpointing
+
+    Args:
+        model (torch.nn.Module): Model to prepare in place.
+        dynamic (bool): Whether the graph will be traced with a dynamic image size, which makes any
+            grid cached at trace time a constant that pins the export to that one size.
     """
     from ultralytics.models.sam.sam3.vitdet import Attention
 
@@ -578,6 +705,16 @@ def _prepare_for_onnx_export(model):
     # Export ROIAlign via grid_sample so the decoder builds without the TensorRT ROIAlign plugin.
     if getattr(model, "geometry_encoder", None) is not None:
         model.geometry_encoder._export_roi_grid_sample = True
+
+    # Tell the box relative position bias to rebuild its coordinate grid per call instead of reusing
+    # the one cached on the first pass, which would otherwise be traced in as a constant.
+    if dynamic:
+        from ultralytics.models.sam.sam3.decoder import TransformerDecoder
+        from ultralytics.models.sam.sam3.encoder import TransformerEncoder
+
+        for module in model.modules():
+            if isinstance(module, (TransformerDecoder, TransformerEncoder)):
+                module._export_dynamic_shapes = True
 
 
 def _onnx_postprocess(f, metadata, half=False, device_type="cpu", prefix="SAM3 ONNX:"):
@@ -628,6 +765,8 @@ def export_sam3_onnx(
     half: bool = False,
     output_dir: str | None = None,
     imgsz: int = 1008,
+    dynamic: bool = False,
+    min_imgsz: int | None = None,
     prefix: str = "SAM3 ONNX:",
 ) -> list[str]:
     """Export SAM3SemanticModel as separate ONNX files from a .pt checkpoint.
@@ -638,7 +777,10 @@ def export_sam3_onnx(
         opset: ONNX opset version (20 recommended for native Gelu op).
         half: FP16 ONNX export (for ONNX-only deployment, not TRT).
         output_dir: Parent directory for output folder.
-        imgsz: Image size (must be divisible by 14).
+        imgsz: Image size (must be divisible by 14). With ``dynamic`` this is the largest accepted size.
+        dynamic: Accept any image size from ``min_imgsz`` to ``imgsz`` instead of only ``imgsz``.
+        min_imgsz: Smallest accepted size when ``dynamic``, recorded so TensorRT can size its profiles.
+            Defaults to half of ``imgsz``, rounded down to a whole number of patches.
         prefix: Log prefix.
 
     Returns:
@@ -652,6 +794,11 @@ def export_sam3_onnx(
 
     device = torch.device(device) if isinstance(device, str) else device
     assert imgsz % 14 == 0, f"imgsz={imgsz} must be divisible by patch_size=14"
+    if dynamic:
+        min_imgsz = min_imgsz or (imgsz // 28) * 14
+        assert min_imgsz % 14 == 0, f"min_imgsz={min_imgsz} must be divisible by patch_size=14"
+        assert min_imgsz <= imgsz, f"min_imgsz={min_imgsz} must not exceed imgsz={imgsz}"
+        LOGGER.info(f"{prefix} tracing dynamic graphs accepting {min_imgsz} to {imgsz}...")
 
     LOGGER.info(f"\n{prefix} building SAM3SemanticModel from {checkpoint_path}...")
     model = build_sam3_image_model(checkpoint_path, enable_segmentation=True)
@@ -663,7 +810,7 @@ def export_sam3_onnx(
         LOGGER.info(f"{prefix} setting image size to {imgsz}x{imgsz}...")
         model.set_imgsz((imgsz, imgsz))
 
-    _prepare_for_onnx_export(model)
+    _prepare_for_onnx_export(model, dynamic=dynamic)
 
     dtype = torch.float32
     if half and device.type != "cpu":
@@ -676,7 +823,18 @@ def export_sam3_onnx(
     output_path.mkdir(parents=True, exist_ok=True)
 
     metadata = {"author": "Ultralytics", "task": "segment", "stride": 14, "imgsz": [imgsz, imgsz]}
+    if dynamic:
+        metadata["min_imgsz"] = [min_imgsz, min_imgsz]
     exported_files = []
+
+    # Each FPN level has its own resolution, so it needs its own symbolic name. Sharing one name
+    # across levels builds and runs in ONNX Runtime but TensorRT reads it as a single dimension and
+    # rejects the optimization profile as self contradictory. Tensors on the same level do share.
+    def _lvl(*names):
+        """Return the dynamic axes entry pairing each named tensor with its FPN level grid."""
+        return {n: {2: f"h{i}", 3: f"w{i}"} for n, i in names} if dynamic else {}
+
+    mask_axes = {"pred_masks": {2: "mh", 3: "mw"}} if dynamic else {}
 
     def _export(module, args, name, input_names, output_names, dynamic_axes=None):
         """Trace one module to ONNX with the shared export options and record the path."""
@@ -718,14 +876,25 @@ def export_sam3_onnx(
         LOGGER.warning(f"{prefix} interactive weights are unavailable so point prompt modules are skipped")
 
     LOGGER.info(f"{prefix} exporting vision encoder with dual neck (opset {opset})...")
-    vis_encoder = SAM3VisionEncoderONNX(model, imgsz=imgsz, sam2_convs=sam2_convs).to(device).eval()
+    vis_encoder = (
+        SAM3VisionEncoderONNX(model, imgsz=imgsz, sam2_convs=sam2_convs, dynamic=dynamic, max_imgsz=imgsz)
+        .to(device)
+        .eval()
+    )
     dummy_image = torch.randn(1, 3, imgsz, imgsz, dtype=dtype, device=device)
 
     output_names_vis = ["fpn_feat_0", "fpn_feat_1", "fpn_feat_2", "fpn_pos_2"]
     if sam2_convs is not None:
         output_names_vis += ["sam2_feat_0", "sam2_feat_1", "sam2_feat_2"]
 
-    _export(vis_encoder, (dummy_image,), "sam3_vision_encoder.onnx", ["images"], output_names_vis)
+    # fpn_pos_2 shares level 2's grid with fpn_feat_2, and each sam2 output shares its FPN level's
+    vis_axes = _lvl(("fpn_feat_0", 0), ("fpn_feat_1", 1), ("fpn_feat_2", 2), ("fpn_pos_2", 2))
+    if dynamic:
+        vis_axes["images"] = {2: "height", 3: "width"}
+        if sam2_convs is not None:
+            vis_axes.update(_lvl(("sam2_feat_0", 0), ("sam2_feat_1", 1), ("sam2_feat_2", 2)))
+
+    _export(vis_encoder, (dummy_image,), "sam3_vision_encoder.onnx", ["images"], output_names_vis, vis_axes or None)
 
     with torch.no_grad():
         vis_out = vis_encoder(dummy_image)
@@ -750,6 +919,10 @@ def export_sam3_onnx(
     # Decoder (with folded geometry encoder)
     LOGGER.info(f"{prefix} exporting decoder (opset {opset})...")
     decoder = SAM3DecoderONNX(model).to(device).eval()
+    dec_axes = {
+        **_lvl(("fpn_feat_0", 0), ("fpn_feat_1", 1), ("fpn_feat_2", 2), ("fpn_pos_2", 2)),
+        **mask_axes,
+    }
 
     # Dummy box inputs: 1 dummy box with label=-10 (ignored), so the engine works for text-only too.
     # Real bbox inference passes actual boxes with labels=1 (positive) or 0 (negative).
@@ -771,7 +944,11 @@ def export_sam3_onnx(
             "input_boxes_labels",
         ],
         ["pred_logits", "pred_boxes", "pred_masks", "presence_logit_dec"],
-        {"input_boxes": {1: "num_boxes"}, "input_boxes_labels": {1: "num_boxes"}},
+        {
+            "input_boxes": {1: "num_boxes"},
+            "input_boxes_labels": {1: "num_boxes"},
+            **dec_axes,
+        },
     )
 
     # Text only decoder. A box prompt appends geometry tokens, and even a box labeled as ignored
@@ -783,6 +960,7 @@ def export_sam3_onnx(
         "sam3_decoder_text.onnx",
         ["fpn_feat_0", "fpn_feat_1", "fpn_feat_2", "fpn_pos_2", "prompt_features", "prompt_mask"],
         ["pred_logits", "pred_boxes", "pred_masks", "presence_logit_dec"],
+        dec_axes or None,
     )
 
     if has_point_weights:
@@ -791,20 +969,25 @@ def export_sam3_onnx(
         LOGGER.info(f"{prefix} exporting SAM prompt encoder (opset {opset})...")
         tracker_model = tracker_model_for_neck
 
-        prompt_enc = SAM3PromptEncoderONNX(tracker_model).to(device).eval()
+        prompt_enc = SAM3PromptEncoderONNX(tracker_model, dynamic=dynamic).to(device).eval()
         dummy_pts = torch.tensor([[[500.0, 500.0]]], dtype=dtype, device=device)
         dummy_lbl = torch.tensor([[1]], dtype=torch.int32, device=device)
+        # Everything this module bakes in follows from the feature grid, so when dynamic it reads the
+        # grid off the image embedding the mask decoder is given anyway.
+        pe_args = (dummy_pts, dummy_lbl, fpn2) if dynamic else (dummy_pts, dummy_lbl)
+        pe_names = ["point_coords", "point_labels"] + (["image_embeddings"] if dynamic else [])
 
         _export(
             prompt_enc,
-            (dummy_pts, dummy_lbl),
+            pe_args,
             "sam3_prompt_encoder.onnx",
-            ["point_coords", "point_labels"],
+            pe_names,
             ["sparse_embeddings", "dense_embeddings", "dense_pe"],
             {
                 "point_coords": {1: "num_points"},
                 "point_labels": {1: "num_points"},
                 "sparse_embeddings": {1: "num_embeds"},
+                **_lvl(("image_embeddings", 2), ("dense_embeddings", 2), ("dense_pe", 2)),
             },
         )
 
@@ -817,7 +1000,7 @@ def export_sam3_onnx(
         mask_dec = SAM3MaskDecoderONNX(tracker_model, multimask_output=False).to(device).eval()
 
         with torch.no_grad():
-            sparse_dummy, dense_dummy, dpe_dummy = prompt_enc(dummy_pts, dummy_lbl)
+            sparse_dummy, dense_dummy, dpe_dummy = prompt_enc(*pe_args)
 
         _export(
             mask_dec,
@@ -832,7 +1015,17 @@ def export_sam3_onnx(
                 "high_res_feat_1",
             ],
             ["masks", "iou_scores"],
-            {"sparse_prompt_embeddings": {1: "num_embeds"}},
+            {
+                "sparse_prompt_embeddings": {1: "num_embeds"},
+                **_lvl(
+                    ("image_embeddings", 2),
+                    ("image_pe", 2),
+                    ("dense_prompt_embeddings", 2),
+                    ("high_res_feat_0", 0),
+                    ("high_res_feat_1", 1),
+                ),
+                **({"masks": {2: "mh", 3: "mw"}} if dynamic else {}),
+            },
         )
 
         del tracker_model
@@ -920,6 +1113,17 @@ def export_sam3_engine(
         engine_metadata = {p.key: p.value for p in model_onnx.metadata_props}
         engine_metadata.update(component=onnx_file.stem, author="Ultralytics", task="segment")
 
+        # A dynamic image size export records the range it accepts, and every module then needs a
+        # profile whose spatial bounds follow from it, including the otherwise static vision encoder.
+        spatial = None
+        if "min_imgsz" in engine_metadata:
+            spatial = _spatial_profile(
+                model_onnx,
+                min_imgsz=ast.literal_eval(engine_metadata["min_imgsz"])[0],
+                max_imgsz=ast.literal_eval(engine_metadata["imgsz"])[0],
+                stride=int(engine_metadata.get("stride", 14)),
+            )
+
         engine_file = str(engine_dir / onnx_file.name.replace(".onnx", ".engine"))
 
         # Modules with a dynamic axis need a custom build with an optimization profile. They honor
@@ -927,8 +1131,8 @@ def export_sam3_engine(
         # keeps the detection decoder accurate and builds identically on TensorRT 10 and 11. The
         # static vision and text encoders go through onnx2engine.
         shared = {"workspace": workspace, "metadata": engine_metadata, "verbose": verbose, "prefix": prefix}
-        if onnx_file.stem in _DYNAMIC_MODULES:
-            _build_decoder_engine_dynamic(str(onnx_file), engine_file, half=half, **shared)
+        if onnx_file.stem in _DYNAMIC_MODULES or spatial:
+            _build_decoder_engine_dynamic(str(onnx_file), engine_file, half=half, spatial=spatial, **shared)
         else:
             onnx2engine(
                 str(onnx_file), engine_file, quantize=16 if half else None, dynamic=False, shape=input_shape, **shared
@@ -942,6 +1146,53 @@ def export_sam3_engine(
 
 # Modules with a symbolic dimension need the custom builder with an optimization profile.
 _DYNAMIC_MODULES = frozenset({"sam3_decoder", "sam3_decoder_text", "sam3_prompt_encoder", "sam3_mask_decoder"})
+
+# An FPN level's grid is this multiple of the patch grid, so a level's bounds follow from the image size
+_FPN_LEVEL_SCALE = (4, 2, 1)
+
+
+def _spatial_profile(
+    model_onnx, min_imgsz: int, max_imgsz: int, stride: int = 14, token_bounds: tuple[int, int] = (1, 32)
+) -> dict[str, tuple]:
+    """Map each dynamically sized input to the (min, opt, max) shapes its optimization profile needs.
+
+    The export names every symbolic spatial dimension after the FPN level it belongs to, so the level
+    is read straight back off the name and turned into a grid range. TensorRT needs this because a
+    profile is per input, and the levels sit at different multiples of the patch grid.
+
+    Args:
+        model_onnx (onnx.ModelProto): The loaded graph to read input shapes from.
+        min_imgsz (int): Smallest image size the graph accepts.
+        max_imgsz (int): Largest image size the graph accepts.
+        stride (int): ViT patch size.
+        token_bounds (tuple[int, int]): Min and max for a symbolic dimension that is not spatial, such
+            as the prompt token count, when it shares an input with a spatial one.
+
+    Returns:
+        (dict[str, tuple]): Input name to (min shape, opt shape, max shape), only for spatial inputs.
+    """
+    lo, hi = min_imgsz // stride, max_imgsz // stride
+    bounds = {"height": (min_imgsz, max_imgsz), "width": (min_imgsz, max_imgsz)}
+    for level, scale in enumerate(_FPN_LEVEL_SCALE):
+        bounds[f"h{level}"] = bounds[f"w{level}"] = (lo * scale, hi * scale)
+
+    profile = {}
+    for inp in model_onnx.graph.input:
+        dims = inp.type.tensor_type.shape.dim
+        if not any(d.dim_param in bounds for d in dims):
+            continue
+        shapes = [[], [], []]
+        for d in dims:
+            if d.dim_param in bounds:
+                span = bounds[d.dim_param]
+            elif d.dim_param:  # a non spatial symbolic dim sharing this input, such as a token count
+                span = token_bounds
+            else:
+                span = (d.dim_value, d.dim_value)
+            for s, v in zip(shapes, (span[0], span[1], span[1])):
+                s.append(v)
+        profile[inp.name] = tuple(tuple(s) for s in shapes)
+    return profile
 
 
 def _gridsample_mode_for_trt(onnx_file: str, prefix: str) -> bytes:
@@ -977,10 +1228,13 @@ def _build_decoder_engine_dynamic(
     min_dynamic: int = 1,
     opt_dynamic: int = 5,
     max_dynamic: int = 32,
+    spatial: dict[str, tuple] | None = None,
 ) -> None:
     """Build a TensorRT engine for an ONNX module with dynamic dimensions.
 
-    Detects symbolic dims and adds an optimization profile [min_dynamic, opt_dynamic, max_dynamic]. With ``half`` the
+    Detects symbolic dims and adds an optimization profile [min_dynamic, opt_dynamic, max_dynamic], except for the
+    spatial inputs of a dynamic image size export, whose per FPN level bounds are passed in as ``spatial``. With ``half``
+    the
     module is converted to mixed FP16/FP32 by ModelOpt AutoCast and built as a strongly-typed network, so the per-node
     precision is honored identically on TensorRT 10 and 11 (the FP16 builder flag was removed in TensorRT 11). Without
     ``half`` the engine is FP32.
@@ -992,7 +1246,16 @@ def _build_decoder_engine_dynamic(
     if half:
         from ultralytics.utils.export.engine import modelopt_quantize_onnx
 
-        onnx_file = modelopt_quantize_onnx(onnx_file, quantize=16, dynamic_dim=opt_dynamic, prefix=prefix)
+        # AutoCast runs a reference pass in onnxruntime on CPU. Calibrate at the smallest shape the
+        # profile allows, because the vision encoder at the largest one needs over a hundred gigabytes
+        # and the ranges AutoCast collects are what matter, not the size it saw them at.
+        onnx_file = modelopt_quantize_onnx(
+            onnx_file,
+            quantize=16,
+            dynamic_dim=opt_dynamic,
+            calib_shapes={name: lo for name, (lo, _, _) in (spatial or {}).items()},
+            prefix=prefix,
+        )
 
     logger = trt.Logger(trt.Logger.INFO if verbose else trt.Logger.WARNING)
     builder = trt.Builder(logger)
@@ -1012,10 +1275,14 @@ def _build_decoder_engine_dynamic(
         raise RuntimeError(f"Failed to parse ONNX: {onnx_file}")
 
     profile = builder.create_optimization_profile()
+    spatial = spatial or {}
     for i in range(network.num_inputs):
         inp = network.get_input(i)
         shape = list(inp.shape)
-        if any(d == -1 for d in shape):
+        if inp.name in spatial:  # a spatial input's bounds differ per FPN level, so they are precomputed
+            lo, opt, hi = spatial[inp.name]
+            profile.set_shape(inp.name, min=lo, opt=opt, max=hi)
+        elif any(d == -1 for d in shape):
             profile.set_shape(
                 inp.name,
                 min=tuple(min_dynamic if d == -1 else d for d in shape),

@@ -140,8 +140,11 @@ def decode_alpha_multibin(bin_logits: torch.Tensor, residual_logits: torch.Tenso
     num_bins = bin_logits.shape[-1]
     bin_size = 2.0 * math.pi / num_bins
     bin_index = bin_logits.argmax(-1, keepdim=True)
-    residual = residual_logits.gather(-1, bin_index).squeeze(-1).tanh() * (bin_size * 0.5)
-    alpha = bin_index.squeeze(-1).to(bin_logits.dtype) * bin_size + residual
+    selected_residual = residual_logits.gather(-1, bin_index).squeeze(-1)
+    if selected_residual.device.type == "cpu" and selected_residual.dtype == torch.float16:
+        selected_residual = selected_residual.float()  # Torch 1.8 does not implement CPU Half tanh.
+    residual = selected_residual.tanh() * (bin_size * 0.5)
+    alpha = bin_index.squeeze(-1).to(selected_residual.dtype) * bin_size + residual
     return wrap_angle_torch(alpha)
 
 

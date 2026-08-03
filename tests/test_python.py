@@ -1411,6 +1411,38 @@ def test_v26_depth_loss_lower_lambda_penalizes_scale_error_more():
     assert loss_anchored > 5 * max(loss_invariant, 1e-6)
 
 
+def test_v26_depth_loss_pyramid_gates_per_image():
+    """Coarse gradient levels must follow each image's own mask geometry, not the composition of its batch."""
+    import torch.nn.functional as F
+
+    from ultralytics.utils.loss import DepthLoss26
+
+    generator = torch.Generator().manual_seed(0)
+    depth = torch.rand((1, 1, 64, 64), generator=generator) * 9 + 1
+    padded = depth * F.pad(torch.ones((1, 1, 32, 32)), (16, 16, 16, 16))  # contiguous zoom-out padding, 25% valid
+    ragged = depth * (torch.rand((1, 1, 64, 64), generator=generator) > 0.2)  # dense but holey, cell fill 0.81
+    scattered = depth * (torch.rand((1, 1, 64, 64), generator=generator) < 0.5)  # cell fill 0.52, as real LiDAR
+    tile = torch.zeros((4, 4))
+    tile[1:3, 1:3] = 1  # 2x2 blocks straddling the pooling grid: fails at 0.25, would score 1.00 one level deeper
+    straddling = depth * tile.repeat(16, 16)
+    pred = depth * 1.2 + 0.3
+
+    def first_grad(gt, scales=4):
+        """Gradient the first image of the batch receives from the gradient-matching term."""
+        criterion = DepthLoss26(_DepthLossModel(dlog=0.0, dgrad=1.0))
+        criterion.grad_scales = scales
+        prediction = pred.expand(gt.shape[0], -1, -1, -1).clone().requires_grad_(True)
+        criterion({"depth": prediction}, {"depth": gt})[0].sum().backward()
+        return prediction.grad[0]
+
+    assert first_grad(padded).norm() > first_grad(padded, scales=1).norm()  # padding keeps the coarse levels
+    assert first_grad(ragged).norm() > first_grad(ragged, scales=1).norm()  # so does dense GT with ragged holes
+    assert torch.equal(first_grad(scattered), first_grad(scattered, scales=1))  # scattered GT stays single-scale
+    for companions in (depth.repeat(2, 1, 1, 1), scattered.repeat(2, 1, 1, 1)):
+        for image in (padded, scattered, straddling):  # and no decision moves with the companions, nor re-enters
+            assert torch.equal(first_grad(image), first_grad(torch.cat((image, companions))))
+
+
 def test_utils_ops():
     """Test utility operations for coordinate transformations and normalizations."""
     from ultralytics.utils.ops import (

@@ -16,8 +16,8 @@ from ultralytics.utils import LOGGER
 def _compute_sine_pos_enc(shape, device, dtype=torch.float32, num_pos_feats=128, temperature=10000):
     """Compute 2D sine position encoding compatible with TensorRT (no cumsum).
 
-    ``height`` and ``width`` may be traced tensors, so the grid is built by broadcasting two ranges
-    instead of reshaping to a literal size, which would bake the size into the graph.
+    ``height`` and ``width`` may be traced tensors, so the grid is built by broadcasting two ranges instead of reshaping
+    to a literal size, which would bake the size into the graph.
     """
     _, _, height, width = shape
     scale = 2 * math.pi
@@ -43,10 +43,10 @@ def _compute_sine_pos_enc(shape, device, dtype=torch.float32, num_pos_feats=128,
 def _axial_rope(height, width, head_dim, theta=10000.0, pt_size=None, device=None):
     """Build the rotate_half RoPE cos and sin tables for a height by width patch grid.
 
-    Mirrors ``compute_axial_cis`` followed by ``repeat_interleave(2)``, but writes the polar form as
-    a plain cos and sin so no complex tensor reaches ONNX, and takes the grid size as tensors so the
-    graph can be traced with a dynamic image size. ``pt_size`` is the grid the frequencies were
-    trained on, which interpolated RoPE rescales the positions to.
+    Mirrors ``compute_axial_cis`` followed by ``repeat_interleave(2)``, but writes the polar form as a plain cos and sin
+    so no complex tensor reaches ONNX, and takes the grid size as tensors so the graph can be traced with a dynamic
+    image size. ``pt_size`` is the grid the frequencies were trained on, which interpolated RoPE rescales the positions
+    to.
 
     Args:
         height (int | torch.Tensor): Patch grid height.
@@ -423,8 +423,8 @@ class SAM3TextEncoderONNX(nn.Module):
 def _dense_pos_enc(height, width, gaussian):
     """Build the random frequency positional encoding for a height by width grid.
 
-    Mirrors ``PositionEmbeddingRandom.forward`` but broadcasts two ranges instead of taking the
-    cumulative sum of a literally sized grid of ones, so the grid can come from a traced shape.
+    Mirrors ``PositionEmbeddingRandom.forward`` but broadcasts two ranges instead of taking the cumulative sum of a
+    literally sized grid of ones, so the grid can come from a traced shape.
 
     Args:
         height (int | torch.Tensor): Grid height.
@@ -446,9 +446,9 @@ def _dense_pos_enc(height, width, gaussian):
 class SAM3PromptEncoderONNX(nn.Module):
     """ONNX wrapper turning point prompts into sparse and dense embeddings.
 
-    Embeds points inline rather than with boolean indexing, which traces poorly to ONNX. With
-    ``dynamic`` the graph takes the image embedding as a third input, purely to read the feature grid
-    off it, because everything this module bakes in follows from that grid.
+    Embeds points inline rather than with boolean indexing, which traces poorly to ONNX. With ``dynamic`` the graph
+    takes the image embedding as a third input, purely to read the feature grid off it, because everything this module
+    bakes in follows from that grid.
     """
 
     def __init__(self, tracker_model, dynamic: bool = False):
@@ -667,8 +667,8 @@ def _prepare_for_onnx_export(model, dynamic=False):
 
     Args:
         model (torch.nn.Module): Model to prepare in place.
-        dynamic (bool): Whether the graph will be traced with a dynamic image size, which makes any
-            grid cached at trace time a constant that pins the export to that one size.
+        dynamic (bool): Whether the graph will be traced with a dynamic image size, which makes any grid cached at trace
+            time a constant that pins the export to that one size.
     """
     from ultralytics.models.sam.sam3.vitdet import Attention
 
@@ -779,8 +779,8 @@ def export_sam3_onnx(
         output_dir: Parent directory for output folder.
         imgsz: Image size (must be divisible by 14). With ``dynamic`` this is the largest accepted size.
         dynamic: Accept any image size from ``min_imgsz`` to ``imgsz`` instead of only ``imgsz``.
-        min_imgsz: Smallest accepted size when ``dynamic``, recorded so TensorRT can size its profiles.
-            Defaults to half of ``imgsz``, rounded down to a whole number of patches.
+        min_imgsz: Smallest accepted size when ``dynamic``, recorded so TensorRT can size its profiles. Defaults to half
+            of ``imgsz``, rounded down to a whole number of patches.
         prefix: Log prefix.
 
     Returns:
@@ -1156,17 +1156,17 @@ def _spatial_profile(
 ) -> dict[str, tuple]:
     """Map each dynamically sized input to the (min, opt, max) shapes its optimization profile needs.
 
-    The export names every symbolic spatial dimension after the FPN level it belongs to, so the level
-    is read straight back off the name and turned into a grid range. TensorRT needs this because a
-    profile is per input, and the levels sit at different multiples of the patch grid.
+    The export names every symbolic spatial dimension after the FPN level it belongs to, so the level is read straight
+    back off the name and turned into a grid range. TensorRT needs this because a profile is per input, and the levels
+    sit at different multiples of the patch grid.
 
     Args:
         model_onnx (onnx.ModelProto): The loaded graph to read input shapes from.
         min_imgsz (int): Smallest image size the graph accepts.
         max_imgsz (int): Largest image size the graph accepts.
         stride (int): ViT patch size.
-        token_bounds (tuple[int, int]): Min and max for a symbolic dimension that is not spatial, such
-            as the prompt token count, when it shares an input with a spatial one.
+        token_bounds (tuple[int, int]): Min and max for a symbolic dimension that is not spatial, such as the prompt
+            token count, when it shares an input with a spatial one.
 
     Returns:
         (dict[str, tuple]): Input name to (min shape, opt shape, max shape), only for spatial inputs.
@@ -1233,11 +1233,10 @@ def _build_decoder_engine_dynamic(
     """Build a TensorRT engine for an ONNX module with dynamic dimensions.
 
     Detects symbolic dims and adds an optimization profile [min_dynamic, opt_dynamic, max_dynamic], except for the
-    spatial inputs of a dynamic image size export, whose per FPN level bounds are passed in as ``spatial``. With ``half``
-    the
-    module is converted to mixed FP16/FP32 by ModelOpt AutoCast and built as a strongly-typed network, so the per-node
-    precision is honored identically on TensorRT 10 and 11 (the FP16 builder flag was removed in TensorRT 11). Without
-    ``half`` the engine is FP32.
+    spatial inputs of a dynamic image size export, whose per FPN level bounds are passed in as ``spatial``. With
+    ``half`` the module is converted to mixed FP16/FP32 by ModelOpt AutoCast and built as a strongly-typed network, so
+    the per-node precision is honored identically on TensorRT 10 and 11 (the FP16 builder flag was removed in TensorRT
+    11). Without ``half`` the engine is FP32.
     """
     import tensorrt as trt
 

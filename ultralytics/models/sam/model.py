@@ -171,13 +171,13 @@ class SAM(Model):
         Args:
             **kwargs (Any): Export arguments. Key options:
             format (str): ``"onnx"`` or ``"engine"`` (TensorRT).
-            imgsz (int): Image size (must be divisible by 14). Default 1008. With ``dynamic`` this is
-                the largest size the export accepts.
-            dynamic (bool): Accept any image size from ``min_imgsz`` to ``imgsz`` instead of only
-                ``imgsz``, so one export serves several sizes. Default False.
+            imgsz (int): Image size (must be divisible by 14). Default 1008. With ``dynamic`` this is the largest size
+                the export accepts.
+            dynamic (bool): Accept any image size from ``min_imgsz`` to ``imgsz`` instead of only ``imgsz``, so one
+                export serves several sizes. Default False.
             min_imgsz (int): Smallest size accepted when ``dynamic``. Defaults to half of ``imgsz``.
-            quantize (int): 16 for FP16. ONNX stores FP16 weights behind FP32 inputs and outputs,
-                TensorRT instead picks a precision per node.
+            quantize (int): 16 for FP16. ONNX stores FP16 weights behind FP32 inputs and outputs, TensorRT instead picks
+                a precision per node.
             half (bool): Deprecated alias for ``quantize=16``.
             device (str): Export device. Default ``"cpu"``.
             opset (int): ONNX opset version. Default 20.

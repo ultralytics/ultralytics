@@ -222,7 +222,8 @@ def _patch_mct_sensitivity() -> None:
         """Sanitize the sensitivity mapping before building the LP problem."""
         scores = [s for candidates in layer_to_sensitivity_mapping.values() for s in candidates]
         if not np.isfinite(scores).all():
-            penalty = max((s for s in scores if np.isfinite(s)), default=1.0) * 1e3 + 1.0
+            max_finite = max((s for s in scores if np.isfinite(s)), default=1.0)
+            penalty = min(max_finite, 1e27) * 1e3 + 1.0  # capped to stay finite and solvable
             LOGGER.warning(f"MCT scored some quantization candidates as NaN or inf, replacing with {penalty:.4g}.")
             layer_to_sensitivity_mapping = {
                 layer: np.where(np.isfinite(candidates), candidates, penalty)

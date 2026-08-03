@@ -335,7 +335,7 @@ class BaseMixTransform(BaseTransform):
             >>> transform = BaseMixTransform(dataset, pre_transform=None, p=0.5)
             >>> result = transform({"image": img, "bboxes": boxes, "cls": classes})
         """
-        if random.uniform(0, 1) > self.p:
+        if random.random() >= self.p:
             return labels
 
         params = self.get_params(labels)
@@ -2214,7 +2214,7 @@ class Albumentations(BaseTransform):
             - Spatial transforms update bounding boxes, while non-spatial transforms only modify the image.
             - Requires the Albumentations library to be installed.
         """
-        if self.transform is None or random.random() > self.p:
+        if self.transform is None or random.random() >= self.p:
             return labels
 
         im = labels["img"]
@@ -2444,7 +2444,7 @@ class Format(BaseTransform):
         if len(img.shape) < 3:
             img = img[..., None]
         img = img.transpose(2, 0, 1)
-        img = np.ascontiguousarray(img[::-1] if random.uniform(0, 1) > self.bgr and img.shape[0] == 3 else img)
+        img = np.ascontiguousarray(img[::-1] if random.random() >= self.bgr and img.shape[0] == 3 else img)
         img = torch.from_numpy(img)
         return img
 

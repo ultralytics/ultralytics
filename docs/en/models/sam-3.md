@@ -371,6 +371,9 @@ single file.
         # Or stop at ONNX
         model.export(format="onnx", imgsz=1008)  # -> sam3_onnx/
         model.export(format="onnx", imgsz=1008, quantize=16)  # the same modules at half the size
+
+        # One export that accepts a range of sizes instead of only one
+        model.export(format="engine", imgsz=1036, dynamic=True, min_imgsz=518, quantize=16)
         ```
 
     === "CLI"
@@ -413,17 +416,59 @@ Load the directory exactly like a checkpoint. The backend is chosen from the tra
         results = model.predict("path/to/image.jpg", points=[[900, 370]], labels=[1])
         ```
 
-The exported graphs are traced at a fixed image size, and the model reports the size it was built
-with, so `imgsz` does not have to be passed at predict time.
+A default export is traced at one image size, and the model reports the size it was built with, so
+`imgsz` does not have to be passed at predict time.
 
 !!! warning "Fixed image size"
 
     An exported directory only accepts the size it was traced at, 1008 by default. Export again if
-    you need another size.
+    you need another size, or export with `dynamic=True`.
 
     A checkpoint predicts at 1036, the nearest multiple of the 14 pixel patch size to the 1024
     default, so export with `imgsz=1036` if you want the exported model to reproduce checkpoint
     results pixel for pixel.
+
+### Dynamic image size
+
+`dynamic=True` traces one set of modules that accepts any multiple of 14 from `min_imgsz` to `imgsz`,
+so a single export serves several sizes and `imgsz` is then chosen at predict time:
+
+```python
+model.export(format="engine", imgsz=1036, dynamic=True, min_imgsz=518, quantize=16)
+
+exported = SAM("sam3_engine/")
+exported.predict("image.jpg", text=["person"], imgsz=728)  # any size in the exported range
+```
+
+Every prompt type is supported, and the range is recorded in the module metadata so the TensorRT build
+can size its optimization profiles from it. `min_imgsz` defaults to half of `imgsz` and is a Python
+only argument, so from the CLI a dynamic export always takes that default:
+
+```bash
+yolo export model=sam3.pt format=engine imgsz=1036 dynamic=True quantize=16
+```
+
+Two costs are worth knowing before choosing dynamic over a fixed size.
+
+**Memory.** TensorRT sizes its activation memory from the profile **maximum**, not the size actually
+being run, so a dynamic engine holds as much memory at 518 as it does at its 1036 ceiling. A wide
+range on a small card is what exhausts it, not the size you ask for. Keep `min_imgsz` and `imgsz` as
+close together as the use case allows.
+
+**Throughput.** A fixed export lets TensorRT specialize its kernels to one shape, so it is the faster
+of the two, but by much less than that suggests and by different amounts per version. Measured over
+128 coco128 images at 1036, dynamic against a fixed export of the same graph:
+
+| Backend     | Cost of being dynamic |
+| ----------- | --------------------- |
+| TensorRT 10 | 1 to 2%               |
+| TensorRT 11 | 9 to 11%              |
+| ONNX FP16   | none measurable       |
+
+Shrinking the image is what actually buys speed, and one dynamic graph gets all of it. On TensorRT 10
+going from 1036 to 518 is 3.9x faster for box and point prompts, tracking the 4x drop in pixels
+almost exactly. A text prompt gains 2.3x rather than 4x, because the text encoder and the per class
+decoder loop do not depend on the image size.
 
 ### Precision
 

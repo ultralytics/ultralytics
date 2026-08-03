@@ -95,7 +95,7 @@ def train() -> None:
                 else 0.0
             )
             noise = statistics.pstdev(value - y_mean - slope * (i - x_mean) for i, value in enumerate(window))
-            horizon = min(20, trainer.epochs - trainer.epoch - 1)
+            horizon = min(len(window) - 1, trainer.epochs - trainer.epoch - 1)
             projected_map = history[-1] + horizon * slope
             wandb.log(
                 {

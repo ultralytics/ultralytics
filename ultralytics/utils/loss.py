@@ -119,6 +119,8 @@ class BboxLoss(nn.Module):
         wiou_delta: float = 2.7,
         wiou_momentum: float = 0.01,
         wiou_rmin: float = 0.0,
+        wiou_gate: float = 0.0,
+        wiou_gate_k: float = 30.0,
     ):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
@@ -138,6 +140,8 @@ class BboxLoss(nn.Module):
         self.wiou_delta = wiou_delta  # outlier degree left unscaled (r == 1 at beta == delta)
         self.wiou_momentum = wiou_momentum  # EMA momentum of the mean IoU loss normalizing the outlier degree
         self.wiou_rmin = wiou_rmin  # floor on the focusing coefficient (0=none), limits high-IoU down-weighting
+        self.wiou_gate = wiou_gate  # IoU where the box loss crosses over from WIoU to CIoU (0=pure WIoU)
+        self.wiou_gate_k = wiou_gate_k  # steepness of that crossover
         self.register_buffer("iou_mean", torch.tensor(1.0))  # running mean IoU loss, WIoU's outlier-degree denominator
 
     def forward(
@@ -163,7 +167,12 @@ class BboxLoss(nn.Module):
             # gain peaks at ordinary anchors and decays toward both harmful outliers (large beta) and easy ones (beta~0)
             r = beta / (self.wiou_delta * torch.pow(self.wiou_alpha, beta - self.wiou_delta))
             r.clamp_(min=self.wiou_rmin)  # keep a share of the gradient on high-IoU boxes (0 = paper behaviour)
-            loss_iou = (r * wiou_dist(pred_fg, target_fg) * l_iou * weight).sum() / target_scores_sum
+            per_box = r * wiou_dist(pred_fg, target_fg) * l_iou
+            if self.wiou_gate:  # hand the well-localized boxes back to CIoU, which does not down-weight them
+                gate = torch.sigmoid(self.wiou_gate_k * (1.0 - l_iou.detach() - self.wiou_gate))
+                l_ciou = 1.0 - bbox_iou(pred_fg, target_fg, xywh=False, CIoU=True)
+                per_box = (1.0 - gate) * per_box + gate * l_ciou
+            loss_iou = (per_box * weight).sum() / target_scores_sum
         else:
             iou = bbox_iou(
                 pred_bboxes[fg_mask],
@@ -594,6 +603,8 @@ class v8DetectionLoss:
             wiou_delta=getattr(h, "wiou_delta", 2.7),
             wiou_momentum=getattr(h, "wiou_momentum", 0.01),
             wiou_rmin=getattr(h, "wiou_rmin", 0.0),
+            wiou_gate=getattr(h, "wiou_gate", 0.0),
+            wiou_gate_k=getattr(h, "wiou_gate_k", 30.0),
         ).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 

@@ -170,6 +170,8 @@ wiou_alpha: 1.7 # (float) when wiou=True, base of the non-monotonic focusing coe
 wiou_delta: 2.7 # (float) when wiou=True, outlier degree left unscaled by the focusing coefficient
 wiou_momentum: 0.01 # (float) when wiou=True, EMA momentum of the mean IoU loss normalizing the outlier degree
 wiou_rmin: 0.0 # (float) when wiou=True, floor on the focusing coefficient (0=off), limits how far high-IoU boxes are down-weighted
+wiou_gate: 0.0 # (float) when wiou=True, IoU at which the box loss crosses over from WIoU to CIoU (0=off, pure WIoU)
+wiou_gate_k: 30.0 # (float) steepness of the wiou_gate crossover; larger is a sharper switch
 pose: 12.0 # (float) pose loss gain (pose tasks)
 kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)
 rle: 1.0 # (float) rle loss gain (pose tasks)

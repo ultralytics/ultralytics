@@ -29,6 +29,7 @@ def _kitti_annotation(centers: np.ndarray, dims: np.ndarray, yaws: np.ndarray):
 
 
 def test_paired_boxes3d_iou_known_geometries():
+    """Verify paired 3D IoU for known box geometries."""
     centers_a = torch.tensor([[0.0, 0.0, 20.0]] * 7)
     dims_a = torch.tensor([[2.0, 2.0, 4.0]] * 5 + [[4.0, 4.0, 8.0], [1.5, 1.6, 4.0]])
     yaws_a = torch.zeros(7)
@@ -46,6 +47,7 @@ def test_paired_boxes3d_iou_known_geometries():
 
 
 def test_paired_boxes3d_iou_matches_opencv_kitti_evaluator():
+    """Verify paired 3D IoU matches the OpenCV KITTI evaluator."""
     rng = np.random.default_rng(20260731)
     count = 512
     centers_a = np.column_stack(
@@ -84,6 +86,7 @@ def test_paired_boxes3d_iou_matches_opencv_kitti_evaluator():
 
 
 def test_paired_boxes3d_iou_handles_batched_shapes_and_invalid_boxes():
+    """Verify paired 3D IoU handles batches and invalid boxes."""
     centers = torch.zeros((2, 3, 3))
     dims = torch.ones((2, 3, 3))
     dims[0, 0, 0] = 0.0
@@ -102,6 +105,7 @@ def test_paired_boxes3d_iou_handles_batched_shapes_and_invalid_boxes():
 
 
 def test_paired_boxes3d_iou_stays_fp32_under_cpu_autocast():
+    """Verify paired 3D IoU remains FP32 under CPU autocast."""
     centers = torch.tensor([[40.0, 1.0, 103.6], [0.0, 0.0, 20.0]])
     dims = torch.tensor([[1.5, 1.6, 4.0], [2.0, 2.0, 4.0]])
     yaws = torch.tensor([[0.25], [-0.7]])
@@ -114,6 +118,7 @@ def test_paired_boxes3d_iou_stays_fp32_under_cpu_autocast():
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA is not available")
 def test_paired_boxes3d_iou_uses_cuda_under_amp():
+    """Verify paired 3D IoU runs on CUDA under automatic mixed precision."""
     centers = torch.tensor([[0.0, 0.0, 20.0]], device="cuda", dtype=torch.float16)
     dims = torch.tensor([[1.5, 1.6, 4.0]], device="cuda", dtype=torch.float16)
     yaws = torch.tensor([0.0], device="cuda", dtype=torch.float16)

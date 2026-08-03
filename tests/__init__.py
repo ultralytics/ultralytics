@@ -10,10 +10,12 @@ SOURCE = ASSETS / "bus.jpg"
 SOURCES_LIST = [ASSETS / "bus.jpg", ASSETS, ASSETS / "*", ASSETS / "**/*.jpg"]  # file, dir, and glob patterns
 CUDA_IS_AVAILABLE = checks.cuda_is_available()
 CUDA_DEVICE_COUNT = checks.cuda_device_count()
+# Generic matrices require redistributable data and official weights; dedicated tests cover Detect3D.
+ASSET_TASKS = tuple(task for task in TASKS if task != "detect3d")
 TASK_MODEL_DATA = sorted(
-    [(task, WEIGHTS_DIR / TASK2MODEL[task], TASK2DATA[task]) for task in TASKS]
+    [(task, WEIGHTS_DIR / TASK2MODEL[task], TASK2DATA[task]) for task in ASSET_TASKS]
 )  # (task, model, data) tuples
-MODELS = sorted([*list(TASK2MODEL.values()), "yolo11n-grayscale.pt"])  # task models plus grayscale variant
+MODELS = sorted([*[TASK2MODEL[task] for task in ASSET_TASKS], "yolo11n-grayscale.pt"])  # official test assets
 SOLUTION_ASSETS = {
     "demo_video": "solutions_ci_demo.mp4",
     "crop_video": "decelera_landscape_min.mov",
@@ -26,6 +28,7 @@ SOLUTION_ASSETS = {
 }
 
 __all__ = (
+    "ASSET_TASKS",
     "CFG",
     "CUDA_DEVICE_COUNT",
     "CUDA_IS_AVAILABLE",

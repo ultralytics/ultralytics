@@ -571,6 +571,7 @@ class Results(SimpleClass, DataExportMixin):
             filename (str | None): Filename to save image if save is True.
             color_mode (str): Specify the color mode, e.g., 'instance' or 'class'.
             txt_color (tuple[int, int, int]): Text color in BGR format for classification output.
+            p2 (torch.Tensor | np.ndarray | None): Optional (3, 4) camera projection matrix for 3D visualization.
 
         Returns:
             (np.ndarray | PIL.Image.Image): Annotated image as a NumPy array (BGR) or PIL image (RGB) if `pil=True`.

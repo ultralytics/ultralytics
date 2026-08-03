@@ -89,6 +89,7 @@ def _controlled_loss(
 
 
 def test_release_defaults_use_iou_quality_and_bounded_direct_depth_behavior():
+    """Verify release defaults use IoU quality and bounded direct-depth behavior."""
     assert DEFAULT_CFG.depth_z == 0.1
     assert DEFAULT_CFG.depth_z_tau == 2.0
     assert DEFAULT_CFG.quality3d_power == 0.5
@@ -103,6 +104,7 @@ def test_release_defaults_use_iou_quality_and_bounded_direct_depth_behavior():
 
 
 def test_geometry_gain_scales_geometry_only_without_changing_2d_alpha_or_quality():
+    """Verify geometry gain scales only geometry losses."""
     baseline, _, baseline_criterion = _controlled_loss({"d3_geometry_gain": 1.0}, nonzero_geometry=True)
     scaled, _, scaled_criterion = _controlled_loss({"d3_geometry_gain": 2.0}, nonzero_geometry=True)
 
@@ -116,6 +118,8 @@ def test_geometry_gain_scales_geometry_only_without_changing_2d_alpha_or_quality
 
 
 def test_quality3d_uses_exact_paired_iou_target():
+    """Verify 3D quality supervision uses the exact paired IoU target."""
+
     def fixed_iou(centers_a, dims_a, yaws_a, centers_b, dims_b, yaws_b):
         del dims_a, yaws_a, centers_b, dims_b, yaws_b
         return centers_a.new_full(centers_a.shape[:-1], 0.37)
@@ -129,6 +133,7 @@ def test_quality3d_uses_exact_paired_iou_target():
 
 
 def test_bounded_absolute_z_term_is_positive_finite_and_backpropagates_without_a_new_slot():
+    """Verify bounded absolute-depth loss is finite and differentiable."""
     baseline, _, _ = _controlled_loss({"depth_z": 0.0}, predicted_depth=12.0)
     augmented, raw, criterion = _controlled_loss({"depth_z": 0.2, "depth_z_tau": 2.0}, predicted_depth=12.0)
 
@@ -158,6 +163,7 @@ def test_bounded_absolute_z_term_is_positive_finite_and_backpropagates_without_a
     ),
 )
 def test_detect3d_loss_configuration_rejects_invalid_values(override: dict, message: str):
+    """Verify Detect3D loss configuration rejects invalid values."""
     model = Detection3DModel("yolo11n-3d.yaml", ch=3, nc=1, verbose=False)
     model.args = get_cfg(overrides=override)
     with pytest.raises(ValueError, match=message):
@@ -166,6 +172,7 @@ def test_detect3d_loss_configuration_rejects_invalid_values(override: dict, mess
 
 @pytest.mark.parametrize("config", ("yolo11n-3d.yaml", "yolo26n-3d.yaml"))
 def test_release_losses_support_yolo11_and_yolo26_end_to_end_backward(config: str):
+    """Verify release losses backpropagate for YOLO11 and YOLO26 models."""
     torch.manual_seed(0)
     model = Detection3DModel(config, ch=3, nc=1, verbose=False)
     model.args = get_cfg(overrides={"depth_z": 0.1, "depth_z_tau": 2.0})

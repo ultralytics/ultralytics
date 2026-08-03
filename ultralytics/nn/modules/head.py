@@ -655,6 +655,7 @@ class Detect3D(Detect):
 
     @property
     def one2many(self):
+        """Return one-to-many prediction towers for 2D and 3D outputs."""
         return {
             "box_head": self.cv2,
             "cls_head": self.cv3,
@@ -664,6 +665,7 @@ class Detect3D(Detect):
 
     @property
     def one2one(self):
+        """Return one-to-one prediction towers for 2D and 3D outputs."""
         return {
             "box_head": self.one2one_cv2,
             "cls_head": self.one2one_cv3,

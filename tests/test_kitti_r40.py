@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from contextlib import ExitStack
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -57,6 +58,7 @@ def make_annotation(
 
 
 def test_kitti_prediction_file_round_trip(tmp_path):
+    """Verify KITTI prediction files round-trip without data loss."""
     prediction = make_annotation(scores=(0.875,))
     path = tmp_path / "000001.txt"
     write_kitti_predictions(prediction, path)
@@ -70,6 +72,7 @@ def test_kitti_prediction_file_round_trip(tmp_path):
 
 
 def test_validator_collects_native_kitti_prediction_columns(tmp_path):
+    """Verify validation collects native KITTI prediction columns."""
     image_dir = tmp_path / "val" / "images"
     label_dir = tmp_path / "val" / "label_2"
     image_dir.mkdir(parents=True)
@@ -106,6 +109,7 @@ def test_validator_collects_native_kitti_prediction_columns(tmp_path):
 
 
 def test_validator_scales_native_kitti_boxes_with_independent_xy_gains(tmp_path):
+    """Verify native KITTI boxes use independent horizontal and vertical gains."""
     image_dir = tmp_path / "val" / "images"
     label_dir = tmp_path / "val" / "label_2"
     image_dir.mkdir(parents=True)
@@ -144,6 +148,7 @@ def test_validator_scales_native_kitti_boxes_with_independent_xy_gains(tmp_path)
 
 
 def test_validator_caches_kitti_ground_truth_across_training_epochs(tmp_path):
+    """Verify KITTI ground truth is cached across training epochs."""
     image_dir = tmp_path / "val" / "images"
     label_dir = tmp_path / "val" / "label_2"
     image_dir.mkdir(parents=True)
@@ -175,6 +180,7 @@ def test_validator_caches_kitti_ground_truth_across_training_epochs(tmp_path):
 
 @pytest.mark.parametrize(("requested", "expected_dir"), [("off", None), ("fast", "label_2"), ("full", "label_2")])
 def test_kitti_eval_modes_are_explicit(requested, expected_dir):
+    """Verify KITTI evaluation modes resolve to explicit directories."""
     validator = object.__new__(Detection3DValidator)
     validator.training = False
     validator.data = {"kitti_label_dir": "label_2"}
@@ -206,6 +212,7 @@ def test_kitti_eval_missing_argument_defaults_to_off():
 
 
 def test_kitti_eval_rejects_implicit_or_unknown_modes():
+    """Verify KITTI evaluation rejects implicit and unknown modes."""
     validator = object.__new__(Detection3DValidator)
     validator.training = False
     validator.data = {"kitti_label_dir": "label_2"}
@@ -213,12 +220,14 @@ def test_kitti_eval_rejects_implicit_or_unknown_modes():
     validator.metrics = SimpleNamespace(d3_results={})
     validator.args = SimpleNamespace(kitti_eval="auto")
 
-    with patch("ultralytics.models.yolo.detect.val.DetectionValidator.init_metrics"):
-        with pytest.raises(ValueError, match="kitti_eval"):
-            validator.init_metrics(SimpleNamespace())
+    with patch("ultralytics.models.yolo.detect.val.DetectionValidator.init_metrics"), pytest.raises(
+        ValueError, match="kitti_eval"
+    ):
+        validator.init_metrics(SimpleNamespace())
 
 
 def test_fast_kitti_metric_is_auxiliary_and_does_not_drive_generic_fitness(tmp_path):
+    """Verify the fast KITTI metric remains auxiliary to generic fitness."""
     validator = object.__new__(Detection3DValidator)
     validator.d3_err = []
     validator.d3_diagnostics = []
@@ -235,14 +244,12 @@ def test_fast_kitti_metric_is_auxiliary_and_does_not_drive_generic_fitness(tmp_p
     validator.args = SimpleNamespace(plots=False)
     validator.save_dir = tmp_path
 
-    with (
-        patch("ultralytics.models.yolo.detect.val.DetectionValidator.get_stats"),
-        patch(
-            "ultralytics.models.yolo.detect3d.val.evaluate_kitti_metric",
-            return_value=12.5,
-        ) as fast_eval,
-        patch("ultralytics.models.yolo.detect3d.val.evaluate_kitti_r40") as full_eval,
-    ):
+    with ExitStack() as stack:
+        stack.enter_context(patch("ultralytics.models.yolo.detect.val.DetectionValidator.get_stats"))
+        fast_eval = stack.enter_context(
+            patch("ultralytics.models.yolo.detect3d.val.evaluate_kitti_metric", return_value=12.5)
+        )
+        full_eval = stack.enter_context(patch("ultralytics.models.yolo.detect3d.val.evaluate_kitti_r40"))
         results = validator.get_stats()
 
     fast_eval.assert_called_once()
@@ -253,6 +260,7 @@ def test_fast_kitti_metric_is_auxiliary_and_does_not_drive_generic_fitness(tmp_p
 
 
 def test_rotated_bev_and_3d_iou_are_not_axis_aligned_approximations():
+    """Verify rotated BEV and 3D IoU are not axis-aligned approximations."""
     reference = make_annotation()
     same = make_annotation()
     perpendicular = make_annotation(rotations=(math.pi / 2,))
@@ -267,6 +275,7 @@ def test_rotated_bev_and_3d_iou_are_not_axis_aligned_approximations():
 
 
 def test_aligned_3d_iou_is_exact_and_rejects_mismatched_lengths():
+    """Verify aligned 3D IoU is exact and rejects mismatched lengths."""
     boxes = make_annotation(
         names=("Car", "Car"),
         bboxes=((0.0, 0.0, 100.0, 100.0),) * 2,
@@ -296,6 +305,7 @@ def test_aligned_3d_iou_is_exact_and_rejects_mismatched_lengths():
 
 
 def test_3d_diagnostic_summary_uses_all_valid_gt_as_recall_denominator():
+    """Verify 3D diagnostics use all valid targets for the recall denominator."""
     # columns: GT depth, seven absolute errors, exact IoU3D, raw sigmoid(q3d)
     matched = torch.tensor(
         [
@@ -319,6 +329,7 @@ def test_3d_diagnostic_summary_uses_all_valid_gt_as_recall_denominator():
 
 
 def test_3d_diagnostic_summary_handles_empty_matches_and_constant_quality():
+    """Verify 3D diagnostics handle empty matches and constant quality."""
     empty = _summarize_d3_diagnostics(torch.empty((0, 10)), torch.tensor([10.0, 50.0]))
     assert empty["3d/diagnostic/match_recall"] == 0.0
     assert empty["3d/diagnostic/iou3d_recall_0.7"] == 0.0
@@ -335,6 +346,7 @@ def test_3d_diagnostic_summary_handles_empty_matches_and_constant_quality():
 
 
 def test_kitti_difficulty_and_neighbor_class_rules():
+    """Verify KITTI difficulty and neighboring-class rules."""
     short_car = make_annotation(bboxes=((0.0, 0.0, 100.0, 30.0),))
     detection = make_annotation(bboxes=((0.0, 0.0, 100.0, 30.0),))
     valid_easy, ignored_easy, ignored_dt_easy, _ = _clean_data(short_car, detection, "Car", 0)
@@ -353,6 +365,7 @@ def test_kitti_difficulty_and_neighbor_class_rules():
 
 
 def test_dontcare_suppresses_unmatched_2d_detection():
+    """Verify DontCare regions suppress unmatched 2D detections."""
     ground_truth = make_annotation()
     detections = make_annotation(
         names=("Car", "Car"),
@@ -379,6 +392,7 @@ def test_dontcare_suppresses_unmatched_2d_detection():
 
 
 def test_perfect_predictions_reach_100_r40_and_aos_uses_alpha(tmp_path):
+    """Verify perfect predictions reach 100 R40 and AOS uses alpha."""
     ground_truth, perfect, reversed_orientation = [], [], []
     for index in range(41):
         score = 1.0 - index * 0.001
@@ -407,6 +421,7 @@ def test_perfect_predictions_reach_100_r40_and_aos_uses_alpha(tmp_path):
 
 
 def test_single_kitti_metric_perfect_predictions_reach_100_r40():
+    """Verify a perfect single KITTI metric reaches 100 R40."""
     ground_truth, detections = [], []
     for index in range(41):
         ground_truth.append(make_annotation(scores=(0.0,)))
@@ -420,6 +435,7 @@ def test_single_kitti_metric_perfect_predictions_reach_100_r40():
 
 
 def test_single_kitti_metric_counts_interleaved_duplicate_as_false_positive():
+    """Verify an interleaved duplicate counts as a false positive."""
     ground_truth = [make_annotation(scores=(0.0,)) for _ in range(41)]
     detections = [
         make_annotation(
@@ -442,6 +458,7 @@ def test_single_kitti_metric_counts_interleaved_duplicate_as_false_positive():
 
 
 def test_single_kitti_metric_empty_predictions_return_zero():
+    """Verify a single KITTI metric returns zero for empty predictions."""
     ground_truth = [make_annotation(scores=(0.0,)) for _ in range(41)]
     empty_prediction = make_annotation(
         names=(),
@@ -465,6 +482,7 @@ def test_single_kitti_metric_empty_predictions_return_zero():
     [("3d", "AP3D"), ("bev", "APBEV"), ("aos", "AOS")],
 )
 def test_single_kitti_metric_strictly_matches_full_r40(metric, result_name):
+    """Verify each single KITTI metric exactly matches full R40 evaluation."""
     ground_truth, detections = [], []
     for index in range(41):
         ground_truth.append(make_annotation(scores=(0.0,)))
@@ -488,6 +506,7 @@ def test_single_kitti_metric_strictly_matches_full_r40(metric, result_name):
 
 
 def test_kitti_alpha_sentinel_omits_aos(tmp_path):
+    """Verify the KITTI alpha sentinel omits AOS metrics."""
     ground_truth, detections = [], []
     for index in range(41):
         ground_truth.append(make_annotation(scores=(0.0,)))

@@ -126,6 +126,7 @@ def _controlled_single_anchor_3d_loss(
 
 
 def test_full_p2_projection_round_trip_numpy_and_torch():
+    """Verify full P2 projection round-trips with NumPy and PyTorch."""
     xyz = np.array([[2.0, 1.5, 20.0], [-3.0, 2.0, 35.0]])
     uv = project_points(xyz, P2_WITH_TRANSLATION)
     np.testing.assert_allclose(backproject_points(uv, xyz[:, 2], P2_WITH_TRANSLATION), xyz, atol=1e-10)
@@ -137,6 +138,7 @@ def test_full_p2_projection_round_trip_numpy_and_torch():
 
 
 def test_project_points_torch_disables_outer_autocast():
+    """Verify torch projection disables an enclosing autocast context."""
     points = torch.tensor([[40.0, 5.0, 103.6]], dtype=torch.float32)
     p2 = torch.tensor(
         [
@@ -158,6 +160,7 @@ def test_project_points_torch_disables_outer_autocast():
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA is not available")
 def test_project_points_torch_avoids_fp16_projection_overflow():
+    """Verify torch projection avoids FP16 overflow."""
     points = torch.tensor([[40.0, 5.0, 103.6]], device="cuda")
     p2 = torch.tensor(
         [
@@ -176,6 +179,7 @@ def test_project_points_torch_avoids_fp16_projection_overflow():
 
 
 def test_letterbox_and_flip_compose_augmented_projection():
+    """Verify letterbox and flip transforms compose the augmented projection."""
     p2 = np.array([[100.0, 0.0, 100.0, 5.0], [0.0, 100.0, 50.0, -2.0], [0.0, 0.0, 1.0, 0.1]])
     xyz = np.array([[1.0, 0.5, 10.0]])
     uv_original = project_points(xyz, p2)[0]
@@ -218,6 +222,7 @@ def test_letterbox_and_flip_compose_augmented_projection():
 
 
 def test_detect3d_valid_mask_uses_native_box_height_and_configured_geometry(tmp_path):
+    """Verify the 3D validity mask uses native box height and configured geometry."""
     calib = tmp_path / "calib.txt"
     calib.write_text(
         "P2: " + " ".join(map(str, P2_WITH_TRANSLATION.reshape(-1))) + "\n",
@@ -267,6 +272,7 @@ def test_detect3d_valid_mask_uses_native_box_height_and_configured_geometry(tmp_
 
 
 def test_detect3d_valid_mask_rejects_extreme_truncated_center_target(tmp_path):
+    """Verify the 3D validity mask rejects an extremely truncated center target."""
     calib = tmp_path / "calib.txt"
     calib.write_text("P2: 100 0 100 0 0 100 50 0 0 0 1 0\n", encoding="utf-8")
     dataset = object.__new__(YOLODataset)
@@ -305,6 +311,7 @@ def test_detect3d_valid_mask_rejects_extreme_truncated_center_target(tmp_path):
 
 
 def test_detect3d_rejects_spatial_albumentations_that_do_not_update_projection():
+    """Verify Detect3D rejects spatial augmentations that do not update projection."""
     albumentations = pytest.importorskip("albumentations")
     dataset = object.__new__(YOLODataset)
     dataset.augment = True
@@ -331,6 +338,7 @@ def test_detect3d_rejects_spatial_albumentations_that_do_not_update_projection()
 
 
 def test_detect3d_rejects_nested_spatial_albumentations():
+    """Verify Detect3D rejects nested spatial Albumentations transforms."""
     albumentations = pytest.importorskip("albumentations")
     dataset = object.__new__(YOLODataset)
     dataset.augment = True
@@ -362,6 +370,7 @@ def test_detect3d_rejects_nested_spatial_albumentations():
 
 
 def test_dataset_initial_resize_is_in_augmented_projection(tmp_path):
+    """Verify initial dataset resizing is represented in the augmented projection."""
     calib = tmp_path / "calib.txt"
     calib.write_text(
         "P2: " + " ".join(map(str, P2_WITH_TRANSLATION.reshape(-1))) + "\n",
@@ -390,6 +399,7 @@ def test_dataset_initial_resize_is_in_augmented_projection(tmp_path):
 
 
 def test_multiscale_preprocess_updates_projection_and_ratio_pad():
+    """Verify multiscale preprocessing updates projection and ratio padding."""
     trainer = object.__new__(Detection3DTrainer)
     trainer.device = torch.device("cpu")
     trainer.args = SimpleNamespace(multi_scale=0.5, imgsz=320)
@@ -409,6 +419,7 @@ def test_multiscale_preprocess_updates_projection_and_ratio_pad():
 
 
 def test_detect3d_training_label_plot_uses_only_2d_box_columns(tmp_path):
+    """Verify Detect3D training plots use only 2D box columns."""
     trainer = object.__new__(Detection3DTrainer)
     boxes = np.arange(11, dtype=np.float32).reshape(1, 11)
     trainer.train_loader = SimpleNamespace(
@@ -427,6 +438,7 @@ def test_detect3d_training_label_plot_uses_only_2d_box_columns(tmp_path):
 
 
 def test_results_preserve_3d_params_and_plot_with_explicit_calibration():
+    """Verify Results preserves 3D parameters and plots with explicit calibration."""
     image = np.zeros((375, 1242, 3), dtype=np.uint8)
     p2 = np.array([[721.5, 0.0, 609.5, 0.0], [0.0, 721.5, 172.8, 0.0], [0.0, 0.0, 1.0, 0.0]])
     xyz_center = np.array([[0.0, 1.0, 20.0]])
@@ -450,6 +462,7 @@ def test_results_preserve_3d_params_and_plot_with_explicit_calibration():
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA is not available")
 def test_cuda_results_cpu_numpy_converts_all_detection_data():
+    """Verify CUDA Results conversion moves all detection data to NumPy."""
     image = np.zeros((32, 64, 3), dtype=np.uint8)
     result = Results(
         image,
@@ -464,6 +477,7 @@ def test_cuda_results_cpu_numpy_converts_all_detection_data():
 
 
 def test_predictor_maps_3d_center_to_native_image():
+    """Verify the predictor maps projected 3D centers to the native image."""
     predictor = object.__new__(Detection3DPredictor)
     predictor.model = SimpleNamespace(names={0: "car"})
     pred = torch.tensor(
@@ -492,6 +506,7 @@ def test_predictor_maps_3d_center_to_native_image():
 
 
 def test_predictor_attaches_single_calibration_and_plots_3d(tmp_path):
+    """Verify the predictor attaches one calibration and plots 3D detections."""
     calib = tmp_path / "camera.txt"
     calib.write_text("P2: 100 0 320 0 0 100 200 0 0 0 1 0\n", encoding="utf-8")
     predictor = object.__new__(Detection3DPredictor)
@@ -507,6 +522,7 @@ def test_predictor_attaches_single_calibration_and_plots_3d(tmp_path):
 
 
 def test_predictor_matches_calibration_directory_by_image_stem(tmp_path):
+    """Verify calibration directory entries are matched by image stem."""
     calib_dir = tmp_path / "calib"
     calib_dir.mkdir()
     calib = calib_dir / "000001.txt"
@@ -524,6 +540,7 @@ def test_predictor_matches_calibration_directory_by_image_stem(tmp_path):
 
 
 def test_predictor_rejects_missing_stem_matched_calibration(tmp_path):
+    """Verify the predictor rejects a missing stem-matched calibration."""
     calib_dir = tmp_path / "calib"
     calib_dir.mkdir()
     predictor = object.__new__(Detection3DPredictor)
@@ -540,6 +557,7 @@ def test_predictor_rejects_missing_stem_matched_calibration(tmp_path):
 
 
 def test_detect3d_validator_keeps_only_the_highest_class_per_anchor():
+    """Verify validation keeps only the highest-scoring class per anchor."""
     validator = object.__new__(Detection3DValidator)
     validator.args = SimpleNamespace(conf=0.1, iou=0.7, single_cls=False, agnostic_nms=False, max_det=300)
     validator.nc = 2
@@ -556,6 +574,7 @@ def test_detect3d_validator_keeps_only_the_highest_class_per_anchor():
 
 
 def test_detect3d_validator_aligns_raw_q3d_through_nms_without_changing_eight_value_output():
+    """Verify NMS aligns raw 3D quality without changing the public output."""
     validator = object.__new__(Detection3DValidator)
     validator.args = SimpleNamespace(
         conf=0.1,
@@ -582,6 +601,7 @@ def test_detect3d_validator_aligns_raw_q3d_through_nms_without_changing_eight_va
 
 
 def test_yolo26_validator_aligns_raw_q3d_through_end2end_topk():
+    """Verify YOLO26 validation aligns raw 3D quality through end-to-end top-k."""
     validator = object.__new__(Detection3DValidator)
     validator.args = SimpleNamespace(
         conf=0.0,
@@ -612,6 +632,7 @@ def test_yolo26_validator_aligns_raw_q3d_through_end2end_topk():
 
 
 def test_detect3d_inference_preserves_raw_outputs_for_validation_loss():
+    """Verify Detect3D inference preserves raw outputs for validation loss."""
     head = Detect3D(nc=3, ch=(16, 32, 64))
     head.stride = torch.tensor([8.0, 16.0, 32.0])
     head.eval()
@@ -652,6 +673,7 @@ def test_detect3d_inference_preserves_raw_outputs_for_validation_loss():
 
 
 def test_detect3d_direct_layout_and_decode():
+    """Verify the Detect3D direct prediction layout and decoding."""
     head = Detect3D(nc=1, ch=(16, 32, 64))
     head.stride = torch.tensor([8.0, 16.0, 32.0])
     head.eval()
@@ -672,6 +694,7 @@ def test_detect3d_direct_layout_and_decode():
 
 
 def test_detect3d_bias_init_uses_log_depth_and_neutral_multibin_priors():
+    """Verify Detect3D bias initialization uses stable depth and direction priors."""
     head = Detect3D(nc=3, ch=(16, 32, 64))
     head.stride = torch.tensor([8.0, 16.0, 32.0])
     head.bias_init()
@@ -686,6 +709,7 @@ def test_detect3d_bias_init_uses_log_depth_and_neutral_multibin_priors():
 
 
 def test_quality3d_power_reaches_native_models_through_runtime_wrappers():
+    """Verify 3D quality power reaches native models through runtime wrappers."""
     model = Detection3DModel("yolo26n-3d.yaml", ch=3, nc=1, verbose=False)
     wrapper = SimpleNamespace(model=SimpleNamespace(model=model))
 
@@ -697,6 +721,7 @@ def test_quality3d_power_reaches_native_models_through_runtime_wrappers():
 
 
 def test_detect3d_loss_uses_detached_matched_prediction_as_box_reference():
+    """Verify Detect3D loss uses a detached matched prediction as box reference."""
     exact_loss, _, exact_box = _controlled_single_anchor_3d_loss(torch.tensor([3.0, 3.0, 5.0, 5.0]))
     shifted_loss, shifted_raw, shifted_box = _controlled_single_anchor_3d_loss(torch.tensor([4.0, 3.0, 6.0, 5.0]))
 
@@ -718,6 +743,7 @@ def test_detect3d_loss_uses_detached_matched_prediction_as_box_reference():
 
 
 def test_disentangled_rotation_corner_uses_gt_ray_but_full_center_uses_predicted_box():
+    """Verify disentangled corner rotation and full-center references."""
     loss, _, _ = _controlled_single_anchor_3d_loss(torch.tensor([4.0, 3.0, 6.0, 5.0]))
 
     # The shifted reference back-projects to x=2.5m. Only the center third of the disentangled corner objective should
@@ -730,6 +756,7 @@ def test_disentangled_rotation_corner_uses_gt_ray_but_full_center_uses_predicted
 
 
 def test_quality3d_treats_yaw_plus_pi_as_the_same_cuboid_geometry():
+    """Verify 3D quality treats yaw plus pi as equivalent cuboid geometry."""
     head = Detect3D(nc=1, ch=(16, 32, 64))
     raw = torch.zeros(head.nr)
     raw[2] = math.log(10.0)
@@ -743,6 +770,7 @@ def test_quality3d_treats_yaw_plus_pi_as_the_same_cuboid_geometry():
 
 
 def test_detect3d_end2end_postprocess_keeps_only_best_class_per_anchor():
+    """Verify end-to-end postprocessing keeps only the best class per anchor."""
     head = Detect3D(nc=3, end2end=True, ch=(16, 32, 64))
     head.max_det = 10
     predictions = torch.zeros((1, 2, 4 + head.nc + head.nd))
@@ -763,6 +791,7 @@ def test_detect3d_end2end_postprocess_keeps_only_best_class_per_anchor():
 
 
 def test_multibin_round_trip_and_camera_corner_geometry():
+    """Verify MultiBin round-tripping and camera-space corner geometry."""
     alpha = torch.tensor([-torch.pi + 1e-4, -0.4, 0.0, 0.7, torch.pi - 1e-4])
     bin_index, residual = encode_alpha_multibin(alpha, 12)
     logits = torch.full((len(alpha), 12), -20.0)
@@ -788,6 +817,7 @@ def test_multibin_round_trip_and_camera_corner_geometry():
 
 
 def test_corner_rotation_uses_target_bin_but_quality_uses_inference_bin():
+    """Verify corner rotation and quality use their intended direction bins."""
     head = Detect3D(nc=1, ch=(16, 32, 64))
     raw = torch.zeros(head.nr)
     raw[2] = math.log(10.0)
@@ -815,6 +845,7 @@ def test_corner_rotation_uses_target_bin_but_quality_uses_inference_bin():
 
 
 def test_center3d_smooth_l1_uses_fp32_accumulation():
+    """Verify projected-center Smooth L1 loss accumulates in FP32."""
     count = 70_000
     pred = torch.zeros((count, 2), dtype=torch.float16)
     target = torch.full((count, 2), 1_000.0, dtype=torch.float16)
@@ -828,6 +859,7 @@ def test_center3d_smooth_l1_uses_fp32_accumulation():
 
 
 def test_yolo26_detect3d_end2end_loss_and_inference():
+    """Verify YOLO26 Detect3D end-to-end loss and inference."""
     model = Detection3DModel("yolo26n-3d.yaml", ch=3, nc=1, verbose=False)
     model.args = DEFAULT_CFG
     image = torch.randn(1, 3, 64, 64)
@@ -885,6 +917,7 @@ def test_yolo26_detect3d_end2end_loss_and_inference():
 
 @pytest.mark.parametrize("config", ("yolo11n-3d.yaml", "yolo26n-3d.yaml"))
 def test_detect3d_fuse_preserves_eval_output_and_end2end_deploy_towers(config):
+    """Verify Detect3D fusion preserves evaluation output and deployment towers."""
     torch.manual_seed(0)
     model = Detection3DModel(config, ch=3, nc=3, verbose=False).eval()
     image = torch.randn(1, 3, 64, 96)
@@ -909,6 +942,7 @@ def test_detect3d_fuse_preserves_eval_output_and_end2end_deploy_towers(config):
 
 
 def test_yolo11_detect3d_uses_monocon_lite_smooth_l1_with_eight_decoded_outputs():
+    """Verify YOLO11 Detect3D uses MonoCon-lite loss and eight decoded values."""
     model = Detection3DModel("yolo11n-3d.yaml", ch=3, nc=1, verbose=False)
     model.args = DEFAULT_CFG
     image = torch.randn(1, 3, 64, 64)
@@ -933,6 +967,7 @@ def test_yolo11_detect3d_uses_monocon_lite_smooth_l1_with_eight_decoded_outputs(
 
 
 def test_results_save_txt_keeps_detect3d_parameters(tmp_path):
+    """Verify text result export preserves Detect3D parameters."""
     result = Results(
         np.zeros((32, 64, 3), dtype=np.uint8),
         path="frame.png",
@@ -951,6 +986,7 @@ def test_results_save_txt_keeps_detect3d_parameters(tmp_path):
 
 
 def test_results_summary_keeps_detect3d_parameters():
+    """Verify result summaries preserve Detect3D parameters."""
     result = Results(
         np.zeros((100, 200, 3), dtype=np.uint8),
         path="frame.png",
@@ -975,6 +1011,7 @@ def test_results_summary_keeps_detect3d_parameters():
 
 
 def test_detect3d_fitness_uses_generic_3d_map50_only():
+    """Verify Detect3D fitness uses only generic 3D mAP50."""
     metrics = Detection3DMetrics(names={0: "Car"})
     metrics.box.p = np.array([0.6])
     metrics.box.r = np.array([0.6])
@@ -996,6 +1033,7 @@ def test_detect3d_fitness_uses_generic_3d_map50_only():
 
 
 def test_detect3d_generic_process_reports_all_three_classes_and_3d_keys():
+    """Verify generic Detect3D processing reports every class and 3D key."""
     metrics = Detection3DMetrics(names={0: "Car", 1: "Van", 2: "Truck"})
     for image_index, class_id in enumerate((0, 1, 2)):
         stat = {
@@ -1031,6 +1069,7 @@ def test_detect3d_generic_process_reports_all_three_classes_and_3d_keys():
 
 
 def test_detect3d_generic_process_keeps_invalid_prediction_as_false_positive():
+    """Verify generic Detect3D processing keeps invalid predictions as false positives."""
     metrics = Detection3DMetrics(names={0: "Car"})
     metrics.update_stats(
         {
@@ -1053,6 +1092,7 @@ def test_detect3d_generic_process_keeps_invalid_prediction_as_false_positive():
 
 
 def test_detect3d_generic_process_handles_no_valid_3d_targets():
+    """Verify generic Detect3D processing handles no valid 3D targets."""
     metrics = Detection3DMetrics(names={0: "Car"})
     metrics.update_stats(
         {
@@ -1076,6 +1116,7 @@ def test_detect3d_generic_process_handles_no_valid_3d_targets():
 
 
 def test_detect3d_class_result_maps_sparse_3d_classes_by_class_id():
+    """Verify sparse 3D class results are mapped by class ID."""
     metrics = Detection3DMetrics(names={0: "Car", 1: "Van", 2: "Truck"})
     metrics.box.p = metrics.box.r = np.ones(3)
     metrics.box.all_ap = np.ones((3, 10))
@@ -1090,6 +1131,7 @@ def test_detect3d_class_result_maps_sparse_3d_classes_by_class_id():
 
 
 def test_3d_metric_matching_is_one_to_one():
+    """Verify 3D metric matching is one-to-one."""
     validator = object.__new__(Detection3DValidator)
     validator.d3_err = []
     validator._decode_d3 = lambda extra, image_info: torch.zeros((len(extra), 7))
@@ -1109,6 +1151,7 @@ def test_3d_metric_matching_is_one_to_one():
 
 
 def test_generic_3d_matching_uses_exact_iou_without_a_2d_gate():
+    """Verify generic 3D matching uses exact IoU without a 2D gate."""
     validator = object.__new__(Detection3DValidator)
     validator.iouv = torch.linspace(0.5, 0.95, 10)
     validator.niou = 10
@@ -1135,6 +1178,7 @@ def test_generic_3d_matching_uses_exact_iou_without_a_2d_gate():
 
 
 def test_generic_3d_matching_keeps_invalid_prediction_as_false_positive():
+    """Verify generic 3D matching retains invalid predictions as false positives."""
     validator = object.__new__(Detection3DValidator)
     validator.iouv = torch.linspace(0.5, 0.95, 10)
     validator.niou = 10
@@ -1169,6 +1213,7 @@ def test_generic_3d_matching_keeps_invalid_prediction_as_false_positive():
     ),
 )
 def test_generic_3d_matching_zeros_every_invalid_prediction_geometry(invalid_box):
+    """Verify generic 3D matching zeros each invalid prediction geometry."""
     validator = object.__new__(Detection3DValidator)
     validator.iouv = torch.linspace(0.5, 0.95, 10)
     validator.niou = 10
@@ -1192,6 +1237,7 @@ def test_generic_3d_matching_zeros_every_invalid_prediction_geometry(invalid_box
 
 
 def test_generic_3d_matching_requires_the_correct_class():
+    """Verify generic 3D matching requires the correct class."""
     validator = object.__new__(Detection3DValidator)
     validator.iouv = torch.linspace(0.5, 0.95, 10)
     validator.niou = 10
@@ -1215,6 +1261,7 @@ def test_generic_3d_matching_requires_the_correct_class():
 
 
 def test_generic_3d_matching_counts_duplicate_predictions_once():
+    """Verify generic 3D matching counts duplicate predictions once."""
     validator = object.__new__(Detection3DValidator)
     validator.iouv = torch.linspace(0.5, 0.95, 10)
     validator.niou = 10
@@ -1239,6 +1286,7 @@ def test_generic_3d_matching_counts_duplicate_predictions_once():
 
 
 def test_generic_3d_matching_handles_no_ground_truth():
+    """Verify generic 3D matching handles an empty ground-truth set."""
     validator = object.__new__(Detection3DValidator)
     validator.iouv = torch.linspace(0.5, 0.95, 10)
     validator.niou = 10
@@ -1263,6 +1311,7 @@ def test_generic_3d_matching_handles_no_ground_truth():
 
 
 def test_generic_3d_matching_handles_no_predictions():
+    """Verify generic 3D matching handles an empty prediction set."""
     validator = object.__new__(Detection3DValidator)
     validator.iouv = torch.linspace(0.5, 0.95, 10)
     validator.niou = 10
@@ -1286,6 +1335,7 @@ def test_generic_3d_matching_handles_no_predictions():
 
 @pytest.mark.parametrize("extra", (None, torch.empty((1, 7)), torch.empty((2, 8))))
 def test_generic_3d_matching_rejects_malformed_prediction_geometry(extra):
+    """Verify generic 3D matching rejects malformed prediction geometry."""
     validator = object.__new__(Detection3DValidator)
     validator.iouv = torch.linspace(0.5, 0.95, 10)
     validator.niou = 10
@@ -1307,6 +1357,7 @@ def test_generic_3d_matching_rejects_malformed_prediction_geometry(extra):
 
 
 def test_generic_3d_matching_excludes_only_geometrically_invalid_ground_truth():
+    """Verify generic 3D matching excludes only geometrically invalid targets."""
     validator = object.__new__(Detection3DValidator)
     validator.iouv = torch.linspace(0.5, 0.95, 10)
     validator.niou = 10
@@ -1332,6 +1383,7 @@ def test_generic_3d_matching_excludes_only_geometrically_invalid_ground_truth():
 
 
 def test_3d_diagnostic_metrics_exclude_targets_masked_out_of_3d_training():
+    """Verify 3D diagnostics exclude targets masked out of 3D training."""
     validator = object.__new__(Detection3DValidator)
     validator.d3_err = []
     validator._decode_d3 = lambda extra, image_info: torch.tensor([[10.0, 0.0, 1.5, 1.6, 1.5, 4.0, 0.0]] * len(extra))
@@ -1360,6 +1412,7 @@ def test_3d_diagnostic_metrics_exclude_targets_masked_out_of_3d_training():
 
 
 def test_extended_3d_diagnostic_recall_denominator_keeps_gt_without_predictions():
+    """Verify extended 3D recall includes targets without predictions."""
     validator = object.__new__(Detection3DValidator)
     validator.d3_err = []
     validator.d3_diagnostics = []
@@ -1383,6 +1436,7 @@ def test_extended_3d_diagnostic_recall_denominator_keeps_gt_without_predictions(
 
 
 def test_calibration_and_3d_label_validation_are_strict(tmp_path):
+    """Verify calibration and 3D label validation are strict."""
     bad_calib = tmp_path / "bad.txt"
     bad_calib.write_text("P2: 1 2 3\n", encoding="utf-8")
     with pytest.raises(ValueError, match="12 values"):
@@ -1423,6 +1477,7 @@ def _make_detect3d_cache_hash_dataset(tmp_path):
 
 
 def test_detect3d_cache_hash_tracks_same_size_label_and_calibration_edits(tmp_path):
+    """Verify the Detect3D cache tracks same-size label and calibration edits."""
     dataset, label, calib = _make_detect3d_cache_hash_dataset(tmp_path)
     original = dataset.get_cache_hash()
 
@@ -1446,6 +1501,7 @@ def test_detect3d_cache_hash_tracks_same_size_label_and_calibration_edits(tmp_pa
     ],
 )
 def test_detect3d_cache_hash_tracks_3d_validity_config(tmp_path, attribute, value):
+    """Verify the Detect3D cache tracks 3D validity configuration."""
     dataset, _, _ = _make_detect3d_cache_hash_dataset(tmp_path)
     original = dataset.get_cache_hash()
 

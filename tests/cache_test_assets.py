@@ -14,14 +14,14 @@ from pathlib import Path
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from tests import MODEL, SOLUTION_ASSETS
+from tests import ASSET_TASKS, MODEL, SOLUTION_ASSETS
 from ultralytics.cfg import TASK2CALIBRATIONDATA, TASK2DATA, TASK2MODEL
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.utils import ARM64, ASSETS_URL, DATASETS_DIR, IS_RASPBERRYPI, LINUX, LOGGER, WEIGHTS_DIR, checks
 from ultralytics.utils.downloads import attempt_download_asset, safe_download
 
 COMMON_WEIGHTS = [
-    *TASK2MODEL.values(),
+    *(TASK2MODEL[task] for task in ASSET_TASKS),
     "yolo11n-grayscale.pt",
     "rtdetr-l.pt",
     "FastSAM-s.pt",
@@ -42,8 +42,8 @@ SLOW_WEIGHTS = [
 ]
 
 DATASETS = [
-    *TASK2DATA.values(),
-    *TASK2CALIBRATIONDATA.values(),
+    *(TASK2DATA[task] for task in ASSET_TASKS),
+    *(TASK2CALIBRATIONDATA[task] for task in ASSET_TASKS),
     "coco8-grayscale.yaml",
     "coco8-multispectral.yaml",
     "coco12-formats.yaml",

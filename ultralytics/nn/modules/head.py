@@ -735,8 +735,11 @@ class Detect3D(Detect):
         sin_alpha, cos_alpha = alpha.sin(), alpha.cos()
 
         # q3d is a learned localization-quality ranker used only to re-rank class confidence.
-        quality = d3_raw[:, 6:7].sigmoid().pow(self.quality3d_power)
-        scores = x["scores"].sigmoid() * quality
+        quality_logits, class_logits = d3_raw[:, 6:7], x["scores"]
+        if quality_logits.device.type == "cpu" and quality_logits.dtype == torch.float16:
+            quality_logits, class_logits = quality_logits.float(), class_logits.float()
+        quality = quality_logits.sigmoid().pow(self.quality3d_power)
+        scores = class_logits.sigmoid() * quality
         d3_params = torch.cat((center, depth, sin_alpha, cos_alpha, dimensions), dim=1)
         return torch.cat((dbox, scores, d3_params), dim=1)
 

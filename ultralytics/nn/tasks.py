@@ -2108,11 +2108,6 @@ def parse_model(d, ch, verbose=True):
             scale = next(iter(scales.keys()))
             LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
         depth, width, max_channels = scales[scale]
-    # Per-scale variables resolvable as string tokens in module names/args (e.g. `ndl`, `efficient_ms`).
-    # Empty dict for any yaml that does not opt in via a top-level `scale_args:` block, so this is a
-    # no-op for every existing yaml. See yolo27-detr.yaml for canonical usage.
-    scale_args = (d.get("scale_args") or {}).get(scale, {}) if scale else {}
-
     restricted = _SafeLoad.restricted()
     if act:
         # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU(). Under restricted loading, resolve the
@@ -2185,8 +2180,6 @@ def parse_model(d, ch, verbose=True):
         }
     )
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
-        if isinstance(m, str) and m in scale_args:
-            m = scale_args[m]
         m = (
             getattr(torch.nn, m[3:])
             if m.startswith("nn.")
@@ -2197,15 +2190,10 @@ def parse_model(d, ch, verbose=True):
         if restricted and not (isinstance(m, type) and issubclass(m, torch.nn.Module)):
             # Under restricted loading, only known model layers may be named here.
             raise TypeError(emojis(f"ERROR ❌️ module '{m}' is not a permitted model layer under restricted loading."))
-        if isinstance(args, str) and args in scale_args:
-            args = scale_args[args]
         for j, a in enumerate(args):
             if isinstance(a, str):
                 with contextlib.suppress(ValueError):
-                    if a in scale_args:
-                        args[j] = scale_args[a]
-                    else:
-                        args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
+                    args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in base_modules:
             c1, c2 = ch[f], args[0]

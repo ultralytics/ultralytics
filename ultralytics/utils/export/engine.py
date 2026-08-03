@@ -522,7 +522,7 @@ def onnx2engine(
                 f"{prefix} DEIM accuracy on TensorRT {trt.__version__}: added a fusion barrier at "
                 f"{len(marked)} deformable-attention tensors."
             )
-        # The barrier is not sufficient for every DEIM variant on 10.14: yolo27x-detr-alt still loses ~45% of its
+        # The barrier is not sufficient for every DEIM variant on 10.14: yolo27x-detr still loses ~45% of its
         # mAP there (only global fusion inhibition recovers it, which is not shippable). Every other release from
         # 10.13 onwards, including TensorRT 11, reaches FP32 parity for all three checkpoints.
         if check_version(trt.__version__, ">=10.14.0,<10.15.0"):

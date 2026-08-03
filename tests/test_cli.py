@@ -100,9 +100,9 @@ def test_rtdetr(task: str = "detect", model: Path = WEIGHTS_DIR / "rtdetr-l.pt",
 
 @pytest.mark.skipif(not TORCH_1_11, reason="YOLODETR uses RT-DETR components that require torch>=1.11")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
-@pytest.mark.parametrize("model", ["yolo27n-detr.yaml", "yolo27x-vit-detr.yaml"])
+@pytest.mark.parametrize("model", ["yolo27l-detr.yaml", "yolo27x-detr.yaml"])
 def test_yolodetr(model: str, data: str = "coco8.yaml") -> None:
-    """Test YOLODETR CLI predict and from-scratch training on CNN and DINOv3-ViT backbone variants."""
+    """Test YOLODETR CLI predict and from-scratch training on YOLO26 CSP and UltraViT backbone variants."""
     run(f"yolo predict detect model={model} source={ASSETS / 'bus.jpg'} imgsz=160 save")
     run(f"yolo train detect model={model} data={data} imgsz=160 epochs=1 cache=disk")
 

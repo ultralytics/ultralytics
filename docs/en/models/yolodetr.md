@@ -1,73 +1,37 @@
 ---
 title: YOLO-DETR
 comments: true
-description: Learn about Ultralytics YOLO-DETR object detection models with YOLO26-style CSP and DINOv3-ViT + STA backbones, DETR decoders, training, inference, validation, and export.
-keywords: YOLO-DETR, YOLODETR, YOLO27-DETR, Ultralytics, object detection, DETR, RTDETRDecoderEfficient, DeimDecoder, DINOv3, DINOv3-ViT, Vision Transformer, YOLO26, NMS-free, real-time detection
+description: Learn about Ultralytics YOLO-DETR object detection models with YOLO26-style CSP and UltraViT backbones, DeimDecoder heads, training, inference, validation, and export.
+keywords: YOLO-DETR, YOLODETR, YOLO27-DETR, Ultralytics, object detection, DETR, DeimDecoder, UltraViT, HybridEncoder, YOLO26, NMS-free, real-time detection
 ---
 
 # Ultralytics YOLO-DETR
 
 ## Overview
 
-Ultralytics YOLO-DETR is a DETR-style object detection family that combines YOLO feature extractors and transformer
-decoder heads inside the standard Ultralytics workflow. It uses the dedicated `YOLODETR` Python class while keeping
-the familiar [Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), and
-[Export](../modes/export.md) modes.
+Ultralytics YOLO-DETR combines YOLO feature extractors with a transformer decoder in the standard Ultralytics
+workflow. It uses the dedicated `YOLODETR` Python class and supports [Train](../modes/train.md),
+[Val](../modes/val.md), [Predict](../modes/predict.md), and [Export](../modes/export.md) modes.
 
-The family spans three configs:
+Two model configurations are available:
 
-- **YOLO26-style CSP (`n/s`)** use a YOLO26-style convolutional backbone with an `RTDETRDecoderEfficient` head
-  (`yolo27-detr.yaml`).
-- **YOLO26-style CSP (`m/l`)** use the same backbone with a `DeimDecoder` head (`yolo27-deim-detr.yaml`).
-- **DINOv3-ViT + STA (`x/xxl`)** use a DINOv3 Vision Transformer backbone with spatial token aggregation (STA) and a
-  `DeimDecoder` head (`yolo27-vit-detr.yaml`). The `x` scale uses DINOv3-ViT-S/16-plus; the `xxl` scale uses
-  DINOv3-ViT-B/16.
+- **YOLO27l-DETR** uses a YOLO26-style CSP backbone, an FPN/PAN neck, and a 4-layer `DeimDecoder`.
+- **YOLO27x-DETR** uses an UltraViT backbone, a HybridEncoder neck, and a 6-layer `DeimDecoder`.
 
-Both groups produce DETR-style query predictions, making YOLO-DETR suitable for NMS-free object detection pipelines
-with fixed decoder queries and end-to-end export support.
-
-## Key Features
-
-- **DETR-style object queries:** YOLO-DETR predicts a fixed set of object queries, avoiding traditional dense anchor
-  grids and non-maximum suppression in the standard inference path.
-- **Ultralytics workflow integration:** Models work with the same training, validation, prediction, and export modes
-  used across other Ultralytics model families.
-- **Two backbone groups:** Compact and standard variants use YOLO26-style CSP backbones, while the larger variants use
-  DINOv3-ViT + STA backbones for stronger feature extraction.
-- **Scale-specific decoder depth:** Each variant selects its decoder-layer count from the model config, balancing
-  latency and accuracy for the target deployment point.
-- **Efficient nano decoder:** YOLO27n-DETR enables `efficient_ms=True`, scheduling single-level cross-attention across
-  feature levels in round-robin order for a lighter multi-scale decoder path.
-- **YOLODETR training recipe:** The trainer adds augmentation decay, a flat-cosine learning-rate schedule, and separate
-  learning rates for backbone and head parameter groups.
+Both models produce query-based predictions for NMS-free object detection with 300 decoder queries by default.
 
 ## Model Variants
 
-The main YOLO-DETR family currently contains six release-facing variants. The `n/s` models are scale-resolved from
-`yolo27-detr.yaml`, `m/l` from `yolo27-deim-detr.yaml`, and `x/xxl` from `yolo27-vit-detr.yaml`.
-
-| Model          | Config                    | Backbone Source            | Decoder                  | Decoder Layers | Notes                                                       |
-| -------------- | ------------------------- | -------------------------- | ------------------------ | -------------- | ----------------------------------------------------------- |
-| YOLO27n-DETR   | `yolo27n-detr.yaml`       | YOLO26n-style CSP          | `RTDETRDecoderEfficient` | 4              | Uses `efficient_ms=True` round-robin single-level attention |
-| YOLO27s-DETR   | `yolo27s-detr.yaml`       | YOLO26s-style CSP          | `RTDETRDecoderEfficient` | 3              | Standard multi-scale decoder                                |
-| YOLO27m-DETR   | `yolo27m-deim-detr.yaml`  | YOLO26l-style CSP          | `DeimDecoder`            | 3              | DEIM decoder at a middle deployment point                   |
-| YOLO27l-DETR   | `yolo27l-deim-detr.yaml`  | YOLO26l-style CSP          | `DeimDecoder`            | 4              | DEIM decoder with a deeper stack                            |
-| YOLO27x-DETR   | `yolo27x-vit-detr.yaml`   | DINOv3-ViT-S/16-plus + STA | `DeimDecoder`            | 6              | DINOv3-dependent high-capacity variant                      |
-| YOLO27xxl-DETR | `yolo27xxl-vit-detr.yaml` | DINOv3-ViT-B/16 + STA      | `DeimDecoder`            | 4              | DINOv3-dependent extra-large variant                        |
-
-!!! note "Backbone labels"
-
-    `YOLO27m-DETR` uses the YOLO26l-style CSP backbone with a shorter 3-layer decoder, so its `m` label describes the
-    deployment point rather than a separate YOLO26m backbone. Each config resolves its scale-specific decoder depth
-    (and `efficient_ms` for `n/s`) from `scale_args`.
+| Model        | Config                 | Backbone         | Neck            | Decoder       | Decoder Layers |
+| ------------ | ---------------------- | ---------------- | --------------- | ------------- | -------------- |
+| YOLO27l-DETR | `yolo27l-detr.yaml`    | YOLO26-style CSP | FPN/PAN         | `DeimDecoder` | 4              |
+| YOLO27x-DETR | `yolo27x-detr.yaml`    | UltraViT         | HybridEncoder   | `DeimDecoder` | 6              |
 
 ## Supported Tasks and Modes
 
-YOLO-DETR is currently an object detection family.
-
-| Model Family | Task                                | Inference | Validation | Training | Export |
-| ------------ | ----------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLO-DETR    | [Object Detection](../tasks/detect.md) | Yes       | Yes        | Yes      | Yes    |
+| Model Family | Task                                      | Inference | Validation | Training | Export |
+| ------------ | ----------------------------------------- | --------- | ---------- | -------- | ------ |
+| YOLO-DETR    | [Object Detection](../tasks/detect.md)    | Yes       | Yes        | Yes      | Yes    |
 
 ## Performance Metrics
 
@@ -75,24 +39,15 @@ YOLO-DETR is currently an object detection family.
 
     === "Detection (COCO)"
 
-        | Model          | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> |
-        | -------------- | --------------------------- | -------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ |
-        | YOLO27n-DETR   | 480                         | -                          | 49.8 ± 1.0                           | 1.7 ± 0.0                                 | 6.04                     |
-        | YOLO27s-DETR   | 512                         | -                          | 114.2 ± 2.4                          | 2.7 ± 0.0                                 | 13.05                    |
-        | YOLO27m-DETR   | 512                         | -                          | 224.7 ± 5.0                          | 4.6 ± 0.1                                 | 26.35                    |
-        | YOLO27l-DETR   | 640                         | -                          | 357.1 ± 2.5                          | 7.2 ± 0.1                                 | 28.65                    |
-        | YOLO27x-DETR   | 640                         | -                          | 965.3 ± 5.1                          | 13.8 ± 0.2                                | 50.37                    |
-        | YOLO27xxl-DETR | 640                         | -                          | 1775.3 ± 12.2                        | 25.3 ± 0.8                                | 106.22                   |
+        | Model        | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | ------------ | --------------------------- | -------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
+        | YOLO27l-DETR | 640                         |                            | 335.6 ± 2.6                          | 6.8 ± 0.1                                 | 30.273                   | 85.968                  |
+        | YOLO27x-DETR | 640                         |                            | 649.7 ± 6.1                          | 12.8 ± 0.2                                | 65.477                   | 176.019                 |
 
-_Latency measured on NVIDIA T4 with TensorRT v10.11 FP16 (batch=1) and CPU ONNX at each scale's recommended `imgsz`
-(shown in the `size` column) to preserve the latency-performance balance. mAP values will be filled in once
-final COCO benchmarks are complete._
+_Parameters and FLOPs are measured from the exported ONNX graphs at `imgsz=640`. FLOPs count one multiply-add as two
+floating-point operations._
 
 ## Usage Examples
-
-This example shows simple YOLO-DETR training and inference. For complete mode-specific options, see the
-[Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), and [Export](../modes/export.md)
-documentation.
 
 !!! example
 
@@ -101,138 +56,72 @@ documentation.
         ```python
         from ultralytics import YOLODETR
 
-        # Load a YOLO27n-DETR model from YAML
-        model = YOLODETR("yolo27n-detr.yaml")
+        # Build a YOLO27l-DETR model from YAML
+        model = YOLODETR("yolo27l-detr.yaml")
 
-        # Train the model on the COCO8 example dataset (imgsz=480 is the recommended nano size)
-        results = model.train(data="coco8.yaml", epochs=100, imgsz=480)
-
-        # Run inference on an image
+        # Train and run inference
+        model.train(data="coco8.yaml", epochs=100, imgsz=640)
         results = model("path/to/image.jpg")
         ```
 
     === "CLI"
 
         ```bash
-        # Train a YOLO27n-DETR model on the COCO8 example dataset (imgsz=480 is the recommended nano size)
-        yolo train model=yolo27n-detr.yaml data=coco8.yaml epochs=100 imgsz=480
-
-        # Run inference with a YOLO27n-DETR model
-        yolo predict model=yolo27n-detr.yaml source=path/to/image.jpg
+        yolo train model=yolo27l-detr.yaml data=coco8.yaml epochs=100 imgsz=640
+        yolo predict model=yolo27l-detr.yaml source=path/to/image.jpg
         ```
 
 ## Training Notes
 
 YOLO-DETR accepts standard Ultralytics training arguments such as `data`, `epochs`, `imgsz`, `batch`, `optimizer`,
-`lr0`, `lrf`, and augmentation probabilities. It also supports YOLO-DETR-specific training options through
+`lr0`, `lrf`, and augmentation probabilities. It also supports these trainer-specific arguments through
 `model.train(...)`:
 
-| Argument            | Default | Description                                                                 |
-| ------------------- | ------- | --------------------------------------------------------------------------- |
-| `no_aug_epoch`      | `4`     | Number of trailing epochs where augmentation is disabled                    |
-| `backbone_lr_ratio` | `0.02`  | Multiplier applied to backbone parameter-group learning rates               |
-| `base_size_repeat`  | `3`     | Extra weight given to the base image size during multi-scale size sampling  |
+| Argument            | Default | Description                                                                |
+| ------------------- | ------- | -------------------------------------------------------------------------- |
+| `no_aug_epoch`      | `4`     | Number of final epochs in which augmentation is disabled                   |
+| `backbone_lr_ratio` | `0.02`  | Multiplier applied to backbone parameter-group learning rates              |
+| `base_size_repeat`  | `3`     | Extra weight given to the base image size during multi-scale sampling      |
 
-These options are handled by `YOLODETRTrainer` and are not added to `default.yaml`. Pass them directly to
-`model.train(...)` when you need to override the defaults.
+Recommended starting settings are:
 
-### Backbone Learning Rate
-
-`backbone_lr_ratio` multiplies the main learning rate for backbone parameter groups:
-
-```text
-backbone_lr = lr0 * backbone_lr_ratio
-```
-
-Use a smaller ratio when the backbone is a pretrained transformer that should adapt slowly, and a larger ratio when
-fine-tuning YOLO26-style CSP backbones directly. Recommended per-scale training settings (`optimizer="AdamW"`,
-`lrf=0.5`, `momentum=0.9`) are:
-
-| Scale | Config                    | `lr0`    | `backbone_lr_ratio` | `weight_decay` |
-| ----- | ------------------------- | -------- | ------------------- | -------------- |
-| `n`   | `yolo27n-detr.yaml`       | `0.0002` | `0.1`               | `0.0001`       |
-| `s`   | `yolo27s-detr.yaml`       | `0.0001` | `0.1`               | `0.0001`       |
-| `m`   | `yolo27m-deim-detr.yaml`  | `0.0005` | `0.025`             | `0.000125`     |
-| `l`   | `yolo27l-deim-detr.yaml`  | `0.0005` | `0.025`             | `0.000125`     |
-| `x`   | `yolo27x-vit-detr.yaml`   | `0.0005` | `0.02`              | `0.000125`     |
-| `xxl` | `yolo27xxl-vit-detr.yaml` | `0.0005` | `0.02`              | `0.000125`     |
-
-The DEIM variants use the reference DEIM `lr0=0.0005` with a low backbone ratio (`0.025` for `m/l`, `0.02` for
-`x/xxl`), while the efficient `n/s` variants use a smaller `lr0` with a higher ratio (`0.1`) to adapt their
-YOLO26-style CSP backbones more directly. The effective backbone learning rate (`lr0 * backbone_lr_ratio`) stays in
-the `1e-5`–`2e-5` range across scales.
+| Model        | Config              | `lr0`    | `backbone_lr_ratio` | `weight_decay` |
+| ------------ | ------------------- | -------- | ------------------- | -------------- |
+| YOLO27l-DETR | `yolo27l-detr.yaml` | `0.0005` | `0.025`             | `0.000125`     |
+| YOLO27x-DETR | `yolo27x-detr.yaml` | `0.0005` | `0.02`              | `0.000125`     |
 
 ```python
 from ultralytics import YOLODETR
 
-model = YOLODETR("yolo27x-vit-detr.yaml")
+model = YOLODETR("yolo27x-detr.yaml")
 model.train(
     data="coco8.yaml",
     epochs=100,
     imgsz=640,
+    optimizer="AdamW",
+    lr0=0.0005,
+    weight_decay=0.000125,
     no_aug_epoch=4,
     backbone_lr_ratio=0.02,
     base_size_repeat=3,
 )
 ```
 
-### DETR Training Practices
-
-DETR-family training benefits from a few practices that differ from the base Ultralytics defaults. The first
-group is applied through standard `model.train(...)` kwargs; the last two require subclassing `YOLODETRTrainer`
-and passing the subclass through `model.train(trainer=...)`:
-
-- **Batch size with `nbs = batch`.** DETR-style training typically uses per-GPU batches of `16` or `32`, while
-  the base Ultralytics defaults assume a nominal batch of `64` (`nbs=64` in `default.yaml`) for internal loss
-  and learning-rate scaling. Setting `nbs` equal to `batch` disables that scaling and reproduces the published
-  DETR learning rates directly, for example `model.train(..., batch=16, nbs=16)`.
-- **AdamW optimizer with a small learning rate.** DETR recipes use `optimizer="AdamW"` with a small `lr0` (around
-  `1e-4` is a safe starting point, since DETR decoders can become unstable at larger values) and a low
-  `weight_decay`, which is closer to transformer-training practice than the SGD defaults used for CNN-only
-  detectors.
-- **Bias-less warmup.** Set `warmup_bias_lr=0.0` and `warmup_momentum` equal to `momentum` so the bias parameters
-  are not given a separate boosted warmup schedule. Combined with a short `warmup_epochs`, this matches DETR
-  training conventions.
-- **Gradient clipping.** The base trainer clips gradients at `max_norm=10.0` inside `optimizer_step`, while the
-  DEIM reference recipe uses `0.1`. The tighter norm materially affects transformer-decoder stability in early
-  epochs, so DETR-style training should override `optimizer_step` with the reference value.
-- **Synchronized batch normalization (multi-GPU only).** The DINOv3-ViT + STA adapter declares `SyncBatchNorm`
-  layers directly for its spatial-prior branch, but the neck and head still use plain `BatchNorm2d`. When
-  training across multiple GPUs with DDP (`world_size > 1`), wrap the model with
-  `torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)` inside the trainer's `setup_model` so batch statistics
-  are aggregated across ranks for every BN layer. Single-GPU training does not need this conversion.
-
-The [Customizing Trainer](../guides/custom-trainer.md) guide walks through the trainer-subclass patterns; see
-specifically the [Synchronized BatchNorm](../guides/custom-trainer.md#synchronized-batchnorm-for-multi-gpu-training)
-and [Configurable Gradient Clipping](../guides/custom-trainer.md#configurable-gradient-clipping) sections, then
-adapt the shown `DetectionTrainer` subclass to `YOLODETRTrainer` and pass it via `model.train(trainer=...)`.
-
 ## Inference and Export Notes
 
-YOLO-DETR models use a fixed number of decoder queries, 300 in the default configs. Increasing `max_det` does not
-create additional decoder queries; it only changes how many predictions can be returned after inference. If a dataset
-can contain more objects than the configured query count, adjust the query count in the model YAML and retrain so the
-decoder learns the additional queries.
+YOLO-DETR uses 300 decoder queries by default. Increasing `max_det` does not create additional queries; change the
+query count in the model YAML and retrain if the dataset can contain more than 300 objects per image.
 
-Decoder depth is part of the selected architecture. The YOLO26-style CSP variants use 4, 3, 3, and 4 decoder layers
-for `n`, `s`, `m`, and `l`, respectively. The DINOv3-ViT + STA variants use 6 decoder layers for `x` and 4 for `xxl`.
-Export keeps the selected architecture and decoder behavior, including `efficient_ms=True` for YOLO27n-DETR.
+Decoder depth is part of each architecture: YOLO27l-DETR uses 4 layers and YOLO27x-DETR uses 6. Export preserves the
+selected architecture and decoder behavior.
 
 ## FAQ
 
 ### How is YOLO-DETR different from other YOLO models?
 
-Standard YOLO models use CNN-based detection heads that predict outputs on dense feature grids. YOLO-DETR replaces
-that with a Transformer-based DETR-style decoder head, adopting the object-query design and the training and inference
-practices established in the DETR literature, which yields NMS-free predictions with a fixed set of decoder queries
-per image.
-
-
-
+Standard YOLO models predict on dense feature grids. YOLO-DETR instead uses a transformer decoder with a fixed set of
+object queries, producing NMS-free predictions in its standard inference path.
 
 ## License
 
-YOLO27-DETR-X and YOLO27-DETR-XXL use DINOv3-derived weights and are Built with DINOv3. These variants are subject to
-the [DINOv3 License](https://ai.meta.com/resources/models-and-libraries/dinov3-license/) in addition to the applicable
-Ultralytics license terms. The `n/s/m/l` variants use YOLO26-style CSP backbones and are covered by the Ultralytics
-license terms only.
+YOLO-DETR is covered by the applicable Ultralytics license terms.

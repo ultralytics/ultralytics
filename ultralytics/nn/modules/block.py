@@ -43,6 +43,7 @@ __all__ = (
     "CBLinear",
     "ContrastiveHead",
     "DEIMDINOv3STAs",
+    "DEIMEUPEConvNeXt",
     "GhostBottleneck",
     "HGBlock",
     "HGStem",
@@ -2141,6 +2142,40 @@ class Add(nn.Module):
     def forward(self, xs: list[torch.Tensor]) -> torch.Tensor:
         """Forward pass that sums input tensors."""
         return torch.sum(torch.stack(xs), dim=0)
+
+
+class DEIMEUPEConvNeXt(nn.Module):
+    """Wrapper for EUPE ConvNeXt backbones."""
+
+    def __init__(
+        self,
+        name: str = "eupe_convnext_tiny",
+        pretrained: bool = True,
+        out_indices: tuple[int, ...] = (1, 2, 3),
+        finetune: bool = True,
+        split: bool = True,
+        weights: str | None = None,
+        repo_dir: str | None = None,
+    ):
+        """Initialize EUPE ConvNeXt wrapper for the Ultralytics model parser."""
+        from ultralytics.nn.backbones.eupe_adapter import EUPEConvNeXt as _EUPEConvNeXt
+
+        super().__init__()
+        self.m = _EUPEConvNeXt(
+            name=name,
+            pretrained=pretrained,
+            out_indices=out_indices,
+            finetune=finetune,
+            weights=weights,
+            repo_dir=repo_dir,
+        )
+        self.split = split
+        self.channels = self.m.out_channels
+
+    def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
+        """Forward pass returning [input, P3, P4, P5] when split=True."""
+        y = self.m(x)
+        return [x, *y] if self.split else y
 
 
 class DEIMDINOv3STAs(nn.Module):

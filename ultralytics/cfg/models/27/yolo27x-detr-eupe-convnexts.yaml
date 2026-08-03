@@ -1,0 +1,58 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# YOLO27x-DETR-EUPE-ConvNeXt-S: same HybridEncoder + DeimDecoder (ndl=6) stack as yolo27x-detr.yaml,
+# with the DINOv3-ViT + STA backbone replaced by an EUPE ConvNeXt-S trunk. ConvNeXt emits native
+# P3/P4/P5 features at strides 8/16/32 (192/384/768 channels), so no STA branch is needed and the
+# pyramid is projected to hidden_dim=256 with 1x1 convs in the backbone. Task: detect.
+#
+# Requires the EUPE package on the import path, or a local EUPE checkout beside this repository
+# (see ultralytics/nn/backbones/eupe_adapter.py, override with EUPE_REPO_DIR).
+
+nc: 80 # number of classes
+
+backbone:
+  # [from, repeats, module, args]
+  # Semantic path (EUPE ConvNeXt-S). First arg (None) is the parser's output channels placeholder.
+  # Args: [out_ch, name, pretrained, out_indices, finetune, split, weights]
+  # pretrained=False trains the trunk from scratch; append a checkpoint path as `weights` to start from EUPE weights.
+  - [-1, 1, DEIMEUPEConvNeXt, [None, eupe_convnext_small, False, [1, 2, 3], True, True]] # 0
+  - [0, 1, Index, [192, 1]] # 1 P3
+  - [0, 1, Index, [384, 2]] # 2 P4
+  - [0, 1, Index, [768, 3]] # 3 P5
+
+  # Project the native ConvNeXt pyramid to hidden_dim=256.
+  - [1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 4 P3 proj
+  - [2, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 5 P4 proj
+  - [3, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 6 P5 proj
+
+head:
+  # HybridEncoder head: input_proj + AIFI + FPN/PAN. hidden_dim=256.
+  # input_proj stays Identity because the backbone already projects to 256.
+  - [6, 1, nn.Identity, []] # 7 input_proj.2
+  - [-1, 1, AIFI, [1024, 8]]
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 9 Y5, lateral_convs.0
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [5, 1, nn.Identity, []] # 11 input_proj.1
+  - [[-2, -1], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 13 fpn_blocks.0
+  - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 14 Y4, lateral_convs.1
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [4, 1, nn.Identity, []] # 16 input_proj.0
+  - [[-2, -1], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 18 X3, fpn_blocks.1
+
+  - [-1, 1, SCDown, [256, 3, 2, False]] # 19 downsample_convs.0
+  - [[-1, 14], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 21 F4, pan_blocks.0
+
+  - [-1, 1, SCDown, [256, 3, 2, False]] # 22 downsample_convs.1
+  - [[-1, 9], 1, Add, []]
+  - [-1, 1, RepNCSPELAN5, [256, 512, 160, 4]] # 24 F5, pan_blocks.1
+
+  # DeimDecoder (defaults explicit). Args:
+  # [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
+  #  learnt_init_query, query_select_method, reg_max, reg_scale, layer_scale, mlp_act,
+  #  o2m_topk_mode, use_gateway, share_bbox_head, share_score_head]
+  - [[18, 21, 24], 1, DeimDecoder, [nc, 256, 300, [3, 6, 3], 8, 6, 2048, 0.0, "silu", -1, 100, 0.5, 1.0, False, "default", 32, 4.0, 1.0, "silu", "unshared", True, False, False]]

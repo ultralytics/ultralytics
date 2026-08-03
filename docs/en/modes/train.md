@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn how to efficiently train object detection models using YOLO26 with comprehensive instructions on settings, augmentation, and hardware utilization.
-keywords: Ultralytics, YOLO26, model training, deep learning, object detection, GPU training, dataset augmentation, hyperparameter tuning, model performance, apple silicon training
+keywords: Ultralytics, YOLO26, model training, deep learning, object detection, GPU training, AMD ROCm, Huawei Ascend NPU, dataset augmentation, hyperparameter tuning, model performance, apple silicon training
 ---
 
 # Model Training with Ultralytics YOLO
@@ -123,6 +123,53 @@ Multi-GPU training allows for more efficient utilization of available hardware r
     ```bash
     python -m torch.distributed.run --nproc_per_node 2 your_training_script.py
     ```
+
+AMD GPU training uses a PyTorch ROCm build with the standard `device=0` or `device=cuda:0` syntax. See the
+[AMD integration guide](../integrations/amd.md) for installation and the current MIGraphX, DirectML, and Ryzen AI NPU
+support status.
+
+Intel GPU training uses `device=xpu:0`, or multiple XPU IDs with a PyTorch build that provides XCCL.
+
+### Huawei Ascend NPU Training
+
+Ultralytics supports training and validation on Huawei Ascend NPUs through
+[`torch_npu`](https://github.com/Ascend/pytorch). Install mutually compatible CANN, PyTorch, and `torch_npu`
+versions by following the [Ascend Extension for PyTorch installation guide](https://github.com/Ascend/pytorch#installation),
+then source the CANN environment before starting Ultralytics:
+
+```bash
+source /usr/local/Ascend/ascend-toolkit/set_env.sh
+```
+
+!!! example "Ascend NPU Training Example"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.pt")
+
+        # Train on one Ascend NPU
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device="npu:0")
+
+        # Train across two Ascend NPUs with HCCL
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device="npu:0,1")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Train on one Ascend NPU
+        yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 device=npu:0
+
+        # Train across two Ascend NPUs with HCCL
+        yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 device=npu:0,1
+        ```
+
+The standard training features, including AMP, validation, checkpointing, and resume, use the active NPU. AutoBatch is
+available for single-NPU training, while multiple NPU IDs launch distributed training through HCCL. See the
+[Huawei Ascend integration guide](../integrations/ascend.md) for model export and deployment after training.
 
 ### Idle GPU Training
 

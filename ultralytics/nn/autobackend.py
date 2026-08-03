@@ -256,7 +256,6 @@ class AutoBackend(nn.Module):
         self,
         im: torch.Tensor,
         augment: bool = False,
-        visualize: bool = False,
         embed: list | None = None,
         **kwargs: Any,
     ) -> Any:
@@ -265,7 +264,6 @@ class AutoBackend(nn.Module):
         Args:
             im (torch.Tensor): The image tensor to perform inference on.
             augment (bool): Whether to perform data augmentation during inference.
-            visualize (bool): Whether to visualize the output predictions.
             embed (list, optional): A list of layer indices to return embeddings from.
             **kwargs (Any): Additional keyword arguments for model configuration.
 
@@ -280,7 +278,7 @@ class AutoBackend(nn.Module):
         # Build forward kwargs based on backend type
         forward_kwargs = {}
         if self.format == "pt":
-            forward_kwargs = {"augment": augment, "visualize": visualize, "embed": embed, **kwargs}
+            forward_kwargs = {"augment": augment, "embed": embed, **kwargs}
 
         y = self.backend.forward(im, **forward_kwargs)
 

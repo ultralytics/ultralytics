@@ -31,7 +31,7 @@ Supported model formats:
 
 After upload, the platform parses model metadata:
 
-- Task type ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [depth](../../tasks/depth.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [classify](../../tasks/classify.md))
+- Task type ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [depth](../../tasks/depth.md), [classify](../../tasks/classify.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md))
 - Architecture (YOLO26n, YOLO26s, etc.)
 - Class names and count
 - Input size and parameters
@@ -142,7 +142,7 @@ Run interactive inference directly in the browser:
 - Upload an image, use example images, or use webcam
 - Results display with bounding boxes, masks, semantic class maps, or keypoints
 - Auto-inference when an image is provided
-- Supports all task types ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [depth](../../tasks/depth.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [classify](../../tasks/classify.md))
+- Supports all task types ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [depth](../../tasks/depth.md), [classify](../../tasks/classify.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md))
 
 !!! tip "Quick Testing"
 
@@ -294,14 +294,14 @@ Export jobs progress through the following statuses:
 
 Some export formats have architecture or task restrictions:
 
-| Format       | Restriction                                                                     |
-| ------------ | ------------------------------------------------------------------------------- |
-| **IMX500**   | Available only for `YOLOv8n` and `YOLO11n`; INT8 only                           |
-| **Axelera**  | Detect models only; INT8 only                                                   |
-| **DeepX**    | INT8 only                                                                       |
-| **Hailo**    | INT8 HEF output; select the target Hailo architecture                           |
-| **Huawei**   | FP16 .om output; Ascend310P1, Ascend310P3, Ascend310B1, and Ascend310B4 targets |
-| **Qualcomm** | Fixed W8A16 quantization; end-to-end export is unavailable                      |
+| Format       | Restriction                                                                                                                                                                            |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **IMX500**   | Available only for `YOLOv8n` and `YOLO11n`; INT8 only                                                                                                                                  |
+| **Axelera**  | Detect models only; INT8 only                                                                                                                                                          |
+| **DeepX**    | INT8 only                                                                                                                                                                              |
+| **Hailo**    | INT8 HEF output; select the target Hailo architecture                                                                                                                                  |
+| **Huawei**   | FP16 .om output; Ascend310P1, Ascend310P3, Ascend310B1, and Ascend310B4 targets                                                                                                        |
+| **Qualcomm** | Fixed W8A16 quantization; select a [supported HTP target](../../integrations/qnn.md#supported-htp-targets). Dragonwing IQ-8275 is supported with `name=iq-8275`; IQ-615 is unsupported |
 
 !!! note "Additional Export Rules"
 
@@ -389,7 +389,7 @@ Ultralytics Platform fully supports all YOLO architectures with dedicated projec
 - [**YOLOv8**](../../models/yolov8.md): n, s, m, l, x variants — [platform.ultralytics.com/ultralytics/yolov8](https://platform.ultralytics.com/ultralytics/yolov8)
 - [**YOLOv5**](../../models/yolov5.md): n, s, m, l, x variants — [platform.ultralytics.com/ultralytics/yolov5](https://platform.ultralytics.com/ultralytics/yolov5)
 
-YOLO26 supports 7 task types: [detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [depth](../../tasks/depth.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), and [classify](../../tasks/classify.md). YOLO11 and YOLOv8 support the same set except semantic segmentation and depth, while YOLOv5 supports detect, segment, and classify.
+YOLO26 supports 7 task types: [detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [depth](../../tasks/depth.md), [classify](../../tasks/classify.md), [pose](../../tasks/pose.md), and [OBB](../../tasks/obb.md). YOLO11 and YOLOv8 support the same set except semantic segmentation and depth, while YOLOv5 supports detect, segment, and classify.
 
 ### Can I download my trained model?
 

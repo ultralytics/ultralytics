@@ -17,6 +17,17 @@ The output of a depth model is a dense float map of shape `(H, W)` aligned to th
 
     Use `task=depth` or the `yolo depth` CLI task for monocular depth estimation. YOLO26 depth model files use the `-depth` suffix, such as `yolo26n-depth.pt`.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/i-V1kRCJD0M"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Monocular Depth Estimation with Ultralytics YOLO26 | Python Tutorial | Vision AI 🚀
+</p>
+
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
 YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~2.19M images) are shown below. The metrics columns are reported on the [NYU Depth V2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html) Eigen test split.
@@ -194,7 +205,7 @@ The depth head separates **shape** (relative scene structure) from **scale** (ab
         model.save("yolo26s-depth-calibrated.pt")
         ```
 
-Calibration needs ground-truth depth to fit against, so it runs on a labeled split — it is not something that can happen at blind inference. Use it when relative depth is already good and only the scale/range is wrong; if the relative structure itself needs to change for your domain, [fine-tune](#fine-tuning-on-your-own-data) instead.
+Calibration needs ground-truth depth to fit against, so it runs on a labeled split — it is not something that can happen at blind inference. It fits and scores on the same pixels the val metrics evaluate: GT at or beyond the dataset YAML's `max_depth` (default 100 m) is excluded. Use it when relative depth is already good and only the scale/range is wrong; if the relative structure itself needs to change for your domain, [fine-tune](#fine-tuning-on-your-own-data) instead.
 
 Training does this for you automatically: after `model.train(...)` completes, the best and last checkpoints are calibrated on the validation set so they output metric-scaled depth out of the box.
 
@@ -360,7 +371,6 @@ Export a YOLO26n-depth model to a different format like ONNX, CoreML, etc.
 
 Available YOLO26 depth estimation export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-depth.onnx`. Usage examples are shown for your model after export completes.
 
-{% set model_name = "yolo26n-depth" %}
 {% include "macros/export-table.md" %}
 
 See full `export` details in the [Export](../modes/export.md) page.

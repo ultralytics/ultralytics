@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import math
 from collections.abc import Callable
 from pathlib import Path
@@ -16,6 +17,7 @@ from PIL import __version__ as pil_version
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, TryExcept, ops, plt_settings, threaded
 from ultralytics.utils.checks import check_font, check_version, is_ascii
 from ultralytics.utils.files import increment_path
+from ultralytics.utils.torch_utils import TORCH_1_10
 
 
 def _gaussian_filter1d(y, sigma: int = 3, truncate: float = 4.0) -> np.ndarray:
@@ -489,11 +491,15 @@ class Annotator:
             device = self.im.device if tensor_image else masks.device
             masks = ops.scale_masks(masks[None].to(device).float(), self.im.shape[:2])[0] > 0.5
             colors = torch.tensor(colors, device=device, dtype=torch.float32) / 255.0  # shape(n,3)
-            colors = colors[:, None, None]  # shape(n,1,1,3)
+            colors = colors[:, None, None] * alpha  # shape(n,1,1,3), premultiplied by alpha
             masks = masks.unsqueeze(3)  # shape(n,h,w,1)
-            # prod/amax rather than cumprod[-1]/max().values: same result without the (n,h,w,*) intermediates
-            mcs = (masks * (colors * alpha)).amax(0)  # shape(h,w,3)
-            inv_alpha_masks = (1 - masks * alpha).prod(0)  # shape(h,w,1)
+            mcs = torch.empty((*masks.shape[1:3], 3), device=device, dtype=torch.float32)  # shape(h,w,3)
+            inv_alpha_masks = torch.empty((*masks.shape[1:3], 1), device=device, dtype=torch.float32)  # shape(h,w,1)
+            # Reduce in row bands so the (n,h,w,*) intermediates never span the full height
+            bands = max(1, masks.numel() * 12 // 2**23)  # 12 bytes per mask element downstream, 8 MB per band
+            for m, mcs_band, inv_band in zip(masks.chunk(bands, 1), mcs.chunk(bands), inv_alpha_masks.chunk(bands)):
+                torch.amax(m * colors, 0, out=mcs_band)
+                torch.prod(1 - m * alpha, 0, out=inv_band)
             im = (self.im if tensor_image else torch.from_numpy(self.im)).to(device).float() / 255.0
             im = ((im * inv_alpha_masks + mcs) * 255).byte()
             self.im[:] = im if tensor_image else im.cpu().numpy()
@@ -513,11 +519,9 @@ class Annotator:
         if self.pil:
             # Convert to numpy first
             self.im = np.asarray(self.im).copy()
-        overlay = np.zeros_like(self.im)
-        for cls_id in np.unique(mask):
-            if cls_id == ignore_index:
-                continue
-            overlay[mask == cls_id] = colors(int(cls_id), True)
+        ids = np.unique(mask)  # class IDs present, ascending
+        palette = np.array([(0, 0, 0) if i == ignore_index else colors(int(i), True) for i in ids], self.im.dtype)
+        overlay = palette[np.searchsorted(ids, mask)] if len(ids) else np.zeros_like(self.im)
         self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
         if self.pil:
             # Convert im back to PIL and update draw
@@ -583,12 +587,12 @@ class Annotator:
         for i, k in enumerate(kpts):
             color_k = kpt_color or (self.kpt_color[i].tolist() if is_pose else colors(i))
             x_coord, y_coord = k[0], k[1]
-            if x_coord % shape[1] != 0 and y_coord % shape[0] != 0:
-                if len(k) == 3:
-                    conf = k[2]
-                    if conf < conf_thres:
-                        continue
-                cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, color_k, -1, lineType=cv2.LINE_AA)
+            if len(k) == 3:
+                if k[2] < conf_thres:
+                    continue
+            elif x_coord == 0 and y_coord == 0:  # (0, 0) marks a missing keypoint when there is no confidence channel
+                continue
+            cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, color_k, -1, lineType=cv2.LINE_AA)
 
         if kpt_line:
             ndim = kpts.shape[-1]
@@ -600,9 +604,9 @@ class Annotator:
                     conf2 = kpts[(sk[1] - 1), 2]
                     if conf1 < conf_thres or conf2 < conf_thres:
                         continue
-                if pos1[0] % shape[1] == 0 or pos1[1] % shape[0] == 0 or pos1[0] < 0 or pos1[1] < 0:
+                elif not (kpts[sk[0] - 1, :2].any() and kpts[sk[1] - 1, :2].any()):  # (0, 0) marks a missing keypoint
                     continue
-                if pos2[0] % shape[1] == 0 or pos2[1] % shape[0] == 0 or pos2[0] < 0 or pos2[1] < 0:
+                if min(pos1 + pos2) < 0:
                     continue
                 cv2.line(
                     self.im,
@@ -1304,37 +1308,115 @@ def plot_tune_results(results_file: str = "tune_results.ndjson", exclude_zero_fi
     _save_one_file(results_file.with_name("tune_fitness.png"))
 
 
-@plt_settings()
-def feature_visualization(x, module_type: str, stage: int, n: int = 32, save_dir: Path = Path("runs/detect/exp")):
-    """Visualize feature maps of a given model module during inference.
+def class_activation_map(
+    model,
+    im: torch.Tensor,
+    paths: list[str],
+    save_dir: Path,
+    *args,
+    conf: float = 0.25,
+    classes=None,
+    topk: int = 16,
+    **kwargs,
+) -> Any:
+    """Run inference and save a class activation heatmap for each image of the batch.
+
+    LayerCAM weights each head-input position by its positive gradient toward the predicted class score. Each prediction
+    and head level is normalized independently before taking their element-wise maximum, preventing stronger predictions
+    or levels from hiding weaker ones.
 
     Args:
-        x (torch.Tensor): Features to be visualized.
-        module_type (str): Module type.
-        stage (int): Module stage within the model.
-        n (int, optional): Maximum number of feature maps to plot.
-        save_dir (Path, optional): Directory to save results.
+        model (torch.nn.Module): AutoBackend wrapping a PyTorch model.
+        im (torch.Tensor): Preprocessed images of shape (B, 3, H, W).
+        paths (list[str]): Source path of each image of the batch, used to name the saved overlays.
+        save_dir (Path): Directory to save the overlays in.
+        *args (Any): Additional positional arguments passed to the model forward.
+        conf (float): Score threshold a prediction must pass to contribute, falling back to the single best prediction
+            for images where nothing passes it, so that a near miss can still be inspected.
+        classes (int | list[int], optional): Only let these class ids contribute, as in the predict `classes` filter.
+        topk (int): Maximum number of predictions to explain per image, each one costing a backward pass.
+        **kwargs (Any): Additional keyword arguments passed to the model forward.
+
+    Returns:
+        (Any): Model predictions, detached from the autograd graph.
     """
-    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+    acts, scores = [], []
 
-    for m in ("Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder"):  # all model heads
-        if m in module_type:
-            return
-    if isinstance(x, torch.Tensor):
-        _, channels, height, width = x.shape  # batch, channels, height, width
-        if height > 1 and width > 1:
-            f = save_dir / f"stage{stage}_{module_type.rsplit('.', 1)[-1]}_features.png"  # filename
+    def pre_hook(module, inputs):
+        """Capture the feature maps entering the head, before heads like WorldDetect overwrite them in place."""
+        x = inputs[0]
+        acts.extend(a for a in (x if isinstance(x, (list, tuple)) else [x]) if a.ndim == 4)
 
-            blocks = torch.chunk(x[0].cpu(), channels, dim=0)  # select batch index 0, block by channels
-            n = min(n, channels)  # number of plots
-            _, ax = plt.subplots(math.ceil(n / 8), 8, tight_layout=True)  # n/8 rows x 8 cols
-            ax = ax.ravel()
-            plt.subplots_adjust(wspace=0.05, hspace=0.05)
-            for i in range(n):
-                ax[i].imshow(blocks[i].squeeze().numpy())  # cmap='gray'
-                ax[i].axis("off")
+    def hook(module, inputs, output):
+        """Capture the class logits leaving the head."""
+        raw = output[1] if isinstance(output, tuple) else output  # heads returning (predictions, raw) keep the raw
+        if isinstance(raw, dict):  # Detect and subclasses, end2end heads predict from their one2one branch
+            s = raw.get("one2one", raw)["scores"]  # (B, nc, anchors)
+        elif isinstance(raw, tuple):  # RTDETRDecoder, raw = (dec_bboxes, dec_scores, ...)
+            s = raw[1][-1].transpose(1, 2)  # last decoder layer, (B, nc, queries)
+        else:  # Classify (B, nc), SemanticSegment (B, nc, h, w), Depth (B, 1, h, w)
+            s = raw
+        scores.append(s.reshape(*s.shape[:2], -1))  # class logits, (B, nc, predictions)
 
-            LOGGER.info(f"Saving {f}... ({n}/{channels})")
-            plt.savefig(f, dpi=300, bbox_inches="tight")
-            plt.close()
-            np.save(str(f.with_suffix(".npy")), x[0].cpu().numpy())  # npy save
+    head = model.model.model[-1]  # AutoBackend -> PyTorch model -> head
+    head.shape = head.shapes = None  # rebuild the anchor caches, inference tensors in them break the autograd graph
+    handles = [head.register_forward_pre_hook(pre_hook), head.register_forward_hook(hook)]
+    # smart_inference_mode() wraps the caller in inference_mode from torch 1.10 and in no_grad below it, and only the
+    # former has to be left before autograd will record anything.
+    with torch.inference_mode(False) if TORCH_1_10 else contextlib.nullcontext(), torch.enable_grad():
+        try:
+            im = im.clone().requires_grad_(True)  # model parameters have requires_grad=False, so seed the graph here
+            preds = model(im, *args, **kwargs)
+        finally:
+            for handle in handles:
+                handle.remove()
+        s = torch.cat(scores, 2)  # (B, nc, predictions) class logits
+        if classes is not None:
+            cls = torch.as_tensor(classes, dtype=torch.long, device=s.device).flatten()
+            cls = cls[(cls >= 0) & (cls < s.shape[1])]  # drop ids outside this model's output channels
+            if len(cls):
+                s = s[:, cls]  # heatmap for the requested classes only
+        s = s.amax(1)  # (B, predictions) best class logit of each prediction
+        keep = (s.sigmoid() >= conf) | (s == s.amax(1, keepdim=True))  # top prediction alone if none above conf
+        n = min(int(keep.sum(1).amax()), topk)  # predictions to explain, one backward pass each
+        if int(keep.sum(1).amax()) > n:
+            LOGGER.warning(f"Explaining the {n} strongest predictions per image out of {int(keep.sum(1).amax())}.")
+        rank = torch.arange(n, device=s.device) % keep.sum(1, keepdim=True).clamp(min=1)  # short images repeat
+        order = s.masked_fill(~keep, float("-inf")).argsort(1, descending=True).gather(1, rank)  # (B, n)
+        cam = None
+        for k in range(n):
+            levels = []
+            grads = torch.autograd.grad(s.gather(1, order[:, k : k + 1]).sum(), acts, retain_graph=k < n - 1)
+            for a, g in zip(acts, grads):
+                c = (g.float().clamp(min=0) * a.float()).sum(1, keepdim=True)  # LayerCAM, per-position weighting
+                c = c.clamp(min=0)  # activations can be negative, keep only evidence for the prediction
+                c = torch.nn.functional.interpolate(c, im.shape[2:], mode="bilinear", align_corners=False)
+                levels.append(c / c.amax((2, 3), keepdim=True).clamp(min=1e-7))
+            # The level a prediction is made on peaks far higher than the rest, so summing raw would shrink the
+            # broader evidence the other levels hold down to a faint background.
+            level = torch.stack(levels).amax(0)
+            cam = level if cam is None else torch.maximum(cam, level)
+
+    cam = (cam.squeeze(1) * 255).byte().cpu().numpy()  # (B, H, W), maps are already scaled to [0, 1]
+    ims = im.detach()[:, :3].float()
+    lo, hi = ims.amin((2, 3), keepdim=True), ims.amax((2, 3), keepdim=True)  # classify inputs are mean-std normalized
+    ims = ((ims - lo) / (hi - lo).clamp(min=1e-7) * 255).byte().permute(0, 2, 3, 1).cpu().numpy()[..., ::-1]  # to BGR
+    save_dir.mkdir(parents=True, exist_ok=True)
+    for c, img, p in zip(cam, ims, paths):
+        f = increment_path(save_dir / f"{Path(p).stem}_cam.jpg")
+        img = np.ascontiguousarray(img if img.shape[2] == 3 else img[..., :1].repeat(3, 2))  # grayscale to BGR
+        heatmap = cv2.addWeighted(cv2.applyColorMap(c, cv2.COLORMAP_JET), 0.5, img, 0.5, 0)
+        cv2.imwrite(str(f), heatmap)
+        LOGGER.info(f"Saving {f}... (LayerCAM)")
+
+    def detach(x):
+        """Detach tensors in nested model outputs from the autograd graph."""
+        if isinstance(x, torch.Tensor):
+            return x.detach()
+        if isinstance(x, dict):
+            return {k: detach(v) for k, v in x.items()}
+        if isinstance(x, (list, tuple)):
+            return type(x)(detach(v) for v in x)
+        return x
+
+    return detach(preds)

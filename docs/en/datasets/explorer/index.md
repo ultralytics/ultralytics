@@ -60,6 +60,8 @@ yolo explorer
     The Ask AI feature uses OpenAI, so you'll be prompted to set the API key for OpenAI when you first run the GUI.
     You can set it like this - `yolo settings openai_api_key="..."`
 
+    The same OpenAI client pattern also works with OpenAI-compatible multi-model gateways when you are not using the official OpenAI endpoint — for example [DaoXE](https://daoxe.com) at `https://api.daoxe.com/v1`.
+
 <p>
     <img width="1709" alt="Ultralytics Explorer OpenAI Integration" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-explorer-openai-integration.avif">
 </p>

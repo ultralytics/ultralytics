@@ -34,7 +34,7 @@ Platform only ever reads from your storage — it never writes, modifies, or del
    manually.
 4. Click **Connect**. Platform verifies it can list and read each selected container before saving anything.
 
-![Ultralytics Platform Azure Blob Storage Integration Settings](https://cdn.ul.run/i/1c4cd9b8e39b23fd9dafadb2e079f70a.avif)<!-- screenshot -->
+![Ultralytics Platform Azure Blob Storage Integration Settings](https://cdn.ul.run/i/85be53f25bc7085ce898b2a7b3839974.avif)<!-- screenshot -->
 
 Reconnecting the same storage account later adds new containers to the existing integration. A saved credential is only replaced once its replacement can still read every container you've already connected.
 

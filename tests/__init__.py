@@ -20,6 +20,7 @@ SOLUTION_ASSETS = {
     "pose_video": "solution_ci_pose_demo.mp4",
     "parking_video": "solution_ci_parking_demo.mp4",
     "vertical_video": "solution_vertical_demo.mp4",
+    "track_video": "decelera_portrait_min.mov",
     "parking_areas": "solution_ci_parking_areas.json",
     "parking_model": "solutions_ci_parking_model.pt",
 }

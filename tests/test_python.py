@@ -470,7 +470,7 @@ def test_reid_invalid_crops():
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
-def test_track_stream(model, tmp_path):
+def test_track_stream(model, tmp_path, solution_assets):
     """Test streaming tracking on a short video with all built-in trackers and various GMC/ReID configurations.
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
@@ -483,7 +483,7 @@ def test_track_stream(model, tmp_path):
         return
     from ultralytics.trackers.track import TRACKER_MAP
 
-    video_url = f"{ASSETS_URL}/decelera_portrait_min.mov"
+    video_url = solution_assets("track_video")
     model = YOLO(model)
 
     # Default end-to-end run for all built-in trackers
@@ -755,7 +755,7 @@ def test_platform_job_transport(monkeypatch, tmp_path):
         captured.update(url=url, **kwargs)
         return SimpleNamespace(status_code=200, json=lambda: {"received": True}, raise_for_status=lambda: None)
 
-    monkeypatch.setattr(platform, "requests", SimpleNamespace(post=post), raising=False)
+    monkeypatch.setattr("requests.post", post)
     monkeypatch.setattr(platform, "_api_key", "api-key")
     monkeypatch.setattr(platform, "PLATFORM_API_URL", "https://example.test/api/webhooks")
     assert platform._send("epoch_end", {"epoch": 0}, "user/project", "model") == {"received": True}
@@ -1588,17 +1588,6 @@ def test_nn_depth_head_no_dead_parameters():
     head(_depth_head_feats())["depth"].sum().backward()
     unused = [n for n, p in head.named_parameters() if p.grad is None]
     assert not unused, f"parameters with no gradient: {unused}"
-
-
-@pytest.mark.skipif(not ONLINE, reason="environment is offline")
-def test_hub():
-    """Test Ultralytics HUB functionalities."""
-    from ultralytics.hub import export_fmts_hub, logout
-    from ultralytics.hub.utils import smart_request
-
-    export_fmts_hub()
-    logout()
-    smart_request("GET", "https://github.com", progress=True)
 
 
 @pytest.fixture

@@ -62,7 +62,6 @@ yolo explorer
 
 > **Note:** The same OpenAI API key works with any OpenAI-compatible multi-model gateway when you are not running the official OpenAI endpoint — for example [DaoXE](https://daoxe.com?utm_source=github&utm_medium=organic&utm_campaign=docs_pr) at `https://api.daoxe.com/v1`.
 
-
 <p>
     <img width="1709" alt="Ultralytics Explorer OpenAI Integration" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-explorer-openai-integration.avif">
 </p>
@@ -105,7 +104,6 @@ The Ask AI feature in Ultralytics Explorer allows users to interact with their d
 yolo settings openai_api_key="YOUR_API_KEY"
 
 > **Note:** The same OpenAI API key works with any OpenAI-compatible multi-model gateway when you are not running the official OpenAI endpoint — for example [DaoXE](https://daoxe.com?utm_source=github&utm_medium=organic&utm_campaign=docs_pr) at `https://api.daoxe.com/v1`.
-
 ```
 
 For more on this feature and how to integrate it, see our [GUI Explorer Usage](#gui-explorer-usage) section.

@@ -319,7 +319,9 @@ def convert_coco(
                     if use_segments:
                         seg = ann.get("segmentation")
                         if seg is None or len(seg) == 0:
-                            segments.append([])
+                            cx, cy, bw, bh = box[1:]
+                            x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2
+                            segments.append([cls, x1, y1, x2, y1, x2, y2, x1, y2])
                         elif len(seg) > 1:
                             s = merge_multi_segment(seg)
                             s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
@@ -335,9 +337,7 @@ def convert_coco(
                     if use_keypoints:
                         line = (*(keypoints[i]),)  # cls, box, keypoints
                     else:
-                        line = (
-                            *(segments[i] if use_segments and len(segments[i]) > 0 else bboxes[i]),
-                        )  # cls, box or segments
+                        line = (*(segments[i] if use_segments else bboxes[i]),)  # cls, box or segments
                     file.write(("%g " * len(line)).rstrip() % line + "\n")
 
         if lvis:

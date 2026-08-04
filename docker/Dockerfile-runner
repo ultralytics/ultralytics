@@ -5,7 +5,7 @@
 
 # Start FROM Ultralytics GPU image
 FROM ultralytics/ultralytics:latest
-COPY --from=node:24-bookworm-slim /usr/local/bin/node /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/
+COPY --from=node:24-bookworm-slim /usr/local/bin/node /usr/local/bin/node
 COPY --from=node:24-bookworm-slim /usr/local/lib/node_modules/ /usr/local/lib/node_modules/
 
 # Set additional environment variables for runner (no "v" on the version)
@@ -18,6 +18,8 @@ WORKDIR /actions-runner
 
 # Download and unpack the runner from https://github.com/actions/runner and install dependencies
 RUN FILENAME=actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz && \
+    ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
+    ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx && \
     curl -fLso "$FILENAME" "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/${FILENAME}" && \
     tar xzf "$FILENAME" && \
     rm "$FILENAME" && \

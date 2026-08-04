@@ -659,9 +659,21 @@ class v8PoseLoss(v8DetectionLoss):
         self.bce_pose = nn.BCEWithLogitsLoss()
         is_pose = self.kpt_shape == [17, 3]
         nkpt = self.kpt_shape[0]  # number of keypoints
-        sigmas = torch.from_numpy(OKS_SIGMA).to(self.device) if is_pose else torch.ones(nkpt, device=self.device) / nkpt
-        self.keypoint_loss = KeypointLoss(sigmas=sigmas)
 
+        # Custom keypoint OKS sigmas from dataset YAML
+        data = getattr(model, "data", {}) or {}
+        if "kpt_oks_sigmas" in data:
+            sigmas = data["kpt_oks_sigmas"]
+            if len(sigmas) != nkpt:
+                raise ValueError(
+                    f"Length of 'kpt_oks_sigmas' ({len(sigmas)}) does not match keypoint count ({nkpt})."
+                )
+            sigmas = torch.tensor(sigmas, device=self.device, dtype=torch.float32)
+        else:
+            sigmas = torch.from_numpy(OKS_SIGMA).to(self.device) if is_pose else torch.ones(nkpt, device=self.device) / nkpt
+
+        self.keypoint_loss = KeypointLoss(sigmas=sigmas)
+        
     def loss(
         self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
     ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:

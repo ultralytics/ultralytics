@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import math
+import os
+import time
 from pathlib import Path
 from typing import Any
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+from ultralytics.utils import RANK
 
 from ultralytics.utils.metrics import CITYSCAPES_WEIGHT, OKS_SIGMA, RLE_WEIGHT
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
@@ -479,6 +483,32 @@ class v8DetectionLoss:
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
+        if os.environ.get("NAN_TRAP") and not torch.isfinite(loss).all():
+            bad = [n for n, v in zip(("box", "cls", "dfl"), loss.tolist()) if not math.isfinite(v)]
+            path = Path(os.environ["NAN_TRAP"]) / f"nan_{int(time.time())}_rank{RANK}.pt"
+            tensors = {"scores": pred_scores, "distri": pred_distri, "bboxes": pred_bboxes}
+            stats = {}
+            for n, t in tensors.items():
+                finite = torch.isfinite(t)
+                stats[n] = {
+                    "nonfinite": int((~finite).sum()),
+                    "min": float(t[finite].min()) if finite.any() else None,
+                    "max": float(t[finite].max()) if finite.any() else None,
+                }
+            torch.save(
+                {
+                    "bad_terms": bad,
+                    "stats": stats,
+                    "batch": {k: v.cpu() if torch.is_tensor(v) else v for k, v in batch.items()},
+                    "pred_scores": pred_scores.detach().cpu(),
+                    "pred_distri": pred_distri.detach().cpu(),
+                    "pred_bboxes": pred_bboxes.detach().cpu(),
+                    "target_bboxes": target_bboxes.detach().cpu(),
+                    "fg_mask": fg_mask.detach().cpu(),
+                },
+                path,
+            )
+            raise RuntimeError(f"NAN_TRAP: non-finite {bad} loss term(s), stats={stats}, dumped to {path}")
         return (
             (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor),
             loss,

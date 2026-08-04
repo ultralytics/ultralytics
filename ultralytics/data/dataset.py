@@ -48,7 +48,7 @@ from .utils import (
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
-DATASET_CACHE_VERSION = "1.0.4"
+DATASET_CACHE_VERSION = "1.0.5"
 
 
 class YOLODataset(BaseDataset):
@@ -727,6 +727,7 @@ class GroundingDataset(YOLODataset):
                 continue
             bboxes = []
             segments = []
+            segmented = False
             cat2id = {}
             texts = []
             for ann in anns:
@@ -751,31 +752,31 @@ class GroundingDataset(YOLODataset):
                 box = [cls, *box.tolist()]
                 if box not in bboxes:
                     bboxes.append(box)
-                    if ann.get("segmentation") is not None:
-                        if len(ann["segmentation"]) == 0:
-                            cx, cy, bw, bh = box[1:]
-                            x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2
-                            segments.append([cls, x1, y1, x2, y1, x2, y2, x1, y2])  # segments2boxes returns the box
-                            continue
-                        elif len(ann["segmentation"]) > 1:
-                            s = merge_multi_segment(ann["segmentation"])
-                            s = (np.concatenate(s, axis=0) / np.array([w, h], dtype=np.float32)).reshape(-1).tolist()
-                        else:
-                            s = [j for i in ann["segmentation"] for j in i]  # all segments concatenated
-                            s = (
-                                (np.array(s, dtype=np.float32).reshape(-1, 2) / np.array([w, h], dtype=np.float32))
-                                .reshape(-1)
-                                .tolist()
-                            )
-                        s = [cls, *s]
-                        segments.append(s)
+                    seg = ann.get("segmentation")
+                    segmented |= seg is not None
+                    if not seg:  # keep one segment per box so an image mixing the two kinds stays aligned
+                        cx, cy, bw, bh = box[1:]
+                        x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2
+                        segments.append([cls, x1, y1, x2, y1, x2, y2, x1, y2])  # segments2boxes returns the box
+                        continue
+                    elif len(seg) > 1:
+                        s = merge_multi_segment(seg)
+                        s = (np.concatenate(s, axis=0) / np.array([w, h], dtype=np.float32)).reshape(-1).tolist()
+                    else:
+                        s = [j for i in seg for j in i]  # all segments concatenated
+                        s = (
+                            (np.array(s, dtype=np.float32).reshape(-1, 2) / np.array([w, h], dtype=np.float32))
+                            .reshape(-1)
+                            .tolist()
+                        )
+                    segments.append([cls, *s])
             lb = np.array(bboxes, dtype=np.float32) if len(bboxes) else np.zeros((0, 5), dtype=np.float32)
 
-            if segments:
-                classes = np.array([x[0] for x in segments], dtype=np.float32)
+            if segmented:
                 segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in segments]  # (cls, xy1...)
-                lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)
-            lb = np.array(lb, dtype=np.float32)
+                lb[:, 1:] = segments2boxes(segments)  # boxes follow the polygons
+            else:
+                segments = []  # no annotation carried a segmentation, so store no masks
 
             x["labels"].append(
                 {

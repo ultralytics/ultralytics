@@ -1,5 +1,8 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 import pytest
 import torch
+
 from ultralytics.cfg import DEFAULT_CFG, get_cfg
 from ultralytics.utils.loss import v8PoseLoss
 

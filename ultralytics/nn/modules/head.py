@@ -38,8 +38,8 @@ __all__ = (
 def grouped_topk(x: torch.Tensor, k: int, groups: int = 8) -> tuple[torch.Tensor, torch.Tensor]:
     """Select the top-k values of a 2D tensor along dim 1, evaluated as a grouped selection.
 
-    TensorRT selects top-k over a single long axis serially, which makes the NMS-free postprocess top-k the most
-    expensive layer of an exported engine - 130 us of a 1.07 ms yolo26s engine, more than any convolution. Splitting
+    TensorRT selects top-k over a single long axis serially, which makes the NMS-free postprocess top-k one of the
+    costliest layers of an exported engine; that cost is driven by the length of the axis rather than by k. Splitting
     the axis into independent groups lets TensorRT select within each group in parallel, then a second pass picks the
     winners out of the ``groups * k`` survivors. This is exact rather than approximate: an element of the global top-k
     cannot be missing from its own group's top-k, since that would require k elements above it inside that group and

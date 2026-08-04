@@ -242,6 +242,11 @@ EDGE_CONNECTIONS = (
     (3, 7),
 )
 
+# Smallest depth (metres) a 3D box centre may have and still be projected. Guards the 1/z in the
+# pinhole projection only — it is deliberately not a plausibility floor, so close-range stereo rigs
+# (objects at tens of centimetres) render as well as automotive ones.
+EPS_PROJECT_Z = 1e-3
+
 
 # Spectral_r anchors (RGB, far→near) baked into a LUT so colorize_depth needs no matplotlib import.
 _SPECTRAL_R_ANCHORS = np.array(
@@ -1612,14 +1617,12 @@ def project_box3d_corners(
     length, width, height = box3d.dimensions
     orientation = box3d.orientation
 
-    # Skip boxes with invalid Z depth (too shallow or negative)
-    # Z < MIN_VALID_Z can cause extreme pixel coordinates when projecting (u = fx * X / Z)
-    # Example: Z=1.36 produced 3.4 billion pixels causing cv2.clipLine TypeError
-    # Use conservative 2.0m threshold for KITTI dataset stability
-    # Objects closer than 2m are rare and can cause projection artifacts
-    # Lower thresholds (1.0, 1.5) can be used but may cause edge cases
-    MIN_VALID_Z = 2.0  # Minimum valid Z depth in meters (conservative threshold)
-    if z < MIN_VALID_Z or not np.isfinite(z):
+    # Skip only boxes that are not projectable at all: behind the camera, on it, or non-finite.
+    # A metric depth floor must NOT live here — it is dataset-specific (a close-range rig images
+    # objects at tens of centimetres) and callers own it via the head's configured depth range.
+    # Extreme pixel coordinates from a small z are already bounded by the caller, which clips
+    # every corner to +/-1e6 and then to the image rect via cv2.clipLine.
+    if not np.isfinite(z) or z <= EPS_PROJECT_Z:
         return np.zeros((8, 2), dtype=np.float32)  # Return dummy corners (will be clipped out)
 
     # KITTI convention: rotation_y=0 means object faces camera X direction

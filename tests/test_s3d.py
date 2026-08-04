@@ -1721,3 +1721,26 @@ def test_validator_metric_names_survive_a_ddp_wrapped_model(monkeypatch):
     assert len(wrapped.metrics.keys) == bare_keys, (
         f"DDP run lost metric columns: {len(wrapped.metrics.keys)} vs {bare_keys} single-process"
     )
+
+
+def test_close_range_boxes_are_rendered():
+    """A close-range 3D box must draw: the projection guard is 1/z-safety, not a depth plausibility floor.
+
+    Regression for a hardcoded 2.0 m visualization floor that silently dropped every box from a
+    short-baseline rig (cube_s3d objects sit at 0.45-1.66 m), so Results.plot() drew nothing at all.
+    """
+    from ultralytics.utils.plotting import plot_boxes3d, project_box3d_corners
+
+    calib = {"fx": 645.66, "fy": 645.66, "cx": 480.0, "cy": 300.0, "baseline": 0.063}
+    img = np.zeros((600, 960, 3), dtype=np.uint8)
+    for z in (0.45, 0.87, 1.66):  # the cube_s3d depth range, all below the old 2.0 m floor
+        box = Box3D(center_3d=(0.0, 0.0, z), dimensions=(0.05, 0.05, 0.10), orientation=0.0, class_id=0, class_label="cubetto", confidence=0.9)
+        corners = project_box3d_corners(box, calib)
+        assert not np.allclose(corners, 0.0), f"z={z} m was dropped by the projection guard"
+        assert (plot_boxes3d(img, [box], calib) != img).any(), f"z={z} m drew no pixels"
+
+    # Non-projectable centres must still be rejected rather than producing garbage coordinates.
+    # Box3D itself rejects z <= 0, so only the non-finite and sub-epsilon cases reach this guard.
+    for bad_z in (float("nan"), float("inf"), 1e-9):
+        bad = Box3D(center_3d=(0.0, 0.0, bad_z), dimensions=(0.05, 0.05, 0.10), orientation=0.0, class_id=0, class_label="cubetto", confidence=0.9)
+        assert np.allclose(project_box3d_corners(bad, calib), 0.0), f"z={bad_z} should be rejected"

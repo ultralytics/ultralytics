@@ -94,7 +94,7 @@ def encode_proj_offset(
 class Stereo3DDetDataset(BaseDataset):
     """Stereo 3D detection dataset (single, unified dataset).
 
-    - Returns keys: 'img' (6-channel), 'targets' (dict), 'im_file', 'ori_shape'.
+    - Returns keys: 'img' (6-channel), 'aux_targets' (dict), 'im_file', 'ori_shape'.
     - Builds a single 6-channel tensor by stacking left and right RGB after identical letterbox.
     - Converts normalized left 2D boxes to resized+letterboxed normalized xywh.
     - Inherits from BaseDataset for label caching and image loading infrastructure.
@@ -881,9 +881,8 @@ class Stereo3DDetDataset(BaseDataset):
             "batch_idx": batch_idx_t,
             "cls": cls_t,
             "bboxes": bboxes_t,
-            # Aux targets for stereo/3D heads (also available as 'targets' for backward compatibility)
-            "targets": aux_targets,  # Primary key used by model.loss()
-            "aux_targets": aux_targets,  # Keep for backward compatibility
+            # Aux targets for the stereo/3D heads, read by Stereo3DDetLoss._compute_aux_losses
+            "aux_targets": aux_targets,
         }
 
         return result

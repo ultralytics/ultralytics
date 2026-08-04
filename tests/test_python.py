@@ -1264,8 +1264,9 @@ def test_depth_dataset_ignores_unreadable_targets(tmp_path):
 
 
 def test_build_yolo_dataset_depth_val_rect_shape_override(tmp_path):
-    """`rect=True` must not leak a per-batch `rect_shape` into depth val, which stays a fixed imgsz square,
-    while depth train and non-depth (detect) val keep their pre-existing rectangular-batching behavior."""
+    """`rect=True` must not leak a per-batch `rect_shape` into depth val, which stays a fixed imgsz square, while depth
+    train and non-depth (detect) val keep their pre-existing rectangular-batching behavior.
+    """
     imgsz = 32
     sizes = [(80, 60), (60, 80), (80, 60), (60, 80)]  # (w, h): mixed landscape/portrait aspect ratio per split
     for split in ("train", "val"):

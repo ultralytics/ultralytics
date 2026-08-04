@@ -329,7 +329,10 @@ def convert_coco(
                         polygons = [
                             p
                             for p in seg
-                            if isinstance(p, list) and len(p) >= 6 and not len(p) % 2 and not isinstance(p[0], list)
+                            if isinstance(p, list)
+                            and len(p) >= 6
+                            and not len(p) % 2
+                            and all(isinstance(c, (int, float)) for c in p)
                         ]
                         dropped |= len(polygons) < sum(bool(p) or p == 0 for p in seg)  # 0 is a coordinate
                         if not polygons:

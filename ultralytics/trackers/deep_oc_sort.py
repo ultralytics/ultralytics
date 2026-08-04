@@ -235,7 +235,7 @@ class DeepOCSORT(OCSORT):
         results_high: Any,
     ) -> None:
         """Apply GMC warp to Kalman state before first-stage association."""
-        if img is None:
+        if img is None or self.gmc.method is None:
             return
         try:
             warp = self.gmc.apply(img, results_high.xyxy if len(results_high) else np.empty((0, 4)))

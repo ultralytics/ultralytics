@@ -623,7 +623,6 @@ class GroundingDataset(YOLODataset):
         json_file (str): Path to the JSON file containing annotations.
 
     Methods:
-        get_img_files: Return empty list as image files are read in get_labels.
         get_labels: Load annotations from a JSON file and prepare them for training.
         build_transforms: Configure augmentations for training with optional text loading.
 
@@ -647,16 +646,25 @@ class GroundingDataset(YOLODataset):
         self.max_samples = max_samples
         super().__init__(*args, task=task, data={"channels": 3}, **kwargs)
 
-    def get_img_files(self, img_path: str) -> list:
-        """The image files would be read in `get_labels` function, return empty list here.
+    def get_img_files(self, img_path: str) -> list[str]:
+        """Return every image under `img_path`; the annotations, not `fraction`, decide which ones are used.
 
         Args:
             img_path (str): Path to the directory containing images.
 
         Returns:
-            (list): Empty list as image files are read in get_labels.
+            (list[str]): Image files the annotation scan runs against.
         """
-        return []
+        self.fraction = 1.0  # a truncated inventory would leave later images outside the cache key
+        return super().get_img_files(img_path)
+
+    def get_cache_hash(self) -> str:
+        """Return a hash over the annotation file and the images it is scanned against.
+
+        Returns:
+            (str): Dataset cache hash.
+        """
+        return get_hash([self.json_file, *self.im_files])
 
     def _verify_instance_counts(self, labels: list[dict[str, Any]]) -> None:
         """Verify the number of instances in the dataset matches expected counts.
@@ -714,7 +722,6 @@ class GroundingDataset(YOLODataset):
             im_file = Path(self.img_path) / f
             if not im_file.exists():
                 continue
-            self.im_files.append(str(im_file))
             bboxes = []
             segments = []
             cat2id = {}
@@ -779,7 +786,7 @@ class GroundingDataset(YOLODataset):
                     "texts": texts,
                 }
             )
-        x["hash"] = get_hash(self.json_file)
+        x["hash"] = self.get_cache_hash()
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
 
@@ -790,7 +797,7 @@ class GroundingDataset(YOLODataset):
             (list[dict]): List of label dictionaries, each containing information about an image and its annotations.
         """
         cache_path = Path(self.json_file).with_suffix(".cache")
-        cache, _ = self._load_or_scan_cache(cache_path, get_hash(self.json_file))
+        cache, _ = self._load_or_scan_cache(cache_path, self.get_cache_hash())
         [cache.pop(k) for k in ("hash", "version")]  # remove items
         labels = cache["labels"]
         self._verify_instance_counts(labels)

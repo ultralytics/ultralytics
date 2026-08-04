@@ -661,12 +661,13 @@ class v8PoseLoss(v8DetectionLoss):
         nkpt = self.kpt_shape[0]  # number of keypoints
 
         # Custom keypoint OKS sigmas from dataset YAML
-        data = getattr(model, "data", {}) or {}
-        if "kpt_oks_sigmas" in data:
-            sigmas = data["kpt_oks_sigmas"]
+        sigmas = getattr(model, "kpt_oks_sigmas", None)
+        if sigmas is not None:
             if len(sigmas) != nkpt:
                 raise ValueError(f"Length of 'kpt_oks_sigmas' ({len(sigmas)}) does not match keypoint count ({nkpt}).")
             sigmas = torch.tensor(sigmas, device=self.device, dtype=torch.float32)
+            if (sigmas <= 0).any() or not torch.isfinite(sigmas).all():
+                raise ValueError(f"All 'kpt_oks_sigmas' values must be strictly positive, got {sigmas.tolist()}.")
         else:
             sigmas = (
                 torch.from_numpy(OKS_SIGMA).to(self.device) if is_pose else torch.ones(nkpt, device=self.device) / nkpt

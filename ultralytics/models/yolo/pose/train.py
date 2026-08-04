@@ -88,6 +88,8 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         """Set keypoints shape attribute of PoseModel."""
         super().set_model_attributes()
         self.model.kpt_shape = self.data["kpt_shape"]
+        if "kpt_oks_sigmas" in self.data:
+            self.model.kpt_oks_sigmas = self.data["kpt_oks_sigmas"]
         kpt_names = self.data.get("kpt_names")
         if not kpt_names:
             names = list(map(str, range(self.model.kpt_shape[0])))

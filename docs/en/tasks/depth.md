@@ -112,6 +112,8 @@ The collapse lands exactly at the cap boundary. The `log` head has no such bound
 | KITTI Eigen | 80 m  |             **0.942** |                 0.891 |
 | **Mean**    | —     |             **0.819** |                 0.799 |
 
+Both columns are as published. The other rows are scored with the TTA and log-least-squares protocol described on their dataset pages, which the validator in this repo does not implement, so the KITTI row cannot be re-measured on the same footing; the [KITTI page](../datasets/depth/kitti.md) carries numbers measured on the canonical 652-frame Eigen split instead.
+
 The largest gains are on the longer-range outdoor benchmarks (KITTI, ETH3D) — exactly where a fixed 10 m ceiling hurts most — while indoor performance is retained.
 
 ## Train

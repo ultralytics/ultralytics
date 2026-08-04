@@ -38,7 +38,7 @@ from ultralytics.data.loaders import (
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.utils import RANK, colorstr
 from ultralytics.utils.checks import check_file
-from ultralytics.utils.torch_utils import TORCH_2_0
+from ultralytics.utils.torch_utils import TORCH_1_13, TORCH_2_0, TORCH_2_7, get_torch_device_backend
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
@@ -177,7 +177,7 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         self.epoch = 0
         self.shuffle = shuffle
         self.total_size = len(dataset)
-        # ensure all ranks have a sample if batch size >= total size; degenerates to round-robin sampler
+        # Use unit batches when one input batch would span the dataset.
         self.batch_size = 1 if batch_size >= self.total_size else batch_size
         self.num_batches = math.ceil(self.total_size / self.batch_size)
 
@@ -195,7 +195,7 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         end_batch = start_batch + batches_for_this_rank
 
         # Convert batch indices to sample indices
-        start_idx = start_batch * self.batch_size
+        start_idx = min(start_batch * self.batch_size, self.total_size)
         end_idx = min(end_batch * self.batch_size, self.total_size)
 
         return start_idx, end_idx
@@ -321,6 +321,7 @@ def build_dataloader(
     rank: int = -1,
     drop_last: bool = False,
     pin_memory: bool = True,
+    device: torch.device | str = "cuda",
 ) -> InfiniteDataLoader:
     """Create and return an InfiniteDataLoader for training or validation.
 
@@ -332,6 +333,7 @@ def build_dataloader(
         rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
         drop_last (bool, optional): Whether to drop the last incomplete batch.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
+        device (torch.device | str, optional): Device used by the dataloader consumer.
 
     Returns:
         (InfiniteDataLoader): A dataloader that can be used for training or validation.
@@ -353,12 +355,17 @@ def build_dataloader(
     samples = len(sampler) if sampler is not None else dataset_len
     drop_last = drop_last and bool(batch) and dataset_len % batch != 0
     batches = (samples // batch if drop_last else math.ceil(samples / batch)) if batch else 0
-    nd = torch.cuda.device_count()  # number of CUDA devices
+    device_type = getattr(device, "type", str(device).split(":")[0])
+    nd = get_torch_device_backend(device).device_count() if device_type not in {"cpu", "mps"} else 0
     # Do not create more worker processes than final loader batches. Single-batch loaders run in-process to avoid
     # persistent DataLoader worker pools that add overhead and can stall tiny datasets while holding CUDA context.
     nw = min(os.cpu_count() // max(nd, 1), workers, 0 if batches <= 1 else batches)  # number of workers
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + RANK)
+    pin_memory = nd > 0 and pin_memory
+    pin_memory_device = (
+        device_type if pin_memory and device_type in {"npu", "xpu"} and TORCH_1_13 and not TORCH_2_7 else None
+    )
     return InfiniteDataLoader(
         dataset=dataset,
         batch_size=batch,
@@ -366,11 +373,12 @@ def build_dataloader(
         num_workers=nw,
         sampler=sampler,
         prefetch_factor=4 if nw > 0 else None,  # increase over default 2
-        pin_memory=nd > 0 and pin_memory,
+        pin_memory=pin_memory,
         collate_fn=getattr(dataset, "collate_fn", None),
         worker_init_fn=seed_worker,
         generator=generator,
         drop_last=drop_last,
+        **({"pin_memory_device": pin_memory_device} if pin_memory_device else {}),
     )
 
 

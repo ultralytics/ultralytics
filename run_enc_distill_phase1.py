@@ -393,8 +393,7 @@ def main(argv: list[str]) -> None:
         seed=0,
         deterministic=True,
         fliplr=0.5,
-        # Distillation is teacher-compute-bound, so 2 workers keep the teacher forward fed (the shared-NFS
-        # cap is 4; 8+ triggers an EPERM remount).
+        # Distillation is teacher-compute-bound, so 2 workers keep the teacher forward fed.
         workers=2,
         nfs_sync=True,
     )

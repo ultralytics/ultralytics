@@ -69,7 +69,7 @@ def build_knn_loaders(root, imgsz, protocol, crop_ratio=1.0):
     train_ds.torch_transforms = val_ds.torch_transforms = transforms
     LOGGER.info(f"kNN transform: {protocol}, crop_ratio {crop_ratio}, {transforms.transforms[0]}")
     bs = max(8, round(256 * (224 / imgsz) ** 2))  # hold activation memory ~constant across imgsz
-    workers = 4  # both splits build a pool each, and shared NFS hosts EPERM-remount at 8+ per host
+    workers = 4
     return (
         build_dataloader(train_ds, bs, workers, shuffle=False, rank=-1),
         build_dataloader(val_ds, bs, workers, shuffle=False, rank=-1),

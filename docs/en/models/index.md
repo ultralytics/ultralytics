@@ -14,7 +14,7 @@ Welcome to Ultralytics' model documentation! We offer support for a wide range o
 
 Start with [YOLO26](yolo26.md) for a new project: it is the latest Ultralytics release and the only one covering all seven tasks. [YOLO11](yolo11.md) is the mature alternative, with pretrained checkpoints for each of its five tasks. Pick a specialized family only when you need promptable segmentation ([SAM 3](sam-3.md)), open-vocabulary detection ([YOLOE](yoloe.md), [YOLO-World](yolo-world.md)), or a transformer detector ([RT-DETR](rtdetr.md)).
 
-The table lists every documented model with the tasks it covers, which of the [train, val, predict and export](../modes/index.md) modes Ultralytics supports for it, and when to choose it. [Track](../modes/track.md) runs on top of predict, so it follows the task rather than the model and is not listed separately.
+The table lists every documented model with the tasks it covers, which of the [train, val, predict and export](../modes/index.md) modes Ultralytics supports for it, and when to choose it. [Track](../modes/track.md) is not listed separately: it runs on top of predict for Detect, Segment, Pose and OBB models, while SAM 2 and SAM 3 track through their own video predictors.
 
 | Model                           | Tasks                                                 | Modes                       | Choose it for                                                                                                                                                                                    |
 | ------------------------------- | ----------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -142,7 +142,7 @@ For more detailed instructions, visit the [Train](../modes/train.md) documentati
 
 ### Which YOLO versions are supported by Ultralytics?
 
-Ultralytics natively supports YOLOv3, YOLOv5, YOLOv6, YOLOv8, YOLOv9, YOLOv10, YOLO11, YOLO12, and YOLO26, along with YOLO-NAS, SAM, RT-DETR, YOLO-World, and YOLOE. The package publishes no weights or YAMLs for YOLOv4 or YOLOv7: YOLOv4 is documented as an architecture reference only, while YOLOv7 runs as an exported ONNX or TensorRT model. See [Featured Models](#featured-models) for the tasks and modes available for each.
+Ultralytics natively supports YOLOv3, YOLOv5, YOLOv6, YOLOv8, YOLOv9, YOLOv10, YOLO11, YOLO12, and YOLO26, along with the SAM family (SAM 3, SAM 2, SAM, MobileSAM and FastSAM), YOLO-NAS, RT-DETR, YOLO-World, and YOLOE. The package publishes no weights or YAMLs for YOLOv4 or YOLOv7: YOLOv4 is documented as an architecture reference only, while YOLOv7 runs as an exported ONNX or TensorRT model. See [Featured Models](#featured-models) for the tasks and modes available for each.
 
 ### Why should I use Ultralytics Platform for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) projects?
 

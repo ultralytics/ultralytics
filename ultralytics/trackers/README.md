@@ -71,7 +71,7 @@ yolo track model=yolo26n.pt source="https://youtu.be/LNwODJXcvt4" # Official Det
 # yolo track model=path/to/best.pt tracker="bytetrack.yaml"
 ```
 
-As shown above, tracking is available for all [Detect](https://docs.ultralytics.com/tasks/detect), [Segment](https://docs.ultralytics.com/tasks/segment), and [Pose](https://docs.ultralytics.com/tasks/pose) models when run on videos or streaming sources.
+As shown above, tracking is available for all [Detect](https://docs.ultralytics.com/tasks/detect), [Segment](https://docs.ultralytics.com/tasks/segment), [Pose](https://docs.ultralytics.com/tasks/pose), and [OBB](https://docs.ultralytics.com/tasks/obb) models when run on videos or streaming sources.
 
 ## 🔧 Configuration
 

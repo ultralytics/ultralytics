@@ -5,6 +5,7 @@ from pathlib import Path
 
 import torch
 
+from ultralytics.cfg import TASKS
 from ultralytics.utils import YAML, IterableSimpleNamespace
 from ultralytics.utils.checks import check_yaml
 
@@ -25,6 +26,9 @@ TRACKER_MAP = {
     "deepocsort": DeepOCSORT,
 }
 
+# Tasks whose results carry boxes for the tracker to consume, in canonical task order
+TRACKABLE_TASKS = ("detect", "segment", "pose", "obb")
+
 
 def on_predict_start(predictor: object, persist: bool = False) -> None:
     """Initialize trackers for object tracking during prediction.
@@ -38,8 +42,9 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         >>> predictor = SomePredictorClass()
         >>> on_predict_start(predictor, persist=True)
     """
-    if predictor.args.task == "classify":
-        raise ValueError("❌ Classification doesn't support 'mode=track'")
+    task = predictor.args.task
+    if task in TASKS and task not in TRACKABLE_TASKS:  # leave unknown third-party tasks to their own predictor
+        raise ValueError(f"❌ Task '{task}' doesn't support 'mode=track', valid tasks are {list(TRACKABLE_TASKS)}")
 
     if hasattr(predictor, "trackers") and persist:
         return

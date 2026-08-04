@@ -158,6 +158,7 @@ class BaseValidator:
             self.data = trainer.data
             # Keep training validation read-only: inputs may be fp16, but EMA/model weights stay fp32 under autocast.
             self.args.quantize = 16 if (self.device.type != "cpu" and trainer.amp) else None
+            self.amp_dtype = getattr(trainer, "amp_dtype", torch.float16)
             model = trainer.ema.ema or trainer.model
             if trainer.args.compile and hasattr(model, "_orig_mod"):
                 model = model._orig_mod  # validate non-compiled original model to avoid issues
@@ -237,7 +238,11 @@ class BaseValidator:
             with dt[0]:
                 batch = self.preprocess(batch)
 
-            with autocast(self.training and self.args.quantize == 16, device=self.device.type):
+            with autocast(
+                self.training and self.args.quantize == 16,
+                device=self.device.type,
+                dtype=self.amp_dtype if self.training else None,
+            ):
                 # Inference
                 with dt[1]:
                     preds = model(batch["img"], augment=augment)

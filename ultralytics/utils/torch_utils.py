@@ -86,7 +86,7 @@ def smart_inference_mode():
     return decorate
 
 
-def autocast(enabled: bool, device: str = "cuda"):
+def autocast(enabled: bool, device: str = "cuda", dtype: torch.dtype | None = None):
     """Get the appropriate autocast context manager based on PyTorch version and AMP setting.
 
     This function returns a context manager for automatic mixed precision (AMP) training that is compatible with both
@@ -95,6 +95,8 @@ def autocast(enabled: bool, device: str = "cuda"):
     Args:
         enabled (bool): Whether to enable automatic mixed precision.
         device (str, optional): The device to use for autocast.
+        dtype (torch.dtype, optional): Autocast dtype, e.g. torch.float16 or torch.bfloat16. None uses the PyTorch
+            default for the device (float16 on CUDA).
 
     Returns:
         (torch.amp.autocast): The appropriate autocast context manager.
@@ -109,9 +111,9 @@ def autocast(enabled: bool, device: str = "cuda"):
         - For older versions, it uses `torch.cuda.amp.autocast`.
     """
     if TORCH_1_13:
-        return torch.amp.autocast(device, enabled=enabled)
+        return torch.amp.autocast(device, enabled=enabled, dtype=dtype)
     else:
-        return torch.cuda.amp.autocast(enabled)
+        return torch.cuda.amp.autocast(enabled, dtype=dtype)
 
 
 @functools.lru_cache

@@ -335,7 +335,11 @@ class BaseTrainer:
             )
 
         # Check AMP
-        self.amp = torch.tensor(self.args.amp).to(self.device)  # True or False
+        self.bf16 = str(self.args.amp).lower() == "bf16"  # amp=bf16 trains in bfloat16, amp=True in fp16
+        if isinstance(self.args.amp, str) and not self.bf16:
+            raise ValueError(f"'amp={self.args.amp}' is invalid. Valid 'amp' values are True (fp16), False, or 'bf16'.")
+        self.amp_dtype = torch.bfloat16 if self.bf16 else torch.float16
+        self.amp = torch.tensor(bool(self.args.amp)).to(self.device)  # True or False
         if self.amp and RANK in {-1, 0}:  # Single-GPU and DDP
             callbacks_backup = callbacks.default_callbacks.copy()  # backup callbacks as check_amp() resets them
             self.amp = torch.tensor(True, device=self.device)
@@ -345,7 +349,9 @@ class BaseTrainer:
             dist.broadcast(self.amp, src=0)  # broadcast from rank 0 to all other ranks
         self.amp = bool(self.amp)  # as boolean
         self.scaler = (
-            torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
+            torch.amp.GradScaler("cuda", enabled=self.amp and not self.bf16)
+            if TORCH_2_4
+            else torch.cuda.amp.GradScaler(enabled=self.amp and not self.bf16)  # bf16 needs no gradient scaling
         )
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
@@ -461,7 +467,7 @@ class BaseTrainer:
 
                 # Forward
                 try:
-                    with autocast(self.amp):
+                    with autocast(self.amp, dtype=self.amp_dtype):
                         batch = self.preprocess_batch(batch)
                         if self.args.compile:
                             # Decouple inference and loss calculations for improved compile performance

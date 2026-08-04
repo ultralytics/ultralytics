@@ -1468,6 +1468,11 @@ class OBB(BaseTensor):
             >>> xywhr = obb.xywhr
             >>> print(xywhr.shape)
             torch.Size([3, 5])
+
+        Notes:
+            Predictions are not canonicalized to the long-edge convention that training labels use, so width may be
+            smaller than height with the rotation measured from the short edge. Use `xyxyxyxy` when only the geometry
+            matters, or `ops.xyxyxyxy2xywhr(obb.xyxyxyxy)` for the canonical form.
         """
         return self.data[:, :5]
 
@@ -1531,8 +1536,8 @@ class OBB(BaseTensor):
 
         Returns:
             (torch.Tensor | np.ndarray): Rotated bounding boxes in xyxyxyxy format with shape (N, 4, 2), where N is the
-                number of boxes. Each box is represented by 4 points (x, y), starting from the top-left corner and
-                moving clockwise.
+                number of boxes. The 4 points (x, y) are wound counter-clockwise as rendered, starting from the corner
+                at +w/2, +h/2 in the box frame, so which image corner comes first follows the rotation.
 
         Examples:
             >>> obb = OBB(torch.tensor([[100, 100, 50, 30, 0.5, 0.9, 0]]), orig_shape=(640, 640))

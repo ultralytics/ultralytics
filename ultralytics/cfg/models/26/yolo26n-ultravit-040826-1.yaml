@@ -1,0 +1,39 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# n-020826-1 with the P4 FFN widened, mlp 1.25 -> 2.25 (hidden 120 -> 216, ~235K P4 matching the 020826-2
+# depth-8 budget of 237K). The nano medium bucket sits -11% relative to conv while P4 depth 5->8 (020826-2)
+# cost +2.2% both lanes, so this buys the same budget through FFN width at unchanged depth, mirroring the S
+# sibling's width-vs-depth ablation. Stem-P3 conv rows and P5 stay exactly n-020826-1.
+
+nc: 80
+end2end: True
+reg_max: 1
+
+scales:
+  n: [1.00, 1.00, 1024]
+
+backbone:
+  - [-1, 1, Conv, [16, 3, 2]]
+  - [-1, 1, Conv, [32, 3, 2]]
+  - [-1, 1, C3k2, [64, False, 0.25]]
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, C3k2, [128, False, 0.25]]
+  - [-1, 1, Conv, [96, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [2.25, True, 0.00001, True]]
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [-1, 1, MHSABlock, [0, 3.8125, True, 0.00001, False, 64]]
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]]
+  - [-1, 1, C3k2, [128, True]]
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, 1, C3k2, [64, True]]
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [[-1, 11], 1, Concat, [1]]
+  - [-1, 1, C3k2, [128, True]]
+  - [-1, 1, Conv, [128, 3, 2]]
+  - [[-1, 8], 1, Concat, [1]]
+  - [-1, 1, C3k2, [256, True, 0.5, True]]
+  - [[14, 17, 20], 1, Detect, [nc]]

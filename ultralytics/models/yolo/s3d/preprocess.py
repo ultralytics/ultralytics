@@ -114,7 +114,6 @@ def decode_stereo3d_outputs(
     mean_dims: dict[int, tuple[float, float, float]] | None = None,
     std_dims: dict[int, tuple[float, float, float]] | None = None,
     class_names: dict[int, str] | None = None,
-    score_k: float = 0.5,
     depth_var_scale: float = 1.0,
     calib_letterboxed: bool = False,
 ) -> list[Box3D] | list[list[Box3D]]:
@@ -134,8 +133,6 @@ def decode_stereo3d_outputs(
         mean_dims: Mean dimensions per class (class ID -> (H, W, L) in meters).
         std_dims: Standard deviation of dimensions per class.
         class_names: Mapping from class ID to class name.
-        score_k: Decay rate for the uncertainty-based confidence weighting (confidence is scaled by exp(-score_k *
-            sigma), sigma = predicted lr-distance std-dev, when "lr_logvar" is present).
         depth_var_scale: Multiplier on the direct-depth cue's variance in the inverse-variance depth fusion. 1.0
             (default) is an exact no-op; <1 shrinks the variance and so gives the direct cue more fusion weight,
             which is how a higher bin count re-weights the fusion without changing the bin count.
@@ -262,8 +259,6 @@ def decode_stereo3d_outputs(
             lr_logvar = (
                 min(float(outputs["lr_logvar"][b, 0, flat_idx].item()), 20.0) if "lr_logvar" in outputs else None
             )
-            if lr_logvar is not None:
-                confidence *= math.exp(-score_k * math.sqrt(math.exp(lr_logvar)))
             dim_off = outputs["dimensions"][b, :, flat_idx].float() if "dimensions" in outputs else torch.zeros(3)
             ori_pred = outputs["orientation"][b, :, flat_idx].float() if "orientation" in outputs else None
 
@@ -458,7 +453,6 @@ def decode_and_refine_predictions(
     mean_dims: dict[int, tuple[float, float, float]] | None = None,
     std_dims: dict[int, tuple[float, float, float]] | None = None,
     class_names: dict[int, str] | None = None,
-    score_k: float = 0.5,
     depth_var_scale: float = 1.0,
 ) -> list[list[Box3D]]:
     """Shared decode pipeline for val and predict.
@@ -477,7 +471,6 @@ def decode_and_refine_predictions(
         mean_dims: Mean dimensions per class (class ID -> (H, W, L) in meters).
         std_dims: Standard deviation of dimensions per class.
         class_names: Mapping from class ID to class name.
-        score_k: Decay rate for the uncertainty-based confidence weighting (see decode_stereo3d_outputs).
         depth_var_scale: Multiplier on the direct-depth cue's fusion variance (see decode_stereo3d_outputs).
 
     Returns:
@@ -528,7 +521,6 @@ def decode_and_refine_predictions(
         mean_dims=mean_dims,
         std_dims=std_dims,
         class_names=class_names,
-        score_k=score_k,
         depth_var_scale=depth_var_scale,
         calib_letterboxed=True,  # batch calib is in letterbox-input space; decode reverses it to original
     )

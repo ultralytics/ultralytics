@@ -60,7 +60,6 @@ quantize: # (int|str, optional) precision: predict/val use 16/fp16 for FP16 or 3
 dnn: False # (bool) use OpenCV DNN for ONNX inference
 plots: True # (bool) save plots and images during train/val
 end2end: # (bool, optional) whether to use end2end head (YOLO26, YOLOv10) for predict/val/export
-score_k: 0.5 # (float) s3d: temperature for uncertainty-based confidence weighting (exp(-score_k * depth_sigma))
 depth_var_scale: 1.0 # (float) s3d: multiplier on the direct-depth cue's variance in the inverse-variance depth fusion
 
 # Predict settings -----------------------------------------------------------------------------------------------------

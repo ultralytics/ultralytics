@@ -710,41 +710,6 @@ def test_ivw_fusion_equal_sigma_matches_geomean():
     assert abs(z_ivw - z_geo) < 1e-2, f"ivw {z_ivw} != geomean {z_geo}"
 
 
-def test_score_weight_demotes_uncertain():
-    """score_weight multiplies confidence by exp(-k*sigma): higher lr_logvar => lower final score."""
-    import math
-
-    import torch
-
-    from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS, encode_orientation
-    from ultralytics.models.yolo.s3d.preprocess import decode_stereo3d_outputs
-
-    calib = {"fx": 721.5377, "fy": 721.5377, "cx": 609.5593, "cy": 172.8540, "baseline": 0.54}
-    ori_hw = (375, 1242)
-    imgsz = (384, 1248)
-    nc = 3
-
-    def conf(logvar):
-        det = torch.zeros(1, 4 + nc, 1)
-        det[0, :4, 0] = torch.tensor([624.0, 192.0, 20.0, 20.0])
-        det[0, 4, 0] = 0.9
-        outputs = {
-            "det": det,
-            "dimensions": torch.zeros(1, 3, 1),
-            "orientation": torch.tensor(encode_orientation(0.0)).view(1, ORIENT_CHANNELS, 1).float(),
-            "lr_distance": torch.tensor([[[math.log(0.03)]]]),
-            "depth": torch.tensor([[[math.log(25.0)]]]),
-            "lr_logvar": torch.tensor([[[logvar]]]),
-        }
-        # bs=1 -> decode_stereo3d_outputs returns a flat list[Box3D] (unwrapped), so index once.
-        # score-weighting is applied unconditionally when lr_logvar is present.
-        return decode_stereo3d_outputs(outputs, calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], score_k=0.5)[
-            0
-        ].confidence
-
-    assert conf(4.0) < conf(0.0), "higher uncertainty must lower the score"
-
-
 def test_ivw_fusion_uses_dfl_variance():
     """With depth_bins present, ivw_fusion must weight the direct cue by its DFL spread (not the constant 1.0 fallback),
     pulling the fused z away from the plain geomean when the DFL distribution is narrow (low variance) while the
@@ -1734,7 +1699,14 @@ def test_close_range_boxes_are_rendered():
     calib = {"fx": 645.66, "fy": 645.66, "cx": 480.0, "cy": 300.0, "baseline": 0.063}
     img = np.zeros((600, 960, 3), dtype=np.uint8)
     for z in (0.45, 0.87, 1.66):  # the cube_s3d depth range, all below the old 2.0 m floor
-        box = Box3D(center_3d=(0.0, 0.0, z), dimensions=(0.05, 0.05, 0.10), orientation=0.0, class_id=0, class_label="cubetto", confidence=0.9)
+        box = Box3D(
+            center_3d=(0.0, 0.0, z),
+            dimensions=(0.05, 0.05, 0.10),
+            orientation=0.0,
+            class_id=0,
+            class_label="cubetto",
+            confidence=0.9,
+        )
         corners = project_box3d_corners(box, calib)
         assert not np.allclose(corners, 0.0), f"z={z} m was dropped by the projection guard"
         assert (plot_boxes3d(img, [box], calib) != img).any(), f"z={z} m drew no pixels"
@@ -1742,5 +1714,12 @@ def test_close_range_boxes_are_rendered():
     # Non-projectable centres must still be rejected rather than producing garbage coordinates.
     # Box3D itself rejects z <= 0, so only the non-finite and sub-epsilon cases reach this guard.
     for bad_z in (float("nan"), float("inf"), 1e-9):
-        bad = Box3D(center_3d=(0.0, 0.0, bad_z), dimensions=(0.05, 0.05, 0.10), orientation=0.0, class_id=0, class_label="cubetto", confidence=0.9)
+        bad = Box3D(
+            center_3d=(0.0, 0.0, bad_z),
+            dimensions=(0.05, 0.05, 0.10),
+            orientation=0.0,
+            class_id=0,
+            class_label="cubetto",
+            confidence=0.9,
+        )
         assert np.allclose(project_box3d_corners(bad, calib), 0.0), f"z={bad_z} should be rejected"

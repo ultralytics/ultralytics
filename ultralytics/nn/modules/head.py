@@ -252,7 +252,7 @@ class Detect(nn.Module):
             scores, labels = scores.max(dim=-1, keepdim=True)
             scores, indices = scores.topk(k, dim=1)
             labels = labels.gather(1, indices)
-            return scores, labels, indices
+            return scores, labels.float(), indices
         ori_index = scores.max(dim=-1)[0].topk(k)[1].unsqueeze(-1)
         scores = scores.gather(dim=1, index=ori_index.expand(-1, -1, nc))
         scores, index = scores.flatten(1).topk(k)

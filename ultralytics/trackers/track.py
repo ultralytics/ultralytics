@@ -5,6 +5,7 @@ from pathlib import Path
 
 import torch
 
+from ultralytics.cfg import TASKS
 from ultralytics.utils import YAML, IterableSimpleNamespace
 from ultralytics.utils.checks import check_yaml
 
@@ -38,8 +39,9 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         >>> predictor = SomePredictorClass()
         >>> on_predict_start(predictor, persist=True)
     """
-    if predictor.args.task == "classify":
-        raise ValueError("❌ Classification doesn't support 'mode=track'")
+    trackable = ("detect", "segment", "pose", "obb")  # tasks whose results carry boxes, in canonical order
+    if (task := predictor.args.task) in TASKS and task not in trackable:  # unknown third-party tasks are left alone
+        raise ValueError(f"❌ Task '{task}' doesn't support 'mode=track', valid tasks are {', '.join(trackable)}")
 
     if hasattr(predictor, "trackers") and persist:
         return

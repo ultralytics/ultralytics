@@ -1395,7 +1395,11 @@ class Exporter:
         images = None
         if self.args.quantize == 8 and self.args.data:
             images = [batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)]
-            images = torch.cat(images, 0).float().permute(0, 2, 3, 1).numpy()
+            images = (
+                torch.nn.functional.interpolate(torch.cat(images, 0).float(), size=self.imgsz)
+                .permute(0, 2, 3, 1)
+                .numpy()
+            )
 
         # Export to ONNX
         if isinstance(self.model.model[-1], RTDETRDecoder):

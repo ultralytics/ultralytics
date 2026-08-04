@@ -176,6 +176,7 @@ def test_model_forward():
     model(source=None, imgsz=32, augment=True)  # also test no source and augment
 
 
+@pytest.mark.skipif(not TORCH_1_11, reason="RTDETR requires torch>=1.11")
 @pytest.mark.parametrize("cfg", ["rtdetr-l.yaml", "yolov8-rtdetr.yaml"])
 def test_rtdetr_flops(cfg):
     """Test RT-DETR FLOPs match direct profiles and remain stable."""

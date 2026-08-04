@@ -11,7 +11,7 @@ Multi-object tracking is a critical component in video analytics that identifies
 
 ## Dataset Format (Coming Soon)
 
-Ultralytics tracking currently reuses detection, segmentation, or pose models without requiring tracker-specific training. Native tracker-training support is under active development.
+Ultralytics tracking currently reuses detection, segmentation, pose, or OBB models without requiring tracker-specific training. Native tracker-training support is under active development.
 
 ## Available Trackers
 
@@ -108,14 +108,14 @@ These commands load the YOLO26 model and use it for tracking objects in the give
 
 ### What are the upcoming features for training trackers in Ultralytics?
 
-Ultralytics is continuously enhancing its AI models. An upcoming feature will enable the training of standalone trackers. Until then, Multi-Object Detector leverages pretrained detection, segmentation, or Pose models for tracking without requiring standalone training. Stay updated by following our [blog](https://www.ultralytics.com/blog).
+Ultralytics is continuously enhancing its AI models. An upcoming feature will enable the training of standalone trackers. Until then, Multi-Object Detector leverages pretrained detection, segmentation, pose, or OBB models for tracking without requiring standalone training. Stay updated by following our [blog](https://www.ultralytics.com/blog).
 
 ### Why should I use Ultralytics YOLO for multi-object tracking?
 
 Ultralytics YOLO is a state-of-the-art [object detection](https://www.ultralytics.com/glossary/object-detection) model known for its real-time performance and high [accuracy](https://www.ultralytics.com/glossary/accuracy). Using YOLO for multi-object tracking provides several advantages:
 
 - **Real-time tracking:** Achieve efficient and high-speed tracking ideal for dynamic environments.
-- **Flexibility with pretrained models:** No need to train from scratch; simply use pretrained detection, segmentation, or Pose models.
+- **Flexibility with pretrained models:** No need to train from scratch; simply use pretrained detection, segmentation, pose, or OBB models.
 - **Ease of use:** Simple API integration with both Python and CLI makes setting up tracking pipelines straightforward.
 - **Extensive documentation and community support:** Ultralytics provides comprehensive documentation and an active community forum to troubleshoot issues and enhance your tracking models.
 

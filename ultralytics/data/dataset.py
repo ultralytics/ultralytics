@@ -803,6 +803,8 @@ class GroundingDataset(YOLODataset):
         cache, _ = self._load_or_scan_cache(cache_path, self.get_cache_hash())
         [cache.pop(k) for k in ("hash", "version")]  # remove items
         labels = cache["labels"]
+        if not labels:
+            raise RuntimeError(f"No images from {self.json_file} found in {self.img_path}. {HELP_URL}")
         self._verify_instance_counts(labels)
         self.im_files = [str(label["im_file"]) for label in labels]
         if LOCAL_RANK in {-1, 0}:

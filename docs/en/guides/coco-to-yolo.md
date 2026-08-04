@@ -309,7 +309,7 @@ If conversion completes but `.txt` files are empty or missing, all annotations m
 
 ### Box-Shaped Polygons From Mask Annotations
 
-If `use_segments=True` logs `RLE and other non-polygon segmentations converted to bounding-box polygons`, some annotations carry a `segmentation` value that is not a list of polygon points. The usual cause is COCO run-length encoding (`{"counts": ..., "size": ...}`), which bitmask exporters such as [SAM](../models/sam.md) write; a malformed value triggers the same fallback. Segment rows for those annotations are written from the bounding box, so the labels stay valid but carry no mask detail.
+If `use_segments=True` logs `ignored segmentations that are not polygon point lists`, some annotations carry a `segmentation` value that is not a list of at least three coordinate pairs. The usual cause is COCO run-length encoding (`{"counts": ..., "size": ...}`), which bitmask exporters such as [SAM](../models/sam.md) write; coordinates with no enclosing polygon list, one- and two-point outlines, and other malformed values are ignored the same way. An annotation keeps whichever polygons remain, and falls back to a segment row shaped like its bounding box when none do, so the labels stay valid but those rows carry no mask detail.
 
 **Solution**: Re-export the annotations with polygon segmentations, decode the RLE masks to polygons before running `convert_coco()`, or correct any malformed `segmentation` values.
 

@@ -284,7 +284,7 @@ def convert_coco(
             annotations[ann["image_id"]].append(ann)
 
         image_txt = []
-        rle = False
+        dropped = False
         # Write labels file
         for img_id, anns in TQDM(annotations.items(), desc=f"Annotations {json_file}"):
             img = images[f"{img_id:d}"]
@@ -319,17 +319,25 @@ def convert_coco(
                     bboxes.append(box)
                     if use_segments:
                         seg = ann.get("segmentation")
-                        if not isinstance(seg, list) or len(seg) == 0:  # RLE dict, or no polygon list
-                            rle |= bool(seg) and not isinstance(seg, list)  # had content, but not polygons
+                        seg = seg if isinstance(seg, list) else [seg]  # an RLE dict is one non-polygon entry
+                        seg = [  # [[x, y], ...] is a polygon form too, flatten it to [x, y, x, y, ...]
+                            [c for x in p for c in x]
+                            if isinstance(p, list) and all(isinstance(x, list) for x in p)
+                            else p
+                            for p in seg
+                        ]
+                        polygons = [p for p in seg if isinstance(p, list) and len(p) >= 6 and not len(p) % 2]
+                        dropped |= len(polygons) < sum(bool(p) for p in seg)  # a non-empty entry was not a polygon
+                        if not polygons:
                             cx, cy, bw, bh = box[1:]
                             x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2
                             segments.append([cls, x1, y1, x2, y1, x2, y2, x1, y2])
-                        elif len(seg) > 1:
-                            s = merge_multi_segment(seg)
+                        elif len(polygons) > 1:
+                            s = merge_multi_segment(polygons)
                             s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
                             segments.append([cls, *s])
                         else:
-                            s = [j for i in seg for j in i]  # all segments concatenated
+                            s = [j for i in polygons for j in i]  # all segments concatenated
                             s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
                             segments.append([cls, *s])
 
@@ -342,8 +350,11 @@ def convert_coco(
                         line = (*(segments[i] if use_segments else bboxes[i]),)  # cls, box or segments
                     file.write(("%g " * len(line)).rstrip() % line + "\n")
 
-        if rle and not use_keypoints:  # segments are unused when keypoints own the output
-            LOGGER.warning(f"{json_file}: RLE and other non-polygon segmentations converted to bounding-box polygons.")
+        if dropped and not use_keypoints:  # segments are unused when keypoints own the output
+            LOGGER.warning(
+                f"{json_file}: ignored segmentations that are not polygon point lists, such as RLE masks. "
+                "Annotations left without a polygon use a segment shaped like their bounding box."
+            )
 
         if lvis:
             filename = Path(save_dir) / json_file.name.replace("lvis_v1_", "").replace(".json", ".txt")

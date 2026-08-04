@@ -307,6 +307,12 @@ If conversion completes but `.txt` files are empty or missing, all annotations m
 
 **Solution**: Inspect your JSON annotations for `iscrowd` values. If using SAM masks, preprocess the JSON to set `iscrowd: 0`.
 
+### Box-Shaped Polygons From Mask Annotations
+
+If `use_segments=True` logs `RLE and other non-polygon segmentations converted to bounding-box polygons`, some annotations carry a `segmentation` value that is not a list of polygon points. The usual cause is COCO run-length encoding (`{"counts": ..., "size": ...}`), which bitmask exporters such as [SAM](../models/sam.md) write; a malformed value triggers the same fallback. Segment rows for those annotations are written from the bounding box, so the labels stay valid but carry no mask detail.
+
+**Solution**: Re-export the annotations with polygon segmentations, decode the RLE masks to polygons before running `convert_coco()`, or correct any malformed `segmentation` values.
+
 ### Class ID Gaps in Converted Labels
 
 If class IDs in label files are non-contiguous (e.g., 0, 4, 9 instead of 0, 1, 2), your annotation tool uses non-contiguous `category_id` values.

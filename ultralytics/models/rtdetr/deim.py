@@ -452,6 +452,10 @@ class RTDETRDEIMValidator(RTDETRValidator):
         """Persist current train epoch so preprocess can attach it to validation batches."""
         if trainer is not None:
             self._val_epoch = int(trainer.epoch)
+            self._val_training_progress = min(
+                max(trainer.epoch / max(trainer.epochs - 1, 1), 0.0),
+                1.0,
+            )
         return super().__call__(trainer=trainer, model=model)
 
     def preprocess(self, batch):
@@ -461,6 +465,7 @@ class RTDETRDEIMValidator(RTDETRValidator):
             if not hasattr(self, "_val_epoch"):
                 raise KeyError("RTDETRDEIM validation requires epoch, but validator state is missing.")
             batch["epoch"] = int(self._val_epoch)
+            batch["training_progress"] = float(self._val_training_progress)
         return batch
 
     def build_dataset(self, img_path, mode="val", batch=None):

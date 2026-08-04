@@ -1020,8 +1020,11 @@ class RTDETRDetectionModel(DetectionModel):
         if supports_dfine and dfine_meta is not None:
             dfine_meta, dfine_meta_o2m = self._split_dfine_meta(dfine_meta, dn_meta)
         matcher_epoch = 0
+        training_progress = 0.0
         if supports_dfine and "epoch" in batch:
             matcher_epoch = int(batch["epoch"])
+        if supports_dfine and "training_progress" in batch:
+            training_progress = float(batch["training_progress"])
         dn_bboxes = split_outputs["dn_bboxes"]
         dn_scores = split_outputs["dn_scores"]
         dec_bboxes = split_outputs["o2o_bboxes"]
@@ -1056,6 +1059,7 @@ class RTDETRDetectionModel(DetectionModel):
         if supports_dfine:
             loss_kwargs["dfine_meta"] = dfine_meta
             loss_kwargs["matcher_epoch"] = matcher_epoch
+            loss_kwargs["training_progress"] = training_progress
         loss_inputs = (dec_bboxes, dec_scores)
         loss_targets = targets
         if strict_loss_fp32:
@@ -1080,6 +1084,7 @@ class RTDETRDetectionModel(DetectionModel):
             if supports_dfine:
                 loss_o2m_kwargs["dfine_meta"] = dfine_meta_o2m
                 loss_o2m_kwargs["matcher_epoch"] = matcher_epoch
+                loss_o2m_kwargs["training_progress"] = training_progress
             if supports_dfine:
                 with torch.autocast(device_type=img.device.type, enabled=False):
                     loss_o2m = self.criterion((o2m_bboxes, o2m_scores), targets_o2m, **loss_o2m_kwargs)

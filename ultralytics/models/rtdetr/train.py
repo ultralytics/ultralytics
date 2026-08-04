@@ -81,7 +81,7 @@ class RTDETRTrainer(DetectionTrainer):
         return random.choice(scales)
 
     def preprocess_batch(self, batch: dict) -> dict:
-        """Preprocess a batch and attach epoch for RT-DETR loss-side scheduling."""
+        """Preprocess a batch and attach normalized progress for RT-DETR loss-side scheduling."""
         already_scaled = self._pop_batch_flag(batch, "img_scaled")
         for k, v in batch.items():
             if isinstance(v, torch.Tensor):
@@ -98,6 +98,7 @@ class RTDETRTrainer(DetectionTrainer):
                 imgs = nn.functional.interpolate(imgs, size=ns, mode="bilinear", align_corners=False)
             batch["img"] = imgs
         batch["epoch"] = int(self.epoch)
+        batch["training_progress"] = min(max(self.epoch / max(self.epochs - 1, 1), 0.0), 1.0)
         return batch
 
     def get_model(self, cfg: dict | None = None, weights: str | None = None, verbose: bool = True):

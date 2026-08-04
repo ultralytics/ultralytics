@@ -14,6 +14,12 @@ from ultralytics.utils.ops import xywh2xyxy, xyxy2xywh
 from .box_ops import box_cxcywh_to_xyxy, pairwise_box_iou, pairwise_giou
 
 
+def _curriculum_ratio(training_progress: float, power: float) -> float:
+    """Return a clamped power-schedule ratio from normalized training progress."""
+    progress = min(max(float(training_progress), 0.0), 1.0)
+    return progress**power
+
+
 class HungarianMatcher(nn.Module):
     """A module implementing the HungarianMatcher for optimal assignment between predictions and ground truth.
 
@@ -58,6 +64,10 @@ class HungarianMatcher(nn.Module):
         change_matcher: bool = False,
         iou_order_alpha: float = 1.0,
         matcher_change_epoch: int = 10000,
+        use_mal: bool = False,
+        mal_alpha: float | None = None,
+        mal_gamma: float = 2.0,
+        mal_transition_power: float = 2.0,
     ):
         """Initialize HungarianMatcher for optimal assignment of predicted and ground truth bounding boxes.
 
@@ -72,6 +82,10 @@ class HungarianMatcher(nn.Module):
             change_matcher (bool): Enable DEIMv2-style matcher switch at a target epoch.
             iou_order_alpha (float): Exponent for IoU in switched matcher cost.
             matcher_change_epoch (int): Epoch at/after which switched matcher cost is used.
+            use_mal (bool): Gradually replace Focal classification cost with MAL classification cost.
+            mal_alpha (float | None): Optional negative-weight scale used by MAL. None applies no scaling.
+            mal_gamma (float): IoU-target and negative-weight exponent used by MAL.
+            mal_transition_power (float): Power applied to normalized progress for the Focal-to-MAL blend.
         """
         super().__init__()
         if cost_gain is None:
@@ -85,6 +99,16 @@ class HungarianMatcher(nn.Module):
         self.change_matcher = change_matcher
         self.iou_order_alpha = iou_order_alpha
         self.matcher_change_epoch = matcher_change_epoch
+        self.use_mal = use_mal
+        self.mal_alpha = mal_alpha
+        self.mal_gamma = mal_gamma
+        self.mal_transition_power = mal_transition_power
+        if self.use_mal and not self.use_fl:
+            raise ValueError("MAL matcher curriculum requires use_fl=True for its Focal starting cost")
+        if self.use_mal and self.change_matcher:
+            raise ValueError("MAL matcher curriculum and change_matcher are alternative matcher schedules")
+        if self.mal_transition_power <= 0:
+            raise ValueError(f"mal_transition_power must be > 0, got {self.mal_transition_power}")
 
     @torch.no_grad()
     def forward(
@@ -97,6 +121,7 @@ class HungarianMatcher(nn.Module):
         masks: torch.Tensor | None = None,
         gt_mask: list[torch.Tensor] | None = None,
         epoch: int = 0,
+        training_progress: float = 0.0,
     ) -> list[tuple[torch.Tensor, torch.Tensor]]:
         """Compute optimal assignment between predictions and ground truth using Hungarian algorithm.
 
@@ -113,6 +138,7 @@ class HungarianMatcher(nn.Module):
             masks (torch.Tensor, optional): Predicted masks with shape (batch_size, num_queries, height, width).
             gt_mask (list[torch.Tensor], optional): Ground truth masks, each with shape (num_masks, Height, Width).
             epoch (int): Current training epoch for optional DEIMv2 matcher schedule.
+            training_progress (float): Normalized training progress in [0, 1] for the MAL matcher curriculum.
 
         Returns:
             (list[tuple[torch.Tensor, torch.Tensor]]): A list of size batch_size, each element is a tuple (index_i,
@@ -126,8 +152,8 @@ class HungarianMatcher(nn.Module):
             return [(torch.tensor([], dtype=torch.long), torch.tensor([], dtype=torch.long)) for _ in range(bs)]
 
         # Flatten to compute cost matrices in batch format
-        pred_scores = pred_scores.detach().view(-1, nc)
-        pred_scores = F.sigmoid(pred_scores) if self.use_fl else F.softmax(pred_scores, dim=-1)
+        pred_logits = pred_scores.detach().view(-1, nc)
+        pred_scores = F.sigmoid(pred_logits) if self.use_fl else F.softmax(pred_logits, dim=-1)
         pred_bboxes = pred_bboxes.detach().view(-1, 4)
         pred_xyxy = box_cxcywh_to_xyxy(pred_bboxes)
         gt_xyxy = box_cxcywh_to_xyxy(gt_bboxes)
@@ -146,6 +172,22 @@ class HungarianMatcher(nn.Module):
                 cost_class = pos_cost_class - neg_cost_class
             else:
                 cost_class = -pred_scores
+
+            if self.use_mal:
+                # Assignment needs the marginal cost of making pair (query i, target j) positive instead of leaving
+                # that query/class entry as background. This is the pairwise equivalent of MALoss:
+                # BCE(logit, IoU**gamma) - alpha * p**gamma * BCE(logit, 0).
+                pair_logits = pred_logits[:, gt_cls]
+                pair_iou = pairwise_box_iou(pred_xyxy, gt_xyxy)[0].clamp(0.0, 1.0)
+                mal_target = pair_iou.pow(self.mal_gamma)
+                mal_positive = F.binary_cross_entropy_with_logits(pair_logits, mal_target, reduction="none")
+                mal_negative_weight = pred_scores.pow(self.mal_gamma)
+                if self.mal_alpha is not None:
+                    mal_negative_weight = mal_negative_weight * self.mal_alpha
+                mal_negative = mal_negative_weight * F.softplus(pair_logits)
+                mal_cost_class = mal_positive - mal_negative
+                ratio = _curriculum_ratio(training_progress, self.mal_transition_power)
+                cost_class = torch.lerp(cost_class, mal_cost_class, ratio)
 
             # Compute L1 cost between boxes
             cost_bbox = (pred_bboxes.unsqueeze(1) - gt_bboxes.unsqueeze(0)).abs().sum(-1)  # (bs*num_queries, num_gt)

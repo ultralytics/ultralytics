@@ -1095,7 +1095,7 @@ class BaseTrainer:
             # higher lr for certain parameters in MuSGD when finetuning
             # proto.semseg is the checkpoint parameter name for YOLO26 semantic auxiliary heads.
             pattern = re.compile(
-                r"(?=.*23)(?=.*(cv3|one2one_adapter|one2one_alpha|one2one_obj))|proto\.semseg|SemanticSegment"
+                r"(?=.*23)(?=.*(cv3|aux_fg|one2one_adapter|one2one_alpha|one2one_obj))|proto\.semseg|SemanticSegment"
             )
             g_ = []  # new param groups
             for x in g:

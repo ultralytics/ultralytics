@@ -126,6 +126,7 @@ aux_fg_end: 0.0 # (float) when aux_fg>0, fraction of epochs over which the aux g
 aux_fg_tgt: o2m # (str) assignment supplying the aux foreground target: dense 'o2m', single-anchor 'o2o', or 'mix' (o2f-style: 1 at the o2o positive, decaying degree at o2m-only anchors)
 aux_fg_t: 0.5 # (float) when aux_fg_tgt='mix', initial degree of the o2m-only (ambiguous) anchors in [0, 1], decayed linearly to 0 (1.0 starts from the dense o2m target)
 aux_fg_t_end: 1.0 # (float) when aux_fg_tgt='mix', fraction of epochs over which the ambiguous degree reaches 0 (1.0=last epoch; 0.7 leaves the final 30% on a pure o2o target)
+aux_fg_t_mosaic: False # (bool) when aux_fg_tgt='mix', end the ambiguous decay at close_mosaic instead of aux_fg_t_end, so the degree is exactly 0 from the first mosaic-free epoch onward
 aux_fg_sched: o2m # (str) branch weight carrying the aux loss: 'o2m' (decays 0.8->0.1), 'const' (flat 1.0), 'o2o' (grows 0.2->0.9), or 'split' (per-anchor: o2m-only positives decay with o2m, o2o-only grow with o2o, overlap and background take their sum = 1.0)
 vfl: False # (bool) use Varifocal Loss instead of BCE for classification
 vfl_o2m: True # (bool) when vfl=True, also apply Varifocal Loss to the one2many branch (False = one2one branch only)
@@ -172,6 +173,9 @@ wiou_momentum: 0.01 # (float) when wiou=True, EMA momentum of the mean IoU loss 
 wiou_rmin: 0.0 # (float) when wiou=True, floor on the focusing coefficient (0=off), limits how far high-IoU boxes are down-weighted
 wiou_gate: 0.0 # (float) when wiou=True, IoU at which the box loss crosses over from WIoU to CIoU (0=off, pure WIoU)
 wiou_gate_k: 30.0 # (float) steepness of the wiou_gate crossover; larger is a sharper switch
+wiou_penalty: 0.0 # (float) when wiou=True, gain of CIoU's additive center/aspect penalties added back on top of WIoU (0=off)
+wiou_ar: 0.0 # (float) when wiou=True, gain of CIoU's aspect-ratio penalty alpha*v alone, the one term WIoU lacks (0=off)
+wiou_ciou: False # (bool) when wiou=True, apply the focusing gain to the CIoU loss instead of exp() * plain IoU loss
 pose: 12.0 # (float) pose loss gain (pose tasks)
 kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)
 rle: 1.0 # (float) rle loss gain (pose tasks)

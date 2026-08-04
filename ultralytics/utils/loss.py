@@ -121,6 +121,9 @@ class BboxLoss(nn.Module):
         wiou_rmin: float = 0.0,
         wiou_gate: float = 0.0,
         wiou_gate_k: float = 30.0,
+        wiou_penalty: float = 0.0,
+        wiou_ar: float = 0.0,
+        wiou_ciou: bool = False,
     ):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
@@ -142,6 +145,9 @@ class BboxLoss(nn.Module):
         self.wiou_rmin = wiou_rmin  # floor on the focusing coefficient (0=none), limits high-IoU down-weighting
         self.wiou_gate = wiou_gate  # IoU where the box loss crosses over from WIoU to CIoU (0=pure WIoU)
         self.wiou_gate_k = wiou_gate_k  # steepness of that crossover
+        self.wiou_penalty = wiou_penalty  # gain of CIoU's additive center/aspect penalties added on top of WIoU
+        self.wiou_ar = wiou_ar  # gain of CIoU's aspect-ratio penalty alone, the only CIoU term WIoU has no analogue of
+        self.wiou_ciou = wiou_ciou  # focus the CIoU loss instead of the plain IoU loss (replaces the exp() attention)
         self.register_buffer("iou_mean", torch.tensor(1.0))  # running mean IoU loss, WIoU's outlier-degree denominator
 
     def forward(
@@ -161,16 +167,24 @@ class BboxLoss(nn.Module):
         if self.wiou:  # WIoU v3: distance attention on the plain IoU loss, scaled by the non-monotonic focusing gain
             pred_fg, target_fg = pred_bboxes[fg_mask], target_bboxes[fg_mask]
             l_iou = 1.0 - bbox_iou(pred_fg, target_fg, xywh=False)
+            if self.wiou_penalty or self.wiou_ar or self.wiou_gate or self.wiou_ciou:
+                l_ciou = 1.0 - bbox_iou(pred_fg, target_fg, xywh=False, CIoU=True)
+            base = l_ciou if self.wiou_ciou else l_iou  # the loss the focusing gain grades and scales
             if torch.is_grad_enabled():  # keep the mean on the training distribution (validation runs under no_grad)
-                self.iou_mean.mul_(1.0 - self.wiou_momentum).add_(self.wiou_momentum * l_iou.detach().mean())
-            beta = l_iou.detach() / self.iou_mean  # outlier degree: <1 for high-quality anchors, >1 for outliers
+                self.iou_mean.mul_(1.0 - self.wiou_momentum).add_(self.wiou_momentum * base.detach().mean())
+            beta = base.detach() / self.iou_mean  # outlier degree: <1 for high-quality anchors, >1 for outliers
             # gain peaks at ordinary anchors and decays toward both harmful outliers (large beta) and easy ones (beta~0)
             r = beta / (self.wiou_delta * torch.pow(self.wiou_alpha, beta - self.wiou_delta))
             r.clamp_(min=self.wiou_rmin)  # keep a share of the gradient on high-IoU boxes (0 = paper behaviour)
-            per_box = r * wiou_dist(pred_fg, target_fg) * l_iou
+            # CIoU already carries rho2/c2, so the exp() distance attention would apply it twice
+            per_box = r * base if self.wiou_ciou else r * wiou_dist(pred_fg, target_fg) * l_iou
+            if self.wiou_penalty:  # restore CIoU's additive center/aspect penalties, not scaled by the focusing gain
+                per_box = per_box + self.wiou_penalty * (l_ciou - l_iou)  # (1-CIoU) - (1-IoU) == rho2/c2 + alpha*v
+            if self.wiou_ar:  # aspect term only: WIoU's exp() already covers the center distance
+                l_diou = 1.0 - bbox_iou(pred_fg, target_fg, xywh=False, DIoU=True)  # CIoU and DIoU differ by alpha*v
+                per_box = per_box + self.wiou_ar * (l_ciou - l_diou)
             if self.wiou_gate:  # hand the well-localized boxes back to CIoU, which does not down-weight them
                 gate = torch.sigmoid(self.wiou_gate_k * (1.0 - l_iou.detach() - self.wiou_gate))
-                l_ciou = 1.0 - bbox_iou(pred_fg, target_fg, xywh=False, CIoU=True)
                 per_box = (1.0 - gate) * per_box + gate * l_ciou
             loss_iou = (per_box * weight).sum() / target_scores_sum
         else:
@@ -605,6 +619,9 @@ class v8DetectionLoss:
             wiou_rmin=getattr(h, "wiou_rmin", 0.0),
             wiou_gate=getattr(h, "wiou_gate", 0.0),
             wiou_gate_k=getattr(h, "wiou_gate_k", 30.0),
+            wiou_penalty=getattr(h, "wiou_penalty", 0.0),
+            wiou_ar=getattr(h, "wiou_ar", 0.0),
+            wiou_ciou=getattr(h, "wiou_ciou", False),
         ).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 
@@ -1698,13 +1715,23 @@ class E2ELoss:
         self.aux_fg_t = getattr(model.args, "aux_fg_t", 0.5)
         if not 0 <= self.aux_fg_t <= 1:
             raise ValueError(f"aux_fg_t must be in [0, 1], not {self.aux_fg_t}")
-        self.aux_fg_t_cur = self.aux_fg_t  # decayed each epoch by update()
         # fraction of epochs over which the ambiguous degree reaches 0. There are ~topk-1 times more ambiguous anchors
         # than o2o positives, so even a small degree still carries a comparable share of the target mass; ending the
         # decay early (e.g. 0.7) leaves the trunk a real stretch of pure o2o supervision instead of only the last epoch.
         self.aux_fg_t_end = getattr(model.args, "aux_fg_t_end", 1.0)
         if not 0 < self.aux_fg_t_end <= 1:
             raise ValueError(f"aux_fg_t_end must be in (0, 1], not {self.aux_fg_t_end}")
+        # tie the end of the decay to close_mosaic instead, overriding aux_fg_t_end: the degree hits 0 on the first
+        # mosaic-free epoch, so the whole clean-data fine-tuning stretch supervises the trunk with a pure o2o target.
+        # This is the stretch the o2o head is actually validated on, and it moves with epochs/close_mosaic for free.
+        self.aux_fg_t_mosaic = getattr(model.args, "aux_fg_t_mosaic", False)
+        epochs = self.one2one.hyp.epochs
+        self.aux_fg_t_span = (  # decay length in epochs; a non-positive span means the degree is 0 from the start
+            epochs - getattr(self.one2one.hyp, "close_mosaic", 0)
+            if self.aux_fg_t_mosaic
+            else self.aux_fg_t_end * max(epochs - 1, 1)
+        )
+        self.aux_fg_t_cur = self.aux_fg_t * self.aux_fg_ramp(0, self.aux_fg_t_span)  # decayed each epoch by update()
         # branch weight carrying the aux term: 'o2m' follows the one2many decay, 'const' keeps it flat, 'o2o' follows the
         # growing one2one weight. With a mix target sliding toward pure o2o, the o2m schedule throttles the o2o-shaped
         # supervision exactly when the o2o branch takes over, so 'const' (or 'o2o') resolves that contradiction.
@@ -1991,17 +2018,18 @@ class E2ELoss:
         if self.o2f:
             self.o2f_loss.assigner.o2f_t = self.o2f_decay(self.updates)
         if self.aux_fg and self.aux_fg_end:
-            self.aux_fg_w = self.aux_fg_ramp(self.updates, self.aux_fg_end)
+            self.aux_fg_w = self.aux_fg_ramp(self.updates, self.aux_fg_end * max(self.one2one.hyp.epochs - 1, 1))
         if self.aux_fg and self.aux_fg_tgt == "mix":  # slide the aux target from dense o2m toward pure o2o
-            self.aux_fg_t_cur = self.aux_fg_t * self.aux_fg_ramp(self.updates, self.aux_fg_t_end)
+            self.aux_fg_t_cur = self.aux_fg_t * self.aux_fg_ramp(self.updates, self.aux_fg_t_span)
 
     def decay(self, x) -> float:
         """Calculate the decayed weight for one-to-many loss based on the current update step."""
         return max(1 - x / max(self.one2one.hyp.epochs - 1, 1), 0) * (self.o2m_copy - self.final_o2m) + self.final_o2m
 
-    def aux_fg_ramp(self, x, end) -> float:
-        """Ramp linearly from 1 to 0 over the first ``end`` fraction of epochs (1.0 spans the whole run)."""
-        return max(1 - x / max(end * (self.one2one.hyp.epochs - 1), 1), 0)
+    @staticmethod
+    def aux_fg_ramp(x, span) -> float:
+        """Ramp linearly from 1 to 0 over the first ``span`` epochs; a non-positive span holds at 0 throughout."""
+        return max(1 - x / span, 0) if span > 0 else 0.0
 
     def o2f_decay(self, x) -> float:
         """Decay o2f_t linearly from o2f_max_t to o2f_min_t over the first half of epochs, then to 0 over the second."""

@@ -20,6 +20,17 @@ Two model configurations are available:
 
 Both models produce query-based predictions for NMS-free object detection with 300 decoder queries by default.
 
+## Key Features
+
+- **NMS-Free Query-Based Detection**
+  Predictions come from a fixed set of 300 object queries matched one-to-one with ground truth during training, so the standard inference path returns final boxes directly without non-maximum suppression. Latency does not vary with the number of objects in the image.
+
+- **`DeimDecoder` Head with Distribution-Based Box Regression**
+  Box edges are predicted as discrete distributions over `reg_max + 1` bins (33 in both shipped configs) and integrated back into coordinates, rather than regressed as single values. Training therefore adds a Distribution Focal Loss term (`fgl_loss`) alongside the classification, L1, and GIoU losses, plus a distillation term (`ddf_loss`) that transfers each decoder layer's distribution to the next.
+
+- **UltraViT Backbone (YOLO27x-DETR)**
+  An efficient hybrid backbone that keeps FastViT-style reparameterized convolution blocks at the three high-resolution stages and places global self-attention only at the coarsest P5/32 stage, where the token count is smallest. The convolutional blocks fold their training-time branches, residuals, and normalization into single convolutions for deployment, and the attention stage uses scaled dot-product attention directly to keep exported graphs compact.
+
 ## Model Variants
 
 | Model        | Config                 | Backbone         | Neck            | Decoder       | Decoder Layers |
@@ -41,8 +52,8 @@ Both models produce query-based predictions for NMS-free object detection with 3
 
         | Model        | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         | ------------ | --------------------------- | -------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
-        | YOLO27l-DETR | 640                         |                            | 335.6 ± 2.6                          | 6.8 ± 0.1                                 | 30.273                   | 85.968                  |
-        | YOLO27x-DETR | 640                         |                            | 649.7 ± 6.1                          | 12.8 ± 0.2                                | 65.477                   | 176.019                 |
+        | YOLO27l-DETR | 640                         |                            | 335.6 ± 2.6                          | 6.8 ± 0.1                                 | 30.3                     | 86.0                    |
+        | YOLO27x-DETR | 640                         |                            | 649.7 ± 6.1                          | 12.8 ± 0.2                                | 65.5                     | 176.0                   |
 
 _Parameters and FLOPs are measured from the exported ONNX graphs at `imgsz=640`. FLOPs count one multiply-add as two
 floating-point operations._
@@ -101,9 +112,7 @@ model.train(
     optimizer="AdamW",
     lr0=0.0005,
     weight_decay=0.000125,
-    no_aug_epoch=4,
     backbone_lr_ratio=0.02,
-    base_size_repeat=3,
 )
 ```
 
@@ -121,7 +130,3 @@ selected architecture and decoder behavior.
 
 Standard YOLO models predict on dense feature grids. YOLO-DETR instead uses a transformer decoder with a fixed set of
 object queries, producing NMS-free predictions in its standard inference path.
-
-## License
-
-YOLO-DETR is covered by the applicable Ultralytics license terms.

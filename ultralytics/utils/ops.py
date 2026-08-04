@@ -457,7 +457,7 @@ def segments2boxes(segments):
     for s in segments:
         x, y = s.T  # segment xy
         boxes.append([x.min(), y.min(), x.max(), y.max()])  # cls, xyxy
-    return xyxy2xywh(np.array(boxes))  # cls, xywh
+    return xyxy2xywh(np.array(boxes).reshape(-1, 4))  # cls, xywh
 
 
 def resample_segments(segments, n: int = 1000):

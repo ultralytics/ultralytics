@@ -243,7 +243,7 @@ To train a stereo 3D detection model:
 
 6. **Truncation and Occlusion**: Used for KITTI R40 difficulty classification (Easy/Moderate/Hard) during evaluation.
 
-7. **Format Compatibility**: The parser accepts both 18-value (current) and legacy 26-value label formats. Use the conversion script below to generate labels from raw KITTI data.
+7. **Label Generation**: Use the conversion script below to generate 18-value labels from raw KITTI data.
 
 ## Conversion from KITTI Format
 

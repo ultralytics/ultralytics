@@ -297,7 +297,7 @@ Here is a list of the supported datasets and a brief description for each:
 - [VisDrone](visdrone.md): A dataset containing object detection and multi-object tracking data from drone-captured imagery with over 10K images and video sequences.
 - [VOC](voc.md): The Pascal Visual Object Classes (VOC) dataset for object detection and segmentation with 20 object classes and over 11K images.
 - [xView](xview.md): A dataset for object detection in overhead imagery with 60 object categories and over 1 million annotated objects.
-- [KITTI Stereo 3D](kitti-stereo.md): A specialized format for **stereo-based 3D object detection** using the KITTI dataset, with 26-value label format including stereo 2D boxes, 3D dimensions, orientation, camera coordinates, and occlusion attributes.
+- [KITTI Stereo 3D](kitti-stereo.md): A specialized format for **stereo-based 3D object detection** using the KITTI dataset, with an 18-value label format including stereo 2D boxes, 3D dimensions, orientation, camera coordinates, and occlusion attributes.
 
 ### Adding your own dataset
 

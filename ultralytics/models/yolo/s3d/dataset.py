@@ -538,7 +538,7 @@ class Stereo3DDetDataset(BaseDataset):
         return load_kitti_calibration(calib_file).to_dict()
 
     def _parse_labels(self, label_file: Path) -> list[dict[str, Any]]:
-        """Parse YOLO 3D label file (18-value format, with backward-compat for legacy 26-value)."""
+        """Parse an 18-value YOLO 3D stereo label file (see convert_kitti_3d.py for the field order)."""
         if not label_file.exists():
             raise FileNotFoundError(f"Label file not found: {label_file}")
 
@@ -549,16 +549,10 @@ class Stereo3DDetDataset(BaseDataset):
                 if not line:
                     continue
                 parts = line.split()
-                n = len(parts)
-                if n == 18:
-                    # New 18-value format: no vertices
-                    trunc_idx, occ_idx = 16, 17
-                elif n == 26:
-                    # Legacy 26-value format: skip vertex indices 16-23
-                    trunc_idx, occ_idx = 24, 25
-                else:
-                    LOGGER.warning(f"Invalid label format in {label_file}: expected 18 or 26 values, got {n}")
+                if len(parts) != 18:
+                    LOGGER.warning(f"Invalid label format in {label_file}: expected 18 values, got {len(parts)}")
                     continue
+                trunc_idx, occ_idx = 16, 17
 
                 values = [float(x) for x in parts]
                 class_id = int(values[0])

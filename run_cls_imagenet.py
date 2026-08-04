@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""CE-on-ImageNet supervised pretrain matching exp5b-ce-baseline (single-GPU only).
+"""CE-on-ImageNet supervised pretrain matching exp5b-ce-baseline.
 
 Recipe: byte-exact match to exp5b-ce-baseline (encoder-distillation.md baselines
 table line: batch=256 nbs=256 MuSGD lr=0.1 muon=0.1 warmup_epochs=0 cos_lr).
@@ -14,22 +14,19 @@ Flags:
     --resume <path>: resume from checkpoint (auto-calls paths.patch_resume).
     --data <path>: override ImageNet root (e.g. local /data/datasets/imagenet
         when a host has rsynced a local copy; default falls through to NFS).
-    --lr <float>: override recipe lr0 (default 0.1; not auto-scaled here since
-        runner is single-GPU and there is no canonical batch to scale against).
-    --batch <int>: override per-GPU batch (default 256). nbs stays at 256.
+    --lr <float>: override recipe lr0 (default 0.1).
+    --batch <int>: override total batch (default 256, DDP splits it across
+        GPUs). nbs stays at 256.
     --epochs <int>: override epoch budget (default 114).
     --tags <csv>: override wandb tags (comma-separated). Defaults derived from
         model_yaml: imagenet-pretrain, ce-baseline-114ep, exp5b-recipe,
         yolo26-{conv|fastvit|ultravit}, scale-{s|l}.
-    --notes <str>: override wandb run notes (markdown string). Defaults to a
-        per-arch summary of recipe, reference top-1, single-gpu constraint,
-        and data path.
+    --notes <str>: override wandb run notes (markdown string).
 
-Single-GPU only: the wandb_config callback is registered via
-model.add_callback() and silently no-ops under DDP respawn (utils/dist.py:79
-serializes the overrides dict, not the model callback list). nfs_sync is started
-by this runner directly, so it no longer depends on a callback. For multi-GPU,
-subclass ClassificationTrainer and register inside __init__ instead.
+Multi-GPU: pass comma-joined physical GPU ids (e.g. 4,5). Recipe knobs are
+plain train args, nfs_sync runs in this parent process, and wandb group/tags
+travel as env vars, so all survive DDP. batch is global (split across ranks).
+Keep ranks x workers within the shared-NFS reader cap.
 """
 
 import os
@@ -85,13 +82,6 @@ def main(argv: list[str]) -> None:
     resume_args = _load_train_args(resume) if resume else {}
 
     gpu = args[0] if args else "0"
-    if "," in gpu:
-        raise ValueError(
-            f"Single-GPU only (gpu={gpu!r}). Callbacks added via model.add_callback() "
-            f"silently no-op under DDP. For multi-GPU, subclass ClassificationTrainer "
-            f"and register wandb_config inside __init__."
-        )
-
     model_yaml = args[1] if len(args) > 1 else resume_args.get("model", "yolo26s-cls.yaml")
     name = args[2] if len(args) > 2 else resume_args.get("name", "cls-imagenet-114ep")
     data = data_override or resume_args.get("data", "/data/shared-datasets/imagenet")
@@ -162,8 +152,10 @@ def main(argv: list[str]) -> None:
     if resume:
         train_args["resume"] = resume
     sync_stop = nfs_sync.start(train_args["save_dir"])
-    model.train(**train_args)
-    sync_stop()
+    try:
+        model.train(**train_args)
+    finally:
+        sync_stop()
 
 
 if __name__ == "__main__":

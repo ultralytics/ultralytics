@@ -489,7 +489,7 @@ class TRACKTRACK:
             (unconfirmed if not track.is_activated else tracked).append(track)
         pool = joint_stracks(tracked, self.lost_stracks)
 
-        if img is not None:
+        if img is not None and self.gmc.method is not None:
             self._apply_gmc(img, dets_high, [pool, unconfirmed])
         TTSTrack.multi_predict(pool)
 

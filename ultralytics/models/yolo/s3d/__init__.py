@@ -1,8 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Stereo 3D Object Detection module for YOLO.
 
-This module implements stereo-based 3D object detection with CenterNet-style outputs,
-including geometric construction, dense alignment, and occlusion handling.
+This module implements stereo-based 3D object detection with CenterNet-style outputs, decoding depth from a
+stereo cost volume fused with a direct-depth head.
 
 Key Components:
     - Stereo3DDetModel: Main model class for stereo 3D detection

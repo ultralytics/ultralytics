@@ -216,8 +216,7 @@ class Stereo3DDetValidator(BaseValidator):
     def postprocess(self, preds) -> list[list[Box3D]]:
         """Postprocess model outputs to Box3D objects.
 
-        Uses shared decode_and_refine_predictions from preprocess.py which handles
-        decoding, geometric construction, and dense alignment refinement.
+        Uses shared decode_and_refine_predictions from preprocess.py so val and predict decode identically.
 
         Args:
             preds: Tuple of (inference_output, preds_dict) from model forward.
@@ -235,23 +234,10 @@ class Stereo3DDetValidator(BaseValidator):
         # Get batch for calibration and images
         batch = self._current_batch if hasattr(self, "_current_batch") else None
 
-        # Get use_geometric and use_dense_alignment from args.
-        # Disable dense alignment during training validation to prevent DDP hangs:
-        # dense alignment is CPU-intensive and takes variable time per batch, causing
-        # rank divergence when different ranks finish at different times and deadlock
-        # at dist.reduce().
-        use_geometric = getattr(self.args, "use_geometric", None)
-        use_dense_alignment = getattr(self.args, "use_dense_alignment", None)
-        if self.training:
-            use_dense_alignment = False
-            use_geometric = False
-
         return decode_and_refine_predictions(
             preds=preds_dict,
             batch=batch,
             args=self.args,
-            use_geometric=use_geometric,
-            use_dense_alignment=use_dense_alignment,
             conf_threshold=self.args.conf,
             top_k=100,
             iou_thres=getattr(self.args, "iou", 0.45),

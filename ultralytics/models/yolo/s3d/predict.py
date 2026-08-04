@@ -208,8 +208,7 @@ class Stereo3DDetPredictor(DetectionPredictor):
     def postprocess(self, preds, img: torch.Tensor, orig_imgs: list[np.ndarray], **kwargs) -> list[Results]:
         """Post-process model predictions to Results objects with 3D boxes.
 
-        Uses shared decode_and_refine_predictions from preprocess.py which handles
-        decoding, geometric construction, and dense alignment refinement.
+        Uses shared decode_and_refine_predictions from preprocess.py so predict and val decode identically.
 
         Args:
             preds: Tuple of (inference_output, preds_dict) from model forward.
@@ -261,16 +260,14 @@ class Stereo3DDetPredictor(DetectionPredictor):
         batch = {
             "calib": calibs,
             "ori_shape": ori_shapes,
-            "img": img,  # Include preprocessed images for dense alignment
+            "img": img,
         }
 
-        # Use shared decode and refine pipeline (includes geometric + dense alignment)
+        # Use the shared decode pipeline
         results_boxes3d = decode_and_refine_predictions(
             preds=preds_dict,
             batch=batch,
             args=self.args,
-            use_geometric=getattr(self.args, "use_geometric", None),
-            use_dense_alignment=getattr(self.args, "use_dense_alignment", None),
             conf_threshold=self.args.conf,
             top_k=self.args.max_det,
             iou_thres=getattr(self.args, "iou", 0.45),

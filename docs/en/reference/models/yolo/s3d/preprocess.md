@@ -12,14 +12,6 @@ keywords: Ultralytics, ultralytics.models.yolo.s3d.preprocess, API reference, YO
 
 <br>
 
-## ::: ultralytics.models.yolo.s3d.preprocess.get_geometric_config
-
-<br><br><hr><br>
-
-## ::: ultralytics.models.yolo.s3d.preprocess.get_dense_alignment_config
-
-<br><br><hr><br>
-
 ## ::: ultralytics.models.yolo.s3d.preprocess.compute_letterbox_params
 
 <br><br><hr><br>
@@ -41,13 +33,5 @@ keywords: Ultralytics, ultralytics.models.yolo.s3d.preprocess, API reference, YO
 <br><br><hr><br>
 
 ## ::: ultralytics.models.yolo.s3d.preprocess.decode_and_refine_predictions
-
-<br><br><hr><br>
-
-## ::: ultralytics.models.yolo.s3d.preprocess._apply_geometric_construction
-
-<br><br><hr><br>
-
-## ::: ultralytics.models.yolo.s3d.preprocess._apply_dense_alignment
 
 <br><br>

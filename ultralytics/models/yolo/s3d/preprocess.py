@@ -9,8 +9,7 @@ Key Functions:
     - preprocess_stereo_batch: Unified preprocessing for train/val batches from dataset
     - preprocess_stereo_images: Unified preprocessing for prediction (raw images)
     - compute_letterbox_params: Compute letterbox scale and padding
-    - decode_and_refine_predictions: Unified decode + geometric + dense alignment pipeline
-    - get_refinement_config: Load geometric and dense alignment config from YAML
+    - decode_and_refine_predictions: Shared decode pipeline for val and predict
 """
 
 from __future__ import annotations
@@ -25,7 +24,6 @@ from ultralytics.data.augment import LetterBox
 from ultralytics.data.stereo.box3d import Box3D
 from ultralytics.models.yolo.s3d.head import AUX_SPECS
 from ultralytics.models.yolo.s3d.orientation import decode_orientation
-from ultralytics.utils import LOGGER
 from ultralytics.utils.nms import non_max_suppression
 
 # Head outputs carried per anchor as [B, C, HW_total]. Derived from the head's own spec so a new aux
@@ -35,29 +33,6 @@ PER_ANCHOR_AUX_KEYS = (*AUX_SPECS, "lr_logvar", "depth_bins")
 # =============================================================================
 # Configuration Defaults
 # =============================================================================
-
-
-def get_geometric_config() -> dict:
-    """Get geometric construction configuration."""
-    return {
-        "enabled": True,
-        "max_iterations": 10,
-        "tolerance": 1e-6,
-        "damping": 1e-3,
-        "fallback_on_failure": True,
-    }
-
-
-def get_dense_alignment_config() -> dict:
-    """Get dense alignment configuration."""
-    return {
-        "enabled": True,
-        "method": "ncc",
-        "depth_search_range": 2.0,
-        "depth_steps": 32,
-        "patch_size": 7,
-        "skip_dense_for_occluded": True,
-    }
 
 
 # =============================================================================
@@ -476,8 +451,6 @@ def decode_and_refine_predictions(
     preds: dict[str, torch.Tensor],
     batch: dict[str, Any] | None = None,
     args: Any = None,
-    use_geometric: bool | None = None,
-    use_dense_alignment: bool | None = None,
     conf_threshold: float = 0.25,
     top_k: int = 100,
     iou_thres: float = 0.45,
@@ -488,17 +461,15 @@ def decode_and_refine_predictions(
     score_k: float = 0.5,
     depth_var_scale: float = 1.0,
 ) -> list[list[Box3D]]:
-    """Unified decode + refine pipeline for val and predict.
+    """Shared decode pipeline for val and predict.
 
-    Decodes raw model outputs to Box3D objects and optionally applies geometric construction and dense alignment
-    refinements.
+    Decodes raw model outputs to Box3D objects, pulling calibration and original shapes off the batch so both
+    entry points reverse the letterbox identically.
 
     Args:
         preds: Dictionary of model outputs.
         batch: Optional batch dictionary with calibration, images, and original shapes.
         args: Optional args object with configuration (conf, iou, imgsz, etc.).
-        use_geometric: If True, apply geometric construction refinement. If None, uses config default (enabled).
-        use_dense_alignment: If True, apply dense alignment refinement. If None, uses config default (enabled).
         conf_threshold: Confidence threshold for filtering detections.
         top_k: Maximum number of detections to extract.
         iou_thres: IoU threshold for NMS.
@@ -565,267 +536,5 @@ def decode_and_refine_predictions(
     # Ensure results is list of lists
     if isinstance(results, list) and len(results) > 0 and isinstance(results[0], Box3D):
         results = [results]
-
-    # Get batch size from results
-    batch_size = len(results)
-
-    # Get configs
-    geo_config = get_geometric_config()
-    dense_config = get_dense_alignment_config()
-
-    # Apply geometric construction refinement
-    # NOTE: Geometric construction is disabled by default in postprocess to match
-    # the original behavior. It can be enabled explicitly with use_geometric=True.
-    # The geometric construction was present in the codebase but not called from
-    # the validator's postprocess method.
-    should_apply_geo = use_geometric is True  # Only apply if explicitly enabled
-    if should_apply_geo and batch is not None:
-        results = _apply_geometric_construction(results, calibs, batch_size, geo_config)
-
-    # Apply dense alignment refinement (enabled by default, matching old behavior)
-    should_apply_dense = use_dense_alignment or dense_config.get("enabled", True)
-    if should_apply_dense and batch is not None:
-        results = _apply_dense_alignment(results, calibs, batch, batch_size, dense_config)
-
-    return results
-
-
-def _apply_geometric_construction(
-    results: list[list[Box3D]], calibs: list[dict], batch_size: int, config: dict
-) -> list[list[Box3D]]:
-    """Apply geometric construction to refine initial 3D estimates.
-
-    Refines 3D box center (x, y, z) and orientation using Gauss-Newton optimization with geometric constraint equations.
-
-    Args:
-        results: List of Box3D lists (one per batch item).
-        calibs: List of calibration dictionaries.
-        batch_size: Number of images in batch.
-        config: Geometric construction config dict.
-
-    Returns:
-        Results with geometrically refined 3D estimates.
-    """
-    from ultralytics.models.yolo.s3d.geometric import solve_geometric_batch
-
-    if not config.get("enabled", True):
-        return results
-
-    for b in range(min(batch_size, len(results))):
-        boxes = results[b]
-        if not boxes:
-            continue
-
-        # Get calibration for this sample
-        sample_calib = {}
-        if calibs and b < len(calibs) and isinstance(calibs[b], dict):
-            sample_calib = calibs[b]
-        elif calibs and len(calibs) > 0 and isinstance(calibs[0], dict):
-            sample_calib = calibs[0]
-
-        # Convert Box3D to detection dicts for geometric solver
-        detections = []
-        for box in boxes:
-            # Project 3D box to 2D to get center for geometric solver
-            bbox_2d = box.project_to_2d(sample_calib)
-            if bbox_2d[2] <= bbox_2d[0] or bbox_2d[3] <= bbox_2d[1]:
-                continue
-            u_left = (bbox_2d[0] + bbox_2d[2]) / 2.0
-            v_left = (bbox_2d[1] + bbox_2d[3]) / 2.0
-
-            # Extract center_3d and compute disparity
-            _, _, z_3d = box.center_3d
-            if sample_calib and z_3d > 0:
-                fx = sample_calib.get("fx", 721.5)
-                baseline = sample_calib.get("baseline", 0.54)
-                disparity = (fx * baseline) / z_3d
-            else:
-                disparity = 0.0
-
-            # Dimensions: Box3D stores (length, width, height)
-            l, w, h = box.dimensions
-
-            det = {
-                "center_2d": (u_left, v_left),
-                "lr_distance": disparity,
-                "dimensions": (l, w, h),
-                "orientation": box.orientation,
-            }
-            detections.append(det)
-
-        if not detections:
-            continue
-
-        # Solve geometric construction batch
-        refined_dets, _ = solve_geometric_batch(
-            detections=detections,
-            calib=sample_calib,
-            max_iterations=config.get("max_iterations", 10),
-            tolerance=config.get("tolerance", 1e-6),
-            damping=config.get("damping", 1e-3),
-            fallback_on_failure=config.get("fallback_on_failure", True),
-        )
-
-        # Convert refined detections back to Box3D
-        refined_boxes = []
-        for i, box in enumerate(boxes):
-            if i >= len(refined_dets):
-                refined_boxes.append(box)
-                continue
-
-            refined_det = refined_dets[i]
-            if "center_3d" in refined_det:
-                refined_box = Box3D(
-                    center_3d=refined_det["center_3d"],
-                    dimensions=box.dimensions,
-                    orientation=refined_det.get("orientation", box.orientation),
-                    class_label=box.class_label,
-                    class_id=box.class_id,
-                    confidence=box.confidence,
-                    truncated=box.truncated,
-                    occluded=box.occluded,
-                )
-                refined_boxes.append(refined_box)
-            else:
-                refined_boxes.append(box)
-
-        results[b] = refined_boxes
-
-    return results
-
-
-def _apply_dense_alignment(
-    results: list[list[Box3D]],
-    calibs: list[dict],
-    batch: dict[str, Any],
-    batch_size: int,
-    config: dict,
-) -> list[list[Box3D]]:
-    """Apply dense photometric alignment to refine depth estimates.
-
-    Refines the depth estimates of detected 3D boxes using photometric matching between left and right stereo images.
-
-    Args:
-        results: List of Box3D lists (one per batch item).
-        calibs: List of calibration dictionaries.
-        batch: Batch dictionary containing images.
-        batch_size: Number of images in batch.
-        config: Dense alignment config dict.
-
-    Returns:
-        Results with refined depth values.
-    """
-    from ultralytics.models.yolo.s3d.dense_align_optimized import create_dense_alignment_optimized
-    from ultralytics.models.yolo.s3d.occlusion import classify_occlusion
-
-    if not config.get("enabled", True):
-        return results
-
-    # Create aligner on-demand
-    aligner = create_dense_alignment_optimized(config)
-
-    # Get images from batch
-    imgs = batch.get("img", None)
-    if imgs is None:
-        return results
-
-    # Images are [B, 6, H, W] tensor - split into left [B, 3, H, W] and right [B, 3, H, W]
-    # Convert to numpy HWC format for dense alignment
-    try:
-        # Move to CPU and convert to numpy
-        imgs_np = imgs.cpu().numpy()  # [B, 6, H, W]
-
-        # Get occlusion config for skipping heavily occluded objects
-        skip_occluded = config.get("skip_dense_for_occluded", True)
-
-        for b in range(min(batch_size, len(results))):
-            boxes = results[b]
-            if not boxes:
-                continue
-
-            # Extract left and right images for this batch item
-            # Note: images are normalized [0, 1] - convert back to [0, 255] for patch matching
-            left_img = (imgs_np[b, :3].transpose(1, 2, 0) * 255).astype(np.uint8)  # [H, W, 3] RGB
-            right_img = (imgs_np[b, 3:].transpose(1, 2, 0) * 255).astype(np.uint8)  # [H, W, 3] RGB
-
-            # Get calibration for this sample
-            if calibs and b < len(calibs):
-                sample_calib = calibs[b] if isinstance(calibs[b], dict) else calibs[0]
-            elif calibs and len(calibs) > 0:
-                sample_calib = calibs[0] if isinstance(calibs[0], dict) else {}
-            else:
-                sample_calib = {}
-
-            # Optionally classify occlusion to skip heavily occluded objects
-            occluded_indices = []
-            if skip_occluded and len(boxes) > 1:
-                try:
-                    detections = []
-                    for box in boxes:
-                        bbox_2d = box.project_to_2d(sample_calib)
-                        det = {
-                            "bbox_2d": tuple(bbox_2d) if bbox_2d[2] > bbox_2d[0] else (0, 0, 100, 100),
-                            "center_3d": box.center_3d,
-                        }
-                        detections.append(det)
-                    occluded_indices, _ = classify_occlusion(detections)
-                except Exception as e:
-                    LOGGER.debug("Occlusion classification failed: %s", e)
-                    occluded_indices = []
-
-            # Refine depth for each box
-            refined_boxes = []
-            for i, box in enumerate(boxes):
-                # Skip dense alignment for heavily occluded objects
-                if skip_occluded and i in occluded_indices:
-                    refined_boxes.append(box)
-                    continue
-
-                # Create box dict for dense alignment
-                box3d_dict = {
-                    "center_3d": box.center_3d,
-                    "dimensions": box.dimensions,
-                    "orientation": box.orientation,
-                }
-
-                try:
-                    # Refine depth using photometric alignment
-                    refined_depth = aligner.refine_depth(
-                        left_img=left_img,
-                        right_img=right_img,
-                        box3d_init=box3d_dict,
-                        calib=sample_calib,
-                    )
-
-                    # Create new Box3D with refined depth
-                    # Update x_3d proportionally with depth change
-                    x, y, z = box.center_3d
-                    if z > 0 and refined_depth > 0:
-                        depth_ratio = refined_depth / z
-                        x_refined = x * depth_ratio
-                        y_refined = y * depth_ratio
-                    else:
-                        x_refined, y_refined = x, y
-
-                    refined_box = Box3D(
-                        center_3d=(float(x_refined), float(y_refined), float(refined_depth)),
-                        dimensions=box.dimensions,
-                        orientation=box.orientation,
-                        class_label=box.class_label,
-                        class_id=box.class_id,
-                        confidence=box.confidence,
-                        truncated=box.truncated,
-                        occluded=box.occluded,
-                    )
-                    refined_boxes.append(refined_box)
-                except Exception as e:
-                    LOGGER.debug("Dense alignment failed for box %d: %s", i, e)
-                    refined_boxes.append(box)  # Keep original on failure
-
-            results[b] = refined_boxes
-
-    except Exception as e:
-        LOGGER.debug("Dense alignment batch processing failed: %s", e)
-        # Return original results on failure
 
     return results

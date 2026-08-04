@@ -102,7 +102,6 @@ from ultralytics.utils.loss import (
 )
 from ultralytics.utils.ops import make_divisible
 from ultralytics.utils.patches import torch_load
-from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (
     fuse_conv_and_bn,
     fuse_deconv_and_bn,
@@ -157,13 +156,12 @@ class BaseModel(torch.nn.Module):
             return self.loss(x, *args, **kwargs)
         return self.predict(x, *args, **kwargs)
 
-    def predict(self, x, profile=False, visualize=False, augment=False, embed=None):
+    def predict(self, x, profile=False, augment=False, embed=None):
         """Perform a forward pass through the network.
 
         Args:
             x (torch.Tensor): The input tensor to the model.
             profile (bool): Print the computation time of each layer if True.
-            visualize (bool): Save the feature maps of the model if True.
             augment (bool): Augment image during prediction.
             embed (list, optional): A list of layer indices to return embeddings from.
 
@@ -172,15 +170,14 @@ class BaseModel(torch.nn.Module):
         """
         if augment:
             return self._predict_augment(x)
-        return self._predict_once(x, profile, visualize, embed)
+        return self._predict_once(x, profile, embed)
 
-    def _predict_once(self, x, profile=False, visualize=False, embed=None):
+    def _predict_once(self, x, profile=False, embed=None):
         """Perform a forward pass through the network.
 
         Args:
             x (torch.Tensor): The input tensor to the model.
             profile (bool): Print the computation time of each layer if True.
-            visualize (bool): Save the feature maps of the model if True.
             embed (list, optional): A list of layer indices to return embeddings from.
 
         Returns:
@@ -196,8 +193,6 @@ class BaseModel(torch.nn.Module):
                 self._profile_one_layer(m, x, dt)
             x = m(x)  # run
             y.append(x if m.i in self.save else None)  # save output
-            if visualize:
-                feature_visualization(x, m.type, m.i, save_dir=visualize)
             if m.i in embed:
                 embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
                 if m.i == max_idx:
@@ -227,21 +222,23 @@ class BaseModel(torch.nn.Module):
 
         c = m == self.model[-1] and isinstance(x, list)  # is final layer list, copy input as inplace fix
         flops = thop.profile(m, inputs=[x.copy() if c else x], verbose=False)[0] / 1e9 * 2 if thop else 0
-        t = time_sync()
+        device = next(self.parameters()).device
+        t = time_sync(device)
         for _ in range(10):
             m(x.copy() if c else x)
-        dt.append((time_sync() - t) * 100)
+        dt.append((time_sync(device) - t) * 100)
         if m == self.model[0]:
             LOGGER.info(f"{'time (ms)':>10s} {'GFLOPs':>10s} {'params':>10s}  module")
         LOGGER.info(f"{dt[-1]:10.2f} {flops:10.2f} {m.np:10.0f}  {m.type}")
         if c:
             LOGGER.info(f"{sum(dt):10.2f} {'-':>10s} {'-':>10s}  Total")
 
-    def fuse(self, verbose=True):
+    def fuse(self, verbose=True, imgsz=640):
         """Fuse Conv/ConvTranspose and BatchNorm layers, and reparameterize RepConv/RepVGGDW for improved efficiency.
 
         Args:
             verbose (bool): Whether to print model information after fusion.
+            imgsz (int | list): Input image size used for FLOPs calculation.
 
         Returns:
             (torch.nn.Module): The fused model is returned.
@@ -266,7 +263,7 @@ class BaseModel(torch.nn.Module):
                     m.forward = m.forward_fuse
                 if isinstance(m, Detect) and getattr(m, "end2end", False):
                     m.fuse()  # remove one2many head
-            self.info(verbose=verbose)
+            self.info(verbose=verbose, imgsz=imgsz)
 
         return self
 
@@ -774,7 +771,7 @@ class PoseModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the PoseModel."""
-        loss = PoseLoss26 if self.end2end or isinstance(self.model[-1], Pose26) else v8PoseLoss
+        loss = PoseLoss26 if isinstance(self.model[-1], Pose26) else v8PoseLoss
         return E2ELoss(self, loss) if self.end2end else loss(self)
 
 
@@ -1043,13 +1040,12 @@ class RTDETRDetectionModel(DetectionModel):
             "l1_loss": loss["loss_bbox"].detach(),
         }
 
-    def predict(self, x, profile=False, visualize=False, batch=None, augment=False, embed=None):
+    def predict(self, x, profile=False, batch=None, augment=False, embed=None):
         """Perform a forward pass through the model.
 
         Args:
             x (torch.Tensor): The input tensor.
             profile (bool): If True, profile the computation time for each layer.
-            visualize (bool): If True, save feature maps for visualization.
             batch (dict, optional): Ground truth data for evaluation.
             augment (bool): If True, perform data augmentation during inference.
             embed (list, optional): A list of layer indices to return embeddings from.
@@ -1067,8 +1063,6 @@ class RTDETRDetectionModel(DetectionModel):
                 self._profile_one_layer(m, x, dt)
             x = m(x)  # run
             y.append(x if m.i in self.save else None)  # save output
-            if visualize:
-                feature_visualization(x, m.type, m.i, save_dir=visualize)
             if m.i in embed:
                 embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
                 if m.i == max_idx:
@@ -1149,13 +1143,12 @@ class WorldModel(DetectionModel):
         txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)
         return txt_feats.reshape(-1, len(text), txt_feats.shape[-1])
 
-    def predict(self, x, profile=False, visualize=False, txt_feats=None, augment=False, embed=None):
+    def predict(self, x, profile=False, txt_feats=None, augment=False, embed=None):
         """Perform a forward pass through the model.
 
         Args:
             x (torch.Tensor): The input tensor.
             profile (bool): If True, profile the computation time for each layer.
-            visualize (bool): If True, save feature maps for visualization.
             txt_feats (torch.Tensor, optional): The text features, use it if it's given.
             augment (bool): If True, perform data augmentation during inference.
             embed (list, optional): A list of layer indices to return embeddings from.
@@ -1185,8 +1178,6 @@ class WorldModel(DetectionModel):
                 x = m(x)  # run
 
             y.append(x if m.i in self.save else None)  # save output
-            if visualize:
-                feature_visualization(x, m.type, m.i, save_dir=visualize)
             if m.i in embed:
                 embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
                 if m.i == max_idx:
@@ -1388,15 +1379,12 @@ class YOLOEModel(DetectionModel):
             all_pe.append(getattr(self, "pe", torch.zeros(1, 80, 512)))
         return torch.cat(all_pe, dim=1)
 
-    def predict(
-        self, x, profile=False, visualize=False, tpe=None, augment=False, embed=None, vpe=None, return_vpe=False
-    ):
+    def predict(self, x, profile=False, tpe=None, augment=False, embed=None, vpe=None, return_vpe=False):
         """Perform a forward pass through the model.
 
         Args:
             x (torch.Tensor): The input tensor.
             profile (bool): If True, profile the computation time for each layer.
-            visualize (bool): If True, save feature maps for visualization.
             tpe (torch.Tensor, optional): Text positional embeddings.
             augment (bool): If True, perform data augmentation during inference.
             embed (list, optional): A list of layer indices to return embeddings from.
@@ -1428,8 +1416,6 @@ class YOLOEModel(DetectionModel):
             x = m(x)  # run
 
             y.append(x if m.i in self.save else None)  # save output
-            if visualize:
-                feature_visualization(x, m.type, m.i, save_dir=visualize)
             if m.i in embed:
                 embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
                 if m.i == max_idx:
@@ -1530,20 +1516,19 @@ class Ensemble(torch.nn.ModuleList):
         """Initialize an ensemble of models."""
         super().__init__()
 
-    def forward(self, x, augment=False, profile=False, visualize=False):
+    def forward(self, x, augment=False, profile=False):
         """Run ensemble forward pass and concatenate predictions from all models.
 
         Args:
             x (torch.Tensor): Input tensor.
             augment (bool): Whether to augment the input.
             profile (bool): Whether to profile the model.
-            visualize (bool): Whether to visualize the features.
 
         Returns:
             (torch.Tensor): Concatenated predictions from all models.
             (None): Always None for ensemble inference.
         """
-        y = [module(x, augment, profile, visualize)[0] for module in self]
+        y = [module(x, augment, profile)[0] for module in self]
         # y = torch.stack(y).max(0)[0]  # max ensemble
         # y = torch.stack(y).mean(0)  # mean ensemble
         y = torch.cat(y, 2)  # nms ensemble, y shape(B, HW, C*num_models)
@@ -1801,6 +1786,12 @@ def torch_safe_load(weight, safe_only=None):
                     return torch_load(file, map_location="cpu", weights_only=True)
             return torch_load(file, map_location="cpu")
 
+    # weights_only=True raises on a TorchScript archive; the default path returns a ScriptModule instead.
+    torchscript_error = emojis(
+        f"ERROR ❌️ {weight} is a TorchScript archive, not an Ultralytics PyTorch checkpoint.\n"
+        f"Load the original .pt weights, or export again with format='torchscript' and load that file directly."
+    )
+
     try:
         ckpt = _load()
 
@@ -1809,6 +1800,8 @@ def torch_safe_load(weight, safe_only=None):
         # RuntimeError for a truncated zip, EOFError for an empty one, UnpicklingError for bytes that are not a
         # pickle at all (an image or archive renamed .pt). They are one user-facing condition, so they share one
         # handler and one message.
+        if isinstance(e, RuntimeError) and "TorchScript archive" in str(e):
+            raise TypeError(torchscript_error) from e
         if isinstance(e, RuntimeError) and "PytorchStreamReader" not in str(e):
             raise  # an unrelated RuntimeError is a real failure, not a damaged file
         if safe_only and isinstance(e, pickle.UnpicklingError):
@@ -1871,6 +1864,9 @@ def torch_safe_load(weight, safe_only=None):
         )
         check_requirements(e.name)  # install missing module
         ckpt = torch_load(file, map_location="cpu")
+
+    if isinstance(ckpt, torch.jit.ScriptModule):
+        raise TypeError(torchscript_error)  # default path: torch.load dispatched to torch.jit.load and succeeded
 
     if not isinstance(ckpt, dict):
         # File is likely a YOLO instance saved with i.e. torch.save(model, "saved_model.pt")

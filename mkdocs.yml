@@ -620,6 +620,7 @@ nav:
       - Albumentations: integrations/albumentations.md
       - Amazon SageMaker: integrations/amazon-sagemaker.md
       - Ambarella: integrations/ambarella.md
+      - AMD: integrations/amd.md
       - Axelera: integrations/axelera.md
       - ClearML: integrations/clearml.md
       - Comet ML: integrations/comet.md
@@ -681,8 +682,11 @@ nav:
       - Integrations:
           - platform/integrations/index.md
           - Slack: platform/integrations/slack.md
-          - Ultralytics HUB: platform/integrations/ultralytics-hub.md
           - Roboflow: platform/integrations/roboflow.md
+          - Labelbox: platform/integrations/labelbox.md
+          - LabelMe: platform/integrations/labelme.md
+          - CVAT: platform/integrations/cvat.md
+          - Label Studio: platform/integrations/label-studio.md
           - Google Cloud Storage: platform/integrations/google-cloud-storage.md
           - Amazon S3: platform/integrations/amazon-s3.md
           - Azure Blob Storage: platform/integrations/azure-blob-storage.md
@@ -724,13 +728,6 @@ nav:
           - trainer: reference/engine/trainer.md
           - tuner: reference/engine/tuner.md
           - validator: reference/engine/validator.md
-      - hub:
-          - __init__: reference/hub/__init__.md
-          - auth: reference/hub/auth.md
-          - google:
-              - __init__: reference/hub/google/__init__.md
-          - session: reference/hub/session.md
-          - utils: reference/hub/utils.md
       - models:
           - __init__: reference/models/__init__.md
           - fastsam:
@@ -895,7 +892,6 @@ nav:
               - clearml: reference/utils/callbacks/clearml.md
               - comet: reference/utils/callbacks/comet.md
               - dvc: reference/utils/callbacks/dvc.md
-              - hub: reference/utils/callbacks/hub.md
               - mlflow: reference/utils/callbacks/mlflow.md
               - neptune: reference/utils/callbacks/neptune.md
               - platform: reference/utils/callbacks/platform.md
@@ -906,7 +902,6 @@ nav:
           - cpu: reference/utils/cpu.md
           - dist: reference/utils/dist.md
           - downloads: reference/utils/downloads.md
-          - errors: reference/utils/errors.md
           - events: reference/utils/events.md
           - export:
               - ascend: reference/utils/export/ascend.md

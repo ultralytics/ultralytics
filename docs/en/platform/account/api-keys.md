@@ -79,11 +79,13 @@ Set your key as an environment variable:
 
 ### YOLO CLI
 
-Set the key using the YOLO CLI:
+Validate and save the key using the YOLO CLI:
 
 ```bash
-yolo settings api_key="YOUR_API_KEY"
+yolo login YOUR_API_KEY
 ```
+
+Remove the saved key with `yolo logout`.
 
 ### HTTP Headers
 

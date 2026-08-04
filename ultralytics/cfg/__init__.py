@@ -20,6 +20,7 @@ from ultralytics.utils import (
     FLOAT_OR_INT,
     IS_VSCODE,
     LOGGER,
+    PLATFORM_URL,
     RANK,
     ROOT,
     SETTINGS,
@@ -54,44 +55,44 @@ SOLUTION_MAP = {
     "help": None,
 }
 
-# Define valid tasks and modes
-MODES = frozenset({"train", "val", "predict", "export", "track", "benchmark"})
-TASKS = frozenset({"detect", "segment", "classify", "pose", "obb", "semantic", "depth"})
+# Define valid tasks and modes, ordered as they appear across the docs and Ultralytics Platform
+MODES = ("train", "val", "predict", "export", "track", "benchmark")
+TASKS = ("detect", "segment", "semantic", "depth", "classify", "pose", "obb")
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
+    "semantic": "cityscapes8.yaml",
+    "depth": "depth8.yaml",
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
-    "depth": "depth8.yaml",
-    "semantic": "cityscapes8.yaml",
 }
 TASK2CALIBRATIONDATA = {
     "detect": "coco128.yaml",
     "segment": "coco128-seg.yaml",
+    "semantic": "cityscapes8.yaml",
+    "depth": "depth8.yaml",
     "classify": "imagenet100",
     "pose": "coco8-pose.yaml",
     "obb": "dota128.yaml",
-    "depth": "depth8.yaml",
-    "semantic": "cityscapes8.yaml",
 }
 TASK2MODEL = {
     "detect": "yolo26n.pt",
     "segment": "yolo26n-seg.pt",
+    "semantic": "yolo26n-sem.pt",
+    "depth": "yolo26n-depth.pt",
     "classify": "yolo26n-cls.pt",
     "pose": "yolo26n-pose.pt",
     "obb": "yolo26n-obb.pt",
-    "depth": "yolo26n-depth.pt",
-    "semantic": "yolo26n-sem.pt",
 }
 TASK2METRIC = {
     "detect": "metrics/mAP50-95(B)",
     "segment": "metrics/mAP50-95(M)",
+    "semantic": "metrics/mIoU",
+    "depth": "metrics/delta1",
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
-    "depth": "metrics/delta1",
-    "semantic": "metrics/mIoU",
 }
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
@@ -165,6 +166,8 @@ CLI_HELP_MSG = f"""
         yolo checks
         yolo version
         yolo settings
+        yolo login API_KEY
+        yolo logout
         yolo copy-cfg
         yolo cfg
         yolo solutions help
@@ -690,33 +693,35 @@ def merge_equals_args(args: list[str]) -> list[str]:
     return new_args
 
 
-def handle_yolo_hub(args: list[str]) -> None:
-    """Handle Ultralytics HUB command-line interface (CLI) commands for authentication.
+def handle_yolo_login(args: list[str]) -> None:
+    """Log in to Ultralytics Platform with an API key or remove the saved key."""
+    if args[0] == "logout":
+        SETTINGS["api_key"] = ""
+        LOGGER.info("Logged out ✅. To log in again, use 'yolo login API_KEY'.")
+        return
 
-    This function processes Ultralytics HUB CLI commands such as login and logout. It should be called when executing a
-    script with arguments related to HUB authentication.
+    api_key_url = f"{PLATFORM_URL}/settings?tab=api-keys"
+    if len(args) < 2:
+        LOGGER.info(f"Get an API key from {api_key_url} and then run 'yolo login API_KEY'.")
+        return
 
-    Args:
-        args (list[str]): A list of command line arguments. The first argument should be either 'login' or 'logout'. For
-            'login', an optional second argument can be the API key.
+    import requests  # scoped as slow import
 
-    Examples:
-        $ yolo login YOUR_API_KEY
-
-    Notes:
-        - The function imports the 'hub' module from ultralytics to perform login and logout operations.
-        - For the 'login' command, if no API key is provided, an empty string is passed to the login function.
-        - The 'logout' command does not require any additional arguments.
-    """
-    from ultralytics import hub
-
-    if args[0] == "login":
-        key = args[1] if len(args) > 1 else ""
-        # Log in to Ultralytics HUB using the provided API key
-        hub.login(key)
-    elif args[0] == "logout":
-        # Log out from Ultralytics HUB
-        hub.logout()
+    try:
+        response = requests.get(
+            f"{PLATFORM_URL}/api/settings",
+            headers={"Authorization": f"Bearer {args[1]}"},
+            timeout=30,
+        )
+        if response.status_code == 200:
+            SETTINGS["api_key"] = args[1]
+            LOGGER.info("New authentication successful ✅")
+        elif response.status_code == 401:
+            LOGGER.warning("Invalid API key")
+        else:
+            response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        LOGGER.warning(f"Authentication request failed, check your connection: {e}")
 
 
 def handle_yolo_settings(args: list[str]) -> None:
@@ -924,7 +929,7 @@ def smart_value(v: str) -> Any:
         3.14
         >>> smart_value("True")
         True
-        >>> smart_value("None")
+        >>> print(smart_value("None"))
         None
         >>> smart_value("some_string")
         'some_string'
@@ -987,12 +992,11 @@ def entrypoint(debug: str = "") -> None:
         "version": lambda: LOGGER.info(__version__),
         "settings": lambda: handle_yolo_settings(args[1:]),
         "cfg": lambda: YAML.print(DEFAULT_CFG_PATH),
-        "hub": lambda: handle_yolo_hub(args[1:]),
-        "login": lambda: handle_yolo_hub(args),
-        "logout": lambda: handle_yolo_hub(args),
+        "login": lambda: handle_yolo_login(args),
+        "logout": lambda: handle_yolo_login(args),
         "copy-cfg": copy_default_cfg,
         "solutions": lambda: handle_yolo_solutions(args[1:]),
-        "help": lambda: LOGGER.info(CLI_HELP_MSG),  # help below hub for -h flag precedence
+        "help": lambda: LOGGER.info(CLI_HELP_MSG),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 
@@ -1136,9 +1140,6 @@ def copy_default_cfg() -> None:
 
     Examples:
         >>> copy_default_cfg()
-        # Output: default.yaml copied to /path/to/current/directory/default_copy.yaml
-        # Example YOLO command with this new custom cfg:
-        #   yolo cfg='/path/to/current/directory/default_copy.yaml' imgsz=320 batch=8
 
     Notes:
         - The new configuration file is created in the current working directory.

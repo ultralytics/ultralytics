@@ -42,6 +42,7 @@ class BOTrack(STrack):
     Examples:
         Create a BOTrack instance and update its features
         >>> bo_track = BOTrack(xywh=np.array([100, 50, 80, 40, 0]), score=0.9, cls=1, feat=np.random.rand(128))
+        >>> bo_track.activate(KalmanFilterXYWH(), frame_id=1)
         >>> bo_track.predict()
         >>> new_track = BOTrack(xywh=np.array([110, 60, 80, 40, 0]), score=0.85, cls=1, feat=np.random.rand(128))
         >>> bo_track.update(new_track, frame_id=2)

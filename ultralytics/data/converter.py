@@ -322,11 +322,15 @@ def convert_coco(
                         seg = seg if isinstance(seg, list) else [seg]  # an RLE dict is one non-polygon entry
                         seg = [  # [[x, y], ...] is a polygon form too, flatten it to [x, y, x, y, ...]
                             [c for x in p for c in x]
-                            if isinstance(p, list) and all(isinstance(x, list) for x in p)
+                            if isinstance(p, list) and all(isinstance(x, list) and len(x) == 2 for x in p)
                             else p
                             for p in seg
                         ]
-                        polygons = [p for p in seg if isinstance(p, list) and len(p) >= 6 and not len(p) % 2]
+                        polygons = [
+                            p
+                            for p in seg
+                            if isinstance(p, list) and len(p) >= 6 and not len(p) % 2 and not isinstance(p[0], list)
+                        ]
                         dropped |= len(polygons) < sum(bool(p) for p in seg)  # a non-empty entry was not a polygon
                         if not polygons:
                             cx, cy, bw, bh = box[1:]

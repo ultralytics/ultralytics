@@ -661,6 +661,9 @@ class GroundingDataset(YOLODataset):
     def get_cache_hash(self) -> str:
         """Return a hash over the annotation file and the images it is scanned against.
 
+        As everywhere else in this file the hash covers paths and sizes, not contents, so an in-place edit that
+        preserves the byte length is not detected.
+
         Returns:
             (str): Dataset cache hash.
         """

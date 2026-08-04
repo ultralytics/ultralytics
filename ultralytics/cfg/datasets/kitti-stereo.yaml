@@ -70,11 +70,3 @@ std_dims:
 # Number of input channels (6 = left RGB + right RGB)
 # Siamese backbone still uses 6ch input, processed via batch trick [2B, 3, H, W]
 channels: 6
-
-# Pseudo-label curriculum for auto-labeled auxiliary classes.
-# Controls how much pseudo-labels contribute to 3D aux losses (depth, dims, orient, lr_dist).
-# Detection losses (cls, box) always use full weight regardless of these settings.
-pseudo_labels:
-  weight: 0.5 # aux loss weight for stereo-matched pseudo-labels (occ=10)
-  mono_weight: 0.0 # aux loss weight for mono-only pseudo-labels (occ=20)
-  cutoff: 0.9 # epoch fraction after which pseudo-labels contribute 0 to aux losses

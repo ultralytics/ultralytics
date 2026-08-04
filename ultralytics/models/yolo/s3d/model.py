@@ -151,6 +151,5 @@ class Stereo3DDetModel(DetectionModel):
             self,
             loss_weights=training_config.get("loss_weights"),
             use_bbox_loss=bool(training_config.get("use_bbox_loss", True)),
-            pseudo_labels=getattr(self, "pseudo_labels", {}),
             photometric_loss=bool(training_config.get("photometric_loss", False)),
         )

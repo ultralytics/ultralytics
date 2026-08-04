@@ -295,21 +295,19 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
     def _mean_metric(
         self, metric: dict[float, dict[int, dict[int, float]]], iou_thresh: float, difficulty: int
     ) -> float:
-        """Mean of a metric across real classes (excluding Aux_) for an IoU/difficulty."""
+        """Mean of a metric across classes for an IoU/difficulty."""
         if not metric or iou_thresh not in metric:
             return 0.0
         diff_dict = metric[iou_thresh].get(difficulty, {})
         if not diff_dict:
             return 0.0
-        # Average over model's real classes only (not Aux_ pseudo-classes)
-        real_ids = [cid for cid, name in self.names.items() if not name.startswith("Aux_")]
-        if not real_ids:
+        if not self.names:
             # Fallback: no names set, average over all classes in diff_dict
             return float(np.mean(list(diff_dict.values())))
-        return float(np.mean([diff_dict.get(cid, 0.0) for cid in real_ids]))
+        return float(np.mean([diff_dict.get(cid, 0.0) for cid in self.names]))
 
     def _mean_ap(self, iou_thresh: float, difficulty: int) -> float:
-        """Compute mean AP3D across real classes (excluding Aux_) for given IoU and difficulty."""
+        """Compute mean AP3D across classes for given IoU and difficulty."""
         return self._mean_metric(self.ap3d, iou_thresh, difficulty)
 
     @property
@@ -317,7 +315,7 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         """Return results as flat dictionary for CSV logging."""
         result = {}
 
-        # Per-class per-difficulty per-IoU for AP3D, AP_BEV, and AOS (skip Aux_ pseudo-classes)
+        # Per-class per-difficulty per-IoU for AP3D, AP_BEV, and AOS
         for prefix, metric in (("AP3D", self.ap3d), ("APBEV", self.apbev), ("AOS", self.aos)):
             for iou_t, diff_dict in metric.items():
                 iou_str = str(int(iou_t * 100))
@@ -325,8 +323,6 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
                     diff_str = DIFFICULTY_NAMES[diff]
                     for cls_id, val in cls_dict.items():
                         cls_name = self.names.get(cls_id, f"class_{cls_id}")
-                        if cls_name.startswith("Aux_"):
-                            continue
                         result[f"{prefix}_{cls_name}_{diff_str}_{iou_str}"] = val
 
         # Summary means (Moderate) across classes
@@ -348,8 +344,6 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
             for iou_str in ["50", "70"]:
                 for diff_str in DIFFICULTY_NAMES:
                     for _, cls_name in sorted(self.names.items()):
-                        if cls_name.startswith("Aux_"):
-                            continue
                         keys.append(f"{prefix}_{cls_name}_{diff_str}_{iou_str}")
         keys.extend(["ap3d_50", "ap3d_70", "apbev_50", "apbev_70", "aos_50", "aos_70"])
         return keys

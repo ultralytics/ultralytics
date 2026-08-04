@@ -654,7 +654,6 @@ class Stereo3DDetDataset(BaseDataset):
             "depth": [],
             "dimensions": [],
             "orientation": [],
-            "is_pseudo": [],  # 0=real, 1=stereo-pseudo (occ>=10), 2=mono-pseudo (occ>=20)
             "proj_offset": [],  # (du, dv): box-center -> projected-3D-centroid offset
         }
 
@@ -783,7 +782,6 @@ class Stereo3DDetDataset(BaseDataset):
             depth_list = []
             dim_list = []
             ori_list = []
-            pseudo_list = []
             proj_list = []
 
             for j in range(n):
@@ -815,10 +813,6 @@ class Stereo3DDetDataset(BaseDataset):
                 alpha = float(rotation_y[j]) - ray_angle
                 ori_list.append(torch.tensor(encode_orientation(alpha), dtype=torch.float32))
 
-                # Pseudo-label flag: 0=real, 1=stereo-pseudo (occ>=10), 2=mono-pseudo (occ>=20)
-                occ_j = int(occluded[j])
-                pseudo_list.append(torch.tensor([min(occ_j // 10, 2)], dtype=torch.float32))
-
                 # Projected-3D-centroid offset (du, dv), letterbox-normalized. calib_i's fx/fy/cx/cy
                 # are already letterbox-transformed (scaled+padded, see StereoLetterBox/
                 # update_labels_info), so an identity ratio_pad is passed to encode_proj_offset.
@@ -836,7 +830,6 @@ class Stereo3DDetDataset(BaseDataset):
             per_image_aux["depth"].append(torch.stack(depth_list, 0))
             per_image_aux["dimensions"].append(torch.stack(dim_list, 0))
             per_image_aux["orientation"].append(torch.stack(ori_list, 0))
-            per_image_aux["is_pseudo"].append(torch.stack(pseudo_list, 0))
             per_image_aux["proj_offset"].append(torch.stack(proj_list, 0))
 
         # Build detection tensors
@@ -858,7 +851,6 @@ class Stereo3DDetDataset(BaseDataset):
                 "depth": 1,
                 "dimensions": 3,
                 "orientation": ORIENT_CHANNELS,
-                "is_pseudo": 1,
                 "proj_offset": 2,
             }[k]
             padded = torch.zeros((len(batch), max_n, c), dtype=torch.float32)

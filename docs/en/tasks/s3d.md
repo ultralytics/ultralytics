@@ -186,32 +186,6 @@ output = sess.run(None, {"left_img": left, "right_img": right})[0]
 # output shape: [1, nc+4+22, anchors] where 22 = 1(lr_dist) + 3(dims) + 2(orient) + 16(depth_bins)
 ```
 
-## Auto-Labeling
-
-Stereo 3D detection benefits from multi-class training data to prevent depth feature collapse. When training on datasets with only one annotated class (e.g., Car-only), the auto-labeling tool generates pseudo-labels for additional classes using a pretrained 2D YOLO detector.
-
-!!! example
-
-    ```bash
-    python -m ultralytics.models.yolo.s3d.auto_label --data kitti-stereo.yaml
-    ```
-
-The auto-labeler:
-
-1. Runs a YOLO 2D detector on both left and right images
-2. Matches detections across views by class, scanline proximity, and size
-3. Triangulates depth via `z = fx * baseline / disparity` for stereo-matched pairs
-4. Writes 18-value pseudo-labels appended to existing label files
-
-Pseudo-labels are marked with occlusion values to distinguish them: `occ=10` for stereo-matched labels (triangulated depth), `occ=20` for mono-only labels (estimated depth). Configure the pseudo-label loss weighting in your dataset YAML:
-
-```yaml
-pseudo_labels:
-    weight: 0.5 # loss weight for stereo-matched pseudo-labels
-    mono_weight: 0.0 # loss weight for mono-only pseudo-labels (0 = ignore)
-    cutoff: 0.9 # minimum 2D detection confidence
-```
-
 ## FAQ
 
 ### What is stereo 3D detection and how does it differ from standard object detection?
@@ -234,10 +208,6 @@ Use rectangular `imgsz` matching your camera's aspect ratio. SGD with cosine LR 
 ### What metrics does KITTI R40 evaluation use?
 
 KITTI R40 evaluation computes 3D Average Precision (AP3D) using 40-point interpolated precision-recall curves. Results are reported at three difficulty levels (Easy, Moderate, Hard) based on object size, occlusion, and truncation. The standard IoU thresholds are 0.5 and 0.7 for 3D bounding box overlap. The primary benchmark metric is **AP3D@0.5 at Moderate difficulty**, averaged across all evaluated classes.
-
-### How does auto-labeling prevent depth collapse?
-
-When training with only one object class, the backbone learns spatial shortcuts (position-to-depth mapping) instead of real depth features, causing depth predictions to collapse. Auto-labeling adds pseudo-labels for additional classes (e.g., Pedestrian, Cyclist) from a pretrained 2D detector, providing the visual diversity needed to learn generalizable depth features. The pseudo-labels are down-weighted in the loss function via `pseudo_labels.weight` to avoid dominating the real annotations.
 
 ### What pretrained stereo 3D detection models are available?
 

@@ -838,8 +838,6 @@ class Stereo3DDetValidator(BaseValidator):
         # Print results per class
         if self.args.verbose and not self.training and self.metrics.nc > 1 and ap3d:
             for class_id, class_name in self.metrics.names.items():
-                if class_name.startswith("Aux_"):
-                    continue
                 nt_class = int(nt_per_class[class_id]) if class_id < len(nt_per_class) else 0
                 nt_images = int(nt_per_image[class_id]) if class_id < len(nt_per_image) else 0
 

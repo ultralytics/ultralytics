@@ -124,7 +124,6 @@ class Stereo3DDetLoss(v8DetectionLoss):
         loss_weights: dict[str, float] | None = None,
         use_bbox_loss: bool = True,
         cls_label_smoothing: float = 0.0,
-        pseudo_labels: dict | None = None,
         photometric_loss: bool = False,
     ):
         super().__init__(model, tal_topk=tal_topk)
@@ -142,45 +141,12 @@ class Stereo3DDetLoss(v8DetectionLoss):
         self.depth_log_min = bins[0].item()
         self.depth_log_range = (bins[-1] - bins[0]).item()
 
-        # Pseudo-label curriculum from dataset YAML
-        self.epoch_frac = 0.0  # 0.0 = start, 1.0 = end of training
-        pl = pseudo_labels or {}
-        self._pseudo_stereo_w = float(pl.get("weight", 0.0))
-        self._pseudo_mono_w = float(pl.get("mono_weight", 0.0))
-        self._pseudo_cutoff = float(pl.get("cutoff", 0.9))
-
-    def _pseudo_aux_weights(self, is_pseudo_fg: torch.Tensor) -> torch.Tensor:
-        """Compute per-anchor aux loss weight based on pseudo-label flag and epoch.
-
-        Args:
-            is_pseudo_fg: [npos, 1] — 0=real, 1=stereo-pseudo, 2=mono-pseudo.
-
-        Returns:
-            [npos, 1] weight tensor: 1.0 for real, reduced for pseudo, 0 after cutoff.
-        """
-        w = torch.ones_like(is_pseudo_fg)
-
-        # Schedule: linear decay in final phase, then hard cutoff
-        if self.epoch_frac >= self._pseudo_cutoff:
-            # After cutoff: pseudo labels contribute 0 to aux losses
-            pseudo_mask = is_pseudo_fg > 0
-            w[pseudo_mask] = 0.0
-        else:
-            # Before cutoff: reduced weight for pseudo labels
-            # Linear ramp-down: full weight at epoch 0, half at cutoff
-            schedule = 1.0 - 0.5 * (self.epoch_frac / self._pseudo_cutoff)
-            w[is_pseudo_fg == 1] = self._pseudo_stereo_w * schedule
-            w[is_pseudo_fg == 2] = self._pseudo_mono_w * schedule
-
-        return w
-
     def _aux_loss(
         self,
         pred_map: torch.Tensor,
         aux_gt: torch.Tensor,
         gt_idx: torch.Tensor,
         fg_mask: torch.Tensor,
-        aux_weights: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Compute auxiliary loss on positives using gathered GT via target_gt_idx.
 
@@ -189,7 +155,6 @@ class Stereo3DDetLoss(v8DetectionLoss):
             aux_gt: [B, max_n, C] — padded per-image GT.
             gt_idx: [B, HW_total] — assignment indices from TAL.
             fg_mask: [B, HW_total] — boolean foreground mask.
-            aux_weights: [npos, 1] — per-anchor weight (pseudo-label curriculum).
         """
         c = pred_map.shape[1]
         pred_flat = pred_map.permute(0, 2, 1)  # [B, HW_total, C]
@@ -207,11 +172,6 @@ class Stereo3DDetLoss(v8DetectionLoss):
         if pred_pos.numel() == 0:
             return pred_map.sum() * 0.0
 
-        if aux_weights is not None:
-            # Weighted mean: per-anchor loss × weight, normalized by weight sum
-            raw = F.smooth_l1_loss(pred_pos, tgt_pos, reduction="none")  # [npos, C]
-            return (raw.mean(-1, keepdim=True) * aux_weights).sum() / aux_weights.sum().clamp(min=1.0)
-
         return F.smooth_l1_loss(pred_pos, tgt_pos, reduction="mean")
 
     def _lr_nll_loss(
@@ -221,7 +181,6 @@ class Stereo3DDetLoss(v8DetectionLoss):
         aux_gt: torch.Tensor,
         gt_idx: torch.Tensor,
         fg_mask: torch.Tensor,
-        aux_weights: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Laplacian-NLL loss for lr_distance with per-anchor predicted log-variance.
 
@@ -231,7 +190,6 @@ class Stereo3DDetLoss(v8DetectionLoss):
             aux_gt: [B, max_n, C] — padded per-image GT.
             gt_idx: [B, HW_total] — assignment indices from TAL.
             fg_mask: [B, HW_total] — boolean foreground mask.
-            aux_weights: [npos, 1] — per-anchor weight (pseudo-label curriculum).
         """
         c = pred_val.shape[1]
         val_flat = pred_val.permute(0, 2, 1)  # [B, HW_total, C]
@@ -251,10 +209,6 @@ class Stereo3DDetLoss(v8DetectionLoss):
         if val_pos.numel() == 0:
             return pred_val.sum() * 0.0
 
-        if aux_weights is not None:
-            raw = laplacian_nll(val_pos, tgt_pos, logvar_pos, reduction="none")  # [npos, C]
-            return (raw.mean(-1, keepdim=True) * aux_weights).sum() / aux_weights.sum().clamp(min=1.0)
-
         return laplacian_nll(val_pos, tgt_pos, logvar_pos)
 
     def _compute_aux_losses(
@@ -264,55 +218,31 @@ class Stereo3DDetLoss(v8DetectionLoss):
         target_gt_idx: torch.Tensor,
         fg_mask: torch.Tensor,
     ) -> dict[str, torch.Tensor]:
-        """Compute auxiliary losses for all 3D heads with pseudo-label weighting."""
+        """Compute auxiliary losses for all 3D heads."""
         aux_losses: dict[str, torch.Tensor] = {}
         aux_targets = batch.get("aux_targets", {})
 
         if not isinstance(aux_targets, dict) or not aux_targets:
             return aux_losses
 
-        # Compute per-anchor pseudo-label weights for aux losses
-        aux_weights = None
-        is_pseudo_gt = aux_targets.get("is_pseudo")
-        if is_pseudo_gt is not None and is_pseudo_gt.shape[1] > 0:
-            is_pseudo_gt = is_pseudo_gt.to(self.device)
-            if target_gt_idx.dtype != torch.int64:
-                target_gt_idx = target_gt_idx.to(torch.int64)
-            gathered = is_pseudo_gt.gather(1, target_gt_idx.unsqueeze(-1))  # [B, HW, 1]
-            is_pseudo_fg = gathered[fg_mask]  # [npos, 1]
-            if is_pseudo_fg.any():
-                aux_weights = self._pseudo_aux_weights(is_pseudo_fg)
-
         for k in ("lr_distance", "depth", "dimensions", "orientation"):
             if k not in aux_targets:
                 continue
             aux_gt = aux_targets[k].to(self.device)
             if k == "depth" and "depth_bins" in aux_preds:
-                aux_losses[k] = self._depth_bin_loss(
-                    aux_preds["depth_bins"],
-                    aux_gt,
-                    target_gt_idx,
-                    fg_mask,
-                    aux_weights,
-                )
+                aux_losses[k] = self._depth_bin_loss(aux_preds["depth_bins"], aux_gt, target_gt_idx, fg_mask)
             elif k == "orientation" and k in aux_preds:
-                aux_losses[k] = self._orientation_multibin_loss(
-                    aux_preds[k], aux_gt, target_gt_idx, fg_mask, aux_weights
-                )
+                aux_losses[k] = self._orientation_multibin_loss(aux_preds[k], aux_gt, target_gt_idx, fg_mask)
             elif k == "lr_distance" and "lr_logvar" in aux_preds:
                 aux_losses[k] = self._lr_nll_loss(
-                    aux_preds["lr_distance"], aux_preds["lr_logvar"], aux_gt, target_gt_idx, fg_mask, aux_weights
+                    aux_preds["lr_distance"], aux_preds["lr_logvar"], aux_gt, target_gt_idx, fg_mask
                 )
             elif k in aux_preds:
-                aux_losses[k] = self._aux_loss(aux_preds[k], aux_gt, target_gt_idx, fg_mask, aux_weights)
+                aux_losses[k] = self._aux_loss(aux_preds[k], aux_gt, target_gt_idx, fg_mask)
 
         if "proj_offset" in aux_targets and "proj_offset" in aux_preds:
             aux_losses["proj_center"] = self._aux_loss(
-                aux_preds["proj_offset"],
-                aux_targets["proj_offset"].to(self.device),
-                target_gt_idx,
-                fg_mask,
-                aux_weights,
+                aux_preds["proj_offset"], aux_targets["proj_offset"].to(self.device), target_gt_idx, fg_mask
             )
 
         return aux_losses
@@ -323,20 +253,18 @@ class Stereo3DDetLoss(v8DetectionLoss):
         aux_gt: torch.Tensor,
         gt_idx: torch.Tensor,
         fg_mask: torch.Tensor,
-        aux_weights: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """MultiBin orientation loss: bin classification (CE) + GT-bin residual (SmoothL1).
 
         Channel layout (see orientation.py): [conf_0..conf_{N-1}, sin_0, cos_0, ...].
         Target conf is one-hot of the nearest bin; only that bin's (sin,cos) residual
-        is supervised. Per-anchor losses are pseudo-label-weighted like the other aux terms.
+        is supervised.
 
         Args:
             pred_map: [B, ORIENT_CHANNELS, HW_total] raw head outputs (conf are logits).
             aux_gt: [B, max_n, ORIENT_CHANNELS] padded MultiBin targets.
             gt_idx: [B, HW_total] TAL assignment indices.
             fg_mask: [B, HW_total] foreground mask.
-            aux_weights: [npos, 1] per-anchor pseudo weight.
         """
         from .orientation import NUM_ORIENT_BINS
 
@@ -365,11 +293,7 @@ class Stereo3DDetLoss(v8DetectionLoss):
         tgt_res = tgt_pos[:, nb:].view(npos, nb, 2)[ar, bin_tgt]  # [npos, 2]
         res = F.smooth_l1_loss(pred_res, tgt_res, reduction="none").mean(-1)  # [npos]
 
-        per_anchor = ce + res  # [npos]
-        if aux_weights is not None:
-            w = aux_weights.squeeze(-1)
-            return (per_anchor * w).sum() / w.sum().clamp(min=1.0)
-        return per_anchor.mean()
+        return (ce + res).mean()
 
     def _depth_bin_loss(
         self,
@@ -377,7 +301,6 @@ class Stereo3DDetLoss(v8DetectionLoss):
         aux_gt: torch.Tensor,
         gt_idx: torch.Tensor,
         fg_mask: torch.Tensor,
-        aux_weights: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Compute DFL-style depth bin classification loss.
 
@@ -386,7 +309,6 @@ class Stereo3DDetLoss(v8DetectionLoss):
             aux_gt: [B, max_n, 1] — log-depth GT values.
             gt_idx: [B, HW_total] — TAL assignment indices.
             fg_mask: [B, HW_total] — boolean foreground mask.
-            aux_weights: [npos, 1] — per-anchor weight (pseudo-label curriculum).
         """
         n_bins = pred_bins.shape[1]
         if aux_gt.shape[1] == 0 or not fg_mask.any():
@@ -407,10 +329,7 @@ class Stereo3DDetLoss(v8DetectionLoss):
         if pred_fg.numel() == 0:
             return pred_bins.sum() * 0.0
 
-        raw = self.depth_dfl_loss(pred_fg, tgt_fg.unsqueeze(-1))  # [npos, 1]
-        if aux_weights is not None:
-            return (raw * aux_weights).sum() / aux_weights.sum().clamp(min=1.0)
-        return raw.mean()
+        return self.depth_dfl_loss(pred_fg, tgt_fg.unsqueeze(-1)).mean()
 
     def loss(
         self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]

@@ -17,8 +17,8 @@ Example (run on the GPU box):
 Notes:
 - Pass checkpoint paths (or names resolvable by YOLO) via --weights.
 - The "Car (Mod)" columns are the KITTI headline; the "mean (Mod)" columns
-  average over the model's real classes (Aux_ pseudo-classes excluded), matching
-  the validator's ap3d_*/apbev_*/aos_* summaries.
+  average over the model's classes, matching the validator's
+  ap3d_*/apbev_*/aos_* summaries.
 """
 
 from __future__ import annotations

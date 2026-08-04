@@ -19,7 +19,6 @@ from ultralytics.models.yolo.s3d.preprocess import preprocess_stereo_batch
 from ultralytics.nn.modules.block import StereoCostVolume
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.plotting import Annotator, VisualizationConfig, colors, plot_labels, plot_stereo3d_boxes
-from ultralytics.utils.torch_utils import unwrap_model
 
 
 class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
@@ -30,14 +29,6 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             overrides = {}
         overrides["task"] = "s3d"
         super().__init__(cfg, overrides, _callbacks)
-        self.add_callback("on_train_epoch_start", Stereo3DDetTrainer._set_loss_epoch_frac)
-
-    @staticmethod
-    def _set_loss_epoch_frac(trainer):
-        """Update loss criterion with current epoch fraction for pseudo-label curriculum."""
-        criterion = getattr(unwrap_model(trainer.model), "criterion", None)
-        if criterion is not None:
-            criterion.epoch_frac = trainer.epoch / max(trainer.epochs, 1)
 
     def get_validator(self):
         """Return a Stereo3DDetValidator, currently extending DetectionValidator."""
@@ -91,66 +82,18 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         mean_dims = data_cfg.get("mean_dims")
         std_dims = data_cfg.get("std_dims")
 
-        # Auto-expand nc=1 to all available label classes to prevent depth collapse.
-        # With only 1 class, the backbone learns spatial shortcuts (position→depth)
-        # that don't generalize. Including all available classes from the labels provides
-        # visual diversity that forces the backbone to learn richer features.
-        label_dir = root / "labels" / train_split
-
-        # Scan label files for class IDs present in the dataset (up to 200 files), and for the
-        # width-normalized disparities they contain — fields 1 and 5 are the left/right box centres,
-        # so their difference IS disparity/width, the grid StereoCostVolume needs to sample.
-        class_ids: set[int] = set()
+        # Scan label files (up to 200) for the width-normalized disparities they contain — fields 1
+        # and 5 are the left/right box centres, so their difference IS disparity/width, the grid
+        # StereoCostVolume needs to sample.
         disparities: list[float] = []
-        for f in sorted(label_dir.glob("*.txt"))[:200]:
+        for f in sorted((root / "labels" / train_split).glob("*.txt"))[:200]:
             with open(f) as fh:
                 for line in fh:
                     parts = line.strip().split()
-                    if parts:
-                        class_ids.add(int(parts[0]))
-                        if len(parts) > 5:
-                            d = float(parts[1]) - float(parts[5])
-                            if d > 0:
-                                disparities.append(d)
-
-        if nc == 1:
-            if len(class_ids) > 1:
-                base_name = names[0] if isinstance(names, dict) else names[0] if isinstance(names, list) else "Object"
-                max_id = max(class_ids)
-                names = {i: base_name if i == 0 else f"Aux_{i}" for i in range(max_id + 1)}
-                nc = max_id + 1
-                if mean_dims and 0 in mean_dims:
-                    mean_dims = {cid: mean_dims[0] for cid in names}
-                if std_dims and 0 in std_dims:
-                    std_dims = {cid: std_dims[0] for cid in names}
-                LOGGER.info(
-                    "s3d: auto-expanded nc=1 → nc=%d using label classes %s",
-                    nc,
-                    list(names.values()),
-                )
-            else:
-                LOGGER.warning(
-                    "s3d: nc=1 with truly single-class labels. Run auto-labeling first:\n"
-                    "  python -m ultralytics.models.yolo.s3d.auto_label --data kitti-stereo.yaml"
-                )
-        else:
-            # nc>1: check for pseudo-classes from prior auto-labeling
-            max_id = max(class_ids, default=nc - 1)
-            if max_id >= nc:
-                new_names = dict(names) if isinstance(names, dict) else {i: n for i, n in enumerate(names)}
-                n_real = len(new_names)
-                for i in range(nc, max_id + 1):
-                    new_names[i] = f"Aux_{i}"
-                names = new_names
-                nc = max_id + 1
-                # Rekey dims: convert string-keyed to integer-keyed using class names
-                for dims_dict in (mean_dims, std_dims):
-                    if dims_dict:
-                        int_keyed = {cid: dims_dict.get(cname) for cid, cname in names.items() if cname in dims_dict}
-                        if int_keyed:
-                            fallback = next(iter(int_keyed.values()))
-                            dims_dict.update({cid: fallback for cid in names if cid not in int_keyed})
-                LOGGER.info("s3d: auto-expanded nc=%d → nc=%d from label classes", n_real, nc)
+                    if len(parts) > 5:
+                        d = float(parts[1]) - float(parts[5])
+                        if d > 0:
+                            disparities.append(d)
 
         # Return a dict compatible with BaseTrainer expectations, plus stereo descriptors
         return {
@@ -170,7 +113,6 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             "disparity_range": self._disparity_range(disparities, data_cfg),
             "mean_dims": mean_dims,
             "std_dims": std_dims,
-            "pseudo_labels": data_cfg.get("pseudo_labels", {}),
         }
 
     @staticmethod
@@ -293,8 +235,6 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
     def set_model_attributes(self):
         """Set model attributes based on dataset information."""
         super().set_model_attributes()
-        # Pass pseudo-label config from dataset YAML to model for loss initialization
-        self.model.pseudo_labels = self.data.get("pseudo_labels", {})
         # Store mean/std dims on model so predictor can read them without the data YAML.
         # Reorder from YAML [L,W,H] to decode format {int_id: (H,W,L)}.
         self.model.mean_dims = self._reorder_dims(self.data.get("mean_dims"))

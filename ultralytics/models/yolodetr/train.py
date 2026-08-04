@@ -291,7 +291,7 @@ class YOLODETRTrainer(RTDETRTrainer):
         return YOLODETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
-        """Build optimizer with 6 parameter groups split between head and backbone (backbone_lr_ratio)."""
+        """Build optimizer with 6 param groups split head/backbone; 'auto' resolves to AdamW with DEIM LR defaults."""
         backbone_lr_ratio = float(self.args.backbone_lr_ratio)
         if backbone_lr_ratio <= 0:
             raise ValueError(f"Invalid backbone_lr_ratio={backbone_lr_ratio}. Expected > 0.")
@@ -299,7 +299,12 @@ class YOLODETRTrainer(RTDETRTrainer):
         g = [{}, {}, {}, {}, {}, {}]  # head: [0 weight, 1 bn, 2 bias]; backbone: [3 weight, 4 bn, 5 bias]
         bn = tuple(v for k, v in nn.__dict__.items() if "Norm" in k)
         if name == "auto":
-            name = "AdamW"
+            name, lr, momentum = "AdamW", 5e-4, 0.9
+            self.args.warmup_momentum, self.args.warmup_bias_lr = momentum, 0.0  # no bias/momentum warmup for Adam
+            LOGGER.info(
+                f"{colorstr('optimizer:')} 'optimizer=auto' found, ignoring 'lr0={self.args.lr0}' and "
+                f"'momentum={self.args.momentum}' and using DEIM defaults '{name}', 'lr0={lr}', 'momentum={momentum}'..."
+            )
         backbone_len = len(model.yaml["backbone"])
 
         for module_name, module in model.named_modules():

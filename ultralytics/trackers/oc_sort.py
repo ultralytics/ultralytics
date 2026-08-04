@@ -88,19 +88,17 @@ class OCSortTrack(STrack):
         return np.array([(xyxy[0] + xyxy[2]) / 2, (xyxy[1] + xyxy[3]) / 2])
 
     def _record_observation(self, obs: np.ndarray, frame_id: int) -> None:
-        """Store `obs` as the latest observation for `frame_id` and bound the retained history."""
+        """Store `obs` for `frame_id`, dropping history beyond `delta_t + 2` to bound memory.
+
+        The retained window always covers the frame `_compute_velocity` reaches back to, since at most `delta_t`
+        distinct frames fall inside `(frame_id - delta_t, frame_id]`.
+        """
         self.last_observation = obs
         self.observations[frame_id] = obs
-        self._prune_observations()
-
-    def _prune_observations(self) -> None:
-        """Drop old observations beyond `delta_t + 2` to bound memory while keeping enough for velocity."""
         max_keep = self.delta_t + 2
-        if len(self.observations) <= max_keep:
-            return
-        sorted_frames = sorted(self.observations.keys())
-        for frame in sorted_frames[:-max_keep]:
-            del self.observations[frame]
+        if len(self.observations) > max_keep:
+            for frame in sorted(self.observations)[:-max_keep]:
+                del self.observations[frame]
 
     def _compute_velocity(self) -> np.ndarray | None:
         """Compute the observation-centric velocity direction from stored observations.

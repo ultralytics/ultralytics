@@ -5,7 +5,8 @@
 
 # Start FROM Ultralytics GPU image
 FROM ultralytics/ultralytics:latest
-COPY --from=node:24-bookworm-slim /usr/local/ /usr/local/
+COPY --from=node:24-bookworm-slim /usr/local/bin/node /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/
+COPY --from=node:24-bookworm-slim /usr/local/lib/node_modules/ /usr/local/lib/node_modules/
 
 # Set additional environment variables for runner (no "v" on the version)
 ARG RUNNER_VERSION=2.334.0

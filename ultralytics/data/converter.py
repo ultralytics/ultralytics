@@ -331,7 +331,7 @@ def convert_coco(
                             for p in seg
                             if isinstance(p, list) and len(p) >= 6 and not len(p) % 2 and not isinstance(p[0], list)
                         ]
-                        dropped |= len(polygons) < sum(bool(p) for p in seg)  # a non-empty entry was not a polygon
+                        dropped |= len(polygons) < sum(bool(p) or p == 0 for p in seg)  # 0 is a coordinate
                         if not polygons:
                             cx, cy, bw, bh = box[1:]
                             x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2

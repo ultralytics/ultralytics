@@ -481,8 +481,8 @@ class YOLOE(Model):
                 f"{len(visual_prompts['bboxes'])} and {len(visual_prompts['cls'])} respectively"
             )
             nested = yolo.yoloe.YOLOEVPDetectPredictor.is_per_image(visual_prompts)  # one prompt array per image
-            # for one image the shape comes from the prompts, matching pre_transform
-            multi = isinstance(source, (list, tuple)) and refer_image is None and (len(source) > 1 or nested)
+            # the prompts decide the shape, as they do in pre_transform; only a longer source can override them
+            multi = refer_image is None and (nested or (isinstance(source, (list, tuple)) and len(source) > 1))
             per_image = [len(set(c)) for c in visual_prompts["cls"]] if multi else [len(set(visual_prompts["cls"]))]
             assert all(per_image), (
                 f"Expected at least one class per image in the visual prompts, but got {visual_prompts['cls']}"

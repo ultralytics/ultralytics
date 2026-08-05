@@ -480,6 +480,12 @@ class YOLOE(Model):
                 f"Expected an equal, non-zero number of bounding boxes and classes, but got "
                 f"{len(visual_prompts['bboxes'])} and {len(visual_prompts['cls'])} respectively"
             )
+            num_cls = (
+                max(len(set(c)) for c in visual_prompts["cls"])
+                if isinstance(source, list) and refer_image is None  # means multiple images
+                else len(set(visual_prompts["cls"]))
+            )
+            assert num_cls, f"Expected at least one class in the visual prompts, but got {visual_prompts['cls']}"
             if type(self.predictor) is not predictor:
                 args = get_cfg(overrides={**self.overrides, **kwargs})
                 self.predictor = predictor(
@@ -496,11 +502,6 @@ class YOLOE(Model):
                     _callbacks=self.callbacks,
                 )
 
-            num_cls = (
-                max(len(set(c)) for c in visual_prompts["cls"])
-                if isinstance(source, list) and refer_image is None  # means multiple images
-                else len(set(visual_prompts["cls"]))
-            )
             self.model.model[-1].nc = num_cls
             self.model.names = [f"object{i}" for i in range(num_cls)]
             self.predictor.set_prompts(visual_prompts.copy())

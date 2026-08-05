@@ -58,7 +58,10 @@ def test_depth_kitti_eigen_split_no_train_leak(tmp_path):
 
     conv_src = DOWNLOAD_SCRIPT[DOWNLOAD_SCRIPT.index("# Convert: GT PNGs") :]
     conv_src = conv_src.rsplit("shutil.rmtree", 1)[0]  # keep source/ around so the test can inspect it after
-    exec(conv_src, {"dir": tmp_path, "gt_drives": [drive_dir], "EIGEN_TEST": eigen_test, "cv2": cv2, "np": np, "TQDM": TQDM})
+    exec(
+        conv_src,
+        {"dir": tmp_path, "gt_drives": [drive_dir], "EIGEN_TEST": eigen_test, "cv2": cv2, "np": np, "TQDM": TQDM},
+    )
 
     assert list((tmp_path / "depth" / "train").iterdir()) == []
     assert list((tmp_path / "images" / "train").iterdir()) == []
@@ -66,4 +69,13 @@ def test_depth_kitti_eigen_split_no_train_leak(tmp_path):
     assert [p.name for p in val_depth] == [f"{leaked_drive}_02_{in_list_frame:010d}.npy"]
 
     # the off-list frame was dropped, not converted: its raw source file is still untouched in place
-    assert (tmp_path / "source" / "raw" / leaked_drive[:10] / drive_dir.name / "image_02" / "data" / f"{out_of_list_frame:010d}.png").exists()
+    assert (
+        tmp_path
+        / "source"
+        / "raw"
+        / leaked_drive[:10]
+        / drive_dir.name
+        / "image_02"
+        / "data"
+        / f"{out_of_list_frame:010d}.png"
+    ).exists()

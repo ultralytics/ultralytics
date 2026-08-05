@@ -291,6 +291,7 @@ POST /api/datasets
     "name": "My Dataset",
     "task": "detect",
     "description": "A custom detection dataset",
+    "metadata": { "location": "factory-1", "reviewed": true },
     "visibility": "private",
     "classNames": ["person", "car"]
 }
@@ -322,9 +323,20 @@ PATCH /api/datasets/{datasetId}
 {
     "name": "Updated Name",
     "description": "New description",
+    "metadata": { "location": "factory-2", "reviewed": true },
     "visibility": "public"
 }
 ```
+
+Send an empty `metadata` object (`{}`) to clear custom metadata. Nested values are supported up to 500,000 serialized characters, with top-level keys limited to 128 characters.
+
+### Get Dataset Metadata
+
+```http
+GET /api/datasets/{datasetId}/metadata
+```
+
+Returns the custom metadata object and read-only Ultralytics-managed field/value pairs without adding them to normal dataset payloads. Authentication and dataset workspace access are required.
 
 ### Dataset Icon
 
@@ -901,7 +913,8 @@ POST /api/projects
       -d '{
         "name": "my-project",
         "slug": "my-project",
-        "description": "Detection experiments"
+        "description": "Detection experiments",
+        "metadata": {"department": "manufacturing", "cost_center": "cv-01"}
       }' \
       https://platform.ultralytics.com/api/projects
     ```
@@ -916,6 +929,7 @@ POST /api/projects
             "name": "my-project",
             "slug": "my-project",
             "description": "Detection experiments",
+            "metadata": {"department": "manufacturing", "cost_center": "cv-01"},
         },
     )
     project_id = resp.json()["projectId"]
@@ -926,6 +940,24 @@ POST /api/projects
 ```http
 PATCH /api/projects/{projectId}
 ```
+
+**Body (partial update):**
+
+```json
+{
+    "metadata": { "department": "research", "program": "inspection" }
+}
+```
+
+Send an empty `metadata` object (`{}`) to clear it. Project metadata uses the same 128-character top-level key and 500,000-character serialized-object limits as dataset metadata.
+
+### Get Project Metadata
+
+```http
+GET /api/projects/{projectId}/metadata
+```
+
+Returns the custom metadata object and read-only Ultralytics-managed field/value pairs. Authentication and project workspace access are required.
 
 ### Delete Project
 
@@ -1001,6 +1033,7 @@ POST /api/models
 | `slug`        | string | No       | URL slug (lowercase alphanumeric/hyphens)                         |
 | `name`        | string | No       | Display name (max 100 chars)                                      |
 | `description` | string | No       | Model description (max 1000 chars)                                |
+| `metadata`    | object | No       | Custom JSON metadata                                              |
 | `task`        | string | No       | Task type (detect, segment, semantic, depth, pose, obb, classify) |
 
 !!! note "Model File Upload"
@@ -1012,6 +1045,24 @@ POST /api/models
 ```http
 PATCH /api/models/{modelId}
 ```
+
+**Body (partial update):**
+
+```json
+{
+    "metadata": { "release": "candidate-3", "reviewed": true }
+}
+```
+
+Send an empty `metadata` object (`{}`) to clear it. Model custom metadata is separate from training-owned model information, environment details, and training arguments, and uses the same limits as dataset metadata.
+
+### Get Model Metadata
+
+```http
+GET /api/models/{modelId}/metadata
+```
+
+Returns the custom metadata object and read-only Ultralytics-managed field/value pairs. Authentication and model workspace access are required.
 
 ### Delete Model
 

@@ -198,6 +198,15 @@ Update project name, description, or settings:
 
 ![Ultralytics Platform Projects Settings](https://cdn.ul.run/i/efc68367a7a6f0b80f43e28e96b22167.avif)<!-- screenshot -->
 
+### Custom Metadata
+
+Open the project's `...` menu and select **Edit Metadata** to review two sections:
+
+- **Ultralytics Metadata**: Read-only Platform details such as the project ID, owner, visibility, license, tags, and timestamps
+- **Custom Metadata**: Your own JSON object for department, program, cost center, governance, or other organizational context
+
+Workspace viewers can inspect metadata, while owners and editors can replace the custom metadata object. Nested values are supported up to 500,000 serialized characters, with top-level keys limited to 128 characters. Save an empty object (`{}`) to clear custom metadata.
+
 ## Delete Project
 
 Remove a project you no longer need:

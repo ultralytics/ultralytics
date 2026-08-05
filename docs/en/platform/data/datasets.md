@@ -684,6 +684,15 @@ Dataset metadata is edited inline directly on the dataset page — no dialog nee
 
     Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back.
 
+### Custom Metadata
+
+Open the dataset's `...` menu and select **Edit Metadata** to review two sections:
+
+- **Ultralytics Metadata**: Read-only Platform details such as the dataset ID, owner, task, image and annotation counts, storage region, and timestamps
+- **Custom Metadata**: Your own JSON object for provenance, capture conditions, customer IDs, governance, or other contextual data
+
+Workspace viewers can inspect metadata, while owners and editors can replace the custom metadata object. Nested values are supported up to 500,000 serialized characters, with top-level keys limited to 128 characters. Save an empty object (`{}`) to clear custom metadata.
+
 ## Clone Dataset
 
 When viewing a public dataset you do not own, click `Clone Dataset` to open the clone dialog. Review the destination workspace, name, visibility, and license, then confirm the clone. The copy includes all images, annotations, and class definitions. Public source datasets stay public by default in workspaces whose default visibility is public; Enterprise workspace clones default to private. If the original dataset has a copyleft license, the clone inherits it and the license selector is locked.

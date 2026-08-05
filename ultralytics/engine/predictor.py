@@ -309,6 +309,10 @@ class BasePredictor:
         # Setup model
         if self.model is None:
             self.setup_model(model)
+        # Only the `pt` backend forwards these; clear them here or `embed` yields the raw output as an embedding
+        if self.model.format != "pt" and (self.args.augment or self.args.embed):
+            LOGGER.warning(f"'augment' and 'embed' are not supported for format='{self.model.format}', ignoring.")
+            self.args.augment, self.args.embed = False, None
 
         with self._lock:  # for thread-safe inference
             # Setup source every time predict is called

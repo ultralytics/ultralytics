@@ -437,6 +437,9 @@ class Model(torch.nn.Module):
         Returns:
             (Iterator[torch.Tensor] | list[torch.Tensor]): Image embeddings, streamed when `stream=True`.
 
+        Raises:
+            TypeError: If the model is not a PyTorch model. Exported formats expose no intermediate layers to embed.
+
         Examples:
             >>> model = YOLO("yolo26n.pt")
             >>> image = "https://ultralytics.com/images/bus.jpg"
@@ -445,6 +448,7 @@ class Model(torch.nn.Module):
             >>> print(embeddings[0].shape)
             >>> print(results[0].boxes.shape)
         """
+        self._check_is_pytorch_model()
         if not kwargs.get("embed"):
             kwargs["embed"] = [len(self.model.model) - 2]  # embed second-to-last layer if no indices passed
         return self.predict(source, stream, **kwargs)

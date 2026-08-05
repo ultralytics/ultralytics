@@ -1302,7 +1302,8 @@ class YOLOEModel(DetectionModel):
 
         # Cache anchors for head
         device = next(self.parameters()).device
-        self(torch.empty(1, 3, self.args["imgsz"], self.args["imgsz"]).to(device))  # warmup
+        with torch.no_grad():  # get_vocab fuses the head under inference mode, so a tracked warmup cannot use it
+            self(torch.empty(1, 3, self.args["imgsz"], self.args["imgsz"]).to(device))  # warmup
 
         cv3 = getattr(head, "one2one_cv3", head.cv3)
         cv2 = getattr(head, "one2one_cv2", head.cv2)

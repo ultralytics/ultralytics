@@ -56,7 +56,11 @@ from ultralytics import YOLO
 from ultralytics.utils import SETTINGS, YAML
 from ultralytics.utils.checks import check_yaml
 
-DEV_YAML = "/home/rick/s3d_tools/kitti-stereo-chen3way-VAL-IS-DEV.yaml"
+# The shipped config resolves by name and auto-downloads, so this runs unchanged on a fresh box. Its
+# `val:`/`val_split:` point at the DEV split, never at test — see cfg/datasets/kitti-stereo-chen.yaml.
+DEV_YAML = "kitti-stereo-chen.yaml"
+# Not shipped inside the dataset archive, so the drive map is a local path by default and the sampler is
+# opt-in; pass --drives "" to train without it.
 DRIVES = "/home/rick/s3d_tools/chen3way_split.json"
 SELECT_KEY = "AP3D_Car_Mod_50"
 

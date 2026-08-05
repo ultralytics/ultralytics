@@ -188,6 +188,29 @@ The score change is floating point noise, so the 80 COCO classes predict exactly
 
 The wrong `elephant` and `cow` guesses stay, because nothing tells the model they are wrong. The new class is added next to them, and picking the higher score at inference is enough to separate them.
 
+## Harder Example: A Class Unlike Anything in COCO
+
+A rhino is easy because COCO already knows large animals. Licence plates are the opposite: they are small, and nothing in COCO resembles one. The same recipe on 2325 street images with plates as class 80, `yolo26n`, 50 epochs:
+
+| Metric                                        | Value   |
+| --------------------------------------------- | ------- |
+| `license-plate` mAP50                         | 0.564   |
+| `license-plate` mAP50-95                      | 0.244   |
+| COCO class score max change vs the base model | 2.3e-13 |
+
+<table border="0">
+    <tr>
+        <th>Pretrained YOLO26n</th>
+        <th>license-plate class added through <code>RefineDetectionTrainer</code></th>
+    </tr>
+    <tr>
+        <td><img src="REPLACE_WITH_BEFORE_IMAGE_URL" alt="Pretrained model detects the car but not its plate" width="640"></td>
+        <td><img src="REPLACE_WITH_AFTER_IMAGE_URL" alt="Tuned model detects the license plate" width="640"></td>
+    </tr>
+</table>
+
+The `car` and `person` detections are untouched, at `car 0.70` and `person 0.36` in both, and `license-plate 0.73` is added. Accuracy on the new class is well below what a full fine-tune of every layer would reach on the same data, which is the cost of keeping the other 80 classes frozen. It was also still improving at 50 epochs, so a class this far from the pretrained features wants a longer run.
+
 ## FAQ
 
 ### Are the other classes really unchanged?

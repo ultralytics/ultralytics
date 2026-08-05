@@ -746,7 +746,7 @@ class GroundingDataset(YOLODataset):
                     seg = ann.get("segmentation")
                     segmented |= seg is not None
                     if not isinstance(seg, list):
-                        seg = [seg]  # an RLE dict is one non-polygon entry
+                        seg = [seg]  # a non-list value, such as an RLE dict, is one non-polygon entry
                     elif seg and all(isinstance(x, list) and len(x) == 2 for x in seg):
                         seg = [seg]  # the value is itself a single polygon in [[x, y], ...] form
                     seg = [  # [[x, y], ...] is a polygon form too, flatten it to [x, y, x, y, ...]
@@ -763,7 +763,7 @@ class GroundingDataset(YOLODataset):
                         and not len(p) % 2
                         and all(isinstance(c, (int, float)) for c in p)
                     ]
-                    dropped |= len(polygons) < sum(bool(p) or p == 0 for p in seg)  # 0 is a coordinate
+                    dropped |= len(polygons) < sum(bool(p) or p == 0 for p in seg)  # empty entries carry no mask
                     if not polygons:  # keep one segment per box so an image mixing the two kinds stays aligned
                         cx, cy, bw, bh = box[1:]
                         x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2

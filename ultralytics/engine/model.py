@@ -14,6 +14,7 @@ from PIL import Image
 from ultralytics.cfg import TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
 from ultralytics.nn.tasks import BaseModel, guess_model_task, load_checkpoint, yaml_model_load
+from ultralytics.utils.torch_utils import unwrap_model
 from ultralytics.utils import (
     ARGV,
     ASSETS,
@@ -450,10 +451,11 @@ class Model(torch.nn.Module):
             >>> print(results[0].boxes.shape)
         """
         self._check_is_pytorch_model()
-        if not isinstance(self.model, BaseModel):  # e.g. a super-gradients YOLO-NAS module, which has no layer list
-            raise TypeError(f"model='{type(self.model).__name__}' is not an Ultralytics model and cannot be embedded.")
         if not kwargs.get("embed"):
-            kwargs["embed"] = [len(self.model.model) - 2]  # embed second-to-last layer if no indices passed
+            model = unwrap_model(self.model)
+            if not isinstance(model, BaseModel):  # e.g. a super-gradients YOLO-NAS module, which has no layer list
+                raise TypeError(f"model='{type(model).__name__}' is not an Ultralytics model and cannot be embedded.")
+            kwargs["embed"] = [len(model.model) - 2]  # embed second-to-last layer if no indices passed
         return self.predict(source, stream, **kwargs)
 
     def predict(

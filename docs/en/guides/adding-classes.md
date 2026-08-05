@@ -209,7 +209,7 @@ A rhino is easy because COCO already knows large animals. Licence plates are the
     </tr>
 </table>
 
-The `car` and `person` detections are untouched, at `car 0.70` and `person 0.36` in both, and `license-plate 0.73` is added. Accuracy on the new class is well below what a full fine-tune of every layer would reach on the same data, which is the cost of keeping the other 80 classes frozen. It was also still improving at 50 epochs, so a class this far from the pretrained features wants a longer run.
+The `car`, `truck` and `person` detections are untouched, and `license-plate 0.68` is added. Accuracy on the new class is well below what a full fine-tune of every layer would reach on the same data, which is the cost of keeping the other 80 classes frozen. It was also still improving at 50 epochs, so a class this far from the pretrained features wants a longer run.
 
 ## FAQ
 

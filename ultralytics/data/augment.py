@@ -2135,10 +2135,12 @@ class Albumentations(BaseTransform):
             self.contains_spatial = any(is_spatial(transform) for transform in T)
             if self.contains_spatial and use_keypoints:
                 # A mirror must also swap the left/right landmark identities, which albumentations cannot do
-                T = [transform for transform in T if not is_spatial(transform)]
+                kept = [transform for transform in T if not is_spatial(transform)]
                 LOGGER.warning(
-                    f"{prefix}keeping only the {len(T)} non-spatial transform(s), keypoints cannot be remapped"
+                    f"{prefix}dropping {len(T) - len(kept)} of {len(T)} entries that warp geometry, a composition "
+                    f"counting as one, because pose keypoints cannot be remapped"
                 )
+                T = kept
                 self.contains_spatial = False
                 if not T:
                     return

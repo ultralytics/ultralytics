@@ -242,6 +242,48 @@ def test_3d_iou_rotated_no_overlap():
     assert compute_3d_iou(a, b) == 0.0
 
 
+def test_bev_corners_uses_kitti_axis_convention():
+    """At rotation_y=0 the object's LENGTH must lie along camera x and its WIDTH along camera z.
+
+    This is the KITTI devkit convention (`compute_box_3d` builds x_corners from l and z_corners from w), and it is what
+    `s3d/augment.py`, `s3d/geometric.py` and `utils/plotting.py` already use. `_bev_corners` previously had the two axes
+    swapped, which every other IoU test here passes unchanged because they are all self-consistent: both boxes get the
+    same wrong footprint, so identical-box, 45-degree, disjoint and stacked cases are all unaffected. Only tying the
+    footprint to a named axis catches it.
+    """
+    from ultralytics.utils.metrics import _bev_corners
+
+    extent = lambda v: float(v.max() - v.min())  # noqa: E731
+
+    corners = _bev_corners(0.0, 0.0, length=4.0, width=2.0, rot=0.0)
+    assert abs(extent(corners[:, 0]) - 4.0) < 1e-6, "length must span camera x at rot=0"
+    assert abs(extent(corners[:, 1]) - 2.0) < 1e-6, "width must span camera z at rot=0"
+
+    # A car driving away from the camera (the common KITTI case) has ry ~= +/-pi/2 and must present its LENGTH to depth.
+    corners = _bev_corners(0.0, 0.0, length=4.0, width=2.0, rot=np.pi / 2)
+    assert abs(extent(corners[:, 0]) - 2.0) < 1e-6
+    assert abs(extent(corners[:, 1]) - 4.0) < 1e-6, "length must span camera z (depth) at rot=pi/2"
+
+
+def test_3d_iou_depth_tolerance_matches_kitti_devkit():
+    """A car displaced purely in depth must lose IoU against its LENGTH, not its width.
+
+    For pure longitudinal translation the exact 3D IoU is (D - dz) / (D + dz) where D is the footprint's depth extent, so
+    IoU=0.7 is reached at dz = 0.176*D. With the axes swapped the tolerance came out 2.36x too tight (0.289 m instead of
+    0.683 m for a 3.87 m car), making AP3D@0.7 far harsher than the published KITTI benchmark. This pins the tolerance.
+    """
+    length, width, height = 3.87, 1.64, 1.53
+    z, ry = 20.0, np.pi / 2  # pointing along depth: the length faces the camera axis
+    tol = length * 0.3 / 1.7  # dz at which IoU should be exactly 0.7
+
+    at_tol = compute_3d_iou([0, 0, z, length, width, height, ry], [0, 0, z + tol, length, width, height, ry])
+    assert abs(at_tol - 0.7) < 1e-3, f"depth tolerance for IoU 0.7 should be {tol:.3f} m, got IoU {at_tol:.3f}"
+
+    # Sanity: the same displacement applied laterally must cost MORE, because width is the short axis.
+    lateral = compute_3d_iou([0, 0, z, length, width, height, ry], [tol, 0, z, length, width, height, ry])
+    assert lateral < at_tol, "lateral error should cost more IoU than the same depth error for a depth-facing car"
+
+
 def test_3d_iou_rotated_90deg():
     """Two identical (L=4, W=2) boxes offset by 90 deg of yaw, shared center/dims.
 

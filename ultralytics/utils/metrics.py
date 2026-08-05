@@ -284,14 +284,15 @@ def probiou(
 def _bev_corners(cx: float, cz: float, length: float, width: float, rot: float) -> np.ndarray:
     """Return the 4 ground-plane (x, z) corners of a yaw-rotated 3D box footprint.
 
-    Uses the same rotation convention as the rest of the s3d code (rotation about the camera y-axis): width extends
-    along the local x-axis, length along the local z-axis. Corners are returned counter-clockwise.
+    Follows the KITTI devkit convention for `rotation_y` (rotation about the camera y-axis): at rot=0 the object's
+    LENGTH extends along the local x-axis and its WIDTH along the local z-axis, matching `s3d/augment.py`,
+    `s3d/geometric.py` and `utils/plotting.py`. Corners are returned counter-clockwise.
 
     Args:
         cx: Box center x (lateral) in meters.
         cz: Box center z (depth/forward) in meters.
-        length: Box length (along forward/z) in meters.
-        width: Box width (along lateral/x) in meters.
+        length: Box length (along the object's heading) in meters.
+        width: Box width (across the object's heading) in meters.
         rot: Yaw rotation about the y-axis in radians.
 
     Returns:
@@ -299,8 +300,8 @@ def _bev_corners(cx: float, cz: float, length: float, width: float, rot: float) 
     """
     cos, sin = np.cos(rot), np.sin(rot)
     hw, hl = width / 2.0, length / 2.0
-    # Local (x=width, z=length) corners, counter-clockwise in the x-z plane.
-    local = np.array([[-hw, -hl], [hw, -hl], [hw, hl], [-hw, hl]])
+    # Local (x=length, z=width) corners, counter-clockwise in the x-z plane.
+    local = np.array([[-hl, -hw], [hl, -hw], [hl, hw], [-hl, hw]])
     # Rotation about y maps local (x, z) -> world via [[cos, sin], [-sin, cos]],
     # matching R = [[cos, 0, sin], [0, 1, 0], [-sin, 0, cos]] used elsewhere.
     rotm = np.array([[cos, sin], [-sin, cos]])

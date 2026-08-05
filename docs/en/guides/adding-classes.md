@@ -178,7 +178,7 @@ The score change is floating point noise, so the 80 COCO classes predict exactly
 <table border="0">
     <tr>
         <th>Pretrained YOLO26n</th>
-        <th>rhino class added through `RefineDetectionTrainer`</th>
+        <th>rhino class added through <code>RefineDetectionTrainer</code></th>
     </tr>
     <tr>
         <td><img src="https://cdn.ul.run/i/5dd5d63c8f29dc5bbdbca9e4631e99b5.avif" alt="Pretrained model labels the rhino an elephant" width="640"></td>

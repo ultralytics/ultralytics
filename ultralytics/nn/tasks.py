@@ -1299,6 +1299,7 @@ class YOLOEModel(DetectionModel):
         assert not self.training
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
+        names = check_class_names(names)  # validate before the re-parameterization below, which cannot be undone
 
         # Cache anchors for head
         device = next(self.parameters()).device
@@ -1318,7 +1319,7 @@ class YOLOEModel(DetectionModel):
             del loc_head[-1]
             del cls_head[-1]
         self.model[-1].nc = len(names)
-        self.names = check_class_names(names)
+        self.names = names
 
     def get_vocab(self, names):
         """Get fused vocabulary layer from the model.

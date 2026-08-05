@@ -11,22 +11,22 @@ from .train import _YOLODETR_DEFAULTS, YOLODETRTrainer, YOLODETRValidator
 class YOLODETR(Model):
     """Interface for YOLO-DETR models with YOLO26 CSP or UltraViT backbones and DeimDecoder heads.
 
-    YOLO27l uses a YOLO26-style CSP backbone and FPN/PAN neck, while YOLO27x uses an UltraViT backbone and
-    HybridEncoder neck. Both variants reuse the RT-DETR prediction and validation pipeline because their decoder
-    output contract is identical (bs, num_queries, [x, y, w, h, conf, cls]). Training is routed through
-    YOLODETRTrainer for augmentation decay, flat-cosine learning rates, and separate head/backbone learning rates.
-    YOLODETRDetectionModel dispatches DfineLoss for each DeimDecoder head with the full FGL/DDF terms.
+    YOLO27l uses a YOLO26-style CSP backbone and FPN/PAN neck, while YOLO27x uses an UltraViT backbone and HybridEncoder
+    neck. Both variants reuse the RT-DETR prediction and validation pipeline because their decoder output contract is
+    identical (bs, num_queries, [x, y, w, h, conf, cls]). Training is routed through YOLODETRTrainer for augmentation
+    decay, flat-cosine learning rates, and separate head/backbone learning rates. YOLODETRDetectionModel dispatches
+    DfineLoss for each DeimDecoder head with the full FGL/DDF terms.
 
     Examples:
         Run inference from a YAML
         >>> from ultralytics import YOLODETR
-        >>> model = YOLODETR("yolo27x-detr.yaml")
+        >>> model = YOLODETR("yolo27x.yaml")
         >>> results = model("image.jpg")
     """
 
     _DEIM_KWARGS = tuple(_YOLODETR_DEFAULTS)
 
-    def __init__(self, model: str = "yolo27x-detr.yaml") -> None:
+    def __init__(self, model: str = "yolo27x.yaml") -> None:
         """Initialize YOLO-DETR from a YAML config or .pt weights.
 
         Args:

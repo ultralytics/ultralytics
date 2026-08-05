@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO27l-DETR object detection model with P3/8 - P5/32 outputs.
+# YOLO27l object detection model with P3/8 - P5/32 outputs.
 # YOLO26-style CSP backbone and FPN/PAN neck with a 4-layer DeimDecoder head.
 
 # Parameters

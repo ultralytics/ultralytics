@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO27x-DETR object detection model with P3/8 - P5/32 outputs.
+# YOLO27x object detection model with P3/8 - P5/32 outputs.
 # UltraViT backbone and HybridEncoder neck with a 6-layer DeimDecoder head.
 
 # Parameters

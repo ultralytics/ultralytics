@@ -824,9 +824,10 @@ def test_workflow(isolated_model):
 
 @pytest.mark.skipif(not TORCH_1_11, reason="YOLODETR uses RT-DETR components that require torch>=1.11")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
-@pytest.mark.parametrize("cfg", ["yolo27l-detr.yaml", "yolo27x-detr.yaml"])
+@pytest.mark.parametrize("cfg", ["yolo27l.yaml", "yolo27x.yaml"])
 def test_yolodetr_train(cfg, tmp_path):
     """Test YOLODETR train, val, and predict on YOLO26 CSP and UltraViT backbone variants."""
+    assert isinstance(YOLO(cfg), YOLODETR)  # configs carry no 'detr' token, so routing reads the declared decoder
     model = YOLODETR(cfg)
     model.train(data="coco8.yaml", imgsz=160, epochs=1, save=False, project=str(tmp_path))
     model.val(data="coco8.yaml", imgsz=160)

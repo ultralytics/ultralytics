@@ -2425,12 +2425,18 @@ def guess_model_family(model):
 
     if isinstance(model, (str, Path)):
         path = Path(model)
+        if path.suffix in {".yaml", ".yml"}:
+            # A config declares its decoder, so route on the head module instead of trusting the filename.
+            with contextlib.suppress(Exception):
+                if family := head2family(str(yaml_model_load(path)["head"][-1][2])):
+                    return family
         stem = re.sub(r"[^a-z0-9]+", "", path.stem.lower())
         # Route any YOLO-DETR checkpoint/export to the YOLO-DETR family by name, across all scales and formats
-        # (incl. .engine), e.g. yolo27n-detr / yolo27x-detr / yolo27xxl-detr -> yolo27<scale>detr. This takes priority
+        # (incl. .engine), e.g. yolo27n-detr / yolo27x-detr / yolo27xxl-detr -> yolo27<scale>detr. The bare yolo27l /
+        # yolo27x names are matched too since both shipped YOLO27 scales are DeimDecoder models. This takes priority
         # over embedded metadata so engines route here too (the exporter stamps model_type="rtdetr" for every
         # RTDETRDecoder subclass, which would otherwise send RTDETRDecoderEfficient engines to RT-DETR).
-        if "yolodetr" in stem or re.search(r"yolo\d+[a-z]*detr", stem):
+        if "yolodetr" in stem or re.search(r"yolo\d+[a-z]*detr|yolo27[lx]", stem):
             return "yolodetr"
 
         family = metadata2family(_load_export_metadata(path))

@@ -378,6 +378,11 @@ class BaseModel(torch.nn.Module):
             return 0
 
         src_lookup = {_norm(v): k for k, v in src_names.items()}
+        # COCO target classes with no direct name in Obj365 → use a close semantic equivalent
+        aliases = {"bird": "wild bird", "sports ball": "baseball"}
+        for tgt_name, src_name in aliases.items():
+            if tgt_name not in src_lookup and _norm(src_name) in src_lookup:
+                src_lookup[tgt_name] = src_lookup[_norm(src_name)]
         idx = torch.tensor([src_lookup.get(_norm(tgt_names.get(k)), -1) for k in range(tgt_nc)], dtype=torch.long)
         n_match = int((idx >= 0).sum())
         # Skip if nothing matches, or class names already share order and count (intersect_dicts copies directly)

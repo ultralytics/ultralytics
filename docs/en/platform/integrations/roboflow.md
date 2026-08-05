@@ -21,7 +21,7 @@ The Roboflow integration imports every supported dataset in your Roboflow worksp
     - Storage required, checked against your remaining storage
 4. Click **Import** to start.
 
-![Ultralytics Platform Settings Integrations Roboflow Import Dialog](https://cdn.ul.run/i/9afcc45963f8212da4c40f52d1a88d13.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Integrations Roboflow Import Dialog](https://cdn.ul.run/i/7eaadb8f6bb5bbcd57a6d46f89c524f1.avif)<!-- screenshot -->
 Imported datasets appear in your [Datasets](../data/datasets.md) list immediately with a `processing` status and become ready once their images and annotations finish importing.
 
 ## Supported Task Types
@@ -32,8 +32,8 @@ Roboflow projects are mapped to the matching [YOLO task type](../data/index.md#s
 | --------------------------- | -------------------------------------------- |
 | Object Detection            | [Detect](../../datasets/detect/index.md)     |
 | Instance Segmentation       | [Segment](../../datasets/segment/index.md)   |
-| Keypoint Detection          | [Pose](../../datasets/pose/index.md)         |
 | Single-Label Classification | [Classify](../../datasets/classify/index.md) |
+| Keypoint Detection          | [Pose](../../datasets/pose/index.md)         |
 
 !!! note "Where to find your Roboflow API key"
 

@@ -105,8 +105,6 @@ To run the tracker on video streams, use a trained Detect, Segment, Pose, or OBB
         yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4" tracker="bytetrack.yaml"
         ```
 
-As can be seen in the above usage, tracking is available for all Detect, Segment, and Pose models run on videos or streaming sources.
-
 ## Supported Trackers
 
 Ultralytics YOLO ships with six built-in trackers. Enable one by passing its YAML config file to the `tracker` argument.

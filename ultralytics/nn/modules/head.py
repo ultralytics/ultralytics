@@ -161,7 +161,7 @@ class Detect(nn.Module):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         preds = self.forward_head(x, **self.one2many)
         if self.end2end:
-            x_detach = [xi.detach() for xi in x]
+            x_detach = [xi.detach() for xi in x] if self.training else x  # detach keeps one2one out of the backbone
             one2one = self.forward_head(x_detach, **self.one2one)
             preds = {"one2many": preds, "one2one": one2one}
         if self.training:
@@ -251,11 +251,15 @@ class Detect(nn.Module):
             scores, labels = scores.max(dim=-1, keepdim=True)
             scores, indices = scores.topk(k, dim=1)
             labels = labels.gather(1, indices)
-            return scores, labels, indices
+            return scores, labels.float(), indices
         ori_index = scores.max(dim=-1)[0].topk(k)[1].unsqueeze(-1)
         scores = scores.gather(dim=1, index=ori_index.expand(-1, -1, nc))
         scores, index = scores.flatten(1).topk(k)
-        idx = ori_index[torch.arange(batch_size)[..., None], index // nc]  # original index
+        idx = (
+            ori_index[torch.arange(batch_size)[..., None], index // nc]
+            if self.format == "coreml"
+            else ori_index.gather(dim=1, index=(index // nc).unsqueeze(-1))
+        )
         return scores[..., None], (index % nc)[..., None].float(), idx
 
     def fuse(self) -> None:
@@ -1038,6 +1042,9 @@ class LRPCHead(nn.Module):
     def forward(self, cls_feat: torch.Tensor, loc_feat: torch.Tensor, conf: float) -> tuple[tuple, torch.Tensor]:
         """Process classification and localization features to generate detection proposals."""
         if self.enabled:
+            if not conf:  # static export, every anchor passes the proposal filter
+                cls_feat = self.vocab(cls_feat.flatten(2).transpose(-1, -2))
+                return self.loc(loc_feat), cls_feat.transpose(-1, -2), None
             pf_score = self.pf(cls_feat)[0, 0].flatten(0)
             mask = pf_score.sigmoid() > conf
             cls_feat = cls_feat.flatten(2).transpose(-1, -2)
@@ -1202,21 +1209,24 @@ class YOLOEDetect(Detect):
         """Process features with fused text embeddings to generate detections for prompt-free model."""
         boxes, scores, index = [], [], []
         bs = x[0].shape[0]
-        cv2 = self.cv2 if not self.end2end else self.one2one_cv2
-        cv3 = self.cv3 if not self.end2end else self.one2one_cv3
+        # Prompt-free fusion removes the one-to-many heads.
+        cv2 = self.one2one_cv2 if self.end2end or self.cv2 is None else self.cv2
+        cv3 = self.one2one_cv3 if self.end2end or self.cv3 is None else self.cv3
+        conf = 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001)
         for i in range(self.nl):
             cls_feat = cv3[i](x[i])
             loc_feat = cv2[i](x[i])
             assert isinstance(self.lrpc[i], LRPCHead)
-            box, score, idx = self.lrpc[i](
-                cls_feat,
-                loc_feat,
-                0 if self.export and not self.dynamic else getattr(self, "conf", 0.001),
-            )
+            box, score, idx = self.lrpc[i](cls_feat, loc_feat, conf)
             boxes.append(box.view(bs, self.reg_max * 4, -1))
             scores.append(score)
             index.append(idx)
-        preds = {"boxes": torch.cat(boxes, 2), "scores": torch.cat(scores, 2), "feats": x, "index": torch.cat(index)}
+        preds = {
+            "boxes": torch.cat(boxes, 2),
+            "scores": torch.cat(scores, 2),
+            "feats": x,
+            "index": torch.cat(index) if conf else None,
+        }
         y = self._inference(preds)
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
@@ -1226,7 +1236,7 @@ class YOLOEDetect(Detect):
         """Decode predicted bounding boxes for inference."""
         dbox = super()._get_decode_boxes(x)
         if hasattr(self, "lrpc"):
-            dbox = dbox if self.export and not self.dynamic else dbox[..., x["index"]]
+            dbox = dbox if x["index"] is None else dbox[..., x["index"]]
         return dbox
 
     @property
@@ -1345,29 +1355,26 @@ class YOLOESegment(YOLOEDetect):
         """Process features with fused text embeddings to generate detections for prompt-free model."""
         boxes, scores, index = [], [], []
         bs = x[0].shape[0]
-        cv2 = self.cv2 if not self.end2end else self.one2one_cv2
-        cv3 = self.cv3 if not self.end2end else self.one2one_cv3
-        cv5 = self.cv5 if not self.end2end else self.one2one_cv5
+        cv2 = self.one2one_cv2 if self.end2end or self.cv2 is None else self.cv2
+        cv3 = self.one2one_cv3 if self.end2end or self.cv3 is None else self.cv3
+        cv5 = self.one2one_cv5 if self.end2end or self.cv5 is None else self.cv5
+        conf = 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001)
         for i in range(self.nl):
             cls_feat = cv3[i](x[i])
             loc_feat = cv2[i](x[i])
             assert isinstance(self.lrpc[i], LRPCHead)
-            box, score, idx = self.lrpc[i](
-                cls_feat,
-                loc_feat,
-                0 if self.export and not self.dynamic else getattr(self, "conf", 0.001),
-            )
+            box, score, idx = self.lrpc[i](cls_feat, loc_feat, conf)
             boxes.append(box.view(bs, self.reg_max * 4, -1))
             scores.append(score)
             index.append(idx)
         mc = torch.cat([cv5[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
-        index = torch.cat(index)
+        index = torch.cat(index) if conf else None
         preds = {
             "boxes": torch.cat(boxes, 2),
             "scores": torch.cat(scores, 2),
             "feats": x,
             "index": index,
-            "mask_coefficient": mc * index.int() if self.export and not self.dynamic else mc[..., index],
+            "mask_coefficient": mc if index is None else mc[..., index],
         }
         y = self._inference(preds)
         if self.end2end:

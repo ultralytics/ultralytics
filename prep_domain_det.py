@@ -9,7 +9,8 @@ Every source is extracted once, then ``images/<split>/`` is filled with symlinks
 copies, so a 200GB corpus does not become 400GB. Labels are written beside them and a ``data.yaml`` is emitted.
 
 Adapters return ``{split: {image_path: [(cls, cx, cy, w, h)]}}`` plus the ordered class names, and the shared writer
-handles everything after that. Add a dataset by writing one adapter and registering it.
+handles everything after that. Add a dataset by writing one adapter and registering it. A source whose boxes are
+oriented returns eight coordinates instead of four and the writer keeps them, matching the sibling SODA-A output.
 
 Usage:
     python prep_domain_det.py --list
@@ -23,6 +24,7 @@ import argparse
 import json
 import random
 import tarfile
+import xml.etree.ElementTree as ET
 import zipfile
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -240,7 +242,8 @@ def emit(root: Path, rows: dict, names: list, val: str, viz: int) -> Counter:
                 link.symlink_to(src)
             lb = root / "labels" / split / f"{Path(out).stem}.txt"
             if boxes:
-                lb.write_text("".join(f"{b[0]} {b[1]:.6g} {b[2]:.6g} {b[3]:.6g} {b[4]:.6g}\n" for b in boxes))
+                # write however many coordinates the adapter produced, so oriented rows keep all four corners
+                lb.write_text("".join(f"{b[0]} " + " ".join(f"{v:.6g}" for v in b[1:]) + "\n" for b in boxes))
             else:
                 lb.unlink(missing_ok=True)
                 stats["background"] += 1
@@ -281,8 +284,12 @@ def visualize(root: Path, names: list, n: int) -> int:
             rows = [x.split() for x in lb.read_text().splitlines() if x.strip()]
             a = Annotator(im, line_width=max(2, im.shape[0] // 400))
             for r in rows:
-                xywhn = np.array([[float(v) for v in r[1:5]]], dtype=np.float32)
                 c = int(r[0])
+                if len(r) == 9:  # oriented, draw the polygon rather than reading its first four numbers as a box
+                    pts = (np.array(r[1:], dtype=np.float32).reshape(4, 2) * [im.shape[1], im.shape[0]]).tolist()
+                    a.box_label(pts, names[c], colors(c, True))
+                    continue
+                xywhn = np.array([[float(v) for v in r[1:5]]], dtype=np.float32)
                 a.box_label(xywhn2xyxy(xywhn, w=im.shape[1], h=im.shape[0])[0], names[c], colors(c, True))
             a.text((8, 8), f"{lb.stem}  n={len(rows)}")
             cv2.imwrite(str(out_dir / f"{split_dir.name}__{lb.stem}.jpg"), a.result())
@@ -458,6 +465,111 @@ def bbbc041(root: Path) -> tuple[dict, list]:
     return rows, names
 
 
+DRONE_BORDER = 100  # every DroneVehicle image carries this many pure-white pixels on all four sides
+DRONE_NAMES = ["car", "truck", "bus", "van", "freight_car"]
+
+
+def _drone_name(raw: str) -> str:
+    """Normalize a DroneVehicle class string, whose source spells freight car three different ways."""
+    s = raw.strip().lower().replace("_", " ").replace("*", "")
+    return {"feright car": "freight_car", "freight car": "freight_car"}.get(s, s)
+
+
+def dronevehicle(root: Path) -> tuple[dict, list]:
+    """Drone RGB and infrared vehicles, oriented boxes in VOC xml.
+
+    Both modalities are kept in one dataset because they share the five classes and the same annotation semantics, and
+    each frame carries its own boxes, so the infrared view keeps the extra vehicles that are invisible in RGB.
+
+    The source pads every image with a 100 pixel white border, which is 45% of the stored pixels, so images are cropped
+    and rewritten rather than symlinked and the annotations are shifted to match.
+    """
+    rows: dict[str, dict] = {}
+    for split, zname in (("train", "train.zip"), ("val", "val.zip"), ("test", "test.zip")):
+        d = extract(root / zname, root / f"_src_{split}") / split
+        by_file = {}
+        for mod, suffix in (("rgb", ""), ("ir", "r")):
+            img_dir, lab_dir = d / f"{split}img{suffix}", d / f"{split}label{suffix}"
+            if not img_dir.is_dir():
+                continue
+            crop_dir = root / "_crop" / f"{split}_{mod}"
+            crop_dir.mkdir(parents=True, exist_ok=True)
+            for xml in sorted(lab_dir.glob("*.xml")):
+                src = img_dir / f"{xml.stem}.jpg"
+                if not src.exists():
+                    continue
+                dst = crop_dir / f"{xml.stem}.jpg"
+                if dst.exists():
+                    w, h = exif_size(Image.open(dst))  # header read, matching every other adapter here
+                else:
+                    b = DRONE_BORDER
+                    crop = cv2.imread(str(src))[b:-b, b:-b]
+                    cv2.imwrite(str(dst), crop, [cv2.IMWRITE_JPEG_QUALITY, 95])
+                    h, w = crop.shape[:2]
+                boxes = []
+                for ob in ET.parse(xml).getroot().iter("object"):
+                    poly = ob.find("polygon")
+                    name = _drone_name(ob.findtext("name", ""))
+                    if poly is None or name not in DRONE_NAMES:
+                        continue
+                    pts = np.array(
+                        [[float(poly.findtext(f"x{i}")), float(poly.findtext(f"y{i}"))] for i in range(1, 5)]
+                    )
+                    pts -= DRONE_BORDER  # annotations are stored in the padded frame
+                    if not (0 <= pts[:, 0].mean() < w and 0 <= pts[:, 1].mean() < h):
+                        continue  # a box whose centre left the crop was annotated inside the padding
+                    pts[:, 0] = pts[:, 0].clip(0, w) / w
+                    pts[:, 1] = pts[:, 1].clip(0, h) / h
+                    boxes.append((DRONE_NAMES.index(name), *pts.ravel()))
+                by_file[dst] = boxes
+        rows[split] = by_file
+    return rows, DRONE_NAMES
+
+
+def locount(root: Path) -> tuple[dict, list]:
+    """Retail shelf products, grouped boxes in a flat csv-style txt.
+
+    Rows are ``x1,y1,x2,y2,ClassName,count``. The count is how many identical products the box groups, which detection
+    does not model, so it is dropped and the box is kept as one instance. Image sizes are not in the txt.
+    """
+    tar_root = root / "OpenDataLab___Locount/raw"
+    src = extract(tar_root / "Locount.tar.gz", root / "_src") / "Locount"
+    parsed: dict[str, list] = {}
+    vocab = set()
+    for split, tag in (("train", "Train"), ("test", "Test")):
+        img_dir = extract(src / f"Locount_Images{tag}.zip", root / f"_img_{split}") / f"Locount_Images{tag}"
+        gt_dir = extract(src / f"Locount_GtTxts{tag}.zip", root / f"_gt_{split}") / f"Locount_GtTxts{tag}"
+        by_stem = {p.stem: p for p in img_dir.iterdir()}  # one listing, not one per label file
+        recs = []
+        for gt in sorted(gt_dir.glob("*.txt")):
+            img = by_stem.get(gt.stem)
+            if img is None:
+                continue
+            raw = []
+            for line in gt.read_text().splitlines():
+                f = line.rsplit(",", 2)  # class names contain no comma but do contain spaces
+                if len(f) != 3:
+                    continue
+                xy = f[0].split(",")
+                if len(xy) != 4:
+                    continue
+                raw.append((f[1].strip(), [float(v) for v in xy]))
+                vocab.add(f[1].strip())
+            recs.append((img, raw))
+        parsed[split] = recs
+
+    names = sorted(vocab)
+    rows: dict[str, dict] = {}
+    for split, recs in parsed.items():
+        by_file = {}
+        for img, raw in recs:
+            w, h = exif_size(Image.open(img))
+            boxes = [(names.index(n), *b) for n, xy in raw if (b := xyxy_to_yolo(*xy, w, h))]
+            by_file[img] = boxes
+        rows[split] = by_file
+    return rows, names
+
+
 def tufts(root: Path) -> tuple[dict, list]:
     """Dental panoramic teeth. Boxes are [y1, x1, y2, x2] and External ID lowercases the real .JPG extension."""
     d = extract(root / "the-tufts-dental-database-2022.zip", root / "_src")
@@ -493,6 +605,8 @@ ADAPTERS = {
     "ead": ("ead-endoscopy", ead, "val"),
     "bbbc041": ("bbbc041-malaria", bbbc041, "test"),
     "tufts": ("dental-tufts", tufts, "val"),
+    "dronevehicle": ("dronevehicle", dronevehicle, "val"),
+    "locount": ("locount", locount, "test"),
 }
 
 

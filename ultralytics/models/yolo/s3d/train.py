@@ -25,13 +25,43 @@ from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.plotting import Annotator, VisualizationConfig, colors, plot_labels, plot_stereo3d_boxes
 
 
+class DriveBalancedSampler(torch.utils.data.WeightedRandomSampler):
+    """A `WeightedRandomSampler` that satisfies the sampler contract DDP training expects.
+
+    `BaseTrainer` calls `self.train_loader.sampler.set_epoch(epoch)` unconditionally whenever `RANK != -1`
+    (`ultralytics/engine/trainer.py`), because the default distributed sampler needs it to reshuffle. Plain
+    `WeightedRandomSampler` has no such method, so every rank raised `AttributeError` on the first epoch and
+    a multi-GPU run died before its first step while single-process runs were unaffected.
+
+    Reseeding per epoch is also better than letting the generator drift: the draw becomes a pure function of
+    (seed, epoch), so a resumed run reproduces the same sequence instead of depending on how far the
+    generator happened to advance before the interruption. The epoch is mixed in with a large stride so that
+    rank r at epoch e never collides with rank r' at epoch e'.
+    """
+
+    def __init__(self, weights: torch.Tensor, num_samples: int, seed: int = 0) -> None:
+        """Initialize with sampling weights, per-epoch draw count, and a base seed (pass the rank)."""
+        super().__init__(
+            weights, num_samples=num_samples, replacement=True, generator=torch.Generator().manual_seed(seed)
+        )
+        self.seed = seed
+
+    def set_epoch(self, epoch: int) -> None:
+        """Reseed so each epoch draws a different, reproducible sample.
+
+        Args:
+            epoch (int): Current epoch index.
+        """
+        self.generator.manual_seed(self.seed + epoch * 1_000_003)
+
+
 def drive_balanced_sampler(
     image_ids: list[str],
     drives: dict[str, str],
     balance: float = 1.0,
     num_samples: int | None = None,
     seed: int = 0,
-) -> torch.utils.data.WeightedRandomSampler:
+) -> DriveBalancedSampler:
     """Sample frames so that no recording drive dominates an epoch.
 
     KITTI-style stereo splits are extremely drive-concentrated: on the drive-disjoint 3712-frame split the
@@ -95,12 +125,7 @@ def drive_balanced_sampler(
         100 * max(counts.values()) / len(groups),
         100 * shares[0],
     )
-    return torch.utils.data.WeightedRandomSampler(
-        weights,
-        num_samples=num_samples or len(groups),
-        replacement=True,
-        generator=torch.Generator().manual_seed(seed),
-    )
+    return DriveBalancedSampler(weights, num_samples=num_samples or len(groups), seed=seed)
 
 
 class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):

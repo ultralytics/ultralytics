@@ -1127,6 +1127,38 @@ def test_drive_balanced_sampler_flattens_drive_concentration():
     assert drive_balanced_sampler(ids, drives, balance=1e6).weights.min() == 1.0, "large balance must be a no-op"
 
 
+def test_drive_sampler_supports_the_ddp_set_epoch_contract():
+    """The train sampler must implement `set_epoch`, and each epoch must draw a different sample.
+
+    `BaseTrainer` calls `self.train_loader.sampler.set_epoch(epoch)` for every epoch whenever `RANK != -1`.
+    A plain `WeightedRandomSampler` has no such method, so a multi-GPU run died with AttributeError on both
+    ranks before its first step while single-process runs passed — which is exactly how this reached a GPU
+    box unnoticed. Reseeding from (seed, epoch) also makes a resumed run reproduce its draw order.
+    """
+    from ultralytics.models.yolo.s3d.train import drive_balanced_sampler
+
+    ids = [f"{i:06d}" for i in range(200)]
+    drives = {str(i): f"drive_{i // 50}" for i in range(200)}
+    sampler = drive_balanced_sampler(ids, drives, balance=1.0)
+
+    assert hasattr(sampler, "set_epoch"), "sampler must satisfy the DDP set_epoch contract"
+
+    sampler.set_epoch(0)
+    first = list(sampler)
+    sampler.set_epoch(1)
+    second = list(sampler)
+    assert first != second, "consecutive epochs must not draw an identical sample order"
+
+    sampler.set_epoch(0)
+    assert list(sampler) == first, "set_epoch(e) must be reproducible, so a resume repeats the same draw"
+
+    # Ranks must not collide: rank r at epoch e cannot mirror rank r' at epoch e'.
+    other = drive_balanced_sampler(ids, drives, balance=1.0, seed=1)
+    other.set_epoch(0)
+    sampler.set_epoch(1)
+    assert list(other) != list(sampler), "per-rank seeds must stay decorrelated across epochs"
+
+
 def test_drive_map_accepts_zero_padded_and_plain_integer_keys():
     """The drives map must resolve whether it is keyed "000003" or "3".
 

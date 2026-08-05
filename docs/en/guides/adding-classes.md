@@ -175,7 +175,18 @@ The score change is floating point noise, so the 80 COCO classes predict exactly
 | elephant | `elephant 0.88`, `elephant 0.83`               | `elephant 0.88`, `elephant 0.83`                                                   |
 | zebra    | `zebra 0.95`, `zebra 0.35`                     | `zebra 0.95`, `zebra 0.35`                                                         |
 
-The wrong `elephant` and `horse` guesses stay, because nothing tells the model they are wrong. The new class is added next to them, and picking the higher score at inference is enough to separate them.
+<table border="0">
+    <tr>
+        <th>Pretrained YOLO26n</th>
+        <th>Tuning with `RefineTrainer` on rhino class</th>
+    </tr>
+    <tr>
+        <td><img src="https://cdn.ul.run/i/5dd5d63c8f29dc5bbdbca9e4631e99b5.avif" alt="Pretrained model labels the rhino an elephant" width="640"></td>
+        <td><img src="https://cdn.ul.run/i/0d478913546540e6c1c566f86a8687f3.avif" alt="Tuned model detects rhino" width="640"></td>
+    </tr>
+</table>
+
+The wrong `elephant` and `cow` guesses stay, because nothing tells the model they are wrong. The new class is added next to them, and picking the higher score at inference is enough to separate them.
 
 ## FAQ
 

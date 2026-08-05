@@ -48,7 +48,7 @@ from .utils import (
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
-DATASET_CACHE_VERSION = "1.0.5"
+DATASET_CACHE_VERSION = "1.0.6"
 
 
 class YOLODataset(BaseDataset):
@@ -708,6 +708,7 @@ class GroundingDataset(YOLODataset):
         img_to_anns = defaultdict(list)
         for ann in annotations["annotations"]:
             img_to_anns[ann["image_id"]].append(ann)
+        dropped = False
         for img_id, anns in TQDM(img_to_anns.items(), desc=f"Reading annotations {self.json_file}"):
             img = images[f"{img_id:d}"]
             h, w, f = img["height"], img["width"], img["file_name"]
@@ -744,16 +745,35 @@ class GroundingDataset(YOLODataset):
                     bboxes.append(box)
                     seg = ann.get("segmentation")
                     segmented |= seg is not None
-                    if not seg:  # keep one segment per box so an image mixing the two kinds stays aligned
+                    if not isinstance(seg, list):
+                        seg = [seg]  # an RLE dict is one non-polygon entry
+                    elif seg and all(isinstance(x, list) and len(x) == 2 for x in seg):
+                        seg = [seg]  # the value is itself a single polygon in [[x, y], ...] form
+                    seg = [  # [[x, y], ...] is a polygon form too, flatten it to [x, y, x, y, ...]
+                        [c for x in p for c in x]
+                        if isinstance(p, list) and all(isinstance(x, list) and len(x) == 2 for x in p)
+                        else p
+                        for p in seg
+                    ]
+                    polygons = [
+                        p
+                        for p in seg
+                        if isinstance(p, list)
+                        and len(p) >= 6
+                        and not len(p) % 2
+                        and all(isinstance(c, (int, float)) for c in p)
+                    ]
+                    dropped |= len(polygons) < sum(bool(p) or p == 0 for p in seg)  # 0 is a coordinate
+                    if not polygons:  # keep one segment per box so an image mixing the two kinds stays aligned
                         cx, cy, bw, bh = box[1:]
                         x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2
                         segments.append([cls, x1, y1, x2, y1, x2, y2, x1, y2])  # segments2boxes returns the box
                         continue
-                    elif len(seg) > 1:
-                        s = merge_multi_segment(seg)
+                    elif len(polygons) > 1:
+                        s = merge_multi_segment(polygons)
                         s = (np.concatenate(s, axis=0) / np.array([w, h], dtype=np.float32)).reshape(-1).tolist()
                     else:
-                        s = [j for i in seg for j in i]  # all segments concatenated
+                        s = [j for i in polygons for j in i]  # all segments concatenated
                         s = (
                             (np.array(s, dtype=np.float32).reshape(-1, 2) / np.array([w, h], dtype=np.float32))
                             .reshape(-1)
@@ -779,6 +799,11 @@ class GroundingDataset(YOLODataset):
                     "bbox_format": "xywh",
                     "texts": texts,
                 }
+            )
+        if dropped:
+            LOGGER.warning(
+                f"{self.json_file}: ignored segmentations that are not polygon point lists, such as RLE masks. "
+                "Annotations left without a polygon use a segment shaped like their bounding box."
             )
         x["hash"] = get_hash(self.json_file)
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)

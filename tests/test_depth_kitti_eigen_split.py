@@ -16,7 +16,7 @@ def _eigen_test():
     """Exec the EIGEN_TEST/SKIP_DRIVES-building code sliced verbatim from the dataset YAML's download script."""
     src = DOWNLOAD_SCRIPT.split("# Download the improved")[0]
     ns = {}
-    exec(src, ns)
+    exec(src, ns)  # noqa: S102
     return ns["EIGEN_TEST"]
 
 
@@ -58,7 +58,7 @@ def test_depth_kitti_eigen_split_no_train_leak(tmp_path):
 
     conv_src = DOWNLOAD_SCRIPT[DOWNLOAD_SCRIPT.index("# Convert: GT PNGs") :]
     conv_src = conv_src.rsplit("shutil.rmtree", 1)[0]  # keep source/ around so the test can inspect it after
-    exec(
+    exec(  # noqa: S102
         conv_src,
         {"dir": tmp_path, "gt_drives": [drive_dir], "EIGEN_TEST": eigen_test, "cv2": cv2, "np": np, "TQDM": TQDM},
     )

@@ -1845,3 +1845,21 @@ def test_semantic_polygon_data():
     model = YOLO("yolo26n-sem.pt")
     model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, close_mosaic=1)
     model.val(data="coco8-seg.yaml")
+
+
+def test_nan_recovery_flag_before_first_validation(monkeypatch):
+    """Test the DDP NaN-recovery flag is int-able before any validation has set best_fitness.
+
+    Under DDP the flag is broadcast as int(corrupted); an epoch that skips validation (val_period > 1,
+    or val=False) leaves best_fitness unset, which used to make the fitness-collapse chain return None
+    and raise TypeError at the end of epoch 1.
+    """
+    from ultralytics.engine import trainer as trainer_mod
+    from ultralytics.models.yolo.detect import DetectionTrainer
+
+    t = object.__new__(DetectionTrainer)
+    t.loss, t.fitness, t.best_fitness = torch.tensor(1.0), None, None
+    t.device, t.start_epoch, t.nan_recovery_attempts = torch.device("cpu"), 0, 0
+    monkeypatch.setattr(trainer_mod, "RANK", 0)
+    monkeypatch.setattr(trainer_mod.dist, "broadcast", lambda *args, **kwargs: None)
+    assert t._handle_nan_recovery(0) is False

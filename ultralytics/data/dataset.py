@@ -610,7 +610,8 @@ class YOLOMultiModalDataset(YOLODataset):
                 for t in text:
                     t = t.strip()
                     category_freq[t] += 1
-        return category_freq
+        # a background-only dataset sees no class, leaving every class an equally valid negative
+        return category_freq or dict.fromkeys((t.strip() for text in texts for t in text), 0)
 
 
 class GroundingDataset(YOLODataset):

@@ -487,8 +487,22 @@ def _drone_name(raw: str) -> str:
     return {"feright car": "freight_car", "freight car": "freight_car"}.get(s, s)
 
 
+def _drone_corners(ob: ET.Element) -> np.ndarray | None:
+    """Return the four corners of a DroneVehicle object, or None when it carries no extent.
+
+    Most objects ship an oriented ``polygon``, 65,184 ship an axis-aligned ``bndbox`` instead, and 75 across the whole
+    source are a bare ``point`` that no box can be recovered from.
+    """
+    if (poly := ob.find("polygon")) is not None:
+        return np.array([[float(poly.findtext(f"x{i}")), float(poly.findtext(f"y{i}"))] for i in range(1, 5)])
+    if (bb := ob.find("bndbox")) is not None:
+        x1, y1, x2, y2 = (float(bb.findtext(k)) for k in ("xmin", "ymin", "xmax", "ymax"))
+        return np.array([[x1, y1], [x2, y1], [x2, y2], [x1, y2]])
+    return None
+
+
 def dronevehicle(root: Path) -> tuple[dict, list]:
-    """Drone RGB and infrared vehicles, oriented boxes in VOC xml.
+    """Drone RGB and infrared vehicles in VOC xml, mostly oriented boxes with an axis-aligned minority.
 
     Both modalities are kept in one dataset because they share the five classes and the same annotation semantics, and
     each frame carries its own boxes, so the infrared view keeps the extra vehicles that are invisible in RGB.
@@ -520,13 +534,10 @@ def dronevehicle(root: Path) -> tuple[dict, list]:
                     h, w = crop.shape[:2]
                 boxes = []
                 for ob in ET.parse(xml).getroot().iter("object"):
-                    poly = ob.find("polygon")
                     name = _drone_name(ob.findtext("name", ""))
-                    if poly is None or name not in DRONE_NAMES:
+                    pts = _drone_corners(ob)
+                    if pts is None or name not in DRONE_NAMES:
                         continue
-                    pts = np.array(
-                        [[float(poly.findtext(f"x{i}")), float(poly.findtext(f"y{i}"))] for i in range(1, 5)]
-                    )
                     pts -= DRONE_BORDER  # annotations are stored in the padded frame
                     if not (0 <= pts[:, 0].mean() < w and 0 <= pts[:, 1].mean() < h):
                         continue  # a box whose centre left the crop was annotated inside the padding

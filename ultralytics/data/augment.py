@@ -2703,6 +2703,78 @@ class RandomLoadText(BaseTransform):
         return labels
 
 
+def compute_aug_decay_prob(base_prob: float, epoch: int, stop_epoch: int, floor: float = 0.0) -> float:
+    """Linearly decay an augmentation probability to floor by the no-aug stage boundary.
+
+    Args:
+        base_prob (float): Augmentation probability at epoch 0.
+        epoch (int): Current training epoch.
+        stop_epoch (int): Epoch at which augmentation is fully disabled (no-aug tail start).
+        floor (float): Minimum probability the decay anneals to before stop_epoch.
+
+    Returns:
+        (float): Probability for the given epoch; 0.0 for epoch >= stop_epoch.
+    """
+    base_prob = float(base_prob)
+    if base_prob <= 0.0 or stop_epoch <= 0:
+        return 0.0
+    if epoch >= stop_epoch:
+        return 0.0
+    return float(floor) + (base_prob - float(floor)) * max(0.0, 1.0 - (float(epoch) / float(stop_epoch)))
+
+
+def compute_aug_policy_epochs(hyp: IterableSimpleNamespace) -> tuple[int, int, int]:
+    """Compute augmentation schedule boundaries (start, mid, stop) from training hyperparameters.
+
+    'stop' is the no-augmentation tail start (epochs - no_aug_epoch); 'mid' is the flatcosine flat-phase end,
+    auto-derived as the midpoint of the active-augmentation span when flat_epoch is unset.
+
+    Args:
+        hyp (IterableSimpleNamespace): Hyperparameters with 'epochs', 'flat_epoch' and 'no_aug_epoch' keys.
+
+    Returns:
+        (tuple[int, int, int]): (start, mid, stop) epoch boundaries with 0 <= start <= mid <= stop <= epochs.
+    """
+    if not hasattr(hyp, "epochs"):
+        raise AttributeError("compute_aug_policy_epochs requires 'epochs' in hyp.")
+
+    epochs = max(1, int(hyp.epochs))
+
+    explicit_no_aug = getattr(hyp, "no_aug_epoch", None) is not None
+    if explicit_no_aug:
+        no_aug_epoch = int(hyp.no_aug_epoch)
+        if no_aug_epoch < 0:
+            raise ValueError(f"compute_aug_policy_epochs got invalid no_aug_epoch={no_aug_epoch}. Expected >= 0.")
+    else:
+        # Mimic DEIM RT schedules from total epochs only: 60 -> 2 no-aug epochs, 120 -> 3; shorter runs get none.
+        if epochs >= 100:
+            no_aug_epoch = 3
+        elif epochs >= 60:
+            no_aug_epoch = 2
+        else:
+            no_aug_epoch = 0
+
+    stop = epochs - no_aug_epoch
+    if stop < 0:
+        raise ValueError(f"compute_aug_policy_epochs got invalid no_aug_epoch={no_aug_epoch} for epochs={epochs}.")
+
+    # Policy epochs are derived on the active-augmentation span when no_aug is explicit.
+    effective_epochs = stop if explicit_no_aug else epochs
+    start = min(4, max(0, effective_epochs - 1))
+
+    flat_epoch = hyp.flat_epoch
+    if flat_epoch is None:
+        mid = min(stop, start + effective_epochs // 2)
+    else:
+        mid = int(flat_epoch)
+    if not (0 <= start <= mid <= stop <= epochs):
+        raise ValueError(
+            f"compute_aug_policy_epochs produced invalid boundaries: start={start}, mid={mid}, stop={stop}, "
+            f"epochs={epochs}."
+        )
+    return start, mid, stop
+
+
 def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace):
     """Apply a series of image transformations for training.
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict
+from copy import copy
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
@@ -28,6 +29,8 @@ from .augment import (
     SemanticFormat,
     classify_augmentations,
     classify_transforms,
+    compute_aug_decay_prob,
+    compute_aug_policy_epochs,
     v8_transforms,
 )
 from .base import BaseDataset
@@ -66,6 +69,7 @@ class YOLODataset(BaseDataset):
         get_labels: Return list of label dictionaries for YOLO training.
         build_transforms: Build and append transforms to the list.
         close_mosaic: Disable mosaic, copy_paste, mixup and cutmix augmentations and build transformations.
+        set_epoch: Rebuild transforms with epoch-decayed augmentation probabilities (aug_scheduler).
         update_labels_info: Update label format for different tasks.
         collate_fn: Collate data samples into batches.
 
@@ -88,6 +92,19 @@ class YOLODataset(BaseDataset):
         self.use_obb = task == "obb"
         self.data = data
         assert not (self.use_segments and self.use_keypoints), "Can not use both segments and keypoints."
+        hyp = kwargs.get("hyp")
+        self.aug_scheduler = str(getattr(hyp, "aug_scheduler", None) or "").strip().lower()
+        if self.aug_scheduler in {"linear", "linear_decay"}:
+            self.aug_scheduler = "decay"
+        if self.aug_scheduler and self.aug_scheduler != "decay":
+            raise ValueError(f"Unsupported aug_scheduler={self.aug_scheduler!r}. Expected 'decay'.")
+        if self.aug_scheduler:
+            self.base_hyp = copy(hyp)
+            self.aug_stop_epoch = compute_aug_policy_epochs(hyp)[2]
+            self.mosaic_prob = float(hyp.mosaic)
+            self.mixup_prob = float(hyp.mixup)
+            self.copy_paste_prob = float(hyp.copy_paste)
+            self.decay_min_prob = float(hyp.aug_decay_min_prob)
         super().__init__(*args, channels=self.data.get("channels", 3), **kwargs)
 
     def cache_labels(self, path: Path = Path("./labels.cache")) -> dict:
@@ -255,6 +272,30 @@ class YOLODataset(BaseDataset):
         hyp.mixup = 0.0
         hyp.cutmix = 0.0
         self.transforms = self.build_transforms(hyp)
+
+    def set_epoch(self, epoch: int) -> None:
+        """Rebuild transforms with epoch-decayed augmentation probabilities when aug_scheduler is enabled.
+
+        Args:
+            epoch (int): Current training epoch.
+        """
+        if self.augment and not self.rect and self.aug_scheduler:
+            self.transforms = self.build_transforms(hyp=self._decayed_epoch_hyp(epoch))
+
+    def _decayed_epoch_hyp(self, epoch: int):
+        """Clone base hyperparameters and apply linear augmentation probability decay for the given epoch."""
+        hyp = copy(self.base_hyp)
+        stop = self.aug_stop_epoch
+        hyp.mosaic = compute_aug_decay_prob(self.mosaic_prob, epoch, stop, self.decay_min_prob)
+        hyp.mixup = compute_aug_decay_prob(self.mixup_prob, epoch, stop, self.decay_min_prob)
+        hyp.copy_paste = compute_aug_decay_prob(self.copy_paste_prob, epoch, stop, self.decay_min_prob)
+        if epoch >= stop:
+            # No-aug tail: neutralize all remaining v8 augmentations.
+            hyp.mosaic = hyp.mixup = hyp.copy_paste = hyp.cutmix = 0.0
+            hyp.degrees = hyp.translate = hyp.scale = hyp.shear = hyp.perspective = 0.0
+            hyp.hsv_h = hyp.hsv_s = hyp.hsv_v = 0.0
+            hyp.augmentations = []
+        return hyp
 
     def update_labels_info(self, label: dict) -> dict:
         """Update label format for different tasks.

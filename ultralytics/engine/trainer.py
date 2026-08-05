@@ -26,6 +26,7 @@ from torch import nn, optim
 
 from ultralytics import __version__
 from ultralytics.cfg import _YOLO_CLI_COMMAND, get_cfg, get_save_dir
+from ultralytics.data.augment import compute_aug_policy_epochs
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import load_checkpoint
@@ -246,10 +247,41 @@ class BaseTrainer:
 
     def _setup_scheduler(self):
         """Initialize training learning rate scheduler."""
-        if self.args.cos_lr:
-            self.lf = one_cycle(1, self.args.lrf, self.epochs)  # cosine 1->hyp['lrf']
-        else:
+        scheduler_name = str(self.args.lr_scheduler or "").strip().lower()
+        if scheduler_name in {"linear"}:
             self.lf = lambda x: max(1 - x / self.epochs, 0) * (1.0 - self.args.lrf) + self.args.lrf  # linear
+        elif scheduler_name in {"cosine", "cos", "cos_lr"}:
+            self.lf = one_cycle(1, self.args.lrf, self.epochs)  # cosine 1->hyp['lrf']
+        elif scheduler_name in {"flatcosine", "flat_cosine", "flatcos"}:
+            # Flat phase keeps LR constant, then cosine anneals to lrf.
+            if self.args.flat_epoch is None:
+                _, flat_epoch, _ = compute_aug_policy_epochs(self.args)
+            else:
+                flat_epoch = int(self.args.flat_epoch)
+            if not (0 <= flat_epoch <= self.epochs):
+                raise ValueError(
+                    f"flatcosine got invalid flat_epoch={flat_epoch} for epochs={self.epochs}. "
+                    "Expected 0 <= flat_epoch <= epochs."
+                )
+            gamma = float(self.args.lrf)
+            if not (0.0 <= gamma <= 1.0):
+                raise ValueError(f"flatcosine got invalid lrf={gamma}. Expected 0.0 <= lrf <= 1.0.")
+            decay_epochs = max(self.epochs - flat_epoch, 1)
+
+            def _flat_cosine(epoch: int) -> float:
+                if epoch < flat_epoch:
+                    return 1.0
+                progress = min(max((epoch - flat_epoch) / decay_epochs, 0.0), 1.0)
+                return gamma + 0.5 * (1.0 - gamma) * (1.0 + math.cos(math.pi * progress))
+
+            self.lf = _flat_cosine
+        else:
+            if scheduler_name:
+                LOGGER.warning(f"Unknown lr_scheduler='{scheduler_name}', falling back to default scheduler.")
+            if self.args.cos_lr:
+                self.lf = one_cycle(1, self.args.lrf, self.epochs)  # cosine 1->hyp['lrf']
+            else:
+                self.lf = lambda x: max(1 - x / self.epochs, 0) * (1.0 - self.args.lrf) + self.args.lrf  # linear
         self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
 
     def _setup_ddp(self):
@@ -417,6 +449,8 @@ class BaseTrainer:
             f"Logging results to {colorstr('bold', self.save_dir)}\n"
             f"Starting training for " + (f"{self.args.time} hours..." if self.args.time else f"{self.epochs} epochs...")
         )
+        if self.args.aug_scheduler and self.args.close_mosaic:
+            self.args.close_mosaic = 0  # aug_scheduler owns the augmentation shutoff schedule
         if self.args.close_mosaic:
             base_idx = (self.epochs - self.args.close_mosaic) * nb
             self.plot_idx.extend([base_idx, base_idx + 1, base_idx + 2])
@@ -426,6 +460,11 @@ class BaseTrainer:
         while True:
             self.epoch = epoch
             self.run_callbacks("on_train_epoch_start")
+            if self.args.aug_scheduler and hasattr(self.train_loader.dataset, "set_epoch"):
+                self.train_loader.dataset.set_epoch(epoch)
+                # InfiniteDataLoader keeps workers/iterator alive; reset so worker-side
+                # dataset transforms pick up the updated epoch.
+                self.train_loader.reset()
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")  # suppress 'Detected lr_scheduler.step() before optimizer.step()'
                 self.scheduler.step()

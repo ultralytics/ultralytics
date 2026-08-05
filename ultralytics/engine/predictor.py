@@ -309,7 +309,7 @@ class BasePredictor:
         # Setup model
         if self.model is None:
             self.setup_model(model)
-        # Only an Ultralytics PyTorch model honours these; clear them or `embed` yields the raw output as an embedding
+        # Only an Ultralytics PyTorch model honors these; clear them or `embed` yields the raw output as an embedding
         if not self.model.base_model and (self.args.augment or self.args.embed):
             LOGGER.warning(
                 f"'augment' and 'embed' are not supported by this model (format='{self.model.format}'), ignoring."

@@ -89,7 +89,7 @@ class PyTorchBackend(BaseBackend):
         Returns:
             (torch.Tensor | list[torch.Tensor]): Model predictions as tensor(s).
         """
-        if not self.base_model:  # a foreign nn.Module defines no `augment`/`embed` contract to honour
+        if not self.base_model:  # a foreign nn.Module defines no `augment`/`embed` contract to honor
             return self.model(im, **kwargs)
         return self.model(im, augment=augment, embed=embed, **kwargs)
 

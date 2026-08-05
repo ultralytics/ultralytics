@@ -319,6 +319,7 @@ class YOLOE(Model):
         """
         assert isinstance(self.model, YOLOEModel)
         self.model.set_vocab(vocab, names=names)
+        self.predictor = None  # reset predictor, which snapshotted the class count the head no longer has
 
     def get_vocab(self, names):
         """Get vocabulary for the given class names."""
@@ -445,7 +446,7 @@ class YOLOE(Model):
         self,
         source=None,
         stream: bool = False,
-        visual_prompts: dict[str, list] | None = None,
+        visual_prompts: dict[str, np.ndarray | list[np.ndarray]] | None = None,
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         **kwargs,

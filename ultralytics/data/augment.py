@@ -2108,49 +2108,12 @@ class Albumentations(BaseTransform):
 
             check_version(A.__version__, "1.0.3", hard=True)  # version requirement
 
-            # List of possible spatial transforms
-            spatial_transforms = {
-                "Affine",
-                "BBoxSafeRandomCrop",
-                "CenterCrop",
-                "CoarseDropout",
-                "Crop",
-                "CropAndPad",
-                "CropNonEmptyMaskIfExists",
-                "D4",
-                "ElasticTransform",
-                "Flip",
-                "GridDistortion",
-                "GridDropout",
-                "HorizontalFlip",
-                "Lambda",
-                "LongestMaxSize",
-                "MaskDropout",
-                "MixUp",
-                "Morphological",
-                "NoOp",
-                "OpticalDistortion",
-                "PadIfNeeded",
-                "Perspective",
-                "PiecewiseAffine",
-                "PixelDropout",
-                "RandomCrop",
-                "RandomCropFromBorders",
-                "RandomGridShuffle",
-                "RandomResizedCrop",
-                "RandomRotate90",
-                "RandomScale",
-                "RandomSizedBBoxSafeCrop",
-                "RandomSizedCrop",
-                "Resize",
-                "Rotate",
-                "SafeRotate",
-                "ShiftScaleRotate",
-                "SmallestMaxSize",
-                "Transpose",
-                "VerticalFlip",
-                "XYMasking",
-            }  # from https://albumentations.ai/docs/2-core-concepts/targets/
+            def is_spatial(t) -> bool:
+                """Return whether a transform warps geometry, recursing into composition wrappers."""
+                # Wrappers such as OneOf are BaseCompose, not DualTransform, so their contents decide
+                return isinstance(t, A.DualTransform) or (
+                    isinstance(t, A.BaseCompose) and any(is_spatial(x) for x in t.transforms)
+                )
 
             # Transforms, use custom transforms if provided, otherwise use defaults
             T = (
@@ -2168,7 +2131,7 @@ class Albumentations(BaseTransform):
             )
 
             # Compose transforms
-            self.contains_spatial = any(transform.__class__.__name__ in spatial_transforms for transform in T)
+            self.contains_spatial = any(is_spatial(transform) for transform in T)
             self.transform = (
                 A.Compose(T, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
                 if self.contains_spatial

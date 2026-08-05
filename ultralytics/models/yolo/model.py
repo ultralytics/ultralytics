@@ -480,12 +480,12 @@ class YOLOE(Model):
                 f"Expected an equal, non-zero number of bounding boxes and classes, but got "
                 f"{len(visual_prompts['bboxes'])} and {len(visual_prompts['cls'])} respectively"
             )
-            num_cls = (
-                max(len(set(c)) for c in visual_prompts["cls"])
-                if isinstance(source, list) and refer_image is None  # means multiple images
-                else len(set(visual_prompts["cls"]))
+            multi = isinstance(source, list) and refer_image is None  # means multiple images
+            per_image = [len(set(c)) for c in visual_prompts["cls"]] if multi else [len(set(visual_prompts["cls"]))]
+            assert all(per_image), (
+                f"Expected at least one class per image in the visual prompts, but got {visual_prompts['cls']}"
             )
-            assert num_cls, f"Expected at least one class in the visual prompts, but got {visual_prompts['cls']}"
+            num_cls = max(per_image)
             if type(self.predictor) is not predictor:
                 args = get_cfg(overrides={**self.overrides, **kwargs})
                 self.predictor = predictor(

@@ -1356,9 +1356,9 @@ class YOLOEModel(DetectionModel):
             "Prompt-free model does not support setting classes. Please try with Text/Visual prompt models."
         )
         assert embeddings.ndim == 3
+        self.names = check_class_names(names)  # validate before any state is written
         self.pe = embeddings
         self.model[-1].nc = len(names)
-        self.names = check_class_names(names)
 
     def get_cls_pe(self, tpe, vpe):
         """Get class positional embeddings.

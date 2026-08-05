@@ -476,9 +476,9 @@ class YOLOE(Model):
             assert "bboxes" in visual_prompts and "cls" in visual_prompts, (
                 f"Expected 'bboxes' and 'cls' in visual prompts, but got {visual_prompts.keys()}"
             )
-            assert len(visual_prompts["bboxes"]) == len(visual_prompts["cls"]), (
-                f"Expected equal number of bounding boxes and classes, but got {len(visual_prompts['bboxes'])} and "
-                f"{len(visual_prompts['cls'])} respectively"
+            assert len(visual_prompts["bboxes"]) == len(visual_prompts["cls"]) > 0, (
+                f"Expected an equal, non-zero number of bounding boxes and classes, but got "
+                f"{len(visual_prompts['bboxes'])} and {len(visual_prompts['cls'])} respectively"
             )
             if type(self.predictor) is not predictor:
                 args = get_cfg(overrides={**self.overrides, **kwargs})

@@ -1133,6 +1133,7 @@ class WorldModel(DetectionModel):
         """
         from ultralytics.nn.text_model import build_text_model
 
+        assert len(text), f"Expected at least one class name, but got {text}"
         device = next(self.model.parameters()).device
         if not getattr(self, "clip_model", None) and cache_clip_model:
             # For backwards compatibility of models lacking clip_model attribute
@@ -1253,6 +1254,7 @@ class YOLOEModel(DetectionModel):
         """
         from ultralytics.nn.text_model import build_text_model
 
+        assert len(text), f"Expected at least one class name, but got {text}"
         device = next(self.model.parameters()).device
         if not getattr(self, "clip_model", None) and cache_clip_model:
             # For backwards compatibility of models lacking clip_model attribute

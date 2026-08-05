@@ -78,16 +78,16 @@ def read_annotations(zip_path: Path) -> tuple[dict[str, list], dict[str, int]]:
 
     Returns:
         rows (dict): UI id to a list of (class index, cx, cy, w, h) with coordinates normalized to the device space.
-        stats (dict): Counters for UIs read, boxes kept, UIs needing a clip, and boxes dropped as degenerate.
+        stats (dict): Counters for UIs read, boxes kept, UIs clipped, and boxes dropped as degenerate or duplicate.
     """
     index = {n: i for i, n in enumerate(NAMES)}
-    stats = dict.fromkeys(("uis", "boxes", "clipped_uis", "degenerate"), 0)
+    stats = dict.fromkeys(("uis", "boxes", "clipped_uis", "degenerate", "duplicate"), 0)
     rows: dict[str, list] = {}
     with zipfile.ZipFile(zip_path) as z:
         for entry in z.namelist():
             if not entry.endswith(".json"):
                 continue
-            boxes, clipped = [], False
+            boxes, seen, clipped = [], set(), False
             for node in walk(json.loads(z.read(entry))):
                 label = node.get("componentLabel")
                 if label is None:
@@ -101,7 +101,12 @@ def read_annotations(zip_path: Path) -> tuple[dict[str, list], dict[str, int]]:
                     stats["degenerate"] += 1
                     continue
                 w, h = (x2 - x1) / DEVICE_W, (y2 - y1) / DEVICE_H
-                boxes.append((index[label], (x1 + x2) / 2 / DEVICE_W, (y1 + y2) / 2 / DEVICE_H, w, h))
+                box = (index[label], (x1 + x2) / 2 / DEVICE_W, (y1 + y2) / 2 / DEVICE_H, w, h)
+                if box in seen:  # an exact repeat of a box already emitted for this UI
+                    stats["duplicate"] += 1
+                    continue
+                seen.add(box)
+                boxes.append(box)
             rows[entry.rsplit("/", 1)[-1][:-5]] = boxes
             stats["uis"] += 1
             stats["boxes"] += len(boxes)

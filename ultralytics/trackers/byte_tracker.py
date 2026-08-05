@@ -353,7 +353,7 @@ class BYTETracker:
         self, strack_pool: list[STrack], unconfirmed: list[STrack], img: np.ndarray | None, results_high: Any
     ) -> None:
         """Hook called after Kalman predict, before first-stage assignment. Default: GMC if available."""
-        if hasattr(self, "gmc") and img is not None:
+        if hasattr(self, "gmc") and self.gmc.method is not None and img is not None:
             try:
                 warp = self.gmc.apply(img, results_high.xyxy)
             except Exception as e:

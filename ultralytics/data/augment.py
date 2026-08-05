@@ -2189,21 +2189,20 @@ class Albumentations(BaseTransform):
             cls = labels["cls"]
             key = "semantic_mask" if labels.get("semantic_mask") is not None else "depth"  # both warp as a mask target
             mask = labels.get(key)
-            if len(cls) or mask is not None:
-                labels["instances"].convert_bbox("xywh")
-                labels["instances"].normalize(*im.shape[:2][::-1])
-                bboxes = labels["instances"].bboxes
-                # TODO: add supports of segments and keypoints
-                new = self.transform(
-                    image=im, bboxes=bboxes, class_labels=cls, **({"mask": mask} if mask is not None else {})
-                )
-                if len(new["class_labels"]) > 0 or mask is not None:  # only box-only samples skip on losing all boxes
-                    labels["img"] = new["image"]
-                    labels["cls"] = np.array(new["class_labels"]).reshape(-1, 1)
-                    bboxes = np.array(new["bboxes"], dtype=np.float32).reshape(-1, 4)
-                    if mask is not None:
-                        labels[key] = new["mask"]
-                labels["instances"].update(bboxes=bboxes)
+            labels["instances"].convert_bbox("xywh")
+            labels["instances"].normalize(*im.shape[:2][::-1])
+            bboxes = labels["instances"].bboxes
+            # TODO: add supports of segments and keypoints
+            new = self.transform(
+                image=im, bboxes=bboxes, class_labels=cls, **({"mask": mask} if mask is not None else {})
+            )
+            if mask is not None or len(new["class_labels"]) or not len(cls):  # keep unless a crop lost every box
+                labels["img"] = new["image"]
+                labels["cls"] = np.array(new["class_labels"], dtype=cls.dtype).reshape(-1, 1)
+                bboxes = np.array(new["bboxes"], dtype=np.float32).reshape(-1, 4)
+                if mask is not None:
+                    labels[key] = new["mask"]
+            labels["instances"].update(bboxes=bboxes)
         else:
             labels["img"] = self.transform(image=labels["img"])["image"]  # transformed
 

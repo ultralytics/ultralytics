@@ -406,7 +406,7 @@ Then launch the training with the Python API:
         # Define custom Albumentations transforms
         custom_transforms = [
             A.Blur(blur_limit=7, p=0.5),
-            A.GaussNoise(var_limit=(10.0, 50.0), p=0.3),
+            A.GaussNoise(std_range=(0.0124, 0.0277), p=0.3),
             A.CLAHE(clip_limit=4.0, p=0.5),
             A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.5),
             A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
@@ -443,7 +443,7 @@ Then launch the training with the Python API:
             ),
             A.OneOf(
                 [
-                    A.GaussNoise(var_limit=(10.0, 50.0), p=1.0),
+                    A.GaussNoise(std_range=(0.0124, 0.0277), p=1.0),
                     A.ISONoise(color_shift=(0.01, 0.05), intensity=(0.1, 0.5), p=1.0),
                 ],
                 p=0.2,
@@ -452,7 +452,7 @@ Then launch the training with the Python API:
             A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, brightness_by_max=True, p=0.5),
             A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
             A.CoarseDropout(
-                max_holes=8, max_height=32, max_width=32, min_holes=1, min_height=8, min_width=8, fill_value=0, p=0.2
+                num_holes_range=(1, 8), hole_height_range=(8, 32), hole_width_range=(8, 32), fill=0, p=0.2
             ),
         ]
 

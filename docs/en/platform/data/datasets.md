@@ -298,7 +298,7 @@ Click any image to open the fullscreen viewer with:
 - **Pan**: Hold `Space` and drag to pan the canvas when zoomed
 - **Pixel view**: Toggle pixelated rendering for close inspection
 
-![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.ul.run/i/94b50fcde4feb9a2ae540138010a1d6c.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.ul.run/i/083e8f7a4ad565c1cca40ec0f214b748.avif)<!-- screenshot -->
 
 ### Filter by Split
 

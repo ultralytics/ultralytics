@@ -337,19 +337,24 @@ def livecell(root: Path) -> tuple[dict, list]:
 
 
 def vision(root: Path) -> tuple[dict, list]:
-    """VISION industrial defect. Fourteen sub-datasets, each its own namespace, so classes are prefixed."""
-    rows: dict[str, dict] = {"train": {}, "val": {}}
+    """VISION industrial defect. Fourteen sub-datasets, each its own namespace, so classes are prefixed.
+
+    The source splits its small labelled pool near evenly between train and val and puts the bulk of its images in an
+    unlabelled ``inference`` split. Both labelled splits are merged and re-carved here, because holding back half the
+    boxes for a val number nobody reports would waste them.
+    """
+    merged: dict = {}
     names: list[str] = []
     for tar in sorted(root.glob("*.tar.gz")):
         sub = tar.name.split(".")[0]
         d = extract(tar, root / f"_src_{sub}") / sub
-        anno = {s: d / s / "_annotations.coco.json" for s in ("train", "val")}  # inference/ is unlabeled
+        anno = {s: d / s / "_annotations.coco.json" for s in ("train", "val")}  # inference/ carries no boxes
         r, n = coco_adapter(anno, {s: d / s for s in anno})
         offset = len(names)
         names += [f"{sub}-{x}" for x in n]
-        for s, by_file in rows.items():
-            by_file.update({p: [(c + offset, *b) for c, *b in v] for p, v in r[s].items()})
-    return rows, names
+        for by_file in r.values():
+            merged.update({p: [(c + offset, *b) for c, *b in v] for p, v in by_file.items()})
+    return carve_val(merged), names
 
 
 def loaf(root: Path) -> tuple[dict, list]:

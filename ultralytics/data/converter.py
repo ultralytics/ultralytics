@@ -337,8 +337,8 @@ def convert_coco(
                             and not len(p) % 2
                             and all(isinstance(c, (int, float)) for c in p)
                         ]
-                        dropped |= len(polygons) < sum(bool(p) or p == 0 for p in seg)  # 0 is a coordinate
                         if not polygons:
+                            dropped = True
                             cx, cy, bw, bh = box[1:]
                             x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2
                             segments.append([cls, x1, y1, x2, y1, x2, y2, x1, y2])
@@ -362,8 +362,8 @@ def convert_coco(
 
         if dropped and not use_keypoints:  # segments are unused when keypoints own the output
             LOGGER.warning(
-                f"{json_file}: ignored segmentations that are not polygon point lists, such as RLE masks. "
-                "Annotations left without a polygon use a segment shaped like their bounding box."
+                f"{json_file}: annotations without a usable polygon, because the segmentation is missing, "
+                "empty, or not a point list such as an RLE mask, use a segment shaped like their bounding box."
             )
 
         if lvis:
@@ -664,7 +664,7 @@ def yolo_bbox2segment(im_dir: str | Path, save_dir: str | Path | None = None, sa
         txt_file = save_dir / lb_name
         cls = label["cls"]
         for i, s in enumerate(label["segments"]):
-            if len(s) == 0:
+            if len(s) < 3:  # fewer than 3 points is not a polygon, and writes a row no loader accepts
                 continue
             line = (int(cls[i]), *s.reshape(-1))
             texts.append(("%g " * len(line)).rstrip() % line)

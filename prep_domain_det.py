@@ -121,13 +121,25 @@ def extract(archive: Path, dest: Path) -> Path:
         return dest
     dest.mkdir(parents=True, exist_ok=True)
     print(f"  extracting {archive.name}")
+    bad = []
     if archive.suffix == ".zip":
         with zipfile.ZipFile(archive) as z:
-            z.extractall(dest, members=[n for n in z.namelist() if not is_junk(n)])
+            for n in z.namelist():
+                if is_junk(n):
+                    continue
+                try:
+                    z.extract(n, dest)
+                except zipfile.BadZipFile:
+                    # the DroneVehicle train zip ships 39 members with a broken CRC upstream, and a failed extract
+                    # leaves the partial file behind, which every adapter would then read as a real image
+                    (dest / n).unlink(missing_ok=True)
+                    bad.append(n)
+            if bad:
+                print(f"  {len(bad)} unreadable members skipped, first {bad[0]}")
     else:
         with tarfile.open(archive) as t:
             t.extractall(dest, members=[m for m in t if not is_junk(m.name)], filter="data")
-    (dest / ".extracted").touch()
+    (dest / ".extracted").write_text("\n".join(bad))  # names the members a rerun would still be missing
     return dest
 
 

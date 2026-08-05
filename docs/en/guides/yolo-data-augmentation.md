@@ -451,9 +451,7 @@ Then launch the training with the Python API:
             A.CLAHE(clip_limit=4.0, tile_grid_size=(8, 8), p=0.5),
             A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, brightness_by_max=True, p=0.5),
             A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
-            A.CoarseDropout(
-                num_holes_range=(1, 8), hole_height_range=(8, 32), hole_width_range=(8, 32), fill=0, p=0.2
-            ),
+            A.CoarseDropout(num_holes_range=(1, 8), hole_height_range=(8, 32), hole_width_range=(8, 32), fill=0, p=0.2),
         ]
 
         # Train with advanced custom transforms

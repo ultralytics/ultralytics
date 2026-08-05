@@ -10,6 +10,22 @@ keywords: KITTI stereo, 3D object detection, stereo vision, YOLO 3D format, data
 
 The YOLO 3D Stereo format is a specialized dataset format for training stereo-based 3D object detection models. This format extends the standard YOLO format to include stereo image pairs, 3D bounding box annotations, and camera calibration data.
 
+!!! note "Use `kitti-stereo-chen.yaml` — the split is drive-disjoint"
+
+    Stereo 3D detection is evaluated on the **Chen et al.** split, which is what published stereo-3D work reports on. `kitti-stereo-chen.yaml` partitions it three ways with **zero shared raw drives** between any pair:
+
+    | Split | Frames | Drives | Purpose |
+    | ------- | ------ | ------ | ------------------------------------------------------------------- |
+    | `train` | 3172 | 82 | Fitting |
+    | `dev` | 540 | 14 | Early stopping and model selection (this is what `val:` points at) |
+    | `test` | 3769 | 45 | Final reporting only, equal to the Chen validation split |
+
+    `train` and `dev` together are exactly Chen's 3712-frame training split. Evaluate once at the end with `kitti-stereo-chen-test.yaml`, which points `val:` at the held-out test split — using it during training selects on the reported set and invalidates the number.
+
+    Why drive-disjointness matters: an earlier `kitti-stereo.yaml` config split frames by a contiguous index cutoff, which placed 128 of KITTI's 141 raw drives on **both** sides — 3754 of its 3769 validation frames (99.6%) belonged to a drive that also appeared in training. Because consecutive frames of a drive show the same vehicles at nearly the same range, a model could score highly by memorizing scene-specific appearance-to-depth cues, and the same checkpoint scored roughly 5x lower at Car AP3D@0.7 once the leak was removed. That config and its dataset archive have been removed to prevent it being used by accident.
+
+    Note `dev` is small (540 frames, 14 drives) and its Pedestrian/Cyclist annotations total ~306 instances, so select on Car or overall AP rather than per-class VRU AP.
+
 ## Sample Images
 
 The image above shows a KITTI stereo pair: the **left image** (top) with 2D bounding box annotations for Cars, and the **right image** (bottom) from the same timestamp. The horizontal offset between objects in left and right views encodes depth — closer objects have larger disparity.
@@ -204,13 +220,13 @@ To train a stereo 3D detection model:
         from ultralytics import YOLO
 
         model = YOLO("yolo26-s3d.yaml")
-        results = model.train(data="kitti-stereo.yaml", epochs=1000, imgsz=[384, 1248])
+        results = model.train(data="kitti-stereo-chen.yaml", epochs=1000, imgsz=[384, 1248])
         ```
 
     === "CLI"
 
         ```bash
-        yolo task=s3d train data=kitti-stereo.yaml model=yolo26-s3d.yaml epochs=1000 imgsz=384,1248
+        yolo task=s3d train data=kitti-stereo-chen.yaml model=yolo26-s3d.yaml epochs=1000 imgsz=384,1248
         ```
 
 ## Important Notes

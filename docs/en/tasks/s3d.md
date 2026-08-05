@@ -54,7 +54,7 @@ Train a YOLO26 stereo 3D detection model on the KITTI Stereo dataset.
         results = model.train(data="kitti-stereo8.yaml", epochs=5, imgsz=[384, 1248])
 
         # Full training on KITTI Stereo dataset
-        # results = model.train(data="kitti-stereo.yaml", epochs=1000, imgsz=[384, 1248], optimizer="SGD", lr0=0.01, cos_lr=True)
+        # results = model.train(data="kitti-stereo-chen.yaml", epochs=1000, imgsz=[384, 1248], optimizer="SGD", lr0=0.01, cos_lr=True)
         ```
 
     === "CLI"
@@ -64,7 +64,7 @@ Train a YOLO26 stereo 3D detection model on the KITTI Stereo dataset.
         yolo s3d train data=kitti-stereo8.yaml model=yolo26s-s3d.yaml epochs=5 imgsz=384,1248
 
         # Full training on KITTI Stereo dataset (~1.9 GB download)
-        yolo s3d train data=kitti-stereo.yaml model=yolo26s-s3d.pt epochs=1000 imgsz=384,1248 optimizer=SGD lr0=0.01 cos_lr=True
+        yolo s3d train data=kitti-stereo-chen.yaml model=yolo26s-s3d.pt epochs=1000 imgsz=384,1248 optimizer=SGD lr0=0.01 cos_lr=True
         ```
 
 ### Dataset format

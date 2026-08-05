@@ -1,0 +1,84 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# KITTI Stereo 3D on the Chen et al. split — FINAL REPORTING ONLY (val = Chen's 3769-frame val split)
+# Documentation: https://www.cvlibs.net/datasets/kitti/
+# Example usage: yolo val task=s3d data=kitti-stereo-chen-test.yaml model=best.pt
+#
+# WHY THIS EXISTS. The older `kitti-stereo.yaml` splits by a contiguous index cutoff, which puts 128 of 141
+# raw drives on BOTH sides: 3754 of its 3769 val frames (99.6%) belong to a drive that also appears in
+# train. Because consecutive frames of a drive show the same vehicles at almost the same range, a model can
+# reach a high score by memorising scene-specific appearance→depth cues, so numbers measured on that split
+# do not indicate generalisation. On a leakage-free split the same checkpoint scores roughly 5x lower at
+# Car AP3D@0.7. Train on this file instead.
+#
+# `train` and `dev` together are exactly Chen et al.'s 3712-frame train split; `test` is exactly their
+# 3769-frame val split, which is what published stereo-3D papers report on. All three are DRIVE-DISJOINT
+# (verified: zero shared drives and zero shared frame ids between every pair).
+#
+#   split | frames | drives | purpose
+#   ------+--------+--------+---------------------------------------------------------------
+#   train |   3172 |     82 | fitting
+#   dev   |    540 |     14 | early stopping / model selection  <-- `val:` points here
+#   test  |   3769 |     45 | final reporting only (= Chen val)
+#
+# DO NOT TRAIN WITH THIS FILE. Its `val:` is the held-out TEST split, so using it during training —
+# for early stopping, checkpoint selection, or hyperparameter choices — selects on the reported set and
+# invalidates the number. Train with `kitti-stereo-chen.yaml` (whose `val:` is the dev split), then run a
+# single final evaluation here.
+#
+# Label format (18 values): class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y truncated occluded
+# Where: x_l,y_l,w_l,h_l = left 2D box (normalized), x_r,y_r,w_r,h_r = right 2D box (normalized)
+#        dim_l,dim_w,dim_h = 3D dimensions (length, width, height in meters)
+#        loc_x,loc_y,loc_z = 3D location (camera coords), rot_y = rotation around Y-axis (radians)
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── kitti-stereo-chen ← downloads here (~2.0 GB)
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: kitti-stereo-chen # dataset root dir
+train: images/train/left # present only so dataset validation passes; do not train with this file
+val: images/test/left # TEST images (left stereo) = Chen val, 3769 frames — report from here
+
+# Stereo image pairs (for stereo-based 3D detection)
+train_right: images/train/right # train images (right stereo) (relative to 'path')
+val_right: images/test/right # test images (right stereo) (relative to 'path')
+
+# Split DIRECTORY names. The s3d loader takes the subdirectory from these keys, not from `train:`/`val:`
+# above, and defaults to "train"/"val" — so `val_split` must say `test` or the loader looks for images/val/.
+train_split: train
+val_split: test
+
+# Classes — the three the KITTI AP3D benchmark scores, remapped from raw KITTI ids {0, 3, 5}
+names:
+  0: Car
+  1: Pedestrian
+  2: Cyclist
+
+# Download
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/kitti-stereo-chen.zip
+
+# Stereo calibration parameters
+# baseline is used as fallback when per-image calib files are missing
+baseline: 0.54 # distance between left and right cameras (meters)
+depth_min: 2.0 # minimum direct-depth prediction (meters)
+depth_max: 80.0 # maximum direct-depth prediction (meters)
+
+# Mean dimensions per class [length, width, height] in meters
+# Internally converted to (H, W, L) order by val.py:_parse_dims() for training
+mean_dims:
+  Car: [3.9, 1.6, 1.5] # [length, width, height] in meters
+  Pedestrian: [0.8, 0.6, 1.7]
+  Cyclist: [1.8, 0.6, 1.7]
+
+# Standard deviation of dimensions per class [length, width, height] in meters
+# Used for normalized offset prediction: (dim - mean) / std
+# Same [L, W, H] order as mean_dims; also converted to (H, W, L) internally
+std_dims:
+  Car: [0.42, 0.10, 0.15] # [std_length, std_width, std_height]
+  Pedestrian: [0.20, 0.08, 0.12]
+  Cyclist: [0.25, 0.10, 0.15]
+
+# Number of input channels (6 = left RGB + right RGB)
+# Siamese backbone still uses 6ch input, processed via batch trick [2B, 3, H, W]
+channels: 6

@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import json
+import math
+from collections import Counter
 from copy import copy
 from pathlib import Path
 from typing import Any
 
 import cv2
 import numpy as np
+import torch
 
 from ultralytics.data import build_dataloader
 from ultralytics.data.stereo.box3d import Box3D
@@ -19,6 +23,73 @@ from ultralytics.models.yolo.s3d.preprocess import preprocess_stereo_batch
 from ultralytics.nn.modules.block import StereoCostVolume
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.plotting import Annotator, VisualizationConfig, colors, plot_labels, plot_stereo3d_boxes
+
+
+def drive_balanced_sampler(
+    image_ids: list[str],
+    drives: dict[str, str],
+    balance: float = 1.0,
+    num_samples: int | None = None,
+    seed: int = 0,
+) -> torch.utils.data.WeightedRandomSampler:
+    """Sample frames so that no recording drive dominates an epoch.
+
+    KITTI-style stereo splits are extremely drive-concentrated: on the drive-disjoint 3712-frame split the
+    71 drives have a median of 10 frames but a maximum of 321, so the top five drives supply 37.8% of every
+    epoch's gradient while the smallest half of the drives supply 3.9%. Consecutive frames of one drive are
+    near-duplicates, so proportional sampling counts redundant scenes many times over.
+
+    The correction caps each drive's contribution instead of inverting its frequency. A frame in a drive of
+    `n` frames gets weight `min(1, cap / n)` with `cap = balance * len(image_ids) / n_drives`, i.e. `balance`
+    multiples of the mean frames-per-drive. Only over-represented drives are down-weighted; every frame in
+    a drive at or below the cap keeps the uniform weight it has today, so relative probabilities inside the
+    long tail are untouched. Full inverse-frequency balancing (weight `1/n`) was rejected: it makes a
+    one-frame drive as influential as the 321-frame drive, drawing that single frame ~52 times per epoch.
+
+    Args:
+        image_ids (list[str]): Frame stems in dataset order (index i of the returned sampler indexes here).
+        drives (dict[str, str]): Map of frame stem to drive identifier. Unmapped frames form singleton drives.
+        balance (float): Cap in multiples of the mean frames-per-drive. Smaller is flatter; large values
+            recover uniform sampling exactly.
+        num_samples (int, optional): Draws per epoch. Defaults to `len(image_ids)`, keeping epoch length —
+            and therefore the LR schedule and total step count — identical to uniform sampling.
+        seed (int): Generator seed; pass the process rank so DDP ranks draw independent samples.
+
+    Returns:
+        (torch.utils.data.WeightedRandomSampler): Sampler over `range(len(image_ids))`, with replacement.
+    """
+    # Unmapped frames become their own singleton drive; the tuple key cannot collide with a drive string.
+    groups = [drives.get(str(i), (None, i)) for i in image_ids]
+    if unmapped := sum(1 for g in groups if isinstance(g, tuple)):
+        LOGGER.warning(
+            "s3d: %d of %d train frames are absent from the drives map and are treated as single-frame "
+            "drives. Check that the drives file covers this split.",
+            unmapped,
+            len(groups),
+        )
+    counts = Counter(groups)
+    cap = max(balance, 1e-9) * len(groups) / len(counts)
+    weights = torch.tensor([min(1.0, cap / counts[g]) for g in groups], dtype=torch.double)
+
+    total = float(weights.sum())
+    shares = sorted((counts[g] * min(1.0, cap / counts[g]) / total for g in counts), reverse=True)
+    LOGGER.info(
+        "s3d: drive-balanced sampling over %d drives (balance=%.2f, cap=%.1f frames/drive) — top-5 drive "
+        "share %.1f%% -> %.1f%%, largest drive %.1f%% -> %.1f%%",
+        len(counts),
+        balance,
+        cap,
+        100 * sum(sorted((c / len(groups) for c in counts.values()), reverse=True)[:5]),
+        100 * sum(shares[:5]),
+        100 * max(counts.values()) / len(groups),
+        100 * shares[0],
+    )
+    return torch.utils.data.WeightedRandomSampler(
+        weights,
+        num_samples=num_samples or len(groups),
+        replacement=True,
+        generator=torch.Generator().manual_seed(seed),
+    )
 
 
 class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
@@ -82,11 +153,14 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         mean_dims = data_cfg.get("mean_dims")
         std_dims = data_cfg.get("std_dims")
 
-        # Scan label files (up to 200) for the width-normalized disparities they contain — fields 1
-        # and 5 are the left/right box centres, so their difference IS disparity/width, the grid
-        # StereoCostVolume needs to sample.
+        # Scan up to 200 label files for the width-normalized disparities they contain — fields 1 and 5
+        # are the left/right box centres, so their difference IS disparity/width, the grid
+        # StereoCostVolume needs to sample. Frame ids are grouped by recording drive, so the files are
+        # strided rather than truncated: taking the first 200 would measure the grid on two or three
+        # scenes and miss whatever depth range the rest of the split covers.
         disparities: list[float] = []
-        for f in sorted((root / "labels" / train_split).glob("*.txt"))[:200]:
+        label_files = sorted((root / "labels" / train_split).glob("*.txt"))
+        for f in label_files[:: max(1, len(label_files) // 200)][:200]:
             with open(f) as fh:
                 for line in fh:
                     parts = line.strip().split()
@@ -113,6 +187,10 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             "disparity_range": self._disparity_range(disparities, data_cfg),
             "mean_dims": mean_dims,
             "std_dims": std_dims,
+            # Optional: JSON file with a {"drives": {frame_id: drive}} map enabling drive-balanced
+            # sampling. Absent for datasets that do not record which recording each frame came from.
+            "drives": data_cfg.get("drives"),
+            "drive_balance": float(data_cfg.get("drive_balance", 1.0)),
         }
 
     @staticmethod
@@ -185,9 +263,41 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
                 rank=rank,
                 drop_last=self.args.compile and mode == "train",
                 pin_memory=True,
+                sampler=self._drive_sampler(dataset, rank) if mode == "train" else None,
             )
         # Fallback to default detection dataloader
         return super().get_dataloader(dataset_path, batch_size=batch_size, rank=rank, mode=mode)
+
+    def _drive_sampler(self, dataset: Stereo3DDetDataset, rank: int):
+        """Build the drive-balanced train sampler, or None when the dataset declares no drives map.
+
+        Each DDP rank draws its own `len(dataset) / world_size` frames from the shared weight vector. The
+        draw is with replacement, so an exact partition is neither possible nor meaningful; matching
+        DistributedSampler's per-rank count is what keeps the batch count equal across ranks.
+
+        Args:
+            dataset (Stereo3DDetDataset): Train dataset, whose `im_file` order defines the sampler indices.
+            rank (int): Process rank, -1 for single-process training.
+
+        Returns:
+            (torch.utils.data.WeightedRandomSampler | None): Sampler, or None to keep the default behaviour.
+        """
+        drives_file = self.data.get("drives")
+        if not drives_file:
+            return None
+        path = Path(drives_file)
+        if not path.is_absolute():
+            path = Path(self.data["path"]) / path
+        drives = json.loads(path.read_text())
+        drives = drives.get("drives", drives)  # accept either a bare map or a split file carrying one
+        world_size = max(getattr(self, "world_size", 1) or 1, 1)
+        return drive_balanced_sampler(
+            [Path(f).stem for f in dataset.im_files],
+            drives,
+            balance=float(self.data.get("drive_balance", 1.0)),
+            num_samples=math.ceil(len(dataset) / world_size) if rank != -1 else len(dataset),
+            seed=max(rank, 0),
+        )
 
     def get_model(
         self,

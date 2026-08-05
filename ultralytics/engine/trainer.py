@@ -151,6 +151,13 @@ class BaseTrainer:
         self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
         self.save_period = self.args.save_period
         self.val_period = self.args.val_period
+        if not self.args.val and RANK in {-1, 0}:
+            LOGGER.warning(
+                "val=False disables model selection. Fitness is never computed, so 'best.pt' is rewritten every "
+                "epoch and ends up identical to 'last.pt', early stopping (patience) never triggers, and the "
+                "reported metrics describe the final epoch rather than the best one. Set val=True to select a "
+                "checkpoint on a held-out split."
+            )
 
         self.batch_size = self.args.batch
         self.epochs = self.args.epochs or 100  # in case users accidentally pass epochs=None with timed training

@@ -1,6 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Tests for Stereo 3D Detection (s3d) task."""
 
+import json
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -1072,3 +1075,112 @@ def test_decode_anchor_count_ignores_single_scale_maps():
     resolved = next((outputs[k].shape[2] for k in PER_ANCHOR_AUX_KEYS if k in outputs and outputs[k].ndim == 3), 0)
     assert resolved == hw_total, f"resolved {resolved}, expected {hw_total} (cv_disparity would give {h8})"
     assert "cv_disparity" not in PER_ANCHOR_AUX_KEYS
+
+
+def _sampler_drive_counts(sampler, drive_of):
+    """Return the empirical per-drive frame counts of one pass over a sampler."""
+    from collections import Counter
+
+    return Counter(drive_of[i] for i in sampler)
+
+
+def test_drive_balanced_sampler_flattens_drive_concentration():
+    """Drive-balanced sampling must actually rebalance, and must never upweight the long tail.
+
+    The drive-disjoint KITTI split puts 37.8% of its 3712 frames in 5 of 71 drives, so every epoch's
+    gradient is a handful of scenes seen from slightly different positions. The cap only down-weights
+    over-represented drives: frames in drives at or below the cap keep the uniform weight they have
+    today, which is what distinguishes this from inverse-frequency balancing (which would draw a
+    one-frame drive ~52 times an epoch).
+    """
+    from ultralytics.models.yolo.s3d.train import drive_balanced_sampler
+
+    sizes = [320] * 5 + [10] * 66  # 71 drives, 2260 frames, median 10 — the real split's shape
+    ids, drives, drive_of = [], {}, {}
+    for d, n in enumerate(sizes):
+        for k in range(n):
+            stem = f"{d:03d}_{k:04d}"
+            ids.append(stem)
+            drives[stem] = f"drive_{d}"
+            drive_of[len(ids) - 1] = f"drive_{d}"
+    big = {f"drive_{d}" for d in range(5)}
+    uniform_top5 = sum(sizes[:5]) / len(ids)
+    assert uniform_top5 > 0.7, "synthetic split is not concentrated enough to be a test"
+
+    sampler = drive_balanced_sampler(ids, drives, balance=1.0)
+    assert len(sampler) == len(ids), "epoch length must be preserved so the LR schedule is unchanged"
+
+    w = sampler.weights
+    assert w.max() <= 1.0 + 1e-9, "the cap must never upweight a frame above uniform"
+    tail = [float(w[i]) for i in range(len(ids)) if drive_of[i] not in big]
+    assert min(tail) == max(tail) == 1.0, "frames in under-represented drives must keep uniform weight"
+
+    # Measured rebalancing, on the drawn indices rather than on the weights alone.
+    counts = _sampler_drive_counts(sampler, drive_of)
+    drawn_top5 = sum(counts[d] for d in big) / sum(counts.values())
+    assert drawn_top5 < 0.3, f"top-5 drive share only fell {uniform_top5:.3f} -> {drawn_top5:.3f}"
+
+    # The strength is configurable, and its large-balance limit is exactly uniform sampling.
+    flatter = drive_balanced_sampler(ids, drives, balance=0.25)
+    flat_top5 = sum(_sampler_drive_counts(flatter, drive_of)[d] for d in big) / len(ids)
+    assert flat_top5 < drawn_top5, f"balance=0.25 ({flat_top5:.3f}) is not flatter than 1.0 ({drawn_top5:.3f})"
+    assert drive_balanced_sampler(ids, drives, balance=1e6).weights.min() == 1.0, "large balance must be a no-op"
+
+
+def test_dataset_without_drives_key_is_unaffected():
+    """A dataset YAML with no `drives:` key must keep the default uniform/DistributedSampler behaviour."""
+    from ultralytics.models.yolo.s3d.train import Stereo3DDetTrainer
+
+    trainer = Stereo3DDetTrainer(overrides={"model": MODEL, "data": DATA, "epochs": 1, "imgsz": [384, 1248]})
+    assert trainer.data["drives"] is None, "kitti-stereo8.yaml declares no drives map"
+    dataset = trainer.build_dataset(trainer.data["train"], mode="train")
+    assert trainer._drive_sampler(dataset, -1) is None, "no drives map must mean no sampler override"
+
+
+def test_drives_yaml_key_builds_balanced_sampler(tmp_path):
+    """The optional `drives:` YAML key plumbs a drive map through get_dataset into the train sampler."""
+    from ultralytics.models.yolo.s3d.train import Stereo3DDetTrainer
+    from ultralytics.utils import YAML
+    from ultralytics.utils.checks import check_yaml
+
+    cfg = YAML.load(check_yaml(DATA))
+    drives_file = tmp_path / "drives.json"
+    yaml_file = tmp_path / "kitti-stereo8-drives.yaml"
+    cfg["drives"] = str(drives_file)
+    cfg["drive_balance"] = 1.0
+    YAML.save(yaml_file, cfg)
+
+    trainer = Stereo3DDetTrainer(overrides={"model": MODEL, "data": str(yaml_file), "epochs": 1, "imgsz": [384, 1248]})
+    dataset = trainer.build_dataset(trainer.data["train"], mode="train")
+    stems = [Path(f).stem for f in dataset.im_files]
+    # All but one frame in a single drive: the cap must shrink that drive's share of the epoch.
+    drive_map = dict.fromkeys(stems[:-1], "d0")
+    drive_map[stems[-1]] = "d1"
+    drives_file.write_text(json.dumps({"drives": drive_map}))
+
+    sampler = trainer._drive_sampler(dataset, -1)
+    assert sampler is not None, "drives: key did not reach the trainer"
+    assert float(sampler.weights[:-1].max()) < 1.0, f"over-represented drive was not capped: {sampler.weights}"
+    assert float(sampler.weights[-1]) == 1.0, "the single-frame drive must keep uniform weight"
+
+
+def test_val_false_warns_that_best_is_not_selected(monkeypatch):
+    """`val=False` silently disables model selection, so it must warn loudly.
+
+    With val=False the trainer never sets self.fitness, so `if self.best_fitness == self.fitness:` is
+    `None == None` and best.pt is rewritten every epoch — verified identical to last.pt in all 806 tensors
+    on a real checkpoint. Nothing in the log said so.
+    """
+    from ultralytics.models.yolo.s3d.train import Stereo3DDetTrainer
+
+    warnings = []
+    monkeypatch.setattr(
+        "ultralytics.engine.trainer.LOGGER.warning",
+        lambda msg, *a: warnings.append(str(msg) % a if a else str(msg)),
+    )
+    Stereo3DDetTrainer(overrides={"model": MODEL, "data": DATA, "epochs": 1, "imgsz": [384, 1248], "val": False})
+    assert any("val=False disables model selection" in w for w in warnings), f"no warning fired: {warnings}"
+
+    warnings.clear()
+    Stereo3DDetTrainer(overrides={"model": MODEL, "data": DATA, "epochs": 1, "imgsz": [384, 1248], "val": True})
+    assert not any("val=False" in w for w in warnings), f"warned with val=True: {warnings}"

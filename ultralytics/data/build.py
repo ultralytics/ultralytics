@@ -321,6 +321,7 @@ def build_dataloader(
     rank: int = -1,
     drop_last: bool = False,
     pin_memory: bool = True,
+    sampler=None,
 ) -> InfiniteDataLoader:
     """Create and return an InfiniteDataLoader for training or validation.
 
@@ -332,6 +333,9 @@ def build_dataloader(
         rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
         drop_last (bool, optional): Whether to drop the last incomplete batch.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
+        sampler (torch.utils.data.Sampler, optional): Index sampler to use instead of the default
+            shuffle/DistributedSampler behaviour. It must already be rank-aware — its length sets the
+            per-rank epoch size — and it suppresses `shuffle`, which the sampler is then responsible for.
 
     Returns:
         (InfiniteDataLoader): A dataloader that can be used for training or validation.
@@ -343,7 +347,7 @@ def build_dataloader(
     """
     dataset_len = len(dataset)
     batch = min(batch, dataset_len)
-    sampler = (
+    sampler = sampler or (
         None
         if rank == -1
         else distributed.DistributedSampler(dataset, shuffle=shuffle)

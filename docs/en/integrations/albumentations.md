@@ -61,7 +61,7 @@ To use Albumentations with YOLO26, start by making sure you have the necessary p
 
         ```bash
         # Install the required packages
-        pip install albumentations ultralytics
+        pip install "albumentations>=1.4.22" ultralytics
         ```
 
 For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO26, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.

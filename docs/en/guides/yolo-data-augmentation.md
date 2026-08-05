@@ -480,7 +480,7 @@ Then launch the training with the Python API:
 
 **Compatibility Notes:**
 
-- Requires Albumentations version 1.4.22 or higher
+- Requires Albumentations version 1.4.22 or higher, which needs Python 3.9 or newer
 - Compatible with all YOLO detection and segmentation tasks
 - Not applicable for classification tasks (classification uses a different augmentation pipeline)
 

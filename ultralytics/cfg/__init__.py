@@ -57,9 +57,10 @@ SOLUTION_MAP = {
 
 # Define valid tasks and modes, ordered as they appear across the docs and Ultralytics Platform
 MODES = ("train", "val", "predict", "export", "track", "benchmark")
-TASKS = ("detect", "segment", "semantic", "depth", "classify", "pose", "obb")
+TASKS = ("detect", "detect3d", "segment", "semantic", "depth", "classify", "pose", "obb")
 TASK2DATA = {
     "detect": "coco8.yaml",
+    "detect3d": "kitti/kitti3d.yaml",
     "segment": "coco8-seg.yaml",
     "semantic": "cityscapes8.yaml",
     "depth": "depth8.yaml",
@@ -69,6 +70,7 @@ TASK2DATA = {
 }
 TASK2CALIBRATIONDATA = {
     "detect": "coco128.yaml",
+    "detect3d": "kitti/kitti3d.yaml",
     "segment": "coco128-seg.yaml",
     "semantic": "cityscapes8.yaml",
     "depth": "depth8.yaml",
@@ -78,6 +80,7 @@ TASK2CALIBRATIONDATA = {
 }
 TASK2MODEL = {
     "detect": "yolo26n.pt",
+    "detect3d": "yolo26n-3d.yaml",
     "segment": "yolo26n-seg.pt",
     "semantic": "yolo26n-sem.pt",
     "depth": "yolo26n-depth.pt",
@@ -87,6 +90,7 @@ TASK2MODEL = {
 }
 TASK2METRIC = {
     "detect": "metrics/mAP50-95(B)",
+    "detect3d": "metrics/mAP50(3D)",
     "segment": "metrics/mAP50-95(M)",
     "semantic": "metrics/mIoU",
     "depth": "metrics/delta1",
@@ -212,6 +216,21 @@ CFG_FLOAT_KEYS = frozenset(
         "dlog",
         "dgrad",
         "dis",
+        "center3d",
+        "d3_geometry_gain",
+        "depth",
+        "depth_beta",
+        "depth_z",
+        "depth_z_tau",
+        "alpha",
+        "dim",
+        "corner3d",
+        "keypoint3d",
+        "quality3d",
+        "quality3d_gamma",
+        "quality3d_power",
+        "far_3d_depth",
+        "far_3d_weight",
         "degrees",
         "shear",
         "time",
@@ -308,7 +327,7 @@ CFG_BOOL_KEYS = frozenset(
         "cls_remap",
     }
 )
-CFG_STR_KEYS = frozenset({"optimizer", "split", "copy_paste_mode", "auto_augment"})
+CFG_STR_KEYS = frozenset({"optimizer", "split", "copy_paste_mode", "auto_augment", "kitti_eval"})
 
 
 def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:

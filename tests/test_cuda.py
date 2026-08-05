@@ -7,9 +7,9 @@ from pathlib import Path
 import pytest
 import torch
 
-from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
+from tests import ASSET_TASKS, CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
 from ultralytics import YOLO
-from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
+from ultralytics.cfg import TASK2DATA, TASK2MODEL
 from ultralytics.utils import ASSETS, IS_JETSON, WEIGHTS_DIR
 from ultralytics.utils.autodevice import GPUInfo
 from ultralytics.utils.checks import check_amp, check_tensorrt
@@ -52,7 +52,7 @@ def test_amp():
     [  # generate all combinations except for exclusion cases
         (task, dynamic, batch, simplify, nms)
         for task, dynamic, batch, simplify, nms in product(
-            sorted(TASKS), [True, False], [1, 2], [True, False], [True, False]
+            sorted(ASSET_TASKS), [True, False], [1, 2], [True, False], [True, False]
         )
         if not ((task == "classify" and nms) or (task == "obb" and nms and (not TORCH_1_13 or IS_JETSON)))
     ],
@@ -80,8 +80,10 @@ def test_export_onnx_matrix(task, dynamic, batch, simplify, nms):
     [
         (task, dynamic, quantize, batch)
         # Limit Jetson task coverage for slow CI speed; full task coverage remains on GPU CI.
-        # for task, dynamic, quantize, batch in product(TASKS, [True, False], [8, 16], [1, 2])
-        for task, dynamic, quantize, batch in product(["detect"] if IS_JETSON else sorted(TASKS), [True], [8, 16], [2])
+        # for task, dynamic, quantize, batch in product(ASSET_TASKS, [True, False], [8, 16], [1, 2])
+        for task, dynamic, quantize, batch in product(
+            ["detect"] if IS_JETSON else sorted(ASSET_TASKS), [True], [8, 16], [2]
+        )
     ]
     + [("detect", False, 8, 2)],  # exercise TensorRT 7-10 implicit INT8 quantization on GPU CI
 )

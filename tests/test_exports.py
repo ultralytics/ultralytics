@@ -17,10 +17,10 @@ if sys.platform == "win32":
 import pytest
 import torch
 
-from tests import MODEL, SOURCE
+from tests import ASSET_TASKS, MODEL, SOURCE
 from tests.conftest import isolated_model_path
 from ultralytics import YOLO
-from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS, _handle_deprecation, get_cfg
+from ultralytics.cfg import TASK2DATA, TASK2MODEL, _handle_deprecation, get_cfg
 from ultralytics.engine.exporter import EXPORT_ENVS, Exporter, export_formats, validate_args
 from ultralytics.utils import (
     ARM64,
@@ -273,7 +273,7 @@ def test_export_openvino(end2end, isolated_model):
     [  # generate all combinations except for exclusion cases
         (task, dynamic, quantize, batch, nms, end2end)
         for task, dynamic, quantize, batch, nms, end2end in product(
-            sorted(TASKS), [True, False], [8, 16], [1, 2], [True, False], [True]
+            sorted(ASSET_TASKS), [True, False], [8, 16], [1, 2], [True, False], [True]
         )
         if not ((task == "classify" and nms) or (end2end and nms))
     ],
@@ -302,7 +302,7 @@ def test_export_openvino_matrix(task, dynamic, quantize, batch, nms, end2end):
     [  # generate all combinations except for exclusion cases
         (task, dynamic, batch, simplify, nms, end2end)
         for task, dynamic, batch, simplify, nms, end2end in product(
-            sorted(TASKS), [True, False], [1, 2], [True, False], [True, False], [True, False]
+            sorted(ASSET_TASKS), [True, False], [1, 2], [True, False], [True, False], [True, False]
         )
         if not ((task == "classify" and nms) or (nms and not TORCH_1_13) or (end2end and nms))
     ],
@@ -341,7 +341,7 @@ def test_export_onnx_semantic_dnn():
     [  # generate all combinations except for exclusion cases
         (task, dynamic, batch, nms, end2end)
         for task, dynamic, batch, nms, end2end in product(
-            sorted(TASKS), [False, True], [1, 2], [True, False], [True, False]
+            sorted(ASSET_TASKS), [False, True], [1, 2], [True, False], [True, False]
         )
         if not ((task == "classify" and nms) or (end2end and nms))
     ],
@@ -367,7 +367,7 @@ def test_export_torchscript_matrix(task, dynamic, batch, nms, end2end, tmp_path)
     [  # generate all combinations except for exclusion cases
         (task, dynamic, quantize, nms, batch, end2end)
         for task, dynamic, quantize, nms, batch, end2end in product(
-            sorted(TASKS), [True, False], [8, 16], [True, False], [1], [True, False]
+            sorted(ASSET_TASKS), [True, False], [8, 16], [True, False], [1], [True, False]
         )
         if not (task != "detect" and nms)
         and not (dynamic and nms)
@@ -545,7 +545,7 @@ def test_export_mnn_options(model, task, kwargs):
     "task, quantize, batch, end2end",
     [  # generate all combinations except for exclusion cases
         (task, quantize, batch, end2end)
-        for task, quantize, batch, end2end in product(sorted(TASKS), [8, 16], [1, 2], [True, False])
+        for task, quantize, batch, end2end in product(sorted(ASSET_TASKS), [8, 16], [1, 2], [True, False])
     ],
 )
 def test_export_mnn_matrix(task, quantize, batch, end2end):
@@ -565,7 +565,7 @@ def test_export_ncnn(isolated_model):
 
 @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_2_0, reason="NCNN inference causes segfault on PyTorch<2.0")
-@pytest.mark.parametrize("task, quantize, batch", list(product(sorted(TASKS), [16], [1])))
+@pytest.mark.parametrize("task, quantize, batch", list(product(sorted(ASSET_TASKS), [16], [1])))
 def test_export_ncnn_matrix(task, quantize, batch):
     """Test YOLO export to NCNN format considering various export configurations."""
     skip_rpi_semantic(task)
@@ -619,7 +619,7 @@ def test_export_executorch(isolated_model):
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="litert-torch requires Python>=3.10")
 @pytest.mark.parametrize(
     "task, quantize",
-    [(task, quantize) for task in sorted(TASKS) for quantize in (None, 8, "w8a16", "w8a32")],
+    [(task, quantize) for task in sorted(ASSET_TASKS) for quantize in (None, 8, "w8a16", "w8a32")],
 )
 def test_export_litert_matrix(task, quantize):
     """Test YOLO export to LiteRT format (FP32, static INT8, static w8a16, and dynamic w8a32) for various tasks."""
@@ -643,7 +643,7 @@ def test_export_litert_matrix(task, quantize):
 @pytest.mark.slow
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_2_9, reason="Requires Python>=3.10 and Torch>=2.9.0")
 @pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
-@pytest.mark.parametrize("task", sorted(TASKS))
+@pytest.mark.parametrize("task", sorted(ASSET_TASKS))
 def test_export_executorch_matrix(task):
     """Test YOLO export to ExecuTorch format for various task types."""
     skip_rpi_semantic(task)

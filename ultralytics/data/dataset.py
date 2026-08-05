@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from collections import defaultdict
 from itertools import repeat
@@ -16,15 +17,24 @@ from PIL import Image
 from torch.utils.data import ConcatDataset
 
 from ultralytics.utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, colorstr
+from ultralytics.utils.geometry3d import (
+    DEFAULT_KITTI_P2,
+    image_transform_matrix,
+    project_points,
+    transform_projection,
+)
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.ops import resample_segments, segments2boxes
 from ultralytics.utils.torch_utils import TORCHVISION_0_18
 
 from .augment import (
+    Albumentations,
     Compose,
     DepthFormat,
     Format,
     LetterBox,
+    RandomFlip,
+    RandomHSV,
     RandomLoadText,
     SemanticFormat,
     classify_augmentations,
@@ -49,6 +59,23 @@ from .utils import (
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
 DATASET_CACHE_VERSION = "1.0.4"
+
+
+def parse_calib_p2(calib_path: str) -> np.ndarray:
+    """Parse and validate a KITTI P2 projection matrix, raising a descriptive error on invalid input."""
+    with open(calib_path, encoding="utf-8") as f:
+        for line in f:
+            if line.strip().startswith("P2:"):
+                values = line.strip().split()[1:]
+                if len(values) != 12:
+                    raise ValueError(f"P2 must contain 12 values, found {len(values)}")
+                p2 = np.asarray(values, dtype=np.float64).reshape(3, 4)
+                if not np.isfinite(p2).all():
+                    raise ValueError("P2 contains NaN or infinity")
+                if np.linalg.matrix_rank(p2[:, :3]) < 3:
+                    raise ValueError("P2 left 3x3 matrix is singular")
+                return p2
+    raise ValueError("P2 entry not found")
 
 
 class YOLODataset(BaseDataset):
@@ -95,7 +122,29 @@ class YOLODataset(BaseDataset):
         self.use_segments = task == "segment"
         self.use_keypoints = task == "pose"
         self.use_obb = task == "obb"
+        self.use_3d = task == "detect3d"
         self.data = data
+        if self.use_3d:
+            self.min_3d_depth = float(self.data.get("min_3d_depth", 2.0))
+            self.max_3d_depth = float(self.data.get("max_3d_depth", 65.0))
+            self.min_3d_box_height = float(self.data.get("min_3d_box_height", 25.0))
+            self.max_3d_center_offset = float(self.data.get("max_3d_center_offset", 0.5))
+            if not (0.0 <= self.min_3d_depth < self.max_3d_depth):
+                raise ValueError(
+                    "detect3d requires 0 <= min_3d_depth < max_3d_depth, got "
+                    f"{self.min_3d_depth} and {self.max_3d_depth}"
+                )
+            if self.min_3d_box_height < 0.0:
+                raise ValueError(f"detect3d requires min_3d_box_height >= 0, got {self.min_3d_box_height}")
+            if not np.isfinite(self.max_3d_center_offset) or self.max_3d_center_offset <= 0.0:
+                raise ValueError(
+                    f"detect3d requires a finite max_3d_center_offset > 0, got {self.max_3d_center_offset}"
+                )
+        self.allow_default_calib = self.use_3d and bool(self.data.get("allow_default_calib", False))
+        if self.allow_default_calib:
+            LOGGER.warning(
+                "detect3d is using allow_default_calib=True; invalid calibration files will use the default KITTI P2."
+            )
         assert not (self.use_segments and self.use_keypoints), "Can not use both segments and keypoints."
         super().__init__(*args, channels=self.data.get("channels", 3), **kwargs)
 
@@ -152,7 +201,7 @@ class YOLODataset(BaseDataset):
         Returns:
             (list[str]): List of label file paths.
         """
-        self.label_files = img2label_paths(self.im_files)
+        self.label_files = img2label_paths(self.im_files, label_dir=self.data.get("label_dir", "labels"))
         return self.label_files
 
     def get_cache_hash(self) -> str:
@@ -161,7 +210,41 @@ class YOLODataset(BaseDataset):
         Returns:
             (str): Dataset cache hash.
         """
-        return get_hash(self.label_files + self.im_files)
+        if not self.use_3d:
+            return get_hash(self.label_files + self.im_files)
+
+        calib_files = [str(self._calib_path(x)) for x in self.im_files]
+        # Calibration and 3D label edits can preserve byte size, so hash their contents in addition to generic paths.
+        digest = hashlib.sha256(get_hash(self.label_files + self.im_files + calib_files).encode())
+        cache_config = {
+            "allow_default_calib": self.allow_default_calib,
+            "min_3d_depth": self.min_3d_depth,
+            "max_3d_depth": self.max_3d_depth,
+            "min_3d_box_height": self.min_3d_box_height,
+            "max_3d_center_offset": self.max_3d_center_offset,
+            "nc": len(self.data["names"]),
+            "single_cls": bool(self.single_cls),
+        }
+        digest.update(json.dumps(cache_config, sort_keys=True, separators=(",", ":")).encode())
+        for kind, files in ((b"label", self.label_files), (b"calib", calib_files)):
+            for file in files:
+                digest.update(kind)
+                digest.update(file.encode())
+                try:
+                    with open(file, "rb") as stream:
+                        for chunk in iter(lambda: stream.read(1 << 16), b""):
+                            digest.update(chunk)
+                except OSError:
+                    digest.update(b"<missing>")
+        return digest.hexdigest()
+
+    def _calib_path(self, im_file: str) -> Path:
+        """Return the calibration path paired with an image under the configured calib directory."""
+        calib_dir = self.data.get("calib_dir", "")
+        if not calib_dir:
+            return Path(im_file).with_suffix(".txt")
+        root = Path(calib_dir)
+        return (root if root.is_absolute() else Path(im_file).parent.parent / root) / f"{Path(im_file).stem}.txt"
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
         """Return a one-line summary of scan counters for progress bars and cache logs.
@@ -198,6 +281,7 @@ class YOLODataset(BaseDataset):
             repeat(nkpt),
             repeat(ndim),
             repeat(self.single_cls),
+            repeat(self.use_3d),
         )
 
     def result_to_label(self, result: list) -> tuple[dict | None, int, int, int, int, str]:
@@ -215,7 +299,7 @@ class YOLODataset(BaseDataset):
                 "im_file": im_file,
                 "shape": shape,
                 "cls": lb[:, 0:1],  # n, 1
-                "bboxes": lb[:, 1:],  # n, 4
+                "bboxes": lb[:, 1:],  # n, 4 for detect or 11 for detect3d
                 "segments": segments,
                 "keypoints": keypoint,
                 "normalized": True,
@@ -224,6 +308,18 @@ class YOLODataset(BaseDataset):
             if im_file
             else None
         )
+        if self.use_3d and label is not None:
+            calib_path = self._calib_path(im_file)
+            try:
+                label["p2"] = parse_calib_p2(str(calib_path))
+            except (OSError, ValueError) as e:
+                if self.allow_default_calib:
+                    label["p2"] = DEFAULT_KITTI_P2.copy()
+                else:
+                    label = None
+                    nc_f += 1
+                    calib_msg = f"{self.prefix}{im_file}: invalid detect3d calibration {calib_path}: {e}"
+                    msg = f"{msg}\n{calib_msg}" if msg else calib_msg
         return label, nm_f, nf_f, ne_f, nc_f, msg
 
     def verify_labels(self, labels: list[dict], cache_path: Path) -> None:
@@ -313,7 +409,24 @@ class YOLODataset(BaseDataset):
             hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
             hyp.cutmix = hyp.cutmix if self.augment and not self.rect else 0.0
-            transforms = v8_transforms(self, self.imgsz, hyp)
+            if self.use_3d:
+                # Keep image geometry compatible with one camera matrix. LetterBox and horizontal flips explicitly
+                # update P2; photometric transforms leave it unchanged.
+                albumentations = Albumentations(p=1.0, transforms=getattr(hyp, "augmentations", None))
+                if getattr(albumentations, "contains_spatial", False):
+                    raise ValueError(
+                        "detect3d only supports photometric Albumentations; spatial transforms must also update P2"
+                    )
+                transforms = Compose(
+                    [
+                        LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False),
+                        albumentations,
+                        RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
+                        RandomFlip(direction="horizontal", p=hyp.fliplr, flip_idx=[]),
+                    ]
+                )
+            else:
+                transforms = v8_transforms(self, self.imgsz, hyp)
         else:
             transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
         transforms.append(
@@ -323,6 +436,7 @@ class YOLODataset(BaseDataset):
                 return_mask=self.use_segments,
                 return_keypoint=self.use_keypoints,
                 return_obb=self.use_obb,
+                return_3d=self.use_3d,
                 batch_idx=True,
                 mask_ratio=hyp.mask_ratio,
                 mask_overlap=hyp.overlap_mask,
@@ -401,7 +515,72 @@ class YOLODataset(BaseDataset):
             segments = np.stack(resample_segments(segments, n=segment_resamples), axis=0)
         else:
             segments = np.zeros((0, segment_resamples, 2), dtype=np.float32)
-        label["instances"] = Instances(bboxes, segments, keypoints, bbox_format=bbox_format, normalized=normalized)
+
+        if self.use_3d:
+            # Detect3D boxes contain (cx, cy, w, h, z, x, y, w3d, h3d, l3d, ry).
+            # Store 3D params separately, Instances only gets 2D bbox (first 4 columns)
+            d3_params = bboxes[:, 4:] if bboxes.shape[1] > 4 else np.zeros((bboxes.shape[0], 7), dtype=np.float32)
+            label["d3_params"] = d3_params
+            bboxes_2d = bboxes[:, :4]
+            ori_shape = label.get("ori_shape")
+            if ori_shape is None:
+                raise RuntimeError("detect3d samples require ori_shape to build the 3D supervision mask")
+
+            # Load the native camera projection before constructing d3_valid. KITTI can contain almost fully truncated
+            # objects whose visible 2D box is only a few pixels wide while the projected 3D center lies far outside it.
+            # A dense box-relative head cannot learn those targets without a dedicated boundary-center formulation, and
+            # they are excluded by the official KITTI difficulty rules anyway. Keep them for 2D supervision, but mask
+            # their 3D losses using a geometric proxy that does not require changing the on-disk label format.
+            p2 = label.pop("p2", None)
+            if p2 is None:
+                calib_path = label.pop("calib_path", None)
+                p2 = parse_calib_p2(calib_path) if calib_path else DEFAULT_KITTI_P2.copy()
+            label["p2"] = p2  # Original-camera P2, used for native-image metrics/plots.
+            image_scale = np.asarray((ori_shape[1], ori_shape[0], ori_shape[1], ori_shape[0]), dtype=np.float64)
+            boxes_native = bboxes_2d * image_scale if normalized else bboxes_2d.astype(np.float64, copy=False)
+            if bbox_format == "xywh":
+                box_center, box_size = boxes_native[:, :2], boxes_native[:, 2:4]
+            elif bbox_format == "xyxy":
+                box_center = (boxes_native[:, :2] + boxes_native[:, 2:4]) * 0.5
+                box_size = boxes_native[:, 2:4] - boxes_native[:, :2]
+            else:
+                raise ValueError(f"detect3d requires xywh or xyxy boxes, got {bbox_format!r}")
+            center_3d = np.column_stack((d3_params[:, 1], d3_params[:, 2] - d3_params[:, 4] * 0.5, d3_params[:, 0]))
+            projected_center = project_points(center_3d, p2)
+            center_offset = np.abs((projected_center - box_center) / np.maximum(box_size, 1.0))
+            center_geometry_valid = (
+                np.isfinite(projected_center).all(axis=1)
+                & np.isfinite(center_offset).all(axis=1)
+                & (center_offset.max(axis=1) <= getattr(self, "max_3d_center_offset", 0.5))
+            )
+            box_height = box_size[:, 1]
+            min_depth = getattr(self, "min_3d_depth", 2.0)
+            max_depth = getattr(self, "max_3d_depth", 65.0)
+            min_box_height = getattr(self, "min_3d_box_height", 25.0)
+            d3_valid = (
+                np.isfinite(d3_params).all(axis=1)
+                & (d3_params[:, 0] >= min_depth)
+                & (d3_params[:, 0] <= max_depth)
+                & (d3_params[:, 3:6] > 0.0).all(axis=1)
+                & (box_height >= min_box_height)
+                & center_geometry_valid
+            )
+            label["d3_valid"] = d3_valid[:, None]
+            label["instances"] = Instances(
+                bboxes_2d, segments, keypoints, bbox_format=bbox_format, normalized=normalized
+            )
+
+            resized_shape = label.get("resized_shape")
+            if ori_shape is None or resized_shape is None:
+                raise RuntimeError("detect3d samples require ori_shape and resized_shape geometry metadata")
+            h_load = image_transform_matrix(
+                scale_x=resized_shape[1] / ori_shape[1],
+                scale_y=resized_shape[0] / ori_shape[0],
+            )
+            # load_image() may pre-resize before the augmentation pipeline; start accumulation with that transform.
+            label["p2_aug"] = transform_projection(p2, h_load)
+        else:
+            label["instances"] = Instances(bboxes, segments, keypoints, bbox_format=bbox_format, normalized=normalized)
         return label
 
     @staticmethod
@@ -418,20 +597,27 @@ class YOLODataset(BaseDataset):
         batch = [dict(sorted(b.items())) for b in batch]  # make sure the keys are in the same order
         keys = batch[0].keys()
         values = list(zip(*[list(b.values()) for b in batch]))
+        p2_lists = {}
         for i, k in enumerate(keys):
             value = values[i]
             if k in {"img", "text_feats", "semantic_mask", "sem_masks", "depth"}:
                 value = torch.stack(value, 0)
             elif k == "visuals":
                 value = torch.nn.utils.rnn.pad_sequence(value, batch_first=True)
-            if k in {"masks", "keypoints", "bboxes", "cls", "segments", "obb"}:
+            if k in {"masks", "keypoints", "bboxes", "cls", "segments", "obb", "d3_params", "d3_valid"}:
                 value = torch.cat(value, 0)
+            if k in {"p2", "p2_aug"}:
+                p2_lists[k] = list(value)
+                continue
             new_batch[k] = value
         if "batch_idx" in new_batch:
             new_batch["batch_idx"] = list(new_batch["batch_idx"])
             for i in range(len(new_batch["batch_idx"])):
                 new_batch["batch_idx"][i] += i  # add target image index for build_targets()
             new_batch["batch_idx"] = torch.cat(new_batch["batch_idx"], 0)
+        if p2_lists:
+            new_batch["p2s"] = p2_lists.get("p2", [])
+            new_batch["p2s_aug"] = p2_lists.get("p2_aug", [])
         return new_batch
 
 

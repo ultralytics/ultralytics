@@ -120,6 +120,65 @@ Discover more examples in the YOLO [Python Docs](https://docs.ultralytics.com/us
 
 </details>
 
+<details>
+<summary>Monocular 3D detection (KITTI)</summary>
+
+### Dataset preparation
+
+Detect3D expects the KITTI object images, camera calibration, untouched official annotations, and converted training
+labels to share the same file stem:
+
+```text
+kitti_mono3d/
+├── train/{images,labels,calib,label_2}/000000.*
+└── val/{images,labels,calib,label_2}/000001.*
+```
+
+Set `path` in `ultralytics/cfg/datasets/kitti/kitti3d.yaml` to this dataset root. Keep each original KITTI `label_2`
+file unchanged for `kitti_eval=full` and its corresponding calibration file, including the `P2` projection matrix, in
+`calib`. Convert supported objects to one 12-column row per object in `labels`:
+
+```text
+class cx cy width height z x y width_3d height_3d length_3d rotation_y
+```
+
+Clip the official 2D box to the image before converting it to normalized `cx cy width height`. The remaining values are
+KITTI camera coordinates and dimensions in meters, with `rotation_y` in radians. The default class mapping is `Car=0`,
+`Pedestrian=1`, and `Cyclist=2`; ignore `DontCare` and classes outside this mapping. A conventional Chen split contains
+3,712 training and 3,769 validation images, while custom splits must keep all four directories aligned by stem.
+
+### Train, validate, predict, and export
+
+```bash
+# Train a lightweight YOLO26n Detect3D model.
+yolo detect3d train model=yolo26n-3d.yaml pretrained=yolo26n.pt data=/path/to/kitti3d.yaml \
+  epochs=100 imgsz=1280 rect=True batch=16 device=0 seed=0 deterministic=True cos_lr=True
+
+# Run generic metrics and the full KITTI R40 evaluation.
+yolo detect3d val model=/path/to/best.pt data=/path/to/kitti3d.yaml \
+  split=val imgsz=1280 rect=True device=0 kitti_eval=full plots=True
+
+# Project 3D boxes using one calibration file or a directory of stem-matched files.
+yolo detect3d predict model=/path/to/best.pt source=/path/to/images calib=/path/to/calib \
+  imgsz=1280 device=0 save=True
+
+# Export a static KITTI-shaped ONNX model; use dynamic=True when variable shapes are required.
+yolo detect3d export model=/path/to/best.pt format=onnx imgsz='[416,1280]' \
+  batch=1 opset=17 simplify=True dynamic=False
+```
+
+Contributor-provided evaluation checkpoints, logs, curves, KITTI R40 metrics, and checksums are available in the
+[`detect3d-v0.1.0` release](https://github.com/Dorablank/ultralytics/releases/tag/detect3d-v0.1.0). The PT checkpoints
+were trained with an earlier contributor version, are not official Ultralytics weights, and were revalidated and
+exported to ONNX with the final Detect3D code.
+
+KITTI data is not included in this repository or in the release. Download it from the
+[KITTI Vision Benchmark Suite](https://www.cvlibs.net/datasets/kitti/) and follow its current terms; KITTI data is
+provided under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 license. Ultralytics code and model use
+also remain subject to the licenses described in this repository.
+
+</details>
+
 ## ✨ Models
 
 Ultralytics supports a wide range of YOLO models, from early versions like [YOLOv3](https://docs.ultralytics.com/models/yolov3) to the latest [YOLO26](https://docs.ultralytics.com/models/yolo26). The tables below showcase YOLO26 models pretrained on [COCO](https://docs.ultralytics.com/datasets/detect/coco) for [Detection](https://docs.ultralytics.com/tasks/detect), [Segmentation](https://docs.ultralytics.com/tasks/segment), and [Pose Estimation](https://docs.ultralytics.com/tasks/pose). [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic) models are pretrained on [Cityscapes](https://docs.ultralytics.com/datasets/semantic/cityscapes), [Depth Estimation](https://docs.ultralytics.com/tasks/depth) models are pretrained on a broad multi-dataset mix and evaluated on [NYU Depth V2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html), and [Classification](https://docs.ultralytics.com/tasks/classify) models are pretrained on [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet). [Tracking](https://docs.ultralytics.com/modes/track) mode is compatible with Detection, Segmentation, Pose, and OBB models. All [Models](https://docs.ultralytics.com/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.

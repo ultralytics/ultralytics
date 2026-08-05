@@ -265,7 +265,9 @@ def verify_image_mask(args: tuple) -> tuple:
 
 def verify_image_label(args: tuple) -> list:
     """Verify one image-label pair."""
-    im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls = args
+    im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls, *task_flags = args
+    use_3d = bool(task_flags[0]) if task_flags else False
+    columns = 12 if use_3d else (5 + nkpt * ndim) if keypoint else 5
     # Number (missing, found, empty, corrupt), message, segments, keypoints
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
     try:
@@ -278,7 +280,7 @@ def verify_image_label(args: tuple) -> list:
             nf = 1  # label found
             with open(lb_file, encoding="utf-8") as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
-                if any(len(x) > 6 for x in lb) and (not keypoint):  # is segment
+                if any(len(x) > 6 for x in lb) and (not keypoint) and (not use_3d):  # is segment
                     classes = np.array([x[0] for x in lb], dtype=np.float32)
                     segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)
                     lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)
@@ -287,12 +289,24 @@ def verify_image_label(args: tuple) -> list:
                 if keypoint:
                     assert lb.shape[1] == (5 + nkpt * ndim), f"labels require {(5 + nkpt * ndim)} columns each"
                     points = lb[:, 5:].reshape(-1, ndim)[:, :2]
+                elif use_3d:
+                    assert lb.shape[1] == 12, f"3D labels require 12 columns (cls + 11), {lb.shape[1]} columns detected"
+                    assert np.isfinite(lb).all(), "3D labels contain NaN or infinity"
+                    points = lb[:, 1:5]  # cx, cy, w, h (2D box)
                 else:
                     assert lb.shape[1] == 5, f"labels require 5 columns, {lb.shape[1]} columns detected"
                     points = lb[:, 1:]
                 # Coordinate points check with 1% tolerance
                 assert points.max() <= 1.01, f"non-normalized or out of bounds coordinates {points[points > 1.01]}"
-                assert lb.min() >= -0.01, f"negative class labels or coordinate {lb[lb < -0.01]}"
+                if not use_3d:
+                    assert lb.min() >= -0.01, f"negative class labels or coordinate {lb[lb < -0.01]}"
+                else:
+                    # For 3D labels, only check class_id >= 0 and 2D coords (columns 1-4) are normalized
+                    assert lb[:, 0].min() >= 0, f"negative class labels {lb[lb[:, 0] < 0]}"
+                    assert points.min() >= -0.01, f"negative 2D coordinate {points[points < -0.01]}"
+                    assert (lb[:, 5] > 0).all(), f"3D depth must be positive, found {lb[:, 5][lb[:, 5] <= 0]}"
+                    dims = lb[:, [8, 9, 10]]  # w3d, h3d, l3d
+                    assert (dims > 0).all(), f"3D dimensions must be positive, found {dims[dims <= 0]}"
 
                 # All labels
                 max_cls = 0 if single_cls else lb[:, 0].max()  # max label count
@@ -308,16 +322,17 @@ def verify_image_label(args: tuple) -> list:
                     msg = f"{prefix}{im_file}: {nl - len(i)} duplicate labels removed"
             else:
                 ne = 1  # label empty
-                lb = np.zeros((0, (5 + nkpt * ndim) if keypoint else 5), dtype=np.float32)
+                lb = np.zeros((0, columns), dtype=np.float32)
         else:
             nm = 1  # label missing
-            lb = np.zeros((0, (5 + nkpt * ndim) if keypoint else 5), dtype=np.float32)
+            lb = np.zeros((0, columns), dtype=np.float32)
         if keypoint:
             keypoints = lb[:, 5:].reshape(-1, nkpt, ndim)
             if ndim == 2:
                 kpt_mask = np.where((keypoints[..., 0] < 0) | (keypoints[..., 1] < 0), 0.0, 1.0).astype(np.float32)
                 keypoints = np.concatenate([keypoints, kpt_mask[..., None]], axis=-1)  # (nl, nkpt, 3)
-        lb = lb[:, :5]
+        if not use_3d:
+            lb = lb[:, :5]
         return im_file, lb, shape, segments, keypoints, nm, nf, ne, nc, msg
     except Exception as e:
         nc = 1

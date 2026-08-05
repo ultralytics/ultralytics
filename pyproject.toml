@@ -182,6 +182,7 @@ ultralytics = "ultralytics.cfg:entrypoint"
 # Tools settings -------------------------------------------------------------------------------------------------------
 [tool.setuptools]  # configuration specific to the `setuptools` build backend.
 packages = { find = { where = ["."], include = ["ultralytics", "ultralytics.*"] } }
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
 # Tests included below for checking Conda builds in https://github.com/conda-forge/ultralytics-feedstock
 package-data = { "ultralytics" = ["**/*.yaml", "**/*.sh", "../tests/*.py"], "ultralytics.assets" = ["*.jpg"], "ultralytics.solutions.templates" = ["*.html"]}
 

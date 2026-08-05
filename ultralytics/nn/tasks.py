@@ -48,6 +48,7 @@ from ultralytics.nn.modules import (
     ConvTranspose,
     Depth,
     Detect,
+    Detect3D,
     DWConv,
     DWConvTranspose2d,
     Focus,
@@ -91,10 +92,12 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import REMOTE_FILE_PREFIXES, check_file, check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     DepthLoss26,
+    E2EDetect3DLoss,
     E2ELoss,
     PoseLoss26,
     SemanticSegmentationLoss,
     v8ClassificationLoss,
+    v8Detection3DLoss,
     v8DetectionLoss,
     v8OBBLoss,
     v8PoseLoss,
@@ -627,6 +630,38 @@ class OBBModel(DetectionModel):
     def init_criterion(self):
         """Initialize the loss criterion for the model."""
         return E2ELoss(self, v8OBBLoss) if getattr(self, "end2end", False) else v8OBBLoss(self)
+
+
+class Detection3DModel(DetectionModel):
+    """YOLO 3D detection model.
+
+    This class extends DetectionModel to handle 3D object detection tasks, providing specialized loss computation for
+    monocular 3D object detection with depth, 3D position, 3D dimensions, and rotation prediction.
+
+    Methods:
+        __init__: Initialize YOLO 3D detection model.
+        init_criterion: Initialize the loss criterion for 3D detection.
+
+    Examples:
+        Initialize a 3D detection model
+        >>> model = Detection3DModel("yolo11-3d.yaml", ch=3, nc=80)
+        >>> results = model.predict(image_tensor)
+    """
+
+    def __init__(self, cfg="yolo11-3d.yaml", ch=3, nc=None, verbose=True):
+        """Initialize YOLO 3D detection model with given config and parameters.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of classes.
+            verbose (bool): Whether to display model information.
+        """
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    def init_criterion(self):
+        """Initialize the loss criterion for the 3D detection model."""
+        return E2EDetect3DLoss(self) if getattr(self, "end2end", False) else v8Detection3DLoss(self)
 
 
 class SegmentationModel(DetectionModel):
@@ -2077,6 +2112,7 @@ def parse_model(d, ch, verbose=True):
         elif m in frozenset(
             {
                 Detect,
+                Detect3D,
                 WorldDetect,
                 YOLOEDetect,
                 Segment,
@@ -2092,7 +2128,19 @@ def parse_model(d, ch, verbose=True):
             args.extend([reg_max, end2end, [ch[x] for x in f]])
             if m is Segment or m is YOLOESegment or m is Segment26 or m is YOLOESegment26:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
+            if m in {
+                Detect,
+                Detect3D,
+                YOLOEDetect,
+                Segment,
+                Segment26,
+                YOLOESegment,
+                YOLOESegment26,
+                Pose,
+                Pose26,
+                OBB,
+                OBB26,
+            }:
                 m.legacy = legacy
         elif m is Depth:
             args = [*args[:1], [ch[x] for x in f]]  # c_mid, ch tuple; drops the legacy mode arg old checkpoints store
@@ -2176,7 +2224,7 @@ def guess_model_task(model):
         model (torch.nn.Module | dict | str | Path): PyTorch model, model configuration dict, or model file path.
 
     Returns:
-        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'obb', 'semantic', 'depth').
+        (str): Task of the model ('detect', 'detect3d', 'segment', 'classify', 'pose', 'obb', 'semantic', 'depth').
     """
 
     def cfg2task(cfg):
@@ -2184,6 +2232,8 @@ def guess_model_task(model):
         m = cfg["head"][-1][-2].lower()  # output module name
         if m in {"classify", "classifier", "cls", "fc"}:
             return "classify"
+        if "detect3d" in m:
+            return "detect3d"
         if "detect" in m:
             return "detect"
         if "semanticsegment" in m:
@@ -2222,13 +2272,17 @@ def guess_model_task(model):
                 return "obb"
             elif isinstance(m, Depth):
                 return "depth"
+            elif isinstance(m, Detect3D):
+                return "detect3d"
             elif isinstance(m, (Detect, WorldDetect, YOLOEDetect, v10Detect)):
                 return "detect"
 
     # Guess from model filename
     if isinstance(model, (str, Path)):
         model = Path(model)
-        if "-sem" in model.stem or "semantic" in model.parts:
+        if any(token in model.stem.lower() for token in ("-3d", "_3d", "detect3d", "mono3d")):
+            return "detect3d"
+        elif "-sem" in model.stem or "semantic" in model.parts:
             return "semantic"
         elif "-seg" in model.stem or "segment" in model.parts:
             return "segment"
@@ -2246,6 +2300,7 @@ def guess_model_task(model):
     # Unable to determine task from model
     LOGGER.warning(
         "Unable to automatically guess model task, assuming 'task=detect'. "
-        "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify', 'pose', 'obb' or 'semantic'."
+        "Explicitly define task for your model, i.e. 'task=detect', 'detect3d', 'segment', 'classify', 'pose', 'obb', "
+        "'semantic' or 'depth'."
     )
     return "detect"  # assume detect

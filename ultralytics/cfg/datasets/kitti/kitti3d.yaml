@@ -1,0 +1,25 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# KITTI monocular 3D detection with official R40 evaluation.
+# Expected split layout:
+# kitti_mono3d/{train,val}/{images,labels,calib,label_2}/000000.*
+# `labels` contains the internal 12-column training targets; `label_2` preserves the untouched official annotations.
+
+path: kitti_mono3d
+train: train/images
+val: val/images
+
+label_dir: labels
+calib_dir: calib
+kitti_label_dir: label_2
+
+# 3D supervision gate. Filtered instances still train the 2D detector.
+min_3d_depth: 2.0
+max_3d_depth: 65.0
+min_3d_box_height: 25.0
+max_3d_center_offset: 0.5
+
+names:
+  0: Car
+  1: Pedestrian
+  2: Cyclist

@@ -3,7 +3,7 @@
 # Global configuration YAML with settings and hyperparameters for YOLO training, validation, prediction and export
 # For documentation see https://docs.ultralytics.com/usage/cfg
 
-task: detect # (str) YOLO task, i.e. detect, segment, semantic, depth, classify, pose, obb
+task: detect # (str) YOLO task, i.e. detect, detect3d, segment, semantic, depth, classify, pose, obb
 mode: train # (str) YOLO mode, i.e. train, val, predict, export, track, benchmark
 
 # Train settings -------------------------------------------------------------------------------------------------------
@@ -62,6 +62,7 @@ end2end: # (bool, optional) whether to use end2end head (YOLO26, YOLOv10) for pr
 
 # Predict settings -----------------------------------------------------------------------------------------------------
 source: # (str, optional) path/dir/URL/stream for images or videos; e.g. 'ultralytics/assets' or '0' for webcam
+calib: # (str, optional) Detect3D camera calibration file or directory containing stem-matched calibration files
 vid_stride: 1 # (int) read every Nth frame for video sources
 stream_buffer: False # (bool) True buffers all frames; False keeps the most recent frame for low-latency streams
 visualize: False # (bool) save class activation heatmaps (predict) or visualize TP/FP/FN confusion (val)
@@ -106,6 +107,22 @@ box: 7.5 # (float) box loss gain
 cls: 0.5 # (float) classification loss gain
 cls_pw: 0.0 # (float) class weights power for handling class imbalance (0.0=disable, 1.0=full inverse frequency)
 dfl: 1.5 # (float) distribution focal loss gain
+center3d: 2.0 # (float) box-relative 3D center projection loss gain (detect3d tasks)
+d3_geometry_gain: 2.0 # (float) multiplier for center/depth/dimension/3D-corner/projected-corner losses
+depth: 5.0 # (float) 3D depth loss gain (detect3d tasks)
+depth_beta: 0.2 # (float) SmoothL1 beta for direct log-depth regression
+depth_z: 0.1 # (float) bounded absolute camera-Z auxiliary gain inside depth loss; 0 disables it
+depth_z_tau: 2.0 # (float) meters controlling saturation of the bounded absolute camera-Z auxiliary
+alpha: 1.0 # (float) 3D MultiBin alpha loss gain (detect3d tasks)
+dim: 1.0 # (float) class-mean 3D dimension residual loss gain (detect3d tasks)
+corner3d: 1.0 # (float) disentangled camera-space 3D corner loss gain
+keypoint3d: 1.0 # (float) training-only projected 3D corner auxiliary loss gain
+quality3d: 1.0 # (float) 3D localization-quality ranking loss gain
+quality3d_gamma: 2.0 # (float) quality focal modulation exponent
+quality3d_power: 0.5 # (float) inference exponent for blending q3d into class confidence
+kitti_eval: "off" # (str) official KITTI label_2 eval: disabled by default; explicitly select fast|full when needed
+far_3d_depth: 60.0 # (float) depth above which valid 3D targets are softly down-weighted
+far_3d_weight: 0.2 # (float) 3D loss weight for targets beyond far_3d_depth
 pose: 12.0 # (float) pose loss gain (pose tasks)
 kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)
 rle: 1.0 # (float) rle loss gain (pose tasks)

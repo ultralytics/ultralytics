@@ -10,6 +10,15 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
+from ultralytics.utils.geometry3d import (
+    backproject_points_torch,
+    boxes3d_corners_torch,
+    decode_alpha_multibin,
+    encode_alpha_multibin,
+    paired_boxes3d_iou_torch,
+    project_points_torch,
+    wrap_angle_torch,
+)
 from ultralytics.utils.metrics import CITYSCAPES_WEIGHT, OKS_SIGMA, RLE_WEIGHT
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
@@ -484,6 +493,383 @@ class v8DetectionLoss:
         batch_size = preds["boxes"].shape[0]
         loss, loss_detach = self.get_assigned_targets_and_loss(preds, batch)[1:]
         return loss * batch_size, loss_detach
+
+
+def quality_focal_loss_with_logits(logits: torch.Tensor, target: torch.Tensor, beta: float = 2.0) -> torch.Tensor:
+    """Return quality focal loss for a continuous localization target in ``[0, 1]``."""
+    if beta < 0.0 or not math.isfinite(beta):
+        raise ValueError(f"quality focal beta must be finite and non-negative, got {beta}")
+    target = target.to(dtype=logits.dtype).clamp(0.0, 1.0)
+    modulation = (logits.sigmoid() - target).abs().pow(beta)
+    return F.binary_cross_entropy_with_logits(logits, target, reduction="none") * modulation
+
+
+def weighted_smooth_l1_loss_fp32(
+    pred: torch.Tensor, target: torch.Tensor, weight: torch.Tensor, normalizer: torch.Tensor | float
+) -> torch.Tensor:
+    """Return a weighted SmoothL1 mean with FP32 accumulation to prevent large-batch AMP overflow."""
+    elementwise = F.smooth_l1_loss(pred.float(), target.float(), reduction="none").mean(-1, keepdim=True)
+    denominator = (
+        normalizer.float()
+        if isinstance(normalizer, torch.Tensor)
+        else torch.tensor(normalizer, device=elementwise.device, dtype=torch.float32)
+    )
+    loss = (elementwise * weight.float()).sum() / denominator.clamp_min(1.0)
+    if not torch.isfinite(loss):
+
+        def finite_max(value: torch.Tensor) -> float:
+            finite = value.detach().float()[torch.isfinite(value.detach())]
+            return finite.abs().max().item() if finite.numel() else float("nan")
+
+        raise FloatingPointError(
+            "Non-finite center3d loss: "
+            f"pred_nonfinite={(~torch.isfinite(pred)).sum().item()}, pred_absmax={finite_max(pred):.6g}, "
+            f"target_nonfinite={(~torch.isfinite(target)).sum().item()}, target_absmax={finite_max(target):.6g}, "
+            f"weight_nonfinite={(~torch.isfinite(weight)).sum().item()}, weight_absmax={finite_max(weight):.6g}, "
+            f"normalizer={float(denominator.detach()):.6g}"
+        )
+    return loss
+
+
+class v8Detection3DLoss(v8DetectionLoss):
+    """MonoCon-Lite/MonoDLE-style criterion for a lightweight YOLO monocular 3D detector.
+
+    It keeps YOLO's 2D task-aligned assignment, but balances 3D regression per ground-truth object instead of letting
+    low 2D IoU suppress the hardest 3D targets. The 3D objective combines box-relative projected center, direct
+    log-depth regression, class-mean dimension residuals, 12-bin observation angle, disentangled camera-space corners,
+    projected-corner auxiliary context, and a learned localization-quality score.
+    """
+
+    def __init__(
+        self, model: torch.nn.Module, tal_topk: int = 10, tal_topk2: int | None = None
+    ):  # model must be de-paralleled
+        """Initialize v8Detection3DLoss with model parameters and task-aligned assignment settings."""
+        super().__init__(model, tal_topk, tal_topk2)
+        self.head = model.model[-1]
+        self.loss_names = (
+            "box_loss",
+            "cls_loss",
+            "dfl_loss" if self.use_dfl else "l1_loss",
+            "center3d_loss",
+            "depth_loss",
+            "alpha_loss",
+            "dim_loss",
+            "corner3d_loss",
+            "keypoint3d_loss",
+            "quality3d_loss",
+        )
+        self.d3_geometry_gain = float(self.hyp.get("d3_geometry_gain", 1.0))
+        if not math.isfinite(self.d3_geometry_gain) or self.d3_geometry_gain <= 0.0:
+            raise ValueError(f"d3_geometry_gain must be finite and positive, got {self.d3_geometry_gain}")
+        self.depth_z = float(self.hyp.get("depth_z", 0.1))
+        if not math.isfinite(self.depth_z) or self.depth_z < 0.0:
+            raise ValueError(f"depth_z must be finite and non-negative, got {self.depth_z}")
+        self.depth_z_tau = float(self.hyp.get("depth_z_tau", 2.0))
+        if not math.isfinite(self.depth_z_tau) or self.depth_z_tau <= 0.0:
+            raise ValueError(f"depth_z_tau must be finite and positive, got {self.depth_z_tau}")
+        expected_nr = getattr(self.head, "geo_channels", 0) + 2 * getattr(self.head, "num_alpha_bins", 0)
+        if (
+            getattr(self.head, "nd", None) != 8
+            or getattr(self.head, "geo_channels", None) != 7
+            or getattr(self.head, "nr", None) != expected_nr
+        ):
+            raise ValueError(
+                "Mono3D loss requires Detect3D nd=8 with seven direct-geometry channels and a valid MultiBin layout, "
+                f"got nd={getattr(self.head, 'nd', None)}, geo_channels={getattr(self.head, 'geo_channels', None)}, "
+                f"nr={getattr(self.head, 'nr', None)}, expected_nr={expected_nr}"
+            )
+
+    def preprocess(self, targets: torch.Tensor, batch_size: int, scale_tensor: torch.Tensor) -> torch.Tensor:
+        """Preprocess 3D targets by converting to tensor format and scaling coordinates.
+
+        Input includes a final per-object 3D-valid flag after the unchanged seven 3D label values.
+        """
+        nl, ne = targets.shape
+        if nl == 0:
+            out = torch.zeros(batch_size, 0, ne - 1, device=self.device)
+        else:
+            batch_idx = targets[:, 0].long()  # image index
+            _, counts = batch_idx.unique(return_counts=True)
+            counts = counts.to(dtype=torch.int32)
+            out = torch.zeros(batch_size, counts.max(), ne - 1, device=self.device)
+            offsets = torch.zeros(batch_size + 1, dtype=torch.long, device=self.device)
+            offsets.scatter_add_(0, batch_idx + 1, torch.ones_like(batch_idx))
+            offsets = offsets.cumsum(0)
+            within_idx = torch.arange(nl, device=self.device) - offsets[batch_idx]
+            out[batch_idx, within_idx] = targets[:, 1:]
+            # Convert cx,cy,w,h to xyxy (columns 1-4 after cls)
+            out[..., 1:5] = xywh2xyxy(out[..., 1:5].mul_(scale_tensor))
+        return out
+
+    def get_assigned_targets_and_loss(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> tuple:
+        """Calculate the standard 2D losses and geometry-balanced monocular 3D losses."""
+        n_loss = len(self.loss_names)
+        loss = torch.zeros(n_loss, device=self.device)
+
+        pred_distri, pred_scores = (
+            preds["boxes"].permute(0, 2, 1).contiguous(),
+            preds["scores"].permute(0, 2, 1).contiguous(),
+        )
+        pred_d3 = preds["d3_params"].permute(0, 2, 1).contiguous()
+        pred_aux = preds.get("d3_aux")
+        pred_aux = pred_aux.permute(0, 2, 1).contiguous() if pred_aux is not None else None
+        anchor_points, stride_tensor = make_anchors(preds["feats"], self.stride, 0.5)
+
+        dtype = pred_scores.dtype
+        batch_size = pred_scores.shape[0]
+        imgsz = torch.tensor(preds["feats"][0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]
+
+        # Labels on disk remain unchanged. d3_valid is generated by the dataset from original geometry/difficulty.
+        d3_valid = batch.get("d3_valid")
+        if d3_valid is None:
+            d3_values = batch["bboxes"][:, 4:11]
+            d3_valid = (
+                torch.isfinite(d3_values).all(1)
+                & (d3_values[:, 0] >= 2.0)
+                & (d3_values[:, 0] <= 65.0)
+                & (d3_values[:, 3:6] > 0).all(1)
+            ).to(batch["bboxes"].dtype)[:, None]
+        targets = torch.cat(
+            (
+                batch["batch_idx"].view(-1, 1),
+                batch["cls"].view(-1, 1),
+                batch["bboxes"],
+                d3_valid.view(-1, 1),
+            ),
+            1,
+        )
+        targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
+
+        gt_labels = targets[:, :, 0:1]  # cls
+        gt_bboxes = targets[:, :, 1:5]  # xyxy
+        gt_d3 = targets[:, :, 5:12]
+        gt_d3_valid = targets[:, :, 12:13].gt(0.5)
+        mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
+
+        # Pboxes
+        pred_bboxes = self.bbox_decode(anchor_points, pred_distri)
+
+        _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
+            pred_scores.detach().sigmoid(),
+            (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
+            anchor_points * stride_tensor,
+            gt_labels,
+            gt_bboxes,
+            mask_gt,
+        )
+
+        target_scores_sum = max(target_scores.sum(), 1)
+
+        # Cls loss
+        bce_loss = self.bce(pred_scores, target_scores.to(dtype))
+        if self.class_weights is not None:
+            bce_loss *= self.class_weights
+        loss[1] = bce_loss.sum() / target_scores_sum
+
+        # Bbox loss
+        if fg_mask.sum():
+            loss[0], loss[2] = self.bbox_loss(
+                pred_distri,
+                pred_bboxes,
+                anchor_points,
+                target_bboxes / stride_tensor,
+                target_scores,
+                target_scores_sum,
+                fg_mask,
+                imgsz,
+                stride_tensor,
+            )
+
+            # Gather matched GT values for all TAL positives. 2D loss still uses every labeled object.
+            bs_idx = torch.arange(batch_size, device=self.device)[:, None].expand_as(fg_mask)
+            gt_d3_expanded = gt_d3[bs_idx, target_gt_idx]
+            target_d3_all = gt_d3_expanded[fg_mask]
+            target_valid_all = gt_d3_valid[bs_idx, target_gt_idx][fg_mask].squeeze(-1)
+            target_boxes_all = target_bboxes[fg_mask]
+            pred_boxes_all = (pred_bboxes.detach() * stride_tensor)[fg_mask]
+            target_labels_all = gt_labels[bs_idx, target_gt_idx][fg_mask].squeeze(-1).long()
+            pred_d3_all = pred_d3[fg_mask]
+            pred_aux_all = pred_aux[fg_mask] if pred_aux is not None else None
+            batch_indices_all = bs_idx[fg_mask]
+            gt_indices_all = target_gt_idx[fg_mask]
+
+            finite_target = torch.isfinite(target_d3_all).all(1)
+            valid = target_valid_all & finite_target
+            if valid.any():
+                target_d3 = target_d3_all[valid].float()
+                target_boxes = target_boxes_all[valid].float()
+                matched_pred_boxes = pred_boxes_all[valid].float()
+                target_labels_3d = target_labels_all[valid]
+                raw = pred_d3_all[valid].float()
+                raw_aux = pred_aux_all[valid].float() if pred_aux_all is not None else None
+                batch_indices = batch_indices_all[valid]
+                gt_indices = gt_indices_all[valid]
+
+                # Normalize TAL weights within each object, then average objects equally. This prevents far/occluded
+                # objects from receiving almost no 3D gradient merely because their 2D IoU target is low.
+                raw_weight = target_scores[fg_mask].sum(-1, keepdim=True)[valid].float().clamp_min(1e-4)
+                max_gt = max(gt_d3.shape[1], 1)
+                object_key = batch_indices * max_gt + gt_indices
+                totals = raw_weight.new_zeros(batch_size * max_gt)
+                totals.scatter_add_(0, object_key, raw_weight[:, 0])
+                weight = raw_weight / totals[object_key, None].clamp_min(1e-6)
+                normalizer_3d = raw_weight.new_tensor(float(object_key.unique().numel())).clamp_min(1.0)
+
+                gt_dist = target_d3[:, 0:1]
+                gt_xc = target_d3[:, 1:2]
+                gt_y_bottom = target_d3[:, 2:3]
+                gt_w3d, gt_h3d, gt_l3d = target_d3[:, 3:4], target_d3[:, 4:5], target_d3[:, 5:6]
+                gt_ry = target_d3[:, 6:7]
+                gt_dims = torch.cat((gt_h3d, gt_w3d, gt_l3d), 1)
+
+                far_depth = float(self.hyp.get("far_3d_depth", 60.0))
+                far_weight = float(self.hyp.get("far_3d_weight", 0.2))
+                weight *= torch.where(gt_dist > far_depth, far_weight, 1.0)
+
+                p2s_aug = batch.get("p2s_aug")
+                if p2s_aug is None or len(p2s_aug) != batch_size or any(p2 is None for p2 in p2s_aug):
+                    raise RuntimeError("detect3d loss requires one valid augmented P2 matrix per batch image")
+                p2_batch = torch.stack([torch.as_tensor(p2, device=self.device, dtype=torch.float32) for p2 in p2s_aug])
+                p2_for_pos = p2_batch[batch_indices]
+
+                gt_box_center = (target_boxes[:, :2] + target_boxes[:, 2:4]) * 0.5
+                gt_box_size = (target_boxes[:, 2:4] - target_boxes[:, :2]).clamp_min(1.0)
+                reference_valid = torch.isfinite(matched_pred_boxes).all(1, keepdim=True)
+                reference_center = (matched_pred_boxes[:, :2] + matched_pred_boxes[:, 2:4]) * 0.5
+                reference_size = matched_pred_boxes[:, 2:4] - matched_pred_boxes[:, :2]
+                reference_valid &= torch.isfinite(reference_size).all(1, keepdim=True) & (reference_size > 0).all(
+                    1, keepdim=True
+                )
+                # TAL positives normally have well-formed boxes. The GT fallback prevents a single malformed early
+                # prediction from manufacturing a non-finite 3D target, while the 1 px floor matches deploy-time decode.
+                box_center = torch.where(reference_valid, reference_center, gt_box_center)
+                box_size = torch.where(reference_valid, reference_size, gt_box_size).clamp_min(1.0)
+                gt_center = torch.cat((gt_xc, gt_y_bottom - gt_h3d * 0.5, gt_dist), 1)
+                gt_pixel = project_points_torch(gt_center, p2_for_pos).float()
+                target_center_offset = (gt_pixel - box_center) / box_size
+
+                def weighted_mean(elementwise: torch.Tensor) -> torch.Tensor:
+                    return (elementwise.float() * weight).sum() / normalizer_3d
+
+                # 1) Projected center relative to the matched 2D box, invariant across FPN stride.
+                center_element = F.smooth_l1_loss(raw[:, :2], target_center_offset, reduction="none").mean(1, True)
+                loss[3] = weighted_mean(center_element)
+
+                # 2) Continuous direct log-depth SmoothL1 with a bounded absolute camera-Z auxiliary.
+                target_log_depth = gt_dist.clamp_min(1e-3).log()
+                depth_beta = max(float(self.hyp.get("depth_beta", 0.2)), 1e-3)
+                pred_log_depth = raw[:, 2]
+                depth_element = F.smooth_l1_loss(
+                    pred_log_depth[:, None], target_log_depth, beta=depth_beta, reduction="none"
+                )
+                pred_depth = pred_log_depth.clamp(math.log(0.1), math.log(200.0)).exp()[:, None]
+                if self.depth_z > 0.0:
+                    z_huber = F.smooth_l1_loss(pred_depth, gt_dist, beta=1.0, reduction="none")
+                    z_bounded = -torch.expm1(-z_huber / self.depth_z_tau)
+                    depth_element = depth_element + self.depth_z * z_bounded
+                loss[4] = weighted_mean(depth_element)
+
+                # 3) Class mean * exp(residual) dimensions.
+                priors = self.head.dim_priors.to(device=self.device, dtype=torch.float32)[target_labels_3d]
+                target_dim_residual = (gt_dims / priors).clamp_min(1e-4).log()
+                dim_element = F.smooth_l1_loss(raw[:, 3:6], target_dim_residual, reduction="none").mean(1, True)
+                loss[6] = weighted_mean(dim_element)
+                pred_dims = priors * raw[:, 3:6].clamp(-4.0, 4.0).exp()
+
+                # 4) MultiBin alpha classification + bounded within-bin residual.
+                gt_alpha = wrap_angle_torch(gt_ry[:, 0] - torch.atan2(gt_xc[:, 0], gt_dist[:, 0]))
+                bin_target, residual_target = encode_alpha_multibin(gt_alpha, self.head.num_alpha_bins)
+                direction = raw[:, self.head.geo_channels :]
+                bin_logits = direction[:, : self.head.num_alpha_bins]
+                residual_logits = direction[:, self.head.num_alpha_bins :]
+                residual_pred = residual_logits.gather(1, bin_target[:, None]).tanh() * (
+                    math.pi / self.head.num_alpha_bins
+                )
+                alpha_cls = F.cross_entropy(bin_logits, bin_target, reduction="none")[:, None]
+                alpha_reg = F.smooth_l1_loss(residual_pred, residual_target[:, None], beta=0.1, reduction="none")
+                loss[5] = weighted_mean(alpha_cls + alpha_reg)
+                # Use the target bin for the training-only corner objective.  Argmax decoding is appropriate for
+                # inference, but at initialization it would route every sample through bin 0 and send contradictory
+                # corner gradients to one residual head until the classification logits happen to switch bins.
+                pred_alpha_for_corner = wrap_angle_torch(
+                    bin_target.to(residual_pred.dtype) * (2.0 * math.pi / self.head.num_alpha_bins)
+                    + residual_pred[:, 0]
+                )
+
+                # Decode camera center and yaw for complete-box geometry supervision.
+                pred_pixel = box_center + raw[:, :2] * box_size
+                pred_center = backproject_points_torch(pred_pixel, pred_depth[:, 0], p2_for_pos).float()
+                gt_ray = torch.atan2(gt_center[:, 0], gt_center[:, 2])
+                pred_ry_disentangled = wrap_angle_torch(pred_alpha_for_corner + gt_ray)
+                gt_corners = boxes3d_corners_torch(gt_center, gt_dims, gt_ry[:, 0])
+
+                # 5) SMOKE-style disentangled corner loss: center, dimensions, and rotation receive stable gradients.
+                center_corners = boxes3d_corners_torch(pred_center, gt_dims, gt_ry[:, 0])
+                dim_corners = boxes3d_corners_torch(gt_center, pred_dims, gt_ry[:, 0])
+                rot_corners = boxes3d_corners_torch(gt_center, gt_dims, pred_ry_disentangled)
+                corner_parts = [
+                    F.smooth_l1_loss(value, gt_corners, beta=1.0, reduction="none").mean((1, 2), keepdim=False)[:, None]
+                    for value in (center_corners, dim_corners, rot_corners)
+                ]
+                loss[7] = weighted_mean(torch.stack(corner_parts, 0).mean(0))
+
+                # 6) MonoCon-style training-only projected corners, normalized by the 2D box size. Supervise only
+                # visible corners: heavily truncated KITTI objects can project far outside a very narrow visible box,
+                # and treating those off-image coordinates as ordinary regression targets destabilizes this auxiliary
+                # branch without adding useful image evidence.
+                if raw_aux is not None:
+                    corner_pixels = project_points_torch(gt_corners, p2_for_pos).float()
+                    target_aux = (corner_pixels - box_center[:, None]) / box_size[:, None]
+                    visible = (
+                        torch.isfinite(corner_pixels).all(2)
+                        & (gt_corners[..., 2] > 1e-3)
+                        & (corner_pixels[..., 0] >= 0.0)
+                        & (corner_pixels[..., 0] < imgsz[1].float())
+                        & (corner_pixels[..., 1] >= 0.0)
+                        & (corner_pixels[..., 1] < imgsz[0].float())
+                    )
+                    raw_aux_corners = raw_aux.reshape(-1, 8, 2)
+                    # Replace invisible/non-finite targets before SmoothL1: multiplying inf by a zero mask gives NaN.
+                    safe_target_aux = torch.where(visible[..., None], target_aux, raw_aux_corners.detach())
+                    aux_per_corner = F.smooth_l1_loss(raw_aux_corners, safe_target_aux, reduction="none").mean(2)
+                    visible_float = visible.float()
+                    aux_element = (aux_per_corner * visible_float).sum(1, keepdim=True) / visible_float.sum(
+                        1, keepdim=True
+                    ).clamp_min(1.0)
+                    loss[8] = weighted_mean(aux_element)
+
+                # 7) Complete 3D localization quality for AP ranking with a detached target.
+                # q3d must describe the box that inference will actually decode. Unlike the differentiable corner
+                # objective above, use the predicted winning bin here; otherwise a wrong orientation class could still
+                # receive a high quality target through teacher-forced GT-bin geometry. This target is detached, so the
+                # hard argmax does not create a gradient discontinuity in the orientation branch.
+                with torch.no_grad():
+                    decoded_alpha = decode_alpha_multibin(bin_logits, residual_logits)
+                    decoded_ry = wrap_angle_torch(decoded_alpha + torch.atan2(pred_center[:, 0], pred_center[:, 2]))
+                    quality_target = paired_boxes3d_iou_torch(
+                        pred_center, pred_dims, decoded_ry, gt_center, gt_dims, gt_ry[:, 0]
+                    )[:, None]
+                quality_element = quality_focal_loss_with_logits(
+                    raw[:, 6:7], quality_target, beta=float(self.hyp.get("quality3d_gamma", 2.0))
+                )
+                loss[9] = weighted_mean(quality_element)
+
+        loss[0] *= self.hyp.box  # box gain
+        loss[1] *= self.hyp.cls  # cls gain
+        loss[2] *= self.hyp.dfl  # dfl gain
+        loss[3] *= self.hyp.get("center3d", 5.0) * self.d3_geometry_gain  # center3d gain
+        loss[4] *= self.hyp.get("depth", 5.0) * self.d3_geometry_gain  # depth gain
+        loss[5] *= self.hyp.get("alpha", 1.0)  # MultiBin alpha gain
+        loss[6] *= self.hyp.get("dim", 1.0) * self.d3_geometry_gain  # dimension residual gain
+        loss[7] *= self.hyp.get("corner3d", 1.0) * self.d3_geometry_gain  # camera-corner gain
+        loss[8] *= self.hyp.get("keypoint3d", 1.0) * self.d3_geometry_gain  # projected-corner gain
+        loss[9] *= self.hyp.get("quality3d", 1.0)  # localization-quality gain
+
+        return (
+            (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor),
+            loss,
+            dict(zip(self.loss_names, loss.detach())),
+        )
 
 
 class v8SegmentationLoss(v8DetectionLoss):
@@ -1310,6 +1696,22 @@ class E2ELoss:
     def decay(self, x) -> float:
         """Calculate the decayed weight for one-to-many loss based on the current update step."""
         return max(1 - x / max(self.one2one.hyp.epochs - 1, 1), 0) * (self.o2m_copy - self.final_o2m) + self.final_o2m
+
+
+class E2EDetect3DLoss(E2ELoss):
+    """End-to-end Detect3D criterion with logs aligned to the blended optimization objective."""
+
+    def __init__(self, model: torch.nn.Module):
+        """Initialize one-to-many and one-to-one Detect3D losses."""
+        super().__init__(model, v8Detection3DLoss)
+
+    def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        """Calculate the blended Detect3D loss and correspondingly blended log items."""
+        preds = self.one2many.parse_output(preds)
+        loss_one2many = self.one2many.loss(preds["one2many"], batch)
+        loss_one2one = self.one2one.loss(preds["one2one"], batch)
+        items = {key: loss_one2many[1][key] * self.o2m + loss_one2one[1][key] * self.o2o for key in loss_one2many[1]}
+        return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, items
 
 
 class TVPDetectLoss:

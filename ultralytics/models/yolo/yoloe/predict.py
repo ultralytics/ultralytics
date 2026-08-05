@@ -46,6 +46,14 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         """
         self.prompts = prompts
 
+    @staticmethod
+    def is_per_image(prompts: dict) -> bool:
+        """Return True if 'bboxes' and 'cls' hold one array per image rather than one flat set for a single image."""
+        return all(
+            isinstance(prompts.get(k), list) and all(isinstance(x, np.ndarray) for x in prompts[k])
+            for k in ("bboxes", "cls")
+        )
+
     def preprocess(self, im):
         """Preprocess images, converting dict prompts for tensor sources that never pass through pre_transform."""
         if isinstance(im, torch.Tensor) and isinstance(self.prompts, dict):
@@ -87,7 +95,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         img = super().pre_transform(im)
         if not isinstance(self.prompts, dict):  # already converted (tensor source, or re-entry at batch=1)
             return img
-        if len(img) == 1:
+        if len(img) == 1 and not self.is_per_image(self.prompts):
             self.prompts = self._prompts_to_tensor(img[0].shape[:2], im[0].shape[:2])
         else:
             bboxes = self.prompts.get("bboxes", None)

@@ -234,12 +234,14 @@ class YOLOE(Model):
         Load a YOLOE segmentation model
         >>> model = YOLOE("yoloe-11s-seg.pt")
 
-        Set vocabulary and class names
-        >>> model.set_vocab(["person", "car", "dog"], ["person", "car", "dog"])
+        Predict with visual prompts, whose 'cls' holds one class index per box
+        >>> from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
+        >>> prompts = {"bboxes": np.array([[10, 20, 100, 200]]), "cls": np.array([0])}
+        >>> results = model.predict("image.jpg", visual_prompts=prompts, predictor=YOLOEVPSegPredictor)
 
-        Predict with visual prompts
-        >>> prompts = {"bboxes": [[10, 20, 100, 200]], "cls": ["person"]}
-        >>> results = model.predict("image.jpg", visual_prompts=prompts)
+        Re-parameterize into a prompt-free model, which no longer accepts prompts
+        >>> names = ["person", "car", "dog"]
+        >>> model.set_vocab(model.get_vocab(names), names)
     """
 
     def __init__(self, model: str | Path = "yoloe-11s-seg.pt", task: str | None = None, verbose: bool = False) -> None:
@@ -297,14 +299,14 @@ class YOLOE(Model):
         assert isinstance(self.model, YOLOEModel)
         return self.model.get_visual_pe(img, visual)
 
-    def set_vocab(self, vocab: list[str], names: list[str]) -> None:
-        """Set vocabulary and class names for the YOLOE model.
+    def set_vocab(self, vocab: torch.nn.ModuleList, names: list[str]) -> None:
+        """Re-parameterize the model into a prompt-free one over the given class names.
 
-        This method configures the vocabulary and class names used by the model for text processing and classification
-        tasks. The model must be an instance of YOLOEModel.
+        The vocabulary is the fused classification layer `get_vocab` returns for the same names, not the names
+        themselves. The model must be an instance of YOLOEModel.
 
         Args:
-            vocab (list[str]): Vocabulary list containing tokens or words used by the model for text processing.
+            vocab (torch.nn.ModuleList): Fused classification layers returned by `get_vocab` for `names`.
             names (list[str]): List of class names that the model can detect or classify.
 
         Raises:
@@ -312,7 +314,8 @@ class YOLOE(Model):
 
         Examples:
             >>> model = YOLOE("yoloe-11s-seg.pt")
-            >>> model.set_vocab(["person", "car", "dog"], ["person", "car", "dog"])
+            >>> names = ["person", "car", "dog"]
+            >>> model.set_vocab(model.get_vocab(names), names)
         """
         assert isinstance(self.model, YOLOEModel)
         self.model.set_vocab(vocab, names=names)
@@ -454,8 +457,9 @@ class YOLOE(Model):
                 paths, URL/YouTube streams, PIL images, numpy arrays, or webcam indices.
             stream (bool): Whether to stream the prediction results. If True, results are yielded as a generator as they
                 are computed.
-            visual_prompts (dict[str, list]): Dictionary containing visual prompts for the model. Must include 'bboxes'
-                and 'cls' keys when non-empty.
+            visual_prompts (dict[str, np.ndarray | list[np.ndarray]]): Dictionary containing visual prompts for the
+                model. Must include 'bboxes' and 'cls' keys when non-empty, holding one array each per image when the
+                source holds more than one image and no refer_image is given, and one array each otherwise.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
             predictor (callable): Custom predictor class for visual prompt predictions. Defaults to
                 YOLOEVPDetectPredictor.
@@ -467,9 +471,10 @@ class YOLOE(Model):
         Examples:
             >>> model = YOLOE("yoloe-11s-seg.pt")
             >>> results = model.predict("path/to/image.jpg")
-            >>> # With visual prompts
-            >>> prompts = {"bboxes": [[10, 20, 100, 200]], "cls": ["person"]}
-            >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts)
+            >>> # With visual prompts, whose 'cls' holds one class index per box
+            >>> from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
+            >>> prompts = {"bboxes": np.array([[10, 20, 100, 200]]), "cls": np.array([0])}
+            >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts, predictor=YOLOEVPSegPredictor)
         """
         visual_prompts = visual_prompts if visual_prompts is not None else {}
         if len(visual_prompts):

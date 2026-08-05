@@ -1673,7 +1673,7 @@ class Exporter:
                 model_script += [
                     f"model_optimization_config(calibration, batch_size=8, calibset_size={calibration_size})",
                     "model_optimization_flavor(optimization_level=4, compression_level=0)",
-                    "post_quantization_optimization(adaround, policy=enabled, batch_size=8)",
+                    "post_quantization_optimization(adaround, policy=enabled, batch_size=1)",
                 ]
             else:
                 if one2one and task == "detect":

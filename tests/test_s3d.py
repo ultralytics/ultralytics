@@ -1127,6 +1127,38 @@ def test_drive_balanced_sampler_flattens_drive_concentration():
     assert drive_balanced_sampler(ids, drives, balance=1e6).weights.min() == 1.0, "large balance must be a no-op"
 
 
+def test_drive_map_accepts_zero_padded_and_plain_integer_keys():
+    """The drives map must resolve whether it is keyed "000003" or "3".
+
+    KITTI frame ids are zero-padded on disk, so `dataset.im_files` stems are "000003", while split files
+    conventionally key frames as plain integers ("3"). If only the exact stem is tried, every lookup misses,
+    every frame becomes its own single-frame drive, the cap becomes non-binding, and the sampler silently
+    degrades to uniform — a no-op that looks like a working feature. Verified against the real split file:
+    0/5 stems resolved by exact match, 5/5 by integer normalisation.
+    """
+    from ultralytics.models.yolo.s3d.train import drive_balanced_sampler
+
+    # Drive sizes must be UNEQUAL, otherwise the assertion cannot tell success from total failure: with two
+    # equal drives the cap yields one weight, and so does the all-singleton fallback. Sizes 50 and 10 with
+    # balance=1.0 give cap = 60/2 = 30, hence weights {min(1, 30/50), min(1, 30/10)} = {0.6, 1.0} — two
+    # distinct values, where a failed lookup produces 60 singletons, cap 1.0, and a single weight of 1.0.
+    stems = [f"{i:06d}" for i in range(60)]  # on-disk form
+    drive_of = lambda i: "drive_big" if i < 50 else "drive_small"  # noqa: E731
+    plain = {str(i): drive_of(i) for i in range(60)}  # split-file form
+    padded = {f"{i:06d}": drive_of(i) for i in range(60)}  # already-padded form
+
+    for label, mapping in (("plain-int keys", plain), ("zero-padded keys", padded)):
+        w = drive_balanced_sampler(stems, mapping, balance=1.0).weights
+        got = sorted(round(v, 6) for v in w.unique().tolist())
+        assert got == [0.6, 1.0], f"{label}: expected per-drive weights [0.6, 1.0], got {got}"
+
+    # Contrast: an unresolvable map must not masquerade as balanced. Every frame becomes its own drive, so
+    # the weights come out flat (their absolute value is an artefact of the cap) and sampling is uniform —
+    # which is why the function also warns about unmapped frames rather than relying on the weights to show it.
+    unmatched = drive_balanced_sampler(stems, {f"x{i}": "d" for i in range(60)}, balance=0.5).weights
+    assert len(unmatched.unique()) == 1, f"an unusable map must degrade to uniform, got {unmatched.unique()}"
+
+
 def test_dataset_without_drives_key_is_unaffected():
     """A dataset YAML with no `drives:` key must keep the default uniform/DistributedSampler behaviour."""
     from ultralytics.models.yolo.s3d.train import Stereo3DDetTrainer

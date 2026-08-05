@@ -347,12 +347,18 @@ def build_dataloader(
     """
     dataset_len = len(dataset)
     batch = min(batch, dataset_len)
-    sampler = sampler or (
-        None
-        if rank == -1
-        else distributed.DistributedSampler(dataset, shuffle=shuffle)
-        if shuffle
-        else ContiguousDistributedSampler(dataset)
+    # `is not None`, not truthiness: a Sampler defines __len__, so one that happens to be empty is falsy
+    # and would silently fall through to the default behaviour.
+    sampler = (
+        sampler
+        if sampler is not None
+        else (
+            None
+            if rank == -1
+            else distributed.DistributedSampler(dataset, shuffle=shuffle)
+            if shuffle
+            else ContiguousDistributedSampler(dataset)
+        )
     )
     samples = len(sampler) if sampler is not None else dataset_len
     drop_last = drop_last and bool(batch) and dataset_len % batch != 0

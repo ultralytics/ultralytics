@@ -58,8 +58,19 @@ def drive_balanced_sampler(
     Returns:
         (torch.utils.data.WeightedRandomSampler): Sampler over `range(len(image_ids))`, with replacement.
     """
+
     # Unmapped frames become their own singleton drive; the tuple key cannot collide with a drive string.
-    groups = [drives.get(str(i), (None, i)) for i in image_ids]
+    # KITTI frame ids appear zero-padded on disk ("000003") but split files conventionally key them as
+    # plain integers ("3"), so accept both. Without this every lookup misses, every frame becomes its own
+    # drive, and the sampler silently degrades to uniform — the exact failure this function exists to fix.
+    def _drive_of(stem: str):
+        if stem in drives:
+            return drives[stem]
+        if stem.isdigit() and (plain := str(int(stem))) in drives:
+            return drives[plain]
+        return (None, stem)  # singleton; the tuple key cannot collide with a drive string
+
+    groups = [_drive_of(str(i)) for i in image_ids]
     if unmapped := sum(1 for g in groups if isinstance(g, tuple)):
         LOGGER.warning(
             "s3d: %d of %d train frames are absent from the drives map and are treated as single-frame "

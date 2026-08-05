@@ -204,8 +204,8 @@ A rhino is easy because COCO already knows large animals. Licence plates are the
         <th>license-plate class added through <code>RefineDetectionTrainer</code></th>
     </tr>
     <tr>
-        <td><img src="https://cdn.ul.run/i/be4d28eb45d8cd5592f360f297f5397b.avif" alt="Pretrained model detects the car but not its plate" width="640"></td>
-        <td><img src="https://cdn.ul.run/i/0251838c2f5b75fcd6a09284875751be.avif" alt="Tuned model detects the license plate" width="640"></td>
+        <td><img src="https://cdn.ul.run/i/f17799a598ddf7922b809fcc8fd65151.avif" alt="Pretrained model detects the car but not its plate" width="640"></td>
+        <td><img src="https://cdn.ul.run/i/f2fabad2343e117bc02500f89a436763.avif" alt="Tuned model detects the license plate" width="640"></td>
     </tr>
 </table>
 

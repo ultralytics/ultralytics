@@ -13,7 +13,7 @@ from PIL import Image
 
 from ultralytics.cfg import TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
-from ultralytics.nn.tasks import guess_model_task, load_checkpoint, yaml_model_load
+from ultralytics.nn.tasks import BaseModel, guess_model_task, load_checkpoint, yaml_model_load
 from ultralytics.utils import (
     ARGV,
     ASSETS,
@@ -438,7 +438,8 @@ class Model(torch.nn.Module):
             (Iterator[torch.Tensor] | list[torch.Tensor]): Image embeddings, streamed when `stream=True`.
 
         Raises:
-            TypeError: If the model is not a PyTorch model. Exported formats expose no intermediate layers to embed.
+            TypeError: If the model is not an Ultralytics PyTorch model. Exported formats and third-party modules expose
+                no intermediate layers to embed.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")
@@ -449,6 +450,8 @@ class Model(torch.nn.Module):
             >>> print(results[0].boxes.shape)
         """
         self._check_is_pytorch_model()
+        if not isinstance(self.model, BaseModel):  # e.g. a super-gradients YOLO-NAS module, which has no layer list
+            raise TypeError(f"model='{type(self.model).__name__}' is not an Ultralytics model and cannot be embedded.")
         if not kwargs.get("embed"):
             kwargs["embed"] = [len(self.model.model) - 2]  # embed second-to-last layer if no indices passed
         return self.predict(source, stream, **kwargs)

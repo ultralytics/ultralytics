@@ -9,6 +9,7 @@ import torch
 from torch import nn
 
 from ultralytics.utils import IS_JETSON, LOGGER, is_jetson
+from ultralytics.utils.torch_utils import unwrap_model
 
 from .base import BaseBackend
 
@@ -71,6 +72,8 @@ class PyTorchBackend(BaseBackend):
 
         self.model = model
         self.end2end = getattr(model, "end2end", False)
+        # Unwrap first: a compiled or parallel wrapper forwards `augment` and `embed` on to the model it holds
+        self.base_model = isinstance(unwrap_model(model), BaseModel)
 
     def forward(
         self, im: torch.Tensor, augment: bool = False, embed: list | None = None, **kwargs: Any
@@ -86,6 +89,8 @@ class PyTorchBackend(BaseBackend):
         Returns:
             (torch.Tensor | list[torch.Tensor]): Model predictions as tensor(s).
         """
+        if not self.base_model:  # a foreign nn.Module defines no `augment`/`embed` contract to honour
+            return self.model(im, **kwargs)
         return self.model(im, augment=augment, embed=embed, **kwargs)
 
 

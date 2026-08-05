@@ -65,15 +65,15 @@ def torch2ethos(
     # on-chip SRAM and fails for YOLO. config_ini is left at ExecuTorch's built-in Arm/vela.ini default.
     compile_spec = EthosUCompileSpec(target=target, memory_mode="Shared_Sram")
 
-    # Keep final YOLO cat and model IO in FP32 (mixed precision). set_node_name(None) requires the
-    # composable quantizer and leaves the cat outside the Ethos-U delegate on the CPU, matching Arm's
-    # reference flow for keeping parts of a model unquantized.
+    # Keep the score sigmoid, final cat, and model IO in FP32: the near-zero sigmoid scores lose too much
+    # resolution under INT8 and hurt recall. Match nodes by aten op, not fragile FX node names.
     quantizer = EthosUQuantizer(compile_spec, use_composable_quantizer=True)
     quantizer.set_global(get_symmetric_quantization_config(is_per_channel=True))
-    cat_nodes = [n for n in graph_module.graph.nodes if n.op == "call_function" and "aten.cat" in str(n.target)]
-    if cat_nodes:
-        LOGGER.info(f"{prefix} keeping final cat node '{cat_nodes[-1].name}' in FP32")
-        quantizer.set_node_name(cat_nodes[-1].name, None)
+    for label, op in (("score sigmoid", "aten.sigmoid"), ("final cat", "aten.cat")):
+        nodes = [n for n in graph_module.graph.nodes if n.op == "call_function" and op in str(n.target)]
+        if nodes:
+            LOGGER.info(f"{prefix} keeping {label} node '{nodes[-1].name}' in FP32")
+            quantizer.set_node_name(nodes[-1].name, None)
     quantizer.set_io(None)
 
     # Post training quantization

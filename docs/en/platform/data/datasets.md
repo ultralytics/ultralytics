@@ -691,7 +691,7 @@ Open the dataset's `...` menu and select **Edit Metadata** to review two section
 - **Ultralytics Metadata**: Read-only Platform details such as the dataset ID, owner, task, image and annotation counts, storage region, and timestamps
 - **Custom Metadata**: Your own JSON object for provenance, capture conditions, customer IDs, governance, or other contextual data
 
-Workspace viewers can inspect metadata, while owners and editors can replace the custom metadata object. Nested values are supported up to 500,000 serialized characters, with top-level keys limited to 128 characters. Save an empty object (`{}`) to clear custom metadata.
+Workspace viewers can inspect metadata, while members with edit access can replace the custom metadata object. The serialized metadata object is limited to 500,000 characters, and each top-level key is limited to 128 characters. Save an empty object (`{}`) to clear custom metadata.
 
 ## Clone Dataset
 

@@ -356,7 +356,7 @@ Open the model's `...` menu and select **Edit Metadata** to review two sections:
 - **Ultralytics Metadata**: Read-only Platform details such as the model ID, project, source dataset, task, status, and timestamps
 - **Custom Metadata**: Your own JSON object for evaluation context, release tracking, governance, or other model-specific data
 
-Custom metadata is separate from training-owned model information, environment details, and training arguments. Workspace viewers can inspect it, while owners and editors can replace the object. Nested values are supported up to 500,000 serialized characters, with top-level keys limited to 128 characters. Save an empty object (`{}`) to clear custom metadata.
+Custom metadata is separate from training-owned model information, environment details, and training arguments. Workspace viewers can inspect it, while members with edit access can replace the object. The serialized metadata object is limited to 500,000 characters, and each top-level key is limited to 128 characters. Save an empty object (`{}`) to clear custom metadata.
 
 ## Visibility Settings
 

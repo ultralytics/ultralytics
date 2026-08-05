@@ -273,7 +273,7 @@ GET /api/datasets
 GET /api/datasets/{datasetId}
 ```
 
-Returns full dataset details including metadata, class names, and split counts.
+Returns dataset details including class names, split counts, and other Platform-managed properties. Custom metadata is loaded separately from the metadata endpoint below.
 
 Pass `username` when `{datasetId}` is a dataset slug rather than an ID.
 
@@ -328,7 +328,7 @@ PATCH /api/datasets/{datasetId}
 }
 ```
 
-Send an empty `metadata` object (`{}`) to clear custom metadata. Nested values are supported up to 500,000 serialized characters, with top-level keys limited to 128 characters.
+Send an empty `metadata` object (`{}`) to clear custom metadata. The serialized metadata object is limited to 500,000 characters, and each top-level key is limited to 128 characters.
 
 ### Get Dataset Metadata
 
@@ -336,7 +336,7 @@ Send an empty `metadata` object (`{}`) to clear custom metadata. Nested values a
 GET /api/datasets/{datasetId}/metadata
 ```
 
-Returns the custom metadata object and read-only Ultralytics-managed field/value pairs without adding them to normal dataset payloads. Authentication and dataset workspace access are required.
+Returns the custom metadata object and a curated set of read-only Ultralytics-managed field/value pairs. Custom metadata is intentionally omitted from normal dataset payloads. Authentication and dataset workspace access are required.
 
 ### Dataset Icon
 
@@ -1054,7 +1054,7 @@ PATCH /api/models/{modelId}
 }
 ```
 
-Send an empty `metadata` object (`{}`) to clear it. Model custom metadata is separate from training-owned model information, environment details, and training arguments, and uses the same limits as dataset metadata.
+Send an empty `metadata` object (`{}`) to clear it. Model custom metadata is separate from training-owned model information, environment details, and training arguments, and uses the same serialized-object and top-level-key limits as dataset metadata.
 
 ### Get Model Metadata
 

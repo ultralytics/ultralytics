@@ -253,7 +253,7 @@ The QNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
 | `quantize` | `int` or `str`   | `'w8a16'`/auto | Quantization precision. QNN HTP export is quantized to INT8 weights with 16-bit activations (`'w8a16'`) and is auto-enabled if not specified. Replaces the deprecated `half`/`int8` flags. |
 | `simplify` | `bool`           | `True`         | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                    |
 | `opset`    | `int`            | `None`         | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                           |
-| `data`     | `str`            | `'coco8.yaml'` | Dataset configuration file used for INT8 calibration. Specifies the calibration image source.                                                                                              |
+| `data`     | `str`            | `'coco8.yaml'` | Dataset YAML used for INT8 calibration; classification instead takes a dataset directory or a built-in dataset name. Specifies the calibration image source.                               |
 | `fraction` | `float`          | `1.0`          | Fraction of the calibration dataset to use for INT8 quantization.                                                                                                                          |
 | `device`   | `str`            | `None`         | Specifies the device for the ONNX export step: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                     |
 

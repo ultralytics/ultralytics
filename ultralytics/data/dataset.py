@@ -48,7 +48,7 @@ from .utils import (
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
-DATASET_CACHE_VERSION = "1.0.5"
+DATASET_CACHE_VERSION = "1.0.4"
 
 
 class YOLODataset(BaseDataset):

@@ -184,7 +184,7 @@ class BasePredictor:
     def inference(self, im: torch.Tensor, *args, **kwargs):
         """Run inference on a given image using the specified model and arguments."""
         skip = self.source_type.tensor or self.args.augment or self.args.embed  # unsupported with activation maps
-        if self.args.visualize and self.model.format == "pt" and not skip:
+        if self.args.visualize and self.model.base_model and not skip:
             return class_activation_map(
                 self.model,
                 im,

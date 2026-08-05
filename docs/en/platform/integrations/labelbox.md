@@ -17,6 +17,8 @@ title: Labelbox Dataset Import - Ultralytics Platform
 3. **Upload to Platform.** Create a new dataset and upload the `.ndjson` file, or paste a direct link to it. You can also start from **Settings > [Integrations](index.md) > Labelbox**.
 4. **Train.** Once processing finishes, [edit the annotations](../data/annotation.md) and [train](../train/index.md) exactly like any other Platform dataset.
 
+![Ultralytics Platform Labelbox Dataset Import](https://cdn.ul.run/i/ed409c5949cea058af70f46bc53d924f.avif)<!-- screenshot -->
+
 Unlike [CVAT](cvat.md) and [Label Studio](label-studio.md), there is no format to choose — Labelbox's own export is the supported one.
 
 ### Export with the SDK

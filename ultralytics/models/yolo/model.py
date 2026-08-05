@@ -493,6 +493,10 @@ class YOLOE(Model):
                 f"Expected {'one array per image' if multi else 'a single flat array'} in 'bboxes' and 'cls', "
                 f"but got {visual_prompts['cls']}"
             )
+            assert not multi or not isinstance(source, (list, tuple)) or len(visual_prompts["cls"]) == len(source), (
+                f"Expected one 'bboxes' and 'cls' array for each of the {len(source)} source images, but got "
+                f"{len(visual_prompts['cls'])}"
+            )
             per_image = [len(set(c)) for c in visual_prompts["cls"]] if multi else [len(set(visual_prompts["cls"]))]
             assert all(per_image), (
                 f"Expected at least one class per image in the visual prompts, but got {visual_prompts['cls']}"

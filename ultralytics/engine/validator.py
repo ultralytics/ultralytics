@@ -118,6 +118,13 @@ class BaseValidator:
         import torchvision  # noqa (import here so torchvision import time not recorded in postprocess time)
 
         self.args = get_cfg(overrides=args)
+        self.is_conf_explicit = False
+        if args is not None:
+            if isinstance(args, dict):
+                self.is_conf_explicit = "conf" in args and args["conf"] is not None
+            elif hasattr(args, "conf"):
+                self.is_conf_explicit = args.conf is not None
+
         self.dataloader = dataloader
         self.stride = None
         self.data = None

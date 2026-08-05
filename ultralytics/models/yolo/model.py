@@ -489,9 +489,9 @@ class YOLOE(Model):
             nested = yolo.yoloe.YOLOEVPDetectPredictor.is_per_image(visual_prompts)  # one prompt array per image
             # the prompts decide the shape, as they do in pre_transform; only a longer source can override them
             multi = refer_image is None and (nested or (isinstance(source, (list, tuple)) and len(source) > 1))
-            assert nested or not multi, (
-                f"Expected one 'bboxes' and one 'cls' array per image for a source of {len(source)} images, but got "
-                f"{visual_prompts['cls']}"
+            assert nested == multi, (  # each branch below reads the shape the other one cannot
+                f"Expected {'one array per image' if multi else 'a single flat array'} in 'bboxes' and 'cls', "
+                f"but got {visual_prompts['cls']}"
             )
             per_image = [len(set(c)) for c in visual_prompts["cls"]] if multi else [len(set(visual_prompts["cls"]))]
             assert all(per_image), (

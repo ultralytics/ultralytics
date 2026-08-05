@@ -2132,20 +2132,20 @@ class Albumentations(BaseTransform):
             )
 
             # Compose transforms
-            self.contains_spatial = any(is_spatial(transform) for transform in T)
-            if self.contains_spatial and use_keypoints:
-                # A mirror must also swap the left/right landmark identities, which albumentations cannot do.
-                # A composition goes whole: rebuilding it without its spatial branches would raise the odds
-                # of the branches that remain above the ones the caller wrote.
+            if use_keypoints:
+                # The keypoint target carries the polygons, so this branch never moves instances.keypoints, and
+                # a mirror would also have to swap left/right landmarks by flip_idx. A composition goes whole:
+                # rebuilding OneOf([flip, blur], p=0.5) as OneOf([blur], p=0.5) fires the blur twice as often.
                 kept = [transform for transform in T if not is_spatial(transform)]
-                LOGGER.warning(
-                    f"{prefix}dropping {len(T) - len(kept)} of {len(T)} entries that warp geometry, a composition "
-                    f"counting as one, because pose keypoints cannot be remapped"
-                )
-                T = kept
-                self.contains_spatial = False
-                if not T:
-                    return
+                if len(kept) < len(T):
+                    LOGGER.warning(
+                        f"{prefix}dropping {len(T) - len(kept)} of {len(T)} geometry-aware entries, "
+                        f"pose keypoints cannot be remapped"
+                    )
+                    T = kept
+                    if not T:
+                        return
+            self.contains_spatial = any(is_spatial(transform) for transform in T)
             self.transform = (
                 A.Compose(
                     T,
@@ -2217,9 +2217,7 @@ class Albumentations(BaseTransform):
                 bboxes=instances.bboxes,
                 class_labels=cls,
                 idx=np.arange(len(cls)),  # class values repeat, so only indices identify the surviving rows
-                # polygons ride the keypoint target in pixels, as vertices, so a transform that rearranges
-                # blocks of pixels rather than mapping them continuously cannot be expressed here
-                keypoints=segments.reshape(-1, 2) * (w, h),
+                keypoints=segments.reshape(-1, 2) * (w, h),  # polygons ride the keypoint target, in pixels
                 **({"mask": mask} if mask is not None else {}),
             )
             if mask is not None or len(new["class_labels"]) or not len(cls):  # keep unless a crop lost every box

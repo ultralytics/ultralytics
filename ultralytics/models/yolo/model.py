@@ -325,7 +325,7 @@ class YOLOE(Model):
     def get_vocab(self, names):
         """Get the vocabulary for the given class names, which become the model's classes as the head is fused."""
         assert isinstance(self.model, YOLOEModel)
-        self.predictor = None  # reset predictor, which snapshotted the class count the head no longer has
+        self.predictor = None  # the delegate rewrites nc before it can raise, so the stale predictor goes first
         return self.model.get_vocab(names)
 
     def set_classes(self, classes: list[str], embeddings: torch.Tensor | None = None) -> None:

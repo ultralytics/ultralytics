@@ -34,7 +34,7 @@ def main() -> None:
     a.add_argument("device", help="physical GPU ids, e.g. 0,1")
     a.add_argument("model", help="detector yaml under cfg/models/26/, scale must be in the filename")
     a.add_argument("arm", choices=sorted(ARMS))
-    a.add_argument("name", nargs="?", help="run name, defaults to ph-<arm>-<model stem>")
+    a.add_argument("name", nargs="?", help="run name, defaults to ph2-<arm>-<model stem>")
     a.add_argument("--pretrained", default=None, help="backbone init .pt, defaults to the arm's staged init")
     a.add_argument("--no-amp", action="store_true", help="ultravit arms, which are unstable under fp16")
     a.add_argument("--epochs", type=int, default=None)
@@ -47,7 +47,7 @@ def main() -> None:
     recipe["amp"] = not args.no_amp
     stem = Path(args.model).stem
     pretrained = args.pretrained or str(INIT / ("ultravit_s.pt" if "ultravit" in stem else "c3k2_s.pt"))
-    name = args.name or f"ph-{args.arm}-{stem.replace('yolo26s-p4p5-wide-', '')}"
+    name = args.name or f"ph2-{args.arm}-{stem.replace('yolo26s-p4p5-wide-', '')}"
     print(f"[arm] {args.arm}  model={args.model}  init={pretrained}  data={data}")
     train_args = {**recipe, **run_paths(name, exist_ok=bool(args.resume))}
     sync_stop = nfs_sync.start(train_args["save_dir"])  # orc reads progress from the mirrored results.csv

@@ -56,7 +56,7 @@ def compute_policy_epochs(hyp) -> tuple[int, int, int]:
         raise ValueError(f"compute_policy_epochs got invalid no_aug_epoch={no_aug_epoch} for epochs={epochs}.")
     stop = epochs - no_aug_epoch
     start = min(4, max(0, stop - 1))
-    mid = start + stop // 2
+    mid = start + (stop - start) // 2
     if not (0 <= start <= mid <= stop <= epochs):
         raise ValueError(
             f"compute_policy_epochs produced invalid boundaries: "

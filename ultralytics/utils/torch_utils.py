@@ -94,6 +94,11 @@ def smart_inference_mode():
     return decorate
 
 
+def outside_inference_mode(fn):
+    """Run fn with inference mode off, so modules it builds and leaves in a model stay ordinary tensors."""
+    return torch.inference_mode(False)(fn) if TORCH_1_10 else fn  # older torch has no inference mode to leave
+
+
 def autocast(enabled: bool, device: str = "cuda"):
     """Get the appropriate autocast context manager based on PyTorch version and AMP setting.
 

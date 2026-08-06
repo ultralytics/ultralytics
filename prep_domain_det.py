@@ -76,7 +76,7 @@ def link_names(paths: list) -> list:
     raise ValueError(f"{len(paths) - len(set(names))} images still collide using {depth} path components")
 
 
-def carve_val(by_file: dict, group=lambda p: p) -> dict:
+def carve_val(by_file: dict, group=lambda p: p, every: int = VAL_EVERY) -> dict:
     """Split a source that ships no split of its own into train and val.
 
     The val slice exists so the yaml is loadable and spot-checkable. It is a deterministic stride, so these datasets
@@ -88,11 +88,13 @@ def carve_val(by_file: dict, group=lambda p: p) -> dict:
     Args:
         by_file (dict): Image path to its boxes.
         group (Callable, optional): Maps an image path to the scan it came from.
+        every (int, optional): Stride over groups, lowered when a source has few enough groups that the default would
+            leave val nearly empty.
 
     Returns:
         (dict): Split name to image path to its boxes.
     """
-    val = {k for i, k in enumerate(dict.fromkeys(map(group, by_file))) if not i % VAL_EVERY}
+    val = {k for i, k in enumerate(dict.fromkeys(map(group, by_file))) if not i % every}
     return {
         "train": {p: b for p, b in by_file.items() if group(p) not in val},
         "val": {p: b for p, b in by_file.items() if group(p) in val},
@@ -266,6 +268,9 @@ def emit(root: Path, rows: dict, names: list, val: str, viz: int) -> Counter:
                 stats["background"] += 1
             stats.update(images=1, boxes=len(boxes))
 
+    # Adapters that reach disk with glob rather than an archive read see an empty source as an empty result, so without
+    # this a missing input writes a loadable dataset holding nothing and reports success.
+    assert stats["images"], f"{root.name} produced no images, so its source is missing or empty"
     assert val in rows, f"val split {val!r} is not one of {sorted(rows)}"
     train = [f"images/{s}" for s in rows if s != val]
     yaml = {"path": str(root), "train": train, "val": f"images/{val}", "names": dict(enumerate(names))}
@@ -394,6 +399,34 @@ def camus(root: Path) -> tuple[dict, list]:
                         boxes.append((i, *box))
                 by_file[dst] = boxes
     return carve_val(by_file, group=lambda p: p.name.split("_")[0]), names
+
+
+def real_colon(root: Path) -> tuple[dict, list]:
+    """Colonoscopy polyp boxes over the frames fetch_real_colon.py has already sampled.
+
+    Boxes come from the per-video annotation tarballs rather than the extracted XMLs, because one XML per frame is 2.7M
+    files for data worth a few thousand rows. Splitting is by video, which is one patient on one scope with one bowel
+    prep, so no patient straddles the split and neither does a lesion.
+    """
+    want = {p.stem: p for p in (root / "_frames").glob("*.jpg")}
+    have = {k.rsplit("_", 1)[0] for k in want}  # 14 of the 60 videos hold no lesion, so they are never fetched
+    by_file = {}
+    for t in sorted((root / "_anno").glob("*_annotations.tar.gz")):
+        if t.name.split("_")[0] not in have:
+            continue
+        with tarfile.open(t, "r:gz") as tf:
+            for m in tf:
+                if not (p := want.get(Path(m.name).stem)):
+                    continue
+                x = ET.fromstring(tf.extractfile(m).read())
+                w, h = (int(x.findtext(f"size/{k}")) for k in ("width", "height"))
+                by_file[p] = [
+                    (0, *box)
+                    for b in x.iter("bndbox")
+                    if (box := xyxy_to_yolo(*(float(b.findtext(k)) for k in ("xmin", "ymin", "xmax", "ymax")), w, h))
+                ]
+    # 46 videos, so the default stride would leave val holding three of them
+    return carve_val(by_file, group=lambda p: p.name.split("_")[0], every=5), ["polyp"]
 
 
 def vision(root: Path) -> tuple[dict, list]:
@@ -660,6 +693,7 @@ ADAPTERS = {
     "flir": ("flir-adas-v2", flir, "val"),
     "duo": ("duo", duo, "test"),
     "camus": ("camus", camus, "val"),
+    "real_colon": ("real-colon", real_colon, "val"),
     "vision": ("vision-datasets", vision, "val"),
     "loaf": ("loaf", loaf, "val"),
     "hixray": ("hixray", hixray, "test"),

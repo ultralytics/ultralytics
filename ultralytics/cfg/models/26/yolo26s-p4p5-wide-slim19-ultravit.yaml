@@ -39,7 +39,7 @@ head:
 
   - [-1, 1, Conv, [384, 3, 2]]
   - [[-1, 11], 1, Concat, [1]] # cat head P4
-  - [-1, 2, C3k2, [640, True]] # 19 mid-widened (P4/16) — width-curve margin probe
+  - [-1, 2, C3k2, [640, True]] # 19 mid-widened (P4/16), width-curve margin probe
 
   - [-1, 1, Conv, [640, 3, 2]]
   - [[-1, 8], 1, Concat, [1]] # cat backbone P5

@@ -4,7 +4,7 @@
 # P3 detection head is removed; p4p5-wide-deep16-sni neck/head (SNI Scale(0.5) damping after each
 # upsample, widened 768/384 channels, 3-repeat P3 context intermediate) on the ultravit encoder
 # backbone (RepUltraViTBlock stages + MHSABlock at P5, FastViT-family reparam mixer + ConvFFN).
-# Backbone identical to yolo26-p4p5-ultravit.yaml — the same ultravit_s.pt weights transfer 1:1.
+# Backbone identical to yolo26s-p4p5-wide-slim19-ultravit.yaml. The same ultravit_s.pt weights transfer 1:1.
 # Model docs: https://docs.ultralytics.com/models/yolo26
 # Task docs: https://docs.ultralytics.com/tasks/detect
 

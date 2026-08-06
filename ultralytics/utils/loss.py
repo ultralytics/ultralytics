@@ -114,6 +114,7 @@ class BboxLoss(nn.Module):
         center: float = 0.0,
         shape_iou: bool = False,
         shape_iou_scale: float = 0.0,
+        alpha_iou: float = 0.0,
         wiou: bool = False,
         wiou_alpha: float = 1.7,
         wiou_delta: float = 2.7,
@@ -124,6 +125,7 @@ class BboxLoss(nn.Module):
         wiou_penalty: float = 0.0,
         wiou_ar: float = 0.0,
         wiou_ciou: bool = False,
+        wiou_gamma: float = -1.0,
     ):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
@@ -136,8 +138,9 @@ class BboxLoss(nn.Module):
         self.center = center  # when reg_max==1, gain of an auxiliary box-center offset L1 loss (0=off)
         self.shape_iou = shape_iou  # use Shape-IoU instead of CIoU for the box regression loss
         self.shape_iou_scale = shape_iou_scale  # Shape-IoU shape-weight exponent (dataset-dependent scale factor)
-        if wiou and shape_iou:
-            raise ValueError("wiou and shape_iou are alternative box regression losses")
+        self.alpha_iou = alpha_iou  # alpha-IoU exponent: box loss is 1 - IoU**alpha on the plain IoU (0=off, use CIoU)
+        if sum((bool(wiou), bool(shape_iou), bool(alpha_iou))) > 1:
+            raise ValueError("wiou, shape_iou and alpha_iou are alternative box regression losses")
         self.wiou = wiou  # use Wise-IoU v3 instead of CIoU for the box regression loss
         self.wiou_alpha = wiou_alpha  # base of the non-monotonic focusing coefficient
         self.wiou_delta = wiou_delta  # outlier degree left unscaled (r == 1 at beta == delta)
@@ -148,6 +151,7 @@ class BboxLoss(nn.Module):
         self.wiou_penalty = wiou_penalty  # gain of CIoU's additive center/aspect penalties added on top of WIoU
         self.wiou_ar = wiou_ar  # gain of CIoU's aspect-ratio penalty alone, the only CIoU term WIoU has no analogue of
         self.wiou_ciou = wiou_ciou  # focus the CIoU loss instead of the plain IoU loss (replaces the exp() attention)
+        self.wiou_gamma = wiou_gamma  # v2 monotonic focusing exponent (<0 keeps v3; 0 is v1, no focusing at all)
         self.register_buffer("iou_mean", torch.tensor(1.0))  # running mean IoU loss, WIoU's outlier-degree denominator
 
     def forward(
@@ -173,8 +177,10 @@ class BboxLoss(nn.Module):
             if torch.is_grad_enabled():  # keep the mean on the training distribution (validation runs under no_grad)
                 self.iou_mean.mul_(1.0 - self.wiou_momentum).add_(self.wiou_momentum * base.detach().mean())
             beta = base.detach() / self.iou_mean  # outlier degree: <1 for high-quality anchors, >1 for outliers
-            # gain peaks at ordinary anchors and decays toward both harmful outliers (large beta) and easy ones (beta~0)
-            r = beta / (self.wiou_delta * torch.pow(self.wiou_alpha, beta - self.wiou_delta))
+            if self.wiou_gamma >= 0.0:  # v2: monotonic focusing, outliers keep growing (gamma == 0 leaves v1)
+                r = beta.pow(self.wiou_gamma)
+            else:  # v3: gain peaks at ordinary anchors, decays toward harmful outliers and toward easy ones (beta~0)
+                r = beta / (self.wiou_delta * torch.pow(self.wiou_alpha, beta - self.wiou_delta))
             r.clamp_(min=self.wiou_rmin)  # keep a share of the gradient on high-IoU boxes (0 = paper behaviour)
             # CIoU already carries rho2/c2, so the exp() distance attention would apply it twice
             per_box = r * base if self.wiou_ciou else r * wiou_dist(pred_fg, target_fg) * l_iou
@@ -192,10 +198,12 @@ class BboxLoss(nn.Module):
                 pred_bboxes[fg_mask],
                 target_bboxes[fg_mask],
                 xywh=False,
-                CIoU=not self.shape_iou,
+                CIoU=not (self.shape_iou or self.alpha_iou),
                 ShapeIoU=self.shape_iou,
                 scale=self.shape_iou_scale,
             )
+            if self.alpha_iou:  # power the plain IoU: alpha>1 sharpens the gradient on already well-localized boxes
+                iou = iou.clamp(0.0, 1.0).pow(self.alpha_iou)
             loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 
         # DFL loss
@@ -612,6 +620,7 @@ class v8DetectionLoss:
             center=getattr(h, "center", 0.0),
             shape_iou=getattr(h, "shape_iou", False),
             shape_iou_scale=getattr(h, "shape_iou_scale", 0.0),
+            alpha_iou=getattr(h, "alpha_iou", 0.0),
             wiou=getattr(h, "wiou", False),
             wiou_alpha=getattr(h, "wiou_alpha", 1.7),
             wiou_delta=getattr(h, "wiou_delta", 2.7),
@@ -622,6 +631,7 @@ class v8DetectionLoss:
             wiou_penalty=getattr(h, "wiou_penalty", 0.0),
             wiou_ar=getattr(h, "wiou_ar", 0.0),
             wiou_ciou=getattr(h, "wiou_ciou", False),
+            wiou_gamma=getattr(h, "wiou_gamma", -1.0),
         ).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 

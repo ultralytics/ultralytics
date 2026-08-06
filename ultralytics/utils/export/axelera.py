@@ -4,16 +4,19 @@ from __future__ import annotations
 
 import os
 import shutil
+import sys
+import sysconfig
 import tempfile
 import threading
 from collections.abc import Callable
+from importlib.metadata import version as installed_version  # not `metadata`: shadowed by an argument below
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER, YAML
+from ultralytics.utils import LOGGER, TORCH_VERSION, YAML
 from ultralytics.utils.checks import check_requirements
 
 # Axelera exports mutate process-global state (the PROTOCOL_BUFFERS env var below, plus any working-directory
@@ -45,22 +48,40 @@ def torch2axelera(
     Returns:
         (str): Path to exported Axelera model directory.
     """
-    # Serialize within the process: the steps below mutate process-global state (the protobuf env var and any
-    # working-directory files the compiler writes), so concurrent in-process exports must not overlap.
+    # Serialize within the process: the steps below mutate process-global state (the protobuf and PATH env
+    # vars, plus any working-directory files the compiler writes), so concurrent in-process exports must
+    # not overlap.
     with _AXELERA_EXPORT_LOCK:
         prev_protobuf = os.environ.get("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION")
         os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
+        # The compiler runs `axkernelcc` from PATH, which is missing when the interpreter is launched
+        # by absolute path instead of through an activated environment.
+        prev_path = os.environ.get("PATH")
+        scripts_dir = sysconfig.get_path("scripts")  # not sys.executable's parent: they differ system-wide
+        if scripts_dir not in (prev_path or "").split(os.pathsep):
+            # Prepended: this branch is reached only when the interpreter's own directory is missing, so
+            # any axkernelcc already on PATH belongs to another environment and mismatches the devkit.
+            os.environ["PATH"] = os.pathsep.join(filter(None, (scripts_dir, prev_path)))
         try:
-            try:
-                from axelera import compiler
-            except ImportError:
+            # Evaluated even when the import would succeed, so an older installed devkit is upgraded
+            # rather than silently satisfying the import. A floor rather than an exact pin, so a newer
+            # devkit is left alone instead of being downgraded on every export.
+            devkit = "axelera-devkit>=1.8.0"
+            if not check_requirements(devkit, install=False):
                 check_requirements(
-                    ["axelera-devkit==1.7.0", "numpy<=2.3.5"],
+                    devkit,
                     cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
                 )
-                from axelera import compiler
-
+                if "axelera.compiler" in sys.modules:
+                    # The upgraded devkit cannot replace the already-imported one, so the export would
+                    # silently run on the old version.
+                    raise RuntimeError(f"{devkit} was installed over an already-imported older version. Rerun.")
+                if installed_version("torch").split("+")[0] != TORCH_VERSION.split("+")[0]:
+                    # The devkit requires torch<2.13, so installing it downgrades a newer torch. Its
+                    # quantizer extension links libtorch and would load against the replaced version.
+                    raise RuntimeError(f"{devkit} replaced torch {TORCH_VERSION} during export. Rerun.")
             check_requirements("omnimalloc==0.5.0")
+            from axelera import compiler
             from axelera.compiler import CompilerConfig
             from axelera.compiler.config.model_specific import extract_ultralytics_metadata
 
@@ -115,8 +136,12 @@ def torch2axelera(
 
             return str(output_dir)
         finally:
-            # Restore original PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION value
+            # Restore original PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION and PATH values
             if prev_protobuf is None:
                 os.environ.pop("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", None)
             else:
                 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = prev_protobuf
+            if prev_path is None:
+                os.environ.pop("PATH", None)
+            else:
+                os.environ["PATH"] = prev_path

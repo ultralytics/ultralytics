@@ -73,6 +73,7 @@ from ultralytics.nn.modules import (
     ResNetLayer,
     RoPE2DBlock,
     RTDETRDecoder,
+    Scale,  # noqa (resolved by name via globals() in parse_model)
     SCDown,
     Segment,
     Segment26,

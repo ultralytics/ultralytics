@@ -57,6 +57,7 @@ from .block import (
     RepNCSPELAN4,
     RepVGGDW,
     ResNetLayer,
+    Scale,
     SCDown,
     TorchVision,
 )
@@ -196,6 +197,7 @@ __all__ = (
     "ResNetLayer",
     "RoPE2DBlock",
     "SCDown",
+    "Scale",
     "Segment",
     "Segment26",
     "SemanticSegment",

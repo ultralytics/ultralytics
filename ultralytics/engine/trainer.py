@@ -337,7 +337,7 @@ class BaseTrainer:
         always_freeze_names = (".up", ".reg_scale")  # always freeze these scalar parameters
         freeze_layer_names = [f"model.{x}." for x in freeze_list]
         if isinstance(unwrap_model(self.model), DistillationModel):
-            freeze_layer_names.append("teacher_model.")
+            freeze_layer_names += [f"student_model.model.{x}." for x in freeze_list] + ["teacher_model."]
         self.freeze_layer_names = freeze_layer_names
         for k, v in self.model.named_parameters():
             # v.register_hook(lambda x: torch.nan_to_num(x))  # NaN to 0 (commented for erratic training results)

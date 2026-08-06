@@ -45,22 +45,6 @@ class DepthDFL(nn.Module):
         return (weights * self.bin_values.view(1, -1, 1)).sum(dim=1, keepdim=True)  # [B, 1, HW]
 
 
-def get_aux_specs(depth_mode: str = "both") -> dict[str, int]:
-    """Return filtered AUX_SPECS based on depth_mode.
-
-    Args:
-        depth_mode: "both" (default), "lr_only", or "depth_only".
-    """
-    specs = dict(AUX_SPECS)
-    if depth_mode == "lr_only":
-        specs.pop("depth", None)
-    elif depth_mode == "depth_only":
-        specs.pop("lr_distance", None)
-    elif depth_mode != "both":
-        raise ValueError(f"Unknown depth_mode: {depth_mode!r}. Expected 'both', 'lr_only', or 'depth_only'.")
-    return specs
-
-
 def _branch(in_ch: int, out_ch: int, hidden: int = 256) -> nn.Sequential:
     """Simple conv branch for dense per-location prediction."""
     return nn.Sequential(
@@ -116,6 +100,9 @@ class Stereo3DDetHead(Detect):
 
         self.aux_specs = dict(AUX_SPECS)  # mutable copy
         self.depth_dfl = DepthDFL(DEPTH_BINS, DEPTH_MIN, DEPTH_MAX)
+        # The decode grid owns the bin count: the depth branch must emit exactly one logit per bin, so
+        # deriving the channel width here keeps AUX_SPECS from becoming a second, disagreeing source.
+        self.aux_specs["depth"] = self.depth_dfl.n_bins
 
         # Hidden size scales with model width (same pattern as Pose.cv4)
         hidden = max(ch[0] // 4, max(self.aux_specs.values()))
@@ -131,8 +118,17 @@ class Stereo3DDetHead(Detect):
                 self.aux[name] = nn.ModuleList(_branch(x, out_c, hidden) for x in ch)
 
     def set_depth_mode(self, mode: str) -> None:
-        """Prune aux branches to match depth_mode ('both', 'lr_only', 'depth_only')."""
-        self.aux_specs = get_aux_specs(mode)
+        """Prune aux branches to match depth_mode ('both', 'lr_only', 'depth_only').
+
+        Filters this head's own `aux_specs` rather than rebuilding them from the module-level `AUX_SPECS`:
+        the branches in `self.aux` were sized from the instance, so re-reading the global would silently
+        replace a customized channel count (e.g. a non-default `depth_dfl.n_bins`) with the default and
+        make `forward_head`'s `view(bs, out_c, -1)` reshape against the wrong width.
+        """
+        drop = {"lr_only": "depth", "depth_only": "lr_distance"}
+        if mode not in {*drop, "both"}:
+            raise ValueError(f"Unknown depth_mode: {mode!r}. Expected 'both', 'lr_only', or 'depth_only'.")
+        self.aux_specs.pop(drop.get(mode), None)
         for name in list(self.aux.keys()):
             if name not in self.aux_specs:
                 del self.aux[name]

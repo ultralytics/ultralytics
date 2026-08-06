@@ -12,6 +12,14 @@ keywords: Ultralytics, ultralytics.models.yolo.s3d.train, API reference, YOLO, P
 
 <br>
 
+## ::: ultralytics.models.yolo.s3d.train.DriveBalancedSampler
+
+<br><br><hr><br>
+
 ## ::: ultralytics.models.yolo.s3d.train.Stereo3DDetTrainer
+
+<br><br><hr><br>
+
+## ::: ultralytics.models.yolo.s3d.train.drive_balanced_sampler
 
 <br><br>

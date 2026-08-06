@@ -1322,3 +1322,72 @@ def test_head_publishes_its_depth_bin_grid():
         _, preds = model(torch.zeros(1, 6, 384, 1248))
     assert "depth_bin_values" in preds, f"head did not publish the bin grid: {sorted(preds)}"
     assert torch.equal(preds["depth_bin_values"], model.model[-1].depth_dfl.bin_values)
+
+
+def test_depth_channel_width_follows_the_decode_grid():
+    """The depth branch must emit exactly one logit per decode bin.
+
+    AUX_SPECS carries a default, but the head's own DepthDFL owns the bin count. If the two are allowed to
+    disagree, forward_head's `view(bs, out_c, -1)` reshapes the branch output against the wrong width.
+    """
+    head = YOLO(MODEL).model.model[-1]
+    assert head.aux_specs["depth"] == head.depth_dfl.n_bins
+    assert head.aux["depth"][0][-1].out_channels == head.depth_dfl.n_bins
+
+
+def test_set_depth_mode_preserves_a_nondefault_bin_count():
+    """set_depth_mode must filter the head's OWN specs, not rebuild them from module-level AUX_SPECS.
+
+    Rebuilding from the global silently reset a customized depth width back to the default while the built
+    branches kept the custom one -- a shape mismatch that no existing test would have caught.
+    """
+    import torch
+
+    from ultralytics.models.yolo.s3d.head import AUX_SPECS, DepthDFL
+
+    model = YOLO("yolo26n-s3d.yaml").model
+    head = model.model[-1]
+    n = 24
+    assert n != AUX_SPECS["depth"], "pick a bin count that differs from the module default"
+
+    # Rebuild the depth path at a non-default width, exactly as a bin-count experiment would.
+    head.depth_dfl = DepthDFL(n, 2.0, 80.0)
+    head.aux_specs["depth"] = n
+    for i, branch in enumerate(head.aux["depth"]):
+        head.aux["depth"][i][-1] = torch.nn.Conv2d(branch[-1].in_channels, n, 1)
+
+    head.set_depth_mode("depth_only")  # the pruning path that used to clobber it
+
+    assert head.aux_specs["depth"] == n, "set_depth_mode reset the depth width to the module default"
+    assert "lr_distance" not in head.aux_specs and "lr_distance" not in head.aux  # pruning still works
+    head.eval()
+    with torch.no_grad():
+        _, preds = model(torch.zeros(1, 6, 384, 1248))
+    assert preds["depth_bins"].shape[1] == n
+    assert preds["depth"].shape[1] == 1  # decode still collapses to a scalar log-depth
+
+
+def test_set_depth_mode_rejects_an_unknown_mode():
+    """Validation must survive folding get_aux_specs into set_depth_mode."""
+    head = YOLO("yolo26n-s3d.yaml").model.model[-1]
+    with pytest.raises(ValueError, match="Unknown depth_mode"):
+        head.set_depth_mode("nonsense")
+
+
+def test_depth_dfl_loss_is_sized_from_the_head_not_the_module_default():
+    """DFLoss must be sized from the head's grid, or a non-default bin count clamps targets to bin 15.
+
+    DFLoss clamps its target to reg_max-1.01 and gathers (tl, tl+1); _depth_bin_loss builds the target as a
+    fractional index over the head's own n_bins. A stale reg_max therefore silently discards every target
+    above the default range and trains the wrong pair of bins.
+    """
+    from ultralytics.models.yolo.s3d.head import AUX_SPECS, DepthDFL
+    from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
+
+    model = YOLO("yolo26n-s3d.yaml").model
+    n = 24
+    assert n != AUX_SPECS["depth"]
+    model.model[-1].depth_dfl = DepthDFL(n, 2.0, 80.0)
+
+    crit = Stereo3DDetLoss(model)
+    assert crit.depth_dfl_loss.reg_max == n

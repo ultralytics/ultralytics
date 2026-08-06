@@ -133,11 +133,11 @@ class Stereo3DDetLoss(v8DetectionLoss):
         self.use_bbox_loss = use_bbox_loss
         self.cls_label_smoothing = cls_label_smoothing
 
-        # Depth bin classification (DFL-style)
-        from ultralytics.models.yolo.s3d.head import DEPTH_BINS
-
-        self.depth_dfl_loss = DFLoss(reg_max=DEPTH_BINS)
+        # Depth bin classification (DFL-style). Every parameter comes from the head's own grid: sizing
+        # DFLoss from the module-level DEPTH_BINS instead would clamp targets to the default bin count
+        # and gather the wrong adjacent pair the moment a head is built with a different one.
         bins = model.model[-1].depth_dfl.bin_values
+        self.depth_dfl_loss = DFLoss(reg_max=len(bins))
         self.depth_log_min = bins[0].item()
         self.depth_log_range = (bins[-1] - bins[0]).item()
 

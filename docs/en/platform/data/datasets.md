@@ -686,7 +686,7 @@ Dataset metadata is edited inline directly on the dataset page — no dialog nee
 
 ### Custom Metadata
 
-Open the dataset's `...` menu and select **Edit Metadata** to review two sections:
+Open the dataset action menu and select **Information** to review two sections:
 
 - **Ultralytics Metadata**: Read-only Platform details such as the dataset ID, owner, task, image and annotation counts, storage region, and timestamps
 - **Custom Metadata**: Your own JSON object for provenance, capture conditions, customer IDs, governance, or other contextual data

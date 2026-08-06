@@ -200,7 +200,7 @@ Update project name, description, or settings:
 
 ### Custom Metadata
 
-Open the project's `...` menu and select **Edit Metadata** to review two sections:
+Open the project action menu and select **Information** to review two sections:
 
 - **Ultralytics Metadata**: Read-only Platform details such as the project ID, owner, visibility, license, tags, and timestamps
 - **Custom Metadata**: Your own JSON object for department, program, cost center, governance, or other organizational context

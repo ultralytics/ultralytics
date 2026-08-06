@@ -351,7 +351,7 @@ When training with Platform datasets using the [`ul://` URI format](../data/data
 
 ## Custom Metadata
 
-Open the model's `...` menu and select **Edit Metadata** to review two sections:
+Open the model action menu and select **Information** to review two sections:
 
 - **Ultralytics Metadata**: Read-only Platform details such as the model ID, project, source dataset, task, status, and timestamps
 - **Custom Metadata**: Your own JSON object for evaluation context, release tracking, governance, or other model-specific data

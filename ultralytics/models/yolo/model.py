@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Hashable
 from pathlib import Path
 from typing import Any
 
@@ -460,7 +461,7 @@ class YOLOE(Model):
                 are computed.
             visual_prompts (dict[str, np.ndarray | list[np.ndarray]]): Dictionary containing visual prompts for the
                 model. Must include 'bboxes' and 'cls' keys when non-empty, holding one array each per image when the
-                source holds more than one image and no refer_image is given, and one array each otherwise.
+                source holds more than one image and no refer_image is given, and a single flat array each otherwise.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
             predictor (callable): Custom predictor class for visual prompt predictions. Defaults to
                 YOLOEVPDetectPredictor.
@@ -489,7 +490,8 @@ class YOLOE(Model):
             nested = yolo.yoloe.YOLOEVPDetectPredictor.is_per_image(visual_prompts)  # one prompt array per image
             # the prompts decide the shape, as they do in pre_transform; only a longer source can override them
             multi = refer_image is None and (nested or (isinstance(source, (list, tuple)) and len(source) > 1))
-            assert nested == multi, (  # each branch below reads the shape the other one cannot
+            # each branch below reads the shape the other one cannot; the flat one counts classes with set()
+            assert nested == multi and (multi or all(isinstance(c, Hashable) for c in visual_prompts["cls"])), (
                 f"Expected {'one array per image' if multi else 'a single flat array'} in 'bboxes' and 'cls', "
                 f"but got {visual_prompts['cls']}"
             )

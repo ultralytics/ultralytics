@@ -1140,7 +1140,7 @@ class YOLOEDetect(Detect):
             return
 
         assert not self.training
-        txt_feats = txt_feats.to(torch.float32).squeeze(0)
+        txt_feats = txt_feats.to(next(self.parameters()).dtype).squeeze(0)
         if self.cv3 and self.cv4:
             self._fuse_tp(txt_feats, self.cv3, self.cv4)
         if self.end2end:
@@ -1177,7 +1177,7 @@ class YOLOEDetect(Detect):
                     kernel_size=1,
                 )
                 .requires_grad_(False)
-                .to(conv.weight.device)
+                .to(conv.weight.device, conv.weight.dtype)
             )
 
             conv.weight.data.copy_(w.unsqueeze(-1).unsqueeze(-1))

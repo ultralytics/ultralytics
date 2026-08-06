@@ -530,7 +530,7 @@ class Model(torch.nn.Module):
 
         This method performs object tracking using the model's predictors and optionally registered trackers. It handles
         various input sources such as file paths or video streams, and supports customization through keyword arguments.
-        The method registers trackers if not already present and can persist them between calls.
+        The method registers or refreshes the tracking callbacks on each call, so a later `persist` takes effect.
 
         Args:
             source (str | Path | int | list | tuple | np.ndarray | torch.Tensor, optional): Input source for object
@@ -553,10 +553,10 @@ class Model(torch.nn.Module):
             - The tracking mode is explicitly set in the keyword arguments.
             - Batch size is set to 1 for tracking in videos.
         """
-        if not hasattr(self.predictor, "trackers"):
-            from ultralytics.trackers import register_tracker
+        from ultralytics.trackers import register_tracker
 
-            register_tracker(self, persist)
+        # register_tracker replaces its own registration, so calling it per frame neither stacks nor leaks
+        register_tracker(self, persist)
         kwargs["conf"] = kwargs.get("conf") or 0.1  # ByteTrack-based method needs low confidence predictions as input
         kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
         kwargs["mode"] = "track"

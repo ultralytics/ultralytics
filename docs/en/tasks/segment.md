@@ -5,7 +5,7 @@ keywords: instance segmentation, YOLO26, object detection, image segmentation, m
 model_name: yolo26n-seg
 ---
 
-# Instance Segmentation
+# Instance Segmentation with Ultralytics YOLO
 
 <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/instance-segmentation-examples.avif" alt="Instance segmentation examples">
 

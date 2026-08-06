@@ -1,6 +1,6 @@
 ---
 comments: true
-description: YOLO26 from Ultralytics delivers unified, real-time, end-to-end vision models optimized for accurate and efficient deployment.
+description: Ultralytics YOLO26 delivers unified, real-time, end-to-end vision models optimized for accurate and efficient deployment.
 keywords: YOLO26, Ultralytics YOLO, object detection, end-to-end NMS-free, YOLOE-26, open-vocabulary detection, computer vision, AI, machine learning, edge AI, real-time inference
 ---
 
@@ -10,7 +10,7 @@ keywords: YOLO26, Ultralytics YOLO, object detection, end-to-end NMS-free, YOLOE
 
 [Ultralytics](https://www.ultralytics.com/) YOLO26 is a unified family of real-time vision models described in the [Ultralytics YOLO26 paper](https://arxiv.org/abs/2606.03748). It introduces native end-to-end inference, a lighter detection head, an updated training recipe, and task-specific heads for detection, segmentation, pose estimation, classification, and oriented detection.
 
-Across its five detection scales, YOLO26 reaches **40.9-57.5 mAP on COCO** at **1.7-11.8 ms T4 TensorRT latency**. The paper also reports **up to 43% faster CPU ONNX inference** for YOLO26n compared with YOLO11n on an Intel Xeon CPU @ 2.00 GHz.
+Across its five detection scales, Ultralytics YOLO26 reaches **40.9-57.5 mAP on COCO** at **1.7-11.8 ms T4 TensorRT latency**. The paper also reports **up to 43% faster CPU ONNX inference** for YOLO26n compared with YOLO11n on an Intel Xeon CPU @ 2.00 GHz.
 
 ![Ultralytics YOLO26 Comparison Plots](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/Ultralytics-YOLO26-Benchmark.jpg)
 
@@ -46,7 +46,7 @@ Across its five detection scales, YOLO26 reaches **40.9-57.5 mAP on COCO** at **
 
     Explore and run YOLO26 models directly on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26).
 
-The YOLO26 model family is built around four design areas:
+The Ultralytics YOLO26 model family is built around four design areas:
 
 - **Native end-to-end inference:** The default one-to-one detection head produces predictions without non-maximum suppression (NMS), simplifying deployment and reducing post-processing.
 - **Lighter box regression:** YOLO26 removes Distribution Focal Loss (DFL), reducing detection-head complexity while preserving an unconstrained regression range.
@@ -196,7 +196,7 @@ Note that the example below is for YOLO26 [Detect](../tasks/detect.md) models fo
 
 !!! note "Dual-Head Architecture"
 
-    YOLO26 detection models use a **dual-head architecture** that provides flexibility for different deployment scenarios:
+    Ultralytics YOLO26 detection models use a **dual-head architecture** that provides flexibility for different deployment scenarios:
 
     - **One-to-One Head (Default)**: Produces end-to-end predictions without NMS, outputting `(N, 300, 6)` with a maximum of 300 detections per image. This head is optimized for fast inference and simplified deployment.
     - **One-to-Many Head**: Generates traditional YOLO outputs requiring NMS post-processing, outputting `(N, nc + 4, 8400)` where `nc` is the number of classes. This head typically achieves slightly higher accuracy at the cost of additional processing.
@@ -270,7 +270,7 @@ YOLO26 code, models, and documentation are available in the [Ultralytics GitHub 
 
 ## FAQ
 
-### What are the key improvements in YOLO26?
+### What are the key improvements in Ultralytics YOLO26?
 
 - **DFL-free regression**: Simplifies the detection head and export path
 - **End-to-end NMS-free inference**: Removes NMS from the default inference path
@@ -278,7 +278,7 @@ YOLO26 code, models, and documentation are available in the [Ultralytics GitHub 
 - **MuSGD optimizer**: Combines SGD with Muon-inspired optimization for stable training
 - **Task-specific heads and losses**: Improves segmentation, pose, and oriented detection support
 
-### What tasks does YOLO26 support?
+### What tasks does Ultralytics YOLO26 support?
 
 YOLO26 is a **unified model family**, providing end-to-end support for multiple computer vision tasks:
 
@@ -292,7 +292,7 @@ YOLO26 is a **unified model family**, providing end-to-end support for multiple 
 
 Each size variant (n, s, m, l, x) supports all tasks, plus open-vocabulary versions via [YOLOE-26](yoloe.md).
 
-### Why is YOLO26 efficient for deployment?
+### Why is Ultralytics YOLO26 efficient for deployment?
 
 YOLO26 improves deployment efficiency with:
 
@@ -302,7 +302,7 @@ YOLO26 improves deployment efficiency with:
 - Up to 43% faster CPU ONNX inference for YOLO26n versus YOLO11n on an Intel Xeon CPU @ 2.00 GHz
 - Flexible export formats including TensorRT, ONNX, CoreML, LiteRT, and OpenVINO
 
-### How do I get started with YOLO26?
+### How do I get started with Ultralytics YOLO26?
 
 YOLO26 models are available for download through the `ultralytics` package. Install or update the package and load a model:
 

@@ -287,7 +287,7 @@ Click any image to open the fullscreen viewer with:
 
 - **Navigation**: Arrow keys or thumbnail previews to browse
 - **Image information**: Review Platform-generated properties, custom metadata, and embedded file metadata such as EXIF
-- **Custom metadata**: Owners and editors can add or replace a JSON object, including nested values up to 500,000 serialized characters
+- **Custom metadata**: Owners and editors can add or replace a JSON object, including nested values up to 500,000 serialized characters and top-level keys up to 128 characters
 - **Annotations**: Toggle annotation overlay visibility
 - **Class Breakdown**: Per-class label counts with color indicators
 - **Annotate**: When you have edit access, annotation controls are active immediately when the fullscreen viewer opens on desktop
@@ -686,7 +686,7 @@ Dataset metadata is edited inline directly on the dataset page — no dialog nee
 
 ### Custom Metadata
 
-Open the dataset action menu and select **Information** to review two sections:
+Open **More actions** and select **Information** to review two sections:
 
 - **Ultralytics Metadata**: Read-only Platform details such as the dataset ID, owner, task, image and annotation counts, storage region, and timestamps
 - **Custom Metadata**: Your own JSON object for provenance, capture conditions, customer IDs, governance, or other contextual data

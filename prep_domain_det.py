@@ -209,30 +209,6 @@ def coco_adapter(anno_splits: dict, image_root, drop: set = frozenset()) -> tupl
     return rows, names
 
 
-def yolo_adapter(split_dirs: dict, names: list, image_dir: str = "images", label_dir: str = "labels") -> tuple:
-    """Pass through a source that is already YOLO, pairing each image with its label file.
-
-    Args:
-        split_dirs (dict): Split name to the directory holding that split, or to a list of directories to merge.
-        names (list): Ordered class names.
-        image_dir (str, optional): Image subdirectory name, empty when labels sit beside the images.
-        label_dir (str, optional): Label subdirectory name, empty when labels sit beside the images.
-
-    Returns:
-        rows (dict): Split to image path to its list of (class index, cx, cy, w, h).
-        names (list): The class names passed in.
-    """
-    rows: dict[str, dict] = {}
-    for split, dirs in split_dirs.items():
-        by_file = {}
-        for d in [dirs] if isinstance(dirs, (str, Path)) else dirs:
-            d = Path(d)
-            for im in sorted(p for p in (d / image_dir).iterdir() if p.suffix.lower() != ".txt"):
-                by_file[im] = read_yolo_labels(d / label_dir / f"{im.stem}.txt")
-        rows[split] = by_file
-    return rows, names
-
-
 def emit(root: Path, rows: dict, names: list, val: str, viz: int) -> Counter:
     """Link images, write labels and data.yaml, then render previews for visual inspection.
 
@@ -485,17 +461,12 @@ def clcxray(root: Path) -> tuple[dict, list]:
     d = extract(root / "clcxray-yolo.zip", root / "_src") / "CLCXray"
     names = ["blade", "scissors", "knife", "dagger", "SwissArmyKnife", "PlasticBottle"]  # from datasetCD.yaml
     names += ["Cans", "VacuumCup", "GlassBottle", "CartonDrinks", "Tin", "SprayCans"]
-    return yolo_adapter({s: d / s for s in ("train", "val", "test")}, names, image_dir="Images")
-
-
-def esad(root: Path) -> tuple[dict, list]:
-    """Surgeon action detection, already YOLO with labels interleaved beside the images."""
-    raw = root / "OpenDataLab___ESAD/raw"
-    tr = extract(raw / "train.zip", root / "_src_train")
-    va = extract(raw / "val.zip", root / "_src_val")
-    names = (tr / "train/obj.names").read_text().split()
-    dirs = {"train": [tr / "train/set1", tr / "train/set2"], "val": [va / "val/obj"]}
-    return yolo_adapter(dirs, names, image_dir="", label_dir="")
+    rows: dict[str, dict] = {}
+    for s in ("train", "val", "test"):
+        # A stray classes.txt beside the images would symlink in as a labelless background, so filter the suffix
+        imgs = sorted(p for p in (d / s / "Images").iterdir() if p.suffix.lower() != ".txt")
+        rows[s] = {p: read_yolo_labels(d / s / "labels" / f"{p.stem}.txt") for p in imgs}
+    return rows, names
 
 
 def spinexr(root: Path) -> tuple[dict, list]:
@@ -698,7 +669,6 @@ ADAPTERS = {
     "loaf": ("loaf", loaf, "val"),
     "hixray": ("hixray", hixray, "test"),
     "clcxray": ("clcxray", clcxray, "val"),
-    "esad": ("esad", esad, "val"),
     "spinexr": ("vindr-spinexr-png", spinexr, "val"),
     "ead": ("ead-endoscopy", ead, "val"),
     "bbbc041": ("bbbc041-malaria", bbbc041, "test"),

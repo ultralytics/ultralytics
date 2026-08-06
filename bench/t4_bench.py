@@ -129,6 +129,7 @@ LANES = {
             "ultravit-020826-3": ("yolo26{s}-ultravit-020826-3.yaml", "n"),
             "ultravit-040826-1": ("yolo26{s}-ultravit-040826-1.yaml", "nsm"),
             "ultravit-040826-2": ("yolo26{s}-ultravit-040826-2.yaml", "s"),
+            "ultravit-060826-1": ("yolo26{s}-ultravit-060826-1.yaml", "n"),
             "tokenmlp-deepbal": ("yolo26{s}-ultravit-290726-deepbal.yaml", "l"),
             "tokenmlp-deepbal-p5lean": ("yolo26{s}-ultravit-290726-deepbal-p5lean.yaml", "l"),
             # Stage-balanced pair, every P stage above both lanes' baselines at every scale. n is the cell to watch,

@@ -23,13 +23,37 @@ AUX_SPECS = {"lr_distance": 2, "proj_offset": 2, "dimensions": 3, "orientation":
 
 
 class DepthDFL(nn.Module):
-    """DFL-style decode for depth bins: softmax → weighted sum → scale to log-depth range."""
+    """DFL-style decode for depth bins: softmax → weighted sum → scale to log-depth range.
 
-    def __init__(self, n_bins: int = DEPTH_BINS, d_min: float = DEPTH_MIN, d_max: float = DEPTH_MAX):
+    With `residual=True` the decode gains a second stage: `mu + tanh(delta_raw) * k * sigma`, where `mu` and
+    `sigma` are the mean and standard deviation of the same bin distribution, so the correction is bounded by
+    the coarse stage's own spread (the CasMVSNet/UCSNet cascade pattern, per-anchor rather than plane-sweep).
+
+    Measured caveat, do not design around the docstring alone: on a trained checkpoint `sigma` is a nearly
+    constant ~0.11 in log-depth (spearman(sigma, |err|) = +0.13, sigma spread 1.9x against a 16x error
+    spread), so in practice `k * sigma` behaves as a FIXED window ~5x wider than the median depth error it
+    corrects, not an uncertainty-adaptive one. See `research/findings.md` C8 / `_diag/m3_depthprec/gate.py`.
+    """
+
+    def __init__(
+        self,
+        n_bins: int = DEPTH_BINS,
+        d_min: float = DEPTH_MIN,
+        d_max: float = DEPTH_MAX,
+        residual: bool = False,
+        k: float = 1.0,
+    ):
         super().__init__()
         self.n_bins = n_bins
+        self.residual = residual
+        self.k = k
         log_min, log_max = math.log(d_min), math.log(d_max)
         self.register_buffer("bin_values", torch.linspace(log_min, log_max, n_bins))
+
+    @property
+    def out_channels(self) -> int:
+        """Channels the depth branch must emit: one logit per bin, plus the residual when enabled."""
+        return self.n_bins + int(self.residual)
 
     def _set_range(self, d_min: float, d_max: float) -> None:
         """Set the decodable depth range in meters."""
@@ -39,10 +63,22 @@ class DepthDFL(nn.Module):
             math.log(d_min), math.log(d_max), self.n_bins, device=self.bin_values.device, dtype=self.bin_values.dtype
         )
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Decode bin logits [B, n_bins, HW] → log-depth [B, 1, HW]."""
+    def forward(self, x: torch.Tensor, delta_raw: torch.Tensor | None = None) -> torch.Tensor:
+        """Decode bin logits [B, n_bins, HW] → log-depth [B, 1, HW].
+
+        Args:
+            x: Coarse bin logits [B, n_bins, HW]. Must NOT include the residual channel — `sigma` is the
+                spread of the bin distribution, and an extra channel in the softmax changes it.
+            delta_raw: Optional residual logit [B, 1, HW]. Ignored unless this module has `residual=True`.
+        """
         weights = x.softmax(dim=1)  # [B, n_bins, HW]
-        return (weights * self.bin_values.view(1, -1, 1)).sum(dim=1, keepdim=True)  # [B, 1, HW]
+        bins = self.bin_values.view(1, -1, 1)
+        mu = (weights * bins).sum(dim=1, keepdim=True)  # [B, 1, HW]
+        if not (self.residual and delta_raw is not None):
+            return mu
+        # Same second moment _dfl_variance reports, so both stages read one definition of the spread.
+        sigma = (weights * (bins - mu) ** 2).sum(dim=1, keepdim=True).clamp_min(0).sqrt()
+        return mu + torch.tanh(delta_raw) * self.k * sigma
 
 
 def _branch(in_ch: int, out_ch: int, hidden: int = 256) -> nn.Sequential:
@@ -100,9 +136,9 @@ class Stereo3DDetHead(Detect):
 
         self.aux_specs = dict(AUX_SPECS)  # mutable copy
         self.depth_dfl = DepthDFL(DEPTH_BINS, DEPTH_MIN, DEPTH_MAX)
-        # The decode grid owns the bin count: the depth branch must emit exactly one logit per bin, so
-        # deriving the channel width here keeps AUX_SPECS from becoming a second, disagreeing source.
-        self.aux_specs["depth"] = self.depth_dfl.n_bins
+        # The decode grid owns the branch width: one logit per bin plus the optional residual channel, so
+        # deriving it here keeps AUX_SPECS from becoming a second, disagreeing source.
+        self.aux_specs["depth"] = self.depth_dfl.out_channels
 
         # Hidden size scales with model width (same pattern as Pose.cv4)
         hidden = max(ch[0] // 4, max(self.aux_specs.values()))
@@ -116,6 +152,34 @@ class Stereo3DDetHead(Detect):
                 self.aux[name] = nn.ModuleList(_deep_branch(x + self.cv_ch, out_c, depth_hidden) for x in ch)
             else:
                 self.aux[name] = nn.ModuleList(_branch(x, out_c, hidden) for x in ch)
+
+    def configure_depth(self, n_bins: int | None = None, residual: bool | None = None, k: float = 1.0) -> None:
+        """Retarget the depth path's bin count and residual stage, resizing the branch to match.
+
+        Called at model construction from the YAML `training:` block (see `Stereo3DDetModel`), before any
+        weights matter, so only the branches' final 1x1 conv is rebuilt. Keeping this on the head means the
+        bin count never has to be changed by mutating the module-level `AUX_SPECS`, which is shared state.
+
+        Args:
+            n_bins: New depth bin count. None keeps the current one.
+            residual: Enable the second-stage residual. None keeps the current setting.
+            k: Residual window in multiples of the coarse distribution's sigma.
+        """
+        d = self.depth_dfl
+        n_bins = d.n_bins if n_bins is None else int(n_bins)
+        residual = d.residual if residual is None else bool(residual)
+        if n_bins < 2:
+            raise ValueError(f"depth_bins must be at least 2, got {n_bins}")
+        log_min, log_max = float(d.bin_values[0]), float(d.bin_values[-1])
+        self.depth_dfl = DepthDFL(n_bins, math.exp(log_min), math.exp(log_max), residual=residual, k=k)
+        self.depth_dfl.to(d.bin_values.device)
+
+        if "depth" not in self.aux_specs:  # pruned by depth_mode='lr_only'; nothing to resize
+            return
+        self.aux_specs["depth"] = self.depth_dfl.out_channels
+        for branch in self.aux["depth"]:
+            last = branch[-1]
+            branch[-1] = nn.Conv2d(last.in_channels, self.depth_dfl.out_channels, 1).to(last.weight.device)
 
     def set_depth_mode(self, mode: str) -> None:
         """Prune aux branches to match depth_mode ('both', 'lr_only', 'depth_only').
@@ -187,8 +251,15 @@ class Stereo3DDetHead(Detect):
 
         # Decode depth bins → scalar log-depth (keep raw logits for loss/export)
         if "depth" in preds:
-            depth_logits = preds["depth"]  # raw logits [B, n_bins, HW]
-            preds["depth"] = self.depth_dfl(depth_logits)  # decoded [B, 1, HW]
+            out = preds["depth"]  # branch output [B, n_bins (+1 residual), HW]
+            # The residual rides in the same branch but must NEVER enter depth_bins: _dfl_variance softmaxes
+            # that tensor's whole channel axis to weight the depth cue against the disparity cue, so an extra
+            # channel would silently skew the fusion (the class of bug fixed in ca521ed98).
+            depth_logits, delta_raw = out[:, : self.depth_dfl.n_bins], None
+            if self.depth_dfl.residual:
+                delta_raw = out[:, self.depth_dfl.n_bins :]  # [B, 1, HW]
+                preds["depth_residual"] = delta_raw  # exported + logged; loss reads the decoded value
+            preds["depth"] = self.depth_dfl(depth_logits, delta_raw)  # decoded [B, 1, HW]
             preds["depth_bins"] = depth_logits  # raw logits: DFLoss / ONNX export / eval-time DFL variance
             # Ship the grid the logits are defined on. _set_range() retargets it per dataset, so a decoder
             # that rebuilds it from DEPTH_MIN/DEPTH_MAX silently reads the bins on the wrong axis.
@@ -210,7 +281,9 @@ class Stereo3DDetHead(Detect):
                 if name in preds:
                     aux_tensors.append(preds[name])  # [B, C, anchors]
             if "depth_bins" in preds:
-                aux_tensors.append(preds["depth_bins"])  # [B, 16, anchors] raw logits
+                aux_tensors.append(preds["depth_bins"])  # [B, n_bins, anchors] raw logits
+            if "depth_residual" in preds:
+                aux_tensors.append(preds["depth_residual"])  # [B, 1, anchors]; without it export can't decode
             if aux_tensors:
                 y = torch.cat([y, *aux_tensors], dim=1)  # [B, 7+22, anchors]
             return y

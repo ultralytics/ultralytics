@@ -8,6 +8,12 @@ import torch.nn.functional as F
 from ultralytics.utils.loss import DFLoss, v8DetectionLoss
 
 
+# Order of the loss vector Stereo3DDetLoss returns. The trainer derives its own loss_names from the
+# criterion's dict on the first batch, but Stereo3DDetTrainer needs them before that to print the progress
+# header, so both read this one tuple rather than repeating the literal.
+LOSS_NAMES = ("box", "cls", "lr_dist", "depth", "dims", "orient", "proj_center", "photo", "depth_res")
+
+
 def laplacian_nll(
     pred: torch.Tensor, target: torch.Tensor, logvar: torch.Tensor, reduction: str = "mean"
 ) -> torch.Tensor:
@@ -127,7 +133,7 @@ class Stereo3DDetLoss(v8DetectionLoss):
         photometric_loss: bool = False,
     ):
         super().__init__(model, tal_topk=tal_topk)
-        self.loss_names = ("box", "cls", "lr_dist", "depth", "dims", "orient", "proj_center", "photo")
+        self.loss_names = LOSS_NAMES
         self.photometric_loss = photometric_loss
         self.aux_w = loss_weights or {}
         self.use_bbox_loss = use_bbox_loss
@@ -230,7 +236,13 @@ class Stereo3DDetLoss(v8DetectionLoss):
                 continue
             aux_gt = aux_targets[k].to(self.device)
             if k == "depth" and "depth_bins" in aux_preds:
+                # The coarse DFL term stays exactly as-is on the bin logits: it is what keeps the bin
+                # distribution (and therefore the sigma the residual is scaled by) calibrated.
                 aux_losses[k] = self._depth_bin_loss(aux_preds["depth_bins"], aux_gt, target_gt_idx, fg_mask)
+                if "depth_residual" in aux_preds:
+                    aux_losses["depth_res"] = self._decoded_depth_loss(
+                        aux_preds["depth"], aux_gt, target_gt_idx, fg_mask
+                    )
             elif k == "orientation" and k in aux_preds:
                 aux_losses[k] = self._orientation_multibin_loss(aux_preds[k], aux_gt, target_gt_idx, fg_mask)
             elif k == "lr_distance" and "lr_logvar" in aux_preds:
@@ -295,6 +307,36 @@ class Stereo3DDetLoss(v8DetectionLoss):
 
         return (ce + res).mean()
 
+    def _decoded_depth_loss(
+        self,
+        pred_depth: torch.Tensor,
+        aux_gt: torch.Tensor,
+        gt_idx: torch.Tensor,
+        fg_mask: torch.Tensor,
+    ) -> torch.Tensor:
+        """L1 on the FINAL decoded log-depth, the only term the cascade residual can reduce.
+
+        The coarse DFL term supervises the bin distribution and cannot see the residual, which is applied
+        after the expectation. Supervising the decoded scalar is what gives the residual a gradient. Applied
+        to foreground anchors only, matching every other aux term.
+
+        Args:
+            pred_depth: [B, 1, HW_total] — decoded log-depth (mu + tanh(delta)*k*sigma).
+            aux_gt: [B, max_n, 1] — log-depth GT values.
+            gt_idx: [B, HW_total] — TAL assignment indices.
+            fg_mask: [B, HW_total] — boolean foreground mask.
+        """
+        if aux_gt.shape[1] == 0 or not fg_mask.any():
+            return pred_depth.sum() * 0.0
+        if gt_idx.dtype != torch.int64:
+            gt_idx = gt_idx.to(torch.int64)
+        gathered = aux_gt.gather(1, gt_idx.unsqueeze(-1))  # [B, HW_total, 1]
+        pred_fg = pred_depth.permute(0, 2, 1)[fg_mask]  # [npos, 1]
+        tgt_fg = gathered[fg_mask]  # [npos, 1]
+        if pred_fg.numel() == 0:
+            return pred_depth.sum() * 0.0
+        return F.l1_loss(pred_fg, tgt_fg, reduction="mean")
+
     def _depth_bin_loss(
         self,
         pred_bins: torch.Tensor,
@@ -341,10 +383,19 @@ class Stereo3DDetLoss(v8DetectionLoss):
             batch: Batch dict with img, batch_idx, cls, bboxes, aux_targets.
         """
         # Separate aux preds from detection preds
-        aux_keys = {"lr_distance", "lr_logvar", "depth", "depth_bins", "dimensions", "orientation", "proj_offset"}
+        aux_keys = {
+            "lr_distance",
+            "lr_logvar",
+            "depth",
+            "depth_bins",
+            "depth_residual",
+            "dimensions",
+            "orientation",
+            "proj_offset",
+        }
         aux_preds = {k: v for k, v in preds.items() if k in aux_keys}
 
-        loss = torch.zeros(8, device=self.device)  # box, cls, lr_dist, depth, dims, orient, proj_center, photo
+        loss = torch.zeros(len(LOSS_NAMES), device=self.device)  # see LOSS_NAMES for the slot order
 
         # Get detection losses + TAL assignment results
         (fg_mask, target_gt_idx, _, _, _), det_loss, _ = self.get_assigned_targets_and_loss(preds, batch)
@@ -361,6 +412,8 @@ class Stereo3DDetLoss(v8DetectionLoss):
                 loss[i] = aux_losses[k] * float(self.aux_w.get(k, 1.0))
         if "proj_center" in aux_losses:
             loss[6] = aux_losses["proj_center"] * float(self.aux_w.get("proj_center", 1.0))
+        if "depth_res" in aux_losses:  # stays 0 unless the head builds the cascade residual
+            loss[8] = aux_losses["depth_res"] * float(self.aux_w.get("depth_res", 1.0))
         if self.photometric_loss and "lr_distance" in preds:
             loss[7] = photometric_lr_loss(preds["lr_distance"], batch["img"]) * float(
                 self.aux_w.get("photometric", 1.0)

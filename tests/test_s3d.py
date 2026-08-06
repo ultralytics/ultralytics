@@ -1331,8 +1331,8 @@ def test_depth_channel_width_follows_the_decode_grid():
     disagree, forward_head's `view(bs, out_c, -1)` reshapes the branch output against the wrong width.
     """
     head = YOLO(MODEL).model.model[-1]
-    assert head.aux_specs["depth"] == head.depth_dfl.n_bins
-    assert head.aux["depth"][0][-1].out_channels == head.depth_dfl.n_bins
+    assert head.aux_specs["depth"] == head.depth_dfl.out_channels
+    assert head.aux["depth"][0][-1].out_channels == head.depth_dfl.out_channels
 
 
 def test_set_depth_mode_preserves_a_nondefault_bin_count():
@@ -1391,3 +1391,144 @@ def test_depth_dfl_loss_is_sized_from_the_head_not_the_module_default():
 
     crit = Stereo3DDetLoss(model)
     assert crit.depth_dfl_loss.reg_max == n
+
+
+def _s3d_yaml_with(tmp_path, **training):
+    """Write a yolo26n-s3d YAML whose `training:` block carries the given overrides."""
+    import yaml
+
+    from ultralytics.utils import ROOT
+
+    cfg = yaml.safe_load(open(ROOT / "cfg/models/26/yolo26-s3d.yaml"))
+    cfg["training"] = {**cfg.get("training", {}), **training}
+    cfg["scale"] = "n"
+    p = tmp_path / "arm-s3d.yaml"
+    p.write_text(yaml.safe_dump(cfg))
+    return str(p)
+
+
+def test_residual_default_off_is_bitwise_identical():
+    """With the residual disabled the decode must be the plain expectation, bit for bit.
+
+    This is the regression guard for every existing checkpoint and every other s3d experiment: if a future
+    change lets the residual path touch the default configuration, this fails.
+    """
+    import torch
+
+    from ultralytics.models.yolo.s3d.head import DepthDFL
+
+    torch.manual_seed(0)
+    logits = torch.randn(2, 16, 7)
+    plain = DepthDFL()
+    expected = (logits.softmax(1) * plain.bin_values.view(1, -1, 1)).sum(1, keepdim=True)
+
+    assert torch.equal(plain(logits), expected)
+    # A stray delta must be ignored rather than silently applied when residual=False.
+    assert torch.equal(plain(logits, torch.randn(2, 1, 7)), expected)
+    assert plain.out_channels == plain.n_bins
+
+
+def test_residual_is_bounded_by_coarse_sigma():
+    """The correction must scale with the coarse distribution's own spread.
+
+    A razor-sharp coarse distribution (sigma -> 0) must pin the decode to mu whatever the residual asks for;
+    a flat one must let it move on the order of k*sigma. This is the property that makes the cascade safe --
+    and note it is exactly the property measured NOT to be informative on a trained model (findings.md C8):
+    sigma is near-constant there, so this bound is real but carries no uncertainty signal.
+    """
+    import torch
+
+    from ultralytics.models.yolo.s3d.head import DepthDFL
+
+    dfl = DepthDFL(residual=True, k=1.0)
+    saturated = torch.full((1, 1, 1), 10.0)  # tanh -> ~1.0
+
+    sharp = torch.full((1, 16, 1), -30.0)
+    sharp[0, 5, 0] = 30.0  # all mass on one bin => sigma ~ 0
+    mu_sharp = float(dfl(sharp))
+    assert mu_sharp == pytest.approx(float(dfl.bin_values[5]), abs=1e-6)
+    assert float(dfl(sharp, saturated)) == pytest.approx(mu_sharp, abs=1e-6)
+
+    flat = torch.zeros(1, 16, 1)  # uniform => sigma is the grid's own std
+    mu_flat = float(dfl(flat))
+    moved = float(dfl(flat, saturated))
+    probs = flat.softmax(1)
+    sigma = float(((probs * (dfl.bin_values.view(1, -1, 1) - mu_flat) ** 2).sum()).sqrt())
+    assert moved - mu_flat == pytest.approx(sigma, rel=1e-3), "a flat coarse stage must allow a ~1*sigma move"
+    assert float(dfl(flat, -saturated)) - mu_flat == pytest.approx(-sigma, rel=1e-3)
+
+
+def test_depth_bins_excludes_the_residual_channel(tmp_path):
+    """The residual must not ride inside depth_bins, or it skews the depth-cue fusion weight.
+
+    _dfl_variance softmaxes the whole channel axis of depth_bins to weight the direct-depth cue against the
+    disparity cue. An extra channel there changes that weight silently -- the class of bug fixed in ca521ed98.
+    """
+    import torch
+
+    from ultralytics.models.yolo.s3d.preprocess import _dfl_variance
+
+    res = YOLO(_s3d_yaml_with(tmp_path, residual_depth=True)).model.eval()
+    head = res.model[-1]
+    assert head.aux["depth"][0][-1].out_channels == head.depth_dfl.n_bins + 1
+
+    with torch.no_grad():
+        _, preds = res(torch.zeros(1, 6, 384, 1248))
+    assert preds["depth_bins"].shape[1] == head.depth_dfl.n_bins, "residual leaked into depth_bins"
+    assert preds["depth_residual"].shape[1] == 1
+    assert preds["depth"].shape[1] == 1
+
+    # The fusion weight must read the same value it would with no residual configured at all.
+    logits = preds["depth_bins"]
+    got = _dfl_variance({"depth_bins": logits, "depth_bin_values": preds["depth_bin_values"]}, 0, 0)
+    probs = logits[0, :, 0].float().softmax(0)
+    mu = (probs * preds["depth_bin_values"]).sum()
+    assert got == pytest.approx(float((probs * (preds["depth_bin_values"] - mu) ** 2).sum()), rel=1e-5)
+
+
+def test_configure_depth_resizes_the_branch_and_the_loss(tmp_path):
+    """A YAML-declared bin count must reach the branch width, the decode grid AND the DFL loss together."""
+    from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
+
+    model = YOLO(_s3d_yaml_with(tmp_path, depth_bins=64)).model
+    head = model.model[-1]
+    assert head.depth_dfl.n_bins == 64
+    assert head.aux_specs["depth"] == 64
+    assert head.aux["depth"][0][-1].out_channels == 64
+    assert Stereo3DDetLoss(model).depth_dfl_loss.reg_max == 64
+    # The grid must still span the same depth range it was built with.
+    assert float(head.depth_dfl.bin_values[0]) == pytest.approx(np.log(2.0), abs=1e-6)
+    assert float(head.depth_dfl.bin_values[-1]) == pytest.approx(np.log(80.0), abs=1e-6)
+
+
+def test_residual_loss_is_zero_when_the_decode_is_exact():
+    """The decoded-depth L1 term must vanish when the decode already equals the target."""
+    import torch
+
+    from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
+
+    model = YOLO(MODEL).model
+    crit = Stereo3DDetLoss(model)
+
+    tgt = torch.tensor([[[3.0]], [[2.0]]])  # [B=2, max_n=1, 1] log-depth GT
+    gt_idx = torch.zeros(2, 4, dtype=torch.int64)
+    fg = torch.tensor([[True, False, True, False], [False, True, False, False]])
+    exact = tgt.squeeze(-1).unsqueeze(-1).expand(2, 1, 4).clone()  # every anchor predicts its own GT
+
+    crit.device = torch.device("cpu")
+    assert float(crit._decoded_depth_loss(exact, tgt, gt_idx, fg)) == pytest.approx(0.0, abs=1e-7)
+
+    off = exact + 0.25
+    assert float(crit._decoded_depth_loss(off, tgt, gt_idx, fg)) == pytest.approx(0.25, rel=1e-5)
+
+
+def test_residual_loss_slot_is_present_and_zero_by_default():
+    """depth_res must be a stable column in every arm's logs, zero when the residual is off.
+
+    Keeping the slot present regardless means baseline and residual arms share one results.csv / W&B schema,
+    which is what makes them directly comparable.
+    """
+    from ultralytics.models.yolo.s3d.loss import LOSS_NAMES
+
+    assert LOSS_NAMES[-1] == "depth_res"
+    assert len(set(LOSS_NAMES)) == len(LOSS_NAMES)

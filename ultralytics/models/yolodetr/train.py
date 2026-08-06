@@ -24,8 +24,8 @@ from ultralytics.utils.torch_utils import unwrap_model
 
 __all__ = ("YOLODETRDataset", "YOLODETRTrainer", "YOLODETRValidator")
 
+_NO_AUG_EPOCH = 4  # DEIM trains the final epochs without augmentation
 _YOLODETR_DEFAULTS = {
-    "no_aug_epoch": 4,
     "backbone_lr_ratio": 0.02,
 }
 
@@ -39,19 +39,13 @@ def compute_deim_scheduled_prob(base_prob: float, epoch: int, stop_epoch: int) -
 
 
 def compute_policy_epochs(hyp) -> tuple[int, int, int]:
-    """Compute DEIM stage boundaries from ``epochs`` and optional ``no_aug_epoch``.
+    """Compute DEIM stage boundaries from ``epochs`` and the fixed four-epoch no-augmentation tail.
 
     Returns:
         (tuple[int, int, int]): (stage1_end, stage2_end / stage3_start, stage3_end / stage4_start).
     """
     epochs = max(1, int(hyp.epochs))
-    no_aug_epoch = getattr(hyp, "no_aug_epoch", None)
-    if no_aug_epoch is None:
-        no_aug_epoch = 3 if epochs >= 100 else (2 if epochs >= 60 else 0)
-    no_aug_epoch = int(no_aug_epoch)
-    if no_aug_epoch < 0 or no_aug_epoch > epochs:
-        raise ValueError(f"compute_policy_epochs got invalid no_aug_epoch={no_aug_epoch} for epochs={epochs}.")
-    stop = epochs - no_aug_epoch
+    stop = epochs - min(_NO_AUG_EPOCH, epochs)
     start = min(4, max(0, stop - 1))
     mid = start + (stop - start) // 2
     if not (0 <= start <= mid <= stop <= epochs):
@@ -66,8 +60,8 @@ class YOLODETRDataset(RTDETRDataset):
     """RT-DETR dataset variant that linearly decays YOLO augmentation probabilities over epochs.
 
     All augmentation probabilities (mosaic, mixup, copy_paste) decay from their base hyp value to 0 linearly across
-    ``[0, stop_epoch]`` where ``stop_epoch = epochs - no_aug_epoch``. Past stop_epoch every augmentation is hard-zeroed
-    for the DEIM no-aug tail.
+    ``[0, stop_epoch]``, where ``stop_epoch`` leaves the final four epochs for the DEIM no-aug tail. Past stop_epoch
+    every augmentation is hard-zeroed.
     """
 
     def __init__(self, *args, data=None, **kwargs):
@@ -164,7 +158,6 @@ class YOLODETRTrainer(RTDETRTrainer):
     kwargs. ``default.yaml`` is intentionally not extended.
 
     Supported kwargs (defaults shown):
-        no_aug_epoch (int): Length of the trailing no-augmentation tail. Default 4.
         backbone_lr_ratio (float): Multiplier applied to backbone LR. Default 0.02.
     """
 
@@ -178,7 +171,6 @@ class YOLODETRTrainer(RTDETRTrainer):
         super().__init__(cfg=cfg, overrides=overrides, _callbacks=_callbacks)
         for k, default in self._DEIM_DEFAULTS.items():
             setattr(self.args, k, deim_overrides.get(k, default))
-        self.args.no_aug_epoch = min(int(self.args.no_aug_epoch), int(self.args.epochs))
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Build YOLODETRDetectionModel and load weights; cls-head rows remap by class name inside model.load()."""

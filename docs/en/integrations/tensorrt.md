@@ -58,6 +58,12 @@ TensorRT offers several deployment options, and each option balances ease of int
 
 - **NVIDIA Triton Inference Server**: An option that supports models from various frameworks. Particularly suited for cloud or edge inference, it provides features like concurrent model execution and model analysis.
 
+## Supported Tasks
+
+TensorRT export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+
+{% include "macros/supported-tasks.md" %}
+
 ## Exporting YOLO26 Models to TensorRT
 
 You can improve execution efficiency and optimize performance by converting YOLO26 models to TensorRT format.

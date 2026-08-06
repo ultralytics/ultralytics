@@ -139,6 +139,12 @@ LPDDR5X memory and Android 16 / API 36. Its 3 nm
 official `v0.6.6` assets. CPU/GPU order alternates between tasks in one sequential sweep. Native logs confirmed that
 every CPU row used LiteRT CPU/XNNPACK and every GPU row delegated the complete graph to LiteRT OpenCL (`LITERT_CL`).
 
+## Supported Tasks
+
+LiteRT export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+
+{% include "macros/supported-tasks.md" %}
+
 ## Export to LiteRT: Converting Your YOLO Model
 
 You can improve on-device execution efficiency and broaden deployment options by converting your models to the LiteRT format.

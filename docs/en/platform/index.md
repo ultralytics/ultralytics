@@ -13,7 +13,7 @@ keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud dep
 
 ## What is Ultralytics Platform?
 
-Ultralytics Platform brings dataset management and annotation, experiment tracking, cloud and remote training, model export, dedicated inference endpoints, and deployment monitoring into one workspace. It has native support for [YOLO26](../models/yolo26.md) and [YOLO11](../models/yolo11.md) models.
+Ultralytics Platform brings dataset management and annotation, experiment tracking, cloud and remote training, model export, dedicated inference endpoints, and deployment monitoring into one workspace. It has native support for [YOLO26](../models/yolo26.md), [YOLO11](../models/yolo11.md), [YOLOv8](../models/yolov8.md), and [YOLOv5](../models/yolov5.md) models.
 
 ## Workflow: Upload → Annotate → Train → Export → Deploy
 
@@ -76,7 +76,7 @@ Dedicated endpoints are deployed separately to a region you choose from the glob
 ### Data Preparation
 
 - **Dataset Management**: Upload images, videos, or dataset files with automatic processing
-- **[Annotation Editor](https://www.ultralytics.com/annotate)**: Manual annotation for all 6 YOLO task types (detect, segment, semantic, pose, OBB, classify; see [supported tasks](data/index.md#supported-tasks))
+- **[Annotation Editor](https://www.ultralytics.com/annotate)**: Manual annotation for all 6 YOLO task types (detect, segment, semantic, classify, pose, OBB; see [supported tasks](data/index.md#supported-tasks))
 - **Skeleton Templates**: Built-in (Person, Hand, Face, Dog, Box) and custom skeleton templates for one-click pose annotation
 - **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), pretrained Ultralytics YOLO models, or your own fine-tuned YOLO models from the annotation toolbar for detect, segment, semantic, and OBB tasks
 - **Dataset Versioning**: Create numbered NDJSON snapshots with descriptions for reproducible training
@@ -102,7 +102,7 @@ graph LR
 
 !!! tip "Supported Task Types"
 
-    The annotation editor supports all 6 YOLO task types: **[detect](../datasets/detect/index.md)** (bounding boxes), **[segment](../datasets/segment/index.md)** (polygons), **[semantic](../datasets/semantic/index.md)** (per-class regions), **[pose](../datasets/pose/index.md)** (keypoints), **[OBB](../datasets/obb/index.md)** (oriented boxes), and **[classify](../datasets/classify/index.md)** (image-level labels). Each task type has dedicated annotation controls and keyboard shortcuts.
+    The annotation editor supports all 6 YOLO task types: **[detect](../datasets/detect/index.md)** (bounding boxes), **[segment](../datasets/segment/index.md)** (polygons), **[semantic](../datasets/semantic/index.md)** (per-class regions), **[classify](../datasets/classify/index.md)** (image-level labels), **[pose](../datasets/pose/index.md)** (keypoints), and **[OBB](../datasets/obb/index.md)** (oriented boxes). Each task type has dedicated annotation controls and keyboard shortcuts.
 
 ### Model Training
 
@@ -270,7 +270,7 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 - **No-Code Training**: Train advanced YOLO models without writing code
 - **Real-Time Metrics**: Stream training progress and monitor deployments
 - **42 Deploy Regions**: Deploy models close to your users worldwide
-- **7 Task Types**: Support for detection, instance segmentation, semantic segmentation, depth estimation (models and prediction today; depth datasets coming soon), pose, OBB, and classification (see [task docs](../tasks/index.md))
+- **7 Task Types**: Support for detection, instance segmentation, semantic segmentation, depth estimation (models and prediction today; depth datasets coming soon), classification, pose, and OBB (see [task docs](../tasks/index.md))
 - **AI-Assisted Annotation**: [Smart annotation](data/annotation.md#smart-annotation) with SAM and YOLO models to speed up data preparation
 
 ### What GPU options are available for cloud training?

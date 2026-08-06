@@ -14,7 +14,7 @@ keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, boun
 ```mermaid
 graph TB
     subgraph Draw["Draw Mode"]
-        A[Box]:::start & B[Polygon]:::start & C[Keypoint]:::start & D[OBB]:::start & E[Classify]:::start
+        A[Box]:::start & B[Polygon]:::start & C[Classify]:::start & D[Keypoint]:::start & E[OBB]:::start
     end
     subgraph AI["AI-Assisted"]
         F[SAM Smart]:::start
@@ -36,9 +36,9 @@ The annotation editor supports all 6 YOLO task types:
 | **[Detect](../../datasets/detect/index.md)**     | Rectangle      | Bounding boxes (x, y, width, height)                      |
 | **[Segment](../../datasets/segment/index.md)**   | Polygon        | Pixel-precise masks (polygon vertices)                    |
 | **[Semantic](../../datasets/semantic/index.md)** | Polygon        | Per-class region masks (polygon vertices)                 |
+| **[Classify](../../datasets/classify/index.md)** | Class Selector | Image-level labels                                        |
 | **[Pose](../../datasets/pose/index.md)**         | Keypoint       | Skeleton templates (Person, Hand, Face, Dog, Box, custom) |
 | **[OBB](../../datasets/obb/index.md)**           | Oriented Box   | Rotated bounding boxes (4 corners)                        |
-| **[Classify](../../datasets/classify/index.md)** | Class Selector | Image-level labels                                        |
 
 !!! tip "Multi-Task Annotations"
 

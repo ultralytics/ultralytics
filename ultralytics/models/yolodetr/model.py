@@ -34,6 +34,12 @@ class YOLODETR(Model):
         """
         super().__init__(model=model, task="detect")
 
+    def predict(self, source=None, stream: bool = False, predictor=None, **kwargs):
+        """Default conf to 0.5 when unset, matching DETR visualization defaults, since the decoder applies no NMS."""
+        if kwargs.get("conf") is None:  # unset, or None from default.yaml; an explicit value always wins
+            kwargs["conf"] = 0.5
+        return super().predict(source, stream, predictor, **kwargs)
+
     def train(self, trainer=None, **kwargs):
         """Forward DEIM-specific kwargs through self.overrides so they survive get_cfg's alignment check."""
         deim = {k: kwargs.pop(k) for k in list(kwargs) if k in self._DEIM_KWARGS}

@@ -2174,7 +2174,9 @@ class Albumentations(BaseTransform):
             >>> labels = {
             ...     "img": np.random.rand(640, 640, 3),
             ...     "cls": np.array([0, 1]),
-            ...     "instances": Instances(bboxes=np.array([[0, 0, 1, 1], [0.5, 0.5, 0.8, 0.8]])),
+            ...     "instances": Instances(
+            ...         bboxes=np.array([[0, 0, 1, 1], [0.5, 0.5, 0.8, 0.8]]), segments=np.zeros((0, 1000, 2))
+            ...     ),
             ... }
             >>> augmented = transform(labels)
             >>> assert augmented["img"].shape == (640, 640, 3)
@@ -2201,6 +2203,9 @@ class Albumentations(BaseTransform):
             segments, keypoints = instances.segments, instances.keypoints
             h, w = im.shape[:2]
             points = segments.reshape(-1, 2)
+            # A mirror here moves a landmark to the right pixel without swapping its left/right identity, which is
+            # what flip_idx does for `fliplr`; nothing tells us statically that an entry mirrors. RandomPerspective
+            # warps keypoints on the same terms, so this follows the file rather than adding a second rule.
             if keypoints is not None:  # landmarks follow the polygon vertices in the same target
                 points = np.concatenate((points, keypoints[..., :2].reshape(-1, 2)))
             points = (points * (w, h)).astype(np.float32)  # the keypoint target is in pixels
@@ -2228,6 +2233,9 @@ class Albumentations(BaseTransform):
                     gone = lost[n:].reshape(*keypoints.shape[:2], 1)[i] | out
                     keypoints = np.concatenate((xy.clip(0, (w, h)), np.where(gone, 0, keypoints[i][..., 2:])), -1)
                 if n:  # boxes follow the polygons, as they do in RandomPerspective
+                    v = np.flatnonzero(~lost[:n])
+                    if 0 < len(v) < n:  # a collapsed vertex would otherwise keep its pre-transform place
+                        moved[:n] = moved[v[np.searchsorted(v, np.arange(n)).clip(0, len(v) - 1)]]
                     segments = moved[:n].reshape(segments.shape)[i]
                     bboxes = np.array([segment2box(s, w, h) for s in segments], np.float32).reshape(-1, 4)
                     segments[..., 0] = segments[..., 0].clip(bboxes[:, 0:1], bboxes[:, 2:3])

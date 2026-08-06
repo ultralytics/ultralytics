@@ -182,11 +182,12 @@ class FederatedDetectionTrainer(DetectionTrainer):
         return batch
 
     def _fed_mask(self, batch: dict) -> torch.Tensor:
-        """Return an nc-long CPU mask keeping the batch's owning slice, subsampled when it exceeds `fed_k`.
+        """Return an nc-long CPU mask over the batch's owning slice, subsampled when the slice exceeds `fed_k`.
 
-        Above `fed_k` the kept set is the classes present in the batch plus negatives drawn without replacement,
-        weighted by image count^0.5 inside the slice and redrawn every step. Columns outside the set get no gradient.
-        The draw is per rank, as in Detic, so a class masked on one rank still learns from another that holds it.
+        Every class present in the batch is always kept, topped up with negatives drawn without replacement at image
+        count^0.5 until the kept set reaches `fed_k`. The kept count lands above `fed_k` when the batch alone holds
+        that many classes, and below it when the slice runs short of drawable negatives. Columns outside the kept set
+        get no gradient. The draw is per rank, as in Detic, so a class masked on one rank still learns from another.
         """
         name = self.source_of[str(Path(batch["im_file"][0]).parent)]
         lo, hi = self.slices[name]
@@ -197,9 +198,10 @@ class FederatedDetectionTrainer(DetectionTrainer):
         present = torch.unique(batch["cls"].int()).numpy()  # still on cpu, super() has not moved the batch yet
         w = self.neg_weights[name].copy()
         w[present - lo] = 0.0
-        k = min(self.args.fed_k - len(present), int((w > 0).sum()))
         mask[present] = 1.0
-        mask[self.rng.choice(len(w), k, replace=False, p=w / w.sum()) + lo] = 1.0
+        k = min(self.args.fed_k - len(present), int((w > 0).sum()))
+        if k > 0:
+            mask[self.rng.choice(len(w), k, replace=False, p=w / w.sum()) + lo] = 1.0
         return mask
 
     def plot_training_labels(self):

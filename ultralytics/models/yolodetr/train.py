@@ -170,7 +170,8 @@ class YOLODETRTrainer(RTDETRTrainer):
         deim_overrides = {k: overrides.pop(k) for k in list(overrides) if k in self._DEIM_DEFAULTS}
         super().__init__(cfg=cfg, overrides=overrides, _callbacks=_callbacks)
         for k, default in self._DEIM_DEFAULTS.items():
-            setattr(self.args, k, deim_overrides.get(k, default))
+            # A resume restores the checkpoint value onto self.args, so only fall back to the default when unset.
+            setattr(self.args, k, deim_overrides.get(k, getattr(self.args, k, default)))
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Build YOLODETRDetectionModel and load weights; cls-head rows remap by class name inside model.load()."""

@@ -600,7 +600,7 @@ class BaseTrainer:
                 self.metrics, self.fitness = self.validate()
 
             # NaN recovery
-            if self._handle_nan_recovery(epoch):
+            if self._handle_nan_recovery(epoch, fitness_fresh=should_val):
                 continue
 
             self.nan_recovery_attempts = 0
@@ -1022,11 +1022,20 @@ class BaseTrainer:
             self.ema.updates = ckpt["updates"]
         self.best_fitness = ckpt.get("best_fitness")
 
-    def _handle_nan_recovery(self, epoch):
-        """Detect and recover from NaN/Inf loss and fitness collapse by loading last checkpoint."""
+    def _handle_nan_recovery(self, epoch, fitness_fresh: bool = True):
+        """Detect and recover from NaN/Inf loss and fitness collapse by loading last checkpoint.
+
+        Args:
+            epoch (int): Current epoch index.
+            fitness_fresh (bool): Whether `self.fitness` was recomputed this epoch. With `val_period > 1`
+                the value persists between validations, so the fitness-derived checks below must not be
+                re-applied to a stale number — one legitimately zero validation would otherwise be counted
+                as a fresh collapse on every subsequent epoch and exhaust the retry budget.
+        """
         loss_nan = self.loss is not None and not self.loss.isfinite()
-        fitness_nan = self.fitness is not None and not np.isfinite(self.fitness)
-        fitness_collapse = self.fitness == 0 and (self.best_fitness or 0) > 0
+        # Both fitness tests are gated on freshness: `self.loss` is updated every epoch, `self.fitness` is not.
+        fitness_nan = fitness_fresh and self.fitness is not None and not np.isfinite(self.fitness)
+        fitness_collapse = fitness_fresh and self.fitness == 0 and (self.best_fitness or 0) > 0
         corrupted = RANK in {-1, 0} and (loss_nan or fitness_nan or fitness_collapse)
         reason = "Loss NaN/Inf" if loss_nan else "Fitness NaN/Inf" if fitness_nan else "Fitness collapse"
         if RANK != -1:  # DDP: broadcast to all ranks
@@ -1042,7 +1051,7 @@ class BaseTrainer:
             raise RuntimeError(f"{reason} detected but no valid last.pt is available for recovery")
         self.nan_recovery_attempts += 1
         if self.nan_recovery_attempts > 3:
-            raise RuntimeError(f"Training failed: NaN persisted for {self.nan_recovery_attempts} epochs")
+            raise RuntimeError(f"Training failed: {reason} persisted for {self.nan_recovery_attempts} epochs")
         LOGGER.warning(f"{reason} detected (attempt {self.nan_recovery_attempts}/3), recovering from last.pt...")
         self._model_train()  # set model to train mode before loading checkpoint to avoid inference tensor errors
         _, ckpt = load_checkpoint(self.last)

@@ -1863,3 +1863,43 @@ def test_nan_recovery_flag_before_first_validation(monkeypatch):
     monkeypatch.setattr(trainer_mod, "RANK", 0)
     monkeypatch.setattr(trainer_mod.dist, "broadcast", lambda *args, **kwargs: None)
     assert t._handle_nan_recovery(0) is False
+
+
+def test_stale_fitness_does_not_retrigger_collapse_recovery(monkeypatch):
+    """A single legitimately-zero validation must not exhaust the recovery budget on later epochs.
+
+    `_handle_nan_recovery` runs every epoch, but with `val_period > 1` `self.fitness` only changes on
+    validation epochs. The fitness-collapse test (`fitness == 0 and best_fitness > 0`) therefore used to
+    re-fire on the same stale zero for each following epoch, spending one retry per epoch and killing the
+    run after four — while reporting "NaN persisted" though no NaN ever occurred.
+
+    Zero is a legitimate fitness on a small validation set: an s3d screening split of 189 frames returns
+    AP3D 0.0 at some early validations, which is exactly how this was found (1 arm in 8 died per launch).
+    """
+    from ultralytics.engine import trainer as trainer_mod
+    from ultralytics.models.yolo.detect import DetectionTrainer
+
+    def make():
+        t = object.__new__(DetectionTrainer)
+        t.loss, t.fitness, t.best_fitness = torch.tensor(1.0), 0.0, 0.5  # collapsed-looking but finite
+        t.device, t.start_epoch, t.nan_recovery_attempts = torch.device("cpu"), 0, 0
+        t.last = Path("nonexistent-last.pt")
+        return t
+
+    monkeypatch.setattr(trainer_mod, "RANK", -1)
+
+    # Stale (no validation this epoch): must be ignored, and must not consume a retry.
+    t = make()
+    assert t._handle_nan_recovery(5, fitness_fresh=False) is False
+    assert t.nan_recovery_attempts == 0, "a stale fitness must not consume a recovery attempt"
+
+    # Fresh zero after a positive best: still treated as a collapse, so the guard keeps its purpose.
+    t = make()
+    with pytest.raises(RuntimeError, match="no valid last.pt"):
+        t._handle_nan_recovery(5, fitness_fresh=True)
+
+    # A real NaN loss is detected regardless of freshness, since self.loss updates every epoch.
+    t = make()
+    t.loss = torch.tensor(float("nan"))
+    with pytest.raises(RuntimeError, match="no valid last.pt"):
+        t._handle_nan_recovery(5, fitness_fresh=False)

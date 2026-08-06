@@ -82,6 +82,14 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--select-span", type=int, default=10, help="EMA span in epochs used to smooth the dev curve")
     p.add_argument("--patience", type=int, default=150, help="plateau safety net only; selection ignores it")
     p.add_argument("--lr0", type=float, default=0.01)
+    p.add_argument(
+        "--seed",
+        type=int,
+        default=0,
+        help="run seed; varies init, augmentation AND drive-sampling order, so repeated seeds measure the "
+        "real run-to-run spread. Training is not bit-reproducible regardless "
+        "(adaptive_avg_pool2d_backward_cuda has no deterministic kernel), so this bounds noise, not removes it.",
+    )
     p.add_argument("--project", default="runs/s3d_holdout")
     p.add_argument("--name", default="train")
     return p.parse_args()
@@ -200,6 +208,7 @@ def main() -> None:
         optimizer="SGD",
         lr0=a.lr0,
         cos_lr=True,
+        seed=a.seed,
         val=True,  # the whole point: fitness exists, so best.pt and results.csv mean something
         val_period=a.val_period,
         save_period=a.save_period,

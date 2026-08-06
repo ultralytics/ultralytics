@@ -1127,6 +1127,36 @@ def test_drive_balanced_sampler_flattens_drive_concentration():
     assert drive_balanced_sampler(ids, drives, balance=1e6).weights.min() == 1.0, "large balance must be a no-op"
 
 
+def test_drive_sampler_seed_varies_with_the_run_seed(tmp_path):
+    """Two runs with different `seed` must draw different frame orders, not just different weights.
+
+    `_drive_sampler` previously seeded from `max(rank, 0)`, which is 0 for every single-process run. A
+    multi-seed noise-floor measurement would then vary initialisation and augmentation but reuse one
+    sampling order, understating the real run-to-run spread — the exact quantity such a measurement exists
+    to bound. The sampler seed now mixes `args.seed` with the rank.
+    """
+    from ultralytics.models.yolo.s3d.train import Stereo3DDetTrainer
+
+    trainer = Stereo3DDetTrainer(overrides={"model": MODEL, "data": DATA, "epochs": 1, "imgsz": [384, 1248]})
+    dataset = trainer.build_dataset(trainer.data["train"], mode="train")
+    # `drives` is a PATH to a json map, not the map itself. One drive for every frame, so the only thing
+    # the seed can change is the drawn order.
+    dmap = tmp_path / "drives.json"
+    dmap.write_text(json.dumps({Path(f).stem: "d0" for f in dataset.im_files}))
+    trainer.data["drives"] = str(dmap)
+
+    orders = []
+    for seed in (0, 1):
+        trainer.args.seed = seed
+        sampler = trainer._drive_sampler(dataset, -1)
+        assert sampler is not None, "a drives map is present, so a sampler must be built"
+        orders.append(list(sampler))
+    assert orders[0] != orders[1], "seed must change the drawn frame order"
+
+    trainer.args.seed = 0
+    assert list(trainer._drive_sampler(dataset, -1)) == orders[0], "the same seed must reproduce its order"
+
+
 def test_drive_sampler_supports_the_ddp_set_epoch_contract():
     """The train sampler must implement `set_epoch`, and each epoch must draw a different sample.
 

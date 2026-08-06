@@ -332,7 +332,11 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             drives,
             balance=float(self.data.get("drive_balance", 1.0)),
             num_samples=math.ceil(len(dataset) / world_size) if rank != -1 else len(dataset),
-            seed=max(rank, 0),
+            # Mix the run seed with the rank. Seeding from the rank alone made every single-process run
+            # (rank -1 -> 0) draw the identical frame sequence, so a multi-seed noise-floor measurement
+            # would have varied initialisation and augmentation but NOT the sampling order, understating
+            # the true run-to-run spread. The 10_000 stride keeps distinct (seed, rank) pairs distinct.
+            seed=int(getattr(self.args, "seed", 0) or 0) * 10_000 + max(rank, 0),
         )
 
     def get_model(

@@ -362,26 +362,34 @@ def camus(root: Path) -> tuple[dict, list]:
     evenly spaced frames span one cycle, over which the myocardium contracts and the atrium fills, and that deformation
     is the only variation a sequence holds. Boxes come from the mask array the frame was cut from, so no reorientation
     sits between the two.
+
+    Both arrays are transposed because the file stores the lateral axis first, which lays the probe apex along the left
+    edge instead of the top. Mask value 1 is the ventricle cavity and 2 is the epicardial contour that encloses it, so
+    the names run cavity first.
     """
     import nibabel as nib  # scope so the other adapters run without it
 
-    names = ["left ventricular myocardium", "left ventricle", "left atrium"]
+    names = ["left ventricle", "left ventricular myocardium", "left atrium"]
     frames = root / "_frames"
     frames.mkdir(parents=True, exist_ok=True)
     by_file = {}
+
+    def load(z, n):
+        """Read one gzipped NIfTI volume out of an open zip."""
+        return nib.Nifti1Image.from_bytes(gzip.decompress(z.read(n))).get_fdata().T
+
     with zipfile.ZipFile(root / "Images.zip") as zi, zipfile.ZipFile(root / "Masks.zip") as zm:
-        load = lambda z, n: nib.Nifti1Image.from_bytes(gzip.decompress(z.read(n))).get_fdata()
         for n in sorted(x for x in zi.namelist() if x.endswith(".nii.gz")):
             im = load(zi, n)
             mask = load(zm, n.replace("Images/", "Masks/").replace(".nii.gz", "_gt.nii.gz"))
-            stem, (h, w) = Path(n).name.split(".")[0], im.shape[:2]
-            for t in np.linspace(0, im.shape[2] - 1, CAMUS_FRAMES).round().astype(int):
+            stem, (h, w) = Path(n).name.split(".")[0], im.shape[1:]
+            for t in np.linspace(0, len(im) - 1, CAMUS_FRAMES).round().astype(int):
                 dst = frames / f"{stem}_f{t:02d}.png"
                 if not dst.exists():
-                    cv2.imwrite(str(dst), im[:, :, t].astype(np.uint8))
+                    cv2.imwrite(str(dst), im[t].astype(np.uint8))
                 boxes = []
                 for i in range(len(names)):
-                    ys, xs = np.where(mask[:, :, t] == i + 1)
+                    ys, xs = np.where(mask[t] == i + 1)
                     if len(xs) and (box := xyxy_to_yolo(xs.min(), ys.min(), xs.max() + 1, ys.max() + 1, w, h)):
                         boxes.append((i, *box))
                 by_file[dst] = boxes

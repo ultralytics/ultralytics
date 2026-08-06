@@ -275,11 +275,17 @@ Images can be sorted and filtered for efficient browsing:
     | **Split filter** | Train, Val, Test, or All              |
     | **Annotations**  | All images, Annotated, or Unannotated |
     | **Class filter** | Filter by class name                  |
-    | **Search**       | Filter images by filename             |
+    | **Search**       | Filter images by filename or metadata |
 
 !!! tip "Finding Unlabeled Images"
 
     Use the `Annotations` filter set to `Unannotated` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
+
+!!! tip "Searching Custom Metadata"
+
+    The search box sits at the right of the gallery toolbar and filters every view mode — cards, compact, and table. It matches the image filename (the file extension is optional) as well as custom metadata keys, scalar values, and array entries, so an image named `img_0042` carrying `{"ship_type": "yacht"}` is found by searching either `img_0042` or `yacht`.
+
+    Values nested inside sub-objects are not matched. Pasting a 32-character hex string looks up that exact image content hash instead.
 
 ### Fullscreen Viewer
 

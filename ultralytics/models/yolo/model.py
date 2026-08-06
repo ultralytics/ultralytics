@@ -224,7 +224,7 @@ class YOLOE(Model):
         get_text_pe: Get text positional embeddings for the given texts.
         get_visual_pe: Get visual positional embeddings for the given image and visual features.
         set_vocab: Set vocabulary and class names for the YOLOE model.
-        get_vocab: Get vocabulary for the given class names.
+        get_vocab: Get the vocabulary for the given class names, which become the model's classes as the head is fused.
         set_classes: Set the model's class names and embeddings for detection.
         save_prompt_embeddings: Save the current prompt embeddings and class names to an NPZ file.
         load_prompt_embeddings: Load prompt embeddings and class names from an NPZ file.
@@ -323,8 +323,9 @@ class YOLOE(Model):
         self.predictor = None  # reset predictor, which snapshotted the class count the head no longer has
 
     def get_vocab(self, names):
-        """Get vocabulary for the given class names."""
+        """Get the vocabulary for the given class names, which become the model's classes as the head is fused."""
         assert isinstance(self.model, YOLOEModel)
+        self.predictor = None  # reset predictor, which snapshotted the class count the head no longer has
         return self.model.get_vocab(names)
 
     def set_classes(self, classes: list[str], embeddings: torch.Tensor | None = None) -> None:

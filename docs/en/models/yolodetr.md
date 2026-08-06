@@ -88,11 +88,10 @@ YOLO-DETR accepts standard Ultralytics training arguments such as `data`, `epoch
 `lr0`, `lrf`, and augmentation probabilities. It also supports these trainer-specific arguments through
 `model.train(...)`:
 
-| Argument            | Default | Description                                                                |
-| ------------------- | ------- | -------------------------------------------------------------------------- |
-| `no_aug_epoch`      | `4`     | Number of final epochs in which augmentation is disabled                   |
-| `backbone_lr_ratio` | `0.02`  | Multiplier applied to backbone parameter-group learning rates              |
-| `base_size_repeat`  | `3`     | Extra weight given to the base image size during multi-scale sampling      |
+| Argument            | Default | Description                                                   |
+| ------------------- | ------- | ------------------------------------------------------------- |
+| `no_aug_epoch`      | `4`     | Number of final epochs in which augmentation is disabled      |
+| `backbone_lr_ratio` | `0.02`  | Multiplier applied to backbone parameter-group learning rates |
 
 Recommended starting settings are:
 

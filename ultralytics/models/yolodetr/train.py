@@ -10,10 +10,8 @@ trainer and can be set per-run by passing them as kwargs to ``model.train(...)``
 from __future__ import annotations
 
 import math
-import random
 from copy import copy
 
-import torch
 from torch import nn, optim
 
 from ultralytics.cfg import DEFAULT_CFG
@@ -29,7 +27,6 @@ __all__ = ("YOLODETRDataset", "YOLODETRTrainer", "YOLODETRValidator")
 _YOLODETR_DEFAULTS = {
     "no_aug_epoch": 4,
     "backbone_lr_ratio": 0.02,
-    "base_size_repeat": 3,
 }
 
 
@@ -169,7 +166,6 @@ class YOLODETRTrainer(RTDETRTrainer):
     Supported kwargs (defaults shown):
         no_aug_epoch (int): Length of the trailing no-augmentation tail. Default 4.
         backbone_lr_ratio (float): Multiplier applied to backbone LR. Default 0.02.
-        base_size_repeat (int): Extra weight given to the base imgsz when sampling multi-scale sizes. Default 3.
     """
 
     _DEIM_DEFAULTS = _YOLODETR_DEFAULTS
@@ -183,38 +179,6 @@ class YOLODETRTrainer(RTDETRTrainer):
         for k, default in self._DEIM_DEFAULTS.items():
             setattr(self.args, k, deim_overrides.get(k, default))
         self.args.no_aug_epoch = min(int(self.args.no_aug_epoch), int(self.args.epochs))
-
-    def _sample_multiscale_size(self) -> int:
-        """Sample a multi-scale size, biasing the base imgsz by ``base_size_repeat`` extra picks."""
-        low = max(self.stride, int(self.args.imgsz * (1.0 - self.args.multi_scale)))
-        high = int(self.args.imgsz * (1.0 + self.args.multi_scale) + self.stride)
-        low = (low // self.stride) * self.stride
-        high = (high // self.stride) * self.stride
-        if high <= low:
-            return low
-        base_size_repeat = int(self.args.base_size_repeat or 0)
-        if base_size_repeat <= 0:
-            return random.randrange(low, high) // self.stride * self.stride
-        scales = list(range(low, high + 1, self.stride))
-        base = max(low, min(high, (int(self.args.imgsz) // self.stride) * self.stride))
-        scales.extend([base] * base_size_repeat)
-        return random.choice(scales)
-
-    def preprocess_batch(self, batch: dict) -> dict:
-        """Normalize images and apply ``base_size_repeat``-weighted multi-scale sampling."""
-        for k, v in batch.items():
-            if isinstance(v, torch.Tensor):
-                batch[k] = v.to(self.device, non_blocking=self.device.type == "cuda")
-        batch["img"] = batch["img"].float() / 255
-        if self.args.multi_scale > 0.0:
-            imgs = batch["img"]
-            sz = self._sample_multiscale_size()
-            sf = sz / max(imgs.shape[2:])
-            if sf != 1:
-                ns = [math.ceil(x * sf / self.stride) * self.stride for x in imgs.shape[2:]]
-                imgs = nn.functional.interpolate(imgs, size=ns, mode="bilinear", align_corners=False)
-            batch["img"] = imgs
-        return batch
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Build YOLODETRDetectionModel and load weights; cls-head rows remap by class name inside model.load()."""

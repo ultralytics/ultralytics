@@ -131,10 +131,12 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
 
 
 def register_tracker(model: object, persist: bool) -> None:
-    """Register tracking callbacks to the model for object tracking during prediction.
+    """Register or refresh the tracking callbacks on the model for object tracking during prediction.
+
+    Any earlier registration is replaced in place, so repeat calls neither stack callbacks nor keep a stale `persist`.
 
     Args:
-        model (object): The model object to register tracking callbacks for.
+        model (object): The model to register tracking callbacks on, exposing a `callbacks` event mapping.
         persist (bool): Whether to persist the trackers if they already exist.
 
     Examples:
@@ -142,5 +144,15 @@ def register_tracker(model: object, persist: bool) -> None:
         >>> model = YOLOModel()
         >>> register_tracker(model, persist=True)
     """
-    model.add_callback("on_predict_start", partial(on_predict_start, persist=persist))
-    model.add_callback("on_predict_postprocess_end", partial(on_predict_postprocess_end, persist=persist))
+    for event, fn in (
+        ("on_predict_start", on_predict_start),
+        ("on_predict_postprocess_end", on_predict_postprocess_end),
+    ):
+        # Replace any earlier registration in place so repeat track() calls neither stack updates on
+        # the same frame nor pin the 'persist' the first call happened to pass
+        callbacks = model.callbacks[event]
+        i = next((i for i, cb in enumerate(callbacks) if getattr(cb, "func", None) is fn), None)
+        if i is None:
+            model.add_callback(event, partial(fn, persist=persist))
+        else:
+            callbacks[i] = partial(fn, persist=persist)

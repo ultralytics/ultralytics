@@ -194,6 +194,10 @@ class BaseValidator:
             self.args.quantize = 16 if model.fp16 else None  # record actual inference precision
             stride, fmt = model.stride, model.format
             pt = fmt == "pt"
+            # Same gate as predictor.stream_inference: only an Ultralytics PyTorch model honors this argument
+            if augment and not model.base_model:
+                LOGGER.warning(f"'augment' is not supported by this model (format='{fmt}'), ignoring.")
+                augment = False
             # Same gate as predictor.setup_model: NHWC is lossless only for native PyTorch models on CUDA.
             channels_last = self.args.channels_last and self.device.type == "cuda" and pt
             if self.args.channels_last and not channels_last:

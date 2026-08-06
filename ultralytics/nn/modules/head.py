@@ -2148,7 +2148,6 @@ class DeimDecoder(RTDETRDecoder):
         label_noise_ratio: float = 0.5,
         box_noise_scale: float = 1.0,
         learnt_init_query: bool = False,
-        query_select_method: str = "default",
         reg_max: int = 32,
         reg_scale: float = 4.0,
         layer_scale: float = 1.0,
@@ -2168,15 +2167,11 @@ class DeimDecoder(RTDETRDecoder):
         self.num_decoder_layers = ndl
         self.reg_max = reg_max
         self.layer_scale = layer_scale
-        self.query_select_method = query_select_method
         self.query_noise_scale = 0.0
         self.o2m_topk_mode = o2m_topk_mode
         self.learnt_init_query = learnt_init_query
         if self.learnt_init_query:
             raise ValueError("DeimDecoder does not support learnt_init_query=True.")
-
-        if self.query_select_method not in {"default", "one2many"}:
-            raise ValueError(f"Unsupported query_select_method: {self.query_select_method}")
 
         act_layer = self._select_activation(act)
         act_mlp = self._select_activation(mlp_act)
@@ -2229,9 +2224,6 @@ class DeimDecoder(RTDETRDecoder):
         self.num_denoising = nd
         self.label_noise_ratio = label_noise_ratio
         self.box_noise_scale = box_noise_scale
-
-        if learnt_init_query:
-            self.tgt_embed = nn.Embedding(nq, hd)
 
         self.enc_score_head = nn.Linear(hd, nc)
         self.enc_bbox_head = MLP(hd, hd, 4, num_layers=3, act=act_mlp)
@@ -2306,13 +2298,6 @@ class DeimDecoder(RTDETRDecoder):
         y = self.postprocess(dec_bboxes.squeeze(0), dec_scores.squeeze(0).sigmoid())
         return y if self.export else (y, x)
 
-    def _select_topk(self, outputs_logits: torch.Tensor, topk: int) -> torch.Tensor:
-        if self.query_select_method == "default":
-            return torch.topk(outputs_logits.max(-1).values, topk, dim=1).indices
-        if self.query_select_method == "one2many":
-            return torch.topk(outputs_logits.flatten(1), topk, dim=1).indices // self.nc
-        raise ValueError(f"Unsupported query_select_method: {self.query_select_method}")
-
     def _project_encoder_features(self, feats: torch.Tensor) -> torch.Tensor:
         """DEIM path: skip enc_output projection and score directly from masked encoder memory."""
         return self.valid_mask.to(feats.dtype) * feats
@@ -2371,8 +2356,6 @@ class DeimDecoder(RTDETRDecoder):
                 constant_(reg_.layers[-1].weight, 0.0)
                 constant_(reg_.layers[-1].bias, 0.0)
 
-        if self.learnt_init_query:
-            xavier_uniform_(self.tgt_embed.weight)
         xavier_uniform_(self.query_pos_head.layers[0].weight)
         xavier_uniform_(self.query_pos_head.layers[1].weight)
         xavier_uniform_(self.query_pos_head.layers[-1].weight)

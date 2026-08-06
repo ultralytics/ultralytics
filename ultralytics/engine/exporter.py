@@ -878,11 +878,10 @@ class Exporter:
                 m.forward = m.forward_split
             if hasattr(m, "convert_to_deploy"):
                 m.convert_to_deploy()
-        self.deim_fp32_pinning = (
-            fmt == "engine"
-            and self.args.quantize in {8, 16, "w8a16"}  # any reduced-precision export
-            and any(isinstance(m, DeimDecoder) for m in model.modules())
-        )
+        # DEIM decoders need TensorRT accuracy workarounds. Precision is NOT part of this condition: the >=10.13
+        # deformable-attention miscompilation hits FP32 engines too, so the fusion barrier must apply at every
+        # precision. onnx2engine gates the FP16-only layer pinning on its own FP16 build branch.
+        self.has_deim = fmt == "engine" and any(isinstance(m, DeimDecoder) for m in model.modules())
 
         if model.task == "semantic" and fmt in {"qnn", "coreml", "ascend"}:
             # NPU-targeted semantic exports ship a compact uint8 class map instead of float logits: emitting logits
@@ -927,8 +926,8 @@ class Exporter:
             "channels": model.yaml.get("channels", 3),
             "end2end": getattr(model, "end2end", False) or isinstance(model.model[-1], RTDETRDecoder),
         }  # model metadata
-        if self.deim_fp32_pinning:
-            self.metadata["deim_fp32_pinning"] = True
+        if self.has_deim:
+            self.metadata["deim"] = True
         if fmt == "coreml":
             # CoreML GPU (MPSGraph) compiles the HGNetv2/ResNet backbones but aborts the MLIR pass manager on the
             # YOLO CSP trunk, so only whitelisted backbones take the faster ALL path; the rest use the Neural Engine.
@@ -1378,8 +1377,6 @@ class Exporter:
 
         assert Path(f_onnx).exists(), f"failed to export ONNX file: {f_onnx}"
         f = self.file.with_suffix(".engine")  # TensorRT engine file
-        if getattr(self, "deim_fp32_pinning", False):
-            LOGGER.info(f"{prefix} DEIM decoder detected; enabling TensorRT FP32 pinning for FP16 export.")
         onnx2engine(
             f_onnx,
             f,
@@ -1391,7 +1388,7 @@ class Exporter:
             dataset=self.get_int8_calibration_dataloader(prefix) if self.args.quantize == 8 else None,
             metadata=self.metadata,
             verbose=self.args.verbose,
-            deim_fp32_pinning=getattr(self, "deim_fp32_pinning", False),
+            has_deim=self.has_deim,
             prefix=prefix,
         )
 

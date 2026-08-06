@@ -318,7 +318,7 @@ def onnx2engine(
     dataset=None,
     metadata: dict | None = None,
     verbose: bool = False,
-    deim_fp32_pinning: bool = False,
+    has_deim: bool = False,
     prefix: str = "",
 ) -> str:
     """Export a YOLO model to TensorRT engine format.
@@ -334,7 +334,8 @@ def onnx2engine(
         dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration.
         metadata (dict | None): Metadata to include in the engine file.
         verbose (bool, optional): Enable verbose logging.
-        deim_fp32_pinning (bool, optional): Pin DEIM decoder fp16-sensitive layers to fp32.
+        has_deim (bool, optional): Model has a DEIM decoder. Enables the TensorRT >=10.13 deformable-attention fusion
+            barrier at every precision, and pins fp16-sensitive decoder layers to fp32 on fp16 builds.
         prefix (str, optional): Prefix for log messages.
 
     Returns:
@@ -540,13 +541,13 @@ def onnx2engine(
 
     elif use_fp16 and not is_trt11:
         config.set_flag(trt.BuilderFlag.FP16)
-        if deim_fp32_pinning and _set_precision_constraint_flag(config, trt, prefix):
+        if has_deim and _set_precision_constraint_flag(config, trt, prefix):
             n_pinned = _pin_deim_fp32_layers(network, trt)
             LOGGER.info(f"{prefix} DEIM FP16 stability: pinned {n_pinned} TensorRT layers to FP32.")
 
     # TensorRT >=10.13 miscompiles the fused DEIM deformable cross-attention; break that fusion and record the real
-    # outputs so the runtime can ignore the auxiliary ones
-    if deim_fp32_pinning and check_version(trt.__version__, ">=10.13.0"):
+    # outputs so the runtime can ignore the auxiliary ones. Precision-independent - FP32 engines are affected too.
+    if has_deim and check_version(trt.__version__, ">=10.13.0"):
         model_outputs = [network.get_output(i).name for i in range(network.num_outputs)]
         marked = _add_deim_fusion_barrier(network, trt)
         if marked:

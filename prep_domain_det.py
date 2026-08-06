@@ -75,22 +75,26 @@ def link_names(paths: list) -> list:
     raise ValueError(f"{len(paths) - len(set(names))} images still collide using {depth} path components")
 
 
-def carve_val(by_file: dict) -> dict:
+def carve_val(by_file: dict, group=lambda p: p) -> dict:
     """Split a source that ships no split of its own into train and val.
 
-    The val slice exists so the yaml is loadable and spot-checkable. It is a deterministic stride over sorted files, so
-    these datasets carry no reportable metric, which is fine because they are pretraining data.
+    The val slice exists so the yaml is loadable and spot-checkable. It is a deterministic stride, so these datasets
+    carry no reportable metric, which is fine because they are pretraining data.
+
+    Sources built by slicing 3D volumes pass ``group`` to stride over scans instead of files. Striding over files would
+    put slice 99 in train and slice 100 in val, which are the same picture of the same patient.
 
     Args:
         by_file (dict): Image path to its boxes.
+        group (Callable, optional): Maps an image path to the scan it came from.
 
     Returns:
         (dict): Split name to image path to its boxes.
     """
-    items = list(by_file.items())
+    val = {k for i, k in enumerate(dict.fromkeys(map(group, by_file))) if not i % VAL_EVERY}
     return {
-        "train": dict(kv for i, kv in enumerate(items) if i % VAL_EVERY),
-        "val": dict(kv for i, kv in enumerate(items) if not i % VAL_EVERY),
+        "train": {p: b for p, b in by_file.items() if group(p) not in val},
+        "val": {p: b for p, b in by_file.items() if group(p) in val},
     }
 
 

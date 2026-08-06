@@ -1391,3 +1391,34 @@ def test_depth_dfl_loss_is_sized_from_the_head_not_the_module_default():
 
     crit = Stereo3DDetLoss(model)
     assert crit.depth_dfl_loss.reg_max == n
+
+
+def test_fitness_weights_classes_by_gt_instance_count():
+    """Early stopping and best.pt must not be dominated by the rarest class.
+
+    s3d `fitness` was an UNWEIGHTED mean AP3D@0.5 Moderate across classes. On the 189-frame screening split
+    (680 Car, 81 Pedestrian, 37 Cyclist GT) two thirds of that mean is noise on ~120 objects, and it stopped
+    8 calibration runs while Car AP was still climbing 3-4x. Weighting by GT count is approximately
+    inverse-variance weighting, since a per-class AP estimate's variance falls about as 1/n.
+
+    Constructed so the two aggregations disagree sharply: Car is good and common, the VRU classes are ~0 and
+    rare. Unweighted -> (30+0+0)/3 = 10.0; weighted -> 30*680/798 = 25.56.
+    """
+    from ultralytics.models.yolo.s3d.metrics import DIFFICULTY_MODERATE, Stereo3DDetMetrics
+
+    m = Stereo3DDetMetrics(names={0: "Car", 1: "Pedestrian", 2: "Cyclist"})
+    m.ap3d = {0.5: {DIFFICULTY_MODERATE: {0: 0.30, 1: 0.0, 2: 0.0}}}
+    m.gt_counts = {(DIFFICULTY_MODERATE, 0): 680, (DIFFICULTY_MODERATE, 1): 81, (DIFFICULTY_MODERATE, 2): 37}
+
+    assert abs(m.maps3d_50 - 0.10) < 1e-6, "the unweighted mean must stay unweighted for continuity"
+    assert abs(m.fitness - 0.30 * 680 / 798) < 1e-6, f"fitness must be instance-weighted, got {m.fitness}"
+    assert m.fitness > m.maps3d_50, "with a strong common class, weighting must raise fitness above the mean"
+
+    # A class with no eligible GT must contribute nothing rather than dragging in a zero.
+    m.gt_counts[(DIFFICULTY_MODERATE, 1)] = 0
+    m.gt_counts[(DIFFICULTY_MODERATE, 2)] = 0
+    assert abs(m.fitness - 0.30) < 1e-6, "classes with zero GT must not dilute fitness"
+
+    # No counts recorded at all (nothing processed yet) must fall back, not report a spurious 0.
+    m.gt_counts = {}
+    assert abs(m.fitness - 0.10) < 1e-6, "with no counts, fitness must fall back to the unweighted mean"

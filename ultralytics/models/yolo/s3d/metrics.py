@@ -95,6 +95,9 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         self.ap3d: dict[float, dict[int, dict[int, float]]] = {}
         self.apbev: dict[float, dict[int, dict[int, float]]] = {}
         self.aos: dict[float, dict[int, dict[int, float]]] = {}
+        # gt_counts[(difficulty, class_id)] = number of GT instances eligible at that difficulty. Recorded
+        # by _eval_class_difficulty so the weighting reuses its exact eligibility gating rather than a copy.
+        self.gt_counts: dict[tuple[int, int], int] = {}
 
     def update_stats(self, stat: dict[str, Any]) -> None:
         """Store per-image raw data for later processing."""
@@ -229,6 +232,10 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
             for local_idx, pred_idx in enumerate(pred_indices):
                 all_preds.append((pred_boxes[pred_idx].confidence, img_idx, local_idx))
 
+        # Recorded here rather than recomputed elsewhere: this is the only place the difficulty and
+        # min-height eligibility rules live, and the weighting must use the same population AP is over.
+        self.gt_counts[(max_difficulty, cls_id)] = n_gt_total
+
         if n_gt_total == 0 or not all_preds:
             return 0.0, 0.0
 
@@ -310,6 +317,41 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         """Compute mean AP3D across classes for given IoU and difficulty."""
         return self._mean_metric(self.ap3d, iou_thresh, difficulty)
 
+    def _instance_weighted_ap(self, iou_thresh: float, difficulty: int) -> float:
+        """Mean AP3D across classes, weighted by each class's GT instance count.
+
+        An unweighted class mean makes model selection and early stopping hostage to whichever class is
+        rarest. On a 189-frame KITTI val split with 680 Car, 81 Pedestrian and 37 Cyclist instances, two
+        thirds of an unweighted mean is noise on ~120 objects: it declared a plateau and stopped training
+        while Car AP was still climbing 3-4x.
+
+        Weighting by instance count is not merely "Car matters more" — the sampling variance of a per-class
+        AP estimate falls roughly as 1/n, so weights proportional to n are approximately inverse-variance
+        weights, i.e. the combination that minimises the variance of the aggregate. Classes with no eligible
+        GT contribute nothing instead of dragging a zero into the average.
+
+        Falls back to the unweighted mean when no counts are recorded (nothing processed yet), so callers
+        never see a spurious 0.0.
+
+        Args:
+            iou_thresh (float): IoU threshold to read.
+            difficulty (int): Difficulty level to read.
+
+        Returns:
+            (float): Instance-weighted mean AP3D.
+        """
+        if not self.ap3d or iou_thresh not in self.ap3d:
+            return 0.0
+        per_class = self.ap3d[iou_thresh].get(difficulty, {})
+        if not per_class:
+            return 0.0
+        ids = list(self.names) if self.names else list(per_class)
+        weights = [self.gt_counts.get((difficulty, cid), 0) for cid in ids]
+        total = sum(weights)
+        if total <= 0:
+            return self._mean_metric(self.ap3d, iou_thresh, difficulty)
+        return float(sum(per_class.get(cid, 0.0) * w for cid, w in zip(ids, weights)) / total)
+
     @property
     def results_dict(self) -> dict[str, Any]:
         """Return results as flat dictionary for CSV logging."""
@@ -332,6 +374,7 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         result["apbev_70"] = self._mean_metric(self.apbev, 0.7, DIFFICULTY_MODERATE)
         result["aos_50"] = self._mean_metric(self.aos, 0.5, DIFFICULTY_MODERATE)
         result["aos_70"] = self._mean_metric(self.aos, 0.7, DIFFICULTY_MODERATE)
+        result["ap3d_50_weighted"] = self._instance_weighted_ap(0.5, DIFFICULTY_MODERATE)
         result["fitness"] = self.fitness
 
         return result
@@ -350,8 +393,14 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
 
     @property
     def fitness(self) -> float:
-        """Model fitness = mean AP3D@0.5 Moderate across classes."""
-        return self.maps3d_50
+        """Model fitness = GT-instance-weighted mean AP3D@0.5 Moderate across classes.
+
+        Weighted rather than a plain class mean because `patience` and `best.pt` both key off this value,
+        and a plain mean lets a class with a few dozen instances dominate a decision about the whole run.
+        The unweighted mean is still reported as `ap3d_50`, so no previously recorded metric changes value —
+        only which checkpoint gets called best, and when training stops.
+        """
+        return self._instance_weighted_ap(0.5, DIFFICULTY_MODERATE)
 
     @property
     def maps3d_50(self) -> float:
@@ -369,3 +418,4 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         self.ap3d = {}
         self.apbev = {}
         self.aos = {}
+        self.gt_counts = {}

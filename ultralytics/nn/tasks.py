@@ -1303,9 +1303,8 @@ class YOLOEModel(DetectionModel):
         names = check_class_names(names)  # validate before the re-parameterization below, which cannot be undone
 
         # Cache anchors for head
-        with torch.no_grad():  # get_vocab fuses the head under inference mode, so a tracked warmup cannot use it
-            imgsz = self.args["imgsz"]
-            self(next(self.parameters()).new_empty(1, 3, imgsz, imgsz))  # warmup
+        with torch.no_grad():  # a tracked warmup would build a graph through the backbone
+            self(next(self.parameters()).new_empty(1, 3, self.args["imgsz"], self.args["imgsz"]))  # warmup
 
         cv3 = getattr(head, "one2one_cv3", head.cv3)
         cv2 = getattr(head, "one2one_cv2", head.cv2)

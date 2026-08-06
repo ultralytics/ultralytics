@@ -82,9 +82,9 @@ class ClassificationValidator(BaseValidator):
 
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess input batch by moving data to device and converting to appropriate dtype."""
-        batch["img"] = batch["img"].to(self.device, non_blocking=self.device.type == "cuda")
+        batch["img"] = batch["img"].to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
         batch["img"] = batch["img"].half() if self.args.quantize == 16 else batch["img"].float()
-        batch["cls"] = batch["cls"].to(self.device, non_blocking=self.device.type == "cuda")
+        batch["cls"] = batch["cls"].to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
         return batch
 
     def update_metrics(self, preds: torch.Tensor, batch: dict[str, Any]) -> None:
@@ -161,7 +161,7 @@ class ClassificationValidator(BaseValidator):
             (torch.utils.data.DataLoader): DataLoader object for the classification validation dataset.
         """
         dataset = self.build_dataset(dataset_path)
-        return build_dataloader(dataset, batch_size, self.args.workers, rank=-1)
+        return build_dataloader(dataset, batch_size, self.args.workers, rank=-1, device=self.device)
 
     def print_results(self) -> None:
         """Print evaluation metrics for the classification model."""

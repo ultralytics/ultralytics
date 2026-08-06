@@ -627,7 +627,7 @@ POST /api/datasets/ingest
 
 Create a dataset ingest job for an existing dataset. The target dataset is always passed as `datasetId` in the JSON body, not in the URL path.
 
-The request body requires `datasetId` plus exactly one of `sessionId` (an uploaded archive's upload session) or `sourceUrl` (a remote ZIP, TAR, TAR.GZ, TGZ, or NDJSON URL). Add optional `targetSplit` (`train`, `val`, or `test`) to override the archive's split structure.
+The request body requires `datasetId` plus exactly one of `sessionId` (an uploaded archive's upload session) or `sourceUrl` (a remote ZIP, TAR, TAR.GZ, TGZ, or NDJSON URL). Add optional `targetSplit` (`train`, `val`, or `test`) to override the archive's split structure. To attach custom metadata, use `imageMetadata`, keyed by each image's exact archive-relative path or NDJSON `file` value.
 
 For uploaded archives, the upload session is already bound to the dataset by the `assetId` passed to `POST /api/upload/signed-url`; ingest validates that `assetId` matches the body `datasetId`. Optional `classMapping` entries map each incoming class name to an existing zero-based class index, a class name to reuse or create, or `null` to skip the class. For remote `sourceUrl` imports, create the dataset first, then pass its `datasetId` to ingest.
 
@@ -640,6 +640,83 @@ For uploaded archives, the upload session is already bound to the dataset by the
     "targetSplit": "train"
 }
 ```
+
+**Body (one or multiple images with metadata):**
+
+```json
+{
+    "datasetId": "dataset_abc123",
+    "sessionId": "session_abc123",
+    "imageMetadata": {
+        "airbus-wing.jpg": { "aircraft": { "family": "A350" }, "inspectionStatus": "reviewed" },
+        "images/tail.jpg": { "aircraft": { "family": "A320" }, "inspectionSeverity": 2 }
+    }
+}
+```
+
+Local images use the existing archive upload flow, whether the archive contains one image or many. The key must match the normalized path inside the archive, including folders. For NDJSON imports, each image record can instead contain its own `metadata` object. Record-local `metadata` takes precedence over a matching `imageMetadata` entry.
+
+Metadata is JSON and supports nested values. Archive paths are limited to 1,024 characters, top-level metadata keys to 128 characters, and each metadata object to 500,000 serialized characters. The complete `imageMetadata` map, or the combined effective metadata across an NDJSON import, is also limited to 500,000 serialized characters. These constraints are included in the [interactive OpenAPI schema](https://platform.ultralytics.com/api/docs).
+
+??? example "Upload one image with metadata using Python"
+
+    The same code handles a group of images: add more files to the ZIP and matching entries to `imageMetadata`.
+
+    ```python
+    import io
+    import zipfile
+    from pathlib import Path
+
+    import requests
+
+    api = "https://platform.ultralytics.com/api"
+    headers = {"Authorization": "Bearer YOUR_API_KEY"}
+    dataset_id = "dataset_abc123"
+    image_path = Path("airbus-wing.jpg")
+
+    archive = io.BytesIO()
+    with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.write(image_path, image_path.name)
+    data = archive.getvalue()
+
+    signed = requests.post(
+        f"{api}/upload/signed-url",
+        headers=headers,
+        json={
+            "assetType": "datasets",
+            "assetId": dataset_id,
+            "filename": "images.zip",
+            "contentType": "application/zip",
+            "totalBytes": len(data),
+        },
+    )
+    signed.raise_for_status()
+    upload = signed.json()
+
+    requests.put(upload["uploadUrl"], headers={"Content-Type": "application/zip"}, data=data).raise_for_status()
+    requests.post(
+        f"{api}/upload/complete",
+        headers=headers,
+        json={"sessionId": upload["sessionId"]},
+    ).raise_for_status()
+
+    ingest = requests.post(
+        f"{api}/datasets/ingest",
+        headers=headers,
+        json={
+            "datasetId": dataset_id,
+            "sessionId": upload["sessionId"],
+            "imageMetadata": {
+                "airbus-wing.jpg": {
+                    "aircraft": {"family": "A350", "section": "wing"},
+                    "inspectionStatus": "reviewed",
+                }
+            },
+        },
+    )
+    ingest.raise_for_status()
+    print(ingest.json())
+    ```
 
 **Body (remote archive or NDJSON):**
 
@@ -1993,7 +2070,7 @@ yolo check
 === "CLI (Recommended)"
 
     ```bash
-    yolo settings api_key=YOUR_API_KEY
+    yolo login YOUR_API_KEY
     ```
 
 === "Environment Variable"

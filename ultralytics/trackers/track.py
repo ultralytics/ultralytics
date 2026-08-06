@@ -5,6 +5,7 @@ from pathlib import Path
 
 import torch
 
+from ultralytics.cfg import TASKS
 from ultralytics.utils import YAML, IterableSimpleNamespace
 from ultralytics.utils.checks import check_yaml
 
@@ -38,8 +39,9 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         >>> predictor = SomePredictorClass()
         >>> on_predict_start(predictor, persist=True)
     """
-    if predictor.args.task == "classify":
-        raise ValueError("❌ Classification doesn't support 'mode=track'")
+    trackable = ("detect", "segment", "pose", "obb")  # tasks whose results carry boxes, in canonical order
+    if (task := predictor.args.task) in TASKS and task not in trackable:  # unknown third-party tasks are left alone
+        raise ValueError(f"❌ Task '{task}' doesn't support 'mode=track', valid tasks are {', '.join(trackable)}")
 
     if hasattr(predictor, "trackers") and persist:
         return
@@ -114,7 +116,7 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
             tracker.reset()
             predictor.vid_path[i if is_stream else 0] = vid_path
 
-        det = (result.obb if is_obb else result.boxes).cpu().numpy()
+        det = (src := result.obb if is_obb else result.boxes).cpu().numpy()
         kwargs = {"feats": getattr(result, "feats", None)}
         if dets_del_list is not None:
             kwargs["dets_del"] = dets_del_list[i]
@@ -124,7 +126,7 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
         idx = tracks[:, -1].astype(int)
         predictor.results[i] = result[idx]
 
-        update_args = {"obb" if is_obb else "boxes": torch.as_tensor(tracks[:, :-1])}
+        update_args = {"obb" if is_obb else "boxes": torch.as_tensor(tracks[:, :-1], device=src.data.device)}
         predictor.results[i].update(**update_args)
 
 

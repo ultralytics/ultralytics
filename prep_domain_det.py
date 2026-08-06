@@ -21,6 +21,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import random
 import tarfile
@@ -351,12 +352,40 @@ def duo(root: Path) -> tuple[dict, list]:
     return coco_adapter(anno, {s: d / "images" / s for s in anno})
 
 
-def livecell(root: Path) -> tuple[dict, list]:
-    """Cell microscopy. Duplicate file_names within a split must merge rather than overwrite."""
-    d = extract(root / "images.zip", root / "_src") / "images"
-    anno = {s: root / f"livecell_coco_{s}.json" for s in ("train", "val", "test")}
-    imdir = {"train": d / "livecell_train_val_images", "val": d / "livecell_train_val_images"}
-    return coco_adapter(anno, {**imdir, "test": d / "livecell_test_images"})
+CAMUS_FRAMES = 4  # frames kept per cardiac sequence, evenly spaced over the cycle
+
+
+def camus(root: Path) -> tuple[dict, list]:
+    """Echocardiography, one cardiac sequence per view sliced into frames.
+
+    The third axis is time rather than space, so neighbouring frames are the same heart a few milliseconds apart. Four
+    evenly spaced frames span one cycle, over which the myocardium contracts and the atrium fills, and that deformation
+    is the only variation a sequence holds. Boxes come from the mask array the frame was cut from, so no reorientation
+    sits between the two.
+    """
+    import nibabel as nib  # scope so the other adapters run without it
+
+    names = ["left ventricular myocardium", "left ventricle", "left atrium"]
+    frames = root / "_frames"
+    frames.mkdir(parents=True, exist_ok=True)
+    by_file = {}
+    with zipfile.ZipFile(root / "Images.zip") as zi, zipfile.ZipFile(root / "Masks.zip") as zm:
+        load = lambda z, n: nib.Nifti1Image.from_bytes(gzip.decompress(z.read(n))).get_fdata()
+        for n in sorted(x for x in zi.namelist() if x.endswith(".nii.gz")):
+            im = load(zi, n)
+            mask = load(zm, n.replace("Images/", "Masks/").replace(".nii.gz", "_gt.nii.gz"))
+            stem, (h, w) = Path(n).name.split(".")[0], im.shape[:2]
+            for t in np.linspace(0, im.shape[2] - 1, CAMUS_FRAMES).round().astype(int):
+                dst = frames / f"{stem}_f{t:02d}.png"
+                if not dst.exists():
+                    cv2.imwrite(str(dst), im[:, :, t].astype(np.uint8))
+                boxes = []
+                for i in range(len(names)):
+                    ys, xs = np.where(mask[:, :, t] == i + 1)
+                    if len(xs) and (box := xyxy_to_yolo(xs.min(), ys.min(), xs.max() + 1, ys.max() + 1, w, h)):
+                        boxes.append((i, *box))
+                by_file[dst] = boxes
+    return carve_val(by_file, group=lambda p: p.name.split("_")[0]), names
 
 
 def vision(root: Path) -> tuple[dict, list]:
@@ -622,7 +651,7 @@ ADAPTERS = {
     "cct20": ("cct20", cct20, "cis_val"),
     "flir": ("flir-adas-v2", flir, "val"),
     "duo": ("duo", duo, "test"),
-    "livecell": ("livecell", livecell, "val"),
+    "camus": ("camus", camus, "val"),
     "vision": ("vision-datasets", vision, "val"),
     "loaf": ("loaf", loaf, "val"),
     "hixray": ("hixray", hixray, "test"),

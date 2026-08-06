@@ -832,6 +832,7 @@ class Model(torch.nn.Module):
                 weights, _ = load_checkpoint(pretrained)
             self.trainer.model = self.trainer.get_model(weights=weights, cfg=self.model.yaml)
             self.model = self.trainer.model
+            self.predictor = None  # this module replaced the one the cached predictor wrapped
 
         self.trainer.train()
         # Update model and cfg after training
@@ -842,6 +843,7 @@ class Model(torch.nn.Module):
                     f"Training completed but no checkpoint was saved. Expected {self.trainer.best} or {self.trainer.last}."
                 )
             self.model, self.ckpt = load_checkpoint(ckpt)
+            self.predictor = None  # the checkpoint replaced the module again; covers resume and YAML runs too
             self.overrides = self._reset_ckpt_args(self.model.args)
             self.metrics = getattr(self.trainer.validator, "metrics", None)
             if self.metrics is None and self.ckpt:  # recover from checkpoint under DDP (validator runs in subprocess)

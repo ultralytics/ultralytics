@@ -113,7 +113,7 @@ jobs:
             if [[ "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
               BEFORE_SHA=$(git rev-list --max-parents=0 "$CURRENT_SHA")
             fi
-            changed_files=$(git diff --name-only "$BEFORE_SHA" "$CURRENT_SHA" -- docs/ mkdocs.yml mkdocs.yaml)
+            changed_files=$(git diff --name-only "$BEFORE_SHA" "$CURRENT_SHA" -- docs/ mkdocs.yml mkdocs.yaml ultralytics/cfg/default.yaml)
             if [[ -z "$changed_files" ]]; then
               echo "No docs source changes."
               exit 0

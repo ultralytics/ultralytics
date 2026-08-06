@@ -242,20 +242,20 @@ nav:
       - OBB: tasks/obb.md
   - Models:
       - models/index.md
-      - YOLOv3: models/yolov3.md
-      - YOLOv4: models/yolov4.md
-      - YOLOv5: models/yolov5.md
-      - YOLOv6: models/yolov6.md
-      - YOLOv7: models/yolov7.md
-      - YOLOv8: models/yolov8.md
-      - YOLOv9: models/yolov9.md
-      - YOLOv10: models/yolov10.md
-      - YOLO11: models/yolo11.md
-      - YOLO12: models/yolo12.md
       - YOLO26 🚀: models/yolo26.md
-      - SAM (Segment Anything Model): models/sam.md
-      - SAM 2 (Segment Anything Model 2): models/sam-2.md
+      - YOLO12: models/yolo12.md
+      - YOLO11: models/yolo11.md
+      - YOLOv10: models/yolov10.md
+      - YOLOv9: models/yolov9.md
+      - YOLOv8: models/yolov8.md
+      - YOLOv7: models/yolov7.md
+      - YOLOv6: models/yolov6.md
+      - YOLOv5: models/yolov5.md
+      - YOLOv4: models/yolov4.md
+      - YOLOv3: models/yolov3.md
       - SAM 3 (Segment Anything Model 3): models/sam-3.md
+      - SAM 2 (Segment Anything Model 2): models/sam-2.md
+      - SAM (Segment Anything Model): models/sam.md
       - MobileSAM (Mobile Segment Anything Model): models/mobile-sam.md
       - FastSAM (Fast Segment Anything Model): models/fast-sam.md
       - YOLO-NAS (Neural Architecture Search): models/yolo-nas.md
@@ -682,7 +682,6 @@ nav:
       - Integrations:
           - platform/integrations/index.md
           - Slack: platform/integrations/slack.md
-          - Ultralytics HUB: platform/integrations/ultralytics-hub.md
           - Roboflow: platform/integrations/roboflow.md
           - Labelbox: platform/integrations/labelbox.md
           - LabelMe: platform/integrations/labelme.md
@@ -729,13 +728,6 @@ nav:
           - trainer: reference/engine/trainer.md
           - tuner: reference/engine/tuner.md
           - validator: reference/engine/validator.md
-      - hub:
-          - __init__: reference/hub/__init__.md
-          - auth: reference/hub/auth.md
-          - google:
-              - __init__: reference/hub/google/__init__.md
-          - session: reference/hub/session.md
-          - utils: reference/hub/utils.md
       - models:
           - __init__: reference/models/__init__.md
           - fastsam:
@@ -900,7 +892,6 @@ nav:
               - clearml: reference/utils/callbacks/clearml.md
               - comet: reference/utils/callbacks/comet.md
               - dvc: reference/utils/callbacks/dvc.md
-              - hub: reference/utils/callbacks/hub.md
               - mlflow: reference/utils/callbacks/mlflow.md
               - neptune: reference/utils/callbacks/neptune.md
               - platform: reference/utils/callbacks/platform.md
@@ -911,7 +902,6 @@ nav:
           - cpu: reference/utils/cpu.md
           - dist: reference/utils/dist.md
           - downloads: reference/utils/downloads.md
-          - errors: reference/utils/errors.md
           - events: reference/utils/events.md
           - export:
               - ascend: reference/utils/export/ascend.md

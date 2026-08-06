@@ -178,6 +178,8 @@ wiou_penalty: 0.0 # (float) when wiou=True, gain of CIoU's additive center/aspec
 wiou_ar: 0.0 # (float) when wiou=True, gain of CIoU's aspect-ratio penalty alpha*v alone, the one term WIoU lacks (0=off)
 wiou_ciou: False # (bool) when wiou=True, apply the focusing gain to the CIoU loss instead of exp() * plain IoU loss
 wiou_gamma: -1.0 # (float) when wiou=True, use v2 monotonic focusing beta**gamma instead of v3 (<0=v3, 0=v1, 0.5=paper v2)
+wiou_recover: 0.0 # (float) when wiou=True, from the first mosaic-free epoch pull the focusing gain on beta<1 boxes toward 1 by this fraction (0=off, 1=full); needs close_mosaic>0
+wiou_recover_span: 0.0 # (float) epochs the wiou_recover ramp takes to reach full strength; 0 applies it in full on the first mosaic-free epoch
 pose: 12.0 # (float) pose loss gain (pose tasks)
 kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)
 rle: 1.0 # (float) rle loss gain (pose tasks)

@@ -126,6 +126,8 @@ class BboxLoss(nn.Module):
         wiou_ar: float = 0.0,
         wiou_ciou: bool = False,
         wiou_gamma: float = -1.0,
+        wiou_recover: float = 0.0,
+        wiou_recover_span: float = 0.0,
     ):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
@@ -152,6 +154,9 @@ class BboxLoss(nn.Module):
         self.wiou_ar = wiou_ar  # gain of CIoU's aspect-ratio penalty alone, the only CIoU term WIoU has no analogue of
         self.wiou_ciou = wiou_ciou  # focus the CIoU loss instead of the plain IoU loss (replaces the exp() attention)
         self.wiou_gamma = wiou_gamma  # v2 monotonic focusing exponent (<0 keeps v3; 0 is v1, no focusing at all)
+        self.wiou_recover = wiou_recover  # strength of the mosaic-free-epoch gain recovery on beta<1 boxes (0=off)
+        self.wiou_recover_span = wiou_recover_span  # epochs the recovery ramps over; 0 applies it in full at once
+        self.wiou_recover_w = 0.0  # current recovery weight, set once per epoch by the loss that owns the schedule
         self.register_buffer("iou_mean", torch.tensor(1.0))  # running mean IoU loss, WIoU's outlier-degree denominator
 
     def forward(
@@ -182,6 +187,10 @@ class BboxLoss(nn.Module):
             else:  # v3: gain peaks at ordinary anchors, decays toward harmful outliers and toward easy ones (beta~0)
                 r = beta / (self.wiou_delta * torch.pow(self.wiou_alpha, beta - self.wiou_delta))
             r.clamp_(min=self.wiou_rmin)  # keep a share of the gradient on high-IoU boxes (0 = paper behaviour)
+            if self.wiou_recover_w:  # mosaic-free epochs: hand the gain back toward 1 on better-than-average boxes,
+                # so the clean-data stretch refines them at full weight. The clamp guards alpha settings whose peak
+                # sits left of beta==1, where the gain there already exceeds 1 and must not be pulled down.
+                r = torch.where(beta < 1.0, r + self.wiou_recover_w * (1.0 - r).clamp_min(0.0), r)
             # CIoU already carries rho2/c2, so the exp() distance attention would apply it twice
             per_box = r * base if self.wiou_ciou else r * wiou_dist(pred_fg, target_fg) * l_iou
             if self.wiou_penalty:  # restore CIoU's additive center/aspect penalties, not scaled by the focusing gain
@@ -234,6 +243,17 @@ class BboxLoss(nn.Module):
                 self.center_loss = self.center * (reg_c * weight).sum() / target_scores_sum
 
         return loss_iou, loss_dfl
+
+    def set_recover(self, epochs_in: float) -> None:
+        """Set the WIoU gain-recovery weight for the epoch about to run.
+
+        Args:
+            epochs_in (float): Epochs since the first mosaic-free epoch; negative before it, 0 on that epoch itself.
+        """
+        if not self.wiou_recover:
+            return
+        ramp = 1.0 if self.wiou_recover_span <= 0 else min((epochs_in + 1) / self.wiou_recover_span, 1.0)
+        self.wiou_recover_w = self.wiou_recover * ramp if epochs_in >= 0 else 0.0
 
 
 class RLELoss(nn.Module):
@@ -632,8 +652,20 @@ class v8DetectionLoss:
             wiou_ar=getattr(h, "wiou_ar", 0.0),
             wiou_ciou=getattr(h, "wiou_ciou", False),
             wiou_gamma=getattr(h, "wiou_gamma", -1.0),
+            wiou_recover=getattr(h, "wiou_recover", 0.0),
+            wiou_recover_span=getattr(h, "wiou_recover_span", 0.0),
         ).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
+        self.updates = 0  # epochs completed, advanced by update(); an e2e wrapper drives its branches itself
+
+    def mosaic_free_epochs_in(self) -> float:
+        """Epochs since the first mosaic-free epoch for the epoch about to run; negative before it."""
+        return self.updates - (self.hyp.epochs - getattr(self.hyp, "close_mosaic", 0))
+
+    def update(self) -> None:
+        """Advance the epoch-scheduled loss terms; called once per epoch by the trainer."""
+        self.updates += 1
+        self.bbox_loss.set_recover(self.mosaic_free_epochs_in())
 
     def preprocess(self, targets: torch.Tensor, batch_size: int, scale_tensor: torch.Tensor) -> torch.Tensor:
         """Preprocess targets by converting to tensor format and scaling coordinates."""
@@ -1627,6 +1659,9 @@ class E2EDetectLoss:
         self.updates += 1
         if self.o2f:
             self.o2f_loss.assigner.o2f_t = self.o2f_decay(self.updates)
+        for branch in (self.one2many, self.one2one):  # this wrapper owns the epoch counter, resume only restores it
+            branch.updates = self.updates
+            branch.bbox_loss.set_recover(branch.mosaic_free_epochs_in())
 
     def o2f_decay(self, x) -> float:
         """Decay o2f_t linearly from o2f_max_t to o2f_min_t over the first half of epochs, then to 0 over the second."""
@@ -2031,6 +2066,9 @@ class E2ELoss:
             self.aux_fg_w = self.aux_fg_ramp(self.updates, self.aux_fg_end * max(self.one2one.hyp.epochs - 1, 1))
         if self.aux_fg and self.aux_fg_tgt == "mix":  # slide the aux target from dense o2m toward pure o2o
             self.aux_fg_t_cur = self.aux_fg_t * self.aux_fg_ramp(self.updates, self.aux_fg_t_span)
+        for branch in (self.one2many, self.one2one):  # this wrapper owns the epoch counter, resume only restores it
+            branch.updates = self.updates
+            branch.bbox_loss.set_recover(branch.mosaic_free_epochs_in())
 
     def decay(self, x) -> float:
         """Calculate the decayed weight for one-to-many loss based on the current update step."""

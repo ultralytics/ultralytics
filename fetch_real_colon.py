@@ -3,8 +3,9 @@
 
 REAL-Colon ships 60 colonoscopy videos as 946 GB of per-video frame tarballs, one JPEG per frame at ~30 fps. Only 46 of
 those videos contain a boxed lesion, and they hold 132 lesions between them, so frame count is not what limits variety.
-Frames are piped through tar and only the sampled ones are written, which keeps peak disk at the size of the output
-rather than the size of the archive. Members are stored unsorted, so tar still reads each archive end to end.
+Each archive is read as a stream off the wire and only the sampled members are written, which keeps peak disk at the
+size of the output rather than the size of the archive. Members are stored unsorted, so every archive is still read end
+to end.
 
 Sampling is one frame per second, capped per video. Neighbouring frames at 30 fps are the same polyp a few milliseconds
 apart, and the cap stops a video the endoscopist lingered over from outweighing one passed quickly. Background frames
@@ -25,10 +26,10 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import subprocess
 import tarfile
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from urllib import request
 
 from ultralytics.utils.downloads import safe_download
 
@@ -120,9 +121,8 @@ def main() -> None:
     def pull(v: str) -> str | None:
         """Stream one video, keeping only its sampled frames, and name it back if it did not arrive whole.
 
-        Frames on disk are the completion test rather than the exit status. tar reports failure when any requested
-        member is absent yet still extracts the rest, and a run killed midway leaves a partial video that a
-        presence check would read as done.
+        Frames on disk are the completion test rather than a clean return, because a run killed midway leaves a
+        partial video that a presence check would read as done.
         """
         pos = set(lf[v]["pos"])
         wanted = set(sample(lf[v]["pos"], fps[v], POS_CAP)) | set(
@@ -131,15 +131,18 @@ def main() -> None:
         if len(list(frames.glob(f"{v}_*.jpg"))) >= len(wanted):
             print(f"  {v}: already fetched, skipping", flush=True)
             return None
-        names = "\n".join(f"{v}_frames/{v}_{n}.jpg" for n in sorted(wanted))
-        # -f so an HTTP error is a failure rather than an error body piped into tar, and pipefail so it reaches us
-        cmd = (
-            f"set -o pipefail; curl -fsSL '{url[f'{v}_frames.tar.gz']}' | tar xz -C {frames} --strip-components=1 -T -"
-        )
-        r = subprocess.run(["bash", "-c", cmd], input=names, text=True, capture_output=True, check=False)
+        names = {f"{v}_{n}.jpg" for n in wanted}
+        err = ""
+        # Caught per video, so one bad source costs a rerun of that video rather than the run
+        try:
+            with request.urlopen(url[f"{v}_frames.tar.gz"]) as resp, tarfile.open(fileobj=resp, mode="r|gz") as tf:
+                for m in tf:
+                    if (name := Path(m.name).name) in names:
+                        (frames / name).write_bytes(tf.extractfile(m).read())
+        except Exception as e:
+            err = f"  {type(e).__name__} {e}"
         got = len(list(frames.glob(f"{v}_*.jpg")))
-        short = f"  SHORT {r.stderr.strip()[:90]}" if got < len(wanted) else ""
-        print(f"  {v}: {got} of {len(wanted)} frames{short}", flush=True)
+        print(f"  {v}: {got} of {len(wanted)} frames{err}", flush=True)
         return v if got < len(wanted) else None
 
     # One connection does not saturate the link, and the gzip layer is near-stored over JPEG, so these wait on the wire

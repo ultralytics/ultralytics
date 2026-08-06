@@ -16,9 +16,9 @@ import argparse
 from pathlib import Path
 
 from callbacks.paths import run_paths
+from run_enc_distill_phase2 import _load_recipe
 from ultralytics import YOLO
 from ultralytics.models.yolo.detect.train_federated import FederatedDetectionTrainer
-from ultralytics.utils import YAML
 
 ARMS = {
     "corpus": ("enterprise-corpus", "/data/shared-datasets/domain-det/_merged/data.yaml", FederatedDetectionTrainer),
@@ -42,15 +42,11 @@ def main() -> None:
     args = a.parse_args()
 
     recipe_name, data, trainer = ARMS[args.arm]
-    recipe = YAML.load(Path(__file__).parent / "cfg" / "recipes" / f"{recipe_name}.yaml")
+    recipe = _load_recipe(recipe_name, args.model, epochs=args.epochs, batch=args.batch)
+    recipe["amp"] = not args.no_amp
     stem = Path(args.model).stem
     pretrained = args.pretrained or str(INIT / ("ultravit_s.pt" if "ultravit" in stem else "c3k2_s.pt"))
     name = args.name or f"ph-{args.arm}-{stem.replace('yolo26s-p4p5-wide-', '')}"
-    overrides = {k: v for k, v in (("epochs", args.epochs), ("batch", args.batch)) if v is not None}
-    if args.no_amp:
-        overrides["amp"] = False
-
-    print(f"[recipe] {recipe_name} + {overrides or 'no deltas'}")
     print(f"[arm] {args.arm}  model={args.model}  init={pretrained}  data={data}")
     YOLO(args.resume or args.model).train(
         data=data,
@@ -59,7 +55,6 @@ def main() -> None:
         trainer=trainer,
         resume=bool(args.resume),
         **recipe,
-        **overrides,
         **run_paths(name, exist_ok=bool(args.resume)),
     )
 

@@ -639,6 +639,11 @@ def check_dict_alignment(
             "sample_t",
             "beta2",
             "nfs_sync",
+            # Federated corpus pretraining knobs (models/yolo/detect/train_federated.py), carried in the
+            # cfg/recipes/enterprise-corpus.yaml profile so the arm stays reproducible from the profile alone.
+            "quota_alpha",
+            "repeat_t",
+            "fed_k",
             # DINOv3 / UNIC / DUNE encoder-distillation knobs surfaced through DDP-serialised args.
             # ``wd_end``: half-cosine target weight_decay (callbacks/wd_schedule.py); reference
             #   DINOv3 distillation_convnext/convnext_tiny_p16.yaml schedules.weight_decay.

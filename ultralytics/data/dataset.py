@@ -838,6 +838,11 @@ class YOLOConcatDataset(ConcatDataset):
         >>> combined_dataset = YOLOConcatDataset([dataset1, dataset2])
     """
 
+    @property
+    def labels(self) -> list[dict]:
+        """Return every sub-dataset's labels, so trainer paths that read labels work on the concatenation."""
+        return [lb for d in self.datasets for lb in d.labels]
+
     @staticmethod
     def collate_fn(batch: list[dict]) -> dict:
         """Collate data samples into batches.

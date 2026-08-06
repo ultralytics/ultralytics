@@ -46,3 +46,6 @@ warmup_momentum: 0.9
 weight_decay: 0.000125
 workers: 8
 epochs: 78
+quota_alpha: 0.7
+repeat_t: 0.001
+fed_k: 50

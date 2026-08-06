@@ -322,6 +322,7 @@ def build_dataloader(
     drop_last: bool = False,
     pin_memory: bool = True,
     device: torch.device | str = "cuda",
+    batch_sampler: Any = None,
 ) -> InfiniteDataLoader:
     """Create and return an InfiniteDataLoader for training or validation.
 
@@ -334,6 +335,8 @@ def build_dataloader(
         drop_last (bool, optional): Whether to drop the last incomplete batch.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
         device (torch.device | str, optional): Device used by the dataloader consumer.
+        batch_sampler (Sampler, optional): Yields index lists, one per batch. Replaces batch, shuffle, rank sampling and
+            drop_last, for loaders whose batch composition is chosen rather than drawn uniformly.
 
     Returns:
         (InfiniteDataLoader): A dataloader that can be used for training or validation.
@@ -347,7 +350,7 @@ def build_dataloader(
     batch = min(batch, dataset_len)
     sampler = (
         None
-        if rank == -1
+        if rank == -1 or batch_sampler is not None
         else distributed.DistributedSampler(dataset, shuffle=shuffle)
         if shuffle
         else ContiguousDistributedSampler(dataset)
@@ -355,6 +358,8 @@ def build_dataloader(
     samples = len(sampler) if sampler is not None else dataset_len
     drop_last = drop_last and bool(batch) and dataset_len % batch != 0
     batches = (samples // batch if drop_last else math.ceil(samples / batch)) if batch else 0
+    if batch_sampler is not None:
+        batches = len(batch_sampler)
     device_type = getattr(device, "type", str(device).split(":")[0])
     nd = get_torch_device_backend(device).device_count() if device_type not in {"cpu", "mps"} else 0
     # Do not create more worker processes than final loader batches. Single-batch loaders run in-process to avoid
@@ -368,16 +373,22 @@ def build_dataloader(
     )
     return InfiniteDataLoader(
         dataset=dataset,
-        batch_size=batch,
-        shuffle=shuffle and sampler is None,
         num_workers=nw,
-        sampler=sampler,
         prefetch_factor=4 if nw > 0 else None,  # increase over default 2
         pin_memory=pin_memory,
         collate_fn=getattr(dataset, "collate_fn", None),
         worker_init_fn=seed_worker,
         generator=generator,
-        drop_last=drop_last,
+        **(
+            {"batch_sampler": batch_sampler}
+            if batch_sampler is not None
+            else {
+                "batch_size": batch,
+                "shuffle": shuffle and sampler is None,
+                "sampler": sampler,
+                "drop_last": drop_last,
+            }
+        ),
         **({"pin_memory_device": pin_memory_device} if pin_memory_device else {}),
     )
 

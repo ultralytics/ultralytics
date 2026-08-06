@@ -1422,3 +1422,22 @@ def test_fitness_weights_classes_by_gt_instance_count():
     # No counts recorded at all (nothing processed yet) must fall back, not report a spurious 0.
     m.gt_counts = {}
     assert abs(m.fitness - 0.10) < 1e-6, "with no counts, fitness must fall back to the unweighted mean"
+
+
+def test_metric_keys_and_results_dict_stay_in_step():
+    """Every summary in `results_dict` must also be in `keys`, or it never reaches results.csv.
+
+    The CSV header is built from `keys`; `results_dict` supplies the values. A summary added to only one of
+    them is silently dropped from the log — which is what happened to `ap3d_50_weighted`, the new
+    instance-weighted fitness signal, on its first run.
+    """
+    from ultralytics.models.yolo.s3d.metrics import DIFFICULTY_MODERATE, Stereo3DDetMetrics
+
+    m = Stereo3DDetMetrics(names={0: "Car", 1: "Pedestrian", 2: "Cyclist"})
+    m.ap3d = {0.5: {DIFFICULTY_MODERATE: {0: 0.3, 1: 0.1, 2: 0.0}}}
+    m.gt_counts = {(DIFFICULTY_MODERATE, 0): 680, (DIFFICULTY_MODERATE, 1): 81, (DIFFICULTY_MODERATE, 2): 37}
+
+    # `fitness` is popped by the trainer before logging, so it is exempt.
+    missing = {k for k in m.results_dict if k not in set(m.keys) and k != "fitness"}
+    assert not missing, f"in results_dict but absent from keys, so dropped from results.csv: {sorted(missing)}"
+    assert "ap3d_50_weighted" in m.keys

@@ -388,7 +388,9 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
                 for diff_str in DIFFICULTY_NAMES:
                     for _, cls_name in sorted(self.names.items()):
                         keys.append(f"{prefix}_{cls_name}_{diff_str}_{iou_str}")
-        keys.extend(["ap3d_50", "ap3d_70", "apbev_50", "apbev_70", "aos_50", "aos_70"])
+        # `keys`, not `results_dict`, is what fixes the results.csv header, so a summary added only to
+        # results_dict never reaches the CSV. Keep the two in step.
+        keys.extend(["ap3d_50", "ap3d_70", "apbev_50", "apbev_70", "aos_50", "aos_70", "ap3d_50_weighted"])
         return keys
 
     @property

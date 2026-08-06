@@ -1130,8 +1130,7 @@ class YOLOEDetect(Detect):
         self.savpe = SAVPE(ch, c3, embed)
         self.embed = embed
 
-    @torch.inference_mode(False)  # the fused layers stay in the model, so they must not be inference tensors
-    @torch.no_grad()
+    @torch.no_grad()  # not smart_inference_mode: the fused layers stay in the model and must not be inference tensors
     def fuse(self, txt_feats: torch.Tensor = None):
         """Fuse text features with model weights for efficient inference."""
         if txt_feats is None:  # means eliminate one2many branch

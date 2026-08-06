@@ -27,6 +27,8 @@ PRETRAINED = Path(
     "ph1-12src-ultravit-s-290726-dinov3-vitl16/weights/best.pt"
 )
 LR0_RANGES = {"AdamW": (2.5e-4, 1e-3), "MuSGD": (1.9e-4, 7.6e-4)}
+SCORE_HORIZON_FLOOR = 8  # keep projecting this many epochs at completion so end slope still counts
+SCORE_PROJECTION_CAP = 0.01  # slope may tip close calls but never dominate measured mAP
 
 SWEEP_CONFIG = {
     "name": SWEEP_NAME,
@@ -95,8 +97,8 @@ def train() -> None:
                 else 0.0
             )
             noise = statistics.pstdev(value - y_mean - slope * (i - x_mean) for i, value in enumerate(window))
-            horizon = min(len(window) - 1, trainer.epochs - trainer.epoch - 1)
-            projected_map = history[-1] + horizon * slope
+            horizon = min(len(window) - 1, max(trainer.epochs - trainer.epoch - 1, SCORE_HORIZON_FLOOR))
+            projected_map = history[-1] + max(min(horizon * slope, SCORE_PROJECTION_CAP), -SCORE_PROJECTION_CAP)
             wandb.log(
                 {
                     "tune/score": projected_map - noise,

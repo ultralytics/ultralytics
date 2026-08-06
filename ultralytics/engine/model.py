@@ -451,10 +451,10 @@ class Model(torch.nn.Module):
             >>> print(results[0].boxes.shape)
         """
         self._check_is_pytorch_model()
+        model = unwrap_model(self.model)
+        if not isinstance(model, BaseModel):  # e.g. a super-gradients YOLO-NAS module, which has no layer list
+            raise TypeError(f"model='{type(model).__name__}' is not an Ultralytics model and cannot be embedded.")
         if not kwargs.get("embed"):
-            model = unwrap_model(self.model)
-            if not isinstance(model, BaseModel):  # e.g. a super-gradients YOLO-NAS module, which has no layer list
-                raise TypeError(f"model='{type(model).__name__}' is not an Ultralytics model and cannot be embedded.")
             kwargs["embed"] = [len(model.model) - 2]  # embed second-to-last layer if no indices passed
         return self.predict(source, stream, **kwargs)
 

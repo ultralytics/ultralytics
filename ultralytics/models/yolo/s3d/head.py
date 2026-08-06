@@ -191,9 +191,12 @@ class Stereo3DDetHead(Detect):
 
         # Decode depth bins → scalar log-depth (keep raw logits for loss/export)
         if "depth" in preds:
-            depth_logits = preds["depth"]  # raw logits [B, 16, HW]
+            depth_logits = preds["depth"]  # raw logits [B, n_bins, HW]
             preds["depth"] = self.depth_dfl(depth_logits)  # decoded [B, 1, HW]
             preds["depth_bins"] = depth_logits  # raw logits: DFLoss / ONNX export / eval-time DFL variance
+            # Ship the grid the logits are defined on. _set_range() retargets it per dataset, so a decoder
+            # that rebuilds it from DEPTH_MIN/DEPTH_MAX silently reads the bins on the wrong axis.
+            preds["depth_bin_values"] = self.depth_dfl.bin_values
 
         return preds
 

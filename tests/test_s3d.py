@@ -1278,3 +1278,47 @@ def test_val_false_warns_that_best_is_not_selected(monkeypatch):
     warnings.clear()
     Stereo3DDetTrainer(overrides={"model": MODEL, "data": DATA, "epochs": 1, "imgsz": [384, 1248], "val": True})
     assert not any("val=False" in w for w in warnings), f"warned with val=True: {warnings}"
+
+
+def test_dfl_variance_uses_the_retargeted_bin_grid():
+    """The depth-bin variance must be read on the head's own grid, not a grid rebuilt from the defaults.
+
+    DepthDFL._set_range() retargets the bins per dataset, and this variance is the inverse-variance
+    weight for the depth cue against the disparity cue in decode. Evaluating the logits on the default
+    2-80 m axis while the head was trained on another silently mis-weights every fused depth.
+    """
+    import math
+
+    import torch
+
+    from ultralytics.models.yolo.s3d.head import DEPTH_BINS, DEPTH_MAX, DEPTH_MIN, DepthDFL
+    from ultralytics.models.yolo.s3d.preprocess import _dfl_variance
+
+    dfl = DepthDFL()
+    dfl._set_range(0.2, 2.5)  # a short-range rig (cube_s3d-like), nothing like the KITTI default
+
+    # Equal mass on two adjacent bins => mean at their midpoint => variance is exactly (Δ/2)².
+    logits = torch.full((1, dfl.n_bins, 1), -20.0)
+    logits[0, 3, 0] = logits[0, 4, 0] = 0.0
+    got = _dfl_variance({"depth_bins": logits, "depth_bin_values": dfl.bin_values}, 0, 0)
+
+    delta = float(dfl.bin_values[4] - dfl.bin_values[3])
+    assert got == pytest.approx((delta / 2) ** 2, rel=1e-4)
+
+    # ...and that must NOT match what the old default-grid computation would have returned.
+    default_delta = (math.log(DEPTH_MAX) - math.log(DEPTH_MIN)) / (DEPTH_BINS - 1)
+    assert got != pytest.approx((default_delta / 2) ** 2, rel=1e-2)
+
+    # Without the grid the caller gets the neutral fallback rather than a confidently wrong number.
+    assert _dfl_variance({"depth_bins": logits}, 0, 0) == 1.0
+
+
+def test_head_publishes_its_depth_bin_grid():
+    """The head must ship the grid alongside the logits, or decode silently falls back to variance 1.0."""
+    import torch
+
+    model = YOLO(MODEL).model.eval()
+    with torch.no_grad():
+        _, preds = model(torch.zeros(1, 6, 384, 1248))
+    assert "depth_bin_values" in preds, f"head did not publish the bin grid: {sorted(preds)}"
+    assert torch.equal(preds["depth_bin_values"], model.model[-1].depth_dfl.bin_values)

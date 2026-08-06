@@ -23,7 +23,7 @@ import torch
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.data.stereo.box3d import Box3D
-from ultralytics.models.yolo.s3d.head import AUX_SPECS, DEPTH_BINS, DEPTH_MAX, DEPTH_MIN
+from ultralytics.models.yolo.s3d.head import AUX_SPECS
 from ultralytics.models.yolo.s3d.orientation import decode_orientation
 from ultralytics.utils import LOGGER
 from ultralytics.utils.nms import non_max_suppression
@@ -103,20 +103,26 @@ def compute_letterbox_params(
 def _dfl_variance(outputs: dict[str, torch.Tensor], b: int, idx: int) -> float:
     """Return the DFL depth-distribution spread Σpᵢ(bᵢ-μ)² at (b, idx), else 1.0 (high variance).
 
+    The bin grid comes from the head, which is the only thing that knows it: DepthDFL._set_range()
+    retargets the grid to each dataset's depth range, so rebuilding it here from DEPTH_MIN/DEPTH_MAX
+    would evaluate the logits on a different axis than the one they were trained and decoded on — and
+    this variance is the fusion weight for the depth cue against the disparity cue.
+
     Args:
-        outputs: Model outputs dictionary, may contain raw "depth_bins" logits [B, n_bins, HW].
+        outputs: Model outputs dictionary, may contain raw "depth_bins" logits [B, n_bins, HW] and the
+            matching "depth_bin_values" grid [n_bins].
         b: Batch index.
         idx: Flat spatial index into the aux maps.
 
     Returns:
-        Variance of the softmax-weighted depth-bin distribution in log-depth space, or 1.0
-        when "depth_bins" is not present in outputs.
+        Variance of the softmax-weighted depth-bin distribution in log-depth space, or 1.0 when the
+        bins or their grid are absent.
     """
-    if "depth_bins" not in outputs:
+    if "depth_bins" not in outputs or "depth_bin_values" not in outputs:
         return 1.0
 
     logits = outputs["depth_bins"][b, :, idx].float()
-    bin_values = torch.linspace(math.log(DEPTH_MIN), math.log(DEPTH_MAX), DEPTH_BINS, device=logits.device)
+    bin_values = outputs["depth_bin_values"].to(logits.device).float()
     probs = torch.softmax(logits, dim=0)
     mu = (probs * bin_values).sum()
     return float((probs * (bin_values - mu) ** 2).sum().item())

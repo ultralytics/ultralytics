@@ -1,0 +1,21 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Macros exported as shared content blocks for other Ultralytics surfaces (currently the blog).
+#
+# Export is opt-in: an entry here makes a macro's rendered table fetchable by id, so a published post
+# can embed the same table the docs page shows and follow it when the numbers change. Add an entry
+# only when a post needs that macro.
+#
+# id        Immutable. A published post references it; renaming one breaks that post.
+# macro     File in this directory.
+# canonical Docs page the block links back to, relative to docs/en/. Readers land on the full context.
+#
+# Only context-free macros can be exported. A macro whose output depends on the including page —
+# supported-tasks.md (page-level `{% set unsupported %}`) or the `param_table` macros
+# (solutions-args, track-args, visualization-args, which every docs page calls with an argument
+# list) — renders something different, and silently plausible, with no page around it.
+
+exports:
+  - id: yolo-det-perf
+    macro: yolo-det-perf.md
+    canonical: tasks/detect.md

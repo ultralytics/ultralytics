@@ -33,6 +33,7 @@ from pathlib import Path
 from ultralytics.utils.downloads import safe_download
 
 ARTICLE = 22202866  # Figshare+ REAL-Colon
+VIDEOS = 60  # videos in the release, asserted so a short file list cannot pass as a corpus with fewer lesions
 ROOT = Path("/data/shared-datasets/domain-det/real-colon")
 POS_CAP = 300  # sampled frames per video holding a lesion
 NEG_CAP = 150  # sampled frames per video holding none
@@ -40,12 +41,22 @@ STREAMS = 3  # concurrent downloads, measured at 1.65x one connection before the
 
 
 def files(anno: Path) -> list:
-    """Return the article file list, cached so a rerun does not re-query."""
+    """Return the article file list, cached so a rerun does not re-query.
+
+    A short list is the dangerous failure here, because a missing video reads as a video with no lesion rather than as
+    an error. The count is checked on the cached path too, so a truncated cache written by an earlier run cannot
+    survive.
+    """
     cache = anno / "files.json"
     if not cache.exists():
         anno.mkdir(parents=True, exist_ok=True)
-        safe_download(f"https://api.figshare.com/v2/articles/{ARTICLE}/files", file=cache, unzip=False, progress=False)
-    return json.loads(cache.read_bytes())
+        # page_size covers every file, since the default page returns 10 and drops the rest without saying so
+        url = f"https://api.figshare.com/v2/articles/{ARTICLE}/files?page_size=200"
+        safe_download(url, file=cache, unzip=False, progress=False)
+    out = json.loads(cache.read_bytes())
+    n = sum(x["name"].endswith("_frames.tar.gz") for x in out)
+    assert n == VIDEOS, f"{cache} lists {n} of {VIDEOS} videos, delete it and rerun"
+    return out
 
 
 def lesion_frames(anno: Path) -> dict:
@@ -106,25 +117,38 @@ def main() -> None:
     url = {x["name"]: x["download_url"] for x in fl}
     print(f"{len(vids)} videos hold a lesion, streaming each one")
 
-    def pull(v: str) -> None:
-        """Stream one video, keeping only its sampled frames."""
-        if next(frames.glob(f"{v}_*.jpg"), None):
-            print(f"  {v}: already fetched, skipping", flush=True)
-            return
+    def pull(v: str) -> str | None:
+        """Stream one video, keeping only its sampled frames, and name it back if it did not arrive whole.
+
+        Frames on disk are the completion test rather than the exit status. tar reports failure when any requested
+        member is absent yet still extracts the rest, and a run killed midway leaves a partial video that a
+        presence check would read as done.
+        """
         pos = set(lf[v]["pos"])
         wanted = set(sample(lf[v]["pos"], fps[v], POS_CAP)) | set(
             sample([n for n in range(lf[v]["total"]) if n not in pos], fps[v], NEG_CAP)
         )
+        if len(list(frames.glob(f"{v}_*.jpg"))) >= len(wanted):
+            print(f"  {v}: already fetched, skipping", flush=True)
+            return None
         names = "\n".join(f"{v}_frames/{v}_{n}.jpg" for n in sorted(wanted))
-        cmd = f"curl -sL '{url[f'{v}_frames.tar.gz']}' | tar xz -C {frames} --strip-components=1 -T - --ignore-failed-read"
-        subprocess.run(["bash", "-c", cmd], input=names, text=True, check=False)
-        print(f"  {v}: {len(list(frames.glob(f'{v}_*.jpg')))} frames on disk", flush=True)
+        # -f so an HTTP error is a failure rather than an error body piped into tar, and pipefail so it reaches us
+        cmd = (
+            f"set -o pipefail; curl -fsSL '{url[f'{v}_frames.tar.gz']}' | tar xz -C {frames} --strip-components=1 -T -"
+        )
+        r = subprocess.run(["bash", "-c", cmd], input=names, text=True, capture_output=True, check=False)
+        got = len(list(frames.glob(f"{v}_*.jpg")))
+        short = f"  SHORT {r.stderr.strip()[:90]}" if got < len(wanted) else ""
+        print(f"  {v}: {got} of {len(wanted)} frames{short}", flush=True)
+        return v if got < len(wanted) else None
 
     # One connection does not saturate the link, and the gzip layer is near-stored over JPEG, so these wait on the wire
     # rather than on a core. Videos write disjoint filenames into one directory, so they need no coordination.
     with ThreadPoolExecutor(max_workers=STREAMS) as ex:
-        list(ex.map(pull, vids))
+        short = [v for v in ex.map(pull, vids) if v]
 
+    # Raised after every video has had its turn, so one bad source costs a rerun of that video rather than the run
+    assert not short, f"{len(short)} videos came down short, rerun to finish them: {short}"
     print(f"done, {len(list(frames.glob('*.jpg'))):,} frames in {frames}")
     print("now run: python prep_domain_det.py real_colon")
 

@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from callbacks import nfs_sync
 from callbacks.paths import run_paths
 from run_enc_distill_phase2 import _load_recipe
 from ultralytics import YOLO
@@ -48,15 +49,19 @@ def main() -> None:
     pretrained = args.pretrained or str(INIT / ("ultravit_s.pt" if "ultravit" in stem else "c3k2_s.pt"))
     name = args.name or f"ph-{args.arm}-{stem.replace('yolo26s-p4p5-wide-', '')}"
     print(f"[arm] {args.arm}  model={args.model}  init={pretrained}  data={data}")
-    YOLO(args.resume or args.model).train(
-        data=data,
-        device=args.device,
-        pretrained=pretrained,
-        trainer=trainer,
-        resume=bool(args.resume),
-        **recipe,
-        **run_paths(name, exist_ok=bool(args.resume)),
-    )
+    train_args = {**recipe, **run_paths(name, exist_ok=bool(args.resume))}
+    sync_stop = nfs_sync.start(train_args["save_dir"])  # orc reads progress from the mirrored results.csv
+    try:
+        YOLO(args.resume or args.model).train(
+            data=data,
+            device=args.device,
+            pretrained=pretrained,
+            trainer=trainer,
+            resume=bool(args.resume),
+            **train_args,
+        )
+    finally:
+        sync_stop()
 
 
 if __name__ == "__main__":

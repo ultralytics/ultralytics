@@ -3,6 +3,7 @@
 # 78 epochs matches images seen (150 x 608,606 / 1,174,087), warmup and close_mosaic halve to match update counts.
 # Compare checkpoints at corpus epoch = 0.518 x o365 epoch.
 # backbone_lr_ratio 1.0 matches the control, see its header.
+# patience is deliberately above both arms' epoch counts, so early stopping can never fire on either side.
 auto_augment: randaugment
 backbone_lr_ratio: 1.0
 batch: 128
@@ -33,7 +34,7 @@ mosaic: 1.0
 muon: 0.2
 nbs: 64
 optimizer: AdamW
-patience: 100
+patience: 200
 perspective: 0.0
 pose: 12.0
 scale: 0.9

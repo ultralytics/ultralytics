@@ -504,6 +504,13 @@ class YOLOE(Model):
             assert all(per_image), (
                 f"Expected at least one class per image in the visual prompts, but got {visual_prompts['cls']}"
             )
+            # the count above reads 'cls' alone; get_visuals zips it with 'bboxes', so the two must pair per image
+            assert not nested or all(
+                len(b) == len(c) for b, c in zip(visual_prompts["bboxes"], visual_prompts["cls"])
+            ), (
+                f"Expected an equal number of bounding boxes and classes for each image, but got "
+                f"{[len(b) for b in visual_prompts['bboxes']]} and {[len(c) for c in visual_prompts['cls']]} respectively"
+            )
             num_cls = max(per_image)
             if type(self.predictor) is not predictor:
                 args = get_cfg(overrides={**self.overrides, **kwargs})

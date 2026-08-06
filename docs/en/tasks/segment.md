@@ -7,7 +7,7 @@ model_name: yolo26n-seg
 
 # Instance Segmentation with Ultralytics YOLO
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/instance-segmentation-examples.avif" alt="Instance segmentation examples">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/instance-segmentation-examples.avif" alt="Ultralytics YOLO instance segmentation examples">
 
 [Instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) goes a step further than object detection and involves identifying individual objects in an image and segmenting them from the rest of the image.
 
@@ -239,11 +239,11 @@ Check the [Configuration](../usage/cfg.md) page for more available arguments.
 
 Object detection identifies and localizes objects within an image by drawing bounding boxes around them, whereas instance segmentation not only identifies the bounding boxes but also delineates the exact shape of each object. YOLO26 instance segmentation models provide masks or contours that outline each detected object, which is particularly useful for tasks where knowing the precise shape of objects is important, such as medical imaging or autonomous driving.
 
-### Why use YOLO26 for instance segmentation?
+### Why use Ultralytics YOLO26 for instance segmentation?
 
 Ultralytics YOLO26 is a state-of-the-art model recognized for its high accuracy and real-time performance, making it ideal for instance segmentation tasks. YOLO26 Segment models come pretrained on the [COCO dataset](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml), ensuring robust performance across a variety of objects. Additionally, YOLO supports training, validation, prediction, and export functionalities with seamless integration, making it highly versatile for both research and industry applications.
 
-### How do I load and validate a pretrained YOLO segmentation model?
+### How do I load and validate a pretrained Ultralytics YOLO segmentation model?
 
 Loading and validating a pretrained YOLO segmentation model is straightforward. Here's how you can do it using both Python and CLI:
 
@@ -271,7 +271,7 @@ Loading and validating a pretrained YOLO segmentation model is straightforward. 
 
 These steps will provide you with validation metrics like [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP), crucial for assessing model performance.
 
-### How can I export a YOLO segmentation model to ONNX format?
+### How can I export an Ultralytics YOLO segmentation model to ONNX format?
 
 Exporting a YOLO segmentation model to ONNX format is simple and can be done using Python or CLI commands:
 

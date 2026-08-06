@@ -243,7 +243,7 @@ Ultralytics YOLO26 offers various pretrained models for [object detection](detec
 
 For a detailed list and performance metrics, refer to the [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26) section.
 
-### How can I validate the accuracy of my trained YOLO model?
+### How can I validate the accuracy of my trained Ultralytics YOLO model?
 
 To validate the accuracy of your trained YOLO26 model, you can use the `.val()` method in Python or the `yolo detect val` command in CLI. This will provide metrics like mAP50-95, mAP50, and more.
 

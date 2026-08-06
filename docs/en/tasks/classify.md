@@ -7,7 +7,7 @@ model_name: yolo26n-cls
 
 # Image Classification with Ultralytics YOLO
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/image-classification-examples.avif" alt="YOLO image classification of objects and scenes">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/image-classification-examples.avif" alt="Ultralytics YOLO image classification of objects and scenes">
 
 [Image classification](https://www.ultralytics.com/glossary/image-classification) is the simplest of the supported tasks and involves classifying an entire image into one of a set of predefined classes.
 
@@ -263,7 +263,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ## FAQ
 
-### What is the purpose of YOLO26 in image classification?
+### What is the purpose of Ultralytics YOLO26 in image classification?
 
 YOLO26 models, such as `yolo26n-cls.pt`, are designed for efficient image classification. They assign a single class label to an entire image along with a confidence score. This is particularly useful for applications where knowing the specific class of an image is sufficient, rather than identifying the location or shape of objects within the image.
 

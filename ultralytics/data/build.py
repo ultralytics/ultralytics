@@ -177,7 +177,7 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         self.epoch = 0
         self.shuffle = shuffle
         self.total_size = len(dataset)
-        # ensure all ranks have a sample if batch size >= total size; degenerates to round-robin sampler
+        # Use unit batches when one input batch would span the dataset.
         self.batch_size = 1 if batch_size >= self.total_size else batch_size
         self.num_batches = math.ceil(self.total_size / self.batch_size)
 
@@ -195,7 +195,7 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         end_batch = start_batch + batches_for_this_rank
 
         # Convert batch indices to sample indices
-        start_idx = start_batch * self.batch_size
+        start_idx = min(start_batch * self.batch_size, self.total_size)
         end_idx = min(end_batch * self.batch_size, self.total_size)
 
         return start_idx, end_idx

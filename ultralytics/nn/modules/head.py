@@ -358,7 +358,20 @@ class DetectAux(Detect):
         """
         super().__init__(nc, reg_max, end2end, ch)
         c3 = max(ch[0], min(self.nc, 100))  # foreground branch hidden channels, matching the Detect cls branch
-        self.aux_fg = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), nn.Conv2d(c3, 1, 1)) for x in ch)
+        self.aux_fg = nn.ModuleList(self.aux_branch(x, c3) for x in ch)
+
+    @staticmethod
+    def aux_branch(c1: int, c3: int) -> nn.Sequential:
+        """Build one level's foreground branch, ending in the 1-channel logit conv that bias_init primes.
+
+        Args:
+            c1 (int): Input channels of this level's head-input feature.
+            c3 (int): Hidden channels, matching the Detect cls branch.
+
+        Returns:
+            (nn.Sequential): Foreground branch whose last module is the 1-channel logit conv.
+        """
+        return nn.Sequential(Conv(c1, c3, 3), nn.Conv2d(c3, 1, 1))
 
     def forward(
         self, x: list[torch.Tensor]
@@ -375,6 +388,56 @@ class DetectAux(Detect):
         super().bias_init()
         for i, aux in enumerate(self.aux_fg):
             aux[-1].bias.data[:] = math.log(5 / (640 / self.stride[i]) ** 2)  # ~object density per anchor
+
+
+class DetectAux3x3(DetectAux):
+    """DetectAux whose foreground branch is a single 3x3 conv predicting the logit directly, with no hidden layer.
+
+    Drops both the hidden channels and the BN/activation of the DetectAux block, leaving a linear 3x3 probe on the
+    head-input features. It keeps the 3x3 spatial context but cannot mix channels non-linearly, which isolates how much
+    of the auxiliary branch's effect comes from its own capacity rather than from the supervision it back-propagates.
+
+    Examples:
+        >>> detect = DetectAux3x3(nc=80, end2end=True, ch=(256, 512, 1024))
+    """
+
+    @staticmethod
+    def aux_branch(c1: int, c3: int) -> nn.Sequential:
+        """Build one level's foreground branch as a single 3x3 conv straight to the logit."""
+        return nn.Sequential(nn.Conv2d(c1, 1, 3, padding=1))
+
+
+class DetectAux1x1(DetectAux):
+    """DetectAux whose foreground branch is a single 1x1 conv predicting the logit directly, with no hidden layer.
+
+    The smallest possible branch: a per-anchor linear probe on the head-input features, with no spatial context at all.
+    Its gradient reaches the trunk without passing through any branch-local capacity, so whatever it contributes comes
+    from reshaping the shared features rather than from the branch fitting the target on its own.
+
+    Examples:
+        >>> detect = DetectAux1x1(nc=80, end2end=True, ch=(256, 512, 1024))
+    """
+
+    @staticmethod
+    def aux_branch(c1: int, c3: int) -> nn.Sequential:
+        """Build one level's foreground branch as a single 1x1 conv straight to the logit."""
+        return nn.Sequential(nn.Conv2d(c1, 1, 1))
+
+
+class DetectAuxDeep(DetectAux):
+    """DetectAux with a second hidden 3x3 Conv in the foreground branch, matching the Detect cls tower's depth.
+
+    The extra block gives the branch enough capacity to fit the foreground target on its own, which weakens the pressure
+    on the trunk features; it is the opposite end of the capacity sweep from DetectAux1x1.
+
+    Examples:
+        >>> detect = DetectAuxDeep(nc=80, end2end=True, ch=(256, 512, 1024))
+    """
+
+    @staticmethod
+    def aux_branch(c1: int, c3: int) -> nn.Sequential:
+        """Build one level's foreground branch as two hidden 3x3 Convs followed by the 1x1 logit conv."""
+        return nn.Sequential(Conv(c1, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, 1, 1))
 
 
 class DetectO2OShared(Detect):

@@ -10,6 +10,7 @@ from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from urllib import parse
+from uuid import uuid4
 
 from ultralytics.utils import ASSETS_URL, LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
 
@@ -343,6 +344,8 @@ def safe_download(
             uri = (url if gdrive else clean_url(url)).replace(ASSETS_URL, "https://ultralytics.com/assets")  # clean
             desc = f"Downloading {uri} to '{f}'"
             f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
+            target = f
+            f = target.with_name(f".{target.name}.{uuid4().hex}.part")  # publish only after size validation
             curl_installed = shutil.which("curl")
             expected_size = None  # set from Content-Length; reused to validate curl retries
             for i in range(retry + 1):
@@ -386,6 +389,8 @@ def safe_download(
                                     f"Partial download: {file_size}/{expected_size} bytes ({file_size / expected_size * 100:.1f}%)"
                                 )
                             else:
+                                f.replace(target)
+                                f = target
                                 break  # success
                         f.unlink()  # remove partial downloads
                 except MemoryError:

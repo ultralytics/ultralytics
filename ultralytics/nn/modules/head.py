@@ -11,7 +11,6 @@ import torch.nn.functional as F
 from torch import nn
 from torch.nn.init import constant_, xavier_uniform_
 
-from ultralytics.utils import NOT_MACOS14
 from ultralytics.utils.tal import dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, smart_inference_mode
 
@@ -251,7 +250,7 @@ class Detect(nn.Module):
             scores, labels = scores.max(dim=-1, keepdim=True)
             scores, indices = scores.topk(k, dim=1)
             labels = labels.gather(1, indices)
-            return scores, labels, indices
+            return scores, labels.float(), indices
         ori_index = scores.max(dim=-1)[0].topk(k)[1].unsqueeze(-1)
         scores = scores.gather(dim=1, index=ori_index.expand(-1, -1, nc))
         scores, index = scores.flatten(1).topk(k)
@@ -659,10 +658,7 @@ class Pose(Detect):
         else:
             y = kpts.clone()
             if ndim == 3:
-                if NOT_MACOS14:
-                    y[:, 2::ndim].sigmoid_()
-                else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
-                    y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
+                y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
             y[:, 0::ndim] = (y[:, 0::ndim] * 2.0 + (self.anchors[0] - 0.5)) * self.strides
             y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
             return y
@@ -776,10 +772,7 @@ class Pose26(Pose):
         else:
             y = kpts.clone()
             if ndim == 3:
-                if NOT_MACOS14:
-                    y[:, 2::ndim].sigmoid_()
-                else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
-                    y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
+                y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
             y[:, 0::ndim] = (y[:, 0::ndim] + self.anchors[0]) * self.strides
             y[:, 1::ndim] = (y[:, 1::ndim] + self.anchors[1]) * self.strides
             return y

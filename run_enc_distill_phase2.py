@@ -163,8 +163,9 @@ def _infer_model_yaml(phase1_weights: str, head_suffix: str = "") -> str:
     (phase-1 distill checkpoints), walking the lineage when a run's ``model`` names a parent checkpoint instead of a
     yaml. Otherwise derives the cls yaml from the weights filename so bare ultralytics weights like ``yolo26l-cls.pt``
     pick up the right scale. Raises when no scale survives anywhere. The trailing ``-cls.yaml`` is rewritten to
-    ``{head_suffix}.yaml`` (e.g. ``""`` for det, ``"-pose"`` for pose, ``"-obb"`` for obb), and any ``-sppf`` arch tag
-    is dropped since det yamls already carry SPPF (``yolo26x-cls-sppf.yaml`` -> ``yolo26x.yaml``).
+    ``{head_suffix}.yaml`` (e.g. ``""`` for det, ``"-pose"`` for pose, ``"-obb"`` for obb), and any ``-sppf`` or
+    ``-oiv7`` tag is dropped since det yamls already carry SPPF and ``-oiv7`` names a pretrain dataset
+    (``yolo26x-cls-sppf.yaml`` -> ``yolo26x.yaml``, ``yolov8s-oiv7.yaml`` -> ``yolov8s.yaml``).
 
     Args:
         phase1_weights (str): Path to a weights ``.pt`` file.
@@ -190,8 +191,9 @@ def _infer_model_yaml(phase1_weights: str, head_suffix: str = "") -> str:
     # Strip the `-cls` task suffix. Lookahead matches both end-position (`yolo26s-cls.yaml` -> `yolo26s.yaml`)
     # and middle-position when a custom arch suffix follows (`yolo26s-cls-attn.yaml` -> `yolo26s-attn.yaml`).
     out = re.sub(r"-cls(?=[-.])", head_suffix, cls_yaml, count=1)
-    # Drop the `-sppf` tag: det yamls already carry SPPF, no `-sppf` det counterparts exist.
-    out = re.sub(r"-sppf(?=[-.])", "", out, count=1)
+    # Drop tags that name something other than the architecture: det yamls already carry SPPF, and `-oiv7` names
+    # the pretrain dataset of the shipped weights.
+    out = re.sub(r"-(sppf|oiv7)(?=[-.])", "", out)
     # The head_suffix leg catches a det-source yaml asked to produce an OBB/pose yaml: nothing was there to
     # rewrite, so it would silently hand back a plain det yaml for the wrong task.
     if "-cls" in out or (head_suffix and head_suffix not in out):

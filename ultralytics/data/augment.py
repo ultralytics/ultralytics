@@ -2085,7 +2085,7 @@ class Albumentations(BaseTransform):
         - Some transforms are applied with very low probability (0.01) by default.
     """
 
-    def __init__(self, p: float = 1.0, transforms: list | None = None, use_keypoints: bool = False) -> None:
+    def __init__(self, p: float = 1.0, transforms: list | None = None) -> None:
         """Initialize the Albumentations transform object for YOLO bbox formatted parameters.
 
         This class applies various image augmentations using the Albumentations library, including Blur, Median Blur,
@@ -2095,7 +2095,6 @@ class Albumentations(BaseTransform):
         Args:
             p (float): Probability of applying the augmentations. Must be between 0 and 1.
             transforms (list | None): List of custom Albumentations transforms. If None, uses default transforms.
-            use_keypoints (bool): Whether the dataset carries pose keypoints, which a spatial list cannot remap.
         """
         self.p = p
         self.transform = None
@@ -2132,25 +2131,14 @@ class Albumentations(BaseTransform):
             )
 
             # Compose transforms
-            if use_keypoints:
-                # The keypoint target carries the polygons, so this branch never moves instances.keypoints, and
-                # a mirror would also have to swap left/right landmarks by flip_idx. A composition goes whole:
-                # rebuilding OneOf([flip, blur], p=0.5) as OneOf([blur], p=0.5) fires the blur twice as often.
-                kept = [transform for transform in T if not is_spatial(transform)]
-                if len(kept) < len(T):
-                    LOGGER.warning(
-                        f"{prefix}dropping {len(T) - len(kept)} of {len(T)} geometry-aware entries, "
-                        f"pose keypoints cannot be remapped"
-                    )
-                    T = kept
-                    if not T:
-                        return
             self.contains_spatial = any(is_spatial(transform) for transform in T)
             self.transform = (
                 A.Compose(
                     T,
                     bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels", "idx"]),
-                    keypoint_params=A.KeypointParams(format="xy", remove_invisible=False),  # carries the polygons
+                    # polygons and landmarks ride this target; pidx says which of them came back, since a
+                    # distortion remaps points through an index mask and drops every rounding collision
+                    keypoint_params=A.KeypointParams(format="xy", remove_invisible=False, label_fields=["pidx"]),
                 )
                 if self.contains_spatial
                 else A.Compose(T)
@@ -2210,29 +2198,47 @@ class Albumentations(BaseTransform):
             instances = labels["instances"]
             instances.convert_bbox("xywh")
             instances.normalize(*im.shape[:2][::-1])
-            segments = instances.segments
+            segments, keypoints = instances.segments, instances.keypoints
             h, w = im.shape[:2]
+            points = segments.reshape(-1, 2)
+            if keypoints is not None:  # landmarks follow the polygon vertices in the same target
+                points = np.concatenate((points, keypoints[..., :2].reshape(-1, 2)))
+            points = (points * (w, h)).astype(np.float32)  # the keypoint target is in pixels
             new = self.transform(
                 image=im,
                 bboxes=instances.bboxes,
                 class_labels=cls,
                 idx=np.arange(len(cls)),  # class values repeat, so only indices identify the surviving rows
-                keypoints=segments.reshape(-1, 2) * (w, h),  # polygons ride the keypoint target, in pixels
+                keypoints=points,
+                pidx=np.arange(len(points)),
                 **({"mask": mask} if mask is not None else {}),
             )
             if mask is not None or len(new["class_labels"]) or not len(cls):  # keep unless a crop lost every box
                 h, w = new["image"].shape[:2]  # a crop or a resize changes the size
-                i = np.array(new["idx"], dtype=int)
-                if len(segments):  # boxes follow the polygons, as they do in RandomPerspective
-                    segments = np.array(new["keypoints"], dtype=np.float32).reshape(segments.shape)
-                    bboxes = np.stack([segment2box(s, w, h) for s in segments], 0)
+                i = np.array(new["idx"], dtype=int)  # albumentations filters the boxes, never the point targets
+                n = segments.size // 2
+                lost = np.ones(len(points), bool)
+                lost[np.array(new["pidx"], dtype=int)] = False  # a dropped point has no new position to move to
+                moved = points.copy()
+                moved[~lost] = np.array(new["keypoints"], dtype=np.float32)
+                if keypoints is not None:
+                    xy = moved[n:].reshape(*keypoints.shape[:2], 2)[i]
+                    # as RandomPerspective.apply_keypoints, plus the ones the remap never returned
+                    out = ((xy < 0) | (xy > (w, h))).any(-1, keepdims=True)
+                    gone = lost[n:].reshape(*keypoints.shape[:2], 1)[i] | out
+                    keypoints = np.concatenate((xy.clip(0, (w, h)), np.where(gone, 0, keypoints[i][..., 2:])), -1)
+                if n:  # boxes follow the polygons, as they do in RandomPerspective
+                    segments = moved[:n].reshape(segments.shape)[i]
+                    bboxes = np.array([segment2box(s, w, h) for s in segments], np.float32).reshape(-1, 4)
                     segments[..., 0] = segments[..., 0].clip(bboxes[:, 0:1], bboxes[:, 2:3])
                     segments[..., 1] = segments[..., 1].clip(bboxes[:, 1:2], bboxes[:, 3:4])
-                    instances = Instances(bboxes, segments, bbox_format="xyxy", normalized=False)
+                    instances = Instances(bboxes, segments, keypoints, bbox_format="xyxy", normalized=False)
                     instances.normalize(w, h)
-                    instances = instances[i]
                 else:
-                    instances.update(bboxes=np.array(new["bboxes"], dtype=np.float32).reshape(-1, 4))
+                    if keypoints is not None:
+                        keypoints[..., 0] /= w
+                        keypoints[..., 1] /= h
+                    instances.update(np.array(new["bboxes"], dtype=np.float32).reshape(-1, 4), keypoints=keypoints)
                 labels["img"] = new["image"]
                 labels["cls"] = cls[i].reshape(-1, 1)  # depth and semantic labels arrive one-dimensional
                 labels["instances"] = instances
@@ -2828,11 +2834,7 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace):
             pre_transform,
             MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
             CutMix(dataset, pre_transform=pre_transform, p=hyp.cutmix),
-            Albumentations(
-                p=1.0,
-                transforms=getattr(hyp, "augmentations", None),
-                use_keypoints=getattr(dataset, "use_keypoints", False),
-            ),
+            Albumentations(p=1.0, transforms=getattr(hyp, "augmentations", None)),
             RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
             RandomFlip(direction="vertical", p=hyp.flipud, flip_idx=flip_idx),
             RandomFlip(direction="horizontal", p=hyp.fliplr, flip_idx=flip_idx),

@@ -371,7 +371,7 @@ def build_dataloader(
     pin_memory_device = (
         device_type if pin_memory and device_type in {"npu", "xpu"} and TORCH_1_13 and not TORCH_2_7 else None
     )
-    return InfiniteDataLoader(
+    loader = InfiniteDataLoader(
         dataset=dataset,
         num_workers=nw,
         prefetch_factor=4 if nw > 0 else None,  # increase over default 2
@@ -391,6 +391,11 @@ def build_dataloader(
         ),
         **({"pin_memory_device": pin_memory_device} if pin_memory_device else {}),
     )
+    if batch_sampler is not None:
+        # torch fills .sampler with a SequentialSampler it invented, but the batch sampler is what actually
+        # chooses indices, so it is the one a caller must reach for set_epoch
+        object.__setattr__(loader, "sampler", batch_sampler)
+    return loader
 
 
 def check_source(

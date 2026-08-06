@@ -71,6 +71,10 @@ class QuotaBatchSampler(Sampler):
         """Return steps per epoch."""
         return self.batches
 
+    def set_epoch(self, epoch: int) -> None:
+        """Set the pass index every rank draws from, so DDP ranks stay on the same source per step."""
+        self.epoch = epoch
+
     def __iter__(self):
         """Draw a source then a dataset-pure batch of images, advancing the epoch so repeat passes differ."""
         rng = np.random.default_rng(self.seed + self.epoch)

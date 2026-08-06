@@ -283,7 +283,9 @@ class BaseTrainer:
         self.train_loader = self.get_dataloader(
             self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
         )
-        final_batch_size = len(self.train_loader.sampler) % self.train_loader.batch_size or self.train_loader.batch_size
+        # A batch_sampler owns its batch sizes, and torch then leaves batch_size None, so there is nothing to check
+        batch = self.train_loader.batch_size
+        final_batch_size = (len(self.train_loader.sampler) % batch or batch) if batch else 0
         if self.args.imgsz < 2 * self.stride and not self.train_loader.drop_last and final_batch_size == 1:
             raise ValueError(
                 f"final batch=1 training at imgsz={self.args.imgsz} gives BatchNorm a single value per channel; "

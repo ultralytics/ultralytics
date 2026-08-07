@@ -1441,3 +1441,23 @@ def test_metric_keys_and_results_dict_stay_in_step():
     missing = {k for k in m.results_dict if k not in set(m.keys) and k != "fitness"}
     assert not missing, f"in results_dict but absent from keys, so dropped from results.csv: {sorted(missing)}"
     assert "ap3d_50_weighted" in m.keys
+
+
+def test_patience_zero_disables_early_stopping():
+    """`patience=0` must mean "never stop", so every A/B arm trains exactly --epochs.
+
+    A/B comparability, not noise, is the reason: an arm that halts at a data-dependent epoch confounds the
+    treatment with training length, so a measured difference cannot be attributed. Ultralytics encodes
+    "off" as `patience or float("inf")`, which is easy to misread as "stop immediately" — this pins it.
+    """
+    from ultralytics.utils.torch_utils import EarlyStopping
+
+    off = EarlyStopping(patience=0)
+    assert off.patience == float("inf")
+    # Fitness that never improves after epoch 0 must still not trigger a stop, however long the run.
+    off(0, 1.0)
+    assert not any(off(e, 0.0) for e in range(1, 500)), "patience=0 must never stop the run"
+
+    on = EarlyStopping(patience=10)
+    on(0, 1.0)
+    assert any(on(e, 0.0) for e in range(1, 100)), "a positive patience must still stop on a plateau"

@@ -23,8 +23,27 @@ Pedestrian / ~76 Cyclist instances. Two consequences:
 * Per-epoch dev AP on 540 frames swings well beyond this project's ~0.8-1.2 AP A/B noise floor, so a
   `patience` counter on it would stop semi-randomly, and `cos_lr` means a truncated run is not the run
   you would have got from a shorter schedule anyway. So the full horizon is always trained and the
-  checkpoint is chosen afterwards from an EMA-smoothed dev curve. `--patience` remains as a plateau
-  safety net and deliberately does not participate in selection.
+  checkpoint is chosen afterwards from an EMA-smoothed dev curve.
+
+`--patience` DEFAULTS TO 0, i.e. early stopping OFF, and that default exists for A/B comparability rather
+than for the noise reason above. Even a correctly-triggered early stop makes arms incomparable: each arm
+then halts at a different epoch, so any measured difference is confounded with training length. A
+controlled comparison needs every arm to train the same number of steps. Ultralytics reads `patience=0` as
+`float("inf")` (`EarlyStopping.__init__`: `self.patience = patience or float("inf")`), so the stopper never
+fires and the epoch count is exactly `--epochs`.
+
+Two separate defects were measured on the s3d fitness signal and BOTH are addressed, since they are not the
+same problem:
+  * the signal was noise-dominated — `fitness` was an unweighted mean over Car/Ped/Cyclist, so a Pedestrian
+    spike on ~80 instances set an unbeatable high-water mark. Fixed at source by weighting classes by GT
+    instance count (`Stereo3DDetMetrics.fitness`), which also repairs `best.pt`.
+  * stopping at a data-dependent epoch breaks A/B comparability at all. Fixed here by `patience=0`.
+Set `--patience` above 0 only for a one-off exploratory run where wall-clock matters more than
+comparability, never for an arm of a comparison.
+
+For A/B analysis apply ONE selection rule to every arm. `last.pt` is the zero-variance choice (with fixed
+epochs it is the same training length for all arms); the EMA-selected checkpoint is the better-model choice
+and is equally fair because the identical rule is applied to identical-length runs. Report which you used.
 
 Post-hoc selection also survives DDP, which a callback would not: `ultralytics/utils/dist.py` rebuilds
 the trainer in each subprocess from `args` alone, so callbacks registered here would never run on a
@@ -80,7 +99,13 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--val-period", type=int, default=1, help="dev is only 540 frames, so evaluate every epoch")
     p.add_argument("--save-period", type=int, default=1, help="epochs between checkpoints selection can choose from")
     p.add_argument("--select-span", type=int, default=10, help="EMA span in epochs used to smooth the dev curve")
-    p.add_argument("--patience", type=int, default=150, help="plateau safety net only; selection ignores it")
+    p.add_argument(
+        "--patience",
+        type=int,
+        default=0,
+        help="0 = early stopping OFF (Ultralytics maps 0 to inf), so every arm trains exactly --epochs. "
+        "Required for A/B comparability: a data-dependent stop confounds the treatment with training length.",
+    )
     p.add_argument("--lr0", type=float, default=0.01)
     p.add_argument(
         "--seed",

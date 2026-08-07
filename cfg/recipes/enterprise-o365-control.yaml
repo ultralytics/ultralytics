@@ -19,6 +19,7 @@ dis: 6.0
 erasing: 0.4
 fliplr: 0.5
 flipud: 0.0
+grad_clip: 1.0
 hsv_h: 0.015
 hsv_s: 0.7
 hsv_v: 0.4

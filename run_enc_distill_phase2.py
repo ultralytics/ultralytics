@@ -729,7 +729,11 @@ def _run_multi_det(
     )
     if not teacher_spec:  # frozen-teacher runs have no phase1 distillation parent to push the downstream link to
         # Auto-resolve the phase-1 run from the backbone dir when no id was passed, so the sweep view self-links.
-        parent_id = phase1_wandb_id or wandb_config.resolve_run_id_by_name(Path(phase1_weights).parents[1].name)
+        w = Path(phase1_weights)
+        # Bare published weights like yolov8s.pt have no <run>/weights/<file>.pt lineage to link back to.
+        parent_id = phase1_wandb_id or (
+            wandb_config.resolve_run_id_by_name(w.parents[1].name) if w.parent.name == "weights" else ""
+        )
         print(f"[multi_det_finetune] downstream link -> phase1 wandb id: {parent_id or '(unresolved, skipped)'}")
         wandb_config.push_summary_to_parent(
             parent_id,

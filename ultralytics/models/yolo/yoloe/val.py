@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -197,14 +196,14 @@ class YOLOEDetectValidator(DetectionValidator):
                 dataloader = self.get_vpe_dataloader(data)
                 vpe = self.get_visual_pe(dataloader, model)
                 model.set_classes(names, vpe)
-                stats = super().__call__(model=deepcopy(model))
+                stats = super().__call__(model=model)
             elif isinstance(model.model[-1], YOLOEDetect) and hasattr(model.model[-1], "lrpc"):  # prompt-free
                 return super().__call__(trainer, model)
             else:
                 LOGGER.info("Validate using the text prompt.")
                 tpe = model.get_text_pe(names)
                 model.set_classes(names, tpe)
-                stats = super().__call__(model=deepcopy(model))
+                stats = super().__call__(model=model)
         return stats
 
 

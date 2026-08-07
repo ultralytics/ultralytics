@@ -162,6 +162,9 @@ class SAM(Model):
         carries interactive weights. The directory suffix is what selects the inference backend,
         so keep it when moving the directory. Other SAM variants are not supported for export.
 
+        An exported directory serves text, box, and point prompts on images only. Video tracking
+        needs the memory-bank tracker, which is not exported, so keep the checkpoint for it.
+
         ``format="engine"`` goes all the way from the checkpoint on its own: it exports the ONNX
         modules first and then builds the engines from them, leaving both directories behind. There
         is no need to call ``format="onnx"`` beforehand, and doing so only exports it twice. The

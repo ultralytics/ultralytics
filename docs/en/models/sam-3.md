@@ -423,6 +423,12 @@ An ONNX directory loads each module the first time a prompt needs it, so a text 
 the point modules and the first prompt of a given type is slower than the rest. TensorRT engines are
 all loaded up front.
 
+!!! note "Image prediction only"
+
+    An exported directory covers text, box, and point prompts on images. Video tracking with
+    `SAM3VideoPredictor` or `SAM3VideoSemanticPredictor` needs the memory-bank tracker, which is not
+    exported, so use the `.pt` checkpoint for it.
+
 !!! warning "Fixed image size"
 
     An exported directory only accepts the size it was traced at, 1008 by default. Export again if

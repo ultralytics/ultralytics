@@ -538,6 +538,8 @@ class DetectionValidator(BaseValidator):
         anno_json: Any,
         iou_types: str | list[str] = "bbox",
         suffix: str | list[str] = "Box",
+        image_ids: list[int] | None = None,
+        category_ids: list[int] | None = None,
     ) -> dict[str, Any]:
         """Evaluate COCO/LVIS metrics using faster-coco-eval library.
 
@@ -553,6 +555,8 @@ class DetectionValidator(BaseValidator):
                 values include "bbox", "segm", "keypoints". Defaults to "bbox".
             suffix (str | list[str]): Suffix to append to metric names in stats dictionary. Should correspond to
                 iou_types if multiple types provided. Defaults to "Box".
+            image_ids (list[int], optional): Image ids to evaluate instead of the complete validation set.
+            category_ids (list[int], optional): Category ids to evaluate instead of every category.
 
         Returns:
             (dict[str, Any]): Updated stats dictionary containing the computed COCO/LVIS evaluation metrics.
@@ -568,18 +572,23 @@ class DetectionValidator(BaseValidator):
                 check_requirements("faster-coco-eval>=1.6.7")
                 from faster_coco_eval import COCO, COCOeval_faster
 
-                anno = anno_json if self.training else COCO(anno_json)
-                pred = anno.loadRes(pred_json)
+                anno = COCO(anno_json) if isinstance(anno_json, (str, Path)) else anno_json
+                pred = pred_json if isinstance(pred_json, COCO) else anno.loadRes(pred_json)
                 print_function = LOGGER.debug if self.training else LOGGER.info
+                eval_image_ids = (
+                    image_ids
+                    if image_ids is not None
+                    else list(self.image_ids.values())
+                    if self.training
+                    else [int(Path(x).stem) for x in self.dataloader.dataset.im_files]
+                )
                 for i, iou_type in enumerate(iou_types):
                     val = COCOeval_faster(
                         anno, pred, iouType=iou_type, lvis_style=self.is_lvis, print_function=print_function
                     )
-                    val.params.imgIds = (
-                        list(self.image_ids.values())
-                        if self.training
-                        else [int(Path(x).stem) for x in self.dataloader.dataset.im_files]
-                    )
+                    val.params.imgIds = eval_image_ids
+                    if category_ids is not None:
+                        val.params.catIds = category_ids
                     val.evaluate()
                     val.accumulate()
                     val.summarize()

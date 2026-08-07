@@ -115,18 +115,7 @@ class DetectionValidator(BaseValidator):
         )  # is COCO
         self.is_lvis = isinstance(val, str) and "lvis" in val and not self.is_coco  # is LVIS
         if self.training and self.args.task == "detect" and self.coco_gt is None:
-            check_requirements("faster-coco-eval>=1.6.7")
-            from faster_coco_eval import COCO
-
-            # COCO val2017 uses the official annotations (mask areas, iscrowd) so per-epoch metrics match eval_json
-            anno_json = self.data["path"] / "annotations" / "instances_val2017.json"
-            self.official_gt = self.is_coco and val.endswith(f"{os.sep}val2017.txt") and anno_json.is_file()
-            if self.official_gt:
-                self.image_ids = {str(p): int(Path(p).stem) for p in self.dataloader.dataset.im_files}
-                self.coco_gt = COCO(str(anno_json))
-            else:
-                self.image_ids = {str(p): i for i, p in enumerate(self.dataloader.dataset.im_files, 1)}
-                self.coco_gt = COCO(self._build_coco_ground_truth(self.dataloader.dataset))
+            self._init_coco_ground_truth(val)
         self.class_map = (
             converter.coco80_to_coco91_class()
             if self.is_coco and (not self.training or self.official_gt)
@@ -142,6 +131,21 @@ class DetectionValidator(BaseValidator):
         self.metrics.clear_stats()
         self.metrics.clear_image_metrics()
         self.confusion_matrix = ConfusionMatrix(names=model.names, save_matches=self.args.plots and self.args.visualize)
+
+    def _init_coco_ground_truth(self, val: str | list[str]) -> None:
+        """Build the COCO ground truth used by per-epoch detection metrics."""
+        check_requirements("faster-coco-eval>=1.6.7")
+        from faster_coco_eval import COCO
+
+        # COCO val2017 uses the official annotations (mask areas, iscrowd) so per-epoch metrics match eval_json
+        anno_json = self.data["path"] / "annotations" / "instances_val2017.json"
+        self.official_gt = self.is_coco and val.endswith(f"{os.sep}val2017.txt") and anno_json.is_file()
+        if self.official_gt:
+            self.image_ids = {str(p): int(Path(p).stem) for p in self.dataloader.dataset.im_files}
+            self.coco_gt = COCO(str(anno_json))
+        else:
+            self.image_ids = {str(p): i for i, p in enumerate(self.dataloader.dataset.im_files, 1)}
+            self.coco_gt = COCO(self._build_coco_ground_truth(self.dataloader.dataset))
 
     def get_desc(self) -> str:
         """Return a formatted string summarizing class metrics of YOLO model."""

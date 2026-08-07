@@ -739,3 +739,79 @@ class StereoLetterBox:
 
     def __repr__(self) -> str:
         return f"StereoLetterBox(new_shape={self.new_shape}, scaleup={self.scaleup}, stride={self.stride})"
+
+
+class StereoZoom:
+    """True stereo scale jitter: zoom content by s and crop/pad back to the ORIGINAL canvas size.
+
+    Unlike StereoScale — whose canvas resize is fully undone by the subsequent StereoLetterBox (final content scale
+    and calibration both end up independent of s) — the canvas here keeps its size, so apparent object size genuinely
+    changes by s on the network input while the metric 3D targets (depth, dimensions) stay fixed. This decorrelates
+    apparent size from depth, attacking the monocular size→depth shortcut on constant-dimension datasets.
+    Calibration is scaled and shifted accordingly and both 2D boxes are re-projected from the 3D labels
+    (same pattern as StereoHFlip), so every encoded target (lr_distance, proj_offset, depth) stays geometrically
+    consistent: disparity_px == fx' · baseline / z holds exactly after the transform.
+    """
+
+    def __init__(self, scale_range: tuple[float, float] = (0.5, 1.5), p: float = 1.0):
+        """Initialize StereoZoom.
+
+        Args:
+            scale_range: Min and max zoom factors (s>1 zooms in with a random crop, s<1 zooms out with gray padding).
+            p: Probability of applying the zoom.
+        """
+        self.scale_range = scale_range
+        self.p = p
+
+    @staticmethod
+    def _clamp_keep(pos: int, coords: np.ndarray, view: int, limit: int, margin: float = 4.0) -> int:
+        """Clamp a crop offset so projected object coordinates stay inside the view when feasible."""
+        lo = max(0.0, float(coords.max()) - view + margin)
+        hi = min(float(limit), float(coords.min()) - margin)
+        return int(np.clip(pos, lo, hi)) if lo <= hi else pos
+
+    def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
+        """Apply the zoom to a stereo label dict (6-channel image, instances, calibration)."""
+        if np.random.random() > self.p:
+            return labels
+        img = labels.get("img")
+        stereo = StereoLabels.from_labels(labels)
+        if img is None or img.shape[-1] != 6 or not stereo.has_calibration():
+            return labels
+
+        h, w = img.shape[:2]
+        s = float(np.random.uniform(*self.scale_range))
+        if abs(s - 1.0) < 1e-3:
+            return labels
+        new_w, new_h = max(1, round(w * s)), max(1, round(h * s))
+        resized = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+
+        if s > 1.0:  # zoom in: crop a (h, w) window, biased to keep projected object centers in view
+            x0 = int(np.random.randint(0, new_w - w + 1))
+            y0 = int(np.random.randint(0, new_h - h + 1))
+            inst = stereo.instances
+            if stereo.has_instances() and getattr(inst, "location_3d", None) is not None:
+                loc = inst.location_3d
+                z = np.maximum(loc[:, 2], 1e-6)
+                cal = stereo.calibration
+                u = s * (cal["fx"] * loc[:, 0] / z + cal["cx"])
+                y_c = loc[:, 1] - (inst.dimensions_3d[:, 2] / 2 if inst.dimensions_3d is not None else 0.0)
+                v = s * (cal["fy"] * y_c / z + cal["cy"])
+                x0 = self._clamp_keep(x0, u, w, new_w - w)
+                y0 = self._clamp_keep(y0, v, h, new_h - h)
+            labels["img"] = resized[y0 : y0 + h, x0 : x0 + w]
+            dx, dy = -x0, -y0
+        else:  # zoom out: paste at a random offset on a letterbox-gray canvas
+            dx = int(np.random.randint(0, w - new_w + 1))
+            dy = int(np.random.randint(0, h - new_h + 1))
+            canvas = np.full((h, w, img.shape[2]), 114, dtype=img.dtype)
+            canvas[dy : dy + new_h, dx : dx + new_w] = resized
+            labels["img"] = canvas
+
+        # Update calibration only (instances are regenerated from 3D below, so no box arithmetic needed)
+        stereo.scale_calibration(s, s)
+        stereo.calibration["cx"] = stereo.calibration.get("cx", 0.0) + dx
+        stereo.calibration["cy"] = stereo.calibration.get("cy", 0.0) + dy
+        stereo.update_size(w, h)
+        stereo.regenerate_2d_bboxes_from_3d((w, h))
+        return stereo.to_labels(labels)

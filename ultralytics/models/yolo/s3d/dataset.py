@@ -19,6 +19,7 @@ from ultralytics.models.yolo.s3d.augment import (
     StereoHFlip,
     StereoHSV,
     StereoLetterBox,
+    StereoZoom,
 )
 from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS, encode_orientation
 from ultralytics.utils import DEFAULT_CFG, LOGGER
@@ -387,6 +388,12 @@ class Stereo3DDetDataset(BaseDataset):
         transforms = []
 
         if self.augment:
+            # True zoom, applied BEFORE the rest: it crops/pads back to the original canvas so the
+            # apparent object size on the network input genuinely changes, unlike the deleted StereoScale
+            # whose canvas resize StereoLetterBox undid entirely. Off (0.0) by default.
+            scale_jitter = float(hyp.get("scale_jitter", 0.0))
+            if scale_jitter > 0:
+                transforms.append(StereoZoom(scale_range=(max(0.1, 1.0 - scale_jitter), 1.0 + scale_jitter), p=1.0))
             transforms.extend(
                 [
                     StereoHFlip(p=float(hyp.get("fliplr", 0.5))),

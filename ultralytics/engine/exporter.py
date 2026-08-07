@@ -984,12 +984,23 @@ class Exporter:
     def get_int8_calibration_dataloader(self, prefix=""):
         """Build and return a dataloader for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
-        calibration_batch = self.args.calibration_batch or self.args.batch
-        if self.args.format.lower() in {"engine", "tensorrt", "trt"} and calibration_batch > self.args.batch:
+        data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
+
+        calibration_batch = self.args.calibration_batch if self.args.calibration_batch is not None else self.args.batch
+        if calibration_batch <= 0:
+            raise ValueError("calibration_batch must be a positive integer")
+        fmt = str(self.args.format).lower()
+        if fmt in {"engine", "tensorrt", "trt"} and calibration_batch > self.args.batch:
             raise ValueError(
                 f"calibration_batch={calibration_batch} cannot exceed batch={self.args.batch} for TensorRT export, "
                 f"set calibration_batch <= batch or increase batch."
             )
+        if self.args.int8 and fmt in {"engine", "openvino"} and not self.args.dynamic and calibration_batch != self.args.batch:
+            raise ValueError(
+                f"calibration_batch={calibration_batch} cannot differ from batch={self.args.batch} for {fmt} INT8 export "
+                f"when dynamic=False. Please set calibration_batch == batch or use dynamic=True."
+            )
+
         cfg = deepcopy(self.args)
         cfg.imgsz = max(self.imgsz)
         if self.model.task == "classify":

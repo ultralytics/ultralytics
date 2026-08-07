@@ -281,6 +281,30 @@ def test_export_calibration_batch(monkeypatch):
         exporter.get_int8_calibration_dataloader()
 
 
+def test_exporter_static_batch_openvino_calibration_batch_guard(monkeypatch):
+    """Ensure static INT8 OpenVINO exports reject differing calibration_batch values."""
+    import ultralytics.engine.exporter as exporter_module
+
+    exporter = exporter_module.Exporter(
+        overrides={"format": "openvino", "int8": True, "batch": 4, "dynamic": False, "data": "coco128.yaml"}
+    )
+    exporter.model = SimpleNamespace(task="detect")
+    exporter.imgsz = [640, 640]
+    exporter.args.split = "val"
+    exporter.args.fraction = 1.0
+    exporter.args.format = "openvino"
+    exporter.args.dynamic = False
+    exporter.args.calibration_batch = 2
+
+    def fake_check_det_dataset(data):
+        return {"val": "dummy_path"}
+
+    monkeypatch.setattr(exporter_module, "check_det_dataset", fake_check_det_dataset)
+
+    with pytest.raises(ValueError, match="calibration_batch.*batch.*dynamic=False"):
+        exporter.get_int8_calibration_dataloader()
+
+
 @pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")
 @pytest.mark.parametrize("end2end", [False, True])
 def test_export_openvino(end2end, isolated_model):

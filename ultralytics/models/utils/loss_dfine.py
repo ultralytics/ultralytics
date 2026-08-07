@@ -20,8 +20,7 @@ from ultralytics.nn.modules.dfine_utils import bbox2distance
 from ultralytics.utils.loss import FocalLoss, MALoss, VarifocalLoss
 from ultralytics.utils.ops import xywh2xyxy
 
-from .box_ops import aligned_box_iou, aligned_giou
-from .ops import HungarianMatcher
+from .ops import HungarianMatcher, aligned_box_iou, aligned_giou
 
 # HungarianMatcher kwargs supported by the clean-branch matcher. Other keys in the YAML matcher dict
 # (change_matcher, iou_order_alpha, matcher_change_epoch) are silently dropped in the first-draft port.

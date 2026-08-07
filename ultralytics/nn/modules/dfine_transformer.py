@@ -6,14 +6,9 @@ from .transformer import MLP
 import torch.nn.init as init
 import math
 import copy
-from .utils import inverse_sigmoid, multi_scale_deformable_attn_pytorch
+from .utils import bias_init_with_prob, inverse_sigmoid, multi_scale_deformable_attn_pytorch
 from .dfine_utils import weighting_function, distance2bbox
 
-
-def bias_init_with_prob(prior_prob=0.01):
-    """Initialize conv/fc bias value according to a given probability value."""
-    bias_init = float(-math.log((1 - prior_prob) / prior_prob))
-    return bias_init
 
 class MSDeformableAttention(nn.Module):
     def __init__(

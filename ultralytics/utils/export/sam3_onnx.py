@@ -786,6 +786,7 @@ def export_sam3_onnx(
     """
     from ultralytics.models.sam.build_sam3 import build_sam3_image_model
     from ultralytics.utils.checks import check_requirements
+    from ultralytics.utils.export.engine import torch2onnx
 
     check_requirements(["onnx>=1.12.0,<2.0.0"])
     import onnx
@@ -837,16 +838,8 @@ def export_sam3_onnx(
     def _export(module, args, name, input_names, output_names, dynamic_axes=None):
         """Trace one module to ONNX with the shared export options and record the path."""
         f = str(output_path / name)
-        torch.onnx.export(
-            module,
-            args,
-            f,
-            opset_version=opset,
-            do_constant_folding=True,
-            dynamo=False,
-            input_names=input_names,
-            output_names=output_names,
-            dynamic_axes=dynamic_axes,
+        torch2onnx(
+            module, args, f, opset=opset, input_names=input_names, output_names=output_names, dynamic=dynamic_axes
         )
         exported_files.append(f)
         return f

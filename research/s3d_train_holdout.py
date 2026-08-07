@@ -106,6 +106,14 @@ def parse_args() -> argparse.Namespace:
         help="0 = early stopping OFF (Ultralytics maps 0 to inf), so every arm trains exactly --epochs. "
         "Required for A/B comparability: a data-dependent stop confounds the treatment with training length.",
     )
+    p.add_argument(
+        "--scale-jitter",
+        type=float,
+        default=0.0,
+        help="StereoZoom dose: content is zoomed by s in (1-j, 1+j) and cropped/padded back to the "
+        "canvas, so apparent object size varies while the 3D truth and the scaled calibration stay "
+        "consistent. 0.0 reproduces today's pipeline exactly (the transform is not even constructed).",
+    )
     p.add_argument("--lr0", type=float, default=0.01)
     p.add_argument(
         "--seed",
@@ -232,6 +240,7 @@ def main() -> None:
         device=a.device,
         optimizer="SGD",
         lr0=a.lr0,
+        scale_jitter=a.scale_jitter,
         cos_lr=True,
         seed=a.seed,
         val=True,  # the whole point: fitness exists, so best.pt and results.csv mean something

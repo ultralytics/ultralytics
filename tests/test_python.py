@@ -402,6 +402,29 @@ def test_youtube():
         LOGGER.error(f"YouTube Test Error: {e}")
 
 
+@pytest.mark.parametrize("method", ["orb", "sift"])
+def test_gmc_handles_degenerate_feature_matches(method):
+    """GMC returns an identity warp instead of crashing on featureless frames or incomplete matches."""
+    from ultralytics.trackers.utils.gmc import GMC
+
+    frame = np.random.default_rng(0).integers(0, 256, (480, 640, 3), dtype=np.uint8)
+    blank = np.zeros_like(frame)
+    identity = np.eye(2, 3)
+
+    gmc = GMC(method=method, downscale=1)
+    gmc.apply(frame)
+    assert np.array_equal(gmc.apply(blank), identity)
+
+    class IncompleteMatcher:
+        def knnMatch(self, *args, **kwargs):
+            return [[], [cv2.DMatch(_queryIdx=0, _trainIdx=0, _distance=0.1)]]
+
+    gmc = GMC(method="orb", downscale=1)
+    gmc.apply(frame)
+    gmc.matcher = IncompleteMatcher()
+    assert np.array_equal(gmc.apply(frame), identity)
+
+
 def test_track_second_association_indices():
     """Low-confidence detections matched in second association keep full detection-set indices."""
     from ultralytics.engine.results import Boxes

@@ -204,6 +204,18 @@ class GMC:
             self.initializedFirstFrame = True
             return H
 
+        # Handle featureless frames and descriptor sets too small for k=2 matching.
+        if (
+            self.prevDescriptors is None
+            or descriptors is None
+            or len(self.prevDescriptors) < 2
+            or len(descriptors) < 2
+        ):
+            self.prevFrame = frame.copy()
+            self.prevKeyPoints = copy.copy(keypoints)
+            self.prevDescriptors = copy.copy(descriptors)
+            return H
+
         # Match descriptors between previous and current frame
         knnMatches = self.matcher.knnMatch(self.prevDescriptors, descriptors, 2)
 
@@ -221,7 +233,10 @@ class GMC:
         # Apply Lowe's ratio test and spatial distance filtering
         prevPoints = []
         currPoints = []
-        for m, n in knnMatches:
+        for matches in knnMatches:
+            if len(matches) < 2:
+                continue
+            m, n = matches
             if m.distance < 0.9 * n.distance:
                 prevKeyPointLocation = self.prevKeyPoints[m.queryIdx].pt
                 currKeyPointLocation = keypoints[m.trainIdx].pt
@@ -237,6 +252,12 @@ class GMC:
                     spatialDistances.append(spatialDistance)
                     prevPoints.append(prevKeyPointLocation)
                     currPoints.append(currKeyPointLocation)
+
+        if not spatialDistances:
+            self.prevFrame = frame.copy()
+            self.prevKeyPoints = copy.copy(keypoints)
+            self.prevDescriptors = copy.copy(descriptors)
+            return H
 
         # Filter outliers using statistical analysis
         spatialDistances = np.asarray(spatialDistances).reshape(-1, 2)

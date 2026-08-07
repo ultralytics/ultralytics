@@ -2167,10 +2167,14 @@ class Albumentations(BaseTransform):
                 else transforms
             )
 
-            # Compose transforms
+            # Compose transforms, 'idx' tracks which instances survive bbox filtering so keypoints/segments follow
             self.contains_spatial = any(transform.__class__.__name__ in spatial_transforms for transform in T)
             self.transform = (
-                A.Compose(T, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
+                A.Compose(
+                    T,
+                    bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels", "idx"]),
+                    keypoint_params=A.KeypointParams(format="xy", remove_invisible=False),
+                )
                 if self.contains_spatial
                 else A.Compose(T)
             )
@@ -2225,20 +2229,51 @@ class Albumentations(BaseTransform):
             cls = labels["cls"]
             mask = labels.get("semantic_mask")
             if len(cls) or mask is not None:
-                labels["instances"].convert_bbox("xywh")
-                labels["instances"].normalize(*im.shape[:2][::-1])
-                bboxes = labels["instances"].bboxes
-                # TODO: add supports of segments and keypoints
+                instances = labels["instances"]
+                instances.convert_bbox("xywh")
+                h, w = im.shape[:2]
+                instances.normalize(w, h)
+                bboxes = instances.bboxes
+                # Pose keypoints and segment vertices are both xy points, so transform them together as keypoints
+                keypoints, segments = instances.keypoints, instances.segments
+                nkpt = keypoints.shape[1] if keypoints is not None and len(keypoints) else 0
+                nseg = segments.shape[1] if len(segments) else 0
+                points = [
+                    x for x in (keypoints[..., :2] if nkpt else None, segments if nseg else None) if x is not None
+                ]
+                points = np.concatenate(points, 1).reshape(-1, 2) * (w, h) if points else np.zeros((0, 2), np.float32)
                 new = self.transform(
-                    image=im, bboxes=bboxes, class_labels=cls, **({"mask": mask} if mask is not None else {})
+                    image=im,
+                    bboxes=bboxes,
+                    class_labels=cls,
+                    idx=np.arange(len(cls)),
+                    keypoints=points,
+                    **({"mask": mask} if mask is not None else {}),
                 )
+                if len(new["keypoints"]) != len(points):
+                    return labels  # distortions remap points through a mask and may drop some, breaking alignment
                 if len(new["class_labels"]) > 0 or mask is not None:  # only box-only samples skip on losing all boxes
                     labels["img"] = new["image"]
                     labels["cls"] = np.array(new["class_labels"]).reshape(-1, 1)
                     bboxes = np.array(new["bboxes"], dtype=np.float32).reshape(-1, 4)
                     if mask is not None:
                         labels["semantic_mask"] = new["mask"]
-                labels["instances"].update(bboxes=bboxes)
+                    if nkpt or nseg:
+                        i = np.array(new["idx"], dtype=int).reshape(-1)  # instances surviving the bbox filters
+                        h, w = new["image"].shape[:2]
+                        points = np.array(new["keypoints"], dtype=np.float32).reshape(-1, nkpt + nseg, 2)
+                        points /= (w, h)  # in-place to keep float32
+                        points = points[i]
+                        if nkpt:
+                            kpts = points[:, :nkpt]
+                            if keypoints.shape[2] == 3:  # restore visibility, hiding points warped out of the image
+                                vis = keypoints[i, :, 2:3]
+                                vis[(kpts < 0).any(-1) | (kpts > 1).any(-1)] = 0
+                                kpts = np.concatenate((kpts, vis), 2)
+                            instances.keypoints = kpts
+                        if nseg:
+                            instances.segments = points[:, nkpt:]
+                instances.update(bboxes=bboxes)
         else:
             labels["img"] = self.transform(image=labels["img"])["image"]  # transformed
 
@@ -2901,6 +2936,7 @@ def classify_augmentations(
     force_color_jitter: bool = False,
     erasing: float = 0.0,
     interpolation: str = "BILINEAR",
+    augmentations: list | None = None,
 ):
     """Create a composition of image augmentation transforms for classification tasks.
 
@@ -2922,12 +2958,18 @@ def classify_augmentations(
         force_color_jitter (bool): Whether to apply color jitter even if auto augment is enabled.
         erasing (float): Probability of random erasing.
         interpolation (str): Interpolation method of either 'NEAREST', 'BILINEAR' or 'BICUBIC'.
+        augmentations (list | None): Optional list of custom Albumentations transforms for classification.
 
     Returns:
         (torchvision.transforms.Compose): A composition of image augmentation transforms.
 
     Examples:
         >>> transforms = classify_augmentations(size=224, auto_augment="randaugment")
+        >>> augmented_image = transforms(original_image)
+
+        >>> import albumentations as A
+        >>> custom_transforms = [A.Blur(p=0.5), A.CLAHE(p=0.3)]
+        >>> transforms = classify_augmentations(size=224, augmentations=custom_transforms)
         >>> augmented_image = transforms(original_image)
     """
     # Transforms to apply if Albumentations not installed
@@ -2945,6 +2987,37 @@ def classify_augmentations(
         primary_tfl.append(T.RandomVerticalFlip(p=vflip))
 
     secondary_tfl = []
+
+    # Add custom Albumentations transforms if provided
+    if augmentations is not None:
+        try:
+            import albumentations as A
+
+            # Wrap Albumentations in a torchvision-compatible transform
+            class AlbumentationsTransform:
+                """Wrapper to use Albumentations transforms with torchvision pipeline."""
+
+                def __init__(self, transform):
+                    self.transform = transform
+
+                def __call__(self, img):
+                    """Apply Albumentations transform to PIL image."""
+                    # Convert PIL to numpy array
+                    img_np = np.array(img)
+                    # Apply Albumentations
+                    augmented = self.transform(image=img_np)
+                    # Convert back to PIL
+                    return Image.fromarray(augmented["image"])
+
+            # Create Albumentations compose
+            alb_transform = A.Compose(augmentations)
+            secondary_tfl.append(AlbumentationsTransform(alb_transform))
+            LOGGER.info(f"Custom Albumentations transforms added for classification: {augmentations}")
+        except ImportError:
+            LOGGER.warning("Albumentations not installed. Custom augmentations will be ignored.")
+        except Exception as e:
+            LOGGER.warning(f"Error setting up custom Albumentations: {e}")
+
     disable_color_jitter = False
     if auto_augment:
         assert isinstance(auto_augment, str), f"Provided argument should be string, but got type {type(auto_augment)}"

@@ -193,9 +193,9 @@ def _infer_model_yaml(phase1_weights: str, head_suffix: str = "") -> str:
     # Strip the `-cls` task suffix. Lookahead matches both end-position (`yolo26s-cls.yaml` -> `yolo26s.yaml`)
     # and middle-position when a custom arch suffix follows (`yolo26s-cls-attn.yaml` -> `yolo26s-attn.yaml`).
     out = re.sub(r"-cls(?=[-.])", head_suffix, cls_yaml, count=1)
-    # Drop tags that name something other than the architecture: det yamls already carry SPPF, and `-oiv7` names
-    # the pretrain dataset of the shipped weights.
-    out = re.sub(r"-(sppf|oiv7)(?=[-.])", "", out)
+    # Drop tags that name something other than the architecture: det yamls already carry SPPF, and `-oiv7` /
+    # `-objv1-150` name the pretrain dataset of the shipped weights.
+    out = re.sub(r"-(sppf|oiv7|objv1-150)(?=[-.])", "", out)
     # The head_suffix leg catches a det-source yaml asked to produce an OBB/pose yaml: nothing was there to
     # rewrite, so it would silently hand back a plain det yaml for the wrong task.
     if "-cls" in out or (head_suffix and head_suffix not in out):

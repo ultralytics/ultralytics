@@ -194,18 +194,13 @@ class YOLOWorld(Model):
         Args:
             classes (list[str]): A list of categories i.e. ["person"].
         """
-        # Compare what the delegate is about to embed, sentinel and order included, against what the model
-        # already carries: only an identical list leaves the cached predictor's copy valid
-        names = list(self.model.names.values() if isinstance(self.model.names, dict) else self.model.names)
-        rebuilt = names != classes
         self.model.set_classes(classes)
         # Remove background if it's given
         background = " "
         if background in classes:
             classes.remove(background)
         self.model.names = classes
-        if rebuilt:
-            self.predictor = None  # the cached predictor wraps a copy of the head the delegate just rewrote
+        self.predictor = None  # the delegate rewrote the head unconditionally; the cached copy is stale
 
 
 class YOLOE(Model):

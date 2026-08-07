@@ -995,7 +995,12 @@ class Exporter:
                 f"calibration_batch={calibration_batch} cannot exceed batch={self.args.batch} for TensorRT export, "
                 f"set calibration_batch <= batch or increase batch."
             )
-        if self.args.int8 and fmt in {"engine", "openvino"} and not self.args.dynamic and calibration_batch != self.args.batch:
+        if (
+            self.args.int8
+            and fmt in {"engine", "openvino"}
+            and not self.args.dynamic
+            and calibration_batch != self.args.batch
+        ):
             raise ValueError(
                 f"calibration_batch={calibration_batch} cannot differ from batch={self.args.batch} for {fmt} INT8 export "
                 f"when dynamic=False. Please set calibration_batch == batch or use dynamic=True."

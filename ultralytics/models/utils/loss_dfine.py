@@ -28,7 +28,15 @@ _MATCHER_KEYS = {"cost_gain", "use_fl", "with_mask", "num_sample_points", "alpha
 
 
 def _global_num_gts(num_gts: int, device: torch.device) -> float:
-    """Compute global mean ground-truth count across distributed workers."""
+    """Compute global mean ground-truth count across distributed workers.
+
+    Args:
+        num_gts (int): Number of ground truth objects on the local worker.
+        device (torch.device): Device on which to build the reduction tensor.
+
+    Returns:
+        (float): Mean ground truth count across all workers, floored at 1.0.
+    """
     t = torch.tensor([num_gts], device=device, dtype=torch.float32)
     if dist.is_available() and dist.is_initialized():
         dist.all_reduce(t, op=dist.ReduceOp.SUM)
@@ -58,6 +66,24 @@ class DfineLoss(nn.Module):
         alpha: float = 0.25,
         matcher: dict[str, Any] | None = None,
     ):
+        """Initialize the loss with classification, box regression, and local FGL/DDF terms.
+
+        Args:
+            nc (int): Number of object classes.
+            reg_max (int): Number of discrete bins in the D-FINE distribution head.
+            local_temperature (float): Softmax temperature for the DDF distillation term.
+            loss_gain (dict[str, float], optional): Per-term loss weights keyed by class, bbox, giou, fgl, and ddf.
+            aux_loss (bool): Apply losses to the auxiliary decoder layers.
+            use_fl (bool): Use focal loss for classification.
+            use_vfl (bool): Use varifocal loss on layers that have matches.
+            use_mal (bool): Use matchability-aware loss, taking precedence over focal and varifocal.
+            use_union_set (bool): Regress boxes against the union of main, auxiliary, and pre-head matches.
+            use_uni_match (bool): Share one decoder layer's matches across all auxiliary layers.
+            uni_match_ind (int): Decoder layer index whose matches are shared when use_uni_match is set.
+            gamma (float): Focusing parameter for the focal, varifocal, and matchability-aware losses.
+            alpha (float): Balancing parameter for the focal, varifocal, and matchability-aware losses.
+            matcher (dict[str, Any], optional): HungarianMatcher keyword arguments; unsupported keys are dropped.
+        """
         super().__init__()
         if loss_gain is None:
             loss_gain = {"class": 1, "bbox": 5, "giou": 2, "fgl": 0.15, "ddf": 1.5}
@@ -96,7 +122,15 @@ class DfineLoss(nn.Module):
         self.num_neg = None
 
     def _aligned_giou_loss(self, pred_bboxes: torch.Tensor, gt_bboxes: torch.Tensor) -> torch.Tensor:
-        """Compute the aligned GIoU loss vector for matched xywh boxes."""
+        """Compute the aligned GIoU loss vector for matched xywh boxes.
+
+        Args:
+            pred_bboxes (torch.Tensor): Predicted boxes in xywh format with shape (M, 4).
+            gt_bboxes (torch.Tensor): Ground truth boxes in xywh format with shape (M, 4).
+
+        Returns:
+            (torch.Tensor): Per-pair GIoU loss with shape (M,).
+        """
         return 1.0 - aligned_giou(pred_bboxes, gt_bboxes, xywh=True)
 
     def _match(
@@ -107,12 +141,31 @@ class DfineLoss(nn.Module):
         gt_cls: torch.Tensor,
         gt_groups: list[int],
     ) -> list[tuple[torch.Tensor, torch.Tensor]]:
-        """Run Hungarian matching for the given prediction layer."""
+        """Run Hungarian matching for a single prediction layer.
+
+        Args:
+            pred_bboxes (torch.Tensor): Predicted boxes in xywh format with shape (B, N, 4).
+            pred_scores (torch.Tensor): Predicted class scores with shape (B, N, C).
+            gt_bboxes (torch.Tensor): Ground truth boxes in xywh format with shape (T, 4).
+            gt_cls (torch.Tensor): Ground truth class indices with shape (T,).
+            gt_groups (list[int]): Number of ground truth boxes per batch image.
+
+        Returns:
+            (list[tuple[torch.Tensor, torch.Tensor]]): Per-image (query index, ground truth index) match pairs.
+        """
         return self.matcher(pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups)
 
     @staticmethod
     def _global_num_matches(match_indices: list[tuple[torch.Tensor, torch.Tensor]], device: torch.device) -> float:
-        """Compute global mean matched-pair count across distributed workers."""
+        """Compute global mean matched-pair count across distributed workers.
+
+        Args:
+            match_indices (list[tuple[torch.Tensor, torch.Tensor]]): Per-image match pairs from Hungarian matching.
+            device (torch.device): Device on which to build the reduction tensor.
+
+        Returns:
+            (float): Mean matched-pair count across all workers, floored at 1.0.
+        """
         t = torch.tensor([sum(len(src) for src, _ in match_indices)], device=device, dtype=torch.float32)
         if dist.is_available() and dist.is_initialized():
             dist.all_reduce(t, op=dist.ReduceOp.SUM)
@@ -123,7 +176,16 @@ class DfineLoss(nn.Module):
     def _get_index(
         match_indices: list[tuple[torch.Tensor, torch.Tensor]], device: torch.device
     ) -> tuple[tuple[torch.Tensor, torch.Tensor], torch.Tensor]:
-        """Build source/target indices from Hungarian matches."""
+        """Extract batch indices, source indices, and destination indices from match indices.
+
+        Args:
+            match_indices (list[tuple[torch.Tensor, torch.Tensor]]): Per-image match pairs from Hungarian matching.
+            device (torch.device): Device on which to place the returned indices.
+
+        Returns:
+            batch_idx (tuple[torch.Tensor, torch.Tensor]): Tuple containing (batch_idx, src_idx).
+            dst_idx (torch.Tensor): Destination indices into the flattened ground truth.
+        """
         batch_idx = torch.cat([torch.full_like(src, i).to(device=device) for i, (src, _) in enumerate(match_indices)])
         src_idx = torch.cat([src.to(device=device) for (src, _) in match_indices])
         dst_idx = torch.cat([dst.to(device=device) for (_, dst) in match_indices])
@@ -134,7 +196,15 @@ class DfineLoss(nn.Module):
         indices_main: list[tuple[torch.Tensor, torch.Tensor]],
         indices_aux_list: list[list[tuple[torch.Tensor, torch.Tensor]]],
     ) -> list[tuple[torch.Tensor, torch.Tensor]]:
-        """Merge matches from multiple layers and keep one GT per query by frequency."""
+        """Merge matches from multiple decoder layers, keeping one ground truth per query by frequency.
+
+        Args:
+            indices_main (list[tuple[torch.Tensor, torch.Tensor]]): Match pairs from the final decoder layer.
+            indices_aux_list (list[list[tuple[torch.Tensor, torch.Tensor]]]): Match pairs from the remaining layers.
+
+        Returns:
+            (list[tuple[torch.Tensor, torch.Tensor]]): Union-set match pairs with each query assigned at most once.
+        """
         merged = [(src.clone(), dst.clone()) for src, dst in indices_main]
         for indices_aux in indices_aux_list:
             merged = [
@@ -165,7 +235,16 @@ class DfineLoss(nn.Module):
     def get_dn_match_indices(
         dn_pos_idx: list[torch.Tensor], dn_num_group: int, gt_groups: list[int]
     ) -> list[tuple[torch.Tensor, torch.Tensor]]:
-        """Build denoising match indices."""
+        """Get match indices for the denoising queries.
+
+        Args:
+            dn_pos_idx (list[torch.Tensor]): Positive denoising query indices for each image.
+            dn_num_group (int): Number of denoising groups.
+            gt_groups (list[int]): Number of ground truth boxes per batch image.
+
+        Returns:
+            (list[tuple[torch.Tensor, torch.Tensor]]): Per-image (query index, ground truth index) match pairs.
+        """
         dn_match_indices = []
         idx_groups = torch.as_tensor([0, *gt_groups[:-1]]).cumsum_(0)
         for i, num_gt in enumerate(gt_groups):
@@ -191,6 +270,26 @@ class DfineLoss(nn.Module):
         global_num_gts: float,
         postfix: str = "",
     ) -> dict[str, torch.Tensor]:
+        """Compute classification loss based on predictions, target values, and ground truth scores.
+
+        Args:
+            pred_scores (torch.Tensor): Predicted class scores with shape (B, N, C).
+            targets (torch.Tensor): Target class indices with shape (B, N).
+            gt_scores (torch.Tensor): Ground truth confidence scores with shape (B, N).
+            local_num_gts (int): Number of matched pairs on the local worker.
+            global_num_gts (int | float): Mean ground truth count across workers, used to normalize the loss.
+            postfix (str, optional): String to append to the loss name for identification in multi-loss scenarios.
+
+        Returns:
+            (dict[str, torch.Tensor]): Dictionary containing classification loss value.
+
+        Notes:
+            The function supports different classification loss types:
+            - Matchability-Aware Loss (if self.mal is not None)
+            - Varifocal Loss (if self.fl is not None, self.vfl is not None, and local_num_gts > 0)
+            - Focal Loss (if self.fl is not None)
+            - BCE Loss (default fallback)
+        """
         name_class = f"loss_class{postfix}"
         bs, nq = pred_scores.shape[:2]
 
@@ -215,6 +314,18 @@ class DfineLoss(nn.Module):
     def _get_loss_bbox(
         self, pred_bboxes: torch.Tensor, gt_bboxes: torch.Tensor, norm_boxes: float, postfix: str = ""
     ) -> dict[str, torch.Tensor]:
+        """Compute L1 and GIoU losses for the matched bounding boxes.
+
+        Args:
+            pred_bboxes (torch.Tensor): Predicted boxes in xywh format with shape (M, 4).
+            gt_bboxes (torch.Tensor): Ground truth boxes in xywh format with shape (M, 4).
+            norm_boxes (int | float): Normalizer applied to both loss terms.
+            postfix (str, optional): String to append to the loss name for identification in multi-loss scenarios.
+
+        Returns:
+            (dict[str, torch.Tensor]): Dictionary containing the L1 and GIoU loss values, both zero when no ground truth
+                boxes are present.
+        """
         name_bbox = f"loss_bbox{postfix}"
         name_giou = f"loss_giou{postfix}"
 
@@ -239,6 +350,26 @@ class DfineLoss(nn.Module):
         box_norm: float,
         postfix: str = "",
     ) -> dict[str, torch.Tensor]:
+        """Compute the classification and box losses for a single decoder layer.
+
+        Args:
+            pred_bboxes (torch.Tensor): Predicted boxes in xywh format with shape (B, N, 4).
+            pred_scores (torch.Tensor): Predicted class scores with shape (B, N, C).
+            gt_cls (torch.Tensor): Ground truth class indices with shape (T,).
+            gt_bboxes (torch.Tensor): Ground truth boxes in xywh format with shape (T, 4).
+            cls_indices (list[tuple[torch.Tensor, torch.Tensor]]): Match pairs used to build classification targets.
+            box_indices (list[tuple[torch.Tensor, torch.Tensor]]): Match pairs used to select boxes for regression.
+            cls_norm (int | float): Normalizer for the classification loss.
+            box_norm (int | float): Normalizer for the box losses.
+            postfix (str, optional): String to append to the loss name for identification in multi-loss scenarios.
+
+        Returns:
+            (dict[str, torch.Tensor]): Dictionary containing the classification, L1, and GIoU loss values.
+
+        Notes:
+            Classification and box regression can use different match pairs, which is how union-set matching
+            regresses against a wider set of queries than it classifies.
+        """
         (cls_batch_idx, cls_src_idx), cls_gt_idx = self._get_index(cls_indices, pred_scores.device)
         bs, nq = pred_scores.shape[:2]
         targets = torch.full((bs, nq), self.nc, device=pred_scores.device, dtype=gt_cls.dtype)
@@ -273,6 +404,22 @@ class DfineLoss(nn.Module):
         box_norm: float,
         postfix: str = "",
     ) -> dict[str, torch.Tensor]:
+        """Sum the classification and box losses over the auxiliary decoder layers.
+
+        Args:
+            pred_bboxes (torch.Tensor): Predicted boxes in xywh format with shape (L, B, N, 4).
+            pred_scores (torch.Tensor): Predicted class scores with shape (L, B, N, C).
+            gt_cls (torch.Tensor): Ground truth class indices with shape (T,).
+            gt_bboxes (torch.Tensor): Ground truth boxes in xywh format with shape (T, 4).
+            cls_indices_list (list): Match pairs for classification, either one list per layer or one shared list.
+            box_indices_list (list): Match pairs for box regression, either one list per layer or one shared list.
+            cls_norm (int | float): Normalizer for the classification loss.
+            box_norm (int | float): Normalizer for the box losses.
+            postfix (str, optional): String to append to the loss name for identification in multi-loss scenarios.
+
+        Returns:
+            (dict[str, torch.Tensor]): Dictionary containing the summed auxiliary classification, L1, and GIoU losses.
+        """
         loss = torch.zeros(3, device=pred_bboxes.device)
         for i, (aux_bboxes, aux_scores) in enumerate(zip(pred_bboxes, pred_scores)):
             cls_indices = cls_indices_list[i] if isinstance(cls_indices_list[0], list) else cls_indices_list
@@ -299,6 +446,23 @@ class DfineLoss(nn.Module):
         weight: torch.Tensor | None = None,
         avg_factor: float | None = None,
     ) -> torch.Tensor:
+        """Compute the unimodal distribution focal loss over a pair of neighbouring distribution bins.
+
+        Args:
+            pred (torch.Tensor): Predicted corner logits with shape (M * 4, reg_max + 1).
+            label (torch.Tensor): Continuous bin targets with shape (M * 4,).
+            weight_right (torch.Tensor): Interpolation weight for the upper bin with shape (M * 4,).
+            weight_left (torch.Tensor): Interpolation weight for the lower bin with shape (M * 4,).
+            weight (torch.Tensor, optional): Per-element loss weight with shape (M * 4,).
+            avg_factor (int | float, optional): Divisor applied to the summed loss.
+
+        Returns:
+            (torch.Tensor): Scalar loss value.
+
+        Notes:
+            Cross entropy runs in float32 regardless of the input dtype and the result is cast back, keeping the
+            distribution stable under autocast.
+        """
         dis_left = label.long()
         dis_right = dis_left + 1
         pred_f = pred.float()
@@ -318,6 +482,20 @@ class DfineLoss(nn.Module):
         is_dn: bool,
         pred_bboxes: torch.Tensor,
     ) -> torch.Tensor:
+        """Compute the decoupled distillation focal loss between student and teacher corner distributions.
+
+        Args:
+            pred_corners (torch.Tensor): Student corner logits with shape (B, N, 4 * (reg_max + 1)).
+            teacher_corners (torch.Tensor, optional): Teacher corner logits with the same shape as pred_corners.
+            teacher_logits (torch.Tensor, optional): Teacher class scores with shape (B, N, C).
+            ious (torch.Tensor): IoU of each matched pair with shape (M,), used to weight positive locations.
+            idx (tuple[torch.Tensor, torch.Tensor]): Tuple containing (batch_idx, src_idx) of the matched queries.
+            is_dn (bool): Whether this call covers denoising queries, which reuse the cached positive/negative counts.
+            pred_bboxes (torch.Tensor): Predicted boxes, used only for its batch size when rescaling those counts.
+
+        Returns:
+            (torch.Tensor): Scalar loss value, zero when no teacher is supplied or the teacher matches the student.
+        """
         if teacher_corners is None or teacher_logits is None:
             return torch.tensor(0.0, device=pred_corners.device)
         pred_all = pred_corners.reshape(-1, self.reg_max + 1)
@@ -367,6 +545,34 @@ class DfineLoss(nn.Module):
         postfix: str = "",
         is_dn: bool = False,
     ) -> dict[str, torch.Tensor]:
+        """Compute the FGL and DDF local losses for a single decoder layer.
+
+        Args:
+            pred_bboxes (torch.Tensor): Predicted boxes in xywh format with shape (B, N, 4).
+            pred_scores (torch.Tensor): Predicted class scores with shape (B, N, C).
+            pred_corners (torch.Tensor, optional): Predicted corner logits with shape (B, N, 4 * (reg_max + 1)).
+            ref_points (torch.Tensor, optional): Reference points in xyxy format with shape (B, N, 4).
+            gt_bboxes (torch.Tensor): Ground truth boxes in xywh format with shape (T, 4).
+            gt_cls (torch.Tensor): Ground truth class indices with shape (T,).
+            gt_groups (list[int]): Number of ground truth boxes per batch image.
+            norm_boxes (int | float): Normalizer for the FGL loss.
+            up (torch.Tensor, optional): Upper bound controlling the non-uniform bin spacing.
+            reg_scale (torch.Tensor, optional): Scale controlling the non-uniform bin spacing.
+            match_indices (list[tuple[torch.Tensor, torch.Tensor]], optional): Precomputed match pairs; Hungarian
+                matching runs when omitted.
+            teacher_corners (torch.Tensor, optional): Teacher corner logits for the DDF term.
+            teacher_logits (torch.Tensor, optional): Teacher class scores for the DDF term.
+            postfix (str, optional): String to append to the loss name for identification in multi-loss scenarios.
+            is_dn (bool): Whether this call covers denoising queries, which use a separate target cache.
+
+        Returns:
+            (dict[str, torch.Tensor]): Dictionary containing the gain-scaled FGL and DDF loss values, both zero when the
+                distribution head outputs are absent or nothing matched.
+
+        Notes:
+            The distance targets are cached per forward pass, so every decoder layer converts the ground truth
+            boxes to bin targets once rather than once per layer.
+        """
         name_fgl = f"loss_fgl{postfix}"
         name_ddf = f"loss_ddf{postfix}"
         if pred_corners is None or ref_points is None or up is None or reg_scale is None:
@@ -420,6 +626,28 @@ class DfineLoss(nn.Module):
         is_dn: bool = False,
         include_local_aux: bool = True,
     ) -> dict[str, torch.Tensor]:
+        """Compute the FGL and DDF local losses for the final decoder layer and, optionally, the auxiliary ones.
+
+        Args:
+            pred_bboxes (torch.Tensor): Predicted boxes in xywh format with shape (L, B, N, 4).
+            pred_scores (torch.Tensor): Predicted class scores with shape (L, B, N, C).
+            batch (dict[str, Any]): Batch dictionary holding cls, bboxes, and gt_groups.
+            norm_boxes (int | float): Normalizer for the FGL loss.
+            dfine_meta (dict[str, Any], optional): Distribution head outputs; an empty dict is returned when absent.
+            main_indices (list[tuple[torch.Tensor, torch.Tensor]]): Match pairs for the final decoder layer.
+            aux_indices (list): Match pairs for the auxiliary layers, either one list per layer or one shared list.
+            postfix (str, optional): String to append to the loss name for identification in multi-loss scenarios.
+            is_dn (bool): Whether this call covers denoising queries.
+            include_local_aux (bool): Also accumulate the auxiliary-layer FGL and DDF losses.
+
+        Returns:
+            (dict[str, torch.Tensor]): Dictionary containing the FGL and DDF loss values, empty when the distribution
+                head outputs are absent.
+
+        Notes:
+            The final layer acts as the detached teacher for the auxiliary layers, so the DDF term distills the
+            deepest predictions into the shallower ones within a single forward pass.
+        """
         if dfine_meta is None:
             return {}
         pred_corners_all = dfine_meta.get("pred_corners")
@@ -484,6 +712,19 @@ class DfineLoss(nn.Module):
         gt_groups: list[int],
         shared_if_enabled: bool = True,
     ):
+        """Build the Hungarian match pairs for the auxiliary decoder layers.
+
+        Args:
+            pred_bboxes (torch.Tensor): Predicted boxes in xywh format with shape (L, B, N, 4).
+            pred_scores (torch.Tensor): Predicted class scores with shape (L, B, N, C).
+            gt_bboxes (torch.Tensor): Ground truth boxes in xywh format with shape (T, 4).
+            gt_cls (torch.Tensor): Ground truth class indices with shape (T,).
+            gt_groups (list[int]): Number of ground truth boxes per batch image.
+            shared_if_enabled (bool): Allow one layer's matches to be reused when use_uni_match is set.
+
+        Returns:
+            (list): One match-pair list per auxiliary layer, empty when there is only a single decoder layer.
+        """
         if pred_bboxes.shape[0] <= 1:
             return []
         if self.use_uni_match and shared_if_enabled:
@@ -500,6 +741,19 @@ class DfineLoss(nn.Module):
         gt_cls: torch.Tensor,
         gt_groups: list[int],
     ):
+        """Build the Hungarian match pairs for the pre-head predictions of the encoder.
+
+        Args:
+            dfine_meta (dict[str, Any], optional): Distribution head outputs holding pre_bboxes and pre_logits.
+            gt_bboxes (torch.Tensor): Ground truth boxes in xywh format with shape (T, 4).
+            gt_cls (torch.Tensor): Ground truth class indices with shape (T,).
+            gt_groups (list[int]): Number of ground truth boxes per batch image.
+
+        Returns:
+            pre_bboxes (torch.Tensor | None): Pre-head boxes in xywh format with shape (B, N, 4).
+            pre_logits (torch.Tensor | None): Pre-head class scores with shape (B, N, C).
+            pre_indices (list[tuple[torch.Tensor, torch.Tensor]] | None): Match pairs for the pre-head predictions.
+        """
         if dfine_meta is None:
             return None, None, None
         pre_bboxes = dfine_meta.get("pre_bboxes")
@@ -523,6 +777,23 @@ class DfineLoss(nn.Module):
         box_norm: float,
         postfix: str,
     ) -> dict[str, torch.Tensor]:
+        """Compute the classification and box losses for the pre-head predictions of the encoder.
+
+        Args:
+            pre_bboxes (torch.Tensor, optional): Pre-head boxes in xywh format with shape (B, N, 4).
+            pre_logits (torch.Tensor, optional): Pre-head class scores with shape (B, N, C).
+            gt_cls (torch.Tensor): Ground truth class indices with shape (T,).
+            gt_bboxes (torch.Tensor): Ground truth boxes in xywh format with shape (T, 4).
+            cls_indices (list, optional): Match pairs used to build classification targets.
+            box_indices (list, optional): Match pairs used to select boxes for regression, falling back to cls_indices.
+            cls_norm (int | float): Normalizer for the classification loss.
+            box_norm (int | float): Normalizer for the box losses.
+            postfix (str): String to append to the loss name for identification in multi-loss scenarios.
+
+        Returns:
+            (dict[str, torch.Tensor]): Dictionary containing the classification, L1, and GIoU loss values, empty when
+                the pre-head outputs are absent.
+        """
         if pre_bboxes is None or pre_logits is None or cls_indices is None:
             return {}
         return self._compute_layer_losses(
@@ -541,6 +812,21 @@ class DfineLoss(nn.Module):
         dn_meta: dict[str, Any] | None = None,
         dfine_meta: dict[str, Any] | None = None,
     ) -> dict[str, torch.Tensor]:
+        """Compute the total loss over the main, auxiliary, pre-head, and denoising predictions.
+
+        Args:
+            preds (tuple[torch.Tensor, torch.Tensor]): Predicted boxes with shape (L, B, N, 4) and class scores with
+                shape (L, B, N, C), ordered from the shallowest to the deepest decoder layer.
+            batch (dict[str, Any]): Batch dictionary holding cls, bboxes, and gt_groups.
+            dn_bboxes (torch.Tensor, optional): Denoising boxes in xywh format with shape (L, B, N_dn, 4).
+            dn_scores (torch.Tensor, optional): Denoising class scores with shape (L, B, N_dn, C).
+            dn_meta (dict[str, Any], optional): Denoising metadata holding dn_pos_idx and dn_num_group.
+            dfine_meta (dict[str, Any], optional): Distribution head outputs used by the FGL and DDF terms.
+
+        Returns:
+            (dict[str, torch.Tensor]): Dictionary of individual loss values keyed by name, with a _dn suffix on the
+                denoising terms and a _pre suffix on the pre-head terms.
+        """
         pred_bboxes, pred_scores = preds
         self.device = pred_scores.device
         self._clear_local_cache()

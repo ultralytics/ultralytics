@@ -53,7 +53,15 @@ class UltraViTBlock(nn.Module):
     """
 
     def __init__(self, c: int, mlp_ratio: float = 3.0, silu: bool = False, ls: float = 0.0, fastvit_ffn: bool = False):
-        """Initialize UltraViTBlock with dim c, FFN expansion ratio, activation choice, LayerScale init, and FFN order."""
+        """Initialize the block.
+
+        Args:
+            c (int): Number of input and output channels.
+            mlp_ratio (float): Expansion ratio of the FFN hidden width.
+            silu (bool): Use SiLU instead of GELU in the FFN.
+            ls (float): LayerScale initialization value; no LayerScale parameters are created when zero.
+            fastvit_ffn (bool): Use the paper-exact pre-expansion DW7x7 FFN instead of the post-expansion DW3x3 one.
+        """
         super().__init__()
         self.mixer_dw = nn.Conv2d(c, c, 3, padding=1, groups=c, bias=False)
         self.mixer_bn = nn.BatchNorm2d(c)
@@ -75,7 +83,14 @@ class UltraViTBlock(nn.Module):
             self.ls2 = nn.Parameter(ls * torch.ones(c, 1, 1))
 
     def _ffn(self, x: torch.Tensor) -> torch.Tensor:
-        """Apply the ConvFFN; `fastvit_ffn` selects pre-expansion DW7x7 (paper-exact) vs post-expansion DW3x3."""
+        """Apply the ConvFFN; `fastvit_ffn` selects pre-expansion DW7x7 (paper-exact) vs post-expansion DW3x3.
+
+        Args:
+            x (torch.Tensor): Input features with shape (B, C, H, W).
+
+        Returns:
+            (torch.Tensor): FFN output with shape (B, C, H, W).
+        """
         if getattr(self, "fastvit_ffn", False):  # getattr: pre-fastvit_ffn checkpoints still load and run
             h = self.ffn_dw(x)
             h = self.ffn_bn(h) if hasattr(self, "ffn_bn") else h
@@ -86,7 +101,14 @@ class UltraViTBlock(nn.Module):
         return self.ffn_pw2(self.act(h))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Forward pass: residual mixer + residual FFN, each optionally LayerScale-gated."""
+        """Apply the residual token mixer followed by the residual FFN, each optionally LayerScale-gated.
+
+        Args:
+            x (torch.Tensor): Input features with shape (B, C, H, W).
+
+        Returns:
+            (torch.Tensor): Output features with shape (B, C, H, W).
+        """
         m = self.mixer_bn(self.mixer_dw(x))
         ls1 = getattr(self, "ls1", None)
         x = x + (m if ls1 is None else ls1 * m)
@@ -98,13 +120,32 @@ class RepUltraViTBlock(UltraViTBlock):
     """Use a FastViT-style reparameterized token mixer with the UltraViT ConvFFN."""
 
     def __init__(self, c: int, mlp_ratio: float = 3.0, silu: bool = False, ls: float = 0.0, fastvit_ffn: bool = False):
-        """Initialize the train-time multi-branch mixer and ConvFFN."""
+        """Initialize the train-time multi-branch mixer and ConvFFN.
+
+        Args:
+            c (int): Number of input and output channels.
+            mlp_ratio (float): Expansion ratio of the FFN hidden width.
+            silu (bool): Use SiLU instead of GELU in the FFN.
+            ls (float): LayerScale initialization value; no LayerScale parameters are created when zero.
+            fastvit_ffn (bool): Use the paper-exact pre-expansion DW7x7 FFN instead of the post-expansion DW3x3 one.
+        """
         super().__init__(c, mlp_ratio, silu, ls, fastvit_ffn)
         del self.mixer_dw, self.mixer_bn
         self.mixer = RepConv(c, c, g=c, act=False, bn=True)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Apply the reparameterized mixer followed by the ConvFFN."""
+        """Apply the reparameterized mixer followed by the ConvFFN.
+
+        Args:
+            x (torch.Tensor): Input features with shape (B, C, H, W).
+
+        Returns:
+            (torch.Tensor): Output features with shape (B, C, H, W).
+
+        Notes:
+            After fuse() the mixer is a plain Conv2d that already absorbs the residual and LayerScale, so the
+            branch below applies it directly.
+        """
         if isinstance(self.mixer, nn.Conv2d):
             x = self.mixer(x)
         else:
@@ -173,7 +214,17 @@ class MHSABlock(nn.Module):
         conv_ffn: bool = False,
         head_dim: int = 0,
     ):
-        """Initialize MHSABlock."""
+        """Initialize the block.
+
+        Args:
+            c (int): Number of input and output channels.
+            num_heads (int): Number of attention heads; ignored when head_dim is nonzero.
+            mlp_ratio (float): Expansion ratio of the FFN hidden width.
+            silu (bool): Use SiLU instead of GELU in the FFN.
+            ls (float): LayerScale initialization value; no LayerScale parameters are created when zero.
+            conv_ffn (bool): Must be True; the block only supports the ConvMLP FFN.
+            head_dim (int): Per-head dimension; when nonzero it pins the head width and derives num_heads.
+        """
         super().__init__()
         assert conv_ffn, "MHSABlock requires conv_ffn=True"
         if head_dim:
@@ -196,7 +247,14 @@ class MHSABlock(nn.Module):
             self.ls2 = nn.Parameter(ls * torch.ones(c, 1, 1))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Forward pass through attention and the ConvMLP FFN."""
+        """Apply the residual self-attention followed by the residual ConvMLP FFN.
+
+        Args:
+            x (torch.Tensor): Input features with shape (B, C, H, W).
+
+        Returns:
+            (torch.Tensor): Output features with shape (B, C, H, W).
+        """
         b, c, h, w = x.shape
         t = x.flatten(2).transpose(1, 2)  # (B, N, C)
         n = self.ln1(t)

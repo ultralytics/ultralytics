@@ -7,23 +7,34 @@ from torch import Tensor
 
 
 def box_xyxy_to_cxcywh(x: Tensor) -> Tensor:
-    """Convert boxes from (x1, y1, x2, y2) to (cx, cy, w, h) using unbind + stack (trace-safe for CoreML export)."""
+    """Convert boxes from (x1, y1, x2, y2) to (cx, cy, w, h).
+
+    Args:
+        x (torch.Tensor): Boxes in xyxy format with shape (..., 4).
+
+    Returns:
+        (torch.Tensor): Boxes in xywh format with shape (..., 4).
+
+    Notes:
+        Kept separate from ultralytics.utils.ops.xyxy2xywh, which allocates with empty_like and assigns by index.
+        This builds the result with unbind and stack instead, which stays traceable for CoreML export.
+    """
     x0, y0, x1, y1 = x.unbind(-1)
     return torch.stack([(x0 + x1) / 2, (y0 + y1) / 2, x1 - x0, y1 - y0], dim=-1)
 
 
 def weighting_function(reg_max, up, reg_scale, deploy=False):
-    """Generates the non-uniform Weighting Function W(n) for bounding box regression.
+    """Generate the non-uniform Weighting Function W(n) for bounding box regression.
 
     Args:
         reg_max (int): Max number of the discrete bins.
-        up (Tensor): Controls upper bounds of the sequence, where maximum offset is ±up * H / W.
+        up (torch.Tensor): Controls upper bounds of the sequence, where maximum offset is ±up * H / W.
         reg_scale (float): Controls the curvature of the Weighting Function. Larger values result in flatter weights
             near the central axis W(reg_max/2)=0 and steeper weights at both ends.
         deploy (bool): If True, uses deployment mode settings.
 
     Returns:
-        Tensor: Sequence of Weighting Function.
+        (torch.Tensor): Non-uniform bin centers with shape (reg_max + 1,).
     """
     if deploy:
         upper_bound1 = (abs(up[0]) * abs(reg_scale)).item()
@@ -44,23 +55,22 @@ def weighting_function(reg_max, up, reg_scale, deploy=False):
 
 
 def translate_gt(gt, reg_max, reg_scale, up):
-    """Decodes bounding box ground truth (GT) values into distribution-based GT representations.
+    """Decode bounding box ground truth (GT) values into distribution-based GT representations.
 
     This function maps continuous GT values into discrete distribution bins, which can be used for regression tasks in
     object detection models. It calculates the indices of the closest bins to each GT value and assigns interpolation
     weights to these bins based on their proximity to the GT value.
 
     Args:
-        gt (Tensor): Ground truth bounding box values, shape (N, ).
+        gt (torch.Tensor): Ground truth bounding box values, shape (N, ).
         reg_max (int): Maximum number of discrete bins for the distribution.
         reg_scale (float): Controls the curvature of the Weighting Function.
-        up (Tensor): Controls the upper bounds of the Weighting Function.
+        up (torch.Tensor): Controls the upper bounds of the Weighting Function.
 
     Returns:
-        Tuple[Tensor, Tensor, Tensor]:
-            - indices (Tensor): Index of the left bin closest to each GT value, shape (N, ).
-            - weight_right (Tensor): Weight assigned to the right bin, shape (N, ).
-            - weight_left (Tensor): Weight assigned to the left bin, shape (N, ).
+        indices (torch.Tensor): Index of the left bin closest to each GT value, shape (N,).
+        weight_right (torch.Tensor): Weight assigned to the right bin, shape (N,).
+        weight_left (torch.Tensor): Weight assigned to the left bin, shape (N,).
     """
     gt = gt.reshape(-1)
     function_values = weighting_function(reg_max, up, reg_scale)
@@ -105,17 +115,17 @@ def translate_gt(gt, reg_max, reg_scale, up):
 
 
 def distance2bbox(points, distance, reg_scale):
-    """Decodes edge-distances into bounding box coordinates.
+    """Decode edge-distances into bounding box coordinates.
 
     Args:
-        points (Tensor): (B, N, 4) or (N, 4) format, representing [x, y, w, h], where (x, y) is the center and (w, h)
-            are width and height.
-        distance (Tensor): (B, N, 4) or (N, 4), representing distances from the point to the left, top, right, and
+        points (torch.Tensor): (B, N, 4) or (N, 4) format, representing [x, y, w, h], where (x, y) is the center and (w,
+            h) are width and height.
+        distance (torch.Tensor): (B, N, 4) or (N, 4), representing distances from the point to the left, top, right, and
             bottom boundaries.
         reg_scale (float): Controls the curvature of the Weighting Function.
 
     Returns:
-        Tensor: Bounding boxes in (N, 4) or (B, N, 4) format [cx, cy, w, h].
+        (torch.Tensor): Boxes in xywh format with the same leading dimensions as points.
     """
     reg_scale = abs(reg_scale)
     x1 = points[..., 0] - (0.5 * reg_scale + distance[..., 0]) * (points[..., 2] / reg_scale)
@@ -129,18 +139,20 @@ def distance2bbox(points, distance, reg_scale):
 
 
 def bbox2distance(points, bbox, reg_max, reg_scale, up, eps=0.1):
-    """Converts bounding box coordinates to distances from a reference point.
+    """Convert bounding box coordinates to distances from a reference point.
 
     Args:
-        points (Tensor): (n, 4) [x, y, w, h], where (x, y) is the center.
-        bbox (Tensor): (n, 4) bounding boxes in "xyxy" format.
+        points (torch.Tensor): (n, 4) [x, y, w, h], where (x, y) is the center.
+        bbox (torch.Tensor): (n, 4) bounding boxes in "xyxy" format.
         reg_max (float): Maximum bin value.
         reg_scale (float): Controling curvarture of W(n).
-        up (Tensor): Controling upper bounds of W(n).
+        up (torch.Tensor): Controling upper bounds of W(n).
         eps (float): Small value to ensure target < reg_max.
 
     Returns:
-        Tensor: Decoded distances.
+        four_lens (torch.Tensor): Flattened bin targets clamped to [0, reg_max - eps].
+        weight_right (torch.Tensor): Weight assigned to the right bin.
+        weight_left (torch.Tensor): Weight assigned to the left bin.
     """
     reg_scale = abs(reg_scale)
     left   = (points[:, 0] - bbox[:, 0]) / (points[..., 2] / reg_scale + 1e-16) - 0.5 * reg_scale

@@ -11,6 +11,22 @@ from .dfine_utils import weighting_function, distance2bbox
 
 
 class MSDeformableAttention(nn.Module):
+    """Multi-scale deformable attention sampling a small set of points per head and feature level.
+
+    Attributes:
+        embed_dim (int): Feature dimension of the query and value tensors.
+        num_heads (int): Number of attention heads.
+        num_levels (int): Number of feature levels sampled from.
+        offset_scale (float): Multiplier applied to the predicted sampling offsets.
+        num_points_list (list[int]): Number of sampling points for each feature level.
+        num_points_scale (torch.Tensor): Per-point normalizer used when reference points carry width and height.
+        total_points (int): Total number of sampling points across all heads and levels.
+        method (str): Sampling mode, either default or discrete.
+        head_dim (int): Feature dimension of a single attention head.
+        sampling_offsets (nn.Linear): Projection producing the per-point sampling offsets.
+        attention_weights (nn.Linear): Projection producing the per-point attention weights.
+    """
+
     def __init__(
         self,
         embed_dim=256,
@@ -20,7 +36,16 @@ class MSDeformableAttention(nn.Module):
         method='default',
         offset_scale=0.5,
     ):
-        """Multi-Scale Deformable Attention."""
+        """Initialize the deformable attention module.
+
+        Args:
+            embed_dim (int): Feature dimension of the query and value tensors.
+            num_heads (int): Number of attention heads.
+            num_levels (int): Number of feature levels sampled from.
+            num_points (int | list[int]): Sampling points per head, shared across levels or one entry per level.
+            method (str): Sampling mode; discrete freezes the sampling offsets so only the weights are learned.
+            offset_scale (float): Multiplier applied to the predicted sampling offsets.
+        """
         super(MSDeformableAttention, self).__init__()
         self.embed_dim = embed_dim
         self.num_heads = num_heads
@@ -54,6 +79,7 @@ class MSDeformableAttention(nn.Module):
                 p.requires_grad = False
 
     def _reset_parameters(self):
+        """Initialize sampling offsets on a ring of head-specific directions and zero the attention weights."""
         # sampling_offsets
         init.constant_(self.sampling_offsets.weight, 0)
         thetas = torch.arange(self.num_heads, dtype=torch.float32) * (2.0 * math.pi / self.num_heads)
@@ -73,16 +99,17 @@ class MSDeformableAttention(nn.Module):
                 reference_points: torch.Tensor,
                 value: torch.Tensor,
                 value_spatial_shapes: List[int]):
-        """
+        """Sample the value tensor at the predicted offsets and combine the samples with the attention weights.
+
         Args:
-            query (Tensor): [bs, query_length, C]
-            reference_points (Tensor): [bs, query_length, n_levels, 2], range in [0, 1], top-left (0,0), bottom-right
-                (1, 1), including padding area
-            value (Tensor): [bs, value_length, C]
-            value_spatial_shapes (List): [n_levels, 2], [(H_0, W_0), (H_1, W_1), ..., (H_{L-1}, W_{L-1})]
+            query (torch.Tensor): Queries with shape (B, N, C).
+            reference_points (torch.Tensor): Reference points with shape (B, N, n_levels, D), where D is 2 for locations
+                normalized to [0, 1] from the top-left corner or 4 for boxes in xywh format.
+            value (torch.Tensor): Encoder memory with shape (B, L, C).
+            value_spatial_shapes (list): Height and width of each feature level, with shape (n_levels, 2).
 
         Returns:
-            output (Tensor): [bs, Length_{query}, C]
+            (torch.Tensor): Attended features with shape (B, N, C).
         """
         bs, Len_q = query.shape[:2]
 
@@ -121,16 +148,29 @@ class Integral(nn.Module):
     This layer computes the target location using the formula: `sum{Pr(n) * W(n)}`, where Pr(n) is the softmax
     probability vector representing the discrete distribution, and W(n) is the non-uniform Weighting Function.
 
-    Args:
-        reg_max (int): Max number of the discrete bins. Default is 32. It can be adjusted based on the dataset or task
-            requirements.
+    Attributes:
+        reg_max (int): Max number of the discrete bins, adjustable to the dataset or task requirements.
     """
 
     def __init__(self, reg_max=32):
+        """Initialize the integral layer.
+
+        Args:
+            reg_max (int): Max number of the discrete bins.
+        """
         super(Integral, self).__init__()
         self.reg_max = reg_max
 
     def forward(self, x, project):
+        """Integrate a corner distribution into continuous distance offsets.
+
+        Args:
+            x (torch.Tensor): Corner logits with shape (..., 4 * (reg_max + 1)).
+            project (torch.Tensor): Non-uniform bin centers with shape (reg_max + 1,).
+
+        Returns:
+            (torch.Tensor): Distance offsets with shape (..., 4).
+        """
         shape = x.shape
         x = F.softmax(x.reshape(-1, self.reg_max + 1), dim=1)
         # Match both device AND dtype of activations: `project` is a precomputed (deploy-mode) fp32 plain attribute
@@ -141,7 +181,24 @@ class Integral(nn.Module):
 
 
 class LQE(nn.Module):
+    """Location quality estimator adding a distribution-derived confidence correction to the class scores.
+
+    Attributes:
+        k (int): Number of top distribution bins summarized per box edge.
+        reg_max (int): Max number of the discrete bins.
+        reg_conf (MLP): Head mapping the distribution statistics to a scalar quality score.
+    """
+
     def __init__(self, k, hidden_dim, num_layers, reg_max, act=nn.ReLU):
+        """Initialize the location quality estimator.
+
+        Args:
+            k (int): Number of top distribution bins summarized per box edge.
+            hidden_dim (int): Hidden width of the quality head.
+            num_layers (int): Number of layers in the quality head.
+            reg_max (int): Max number of the discrete bins.
+            act (nn.Module): Activation used by the quality head.
+        """
         super(LQE, self).__init__()
         self.k = k
         self.reg_max = reg_max
@@ -150,6 +207,15 @@ class LQE(nn.Module):
         init.constant_(self.reg_conf.layers[-1].weight, 0)
 
     def forward(self, scores, pred_corners):
+        """Add a quality correction derived from the corner distribution to the class scores.
+
+        Args:
+            scores (torch.Tensor): Class scores with shape (B, N, C).
+            pred_corners (torch.Tensor): Corner logits with shape (B, N, 4 * (reg_max + 1)).
+
+        Returns:
+            (torch.Tensor): Corrected class scores with shape (B, N, C).
+        """
         B, L, _ = pred_corners.size()
         prob = F.softmax(pred_corners.reshape(-1, self.reg_max + 1), dim=-1)
         topk_ind = prob.topk(self.k, dim=-1).indices
@@ -180,6 +246,21 @@ class DFineTransformerDecoder(nn.Module):
             eval_idx=-1,
             layer_scale=2,
             act=nn.ReLU()):
+        """Initialize the decoder.
+
+        Args:
+            hidden_dim (int): Feature dimension of the decoder queries.
+            decoder_layer (nn.Module): Layer prototype deep-copied for every layer up to eval_idx.
+            decoder_layer_wide (nn.Module): Layer prototype deep-copied for the layers after eval_idx.
+            num_layers (int): Total number of decoder layers.
+            num_head (int): Number of attention heads per layer.
+            reg_max (int): Max number of the discrete bins.
+            reg_scale (torch.Tensor): Scale controlling the non-uniform bin spacing.
+            up (torch.Tensor): Upper bound controlling the non-uniform bin spacing.
+            eval_idx (int): Layer index used at inference; negative values count back from the last layer.
+            layer_scale (int): Width multiplier applied to the layers after eval_idx.
+            act (nn.Module): Activation used by the location quality estimators.
+        """
         super(DFineTransformerDecoder, self).__init__()
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
@@ -194,7 +275,18 @@ class DFineTransformerDecoder(nn.Module):
         self.fixed_query_pos = False
 
     def value_op(self, memory, value_proj, value_scale, memory_mask, memory_spatial_shapes):
-        """Mask encoder memory for MSDeformableAttention; returns shape (bs, L, C)."""
+        """Project, resize, and mask the encoder memory for MSDeformableAttention.
+
+        Args:
+            memory (torch.Tensor): Encoder memory with shape (B, L, C).
+            value_proj (nn.Module, optional): Projection applied to the memory.
+            value_scale (int, optional): Target width for interpolation of the memory.
+            memory_mask (torch.Tensor, optional): Validity mask with shape (B, L).
+            memory_spatial_shapes (list[list[int]]): Height and width of each feature level.
+
+        Returns:
+            (torch.Tensor): Masked value tensor with shape (B, L, C).
+        """
         value = value_proj(memory) if value_proj is not None else memory
         value = F.interpolate(memory, size=value_scale) if value_scale is not None else value
         if memory_mask is not None:
@@ -202,6 +294,7 @@ class DFineTransformerDecoder(nn.Module):
         return value
 
     def convert_to_deploy(self):
+        """Precompute the bin centers and drop the layers past eval_idx for inference-only use."""
         self.project = weighting_function(self.reg_max, self.up, self.reg_scale, deploy=True)
         self.layers = self.layers[:self.eval_idx + 1]
         self.lqe_layers = nn.ModuleList([nn.Identity()] * (self.eval_idx) + [self.lqe_layers[self.eval_idx]])
@@ -221,6 +314,35 @@ class DFineTransformerDecoder(nn.Module):
                 attn_mask=None,
                 memory_mask=None,
                 dn_meta=None):
+        """Refine the queries layer by layer, accumulating corner corrections through the decoder.
+
+        Args:
+            target (torch.Tensor): Initial decoder queries with shape (B, N, C).
+            ref_points_unact (torch.Tensor): Unactivated reference boxes with shape (B, N, 4).
+            memory (torch.Tensor): Encoder memory with shape (B, L, C).
+            spatial_shapes (list[list[int]]): Height and width of each feature level.
+            bbox_head (nn.ModuleList): Per-layer heads producing the corner distribution corrections.
+            score_head (nn.ModuleList): Per-layer heads producing the class scores.
+            query_pos_head (nn.Module): Head embedding the reference boxes into query positions.
+            pre_bbox_head (nn.Module): Head producing the initial box prediction of the first layer.
+            integral (nn.Module): Layer integrating a corner distribution into distance offsets.
+            up (torch.Tensor): Upper bound controlling the non-uniform bin spacing.
+            reg_scale (torch.Tensor): Scale controlling the non-uniform bin spacing.
+            attn_mask (torch.Tensor, optional): Self-attention mask isolating the denoising groups.
+            memory_mask (torch.Tensor, optional): Validity mask for the encoder memory.
+            dn_meta (dict, optional): Denoising metadata, accepted for signature compatibility and unused here.
+
+        Returns:
+            dec_out_bboxes (torch.Tensor): Boxes per layer in xywh format with shape (L, B, N, 4).
+            dec_out_logits (torch.Tensor): Class scores per layer with shape (L, B, N, C).
+            dec_out_pred_corners (torch.Tensor): Corner logits per layer with shape (L, B, N, 4 * (reg_max + 1)).
+            dec_out_refs (torch.Tensor): Reference boxes per layer with shape (L, B, N, 4).
+            pre_bboxes (torch.Tensor): Initial box prediction of the first layer with shape (B, N, 4).
+            pre_scores (torch.Tensor): Initial class scores of the first layer with shape (B, N, C).
+
+        Notes:
+            At inference only the layers up to eval_idx run, so L is 1 in the returned stacks.
+        """
         output = target
         output_detach = pred_corners_undetach = 0
         value = self.value_op(memory, None, None, memory_mask, spatial_shapes)
@@ -288,11 +410,28 @@ class DEIMRMSNorm(nn.Module):
     """RMSNorm used by DEIMv2 decoder layers."""
 
     def __init__(self, dim: int, eps: float = 1e-6):
+        """Initialize the normalization layer.
+
+        Args:
+            dim (int): Feature dimension normalized over.
+            eps (float): Value added to the mean square before the reciprocal square root.
+        """
         super().__init__()
         self.eps = eps
         self.scale = nn.Parameter(torch.ones(dim))
 
     def forward(self, x):
+        """Normalize the last dimension by its root mean square and apply the learned scale.
+
+        Args:
+            x (torch.Tensor): Input tensor with shape (..., dim).
+
+        Returns:
+            (torch.Tensor): Normalized tensor with the same shape and dtype as the input.
+
+        Notes:
+            The statistics are computed in float32 and cast back, so the layer stays stable under autocast.
+        """
         x_float = x.float()
         normed = x_float * torch.rsqrt(x_float.pow(2).mean(-1, keepdim=True) + self.eps)
         return normed.type_as(x) * self.scale
@@ -302,18 +441,39 @@ class DEIMSwiGLUFFN(nn.Module):
     """SwiGLU FFN used by DEIMv2 decoder layers."""
 
     def __init__(self, in_features: int, hidden_features: int, out_features: int, bias: bool = True) -> None:
+        """Initialize the feed-forward network.
+
+        Args:
+            in_features (int): Input feature dimension.
+            hidden_features (int): Hidden feature dimension of each of the two gate branches.
+            out_features (int): Output feature dimension.
+            bias (bool): Add a learnable bias to both projections.
+        """
         super().__init__()
         self.w12 = nn.Linear(in_features, 2 * hidden_features, bias=bias)
         self.w3 = nn.Linear(hidden_features, out_features, bias=bias)
         self._reset_parameters()
 
     def _reset_parameters(self):
+        """Apply Xavier uniform initialization to both projections and zero their biases."""
         init.xavier_uniform_(self.w12.weight)
         init.constant_(self.w12.bias, 0)
         init.xavier_uniform_(self.w3.weight)
         init.constant_(self.w3.bias, 0)
 
     def forward(self, x):
+        """Apply the SwiGLU transform.
+
+        Args:
+            x (torch.Tensor): Input tensor with shape (..., in_features).
+
+        Returns:
+            (torch.Tensor): Output tensor with shape (..., out_features) and the input dtype.
+
+        Notes:
+            The projections run in float32 on CUDA and the result is cast back, keeping the gate product from
+            overflowing under autocast.
+        """
         with torch.autocast(device_type=x.device.type, dtype=torch.float32, enabled=x.is_cuda):
             x1, x2 = self.w12(x.float()).chunk(2, dim=-1)
             return self.w3(F.silu(x1) * x2).to(x.dtype)
@@ -323,6 +483,12 @@ class DeimGate(nn.Module):
     """DEIM gate with optional RMSNorm."""
 
     def __init__(self, d_model: int, use_rmsnorm: bool = False):
+        """Initialize the gate.
+
+        Args:
+            d_model (int): Feature dimension of each of the two gated inputs.
+            use_rmsnorm (bool): Normalize the gated sum with RMSNorm instead of LayerNorm.
+        """
         super().__init__()
         self.gate = nn.Linear(2 * d_model, 2 * d_model)
         bias = bias_init_with_prob(0.5)
@@ -331,6 +497,15 @@ class DeimGate(nn.Module):
         self.norm = DEIMRMSNorm(d_model) if use_rmsnorm else nn.LayerNorm(d_model)
 
     def forward(self, x1, x2):
+        """Blend two feature streams with learned per-channel gates and normalize the result.
+
+        Args:
+            x1 (torch.Tensor): First input with shape (B, N, d_model).
+            x2 (torch.Tensor): Second input with shape (B, N, d_model).
+
+        Returns:
+            (torch.Tensor): Normalized gated sum with shape (B, N, d_model).
+        """
         gate1, gate2 = torch.sigmoid(self.gate(torch.cat([x1, x2], dim=-1))).chunk(2, dim=-1)
         return self.norm(gate1 * x1 + gate2 * x2)
 
@@ -352,6 +527,21 @@ class DeimTransformerDecoderLayer(nn.Module):
         use_gateway: bool = False,
         use_rmsnorm: bool = True,
     ):
+        """Initialize the decoder layer.
+
+        Args:
+            d_model (int): Feature dimension of the queries.
+            n_heads (int): Number of attention heads.
+            d_ffn (int): Hidden width of the feed-forward network before the SwiGLU halving.
+            dropout (float): Dropout probability applied after each sublayer.
+            act (nn.Module): Accepted for signature compatibility and discarded; SwiGLU is always used.
+            n_levels (int): Number of feature levels sampled by the cross-attention.
+            n_points (int): Sampling points per head and level in the cross-attention.
+            cross_attn_method (str): Sampling mode of the cross-attention.
+            layer_scale (float, optional): Width multiplier applied to both d_model and d_ffn.
+            use_gateway (bool): Merge the cross-attention output with a learned gate instead of a residual add.
+            use_rmsnorm (bool): Use RMSNorm instead of LayerNorm.
+        """
         super().__init__()
         del act
         if layer_scale is not None:
@@ -377,9 +567,35 @@ class DeimTransformerDecoderLayer(nn.Module):
 
     @staticmethod
     def with_pos_embed(tensor, pos):
+        """Add a positional embedding to a tensor when one is supplied.
+
+        Args:
+            tensor (torch.Tensor): Input tensor with shape (B, N, C).
+            pos (torch.Tensor, optional): Positional embedding with shape (B, N, C).
+
+        Returns:
+            (torch.Tensor): Input with the positional embedding added, or the input unchanged when pos is None.
+        """
         return tensor if pos is None else tensor + pos
 
     def forward(self, target, reference_points, value, spatial_shapes, attn_mask=None, query_pos_embed=None):
+        """Apply self-attention, deformable cross-attention, and the SwiGLU feed-forward network.
+
+        Args:
+            target (torch.Tensor): Decoder queries with shape (B, N, d_model).
+            reference_points (torch.Tensor): Reference boxes with shape (B, N, 1, 4).
+            value (torch.Tensor): Encoder memory with shape (B, L, d_model).
+            spatial_shapes (list[list[int]]): Height and width of each feature level.
+            attn_mask (torch.Tensor, optional): Self-attention mask isolating the denoising groups.
+            query_pos_embed (torch.Tensor, optional): Query position embedding with shape (B, N, d_model).
+
+        Returns:
+            (torch.Tensor): Updated queries with shape (B, N, d_model).
+
+        Notes:
+            Self-attention runs in float32 on CUDA and the residual sum is clamped to the fp16 range before the
+            final norm, which keeps the layer finite under autocast.
+        """
         q = k = self.with_pos_embed(target, query_pos_embed)
         with torch.autocast(device_type=target.device.type, dtype=torch.float32, enabled=target.is_cuda):
             target2, _ = self.self_attn(q, k, value=target, attn_mask=attn_mask)
@@ -400,5 +616,11 @@ class DeimTransformerDecoder(DFineTransformerDecoder):
     """DEIMv2 decoder wrapper using DFine forward path with fixed query-position embeddings."""
 
     def __init__(self, *args, **kwargs):
+        """Initialize the decoder.
+
+        Args:
+            *args (Any): Positional arguments forwarded to DFineTransformerDecoder.
+            **kwargs (Any): Keyword arguments forwarded to DFineTransformerDecoder.
+        """
         super().__init__(*args, **kwargs)
         self.fixed_query_pos = True

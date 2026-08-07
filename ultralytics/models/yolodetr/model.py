@@ -35,13 +35,37 @@ class YOLODETR(Model):
         super().__init__(model=model, task="detect")
 
     def predict(self, source=None, stream: bool = False, predictor=None, **kwargs):
-        """Default conf to 0.5 when unset, matching DETR visualization defaults, since the decoder applies no NMS."""
+        """Run prediction, defaulting conf to 0.5 when unset since the decoder applies no NMS.
+
+        Args:
+            source (str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor, optional): Source of the
+                images or videos to predict on.
+            stream (bool): Treat the source as a continuous stream.
+            predictor (BasePredictor, optional): Predictor instance overriding the default one.
+            **kwargs (Any): Prediction arguments forwarded to the predictor.
+
+        Returns:
+            (list[Results]): Prediction results, one entry per image.
+
+        Notes:
+            The 0.5 default matches DETR visualization defaults. An explicitly passed conf always wins, including
+            conf=0.0, because the check is against None rather than falsiness.
+        """
         if kwargs.get("conf") is None:  # unset, or None from default.yaml; an explicit value always wins
             kwargs["conf"] = 0.5
         return super().predict(source, stream, predictor, **kwargs)
 
     def train(self, trainer=None, **kwargs):
-        """Forward DEIM-specific kwargs through self.overrides so they survive get_cfg's alignment check."""
+        """Train the model, routing DEIM-specific kwargs so they survive get_cfg's alignment check.
+
+        Args:
+            trainer (BaseTrainer, optional): Trainer instance overriding the default one.
+            **kwargs (Any): Training arguments; DEIM-specific keys are moved into self.overrides first because get_cfg
+                rejects any key that default.yaml does not define.
+
+        Returns:
+            (dict): Training metrics.
+        """
         deim = {k: kwargs.pop(k) for k in list(kwargs) if k in self._DEIM_KWARGS}
         if deim:
             self.overrides = {**self.overrides, **deim}
@@ -49,7 +73,11 @@ class YOLODETR(Model):
 
     @property
     def task_map(self) -> dict:
-        """Map the detect task to YOLODETRTrainer + YOLODETRDetectionModel + RT-DETR predict/val."""
+        """Map the detect task to YOLODETRTrainer + YOLODETRDetectionModel + RT-DETR predict/val.
+
+        Returns:
+            (dict): Mapping of the detect task to its predictor, validator, trainer, and model classes.
+        """
         return {
             "detect": {
                 "predictor": RTDETRPredictor,

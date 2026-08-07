@@ -31,7 +31,16 @@ _YOLODETR_DEFAULTS = {
 
 
 def compute_deim_scheduled_prob(base_prob: float, epoch: int, stop_epoch: int) -> float:
-    """Linearly decay an augmentation probability to 0 by the no-aug stage boundary."""
+    """Linearly decay an augmentation probability to 0 by the no-aug stage boundary.
+
+    Args:
+        base_prob (float): Probability configured in the hyperparameters.
+        epoch (int): Current epoch.
+        stop_epoch (int): Epoch at which the probability reaches 0.
+
+    Returns:
+        (float): Decayed probability for this epoch.
+    """
     base_prob = float(base_prob)
     if base_prob <= 0.0 or stop_epoch <= 0 or epoch >= stop_epoch:
         return 0.0
@@ -41,8 +50,13 @@ def compute_deim_scheduled_prob(base_prob: float, epoch: int, stop_epoch: int) -
 def compute_policy_epochs(hyp) -> tuple[int, int, int]:
     """Compute DEIM stage boundaries from ``epochs`` and the fixed four-epoch no-augmentation tail.
 
+    Args:
+        hyp (SimpleNamespace | IterableSimpleNamespace): Hyperparameters carrying the total epoch count.
+
     Returns:
-        (tuple[int, int, int]): (stage1_end, stage2_end / stage3_start, stage3_end / stage4_start).
+        start (int): End of stage 1, where the flat learning rate begins.
+        mid (int): End of stage 2 and start of stage 3, where the cosine decay begins.
+        stop (int): End of stage 3 and start of the no-augmentation tail.
     """
     epochs = max(1, int(hyp.epochs))
     stop = epochs - min(_NO_AUG_EPOCH, epochs)
@@ -65,7 +79,13 @@ class YOLODETRDataset(RTDETRDataset):
     """
 
     def __init__(self, *args, data=None, **kwargs):
-        """Stash base hyp values then defer to the parent for normal dataset construction."""
+        """Stash base hyp values then defer to the parent for normal dataset construction.
+
+        Args:
+            *args (Any): Positional arguments forwarded to RTDETRDataset.
+            data (dict, optional): Dataset dictionary.
+            **kwargs (Any): Keyword arguments forwarded to RTDETRDataset; hyp is required.
+        """
         hyp = kwargs["hyp"]
         self.base_hyp = copy(hyp)
         self.policy_epochs = compute_policy_epochs(hyp)
@@ -74,7 +94,15 @@ class YOLODETRDataset(RTDETRDataset):
             self.set_epoch(0)
 
     def _build_v8_epoch_hyp(self, epoch: int):
-        """Clone the base hyp and apply linear decay; zero everything past the no-aug boundary."""
+        """Clone the base hyp and apply linear decay; zero everything past the no-aug boundary.
+
+        Args:
+            epoch (int): Current epoch.
+
+        Returns:
+            (SimpleNamespace | IterableSimpleNamespace): Copy of the base hyperparameters with the augmentation
+                probabilities decayed for this epoch.
+        """
         hyp = copy(self.base_hyp)
         _, _, stop = self.policy_epochs
         if epoch >= stop:
@@ -101,7 +129,14 @@ class YOLODETRDataset(RTDETRDataset):
         return hyp
 
     def build_transforms(self, hyp=None):
-        """Build v8 transforms with current (possibly decayed) hyp values."""
+        """Build v8 transforms with current (possibly decayed) hyp values.
+
+        Args:
+            hyp (SimpleNamespace | IterableSimpleNamespace, optional): Hyperparameters for this epoch.
+
+        Returns:
+            (Compose): Transform pipeline ending in the Format transform.
+        """
         if self.augment:
             hyp.mosaic = hyp.mosaic if not self.rect else 0.0
             hyp.mixup = hyp.mixup if not self.rect else 0.0
@@ -124,7 +159,11 @@ class YOLODETRDataset(RTDETRDataset):
         return transforms
 
     def set_epoch(self, epoch: int) -> None:
-        """Rebuild transforms with decayed hyp probabilities for the current epoch."""
+        """Rebuild transforms with decayed hyp probabilities for the current epoch.
+
+        Args:
+            epoch (int): Current epoch.
+        """
         self.epoch = epoch
         if self.augment:
             self.transforms = self.build_transforms(hyp=self._build_v8_epoch_hyp(epoch))
@@ -136,12 +175,26 @@ class YOLODETRValidator(RTDETRValidator):
     _YOLODETR_ARGS = tuple(_YOLODETR_DEFAULTS)
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
-        """Initialize validator after removing YOLODETR-only args from the standard CFG namespace."""
+        """Initialize validator after removing YOLODETR-only args from the standard CFG namespace.
+
+        Args:
+            dataloader (torch.utils.data.DataLoader, optional): Dataloader for validation.
+            save_dir (Path, optional): Directory for saving results.
+            args (SimpleNamespace, optional): Validator arguments.
+            _callbacks (list, optional): Callbacks registered on the validator.
+        """
         super().__init__(dataloader, save_dir=save_dir, args=self._sanitize_args(args), _callbacks=_callbacks)
 
     @classmethod
     def _sanitize_args(cls, args):
-        """Return a copy of args without YOLODETR-only trainer knobs."""
+        """Return a copy of args without YOLODETR-only trainer knobs.
+
+        Args:
+            args (SimpleNamespace, optional): Validator arguments.
+
+        Returns:
+            (SimpleNamespace | None): Copy without the trainer-only keys, or None when args is None.
+        """
         if args is None:
             return None
         args = copy(args)
@@ -165,7 +218,13 @@ class YOLODETRTrainer(RTDETRTrainer):
     _epoch_callback_registered = False
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Pop DEIM kwargs from overrides before get_cfg, then write them onto self.args."""
+        """Pop DEIM kwargs from overrides before get_cfg, then write them onto self.args.
+
+        Args:
+            cfg (str | dict, optional): Base configuration.
+            overrides (dict, optional): Configuration overrides, which may carry DEIM-specific keys.
+            _callbacks (list, optional): Callbacks registered on the trainer.
+        """
         overrides = dict(overrides or {})
         deim_overrides = {k: overrides.pop(k) for k in list(overrides) if k in self._DEIM_DEFAULTS}
         super().__init__(cfg=cfg, overrides=overrides, _callbacks=_callbacks)
@@ -174,7 +233,16 @@ class YOLODETRTrainer(RTDETRTrainer):
             setattr(self.args, k, deim_overrides.get(k, getattr(self.args, k, default)))
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        """Build YOLODETRDetectionModel and load weights; cls-head rows remap by class name inside model.load()."""
+        """Build YOLODETRDetectionModel and load weights; cls-head rows remap by class name inside model.load().
+
+        Args:
+            cfg (str | dict, optional): Model configuration.
+            weights (str | Path, optional): Pretrained weights to load.
+            verbose (bool): Log the model summary.
+
+        Returns:
+            (YOLODETRDetectionModel): Model ready for training.
+        """
         model = self.set_model_names_for_load(
             YOLODETRDetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         )
@@ -183,7 +251,16 @@ class YOLODETRTrainer(RTDETRTrainer):
         return model
 
     def build_dataset(self, img_path, mode="val", batch=None):
-        """Build YOLODETRDataset for train (with decay schedule); use RT-DETR's dataset for val."""
+        """Build YOLODETRDataset for train (with decay schedule); use RT-DETR's dataset for val.
+
+        Args:
+            img_path (str): Path to the image directory.
+            mode (str): Dataset mode, either train or val; only train applies the augmentation decay schedule.
+            batch (int, optional): Batch size, used for rect mode.
+
+        Returns:
+            (YOLODETRDataset): Dataset for the requested mode.
+        """
         return YOLODETRDataset(
             img_path=img_path,
             imgsz=self.args.imgsz,
@@ -209,6 +286,7 @@ class YOLODETRTrainer(RTDETRTrainer):
         decay_epochs = max(self.epochs - flat_epoch, 1)
 
         def _flat_cosine(epoch: int) -> float:
+            """Hold the learning rate flat until flat_epoch, then decay it to lrf on a cosine curve."""
             if epoch < flat_epoch:
                 return 1.0
             progress = min(max((epoch - flat_epoch) / decay_epochs, 0.0), 1.0)
@@ -218,7 +296,11 @@ class YOLODETRTrainer(RTDETRTrainer):
         self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
 
     def _on_train_epoch_start(self, trainer=None):
-        """Propagate epoch to dataset transforms and stop multi-scale at the no-aug boundary."""
+        """Propagate epoch to dataset transforms and stop multi-scale at the no-aug boundary.
+
+        Args:
+            trainer (YOLODETRTrainer, optional): Trainer passed by the callback, defaulting to self.
+        """
         trainer = trainer or self
         epoch = int(trainer.epoch)
         dataset = trainer.train_loader.dataset
@@ -230,7 +312,15 @@ class YOLODETRTrainer(RTDETRTrainer):
             LOGGER.info(f"YOLODETR no-aug stage at epoch {epoch}: disabling multi-scale")
 
     def train(self, *args, **kwargs):
-        """Disable close_mosaic (decay schedule replaces it) and register the epoch callback."""
+        """Disable close_mosaic (decay schedule replaces it) and register the epoch callback.
+
+        Args:
+            *args (Any): Positional arguments forwarded to RTDETRTrainer.train.
+            **kwargs (Any): Keyword arguments forwarded to RTDETRTrainer.train.
+
+        Returns:
+            (Any): Result of the parent train call.
+        """
         if self.args.close_mosaic:
             self.args.close_mosaic = 0
         if not self._epoch_callback_registered:
@@ -239,7 +329,11 @@ class YOLODETRTrainer(RTDETRTrainer):
         return super().train(*args, **kwargs)
 
     def get_validator(self):
-        """Return an RTDETRValidator with loss_names extended for the DEIM head."""
+        """Return an RTDETRValidator with loss_names extended for the DEIM head.
+
+        Returns:
+            (YOLODETRValidator): Validator whose loss names match the head in use.
+        """
         loss_names = ["giou_loss", "cls_loss", "l1_loss"]
         head_name = type(unwrap_model(self.model).model[-1]).__name__
         if head_name == "DeimDecoder":
@@ -248,7 +342,23 @@ class YOLODETRTrainer(RTDETRTrainer):
         return YOLODETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
-        """Build optimizer with 6 param groups split head/backbone; 'auto' resolves to AdamW with DEIM LR defaults."""
+        """Build optimizer with 6 param groups split head/backbone; 'auto' resolves to AdamW with DEIM LR defaults.
+
+        Args:
+            model (nn.Module): Model whose parameters are grouped.
+            name (str): Optimizer name; auto resolves to AdamW with the DEIM learning rate defaults.
+            lr (float): Learning rate for the head groups; the backbone groups scale it by backbone_lr_ratio.
+            momentum (float): Momentum or beta1, depending on the optimizer.
+            decay (float): Weight decay applied to the weight groups only.
+            iterations (float): Total training iterations, used by the auto resolver.
+
+        Returns:
+            (torch.optim.Optimizer): Optimizer with six parameter groups.
+
+        Notes:
+            Groups 0-2 hold the head weights, norms, and biases; groups 3-5 hold the backbone equivalents. Norm
+            and bias groups get no weight decay.
+        """
         backbone_lr_ratio = float(self.args.backbone_lr_ratio)
         if backbone_lr_ratio <= 0:
             raise ValueError(f"Invalid backbone_lr_ratio={backbone_lr_ratio}. Expected > 0.")

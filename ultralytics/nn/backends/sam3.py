@@ -69,6 +69,7 @@ class SAM3Backend:
 
         self._format = self._detect_format()
         self.has_point_modules = self._present(self._POINT_STEMS)
+        self._has_text_decoder = self._present([self._TEXT_DECODER])
         # An ONNX session binds to an execution provider when it is created, and the caller usually
         # picks a device after construction, so defer loading and read the traced size from the file.
         # TensorRT is CUDA only, so there is nothing to wait for and the engine can report its shape.
@@ -140,7 +141,7 @@ class SAM3Backend:
     def _stems_to_load(self) -> list[str]:
         """Return every module stem present on disk."""
         stems = list(self._FILE_STEMS)
-        if self._present([self._TEXT_DECODER]):
+        if self._has_text_decoder:
             stems.append(self._TEXT_DECODER)
         if self.has_point_modules:
             stems.extend(self._POINT_STEMS)
@@ -152,13 +153,6 @@ class SAM3Backend:
         if self._has_text_decoder:
             desc += ", text decoder"
         return desc + (", prompt encoder, mask decoder" if self.has_point_modules else "")
-
-    @property
-    def _has_text_decoder(self) -> bool:
-        """Whether the geometry free decoder used for text only prompts was exported."""
-        return self._TEXT_DECODER in getattr(self, "_onnx_paths", {}) or self._TEXT_DECODER in getattr(
-            self, "_trt_contexts", {}
-        )
 
     def _load_models(self) -> None:
         """Load every module once, on first use, for whichever device is current by then."""
@@ -583,12 +577,16 @@ class SAM3Backend:
 
         ONNX Runtime picks its execution provider when a session is created, so moving between CPU
         and CUDA has to rebuild the sessions. Without that a caller asking for CUDA keeps running the
-        graphs on CPU. TensorRT engines are always CUDA, so they only record the new device.
+        graphs on CPU. TensorRT engines and their CUDA stream are bound to the device they were
+        deserialized on, so a device change is ignored for them.
 
         Args:
             device (torch.device | str): Device to run on and place outputs on.
         """
         device = torch.device(device) if isinstance(device, str) else device
+        if self._format == "engine" and device != self.device:
+            LOGGER.warning(f"SAM3Backend: TensorRT engines stay on {self.device}, ignoring .to({device})")
+            return self
         if self._loaded and self._format == "onnx" and device.type != self.device.type:
             self._loaded = False  # sessions are bound to a provider, so reload for the new one
         self.device = device

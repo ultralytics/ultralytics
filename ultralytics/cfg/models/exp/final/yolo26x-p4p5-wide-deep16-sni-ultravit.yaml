@@ -1,0 +1,49 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Ultralytics YOLO26 object detection model with P4/16 - P5/32 outputs
+# P3 detection head is removed; p4p5-wide-deep16-sni neck/head (SNI Scale(0.5) damping after each
+# upsample, widened 768/384 channels, 3-repeat P3 context intermediate) on the ultravit encoder
+# backbone (RepUltraViTBlock stages + MHSABlock at P5, FastViT-family reparam mixer + ConvFFN).
+# Backbone identical to yolo26-p4p5-ultravit.yaml — the same ultravit_s.pt weights transfer 1:1.
+# Model docs: https://docs.ultralytics.com/models/yolo26
+# Task docs: https://docs.ultralytics.com/tasks/detect
+
+# Parameters
+nc: 80 # number of classes
+end2end: True # whether to use end-to-end mode
+reg_max: 1 # DFL bins
+scales:
+  x: [0.35, 1.50, 512]
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [96, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [3, True, 0.00001, True]]
+  - [-1, 1, Conv, [192, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [3, True, 0.00001, True]]
+  - [-1, 1, Conv, [384, 3, 2]]
+  - [-1, 20, RepUltraViTBlock, [3, True, 0.00001, True]]
+  - [-1, 1, Conv, [1152, 3, 2]]
+  - [-1, 8, MHSABlock, [0, 4, True, 0.00001, True, 32]]
+
+# p4p5-wide-deep16-sni neck/head: P3 head removed, P3 as context-only path, Detect(P4, P5)
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 9
+  - [-1, 1, Scale, [0.5]] # 10 SNI
+  - [[-1, 6], 1, Concat, [1]] # 11 cat backbone P4
+  - [-1, 2, C3k2, [768, True]] # 12 widened
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 13
+  - [-1, 1, Scale, [0.5]] # 14 SNI
+  - [[-1, 4], 1, Concat, [1]] # 15 cat backbone P3
+  - [-1, 3, C3k2, [384, True]] # 16 widened+deep P3 intermediate (context only, no head)
+
+  - [-1, 1, Conv, [384, 3, 2]] # 17
+  - [[-1, 12], 1, Concat, [1]] # 18 cat head P4
+  - [-1, 2, C3k2, [768, True]] # 19 widened (P4/16)
+
+  - [-1, 1, Conv, [768, 3, 2]] # 20
+  - [[-1, 8], 1, Concat, [1]] # 21 cat backbone P5
+  - [-1, 1, C3k2, [1024, True, 0.5, True]] # 22 (P5/32-large)
+
+  - [[19, 22], 1, Detect, [nc]] # 23 Detect(P4, P5)

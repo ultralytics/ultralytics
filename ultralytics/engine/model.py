@@ -309,6 +309,7 @@ class Model(torch.nn.Module):
                 m.reset_parameters()
         for p in self.model.parameters():
             p.requires_grad = True
+        self.predictor = None  # the cached predictor wraps a copy of the module just changed
         return self
 
     def load(self, weights: str | Path = "yolo26n.pt") -> Model:
@@ -336,6 +337,7 @@ class Model(torch.nn.Module):
             self.overrides["pretrained"] = weights  # remember the weights for DDP training
             weights, self.ckpt = load_checkpoint(weights)
         self.model.load(weights)
+        self.predictor = None  # the cached predictor wraps a copy of the module just changed
         return self
 
     def save(self, filename: str | Path = "saved_model.pt") -> None:
@@ -636,6 +638,7 @@ class Model(torch.nn.Module):
         res = fit_calibration_selective(
             self.model, validator.dataloader, validator.device, max_depth=validator.data.get("max_depth") or 100.0
         )
+        self.predictor = None  # the cached predictor wraps a copy of the module the fit just rewrote
         if res is None:
             return None
         LOGGER.info("Call model.save(...) to persist the calibration.")

@@ -200,10 +200,7 @@ class YOLOWorld(Model):
         if background in classes:
             classes.remove(background)
         self.model.names = classes
-
-        # Reset method class names
-        if self.predictor:
-            self.predictor.model.names = classes
+        self.predictor = None  # the delegate rewrote the head unconditionally; the cached copy is stale
 
 
 class YOLOE(Model):
@@ -337,10 +334,7 @@ class YOLOE(Model):
             if embeddings is None:
                 embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
             self.model.set_classes(classes, embeddings)
-
-        # Reset method class names
-        if self.predictor:
-            self.predictor.model.names = self.model.names
+            self.predictor = None  # the cached predictor wraps a copy of the module just changed
 
     def _prompt_embedding_model(self) -> str:
         """Return the checkpoint identifier used to bind prompt embeddings to this model."""

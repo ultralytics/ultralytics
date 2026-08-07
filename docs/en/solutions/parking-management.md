@@ -69,7 +69,7 @@ A parking management system built with [Ultralytics YOLO26](https://github.com/u
 
 ![Ultralytics YOLO26 Points Selection Demo](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-points-selection-demo.avif)
 
-**Step-4:** You can now run the parking management [solution](../solutions/index.md) with the code below.
+**Step-4:** You can now run the parking management [solution](index.md) with the code below.
 
 !!! example "Parking Management using Ultralytics YOLO"
 

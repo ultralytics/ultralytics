@@ -26,23 +26,23 @@ Ultralytics Solutions provide cutting-edge applications of YOLO models, offering
 
 Here's our curated list of Ultralytics solutions that can be used to create awesome [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects.
 
-- [Analytics](../guides/analytics.md): Conduct comprehensive data analysis to discover patterns and make informed decisions, leveraging YOLO26 for descriptive, predictive, and prescriptive analytics.
-- [Distance Calculation](../guides/distance-calculation.md): Calculate distances between objects using [bounding box](https://www.ultralytics.com/glossary/bounding-box) centroids in YOLO26, essential for spatial analysis.
-- [Heatmaps](../guides/heatmaps.md): Utilize detection heatmaps to visualize data intensity across a matrix, providing clear insights in computer vision tasks.
-- [Instance Segmentation with Object Tracking](../guides/instance-segmentation-and-tracking.md): Implement [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) and object tracking with YOLO26 to achieve precise object boundaries and continuous monitoring.
-- [Live Inference with Streamlit](../guides/streamlit-live-inference.md): Leverage the power of YOLO26 for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) directly through your web browser with a user-friendly Streamlit interface.
-- [Object Blurring](../guides/object-blurring.md): Apply object blurring using YOLO26 to protect privacy in image and video processing.
-- [Object Counting](../guides/object-counting.md): Learn to perform real-time object counting with YOLO26. Gain the expertise to accurately count objects in live video streams.
-- [Object Counting in Regions](../guides/region-counting.md): Count objects in specific regions using YOLO26 for accurate detection in varied areas.
-- [Object Cropping](../guides/object-cropping.md): Master object cropping with YOLO26 for precise extraction of objects from images and videos.
-- [Parking Management](../guides/parking-management.md): Organize and direct vehicle flow in parking areas with YOLO26, optimizing space utilization and user experience.
-- [Queue Management](../guides/queue-management.md): Implement efficient queue management systems to minimize wait times and improve productivity using YOLO26.
-- [Security Alarm System](../guides/security-alarm-system.md): Create a security alarm system with YOLO26 that triggers alerts upon detecting new objects. Customize the system to fit your specific needs.
-- [Similarity Search](../guides/similarity-search.md): Enable intelligent image retrieval by combining [OpenAI CLIP](https://cookbook.openai.com/examples/custom_image_embedding_search) embeddings with cosine-similarity search, allowing natural language queries like "person holding a bag" or "vehicles in motion."
-- [Speed Estimation](../guides/speed-estimation.md): Estimate object speed using YOLO26 and object tracking techniques, crucial for applications like autonomous vehicles and traffic monitoring.
-- [Track Objects in Zone](../guides/trackzone.md): Learn how to track objects within specific zones of video frames using YOLO26 for precise and efficient monitoring.
-- [VisionEye View Objects Mapping](../guides/vision-eye.md): Develop systems that mimic human eye focus on specific objects, enhancing the computer's ability to discern and prioritize details.
-- [Workouts Monitoring](../guides/workouts-monitoring.md): Discover how to monitor workouts using YOLO26. Learn to track and analyze various fitness routines in real time.
+- [Analytics](analytics.md): Conduct comprehensive data analysis to discover patterns and make informed decisions, leveraging YOLO26 for descriptive, predictive, and prescriptive analytics.
+- [Distance Calculation](distance-calculation.md): Calculate distances between objects using [bounding box](https://www.ultralytics.com/glossary/bounding-box) centroids in YOLO26, essential for spatial analysis.
+- [Heatmaps](heatmaps.md): Utilize detection heatmaps to visualize data intensity across a matrix, providing clear insights in computer vision tasks.
+- [Instance Segmentation with Object Tracking](instance-segmentation-and-tracking.md): Implement [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) and object tracking with YOLO26 to achieve precise object boundaries and continuous monitoring.
+- [Live Inference with Streamlit](streamlit-live-inference.md): Leverage the power of YOLO26 for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) directly through your web browser with a user-friendly Streamlit interface.
+- [Object Blurring](object-blurring.md): Apply object blurring using YOLO26 to protect privacy in image and video processing.
+- [Object Counting](object-counting.md): Learn to perform real-time object counting with YOLO26. Gain the expertise to accurately count objects in live video streams.
+- [Object Counting in Regions](region-counting.md): Count objects in specific regions using YOLO26 for accurate detection in varied areas.
+- [Object Cropping](object-cropping.md): Master object cropping with YOLO26 for precise extraction of objects from images and videos.
+- [Parking Management](parking-management.md): Organize and direct vehicle flow in parking areas with YOLO26, optimizing space utilization and user experience.
+- [Queue Management](queue-management.md): Implement efficient queue management systems to minimize wait times and improve productivity using YOLO26.
+- [Security Alarm System](security-alarm-system.md): Create a security alarm system with YOLO26 that triggers alerts upon detecting new objects. Customize the system to fit your specific needs.
+- [Similarity Search](similarity-search.md): Enable intelligent image retrieval by combining [OpenAI CLIP](https://cookbook.openai.com/examples/custom_image_embedding_search) embeddings with cosine-similarity search, allowing natural language queries like "person holding a bag" or "vehicles in motion."
+- [Speed Estimation](speed-estimation.md): Estimate object speed using YOLO26 and object tracking techniques, crucial for applications like autonomous vehicles and traffic monitoring.
+- [Track Objects in Zone](trackzone.md): Learn how to track objects within specific zones of video frames using YOLO26 for precise and efficient monitoring.
+- [VisionEye View Objects Mapping](vision-eye.md): Develop systems that mimic human eye focus on specific objects, enhancing the computer's ability to discern and prioritize details.
+- [Workouts Monitoring](workouts-monitoring.md): Discover how to monitor workouts using YOLO26. Learn to track and analyze various fitness routines in real time.
 
 ### Solutions Arguments
 
@@ -84,7 +84,7 @@ All Ultralytics Solutions use the separate class [`SolutionAnnotator`](../refere
 
 ### Working with SolutionResults
 
-Except [`Similarity Search`](../guides/similarity-search.md), each Solution call returns a `SolutionResults` object.
+Except [`Similarity Search`](similarity-search.md), each Solution call returns a `SolutionResults` object.
 
 - For object counting, the results include `in_count`, `out_count`, and `classwise_count`.
 
@@ -170,20 +170,20 @@ Let's work together to make the Ultralytics YOLO ecosystem more robust and versa
 
 ### How can I use Ultralytics YOLO for real-time object counting?
 
-Ultralytics YOLO26 can be used for real-time object counting by leveraging its advanced object detection capabilities. You can follow our detailed guide on [Object Counting](../guides/object-counting.md) to set up YOLO26 for live video stream analysis. Simply install YOLO26, load your model, and process video frames to count objects dynamically.
+Ultralytics YOLO26 can be used for real-time object counting by leveraging its advanced object detection capabilities. You can follow our detailed guide on [Object Counting](object-counting.md) to set up YOLO26 for live video stream analysis. Simply install YOLO26, load your model, and process video frames to count objects dynamically.
 
 ### What are the benefits of using Ultralytics YOLO for security systems?
 
-Ultralytics YOLO26 enhances security systems by offering real-time object detection and alert mechanisms. By employing YOLO26, you can create a security alarm system that triggers alerts when new objects are detected in the surveillance area. Learn how to set up a [Security Alarm System](../guides/security-alarm-system.md) with YOLO26 for robust security monitoring.
+Ultralytics YOLO26 enhances security systems by offering real-time object detection and alert mechanisms. By employing YOLO26, you can create a security alarm system that triggers alerts when new objects are detected in the surveillance area. Learn how to set up a [Security Alarm System](security-alarm-system.md) with YOLO26 for robust security monitoring.
 
 ### How can Ultralytics YOLO improve queue management systems?
 
-Ultralytics YOLO26 can significantly improve queue management systems by accurately counting and tracking people in queues, thus helping to reduce wait times and optimize service efficiency. Follow our detailed guide on [Queue Management](../guides/queue-management.md) to learn how to implement YOLO26 for effective queue monitoring and analysis.
+Ultralytics YOLO26 can significantly improve queue management systems by accurately counting and tracking people in queues, thus helping to reduce wait times and optimize service efficiency. Follow our detailed guide on [Queue Management](queue-management.md) to learn how to implement YOLO26 for effective queue monitoring and analysis.
 
 ### Can Ultralytics YOLO be used for workout monitoring?
 
-Yes, Ultralytics YOLO26 can be effectively used for monitoring workouts by tracking and analyzing fitness routines in real-time. This allows for precise evaluation of exercise form and performance. Explore our guide on [Workouts Monitoring](../guides/workouts-monitoring.md) to learn how to set up an AI-powered workout monitoring system using YOLO26.
+Yes, Ultralytics YOLO26 can be effectively used for monitoring workouts by tracking and analyzing fitness routines in real-time. This allows for precise evaluation of exercise form and performance. Explore our guide on [Workouts Monitoring](workouts-monitoring.md) to learn how to set up an AI-powered workout monitoring system using YOLO26.
 
 ### How does Ultralytics YOLO help in creating heatmaps for [data visualization](https://www.ultralytics.com/glossary/data-visualization)?
 
-Ultralytics YOLO26 can generate heatmaps to visualize data intensity across a given area, highlighting regions of high activity or interest. This feature is particularly useful in understanding patterns and trends in various computer vision tasks. Learn more about creating and using [Heatmaps](../guides/heatmaps.md) with YOLO26 for comprehensive data analysis and visualization.
+Ultralytics YOLO26 can generate heatmaps to visualize data intensity across a given area, highlighting regions of high activity or interest. This feature is particularly useful in understanding patterns and trends in various computer vision tasks. Learn more about creating and using [Heatmaps](heatmaps.md) with YOLO26 for comprehensive data analysis and visualization.

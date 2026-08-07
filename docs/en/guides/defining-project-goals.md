@@ -33,7 +33,7 @@ A clear problem statement is the first big step toward finding the most effectiv
 
 ### Example of a Business Problem Statement
 
-Consider a computer vision project where you want to [estimate the speed of vehicles](./speed-estimation.md) on a highway. The core issue is that current speed monitoring methods are inefficient and error-prone due to outdated radar systems and manual processes. The project aims to develop a real-time computer vision system that can replace legacy [speed estimation](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects) systems.
+Consider a computer vision project where you want to [estimate the speed of vehicles](../solutions/speed-estimation.md) on a highway. The core issue is that current speed monitoring methods are inefficient and error-prone due to outdated radar systems and manual processes. The project aims to develop a real-time computer vision system that can replace legacy [speed estimation](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects) systems.
 
 <p align="center">
   <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/speed-estimation-using-yolov8.avif" alt="Vehicle speed estimation on a highway using Ultralytics YOLO">

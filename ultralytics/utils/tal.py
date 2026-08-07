@@ -94,6 +94,11 @@ class TaskAlignedAssigner(nn.Module):
                 torch.zeros_like(pd_scores[..., 0]),
             )
 
+        if device.type == "mps":  # MPS: variable-shape ops in get_box_metrics pollute the graph cache
+            result = self._forward(
+                *(t.cpu() for t in (pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt))
+            )
+            return tuple(t.to(device) for t in result)
         try:
             return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
         except RuntimeError as e:

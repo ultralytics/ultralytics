@@ -178,7 +178,7 @@ def export_formats():
             ".engine",
             False,
             True,
-            ["batch", "data", "dynamic", "quantize", "opset", "simplify", "workspace", "nms", "fraction"],
+            ["batch", "data", "dynamic", "quantize", "opset", "simplify", "workspace", "nms", "fraction", "hw_compat"],
             "base",
         ],
         ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "quantize", "nms"], "coreml"],
@@ -1374,6 +1374,7 @@ class Exporter:
             metadata=self.metadata,
             verbose=self.args.verbose,
             prefix=prefix,
+            hw_compat=self.args.hw_compat,
         )
 
         return f

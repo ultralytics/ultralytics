@@ -1,0 +1,455 @@
+{
+ "coco": {
+  "basketball-hoop-detection": {
+   "basketball": "sports ball"
+  },
+  "ena24": {
+   "bird": "bird",
+   "horse": "horse",
+   "dog": "dog",
+   "domestic cat": "cat",
+   "american black bear": "bear"
+  },
+  "fisheye8k-traffic": {
+   "bus": "bus",
+   "bike": "bicycle",
+   "car": "car",
+   "pedestrian": "person",
+   "truck": "truck"
+  },
+  "floorplancad-2": {
+   "sofa": "couch",
+   "bed": "bed",
+   "chair": "chair",
+   "table": "dining table",
+   "sink": "sink",
+   "refrigerator": "refrigerator",
+   "toilet": "toilet"
+  },
+  "hit-uav": {
+   "person": "person",
+   "car": "car",
+   "bicycle": "bicycle",
+   "othervehicle": "truck"
+  },
+  "iedxray": {
+   "modified laptop": "laptop",
+   "modified mobile phone": "cell phone",
+   "laptop": "laptop",
+   "mobile phone": "cell phone"
+  },
+  "llvip": {
+   "person": "person"
+  },
+  "seadronessee-2": {
+   "swimmer": "person",
+   "boat": "boat"
+  },
+  "ssdd-sar-ship": {
+   "ship": "boat"
+  },
+  "taco-litter": {
+   "bottle": "bottle",
+   "cup": "cup"
+  },
+  "uec-school-lunch-food-2": {
+   "apple": "apple"
+  },
+  "visdrone": {
+   "pedestrian": "person",
+   "people": "person",
+   "bicycle": "bicycle",
+   "car": "car",
+   "truck": "truck",
+   "bus": "bus",
+   "motor": "motorcycle"
+  }
+ },
+ "obj365": {
+  "basketball-hoop-detection": {
+   "basketball": "basketball"
+  },
+  "ena24": {
+   "bird": "wild bird",
+   "vehicle": "machinery vehicle",
+   "horse": "horse",
+   "dog": "dog",
+   "chicken": "chicken",
+   "domestic cat": "cat",
+   "american black bear": "bear"
+  },
+  "fisheye8k-traffic": {
+   "bus": "bus",
+   "bike": "bicycle",
+   "car": "car",
+   "pedestrian": "person",
+   "truck": "truck"
+  },
+  "floorplancad-2": {
+   "sofa": "couch",
+   "bed": "bed",
+   "chair": "chair",
+   "table": "dining table",
+   "tv cabinet": "cabinet/shelf",
+   "cabinet": "cabinet/shelf",
+   "gas stove": "gas stove",
+   "sink": "sink",
+   "refrigerator": "refrigerator",
+   "airconditioner": "air conditioner",
+   "bath": "bathtub",
+   "bath tub": "bathtub",
+   "washing machine": "washing machine/drying machine",
+   "squat toilet": "toilet",
+   "urinal": "urinal",
+   "toilet": "toilet"
+  },
+  "hit-uav": {
+   "person": "person",
+   "car": "car",
+   "bicycle": "bicycle",
+   "othervehicle": "truck"
+  },
+  "iedxray": {
+   "modified laptop": "laptop",
+   "modified mobile phone": "cell phone",
+   "laptop": "laptop",
+   "mobile phone": "cell phone"
+  },
+  "llvip": {
+   "person": "person"
+  },
+  "ruod-underwater": {
+   "scallop": "scallop",
+   "fish": "other fish",
+   "cuttlefish": "other fish",
+   "turtle": "other fish",
+   "jellyfish": "jellyfish"
+  },
+  "seadronessee-2": {
+   "swimmer": "person",
+   "boat": "boat",
+   "jetski": "motorcycle"
+  },
+  "ssdd-sar-ship": {
+   "ship": "ship"
+  },
+  "taco-litter": {
+   "bottle": "bottle",
+   "can": "canned",
+   "cigarette": "cigar/cigarette",
+   "cup": "cup"
+  },
+  "uec-school-lunch-food-2": {
+   "rice": "rice",
+   "mixed rice": "rice",
+   "bread": "bread",
+   "white bread": "bread",
+   "fish": "other fish",
+   "cherry tomatoes": "tomato",
+   "spaghetti": "pasta",
+   "apple": "apple",
+   "other foods": "dessert"
+  },
+  "visdrone": {
+   "pedestrian": "person",
+   "people": "person",
+   "bicycle": "bicycle",
+   "car": "car",
+   "van": "van",
+   "truck": "truck",
+   "tricycle": "tricycle",
+   "awning-tricycle": "tricycle",
+   "bus": "bus",
+   "motor": "motorcycle"
+  }
+ },
+ "oiv7": {
+  "annopage-doc-elements": {
+   "table": "table"
+  },
+  "ena24": {
+   "bird": "bird",
+   "eastern gray squirrel": "squirrel",
+   "wild turkey": "turkey",
+   "white_tailed_deer": "deer",
+   "vehicle": "vehicle",
+   "striped skunk": "skunk",
+   "red fox": "fox",
+   "eastern fox squirrel": "squirrel",
+   "northern raccoon": "raccoon",
+   "grey fox": "fox",
+   "horse": "horse",
+   "dog": "dog",
+   "american crow": "raven",
+   "chicken": "chicken",
+   "domestic cat": "cat",
+   "coyote": "fox",
+   "american black bear": "bear"
+  },
+  "fisheye8k-traffic": {
+   "bus": "bus",
+   "bike": "bicycle",
+   "car": "car",
+   "pedestrian": "person",
+   "truck": "truck"
+  },
+  "floorplancad-2": {
+   "single door": "door",
+   "double door": "door",
+   "sliding door": "door",
+   "folding door": "door",
+   "revolving door": "door",
+   "rolling door": "door",
+   "window": "window",
+   "bay window": "window",
+   "blind window": "window",
+   "sofa": "couch",
+   "bed": "bed",
+   "chair": "chair",
+   "table": "table",
+   "tv cabinet": "cabinetry",
+   "wardrobe": "wardrobe",
+   "cabinet": "cabinetry",
+   "gas stove": "gas stove",
+   "sink": "sink",
+   "refrigerator": "refrigerator",
+   "airconditioner": "mechanical fan",
+   "bath": "bathtub",
+   "bath tub": "bathtub",
+   "washing machine": "washing machine",
+   "squat toilet": "toilet",
+   "toilet": "toilet",
+   "stairs": "stairs",
+   "elevator": "door"
+  },
+  "hit-uav": {
+   "person": "person",
+   "car": "car",
+   "bicycle": "bicycle",
+   "othervehicle": "vehicle"
+  },
+  "iedxray": {
+   "modified laptop": "laptop",
+   "modified mobile phone": "mobile phone",
+   "laptop": "laptop",
+   "mobile phone": "mobile phone"
+  },
+  "llvip": {
+   "person": "person"
+  },
+  "ruod-underwater": {
+   "echinus": "invertebrate",
+   "scallop": "shellfish",
+   "starfish": "starfish",
+   "fish": "fish",
+   "corals": "invertebrate",
+   "diver": "person",
+   "cuttlefish": "fish",
+   "turtle": "turtle",
+   "jellyfish": "jellyfish"
+  },
+  "seadronessee-2": {
+   "swimmer": "person",
+   "boat": "boat",
+   "jetski": "jet ski"
+  },
+  "ssdd-sar-ship": {
+   "ship": "boat"
+  },
+  "taco-litter": {
+   "bottle": "bottle",
+   "can": "tin can",
+   "carton": "box",
+   "glass jar": "jug",
+   "paper bag": "plastic bag",
+   "plastic bag & wrapper": "plastic bag",
+   "plastic container": "waste container",
+   "straw": "drinking straw"
+  },
+  "uec-school-lunch-food-2": {
+   "milk": "milk",
+   "drinkable yogurt": "drink",
+   "rice": "food",
+   "mixed rice": "food",
+   "bread": "bread",
+   "white bread": "bread",
+   "udon": "pasta",
+   "fish": "fish",
+   "meat": "food",
+   "salad": "salad",
+   "cherry tomatoes": "tomato",
+   "soups": "food",
+   "curry": "food",
+   "spaghetti": "pasta",
+   "apple": "apple"
+  },
+  "visdrone": {
+   "pedestrian": "person",
+   "people": "person",
+   "bicycle": "bicycle",
+   "car": "car",
+   "van": "van",
+   "truck": "truck",
+   "bus": "bus",
+   "motor": "motorcycle"
+  }
+ },
+ "enterprise": {
+  "annopage-doc-elements": {
+   "chemical formula and equation": "doclaynet/Formula",
+   "mathematical expression and equation": "doclaynet/Formula",
+   "table": "doclaynet/Table",
+   "photograph": "doclaynet/Picture",
+   "image": "doclaynet/Picture",
+   "graph": "doclaynet/Picture",
+   "diagram": "doclaynet/Picture"
+  },
+  "basketball-hoop-detection": {
+   "basketball": "Objects365v1/basketball"
+  },
+  "deeppcb": {
+   "open": "vision-datasets/PCB_1-open_circuit",
+   "short": "vision-datasets/PCB_1-short",
+   "mousebite": "vision-datasets/PCB_1-mouse_bite",
+   "spur": "vision-datasets/PCB_1-spur",
+   "copper": "vision-datasets/PCB_1-spurious_copper",
+   "pin-hole": "vision-datasets/PCB_1-missing_hole"
+  },
+  "dspcbsd": {
+   "sh": "vision-datasets/PCB_1-short",
+   "sp": "vision-datasets/PCB_1-spur",
+   "sc": "vision-datasets/PCB_1-spurious_copper",
+   "op": "vision-datasets/PCB_1-open_circuit",
+   "mb": "vision-datasets/PCB_1-mouse_bite"
+  },
+  "ena24": {
+   "bird": "cct20/bird",
+   "american crow": "cct20/bird",
+   "eastern gray squirrel": "cct20/squirrel",
+   "eastern fox squirrel": "cct20/squirrel",
+   "eastern chipmunk": "cct20/squirrel",
+   "woodchuck": "cct20/rodent",
+   "striped skunk": "cct20/skunk",
+   "red fox": "cct20/fox",
+   "grey fox": "cct20/fox",
+   "coyote": "cct20/coyote",
+   "bobcat": "cct20/bobcat",
+   "northern raccoon": "cct20/raccoon",
+   "virginia opossum": "cct20/opossum",
+   "eastern cottontail": "cct20/rabbit",
+   "domestic cat": "cct20/cat",
+   "dog": "cct20/dog",
+   "white_tailed_deer": "cct20/deer",
+   "vehicle": "cct20/car",
+   "horse": "Objects365v1/horse",
+   "chicken": "Objects365v1/chicken",
+   "american black bear": "Objects365v1/bear"
+  },
+  "fisheye8k-traffic": {
+   "pedestrian": "loaf/person",
+   "car": "dronevehicle/car",
+   "truck": "dronevehicle/truck",
+   "bus": "dronevehicle/bus",
+   "bike": "Objects365v1/bicycle"
+  },
+  "floorplancad-2": {
+   "sofa": "Objects365v1/couch",
+   "bed": "Objects365v1/bed",
+   "chair": "Objects365v1/chair",
+   "table": "Objects365v1/dining table",
+   "cabinet": "Objects365v1/cabinet/shelf",
+   "tv cabinet": "Objects365v1/cabinet/shelf",
+   "gas stove": "Objects365v1/gas stove",
+   "sink": "Objects365v1/sink",
+   "refrigerator": "Objects365v1/refrigerator",
+   "airconditioner": "Objects365v1/air conditioner",
+   "bath": "Objects365v1/bathtub",
+   "bath tub": "Objects365v1/bathtub",
+   "washing machine": "Objects365v1/washing machine",
+   "squat toilet": "Objects365v1/toilet",
+   "toilet": "Objects365v1/toilet",
+   "urinal": "Objects365v1/urinal"
+  },
+  "grazpedwri-dx": {
+   "metal": "vindr-spinexr-png/Surgical implant",
+   "bonelesion": "vindr-spinexr-png/Other lesions"
+  },
+  "groundcua-ui": {
+   "button": "rico/Text Button",
+   "input elements": "rico/Input",
+   "navigation": "rico/Bottom Navigation",
+   "sidebar": "rico/Drawer"
+  },
+  "hit-uav": {
+   "person": "flir-adas-v2/person",
+   "car": "dronevehicle/car",
+   "bicycle": "flir-adas-v2/bike",
+   "othervehicle": "flir-adas-v2/other vehicle"
+  },
+  "iedxray": {
+   "laptop": "hixray/Laptop",
+   "modified laptop": "hixray/Laptop",
+   "mobile phone": "hixray/Mobile_Phone",
+   "modified mobile phone": "hixray/Mobile_Phone",
+   "battery": "hixray/Portable_Charger_1"
+  },
+  "kvasir-seg-polyp": {
+   "polyp": "real-colon/polyp"
+  },
+  "llvip": {
+   "person": "flir-adas-v2/person"
+  },
+  "ruod-underwater": {
+   "holothurian": "duo/holothurian",
+   "echinus": "duo/echinus",
+   "scallop": "duo/scallop",
+   "starfish": "duo/starfish",
+   "fish": "Objects365v1/fish",
+   "cuttlefish": "Objects365v1/fish",
+   "jellyfish": "Objects365v1/jellyfish",
+   "diver": "Objects365v1/person"
+  },
+  "seadronessee-2": {
+   "swimmer": "loaf/person",
+   "boat": "SODA-A-split/ship"
+  },
+  "ssdd-sar-ship": {
+   "ship": "sardet-100k/ship"
+  },
+  "taco-litter": {
+   "bottle": "Objects365v1/bottle",
+   "cup": "Objects365v1/cup",
+   "can": "Objects365v1/canned",
+   "cigarette": "Objects365v1/cigar"
+  },
+  "txl-pbc-blood-cells": {
+   "rbc": "bbbc041-malaria/red blood cell",
+   "wbc": "bbbc041-malaria/leukocyte"
+  },
+  "uec-school-lunch-food-2": {
+   "milk": "locount/Dairy",
+   "rice": "locount/Rise",
+   "mixed rice": "locount/Rise",
+   "bread": "Objects365v1/bread",
+   "white bread": "Objects365v1/bread",
+   "fish": "Objects365v1/fish",
+   "cherry tomatoes": "Objects365v1/tomato",
+   "apple": "Objects365v1/apple",
+   "spaghetti": "Objects365v1/pasta",
+   "udon": "Objects365v1/noodles",
+   "fried noodles": "locount/Instant noodles"
+  },
+  "visdrone": {
+   "pedestrian": "loaf/person",
+   "people": "loaf/person",
+   "car": "dronevehicle/car",
+   "van": "dronevehicle/van",
+   "truck": "dronevehicle/truck",
+   "bus": "dronevehicle/bus",
+   "bicycle": "Objects365v1/bicycle",
+   "motor": "Objects365v1/motorcycle",
+   "tricycle": "Objects365v1/tricycle",
+   "awning-tricycle": "Objects365v1/tricycle"
+  }
+ }
+}

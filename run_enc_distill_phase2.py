@@ -46,6 +46,7 @@ Flags:
 """
 
 import csv
+import json
 import os
 import re
 import shutil
@@ -61,6 +62,7 @@ import torch
 from callbacks import nfs_sync, paths, wandb_config
 from ultralytics import YOLO
 from ultralytics.data.utils import IMG_FORMATS
+from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import guess_model_scale, load_checkpoint
 from ultralytics.nn.teacher_model import TEACHER_REGISTRY, safe_key
 from ultralytics.utils import YAML
@@ -463,6 +465,24 @@ def load_multi_results(parent_name: str, expected: list[str] | None = None) -> t
     return per_dataset, macro
 
 
+class _ClsMapTrainer(DetectionTrainer):
+    """DetectionTrainer applying a hand-written class map before pretrained head-row transfer.
+
+    Renames the dataset classes to their mapped source-checkpoint names right before ``model.load()``, so
+    ``BaseModel._remap_cls_by_names`` copies exactly the hand-picked rows from ``cfg/ul33_cls_map.json`` and nothing
+    else. Unlisted classes get a non-matching placeholder and keep their fresh init, and ``set_model_attributes()``
+    restores the real dataset names right after the weights are loaded.
+    """
+
+    cls_map: dict = {}
+
+    def set_model_names_for_load(self, model):
+        """Alias dataset class names to their manually mapped source names."""
+        names = self.data["names"]
+        model.names = {i: self.cls_map.get(str(n).strip().lower(), f"__unmapped_{i}") for i, n in names.items()}
+        return model
+
+
 def _run_multi_det(
     gpu: str,
     phase1_weights: str,
@@ -480,6 +500,7 @@ def _run_multi_det(
     seed: int = 0,
     backbone_lr_ratio_override: str = "",
     recipe_name: str = "",
+    cls_map_vocab: str = "",
 ) -> None:
     """Sequentially train + val on a list of YOLO-format detection datasets.
 
@@ -511,6 +532,9 @@ def _run_multi_det(
             runs, vary it to sample per-dataset run-to-run variance.
         backbone_lr_ratio_override (str, optional): Backbone LR = lr0 * this (below 1 preserves distilled features).
         recipe_name (str, optional): Recipe profile stem under cfg/recipes/, defaulting to the mode's profile.
+        cls_map_vocab (str, optional): Vocab key in ul33_cls_map.json (coco/obj365/oiv7/enterprise). When set, forces
+            cls_remap=true and transfers head cls rows per the hand-written map instead of the profile's no-transfer
+            default. Pick the vocab matching phase1_weights' pretraining label space.
     """
     if "," in gpu:
         raise SystemExit(
@@ -572,6 +596,15 @@ def _run_multi_det(
     )
     if epochs or patience:
         print("[multi_det_finetune] NOTE macros are comparable only across equal epoch budgets.")
+    cls_table = {}
+    if cls_map_vocab:
+        cls_tables = json.loads((Path(_REPO_ROOT) / "cfg" / "ul33_cls_map.json").read_text())
+        if cls_map_vocab not in cls_tables:
+            raise SystemExit(f"ERROR: --cls_map {cls_map_vocab!r} not in {sorted(cls_tables)}")
+        cls_table = cls_tables[cls_map_vocab]
+        # A real cfg key, so it lands in args.yaml and the per-sub-run provenance comparison above.
+        det_args["cls_remap"] = True
+        print(f"[multi_det_finetune] cls_map={cls_map_vocab}: manual head-row transfer, overriding cls_remap=true")
     if teacher_spec:
         # Freeze layer 0 (the teacher) via the trainer freeze arg: BaseTrainer re-enables requires_grad for any
         # non-frozen-listed param (trainer.py:319), so freezing only in __init__ is undone. imgsz is per-teacher.
@@ -639,6 +672,7 @@ def _run_multi_det(
                 phase1_wandb_id=phase1_wandb_id,
                 mode="teacher_frozen_det" if teacher_spec else "multi_det_finetune",
                 teacher=teacher_spec,
+                cls_map=cls_map_vocab or None,
                 wandb_group=parent_name,
                 parent_run=parent_name,
                 dataset=basename,
@@ -665,7 +699,10 @@ def _run_multi_det(
         # Nest the NFS mirror under the parent so different parents' same-basename sub-runs (e.g. two parents both
         # training `aerial-cows`) don't collide on the flat `NFS_MIRROR_ROOT / Path(save_dir).name` mapping.
         sync_stop = nfs_sync.start(train_args["save_dir"], paths.NFS_MIRROR_ROOT / parent_name, exclude=("weights/",))
-        model.train(**train_args)
+        if cls_map_vocab:
+            _ClsMapTrainer.cls_map = cls_table.get(basename, {})
+            print(f"[multi_det_finetune] {basename}: cls_map rows={len(_ClsMapTrainer.cls_map)}")
+        model.train(trainer=_ClsMapTrainer if cls_map_vocab else None, **train_args)
         metrics = model.val()
         sync_stop()
         shutil.rmtree(parent_save_dir / basename / "weights")
@@ -714,6 +751,7 @@ def main(argv: list[str]) -> None:
     argv, freeze_override = _pop_flag(argv, "--freeze")
     argv, backbone_lr_ratio_override = _pop_flag(argv, "--backbone_lr_ratio")
     argv, recipe_name = _pop_flag(argv, "--recipe")
+    argv, cls_map_vocab = _pop_flag(argv, "--cls_map")
     argv, scratch = _pop_flag(argv, "--scratch", is_bool=True)
     argv, datasets_arg = _pop_flag(argv, "--datasets")
     argv, imgsz_override = _pop_flag(argv, "--imgsz")
@@ -785,6 +823,8 @@ def main(argv: list[str]) -> None:
     epochs = int(argv[5]) if len(argv) > 5 else resume_args.get("epochs")
     patience = int(argv[6]) if len(argv) > 6 else resume_args.get("patience")
 
+    if cls_map_vocab and mode != "multi_det_finetune":
+        raise SystemExit(f"ERROR: --cls_map is only supported for mode='multi_det_finetune', got mode={mode!r}.")
     if mode == "multi_det_finetune":
         if not datasets_arg:
             raise SystemExit("ERROR: mode='multi_det_finetune' requires --datasets <file|dir>.")
@@ -806,6 +846,7 @@ def main(argv: list[str]) -> None:
             seed=seed,
             backbone_lr_ratio_override=backbone_lr_ratio_override,
             recipe_name=recipe_name,
+            cls_map_vocab=cls_map_vocab,
         )
         return
 

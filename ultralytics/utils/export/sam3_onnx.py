@@ -502,7 +502,7 @@ class SAM3PromptEncoderONNX(nn.Module):
         embed = embed + torch.where(labels_3d == 2, self.embed_box_tl, torch.zeros_like(self.embed_box_tl))
         embed = embed + torch.where(labels_3d == 3, self.embed_box_br, torch.zeros_like(self.embed_box_br))
         # Padding point: zero out PE and add padding embedding
-        is_pad = (labels_3d == -1).float()
+        is_pad = (labels_3d == -1).to(embed.dtype)
         embed = embed * (1.0 - is_pad) + is_pad * self.embed_pad
 
         # Dense embeddings (no mask input — use no_mask_embed)
@@ -856,9 +856,15 @@ def export_sam3_onnx(
     from ultralytics.models.sam.build_sam3 import build_interactive_sam3
 
     LOGGER.info(f"{prefix} loading interactive model for SAM2 neck weights...")
-    tracker_model_for_neck = build_interactive_sam3(checkpoint_path)
-    tracker_model_for_neck = tracker_model_for_neck.to(device).eval()
-    sam2_convs = tracker_model_for_neck.image_encoder.vision_backbone.sam2_convs
+    # Keep the interactive model on the CPU and move only the exported pieces to the device: the two
+    # multi gigabyte models do not fit on one GPU at the same time. Freeze and half it like the
+    # semantic model so the traced dtypes match.
+    tracker_model_for_neck = build_interactive_sam3(checkpoint_path).eval()
+    for p in tracker_model_for_neck.parameters():
+        p.requires_grad = False
+    if dtype == torch.float16:
+        tracker_model_for_neck = tracker_model_for_neck.half()
+    sam2_convs = tracker_model_for_neck.image_encoder.vision_backbone.sam2_convs.to(device)
     # SAM 3.1 restructured the tracker, so its interactive weights do not load and must never be exported untrained
     # Only neck levels 0 to 2 are checked because scalp discards the last level, which SAM 3.1 no longer ships
     point_modules = ("sam_prompt_encoder", "sam_mask_decoder", "sam2_convs.0", "sam2_convs.1", "sam2_convs.2")

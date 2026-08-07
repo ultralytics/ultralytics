@@ -38,6 +38,28 @@ def read_tflite_metadata(file: str | Path) -> dict | None:
     return None
 
 
+def read_engine_metadata(f) -> dict | None:
+    """Read the optional metadata header Ultralytics prefixes to a serialized TensorRT engine.
+
+    ``write_engine`` tags the metadata as a 4 byte little endian length followed by JSON. Leaves ``f``
+    positioned at the start of the engine bytes, whether or not a header was present.
+
+    Args:
+        f: Open binary file handle positioned at the start of an engine file.
+
+    Returns:
+        (dict | None): Parsed metadata dictionary, or ``None`` if the file has no header.
+    """
+    import json
+
+    try:
+        meta_len = int.from_bytes(f.read(4), byteorder="little")
+        return json.loads(f.read(meta_len).decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError, ValueError):
+        f.seek(0)
+        return None
+
+
 class BaseBackend(ABC):
     """Base class for all inference backends.
 

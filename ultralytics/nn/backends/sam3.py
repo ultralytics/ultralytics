@@ -8,6 +8,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
+from ultralytics.nn.backends.base import read_engine_metadata
 from ultralytics.nn.backends.onnx import _ORT_DTYPES
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
@@ -232,11 +233,7 @@ class SAM3Backend:
 
         for stem in stems:
             with open(paths[stem], "rb") as f, trt.Runtime(logger) as runtime:
-                try:
-                    meta_len = int.from_bytes(f.read(4), byteorder="little")
-                    _ = json.loads(f.read(meta_len).decode("utf-8"))
-                except (UnicodeDecodeError, json.JSONDecodeError, ValueError):
-                    f.seek(0)
+                read_engine_metadata(f)  # skip the optional metadata header
                 engine = runtime.deserialize_cuda_engine(f.read())
 
             ctx = engine.create_execution_context()

@@ -102,6 +102,148 @@ def test_cfg_rejects_fuzzed_values():
     assert get_cfg(overrides={"auto_augment": None}).auto_augment is None
 
 
+def test_channel_divisor_default_parity():
+    """Test the implicit channel divisor matches an explicit divisor of 8."""
+    from ultralytics.nn.tasks import DetectionModel
+
+    cfg = {
+        "nc": 2,
+        "width_multiple": 0.37,
+        "backbone": [[-1, 1, "Conv", [100, 3, 2]]],
+        "head": [[[-1], 1, "Detect", [2]]],
+    }
+    explicit_cfg = {**cfg, "channel_divisor": 8}
+    implicit_model = DetectionModel(cfg=cfg, verbose=False)
+    explicit_model = DetectionModel(cfg=explicit_cfg, verbose=False)
+    none_model = DetectionModel(cfg={**cfg, "channel_divisor": None}, verbose=False)
+    assert (
+        [m.np for m in implicit_model.model] == [m.np for m in explicit_model.model] == [m.np for m in none_model.model]
+    )
+    for model in (implicit_model, explicit_model, none_model):
+        assert model(torch.zeros(1, 3, 64, 64)) is not None
+
+
+def test_channel_divisor_exact_rounding():
+    """Test a divisor of 1 preserves the exact width-scaled channel count."""
+    import io
+    import logging
+
+    from ultralytics.nn.tasks import DetectionModel
+
+    cfg = {
+        "nc": 2,
+        "width_multiple": 0.37,
+        "channel_divisor": 1,
+        "backbone": [[-1, 1, "Conv", [100, 3, 2]]],
+        "head": [[[-1], 1, "Detect", [2]]],
+    }
+    exact_model = DetectionModel(cfg=cfg, verbose=False)
+    stream = io.StringIO()
+    handler = logging.StreamHandler(stream)
+    LOGGER.addHandler(handler)
+    try:
+        default_model = DetectionModel(cfg={k: v for k, v in cfg.items() if k != "channel_divisor"}, verbose=True)
+    finally:
+        LOGGER.removeHandler(handler)
+    assert "channel_divisor 8: c2 37->40" in stream.getvalue()
+    assert exact_model.model[0].conv.out_channels == 37
+    assert default_model.model[0].conv.out_channels == 40
+    assert exact_model(torch.zeros(1, 3, 64, 64)) is not None
+    assert default_model(torch.zeros(1, 3, 64, 64)) is not None
+
+
+def test_channel_divisor_c2fattn_embed_rounding():
+    """Test C2fAttn embedding channels use the configured divisor."""
+    from copy import deepcopy
+
+    from ultralytics.nn.tasks import parse_model
+
+    cfg = {
+        "nc": 2,
+        "width_multiple": 0.37,
+        "channel_divisor": 1,
+        "backbone": [[-1, 1, "C2fAttn", [100, 200, 1]]],
+        "head": [],
+    }
+    exact_model, _ = parse_model(deepcopy(cfg), ch=3, verbose=False)
+    default_model, _ = parse_model(
+        {k: v for k, v in deepcopy(cfg).items() if k != "channel_divisor"}, ch=3, verbose=False
+    )
+    assert exact_model[0].attn.gl.out_features == 18
+    assert default_model[0].attn.gl.out_features == 20
+    for layer in (exact_model[0], default_model[0]):
+        output = layer(torch.zeros(1, 3, 64, 64), torch.zeros(1, 1, 512))
+        assert output.shape == (1, layer.cv2.conv.out_channels, 64, 64)
+
+
+def test_channel_divisor_c2fattn_embed_constraint():
+    """Test C2fAttn embedding channels are constrained to the attention shape."""
+    from copy import deepcopy
+
+    from ultralytics.nn.tasks import parse_model
+
+    cfg = {
+        "nc": 2,
+        "width_multiple": 0.37,
+        "channel_divisor": 1,
+        "backbone": [[-1, 1, "C2fAttn", [100, 200, 1]]],
+        "head": [],
+    }
+    model, _ = parse_model(deepcopy(cfg), ch=3, verbose=False)
+    layer = model[0]
+    assert layer.attn.gl.out_features == layer.attn.nh * layer.attn.hc
+    assert layer(torch.zeros(1, 3, 64, 64), torch.zeros(1, 1, 512)).shape[1] == layer.cv2.conv.out_channels
+    bad_cfg = {**cfg, "backbone": [[-1, 1, "C2fAttn", [512, 256, 8]]]}  # hidden 95 not divisible by nh 2
+    with pytest.raises(ValueError, match="divisible by nh"):
+        parse_model(deepcopy(bad_cfg), ch=3, verbose=False)
+
+
+def test_channel_divisor_segment_mask_rounding():
+    """Test Segment prototype channels use the configured divisor."""
+    from ultralytics.nn.tasks import SegmentationModel
+
+    cfg = {
+        "nc": 2,
+        "width_multiple": 0.37,
+        "channel_divisor": 1,
+        "backbone": [[-1, 1, "Conv", [64, 3, 2]]],
+        "head": [[[-1], 1, "Segment", [2, 32, 100]]],
+    }
+    exact_model = SegmentationModel(cfg=cfg, verbose=False)
+    default_model = SegmentationModel(cfg={k: v for k, v in cfg.items() if k != "channel_divisor"}, verbose=False)
+    assert exact_model.model[-1].npr == 37
+    assert default_model.model[-1].npr == 40
+    assert exact_model(torch.zeros(1, 3, 64, 64)) is not None
+    assert default_model(torch.zeros(1, 3, 64, 64)) is not None
+
+
+def test_channel_divisor_classify_immune():
+    """Test Classify output channels remain equal to nc for every divisor."""
+    from ultralytics.nn.tasks import DetectionModel
+
+    cfg = {
+        "nc": 7,
+        "width_multiple": 0.57,
+        "backbone": [[-1, 1, "Conv", [64, 3, 2]]],
+        "head": [[-1, 1, "Classify", [7]]],
+    }
+    rounded_model = DetectionModel(cfg={**cfg, "channel_divisor": 8}, verbose=False)
+    exact_model = DetectionModel(cfg={**cfg, "channel_divisor": 1}, verbose=False)
+    assert rounded_model.model[-1].linear.out_features == exact_model.model[-1].linear.out_features == 7
+    assert rounded_model(torch.zeros(1, 3, 64, 64)) is not None
+    assert exact_model(torch.zeros(1, 3, 64, 64)) is not None
+
+
+def test_channel_divisor_validation():
+    """Test channel divisor accepts only positive, non-boolean integers."""
+    from ultralytics.nn.tasks import DetectionModel
+
+    cfg = {"nc": 2, "backbone": [[-1, 1, "Conv", [16, 3, 2]]], "head": [[[-1], 1, "Detect", [2]]]}
+    for value in (0, -1, 1.5, "8", True):
+        with pytest.raises(ValueError, match="channel_divisor"):
+            DetectionModel(cfg={**cfg, "channel_divisor": value}, verbose=False)
+
+
 def skip_rpi_semantic():
     """Skip semantic segmentation tests on Raspberry Pi due to memory constraints."""
     if IS_RASPBERRYPI:

@@ -561,6 +561,19 @@ def test_pose_metrics_curves():
     assert len(curves) == len(set(curves)) == 8
 
 
+def test_val_iou_metrics_and_save_csv(tmp_path) -> None:
+    """Test that iou_metrics adds extra mAP thresholds and save_csv writes them to per_class_metrics.csv."""
+    metrics = YOLO(MODEL).val(
+        data="coco8.yaml", imgsz=32, iou_metrics=[0.75, 0.90, 0.95], save_csv=True, project=str(tmp_path), name="csv"
+    )
+    for key in ("metrics/mAP50(B)", "metrics/mAP50-95(B)", "metrics/mAP75(B)", "metrics/mAP90(B)", "metrics/mAP95(B)"):
+        assert key in metrics.results_dict, f"{key} missing from results_dict"
+    csv_file = tmp_path / "csv" / "per_class_metrics.csv"
+    assert csv_file.exists(), f"per_class_metrics.csv not found at {csv_file}"
+    content = csv_file.read_text()
+    assert all(x in content for x in ("mAP50", "mAP75", "mAP90", "mAP95")), f"CSV missing mAP columns: {content}"
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_multi():

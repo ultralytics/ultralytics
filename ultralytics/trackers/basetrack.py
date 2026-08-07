@@ -30,6 +30,7 @@ class BaseTrack:
 
     Attributes:
         _count (int): Class-level counter for unique track IDs.
+        _tentative_count (int): Class-level counter for the negative IDs held by unconfirmed tracks.
         track_id (int): Unique identifier for the track.
         is_activated (bool): Flag indicating whether the track is currently active.
         state (TrackState): Current state of the track.
@@ -40,6 +41,8 @@ class BaseTrack:
     Methods:
         end_frame: Returns the ID of the last frame where the object was tracked.
         next_id: Increments and returns the next global track ID.
+        next_tentative_id: Increments and returns the next placeholder ID for an unconfirmed track.
+        confirm: Promotes an unconfirmed track by assigning it a permanent global track ID.
         activate: Abstract method to activate the track.
         predict: Abstract method to predict the next state of the track.
         update: Abstract method to update the track with new data.
@@ -55,6 +58,7 @@ class BaseTrack:
     """
 
     _count = 0
+    _tentative_count = 0
 
     def __init__(self):
         """Initialize a new track with a unique ID and foundational tracking attributes."""
@@ -75,6 +79,17 @@ class BaseTrack:
         """Increment and return the next unique global track ID for object tracking."""
         BaseTrack._count += 1
         return BaseTrack._count
+
+    @staticmethod
+    def next_tentative_id() -> int:
+        """Return the next placeholder ID for an unconfirmed track, negative so it can never collide with a real ID."""
+        BaseTrack._tentative_count += 1
+        return -BaseTrack._tentative_count
+
+    def confirm(self) -> None:
+        """Promote an unconfirmed track by assigning it the next permanent global track ID."""
+        self.track_id = self.next_id()
+        self.is_activated = True
 
     def activate(self, *args: Any) -> None:
         """Activate the track with provided arguments, initializing necessary attributes for tracking."""
@@ -98,5 +113,6 @@ class BaseTrack:
 
     @staticmethod
     def reset_id() -> None:
-        """Reset the global track ID counter to its initial value."""
+        """Reset the global track ID counters to their initial values."""
         BaseTrack._count = 0
+        BaseTrack._tentative_count = 0

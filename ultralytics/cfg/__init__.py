@@ -639,8 +639,8 @@ def check_dict_alignment(
             "sample_t",
             "beta2",
             "nfs_sync",
-            # Federated corpus pretraining knobs (models/yolo/detect/train_federated.py), carried in the
-            # cfg/recipes/enterprise-corpus.yaml profile so the arm stays reproducible from the profile alone.
+            # Federated Enterprise pretraining knobs (models/yolo/detect/train_federated.py), carried in the
+            # cfg/recipes/enterprise.yaml profile so the arm stays reproducible from the profile alone.
             "quota_alpha",
             "repeat_t",
             "fed_k",

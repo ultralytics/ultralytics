@@ -1,7 +1,8 @@
-# Enterprise 21-source corpus pretrain, S scale p4p5 detectors. Corpus side of the ablation.
-# Same args as enterprise-o365-control, with the three epoch-denominated keys rescaled for a 1.93x bigger epoch:
+# Enterprise 21-source pretrain, S scale p4p5 detectors. Partially labeled side of the ablation.
+# Shares optimization and augmentation args with enterprise-o365-control. Its epoch-denominated keys are rescaled
+# for a 1.93x bigger epoch:
 # 78 epochs matches images seen (150 x 608,606 / 1,174,087), warmup and close_mosaic halve to match update counts.
-# Compare checkpoints at corpus epoch = 0.518 x o365 epoch.
+# Compare checkpoints at Enterprise epoch = 0.518 x O365 epoch.
 # backbone_lr_ratio 1.0 matches the control, see its header.
 # patience is deliberately above both arms' epoch counts, so early stopping can never fire on either side.
 auto_augment: randaugment

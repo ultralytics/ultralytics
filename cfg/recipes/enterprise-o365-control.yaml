@@ -1,4 +1,4 @@
-# Objects365v1 pretrain, S scale p4p5 detectors. o365 side of the enterprise-corpus ablation.
+# Objects365v1 pretrain, S scale p4p5 detectors. Fully annotated control for the Enterprise ablation.
 # Seeded from Jing's resolved args.yaml (ultra7 YOLO27-obj365-new/s-light-adamw-150), shared by his three S arms.
 # backbone_lr_ratio 1.0, not his blr_ratio 0.025: the ablation varies pretrain data, which at 0.025 would
 # barely reach the backbone. Both sides share it, so the comparison holds. Ultravit arms need --amp false.
@@ -45,6 +45,3 @@ warmup_momentum: 0.9
 weight_decay: 0.000125
 workers: 8
 epochs: 150
-quota_alpha: 0.7
-repeat_t: 0.001
-fed_k: 50

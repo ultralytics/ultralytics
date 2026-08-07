@@ -610,7 +610,8 @@ class YOLOMultiModalDataset(YOLODataset):
                 for t in text:
                     t = t.strip()
                     category_freq[t] += 1
-        return category_freq
+        # a background-only dataset sees no class, leaving every class an equally valid negative
+        return category_freq or dict.fromkeys((t.strip() for text in texts for t in text), 0)
 
 
 class GroundingDataset(YOLODataset):
@@ -623,7 +624,6 @@ class GroundingDataset(YOLODataset):
         json_file (str): Path to the JSON file containing annotations.
 
     Methods:
-        get_img_files: Return empty list as image files are read in get_labels.
         get_labels: Load annotations from a JSON file and prepare them for training.
         build_transforms: Configure augmentations for training with optional text loading.
 
@@ -647,16 +647,28 @@ class GroundingDataset(YOLODataset):
         self.max_samples = max_samples
         super().__init__(*args, task=task, data={"channels": 3}, **kwargs)
 
-    def get_img_files(self, img_path: str) -> list:
-        """The image files would be read in `get_labels` function, return empty list here.
+    def get_img_files(self, img_path: str) -> list[str]:
+        """Return every image under `img_path`; the annotations, not `fraction`, decide which ones are used.
 
         Args:
             img_path (str): Path to the directory containing images.
 
         Returns:
-            (list): Empty list as image files are read in get_labels.
+            (list[str]): Image files the annotation scan runs against.
         """
-        return []
+        self.fraction = 1.0  # a truncated inventory would leave later images outside the cache key
+        return super().get_img_files(img_path)
+
+    def get_cache_hash(self) -> str:
+        """Return a hash over the annotation file and the images it is scanned against.
+
+        As everywhere else in this file the hash covers paths and sizes, not contents, so an in-place edit that
+        preserves the byte length is not detected.
+
+        Returns:
+            (str): Dataset cache hash.
+        """
+        return get_hash([self.json_file, *self.im_files])
 
     def _verify_instance_counts(self, labels: list[dict[str, Any]]) -> None:
         """Verify the number of instances in the dataset matches expected counts.
@@ -708,15 +720,16 @@ class GroundingDataset(YOLODataset):
         img_to_anns = defaultdict(list)
         for ann in annotations["annotations"]:
             img_to_anns[ann["image_id"]].append(ann)
+        dropped = False
         for img_id, anns in TQDM(img_to_anns.items(), desc=f"Reading annotations {self.json_file}"):
             img = images[f"{img_id:d}"]
             h, w, f = img["height"], img["width"], img["file_name"]
             im_file = Path(self.img_path) / f
             if not im_file.exists():
                 continue
-            self.im_files.append(str(im_file))
             bboxes = []
             segments = []
+            segmented = False
             cat2id = {}
             texts = []
             for ann in anns:
@@ -741,31 +754,50 @@ class GroundingDataset(YOLODataset):
                 box = [cls, *box.tolist()]
                 if box not in bboxes:
                     bboxes.append(box)
-                    if ann.get("segmentation") is not None:
-                        if len(ann["segmentation"]) == 0:
-                            cx, cy, bw, bh = box[1:]
-                            x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2
-                            segments.append([cls, x1, y1, x2, y1, x2, y2, x1, y2])  # segments2boxes returns the box
-                            continue
-                        elif len(ann["segmentation"]) > 1:
-                            s = merge_multi_segment(ann["segmentation"])
-                            s = (np.concatenate(s, axis=0) / np.array([w, h], dtype=np.float32)).reshape(-1).tolist()
-                        else:
-                            s = [j for i in ann["segmentation"] for j in i]  # all segments concatenated
-                            s = (
-                                (np.array(s, dtype=np.float32).reshape(-1, 2) / np.array([w, h], dtype=np.float32))
-                                .reshape(-1)
-                                .tolist()
-                            )
-                        s = [cls, *s]
-                        segments.append(s)
+                    seg = ann.get("segmentation")
+                    segmented |= seg is not None
+                    if not isinstance(seg, list):
+                        seg = [seg]  # a non-list value, such as an RLE dict, is one non-polygon entry
+                    elif seg and all(isinstance(x, list) and len(x) == 2 for x in seg):
+                        seg = [seg]  # the value is itself a single polygon in [[x, y], ...] form
+                    seg = [  # [[x, y], ...] is a polygon form too, flatten it to [x, y, x, y, ...]
+                        [c for x in p for c in x]
+                        if isinstance(p, list) and all(isinstance(x, list) and len(x) == 2 for x in p)
+                        else p
+                        for p in seg
+                    ]
+                    polygons = [
+                        p
+                        for p in seg
+                        if isinstance(p, list)
+                        and len(p) >= 6
+                        and not len(p) % 2
+                        and all(isinstance(c, (int, float)) for c in p)
+                    ]
+                    dropped |= len(polygons) < sum(bool(p) or p == 0 for p in seg)  # empty entries carry no mask
+                    if not polygons:  # keep one segment per box so an image mixing the two kinds stays aligned
+                        cx, cy, bw, bh = box[1:]
+                        x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2
+                        segments.append([cls, x1, y1, x2, y1, x2, y2, x1, y2])  # segments2boxes returns the box
+                        continue
+                    elif len(polygons) > 1:
+                        s = merge_multi_segment(polygons)
+                        s = (np.concatenate(s, axis=0) / np.array([w, h], dtype=np.float32)).reshape(-1).tolist()
+                    else:
+                        s = [j for i in polygons for j in i]  # all segments concatenated
+                        s = (
+                            (np.array(s, dtype=np.float32).reshape(-1, 2) / np.array([w, h], dtype=np.float32))
+                            .reshape(-1)
+                            .tolist()
+                        )
+                    segments.append([cls, *s])
             lb = np.array(bboxes, dtype=np.float32) if len(bboxes) else np.zeros((0, 5), dtype=np.float32)
 
-            if segments:
-                classes = np.array([x[0] for x in segments], dtype=np.float32)
+            if segmented:
                 segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in segments]  # (cls, xy1...)
-                lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)
-            lb = np.array(lb, dtype=np.float32)
+                lb[:, 1:] = segments2boxes(segments)  # boxes follow the polygons
+            else:
+                segments = []  # no annotation carried a segmentation, so store no masks
 
             x["labels"].append(
                 {
@@ -779,7 +811,12 @@ class GroundingDataset(YOLODataset):
                     "texts": texts,
                 }
             )
-        x["hash"] = get_hash(self.json_file)
+        if dropped:
+            LOGGER.warning(
+                f"{self.json_file}: ignored segmentations that are not polygon point lists, such as RLE masks. "
+                "Annotations left without a polygon use a segment shaped like their bounding box."
+            )
+        x["hash"] = self.get_cache_hash()
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
 
@@ -790,9 +827,16 @@ class GroundingDataset(YOLODataset):
             (list[dict]): List of label dictionaries, each containing information about an image and its annotations.
         """
         cache_path = Path(self.json_file).with_suffix(".cache")
-        cache, _ = self._load_or_scan_cache(cache_path, get_hash(self.json_file))
+        cache, _ = self._load_or_scan_cache(cache_path, self.get_cache_hash())
         [cache.pop(k) for k in ("hash", "version")]  # remove items
         labels = cache["labels"]
+        if not labels:
+            raise RuntimeError(f"No images from {self.json_file} found in {self.img_path}. {HELP_URL}")
+        if not any(label["texts"] for label in labels):  # category_freq is empty, so negative texts cannot be built
+            raise RuntimeError(
+                f"No annotations in {self.json_file} survived filtering. Every one is iscrowd, resolves to an empty "
+                f"caption span or has a zero-size box. {HELP_URL}"
+            )
         self._verify_instance_counts(labels)
         self.im_files = [str(label["im_file"]) for label in labels]
         if LOCAL_RANK in {-1, 0}:

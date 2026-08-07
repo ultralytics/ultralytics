@@ -25,6 +25,7 @@ IMX                     | `imx`                     | yolo26n_imx_model/
 RKNN                    | `rknn`                    | yolo26n_rknn_model/
 ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 Axelera AI              | `axelera`                 | yolo26n_axelera_model/
+SafeTensors             | `safetensors`             | yolo26n.safetensors
 """
 
 from __future__ import annotations
@@ -185,6 +186,8 @@ def benchmark(
                 assert not (MACOS and is_github_action_running()), (
                     "LiteRT not benchmarked on macOS CI (ai-edge-litert/TF abseil mutex deadlock)"
                 )
+            if export_format == "safetensors":
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 SafeTensors exports not supported yet"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:

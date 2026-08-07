@@ -35,6 +35,7 @@ Usage - formats:
                               yolo26n_qnn.onnx           # Qualcomm QNN
                               yolo26n.tflite             # LiteRT
                               yolo26n_ascend_model       # Huawei Ascend
+                              yolo26n.safetensors        # SafeTensors
 """
 
 from __future__ import annotations

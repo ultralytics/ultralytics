@@ -134,3 +134,85 @@ class TorchScriptBackend(BaseBackend):
             (torch.Tensor | list[torch.Tensor]): Model predictions as tensor(s).
         """
         return self.model(im)
+
+
+class SafeTensorsBackend(BaseBackend):
+    """SafeTensors inference backend for pickle-free model execution.
+
+    Loads and runs inference with SafeTensors models (.safetensors files). The architecture is rebuilt from the model
+    YAML that `Exporter.export_safetensors` embeds in the file metadata, so no companion YAML is required and no
+    arbitrary code is unpickled at load time.
+    """
+
+    def load_model(self, weight: str) -> None:
+        """Rebuild a YOLO model from a .safetensors file and load its fused weights.
+
+        Args:
+            weight (str): Path to the .safetensors model file.
+
+        Raises:
+            ValueError: If the file has no embedded 'model_yaml' metadata.
+        """
+        import json
+
+        from ultralytics.nn.tasks import (
+            ClassificationModel,
+            DepthModel,
+            DetectionModel,
+            OBBModel,
+            PoseModel,
+            SegmentationModel,
+            SemanticSegmentationModel,
+        )
+        from ultralytics.utils.checks import check_requirements
+
+        LOGGER.info(f"Loading {weight} for SafeTensors inference...")
+        check_requirements("safetensors>=0.7.0")
+        from safetensors.torch import load_file, safe_open
+
+        with safe_open(str(weight), framework="pt") as f:
+            metadata = f.metadata() or {}
+        if "model_yaml" not in metadata:
+            raise ValueError(
+                f"SafeTensors file '{weight}' is missing 'model_yaml' metadata. "
+                f"Re-export it with format='safetensors' to embed the model architecture."
+            )
+
+        yaml_dict = json.loads(metadata["model_yaml"])
+        model_cls = {
+            "detect": DetectionModel,
+            "segment": SegmentationModel,
+            "semantic": SemanticSegmentationModel,
+            "classify": ClassificationModel,
+            "pose": PoseModel,
+            "obb": OBBModel,
+            "depth": DepthModel,
+        }.get(metadata.get("task"), DetectionModel)
+        model = model_cls(yaml_dict, ch=yaml_dict.get("channels", 3), verbose=False)
+        if metadata.get("fused") == "True":  # weights come from a fused export
+            model = model.fuse(verbose=False)
+        # Extra tensors are tolerated (legacy checkpoints carry weights the current architecture no longer uses),
+        # but every parameter of the rebuilt model must come from the file.
+        missing, _ = model.load_state_dict(load_file(str(weight), device=str(self.device)), strict=False)
+        if missing:
+            raise ValueError(f"SafeTensors file '{weight}' is missing weights for {missing}.")
+        model = model.to(self.device)
+        model.half() if self.fp16 else model.float()
+        model.eval()
+        for p in model.parameters():
+            p.requires_grad = False
+
+        self.model = model
+        self.dynamic = True  # raw weights, not a frozen graph: any image size and batch size is valid
+        self.apply_metadata(metadata)
+
+    def forward(self, im: torch.Tensor) -> torch.Tensor | list[torch.Tensor]:
+        """Run SafeTensors inference.
+
+        Args:
+            im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
+
+        Returns:
+            (torch.Tensor | list[torch.Tensor]): Model predictions as tensor(s).
+        """
+        return self.model(im)

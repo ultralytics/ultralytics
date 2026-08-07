@@ -18,4 +18,8 @@ keywords: Ultralytics, PyTorchBackend, TorchScriptBackend, PyTorch inference, To
 
 ## ::: ultralytics.nn.backends.pytorch.TorchScriptBackend
 
+<br><br><hr><br>
+
+## ::: ultralytics.nn.backends.pytorch.SafeTensorsBackend
+
 <br><br>

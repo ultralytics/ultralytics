@@ -694,3 +694,16 @@ def test_every_format_env_is_registered():
     """Ensure every export format points at a registered export environment."""
     for fmt, env in zip(export_formats()["Argument"], export_formats()["Env"]):
         assert env in EXPORT_ENVS, f"format '{fmt}' references unknown env '{env}'"
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_9, reason="Requires Python>=3.9")
+@pytest.mark.parametrize("task, quantize, batch", list(product(sorted(TASKS), [None, 16], [1, 2])))
+def test_export_safetensors_matrix(task, quantize, batch):
+    """Test YOLO export to SafeTensors format for various task types and export parameters."""
+    skip_rpi_semantic(task)
+    file = YOLO(TASK2MODEL[task]).export(format="safetensors", imgsz=32, quantize=quantize, batch=batch)
+    assert file.endswith(".safetensors") and Path(file).is_file(), f"SafeTensors export failed for '{task}': {file}"
+    assert (quantize == 16) == ("fp16" in Path(file).name), f"filename does not reflect quantize={quantize}: {file}"
+    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
+    Path(file).unlink()  # cleanup

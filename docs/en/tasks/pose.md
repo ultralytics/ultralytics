@@ -10,8 +10,6 @@ model_name: yolo26n-pose
 
 <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pose-estimation-examples.avif" alt="Ultralytics YOLO pose estimation with human body keypoint detection">
 
-Ultralytics YOLO pose models detect keypoints in real time on images and video.
-
 Pose estimation is a task that involves identifying the location of specific points in an image, usually referred to as keypoints. The keypoints can represent various parts of the object such as joints, landmarks, or other distinctive features. The locations of the keypoints are usually represented as a set of 2D `[x, y]` coordinates, optionally with a visibility flag `[x, y, visible]`.
 
 The output of a pose estimation model is a set of points that represent the keypoints on an object in the image, usually along with the confidence scores for each point. Pose estimation is a good choice when you need to identify specific parts of an object in a scene, and their location in relation to each other.
@@ -225,7 +223,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ### What is Pose Estimation with Ultralytics YOLO26 and how does it work?
 
-Pose estimation with Ultralytics YOLO26 involves identifying specific points, known as keypoints, in an image. These keypoints typically represent joints or other important features of the object. The output includes the `[x, y]` coordinates and confidence scores for each point. YOLO26-pose models are specifically designed for this task and use the `-pose` suffix, such as `yolo26n-pose.pt`. These models are pretrained on datasets like [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) and can be used for various pose estimation tasks. For more information, visit the [Pose Estimation Page](#pose-estimation).
+Pose estimation with Ultralytics YOLO26 involves identifying specific points, known as keypoints, in an image. These keypoints typically represent joints or other important features of the object. The output includes the `[x, y]` coordinates and confidence scores for each point. YOLO26-pose models are specifically designed for this task and use the `-pose` suffix, such as `yolo26n-pose.pt`. These models are pretrained on datasets like [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) and can be used for various pose estimation tasks. For more information, visit the [Pose Estimation Page](#pose-estimation-with-ultralytics-yolo).
 
 ### How can I train a YOLO26-pose model on a custom dataset?
 

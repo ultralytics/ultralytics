@@ -10,8 +10,6 @@ keywords: object detection, Ultralytics YOLO, YOLO26, pretrained models, trainin
 
 [Object detection](https://www.ultralytics.com/glossary/object-detection) is a task that involves identifying the location and class of objects in an image or video stream.
 
-Ultralytics YOLO models perform object detection in real time, returning bounding boxes with class labels and confidence scores.
-
 The output of an object detector is a set of bounding boxes that enclose the objects in the image, along with class labels and confidence scores for each box. Object detection is a good choice when you need to identify objects of interest in a scene, but don't need to know exactly where the object is or its exact shape.
 
 <p align="center">

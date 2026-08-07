@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import cv2
 import numpy as np
 import torch
 
@@ -47,6 +48,9 @@ class DepthPredictor(BasePredictor):
             # Crop letterbox padding and rescale to the original image size.
             img_path = self.batch[0][i] if isinstance(self.batch[0], list) else self.batch[0]
             depth = ops.scale_masks(depth_maps[i : i + 1].float(), orig_img.shape[:2])
+            if self.args.retina_masks:  # sharpen the head's upsampled output against the source image edges
+                guide = torch.from_numpy(cv2.cvtColor(orig_img, cv2.COLOR_BGR2GRAY)).to(depth)[None, None] / 255
+                depth = ops.guided_filter(depth, guide)
             results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, depth=depth.squeeze()))
 
         return results

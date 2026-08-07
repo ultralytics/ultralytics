@@ -267,7 +267,14 @@ def test_export_calibration_batch(monkeypatch):
     format_args = dict(zip(export_formats()["Argument"], export_formats()["Arguments"]))
     assert "calibration_batch" in format_args["engine"] and "calibration_batch" in format_args["openvino"]
 
-    overrides = {"format": "engine", "quantize": 8, "batch": 8, "data": "coco8.yaml", "calibration_batch": 4}
+    overrides = {
+        "format": "engine",
+        "quantize": 8,
+        "batch": 8,
+        "data": "coco8.yaml",
+        "calibration_batch": 4,
+        "dynamic": True,
+    }
     exporter = Exporter(overrides=overrides)
     exporter.model = SimpleNamespace(task="detect")
     exporter.imgsz = [640, 640]

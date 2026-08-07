@@ -85,7 +85,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
             ValueError: If neither valid bounding boxes nor masks are provided in the prompts.
         """
         img = super().pre_transform(im)
-        if not isinstance(self.prompts, dict):  # already converted (tensor source, or re-entry at batch=1)
+        if not isinstance(self.prompts, dict):  # cleared, or already converted (tensor source, re-entry at batch=1)
             return img
         if len(img) == 1:
             self.prompts = self._prompts_to_tensor(img[0].shape[:2], im[0].shape[:2])
@@ -165,7 +165,8 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         """Process the source to get the visual prompt embeddings (VPE).
 
         Preprocesses a single image via preprocess(), which converts the visual prompts to tensor format (and
-        letterboxes array inputs), then extracts the VPE from the model.
+        letterboxes array inputs), then extracts the VPE from the model. The prompts are cleared afterwards so a
+        reused predictor falls back to the model class embeddings instead of the consumed prompts.
 
         Args:
             source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of the image to
@@ -182,7 +183,9 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         assert len(self.dataset) == 1, "get_vpe only supports one image!"
         for _, im0s, _ in self.dataset:
             im = self.preprocess(im0s)
-            return self.model(im, vpe=self.prompts, return_vpe=True)
+            res = self.model(im, vpe=self.prompts, return_vpe=True)
+            self.prompts = None  # clear prompts after getting vpe
+            return res
 
 
 class YOLOEVPSegPredictor(YOLOEVPDetectPredictor, SegmentationPredictor):

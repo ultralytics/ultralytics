@@ -1133,6 +1133,7 @@ class WorldModel(DetectionModel):
         """
         from ultralytics.nn.text_model import build_text_model
 
+        assert len(text), f"Expected at least one class name, but got {text}"
         device = next(self.model.parameters()).device
         if not getattr(self, "clip_model", None) and cache_clip_model:
             # For backwards compatibility of models lacking clip_model attribute
@@ -1253,6 +1254,7 @@ class YOLOEModel(DetectionModel):
         """
         from ultralytics.nn.text_model import build_text_model
 
+        assert len(text), f"Expected at least one class name, but got {text}"
         device = next(self.model.parameters()).device
         if not getattr(self, "clip_model", None) and cache_clip_model:
             # For backwards compatibility of models lacking clip_model attribute
@@ -1297,10 +1299,12 @@ class YOLOEModel(DetectionModel):
         assert not self.training
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
+        names = check_class_names(names)  # validate before the re-parameterization below, which cannot be undone
 
         # Cache anchors for head
         device = next(self.parameters()).device
-        self(torch.empty(1, 3, self.args["imgsz"], self.args["imgsz"]).to(device))  # warmup
+        with torch.no_grad():  # get_vocab fuses the head under inference mode, so a tracked warmup cannot use it
+            self(torch.empty(1, 3, self.args["imgsz"], self.args["imgsz"]).to(device))  # warmup
 
         cv3 = getattr(head, "one2one_cv3", head.cv3)
         cv2 = getattr(head, "one2one_cv2", head.cv2)
@@ -1309,13 +1313,13 @@ class YOLOEModel(DetectionModel):
         self.model[-1].lrpc = nn.ModuleList(
             LRPCHead(cls, pf[-1], loc[-1], enabled=i != 2) for i, (cls, pf, loc) in enumerate(zip(vocab, cv3, cv2))
         )
-        for loc_head, cls_head in zip(head.cv2, head.cv3):
+        for loc_head, cls_head in zip(cv2, cv3):  # the branches lrpc was built from, one2one when end2end
             assert isinstance(loc_head, nn.Sequential)
             assert isinstance(cls_head, nn.Sequential)
             del loc_head[-1]
             del cls_head[-1]
         self.model[-1].nc = len(names)
-        self.names = check_class_names(names)
+        self.names = names
 
     def get_vocab(self, names):
         """Get fused vocabulary layer from the model.
@@ -1354,9 +1358,9 @@ class YOLOEModel(DetectionModel):
             "Prompt-free model does not support setting classes. Please try with Text/Visual prompt models."
         )
         assert embeddings.ndim == 3
+        self.names = check_class_names(names)  # validate before any state is written
         self.pe = embeddings
         self.model[-1].nc = len(names)
-        self.names = check_class_names(names)
 
     def get_cls_pe(self, tpe, vpe):
         """Get class positional embeddings.

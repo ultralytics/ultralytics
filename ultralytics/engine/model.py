@@ -640,6 +640,7 @@ class Model(torch.nn.Module):
         )
         if res is None:
             return None
+        self.predictor = None  # the cached predictor wraps a copy of the module just changed
         LOGGER.info("Call model.save(...) to persist the calibration.")
         return res["a"], res["b"]
 

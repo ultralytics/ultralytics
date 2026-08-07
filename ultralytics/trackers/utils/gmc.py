@@ -205,12 +205,7 @@ class GMC:
             return H
 
         # Handle featureless frames and descriptor sets too small for k=2 matching.
-        if (
-            self.prevDescriptors is None
-            or descriptors is None
-            or len(self.prevDescriptors) < 2
-            or len(descriptors) < 2
-        ):
+        if self.prevDescriptors is None or descriptors is None or len(self.prevDescriptors) < 2 or len(descriptors) < 2:
             self.prevFrame = frame.copy()
             self.prevKeyPoints = copy.copy(keypoints)
             self.prevDescriptors = copy.copy(descriptors)

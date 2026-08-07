@@ -536,13 +536,24 @@ class ConfusionMatrix(DataExportMixin):
 
     @TryExcept(msg="ConfusionMatrix plot failure")
     @plt_settings()
-    def plot(self, normalize: bool = True, save_dir: str = "", on_plot=None):
+    def plot(
+        self,
+        normalize: bool = True,
+        save_dir: str = "",
+        on_plot=None,
+        filter_empty: bool = True,
+        show_values: bool | None = None,
+    ):
         """Plot the confusion matrix using matplotlib and save it to a file.
 
         Args:
             normalize (bool, optional): Whether to normalize the confusion matrix.
             save_dir (str, optional): Directory where the plot will be saved.
             on_plot (callable, optional): An optional callback to pass plots path and data when they are rendered.
+            filter_empty (bool, optional): Whether to hide rows and columns whose ground truth and prediction counts are
+                both zero, e.g. when evaluating on a subset of the trained classes.
+            show_values (bool | None, optional): Whether to annotate each cell with its value. If None, cells are
+                annotated when the plotted matrix has fewer than 30 classes.
         """
         import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
 
@@ -551,6 +562,7 @@ class ConfusionMatrix(DataExportMixin):
 
         fig, ax = plt.subplots(1, 1, figsize=(12, 9))
         names, n = list(self.names.values()), self.nc
+        keep_idx = slice(None)  # rows/cols retained, replaced by a strided slice when downsampling below
         if self.nc >= 100:  # downsample for large class count
             k = max(2, self.nc // 60)  # step size for downsampling, always > 1
             keep_idx = slice(None, None, k)  # create slice instead of array
@@ -561,16 +573,25 @@ class ConfusionMatrix(DataExportMixin):
         ticklabels = "auto"
         if 0 < nc < 99:
             ticklabels = names if self.task in {"classify", "semantic"} else [*names, "background"]
+            if filter_empty:  # drop classes with neither ground truths nor predictions
+                counts = self.matrix[keep_idx, :][:, keep_idx][:nc, :nc]  # same rows/cols as plotted array
+                keep = np.flatnonzero(counts.sum(0) + counts.sum(1))
+                if keep.size:  # keep the full matrix if it is entirely empty
+                    array = array[np.ix_(keep, keep)]
+                    ticklabels = [ticklabels[i] for i in keep]
+                    nc = len(keep)
         xy_ticks = np.arange(len(ticklabels)) if ticklabels != "auto" else np.arange(nc)
         tick_fontsize = max(6, 15 - 0.1 * nc)  # Minimum size is 6
         label_fontsize = max(6, 12 - 0.1 * nc)
         title_fontsize = max(6, 12 - 0.1 * nc)
         btm = max(0.1, 0.25 - 0.001 * nc)  # Minimum value is 0.1
+        if show_values is None:
+            show_values = nc < 30  # annotate small matrices only
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
             im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation="none")
             ax.xaxis.set_label_position("bottom")
-            if nc < 30:  # Add score for each cell of confusion matrix
+            if show_values:  # Add score for each cell of confusion matrix
                 color_threshold = 0.45 * (1 if normalize else np.nanmax(array))  # text color threshold
                 for i, row in enumerate(array[:nc]):
                     for j, val in enumerate(row[:nc]):

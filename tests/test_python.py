@@ -773,6 +773,26 @@ def test_platform_job_transport(monkeypatch, tmp_path):
     }
 
 
+def test_confusion_matrix_plot_args(tmp_path) -> None:
+    """Test ConfusionMatrix.plot() filter_empty and show_values arguments."""
+    from ultralytics.utils.metrics import ConfusionMatrix
+
+    # 3 classes plus background, where class 2 ('bird') has no ground truths and no predictions
+    cm = ConfusionMatrix(names={0: "cat", 1: "dog", 2: "bird"})
+    cm.matrix = np.array([[5, 1, 0, 0], [0, 4, 0, 0], [0, 0, 0, 0], [1, 0, 0, 2]], dtype=np.float64)
+    plot_file = tmp_path / "confusion_matrix.png"
+    for filter_empty in (True, False):
+        cm.plot(save_dir=str(tmp_path), normalize=False, filter_empty=filter_empty)
+        assert plot_file.exists(), f"Plot not saved with filter_empty={filter_empty}"
+        plot_file.unlink()
+
+    # show_values=True annotates matrices with 30+ classes, which are otherwise left unannotated
+    cm_big = ConfusionMatrix(names={i: f"cls{i}" for i in range(31)})
+    cm_big.matrix = np.eye(32, dtype=np.float64)
+    cm_big.plot(save_dir=str(tmp_path), normalize=False, show_values=True)
+    assert plot_file.exists(), "Plot not saved with show_values=True on large matrix"
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch():

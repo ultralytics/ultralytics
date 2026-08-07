@@ -1243,9 +1243,9 @@ def _build_decoder_engine_dynamic(
     the per-node precision is honored identically on TensorRT 10 and 11 (the FP16 builder flag was removed in TensorRT
     11). Without ``half`` the engine is FP32.
     """
-    import tensorrt as trt
+    import onnx
 
-    from ultralytics.utils.export.engine import write_engine
+    from ultralytics.utils.export.engine import onnx2engine
 
     if half:
         from ultralytics.utils.export.engine import modelopt_quantize_onnx
@@ -1260,44 +1260,29 @@ def _build_decoder_engine_dynamic(
             prefix=prefix,
         )
 
-    logger = trt.Logger(trt.Logger.INFO if verbose else trt.Logger.WARNING)
-    builder = trt.Builder(logger)
-    config = builder.create_builder_config()
-    if workspace:
-        config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, int(workspace * (1 << 30)))
-
-    # A strongly-typed network honors the per-node precision baked in by AutoCast on both TensorRT
-    # 10 and 11; an FP32 build uses the default explicit batch (the EXPLICIT_BATCH creation flag was
-    # removed in TensorRT 10 and the enum member no longer exists in TensorRT 11).
-    flag = (1 << int(trt.NetworkDefinitionCreationFlag.STRONGLY_TYPED)) if half else 0
-    network = builder.create_network(flag)
-    parser = trt.OnnxParser(network, logger)
-    if not parser.parse(_gridsample_mode_for_trt(onnx_file, prefix)):
-        for i in range(parser.num_errors):
-            LOGGER.error(f"{prefix} parser error: {parser.get_error(i)}")
-        raise RuntimeError(f"Failed to parse ONNX: {onnx_file}")
-
-    profile = builder.create_optimization_profile()
+    # onnx2engine wants one (min, opt, max) profile per input: the precomputed per FPN level bounds for
+    # spatial inputs, the generic dynamic bounds for other symbolic dims, and the declared shape otherwise.
     spatial = spatial or {}
-    for i in range(network.num_inputs):
-        inp = network.get_input(i)
-        shape = list(inp.shape)
-        if inp.name in spatial:  # a spatial input's bounds differ per FPN level, so they are precomputed
-            lo, opt, hi = spatial[inp.name]
-            profile.set_shape(inp.name, min=lo, opt=opt, max=hi)
-        elif any(d == -1 for d in shape):
-            profile.set_shape(
-                inp.name,
-                min=tuple(min_dynamic if d == -1 else d for d in shape),
-                opt=tuple(opt_dynamic if d == -1 else d for d in shape),
-                max=tuple(max_dynamic if d == -1 else d for d in shape),
+    profile_shapes = {}
+    for inp in onnx.load(onnx_file, load_external_data=False).graph.input:
+        dims = [d.dim_value if d.dim_value > 0 else -1 for d in inp.type.tensor_type.shape.dim]
+        if inp.name in spatial:
+            profile_shapes[inp.name] = spatial[inp.name]
+        elif -1 in dims:
+            profile_shapes[inp.name] = tuple(
+                tuple(bound if d == -1 else d for d in dims) for bound in (min_dynamic, opt_dynamic, max_dynamic)
             )
         else:
-            profile.set_shape(inp.name, min=tuple(shape), opt=tuple(shape), max=tuple(shape))
-    config.add_optimization_profile(profile)
+            profile_shapes[inp.name] = (tuple(dims),) * 3
 
-    LOGGER.info(f"{prefix} building {'mixed FP16' if half else 'FP32'} engine as {Path(engine_file).name}")
-    serialized = builder.build_serialized_network(network, config)
-    if serialized is None:
-        raise RuntimeError("TensorRT engine build failed")
-    write_engine(engine_file, serialized, metadata)
+    onnx2engine(
+        onnx_file,
+        engine_file,
+        workspace=workspace,
+        metadata=metadata,
+        verbose=verbose,
+        prefix=prefix,
+        profile_shapes=profile_shapes,
+        strongly_typed=half,
+        onnx_bytes=_gridsample_mode_for_trt(onnx_file, prefix),
+    )

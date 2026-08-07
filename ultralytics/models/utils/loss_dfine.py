@@ -16,7 +16,7 @@ import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ultralytics.nn.modules.dfine_utils import bbox2distance
+from ultralytics.nn.modules.utils import bbox2distance
 from ultralytics.utils.loss import FocalLoss, MALoss, VarifocalLoss
 from ultralytics.utils.ops import xywh2xyxy
 

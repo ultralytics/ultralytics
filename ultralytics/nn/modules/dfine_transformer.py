@@ -6,8 +6,13 @@ from .transformer import MLP
 import torch.nn.init as init
 import math
 import copy
-from .utils import bias_init_with_prob, inverse_sigmoid, multi_scale_deformable_attn_pytorch
-from .dfine_utils import weighting_function, distance2bbox
+from .utils import (
+    bias_init_with_prob,
+    distance2bbox,
+    inverse_sigmoid,
+    multi_scale_deformable_attn_pytorch,
+    weighting_function,
+)
 
 
 class MSDeformableAttention(nn.Module):

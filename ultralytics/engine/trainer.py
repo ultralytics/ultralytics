@@ -565,6 +565,7 @@ class BaseTrainer:
                             batch.get("cls", batch["img"]).shape[0],  # no. of instances
                             batch["img"].shape[-1],  # imgsz, i.e 640
                         )
+                        + self._patience_str(epoch)
                     )
                     self.run_callbacks("on_batch_end")
                     if self.args.plots and ni in self.plot_idx:
@@ -736,6 +737,7 @@ class BaseTrainer:
             {
                 "epoch": self.epoch,
                 "best_fitness": self.best_fitness,
+                "best_epoch": self.stopper.best_epoch,  # early stopping state
                 "model": None,  # resume and final checkpoints derive from EMA
                 "ema": ema,
                 "updates": self.ema.updates,
@@ -909,6 +911,13 @@ class BaseTrainer:
         """Return a string describing training progress."""
         return ""
 
+    def _patience_str(self, epoch):
+        """Return the early stopping patience countdown shown in the training progress bar."""
+        if not (self.args.patience and self.args.val):
+            return ""
+        patience_left = max(0, self.args.patience - max(0, epoch - self.stopper.best_epoch))
+        return f"   Patience: {patience_left}/{self.args.patience}"
+
     # TODO: may need to put these following functions into callback
     def plot_training_samples(self, batch, ni):
         """Plot training samples during YOLO training."""
@@ -1006,7 +1015,7 @@ class BaseTrainer:
         self.resume = resume
 
     def _load_checkpoint_state(self, ckpt):
-        """Load optimizer, scaler, EMA, and best_fitness from checkpoint."""
+        """Load optimizer, scaler, EMA, best_fitness, and early stopping state from checkpoint."""
         if ckpt.get("optimizer") is not None:
             self.optimizer.load_state_dict(ckpt["optimizer"])
         if ckpt.get("scaler") is not None:
@@ -1016,6 +1025,8 @@ class BaseTrainer:
             self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())
             self.ema.updates = ckpt["updates"]
         self.best_fitness = ckpt.get("best_fitness")
+        if ckpt.get("best_epoch") is not None:  # restore early stopping state for accurate patience countdown
+            self.stopper.best_epoch = ckpt["best_epoch"]
 
     def _handle_nan_recovery(self, epoch):
         """Detect and recover from NaN/Inf loss by loading last checkpoint."""

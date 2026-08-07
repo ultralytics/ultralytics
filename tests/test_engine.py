@@ -312,6 +312,32 @@ def test_checkpoint_nonfinite_ema_and_model_sanitized():
     )
 
 
+def test_patience_str():
+    """Test the early stopping patience countdown shown in the training progress bar."""
+    trainer = BaseTrainer.__new__(BaseTrainer)
+    trainer.args = SimpleNamespace(patience=5, val=True)
+    trainer.stopper = SimpleNamespace(best_epoch=2)
+    assert trainer._patience_str(epoch=4) == "   Patience: 3/5"
+    assert trainer._patience_str(epoch=2) == "   Patience: 5/5"
+    trainer.args.val = False
+    assert trainer._patience_str(epoch=4) == ""
+    trainer.args.val = True
+    trainer.args.patience = 0
+    assert trainer._patience_str(epoch=4) == ""
+
+
+def test_resume_patience_state():
+    """Test early stopping state (best_epoch) is restored from a checkpoint and left alone when absent."""
+    trainer = BaseTrainer.__new__(BaseTrainer)
+    trainer.ema = None
+    trainer.stopper = SimpleNamespace(best_epoch=0)
+    trainer._load_checkpoint_state({"best_fitness": 0.95, "best_epoch": 12})
+    assert trainer.stopper.best_epoch == 12, "best_epoch not restored from checkpoint"
+    assert trainer.best_fitness == 0.95, "best_fitness not restored from checkpoint"
+    trainer._load_checkpoint_state({"best_fitness": 0.96})  # legacy checkpoint without 'best_epoch'
+    assert trainer.stopper.best_epoch == 12, "best_epoch altered by a checkpoint that does not contain it"
+
+
 @pytest.mark.parametrize(
     "kwargs,uses_weights",
     [({}, True), ({"pretrained": True}, True), ({"pretrained": False}, False), ({"pretrained": MODEL}, True)],

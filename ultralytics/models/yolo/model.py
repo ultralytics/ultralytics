@@ -194,16 +194,16 @@ class YOLOWorld(Model):
         Args:
             classes (list[str]): A list of categories i.e. ["person"].
         """
+        # Snapshot before the delegate rewrites names in place, so an unchanged list keeps the predictor
+        names = list(self.model.names.values() if isinstance(self.model.names, dict) else self.model.names)
         self.model.set_classes(classes)
         # Remove background if it's given
         background = " "
         if background in classes:
             classes.remove(background)
         self.model.names = classes
-
-        # Reset method class names
-        if self.predictor:
-            self.predictor.model.names = classes
+        if names != classes:  # order matters: the delegate rewrote txt_feats in the new order
+            self.predictor = None  # the cached predictor wraps a copy of the classes just replaced
 
 
 class YOLOE(Model):
@@ -337,10 +337,7 @@ class YOLOE(Model):
             if embeddings is None:
                 embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
             self.model.set_classes(classes, embeddings)
-
-        # Reset method class names
-        if self.predictor:
-            self.predictor.model.names = self.model.names
+            self.predictor = None  # the cached predictor wraps a copy of the module just changed
 
     def _prompt_embedding_model(self) -> str:
         """Return the checkpoint identifier used to bind prompt embeddings to this model."""

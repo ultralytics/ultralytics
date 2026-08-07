@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import json
 import time
+from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
@@ -171,6 +172,9 @@ class BaseValidator:
             if str(self.args.model).endswith(".yaml") and model is None:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
+            if isinstance(model, torch.nn.Module):
+                # Configuring the head and fusing below rewrite the module in place, and the caller still owns this one
+                model = deepcopy(model)
             if hasattr(model, "end2end"):
                 if self.args.end2end is not None:
                     model.end2end = self.args.end2end

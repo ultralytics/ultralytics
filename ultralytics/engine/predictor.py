@@ -42,6 +42,7 @@ from __future__ import annotations
 import platform
 import re
 import threading
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, Callable
 
@@ -420,6 +421,9 @@ class BasePredictor:
             model (str | Path | torch.nn.Module): Model to load or use.
             verbose (bool): Whether to print verbose output.
         """
+        if isinstance(model, torch.nn.Module):
+            # Configuring the head and fusing below rewrite the module in place, and the caller still owns this one
+            model = deepcopy(model)
         if hasattr(model, "end2end"):
             if self.args.end2end is not None:
                 model.end2end = self.args.end2end

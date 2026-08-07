@@ -979,8 +979,9 @@ class Exporter:
 
             data = check_cls_dataset(self.args.data, split=self.args.split)
             dataset = ClassificationDataset(data[self.args.split or "val"], args=cfg, augment=False)
-            if self.args.fraction < 1.0:
-                dataset.samples = dataset.samples[: round(len(dataset.samples) * self.args.fraction)]
+            fraction = cfg.fraction[-1] if isinstance(cfg.fraction, (list, tuple)) else cfg.fraction
+            if fraction < 1.0:
+                dataset.samples = dataset.samples[: round(len(dataset.samples) * fraction)]
             # INT8 backends divide images by 255, so emit uint8 [0, 255] center-cropped like classify inference
             dataset.torch_transforms = T.Compose([T.Resize(cfg.imgsz), T.CenterCrop(cfg.imgsz), T.PILToTensor()])
         else:
@@ -991,7 +992,7 @@ class Exporter:
                 self.args.batch,
                 data,
                 mode="val",
-                fraction=self.args.fraction,
+                fraction=cfg.fraction[-1] if isinstance(cfg.fraction, (list, tuple)) else cfg.fraction,  # val element
             )
         if hasattr(dataset, "transforms") and hasattr(dataset.transforms.transforms[0], "new_shape"):
             dataset.transforms.transforms[0].new_shape = self.imgsz  # LetterBox with non-square imgsz

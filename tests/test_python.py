@@ -527,6 +527,30 @@ def test_val(task: str, weight: str, data: str) -> None:
             assert len(cm.tp_fp()[0]) == cm.nc  # per-class TP/FP never include background
 
 
+def test_depth_metrics_per_image_average():
+    """Test that depth metrics average per image and that summing DDP shards reproduces the single-process result."""
+    from ultralytics.utils.metrics import DepthMetrics
+
+    gt_small, gt_large = torch.full((1, 4, 4), 10.0), torch.full((1, 40, 40), 10.0)  # 16 vs 1600 valid pixels
+    m = DepthMetrics(align="none")
+    m.update_stats(gt_small * 2, gt_small)  # every pixel off by 2x
+    m.update_stats(gt_large.clone(), gt_large)  # exact
+    gt_sparse = torch.zeros(1, 4, 4)
+    gt_sparse[0, 0, :3] = 10.0  # 3 valid pixels: below the 10-pixel floor, must not be scored at all
+    m.update_stats(torch.full((1, 4, 4), 10.0), gt_sparse)
+    m.process()
+    # Pooling pixels would give 0.990/0.994/6.857, counting the 3-pixel image as an image would give 0.667/3.333
+    assert m.delta1 == pytest.approx(0.5), "the 100x denser image must not outweigh the small one"
+    assert m.rmse == pytest.approx(5.0), "mean of the per-image RMSEs (10.0 and 0.0), not the pooled RMSE"
+    assert m.silog == pytest.approx(0.0), "a uniform 2x error is scale-invariant, so every per-image silog is 0"
+    shards = [DepthMetrics(align="none"), DepthMetrics(align="none")]  # what gather_stats() all_reduces in DDP
+    shards[0].update_stats(gt_small * 2, gt_small)
+    shards[1].update_stats(gt_large.clone(), gt_large)
+    assert m._totals.numel() == 6, "DepthValidator.gather_stats() allocates a 6-element buffer for this vector"
+    assert torch.allclose(shards[0]._totals + shards[1]._totals, m._totals)
+    assert shards[0]._count + shards[1]._count == m._count
+
+
 def test_val_save_txt_pose(tmp_path):
     """Test that pose keypoints saved by val(save_txt=True) and val(save_json=True) are in the original image space."""
     model = YOLO(WEIGHTS_DIR / "yolo26n-pose.pt")

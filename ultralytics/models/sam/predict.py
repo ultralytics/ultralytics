@@ -2352,9 +2352,11 @@ class SAM3SemanticPredictor(SAM3Predictor):
         pred_scores = preds["pred_logits"].sigmoid()
         presence_score = preds["presence_logit_dec"].sigmoid().unsqueeze(1)
         pred_scores = (pred_scores * presence_score).squeeze(-1)
-        pred_cls = torch.arange(pred_scores.shape[0], dtype=pred_scores.dtype, device=pred_scores.device)[
-            :, None
-        ].expand_as(pred_scores)
+        pred_cls = torch.arange(
+            pred_scores.shape[0],
+            dtype=pred_scores.dtype,
+            device=pred_scores.device,
+        )[:, None].expand_as(pred_scores)
         pred_boxes = torch.cat([pred_boxes, pred_scores[..., None], pred_cls[..., None]], dim=-1)
 
         keep = pred_scores > self.args.conf

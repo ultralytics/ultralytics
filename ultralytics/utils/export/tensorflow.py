@@ -10,13 +10,16 @@ import numpy as np
 import torch
 
 from ultralytics.nn.modules import Detect, Pose, Pose26
-from ultralytics.utils import LINUX, LOGGER, MACOS
+from ultralytics.utils import LINUX, LOGGER, MACOS, ROCM_EXTRA_INDEX
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_13,
     check_apt_requirements,
     check_requirements,
     check_version,
     is_sudo_available,
+    migraphx_is_available,
+    resolve_onnxruntime_package,
+    rocm_is_available,
 )
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.tal import make_anchors
@@ -101,6 +104,14 @@ def onnx2saved_model(
     if not cuda:
         with contextlib.suppress(Exception):  # fails only if TF GPUs are already initialized by earlier user code
             tf.config.set_visible_devices([], "GPU")  # hide GPUs so non-CUDA exports never allocate GPU memory
+
+    is_rocm = rocm_is_available()
+    is_migraphx = migraphx_is_available()
+    ort_pkg = resolve_onnxruntime_package(cuda=cuda, is_migraphx=is_migraphx, is_rocm=is_rocm)
+
+    extra_index_urls = "--extra-index-url https://pypi.ngc.nvidia.com"  # onnx_graphsurgeon only on NVIDIA
+    if ort_pkg == "onnxruntime-migraphx":
+        extra_index_urls += f" {ROCM_EXTRA_INDEX}"
     check_requirements(
         f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}",  # pin to avoid h5py build issues on aarch64
         cmds="--no-deps",
@@ -114,13 +125,14 @@ def onnx2saved_model(
             "onnx>=1.12.0,<2.0.0",
             f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}",
             "onnxslim>=0.1.82",
-            # Interchangeable candidates so an installed variant (e.g. onnxruntime-gpu) is never dual-installed over
-            ("onnxruntime-gpu" if cuda else "onnxruntime", "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn"),
+            # Interchangeable candidates so an installed variant (e.g. onnxruntime-gpu) is never dual-installed over.
+            # ROCm GPU paths pin to onnxruntime-migraphx; other paths keep onnxruntime-qnn interchangeable.
+            (*ort_pkg, "onnxruntime-qnn") if isinstance(ort_pkg, tuple) else ort_pkg,
             "protobuf>=6.31.1,<7.0.0"
             if IS_PYTHON_MINIMUM_3_13
             else "protobuf>=5",  # TF>2.19 (Python 3.13) needs protobuf>=6.31.1; cap <7 to match TF gencode and avoid PaddlePaddle segfault
         ),
-        cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
+        cmds=extra_index_urls,
     )
 
     LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")

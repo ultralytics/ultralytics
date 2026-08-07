@@ -47,6 +47,10 @@ on:
         type: boolean
         description: Dockerfile-conda
         default: true
+      Dockerfile-amd:
+        type: boolean
+        description: Dockerfile-amd
+        default: true
       push:
         type: boolean
         description: Publish to DockerHub and ghcr.io
@@ -96,6 +100,11 @@ jobs:
             tags: "latest-jetson-jetpack4"
             platforms: "linux/arm64"
             runs_on: "ubuntu-24.04-arm"
+            derivatives: ""
+          - dockerfile: "Dockerfile-amd"
+            tags: "latest-amd"
+            platforms: "linux/amd64"
+            runs_on: "ubuntu-latest"
             derivatives: ""
           # - dockerfile: "Dockerfile-conda"
           #   tags: "latest-conda"

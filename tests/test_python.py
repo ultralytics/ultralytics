@@ -176,6 +176,26 @@ def test_model_forward():
     model(source=None, imgsz=32, augment=True)  # also test no source and augment
 
 
+@pytest.mark.skipif(not TORCH_1_11, reason="RTDETR requires torch>=1.11")
+@pytest.mark.parametrize("cfg", ["rtdetr-l.yaml", "yolov8-rtdetr.yaml"])
+def test_rtdetr_flops(cfg):
+    """Test RT-DETR FLOPs match direct profiles and remain stable."""
+    import thop
+
+    from ultralytics.nn.tasks import RTDETRDetectionModel
+    from ultralytics.utils.torch_utils import get_flops
+
+    model = RTDETRDetectionModel(cfg, verbose=False).eval()
+    p = next(model.parameters())
+    for imgsz in (640, 1280):
+        im = torch.empty((1, p.shape[1], imgsz, imgsz), dtype=p.dtype, device=p.device)
+        expected = thop.profile(model, inputs=[im], verbose=False)[0] / 1e9 * 2
+        actual = get_flops(model, imgsz)
+        assert actual == pytest.approx(expected, rel=1e-10)
+        if imgsz == 640:
+            assert get_flops(model, imgsz) == actual
+
+
 def test_model_methods():
     """Test various methods and properties of the YOLO model to ensure correct functionality."""
     model = YOLO(MODEL)

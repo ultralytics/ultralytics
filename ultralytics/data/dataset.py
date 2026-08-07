@@ -149,10 +149,12 @@ class YOLODataset(BaseDataset):
     def get_label_files(self) -> list[str]:
         """Return the companion label files for the dataset's images, storing them on the instance.
 
+        The label directory name defaults to 'labels' and may be overridden with the dataset YAML 'labels_dirname' key.
+
         Returns:
             (list[str]): List of label file paths.
         """
-        self.label_files = img2label_paths(self.im_files)
+        self.label_files = img2label_paths(self.im_files, label_dir=self.data.get("labels_dirname", "labels"))
         return self.label_files
 
     def get_cache_hash(self) -> str:

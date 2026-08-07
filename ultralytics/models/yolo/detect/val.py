@@ -18,6 +18,24 @@ from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.utils.plotting import plot_images
 
 
+def _compute_box_centers(boxes: np.ndarray) -> np.ndarray:
+    """Compute (x, y) centers for boxes in xyxy, xywhr, or polygon format.
+
+    Args:
+        boxes (np.ndarray): Boxes array of shape (N, 4), (N, 5) for xywhr, or (N, 9) for polygons.
+
+    Returns:
+        (np.ndarray): Centers of shape (N, 2).
+    """
+    if boxes.shape[1] == 9:  # polygon: cls + 4 points (x, y)
+        positions = boxes[:, 1:].reshape(-1, 4, 2)
+        return positions.mean(axis=1)
+    elif boxes.shape[1] == 5:  # xywhr: x, y are the box center
+        return boxes[:, :2]
+    else:  # xyxy
+        return (boxes[:, :2] + boxes[:, 2:4]) / 2.0
+
+
 class DetectionValidator(BaseValidator):
     """A class extending the BaseValidator class for validation based on a detection model.
 
@@ -101,7 +119,7 @@ class DetectionValidator(BaseValidator):
 
     def get_desc(self) -> str:
         """Return a formatted string summarizing class metrics of YOLO model."""
-        return ("%22s" + "%11s" * 6) % ("Class", "Images", "Instances", "Box(P", "R", "mAP50", "mAP50-95)")
+        return ("%22s" + "%11s" * 7) % ("Class", "Images", "Instances", "Box(P", "R", "mAP50", "mAP50-95)", "TP-RMSE")
 
     def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:
         """Apply Non-maximum suppression to prediction outputs.
@@ -180,13 +198,52 @@ class DetectionValidator(BaseValidator):
 
             cls = pbatch["cls"].cpu().numpy()
             no_pred = predn["cls"].shape[0] == 0
+
+            stats = self._process_batch(predn, pbatch)
+            # compute per-TP center offsets (normalized by image diagonal)
+            if no_pred or cls.shape[0] == 0:
+                tp_center_offsets = np.zeros(len(predn["cls"]))  # same size as predictions
+            else:
+                # TP-RMSE calculation (normalized by img diagonal)
+                tp = stats["tp"]
+                tp_preds = tp[:, 0]
+                tp_idx = np.where(tp_preds)[0]
+
+                tp_center_offsets = np.zeros(len(predn["cls"]))
+
+                if tp_idx.size > 0:
+                    gt_idx = stats["match_gt"][tp_idx]
+                    valid = gt_idx >= 0
+                    tp_idx_valid = tp_idx[valid]
+                    gt_idx = gt_idx[valid]
+
+                    if tp_idx_valid.size > 0:
+                        gt_boxes = np.asarray(pbatch["bboxes"].cpu().numpy())
+                        pred_boxes = np.asarray(predn["bboxes"].cpu().numpy())
+
+                        # compute centers
+                        gt_centers = _compute_box_centers(gt_boxes)
+                        pred_centers = _compute_box_centers(pred_boxes)
+                        # keep only TP predictions
+                        pred_centers_tp = pred_centers[tp_idx_valid]
+                        # final distances
+                        dists = np.linalg.norm(
+                            pred_centers_tp - gt_centers[gt_idx],
+                            axis=1,
+                        )
+                        # normalize by image diagonal
+                        imgsz_arr = np.asarray(pbatch["imgsz"])
+                        diag = np.sqrt((imgsz_arr**2).sum()) + 1e-7
+                        tp_center_offsets[tp_idx_valid] = dists / diag
+
             self.metrics.update_stats(
                 {
-                    **self._process_batch(predn, pbatch),
+                    **stats,
                     "target_cls": cls,
                     "target_img": np.unique(cls),
                     "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
                     "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
+                    "tp_center_offset": tp_center_offsets,
                     "im_name": Path(pbatch["im_file"]).name,
                 }
             )
@@ -313,7 +370,45 @@ class DetectionValidator(BaseValidator):
         if batch["cls"].shape[0] == 0 or preds["cls"].shape[0] == 0:
             return {"tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)}
         iou = box_iou(batch["bboxes"], preds["bboxes"])
-        return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
+
+        iou_mask = iou * (batch["cls"][:, None] == preds["cls"])  # mask for GT-Preds of the same classes
+        thr = float(self.iouv[0])  # usually may be 0.5, but it is considered the first value of the real vector
+        x = torch.where(iou_mask > thr)  # composed by index [0 = GT, 1 = PRED]
+        match_gt = torch.full(
+            (preds["cls"].shape[0],),
+            -1,
+            device=preds["cls"].device,
+            dtype=torch.long,
+        )
+
+        if x[0].numel():  # if at least one candidate
+            matches = torch.stack(x, 1)  # [K, 2] -> (gt_i, det_i)
+            m_iou = iou_mask[x[0], x[1]]
+            order = m_iou.argsort(descending=True)
+            matches = matches[order]
+            # greedily (the first one is the highest) keep unique dets then unique gts
+            # unique detections
+            keep = torch.zeros(matches.shape[0], dtype=torch.bool, device=matches.device)
+            seen = set()
+            for i, d in enumerate(matches[:, 1].tolist()):
+                if d not in seen:
+                    keep[i] = True
+                    seen.add(d)
+            matches = matches[keep]
+            # unique GTs
+            keep = torch.zeros(matches.shape[0], dtype=torch.bool, device=matches.device)
+            seen = set()
+            for i, g in enumerate(matches[:, 0].tolist()):
+                if g not in seen:
+                    keep[i] = True
+                    seen.add(g)
+            matches = matches[keep]
+            match_gt[matches[:, 1]] = matches[:, 0]
+
+        return {
+            "tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy(),
+            "match_gt": match_gt.cpu().numpy(),
+        }
 
     def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None) -> torch.utils.data.Dataset:
         """Build YOLO Dataset.

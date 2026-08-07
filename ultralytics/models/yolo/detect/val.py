@@ -60,6 +60,7 @@ class DetectionValidator(BaseValidator):
         self.metrics = DetMetrics()
         self.coco_gt = None
         self.official_gt = False  # True when per-epoch GT is the official COCO annotations json
+        self.image_ids = {}
 
     def _build_coco_ground_truth(self, dataset) -> dict[str, list[dict[str, Any]]]:
         """Build COCO ground truth from the loaded YOLO detection labels."""
@@ -259,13 +260,7 @@ class DetectionValidator(BaseValidator):
                 predn_scaled = self.scale_preds(predn, pbatch)
             if save_json:
                 stem = Path(pbatch["im_file"]).stem
-                pbatch["image_id"] = (
-                    self.image_ids[str(pbatch["im_file"])]
-                    if self.training and self.args.task == "detect"
-                    else int(stem)
-                    if stem.isnumeric()
-                    else stem
-                )
+                pbatch["image_id"] = self.image_ids.get(str(pbatch["im_file"]), int(stem) if stem.isnumeric() else stem)
                 self.pred_to_json(predn_scaled, pbatch)
             if self.args.save_txt:
                 self.save_one_txt(

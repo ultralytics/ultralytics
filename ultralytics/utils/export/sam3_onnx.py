@@ -388,7 +388,7 @@ class SAM3VisionEncoderONNX(nn.Module):
                 num_pos_feats=self.fpn_hidden_size // 2,
             ).to(fpn_feat_2.dtype)
         else:
-            fpn_pos = self.fpn_pos_2
+            fpn_pos = self.fpn_pos_2.to(fpn_feat_2.dtype)  # the buffer is fp32, match the features
         fpn_pos = fpn_pos.expand(batch_size, -1, -1, -1)
 
         if self.has_sam2_neck:

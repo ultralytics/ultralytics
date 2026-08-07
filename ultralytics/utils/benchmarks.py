@@ -123,8 +123,6 @@ def benchmark(
         try:
             if format_arg and format_arg != export_format:
                 continue
-            if IS_PYTHON_MINIMUM_3_13 and not format_arg and export_format in {"saved_model", "pb", "edgetpu"}:
-                continue
 
             # Checks
             if export_format == "pb":

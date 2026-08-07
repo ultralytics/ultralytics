@@ -638,9 +638,9 @@ class Model(torch.nn.Module):
         res = fit_calibration_selective(
             self.model, validator.dataloader, validator.device, max_depth=validator.data.get("max_depth") or 100.0
         )
+        self.predictor = None  # the cached predictor wraps a copy of the module the fit just rewrote
         if res is None:
             return None
-        self.predictor = None  # the cached predictor wraps a copy of the module just changed
         LOGGER.info("Call model.save(...) to persist the calibration.")
         return res["a"], res["b"]
 

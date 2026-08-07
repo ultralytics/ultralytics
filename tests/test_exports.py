@@ -11,6 +11,8 @@ from itertools import product
 from pathlib import Path
 from types import SimpleNamespace
 
+import numpy as np
+
 if sys.platform == "win32":
     os.environ.setdefault("ONEDNN_MAX_CPU_ISA", "AVX2")
 
@@ -185,6 +187,42 @@ def test_int8_calibration_validates_split():
     exporter.imgsz = [32]
     with pytest.raises(FileNotFoundError, match="trainval"):
         exporter.get_int8_calibration_dataloader()
+
+
+def test_export_saved_model_int8_calibration_array(monkeypatch, tmp_path):
+    """Check SavedModel INT8 calibration preserves BHWC float32 images in input order."""
+    from ultralytics.utils.export import tensorflow
+
+    captured = {}
+    batches = [
+        {"img": torch.tensor([[[[0, 1], [2, 3]]] * 3, [[[64, 65], [66, 67]]] * 3], dtype=torch.uint8)},
+        {"img": torch.tensor([[[[255, 254], [253, 252]]] * 3], dtype=torch.uint8)},
+    ]
+    exporter = SimpleNamespace(
+        args=SimpleNamespace(quantize=8, data="coco8.yaml", format="saved_model", opset=None),
+        model=SimpleNamespace(model=[object()]),
+        file=tmp_path / "model.pt",
+        imgsz=[2, 2],
+        metadata={},
+        device=SimpleNamespace(type="cpu"),
+        get_int8_calibration_dataloader=lambda prefix: batches,
+        export_onnx=lambda: tmp_path / "model.onnx",
+    )
+
+    def onnx2saved_model(*args, **kwargs):
+        captured["images"] = kwargs["images"]
+        Path(args[1]).mkdir()
+        return object()
+
+    monkeypatch.setattr("ultralytics.engine.exporter.file_size", lambda _: 1)
+    monkeypatch.setattr(tensorflow, "onnx2saved_model", onnx2saved_model)
+    Exporter.export_saved_model(exporter)
+
+    images = captured["images"]
+    assert images.shape == (3, 2, 2, 3)
+    assert images.dtype == np.float32
+    assert images.min() == 0 and images.max() == 255
+    assert images[:, 0, 0, 0].tolist() == [0.0, 64.0, 255.0]
 
 
 def test_export_rknn_batch_expansion(monkeypatch, tmp_path):

@@ -506,6 +506,8 @@ class Model(torch.nn.Module):
             self.predictor.args = get_cfg(self.predictor.args, args)
             if "project" in args or "name" in args:
                 self.predictor.save_dir = get_save_dir(self.predictor.args)
+        # An explicit batch also batches in-memory PIL/numpy lists, which otherwise infer in a single batch
+        self.predictor.if_set_batch_explicitly = "batch" in kwargs
         if prompts and hasattr(self.predictor, "set_prompts"):  # for SAM-type models
             self.predictor.set_prompts(prompts)
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)

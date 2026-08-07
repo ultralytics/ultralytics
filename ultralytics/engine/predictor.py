@@ -97,6 +97,7 @@ class BasePredictor:
         transforms (Callable): Image transforms for classification.
         callbacks (dict[str, list[Callable]]): Callback functions for different events.
         txt_path (Path): Path to save text results.
+        if_set_batch_explicitly (bool): Whether the user explicitly requested a batch size.
         _lock (threading.Lock): Lock for thread-safe inference.
 
     Methods:
@@ -155,6 +156,7 @@ class BasePredictor:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.txt_path = None
         self._lock = threading.Lock()  # for automatic thread-safe inference
+        self.if_set_batch_explicitly = False  # set by Model.predict() when the user passes an explicit batch size
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, im: torch.Tensor | list[np.ndarray]) -> torch.Tensor:
@@ -275,6 +277,7 @@ class BasePredictor:
             vid_stride=self.args.vid_stride,
             buffer=self.args.stream_buffer,
             channels=getattr(self.model, "channels", 3),
+            if_set_batch_explicitly=self.if_set_batch_explicitly,
         )
         self.source_type = self.dataset.source_type
         if (

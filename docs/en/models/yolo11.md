@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Discover YOLO11, an advancement in real-time object detection, offering excellent accuracy and efficiency for diverse computer vision tasks.
+description: Discover Ultralytics YOLO11, an advancement in real-time object detection, offering excellent accuracy and efficiency for diverse computer vision tasks.
 keywords: YOLO11, real-time object detection, YOLO series, Ultralytics, computer vision, AI, machine learning, deep learning
 ---
 
@@ -55,7 +55,7 @@ YOLO11 builds upon the versatile model range established by earlier Ultralytics 
 | YOLO11-pose | `yolo11n-pose.pt` `yolo11s-pose.pt` `yolo11m-pose.pt` `yolo11l-pose.pt` `yolo11x-pose.pt` | [Pose/Keypoints](../tasks/pose.md)           | ✅       | ✅         | ✅        | ✅     |
 | YOLO11-obb  | `yolo11n-obb.pt` `yolo11s-obb.pt` `yolo11m-obb.pt` `yolo11l-obb.pt` `yolo11x-obb.pt`      | [Oriented Detection](../tasks/obb.md)        | ✅       | ✅         | ✅        | ✅     |
 
-This table provides an overview of the YOLO11 model variants, showcasing their applicability in specific tasks and compatibility with operational modes such as Inference, Validation, Training, and Export. This flexibility makes YOLO11 suitable for a wide range of applications in computer vision, from real-time detection to complex segmentation tasks.
+This table provides an overview of the Ultralytics YOLO11 model variants, showcasing their applicability in specific tasks and compatibility with operational modes such as Inference, Validation, Training, and Export. This flexibility makes YOLO11 suitable for a wide range of applications in computer vision, from real-time detection to complex segmentation tasks.
 
 ## Performance Metrics
 
@@ -201,7 +201,7 @@ Ultralytics YOLO11 introduces several significant advancements over YOLOv8. Key 
 - **Adaptability Across Environments:** YOLO11 can be deployed across various environments, including edge devices, cloud platforms, and systems supporting NVIDIA GPUs.
 - **Broad Range of Supported Tasks:** YOLO11 supports diverse computer vision tasks such as object detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), image classification, pose estimation, and oriented object detection (OBB).
 
-### How do I train a YOLO11 model for object detection?
+### How do I train an Ultralytics YOLO11 model for object detection?
 
 Training a YOLO11 model for object detection can be done using Python or CLI commands. Below are examples for both methods:
 
@@ -228,7 +228,7 @@ Training a YOLO11 model for object detection can be done using Python or CLI com
 
 For more detailed instructions, refer to the [Train](../modes/train.md) documentation.
 
-### What tasks can YOLO11 models perform?
+### What tasks can Ultralytics YOLO11 models perform?
 
 YOLO11 models are versatile and support a wide range of computer vision tasks, including:
 
@@ -240,10 +240,10 @@ YOLO11 models are versatile and support a wide range of computer vision tasks, i
 
 For more information on each task, see the [Detection](../tasks/detect.md), [Instance Segmentation](../tasks/segment.md), [Classification](../tasks/classify.md), [Pose Estimation](../tasks/pose.md), and [Oriented Detection](../tasks/obb.md) documentation.
 
-### How does YOLO11 achieve greater accuracy with fewer parameters?
+### How does Ultralytics YOLO11 achieve greater accuracy with fewer parameters?
 
 YOLO11 achieves greater accuracy with fewer parameters through advancements in model design and optimization techniques. The improved architecture allows for efficient feature extraction and processing, resulting in higher mean Average Precision (mAP) on datasets like COCO while using 22% fewer parameters than YOLOv8m. This makes YOLO11 computationally efficient without compromising on accuracy, making it suitable for deployment on resource-constrained devices.
 
-### Can YOLO11 be deployed on edge devices?
+### Can Ultralytics YOLO11 be deployed on edge devices?
 
 Yes, YOLO11 is designed for adaptability across various environments, including edge devices. Its optimized architecture and efficient processing capabilities make it suitable for deployment on edge devices, cloud platforms, and systems supporting NVIDIA GPUs. This flexibility ensures that YOLO11 can be used in diverse applications, from real-time detection on mobile devices to complex segmentation tasks in cloud environments. For more details on deployment options, refer to the [Export](../modes/export.md) documentation.

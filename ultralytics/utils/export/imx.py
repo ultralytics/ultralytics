@@ -203,6 +203,39 @@ class NMSWrapper(torch.nn.Module):
         return nms_outputs.boxes, nms_outputs.scores, nms_outputs.labels, nms_outputs.n_valid
 
 
+def _patch_mct_sensitivity() -> None:
+    """Replace non-finite MCT mixed-precision sensitivity scores with a large finite penalty.
+
+    MCT scores each layer's quantization candidates by output distortion, and a KL divergence overflow on hopeless
+    low-bit candidates can produce NaN. Those scores are passed unchecked to the PuLP solver, which raises `PulpError:
+    Cannot multiply variables with NaN/inf values` and kills the export. Scaling the finite scores to at most 1 lets a
+    fixed penalty outrank all of them without overflowing, so the offending candidate stays out of the solution the
+    solver would have picked anyway. The scaling does not change that solution because the LP objective minimizes a sum
+    of these scores and its constraints only involve resource utilization.
+    """
+    from model_compression_toolkit.core.common.mixed_precision.search_methods import linear_programming
+
+    solver = linear_programming.MixedPrecisionIntegerLPSolver
+    if getattr(solver.__init__, "_patched", False):
+        return
+    init = solver.__init__
+
+    def patched_init(self, layer_to_sensitivity_mapping, *args, **kwargs):
+        """Sanitize the sensitivity mapping before building the LP problem."""
+        scores = [s for candidates in layer_to_sensitivity_mapping.values() for s in candidates]
+        if not np.isfinite(scores).all():
+            LOGGER.warning("MCT scored some quantization candidates as NaN or inf, penalizing them.")
+            scale = max((s for s in scores if np.isfinite(s) and s > 0), default=1.0)
+            layer_to_sensitivity_mapping = {
+                layer: np.where(np.isfinite(candidates), np.asarray(candidates) / scale, 1e3)
+                for layer, candidates in layer_to_sensitivity_mapping.items()
+            }
+        init(self, layer_to_sensitivity_mapping, *args, **kwargs)
+
+    patched_init._patched = True
+    solver.__init__ = patched_init
+
+
 def torch2imx(
     model: torch.nn.Module,
     output_dir: Path | str,
@@ -278,6 +311,7 @@ def torch2imx(
     from edgemdt_tpc import get_target_platform_capabilities
 
     LOGGER.info(f"\n{prefix} starting export with model_compression_toolkit {mct.__version__}...")
+    _patch_mct_sensitivity()
 
     def representative_dataset_gen(dataloader=dataset):
         for batch in dataloader:

@@ -55,7 +55,7 @@ from ultralytics.utils import (
     WEIGHTS_DIR,
     is_github_action_running,
 )
-from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_13, check_imgsz, check_requirements, check_yolo, is_rockchip
+from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_13, check_imgsz, check_yolo, is_rockchip
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import get_cpu_info, select_device
 
@@ -479,17 +479,21 @@ class ProfileModels:
         Returns:
             (tuple[float, float]): Mean and standard deviation of inference time in milliseconds.
         """
-        check_requirements([("onnxruntime", "onnxruntime-gpu")])  # either package meets requirements
         import onnxruntime as ort
 
-        # Session with either 'TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'
+        from ultralytics.nn.backends import ONNXBackend
+
+        # Session options for consistent benchmarking
         sess_options = ort.SessionOptions()
         sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
         sess_options.intra_op_num_threads = 8  # Limit the number of threads
-        sess = ort.InferenceSession(onnx_file, sess_options, providers=["CPUExecutionProvider"])
 
+        # Initialize ONNXBackend with CPU device for consistent benchmarking
+        backend = ONNXBackend(onnx_file, device=torch.device("cpu"), fp16=False, session_options=sess_options)
+
+        # Prepare input data dictionary for multi-input models
         input_data_dict = {}
-        for input_tensor in sess.get_inputs():
+        for input_tensor in backend.session.get_inputs():
             input_type = input_tensor.type
             if self.check_dynamic(input_tensor.shape):
                 if len(input_tensor.shape) != 4 and self.check_dynamic(input_tensor.shape[1:]):
@@ -514,19 +518,15 @@ class ProfileModels:
             else:
                 raise ValueError(f"Unsupported ONNX datatype {input_type}")
 
-            input_data = np.random.rand(*input_shape).astype(input_dtype)
-            input_name = input_tensor.name
-            input_data_dict[input_name] = input_data
-
-        output_name = sess.get_outputs()[0].name
+            input_data_dict[input_tensor.name] = np.random.rand(*input_shape).astype(input_dtype)
 
         # Warmup runs
         elapsed = 0.0
         for _ in range(3):
-            start_time = time.time()
+            start_time = time.perf_counter()
             for _ in range(self.num_warmup_runs):
-                sess.run([output_name], input_data_dict)
-            elapsed = time.time() - start_time
+                backend.forward(input_data_dict)
+            elapsed = time.perf_counter() - start_time
 
         # Compute number of runs as higher of min_time or num_timed_runs
         num_runs = max(round(self.min_time / (elapsed + eps) * self.num_warmup_runs), self.num_timed_runs)
@@ -534,9 +534,9 @@ class ProfileModels:
         # Timed runs
         run_times = []
         for _ in TQDM(range(num_runs), desc=onnx_file):
-            start_time = time.time()
-            sess.run([output_name], input_data_dict)
-            run_times.append((time.time() - start_time) * 1000)  # Convert to milliseconds
+            start_time = time.perf_counter()
+            backend.forward(input_data_dict)
+            run_times.append((time.perf_counter() - start_time) * 1000)  # Convert to milliseconds
 
         run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=5)  # sigma clipping
         return np.mean(run_times), np.std(run_times)

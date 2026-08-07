@@ -11,8 +11,7 @@ box: 7.5
 close_mosaic: 5
 cls: 0.5
 cls_pw: 0.0
-copy_paste: 0.15
-copy_paste_mode: flip
+copy_paste: 0.0
 cos_lr: false
 cutmix: 0.0
 degrees: 0.0

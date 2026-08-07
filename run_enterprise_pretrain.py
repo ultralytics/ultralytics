@@ -2,8 +2,8 @@
 """Launch one arm of the enterprise-corpus vs Objects365v1 detection pretraining ablation.
 
 Both arms share every hyperparameter except the pretrain data and the epoch-denominated keys that follow from it, so
-the recipe lives in `cfg/recipes/enterprise-{corpus,o365-control}.yaml` rather than here. The corpus arm trains through
-`FederatedDetectionTrainer` (dataset-pure batches, owning-slice cls loss), the o365 arm through the stock trainer.
+the recipe lives in `cfg/recipes/enterprise-{corpus,o365-control}.yaml` rather than here. Both arms train through
+`FederatedDetectionTrainer`. Its dataset-pure batches and owning-slice classification loss are active for the corpus.
 
 Usage:
     python run_enterprise_pretrain.py 0,1 yolo26s-p4p5-wide-deep16-sni.yaml corpus
@@ -22,8 +22,8 @@ from ultralytics import YOLO
 from ultralytics.models.yolo.detect.train_federated import FederatedDetectionTrainer
 
 ARMS = {
-    "corpus": ("enterprise-corpus", "/data/shared-datasets/domain-det/_merged/data.yaml", FederatedDetectionTrainer),
-    "o365": ("enterprise-o365-control", "/data/shared-datasets/yoloe26_data/Objects365v1/Objects365v1.yaml", None),
+    "corpus": ("enterprise-corpus", "/data/shared-datasets/domain-det/_merged/data.yaml"),
+    "o365": ("enterprise-o365-control", "Objects365v1.yaml"),
 }
 INIT = Path("/data/shared-datasets/fatih-runs/enterprise-init")
 
@@ -42,7 +42,7 @@ def main() -> None:
     a.add_argument("--resume", default=None, help="checkpoint to resume from")
     args = a.parse_args()
 
-    recipe_name, data, trainer = ARMS[args.arm]
+    recipe_name, data = ARMS[args.arm]
     recipe = _load_recipe(recipe_name, args.model, epochs=args.epochs, batch=args.batch)
     recipe["amp"] = not args.no_amp
     stem = Path(args.model).stem
@@ -56,7 +56,7 @@ def main() -> None:
             data=data,
             device=args.device,
             pretrained=pretrained,
-            trainer=trainer,
+            trainer=FederatedDetectionTrainer,
             resume=bool(args.resume),
             **train_args,
         )

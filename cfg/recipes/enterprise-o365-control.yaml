@@ -10,8 +10,7 @@ box: 7.5
 close_mosaic: 10
 cls: 0.5
 cls_pw: 0.0
-copy_paste: 0.15
-copy_paste_mode: flip
+copy_paste: 0.0
 cos_lr: false
 cutmix: 0.0
 degrees: 0.0
@@ -46,3 +45,6 @@ warmup_momentum: 0.9
 weight_decay: 0.000125
 workers: 8
 epochs: 150
+quota_alpha: 0.7
+repeat_t: 0.001
+fed_k: 50

@@ -104,14 +104,15 @@ def source_stats(dataset, lo: int, hi: int, t: float) -> tuple[np.ndarray, np.nd
         (np.ndarray): Per-class image count over the slice, length hi - lo.
     """
     labels = dataset.labels
-    per_img = [lb["cls"].astype(np.int64).ravel() - lo for lb in labels]
-    img_id = np.repeat(np.arange(len(labels)), [len(c) for c in per_img])
-    cls = np.concatenate(per_img) if len(labels) else np.zeros(0, np.int64)
-    pairs = np.unique(np.stack([img_id, cls]), axis=1) if cls.size else np.zeros((2, 0), np.int64)
-    counts = np.bincount(pairs[1], minlength=hi - lo).astype(np.float64)  # images holding each class
+    counts = np.zeros(hi - lo, dtype=np.float64)
+    for lb in labels:
+        counts[np.unique(lb["cls"].astype(np.int64).ravel() - lo)] += 1
     r_c = np.maximum(1.0, np.sqrt(t / np.maximum(counts / len(labels), 1e-12)))
-    r = np.ones(len(labels))
-    np.maximum.at(r, pairs[0], r_c[pairs[1]])
+    r = np.fromiter(
+        (r_c[np.unique(lb["cls"].astype(np.int64).ravel() - lo)].max(initial=1.0) for lb in labels),
+        dtype=np.float64,
+        count=len(labels),
+    )
     return r / r.sum(), counts
 
 

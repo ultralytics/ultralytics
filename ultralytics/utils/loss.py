@@ -1423,6 +1423,16 @@ class E2ELoss:
         # final gain
         self.final_o2m = 0.1
 
+    @property
+    def class_weights(self) -> torch.Tensor | None:
+        """Return classification weights shared by both detection losses."""
+        return self.one2many.class_weights
+
+    @class_weights.setter
+    def class_weights(self, value: torch.Tensor | None) -> None:
+        """Set classification weights on both detection losses."""
+        self.one2many.class_weights = self.one2one.class_weights = value
+
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         preds = self.one2many.parse_output(preds)

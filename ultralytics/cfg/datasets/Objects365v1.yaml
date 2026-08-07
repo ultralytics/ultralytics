@@ -10,6 +10,7 @@ path: /data/shared-datasets/yoloe26_data/Objects365v1
 train: images/train # 608,606 images
 val: images/val # 30,000 images
 test:
+offsets: { Objects365v1: 0 }
 
 names:
   0: person

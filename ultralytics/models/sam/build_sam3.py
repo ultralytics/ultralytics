@@ -2,9 +2,13 @@
 
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
+import re
+from pathlib import Path
+
 from torch import nn
 
 from ultralytics.nn.modules.transformer import MLP
+from ultralytics.utils import LOGGER
 from ultralytics.utils.patches import torch_load
 
 from .modules.blocks import PositionEmbeddingSine, RoPEAttention
@@ -354,6 +358,21 @@ def _load_checkpoint(model, checkpoint, interactive=False):
         ckpt = torch_load(f)
     if "model" in ckpt and isinstance(ckpt["model"], dict):
         ckpt = ckpt["model"]
+    # SAM 3.1 renamed the second FPN neck and dropped its unused fourth level, which scalp discarded anyway.
+    # The rename is a no op on SAM 3.0 checkpoints, which already use the sam2_convs name.
+    ckpt = {k.replace("interactive_convs", "sam2_convs"): v for k, v in ckpt.items()}
+    # SAM 3.1 nests the tracker one level deeper and keeps a 16 slot multiplex video head beside the
+    # interactive one. Map only the modules the image point path uses, because the multiplex video
+    # modules have incompatible shapes. Every rename below is a no op on SAM 3.0 checkpoints.
+    # no_mem_embed matters most: the mask decoder adds it to the image embedding, so leaving it
+    # randomly initialized makes point prompts differ from one process to the next.
+    for src, dst in (
+        ("tracker.model.interactive_sam_", "tracker.sam_"),
+        ("tracker.model.interactivity_no_mem_embed", "tracker.no_mem_embed"),
+        ("tracker.model.interactive_mask_downsample", "tracker.mask_downsample"),
+        ("tracker.model.obj_ptr_proj", "tracker.obj_ptr_proj"),
+    ):
+        ckpt.update({k.replace(src, dst): v for k, v in ckpt.items() if src in k})
     sam3_image_ckpt = {k.replace("detector.", ""): v for k, v in ckpt.items() if "detector" in k}
     if interactive:
         sam3_image_ckpt.update(
@@ -378,5 +397,12 @@ def _load_checkpoint(model, checkpoint, interactive=False):
             }
         )
         sam3_image_ckpt.update({k.replace("tracker.", ""): v for k, v in ckpt.items() if "tracker." in k})
-    model.load_state_dict(sam3_image_ckpt, strict=False)
+    # Track what stayed randomly initialized so a mismatched checkpoint fails loudly instead of silently
+    model.missing_keys = set(model.load_state_dict(sam3_image_ckpt, strict=False).missing_keys)
+    if model.missing_keys:
+        modules = sorted({re.sub(r"\.\d+", ".n", k).rsplit(".", 1)[0] for k in model.missing_keys})
+        LOGGER.warning(
+            f"{Path(checkpoint).name} left {len(model.missing_keys)} parameters randomly initialized in "
+            f"{len(modules)} modules, which are untrained and will produce wrong output. Modules {modules[:6]}"
+        )
     return model

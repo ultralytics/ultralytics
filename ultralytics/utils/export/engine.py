@@ -6,6 +6,7 @@ import json
 import types
 from pathlib import Path
 
+import numpy as np
 import torch
 
 from ultralytics.utils import IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, is_dgx, is_jetson
@@ -132,6 +133,8 @@ def modelopt_quantize_onnx(
     dataset=None,
     shape: tuple[int, int, int, int] = (1, 3, 640, 640),
     dynamic: bool = False,
+    dynamic_dim: int = 1,
+    calib_shapes: dict[str, tuple] | None = None,
     prefix: str = "",
 ) -> str:
     """Bake reduced precision into an ONNX model for TensorRT 11 strongly-typed builds using NVIDIA ModelOpt.
@@ -147,6 +150,10 @@ def modelopt_quantize_onnx(
             Required when ``quantize=8``.
         shape (tuple[int, int, int, int]): Input shape (batch, channels, height, width) used for dynamic calibration.
         dynamic (bool): Whether the ONNX model uses dynamic input shapes.
+        dynamic_dim (int): Size to substitute for symbolic dimensions when synthesizing calibration data.
+        calib_shapes (dict[str, tuple] | None): Exact calibration shape per input name, overriding the synthesized
+            one. Needed when several inputs carry related symbolic dimensions, such as feature pyramid levels that
+            must stay at their fixed ratio for the graph to run at all.
         prefix (str): Prefix for log messages.
 
     Returns:
@@ -159,7 +166,8 @@ def modelopt_quantize_onnx(
     check_requirements("nvidia-modelopt[onnx]>=0.44")
     import onnx
 
-    input_name = onnx.load(onnx_file, load_external_data=False).graph.input[0].name
+    input_proto = onnx.load(onnx_file, load_external_data=False).graph.input[0]
+    input_name = input_proto.name
     if quantize == 8:
         from modelopt.onnx.quantization import quantize as modelopt_quantize
 
@@ -194,18 +202,55 @@ def modelopt_quantize_onnx(
 
     from modelopt.onnx import autocast
 
+    # AutoCast only needs representative shapes and ranges, so synthesize one tensor per graph input
+    # from its own declared rank and dtype. A single 4D float image reproduces the original behavior,
+    # while multi input graphs also get valid token ids, masks and symbolic dims.
+    calib = {}
+    for inp in onnx.load(onnx_file, load_external_data=False).graph.input:
+        tt = inp.type.tensor_type
+        dims = [d.dim_value if d.dim_value > 0 else dynamic_dim for d in tt.shape.dim]
+        if not dims:  # a scalar input still needs an array
+            dims = [1]
+        if calib_shapes and inp.name in calib_shapes:
+            dims = list(calib_shapes[inp.name])
+        # Only a dynamic image input needs the caller's size; a declared shape is already correct and
+        # must be kept, otherwise a non image first input would be calibrated at the wrong shape.
+        elif inp.name == input_name and len(dims) == len(shape) and any(d.dim_value <= 0 for d in tt.shape.dim):
+            dims = list(shape)
+        np_dtype = onnx.helper.tensor_dtype_to_np_dtype(tt.elem_type)
+        if np_dtype == np.bool_:
+            calib[inp.name] = np.zeros(dims, dtype=np.bool_)
+        elif np.issubdtype(np_dtype, np.integer):
+            # Integer inputs are usually indices into an embedding, so keep them small and in range.
+            calib[inp.name] = np.ones(dims, dtype=np_dtype)
+        else:
+            calib[inp.name] = np.random.randn(*dims).astype(np_dtype)
+
     out_file = str(Path(onnx_file).with_suffix(".fp16.onnx"))
     LOGGER.info(f"{prefix} converting ONNX to FP16 mixed precision with ModelOpt AutoCast...")
     onnx.save(
         autocast.convert_to_mixed_precision(
-            onnx_file,
-            low_precision_type="fp16",
-            keep_io_types=True,
-            calibration_data={input_name: torch.randn(*shape).cpu().numpy()},
+            onnx_file, low_precision_type="fp16", keep_io_types=True, calibration_data=calib
         ),
         out_file,
     )
     return out_file
+
+
+def write_engine(output_file: Path | str, serialized: bytes, metadata: dict | None = None) -> None:
+    """Write a serialized TensorRT engine, prefixed with a length tagged JSON metadata header.
+
+    Args:
+        output_file (Path | str): Path to write the engine to.
+        serialized (bytes): The serialized TensorRT engine.
+        metadata (dict | None): Metadata to prefix the engine with, or None to write the engine alone.
+    """
+    with open(output_file, "wb") as f:
+        if metadata is not None:
+            meta = json.dumps(metadata)
+            f.write(len(meta).to_bytes(4, byteorder="little", signed=True))
+            f.write(meta.encode())
+        f.write(serialized)
 
 
 def onnx2engine(
@@ -313,7 +358,7 @@ def onnx2engine(
     # TensorRT 11 is strongly-typed and removed the FP16/INT8 builder flags and INT8 calibrator, so reduced
     # precision must be baked into the ONNX graph with NVIDIA ModelOpt before parsing (FP16 AutoCast, INT8 Q/DQ)
     if is_trt11 and (use_fp16 or use_int8):
-        onnx_file = modelopt_quantize_onnx(onnx_file, quantize, dataset, shape, dynamic, prefix)
+        onnx_file = modelopt_quantize_onnx(onnx_file, quantize, dataset, shape, dynamic, prefix=prefix)
 
     # Read ONNX file
     parser = trt.OnnxParser(network, logger)
@@ -448,10 +493,5 @@ def onnx2engine(
         engine = None if engine is None else engine.serialize()
     if engine is None:
         raise RuntimeError("TensorRT engine build failed, check logs for errors")
-    with open(output_file, "wb") as t:
-        if metadata is not None:
-            meta = json.dumps(metadata)
-            t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
-            t.write(meta.encode())
-        t.write(engine)
+    write_engine(output_file, engine, metadata)
     return str(output_file)

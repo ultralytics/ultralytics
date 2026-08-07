@@ -317,25 +317,30 @@ class TransformerDecoder(nn.Module):
         H, W = feat_size
         boxes_xyxy = xywh2xyxy(reference_boxes).transpose(0, 1)
         bs, num_queries, _ = boxes_xyxy.shape
-        if self.compilable_cord_cache is None:
-            self.compilable_cord_cache = self._get_coords(H, W, reference_boxes.device, reference_boxes.dtype)
-            self.compilable_stored_size = (H, W)
-
-        if torch.compiler.is_dynamo_compiling() or self.compilable_stored_size == (
-            H,
-            W,
-        ):
-            # good, hitting the cache, will be compilable
-            coords_h, coords_w = self.compilable_cord_cache
+        if getattr(self, "_export_dynamic_shapes", False):
+            # A cached grid is frozen into the traced graph as a constant, which pins the export to
+            # the size it was traced at, so build it from the size actually being decoded.
+            coords_h, coords_w = self._get_coords(H, W, reference_boxes.device, reference_boxes.dtype)
         else:
-            # cache miss, will create compilation issue
-            # In case we're not compiling, we'll still rely on the dict-based cache
-            if feat_size not in self.coord_cache:
-                self.coord_cache[feat_size] = self._get_coords(H, W, reference_boxes.device, reference_boxes.dtype)
-            coords_h, coords_w = self.coord_cache[feat_size]
+            if self.compilable_cord_cache is None:
+                self.compilable_cord_cache = self._get_coords(H, W, reference_boxes.device, reference_boxes.dtype)
+                self.compilable_stored_size = (H, W)
 
-            assert coords_h.shape == (H,)
-            assert coords_w.shape == (W,)
+            if torch.compiler.is_dynamo_compiling() or self.compilable_stored_size == (
+                H,
+                W,
+            ):
+                # good, hitting the cache, will be compilable
+                coords_h, coords_w = self.compilable_cord_cache
+            else:
+                # cache miss, will create compilation issue
+                # In case we're not compiling, we'll still rely on the dict-based cache
+                if feat_size not in self.coord_cache:
+                    self.coord_cache[feat_size] = self._get_coords(H, W, reference_boxes.device, reference_boxes.dtype)
+                coords_h, coords_w = self.coord_cache[feat_size]
+
+                assert coords_h.shape == (H,)
+                assert coords_w.shape == (W,)
 
         deltas_y = coords_h.view(1, -1, 1) - boxes_xyxy.reshape(-1, 1, 4)[:, :, 1:4:2]
         deltas_y = deltas_y.view(bs, num_queries, -1, 2)

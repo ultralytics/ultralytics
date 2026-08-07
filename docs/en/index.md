@@ -54,17 +54,31 @@ Request an Enterprise License for commercial use at [Ultralytics Licensing](http
 
     [:octicons-arrow-right-24: Learn more](tasks/depth.md)
 
-## Get Started in Two Commands
+## Get Started in One Line
+
+!!! example "One-line install"
+
+    Run one command and you are done. The script installs Python for you if you do not have it, then installs the `yolo` command.
+
+    === "macOS and Linux"
+
+        ```bash
+        curl -fsSL https://raw.githubusercontent.com/ultralytics/ultralytics/main/install.sh | sh
+        ```
+
+    === "Windows"
+
+        ```powershell
+        powershell -c "irm https://raw.githubusercontent.com/ultralytics/ultralytics/main/install.ps1 | iex"
+        ```
+
+Then detect objects in an image with a pretrained YOLO26 model:
 
 ```bash
-# Install the ultralytics package from PyPI
-pip install ultralytics
-
-# Detect objects in an image with a pretrained YOLO26 model
 yolo predict model=yolo26n.pt source='https://github.com/ultralytics/assets/releases/download/v0.0.0/bus.jpg'
 ```
 
-The model weights and the example image download automatically, and the annotated result is saved to `runs/detect/predict`.
+The model weights and the example image download automatically, and the annotated result is saved to `runs/detect/predict`. If you already have Python, `pip install ultralytics` works too.
 
 See the [Quickstart](quickstart.md) guide for the full installation and usage reference.
 

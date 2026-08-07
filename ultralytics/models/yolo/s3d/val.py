@@ -260,6 +260,7 @@ class Stereo3DDetValidator(BaseValidator):
             std_dims=self.std_dims if hasattr(self, "std_dims") else None,
             class_names=self.names if hasattr(self, "names") else None,
             score_k=getattr(self.args, "score_k", 0.5),
+            depth_var_scale=getattr(self.args, "depth_var_scale", 1.0),
         )
 
     def init_metrics(self, model: torch.nn.Module) -> None:

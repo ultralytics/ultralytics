@@ -34,6 +34,37 @@ __all__ = (
 )
 
 
+def grouped_topk(x: torch.Tensor, k: int, groups: int = 8) -> tuple[torch.Tensor, torch.Tensor]:
+    """Select the top-k values of a 2D tensor along dim 1, evaluated as a grouped selection.
+
+    TensorRT selects top-k over a single long axis serially, which makes the NMS-free postprocess top-k one of the
+    costliest layers of an exported engine; that cost is driven by the length of the axis rather than by k. Splitting
+    the axis into independent groups lets TensorRT select within each group in parallel, then a second pass picks the
+    winners out of the ``groups * k`` survivors. This is exact rather than approximate: an element of the global top-k
+    cannot be missing from its own group's top-k, since that would require k elements above it inside that group and
+    therefore k elements above it overall.
+
+    Args:
+        x (torch.Tensor): Scores with shape (batch_size, n).
+        k (int): Number of elements to select.
+        groups (int, optional): Number of groups to split the axis into, halved until the split is valid.
+
+    Returns:
+        (torch.Tensor, torch.Tensor): Top-k values and their indices into ``x``, as ``x.topk(k, dim=1)`` returns.
+    """
+    n = x.shape[1]
+    while groups > 1 and (n % groups or n // groups < k):
+        groups //= 2
+    if groups == 1:  # nothing to gain, e.g. a short axis or one that does not divide evenly
+        return x.topk(k, dim=1)
+    size = n // groups
+    values, index = x.reshape(x.shape[0], groups, size).topk(k, dim=-1)
+    values, winners = values.flatten(1).topk(k, dim=1)
+    # Map each winner back to x: index = group * size + index within group. CoreML MIL lacks integer floor-div
+    # lowering, so use torch.div(rounding_mode="floor") over //.
+    return values, torch.div(winners, k, rounding_mode="floor") * size + index.flatten(1).gather(1, winners)
+
+
 class Detect(nn.Module):
     """YOLO Detect head for object detection models.
 
@@ -251,9 +282,9 @@ class Detect(nn.Module):
             scores, indices = scores.topk(k, dim=1)
             labels = labels.gather(1, indices)
             return scores, labels.float(), indices
-        ori_index = scores.max(dim=-1)[0].topk(k)[1].unsqueeze(-1)
+        ori_index = grouped_topk(scores.max(dim=-1)[0], k)[1].unsqueeze(-1)
         scores = scores.gather(dim=1, index=ori_index.expand(-1, -1, nc))
-        scores, index = scores.flatten(1).topk(k)
+        scores, index = grouped_topk(scores.flatten(1), k)
         idx = (
             ori_index[torch.arange(batch_size)[..., None], index // nc]
             if self.format == "coreml"

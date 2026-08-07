@@ -2723,6 +2723,15 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
     def setup_model(self, model=None, verbose=True):
         """Setup the SAM3VideoSemanticPredictor model."""
+        from pathlib import Path
+
+        # An exported directory holds no tracker with a memory bank, so tracking needs the checkpoint
+        model_path = Path(str(self.args.model))
+        if model_path.is_dir() and model_path.name.endswith(("_onnx", "_engine")):
+            raise NotImplementedError(
+                f"Exported SAM3 directories ({model_path.name}) support image prediction only. "
+                f"Use the .pt checkpoint for video tracking."
+            )
         super().setup_model(model, verbose)
         from .build_sam3 import build_interactive_sam3
 

@@ -128,6 +128,7 @@ class BboxLoss(nn.Module):
         wiou_gamma: float = -1.0,
         wiou_recover: float = 0.0,
         wiou_recover_span: float = 0.0,
+        wiou_recover_norm: bool = False,
     ):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
@@ -156,6 +157,7 @@ class BboxLoss(nn.Module):
         self.wiou_gamma = wiou_gamma  # v2 monotonic focusing exponent (<0 keeps v3; 0 is v1, no focusing at all)
         self.wiou_recover = wiou_recover  # strength of the mosaic-free-epoch gain recovery on beta<1 boxes (0=off)
         self.wiou_recover_span = wiou_recover_span  # epochs the recovery ramps over; 0 applies it in full at once
+        self.wiou_recover_norm = wiou_recover_norm  # rescale the recovered loss back to its pre-recovery total
         self.wiou_recover_w = 0.0  # current recovery weight, set once per epoch by the loss that owns the schedule
         self.register_buffer("iou_mean", torch.tensor(1.0))  # running mean IoU loss, WIoU's outlier-degree denominator
 
@@ -187,12 +189,18 @@ class BboxLoss(nn.Module):
             else:  # v3: gain peaks at ordinary anchors, decays toward harmful outliers and toward easy ones (beta~0)
                 r = beta / (self.wiou_delta * torch.pow(self.wiou_alpha, beta - self.wiou_delta))
             r.clamp_(min=self.wiou_rmin)  # keep a share of the gradient on high-IoU boxes (0 = paper behaviour)
+            r_pre = r  # gain before recovery, for the scale-neutral renormalization below
             if self.wiou_recover_w:  # mosaic-free epochs: hand the gain back toward 1 on better-than-average boxes,
                 # so the clean-data stretch refines them at full weight. The clamp guards alpha settings whose peak
                 # sits left of beta==1, where the gain there already exceeds 1 and must not be pulled down.
                 r = torch.where(beta < 1.0, r + self.wiou_recover_w * (1.0 - r).clamp_min(0.0), r)
             # CIoU already carries rho2/c2, so the exp() distance attention would apply it twice
-            per_box = r * base if self.wiou_ciou else r * wiou_dist(pred_fg, target_fg) * l_iou
+            graded = base if self.wiou_ciou else wiou_dist(pred_fg, target_fg) * l_iou
+            per_box = r * graded
+            if self.wiou_recover_w and self.wiou_recover_norm:  # hold the weighted total at its pre-recovery level, so
+                # recovery only reshapes the gain. Left free it raises the box loss ~27%, which tilts the box-vs-cls
+                # balance and shows up as more low-quality detections rather than as better localization.
+                per_box = per_box * (((r_pre * graded) * weight).sum() / (per_box * weight).sum()).detach()
             if self.wiou_penalty:  # restore CIoU's additive center/aspect penalties, not scaled by the focusing gain
                 per_box = per_box + self.wiou_penalty * (l_ciou - l_iou)  # (1-CIoU) - (1-IoU) == rho2/c2 + alpha*v
             if self.wiou_ar:  # aspect term only: WIoU's exp() already covers the center distance
@@ -654,6 +662,7 @@ class v8DetectionLoss:
             wiou_gamma=getattr(h, "wiou_gamma", -1.0),
             wiou_recover=getattr(h, "wiou_recover", 0.0),
             wiou_recover_span=getattr(h, "wiou_recover_span", 0.0),
+            wiou_recover_norm=getattr(h, "wiou_recover_norm", False),
         ).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
         self.updates = 0  # epochs completed, advanced by update(); an e2e wrapper drives its branches itself

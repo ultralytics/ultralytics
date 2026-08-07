@@ -300,6 +300,7 @@ CFG_BOOL_KEYS = frozenset(
         "shape_iou",
         "wiou",
         "wiou_ciou",
+        "wiou_recover_norm",
         "small_center_fill",
         "o2m",
         "o24",

@@ -177,6 +177,7 @@ class YOLOEDetectValidator(DetectionValidator):
                 from ultralytics.nn.tasks import load_checkpoint
 
                 model, _ = load_checkpoint(model, device=self.device)  # model, ckpt
+            # BaseValidator copies whatever module it is handed, so this path needs no copy of its own
             model.eval().to(self.device)
             data = check_det_dataset(refer_data or self.args.data)
             names = [name.split("/", 1)[0] for name in list(data["names"].values())]

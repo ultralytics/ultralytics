@@ -456,7 +456,8 @@ class YOLOE(Model):
                 are computed.
             visual_prompts (dict[str, list]): Dictionary containing visual prompts for the model. Must include 'bboxes'
                 and 'cls' keys when non-empty.
-            refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
+            refer_image (str | PIL.Image | np.ndarray | list, optional): Reference image for visual prompts. Pass a list
+                to merge prompts from multiple reference images, with one set of 'bboxes' and 'cls' per image.
             predictor (callable): Custom predictor class for visual prompt predictions. Defaults to
                 YOLOEVPDetectPredictor.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
@@ -480,6 +481,11 @@ class YOLOE(Model):
                 f"Expected equal number of bounding boxes and classes, but got {len(visual_prompts['bboxes'])} and "
                 f"{len(visual_prompts['cls'])} respectively"
             )
+            if isinstance(refer_image, list):  # one set of prompts per reference image
+                assert len(visual_prompts["cls"]) == len(refer_image), (
+                    f"Expected {len(refer_image)} sets of prompts for {len(refer_image)} reference images, but got "
+                    f"{len(visual_prompts['cls'])}"
+                )
             if type(self.predictor) is not predictor:
                 args = get_cfg(overrides={**self.overrides, **kwargs})
                 self.predictor = predictor(
@@ -496,11 +502,12 @@ class YOLOE(Model):
                     _callbacks=self.callbacks,
                 )
 
-            num_cls = (
-                max(len(set(c)) for c in visual_prompts["cls"])
-                if isinstance(source, list) and refer_image is None  # means multiple images
-                else len(set(visual_prompts["cls"]))
-            )
+            if isinstance(refer_image, list):  # class IDs are shared across reference images
+                num_cls = max(int(max(c)) + 1 for c in visual_prompts["cls"])
+            elif isinstance(source, list) and refer_image is None:  # means multiple images
+                num_cls = max(len(set(c)) for c in visual_prompts["cls"])
+            else:
+                num_cls = len(set(visual_prompts["cls"]))
             self.model.model[-1].nc = num_cls
             self.model.names = [f"object{i}" for i in range(num_cls)]
             self.predictor.set_prompts(visual_prompts.copy())

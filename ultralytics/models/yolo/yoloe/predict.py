@@ -164,25 +164,38 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
     def get_vpe(self, source):
         """Process the source to get the visual prompt embeddings (VPE).
 
-        Preprocesses a single image via preprocess(), which converts the visual prompts to tensor format (and
-        letterboxes array inputs), then extracts the VPE from the model.
+        Preprocesses each image via preprocess(), which converts the visual prompts to tensor format (and letterboxes
+        array inputs), then extracts the VPE from the model. Multiple reference images are embedded one by one and
+        merged class-wise, so each class embedding averages every reference example of that class.
 
         Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of the image to
-                make predictions on. Accepts various types including file paths, URLs, PIL images, numpy arrays, and
-                torch tensors. Only single images are supported.
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of the image(s)
+                to make predictions on. Accepts various types including file paths, URLs, PIL images, numpy arrays, and
+                torch tensors. A list of reference images requires one set of `bboxes` and `cls` prompts per image.
 
         Returns:
             (torch.Tensor): The visual prompt embeddings (VPE) from the model.
 
         Raises:
-            AssertionError: If the source contains more than one image.
+            AssertionError: If the source does not fit in a single batch, e.g. a directory of images.
         """
         self.setup_source(source)
-        assert len(self.dataset) == 1, "get_vpe only supports one image!"
+        assert len(self.dataset) == self.dataset.bs, "get_vpe only supports a single image or a list of images!"
         for _, im0s, _ in self.dataset:
-            im = self.preprocess(im0s)
-            return self.model(im, vpe=self.prompts, return_vpe=True)
+            if len(im0s) == 1:  # single reference image
+                im = self.preprocess(im0s)
+                return self.model(im, vpe=self.prompts, return_vpe=True)
+            prompts = self.prompts  # one set of prompts per reference image
+            vpes = []
+            for i, im in enumerate(im0s):
+                self.prompts = {k: prompts[k][i] for k in ("bboxes", "cls")}  # prompts of the current image
+                vpes.append(self.model(self.preprocess([im]), vpe=self.prompts, return_vpe=True))
+            vpe = []
+            for i in range(len(self.model.names)):  # merge embeddings class-wise across reference images
+                # An image embeds class i only if prompted for it, at the index of i in its sorted unique classes
+                stack = [v[0, np.unique(c).tolist().index(i)] for v, c in zip(vpes, prompts["cls"]) if i in c]
+                vpe.append(torch.nn.functional.normalize(torch.stack(stack).mean(0), p=2, dim=-1))
+            return torch.stack(vpe)[None]
 
 
 class YOLOEVPSegPredictor(YOLOEVPDetectPredictor, SegmentationPredictor):

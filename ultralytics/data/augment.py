@@ -335,7 +335,7 @@ class BaseMixTransform(BaseTransform):
             >>> transform = BaseMixTransform(dataset, pre_transform=None, p=0.5)
             >>> result = transform({"image": img, "bboxes": boxes, "cls": classes})
         """
-        if random.uniform(0, 1) > self.p:
+        if random.random() >= self.p:
             return labels
 
         params = self.get_params(labels)
@@ -2108,49 +2108,12 @@ class Albumentations(BaseTransform):
 
             check_version(A.__version__, "1.0.3", hard=True)  # version requirement
 
-            # List of possible spatial transforms
-            spatial_transforms = {
-                "Affine",
-                "BBoxSafeRandomCrop",
-                "CenterCrop",
-                "CoarseDropout",
-                "Crop",
-                "CropAndPad",
-                "CropNonEmptyMaskIfExists",
-                "D4",
-                "ElasticTransform",
-                "Flip",
-                "GridDistortion",
-                "GridDropout",
-                "HorizontalFlip",
-                "Lambda",
-                "LongestMaxSize",
-                "MaskDropout",
-                "MixUp",
-                "Morphological",
-                "NoOp",
-                "OpticalDistortion",
-                "PadIfNeeded",
-                "Perspective",
-                "PiecewiseAffine",
-                "PixelDropout",
-                "RandomCrop",
-                "RandomCropFromBorders",
-                "RandomGridShuffle",
-                "RandomResizedCrop",
-                "RandomRotate90",
-                "RandomScale",
-                "RandomSizedBBoxSafeCrop",
-                "RandomSizedCrop",
-                "Resize",
-                "Rotate",
-                "SafeRotate",
-                "ShiftScaleRotate",
-                "SmallestMaxSize",
-                "Transpose",
-                "VerticalFlip",
-                "XYMasking",
-            }  # from https://albumentations.ai/docs/2-core-concepts/targets/
+            def is_spatial(t) -> bool:
+                """Return whether a transform warps geometry, recursing into composition wrappers."""
+                # Wrappers such as OneOf are BaseCompose, not DualTransform, so their contents decide
+                return isinstance(t, A.DualTransform) or (
+                    isinstance(t, A.BaseCompose) and any(is_spatial(x) for x in t.transforms)
+                )
 
             # Transforms, use custom transforms if provided, otherwise use defaults
             T = (
@@ -2168,9 +2131,15 @@ class Albumentations(BaseTransform):
             )
 
             # Compose transforms
-            self.contains_spatial = any(transform.__class__.__name__ in spatial_transforms for transform in T)
+            self.contains_spatial = any(is_spatial(transform) for transform in T)
             self.transform = (
-                A.Compose(T, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
+                A.Compose(
+                    T,
+                    bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels", "idx"]),
+                    # polygons and landmarks ride this target; pidx says which of them came back, since a
+                    # distortion remaps points through an index mask and drops every rounding collision
+                    keypoint_params=A.KeypointParams(format="xy", remove_invisible=False, label_fields=["pidx"]),
+                )
                 if self.contains_spatial
                 else A.Compose(T)
             )
@@ -2195,6 +2164,7 @@ class Albumentations(BaseTransform):
                 - 'cls': np.ndarray of class labels
                 - 'instances': object containing bounding boxes and other instance information
                 - 'semantic_mask': optional np.ndarray of semantic class IDs
+                - 'depth': optional np.ndarray of metric depth values
 
         Returns:
             (dict[str, Any]): The input dictionary with augmented image and updated annotations.
@@ -2204,7 +2174,9 @@ class Albumentations(BaseTransform):
             >>> labels = {
             ...     "img": np.random.rand(640, 640, 3),
             ...     "cls": np.array([0, 1]),
-            ...     "instances": Instances(bboxes=np.array([[0, 0, 1, 1], [0.5, 0.5, 0.8, 0.8]])),
+            ...     "instances": Instances(
+            ...         bboxes=np.array([[0, 0, 1, 1], [0.5, 0.5, 0.8, 0.8]]), segments=np.zeros((0, 1000, 2))
+            ...     ),
             ... }
             >>> augmented = transform(labels)
             >>> assert augmented["img"].shape == (640, 640, 3)
@@ -2214,7 +2186,7 @@ class Albumentations(BaseTransform):
             - Spatial transforms update bounding boxes, while non-spatial transforms only modify the image.
             - Requires the Albumentations library to be installed.
         """
-        if self.transform is None or random.random() > self.p:
+        if self.transform is None or random.random() >= self.p:
             return labels
 
         im = labels["img"]
@@ -2223,22 +2195,63 @@ class Albumentations(BaseTransform):
 
         if self.contains_spatial:
             cls = labels["cls"]
-            mask = labels.get("semantic_mask")
-            if len(cls) or mask is not None:
-                labels["instances"].convert_bbox("xywh")
-                labels["instances"].normalize(*im.shape[:2][::-1])
-                bboxes = labels["instances"].bboxes
-                # TODO: add supports of segments and keypoints
-                new = self.transform(
-                    image=im, bboxes=bboxes, class_labels=cls, **({"mask": mask} if mask is not None else {})
-                )
-                if len(new["class_labels"]) > 0 or mask is not None:  # only box-only samples skip on losing all boxes
-                    labels["img"] = new["image"]
-                    labels["cls"] = np.array(new["class_labels"]).reshape(-1, 1)
-                    bboxes = np.array(new["bboxes"], dtype=np.float32).reshape(-1, 4)
-                    if mask is not None:
-                        labels["semantic_mask"] = new["mask"]
-                labels["instances"].update(bboxes=bboxes)
+            key = "semantic_mask" if labels.get("semantic_mask") is not None else "depth"  # both warp as a mask target
+            mask = labels.get(key)
+            instances = labels["instances"]
+            instances.convert_bbox("xywh")
+            instances.normalize(*im.shape[:2][::-1])
+            segments, keypoints = instances.segments, instances.keypoints
+            h, w = im.shape[:2]
+            points = segments.reshape(-1, 2)
+            # A mirror here moves a landmark to the right pixel without swapping its left/right identity, which is
+            # what flip_idx does for `fliplr`; nothing tells us statically that an entry mirrors. RandomPerspective
+            # warps keypoints on the same terms, so this follows the file rather than adding a second rule.
+            if keypoints is not None:  # landmarks follow the polygon vertices in the same target
+                points = np.concatenate((points, keypoints[..., :2].reshape(-1, 2)))
+            points = (points * (w, h)).astype(np.float32)  # the keypoint target is in pixels
+            new = self.transform(
+                image=im,
+                bboxes=instances.bboxes,
+                class_labels=cls,
+                idx=np.arange(len(cls)),  # class values repeat, so only indices identify the surviving rows
+                keypoints=points,
+                pidx=np.arange(len(points)),
+                **({"mask": mask} if mask is not None else {}),
+            )
+            if mask is not None or len(new["class_labels"]) or not len(cls):  # keep unless a crop lost every box
+                h, w = new["image"].shape[:2]  # a crop or a resize changes the size
+                i = np.array(new["idx"], dtype=int)  # albumentations filters the boxes, never the point targets
+                n = segments.size // 2
+                lost = np.ones(len(points), bool)
+                lost[np.array(new["pidx"], dtype=int)] = False  # a dropped point has no new position to move to
+                moved = points.copy()
+                moved[~lost] = np.array(new["keypoints"], dtype=np.float32)
+                if keypoints is not None:
+                    xy = moved[n:].reshape(*keypoints.shape[:2], 2)[i]
+                    # as RandomPerspective.apply_keypoints, plus the ones the remap never returned
+                    out = ((xy < 0) | (xy > (w, h))).any(-1, keepdims=True)
+                    gone = lost[n:].reshape(*keypoints.shape[:2], 1)[i] | out
+                    keypoints = np.concatenate((xy.clip(0, (w, h)), np.where(gone, 0, keypoints[i][..., 2:])), -1)
+                if n:  # boxes follow the polygons, as they do in RandomPerspective
+                    v = np.flatnonzero(~lost[:n])
+                    if 0 < len(v) < n:  # a collapsed vertex would otherwise keep its pre-transform place
+                        moved[:n] = moved[v[np.searchsorted(v, np.arange(n)).clip(0, len(v) - 1)]]
+                    segments = moved[:n].reshape(segments.shape)[i]
+                    bboxes = np.array([segment2box(s, w, h) for s in segments], np.float32).reshape(-1, 4)
+                    segments[..., 0] = segments[..., 0].clip(bboxes[:, 0:1], bboxes[:, 2:3])
+                    segments[..., 1] = segments[..., 1].clip(bboxes[:, 1:2], bboxes[:, 3:4])
+                    instances = Instances(bboxes, segments, keypoints, bbox_format="xyxy", normalized=False)
+                    instances.normalize(w, h)
+                else:
+                    if keypoints is not None:
+                        keypoints[..., 0] /= w
+                        keypoints[..., 1] /= h
+                    instances.update(np.array(new["bboxes"], dtype=np.float32).reshape(-1, 4), keypoints=keypoints)
+                labels["img"] = new["image"]
+                labels["cls"] = cls[i].reshape(-1, 1)  # depth and semantic labels arrive one-dimensional
+                labels["instances"] = instances
+                if mask is not None:
+                    labels[key] = new["mask"]
         else:
             labels["img"] = self.transform(image=labels["img"])["image"]  # transformed
 
@@ -2444,7 +2457,7 @@ class Format(BaseTransform):
         if len(img.shape) < 3:
             img = img[..., None]
         img = img.transpose(2, 0, 1)
-        img = np.ascontiguousarray(img[::-1] if random.uniform(0, 1) > self.bgr and img.shape[0] == 3 else img)
+        img = np.ascontiguousarray(img[::-1] if random.random() >= self.bgr and img.shape[0] == 3 else img)
         img = torch.from_numpy(img)
         return img
 

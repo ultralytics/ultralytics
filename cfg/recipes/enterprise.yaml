@@ -50,4 +50,4 @@ workers: 8
 epochs: 78
 quota_alpha: 0.7
 repeat_t: 0.001
-fed_k: 50
+fed_k: 365

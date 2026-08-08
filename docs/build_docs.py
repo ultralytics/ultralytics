@@ -85,7 +85,7 @@ def prepare_docs_markdown(clone_repos: bool = True):
 def update_markdown_files(md_filepath: Path):
     """Create or update a Markdown file, ensuring frontmatter is present."""
     if md_filepath.exists():
-        content = md_filepath.read_text().strip()
+        content = md_filepath.read_text(encoding="utf-8").strip()
 
         # Replace apostrophes
         content = content.replace("‘", "'").replace("’", "'")
@@ -119,7 +119,7 @@ def update_markdown_files(md_filepath: Path):
             content += "\n"
 
         # Save page
-        md_filepath.write_text(content)
+        md_filepath.write_text(content, encoding="utf-8")
 
 
 def update_docs_html():

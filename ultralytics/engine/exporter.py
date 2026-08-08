@@ -169,7 +169,7 @@ def export_formats():
             "_openvino_model",
             True,
             False,
-            ["batch", "data", "dynamic", "quantize", "nms", "fraction"],
+            ["batch", "data", "dynamic", "quantize", "nms", "fraction", "calibration_batch"],
             "base",
         ],
         [
@@ -178,7 +178,18 @@ def export_formats():
             ".engine",
             False,
             True,
-            ["batch", "data", "dynamic", "quantize", "opset", "simplify", "workspace", "nms", "fraction"],
+            [
+                "batch",
+                "data",
+                "dynamic",
+                "quantize",
+                "opset",
+                "simplify",
+                "workspace",
+                "nms",
+                "fraction",
+                "calibration_batch",
+            ],
             "base",
         ],
         ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "quantize", "nms"], "coreml"],
@@ -972,6 +983,32 @@ class Exporter:
     def get_int8_calibration_dataloader(self, prefix=""):
         """Build and return a dataloader for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
+        data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
+
+        calibration_batch = self.args.calibration_batch if self.args.calibration_batch is not None else self.args.batch
+        if calibration_batch <= 0:
+            raise ValueError("calibration_batch must be a positive integer")
+        fmt = str(self.args.format).lower()
+        if fmt in {"engine", "tensorrt", "trt"} and calibration_batch > self.args.batch:
+            raise ValueError(
+                f"calibration_batch={calibration_batch} cannot exceed batch={self.args.batch} for TensorRT export, "
+                f"set calibration_batch <= batch or increase batch."
+            )
+
+        quantize = getattr(self.args, "quantize", None)
+        quantize_label = str(quantize).strip().lower() if quantize is not None else ""
+        int8_enabled = quantize == 8 or quantize_label in {"8", "int8"}
+        legacy_int8 = getattr(self.args, "int8", None)
+        if legacy_int8 is not None:
+            int8_enabled = int8_enabled or bool(legacy_int8)
+
+        dynamic = bool(getattr(self.args, "dynamic", False))
+        if int8_enabled and fmt in {"engine", "openvino"} and not dynamic and calibration_batch != self.args.batch:
+            raise ValueError(
+                f"calibration_batch={calibration_batch} cannot differ from batch={self.args.batch} for {fmt} INT8 export "
+                f"when dynamic=False. Please set calibration_batch == batch or use dynamic=True."
+            )
+
         cfg = deepcopy(self.args)
         cfg.imgsz = max(self.imgsz)
         if self.model.task == "classify":
@@ -988,7 +1025,7 @@ class Exporter:
             dataset = build_yolo_dataset(
                 cfg,
                 data[self.args.split or "val"],
-                self.args.batch,
+                calibration_batch,
                 data,
                 mode="val",
                 fraction=self.args.fraction,
@@ -998,8 +1035,8 @@ class Exporter:
         n = len(dataset)
         if n < 1:
             raise ValueError(f"The calibration dataset must have at least 1 image, but found {n} images.")
-        batch = min(self.args.batch, n)
-        if n < self.args.batch:
+        batch = min(calibration_batch, n)
+        if n < calibration_batch:
             LOGGER.warning(
                 f"{prefix} calibration dataset has only {n} images, reducing calibration batch size to {batch}."
             )

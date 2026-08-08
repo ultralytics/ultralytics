@@ -181,7 +181,9 @@ def test_int8_calibration_validates_split():
     """Check INT8 calibration rejects dataset splits that do not exist."""
     exporter = object.__new__(Exporter)
     exporter.model = SimpleNamespace(task="obb")
-    exporter.args = SimpleNamespace(data="coco8.yaml", split="trainval")
+    exporter.args = SimpleNamespace(
+        data="coco8.yaml", split="trainval", format="engine", batch=1, calibration_batch=None
+    )
     exporter.imgsz = [32]
     with pytest.raises(FileNotFoundError, match="trainval"):
         exporter.get_int8_calibration_dataloader()
@@ -256,6 +258,58 @@ def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
 
     assert not errors, f"Concurrent export errors: {errors}"
     assert max_active == 1, f"Expected max 1 concurrent export, got {max_active}"
+
+
+def test_export_calibration_batch(monkeypatch):
+    """Test that calibration_batch overrides batch for INT8 calibration and is capped by batch for TensorRT."""
+    import ultralytics.engine.exporter as exporter_module
+
+    format_args = dict(zip(export_formats()["Argument"], export_formats()["Arguments"]))
+    assert "calibration_batch" in format_args["engine"] and "calibration_batch" in format_args["openvino"]
+
+    overrides = {
+        "format": "engine",
+        "quantize": 8,
+        "batch": 8,
+        "data": "coco8.yaml",
+        "calibration_batch": 4,
+        "dynamic": True,
+    }
+    exporter = Exporter(overrides=overrides)
+    exporter.model = SimpleNamespace(task="detect")
+    exporter.imgsz = [640, 640]
+    monkeypatch.setattr(exporter_module, "check_det_dataset", lambda data, split=None: {"val": "dummy_path"})
+    monkeypatch.setattr(exporter_module, "build_yolo_dataset", lambda cfg, path, batch, data, **kwargs: [0] * 10)
+    monkeypatch.setattr(exporter_module, "build_dataloader", lambda dataset, batch, **kwargs: batch)
+    assert exporter.get_int8_calibration_dataloader() == 4
+
+    exporter.args.batch = 2  # TensorRT calibrates inside the engine batch, so calibration_batch may not exceed it
+    with pytest.raises(ValueError, match="cannot exceed"):
+        exporter.get_int8_calibration_dataloader()
+
+
+def test_exporter_static_batch_openvino_calibration_batch_guard(monkeypatch):
+    """Ensure static INT8 OpenVINO exports reject differing calibration_batch values."""
+    import ultralytics.engine.exporter as exporter_module
+
+    exporter = exporter_module.Exporter(
+        overrides={"format": "openvino", "int8": True, "batch": 4, "dynamic": False, "data": "coco128.yaml"}
+    )
+    exporter.model = SimpleNamespace(task="detect")
+    exporter.imgsz = [640, 640]
+    exporter.args.split = "val"
+    exporter.args.fraction = 1.0
+    exporter.args.format = "openvino"
+    exporter.args.dynamic = False
+    exporter.args.calibration_batch = 2
+
+    def fake_check_det_dataset(data):
+        return {"val": "dummy_path"}
+
+    monkeypatch.setattr(exporter_module, "check_det_dataset", fake_check_det_dataset)
+
+    with pytest.raises(ValueError, match=r"calibration_batch.*batch.*dynamic=False"):
+        exporter.get_int8_calibration_dataloader()
 
 
 @pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")

@@ -243,7 +243,15 @@ def _assert_backbone_compatible(phase1_weights: str, model_yaml: str) -> None:
 # of inheriting a drifted code default (keys listed under `_aug_by_scale` resolve per model size and may deviate from
 # the reference arm, see the profile header). A non-distilled backbone on coco takes `--recipe coco-adapt`.
 _RECIPE_DIR = Path(_REPO_ROOT) / "cfg" / "recipes"
-_RECIPE_DELTA_CASTS = dict(epochs=int, patience=int, batch=int, lr0=float, nbs=int, backbone_lr_ratio=float)
+_RECIPE_DELTA_CASTS = {
+    "epochs": int,
+    "patience": int,
+    "batch": int,
+    "lr0": float,
+    "nbs": int,
+    "backbone_lr_ratio": float,
+    "quota_alpha": float,
+}
 
 
 def _load_recipe(name: str, model_yaml: str, **deltas: str | int | None) -> dict:

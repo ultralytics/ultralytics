@@ -43,11 +43,20 @@ def main() -> None:
     a.add_argument("--no-amp", action="store_true", help="ultravit arms, which are unstable under fp16")
     a.add_argument("--epochs", type=int, default=None)
     a.add_argument("--batch", type=int, default=None)
+    a.add_argument("--backbone-lr-ratio", type=float, default=None)
+    a.add_argument("--quota-alpha", type=float, default=None)
     a.add_argument("--resume", default=None, help="checkpoint to resume from")
     args = a.parse_args()
 
     recipe_name, data, trainer = ARMS[args.arm]
-    recipe = _load_recipe(recipe_name, args.model, epochs=args.epochs, batch=args.batch)
+    recipe = _load_recipe(
+        recipe_name,
+        args.model,
+        epochs=args.epochs,
+        batch=args.batch,
+        backbone_lr_ratio=args.backbone_lr_ratio,
+        quota_alpha=args.quota_alpha,
+    )
     recipe["amp"] = not args.no_amp
     stem = Path(args.model).stem
     pretrained = args.pretrained or str(INIT / ("ultravit_s.pt" if "ultravit" in stem else "c3k2_s.pt"))

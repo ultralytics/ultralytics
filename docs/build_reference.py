@@ -158,7 +158,7 @@ def _existing_frontmatter(md_filepath: Path) -> str:
 def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: list[str], functions: list[str]) -> Path:
     """Create a minimal Markdown reference stub."""
     md_filepath = REFERENCE_DIR / py_filepath.relative_to(PACKAGE_DIR).with_suffix(".md")
-    exists = md_filepath.exists()
+    md_filepath.exists()
 
     header_content = _existing_frontmatter(md_filepath)
     if not header_content:

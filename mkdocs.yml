@@ -701,11 +701,11 @@ nav:
   - Rust Inference: inference/index.md
 
   - Reference:
-        - reference/index.md
-        - __init__: docs\en\reference\__init__.md
-        - cfg:
+      - reference/index.md
+      - __init__: docs\en\reference\__init__.md
+      - cfg:
           - __init__: docs\en\reference\cfg\__init__.md
-        - data:
+      - data:
           - annotator: docs\en\reference\data\annotator.md
           - augment: docs\en\reference\data\augment.md
           - base: docs\en\reference\data\base.md
@@ -716,7 +716,7 @@ nav:
           - split: docs\en\reference\data\split.md
           - split_dota: docs\en\reference\data\split_dota.md
           - utils: docs\en\reference\data\utils.md
-        - engine:
+      - engine:
           - exporter: docs\en\reference\engine\exporter.md
           - model: docs\en\reference\engine\model.md
           - predictor: docs\en\reference\engine\predictor.md
@@ -724,133 +724,133 @@ nav:
           - trainer: docs\en\reference\engine\trainer.md
           - tuner: docs\en\reference\engine\tuner.md
           - validator: docs\en\reference\engine\validator.md
-        - hub:
+      - hub:
           - __init__: docs\en\reference\hub\__init__.md
           - auth: docs\en\reference\hub\auth.md
           - google:
-            - __init__: docs\en\reference\hub\google\__init__.md
+              - __init__: docs\en\reference\hub\google\__init__.md
           - session: docs\en\reference\hub\session.md
           - utils: docs\en\reference\hub\utils.md
-        - models:
+      - models:
           - __init__: docs\en\reference\models\__init__.md
           - fastsam:
-            - model: docs\en\reference\models\fastsam\model.md
-            - predict: docs\en\reference\models\fastsam\predict.md
-            - utils: docs\en\reference\models\fastsam\utils.md
-            - val: docs\en\reference\models\fastsam\val.md
+              - model: docs\en\reference\models\fastsam\model.md
+              - predict: docs\en\reference\models\fastsam\predict.md
+              - utils: docs\en\reference\models\fastsam\utils.md
+              - val: docs\en\reference\models\fastsam\val.md
           - nas:
-            - model: docs\en\reference\models\nas\model.md
-            - predict: docs\en\reference\models\nas\predict.md
-            - val: docs\en\reference\models\nas\val.md
+              - model: docs\en\reference\models\nas\model.md
+              - predict: docs\en\reference\models\nas\predict.md
+              - val: docs\en\reference\models\nas\val.md
           - rtdetr:
-            - model: docs\en\reference\models\rtdetr\model.md
-            - predict: docs\en\reference\models\rtdetr\predict.md
-            - train: docs\en\reference\models\rtdetr\train.md
-            - val: docs\en\reference\models\rtdetr\val.md
+              - model: docs\en\reference\models\rtdetr\model.md
+              - predict: docs\en\reference\models\rtdetr\predict.md
+              - train: docs\en\reference\models\rtdetr\train.md
+              - val: docs\en\reference\models\rtdetr\val.md
           - sam:
-            - amg: docs\en\reference\models\sam\amg.md
-            - build: docs\en\reference\models\sam\build.md
-            - build_sam3: docs\en\reference\models\sam\build_sam3.md
-            - model: docs\en\reference\models\sam\model.md
-            - modules:
-              - blocks: docs\en\reference\models\sam\modules\blocks.md
-              - decoders: docs\en\reference\models\sam\modules\decoders.md
-              - encoders: docs\en\reference\models\sam\modules\encoders.md
-              - memory_attention: docs\en\reference\models\sam\modules\memory_attention.md
-              - sam: docs\en\reference\models\sam\modules\sam.md
-              - tiny_encoder: docs\en\reference\models\sam\modules\tiny_encoder.md
-              - transformer: docs\en\reference\models\sam\modules\transformer.md
-              - utils: docs\en\reference\models\sam\modules\utils.md
-            - predict: docs\en\reference\models\sam\predict.md
-            - sam3:
-              - decoder: docs\en\reference\models\sam\sam3\decoder.md
-              - encoder: docs\en\reference\models\sam\sam3\encoder.md
-              - geometry_encoders: docs\en\reference\models\sam\sam3\geometry_encoders.md
-              - maskformer_segmentation: docs\en\reference\models\sam\sam3\maskformer_segmentation.md
-              - model_misc: docs\en\reference\models\sam\sam3\model_misc.md
-              - necks: docs\en\reference\models\sam\sam3\necks.md
-              - sam3_image: docs\en\reference\models\sam\sam3\sam3_image.md
-              - text_encoder_ve: docs\en\reference\models\sam\sam3\text_encoder_ve.md
-              - vitdet: docs\en\reference\models\sam\sam3\vitdet.md
-              - vl_combiner: docs\en\reference\models\sam\sam3\vl_combiner.md
+              - amg: docs\en\reference\models\sam\amg.md
+              - build: docs\en\reference\models\sam\build.md
+              - build_sam3: docs\en\reference\models\sam\build_sam3.md
+              - model: docs\en\reference\models\sam\model.md
+              - modules:
+                  - blocks: docs\en\reference\models\sam\modules\blocks.md
+                  - decoders: docs\en\reference\models\sam\modules\decoders.md
+                  - encoders: docs\en\reference\models\sam\modules\encoders.md
+                  - memory_attention: docs\en\reference\models\sam\modules\memory_attention.md
+                  - sam: docs\en\reference\models\sam\modules\sam.md
+                  - tiny_encoder: docs\en\reference\models\sam\modules\tiny_encoder.md
+                  - transformer: docs\en\reference\models\sam\modules\transformer.md
+                  - utils: docs\en\reference\models\sam\modules\utils.md
+              - predict: docs\en\reference\models\sam\predict.md
+              - sam3:
+                  - decoder: docs\en\reference\models\sam\sam3\decoder.md
+                  - encoder: docs\en\reference\models\sam\sam3\encoder.md
+                  - geometry_encoders: docs\en\reference\models\sam\sam3\geometry_encoders.md
+                  - maskformer_segmentation: docs\en\reference\models\sam\sam3\maskformer_segmentation.md
+                  - model_misc: docs\en\reference\models\sam\sam3\model_misc.md
+                  - necks: docs\en\reference\models\sam\sam3\necks.md
+                  - sam3_image: docs\en\reference\models\sam\sam3\sam3_image.md
+                  - text_encoder_ve: docs\en\reference\models\sam\sam3\text_encoder_ve.md
+                  - vitdet: docs\en\reference\models\sam\sam3\vitdet.md
+                  - vl_combiner: docs\en\reference\models\sam\sam3\vl_combiner.md
           - utils:
-            - loss: docs\en\reference\models\utils\loss.md
-            - ops: docs\en\reference\models\utils\ops.md
+              - loss: docs\en\reference\models\utils\loss.md
+              - ops: docs\en\reference\models\utils\ops.md
           - yolo:
-            - classify:
-              - predict: docs\en\reference\models\yolo\classify\predict.md
-              - train: docs\en\reference\models\yolo\classify\train.md
-              - val: docs\en\reference\models\yolo\classify\val.md
-            - depth:
-              - calibrate: docs\en\reference\models\yolo\depth\calibrate.md
-              - predict: docs\en\reference\models\yolo\depth\predict.md
-              - train: docs\en\reference\models\yolo\depth\train.md
-              - val: docs\en\reference\models\yolo\depth\val.md
-            - detect:
-              - predict: docs\en\reference\models\yolo\detect\predict.md
-              - train: docs\en\reference\models\yolo\detect\train.md
-              - val: docs\en\reference\models\yolo\detect\val.md
-            - model: docs\en\reference\models\yolo\model.md
-            - obb:
-              - predict: docs\en\reference\models\yolo\obb\predict.md
-              - train: docs\en\reference\models\yolo\obb\train.md
-              - val: docs\en\reference\models\yolo\obb\val.md
-            - pose:
-              - predict: docs\en\reference\models\yolo\pose\predict.md
-              - train: docs\en\reference\models\yolo\pose\train.md
-              - val: docs\en\reference\models\yolo\pose\val.md
-            - segment:
-              - predict: docs\en\reference\models\yolo\segment\predict.md
-              - train: docs\en\reference\models\yolo\segment\train.md
-              - val: docs\en\reference\models\yolo\segment\val.md
-            - semantic:
-              - predict: docs\en\reference\models\yolo\semantic\predict.md
-              - train: docs\en\reference\models\yolo\semantic\train.md
-              - val: docs\en\reference\models\yolo\semantic\val.md
-            - world:
-              - train: docs\en\reference\models\yolo\world\train.md
-              - train_world: docs\en\reference\models\yolo\world\train_world.md
-              - val: docs\en\reference\models\yolo\world\val.md
-            - yoloe:
-              - predict: docs\en\reference\models\yolo\yoloe\predict.md
-              - train: docs\en\reference\models\yolo\yoloe\train.md
-              - train_seg: docs\en\reference\models\yolo\yoloe\train_seg.md
-              - val: docs\en\reference\models\yolo\yoloe\val.md
-        - nn:
+              - classify:
+                  - predict: docs\en\reference\models\yolo\classify\predict.md
+                  - train: docs\en\reference\models\yolo\classify\train.md
+                  - val: docs\en\reference\models\yolo\classify\val.md
+              - depth:
+                  - calibrate: docs\en\reference\models\yolo\depth\calibrate.md
+                  - predict: docs\en\reference\models\yolo\depth\predict.md
+                  - train: docs\en\reference\models\yolo\depth\train.md
+                  - val: docs\en\reference\models\yolo\depth\val.md
+              - detect:
+                  - predict: docs\en\reference\models\yolo\detect\predict.md
+                  - train: docs\en\reference\models\yolo\detect\train.md
+                  - val: docs\en\reference\models\yolo\detect\val.md
+              - model: docs\en\reference\models\yolo\model.md
+              - obb:
+                  - predict: docs\en\reference\models\yolo\obb\predict.md
+                  - train: docs\en\reference\models\yolo\obb\train.md
+                  - val: docs\en\reference\models\yolo\obb\val.md
+              - pose:
+                  - predict: docs\en\reference\models\yolo\pose\predict.md
+                  - train: docs\en\reference\models\yolo\pose\train.md
+                  - val: docs\en\reference\models\yolo\pose\val.md
+              - segment:
+                  - predict: docs\en\reference\models\yolo\segment\predict.md
+                  - train: docs\en\reference\models\yolo\segment\train.md
+                  - val: docs\en\reference\models\yolo\segment\val.md
+              - semantic:
+                  - predict: docs\en\reference\models\yolo\semantic\predict.md
+                  - train: docs\en\reference\models\yolo\semantic\train.md
+                  - val: docs\en\reference\models\yolo\semantic\val.md
+              - world:
+                  - train: docs\en\reference\models\yolo\world\train.md
+                  - train_world: docs\en\reference\models\yolo\world\train_world.md
+                  - val: docs\en\reference\models\yolo\world\val.md
+              - yoloe:
+                  - predict: docs\en\reference\models\yolo\yoloe\predict.md
+                  - train: docs\en\reference\models\yolo\yoloe\train.md
+                  - train_seg: docs\en\reference\models\yolo\yoloe\train_seg.md
+                  - val: docs\en\reference\models\yolo\yoloe\val.md
+      - nn:
           - autobackend: docs\en\reference\nn\autobackend.md
           - backends:
-            - ascend: docs\en\reference\nn\backends\ascend.md
-            - axelera: docs\en\reference\nn\backends\axelera.md
-            - base: docs\en\reference\nn\backends\base.md
-            - coreml: docs\en\reference\nn\backends\coreml.md
-            - deepx: docs\en\reference\nn\backends\deepx.md
-            - executorch: docs\en\reference\nn\backends\executorch.md
-            - hailo: docs\en\reference\nn\backends\hailo.md
-            - litert: docs\en\reference\nn\backends\litert.md
-            - mnn: docs\en\reference\nn\backends\mnn.md
-            - ncnn: docs\en\reference\nn\backends\ncnn.md
-            - onnx: docs\en\reference\nn\backends\onnx.md
-            - openvino: docs\en\reference\nn\backends\openvino.md
-            - paddle: docs\en\reference\nn\backends\paddle.md
-            - pytorch: docs\en\reference\nn\backends\pytorch.md
-            - qnn: docs\en\reference\nn\backends\qnn.md
-            - rknn: docs\en\reference\nn\backends\rknn.md
-            - tensorflow: docs\en\reference\nn\backends\tensorflow.md
-            - tensorrt: docs\en\reference\nn\backends\tensorrt.md
-            - triton: docs\en\reference\nn\backends\triton.md
+              - ascend: docs\en\reference\nn\backends\ascend.md
+              - axelera: docs\en\reference\nn\backends\axelera.md
+              - base: docs\en\reference\nn\backends\base.md
+              - coreml: docs\en\reference\nn\backends\coreml.md
+              - deepx: docs\en\reference\nn\backends\deepx.md
+              - executorch: docs\en\reference\nn\backends\executorch.md
+              - hailo: docs\en\reference\nn\backends\hailo.md
+              - litert: docs\en\reference\nn\backends\litert.md
+              - mnn: docs\en\reference\nn\backends\mnn.md
+              - ncnn: docs\en\reference\nn\backends\ncnn.md
+              - onnx: docs\en\reference\nn\backends\onnx.md
+              - openvino: docs\en\reference\nn\backends\openvino.md
+              - paddle: docs\en\reference\nn\backends\paddle.md
+              - pytorch: docs\en\reference\nn\backends\pytorch.md
+              - qnn: docs\en\reference\nn\backends\qnn.md
+              - rknn: docs\en\reference\nn\backends\rknn.md
+              - tensorflow: docs\en\reference\nn\backends\tensorflow.md
+              - tensorrt: docs\en\reference\nn\backends\tensorrt.md
+              - triton: docs\en\reference\nn\backends\triton.md
           - distill_model: docs\en\reference\nn\distill_model.md
           - modules:
-            - activation: docs\en\reference\nn\modules\activation.md
-            - block: docs\en\reference\nn\modules\block.md
-            - conv: docs\en\reference\nn\modules\conv.md
-            - head: docs\en\reference\nn\modules\head.md
-            - transformer: docs\en\reference\nn\modules\transformer.md
-            - utils: docs\en\reference\nn\modules\utils.md
+              - activation: docs\en\reference\nn\modules\activation.md
+              - block: docs\en\reference\nn\modules\block.md
+              - conv: docs\en\reference\nn\modules\conv.md
+              - head: docs\en\reference\nn\modules\head.md
+              - transformer: docs\en\reference\nn\modules\transformer.md
+              - utils: docs\en\reference\nn\modules\utils.md
           - tasks: docs\en\reference\nn\tasks.md
           - text_model: docs\en\reference\nn\text_model.md
-        - optim:
+      - optim:
           - muon: docs\en\reference\optim\muon.md
-        - solutions:
+      - solutions:
           - ai_gym: docs\en\reference\solutions\ai_gym.md
           - analytics: docs\en\reference\solutions\analytics.md
           - config: docs\en\reference\solutions\config.md
@@ -870,7 +870,7 @@ nav:
           - streamlit_inference: docs\en\reference\solutions\streamlit_inference.md
           - trackzone: docs\en\reference\solutions\trackzone.md
           - vision_eye: docs\en\reference\solutions\vision_eye.md
-        - trackers:
+      - trackers:
           - basetrack: docs\en\reference\trackers\basetrack.md
           - bot_sort: docs\en\reference\trackers\bot_sort.md
           - byte_tracker: docs\en\reference\trackers\byte_tracker.md
@@ -880,28 +880,28 @@ nav:
           - track: docs\en\reference\trackers\track.md
           - track_tracker: docs\en\reference\trackers\track_tracker.md
           - utils:
-            - gmc: docs\en\reference\trackers\utils\gmc.md
-            - kalman_filter: docs\en\reference\trackers\utils\kalman_filter.md
-            - matching: docs\en\reference\trackers\utils\matching.md
-            - reid: docs\en\reference\trackers\utils\reid.md
-            - stracks: docs\en\reference\trackers\utils\stracks.md
-        - utils:
+              - gmc: docs\en\reference\trackers\utils\gmc.md
+              - kalman_filter: docs\en\reference\trackers\utils\kalman_filter.md
+              - matching: docs\en\reference\trackers\utils\matching.md
+              - reid: docs\en\reference\trackers\utils\reid.md
+              - stracks: docs\en\reference\trackers\utils\stracks.md
+      - utils:
           - __init__: docs\en\reference\utils\__init__.md
           - autobatch: docs\en\reference\utils\autobatch.md
           - autodevice: docs\en\reference\utils\autodevice.md
           - benchmarks: docs\en\reference\utils\benchmarks.md
           - callbacks:
-            - base: docs\en\reference\utils\callbacks\base.md
-            - clearml: docs\en\reference\utils\callbacks\clearml.md
-            - comet: docs\en\reference\utils\callbacks\comet.md
-            - dvc: docs\en\reference\utils\callbacks\dvc.md
-            - hub: docs\en\reference\utils\callbacks\hub.md
-            - mlflow: docs\en\reference\utils\callbacks\mlflow.md
-            - neptune: docs\en\reference\utils\callbacks\neptune.md
-            - platform: docs\en\reference\utils\callbacks\platform.md
-            - raytune: docs\en\reference\utils\callbacks\raytune.md
-            - tensorboard: docs\en\reference\utils\callbacks\tensorboard.md
-            - wb: docs\en\reference\utils\callbacks\wb.md
+              - base: docs\en\reference\utils\callbacks\base.md
+              - clearml: docs\en\reference\utils\callbacks\clearml.md
+              - comet: docs\en\reference\utils\callbacks\comet.md
+              - dvc: docs\en\reference\utils\callbacks\dvc.md
+              - hub: docs\en\reference\utils\callbacks\hub.md
+              - mlflow: docs\en\reference\utils\callbacks\mlflow.md
+              - neptune: docs\en\reference\utils\callbacks\neptune.md
+              - platform: docs\en\reference\utils\callbacks\platform.md
+              - raytune: docs\en\reference\utils\callbacks\raytune.md
+              - tensorboard: docs\en\reference\utils\callbacks\tensorboard.md
+              - wb: docs\en\reference\utils\callbacks\wb.md
           - checks: docs\en\reference\utils\checks.md
           - cpu: docs\en\reference\utils\cpu.md
           - dist: docs\en\reference\utils\dist.md
@@ -909,23 +909,23 @@ nav:
           - errors: docs\en\reference\utils\errors.md
           - events: docs\en\reference\utils\events.md
           - export:
-            - ascend: docs\en\reference\utils\export\ascend.md
-            - axelera: docs\en\reference\utils\export\axelera.md
-            - coreml: docs\en\reference\utils\export\coreml.md
-            - deepx: docs\en\reference\utils\export\deepx.md
-            - engine: docs\en\reference\utils\export\engine.md
-            - executorch: docs\en\reference\utils\export\executorch.md
-            - imx: docs\en\reference\utils\export\imx.md
-            - litert: docs\en\reference\utils\export\litert.md
-            - mnn: docs\en\reference\utils\export\mnn.md
-            - ncnn: docs\en\reference\utils\export\ncnn.md
-            - onnx: docs\en\reference\utils\export\onnx.md
-            - openvino: docs\en\reference\utils\export\openvino.md
-            - paddle: docs\en\reference\utils\export\paddle.md
-            - qnn: docs\en\reference\utils\export\qnn.md
-            - rknn: docs\en\reference\utils\export\rknn.md
-            - tensorflow: docs\en\reference\utils\export\tensorflow.md
-            - torchscript: docs\en\reference\utils\export\torchscript.md
+              - ascend: docs\en\reference\utils\export\ascend.md
+              - axelera: docs\en\reference\utils\export\axelera.md
+              - coreml: docs\en\reference\utils\export\coreml.md
+              - deepx: docs\en\reference\utils\export\deepx.md
+              - engine: docs\en\reference\utils\export\engine.md
+              - executorch: docs\en\reference\utils\export\executorch.md
+              - imx: docs\en\reference\utils\export\imx.md
+              - litert: docs\en\reference\utils\export\litert.md
+              - mnn: docs\en\reference\utils\export\mnn.md
+              - ncnn: docs\en\reference\utils\export\ncnn.md
+              - onnx: docs\en\reference\utils\export\onnx.md
+              - openvino: docs\en\reference\utils\export\openvino.md
+              - paddle: docs\en\reference\utils\export\paddle.md
+              - qnn: docs\en\reference\utils\export\qnn.md
+              - rknn: docs\en\reference\utils\export\rknn.md
+              - tensorflow: docs\en\reference\utils\export\tensorflow.md
+              - torchscript: docs\en\reference\utils\export\torchscript.md
           - files: docs\en\reference\utils\files.md
           - git: docs\en\reference\utils\git.md
           - instance: docs\en\reference\utils\instance.md

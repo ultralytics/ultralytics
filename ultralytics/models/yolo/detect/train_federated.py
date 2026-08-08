@@ -24,9 +24,56 @@ from torch.utils.data import Sampler
 from ultralytics.data import YOLOConcatDataset, build_dataloader
 from ultralytics.models.yolo.detect.train import DetectionTrainer
 from ultralytics.models.yolo.detect.val import DetectionValidator
-from ultralytics.utils import LOGGER, RANK
+from ultralytics.utils import LOCAL_RANK, LOGGER, RANK
 from ultralytics.utils.metrics import DetMetrics
 from ultralytics.utils.torch_utils import torch_distributed_zero_first, unwrap_model
+
+ENTERPRISE_TEXT_TEMPLATES = (
+    "a photo of a {}.",
+    "a close-up photo of a {}.",
+    "a cropped photo of a {}.",
+    "an image of a {}.",
+)
+
+
+def load_or_build_label_similarity(
+    path: str | Path, names: list[str], variant: str, device: torch.device
+) -> torch.Tensor:
+    """Load or build ordered Enterprise label-similarity targets."""
+    path = Path(path)
+    if path.exists():
+        artifact = torch.load(path, map_location="cpu")
+        assert artifact["names"] == names, "semantic similarity class order differs from the training dataset"
+        return artifact["similarity"]
+
+    from ultralytics.nn.text_model import build_text_model, encode_text
+
+    LOGGER.info(f"Building {variant} label similarities for {len(names)} Enterprise classes")
+    model = build_text_model(variant, device=device)
+    embeddings = encode_text(model, [template.format(name) for name in names for template in ENTERPRISE_TEXT_TEMPLATES])
+    del model
+    embeddings = torch.nn.functional.normalize(
+        embeddings.view(len(names), len(ENTERPRISE_TEXT_TEMPLATES), -1).mean(1), dim=-1
+    )
+    # ScaleDet averages prompt embeddings, then row-normalizes cosine similarities to [0, 1].
+    # https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_ScaleDet_A_Scalable_Multi-Dataset_Object_Detector_CVPR_2023_paper.pdf#page=4
+    similarity = (embeddings @ embeddings.T).cpu()
+    row_min = similarity.amin(1, keepdim=True)
+    similarity = (similarity - row_min) / (1 - row_min)
+    similarity.fill_diagonal_(1)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(
+        {
+            "names": names,
+            "similarity": similarity,
+            "text_model": variant,
+            "prompts": ENTERPRISE_TEXT_TEMPLATES,
+        },
+        path,
+    )
+    LOGGER.info(f"Saved {len(names)}x{len(names)} label similarities to {path}")
+    return similarity
+
 
 SOURCE_METRIC_KEYS = (
     "metrics/mAP50(B)",
@@ -385,6 +432,21 @@ class FederatedDetectionTrainer(DetectionTrainer):
         neg_weights (dict): Source name to per-class sampling weight for federated negatives, image count^0.5.
     """
 
+    def set_model_attributes(self) -> None:
+        """Set dataset names and prepare optional training-only label similarities."""
+        super().set_model_attributes()
+        self.semantic_similarity = None
+        if self.args.federated_semantic_weight:
+            names = list(self.data["names"].values())
+            with torch_distributed_zero_first(LOCAL_RANK):
+                self.semantic_similarity = load_or_build_label_similarity(
+                    self.args.federated_semantic_similarity,
+                    names,
+                    self.args.federated_semantic_text_model,
+                    self.device,
+                ).to(self.device)
+            assert self.semantic_similarity.shape == (len(names), len(names))
+
     def build_dataset(self, img_path: str | list, mode: str = "train", batch: int | None = None):
         """Build one dataset per source in train mode, and the plain merged dataset in val mode."""
         if mode != "train":
@@ -450,6 +512,9 @@ class FederatedDetectionTrainer(DetectionTrainer):
         model = unwrap_model(self.model)
         if getattr(model, "criterion", None) is None:
             model.criterion = model.init_criterion()
+        if self.semantic_similarity is not None:
+            model.criterion.semantic_similarity = self.semantic_similarity
+            self.semantic_similarity = None
         weights = mask.to(self.device).view(1, 1, -1)
         if getattr(self.args, "federated_cls_normalize", "none") == "active_classes":
             weights *= self.args.fed_k / weights.sum()

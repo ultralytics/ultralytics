@@ -58,3 +58,6 @@ asl_gamma_pos: 0.0
 asl_gamma_neg: 2.0
 asl_clip: 0.0
 federated_cls_normalize: none
+federated_semantic_weight: 0.0
+federated_semantic_similarity: ""
+federated_semantic_text_model: mobileclip2:s4

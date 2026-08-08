@@ -333,6 +333,13 @@ class MobileCLIPTS(TextModel):
         return self.encoder(texts).to(dtype)
 
 
+def encode_text(model: TextModel, texts: list[str], batch: int = 80) -> torch.Tensor:
+    """Encode text strings in batches."""
+    tokens = model.tokenize(texts)
+    features = [model.encode_text(chunk).detach() for chunk in tokens.split(batch)]
+    return features[0] if len(features) == 1 else torch.cat(features)
+
+
 def build_text_model(variant: str, device: torch.device = None) -> TextModel:
     """Build a text encoding model based on the specified variant.
 

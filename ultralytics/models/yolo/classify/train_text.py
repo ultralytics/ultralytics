@@ -192,7 +192,7 @@ class TextClassificationTrainer(ClassificationTrainer):
             cache_dir (Path): Directory to cache text embeddings.
             dataset (ClassificationDataset): Training dataset (passed for teacher pre-compute).
         """
-        from ultralytics.nn.text_model import build_text_model
+        from ultralytics.nn.text_model import build_text_model, encode_text
 
         names = list(self.data["names"].values())
         suffix = "_ensemble80" if self.prompt_ensemble else ""
@@ -215,13 +215,13 @@ class TextClassificationTrainer(ClassificationTrainer):
                     class_embeds = []
                     for name in TQDM(names, desc=f"Encoding text ensemble ({teacher})"):
                         texts = [t.format(name) for t in IMAGENET_TEMPLATES]
-                        class_embeds.append(text_model.encode_text(text_model.tokenize(texts)).mean(dim=0))
+                        class_embeds.append(encode_text(text_model, texts).mean(dim=0))
                     embeds = torch.stack(class_embeds)
                     embeds /= embeds.norm(p=2, dim=-1, keepdim=True)
                 else:
                     LOGGER.info(f"Generating text embeddings for {len(names)} classes ({teacher})")
                     texts = [f"a photo of a {name}" for name in names]
-                    embeds = text_model.encode_text(text_model.tokenize(texts)).detach()
+                    embeds = encode_text(text_model, texts)
                 torch.save({"names": names, "embeds": embeds.cpu()}, cache_path)
                 del text_model
 

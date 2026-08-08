@@ -38,6 +38,9 @@ FEDERATED_CLI_KEYS = (
     "asl_gamma_neg",
     "asl_clip",
     "federated_cls_normalize",
+    "federated_semantic_weight",
+    "federated_semantic_similarity",
+    "federated_semantic_text_model",
 )
 
 
@@ -63,10 +66,13 @@ def main() -> None:
     a.add_argument("--asl-gamma-neg", type=float, default=None)
     a.add_argument("--asl-clip", type=float, default=None)
     a.add_argument("--federated-cls-normalize", choices=("none", "active_classes"), default=None)
+    a.add_argument("--federated-semantic-weight", type=float, default=None)
+    a.add_argument("--federated-semantic-similarity", default=None)
+    a.add_argument("--federated-semantic-text-model", default=None)
     a.add_argument("--resume", default=None, help="checkpoint to resume from")
     args = a.parse_args()
     if args.arm == "o365" and any(getattr(args, key) is not None for key in FEDERATED_CLI_KEYS):
-        a.error("federated classification options apply only to the enterprise arm")
+        a.error("federated options apply only to the enterprise arm")
 
     recipe_name, data, trainer = ARMS[args.arm]
     recipe = _load_recipe(
@@ -80,6 +86,9 @@ def main() -> None:
         quota_alpha=args.quota_alpha,
         **{key: getattr(args, key) for key in FEDERATED_CLI_KEYS},
     )
+    if args.arm == "enterprise" and recipe["federated_semantic_weight"] and not recipe["federated_semantic_similarity"]:
+        variant = recipe["federated_semantic_text_model"].replace(":", "_").replace("/", "_")
+        recipe["federated_semantic_similarity"] = str(INIT / f"enterprise-{variant}-label-similarity.pt")
     recipe["amp"] = not args.no_amp
     stem = Path(args.model).stem
     pretrained = args.pretrained or str(INIT / ("ultravit_s.pt" if "ultravit" in stem else "c3k2_s.pt"))

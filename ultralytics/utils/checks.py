@@ -575,7 +575,9 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
         for candidate in candidates:
             r_stripped = candidate.rpartition("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
-            match = re.match(r"([a-zA-Z0-9-_]+)([<>!=~]+.*)?", r_stripped)
+            match = re.fullmatch(r"([a-zA-Z0-9-_]+)([<>!=~]+[a-zA-Z0-9-_.,<>!=~ ]*)?", r_stripped)
+            if not match:
+                raise ValueError(f"{prefix} Invalid requirement format '{candidate}', unable to check/install safely.")
             name, required = match[1], match[2].strip() if match[2] else ""
             try:
                 if check_version(metadata.version(name), required):

@@ -278,16 +278,23 @@ _RECIPE_DELTA_CASTS = {
     "nbs": int,
     "backbone_lr_ratio": float,
     "quota_alpha": float,
+    "federated_cls_loss": str,
+    "focal_alpha": float,
+    "focal_gamma": float,
+    "asl_gamma_pos": float,
+    "asl_gamma_neg": float,
+    "asl_clip": float,
+    "federated_cls_normalize": str,
 }
 
 
-def _load_recipe(name: str, model_yaml: str, **deltas: str | int | None) -> dict:
+def _load_recipe(name: str, model_yaml: str, **deltas: str | float | None) -> dict:
     """Load a checked-in detection recipe profile and apply explicitly-declared CLI deltas.
 
     Args:
         name (str): Profile stem under ``cfg/recipes/``.
         model_yaml (str): Detector YAML, supplying the model size for a ``_shipped_from`` profile.
-        **deltas (str | int | None, optional): CLI overrides keyed by recipe field, empty/None entries ignored.
+        **deltas (str | float | None, optional): CLI overrides keyed by recipe field, empty/None entries ignored.
 
     Returns:
         (dict): train_args fragment containing the recipe (no data, no device, no save_dir).
@@ -296,7 +303,7 @@ def _load_recipe(name: str, model_yaml: str, **deltas: str | int | None) -> dict
     if not path.exists():
         raise SystemExit(f"unknown recipe '{name}'. Available: {sorted(p.stem for p in _RECIPE_DIR.glob('*.yaml'))}")
     recipe = YAML.load(path)
-    deltas = {k: _RECIPE_DELTA_CASTS[k](v) for k, v in deltas.items() if v}
+    deltas = {k: _RECIPE_DELTA_CASTS[k](v) for k, v in deltas.items() if v is not None and v != ""}
     scale = guess_model_scale(model_yaml)
     epochs_by_scale = recipe.pop("_epochs_by_scale", None)
     if epochs_by_scale:

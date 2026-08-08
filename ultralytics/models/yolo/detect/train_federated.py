@@ -251,6 +251,10 @@ class FederatedDetectionValidator(DetectionValidator):
             for i, name in enumerate(self.batch_sources):
                 lo, hi = self.slices[name]
                 weights[i, :, lo:hi] = 1.0
+            if getattr(self.args, "federated_cls_normalize", "none") == "active_classes":
+                # Adapt UniDet's dataset-local cls heads while preserving the fed_k-class reference magnitude.
+                # https://github.com/xingyizhou/UniDet/blob/94cd0e8612e558c1dff64d2928bc969856c9a802/unidet/modeling/roi_heads/multi_dataset_fast_rcnn.py#L45-L73
+                weights *= self.args.fed_k / weights.sum(2, keepdim=True)
             self.model.criterion.class_weights = weights
         return batch
 
@@ -399,6 +403,10 @@ class FederatedDetectionTrainer(DetectionTrainer):
         if mode != "train":
             return super().get_dataloader(dataset_path, batch_size, rank, mode)
         assert self.args.cls_pw == 0.0, "federated cls masking owns class_weights, so cls_pw must stay 0.0"
+        assert getattr(self.args, "federated_cls_normalize", "none") in {
+            "none",
+            "active_classes",
+        }, "federated_cls_normalize must be 'none' or 'active_classes'"
         with torch_distributed_zero_first(rank):
             dataset = self.build_dataset(dataset_path, mode, batch_size)
 
@@ -438,7 +446,10 @@ class FederatedDetectionTrainer(DetectionTrainer):
         model = unwrap_model(self.model)
         if getattr(model, "criterion", None) is None:
             model.criterion = model.init_criterion()
-        model.criterion.class_weights = mask.to(self.device).view(1, 1, -1)
+        weights = mask.to(self.device).view(1, 1, -1)
+        if getattr(self.args, "federated_cls_normalize", "none") == "active_classes":
+            weights *= self.args.fed_k / weights.sum()
+        model.criterion.class_weights = weights
         return batch
 
     def _fed_mask(self, batch: dict) -> torch.Tensor:

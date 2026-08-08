@@ -215,6 +215,9 @@ CFG_FLOAT_KEYS = frozenset(
         "workspace",
         "batch",
         "grad_clip",
+        "focal_gamma",
+        "asl_gamma_pos",
+        "asl_gamma_neg",
     }
 )
 CFG_FRACTION_KEYS = frozenset(
@@ -246,6 +249,8 @@ CFG_FRACTION_KEYS = frozenset(
         "fraction",
         "multi_scale",
         "dlam",
+        "focal_alpha",
+        "asl_clip",
     }
 )
 CFG_INT_KEYS = frozenset(
@@ -307,7 +312,9 @@ CFG_BOOL_KEYS = frozenset(
         "cls_remap",
     }
 )
-CFG_STR_KEYS = frozenset({"optimizer", "split", "copy_paste_mode", "auto_augment"})
+CFG_STR_KEYS = frozenset(
+    {"optimizer", "split", "copy_paste_mode", "auto_augment", "federated_cls_loss", "federated_cls_normalize"}
+)
 
 
 def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:
@@ -644,6 +651,13 @@ def check_dict_alignment(
             "quota_alpha",
             "repeat_t",
             "fed_k",
+            "federated_cls_loss",
+            "focal_alpha",
+            "focal_gamma",
+            "asl_gamma_pos",
+            "asl_gamma_neg",
+            "asl_clip",
+            "federated_cls_normalize",
             # DINOv3 / UNIC / DUNE encoder-distillation knobs surfaced through DDP-serialised args.
             # ``wd_end``: half-cosine target weight_decay (callbacks/wd_schedule.py); reference
             #   DINOv3 distillation_convnext/convnext_tiny_p16.yaml schedules.weight_decay.

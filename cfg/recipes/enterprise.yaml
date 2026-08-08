@@ -51,3 +51,10 @@ epochs: 78
 quota_alpha: 0.7
 repeat_t: 0.001
 fed_k: 365
+federated_cls_loss: bce
+focal_alpha: 0.25
+focal_gamma: 2.0
+asl_gamma_pos: 0.0
+asl_gamma_neg: 2.0
+asl_clip: 0.0
+federated_cls_normalize: none

@@ -30,6 +30,15 @@ ARMS = {
     "o365": ("enterprise-o365-control", "Objects365v1.yaml", None),
 }
 INIT = Path("/data/shared-datasets/fatih-runs/enterprise-init")
+FEDERATED_CLI_KEYS = (
+    "federated_cls_loss",
+    "focal_alpha",
+    "focal_gamma",
+    "asl_gamma_pos",
+    "asl_gamma_neg",
+    "asl_clip",
+    "federated_cls_normalize",
+)
 
 
 def main() -> None:
@@ -45,8 +54,17 @@ def main() -> None:
     a.add_argument("--batch", type=int, default=None)
     a.add_argument("--backbone-lr-ratio", type=float, default=None)
     a.add_argument("--quota-alpha", type=float, default=None)
+    a.add_argument("--federated-cls-loss", choices=("bce", "focal", "asl"), default=None)
+    a.add_argument("--focal-alpha", type=float, default=None)
+    a.add_argument("--focal-gamma", type=float, default=None)
+    a.add_argument("--asl-gamma-pos", type=float, default=None)
+    a.add_argument("--asl-gamma-neg", type=float, default=None)
+    a.add_argument("--asl-clip", type=float, default=None)
+    a.add_argument("--federated-cls-normalize", choices=("none", "active_classes"), default=None)
     a.add_argument("--resume", default=None, help="checkpoint to resume from")
     args = a.parse_args()
+    if args.arm == "o365" and any(getattr(args, key) is not None for key in FEDERATED_CLI_KEYS):
+        a.error("federated classification options apply only to the enterprise arm")
 
     recipe_name, data, trainer = ARMS[args.arm]
     recipe = _load_recipe(
@@ -56,6 +74,7 @@ def main() -> None:
         batch=args.batch,
         backbone_lr_ratio=args.backbone_lr_ratio,
         quota_alpha=args.quota_alpha,
+        **{key: getattr(args, key) for key in FEDERATED_CLI_KEYS},
     )
     recipe["amp"] = not args.no_amp
     stem = Path(args.model).stem

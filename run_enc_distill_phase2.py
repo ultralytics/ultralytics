@@ -976,7 +976,6 @@ def main(argv: list[str]) -> None:
             warmup_bias_lr=0.1,
             optimizer="MuSGD",
             close_mosaic=5,
-            cache="disk",
             cos_lr=False,
             pose=24,
             kobj=4.0,

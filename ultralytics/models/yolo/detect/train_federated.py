@@ -41,16 +41,20 @@ def load_or_build_label_similarity(
 ) -> torch.Tensor:
     """Load or build ordered Enterprise label-similarity targets."""
     path = Path(path)
+    text_labels = [name.split("/", 1)[1].replace("_", " ") for name in names]
     if path.exists():
         artifact = torch.load(path, map_location="cpu")
-        assert artifact["names"] == names, "semantic similarity class order differs from the training dataset"
-        return artifact["similarity"]
+        if artifact.get("names") == names and artifact.get("text_labels") == text_labels:
+            return artifact["similarity"]
+        LOGGER.info(f"Rebuilding {path} because its class order or prompt labels changed")
 
     from ultralytics.nn.text_model import build_text_model, encode_text
 
     LOGGER.info(f"Building {variant} label similarities for {len(names)} Enterprise classes")
     model = build_text_model(variant, device=device)
-    embeddings = encode_text(model, [template.format(name) for name in names for template in ENTERPRISE_TEXT_TEMPLATES])
+    embeddings = encode_text(
+        model, [template.format(name) for name in text_labels for template in ENTERPRISE_TEXT_TEMPLATES]
+    )
     del model
     embeddings = torch.nn.functional.normalize(
         embeddings.view(len(names), len(ENTERPRISE_TEXT_TEMPLATES), -1).mean(1), dim=-1
@@ -65,6 +69,7 @@ def load_or_build_label_similarity(
     torch.save(
         {
             "names": names,
+            "text_labels": text_labels,
             "similarity": similarity,
             "text_model": variant,
             "prompts": ENTERPRISE_TEXT_TEMPLATES,

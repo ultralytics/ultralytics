@@ -63,7 +63,7 @@ def load_or_build_label_similarity(
     # https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_ScaleDet_A_Scalable_Multi-Dataset_Object_Detector_CVPR_2023_paper.pdf#page=4
     similarity = (embeddings @ embeddings.T).cpu()
     row_min = similarity.amin(1, keepdim=True)
-    similarity = (similarity - row_min) / (1 - row_min)
+    similarity = ((similarity - row_min) / (1 - row_min)).clamp_(0, 1)
     similarity.fill_diagonal_(1)
     path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(

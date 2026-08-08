@@ -124,7 +124,7 @@ class DocumentedModule:
 
 def extract_classes_and_functions(filepath: Path) -> tuple[list[str], list[str]]:
     """Extract top-level class and (a)sync function names from a Python file."""
-    content = filepath.read_text()
+    content = filepath.read_text(encoding="utf-8")
     classes = CLASS_DEF_RE.findall(content)
     functions = FUNC_DEF_RE.findall(content)
     return classes, functions
@@ -150,7 +150,7 @@ def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: li
 
     header_content = ""
     if exists:
-        current = md_filepath.read_text()
+        current = md_filepath.read_text(encoding="utf-8")
         if current.startswith("---"):
             parts = current.split("---", 2)
             if len(parts) > 2:
@@ -178,7 +178,7 @@ def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: li
         md_content[-1] = md_content[-1].replace("<hr><br>\n\n", "")
 
     md_filepath.parent.mkdir(parents=True, exist_ok=True)
-    md_filepath.write_text(header_content + title_content + "".join(md_content) + "\n")
+    md_filepath.write_text(header_content + title_content + "".join(md_content) + "\n", encoding="utf-8")
 
     return _relative_to_workspace(md_filepath)
 
@@ -1024,7 +1024,7 @@ def create_markdown(module: DocumentedModule) -> Path:
 
     header_content = ""
     if exists:
-        for part in md_filepath.read_text().split("---"):
+        for part in md_filepath.read_text(encoding="utf-8").split("---"):
             if "description:" in part or "comments:" in part:
                 header_content += f"---{part}---\n\n"
     if not header_content:
@@ -1043,7 +1043,7 @@ def create_markdown(module: DocumentedModule) -> Path:
     )
 
     md_filepath.parent.mkdir(parents=True, exist_ok=True)
-    md_filepath.write_text(header_content + title_content + render_module_markdown(module))
+    md_filepath.write_text(header_content + title_content + render_module_markdown(module), encoding="utf-8")
 
     if not exists:
         subprocess.run(["git", "add", "-f", str(md_filepath)], check=True, cwd=REPO_ROOT)
@@ -1105,7 +1105,7 @@ def extract_document_paths(yaml_section: str) -> list[str]:
 
 def update_mkdocs_file(reference_yaml: str) -> None:
     """Update the mkdocs.yaml file with the new reference section only if changes in document paths are detected."""
-    mkdocs_content = MKDOCS_YAML.read_text()
+    mkdocs_content = MKDOCS_YAML.read_text(encoding="utf-8")
 
     # Find the top-level Reference section
     ref_pattern = r"(\n  - Reference:[\s\S]*?)(?=\n  - \w|$)"
@@ -1139,7 +1139,7 @@ def update_mkdocs_file(reference_yaml: str) -> None:
 
         # Update content
         new_content = mkdocs_content.replace(ref_section, new_ref_section)
-        MKDOCS_YAML.write_text(new_content)
+        MKDOCS_YAML.write_text(new_content, encoding="utf-8")
         try:
             result = subprocess.run(
                 ["npx", "prettier", "--write", str(MKDOCS_YAML)],
@@ -1158,7 +1158,7 @@ def update_mkdocs_file(reference_yaml: str) -> None:
         help_section = help_match.group(1)
         # Insert before Help section
         new_content = mkdocs_content.replace(help_section, f"{new_ref_section}{help_section}")
-        MKDOCS_YAML.write_text(new_content)
+        MKDOCS_YAML.write_text(new_content, encoding="utf-8")
         LOGGER.info(f"Added new Reference section before Help in {MKDOCS_YAML}")
     else:
         LOGGER.warning("Could not find a suitable location to add Reference section")

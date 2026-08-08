@@ -65,8 +65,8 @@ from ultralytics.data.utils import IMG_FORMATS
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import guess_model_scale, load_checkpoint
 from ultralytics.nn.teacher_model import TEACHER_REGISTRY, safe_key
-from ultralytics.utils import YAML
-from ultralytics.utils.downloads import attempt_download_asset
+from ultralytics.utils import SETTINGS, YAML
+from ultralytics.utils.downloads import attempt_download_asset, safe_download
 from ultralytics.utils.torch_utils import intersect_dicts
 
 # teacher_frozen_det: frozen foundation teacher (yolo26-teacherdet.yaml layer 0) + trainable ViTDet pyramid + Detect,
@@ -104,6 +104,33 @@ def _pop_flag(argv: list[str], flag: str, is_bool: bool = False) -> tuple[list[s
 def _load_train_args(resume: str) -> dict:
     """Load saved training arguments from a checkpoint."""
     return torch.load(Path(resume), map_location="cpu", weights_only=False)["train_args"]
+
+
+def _resolve_weights(weights: str) -> str:
+    """Resolve a bare published weight name to a local file, trying both asset releases.
+
+    Published baselines span two ultralytics/assets releases: most sit in v8.4.0, stragglers like yolo11s-oiv7.pt only
+    in v0.0.0. The package auto-download resolves neither the GITHUB_ASSETS_NAMES list nor its release API listing for
+    such names and returns them unresolved, crashing mid-launch with FileNotFoundError. Direct release URLs skip the
+    GitHub API entirely (unauthenticated API calls rate-limit at 60/hr per IP across a shared host).
+    """
+    w = Path(weights)
+    if w.exists() or w.suffix != ".pt" or str(w) != w.name:
+        return weights
+    if (staged := Path(SETTINGS["weights_dir"]) / w.name).exists():
+        return str(staged)
+    for release in ("v8.4.0", "v0.0.0"):
+        try:
+            safe_download(
+                f"https://github.com/ultralytics/assets/releases/download/{release}/{w.name}",
+                file=w,
+                min_bytes=1e5,
+                retry=0,
+            )
+            return str(w)
+        except Exception:
+            continue
+    raise SystemExit(f"ERROR: {weights!r} not found locally or in ultralytics/assets releases v8.4.0 and v0.0.0.")
 
 
 def _is_cls_yaml(model) -> bool:
@@ -818,7 +845,7 @@ def main(argv: list[str]) -> None:
         resume = paths.patch_resume(resume, grad_clip=1.0)
     resume_args = _load_train_args(resume) if resume else {}
     gpu = argv[0] if argv else "0"
-    phase1_weights = (
+    phase1_weights = _resolve_weights(
         argv[1]
         if len(argv) > 1
         else resume_args.get("pretrained", "runs/classify/yolo-next-encoder/phase1-d7-dinov3-convnextb/weights/best.pt")

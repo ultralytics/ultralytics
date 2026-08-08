@@ -143,18 +143,24 @@ def _with_reference_title(header_content: str, module_path: str) -> str:
     return header_content.replace("---\n", f"---\ntitle: {title}\n", 1)
 
 
+def _existing_frontmatter(md_filepath: Path) -> str:
+    """Return a page's leading YAML frontmatter block, or "" when it has none.
+
+    Anchored to the top of the file: splitting on every `---` also matches Markdown table separators, which folds page
+    content into the header when the generator runs over its own output instead of a freshly cloned stub.
+    """
+    if not md_filepath.exists():
+        return ""
+    match = re.match(r"---\n.*?\n---\n", md_filepath.read_text(encoding="utf-8"), flags=re.DOTALL)
+    return f"{match.group()}\n" if match else ""
+
+
 def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: list[str], functions: list[str]) -> Path:
     """Create a minimal Markdown reference stub."""
     md_filepath = REFERENCE_DIR / py_filepath.relative_to(PACKAGE_DIR).with_suffix(".md")
     exists = md_filepath.exists()
 
-    header_content = ""
-    if exists:
-        current = md_filepath.read_text(encoding="utf-8")
-        if current.startswith("---"):
-            parts = current.split("---", 2)
-            if len(parts) > 2:
-                header_content = f"---{parts[1]}---\n\n"
+    header_content = _existing_frontmatter(md_filepath)
     if not header_content:
         header_content = (
             f"---\ndescription: Reference for `{module_path}` in the Ultralytics package.\n"
@@ -1022,11 +1028,7 @@ def create_markdown(module: DocumentedModule) -> Path:
     md_filepath = REFERENCE_DIR / module.path.relative_to(PACKAGE_DIR).with_suffix(".md")
     exists = md_filepath.exists()
 
-    header_content = ""
-    if exists:
-        for part in md_filepath.read_text(encoding="utf-8").split("---"):
-            if "description:" in part or "comments:" in part:
-                header_content += f"---{part}---\n\n"
+    header_content = _existing_frontmatter(md_filepath)
     if not header_content:
         header_content = (
             f"---\ndescription: Reference for `{module.module_path}` in the Ultralytics package.\n"

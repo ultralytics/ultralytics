@@ -163,14 +163,14 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         from ultralytics.models.sam import SAM3SemanticPredictor
 
         # Initialize predictor with configuration
-        overrides = dict(
-            conf=0.25,
-            task="segment",
-            mode="predict",
-            model="sam3.pt",
-            quantize=16,  # Use FP16 for faster inference
-            save=True,
-        )
+        overrides = {
+            "conf": 0.25,
+            "task": "segment",
+            "mode": "predict",
+            "model": "sam3.pt",
+            "quantize": 16,  # Use FP16 for faster inference
+            "save": True,
+        }
         predictor = SAM3SemanticPredictor(overrides=overrides)
 
         # Set image once for multiple queries
@@ -198,7 +198,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         from ultralytics.models.sam import SAM3SemanticPredictor
 
         # Initialize predictor
-        overrides = dict(conf=0.25, task="segment", mode="predict", model="sam3.pt", quantize=16, save=True)
+        overrides = {"conf": 0.25, "task": "segment", "mode": "predict", "model": "sam3.pt", "quantize": 16, "save": True}
         predictor = SAM3SemanticPredictor(overrides=overrides)
 
         # Set image
@@ -226,7 +226,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         from ultralytics.utils.plotting import Annotator, colors
 
         # Initialize predictors
-        overrides = dict(conf=0.50, task="segment", mode="predict", model="sam3.pt", verbose=False)
+        overrides = {"conf": 0.50, "task": "segment", "mode": "predict", "model": "sam3.pt", "verbose": False}
         predictor = SAM3SemanticPredictor(overrides=overrides)
         predictor2 = SAM3SemanticPredictor(overrides=overrides)
 
@@ -269,7 +269,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         from ultralytics.models.sam import SAM3VideoPredictor
 
         # Create video predictor
-        overrides = dict(conf=0.25, task="segment", mode="predict", model="sam3.pt", quantize=16)
+        overrides = {"conf": 0.25, "task": "segment", "mode": "predict", "model": "sam3.pt", "quantize": 16}
         predictor = SAM3VideoPredictor(overrides=overrides)
 
         # Track objects using bounding box prompts
@@ -292,7 +292,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         from ultralytics.models.sam import SAM3VideoSemanticPredictor
 
         # Initialize semantic video predictor
-        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=640, model="sam3.pt", quantize=16, save=True)
+        overrides = {"conf": 0.25, "task": "segment", "mode": "predict", "imgsz": 640, "model": "sam3.pt", "quantize": 16, "save": True}
         predictor = SAM3VideoSemanticPredictor(overrides=overrides)
 
         # Track concepts using text prompts

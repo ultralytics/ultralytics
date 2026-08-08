@@ -41,6 +41,8 @@ SOURCE_METRIC_KEYS = (
 )
 
 
+# Dataset-pure batches follow UniDet's source buckets:
+# https://github.com/xingyizhou/UniDet/blob/94cd0e8612e558c1dff64d2928bc969856c9a802/unidet/data/multi_dataset_dataloader.py#L203-L224
 class QuotaBatchSampler(Sampler):
     """Yield dataset-pure index batches, source by quota and images by repeat factor.
 
@@ -77,7 +79,7 @@ class QuotaBatchSampler(Sampler):
             seed (int): Base seed, shared by every rank so they agree on the source per step.
         """
         self.starts = np.cumsum([0, *counts[:-1]]).tolist()
-        tempered = np.array(counts, dtype=np.float64) ** alpha
+        tempered = np.array(counts, dtype=np.float64) ** alpha  # Enterprise study choice, not paper-derived
         self.quota = tempered / tempered.sum()
         self.cdfs = [np.cumsum(w) for w in weights]  # sampling a p vector directly recumsums it every step
         self.batch, self.world_size, self.rank, self.seed = batch, world_size, rank, seed
@@ -124,6 +126,8 @@ def source_stats(dataset, lo: int, hi: int, t: float) -> tuple[np.ndarray, np.nd
     counts = np.zeros(hi - lo, dtype=np.float64)
     for lb in labels:
         counts[np.unique(lb["cls"].astype(np.int64).ravel() - lo)] += 1
+    # LVIS repeat-factor sampling:
+    # https://github.com/facebookresearch/detectron2/blob/b4a4a3bd136852dae5fb1de37978dee412653e31/detectron2/data/samplers/distributed_sampler.py#L159-L209
     r_c = np.maximum(1.0, np.sqrt(t / np.maximum(counts / len(labels), 1e-12)))
     r = np.fromiter(
         (r_c[np.unique(lb["cls"].astype(np.int64).ravel() - lo)].max(initial=1.0) for lb in labels),
@@ -463,6 +467,8 @@ class FederatedDetectionTrainer(DetectionTrainer):
         name = self.source_of[str(Path(batch["im_file"][0]).parent)]
         lo, hi = self.slices[name]
         mask = torch.zeros(self.data["nc"])
+        # Full source-local classification follows UniDet's dataset-specific classifier:
+        # https://github.com/xingyizhou/UniDet/blob/94cd0e8612e558c1dff64d2928bc969856c9a802/unidet/modeling/roi_heads/multi_dataset_fast_rcnn.py#L20-L73
         if hi - lo <= self.args.fed_k:
             mask[lo:hi] = 1.0
             return mask

@@ -52,6 +52,8 @@ def main() -> None:
     a.add_argument("--no-amp", action="store_true", help="ultravit arms, which are unstable under fp16")
     a.add_argument("--epochs", type=int, default=None)
     a.add_argument("--batch", type=int, default=None)
+    a.add_argument("--lrf", type=float, default=None)
+    a.add_argument("--cos-lr", action="store_true", default=None)
     a.add_argument("--backbone-lr-ratio", type=float, default=None)
     a.add_argument("--quota-alpha", type=float, default=None)
     a.add_argument("--federated-cls-loss", choices=("bce", "focal", "asl"), default=None)
@@ -72,6 +74,8 @@ def main() -> None:
         args.model,
         epochs=args.epochs,
         batch=args.batch,
+        lrf=args.lrf,
+        cos_lr=args.cos_lr,
         backbone_lr_ratio=args.backbone_lr_ratio,
         quota_alpha=args.quota_alpha,
         **{key: getattr(args, key) for key in FEDERATED_CLI_KEYS},

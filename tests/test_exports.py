@@ -308,7 +308,7 @@ def test_exporter_static_batch_openvino_calibration_batch_guard(monkeypatch):
 
     monkeypatch.setattr(exporter_module, "check_det_dataset", fake_check_det_dataset)
 
-    with pytest.raises(ValueError, match="calibration_batch.*batch.*dynamic=False"):
+    with pytest.raises(ValueError, match=r"calibration_batch.*batch.*dynamic=False"):
         exporter.get_int8_calibration_dataloader()
 
 

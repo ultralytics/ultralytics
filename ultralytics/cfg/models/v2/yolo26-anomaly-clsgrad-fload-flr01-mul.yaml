@@ -56,7 +56,7 @@ anomaly:
   # test (cross-dataset MVTec) eval — fitness = OOD heatmap mAP50
   test_val_freq: 1
   test_categories: null            # null = all 15 MVTec categories
-  test_none_prior: false           # test prior=none
+  test_none_prior: true            # test prior=none — the native regime for p_drop=1.0 (pd100) runs
   test_heatmap_prior: true         # test prior=heatmap — required (R&D fitness = OOD mAP50)
 
   # new augs, turned off by default for now

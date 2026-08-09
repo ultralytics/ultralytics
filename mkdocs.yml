@@ -662,6 +662,7 @@ nav:
       - TorchScript: integrations/torchscript.md
       - VS Code: integrations/vscode.md
       - Weights & Biases: integrations/weights-biases.md
+      - YAML2ModelGraph: integrations/yaml2modelgraph.md
   - Platform:
       - Platform: platform/index.md
       - Quickstart: platform/quickstart.md

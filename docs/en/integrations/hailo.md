@@ -342,6 +342,18 @@ Confirm that `name` matched the physical Hailo architecture and that the device 
 
 Keep `metadata.yaml` beside the HEF so Ultralytics can select the matching YOLOv8, YOLO11, or YOLO26 post-processing path. Custom HailoRT applications must likewise match post-processing to the exported model family.
 
+## Summary
+
+Ultralytics Hailo export provides a direct path from a trained YOLO model to a deployable HEF:
+
+1. Load a YOLOv8, YOLO11, or YOLO26 detection or classification model, a YOLOv8/YOLO11 segmentation, pose, or OBB model, or a YOLO26 semantic segmentation or depth estimation model.
+2. Export with `format="hailo"` and select the target architecture.
+3. Calibrate and compile locally with the matching DFC, or use managed export in Ultralytics Platform.
+4. Copy the HEF and `metadata.yaml` to the Hailo-powered edge device.
+5. Run inference with HailoRT, Raspberry Pi Picamera2, or a GStreamer video pipeline.
+
+For other computer vision deployment targets, see [Export mode](../modes/export.md), [Benchmark mode](../modes/benchmark.md), and the [integrations guide](index.md). Related hardware guides include [ONNX](onnx.md), [OpenVINO](openvino.md), [TensorRT](tensorrt.md), [NCNN](ncnn.md), [RKNN](rockchip-rknn.md), [Sony IMX500](sony-imx500.md), and [Qualcomm QNN](qnn.md).
+
 ## FAQ
 
 ### Can I compile a HEF on a Raspberry Pi?
@@ -379,15 +391,3 @@ Deploy the compiled HEF to the Hailo runtime. ONNX is an intermediate representa
 ### Where can I get the Hailo DFC?
 
 Download the compiler wheel for your hardware generation from the Hailo Developer Zone. The compiler is required only to create the HEF; HailoRT runs it on the target accelerator.
-
-## Summary
-
-Ultralytics Hailo export provides a direct path from a trained YOLO model to a deployable HEF:
-
-1. Load a YOLOv8, YOLO11, or YOLO26 detection or classification model, a YOLOv8/YOLO11 segmentation, pose, or OBB model, or a YOLO26 semantic segmentation or depth estimation model.
-2. Export with `format="hailo"` and select the target architecture.
-3. Calibrate and compile locally with the matching DFC, or use managed export in Ultralytics Platform.
-4. Copy the HEF and `metadata.yaml` to the Hailo-powered edge device.
-5. Run inference with HailoRT, Raspberry Pi Picamera2, or a GStreamer video pipeline.
-
-For other computer vision deployment targets, see [Export mode](../modes/export.md), [Benchmark mode](../modes/benchmark.md), and the [integrations guide](index.md). Related hardware guides include [ONNX](onnx.md), [OpenVINO](openvino.md), [TensorRT](tensorrt.md), [NCNN](ncnn.md), [RKNN](rockchip-rknn.md), [Sony IMX500](sony-imx500.md), and [Qualcomm QNN](qnn.md).

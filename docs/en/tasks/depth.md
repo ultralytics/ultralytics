@@ -49,15 +49,7 @@ Depth Anything V2 is a widely used open baseline for monocular depth. Its DINOv2
 
 At ~768 px — `imgsz=768` for YOLO26, the resolution its released weights are trained at, and 770 px for Depth Anything V2, whose DINOv2 backbone requires a multiple of its patch size of 14:
 
-| Model                   | params (M) | FLOPs (B) | T4 TensorRT10 (ms) |   FPS | Speedup vs V2 Small | Speedup vs V2 Base |
-| ----------------------- | ---------: | --------: | -----------------: | ----: | ------------------: | -----------------: |
-| Depth Anything V2 Base  |       97.5 |    1025.5 |              55.40 |  18.1 |                   — |                  — |
-| Depth Anything V2 Small |       24.8 |     346.9 |              20.99 |  47.6 |                   — |                  — |
-| YOLO26x-depth           |       57.0 |     302.0 |              13.57 |  73.7 |                1.5× |               4.1× |
-| YOLO26l-depth           |       27.7 |     157.2 |               7.68 | 130.2 |                2.7× |               7.2× |
-| YOLO26m-depth           |       23.3 |     130.7 |               6.00 | 166.7 |                3.5× |               9.2× |
-| YOLO26s-depth           |       13.2 |      67.9 |               3.82 | 261.6 |                5.5× |              14.5× |
-| YOLO26n-depth           |        6.4 |      46.9 |               2.73 | 365.8 |                7.7× |              20.3× |
+{% include "macros/yolo-depth-speed-comparison.md" %}
 
 At ~640 px — `imgsz=640` and 644 px respectively — the ordering is unchanged, and YOLO26n-depth is 5.9× faster than Depth Anything V2 Small:
 

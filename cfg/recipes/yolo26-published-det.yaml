@@ -1,10 +1,11 @@
-# COCO with the shipped yolo26{size}.pt recipe. `_shipped_from` pulls per-size aug and
-# batch-scaled lr0/nbs/warmup from the checkpoint, so only the keys it omits live here.
-# source: phase2-coco-det-conv-x-sppf-published/args.yaml (verified equal)
+# COCO post-objv1 fine-tune, a literal copy of the shipped yolo26{size}.pt train_args.
+# `_shipped_from` pulls per-size aug, wd, muon/sgd and batch-scaled lr0/nbs/warmup from the
+# checkpoint, so only the keys it omits live here. --batch 64 halves lr0/nbs/warmup with it,
+# same effective LR at half the memory.
 _shipped_from: yolo26{size}.pt
-_epochs_by_scale: { n: 300, s: 120, m: 100, l: 90, x: 70 }
+_epochs_by_scale: { n: 245, s: 70, m: 80, l: 60, x: 40 }
 backbone_lr_ratio: 1.0
-batch: 64
+batch: 128
 close_mosaic: 10
 end2end: true
 imgsz: 640

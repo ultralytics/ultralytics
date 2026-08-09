@@ -9,7 +9,7 @@ keywords: YAML2ModelGraph, YOLO, model visualization, architecture diagram, Ultr
 
 When designing, customizing, or explaining deep learning models, having a clear visual representation of the network architecture is invaluable. While printouts of layer summaries provide technical detail, graphical flowcharts make it much easier to understand the overall design, data flow, and connection patterns.
 
-[YAML2ModelGraph](https://github.com/WangQvQ/YAML2ModelGraph) is a specialized, lightweight open-source tool designed to parse declarative [Ultralytics YOLO](../models/index.md) configuration YAML files and convert them into beautiful, publication-ready SVG diagrams. It is particularly useful for researchers writing academic papers, developers documenting custom models, or anyone looking to verify their architectural modifications.
+[YAML2ModelGraph](https://github.com/WangQvQ/YAML2ModelGraph) is a specialized, lightweight community tool designed to parse declarative [Ultralytics YOLO](../models/index.md) configuration YAML files and convert them into publication-ready SVG diagrams. It is particularly useful for researchers writing academic papers, developers documenting custom models, or anyone looking to verify their architectural modifications.
 
 <p align="center">
   <img width="48%" src="https://raw.githubusercontent.com/WangQvQ/YAML2ModelGraph/main/svg/graph_paper.svg" alt="YAML2ModelGraph Single Head Paper Theme">

@@ -81,6 +81,7 @@ class ImageEncoderLoss:
         cls_l1=False,
         distill_path="adaptor",
         loss_type="cos_l1",
+        gram_weight=0.0,
     ):
         """Initialize ImageEncoderLoss.
 
@@ -96,12 +97,16 @@ class ImageEncoderLoss:
                 un-normalized patch features, no cosine). CLS loss stays cosine in both. Tests Mengyu's L2-wins evidence
                 (same-arch YOLO det features) in our cross-arch ViT to YOLO conv regime. The third logged loss item
                 (wandb "patch_l1") holds smooth_L1 under cos_l1 and MSE under l2.
+            gram_weight (float): Weight for DINOv3 Gram loss on raw P5 patch similarities.
         """
         self.cos_weight = cos_weight
         self.l1_weight = l1_weight
         self.cls_l1 = cls_l1
         self.distill_path = distill_path
         self.loss_type = loss_type
+        self.gram_weight = gram_weight
+        if gram_weight and distill_path == "feat_map":
+            raise ValueError("Gram loss requires distill_path='adaptor'")
 
     def _teacher_loss(self, s_cls, s_patch, t_cls, t_patch):
         """Compute loss for a single teacher (EUPE Eq.5).
@@ -168,6 +173,31 @@ class ImageEncoderLoss:
             t_patch = t_patch.flatten(2).transpose(1, 2)
         return t_patch
 
+    @staticmethod
+    def _gram_loss(s_patch, t_patch):
+        """Compute DINOv3 image-level Gram loss on normalized patch tokens.
+
+        Args:
+            s_patch (torch.Tensor): Raw student backbone patch features (B, N, D_S).
+            t_patch (torch.Tensor): Raw teacher patch features (B, N, D_T).
+
+        Returns:
+            (torch.Tensor): Mean squared error between per-image patch similarity matrices.
+        """
+        return F.mse_loss(ImageEncoderLoss._gram_matrix(s_patch), ImageEncoderLoss._gram_matrix(t_patch))
+
+    @staticmethod
+    def _gram_matrix(patches):
+        """Return the normalized patch similarity matrix."""
+        patches = F.normalize(patches.float(), dim=-1)
+        return patches @ patches.transpose(-2, -1)
+
+    @property
+    def item_names(self):
+        """Return active loss component names."""
+        names = self.ITEM_NAMES["feat_map" if self.distill_path == "feat_map" else "adaptor"]
+        return (*names, "gram") if self.gram_weight else names
+
     def _teacher_loss_feat_map(self, s_scales, t_patch):
         """Per-scale MSE between student feat maps and bilinearly-resized teacher tokens.
 
@@ -200,7 +230,7 @@ class ImageEncoderLoss:
                 items.append(mse.detach())
         return loss, items
 
-    def __call__(self, preds, batch):
+    def __call__(self, preds, batch, s_gram=None):
         """Compute multi-teacher distillation loss (EUPE Eq.6: sum over teachers).
 
         Args:
@@ -209,6 +239,7 @@ class ImageEncoderLoss:
             {teacher_key: [student_scale0, student_scale1, student_scale2]} with each (B, D_teacher, H, W).
             batch (dict): {teacher_key: {"cls": Tensor|None, "patches": Tensor}} per teacher. Must also contain
                 "_teacher_keys" listing the active teacher keys.
+            s_gram (torch.Tensor | None): Raw student P5 patch features shared by all teachers.
 
         Returns:
             total_loss (torch.Tensor): Summed loss across teachers.
@@ -220,7 +251,8 @@ class ImageEncoderLoss:
         total_loss = torch.tensor(0.0, device=dev)
         loss_items = {}
         patch_align_mode = batch.get("_patch_align_mode", "bilinear")
-        names = self.ITEM_NAMES["feat_map" if self.distill_path == "feat_map" else "adaptor"]
+        student_gram = self._gram_matrix(s_gram) if self.gram_weight else None
+        names = self.item_names
 
         for key in teacher_keys:
             if self.distill_path == "feat_map":
@@ -231,6 +263,15 @@ class ImageEncoderLoss:
                 t_cls = batch[key]["cls"]
                 t_patch = self._align_patch_tokens(s_patch, batch[key]["patches"], mode=patch_align_mode)
                 loss_i, items_i = self._teacher_loss(s_cls, s_patch, t_cls, t_patch)
+                if self.gram_weight:
+                    gram_loss = F.mse_loss(
+                        student_gram,
+                        self._gram_matrix(
+                            self._align_patch_tokens(s_gram, batch[key]["raw_patches"], mode=patch_align_mode)
+                        ),
+                    )
+                    loss_i = loss_i + self.gram_weight * gram_loss
+                    items_i.append(gram_loss.detach())
             total_loss = total_loss + loss_i
             loss_items.update({f"{key}/{name}": item for name, item in zip(names, items_i)})
 
@@ -282,8 +323,8 @@ class ImageEncoderModel(ClassificationModel):
                 backward compat.
             proj_hidden_dim (int, optional): Adaptor MLP hidden dimension. None uses the 1280-wide YOLO Classify
             projection (ultralytics/nn/modules/head.py: 819). EUPE uses 1536 in Stage 1 (arXiv:2603.22387 Section 4.1).
-            loss_cfg (dict, optional): Loss config with keys cos_weight, l1_weight, cls_l1, loss_type, distill_path.
-                None = EUPE defaults.
+            loss_cfg (dict, optional): Loss config with keys cos_weight, l1_weight, cls_l1, loss_type, gram_weight,
+                distill_path. None = EUPE defaults.
             distill_path (str): "adaptor" (default, cos+L1 on final-stage CLS+patch through adaptor MLP) or "feat_map"
                 (EdgeCrafter-style MSE at student L3/L5/L8 vs teacher final-block tokens bilinearly resized per scale;
                 uses 1x1 Conv2d adaptors).
@@ -364,6 +405,7 @@ class ImageEncoderModel(ClassificationModel):
 
         for m in self.model[:-1]:
             x = m(x)
+        s_gram = x.flatten(2).transpose(1, 2) if self._loss_cfg.get("gram_weight", 0.0) else None
         head = self.model[-1]
         features = head.conv(x)  # (B, 1280, H, W) shared features
 
@@ -400,7 +442,7 @@ class ImageEncoderModel(ClassificationModel):
             s_patch = heads["patch"](patch_normed)
             teacher_preds[key] = (s_cls, s_patch)
 
-        result = self.criterion(teacher_preds, batch)
+        result = self.criterion(teacher_preds, batch, s_gram)
 
         # Nan instrumentation: log diagnostic info on first nan occurrence per training run
         if not getattr(self, "_nan_logged", False) and result[0].isnan():

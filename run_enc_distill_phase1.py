@@ -86,6 +86,7 @@ def main(argv: list[str]) -> None:
         --l1_weight <float>: smooth L1 loss weight (default 0.1)
         --cls_l1: add smooth L1 to CLS token loss (default False)
         --loss_type <str>: patch loss "cos_l1" (default, 0.9cos+0.1L1) or "l2" (pure MSE on un-normalized features)
+        --gram_weight <float>: add DINOv3 Gram loss on raw P5 patch similarities. Default 0 disables it.
         --lr <float>: override recipe lr0 (applied before batch scaling)
         --batch <int>: per-GPU (per-rank) batch. Global batch = per-GPU * world_size. When the
             global batch exceeds NBS_CANONICAL (512), lr0 and warmup_epochs scale linearly and
@@ -125,6 +126,7 @@ def main(argv: list[str]) -> None:
     args, optimizer = _pop_flag(args, "--optimizer")
     args, norm_in_str = _pop_flag(args, "--normalize_teacher_input", is_bool=True)
     args, loss_type = _pop_flag(args, "--loss_type")
+    args, gram_weight_str = _pop_flag(args, "--gram_weight")
     args, high_res_final_epochs = _pop_flag(args, "--high_res_final_epochs")  # "<imgsz>:<epochs>" e.g. "384:12"
     args, _hires_legacy = _pop_flag(args, "--hires_tail")  # legacy alias for --high_res_final_epochs
     args, eupe_multires_str = _pop_flag(args, "--eupe_multires", is_bool=True)
@@ -146,6 +148,7 @@ def main(argv: list[str]) -> None:
             (optimizer, "--optimizer"),
             (norm_in_str, "--normalize_teacher_input"),
             (loss_type, "--loss_type"),
+            (gram_weight_str, "--gram_weight"),
         )
         if value
     ]
@@ -158,6 +161,7 @@ def main(argv: list[str]) -> None:
     optimizer = optimizer or "AdamW"
     normalize_teacher_input = bool(norm_in_str)
     loss_type = loss_type or "cos_l1"
+    gram_weight = float(gram_weight_str) if gram_weight_str else 0.0
     high_res_final_epochs = high_res_final_epochs or _hires_legacy or None
     eupe_multires = bool(eupe_multires_str)
     recipe_cfg = YAML.load(_PHASE1_RECIPE)
@@ -196,6 +200,8 @@ def main(argv: list[str]) -> None:
     # Presence-only flags cannot express a saved True value. With no explicit override, resumes inherit the checkpoint.
     if resume_args and not norm_in_str:
         normalize_teacher_input = bool(resume_args.get("normalize_teacher_input", False))
+    if resume_args and not gram_weight_str:
+        gram_weight = float(resume_args.get("gram_weight", 0.0))
 
     post_training_args = {}
     if eupe_multires:
@@ -241,6 +247,7 @@ def main(argv: list[str]) -> None:
         normalize_teacher_input = bool(post_training_args.get("normalize_teacher_input", False))
         standardize_teacher_outputs = bool(post_training_args.get("standardize_teacher_outputs", False))
         loss_type = post_training_args.get("loss_type", "cos_l1")
+        gram_weight = float(post_training_args.get("gram_weight", 0.0))
         optimizer = "AdamW"
         parent_wandb_id = parent_wandb_id or wandb_config.resolve_run_id_by_name(checkpoint.parents[1].name)
     elif parent_wandb_id:
@@ -258,6 +265,7 @@ def main(argv: list[str]) -> None:
             ("optimizer", optimizer, "AdamW"),
             ("normalize_teacher_input", normalize_teacher_input, False),
             ("loss_type", loss_type, "cos_l1"),
+            ("gram_weight", gram_weight, 0.0),
             ("high_res_final_epochs", high_res_final_epochs, None),
             ("knn_every", knn_every, KNN_EVERY_DEFAULT),
         ):
@@ -351,6 +359,7 @@ def main(argv: list[str]) -> None:
             normalize_teacher_input=normalize_teacher_input,
             standardize_teacher_outputs=standardize_teacher_outputs,
             loss_type=loss_type,
+            gram_weight=gram_weight,
             high_res_final_epochs=high_res_final_epochs,
             knn_every=knn_every,
             grad_clip=grad_clip_v,
@@ -375,6 +384,7 @@ def main(argv: list[str]) -> None:
         proj_hidden_dim=proj_hidden_dim,
         sample_t=sample_t,
         loss_type=loss_type,
+        gram_weight=gram_weight,
         high_res_final_epochs=high_res_final_epochs,
         device=gpu,
         **paths.run_paths(name),

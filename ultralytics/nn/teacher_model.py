@@ -47,10 +47,12 @@ class TeacherOutput:
         cls (torch.Tensor | None): CLS/summary features (B, D). None for patches-only teachers (SAM3) where
         CLS is not meaningful -- following DUNE convention (dune/teachers/config.py: 25,36).
         patches (torch.Tensor): Spatial/patch features (B, N, D). Always present.
+        raw_patches (torch.Tensor | None): Patch features before output standardization.
     """
 
     cls: torch.Tensor | None
     patches: torch.Tensor
+    raw_patches: torch.Tensor | None = None
 
 
 def standardize_teacher_output(
@@ -86,6 +88,7 @@ def encode_teacher_batch(
     image: torch.Tensor,
     chunk: int = 0,
     stats: dict[str, tuple[torch.Tensor, torch.Tensor]] | None = None,
+    keep_raw_patches: bool = False,
 ) -> TeacherOutput:
     """Encode a teacher batch, optionally splitting it into smaller calls.
 
@@ -94,6 +97,7 @@ def encode_teacher_batch(
         image (torch.Tensor): Preprocessed image tensor (B, 3, H, W).
         chunk (int): Images per teacher forward call. Non-positive values encode the full batch.
         stats (dict[str, tuple[torch.Tensor, torch.Tensor]] | None, optional): Fixed output statistics.
+        keep_raw_patches (bool): Whether to retain patch features before output standardization.
 
     Returns:
         (TeacherOutput): Concatenated CLS and patch features.
@@ -106,7 +110,11 @@ def encode_teacher_batch(
             cls=None if outputs[0].cls is None else torch.cat([x.cls for x in outputs], 0),
             patches=torch.cat([x.patches for x in outputs], 0),
         )
-    return standardize_teacher_output(output, stats) if stats else output
+    raw_patches = output.patches if keep_raw_patches else None
+    raw_patches = raw_patches.clone() if raw_patches is not None and stats else raw_patches
+    output = standardize_teacher_output(output, stats) if stats else output
+    output.raw_patches = raw_patches
+    return output
 
 
 class TeacherModel(nn.Module):

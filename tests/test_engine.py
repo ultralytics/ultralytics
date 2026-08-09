@@ -224,8 +224,15 @@ def test_image_encoder_loss_items():
     batch = {"_teacher_keys": ["t1", "t2"]}
     preds = {}
     for key in batch["_teacher_keys"]:
-        batch[key] = {"cls": torch.randn(2, 4), "patches": torch.randn(2, 9, 4)}
-        preds[key] = (torch.randn(2, 4, requires_grad=True), torch.randn(2, 9, 4, requires_grad=True))
+        batch[key] = {
+            "cls": torch.randn(2, 4),
+            "patches": torch.randn(2, 9, 4),
+            "raw_patches": torch.randn(2, 9, 5),
+        }
+        preds[key] = (
+            torch.randn(2, 4, requires_grad=True),
+            torch.randn(2, 9, 4, requires_grad=True),
+        )
 
     loss, items = ImageEncoderLoss()(preds, batch)
 
@@ -237,6 +244,16 @@ def test_image_encoder_loss_items():
         "t2/patch_cos",
         "t2/patch_l1",
     )
+    student = torch.randn(2, 9, 3, requires_grad=True)
+    gram_loss, gram_items = ImageEncoderLoss(gram_weight=0.25)(preds, batch, student)
+    student_norm = torch.nn.functional.normalize(student, dim=-1)
+    teacher_norm = torch.nn.functional.normalize(batch["t1"]["raw_patches"], dim=-1)
+    expected = torch.nn.functional.mse_loss(
+        student_norm @ student_norm.transpose(-2, -1), teacher_norm @ teacher_norm.transpose(-2, -1)
+    )
+    assert torch.allclose(gram_items["t1/gram"], expected)
+    gram_loss.backward(retain_graph=True)
+    assert student.grad is not None
     loss.backward()
 
 

@@ -25,7 +25,7 @@ from callbacks.distill_aug import classify_augmentations_distill
 from ultralytics.data.augment import classify_transforms
 from ultralytics.data.utils import IMG_FORMATS
 from ultralytics.models.yolo.classify.train import ClassificationTrainer
-from ultralytics.nn.image_encoder import ImageEncoderLoss, ImageEncoderModel
+from ultralytics.nn.image_encoder import ImageEncoderModel
 from ultralytics.nn.teacher_model import (
     PIPELINE_IMAGE_MEAN,
     PIPELINE_IMAGE_STD,
@@ -471,7 +471,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
                 "token_types": reg["token_types"],
             }
         loss_cfg = {}
-        for k in ("cos_weight", "l1_weight", "cls_l1", "loss_type"):
+        for k in ("cos_weight", "l1_weight", "cls_l1", "loss_type", "gram_weight"):
             v = getattr(self.args, k, None)
             if v is not None:
                 loss_cfg[k] = v
@@ -672,8 +672,11 @@ class ImageEncoderTrainer(ClassificationTrainer):
                 teacher_imgs,
                 self._teacher_chunk_for(sk, teacher_imgsz),
                 self._teacher_feature_stats.get(sk),
+                keep_raw_patches=getattr(self.args, "gram_weight", 0.0) > 0,
             )
             result[sk] = {"cls": out.cls, "patches": out.patches}
+            if out.raw_patches is not None:
+                result[sk]["raw_patches"] = out.raw_patches
 
         return result
 
@@ -723,8 +726,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
         """Return ImageEncoderValidator for loss-only validation."""
         from ultralytics.models.yolo.classify.val_image_encoder import ImageEncoderValidator
 
-        dp = getattr(self.model, "distill_path", "adaptor")
-        sub = ImageEncoderLoss.ITEM_NAMES["feat_map" if dp == "feat_map" else "adaptor"]
+        sub = unwrap_model(self.model).init_criterion().item_names
         self._loss_sub = sub
         self.loss_names = tuple(f"{sk}/{s}" for sk in self._safe_keys for s in sub)
 

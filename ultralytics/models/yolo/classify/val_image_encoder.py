@@ -107,8 +107,11 @@ class ImageEncoderValidator(BaseValidator):
                 teacher_imgs,
                 teacher_chunk_by_key.get(sk, 0),
                 self.teacher_feature_stats.get(sk),
+                keep_raw_patches=getattr(self.args, "gram_weight", 0.0) > 0,
             )
             result[sk] = {"cls": out.cls, "patches": out.patches}
+            if out.raw_patches is not None:
+                result[sk]["raw_patches"] = out.raw_patches
 
         return result
 

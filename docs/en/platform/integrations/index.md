@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, integrations, Slack, alerts, data import, Robofl
 
 [Ultralytics Platform](https://platform.ultralytics.com) [integrations](../../integrations/index.md) connect your workspace to other tools and services you already use. Send job results to Slack, import existing datasets with a single API key, or connect your cloud storage and use the data where it lives.
 
-![Ultralytics Platform Settings Integrations Tab](https://cdn.ul.run/i/94bb398afc9287028dd6f3c3ae755cbe.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Integrations Tab](https://cdn.ul.run/i/ff5b55316ea85e8eadcffa272698239c.avif)<!-- screenshot -->
 
 ## Accessing Integrations
 

@@ -349,6 +349,15 @@ When training with Platform datasets using the [`ul://` URI format](../data/data
 
     The `ul://` scheme resolves to your Platform dataset. The trained model's Overview tab will show a link back to this dataset (see [Using Platform Datasets](../api/index.md#using-platform-datasets)).
 
+## Custom Metadata
+
+Open **More actions** and select **Information** to review two sections:
+
+- **Ultralytics Metadata**: Read-only Platform details such as the model ID, project, source dataset, task, status, and timestamps
+- **Custom Metadata**: Your own JSON object for evaluation context, release tracking, governance, or other model-specific data
+
+Custom metadata is separate from training-owned model information, environment details, and training arguments. Workspace viewers can inspect it, while members with edit access can replace the object. The serialized metadata object is limited to 500,000 characters, and each top-level key is limited to 128 characters. Save an empty object (`{}`) to clear custom metadata.
+
 ## Visibility Settings
 
 Control who can see your model:

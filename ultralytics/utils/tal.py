@@ -398,8 +398,8 @@ def make_anchors(feats, strides, grid_cell_offset=0.5):
         stride = strides[i]
         h, w = feats[i].shape[2:] if isinstance(feats, list) else (int(feats[i][0]), int(feats[i][1]))
         # new_* factories inherit the device at runtime, unlike torch.arange which bakes it into traced graphs
-        sx = feats[0].new_ones(w, dtype=dtype).cumsum(0) - (1 - grid_cell_offset)  # shift x
-        sy = feats[0].new_ones(h, dtype=dtype).cumsum(0) - (1 - grid_cell_offset)  # shift y
+        sx = feats[0].new_full((w,), 1, dtype=dtype).cumsum(0) - (1 - grid_cell_offset)  # shift x
+        sy = feats[0].new_full((h,), 1, dtype=dtype).cumsum(0) - (1 - grid_cell_offset)  # shift y
         sy, sx = torch.meshgrid(sy, sx, indexing="ij") if TORCH_1_11 else torch.meshgrid(sy, sx)
         anchor_points.append(torch.stack((sx, sy), -1).view(-1, 2))
         stride_tensor.append(feats[0].new_full((h * w, 1), stride, dtype=dtype))

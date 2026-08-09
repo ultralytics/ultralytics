@@ -13,7 +13,7 @@ from PIL import Image
 
 from ultralytics.cfg import TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
-from ultralytics.nn.tasks import guess_model_task, load_checkpoint, yaml_model_load
+from ultralytics.nn.tasks import BaseModel, guess_model_task, load_checkpoint, yaml_model_load
 from ultralytics.utils import (
     ARGV,
     ASSETS,
@@ -26,6 +26,7 @@ from ultralytics.utils import (
     callbacks,
     checks,
 )
+from ultralytics.utils.torch_utils import unwrap_model
 
 
 class Model(torch.nn.Module):
@@ -437,6 +438,10 @@ class Model(torch.nn.Module):
         Returns:
             (Iterator[torch.Tensor] | list[torch.Tensor]): Image embeddings, streamed when `stream=True`.
 
+        Raises:
+            TypeError: If the model is not an Ultralytics PyTorch model. Exported formats and third-party modules expose
+                no intermediate layers to embed.
+
         Examples:
             >>> model = YOLO("yolo26n.pt")
             >>> image = "https://ultralytics.com/images/bus.jpg"
@@ -445,8 +450,12 @@ class Model(torch.nn.Module):
             >>> print(embeddings[0].shape)
             >>> print(results[0].boxes.shape)
         """
+        self._check_is_pytorch_model()
+        model = unwrap_model(self.model)
+        if not isinstance(model, BaseModel):  # e.g. a super-gradients YOLO-NAS module, which has no layer list
+            raise TypeError(f"model='{type(model).__name__}' is not an Ultralytics model and cannot be embedded.")
         if not kwargs.get("embed"):
-            kwargs["embed"] = [len(self.model.model) - 2]  # embed second-to-last layer if no indices passed
+            kwargs["embed"] = [len(model.model) - 2]  # embed second-to-last layer if no indices passed
         return self.predict(source, stream, **kwargs)
 
     def predict(
@@ -521,7 +530,7 @@ class Model(torch.nn.Module):
 
         This method performs object tracking using the model's predictors and optionally registered trackers. It handles
         various input sources such as file paths or video streams, and supports customization through keyword arguments.
-        The method registers trackers if not already present and can persist them between calls.
+        The method registers or refreshes the tracking callbacks on each call, so a later `persist` takes effect.
 
         Args:
             source (str | Path | int | list | tuple | np.ndarray | torch.Tensor, optional): Input source for object
@@ -544,10 +553,9 @@ class Model(torch.nn.Module):
             - The tracking mode is explicitly set in the keyword arguments.
             - Batch size is set to 1 for tracking in videos.
         """
-        if not hasattr(self.predictor, "trackers"):
-            from ultralytics.trackers import register_tracker
+        from ultralytics.trackers import register_tracker
 
-            register_tracker(self, persist)
+        register_tracker(self, persist)
         kwargs["conf"] = kwargs.get("conf") or 0.1  # ByteTrack-based method needs low confidence predictions as input
         kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
         kwargs["mode"] = "track"
@@ -619,12 +627,14 @@ class Model(torch.nn.Module):
 
         if _depth_head(self.model) is None:
             raise ValueError("Model has no Depth head with calibration buffers (cal_a/cal_b).")
-        args = {**self.overrides, **kwargs, "mode": "val", "task": "depth", "rect": False}
+        args = {**self.overrides, **kwargs, "mode": "val", "task": "depth"}
         if data is not None:
             args["data"] = data
         validator = self._smart_load("validator")(args=args, _callbacks=self.callbacks)
         validator(model=self.model)  # builds the dataloader and reports metrics with the current calibration
-        res = fit_calibration_selective(self.model, validator.dataloader, validator.device)
+        res = fit_calibration_selective(
+            self.model, validator.dataloader, validator.device, max_depth=validator.data.get("max_depth") or 100.0
+        )
         if res is None:
             return None
         LOGGER.info("Call model.save(...) to persist the calibration.")
@@ -821,6 +831,7 @@ class Model(torch.nn.Module):
                 weights, _ = load_checkpoint(pretrained)
             self.trainer.model = self.trainer.get_model(weights=weights, cfg=self.model.yaml)
             self.model = self.trainer.model
+            self.predictor = None  # this module replaced the one the cached predictor wrapped
 
         self.trainer.train()
         # Update model and cfg after training
@@ -831,6 +842,7 @@ class Model(torch.nn.Module):
                     f"Training completed but no checkpoint was saved. Expected {self.trainer.best} or {self.trainer.last}."
                 )
             self.model, self.ckpt = load_checkpoint(ckpt)
+            self.predictor = None  # the checkpoint replaced the module again; covers resume and YAML runs too
             self.overrides = self._reset_ckpt_args(self.model.args)
             self.metrics = getattr(self.trainer.validator, "metrics", None)
             if self.metrics is None and self.ckpt:  # recover from checkpoint under DDP (validator runs in subprocess)

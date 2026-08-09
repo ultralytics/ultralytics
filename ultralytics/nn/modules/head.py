@@ -11,7 +11,6 @@ import torch.nn.functional as F
 from torch import nn
 from torch.nn.init import constant_, xavier_uniform_
 
-from ultralytics.utils import NOT_MACOS14
 from ultralytics.utils.tal import dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, smart_inference_mode
 
@@ -86,6 +85,19 @@ class Detect(nn.Module):
     strides = torch.empty(0)  # init
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
     xyxy = False  # xyxy or xywh output
+
+    @staticmethod
+    def _grouped_topk(x: torch.Tensor, k: int, groups: int = 8) -> tuple[torch.Tensor, torch.Tensor]:
+        """Select exact top-k values through smaller grouped selections."""
+        n = x.shape[1]
+        while groups > 1 and (n % groups or n // groups < k):
+            groups //= 2
+        if groups == 1:  # nothing to gain, e.g. a short axis or one that does not divide evenly
+            return x.topk(k, dim=1)
+        size = n // groups
+        values, index = x.reshape(x.shape[0], groups, size).topk(k, dim=-1)
+        values, winners = values.flatten(1).topk(k, dim=1)
+        return values, winners // k * size + index.flatten(1).gather(1, winners)
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """Initialize the YOLO detection layer with specified number of classes and channels.
@@ -251,10 +263,11 @@ class Detect(nn.Module):
             scores, labels = scores.max(dim=-1, keepdim=True)
             scores, indices = scores.topk(k, dim=1)
             labels = labels.gather(1, indices)
-            return scores, labels, indices
-        ori_index = scores.max(dim=-1)[0].topk(k)[1].unsqueeze(-1)
+            return scores, labels.float(), indices
+        groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
+        ori_index = self._grouped_topk(scores.max(dim=-1)[0], k, groups)[1].unsqueeze(-1)
         scores = scores.gather(dim=1, index=ori_index.expand(-1, -1, nc))
-        scores, index = scores.flatten(1).topk(k)
+        scores, index = self._grouped_topk(scores.flatten(1), k, groups)
         idx = (
             ori_index[torch.arange(batch_size)[..., None], index // nc]
             if self.format == "coreml"
@@ -659,10 +672,7 @@ class Pose(Detect):
         else:
             y = kpts.clone()
             if ndim == 3:
-                if NOT_MACOS14:
-                    y[:, 2::ndim].sigmoid_()
-                else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
-                    y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
+                y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
             y[:, 0::ndim] = (y[:, 0::ndim] * 2.0 + (self.anchors[0] - 0.5)) * self.strides
             y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
             return y
@@ -776,10 +786,7 @@ class Pose26(Pose):
         else:
             y = kpts.clone()
             if ndim == 3:
-                if NOT_MACOS14:
-                    y[:, 2::ndim].sigmoid_()
-                else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
-                    y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
+                y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
             y[:, 0::ndim] = (y[:, 0::ndim] + self.anchors[0]) * self.strides
             y[:, 1::ndim] = (y[:, 1::ndim] + self.anchors[1]) * self.strides
             return y

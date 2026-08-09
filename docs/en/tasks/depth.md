@@ -37,7 +37,7 @@ YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~
 {% include "macros/yolo-depth-perf.md" %}
 
 - **delta1<sup>NYU</sup>** is the percentage of pixels where the predicted depth is within a factor of 1.25 of the ground truth, on the NYU Depth V2 Eigen test split (654 images) with multi-scale + horizontal-flip TTA and log-least-squares alignment.
-- Single-scale accuracy without TTA is reproducible with `yolo depth val model=yolo26n-depth.pt data=nyu-depth.yaml imgsz=768 device=0` (substitute `model=` for each size), which uses median (scale-only) alignment and scores lower: delta1 0.785 (n), 0.786 (s), 0.827 (m), 0.839 (l), 0.843 (x).
+- Single-scale accuracy without TTA is reproducible with `yolo depth val model=yolo26n-depth.pt data=nyu-depth.yaml imgsz=768 device=0` (substitute `model=` for each size), which uses median (scale-only) alignment and scores lower: delta1 0.783 (n), 0.793 (s), 0.840 (m), 0.853 (l), 0.860 (x).
 - **abs_rel** is the mean absolute relative error between predicted and ground-truth depth values.
 - **rmse** is the root mean squared error in meters.
 - **Speed** is inference-only latency (pre/post-processing excluded) at `imgsz=768`, `batch=1`, reported as mean ± std over timed runs after warmup. **CPU ONNX** is ONNX Runtime fp32 on a 32-core Intel Xeon (Skylake); **T4 TensorRT10** is TensorRT fp16 on a Tesla T4.
@@ -49,15 +49,7 @@ Depth Anything V2 is a widely used open baseline for monocular depth. Its DINOv2
 
 At ~768 px — `imgsz=768` for YOLO26, the resolution its released weights are trained at, and 770 px for Depth Anything V2, whose DINOv2 backbone requires a multiple of its patch size of 14:
 
-| Model                   | params (M) | FLOPs (B) | T4 TensorRT10 (ms) |   FPS | Speedup vs V2 Small | Speedup vs V2 Base |
-| ----------------------- | ---------: | --------: | -----------------: | ----: | ------------------: | -----------------: |
-| Depth Anything V2 Base  |       97.5 |    1025.5 |              55.40 |  18.1 |                   — |                  — |
-| Depth Anything V2 Small |       24.8 |     346.9 |              20.99 |  47.6 |                   — |                  — |
-| YOLO26x-depth           |       57.0 |     302.0 |              13.57 |  73.7 |                1.5× |               4.1× |
-| YOLO26l-depth           |       27.7 |     157.2 |               7.68 | 130.2 |                2.7× |               7.2× |
-| YOLO26m-depth           |       23.3 |     130.7 |               6.00 | 166.7 |                3.5× |               9.2× |
-| YOLO26s-depth           |       13.2 |      67.9 |               3.82 | 261.6 |                5.5× |              14.5× |
-| YOLO26n-depth           |        6.4 |      46.9 |               2.73 | 365.8 |                7.7× |              20.3× |
+{% include "macros/yolo-depth-speed-comparison.md" %}
 
 At ~640 px — `imgsz=640` and 644 px respectively — the ordering is unchanged, and YOLO26n-depth is 5.9× faster than Depth Anything V2 Small:
 
@@ -205,7 +197,7 @@ The depth head separates **shape** (relative scene structure) from **scale** (ab
         model.save("yolo26s-depth-calibrated.pt")
         ```
 
-Calibration needs ground-truth depth to fit against, so it runs on a labeled split — it is not something that can happen at blind inference. Use it when relative depth is already good and only the scale/range is wrong; if the relative structure itself needs to change for your domain, [fine-tune](#fine-tuning-on-your-own-data) instead.
+Calibration needs ground-truth depth to fit against, so it runs on a labeled split — it is not something that can happen at blind inference. It fits and scores on the same pixels the val metrics evaluate: GT at or beyond the dataset YAML's `max_depth` (default 100 m) is excluded. Use it when relative depth is already good and only the scale/range is wrong; if the relative structure itself needs to change for your domain, [fine-tune](#fine-tuning-on-your-own-data) instead.
 
 Training does this for you automatically: after `model.train(...)` completes, the best and last checkpoints are calibrated on the validation set so they output metric-scaled depth out of the box.
 

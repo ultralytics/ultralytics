@@ -250,6 +250,7 @@ CFG_FRACTION_KEYS = frozenset(
         "fraction",
         "multi_scale",
         "dlam",
+        "o2m",
         "focal_alpha",
         "asl_clip",
     }
@@ -266,6 +267,7 @@ CFG_INT_KEYS = frozenset(
         "vid_stride",
         "line_width",
         "nbs",
+        "topk",
         "save_period",
     }
 )

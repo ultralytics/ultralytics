@@ -1467,7 +1467,7 @@ class E2ELoss:
     def __init__(self, model: torch.nn.Module, loss_fn=v8DetectionLoss):
         """Initialize E2ELoss with one-to-many and one-to-one detection losses using the provided model."""
         self.one2many = loss_fn(model, tal_topk=10)
-        self.one2one = loss_fn(model, tal_topk=7, tal_topk2=1)
+        self.one2one = loss_fn(model, tal_topk=model.args.topk, tal_topk2=1)
         self.updates = 0
         self.total = 1.0
         # init gain
@@ -1475,7 +1475,7 @@ class E2ELoss:
         self.o2o = self.total - self.o2m
         self.o2m_copy = self.o2m
         # final gain
-        self.final_o2m = 0.1
+        self.final_o2m = model.args.o2m
 
     @property
     def class_weights(self) -> torch.Tensor | None:

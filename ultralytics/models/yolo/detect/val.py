@@ -596,7 +596,7 @@ class DetectionValidator(BaseValidator):
                     stats[f"metrics/mAP50({suffix[i][0]})"] = val.stats_as_dict["AP_50"]
                     stats[f"metrics/mAP50-95({suffix[i][0]})"] = val.stats_as_dict["AP_all"]
                     if iou_type == "bbox":
-                        stats["metrics/mAR(B)"] = val.stats_as_dict["AR_all"]
+                        stats["metrics/mAR(B)"] = val.stats_as_dict["AR_third"]  # AR@100
                         for size in "small", "medium", "large":
                             stats[f"metrics/mAP_{size}(B)"] = val.stats_as_dict[f"AP_{size}"]
                             stats[f"metrics/mAR_{size}(B)"] = val.stats_as_dict[f"AR_{size}"]

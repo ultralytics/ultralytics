@@ -6,11 +6,9 @@ Given no arm list a session profiles that scale's baseline, its bridge and every
 TensorRT is timed, the other formats run once afterwards into a `.formats.csv` sidecar, see t4_bench_common for
 why. `warmup=N` overrides the standard conditioning and marks the session exploratory, see run_benchmark.
 
-The bridge is the one arm carried by every session at a scale. Deltas from two sessions are not directly
-comparable, since re-measuring the baseline in each leaves 1.0 to 1.5pp of scatter, but the bridge anchors them:
-an arm's ratio against the bridge inside its own session transfers exactly. A second argument, a comma list of
-arm tags, spends that: `lane-a-x dinop5-mixedrope` times only that arm against the baseline and bridge, so one
-new yaml costs three measurements rather than a rerun of the scale.
+The bridge is the arm carried by every session at a scale. Lane A uses its YOLO26 Conv baseline itself, so every
+candidate transfers through its same-session ratio to Conv. Lane B uses ffnattn2 because its baseline family changes
+across scales. A second argument, a comma list of arm tags, times only those arms and the required anchors.
 
 Scale comes from the filename, and a scale-less stem silently resolves to the first scales key, so every entry has
 its size letter substituted in. Arms absent at a scale are simply not in that session.
@@ -36,7 +34,7 @@ DATA = Path("/root/autodl-tmp/data")
 # at 512, so timing those at 640 measures an operating point nobody ships.
 IMGSZ = {("lane-b", "n"): 480, ("lane-b", "s"): 512, ("lane-b", "m"): 512}
 
-# lane -> (facade, engine builder, baseline tag prefix, bridge tag, {arm tag: (yaml template, scales it exists at)}).
+# lane -> (facade, engine builder, baseline tag prefix, bridge tag, {arm: (yaml template, scales)}).
 #
 # Lane A exports stock, Lane B with the fp32 attention pin DINOv3 needs to survive fp16, so only within-lane ratios
 # travel.
@@ -50,7 +48,7 @@ LANES = {
         YOLO,
         None,
         "conv",
-        "ffnattn2",  # bridge, the arm carried by every session so ratios cross sessions
+        "conv",
         {
             "conv": ("yolo26{s}.yaml", "nsmlx"),
             "attn2": ("yolo26{s}-ultravit-attn2.yaml", "nsmlx"),
@@ -136,6 +134,8 @@ LANES = {
             "slim19-uvit-020826-1": ("yolo26{s}-p4p5-wide-slim19-ultravit-020826-1.yaml", "s"),
             "deep16-sni-uvit-040826-1": ("yolo26{s}-p4p5-wide-deep16-sni-ultravit-040826-1.yaml", "s"),
             "slim19-uvit-040826-1": ("yolo26{s}-p4p5-wide-slim19-ultravit-040826-1.yaml", "s"),
+            "deep16-sni-conv": ("yolo26{s}-p4p5-wide-deep16-sni.yaml", "s"),
+            "slim19-conv": ("yolo26{s}-p4p5-wide-slim19.yaml", "s"),
             "tokenmlp-deepbal": ("yolo26{s}-ultravit-290726-deepbal.yaml", "l"),
             "tokenmlp-deepbal-p5lean": ("yolo26{s}-ultravit-290726-deepbal-p5lean.yaml", "l"),
             # Stage-balanced pair, every P stage above both lanes' baselines at every scale. n is the cell to watch,

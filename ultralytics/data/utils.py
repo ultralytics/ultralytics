@@ -588,22 +588,21 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
 def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     """Check a classification dataset such as Imagenet.
 
-    Download the dataset if it is missing locally, then return its split directories and class names.
+    This function accepts a `dataset` name and attempts to retrieve the corresponding dataset information. If the
+    dataset is not found locally, it attempts to download the dataset from the internet and save it locally.
 
     Args:
-        dataset (str | Path): Dataset name resolved under DATASETS_DIR, an existing dataset directory, or an http(s) URL
-            or local .zip/.tar/.gz archive to download and unzip. Any other path with a suffix raises ValueError.
-        split (str, optional): The split of the dataset. Either 'train', 'val', 'test', or ''.
+        dataset (str | Path): The name of the dataset.
+        split (str, optional): The split of the dataset. Either 'val', 'test', or ''.
 
     Returns:
         (dict[str, Any]): A dictionary containing the following keys:
 
             - 'train' (Path): The directory path containing the training set of the dataset.
-            - 'val' (Path | None): The validation set directory, or None when absent; split='val' falls back to test.
-            - 'test' (Path | None): The test set directory, or None when absent; split='test' falls back to val.
+            - 'val' (Path): The directory path containing the validation set of the dataset.
+            - 'test' (Path): The directory path containing the test set of the dataset.
             - 'nc' (int): The number of classes in the dataset.
             - 'names' (dict[int, str]): A dictionary of class names in the dataset.
-            - 'channels' (int): The number of image channels, always 3.
     """
     if split and split not in {"train", "val", "test"}:
         raise ValueError(f"Invalid classification dataset split '{split}'. Use 'train', 'val', or 'test'.")

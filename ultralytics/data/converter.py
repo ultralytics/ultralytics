@@ -319,24 +319,18 @@ def convert_coco(
                     bboxes.append(box)
                     if use_segments:
                         seg = ann.get("segmentation")
-                        if not isinstance(seg, list):
-                            seg = [seg]  # an RLE dict is one non-polygon entry
-                        elif seg and all(isinstance(x, list) and len(x) == 2 for x in seg):
-                            seg = [seg]  # the value is itself a single polygon in [[x, y], ...] form
-                        seg = [  # [[x, y], ...] is a polygon form too, flatten it to [x, y, x, y, ...]
-                            [c for x in p for c in x]
-                            if isinstance(p, list) and all(isinstance(x, list) and len(x) == 2 for x in p)
-                            else p
-                            for p in seg
-                        ]
-                        polygons = [
-                            p
-                            for p in seg
-                            if isinstance(p, list)
-                            and len(p) >= 6
-                            and not len(p) % 2
-                            and all(isinstance(c, (int, float)) for c in p)
-                        ]
+                        polygons = (
+                            [
+                                p
+                                for p in seg or []
+                                if isinstance(p, list)
+                                and len(p) >= 6
+                                and not len(p) % 2
+                                and all(isinstance(c, (int, float)) for c in p)
+                            ]
+                            if isinstance(seg, list)
+                            else []
+                        )
                         if not polygons:
                             dropped = True
                             cx, cy, bw, bh = box[1:]

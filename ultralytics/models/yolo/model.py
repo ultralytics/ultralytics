@@ -243,7 +243,6 @@ class YOLOE(Model):
         Re-parameterize into a prompt-free model, which no longer accepts prompts
         >>> names = ["person", "car", "dog"]
         >>> model.set_vocab(model.get_vocab(names), names)
-
     """
 
     def __init__(self, model: str | Path = "yoloe-11s-seg.pt", task: str | None = None, verbose: bool = False) -> None:
@@ -480,7 +479,6 @@ class YOLOE(Model):
             >>> from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
             >>> prompts = {"bboxes": np.array([[10, 20, 100, 200]]), "cls": np.array([0])}
             >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts, predictor=YOLOEVPSegPredictor)
-
         """
         visual_prompts = visual_prompts if visual_prompts is not None else {}
         if len(visual_prompts):

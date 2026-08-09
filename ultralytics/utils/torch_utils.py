@@ -539,17 +539,20 @@ def get_flops(model, imgsz=640):
 
     try:
         from ultralytics.nn.modules.block import AAttn, Attention  # imported here: block.py imports this module
+        from ultralytics.nn.modules.head import RTDETRDecoder
 
         model = unwrap_model(model)
         p = next(model.parameters())
         if not isinstance(imgsz, list):
             imgsz = [imgsz, imgsz]  # expand if int/float
         attn = tuple(m for m in model.modules() if isinstance(m, (Attention, AAttn)))
-        # attention costs scale with the square of the image area, so a model carrying one is measured at full size;
-        # stride= extrapolates from a stride-sized sample, which is affine in area and would land ~97% low on it.
-        stride = None if attn else max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32  # max stride
+        rtdetr = any(isinstance(m, RTDETRDecoder) for m in model.modules())
+        # Attention costs are quadratic in image area, so disable THOP's affine proxy.
+        stride = None if attn else max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32
         im = torch.empty((1, p.shape[1], *imgsz), device=p.device, dtype=p.dtype)  # input image in BCHW format
         custom_ops = {Attention: _attention_ops, AAttn: _attention_ops} if attn else None
+        if rtdetr:  # RT-DETR cannot run the stride-sized proxy input
+            return thop.profile(model, inputs=[im], custom_ops=custom_ops, verbose=False)[0] / 1e9 * 2
         return thop.profile(model, inputs=[im], stride=stride, custom_ops=custom_ops, verbose=False)[0] / 1e9 * 2
     except Exception:
         return 0.0

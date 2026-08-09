@@ -520,9 +520,21 @@ class Model(torch.nn.Module):
                 {**self.overrides, "quantize": self.predictor.args.quantize, "imgsz": self.predictor.args.imgsz},
             )
         else:  # only update args if predictor is already setup
-            prev_project, prev_name = self.predictor.args.project, self.predictor.args.name
+            # save_dir isn't a default.yaml key, so a call that never set it leaves no attribute at all.
+            prev_save_dir_args = (
+                self.predictor.args.project,
+                self.predictor.args.name,
+                getattr(self.predictor.args, "save_dir", None),
+                self.predictor.args.exist_ok,
+            )
             self.predictor.args = get_cfg(getattr(self.predictor, "_base_args", DEFAULT_CFG_DICT), args)
-            if (self.predictor.args.project, self.predictor.args.name) != (prev_project, prev_name):
+            new_save_dir_args = (
+                self.predictor.args.project,
+                self.predictor.args.name,
+                getattr(self.predictor.args, "save_dir", None),
+                self.predictor.args.exist_ok,
+            )
+            if new_save_dir_args != prev_save_dir_args:
                 self.predictor.save_dir = get_save_dir(self.predictor.args)
             if getattr(self.model, "end2end", False):
                 # max_det/agnostic_nms are baked into the head once, in setup_model() -- resync them here too,

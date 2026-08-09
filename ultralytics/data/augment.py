@@ -1202,15 +1202,7 @@ class RandomPerspective(BaseTransform):
         return labels
 
     def apply_instances(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
-        """Apply affine transformation to object instances.
-
-        Args:
-            labels (dict[str, Any]): Dictionary containing 'instances' and 'cls'.
-            params (dict | None): Parameters from get_params, including 'M' and 'scale'.
-
-        Returns:
-            (dict): Updated labels with transformed and filtered instances.
-        """
+        """Apply the affine transformation to object instances."""
         cls = labels["cls"]
         instances = labels.pop("instances")
         instances.convert_bbox(format="xyxy")
@@ -1280,27 +1272,7 @@ class RandomPerspective(BaseTransform):
     def apply_segments(
         self, segments: np.ndarray, M: np.ndarray, size: tuple[int, int]
     ) -> tuple[np.ndarray, np.ndarray]:
-        """Apply affine transformations to segments and generate new bounding boxes.
-
-        This function applies affine transformations to input segments and generates new bounding boxes based on the
-        transformed segments. It clips the transformed segments to fit within the new bounding boxes.
-
-        Args:
-            segments (np.ndarray): Input segments with shape (N, M, 2), where N is the number of segments and M is the
-                number of points in each segment.
-            M (np.ndarray): Affine transformation matrix with shape (3, 3).
-            size (tuple[int, int]): Size of the output image (width, height) used for clipping the segments.
-
-        Returns:
-            bboxes (np.ndarray): New bounding boxes with shape (N, 4) in xyxy format.
-            segments (np.ndarray): Transformed and clipped segments with shape (N, M, 2).
-
-        Examples:
-            >>> rp = RandomPerspective()
-            >>> segments = np.random.rand(10, 500, 2)  # 10 segments with 500 points each
-            >>> M = np.eye(3)  # Identity transformation matrix
-            >>> new_bboxes, new_segments = rp.apply_segments(segments, M)
-        """
+        """Transform segments and derive their bounding boxes."""
         n, num = segments.shape[:2]
         if n == 0:
             return [], segments

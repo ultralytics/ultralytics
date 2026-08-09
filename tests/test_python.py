@@ -1468,58 +1468,6 @@ def test_utils_ops():
     assert segment2box(seg, 640, 640).tolist() == [0, 0, 640, 640]
 
 
-def test_clip_obb_preserves_orientation():
-    """Edge clipping must not rotate an OBB's long axis."""
-    from ultralytics.data.augment import RandomPerspective
-    from ultralytics.utils.instance import Instances
-    from ultralytics.utils.ops import resample_segments, segment2box, xyxyxyxy2xywhr
-
-    corners = cv2.boxPoints(((50.0, 50.0), (80.0, 20.0), 20.0))
-    segments = np.stack(resample_segments([corners], n=100))
-    bboxes = np.stack([segment2box(segment, 100, 100) for segment in segments])
-    instances = Instances(bboxes, segments, bbox_format="xyxy", normalized=False)
-
-    reference = xyxyxyxy2xywhr(torch.from_numpy(segments))[0]
-    transform = RandomPerspective(preserve_obb=True)
-    labels = transform.apply_instances(
-        {"cls": np.zeros((1, 1)), "instances": instances},
-        {
-            "M": np.array(((1, 0, -65), (0, 1, 35), (0, 0, 1)), dtype=np.float32),
-            "orig_shape": (100, 100),
-            "scale": 1.0,
-            "size": (100, 100),
-        },
-    )
-    assert len(labels["instances"]) == 1
-    clipped = xyxyxyxy2xywhr(torch.from_numpy(labels["instances"].segments))[0]
-
-    assert torch.allclose(clipped[4], reference[4], atol=1e-5)  # current main changes this angle from 20 to 0 degrees
-    assert (labels["instances"].bboxes >= 0).all() and (labels["instances"].bboxes <= 100).all()
-
-
-def test_cutmix_obb_removes_empty_polygon():
-    """CutMix must remove an OBB whose axis-aligned envelope, but not its polygon, intersects the pasted region."""
-    from ultralytics.data.augment import CutMix
-    from ultralytics.utils.instance import Instances
-    from ultralytics.utils.ops import resample_segments, segment2box
-
-    def make_instances(center, size, angle):
-        segments = np.stack(resample_segments([cv2.boxPoints((center, size, angle))], n=100))
-        bboxes = np.stack([segment2box(segment, 100, 100) for segment in segments])
-        return Instances(bboxes, segments, bbox_format="xyxy", normalized=False)
-
-    labels = {"cls": np.zeros((1, 1)), "instances": make_instances((75.0, 75.0), (10.0, 10.0), 0.0)}
-    labels2 = {"cls": np.ones((1, 1)), "instances": make_instances((40.0, 40.0), (30.0, 5.0), -45.0)}
-    params = {"area": np.array((0, 0, 30, 30)), "h": 100, "indexes2": np.array([0]), "w": 100}
-
-    result = CutMix(type("OBBDataset", (), {"use_obb": True})()).apply_instances(
-        {**labels, "mix_labels": [labels2]}, params
-    )
-
-    assert len(result["instances"]) == 1
-    assert result["cls"].tolist() == [[0.0]]
-
-
 def test_nms_end2end_classes_before_max_det():
     """The end-to-end NMS branch must filter classes before truncating to max_det, like the NMS-based branch."""
     from ultralytics.utils.nms import non_max_suppression

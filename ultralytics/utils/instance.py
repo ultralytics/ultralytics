@@ -390,26 +390,17 @@ class Instances:
             inside = ((segment_mins >= 0) & (segment_maxs <= (w, h))).all(1)
             if not inside.all():
                 canvas = np.array(((0, 0), (w, 0), (w, h), (0, h)), dtype=np.float32)
-                bboxes, segments = [], []
-                for i, segment in enumerate(self.segments):
-                    if inside[i]:
-                        bboxes.append(self.bboxes[i].copy())
-                        segments.append(segment)
-                        continue
-                    (xmin, ymin), (xmax, ymax) = segment_mins[i], segment_maxs[i]
-                    if xmax < 0 or ymax < 0 or xmin > w or ymin > h:
-                        bboxes.append(np.zeros(4, dtype=segment.dtype))
-                        segments.append(np.zeros_like(segment))
-                        continue
+                bboxes, segments = self.bboxes.copy(), self.segments.copy()
+                for i in np.flatnonzero(~inside):
+                    segment = self.segments[i]
                     visible_area, visible = cv2.intersectConvexConvex(
                         cv2.convexHull(segment.astype(np.float32)), canvas
                     )
                     if visible is None or visible_area <= 0:
-                        bboxes.append(np.zeros(4, dtype=segment.dtype))
-                        segments.append(np.zeros_like(segment))
+                        bboxes[i], segments[i] = 0, 0
                         continue
                     visible = visible.reshape(-1, 2)
-                    bboxes.append(np.array((*visible.min(0), *visible.max(0)), dtype=segment.dtype))
+                    bboxes[i] = np.array((*visible.min(0), *visible.max(0)), dtype=segment.dtype)
 
                     # Fit the visible polygon in the full box's coordinates so edge crops cannot change its angle.
                     (_, _), (box_w, box_h), angle = cv2.minAreaRect(segment.astype(np.float32))
@@ -421,8 +412,8 @@ class Instances:
                     aligned = visible @ basis
                     (u1, v1), (u2, v2) = aligned.min(0), aligned.max(0)
                     corners = np.array(((u2, v2), (u2, v1), (u1, v1), (u1, v2)), dtype=np.float32)
-                    segments.append(resample_segments([corners @ basis.T], n=len(segment))[0])
-                self.update(np.asarray(bboxes), np.stack(segments))
+                    segments[i] = resample_segments([corners @ basis.T], n=len(segment))[0]
+                self.update(bboxes, segments)
         else:
             self.bboxes[:, [0, 2]] = self.bboxes[:, [0, 2]].clip(0, w)
             self.bboxes[:, [1, 3]] = self.bboxes[:, [1, 3]].clip(0, h)

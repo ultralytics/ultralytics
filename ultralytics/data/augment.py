@@ -318,6 +318,7 @@ class BaseMixTransform(BaseTransform):
         self.dataset = dataset
         self.pre_transform = pre_transform
         self.p = p
+        self.preserve_obb = getattr(dataset, "use_obb", False)
 
     def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
         """Apply pre-processing transforms and cutmix/mixup/mosaic transforms to labels data.
@@ -762,7 +763,7 @@ class Mosaic(BaseMixTransform):
             "cls": np.concatenate(cls, 0),
             "instances": Instances.concatenate(instances, axis=0),
         }
-        final_labels["instances"].clip(imgsz, imgsz)
+        final_labels["instances"].clip(imgsz, imgsz, preserve_obb=self.preserve_obb)
         good = final_labels["instances"].remove_zero_area_boxes()
         final_labels["cls"] = final_labels["cls"][good]
         if "texts" in mosaic_labels[0]:
@@ -1013,7 +1014,9 @@ class CutMix(BaseMixTransform):
 
         x1, y1, x2, y2 = area.astype(np.int32)
         instances2.add_padding(-x1, -y1)
-        instances2.clip(x2 - x1, y2 - y1)
+        instances2.clip(x2 - x1, y2 - y1, preserve_obb=self.preserve_obb)
+        if self.preserve_obb:
+            indexes2 = indexes2[instances2.remove_zero_area_boxes()]
         instances2.add_padding(x1, y1)
 
         labels["cls"] = np.concatenate([labels["cls"], labels2["cls"][indexes2]], axis=0)
@@ -1086,6 +1089,7 @@ class RandomPerspective(BaseTransform):
         shear: float = 0.0,
         perspective: float = 0.0,
         size: tuple[int, int] | None = None,
+        preserve_obb: bool = False,
     ):
         """Initialize RandomPerspective object with transformation parameters.
 
@@ -1100,6 +1104,7 @@ class RandomPerspective(BaseTransform):
             shear (float): Shear intensity (angle in degrees).
             perspective (float): Perspective distortion factor.
             size (tuple[int, int] | None): Output size (width, height). If None, uses the input image size.
+            preserve_obb (bool): Preserve oriented-box direction when transformed segments cross image boundaries.
         """
         self.degrees = degrees
         self.translate = translate
@@ -1107,6 +1112,7 @@ class RandomPerspective(BaseTransform):
         self.shear = shear
         self.perspective = perspective
         self.size = size
+        self.preserve_obb = preserve_obb
 
     def _compute_affine_matrix(self, img: np.ndarray, size: tuple[int, int]) -> tuple[np.ndarray, float]:
         """Compute the affine transformation matrix without applying it.
@@ -1225,7 +1231,7 @@ class RandomPerspective(BaseTransform):
             keypoints = self.apply_keypoints(keypoints, M, params["size"])
         new_instances = Instances(bboxes, segments, keypoints, bbox_format="xyxy", normalized=False)
         # Clip
-        new_instances.clip(*params["size"])
+        new_instances.clip(*params["size"], preserve_obb=self.preserve_obb)
 
         # Filter instances
         instances.scale(scale_w=scale, scale_h=scale, bbox_only=True)
@@ -1306,8 +1312,9 @@ class RandomPerspective(BaseTransform):
         xy = xy[:, :2] / xy[:, 2:3]
         segments = xy.reshape(n, -1, 2)
         bboxes = np.stack([segment2box(xy, size[0], size[1]) for xy in segments], 0)
-        segments[..., 0] = segments[..., 0].clip(bboxes[:, 0:1], bboxes[:, 2:3])
-        segments[..., 1] = segments[..., 1].clip(bboxes[:, 1:2], bboxes[:, 3:4])
+        if not self.preserve_obb:
+            segments[..., 0] = segments[..., 0].clip(bboxes[:, 0:1], bboxes[:, 2:3])
+            segments[..., 1] = segments[..., 1].clip(bboxes[:, 1:2], bboxes[:, 3:4])
         return bboxes, segments
 
     def apply_keypoints(self, keypoints: np.ndarray, M: np.ndarray, size: tuple[int, int]) -> np.ndarray:
@@ -2801,6 +2808,7 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace):
         shear=hyp.shear,
         perspective=hyp.perspective,
         size=(imgsz, imgsz),
+        preserve_obb=getattr(dataset, "use_obb", False),
     )
 
     pre_transform = Compose([mosaic, affine])

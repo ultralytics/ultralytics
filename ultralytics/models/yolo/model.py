@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Hashable
+from collections.abc import Hashable, Sized
 from pathlib import Path
 from typing import Any
 
@@ -485,20 +485,33 @@ class YOLOE(Model):
             assert "bboxes" in visual_prompts and "cls" in visual_prompts, (
                 f"Expected 'bboxes' and 'cls' in visual prompts, but got {visual_prompts.keys()}"
             )
-            assert len(visual_prompts["bboxes"]) == len(visual_prompts["cls"]) > 0, (
+            sized = all(
+                isinstance(visual_prompts[k], Sized) and getattr(visual_prompts[k], "ndim", 1) > 0
+                for k in ("bboxes", "cls")
+            )
+            assert sized and len(visual_prompts["bboxes"]) == len(visual_prompts["cls"]) > 0, (
                 f"Expected an equal, non-zero number of bounding boxes and classes, but got "
-                f"{len(visual_prompts['bboxes'])} and {len(visual_prompts['cls'])} respectively"
+                f"{visual_prompts['bboxes']} and {visual_prompts['cls']} respectively"
             )
             nested = yolo.yoloe.YOLOEVPDetectPredictor.is_per_image(visual_prompts)  # one prompt array per image
-            # the prompts decide the shape; only a longer source can override them
-            multi = refer_image is None and (nested or (isinstance(source, (list, tuple)) and len(source) > 1))
+            source_count = (
+                len(source)
+                if isinstance(source, (list, tuple))
+                or (isinstance(source, (np.ndarray, torch.Tensor)) and source.ndim == 4)
+                else 1
+            )
+            multi = refer_image is None and source_count > 1
             # each branch below reads the shape the other one cannot; the flat one counts classes with set()
-            assert nested == multi and (multi or all(isinstance(c, Hashable) for c in visual_prompts["cls"])), (
+            valid_nested = nested and all(
+                b.ndim == 2 and b.shape[1:] == (4,) and c.ndim == 1
+                for b, c in zip(visual_prompts["bboxes"], visual_prompts["cls"])
+            )
+            assert nested == multi and (valid_nested or all(isinstance(c, Hashable) for c in visual_prompts["cls"])), (
                 f"Expected {'one array per image' if multi else 'a single flat array'} in 'bboxes' and 'cls', "
                 f"but got {visual_prompts['cls']}"
             )
-            assert not multi or not isinstance(source, (list, tuple)) or len(visual_prompts["cls"]) == len(source), (
-                f"Expected one 'bboxes' and 'cls' array for each of the {len(source)} source images, but got "
+            assert not multi or len(visual_prompts["cls"]) == source_count, (
+                f"Expected one 'bboxes' and 'cls' array for each of the {source_count} source images, but got "
                 f"{len(visual_prompts['cls'])}"
             )
             per_image = [len(set(c)) for c in visual_prompts["cls"]] if multi else [len(set(visual_prompts["cls"]))]

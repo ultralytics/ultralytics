@@ -1334,7 +1334,7 @@ class YOLOEModel(DetectionModel):
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
         assert not head.is_fused
-        names = check_class_names(names)  # validate before fusing the promptable head, which cannot be undone
+        names = list(check_class_names(names).values())  # validate before fusing the head, which cannot be undone
 
         tpe = self.get_text_pe(names)
         self.set_classes(names, tpe)

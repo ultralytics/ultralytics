@@ -366,20 +366,23 @@ def xyxyxyxy2xywhr(x):
     """Convert batched Oriented Bounding Boxes (OBB) from [xy1, xy2, xy3, xy4] to [xywh, rotation] format.
 
     Args:
-        x (np.ndarray | torch.Tensor): Input box corners with shape (N, 8) in [xy1, xy2, xy3, xy4] format.
+        x (np.ndarray | torch.Tensor): Input box corners with shape (N, 8) or (N, 4, 2) in [xy1, xy2, xy3, xy4] format.
+            Polygons with more than four points are accepted in the same two layouts, (N, 2P) or (N, P, 2), and are
+            reduced to their minimum-area rectangle.
 
     Returns:
-        (np.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5). Rotation
-            values are in radians from [-pi/4, 3pi/4).
+        (np.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5). The
+            parameterization is canonical rather than the caller's: w is the longer side and rotation is in radians
+            from [-pi/4, 3pi/4), so a box given with w < h comes back with w and h swapped and its angle shifted by
+            pi/2 modulo pi.
     """
     is_torch = isinstance(x, torch.Tensor)
     points = x.cpu().numpy() if is_torch else x
-    points = points.reshape(len(x), -1, 2)
     rboxes = []
     for pts in points:
         # NOTE: Use cv2.minAreaRect to get accurate xywhr,
         # especially some objects are cut off by augmentations in dataloader.
-        (cx, cy), (w, h), angle = cv2.minAreaRect(pts)
+        (cx, cy), (w, h), angle = cv2.minAreaRect(pts.reshape(-1, 2))
         # convert angle to radian and normalize to [-pi/4, 3pi/4)
         theta = angle / 180 * np.pi
         if w < h:
@@ -390,7 +393,8 @@ def xyxyxyxy2xywhr(x):
         while theta < -np.pi / 4:
             theta += np.pi
         rboxes.append([cx, cy, w, h, theta])
-    return torch.tensor(rboxes, device=x.device, dtype=x.dtype) if is_torch else np.asarray(rboxes)
+    rboxes = np.asarray(rboxes).reshape(-1, 5)  # reshape keeps the (0, 5) shape on an empty input
+    return torch.tensor(rboxes, device=x.device, dtype=x.dtype) if is_torch else rboxes
 
 
 def xywhr2xyxyxyxy(x):
@@ -398,7 +402,9 @@ def xywhr2xyxyxyxy(x):
 
     Args:
         x (np.ndarray | torch.Tensor): Boxes in [cx, cy, w, h, rotation] format with shape (N, 5) or (B, N, 5). Rotation
-            values should be in radians from [-pi/4, 3pi/4).
+            is in radians and is neither range-checked nor normalized; the box is not canonicalized, so converting the
+            (N, 4, 2) corners back with xyxyxyxy2xywhr returns the canonical form of the same rectangle rather than
+            these values.
 
     Returns:
         (np.ndarray | torch.Tensor): Converted corner points with shape (N, 4, 2) or (B, N, 4, 2).
@@ -451,7 +457,7 @@ def segments2boxes(segments):
     for s in segments:
         x, y = s.T  # segment xy
         boxes.append([x.min(), y.min(), x.max(), y.max()])  # cls, xyxy
-    return xyxy2xywh(np.array(boxes))  # cls, xywh
+    return xyxy2xywh(np.array(boxes).reshape(-1, 4))  # cls, xywh
 
 
 def resample_segments(segments, n: int = 1000):

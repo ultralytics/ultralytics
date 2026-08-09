@@ -2114,7 +2114,7 @@ class Albumentations(BaseTransform):
             def is_spatial(t) -> bool:
                 """Return whether a transform warps geometry, recursing into composition wrappers."""
                 if isinstance(t, topology_changing):
-                    raise TypeError("RandomGridShuffle cannot preserve polygon topology")
+                    raise NotImplementedError("RandomGridShuffle cannot preserve polygon topology")
                 # Wrappers such as OneOf are BaseCompose, not DualTransform, so their contents decide
                 nested = [is_spatial(x) for x in t.transforms] if isinstance(t, A.BaseCompose) else []
                 return isinstance(t, A.DualTransform) or any(nested)
@@ -2154,6 +2154,8 @@ class Albumentations(BaseTransform):
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
         except ImportError:  # package not installed, skip
             pass
+        except NotImplementedError:
+            raise
         except Exception as e:
             LOGGER.info(f"{prefix}{e}")
 

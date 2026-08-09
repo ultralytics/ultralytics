@@ -2111,13 +2111,14 @@ class Albumentations(BaseTransform):
             check_version(A.__version__, "1.0.3", hard=True)  # version requirement
             topology_changing = getattr(A, "RandomGridShuffle", ())
 
-            def is_spatial(t) -> bool:
-                """Return whether a transform warps geometry, recursing into composition wrappers."""
-                if isinstance(t, topology_changing):
-                    raise NotImplementedError("RandomGridShuffle cannot preserve polygon topology")
+            def transform_types(t) -> tuple[bool, bool]:
+                """Return spatial and topology-changing flags, recursing into composition wrappers."""
                 # Wrappers such as OneOf are BaseCompose, not DualTransform, so their contents decide
-                nested = [is_spatial(x) for x in t.transforms] if isinstance(t, A.BaseCompose) else []
-                return isinstance(t, A.DualTransform) or any(nested)
+                nested = [transform_types(x) for x in t.transforms] if isinstance(t, A.BaseCompose) else []
+                return (
+                    isinstance(t, A.DualTransform) or any(x[0] for x in nested),
+                    isinstance(t, topology_changing) or any(x[1] for x in nested),
+                )
 
             # Transforms, use custom transforms if provided, otherwise use defaults
             T = (
@@ -2135,8 +2136,9 @@ class Albumentations(BaseTransform):
             )
 
             # Compose transforms
-            spatial = [is_spatial(transform) for transform in T]  # validate every transform before `any` short-circuits
-            self.contains_spatial = any(spatial)
+            transform_types = [transform_types(transform) for transform in T]
+            self.contains_spatial = any(x[0] for x in transform_types)
+            self.contains_topology_change = any(x[1] for x in transform_types)
             self.transform = (
                 A.Compose(
                     T,
@@ -2154,8 +2156,6 @@ class Albumentations(BaseTransform):
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
         except ImportError:  # package not installed, skip
             pass
-        except NotImplementedError:
-            raise
         except Exception as e:
             LOGGER.info(f"{prefix}{e}")
 
@@ -2208,6 +2208,8 @@ class Albumentations(BaseTransform):
             instances.convert_bbox("xywh")
             instances.normalize(*im.shape[:2][::-1])
             segments, keypoints = instances.segments, instances.keypoints
+            if self.contains_topology_change and segments.size:
+                raise NotImplementedError("RandomGridShuffle cannot preserve polygon topology")
             h, w = im.shape[:2]
             points = segments.reshape(-1, 2)
             if keypoints is not None:  # landmarks follow the polygon vertices in the same target

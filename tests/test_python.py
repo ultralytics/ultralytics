@@ -1436,7 +1436,12 @@ def test_albumentations_repairs_segments_per_instance():
         ),
     }
     transform = Albumentations.__new__(Albumentations)
-    transform.p, transform.contains_spatial, transform.flip_idx = 1.0, True, None
+    transform.p, transform.contains_spatial, transform.contains_topology_change, transform.flip_idx = (
+        1.0,
+        True,
+        False,
+        None,
+    )
 
     def apply(**kwargs):
         keep = np.array([0, 1, 3, 4, 5])  # drop the final vertex of the first contour
@@ -1472,7 +1477,12 @@ def test_albumentations_reflection_applies_flip_idx():
         ),
     }
     transform = Albumentations.__new__(Albumentations)
-    transform.p, transform.contains_spatial, transform.flip_idx = 1.0, True, [1, 0]
+    transform.p, transform.contains_spatial, transform.contains_topology_change, transform.flip_idx = (
+        1.0,
+        True,
+        False,
+        [1, 0],
+    )
 
     def apply(**kwargs):
         points = np.asarray(kwargs["keypoints"]).copy()

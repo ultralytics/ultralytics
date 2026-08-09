@@ -246,9 +246,10 @@ def build_yolo_dataset(
 ) -> Dataset:
     """Build and return a YOLO dataset based on configuration parameters."""
     pad = 0.0 if mode == "train" else 0.5
+    rect = cfg.rect or rect
     if cfg.task == "depth":
         dataset = DepthDataset
-        pad = 0.0  # depth val letterbox stretches, so pad is ignored
+        pad, rect = 0.0, rect and mode == "train"  # depth val letterbox stretches, so pad and rect_shape are ignored
     elif cfg.task == "semantic":
         data_path = Path(data.get("path", ""))
         if "masks_dir" in data or (data_path / "masks").exists():
@@ -269,7 +270,7 @@ def build_yolo_dataset(
         batch_size=batch,
         augment=mode == "train",
         hyp=cfg,
-        rect=cfg.rect or rect,
+        rect=rect,
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,
         stride=stride,

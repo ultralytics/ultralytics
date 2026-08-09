@@ -470,6 +470,7 @@ class Predictor(BasePredictor):
 
         # Ultralytics compatibility settings
         self.model.format = "sam"
+        self.model.base_model = False  # SAMModel is no Ultralytics BaseModel and honors neither `augment` nor `embed`
         self.model.stride = 32
         self.model.fp16 = self.args.quantize == 16
         self.done_warmup = True

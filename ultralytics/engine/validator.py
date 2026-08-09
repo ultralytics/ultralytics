@@ -194,7 +194,6 @@ class BaseValidator:
             self.args.quantize = 16 if model.fp16 else None  # record actual inference precision
             stride, fmt = model.stride, model.format
             pt = fmt == "pt"
-            # Same gate as predictor.stream_inference: only an Ultralytics PyTorch model honors this argument
             if augment and not model.base_model:
                 LOGGER.warning(f"'augment' is not supported by this model (format='{fmt}'), ignoring.")
                 augment = False

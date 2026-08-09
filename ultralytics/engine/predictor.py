@@ -309,8 +309,6 @@ class BasePredictor:
         # Setup model
         if self.model is None:
             self.setup_model(model)
-        # Only an Ultralytics PyTorch model honors these; clear them or `embed` yields the raw output as an embedding
-        # A custom predictor may install a module rather than a backend; assume it honors these
         if not getattr(self.model, "base_model", True) and (
             unsupported := [k for k in ("augment", "embed", "visualize") if getattr(self.args, k)]
         ):

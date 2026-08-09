@@ -148,8 +148,6 @@ def register_tracker(model: object, persist: bool) -> None:
         ("on_predict_start", on_predict_start),
         ("on_predict_postprocess_end", on_predict_postprocess_end),
     ):
-        # Replace any earlier registration in place so repeat track() calls neither stack updates on
-        # the same frame nor pin the 'persist' the first call happened to pass
         callbacks = model.callbacks[event]
         i = next((i for i, cb in enumerate(callbacks) if getattr(cb, "func", None) is fn), None)
         if i is None:

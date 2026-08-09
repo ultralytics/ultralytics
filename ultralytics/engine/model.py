@@ -555,7 +555,6 @@ class Model(torch.nn.Module):
         """
         from ultralytics.trackers import register_tracker
 
-        # register_tracker replaces its own registration, so calling it per frame neither stacks nor leaks
         register_tracker(self, persist)
         kwargs["conf"] = kwargs.get("conf") or 0.1  # ByteTrack-based method needs low confidence predictions as input
         kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos

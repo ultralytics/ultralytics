@@ -72,7 +72,6 @@ class PyTorchBackend(BaseBackend):
 
         self.model = model
         self.end2end = getattr(model, "end2end", False)
-        # Unwrap first: a compiled or parallel wrapper forwards `augment` and `embed` on to the model it holds
         self.base_model = isinstance(unwrap_model(model), BaseModel)
 
     def forward(

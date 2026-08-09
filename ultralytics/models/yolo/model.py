@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Hashable
 from pathlib import Path
 from typing import Any
 
@@ -223,7 +224,7 @@ class YOLOE(Model):
         get_text_pe: Get text positional embeddings for the given texts.
         get_visual_pe: Get visual positional embeddings for the given image and visual features.
         set_vocab: Set vocabulary and class names for the YOLOE model.
-        get_vocab: Get vocabulary for the given class names.
+        get_vocab: Get the vocabulary for the given class names, which become the model's classes as the head is fused.
         set_classes: Set the model's class names and embeddings for detection.
         save_prompt_embeddings: Save the current prompt embeddings and class names to an NPZ file.
         load_prompt_embeddings: Load prompt embeddings and class names from an NPZ file.
@@ -322,8 +323,9 @@ class YOLOE(Model):
         self.predictor = None  # reset predictor, which snapshotted the class count the head no longer has
 
     def get_vocab(self, names):
-        """Get vocabulary for the given class names."""
+        """Get the vocabulary for the given class names, which become the model's classes as the head is fused."""
         assert isinstance(self.model, YOLOEModel)
+        self.predictor = None  # the delegate rewrites nc before it can raise, so the stale predictor goes first
         return self.model.get_vocab(names)
 
     def set_classes(self, classes: list[str], embeddings: torch.Tensor | None = None) -> None:
@@ -460,7 +462,7 @@ class YOLOE(Model):
                 are computed.
             visual_prompts (dict[str, np.ndarray | list[np.ndarray]]): Dictionary containing visual prompts for the
                 model. Must include 'bboxes' and 'cls' keys when non-empty, holding one array each per image when the
-                source holds more than one image and no refer_image is given, and one array each otherwise.
+                source holds more than one image and no refer_image is given, and a single flat array each otherwise.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
             predictor (callable): Custom predictor class for visual prompt predictions. Defaults to
                 YOLOEVPDetectPredictor.
@@ -487,9 +489,10 @@ class YOLOE(Model):
                 f"{len(visual_prompts['bboxes'])} and {len(visual_prompts['cls'])} respectively"
             )
             nested = yolo.yoloe.YOLOEVPDetectPredictor.is_per_image(visual_prompts)  # one prompt array per image
-            # the prompts decide the shape, as they do in pre_transform; only a longer source can override them
+            # the prompts decide the shape; only a longer source can override them
             multi = refer_image is None and (nested or (isinstance(source, (list, tuple)) and len(source) > 1))
-            assert nested == multi, (  # each branch below reads the shape the other one cannot
+            # each branch below reads the shape the other one cannot; the flat one counts classes with set()
+            assert nested == multi and (multi or all(isinstance(c, Hashable) for c in visual_prompts["cls"])), (
                 f"Expected {'one array per image' if multi else 'a single flat array'} in 'bboxes' and 'cls', "
                 f"but got {visual_prompts['cls']}"
             )
@@ -500,6 +503,13 @@ class YOLOE(Model):
             per_image = [len(set(c)) for c in visual_prompts["cls"]] if multi else [len(set(visual_prompts["cls"]))]
             assert all(per_image), (
                 f"Expected at least one class per image in the visual prompts, but got {visual_prompts['cls']}"
+            )
+            # the count above reads 'cls' alone; get_visuals zips it with 'bboxes', so the two must pair per image
+            assert not nested or all(
+                len(b) == len(c) for b, c in zip(visual_prompts["bboxes"], visual_prompts["cls"])
+            ), (
+                f"Expected an equal number of bounding boxes and classes for each image, but got "
+                f"{[len(b) for b in visual_prompts['bboxes']]} and {[len(c) for c in visual_prompts['cls']]} respectively"
             )
             num_cls = max(per_image)
             if type(self.predictor) is not predictor:

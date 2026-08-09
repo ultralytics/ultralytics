@@ -657,7 +657,8 @@ class GroundingDataset(YOLODataset):
             (list[str]): Image files the annotation scan runs against.
         """
         self.fraction = 1.0  # a truncated inventory would leave later images outside the cache key
-        return super().get_img_files(img_path)
+        self.scan_files = super().get_img_files(img_path)
+        return self.scan_files
 
     def get_cache_hash(self) -> str:
         """Return a hash over the annotation file and the images it is scanned against.
@@ -668,7 +669,7 @@ class GroundingDataset(YOLODataset):
         Returns:
             (str): Dataset cache hash.
         """
-        return get_hash([self.json_file, *self.im_files])
+        return get_hash([self.json_file, *self.scan_files])
 
     def _verify_instance_counts(self, labels: list[dict[str, Any]]) -> None:
         """Verify the number of instances in the dataset matches expected counts.

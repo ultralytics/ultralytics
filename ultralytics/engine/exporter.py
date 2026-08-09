@@ -77,7 +77,7 @@ import numpy as np
 import torch
 
 from ultralytics import __version__
-from ultralytics.cfg import QUANTIZE_DOCS_URL, TASK2CALIBRATIONDATA, TASK2DATA, get_cfg
+from ultralytics.cfg import QUANTIZE_DOCS_URL, TASK2CALIBRATIONDATA, TASK2DATA, cfg2dict, get_cfg
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.data.dataset import ClassificationDataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
@@ -563,7 +563,9 @@ class Exporter:
             overrides (dict, optional): Configuration overrides.
             _callbacks (dict, optional): Dictionary of callback functions.
         """
-        self.args = get_cfg(cfg, overrides)
+        export_cfg = cfg2dict(cfg)
+        export_cfg.setdefault("calibration_batch", None)
+        self.args = get_cfg(export_cfg, overrides)
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 

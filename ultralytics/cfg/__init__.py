@@ -262,7 +262,6 @@ CFG_INT_KEYS = frozenset(
         "line_width",
         "nbs",
         "save_period",
-        "calibration_batch",
     }
 )
 CFG_INT_MIN = {  # minimum valid values for integer arguments used as divisors, sizes or seeds
@@ -271,7 +270,6 @@ CFG_INT_MIN = {  # minimum valid values for integer arguments used as divisors, 
     "mask_ratio": 1,
     "vid_stride": 1,
     "seed": 0,
-    "calibration_batch": 1,
 }
 CFG_BOOL_KEYS = frozenset(
     {  # boolean-only arguments

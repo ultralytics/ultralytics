@@ -90,7 +90,6 @@ dynamic: False # (bool) dynamic shapes for torchscript, onnx, openvino, engine, 
 simplify: True # (bool) supported ONNX-based exports (see export table); simplify intermediate ONNX graph
 opset: # (int, optional) supported ONNX-based exports (see export table); intermediate ONNX opset version
 workspace: # (float, optional) engine (TensorRT) only; workspace size in GiB, e.g. 4
-calibration_batch: # (int, optional) openvino and engine (TensorRT) only; INT8 calibration batch size, defaults to batch
 nms: False # (bool) fuse NMS into exported model when backend supports; if True, conf/iou apply (agnostic_nms except coreml)
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------

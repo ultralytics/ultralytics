@@ -301,8 +301,8 @@ def test_predict_img(model_name):
 def test_predict_classes_with_max_det(tmp_path, model_name):
     """Test that the classes filter applies before max_det truncation in both end2end and NMS-based models, and that
     reusing the same Model for a later call without these kwargs resets them instead of leaking (both the args
-    namespace and, for end2end models, the max_det/agnostic_nms baked into the head), including an explicit
-    save_dir that a later call omitting it must not inherit.
+    namespace and, for end2end models, the max_det/agnostic_nms baked into the head), including an explicit save_dir
+    that a later call omitting it must not inherit.
     """
     boxes = YOLO(WEIGHTS_DIR / model_name)(SOURCE, classes=[0], max_det=300, verbose=False)[0].boxes
     assert len(boxes) > 1  # bus.jpg contains multiple persons

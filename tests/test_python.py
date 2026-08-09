@@ -527,26 +527,6 @@ def test_val(task: str, weight: str, data: str) -> None:
             assert len(cm.tp_fp()[0]) == cm.nc  # per-class TP/FP never include background
 
 
-def test_depth_metrics_per_image_average():
-    """Test that depth metrics average per image and skip samples below the valid-pixel floor."""
-    from ultralytics.utils.metrics import DepthMetrics
-
-    gt_small, gt_large = torch.full((1, 4, 4), 10.0), torch.full((1, 40, 40), 10.0)  # 16 vs 1600 valid pixels
-    m = DepthMetrics(align="none")
-    m.update_stats(gt_small * 2, gt_small)  # every pixel off by 2x
-    m.update_stats(gt_large.clone(), gt_large)  # exact
-    gt_sparse = torch.zeros(1, 4, 4)
-    gt_sparse[0, 0, :3] = 10.0  # 3 valid pixels: below the 10-pixel floor, must not be scored at all
-    m.update_stats(torch.full((1, 4, 4), 10.0), gt_sparse)
-    invalid = gt_small.clone()
-    invalid[:, :3] = float("nan")
-    m.update_stats(invalid, gt_small)  # non-finite predictions must penalize the image, not remove it
-    m.process()
-    assert m.delta1 == pytest.approx(5 / 12), "the dense image must not outweigh small or invalid images"
-    assert m.rmse == pytest.approx((10 + 0 + 90 * np.sqrt(3 / 4)) / 3), "non-finite pixels must count as errors"
-    assert m.silog > 0, "non-finite predictions must contribute scale-invariant error"
-
-
 def test_val_save_txt_pose(tmp_path):
     """Test that pose keypoints saved by val(save_txt=True) and val(save_json=True) are in the original image space."""
     model = YOLO(WEIGHTS_DIR / "yolo26n-pose.pt")

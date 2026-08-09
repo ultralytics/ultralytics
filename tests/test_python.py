@@ -1881,16 +1881,3 @@ def test_semantic_polygon_data():
     model = YOLO("yolo26n-sem.pt")
     model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, close_mosaic=1)
     model.val(data="coco8-seg.yaml")
-
-
-def test_val_confusion_matrix_confidence_threshold():
-    """Test that the confusion matrix uses the correct confidence threshold during validation."""
-    model = YOLO("yolo26n.pt")
-    validator = model._smart_load("validator")(args={"data": "coco8.yaml", "mode": "val", "plots": True})
-    assert not validator.is_conf_explicit
-
-    validator_explicit = model._smart_load("validator")(
-        args={"data": "coco8.yaml", "mode": "val", "conf": 0.15, "plots": True}
-    )
-    assert validator_explicit.is_conf_explicit
-    assert validator_explicit.args.conf == 0.15

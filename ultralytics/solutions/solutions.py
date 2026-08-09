@@ -180,16 +180,10 @@ class BaseSolution:
         else:
             self.LOGGER.warning("No tracks found.")
             self.boxes, self.clss, self.track_ids, self.confs = [], [], [], []
-        trackers = getattr(self.model.predictor, "trackers", None)
-        if trackers:
-            self.forget_tracks([track.track_id for track in trackers[0].removed_stracks_frame])
+        self.forget_tracks([track.track_id for track in self.model.predictor.trackers[0].removed_stracks_frame])
 
     def forget_tracks(self, track_ids: list[int]) -> None:
-        """Drop bookkeeping for IDs retired by the active tracker.
-
-        Args:
-            track_ids (list[int]): Track IDs retired by the active tracker.
-        """
+        """Drop bookkeeping for IDs retired by the active tracker."""
         for track_id in track_ids:
             self.track_history.pop(track_id, None)
 

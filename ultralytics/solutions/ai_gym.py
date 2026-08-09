@@ -1,7 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from __future__ import annotations
-
 from collections import defaultdict
 from typing import Any
 
@@ -48,7 +46,7 @@ class AIGym(BaseSolution):
         self.down_angle = float(self.CFG["down_angle"])  # Pose down predefined angle to consider down pose
         self.kpts = self.CFG["kpts"]  # User selected kpts of workouts storage for further usage
 
-    def forget_tracks(self, track_ids: list[int]) -> None:
+    def forget_tracks(self, track_ids):
         """Drop retired IDs from workout state so it doesn't grow across a 24/7 stream (see BaseSolution)."""
         super().forget_tracks(track_ids)
         for track_id in track_ids:

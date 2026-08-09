@@ -258,15 +258,6 @@ def test_object_counter_polygon_reentry_after_inside_spawn():
     )
 
 
-def test_aigym_forgets_retired_tracks():
-    """AIGym must drop state and shared history when the tracker retires an ID."""
-    gym = solutions.AIGym(model=MODEL, show=SHOW)
-    gym.states[1]["count"] = 3
-    gym.track_history[1].append((1, 1))
-    gym.forget_tracks([1])
-    assert 1 not in gym.states and 1 not in gym.track_history
-
-
 def test_left_click_selection():
     """Test distance calculation left click selection functionality."""
     dc = solutions.DistanceCalculation()

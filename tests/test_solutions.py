@@ -259,9 +259,9 @@ def test_object_counter_polygon_reentry_after_inside_spawn():
 
 
 def test_purge_stale_tracks_forgets_aigym_states():
-    """AIGym.states is per-track bookkeeping like ObjectCounter.counted_ids/SpeedEstimator.spd, but AIGym never
-    calls store_tracking_history and so never touches track_history itself; _purge_stale_tracks must still purge
-    it via the track-ID registry (_track_last_seen) it keeps regardless of that, on a stream that runs for days.
+    """AIGym.states is per-track bookkeeping like ObjectCounter.counted_ids/SpeedEstimator.spd, but AIGym never calls
+    store_tracking_history and so never touches track_history itself; _purge_stale_tracks must still purge it via
+    the track-ID registry (_track_last_seen) it keeps regardless of that, on a stream that runs for days.
     """
     gym = solutions.AIGym(model=MODEL, show=SHOW)
     gym.track_ids = [1]

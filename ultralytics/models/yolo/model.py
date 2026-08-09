@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Hashable, Sized
 from pathlib import Path
 from typing import Any
 
@@ -244,6 +243,7 @@ class YOLOE(Model):
         Re-parameterize into a prompt-free model, which no longer accepts prompts
         >>> names = ["person", "car", "dog"]
         >>> model.set_vocab(model.get_vocab(names), names)
+
     """
 
     def __init__(self, model: str | Path = "yoloe-11s-seg.pt", task: str | None = None, verbose: bool = False) -> None:
@@ -327,7 +327,6 @@ class YOLOE(Model):
     def get_vocab(self, names):
         """Get the vocabulary for the given class names, which become the model's classes as the head is fused."""
         assert isinstance(self.model, YOLOEModel)
-        names = list(check_class_names(names).values())
         self.predictor = None  # the delegate destructively fuses the promptable head
         return self.model.get_vocab(names)
 
@@ -481,51 +480,39 @@ class YOLOE(Model):
             >>> from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
             >>> prompts = {"bboxes": np.array([[10, 20, 100, 200]]), "cls": np.array([0])}
             >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts, predictor=YOLOEVPSegPredictor)
+
         """
         visual_prompts = visual_prompts if visual_prompts is not None else {}
         if len(visual_prompts):
             assert "bboxes" in visual_prompts and "cls" in visual_prompts, (
                 f"Expected 'bboxes' and 'cls' in visual prompts, but got {visual_prompts.keys()}"
             )
-            sized = all(
-                isinstance(visual_prompts[k], Sized) and getattr(visual_prompts[k], "ndim", 1) > 0
-                for k in ("bboxes", "cls")
+            bboxes, classes = visual_prompts["bboxes"], visual_prompts["cls"]
+            assert all(hasattr(x, "__len__") and getattr(x, "ndim", 1) > 0 for x in (bboxes, classes)), (
+                "Expected non-scalar 'bboxes' and 'cls' visual prompts"
             )
-            assert sized and len(visual_prompts["bboxes"]) == len(visual_prompts["cls"]) > 0, (
-                f"Expected an equal, non-zero number of bounding boxes and classes, but got "
-                f"{visual_prompts['bboxes']} and {visual_prompts['cls']} respectively"
-            )
+            assert len(bboxes) == len(classes) > 0, "Expected an equal, non-zero number of boxes and classes"
             nested = yolo.yoloe.YOLOEVPDetectPredictor.is_per_image(visual_prompts)  # one prompt array per image
             assert not isinstance(source, np.ndarray) or source.ndim != 4, "4-D NumPy sources are not supported"
             per_image_source = isinstance(source, (list, tuple)) or (
                 isinstance(source, torch.Tensor) and source.ndim == 4
             )
-            source_count = len(source) if per_image_source else 1
             multi = refer_image is None and per_image_source
-            # each branch below reads the shape the other one cannot; the flat one counts classes with set()
-            valid_nested = nested and all(
-                b.ndim == 2 and b.shape[1:] == (4,) and c.ndim == 1 and all(isinstance(x, Hashable) for x in c)
-                for b, c in zip(visual_prompts["bboxes"], visual_prompts["cls"])
+            assert nested == multi, f"Expected {'per-image' if multi else 'flat'} 'bboxes' and 'cls' arrays"
+            pairs = list(zip(bboxes, classes)) if multi else [(bboxes, classes)]
+            assert not multi or len(pairs) == len(source), (
+                f"Expected one prompt per source image, but got {len(pairs)} prompts for {len(source)} images"
             )
-            assert nested == multi and (valid_nested or all(isinstance(c, Hashable) for c in visual_prompts["cls"])), (
-                f"Expected {'one array per image' if multi else 'a single flat array'} in 'bboxes' and 'cls', "
-                f"but got {visual_prompts['cls']}"
-            )
-            assert not multi or len(visual_prompts["cls"]) == source_count, (
-                f"Expected one 'bboxes' and 'cls' array for each of the {source_count} source images, but got "
-                f"{len(visual_prompts['cls'])}"
-            )
-            per_image = [len(set(c)) for c in visual_prompts["cls"]] if multi else [len(set(visual_prompts["cls"]))]
-            assert all(per_image), (
-                f"Expected at least one class per image in the visual prompts, but got {visual_prompts['cls']}"
-            )
-            # the count above reads 'cls' alone; get_visuals zips it with 'bboxes', so the two must pair per image
-            assert not nested or all(
-                len(b) == len(c) for b, c in zip(visual_prompts["bboxes"], visual_prompts["cls"])
-            ), (
-                f"Expected an equal number of bounding boxes and classes for each image, but got "
-                f"{[len(b) for b in visual_prompts['bboxes']]} and {[len(c) for c in visual_prompts['cls']]} respectively"
-            )
+            assert all(
+                getattr(b, "ndim", 2) == 2
+                and (not multi or b.shape[1:] == (4,))
+                and getattr(c, "ndim", 1) == 1
+                and len(b) == len(c)
+                and all(np.isscalar(x) for x in c)
+                for b, c in pairs
+            ), "Expected one scalar class per bounding box"
+            per_image = [len(set(c.tolist() if isinstance(c, np.ndarray) else c)) for _, c in pairs]
+            assert all(per_image), "Expected at least one class per image"
             num_cls = max(per_image)
             if type(self.predictor) is not predictor:
                 args = get_cfg(overrides={**self.overrides, **kwargs})

@@ -57,14 +57,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         )
 
     def preprocess(self, im):
-        """Preprocess a batch of images and rasterize its visual prompts against the shapes that batch takes.
-
-        Args:
-            im (torch.Tensor | list[np.ndarray]): Images of shape (N, 3, H, W) for tensor, [(H, W, 3) x N] for list.
-
-        Returns:
-            (torch.Tensor): Preprocessed image tensor of shape (N, 3, H, W).
-        """
+        """Preprocess a batch and rasterize its visual prompts."""
         imgs = super().preprocess(im)
         dst_shape = tuple(imgs.shape[2:])  # one letterboxed shape per batch, since preprocess stacks the images
         # tensor sources skip letterboxing, so their src and dst shapes are identical
@@ -73,19 +66,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         return imgs
 
     def _prompts_to_tensor(self, dst_shape, src_shapes):
-        """Rasterize the prompts dict into a batched visuals tensor on the model device.
-
-        Args:
-            dst_shape (tuple): The (height, width) every image in the batch was letterboxed to.
-            src_shapes (list[tuple]): The original (height, width) of each image in the batch.
-
-        Returns:
-            (torch.Tensor): Visual prompts tensor of shape (B, N, H, W) in model precision.
-
-        Raises:
-            ValueError: If neither valid bounding boxes nor masks are provided in the prompts.
-            AssertionError: If per-image prompts do not hold one array per image in the batch.
-        """
+        """Rasterize prompts into a batched tensor on the model device."""
         bboxes, category = self.prompts.get("bboxes", None), self.prompts["cls"]
         if not self.is_per_image(self.prompts):  # one flat set, rasterized against every image in the batch
             masks = self.prompts.get("masks", None)
@@ -101,21 +82,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         return prompts.half() if self.model.fp16 else prompts.float()
 
     def _process_single_image(self, dst_shape, src_shape, category, bboxes=None, masks=None):
-        """Process a single image by resizing bounding boxes or masks and generating visuals.
-
-        Args:
-            dst_shape (tuple): The target shape (height, width) of the image.
-            src_shape (tuple): The original shape (height, width) of the image.
-            category (list | np.ndarray): The category indices for visual prompts.
-            bboxes (list | np.ndarray, optional): A list of bounding boxes in the format [x1, y1, x2, y2].
-            masks (np.ndarray, optional): A list of masks corresponding to the image.
-
-        Returns:
-            (torch.Tensor): The processed visuals for the image.
-
-        Raises:
-            ValueError: If neither `bboxes` nor `masks` are provided.
-        """
+        """Resize one image's prompts and generate its visuals."""
         if bboxes is not None and len(bboxes):
             bboxes = np.array(bboxes, dtype=np.float32)
             if bboxes.ndim == 1:
@@ -137,35 +104,11 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         return LoadVisualPrompt().get_visuals(category, dst_shape, bboxes, masks)
 
     def inference(self, im, *args, **kwargs):
-        """Run inference with visual prompts.
-
-        Args:
-            im (torch.Tensor): Input image tensor.
-            *args (Any): Variable length argument list.
-            **kwargs (Any): Arbitrary keyword arguments.
-
-        Returns:
-            (torch.Tensor): Model prediction results.
-        """
+        """Run inference with visual prompts."""
         return super().inference(im, *args, vpe=self.visuals, **kwargs)
 
     def get_vpe(self, source):
-        """Process the source to get the visual prompt embeddings (VPE).
-
-        Preprocesses a single image via preprocess(), which rasterizes the visual prompts into visuals (and
-        letterboxes array inputs), then extracts the VPE from the model.
-
-        Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of the image to
-                make predictions on. Accepts various types including file paths, URLs, PIL images, numpy arrays, and
-                torch tensors. Only single images are supported.
-
-        Returns:
-            (torch.Tensor): The visual prompt embeddings (VPE) from the model.
-
-        Raises:
-            AssertionError: If the source contains more than one image.
-        """
+        """Extract visual prompt embeddings from one source image."""
         self.setup_source(source)
         assert len(self.dataset) == 1, "get_vpe only supports one image!"
         for _, im0s, _ in self.dataset:

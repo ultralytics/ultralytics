@@ -511,10 +511,26 @@ class Model(torch.nn.Module):
         if not self.predictor or self.predictor.args.device != args.get("device", self.predictor.args.device):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
+            # Base args for later reused calls: defaults plus the facts setup_model derived from
+            # the loaded model itself (actual inference precision, and the fixed input size baked
+            # into a non-dynamic export) -- NOT this call's own kwargs, so a later call that omits
+            # e.g. `classes`/`iou`/`max_det` resets to the default instead of inheriting it.
+            self.predictor._base_args = get_cfg(
+                DEFAULT_CFG_DICT,
+                {**self.overrides, "quantize": self.predictor.args.quantize, "imgsz": self.predictor.args.imgsz},
+            )
         else:  # only update args if predictor is already setup
-            self.predictor.args = get_cfg(self.predictor.args, args)
-            if "project" in args or "name" in args:
+            prev_project, prev_name = self.predictor.args.project, self.predictor.args.name
+            self.predictor.args = get_cfg(getattr(self.predictor, "_base_args", DEFAULT_CFG_DICT), args)
+            if (self.predictor.args.project, self.predictor.args.name) != (prev_project, prev_name):
                 self.predictor.save_dir = get_save_dir(self.predictor.args)
+            if getattr(self.model, "end2end", False):
+                # max_det/agnostic_nms are baked into the head once, in setup_model() -- resync them here too,
+                # from the args this reused call just resolved, or a call that omits them keeps whatever an
+                # earlier call (or the setup-time default) left on the head instead of going back to its own.
+                self.model.set_head_attr(
+                    max_det=max(self.predictor.args.max_det, 300), agnostic_nms=self.predictor.args.agnostic_nms
+                )
         if prompts and hasattr(self.predictor, "set_prompts"):  # for SAM-type models
             self.predictor.set_prompts(prompts)
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)

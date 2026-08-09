@@ -61,6 +61,6 @@ def auto_annotate(
 
             with open(f"{Path(output_dir) / Path(result.path).stem}.txt", "w", encoding="utf-8") as f:
                 for i, s in enumerate(segments):
-                    if s.any():
+                    if len(s) >= 3:  # fewer than 3 points is not a polygon, and writes a row no loader accepts
                         segment = map(str, s.reshape(-1).tolist())
                         f.write(f"{class_ids[i]} " + " ".join(segment) + "\n")

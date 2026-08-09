@@ -275,18 +275,25 @@ Images can be sorted and filtered for efficient browsing:
     | **Split filter** | Train, Val, Test, or All              |
     | **Annotations**  | All images, Annotated, or Unannotated |
     | **Class filter** | Filter by class name                  |
-    | **Search**       | Filter images by filename             |
+    | **Search**       | Filter images by filename or metadata |
 
 !!! tip "Finding Unlabeled Images"
 
     Use the `Annotations` filter set to `Unannotated` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
+
+!!! tip "Searching Custom Metadata"
+
+    The search box sits at the right of the gallery toolbar and filters every view mode — cards, compact, and table. It matches the image filename (the file extension is optional) as well as custom metadata keys, scalar values, and array entries, so an image named `img_0042` carrying `{"ship_type": "yacht"}` is found by searching either `img_0042` or `yacht`.
+
+    Values nested inside sub-objects are not matched. Pasting a 32-character hex string looks up that exact image content hash instead.
 
 ### Fullscreen Viewer
 
 Click any image to open the fullscreen viewer with:
 
 - **Navigation**: Arrow keys or thumbnail previews to browse
-- **Metadata**: Filename, dimensions, split badge, annotation count
+- **Image information**: Review Platform-generated properties, custom metadata, and embedded file metadata such as EXIF
+- **Custom metadata**: Owners and editors can add or replace a JSON object, including nested values up to 500,000 serialized characters and top-level keys up to 128 characters
 - **Annotations**: Toggle annotation overlay visibility
 - **Class Breakdown**: Per-class label counts with color indicators
 - **Annotate**: When you have edit access, annotation controls are active immediately when the fullscreen viewer opens on desktop
@@ -297,7 +304,7 @@ Click any image to open the fullscreen viewer with:
 - **Pan**: Hold `Space` and drag to pan the canvas when zoomed
 - **Pixel view**: Toggle pixelated rendering for close inspection
 
-![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.ul.run/i/94b50fcde4feb9a2ae540138010a1d6c.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.ul.run/i/083e8f7a4ad565c1cca40ec0f214b748.avif)<!-- screenshot -->
 
 ### Filter by Split
 
@@ -521,9 +528,11 @@ The NDJSON format stores one JSON object per line. The first line contains datas
 
 ```json
 {"type": "dataset", "task": "detect", "name": "my-dataset", "description": "...", "bytes": 12345678, "url": "https://platform.ultralytics.com/...", "class_names": {"0": "person", "1": "car"}, "version": 1, "created_at": "2026-01-15T10:00:00Z", "updated_at": "2026-02-20T14:30:00Z"}
-{"type": "image", "file": "img001.jpg", "url": "https://...", "width": 640, "height": 480, "split": "train", "annotations": {"boxes": [[0, 0.5, 0.5, 0.2, 0.3]]}}
+{"type": "image", "file": "img001.jpg", "url": "https://...", "width": 640, "height": 480, "split": "train", "metadata": {"location": {"site": "factory-1"}, "reviewed": true}, "annotations": {"boxes": [[0, 0.5, 0.5, 0.2, 0.3]]}}
 {"type": "image", "file": "img002.jpg", "url": "https://...", "width": 1280, "height": 720, "split": "val"}
 ```
+
+The optional image-level `metadata` object is preserved when an NDJSON file is imported into Platform. You can inspect or edit it from the image's fullscreen information panel. For programmatic archive uploads, the [Dataset Ingest API](../api/index.md#dataset-ingest) accepts the equivalent `imageMetadata` path map.
 
 !!! note "Signed URLs"
 
@@ -680,6 +689,15 @@ Dataset metadata is edited inline directly on the dataset page — no dialog nee
 !!! info "Changing Task Type"
 
     Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back.
+
+### Custom Metadata
+
+Open **More actions** and select **Information** to review two sections:
+
+- **Ultralytics Metadata**: Read-only Platform details such as the dataset ID, owner, task, image and annotation counts, storage region, and timestamps
+- **Custom Metadata**: Your own JSON object for provenance, capture conditions, customer IDs, governance, or other contextual data
+
+Workspace viewers can inspect metadata, while members with edit access can replace the custom metadata object. The serialized metadata object is limited to 500,000 characters, and each top-level key is limited to 128 characters. Save an empty object (`{}`) to clear custom metadata.
 
 ## Clone Dataset
 

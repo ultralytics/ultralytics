@@ -563,9 +563,14 @@ class Exporter:
             overrides (dict, optional): Configuration overrides.
             _callbacks (dict, optional): Dictionary of callback functions.
         """
-        export_cfg = cfg2dict(cfg)
-        export_cfg.setdefault("calibration_batch", None)
-        self.args = get_cfg(export_cfg, overrides)
+        export_cfg = deepcopy(cfg2dict(cfg))
+        export_overrides = deepcopy(cfg2dict(overrides)) if overrides else {}
+        calibration_batch = export_overrides.pop("calibration_batch", None)
+        if calibration_batch is None:
+            calibration_batch = export_cfg.pop("calibration_batch", None)
+
+        self.args = get_cfg(export_cfg, export_overrides)
+        self.args.calibration_batch = calibration_batch
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 

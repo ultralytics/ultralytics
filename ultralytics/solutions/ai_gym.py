@@ -50,6 +50,7 @@ class AIGym(BaseSolution):
 
     def forget_tracks(self, track_ids: list[int]) -> None:
         """Drop retired IDs from workout state so it doesn't grow across a 24/7 stream (see BaseSolution)."""
+        super().forget_tracks(track_ids)
         for track_id in track_ids:
             self.states.pop(track_id, None)
 

@@ -62,6 +62,7 @@ class SpeedEstimator(BaseSolution):
 
     def forget_tracks(self, track_ids: list[int]) -> None:
         """Drop retired IDs from speed bookkeeping so it doesn't grow across a 24/7 stream (see BaseSolution)."""
+        super().forget_tracks(track_ids)
         for track_id in track_ids:
             self.trk_hist.pop(track_id, None)
             self.trk_frame_ids.pop(track_id, None)

@@ -126,6 +126,7 @@ class ObjectCounter(BaseSolution):
 
     def forget_tracks(self, track_ids: list[int]) -> None:
         """Drop retired IDs from `counted_ids` so it doesn't grow across a 24/7 stream (see BaseSolution)."""
+        super().forget_tracks(track_ids)
         retired = set(track_ids)
         self.counted_ids = [tid for tid in self.counted_ids if tid not in retired]
 

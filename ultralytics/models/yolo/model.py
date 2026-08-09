@@ -325,8 +325,9 @@ class YOLOE(Model):
     def get_vocab(self, names):
         """Get the vocabulary for the given class names, which become the model's classes as the head is fused."""
         assert isinstance(self.model, YOLOEModel)
-        self.predictor = None  # the delegate rewrites nc before it can raise, so the stale predictor goes first
-        return self.model.get_vocab(names)
+        vocab = self.model.get_vocab(names)
+        self.predictor = None  # reset only after the model accepts the names and fuses the head
+        return vocab
 
     def set_classes(self, classes: list[str], embeddings: torch.Tensor | None = None) -> None:
         """Set the model's class names and embeddings for detection.

@@ -35,24 +35,8 @@ __all__ = (
 )
 
 
-def grouped_topk(x: torch.Tensor, k: int, groups: int = 8) -> tuple[torch.Tensor, torch.Tensor]:
-    """Select the top-k values of a 2D tensor along dim 1, evaluated as a grouped selection.
-
-    TensorRT selects top-k over a single long axis serially, which makes the NMS-free postprocess top-k one of the
-    costliest layers of an exported engine; that cost is driven by the length of the axis rather than by k. Splitting
-    the axis into independent groups lets TensorRT select within each group in parallel, then a second pass picks the
-    winners out of the ``groups * k`` survivors. This is exact rather than approximate: an element of the global top-k
-    cannot be missing from its own group's top-k, since that would require k elements above it inside that group and
-    therefore k elements above it overall.
-
-    Args:
-        x (torch.Tensor): Scores with shape (batch_size, n).
-        k (int): Number of elements to select.
-        groups (int, optional): Number of groups to split the axis into, halved until the split is valid.
-
-    Returns:
-        (torch.Tensor, torch.Tensor): Top-k values and their indices into ``x``, as ``x.topk(k, dim=1)`` returns.
-    """
+def _grouped_topk(x: torch.Tensor, k: int, groups: int = 8) -> tuple[torch.Tensor, torch.Tensor]:
+    """Select exact top-k values through smaller grouped selections."""
     n = x.shape[1]
     while groups > 1 and (n % groups or n // groups < k):
         groups //= 2
@@ -283,9 +267,10 @@ class Detect(nn.Module):
             scores, indices = scores.topk(k, dim=1)
             labels = labels.gather(1, indices)
             return scores, labels.float(), indices
-        ori_index = grouped_topk(scores.max(dim=-1)[0], k)[1].unsqueeze(-1)
+        groups = 1 if self.dynamic else 8  # dynamic exports require a shape-independent TopK graph
+        ori_index = _grouped_topk(scores.max(dim=-1)[0], k, groups)[1].unsqueeze(-1)
         scores = scores.gather(dim=1, index=ori_index.expand(-1, -1, nc))
-        scores, index = grouped_topk(scores.flatten(1), k)
+        scores, index = _grouped_topk(scores.flatten(1), k, groups)
         idx = (
             ori_index[torch.arange(batch_size)[..., None], index // nc]
             if self.format == "coreml"

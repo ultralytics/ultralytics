@@ -1665,9 +1665,8 @@ class Exporter:
             runner.translate_onnx_model(str(f_onnx), self.file.stem, end_node_names=end_nodes)
             # The NMS-free YOLO26 detect head keeps its mAP through INT8 only with the Hailo Model Zoo recipe:
             # level 4 without compression, adaround instead of finetune, and 16-bit on the head and depthwise
-            # convolutions as well as the outputs. adaround needs a full calibration set, so below 1,024 images
-            # the level-2 recipe is used instead.
-            yolo26 = one2one and task == "detect" and head.reg_max == 1
+            # convolutions and outputs. AdaRound needs a full calibration set, so use level 2 below 1,024 images.
+            yolo26 = one2one and task == "detect" and head.reg_max == 1 and self.model.yaml.get("scale") in "nsml"
             tuned = yolo26 and calibration_size >= 1024
             model_script = ["normalization1 = normalization([0, 0, 0], [255, 255, 255])"]
             if tuned:
@@ -1698,8 +1697,9 @@ class Exporter:
                     convs = ", ".join(
                         layer.inputs[0].rsplit("/", 1)[-1] for layer in runner.get_hn_model().get_output_layers()
                     )
+                    depthwise = "dw1, dw6, dw7, dw8" + (", dw9" if self.model.yaml["scale"] == "l" else "")
                     model_script += [
-                        "quantization_param({dw*}, precision_mode=a16_w16)",
+                        f"quantization_param([{depthwise}], precision_mode=a16_w16)",
                         f"quantization_param([{convs}], precision_mode=a16_w16)",
                     ]
             elif task in {"classify", "semantic"}:

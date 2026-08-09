@@ -1896,9 +1896,9 @@ class DepthMetrics(SimpleClass, DataExportMixin):
     valid-pixel count, matching the per-sample averaging used by Depth Anything V2 and Monodepth2. Images with fewer
     than 10 valid ground-truth pixels are skipped entirely, the same floor Depth Anything V2 applies to its own valid
     mask. Non-finite predictions are scored at a depth bound rather than hiding the image from the average. Per-image
-    results are accumulated in float64 on CPU, so DDP reduction is still a
-    plain sum-then-all_reduce. Following the standard Eigen evaluation protocol, pixels with gt outside (min_depth,
-    max_depth) are excluded and predictions are clamped into that range.
+    results are accumulated in float64 on CPU, so DDP reduction is still a plain sum-then-all_reduce. Following the
+    standard Eigen evaluation protocol, pixels with gt outside (min_depth, max_depth) are excluded and predictions are
+    clamped into that range.
 
     Attributes:
         min_depth (float): Minimum valid depth in meters.

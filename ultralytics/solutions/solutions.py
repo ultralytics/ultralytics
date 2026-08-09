@@ -182,7 +182,7 @@ class BaseSolution:
             self.boxes, self.clss, self.track_ids, self.confs = [], [], [], []
         trackers = getattr(self.model.predictor, "trackers", None)
         if trackers:
-            self.forget_tracks([track.track_id for track in trackers[0].removed_stracks])
+            self.forget_tracks([track.track_id for track in trackers[0].removed_stracks_frame])
 
     def forget_tracks(self, track_ids: list[int]) -> None:
         """Drop bookkeeping for IDs retired by the active tracker.

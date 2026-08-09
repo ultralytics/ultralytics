@@ -102,7 +102,7 @@ jobs:
             echo "No changes to commit"
           fi
       - name: Publish Docs to https://docs.ultralytics.com
-        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_docs == 'true')
+        if: github.ref_name == 'main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_docs == 'true'))
         env:
           EVENT_NAME: ${{ github.event_name }}
           VERCEL_DOCS_DEPLOY_HOOK: ${{ secrets.VERCEL_DOCS_DEPLOY_HOOK }}

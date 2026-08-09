@@ -2413,9 +2413,7 @@ class Format(BaseTransform):
                 labels["keypoints"][..., 0] /= w
                 labels["keypoints"][..., 1] /= h
         if self.return_obb:
-            labels["bboxes"] = (
-                xyxyxyxy2xywhr(torch.from_numpy(instances.segments)) if len(instances.segments) else torch.zeros((0, 5))
-            )
+            labels["bboxes"] = xyxyxyxy2xywhr(torch.from_numpy(instances.segments))
         # NOTE: need to normalize obb in xywhr format for width-height consistency
         if self.normalize:
             labels["bboxes"][:, [0, 2]] /= w

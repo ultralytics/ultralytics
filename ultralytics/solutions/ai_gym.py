@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from collections import defaultdict
 from typing import Any
 
@@ -45,6 +47,11 @@ class AIGym(BaseSolution):
         self.up_angle = float(self.CFG["up_angle"])  # Pose up predefined angle to consider up pose
         self.down_angle = float(self.CFG["down_angle"])  # Pose down predefined angle to consider down pose
         self.kpts = self.CFG["kpts"]  # User selected kpts of workouts storage for further usage
+
+    def forget_tracks(self, track_ids: list[int]) -> None:
+        """Drop retired IDs from workout state so it doesn't grow across a 24/7 stream (see BaseSolution)."""
+        for track_id in track_ids:
+            self.states.pop(track_id, None)
 
     def process(self, im0) -> SolutionResults:
         """Monitor workouts using Ultralytics YOLO Pose Model.

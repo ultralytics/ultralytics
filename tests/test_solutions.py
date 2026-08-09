@@ -258,6 +258,21 @@ def test_object_counter_polygon_reentry_after_inside_spawn():
     )
 
 
+def test_purge_stale_tracks_forgets_aigym_states():
+    """AIGym.states is per-track bookkeeping like ObjectCounter.counted_ids/SpeedEstimator.spd, but AIGym never
+    calls store_tracking_history and so never touches track_history itself; _purge_stale_tracks must still purge
+    it via the track-ID registry (_track_last_seen) it keeps regardless of that, on a stream that runs for days.
+    """
+    gym = solutions.AIGym(model=MODEL, show=SHOW)
+    gym.track_ids = [1]
+    gym.states[1]["count"] = 3  # materialize the defaultdict entry, as process() would on a real detection
+    gym._purge_stale_tracks()  # track 1 seen at call 1
+    gym.track_ids = []
+    for _ in range(101):  # miss the default max_age (no tracker attached: track_buffer falls back to 30 * 3 = 90)
+        gym._purge_stale_tracks()
+    assert 1 not in gym.states, f"Expected track 1 purged from states after going stale, got {dict(gym.states)}"
+
+
 def test_left_click_selection():
     """Test distance calculation left click selection functionality."""
     dc = solutions.DistanceCalculation()

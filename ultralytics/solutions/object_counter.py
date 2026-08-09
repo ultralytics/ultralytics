@@ -124,6 +124,11 @@ class ObjectCounter(BaseSolution):
                 self.classwise_count[self.names[cls]]["OUT"] += 1
             self.counted_ids.append(track_id)
 
+    def forget_tracks(self, track_ids: list[int]) -> None:
+        """Drop retired IDs from `counted_ids` so it doesn't grow across a 24/7 stream (see BaseSolution)."""
+        retired = set(track_ids)
+        self.counted_ids = [tid for tid in self.counted_ids if tid not in retired]
+
     def display_counts(self, plot_im) -> None:
         """Display object counts on the input image or frame.
 

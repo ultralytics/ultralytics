@@ -130,6 +130,11 @@ class BaseSolution:
         # Initialize environment and region setup
         self.env_check = check_imshow(warn=True)
         self.track_history = defaultdict(list)
+        # Tracker never reuses IDs, so once one stops appearing in extract_tracks() it is gone for good; age
+        # it out of any per-track bookkeeping instead of growing this (and subclasses') dicts/lists forever
+        # on streams that never stop, e.g. 24/7 counting/heatmap footage.
+        self._track_last_seen: dict[int, int] = {}  # track_id -> extract_tracks() call it was last active in
+        self._track_calls = 0  # bumped once per extract_tracks() call; independent of frame_no (logging only)
 
         self.profilers = (
             ops.Profile(device=self.device),  # track
@@ -180,6 +185,41 @@ class BaseSolution:
         else:
             self.LOGGER.warning("No tracks found.")
             self.boxes, self.clss, self.track_ids, self.confs = [], [], [], []
+        self._purge_stale_tracks()
+
+    def _purge_stale_tracks(self) -> None:
+        """Drop tracking history for IDs the tracker's own lost-track window has permanently let go of.
+
+        ByteTrack/BoT-SORT/etc. retire a lost track internally after `track_buffer` frames (30 by default,
+        user-configurable per `ultralytics/cfg/trackers/*.yaml`) and never reuse its ID, so once one misses
+        that many calls here it is gone for good. Reading the tracker's own configured `track_buffer`
+        (rather than assuming its default) keeps this correct for a raised `track_buffer` too, with a wide
+        margin so this only drops IDs the tracker has truly finished with, keeping `track_history` (and
+        whatever a subclass adds via `forget_tracks`) bounded by recently active tracks instead of every ID
+        seen across a stream that runs for days.
+
+        Staleness is tracked via `_track_last_seen`, populated for every track ID regardless of whether a
+        subclass calls `store_tracking_history` — so this also purges subclasses (e.g. `AIGym`) whose own
+        bookkeeping is keyed by track ID but never touches `track_history`.
+        """
+        self._track_calls += 1
+        self._track_last_seen.update(dict.fromkeys(self.track_ids, self._track_calls))
+        trackers = getattr(self.model.predictor, "trackers", None)
+        track_buffer = getattr(trackers[0].args, "track_buffer", 30) if trackers else 30
+        max_age = track_buffer * 3  # wide margin over the tracker's own configured lost-track window
+        stale = [tid for tid, seen in self._track_last_seen.items() if self._track_calls - seen > max_age]
+        for tid in stale:
+            self.track_history.pop(tid, None)
+            del self._track_last_seen[tid]
+        if stale:
+            self.forget_tracks(stale)
+
+    def forget_tracks(self, track_ids: list[int]) -> None:
+        """Hook for subclasses to drop their own per-track bookkeeping when IDs are retired.
+
+        Args:
+            track_ids (list[int]): Track IDs `_purge_stale_tracks` just retired.
+        """
 
     def store_tracking_history(self, track_id: int, box) -> None:
         """Store the tracking history of an object.

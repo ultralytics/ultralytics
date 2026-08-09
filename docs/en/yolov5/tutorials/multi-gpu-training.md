@@ -194,7 +194,7 @@ Read the checklist below before opening an issue — it often saves time.
 - Have you re-cloned the codebase? The code changes **daily**.
 - Have you searched for the error message? Someone may have already hit the same issue and shared a fix.
 - Have you installed all the requirements (including the correct Python and PyTorch versions)?
-- Have you tried one of the supported environments listed below?
+- Have you tried one of the supported environments listed above?
 - Have you tried a smaller dataset such as `coco128` or `coco2017` to isolate the root cause?
 
 If all of the above check out, open an Issue with as much detail as possible, following the template.

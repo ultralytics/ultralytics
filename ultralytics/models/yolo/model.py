@@ -13,6 +13,7 @@ from ultralytics.cfg import get_cfg
 from ultralytics.data.build import load_inference_source
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
+from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.tasks import (
     ClassificationModel,
     DepthModel,
@@ -319,15 +320,16 @@ class YOLOE(Model):
             >>> model.set_vocab(model.get_vocab(names), names)
         """
         assert isinstance(self.model, YOLOEModel)
+        names = check_class_names(names)
+        self.predictor = None  # the delegate destructively re-parameterizes the head
         self.model.set_vocab(vocab, names=names)
-        self.predictor = None  # reset predictor, which snapshotted the class count the head no longer has
 
     def get_vocab(self, names):
         """Get the vocabulary for the given class names, which become the model's classes as the head is fused."""
         assert isinstance(self.model, YOLOEModel)
-        vocab = self.model.get_vocab(names)
-        self.predictor = None  # reset only after the model accepts the names and fuses the head
-        return vocab
+        names = list(check_class_names(names).values())
+        self.predictor = None  # the delegate destructively fuses the promptable head
+        return self.model.get_vocab(names)
 
     def set_classes(self, classes: list[str], embeddings: torch.Tensor | None = None) -> None:
         """Set the model's class names and embeddings for detection.
@@ -462,8 +464,8 @@ class YOLOE(Model):
             stream (bool): Whether to stream the prediction results. If True, results are yielded as a generator as they
                 are computed.
             visual_prompts (dict[str, np.ndarray | list[np.ndarray]]): Dictionary containing visual prompts for the
-                model. Must include 'bboxes' and 'cls' keys when non-empty, holding one array each per image when the
-                source holds more than one image and no refer_image is given, and a single flat array each otherwise.
+                model. Must include 'bboxes' and 'cls' keys when non-empty, holding one array each per image for an
+                explicit list, tuple, or 4-D array source with no refer_image, and a single flat array each otherwise.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
             predictor (callable): Custom predictor class for visual prompt predictions. Defaults to
                 YOLOEVPDetectPredictor.
@@ -503,7 +505,7 @@ class YOLOE(Model):
             multi = refer_image is None and source_count > 1
             # each branch below reads the shape the other one cannot; the flat one counts classes with set()
             valid_nested = nested and all(
-                b.ndim == 2 and b.shape[1:] == (4,) and c.ndim == 1
+                b.ndim == 2 and b.shape[1:] == (4,) and c.ndim == 1 and all(isinstance(x, Hashable) for x in c)
                 for b, c in zip(visual_prompts["bboxes"], visual_prompts["cls"])
             )
             assert nested == multi and (valid_nested or all(isinstance(c, Hashable) for c in visual_prompts["cls"])), (

@@ -275,11 +275,11 @@ def test_purge_stale_tracks_forgets_aigym_states():
 
 
 def test_purge_stale_tracks_respects_tracker_specific_retention_windows():
-    """FASTTracker (ultralytics/trackers/fast_tracker.py) can keep an unseen ID re-findable for
-    occ_reappear_window frames and delay moving an occluded track to Lost for active_occ_to_lost_thresh
-    frames, both independent of track_buffer. A track_buffer of 1 with the default occ_reappear_window of 40
-    must not let _purge_stale_tracks() drop solution state after only track_buffer * 3 == 3 missed calls,
-    or FASTTracker could still emit the same ID later and reset AIGym state / let ObjectCounter double-count.
+    """FASTTracker (ultralytics/trackers/fast_tracker.py) can keep an unseen ID re-findable for occ_reappear_window
+    frames and delay moving an occluded track to Lost for active_occ_to_lost_thresh frames, both independent of
+    track_buffer. A track_buffer of 1 with the default occ_reappear_window of 40 must not let _purge_stale_tracks()
+    drop solution state after only track_buffer * 3 == 3 missed calls, or FASTTracker could still emit the same ID
+    later and reset AIGym state / let ObjectCounter double-count.
     """
     gym = solutions.AIGym(model=MODEL, show=SHOW)
     gym.track_ids = [1]

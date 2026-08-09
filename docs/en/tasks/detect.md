@@ -4,7 +4,7 @@ description: Learn about object detection with Ultralytics YOLO26. Explore pretr
 keywords: object detection, Ultralytics YOLO, YOLO26, pretrained models, training, validation, prediction, export, machine learning, computer vision
 ---
 
-# Object Detection with Ultralytics YOLO
+# Object Detection with Ultralytics YOLO {#object-detection}
 
 <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/object-detection-examples.avif" alt="Ultralytics YOLO object detection with bounding boxes">
 
@@ -241,7 +241,7 @@ Ultralytics YOLO26 offers various pretrained models for [object detection](detec
 
 For a detailed list and performance metrics, refer to the [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26) section.
 
-### How can I validate the accuracy of my trained Ultralytics YOLO model?
+### How can I validate the accuracy of my trained YOLO model?
 
 To validate the accuracy of your trained YOLO26 model, you can use the `.val()` method in Python or the `yolo detect val` command in CLI. This will provide metrics like mAP50-95, mAP50, and more.
 

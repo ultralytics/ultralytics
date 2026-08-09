@@ -161,7 +161,12 @@ class ClassificationTrainer(BaseTrainer):
                     f"model nc={nc}. Reset the model's class count or align dataset class indices."
                 )
         loader = build_dataloader(
-            dataset, batch_size, self.args.workers, rank=rank, drop_last=self.args.compile, device=self.device
+            dataset,
+            batch_size,
+            self.args.workers,
+            rank=rank,
+            drop_last=self.args.compile and mode == "train",
+            device=self.device,
         )
         # Attach inference transforms
         if mode != "train":

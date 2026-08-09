@@ -1184,22 +1184,17 @@ class BaseTrainer:
                 groups.append({"params": p if use_muon else list(p.values()), **optim_args, **s, **extra})
         g = groups
         if use_muon:
-            import re
-
-            # higher lr (args.cls_lr_mult, default 3x) for certain parameters in MuSGD when finetuning
-            # proto.semseg is the checkpoint parameter name for YOLO26 semantic auxiliary heads.
-            pattern = re.compile(r"(?=.*23)(?=.*cv3)|proto\.semseg|SemanticSegment")
+            target = unwrap_model(model)
+            head = getattr(target, "student_model", target).model[-1]
+            heads = (getattr(head, "cv3", None), getattr(head, "one2one_cv3", None))
+            boosted = {id(p) for m in heads if m for p in m.parameters()}
             g_ = []  # new param groups
             for x in g:
                 p = x.pop("params")
-                p1 = [v for k, v in p.items() if pattern.search(k)]
-                p2 = [v for k, v in p.items() if not pattern.search(k)]
-                g_.extend(
-                    [
-                        {"params": p1, **x, "lr": lr * self.args.cls_lr_mult},
-                        {"params": p2, **x},
-                    ]
-                )
+                p1, p2 = [], []
+                for k, v in p.items():
+                    (p1 if id(v) in boosted or "proto.semseg" in k or "SemanticSegment" in k else p2).append(v)
+                g_.extend([{"params": p1, **x, "lr": lr * self.args.cls_lr_mult}, {"params": p2, **x}])
             g = g_
         optimizer = getattr(optim, name, partial(MuSGD, muon=muon, sgd=sgd))(params=g)
 

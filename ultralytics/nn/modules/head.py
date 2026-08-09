@@ -97,9 +97,7 @@ class Detect(nn.Module):
         size = n // groups
         values, index = x.reshape(x.shape[0], groups, size).topk(k, dim=-1)
         values, winners = values.flatten(1).topk(k, dim=1)
-        # Map each winner back to x: index = group * size + index within group. CoreML MIL lacks integer floor-div
-        # lowering, so use torch.div(rounding_mode="floor") over //.
-        return values, torch.div(winners, k, rounding_mode="floor") * size + index.flatten(1).gather(1, winners)
+        return values, winners // k * size + index.flatten(1).gather(1, winners)
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """Initialize the YOLO detection layer with specified number of classes and channels.
@@ -266,7 +264,7 @@ class Detect(nn.Module):
             scores, indices = scores.topk(k, dim=1)
             labels = labels.gather(1, indices)
             return scores, labels.float(), indices
-        groups = 1 if self.dynamic else 8  # dynamic exports require a shape-independent TopK graph
+        groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
         ori_index = self._grouped_topk(scores.max(dim=-1)[0], k, groups)[1].unsqueeze(-1)
         scores = scores.gather(dim=1, index=ori_index.expand(-1, -1, nc))
         scores, index = self._grouped_topk(scores.flatten(1), k, groups)

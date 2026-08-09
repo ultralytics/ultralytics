@@ -470,6 +470,7 @@ class Predictor(BasePredictor):
 
         # Ultralytics compatibility settings
         self.model.format = "sam"
+        self.model.base_model = False  # SAMModel is no Ultralytics BaseModel and honors neither `augment` nor `embed`
         self.model.stride = 32
         self.model.fp16 = self.args.quantize == 16
         self.done_warmup = True
@@ -2651,7 +2652,10 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             pred_masks, pred_boxes = None, torch.zeros((0, 7), device=self.device)
         else:
             pred_masks = torch.cat([obj_id_to_mask[obj_id] for obj_id in curr_obj_ids], dim=0)
-            pred_masks = F.interpolate(pred_masks.float()[None], orig_imgs[0].shape[:2], mode="bilinear")[0] > 0.5
+            pred_masks = (
+                F.interpolate(pred_masks.float()[None], orig_imgs[0].shape[:2], mode="bilinear")[0]
+                > self.model.mask_threshold
+            )
             pred_ids = torch.tensor(curr_obj_ids, dtype=torch.int32, device=pred_masks.device)
             pred_scores = torch.tensor(
                 [preds["obj_id_to_score"][obj_id] for obj_id in curr_obj_ids], device=pred_masks.device
@@ -3368,9 +3372,9 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         # Part 1: masks from previous SAM2 propagation
         existing_masklet_obj_ids = tracker_metadata_prev["obj_ids"]
-        existing_masklet_binary = tracker_low_res_masks_global.unsqueeze(1)
-        assert len(existing_masklet_obj_ids) == len(existing_masklet_binary)
-        for obj_id, mask in zip(existing_masklet_obj_ids, existing_masklet_binary):
+        existing_masklet_logits = tracker_low_res_masks_global.unsqueeze(1)
+        assert len(existing_masklet_obj_ids) == len(existing_masklet_logits)
+        for obj_id, mask in zip(existing_masklet_obj_ids, existing_masklet_logits):
             obj_id_to_mask[obj_id] = mask  # (1, H_video, W_video)
 
         # Part 2: masks from new detections

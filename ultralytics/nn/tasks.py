@@ -1255,11 +1255,13 @@ class YOLOEModel(DetectionModel):
             without_reprta (bool): Whether to return text embeddings without reprta module processing.
 
         Returns:
-            (torch.Tensor): Text positional embeddings.
+            (torch.Tensor): Text positional embeddings in the model's parameter dtype.
         """
         from ultralytics.nn.text_model import build_text_model
 
-        device = next(self.model.parameters()).device
+        assert len(text), f"Expected at least one class name, but got {text}"
+        param = next(self.model.parameters())
+        device = param.device
         if not getattr(self, "clip_model", None) and cache_clip_model:
             # For backwards compatibility of models lacking clip_model attribute
             self.clip_model = build_text_model(getattr(self, "text_model", "mobileclip:blt"), device=device)
@@ -1272,7 +1274,7 @@ class YOLOEModel(DetectionModel):
         text_token = model.tokenize(text)
         txt_feats = [model.encode_text(token).detach() for token in text_token.split(batch)]
         txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)
-        txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1])
+        txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1]).to(param.dtype)  # CLIP always emits float32
         if without_reprta:
             return txt_feats
 
@@ -1303,10 +1305,11 @@ class YOLOEModel(DetectionModel):
         assert not self.training
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
+        names = check_class_names(names)  # validate before the re-parameterization below, which cannot be undone
 
         # Cache anchors for head
-        device = next(self.parameters()).device
-        self(torch.empty(1, 3, self.args["imgsz"], self.args["imgsz"]).to(device))  # warmup
+        with torch.no_grad():  # a tracked warmup would build a graph through the backbone
+            self(next(self.parameters()).new_empty(1, 3, self.args["imgsz"], self.args["imgsz"]))  # warmup
 
         cv3 = getattr(head, "one2one_cv3", head.cv3)
         cv2 = getattr(head, "one2one_cv2", head.cv2)
@@ -1315,13 +1318,13 @@ class YOLOEModel(DetectionModel):
         self.model[-1].lrpc = nn.ModuleList(
             LRPCHead(cls, pf[-1], loc[-1], enabled=i != 2) for i, (cls, pf, loc) in enumerate(zip(vocab, cv3, cv2))
         )
-        for loc_head, cls_head in zip(head.cv2, head.cv3):
+        for loc_head, cls_head in zip(cv2, cv3):  # the branches lrpc was built from, one2one when end2end
             assert isinstance(loc_head, nn.Sequential)
             assert isinstance(cls_head, nn.Sequential)
             del loc_head[-1]
             del cls_head[-1]
         self.model[-1].nc = len(names)
-        self.names = check_class_names(names)
+        self.names = names
 
     def get_vocab(self, names):
         """Get fused vocabulary layer from the model.
@@ -1336,6 +1339,7 @@ class YOLOEModel(DetectionModel):
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
         assert not head.is_fused
+        names = list(check_class_names(names).values())  # validate before fusing the head, which cannot be undone
 
         tpe = self.get_text_pe(names)
         self.set_classes(names, tpe)
@@ -1360,9 +1364,9 @@ class YOLOEModel(DetectionModel):
             "Prompt-free model does not support setting classes. Please try with Text/Visual prompt models."
         )
         assert embeddings.ndim == 3
+        self.names = check_class_names(names)  # validate before any state is written
         self.pe = embeddings
         self.model[-1].nc = len(names)
-        self.names = check_class_names(names)
 
     def get_cls_pe(self, tpe, vpe):
         """Get class positional embeddings.

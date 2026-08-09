@@ -198,6 +198,14 @@ class BaseSolution:
         whatever a subclass adds via `forget_tracks`) bounded by recently active tracks instead of every ID
         seen across a stream that runs for days.
 
+        Some trackers keep a lost track re-findable via retention windows of their own that are independent
+        of `track_buffer` — e.g. `FASTTracker` (`ultralytics/trackers/fast_tracker.py`) can hold one via
+        `occ_reappear_window` and delay marking it lost via `active_occ_to_lost_thresh`, so `track_buffer * 3`
+        alone can undershoot badly for a small user-configured `track_buffer`. Reading those attributes
+        straight off the active tracker instance (0 for trackers that don't define them, e.g. BYTETracker/
+        BOT-SORT/OC-SORT/DeepOCSORT) generalizes to any tracker with the same pattern instead of special-
+        casing `FASTTracker` by name here.
+
         Staleness is tracked via `_track_last_seen`, populated for every track ID regardless of whether a
         subclass calls `store_tracking_history` — so this also purges subclasses (e.g. `AIGym`) whose own
         bookkeeping is keyed by track ID but never touches `track_history`.
@@ -205,8 +213,14 @@ class BaseSolution:
         self._track_calls += 1
         self._track_last_seen.update(dict.fromkeys(self.track_ids, self._track_calls))
         trackers = getattr(self.model.predictor, "trackers", None)
-        track_buffer = getattr(trackers[0].args, "track_buffer", 30) if trackers else 30
+        tracker = trackers[0] if trackers else None
+        track_buffer = getattr(tracker.args, "track_buffer", 30) if tracker else 30
         max_age = track_buffer * 3  # wide margin over the tracker's own configured lost-track window
+        if tracker is not None:
+            extra_retention = getattr(tracker, "occ_reappear_window", 0) + getattr(
+                tracker, "active_occ_to_lost_thresh", 0
+            )
+            max_age = max(max_age, extra_retention)
         stale = [tid for tid, seen in self._track_last_seen.items() if self._track_calls - seen > max_age]
         for tid in stale:
             self.track_history.pop(tid, None)

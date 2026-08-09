@@ -4,6 +4,7 @@
 # Includes all solutions except DistanceCalculation and the Security Alarm System.
 
 import os
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import cv2
@@ -271,6 +272,37 @@ def test_purge_stale_tracks_forgets_aigym_states():
     for _ in range(101):  # miss the default max_age (no tracker attached: track_buffer falls back to 30 * 3 = 90)
         gym._purge_stale_tracks()
     assert 1 not in gym.states, f"Expected track 1 purged from states after going stale, got {dict(gym.states)}"
+
+
+def test_purge_stale_tracks_respects_tracker_specific_retention_windows():
+    """FASTTracker (ultralytics/trackers/fast_tracker.py) can keep an unseen ID re-findable for
+    occ_reappear_window frames and delay moving an occluded track to Lost for active_occ_to_lost_thresh
+    frames, both independent of track_buffer. A track_buffer of 1 with the default occ_reappear_window of 40
+    must not let _purge_stale_tracks() drop solution state after only track_buffer * 3 == 3 missed calls,
+    or FASTTracker could still emit the same ID later and reset AIGym state / let ObjectCounter double-count.
+    """
+    gym = solutions.AIGym(model=MODEL, show=SHOW)
+    gym.track_ids = [1]
+    gym.states[1]["count"] = 3  # materialize the defaultdict entry, as process() would on a real detection
+
+    class _FakeFASTTracker:
+        """Stand-in exposing only the attributes _purge_stale_tracks reads, mirroring FASTTracker's own."""
+
+        args = SimpleNamespace(track_buffer=1)
+        occ_reappear_window = 40
+        active_occ_to_lost_thresh = 10
+
+    gym.model.predictor = SimpleNamespace(trackers=[_FakeFASTTracker()])
+
+    gym._purge_stale_tracks()  # track 1 seen at call 1
+    gym.track_ids = []
+    for _ in range(5):  # 5 misses: track_buffer * 3 == 3 would already have purged with the old formula
+        gym._purge_stale_tracks()
+    assert 1 in gym.states, f"Purged before FASTTracker's own retention windows elapsed, got {dict(gym.states)}"
+
+    for _ in range(46):  # 51 misses total, past occ_reappear_window + active_occ_to_lost_thresh == 50
+        gym._purge_stale_tracks()
+    assert 1 not in gym.states, f"Expected track 1 purged once retained past its windows, got {dict(gym.states)}"
 
 
 def test_left_click_selection():

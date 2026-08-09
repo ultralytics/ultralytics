@@ -1667,16 +1667,17 @@ class Exporter:
             # level 4 without compression, adaround instead of finetune, and 16-bit on the head and depthwise
             # convolutions as well as the outputs. adaround needs a full calibration set, so below 1,024 images
             # the level-2 recipe is used instead.
-            tuned = one2one and task == "detect" and calibration_size >= 1024
+            yolo26 = one2one and task == "detect" and head.reg_max == 1
+            tuned = yolo26 and calibration_size >= 1024
             model_script = ["normalization1 = normalization([0, 0, 0], [255, 255, 255])"]
             if tuned:
                 model_script += [
-                    f"model_optimization_config(calibration, batch_size=8, calibset_size={calibration_size})",
+                    f"model_optimization_config(calibration, batch_size=1, calibset_size={calibration_size})",
                     "model_optimization_flavor(optimization_level=4, compression_level=0)",
                     "post_quantization_optimization(adaround, policy=enabled, batch_size=1)",
                 ]
             else:
-                if one2one and task == "detect":
+                if yolo26:
                     LOGGER.warning(
                         f"{prefix} YOLO26 reaches its best INT8 accuracy with 1,024 or more calibration images, "
                         f"found {calibration_size}. Using level-2 optimization instead."

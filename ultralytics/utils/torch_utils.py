@@ -8,7 +8,7 @@ import math
 import os
 import random
 import time
-from contextlib import contextmanager, suppress
+from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
@@ -546,36 +546,13 @@ def get_flops(model, imgsz=640):
         if not isinstance(imgsz, list):
             imgsz = [imgsz, imgsz]  # expand if int/float
         attn = tuple(m for m in model.modules() if isinstance(m, (Attention, AAttn)))
-        rtdetr = next((m for m in model.modules() if isinstance(m, RTDETRDecoder)), None)
-        # Custom attention costs are quadratic in image area, so disable THOP's affine proxy; RT-DETR is fit below.
-        max_stride = max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32
-        stride = None if attn else max_stride
+        rtdetr = any(isinstance(m, RTDETRDecoder) for m in model.modules())
+        # Attention costs are quadratic in image area, so disable THOP's affine proxy.
+        stride = None if attn else max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32
         im = torch.empty((1, p.shape[1], *imgsz), device=p.device, dtype=p.dtype)  # input image in BCHW format
         custom_ops = {Attention: _attention_ops, AAttn: _attention_ops} if attn else None
-
-        if rtdetr:
-            profile = functools.partial(thop.profile, model, custom_ops=custom_ops, verbose=False)
-
-            # Affine RT-DETR variants are no faster with two decoder passes; profile them directly without a bad probe.
-            if not attn and not any(isinstance(m, nn.MultiheadAttention) for m in model.modules()):
-                return profile(inputs=[im])[0] / 1e9 * 2
-
-            # Three valid samples recover fixed, area-linear, and quadratic attention costs exactly.
-            density = sum((2**i / max_stride) ** 2 for i in range(rtdetr.nl))
-            start = math.ceil(math.sqrt(rtdetr.num_queries / density) / max_stride) * max_stride
-            sizes = tuple(start + i * max_stride for i in range(3))
-            if sizes[-1] ** 2 < math.prod(imgsz) and all(x % max_stride == 0 for x in imgsz):
-                with suppress(Exception):
-                    ops = [profile(inputs=[im.new_empty((*im.shape[:-2], s, s))])[0] for s in sizes]
-                    x = [(s / max_stride) ** 2 for s in sizes]
-                    target = math.prod(imgsz) / max_stride**2
-                    d01 = (ops[1] - ops[0]) / (x[1] - x[0])
-                    total_ops = ops[0] + d01 * (target - x[0])
-                    d12 = (ops[2] - ops[1]) / (x[2] - x[1])
-                    total_ops += (d12 - d01) / (x[2] - x[0]) * (target - x[0]) * (target - x[1])
-                    return total_ops / 1e9 * 2
-            return profile(inputs=[im])[0] / 1e9 * 2
-
+        if rtdetr:  # RT-DETR cannot run the stride-sized proxy input
+            return thop.profile(model, inputs=[im], custom_ops=custom_ops, verbose=False)[0] / 1e9 * 2
         return thop.profile(model, inputs=[im], stride=stride, custom_ops=custom_ops, verbose=False)[0] / 1e9 * 2
     except Exception:
         return 0.0

@@ -8,10 +8,9 @@ from copy import deepcopy
 from pathlib import Path
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 from ultralytics.nn.autobackend import check_class_names
-from ultralytics.nn.modules.utils import freeze_batch_norm2d
 from ultralytics.nn.modules import (
     AIFI,
     C1,
@@ -27,8 +26,8 @@ from ultralytics.nn.modules import (
     SPPELAN,
     SPPF,
     A2C2f,
-    Add,
     AConv,
+    Add,
     ADown,
     Bottleneck,
     BottleneckCSP,
@@ -47,15 +46,16 @@ from ultralytics.nn.modules import (
     Conv2,
     ConvSyncBN,
     ConvTranspose,
-    DINOv3,
-    DINOv3RoPE2D,
+    DeimDecoder,
     DEIMDINOv3ConvNeXt,
     DEIMDINOv3STAs,
     DEIMEUPEConvNeXt,
     DEIMEUPESTAs,
-    Detect,
-    DeimDecoder,
     DeimLayerNormDecoder,
+    Detect,
+    DFineDecoder,
+    DINOv3,
+    DINOv3RoPE2D,
     DWConv,
     DWConvTranspose2d,
     FastViTBlock,
@@ -66,15 +66,13 @@ from ultralytics.nn.modules import (
     HGStem,
     ImagePoolingAttn,
     Index,
-    LayerNorm2d,
+    LayerNorm2d,  # noqa: F401 - resolved from YAML through globals()
     LRPCHead,
     MHSABlock,
     MixedRoPE2D,
     PooledMHSABlock,
     Pose,
     Pose26,
-    DFineDecoder,
-    PooledMHSABlock,
     PResNet,
     RepC3,
     RepConv,
@@ -88,14 +86,14 @@ from ultralytics.nn.modules import (
     RTDETRDecoderEfficient,
     RTDETRDecoderv2,
     SCDown,
-    SpatialPriorModulev2,
     Segment,
     Segment26,
-    TorchVision,
+    SpatialPriorModulev2,  # noqa: F401 - resolved from YAML through globals()
     Timm,
+    TorchVision,
     UltraViTBlock,
     VITBlock,
-    VITDownsample2x,
+    VITDownsample2x,  # noqa: F401 - resolved from YAML through globals()
     VITPatchStem,
     VITTokenToSpatial,
     WindowMHSABlock,
@@ -106,8 +104,8 @@ from ultralytics.nn.modules import (
     v10Detect,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, WINDOWS, YAML, colorstr, emojis
-from ultralytics.utils.class_map import is_default_numeric_names, names_to_list, remap_class_row_state_dict
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
+from ultralytics.utils.class_map import is_default_numeric_names, names_to_list, remap_class_row_state_dict
 from ultralytics.utils.loss import (
     E2ELoss,
     PoseLoss26,
@@ -804,7 +802,9 @@ class RTDETRDetectionModel(DetectionModel):
         # Discard denoising_class_embed when class count changes (following DEIM approach).
         # A partially-remapped embedding is worse than fresh random initialization.
         # Must run BEFORE class remapping, which would resize the tensor and mask the mismatch.
-        dn_discard = [k for k in csd if "denoising_class_embed" in k and k in state_dict and csd[k].shape != state_dict[k].shape]
+        dn_discard = [
+            k for k in csd if "denoising_class_embed" in k and k in state_dict and csd[k].shape != state_dict[k].shape
+        ]
         for k in dn_discard:
             del csd[k]
             if verbose:
@@ -815,8 +815,16 @@ class RTDETRDetectionModel(DetectionModel):
         src_name_list = names_to_list(src_names)
         dst_name_list = names_to_list(dst_names)
         names_match = bool(src_name_list) and src_name_list == dst_name_list
-        if src_names is not None and dst_names is not None and not src_is_default and not dst_is_default and not names_match:
-            csd, remapped, missing = remap_class_row_state_dict(csd, state_dict, src_names=src_names, dst_names=dst_names)
+        if (
+            src_names is not None
+            and dst_names is not None
+            and not src_is_default
+            and not dst_is_default
+            and not names_match
+        ):
+            csd, remapped, missing = remap_class_row_state_dict(
+                csd, state_dict, src_names=src_names, dst_names=dst_names
+            )
             if verbose and remapped:
                 LOGGER.info(f"Remapped {len(remapped)} class tensors using source->target class-name map")
             if verbose and missing:
@@ -1027,8 +1035,11 @@ class RTDETRDetectionModel(DetectionModel):
         if supports_dfine and dfine_meta is not None:
             dfine_meta, dfine_meta_o2m = self._split_dfine_meta(dfine_meta, dn_meta)
         matcher_epoch = 0
+        training_progress = 0.0
         if supports_dfine and "epoch" in batch:
             matcher_epoch = int(batch["epoch"])
+        if supports_dfine and "training_progress" in batch:
+            training_progress = float(batch["training_progress"])
         dn_bboxes = split_outputs["dn_bboxes"]
         dn_scores = split_outputs["dn_scores"]
         dec_bboxes = split_outputs["o2o_bboxes"]
@@ -1063,6 +1074,7 @@ class RTDETRDetectionModel(DetectionModel):
         if supports_dfine:
             loss_kwargs["dfine_meta"] = dfine_meta
             loss_kwargs["matcher_epoch"] = matcher_epoch
+            loss_kwargs["training_progress"] = training_progress
         loss_inputs = (dec_bboxes, dec_scores)
         loss_targets = targets
         if strict_loss_fp32:
@@ -1087,6 +1099,7 @@ class RTDETRDetectionModel(DetectionModel):
             if supports_dfine:
                 loss_o2m_kwargs["dfine_meta"] = dfine_meta_o2m
                 loss_o2m_kwargs["matcher_epoch"] = matcher_epoch
+                loss_o2m_kwargs["training_progress"] = training_progress
             if supports_dfine:
                 with torch.autocast(device_type=img.device.type, enabled=False):
                     loss_o2m = self.criterion((o2m_bboxes, o2m_scores), targets_o2m, **loss_o2m_kwargs)
@@ -1684,11 +1697,9 @@ class SafeClass:
 
     def __init__(self, *args, **kwargs):
         """Initialize SafeClass instance, ignoring all arguments."""
-        pass
 
     def __call__(self, *args, **kwargs):
         """Run SafeClass instance, ignoring all arguments."""
-        pass
 
 
 class SafeUnpickler(pickle.Unpickler):
@@ -1993,6 +2004,7 @@ def parse_model(d, ch, verbose=True):
                 MHSABlock,
                 DINOv3RoPE2D,
                 MixedRoPE2D,
+                RoPE2DBlock,
                 WindowMHSABlock,
                 PooledMHSABlock,
                 VITBlock,
@@ -2054,7 +2066,17 @@ def parse_model(d, ch, verbose=True):
         elif m is CBFuse:
             c2 = ch[f[-1]]
         elif m in frozenset(
-            {TorchVision, Timm, PResNet, DINOv3, DEIMDINOv3STAs, DEIMDINOv3ConvNeXt, DEIMEUPESTAs, DEIMEUPEConvNeXt, Index}
+            {
+                TorchVision,
+                Timm,
+                PResNet,
+                DINOv3,
+                DEIMDINOv3STAs,
+                DEIMDINOv3ConvNeXt,
+                DEIMEUPESTAs,
+                DEIMEUPEConvNeXt,
+                Index,
+            }
         ):
             c2 = args[0]
             c1 = ch[f]

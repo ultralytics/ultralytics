@@ -115,6 +115,7 @@ class DfineLoss(nn.Module):
         self.num_neg = None
         self.device = None
         self.matcher_epoch = 0
+        self.training_progress = 0.0
 
     def _clear_local_cache(self) -> None:
         """Clear per-forward local-loss caches."""
@@ -141,8 +142,16 @@ class DfineLoss(nn.Module):
         gt_cls: torch.Tensor,
         gt_groups: list[int],
     ) -> list[tuple[torch.Tensor, torch.Tensor]]:
-        """Wrapper over matcher to inject current epoch for DEIMv2 dynamic matcher schedule."""
-        return self.matcher(pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups, epoch=self.matcher_epoch)
+        """Wrapper over matcher to inject epoch and normalized progress for matcher scheduling."""
+        return self.matcher(
+            pred_bboxes,
+            pred_scores,
+            gt_bboxes,
+            gt_cls,
+            gt_groups,
+            epoch=self.matcher_epoch,
+            training_progress=self.training_progress,
+        )
 
     @staticmethod
     def _global_num_matches(match_indices: list[tuple[torch.Tensor, torch.Tensor]], device: torch.device) -> float:
@@ -633,11 +642,13 @@ class DfineLoss(nn.Module):
         dn_meta: dict[str, Any] | None = None,
         dfine_meta: dict[str, Any] | None = None,
         matcher_epoch: int = 0,
+        training_progress: float = 0.0,
     ) -> dict[str, torch.Tensor]:
         pred_bboxes, pred_scores = preds
         self.device = pred_scores.device
         self._clear_local_cache()
         self.matcher_epoch = int(matcher_epoch)
+        self.training_progress = min(max(float(training_progress), 0.0), 1.0)
 
         if self.training and torch.is_grad_enabled():
             global_num_gts = _global_num_gts(len(batch["bboxes"]), pred_scores.device)

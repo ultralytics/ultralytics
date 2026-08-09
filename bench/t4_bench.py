@@ -66,6 +66,8 @@ FINAL_ARMS = {
     "tokenmlp-p2wide": ("yolo27{s}-ultravit-290726.yaml", "x"),
     "ultravit-010826-1": ("yolo27{s}-ultravit-010826-1.yaml", "l"),
     "ultravit-010826-2": ("yolo27{s}-ultravit-010826-2.yaml", "l"),
+    "attn2-090826-1": ("yolo27{s}-ultravit-attn2-090826-1.yaml", "l"),
+    "attn2-090826-2": ("yolo27{s}-ultravit-attn2-090826-2.yaml", "l"),
     "ultravit-020826": ("yolo27{s}-ultravit-020826.yaml", "s"),
     "ultravit-020826-1": ("yolo27{s}-ultravit-020826-1.yaml", "ns"),
     "ultravit-020826-2": ("yolo27{s}-ultravit-020826-2.yaml", "ns"),

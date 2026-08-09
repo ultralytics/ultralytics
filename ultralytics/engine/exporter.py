@@ -1399,7 +1399,6 @@ class Exporter:
                 torch.nn.functional.interpolate(torch.cat(images, 0).float(), size=self.imgsz)
                 .permute(0, 2, 3, 1)
                 .numpy()
-                .astype(np.float32)
             )
 
         # Export to ONNX
@@ -1607,7 +1606,7 @@ class Exporter:
         calibration_dataloader = self.get_int8_calibration_dataloader(prefix)
         calibration_size = len(calibration_dataloader.dataset)
         LOGGER.warning(
-            f"\nHailo level-2 optimization will use {calibration_size} calibration images. "
+            f"\nHailo optimization will use {calibration_size} calibration images. "
             "Hailo recommends at least 1,024 representative images for best accuracy. "
             'Pass data="path/to/dataset.yaml". '
             "See https://docs.ultralytics.com/integrations/hailo/#export-a-hailo-hef-model"
@@ -1663,16 +1662,45 @@ class Exporter:
         try:
             runner = ClientRunner(hw_arch=self.args.name)
             runner.translate_onnx_model(str(f_onnx), self.file.stem, end_node_names=end_nodes)
-            model_script = [
-                "normalization1 = normalization([0, 0, 0], [255, 255, 255])",
-                "model_optimization_flavor(optimization_level=2)",
-                f"post_quantization_optimization(finetune, policy=enabled, dataset_size={calibration_size})",
-            ]
+            # The NMS-free YOLO26 detect head keeps its mAP through INT8 only with the Hailo Model Zoo recipe:
+            # level 4 without compression, adaround instead of finetune, and 16-bit on the head and depthwise
+            # convolutions and outputs. AdaRound needs a full calibration set, so use level 2 below 1,024 images.
+            yolo26 = one2one and task == "detect" and head.reg_max == 1 and self.model.yaml.get("scale") in "nsml"
+            tuned = yolo26 and calibration_size >= 1024
+            model_script = ["normalization1 = normalization([0, 0, 0], [255, 255, 255])"]
+            if tuned:
+                model_script += [
+                    f"model_optimization_config(calibration, batch_size=1, calibset_size={calibration_size})",
+                    "model_optimization_flavor(optimization_level=4, compression_level=0)",
+                    "post_quantization_optimization(adaround, policy=enabled, batch_size=1)",
+                ]
+            else:
+                if yolo26:
+                    LOGGER.warning(
+                        f"{prefix} YOLO26 reaches its best INT8 accuracy with 1,024 or more calibration images, "
+                        f"found {calibration_size}. Using level-2 optimization instead."
+                    )
+                model_script += [
+                    "model_optimization_flavor(optimization_level=2)",
+                    f"post_quantization_optimization(finetune, policy=enabled, dataset_size={calibration_size})",
+                ]
             if one2one or task == "depth":
                 # a16 on the output(s): the NMS-free detect logits and the single dense depth logit both need the
                 # wider activation to keep their range (a8 collapses the depth map; validated on Hailo-8L).
                 outputs = ", ".join(f"output_layer{i + 1}" for i in range(len(end_nodes)))
                 model_script.append(f"quantization_param([{outputs}], precision_mode=a16_w16)")
+                if tuned:
+                    # The output layers are only the graph's exit points; raise the head convolutions feeding them
+                    # and the depthwise layers to 16-bit too, otherwise the one-to-one logits are already a8 by the
+                    # time they reach the outputs.
+                    convs = ", ".join(
+                        layer.inputs[0].rsplit("/", 1)[-1] for layer in runner.get_hn_model().get_output_layers()
+                    )
+                    depthwise = "dw1, dw6, dw7, dw8" + (", dw9" if self.model.yaml["scale"] == "l" else "")
+                    model_script += [
+                        f"quantization_param([{depthwise}], precision_mode=a16_w16)",
+                        f"quantization_param([{convs}], precision_mode=a16_w16)",
+                    ]
             elif task in {"classify", "semantic"}:
                 pass  # softmax/class-map is already the graph output; no NMS or activation changes needed
             else:

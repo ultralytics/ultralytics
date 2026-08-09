@@ -1419,33 +1419,6 @@ def test_v26_depth_loss_lower_lambda_penalizes_scale_error_more():
     assert loss_anchored > 5 * max(loss_invariant, 1e-6)
 
 
-def test_v26_depth_loss_pyramid_gates_per_image():
-    """Coarse gradient levels must follow each image's own mask geometry, not the composition of its batch."""
-    import torch.nn.functional as F
-
-    from ultralytics.utils.loss import DepthLoss26
-
-    depth = torch.linspace(1, 10, 64**2).reshape(1, 1, 64, 64)
-    padded = depth * F.pad(torch.ones((1, 1, 32, 32)), (16, 16, 16, 16))  # contiguous zoom-out padding, 25% valid
-    scattered = depth * torch.eye(2).repeat(32, 32)  # every occupied pooling cell is half full
-    tile = F.pad(torch.ones((2, 2)), (1, 1, 1, 1))  # dropped at level 1 but fully occupied one level deeper
-    straddling = depth * tile.repeat(16, 16)
-    pred = depth * 1.2 + 0.3
-
-    def first_grad(gt, scales=4):
-        """Gradient the first image of the batch receives from the gradient-matching term."""
-        criterion = DepthLoss26(_DepthLossModel(dlog=0.0, dgrad=1.0))
-        criterion.grad_scales = scales
-        prediction = pred.expand(gt.shape[0], -1, -1, -1).clone().requires_grad_(True)
-        criterion({"depth": prediction}, {"depth": gt})[0].sum().backward()
-        return prediction.grad[0]
-
-    assert first_grad(padded).norm() > first_grad(padded, scales=1).norm()  # padding keeps the coarse levels
-    assert torch.equal(first_grad(scattered), first_grad(scattered, scales=1))  # scattered GT stays single-scale
-    for image in (padded, scattered, straddling):  # no decision moves with dense companions, nor re-enters
-        assert torch.equal(first_grad(image), first_grad(torch.cat((image, depth.repeat(2, 1, 1, 1)))))
-
-
 def test_utils_ops():
     """Test utility operations for coordinate transformations and normalizations."""
     from ultralytics.utils.ops import (

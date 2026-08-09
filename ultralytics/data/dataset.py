@@ -648,48 +648,17 @@ class GroundingDataset(YOLODataset):
         super().__init__(*args, task=task, data={"channels": 3}, **kwargs)
 
     def get_img_files(self, img_path: str) -> list[str]:
-        """Return every image under `img_path`; the annotations, not `fraction`, decide which ones are used.
-
-        Args:
-            img_path (str): Path to the directory containing images.
-
-        Returns:
-            (list[str]): Image files the annotation scan runs against.
-        """
+        """Return every image under `img_path`; the annotations, not `fraction`, decide which ones are used."""
         self.fraction = 1.0  # a truncated inventory would leave later images outside the cache key
         self.scan_files = super().get_img_files(img_path)
         return self.scan_files
 
     def get_cache_hash(self) -> str:
-        """Return a hash over the annotation file and the images it is scanned against.
-
-        As everywhere else in this file the hash covers paths and sizes, not contents, so an in-place edit that
-        preserves the byte length is not detected.
-
-        Returns:
-            (str): Dataset cache hash.
-        """
+        """Return a hash over the annotation file and images scanned against it."""
         return get_hash([self.json_file, *self.scan_files])
 
     def _verify_instance_counts(self, labels: list[dict[str, Any]]) -> None:
-        """Verify the number of instances in the dataset matches expected counts.
-
-        This method checks if the total number of bounding box instances in the provided labels matches the expected
-        count for known datasets. It performs validation against a predefined set of datasets with known instance
-        counts.
-
-        Args:
-            labels (list[dict[str, Any]]): List of label dictionaries, where each dictionary contains dataset
-                annotations. Each label dict must have a 'bboxes' key with a numpy array or tensor containing bounding
-                box coordinates.
-
-        Raises:
-            AssertionError: If the actual instance count doesn't match the expected count for a recognized dataset.
-
-        Notes:
-            For unrecognized datasets (those not in the predefined expected_counts),
-            a warning is logged and verification is skipped.
-        """
+        """Verify instance counts for known grounding datasets."""
         expected_counts = {
             "final_mixed_train_no_coco_segm": 3662412,
             "final_mixed_train_no_coco": 3681235,
@@ -755,18 +724,11 @@ class GroundingDataset(YOLODataset):
                 box = [cls, *box.tolist()]
                 if box not in bboxes:
                     bboxes.append(box)
-                    seg = ann.get("segmentation")
-                    segmented |= seg is not None
-                    if not isinstance(seg, list):
-                        seg = [seg]  # a non-list value, such as an RLE dict, is one non-polygon entry
-                    elif seg and all(isinstance(x, list) and len(x) == 2 for x in seg):
-                        seg = [seg]  # the value is itself a single polygon in [[x, y], ...] form
-                    seg = [  # [[x, y], ...] is a polygon form too, flatten it to [x, y, x, y, ...]
-                        [c for x in p for c in x]
-                        if isinstance(p, list) and all(isinstance(x, list) and len(x) == 2 for x in p)
-                        else p
-                        for p in seg
-                    ]
+                    raw_seg = ann.get("segmentation")
+                    segmented |= raw_seg is not None
+                    seg = raw_seg if isinstance(raw_seg, list) else []
+                    if seg and all(isinstance(x, list) and len(x) == 2 for x in seg):
+                        seg = [[c for point in seg for c in point]]  # [[x, y], ...] is one polygon
                     polygons = [
                         p
                         for p in seg
@@ -775,7 +737,7 @@ class GroundingDataset(YOLODataset):
                         and not len(p) % 2
                         and all(isinstance(c, (int, float)) for c in p)
                     ]
-                    dropped |= len(polygons) < sum(bool(p) or p == 0 for p in seg)  # empty entries carry no mask
+                    dropped |= bool(raw_seg) and (not isinstance(raw_seg, list) or len(polygons) < len(seg))
                     if not polygons:  # keep one segment per box so an image mixing the two kinds stays aligned
                         cx, cy, bw, bh = box[1:]
                         x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2

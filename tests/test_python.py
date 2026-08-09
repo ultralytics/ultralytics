@@ -1436,10 +1436,10 @@ def test_albumentations_repairs_segments_per_instance():
         ),
     }
     transform = Albumentations.__new__(Albumentations)
-    transform.p, transform.contains_spatial, transform.contains_topology_change, transform.flip_idx = (
+    transform.p, transform.contains_spatial, transform.topology_transforms, transform.flip_idx = (
         1.0,
         True,
-        False,
+        [],
         None,
     )
 
@@ -1477,10 +1477,10 @@ def test_albumentations_reflection_applies_flip_idx():
         ),
     }
     transform = Albumentations.__new__(Albumentations)
-    transform.p, transform.contains_spatial, transform.contains_topology_change, transform.flip_idx = (
+    transform.p, transform.contains_spatial, transform.topology_transforms, transform.flip_idx = (
         1.0,
         True,
-        False,
+        [],
         [1, 0],
     )
 

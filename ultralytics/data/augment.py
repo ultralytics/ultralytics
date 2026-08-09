@@ -2111,13 +2111,13 @@ class Albumentations(BaseTransform):
             check_version(A.__version__, "1.0.3", hard=True)  # version requirement
             topology_changing = getattr(A, "RandomGridShuffle", ())
 
-            def transform_types(t) -> tuple[bool, bool]:
-                """Return spatial and topology-changing flags, recursing into composition wrappers."""
+            def transform_types(t) -> tuple[bool, list]:
+                """Return the spatial flag and topology-changing transforms, recursing into compositions."""
                 # Wrappers such as OneOf are BaseCompose, not DualTransform, so their contents decide
                 nested = [transform_types(x) for x in t.transforms] if isinstance(t, A.BaseCompose) else []
                 return (
                     isinstance(t, A.DualTransform) or any(x[0] for x in nested),
-                    isinstance(t, topology_changing) or any(x[1] for x in nested),
+                    ([t] if isinstance(t, topology_changing) else []) + [y for x in nested for y in x[1]],
                 )
 
             # Transforms, use custom transforms if provided, otherwise use defaults
@@ -2138,7 +2138,9 @@ class Albumentations(BaseTransform):
             # Compose transforms
             transform_types = [transform_types(transform) for transform in T]
             self.contains_spatial = any(x[0] for x in transform_types)
-            self.contains_topology_change = any(x[1] for x in transform_types)
+            self.topology_transforms = [transform for x in transform_types for transform in x[1]]
+            for transform in self.topology_transforms:
+                transform.set_deterministic(True, save_key="topology")
             self.transform = (
                 A.Compose(
                     T,
@@ -2208,8 +2210,6 @@ class Albumentations(BaseTransform):
             instances.convert_bbox("xywh")
             instances.normalize(*im.shape[:2][::-1])
             segments, keypoints = instances.segments, instances.keypoints
-            if self.contains_topology_change and segments.size:
-                raise NotImplementedError("RandomGridShuffle cannot preserve polygon topology")
             h, w = im.shape[:2]
             points = segments.reshape(-1, 2)
             if keypoints is not None:  # landmarks follow the polygon vertices in the same target
@@ -2226,8 +2226,11 @@ class Albumentations(BaseTransform):
                 idx=np.arange(len(cls)),  # class values repeat, so only indices identify the surviving rows
                 keypoints=points,
                 pidx=np.arange(len(points)),
+                **({"topology": {}} if self.topology_transforms else {}),
                 **({"mask": mask} if mask is not None else {}),
             )
+            if (segments.size or keypoints is not None) and new.get("topology"):
+                raise NotImplementedError("RandomGridShuffle cannot preserve polygon or keypoint topology")
             if mask is not None or len(new["class_labels"]) or not len(cls):  # keep unless a crop lost every box
                 h, w = new["image"].shape[:2]  # a crop or a resize changes the size
                 i = np.array(new["idx"], dtype=int)  # albumentations filters the boxes, never the point targets

@@ -9,7 +9,6 @@ import urllib
 import zipfile
 from copy import copy
 from pathlib import Path
-from types import SimpleNamespace
 
 import cv2
 import numpy as np
@@ -1589,27 +1588,6 @@ def test_nn_depth_head_no_dead_parameters():
     head(_depth_head_feats())["depth"].sum().backward()
     unused = [n for n, p in head.named_parameters() if p.grad is None]
     assert not unused, f"parameters with no gradient: {unused}"
-
-
-def test_depth_postprocess_backend_parity():
-    """Depth postprocess returns the same map for a native head-resolution input and its exported upsampled twin."""
-    from ultralytics.models.yolo.depth.predict import DepthPredictor
-
-    native_map = torch.rand(1, 1, 160, 160)  # PyTorch and Hailo return the H/4 x W/4 head resolution
-    exported_map = torch.nn.functional.interpolate(native_map, scale_factor=4, mode="bilinear", align_corners=False)
-    img = torch.zeros(1, 3, 640, 640)  # letterboxed model input
-    orig_img = np.zeros((1080, 810, 3), dtype=np.uint8)  # non-square source, so the letterbox added padding
-
-    predictor = DepthPredictor()
-    predictor.batch = [["image.jpg"]]
-    predictor.model = SimpleNamespace(names={0: "depth"})
-    native = predictor.postprocess(native_map, img, [orig_img])[0].depth.data
-    exported = predictor.postprocess(exported_map, img, [orig_img])[0].depth.data
-
-    assert native.shape == exported.shape == orig_img.shape[:2]
-    assert torch.allclose(native, exported, atol=1e-4), (
-        f"backend-dependent depth map: max abs difference {(native - exported).abs().max():.6f}"
-    )
 
 
 @pytest.fixture

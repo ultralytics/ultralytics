@@ -538,11 +538,13 @@ def test_depth_metrics_per_image_average():
     gt_sparse = torch.zeros(1, 4, 4)
     gt_sparse[0, 0, :3] = 10.0  # 3 valid pixels: below the 10-pixel floor, must not be scored at all
     m.update_stats(torch.full((1, 4, 4), 10.0), gt_sparse)
+    invalid = gt_small.clone()
+    invalid[:, :3] = float("nan")
+    m.update_stats(invalid, gt_small)  # non-finite predictions must penalize the image, not remove it
     m.process()
-    # Pooling pixels would give 0.990/0.994/6.857, counting the 3-pixel image as an image would give 0.667/3.333
-    assert m.delta1 == pytest.approx(0.5), "the 100x denser image must not outweigh the small one"
-    assert m.rmse == pytest.approx(5.0), "mean of the per-image RMSEs (10.0 and 0.0), not the pooled RMSE"
-    assert m.silog == pytest.approx(0.0), "a uniform 2x error is scale-invariant, so every per-image silog is 0"
+    assert m.delta1 == pytest.approx(5 / 12), "the dense image must not outweigh small or invalid images"
+    assert m.rmse == pytest.approx((10 + 0 + 90 * np.sqrt(3 / 4)) / 3), "non-finite pixels must count as errors"
+    assert m.silog > 0, "non-finite predictions must contribute scale-invariant error"
 
 
 def test_val_save_txt_pose(tmp_path):

@@ -1894,8 +1894,9 @@ class DepthMetrics(SimpleClass, DataExportMixin):
 
     Metrics are finalized per image, then averaged across the val set so every image weighs equally regardless of its
     valid-pixel count, matching the per-sample averaging used by Depth Anything V2 and Monodepth2. Images with fewer
-    than 10 scored pixels (valid gt carrying a finite prediction) are skipped entirely, the same floor Depth Anything V2
-    applies to its own valid mask. Per-image results are accumulated in float64 on CPU, so DDP reduction is still a
+    than 10 valid ground-truth pixels are skipped entirely, the same floor Depth Anything V2 applies to its own valid
+    mask. Non-finite predictions are scored at a depth bound rather than hiding the image from the average. Per-image
+    results are accumulated in float64 on CPU, so DDP reduction is still a
     plain sum-then-all_reduce. Following the standard Eigen evaluation protocol, pixels with gt outside (min_depth,
     max_depth) are excluded and predictions are clamped into that range.
 
@@ -1940,16 +1941,20 @@ class DepthMetrics(SimpleClass, DataExportMixin):
         if p.ndim == 2:  # single image (H,W) -> (1,H,W) so alignment is always per-image
             p, g = p[None], g[None]
         for pi, gi in zip(p, g):
-            # Eigen protocol: score only pixels with gt inside (min_depth, max_depth); drop non-finite preds
-            mask = (gi > self.min_depth) & (gi < self.max_depth) & torch.isfinite(pi)
+            # Eigen protocol: score only pixels with gt inside (min_depth, max_depth)
+            mask = (gi > self.min_depth) & (gi < self.max_depth)
             if int(mask.sum()) < 10:  # Depth Anything V2 floor: aligning the median of a few pixels is meaningless
                 continue
             pv = pi[mask].float()
             gv = gi[mask].float()
             if self.align == "median":
-                scale = torch.median(gv) / torch.median(pv.clamp_min(self.min_depth))
-                pv = pv * scale
-            pv = pv.clamp(self.min_depth, self.max_depth)
+                finite = torch.isfinite(pv)
+                if finite.any():
+                    scale = torch.median(gv[finite]) / torch.median(pv[finite].clamp_min(self.min_depth))
+                    pv = pv * scale
+            pv = torch.nan_to_num(pv, nan=self.max_depth, posinf=self.max_depth, neginf=self.min_depth).clamp(
+                self.min_depth, self.max_depth
+            )
             thresh = torch.maximum(pv / gv, gv / pv)
             log_diff = torch.log(pv) - torch.log(gv)
             # λ=1 variance form (ZoeDepth/KITTI), finalized per image so silog also averages per-sample

@@ -121,6 +121,8 @@ LANES = {
             "ultravit-010826-2b": ("yolo26{s}-ultravit-010826-2b.yaml", "s"),
             "ultravit-010826-1": ("yolo26{s}-ultravit-010826-1.yaml", "l"),
             "ultravit-010826-2": ("yolo26{s}-ultravit-010826-2.yaml", "l"),
+            "attn2-090826-1": ("yolo26{s}-ultravit-attn2-090826-1.yaml", "l"),
+            "attn2-090826-2": ("yolo26{s}-ultravit-attn2-090826-2.yaml", "l"),
             "ultravit-020826": ("yolo26{s}-ultravit-020826.yaml", "s"),
             "ultravit-020826-1": ("yolo26{s}-ultravit-020826-1.yaml", "ns"),
             "ultravit-020826-2": ("yolo26{s}-ultravit-020826-2.yaml", "ns"),

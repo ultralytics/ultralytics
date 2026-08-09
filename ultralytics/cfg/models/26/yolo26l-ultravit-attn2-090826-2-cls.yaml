@@ -1,0 +1,22 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Classifier twin of the L-only 090826-2 narrow three-block Attn2 arm.
+
+nc: 1000
+
+scales:
+  l: [1.00, 1.00, 512]
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [96, 3, 2]]
+  - [-1, 2, RepUltraViTBlock, [4.359375, True, 0.00001, True]]
+  - [-1, 1, Conv, [192, 3, 2]]
+  - [-1, 2, RepUltraViTBlock, [4.515625, True, 0.00001, True]]
+  - [-1, 1, Conv, [384, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [2.25, True, 0.00001, True]]
+  - [-1, 1, Conv, [384, 3, 2]]
+  - [-1, 3, MHSABlock, [0, 4, True, 0.00001, True, 32]]
+
+head:
+  - [-1, 1, Classify, [nc]]

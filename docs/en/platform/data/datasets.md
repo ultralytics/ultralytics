@@ -275,11 +275,17 @@ Images can be sorted and filtered for efficient browsing:
     | **Split filter** | Train, Val, Test, or All              |
     | **Annotations**  | All images, Annotated, or Unannotated |
     | **Class filter** | Filter by class name                  |
-    | **Search**       | Filter images by filename             |
+    | **Search**       | Filter images by filename or metadata |
 
 !!! tip "Finding Unlabeled Images"
 
     Use the `Annotations` filter set to `Unannotated` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
+
+!!! tip "Searching Custom Metadata"
+
+    The search box sits at the right of the gallery toolbar and filters every view mode — cards, compact, and table. It matches the image filename (the file extension is optional) as well as custom metadata keys, scalar values, and array entries, so an image named `img_0042` carrying `{"ship_type": "yacht"}` is found by searching either `img_0042` or `yacht`.
+
+    Values nested inside sub-objects are not matched. Pasting a 32-character hex string looks up that exact image content hash instead.
 
 ### Fullscreen Viewer
 
@@ -287,7 +293,7 @@ Click any image to open the fullscreen viewer with:
 
 - **Navigation**: Arrow keys or thumbnail previews to browse
 - **Image information**: Review Platform-generated properties, custom metadata, and embedded file metadata such as EXIF
-- **Custom metadata**: Owners and editors can add or replace a JSON object, including nested values up to 500,000 serialized characters
+- **Custom metadata**: Owners and editors can add or replace a JSON object, including nested values up to 500,000 serialized characters and top-level keys up to 128 characters
 - **Annotations**: Toggle annotation overlay visibility
 - **Class Breakdown**: Per-class label counts with color indicators
 - **Annotate**: When you have edit access, annotation controls are active immediately when the fullscreen viewer opens on desktop
@@ -683,6 +689,15 @@ Dataset metadata is edited inline directly on the dataset page — no dialog nee
 !!! info "Changing Task Type"
 
     Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back.
+
+### Custom Metadata
+
+Open **More actions** and select **Information** to review two sections:
+
+- **Ultralytics Metadata**: Read-only Platform details such as the dataset ID, owner, task, image and annotation counts, storage region, and timestamps
+- **Custom Metadata**: Your own JSON object for provenance, capture conditions, customer IDs, governance, or other contextual data
+
+Workspace viewers can inspect metadata, while members with edit access can replace the custom metadata object. The serialized metadata object is limited to 500,000 characters, and each top-level key is limited to 128 characters. Save an empty object (`{}`) to clear custom metadata.
 
 ## Clone Dataset
 

@@ -1,0 +1,14 @@
+# yolo26-published-det plus the o2m floor, which the shipped checkpoints carry but _PUB_RECIPE_KEYS omits.
+# S-scale values read from yolo26s.pt train_args, so launch this profile at S only.
+o2m: 0.70518
+_shipped_from: yolo26{size}.pt
+_epochs_by_scale: { n: 245, s: 70, m: 80, l: 60, x: 40 }
+backbone_lr_ratio: 1.0
+batch: 128
+close_mosaic: 10
+end2end: true
+imgsz: 640
+kobj: 1.0
+optimizer: MuSGD
+patience: 100
+pose: 12.0

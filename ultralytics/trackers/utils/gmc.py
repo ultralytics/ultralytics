@@ -204,26 +204,16 @@ class GMC:
             self.initializedFirstFrame = True
             return H
 
-        # Handle featureless frames and descriptor sets too small for k=2 matching.
-        if self.prevDescriptors is None or descriptors is None or len(self.prevDescriptors) < 2 or len(descriptors) < 2:
-            self.prevFrame = frame.copy()
-            self.prevKeyPoints = copy.copy(keypoints)
-            self.prevDescriptors = copy.copy(descriptors)
-            return H
-
         # Match descriptors between previous and current frame
-        knnMatches = self.matcher.knnMatch(self.prevDescriptors, descriptors, 2)
+        knnMatches = (
+            self.matcher.knnMatch(self.prevDescriptors, descriptors, 2)
+            if self.prevDescriptors is not None and descriptors is not None
+            else []
+        )
 
         # Filter matches based on spatial distance constraints
         spatialDistances = []
         maxSpatialDistance = 0.25 * np.array([width, height])
-
-        # Handle empty matches case
-        if len(knnMatches) == 0:
-            self.prevFrame = frame.copy()
-            self.prevKeyPoints = copy.copy(keypoints)
-            self.prevDescriptors = copy.copy(descriptors)
-            return H
 
         # Apply Lowe's ratio test and spatial distance filtering
         prevPoints = []

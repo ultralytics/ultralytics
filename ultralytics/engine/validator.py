@@ -79,6 +79,7 @@ class BaseValidator:
         speed (dict): Dictionary with keys 'preprocess', 'inference', 'loss', 'postprocess' and their respective batch
             processing times in milliseconds.
         save_dir (Path): Directory to save results.
+        confusion_matrix_conf (float): Confidence threshold used when accumulating the confusion matrix.
         plots (dict): Dictionary to store plots for visualization.
         callbacks (dict): Dictionary to store various callback functions.
         stride (int): Model stride for padding calculations.
@@ -135,6 +136,7 @@ class BaseValidator:
 
         self.save_dir = save_dir or get_save_dir(self.args)
         (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
+        self.confusion_matrix_conf = 0.25 if self.args.conf is None else self.args.conf  # 0.25 unless user-specified
         if self.args.conf is None:
             self.args.conf = 0.01 if self.args.task == "obb" else 0.001  # reduce OBB val memory usage
         self.args.imgsz = check_imgsz(self.args.imgsz, max_dim=1)

@@ -512,6 +512,16 @@ def load_multi_results(parent_name: str, expected: list[str] | None = None) -> t
     return per_dataset, macro
 
 
+def _load_cls_table(vocab: str) -> dict:
+    """Return the per-dataset class maps for a source vocab, or {} when --cls_map was not passed."""
+    if not vocab:
+        return {}
+    tables = json.loads((Path(_REPO_ROOT) / "cfg" / "ul33_cls_map.json").read_text())
+    if vocab not in tables:
+        raise SystemExit(f"ERROR: --cls_map {vocab!r} not in {sorted(tables)}")
+    return tables[vocab]
+
+
 class _ClsMapTrainer(DetectionTrainer):
     """DetectionTrainer applying a hand-written class map before pretrained head-row transfer.
 
@@ -643,12 +653,8 @@ def _run_multi_det(
     )
     if epochs or patience:
         print("[multi_det_finetune] NOTE macros are comparable only across equal epoch budgets.")
-    cls_table = {}
+    cls_table = _load_cls_table(cls_map_vocab)
     if cls_map_vocab:
-        cls_tables = json.loads((Path(_REPO_ROOT) / "cfg" / "ul33_cls_map.json").read_text())
-        if cls_map_vocab not in cls_tables:
-            raise SystemExit(f"ERROR: --cls_map {cls_map_vocab!r} not in {sorted(cls_tables)}")
-        cls_table = cls_tables[cls_map_vocab]
         # A real cfg key, so it lands in args.yaml and the per-sub-run provenance comparison above.
         det_args["cls_remap"] = True
         print(f"[multi_det_finetune] cls_map={cls_map_vocab}: manual head-row transfer, overriding cls_remap=true")
@@ -874,8 +880,9 @@ def main(argv: list[str]) -> None:
     epochs = int(argv[5]) if len(argv) > 5 else resume_args.get("epochs")
     patience = int(argv[6]) if len(argv) > 6 else resume_args.get("patience")
 
-    if cls_map_vocab and mode != "multi_det_finetune":
-        raise SystemExit(f"ERROR: --cls_map is only supported for mode='multi_det_finetune', got mode={mode!r}.")
+    # _ClsMapTrainer is a DetectionTrainer, so pose/obb heads stay on the automatic name match.
+    if cls_map_vocab and mode not in ("multi_det_finetune", *_COCO_DET_MODES):
+        raise SystemExit(f"ERROR: --cls_map is not supported for mode={mode!r}.")
     if mode == "multi_det_finetune":
         if not datasets_arg:
             raise SystemExit("ERROR: mode='multi_det_finetune' requires --datasets <file|dir>.")
@@ -931,6 +938,7 @@ def main(argv: list[str]) -> None:
             pretrained_from=phase1_weights,
             phase1_wandb_id=phase1_wandb_id,
             mode=mode,
+            cls_map=cls_map_vocab or None,
             wandb_group=wandb_group,
         ),
     )
@@ -1143,10 +1151,15 @@ def main(argv: list[str]) -> None:
     if scratch:
         train_args["pretrained"] = False
         print("[scratch] pretrained=False, backbone will be randomly initialized")
+    if cls_map_vocab:
+        # Table rows are keyed by dataset basename, the same key multi_det uses per sub-run.
+        _ClsMapTrainer.cls_map = _load_cls_table(cls_map_vocab).get(Path(train_args["data"]).stem, {})
+        train_args["cls_remap"] = True
+        print(f"[{mode}] cls_map={cls_map_vocab}: manual head-row transfer, rows={len(_ClsMapTrainer.cls_map)}")
     # Started from the runner rather than a trainer callback so it survives DDP: under DDP this process is the
     # launcher, which blocks in subprocess.run for the whole run while the children write into save_dir.
     sync_stop = nfs_sync.start(train_args["save_dir"])
-    model.train(**train_args)
+    model.train(trainer=_ClsMapTrainer if cls_map_vocab else None, **train_args)
     sync_stop()
 
 

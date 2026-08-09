@@ -1411,6 +1411,78 @@ def test_v26_depth_loss_lower_lambda_penalizes_scale_error_more():
     assert loss_anchored > 5 * max(loss_invariant, 1e-6)
 
 
+def test_albumentations_repairs_segments_per_instance():
+    """A dropped polygon vertex must be replaced from its own contour, never a neighboring instance."""
+    from ultralytics.data.augment import Albumentations
+    from ultralytics.utils.instance import Instances
+
+    segments = np.array([[[10, 10], [20, 10], [20, 20]], [[70, 70], [80, 70], [80, 80]]], dtype=np.float32)
+    labels = {
+        "img": np.zeros((100, 100, 3), dtype=np.uint8),
+        "cls": np.array([[0], [1]], dtype=np.float32),
+        "instances": Instances(
+            np.array([[10, 10, 20, 20], [70, 70, 80, 80]], dtype=np.float32),
+            segments,
+            bbox_format="xyxy",
+            normalized=False,
+        ),
+    }
+    transform = Albumentations.__new__(Albumentations)
+    transform.p, transform.contains_spatial, transform.flip_idx = 1.0, True, None
+
+    def apply(**kwargs):
+        keep = np.array([0, 1, 3, 4, 5])  # drop the final vertex of the first contour
+        return {
+            "image": kwargs["image"],
+            "bboxes": kwargs["bboxes"],
+            "class_labels": kwargs["class_labels"],
+            "idx": kwargs["idx"],
+            "keypoints": kwargs["keypoints"][keep],
+            "pidx": kwargs["pidx"][keep],
+        }
+
+    transform.transform = apply
+    result = transform(labels)["instances"].segments
+    assert np.array_equal(result[0, 2], result[0, 1]) and not np.array_equal(result[0, 2], result[1, 0])
+
+
+def test_albumentations_reflection_applies_flip_idx():
+    """A reflected pose must swap semantic left/right keypoint identities."""
+    from ultralytics.data.augment import Albumentations
+    from ultralytics.utils.instance import Instances
+
+    keypoints = np.array([[[0.2, 0.3, 2], [0.8, 0.4, 2]]], dtype=np.float32)
+    labels = {
+        "img": np.zeros((100, 100, 3), dtype=np.uint8),
+        "cls": np.array([[0]], dtype=np.float32),
+        "instances": Instances(
+            np.array([[0.5, 0.5, 0.5, 0.5]]),
+            segments=np.zeros((0, 1000, 2), dtype=np.float32),
+            keypoints=keypoints,
+            bbox_format="xywh",
+            normalized=True,
+        ),
+    }
+    transform = Albumentations.__new__(Albumentations)
+    transform.p, transform.contains_spatial, transform.flip_idx = 1.0, True, [1, 0]
+
+    def apply(**kwargs):
+        points = np.asarray(kwargs["keypoints"]).copy()
+        points[:, 0] = 100 - points[:, 0]
+        return {
+            "image": kwargs["image"],
+            "bboxes": kwargs["bboxes"],
+            "class_labels": kwargs["class_labels"],
+            "idx": kwargs["idx"],
+            "keypoints": points,
+            "pidx": kwargs["pidx"],
+        }
+
+    transform.transform = apply
+    result = transform(labels)["instances"].keypoints
+    assert np.allclose(result[0, :, :2], ((0.2, 0.4), (0.8, 0.3)))
+
+
 def test_utils_ops():
     """Test utility operations for coordinate transformations and normalizations."""
     from ultralytics.utils.ops import (

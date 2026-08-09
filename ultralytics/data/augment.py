@@ -2085,7 +2085,7 @@ class Albumentations(BaseTransform):
         - Some transforms are applied with very low probability (0.01) by default.
     """
 
-    def __init__(self, p: float = 1.0, transforms: list | None = None) -> None:
+    def __init__(self, p: float = 1.0, transforms: list | None = None, flip_idx: list[int] | None = None) -> None:
         """Initialize the Albumentations transform object for YOLO bbox formatted parameters.
 
         This class applies various image augmentations using the Albumentations library, including Blur, Median Blur,
@@ -2095,8 +2095,10 @@ class Albumentations(BaseTransform):
         Args:
             p (float): Probability of applying the augmentations. Must be between 0 and 1.
             transforms (list | None): List of custom Albumentations transforms. If None, uses default transforms.
+            flip_idx (list[int] | None): Keypoint index mapping for reflection transforms.
         """
         self.p = p
+        self.flip_idx = flip_idx
         self.transform = None
         prefix = colorstr("albumentations: ")
 
@@ -2203,12 +2205,13 @@ class Albumentations(BaseTransform):
             segments, keypoints = instances.segments, instances.keypoints
             h, w = im.shape[:2]
             points = segments.reshape(-1, 2)
-            # A mirror here moves a landmark to the right pixel without swapping its left/right identity, which is
-            # what flip_idx does for `fliplr`; nothing tells us statically that an entry mirrors. RandomPerspective
-            # warps keypoints on the same terms, so this follows the file rather than adding a second rule.
             if keypoints is not None:  # landmarks follow the polygon vertices in the same target
                 points = np.concatenate((points, keypoints[..., :2].reshape(-1, 2)))
             points = (points * (w, h)).astype(np.float32)  # the keypoint target is in pixels
+            annotation_points = len(points)
+            if keypoints is not None:
+                # Three anchors reveal whether the applied geometry changed handedness, including nested flips.
+                points = np.concatenate((points, np.array(((0, 0), (w, 0), (0, h)), dtype=np.float32)))
             new = self.transform(
                 image=im,
                 bboxes=instances.bboxes,
@@ -2226,16 +2229,29 @@ class Albumentations(BaseTransform):
                 lost[np.array(new["pidx"], dtype=int)] = False  # a dropped point has no new position to move to
                 moved = points.copy()
                 moved[~lost] = np.array(new["keypoints"], dtype=np.float32)
+                if n:
+                    segment_lost = lost[:n].reshape(segments.shape[:2])
+                    segment_points = moved[:n].reshape(segments.shape)
+                    i = i[~segment_lost.all(1)[i]]  # no other contour can supply a fully lost instance's vertices
+                    for segment, missing in zip(segment_points, segment_lost):
+                        v = np.flatnonzero(~missing)
+                        if len(v) and missing.any():
+                            segment[missing] = segment[
+                                v[np.searchsorted(v, np.flatnonzero(missing)).clip(0, len(v) - 1)]
+                            ]
+                    moved[:n] = segment_points.reshape(-1, 2)
                 if keypoints is not None:
-                    xy = moved[n:].reshape(*keypoints.shape[:2], 2)[i]
+                    xy = moved[n:annotation_points].reshape(*keypoints.shape[:2], 2)[i]
                     # as RandomPerspective.apply_keypoints, plus the ones the remap never returned
                     out = ((xy < 0) | (xy > (w, h))).any(-1, keepdims=True)
-                    gone = lost[n:].reshape(*keypoints.shape[:2], 1)[i] | out
+                    gone = lost[n:annotation_points].reshape(*keypoints.shape[:2], 1)[i] | out
                     keypoints = np.concatenate((xy.clip(0, (w, h)), np.where(gone, 0, keypoints[i][..., 2:])), -1)
+                    anchors = moved[annotation_points:]
+                    a, b = anchors[1] - anchors[0], anchors[2] - anchors[0]
+                    reflected = not lost[annotation_points:].any() and a[0] * b[1] - a[1] * b[0] < 0
+                    if self.flip_idx and reflected:
+                        keypoints = np.ascontiguousarray(keypoints[:, self.flip_idx])
                 if n:  # boxes follow the polygons, as they do in RandomPerspective
-                    v = np.flatnonzero(~lost[:n])
-                    if 0 < len(v) < n:  # a collapsed vertex would otherwise keep its pre-transform place
-                        moved[:n] = moved[v[np.searchsorted(v, np.arange(n)).clip(0, len(v) - 1)]]
                     segments = moved[:n].reshape(segments.shape)[i]
                     bboxes = np.array([segment2box(s, w, h) for s in segments], np.float32).reshape(-1, 4)
                     segments[..., 0] = segments[..., 0].clip(bboxes[:, 0:1], bboxes[:, 2:3])
@@ -2842,7 +2858,7 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace):
             pre_transform,
             MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
             CutMix(dataset, pre_transform=pre_transform, p=hyp.cutmix),
-            Albumentations(p=1.0, transforms=getattr(hyp, "augmentations", None)),
+            Albumentations(p=1.0, transforms=getattr(hyp, "augmentations", None), flip_idx=flip_idx),
             RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
             RandomFlip(direction="vertical", p=hyp.flipud, flip_idx=flip_idx),
             RandomFlip(direction="horizontal", p=hyp.fliplr, flip_idx=flip_idx),

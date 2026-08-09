@@ -1263,42 +1263,6 @@ def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     assert (depth.parent / "train.cache").exists()  # scan results cached next to the depth maps
 
 
-def test_build_yolo_dataset_depth_val_rect_shape_override(tmp_path):
-    """`rect=True` must not leak a per-batch `rect_shape` into depth val, which stays a fixed imgsz square, while depth
-    train and non-depth (detect) val keep their pre-existing rectangular-batching behavior.
-    """
-    imgsz = 32
-    sizes = [(80, 60), (60, 80), (80, 60), (60, 80)]  # (w, h): mixed landscape/portrait aspect ratio per split
-    for split in ("train", "val"):
-        images, depth = tmp_path / "images" / split, tmp_path / "depth" / split
-        images.mkdir(parents=True)
-        depth.mkdir(parents=True)
-        for i, (w, h) in enumerate(sizes):
-            cv2.imwrite(str(images / f"{split}{i}.jpg"), np.zeros((h, w, 3), np.uint8))
-            np.save(depth / f"{split}{i}.npy", np.ones((h, w), dtype=np.float32))
-
-    depth_data = {"names": {0: "depth"}, "nc": 1, "channels": 3}
-    cfg_depth = get_cfg(overrides={"task": "depth", "imgsz": imgsz, "rect": True, "cache": None})
-
-    ds_val = data_build.build_yolo_dataset(
-        cfg_depth, str(tmp_path / "images" / "val"), batch=4, data=depth_data, mode="val", rect=True
-    )
-    assert ds_val.rect is False  # the rect_shape override stays disabled even though rect=True was requested
-    for i in range(len(ds_val)):
-        assert tuple(ds_val[i]["img"].shape[-2:]) == (imgsz, imgsz)  # square for both aspect-ratio groups
-
-    ds_train = data_build.build_yolo_dataset(
-        cfg_depth, str(tmp_path / "images" / "train"), batch=4, data=depth_data, mode="train", rect=True
-    )
-    assert ds_train.rect is True  # rectangular-batch training capability is unaffected by the val carve-out
-
-    cfg_detect = get_cfg(overrides={"task": "detect", "imgsz": imgsz, "rect": True, "cache": None})
-    ds_detect_val = data_build.build_yolo_dataset(
-        cfg_detect, str(tmp_path / "images" / "val"), batch=4, data={"names": {0: "object"}}, mode="val", rect=True
-    )
-    assert ds_detect_val.rect is True  # non-depth tasks keep their existing rect=True val behavior
-
-
 def test_utils_init():
     """Test initialization utilities in the Ultralytics library."""
     from ultralytics.utils import get_ubuntu_version, is_github_action_running

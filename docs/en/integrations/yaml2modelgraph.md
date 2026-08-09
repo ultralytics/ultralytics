@@ -81,19 +81,19 @@ Once you are inside the cloned directory, you can run the tool by pointing it to
     === "Single Head (Default)"
 
         ```bash
-        python main.py examples/yolo11.yaml output.svg
+        python main.py examples/yolo26.yaml output.svg
         ```
 
     === "Multi-Head View"
 
         ```bash
-        python main.py examples/yolo11.yaml output.svg --head multi
+        python main.py examples/yolo26.yaml output.svg --head multi
         ```
 
     === "Applying a Custom Theme"
 
         ```bash
-        python main.py examples/yolo11.yaml output.svg --theme paper_ryb --head multi
+        python main.py examples/yolo26.yaml output.svg --theme paper_ryb --head multi
         ```
 
 ---
@@ -123,7 +123,7 @@ If you are using custom modules in your YOLO configurations, the parser will aut
 
 ### Does YAML2ModelGraph support custom head architectures?
 
-Yes, the tool is compatible with a wide range of Ultralytics YOLO configuration files including standard Detection (`Detect`), Oriented Bounding Boxes (`OBB`), Pose (`Pose`), and Segmentation (`Segment`) heads.
+The tool has specialized layout handling and bottom-alignment for standard Detection (`Detect`) heads. Other task heads, such as Oriented Bounding Boxes (`OBB`), Pose (`Pose`), and Segmentation (`Segment`), are parsed but are currently rendered as generic Neck-lane nodes rather than separate Head-aligned blocks.
 
 ### Do I need to install Graphviz to use this tool?
 

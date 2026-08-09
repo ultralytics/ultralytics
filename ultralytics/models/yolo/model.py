@@ -465,7 +465,7 @@ class YOLOE(Model):
                 are computed.
             visual_prompts (dict[str, np.ndarray | list[np.ndarray]]): Dictionary containing visual prompts for the
                 model. Must include 'bboxes' and 'cls' keys when non-empty, holding one array each per image for an
-                explicit list, tuple, or 4-D array source with no refer_image, and a single flat array each otherwise.
+                explicit list, tuple, or 4-D tensor source with no refer_image, and a single flat array each otherwise.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
             predictor (callable): Custom predictor class for visual prompt predictions. Defaults to
                 YOLOEVPDetectPredictor.
@@ -496,13 +496,12 @@ class YOLOE(Model):
                 f"{visual_prompts['bboxes']} and {visual_prompts['cls']} respectively"
             )
             nested = yolo.yoloe.YOLOEVPDetectPredictor.is_per_image(visual_prompts)  # one prompt array per image
-            source_count = (
-                len(source)
-                if isinstance(source, (list, tuple))
-                or (isinstance(source, (np.ndarray, torch.Tensor)) and source.ndim == 4)
-                else 1
+            assert not isinstance(source, np.ndarray) or source.ndim != 4, "4-D NumPy sources are not supported"
+            per_image_source = isinstance(source, (list, tuple)) or (
+                isinstance(source, torch.Tensor) and source.ndim == 4
             )
-            multi = refer_image is None and source_count > 1
+            source_count = len(source) if per_image_source else 1
+            multi = refer_image is None and per_image_source
             # each branch below reads the shape the other one cannot; the flat one counts classes with set()
             valid_nested = nested and all(
                 b.ndim == 2 and b.shape[1:] == (4,) and c.ndim == 1 and all(isinstance(x, Hashable) for x in c)

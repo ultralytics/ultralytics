@@ -2085,7 +2085,7 @@ class Albumentations(BaseTransform):
         - Some transforms are applied with very low probability (0.01) by default.
     """
 
-    def __init__(self, p: float = 1.0, transforms: list | None = None) -> None:
+    def __init__(self, p: float = 1.0, transforms: list | None = None, flip_idx: list[int] | None = None) -> None:
         """Initialize the Albumentations transform object for YOLO bbox formatted parameters.
 
         This class applies various image augmentations using the Albumentations library, including Blur, Median Blur,
@@ -2095,8 +2095,10 @@ class Albumentations(BaseTransform):
         Args:
             p (float): Probability of applying the augmentations. Must be between 0 and 1.
             transforms (list | None): List of custom Albumentations transforms. If None, uses default transforms.
+            flip_idx (list[int] | None): Keypoint index mapping for reflection transforms.
         """
         self.p = p
+        self.flip_idx = flip_idx
         self.transform = None
         prefix = colorstr("albumentations: ")
 
@@ -2107,50 +2109,15 @@ class Albumentations(BaseTransform):
             import albumentations as A
 
             check_version(A.__version__, "1.0.3", hard=True)  # version requirement
+            topology_changing = getattr(A, "RandomGridShuffle", ())
 
-            # List of possible spatial transforms
-            spatial_transforms = {
-                "Affine",
-                "BBoxSafeRandomCrop",
-                "CenterCrop",
-                "CoarseDropout",
-                "Crop",
-                "CropAndPad",
-                "CropNonEmptyMaskIfExists",
-                "D4",
-                "ElasticTransform",
-                "Flip",
-                "GridDistortion",
-                "GridDropout",
-                "HorizontalFlip",
-                "Lambda",
-                "LongestMaxSize",
-                "MaskDropout",
-                "MixUp",
-                "Morphological",
-                "NoOp",
-                "OpticalDistortion",
-                "PadIfNeeded",
-                "Perspective",
-                "PiecewiseAffine",
-                "PixelDropout",
-                "RandomCrop",
-                "RandomCropFromBorders",
-                "RandomGridShuffle",
-                "RandomResizedCrop",
-                "RandomRotate90",
-                "RandomScale",
-                "RandomSizedBBoxSafeCrop",
-                "RandomSizedCrop",
-                "Resize",
-                "Rotate",
-                "SafeRotate",
-                "ShiftScaleRotate",
-                "SmallestMaxSize",
-                "Transpose",
-                "VerticalFlip",
-                "XYMasking",
-            }  # from https://albumentations.ai/docs/2-core-concepts/targets/
+            def transform_types(t) -> tuple[bool, list]:
+                """Return the spatial flag and topology-changing transforms, recursing into compositions."""
+                nested = [transform_types(x) for x in t.transforms] if isinstance(t, A.BaseCompose) else []
+                return (
+                    isinstance(t, A.DualTransform) or any(x[0] for x in nested),
+                    ([t] if isinstance(t, topology_changing) else []) + [y for x in nested for y in x[1]],
+                )
 
             # Transforms, use custom transforms if provided, otherwise use defaults
             T = (
@@ -2168,9 +2135,17 @@ class Albumentations(BaseTransform):
             )
 
             # Compose transforms
-            self.contains_spatial = any(transform.__class__.__name__ in spatial_transforms for transform in T)
+            transform_types = [transform_types(transform) for transform in T]
+            self.contains_spatial = any(x[0] for x in transform_types)
+            self.topology_transforms = [transform for x in transform_types for transform in x[1]]
+            for transform in self.topology_transforms:
+                transform.set_deterministic(True, save_key="topology")
             self.transform = (
-                A.Compose(T, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
+                A.Compose(
+                    T,
+                    bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels", "idx"]),
+                    keypoint_params=A.KeypointParams(format="xy", remove_invisible=False, label_fields=["pidx"]),
+                )
                 if self.contains_spatial
                 else A.Compose(T)
             )
@@ -2195,6 +2170,7 @@ class Albumentations(BaseTransform):
                 - 'cls': np.ndarray of class labels
                 - 'instances': object containing bounding boxes and other instance information
                 - 'semantic_mask': optional np.ndarray of semantic class IDs
+                - 'depth': optional np.ndarray of metric depth values
 
         Returns:
             (dict[str, Any]): The input dictionary with augmented image and updated annotations.
@@ -2204,7 +2180,9 @@ class Albumentations(BaseTransform):
             >>> labels = {
             ...     "img": np.random.rand(640, 640, 3),
             ...     "cls": np.array([0, 1]),
-            ...     "instances": Instances(bboxes=np.array([[0, 0, 1, 1], [0.5, 0.5, 0.8, 0.8]])),
+            ...     "instances": Instances(
+            ...         bboxes=np.array([[0, 0, 1, 1], [0.5, 0.5, 0.8, 0.8]]), segments=np.zeros((0, 1000, 2))
+            ...     ),
             ... }
             >>> augmented = transform(labels)
             >>> assert augmented["img"].shape == (640, 640, 3)
@@ -2214,7 +2192,7 @@ class Albumentations(BaseTransform):
             - Spatial transforms update bounding boxes, while non-spatial transforms only modify the image.
             - Requires the Albumentations library to be installed.
         """
-        if self.transform is None or random.random() > self.p:
+        if self.transform is None or random.random() >= self.p:
             return labels
 
         im = labels["img"]
@@ -2223,22 +2201,78 @@ class Albumentations(BaseTransform):
 
         if self.contains_spatial:
             cls = labels["cls"]
-            mask = labels.get("semantic_mask")
-            if len(cls) or mask is not None:
-                labels["instances"].convert_bbox("xywh")
-                labels["instances"].normalize(*im.shape[:2][::-1])
-                bboxes = labels["instances"].bboxes
-                # TODO: add supports of segments and keypoints
-                new = self.transform(
-                    image=im, bboxes=bboxes, class_labels=cls, **({"mask": mask} if mask is not None else {})
-                )
-                if len(new["class_labels"]) > 0 or mask is not None:  # only box-only samples skip on losing all boxes
-                    labels["img"] = new["image"]
-                    labels["cls"] = np.array(new["class_labels"]).reshape(-1, 1)
-                    bboxes = np.array(new["bboxes"], dtype=np.float32).reshape(-1, 4)
-                    if mask is not None:
-                        labels["semantic_mask"] = new["mask"]
-                labels["instances"].update(bboxes=bboxes)
+            key = "semantic_mask" if labels.get("semantic_mask") is not None else "depth"
+            mask = labels.get(key)
+            instances = labels["instances"]
+            instances.convert_bbox("xywh")
+            instances.normalize(*im.shape[:2][::-1])
+            segments, keypoints = instances.segments, instances.keypoints
+            h, w = im.shape[:2]
+            points = segments.reshape(-1, 2)
+            if keypoints is not None:
+                points = np.concatenate((points, keypoints[..., :2].reshape(-1, 2)))
+            points = (points * (w, h)).astype(np.float32)
+            annotation_points = len(points)
+            if keypoints is not None:
+                points = np.concatenate((points, np.array(((0, 0), (w, 0), (0, h)), dtype=np.float32)))
+            new = self.transform(
+                image=im,
+                bboxes=instances.bboxes,
+                class_labels=cls,
+                idx=np.arange(len(cls)),
+                keypoints=points,
+                pidx=np.arange(len(points)),
+                **({"topology": {}} if self.topology_transforms else {}),
+                **({"mask": mask} if mask is not None else {}),
+            )
+            if (segments.size or keypoints is not None) and new.get("topology"):
+                raise NotImplementedError("RandomGridShuffle cannot preserve polygon or keypoint topology")
+            if mask is not None or len(new["class_labels"]) or not len(cls):
+                h, w = new["image"].shape[:2]
+                i = np.array(new["idx"], dtype=int)
+                n = segments.size // 2
+                lost = np.ones(len(points), bool)
+                lost[np.array(new["pidx"], dtype=int)] = False
+                moved = points.copy()
+                moved[~lost] = np.array(new["keypoints"], dtype=np.float32)
+                if n:
+                    segment_lost = lost[:n].reshape(segments.shape[:2])
+                    segment_points = moved[:n].reshape(segments.shape)
+                    i = i[~segment_lost.all(1)[i]]
+                    for segment, missing in zip(segment_points, segment_lost):
+                        v = np.flatnonzero(~missing)
+                        if len(v) and missing.any():
+                            segment[missing] = segment[
+                                v[np.searchsorted(v, np.flatnonzero(missing)).clip(0, len(v) - 1)]
+                            ]
+                    moved[:n] = segment_points.reshape(-1, 2)
+                if keypoints is not None:
+                    xy = moved[n:annotation_points].reshape(*keypoints.shape[:2], 2)[i]
+                    out = ((xy < 0) | (xy > (w, h))).any(-1, keepdims=True)
+                    gone = lost[n:annotation_points].reshape(*keypoints.shape[:2], 1)[i] | out
+                    keypoints = np.concatenate((xy.clip(0, (w, h)), np.where(gone, 0, keypoints[i][..., 2:])), -1)
+                    anchors = moved[annotation_points:]
+                    a, b = anchors[1] - anchors[0], anchors[2] - anchors[0]
+                    reflected = not lost[annotation_points:].any() and a[0] * b[1] - a[1] * b[0] < 0
+                    if self.flip_idx and reflected:
+                        keypoints = np.ascontiguousarray(keypoints[:, self.flip_idx])
+                if n:
+                    segments = moved[:n].reshape(segments.shape)[i]
+                    bboxes = np.array([segment2box(s, w, h) for s in segments], np.float32).reshape(-1, 4)
+                    segments[..., 0] = segments[..., 0].clip(bboxes[:, 0:1], bboxes[:, 2:3])
+                    segments[..., 1] = segments[..., 1].clip(bboxes[:, 1:2], bboxes[:, 3:4])
+                    instances = Instances(bboxes, segments, keypoints, bbox_format="xyxy", normalized=False)
+                    instances.normalize(w, h)
+                else:
+                    if keypoints is not None:
+                        keypoints[..., 0] /= w
+                        keypoints[..., 1] /= h
+                    instances.update(np.array(new["bboxes"], dtype=np.float32).reshape(-1, 4), keypoints=keypoints)
+                labels["img"] = new["image"]
+                labels["cls"] = cls[i].reshape(-1, 1)
+                labels["instances"] = instances
+                if mask is not None:
+                    labels[key] = new["mask"]
         else:
             labels["img"] = self.transform(image=labels["img"])["image"]  # transformed
 
@@ -2827,7 +2861,7 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace):
             pre_transform,
             MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
             CutMix(dataset, pre_transform=pre_transform, p=hyp.cutmix),
-            Albumentations(p=1.0, transforms=getattr(hyp, "augmentations", None)),
+            Albumentations(p=1.0, transforms=getattr(hyp, "augmentations", None), flip_idx=flip_idx),
             RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
             RandomFlip(direction="vertical", p=hyp.flipud, flip_idx=flip_idx),
             RandomFlip(direction="horizontal", p=hyp.fliplr, flip_idx=flip_idx),

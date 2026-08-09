@@ -619,7 +619,7 @@ class Model(torch.nn.Module):
 
         if _depth_head(self.model) is None:
             raise ValueError("Model has no Depth head with calibration buffers (cal_a/cal_b).")
-        args = {**self.overrides, **kwargs, "mode": "val", "task": "depth", "rect": False}
+        args = {**self.overrides, **kwargs, "mode": "val", "task": "depth"}
         if data is not None:
             args["data"] = data
         validator = self._smart_load("validator")(args=args, _callbacks=self.callbacks)

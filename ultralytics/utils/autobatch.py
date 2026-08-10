@@ -34,9 +34,9 @@ def check_train_batch_size(
         (int): Optimal batch size computed using the autobatch() function.
 
     Raises:
-        MemoryError: If every candidate batch size failed to profile (typically because not even the smallest one fits
-            in the available GPU memory; see the per-candidate error(s) logged above for the exact cause of
-            each failure).
+        MemoryError: If every candidate batch size ran out of memory while profiling (typically because not even
+            batch=1 fits in the available GPU memory). Not raised if any candidate failed for an unrelated reason
+            (e.g. a model or backend error); that case falls back to the default batch size instead.
 
     Notes:
         If 0.0 < batch < 1.0, it's used as the fraction of GPU memory to use.
@@ -74,9 +74,10 @@ def autobatch(
         (int): The optimal batch size.
 
     Raises:
-        MemoryError: If every candidate batch size failed to profile (typically because not even the smallest tested
-            size, batch=1, fits in the available GPU memory; see the per-candidate error(s) logged above for the exact
-            cause of each failure).
+        MemoryError: If every candidate batch size ran out of memory while profiling (typically because not even the
+            smallest tested size, batch=1, fits in the available GPU memory). Not raised if any candidate failed for
+            an unrelated reason (e.g. a model or backend error); that case falls back to the default batch size
+            instead, same as before this check existed.
     """
     # Check device
     prefix = colorstr("AutoBatch: ")
@@ -107,7 +108,7 @@ def autobatch(
     ch = model.yaml.get("channels", 3)
     try:
         img = [torch.empty(b, ch, imgsz, imgsz) for b in batch_sizes]
-        results = profile_ops(img, model, n=1, device=device, max_num_obj=max_num_obj)
+        results, oom = profile_ops(img, model, n=1, device=device, max_num_obj=max_num_obj, return_oom=True)
 
         # Fit a solution
         xy = [
@@ -118,11 +119,26 @@ def autobatch(
             and 0 < y[2] < t  # between 0 and GPU limit
             and (i == 0 or not results[i - 1] or y[2] > results[i - 1][2])  # first item or increasing memory
         ]
-        if not xy:  # every candidate batch size failed to profile, e.g. batch=1 already OOMs
+        if not xy:  # no candidate produced a usable, in-range measurement
+            # A candidate lands here either because it raised (results[i] is None) or because it succeeded but was
+            # filtered out by the sanity checks above (e.g. an implausible memory reading under heavy pressure).
+            # Only the former lets us classify a cause; only trust a NON-OOM classification, since it is positive
+            # evidence this isn't a memory problem. Otherwise (no failures, or all failures were confirmed OOM)
+            # there's no evidence against "this is a memory problem", so stay conservative and raise.
+            non_oom_failure = any(y is None and not is_oom for y, is_oom in zip(results, oom))
+            if non_oom_failure:
+                # at least one candidate failed for a reason unrelated to memory (e.g. a model or backend error):
+                # we can't claim this is an OOM, so fall back like before this check existed instead of
+                # mislabeling it
+                LOGGER.warning(
+                    f"{prefix}no candidate batch size produced a usable measurement, and at least one failure "
+                    f"was not a confirmed out-of-memory error (tried batch={batch_sizes}; see the per-candidate "
+                    f"error(s) logged above for the exact cause of each), using default batch-size {batch_size}."
+                )
+                return batch_size
             raise MemoryError(
-                f"{prefix}every candidate batch size failed to profile (tried batch={batch_sizes}; see the "
-                f"per-candidate error(s) logged above for the exact cause of each). With {f:.2f}G free {d} "
-                f"memory, this usually means not even batch=1 fits: free up GPU memory, use a smaller model "
+                f"{prefix}no candidate batch size fit in memory while profiling (tried batch={batch_sizes}). "
+                f"With {f:.2f}G free {d} memory, not even batch=1 fits: free up GPU memory, use a smaller model "
                 f"or imgsz, or pass an explicit batch= size instead of batch=-1."
             )
         fit_x, fit_y = zip(*xy)

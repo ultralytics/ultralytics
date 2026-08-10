@@ -50,6 +50,7 @@ workers: 8
 epochs: 78
 quota_alpha: 0.7
 repeat_t: 0.001
+repeat_sources: ""
 fed_k: 365
 federated_cls_loss: bce
 federated_cls_heads: merged

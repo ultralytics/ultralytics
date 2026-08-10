@@ -212,6 +212,8 @@ def source_stats(dataset, lo: int, hi: int, t: float) -> tuple[np.ndarray, np.nd
     counts = np.zeros(hi - lo, dtype=np.float64)
     for lb in labels:
         counts[np.unique(lb["cls"].astype(np.int64).ravel() - lo)] += 1
+    if not t:
+        return np.full(len(labels), 1 / len(labels)), counts
     # LVIS repeat-factor sampling:
     # https://github.com/facebookresearch/detectron2/blob/b4a4a3bd136852dae5fb1de37978dee412653e31/detectron2/data/samplers/distributed_sampler.py#L159-L209
     r_c = np.maximum(1.0, np.sqrt(t / np.maximum(counts / len(labels), 1e-12)))
@@ -543,10 +545,16 @@ class FederatedDetectionTrainer(DetectionTrainer):
             dataset = self.build_dataset(dataset_path, mode, batch_size)
 
         assert len(self.slices) == len(dataset.datasets), "corpus data.yaml offsets and train dirs disagree"
+        repeat_sources = set(filter(None, getattr(self.args, "repeat_sources", "").split(",")))
+        assert repeat_sources <= self.slices.keys(), (
+            f"unknown repeat_sources: {sorted(repeat_sources - self.slices.keys())}"
+        )
         self.source_of, self.neg_weights, weights = {}, {}, []
         for name, d in zip(self.slices, dataset.datasets):
             self.source_of[str(Path(d.im_files[0]).parent)] = name
-            w, counts = source_stats(d, *self.slices[name], self.args.repeat_t)
+            w, counts = source_stats(
+                d, *self.slices[name], self.args.repeat_t if not repeat_sources or name in repeat_sources else 0
+            )
             weights.append(w)
             self.neg_weights[name] = np.sqrt(counts)
 
@@ -563,7 +571,7 @@ class FederatedDetectionTrainer(DetectionTrainer):
         self.rng = np.random.default_rng(self.args.seed)
         LOGGER.info(
             f"{len(dataset.datasets)} sources, {len(dataset):,} images, {sampler.batches:,} steps/epoch, "
-            f"quota {np.round(sampler.quota, 4).tolist()}"
+            f"quota {np.round(sampler.quota, 4).tolist()}, RFS {sorted(repeat_sources) if repeat_sources else 'all'}"
         )
         return build_dataloader(
             dataset, batch_size, self.args.workers, rank=rank, device=self.device, batch_sampler=sampler

@@ -280,6 +280,7 @@ _RECIPE_DELTA_CASTS = {
     "cos_lr": bool,
     "backbone_lr_ratio": float,
     "quota_alpha": float,
+    "repeat_sources": str,
     "federated_cls_loss": str,
     "federated_cls_heads": str,
     "focal_alpha": float,

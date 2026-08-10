@@ -664,6 +664,7 @@ def check_dict_alignment(
             # cfg/recipes/enterprise.yaml profile so the arm stays reproducible from the profile alone.
             "quota_alpha",
             "repeat_t",
+            "repeat_sources",
             "fed_k",
             "federated_cls_loss",
             "federated_cls_heads",

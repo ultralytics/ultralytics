@@ -343,6 +343,8 @@ class v8DetectionLoss:
 
         m = model.model[-1]  # Detect() module
         self.bce = nn.BCEWithLogitsLoss(reduction="none")
+        self.cache_fg = False  # cache this branch's foreground mask for the DetectAux foreground target
+        self.fg_mask = None  # this branch's foreground mask, read by E2ELoss to build the aux target
         self.hyp = h
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
@@ -427,6 +429,9 @@ class v8DetectionLoss:
             gt_bboxes,
             mask_gt,
         )
+
+        if self.cache_fg:  # expose this branch's assignment for the DetectAux class-agnostic foreground target
+            self.fg_mask = fg_mask
 
         target_scores_sum = max(target_scores.sum(), 1)
 
@@ -1181,6 +1186,34 @@ class E2ELoss:
         self.o2m_copy = self.o2m
         # final gain
         self.final_o2m = 0.1
+        # training-only class-agnostic foreground auxiliary (DetectAux head); the o2o branch takes detached features,
+        # so this is the only path that shapes the trunk besides the o2m loss.
+        self.aux_fg = getattr(model.args, "aux_fg", 0.0) if hasattr(model.model[-1], "aux_fg") else 0.0
+        # which assignment supplies the aux target: the dense 'o2m' foreground, the single-anchor 'o2o' foreground, or
+        # 'mix' (o2f-style): 1 at the o2o positive and a decaying degree at o2m-only anchors, so the trunk supervision
+        # slides from dense to o2o-shaped as the o2o branch takes over, without contradicting the o2m head early on.
+        self.aux_fg_tgt = getattr(model.args, "aux_fg_tgt", "o2m")
+        if self.aux_fg_tgt not in {"o2m", "o2o", "mix"}:
+            raise ValueError(f"aux_fg_tgt must be 'o2m', 'o2o', or 'mix', not {self.aux_fg_tgt!r}")
+        # mix mode: initial degree of the o2m-only ("ambiguous") anchors, decayed linearly to 0. Capped at 1 so an
+        # ambiguous anchor never exceeds the o2o positive (a hard 1.0 in mix mode); above 1 the ambiguous term would
+        # override it and push the target out of [0, 1]. At exactly 1 the two tie, which reproduces the dense o2m
+        # target for the single epoch before the decay starts, so 1 is the natural o2m end of the schedule.
+        self.aux_fg_t = getattr(model.args, "aux_fg_t", 0.5)
+        if not 0 <= self.aux_fg_t <= 1:
+            raise ValueError(f"aux_fg_t must be in [0, 1], not {self.aux_fg_t}")
+        self.aux_fg_t_cur = self.aux_fg_t  # decayed each epoch by update()
+        # branch weight carrying the aux term: 'o2m' follows the one2many decay, 'const' keeps it flat, 'o2o' follows
+        # the growing one2one weight. With a mix target sliding toward pure o2o, the o2m schedule throttles the
+        # o2o-shaped supervision exactly when the o2o branch takes over, so 'const' (or 'o2o') resolves that
+        # contradiction. 'split' instead weights each anchor by the branches that supervise it (see aux_weights).
+        self.aux_fg_sched = getattr(model.args, "aux_fg_sched", "o2m")
+        if self.aux_fg_sched not in {"o2m", "const", "o2o", "split"}:
+            raise ValueError(f"aux_fg_sched must be 'o2m', 'const', 'o2o', or 'split', not {self.aux_fg_sched!r}")
+        if self.aux_fg:  # cache the assignments the target and the per-anchor weights need
+            both = self.aux_fg_tgt == "mix" or self.aux_fg_sched == "split"  # split weights need both foregrounds
+            self.one2many.cache_fg = both or self.aux_fg_tgt == "o2m"
+            self.one2one.cache_fg = both or self.aux_fg_tgt == "o2o"
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
@@ -1188,13 +1221,112 @@ class E2ELoss:
         one2many, one2one = preds["one2many"], preds["one2one"]
         loss_one2many = self.one2many.loss(one2many, batch)
         loss_one2one = self.one2one.loss(one2one, batch)
-        return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2one[1]
+        total, loss_items = loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2one[1]
+        if self.aux_fg:  # class-agnostic foreground supervision on the head-input (trunk) features
+            # the aux branch is training-only, so "aux_fg" is absent at validation (eval mode); report 0 there
+            aux = (
+                self.aux_fg * self.aux_fg_loss(preds["aux_fg"], *self.aux_target(), self.aux_weights())
+                if "aux_fg" in preds
+                else total.new_zeros(())
+            )
+            # scaled by the aux_fg_sched branch weight; 'split' applies its weights per anchor inside the loss, so the
+            # outer scalar is 1. Folded in before logging so the aux_fg_sched choice is visible in aux_fg_loss, unlike
+            # the other components which log raw values.
+            aux = aux * {"o2m": self.o2m, "const": 1.0, "o2o": self.o2o, "split": 1.0}[self.aux_fg_sched]
+            batch_size = one2one["boxes"].shape[0]
+            total = torch.cat((total, (aux * batch_size).view(1)))
+            loss_items = torch.cat((loss_items, aux.detach().view(1)))
+        return total, loss_items
+
+    def aux_target(self) -> tuple[torch.Tensor, torch.Tensor | None]:
+        """Build the class-agnostic foreground target for the DetectAux branch from the cached assignments.
+
+        Three sources, selected by ``aux_fg_tgt``. ``o2m`` is the dense one2many foreground (~topk anchors per GT), the
+        signal that already trains the trunk through the one2many loss. ``o2o`` is the single one2one positive per GT,
+        which matches what is deployed but marks every other one2many positive as background, contradicting the
+        one2many head that is training those same anchors as positives.
+
+        ``mix`` resolves that contradiction the way one-to-few does: the one2one positive gets a hard 1.0 and the
+        one2many-only ("ambiguous") anchors get a degree ``aux_fg_t_cur`` that decays to 0 across training. Early on the
+        target is close to the dense one2many foreground, and it slides to a pure one2one target as the one2one branch
+        takes over. The ambiguous degree is capped at 1 so an ambiguous anchor never exceeds the one2one positive.
+
+        Returns:
+            target (torch.Tensor): Per-anchor foreground target with shape (bs, num_anchors), values in [0, 1].
+            norm (torch.Tensor | None): Explicit normalization denominator, or None to normalize by the target sum.
+        """
+        if self.aux_fg_tgt != "mix":
+            return (self.one2many if self.aux_fg_tgt == "o2m" else self.one2one).fg_mask, None
+        o2o_pos = self.one2one.fg_mask.float()  # hard 1.0 at the single o2o positive per GT
+        target = torch.maximum(o2o_pos, self.aux_fg_t_cur * self.one2many.fg_mask.float())  # degree <= 1 never wins
+        # Normalize by the participating anchor count |o2o U o2m| rather than the target sum. The ambiguous degree
+        # decays to 0, which shrinks sum(target) by roughly the same factor as the o2m weight decay and would leave the
+        # trunk gradient nearly flat late in training; counting each contributing anchor once keeps the denominator
+        # fixed so the o2m decay transmits cleanly and aux_fg_t changes only the target shape. The union (not the sum
+        # of the two counts) is correct because the o2o positives are a subset of the o2m foreground in all but
+        # pathological cases.
+        return target, (self.one2one.fg_mask | self.one2many.fg_mask).sum()
+
+    def aux_weights(self) -> torch.Tensor | None:
+        """Build per-anchor aux loss weights for ``aux_fg_sched='split'``, or None for the scalar schedules.
+
+        Each anchor is weighted by the branches that supervise it, so the two populations follow opposite schedules
+        instead of sharing one scalar: an anchor positive under the one2many assignment only carries the decaying
+        ``o2m`` weight, an anchor positive under the one2one assignment only carries the growing ``o2o`` weight, and an
+        anchor claimed by both carries their sum. Background is supervised as a negative by both branches, so it also
+        takes the sum, which keeps background suppression at full strength across training.
+
+        Since ``o2o = total - o2m`` the sum is a constant 1.0, so the o2o positives (a subset of the o2m foreground in
+        all but pathological cases) hold a flat weight that always dominates the decaying o2m-only anchors. Averaging
+        the two instead would invert that ordering early on, when the o2m weight alone exceeds the mean.
+
+        Returns:
+            (torch.Tensor | None): Per-anchor weights with shape (bs, num_anchors), or None when unused.
+        """
+        if self.aux_fg_sched != "split":
+            return None
+        o2o, o2m = self.one2one.fg_mask, self.one2many.fg_mask
+        w = o2o.new_full(o2o.shape, self.o2m + self.o2o, dtype=torch.float)  # both branches: overlap and background
+        w[o2m & ~o2o] = self.o2m  # o2m-only positives follow the decaying one2many weight
+        w[o2o & ~o2m] = self.o2o  # o2o-only positives follow the growing one2one weight
+        return w
+
+    @staticmethod
+    def aux_fg_loss(
+        aux_pred: torch.Tensor,
+        target: torch.Tensor,
+        norm: torch.Tensor | None = None,
+        weight: torch.Tensor | None = None,
+    ) -> torch.Tensor:
+        """Class-agnostic foreground BCE toward the assigned foreground.
+
+        Normalized by ``norm`` when given, otherwise by the target sum (the positive count for a hard 0/1 mask),
+        matching how the one2many cls loss normalizes.
+
+        Args:
+            aux_pred (torch.Tensor): Foreground logits with shape (bs, 1, num_anchors).
+            target (torch.Tensor): Foreground target with shape (bs, num_anchors); a hard 0/1 mask or the graded mix
+                target.
+            norm (torch.Tensor, optional): Explicit denominator, used by the mix target to keep the loss magnitude
+                independent of the scheduled target composition.
+            weight (torch.Tensor, optional): Per-anchor weights with shape (bs, num_anchors) from the split schedule.
+
+        Returns:
+            (torch.Tensor): Scalar foreground auxiliary loss (0 when there are no positives).
+        """
+        t = target.unsqueeze(1).float()  # (bs, 1, num_anchors)
+        loss = F.binary_cross_entropy_with_logits(aux_pred.float(), t, reduction="none")
+        if weight is not None:
+            loss = loss * weight.unsqueeze(1).float()
+        return loss.sum() / (t.sum() if norm is None else norm).clamp(min=1).float()
 
     def update(self) -> None:
         """Update the weights for one-to-many and one-to-one losses based on the decay schedule."""
         self.updates += 1
         self.o2m = self.decay(self.updates)
         self.o2o = max(self.total - self.o2m, 0)
+        if self.aux_fg and self.aux_fg_tgt == "mix":  # slide the aux target from dense o2m toward pure o2o
+            self.aux_fg_t_cur = self.aux_fg_t * max(1 - self.updates / max(self.one2one.hyp.epochs - 1, 1), 0)
 
     def decay(self, x) -> float:
         """Calculate the decayed weight for one-to-many loss based on the current update step."""

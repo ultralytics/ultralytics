@@ -1970,8 +1970,8 @@ def test_multilabel_classify_loss():
     targets[2, [0, 1, 3]] = 1.0
     targets[3, [4]] = 1.0
 
-    loss, loss_detached = criterion(preds, {"cls": targets})
-    assert loss.ndim == 0 and not loss_detached.requires_grad
+    loss, loss_dict = criterion(preds, {"cls": targets})
+    assert loss.ndim == 0 and not loss_dict["loss"].requires_grad
     loss.backward()
     assert preds.grad is not None
 

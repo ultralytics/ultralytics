@@ -1019,7 +1019,7 @@ class v8MultiLabelClassificationLoss:
         >>> loss, loss_detached = criterion(preds, {"cls": targets})
     """
 
-    def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Compute the multi-label classification loss between predictions and multi-hot targets.
 
         Args:
@@ -1027,11 +1027,11 @@ class v8MultiLabelClassificationLoss:
             batch (dict[str, torch.Tensor]): Batch dict with 'cls' key containing multi-hot targets (B, nc).
 
         Returns:
-            (tuple[torch.Tensor, torch.Tensor]): Tuple of (loss, loss_detached) scalar tensors.
+            (tuple[torch.Tensor, dict[str, torch.Tensor]]): Tuple of (loss, loss_dict) for trainer compatibility.
         """
         preds = preds[1] if isinstance(preds, (list, tuple)) else preds
         loss = F.binary_cross_entropy_with_logits(preds, batch["cls"].float(), reduction="mean")
-        return loss, loss.detach()
+        return loss, {"loss": loss.detach()}
 
 
 class v8OBBLoss(v8DetectionLoss):

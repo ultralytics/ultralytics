@@ -1461,3 +1461,23 @@ def test_patience_zero_disables_early_stopping():
     on = EarlyStopping(patience=10)
     on(0, 1.0)
     assert any(on(e, 0.0) for e in range(1, 100)), "a positive patience must still stop on a plateau"
+
+
+@pytest.mark.parametrize("tag,levels", [("", 48), ("-cv24", 24), ("-cv96", 96), ("-cv144", 144)])
+def test_cost_volume_level_variants_build_with_their_declared_resolution(tag, levels):
+    """Each cost-volume resolution variant must build with exactly the level count its YAML declares.
+
+    The sweep exists to test whether a finer disparity grid is LEARNABLE, not merely representable: the
+    adjacent depth-bin curve improved to 64 bins and then turned over, being worse than baseline at 256. So
+    the variants deliberately bracket the default (24 / 48 / 96 / 144) rather than only going finer.
+
+    A silent fallback to the default level count would make every arm identical and the sweep would report a
+    flat, meaningless curve — hence asserting the built module, not just that the file parses.
+    """
+    from ultralytics.models.yolo.s3d.model import Stereo3DDetModel
+    from ultralytics.nn.modules.block import StereoCostVolume
+
+    model = Stereo3DDetModel(f"yolo26n-s3d{tag}.yaml", ch=6, nc=3, verbose=False)
+    volumes = [m for m in model.modules() if isinstance(m, StereoCostVolume)]
+    assert len(volumes) == 1, f"expected exactly one cost volume, found {len(volumes)}"
+    assert int(volumes[0].d_norm.numel()) == levels

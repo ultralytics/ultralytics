@@ -108,6 +108,13 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--drives", default=DRIVES, help="drive map for drive-balanced sampling; empty string disables")
     p.add_argument("--drive-balance", type=float, default=1.0, help="per-drive cap in multiples of the mean")
     p.add_argument("--scale", default="n", choices=("n", "s", "m", "l"), help="model scale")
+    p.add_argument(
+        "--model",
+        default=None,
+        help="model YAML name, default yolo26<scale>-s3d.yaml. Ultralytics resolves these by NAME with "
+        "the scale letter stripped, so a variant must be installed as cfg/models/26/yolo26-s3d-<tag>.yaml "
+        "and referenced here as yolo26<scale>-s3d-<tag>.yaml.",
+    )
     p.add_argument("--epochs", type=int, default=400, help="cos_lr horizon; the recorded optimum was near 400")
     p.add_argument("--batch", type=int, default=8 * max(ngpu, 1), help="GLOBAL batch across all GPUs")
     p.add_argument("--device", default=",".join(str(i) for i in range(ngpu)) or "cpu", help="e.g. 0,1,2,3")
@@ -248,7 +255,7 @@ def main() -> None:
     data = resolve_dataset_yaml(a.data, a.drives, a.drive_balance, a.project, a.name)
 
     # No .load(): the released yolo26*-s3d.pt saw the held-out drives, so warm-starting from them leaks.
-    model = YOLO(f"yolo26{a.scale}-s3d.yaml")
+    model = YOLO(a.model or f"yolo26{a.scale}-s3d.yaml")
     model.train(
         data=data,
         epochs=a.epochs,

@@ -24,6 +24,7 @@ from ultralytics.models.yolo.s3d.preprocess import preprocess_stereo_batch
 from ultralytics.nn.modules.block import StereoCostVolume
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.plotting import Annotator, VisualizationConfig, colors, plot_labels, plot_stereo3d_boxes
+from ultralytics.utils.torch_utils import unwrap_model
 
 
 class DriveBalancedSampler(torch.utils.data.WeightedRandomSampler):
@@ -145,8 +146,14 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         val = yolo.s3d.Stereo3DDetValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
-        # Set names early so CSV header includes per-class/difficulty R40 AP keys
-        names = getattr(self.model, "names", None)
+        # Set names early so CSV header includes per-class/difficulty R40 AP keys.
+        # unwrap_model, not self.model directly: get_validator() runs AFTER the DDP wrap in
+        # BaseTrainer._setup_train, and DistributedDataParallel does not forward attribute lookups to the
+        # module it wraps, so `self.model.names` was None on every multi-GPU run. That silently cost the
+        # per-class columns in results.csv (28 columns instead of 82, zero AP3D entries) and, worse, changed
+        # what the surviving `ap3d_50` summary MEANS: Stereo3DDetMetrics._mean_metric averages over whichever
+        # classes happen to appear when `names` is empty, rather than over all of them.
+        names = getattr(unwrap_model(self.model), "names", None)
         if names:
             val.metrics.names = names
             val.metrics.nc = len(names)

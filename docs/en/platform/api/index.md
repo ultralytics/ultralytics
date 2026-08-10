@@ -1376,11 +1376,12 @@ PATCH /api/deployments/{deploymentId}
 
 ```json
 {
-    "modelId": "model_xyz789"
+    "modelId": "model_xyz789",
+    "name": "production-detector"
 }
 ```
 
-Creates a new revision with the selected model while preserving the deployment ID, region, API key, and endpoint URL. The existing revision continues serving until the replacement is ready. The selected model must be a completed model with weights in the same workspace.
+Creates a new revision with the selected model while preserving the deployment ID, region, API key, and endpoint URL. Set the optional `name` field to rename the deployment when the replacement becomes ready. The existing revision and name remain active if the replacement fails. The selected model must be a completed model with weights in the same workspace.
 
 ### Start Deployment
 

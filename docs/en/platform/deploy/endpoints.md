@@ -215,9 +215,10 @@ Replace the model behind a ready endpoint without changing its URL:
 1. Open the deployment in **Cards** view
 2. Click **Replace model**
 3. Select another completed model from the same workspace
-4. Click **Replace Model**
+4. Optionally edit the deployment name
+5. Click **Replace Model**
 
-Platform creates a new revision of the existing service. The current model continues serving while the replacement revision starts and passes its health check. When the revision is ready, traffic moves to the new model and the deployment's URL, region, name, and API key remain unchanged.
+Platform creates a new revision of the existing service. The current model continues serving while the replacement revision starts and passes its health check. When the revision is ready, traffic moves to the new model. The deployment ID, URL, region, and API key remain unchanged; its display name changes only when you enter a new one. If replacement fails, the previous model and name remain active.
 
 !!! note "One Model per Endpoint"
 

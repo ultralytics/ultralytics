@@ -215,8 +215,8 @@ def fit_calibration_selective(
         return None
     res = select_calibration_cv(pairs, margin=margin)
     res["images"] = len(pairs)
-    # On CUDA the buffers are inference tensors (the device move ran under inference_mode); reassign instead
-    # of an in-place fill_ so the write is legal and the buffers stay normal/saveable for model.save().
+    # channels_last=True still converts the module inside the validator's inference_mode, so reassign instead
+    # of an in-place fill_ to keep the write legal on buffers that are inference tensors on that path.
     head.cal_a = torch.full_like(head.cal_a, res["a"])
     head.cal_b = torch.full_like(head.cal_b, res["b"])
     scores = " ".join(f"{n}={v:.4f}" for n, v in res["cv_scores"].items())

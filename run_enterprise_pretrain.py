@@ -34,6 +34,7 @@ FEDERATED_CLI_KEYS = (
     "federated_cls_loss",
     "federated_cls_heads",
     "repeat_sources",
+    "loss_aware_sampling",
     "focal_alpha",
     "focal_gamma",
     "asl_gamma_pos",
@@ -42,6 +43,7 @@ FEDERATED_CLI_KEYS = (
     "federated_cls_normalize",
     "federated_semantic_weight",
     "federated_semantic_similarity",
+    "federated_semantic_prototypes",
     "federated_semantic_text_model",
 )
 
@@ -62,8 +64,9 @@ def main() -> None:
     a.add_argument("--backbone-lr-ratio", type=float, default=None)
     a.add_argument("--quota-alpha", type=float, default=None)
     a.add_argument("--repeat-sources", default=None, help="comma-separated sources receiving repeat-factor sampling")
+    a.add_argument("--loss-aware-sampling", action="store_true", default=None)
     a.add_argument("--federated-cls-loss", choices=("bce", "focal", "asl"), default=None)
-    a.add_argument("--federated-cls-heads", choices=("merged", "source"), default=None)
+    a.add_argument("--federated-cls-heads", choices=("merged", "source", "semantic"), default=None)
     a.add_argument("--focal-alpha", type=float, default=None)
     a.add_argument("--focal-gamma", type=float, default=None)
     a.add_argument("--asl-gamma-pos", type=float, default=None)
@@ -72,6 +75,7 @@ def main() -> None:
     a.add_argument("--federated-cls-normalize", choices=("none", "active_classes"), default=None)
     a.add_argument("--federated-semantic-weight", type=float, default=None)
     a.add_argument("--federated-semantic-similarity", default=None)
+    a.add_argument("--federated-semantic-prototypes", default=None)
     a.add_argument("--federated-semantic-text-model", default=None)
     a.add_argument("--resume", default=None, help="checkpoint to resume from")
     args = a.parse_args()
@@ -90,9 +94,17 @@ def main() -> None:
         quota_alpha=args.quota_alpha,
         **{key: getattr(args, key) for key in FEDERATED_CLI_KEYS},
     )
+    variant = (
+        recipe["federated_semantic_text_model"].replace(":", "_").replace("/", "_") if args.arm == "enterprise" else ""
+    )
     if args.arm == "enterprise" and recipe["federated_semantic_weight"] and not recipe["federated_semantic_similarity"]:
-        variant = recipe["federated_semantic_text_model"].replace(":", "_").replace("/", "_")
         recipe["federated_semantic_similarity"] = str(INIT / f"enterprise-{variant}-label-similarity.pt")
+    if (
+        args.arm == "enterprise"
+        and recipe["federated_cls_heads"] == "semantic"
+        and not recipe["federated_semantic_prototypes"]
+    ):
+        recipe["federated_semantic_prototypes"] = str(INIT / f"enterprise-{variant}-label-prototypes.pt")
     recipe["amp"] = not args.no_amp
     stem = Path(args.model).stem
     pretrained = args.pretrained or str(INIT / ("ultravit_s.pt" if "ultravit" in stem else "c3k2_s.pt"))

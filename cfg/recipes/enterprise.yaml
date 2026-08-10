@@ -51,6 +51,7 @@ epochs: 78
 quota_alpha: 0.7
 repeat_t: 0.001
 repeat_sources: ""
+loss_aware_sampling: false
 fed_k: 365
 federated_cls_loss: bce
 federated_cls_heads: merged
@@ -62,4 +63,5 @@ asl_clip: 0.0
 federated_cls_normalize: none
 federated_semantic_weight: 0.0
 federated_semantic_similarity: ""
+federated_semantic_prototypes: ""
 federated_semantic_text_model: mobileclip2:s4

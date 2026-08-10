@@ -665,6 +665,7 @@ def check_dict_alignment(
             "quota_alpha",
             "repeat_t",
             "repeat_sources",
+            "loss_aware_sampling",
             "fed_k",
             "federated_cls_loss",
             "federated_cls_heads",
@@ -676,6 +677,7 @@ def check_dict_alignment(
             "federated_cls_normalize",
             "federated_semantic_weight",
             "federated_semantic_similarity",
+            "federated_semantic_prototypes",
             "federated_semantic_text_model",
             # DINOv3 / UNIC / DUNE encoder-distillation knobs surfaced through DDP-serialised args.
             # ``wd_end``: half-cosine target weight_decay (callbacks/wd_schedule.py); reference

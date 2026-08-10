@@ -36,48 +36,59 @@ ENTERPRISE_TEXT_TEMPLATES = (
 )
 
 
-def load_or_build_label_similarity(
-    path: str | Path, names: list[str], variant: str, device: torch.device
+def load_or_build_label_text(
+    path: str | Path, names: list[str], variant: str, device: torch.device, kind: str
 ) -> torch.Tensor:
-    """Load or build ordered Enterprise label-similarity targets."""
+    """Load or build ordered Enterprise label-text training targets.
+
+    Args:
+        path (str | Path): Cached artifact path.
+        names (list[str]): Ordered namespaced class names.
+        variant (str): Text encoder variant.
+        device (torch.device): Text encoder device.
+        kind (str): Artifact kind, either similarity or prototypes.
+
+    Returns:
+        (torch.Tensor): Ordered similarity matrix or calibrated prototypes.
+    """
     path = Path(path)
     text_labels = [name.split("/", 1)[1].replace("_", " ") for name in names]
     if path.exists():
         artifact = torch.load(path, map_location="cpu")
         if artifact.get("names") == names and artifact.get("text_labels") == text_labels:
-            return artifact["similarity"]
+            return artifact[kind]
         LOGGER.info(f"Rebuilding {path} because its class order or prompt labels changed")
 
     from ultralytics.nn.text_model import build_text_model, encode_text
 
-    LOGGER.info(f"Building {variant} label similarities for {len(names)} Enterprise classes")
+    LOGGER.info(f"Building {variant} label {kind} for {len(names)} Enterprise classes")
     model = build_text_model(variant, device=device)
-    embeddings = encode_text(
-        model, [template.format(name) for name in text_labels for template in ENTERPRISE_TEXT_TEMPLATES]
-    )
+    if kind == "similarity":
+        embeddings = encode_text(
+            model, [template.format(name) for name in text_labels for template in ENTERPRISE_TEXT_TEMPLATES]
+        )
+        embeddings = torch.nn.functional.normalize(
+            embeddings.view(len(names), len(ENTERPRISE_TEXT_TEMPLATES), -1).mean(1), dim=-1
+        )
+        # ScaleDet averages prompt embeddings, then row-normalizes cosine similarities to [0, 1].
+        # https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_ScaleDet_A_Scalable_Multi-Dataset_Object_Detector_CVPR_2023_paper.pdf#page=4
+        value = (embeddings @ embeddings.T).cpu()
+        row_min = value.amin(1, keepdim=True)
+        value = ((value - row_min) / (1 - row_min)).clamp_(0, 1)
+        value.fill_diagonal_(1)
+        metadata = {"prompts": ENTERPRISE_TEXT_TEMPLATES}
+    else:
+        embeddings = encode_text(model, [f"the photo is {name}" for name in text_labels])
+        empty = encode_text(model, [""])
+        # Plain-Det subtracts the empty-prompt basis and L2-normalizes the frozen classifier, Eq. 5:
+        # https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/00763.pdf#page=9
+        value = torch.nn.functional.normalize(embeddings - empty, dim=-1).cpu()
+        metadata = {}
     del model
-    embeddings = torch.nn.functional.normalize(
-        embeddings.view(len(names), len(ENTERPRISE_TEXT_TEMPLATES), -1).mean(1), dim=-1
-    )
-    # ScaleDet averages prompt embeddings, then row-normalizes cosine similarities to [0, 1].
-    # https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_ScaleDet_A_Scalable_Multi-Dataset_Object_Detector_CVPR_2023_paper.pdf#page=4
-    similarity = (embeddings @ embeddings.T).cpu()
-    row_min = similarity.amin(1, keepdim=True)
-    similarity = ((similarity - row_min) / (1 - row_min)).clamp_(0, 1)
-    similarity.fill_diagonal_(1)
     path.parent.mkdir(parents=True, exist_ok=True)
-    torch.save(
-        {
-            "names": names,
-            "text_labels": text_labels,
-            "similarity": similarity,
-            "text_model": variant,
-            "prompts": ENTERPRISE_TEXT_TEMPLATES,
-        },
-        path,
-    )
-    LOGGER.info(f"Saved {len(names)}x{len(names)} label similarities to {path}")
-    return similarity
+    torch.save({"names": names, "text_labels": text_labels, kind: value, "text_model": variant, **metadata}, path)
+    LOGGER.info(f"Saved {len(names)} label {kind} to {path}")
+    return value
 
 
 SOURCE_METRIC_KEYS = (
@@ -165,6 +176,7 @@ class QuotaBatchSampler(Sampler):
             seed (int): Base seed, shared by every rank so they agree on the source per step.
         """
         self.starts = np.cumsum([0, *counts[:-1]]).tolist()
+        self.counts = np.array(counts, dtype=np.float64)
         tempered = np.array(counts, dtype=np.float64) ** alpha  # Enterprise study choice, not paper-derived
         self.quota = tempered / tempered.sum()
         self.cdfs = [np.cumsum(w) for w in weights]  # sampling a p vector directly recumsums it every step
@@ -179,6 +191,13 @@ class QuotaBatchSampler(Sampler):
     def set_epoch(self, epoch: int) -> None:
         """Set the pass index every rank draws from, so DDP ranks stay on the same source per step."""
         self.epoch = epoch
+
+    def update_loss_quota(self, losses: np.ndarray) -> None:
+        """Set source probabilities from the latest per-source box losses."""
+        # Plain-Det hardness-indicated sampling, Eq. 9:
+        # https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/00763.pdf#page=10
+        weights = losses / losses.min() * np.sqrt(self.counts.max() / self.counts)
+        self.quota = weights / weights.sum()
 
     def __iter__(self):
         """Draw a source then a dataset-pure batch of images, advancing the epoch so repeat passes differ."""
@@ -488,18 +507,34 @@ class FederatedDetectionTrainer(DetectionTrainer):
         bounds = [*sorted(self.data["offsets"].values()), self.data["nc"]]
         self.slices = {k: (lo, hi) for (k, lo), hi in zip(self.data["offsets"].items(), bounds[1:])}
         self.source_indices = {source: index for index, source in enumerate(self.slices)}
-        if getattr(self.args, "federated_cls_heads", "merged") == "source":
-            model = unwrap_model(self.model)
-            model.model[-1].partition_classifiers(list(self.slices.values()))
+        classifier = getattr(self.args, "federated_cls_heads", "merged")
+        if classifier == "source":
+            unwrap_model(self.model).model[-1].partition_classifiers(list(self.slices.values()))
+        elif classifier == "semantic":
+            names = list(self.data["names"].values())
+            with torch_distributed_zero_first(LOCAL_RANK):
+                prototypes = load_or_build_label_text(
+                    self.args.federated_semantic_prototypes,
+                    names,
+                    self.args.federated_semantic_text_model,
+                    self.device,
+                    "prototypes",
+                )
+            unwrap_model(self.model).model[-1].install_semantic_classifier(list(self.slices.values()), prototypes)
+        if self.args.loss_aware_sampling:
+            self.source_loss_stats = torch.zeros(2, len(self.slices), device=self.device)
+            self.add_callback("on_train_batch_end", self._record_source_loss)
+            self.add_callback("on_train_epoch_end", self._update_loss_quota)
         self.semantic_similarity = None
         if self.args.federated_semantic_weight and getattr(self.args, "federated_cls_heads", "merged") == "merged":
             names = list(self.data["names"].values())
             with torch_distributed_zero_first(LOCAL_RANK):
-                self.semantic_similarity = load_or_build_label_similarity(
+                self.semantic_similarity = load_or_build_label_text(
                     self.args.federated_semantic_similarity,
                     names,
                     self.args.federated_semantic_text_model,
                     self.device,
+                    "similarity",
                 ).to(self.device)
             assert self.semantic_similarity.shape == (len(names), len(names))
 
@@ -527,7 +562,7 @@ class FederatedDetectionTrainer(DetectionTrainer):
             ckpt (dict | None): Training checkpoint state.
         """
         super().resume_training(ckpt)
-        if getattr(self.args, "federated_cls_heads", "merged") == "source":
+        if getattr(self.args, "federated_cls_heads", "merged") in {"source", "semantic"}:
             model = unwrap_model(self.model)
             updates = ckpt.get("epoch", -1) + 1 if ckpt is not None and self.resume else 0
             model.criterion = PartitionedDetectionLoss(model, self.slices, updates)
@@ -568,6 +603,9 @@ class FederatedDetectionTrainer(DetectionTrainer):
             max(rank, 0),  # rank is LOCAL_RANK, which is -1 outside DDP
             self.args.seed,
         )
+        self.quota_sampler = sampler
+        if self.args.loss_aware_sampling:
+            sampler.quota.fill(1 / len(sampler.quota))
         self.rng = np.random.default_rng(self.args.seed)
         LOGGER.info(
             f"{len(dataset.datasets)} sources, {len(dataset):,} images, {sampler.batches:,} steps/epoch, "
@@ -577,10 +615,27 @@ class FederatedDetectionTrainer(DetectionTrainer):
             dataset, batch_size, self.args.workers, rank=rank, device=self.device, batch_sampler=sampler
         )
 
+    def _record_source_loss(self, _) -> None:
+        """Accumulate the active source box loss after each training batch."""
+        index = self.source_indices[self.current_source]
+        self.source_loss_stats[0, index] += self.loss_items["box_loss"].detach()
+        self.source_loss_stats[1, index] += 1
+
+    def _update_loss_quota(self, _) -> None:
+        """Update every DDP rank with the same Plain-Det source quota."""
+        if dist.is_initialized():
+            dist.all_reduce(self.source_loss_stats)
+        assert self.source_loss_stats[1].count_nonzero() == len(self.slices), "every source must appear each epoch"
+        losses = (self.source_loss_stats[0] / self.source_loss_stats[1]).cpu().numpy()
+        self.quota_sampler.update_loss_quota(losses)
+        self.source_loss_stats.zero_()
+        LOGGER.info(f"loss-aware quota {np.round(self.quota_sampler.quota, 4).tolist()}")
+
     def preprocess_batch(self, batch: dict) -> dict:
         """Point the cls loss at this batch's owning class slice, then preprocess as usual."""
-        if getattr(self.args, "federated_cls_heads", "merged") == "source":
-            name = self.source_of[str(Path(batch["im_file"][0]).parent)]
+        self.current_source = self.source_of[str(Path(batch["im_file"][0]).parent)]
+        if getattr(self.args, "federated_cls_heads", "merged") in {"source", "semantic"}:
+            name = self.current_source
             lo, _ = self.slices[name]
             batch["cls"].sub_(lo)
             unwrap_model(self.model).model[-1].set_class_source(self.source_indices[name])
@@ -588,7 +643,7 @@ class FederatedDetectionTrainer(DetectionTrainer):
             model = unwrap_model(self.model)
             model.criterion.source = name
             return batch
-        mask = self._fed_mask(batch)
+        mask = self._fed_mask(batch, self.current_source)
         batch = super().preprocess_batch(batch)
         model = unwrap_model(self.model)
         if getattr(model, "criterion", None) is None:
@@ -602,7 +657,7 @@ class FederatedDetectionTrainer(DetectionTrainer):
         model.criterion.class_weights = weights
         return batch
 
-    def _fed_mask(self, batch: dict) -> torch.Tensor:
+    def _fed_mask(self, batch: dict, name: str) -> torch.Tensor:
         """Return an nc-long CPU mask over the batch's owning slice, subsampled when the slice exceeds `fed_k`.
 
         Every class present in the batch is always kept, topped up with negatives drawn without replacement at image
@@ -610,7 +665,6 @@ class FederatedDetectionTrainer(DetectionTrainer):
         that many classes, and below it when the slice runs short of drawable negatives. Columns outside the kept set
         get no gradient. The draw is per rank, as in Detic, so a class masked on one rank still learns from another.
         """
-        name = self.source_of[str(Path(batch["im_file"][0]).parent)]
         lo, hi = self.slices[name]
         mask = torch.zeros(self.data["nc"])
         # Full source-local classification follows UniDet's dataset-specific classifier:

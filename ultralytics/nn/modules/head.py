@@ -111,6 +111,67 @@ class SourceClassifier(nn.Module):
         return classifier._conv_forward(x, *self.merged)
 
 
+class FrozenSemanticClassifier(nn.Module):
+    """Classify projected features with frozen source-local text prototypes."""
+
+    def __init__(
+        self,
+        classifier: nn.Conv2d,
+        slices: list[tuple[int, int]],
+        prototypes: torch.Tensor,
+        biases: torch.Tensor,
+    ) -> None:
+        """Initialize the shared visual projection and frozen semantic classifier.
+
+        Args:
+            classifier (nn.Conv2d): Classifier supplying the visual feature width and device.
+            slices (list[tuple[int, int]]): Ordered source class bounds.
+            prototypes (torch.Tensor): Calibrated text prototypes with shape (C, D).
+            biases (torch.Tensor): Fixed classification priors with shape (H, L).
+        """
+        super().__init__()
+        self.projection = nn.Conv2d(classifier.in_channels, prototypes.shape[1], 1, bias=False).to(
+            classifier.weight.device, classifier.weight.dtype
+        )
+        self.logit_scale = nn.Parameter(torch.zeros((), device=classifier.weight.device))
+        self.register_buffer("prototypes", prototypes.to(classifier.weight.device, classifier.weight.dtype))
+        self.register_buffer("biases", biases)
+        self.slices = slices
+        self.active = None
+
+    @property
+    def out_channels(self) -> int:
+        """Return the merged classifier output width."""
+        return len(self.prototypes)
+
+    def set_source(self, source: int | dict[int, list[int]] | None) -> None:
+        """Select one source or grouped validation image rows.
+
+        Args:
+            source (int | dict[int, list[int]] | None): Source index, grouped rows, or None for all classes.
+        """
+        self.active = source
+
+    def forward(self, x: torch.Tensor, head: int, level: int) -> torch.Tensor:
+        """Project visual features and classify them with frozen text prototypes."""
+        features = F.normalize(self.projection(x), dim=1)
+        scale, bias = self.logit_scale.exp().clamp(max=100), self.biases[head, level]
+        if isinstance(self.active, int):
+            bounds = slice(*self.slices[self.active])
+            return torch.einsum("bdhw,cd->bchw", features, self.prototypes[bounds]) * scale + bias
+        if self.active is not None:
+            output = features.new_full(
+                (len(features), self.out_channels, *features.shape[2:]), torch.finfo(features.dtype).min
+            )
+            for source, rows in self.active.items():
+                bounds = slice(*self.slices[source])
+                output[rows, bounds] = (
+                    torch.einsum("bdhw,cd->bchw", features[rows], self.prototypes[bounds]) * scale + bias
+                )
+            return output
+        return torch.einsum("bdhw,cd->bchw", features, self.prototypes) * scale + bias
+
+
 class Detect(nn.Module):
     """YOLO Detect head for object detection models.
 
@@ -199,6 +260,7 @@ class Detect(nn.Module):
         if end2end:
             self.one2one_cv2 = copy.deepcopy(self.cv2)
             self.one2one_cv3 = copy.deepcopy(self.cv3)
+        self.semantic_classifier = None
 
     @property
     def one2many(self):
@@ -221,6 +283,21 @@ class Detect(nn.Module):
                 if not isinstance(classifier[-1], SourceClassifier):
                     classifier[-1] = SourceClassifier(classifier[-1], slices)
 
+    def install_semantic_classifier(self, slices: list[tuple[int, int]], prototypes: torch.Tensor) -> None:
+        """Replace learned final classifiers with one frozen semantic classifier."""
+        if self.semantic_classifier is not None:
+            return
+        heads = self._classification_heads()
+        final = heads[0][0][-1]
+        assert all(classifier[-1].in_channels == final.in_channels for head in heads for classifier in head)
+        biases = torch.stack(
+            [torch.stack([classifier[-1].bias.detach().mean() for classifier in head]) for head in heads]
+        )
+        self.semantic_classifier = FrozenSemanticClassifier(final, slices, prototypes, biases)
+        for head in heads:
+            for classifier in head:
+                classifier[-1] = nn.Identity()
+
     def set_class_source(self, source: int | list[int] | None) -> None:
         """Select one partitioned classifier, or all classifiers for validation.
 
@@ -228,22 +305,27 @@ class Detect(nn.Module):
             source (int | list[int] | None): Source index per batch or image, or None to concatenate all outputs.
         """
         heads = self._classification_heads()
-        if not isinstance(heads[0][0][-1], SourceClassifier):
+        source_classifier = heads[0][0][-1]
+        if not isinstance(source_classifier, SourceClassifier) and self.semantic_classifier is None:
             return
         active = (
             {index: [i for i, value in enumerate(source) if value == index] for index in dict.fromkeys(source)}
             if isinstance(source, list)
             else source
         )
-        for head in heads:
-            for classifier in head:
-                classifier[-1].set_source(active)
-        source_classifier = heads[0][0][-1]
-        self.nc = (
-            source_classifier.classifiers[source].out_channels
-            if isinstance(source, int)
-            else source_classifier.out_channels
-        )
+        if self.semantic_classifier is not None:
+            self.semantic_classifier.set_source(active)
+        else:
+            for head in heads:
+                for classifier in head:
+                    classifier[-1].set_source(active)
+        if isinstance(source, int) and self.semantic_classifier is not None:
+            lo, hi = self.semantic_classifier.slices[source]
+            self.nc = hi - lo
+        elif isinstance(source_classifier, SourceClassifier) and isinstance(source, int):
+            self.nc = source_classifier.classifiers[source].out_channels
+        else:
+            self.nc = (self.semantic_classifier or source_classifier).out_channels
         self.no = self.nc + self.reg_max * 4
 
     def clear_class_source_cache(self) -> None:
@@ -289,7 +371,14 @@ class Detect(nn.Module):
             return {}
         bs = x[0].shape[0]  # batch size
         boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
-        scores = torch.cat([cls_head[i](x[i]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1)
+        if self.semantic_classifier is None:
+            scores = torch.cat([cls_head[i](x[i]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1)
+        else:
+            head = int(self.end2end and cls_head is self.one2one_cv3)
+            scores = torch.cat(
+                [self.semantic_classifier(cls_head[i](x[i]), head, i).view(bs, self.nc, -1) for i in range(self.nl)],
+                dim=-1,
+            )
         return {"boxes": boxes, "scores": scores, "feats": x}
 
     def forward(

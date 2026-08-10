@@ -9,6 +9,7 @@ import sysconfig
 import tempfile
 import threading
 from collections.abc import Callable
+from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as installed_version  # not `metadata`: shadowed by an argument below
 from pathlib import Path
 from typing import Any
@@ -19,10 +20,42 @@ import torch
 from ultralytics.utils import LOGGER, TORCH_VERSION, YAML
 from ultralytics.utils.checks import check_requirements
 
+# The Voyager SDK version installed when none is present, shared with AxeleraBackend so a bump moves both. An
+# SDK the user installed is used as-is, whichever version it is.
+AXELERA_SDK = "1.8.0"
+
 # Axelera exports mutate process-global state (the PROTOCOL_BUFFERS env var below, plus any working-directory
 # files the compiler emits), so a module-level lock serializes concurrent in-process exports. Cross-process
 # Platform workers each hold their own lock and never contend.
 _AXELERA_EXPORT_LOCK = threading.Lock()
+
+
+def check_sdk_version(package: str) -> None:
+    """Report an installed Axelera SDK that this release does not target, and a mismatched devkit/runtime pair.
+
+    Args:
+        package (str): Installed SDK package to report on, "axelera-devkit" or "axelera-rt".
+    """
+    installed = installed_version(package)
+    if installed != AXELERA_SDK:
+        LOGGER.warning(
+            f"{package} {installed} is installed and is used as-is, but this Ultralytics release targets Axelera "
+            f"SDK {AXELERA_SDK}. Each SDK is validated against one metis-dkms driver and ships the card firmware "
+            "it expects, so an SDK older than the installed driver can fail while programming the device. To "
+            f"move: pip install {package}=={AXELERA_SDK} --extra-index-url "
+            "https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple. Release notes: "
+            "https://docs.axelera.ai/sdk/release-notes/"
+        )
+    other = "axelera-rt" if package == "axelera-devkit" else "axelera-devkit"
+    try:
+        paired = installed_version(other)
+    except PackageNotFoundError:
+        return  # only one half installed, e.g. a build host with no device
+    if paired != installed:
+        LOGGER.warning(
+            f"{package} {installed} and {other} {paired} are different Voyager SDK releases. The compiled .axm "
+            "format is versioned, so a model exported by one is rejected when the other loads it."
+        )
 
 
 def torch2axelera(
@@ -63,11 +96,10 @@ def torch2axelera(
             # any axkernelcc already on PATH belongs to another environment and mismatches the devkit.
             os.environ["PATH"] = os.pathsep.join(filter(None, (scripts_dir, prev_path)))
         try:
-            # Evaluated even when the import would succeed, so an installed devkit of another version
-            # is replaced rather than silently satisfying the import. Exact, and matching the runtime
-            # pin: the compiled .axm format is versioned, so the two have to stay on one SDK release.
-            devkit = "axelera-devkit==1.8.0"
-            if not check_requirements(devkit, install=False):
+            # Checked by name, so a devkit the user installed satisfies it whatever its version and their
+            # choice is kept. AXELERA_SDK is only what an environment without one gets.
+            devkit = f"axelera-devkit=={AXELERA_SDK}"
+            if not check_requirements("axelera-devkit", install=False):
                 check_requirements(
                     devkit,
                     cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
@@ -80,6 +112,8 @@ def torch2axelera(
                     # The devkit requires torch<2.13, so installing it downgrades a newer torch. Its
                     # quantizer extension links libtorch and would load against the replaced version.
                     raise RuntimeError(f"{devkit} replaced torch {TORCH_VERSION} during export. Rerun.")
+            else:
+                check_sdk_version("axelera-devkit")
             check_requirements("omnimalloc==0.5.0")
             from axelera import compiler
             from axelera.compiler import CompilerConfig

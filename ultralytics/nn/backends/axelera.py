@@ -26,25 +26,27 @@ class AxeleraBackend(BaseBackend):
         Args:
             weight (str | Path): Path to the Axelera model directory containing the .axm binary.
         """
-        # Evaluated even when the import would succeed, so an installed SDK of another version is
-        # replaced rather than silently satisfying the import. Exact, and matching the export pin: the
-        # compiled .axm format is versioned, so runtime and devkit have to stay on one SDK release.
-        runtime = "axelera-rt==1.8.0"
-        if not check_requirements(runtime, install=False):
-            # Best effort: users who install the SDK by hand already satisfy the pin and never see this,
-            # which is why the docs carry it too. The driver mismatch itself surfaces at model load.
+        from ultralytics.utils.export.axelera import AXELERA_SDK, check_sdk_version
+
+        # Checked by name, so a runtime the user installed satisfies it whatever its version and their
+        # choice is kept. AXELERA_SDK is only what an environment without one gets.
+        if not check_requirements("axelera-rt", install=False):
+            # Best effort: users who install the SDK by hand never see this, which is why the docs carry
+            # it too. The driver mismatch itself surfaces at model load.
             LOGGER.warning(
-                "Axelera SDK 1.8 requires metis-dkms 1.6.2 or newer. An older kernel driver leaves the "
-                "device unopenable. See https://docs.ultralytics.com/integrations/axelera/"
+                f"Axelera SDK {AXELERA_SDK} requires metis-dkms 1.6.2 or newer. An older kernel driver "
+                "leaves the device unopenable. See https://docs.ultralytics.com/integrations/axelera/"
             )
             check_requirements(
-                runtime,
+                f"axelera-rt=={AXELERA_SDK}",
                 cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
             )
             if "axelera.runtime" in sys.modules:
                 # The installed runtime cannot replace the already-imported one, so inference would
                 # silently run on the resident version.
-                raise RuntimeError(f"{runtime} was installed over an already-imported version. Rerun.")
+                raise RuntimeError(f"axelera-rt=={AXELERA_SDK} was installed over an already-imported version. Rerun.")
+        else:
+            check_sdk_version("axelera-rt")
 
         from axelera.runtime import op
 

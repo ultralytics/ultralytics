@@ -654,7 +654,7 @@ def autocast_list(source: list[Any]) -> list[Image.Image | np.ndarray]:
             im = Image.open(urllib.request.urlopen(im) if str(im).startswith("http") else im)
             filename = getattr(im, "filename", "")
             file = ImageOps.exif_transpose(im)
-            if filename and not getattr(im, "filename", ""):
+            if filename and not getattr(file, "filename", ""):
                 file.filename = filename
             files.append(file)
         elif isinstance(im, (Image.Image, np.ndarray)):  # PIL or np Image

@@ -120,6 +120,9 @@ def test_agent_serialization_omits_credentials():
     definition = agent.to_dict()
     assert "secret" not in json.dumps(definition)
     assert Agent.from_dict(definition).to_dict() == definition
+    definition["blocks"][0]["config"]["api_key"] = "secret"
+    with pytest.raises(ValueError, match="credentials"):
+        Agent.from_dict(definition)
 
 
 def test_yolo_gate_llm_event_contract(monkeypatch):
@@ -285,5 +288,9 @@ def test_llm_sync_and_async_calls():
 
     assert prompt("details") == "sync"
     assert calls[-1]["input"] == "Write a summary.\n\ndetails"
+    assert llm("Summarize report.png") == "sync"
+    assert calls[-1]["input"] == "Summarize report.png"
+    assert llm("https://en.wikipedia.org/wiki/YOLO") == "sync"
+    assert calls[-1]["input"] == "https://en.wikipedia.org/wiki/YOLO"
     assert llm(Image.new("RGB", (4, 4))) == "sync"
     assert calls[-1]["input"][0]["content"][1]["image_url"].startswith("data:image/jpeg;base64,")

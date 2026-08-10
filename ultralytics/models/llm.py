@@ -6,6 +6,7 @@ import base64
 import json
 from pathlib import Path
 from typing import Any, ClassVar
+from urllib.parse import urlsplit
 
 import cv2
 import numpy as np
@@ -147,11 +148,7 @@ class LLM:
     def _agent_input(self, event: dict[str, Any]) -> Any:
         """Convert an Agent event into native Responses or Chat Completions input."""
         source = event["source"]
-        context = {
-            key: value
-            for key, value in event.items()
-            if key not in {"source", "data"} and not (isinstance(value, dict) and value == {"passed": True})
-        }
+        context = {key: value for key, value in event.items() if key not in {"source", "data"}}
         prompt = self.prompt or "Describe the image."
         if context:
             prompt = f"{prompt}\n\nContext:\n{json.dumps(context, default=str)}"
@@ -183,7 +180,7 @@ class LLM:
     @staticmethod
     def _is_image(source: str) -> bool:
         """Return whether a string represents an image URL, data URL, or path."""
-        return source.startswith(("http://", "https://", "data:image/")) or Path(source).suffix.lower() in {
+        suffixes = {
             ".bmp",
             ".gif",
             ".jpeg",
@@ -193,6 +190,10 @@ class LLM:
             ".tiff",
             ".webp",
         }
+        if source.startswith("data:image/") or Path(source).is_file():
+            return True
+        url = urlsplit(source)
+        return url.scheme in {"http", "https"} and Path(url.path).suffix.lower() in suffixes
 
     @staticmethod
     def _image_url(source: Any) -> str:

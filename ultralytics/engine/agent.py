@@ -365,6 +365,8 @@ class Agent:
             elif block_type == "LLM":
                 from ultralytics.models import LLM
 
+                if "api_key" in config:
+                    raise ValueError("LLM credentials cannot be stored in an Agent definition.")
                 blocks[block_id] = LLM(**config)
             elif block_type == "Gate":
                 blocks[block_id] = Gate(config)
@@ -382,11 +384,15 @@ class Agent:
 
     def _execute(self, name: str, event: dict[str, Any], kwargs: dict[str, Any]) -> Iterator[tuple[str, Any]]:
         """Execute one Block and yield each emission before draining it downstream."""
+        block = self.blocks[name]
         for emitted in self._invoke(name, event, kwargs):
             yield name, emitted.get(name, emitted["data"])
+            downstream = (
+                {key: value for key, value in emitted.items() if key != name} if isinstance(block, Gate) else emitted
+            )
             for source, target in self.connections:
                 if source == name:
-                    yield from self._execute(target, {**emitted}, {})
+                    yield from self._execute(target, {**downstream}, {})
 
     async def _execute_async(
         self,
@@ -406,8 +412,11 @@ class Agent:
                 outputs[name].append(payload)
             if emit is not None:
                 await emit(name, payload)
+            downstream = (
+                {key: value for key, value in emitted.items() if key != name} if isinstance(block, Gate) else emitted
+            )
             tasks = [
-                self._execute_async(target, {**emitted}, {}, outputs, locks, emit)
+                self._execute_async(target, {**downstream}, {}, outputs, locks, emit)
                 for source, target in self.connections
                 if source == name
             ]

@@ -19,6 +19,12 @@ scales:
   x: [1.00, 1.50, 512]
 
 training:
+  # 64 log-spaced depth bins, not the DEPTH_BINS default of 16. Measured on the drive-disjoint Chen split
+  # (findings C9/C11/C12): 64 is the optimum of an inverted-U curve — better than 16 at every GT range band,
+  # while 192+ is WORSE than 16 because very fine bins spread the DFL target too thin to optimise. Costs
+  # +9,360 params and no extra memory. Declared here rather than by changing DEPTH_BINS so that checkpoints
+  # whose stored YAML predates this key still build a 16-bin head and load.
+  depth_bins: 64
   loss_weights:
     lr_distance: 2.0
     depth: 3.0

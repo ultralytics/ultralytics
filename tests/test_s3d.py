@@ -60,9 +60,17 @@ def test_export_onnx():
         dims = [d.dim_value for d in inp.type.tensor_type.shape.dim]
         assert dims == [1, 3, 384, 1248], f"{inp.name} shape {dims} != [1, 3, 384, 1248]"
 
-    # Output aux channels: 4(box) + 3(cls) + 1(lr) + 3(dims) + 6(orient MultiBin) + 16(depth) = 33
+    # Output aux channels: 4(box) + 3(cls) + 1(lr) + 3(dims) + 6(orient MultiBin) + n_bins(depth).
+    # Derived from the model, not hardcoded: the depth branch emits one logit per decode bin, so the export
+    # width tracks depth_bins. It was 33 when 16 bins were the default and is 81 at the shipped 64.
+    from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS
+
+    n_bins = model.model.model[-1].depth_dfl.n_bins
+    expected = 7 + 1 + 3 + ORIENT_CHANNELS + n_bins
     out_shape = [d.dim_value for d in m.graph.output[0].type.tensor_type.shape.dim]
-    assert out_shape[1] == 33, f"Expected 33 output channels (7 det + 26 aux), got {out_shape[1]}"
+    assert out_shape[1] == expected, (
+        f"Expected {expected} output channels (7 det + 10 aux + {n_bins} depth bins), got {out_shape[1]}"
+    )
 
 
 @pytest.mark.skipif(not __import__("torch").cuda.is_available(), reason="TensorRT requires CUDA")
@@ -1488,3 +1496,45 @@ def test_configure_depth_resizes_the_branch_and_the_loss(tmp_path):
     # The grid must still span the same depth range it was built with.
     assert float(head.depth_dfl.bin_values[0]) == pytest.approx(np.log(2.0), abs=1e-6)
     assert float(head.depth_dfl.bin_values[-1]) == pytest.approx(np.log(80.0), abs=1e-6)
+
+
+def test_shipped_yamls_default_to_64_depth_bins():
+    """The shipped s3d configs must build a 64-bin depth head.
+
+    64 is the measured optimum of an inverted-U bin curve (findings C9/C11/C12): better than 16 at every GT
+    range band on the full Chen split, while 192+ is worse than 16. This guards against a silent revert --
+    the model summary printed during training reports the pre-`configure_depth` channel count, so a
+    regression here would not be visible in any training log.
+    """
+    from ultralytics.utils import ROOT
+
+    for name in ("yolo26-s3d.yaml", "yolo26-s3d-kitti.yaml"):
+        head = YOLO(str(ROOT / "cfg/models/26" / name)).model.model[-1]
+        assert head.depth_dfl.n_bins == 64, f"{name} built {head.depth_dfl.n_bins} bins"
+        assert head.aux_specs["depth"] == 64
+        assert head.aux["depth"][0][-1].out_channels == 64
+
+
+def test_bin_count_silence_still_means_16(tmp_path):
+    """A config that does not declare depth_bins must still build 16 bins.
+
+    This is the checkpoint-compatibility contract: a checkpoint stores its own YAML, so one saved before
+    `depth_bins` existed carries no such key. If the module default drifted from 16, every such checkpoint
+    would build a differently-shaped depth branch and fail to load its own state_dict.
+    """
+    import yaml
+
+    from ultralytics.models.yolo.s3d.head import DEPTH_BINS
+    from ultralytics.utils import ROOT
+
+    assert DEPTH_BINS == 16, "DEPTH_BINS is the compatibility floor for pre-existing checkpoints"
+
+    cfg = yaml.safe_load(open(ROOT / "cfg/models/26/yolo26-s3d.yaml"))
+    cfg["training"] = {k: v for k, v in cfg.get("training", {}).items() if k != "depth_bins"}
+    cfg["scale"] = "n"
+    p = tmp_path / "legacy-s3d.yaml"
+    p.write_text(yaml.safe_dump(cfg))
+
+    head = YOLO(str(p)).model.model[-1]
+    assert head.depth_dfl.n_bins == 16
+    assert head.aux["depth"][0][-1].out_channels == 16

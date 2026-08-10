@@ -26,6 +26,7 @@ scales:
 
 training:
   photometric_loss: true
+  depth_bins: 64 # optimum of the measured bin curve; see yolo26-s3d.yaml and findings C9/C11/C12
   loss_weights:
     lr_distance: 0.2
     photometric: 4.0

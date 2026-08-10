@@ -1,23 +1,14 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""
-Automates building and post-processing of MkDocs documentation, especially for multilingual projects.
-
-This script streamlines generating localized documentation and updating HTML links for correct formatting.
+"""Prepare and validate the complete documentation tree with Zensical.
 
 Key Features:
-    - Automated building of MkDocs documentation: Compiles main documentation and localized versions from separate
-      MkDocs configuration files.
+    - Prepares generated reference pages, shared macros, and comparison content before validation.
+    - Runs Zensical in strict mode so documentation warnings fail CI.
     - Post-processing of generated HTML files: Updates HTML files to remove '.md' from internal links, ensuring
-      correct navigation in web-based documentation.
+      correct navigation in local previews.
 
 Usage:
-    - Run from the root directory of your MkDocs project.
-    - Ensure MkDocs is installed and configuration files (main and localized) are present.
-    - The script builds documentation using MkDocs, then scans HTML files in 'site' to update links.
-    - Ideal for projects with Markdown documentation served as a static website.
-
-Note:
-    - Requires Python and MkDocs to be installed and configured.
+    - Run `python docs/build_docs.py` from the repository root after installing the development dependencies.
 """
 
 from __future__ import annotations
@@ -61,7 +52,7 @@ DOC_KIND_COLORS = {
 
 
 def prepare_docs_markdown(clone_repos: bool = True):
-    """Build docs using mkdocs."""
+    """Prepare documentation Markdown for validation."""
     LOGGER.info("Removing existing build artifacts")
     shutil.rmtree(SITE, ignore_errors=True)
     shutil.rmtree(DOCS / "repos", ignore_errors=True)
@@ -99,7 +90,7 @@ def update_markdown_files(md_filepath: Path):
             )
             content = header + content
 
-        # Ensure MkDocs admonitions "=== " lines are preceded and followed by empty newlines
+        # Ensure content-tab "=== " lines are preceded and followed by empty newlines
         lines = content.split("\n")
         new_lines = []
         for i, line in enumerate(lines):
@@ -450,12 +441,12 @@ def minify_files(html: bool = True, css: bool = True, js: bool = True):
 
 
 def render_jinja_macros() -> None:
-    """Render MiniJinja macros in Markdown files before building with MkDocs."""
+    """Render MiniJinja macros in Markdown files before validating with Zensical."""
     mkdocs_yml = DOCS.parent / "mkdocs.yml"
     default_yaml = DOCS.parent / "ultralytics" / "cfg" / "default.yaml"
 
     class SafeFallbackLoader(yaml.SafeLoader):
-        """SafeLoader that gracefully skips unknown tags (required for mkdocs.yml)."""
+        """SafeLoader that gracefully skips unknown configuration tags."""
 
     def _ignore_unknown(loader, tag_suffix, node):
         """Gracefully handle YAML tags that aren't registered."""
@@ -588,7 +579,7 @@ def restore_docs_sources(backup_root: Path, backups: list[tuple[Path, Path]]):
 def main():
     """Build docs, update titles and edit links, minify HTML, and print local server command."""
     if not shutil.which("zensical"):
-        raise SystemExit("zensical is not installed. Install it with: pip install -e '.[dev]'")
+        raise SystemExit('zensical is not installed. Install it with: uv pip install -e ".[dev]"')
 
     start_time = time.perf_counter()
     backup_root: Path | None = None
@@ -609,7 +600,7 @@ def main():
         build_reference_docs(update_nav=False)
         render_jinja_macros()
 
-        # Remove cloned repos before serving/building to keep the tree lean during mkdocs processing
+        # Remove cloned repos before validation to keep the tree lean
         shutil.rmtree(DOCS / "repos", ignore_errors=True)
 
         # Build the main documentation

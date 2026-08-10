@@ -85,9 +85,8 @@ jobs:
           --target-version py38 \
           --ignore BLE001,D100,D104,D203,D205,D212,D213,D401,D406,D407,D413,RUF001,RUF002,RUF012,S110 \
           .
-      - name: Build Docs and Check for Warnings
-        run: |
-          python docs/build_docs.py
+      - name: Validate Docs with Zensical
+        run: python docs/build_docs.py
       - name: Commit and Push Docs changes
         continue-on-error: true
         if: always()

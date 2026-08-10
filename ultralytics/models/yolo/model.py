@@ -87,7 +87,6 @@ class YOLO(Model):
                 new_instance = RTDETR(self)
                 self.__class__ = type(new_instance)
                 self.__dict__ = new_instance.__dict__
-        self._agent_type = "YOLO"
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:

@@ -7,8 +7,7 @@ import inspect
 import json
 import operator
 import time
-from collections import deque
-from collections.abc import Callable, Mapping
+from collections.abc import AsyncIterator, Callable, Iterable, Iterator, Mapping
 from copy import deepcopy
 from functools import partial
 from typing import Any, ClassVar
@@ -35,7 +34,7 @@ class Gate:
         >>> output = gate({"person_count": 2})
     """
 
-    ports: ClassVar = {"inputs": {"event": "event"}, "outputs": {"event": "event"}}
+    ports: ClassVar = {"inputs": {"event": "event"}, "outputs": {"passed": "bool"}}
 
     OPS: ClassVar = {
         "eq": operator.eq,
@@ -86,7 +85,7 @@ class Gate:
 
     def _agent_run(self, event: dict[str, Any], name: str, **kwargs: Any) -> dict[str, Any] | None:
         """Filter an Agent event without removing its accumulated context."""
-        return self(event)
+        return {**event, name: {"passed": True}} if self(event) is not None else None
 
     def to_dict(self) -> dict[str, Any]:
         """Return this Gate's JSON-compatible configuration."""
@@ -141,7 +140,8 @@ class Gate:
             immediate = definition.get("immediate", False)
             if definition["unit"] == "frames":
                 state["count"] = state.get("count", 0) + 1
-                return (immediate and state["count"] == 1) or state["count"] % definition["value"] == 0
+                offset = state["count"] - 1 if immediate else state["count"]
+                return offset % definition["value"] == 0
             now = time.monotonic()
             if "last" not in state:
                 state["last"] = now
@@ -252,30 +252,20 @@ class Agent:
     def __call__(self, source: Any = None, **kwargs: Any) -> dict[str, list[Any]]:
         """Execute the graph synchronously and group emissions by Block name."""
         outputs: dict[str, list[Any]] = {name: [] for name in self.blocks}
-        queue = deque((name, {"source": source, "data": source}, kwargs) for name in self._roots())
-        while queue:
-            name, event, call_kwargs = queue.popleft()
-            for emitted in self._invoke(name, event, call_kwargs):
-                outputs[name].append(emitted.get(name, emitted["data"]))
-                self._propagate(name, emitted, queue)
+        for name in self._roots():
+            self._execute(name, {"source": source, "data": source}, kwargs, outputs)
         return outputs
 
     async def async_call(self, source: Any = None, **kwargs: Any) -> dict[str, list[Any]]:
         """Execute each graph frontier asynchronously."""
         outputs: dict[str, list[Any]] = {name: [] for name in self.blocks}
-        frontier = [(name, {"source": source, "data": source}, kwargs) for name in self._roots()]
-        locks = {name: asyncio.Lock() for name in self.blocks}
-        while frontier:
-            current, frontier = frontier, []
-            results = await asyncio.gather(
-                *(self._invoke_async(name, value, call_kwargs, locks[name]) for name, value, call_kwargs in current)
+        locks: dict[int, asyncio.Lock] = {}
+        await asyncio.gather(
+            *(
+                self._execute_async(name, {"source": source, "data": source}, kwargs, outputs, locks)
+                for name in self._roots()
             )
-            queue = deque()
-            for (name, _, _), emitted_events in zip(current, results):
-                for emitted in emitted_events:
-                    outputs[name].append(emitted.get(name, emitted["data"]))
-                    self._propagate(name, emitted, queue)
-            frontier.extend(queue)
+        )
         return outputs
 
     def to_dict(self) -> dict[str, Any]:
@@ -318,46 +308,100 @@ class Agent:
         targets = {target for _, target in self.connections}
         return [name for name in self.blocks if name not in targets]
 
-    def _propagate(self, source: str, event: dict[str, Any], queue: deque) -> None:
-        """Queue connected downstream Blocks."""
-        for connection_source, target in self.connections:
-            if connection_source == source:
-                queue.append((target, {**event}, {}))
+    def _execute(self, name: str, event: dict[str, Any], kwargs: dict[str, Any], outputs: dict[str, list[Any]]) -> None:
+        """Execute one Block and drain each emission through downstream Blocks."""
+        for emitted in self._invoke(name, event, kwargs):
+            outputs[name].append(emitted.get(name, emitted["data"]))
+            for source, target in self.connections:
+                if source == name:
+                    self._execute(target, {**emitted}, {}, outputs)
 
-    def _invoke(self, name: str, event: dict[str, Any], kwargs: dict[str, Any]) -> list[dict[str, Any]]:
+    async def _execute_async(
+        self,
+        name: str,
+        event: dict[str, Any],
+        kwargs: dict[str, Any],
+        outputs: dict[str, list[Any]],
+        locks: dict[int, asyncio.Lock],
+    ) -> None:
+        """Execute one Block asynchronously and drain each emission downstream."""
+        block = self.blocks[name]
+        lock = locks.setdefault(id(block), asyncio.Lock())
+        async for emitted in self._invoke_async(name, event, kwargs, lock):
+            outputs[name].append(emitted.get(name, emitted["data"]))
+            tasks = [
+                self._execute_async(target, {**emitted}, {}, outputs, locks)
+                for source, target in self.connections
+                if source == name
+            ]
+            if tasks:
+                await asyncio.gather(*tasks)
+
+    def _invoke(self, name: str, event: dict[str, Any], kwargs: dict[str, Any]) -> Iterable[dict[str, Any]]:
         """Invoke one Block and normalize its emissions to Agent events."""
         block = self.blocks[name]
-        if callable(agent_run := getattr(block, "_agent_run", None)):
+        if callable(agent_run := self._block_method(block, "_agent_run")):
             return self._events(agent_run(event, name, **kwargs))
+        if inspect.iscoroutinefunction(block) or inspect.iscoroutinefunction(type(block).__call__):
+            raise TypeError(f"Block {name!r} is asynchronous; use Agent.async_call().")
         output = block(event["data"], **kwargs)
-        return [] if output is None else [{**event, "data": output, name: output}]
+        return () if output is None else ({**event, "data": output, name: output},)
 
     async def _invoke_async(
         self, name: str, event: dict[str, Any], kwargs: dict[str, Any], lock: asyncio.Lock
-    ) -> list[dict[str, Any]]:
+    ) -> AsyncIterator[dict[str, Any]]:
         """Invoke an async-capable Block without concurrently re-entering the same instance."""
         block = self.blocks[name]
-        async with lock:
-            if callable(agent_async_run := getattr(block, "_agent_async_run", None)):
-                return self._events(await agent_async_run(event, name, **kwargs))
-            if callable(agent_run := getattr(block, "_agent_run", None)):
-                loop = asyncio.get_running_loop()
-                return self._events(await loop.run_in_executor(None, partial(agent_run, event, name, **kwargs)))
-            if callable(async_call := getattr(block, "async_call", None)):
+        loop = asyncio.get_running_loop()
+        if callable(agent_async_run := self._block_method(block, "_agent_async_run")):
+            async with lock:
+                output = await agent_async_run(event, name, **kwargs)
+            for emitted in self._events(output):
+                yield emitted
+            return
+        if callable(agent_run := self._block_method(block, "_agent_run")):
+            async with lock:
+                output = await loop.run_in_executor(None, partial(agent_run, event, name, **kwargs))
+            iterator = iter(self._events(output))
+            while True:
+                async with lock:
+                    emitted = await loop.run_in_executor(None, self._next_event, iterator)
+                if emitted is _MISSING:
+                    return
+                yield emitted
+        elif callable(async_call := self._block_method(block, "async_call")):
+            async with lock:
                 output = await async_call(event["data"], **kwargs)
-                return [] if output is None else [{**event, "data": output, name: output}]
-            if inspect.iscoroutinefunction(block) or inspect.iscoroutinefunction(type(block).__call__):
+            if output is not None:
+                yield {**event, "data": output, name: output}
+        elif inspect.iscoroutinefunction(block) or inspect.iscoroutinefunction(type(block).__call__):
+            async with lock:
                 output = await block(event["data"], **kwargs)
-            else:
-                output = await asyncio.get_running_loop().run_in_executor(None, partial(block, event["data"], **kwargs))
-            return [] if output is None else [{**event, "data": output, name: output}]
+            if output is not None:
+                yield {**event, "data": output, name: output}
+        else:
+            async with lock:
+                output = await loop.run_in_executor(None, partial(block, event["data"], **kwargs))
+            if output is not None:
+                yield {**event, "data": output, name: output}
 
     @staticmethod
-    def _events(output: Any) -> list[dict[str, Any]]:
-        """Normalize one or many internal Block emissions to a list."""
+    def _events(output: Any) -> Iterable[dict[str, Any]]:
+        """Normalize one or many internal Block emissions to an iterable."""
         if output is None:
-            return []
-        return output if isinstance(output, list) else [output]
+            return ()
+        return (output,) if isinstance(output, Mapping) else output
+
+    @staticmethod
+    def _next_event(iterator: Iterator[dict[str, Any]]) -> dict[str, Any] | object:
+        """Return the next event or a private end-of-stream sentinel."""
+        return next(iterator, _MISSING)
+
+    @staticmethod
+    def _block_method(block: Callable[..., Any], name: str) -> Callable[..., Any] | None:
+        """Return a Block protocol method without invoking dynamic attribute fallback."""
+        method = inspect.getattr_static(block, name, None)
+        return method.__get__(block, type(block)) if hasattr(method, "__get__") else method
 
     def _has_cycle(self) -> bool:
         """Return whether the graph contains a directed cycle."""
@@ -383,7 +427,7 @@ class Agent:
     @staticmethod
     def _serialize_block(block: Callable[..., Any]) -> dict[str, Any]:
         """Serialize a supported built-in Block without credentials."""
-        from ultralytics.models import LLM
+        from ultralytics.models import LLM, RTDETR, YOLO, YOLOE, YOLOWorld
 
         if isinstance(block, LLM):
             config = {"model": block.model, "api": block.api, **block.overrides}
@@ -392,7 +436,7 @@ class Agent:
             if block.prompt is not None:
                 config["prompt"] = block.prompt
             return {"type": "LLM", "config": config, "ports": deepcopy(block.ports)}
-        if getattr(block, "_agent_type", None) == "YOLO":
+        if isinstance(block, (YOLO, YOLOWorld, YOLOE, RTDETR)):
             return {
                 "type": "YOLO",
                 "config": {"model": str(block.model_name), "task": block.task},

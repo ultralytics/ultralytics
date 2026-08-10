@@ -168,28 +168,25 @@ class Model(torch.nn.Module):
         """
         return self.predict(source, stream, **kwargs)
 
-    def _agent_run(self, event: dict[str, Any], name: str, **kwargs: Any) -> list[dict[str, Any]]:
+    def _agent_run(self, event: dict[str, Any], name: str, **kwargs: Any) -> Iterator[dict[str, Any]]:
         """Run a model on an Agent event and emit one standardized event per image."""
-        events = []
+        kwargs["stream"] = True
         for result in self(event["source"], **kwargs):
             results = [
                 {key: value for key, value in item.items() if key not in {"keypoints", "segments"}}
                 for item in result.summary()
             ]
             counts = {}
-            if result.probs is None:
-                for item in results:
+            for item in results:
+                if "box" in item:
                     class_name = item.get("name", str(item.get("class", "unknown")))
                     counts[class_name] = counts.get(class_name, 0) + 1
-            events.append(
-                {
-                    **event,
-                    "source": result.orig_img,
-                    "data": result,
-                    name: {"results": results, "counts": counts},
-                }
-            )
-        return events
+            yield {
+                **event,
+                "source": result.orig_img,
+                "data": result,
+                name: {"results": results, "counts": counts},
+            }
 
     @staticmethod
     def is_triton_model(model: str) -> bool:

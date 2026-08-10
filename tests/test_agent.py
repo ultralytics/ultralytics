@@ -1,11 +1,14 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import asyncio
+import base64
 import json
 from types import SimpleNamespace
 
+import cv2
 import numpy as np
 import pytest
+from PIL import Image
 
 from ultralytics import LLM, YOLO, Agent, Gate
 
@@ -18,6 +21,8 @@ def test_gate_evaluation():
     assert gate({"detections": {"count": 2}}) == {"detections": {"count": 2}}
     assert gate({"detections": {"count": 0}}) is None
     assert Gate.when("values", gte=1)({"values": np.array([1, 2])}) is None
+    immediate = Gate.every(frames=3, immediate=True)
+    assert [immediate(i) is not None for i in range(7)] == [True, False, False, True, False, False, True]
 
 
 def test_agent_execution_and_cycle_validation():
@@ -35,7 +40,7 @@ def test_agent_execution_and_cycle_validation():
     )
     agent.connect("detect", "gate").connect("gate", "describe")
 
-    assert agent(2) == {"detect": [{"count": 2}], "gate": [{"count": 2}], "describe": ["found 2"]}
+    assert agent(2) == {"detect": [{"count": 2}], "gate": [{"passed": True}], "describe": ["found 2"]}
     assert agent(0) == {"detect": [{"count": 0}], "gate": [], "describe": []}
     with pytest.raises(ValueError, match="cycles"):
         agent.connect("describe", "detect")
@@ -48,6 +53,8 @@ def test_agent_execution_and_cycle_validation():
 def test_agent_async_execution():
     """Test asynchronous graph execution."""
 
+    active = [0, 0]
+
     class AsyncBlock:
         def __call__(self, value):
             """Return a synchronous value."""
@@ -55,11 +62,25 @@ def test_agent_async_execution():
 
         async def async_call(self, value):
             """Return an asynchronous value."""
+            active[0] += 1
+            active[1] = max(active)
             await asyncio.sleep(0)
+            active[0] -= 1
             return value + 1
 
     agent = Agent({"first": AsyncBlock(), "second": AsyncBlock()}).connect("first", "second")
     assert asyncio.run(agent.async_call(1)) == {"first": [2], "second": [3]}
+
+    shared = AsyncBlock()
+    assert asyncio.run(Agent({"first": shared, "second": shared}).async_call(1)) == {"first": [2], "second": [2]}
+    assert active[1] == 1
+
+    async def async_block(value):
+        """Return an asynchronous function result."""
+        return value
+
+    with pytest.raises(TypeError, match="Agent.async_call"):
+        Agent(async_block)(1)
 
 
 def test_agent_serialization_omits_credentials():
@@ -89,6 +110,7 @@ def test_yolo_gate_llm_event_contract(monkeypatch):
                 "name": "person",
                 "class": 0,
                 "confidence": 0.9,
+                "box": {"x1": 1, "y1": 1, "x2": 2, "y2": 2},
                 "segments": {"x": [1, 2], "y": [3, 4]},
                 "keypoints": {"x": [1], "y": [2]},
             }
@@ -108,44 +130,76 @@ def test_yolo_gate_llm_event_contract(monkeypatch):
         SimpleNamespace(orig_img=image, probs=object(), summary=classification_summary),
     ]
 
+    consumed = []
+
     def yolo_call(self, source, **kwargs):
         """Return image results to exercise event fan-out."""
         assert isinstance(source, np.ndarray)
-        return results
+        for result in results:
+            consumed.append(result)
+            yield result
 
     calls = []
+    observed = []
 
     def create(**kwargs):
         """Record a multimodal LLM request."""
         calls.append(kwargs)
+        observed.append(len(consumed))
+        return SimpleNamespace(output_text="A person")
+
+    async def async_create(**kwargs):
+        """Record an asynchronous multimodal LLM request."""
+        calls.append(kwargs)
+        observed.append(len(consumed))
+        await asyncio.sleep(0)
         return SimpleNamespace(output_text="A person")
 
     monkeypatch.setattr(YOLO, "__call__", yolo_call)
     yolo = object.__new__(YOLO)
     llm = LLM(prompt="Describe the people.")
     llm.client = SimpleNamespace(responses=SimpleNamespace(create=create))
+    llm.async_client = SimpleNamespace(responses=SimpleNamespace(create=async_create))
     agent = Agent(yolo, Gate.when("yolo.counts.person", gte=1), llm)
 
     output = agent(image)
     assert len(output["yolo"]) == 3
     assert output["yolo"][0] == {
-        "results": [{"name": "person", "class": 0, "confidence": 0.9}],
+        "results": [
+            {
+                "name": "person",
+                "class": 0,
+                "confidence": 0.9,
+                "box": {"x1": 1, "y1": 1, "x2": 2, "y2": 2},
+            }
+        ],
         "counts": {"person": 1},
     }
     assert output["yolo"][2]["counts"] == {}
     assert output["llm"] == [{"text": "A person"}]
+    assert output["gate"] == [{"passed": True}]
     assert len(calls) == 1
+    assert observed == [1]
     content = calls[0]["input"][0]["content"]
     assert "person" in content[0]["text"]
     assert content[1]["image_url"].startswith("data:image/jpeg;base64,")
 
     calls.clear()
+    consumed.clear()
+    observed.clear()
     direct = Agent(yolo, llm)(image)
     assert len(direct["yolo"]) == len(direct["llm"]) == len(calls) == 3
+    assert observed == [1, 2, 3]
 
     cascade = Agent(yolo, yolo)(image)
     assert len(cascade["yolo"]) == 3
     assert len(cascade["yolo_2"]) == 9
+
+    calls.clear()
+    consumed.clear()
+    observed.clear()
+    assert asyncio.run(agent.async_call(image)) == output
+    assert observed == [1]
 
 
 def test_llm_sync_and_async_calls():
@@ -186,3 +240,12 @@ def test_llm_sync_and_async_calls():
 
     with pytest.raises(ValueError, match="Unable to read Agent image"):
         LLM._image_url("missing.jpg")
+
+    encoded = LLM._image_url(Image.new("RGB", (4, 4), (255, 0, 0)))
+    decoded = cv2.imdecode(np.frombuffer(base64.b64decode(encoded.split(",", 1)[1]), dtype=np.uint8), cv2.IMREAD_COLOR)
+    assert decoded[0, 0, 2] > decoded[0, 0, 0]
+
+    prompt = LLM(prompt="Write a summary.")
+    prompt.client = llm.client
+    assert Agent(prompt)()["llm"] == [{"text": "sync"}]
+    assert calls[-1]["input"] == "Write a summary."

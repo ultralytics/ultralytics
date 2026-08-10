@@ -9,6 +9,7 @@ from typing import Any, ClassVar
 
 import cv2
 import numpy as np
+from PIL import Image
 
 from ultralytics.utils.checks import check_requirements
 
@@ -130,6 +131,8 @@ class LLM:
         prompt = self.prompt or "Describe the image."
         if context:
             prompt = f"{prompt}\n\nContext:\n{json.dumps(context, default=str)}"
+        if source is None:
+            return prompt
         if isinstance(source, str) and not self._is_image(source):
             return f"{prompt}\n\n{source}" if self.prompt or context else source
         image_url = self._image_url(source)
@@ -172,7 +175,10 @@ class LLM:
         """Convert an image URL, path, or array to an OpenAI image URL."""
         if isinstance(source, str) and source.startswith(("http://", "https://", "data:image/")):
             return source
-        image = cv2.imread(str(source)) if isinstance(source, (str, Path)) else np.asarray(source)
+        if isinstance(source, (str, Path)):
+            image = cv2.imread(str(source))
+        else:
+            image = np.asarray(source.convert("RGB"))[..., ::-1] if isinstance(source, Image.Image) else np.asarray(source)
         if image is None:
             raise ValueError(f"Unable to read Agent image source {source!r}.")
         _, buffer = cv2.imencode(".jpg", image)

@@ -48,7 +48,6 @@ class SourceClassifier(nn.Module):
             slices (list[tuple[int, int]]): Ordered source class bounds.
         """
         super().__init__()
-        self.slices = slices
         self.classifiers = nn.ModuleList()
         for lo, hi in slices:
             source = nn.Conv2d(
@@ -67,9 +66,13 @@ class SourceClassifier(nn.Module):
                 if classifier.bias is not None:
                     source.bias.copy_(classifier.bias[lo:hi])
             self.classifiers.append(source)
-        self.nc = sum(m.out_channels for m in self.classifiers)
         self.active = None
         self.merged = None
+
+    @property
+    def out_channels(self) -> int:
+        """Return the merged classifier output width."""
+        return sum(m.out_channels for m in self.classifiers)
 
     def set_source(self, source: int | dict[int, list[int]] | None) -> None:
         """Select a source and cache concatenated evaluation parameters.
@@ -93,9 +96,10 @@ class SourceClassifier(nn.Module):
         if isinstance(self.active, int):
             return self.classifiers[self.active](x)
         if self.active is not None:
-            output = x.new_full((len(x), self.nc, *x.shape[2:]), torch.finfo(x.dtype).min)
+            output = x.new_full((len(x), self.out_channels, *x.shape[2:]), torch.finfo(x.dtype).min)
             for source, rows in self.active.items():
-                lo, hi = self.slices[source]
+                lo = sum(m.out_channels for m in self.classifiers[:source])
+                hi = lo + self.classifiers[source].out_channels
                 if len(rows) == len(x):
                     output[:, lo:hi] = self.classifiers[source](x)
                 else:
@@ -236,7 +240,9 @@ class Detect(nn.Module):
                 classifier[-1].set_source(active)
         source_classifier = heads[0][0][-1]
         self.nc = (
-            source_classifier.classifiers[source].out_channels if isinstance(source, int) else source_classifier.nc
+            source_classifier.classifiers[source].out_channels
+            if isinstance(source, int)
+            else source_classifier.out_channels
         )
         self.no = self.nc + self.reg_max * 4
 

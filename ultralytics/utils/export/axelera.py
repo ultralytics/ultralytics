@@ -63,19 +63,19 @@ def torch2axelera(
             # any axkernelcc already on PATH belongs to another environment and mismatches the devkit.
             os.environ["PATH"] = os.pathsep.join(filter(None, (scripts_dir, prev_path)))
         try:
-            # Evaluated even when the import would succeed, so an older installed devkit is upgraded
-            # rather than silently satisfying the import. A floor rather than an exact pin, so a newer
-            # devkit is left alone instead of being downgraded on every export.
-            devkit = "axelera-devkit>=1.8.0"
+            # Evaluated even when the import would succeed, so an installed devkit of another version
+            # is replaced rather than silently satisfying the import. Exact, and matching the runtime
+            # pin: the compiled .axm format is versioned, so the two have to stay on one SDK release.
+            devkit = "axelera-devkit==1.8.0"
             if not check_requirements(devkit, install=False):
                 check_requirements(
                     devkit,
                     cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
                 )
                 if "axelera.compiler" in sys.modules:
-                    # The upgraded devkit cannot replace the already-imported one, so the export would
-                    # silently run on the old version.
-                    raise RuntimeError(f"{devkit} was installed over an already-imported older version. Rerun.")
+                    # The installed devkit cannot replace the already-imported one, so the export would
+                    # silently run on the resident version.
+                    raise RuntimeError(f"{devkit} was installed over an already-imported version. Rerun.")
                 if installed_version("torch").split("+")[0] != TORCH_VERSION.split("+")[0]:
                     # The devkit requires torch<2.13, so installing it downgrades a newer torch. Its
                     # quantizer extension links libtorch and would load against the replaced version.

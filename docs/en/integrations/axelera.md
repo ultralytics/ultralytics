@@ -77,40 +77,6 @@ Depth estimation is not supported: the depth head emits operators the Metis AIPU
 
     YOLO26 instance segmentation is not yet supported through the Ultralytics `export` command. Users who need `yolo26-seg` can deploy via the [Voyager SDK](https://github.com/axelera-ai-hub/voyager-sdk) using `deploy.py`, which provides a user-space workaround. Native compiler support will be added in a future release.
 
-## Voyager SDK Versions
-
-Each Ultralytics release uses one Voyager SDK version, installed automatically on first use. The `metis-dkms` kernel driver is not installed by `pip` and must match — an SDK will not open the device with an older driver.
-
-| Voyager SDK | Ultralytics       | Minimum `metis-dkms` |
-| :---------- | :---------------- | :------------------- |
-| 1.8.0       | current release   | 1.6.2                |
-| 1.7.0       | 8.4.80 to 8.4.115 | 1.4.18               |
-| 1.6.0       | 8.4.42 to 8.4.79  | 1.4.10               |
-
-To use an older SDK, install the Ultralytics version from its row:
-
-```bash
-pip install "ultralytics==8.4.115"
-pip install axelera-devkit==1.7.0 axelera-rt==1.7.0 --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple
-sudo apt install -y metis-dkms=1.4.18
-```
-
-After changing SDK version, re-export your models and install the `metis-dkms` version from the table. Neither is checked at install time; both fail on your first `predict` or `val`.
-
-Compared with 1.7.0, nothing about how you export or run models changes except:
-
-- **YOLO26 semantic segmentation works.** Exporting `yolo26n-sem` succeeded on 1.7, but `predict` and `val` then failed when the model was loaded. Both work on 1.8.
-- **Inference is somewhat faster.** 1.8 builds device code with an LLVM 20 toolchain instead of GNU newlib, which the [Voyager SDK release notes](https://docs.axelera.ai/sdk/release-notes/) report as up to ~10% faster, most noticeably on small networks. Accuracy is unaffected: `yolo26n` scores the same mAP on both versions.
-
-!!! warning "An SDK upgrade invalidates existing exported models"
-
-    SDK 1.8 raises the compiled `.axm` model format version, so `_axelera_model` directories produced by an earlier SDK are rejected at load time:
-
-    ```text
-    Error: Unsupported model version: 4.0, expected at least 5.0
-    Please re-deploy or re-download the model.
-    ```
-
 ## Installation
 
 !!! warning "Platform Requirements"
@@ -121,7 +87,7 @@ Compared with 1.7.0, nothing about how you export or run models changes except:
     - **Hardware**: Axelera AI accelerator ([Metis devices](https://store.axelera.ai/))
     - **Python**: Versions 3.10, 3.11, 3.12, and 3.13
     - **PyTorch**: `torch<2.13`; a newer version is downgraded when the SDK installs, and the export then asks you to rerun it
-    - **Voyager SDK**: 1.8.0, installed automatically on first use — see [Voyager SDK Versions](#voyager-sdk-versions)
+    - **Voyager SDK**: 1.8.0, installed automatically on first use
     - **Metis kernel driver**: `metis-dkms` 1.6.2 or newer, installed separately from `pip`
     - **System dependency**: `sudo apt install libgl1` (required by OpenCV, not included via `pip`)
 
@@ -155,7 +121,7 @@ For detailed instructions, see our [Ultralytics Installation guide](../quickstar
     sudo sh -c "echo 'deb [signed-by=/etc/apt/keyrings/axelera.gpg] https://software.axelera.ai/artifactory/axelera-apt-source ubuntu24 main' > /etc/apt/sources.list.d/axelera.list"
     ```
 
-3. Install the driver and load it. The newest `metis-dkms` satisfies every SDK, so it is left unpinned here; pin it to the value in [Voyager SDK Versions](#voyager-sdk-versions) only if you are deliberately holding an older SDK.
+3. Install the driver and load it. SDK 1.8 needs `metis-dkms` 1.6.2 or newer, so the newest is installed here:
 
     ```bash
     sudo apt update
@@ -165,7 +131,7 @@ For detailed instructions, see our [Ultralytics Installation guide](../quickstar
 
 !!! note "Keep the kernel driver in sync with the SDK"
 
-    The kernel driver is installed separately from the Python SDK packages, so after upgrading the SDK you must also bring the driver up to that SDK's minimum — see [Voyager SDK Versions](#voyager-sdk-versions). Nothing checks this at install time, and a driver below the minimum leaves the device unavailable: `axdevice` reports the version required and fails to open the device.
+    The kernel driver is installed separately from the Python SDK packages, so after upgrading the SDK you must also bring the driver up to that SDK's minimum — 1.6.2 for SDK 1.8. Nothing checks this at install time, and a driver below the minimum leaves the device unavailable: `axdevice` reports the version required and fails to open the device.
 
     ```text
     [libaxldev.c:285] Found kernel driver version 1.5.5, but at least version 1.6.2 is required. Please update the kernel driver
@@ -190,6 +156,15 @@ For detailed instructions, see our [Ultralytics Installation guide](../quickstar
     ```bash
     pip install axelera-devkit==1.8.0 --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple
     pip install axelera-rt==1.8.0 --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple
+    ```
+
+!!! warning "An SDK upgrade invalidates existing exported models"
+
+    SDK 1.8 raises the compiled `.axm` model format version, so `_axelera_model` directories produced by an earlier SDK are rejected at load time. Re-export each model after upgrading:
+
+    ```text
+    Error: Unsupported model version: 4.0, expected at least 5.0
+    Please re-deploy or re-download the model.
     ```
 
 ## Exporting YOLO Models to Axelera
@@ -273,10 +248,6 @@ The Axelera format supports the [Export](../modes/export.md), [Predict](../modes
 
 For all export options, see the [Export Mode documentation](../modes/export.md).
 
-!!! tip "Match `imgsz` to your source aspect ratio"
-
-    A model is compiled for one fixed input shape, so a square `imgsz` spends part of every inference on letterbox padding when the source is not square. For 2048x1024 Cityscapes images, `imgsz=640` fills 160 rows at the top and bottom — half the input. Exporting at `imgsz=[320, 640]` instead doubles the effective resolution for the same compute.
-
 ### Output Structure
 
 ```text
@@ -298,7 +269,7 @@ The Metis AIPU maximizes throughput while minimizing energy consumption.
 
 _Benchmarks based on Axelera AI data. Actual FPS depends on model size, batching, and input resolution._
 
-These are host throughput figures, measured by the [model zoo](https://docs.axelera.ai/sdk/reference/models/model-zoo) with the Voyager SDK's streaming pipeline over a 720p video file. A single `predict` call reports per-image latency instead, which is a different quantity — see [Headroom on the AIPU](#headroom-on-the-aipu).
+These are host throughput figures, measured by the [model zoo](https://docs.axelera.ai/sdk/reference/models/model-zoo) with the Voyager SDK's streaming pipeline over a 720p video file. A single `predict` call reports per-image latency instead, which is a different quantity.
 
 ## Real-World Applications
 
@@ -328,36 +299,17 @@ axdevice
 
 For detailed diagnostics, see the [AxDevice documentation](https://docs.axelera.ai/sdk/reference/tools/axdevice/).
 
-## Performance
+## Maximum Performance
 
-### Batching
-
-Models are compiled for a single image. Passing several images to [Predict](../modes/predict.md) routes them through the Axelera scheduler instead, so `batch>1` runs correctly — but on a single device it does not run faster:
+Models are compiled for a single image. Passing several images to [Predict](../modes/predict.md) routes them through the Axelera scheduler, so `batch>1` runs correctly, but one image is processed at a time and it is not faster than `batch=1`:
 
 ```bash
 yolo predict model=yolo26n_axelera_model source=path/to/images batch=8
 ```
 
-Predicting 192 images with `yolo26n` at `imgsz=640` on one Metis device, median of three runs:
+For production requiring maximum throughput, the [Axelera Voyager SDK](https://github.com/axelera-ai-hub/voyager-sdk) offers:
 
-| `batch` | Throughput |
-| :------ | :--------- |
-| 1       | 36.0 img/s |
-| 4       | 31.9 img/s |
-| 8       | 32.1 img/s |
-| 32      | 32.5 img/s |
-
-The SDK's per-image host work serializes, so extra images in flight queue behind one another instead of overlapping with execution, and any `batch>1` lands slightly below `batch=1`. Pass a batch when it fits your code, not for throughput.
-
-[Validate](../modes/val.md) runs at the batch size recorded when the model was exported, so its timings are unchanged. Accuracy is identical at every batch size.
-
-### Headroom on the AIPU
-
-Each image is executed by one of the four AIPU cores, and one image is processed at a time, so most of the accelerator sits idle. On the same device the device itself reports `yolo26n` at 195 FPS on one core and 715 FPS across all four, so the hardware scales roughly 3.7x. End to end, Axelera's own `axrunmodel` — which keeps many frames in flight — reaches 157 FPS on one core and 496 FPS on four. This integration reaches a fraction of either.
-
-Closing that gap needs frames in flight rather than a larger `batch`, which is what the [Axelera Voyager SDK](https://github.com/axelera-ai-hub/voyager-sdk) provides:
-
-- Streaming inference pipelines that overlap several frames across cores
+- Streaming inference pipelines that keep several frames in flight
 - Compiling one model across several cores
 - Tiled inferencing for higher-resolution cameras
 

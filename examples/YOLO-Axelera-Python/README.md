@@ -71,11 +71,6 @@ pip install axelera-rt==1.8.0 --no-cache-dir --extra-index-url https://software.
 
 You will also need `opencv-python` and `numpy` (likely already present).
 
-> [!IMPORTANT] These scripts track the newest Voyager SDK, 1.8.0, which needs
-> `metis-dkms` 1.6.2. On an older SDK, use the scripts from the Ultralytics tag
-> that matches it — see
-> [Voyager SDK Versions](../../docs/en/integrations/axelera.md#voyager-sdk-versions).
-
 ### Compile
 
 Export and compile your trained model directly to Axelera format using the

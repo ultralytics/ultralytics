@@ -2015,9 +2015,9 @@ class CopyPaste(BaseMixTransform):
         cls = labels["cls"]
         labels2_cls = params.get("labels2_cls")
 
-        for j in selected:
-            cls = np.concatenate((cls, (labels2_cls if labels2_cls is not None else cls)[[j]]), axis=0)
-            instances = Instances.concatenate((instances, instances2[[j]]), axis=0)
+        if len(selected):
+            cls = np.concatenate((cls, (labels2_cls if labels2_cls is not None else cls)[selected]), axis=0)
+            instances = Instances.concatenate([instances, instances2[selected]], axis=0)
 
         labels["cls"] = cls
         labels["instances"] = instances

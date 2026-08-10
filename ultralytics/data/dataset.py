@@ -727,8 +727,6 @@ class GroundingDataset(YOLODataset):
                     raw_seg = ann.get("segmentation")
                     segmented |= raw_seg is not None
                     seg = raw_seg if isinstance(raw_seg, list) else []
-                    if seg and all(isinstance(x, list) and len(x) == 2 for x in seg):
-                        seg = [[c for point in seg for c in point]]  # [[x, y], ...] is one polygon
                     polygons = [
                         p
                         for p in seg

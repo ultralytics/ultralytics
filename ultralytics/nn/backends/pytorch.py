@@ -9,7 +9,7 @@ import torch
 from torch import nn
 
 from ultralytics.utils import IS_JETSON, LOGGER, is_jetson
-from ultralytics.utils.torch_utils import smart_inference_mode, unwrap_model
+from ultralytics.utils.torch_utils import unwrap_model
 
 from .base import BaseBackend
 
@@ -42,7 +42,6 @@ class PyTorchBackend(BaseBackend):
         self.verbose = verbose
         super().__init__(weight, device, fp16)
 
-    @smart_inference_mode(False)  # the loaded module outlives this call, so its weights must not be inference tensors
     def load_model(self, weight: str | torch.nn.Module) -> None:
         """Load a PyTorch model from a checkpoint file or nn.Module instance.
 

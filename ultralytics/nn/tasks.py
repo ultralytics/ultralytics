@@ -1884,7 +1884,6 @@ def torch_safe_load(weight, safe_only=None):
     return ckpt, file
 
 
-@smart_inference_mode(False)  # the loaded model outlives this call, so its weights must not be inference tensors
 def load_checkpoint(weight, device=None, inplace=True, fuse=False):
     """Load single model weights.
 

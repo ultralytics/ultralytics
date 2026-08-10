@@ -49,7 +49,7 @@ uv pip install -e ".[dev]"
 python docs/build_docs.py
 ```
 
-The script builds the site into the `site/` directory and automatically serves it at `http://localhost:8000`. Press `CTRL+C` to stop.
+The script builds the site into the `site/` directory. Preview it with `python -m http.server --directory site`; the local output intentionally omits production-owned banners, analytics, comments, and other site chrome.
 
 ### Quick Preview
 

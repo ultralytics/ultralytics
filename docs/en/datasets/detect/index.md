@@ -117,6 +117,10 @@ An NDJSON dataset file contains:
             "width": 640,
             "height": 480,
             "split": "train",
+            "metadata": {
+                "aircraft": { "family": "A350", "section": "wing" },
+                "inspectionStatus": "reviewed"
+            },
             "annotations": {
                 "boxes": [
                     [0, 0.525, 0.376, 0.284, 0.418],
@@ -212,6 +216,22 @@ An NDJSON dataset file contains:
         ```
 
         Format: `[class_id]`
+
+#### Custom image metadata
+
+Each image record may include a `metadata` JSON object for application-specific context such as capture conditions, equipment identifiers, or review status. Nested values are supported. When imported into Ultralytics Platform, the metadata is stored with that image and can be viewed or edited from its fullscreen information panel.
+
+```json
+{
+    "type": "image",
+    "file": "airbus-wing.jpg",
+    "url": "https://example.com/airbus-wing.jpg",
+    "split": "train",
+    "metadata": { "aircraft": { "family": "A350", "section": "wing" }, "inspectionStatus": "reviewed" }
+}
+```
+
+Platform limits top-level metadata keys to 128 characters, each image's serialized metadata object to 500,000 characters, and the combined effective metadata in one NDJSON import to 500,000 characters.
 
 #### Usage Example
 

@@ -2,7 +2,7 @@
 plans: [free, pro, enterprise]
 title: Trained Model Management
 comments: true
-description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 19+ deployment formats.
+description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 20 deployment formats.
 keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT, CoreML, YOLO
 ---
 
@@ -10,20 +10,19 @@ keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive model management for training, analyzing, and deploying YOLO models. Upload pretrained models or train new ones directly on the platform.
 
-![Ultralytics Platform Model Page Overview Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-page-overview-tab.avif)
+![Ultralytics Platform Model Page Overview Tab](https://cdn.ul.run/i/3012fee5f840c678a07bd8920b0d34b5.avif)<!-- screenshot -->
 
 ## Upload Model
 
 Upload existing model weights to the platform:
 
 1. Navigate to your project
-2. **Drag and drop** `.pt` files onto the project page or models sidebar
+2. **Drag and drop** `.pt` files onto the project page or models sidebar, or click the **Upload models** icon
 3. Model metadata is parsed automatically from the file
 
 Multiple files can be uploaded simultaneously (up to 3 concurrent).
 
-![Ultralytics Platform Model Drag Drop Upload](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-drag-drop-upload.avif)
-
+![Ultralytics Platform Model Drag Drop Upload](https://cdn.ul.run/i/bc0d8b8d2325e5fa4d4a5d084cd5338b.avif)<!-- screenshot -->
 Supported model formats:
 
 | Format  | Extension | Description               |
@@ -32,7 +31,7 @@ Supported model formats:
 
 After upload, the platform parses model metadata:
 
-- Task type ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [depth](../../tasks/depth.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [classify](../../tasks/classify.md))
+- Task type ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [depth](../../tasks/depth.md), [classify](../../tasks/classify.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md))
 - Architecture (YOLO26n, YOLO26s, etc.)
 - Class names and count
 - Input size and parameters
@@ -60,7 +59,7 @@ graph LR
     B --> D[Predict]:::proc
     B --> E[Export]:::proc
     B --> F[Deploy]:::proc
-    E --> G[19+ Formats]:::out
+    E --> G[20 Formats]:::out
     F --> H[Endpoint]:::out
 
     classDef start fill:#4CAF50,color:#fff
@@ -91,7 +90,7 @@ Displays model metadata and key metrics:
 - Dataset link (when trained with a Platform dataset)
 - Download button for model weights
 
-![Ultralytics Platform Model Overview Metrics And Args](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-overview-metrics-and-args.avif)
+![Ultralytics Platform Model Overview Metrics And Args](https://cdn.ul.run/i/5e7fa4c46cadf75c87934a8734838f2c.avif)<!-- screenshot -->
 
 ### Train Tab
 
@@ -108,7 +107,7 @@ Interactive training metric charts showing loss curves and performance metrics o
 | **Validation Loss** | val/box_loss, val/cls_loss, val/dfl_loss       |
 | **Learning Rate**   | lr/pg0, lr/pg1, lr/pg2                         |
 
-![Ultralytics Platform Model Train Charts Subtab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-train-charts-subtab.avif)
+![Ultralytics Platform Model Train Charts Subtab](https://cdn.ul.run/i/640ad65e65f173c9088f9637dd98da54.avif)<!-- screenshot -->
 
 #### Console Subtab
 
@@ -119,7 +118,7 @@ Live console output from the training process:
 - Error detection with highlighted error banners
 - ANSI color support for formatted output
 
-![Ultralytics Platform Model Train Console Subtab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-train-console-subtab.avif)
+![Ultralytics Platform Model Train Console Subtab](https://cdn.ul.run/i/45125323b2fa8bb95dfc4e067f5c01f2.avif)<!-- screenshot -->
 
 #### System Subtab
 
@@ -134,7 +133,7 @@ GPU and system metrics during training:
 | **RAM**        | System memory usage        |
 | **Disk**       | Disk usage                 |
 
-![Ultralytics Platform Model Train System Subtab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-train-system-subtab.avif)
+![Ultralytics Platform Model Train System Subtab](https://cdn.ul.run/i/6e614bf9749f5eba38c384858c05ca0a.avif)<!-- screenshot -->
 
 ### Predict Tab
 
@@ -143,7 +142,7 @@ Run interactive inference directly in the browser:
 - Upload an image, use example images, or use webcam
 - Results display with bounding boxes, masks, semantic class maps, or keypoints
 - Auto-inference when an image is provided
-- Supports all task types ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [depth](../../tasks/depth.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [classify](../../tasks/classify.md))
+- Supports all task types ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [depth](../../tasks/depth.md), [classify](../../tasks/classify.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md))
 
 !!! tip "Quick Testing"
 
@@ -151,7 +150,7 @@ Run interactive inference directly in the browser:
 
 ### Export Tab
 
-Export your model to 19+ deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
+Export your model to 20 deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
 
 ### Deploy Tab
 
@@ -165,13 +164,13 @@ After training completes, view detailed validation analysis:
 
 Interactive heatmap showing prediction accuracy per class:
 
-![Ultralytics Platform Model Confusion Matrix](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-confusion-matrix.avif)
+![Ultralytics Platform Model Confusion Matrix](https://cdn.ul.run/i/64c239ca6baa01d0b65cd7a4d42ece2c.avif)<!-- screenshot -->
 
 ### PR/F1 Curves
 
-Performance curves at different confidence thresholds:
+When the training run provides them, the **Validation** subtab also displays performance curves at different confidence thresholds. Available validation plots depend on the artifacts produced by the run.
 
-![Ultralytics Platform Model Pr F1 Curves](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-pr-f1-curves.avif)
+![Ultralytics Platform Model Pr F1 Curves](https://cdn.ul.run/i/78226b971bd48bed8f043a377a37c6e9.avif)<!-- screenshot -->
 
 | Curve                    | Description                              |
 | ------------------------ | ---------------------------------------- |
@@ -198,22 +197,22 @@ graph LR
     classDef out fill:#9C27B0,color:#fff
 ```
 
-Export your model to 19+ deployment formats:
+Export your model to 20 deployment formats:
 
 1. Navigate to the **Export** tab
 2. Select target format
 3. Configure export arguments (image size, half precision, dynamic, etc.)
 4. For GPU-required formats (TensorRT), select a GPU type
-5. Click **Export**
+5. Click **Start Export**
 6. Download when complete
 
 Connect [Slack alerts](../integrations/slack.md) to receive a message when an export is ready or fails.
 
-![Ultralytics Platform Model Export Tab Format List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-export-tab-format-list.avif)
+![Ultralytics Platform Model Export Tab Format List](https://cdn.ul.run/i/9e5b54290f479b20ed96d5a0f091659f.avif)<!-- screenshot -->
 
 ### Supported Formats
 
-The Platform supports export to [19+ deployment formats](../../modes/export.md#export-formats): ONNX, TorchScript, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, LiteRT, TF Edge TPU, PaddlePaddle, NCNN, MNN, RKNN, Qualcomm (QNN), IMX500, Axelera, ExecuTorch, and DeepX.
+The Platform supports export to [20 deployment formats](../../modes/export.md#export-formats): ONNX, TorchScript, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, LiteRT, TF Edge TPU, PaddlePaddle, NCNN, MNN, RKNN, Qualcomm (QNN), IMX500, Axelera, ExecuTorch, DeepX, Hailo, and Huawei Ascend.
 
 ### Format Selection Guide
 
@@ -228,7 +227,7 @@ The Platform supports export to [19+ deployment formats](../../modes/export.md#e
 | **Edge Devices**   | TF Edge TPU or RKNN | Coral and Rockchip (see [supported chips](#rknn-chip-support)) |
 | **General**        | ONNX                | Works with most runtimes                                       |
 
-![Ultralytics Platform Model Export Progress](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-export-progress.avif)
+![Ultralytics Platform Model Export Progress](https://cdn.ul.run/i/e66458bb5b6753a9f54927a87e8cdae2.avif)<!-- screenshot -->
 
 ### NVIDIA Jetson TensorRT Targets
 
@@ -295,10 +294,14 @@ Export jobs progress through the following statuses:
 
 Some export formats have architecture or task restrictions:
 
-| Format      | Restriction                                |
-| ----------- | ------------------------------------------ |
-| **IMX500**  | Available only for `YOLOv8n` and `YOLO11n` |
-| **Axelera** | Detect models only                         |
+| Format       | Restriction                                                                                                                                                                            |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **IMX500**   | Available only for `YOLOv8n` and `YOLO11n`; INT8 only                                                                                                                                  |
+| **Axelera**  | Detect models only; INT8 only                                                                                                                                                          |
+| **DeepX**    | INT8 only                                                                                                                                                                              |
+| **Hailo**    | INT8 HEF output; select the target Hailo architecture                                                                                                                                  |
+| **Huawei**   | FP16 .om output; Ascend310P1, Ascend310P3, Ascend310B1, and Ascend310B4 targets                                                                                                        |
+| **Qualcomm** | Fixed W8A16 quantization; select a [supported HTP target](../../integrations/qnn.md#supported-htp-targets). Dragonwing IQ-8275 is supported with `name=iq-8275`; IQ-615 is unsupported |
 
 !!! note "Additional Export Rules"
 
@@ -311,9 +314,9 @@ Some export formats have architecture or task restrictions:
 Clone a model to a different project:
 
 1. Open the model page
-2. Click the **Clone** button
+2. Click **Clone Model**
 3. Select the destination project
-4. Click **Clone**
+4. Click **Clone Model**
 
 The model and its weights are copied to the target project.
 
@@ -323,7 +326,7 @@ Download your model weights:
 
 1. Navigate to the model's **Overview** tab
 2. Click the **Download** button
-3. The original `.pt` file downloads automatically
+3. The model's primary `.pt` checkpoint downloads automatically
 
 Exported formats can be downloaded from the **Export** tab after export completes.
 
@@ -346,14 +349,23 @@ When training with Platform datasets using the [`ul://` URI format](../data/data
 
     The `ul://` scheme resolves to your Platform dataset. The trained model's Overview tab will show a link back to this dataset (see [Using Platform Datasets](../api/index.md#using-platform-datasets)).
 
+## Custom Metadata
+
+Open **More actions** and select **Information** to review two sections:
+
+- **Ultralytics Metadata**: Read-only Platform details such as the model ID, project, source dataset, task, status, and timestamps
+- **Custom Metadata**: Your own JSON object for evaluation context, release tracking, governance, or other model-specific data
+
+Custom metadata is separate from training-owned model information, environment details, and training arguments. Workspace viewers can inspect it, while members with edit access can replace the object. The serialized metadata object is limited to 500,000 characters, and each top-level key is limited to 128 characters. Save an empty object (`{}`) to clear custom metadata.
+
 ## Visibility Settings
 
 Control who can see your model:
 
-| Setting     | Description                     |
-| ----------- | ------------------------------- |
-| **Private** | Only you can access             |
-| **Public**  | Anyone can view on Explore page |
+| Setting     | Description                               |
+| ----------- | ----------------------------------------- |
+| **Private** | Only you and workspace members can access |
+| **Public**  | Anyone can view on Explore page           |
 
 To change visibility, click the visibility badge (e.g., `private` or `public`) in the page header. Visibility is set at the project level, so this controls all models in the project. Switching to private takes effect immediately. Switching to public shows a confirmation dialog before applying.
 
@@ -361,9 +373,8 @@ To change visibility, click the visibility badge (e.g., `private` or `public`) i
 
 Remove a model you no longer need:
 
-1. Open model actions menu
-2. Click **Delete**
-3. Confirm deletion
+1. Click the **Delete model** trash icon in the model header
+2. Confirm deletion
 
 !!! note "Trash and Restore"
 
@@ -374,7 +385,7 @@ Remove a model you no longer need:
 - [**Inference**](../deploy/inference.md): Test models in the browser with the Predict tab
 - [**Endpoints**](../deploy/endpoints.md): Deploy models to production with dedicated endpoints
 - [**Cloud Training**](cloud-training.md): Configure and run training jobs on cloud GPUs
-- [**Export Formats**](../../modes/export.md): Full guide to all 19+ export formats
+- [**Export Formats**](../../modes/export.md): Full guide to all 20 export formats
 
 ## FAQ
 
@@ -387,14 +398,14 @@ Ultralytics Platform fully supports all YOLO architectures with dedicated projec
 - [**YOLOv8**](../../models/yolov8.md): n, s, m, l, x variants — [platform.ultralytics.com/ultralytics/yolov8](https://platform.ultralytics.com/ultralytics/yolov8)
 - [**YOLOv5**](../../models/yolov5.md): n, s, m, l, x variants — [platform.ultralytics.com/ultralytics/yolov5](https://platform.ultralytics.com/ultralytics/yolov5)
 
-YOLO26 supports 7 task types: [detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [depth](../../tasks/depth.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), and [classify](../../tasks/classify.md). YOLO11 and YOLOv8 support the same set except semantic segmentation and depth, while YOLOv5 supports detect, segment, and classify.
+YOLO26 supports 7 task types: [detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [depth](../../tasks/depth.md), [classify](../../tasks/classify.md), [pose](../../tasks/pose.md), and [OBB](../../tasks/obb.md). YOLO11 and YOLOv8 support the same set except semantic segmentation and depth, while YOLOv5 supports detect, segment, and classify.
 
 ### Can I download my trained model?
 
 Yes, download your model weights from the model page:
 
 1. Click the download icon on the Overview tab
-2. The original `.pt` file downloads automatically
+2. The model's primary `.pt` checkpoint downloads automatically
 3. Exported formats can be downloaded from the Export tab
 
 ### How do I compare models across projects?
@@ -410,4 +421,5 @@ Uploaded `.pt` model files are limited to 1 GB, and models near that limit may t
 
 ### Can I fine-tune pretrained models?
 
-Yes! You can use any of the official YOLO26 models as a base, or select one of your own completed models from the model selector in the training dialog. The Platform supports fine-tuning from any uploaded checkpoint.
+Yes. Choose a compatible model from the official YOLO26, YOLO11, YOLOv8, or YOLOv5 projects, or select one of
+your own completed or uploaded checkpoints from **My Models** in the training dialog.

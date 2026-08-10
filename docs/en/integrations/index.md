@@ -27,6 +27,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Amazon SageMaker](amazon-sagemaker.md): Leverage Amazon SageMaker to efficiently build, train, and deploy Ultralytics models, providing an all-in-one platform for the ML lifecycle.
 
+- [AMD](amd.md): Train, validate, and run Ultralytics models on supported AMD GPUs with PyTorch ROCm, with a clear breakdown of MIGraphX, DirectML, and Ryzen AI NPU availability.
+
 - [ClearML](clearml.md): Automate your Ultralytics ML workflows, monitor experiments, and foster team collaboration.
 
 - [Comet ML](comet.md): Enhance your model development with Ultralytics by tracking, comparing, and optimizing your machine learning experiments.
@@ -59,6 +61,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Weights & Biases (W&B)](weights-biases.md): Monitor experiments, visualize metrics, and foster reproducibility and collaboration on Ultralytics projects.
 
+- [YAML2ModelGraph](yaml2modelgraph.md): Generate publication-ready SVG architecture diagrams directly from Ultralytics YOLO YAML configuration files.
+
 ## Deployment Integrations
 
 - [Ambarella](ambarella.md): Train, compress, and export Ultralytics YOLO models for Ambarella CVflow® SoCs such as the CV72 using SpongeTorch compression-aware training and the offline CVflow toolchain.
@@ -75,7 +79,9 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Gradio](gradio.md): Deploy Ultralytics models with Gradio for real-time, interactive object detection demos.
 
-- [Hailo](hailo.md): Export Ultralytics YOLO detection, segmentation, pose, OBB, classification, semantic segmentation, and depth estimation models directly to Hailo HEF; see the integration guide for validated models and targets.
+- [Hailo](hailo.md): Export Ultralytics YOLO detection, segmentation, semantic segmentation, depth estimation, classification, pose, and OBB models directly to Hailo HEF; see the integration guide for validated models and targets.
+
+- [Huawei Ascend](ascend.md): Compile Ultralytics YOLO models to the Huawei Ascend `.om` offline format with the CANN ATC compiler for FP16 inference on Atlas and OrangePi AIPro devices.
 
 - [MNN](mnn.md): Developed by [Alibaba](https://www.alibabagroup.com/), MNN is a highly efficient and lightweight deep learning framework. It supports inference and training of deep learning models and has industry-leading performance for inference and training on-device.
 

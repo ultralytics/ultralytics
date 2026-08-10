@@ -20,8 +20,8 @@ The [KITTI](https://www.cvlibs.net/datasets/kitti/) dataset is a real-world outd
 
 The KITTI depth data used by Ultralytics is split into two subsets:
 
-1. **Training split**: 60,040 images (left `image_02` and right `image_03`). The 28 KITTI Eigen test drives are excluded from training to keep evaluation fair.
-2. **Evaluation split**: the KITTI Eigen test split, 32,378 images (both cameras). Evaluation uses the Garg crop, an 80 m depth cap, and log-least-squares alignment between predictions and ground truth.
+1. **Training split**: 55,198 images (left `image_02` and right `image_03`). All 28 KITTI Eigen test drives are excluded from training to keep evaluation fair.
+2. **Evaluation split**: the KITTI Eigen test split — its 652 left-camera frames that have improved ground truth. Evaluation uses an 80 m depth cap and median (scale-only) alignment between predictions and ground truth.
 
 The depth range reaches approximately 80 m, and the dataset YAML (`depth-kitti.yaml`) sets `max_depth: 80` accordingly.
 
@@ -37,11 +37,13 @@ KITTI Eigen `delta1` accuracy by model size (higher is better):
 
 | Model         | KITTI Eigen δ1 |
 | ------------- | -------------- |
-| YOLO26n-Depth | 0.888          |
-| YOLO26s-Depth | 0.882          |
-| YOLO26m-Depth | 0.924          |
-| YOLO26l-Depth | 0.927          |
-| YOLO26x-Depth | 0.939          |
+| YOLO26n-Depth | 0.878          |
+| YOLO26s-Depth | 0.879          |
+| YOLO26m-Depth | 0.913          |
+| YOLO26l-Depth | 0.926          |
+| YOLO26x-Depth | 0.932          |
+
+Measured on the 652-frame canonical split with `imgsz=768` and `rect=False`. They are not directly comparable to published KITTI numbers: val stretches each image to a square `imgsz` and nearest-resamples the sparse ground truth onto it, where the reference evaluators instead resize the prediction back to the native ground-truth resolution; `DepthMetrics` masks ground truth against `max_depth` where the improved-ground-truth protocol masks `gt > 0` and caps only the prediction; it pools every valid pixel of the split rather than averaging the per-image metric; and the released weights were trained with the previous split, which placed 72 of these test frames in the training set.
 
 ## Dataset YAML
 
@@ -82,11 +84,11 @@ To train a YOLO26n-Depth model on the KITTI dataset for 100 [epochs](https://www
 
 Pretrained YOLO26-Depth models auto-download from the Ultralytics [v8.4.0 assets release](https://github.com/ultralytics/assets/releases/tag/v8.4.0) when first referenced by name:
 
-- [YOLO26n-Depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-depth.pt)
-- [YOLO26s-Depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-depth.pt)
-- [YOLO26m-Depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-depth.pt)
-- [YOLO26l-Depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-depth.pt)
-- [YOLO26x-Depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-depth.pt)
+- [YOLO26n-Depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth)
+- [YOLO26s-Depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s-depth)
+- [YOLO26m-Depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m-depth)
+- [YOLO26l-Depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-depth)
+- [YOLO26x-Depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth)
 
 ## Citations and Acknowledgments
 

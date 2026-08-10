@@ -30,7 +30,7 @@ The Deployment section helps you:
 - **Monitor** request metrics, logs, and health checks
 - **Scale to zero** when idle (deployments currently run a single active instance)
 
-![Ultralytics Platform Deploy Page World Map With Overview Cards](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-world-map-with-overview-cards.avif)
+![Ultralytics Platform Deploy Page World Map With Overview Cards](https://cdn.ul.run/i/e922afb2e2f7573c320821ec4fa62537.avif)<!-- screenshot -->
 
 ## Deployment Options
 
@@ -55,12 +55,12 @@ graph LR
     classDef out fill:#9C27B0,color:#fff
 ```
 
-| Stage         | Description                                                                 |
-| ------------- | --------------------------------------------------------------------------- |
-| **Test**      | Validate model with the [`Predict` tab](inference.md)                       |
-| **Configure** | Select region and deployment name (deployments use fixed default resources) |
-| **Deploy**    | Create a dedicated endpoint from the [`Deploy` tab](endpoints.md)           |
-| **Monitor**   | Track requests, latency, errors, and logs in [Monitoring](monitoring.md)    |
+| Stage         | Description                                                              |
+| ------------- | ------------------------------------------------------------------------ |
+| **Test**      | Validate model with the [`Predict` tab](inference.md)                    |
+| **Configure** | Select a region and review the editable, auto-generated deployment name  |
+| **Deploy**    | Create a dedicated endpoint from the [`Deploy` tab](endpoints.md)        |
+| **Monitor**   | Track requests, latency, errors, and logs in [Monitoring](monitoring.md) |
 
 ## Architecture
 
@@ -82,11 +82,7 @@ graph TB
     classDef out fill:#9C27B0,color:#fff
 ```
 
-| Region | Location             |
-| ------ | -------------------- |
-| US     | Iowa, USA            |
-| EU     | Belgium, Europe      |
-| AP     | Taiwan, Asia-Pacific |
+{% include "macros/platform-data-regions.md" %}
 
 ### Dedicated Endpoints
 
@@ -113,8 +109,7 @@ Access the global deployments page from the sidebar under `Deploy`. This page sh
 - **Deployments list** with three view modes: cards, compact, and table
 - **New Deployment** button to create endpoints from any completed model
 
-![Ultralytics Platform Deploy Page Overview Cards And Deployments List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-overview-cards-and-deployments-list.avif)
-
+![Ultralytics Platform Deploy Page Overview Cards And Deployments List](https://cdn.ul.run/i/eb51c1bb9c4884b4b1bc89e4caf94eee.avif)<!-- screenshot -->
 !!! info "Automatic Polling"
 
     The page polls every 15 seconds normally. When deployments are in a transitional state (`creating`, `deploying`, or `stopping`), polling increases to every 3 seconds for faster feedback.
@@ -133,20 +128,13 @@ Deploy close to your users with 42 regions covering:
 
 Endpoints currently behave as follows:
 
-- **Scale to zero**: No cost when idle (default)
+- **Scale to zero**: `minInstances` defaults to `0`
 - **Single active instance**: `maxInstances` is currently capped at `1` on all plans
 
-!!! tip "Cost Savings"
+### Regional Deployment
 
-    Scale-to-zero is enabled by default (min instances = 0). You only pay for active inference time.
-
-### Low Latency
-
-Dedicated endpoints provide:
-
-- Cold start: ~5-15 seconds (cached container), up to ~45 seconds (first deploy)
-- Warm inference: 50-200ms (model dependent)
-- Regional routing for optimal performance
+Use the measured region latency to place an endpoint near its callers. Actual inference latency depends on the model,
+input size, endpoint state, and network path.
 
 ### Health Checks
 
@@ -159,12 +147,12 @@ Each running deployment includes an automatic health check with:
 
 ## Quick Start
 
-Deploy a model in under 2 minutes:
+Create a deployment:
 
 1. Train or upload a model to a project
 2. Go to the model's **Deploy** tab
 3. Select a region from the latency table
-4. Click **Deploy** — your endpoint is live
+4. Click **Deploy** and wait for the deployment status to become **Ready**
 
 !!! example "Quick Deploy"
 
@@ -184,22 +172,18 @@ Deploy a model in under 2 minutes:
 
 ### What's the difference between shared and dedicated inference?
 
-| Feature     | Shared          | Dedicated                                                 |
-| ----------- | --------------- | --------------------------------------------------------- |
-| **Latency** | Variable        | Consistent                                                |
-| **Cost**    | Free (included) | Free (basic), usage-based (advanced)                      |
-| **Scale**   | Limited         | Scale-to-zero, single instance                            |
-| **Regions** | 3               | 42                                                        |
-| **URL**     | Generic         | Custom                                                    |
-| **Rate**    | 20 req/min      | 20 req/min via Platform; unlimited on direct endpoint URL |
+| Feature     | Shared                       | Dedicated                            |
+| ----------- | ---------------------------- | ------------------------------------ |
+| **Service** | Shared across Platform users | Dedicated to one deployment          |
+| **Scale**   | Managed by Platform          | Scale-to-zero, one instance          |
+| **Regions** | 3 data regions               | Choose from 42 deployment regions    |
+| **URL**     | Platform model API           | Generated deployment endpoint URL    |
+| **Testing** | Model `Predict` tab          | Deployment-card `Predict` tab or API |
 
 ### How long does deployment take?
 
-Dedicated endpoint deployment typically takes 1-2 minutes:
-
-1. Image pull (~30s)
-2. Container start (~30s)
-3. Health check (~30s)
+The deployment remains in a creating or deploying state while its service starts. It becomes usable when the status
+changes to **Ready**; timing varies by model and region.
 
 ### Can I deploy multiple models?
 

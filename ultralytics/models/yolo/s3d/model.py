@@ -94,7 +94,7 @@ class Stereo3DDetModel(DetectionModel):
             y.append(x if m.i in self.save else None)
         return x
 
-    def _predict_once(self, x, profile=False, visualize=False, embed=None):
+    def _predict_once(self, x, profile=False, embed=None):
         """Forward pass with siamese batch trick for stereo input.
 
         For 6ch stereo input (siamese mode):
@@ -107,7 +107,7 @@ class Stereo3DDetModel(DetectionModel):
         For 3ch input (stride computation) or non-siamese: standard forward.
         """
         if not self._siamese or x.shape[1] != 6:
-            return super()._predict_once(x, profile, visualize, embed)
+            return super()._predict_once(x, profile, embed)
 
         B = x.shape[0]
         left = x[:, :3]
@@ -137,10 +137,6 @@ class Stereo3DDetModel(DetectionModel):
                 x = x[:B]  # continue with left-only
 
             y.append(x if m.i in self.save else None)
-            if visualize:
-                from ultralytics.utils import feature_visualization
-
-                feature_visualization(x, m.type, m.i, save_dir=visualize)
             if m.i in embed:
                 embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))
                 if m.i == max_idx:

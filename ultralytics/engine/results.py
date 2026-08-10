@@ -8,14 +8,13 @@ Usage: See https://docs.ultralytics.com/modes/predict/
 from __future__ import annotations
 
 from copy import deepcopy
-from functools import lru_cache
+from functools import cached_property
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 import torch
 
-from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, ops
 from ultralytics.utils.plotting import Annotator, colors, plot_boxes3d, save_one_box
 
@@ -69,7 +68,7 @@ class BaseTensor(SimpleClass):
             >>> data = torch.rand(100, 4)
             >>> base_tensor = BaseTensor(data, orig_shape=(720, 1280))
             >>> print(base_tensor.shape)
-            (100, 4)
+            torch.Size([100, 4])
         """
         return self.data.shape
 
@@ -512,8 +511,7 @@ class Results(SimpleClass, DataExportMixin):
         font_size: float | None = None,
         font: str = "Arial.ttf",
         pil: bool = False,
-        img: np.ndarray | None = None,
-        im_gpu: torch.Tensor | None = None,
+        img: np.ndarray | torch.Tensor | None = None,
         kpt_radius: int = 5,
         kpt_line: bool = True,
         labels: bool = True,
@@ -535,8 +533,8 @@ class Results(SimpleClass, DataExportMixin):
             font_size (float | None): Font size for text. If None, scaled to image size.
             font (str): Font to use for text.
             pil (bool): Whether to return the image as a PIL Image.
-            img (np.ndarray | None): Image to plot on. If None, uses original image.
-            im_gpu (torch.Tensor | None): Normalized image on GPU for faster mask plotting.
+            img (np.ndarray | torch.Tensor | None): Image to plot on. Tensor images must be contiguous HWC BGR uint8. If
+                None, uses the original image.
             kpt_radius (int): Radius of drawn keypoints.
             kpt_line (bool): Whether to draw lines connecting keypoints.
             labels (bool): Whether to plot labels of bounding boxes.
@@ -585,15 +583,6 @@ class Results(SimpleClass, DataExportMixin):
         # Plot Segment results
         if pred_masks and show_masks:
             pred_mask_data = torch.as_tensor(pred_masks.data)  # no-op for torch, converts a numpy() result
-            if im_gpu is None:
-                img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
-                im_gpu = (
-                    torch.as_tensor(img, dtype=torch.float16, device=pred_mask_data.device)
-                    .permute(2, 0, 1)
-                    .flip(0)
-                    .contiguous()
-                    / 255
-                )
             idx = (
                 pred_boxes.id
                 if pred_boxes and pred_boxes.is_track and color_mode == "instance"
@@ -601,7 +590,7 @@ class Results(SimpleClass, DataExportMixin):
                 if pred_boxes and color_mode == "class"
                 else reversed(range(len(pred_masks)))
             )
-            annotator.masks(pred_mask_data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
+            annotator.masks(pred_mask_data, colors=[colors(x, True) for x in idx])
 
         # Plot Detect results
         if pred_boxes is not None and show_boxes:
@@ -695,7 +684,7 @@ class Results(SimpleClass, DataExportMixin):
             >>> for result in results:
             ...     result.show()  # Display all results
         """
-        self.plot(show=True, *args, **kwargs)
+        self.plot(*args, show=True, **kwargs)
 
     def save(self, filename: str | None = None, *args, **kwargs) -> str:
         """Save annotated inference results image to file.
@@ -725,7 +714,7 @@ class Results(SimpleClass, DataExportMixin):
         if not filename:
             filename = f"results_{Path(self.path).name}"
         Path(filename).absolute().parent.mkdir(parents=True, exist_ok=True)
-        self.plot(save=True, filename=filename, *args, **kwargs)
+        self.plot(*args, save=True, filename=filename, **kwargs)
         return filename
 
     def verbose(self) -> str:
@@ -794,6 +783,8 @@ class Results(SimpleClass, DataExportMixin):
               - For detections: `class x_center y_center width height [confidence] [track_id]`
               - For classifications: `confidence class_name`
               - For masks and keypoints, the specific formats will vary accordingly.
+            - A detection whose mask contour has fewer than 3 points is omitted, since a shorter row is not a
+              polygon, and no file is written when no line remains.
             - The function will create the output directory if it does not exist.
             - If save_conf is False, the confidence scores will be excluded from the output.
             - Existing contents of the file will not be overwritten; new results will be appended.
@@ -817,8 +808,10 @@ class Results(SimpleClass, DataExportMixin):
                 c, conf, id = int(d.cls.item()), float(d.conf.item()), int(d.id.item()) if d.is_track else None
                 line = (c, *(d.xyxyxyxyn.reshape(-1) if is_obb else d.xywhn.reshape(-1)))
                 if masks:
-                    seg = masks[j].xyn[0].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
-                    line = (c, *seg)
+                    seg = masks[j].xyn[0]
+                    if len(seg) < 3:  # fewer than 3 points is not a polygon, and writes a row no loader accepts
+                        continue
+                    line = (c, *seg.copy().reshape(-1))  # reversed mask.xyn, (n,2) to (n*2)
                 if kpts is not None:
                     kpt = kpts[j].xyn
                     if kpts[j].has_visible:
@@ -1101,8 +1094,7 @@ class Boxes(BaseTensor):
         """
         return self.data[:, -3] if self.is_track else None
 
-    @property
-    @lru_cache(maxsize=2)
+    @cached_property
     def xywh(self) -> torch.Tensor | np.ndarray:
         """Convert bounding boxes from [x1, y1, x2, y2] format to [x, y, width, height] format.
 
@@ -1116,14 +1108,10 @@ class Boxes(BaseTensor):
             ...     torch.tensor([[100, 50, 150, 100, 0.9, 0], [200, 150, 300, 250, 0.8, 1]]), orig_shape=(480, 640)
             ... )
             >>> xywh = boxes.xywh
-            >>> print(xywh)
-            tensor([[125.0000,  75.0000,  50.0000,  50.0000],
-                    [250.0000, 200.0000, 100.0000, 100.0000]])
         """
         return ops.xyxy2xywh(self.xyxy)
 
-    @property
-    @lru_cache(maxsize=2)
+    @cached_property
     def xyxyn(self) -> torch.Tensor | np.ndarray:
         """Return normalized bounding box coordinates relative to the original image size.
 
@@ -1145,8 +1133,7 @@ class Boxes(BaseTensor):
         xyxy[..., [1, 3]] /= self.orig_shape[0]
         return xyxy
 
-    @property
-    @lru_cache(maxsize=2)
+    @cached_property
     def xywhn(self) -> torch.Tensor | np.ndarray:
         """Return normalized bounding boxes in [x, y, width, height] format.
 
@@ -1207,8 +1194,7 @@ class Masks(BaseTensor):
             masks = masks[None, :]
         super().__init__(masks, orig_shape)
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def xyn(self) -> list[np.ndarray]:
         """Return normalized xy-coordinates of the segmentation masks.
 
@@ -1231,8 +1217,7 @@ class Masks(BaseTensor):
             for x in ops.masks2segments(self.data)
         ]
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def xy(self) -> list[np.ndarray]:
         """Return the [x, y] pixel coordinates for each segment in the mask tensor.
 
@@ -1303,8 +1288,7 @@ class Keypoints(BaseTensor):
         super().__init__(keypoints, orig_shape)
         self.has_visible = self.data.shape[-1] == 3
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def xy(self) -> torch.Tensor | np.ndarray:
         """Return x, y coordinates of keypoints.
 
@@ -1325,8 +1309,7 @@ class Keypoints(BaseTensor):
         """
         return self.data[..., :2]
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def xyn(self) -> torch.Tensor | np.ndarray:
         """Return normalized coordinates (x, y) of keypoints relative to the original image size.
 
@@ -1346,8 +1329,7 @@ class Keypoints(BaseTensor):
         xy[..., 1] /= self.orig_shape[0]
         return xy
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def conf(self) -> torch.Tensor | np.ndarray | None:
         """Return confidence values for each keypoint.
 
@@ -1410,8 +1392,7 @@ class Probs(BaseTensor):
         """
         super().__init__(probs, orig_shape)
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def top1(self) -> int:
         """Return the index of the class with the highest probability.
 
@@ -1425,8 +1406,7 @@ class Probs(BaseTensor):
         """
         return int(self.data.argmax())
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def top5(self) -> list[int]:
         """Return the indices of the top 5 class probabilities.
 
@@ -1440,8 +1420,7 @@ class Probs(BaseTensor):
         """
         return (-self.data).argsort(0)[:5].tolist()  # this way works with both torch and numpy.
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def top1conf(self) -> torch.Tensor | np.ndarray:
         """Return the confidence score of the highest probability class.
 
@@ -1459,8 +1438,7 @@ class Probs(BaseTensor):
         """
         return self.data[self.top1]
 
-    @property
-    @lru_cache(maxsize=1)
+    @cached_property
     def top5conf(self) -> torch.Tensor | np.ndarray:
         """Return confidence scores for the top 5 classification predictions.
 
@@ -1550,6 +1528,11 @@ class OBB(BaseTensor):
             >>> xywhr = obb.xywhr
             >>> print(xywhr.shape)
             torch.Size([3, 5])
+
+        Notes:
+            Predictions are not canonicalized to the long-edge convention that training labels use, so width may be
+            smaller than height with the rotation measured from the short edge. Use `xyxyxyxy` when only the geometry
+            matters, or `ops.xyxyxyxy2xywhr(obb.xyxyxyxy)` for the canonical form.
         """
         return self.data[:, :5]
 
@@ -1607,15 +1590,14 @@ class OBB(BaseTensor):
         """
         return self.data[:, -3] if self.is_track else None
 
-    @property
-    @lru_cache(maxsize=2)
+    @cached_property
     def xyxyxyxy(self) -> torch.Tensor | np.ndarray:
         """Convert OBB format to 8-point (xyxyxyxy) coordinate format for rotated bounding boxes.
 
         Returns:
             (torch.Tensor | np.ndarray): Rotated bounding boxes in xyxyxyxy format with shape (N, 4, 2), where N is the
-                number of boxes. Each box is represented by 4 points (x, y), starting from the top-left corner and
-                moving clockwise.
+                number of boxes. The 4 points (x, y) are wound counter-clockwise as rendered, starting from the corner
+                at +w/2, +h/2 in the box frame, so which image corner comes first follows the rotation.
 
         Examples:
             >>> obb = OBB(torch.tensor([[100, 100, 50, 30, 0.5, 0.9, 0]]), orig_shape=(640, 640))
@@ -1625,8 +1607,7 @@ class OBB(BaseTensor):
         """
         return ops.xywhr2xyxyxyxy(self.xywhr)
 
-    @property
-    @lru_cache(maxsize=2)
+    @cached_property
     def xyxyxyxyn(self) -> torch.Tensor | np.ndarray:
         """Convert rotated bounding boxes to normalized xyxyxyxy format.
 
@@ -1646,8 +1627,7 @@ class OBB(BaseTensor):
         xyxyxyxyn[..., 1] /= self.orig_shape[0]
         return xyxyxyxyn
 
-    @property
-    @lru_cache(maxsize=2)
+    @cached_property
     def xyxy(self) -> torch.Tensor | np.ndarray:
         """Convert oriented bounding boxes (OBB) to axis-aligned bounding boxes in xyxy format.
 

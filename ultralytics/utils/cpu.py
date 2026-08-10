@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import ctypes
 import platform
 import re
-import subprocess
 import sys
 from pathlib import Path
 
@@ -18,15 +18,34 @@ class CPUInfo:
 
     Methods:
         name: Return the normalized CPU name using platform-specific sources with robust fallbacks.
+        _sysctl: Read a macOS sysctl string through libc.
         _clean: Normalize and prettify common vendor brand strings and frequency patterns.
         __str__: Return the normalized CPU name for string contexts.
 
     Examples:
-        >>> CPUInfo.name()
-        'Apple M4 Pro'
-        >>> str(CPUInfo())
-        'Intel Core i7-9750H 2.60GHz'
+        >>> name = CPUInfo.name()
+        >>> text = str(CPUInfo())
     """
+
+    @staticmethod
+    def _sysctl(key: str) -> str:
+        """Read a macOS sysctl string through libc, since spawning `sysctl` costs milliseconds."""
+        libc = ctypes.CDLL(None)
+        libc.sysctlbyname.restype = ctypes.c_int
+        libc.sysctlbyname.argtypes = [
+            ctypes.c_char_p,
+            ctypes.c_void_p,
+            ctypes.POINTER(ctypes.c_size_t),
+            ctypes.c_void_p,
+            ctypes.c_size_t,
+        ]
+        name, n = key.encode(), ctypes.c_size_t(0)
+        if libc.sysctlbyname(name, None, ctypes.byref(n), None, 0) or not n.value:  # size probe
+            return ""
+        buf = ctypes.create_string_buffer(n.value)
+        if libc.sysctlbyname(name, buf, ctypes.byref(n), None, 0):
+            return ""
+        return buf.value.decode(errors="ignore").strip()
 
     @staticmethod
     def name() -> str:
@@ -34,18 +53,18 @@ class CPUInfo:
         try:
             if sys.platform == "darwin":
                 # Query macOS sysctl for the CPU brand string
-                s = subprocess.run(
-                    ["sysctl", "-n", "machdep.cpu.brand_string"], capture_output=True, text=True
-                ).stdout.strip()
+                s = CPUInfo._sysctl("machdep.cpu.brand_string")
                 if s:
                     return CPUInfo._clean(s)
             elif sys.platform.startswith("linux"):
-                # Parse /proc/cpuinfo for the first "model name" entry
+                # Parse /proc/cpuinfo for the first "model name" entry, streaming since a many-core host
+                # repeats a full block per logical CPU and only the first is needed
                 p = Path("/proc/cpuinfo")
                 if p.exists():
-                    for line in p.read_text(errors="ignore").splitlines():
-                        if "model name" in line:
-                            return CPUInfo._clean(line.split(":", 1)[1])
+                    with p.open(errors="ignore") as f:
+                        for line in f:
+                            if "model name" in line:
+                                return CPUInfo._clean(line.split(":", 1)[1])
             elif sys.platform.startswith("win"):
                 try:
                     import winreg as wr

@@ -156,7 +156,7 @@ class HGBlock(nn.Module):
         n: int = 6,
         lightconv: bool = False,
         shortcut: bool = False,
-        act: nn.Module = nn.ReLU(),
+        act: nn.Module | None = None,
     ):
         """Initialize HGBlock with specified parameters.
 
@@ -171,6 +171,7 @@ class HGBlock(nn.Module):
             act (nn.Module): Activation function.
         """
         super().__init__()
+        act = nn.ReLU() if act is None else act
         block = LightConv if lightconv else Conv
         self.m = nn.ModuleList(block(c1 if i == 0 else cm, cm, k=k, act=act) for i in range(n))
         self.sc = Conv(c1 + n * cm, c2 // 2, 1, 1, act=act)  # squeeze conv
@@ -1485,7 +1486,7 @@ class C2PSA(nn.Module):
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
         self.cv2 = Conv(2 * self.c, c1, 1)
 
-        self.m = nn.Sequential(*(PSABlock(self.c, attn_ratio=0.5, num_heads=self.c // 64) for _ in range(n)))
+        self.m = nn.Sequential(*(PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1)) for _ in range(n)))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Process the input tensor through a series of PSA blocks.

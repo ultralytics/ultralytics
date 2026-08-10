@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import contextlib
 import pickle
 import re
@@ -119,7 +121,6 @@ from ultralytics.utils.loss import (
 )
 from ultralytics.utils.ops import make_divisible
 from ultralytics.utils.patches import torch_load
-from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (
     fuse_conv_and_bn,
     fuse_deconv_and_bn,
@@ -174,13 +175,12 @@ class BaseModel(torch.nn.Module):
             return self.loss(x, *args, **kwargs)
         return self.predict(x, *args, **kwargs)
 
-    def predict(self, x, profile=False, visualize=False, augment=False, embed=None):
+    def predict(self, x, profile=False, augment=False, embed=None):
         """Perform a forward pass through the network.
 
         Args:
             x (torch.Tensor): The input tensor to the model.
             profile (bool): Print the computation time of each layer if True.
-            visualize (bool): Save the feature maps of the model if True.
             augment (bool): Augment image during prediction.
             embed (list, optional): A list of layer indices to return embeddings from.
 
@@ -189,15 +189,14 @@ class BaseModel(torch.nn.Module):
         """
         if augment:
             return self._predict_augment(x)
-        return self._predict_once(x, profile, visualize, embed)
+        return self._predict_once(x, profile, embed)
 
-    def _predict_once(self, x, profile=False, visualize=False, embed=None):
+    def _predict_once(self, x, profile=False, embed=None):
         """Perform a forward pass through the network.
 
         Args:
             x (torch.Tensor): The input tensor to the model.
             profile (bool): Print the computation time of each layer if True.
-            visualize (bool): Save the feature maps of the model if True.
             embed (list, optional): A list of layer indices to return embeddings from.
 
         Returns:
@@ -213,8 +212,6 @@ class BaseModel(torch.nn.Module):
                 self._profile_one_layer(m, x, dt)
             x = m(x)  # run
             y.append(x if m.i in self.save else None)  # save output
-            if visualize:
-                feature_visualization(x, m.type, m.i, save_dir=visualize)
             if m.i in embed:
                 embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
                 if m.i == max_idx:
@@ -243,23 +240,24 @@ class BaseModel(torch.nn.Module):
             thop = None  # conda support without 'ultralytics-thop' installed
 
         c = m == self.model[-1] and isinstance(x, list)  # is final layer list, copy input as inplace fix
-        # profile a copy: thop leaves float64 total_ops/total_params buffers on modules, incl. the shared default_act
-        flops = thop.profile(deepcopy(m), inputs=[x.copy() if c else x], verbose=False)[0] / 1e9 * 2 if thop else 0
-        t = time_sync()
+        flops = thop.profile(m, inputs=[x.copy() if c else x], verbose=False)[0] / 1e9 * 2 if thop else 0
+        device = next(self.parameters()).device
+        t = time_sync(device)
         for _ in range(10):
             m(x.copy() if c else x)
-        dt.append((time_sync() - t) * 100)
+        dt.append((time_sync(device) - t) * 100)
         if m == self.model[0]:
             LOGGER.info(f"{'time (ms)':>10s} {'GFLOPs':>10s} {'params':>10s}  module")
         LOGGER.info(f"{dt[-1]:10.2f} {flops:10.2f} {m.np:10.0f}  {m.type}")
         if c:
             LOGGER.info(f"{sum(dt):10.2f} {'-':>10s} {'-':>10s}  Total")
 
-    def fuse(self, verbose=True):
+    def fuse(self, verbose=True, imgsz=640):
         """Fuse Conv/ConvTranspose and BatchNorm layers, and reparameterize RepConv/RepVGGDW for improved efficiency.
 
         Args:
             verbose (bool): Whether to print model information after fusion.
+            imgsz (int | list): Input image size used for FLOPs calculation.
 
         Returns:
             (torch.nn.Module): The fused model is returned.
@@ -284,7 +282,7 @@ class BaseModel(torch.nn.Module):
                     m.forward = m.forward_fuse
                 if isinstance(m, Detect) and getattr(m, "end2end", False):
                     m.fuse()  # remove one2many head
-            self.info(verbose=verbose)
+            self.info(verbose=verbose, imgsz=imgsz)
 
         return self
 
@@ -319,7 +317,7 @@ class BaseModel(torch.nn.Module):
         Returns:
             (BaseModel): An updated BaseModel object.
         """
-        self = super()._apply(fn)
+        super()._apply(fn)
         m = self.model[-1]  # Detect()
         if isinstance(
             m, Detect
@@ -358,7 +356,7 @@ class BaseModel(torch.nn.Module):
         if verbose:
             LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")
 
-    def _remap_cls_by_names(self, csd, src_model, verbose=True):
+    def _remap_cls_by_names(self, csd: dict[str, torch.Tensor], src_model: torch.nn.Module, verbose: bool = True):
         """Remap pretrained classification head rows to current class order by name.
 
         Copies rows from pretrained cls layers into the current model's state_dict where the destination class name
@@ -747,7 +745,7 @@ class SemanticSegmentationModel(BaseModel):
 
     def _apply(self, fn):
         """Apply a function to all tensors in the model."""
-        self = super()._apply(fn)
+        super()._apply(fn)
         m = self.model[-1]
         if isinstance(m, SemanticSegment):
             m.stride = fn(m.stride)
@@ -792,7 +790,7 @@ class PoseModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the PoseModel."""
-        loss = PoseLoss26 if self.end2end or isinstance(self.model[-1], Pose26) else v8PoseLoss
+        loss = PoseLoss26 if isinstance(self.model[-1], Pose26) else v8PoseLoss
         return E2ELoss(self, loss) if self.end2end else loss(self)
 
 
@@ -942,6 +940,56 @@ class RTDETRDetectionModel(DetectionModel):
         """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
+    def _remap_cls_by_names(self, csd: dict[str, torch.Tensor], src_model: torch.nn.Module, verbose: bool = True):
+        """Remap RT-DETR decoder cls-head rows by class name.
+
+        Overrides BaseModel's YOLO-specific implementation: RT-DETR's classification tensors live under
+        `score_head` and `class_embed` inside `RTDETRDecoder` rather than `Detect.cv3`. All of them are
+        row-per-class, including the training-only `denoising_class_embed` embedding, so matched class rows
+        transfer even when source and target `nc` differ; any residual shape mismatch is dropped by
+        `intersect_dicts`.
+
+        Args:
+            csd (dict): Pretrained checkpoint state_dict (will be mutated).
+            src_model (torch.nn.Module): Pretrained module, used to read `.names`.
+            verbose (bool): Log mapping summary.
+
+        Returns:
+            (int): Number of cls tensors remapped (counted toward "Transferred" log line).
+        """
+        src_names = getattr(src_model, "names", None)
+        tgt_names = getattr(self, "names", None)
+        if not (isinstance(src_names, dict) and isinstance(tgt_names, dict)):
+            return 0
+        # Skip default placeholder names {0:"0", 1:"1", ...} (also catches empty dicts)
+        if any(all(str(k) == str(v) for k, v in n.items()) for n in (src_names, tgt_names)):
+            return 0
+
+        src_lookup = {str(v).strip().lower(): k for k, v in src_names.items()}
+        tgt_nc = len(tgt_names)
+        idx = torch.tensor(
+            [src_lookup.get(str(tgt_names[k]).strip().lower(), -1) for k in range(tgt_nc)], dtype=torch.long
+        )
+        n_match = int((idx >= 0).sum())
+        # Skip if nothing matches, or class names already share order and count (intersect_dicts handles it directly)
+        if n_match == 0 or (len(src_names) == tgt_nc and torch.equal(idx, torch.arange(tgt_nc))):
+            return 0
+
+        valid = idx >= 0
+        state_dict = self.state_dict()
+        cls_keys = {k for k in csd if ("score_head" in k or "class_embed" in k) and k in state_dict}
+        remapped = 0
+        for k in cls_keys:
+            v_src, v_tgt = csd[k], state_dict[k]
+            if v_src.ndim != v_tgt.ndim or v_src.shape[1:] != v_tgt.shape[1:]:
+                continue
+            v_tgt[valid] = v_src[idx[valid]].to(v_tgt.dtype)
+            csd.pop(k)  # prevent intersect_dicts from copying these rows in the wrong (source) order
+            remapped += 1
+        if verbose and remapped:
+            LOGGER.info(f"Remapped {n_match}/{tgt_nc} decoder cls head rows from pretrained weights by class name")
+        return remapped
+
     def _apply(self, fn):
         """Apply a function to all tensors in the model, including decoder anchors and valid mask.
 
@@ -951,7 +999,7 @@ class RTDETRDetectionModel(DetectionModel):
         Returns:
             (RTDETRDetectionModel): An updated RTDETRDetectionModel object.
         """
-        self = super()._apply(fn)
+        super()._apply(fn)
         m = self.model[-1]
         m.anchors = fn(m.anchors)
         m.valid_mask = fn(m.valid_mask)
@@ -1011,13 +1059,12 @@ class RTDETRDetectionModel(DetectionModel):
             "l1_loss": loss["loss_bbox"].detach(),
         }
 
-    def predict(self, x, profile=False, visualize=False, batch=None, augment=False, embed=None):
+    def predict(self, x, profile=False, batch=None, augment=False, embed=None):
         """Perform a forward pass through the model.
 
         Args:
             x (torch.Tensor): The input tensor.
             profile (bool): If True, profile the computation time for each layer.
-            visualize (bool): If True, save feature maps for visualization.
             batch (dict, optional): Ground truth data for evaluation.
             augment (bool): If True, perform data augmentation during inference.
             embed (list, optional): A list of layer indices to return embeddings from.
@@ -1035,8 +1082,6 @@ class RTDETRDetectionModel(DetectionModel):
                 self._profile_one_layer(m, x, dt)
             x = m(x)  # run
             y.append(x if m.i in self.save else None)  # save output
-            if visualize:
-                feature_visualization(x, m.type, m.i, save_dir=visualize)
             if m.i in embed:
                 embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
                 if m.i == max_idx:
@@ -1117,13 +1162,12 @@ class WorldModel(DetectionModel):
         txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)
         return txt_feats.reshape(-1, len(text), txt_feats.shape[-1])
 
-    def predict(self, x, profile=False, visualize=False, txt_feats=None, augment=False, embed=None):
+    def predict(self, x, profile=False, txt_feats=None, augment=False, embed=None):
         """Perform a forward pass through the model.
 
         Args:
             x (torch.Tensor): The input tensor.
             profile (bool): If True, profile the computation time for each layer.
-            visualize (bool): If True, save feature maps for visualization.
             txt_feats (torch.Tensor, optional): The text features, use it if it's given.
             augment (bool): If True, perform data augmentation during inference.
             embed (list, optional): A list of layer indices to return embeddings from.
@@ -1153,8 +1197,6 @@ class WorldModel(DetectionModel):
                 x = m(x)  # run
 
             y.append(x if m.i in self.save else None)  # save output
-            if visualize:
-                feature_visualization(x, m.type, m.i, save_dir=visualize)
             if m.i in embed:
                 embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
                 if m.i == max_idx:
@@ -1226,11 +1268,13 @@ class YOLOEModel(DetectionModel):
             without_reprta (bool): Whether to return text embeddings without reprta module processing.
 
         Returns:
-            (torch.Tensor): Text positional embeddings.
+            (torch.Tensor): Text positional embeddings in the model's parameter dtype.
         """
         from ultralytics.nn.text_model import build_text_model
 
-        device = next(self.model.parameters()).device
+        assert len(text), f"Expected at least one class name, but got {text}"
+        param = next(self.model.parameters())
+        device = param.device
         if not getattr(self, "clip_model", None) and cache_clip_model:
             # For backwards compatibility of models lacking clip_model attribute
             self.clip_model = build_text_model(getattr(self, "text_model", "mobileclip:blt"), device=device)
@@ -1243,7 +1287,7 @@ class YOLOEModel(DetectionModel):
         text_token = model.tokenize(text)
         txt_feats = [model.encode_text(token).detach() for token in text_token.split(batch)]
         txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)
-        txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1])
+        txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1]).to(param.dtype)  # CLIP always emits float32
         if without_reprta:
             return txt_feats
 
@@ -1274,10 +1318,11 @@ class YOLOEModel(DetectionModel):
         assert not self.training
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
+        names = check_class_names(names)  # validate before the re-parameterization below, which cannot be undone
 
         # Cache anchors for head
-        device = next(self.parameters()).device
-        self(torch.empty(1, 3, self.args["imgsz"], self.args["imgsz"]).to(device))  # warmup
+        with torch.no_grad():  # a tracked warmup would build a graph through the backbone
+            self(next(self.parameters()).new_empty(1, 3, self.args["imgsz"], self.args["imgsz"]))  # warmup
 
         cv3 = getattr(head, "one2one_cv3", head.cv3)
         cv2 = getattr(head, "one2one_cv2", head.cv2)
@@ -1286,13 +1331,13 @@ class YOLOEModel(DetectionModel):
         self.model[-1].lrpc = nn.ModuleList(
             LRPCHead(cls, pf[-1], loc[-1], enabled=i != 2) for i, (cls, pf, loc) in enumerate(zip(vocab, cv3, cv2))
         )
-        for loc_head, cls_head in zip(head.cv2, head.cv3):
+        for loc_head, cls_head in zip(cv2, cv3):  # the branches lrpc was built from, one2one when end2end
             assert isinstance(loc_head, nn.Sequential)
             assert isinstance(cls_head, nn.Sequential)
             del loc_head[-1]
             del cls_head[-1]
         self.model[-1].nc = len(names)
-        self.names = check_class_names(names)
+        self.names = names
 
     def get_vocab(self, names):
         """Get fused vocabulary layer from the model.
@@ -1307,6 +1352,7 @@ class YOLOEModel(DetectionModel):
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
         assert not head.is_fused
+        names = list(check_class_names(names).values())  # validate before fusing the head, which cannot be undone
 
         tpe = self.get_text_pe(names)
         self.set_classes(names, tpe)
@@ -1331,9 +1377,9 @@ class YOLOEModel(DetectionModel):
             "Prompt-free model does not support setting classes. Please try with Text/Visual prompt models."
         )
         assert embeddings.ndim == 3
+        self.names = check_class_names(names)  # validate before any state is written
         self.pe = embeddings
         self.model[-1].nc = len(names)
-        self.names = check_class_names(names)
 
     def get_cls_pe(self, tpe, vpe):
         """Get class positional embeddings.
@@ -1356,15 +1402,12 @@ class YOLOEModel(DetectionModel):
             all_pe.append(getattr(self, "pe", torch.zeros(1, 80, 512)))
         return torch.cat(all_pe, dim=1)
 
-    def predict(
-        self, x, profile=False, visualize=False, tpe=None, augment=False, embed=None, vpe=None, return_vpe=False
-    ):
+    def predict(self, x, profile=False, tpe=None, augment=False, embed=None, vpe=None, return_vpe=False):
         """Perform a forward pass through the model.
 
         Args:
             x (torch.Tensor): The input tensor.
             profile (bool): If True, profile the computation time for each layer.
-            visualize (bool): If True, save feature maps for visualization.
             tpe (torch.Tensor, optional): Text positional embeddings.
             augment (bool): If True, perform data augmentation during inference.
             embed (list, optional): A list of layer indices to return embeddings from.
@@ -1396,8 +1439,6 @@ class YOLOEModel(DetectionModel):
             x = m(x)  # run
 
             y.append(x if m.i in self.save else None)  # save output
-            if visualize:
-                feature_visualization(x, m.type, m.i, save_dir=visualize)
             if m.i in embed:
                 embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
                 if m.i == max_idx:
@@ -1498,20 +1539,19 @@ class Ensemble(torch.nn.ModuleList):
         """Initialize an ensemble of models."""
         super().__init__()
 
-    def forward(self, x, augment=False, profile=False, visualize=False):
+    def forward(self, x, augment=False, profile=False):
         """Run ensemble forward pass and concatenate predictions from all models.
 
         Args:
             x (torch.Tensor): Input tensor.
             augment (bool): Whether to augment the input.
             profile (bool): Whether to profile the model.
-            visualize (bool): Whether to visualize the features.
 
         Returns:
             (torch.Tensor): Concatenated predictions from all models.
             (None): Always None for ensemble inference.
         """
-        y = [module(x, augment, profile, visualize)[0] for module in self]
+        y = [module(x, augment, profile)[0] for module in self]
         # y = torch.stack(y).max(0)[0]  # max ensemble
         # y = torch.stack(y).mean(0)  # mean ensemble
         y = torch.cat(y, 2)  # nms ensemble, y shape(B, HW, C*num_models)
@@ -1651,7 +1691,7 @@ class _SafeLoad:
         import torch.nn.modules as torch_nn
 
         import ultralytics.nn.modules as ul_nn
-        import ultralytics.nn.tasks as ul_tasks
+        from ultralytics.nn import tasks as ul_tasks  # noqa: PLW0406
 
         allow = []
 
@@ -1661,7 +1701,7 @@ class _SafeLoad:
                 for info in pkgutil.iter_modules(pkg.__path__, f"{pkg.__name__}."):
                     try:
                         mods.append(importlib.import_module(info.name))
-                    except Exception:  # optional/oddball submodule — skip
+                    except Exception:  # noqa: S112  # optional/oddball submodule — skip
                         continue
             for mod in mods:
                 for name, klass in inspect.getmembers(mod, inspect.isclass):
@@ -1769,14 +1809,42 @@ def torch_safe_load(weight, safe_only=None):
                     return torch_load(file, map_location="cpu", weights_only=True)
             return torch_load(file, map_location="cpu")
 
+    # weights_only=True raises on a TorchScript archive; the default path returns a ScriptModule instead.
+    torchscript_error = emojis(
+        f"ERROR ❌️ {weight} is a TorchScript archive, not an Ultralytics PyTorch checkpoint.\n"
+        f"Load the original .pt weights, or export again with format='torchscript' and load that file directly."
+    )
+
     try:
         ckpt = _load()
 
-    except RuntimeError as e:
+    except (RuntimeError, EOFError, pickle.UnpicklingError) as e:
+        # An unreadable file reaches the loader as one of three internal errors depending on how it is damaged:
+        # RuntimeError for a truncated zip, EOFError for an empty one, UnpicklingError for bytes that are not a
+        # pickle at all (an image or archive renamed .pt). They are one user-facing condition, so they share one
+        # handler and one message.
+        if isinstance(e, RuntimeError) and "TorchScript archive" in str(e):
+            raise TypeError(torchscript_error) from e
+        if isinstance(e, RuntimeError) and "PytorchStreamReader" not in str(e):
+            raise  # an unrelated RuntimeError is a real failure, not a damaged file
+        if safe_only and isinstance(e, pickle.UnpicklingError):
+            # weights_only=True refused a global outside the allow-list: a format problem, not a damaged file
+            raise TypeError(
+                emojis(
+                    f"ERROR ❌️ {weight} references types outside the supported Ultralytics checkpoint format. "
+                    f"Use an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
+                )
+            ) from e
         # Recover only a corrupt cached official asset requested by bare name; never touch user-supplied paths.
         name = Path(str(weight)).name
-        if "PytorchStreamReader" not in str(e) or str(weight) != name or name not in GITHUB_ASSETS_NAMES:
-            raise
+        if str(weight) != name or name not in GITHUB_ASSETS_NAMES:
+            raise TypeError(
+                emojis(
+                    f"ERROR ❌️ {weight} is not a loadable checkpoint — the file is empty, truncated or corrupted "
+                    f"({type(e).__name__}: {e}).\nRecommend fixes are to re-download or re-export the file, or to "
+                    f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
+                )
+            ) from e
         LOGGER.warning(f"Corrupt cache {file}, re-downloading {weight}...")
         Path(file).unlink(missing_ok=True)
         file = attempt_download_asset(weight)
@@ -1820,17 +1888,8 @@ def torch_safe_load(weight, safe_only=None):
         check_requirements(e.name)  # install missing module
         ckpt = torch_load(file, map_location="cpu")
 
-    except pickle.UnpicklingError as e:
-        # weights_only=True encountered a global outside the allow-list. The default (weights_only=False) path can also
-        # raise this for a corrupt or legacy file, so re-raise verbatim there to preserve existing behavior.
-        if not safe_only:
-            raise
-        raise TypeError(
-            emojis(
-                f"ERROR ❌️ {weight} references types outside the supported Ultralytics checkpoint format. "
-                f"Use an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
-            )
-        ) from e
+    if isinstance(ckpt, torch.jit.ScriptModule):
+        raise TypeError(torchscript_error)  # default path: torch.load dispatched to torch.jit.load and succeeded
 
     if not isinstance(ckpt, dict):
         # File is likely a YOLO instance saved with i.e. torch.save(model, "saved_model.pt")

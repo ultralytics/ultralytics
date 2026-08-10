@@ -12,7 +12,7 @@ The Roboflow integration imports every supported dataset in your Roboflow worksp
 
 ## Import from Roboflow
 
-1. Go to **Settings > [Integrations](index.md)** and find the **Roboflow** card.
+1. Go to **Settings > [Integrations](index.md)** and select **Roboflow** from the integration list.
 2. Paste your **Roboflow API Key** and click **Import**.
 3. Review the **Import from Roboflow** preview dialog, which lists:
     - **New datasets** that will be imported
@@ -21,8 +21,7 @@ The Roboflow integration imports every supported dataset in your Roboflow worksp
     - Storage required, checked against your remaining storage
 4. Click **Import** to start.
 
-![Ultralytics Platform Settings Integrations Roboflow Import Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-integrations-roboflow-import-dialog.avif)
-
+![Ultralytics Platform Settings Integrations Roboflow Import Dialog](https://cdn.ul.run/i/7eaadb8f6bb5bbcd57a6d46f89c524f1.avif)<!-- screenshot -->
 Imported datasets appear in your [Datasets](../data/datasets.md) list immediately with a `processing` status and become ready once their images and annotations finish importing.
 
 ## Supported Task Types
@@ -33,8 +32,8 @@ Roboflow projects are mapped to the matching [YOLO task type](../data/index.md#s
 | --------------------------- | -------------------------------------------- |
 | Object Detection            | [Detect](../../datasets/detect/index.md)     |
 | Instance Segmentation       | [Segment](../../datasets/segment/index.md)   |
-| Keypoint Detection          | [Pose](../../datasets/pose/index.md)         |
 | Single-Label Classification | [Classify](../../datasets/classify/index.md) |
+| Keypoint Detection          | [Pose](../../datasets/pose/index.md)         |
 
 !!! note "Where to find your Roboflow API key"
 

@@ -121,17 +121,20 @@ def increment_path(path: str | Path, exist_ok: bool = False, sep: str = "-", mkd
 
     Examples:
         Increment a directory path:
+        >>> import tempfile
         >>> from pathlib import Path
-        >>> path = Path("runs/exp")
-        >>> new_path = increment_path(path)
-        >>> print(new_path)
-        runs/exp-2
+        >>> with tempfile.TemporaryDirectory() as tmp:
+        ...     exp = Path(tmp) / "exp"
+        ...     exp.mkdir()
+        ...     increment_path(exp).name
+        'exp-2'
 
         Increment a file path:
-        >>> path = Path("runs/exp/results.txt")
-        >>> new_path = increment_path(path)
-        >>> print(new_path)
-        runs/exp/results-2.txt
+        >>> with tempfile.TemporaryDirectory() as tmp:
+        ...     results = Path(tmp) / "results.txt"
+        ...     results.touch()
+        ...     increment_path(results).name
+        'results-2.txt'
     """
     path = Path(path)  # os-agnostic
     if path.exists() and not exist_ok:
@@ -152,13 +155,13 @@ def increment_path(path: str | Path, exist_ok: bool = False, sep: str = "-", mkd
 
 def file_age(path: str | Path = __file__) -> int:
     """Return days since the last modification of the specified file."""
-    dt = datetime.now() - datetime.fromtimestamp(Path(path).stat().st_mtime)  # delta
+    dt = datetime.now().astimezone() - datetime.fromtimestamp(Path(path).stat().st_mtime).astimezone()  # delta
     return dt.days  # + dt.seconds / 86400  # fractional days
 
 
 def file_date(path: str | Path = __file__) -> str:
     """Return the file modification date in 'YYYY-M-D' format."""
-    t = datetime.fromtimestamp(Path(path).stat().st_mtime)
+    t = datetime.fromtimestamp(Path(path).stat().st_mtime).astimezone()
     return f"{t.year}-{t.month}-{t.day}"
 
 

@@ -131,7 +131,7 @@ pip install ultralytics-opencv-headless
 
 #### HTTP Server
 
-DeepSparse Server runs on top of the popular [FastAPI](https://fastapi.tiangolo.com/) web framework and [Uvicorn](https://uvicorn.dev/) web server. With just a single CLI command, you can easily setup a model service endpoint with DeepSparse. The Server supports any Pipeline from DeepSparse, including [object detection](https://www.ultralytics.com/glossary/object-detection) with YOLOv5, enabling you to send raw images to the endpoint and receive the bounding boxes.
+DeepSparse Server runs on top of the popular [FastAPI](https://fastapi.tiangolo.com/) web framework and [Uvicorn](https://uvicorn.dev/) web server. With just a single CLI command, you can easily set up a model service endpoint with DeepSparse. The Server supports any Pipeline from DeepSparse, including [object detection](https://www.ultralytics.com/glossary/object-detection) with YOLOv5, enabling you to send raw images to the endpoint and receive the bounding boxes.
 
 Spin up the Server with the pruned-quantized YOLOv5s:
 
@@ -145,16 +145,18 @@ An example request, using Python's `requests` package:
 
 ```python
 import json
+from contextlib import ExitStack
 
 import requests
 
 # list of images for inference (local files on client side)
 path = ["basilica.jpg"]
-files = [("request", open(img, "rb")) for img in path]
 
 # send request over HTTP to /predict/from_files endpoint
 url = "http://0.0.0.0:5543/predict/from_files"
-resp = requests.post(url=url, files=files)
+with ExitStack() as stack:
+    files = [("request", stack.enter_context(open(img, "rb"))) for img in path]
+    resp = requests.post(url=url, files=files)
 
 # response is returned in JSON
 annotations = json.loads(resp.text)  # dictionary of annotation results

@@ -266,7 +266,7 @@ class Tuner:
                     "hyperparameters": {k: (v.item() if hasattr(v, "item") else v) for k, v in hyperparameters.items()},
                     "metrics": metrics,
                     "datasets": datasets,
-                    "timestamp": datetime.now(),
+                    "timestamp": datetime.now().astimezone(),
                     "iteration": iteration,
                 }
             )

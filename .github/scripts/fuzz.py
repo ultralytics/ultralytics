@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """Monte Carlo fuzzing of the `yolo` CLI to find bugs outside the finite test matrix.
 
 Runs randomized/mutated `yolo` commands in subprocesses, classifies every outcome (pass, expected cfg error,
@@ -51,7 +50,17 @@ PERSONALITIES = {  # mode-selection weights only; mutation kernel and classifier
     "predict-val": {"train": 0.05, "val": 0.35, "predict": 0.35, "track": 0.2, "export": 0.05},
     "chaos": {m: 0.2 for m in MODES},
 }
-STRATEGY_WEIGHTS = [("invalid", 0.4), ("combo", 0.4), ("source", 0.2)]
+STRATEGY_WEIGHTS = [
+    ("invalid", 0.3),
+    ("combo", 0.3),
+    ("malformed", 0.1),
+    ("model", 0.1),
+    ("source", 0.1),
+    ("dataset", 0.1),
+]
+STRATEGY_MODES = {"source": {"predict", "track"}, "dataset": {"train", "val"}}  # strategies limited to some modes
+RESAMPLE_ATTEMPTS = 20  # draws allowed to find a command no recent run has executed before accepting a repeat
+HISTORY_DAYS = 7  # re-explore a command once its history entry ages past this, so regressions are resampled
 
 # Cost/hazard keys pinned to clamped known-good values, never mutated (`time` is training duration in HOURS)
 NEVER_MUTATE = frozenset(
@@ -62,7 +71,6 @@ NEVER_MUTATE = frozenset(
         "imgsz",
         "batch",
         "workers",
-        "device",
         "source",
         "project",
         "name",
@@ -116,6 +124,9 @@ ENUM_POOLS = {
     "auto_augment": {"valid": ["randaugment", "autoaugment", "augmix"], "invalid": ["randaug", ""]},
     "copy_paste_mode": {"valid": ["flip", "mixup"], "invalid": ["paste", ""]},
     "quantize": {"valid": ["fp16", "w8a8", "none"], "invalid": ["half", "int8_dynamic", "int4"]},
+    # CPU runners make every accelerator request invalid; `mps` is genuinely valid on the macOS shard, so an mps
+    # failure there tiers T2 instead of T1. Accepted: select_device is the layer under test, not the tier.
+    "device": {"valid": ["cpu"], "invalid": ["0,1", "cuda:5", "mps", "-1", "gpu0", "0"]},
 }
 PROBES = {  # boundary and wrong-type probes per typed key family (values are CLI strings)
     "fraction": {"valid": ["0.0", "1.0", "0.5"], "invalid": ["-0.1", "1.5", "half", "True", "none"]},
@@ -124,6 +135,32 @@ PROBES = {  # boundary and wrong-type probes per typed key family (values are CL
     "float": {"valid": ["0.0", "0.1", "10"], "invalid": ["-5", "big", "none"]},
 }
 CHAOS_PROBES = ["[]", "[1,2]", "{}", "🚀", "1e309", "nan", "-0"]  # chaos shard extras for any key, all invalid
+
+# Dataset mutation -> are its contents supported. `data` is otherwise pinned, leaving dataset loading — the
+# largest error surface by affected users in the package's telemetry — entirely unfuzzed. Background-only,
+# grayscale, webp and CRLF inputs ARE supported, so a deep failure on those is a T1 bug rather than a gap.
+DATASET_MUTATIONS = {
+    "baseline": True,
+    "background-only": True,
+    "mixed-background": True,
+    "grayscale": True,
+    "webp": True,
+    "crlf-labels": True,
+    "duplicate-rows": True,
+    "tiny-boxes": True,
+    "single-image": True,
+    "class-index-oob": False,
+    "coords-out-of-range": False,
+    "negative-coords": False,
+    "wrong-columns": False,
+    "nonnumeric": False,
+    "tiny-image": False,
+    "missing-val-key": False,
+    "missing-val-dir": False,
+    "nc-names-mismatch": False,
+    "bad-yaml": False,
+    "empty-train-dir": False,
+}
 
 # Valid-but-rare combinations (mode, extra args) — where the T1 semantic bugs live
 COMBO_POOL = [
@@ -172,12 +209,19 @@ EXPECTED_TYPES = {"SyntaxError", "ValueError", "TypeError", "AssertionError", "F
 EXPECTED_MODULES = (
     "ultralytics/cfg/__init__.py",
     "ultralytics/utils/checks.py",
+    "ultralytics/utils/torch_utils.py:select_device",  # the device-validation layer; its ValueError is intentional
     "ultralytics/data/utils.py",
     "ultralytics/data/augment.py:classify_augmentations",
     "ultralytics/data/loaders.py:__init__",  # source loaders ARE the source-validation layer; their raises are clean
+    "ultralytics/data/base.py:get_img_files",  # the image-discovery validation layer
+    "ultralytics/data/dataset.py:cache_labels",  # raises the clean "No labels found" summary; get_labels does not
     "ultralytics/engine/trainer.py:_build_train_pipeline",  # actual train batch/imgsz validation before optimizer setup
+    "ultralytics/engine/model.py:_check_is_pytorch_model",  # only ever raises its intentional wrong-format error
     "ultralytics/engine/exporter.py:validate_args",  # exporter's intentional per-format argument validation
     "ultralytics/engine/exporter.py:__call__",  # intentional compat asserts; per-format bugs raise in deeper frames
+    "ultralytics/nn/autobackend.py:__init__",  # the format dispatcher; per-backend bugs raise in deeper frames
+    "ultralytics/nn/tasks.py:torch_safe_load",  # the checkpoint-readability layer; loader errors raise deeper
+    "ultralytics/nn/backends/onnx.py:load_model",  # raises the intentional unparseable-graph error
 )
 NETWORK_MARKERS = (  # specific download/network signatures only; bare ConnectionError is raised for local sources too
     "urlopen error",
@@ -235,6 +279,93 @@ def precache_assets(uni):
         attempt_download_asset(WEIGHTS_DIR / model)
 
     prepare_sources(uni)
+    prepare_datasets(uni)
+    prepare_models(uni)
+
+
+def prepare_models(uni):
+    """Create the corrupt and foreign model files used by model trials, derived from a cached corpus weight.
+
+    `model` is otherwise pinned, so checkpoint loading went unfuzzed even though corrupt and wrong-format checkpoints
+    are a top error surface in the package's telemetry. Every entry here is an unsupported input.
+    """
+    from ultralytics.utils import ASSETS, WEIGHTS_DIR
+    from ultralytics.utils.downloads import attempt_download_asset
+
+    root = WEIGHTS_DIR.parent / "fuzz-models"
+    root.mkdir(parents=True, exist_ok=True)
+    good = Path(attempt_download_asset(WEIGHTS_DIR / uni["task2model"]["detect"])).read_bytes()
+    image = (ASSETS / "bus.jpg").read_bytes()
+    blobs = {
+        "truncated.pt": good[: len(good) // 2],  # the "failed finding central directory" class of corruption
+        "empty.pt": b"",
+        "random-bytes.pt": bytes(range(256)) * 64,
+        "image-as-pt.pt": image,
+        "garbage.onnx": b"not an onnx graph" * 100,  # right suffix, wrong contents
+        "image.jpg": image,  # a real image passed as model=, which autobackend rejects on format
+    }
+    for name, blob in blobs.items():
+        (root / name).write_bytes(blob)
+    uni["models"] = [str(root / name) for name in blobs]
+
+
+def prepare_datasets(uni):
+    """Create the synthetic detect datasets used by dataset trials, one directory per mutation."""
+    from ultralytics.utils import WEIGHTS_DIR
+
+    root = WEIGHTS_DIR.parent / "fuzz-datasets"
+    uni["datasets"] = [(str(make_dataset(root / name, name)), valid) for name, valid in DATASET_MUTATIONS.items()]
+
+
+def make_dataset(root, mutation):
+    """Build one synthetic detect dataset under root and return the path to its YAML.
+
+    Generated entirely on disk with no downloads, so the whole pool is a few KB of 64px images against the multi-MB
+    curated corpora. Each mutation reproduces a failure signature users actually hit.
+    """
+    from PIL import Image
+
+    shutil.rmtree(root, ignore_errors=True)
+    extension = "webp" if mutation == "webp" else "jpg"
+    image_mode = "L" if mutation == "grayscale" else "RGB"
+    size = (8, 8) if mutation == "tiny-image" else (64, 64)  # the loader requires >9px, so 8px is a rejection
+    rows = {  # label file contents; anything unlisted gets one well-formed box
+        "class-index-oob": "22 0.5 0.5 0.2 0.2",  # "Label class 22 exceeds dataset class count 1"
+        "coords-out-of-range": "0 1.5 0.5 0.2 0.2",
+        "negative-coords": "0 -0.5 0.5 0.2 0.2",
+        "wrong-columns": "0 0.5 0.5",
+        "nonnumeric": "cat 0.5 0.5 0.2 0.2",
+        "duplicate-rows": "0 0.5 0.5 0.2 0.2\n0 0.5 0.5 0.2 0.2",
+        "tiny-boxes": "0 0.5 0.5 0.0001 0.0001",
+        "background-only": "",
+    }.get(mutation, "0 0.5 0.5 0.2 0.2")
+    if mutation == "crlf-labels":
+        rows = rows.replace("\n", "\r\n") + "\r\n"
+    count = 1 if mutation == "single-image" else 4
+    for split in ("train", "val"):
+        images, labels = root / "images" / split, root / "labels" / split
+        images.mkdir(parents=True, exist_ok=True)
+        labels.mkdir(parents=True, exist_ok=True)
+        if mutation == "empty-train-dir" and split == "train":
+            continue
+        for i in range(count):
+            shade = i * 60 % 256
+            Image.new(image_mode, size, shade if image_mode == "L" else (shade, shade, 90)).save(
+                images / f"{i}.{extension}"
+            )
+            # mixed-background leaves only the odd images labelled, the batch composition all-background misses
+            (labels / f"{i}.txt").write_text("" if mutation == "mixed-background" and i % 2 == 0 else rows)
+    if mutation == "missing-val-dir":
+        shutil.rmtree(root / "images" / "val")
+    yaml = f"path: {root}\ntrain: images/train\nval: images/val\nnames:\n  0: item\n"
+    if mutation == "missing-val-key":
+        yaml = f"path: {root}\ntrain: images/train\nnames:\n  0: item\n"
+    elif mutation == "nc-names-mismatch":
+        yaml = f"path: {root}\ntrain: images/train\nval: images/val\nnc: 1\nnames: [a, b, c, d]\n"
+    elif mutation == "bad-yaml":
+        yaml = f"path: {root}\ntrain: [images/train\nval: images/val\nnames: {{0: item\n"
+    (root / "data.yaml").write_text(yaml)
+    return root / "data.yaml"
 
 
 def prepare_sources(uni):
@@ -309,13 +440,15 @@ def build_corpus(uni):
 
 
 def sample_trial(rng, uni, corpus, personality):
-    """Sample one trial with canonical arguments from invalid, valid-combination, or source strategies."""
+    """Sample one trial with canonical arguments from one of the mutation strategies."""
     weights = PERSONALITIES[personality]
     mode = rng.choices(MODES, weights=[weights[m] for m in MODES])[0]
-    base = rng.choice([c for c in corpus if c["mode"] == mode])
-    argv, mutated = list(base["argv"]), []
-    strategies = STRATEGY_WEIGHTS if mode in {"predict", "track"} else STRATEGY_WEIGHTS[:2]
+    strategies = [(s, w) for s, w in STRATEGY_WEIGHTS if mode in STRATEGY_MODES.get(s, MODES)]
     strategy = rng.choices([s for s, _ in strategies], weights=[w for _, w in strategies])[0]
+    # the synthetic datasets are detect-format, so dataset trials must start from a detect base
+    pool = [c for c in corpus if c["mode"] == mode and (strategy != "dataset" or c["task"] == "detect")]
+    base = rng.choice(pool)
+    argv, mutated = list(base["argv"]), []
 
     validity = {}  # key -> is its EFFECTIVE value supported: stripped args contribute nothing, duplicates last-win
 
@@ -363,6 +496,19 @@ def sample_trial(rng, uni, corpus, personality):
         for _ in range(n_keys):
             key, value, valid = sample_mutation(rng, uni, chaos=personality == "chaos")
             mutate([f"{key}={value}"], valid=valid)
+    elif strategy == "malformed":  # appended raw: these tokens are deliberately not well-formed k=v pairs
+        for token in malformed_tokens(rng):
+            argv.append(token)
+            key = token.partition("=")[0]
+            mutated.append(key)
+            validity[key] = False
+    elif strategy == "model":  # `model` is pinned for every other strategy; this one owns swapping it out
+        mutate([f"model={rng.choice(uni['models'])}"], valid=False)
+    elif strategy == "dataset":  # `data` is pinned for every other strategy; this one owns swapping it out
+        dataset, valid = rng.choice(uni["datasets"])
+        mutate([f"data={dataset}"], valid=valid)
+        mutate_combos(max_groups=2)  # combine with rect/single_cls/etc, where dataset-shape bugs actually surface
+        mutate_boundary()
     else:
         source, valid = rng.choice(uni["sources"][mode])
         mutate([f"source={source}"], valid=valid)
@@ -409,6 +555,30 @@ def sample_mutation(rng, uni, chaos=False):
     return key, value, value in pool["valid"] and probe_supported(key, value)
 
 
+def malformed_tokens(rng):
+    """Build CLI tokens malformed at the token level, the way users actually mistype `yolo` commands.
+
+    Value mutation alone never produces a malformed *token*, so the argument parser only ever sees well-formed `k=v`
+    pairs with known keys. Each kernel here mirrors a real signature from the package's own telemetry, where
+    `ultralytics.cfg:entrypoint` is a top error surface by user count. All of them should raise a clean SyntaxError or
+    ValueError from the cfg layer; anything deeper is a validation gap.
+    """
+    key = rng.choice(["data", "epochs", "imgsz", "conf", "model", "source"])
+    return rng.choice(
+        [
+            [key],  # "'data' is a valid YOLO argument but is missing an '=' sign"
+            [f"mode={rng.choice(['checks', 'settings', 'help', 'traln'])}"],
+            [f"task={rng.choice(['detection', 'segmentaion', 'classify_', ''])}"],
+            [rng.choice(["yolo", "epochs10", "?", "coco8"])],  # bare word that is not an argument at all
+            [f"{rng.choice(['--', '-'])}{key}", "1"],  # argparse-style flag the yolo CLI does not use
+            [f"{key}="],
+            [f"{key}==1"],
+            ["classes=[0,", "2]"],  # an unquoted list the shell split into two tokens
+            [f"{rng.choice(['epocs', 'imgz', 'batchsize', 'devise'])}=1"],  # near-miss key: did-you-mean path
+        ]
+    )
+
+
 def run_trial(trial, timeout=None):
     """Execute one trial in an isolated tmp workdir; outputs go to a per-trial `project=`, assets stay shared."""
     mode = trial["mode"]
@@ -450,7 +620,7 @@ def run_trial(trial, timeout=None):
             with contextlib.suppress(ProcessLookupError):
                 os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
         else:
-            subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)], capture_output=True)
+            subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)], capture_output=True, check=False)
         _, stderr = proc.communicate()
         rc, stderr = "timeout", stderr or ""
     finally:
@@ -510,6 +680,18 @@ def classify(trial, rc, stderr):
         or (exc == "NotImplementedError" and "not found in list of available optimizers" in stderr)
         or (exc == "ValueError" and "Expected `mode` to be `flip` or `mixup`" in stderr)
         or (exc == "AssertionError" and "RTDETR export requires opset>=16" in stderr)
+        # Both dataset-validation layers summarise as RuntimeError, so the wrapper — not data/utils.py — is the
+        # deepest frame: get_dataset re-raises YAML errors, and get_labels reports the per-file reasons once the
+        # label cache exists (an uncached first trial raises ValueError from cache_labels instead). Excused only
+        # for trials that deliberately supplied an unsupported dataset: a supported one failing here, or a
+        # malformed one failing anywhere else, still reports.
+        or (
+            exc == "RuntimeError"
+            and trial.get("strategy") == "dataset"
+            and not trial.get("valid_input", True)
+            and frames
+            and frames[-1] in {"ultralytics/engine/trainer.py:get_dataset", "ultralytics/data/dataset.py:get_labels"}
+        )
         or (exc in EXPECTED_TYPES and frames and frames[-1].startswith(EXPECTED_MODULES))
     ):
         return "expected", None, None  # clean validation errors are expected only for trials we actually mutated
@@ -520,6 +702,34 @@ def classify(trial, rc, stderr):
 def stderr_tail(stderr, lines=30):
     """Return the last meaningful lines of stderr for logs and issue bodies."""
     return "\n".join(stderr.strip().splitlines()[-lines:])
+
+
+def command_hash(argv):
+    """Return a stable short hash of one exact command, used to dedupe draws within and across runs."""
+    return hashlib.sha256("\x00".join(argv).encode()).hexdigest()[:16]
+
+
+def read_history(path, max_age_days):
+    """Load `hash day` lines from prior runs, dropping entries older than max_age_days.
+
+    Expiry is what keeps exploration honest about regressions: this repository moves fast, so a command that passed a
+    week ago says nothing about today's code. Ageing each entry out individually gives a rolling window rather than a
+    cliff — every day drops the oldest day and every command is retried about weekly — where permanent exclusion would
+    mean a regression in already-covered ground was never resampled.
+    """
+    if not path or not Path(path).exists():
+        return []
+    cutoff = int(time.time() // 86400) - max_age_days
+    lines = (line.partition(" ") for line in Path(path).read_text().splitlines())
+    return [f"{key} {day}" for key, _, day in lines if key and day.isdigit() and int(day) >= cutoff]
+
+
+def write_history(path, history, new_keys):
+    """Persist this run's newly explored hashes, stamped with today so future runs can age them out."""
+    if path:
+        today = int(time.time() // 86400)
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+        Path(path).write_text("\n".join([*history, *(f"{key} {today}" for key in new_keys)]))
 
 
 def cmd_fuzz(args):
@@ -607,31 +817,42 @@ def cmd_fuzz(args):
         changed = " ".join(a for a in trial["argv"] if a.partition("=")[0] in set(trial.get("mutated", [])))
         log.info(f"[fuzz] #{n} {outcome:>13} {duration:6.1f}s  yolo {trial['mode']} {trial['task']} {changed}".rstrip())
 
-    executed, duplicate_samples = set(), 0
+    history = read_history(args.history, HISTORY_DAYS)  # recent runs' commands, so each run breaks new ground
+    explored = {line.partition(" ")[0] for line in history}
+    new_keys, duplicate_samples, saturated_samples = [], 0, 0
+    log.info(f"[fuzz] history: {len(history)} commands explored in the last {HISTORY_DAYS} days")
     for base in corpus:  # canaries first: unmutated corpus must pass or the environment itself is broken
         if time.time() > deadline or (args.max_trials and n >= args.max_trials):
             break
-        executed.add(tuple(base["argv"]))
+        explored.add(command_hash(base["argv"]))
         execute(dict(base), canary=True)
     while time.time() < deadline and (not args.max_trials or n < args.max_trials):
         if shutil.disk_usage(tempfile.gettempdir()).free < MIN_FREE_GB * 1024**3:
             log.warning(f"[fuzz] stopping early: <{MIN_FREE_GB}GB free disk")
             break
-        trial = sample_trial(rng, uni, corpus, args.personality)
-        command = tuple(trial["argv"])
-        if command in executed:
+        for _ in range(RESAMPLE_ATTEMPTS):  # redraw until the command is one no run has executed before
+            trial = sample_trial(rng, uni, corpus, args.personality)
+            key = command_hash(trial["argv"])
+            if key not in explored:
+                break
             duplicate_samples += 1
-            continue
-        executed.add(command)
+        if key in explored:  # the reachable space is saturated for this personality: run the repeat rather than spin
+            saturated_samples += 1
+        else:
+            explored.add(key)
+            new_keys.append(key)
         execute(trial)
+    write_history(args.history, history, new_keys)
 
     infra_failed = bool(canary_results) and (canary_results.count(False) / len(canary_results)) > CANARY_FAIL_FRACTION
     summary = {
         "personality": args.personality,
         "seed": args.seed,
         "trials": n,
-        "unique_commands": len(executed),
+        "unique_commands": len(new_keys),  # not executed by this or any run inside the history window
         "duplicate_samples": duplicate_samples,
+        "saturated_samples": saturated_samples,  # draws that repeated a recent command after RESAMPLE_ATTEMPTS
+        "history_size": len(history) + len(new_keys),
         "counters": counters,
         "infra_failed": infra_failed,
         "findings": sorted(findings.values(), key=lambda x: (x["tier"], x["signature"])),
@@ -652,14 +873,19 @@ def cmd_repro(args):
         argv = argv[1:]
 
     def portable(arg):
-        """Remap runner-local absolute model/source paths from issue commands to this machine's copies."""
+        """Remap runner-local absolute model/source/data paths from issue commands to this machine's copies."""
         k, _, v = arg.partition("=")
-        if k in {"model", "source"} and ("/" in v or "\\" in v) and not Path(v).exists():
+        if k in {"model", "source", "data"} and ("/" in v or "\\" in v) and not Path(v).exists():
             from ultralytics.utils import ASSETS, WEIGHTS_DIR
 
             # PureWindowsPath splits on both separators, so Windows-origin issue commands remap on any OS.
             if k == "model":
-                candidates = [WEIGHTS_DIR / PureWindowsPath(v).name]
+                prepare_models(uni)  # corrupt fuzz models live beside the weights dir, not inside it
+                candidates = [WEIGHTS_DIR / PureWindowsPath(v).name, *(Path(p) for p in uni["models"])]
+            elif k == "data":  # every synthetic dataset yaml is data.yaml, so the mutation directory identifies it
+                prepare_datasets(uni)
+                mutation = PureWindowsPath(v).parent.name
+                candidates = [Path(p) for p, _valid in uni["datasets"] if Path(p).parent.name == mutation]
             else:
                 prepare_sources(uni)
                 candidates = [ASSETS, ASSETS / PureWindowsPath(v).name]
@@ -701,7 +927,8 @@ def cmd_report(args):
         print("[report] no findings files found")
         return
     run_url = f"https://github.com/{args.repo}/actions/runs/{os.environ.get('GITHUB_RUN_ID', '')}"
-    findings, counters, flagged, unique_commands, duplicate_samples = {}, {}, [], 0, 0
+    findings, counters, flagged = {}, {}, []
+    unique_commands = duplicate_samples = saturated_samples = history_size = 0
     for shard in shards:
         for k, v in shard["counters"].items():
             counters[k] = counters.get(k, 0) + v
@@ -709,6 +936,8 @@ def cmd_report(args):
             flagged.append(shard["personality"])
         unique_commands += shard.get("unique_commands", shard["trials"])
         duplicate_samples += shard.get("duplicate_samples", 0)
+        saturated_samples += shard.get("saturated_samples", 0)
+        history_size += shard.get("history_size", 0)
         for f in shard["findings"]:
             prev = findings.get(f["signature"])
             if not prev or (prev["tier"] == "T2" and f["tier"] == "T1"):  # prefer the T1 view of a shared signature
@@ -853,7 +1082,8 @@ def cmd_report(args):
     summary = (
         f"## Fuzz — {total} trials\n\n"
         + "\n".join(table)
-        + f"\n\nExploration: {unique_commands} unique commands · {duplicate_samples} duplicate samples skipped"
+        + f"\n\nExploration: {unique_commands} newly explored commands · {duplicate_samples} duplicate draws"
+        + f" · {saturated_samples} saturated · {history_size} in the {HISTORY_DAYS}-day history window"
         + f"\n\nNew issue threads created: {created} (cap {args.max_issues})"
         + (f" · ⚠️ shards with >20% canary failures: {', '.join(flagged)}" if flagged else "")
     )
@@ -908,6 +1138,7 @@ def main():
     p.add_argument("--personality", choices=sorted(PERSONALITIES), default="chaos")
     p.add_argument("--out", default="fuzz-out")
     p.add_argument("--max-trials", type=int, default=0, help="optional hard trial cap (smoke tests)")
+    p.add_argument("--history", default=None, help="file of command hashes explored by prior runs, read and updated")
     p.add_argument("--debug-timeout", type=float, default=None, help="override all trial timeouts (test hang path)")
 
     p = sub.add_parser("repro", help="replay one exact command and classify it")

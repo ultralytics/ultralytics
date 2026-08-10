@@ -165,13 +165,12 @@ class LoadStreams:
                 cap.grab()  # .read() = .grab() followed by .retrieve()
                 if n % self.vid_stride == 0:
                     success, im = cap.retrieve()
-                    im = (
-                        cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)[..., None] if self.cv2_flag == cv2.IMREAD_GRAYSCALE else im
-                    )
-                    if not success:
+                    if not success or im is None:
                         im = np.zeros(self.shape[i], dtype=np.uint8)
                         LOGGER.warning("Video stream unresponsive, please check your IP camera connection.")
                         cap.open(stream)  # re-open stream if signal was lost
+                    elif self.cv2_flag == cv2.IMREAD_GRAYSCALE:
+                        im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)[..., None]
                     if self.buffer:
                         self.imgs[i].append(im)
                     else:
@@ -428,12 +427,9 @@ class LoadImagesAndVideos:
 
                 if success:
                     success, im0 = self.cap.retrieve()
-                    im0 = (
-                        cv2.cvtColor(im0, cv2.COLOR_BGR2GRAY)[..., None]
-                        if self.cv2_flag == cv2.IMREAD_GRAYSCALE
-                        else im0
-                    )
-                    if success:
+                    if success and im0 is not None:
+                        if self.cv2_flag == cv2.IMREAD_GRAYSCALE:
+                            im0 = cv2.cvtColor(im0, cv2.COLOR_BGR2GRAY)[..., None]
                         self.frame += 1
                         paths.append(path)
                         imgs.append(im0)
@@ -513,6 +509,8 @@ class LoadPilAndNumpy:
         """
         if not isinstance(im0, list):
             im0 = [im0]
+        if not im0:  # an empty batch otherwise fails unnamed inside np.stack in Predictor.preprocess
+            raise FileNotFoundError("No images found in source, predict requires at least one image.")
         # use `image{i}.jpg` when Image.filename returns an empty path.
         self.paths = [getattr(im, "filename", "") or f"image{i}.jpg" for i, im in enumerate(im0)]
         self.im0 = [self._single_check(im, channels) for im in im0]
@@ -528,13 +526,20 @@ class LoadPilAndNumpy:
             - PIL inputs are converted to NumPy and returned in OpenCV-compatible BGR order for color images.
             - NumPy color inputs are assumed to use OpenCV-compatible BGR order.
         """
-        assert isinstance(im, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(im)}"
-        if isinstance(im, Image.Image):
+        if not isinstance(im, (Image.Image, np.ndarray)):
+            raise TypeError(f"Expected PIL/np.ndarray image type, but got {type(im)}")
+        pil = isinstance(im, Image.Image)
+        if pil:
             flag = "L" if channels == 1 else "RGB"
             im = np.asarray(im.convert(flag))
             im = im[..., None] if flag == "L" else im[..., ::-1]
-            return np.ascontiguousarray(im)
         im = np.atleast_3d(im)
+        # Both routes validate here: a zero dimension divides by zero in LetterBox, and a batched array reads
+        # shape[2] as a channel count it is not. Raised rather than asserted so `python -O` keeps the check.
+        if im.ndim != 3 or not all(im.shape):
+            raise ValueError(f"Expected a single (H, W, C) image, but got array of shape {im.shape}")
+        if pil:
+            return np.ascontiguousarray(im)
         c = im.shape[2]
         if c == channels:
             return im
@@ -610,8 +615,8 @@ class LoadTensor:
                 raise ValueError(s)
             LOGGER.warning(s)
             im = im.unsqueeze(0)
-        if im.shape[2] % stride or im.shape[3] % stride:
-            raise ValueError(s)
+        if not all(im.shape) or im.shape[2] % stride or im.shape[3] % stride:
+            raise ValueError(s)  # a zero dimension reaches im.max() below on an empty tensor
         if im.max() > 1.0 + (torch.finfo(im.dtype).eps if im.is_floating_point() else 0):
             LOGGER.warning(
                 f"torch.Tensor inputs should be normalized 0.0-1.0 but max value is {im.max()}. Dividing input by 255."

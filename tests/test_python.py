@@ -275,7 +275,7 @@ def test_predict_csv_single_row(tmp_path):
 
 @pytest.mark.parametrize("model_name", MODELS)
 def test_predict_img(model_name):
-    """Test YOLO model predictions on various image input types and sources, including online images."""
+    """Test YOLO model predictions on various image input types."""
     if IS_RASPBERRYPI and model_name == "yolo26n-sem.pt":
         skip_rpi_semantic()
     channels = 1 if model_name == "yolo11n-grayscale.pt" else 3
@@ -290,7 +290,6 @@ def test_predict_img(model_name):
     batch = [
         str(SOURCE),  # filename
         Path(SOURCE),  # Path
-        "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/im/zidane.jpg?token=123" if ONLINE else SOURCE,  # URI
         im,  # OpenCV
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, channels), dtype=np.uint8),  # numpy
@@ -471,7 +470,7 @@ def test_reid_invalid_crops():
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
-def test_track_stream(model, tmp_path):
+def test_track_stream(model, tmp_path, solution_assets):
     """Test streaming tracking on a short video with all built-in trackers and various GMC/ReID configurations.
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
@@ -484,7 +483,7 @@ def test_track_stream(model, tmp_path):
         return
     from ultralytics.trackers.track import TRACKER_MAP
 
-    video_url = f"{ASSETS_URL}/decelera_portrait_min.mov"
+    video_url = solution_assets("track_video")
     model = YOLO(model)
 
     # Default end-to-end run for all built-in trackers
@@ -756,7 +755,7 @@ def test_platform_job_transport(monkeypatch, tmp_path):
         captured.update(url=url, **kwargs)
         return SimpleNamespace(status_code=200, json=lambda: {"received": True}, raise_for_status=lambda: None)
 
-    monkeypatch.setattr(platform, "requests", SimpleNamespace(post=post), raising=False)
+    monkeypatch.setattr("requests.post", post)
     monkeypatch.setattr(platform, "_api_key", "api-key")
     monkeypatch.setattr(platform, "PLATFORM_API_URL", "https://example.test/api/webhooks")
     assert platform._send("epoch_end", {"epoch": 0}, "user/project", "model") == {"received": True}
@@ -850,7 +849,11 @@ def test_results(model: str, tmp_path):
     """Test YOLO model results processing and output in various formats."""
     if IS_RASPBERRYPI and model == "yolo26n-sem.pt":
         skip_rpi_semantic()
-    im = "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/im/boats.jpg" if model == "yolo26n-obb.pt" else SOURCE
+    im = (
+        "https://cdn.ul.run/i/186929a91ceb270e952fe4dd27ba0f18.webp"  # boats.jpg
+        if model == "yolo26n-obb.pt"
+        else SOURCE
+    )
     is_semantic = "semantic" in model or "-sem" in model
     results = YOLO(WEIGHTS_DIR / model)([im, im], imgsz=32 if is_semantic else 160)
     for r in results:
@@ -935,6 +938,21 @@ def test_annotator_depth_map():
     ann = Annotator(np.zeros((16, 16, 3), dtype=np.uint8))
     ann.depth_map(np.zeros((16, 16), dtype=np.float32))  # no valid pixels → must not divide-by-zero
     assert ann.result().shape == (16, 16, 3)
+
+
+def test_annotator_tensor_image():
+    """Annotator accepts tensor images and matches Results.plot compositing pixels."""
+    from ultralytics.engine.results import Results
+    from ultralytics.utils.plotting import Annotator
+
+    image = torch.zeros((16, 16, 3), dtype=torch.uint8)
+    masks = torch.ones((1, 16, 16), dtype=torch.bool)
+    ann = Annotator(image)
+    ann.masks(masks, [[255, 0, 0]])
+    assert ann.result()[0, 0].tolist() == [127, 0, 0]
+    result = Results(np.zeros((16, 16, 3), dtype=np.uint8), path="image.jpg", names={}, masks=masks)
+    expected = result.plot(img=np.zeros((16, 16, 3), dtype=np.uint8), boxes=False)
+    np.testing.assert_array_equal(result.plot(img=torch.zeros_like(image), boxes=False), expected)
 
 
 def test_results_update_probs():
@@ -1277,6 +1295,14 @@ def test_utils_checks(monkeypatch):
     assert checks.parse_version("v2.1") == (2, 1, 0)
     assert checks.parse_version("1.0rc1") == (1, 0, 0)  # documented non-PEP-440 tradeoff: pre-releases equal the final
     monkeypatch.setattr(checks.metadata, "version", package_version)
+    monkeypatch.setattr(checks, "ARM64", True)
+    monkeypatch.setattr(checks, "AUTOINSTALL", True)
+    monkeypatch.setattr(checks, "ONLINE", True)
+    commands = []
+    monkeypatch.setattr(checks.subprocess, "check_output", lambda command, **kwargs: commands.append(command) or "")
+    requirements = ["ray[tune]", "nvidia-modelopt[onnx]>=0.44", "$(touch /tmp/pwned)/missing"]
+    assert checks.check_requirements(requirements)
+    assert commands[0][5:] == requirements  # requirements remain individual argv entries, never shell source
     assert not checks.check_version("v2", ">=2.0")  # installed version-shaped package keeps metadata precedence
     versions = ("v2.1-rc.1", "v2.1-beta1", "v2.1rev1", "v2.1-dev1", "v2.1+cu118")
     assert all(checks.check_version(v, ">=2.0") for v in versions)
@@ -1302,14 +1328,43 @@ def test_utils_benchmarks():
 def test_utils_torchutils():
     """Test Torch utility functions including profiling and FLOP calculations."""
     from ultralytics.nn.modules.conv import Conv
-    from ultralytics.utils.torch_utils import get_flops_with_torch_profiler, profile_ops, time_sync
+    from ultralytics.utils.torch_utils import profile_ops, time_sync
 
     x = torch.randn(1, 64, 20, 20)
     m = Conv(64, 64, k=1, s=2)
 
     profile_ops(x, [m], n=3)
-    get_flops_with_torch_profiler(m)
     time_sync()
+
+
+def test_rtdetr_remap_cls_by_names():
+    """Test RT-DETR decoder cls-head remap (direct-name match, unmatched, denoising partial transfer)."""
+    from types import SimpleNamespace
+
+    from ultralytics.nn.tasks import RTDETRDetectionModel
+
+    # Source has 2 classes (person, bird), target has 3 (person, bird, airplane). Target 'airplane' has no source.
+    dst_state = {
+        "score_head.weight": torch.full((3, 1), -1.0),
+        "score_head.bias": torch.full((3,), -1.0),
+        "decoder.denoising_class_embed.weight": torch.full((3, 4), -1.0),
+    }
+    csd = {
+        "score_head.weight": torch.tensor([[1.0], [2.0]]),
+        "score_head.bias": torch.tensor([10.0, 20.0]),
+        "decoder.denoising_class_embed.weight": torch.full((2, 4), 9.0),
+    }
+    tgt = SimpleNamespace(names={0: "person", 1: "bird", 2: "airplane"}, state_dict=lambda: dst_state)
+    src = SimpleNamespace(names={0: "bird", 1: "person"})  # inverted order to exercise the row-index mapping
+    n = RTDETRDetectionModel._remap_cls_by_names(tgt, csd, src, verbose=False)
+    assert n == 3  # score_head.weight + score_head.bias + denoising_class_embed remapped
+    assert dst_state["score_head.weight"][0, 0].item() == 2.0  # 'person' <- src[1]
+    assert dst_state["score_head.weight"][1, 0].item() == 1.0  # 'bird' <- src[0]
+    assert dst_state["score_head.weight"][2, 0].item() == -1.0  # 'airplane' unmatched -> dst init kept
+    assert dst_state["score_head.bias"].tolist() == [20.0, 10.0, -1.0]
+    dn = dst_state["decoder.denoising_class_embed.weight"]  # row-per-class embedding transfers like score_head
+    assert dn[0].eq(9.0).all() and dn[1].eq(9.0).all() and dn[2].eq(-1.0).all()
+    assert "decoder.denoising_class_embed.weight" not in csd  # popped so intersect_dicts skips it
 
 
 @pytest.mark.parametrize("nc", [1, 3])
@@ -1541,17 +1596,6 @@ def test_nn_depth_head_no_dead_parameters():
     head(_depth_head_feats())["depth"].sum().backward()
     unused = [n for n, p in head.named_parameters() if p.grad is None]
     assert not unused, f"parameters with no gradient: {unused}"
-
-
-@pytest.mark.skipif(not ONLINE, reason="environment is offline")
-def test_hub():
-    """Test Ultralytics HUB functionalities."""
-    from ultralytics.hub import export_fmts_hub, logout
-    from ultralytics.hub.utils import smart_request
-
-    export_fmts_hub()
-    logout()
-    smart_request("GET", "https://github.com", progress=True)
 
 
 @pytest.fixture

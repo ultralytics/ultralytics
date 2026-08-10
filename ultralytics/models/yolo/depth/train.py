@@ -165,6 +165,7 @@ class DepthTrainer(DetectionTrainer):
                         plot_dir=plot_dir,
                         dataset_hash=self.data.get("hash"),
                         validation_split=validation_split,
+                        max_depth=self.data.get("max_depth") or 100.0,
                     )
                     if ckpt == plot_ckpt and provenance is not None:
                         self.depth_calibration = provenance

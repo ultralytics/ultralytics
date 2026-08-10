@@ -308,6 +308,7 @@ See the implementation in `ultralytics/optim/muon.py` and the optimizer auto-sel
     - **Auto Mode (60% GPU Memory)**: Use `batch=-1` to automatically adjust batch size for approximately 60% CUDA memory utilization.
     - **Auto Mode with Utilization Fraction**: Set a fraction value (e.g., `batch=0.70`) to adjust batch size based on the specified fraction of GPU memory usage.
     - **OOM Auto-Retry**: If a CUDA out-of-memory error occurs during the first epoch, the trainer automatically halves the batch size and retries (up to 3 times). This only applies to single-GPU training; multi-GPU (DDP) training will raise the error immediately.
+    - **No Fit Found**: If not even the smallest candidate batch size fits in the available GPU memory, AutoBatch raises a clear `MemoryError` instead of silently falling back to a default batch size that would also run out of memory.
 
 ## Augmentation Settings and Hyperparameters
 

@@ -36,6 +36,11 @@ def check_train_batch_size(
     Notes:
         If 0.0 < batch < 1.0, it's used as the fraction of GPU memory to use.
         Otherwise, a default fraction of 0.6 is used.
+
+    Raises:
+        MemoryError: If every candidate batch size failed to profile (typically because not even the
+            smallest one fits in the available GPU memory; see the per-candidate error(s) logged above
+            for the exact cause of each failure).
     """
     with autocast(enabled=amp, device=next(model.parameters()).device.type):
         return autobatch(
@@ -67,6 +72,11 @@ def autobatch(
 
     Returns:
         (int): The optimal batch size.
+
+    Raises:
+        MemoryError: If every candidate batch size failed to profile (typically because not even the
+            smallest tested size, batch=1, fits in the available GPU memory; see the per-candidate
+            error(s) logged above for the exact cause of each failure).
     """
     # Check device
     prefix = colorstr("AutoBatch: ")
@@ -108,22 +118,34 @@ def autobatch(
             and 0 < y[2] < t  # between 0 and GPU limit
             and (i == 0 or not results[i - 1] or y[2] > results[i - 1][2])  # first item or increasing memory
         ]
-        fit_x, fit_y = zip(*xy) if xy else ([], [])
+        if not xy:  # every candidate batch size failed to profile, e.g. batch=1 already OOMs
+            raise MemoryError(
+                f"{prefix}every candidate batch size failed to profile (tried batch={batch_sizes}; see the "
+                f"per-candidate error(s) logged above for the exact cause of each). With {f:.2f}G free {d} "
+                f"memory, this usually means not even batch=1 fits: free up GPU memory, use a smaller model "
+                f"or imgsz, or pass an explicit batch= size instead of batch=-1."
+            )
+        fit_x, fit_y = zip(*xy)
         p = np.polyfit(fit_x, fit_y, deg=1)  # first-degree (linear) polynomial fit
         b = int((round(f * fraction) - p[1]) / p[0])  # y intercept (optimal batch size)
         if None in results:  # some sizes failed
             i = results.index(None)  # first fail index
             if b >= batch_sizes[i]:  # y intercept above failure point
                 b = batch_sizes[max(i - 1, 0)]  # select prior safe point
-        if b < 1 or b > 1024:  # b outside of safe range
-            LOGGER.warning(f"{prefix}batch={b} outside safe range, using default batch-size {batch_size}.")
-            b = batch_size
+        if b < 1:  # even the smallest tested size already exceeds the target fraction
+            b = min(fit_x)  # closest confirmed-safe size to the (unreachable) target, not an unrelated default
+            LOGGER.warning(f"{prefix}extrapolated batch outside safe range, using confirmed-safe batch-size {b}.")
+        elif b > 1024:  # more free memory than any tested size accounts for
+            b = max(fit_x)  # largest size already confirmed to fit, not an unrelated default
+            LOGGER.warning(f"{prefix}extrapolated batch outside safe range, using confirmed-safe batch-size {b}.")
         if dataset_size > 0:
             b = min(b, dataset_size)
 
         fraction = (np.polyval(p, b) + r + a) / t  # predicted fraction
         LOGGER.info(f"{prefix}Using batch-size {b} for {d} {t * fraction:.2f}G/{t:.2f}G ({fraction * 100:.0f}%) ✅")
         return b
+    except MemoryError:
+        raise  # no batch size fit; surface this to the caller instead of a silent unrelated default
     except Exception as e:
         LOGGER.warning(f"{prefix}error detected: {e},  using default batch-size {batch_size}.")
         return batch_size

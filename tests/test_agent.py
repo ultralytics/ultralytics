@@ -95,7 +95,7 @@ def test_agent_async_execution():
         """Return an asynchronous function result."""
         return value
 
-    with pytest.raises(TypeError, match="Agent.async_call"):
+    with pytest.raises(TypeError, match=r"Agent.async_call"):
         Agent(async_block)(1)
 
 

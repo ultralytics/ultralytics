@@ -320,14 +320,15 @@ class YOLOE(Model):
         """
         assert isinstance(self.model, YOLOEModel)
         names = check_class_names(names)
-        self.predictor = None  # the delegate destructively re-parameterizes the head
         self.model.set_vocab(vocab, names=names)
+        self.predictor = None  # after the delegate, so a rejected call leaves the predictor alone
 
     def get_vocab(self, names):
         """Get the vocabulary for the given class names, which become the model's classes as the head is fused."""
         assert isinstance(self.model, YOLOEModel)
-        self.predictor = None  # the delegate destructively fuses the promptable head
-        return self.model.get_vocab(names)
+        vocab = self.model.get_vocab(names)
+        self.predictor = None  # after the delegate, so a rejected call leaves the predictor alone
+        return vocab
 
     def set_classes(self, classes: list[str], embeddings: torch.Tensor | None = None) -> None:
         """Set the model's class names and embeddings for detection.

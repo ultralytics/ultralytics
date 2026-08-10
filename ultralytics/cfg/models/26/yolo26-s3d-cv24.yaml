@@ -24,7 +24,6 @@ training:
   # while 192+ is WORSE than 16 because very fine bins spread the DFL target too thin to optimise. Costs
   # +9,360 params and no extra memory. Declared here rather than by changing DEPTH_BINS so that checkpoints
   # whose stored YAML predates this key still build a 16-bin head and load.
-  depth_bins: 64
   loss_weights:
     lr_distance: 2.0
     depth: 3.0

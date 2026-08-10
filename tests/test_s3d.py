@@ -1374,7 +1374,10 @@ def test_dfl_variance_uses_the_retargeted_bin_grid():
     dfl._set_range(0.2, 2.5)  # a short-range rig (cube_s3d-like), nothing like the KITTI default
 
     # Equal mass on two adjacent bins => mean at their midpoint => variance is exactly (Δ/2)².
-    logits = torch.full((1, dfl.n_bins, 1), -20.0)
+    # -40 not -20: the suppressed bins' residual softmax mass sits at the grid extremes where (b-μ)² is
+    # largest, so with a fine grid (64 bins => 62 suppressed) -20 perturbs the variance past this test's
+    # tolerance. -40 keeps the two-bin idealisation exact at any bin count.
+    logits = torch.full((1, dfl.n_bins, 1), -40.0)
     logits[0, 3, 0] = logits[0, 4, 0] = 0.0
     got = _dfl_variance({"depth_bins": logits, "depth_bin_values": dfl.bin_values}, 0, 0)
 
@@ -1633,26 +1636,33 @@ def test_shipped_yamls_default_to_64_depth_bins():
         assert head.aux["depth"][0][-1].out_channels == 64
 
 
-def test_bin_count_silence_still_means_16(tmp_path):
-    """A config that does not declare depth_bins must still build 16 bins.
+def test_bin_count_default_is_64_and_overridable(tmp_path):
+    """A config that declares nothing gets 64 bins; a config that declares a count gets that count.
 
-    This is the checkpoint-compatibility contract: a checkpoint stores its own YAML, so one saved before
-    `depth_bins` existed carries no such key. If the module default drifted from 16, every such checkpoint
-    would build a differently-shaped depth branch and fail to load its own state_dict.
+    64 is the module-level default (`DEPTH_BINS`), so every s3d model — including variant YAMLs that never
+    mention depth bins — inherits the measured optimum. The override path still has to work, because it is
+    what the bin sweep itself used and what any future per-dataset tuning needs.
     """
     import yaml
 
-    from ultralytics.models.yolo.s3d.head import DEPTH_BINS
+    from ultralytics.models.yolo.s3d.head import AUX_SPECS, DEPTH_BINS
     from ultralytics.utils import ROOT
 
-    assert DEPTH_BINS == 16, "DEPTH_BINS is the compatibility floor for pre-existing checkpoints"
+    assert DEPTH_BINS == 64, "the shipped default is the measured optimum of the bin curve"
+    assert AUX_SPECS["depth"] == 64, "AUX_SPECS must track DEPTH_BINS or the branch is sized wrong"
 
     cfg = yaml.safe_load(open(ROOT / "cfg/models/26/yolo26-s3d.yaml"))
     cfg["training"] = {k: v for k, v in cfg.get("training", {}).items() if k != "depth_bins"}
     cfg["scale"] = "n"
-    p = tmp_path / "legacy-s3d.yaml"
-    p.write_text(yaml.safe_dump(cfg))
+    silent = tmp_path / "silent-s3d.yaml"
+    silent.write_text(yaml.safe_dump(cfg))
+    head = YOLO(str(silent)).model.model[-1]
+    assert head.depth_dfl.n_bins == 64
+    assert head.aux["depth"][0][-1].out_channels == 64
 
-    head = YOLO(str(p)).model.model[-1]
+    cfg["training"]["depth_bins"] = 16  # the override must still win
+    override = tmp_path / "override-s3d.yaml"
+    override.write_text(yaml.safe_dump(cfg))
+    head = YOLO(str(override)).model.model[-1]
     assert head.depth_dfl.n_bins == 16
     assert head.aux["depth"][0][-1].out_channels == 16

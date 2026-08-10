@@ -7,7 +7,7 @@ import inspect
 import json
 import operator
 import time
-from collections.abc import AsyncIterator, Callable, Iterable, Iterator, Mapping
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterable, Iterator, Mapping
 from copy import deepcopy
 from functools import partial
 from typing import Any, ClassVar
@@ -190,8 +190,8 @@ class Agent:
 
     Methods:
         connect: Connect one named Block output to another Block input.
-        __call__: Execute the graph synchronously.
-        async_call: Execute the graph asynchronously.
+        __call__: Execute the graph synchronously, optionally as an event stream.
+        async_call: Execute the graph asynchronously, optionally as an event stream.
         to_dict: Serialize the graph without credentials.
         from_dict: Create an Agent from a serialized graph.
 
@@ -207,6 +207,10 @@ class Agent:
         Name and connect Blocks explicitly for branching or stable identifiers:
         >>> agent = Agent({"detect": YOLO("yolo26n.pt"), "describe": LLM("gpt-5.6-luna", prompt="Describe the image.")})
         >>> agent.connect("detect", "describe")
+
+        Stream live graph emissions as `(block_name, payload)` pairs:
+        >>> for name, payload in agent(0, stream=True):
+        ...     print(name, payload)
     """
 
     SCHEMA_VERSION = 1
@@ -254,14 +258,25 @@ class Agent:
             raise ValueError("Agent graphs cannot contain cycles.")
         return self
 
-    def __call__(self, source: Any = None, **kwargs: Any) -> dict[str, list[Any]]:
-        """Execute the graph synchronously and group emissions by Block name."""
+    def __call__(
+        self, source: Any = None, stream: bool = False, **kwargs: Any
+    ) -> dict[str, list[Any]] | Iterator[tuple[str, Any]]:
+        """Execute synchronously, returning grouped outputs or a stream of `(Block, payload)` pairs."""
+        events = self._stream(source, kwargs)
+        if stream:
+            return events
         outputs: dict[str, list[Any]] = {name: [] for name in self.blocks}
-        for name in self._roots():
-            self._execute(name, {"source": source, "data": source}, kwargs, outputs)
+        for name, payload in events:
+            outputs[name].append(payload)
         return outputs
 
-    async def async_call(self, source: Any = None, **kwargs: Any) -> dict[str, list[Any]]:
+    def async_call(
+        self, source: Any = None, stream: bool = False, **kwargs: Any
+    ) -> Awaitable[dict[str, list[Any]]] | AsyncIterator[tuple[str, Any]]:
+        """Execute asynchronously, returning an awaitable result or an async event stream."""
+        return self._stream_async(source, kwargs) if stream else self._collect_async(source, kwargs)
+
+    async def _collect_async(self, source: Any, kwargs: dict[str, Any]) -> dict[str, list[Any]]:
         """Execute the graph asynchronously and group emissions by Block name."""
         outputs: dict[str, list[Any]] = {name: [] for name in self.blocks}
         locks: dict[int, asyncio.Lock] = {}
@@ -272,6 +287,58 @@ class Agent:
             )
         )
         return outputs
+
+    def _stream(self, source: Any, kwargs: dict[str, Any]) -> Iterator[tuple[str, Any]]:
+        """Yield synchronous graph emissions as `(Block, payload)` pairs."""
+        for name in self._roots():
+            yield from self._execute(name, {"source": source, "data": source}, kwargs)
+
+    async def _stream_async(self, source: Any, kwargs: dict[str, Any]) -> AsyncIterator[tuple[str, Any]]:
+        """Yield asynchronous graph emissions as `(Block, payload)` pairs."""
+        queue: asyncio.Queue[tuple[str | None, Any]] = asyncio.Queue(maxsize=1)
+        locks: dict[int, asyncio.Lock] = {}
+
+        async def emit(name: str, payload: Any) -> None:
+            """Queue one graph emission."""
+            await queue.put((name, payload))
+
+        async def run(name: str) -> None:
+            """Run one root."""
+            await self._execute_async(name, {"source": source, "data": source}, kwargs, None, locks, emit)
+
+        async def report(error: BaseException | None) -> None:
+            """Queue one root's failure, if any, followed by its completion marker."""
+            if error is not None:
+                await queue.put((None, error))
+            await queue.put((None, _MISSING))
+
+        notifications = []
+
+        def finish(task: asyncio.Task) -> None:
+            """Schedule completion reporting for one finished root."""
+            if not task.cancelled():
+                notifications.append(asyncio.create_task(report(task.exception())))
+
+        tasks = [asyncio.create_task(run(name)) for name in self._roots()]
+        for task in tasks:
+            task.add_done_callback(finish)
+        remaining = len(tasks)
+        try:
+            while remaining:
+                name, payload = await queue.get()
+                if name is not None:
+                    yield name, payload
+                elif payload is _MISSING:
+                    remaining -= 1
+                else:
+                    raise payload
+        finally:
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+            for notification in notifications:
+                notification.cancel()
+            await asyncio.gather(*notifications, return_exceptions=True)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize this Agent to a JSON-compatible definition without credentials."""
@@ -313,29 +380,34 @@ class Agent:
         targets = {target for _, target in self.connections}
         return [name for name in self.blocks if name not in targets]
 
-    def _execute(self, name: str, event: dict[str, Any], kwargs: dict[str, Any], outputs: dict[str, list[Any]]) -> None:
-        """Execute one Block and drain each emission through downstream Blocks."""
+    def _execute(self, name: str, event: dict[str, Any], kwargs: dict[str, Any]) -> Iterator[tuple[str, Any]]:
+        """Execute one Block and yield each emission before draining it downstream."""
         for emitted in self._invoke(name, event, kwargs):
-            outputs[name].append(emitted.get(name, emitted["data"]))
+            yield name, emitted.get(name, emitted["data"])
             for source, target in self.connections:
                 if source == name:
-                    self._execute(target, {**emitted}, {}, outputs)
+                    yield from self._execute(target, {**emitted}, {})
 
     async def _execute_async(
         self,
         name: str,
         event: dict[str, Any],
         kwargs: dict[str, Any],
-        outputs: dict[str, list[Any]],
+        outputs: dict[str, list[Any]] | None,
         locks: dict[int, asyncio.Lock],
+        emit: Callable[[str, Any], Awaitable[None]] | None = None,
     ) -> None:
         """Execute one Block asynchronously and drain each emission downstream."""
         block = self.blocks[name]
         lock = locks.setdefault(id(block), asyncio.Lock())
         async for emitted in self._invoke_async(name, event, kwargs, lock):
-            outputs[name].append(emitted.get(name, emitted["data"]))
+            payload = emitted.get(name, emitted["data"])
+            if outputs is not None:
+                outputs[name].append(payload)
+            if emit is not None:
+                await emit(name, payload)
             tasks = [
-                self._execute_async(target, {**emitted}, {}, outputs, locks)
+                self._execute_async(target, {**emitted}, {}, outputs, locks, emit)
                 for source, target in self.connections
                 if source == name
             ]

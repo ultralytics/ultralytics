@@ -21,7 +21,7 @@ class LLM:
         model (str): Model name sent with each request.
         api (str): API format, either "responses" or "chat.completions".
         base_url (str | None): Optional OpenAI-compatible API base URL.
-        prompt (str | None): Prompt used for image events inside an Agent.
+        prompt (str | None): Optional instruction prepended to scalar text or image inputs.
         overrides (dict): Default arguments passed to each request.
         client (OpenAI | None): Lazily initialized synchronous client.
         async_client (AsyncOpenAI | None): Lazily initialized asynchronous client.
@@ -34,7 +34,11 @@ class LLM:
     Examples:
         >>> from ultralytics import LLM
         >>> model = LLM("gpt-5.6-luna")
-        >>> response = model("Describe this image")
+        >>> response = model("What is YOLO?")
+
+        Analyze an image with a reusable prompt:
+        >>> model = LLM("gpt-5.6-luna", prompt="Describe the image.")
+        >>> response = model("path/to/image.jpg")
 
         Use the Chat Completions API:
         >>> model = LLM("gpt-5.6-luna", api="chat.completions")
@@ -62,7 +66,7 @@ class LLM:
             api (str): API format, either "responses" or "chat.completions".
             base_url (str, optional): OpenAI-compatible API base URL.
             api_key (str, optional): API key. Defaults to the OPENAI_API_KEY environment variable.
-            prompt (str, optional): Prompt used for image events inside an Agent.
+            prompt (str, optional): Instruction prepended to scalar text or image inputs.
             **kwargs (Any): Default arguments passed to each API request.
         """
         if api not in {"responses", "chat.completions"}:
@@ -79,6 +83,10 @@ class LLM:
 
     def __call__(self, source: Any = None, **kwargs: Any) -> Any:
         """Run inference with the configured model."""
+        return self._call(self._prepare(source), kwargs)
+
+    def _call(self, source: Any, kwargs: dict[str, Any]) -> Any:
+        """Send prepared input through the synchronous client."""
         request = self._request(source, kwargs)
         client = self._get_client()
         return (
@@ -87,6 +95,10 @@ class LLM:
 
     async def async_call(self, source: Any = None, **kwargs: Any) -> Any:
         """Run asynchronous inference with the configured model."""
+        return await self._async_call(self._prepare(source), kwargs)
+
+    async def _async_call(self, source: Any, kwargs: dict[str, Any]) -> Any:
+        """Send prepared input through the asynchronous client."""
         request = self._request(source, kwargs)
         client = self._get_async_client()
         return (
@@ -114,14 +126,22 @@ class LLM:
             request["messages"] = [{"role": "user", "content": source}] if isinstance(source, str) else source
         return request
 
+    def _prepare(self, source: Any) -> Any:
+        """Normalize scalar text or image input while preserving native message payloads."""
+        if source is None:
+            return self.prompt
+        if isinstance(source, (list, tuple, dict)):
+            return source
+        return self._agent_input({"source": source, "data": source})
+
     def _agent_run(self, event: dict[str, Any], name: str, **kwargs: Any) -> dict[str, Any]:
         """Run synchronous LLM inference on a standardized Agent event."""
-        response = self(self._agent_input(event), **kwargs)
+        response = self._call(self._agent_input(event), kwargs)
         return {**event, "data": response, name: {"text": self._response_text(response)}}
 
     async def _agent_async_run(self, event: dict[str, Any], name: str, **kwargs: Any) -> dict[str, Any]:
         """Run asynchronous LLM inference on a standardized Agent event."""
-        response = await self.async_call(self._agent_input(event), **kwargs)
+        response = await self._async_call(self._agent_input(event), kwargs)
         return {**event, "data": response, name: {"text": self._response_text(response)}}
 
     def _agent_input(self, event: dict[str, Any]) -> Any:

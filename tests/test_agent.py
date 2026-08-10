@@ -30,6 +30,7 @@ def test_agent_execution_and_cycle_validation():
     sequential = Agent(lambda value: value + 1, lambda value: value * 2)
     assert list(sequential.blocks) == ["function", "function_2"]
     assert sequential(1) == {"function": [2], "function_2": [4]}
+    assert list(sequential(1, stream=True)) == [("function", 2), ("function_2", 4)]
 
     agent = Agent(
         {
@@ -65,6 +66,12 @@ def test_agent_async_execution():
 
     agent = Agent({"first": AsyncBlock(), "second": AsyncBlock()}).connect("first", "second")
     assert asyncio.run(agent.async_call(1)) == {"first": [2], "second": [3]}
+
+    async def stream():
+        """Collect asynchronous graph emissions."""
+        return [event async for event in agent.async_call(1, stream=True)]
+
+    assert asyncio.run(stream()) == [("first", 2), ("second", 3)]
 
     with pytest.raises(ValueError, match="distinct instance"):
         Agent({"first": agent.blocks["first"], "second": agent.blocks["first"]})
@@ -178,6 +185,12 @@ def test_yolo_gate_llm_event_contract(monkeypatch):
     llm.async_client = SimpleNamespace(responses=SimpleNamespace(create=async_create))
     agent = Agent(yolo, Gate.when("yolo.counts.person", gte=1), llm)
 
+    stream = Agent(yolo, llm)(image, stream=True)
+    assert next(stream)[0] == "yolo"
+    assert len(consumed) == 1 and not calls
+    del stream
+    consumed.clear()
+
     output = agent(image)
     assert len(output["yolo"]) == 3
     assert output["yolo"][0] == {
@@ -264,6 +277,13 @@ def test_llm_sync_and_async_calls():
 
     prompt = LLM(prompt="Write a summary.")
     prompt.client = llm.client
+    assert prompt() == "sync"
+    assert calls[-1]["input"] == "Write a summary."
     assert Agent(prompt)()["llm"] == [{"text": "sync"}]
     assert calls[-1]["input"] == "Write a summary."
     assert "array" in prompt._agent_input({"source": None, "data": None, "array": np.ones(2)})
+
+    assert prompt("details") == "sync"
+    assert calls[-1]["input"] == "Write a summary.\n\ndetails"
+    assert llm(Image.new("RGB", (4, 4))) == "sync"
+    assert calls[-1]["input"][0]["content"][1]["image_url"].startswith("data:image/jpeg;base64,")

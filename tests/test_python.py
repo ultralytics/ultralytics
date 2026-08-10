@@ -307,6 +307,13 @@ def test_predict_classes_with_max_det(model_name):
     assert float(top1.conf) == pytest.approx(float(boxes.conf.max()))  # best person kept, not an arbitrary one
 
 
+def test_predict_classify_without_transforms():
+    """Test classification prediction from a YAML-built model, which carries no `transforms` attribute."""
+    model = YOLO("yolo26n-cls.yaml")
+    assert not hasattr(model.model, "transforms")  # only trained checkpoints carry it
+    assert model.predict(SOURCE, imgsz=32)[0].probs is not None
+
+
 @pytest.mark.parametrize("model", MODELS)
 def test_predict_visualize(model):
     """Test model prediction methods with 'visualize=True' to generate prediction visualizations."""

@@ -15,7 +15,24 @@ from typing import Any, ClassVar
 
 
 class Gate:
-    """Stateful Block that forwards signals matching condition or cadence rules."""
+    """Stateful Block that forwards signals matching condition or cadence rules.
+
+    Attributes:
+        definition (dict): JSON-compatible Gate configuration.
+        state (dict): Runtime cadence state scoped to this Gate instance.
+
+    Methods:
+        every: Create a time-based or frame-based cadence Gate.
+        when: Create a conditional Gate for a signal field.
+        all: Create a Gate requiring every child Gate to pass.
+        any: Create a Gate requiring at least one child Gate to pass.
+        __call__: Forward a passing signal or return None.
+
+    Examples:
+        >>> from ultralytics import Gate
+        >>> gate = Gate.all(Gate.when("person_count", gte=1), Gate.every(frames=10))
+        >>> output = gate({"person_count": 2})
+    """
 
     OPS: ClassVar = {
         "eq": operator.eq,
@@ -158,20 +175,56 @@ class Gate:
 
 
 class Agent:
-    """Executable directed graph of callable Blocks."""
+    """Executable directed graph of callable Blocks.
+
+    Attributes:
+        blocks (dict): Callable Blocks keyed by stable names.
+        connections (list): Passive source-target endpoint pairs.
+
+    Methods:
+        connect: Connect one named Block output to another Block input.
+        __call__: Execute the graph synchronously.
+        async_call: Execute graph frontiers asynchronously.
+        to_dict: Serialize the graph without credentials.
+        from_dict: Create an Agent from a serialized graph.
+
+    Examples:
+        Create a sequential Agent by passing Blocks in execution order:
+        >>> from ultralytics import Agent, Gate, LLM, YOLO
+        >>> agent = Agent(YOLO("yolo26n.pt"), Gate.every(frames=10), LLM("gpt-5.6-luna"))
+
+        Name and connect Blocks explicitly for branching or stable identifiers:
+        >>> agent = Agent({"detect": YOLO("yolo26n.pt"), "describe": LLM("gpt-5.6-luna")})
+        >>> agent.connect("detect", "describe")
+    """
 
     SCHEMA_VERSION = 1
 
-    def __init__(self, blocks: Mapping[str, Callable[..., Any]]) -> None:
-        """Initialize an Agent from uniquely named callable Blocks."""
+    def __init__(self, *blocks: Callable[..., Any] | Mapping[str, Callable[..., Any]]) -> None:
+        """Initialize an Agent from sequential Blocks or one mapping of named Blocks."""
         if not blocks:
             raise ValueError("Agent requires at least one Block.")
-        if any(not isinstance(name, str) or not name or "." in name for name in blocks):
+        sequential = not (len(blocks) == 1 and isinstance(blocks[0], Mapping))
+        if sequential:
+            named_blocks = {}
+            for block in blocks:
+                name = type(block).__name__.lower()
+                suffix = 2
+                while name in named_blocks:
+                    name = f"{type(block).__name__.lower()}_{suffix}"
+                    suffix += 1
+                named_blocks[name] = block
+        else:
+            named_blocks = dict(blocks[0])
+        if any(not isinstance(name, str) or not name or "." in name for name in named_blocks):
             raise ValueError("Block names must be non-empty strings without dots.")
-        if any(not callable(block) for block in blocks.values()):
+        if any(not callable(block) for block in named_blocks.values()):
             raise TypeError("Every Agent Block must be callable.")
-        self.blocks = dict(blocks)
+        self.blocks = named_blocks
         self.connections: list[tuple[str, str]] = []
+        if sequential:
+            names = list(self.blocks)
+            self.connections = list(zip(names, names[1:]))
 
     def connect(self, source: str, target: str) -> Agent:
         """Connect one Block output to another Block input."""

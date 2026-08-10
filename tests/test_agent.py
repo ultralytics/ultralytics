@@ -20,6 +20,10 @@ def test_gate_evaluation():
 
 def test_agent_execution_and_cycle_validation():
     """Test synchronous graph execution and cycle rejection."""
+    sequential = Agent(lambda value: value + 1, lambda value: value * 2)
+    assert list(sequential.blocks) == ["function", "function_2"]
+    assert sequential(1) == {"function": [2], "function_2": [4]}
+
     agent = Agent(
         {
             "detect": lambda value: {"count": value},

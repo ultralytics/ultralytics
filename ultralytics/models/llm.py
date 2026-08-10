@@ -10,6 +10,18 @@ from ultralytics.utils.checks import check_requirements
 class LLM:
     """OpenAI-compatible large language model interface.
 
+    Attributes:
+        model (str): Model name sent with each request.
+        api (str): API format, either "responses" or "chat.completions".
+        base_url (str | None): Optional OpenAI-compatible API base URL.
+        overrides (dict): Default arguments passed to each request.
+        client (OpenAI | None): Lazily initialized synchronous client.
+        async_client (AsyncOpenAI | None): Lazily initialized asynchronous client.
+
+    Methods:
+        __call__: Run synchronous inference.
+        async_call: Run asynchronous inference.
+
     Examples:
         >>> from ultralytics import LLM
         >>> model = LLM("gpt-5.6-luna")

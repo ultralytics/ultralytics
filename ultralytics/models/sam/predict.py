@@ -440,6 +440,7 @@ class Predictor(BasePredictor):
 
         return pred_masks, pred_scores, pred_bboxes
 
+    @smart_inference_mode(False)  # the model outlives this call, so its weights must not be inference tensors
     def setup_model(self, model=None, verbose=True):
         """Initialize the Segment Anything Model (SAM) for inference.
 
@@ -2590,6 +2591,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         self.inference_state = {}
         self.callbacks["on_predict_start"].append(self.init_state)
 
+    @smart_inference_mode(False)  # the tracker model is built after super() returns, outside its decorator
     def setup_model(self, model=None, verbose=True):
         """Setup the SAM3VideoSemanticPredictor model."""
         super().setup_model(model, verbose)

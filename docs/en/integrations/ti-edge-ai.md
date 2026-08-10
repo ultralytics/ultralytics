@@ -68,6 +68,7 @@ Download the model and configuration files from the [TI Edge AI HuggingFace page
 # Compile for TI TDA4VH
 tidlrunner-cli compile --target_device TDA4VH --config_path yolo26n_model_config.yaml
 ```
+
 For fine-grained control over quantization or output layout, use [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) directly.
 
 ### Step 4 — Evaluate with TIDL Runner

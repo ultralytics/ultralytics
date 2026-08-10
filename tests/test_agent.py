@@ -52,7 +52,6 @@ def test_agent_execution_and_cycle_validation():
 
 def test_agent_async_execution():
     """Test asynchronous graph execution."""
-    active = [0, 0]
 
     class AsyncBlock:
         def __call__(self, value):
@@ -61,18 +60,14 @@ def test_agent_async_execution():
 
         async def async_call(self, value):
             """Return an asynchronous value."""
-            active[0] += 1
-            active[1] = max(active)
             await asyncio.sleep(0)
-            active[0] -= 1
             return value + 1
 
     agent = Agent({"first": AsyncBlock(), "second": AsyncBlock()}).connect("first", "second")
     assert asyncio.run(agent.async_call(1)) == {"first": [2], "second": [3]}
 
-    shared = AsyncBlock()
-    assert asyncio.run(Agent({"first": shared, "second": shared}).async_call(1)) == {"first": [2], "second": [2]}
-    assert active[1] == 1
+    with pytest.raises(ValueError, match="distinct instance"):
+        Agent({"first": agent.blocks["first"], "second": agent.blocks["first"]})
 
     async def async_block(value):
         """Return an asynchronous function result."""
@@ -181,6 +176,7 @@ def test_yolo_gate_llm_event_contract(monkeypatch):
     assert observed == [1]
     content = calls[0]["input"][0]["content"]
     assert "person" in content[0]["text"]
+    assert '"gate"' not in content[0]["text"]
     assert content[1]["image_url"].startswith("data:image/jpeg;base64,")
 
     calls.clear()
@@ -190,7 +186,7 @@ def test_yolo_gate_llm_event_contract(monkeypatch):
     assert len(direct["yolo"]) == len(direct["llm"]) == len(calls) == 3
     assert observed == [1, 2, 3]
 
-    cascade = Agent(yolo, yolo)(image)
+    cascade = Agent(yolo, object.__new__(YOLO))(image)
     assert len(cascade["yolo"]) == 3
     assert len(cascade["yolo_2"]) == 9
 

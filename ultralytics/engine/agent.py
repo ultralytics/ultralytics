@@ -191,7 +191,7 @@ class Agent:
     Methods:
         connect: Connect one named Block output to another Block input.
         __call__: Execute the graph synchronously.
-        async_call: Execute graph frontiers asynchronously.
+        async_call: Execute the graph asynchronously.
         to_dict: Serialize the graph without credentials.
         from_dict: Create an Agent from a serialized graph.
 
@@ -233,6 +233,8 @@ class Agent:
             raise ValueError("Block names must be non-empty strings without dots and cannot be 'data' or 'source'.")
         if any(not callable(block) for block in named_blocks.values()):
             raise TypeError("Every Agent Block must be callable.")
+        if len({id(block) for block in named_blocks.values()}) != len(named_blocks):
+            raise ValueError("Each Agent Block must be a distinct instance.")
         self.blocks = named_blocks
         self.connections: list[tuple[str, str]] = []
         if sequential:
@@ -257,7 +259,7 @@ class Agent:
         return outputs
 
     async def async_call(self, source: Any = None, **kwargs: Any) -> dict[str, list[Any]]:
-        """Execute each graph frontier asynchronously."""
+        """Execute the graph asynchronously and group emissions by Block name."""
         outputs: dict[str, list[Any]] = {name: [] for name in self.blocks}
         locks: dict[int, asyncio.Lock] = {}
         await asyncio.gather(

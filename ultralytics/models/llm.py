@@ -127,7 +127,9 @@ class LLM:
     def _agent_input(self, event: dict[str, Any]) -> Any:
         """Convert an Agent event into native Responses or Chat Completions input."""
         source = event["source"]
-        context = {key: value for key, value in event.items() if key not in {"source", "data"}}
+        context = {
+            key: value for key, value in event.items() if key not in {"source", "data"} and value != {"passed": True}
+        }
         prompt = self.prompt or "Describe the image."
         if context:
             prompt = f"{prompt}\n\nContext:\n{json.dumps(context, default=str)}"
@@ -178,7 +180,11 @@ class LLM:
         if isinstance(source, (str, Path)):
             image = cv2.imread(str(source))
         else:
-            image = np.asarray(source.convert("RGB"))[..., ::-1] if isinstance(source, Image.Image) else np.asarray(source)
+            image = (
+                cv2.cvtColor(np.asarray(source.convert("RGB")), cv2.COLOR_RGB2BGR)
+                if isinstance(source, Image.Image)
+                else np.asarray(source)
+            )
         if image is None:
             raise ValueError(f"Unable to read Agent image source {source!r}.")
         _, buffer = cv2.imencode(".jpg", image)

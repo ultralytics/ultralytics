@@ -32,6 +32,7 @@ ARMS = {
 INIT = Path("/data/shared-datasets/fatih-runs/enterprise-init")
 FEDERATED_CLI_KEYS = (
     "federated_cls_loss",
+    "federated_cls_heads",
     "focal_alpha",
     "focal_gamma",
     "asl_gamma_pos",
@@ -60,6 +61,7 @@ def main() -> None:
     a.add_argument("--backbone-lr-ratio", type=float, default=None)
     a.add_argument("--quota-alpha", type=float, default=None)
     a.add_argument("--federated-cls-loss", choices=("bce", "focal", "asl"), default=None)
+    a.add_argument("--federated-cls-heads", choices=("merged", "source"), default=None)
     a.add_argument("--focal-alpha", type=float, default=None)
     a.add_argument("--focal-gamma", type=float, default=None)
     a.add_argument("--asl-gamma-pos", type=float, default=None)

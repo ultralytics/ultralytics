@@ -35,6 +35,67 @@ __all__ = (
 )
 
 
+# UniDet keeps dataset-specific classifiers while sharing localization and detector features:
+# https://github.com/xingyizhou/UniDet/blob/94cd0e8612e558c1dff64d2928bc969856c9a802/unidet/modeling/roi_heads/multi_dataset_fast_rcnn.py#L20-L48
+class SourceClassifier(nn.Module):
+    """Select one source-specific final classification convolution during training."""
+
+    def __init__(self, classifier: nn.Conv2d, slices: list[tuple[int, int]]) -> None:
+        """Split one merged classifier into source-specific output layers.
+
+        Args:
+            classifier (nn.Conv2d): Merged final classification convolution.
+            slices (list[tuple[int, int]]): Ordered source class bounds.
+        """
+        super().__init__()
+        self.classifiers = nn.ModuleList()
+        for lo, hi in slices:
+            source = nn.Conv2d(
+                classifier.in_channels,
+                hi - lo,
+                classifier.kernel_size,
+                classifier.stride,
+                classifier.padding,
+                classifier.dilation,
+                classifier.groups,
+                classifier.bias is not None,
+                classifier.padding_mode,
+            ).to(classifier.weight.device, classifier.weight.dtype)
+            with torch.no_grad():
+                source.weight.copy_(classifier.weight[lo:hi])
+                if classifier.bias is not None:
+                    source.bias.copy_(classifier.bias[lo:hi])
+            self.classifiers.append(source)
+        self.active = None
+        self.merged = None
+
+    def set_source(self, source: int | None) -> None:
+        """Select a source and cache concatenated evaluation parameters.
+
+        Args:
+            source (int | None): Source index, or None to merge all outputs.
+        """
+        self.active = source
+        with torch.no_grad():
+            self.merged = (
+                (
+                    torch.cat([m.weight for m in self.classifiers]),
+                    None if self.classifiers[0].bias is None else torch.cat([m.bias for m in self.classifiers]),
+                )
+                if source is None
+                else None
+            )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Run the active source classifier, or one merged convolution for validation."""
+        if self.active is not None:
+            return self.classifiers[self.active](x)
+        classifier = self.classifiers[0]
+        if self.merged is None:
+            self.set_source(None)
+        return classifier._conv_forward(x, *self.merged)
+
+
 class Detect(nn.Module):
     """YOLO Detect head for object detection models.
 
@@ -133,6 +194,45 @@ class Detect(nn.Module):
     def one2one(self):
         """Returns the one-to-one head components."""
         return {"box_head": self.one2one_cv2, "cls_head": self.one2one_cv3}
+
+    def partition_classifiers(self, slices: list[tuple[int, int]]) -> None:
+        """Replace final classification convolutions with source-specific outputs.
+
+        Args:
+            slices (list[tuple[int, int]]): Ordered source class bounds.
+        """
+        heads = [self.one2many["cls_head"]]
+        if self.end2end:
+            heads.append(self.one2one["cls_head"])
+        for head in heads:
+            for classifier in head:
+                if not isinstance(classifier[-1], SourceClassifier):
+                    classifier[-1] = SourceClassifier(classifier[-1], slices)
+
+    def set_class_source(self, source: int | None) -> None:
+        """Select one partitioned classifier, or all classifiers for validation.
+
+        Args:
+            source (int | None): Source index, or None to concatenate all source outputs.
+        """
+        heads = [self.one2many["cls_head"]]
+        if self.end2end:
+            heads.append(self.one2one["cls_head"])
+        if not isinstance(heads[0][0][-1], SourceClassifier):
+            return
+        for head in heads:
+            for classifier in head:
+                classifier[-1].set_source(source)
+        classifiers = heads[0][0][-1].classifiers
+        self.nc = sum(m.out_channels for m in classifiers) if source is None else classifiers[source].out_channels
+        self.no = self.nc + self.reg_max * 4
+
+    def clear_class_source_cache(self) -> None:
+        """Release merged source-classifier parameters after validation."""
+        for head in [self.one2many["cls_head"], *([self.one2one["cls_head"]] if self.end2end else [])]:
+            for classifier in head:
+                if isinstance(classifier[-1], SourceClassifier):
+                    classifier[-1].merged = None
 
     @property
     def end2end(self):

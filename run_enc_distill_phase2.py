@@ -281,6 +281,7 @@ _RECIPE_DELTA_CASTS = {
     "backbone_lr_ratio": float,
     "quota_alpha": float,
     "federated_cls_loss": str,
+    "federated_cls_heads": str,
     "focal_alpha": float,
     "focal_gamma": float,
     "asl_gamma_pos": float,

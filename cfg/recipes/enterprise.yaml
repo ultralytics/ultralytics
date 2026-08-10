@@ -52,6 +52,7 @@ quota_alpha: 0.7
 repeat_t: 0.001
 fed_k: 365
 federated_cls_loss: bce
+federated_cls_heads: merged
 focal_alpha: 0.25
 focal_gamma: 2.0
 asl_gamma_pos: 0.0

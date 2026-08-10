@@ -93,6 +93,40 @@ SOURCE_METRIC_KEYS = (
 )
 
 
+class PartitionedDetectionLoss:
+    """Route each source-pure batch to a criterion with its native class count."""
+
+    def __init__(self, model: torch.nn.Module, slices: dict[str, tuple[int, int]], updates: int = 0) -> None:
+        """Build one criterion per source label space.
+
+        Args:
+            model (torch.nn.Module): Detection model used to construct native criteria.
+            slices (dict[str, tuple[int, int]]): Ordered source class bounds.
+            updates (int): Completed end-to-end loss schedule updates.
+        """
+        self.criteria = {}
+        head = model.model[-1]
+        for index, source in enumerate(slices):
+            head.set_class_source(index)
+            criterion = model.init_criterion()
+            if hasattr(criterion, "updates"):
+                criterion.updates = updates - 1
+                criterion.update()
+            self.criteria[source] = criterion
+        head.set_class_source(None)
+        self.source = next(iter(slices))
+
+    def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        """Calculate loss in the active source label space."""
+        return self.criteria[self.source](preds, batch)
+
+    def update(self) -> None:
+        """Advance every source criterion through the shared epoch schedule."""
+        for criterion in self.criteria.values():
+            if hasattr(criterion, "update"):
+                criterion.update()
+
+
 # Dataset-pure batches follow UniDet's source buckets:
 # https://github.com/xingyizhou/UniDet/blob/94cd0e8612e558c1dff64d2928bc969856c9a802/unidet/data/multi_dataset_dataloader.py#L203-L224
 class QuotaBatchSampler(Sampler):
@@ -273,6 +307,7 @@ class FederatedDetectionValidator(DetectionValidator):
 
     def init_metrics(self, model: torch.nn.Module) -> None:
         """Initialize metrics, source paths, and the validation criterion."""
+        unwrap_model(model).model[-1].set_class_source(None)
         super().init_metrics(model)
         if self.coco_gt is None:
             self._init_coco_ground_truth(self.data[self.args.split])
@@ -292,6 +327,12 @@ class FederatedDetectionValidator(DetectionValidator):
             self.model = model
             if getattr(model, "criterion", None) is None:
                 model.criterion = model.init_criterion()
+
+    def finalize_metrics(self) -> None:
+        """Finalize source metrics and release merged evaluation classifiers."""
+        super().finalize_metrics()
+        if self.training:
+            unwrap_model(self.model).model[-1].clear_class_source_cache()
 
     def _source(self, im_file: str) -> str:
         """Return the source owning an image path."""
@@ -440,8 +481,14 @@ class FederatedDetectionTrainer(DetectionTrainer):
     def set_model_attributes(self) -> None:
         """Set dataset names and prepare optional training-only label similarities."""
         super().set_model_attributes()
+        bounds = [*sorted(self.data["offsets"].values()), self.data["nc"]]
+        self.slices = {k: (lo, hi) for (k, lo), hi in zip(self.data["offsets"].items(), bounds[1:])}
+        self.source_indices = {source: index for index, source in enumerate(self.slices)}
+        if getattr(self.args, "federated_cls_heads", "merged") == "source":
+            model = unwrap_model(self.model)
+            model.model[-1].partition_classifiers(list(self.slices.values()))
         self.semantic_similarity = None
-        if self.args.federated_semantic_weight:
+        if self.args.federated_semantic_weight and getattr(self.args, "federated_cls_heads", "merged") == "merged":
             names = list(self.data["names"].values())
             with torch_distributed_zero_first(LOCAL_RANK):
                 self.semantic_similarity = load_or_build_label_similarity(
@@ -469,6 +516,18 @@ class FederatedDetectionTrainer(DetectionTrainer):
             slices=self.slices,
         )
 
+    def resume_training(self, ckpt: dict | None) -> None:
+        """Restore source-specific criteria after the generic end-to-end resume setup.
+
+        Args:
+            ckpt (dict | None): Training checkpoint state.
+        """
+        super().resume_training(ckpt)
+        if getattr(self.args, "federated_cls_heads", "merged") == "source":
+            model = unwrap_model(self.model)
+            updates = ckpt.get("epoch", -1) + 1 if ckpt is not None and self.resume else 0
+            model.criterion = PartitionedDetectionLoss(model, self.slices, updates)
+
     def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):
         """Return the quota-sampled dataset-pure loader for training, and the default loader for validation."""
         if mode != "train":
@@ -481,8 +540,6 @@ class FederatedDetectionTrainer(DetectionTrainer):
         with torch_distributed_zero_first(rank):
             dataset = self.build_dataset(dataset_path, mode, batch_size)
 
-        bounds = [*sorted(self.data["offsets"].values()), self.data["nc"]]
-        self.slices = {k: (lo, hi) for (k, lo), hi in zip(self.data["offsets"].items(), bounds[1:])}
         assert len(self.slices) == len(dataset.datasets), "corpus data.yaml offsets and train dirs disagree"
         self.source_of, self.neg_weights, weights = {}, {}, []
         for name, d in zip(self.slices, dataset.datasets):
@@ -512,6 +569,15 @@ class FederatedDetectionTrainer(DetectionTrainer):
 
     def preprocess_batch(self, batch: dict) -> dict:
         """Point the cls loss at this batch's owning class slice, then preprocess as usual."""
+        if getattr(self.args, "federated_cls_heads", "merged") == "source":
+            name = self.source_of[str(Path(batch["im_file"][0]).parent)]
+            lo, _ = self.slices[name]
+            batch["cls"].sub_(lo)
+            unwrap_model(self.model).model[-1].set_class_source(self.source_indices[name])
+            batch = super().preprocess_batch(batch)
+            model = unwrap_model(self.model)
+            model.criterion.source = name
+            return batch
         mask = self._fed_mask(batch)
         batch = super().preprocess_batch(batch)
         model = unwrap_model(self.model)

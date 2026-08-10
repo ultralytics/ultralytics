@@ -383,7 +383,7 @@ class Agent:
     @staticmethod
     def _serialize_block(block: Callable[..., Any]) -> dict[str, Any]:
         """Serialize a supported built-in Block without credentials."""
-        from ultralytics.models import LLM, YOLO
+        from ultralytics.models import LLM
 
         if isinstance(block, LLM):
             config = {"model": block.model, "api": block.api, **block.overrides}
@@ -392,7 +392,7 @@ class Agent:
             if block.prompt is not None:
                 config["prompt"] = block.prompt
             return {"type": "LLM", "config": config, "ports": deepcopy(block.ports)}
-        if isinstance(block, YOLO):
+        if getattr(block, "_agent_type", None) == "YOLO":
             return {
                 "type": "YOLO",
                 "config": {"model": str(block.model_name), "task": block.task},

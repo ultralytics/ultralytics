@@ -42,7 +42,7 @@ class LLM:
 
     ports: ClassVar = {
         "inputs": {"source": "text | image", "context": "json"},
-        "outputs": {"response": "json"},
+        "outputs": {"text": "text"},
     }
 
     def __init__(
@@ -173,9 +173,9 @@ class LLM:
         if isinstance(source, str) and source.startswith(("http://", "https://", "data:image/")):
             return source
         image = cv2.imread(str(source)) if isinstance(source, (str, Path)) else np.asarray(source)
-        success, buffer = cv2.imencode(".jpg", image)
-        if not success:
-            raise ValueError("Unable to encode the Agent image source.")
+        if image is None:
+            raise ValueError(f"Unable to read Agent image source {source!r}.")
+        _, buffer = cv2.imencode(".jpg", image)
         return f"data:image/jpeg;base64,{base64.b64encode(buffer).decode()}"
 
     @staticmethod

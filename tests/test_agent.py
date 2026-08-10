@@ -84,19 +84,33 @@ def test_yolo_gate_llm_event_contract(monkeypatch):
 
     def person_summary():
         """Return one serialized person detection."""
-        return [{"name": "person", "class": 0, "confidence": 0.9}]
+        return [
+            {
+                "name": "person",
+                "class": 0,
+                "confidence": 0.9,
+                "segments": {"x": [1, 2], "y": [3, 4]},
+                "keypoints": {"x": [1], "y": [2]},
+            }
+        ]
 
     def empty_summary():
         """Return an empty detection summary."""
         return []
 
+    def classification_summary():
+        """Return ranked classification predictions rather than instance counts."""
+        return [{"name": "ambulance", "class": 1, "confidence": 0.002}]
+
     results = [
-        SimpleNamespace(orig_img=image, summary=person_summary),
-        SimpleNamespace(orig_img=image, summary=empty_summary),
+        SimpleNamespace(orig_img=image, probs=None, summary=person_summary),
+        SimpleNamespace(orig_img=image, probs=None, summary=empty_summary),
+        SimpleNamespace(orig_img=image, probs=object(), summary=classification_summary),
     ]
 
     def yolo_call(self, source, **kwargs):
-        """Return two image results to exercise event fan-out."""
+        """Return image results to exercise event fan-out."""
+        assert isinstance(source, np.ndarray)
         return results
 
     calls = []
@@ -113,7 +127,12 @@ def test_yolo_gate_llm_event_contract(monkeypatch):
     agent = Agent(yolo, Gate.when("yolo.counts.person", gte=1), llm)
 
     output = agent(image)
-    assert len(output["yolo"]) == 2
+    assert len(output["yolo"]) == 3
+    assert output["yolo"][0] == {
+        "results": [{"name": "person", "class": 0, "confidence": 0.9}],
+        "counts": {"person": 1},
+    }
+    assert output["yolo"][2]["counts"] == {}
     assert output["llm"] == [{"text": "A person"}]
     assert len(calls) == 1
     content = calls[0]["input"][0]["content"]
@@ -122,7 +141,11 @@ def test_yolo_gate_llm_event_contract(monkeypatch):
 
     calls.clear()
     direct = Agent(yolo, llm)(image)
-    assert len(direct["yolo"]) == len(direct["llm"]) == len(calls) == 2
+    assert len(direct["yolo"]) == len(direct["llm"]) == len(calls) == 3
+
+    cascade = Agent(yolo, yolo)(image)
+    assert len(cascade["yolo"]) == 3
+    assert len(cascade["yolo_2"]) == 9
 
 
 def test_llm_sync_and_async_calls():
@@ -160,3 +183,6 @@ def test_llm_sync_and_async_calls():
 
     assert llm("hello", model="custom") == "sync"
     assert calls[-1]["model"] == "custom"
+
+    with pytest.raises(ValueError, match="Unable to read Agent image"):
+        LLM._image_url("missing.jpg")

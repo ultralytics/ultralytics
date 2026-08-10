@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, ClassVar
+from typing import Any
 
 import numpy as np
 import torch
@@ -57,8 +57,6 @@ class YOLO(Model):
         >>> model = YOLO("yolo26n.yaml")
     """
 
-    ports: ClassVar = {"inputs": {"source": "image"}, "outputs": {"results": "json"}}
-
     def __init__(self, model: str | Path = "yolo26n.pt", task: str | None = None, verbose: bool = False):
         """Initialize a YOLO model.
 
@@ -89,25 +87,7 @@ class YOLO(Model):
                 new_instance = RTDETR(self)
                 self.__class__ = type(new_instance)
                 self.__dict__ = new_instance.__dict__
-
-    def _agent_run(self, event: dict[str, Any], name: str, **kwargs: Any) -> list[dict[str, Any]]:
-        """Run YOLO on an Agent event and emit one standardized event per image."""
-        events = []
-        for result in self(event["data"], **kwargs):
-            results = result.summary()
-            counts = {}
-            for item in results:
-                class_name = item.get("name", str(item.get("class", "unknown")))
-                counts[class_name] = counts.get(class_name, 0) + 1
-            events.append(
-                {
-                    **event,
-                    "source": result.orig_img,
-                    "data": result,
-                    name: {"results": results, "counts": counts},
-                }
-            )
-        return events
+        self._agent_type = "YOLO"
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:

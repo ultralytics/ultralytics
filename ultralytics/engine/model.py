@@ -5,7 +5,7 @@ from __future__ import annotations
 import inspect
 from collections.abc import Iterator
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 import numpy as np
 import torch
@@ -48,6 +48,7 @@ class Model(torch.nn.Module):
         metrics (ultralytics.utils.metrics.DetMetrics): The latest training/validation metrics.
         task (str): The type of task the model is intended for.
         model_name (str): The name of the model.
+        ports (dict): Agent input and output port definitions.
 
     Methods:
         __call__: Alias for the predict method, enabling the model instance to be callable.
@@ -79,6 +80,8 @@ class Model(torch.nn.Module):
         >>> metrics = model.val()
         >>> model.export(format="onnx")
     """
+
+    ports: ClassVar = {"inputs": {"source": "image"}, "outputs": {"results": "json", "counts": "json"}}
 
     def __init__(
         self,
@@ -164,6 +167,29 @@ class Model(torch.nn.Module):
             ...     print(f"Detected {len(r)} objects in image")
         """
         return self.predict(source, stream, **kwargs)
+
+    def _agent_run(self, event: dict[str, Any], name: str, **kwargs: Any) -> list[dict[str, Any]]:
+        """Run a model on an Agent event and emit one standardized event per image."""
+        events = []
+        for result in self(event["source"], **kwargs):
+            results = [
+                {key: value for key, value in item.items() if key not in {"keypoints", "segments"}}
+                for item in result.summary()
+            ]
+            counts = {}
+            if result.probs is None:
+                for item in results:
+                    class_name = item.get("name", str(item.get("class", "unknown")))
+                    counts[class_name] = counts.get(class_name, 0) + 1
+            events.append(
+                {
+                    **event,
+                    "source": result.orig_img,
+                    "data": result,
+                    name: {"results": results, "counts": counts},
+                }
+            )
+        return events
 
     @staticmethod
     def is_triton_model(model: str) -> bool:

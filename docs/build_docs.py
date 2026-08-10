@@ -119,6 +119,8 @@ def render_jinja_macros() -> None:
         trim_blocks=True,
         lstrip_blocks=True,
         keep_trailing_newline=True,
+        comment_start_string="{##",
+        comment_end_string="##}",
     )
 
     def indent_filter(value: str, width: int = 4, first: bool = False, blank: bool = False) -> str:

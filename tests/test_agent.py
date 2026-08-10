@@ -10,6 +10,7 @@ from ultralytics import LLM, Agent, Gate
 
 
 def test_gate_evaluation():
+    """Test condition and cadence Gate composition."""
     gate = Gate.all(Gate.when("detections.count", gte=1), Gate.every(frames=2))
 
     assert gate({"detections": {"count": 1}}) is None
@@ -18,6 +19,7 @@ def test_gate_evaluation():
 
 
 def test_agent_execution_and_cycle_validation():
+    """Test synchronous graph execution and cycle rejection."""
     agent = Agent(
         {
             "detect": lambda value: {"count": value},
@@ -34,11 +36,15 @@ def test_agent_execution_and_cycle_validation():
 
 
 def test_agent_async_execution():
+    """Test asynchronous graph execution."""
+
     class AsyncBlock:
         def __call__(self, value):
+            """Return a synchronous value."""
             return value
 
         async def async_call(self, value):
+            """Return an asynchronous value."""
             await asyncio.sleep(0)
             return value + 1
 
@@ -47,6 +53,7 @@ def test_agent_async_execution():
 
 
 def test_agent_serialization_omits_credentials():
+    """Test lossless graph serialization without API keys."""
     agent = Agent(
         {
             "first": LLM("gpt-5.6-luna", api_key="secret", temperature=0),
@@ -62,13 +69,16 @@ def test_agent_serialization_omits_credentials():
 
 
 def test_llm_sync_and_async_calls():
+    """Test LLM request routing for sync and async clients."""
     calls = []
 
     def create(**kwargs):
+        """Record a synchronous request."""
         calls.append(kwargs)
         return "sync"
 
     async def async_create(**kwargs):
+        """Record an asynchronous request."""
         calls.append(kwargs)
         return "async"
 

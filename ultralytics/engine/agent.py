@@ -279,6 +279,7 @@ class Agent:
         visiting, visited = set(), set()
 
         def visit(name: str) -> bool:
+            """Visit one Block while detecting back edges."""
             if name in visiting:
                 return True
             if name in visited:

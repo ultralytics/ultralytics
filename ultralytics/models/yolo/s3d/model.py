@@ -53,6 +53,12 @@ class Stereo3DDetModel(DetectionModel):
             depth_mode = training_cfg.get("depth_mode", "both")
             if depth_mode != "both":
                 head.set_depth_mode(depth_mode)
+            # Depth bin count. Defaults to the head's own value, so a YAML that declares none builds a
+            # bit-identical model. configure_depth() must run after set_depth_mode(), which may have pruned
+            # the depth branch entirely.
+            n_bins = training_cfg.get("depth_bins")
+            if n_bins is not None:
+                head.configure_depth(n_bins)
 
     def _backbone_to_tap(self, x):
         """Run backbone layers 0..tap_layer on an image, return tap features."""

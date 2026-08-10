@@ -140,6 +140,7 @@ def decode_stereo3d_outputs(
     std_dims: dict[int, tuple[float, float, float]] | None = None,
     class_names: dict[int, str] | None = None,
     score_k: float = 0.5,
+    depth_var_scale: float = 1.0,
     calib_letterboxed: bool = False,
 ) -> list[Box3D] | list[list[Box3D]]:
     """Decode s3d outputs to Box3D objects.
@@ -160,6 +161,9 @@ def decode_stereo3d_outputs(
         class_names: Mapping from class ID to class name.
         score_k: Decay rate for the uncertainty-based confidence weighting (confidence is scaled by exp(-score_k *
             sigma), sigma = predicted lr-distance std-dev, when "lr_logvar" is present).
+        depth_var_scale: Multiplier on the direct-depth cue's variance in the inverse-variance depth fusion. 1.0
+            (default) is an exact no-op; <1 shrinks the variance and so gives the direct cue more fusion weight,
+            which is how a higher bin count re-weights the fusion without changing the bin count.
         calib_letterboxed: If True, reverse-letterbox the per-sample calib (fx/fy/cx/cy) to original-image coords before
             back-projection (the production caller sets this).
 
@@ -305,7 +309,9 @@ def decode_stereo3d_outputs(
             if z_from_disp is not None and z_from_direct is not None:
                 if lr_logvar is not None:  # inverse-variance fusion of the two depth cues
                     var_disp = math.exp(lr_logvar)
-                    var_direct = _dfl_variance(outputs, b, flat_idx)  # spread of depth bins, else 1.0
+                    # Spread of the depth bins (else 1.0), rescaled: bin width sets this spread, so the knob
+                    # reproduces a bin count's fusion re-weighting at a fixed bin count. 1.0 is exact.
+                    var_direct = _dfl_variance(outputs, b, flat_idx) * depth_var_scale
                     w_disp, w_direct = 1.0 / max(var_disp, eps), 1.0 / max(var_direct, eps)
                     log_z = (w_disp * math.log(z_from_disp) + w_direct * math.log(z_from_direct)) / (w_disp + w_direct)
                     z_3d = math.exp(log_z)
@@ -480,6 +486,7 @@ def decode_and_refine_predictions(
     std_dims: dict[int, tuple[float, float, float]] | None = None,
     class_names: dict[int, str] | None = None,
     score_k: float = 0.5,
+    depth_var_scale: float = 1.0,
 ) -> list[list[Box3D]]:
     """Unified decode + refine pipeline for val and predict.
 
@@ -500,6 +507,7 @@ def decode_and_refine_predictions(
         std_dims: Standard deviation of dimensions per class.
         class_names: Mapping from class ID to class name.
         score_k: Decay rate for the uncertainty-based confidence weighting (see decode_stereo3d_outputs).
+        depth_var_scale: Multiplier on the direct-depth cue's fusion variance (see decode_stereo3d_outputs).
 
     Returns:
         List of Box3D lists (one per batch item).
@@ -550,6 +558,7 @@ def decode_and_refine_predictions(
         std_dims=std_dims,
         class_names=class_names,
         score_k=score_k,
+        depth_var_scale=depth_var_scale,
         calib_letterboxed=True,  # batch calib is in letterbox-input space; decode reverses it to original
     )
 

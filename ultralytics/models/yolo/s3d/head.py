@@ -40,7 +40,11 @@ class DepthDFL(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Decode bin logits [B, n_bins, HW] → log-depth [B, 1, HW]."""
+        """Decode bin logits [B, n_bins, HW] → log-depth [B, 1, HW].
+
+        Args:
+            x: Bin logits [B, n_bins, HW].
+        """
         weights = x.softmax(dim=1)  # [B, n_bins, HW]
         return (weights * self.bin_values.view(1, -1, 1)).sum(dim=1, keepdim=True)  # [B, 1, HW]
 
@@ -100,8 +104,8 @@ class Stereo3DDetHead(Detect):
 
         self.aux_specs = dict(AUX_SPECS)  # mutable copy
         self.depth_dfl = DepthDFL(DEPTH_BINS, DEPTH_MIN, DEPTH_MAX)
-        # The decode grid owns the bin count: the depth branch must emit exactly one logit per bin, so
-        # deriving the channel width here keeps AUX_SPECS from becoming a second, disagreeing source.
+        # The decode grid owns the branch width — one logit per bin — so deriving it here keeps AUX_SPECS
+        # from becoming a second, disagreeing source.
         self.aux_specs["depth"] = self.depth_dfl.n_bins
 
         # Hidden size scales with model width (same pattern as Pose.cv4)
@@ -116,6 +120,31 @@ class Stereo3DDetHead(Detect):
                 self.aux[name] = nn.ModuleList(_deep_branch(x + self.cv_ch, out_c, depth_hidden) for x in ch)
             else:
                 self.aux[name] = nn.ModuleList(_branch(x, out_c, hidden) for x in ch)
+
+    def configure_depth(self, n_bins: int | None = None) -> None:
+        """Retarget the depth path's bin count, resizing the branch to match.
+
+        Called at model construction from the YAML `training:` block (see `Stereo3DDetModel`), before any
+        weights matter, so only the branches' final 1x1 conv is rebuilt. Keeping this on the head means the
+        bin count never has to be changed by mutating the module-level `AUX_SPECS`, which is shared state.
+
+        Args:
+            n_bins: New depth bin count. None keeps the current one.
+        """
+        d = self.depth_dfl
+        n_bins = d.n_bins if n_bins is None else int(n_bins)
+        if n_bins < 2:
+            raise ValueError(f"depth_bins must be at least 2, got {n_bins}")
+        log_min, log_max = float(d.bin_values[0]), float(d.bin_values[-1])
+        self.depth_dfl = DepthDFL(n_bins, math.exp(log_min), math.exp(log_max))
+        self.depth_dfl.to(d.bin_values.device)
+
+        if "depth" not in self.aux_specs:  # pruned by depth_mode='lr_only'; nothing to resize
+            return
+        self.aux_specs["depth"] = n_bins
+        for branch in self.aux["depth"]:
+            last = branch[-1]
+            branch[-1] = nn.Conv2d(last.in_channels, n_bins, 1).to(last.weight.device)
 
     def set_depth_mode(self, mode: str) -> None:
         """Prune aux branches to match depth_mode ('both', 'lr_only', 'depth_only').
@@ -187,7 +216,7 @@ class Stereo3DDetHead(Detect):
 
         # Decode depth bins → scalar log-depth (keep raw logits for loss/export)
         if "depth" in preds:
-            depth_logits = preds["depth"]  # raw logits [B, n_bins, HW]
+            depth_logits = preds["depth"]  # branch output [B, n_bins, HW] — one logit per decode bin
             preds["depth"] = self.depth_dfl(depth_logits)  # decoded [B, 1, HW]
             preds["depth_bins"] = depth_logits  # raw logits: DFLoss / ONNX export / eval-time DFL variance
             # Ship the grid the logits are defined on. _set_range() retargets it per dataset, so a decoder
@@ -210,7 +239,7 @@ class Stereo3DDetHead(Detect):
                 if name in preds:
                     aux_tensors.append(preds[name])  # [B, C, anchors]
             if "depth_bins" in preds:
-                aux_tensors.append(preds["depth_bins"])  # [B, 16, anchors] raw logits
+                aux_tensors.append(preds["depth_bins"])  # [B, n_bins, anchors] raw logits
             if aux_tensors:
                 y = torch.cat([y, *aux_tensors], dim=1)  # [B, 7+22, anchors]
             return y

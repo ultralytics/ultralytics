@@ -60,9 +60,17 @@ def test_export_onnx():
         dims = [d.dim_value for d in inp.type.tensor_type.shape.dim]
         assert dims == [1, 3, 384, 1248], f"{inp.name} shape {dims} != [1, 3, 384, 1248]"
 
-    # Output aux channels: 4(box) + 3(cls) + 1(lr) + 3(dims) + 6(orient MultiBin) + 16(depth) = 33
+    # Output aux channels: 4(box) + 3(cls) + 1(lr) + 3(dims) + 6(orient MultiBin) + n_bins(depth).
+    # Derived from the model, not hardcoded: the depth branch emits one logit per decode bin, so the export
+    # width tracks depth_bins. It was 33 when 16 bins were the default and is 81 at the shipped 64.
+    from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS
+
+    n_bins = model.model.model[-1].depth_dfl.n_bins
+    expected = 7 + 1 + 3 + ORIENT_CHANNELS + n_bins
     out_shape = [d.dim_value for d in m.graph.output[0].type.tensor_type.shape.dim]
-    assert out_shape[1] == 33, f"Expected 33 output channels (7 det + 26 aux), got {out_shape[1]}"
+    assert out_shape[1] == expected, (
+        f"Expected {expected} output channels (7 det + 10 aux + {n_bins} depth bins), got {out_shape[1]}"
+    )
 
 
 @pytest.mark.skipif(not __import__("torch").cuda.is_available(), reason="TensorRT requires CUDA")
@@ -791,6 +799,74 @@ def test_ivw_fusion_uses_dfl_variance():
     assert abs(z_ivw - z_direct_true) < abs(z_geo - z_direct_true), "ivw should be pulled toward the direct cue"
 
 
+def _fusion_scale_outputs():
+    """Build s3d outputs whose two depth cues disagree and whose DFL spread is moderate.
+
+    Flat bin logits give var_direct ~ the grid's own variance (O(1)), well clear of the decode's 1e-6 floor --
+    a peaked distribution would be clamped there and make any variance rescaling invisible.
+    non_max_suppression rewrites outputs["det"] in place, so every decode call needs its own dict.
+    """
+    import math
+
+    import torch
+
+    from ultralytics.models.yolo.s3d.head import DEPTH_BINS, DepthDFL
+    from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS, encode_orientation
+
+    det = torch.zeros(1, 4 + 3, 1)
+    det[0, :4, 0] = torch.tensor([624.0, 192.0, 20.0, 20.0])
+    det[0, 4, 0] = 0.99
+    return {
+        "det": det,
+        "dimensions": torch.zeros(1, 3, 1),
+        "orientation": torch.tensor(encode_orientation(0.0)).view(1, ORIENT_CHANNELS, 1).float(),
+        "lr_distance": torch.tensor([[[math.log(0.03)]]]),  # z_from_disp ~ 10.5
+        "depth": torch.tensor([[[math.log(25.0)]]]),  # z_from_direct = 25.0, far from the disparity cue
+        "lr_logvar": torch.tensor([[[0.0]]]),  # var_disp = 1, so the two weights are comparable
+        "depth_bins": torch.zeros(1, DEPTH_BINS, 1),  # flat => var_direct = the grid's variance
+        "depth_bin_values": DepthDFL().bin_values,
+    }
+
+
+def _decode_fusion_scale(**kwargs):
+    """Decode `_fusion_scale_outputs()` and return every numeric field as one float64 tensor."""
+    import torch
+
+    from ultralytics.models.yolo.s3d.preprocess import decode_stereo3d_outputs
+
+    calib = {"fx": 721.5377, "fy": 721.5377, "cx": 609.5593, "cy": 172.8540, "baseline": 0.54}
+    boxes = decode_stereo3d_outputs(
+        _fusion_scale_outputs(), calib=[calib], imgsz=(384, 1248), ori_shapes=[(375, 1242)], **kwargs
+    )
+    assert boxes, "decode returned no boxes; the fixture no longer produces a detection"
+    flat = [v for b in boxes for v in (*b.center_3d, *b.dimensions, b.orientation, b.confidence)]
+    return torch.tensor(flat, dtype=torch.float64)  # float64 keeps the Python floats bit-exact
+
+
+def test_depth_var_scale_default_is_a_bitwise_noop():
+    """depth_var_scale=1.0 must be indistinguishable from not passing it at all.
+
+    The knob exists only to reproduce a bin count's fusion re-weighting at a fixed bin count, so every run
+    that does not ask for it -- every existing checkpoint, every other arm -- must decode bit for bit as
+    before. A float multiply by 1.0 is exact in IEEE 754, and this pins that.
+    """
+    import torch
+
+    assert torch.equal(_decode_fusion_scale(depth_var_scale=1.0), _decode_fusion_scale())
+
+
+def test_depth_var_scale_shifts_the_fusion_toward_the_direct_cue():
+    """Shrinking var_direct must raise the direct cue's inverse-variance weight, pulling z toward it."""
+    z_default = float(_decode_fusion_scale()[2])
+    z_scaled = float(_decode_fusion_scale(depth_var_scale=0.5)[2])
+    z_direct = 25.0  # outputs["depth"] in _fusion_scale_outputs
+
+    assert abs(z_scaled - z_direct) < abs(z_default - z_direct), (
+        f"scale=0.5 ({z_scaled}) is no closer to the direct cue ({z_direct}) than scale=1.0 ({z_default})"
+    )
+    assert z_scaled > z_default, "the direct cue is the deeper one, so more weight on it must increase z"
+
+
 def test_decode_no_overflow_with_large_lr_logvar():
     """A pathological lr_logvar must not crash math.exp (Fix A: lr_logvar is clamped at sample time)."""
     import math
@@ -1481,3 +1557,72 @@ def test_cost_volume_level_variants_build_with_their_declared_resolution(tag, le
     volumes = [m for m in model.modules() if isinstance(m, StereoCostVolume)]
     assert len(volumes) == 1, f"expected exactly one cost volume, found {len(volumes)}"
     assert int(volumes[0].d_norm.numel()) == levels
+def _s3d_yaml_with(tmp_path, **training):
+    """Write a yolo26n-s3d YAML whose `training:` block carries the given overrides."""
+    import yaml
+
+    from ultralytics.utils import ROOT
+
+    cfg = yaml.safe_load(open(ROOT / "cfg/models/26/yolo26-s3d.yaml"))
+    cfg["training"] = {**cfg.get("training", {}), **training}
+    cfg["scale"] = "n"
+    p = tmp_path / "arm-s3d.yaml"
+    p.write_text(yaml.safe_dump(cfg))
+    return str(p)
+
+
+def test_configure_depth_resizes_the_branch_and_the_loss(tmp_path):
+    """A YAML-declared bin count must reach the branch width, the decode grid AND the DFL loss together."""
+    from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
+
+    model = YOLO(_s3d_yaml_with(tmp_path, depth_bins=64)).model
+    head = model.model[-1]
+    assert head.depth_dfl.n_bins == 64
+    assert head.aux_specs["depth"] == 64
+    assert head.aux["depth"][0][-1].out_channels == 64
+    assert Stereo3DDetLoss(model).depth_dfl_loss.reg_max == 64
+    # The grid must still span the same depth range it was built with.
+    assert float(head.depth_dfl.bin_values[0]) == pytest.approx(np.log(2.0), abs=1e-6)
+    assert float(head.depth_dfl.bin_values[-1]) == pytest.approx(np.log(80.0), abs=1e-6)
+
+
+def test_shipped_yamls_default_to_64_depth_bins():
+    """The shipped s3d configs must build a 64-bin depth head.
+
+    64 is the measured optimum of an inverted-U bin curve (findings C9/C11/C12): better than 16 at every GT
+    range band on the full Chen split, while 192+ is worse than 16. This guards against a silent revert --
+    the model summary printed during training reports the pre-`configure_depth` channel count, so a
+    regression here would not be visible in any training log.
+    """
+    from ultralytics.utils import ROOT
+
+    for name in ("yolo26-s3d.yaml", "yolo26-s3d-kitti.yaml"):
+        head = YOLO(str(ROOT / "cfg/models/26" / name)).model.model[-1]
+        assert head.depth_dfl.n_bins == 64, f"{name} built {head.depth_dfl.n_bins} bins"
+        assert head.aux_specs["depth"] == 64
+        assert head.aux["depth"][0][-1].out_channels == 64
+
+
+def test_bin_count_silence_still_means_16(tmp_path):
+    """A config that does not declare depth_bins must still build 16 bins.
+
+    This is the checkpoint-compatibility contract: a checkpoint stores its own YAML, so one saved before
+    `depth_bins` existed carries no such key. If the module default drifted from 16, every such checkpoint
+    would build a differently-shaped depth branch and fail to load its own state_dict.
+    """
+    import yaml
+
+    from ultralytics.models.yolo.s3d.head import DEPTH_BINS
+    from ultralytics.utils import ROOT
+
+    assert DEPTH_BINS == 16, "DEPTH_BINS is the compatibility floor for pre-existing checkpoints"
+
+    cfg = yaml.safe_load(open(ROOT / "cfg/models/26/yolo26-s3d.yaml"))
+    cfg["training"] = {k: v for k, v in cfg.get("training", {}).items() if k != "depth_bins"}
+    cfg["scale"] = "n"
+    p = tmp_path / "legacy-s3d.yaml"
+    p.write_text(yaml.safe_dump(cfg))
+
+    head = YOLO(str(p)).model.model[-1]
+    assert head.depth_dfl.n_bins == 16
+    assert head.aux["depth"][0][-1].out_channels == 16

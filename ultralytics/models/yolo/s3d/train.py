@@ -18,6 +18,7 @@ from ultralytics.data.stereo.box3d import Box3D
 from ultralytics.models import yolo
 from ultralytics.models.yolo.s3d.dataset import Stereo3DDetDataset
 from ultralytics.models.yolo.s3d.head import DEPTH_MAX, DEPTH_MIN
+from ultralytics.models.yolo.s3d.loss import LOSS_NAMES
 from ultralytics.models.yolo.s3d.model import Stereo3DDetModel
 from ultralytics.models.yolo.s3d.preprocess import preprocess_stereo_batch
 from ultralytics.nn.modules.block import StereoCostVolume
@@ -140,7 +141,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
     def get_validator(self):
         """Return a Stereo3DDetValidator, currently extending DetectionValidator."""
         # T204: Determine loss names dynamically from model before creating validator
-        self.loss_names = ("box", "cls", "lr_dist", "depth", "dims", "orient", "proj_center", "photo")
+        self.loss_names = LOSS_NAMES
         val = yolo.s3d.Stereo3DDetValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

@@ -8,6 +8,12 @@ import torch.nn.functional as F
 from ultralytics.utils.loss import DFLoss, v8DetectionLoss
 
 
+# Order of the loss vector Stereo3DDetLoss returns. The trainer derives its own loss_names from the
+# criterion's dict on the first batch, but Stereo3DDetTrainer needs them before that to print the progress
+# header, so both read this one tuple rather than repeating the literal.
+LOSS_NAMES = ("box", "cls", "lr_dist", "depth", "dims", "orient", "proj_center", "photo")
+
+
 def laplacian_nll(
     pred: torch.Tensor, target: torch.Tensor, logvar: torch.Tensor, reduction: str = "mean"
 ) -> torch.Tensor:
@@ -127,7 +133,7 @@ class Stereo3DDetLoss(v8DetectionLoss):
         photometric_loss: bool = False,
     ):
         super().__init__(model, tal_topk=tal_topk)
-        self.loss_names = ("box", "cls", "lr_dist", "depth", "dims", "orient", "proj_center", "photo")
+        self.loss_names = LOSS_NAMES
         self.photometric_loss = photometric_loss
         self.aux_w = loss_weights or {}
         self.use_bbox_loss = use_bbox_loss
@@ -341,10 +347,18 @@ class Stereo3DDetLoss(v8DetectionLoss):
             batch: Batch dict with img, batch_idx, cls, bboxes, aux_targets.
         """
         # Separate aux preds from detection preds
-        aux_keys = {"lr_distance", "lr_logvar", "depth", "depth_bins", "dimensions", "orientation", "proj_offset"}
+        aux_keys = {
+            "lr_distance",
+            "lr_logvar",
+            "depth",
+            "depth_bins",
+            "dimensions",
+            "orientation",
+            "proj_offset",
+        }
         aux_preds = {k: v for k, v in preds.items() if k in aux_keys}
 
-        loss = torch.zeros(8, device=self.device)  # box, cls, lr_dist, depth, dims, orient, proj_center, photo
+        loss = torch.zeros(len(LOSS_NAMES), device=self.device)  # see LOSS_NAMES for the slot order
 
         # Get detection losses + TAL assignment results
         (fg_mask, target_gt_idx, _, _, _), det_loss, _ = self.get_assigned_targets_and_loss(preds, batch)

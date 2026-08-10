@@ -82,6 +82,24 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
         build_dataloader([], batch=4, workers=2)
 
 
+def test_classify_dataloader_drop_last_train_only(tmp_path):
+    """Test compile drops the incomplete batch on the classify train loader only, never on val."""
+    from ultralytics.models.yolo.classify import ClassificationTrainer
+
+    (tmp_path / "0").mkdir()
+    for i in range(5):  # 5 images over batch 3 leaves an incomplete trailing batch that val must keep
+        cv2.imwrite(str(tmp_path / "0" / f"{i}.jpg"), np.zeros((32, 32, 3), dtype=np.uint8))
+    trainer = ClassificationTrainer.__new__(ClassificationTrainer)
+    trainer.args = get_cfg(overrides={"compile": True, "workers": 0})
+    trainer.data, trainer.device, trainer.model = {"nc": 1}, torch.device("cpu"), torch.nn.Module()
+    for mode, expected in (("train", True), ("val", False)):
+        loader = trainer.get_dataloader(str(tmp_path), batch_size=3, rank=-1, mode=mode)
+        try:
+            assert loader.drop_last is expected, f"{mode} loader drop_last is {loader.drop_last}"
+        finally:
+            loader.close()
+
+
 def test_cfg_rejects_fuzzed_values():
     """Test invalid overrides fail in config validation."""
     with pytest.raises(TypeError, match="degrees"):

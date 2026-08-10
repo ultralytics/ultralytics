@@ -1539,6 +1539,34 @@ def test_patience_zero_disables_early_stopping():
     assert any(on(e, 0.0) for e in range(1, 100)), "a positive patience must still stop on a plateau"
 
 
+def test_cost_volume_variants_differ_from_the_parent_ONLY_in_level_count():
+    """A sweep variant must differ from `yolo26-s3d.yaml` in nothing but `StereoCostVolume` num_levels.
+
+    This is the guard, not a nicety. The cv variants were forked from the parent YAML, and a later commit
+    added `depth_bins: 64` to the parent only — so the control built a 64-bin head while every treatment arm
+    built a 16-bin one. Since 16 -> 64 bins is worth about +6 points of frac-within-tolerance, on its own
+    larger than the effect the sweep was measuring, that would have produced a confident and completely wrong
+    conclusion that a finer cost volume is harmful.
+
+    Comparing the full key space rather than a whitelist means the next key added to the parent is caught
+    automatically, whatever it is.
+    """
+    from ultralytics.utils import YAML
+
+    root = Path(__file__).resolve().parents[1] / "ultralytics/cfg/models/26"
+    parent = YAML.load(root / "yolo26-s3d.yaml")
+    for levels in (24, 96, 144):
+        child = YAML.load(root / f"yolo26-s3d-cv{levels}.yaml")
+        assert set(child) == set(parent), (
+            f"cv{levels} key set diverged from the parent: "
+            f"only in child {set(child) - set(parent)}, only in parent {set(parent) - set(child)}"
+        )
+        for key in parent:
+            if key in {"head", "backbone"}:
+                continue  # the layer lists legitimately differ, and are asserted on the built model below
+            assert child[key] == parent[key], f"cv{levels} diverged from the parent at '{key}'"
+
+
 @pytest.mark.parametrize("tag,levels", [("", 48), ("-cv24", 24), ("-cv96", 96), ("-cv144", 144)])
 def test_cost_volume_level_variants_build_with_their_declared_resolution(tag, levels):
     """Each cost-volume resolution variant must build with exactly the level count its YAML declares.
@@ -1557,6 +1585,8 @@ def test_cost_volume_level_variants_build_with_their_declared_resolution(tag, le
     volumes = [m for m in model.modules() if isinstance(m, StereoCostVolume)]
     assert len(volumes) == 1, f"expected exactly one cost volume, found {len(volumes)}"
     assert int(volumes[0].d_norm.numel()) == levels
+
+
 def _s3d_yaml_with(tmp_path, **training):
     """Write a yolo26n-s3d YAML whose `training:` block carries the given overrides."""
     import yaml

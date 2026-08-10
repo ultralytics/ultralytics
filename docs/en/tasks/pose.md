@@ -6,7 +6,9 @@ keywords: pose estimation, YOLO26, Ultralytics, keypoints, model training, image
 model_name: yolo26n-pose
 ---
 
-# Pose Estimation with Ultralytics YOLO {#pose-estimation}
+<a id="pose-estimation"></a>
+
+# Pose Estimation with Ultralytics YOLO
 
 <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pose-estimation-examples.avif" alt="Ultralytics YOLO pose estimation with human body keypoint detection">
 

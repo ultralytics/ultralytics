@@ -4,7 +4,9 @@ description: Learn about object detection with Ultralytics YOLO26. Explore pretr
 keywords: object detection, Ultralytics YOLO, YOLO26, pretrained models, training, validation, prediction, export, machine learning, computer vision
 ---
 
-# Object Detection with Ultralytics YOLO {#object-detection}
+<a id="object-detection"></a>
+
+# Object Detection with Ultralytics YOLO
 
 <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/object-detection-examples.avif" alt="Ultralytics YOLO object detection with bounding boxes">
 

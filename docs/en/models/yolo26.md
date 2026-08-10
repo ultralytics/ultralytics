@@ -109,6 +109,8 @@ This unified framework covers real-time detection, instance segmentation, semant
 
 ## Performance Metrics
 
+<canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLO26"]'></canvas>
+
 !!! tip "Performance"
 
     === "Detection (COCO)"

@@ -60,13 +60,15 @@ def prepare_docs_markdown(clone_repos: bool = True):
     if clone_repos:
         # Get docs repo
         repo = "https://github.com/ultralytics/docs"
-        local_dir = DOCS / "repos" / Path(repo).name
-        subprocess.run(
-            ["git", "clone", "-q", "--depth=1", "--single-branch", "-b", "main", repo, str(local_dir)], check=True
-        )
+        local_dir = Path(os.environ["DOCS_REPO_PATH"]) if "DOCS_REPO_PATH" in os.environ else DOCS / "repos/docs"
+        if "DOCS_REPO_PATH" not in os.environ:
+            subprocess.run(
+                ["git", "clone", "-q", "--depth=1", "--single-branch", "-b", "main", repo, str(local_dir)],
+                check=True,
+            )
         shutil.rmtree(DOCS / "en/compare", ignore_errors=True)  # delete if exists
         shutil.copytree(local_dir / "docs/en/compare", DOCS / "en/compare")  # for docs
-        LOGGER.info(f"Cloned/Updated {repo} in {local_dir}")
+        LOGGER.info(f"Loaded {repo} from {local_dir}")
 
     # Add frontmatter
     for file in TQDM((DOCS / "en").rglob("*.md"), desc="Adding frontmatter"):
@@ -541,11 +543,7 @@ def render_jinja_macros() -> None:
         context["page"] = context.get("page", {})
         context["page"]["meta"] = frontmatter_data
 
-        try:
-            rendered = env.render_str(markdown_content, name=str(md_file.relative_to(DOCS)), **context)
-        except Exception as e:
-            LOGGER.warning(f"Error rendering macros in {md_file}: {e}")
-            continue
+        rendered = env.render_str(markdown_content, name=str(md_file.relative_to(DOCS)), **context)
 
         md_file.write_text(frontmatter + rendered, encoding="utf-8")
         files_with_macros += 1

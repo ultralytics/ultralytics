@@ -213,6 +213,8 @@ class Agent:
 
     def __init__(self, *blocks: Callable[..., Any] | Mapping[str, Callable[..., Any]]) -> None:
         """Initialize an Agent from sequential Blocks or one mapping of named Blocks."""
+        from ultralytics.engine.model import Model
+
         sequential = not (len(blocks) == 1 and isinstance(blocks[0], Mapping))
         if sequential:
             named_blocks = {}
@@ -233,7 +235,8 @@ class Agent:
             raise ValueError("Block names must be non-empty strings without dots and cannot be 'data' or 'source'.")
         if any(not callable(block) for block in named_blocks.values()):
             raise TypeError("Every Agent Block must be callable.")
-        if len({id(block) for block in named_blocks.values()}) != len(named_blocks):
+        states = {id(block.__dict__) if isinstance(block, Model) else id(block) for block in named_blocks.values()}
+        if len(states) != len(named_blocks):
             raise ValueError("Each Agent Block must be a distinct instance.")
         self.blocks = named_blocks
         self.connections: list[tuple[str, str]] = []
@@ -364,13 +367,12 @@ class Agent:
         if callable(agent_run := self._block_method(block, "_agent_run")):
             async with lock:
                 output = await loop.run_in_executor(None, partial(agent_run, event, name, **kwargs))
-            iterator = iter(self._events(output))
-            while True:
-                async with lock:
+                iterator = iter(self._events(output))
+                while True:
                     emitted = await loop.run_in_executor(None, self._next_event, iterator)
-                if emitted is _MISSING:
-                    return
-                yield emitted
+                    if emitted is _MISSING:
+                        return
+                    yield emitted
         elif callable(async_call := self._block_method(block, "async_call")):
             async with lock:
                 output = await async_call(event["data"], **kwargs)

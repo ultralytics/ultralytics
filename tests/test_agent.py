@@ -69,6 +69,28 @@ def test_agent_async_execution():
     with pytest.raises(ValueError, match="distinct instance"):
         Agent({"first": agent.blocks["first"], "second": agent.blocks["first"]})
 
+    class StreamBlock:
+        def __init__(self):
+            """Initialize stream activity state."""
+            self.active = False
+
+        def __call__(self, value):
+            """Return a synchronous value."""
+            return value
+
+        def _agent_run(self, event, name, **kwargs):
+            """Emit one event while rejecting concurrent stream entry."""
+            assert not self.active
+            self.active = True
+            try:
+                yield {**event, name: event["data"]}
+            finally:
+                self.active = False
+
+    fan_in = Agent({"a": lambda value: value, "b": lambda value: value, "stream": StreamBlock()})
+    fan_in.connect("a", "stream").connect("b", "stream")
+    assert asyncio.run(fan_in.async_call(1))["stream"] == [1, 1]
+
     async def async_block(value):
         """Return an asynchronous function result."""
         return value
@@ -244,3 +266,4 @@ def test_llm_sync_and_async_calls():
     prompt.client = llm.client
     assert Agent(prompt)()["llm"] == [{"text": "sync"}]
     assert calls[-1]["input"] == "Write a summary."
+    assert "array" in prompt._agent_input({"source": None, "data": None, "array": np.ones(2)})

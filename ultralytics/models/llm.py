@@ -128,7 +128,9 @@ class LLM:
         """Convert an Agent event into native Responses or Chat Completions input."""
         source = event["source"]
         context = {
-            key: value for key, value in event.items() if key not in {"source", "data"} and value != {"passed": True}
+            key: value
+            for key, value in event.items()
+            if key not in {"source", "data"} and not (isinstance(value, dict) and value == {"passed": True})
         }
         prompt = self.prompt or "Describe the image."
         if context:

@@ -52,7 +52,6 @@ def test_agent_execution_and_cycle_validation():
 
 def test_agent_async_execution():
     """Test asynchronous graph execution."""
-
     active = [0, 0]
 
     class AsyncBlock:

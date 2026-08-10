@@ -1394,7 +1394,13 @@ class Exporter:
         # Export to TF
         images = None
         if self.args.quantize == 8 and self.args.data:
-            images = [batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)]
+            images, n = [], 0
+            for batch in self.get_int8_calibration_dataloader(prefix):
+                images.append(batch["img"])
+                n += images[-1].shape[0]
+                if n >= 512:
+                    break
+            LOGGER.info(f"{prefix} using {n} INT8 calibration images (target 512) to bound host memory")
             images = (
                 torch.nn.functional.interpolate(torch.cat(images, 0).float(), size=self.imgsz)
                 .permute(0, 2, 3, 1)

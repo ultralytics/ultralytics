@@ -86,6 +86,19 @@ class Detect(nn.Module):
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
     xyxy = False  # xyxy or xywh output
 
+    @staticmethod
+    def _grouped_topk(x: torch.Tensor, k: int, groups: int = 8) -> tuple[torch.Tensor, torch.Tensor]:
+        """Select exact top-k values through smaller grouped selections."""
+        n = x.shape[1]
+        while groups > 1 and (n % groups or n // groups < k):
+            groups //= 2
+        if groups == 1:  # nothing to gain, e.g. a short axis or one that does not divide evenly
+            return x.topk(k, dim=1)
+        size = n // groups
+        values, index = x.reshape(x.shape[0], groups, size).topk(k, dim=-1)
+        values, winners = values.flatten(1).topk(k, dim=1)
+        return values, winners // k * size + index.flatten(1).gather(1, winners)
+
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """Initialize the YOLO detection layer with specified number of classes and channels.
 
@@ -251,9 +264,10 @@ class Detect(nn.Module):
             scores, indices = scores.topk(k, dim=1)
             labels = labels.gather(1, indices)
             return scores, labels.float(), indices
-        ori_index = scores.max(dim=-1)[0].topk(k)[1].unsqueeze(-1)
+        groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
+        ori_index = self._grouped_topk(scores.max(dim=-1)[0], k, groups)[1].unsqueeze(-1)
         scores = scores.gather(dim=1, index=ori_index.expand(-1, -1, nc))
-        scores, index = scores.flatten(1).topk(k)
+        scores, index = self._grouped_topk(scores.flatten(1), k, groups)
         idx = (
             ori_index[torch.arange(batch_size)[..., None], index // nc]
             if self.format == "coreml"
@@ -1123,7 +1137,7 @@ class YOLOEDetect(Detect):
         self.savpe = SAVPE(ch, c3, embed)
         self.embed = embed
 
-    @smart_inference_mode()
+    @smart_inference_mode(False)  # fused layers stay in the model, so they must not be inference tensors
     def fuse(self, txt_feats: torch.Tensor = None):
         """Fuse text features with model weights for efficient inference."""
         if txt_feats is None:  # means eliminate one2many branch
@@ -1133,7 +1147,7 @@ class YOLOEDetect(Detect):
             return
 
         assert not self.training
-        txt_feats = txt_feats.to(torch.float32).squeeze(0)
+        txt_feats = txt_feats.to(next(self.parameters()).dtype).squeeze(0)
         if self.cv3 and self.cv4:
             self._fuse_tp(txt_feats, self.cv3, self.cv4)
         if self.end2end:
@@ -1170,7 +1184,7 @@ class YOLOEDetect(Detect):
                     kernel_size=1,
                 )
                 .requires_grad_(False)
-                .to(conv.weight.device)
+                .to(conv.weight.device, conv.weight.dtype)
             )
 
             conv.weight.data.copy_(w.unsqueeze(-1).unsqueeze(-1))

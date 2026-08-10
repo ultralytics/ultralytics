@@ -633,14 +633,14 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     train_set = data_dir / "train"
     if not train_set.is_dir():
         LOGGER.warning(f"Dataset 'split=train' not found at {train_set}")
-        if image_files := list(data_dir.rglob("*.jpg")) + list(data_dir.rglob("*.png")):
+        if image_files := [f for f in data_dir.rglob("*.*") if f.suffix[1:].lower() in IMG_FORMATS]:
             from ultralytics.data.split import split_classify_dataset
 
             LOGGER.info(f"Found {len(image_files)} images in subdirectories. Attempting to split...")
             data_dir = split_classify_dataset(data_dir, train_ratio=0.8)
             train_set = data_dir / "train"
         else:
-            LOGGER.error(f"No images found in {data_dir} or its subdirectories.")
+            raise FileNotFoundError(f"No images found in {data_dir} or its subdirectories.")
     val_set = (
         data_dir / "val"
         if (data_dir / "val").exists()

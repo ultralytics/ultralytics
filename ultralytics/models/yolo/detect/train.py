@@ -213,7 +213,7 @@ class DetectionTrainer(BaseTrainer):
         # E2ELoss appends the aux foreground term when enabled; keep loss_names in sync
         if (
             getattr(self.args, "aux_fg_on", False)
-            and getattr(self.args, "aux_fg", 0.0)
+            and getattr(self.args, "aux_fg", 0.5)
             and hasattr(unwrap_model(self.model).model[-1], "aux_fg")
         ):
             self.loss_names += ("aux_fg_loss",)

@@ -1249,20 +1249,21 @@ class E2ELoss:
         self.final_o2m = 0.1
         # Training-only class-agnostic foreground auxiliary; the one2one branch takes detached features, so this is
         # the only aux path that shapes the trunk besides the one2many loss. Gated by aux_fg_on (default off), which
-        # makes DetectionTrainer.get_model attach the head's aux_fg branch; aux_fg/aux_fg_tgt/aux_fg_t are code-only.
+        # makes DetectionTrainer.get_model attach the head's aux_fg branch; aux_fg/aux_fg_tgt/aux_fg_t are code-only
+        # args whose defaults reproduce the mix-target ablation recipe.
         self.aux_fg = (
-            getattr(model.args, "aux_fg", 0.0)
+            getattr(model.args, "aux_fg", 0.5)
             if getattr(model.args, "aux_fg_on", False) and hasattr(model.model[-1], "aux_fg")
             else 0.0
         )
         # Which assignment supplies the aux target: the dense 'o2m' foreground, the single-anchor 'o2o' foreground, or
         # 'mix' (o2f-style): 1 at the o2o positive and a decaying degree at o2m-only anchors, so the trunk supervision
         # slides from dense to o2o-shaped as the o2o branch takes over, without contradicting the o2m head early on.
-        self.aux_fg_tgt = getattr(model.args, "aux_fg_tgt", "o2m")
+        self.aux_fg_tgt = getattr(model.args, "aux_fg_tgt", "mix")
         if self.aux_fg_tgt not in {"o2m", "o2o", "mix"}:
             raise ValueError(f"aux_fg_tgt must be 'o2m', 'o2o', or 'mix', not {self.aux_fg_tgt!r}")
         # Mix mode: initial degree of the o2m-only ("ambiguous") anchors, decayed linearly to 0 over the full training.
-        self.aux_fg_t = getattr(model.args, "aux_fg_t", 0.5)
+        self.aux_fg_t = getattr(model.args, "aux_fg_t", 0.75)
         if not 0 <= self.aux_fg_t <= 1:
             raise ValueError(f"aux_fg_t must be in [0, 1], not {self.aux_fg_t}")
         # Branch weight carrying the aux term: 'o2m' follows the one2many decay, 'const' keeps it flat, 'o2o' follows

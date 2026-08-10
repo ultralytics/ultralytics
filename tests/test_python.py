@@ -172,8 +172,7 @@ def test_select_device(monkeypatch):
 
 
 def _mock_autobatch_gpu(monkeypatch, total_memory_gb=8.0):
-    """
-    Patch autobatch()'s device/accelerator calls so it targets a fake idle CUDA GPU without real CUDA hardware.
+    """Patch autobatch()'s device/accelerator calls so it targets a fake idle CUDA GPU without real CUDA hardware.
 
     Returns the ``ultralytics.utils.autobatch`` module (already patched) and a fake model whose single parameter reports
     the fake CUDA device, so ``autobatch.autobatch(model, ...)`` runs its real fitting logic against whatever

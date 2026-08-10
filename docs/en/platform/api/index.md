@@ -1287,6 +1287,7 @@ graph LR
     A[Create]:::start --> B[Deploying]:::proc
     B --> C[Ready]:::out
     C -->|stop| D[Stopped]:::extern
+    C -->|replace model| B
     D -->|start| C
     C -->|delete| E[Deleted]:::error
     D -->|delete| E
@@ -1364,6 +1365,22 @@ GET /api/deployments/{deploymentId}
 ```http
 DELETE /api/deployments/{deploymentId}
 ```
+
+### Replace Deployment Model
+
+```http
+PATCH /api/deployments/{deploymentId}
+```
+
+**Body:**
+
+```json
+{
+    "modelId": "model_xyz789"
+}
+```
+
+Creates a new revision with the selected model while preserving the deployment ID, region, API key, and endpoint URL. The existing revision continues serving until the replacement is ready. The selected model must be a completed model with weights in the same workspace.
 
 ### Start Deployment
 

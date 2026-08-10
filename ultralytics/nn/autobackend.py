@@ -9,8 +9,10 @@ import numpy as np
 import torch
 from torch import nn
 
+from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_suffix
 from ultralytics.utils.downloads import is_url
+from ultralytics.utils.torch_utils import smart_inference_mode
 
 from .backends import (
     AscendBackend,
@@ -374,6 +376,23 @@ class AutoBackend(nn.Module):
         if hasattr(self.backend, "model") and hasattr(self.backend.model, "eval"):
             self.backend.model.eval()
         return super().eval()
+
+    @smart_inference_mode(False)  # the converted weights outlive this call, so they must not be inference tensors
+    def set_memory_format(self, channels_last: bool) -> None:
+        """Convert to channels_last (NHWC), lossless and Tensor-Core friendly only for PyTorch models on CUDA.
+
+        Args:
+            channels_last (bool): Whether the caller requested the channels_last memory format.
+        """
+        if not channels_last:
+            return
+        if self.device.type != "cuda" or self.format != "pt":
+            LOGGER.warning(
+                f"'channels_last=True' applies only to native PyTorch models on CUDA, ignoring for "
+                f"format='{self.format}' on '{self.device.type}'."
+            )
+            return
+        self.to(memory_format=torch.channels_last)
 
     def _apply(self, fn) -> AutoBackend:
         """Apply a function to backend.model parameters, buffers, and tensors.

@@ -41,6 +41,22 @@ same problem:
 Set `--patience` above 0 only for a one-off exploratory run where wall-clock matters more than
 comparability, never for an arm of a comparison.
 
+Scale augmentation (`--scale-jitter`) defaults to the measured KITTI optimum of 0.30. Dose-response on the
+screening harness (4 doses x 2 seeds, fixed 600 epochs) gave Car AP3D Mod@0.5 14.73 -> 23.31 and Mod@0.7
+0.53 -> 1.08, improving at every IoU threshold and difficulty, with both dose-0.30 seeds beating both
+control seeds at @0.7. Range-stratified depth also improved at 15-80 m (-0.068 / -0.139 / -0.182 m median
+|dz|) and degraded only at 0-15 m (+0.216 m).
+
+Read that last point carefully, because the pooled statistic says the opposite: pooled median |dz| over
+matched detections got WORSE (+0.105..+0.236 m). Scale jitter raises recall by ~12%, concentrated at far
+range where |dz| is intrinsically ~6x larger, so the pooled median rises even though per-range accuracy
+improved. Pooled |dz| is only comparable between arms of equal recall; compare `by_range` whenever `n`
+differs.
+
+Cube is the exception: constant object dimensions make apparent size an exact depth cue there, and a 3-seed
+cube A/B measured scale jitter as negative. Pass `--scale-jitter 0` for cube-like data. The global
+`default.yaml` value stays 0.0 so no non-s3d or cube recipe changes behaviour implicitly.
+
 For A/B analysis apply ONE selection rule to every arm. `last.pt` is the zero-variance choice (with fixed
 epochs it is the same training length for all arms); the EMA-selected checkpoint is the better-model choice
 and is equally fair because the identical rule is applied to identical-length runs. Report which you used.
@@ -109,10 +125,11 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--scale-jitter",
         type=float,
-        default=0.0,
-        help="StereoZoom dose: content is zoomed by s in (1-j, 1+j) and cropped/padded back to the "
-        "canvas, so apparent object size varies while the 3D truth and the scaled calibration stay "
-        "consistent. 0.0 reproduces today's pipeline exactly (the transform is not even constructed).",
+        default=0.30,
+        help="StereoZoom dose: content is zoomed by s in (1-j, 1+j) and cropped/padded back to the canvas, "
+        "so apparent object size varies while the 3D truth and the scaled calibration stay consistent. "
+        "0.30 is the measured KITTI optimum (see the module docstring); 0.0 disables it entirely and "
+        "reproduces the pre-2026-08-08 pipeline.",
     )
     p.add_argument("--lr0", type=float, default=0.01)
     p.add_argument(

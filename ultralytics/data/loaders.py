@@ -651,7 +651,12 @@ def autocast_list(source: list[Any]) -> list[Image.Image | np.ndarray]:
                 import requests  # scoped as slow import
 
                 im = BytesIO(requests.get(im).content)
-            files.append(ImageOps.exif_transpose(Image.open(im)))
+            im = Image.open(urllib.request.urlopen(im) if str(im).startswith("http") else im)
+            filename = getattr(im, "filename", "")
+            file = ImageOps.exif_transpose(im)
+            if filename and not getattr(im, "filename", ""):
+                file.filename = filename
+            files.append(file)
         elif isinstance(im, (Image.Image, np.ndarray)):  # PIL or np Image
             files.append(im)
         else:

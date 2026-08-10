@@ -14,6 +14,7 @@ import torch.nn as nn
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
+from ultralytics.nn.modules import Detect
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.patches import override_configs
@@ -196,9 +197,12 @@ class DetectionTrainer(BaseTrainer):
         Returns:
             (DetectionModel): YOLO detection model.
         """
+        Detect.half_channel = bool(getattr(self.args, "half_channel", False))  # cls-head width, read in Detect.__init__
         model = self.set_model_names_for_load(
             DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         )
+        if getattr(self.args, "aux_fg_on", False):  # attach before load so aux weights transfer from aux-trained ckpts
+            model.model[-1].build_aux_fg()
         if weights:
             model.load(weights)
         return model
@@ -206,6 +210,13 @@ class DetectionTrainer(BaseTrainer):
     def get_validator(self):
         """Return a DetectionValidator for YOLO model validation."""
         self.loss_names = "box_loss", "cls_loss", "dfl_loss"
+        # E2ELoss appends the aux foreground term when enabled; keep loss_names in sync
+        if (
+            getattr(self.args, "aux_fg_on", False)
+            and getattr(self.args, "aux_fg", 0.0)
+            and hasattr(unwrap_model(self.model).model[-1], "aux_fg")
+        ):
+            self.loss_names += ("aux_fg_loss",)
         return yolo.detect.DetectionValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

@@ -290,9 +290,11 @@ CFG_BOOL_KEYS = frozenset(
         "profile",
         "end2end",
         "cls_remap",
+        "aux_fg_on",
+        "half_channel",
     }
 )
-CFG_STR_KEYS = frozenset({"optimizer", "split", "copy_paste_mode", "auto_augment"})
+CFG_STR_KEYS = frozenset({"optimizer", "split", "copy_paste_mode", "auto_augment", "aux_fg_sched"})
 
 
 def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:
@@ -603,9 +605,10 @@ def check_dict_alignment(
     """
     custom = _handle_deprecation(custom)
     base_keys, custom_keys = (frozenset(x.keys()) for x in (base, custom))
-    # Allow 'augmentations' as a valid custom parameter for custom Albumentations transforms
+    # Allow 'augmentations' as a valid custom parameter for custom Albumentations transforms, and the code-only
+    # aux-fg experimental args (defaults live in E2ELoss via getattr, intentionally absent from default.yaml)
     if allowed_custom_keys is None:
-        allowed_custom_keys = {"augmentations", "save_dir"}
+        allowed_custom_keys = {"augmentations", "save_dir", "aux_fg", "aux_fg_tgt", "aux_fg_t"}
     if mismatched := [k for k in custom_keys if k not in base_keys and k not in allowed_custom_keys]:
         from difflib import get_close_matches
 

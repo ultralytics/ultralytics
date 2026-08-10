@@ -462,8 +462,8 @@ class YOLOE(Model):
             stream (bool): Whether to stream the prediction results. If True, results are yielded as a generator as they
                 are computed.
             visual_prompts (dict[str, np.ndarray | list[np.ndarray]]): Dictionary containing visual prompts for the
-                model. Must include 'bboxes' and 'cls' keys when non-empty, holding one array each per image for an
-                explicit list, tuple, or 4-D tensor source with no refer_image, and a single flat array each otherwise.
+                model. Must include 'bboxes' and 'cls' keys when non-empty, holding either flat arrays or one array per
+                image for an explicit list, tuple, or 4-D tensor source with no refer_image.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
             predictor (callable): Custom predictor class for visual prompt predictions. Defaults to
                 YOLOEVPDetectPredictor.
@@ -495,8 +495,10 @@ class YOLOE(Model):
             per_image_source = isinstance(source, (list, tuple)) or (
                 isinstance(source, torch.Tensor) and source.ndim == 4
             )
-            multi = refer_image is None and per_image_source
-            assert nested == multi, f"Expected {'per-image' if multi else 'flat'} 'bboxes' and 'cls' arrays"
+            assert not nested or (refer_image is None and per_image_source), (
+                "Expected flat 'bboxes' and 'cls' arrays for a non-sequence source or when refer_image is set"
+            )
+            multi = nested
             pairs = list(zip(bboxes, classes)) if multi else [(bboxes, classes)]
             assert not multi or len(pairs) == len(source), (
                 f"Expected one prompt per source image, but got {len(pairs)} prompts for {len(source)} images"
@@ -506,9 +508,9 @@ class YOLOE(Model):
                 and (not multi or b.shape[1:] == (4,))
                 and getattr(c, "ndim", 1) == 1
                 and len(b) == len(c)
-                and all(np.isscalar(x) for x in c)
+                and all(np.isscalar(x) and not isinstance(x, (str, bytes)) for x in c)
                 for b, c in pairs
-            ), "Expected one scalar class per bounding box"
+            ), "Expected non-string scalar class indices for each bounding box"
             per_image = [len(set(c.tolist() if isinstance(c, np.ndarray) else c)) for _, c in pairs]
             assert all(per_image), "Expected at least one class per image"
             num_cls = max(per_image)

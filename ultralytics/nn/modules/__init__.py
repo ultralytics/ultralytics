@@ -61,6 +61,7 @@ from .block import (
     ResNetLayer,
     SCDown,
     TorchVision,
+    Scale,
 )
 from .vit_blocks import (
     MHSABlock,
@@ -205,4 +206,5 @@ __all__ = (
     "YOLOESegment",
     "YOLOESegment26",
     "v10Detect",
+    "Scale",
 )

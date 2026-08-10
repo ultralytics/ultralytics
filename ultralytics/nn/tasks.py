@@ -47,6 +47,7 @@ from ultralytics.nn.modules import (
     Conv,
     Conv2,
     ConvTranspose,
+    Scale,
     Depth,
     Detect,
     DWConv,

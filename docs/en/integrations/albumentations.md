@@ -66,7 +66,7 @@ To use Albumentations with YOLO26, start by making sure you have the necessary p
 
 For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO26, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
-The custom transform examples on this page require Albumentations 1.4.22 or newer, which needs Python 3.9 or newer. The automatic integration works on any version Ultralytics supports.
+The custom transform examples on this page require Albumentations 1.4.22 or newer, which needs Python 3.9 or newer. The automatic integration has no such requirement.
 
 ### Usage
 

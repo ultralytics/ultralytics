@@ -26,10 +26,10 @@ class AxeleraBackend(BaseBackend):
         Args:
             weight (str | Path): Path to the Axelera model directory containing the .axm binary.
         """
-        # Evaluated even when the import would succeed, so an older installed SDK is upgraded rather
-        # than silently satisfying the import. A floor rather than an exact pin, so a newer runtime is
-        # left alone instead of being downgraded on every load.
-        runtime = "axelera-rt>=1.8.0"
+        # Evaluated even when the import would succeed, so an installed SDK of another version is
+        # replaced rather than silently satisfying the import. Exact, and matching the export pin: the
+        # compiled .axm format is versioned, so runtime and devkit have to stay on one SDK release.
+        runtime = "axelera-rt==1.8.0"
         if not check_requirements(runtime, install=False):
             # Best effort: users who install the SDK by hand already satisfy the pin and never see this,
             # which is why the docs carry it too. The driver mismatch itself surfaces at model load.
@@ -42,9 +42,9 @@ class AxeleraBackend(BaseBackend):
                 cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
             )
             if "axelera.runtime" in sys.modules:
-                # The upgraded runtime cannot replace the already-imported one, so inference would
-                # silently run on the old version.
-                raise RuntimeError(f"{runtime} was installed over an already-imported older version. Rerun.")
+                # The installed runtime cannot replace the already-imported one, so inference would
+                # silently run on the resident version.
+                raise RuntimeError(f"{runtime} was installed over an already-imported version. Rerun.")
 
         from axelera.runtime import op
 

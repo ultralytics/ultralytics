@@ -201,10 +201,7 @@ class Detect(nn.Module):
         Args:
             slices (list[tuple[int, int]]): Ordered source class bounds.
         """
-        heads = [self.one2many["cls_head"]]
-        if self.end2end:
-            heads.append(self.one2one["cls_head"])
-        for head in heads:
+        for head in self._classification_heads():
             for classifier in head:
                 if not isinstance(classifier[-1], SourceClassifier):
                     classifier[-1] = SourceClassifier(classifier[-1], slices)
@@ -215,9 +212,7 @@ class Detect(nn.Module):
         Args:
             source (int | None): Source index, or None to concatenate all source outputs.
         """
-        heads = [self.one2many["cls_head"]]
-        if self.end2end:
-            heads.append(self.one2one["cls_head"])
+        heads = self._classification_heads()
         if not isinstance(heads[0][0][-1], SourceClassifier):
             return
         for head in heads:
@@ -229,10 +224,28 @@ class Detect(nn.Module):
 
     def clear_class_source_cache(self) -> None:
         """Release merged source-classifier parameters after validation."""
-        for head in [self.one2many["cls_head"], *([self.one2one["cls_head"]] if self.end2end else [])]:
+        for head in self._classification_heads():
             for classifier in head:
                 if isinstance(classifier[-1], SourceClassifier):
                     classifier[-1].merged = None
+
+    def _classification_heads(self) -> list[nn.ModuleList]:
+        """Return available one-to-many and one-to-one classification heads."""
+        return ([self.cv3] if self.cv3 is not None else []) + ([self.one2one_cv3] if self.end2end else [])
+
+    def train(self, mode: bool = True) -> Detect:
+        """Set training mode and merge partitioned classifiers for evaluation.
+
+        Args:
+            mode (bool): Whether to enable training mode.
+
+        Returns:
+            (Detect): Updated detection head.
+        """
+        super().train(mode)
+        if not mode:
+            self.set_class_source(None)
+        return self
 
     @property
     def end2end(self):

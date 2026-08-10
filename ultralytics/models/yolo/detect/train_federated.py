@@ -307,7 +307,6 @@ class FederatedDetectionValidator(DetectionValidator):
 
     def init_metrics(self, model: torch.nn.Module) -> None:
         """Initialize metrics, source paths, and the validation criterion."""
-        unwrap_model(model).model[-1].set_class_source(None)
         super().init_metrics(model)
         if self.coco_gt is None:
             self._init_coco_ground_truth(self.data[self.args.split])

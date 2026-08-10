@@ -200,7 +200,7 @@ class Agent:
         >>> from ultralytics import Agent, Gate, LLM, YOLO
         >>> agent = Agent(
         ...     YOLO("yolo26n.pt"),
-        ...     Gate.when("yolo.classes.person.count", gte=1),
+        ...     Gate.when("yolo.counts.person", gte=1),
         ...     LLM("gpt-5.6-luna", prompt="Describe the people."),
         ... )
 

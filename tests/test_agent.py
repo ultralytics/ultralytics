@@ -110,7 +110,7 @@ def test_yolo_gate_llm_event_contract(monkeypatch):
     yolo = object.__new__(YOLO)
     llm = LLM(prompt="Describe the people.")
     llm.client = SimpleNamespace(responses=SimpleNamespace(create=create))
-    agent = Agent(yolo, Gate.when("yolo.classes.person.count", gte=1), llm)
+    agent = Agent(yolo, Gate.when("yolo.counts.person", gte=1), llm)
 
     output = agent(image)
     assert len(output["yolo"]) == 2

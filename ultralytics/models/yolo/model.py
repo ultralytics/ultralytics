@@ -57,7 +57,7 @@ class YOLO(Model):
         >>> model = YOLO("yolo26n.yaml")
     """
 
-    ports: ClassVar = {"inputs": {"source": "image"}, "outputs": {"detections": "json"}}
+    ports: ClassVar = {"inputs": {"source": "image"}, "outputs": {"results": "json"}}
 
     def __init__(self, model: str | Path = "yolo26n.pt", task: str | None = None, verbose: bool = False):
         """Initialize a YOLO model.
@@ -94,17 +94,17 @@ class YOLO(Model):
         """Run YOLO on an Agent event and emit one standardized event per image."""
         events = []
         for result in self(event["data"], **kwargs):
-            items = result.summary()
-            classes = {}
-            for item in items:
+            results = result.summary()
+            counts = {}
+            for item in results:
                 class_name = item.get("name", str(item.get("class", "unknown")))
-                classes.setdefault(class_name, {"count": 0})["count"] += 1
+                counts[class_name] = counts.get(class_name, 0) + 1
             events.append(
                 {
                     **event,
                     "source": result.orig_img,
                     "data": result,
-                    name: {"count": len(items), "classes": classes, "items": items},
+                    name: {"results": results, "counts": counts},
                 }
             )
         return events

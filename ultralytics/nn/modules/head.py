@@ -48,6 +48,7 @@ class SourceClassifier(nn.Module):
             slices (list[tuple[int, int]]): Ordered source class bounds.
         """
         super().__init__()
+        self.slices = slices
         self.classifiers = nn.ModuleList()
         for lo, hi in slices:
             source = nn.Conv2d(
@@ -66,30 +67,40 @@ class SourceClassifier(nn.Module):
                 if classifier.bias is not None:
                     source.bias.copy_(classifier.bias[lo:hi])
             self.classifiers.append(source)
+        self.nc = sum(m.out_channels for m in self.classifiers)
         self.active = None
         self.merged = None
 
-    def set_source(self, source: int | None) -> None:
+    def set_source(self, source: int | dict[int, list[int]] | None) -> None:
         """Select a source and cache concatenated evaluation parameters.
 
         Args:
-            source (int | None): Source index, or None to merge all outputs.
+            source (int | dict[int, list[int]] | None): Source index or grouped image rows, or None to merge all
+                outputs.
         """
         self.active = source
+        self.merged = None
+        if source is not None:
+            return
         with torch.no_grad():
             self.merged = (
-                (
-                    torch.cat([m.weight for m in self.classifiers]),
-                    None if self.classifiers[0].bias is None else torch.cat([m.bias for m in self.classifiers]),
-                )
-                if source is None
-                else None
+                torch.cat([m.weight for m in self.classifiers]),
+                None if self.classifiers[0].bias is None else torch.cat([m.bias for m in self.classifiers]),
             )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Run the active source classifier, or one merged convolution for validation."""
-        if self.active is not None:
+        if isinstance(self.active, int):
             return self.classifiers[self.active](x)
+        if self.active is not None:
+            output = x.new_full((len(x), self.nc, *x.shape[2:]), torch.finfo(x.dtype).min)
+            for source, rows in self.active.items():
+                lo, hi = self.slices[source]
+                if len(rows) == len(x):
+                    output[:, lo:hi] = self.classifiers[source](x)
+                else:
+                    output[rows, lo:hi] = self.classifiers[source](x[rows])
+            return output
         classifier = self.classifiers[0]
         if self.merged is None:
             self.set_source(None)
@@ -206,20 +217,27 @@ class Detect(nn.Module):
                 if not isinstance(classifier[-1], SourceClassifier):
                     classifier[-1] = SourceClassifier(classifier[-1], slices)
 
-    def set_class_source(self, source: int | None) -> None:
+    def set_class_source(self, source: int | list[int] | None) -> None:
         """Select one partitioned classifier, or all classifiers for validation.
 
         Args:
-            source (int | None): Source index, or None to concatenate all source outputs.
+            source (int | list[int] | None): Source index per batch or image, or None to concatenate all outputs.
         """
         heads = self._classification_heads()
         if not isinstance(heads[0][0][-1], SourceClassifier):
             return
+        active = (
+            {index: [i for i, value in enumerate(source) if value == index] for index in dict.fromkeys(source)}
+            if isinstance(source, list)
+            else source
+        )
         for head in heads:
             for classifier in head:
-                classifier[-1].set_source(source)
-        classifiers = heads[0][0][-1].classifiers
-        self.nc = sum(m.out_channels for m in classifiers) if source is None else classifiers[source].out_channels
+                classifier[-1].set_source(active)
+        source_classifier = heads[0][0][-1]
+        self.nc = (
+            source_classifier.classifiers[source].out_channels if isinstance(source, int) else source_classifier.nc
+        )
         self.no = self.nc + self.reg_max * 4
 
     def clear_class_source_cache(self) -> None:

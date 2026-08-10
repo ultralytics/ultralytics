@@ -308,6 +308,8 @@ class FederatedDetectionValidator(DetectionValidator):
     def init_metrics(self, model: torch.nn.Module) -> None:
         """Initialize metrics, source paths, and the validation criterion."""
         super().init_metrics(model)
+        self.source_model = model
+        self.source_indices = {source: index for index, source in enumerate(self.slices)}
         if self.coco_gt is None:
             self._init_coco_ground_truth(self.data[self.args.split])
         self.args.save_json = True
@@ -342,6 +344,7 @@ class FederatedDetectionValidator(DetectionValidator):
         """Apply each image's complete source slice to validation classification loss."""
         batch = super().preprocess(batch)
         self.batch_sources = [self._source(path) for path in batch["im_file"]]
+        self.source_model.set_class_source([self.source_indices[name] for name in self.batch_sources])
         if self.training:
             weights = torch.zeros(len(self.batch_sources), 1, self.nc, device=self.device)
             for i, name in enumerate(self.batch_sources):

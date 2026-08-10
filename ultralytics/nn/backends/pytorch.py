@@ -89,6 +89,10 @@ class PyTorchBackend(BaseBackend):
         """
         return self.model(im, augment=augment, visualize=visualize, embed=embed, **kwargs)
 
+    def set_class_source(self, source: int | list[int] | None) -> None:
+        """Forward classifier source selection to the native model."""
+        self.model.set_class_source(source)
+
 
 class TorchScriptBackend(BaseBackend):
     """PyTorch TorchScript inference backend for serialized model execution.

@@ -586,6 +586,10 @@ class DetectionModel(BaseModel):
                 continue
             setattr(head, k, v)
 
+    def set_class_source(self, source: int | list[int] | None) -> None:
+        """Select one classifier source per batch or image."""
+        self.model[-1].set_class_source(source)
+
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs.
 

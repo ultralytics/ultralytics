@@ -110,7 +110,9 @@ def test_agent_serialization_omits_credentials():
     """Test lossless graph serialization without API keys."""
     agent = Agent(
         {
-            "first": LLM("gpt-5.6-luna", api_key="secret", temperature=0),
+            "first": LLM(
+                "gpt-5.6-luna", api_key="secret", extra_headers={"Authorization": "Bearer header-secret"}, temperature=0
+            ),
             "gate": Gate.every(seconds=30, immediate=True),
             "second": LLM("gpt-5.6-luna", base_url="http://localhost:11434/v1"),
         }
@@ -120,7 +122,7 @@ def test_agent_serialization_omits_credentials():
     definition = agent.to_dict()
     assert "secret" not in json.dumps(definition)
     assert Agent.from_dict(definition).to_dict() == definition
-    definition["blocks"][0]["config"]["api_key"] = "secret"
+    definition["blocks"][0]["config"]["extra_headers"] = {"Authorization": "Bearer secret"}
     with pytest.raises(ValueError, match="credentials"):
         Agent.from_dict(definition)
 
@@ -292,5 +294,8 @@ def test_llm_sync_and_async_calls():
     assert calls[-1]["input"] == "Summarize report.png"
     assert llm("https://en.wikipedia.org/wiki/YOLO") == "sync"
     assert calls[-1]["input"] == "https://en.wikipedia.org/wiki/YOLO"
+    long_prompt = "x" * 5000
+    assert llm(long_prompt) == "sync"
+    assert calls[-1]["input"] == long_prompt
     assert llm(Image.new("RGB", (4, 4))) == "sync"
     assert calls[-1]["input"][0]["content"][1]["image_url"].startswith("data:image/jpeg;base64,")

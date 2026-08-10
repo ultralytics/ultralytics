@@ -12,6 +12,8 @@ from copy import deepcopy
 from functools import partial
 from typing import Any, ClassVar
 
+_CREDENTIAL_KEYS = {"api_key", "default_headers", "extra_headers", "extra_query"}
+
 
 class Gate:
     """Stateful Block that forwards signals matching condition or cadence rules.
@@ -365,7 +367,7 @@ class Agent:
             elif block_type == "LLM":
                 from ultralytics.models import LLM
 
-                if "api_key" in config:
+                if config.keys() & _CREDENTIAL_KEYS:
                     raise ValueError("LLM credentials cannot be stored in an Agent definition.")
                 blocks[block_id] = LLM(**config)
             elif block_type == "Gate":
@@ -515,7 +517,11 @@ class Agent:
         from ultralytics.models import LLM, RTDETR, YOLO, YOLOE, YOLOWorld
 
         if isinstance(block, LLM):
-            config = {"model": block.model, "api": block.api, **block.overrides}
+            config = {
+                "model": block.model,
+                "api": block.api,
+                **{key: value for key, value in block.overrides.items() if key not in _CREDENTIAL_KEYS},
+            }
             if block.base_url is not None:
                 config["base_url"] = block.base_url
             if block.prompt is not None:

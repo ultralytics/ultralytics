@@ -190,10 +190,13 @@ class LLM:
             ".tiff",
             ".webp",
         }
-        if source.startswith("data:image/") or Path(source).is_file():
+        suffix = Path(source).suffix.lower()
+        if source.startswith("data:image/"):
             return True
         url = urlsplit(source)
-        return url.scheme in {"http", "https"} and Path(url.path).suffix.lower() in suffixes
+        if url.scheme in {"http", "https"}:
+            return Path(url.path).suffix.lower() in suffixes
+        return suffix in suffixes and Path(source).is_file()
 
     @staticmethod
     def _image_url(source: Any) -> str:

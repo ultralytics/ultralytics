@@ -37,22 +37,22 @@ class YOLO(Model):
     detection.
 
     Attributes:
-        model: The loaded YOLO model instance.
-        task: The task type (detect, segment, semantic, classify, pose, obb).
-        overrides: Configuration overrides for the model.
+        model (torch.nn.Module): Loaded YOLO model.
+        task (str): Model task, such as detect, segment, classify, pose, or obb.
+        overrides (dict): Configuration overrides for the model.
 
     Methods:
         __init__: Initialize a YOLO model with automatic type detection.
         task_map: Map tasks to their corresponding model, trainer, validator, and predictor classes.
 
     Examples:
-        Load a pretrained YOLO26n detection model
+        Load a pretrained YOLO26n detection model:
         >>> model = YOLO("yolo26n.pt")
 
-        Load a pretrained YOLO26n segmentation model
+        Load a pretrained YOLO26n segmentation model:
         >>> model = YOLO("yolo26n-seg.pt")
 
-        Initialize from a YAML configuration
+        Initialize from a YAML configuration:
         >>> model = YOLO("yolo26n.yaml")
     """
 

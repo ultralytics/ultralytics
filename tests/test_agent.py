@@ -294,7 +294,7 @@ def test_llm_sync_and_async_calls():
     assert calls[-1]["input"] == "Summarize report.png"
     assert llm("https://en.wikipedia.org/wiki/YOLO") == "sync"
     assert calls[-1]["input"] == "https://en.wikipedia.org/wiki/YOLO"
-    long_prompt = "x" * 5000
+    long_prompt = "x" * 5000 + ".jpg"
     assert llm(long_prompt) == "sync"
     assert calls[-1]["input"] == long_prompt
     assert llm(Image.new("RGB", (4, 4))) == "sync"

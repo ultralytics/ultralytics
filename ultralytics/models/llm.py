@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import json
+from os.path import isfile
 from pathlib import Path
 from typing import Any, ClassVar
 from urllib.parse import urlsplit
@@ -196,7 +197,7 @@ class LLM:
         url = urlsplit(source)
         if url.scheme in {"http", "https"}:
             return Path(url.path).suffix.lower() in suffixes
-        return suffix in suffixes and Path(source).is_file()
+        return suffix in suffixes and isfile(source)
 
     @staticmethod
     def _image_url(source: Any) -> str:

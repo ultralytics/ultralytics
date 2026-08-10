@@ -34,9 +34,9 @@ def check_train_batch_size(
         (int): Optimal batch size computed using the autobatch() function.
 
     Raises:
-        MemoryError: If every candidate batch size ran out of memory while profiling (typically because not even
-            batch=1 fits in the available GPU memory). Not raised if any candidate failed for an unrelated reason
-            (e.g. a model or backend error); that case falls back to the default batch size instead.
+        MemoryError: If every candidate batch size ran out of memory while profiling (typically because not even batch=1
+            fits in the available GPU memory). Not raised if any candidate failed for an unrelated reason (e.g. a model
+            or backend error); that case falls back to the default batch size instead.
 
     Notes:
         If 0.0 < batch < 1.0, it's used as the fraction of GPU memory to use.
@@ -75,9 +75,9 @@ def autobatch(
 
     Raises:
         MemoryError: If every candidate batch size ran out of memory while profiling (typically because not even the
-            smallest tested size, batch=1, fits in the available GPU memory). Not raised if any candidate failed for
-            an unrelated reason (e.g. a model or backend error); that case falls back to the default batch size
-            instead, same as before this check existed.
+            smallest tested size, batch=1, fits in the available GPU memory). Not raised if any candidate failed for an
+            unrelated reason (e.g. a model or backend error); that case falls back to the default batch size instead,
+            same as before this check existed.
     """
     # Check device
     prefix = colorstr("AutoBatch: ")

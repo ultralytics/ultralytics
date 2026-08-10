@@ -152,7 +152,6 @@ def _collect_logpairs(
     a0, b0 = float(head.cal_a), float(head.cal_b)
     head.cal_a.fill_(1.0)
     head.cal_b.fill_(0.0)
-    model = model.to(device).eval()
     _rewind(dataloader)
     rng = np.random.default_rng(0)
     pairs = []
@@ -188,6 +187,7 @@ def _collect_logpairs(
     return pairs
 
 
+@smart_inference_mode(False)  # the model is the caller's and is written to below, so no inference tensors
 def fit_calibration_selective(
     model: torch.nn.Module,
     dataloader,
@@ -209,16 +209,15 @@ def fit_calibration_selective(
     if head is None:
         LOGGER.warning("calibrate: no Depth head with cal buffers found; skipping.")
         return None
+    model = model.to(device).eval()
     pairs = _collect_logpairs(model, dataloader, device, max_images, max_depth)
     if len(pairs) < 2:
         LOGGER.warning("calibrate: fewer than 2 valid images for fit/score split; calibration skipped.")
         return None
     res = select_calibration_cv(pairs, margin=margin)
     res["images"] = len(pairs)
-    # channels_last=True still converts the module inside the validator's inference_mode, so reassign instead
-    # of an in-place fill_ to keep the write legal on buffers that are inference tensors on that path.
-    head.cal_a = torch.full_like(head.cal_a, res["a"])
-    head.cal_b = torch.full_like(head.cal_b, res["b"])
+    head.cal_a.fill_(res["a"])
+    head.cal_b.fill_(res["b"])
     scores = " ".join(f"{n}={v:.4f}" for n, v in res["cv_scores"].items())
     LOGGER.info(
         f"Depth calibration selected '{res['name']}' (a={res['a']:.4f} b={res['b']:.4f}); CV held-out δ1 {scores}"

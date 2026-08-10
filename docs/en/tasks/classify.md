@@ -299,10 +299,10 @@ train: images/train
 val: images/val
 nc: 10
 names:
-  0: cat
-  1: dog
-  2: bird
-  # ...
+    0: cat
+    1: dog
+    2: bird
+    # ...
 ```
 
 ### Multi-Label Train
@@ -337,10 +337,10 @@ Validation reports mAP (mean Average Precision), macro-averaged precision, recal
 
         model = YOLO("path/to/best.pt")
         metrics = model.val(data="path/to/dataset.yaml", multi_label=True)
-        metrics.map        # mean Average Precision
+        metrics.map  # mean Average Precision
         metrics.precision  # macro-averaged precision at threshold 0.5
-        metrics.recall     # macro-averaged recall at threshold 0.5
-        metrics.f1         # macro-averaged F1 at threshold 0.5
+        metrics.recall  # macro-averaged recall at threshold 0.5
+        metrics.f1  # macro-averaged F1 at threshold 0.5
         ```
 
     === "CLI"
@@ -362,8 +362,8 @@ Prediction returns per-class sigmoid probabilities. Classes above the confidence
 
         model = YOLO("path/to/best.pt")
         results = model("image.jpg")
-        results[0].probs.data    # all class probabilities (sigmoid)
-        results[0].summary()     # classes above 0.5 threshold
+        results[0].probs.data  # all class probabilities (sigmoid)
+        results[0].summary()  # classes above 0.5 threshold
         ```
 
 !!! note

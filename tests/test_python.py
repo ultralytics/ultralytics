@@ -9,6 +9,7 @@ import urllib
 import zipfile
 from copy import copy
 from pathlib import Path
+from types import SimpleNamespace
 
 import cv2
 import numpy as np
@@ -168,6 +169,72 @@ def test_select_device(monkeypatch):
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "01,03")  # leading zeros are valid for CUDA's atoi-style parsing
     assert torch_utils.parse_device("3") == "1"  # visible ids normalize like requested ids
     assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 found via normalized visible ids
+
+
+def _mock_autobatch_gpu(monkeypatch, total_memory_gb=8.0):
+    """
+    Patch autobatch()'s device/accelerator calls so it targets a fake idle CUDA GPU without real CUDA hardware.
+
+    Returns the ``ultralytics.utils.autobatch`` module (already patched) and a fake model whose single parameter reports
+    the fake CUDA device, so ``autobatch.autobatch(model, ...)`` runs its real fitting logic against whatever
+    ``profile_ops`` return value the caller monkeypatches next.
+    """
+    from ultralytics.utils import autobatch
+
+    monkeypatch.setattr(torch.backends.cudnn, "benchmark", False)
+    device = torch.device("cuda", 0)
+    model = SimpleNamespace(yaml={"channels": 3}, parameters=lambda: iter([SimpleNamespace(device=device)]))
+    accelerator = SimpleNamespace(
+        get_device_properties=lambda d: SimpleNamespace(total_memory=int(total_memory_gb * (1 << 30)), name="Fake GPU"),
+        memory_reserved=lambda d: 0,
+        memory_allocated=lambda d: 0,
+        empty_cache=lambda: None,
+    )
+    monkeypatch.setattr(autobatch, "get_torch_device_backend", lambda d: accelerator)
+    return autobatch, model
+
+
+def _profile_row(mem):
+    """Build a fake profile_ops() result row (a real row is [params, GFLOPs, mem, fwd_ms, bwd_ms, in, out])."""
+    return [0, 0.0, mem, 0.0, 0.0, (1, 3, 64, 64), (1, 3, 64, 64)]
+
+
+def test_autobatch_all_profile_oom_raises(monkeypatch):
+    """Autobatch() raises MemoryError when every candidate batch size is a confirmed accelerator OOM."""
+    autobatch, model = _mock_autobatch_gpu(monkeypatch)
+    monkeypatch.setattr(autobatch, "profile_ops", lambda *a, **kw: ([None] * 5, [True] * 5))
+    with pytest.raises(MemoryError, match="no candidate batch size fit in memory"):
+        autobatch.autobatch(model, imgsz=64)
+
+
+def test_autobatch_non_oom_failure_falls_back(monkeypatch):
+    """Autobatch() falls back to the default batch size, not MemoryError, when a failure isn't a confirmed OOM."""
+    autobatch, model = _mock_autobatch_gpu(monkeypatch)
+    # One candidate (index 2) fails for an unrelated reason, e.g. a model or backend error, not memory pressure.
+    monkeypatch.setattr(autobatch, "profile_ops", lambda *a, **kw: ([None] * 5, [True, True, False, True, True]))
+    assert autobatch.autobatch(model, imgsz=64, batch_size=13) == 13
+
+
+def test_autobatch_fit_below_range_uses_min_fit_x(monkeypatch):
+    """When the fitted line's target intercept is below batch=1, autobatch() falls back to the smallest confirmed-safe
+    tested size, not an unrelated default batch size.
+    """
+    autobatch, model = _mock_autobatch_gpu(monkeypatch)
+    # batch=1 already uses 7.0G of the 8G budget at 60% target fraction: the intercept extrapolates below 1.
+    results = [_profile_row(7.0), _profile_row(7.9)]
+    monkeypatch.setattr(autobatch, "profile_ops", lambda *a, **kw: (results, [False, False]))
+    assert autobatch.autobatch(model, imgsz=64, dataset_size=2, batch_size=99) == 1  # min(fit_x) of batch_sizes [1, 2]
+
+
+def test_autobatch_fit_above_range_uses_max_fit_x(monkeypatch):
+    """When free memory implies a batch far beyond any tested size, autobatch() falls back to the largest confirmed-safe
+    tested size, not an unrelated default batch size.
+    """
+    autobatch, model = _mock_autobatch_gpu(monkeypatch)
+    # Memory barely grows across candidates, so the linear fit extrapolates a batch size far past 1024.
+    results = [_profile_row(m) for m in (0.0020, 0.0021, 0.0022, 0.0023, 0.0024)]
+    monkeypatch.setattr(autobatch, "profile_ops", lambda *a, **kw: (results, [False] * 5))
+    assert autobatch.autobatch(model, imgsz=64, batch_size=99) == 16  # max(fit_x) of the 5 default batch_sizes
 
 
 def test_model_forward():

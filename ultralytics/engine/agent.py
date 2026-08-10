@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from __future__ import annotations
 
 import asyncio
@@ -45,7 +47,7 @@ class Gate:
     def when(cls, path: str, **condition: Any) -> Gate:
         """Forward matching signals, for example `Gate.when("count", gte=1)`."""
         if len(condition) != 1:
-            raise ValueError(f"Specify exactly one condition operator from {tuple(cls.OPS) + ('exists',)}.")
+            raise ValueError(f"Specify exactly one condition operator from {(*tuple(cls.OPS), 'exists')}.")
         op, value = next(iter(condition.items()))
         return cls({"kind": "condition", "path": path, "op": op, "value": value})
 

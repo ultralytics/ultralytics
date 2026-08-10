@@ -4,9 +4,10 @@ import asyncio
 import json
 from types import SimpleNamespace
 
+import numpy as np
 import pytest
 
-from ultralytics import LLM, Agent, Gate
+from ultralytics import LLM, YOLO, Agent, Gate
 
 
 def test_gate_evaluation():
@@ -16,6 +17,7 @@ def test_gate_evaluation():
     assert gate({"detections": {"count": 1}}) is None
     assert gate({"detections": {"count": 2}}) == {"detections": {"count": 2}}
     assert gate({"detections": {"count": 0}}) is None
+    assert Gate.when("values", gte=1)({"values": np.array([1, 2])}) is None
 
 
 def test_agent_execution_and_cycle_validation():
@@ -27,7 +29,7 @@ def test_agent_execution_and_cycle_validation():
     agent = Agent(
         {
             "detect": lambda value: {"count": value},
-            "gate": Gate.when("count", gte=1),
+            "gate": Gate.when("detect.count", gte=1),
             "describe": lambda value: f"found {value['count']}",
         }
     )
@@ -37,6 +39,10 @@ def test_agent_execution_and_cycle_validation():
     assert agent(0) == {"detect": [{"count": 0}], "gate": [], "describe": []}
     with pytest.raises(ValueError, match="cycles"):
         agent.connect("describe", "detect")
+    with pytest.raises(KeyError, match="Unknown Block"):
+        agent.connect("detect.output", "gate")
+    with pytest.raises(ValueError, match="at least one"):
+        Agent({})
 
 
 def test_agent_async_execution():
@@ -65,11 +71,58 @@ def test_agent_serialization_omits_credentials():
             "second": LLM("gpt-5.6-luna", base_url="http://localhost:11434/v1"),
         }
     )
-    agent.connect("first.response", "gate.input").connect("gate.output", "second.input")
+    agent.connect("first", "gate").connect("gate", "second")
 
     definition = agent.to_dict()
     assert "secret" not in json.dumps(definition)
     assert Agent.from_dict(definition).to_dict() == definition
+
+
+def test_yolo_gate_llm_event_contract(monkeypatch):
+    """Test YOLO event standardization, Gate filtering, and LLM vision input."""
+    image = np.zeros((8, 8, 3), dtype=np.uint8)
+
+    def person_summary():
+        """Return one serialized person detection."""
+        return [{"name": "person", "class": 0, "confidence": 0.9}]
+
+    def empty_summary():
+        """Return an empty detection summary."""
+        return []
+
+    results = [
+        SimpleNamespace(orig_img=image, summary=person_summary),
+        SimpleNamespace(orig_img=image, summary=empty_summary),
+    ]
+
+    def yolo_call(self, source, **kwargs):
+        """Return two image results to exercise event fan-out."""
+        return results
+
+    calls = []
+
+    def create(**kwargs):
+        """Record a multimodal LLM request."""
+        calls.append(kwargs)
+        return SimpleNamespace(output_text="A person")
+
+    monkeypatch.setattr(YOLO, "__call__", yolo_call)
+    yolo = object.__new__(YOLO)
+    llm = LLM(prompt="Describe the people.")
+    llm.client = SimpleNamespace(responses=SimpleNamespace(create=create))
+    agent = Agent(yolo, Gate.when("yolo.classes.person.count", gte=1), llm)
+
+    output = agent(image)
+    assert len(output["yolo"]) == 2
+    assert output["llm"] == [{"text": "A person"}]
+    assert len(calls) == 1
+    content = calls[0]["input"][0]["content"]
+    assert "person" in content[0]["text"]
+    assert content[1]["image_url"].startswith("data:image/jpeg;base64,")
+
+    calls.clear()
+    direct = Agent(yolo, llm)(image)
+    assert len(direct["yolo"]) == len(direct["llm"]) == len(calls) == 2
 
 
 def test_llm_sync_and_async_calls():
@@ -104,3 +157,6 @@ def test_llm_sync_and_async_calls():
         "model": "gpt-5.6-luna",
         "messages": [{"role": "user", "content": "hello"}],
     }
+
+    assert llm("hello", model="custom") == "sync"
+    assert calls[-1]["model"] == "custom"

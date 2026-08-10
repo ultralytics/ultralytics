@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 import numpy as np
 import torch
@@ -40,6 +40,7 @@ class YOLO(Model):
         model (torch.nn.Module): Loaded YOLO model.
         task (str): Model task, such as detect, segment, classify, pose, or obb.
         overrides (dict): Configuration overrides for the model.
+        ports (dict): Agent input and output port definitions.
 
     Methods:
         __init__: Initialize a YOLO model with automatic type detection.
@@ -55,6 +56,8 @@ class YOLO(Model):
         Initialize from a YAML configuration:
         >>> model = YOLO("yolo26n.yaml")
     """
+
+    ports: ClassVar = {"inputs": {"source": "image"}, "outputs": {"detections": "json"}}
 
     def __init__(self, model: str | Path = "yolo26n.pt", task: str | None = None, verbose: bool = False):
         """Initialize a YOLO model.
@@ -86,6 +89,25 @@ class YOLO(Model):
                 new_instance = RTDETR(self)
                 self.__class__ = type(new_instance)
                 self.__dict__ = new_instance.__dict__
+
+    def _agent_run(self, event: dict[str, Any], name: str, **kwargs: Any) -> list[dict[str, Any]]:
+        """Run YOLO on an Agent event and emit one standardized event per image."""
+        events = []
+        for result in self(event["data"], **kwargs):
+            items = result.summary()
+            classes = {}
+            for item in items:
+                class_name = item.get("name", str(item.get("class", "unknown")))
+                classes.setdefault(class_name, {"count": 0})["count"] += 1
+            events.append(
+                {
+                    **event,
+                    "source": result.orig_img,
+                    "data": result,
+                    name: {"count": len(items), "classes": classes, "items": items},
+                }
+            )
+        return events
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:

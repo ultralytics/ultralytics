@@ -20,6 +20,7 @@ class Gate:
     Attributes:
         definition (dict): JSON-compatible Gate configuration.
         state (dict): Runtime cadence state scoped to this Gate instance.
+        ports (dict): Agent input and output port definitions.
 
     Methods:
         every: Create a time-based or frame-based cadence Gate.
@@ -33,6 +34,8 @@ class Gate:
         >>> gate = Gate.all(Gate.when("person_count", gte=1), Gate.every(frames=10))
         >>> output = gate({"person_count": 2})
     """
+
+    ports: ClassVar = {"inputs": {"event": "event"}, "outputs": {"event": "event"}}
 
     OPS: ClassVar = {
         "eq": operator.eq,
@@ -80,6 +83,10 @@ class Gate:
     def __call__(self, signal: Any) -> Any | None:
         """Return the input signal when it passes, otherwise return None."""
         return signal if self._evaluate(self.definition, signal, self.state) else None
+
+    def _agent_run(self, event: dict[str, Any], name: str, **kwargs: Any) -> dict[str, Any] | None:
+        """Filter an Agent event without removing its accumulated context."""
+        return self(event)
 
     def to_dict(self) -> dict[str, Any]:
         """Return this Gate's JSON-compatible configuration."""
@@ -150,8 +157,8 @@ class Gate:
             if value is _MISSING:
                 return False
             try:
-                return cls.OPS[definition["op"]](value, definition.get("value"))
-            except (TypeError, ValueError):
+                return bool(cls.OPS[definition["op"]](value, definition.get("value")))
+            except (RuntimeError, TypeError, ValueError):
                 return False
         results = [
             cls._evaluate(gate, signal, state.setdefault(str(i), {})) for i, gate in enumerate(definition["gates"])
@@ -179,7 +186,7 @@ class Agent:
 
     Attributes:
         blocks (dict): Callable Blocks keyed by stable names.
-        connections (list): Passive source-target endpoint pairs.
+        connections (list): Passive source-target Block pairs.
 
     Methods:
         connect: Connect one named Block output to another Block input.
@@ -191,10 +198,14 @@ class Agent:
     Examples:
         Create a sequential Agent by passing Blocks in execution order:
         >>> from ultralytics import Agent, Gate, LLM, YOLO
-        >>> agent = Agent(YOLO("yolo26n.pt"), Gate.every(frames=10), LLM("gpt-5.6-luna"))
+        >>> agent = Agent(
+        ...     YOLO("yolo26n.pt"),
+        ...     Gate.when("yolo.classes.person.count", gte=1),
+        ...     LLM("gpt-5.6-luna", prompt="Describe the people."),
+        ... )
 
         Name and connect Blocks explicitly for branching or stable identifiers:
-        >>> agent = Agent({"detect": YOLO("yolo26n.pt"), "describe": LLM("gpt-5.6-luna")})
+        >>> agent = Agent({"detect": YOLO("yolo26n.pt"), "describe": LLM("gpt-5.6-luna", prompt="Describe the image.")})
         >>> agent.connect("detect", "describe")
     """
 
@@ -202,8 +213,6 @@ class Agent:
 
     def __init__(self, *blocks: Callable[..., Any] | Mapping[str, Callable[..., Any]]) -> None:
         """Initialize an Agent from sequential Blocks or one mapping of named Blocks."""
-        if not blocks:
-            raise ValueError("Agent requires at least one Block.")
         sequential = not (len(blocks) == 1 and isinstance(blocks[0], Mapping))
         if sequential:
             named_blocks = {}
@@ -216,8 +225,12 @@ class Agent:
                 named_blocks[name] = block
         else:
             named_blocks = dict(blocks[0])
-        if any(not isinstance(name, str) or not name or "." in name for name in named_blocks):
-            raise ValueError("Block names must be non-empty strings without dots.")
+        if not named_blocks:
+            raise ValueError("Agent requires at least one Block.")
+        if any(
+            not isinstance(name, str) or not name or name in {"data", "source"} or "." in name for name in named_blocks
+        ):
+            raise ValueError("Block names must be non-empty strings without dots and cannot be 'data' or 'source'.")
         if any(not callable(block) for block in named_blocks.values()):
             raise TypeError("Every Agent Block must be callable.")
         self.blocks = named_blocks
@@ -228,9 +241,7 @@ class Agent:
 
     def connect(self, source: str, target: str) -> Agent:
         """Connect one Block output to another Block input."""
-        source_block = source.split(".", 1)[0]
-        target_block = target.split(".", 1)[0]
-        if source_block not in self.blocks or target_block not in self.blocks:
+        if source not in self.blocks or target not in self.blocks:
             raise KeyError(f"Unknown Block in connection {source!r} -> {target!r}.")
         self.connections.append((source, target))
         if self._has_cycle():
@@ -241,19 +252,18 @@ class Agent:
     def __call__(self, source: Any = None, **kwargs: Any) -> dict[str, list[Any]]:
         """Execute the graph synchronously and group emissions by Block name."""
         outputs: dict[str, list[Any]] = {name: [] for name in self.blocks}
-        queue = deque((name, source, kwargs) for name in self._roots())
+        queue = deque((name, {"source": source, "data": source}, kwargs) for name in self._roots())
         while queue:
-            name, value, call_kwargs = queue.popleft()
-            output = self.blocks[name](value, **call_kwargs)
-            if output is not None:
-                outputs[name].append(output)
-                self._propagate(name, output, queue)
+            name, event, call_kwargs = queue.popleft()
+            for emitted in self._invoke(name, event, call_kwargs):
+                outputs[name].append(emitted.get(name, emitted["data"]))
+                self._propagate(name, emitted, queue)
         return outputs
 
     async def async_call(self, source: Any = None, **kwargs: Any) -> dict[str, list[Any]]:
         """Execute each graph frontier asynchronously."""
         outputs: dict[str, list[Any]] = {name: [] for name in self.blocks}
-        frontier = [(name, source, kwargs) for name in self._roots()]
+        frontier = [(name, {"source": source, "data": source}, kwargs) for name in self._roots()]
         locks = {name: asyncio.Lock() for name in self.blocks}
         while frontier:
             current, frontier = frontier, []
@@ -261,10 +271,10 @@ class Agent:
                 *(self._invoke_async(name, value, call_kwargs, locks[name]) for name, value, call_kwargs in current)
             )
             queue = deque()
-            for (name, _, _), output in zip(current, results):
-                if output is not None:
-                    outputs[name].append(output)
-                    self._propagate(name, output, queue)
+            for (name, _, _), emitted_events in zip(current, results):
+                for emitted in emitted_events:
+                    outputs[name].append(emitted.get(name, emitted["data"]))
+                    self._propagate(name, emitted, queue)
             frontier.extend(queue)
         return outputs
 
@@ -305,30 +315,55 @@ class Agent:
 
     def _roots(self) -> list[str]:
         """Return Blocks with no incoming connections."""
-        targets = {target.split(".", 1)[0] for _, target in self.connections}
+        targets = {target for _, target in self.connections}
         return [name for name in self.blocks if name not in targets]
 
-    def _propagate(self, source: str, output: Any, queue: deque) -> None:
+    def _propagate(self, source: str, event: dict[str, Any], queue: deque) -> None:
         """Queue connected downstream Blocks."""
         for connection_source, target in self.connections:
-            if connection_source.split(".", 1)[0] == source:
-                queue.append((target.split(".", 1)[0], output, {}))
+            if connection_source == source:
+                queue.append((target, {**event}, {}))
 
-    async def _invoke_async(self, name: str, value: Any, kwargs: dict[str, Any], lock: asyncio.Lock) -> Any:
+    def _invoke(self, name: str, event: dict[str, Any], kwargs: dict[str, Any]) -> list[dict[str, Any]]:
+        """Invoke one Block and normalize its emissions to Agent events."""
+        block = self.blocks[name]
+        if callable(agent_run := getattr(block, "_agent_run", None)):
+            return self._events(agent_run(event, name, **kwargs))
+        output = block(event["data"], **kwargs)
+        return [] if output is None else [{**event, "data": output, name: output}]
+
+    async def _invoke_async(
+        self, name: str, event: dict[str, Any], kwargs: dict[str, Any], lock: asyncio.Lock
+    ) -> list[dict[str, Any]]:
         """Invoke an async-capable Block without concurrently re-entering the same instance."""
         block = self.blocks[name]
         async with lock:
+            if callable(agent_async_run := getattr(block, "_agent_async_run", None)):
+                return self._events(await agent_async_run(event, name, **kwargs))
+            if callable(agent_run := getattr(block, "_agent_run", None)):
+                loop = asyncio.get_running_loop()
+                return self._events(await loop.run_in_executor(None, partial(agent_run, event, name, **kwargs)))
             if callable(async_call := getattr(block, "async_call", None)):
-                return await async_call(value, **kwargs)
+                output = await async_call(event["data"], **kwargs)
+                return [] if output is None else [{**event, "data": output, name: output}]
             if inspect.iscoroutinefunction(block) or inspect.iscoroutinefunction(type(block).__call__):
-                return await block(value, **kwargs)
-            return await asyncio.get_running_loop().run_in_executor(None, partial(block, value, **kwargs))
+                output = await block(event["data"], **kwargs)
+            else:
+                output = await asyncio.get_running_loop().run_in_executor(None, partial(block, event["data"], **kwargs))
+            return [] if output is None else [{**event, "data": output, name: output}]
+
+    @staticmethod
+    def _events(output: Any) -> list[dict[str, Any]]:
+        """Normalize one or many internal Block emissions to a list."""
+        if output is None:
+            return []
+        return output if isinstance(output, list) else [output]
 
     def _has_cycle(self) -> bool:
         """Return whether the graph contains a directed cycle."""
         graph = {name: [] for name in self.blocks}
         for source, target in self.connections:
-            graph[source.split(".", 1)[0]].append(target.split(".", 1)[0])
+            graph[source].append(target)
         visiting, visited = set(), set()
 
         def visit(name: str) -> bool:
@@ -354,11 +389,17 @@ class Agent:
             config = {"model": block.model, "api": block.api, **block.overrides}
             if block.base_url is not None:
                 config["base_url"] = block.base_url
-            return {"type": "LLM", "config": config}
+            if block.prompt is not None:
+                config["prompt"] = block.prompt
+            return {"type": "LLM", "config": config, "ports": deepcopy(block.ports)}
         if isinstance(block, YOLO):
-            return {"type": "YOLO", "config": {"model": str(block.model_name), "task": block.task}}
+            return {
+                "type": "YOLO",
+                "config": {"model": str(block.model_name), "task": block.task},
+                "ports": deepcopy(block.ports),
+            }
         if isinstance(block, Gate):
-            return {"type": "Gate", "config": block.to_dict()}
+            return {"type": "Gate", "config": block.to_dict(), "ports": deepcopy(block.ports)}
         raise TypeError(f"Block type {type(block).__name__!r} is executable but not serializable.")
 
 

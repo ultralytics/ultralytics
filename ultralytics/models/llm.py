@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any
+import base64
+import json
+from pathlib import Path
+from typing import Any, ClassVar
+
+import cv2
+import numpy as np
 
 from ultralytics.utils.checks import check_requirements
 
@@ -14,9 +20,11 @@ class LLM:
         model (str): Model name sent with each request.
         api (str): API format, either "responses" or "chat.completions".
         base_url (str | None): Optional OpenAI-compatible API base URL.
+        prompt (str | None): Prompt used for image events inside an Agent.
         overrides (dict): Default arguments passed to each request.
         client (OpenAI | None): Lazily initialized synchronous client.
         async_client (AsyncOpenAI | None): Lazily initialized asynchronous client.
+        ports (dict): Agent input and output port definitions.
 
     Methods:
         __call__: Run synchronous inference.
@@ -32,12 +40,18 @@ class LLM:
         >>> response = model("Describe this image")
     """
 
+    ports: ClassVar = {
+        "inputs": {"source": "text | image", "context": "json"},
+        "outputs": {"response": "json"},
+    }
+
     def __init__(
         self,
         model: str = "gpt-5.6-luna",
         api: str = "responses",
         base_url: str | None = None,
         api_key: str | None = None,
+        prompt: str | None = None,
         **kwargs: Any,
     ) -> None:
         """Initialize an OpenAI-compatible LLM.
@@ -47,6 +61,7 @@ class LLM:
             api (str): API format, either "responses" or "chat.completions".
             base_url (str, optional): OpenAI-compatible API base URL.
             api_key (str, optional): API key. Defaults to the OPENAI_API_KEY environment variable.
+            prompt (str, optional): Prompt used for image events inside an Agent.
             **kwargs (Any): Default arguments passed to each API request.
         """
         if api not in {"responses", "chat.completions"}:
@@ -55,6 +70,7 @@ class LLM:
         self.model = model
         self.api = api
         self.base_url = base_url
+        self.prompt = prompt
         self.overrides = kwargs
         self.client = None
         self.async_client = None
@@ -89,13 +105,88 @@ class LLM:
         Returns:
             (dict): Native OpenAI SDK request arguments.
         """
-        request = {**self.overrides, **kwargs, "model": self.model}
+        request = {"model": self.model, **self.overrides, **kwargs}
         if self.api == "responses":
             if source is not None:
                 request["input"] = source
         elif source is not None:
             request["messages"] = [{"role": "user", "content": source}] if isinstance(source, str) else source
         return request
+
+    def _agent_run(self, event: dict[str, Any], name: str, **kwargs: Any) -> dict[str, Any]:
+        """Run synchronous LLM inference on a standardized Agent event."""
+        response = self(self._agent_input(event), **kwargs)
+        return {**event, "data": response, name: {"text": self._response_text(response)}}
+
+    async def _agent_async_run(self, event: dict[str, Any], name: str, **kwargs: Any) -> dict[str, Any]:
+        """Run asynchronous LLM inference on a standardized Agent event."""
+        response = await self.async_call(self._agent_input(event), **kwargs)
+        return {**event, "data": response, name: {"text": self._response_text(response)}}
+
+    def _agent_input(self, event: dict[str, Any]) -> Any:
+        """Convert an Agent event into native Responses or Chat Completions input."""
+        source = event["source"]
+        context = {key: value for key, value in event.items() if key not in {"source", "data"}}
+        prompt = self.prompt or "Describe the image."
+        if context:
+            prompt = f"{prompt}\n\nContext:\n{json.dumps(context, default=str)}"
+        if isinstance(source, str) and not self._is_image(source):
+            return f"{prompt}\n\n{source}" if self.prompt or context else source
+        image_url = self._image_url(source)
+        if self.api == "responses":
+            return [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "input_text", "text": prompt},
+                        {"type": "input_image", "image_url": image_url},
+                    ],
+                }
+            ]
+        return [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {"type": "image_url", "image_url": {"url": image_url}},
+                ],
+            }
+        ]
+
+    @staticmethod
+    def _is_image(source: str) -> bool:
+        """Return whether a string represents an image URL, data URL, or path."""
+        return source.startswith(("http://", "https://", "data:image/")) or Path(source).suffix.lower() in {
+            ".bmp",
+            ".gif",
+            ".jpeg",
+            ".jpg",
+            ".png",
+            ".tif",
+            ".tiff",
+            ".webp",
+        }
+
+    @staticmethod
+    def _image_url(source: Any) -> str:
+        """Convert an image URL, path, or array to an OpenAI image URL."""
+        if isinstance(source, str) and source.startswith(("http://", "https://", "data:image/")):
+            return source
+        image = cv2.imread(str(source)) if isinstance(source, (str, Path)) else np.asarray(source)
+        success, buffer = cv2.imencode(".jpg", image)
+        if not success:
+            raise ValueError("Unable to encode the Agent image source.")
+        return f"data:image/jpeg;base64,{base64.b64encode(buffer).decode()}"
+
+    @staticmethod
+    def _response_text(response: Any) -> str:
+        """Extract text from a Responses or Chat Completions result."""
+        if isinstance(response, str):
+            return response
+        if text := getattr(response, "output_text", None):
+            return text
+        choices = getattr(response, "choices", None)
+        return choices[0].message.content if choices else str(response)
 
     def _get_client(self) -> Any:
         """Create the OpenAI client on first inference."""

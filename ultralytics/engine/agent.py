@@ -10,7 +10,6 @@ import time
 from collections import deque
 from collections.abc import Callable, Mapping
 from copy import deepcopy
-from dataclasses import dataclass
 from functools import partial
 from typing import Any, ClassVar
 
@@ -158,14 +157,6 @@ class Gate:
         return value
 
 
-@dataclass
-class _Connection:
-    """Internal passive connection between two Agent Blocks."""
-
-    source: str
-    target: str
-
-
 class Agent:
     """Executable directed graph of callable Blocks."""
 
@@ -180,7 +171,7 @@ class Agent:
         if any(not callable(block) for block in blocks.values()):
             raise TypeError("Every Agent Block must be callable.")
         self.blocks = dict(blocks)
-        self.connections: list[_Connection] = []
+        self.connections: list[tuple[str, str]] = []
 
     def connect(self, source: str, target: str) -> Agent:
         """Connect one Block output to another Block input."""
@@ -188,7 +179,7 @@ class Agent:
         target_block = target.split(".", 1)[0]
         if source_block not in self.blocks or target_block not in self.blocks:
             raise KeyError(f"Unknown Block in connection {source!r} -> {target!r}.")
-        self.connections.append(_Connection(source, target))
+        self.connections.append((source, target))
         if self._has_cycle():
             self.connections.pop()
             raise ValueError("Agent graphs cannot contain cycles.")
@@ -229,7 +220,7 @@ class Agent:
         definition = {
             "schemaVersion": self.SCHEMA_VERSION,
             "blocks": [{"id": name, **self._serialize_block(block)} for name, block in self.blocks.items()],
-            "connections": [{"from": item.source, "to": item.target} for item in self.connections],
+            "connections": [{"from": source, "to": target} for source, target in self.connections],
         }
         json.dumps(definition)
         return definition
@@ -261,14 +252,14 @@ class Agent:
 
     def _roots(self) -> list[str]:
         """Return Blocks with no incoming connections."""
-        targets = {connection.target.split(".", 1)[0] for connection in self.connections}
+        targets = {target.split(".", 1)[0] for _, target in self.connections}
         return [name for name in self.blocks if name not in targets]
 
     def _propagate(self, source: str, output: Any, queue: deque) -> None:
         """Queue connected downstream Blocks."""
-        for connection in self.connections:
-            if connection.source.split(".", 1)[0] == source:
-                queue.append((connection.target.split(".", 1)[0], output, {}))
+        for connection_source, target in self.connections:
+            if connection_source.split(".", 1)[0] == source:
+                queue.append((target.split(".", 1)[0], output, {}))
 
     async def _invoke_async(self, name: str, value: Any, kwargs: dict[str, Any], lock: asyncio.Lock) -> Any:
         """Invoke an async-capable Block without concurrently re-entering the same instance."""
@@ -283,8 +274,8 @@ class Agent:
     def _has_cycle(self) -> bool:
         """Return whether the graph contains a directed cycle."""
         graph = {name: [] for name in self.blocks}
-        for connection in self.connections:
-            graph[connection.source.split(".", 1)[0]].append(connection.target.split(".", 1)[0])
+        for source, target in self.connections:
+            graph[source.split(".", 1)[0]].append(target.split(".", 1)[0])
         visiting, visited = set(), set()
 
         def visit(name: str) -> bool:

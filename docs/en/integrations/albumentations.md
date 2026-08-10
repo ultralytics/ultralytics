@@ -66,7 +66,7 @@ To use Albumentations with YOLO26, start by making sure you have the necessary p
 
 For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO26, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
-The custom transform examples on this page require Albumentations 1.4.22 or newer, which needs Python 3.9 or newer. The automatic integration has no such requirement.
+The custom transform examples on this page need Albumentations 1.4.22 or newer, and therefore Python 3.9 or newer.
 
 ### Usage
 
@@ -175,7 +175,7 @@ The image below shows an example of the CLAHE transformation applied.
 
 ## Using Custom Albumentations Transforms
 
-While the default Albumentations integration provides a solid set of augmentations, you may want to customize the transforms for your specific use case. With Ultralytics YOLO26, you can easily pass custom Albumentations transforms via the Python API using the `augmentations` parameter. The examples in this section use the Albumentations 2.x constructor arguments, which need Albumentations 1.4.22 or newer.
+While the default Albumentations integration provides a solid set of augmentations, you may want to customize the transforms for your specific use case. With Ultralytics YOLO26, you can easily pass custom Albumentations transforms via the Python API using the `augmentations` parameter. The examples in this section need Albumentations 1.4.22 or newer.
 
 ### How to Define Custom Transforms
 

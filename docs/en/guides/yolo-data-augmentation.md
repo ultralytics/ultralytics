@@ -391,7 +391,7 @@ Then launch the training with the Python API:
 - **Purpose**: Provides fine-grained control over data augmentation strategies by leveraging the extensive library of Albumentations transforms. This is particularly useful when you need specialized augmentations beyond the built-in YOLO options, such as advanced color adjustments, noise injection, or domain-specific transformations.
 - **Ultralytics' implementation**: [Albumentations](../reference/data/augment.md#ultralytics.data.augment.Albumentations)
 
-The examples below use the Albumentations 2.x constructor arguments, which need Albumentations 1.4.22 or newer, and therefore Python 3.9 or newer.
+The examples below need Albumentations 1.4.22 or newer, and therefore Python 3.9 or newer.
 
 !!! example "Custom Albumentations Example"
 

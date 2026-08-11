@@ -461,7 +461,7 @@ jobs:
     runs-on: raspberry-pi
     steps:
       - name: Clean up runner
-        uses: eviden-actions/clean-self-hosted-runner@v1.4.35
+        uses: eviden-actions/clean-self-hosted-runner@v1.4.36
       - uses: actions/checkout@v7
       - name: Activate Virtual Environment for Tests
         run: |
@@ -530,7 +530,7 @@ jobs:
           cat benchmarks.log
           echo "$(cat benchmarks.log)" >> $GITHUB_STEP_SUMMARY
       - name: Clean up runner
-        uses: eviden-actions/clean-self-hosted-runner@v1.4.35
+        uses: eviden-actions/clean-self-hosted-runner@v1.4.36
       # The below is fixed in: https://github.com/ultralytics/ultralytics/pull/15987
       # - name: Reboot # run a reboot command in the background to free resources for next run and not crash main thread
       #   run: sudo bash -c "sleep 10; reboot" &
@@ -560,7 +560,7 @@ jobs:
             onnxruntime_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.16.3-cp38-cp38-linux_aarch64.whl"
     steps:
       - name: Clean up runner
-        uses: eviden-actions/clean-self-hosted-runner@v1.4.35
+        uses: eviden-actions/clean-self-hosted-runner@v1.4.36
       - uses: actions/checkout@v7
       - uses: ultralytics/actions/setup-uv@main
       - name: Activate virtual environment
@@ -586,7 +586,7 @@ jobs:
       - name: Pytest tests
         run: pytest --slow tests/test_cuda.py
       - name: Clean up runner
-        uses: eviden-actions/clean-self-hosted-runner@v1.4.35
+        uses: eviden-actions/clean-self-hosted-runner@v1.4.36
 
   Conda:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')

@@ -3,6 +3,7 @@ comments: true
 description: Learn about monocular depth estimation using YOLO26. Predict per-pixel depth maps from single RGB images with NYU Depth V2 and custom dataset support.
 keywords: monocular depth estimation, YOLO26, depth map, per-pixel depth, NYU Depth V2, DPT, dense prediction, Depth Anything V2, Ultralytics
 model_name: yolo26n-depth
+social_image: https://cdn.ul.run/i/a67470cf77b68b8b7a6d1f2900f1c6c5.avif
 ---
 
 # Monocular Depth Estimation

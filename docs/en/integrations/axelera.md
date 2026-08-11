@@ -301,7 +301,7 @@ For detailed diagnostics, see the [AxDevice documentation](https://docs.axelera.
 
 ## Maximum Performance
 
-Models are compiled for a single image. Passing several images to [Predict](../modes/predict.md) routes them through the Axelera scheduler, so `batch>1` runs correctly, but one image is processed at a time and it is not faster than `batch=1`:
+Models are compiled for a single image. Passing several images to [Predict](../modes/predict.md) routes them through the Axelera scheduler, so `batch>1` runs correctly, though measured end to end on a single device it is no faster than `batch=1`:
 
 ```bash
 yolo predict model=yolo26n_axelera_model source=path/to/images batch=8

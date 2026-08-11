@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import numpy as np
@@ -23,16 +22,19 @@ class AxeleraBackend(BaseBackend):
     def load_model(self, weight: str | Path) -> None:
         """Load an Axelera model from a directory containing a .axm file.
 
+        The SDK is installed only when its API cannot be imported, so a version the user installed is
+        used as-is and `check_sdk_version` only reports the gap; `AXELERA_SDK` is what an environment
+        without an SDK receives. The kernel driver warning is best effort, since a manual install never
+        reaches that branch, and a driver mismatch surfaces when the model loads.
+
         Args:
             weight (str | Path): Path to the Axelera model directory containing the .axm binary.
         """
-        from ultralytics.utils.export.axelera import AXELERA_SDK, check_sdk_version
+        from ultralytics.utils.export.axelera import AXELERA_SDK, check_sdk_version, sdk_version
 
-        # Checked by name, so a runtime the user installed satisfies it whatever its version and their
-        # choice is kept. AXELERA_SDK is only what an environment without one gets.
-        if not check_requirements("axelera-rt", install=False):
-            # Best effort: users who install the SDK by hand never see this, which is why the docs carry
-            # it too. The driver mismatch itself surfaces at model load.
+        try:
+            from axelera.runtime import op
+        except ImportError:
             LOGGER.warning(
                 f"Axelera SDK {AXELERA_SDK} requires metis-dkms 1.6.2 or newer. An older kernel driver "
                 "leaves the device unopenable. See https://docs.ultralytics.com/integrations/axelera/"
@@ -41,28 +43,35 @@ class AxeleraBackend(BaseBackend):
                 f"axelera-rt=={AXELERA_SDK}",
                 cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
             )
-            if "axelera.runtime" in sys.modules:
-                # The installed runtime cannot replace the already-imported one, so inference would
-                # silently run on the resident version.
-                raise RuntimeError(f"axelera-rt=={AXELERA_SDK} was installed over an already-imported version. Rerun.")
+            from axelera.runtime import op
         else:
             check_sdk_version("axelera-rt")
-
-        from axelera.runtime import op
 
         w = Path(weight)
         found = next(w.rglob("*.axm"), None)
         if found is None:
             raise FileNotFoundError(f"No .axm file found in: {w}")
 
-        self.model = op.load(str(found)).optimized()
+        from ultralytics.utils import YAML
 
-        # Load metadata
         metadata_file = found.parent / "metadata.yaml"
-        if metadata_file.exists():
-            from ultralytics.utils import YAML
+        metadata = YAML.load(metadata_file) if metadata_file.exists() else {}
+        built_by = metadata.pop("axelera_sdk", "an unrecorded SDK")  # apply_metadata() sets the rest as attributes
 
-            self.apply_metadata(YAML.load(metadata_file))
+        try:
+            self.model = op.load(str(found)).optimized()
+        except Exception as e:
+            # Either the runtime rejects the compiled format, or it cannot program the device with the
+            # installed driver and firmware. It prints which, so name the action for both.
+            raise RuntimeError(
+                f"{e}\nThe model was built with Axelera SDK {built_by} and axelera-runtime "
+                f"{sdk_version('axelera-runtime')} is installed. If those differ, re-export the model with "
+                "yolo export model=your-model.pt format=axelera. Otherwise check the metis-dkms driver and card "
+                "firmware against your SDK: https://docs.ultralytics.com/integrations/axelera/"
+            ) from e
+
+        if metadata:
+            self.apply_metadata(metadata)
 
     def forward(self, im: torch.Tensor) -> np.ndarray | list[np.ndarray]:
         """Run inference on the Axelera hardware accelerator.

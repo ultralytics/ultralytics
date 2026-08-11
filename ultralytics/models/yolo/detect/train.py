@@ -6,6 +6,7 @@ import math
 import random
 from copy import copy
 from functools import partial
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -16,7 +17,7 @@ from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.modules.head import RefineDetect
-from ultralytics.nn.tasks import DetectionModel
+from ultralytics.nn.tasks import DetectionModel, yaml_model_load
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.patches import override_configs
 from ultralytics.utils.plotting import plot_images, plot_labels
@@ -308,6 +309,12 @@ class RefineDetectionTrainer(DetectionTrainer):
         """
         if not isinstance(weights, nn.Module):
             return super().get_model(cfg, weights, verbose)
+        assert not isinstance(cfg, (str, Path)) or all(  # the weights carry the architecture, a YAML cannot change it
+            weights.yaml.get(k) == v for k, v in yaml_model_load(cfg).items()
+        ), (
+            f"'model={cfg}' does not match the architecture of the pretrained weights, which are tuned in place. "
+            f"Pass the pretrained checkpoint as 'model' instead."
+        )
         head, names = weights.model[-1], self.data["names"]
         index = weights.cls_index_map(weights.names, names)
         assert index is not None, "the pretrained model and the dataset must both name their classes"

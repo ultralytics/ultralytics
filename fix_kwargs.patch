@@ -1,0 +1,20 @@
+diff --git a/ultralytics/engine/predictor.py b/ultralytics/engine/predictor.py
+index 1a2b3c4..5d6e7f8 100644
+--- a/ultralytics/engine/predictor.py
++++ b/ultralytics/engine/predictor.py
+@@ -433,6 +433,10 @@
+         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
+ 
++        # Snapshot base args after model setup to avoid kwargs persistence across calls
++        self._base_args = {**DEFAULT_CFG_DICT, **self.overrides, "quantize": self.args.quantize, "imgsz": self.args.imgsz}
++
++        # For end‑to‑end models, refresh head attributes each call
++        if hasattr(self.model, "set_head_attr"):
++            self.model.set_head_attr(max_det=getattr(self.args, "max_det", 100), agnostic_nms=self.args.agnostic_nms)
+@@ -346,7 +350,7 @@
+                 # Inference
+                 with profilers[1]:
+-                    preds = self.inference(im, *args, **kwargs)
++                    # Resolve overrides using base args snapshot to prevent argument sticking
++                    resolved_args = get_cfg(self._base_args, args)
++                    preds = self.inference(im, *args, **resolved_args)

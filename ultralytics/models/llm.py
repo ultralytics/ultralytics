@@ -39,7 +39,7 @@ class LLM:
 
         Use the Chat Completions API:
         >>> model = LLM("gpt-5.5", api="chat.completions")
-        >>> response = model("Describe this image")
+        >>> response = model("What is YOLO?")
     """
 
     def __init__(

@@ -1,9 +1,11 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from types import SimpleNamespace
 
 import numpy as np
 import pytest
 import torch
-import torch.nn as nn
+from torch import nn
 
 from ultralytics.utils.xai import YOLO_XAI_Extractor, generate_gradcam_heatmap, validate_heatmap
 

@@ -538,7 +538,16 @@ class Stereo3DDetDataset(BaseDataset):
         return load_kitti_calibration(calib_file).to_dict()
 
     def _parse_labels(self, label_file: Path) -> list[dict[str, Any]]:
-        """Parse an 18-value YOLO 3D stereo label file (see convert_kitti_3d.py for the field order)."""
+        """Parse a YOLO 3D stereo label file: 18-value, or 26-value with 8 projected-corner values.
+
+        Both are supported because the SHIPPED dataset assets are 26-value — `kitti-stereo.zip`,
+        `kitti-stereo8.zip` (the test fixture) and the `kitti-stereo-chen.zip` published from this branch all
+        carry the 8 projected-corner values at indices 16-23, with truncated/occluded last. Dropping the
+        26-value branch made every label in those assets fail this check, so training silently saw zero
+        objects: an 8-arm sweep ran 600 epochs each on no supervision and reported AP 0.00 everywhere.
+        The corner values are ignored (they are derivable from the 3D box and calibration); only the field
+        offsets of truncated/occluded differ between the two layouts.
+        """
         if not label_file.exists():
             raise FileNotFoundError(f"Label file not found: {label_file}")
 
@@ -549,10 +558,13 @@ class Stereo3DDetDataset(BaseDataset):
                 if not line:
                     continue
                 parts = line.split()
-                if len(parts) != 18:
-                    LOGGER.warning(f"Invalid label format in {label_file}: expected 18 values, got {len(parts)}")
+                if len(parts) == 18:
+                    trunc_idx, occ_idx = 16, 17
+                elif len(parts) == 26:
+                    trunc_idx, occ_idx = 24, 25  # indices 16-23 are projected corners; ignore them
+                else:
+                    LOGGER.warning(f"Invalid label format in {label_file}: expected 18 or 26 values, got {len(parts)}")
                     continue
-                trunc_idx, occ_idx = 16, 17
 
                 values = [float(x) for x in parts]
                 class_id = int(values[0])

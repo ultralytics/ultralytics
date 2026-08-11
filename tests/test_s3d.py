@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 
+import cv2
 import numpy as np
 import pytest
 
@@ -1769,3 +1770,52 @@ def test_dense_depth_supervision_adds_sites_and_is_off_by_default():
     calls.clear()
     loss._depth_bin_loss(pred_bins, aux_gt, gt_idx, fg, None)
     assert calls == [3], f"no dense_mask must fall back to TAL-only, got {calls}"
+
+
+def test_shipped_label_format_actually_loads_objects(tmp_path):
+    """The dataset must yield non-zero objects for BOTH shipped label layouts, 18- and 26-value.
+
+    This is the guard that was missing. Every shipped asset — kitti-stereo.zip, the kitti-stereo8 test
+    fixture, and the kitti-stereo-chen.zip published from this branch — uses the 26-value layout with 8
+    projected-corner values at indices 16-23. When the 26-value branch was deleted from `_parse_labels`,
+    every label was rejected with a warning and the loader returned zero objects, yet the whole suite still
+    passed: the existing train/val tests only assert that training RUNS, and a run with no supervision runs
+    perfectly happily. An 8-arm dose-response then trained 600 epochs per arm on nothing and reported
+    AP3D 0.00 across the board.
+
+    So this asserts on the object count, which is the property that was silently violated, rather than on
+    the absence of an exception.
+    """
+    from ultralytics.models.yolo.s3d.dataset import Stereo3DDetDataset
+
+    common = "0 0.54 0.62 0.09 0.27 0.51 0.62 0.09 0.27 4.15 1.73 1.57 1.0 1.75 13.22 1.62"
+    corners = "0.49 0.68 0.49 0.76 0.58 0.76 0.56 0.68"
+    layouts = {"18-value": f"{common} 0.0 0", "26-value": f"{common} {corners} 0.0 0"}
+
+    for name, line in layouts.items():
+        assert len(line.split()) == int(name.split("-")[0]), f"{name} fixture is malformed"
+        root = tmp_path / name
+        for sub in ("images/train/left", "images/train/right", "labels/train", "calib/train"):
+            (root / sub).mkdir(parents=True, exist_ok=True)
+        (root / "labels/train/000000.txt").write_text(line + "\n")
+        (root / "calib/train/000000.txt").write_text(
+            "fx: 721.5377\nfy: 721.5377\ncx: 609.5593\ncy: 172.854\nbaseline: 0.54\n"
+            "right_cx: 609.5593\nright_cy: 172.854\nimage_width: 1242\nimage_height: 375\n"
+        )
+        img = np.zeros((375, 1242, 3), dtype=np.uint8)
+        for side in ("left", "right"):
+            cv2.imwrite(str(root / f"images/train/{side}/000000.jpg"), img)
+
+        ds = Stereo3DDetDataset(
+            root=str(root),
+            split="train",
+            imgsz=(384, 1248),
+            names={0: "Car", 1: "Pedestrian", 2: "Cyclist"},
+            mean_dims={"Car": [3.9, 1.6, 1.5], "Pedestrian": [0.8, 0.6, 1.7], "Cyclist": [1.8, 0.6, 1.7]},
+            std_dims={"Car": [0.42, 0.10, 0.15], "Pedestrian": [0.20, 0.08, 0.12], "Cyclist": [0.25, 0.10, 0.15]},
+            augment=False,
+        )
+        sample = ds[0]
+        assert len(sample["bboxes"]) == 1, f"{name}: loader returned {len(sample['bboxes'])} objects, expected 1"
+        assert int(sample["cls"].flatten()[0]) == 0, f"{name}: wrong class id"
+        assert abs(float(sample["location_3d"][0][2]) - 13.22) < 1e-3, f"{name}: depth field misread"

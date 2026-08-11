@@ -662,16 +662,16 @@ class Exporter:
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)
+        end2end = None  # the branch this export uses, settled here and applied to our own copy of the model below
         if hasattr(model, "end2end"):
-            if self.args.end2end is not None:
-                model.end2end = self.args.end2end
+            end2end = model.end2end if self.args.end2end is None else self.args.end2end
             if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}:
                 # Disable end2end branch for certain export formats as they does not support topk
-                model.end2end = False
+                end2end = False
                 LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
             if fmt == "litert" and self.args.quantize in {8, "w8a16"}:
                 # Static activation quantization collapses the end2end class-index output; export raw and run NMS later
-                model.end2end = False
+                end2end = False
                 LOGGER.warning("LiteRT INT8 export does not support end2end models, disabling end2end branch.")
             if fmt == "engine":
                 try:
@@ -679,7 +679,7 @@ class Exporter:
 
                     if check_version(trt.__version__, "<8.5.0"):
                         # https://github.com/ultralytics/ultralytics/issues/24607
-                        model.end2end = False
+                        end2end = False
                         LOGGER.warning(
                             "TensorRT versions earlier than 8.5.0 do not support the Mod operator in end-to-end models, disabling the end2end branch. "
                             "Please upgrade TensorRT to 8.5.0 or later to enable end2end export."
@@ -691,7 +691,7 @@ class Exporter:
                         and is_jetson(jetpack=6)
                     ):
                         # https://github.com/ultralytics/ultralytics/issues/23841
-                        model.end2end = False
+                        end2end = False
                         LOGGER.warning(
                             "TensorRT 10.3.0 on JetPack 6 with int8 has known end2end build issues, disabling end2end branch. "
                             "For a fix, see https://docs.ultralytics.com/guides/nvidia-jetson/#why-does-my-tensorrt-int8-export-disable-end2end-on-jetpack-6"
@@ -762,7 +762,7 @@ class Exporter:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
             assert not is_tf_format or TORCH_1_13, "TensorFlow exports with NMS require torch>=1.13"
             assert fmt != "onnx" or TORCH_1_13, "ONNX export with NMS requires torch>=1.13"
-            if getattr(model, "end2end", False) or isinstance(model.model[-1], RTDETRDecoder):
+            if end2end or isinstance(model.model[-1], RTDETRDecoder):
                 LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=False'.")
                 self.args.nms = False
             self.args.conf = self.args.conf or 0.25  # set conf default value for nms export
@@ -827,6 +827,8 @@ class Exporter:
 
         # Update model
         model = deepcopy(model).to(self.device)
+        if end2end is not None:
+            model.end2end = end2end
         for p in model.parameters():
             p.requires_grad = False
         model.eval()

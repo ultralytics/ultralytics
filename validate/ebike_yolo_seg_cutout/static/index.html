@@ -1,0 +1,1507 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>电动自行车整车抠图</title>
+    <style>
+      :root {
+        --paper: #f3f5f4;
+        --surface: #ffffff;
+        --ink: #1b2528;
+        --muted: #667176;
+        --line: #cfd6d3;
+        --line-strong: #9ca8a4;
+        --amber: #e6a92e;
+        --amber-soft: #fff5d8;
+        --teal: #14866f;
+        --teal-dark: #0e6656;
+        --teal-soft: #e4f4ef;
+        --red: #b33b3b;
+        --red-soft: #fff0ee;
+        --shadow: rgba(24, 39, 43, 0.1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
+        letter-spacing: 0;
+      }
+      button,
+      input {
+        font: inherit;
+        letter-spacing: 0;
+      }
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
+      }
+      button:focus-visible,
+      a:focus-visible,
+      input:focus-visible,
+      .upload-zone:focus-within {
+        outline: 3px solid rgba(230, 169, 46, 0.45);
+        outline-offset: 3px;
+      }
+
+      .shell {
+        width: min(1220px, calc(100% - 40px));
+        margin: 0 auto;
+      }
+      .app-header {
+        background: var(--ink);
+        color: #fff;
+        border-bottom: 5px solid var(--amber);
+      }
+      .header-inner {
+        min-height: 86px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        min-width: 0;
+      }
+      .brand-code {
+        flex: 0 0 auto;
+        padding: 6px 8px 5px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 3px;
+        color: var(--amber);
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      h1 {
+        margin: 0;
+        font-family: "DIN Condensed", "Arial Narrow", "PingFang SC", sans-serif;
+        font-size: 27px;
+        line-height: 1.1;
+        font-weight: 750;
+      }
+      .model-state {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: #d8dfdc;
+        font-size: 13px;
+      }
+      .state-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--amber);
+      }
+      .model-state.ready .state-dot {
+        background: #43c49d;
+      }
+      .model-state.error .state-dot {
+        background: #ee6d64;
+      }
+
+      main {
+        padding: 26px 0 56px;
+      }
+      .process-rail {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        border-top: 1px solid var(--line-strong);
+        margin-bottom: 22px;
+      }
+      .process-step {
+        position: relative;
+        padding: 10px 8px 0 32px;
+        color: var(--muted);
+        font-size: 12px;
+        min-height: 36px;
+      }
+      .process-step::before {
+        content: "";
+        position: absolute;
+        top: -5px;
+        left: 0;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--paper);
+        border: 1px solid var(--line-strong);
+      }
+      .process-step::after {
+        content: attr(data-number);
+        position: absolute;
+        left: 0;
+        top: 10px;
+        color: var(--line-strong);
+        font:
+          700 11px/1 "SFMono-Regular",
+          Consolas,
+          monospace;
+      }
+      .process-step.active {
+        color: var(--ink);
+        font-weight: 650;
+      }
+      .process-step.active::before {
+        background: var(--amber);
+        border-color: var(--amber);
+      }
+      .process-step.done::before {
+        background: var(--teal);
+        border-color: var(--teal);
+      }
+      .process-step.done::after {
+        color: var(--teal);
+      }
+
+      .mode-switch {
+        display: inline-grid;
+        grid-template-columns: 1fr 1fr;
+        border: 1px solid var(--line-strong);
+        background: var(--surface);
+        margin-bottom: 14px;
+      }
+      .mode-button {
+        min-width: 138px;
+        min-height: 42px;
+        border: 0;
+        border-right: 1px solid var(--line-strong);
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        font-weight: 650;
+      }
+      .mode-button:last-child {
+        border-right: 0;
+      }
+      .mode-button.active {
+        background: var(--ink);
+        color: #fff;
+      }
+
+      .workbench {
+        background: var(--surface);
+        border-top: 5px solid var(--amber);
+        border-bottom: 1px solid var(--line);
+        box-shadow: 0 12px 28px var(--shadow);
+      }
+      .single-layout,
+      .batch-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        min-height: 470px;
+      }
+      .pane {
+        min-width: 0;
+        padding: 26px;
+      }
+      .pane + .pane {
+        border-left: 1px solid var(--line);
+      }
+      .pane-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 16px;
+      }
+      .pane-title {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 750;
+      }
+      .pane-kicker {
+        color: var(--muted);
+        font:
+          600 11px/1.2 "SFMono-Regular",
+          Consolas,
+          monospace;
+        text-transform: uppercase;
+      }
+
+      .upload-zone {
+        position: relative;
+        min-height: 330px;
+        border: 1px dashed var(--line-strong);
+        background: #fafcfb;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        cursor: pointer;
+        transition:
+          border-color 0.18s ease,
+          background 0.18s ease;
+      }
+      .upload-zone::before {
+        content: "";
+        position: absolute;
+        inset: 0 0 auto;
+        height: 6px;
+        background: repeating-linear-gradient(135deg, var(--amber) 0 12px, var(--ink) 12px 24px);
+        opacity: 0.72;
+      }
+      .upload-zone:hover,
+      .upload-zone.dragging {
+        border-color: var(--teal);
+        background: #f4fbf8;
+      }
+      .upload-zone.disabled,
+      .batch-directory.disabled {
+        cursor: wait;
+        opacity: 0.72;
+      }
+      .upload-zone input {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+      }
+      .upload-copy {
+        padding: 36px;
+        text-align: center;
+        pointer-events: none;
+      }
+      .upload-index {
+        display: block;
+        margin: 0 auto 14px;
+        color: var(--teal);
+        font:
+          750 34px/1 "DIN Condensed",
+          "Arial Narrow",
+          sans-serif;
+      }
+      .upload-copy strong {
+        display: block;
+        margin-bottom: 7px;
+        font-size: 16px;
+      }
+      .upload-copy span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .upload-zone img {
+        display: none;
+        width: 100%;
+        height: 330px;
+        object-fit: contain;
+        background: #fff;
+      }
+      .upload-zone.has-image img {
+        display: block;
+      }
+      .upload-zone.has-image .upload-copy {
+        display: none;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+      .button {
+        min-height: 44px;
+        padding: 0 18px;
+        border: 1px solid var(--line-strong);
+        border-radius: 4px;
+        background: var(--surface);
+        color: var(--ink);
+        cursor: pointer;
+        font-weight: 700;
+      }
+      .button:hover:not(:disabled) {
+        border-color: var(--ink);
+      }
+      .button.primary {
+        border-color: var(--teal);
+        background: var(--teal);
+        color: #fff;
+      }
+      .button.primary:hover:not(:disabled) {
+        background: var(--teal-dark);
+        border-color: var(--teal-dark);
+      }
+      .button.stop {
+        border-color: var(--red);
+        color: var(--red);
+      }
+      .button:disabled {
+        cursor: not-allowed;
+        opacity: 0.48;
+      }
+
+      .empty-result {
+        min-height: 330px;
+        border: 1px solid var(--line);
+        display: grid;
+        place-items: center;
+        color: var(--muted);
+        text-align: center;
+        background-color: #f8faf9;
+        background-image:
+          linear-gradient(45deg, #e9edeb 25%, transparent 25%), linear-gradient(-45deg, #e9edeb 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #e9edeb 75%), linear-gradient(-45deg, transparent 75%, #e9edeb 75%);
+        background-size: 24px 24px;
+        background-position:
+          0 0,
+          0 12px,
+          12px -12px,
+          -12px 0;
+      }
+      .empty-result span {
+        padding: 8px 12px;
+        background: rgba(248, 250, 249, 0.92);
+        font-weight: 650;
+      }
+      .single-result {
+        display: none;
+      }
+      .cutout-stage {
+        min-height: 330px;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--line);
+        background-color: #f8faf9;
+        background-image:
+          linear-gradient(45deg, #e3e8e5 25%, transparent 25%), linear-gradient(-45deg, #e3e8e5 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #e3e8e5 75%), linear-gradient(-45deg, transparent 75%, #e3e8e5 75%);
+        background-size: 24px 24px;
+        background-position:
+          0 0,
+          0 12px,
+          12px -12px,
+          -12px 0;
+      }
+      .cutout-stage img {
+        display: block;
+        width: 100%;
+        height: 328px;
+        object-fit: contain;
+      }
+      .result-ticket {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        border: 1px solid var(--line);
+        border-top: 0;
+        background: var(--surface);
+      }
+      .ticket-item {
+        min-width: 0;
+        padding: 11px 12px;
+        border-right: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+      .ticket-item:nth-child(2n) {
+        border-right: 0;
+      }
+      .ticket-item:nth-last-child(-n + 2) {
+        border-bottom: 0;
+      }
+      .ticket-label {
+        display: block;
+        color: var(--muted);
+        font-size: 10px;
+        margin-bottom: 4px;
+      }
+      .ticket-value {
+        display: block;
+        font:
+          700 12px/1.3 "SFMono-Regular",
+          Consolas,
+          monospace;
+        overflow-wrap: anywhere;
+      }
+      .download-row {
+        margin-top: 14px;
+      }
+      .download-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+      }
+
+      .status {
+        display: none;
+        margin-top: 15px;
+        padding: 11px 13px;
+        border-left: 4px solid var(--teal);
+        background: var(--teal-soft);
+        color: #174f44;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .status.show {
+        display: block;
+      }
+      .status.error {
+        border-color: var(--red);
+        background: var(--red-soft);
+        color: #812b2b;
+      }
+      .status.warning {
+        border-color: var(--amber);
+        background: var(--amber-soft);
+        color: #715211;
+      }
+
+      .batch-layout {
+        display: grid;
+      }
+      .batch-directory {
+        min-height: 330px;
+        border: 1px dashed var(--line-strong);
+        background: #fafcfb;
+        display: grid;
+        place-items: center;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+      }
+      .batch-directory input {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+      }
+      .batch-directory.selected {
+        border-style: solid;
+        border-color: var(--teal);
+        background: var(--teal-soft);
+      }
+      .batch-directory .upload-copy {
+        max-width: 430px;
+      }
+      .directory-summary {
+        display: none;
+        padding: 28px;
+        width: 100%;
+        pointer-events: none;
+      }
+      .batch-directory.selected .upload-copy {
+        display: none;
+      }
+      .batch-directory.selected .directory-summary {
+        display: block;
+      }
+      .directory-name {
+        margin: 0 0 8px;
+        font-size: 20px;
+        overflow-wrap: anywhere;
+      }
+      .directory-count {
+        margin: 0;
+        color: var(--teal-dark);
+        font-weight: 700;
+      }
+      .directory-types {
+        margin: 18px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .batch-console {
+        min-height: 330px;
+        border: 1px solid var(--line);
+        background: #f8faf9;
+        padding: 22px;
+      }
+      .batch-numbers {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        background: var(--line);
+        border: 1px solid var(--line);
+      }
+      .batch-number {
+        background: var(--surface);
+        padding: 13px 10px;
+        min-width: 0;
+      }
+      .batch-number span {
+        display: block;
+        color: var(--muted);
+        font-size: 10px;
+        margin-bottom: 5px;
+      }
+      .batch-number strong {
+        font:
+          750 22px/1 "DIN Condensed",
+          "Arial Narrow",
+          sans-serif;
+      }
+      progress {
+        width: 100%;
+        height: 10px;
+        margin: 22px 0 12px;
+        accent-color: var(--teal);
+      }
+      .progress-copy {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .batch-log {
+        height: 170px;
+        overflow: auto;
+        margin: 18px 0 0;
+        padding: 0;
+        list-style: none;
+        border-top: 1px solid var(--line);
+      }
+      .batch-log li {
+        display: grid;
+        grid-template-columns: 60px 1fr;
+        gap: 9px;
+        padding: 8px 0;
+        border-bottom: 1px solid #e5e9e7;
+        font-size: 11px;
+      }
+      .log-state {
+        font-weight: 750;
+        color: var(--teal);
+      }
+      .log-state.fail {
+        color: var(--red);
+      }
+      .log-path {
+        overflow-wrap: anywhere;
+        color: var(--muted);
+      }
+      .batch-download {
+        display: none;
+        margin-top: 15px;
+      }
+      .batch-download.show {
+        display: inline-flex;
+      }
+
+      .evidence {
+        display: none;
+        margin-top: 24px;
+      }
+      .evidence.show {
+        display: block;
+      }
+      .section-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 12px;
+      }
+      .section-head h2 {
+        margin: 0;
+        font-size: 17px;
+      }
+      .evidence-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      figure {
+        margin: 0;
+        border: 1px solid var(--line);
+        background: var(--surface);
+      }
+      figure img {
+        display: block;
+        width: 100%;
+        height: 340px;
+        object-fit: contain;
+        background: #f8faf9;
+      }
+      figcaption {
+        padding: 10px 12px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+      @media (max-width: 820px) {
+        .shell {
+          width: min(100% - 22px, 1220px);
+        }
+        .header-inner {
+          min-height: 78px;
+        }
+        .model-state {
+          align-self: flex-end;
+          margin-bottom: 17px;
+        }
+        h1 {
+          font-size: 23px;
+        }
+        main {
+          padding-top: 20px;
+        }
+        .single-layout,
+        .batch-layout {
+          grid-template-columns: 1fr;
+        }
+        .pane + .pane {
+          border-left: 0;
+          border-top: 1px solid var(--line);
+        }
+        .pane {
+          padding: 19px;
+        }
+        .upload-zone,
+        .upload-zone img,
+        .batch-directory {
+          min-height: 270px;
+          height: 270px;
+        }
+        .empty-result,
+        .cutout-stage,
+        .batch-console {
+          min-height: 270px;
+        }
+        .cutout-stage img {
+          height: 268px;
+        }
+        .evidence-grid {
+          grid-template-columns: 1fr;
+        }
+        figure img {
+          height: 280px;
+        }
+      }
+      @media (max-width: 520px) {
+        .shell {
+          width: min(100% - 16px, 1220px);
+        }
+        .brand-code {
+          display: none;
+        }
+        .header-inner {
+          gap: 10px;
+        }
+        .model-state {
+          max-width: 112px;
+          font-size: 10px;
+          text-align: right;
+        }
+        .process-step {
+          padding-left: 22px;
+          font-size: 11px;
+        }
+        .mode-switch {
+          display: grid;
+          width: 100%;
+        }
+        .mode-button {
+          min-width: 0;
+        }
+        .pane {
+          padding: 15px;
+        }
+        .actions .button {
+          flex: 1 1 120px;
+        }
+        .result-ticket {
+          grid-template-columns: 1fr;
+        }
+        .ticket-item,
+        .ticket-item:nth-child(2n),
+        .ticket-item:nth-last-child(-n + 2) {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+        .ticket-item:last-child {
+          border-bottom: 0;
+        }
+        .batch-console {
+          padding: 15px;
+        }
+        .batch-number {
+          padding: 10px 7px;
+        }
+        .batch-number strong {
+          font-size: 19px;
+        }
+        .batch-log li {
+          grid-template-columns: 48px 1fr;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="shell header-inner">
+        <div class="brand">
+          <span class="brand-code">SEG-03</span>
+          <h1>电动自行车整车抠图</h1>
+        </div>
+        <div id="modelState" class="model-state" role="status">
+          <span class="state-dot" aria-hidden="true"></span>
+          <span id="modelStateText">检查模型中</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="shell">
+      <div class="process-rail" aria-label="处理进度">
+        <div class="process-step active" data-number="01" data-step="upload">选择图片</div>
+        <div class="process-step" data-number="02" data-step="segment">3 号类别分割</div>
+        <div class="process-step" data-number="03" data-step="save">保存抠图</div>
+      </div>
+
+      <div class="mode-switch" role="tablist" aria-label="抠图方式">
+        <button
+          id="singleMode"
+          class="mode-button active"
+          type="button"
+          role="tab"
+          aria-controls="singlePanel"
+          aria-selected="true"
+          tabindex="0"
+        >
+          单张图片
+        </button>
+        <button
+          id="batchMode"
+          class="mode-button"
+          type="button"
+          role="tab"
+          aria-controls="batchPanel"
+          aria-selected="false"
+          tabindex="-1"
+        >
+          批量目录
+        </button>
+      </div>
+
+      <section class="workbench">
+        <div id="singlePanel" class="single-layout" role="tabpanel" aria-labelledby="singleMode">
+          <div class="pane">
+            <div class="pane-head">
+              <h2 class="pane-title">原始图片</h2>
+              <span class="pane-kicker">JPG / PNG / WEBP / BMP</span>
+            </div>
+            <label id="singleZone" class="upload-zone">
+              <input id="singleInput" type="file" accept="image/jpeg,image/png,image/webp,image/bmp" />
+              <span class="upload-copy">
+                <span class="upload-index">01</span>
+                <strong>选择本地图片</strong>
+                <span>单张最大 20 MB</span>
+              </span>
+              <img id="singlePreview" alt="原始图片预览" />
+            </label>
+            <div class="actions">
+              <button id="singleRun" class="button primary" type="button" disabled>开始抠图</button>
+              <button id="singleReset" class="button" type="button" disabled>清空</button>
+            </div>
+            <div id="singleStatus" class="status" role="status"></div>
+          </div>
+
+          <div class="pane">
+            <div class="pane-head">
+              <h2 class="pane-title">透明抠图</h2>
+              <span class="pane-kicker">PNG / RGBA</span>
+            </div>
+            <div id="singleEmpty" class="empty-result">
+              <span>等待处理</span>
+            </div>
+            <div id="singleResult" class="single-result">
+              <div class="cutout-stage">
+                <img id="cutoutImage" alt="透明背景整车抠图" />
+              </div>
+              <div class="result-ticket">
+                <div class="ticket-item">
+                  <span class="ticket-label">检测类别</span><span id="ticketClass" class="ticket-value">--</span>
+                </div>
+                <div class="ticket-item">
+                  <span class="ticket-label">置信度</span><span id="ticketConfidence" class="ticket-value">--</span>
+                </div>
+                <div class="ticket-item">
+                  <span class="ticket-label">整车框</span><span id="ticketBox" class="ticket-value">--</span>
+                </div>
+                <div class="ticket-item">
+                  <span class="ticket-label">输出尺寸</span><span id="ticketSize" class="ticket-value">--</span>
+                </div>
+              </div>
+              <div class="download-row">
+                <a id="singleDownload" class="button primary download-link" href="#" download="电动自行车_透明抠图.png"
+                  >下载透明 PNG</a
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="batchPanel" class="batch-layout" role="tabpanel" aria-labelledby="batchMode" hidden>
+          <div class="pane">
+            <div class="pane-head">
+              <h2 class="pane-title">图片目录</h2>
+              <span class="pane-kicker">MAX 2000 FILES</span>
+            </div>
+            <label id="batchZone" class="batch-directory">
+              <input
+                id="batchInput"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/bmp"
+                webkitdirectory
+                directory
+                multiple
+              />
+              <span class="upload-copy">
+                <span class="upload-index">DIR</span>
+                <strong>选择本地目录</strong>
+                <span>自动读取子目录中的图片</span>
+              </span>
+              <div class="directory-summary">
+                <h3 id="directoryName" class="directory-name">--</h3>
+                <p id="directoryCount" class="directory-count">0 张图片</p>
+                <p id="directoryTypes" class="directory-types">--</p>
+              </div>
+            </label>
+            <div class="actions">
+              <button id="batchRun" class="button primary" type="button" disabled>一键批量抠图</button>
+              <button id="batchReset" class="button" type="button" disabled>清空</button>
+              <button id="batchStop" class="button stop" type="button" disabled>停止</button>
+            </div>
+            <div id="batchStatus" class="status" role="status"></div>
+          </div>
+
+          <div class="pane">
+            <div class="pane-head">
+              <h2 class="pane-title">批量进度</h2>
+              <span class="pane-kicker">ZIP + MANIFEST</span>
+            </div>
+            <div class="batch-console">
+              <div class="batch-numbers">
+                <div class="batch-number"><span>已处理</span><strong id="processedCount">0</strong></div>
+                <div class="batch-number"><span>成功</span><strong id="successCount">0</strong></div>
+                <div class="batch-number"><span>失败</span><strong id="failedCount">0</strong></div>
+              </div>
+              <progress id="batchProgress" value="0" max="1" aria-label="批量抠图进度"></progress>
+              <div class="progress-copy">
+                <span id="progressText">等待开始</span><span id="progressPercent">0%</span>
+              </div>
+              <ol id="batchLog" class="batch-log" aria-live="polite"></ol>
+              <a
+                id="batchDownload"
+                class="button primary download-link batch-download"
+                href="#"
+                download="整车抠图结果.zip"
+                >下载批量 ZIP</a
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="evidence" class="evidence">
+        <div class="section-head">
+          <h2>单张处理结果</h2>
+          <span id="caseId" class="pane-kicker">--</span>
+        </div>
+        <div class="evidence-grid">
+          <figure>
+            <img id="detectionImage" alt="3 号类别整车检测框" />
+            <figcaption>3 号类别整车框</figcaption>
+          </figure>
+          <figure>
+            <img id="maskImage" alt="YOLO11l-seg 整车轮廓叠加预览" />
+            <figcaption>整车实例掩码</figcaption>
+          </figure>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const supportedSuffixes = new Set(["jpg", "jpeg", "png", "bmp", "webp"]);
+      const maxImageBytes = 20 * 1024 * 1024;
+      const requestTimeoutMs = 5 * 60 * 1000;
+      const finalizeTimeoutMs = 10 * 60 * 1000;
+      const state = {
+        mode: "single",
+        singleFile: null,
+        singlePreviewUrl: null,
+        batchFiles: [],
+        busy: false,
+        stopRequested: false,
+        activeController: null,
+        singleStep: "upload",
+        batchStep: "upload",
+      };
+      const $ = (id) => document.getElementById(id);
+      const modeTabs = [$("singleMode"), $("batchMode")];
+
+      function setSteps(active) {
+        const order = ["upload", "segment", "save"];
+        const activeIndex = order.indexOf(active);
+        document.querySelectorAll(".process-step").forEach((step) => {
+          const index = order.indexOf(step.dataset.step);
+          step.classList.toggle("active", index === activeIndex);
+          step.classList.toggle("done", index < activeIndex);
+        });
+      }
+
+      function showStatus(element, message, type = "") {
+        element.textContent = message;
+        element.className = `status show ${type}`.trim();
+      }
+
+      function hideStatus(element) {
+        element.textContent = "";
+        element.className = "status";
+      }
+
+      function buildOperationError(message, code) {
+        const error = new Error(message);
+        error.code = code;
+        return error;
+      }
+
+      async function postJson(url, payload, { signal, timeoutMs = requestTimeoutMs } = {}) {
+        const controller = new AbortController();
+        let timedOut = false;
+        const relayAbort = () => controller.abort();
+        if (signal?.aborted) relayAbort();
+        else signal?.addEventListener("abort", relayAbort, { once: true });
+        const timeoutId = window.setTimeout(() => {
+          timedOut = true;
+          controller.abort();
+        }, timeoutMs);
+        try {
+          const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+            signal: controller.signal,
+          });
+          let data;
+          try {
+            data = await response.json();
+          } catch (error) {
+            if (controller.signal.aborted) throw error;
+            throw buildOperationError(`服务返回了无法解析的结果（HTTP ${response.status}）`, "protocol");
+          }
+          if (!response.ok) {
+            const error = new Error(data.error || `请求失败（HTTP ${response.status}）`);
+            error.status = response.status;
+            throw error;
+          }
+          return data;
+        } catch (error) {
+          if (error.status || error.code === "protocol") throw error;
+          if (controller.signal.aborted) {
+            throw buildOperationError(
+              timedOut ? "请求超时，已停止等待服务响应" : "操作已停止",
+              timedOut ? "timeout" : "aborted",
+            );
+          }
+          error.code = "network";
+          throw error;
+        } finally {
+          window.clearTimeout(timeoutId);
+          signal?.removeEventListener("abort", relayAbort);
+        }
+      }
+
+      function fileToDataUrl(file, signal) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          let settled = false;
+          const cleanup = () => signal?.removeEventListener("abort", abortRead);
+          const settle = (callback, value) => {
+            if (settled) return;
+            settled = true;
+            cleanup();
+            callback(value);
+          };
+          const abortRead = () => {
+            if (reader.readyState === FileReader.LOADING) reader.abort();
+            settle(reject, buildOperationError("操作已停止", "aborted"));
+          };
+          reader.onload = () => settle(resolve, reader.result);
+          reader.onerror = () => settle(reject, buildOperationError(`无法读取图片：${file.name}`, "read"));
+          reader.onabort = abortRead;
+          if (signal?.aborted) {
+            abortRead();
+            return;
+          }
+          signal?.addEventListener("abort", abortRead, { once: true });
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function setMode(mode) {
+        if (state.busy) return;
+        state.mode = mode;
+        const single = mode === "single";
+        $("singleMode").classList.toggle("active", single);
+        $("batchMode").classList.toggle("active", !single);
+        $("singleMode").setAttribute("aria-selected", String(single));
+        $("batchMode").setAttribute("aria-selected", String(!single));
+        $("singleMode").tabIndex = single ? 0 : -1;
+        $("batchMode").tabIndex = single ? -1 : 0;
+        $("singlePanel").hidden = !single;
+        $("batchPanel").hidden = single;
+        $("evidence").classList.toggle("show", single && $("singleResult").style.display === "block");
+        setSteps(single ? state.singleStep : state.batchStep);
+      }
+
+      $("singleMode").addEventListener("click", () => setMode("single"));
+      $("batchMode").addEventListener("click", () => setMode("batch"));
+      modeTabs.forEach((tab, index) => {
+        tab.addEventListener("keydown", (event) => {
+          let nextIndex = index;
+          if (event.key === "ArrowRight") nextIndex = (index + 1) % modeTabs.length;
+          else if (event.key === "ArrowLeft") nextIndex = (index - 1 + modeTabs.length) % modeTabs.length;
+          else if (event.key === "Home") nextIndex = 0;
+          else if (event.key === "End") nextIndex = modeTabs.length - 1;
+          else return;
+          event.preventDefault();
+          const nextTab = modeTabs[nextIndex];
+          setMode(nextTab.id === "singleMode" ? "single" : "batch");
+          nextTab.focus();
+        });
+      });
+
+      function setModeControlsDisabled(disabled) {
+        modeTabs.forEach((tab) => {
+          tab.disabled = disabled;
+        });
+      }
+
+      function clearSingleResult() {
+        ["cutoutImage", "detectionImage", "maskImage"].forEach((id) => $(id).removeAttribute("src"));
+        $("singleDownload").href = "#";
+        $("ticketClass").textContent = "--";
+        $("ticketConfidence").textContent = "--";
+        $("ticketBox").textContent = "--";
+        $("ticketSize").textContent = "--";
+        $("caseId").textContent = "--";
+        $("singleEmpty").style.display = "grid";
+        $("singleResult").style.display = "none";
+        $("evidence").classList.remove("show");
+      }
+
+      function useSingleFile(file) {
+        if (!file || state.busy) return;
+        const suffix = file.name.split(".").pop().toLowerCase();
+        if (!supportedSuffixes.has(suffix)) {
+          resetSingle();
+          showStatus($("singleStatus"), `不支持的图片格式：.${suffix}`, "error");
+          return;
+        }
+        if (file.size > maxImageBytes) {
+          resetSingle();
+          showStatus($("singleStatus"), "单张图片不能超过 20 MB", "error");
+          return;
+        }
+        clearSingleResult();
+        if (state.singlePreviewUrl) URL.revokeObjectURL(state.singlePreviewUrl);
+        state.singleFile = file;
+        state.singlePreviewUrl = URL.createObjectURL(file);
+        state.singleStep = "upload";
+        $("singlePreview").src = state.singlePreviewUrl;
+        $("singleZone").classList.add("has-image");
+        $("singleRun").disabled = false;
+        $("singleReset").disabled = false;
+        hideStatus($("singleStatus"));
+        setSteps("upload");
+      }
+
+      $("singleInput").addEventListener("change", (event) => useSingleFile(event.target.files[0]));
+      ["dragenter", "dragover"].forEach((eventName) => {
+        $("singleZone").addEventListener(eventName, (event) => {
+          event.preventDefault();
+          $("singleZone").classList.add("dragging");
+        });
+      });
+      ["dragleave", "drop"].forEach((eventName) => {
+        $("singleZone").addEventListener(eventName, (event) => {
+          event.preventDefault();
+          $("singleZone").classList.remove("dragging");
+        });
+      });
+      $("singleZone").addEventListener("drop", (event) => useSingleFile(event.dataTransfer.files[0]));
+
+      function resetSingle() {
+        if (state.busy) return;
+        if (state.singlePreviewUrl) URL.revokeObjectURL(state.singlePreviewUrl);
+        state.singleFile = null;
+        state.singlePreviewUrl = null;
+        $("singleInput").value = "";
+        $("singlePreview").removeAttribute("src");
+        $("singleZone").classList.remove("has-image");
+        $("singleRun").disabled = true;
+        $("singleReset").disabled = true;
+        clearSingleResult();
+        hideStatus($("singleStatus"));
+        state.singleStep = "upload";
+        setSteps("upload");
+      }
+      $("singleReset").addEventListener("click", resetSingle);
+
+      function setSingleBusy(busy) {
+        state.busy = busy;
+        $("singleInput").disabled = busy;
+        $("singleZone").classList.toggle("disabled", busy);
+        $("singleRun").disabled = busy || !state.singleFile;
+        $("singleReset").disabled = busy || !state.singleFile;
+        $("singleRun").textContent = busy ? "正在分割" : "开始抠图";
+        setModeControlsDisabled(busy);
+      }
+
+      $("singleRun").addEventListener("click", async () => {
+        if (!state.singleFile || state.busy) return;
+        const file = state.singleFile;
+        setSingleBusy(true);
+        clearSingleResult();
+        state.singleStep = "segment";
+        setSteps("segment");
+        showStatus($("singleStatus"), "正在识别 3 号类别并生成整车轮廓");
+        try {
+          const dataUrl = await fileToDataUrl(file);
+          const data = await postJson("/api/cutout", {
+            image: { name: file.name, data: dataUrl },
+          });
+          $("cutoutImage").src = data.artifacts.cutout;
+          $("detectionImage").src = data.artifacts.detection;
+          $("maskImage").src = data.artifacts.mask;
+          $("singleDownload").href = data.artifacts.cutout;
+          $("ticketClass").textContent = `${data.detection.class_id} ${data.detection.class_name}`;
+          $("ticketConfidence").textContent = `${(data.detection.confidence * 100).toFixed(2)}%`;
+          $("ticketBox").textContent = data.detection.box.join(", ");
+          $("ticketSize").textContent = `${data.cutout_size[0]} x ${data.cutout_size[1]}`;
+          $("caseId").textContent = data.case_id;
+          $("singleEmpty").style.display = "none";
+          $("singleResult").style.display = "block";
+          $("evidence").classList.add("show");
+          showStatus($("singleStatus"), "抠图完成，可下载透明 PNG");
+          state.singleStep = "save";
+          setSteps("save");
+          checkHealth();
+        } catch (error) {
+          showStatus($("singleStatus"), error.message || String(error), "error");
+          state.singleStep = "upload";
+          setSteps("upload");
+        } finally {
+          setSingleBusy(false);
+        }
+      });
+
+      function clearBatchResults() {
+        $("processedCount").textContent = "0";
+        $("successCount").textContent = "0";
+        $("failedCount").textContent = "0";
+        $("batchProgress").value = 0;
+        $("batchProgress").max = 1;
+        $("progressText").textContent = "等待开始";
+        $("progressPercent").textContent = "0%";
+        $("batchLog").replaceChildren();
+        $("batchDownload").classList.remove("show");
+        $("batchDownload").href = "#";
+        hideStatus($("batchStatus"));
+        state.batchStep = "upload";
+        setSteps("upload");
+      }
+
+      function resetBatch() {
+        if (state.busy) return;
+        state.batchFiles = [];
+        $("batchInput").value = "";
+        $("batchZone").classList.remove("selected");
+        $("batchRun").disabled = true;
+        $("batchReset").disabled = true;
+        $("directoryName").textContent = "--";
+        $("directoryCount").textContent = "0 张图片";
+        $("directoryTypes").textContent = "--";
+        clearBatchResults();
+      }
+      $("batchReset").addEventListener("click", resetBatch);
+
+      $("batchInput").addEventListener("change", (event) => {
+        if (state.busy) return;
+        clearBatchResults();
+        const files = Array.from(event.target.files)
+          .filter((file) => {
+            const suffix = file.name.split(".").pop().toLowerCase();
+            return supportedSuffixes.has(suffix);
+          })
+          .sort((left, right) =>
+            (left.webkitRelativePath || left.name).localeCompare(right.webkitRelativePath || right.name, "zh-CN"),
+          );
+        state.batchFiles = files;
+        if (!files.length) {
+          resetBatch();
+          showStatus($("batchStatus"), "所选目录中没有可处理的图片", "error");
+          return;
+        }
+        const firstPath = files[0].webkitRelativePath || files[0].name;
+        const rootName = firstPath.includes("/") ? firstPath.split("/")[0] : "所选目录";
+        const suffixes = [...new Set(files.map((file) => file.name.split(".").pop().toUpperCase()))].sort();
+        $("directoryName").textContent = rootName;
+        $("directoryCount").textContent = `${files.length} 张图片`;
+        $("directoryTypes").textContent = suffixes.join(" / ");
+        $("batchZone").classList.add("selected");
+        $("batchRun").disabled = files.length > 2000;
+        $("batchReset").disabled = false;
+        const oversizedCount = files.filter((file) => file.size > maxImageBytes).length;
+        if (files.length > 2000) {
+          showStatus($("batchStatus"), "单次批量最多处理 2000 张图片", "error");
+        } else if (oversizedCount) {
+          showStatus($("batchStatus"), `${oversizedCount} 张图片超过 20 MB，将记入失败清单`, "warning");
+        } else {
+          hideStatus($("batchStatus"));
+        }
+        setSteps("upload");
+      });
+
+      function appendBatchLog(record) {
+        const item = document.createElement("li");
+        const status = document.createElement("span");
+        const path = document.createElement("span");
+        status.className = `log-state${record.success ? "" : " fail"}`;
+        status.textContent = record.success ? "已抠图" : "失败";
+        path.className = "log-path";
+        path.textContent = record.success
+          ? record.relative_path
+          : `${record.relative_path} · ${record.error || "处理失败"}`;
+        item.append(status, path);
+        $("batchLog").append(item);
+        $("batchLog").scrollTop = $("batchLog").scrollHeight;
+      }
+
+      function updateBatchProgress(processed, total, success, failed) {
+        const percent = total ? Math.round((processed * 100) / total) : 0;
+        $("processedCount").textContent = String(processed);
+        $("successCount").textContent = String(success);
+        $("failedCount").textContent = String(failed);
+        $("batchProgress").max = Math.max(1, total);
+        $("batchProgress").value = processed;
+        $("batchProgress").setAttribute("aria-valuetext", `已处理 ${processed} 张，共 ${total} 张`);
+        $("progressText").textContent = `${processed} / ${total}`;
+        $("progressPercent").textContent = `${percent}%`;
+      }
+
+      function setBatchBusy(busy) {
+        state.busy = busy;
+        $("batchInput").disabled = busy;
+        $("batchZone").classList.toggle("disabled", busy);
+        $("batchRun").disabled = busy || !state.batchFiles.length || state.batchFiles.length > 2000;
+        $("batchReset").disabled = busy || !state.batchFiles.length;
+        $("batchStop").disabled = !busy;
+        $("batchRun").textContent = busy ? "正在批量抠图" : "一键批量抠图";
+        setModeControlsDisabled(busy);
+      }
+
+      function consumeBatchRecord(record, total, counts) {
+        counts.processed += 1;
+        if (record.success) counts.success += 1;
+        else counts.failed += 1;
+        appendBatchLog(record);
+        updateBatchProgress(counts.processed, total, counts.success, counts.failed);
+      }
+
+      function isBatchInterrupted(error) {
+        return ["aborted", "network", "timeout"].includes(error.code) || [400, 503].includes(error.status);
+      }
+
+      async function finishBatch(batchId) {
+        const payload = { batch_id: batchId };
+        try {
+          return await postJson("/api/batch/finish", payload, {
+            timeoutMs: finalizeTimeoutMs,
+          });
+        } catch (error) {
+          if (!["network", "timeout", "protocol"].includes(error.code)) throw error;
+          showStatus($("batchStatus"), "归档响应中断，正在重新获取归档结果", "warning");
+          return postJson("/api/batch/finish", payload, {
+            timeoutMs: finalizeTimeoutMs,
+          });
+        }
+      }
+
+      $("batchRun").addEventListener("click", async () => {
+        if (!state.batchFiles.length || state.batchFiles.length > 2000 || state.busy) return;
+        const files = [...state.batchFiles];
+        const relativePaths = files.map((file) => file.webkitRelativePath || file.name);
+        const counts = { processed: 0, success: 0, failed: 0 };
+        let batchId = null;
+        let interruptedError = null;
+        state.stopRequested = false;
+        state.activeController = null;
+        setBatchBusy(true);
+        clearBatchResults();
+        state.batchStep = "segment";
+        setSteps("segment");
+        showStatus($("batchStatus"), "正在登记目录图片清单");
+        updateBatchProgress(0, files.length, 0, 0);
+        try {
+          const started = await postJson(
+            "/api/batch/start",
+            { relative_paths: relativePaths },
+            { timeoutMs: 60 * 1000 },
+          );
+          batchId = started.batch_id;
+          const controller = new AbortController();
+          state.activeController = controller;
+          showStatus($("batchStatus"), "正在逐张识别并生成透明抠图");
+
+          for (const file of files) {
+            if (state.stopRequested) break;
+            const relativePath = file.webkitRelativePath || file.name;
+            let record;
+            try {
+              if (file.size > maxImageBytes) {
+                record = await postJson(
+                  "/api/batch/item",
+                  {
+                    batch_id: batchId,
+                    relative_path: relativePath,
+                    error: "图片超过 20 MB，浏览器未上传",
+                  },
+                  { signal: controller.signal },
+                );
+                consumeBatchRecord(record, files.length, counts);
+                continue;
+              }
+              const dataUrl = await fileToDataUrl(file, controller.signal);
+              record = await postJson(
+                "/api/batch/item",
+                {
+                  batch_id: batchId,
+                  relative_path: relativePath,
+                  image: { name: file.name, data: dataUrl },
+                },
+                { signal: controller.signal },
+              );
+            } catch (error) {
+              if (isBatchInterrupted(error)) {
+                interruptedError = error;
+                break;
+              }
+              if (error.code === "read") {
+                try {
+                  record = await postJson(
+                    "/api/batch/item",
+                    {
+                      batch_id: batchId,
+                      relative_path: relativePath,
+                      error: error.message,
+                    },
+                    { signal: controller.signal },
+                  );
+                } catch (reportError) {
+                  if (isBatchInterrupted(reportError)) {
+                    interruptedError = reportError;
+                    break;
+                  }
+                  record = {
+                    relative_path: relativePath,
+                    success: false,
+                    error: reportError.message || String(reportError),
+                  };
+                }
+              } else {
+                record = {
+                  relative_path: relativePath,
+                  success: false,
+                  error: error.message || String(error),
+                };
+              }
+            }
+            consumeBatchRecord(record, files.length, counts);
+          }
+
+          state.activeController = null;
+          $("batchStop").disabled = true;
+          showStatus($("batchStatus"), "正在整理清单并生成 ZIP");
+          const finished = await finishBatch(batchId);
+          $("batchDownload").href = finished.archive_url;
+          $("batchDownload").download = `${batchId}_整车抠图.zip`;
+          $("batchDownload").classList.add("show");
+          updateBatchProgress(finished.processed_count, files.length, finished.success_count, finished.failed_count);
+          state.batchStep = "save";
+          setSteps("save");
+          if (state.stopRequested) {
+            showStatus(
+              $("batchStatus"),
+              `批量已停止并归档：成功 ${finished.success_count} 张，失败 ${finished.failed_count} 张`,
+              "warning",
+            );
+          } else if (interruptedError) {
+            showStatus(
+              $("batchStatus"),
+              `批量提前结束并归档：成功 ${finished.success_count} 张，失败 ${finished.failed_count} 张。${interruptedError.message}`,
+              "warning",
+            );
+          } else {
+            showStatus(
+              $("batchStatus"),
+              `批量完成：成功 ${finished.success_count} 张，失败 ${finished.failed_count} 张`,
+            );
+          }
+          $("batchDownload").click();
+        } catch (error) {
+          state.batchStep = batchId ? "segment" : "upload";
+          setSteps(state.batchStep);
+          showStatus($("batchStatus"), error.message || String(error), "error");
+        } finally {
+          state.activeController = null;
+          setBatchBusy(false);
+        }
+      });
+
+      $("batchStop").addEventListener("click", () => {
+        if (!state.busy || state.mode !== "batch") return;
+        state.stopRequested = true;
+        state.activeController?.abort();
+        $("batchStop").disabled = true;
+        showStatus($("batchStatus"), "正在停止后续图片并整理已完成结果", "warning");
+      });
+
+      async function checkHealth() {
+        try {
+          const response = await fetch("/api/health", { cache: "no-store" });
+          const data = await response.json();
+          if (data.status === "model_ready" && data.model_ready) {
+            $("modelState").className = "model-state ready";
+            $("modelStateText").textContent = `${data.model_name} · 模型已加载 · ${data.device}`;
+          } else {
+            $("modelState").className = "model-state error";
+            $("modelStateText").textContent = data.model_error || `${data.model_name} 不可用`;
+          }
+        } catch (_) {
+          $("modelState").className = "model-state error";
+          $("modelStateText").textContent = "服务状态不可用";
+        }
+      }
+
+      setMode("single");
+      checkHealth();
+    </script>
+  </body>
+</html>

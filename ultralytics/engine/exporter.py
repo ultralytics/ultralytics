@@ -1136,6 +1136,7 @@ class Exporter:
                 LOGGER.warning(f"{prefix} FP16 conversion failure: {e}")
 
         onnx.save(model_onnx, f)
+        del model_onnx
         if self.args.quantize == 8 and self.args.format == "onnx":
             from ultralytics.utils.export.onnx import onnx_int8_quantize
 

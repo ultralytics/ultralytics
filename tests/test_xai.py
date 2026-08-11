@@ -38,6 +38,7 @@ class DummyNetwork(nn.Module):
     """Small network used to test XAI hooks without loading a YOLO checkpoint."""
 
     def __init__(self):
+        """Initialize the dummy convolutional network."""
         super().__init__()
         self.model = nn.Sequential(
             nn.Conv2d(3, 4, kernel_size=3, padding=1),
@@ -47,6 +48,7 @@ class DummyNetwork(nn.Module):
         )
 
     def forward(self, x):
+        """Run a forward pass through the dummy network."""
         return self.model(x)
 
 
@@ -54,6 +56,7 @@ class DummyYOLO:
     """Minimal YOLO-like wrapper exposing a .model attribute."""
 
     def __init__(self):
+        """Initialize the dummy YOLO wrapper."""
         self.model = DummyNetwork()
 
 
@@ -90,6 +93,7 @@ class FakeBoxes:
     """Minimal boxes object used to test confidence extraction."""
 
     def __init__(self, confidence=0.8, class_id=0):
+        """Initialize fake detection confidence and class tensors."""
         self.conf = torch.tensor([confidence], dtype=torch.float32)
         self.cls = torch.tensor([class_id], dtype=torch.float32)
 
@@ -98,6 +102,7 @@ class FakeModel:
     """Minimal model returning deterministic detection results."""
 
     def __call__(self, image, verbose=False):
+        """Return deterministic fake detection results based on image intensity."""
         mean_value = float(image.mean()) / 255.0
         confidence = max(0.0, min(1.0, mean_value))
 

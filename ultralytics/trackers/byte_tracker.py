@@ -300,12 +300,7 @@ class BYTETracker:
         return self._format_output()
 
     def _split_detections(self, results: Any) -> tuple[Any, Any, np.ndarray, np.ndarray]:
-        """Split detections into high-confidence and low-confidence subsets.
-
-        Degenerate boxes (zero or negative width/height, e.g. from clip_boxes clamping a prediction that falls
-        entirely outside the frame) are rejected here, before any `STrack` is created from them: `tlwh_to_xyah`
-        divides by height to build the Kalman state, so a zero-height detection would corrupt that track's mean
-        with an infinite aspect ratio instead of just being dropped.
+        """Split detections into high-confidence and low-confidence subsets, dropping degenerate boxes.
 
         Args:
             results (Any): Results-like object with ``conf`` and ``xywh``/``xywhr`` attributes supporting boolean
@@ -317,7 +312,7 @@ class BYTETracker:
         """
         scores = results.conf
         wh = (results.xywhr if hasattr(results, "xywhr") else results.xywh)[:, 2:4]
-        valid = (wh[:, 0] > 0) & (wh[:, 1] > 0)
+        valid = (wh[:, 0] > 0) & (wh[:, 1] > 0)  # tlwh_to_xyah divides by height, so h=0 would give an inf Kalman mean
         remain_inds = valid & (scores >= self.args.track_high_thresh)
         inds_low = valid & (scores > self.args.track_low_thresh) & (scores < self.args.track_high_thresh)
         return results[remain_inds], results[inds_low], remain_inds, inds_low

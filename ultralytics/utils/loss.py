@@ -1235,20 +1235,17 @@ class DepthLoss26:
             # Keep the result attached so BaseTrainer's unconditional backward() works.
             return pred_depth.sum() * 0.0, dict(zip(self.loss_names, loss.detach()))
 
-        pred_valid = pred_depth[valid]
-        gt_valid = gt_depth[valid]
+        # Dense log-depth also feeds the gradient loss below; SILog reuses it at `valid` instead of a 2nd log().
+        pred_log = torch.log(pred_depth.clamp(min=0.001))
+        gt_log = torch.log(gt_depth.clamp(min=0.001))
 
-        pred_valid = pred_valid.clamp(min=0.001)
-
-        log_diff = torch.log(pred_valid) - torch.log(gt_valid)
+        log_diff = pred_log[valid] - gt_log[valid]
         # Centered variance form: non-negative by construction and fp16-stable near convergence.
         m = log_diff.mean()
         silog = torch.sqrt(((log_diff - m) ** 2).mean() + (1.0 - self.silog_lambda) * m**2 + 1e-6)
         loss[0] = silog * self.silog_weight
 
         # Multi-scale gradient-matching loss.
-        pred_log = torch.log(pred_depth.clamp(min=0.001))
-        gt_log = torch.log(gt_depth.clamp(min=0.001))
         valid_f = valid.float()
         grad_loss = self._grad_l1(pred_log, gt_log, valid_f)
         for _ in range(1, max(self.grad_scales, 1)):

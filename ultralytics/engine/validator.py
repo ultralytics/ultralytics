@@ -30,6 +30,7 @@ Usage - formats:
 
 from __future__ import annotations
 
+import functools
 import json
 import time
 from pathlib import Path
@@ -53,6 +54,21 @@ from ultralytics.utils.torch_utils import (
     torch_distributed_zero_first,
     unwrap_model,
 )
+
+
+def _restore_head(fn):
+    """Hand a caller-supplied model back its own head configuration once validation ends."""
+
+    @functools.wraps(fn)
+    def wrapper(self, trainer=None, model=None):
+        self._head_prev = {}
+        try:
+            return fn(self, trainer, model)
+        finally:
+            if self._head_prev:
+                model.set_head_attr(**self._head_prev)
+
+    return wrapper
 
 
 class BaseValidator:
@@ -143,6 +159,7 @@ class BaseValidator:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
     @smart_inference_mode()
+    @_restore_head
     def __call__(self, trainer=None, model=None):
         """Execute validation process, running inference on dataloader and computing performance metrics.
 
@@ -173,9 +190,12 @@ class BaseValidator:
             callbacks.add_integration_callbacks(self)
             if hasattr(model, "end2end"):
                 if self.args.end2end is not None:
+                    self._head_prev["end2end"] = model.end2end
                     model.end2end = self.args.end2end
                 if model.end2end:
-                    model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
+                    self._head_prev |= model.set_head_attr(
+                        max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms
+                    )
             with torch_distributed_zero_first(LOCAL_RANK):
                 self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)
             device_type = str(self.args.device).split(":", 1)[0]

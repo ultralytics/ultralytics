@@ -294,9 +294,9 @@ class DistillationModel(nn.Module):
         """Forward end-to-end mode update to the student model."""
         self.student_model.end2end = value
 
-    def set_head_attr(self, **kwargs):
+    def set_head_attr(self, **kwargs) -> dict:
         """Forward head-attribute updates (e.g. max_det, agnostic_nms, end2end) to the student model."""
-        self.student_model.set_head_attr(**kwargs)
+        return self.student_model.set_head_attr(**kwargs)
 
     def decouple_outputs(self, preds, branch: str = "one2one"):
         """Decouple outputs for teacher/student models.

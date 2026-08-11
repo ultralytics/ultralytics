@@ -42,6 +42,7 @@ from __future__ import annotations
 import platform
 import re
 import threading
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Callable
 
@@ -154,6 +155,8 @@ class BasePredictor:
         self.transforms = None
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.txt_path = None
+        self._head_model = None  # native module this predictor configures for its own calls
+        self._head_attrs = {}  # head attributes it applies to that module for the duration of each call
         self._lock = threading.Lock()  # for automatic thread-safe inference
         callbacks.add_integration_callbacks(self)
 
@@ -315,7 +318,7 @@ class BasePredictor:
             LOGGER.warning(f"{unsupported} not supported by this model (format='{self.model.format}'), ignoring.")
             self.args.augment, self.args.embed, self.args.visualize = False, None, False
 
-        with self._lock:  # for thread-safe inference
+        with self._lock, self._head_configured():  # thread-safe inference on a head configured for this call only
             # Setup source every time predict is called
             self.setup_source(source if source is not None else self.args.source)
 
@@ -418,21 +421,23 @@ class BasePredictor:
             model (str | Path | torch.nn.Module): Model to load or use.
             verbose (bool): Whether to print verbose output.
         """
-        if hasattr(model, "end2end"):
-            if self.args.end2end is not None:
-                model.end2end = self.args.end2end
-            if model.end2end:
-                # Keep head top-k >= 300 so `classes` filtering in NMS sees all candidates before `max_det` truncation
-                model.set_head_attr(max_det=max(self.args.max_det, 300), agnostic_nms=self.args.agnostic_nms)
-        self.model = AutoBackend(
-            model=model or self.args.model,
-            device=select_device(self.args.device, verbose=verbose),
-            dnn=self.args.dnn,
-            data=self.args.data,
-            fp16=self.args.quantize == 16,
-            fuse=True,
-            verbose=verbose,
-        )
+        # Held for this predictor's life: the fusion below discards the one2many head under this configuration
+        self._head_attrs, prev = self._configure_head(model)
+        try:  # the fusion inside AutoBackend reads `end2end`, so the head is configured across this call only
+            self.model = AutoBackend(
+                model=model or self.args.model,
+                device=select_device(self.args.device, verbose=verbose),
+                dnn=self.args.dnn,
+                data=self.args.data,
+                fp16=self.args.quantize == 16,
+                fuse=True,
+                verbose=verbose,
+            )
+        finally:
+            if prev:
+                model.set_head_attr(**prev)
+        # AutoBackend may keep a different module than it was handed, e.g. distillation fuses to the student
+        self._head_model = self.model.model if self._head_attrs else None
 
         self.device = self.model.device  # update device
         self.args.quantize = 16 if self.model.fp16 else None  # record actual inference precision
@@ -441,6 +446,38 @@ class BasePredictor:
         self.model.eval()
         self.model.set_memory_format(self.args.channels_last)
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
+
+    def _configure_head(self, model) -> tuple[dict, dict]:
+        """Apply the inference arguments to the model head and return them alongside the values they replaced.
+
+        Args:
+            model (torch.nn.Module): Model to configure, left alone unless it exposes a YOLO detection head.
+
+        Returns:
+            attrs (dict): The head attributes this predictor holds while it runs.
+            prev (dict): The caller's own values, for handing the model back when a call ends.
+        """
+        attrs, prev = {}, {}
+        if hasattr(model, "end2end"):
+            if self.args.end2end is not None:
+                attrs["end2end"], prev["end2end"] = self.args.end2end, model.end2end
+                model.end2end = self.args.end2end
+            if model.end2end:
+                # Keep head top-k >= 300 so `classes` filtering in NMS sees all candidates before `max_det` truncation
+                top_k = {"max_det": max(self.args.max_det, 300), "agnostic_nms": self.args.agnostic_nms}
+                prev |= model.set_head_attr(**top_k)
+                attrs |= top_k
+        return attrs, prev
+
+    @contextmanager
+    def _head_configured(self):
+        """Hold the head configuration set up for this predictor while one inference call runs."""
+        prev = self._head_model.set_head_attr(**self._head_attrs) if self._head_attrs else {}
+        try:
+            yield
+        finally:
+            if prev:
+                self._head_model.set_head_attr(**prev)
 
     def write_results(self, i: int, p: Path, im: torch.Tensor, s: list[str]) -> str:
         """Write inference results to a file or directory.

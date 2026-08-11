@@ -38,7 +38,7 @@ class DummyNetwork(nn.Module):
     """Small network used to test XAI hooks without loading a YOLO checkpoint."""
 
     def __init__(self):
-        """Initialize the dummy convolutional network."""
+        """Initialize the small convolutional test network."""
         super().__init__()
         self.model = nn.Sequential(
             nn.Conv2d(3, 4, kernel_size=3, padding=1),
@@ -48,7 +48,7 @@ class DummyNetwork(nn.Module):
         )
 
     def forward(self, x):
-        """Run a forward pass through the dummy network."""
+        """Run a forward pass through the test network."""
         return self.model(x)
 
 
@@ -93,16 +93,24 @@ class FakeBoxes:
     """Minimal boxes object used to test confidence extraction."""
 
     def __init__(self, confidence=0.8, class_id=0):
-        """Initialize fake detection confidence and class tensors."""
-        self.conf = torch.tensor([confidence], dtype=torch.float32)
-        self.cls = torch.tensor([class_id], dtype=torch.float32)
+        """Initialize a fake detection box collection."""
+        if confidence is None:
+            self.conf = torch.empty(0, dtype=torch.float32)
+            self.cls = torch.empty(0, dtype=torch.float32)
+        else:
+            self.conf = torch.tensor([confidence], dtype=torch.float32)
+            self.cls = torch.tensor([class_id], dtype=torch.float32)
+
+    def __len__(self):
+        """Return the number of detections."""
+        return len(self.conf)
 
 
 class FakeModel:
     """Minimal model returning deterministic detection results."""
 
     def __call__(self, image, verbose=False):
-        """Return deterministic fake detection results based on image intensity."""
+        """Return a deterministic fake detection result."""
         mean_value = float(image.mean()) / 255.0
         confidence = max(0.0, min(1.0, mean_value))
 
@@ -153,7 +161,10 @@ def test_validate_heatmap_no_target_class():
     """Test that missing target classes produce zero confidence."""
 
     class EmptyTargetModel:
+        """Minimal model containing only a non-target class."""
+
         def __call__(self, image, verbose=False):
+            """Return a detection belonging to a different class."""
             boxes = FakeBoxes(confidence=0.8, class_id=1)
             return [SimpleNamespace(boxes=boxes)]
 
@@ -177,11 +188,11 @@ def test_validate_heatmap_empty_boxes():
     """Test that images with no detections return zero confidence."""
 
     class EmptyBoxesModel:
+        """Minimal model returning no detections."""
+
         def __call__(self, image, verbose=False):
-            boxes = SimpleNamespace(
-                conf=torch.empty(0),
-                cls=torch.empty(0),
-            )
+            """Return an empty detection result."""
+            boxes = FakeBoxes(confidence=None)
             return [SimpleNamespace(boxes=boxes)]
 
     model = EmptyBoxesModel()

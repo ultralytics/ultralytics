@@ -2092,6 +2092,9 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
     model.task = getattr(model, "task", guess_model_task(model))
     if not hasattr(model, "stride"):
         model.stride = torch.tensor([32.0])
+    for m in model.modules():
+        if isinstance(m, Detect) and not hasattr(m, "semantic_classifier"):
+            m.semantic_classifier = None  # checkpoints saved before source-partitioned classifiers
 
     model = (model.fuse() if fuse and hasattr(model, "fuse") else model).eval().to(device)  # model in eval mode
 

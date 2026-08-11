@@ -218,7 +218,6 @@ CFG_FLOAT_KEYS = frozenset(
         "focal_gamma",
         "asl_gamma_pos",
         "asl_gamma_neg",
-        "federated_semantic_weight",
     }
 )
 CFG_FRACTION_KEYS = frozenset(
@@ -324,7 +323,6 @@ CFG_STR_KEYS = frozenset(
         "federated_cls_loss",
         "federated_cls_heads",
         "federated_cls_normalize",
-        "federated_semantic_similarity",
         "federated_semantic_text_model",
     }
 )
@@ -675,8 +673,6 @@ def check_dict_alignment(
             "asl_gamma_neg",
             "asl_clip",
             "federated_cls_normalize",
-            "federated_semantic_weight",
-            "federated_semantic_similarity",
             "federated_semantic_prototypes",
             "federated_semantic_text_model",
             # DINOv3 / UNIC / DUNE encoder-distillation knobs surfaced through DDP-serialised args.

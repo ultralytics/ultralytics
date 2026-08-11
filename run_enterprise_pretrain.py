@@ -41,8 +41,6 @@ FEDERATED_CLI_KEYS = (
     "asl_gamma_neg",
     "asl_clip",
     "federated_cls_normalize",
-    "federated_semantic_weight",
-    "federated_semantic_similarity",
     "federated_semantic_prototypes",
     "federated_semantic_text_model",
 )
@@ -73,8 +71,6 @@ def main() -> None:
     a.add_argument("--asl-gamma-neg", type=float, default=None)
     a.add_argument("--asl-clip", type=float, default=None)
     a.add_argument("--federated-cls-normalize", choices=("none", "active_classes"), default=None)
-    a.add_argument("--federated-semantic-weight", type=float, default=None)
-    a.add_argument("--federated-semantic-similarity", default=None)
     a.add_argument("--federated-semantic-prototypes", default=None)
     a.add_argument("--federated-semantic-text-model", default=None)
     a.add_argument("--resume", default=None, help="checkpoint to resume from")
@@ -94,17 +90,15 @@ def main() -> None:
         quota_alpha=args.quota_alpha,
         **{key: getattr(args, key) for key in FEDERATED_CLI_KEYS},
     )
-    variant = (
-        recipe["federated_semantic_text_model"].replace(":", "_").replace("/", "_") if args.arm == "enterprise" else ""
-    )
-    if args.arm == "enterprise" and recipe["federated_semantic_weight"] and not recipe["federated_semantic_similarity"]:
-        recipe["federated_semantic_similarity"] = str(INIT / f"enterprise-{variant}-label-similarity.pt")
     if (
         args.arm == "enterprise"
         and recipe["federated_cls_heads"] == "semantic"
         and not recipe["federated_semantic_prototypes"]
     ):
-        recipe["federated_semantic_prototypes"] = str(INIT / f"enterprise-{variant}-label-prototypes.pt")
+        recipe["federated_semantic_prototypes"] = str(
+            INIT
+            / f"enterprise-{recipe['federated_semantic_text_model'].replace(':', '_').replace('/', '_')}-label-prototypes.pt"
+        )
     recipe["amp"] = not args.no_amp
     stem = Path(args.model).stem
     pretrained = args.pretrained or str(INIT / ("ultravit_s.pt" if "ultravit" in stem else "c3k2_s.pt"))

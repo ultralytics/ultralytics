@@ -365,8 +365,6 @@ class v8DetectionLoss:
         self.asl_gamma_pos = getattr(h, "asl_gamma_pos", 0.0)
         self.asl_gamma_neg = getattr(h, "asl_gamma_neg", 2.0)
         self.asl_clip = getattr(h, "asl_clip", 0.0)
-        self.federated_semantic_weight = getattr(h, "federated_semantic_weight", 0.0)
-        self.semantic_similarity = None
         assert self.federated_cls_loss in {"bce", "focal", "asl"}, "federated_cls_loss must be bce, focal, or asl"
         assert self.focal_gamma >= 0 and self.asl_gamma_pos >= 0 and self.asl_gamma_neg >= 0, (
             "focal and ASL gammas must be nonnegative"
@@ -486,13 +484,6 @@ class v8DetectionLoss:
                 cls_loss *= self.class_weights
         loss[1] = cls_loss.sum() / target_scores_sum
         has_fg = bool(fg_mask.any())
-        if self.federated_semantic_weight and self.semantic_similarity is not None and has_fg:
-            assigned_classes = gt_labels.squeeze(-1).long().gather(1, target_gt_idx)[fg_mask]
-            # Adapt ScaleDet's foreground-only semantic MSE to sigmoid YOLO class scores while keeping hard BCE.
-            # https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_ScaleDet_A_Scalable_Multi-Dataset_Object_Detector_CVPR_2023_paper.pdf#page=5
-            loss[1] += self.federated_semantic_weight * F.mse_loss(
-                pred_scores[fg_mask].sigmoid(), self.semantic_similarity[assigned_classes]
-            )
 
         # Bbox loss
         if has_fg:
@@ -1486,16 +1477,6 @@ class E2ELoss:
     def class_weights(self, value: torch.Tensor | None) -> None:
         """Set classification weights on both detection losses."""
         self.one2many.class_weights = self.one2one.class_weights = value
-
-    @property
-    def semantic_similarity(self) -> torch.Tensor | None:
-        """Return label similarities shared by both detection losses."""
-        return self.one2many.semantic_similarity
-
-    @semantic_similarity.setter
-    def semantic_similarity(self, value: torch.Tensor | None) -> None:
-        """Set label similarities on both detection losses."""
-        self.one2many.semantic_similarity = self.one2one.semantic_similarity = value
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""

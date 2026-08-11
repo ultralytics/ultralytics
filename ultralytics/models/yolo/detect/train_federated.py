@@ -28,67 +28,43 @@ from ultralytics.utils import LOCAL_RANK, LOGGER, RANK
 from ultralytics.utils.metrics import DetMetrics
 from ultralytics.utils.torch_utils import torch_distributed_zero_first, unwrap_model
 
-ENTERPRISE_TEXT_TEMPLATES = (
-    "a photo of a {}.",
-    "a close-up photo of a {}.",
-    "a cropped photo of a {}.",
-    "an image of a {}.",
-)
 
-
-def load_or_build_label_text(
-    path: str | Path, names: list[str], variant: str, device: torch.device, kind: str
+def load_or_build_label_prototypes(
+    path: str | Path, names: list[str], variant: str, device: torch.device
 ) -> torch.Tensor:
-    """Load or build ordered Enterprise label-text training targets.
+    """Load or build ordered Enterprise label prototypes.
 
     Args:
         path (str | Path): Cached artifact path.
         names (list[str]): Ordered namespaced class names.
         variant (str): Text encoder variant.
         device (torch.device): Text encoder device.
-        kind (str): Artifact kind, either similarity or prototypes.
 
     Returns:
-        (torch.Tensor): Ordered similarity matrix or calibrated prototypes.
+        (torch.Tensor): Empty-prompt-calibrated label prototypes.
     """
     path = Path(path)
     text_labels = [name.split("/", 1)[1].replace("_", " ") for name in names]
     if path.exists():
         artifact = torch.load(path, map_location="cpu")
         if artifact.get("names") == names and artifact.get("text_labels") == text_labels:
-            return artifact[kind]
+            return artifact["prototypes"]
         LOGGER.info(f"Rebuilding {path} because its class order or prompt labels changed")
 
     from ultralytics.nn.text_model import build_text_model, encode_text
 
-    LOGGER.info(f"Building {variant} label {kind} for {len(names)} Enterprise classes")
+    LOGGER.info(f"Building {variant} label prototypes for {len(names)} Enterprise classes")
     model = build_text_model(variant, device=device)
-    if kind == "similarity":
-        embeddings = encode_text(
-            model, [template.format(name) for name in text_labels for template in ENTERPRISE_TEXT_TEMPLATES]
-        )
-        embeddings = torch.nn.functional.normalize(
-            embeddings.view(len(names), len(ENTERPRISE_TEXT_TEMPLATES), -1).mean(1), dim=-1
-        )
-        # ScaleDet averages prompt embeddings, then row-normalizes cosine similarities to [0, 1].
-        # https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_ScaleDet_A_Scalable_Multi-Dataset_Object_Detector_CVPR_2023_paper.pdf#page=4
-        value = (embeddings @ embeddings.T).cpu()
-        row_min = value.amin(1, keepdim=True)
-        value = ((value - row_min) / (1 - row_min)).clamp_(0, 1)
-        value.fill_diagonal_(1)
-        metadata = {"prompts": ENTERPRISE_TEXT_TEMPLATES}
-    else:
-        embeddings = encode_text(model, [f"the photo is {name}" for name in text_labels])
-        empty = encode_text(model, [""])
-        # Plain-Det subtracts the empty-prompt basis and L2-normalizes the frozen classifier, Eq. 5:
-        # https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/00763.pdf#page=9
-        value = torch.nn.functional.normalize(embeddings - empty, dim=-1).cpu()
-        metadata = {}
+    embeddings = encode_text(model, [f"the photo is {name}" for name in text_labels])
+    empty = encode_text(model, [""])
+    # Plain-Det subtracts the empty-prompt basis and L2-normalizes the frozen classifier, Eq. 5:
+    # https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/00763.pdf#page=9
+    prototypes = torch.nn.functional.normalize(embeddings - empty, dim=-1).cpu()
     del model
     path.parent.mkdir(parents=True, exist_ok=True)
-    torch.save({"names": names, "text_labels": text_labels, kind: value, "text_model": variant, **metadata}, path)
-    LOGGER.info(f"Saved {len(names)} label {kind} to {path}")
-    return value
+    torch.save({"names": names, "text_labels": text_labels, "prototypes": prototypes, "text_model": variant}, path)
+    LOGGER.info(f"Saved {len(names)} label prototypes to {path}")
+    return prototypes
 
 
 SOURCE_METRIC_KEYS = (
@@ -502,7 +478,7 @@ class FederatedDetectionTrainer(DetectionTrainer):
     """
 
     def set_model_attributes(self) -> None:
-        """Set dataset names and prepare optional training-only label similarities."""
+        """Set source heads, frozen prototypes, and optional loss-aware sampling."""
         super().set_model_attributes()
         bounds = [*sorted(self.data["offsets"].values()), self.data["nc"]]
         self.slices = {k: (lo, hi) for (k, lo), hi in zip(self.data["offsets"].items(), bounds[1:])}
@@ -513,30 +489,17 @@ class FederatedDetectionTrainer(DetectionTrainer):
         elif classifier == "semantic":
             names = list(self.data["names"].values())
             with torch_distributed_zero_first(LOCAL_RANK):
-                prototypes = load_or_build_label_text(
+                prototypes = load_or_build_label_prototypes(
                     self.args.federated_semantic_prototypes,
                     names,
                     self.args.federated_semantic_text_model,
                     self.device,
-                    "prototypes",
                 )
             unwrap_model(self.model).model[-1].install_semantic_classifier(list(self.slices.values()), prototypes)
         if self.args.loss_aware_sampling:
             self.source_loss_stats = torch.zeros(2, len(self.slices), device=self.device)
             self.add_callback("on_train_batch_end", self._record_source_loss)
             self.add_callback("on_train_epoch_end", self._update_loss_quota)
-        self.semantic_similarity = None
-        if self.args.federated_semantic_weight and getattr(self.args, "federated_cls_heads", "merged") == "merged":
-            names = list(self.data["names"].values())
-            with torch_distributed_zero_first(LOCAL_RANK):
-                self.semantic_similarity = load_or_build_label_text(
-                    self.args.federated_semantic_similarity,
-                    names,
-                    self.args.federated_semantic_text_model,
-                    self.device,
-                    "similarity",
-                ).to(self.device)
-            assert self.semantic_similarity.shape == (len(names), len(names))
 
     def build_dataset(self, img_path: str | list, mode: str = "train", batch: int | None = None):
         """Build one dataset per source in train mode, and the plain merged dataset in val mode."""
@@ -648,9 +611,6 @@ class FederatedDetectionTrainer(DetectionTrainer):
         model = unwrap_model(self.model)
         if getattr(model, "criterion", None) is None:
             model.criterion = model.init_criterion()
-        if self.semantic_similarity is not None:
-            model.criterion.semantic_similarity = self.semantic_similarity
-            self.semantic_similarity = None
         weights = mask.to(self.device).view(1, 1, -1)
         if getattr(self.args, "federated_cls_normalize", "none") == "active_classes":
             weights *= self.args.fed_k / weights.sum()

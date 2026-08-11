@@ -290,8 +290,6 @@ _RECIPE_DELTA_CASTS = {
     "asl_gamma_neg": float,
     "asl_clip": float,
     "federated_cls_normalize": str,
-    "federated_semantic_weight": float,
-    "federated_semantic_similarity": str,
     "federated_semantic_prototypes": str,
     "federated_semantic_text_model": str,
 }

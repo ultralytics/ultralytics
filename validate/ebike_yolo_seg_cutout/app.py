@@ -1,6 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
-"""YOLO11l-seg 电动自行车整车轮廓提取网页。"""
+"""YOLO11l-seg 电动自行车整车轮廓提取网页。."""
 
 from __future__ import annotations
 
@@ -50,20 +49,20 @@ LOGGER = logging.getLogger("ebike_yolo_seg_cutout")
 
 
 class ModelNotReadyError(RuntimeError):
-    """表示 YOLO 分割权重缺失或类别配置不符合当前方案。"""
+    """表示 YOLO 分割权重缺失或类别配置不符合当前方案。."""
 
 
 class TargetNotDetectedError(RuntimeError):
-    """表示 YOLO 未检出指定的整车类别。"""
+    """表示 YOLO 未检出指定的整车类别。."""
 
 
 class SegmentationError(RuntimeError):
-    """表示所选整车检测没有可用的实例掩码。"""
+    """表示所选整车检测没有可用的实例掩码。."""
 
 
 @dataclass(frozen=True)
 class CutoutConfig:
-    """保存 YOLO 整车分割的模型、类别和推理配置。"""
+    """保存 YOLO 整车分割的模型、类别和推理配置。."""
 
     model_path: Path
     target_class_id: int = 3
@@ -74,7 +73,7 @@ class CutoutConfig:
 
 @dataclass(frozen=True)
 class SegmentationSelection:
-    """保存最高置信度整车实例及其在 Results 中的索引。"""
+    """保存最高置信度整车实例及其在 Results 中的索引。."""
 
     index: int
     class_id: int
@@ -85,7 +84,7 @@ class SegmentationSelection:
 
 @dataclass(frozen=True)
 class CutoutResult:
-    """保存单次整车轮廓提取的产物和可回溯指标。"""
+    """保存单次整车轮廓提取的产物和可回溯指标。."""
 
     selection: SegmentationSelection
     mask_fill_ratio: float
@@ -97,7 +96,7 @@ class CutoutResult:
 
 @dataclass(frozen=True)
 class BatchCutoutResult:
-    """保存批量模式所需的最小结果，避免生成不会交付的预览图。"""
+    """保存批量模式所需的最小结果，避免生成不会交付的预览图。."""
 
     selection: SegmentationSelection
     cutout_path: Path
@@ -105,7 +104,7 @@ class BatchCutoutResult:
 
 @dataclass
 class BatchJob:
-    """保存一个目录批次的固定输入清单、处理记录和独立互斥锁。"""
+    """保存一个目录批次的固定输入清单、处理记录和独立互斥锁。."""
 
     batch_id: str
     batch_dir: Path
@@ -116,7 +115,7 @@ class BatchJob:
 
 
 def _to_numpy(value: Any) -> np.ndarray:
-    """将 PyTorch 张量或数组统一转换为 NumPy 数组。"""
+    """将 PyTorch 张量或数组统一转换为 NumPy 数组。."""
     if hasattr(value, "detach"):
         value = value.detach()
     if hasattr(value, "cpu"):
@@ -127,12 +126,12 @@ def _to_numpy(value: Any) -> np.ndarray:
 
 
 def _to_float(value: Any) -> float:
-    """将模型标量转换为 Python ``float``。"""
+    """将模型标量转换为 Python ``float``。."""
     return float(value.item()) if hasattr(value, "item") else float(value)
 
 
 def _load_rgb_image(path: Path) -> np.ndarray:
-    """解码图片并应用 EXIF 方向，避免手机照片检测结果与像素错位。"""
+    """解码图片并应用 EXIF 方向，避免手机照片检测结果与像素错位。."""
     if not path.is_file():
         raise FileNotFoundError(f"图片不存在：{path}")
     if path.suffix.lower() not in IMAGE_SUFFIXES:
@@ -150,7 +149,7 @@ def _load_rgb_image(path: Path) -> np.ndarray:
 
 
 def _save_upload(value: object, target_dir: Path) -> Path:
-    """解码浏览器 Data URL，并使用受控文件名保存本次输入。"""
+    """解码浏览器 Data URL，并使用受控文件名保存本次输入。."""
     if not isinstance(value, dict):
         raise TypeError("上传图片数据格式错误")
     name, data_url = value.get("name"), value.get("data")
@@ -182,7 +181,7 @@ def select_target_instance(
     image_shape: tuple[int, int],
     target_class_id: int,
 ) -> SegmentationSelection:
-    """只选择目标类别中置信度最高的实例，保留索引以绑定同一张掩码。"""
+    """只选择目标类别中置信度最高的实例，保留索引以绑定同一张掩码。."""
     height, width = image_shape
     best: tuple[float, float, int, np.ndarray] | None = None
     for index, (class_id, confidence, box) in enumerate(zip(result.boxes.cls, result.boxes.conf, result.boxes.xyxy)):
@@ -222,7 +221,7 @@ def select_target_instance(
 
 
 def _normalize_mask(mask_value: Any, image_shape: tuple[int, int]) -> np.ndarray:
-    """将 YOLO 实例掩码还原到原图尺寸并转换为布尔掩码。"""
+    """将 YOLO 实例掩码还原到原图尺寸并转换为布尔掩码。."""
     height, width = image_shape
     mask = _to_numpy(mask_value).squeeze()
     if mask.ndim != 2:
@@ -236,7 +235,7 @@ def _normalize_mask(mask_value: Any, image_shape: tuple[int, int]) -> np.ndarray
 
 
 def _build_cutout(rgb: np.ndarray, mask: np.ndarray) -> Image.Image:
-    """用实例掩码生成透明背景 RGBA 图，并按轮廓范围紧凑裁剪。"""
+    """用实例掩码生成透明背景 RGBA 图，并按轮廓范围紧凑裁剪。."""
     rows = np.flatnonzero(np.any(mask, axis=1))
     columns = np.flatnonzero(np.any(mask, axis=0))
     if not len(rows) or not len(columns):
@@ -256,7 +255,7 @@ def _build_cutout(rgb: np.ndarray, mask: np.ndarray) -> Image.Image:
 
 
 def _build_mask_preview(rgb: np.ndarray, mask: np.ndarray) -> Image.Image:
-    """分块混合轮廓颜色，避免大图布尔索引产生整幅浮点临时数组。"""
+    """分块混合轮廓颜色，避免大图布尔索引产生整幅浮点临时数组。."""
     overlay = rgb.copy()
     accent = (20, 157, 132)
     for row_start in range(0, overlay.shape[0], 256):
@@ -278,7 +277,7 @@ def _save_result_images(
     selection: SegmentationSelection,
     output_dir: Path,
 ) -> CutoutResult:
-    """保存整车框、轮廓叠加预览和最终透明 PNG。"""
+    """保存整车框、轮廓叠加预览和最终透明 PNG。."""
     output_dir.mkdir(parents=True, exist_ok=True)
     detection_preview_path = output_dir / "01_vehicle_detection.jpg"
     mask_preview_path = output_dir / "02_vehicle_mask.png"
@@ -314,7 +313,7 @@ def _save_result_images(
 
 
 class YoloSegCutoutPipeline:
-    """复用单个 YOLO11l-seg 模型执行整车检测、实例分割和透明图生成。"""
+    """复用单个 YOLO11l-seg 模型执行整车检测、实例分割和透明图生成。."""
 
     def __init__(self, config: CutoutConfig, model: Any = None) -> None:
         self.config = config
@@ -322,7 +321,7 @@ class YoloSegCutoutPipeline:
         self.model_error: str | None = None
 
     def load_model(self) -> Any:
-        """加载并校验实例分割模型；确定性失败在本进程内直接复用。"""
+        """加载并校验实例分割模型；确定性失败在本进程内直接复用。."""
         if self.model is not None:
             return self.model
         if self.model_error is not None:
@@ -354,7 +353,7 @@ class YoloSegCutoutPipeline:
         return model
 
     def _segment(self, image_path: Path) -> tuple[np.ndarray, np.ndarray, SegmentationSelection]:
-        """执行一次共享分割推理，检测框和掩码始终使用同一 Results 索引。"""
+        """执行一次共享分割推理，检测框和掩码始终使用同一 Results 索引。."""
         rgb = _load_rgb_image(image_path)
         bgr = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
         model = self.load_model()
@@ -386,12 +385,12 @@ class YoloSegCutoutPipeline:
         return rgb, mask, selection
 
     def cutout(self, image_path: Path, output_dir: Path) -> CutoutResult:
-        """为单张模式保存检测框、掩码预览和透明抠图。"""
+        """为单张模式保存检测框、掩码预览和透明抠图。."""
         rgb, mask, selection = self._segment(image_path)
         return _save_result_images(rgb, mask, selection, output_dir)
 
     def cutout_only(self, image_path: Path, output_dir: Path) -> BatchCutoutResult:
-        """为批量模式只编码最终透明 PNG，避免生成后立即删除预览图。"""
+        """为批量模式只编码最终透明 PNG，避免生成后立即删除预览图。."""
         rgb, mask, selection = self._segment(image_path)
         output_dir.mkdir(parents=True, exist_ok=True)
         cutout_path = output_dir / "vehicle_cutout.png"
@@ -401,7 +400,7 @@ class YoloSegCutoutPipeline:
 
 
 def _resolve_device() -> str | int:
-    """服务器优先使用 CUDA/ROCm 兼容设备，不可用时回退 CPU。"""
+    """服务器优先使用 CUDA/ROCm 兼容设备，不可用时回退 CPU。."""
     try:
         import torch
 
@@ -411,7 +410,7 @@ def _resolve_device() -> str | int:
 
 
 class CutoutService:
-    """管理模型复用和单次任务产物，串行保护非线程安全的推理状态。"""
+    """管理模型复用和单次任务产物，串行保护非线程安全的推理状态。."""
 
     def __init__(self, pipeline: YoloSegCutoutPipeline) -> None:
         self.pipeline = pipeline
@@ -420,7 +419,7 @@ class CutoutService:
         self.batch_jobs: dict[str, BatchJob] = {}
 
     def _cleanup_expired_batch_jobs(self) -> None:
-        """回收超过闲置期限且没有在途处理的批次内存与临时目录。"""
+        """回收超过闲置期限且没有在途处理的批次内存与临时目录。."""
         now = time.monotonic()
         with self.batch_lock:
             candidates = [job for job in self.batch_jobs.values() if now - job.updated_at >= BATCH_IDLE_TIMEOUT_SECONDS]
@@ -449,7 +448,7 @@ class CutoutService:
                     LOGGER.info("回收闲置批量抠图任务，任务=%s", job.batch_id)
 
     def _cleanup_stale_batch_directories(self) -> None:
-        """清理服务重启后遗留的过期批次，并回收已归档批次的松散临时文件。"""
+        """清理服务重启后遗留的过期批次，并回收已归档批次的松散临时文件。."""
         if not RUNS_DIR.is_dir():
             return
         with self.batch_lock:
@@ -477,7 +476,7 @@ class CutoutService:
 
     @staticmethod
     def _cleanup_completed_batch_temporary_files(batch_dir: Path) -> None:
-        """归档完成后仅保留 ZIP 和清单；失败项由周期清理继续重试。"""
+        """归档完成后仅保留 ZIP 和清单；失败项由周期清理继续重试。."""
         temporary_paths = [batch_dir / "cutouts", *batch_dir.glob("item_*"), *batch_dir.glob("*.tmp")]
         for path in temporary_paths:
             try:
@@ -489,12 +488,12 @@ class CutoutService:
                 LOGGER.warning("批量临时产物清理失败，任务=%s，路径=%s", batch_dir.name, path.name, exc_info=True)
 
     def cleanup_expired_artifacts(self) -> None:
-        """由服务启动和服务器定时任务统一触发批次回收。"""
+        """由服务启动和服务器定时任务统一触发批次回收。."""
         self._cleanup_expired_batch_jobs()
         self._cleanup_stale_batch_directories()
 
     def health(self) -> dict[str, object]:
-        """以实际 YOLO 加载与任务/类别校验结果报告模型状态。"""
+        """以实际 YOLO 加载与任务/类别校验结果报告模型状态。."""
         config = self.pipeline.config
         try:
             with self.lock:
@@ -515,7 +514,7 @@ class CutoutService:
         }
 
     def process(self, payload: dict[str, object]) -> dict[str, object]:
-        """保存上传图片，并返回可预览、可下载的结果地址。"""
+        """保存上传图片，并返回可预览、可下载的结果地址。."""
         case_id = datetime.now(timezone.utc).astimezone().strftime("%Y%m%d_%H%M%S") + "_" + uuid4().hex[:8]
         case_dir = RUNS_DIR / case_id
         try:
@@ -556,7 +555,7 @@ class CutoutService:
         }
 
     def start_batch(self, payload: dict[str, object]) -> dict[str, object]:
-        """登记目录内的完整相对路径清单，后续每张图片使用独立请求处理。"""
+        """登记目录内的完整相对路径清单，后续每张图片使用独立请求处理。."""
         raw_paths = payload.get("relative_paths")
         if not isinstance(raw_paths, list):
             raise TypeError("批量任务必须提供图片相对路径清单")
@@ -580,7 +579,7 @@ class CutoutService:
 
     @staticmethod
     def _resolve_batch_relative_path(raw_path: object) -> Path:
-        """校验浏览器传入的目录相对路径，禁止绝对路径和父目录跳转。"""
+        """校验浏览器传入的目录相对路径，禁止绝对路径和父目录跳转。."""
         if not isinstance(raw_path, str) or not raw_path.strip():
             raise ValueError("批量图片相对路径不能为空")
         relative = PurePosixPath(raw_path.strip().replace("\\", "/"))
@@ -592,13 +591,13 @@ class CutoutService:
 
     @staticmethod
     def _validate_batch_id(batch_id: object) -> str:
-        """校验批次 ID，确保只能定位服务生成的任务目录。"""
+        """校验批次 ID，确保只能定位服务生成的任务目录。."""
         if not isinstance(batch_id, str) or not BATCH_ID_PATTERN.fullmatch(batch_id):
             raise ValueError("批量任务 ID 无效")
         return batch_id
 
     def _get_batch_job(self, batch_id: object) -> BatchJob:
-        """从短生命周期注册表读取批次，完成归档后不再保留内存状态。"""
+        """从短生命周期注册表读取批次，完成归档后不再保留内存状态。."""
         batch_id = self._validate_batch_id(batch_id)
         with self.batch_lock:
             job = self.batch_jobs.get(batch_id)
@@ -607,7 +606,7 @@ class CutoutService:
             return job
 
     def _write_batch_manifest(self, job: BatchJob) -> Path:
-        """每处理一张图即原子更新清单，服务异常时仍可回溯已完成项。"""
+        """每处理一张图即原子更新清单，服务异常时仍可回溯已完成项。."""
         records = [
             {key: value for key, value in job.records[path].items() if not key.startswith("_")}
             for path in job.relative_paths
@@ -629,7 +628,7 @@ class CutoutService:
         return manifest_path
 
     def process_batch_item(self, payload: dict[str, object]) -> dict[str, object]:
-        """处理批量任务的一张图，任何单图失败都落入清单并允许批次继续。"""
+        """处理批量任务的一张图，任何单图失败都落入清单并允许批次继续。."""
         job = self._get_batch_job(payload.get("batch_id"))
         relative_path = self._resolve_batch_relative_path(payload.get("relative_path"))
         relative_key = relative_path.as_posix()
@@ -702,7 +701,7 @@ class CutoutService:
             return {key: value for key, value in record.items() if not key.startswith("_")}
 
     def _build_completed_batch_response(self, batch_id: str) -> dict[str, object]:
-        """从磁盘返回已完成任务，支持收尾响应丢失后的幂等重试。"""
+        """从磁盘返回已完成任务，支持收尾响应丢失后的幂等重试。."""
         batch_dir = RUNS_DIR / batch_id
         manifest_path = batch_dir / "manifest.json"
         archive_path = batch_dir / f"{batch_id}_cutouts.zip"
@@ -718,7 +717,7 @@ class CutoutService:
         }
 
     def finish_batch(self, payload: dict[str, object]) -> dict[str, object]:
-        """补齐未处理项并原子打包，成功后立即释放批次内存状态。"""
+        """补齐未处理项并原子打包，成功后立即释放批次内存状态。."""
         batch_id = self._validate_batch_id(payload.get("batch_id"))
         with self.batch_lock:
             job = self.batch_jobs.get(batch_id)
@@ -769,7 +768,7 @@ class CutoutService:
 
 
 class CutoutWebHandler(BaseHTTPRequestHandler):
-    """提供单页工具、轮廓提取接口和本次任务产物。"""
+    """提供单页工具、轮廓提取接口和本次任务产物。."""
 
     service: CutoutService
     server_version = "EbikeYoloSegCutout/1.0"
@@ -788,7 +787,7 @@ class CutoutWebHandler(BaseHTTPRequestHandler):
         self._send_bytes(status, content, "application/json; charset=utf-8")
 
     def _send_file(self, status: int, path: Path, content_type: str) -> None:
-        """分块发送产物，避免批量 ZIP 按整包大小占用内存。"""
+        """分块发送产物，避免批量 ZIP 按整包大小占用内存。."""
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(path.stat().st_size))
@@ -881,7 +880,7 @@ class CutoutWebHandler(BaseHTTPRequestHandler):
 
 
 class CutoutWebServer(ThreadingHTTPServer):
-    """在 HTTP 服务生命周期内启动并定时执行批次回收。"""
+    """在 HTTP 服务生命周期内启动并定时执行批次回收。."""
 
     def __init__(self, server_address: tuple[str, int], service: CutoutService) -> None:
         self.cutout_service = service
@@ -891,7 +890,7 @@ class CutoutWebServer(ThreadingHTTPServer):
         super().__init__(server_address, CutoutWebHandler)
 
     def service_actions(self) -> None:
-        """利用 ``serve_forever`` 的周期回调清理闲置任务，无需额外常驻线程。"""
+        """利用 ``serve_forever`` 的周期回调清理闲置任务，无需额外常驻线程。."""
         now = time.monotonic()
         if now < self.next_cleanup_at:
             return
@@ -903,7 +902,7 @@ class CutoutWebServer(ThreadingHTTPServer):
 
 
 def build_service() -> CutoutService:
-    """使用代码内固定配置构建服务，调整本方法即可切换权重、阈值和设备。"""
+    """使用代码内固定配置构建服务，调整本方法即可切换权重、阈值和设备。."""
     config = CutoutConfig(
         model_path=MODELS_DIR / "yolo11l-seg.pt",
         target_class_id=3,
@@ -915,7 +914,7 @@ def build_service() -> CutoutService:
 
 
 def main() -> int:
-    """使用代码内固定地址启动本地网页服务，不接收命令行参数。"""
+    """使用代码内固定地址启动本地网页服务，不接收命令行参数。."""
     host, port = "127.0.0.1", 8768
     logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
     RUNS_DIR.mkdir(parents=True, exist_ok=True)

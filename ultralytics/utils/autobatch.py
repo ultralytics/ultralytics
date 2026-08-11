@@ -16,7 +16,7 @@ def check_train_batch_size(
     model: torch.nn.Module,
     imgsz: int = 640,
     amp: bool = True,
-    batch: int | float = -1,
+    batch: float = -1,
     max_num_obj: int = 1,
     dataset_size: int = 0,
 ) -> int:

@@ -858,15 +858,11 @@ def test_predict_callback_and_setup():
 
 
 @pytest.mark.parametrize("model", MODELS)
-def test_results(model: str, tmp_path):
+def test_results(model: str, tmp_path, solution_assets):
     """Test YOLO model results processing and output in various formats."""
     if IS_RASPBERRYPI and model == "yolo26n-sem.pt":
         skip_rpi_semantic()
-    im = (
-        "https://cdn.ul.run/i/186929a91ceb270e952fe4dd27ba0f18.webp"  # boats.jpg
-        if model == "yolo26n-obb.pt"
-        else SOURCE
-    )
+    im = solution_assets("boats") if model == "yolo26n-obb.pt" else SOURCE
     is_semantic = "semantic" in model or "-sem" in model
     results = YOLO(WEIGHTS_DIR / model)([im, im], imgsz=32 if is_semantic else 160)
     for r in results:
@@ -1308,6 +1304,14 @@ def test_utils_checks(monkeypatch):
     assert checks.parse_version("v2.1") == (2, 1, 0)
     assert checks.parse_version("1.0rc1") == (1, 0, 0)  # documented non-PEP-440 tradeoff: pre-releases equal the final
     monkeypatch.setattr(checks.metadata, "version", package_version)
+    monkeypatch.setattr(checks, "ARM64", True)
+    monkeypatch.setattr(checks, "AUTOINSTALL", True)
+    monkeypatch.setattr(checks, "ONLINE", True)
+    commands = []
+    monkeypatch.setattr(checks.subprocess, "check_output", lambda command, **kwargs: commands.append(command) or "")
+    requirements = ["ray[tune]", "nvidia-modelopt[onnx]>=0.44", "$(touch /tmp/pwned)/missing"]
+    assert checks.check_requirements(requirements)
+    assert commands[0][5:] == requirements  # requirements remain individual argv entries, never shell source
     assert not checks.check_version("v2", ">=2.0")  # installed version-shaped package keeps metadata precedence
     versions = ("v2.1-rc.1", "v2.1-beta1", "v2.1rev1", "v2.1-dev1", "v2.1+cu118")
     assert all(checks.check_version(v, ">=2.0") for v in versions)

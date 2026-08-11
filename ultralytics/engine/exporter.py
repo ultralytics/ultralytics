@@ -1415,7 +1415,6 @@ class Exporter:
                 torch.nn.functional.interpolate(torch.cat(images, 0).float(), size=self.imgsz)
                 .permute(0, 2, 3, 1)
                 .numpy()
-                .astype(np.float32)
             )
 
         # Export to ONNX

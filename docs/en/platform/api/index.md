@@ -273,7 +273,7 @@ GET /api/datasets
 GET /api/datasets/{datasetId}
 ```
 
-Returns full dataset details including metadata, class names, and split counts.
+Returns dataset details including class names, split counts, and other Platform-managed properties. Custom metadata is loaded separately from the metadata endpoint below.
 
 Pass `username` when `{datasetId}` is a dataset slug rather than an ID.
 
@@ -291,6 +291,7 @@ POST /api/datasets
     "name": "My Dataset",
     "task": "detect",
     "description": "A custom detection dataset",
+    "metadata": { "location": "factory-1", "reviewed": true },
     "visibility": "private",
     "classNames": ["person", "car"]
 }
@@ -322,9 +323,20 @@ PATCH /api/datasets/{datasetId}
 {
     "name": "Updated Name",
     "description": "New description",
+    "metadata": { "location": "factory-2", "reviewed": true },
     "visibility": "public"
 }
 ```
+
+Send an empty `metadata` object (`{}`) to clear custom metadata. The serialized metadata object is limited to 500,000 characters, and each top-level key is limited to 128 characters.
+
+### Get Dataset Metadata
+
+```http
+GET /api/datasets/{datasetId}/metadata
+```
+
+Returns the custom metadata object and a curated set of read-only Ultralytics-managed field/value pairs. Custom metadata is intentionally omitted from normal dataset payloads. Authentication and dataset workspace access are required.
 
 ### Dataset Icon
 
@@ -627,7 +639,7 @@ POST /api/datasets/ingest
 
 Create a dataset ingest job for an existing dataset. The target dataset is always passed as `datasetId` in the JSON body, not in the URL path.
 
-The request body requires `datasetId` plus exactly one of `sessionId` (an uploaded archive's upload session) or `sourceUrl` (a remote ZIP, TAR, TAR.GZ, TGZ, or NDJSON URL). Add optional `targetSplit` (`train`, `val`, or `test`) to override the archive's split structure.
+The request body requires `datasetId` plus exactly one of `sessionId` (an uploaded archive's upload session) or `sourceUrl` (a remote ZIP, TAR, TAR.GZ, TGZ, or NDJSON URL). Add optional `targetSplit` (`train`, `val`, or `test`) to override the archive's split structure. To attach custom metadata, use `imageMetadata`, keyed by each image's exact archive-relative path or NDJSON `file` value.
 
 For uploaded archives, the upload session is already bound to the dataset by the `assetId` passed to `POST /api/upload/signed-url`; ingest validates that `assetId` matches the body `datasetId`. Optional `classMapping` entries map each incoming class name to an existing zero-based class index, a class name to reuse or create, or `null` to skip the class. For remote `sourceUrl` imports, create the dataset first, then pass its `datasetId` to ingest.
 
@@ -640,6 +652,83 @@ For uploaded archives, the upload session is already bound to the dataset by the
     "targetSplit": "train"
 }
 ```
+
+**Body (one or multiple images with metadata):**
+
+```json
+{
+    "datasetId": "dataset_abc123",
+    "sessionId": "session_abc123",
+    "imageMetadata": {
+        "airbus-wing.jpg": { "aircraft": { "family": "A350" }, "inspectionStatus": "reviewed" },
+        "images/tail.jpg": { "aircraft": { "family": "A320" }, "inspectionSeverity": 2 }
+    }
+}
+```
+
+Local images use the existing archive upload flow, whether the archive contains one image or many. The key must match the normalized path inside the archive, including folders. For NDJSON imports, each image record can instead contain its own `metadata` object. Record-local `metadata` takes precedence over a matching `imageMetadata` entry.
+
+Metadata is JSON and supports nested values. Archive paths are limited to 1,024 characters, top-level metadata keys to 128 characters, and each metadata object to 500,000 serialized characters. The complete `imageMetadata` map, or the combined effective metadata across an NDJSON import, is also limited to 500,000 serialized characters. These constraints are included in the [interactive OpenAPI schema](https://platform.ultralytics.com/api/docs).
+
+??? example "Upload one image with metadata using Python"
+
+    The same code handles a group of images: add more files to the ZIP and matching entries to `imageMetadata`.
+
+    ```python
+    import io
+    import zipfile
+    from pathlib import Path
+
+    import requests
+
+    api = "https://platform.ultralytics.com/api"
+    headers = {"Authorization": "Bearer YOUR_API_KEY"}
+    dataset_id = "dataset_abc123"
+    image_path = Path("airbus-wing.jpg")
+
+    archive = io.BytesIO()
+    with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.write(image_path, image_path.name)
+    data = archive.getvalue()
+
+    signed = requests.post(
+        f"{api}/upload/signed-url",
+        headers=headers,
+        json={
+            "assetType": "datasets",
+            "assetId": dataset_id,
+            "filename": "images.zip",
+            "contentType": "application/zip",
+            "totalBytes": len(data),
+        },
+    )
+    signed.raise_for_status()
+    upload = signed.json()
+
+    requests.put(upload["uploadUrl"], headers={"Content-Type": "application/zip"}, data=data).raise_for_status()
+    requests.post(
+        f"{api}/upload/complete",
+        headers=headers,
+        json={"sessionId": upload["sessionId"]},
+    ).raise_for_status()
+
+    ingest = requests.post(
+        f"{api}/datasets/ingest",
+        headers=headers,
+        json={
+            "datasetId": dataset_id,
+            "sessionId": upload["sessionId"],
+            "imageMetadata": {
+                "airbus-wing.jpg": {
+                    "aircraft": {"family": "A350", "section": "wing"},
+                    "inspectionStatus": "reviewed",
+                }
+            },
+        },
+    )
+    ingest.raise_for_status()
+    print(ingest.json())
+    ```
 
 **Body (remote archive or NDJSON):**
 
@@ -706,7 +795,7 @@ GET /api/datasets/{datasetId}/images
 | `sort`              | string | Sort order: `newest`, `oldest`, `name-asc`, `name-desc`, `height-asc`, `height-desc`, `width-asc`, `width-desc`, `size-asc`, `size-desc`, `labels-asc`, `labels-desc` (some disabled for >100k image datasets) |
 | `hasLabel`          | string | Filter by label status (`true` or `false`)                                                                                                                                                                     |
 | `hasError`          | string | Filter by error status (`true` or `false`)                                                                                                                                                                     |
-| `search`            | string | Search by filename or image hash                                                                                                                                                                               |
+| `search`            | string | Substring match on filename and custom metadata keys, scalar values, and array entries (values nested in sub-objects are not matched); a 32-character hex string is an exact image hash lookup                 |
 | `classIds`          | string | Comma-separated class IDs; returns images containing any of the specified classes                                                                                                                              |
 | `includeThumbnails` | string | Include signed thumbnail URLs (default: `true`)                                                                                                                                                                |
 | `includeImageUrls`  | string | Include signed full image URLs (default: `false`)                                                                                                                                                              |
@@ -824,7 +913,8 @@ POST /api/projects
       -d '{
         "name": "my-project",
         "slug": "my-project",
-        "description": "Detection experiments"
+        "description": "Detection experiments",
+        "metadata": {"department": "manufacturing", "cost_center": "cv-01"}
       }' \
       https://platform.ultralytics.com/api/projects
     ```
@@ -839,6 +929,7 @@ POST /api/projects
             "name": "my-project",
             "slug": "my-project",
             "description": "Detection experiments",
+            "metadata": {"department": "manufacturing", "cost_center": "cv-01"},
         },
     )
     project_id = resp.json()["projectId"]
@@ -849,6 +940,24 @@ POST /api/projects
 ```http
 PATCH /api/projects/{projectId}
 ```
+
+**Body (partial update):**
+
+```json
+{
+    "metadata": { "department": "research", "program": "inspection" }
+}
+```
+
+Send an empty `metadata` object (`{}`) to clear it. Project metadata uses the same 128-character top-level key and 500,000-character serialized-object limits as dataset metadata.
+
+### Get Project Metadata
+
+```http
+GET /api/projects/{projectId}/metadata
+```
+
+Returns the custom metadata object and read-only Ultralytics-managed field/value pairs. Authentication and project workspace access are required.
 
 ### Delete Project
 
@@ -924,6 +1033,7 @@ POST /api/models
 | `slug`        | string | No       | URL slug (lowercase alphanumeric/hyphens)                         |
 | `name`        | string | No       | Display name (max 100 chars)                                      |
 | `description` | string | No       | Model description (max 1000 chars)                                |
+| `metadata`    | object | No       | Custom JSON metadata                                              |
 | `task`        | string | No       | Task type (detect, segment, semantic, depth, pose, obb, classify) |
 
 !!! note "Model File Upload"
@@ -935,6 +1045,24 @@ POST /api/models
 ```http
 PATCH /api/models/{modelId}
 ```
+
+**Body (partial update):**
+
+```json
+{
+    "metadata": { "release": "candidate-3", "reviewed": true }
+}
+```
+
+Send an empty `metadata` object (`{}`) to clear it. Model custom metadata is separate from training-owned model information, environment details, and training arguments, and uses the same serialized-object and top-level-key limits as dataset metadata.
+
+### Get Model Metadata
+
+```http
+GET /api/models/{modelId}/metadata
+```
+
+Returns the custom metadata object and read-only Ultralytics-managed field/value pairs. Authentication and model workspace access are required.
 
 ### Delete Model
 
@@ -1159,6 +1287,7 @@ graph LR
     A[Create]:::start --> B[Deploying]:::proc
     B --> C[Ready]:::out
     C -->|stop| D[Stopped]:::extern
+    C -->|replace model| B
     D -->|start| C
     C -->|delete| E[Deleted]:::error
     D -->|delete| E
@@ -1236,6 +1365,23 @@ GET /api/deployments/{deploymentId}
 ```http
 DELETE /api/deployments/{deploymentId}
 ```
+
+### Replace Deployment Model
+
+```http
+PATCH /api/deployments/{deploymentId}
+```
+
+**Body:**
+
+```json
+{
+    "modelId": "model_xyz789",
+    "name": "production-detector"
+}
+```
+
+Creates a new revision with the selected model while preserving the deployment ID, region, API key, and endpoint URL. Set the optional `name` field to rename the deployment when the replacement becomes ready. The existing revision and name remain active if the replacement fails. The selected model must be a completed model with weights in the same workspace.
 
 ### Start Deployment
 

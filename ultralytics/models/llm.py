@@ -2,14 +2,7 @@
 
 from __future__ import annotations
 
-import base64
-from pathlib import Path
 from typing import Any
-from urllib.parse import urlsplit
-
-import cv2
-import numpy as np
-from PIL import Image
 
 from ultralytics.utils.checks import check_requirements
 
@@ -20,9 +13,6 @@ class LLM:
     Attributes:
         model (str): Model name sent with each request.
         api (str): API format, either "responses" or "chat.completions".
-        base_url (str | None): Optional OpenAI-compatible API base URL.
-        prompt (str | None): Optional instruction prepended to scalar text or image inputs.
-        overrides (dict): Default arguments passed to each request.
         client (OpenAI | None): Lazily initialized synchronous client.
         async_client (AsyncOpenAI | None): Lazily initialized asynchronous client.
 
@@ -31,26 +21,36 @@ class LLM:
         async_call: Run asynchronous inference.
 
     Examples:
+        Generate text with the Responses API:
         >>> from ultralytics import LLM
-        >>> model = LLM("gpt-5.6-luna")
-        >>> response = model("What is YOLO?")
+        >>> model = LLM("gpt-5.5")
+        >>> response = model(input="What is YOLO?")
+        >>> print(response.output_text)
 
-        Analyze an image with a reusable prompt:
-        >>> model = LLM("gpt-5.6-luna", prompt="Describe the image.")
-        >>> response = model("path/to/image.jpg")
+        Analyze text and an image:
+        >>> response = model(
+        ...     input=[
+        ...         {
+        ...             "role": "user",
+        ...             "content": [
+        ...                 {"type": "input_text", "text": "What is in this image?"},
+        ...                 {"type": "input_image", "image_url": "https://ultralytics.com/images/bus.jpg"},
+        ...             ],
+        ...         }
+        ...     ]
+        ... )
 
         Use the Chat Completions API:
-        >>> model = LLM("gpt-5.6-luna", api="chat.completions")
-        >>> response = model("Describe this image")
+        >>> model = LLM("gpt-5.5", api="chat.completions")
+        >>> response = model(messages=[{"role": "user", "content": "What is YOLO?"}])
     """
 
     def __init__(
         self,
-        model: str = "gpt-5.6-luna",
+        model: str,
         api: str = "responses",
         base_url: str | None = None,
         api_key: str | None = None,
-        prompt: str | None = None,
         **kwargs: Any,
     ) -> None:
         """Initialize an OpenAI-compatible LLM.
@@ -60,40 +60,32 @@ class LLM:
             api (str): API format, either "responses" or "chat.completions".
             base_url (str, optional): OpenAI-compatible API base URL.
             api_key (str, optional): API key. Defaults to the OPENAI_API_KEY environment variable.
-            prompt (str, optional): Instruction prepended to scalar text or image inputs.
-            **kwargs (Any): Default arguments passed to each API request.
+            **kwargs (Any): Additional arguments passed to the OpenAI client.
         """
         if api not in {"responses", "chat.completions"}:
             raise ValueError(f"Unsupported API format {api!r}. Use 'responses' or 'chat.completions'.")
 
         self.model = model
         self.api = api
-        self.base_url = base_url
-        self.prompt = prompt
-        self.overrides = kwargs
         self.client = None
         self.async_client = None
-        self._api_key = api_key
+        self._client_kwargs = {
+            key: value
+            for key, value in {"api_key": api_key, "base_url": base_url, **kwargs}.items()
+            if value is not None
+        }
 
-    def __call__(self, source: Any = None, **kwargs: Any) -> Any:
-        """Run inference with the configured model."""
-        return self._call(self._prepare(source), kwargs)
-
-    def _call(self, source: Any, kwargs: dict[str, Any]) -> Any:
-        """Send prepared input through the synchronous client."""
-        request = self._request(source, kwargs)
+    def __call__(self, **kwargs: Any) -> Any:
+        """Run synchronous inference using native OpenAI request arguments."""
+        request = {"model": self.model, **kwargs}
         client = self._get_client()
         return (
             client.responses.create(**request) if self.api == "responses" else client.chat.completions.create(**request)
         )
 
-    async def async_call(self, source: Any = None, **kwargs: Any) -> Any:
-        """Run asynchronous inference with the configured model."""
-        return await self._async_call(self._prepare(source), kwargs)
-
-    async def _async_call(self, source: Any, kwargs: dict[str, Any]) -> Any:
-        """Send prepared input through the asynchronous client."""
-        request = self._request(source, kwargs)
+    async def async_call(self, **kwargs: Any) -> Any:
+        """Run asynchronous inference using native OpenAI request arguments."""
+        request = {"model": self.model, **kwargs}
         client = self._get_async_client()
         return (
             await client.responses.create(**request)
@@ -101,104 +93,13 @@ class LLM:
             else await client.chat.completions.create(**request)
         )
 
-    def _request(self, source: Any, kwargs: dict[str, Any]) -> dict[str, Any]:
-        """Build a Responses or Chat Completions request.
-
-        Args:
-            source (Any, optional): Responses input or chat messages. Strings become a user message for Chat
-                Completions.
-            kwargs (dict): Request arguments overriding constructor defaults.
-
-        Returns:
-            (dict): Native OpenAI SDK request arguments.
-        """
-        request = {"model": self.model, **self.overrides, **kwargs}
-        if self.api == "responses":
-            if source is not None:
-                request["input"] = source
-        elif source is not None:
-            request["messages"] = [{"role": "user", "content": source}] if isinstance(source, str) else source
-        return request
-
-    def _prepare(self, source: Any) -> Any:
-        """Normalize scalar text or image input while preserving native message payloads."""
-        if source is None:
-            return self.prompt
-        if isinstance(source, (list, tuple, dict)):
-            return source
-        prompt = self.prompt or "Describe the image."
-        if isinstance(source, str) and not self._is_image(source):
-            return f"{prompt}\n\n{source}" if self.prompt else source
-        image_url = self._image_url(source)
-        if self.api == "responses":
-            return [
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "input_text", "text": prompt},
-                        {"type": "input_image", "image_url": image_url},
-                    ],
-                }
-            ]
-        return [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {"type": "image_url", "image_url": {"url": image_url}},
-                ],
-            }
-        ]
-
-    @staticmethod
-    def _is_image(source: str) -> bool:
-        """Return whether a string represents an image URL, data URL, or path."""
-        suffixes = {
-            ".bmp",
-            ".gif",
-            ".jpeg",
-            ".jpg",
-            ".png",
-            ".tif",
-            ".tiff",
-            ".webp",
-        }
-        suffix = Path(source).suffix.lower()
-        if source.startswith("data:image/"):
-            return True
-        url = urlsplit(source)
-        if url.scheme in {"http", "https"}:
-            return Path(url.path).suffix.lower() in suffixes
-        return suffix in suffixes and Path(source).is_file()
-
-    @staticmethod
-    def _image_url(source: Any) -> str:
-        """Convert an image URL, path, or array to an OpenAI image URL."""
-        if isinstance(source, str) and source.startswith(("http://", "https://", "data:image/")):
-            return source
-        if isinstance(source, (str, Path)):
-            image = cv2.imread(str(source))
-        else:
-            image = (
-                cv2.cvtColor(np.asarray(source.convert("RGB")), cv2.COLOR_RGB2BGR)
-                if isinstance(source, Image.Image)
-                else np.asarray(source)
-            )
-        if image is None:
-            raise ValueError(f"Unable to read image source {source!r}.")
-        success, buffer = cv2.imencode(".jpg", image)
-        if not success:
-            raise ValueError("Unable to encode image source as JPEG.")
-        return f"data:image/jpeg;base64,{base64.b64encode(buffer).decode()}"
-
     def _get_client(self) -> Any:
         """Create the OpenAI client on first inference."""
         if self.client is None:
             check_requirements("openai>=2.0.0")
             from openai import OpenAI
 
-            kwargs = {k: v for k, v in {"api_key": self._api_key, "base_url": self.base_url}.items() if v is not None}
-            self.client = OpenAI(**kwargs)
+            self.client = OpenAI(**self._client_kwargs)
         return self.client
 
     def _get_async_client(self) -> Any:
@@ -207,6 +108,5 @@ class LLM:
             check_requirements("openai>=2.0.0")
             from openai import AsyncOpenAI
 
-            kwargs = {k: v for k, v in {"api_key": self._api_key, "base_url": self.base_url}.items() if v is not None}
-            self.async_client = AsyncOpenAI(**kwargs)
+            self.async_client = AsyncOpenAI(**self._client_kwargs)
         return self.async_client

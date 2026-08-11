@@ -20,6 +20,7 @@ class YOLO_XAI_Extractor:
     """
 
     def __init__(self, model, target_layer_index=None):
+        """Initialize the XAI extractor with a YOLO model and optional target layer index."""
         self.model = model.model
         # Dynamically select the penultimate layer if no index is provided, preventing IndexError on non-detection models.
         layer_idx = target_layer_index if target_layer_index is not None else -2

@@ -636,7 +636,6 @@ nav:
           - split_dota: reference/data/split_dota.md
           - utils: reference/data/utils.md
       - engine:
-          - agent: reference/engine/agent.md
           - exporter: reference/engine/exporter.md
           - model: reference/engine/model.md
           - predictor: reference/engine/predictor.md

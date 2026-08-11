@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import base64
-import json
 from os.path import isfile
 from pathlib import Path
-from typing import Any, ClassVar
+from typing import Any
 from urllib.parse import urlsplit
 
 import cv2
@@ -27,7 +26,6 @@ class LLM:
         overrides (dict): Default arguments passed to each request.
         client (OpenAI | None): Lazily initialized synchronous client.
         async_client (AsyncOpenAI | None): Lazily initialized asynchronous client.
-        ports (dict): Agent input and output port definitions.
 
     Methods:
         __call__: Run synchronous inference.
@@ -46,11 +44,6 @@ class LLM:
         >>> model = LLM("gpt-5.6-luna", api="chat.completions")
         >>> response = model("Describe this image")
     """
-
-    ports: ClassVar = {
-        "inputs": {"source": "text | image", "context": "json"},
-        "outputs": {"text": "text"},
-    }
 
     def __init__(
         self,
@@ -134,29 +127,9 @@ class LLM:
             return self.prompt
         if isinstance(source, (list, tuple, dict)):
             return source
-        return self._agent_input({"source": source, "data": source})
-
-    def _agent_run(self, event: dict[str, Any], name: str, **kwargs: Any) -> dict[str, Any]:
-        """Run synchronous LLM inference on a standardized Agent event."""
-        response = self._call(self._agent_input(event), kwargs)
-        return {**event, "data": response, name: {"text": self._response_text(response)}}
-
-    async def _agent_async_run(self, event: dict[str, Any], name: str, **kwargs: Any) -> dict[str, Any]:
-        """Run asynchronous LLM inference on a standardized Agent event."""
-        response = await self._async_call(self._agent_input(event), kwargs)
-        return {**event, "data": response, name: {"text": self._response_text(response)}}
-
-    def _agent_input(self, event: dict[str, Any]) -> Any:
-        """Convert an Agent event into native Responses or Chat Completions input."""
-        source = event["source"]
-        context = {key: value for key, value in event.items() if key not in {"source", "data"}}
         prompt = self.prompt or "Describe the image."
-        if context:
-            prompt = f"{prompt}\n\nContext:\n{json.dumps(context, default=str)}"
-        if source is None:
-            return prompt
         if isinstance(source, str) and not self._is_image(source):
-            return f"{prompt}\n\n{source}" if self.prompt or context else source
+            return f"{prompt}\n\n{source}" if self.prompt else source
         image_url = self._image_url(source)
         if self.api == "responses":
             return [
@@ -213,19 +186,11 @@ class LLM:
                 else np.asarray(source)
             )
         if image is None:
-            raise ValueError(f"Unable to read Agent image source {source!r}.")
-        _, buffer = cv2.imencode(".jpg", image)
+            raise ValueError(f"Unable to read image source {source!r}.")
+        success, buffer = cv2.imencode(".jpg", image)
+        if not success:
+            raise ValueError("Unable to encode image source as JPEG.")
         return f"data:image/jpeg;base64,{base64.b64encode(buffer).decode()}"
-
-    @staticmethod
-    def _response_text(response: Any) -> str:
-        """Extract text from a Responses or Chat Completions result."""
-        if isinstance(response, str):
-            return response
-        if text := getattr(response, "output_text", None):
-            return text
-        choices = getattr(response, "choices", None)
-        return choices[0].message.content if choices else str(response)
 
     def _get_client(self) -> Any:
         """Create the OpenAI client on first inference."""

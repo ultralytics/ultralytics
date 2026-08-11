@@ -9,6 +9,7 @@ import urllib
 import zipfile
 from copy import copy
 from pathlib import Path
+from types import SimpleNamespace
 
 import cv2
 import numpy as np
@@ -18,7 +19,7 @@ from PIL import Image
 
 import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
-from ultralytics import RTDETR, YOLO
+from ultralytics import LLM, RTDETR, YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
@@ -43,6 +44,43 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
+
+
+def test_llm_interface():
+    """Test standalone LLM text, image, request override, and asynchronous interfaces without network calls."""
+    calls = []
+    response = object()
+
+    def create(**kwargs):
+        """Record a synchronous request."""
+        calls.append(kwargs)
+        return response
+
+    llm = LLM("model", prompt="Answer briefly.", temperature=0.5)
+    llm.client = SimpleNamespace(responses=SimpleNamespace(create=create))
+    assert llm("What is YOLO?", temperature=0) is response
+    assert calls.pop() == {"model": "model", "temperature": 0, "input": "Answer briefly.\n\nWhat is YOLO?"}
+
+    llm(np.zeros((8, 8, 3), dtype=np.uint8))
+    content = calls.pop()["input"][0]["content"]
+    assert content[0] == {"type": "input_text", "text": "Answer briefly."}
+    assert content[1]["image_url"].startswith("data:image/jpeg;base64,")
+
+    chat = LLM("model", api="chat.completions")
+    chat.client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
+    assert chat("Hello") is response
+    assert calls.pop() == {"model": "model", "messages": [{"role": "user", "content": "Hello"}]}
+
+    async def create_async(**kwargs):
+        """Record an asynchronous request."""
+        calls.append(kwargs)
+        return response
+
+    import asyncio
+
+    llm.async_client = SimpleNamespace(responses=SimpleNamespace(create=create_async))
+    assert asyncio.run(llm.async_call("Hello")) is response
+    assert calls.pop()["input"] == "Answer briefly.\n\nHello"
 
 
 def test_dataloader_caps_workers_to_batches():

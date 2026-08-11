@@ -5,7 +5,6 @@ from __future__ import annotations
 import base64
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlsplit
 
 import cv2
 import numpy as np
@@ -32,21 +31,20 @@ class LLM:
 
     Examples:
         >>> from ultralytics import LLM
-        >>> model = LLM("gpt-5.6-luna")
+        >>> model = LLM("gpt-5.5")
         >>> response = model("What is YOLO?")
 
-        Analyze an image with a reusable prompt:
-        >>> model = LLM("gpt-5.6-luna", prompt="Describe the image.")
-        >>> response = model("path/to/image.jpg")
+        Analyze an image:
+        >>> response = model("Describe this image", image="bus.jpg")
 
         Use the Chat Completions API:
-        >>> model = LLM("gpt-5.6-luna", api="chat.completions")
+        >>> model = LLM("gpt-5.5", api="chat.completions")
         >>> response = model("Describe this image")
     """
 
     def __init__(
         self,
-        model: str = "gpt-5.6-luna",
+        model: str = "gpt-5.5",
         api: str = "responses",
         base_url: str | None = None,
         api_key: str | None = None,
@@ -75,9 +73,9 @@ class LLM:
         self.async_client = None
         self._api_key = api_key
 
-    def __call__(self, source: Any = None, **kwargs: Any) -> Any:
+    def __call__(self, source: Any = None, image: Any = None, **kwargs: Any) -> Any:
         """Run inference with the configured model."""
-        return self._call(self._prepare(source), kwargs)
+        return self._call(self._prepare(source, image), kwargs)
 
     def _call(self, source: Any, kwargs: dict[str, Any]) -> Any:
         """Send prepared input through the synchronous client."""
@@ -87,9 +85,9 @@ class LLM:
             client.responses.create(**request) if self.api == "responses" else client.chat.completions.create(**request)
         )
 
-    async def async_call(self, source: Any = None, **kwargs: Any) -> Any:
+    async def async_call(self, source: Any = None, image: Any = None, **kwargs: Any) -> Any:
         """Run asynchronous inference with the configured model."""
-        return await self._async_call(self._prepare(source), kwargs)
+        return await self._async_call(self._prepare(source, image), kwargs)
 
     async def _async_call(self, source: Any, kwargs: dict[str, Any]) -> Any:
         """Send prepared input through the asynchronous client."""
@@ -120,16 +118,20 @@ class LLM:
             request["messages"] = [{"role": "user", "content": source}] if isinstance(source, str) else source
         return request
 
-    def _prepare(self, source: Any) -> Any:
+    def _prepare(self, source: Any, image: Any = None) -> Any:
         """Normalize scalar text or image input while preserving native message payloads."""
-        if source is None:
-            return self.prompt
-        if isinstance(source, (list, tuple, dict)):
-            return source
-        prompt = self.prompt or "Describe the image."
-        if isinstance(source, str) and not self._is_image(source):
-            return f"{prompt}\n\n{source}" if self.prompt else source
-        image_url = self._image_url(source)
+        if image is None:
+            if source is None:
+                return self.prompt
+            if isinstance(source, (list, tuple, dict)):
+                return source
+            if isinstance(source, str):
+                return f"{self.prompt}\n\n{source}" if self.prompt else source
+            image = source
+            prompt = self.prompt or "Describe the image."
+        else:
+            prompt = source or self.prompt or "Describe the image."
+        image_url = self._image_url(image)
         if self.api == "responses":
             return [
                 {
@@ -149,27 +151,6 @@ class LLM:
                 ],
             }
         ]
-
-    @staticmethod
-    def _is_image(source: str) -> bool:
-        """Return whether a string represents an image URL, data URL, or path."""
-        suffixes = {
-            ".bmp",
-            ".gif",
-            ".jpeg",
-            ".jpg",
-            ".png",
-            ".tif",
-            ".tiff",
-            ".webp",
-        }
-        suffix = Path(source).suffix.lower()
-        if source.startswith("data:image/"):
-            return True
-        url = urlsplit(source)
-        if url.scheme in {"http", "https"}:
-            return Path(url.path).suffix.lower() in suffixes
-        return suffix in suffixes and Path(source).is_file()
 
     @staticmethod
     def _image_url(source: Any) -> str:

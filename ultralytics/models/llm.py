@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import base64
-from os.path import isfile
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -170,7 +169,7 @@ class LLM:
         url = urlsplit(source)
         if url.scheme in {"http", "https"}:
             return Path(url.path).suffix.lower() in suffixes
-        return suffix in suffixes and isfile(source)
+        return suffix in suffixes and Path(source).is_file()
 
     @staticmethod
     def _image_url(source: Any) -> str:

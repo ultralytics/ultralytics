@@ -190,11 +190,10 @@ class BaseValidator:
             callbacks.add_integration_callbacks(self)
             if hasattr(model, "end2end"):
                 if self.args.end2end is not None:
-                    self._head_prev["end2end"] = model.end2end
-                    model.end2end = self.args.end2end
+                    self._head_prev = model.set_head_attr(end2end=self.args.end2end)
                 if model.end2end:
-                    self._head_prev |= model.set_head_attr(
-                        max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms
+                    self._head_prev.update(
+                        model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
                     )
             with torch_distributed_zero_first(LOCAL_RANK):
                 self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)

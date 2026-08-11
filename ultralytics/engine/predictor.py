@@ -460,14 +460,15 @@ class BasePredictor:
         attrs, prev = {}, {}
         if hasattr(model, "end2end"):
             if self.args.end2end is not None:
-                attrs["end2end"], prev["end2end"] = self.args.end2end, model.end2end
-                model.end2end = self.args.end2end
+                attrs["end2end"] = self.args.end2end
+                prev = model.set_head_attr(**attrs)
             if model.end2end:
                 # Keep head top-k >= 300 so `classes` filtering in NMS sees all candidates before `max_det` truncation
                 top_k = {"max_det": max(self.args.max_det, 300), "agnostic_nms": self.args.agnostic_nms}
-                prev |= model.set_head_attr(**top_k)
-                attrs |= top_k
-        return attrs, prev
+                attrs.update(top_k)
+                prev.update(model.set_head_attr(**top_k))
+        # A head reports back only the attributes it carries, so anything it declined is not ours to hold
+        return {k: v for k, v in attrs.items() if k in prev}, prev
 
     @contextmanager
     def _head_configured(self):

@@ -1723,3 +1723,49 @@ def test_close_range_boxes_are_rendered():
             confidence=0.9,
         )
         assert np.allclose(project_box3d_corners(bad, calib), 0.0), f"z={bad_z} should be rejected"
+
+
+def test_dense_depth_supervision_adds_sites_and_is_off_by_default():
+    """Dense depth supervision must multiply the number of supervised anchors, and dose 0 must be a no-op.
+
+    Depth is otherwise supervised only at TAL-assigned anchors — on KITTI roughly 5-15 sites per image —
+    while the methods reaching 20-55 AP3D@0.7 supervise depth densely per pixel. Sparsity is also the
+    diagnosis on record for why the unimodal cost-volume loss failed. This checks the two properties the
+    experiment depends on: the extra anchors exist, and the default path is untouched so any A/B is clean.
+    """
+    import torch
+
+    from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
+
+    loss = object.__new__(Stereo3DDetLoss)
+    loss.depth_log_min, loss.depth_log_range = 0.693, 3.689
+    loss.depth_dfl_loss = lambda pred, tgt: torch.zeros(pred.shape[0], 1)
+
+    n_anchors, n_bins = 40, 64
+    pred_bins = torch.randn(1, n_bins, n_anchors)
+    aux_gt = torch.full((1, 1, 1), 3.0)
+    gt_idx = torch.zeros(1, n_anchors, dtype=torch.int64)
+    fg = torch.zeros(1, n_anchors, dtype=torch.bool)
+    fg[0, :3] = True  # TAL picked 3 anchors
+    dense = torch.zeros(1, n_anchors, dtype=torch.bool)
+    dense[0, :20] = True  # 20 anchors lie inside the GT box
+
+    calls = []
+    loss.depth_dfl_loss = lambda pred, tgt: (calls.append(pred.shape[0]), torch.zeros(pred.shape[0], 1))[1]
+
+    loss.depth_dense = 0.0
+    calls.clear()
+    loss._depth_bin_loss(pred_bins, aux_gt, gt_idx, fg, dense)
+    assert calls == [3], f"dose 0 must supervise only the 3 TAL anchors, got {calls}"
+
+    loss.depth_dense = 0.5
+    calls.clear()
+    loss._depth_bin_loss(pred_bins, aux_gt, gt_idx, fg, dense)
+    assert calls == [3, 17], f"dose>0 must add the 17 in-box non-TAL anchors, got {calls}"
+    assert sum(calls) > 5 * 3, "dense supervision should be a multiple of the TAL-only site count"
+
+    # Passing no mask must behave exactly like dose 0, so an untouched caller cannot change behaviour.
+    loss.depth_dense = 1.0
+    calls.clear()
+    loss._depth_bin_loss(pred_bins, aux_gt, gt_idx, fg, None)
+    assert calls == [3], f"no dense_mask must fall back to TAL-only, got {calls}"

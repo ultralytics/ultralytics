@@ -136,6 +136,10 @@ class Stereo3DDetLoss(v8DetectionLoss):
         self.loss_names = LOSS_NAMES
         self.photometric_loss = photometric_loss
         self.aux_w = loss_weights or {}
+        # Dose for dense depth supervision: 0.0 keeps today's behaviour exactly (TAL-assigned anchors only).
+        # Dose for dense depth supervision. Read from the trainer args (`hyp`) first so it is settable
+        # per run like every other s3d tunable, with the model YAML's loss_weights as a fallback.
+        self.depth_dense = float(getattr(self.hyp, "depth_dense", None) or (loss_weights or {}).get("depth_dense", 0.0))
         self.use_bbox_loss = use_bbox_loss
         self.cls_label_smoothing = cls_label_smoothing
 
@@ -223,6 +227,7 @@ class Stereo3DDetLoss(v8DetectionLoss):
         batch: dict[str, torch.Tensor],
         target_gt_idx: torch.Tensor,
         fg_mask: torch.Tensor,
+        dense_mask: torch.Tensor | None = None,
     ) -> dict[str, torch.Tensor]:
         """Compute auxiliary losses for all 3D heads."""
         aux_losses: dict[str, torch.Tensor] = {}
@@ -236,7 +241,9 @@ class Stereo3DDetLoss(v8DetectionLoss):
                 continue
             aux_gt = aux_targets[k].to(self.device)
             if k == "depth" and "depth_bins" in aux_preds:
-                aux_losses[k] = self._depth_bin_loss(aux_preds["depth_bins"], aux_gt, target_gt_idx, fg_mask)
+                aux_losses[k] = self._depth_bin_loss(
+                    aux_preds["depth_bins"], aux_gt, target_gt_idx, fg_mask, dense_mask
+                )
             elif k == "orientation" and k in aux_preds:
                 aux_losses[k] = self._orientation_multibin_loss(aux_preds[k], aux_gt, target_gt_idx, fg_mask)
             elif k == "lr_distance" and "lr_logvar" in aux_preds:
@@ -307,6 +314,7 @@ class Stereo3DDetLoss(v8DetectionLoss):
         aux_gt: torch.Tensor,
         gt_idx: torch.Tensor,
         fg_mask: torch.Tensor,
+        dense_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Compute DFL-style depth bin classification loss.
 
@@ -315,6 +323,12 @@ class Stereo3DDetLoss(v8DetectionLoss):
             aux_gt: [B, max_n, 1] — log-depth GT values.
             gt_idx: [B, HW_total] — TAL assignment indices.
             fg_mask: [B, HW_total] — boolean foreground mask.
+            dense_mask: [B, HW_total] extra anchors to supervise, weighted by `self.depth_dense`. These are
+                anchors inside an assigned GT 2D box but not selected by TAL, so depth gets many more
+                supervised sites per object than TAL's handful. Motivation: depth is currently supervised at
+                roughly 5-15 anchors per image, while the methods that reach 20-55 AP3D@0.7 supervise depth
+                densely per pixel; sparsity is also the diagnosis on record for why the unimodal
+                cost-volume loss failed. None or dose 0.0 reproduces the TAL-only behaviour.
         """
         n_bins = pred_bins.shape[1]
         if aux_gt.shape[1] == 0 or not fg_mask.any():
@@ -329,13 +343,29 @@ class Stereo3DDetLoss(v8DetectionLoss):
         bin_idx = (gathered - self.depth_log_min) / self.depth_log_range * (n_bins - 1)
 
         # Select foreground
-        pred_fg = pred_bins.permute(0, 2, 1)[fg_mask]  # [npos, n_bins]
+        logits = pred_bins.permute(0, 2, 1)
+        pred_fg = logits[fg_mask]  # [npos, n_bins]
         tgt_fg = bin_idx.squeeze(-1)[fg_mask]  # [npos]
 
         if pred_fg.numel() == 0:
             return pred_bins.sum() * 0.0
 
-        return self.depth_dfl_loss(pred_fg, tgt_fg.unsqueeze(-1)).mean()
+        loss = self.depth_dfl_loss(pred_fg, tgt_fg.unsqueeze(-1)).mean()
+
+        # The dense term is ADDITIVE and down-weighted rather than merged into the mask above, so the exact
+        # TAL-assigned signal keeps full weight. That matters because a box's anchors all inherit the object's
+        # CENTROID depth, which is only an approximation: a 3.9 m car spans ~7% of its depth at 60 m but ~50%
+        # at 8 m, so the dense targets carry real label noise that is worst at close range. Keeping the two
+        # terms separate lets the dose control how much of that noise is admitted.
+        if dense_mask is not None and self.depth_dense > 0:
+            extra = dense_mask & ~fg_mask
+            if extra.any():
+                loss = (
+                    loss
+                    + self.depth_dense
+                    * self.depth_dfl_loss(logits[extra], bin_idx.squeeze(-1)[extra].unsqueeze(-1)).mean()
+                )
+        return loss
 
     def loss(
         self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
@@ -361,7 +391,9 @@ class Stereo3DDetLoss(v8DetectionLoss):
         loss = torch.zeros(len(LOSS_NAMES), device=self.device)  # see LOSS_NAMES for the slot order
 
         # Get detection losses + TAL assignment results
-        (fg_mask, target_gt_idx, _, _, _), det_loss, _ = self.get_assigned_targets_and_loss(preds, batch)
+        (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor), det_loss, _ = (
+            self.get_assigned_targets_and_loss(preds, batch)
+        )
 
         if self.use_bbox_loss:
             loss[0] = det_loss[0]  # box (already scaled by hyp.box)
@@ -369,7 +401,19 @@ class Stereo3DDetLoss(v8DetectionLoss):
         # det_loss[2] is dfl, which is 0 since reg_max=1
 
         # Aux losses
-        aux_losses = self._compute_aux_losses(aux_preds, batch, target_gt_idx, fg_mask)
+        dense_mask = None
+        if self.depth_dense > 0:
+            # Anchors whose CENTRE falls inside the GT box each anchor was assigned. Built from what the
+            # assigner already returns (`target_bboxes` is in input-pixel space, `anchor_points` in feature
+            # units) rather than re-running the assigner or re-deriving boxes, so it cannot drift from the
+            # assignment the rest of the loss uses.
+            centres = anchor_points * stride_tensor  # [HW_total, 2] -> input pixels
+            x1y1, x2y2 = target_bboxes.chunk(2, dim=-1)  # [B, HW_total, 2] each
+            dense_mask = ((centres.unsqueeze(0) >= x1y1) & (centres.unsqueeze(0) <= x2y2)).all(dim=-1) & (
+                target_bboxes.sum(-1) > 0
+            )
+
+        aux_losses = self._compute_aux_losses(aux_preds, batch, target_gt_idx, fg_mask, dense_mask)
         for i, k in enumerate(["lr_distance", "depth", "dimensions", "orientation"], 2):
             if k in aux_losses:
                 loss[i] = aux_losses[k] * float(self.aux_w.get(k, 1.0))

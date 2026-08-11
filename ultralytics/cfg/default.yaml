@@ -123,6 +123,7 @@ degrees: 0.0 # (float) rotation degrees (+/-)
 translate: 0.1 # (float) translation fraction (+/-)
 scale: 0.5 # (float | tuple) scale gain (+/-) as float, or explicit (min, max) tuple
 scale_jitter: 0.0 # (float) s3d stereo zoom jitter (+/-); zoom range (1-j, 1+j) with crop/pad back to canvas. 0.30 measured best on KITTI (+58% Car AP3D@0.5 Mod, +104% @0.7); keep 0.0 for constant-dimension data like cube, where it measured negative
+depth_dense: 0.0 # (float) s3d: weight of extra depth-DFL supervision on every anchor inside a GT box (~118x more supervised sites on KITTI); 0.0 = TAL-assigned anchors only
 shear: 0.0 # (float) shear degrees (+/-)
 perspective: 0.0 # (float) perspective fraction (0–0.001 typical)
 flipud: 0.0 # (float) vertical flip probability

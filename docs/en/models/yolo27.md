@@ -90,14 +90,18 @@ follows DEIM. One trainer-specific argument is available through `model.train(..
 
 | Argument            | Default | Description                                                   |
 | ------------------- | ------- | ------------------------------------------------------------- |
-| `backbone_lr_ratio` | `0.02`  | Multiplier applied to backbone parameter-group learning rates |
+| `backbone_lr_ratio` | `0.1`   | Multiplier applied to backbone parameter-group learning rates |
+
+The `0.1` default is the recommended starting point rather than a tuned optimum. Lower values keep the pretrained
+backbone closer to its initial weights, which tends to help on small datasets, while higher values let it adapt more
+freely. Treat it as a parameter worth exploring for your own data.
 
 Recommended starting settings are:
 
 | Model   | Config         | `lr0`    | `backbone_lr_ratio` | `weight_decay` |
 | ------- | -------------- | -------- | ------------------- | -------------- |
-| YOLO27l | `yolo27l.yaml` | `0.0005` | `0.025`             | `0.000125`     |
-| YOLO27x | `yolo27x.yaml` | `0.0005` | `0.02`              | `0.000125`     |
+| YOLO27l | `yolo27l.yaml` | `0.0005` | `0.1`               | `0.000125`     |
+| YOLO27x | `yolo27x.yaml` | `0.0005` | `0.1`               | `0.000125`     |
 
 ```python
 from ultralytics import YOLO
@@ -110,7 +114,7 @@ model.train(
     optimizer="AdamW",
     lr0=0.0005,
     weight_decay=0.000125,
-    backbone_lr_ratio=0.02,
+    backbone_lr_ratio=0.1,
 )
 ```
 

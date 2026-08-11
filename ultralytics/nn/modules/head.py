@@ -1041,7 +1041,7 @@ class LRPCHead(nn.Module):
     def conv2linear(conv: nn.Conv2d) -> nn.Linear:
         """Convert a 1x1 convolutional layer to a linear layer."""
         assert isinstance(conv, nn.Conv2d) and conv.kernel_size == (1, 1)
-        linear = nn.Linear(conv.in_channels, conv.out_channels)
+        linear = nn.Linear(conv.in_channels, conv.out_channels).requires_grad_(conv.weight.requires_grad)
         linear.weight.data = conv.weight.view(conv.out_channels, -1).data
         linear.bias.data = conv.bias.data
         return linear

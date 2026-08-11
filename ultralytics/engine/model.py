@@ -844,6 +844,7 @@ class Model(torch.nn.Module):
             self.model, self.ckpt = load_checkpoint(ckpt)
             self.predictor = None  # the checkpoint replaced the module again; covers resume and YAML runs too
             self.overrides = self._reset_ckpt_args(self.model.args)
+            self.overrides["model"] = str(ckpt)  # the reset drops it, train() and tune() read it back
             self.metrics = getattr(self.trainer.validator, "metrics", None)
             if self.metrics is None and self.ckpt:  # recover from checkpoint under DDP (validator runs in subprocess)
                 self.metrics = self.ckpt.get("train_metrics")

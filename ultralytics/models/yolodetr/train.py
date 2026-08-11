@@ -26,7 +26,7 @@ __all__ = ("YOLODETRDataset", "YOLODETRTrainer", "YOLODETRValidator")
 
 _NO_AUG_EPOCH = 4  # DEIM trains the final epochs without augmentation
 _YOLODETR_DEFAULTS = {
-    "backbone_lr_ratio": 0.02,
+    "backbone_lr_ratio": 0.1,
 }
 
 
@@ -211,7 +211,7 @@ class YOLODETRTrainer(RTDETRTrainer):
     kwargs. ``default.yaml`` is intentionally not extended.
 
     Supported kwargs (defaults shown):
-        backbone_lr_ratio (float): Multiplier applied to backbone LR. Default 0.02.
+        backbone_lr_ratio (float): Multiplier applied to backbone LR. Default 0.1.
     """
 
     _DEIM_DEFAULTS = _YOLODETR_DEFAULTS

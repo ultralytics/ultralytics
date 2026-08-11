@@ -826,8 +826,8 @@ def test_workflow(isolated_model):
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_yolodetr_train(tmp_path, cfg="yolo27x.yaml"):
     """Test YOLODETR train, val, and predict on the UltraViT backbone variant."""
-    assert isinstance(YOLO(cfg), YOLODETR)  # configs carry no 'detr' token, so routing reads the declared decoder
-    model = YOLODETR(cfg)
+    model = YOLO(cfg)  # configs carry no 'detr' token, so routing reads the declared decoder
+    assert isinstance(model, YOLODETR)
     model.train(data="coco8.yaml", imgsz=160, epochs=1, save=False, project=str(tmp_path))
     model.val(data="coco8.yaml", imgsz=160)
     model.predict(SOURCE, imgsz=160)

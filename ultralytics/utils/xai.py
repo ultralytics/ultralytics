@@ -1,3 +1,10 @@
+"""
+Ultralytics XAI Utilities.
+
+This module provides native Explainable AI (XAI) tools for Ultralytics YOLO models,
+including Grad‑CAM heatmap generation and quantitative faithfulness evaluation
+(Deletion & Insertion curves).
+"""
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import cv2

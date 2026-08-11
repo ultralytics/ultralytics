@@ -13,6 +13,7 @@ from PIL import Image
 
 from ultralytics.cfg import TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
+from ultralytics.nn.modules import Conv
 from ultralytics.nn.tasks import BaseModel, guess_model_task, load_checkpoint, yaml_model_load
 from ultralytics.utils import (
     ARGV,
@@ -309,6 +310,7 @@ class Model(torch.nn.Module):
                 m.reset_parameters()
         for p in self.model.parameters():
             p.requires_grad = True
+        self.model.pt_path = None  # reset weights are no longer the checkpoint this module came from
         return self
 
     def load(self, weights: str | Path = "yolo26n.pt") -> Model:
@@ -336,6 +338,7 @@ class Model(torch.nn.Module):
             self.overrides["pretrained"] = weights  # remember the weights for DDP training
             weights, self.ckpt = load_checkpoint(weights)
         self.model.load(weights)
+        self.model.pt_path = None  # blended weights are no longer the checkpoint this module came from
         return self
 
     def save(self, filename: str | Path = "saved_model.pt") -> None:
@@ -799,6 +802,17 @@ class Model(torch.nn.Module):
             "task": self.task,
         }  # method defaults
         args = {**overrides, **custom, **kwargs, "mode": "train"}  # prioritizes rightmost args
+        pretrained = kwargs.get("pretrained", overrides.get("pretrained", True) if kwargs.get("cfg") else True)
+        # A Conv that lost its batch norm was fused in place by predict() or val(), so this module can no longer seed
+        # training. `is_fused()` cannot answer this: it counts every norm layer, so RT-DETR stays under its threshold.
+        if (
+            pretrained is True
+            and not args.get("resume")
+            and getattr(self.model, "pt_path", None)
+            and any(isinstance(m, Conv) and not hasattr(m, "bn") for m in self.model.modules())
+        ):
+            self.model, _ = load_checkpoint(self.model.pt_path)
+            self.predictor = None  # this module replaced the one the cached predictor wrapped
         if isinstance(args.get("data"), (list, tuple)):  # fine-tune a single base model across multiple datasets
             from ultralytics.engine.trainer import MultiTrainer
 
@@ -811,7 +825,6 @@ class Model(torch.nn.Module):
             )
             self.metrics = self.trainer.train()
             return self.metrics
-        pretrained = kwargs.get("pretrained", overrides.get("pretrained", True) if kwargs.get("cfg") else True)
         if args.get("resume") is True:  # resume=True (boolean) uses current model as checkpoint
             if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
                 args["resume"] = self.ckpt_path

@@ -196,6 +196,7 @@ class YOLOWorld(Model):
             classes (list[str]): A list of categories i.e. ["person"].
         """
         self.model.set_classes(classes)
+        self.model.pt_path = None  # new class embeddings are no longer the checkpoint this module came from
         # Remove background if it's given
         background = " "
         if background in classes:
@@ -322,6 +323,7 @@ class YOLOE(Model):
         names = check_class_names(names)
         self.predictor = None  # the delegate destructively re-parameterizes the head
         self.model.set_vocab(vocab, names=names)
+        self.model.pt_path = None  # the re-parameterized head is no longer the checkpoint this module came from
 
     def get_vocab(self, names):
         """Get the vocabulary for the given class names, which become the model's classes as the head is fused."""
@@ -344,6 +346,7 @@ class YOLOE(Model):
             if embeddings is None:
                 embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
             self.model.set_classes(classes, embeddings)
+            self.model.pt_path = None  # new class embeddings are no longer the checkpoint this module came from
 
         # Reset method class names
         if self.predictor:
@@ -542,7 +545,7 @@ class YOLOE(Model):
                     refer_image = next(iter(dataset))[1][0]
             if refer_image is not None:
                 vpe = self.predictor.get_vpe(refer_image)
-                self.model.set_classes(self.model.names, vpe)
+                self.set_classes(self.model.names, vpe)
                 self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
                 self.predictor = None  # reset predictor
         elif isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):

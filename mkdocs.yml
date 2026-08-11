@@ -157,7 +157,7 @@ nav:
   - Models:
       - models/index.md
       - YOLO26 🚀: models/yolo26.md
-      - YOLO-DETR: models/yolodetr.md
+      - YOLO27: models/yolo27.md
       - YOLO12: models/yolo12.md
       - YOLO11: models/yolo11.md
       - YOLOv10: models/yolov10.md

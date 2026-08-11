@@ -1,19 +1,19 @@
 ---
-title: YOLO-DETR
+title: YOLO27
 comments: true
-description: Learn about Ultralytics YOLO-DETR object detection models with YOLO26-style CSP and UltraViT backbones, DeimDecoder heads, training, inference, validation, and export.
-keywords: YOLO-DETR, YOLODETR, YOLO27-DETR, Ultralytics, object detection, DETR, DeimDecoder, UltraViT, HybridEncoder, YOLO26, NMS-free, real-time detection
+description: Learn about Ultralytics YOLO27 object detection models with YOLO26-style CSP and UltraViT backbones, DeimDecoder heads, training, inference, validation, and export.
+keywords: YOLO27, Ultralytics, object detection, DeimDecoder, UltraViT, HybridEncoder, YOLO26, NMS-free, real-time detection
 ---
 
-# Ultralytics YOLO-DETR
+# Ultralytics YOLO27
 
 ## Overview
 
-Ultralytics YOLO-DETR combines YOLO feature extractors with a transformer decoder in the standard Ultralytics
-workflow. It uses the dedicated `YOLODETR` Python class and supports [Train](../modes/train.md),
+Ultralytics YOLO27 is loaded through the standard `YOLO` Python class and supports [Train](../modes/train.md),
 [Val](../modes/val.md), [Predict](../modes/predict.md), and [Export](../modes/export.md) modes.
 
-Two model configurations are available:
+The large and extra-large configurations pair a YOLO feature extractor with a transformer decoder, so they produce
+query-based predictions instead of dense grid predictions:
 
 - **YOLO27l** uses a YOLO26-style CSP backbone, an FPN/PAN neck, and a 4-layer `DeimDecoder`.
 - **YOLO27x** uses an UltraViT backbone, a HybridEncoder neck, and a 6-layer `DeimDecoder`.
@@ -42,7 +42,7 @@ Both models produce query-based predictions for NMS-free object detection with 3
 
 | Model Family | Task                                      | Inference | Validation | Training | Export |
 | ------------ | ----------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLO-DETR    | [Object Detection](../tasks/detect.md)    | Yes       | Yes        | Yes      | Yes    |
+| YOLO27       | [Object Detection](../tasks/detect.md)    | Yes       | Yes        | Yes      | Yes    |
 
 ## Performance Metrics
 
@@ -65,10 +65,10 @@ floating-point operations._
     === "Python"
 
         ```python
-        from ultralytics import YOLODETR
+        from ultralytics import YOLO
 
         # Build a YOLO27l model from YAML
-        model = YOLODETR("yolo27l.yaml")
+        model = YOLO("yolo27l.yaml")
 
         # Train and run inference
         model.train(data="coco8.yaml", epochs=100, imgsz=640)
@@ -84,7 +84,7 @@ floating-point operations._
 
 ## Training Notes
 
-YOLO-DETR accepts standard Ultralytics training arguments such as `data`, `epochs`, `imgsz`, `batch`, `optimizer`,
+YOLO27 accepts standard Ultralytics training arguments such as `data`, `epochs`, `imgsz`, `batch`, `optimizer`,
 `lr0`, `lrf`, and augmentation probabilities. Augmentation is disabled for the final four epochs of every run, which
 follows DEIM. One trainer-specific argument is available through `model.train(...)`:
 
@@ -100,9 +100,9 @@ Recommended starting settings are:
 | YOLO27x | `yolo27x.yaml` | `0.0005` | `0.02`              | `0.000125`     |
 
 ```python
-from ultralytics import YOLODETR
+from ultralytics import YOLO
 
-model = YOLODETR("yolo27x.yaml")
+model = YOLO("yolo27x.yaml")
 model.train(
     data="coco8.yaml",
     epochs=100,
@@ -116,7 +116,7 @@ model.train(
 
 ## Inference and Export Notes
 
-YOLO-DETR uses 300 decoder queries by default. Increasing `max_det` does not create additional queries; change the
+YOLO27l and YOLO27x use 300 decoder queries by default. Increasing `max_det` does not create additional queries; change the
 query count in the model YAML and retrain if the dataset can contain more than 300 objects per image.
 
 Decoder depth is part of each architecture: YOLO27l uses 4 layers and YOLO27x uses 6. Export preserves the
@@ -124,7 +124,7 @@ selected architecture and decoder behavior.
 
 ## FAQ
 
-### How is YOLO-DETR different from other YOLO models?
+### How are YOLO27l and YOLO27x different from other YOLO models?
 
-Standard YOLO models predict on dense feature grids. YOLO-DETR instead uses a transformer decoder with a fixed set of
-object queries, producing NMS-free predictions in its standard inference path.
+Standard YOLO models predict on dense feature grids. YOLO27l and YOLO27x instead use a transformer decoder with a
+fixed set of object queries, producing NMS-free predictions in their standard inference path.

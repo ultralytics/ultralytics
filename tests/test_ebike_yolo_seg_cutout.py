@@ -299,14 +299,14 @@ def test_batch_finish_waits_for_item_fills_missing_and_is_idempotent(tmp_path, m
                     {"batch_id": batch_id, "relative_path": paths[0], "image": _image_payload("a.jpg")}
                 )
             )
-        except Exception as error:  # pragma: no cover - thread failures reported below
+        except Exception as error:  # noqa: BLE001  # pragma: no cover - thread failures reported below
             errors.append(error)
 
     def finish_batch():
         try:
             finish_barrier.wait()
             finish_results.append(service.finish_batch({"batch_id": batch_id}))
-        except Exception as error:  # pragma: no cover - thread failures reported below
+        except Exception as error:  # noqa: BLE001  # pragma: no cover - thread failures reported below
             errors.append(error)
 
     item_thread = threading.Thread(target=process_item)

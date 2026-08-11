@@ -130,7 +130,9 @@ class LLM:
             image = source
             prompt = self.prompt or "Describe the image."
         else:
-            prompt = source or self.prompt or "Describe the image."
+            prompt = source or "Describe the image."
+            if self.prompt:
+                prompt = f"{self.prompt}\n\n{source}" if source else self.prompt
         image_url = self._image_url(image)
         if self.api == "responses":
             return [

@@ -79,6 +79,8 @@ class BaseBackend(ABC):
         channels (int): Number of input channels, typically 3 for RGB.
         end2end (bool): Whether the model includes end-to-end NMS post-processing.
         dynamic (bool): Whether the model supports dynamic input shapes.
+        base_model (bool): Whether the loaded model is an Ultralytics `BaseModel`, and so implements the `augment` and
+            `embed` forward arguments.
         metadata (dict): Model metadata dictionary containing export configuration.
     """
 
@@ -100,6 +102,7 @@ class BaseBackend(ABC):
         self.channels = 3
         self.end2end = False
         self.dynamic = False
+        self.base_model = False
         self.metadata = {}
         self.model = None
         self.load_model(weight)

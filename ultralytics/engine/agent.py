@@ -183,6 +183,169 @@ class Gate:
         return value
 
 
+class Dataset:
+    """Dataset Source Block that emits one train, validation, or test split.
+
+    Attributes:
+        source (str): Dataset directory, YAML, NDJSON, URL, or ``ul://`` URI.
+        split (str): Dataset split emitted to downstream Blocks.
+        ports (dict): Agent input and output port definitions.
+    """
+
+    ports: ClassVar = {"inputs": {}, "outputs": {"source": "image"}}
+
+    def __init__(self, source: str, split: str = "val") -> None:
+        """Initialize a Dataset Block from a directory, YAML, NDJSON, URL, or ``ul://`` URI."""
+        if not isinstance(source, str) or not source:
+            raise ValueError("Dataset requires a source.")
+        if split not in {"train", "val", "test"}:
+            raise ValueError("Dataset split must be 'train', 'val', or 'test'.")
+        self.source, self.split = source, split
+
+    def __call__(self, source: Any = None) -> Any:
+        """Resolve and return the configured dataset split."""
+        from pathlib import Path
+
+        from ultralytics.data.utils import check_det_dataset, convert_ndjson_to_yolo_if_needed
+
+        resolved = convert_ndjson_to_yolo_if_needed(self.source)
+        if Path(resolved).is_dir():
+            split = Path(resolved) / self.split
+            if not split.exists():
+                raise ValueError(f"Dataset {self.source!r} has no {self.split!r} split.")
+            return str(split)
+        data = check_det_dataset(str(resolved), split=self.split)
+        if not (split := data.get(self.split)):
+            raise ValueError(f"Dataset {self.source!r} has no {self.split!r} split.")
+        return split
+
+    def _agent_run(self, event: dict[str, Any], name: str, **kwargs: Any) -> dict[str, Any]:
+        """Replace the Agent source with the configured dataset split."""
+        source = self()
+        return {**event, "source": source, "data": source, name: {"source": source}}
+
+
+class Image:
+    """Image Source Block for a local path, URL, array, or PIL image.
+
+    Attributes:
+        source (Any): Image source accepted by YOLO prediction.
+        ports (dict): Agent input and output port definitions.
+    """
+
+    ports: ClassVar = {"inputs": {}, "outputs": {"source": "image"}}
+
+    def __init__(self, source: Any, api_key: str | None = None) -> None:
+        """Initialize an Image Block from any source accepted by YOLO prediction."""
+        import os
+
+        if source is None:
+            raise ValueError("Image requires a source.")
+        self.source, self._api_key = source, api_key or os.getenv("IMAGE_API_KEY")
+
+    def __call__(self, source: Any = None) -> Any:
+        """Return the configured image source."""
+        if isinstance(self.source, str) and self.source.startswith(("http://", "https://")):
+            from io import BytesIO
+
+            import requests
+            from PIL import Image as PILImage
+
+            headers = {"Authorization": f"Bearer {self._api_key}"} if self._api_key else None
+            response = requests.get(self.source, headers=headers, timeout=(10, 90))
+            response.raise_for_status()
+            image = PILImage.open(BytesIO(response.content))
+            image.load()
+            return image
+        return self.source
+
+    def _agent_run(self, event: dict[str, Any], name: str, **kwargs: Any) -> dict[str, Any]:
+        """Replace the Agent source with the configured image."""
+        source = self()
+        return {**event, "source": source, "data": source, name: {"source": source}}
+
+
+class Export:
+    """Model export Block that emits a local exported artifact path.
+
+    Attributes:
+        model (str): Model path, URL, name, or ``ul://`` URI.
+        format (str): Ultralytics export format.
+        overrides (dict): Additional model export arguments.
+        ports (dict): Agent input and output port definitions.
+    """
+
+    ports: ClassVar = {"inputs": {}, "outputs": {"artifact": "model"}}
+
+    def __init__(self, model: str, format: str = "onnx", **kwargs: Any) -> None:
+        """Initialize an Export Block from a model and export arguments."""
+        if not isinstance(model, str) or not model:
+            raise ValueError("Export requires a model.")
+        if not isinstance(format, str) or not format:
+            raise ValueError("Export requires a format.")
+        self.model, self.format, self.overrides = model, format, kwargs
+
+    def __call__(self, source: Any = None) -> Any:
+        """Export the configured model and return its artifact path."""
+        from ultralytics.models import YOLO
+
+        return YOLO(self.model).export(format=self.format, **self.overrides)
+
+
+class Deployment:
+    """Remote inference Block for any HTTP deployment endpoint.
+
+    Attributes:
+        url (str): Base URL of an endpoint exposing ``POST /predict``.
+        ports (dict): Agent input and output port definitions.
+    """
+
+    ports: ClassVar = {"inputs": {"source": "image"}, "outputs": {"results": "json"}}
+
+    def __init__(self, url: str, api_key: str | None = None) -> None:
+        """Initialize a Deployment Block from an HTTP endpoint and optional bearer token."""
+        import os
+
+        if not isinstance(url, str) or not url.startswith(("http://", "https://")):
+            raise ValueError("Deployment requires an HTTP URL.")
+        self.url, self._api_key = url.rstrip("/"), api_key or os.getenv("DEPLOYMENT_API_KEY")
+
+    def __call__(self, source: Any, **kwargs: Any) -> Any:
+        """Send one image to the configured deployment endpoint."""
+        from io import BytesIO
+        from pathlib import Path
+
+        import requests
+        from PIL import Image as PILImage
+
+        if isinstance(source, str) and source.startswith(("http://", "https://")):
+            response = requests.get(source, timeout=(10, 90))
+            response.raise_for_status()
+            file, filename = BytesIO(response.content), Path(source).name or "image.jpg"
+        elif isinstance(source, (str, Path)):
+            path = Path(source)
+            file, filename = BytesIO(path.read_bytes()), path.name
+        else:
+            image = source if isinstance(source, PILImage.Image) else PILImage.fromarray(source)
+            file = BytesIO()
+            image.save(file, format="JPEG")
+            file.seek(0)
+            filename = "image.jpg"
+        try:
+            headers = {"Authorization": f"Bearer {self._api_key}"} if self._api_key else None
+            response = requests.post(
+                f"{self.url}/predict",
+                headers=headers,
+                files={"file": (filename, file)},
+                data={key: value for key, value in kwargs.items() if key in {"conf", "iou", "imgsz"}},
+                timeout=(10, 90),
+            )
+            response.raise_for_status()
+            return response.json()
+        finally:
+            file.close()
+
+
 class Agent:
     """Executable directed graph of callable Blocks.
 
@@ -372,6 +535,10 @@ class Agent:
                 blocks[block_id] = LLM(**config)
             elif block_type == "Gate":
                 blocks[block_id] = Gate(config)
+            elif block_type in {"Dataset", "Image", "Export", "Deployment"}:
+                if config.keys() & _CREDENTIAL_KEYS:
+                    raise ValueError(f"{block_type} credentials cannot be stored in an Agent definition.")
+                blocks[block_id] = globals()[block_type](**config)
             else:
                 raise ValueError(f"Unsupported Block type {block_type!r}.")
         agent = cls(blocks)
@@ -535,6 +702,30 @@ class Agent:
             }
         if isinstance(block, Gate):
             return {"type": "Gate", "config": block.to_dict(), "ports": deepcopy(block.ports)}
+        if isinstance(block, Dataset):
+            return {
+                "type": "Dataset",
+                "config": {"source": block.source, "split": block.split},
+                "ports": deepcopy(block.ports),
+            }
+        if isinstance(block, Image):
+            return {"type": "Image", "config": {"source": block.source}, "ports": deepcopy(block.ports)}
+        if isinstance(block, Export):
+            return {
+                "type": "Export",
+                "config": {
+                    "model": block.model,
+                    "format": block.format,
+                    **{key: value for key, value in block.overrides.items() if key not in _CREDENTIAL_KEYS},
+                },
+                "ports": deepcopy(block.ports),
+            }
+        if isinstance(block, Deployment):
+            return {
+                "type": "Deployment",
+                "config": {"url": block.url},
+                "ports": deepcopy(block.ports),
+            }
         raise TypeError(f"Block type {type(block).__name__!r} is executable but not serializable.")
 
 

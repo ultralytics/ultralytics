@@ -5,7 +5,7 @@ import json
 
 import pytest
 
-from ultralytics import LLM, Agent, Gate
+from ultralytics import LLM, Agent, Dataset, Deployment, Export, Gate, Image
 
 
 def test_agent_sync_execution():
@@ -13,6 +13,9 @@ def test_agent_sync_execution():
     sequential = Agent(lambda value: value + 1, lambda value: value * 2)
     assert sequential(1) == {"function": [2], "function_2": [4]}
     assert list(sequential(1, stream=True)) == [("function", 2), ("function_2", 4)]
+
+    source = object()
+    assert Agent(Image(source), lambda value: value)()["function"] == [source]
 
     agent = Agent(
         {
@@ -54,6 +57,10 @@ def test_agent_serialization_omits_credentials():
                 "gpt-5.6-luna", api_key="secret", extra_headers={"Authorization": "Bearer header-secret"}, temperature=0
             ),
             "gate": Gate.every(seconds=30),
+            "dataset": Dataset("data.yaml"),
+            "image": Image("https://example.com/image.jpg", api_key="secret"),
+            "export": Export("yolo26n.pt", api_key="secret"),
+            "deployment": Deployment("https://example.com", api_key="secret"),
         }
     ).connect("llm", "gate")
 

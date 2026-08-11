@@ -16,6 +16,22 @@ keywords: Ultralytics, ultralytics.engine.agent, API reference, YOLO, Python
 
 <br><br><hr><br>
 
+## ::: ultralytics.engine.agent.Dataset
+
+<br><br><hr><br>
+
+## ::: ultralytics.engine.agent.Image
+
+<br><br><hr><br>
+
+## ::: ultralytics.engine.agent.Export
+
+<br><br><hr><br>
+
+## ::: ultralytics.engine.agent.Deployment
+
+<br><br><hr><br>
+
 ## ::: ultralytics.engine.agent.Agent
 
 <br><br>

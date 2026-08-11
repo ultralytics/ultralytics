@@ -467,6 +467,8 @@ class BasePredictor:
                 top_k = {"max_det": max(self.args.max_det, 300), "agnostic_nms": self.args.agnostic_nms}
                 attrs.update(top_k)
                 prev.update(model.set_head_attr(**top_k))
+                # The fusion below drops the one2many branch under `end2end`, so that write cannot be handed back
+                prev.pop("end2end", None)
         # A head reports back only the attributes it carries, so anything it declined is not ours to hold
         return {k: v for k, v in attrs.items() if k in prev}, prev
 

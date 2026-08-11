@@ -195,6 +195,8 @@ class BaseValidator:
                     self._head_prev.update(
                         model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
                     )
+                    # The fusion below drops the one2many branch under `end2end`, so that write cannot be handed back
+                    self._head_prev.pop("end2end", None)
             with torch_distributed_zero_first(LOCAL_RANK):
                 self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)
             device_type = str(self.args.device).split(":", 1)[0]

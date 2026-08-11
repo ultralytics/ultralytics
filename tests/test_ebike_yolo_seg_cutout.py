@@ -7,6 +7,7 @@ import json
 import sys
 import threading
 import zipfile
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -287,43 +288,26 @@ def test_batch_finish_waits_for_item_fills_missing_and_is_idempotent(tmp_path, m
     service = APP.CutoutService(BlockingPipeline())
     paths = ["目录/a.jpg", "目录/b.jpg"]
     batch_id = service.start_batch({"relative_paths": paths})["batch_id"]
-    item_result = {}
-    finish_results = []
-    errors = []
     finish_barrier = threading.Barrier(3)
 
-    def process_item():
-        try:
-            item_result.update(
-                service.process_batch_item(
-                    {"batch_id": batch_id, "relative_path": paths[0], "image": _image_payload("a.jpg")}
-                )
-            )
-        except Exception as error:  # pragma: no cover - thread failures reported below
-            errors.append(error)
-
     def finish_batch():
-        try:
-            finish_barrier.wait()
-            finish_results.append(service.finish_batch({"batch_id": batch_id}))
-        except Exception as error:  # pragma: no cover - thread failures reported below
-            errors.append(error)
+        finish_barrier.wait()
+        return service.finish_batch({"batch_id": batch_id})
 
-    item_thread = threading.Thread(target=process_item)
-    finish_threads = [threading.Thread(target=finish_batch) for _ in range(2)]
-    item_thread.start()
-    assert item_started.wait(2)
-    for thread in finish_threads:
-        thread.start()
-    finish_barrier.wait()
-    assert not finish_results
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        item_future = executor.submit(
+            service.process_batch_item,
+            {"batch_id": batch_id, "relative_path": paths[0], "image": _image_payload("a.jpg")},
+        )
+        assert item_started.wait(2)
+        finish_futures = [executor.submit(finish_batch) for _ in range(2)]
+        finish_barrier.wait()
+        assert not any(future.done() for future in finish_futures)
 
-    release_item.set()
-    item_thread.join(5)
-    for thread in finish_threads:
-        thread.join(5)
+        release_item.set()
+        item_result = item_future.result(timeout=5)
+        finish_results = [future.result(timeout=5) for future in finish_futures]
 
-    assert not errors
     assert item_result["success"] is True
     assert len(finish_results) == 2
     assert finish_results[0] == finish_results[1]

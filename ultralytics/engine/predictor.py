@@ -319,6 +319,7 @@ class BasePredictor:
             self.args.augment, self.args.embed, self.args.visualize = False, None, False
 
         with self._lock, self._head_configured():  # thread-safe inference on a head configured for this call only
+            self.model.eval()  # a reused predictor may be handed a module the caller has put back in train mode
             # Setup source every time predict is called
             self.setup_source(source if source is not None else self.args.source)
 
@@ -443,7 +444,6 @@ class BasePredictor:
         self.args.quantize = 16 if self.model.fp16 else None  # record actual inference precision
         if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
             self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
-        self.model.eval()
         self.model.set_memory_format(self.args.channels_last)
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 

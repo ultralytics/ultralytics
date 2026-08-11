@@ -25,7 +25,6 @@ class VisualAISearch:
     of images using natural language queries with high accuracy and speed.
 
     Attributes:
-        data (str): Directory containing images.
         device (str): Computation device, e.g., 'cpu' or 'cuda'.
         index_path (str): Path to the numpy file storing image embeddings.
         data_path_npy (str): Path to the numpy file storing image paths.

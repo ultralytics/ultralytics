@@ -64,7 +64,6 @@ class BaseValidator:
     Attributes:
         args (SimpleNamespace): Configuration for the validator.
         dataloader (DataLoader): DataLoader to use for validation.
-        model (nn.Module): Model to validate.
         data (dict): Data dictionary containing dataset information.
         device (torch.device): Device to use for validation.
         batch_i (int): Current batch index.

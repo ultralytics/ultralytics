@@ -19,9 +19,6 @@ class WorldTrainerFromScratch(WorldTrainer):
     supporting training YOLO-World models with combined vision-language capabilities.
 
     Attributes:
-        cfg (dict): Configuration dictionary with default parameters for model training.
-        overrides (dict): Dictionary of parameter overrides to customize the configuration.
-        _callbacks (dict): Dictionary of callback functions to be executed during different stages of training.
         data (dict): Final processed data configuration containing train/val paths and metadata.
         training_data (dict): Dictionary mapping training dataset paths to their configurations.
 

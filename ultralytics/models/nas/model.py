@@ -27,7 +27,6 @@ class NAS(Model):
         model (torch.nn.Module): The loaded YOLO-NAS model.
         task (str): The task type for the model, defaults to 'detect'.
         predictor (NASPredictor): The predictor instance for making predictions.
-        validator (NASValidator): The validator instance for model validation.
 
     Methods:
         info: Log model information and return model details.

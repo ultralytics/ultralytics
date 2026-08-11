@@ -18,7 +18,6 @@ class NASValidator(DetectionValidator):
     Attributes:
         args (Namespace): Namespace containing various configurations for post-processing, such as confidence and IoU
             thresholds.
-        lb (torch.Tensor): Optional tensor for multilabel NMS.
 
     Examples:
         >>> from ultralytics import NAS

@@ -17,8 +17,6 @@ class ObjectBlurrer(BaseSolution):
 
     Attributes:
         blur_ratio (int): The intensity of the blur effect applied to detected objects (higher values create more blur).
-        iou (float): Intersection over Union threshold for object detection.
-        conf (float): Confidence threshold for object detection.
 
     Methods:
         process: Apply a blurring effect to detected objects in the input image.

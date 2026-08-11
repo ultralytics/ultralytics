@@ -15,11 +15,6 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
 
     This class combines YOLOETrainer and SegmentationTrainer to provide training functionality specifically for YOLOE
     segmentation models, enabling both object detection and instance segmentation capabilities.
-
-    Attributes:
-        cfg (dict): Configuration dictionary with training parameters.
-        overrides (dict): Dictionary with parameter overrides.
-        _callbacks (dict): Dictionary of callback functions for training events.
     """
 
     def get_model(self, cfg=None, weights=None, verbose=True):

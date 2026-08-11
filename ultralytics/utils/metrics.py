@@ -1676,7 +1676,6 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
         names (dict): Class names mapping.
         nc (int): Number of classes.
         cm_nc (int): Confusion matrix side length (2 for binary segmentation, else nc).
-        device (torch.device | None): Device used for confusion matrix accumulation.
         matrix (torch.Tensor | None): Accumulated confusion matrix of shape (cm_nc, cm_nc).
         speed (dict): Processing speed statistics.
         nt_per_image (np.ndarray): Number of images containing each class.

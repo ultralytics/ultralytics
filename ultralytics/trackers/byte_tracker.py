@@ -302,18 +302,25 @@ class BYTETracker:
     def _split_detections(self, results: Any) -> tuple[Any, Any, np.ndarray, np.ndarray]:
         """Split detections into high-confidence and low-confidence subsets.
 
+        Degenerate boxes (zero or negative width/height, e.g. from clip_boxes clamping a prediction that falls
+        entirely outside the frame) are rejected here, before any `STrack` is created from them: `tlwh_to_xyah`
+        divides by height to build the Kalman state, so a zero-height detection would corrupt that track's mean
+        with an infinite aspect ratio instead of just being dropped.
+
         Args:
-            results (Any): Results-like object with ``conf`` attribute supporting boolean indexing.
+            results (Any): Results-like object with ``conf`` and ``xywh``/``xywhr`` attributes supporting boolean
+                indexing.
 
         Returns:
             (tuple[Any, Any, np.ndarray, np.ndarray]): High-confidence results, low-confidence results, high mask, and
                 low mask.
         """
         scores = results.conf
-        remain_inds = scores >= self.args.track_high_thresh
-        inds_low = scores > self.args.track_low_thresh
-        inds_below_high = scores < self.args.track_high_thresh
-        return results[remain_inds], results[inds_low & inds_below_high], remain_inds, inds_low & inds_below_high
+        wh = (results.xywhr if hasattr(results, "xywhr") else results.xywh)[:, 2:4]
+        valid = (wh[:, 0] > 0) & (wh[:, 1] > 0)
+        remain_inds = valid & (scores >= self.args.track_high_thresh)
+        inds_low = valid & (scores > self.args.track_low_thresh) & (scores < self.args.track_high_thresh)
+        return results[remain_inds], results[inds_low], remain_inds, inds_low
 
     def _input_for(self, img: np.ndarray | None, feats: np.ndarray | None, mask: np.ndarray) -> Any:
         """Return the per-detection auxiliary input for ``init_track``.

@@ -60,9 +60,9 @@ def sdk_version(package: str) -> str | None:
 def check_sdk_version(package: str) -> None:
     """Report an installed Axelera SDK this release does not target, and a mismatched devkit/runtime pair.
 
-    An SDK below AXELERA_SDK_MIN is outside the supported window and says so; one within it is used
-    without comment beyond naming the targeted version, since each SDK is validated against one
-    metis-dkms driver and ships the card firmware it expects.
+    An SDK below AXELERA_SDK_MIN is outside the supported window and says so; one within it is used without comment
+    beyond naming the targeted version, since each SDK is validated against one metis-dkms driver and ships the card
+    firmware it expects.
 
     Args:
         package (str): Installed SDK package to report on, "axelera-devkit" or "axelera-rt".

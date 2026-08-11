@@ -17,13 +17,14 @@ from ultralytics.utils.downloads import download
 settings = SETTINGS
 
 MODELS = ("YOLO", "YOLOWorld", "YOLOE", "NAS", "SAM", "FastSAM", "RTDETR", "LLM")
-AGENTS = ("Agent", "Dataset", "Deployment", "Export", "Gate", "Image")
+BLOCKS = ("Dataset", "Deployment", "Export", "Gate", "Image")
 
 __all__ = (  # noqa: PLE0604
     "__version__",
     "ASSETS",
     *MODELS,
-    *AGENTS,
+    "Agent",
+    *BLOCKS,
     "checks",
     "download",
     "settings",
@@ -39,14 +40,14 @@ def __getattr__(name: str):
     """Lazy-import model classes on first access."""
     if name in MODELS:
         return getattr(importlib.import_module("ultralytics.models"), name)
-    if name in AGENTS:
+    if name == "Agent" or name in BLOCKS:
         return getattr(importlib.import_module("ultralytics.engine.agent"), name)
     raise AttributeError(f"module {__name__} has no attribute {name}")
 
 
 def __dir__():
     """Extend dir() to include lazily available model names for IDE autocompletion."""
-    return sorted(set(globals()) | set(MODELS) | set(AGENTS))
+    return sorted(set(globals()) | set(MODELS) | {"Agent"} | set(BLOCKS))
 
 
 if __name__ == "__main__":

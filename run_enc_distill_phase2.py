@@ -1155,7 +1155,8 @@ def main(argv: list[str]) -> None:
     # Resume drift guard: refuse silent data mismatch. The mode-inference at line 97 uses
     # freeze as a proxy and can land on a different mode than the saved run (e.g. resumed
     # coco_det_finetune defaults to inet_finetune). Fail loud rather than truncate the dataset.
-    if resume_args and "data" in resume_args and train_args["data"] != resume_args["data"]:
+    # Compare basenames: a checkpoint stores the resolved absolute path, the mode yields the bare yaml name.
+    if resume_args and "data" in resume_args and Path(train_args["data"]).name != Path(resume_args["data"]).name:
         raise ValueError(
             f"Refusing resume: mode-implied data mismatch (ckpt={resume_args['data']!r} vs "
             f"mode={mode!r} → {train_args['data']!r}). Pass the correct mode positionally."

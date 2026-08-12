@@ -138,16 +138,6 @@ def parse_args() -> argparse.Namespace:
         "0.30 is the measured KITTI optimum (see the module docstring); 0.0 disables it entirely and "
         "reproduces the pre-2026-08-08 pipeline.",
     )
-    p.add_argument(
-        "--depth-dense",
-        type=float,
-        default=0.0,
-        help="dose for dense depth supervision: extra DFL loss on every anchor inside an assigned GT "
-        "2D box, weighted by this value. Measured on KITTI it raises depth-supervised sites from ~3 to "
-        "~353 per image (~118x). 0.0 reproduces TAL-only supervision exactly. Note the extra anchors "
-        "inherit the object CENTROID depth, which is a worse approximation up close (a 3.9 m car spans "
-        "~50% of its depth at 8 m vs ~7% at 60 m), so the dose trades sites against label noise.",
-    )
     p.add_argument("--lr0", type=float, default=0.01)
     p.add_argument(
         "--seed",
@@ -275,7 +265,6 @@ def main() -> None:
         optimizer="SGD",
         lr0=a.lr0,
         scale_jitter=a.scale_jitter,
-        depth_dense=a.depth_dense,
         cos_lr=True,
         seed=a.seed,
         val=True,  # the whole point: fitness exists, so best.pt and results.csv mean something

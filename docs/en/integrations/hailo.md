@@ -249,14 +249,27 @@ The intermediate ONNX graph is removed after compilation.
 
 ## Run Inference on Hailo Hardware
 
-Install HailoRT on the target device. Raspberry Pi AI HAT+ and AI HAT+ 2 users can follow the [Raspberry Pi AI software guide](https://www.raspberrypi.com/documentation/computers/ai.html). On Raspberry Pi OS, install the package set that matches the accelerator: `hailo-all` for the AI HAT+ (Hailo-8/8L), or `hailo-h10-all` for the AI HAT+ 2 (Hailo-10H, Raspberry Pi OS Trixie or newer). The two package sets cannot be installed together:
+Install HailoRT on the target device. Raspberry Pi AI HAT+ and AI HAT+ 2 users can follow the [Raspberry Pi AI software guide](https://www.raspberrypi.com/documentation/computers/ai.html). On Raspberry Pi OS the two package sets cannot be installed together, so run only the block that matches your hardware, then reboot.
+
+For the AI HAT+ (Hailo-8 / Hailo-8L):
 
 ```bash
-# AI HAT+ (Hailo-8 / Hailo-8L):
+sudo apt install dkms
 sudo apt install hailo-all
-# AI HAT+ 2 (Hailo-10H, Raspberry Pi OS Trixie or newer) — install dkms first:
-# sudo apt install dkms
-# sudo apt install hailo-h10-all
+sudo reboot
+```
+
+For the AI HAT+ 2 (Hailo-10H, Raspberry Pi OS Trixie or newer):
+
+```bash
+sudo apt install dkms
+sudo apt install hailo-h10-all
+sudo reboot
+```
+
+After rebooting, confirm the accelerator is detected:
+
+```bash
 hailortcli fw-control identify
 ```
 

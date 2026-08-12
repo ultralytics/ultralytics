@@ -327,7 +327,7 @@ Then launch the training with the Python API:
 - **Ultralytics' implementation**: [CopyPaste](../reference/data/augment.md#ultralytics.data.augment.CopyPaste)
 - **Note**:
     - As pictured in the gif below, the `copy_paste` augmentation can be used to copy objects from one image to another.
-    - Once an object is copied, regardless of the `copy_paste_mode`, its Intersection over Area (IoA) is computed with all the object of the source image. If all the IoA are below `0.3` (30%), the object is pasted in the target image. If only one the IoA is above `0.3`, the object is not pasted in the target image.
+    - Once an object is selected for copying, its IoA is computed against all objects already present in the target image, regardless of `copy_paste_mode`. The object is pasted only if all IoA values are below `0.3` (30%); it is not pasted if any IoA value is `0.3` or higher.
     - The IoA threshold cannot be changed with the current implementation and is set to `0.3` by default.
 
 |                                                               **`copy_paste` off**                                                               |                                               **`copy_paste` on with `copy_paste_mode=flip`**                                               |                                                       **Visualize the `copy_paste` process**                                                        |
@@ -342,7 +342,7 @@ Then launch the training with the Python API:
 - **Purpose**: Allows flexibility in how copied objects are integrated into target images.
 - **Ultralytics' implementation**: [CopyPaste](../reference/data/augment.md#ultralytics.data.augment.CopyPaste)
 - **Note**:
-    - The IoA principle is the same for both `copy_paste_mode`, but the way the objects are copied is different.
+    - The IoA principle is the same for both `copy_paste_mode` options, but the way the objects are copied is different.
     - Depending on the image size, objects may sometimes be copied partially or entirely outside the frame.
     - Depending on the quality of polygon annotations, copied objects may have slight shape variations compared to the originals.
 
@@ -391,6 +391,8 @@ Then launch the training with the Python API:
 - **Purpose**: Provides fine-grained control over data augmentation strategies by leveraging the extensive library of Albumentations transforms. This is particularly useful when you need specialized augmentations beyond the built-in YOLO options, such as advanced color adjustments, noise injection, or domain-specific transformations.
 - **Ultralytics' implementation**: [Albumentations](../reference/data/augment.md#ultralytics.data.augment.Albumentations)
 
+The examples below need Albumentations 1.4.22 or newer, and therefore Python 3.9 or newer.
+
 !!! example "Custom Albumentations Example"
 
     === "Python API"
@@ -406,7 +408,7 @@ Then launch the training with the Python API:
         # Define custom Albumentations transforms
         custom_transforms = [
             A.Blur(blur_limit=7, p=0.5),
-            A.GaussNoise(var_limit=(10.0, 50.0), p=0.3),
+            A.GaussNoise(std_range=(0.0124, 0.0277), p=0.3),
             A.CLAHE(clip_limit=4.0, p=0.5),
             A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.5),
             A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
@@ -443,7 +445,7 @@ Then launch the training with the Python API:
             ),
             A.OneOf(
                 [
-                    A.GaussNoise(var_limit=(10.0, 50.0), p=1.0),
+                    A.GaussNoise(std_range=(0.0124, 0.0277), p=1.0),
                     A.ISONoise(color_shift=(0.01, 0.05), intensity=(0.1, 0.5), p=1.0),
                 ],
                 p=0.2,
@@ -451,9 +453,7 @@ Then launch the training with the Python API:
             A.CLAHE(clip_limit=4.0, tile_grid_size=(8, 8), p=0.5),
             A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, brightness_by_max=True, p=0.5),
             A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
-            A.CoarseDropout(
-                max_holes=8, max_height=32, max_width=32, min_holes=1, min_height=8, min_width=8, fill_value=0, p=0.2
-            ),
+            A.CoarseDropout(num_holes_range=(1, 8), hole_height_range=(8, 32), hole_width_range=(8, 32), fill=0, p=0.2),
         ]
 
         # Train with advanced custom transforms
@@ -482,7 +482,6 @@ Then launch the training with the Python API:
 
 **Compatibility Notes:**
 
-- Requires Albumentations version 1.0.3 or higher
 - Compatible with all YOLO detection and segmentation tasks
 - Not applicable for classification tasks (classification uses a different augmentation pipeline)
 

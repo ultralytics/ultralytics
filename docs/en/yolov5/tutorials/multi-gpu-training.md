@@ -157,24 +157,6 @@ python -m torch.distributed.run --nproc_per_node 8 train.py --batch-size 128 --d
 
 As shown in the results, using [DistributedDataParallel](https://docs.pytorch.org/docs/stable/nn.html#torch.nn.parallel.DistributedDataParallel) with multiple GPUs provides nearly linear scaling in training speed. With 8 GPUs, training completes approximately 6.5 times faster than with a single GPU, while maintaining the same memory usage per device.
 
-## FAQ
-
-Read the checklist below before opening an issue — it often saves time.
-
-<details>
-  <summary>Checklist (click to expand)</summary>
-
-- Have you read this guide end-to-end?
-- Have you re-cloned the codebase? The code changes **daily**.
-- Have you searched for the error message? Someone may have already hit the same issue and shared a fix.
-- Have you installed all the requirements (including the correct Python and PyTorch versions)?
-- Have you tried one of the supported environments listed below?
-- Have you tried a smaller dataset such as `coco128` or `coco2017` to isolate the root cause?
-
-If all of the above check out, open an Issue with as much detail as possible, following the template.
-
-</details>
-
 ## Supported Environments
 
 Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
@@ -200,3 +182,21 @@ We would like to thank @MagicFrogSJTU, who did all the heavy lifting, and @glenn
 - [Train Mode](../../modes/train.md) - Learn about training YOLO models with Ultralytics
 - [Hyperparameter Tuning](../../guides/hyperparameter-tuning.md) - Optimize your model's performance
 - [Docker Quickstart Guide](../../guides/docker-quickstart.md) - Set up your Docker environment for training
+
+## FAQ
+
+Read the checklist below before opening an issue — it often saves time.
+
+<details>
+  <summary>Checklist (click to expand)</summary>
+
+- Have you read this guide end-to-end?
+- Have you re-cloned the codebase? The code changes **daily**.
+- Have you searched for the error message? Someone may have already hit the same issue and shared a fix.
+- Have you installed all the requirements (including the correct Python and PyTorch versions)?
+- Have you tried one of the supported environments listed above?
+- Have you tried a smaller dataset such as `coco128` or `coco2017` to isolate the root cause?
+
+If all of the above check out, open an Issue with as much detail as possible, following the template.
+
+</details>

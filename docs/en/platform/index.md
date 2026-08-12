@@ -13,7 +13,7 @@ keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud dep
 
 ## What is Ultralytics Platform?
 
-Ultralytics Platform brings dataset management and annotation, experiment tracking, cloud and remote training, model export, dedicated inference endpoints, and deployment monitoring into one workspace. It has native support for [YOLO26](../models/yolo26.md) and [YOLO11](../models/yolo11.md) models.
+Ultralytics Platform brings dataset management and annotation, experiment tracking, cloud and remote training, model export, dedicated inference endpoints, and deployment monitoring into one workspace. It has native support for [YOLO26](../models/yolo26.md), [YOLO11](../models/yolo11.md), [YOLOv8](../models/yolov8.md), and [YOLOv5](../models/yolov5.md) models.
 
 ## Workflow: Upload → Annotate → Train → Export → Deploy
 
@@ -76,7 +76,7 @@ Dedicated endpoints are deployed separately to a region you choose from the glob
 ### Data Preparation
 
 - **Dataset Management**: Upload images, videos, or dataset files with automatic processing
-- **[Annotation Editor](https://www.ultralytics.com/annotate)**: Manual annotation for all 6 YOLO task types (detect, segment, semantic, pose, OBB, classify; see [supported tasks](data/index.md#supported-tasks))
+- **[Annotation Editor](https://www.ultralytics.com/annotate)**: Manual annotation for all 6 YOLO task types (detect, segment, semantic, classify, pose, OBB; see [supported tasks](data/index.md#supported-tasks))
 - **Skeleton Templates**: Built-in (Person, Hand, Face, Dog, Box) and custom skeleton templates for one-click pose annotation
 - **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), pretrained Ultralytics YOLO models, or your own fine-tuned YOLO models from the annotation toolbar for detect, segment, semantic, and OBB tasks
 - **Dataset Versioning**: Create numbered NDJSON snapshots with descriptions for reproducible training
@@ -102,7 +102,7 @@ graph LR
 
 !!! tip "Supported Task Types"
 
-    The annotation editor supports all 6 YOLO task types: **[detect](../datasets/detect/index.md)** (bounding boxes), **[segment](../datasets/segment/index.md)** (polygons), **[semantic](../datasets/semantic/index.md)** (per-class regions), **[pose](../datasets/pose/index.md)** (keypoints), **[OBB](../datasets/obb/index.md)** (oriented boxes), and **[classify](../datasets/classify/index.md)** (image-level labels). Each task type has dedicated annotation controls and keyboard shortcuts.
+    The annotation editor supports all 6 YOLO task types: **[detect](../datasets/detect/index.md)** (bounding boxes), **[segment](../datasets/segment/index.md)** (polygons), **[semantic](../datasets/semantic/index.md)** (per-class regions), **[classify](../datasets/classify/index.md)** (image-level labels), **[pose](../datasets/pose/index.md)** (keypoints), and **[OBB](../datasets/obb/index.md)** (oriented boxes). Each task type has dedicated annotation controls and keyboard shortcuts.
 
 ### Model Training
 
@@ -247,6 +247,76 @@ Get started with these resources:
 - [**Trash**](account/trash.md): Recover deleted items
 - [**REST API**](api/index.md): API reference
 
+## Troubleshooting
+
+### Dataset Issues
+
+| Problem                | Solution                                                                                                                                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, TIFF, HEIC, AVIF, BMP, JP2, DNG, MPO for images). Max file size: images 50 MB, videos 1 GB, dataset archives 10 GB (Free) / 20 GB (Pro) / 50 GB (Enterprise) |
+| Missing annotations    | Verify labels are in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format) with `.txt` files matching image filenames, or upload COCO JSON                                                       |
+| "Train split required" | Add `train/` folder to your dataset structure, or redistribute splits via the [split bar](data/datasets.md#split-redistribution)                                                                              |
+| Class names undefined  | Add a `data.yaml` file with `names:` list (see [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format)), or define classes in the [Classes tab](data/datasets.md#classes-tab)                      |
+
+### Training Issues
+
+| Problem              | Solution                                                                            |
+| -------------------- | ----------------------------------------------------------------------------------- |
+| Training won't start | Check credit balance in Settings > Billing. Positive balance required               |
+| Out of memory error  | Reduce batch size, use smaller model (n/s), or select GPU with more VRAM            |
+| Poor metrics         | Check dataset quality, increase epochs, try data augmentation, verify class balance |
+| Training slow        | Select faster GPU, reduce image size, check dataset isn't bottlenecked              |
+
+### Deployment Issues
+
+| Problem                 | Solution                                                                                                                    |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Endpoint not responding | Check endpoint status (Ready vs Stopped). Cold start may take 5-15 seconds                                                  |
+| 401 Unauthorized        | Verify the API key is active and copied correctly                                                                           |
+| Slow inference          | Check model size, consider [TensorRT export](train/models.md#supported-formats), select closer region                       |
+| Export failed           | Some formats require specific model architectures. Try [ONNX](train/models.md#supported-formats) for broadest compatibility |
+
+### Common Questions
+
+??? question "Can I change my username after signup?"
+
+    No, usernames are permanent and cannot be changed. Choose carefully during signup.
+
+??? question "Can I change my data region?"
+
+    Your data region is selected during onboarding and can't be changed yourself. To switch regions, contact support to request a region change.
+
+??? question "How do I get more credits?"
+
+    Go to **Settings > Billing** and click **Top Up**. Purchase credits from $5 to $1,000. Purchased credits never
+    expire.
+
+??? question "What happens if training fails?"
+
+    If cloud compute had started, elapsed GPU time is charged. Failures before a GPU starts have no compute usage
+    charge.
+
+??? question "Can I download my trained model?"
+
+    Yes. Click the download icon on a model page for its `.pt` weights, or open the **Export** tab for completed exported formats.
+
+??? question "How do I share my work publicly?"
+
+    Open the project or dataset, click its **Private** badge in the top navigation bar, and confirm **Make Public**.
+    Public content appears on the Explore page.
+
+??? question "What are the file size limits?"
+
+    Images: 50MB, Videos: 1GB, datasets: 10GB on Free, 20GB on Pro, 50GB on Enterprise. For larger files, split into multiple uploads.
+
+??? question "How long are deleted items kept in Trash?"
+
+    30 days. After that, items are permanently deleted and cannot be recovered.
+
+??? question "Can I use Platform models commercially?"
+
+    Free and Pro plans use the AGPL license. For commercial use without AGPL requirements, see [Ultralytics Licensing](https://www.ultralytics.com/license).
+
 ## FAQ
 
 ### How do I get started with Ultralytics Platform?
@@ -270,7 +340,7 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 - **No-Code Training**: Train advanced YOLO models without writing code
 - **Real-Time Metrics**: Stream training progress and monitor deployments
 - **42 Deploy Regions**: Deploy models close to your users worldwide
-- **7 Task Types**: Support for detection, instance segmentation, semantic segmentation, depth estimation (models and prediction today; depth datasets coming soon), pose, OBB, and classification (see [task docs](../tasks/index.md))
+- **7 Task Types**: Support for detection, instance segmentation, semantic segmentation, depth estimation (models and prediction today; depth datasets coming soon), classification, pose, and OBB (see [task docs](../tasks/index.md))
 - **AI-Assisted Annotation**: [Smart annotation](data/annotation.md#smart-annotation) with SAM and YOLO models to speed up data preparation
 
 ### What GPU options are available for cloud training?
@@ -361,73 +431,3 @@ The Platform supports the same 20 deployment formats as Ultralytics Export mode.
 {% include "macros/export-table.md" %}
 
 See [Models Export](train/models.md#export-model), the [Export mode guide](../modes/export.md), and the [Integrations index](../integrations/index.md) for format-specific options.
-
-## Troubleshooting
-
-### Dataset Issues
-
-| Problem                | Solution                                                                                                                                                                                                      |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, TIFF, HEIC, AVIF, BMP, JP2, DNG, MPO for images). Max file size: images 50 MB, videos 1 GB, dataset archives 10 GB (Free) / 20 GB (Pro) / 50 GB (Enterprise) |
-| Missing annotations    | Verify labels are in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format) with `.txt` files matching image filenames, or upload COCO JSON                                                       |
-| "Train split required" | Add `train/` folder to your dataset structure, or redistribute splits via the [split bar](data/datasets.md#split-redistribution)                                                                              |
-| Class names undefined  | Add a `data.yaml` file with `names:` list (see [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format)), or define classes in the [Classes tab](data/datasets.md#classes-tab)                      |
-
-### Training Issues
-
-| Problem              | Solution                                                                            |
-| -------------------- | ----------------------------------------------------------------------------------- |
-| Training won't start | Check credit balance in Settings > Billing. Positive balance required               |
-| Out of memory error  | Reduce batch size, use smaller model (n/s), or select GPU with more VRAM            |
-| Poor metrics         | Check dataset quality, increase epochs, try data augmentation, verify class balance |
-| Training slow        | Select faster GPU, reduce image size, check dataset isn't bottlenecked              |
-
-### Deployment Issues
-
-| Problem                 | Solution                                                                                                                    |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Endpoint not responding | Check endpoint status (Ready vs Stopped). Cold start may take 5-15 seconds                                                  |
-| 401 Unauthorized        | Verify the API key is active and copied correctly                                                                           |
-| Slow inference          | Check model size, consider [TensorRT export](train/models.md#supported-formats), select closer region                       |
-| Export failed           | Some formats require specific model architectures. Try [ONNX](train/models.md#supported-formats) for broadest compatibility |
-
-### Common Questions
-
-??? question "Can I change my username after signup?"
-
-    No, usernames are permanent and cannot be changed. Choose carefully during signup.
-
-??? question "Can I change my data region?"
-
-    Your data region is selected during onboarding and can't be changed yourself. To switch regions, contact support to request a region change.
-
-??? question "How do I get more credits?"
-
-    Go to **Settings > Billing** and click **Top Up**. Purchase credits from $5 to $1,000. Purchased credits never
-    expire.
-
-??? question "What happens if training fails?"
-
-    If cloud compute had started, elapsed GPU time is charged. Failures before a GPU starts have no compute usage
-    charge.
-
-??? question "Can I download my trained model?"
-
-    Yes. Click the download icon on a model page for its `.pt` weights, or open the **Export** tab for completed exported formats.
-
-??? question "How do I share my work publicly?"
-
-    Open the project or dataset, click its **Private** badge in the top navigation bar, and confirm **Make Public**.
-    Public content appears on the Explore page.
-
-??? question "What are the file size limits?"
-
-    Images: 50MB, Videos: 1GB, datasets: 10GB on Free, 20GB on Pro, 50GB on Enterprise. For larger files, split into multiple uploads.
-
-??? question "How long are deleted items kept in Trash?"
-
-    30 days. After that, items are permanently deleted and cannot be recovered.
-
-??? question "Can I use Platform models commercially?"
-
-    Free and Pro plans use the AGPL license. For commercial use without AGPL requirements, see [Ultralytics Licensing](https://www.ultralytics.com/license).

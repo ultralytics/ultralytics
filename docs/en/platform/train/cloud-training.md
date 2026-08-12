@@ -40,7 +40,7 @@ Choose an official Ultralytics model or one of your own completed models:
 | **Official**    | YOLO26 (recommended), YOLO11, YOLOv8, and YOLOv5 project models     |
 | **Your Models** | Your completed or uploaded models, organized by project, for tuning |
 
-The selector filters official models to tasks compatible with the selected dataset. YOLO26 includes [Detect](../../tasks/detect.md), [Segment](../../tasks/segment.md), [Semantic](../../tasks/semantic.md), [Depth](../../tasks/depth.md), [Pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), and [Classify](../../tasks/classify.md) variants in sizes from nano to xlarge.
+The selector filters official models to tasks compatible with the selected dataset. YOLO26 includes [Detect](../../tasks/detect.md), [Segment](../../tasks/segment.md), [Semantic](../../tasks/semantic.md), [Depth](../../tasks/depth.md), [Classify](../../tasks/classify.md), [Pose](../../tasks/pose.md), and [OBB](../../tasks/obb.md) variants in sizes from nano to xlarge.
 
 ### Step 2: Select Dataset
 
@@ -399,74 +399,6 @@ Before starting a cloud job, the training dialog shows your current credit balan
 | Training slow        | Consider faster GPU                  |
 | Task mismatch error  | Ensure model and dataset tasks match |
 
-## FAQ
-
-### How long does training take?
-
-Training time depends on:
-
-- Dataset size
-- Model size
-- Number of epochs
-- GPU selected
-
-Typical times (1000 images, 100 epochs):
-
-| Model   | RTX PRO 6000 | A100 SXM |
-| ------- | ------------ | -------- |
-| YOLO26n | ~6 min       | ~5 min   |
-| YOLO26m | ~15 min      | ~12 min  |
-| YOLO26x | ~30 min      | ~25 min  |
-
-!!! note "Approximate Times"
-
-    Training times are approximate and vary with dataset complexity, augmentation settings, and batch size. Use the training dialog's cost estimate for more accurate predictions.
-
-### Can I train overnight?
-
-Yes. Training can run unattended while it remains funded, and the Platform records a completion or failure event. If
-metering drives the balance below zero, active paid cloud runs stop and settle the GPU time already used.
-
-### What happens if I run out of credits?
-
-Cloud usage is metered as training progresses. If a charge pushes your balance below zero, active paid cloud training
-runs are stopped and settled for the GPU time already used. Add credits or enable auto top-up to keep long-running jobs
-funded.
-
-!!! note "Negative Balance"
-
-    A zero or negative balance prevents new paid cloud training jobs. A negative metered balance also triggers shutdown
-    of active paid cloud training runs.
-
-### What happens if my training costs more than the estimate?
-
-Cost estimates are approximate — actual training time may vary due to factors like data loading speed, GPU warmup, and
-model convergence behavior. If actual usage exhausts the available balance, the Platform stops active paid cloud runs
-after the balance goes negative.
-
-To manage costs:
-
-- Monitor training progress in real-time and cancel early if needed
-- Enable [auto top-up](../account/billing.md#auto-top-up) to automatically replenish credits
-- Start with shorter runs (fewer epochs) to calibrate expectations
-
-### Can I use custom training arguments?
-
-Yes, expand the **Advanced Settings** section in the training dialog to access a YAML editor with 40+ configurable parameters. Non-default values are included in both cloud and local training commands.
-
-The YAML editor also supports **importing configurations from previous training runs**:
-
-- **Copy from existing model**: On any completed model's page, the Training Configuration card has a **Copy as JSON** button. Copy the JSON and paste it directly into the YAML editor — it auto-detects JSON format and imports all parameters.
-- **Paste YAML or JSON**: Paste any valid YAML or JSON training configuration into the editor. Parameters are validated automatically, with out-of-range values clamped and warnings displayed.
-- **Drag and drop files**: Drag a `.yaml` or `.json` file directly into the editor to import its parameters.
-
-![Ultralytics Platform Training Dialog Copy Training Config JSON](https://cdn.ul.run/i/d03490834657b55f99a40363f102f47d.avif)<!-- screenshot -->
-This makes it easy to reproduce or iterate on previous training configurations without manually re-entering each parameter.
-
-### Can I train from a dataset page?
-
-Yes, the **New Model** button on dataset pages opens the training dialog with the dataset preselected and locked. You then select a project and model to begin training.
-
 ## Training Parameters Reference
 
 === "Core"
@@ -560,3 +492,71 @@ Yes, the **New Model** button on dataset pages opens the training dialog with th
     - **Detection tasks only** (detect, segment, pose, OBB — not classify): `box`, `dfl`, `degrees`, `translate`, `shear`, `perspective`, `mosaic`, `mixup`, `close_mosaic`
     - **Segment only**: `copy_paste`
     - **Pose only**: `pose` (loss weight), `kobj` (keypoint objectness)
+
+## FAQ
+
+### How long does training take?
+
+Training time depends on:
+
+- Dataset size
+- Model size
+- Number of epochs
+- GPU selected
+
+Typical times (1000 images, 100 epochs):
+
+| Model   | RTX PRO 6000 | A100 SXM |
+| ------- | ------------ | -------- |
+| YOLO26n | ~6 min       | ~5 min   |
+| YOLO26m | ~15 min      | ~12 min  |
+| YOLO26x | ~30 min      | ~25 min  |
+
+!!! note "Approximate Times"
+
+    Training times are approximate and vary with dataset complexity, augmentation settings, and batch size. Use the training dialog's cost estimate for more accurate predictions.
+
+### Can I train overnight?
+
+Yes. Training can run unattended while it remains funded, and the Platform records a completion or failure event. If
+metering drives the balance below zero, active paid cloud runs stop and settle the GPU time already used.
+
+### What happens if I run out of credits?
+
+Cloud usage is metered as training progresses. If a charge pushes your balance below zero, active paid cloud training
+runs are stopped and settled for the GPU time already used. Add credits or enable auto top-up to keep long-running jobs
+funded.
+
+!!! note "Negative Balance"
+
+    A zero or negative balance prevents new paid cloud training jobs. A negative metered balance also triggers shutdown
+    of active paid cloud training runs.
+
+### What happens if my training costs more than the estimate?
+
+Cost estimates are approximate — actual training time may vary due to factors like data loading speed, GPU warmup, and
+model convergence behavior. If actual usage exhausts the available balance, the Platform stops active paid cloud runs
+after the balance goes negative.
+
+To manage costs:
+
+- Monitor training progress in real-time and cancel early if needed
+- Enable [auto top-up](../account/billing.md#auto-top-up) to automatically replenish credits
+- Start with shorter runs (fewer epochs) to calibrate expectations
+
+### Can I use custom training arguments?
+
+Yes, expand the **Advanced Settings** section in the training dialog to access a YAML editor with 40+ configurable parameters. Non-default values are included in both cloud and local training commands.
+
+The YAML editor also supports **importing configurations from previous training runs**:
+
+- **Copy from existing model**: On any completed model's page, the Training Configuration card has a **Copy as JSON** button. Copy the JSON and paste it directly into the YAML editor — it auto-detects JSON format and imports all parameters.
+- **Paste YAML or JSON**: Paste any valid YAML or JSON training configuration into the editor. Parameters are validated automatically, with out-of-range values clamped and warnings displayed.
+- **Drag and drop files**: Drag a `.yaml` or `.json` file directly into the editor to import its parameters.
+
+![Ultralytics Platform Training Dialog Copy Training Config JSON](https://cdn.ul.run/i/d03490834657b55f99a40363f102f47d.avif)<!-- screenshot -->
+This makes it easy to reproduce or iterate on previous training configurations without manually re-entering each parameter.
+
+### Can I train from a dataset page?
+
+Yes, the **New Model** button on dataset pages opens the training dialog with the dataset preselected and locked. You then select a project and model to begin training.

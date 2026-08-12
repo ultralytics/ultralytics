@@ -44,6 +44,7 @@ stateDiagram-v2
     Creating --> Deploying: Container starting
     Deploying --> Ready: Health check passed
     Ready --> Stopping: Stop
+    Ready --> Deploying: Replace model
     Stopping --> Stopped: Stopped
     Stopped --> Ready: Start
     Ready --> [*]: Delete
@@ -199,13 +200,29 @@ The deployments list supports three view modes:
 
 Each deployment card in the cards view shows:
 
-- **Header**: Name, region flag, status badge, start/stop/delete buttons
+- **Header**: Name, region flag, status badge, replace/start/stop/delete buttons
 - **Endpoint URL**: Copyable URL with link to API docs
 - **Metrics**: Request count (24h), P95 latency, error rate
 - **Health check**: Live health indicator with latency and manual refresh
 - **Tabs**: `Logs`, `Code`, and `Predict`
 
 The `Logs` tab shows recent log entries with severity filtering (All / Errors). The `Code` tab shows ready-to-use code examples in Python, JavaScript, and cURL with your actual endpoint URL and API key. The `Predict` tab provides an inline predict panel for testing directly on the deployment.
+
+### Replace a Model
+
+Replace the model behind a ready endpoint without changing its URL:
+
+1. Open the deployment in **Cards** view
+2. Click **Replace model**
+3. Select another completed model from the same workspace
+4. Optionally edit the deployment name
+5. Click **Replace Model**
+
+Platform creates a new revision of the existing service. The current model continues serving while the replacement revision starts and passes its health check. When the revision is ready, traffic moves to the new model. The deployment ID, URL, region, and API key remain unchanged; its display name changes only when you enter a new one. If replacement fails, the previous model and name remain active.
+
+!!! note "One Model per Endpoint"
+
+    Replacement removes the previous model from the deployment. Each endpoint serves one model; create another deployment when you need both models available at the same time.
 
 ### Deployment Statuses
 

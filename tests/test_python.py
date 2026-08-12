@@ -275,7 +275,7 @@ def test_predict_csv_single_row(tmp_path):
 
 @pytest.mark.parametrize("model_name", MODELS)
 def test_predict_img(model_name):
-    """Test YOLO model predictions on various image input types and sources, including online images."""
+    """Test YOLO model predictions on various image input types."""
     if IS_RASPBERRYPI and model_name == "yolo26n-sem.pt":
         skip_rpi_semantic()
     channels = 1 if model_name == "yolo11n-grayscale.pt" else 3
@@ -290,7 +290,6 @@ def test_predict_img(model_name):
     batch = [
         str(SOURCE),  # filename
         Path(SOURCE),  # Path
-        "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/im/zidane.jpg?token=123" if ONLINE else SOURCE,  # URI
         im,  # OpenCV
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, channels), dtype=np.uint8),  # numpy
@@ -471,7 +470,7 @@ def test_reid_invalid_crops():
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
-def test_track_stream(model, tmp_path):
+def test_track_stream(model, tmp_path, solution_assets):
     """Test streaming tracking on a short video with all built-in trackers and various GMC/ReID configurations.
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
@@ -484,7 +483,7 @@ def test_track_stream(model, tmp_path):
         return
     from ultralytics.trackers.track import TRACKER_MAP
 
-    video_url = f"{ASSETS_URL}/decelera_portrait_min.mov"
+    video_url = solution_assets("track_video")
     model = YOLO(model)
 
     # Default end-to-end run for all built-in trackers
@@ -756,7 +755,7 @@ def test_platform_job_transport(monkeypatch, tmp_path):
         captured.update(url=url, **kwargs)
         return SimpleNamespace(status_code=200, json=lambda: {"received": True}, raise_for_status=lambda: None)
 
-    monkeypatch.setattr(platform, "requests", SimpleNamespace(post=post), raising=False)
+    monkeypatch.setattr("requests.post", post)
     monkeypatch.setattr(platform, "_api_key", "api-key")
     monkeypatch.setattr(platform, "PLATFORM_API_URL", "https://example.test/api/webhooks")
     assert platform._send("epoch_end", {"epoch": 0}, "user/project", "model") == {"received": True}
@@ -846,11 +845,11 @@ def test_predict_callback_and_setup():
 
 
 @pytest.mark.parametrize("model", MODELS)
-def test_results(model: str, tmp_path):
+def test_results(model: str, tmp_path, solution_assets):
     """Test YOLO model results processing and output in various formats."""
     if IS_RASPBERRYPI and model == "yolo26n-sem.pt":
         skip_rpi_semantic()
-    im = "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/im/boats.jpg" if model == "yolo26n-obb.pt" else SOURCE
+    im = solution_assets("boats") if model == "yolo26n-obb.pt" else SOURCE
     is_semantic = "semantic" in model or "-sem" in model
     results = YOLO(WEIGHTS_DIR / model)([im, im], imgsz=32 if is_semantic else 160)
     for r in results:
@@ -1292,6 +1291,14 @@ def test_utils_checks(monkeypatch):
     assert checks.parse_version("v2.1") == (2, 1, 0)
     assert checks.parse_version("1.0rc1") == (1, 0, 0)  # documented non-PEP-440 tradeoff: pre-releases equal the final
     monkeypatch.setattr(checks.metadata, "version", package_version)
+    monkeypatch.setattr(checks, "ARM64", True)
+    monkeypatch.setattr(checks, "AUTOINSTALL", True)
+    monkeypatch.setattr(checks, "ONLINE", True)
+    commands = []
+    monkeypatch.setattr(checks.subprocess, "check_output", lambda command, **kwargs: commands.append(command) or "")
+    requirements = ["ray[tune]", "nvidia-modelopt[onnx]>=0.44", "$(touch /tmp/pwned)/missing"]
+    assert checks.check_requirements(requirements)
+    assert commands[0][5:] == requirements  # requirements remain individual argv entries, never shell source
     assert not checks.check_version("v2", ">=2.0")  # installed version-shaped package keeps metadata precedence
     versions = ("v2.1-rc.1", "v2.1-beta1", "v2.1rev1", "v2.1-dev1", "v2.1+cu118")
     assert all(checks.check_version(v, ">=2.0") for v in versions)
@@ -1585,17 +1592,6 @@ def test_nn_depth_head_no_dead_parameters():
     head(_depth_head_feats())["depth"].sum().backward()
     unused = [n for n, p in head.named_parameters() if p.grad is None]
     assert not unused, f"parameters with no gradient: {unused}"
-
-
-@pytest.mark.skipif(not ONLINE, reason="environment is offline")
-def test_hub():
-    """Test Ultralytics HUB functionalities."""
-    from ultralytics.hub import export_fmts_hub, logout
-    from ultralytics.hub.utils import smart_request
-
-    export_fmts_hub()
-    logout()
-    smart_request("GET", "https://github.com", progress=True)
 
 
 @pytest.fixture

@@ -11,7 +11,6 @@ import torch.nn.functional as F
 from torch import nn
 from torch.nn.init import constant_, xavier_uniform_
 
-from ultralytics.utils import NOT_MACOS14
 from ultralytics.utils.tal import dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, smart_inference_mode
 
@@ -224,6 +223,19 @@ class Detect(nn.Module):
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
     xyxy = False  # xyxy or xywh output
 
+    @staticmethod
+    def _grouped_topk(x: torch.Tensor, k: int, groups: int = 8) -> tuple[torch.Tensor, torch.Tensor]:
+        """Select exact top-k values through smaller grouped selections."""
+        n = x.shape[1]
+        while groups > 1 and (n % groups or n // groups < k):
+            groups //= 2
+        if groups == 1:  # nothing to gain, e.g. a short axis or one that does not divide evenly
+            return x.topk(k, dim=1)
+        size = n // groups
+        values, index = x.reshape(x.shape[0], groups, size).topk(k, dim=-1)
+        values, winners = values.flatten(1).topk(k, dim=1)
+        return values, winners // k * size + index.flatten(1).gather(1, winners)
+
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """Initialize the YOLO detection layer with specified number of classes and channels.
 
@@ -387,7 +399,7 @@ class Detect(nn.Module):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         preds = self.forward_head(x, **self.one2many)
         if self.end2end:
-            x_detach = [xi.detach() for xi in x]
+            x_detach = [xi.detach() for xi in x] if self.training else x  # detach keeps one2one out of the backbone
             one2one = self.forward_head(x_detach, **self.one2one)
             preds = {"one2many": preds, "one2one": one2one}
         if self.training:
@@ -477,11 +489,16 @@ class Detect(nn.Module):
             scores, labels = scores.max(dim=-1, keepdim=True)
             scores, indices = scores.topk(k, dim=1)
             labels = labels.gather(1, indices)
-            return scores, labels, indices
-        ori_index = scores.max(dim=-1)[0].topk(k)[1].unsqueeze(-1)
+            return scores, labels.float(), indices
+        groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
+        ori_index = self._grouped_topk(scores.max(dim=-1)[0], k, groups)[1].unsqueeze(-1)
         scores = scores.gather(dim=1, index=ori_index.expand(-1, -1, nc))
-        scores, index = scores.flatten(1).topk(k)
-        idx = ori_index[torch.arange(batch_size)[..., None], index // nc]  # original index
+        scores, index = self._grouped_topk(scores.flatten(1), k, groups)
+        idx = (
+            ori_index[torch.arange(batch_size)[..., None], index // nc]
+            if self.format == "coreml"
+            else ori_index.gather(dim=1, index=(index // nc).unsqueeze(-1))
+        )
         return scores[..., None], (index % nc)[..., None].float(), idx
 
     def fuse(self) -> None:
@@ -881,10 +898,7 @@ class Pose(Detect):
         else:
             y = kpts.clone()
             if ndim == 3:
-                if NOT_MACOS14:
-                    y[:, 2::ndim].sigmoid_()
-                else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
-                    y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
+                y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
             y[:, 0::ndim] = (y[:, 0::ndim] * 2.0 + (self.anchors[0] - 0.5)) * self.strides
             y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
             return y
@@ -998,10 +1012,7 @@ class Pose26(Pose):
         else:
             y = kpts.clone()
             if ndim == 3:
-                if NOT_MACOS14:
-                    y[:, 2::ndim].sigmoid_()
-                else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
-                    y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
+                y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
             y[:, 0::ndim] = (y[:, 0::ndim] + self.anchors[0]) * self.strides
             y[:, 1::ndim] = (y[:, 1::ndim] + self.anchors[1]) * self.strides
             return y
@@ -1256,7 +1267,7 @@ class LRPCHead(nn.Module):
     def conv2linear(conv: nn.Conv2d) -> nn.Linear:
         """Convert a 1x1 convolutional layer to a linear layer."""
         assert isinstance(conv, nn.Conv2d) and conv.kernel_size == (1, 1)
-        linear = nn.Linear(conv.in_channels, conv.out_channels)
+        linear = nn.Linear(conv.in_channels, conv.out_channels).requires_grad_(conv.weight.requires_grad)
         linear.weight.data = conv.weight.view(conv.out_channels, -1).data
         linear.bias.data = conv.bias.data
         return linear
@@ -1264,6 +1275,9 @@ class LRPCHead(nn.Module):
     def forward(self, cls_feat: torch.Tensor, loc_feat: torch.Tensor, conf: float) -> tuple[tuple, torch.Tensor]:
         """Process classification and localization features to generate detection proposals."""
         if self.enabled:
+            if not conf:  # static export, every anchor passes the proposal filter
+                cls_feat = self.vocab(cls_feat.flatten(2).transpose(-1, -2))
+                return self.loc(loc_feat), cls_feat.transpose(-1, -2), None
             pf_score = self.pf(cls_feat)[0, 0].flatten(0)
             mask = pf_score.sigmoid() > conf
             cls_feat = cls_feat.flatten(2).transpose(-1, -2)
@@ -1349,7 +1363,7 @@ class YOLOEDetect(Detect):
         self.savpe = SAVPE(ch, c3, embed)
         self.embed = embed
 
-    @smart_inference_mode()
+    @smart_inference_mode(False)  # fused layers stay in the model, so they must not be inference tensors
     def fuse(self, txt_feats: torch.Tensor = None):
         """Fuse text features with model weights for efficient inference."""
         if txt_feats is None:  # means eliminate one2many branch
@@ -1359,7 +1373,7 @@ class YOLOEDetect(Detect):
             return
 
         assert not self.training
-        txt_feats = txt_feats.to(torch.float32).squeeze(0)
+        txt_feats = txt_feats.to(next(self.parameters()).dtype).squeeze(0)
         if self.cv3 and self.cv4:
             self._fuse_tp(txt_feats, self.cv3, self.cv4)
         if self.end2end:
@@ -1396,7 +1410,7 @@ class YOLOEDetect(Detect):
                     kernel_size=1,
                 )
                 .requires_grad_(False)
-                .to(conv.weight.device)
+                .to(conv.weight.device, conv.weight.dtype)
             )
 
             conv.weight.data.copy_(w.unsqueeze(-1).unsqueeze(-1))
@@ -1428,21 +1442,24 @@ class YOLOEDetect(Detect):
         """Process features with fused text embeddings to generate detections for prompt-free model."""
         boxes, scores, index = [], [], []
         bs = x[0].shape[0]
-        cv2 = self.cv2 if not self.end2end else self.one2one_cv2
-        cv3 = self.cv3 if not self.end2end else self.one2one_cv3
+        # Prompt-free fusion removes the one-to-many heads.
+        cv2 = self.one2one_cv2 if self.end2end or self.cv2 is None else self.cv2
+        cv3 = self.one2one_cv3 if self.end2end or self.cv3 is None else self.cv3
+        conf = 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001)
         for i in range(self.nl):
             cls_feat = cv3[i](x[i])
             loc_feat = cv2[i](x[i])
             assert isinstance(self.lrpc[i], LRPCHead)
-            box, score, idx = self.lrpc[i](
-                cls_feat,
-                loc_feat,
-                0 if self.export and not self.dynamic else getattr(self, "conf", 0.001),
-            )
+            box, score, idx = self.lrpc[i](cls_feat, loc_feat, conf)
             boxes.append(box.view(bs, self.reg_max * 4, -1))
             scores.append(score)
             index.append(idx)
-        preds = {"boxes": torch.cat(boxes, 2), "scores": torch.cat(scores, 2), "feats": x, "index": torch.cat(index)}
+        preds = {
+            "boxes": torch.cat(boxes, 2),
+            "scores": torch.cat(scores, 2),
+            "feats": x,
+            "index": torch.cat(index) if conf else None,
+        }
         y = self._inference(preds)
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
@@ -1452,7 +1469,7 @@ class YOLOEDetect(Detect):
         """Decode predicted bounding boxes for inference."""
         dbox = super()._get_decode_boxes(x)
         if hasattr(self, "lrpc"):
-            dbox = dbox if self.export and not self.dynamic else dbox[..., x["index"]]
+            dbox = dbox if x["index"] is None else dbox[..., x["index"]]
         return dbox
 
     @property
@@ -1571,29 +1588,26 @@ class YOLOESegment(YOLOEDetect):
         """Process features with fused text embeddings to generate detections for prompt-free model."""
         boxes, scores, index = [], [], []
         bs = x[0].shape[0]
-        cv2 = self.cv2 if not self.end2end else self.one2one_cv2
-        cv3 = self.cv3 if not self.end2end else self.one2one_cv3
-        cv5 = self.cv5 if not self.end2end else self.one2one_cv5
+        cv2 = self.one2one_cv2 if self.end2end or self.cv2 is None else self.cv2
+        cv3 = self.one2one_cv3 if self.end2end or self.cv3 is None else self.cv3
+        cv5 = self.one2one_cv5 if self.end2end or self.cv5 is None else self.cv5
+        conf = 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001)
         for i in range(self.nl):
             cls_feat = cv3[i](x[i])
             loc_feat = cv2[i](x[i])
             assert isinstance(self.lrpc[i], LRPCHead)
-            box, score, idx = self.lrpc[i](
-                cls_feat,
-                loc_feat,
-                0 if self.export and not self.dynamic else getattr(self, "conf", 0.001),
-            )
+            box, score, idx = self.lrpc[i](cls_feat, loc_feat, conf)
             boxes.append(box.view(bs, self.reg_max * 4, -1))
             scores.append(score)
             index.append(idx)
         mc = torch.cat([cv5[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
-        index = torch.cat(index)
+        index = torch.cat(index) if conf else None
         preds = {
             "boxes": torch.cat(boxes, 2),
             "scores": torch.cat(scores, 2),
             "feats": x,
             "index": index,
-            "mask_coefficient": mc * index.int() if self.export and not self.dynamic else mc[..., index],
+            "mask_coefficient": mc if index is None else mc[..., index],
         }
         y = self._inference(preds)
         if self.end2end:

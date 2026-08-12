@@ -61,6 +61,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Weights & Biases (W&B)](weights-biases.md): Monitor experiments, visualize metrics, and foster reproducibility and collaboration on Ultralytics projects.
 
+- [YAML2ModelGraph](yaml2modelgraph.md): Generate publication-ready SVG architecture diagrams directly from Ultralytics YOLO YAML configuration files.
+
 ## Deployment Integrations
 
 - [Ambarella](ambarella.md): Train, compress, and export Ultralytics YOLO models for Ambarella CVflow® SoCs such as the CV72 using SpongeTorch compression-aware training and the offline CVflow toolchain.
@@ -77,7 +79,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Gradio](gradio.md): Deploy Ultralytics models with Gradio for real-time, interactive object detection demos.
 
-- [Hailo](hailo.md): Export Ultralytics YOLO detection, segmentation, pose, OBB, classification, semantic segmentation, and depth estimation models directly to Hailo HEF; see the integration guide for validated models and targets.
+- [Hailo](hailo.md): Export Ultralytics YOLO detection, segmentation, semantic segmentation, depth estimation, classification, pose, and OBB models directly to Hailo HEF; see the integration guide for validated models and targets.
 
 - [Huawei Ascend](ascend.md): Compile Ultralytics YOLO models to the Huawei Ascend `.om` offline format with the CANN ATC compiler for FP16 inference on Atlas and OrangePi AIPro devices.
 

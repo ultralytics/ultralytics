@@ -152,6 +152,7 @@ class GMC:
         except Exception as e:
             LOGGER.warning(f"findTransformECC failed; using identity warp. {e}")
 
+        self.prevFrame = frame.copy()
         return H
 
     def apply_features(self, raw_frame: np.ndarray, detections: list | None = None) -> np.ndarray:
@@ -204,23 +205,23 @@ class GMC:
             return H
 
         # Match descriptors between previous and current frame
-        knnMatches = self.matcher.knnMatch(self.prevDescriptors, descriptors, 2)
+        knnMatches = (
+            self.matcher.knnMatch(self.prevDescriptors, descriptors, 2)
+            if self.prevDescriptors is not None and descriptors is not None
+            else []
+        )
 
         # Filter matches based on spatial distance constraints
         spatialDistances = []
         maxSpatialDistance = 0.25 * np.array([width, height])
 
-        # Handle empty matches case
-        if len(knnMatches) == 0:
-            self.prevFrame = frame.copy()
-            self.prevKeyPoints = copy.copy(keypoints)
-            self.prevDescriptors = copy.copy(descriptors)
-            return H
-
         # Apply Lowe's ratio test and spatial distance filtering
         prevPoints = []
         currPoints = []
-        for m, n in knnMatches:
+        for matches in knnMatches:
+            if len(matches) < 2:
+                continue
+            m, n = matches
             if m.distance < 0.9 * n.distance:
                 prevKeyPointLocation = self.prevKeyPoints[m.queryIdx].pt
                 currKeyPointLocation = keypoints[m.trainIdx].pt
@@ -236,6 +237,12 @@ class GMC:
                     spatialDistances.append(spatialDistance)
                     prevPoints.append(prevKeyPointLocation)
                     currPoints.append(currKeyPointLocation)
+
+        if not spatialDistances:
+            self.prevFrame = frame.copy()
+            self.prevKeyPoints = copy.copy(keypoints)
+            self.prevDescriptors = copy.copy(descriptors)
+            return H
 
         # Filter outliers using statistical analysis
         spatialDistances = np.asarray(spatialDistances).reshape(-1, 2)

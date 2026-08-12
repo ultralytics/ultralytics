@@ -540,14 +540,14 @@ For more details, refer to the [Apple Silicon MPS Training](#apple-silicon-mps-t
 
 Ultralytics YOLO26 allows you to configure a variety of training settings such as batch size, learning rate, epochs, and more through arguments. Here's a brief overview:
 
-| Argument | Default | Description                                                            |
-| -------- | ------- | ---------------------------------------------------------------------- |
-| `model`  | `None`  | Path to the model file for training.                                   |
-| `data`   | `None`  | Path to the dataset configuration file (e.g., `coco8.yaml`).           |
-| `epochs` | `100`   | Total number of training epochs.                                       |
-| `batch`  | `16`    | Batch size, adjustable as integer or auto mode.                        |
-| `imgsz`  | `640`   | Target image size for training.                                        |
-| `device` | `None`  | Computational device(s) for training like `cpu`, `0`, `0,1`, or `mps`. |
-| `save`   | `True`  | Enables saving of training checkpoints and final model weights.        |
+| Argument | Default | Description                                                                                                            |
+| -------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `model`  | `None`  | Path to the model file for training.                                                                                   |
+| `data`   | `None`  | Path to the dataset YAML (e.g., `coco8.yaml`), or a dataset directory or name (e.g., `imagenet10`) for classification. |
+| `epochs` | `100`   | Total number of training epochs.                                                                                       |
+| `batch`  | `16`    | Batch size, adjustable as integer or auto mode.                                                                        |
+| `imgsz`  | `640`   | Target image size for training.                                                                                        |
+| `device` | `None`  | Computational device(s) for training like `cpu`, `0`, `0,1`, or `mps`.                                                 |
+| `save`   | `True`  | Enables saving of training checkpoints and final model weights.                                                        |
 
 For an in-depth guide on training settings, check the [Train Settings](#train-settings) section.

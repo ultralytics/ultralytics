@@ -22,7 +22,7 @@ The project ships as a single crate, `ultralytics-inference`, that you can use t
 
 - **Native speed and a small footprint.** Compiles to a native binary with no interpreter, ideal for servers, containers, and [edge devices](https://www.ultralytics.com/glossary/edge-ai).
 - **Memory safety.** Rust's ownership model removes whole classes of runtime errors without a garbage collector.
-- **All YOLO tasks.** Detect, segment, pose, OBB, classify, semantic segmentation, and depth estimation from one API.
+- **All YOLO tasks.** Detect, segment, semantic segmentation, depth estimation, classify, pose, and OBB from one API.
 - **Broad hardware support.** CPU plus CUDA, TensorRT, CoreML, OpenVINO, DirectML, ROCm, and XNNPACK execution providers selected at build time.
 - **GPU-side preprocessing.** An optional fused CUDA kernel keeps letterbox, normalize, and layout conversion on the device for a zero-copy input path.
 - **Auto-download.** Known YOLO model names and sample assets download automatically on first use.
@@ -57,7 +57,7 @@ Rust 1.89 or newer is required. The [video](#cargo-features) feature additionall
     ```toml
     # Or add it manually to Cargo.toml
     [dependencies]
-    ultralytics-inference = "0.0.32"
+    ultralytics-inference = "0.0.34"
     ```
 
 ## CLI quickstart
@@ -338,11 +338,11 @@ All Ultralytics [tasks](../tasks/index.md) are supported. When `--model` is omit
 | --------------------- | ---------- | ----------------------------- | -------------------- |
 | Detection             | `detect`   | Bounding boxes and classes    | `yolo26n.onnx`       |
 | Instance segmentation | `segment`  | Boxes plus per-instance masks | `yolo26n-seg.onnx`   |
-| Pose                  | `pose`     | Boxes plus keypoints          | `yolo26n-pose.onnx`  |
-| Oriented boxes        | `obb`      | Rotated bounding boxes        | `yolo26n-obb.onnx`   |
-| Classification        | `classify` | Class probabilities           | `yolo26n-cls.onnx`   |
 | Semantic segmentation | `semantic` | Per-pixel class map           | `yolo26n-sem.onnx`   |
 | Depth estimation      | `depth`    | Per-pixel depth map in meters | `yolo26n-depth.onnx` |
+| Classification        | `classify` | Class probabilities           | `yolo26n-cls.onnx`   |
+| Pose                  | `pose`     | Boxes plus keypoints          | `yolo26n-pose.onnx`  |
+| Oriented boxes        | `obb`      | Rotated bounding boxes        | `yolo26n-obb.onnx`   |
 
 ## Model compatibility
 
@@ -445,7 +445,7 @@ cargo install ultralytics-inference --features cuda,tensorrt
 
 ```toml
 [dependencies]
-ultralytics-inference = { version = "0.0.32", features = ["video"] }
+ultralytics-inference = { version = "0.0.34", features = ["video"] }
 ```
 
 ## Output and saving

@@ -68,7 +68,7 @@ class BaseTensor(SimpleClass):
             >>> data = torch.rand(100, 4)
             >>> base_tensor = BaseTensor(data, orig_shape=(720, 1280))
             >>> print(base_tensor.shape)
-            (100, 4)
+            torch.Size([100, 4])
         """
         return self.data.shape
 
@@ -727,6 +727,8 @@ class Results(SimpleClass, DataExportMixin):
               - For detections: `class x_center y_center width height [confidence] [track_id]`
               - For classifications: `confidence class_name`
               - For masks and keypoints, the specific formats will vary accordingly.
+            - A detection whose mask contour has fewer than 3 points is omitted, since a shorter row is not a
+              polygon, and no file is written when no line remains.
             - The function will create the output directory if it does not exist.
             - If save_conf is False, the confidence scores will be excluded from the output.
             - Existing contents of the file will not be overwritten; new results will be appended.
@@ -750,8 +752,10 @@ class Results(SimpleClass, DataExportMixin):
                 c, conf, id = int(d.cls.item()), float(d.conf.item()), int(d.id.item()) if d.is_track else None
                 line = (c, *(d.xyxyxyxyn.reshape(-1) if is_obb else d.xywhn.reshape(-1)))
                 if masks:
-                    seg = masks[j].xyn[0].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
-                    line = (c, *seg)
+                    seg = masks[j].xyn[0]
+                    if len(seg) < 3:  # fewer than 3 points is not a polygon, and writes a row no loader accepts
+                        continue
+                    line = (c, *seg.copy().reshape(-1))  # reversed mask.xyn, (n,2) to (n*2)
                 if kpts is not None:
                     kpt = kpts[j].xyn
                     if kpts[j].has_visible:
@@ -1048,9 +1052,6 @@ class Boxes(BaseTensor):
             ...     torch.tensor([[100, 50, 150, 100, 0.9, 0], [200, 150, 300, 250, 0.8, 1]]), orig_shape=(480, 640)
             ... )
             >>> xywh = boxes.xywh
-            >>> print(xywh)
-            tensor([[125.0000,  75.0000,  50.0000,  50.0000],
-                    [250.0000, 200.0000, 100.0000, 100.0000]])
         """
         return ops.xyxy2xywh(self.xyxy)
 
@@ -1471,6 +1472,11 @@ class OBB(BaseTensor):
             >>> xywhr = obb.xywhr
             >>> print(xywhr.shape)
             torch.Size([3, 5])
+
+        Notes:
+            Predictions are not canonicalized to the long-edge convention that training labels use, so width may be
+            smaller than height with the rotation measured from the short edge. Use `xyxyxyxy` when only the geometry
+            matters, or `ops.xyxyxyxy2xywhr(obb.xyxyxyxy)` for the canonical form.
         """
         return self.data[:, :5]
 
@@ -1534,8 +1540,8 @@ class OBB(BaseTensor):
 
         Returns:
             (torch.Tensor | np.ndarray): Rotated bounding boxes in xyxyxyxy format with shape (N, 4, 2), where N is the
-                number of boxes. Each box is represented by 4 points (x, y), starting from the top-left corner and
-                moving clockwise.
+                number of boxes. The 4 points (x, y) are wound counter-clockwise as rendered, starting from the corner
+                at +w/2, +h/2 in the box frame, so which image corner comes first follows the rotation.
 
         Examples:
             >>> obb = OBB(torch.tensor([[100, 100, 50, 30, 0.5, 0.9, 0]]), orig_shape=(640, 640))

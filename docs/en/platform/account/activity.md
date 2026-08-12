@@ -14,7 +14,7 @@ keywords: Ultralytics Platform, activity feed, audit log, notifications, event t
 
 ## Overview
 
-The Activity Feed serves as your central hub for:
+The Activity Feed provides one place for:
 
 - **Training updates**: Job started, completed, failed, or cancelled
 - **Data changes**: Datasets created, modified, or deleted

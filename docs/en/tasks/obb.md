@@ -54,7 +54,7 @@ Train YOLO26n-obb on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.
 
 !!! note
 
-    An OBB and its 180° rotation are identical, so rotation is defined modulo 180° and the box has no direction. Internally the angle is stored in radians and normalized to **`[-π/4, 3π/4)`** (`[-45°, 135°)`), the box width `w` is taken as the longer side, and the angle is defined as the clockwise angle from the positive x-axis to the direction of `w`. The `[0°, 90°)` form is the regularized DOTA-style convention and is not applied at training or inference.
+    An OBB and its 180° rotation are identical, so rotation is defined modulo 180° and the box has no direction. Training labels are canonicalized to a long-edge form: the box width `w` is the longer side, the angle is measured clockwise from the positive x-axis to the orientation of the `w` edge, and it is stored in radians in **`[-π/4, 3π/4)`** (`[-45°, 135°)`). Predictions are not canonicalized, so a predicted box may report the short edge as `w`; see [Results Output](#results-output). The `[0°, 90°)` form is the regularized DOTA-style convention and is not applied at training or inference.
 
 !!! example
 
@@ -196,6 +196,14 @@ which contains rotated boxes, class IDs, and confidence scores for each detected
 | `result.obb.xyxyxyxy` | `torch.float32` | `(N,4,2)` | Four corner points.                      |
 | `result.obb.conf`     | `torch.float32` | `(N,)`    | Confidence scores.                       |
 
+Labels are canonicalized to the long-edge convention but predictions are not, so `result.obb.xywhr` may report `w` smaller than `h` with the rotation measured from the short edge. Both forms describe the same rectangle, so `result.obb.xyxyxyxy` is correct either way. Convert the corners back when downstream code needs the long-edge form, keeping in mind that rewriting the box parameters may cyclically shift the corner order:
+
+```python
+from ultralytics.utils.ops import xyxyxyxy2xywhr
+
+xywhr = xyxyxyxy2xywhr(result.obb.xyxyxyxy)  # w >= h, rotation in [-pi/4, 3pi/4)
+```
+
 For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 
 ## Export
@@ -226,7 +234,6 @@ Export a YOLO26n-obb model to a different format like ONNX, CoreML, etc.
 
 Available YOLO26-obb export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-obb.onnx`. Usage examples are shown for your model after export completes.
 
-{% set model_name = "yolo26n-obb" %}
 {% include "macros/export-table.md" %}
 
 See full `export` details in the [Export](../modes/export.md) page.

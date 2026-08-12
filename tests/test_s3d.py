@@ -711,6 +711,41 @@ def test_ivw_fusion_equal_sigma_matches_geomean():
     assert abs(z_ivw - z_geo) < 1e-2, f"ivw {z_ivw} != geomean {z_geo}"
 
 
+def test_score_weight_demotes_uncertain():
+    """score_weight multiplies confidence by exp(-k*sigma): higher lr_logvar => lower final score."""
+    import math
+
+    import torch
+
+    from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS, encode_orientation
+    from ultralytics.models.yolo.s3d.preprocess import decode_stereo3d_outputs
+
+    calib = {"fx": 721.5377, "fy": 721.5377, "cx": 609.5593, "cy": 172.8540, "baseline": 0.54}
+    ori_hw = (375, 1242)
+    imgsz = (384, 1248)
+    nc = 3
+
+    def conf(logvar):
+        det = torch.zeros(1, 4 + nc, 1)
+        det[0, :4, 0] = torch.tensor([624.0, 192.0, 20.0, 20.0])
+        det[0, 4, 0] = 0.9
+        outputs = {
+            "det": det,
+            "dimensions": torch.zeros(1, 3, 1),
+            "orientation": torch.tensor(encode_orientation(0.0)).view(1, ORIENT_CHANNELS, 1).float(),
+            "lr_distance": torch.tensor([[[math.log(0.03)]]]),
+            "depth": torch.tensor([[[math.log(25.0)]]]),
+            "lr_logvar": torch.tensor([[[logvar]]]),
+        }
+        # bs=1 -> decode_stereo3d_outputs returns a flat list[Box3D] (unwrapped), so index once.
+        # score-weighting is applied unconditionally when lr_logvar is present.
+        return decode_stereo3d_outputs(outputs, calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], score_k=0.5)[
+            0
+        ].confidence
+
+    assert conf(4.0) < conf(0.0), "higher uncertainty must lower the score"
+
+
 def test_ivw_fusion_uses_dfl_variance():
     """With depth_bins present, ivw_fusion must weight the direct cue by its DFL spread (not the constant 1.0 fallback),
     pulling the fused z away from the plain geomean when the DFL distribution is narrow (low variance) while the

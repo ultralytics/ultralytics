@@ -245,6 +245,7 @@ class Stereo3DDetValidator(BaseValidator):
             mean_dims=self.mean_dims if hasattr(self, "mean_dims") else None,
             std_dims=self.std_dims if hasattr(self, "std_dims") else None,
             class_names=self.names if hasattr(self, "names") else None,
+            score_k=getattr(self.args, "score_k", 0.5),
             depth_var_scale=getattr(self.args, "depth_var_scale", 1.0),
         )
 

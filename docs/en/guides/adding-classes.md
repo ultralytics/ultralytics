@@ -211,6 +211,37 @@ A rhino is easy because COCO already knows large animals. Licence plates are the
 
 The `car`, `truck` and `person` detections are untouched, and `license-plate 0.68` is added. Accuracy on the new class is well below what a full fine-tune of every layer would reach on the same data, which is the cost of keeping the other 80 classes frozen. It was also still improving at 50 epochs, so a class this far from the pretrained features wants a longer run.
 
+## Compared With a Normal Fine-Tune
+
+The usual way to add a class is to train every layer on the new data. That reaches a slightly better score on the new class, and quietly destroys the old ones.
+
+Both were measured the same way: `yolo26n`, `rhino` added as class 80, 262 images annotated for `rhino` only, 100 epochs. New-class accuracy is measured on the held-out `rhino` images, old-class accuracy on COCO val2017, which no run trained on.
+
+| Training                                      | `rhino` mAP50-95 | COCO mAP50-95 | COCO kept |
+| --------------------------------------------- | ---------------- | ------------- | --------- |
+| Pretrained model, for reference               | none             | 0.395         | 100%      |
+| **`RefineDetectionTrainer`**                  | **0.831**        | **0.394**     | **99.8%** |
+| Every layer trainable                         | 0.852            | 0.036         | 9%        |
+| Every layer trainable, head rebuilt for 81    | 0.809            | 0.000         | 0%        |
+| Every layer trainable, 1000 COCO images added | 0.846            | 0.272         | 69%       |
+
+Refinement gives up a few percent on the new class. In exchange the 80 COCO classes stay where they were, instead of dropping by 91%.
+
+Mixing the original data back in is the standard remedy, and the last row shows its limits: it needs the original dataset, it trained on five times the images, and it still lost 31% of the old accuracy.
+
+The reason this is easy to miss is that the damage lands well before the new class works:
+
+| Epoch | Every layer trainable |       | `RefineDetectionTrainer` |       |
+| ----- | --------------------- | ----- | ------------------------ | ----- |
+|       | COCO mAP50-95         | rhino | COCO mAP50-95            | rhino |
+| 1     | 0.388                 | 0.000 | 0.395                    | 0.000 |
+| 11    | 0.188                 | 0.000 | 0.395                    | 0.544 |
+| 21    | 0.115                 | 0.820 | 0.394                    | 0.690 |
+| 51    | 0.049                 | 0.853 | 0.395                    | 0.820 |
+| 91    | 0.044                 | 0.877 | 0.394                    | 0.831 |
+
+By epoch 11 the unfrozen run has lost half of its COCO accuracy and has not yet learned anything about `rhino`, so stopping early does not avoid the trade. Nothing in the training logs reports this, because the only metrics on screen are for the class being added.
+
 ## FAQ
 
 ### Are the other classes really unchanged?

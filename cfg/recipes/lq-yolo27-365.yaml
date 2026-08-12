@@ -1,11 +1,7 @@
-# Objects365v1 pretrain args read from yolo27s-obj365-l-c3k2-muon.pt (`s-light-muon-0.5-sgd-0.5-150`,
-# project YOLO27-obj365-new), which reached 23.90 mAP50-95 at epoch 150 on yolo26s-p4p5-wide-slim19.yaml
-# from a c3k2_s.pt init. MuSGD 0.5/0.5 at lr0 0.01 b128, near-default aug, 2 warmup epochs.
-# `optimizer: auto` in the source resolves to MuSGD there. Ours would pick AdamW, so it is named here.
-# amp false departs from the source bf16: lq's own matched S pair scores fp32 above bf16 by 0.93 points, and
-# our enterprise arms already run without AMP. See .claude/lq-obj365-grid.md.
-# Known infidelities: cls_norm tss / cls_lr_mult / dup_sup / o2f / dup_margin are not args on this branch.
-# No grad_clip key: main() passes it. end2end stays unset, as in the source.
+# Objects365v1 args from yolo27s-obj365-l-c3k2-muon.pt (`s-light-muon-0.5-sgd-0.5-150`), 23.90 at ep150.
+# Source `optimizer: auto` is MuSGD there and AdamW here, so it is named. amp false over the source bf16,
+# which lost 0.93 points on lq's matched S pair. Grid in .claude/lq-obj365-grid.md.
+# cls_norm / cls_lr_mult / dup_sup / o2f / dup_margin are not branch args. grad_clip comes from main().
 amp: false
 auto_augment: randaugment
 backbone_lr_ratio: 1.0

@@ -1,7 +1,4 @@
-# lq-yolo27-365 with the MuSGD split moved to the branch default. Ablation arm A1, one axis off the control.
-# See .claude/lq-obj365-grid.md: every lq MuSGD arm holds 0.5/0.5, so this split is untested at any scale.
-# Known infidelities: cls_norm tss / cls_lr_mult / dup_sup / o2f / dup_margin are not args on this branch.
-# No grad_clip key: main() passes it. end2end stays unset, as in the source.
+# lq-yolo27-365 at the branch-default MuSGD split. Ablation arm A1, one axis off the control.
 amp: false
 auto_augment: randaugment
 backbone_lr_ratio: 1.0

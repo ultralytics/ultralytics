@@ -32,7 +32,7 @@ Each skill ships a `SKILL.md` with decision tables and procedures, plus referenc
 
     === "Claude Code"
 
-        Install as a plugin from the Ultralytics marketplace:
+        Install the `yolo` plugin, which bundles all seven skills, from the Ultralytics marketplace:
 
         ```bash
         claude plugin marketplace add ultralytics/skills
@@ -41,7 +41,7 @@ Each skill ships a `SKILL.md` with decision tables and procedures, plus referenc
 
     === "Codex"
 
-        Install as a plugin from the Ultralytics marketplace:
+        Install the `yolo` plugin, which bundles all seven skills, from the Ultralytics marketplace:
 
         ```bash
         codex plugin marketplace add ultralytics/skills
@@ -76,7 +76,7 @@ Once installed, skills activate automatically whenever a task involves Ultralyti
 | Inference | "Run tracking on this video and count objects crossing a line"                |
 | Export    | "Export my trained model to TensorRT with INT8 quantization and benchmark it" |
 
-The `yolo` skill acts as a router: the agent reads its lightweight description first and only loads the deeper lifecycle skills (training, export, etc.) when the task requires them, keeping context usage minimal.
+The `yolo` skill acts as a router: it matches any Ultralytics task and directs the agent to the lifecycle skill for the stage at hand (training, export, etc.), so deeper references load only when a task requires them and context usage stays minimal.
 
 ## FAQ
 
@@ -86,12 +86,12 @@ They are official instruction packages from the [ultralytics/skills](https://git
 
 ### Which AI coding agents are supported?
 
-Claude Code and Codex install the skills as a plugin from the built-in marketplace. Cursor, Gemini CLI, GitHub Copilot, Windsurf, and 70+ other agents install them with `npx skills add ultralytics/skills`.
+Claude Code and Codex install the skills as a plugin from the Ultralytics marketplace. Cursor, Gemini CLI, GitHub Copilot, Windsurf, and 70+ other agents install them with `npx skills add ultralytics/skills`.
 
 ### Do I need to install all seven skills?
 
-Installing the full set is recommended since the skills cross-reference each other, and the router keeps context usage low by loading only what a task needs. If you prefer a minimal setup, install individual skills with `npx skills add ultralytics/skills --skill yolo-training`.
+Installing the full set is recommended since the skills cross-reference each other, and the `yolo` router skill directs the agent to load only what a task needs, keeping context usage low. If you prefer a minimal setup, install individual skills with `npx skills add ultralytics/skills --skill yolo-training`.
 
 ### How do I update the skills?
 
-For Claude Code and Codex, update the marketplace and reinstall the plugin. For the skills CLI, rerun `npx skills add ultralytics/skills` to pull the latest versions. Skills are versioned against `ultralytics` releases, so updating keeps agent knowledge aligned with the package version you use.
+For Claude Code, run `claude plugin update yolo@ultralytics`; for Codex, run `codex plugin marketplace upgrade ultralytics`. Both require a restart to apply the update. For the skills CLI, rerun `npx skills add ultralytics/skills` to pull the latest versions. Skills are grounded against a specific `ultralytics` release, so updating keeps agent knowledge aligned with the package version you use.

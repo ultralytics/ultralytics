@@ -1040,7 +1040,7 @@ class BaseTrainer:
 
         use_muon = name == "MuSGD"
         dense_only = use_muon and self.args.muon_dense_only
-        skip_muon = set()  # ids of the head's final box/cls conv weights, excluded from Muon when dense_only
+        skip_muon = set()  # ids of the stem and head final conv weights, excluded from Muon when dense_only
         if dense_only:
             heads = [
                 b[k]
@@ -1050,12 +1050,13 @@ class BaseTrainer:
                 for k in ("box_head", "cls_head")
                 if b.get(k)
             ]
-            skip_muon = {id(s[-1].weight) for h in heads for s in h if isinstance(s[-1], nn.Conv2d)}
+            stem = next(m for m in unwrap_model(model).modules() if isinstance(m, nn.Conv2d))  # input layer
+            skip_muon = {id(stem.weight)} | {id(s[-1].weight) for h in heads for s in h if isinstance(s[-1], nn.Conv2d)}
         for module_name, module in unwrap_model(model).named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
                 is_muon = param.ndim >= 2 and use_muon
-                if is_muon and dense_only:  # grouped/depthwise convs and output convs are not dense matrices
+                if is_muon and dense_only:  # grouped/depthwise convs and input/output convs are not dense matrices
                     is_muon = getattr(module, "groups", 1) == 1 and id(param) not in skip_muon
                 if is_muon:
                     g[3][fullname] = param  # muon params

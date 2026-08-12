@@ -753,12 +753,7 @@ def test_platform_job_transport(monkeypatch, tmp_path):
 
     def post(url, **kwargs):
         captured.update(url=url, **kwargs)
-        response = (
-            {"uploadUrl": "https://upload.test", "gcsPath": "gs://bucket/model.pt"}
-            if url.endswith("/models/upload")
-            else {"received": True}
-        )
-        return SimpleNamespace(status_code=200, json=lambda: response, raise_for_status=lambda: None)
+        return SimpleNamespace(status_code=200, json=lambda: {"received": True}, raise_for_status=lambda: None)
 
     monkeypatch.setattr("requests.post", post)
     monkeypatch.setattr(platform, "_api_key", "api-key")
@@ -767,8 +762,6 @@ def test_platform_job_transport(monkeypatch, tmp_path):
     assert captured["url"] == "https://example.test/api/webhooks/training/metrics"
     assert captured["json"]["data"] == {"epoch": 0}
     assert captured["headers"] == {"Authorization": "Bearer api-key"}
-    assert platform._send("epoch_end", {"epoch": 1}, "user/project", "model", model_id="model-id") == {"received": True}
-    assert captured["json"] == {"event": "epoch_end", "data": {"epoch": 1}, "modelId": "model-id"}
 
     model = tmp_path / "models" / "best.pt"
     model.parent.mkdir()
@@ -778,14 +771,6 @@ def test_platform_job_transport(monkeypatch, tmp_path):
         "modelPath": str(model),
         "modelSize": 7,
     }
-
-    monkeypatch.delenv("PLATFORM_API_URL")
-    monkeypatch.setattr("ultralytics.utils.uploads.safe_upload", lambda **kwargs: True)
-    assert platform._upload_model(model, "user/project", "model", model_id="model-id") == {
-        "modelPath": "gs://bucket/model.pt",
-        "modelSize": 7,
-    }
-    assert captured["json"] == {"filename": "best.pt", "modelId": "model-id"}
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

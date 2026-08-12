@@ -1497,7 +1497,9 @@ class E2ELoss:
         one2many, one2one = preds["one2many"], preds["one2one"]
         loss_one2many = self.one2many.loss(one2many, batch)
         loss_one2one = self.one2one.loss(one2one, batch)
-        return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2one[1]
+        return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, {
+            key: loss_one2many[1][key] * self.o2m + loss_one2one[1][key] * self.o2o for key in loss_one2many[1]
+        }
 
     def update(self) -> None:
         """Update the weights for one-to-many and one-to-one losses based on the decay schedule."""

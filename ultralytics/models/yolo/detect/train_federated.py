@@ -7,11 +7,12 @@ draw from one source by construction. Batches are dataset-pure, which is what ma
 instead of teaching every other source's classes as absent.
 
 Sampling is a two-stage draw per step: a source by localization hardness, then images within it by repeat factor.
-The first epoch samples sources uniformly. Later epochs use the preceding epoch's source box losses.
+The first epoch samples sources uniformly. Later epochs use the preceding epoch's weighted L1 losses.
 """
 
 from __future__ import annotations
 
+import math
 import shutil
 from copy import copy
 from pathlib import Path
@@ -21,6 +22,7 @@ import numpy as np
 import torch
 import torch.distributed as dist
 from torch.utils.data import Sampler
+from torchvision.ops.misc import FrozenBatchNorm2d
 
 from ultralytics.data import YOLOConcatDataset, build_dataloader
 from ultralytics.models.yolo.detect.train import DetectionTrainer
@@ -28,6 +30,37 @@ from ultralytics.models.yolo.detect.val import DetectionValidator
 from ultralytics.utils import LOCAL_RANK, LOGGER, RANK
 from ultralytics.utils.metrics import DetMetrics
 from ultralytics.utils.torch_utils import torch_distributed_zero_first, unwrap_model
+
+
+def _replace_batch_norm(module: torch.nn.Module, frozen: bool) -> int:
+    """Replace descendant BatchNorm layers with frozen normalization or GroupNorm.
+
+    Args:
+        module (torch.nn.Module): Root module whose descendants are converted.
+        frozen (bool): Whether to use FrozenBatchNorm2d instead of GroupNorm.
+
+    Returns:
+        (int): Number of replaced layers.
+    """
+    replaced = 0
+    for name, child in module.named_children():
+        if isinstance(child, torch.nn.BatchNorm2d):
+            norm = (
+                FrozenBatchNorm2d(child.num_features, eps=child.eps)
+                if frozen
+                else torch.nn.GroupNorm(math.gcd(32, child.num_features), child.num_features, eps=child.eps)
+            ).to(child.weight.device, child.weight.dtype)
+            with torch.no_grad():
+                norm.weight.copy_(child.weight)
+                norm.bias.copy_(child.bias)
+                if frozen:
+                    norm.running_mean.copy_(child.running_mean)
+                    norm.running_var.copy_(child.running_var)
+            setattr(module, name, norm)
+            replaced += 1
+        else:
+            replaced += _replace_batch_norm(child, frozen)
+    return replaced
 
 
 def load_or_build_label_prototypes(
@@ -168,10 +201,10 @@ class QuotaBatchSampler(Sampler):
         self.epoch = epoch
 
     def update_loss_quota(self, losses: np.ndarray) -> None:
-        """Set source probabilities from the latest per-source box losses."""
-        # Plain-Det applies loss * (Nmax / N)^0.7 per image, giving aggregate source mass loss * N^0.3:
-        # https://github.com/ChengShiest/Plain-Det/blob/ca4bda1e51d99d1ef07230ed1616fd4c377f1a9e/Plain_Det/data/multidataset.py#L372-L402
-        weights = losses * self.counts**0.3
+        """Set source probabilities from the latest per-source L1 losses."""
+        # Plain-Det paper Eq. 2 uses source mass L * sqrt(N):
+        # https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/00763.pdf#page=5
+        weights = losses * np.sqrt(self.counts)
         self.quota = weights / weights.sum()
 
     def __iter__(self):
@@ -492,12 +525,17 @@ class FederatedDetectionTrainer(DetectionTrainer):
     def set_model_attributes(self) -> None:
         """Set source heads, frozen prototypes, and loss-aware sampling."""
         super().set_model_attributes()
+        model = unwrap_model(self.model)
+        backbone_layers = len(model.yaml["backbone"])
+        frozen_norms = sum(_replace_batch_norm(layer, True) for layer in model.model[:backbone_layers])
+        group_norms = sum(_replace_batch_norm(layer, False) for layer in model.model[backbone_layers:])
+        LOGGER.info(f"Enterprise normalization: {frozen_norms} frozen backbone BN, {group_norms} detector GN")
         bounds = [*sorted(self.data["offsets"].values()), self.data["nc"]]
         self.slices = {k: (lo, hi) for (k, lo), hi in zip(self.data["offsets"].items(), bounds[1:])}
         self.source_indices = {source: index for index, source in enumerate(self.slices)}
         classifier = getattr(self.args, "federated_cls_heads", "merged")
         if classifier == "source":
-            unwrap_model(self.model).model[-1].partition_classifiers(list(self.slices.values()))
+            model.model[-1].partition_classifiers(list(self.slices.values()))
         elif classifier == "semantic":
             names = list(self.data["names"].values())
             with torch_distributed_zero_first(LOCAL_RANK):
@@ -507,9 +545,9 @@ class FederatedDetectionTrainer(DetectionTrainer):
                     self.args.federated_semantic_text_model,
                     self.device,
                 )
-            unwrap_model(self.model).model[-1].install_semantic_classifier(list(self.slices.values()), prototypes)
+            model.model[-1].install_semantic_classifier(list(self.slices.values()), prototypes)
         self.source_loss_stats = torch.zeros(2, len(self.slices), device=self.device)
-        self.source_box_losses = torch.ones(len(self.slices), device=self.device)
+        self.source_l1_losses = torch.ones(len(self.slices), device=self.device)
         self.sampling_metrics = {}
         self.add_callback("on_train_batch_end", self._record_source_loss)
         self.add_callback("on_train_epoch_end", self._update_loss_quota)
@@ -539,8 +577,8 @@ class FederatedDetectionTrainer(DetectionTrainer):
         """
         super().resume_training(ckpt)
         if ckpt is not None and self.resume:
-            losses = np.array([ckpt["train_metrics"][f"sampling/{name}/box_loss"] for name in self.slices])
-            self.source_box_losses.copy_(torch.from_numpy(losses).to(self.device))
+            losses = np.array([ckpt["train_metrics"][f"sampling/{name}/l1_loss"] for name in self.slices])
+            self.source_l1_losses.copy_(torch.from_numpy(losses).to(self.device))
             self.quota_sampler.update_loss_quota(losses)
         if getattr(self.args, "federated_cls_heads", "merged") in {"source", "semantic"}:
             model = unwrap_model(self.model)
@@ -593,9 +631,9 @@ class FederatedDetectionTrainer(DetectionTrainer):
         )
 
     def _record_source_loss(self, _) -> None:
-        """Accumulate the active source box loss after each training batch."""
+        """Accumulate the active source weighted L1 loss after each training batch."""
         index = self.source_indices[self.current_source]
-        self.source_loss_stats[0, index] += self.loss_items["box_loss"].detach()
+        self.source_loss_stats[0, index] += self.loss_items["l1_loss"].detach()
         self.source_loss_stats[1, index] += 1
 
     def _update_loss_quota(self, _) -> None:
@@ -604,14 +642,14 @@ class FederatedDetectionTrainer(DetectionTrainer):
         if dist.is_initialized():
             dist.all_reduce(self.source_loss_stats)
         seen = self.source_loss_stats[1].bool()
-        self.source_box_losses[seen] = self.source_loss_stats[0, seen] / self.source_loss_stats[1, seen]
-        losses = self.source_box_losses.cpu().numpy()
+        self.source_l1_losses[seen] = self.source_loss_stats[0, seen] / self.source_loss_stats[1, seen]
+        losses = self.source_l1_losses.cpu().numpy()
         quota = self.quota_sampler.quota.copy()
         self.sampling_metrics = {
             key: value
             for name, loss, probability, count in zip(self.slices, losses, quota, batches)
             for key, value in {
-                f"sampling/{name}/box_loss": loss,
+                f"sampling/{name}/l1_loss": loss,
                 f"sampling/{name}/target_probability": probability,
                 f"sampling/{name}/realized_batches": count,
                 f"sampling/{name}/realized_probability": count / batches.sum(),
@@ -620,7 +658,7 @@ class FederatedDetectionTrainer(DetectionTrainer):
         self.quota_sampler.update_loss_quota(losses)
         self.source_loss_stats.zero_()
         LOGGER.info(
-            f"source box loss {np.round(losses, 4).tolist()}, next quota "
+            f"source L1 loss {np.round(losses, 4).tolist()}, next quota "
             f"{np.round(self.quota_sampler.quota, 4).tolist()}"
         )
 

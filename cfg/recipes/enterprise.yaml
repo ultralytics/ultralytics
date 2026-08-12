@@ -46,7 +46,7 @@ warmup_bias_lr: 0.0
 warmup_epochs: 0.14
 warmup_momentum: 0.9
 weight_decay: 0.000125
-workers: 8
+workers: 4
 epochs: 78
 repeat_t: 0.001
 repeat_sources: cct20,flir-adas-v2,locount

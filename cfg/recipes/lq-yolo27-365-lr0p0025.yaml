@@ -38,3 +38,4 @@ warmup_bias_lr: 0.0
 warmup_epochs: 2
 warmup_momentum: 0.8
 weight_decay: 0.0005
+workers: 4

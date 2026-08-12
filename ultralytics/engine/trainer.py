@@ -1088,7 +1088,8 @@ class BaseTrainer:
         g[2] = {"params": g[2], **optim_args, "param_group": "bias"}
         g[0] = {"params": g[0], **optim_args, "weight_decay": decay, "param_group": "weight"}
         g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0, "param_group": "bn"}
-        muon, sgd = (0.2, 1.0)
+        adamw = float(self.args.muon_aux_adamw)  # Muon switches to a matching update RMS, so both share one lr
+        muon, sgd = (1.0, 0.0) if adamw else (0.2, 1.0)  # pure Muon next to AdamW, or the hybrid Muon+SGD default
         if use_muon:
             g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True, "param_group": "muon"}
             import re
@@ -1105,9 +1106,9 @@ class BaseTrainer:
                 p2 = [v for k, v in p.items() if not pattern.search(k)]
                 g_.extend([{"params": p1, **x, "lr": lr * 3}, {"params": p2, **x}])
             g = g_
-        optimizer = getattr(optim, name, partial(MuSGD, muon=muon, sgd=sgd, conv_scale=self.args.muon_conv_scale))(
-            params=g
-        )
+        optimizer = getattr(
+            optim, name, partial(MuSGD, muon=muon, sgd=sgd, adamw=adamw, conv_scale=self.args.muon_conv_scale)
+        )(params=g)
 
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "

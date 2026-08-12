@@ -65,7 +65,7 @@ Each skill ships a `SKILL.md` with decision tables and procedures, plus referenc
 
 ## Usage
 
-Once installed, skills activate automatically whenever a task involves Ultralytics — no extra configuration needed for supported agents' default setups (restart your agent if it was already running when you installed). Just ask your agent naturally:
+Once installed, skills activate automatically whenever a task involves Ultralytics — no extra configuration needed for supported agents' default setups (if your agent was already running when you installed, reload with `/reload-plugins` in Claude Code or restart it). Just ask your agent naturally:
 
 | Category  | Example prompt                                                                |
 | --------- | ----------------------------------------------------------------------------- |
@@ -94,4 +94,4 @@ Installing the full set is recommended since the skills cross-reference each oth
 
 ### How do I update the skills?
 
-For Claude Code, run `claude plugin update yolo@ultralytics`; for Codex, run `codex plugin marketplace upgrade ultralytics` followed by `codex plugin add yolo@ultralytics`. Both agents require a restart to apply the update. For the skills CLI, rerun `npx skills add ultralytics/skills` to pull the latest versions. Skills are grounded against a specific `ultralytics` release, so updating keeps agent knowledge aligned with the package version you use.
+For Claude Code, run `claude plugin update yolo@ultralytics`, then `/reload-plugins` in your session (or restart) to apply it. For Codex, run `codex plugin marketplace upgrade ultralytics` followed by `codex plugin add yolo@ultralytics`, then restart Codex. For the skills CLI, rerun `npx skills add ultralytics/skills` to pull the latest versions. Skills are grounded against a specific `ultralytics` release, so updating keeps agent knowledge aligned with the package version you use.

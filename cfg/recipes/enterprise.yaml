@@ -49,7 +49,7 @@ weight_decay: 0.000125
 workers: 8
 epochs: 78
 repeat_t: 0.001
-repeat_sources: CCT20,FLIR,LOCount
+repeat_sources: cct20,flir-adas-v2,locount
 fed_k: 365
 federated_cls_loss: bce
 federated_cls_heads: merged

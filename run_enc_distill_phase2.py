@@ -31,8 +31,7 @@ Flags:
     --recipe <name>: coco/multi_det/obj365 modes. Recipe profile stem under cfg/recipes/, defaulting to
                 the mode's profile (coco-preserve, multi-det, obj365-pretrain). Use coco-adapt for a
                 non-distilled backbone, coco-after-o365 after an obj365 pretrain, multi-det-musgd-cos or
-                yolo26-published-{det,multi-det,objv1} for MuSGD.
-    --repo_defaults: multi_det_finetune only. Inherit default.yaml and set epochs=100, deterministic=True, workers=4.
+                yolo26-published-{det,multi-det,objv1} for MuSGD, or repo-defaults for UL33 default.yaml settings.
     --model <yaml>: det modes. Detector yaml to build, replacing the one derived from the checkpoint.
                 Needed when the run swaps the checkpoint's trunk into a different neck/head.
     --lr <val>: override the profile lr0 (det modes) or the final lr0 (other modes).
@@ -560,7 +559,6 @@ def _run_multi_det(
     backbone_lr_ratio_override: str = "",
     recipe_name: str = "",
     cls_map_vocab: str = "",
-    repo_defaults: bool = False,
 ) -> None:
     """Sequentially train + val on a list of YOLO-format detection datasets.
 
@@ -595,7 +593,6 @@ def _run_multi_det(
         cls_map_vocab (str, optional): Vocab key in ul33_cls_map.json (coco/obj365/oiv7/enterprise). When set, forces
             cls_remap=true and transfers same-name head rows plus listed aliases instead of the profile's no-transfer
             default. Pick the vocab matching phase1_weights' pretraining label space.
-        repo_defaults (bool, optional): Inherit default.yaml and set epochs=100, deterministic=True, and workers=4.
     """
     if "," in gpu:
         raise SystemExit(
@@ -644,10 +641,10 @@ def _run_multi_det(
         except OSError as e:
             print(f"[multi_det_finetune] NFS mirror of multi_results.csv failed (continuing): {e}")
 
+    repo_defaults = recipe_name == "repo-defaults"
     if repo_defaults:
         if any(
             (
-                recipe_name,
                 patience,
                 batch_override,
                 lr_override,
@@ -833,15 +830,14 @@ def main(argv: list[str]) -> None:
     argv, backbone_lr_ratio_override = _pop_flag(argv, "--backbone_lr_ratio")
     argv, recipe_name = _pop_flag(argv, "--recipe")
     argv, model_override = _pop_flag(argv, "--model")
-    argv, repo_defaults = _pop_flag(argv, "--repo_defaults", is_bool=True)
     argv, cls_map_vocab = _pop_flag(argv, "--cls_map")
     argv, scratch = _pop_flag(argv, "--scratch", is_bool=True)
     argv, datasets_arg = _pop_flag(argv, "--datasets")
     argv, imgsz_override = _pop_flag(argv, "--imgsz")
     argv, seed_override = _pop_flag(argv, "--seed")
     seed = int(seed_override) if seed_override else 0
-    if repo_defaults and seed_override:
-        raise SystemExit("ERROR: --repo_defaults inherits the repository seed.")
+    if recipe_name == "repo-defaults" and seed_override:
+        raise SystemExit("ERROR: --recipe repo-defaults inherits the repository seed.")
     argv, teacher_spec = _pop_flag(argv, "--teacher")
     if teacher_spec:
         # Layout: <gpu> teacher_frozen_det <name> --teacher <spec> --datasets <file>. The frozen-teacher backbone
@@ -862,8 +858,8 @@ def main(argv: list[str]) -> None:
             raise SystemExit(
                 "ERROR: --freeze is not supported with --teacher (teacher_frozen_det already freezes layer 0)."
             )
-        if repo_defaults:
-            raise SystemExit("ERROR: --repo_defaults is not supported with --teacher.")
+        if recipe_name == "repo-defaults":
+            raise SystemExit("ERROR: --recipe repo-defaults is not supported with --teacher.")
         gpu = argv[0] if argv else "0"
         if "," in gpu:
             raise SystemExit(
@@ -935,7 +931,6 @@ def main(argv: list[str]) -> None:
             backbone_lr_ratio_override=backbone_lr_ratio_override,
             recipe_name=recipe_name,
             cls_map_vocab=cls_map_vocab,
-            repo_defaults=bool(repo_defaults),
         )
         return
 

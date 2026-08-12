@@ -37,8 +37,8 @@ If `openai` is missing, Ultralytics installs it automatically on the first reque
 Authentication uses the standard OpenAI environment variables, so no key is ever hardcoded in your scripts:
 
 ```bash
-export OPENAI_API_KEY="sk-..."     # required by the SDK, any non-empty value for most local servers
-export OPENAI_BASE_URL="..."       # optional, overridden by the base_url argument
+export OPENAI_API_KEY="sk-..." # required by the SDK, any non-empty value for most local servers
+export OPENAI_BASE_URL="..."   # optional, overridden by the base_url argument
 ```
 
 ## Usage Examples

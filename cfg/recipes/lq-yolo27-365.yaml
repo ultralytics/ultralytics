@@ -1,6 +1,6 @@
 # Objects365v1 args from yolo27s-obj365-l-c3k2-muon.pt (`s-light-muon-0.5-sgd-0.5-150`), 23.90 at ep150.
 # Source `optimizer: auto` is MuSGD there and AdamW here, so it is named. amp false over the source bf16,
-# which lost 0.93 points on lq's matched S pair. Grid in .claude/lq-obj365-grid.md.
+# which lost 0.93 points on lq's matched S pair. Grid in .claude/lq-yolo27-recipes.md.
 # cls_norm / cls_lr_mult / dup_sup / o2f / dup_margin are not branch args. grad_clip comes from main().
 amp: false
 auto_augment: randaugment

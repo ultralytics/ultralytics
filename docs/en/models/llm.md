@@ -12,7 +12,7 @@ keywords: Ultralytics LLM, OpenAI compatible API, vision language model, VLM, Re
 
 The class is deliberately thin. It builds the request, normalizes image inputs, and hands everything to the official OpenAI Python SDK. Responses come back as native SDK objects, and every keyword argument you pass is forwarded untouched, so nothing in the provider's feature set is hidden behind an Ultralytics abstraction.
 
-Because the OpenAI API format has become the de facto standard for model serving, the same three lines of code reach OpenAI's cloud, a hosted alternative provider, or a model running on your own hardware behind your own firewall. See [Local and On-Prem Deployment](#local-and-on-prem-deployment) for the full list.
+Because the OpenAI API format has become the de facto standard for model serving, the same code reaches OpenAI's cloud, a hosted alternative provider, or a model running on your own hardware behind your own firewall. See [Local and On-Prem Deployment](#local-and-on-prem-deployment) for the full list.
 
 ### Key Features
 
@@ -131,7 +131,7 @@ print(model("Is the operator wearing a helmet?", image="path/to/line.jpg").outpu
 print(model("Is the walkway clear?", image="path/to/aisle.jpg").output_text)
 ```
 
-Native message payloads, meaning a list or dict you build yourself, are sent exactly as written and `prompt` is not applied to them.
+Native message payloads, meaning a list of message objects you build yourself, are sent exactly as written and `prompt` is not applied to them.
 
 ### Request Defaults and Overrides
 
@@ -222,8 +222,8 @@ async def caption(paths):
 
 
 captions = asyncio.run(caption(["im1.jpg", "im2.jpg", "im3.jpg"]))
-for text in captions:
-    print(text.output_text)
+for response in captions:
+    print(response.output_text)
 ```
 
 ### Structured Output
@@ -243,7 +243,7 @@ print(json.loads(response.choices[0].message.content))
 
 ## Local and On-Prem Deployment
 
-The OpenAI API format is implemented by nearly every modern serving stack, so `LLM` runs against models hosted on your own machines with no code change beyond `base_url`. This is the right choice when imagery cannot leave the premises, when you need predictable latency, or when you want to avoid per-token costs on high volume workloads. It also keeps [data privacy](https://www.ultralytics.com/glossary/data-privacy) and [data security](https://www.ultralytics.com/glossary/data-security) requirements satisfiable in air-gapped networks.
+The OpenAI API format is implemented by nearly every modern serving stack, so `LLM` runs against models hosted on your own machines with no code change beyond `base_url`. This is the right choice when imagery cannot leave the premises, when you need predictable latency, or when you want to avoid per-token costs on high-volume workloads. It also keeps [data privacy](https://www.ultralytics.com/glossary/data-privacy) and [data security](https://www.ultralytics.com/glossary/data-security) requirements satisfiable in air-gapped networks.
 
 !!! example "Local inference"
 
@@ -258,7 +258,7 @@ The OpenAI API format is implemented by nearly every modern serving stack, so `L
             api_key="ollama",  # ignored by the server, required by the SDK
         )
 
-        # Ollama serves the Responses API, so the default api works unchanged
+        # Ollama serves the Responses API, so the default works unchanged
         print(model("Describe this image.", image="path/to/bus.jpg").output_text)
         ```
 
@@ -311,16 +311,16 @@ The OpenAI API format is implemented by nearly every modern serving stack, so `L
 
 ### Compatible Endpoints
 
-The table lists common OpenAI-compatible servers and services and the base URL each one exposes by default. Anything else implementing the same routes works the same way.
+The table lists common OpenAI-compatible servers and services with the base URL each one exposes by default. Anything else implementing the same routes works the same way.
 
 | Runtime or service            | Typical `base_url`            | Deployment         | Notes                                                          |
 | ----------------------------- | ----------------------------- | ------------------ | -------------------------------------------------------------- |
 | OpenAI                        | default, no `base_url` needed | Cloud              | Supports both `responses` and `chat.completions`               |
 | [Ollama](https://ollama.com/) | `http://localhost:11434/v1`   | Local              | Simple single-machine serving, serves both API formats         |
-| vLLM                          | `http://localhost:8000/v1`    | Local, self-hosted | High throughput GPU serving for production on-prem clusters    |
-| SGLang                        | `http://localhost:30000/v1`   | Local, self-hosted | High throughput serving with structured output support         |
+| vLLM                          | `http://localhost:8000/v1`    | Local, self-hosted | High-throughput GPU serving for production on-prem clusters    |
+| SGLang                        | `http://localhost:30000/v1`   | Local, self-hosted | High-throughput serving with structured output support         |
 | LM Studio                     | `http://localhost:1234/v1`    | Local              | Desktop app with a built-in compatible server                  |
-| llama.cpp (`llama-server`)    | `http://localhost:8080/v1`    | Local              | CPU and consumer GPU friendly GGUF serving                     |
+| llama.cpp (`llama-server`)    | `http://localhost:8080/v1`    | Local              | GGUF serving for CPUs and consumer GPUs                        |
 | LocalAI                       | `http://localhost:8080/v1`    | Local, self-hosted | Drop-in replacement covering several model backends            |
 | Text Generation Inference     | `http://localhost:8080/v1`    | Self-hosted        | Hugging Face serving stack                                     |
 | NVIDIA NIM                    | `http://localhost:8000/v1`    | Self-hosted        | Containerized microservices for on-prem GPUs                   |
@@ -332,7 +332,7 @@ The table lists common OpenAI-compatible servers and services and the base URL e
     - Many self-hosted servers implement `chat.completions` only, so pass `api="chat.completions"` unless the server documents Responses support.
     - The SDK requires a non-empty key even when the server ignores it. Pass any placeholder through `api_key` or set `OPENAI_API_KEY`.
     - Vision requests need a vision-capable checkpoint on the server, since images are sent as base64 JPEG data URIs.
-    - Remote image URLs are forwarded untouched, and some servers refuse to fetch them. Ollama, for example, answers `image URLs are not currently supported, please use base64 encoded data instead`. Pass a file path or an array instead and the image is encoded for you.
+    - Remote image URLs are forwarded untouched, and some servers refuse to fetch them. Ollama, for example, replies with `image URLs are not currently supported, please use base64 encoded data instead`. Pass a file path or an array instead and the image is encoded for you.
     - On reasoning models, a low token cap can be spent entirely on thinking, leaving the reply empty. Raise the cap or lower the reasoning effort if you get blank content.
     - Keep an eye on the server's context and image size limits. Large frames increase token usage on every request.
 
@@ -408,17 +408,17 @@ For a fully local version of the same pipeline, run YOLO on your own hardware an
 
 ### Call Arguments
 
-| Argument   | Type  | Default | Description                                                                                           |
-| ---------- | ----- | ------- | ----------------------------------------------------------------------------------------------------- |
-| `source`   | `Any` | `None`  | Text string, a native message list or dict, or an image object. Strings are always treated as text.   |
-| `image`    | `Any` | `None`  | Image URL, `data:image/` URI, file path, `numpy.ndarray` (BGR), or PIL image. Encoded as base64 JPEG. |
-| `**kwargs` | `Any` |         | Per-request arguments merged over the constructor defaults and forwarded to the SDK.                  |
+| Argument   | Type  | Default | Description                                                                                            |
+| ---------- | ----- | ------- | ------------------------------------------------------------------------------------------------------ |
+| `source`   | `Any` | `None`  | Text string, a native list of message objects, or an image object. Strings are always treated as text. |
+| `image`    | `Any` | `None`  | Image URL, `data:image/` URI, file path, `numpy.ndarray` (BGR), or PIL image. Encoded as base64 JPEG.  |
+| `**kwargs` | `Any` |         | Per-request arguments merged over the constructor defaults and forwarded to the SDK.                   |
 
 Both arguments are optional. Calling `model()` with a configured `prompt` sends that prompt on its own.
 
 ## Supported Modes
 
-`LLM` is an inference-only client, not a trainable Ultralytics model. It has no `train`, `val`, `export`, or `benchmark` mode and it is not available through the `yolo` CLI.
+`LLM` is an inference-only client, not a trainable Ultralytics model. It has no `train`, `val`, `export`, or `benchmark` mode, and it is not available through the `yolo` CLI.
 
 | Model | Tasks                        | Train | Val | Predict           | Export |
 | ----- | ---------------------------- | ----- | --- | ----------------- | ------ |

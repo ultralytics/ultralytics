@@ -166,7 +166,7 @@ model.train(data="rhino.yaml", epochs=30, classes=[80], trainer=RefineDetectionT
 | Params                                        | +2.0%   |
 | GFLOPs                                        | +1.7%   |
 
-The score change is floating point noise, so the 80 COCO classes predict exactly what they did before. Detections on three images from the set:
+The score change is floating point noise, so the 80 COCO classes predict exactly what they did before. Detections on four images from the set are below.
 
 | Image    | Pretrained                                     | Tuned                                                                              |
 | -------- | ---------------------------------------------- | ---------------------------------------------------------------------------------- |
@@ -190,7 +190,7 @@ The wrong `elephant` and `cow` guesses stay, because nothing tells the model the
 
 ## Harder Example: A Class Unlike Anything in COCO
 
-A rhino is easy because COCO already knows large animals. Licence plates are the opposite: they are small, and nothing in COCO resembles one. The same recipe on 2325 street images with plates as class 80, `yolo26n`, 50 epochs:
+A rhino is easy because COCO already knows large animals. Licence plates are small, and nothing in COCO resembles one. Here is the same recipe on 2325 street images with plates as class 80, `yolo26n`, 50 epochs.
 
 | Metric                                        | Value   |
 | --------------------------------------------- | ------- |
@@ -227,9 +227,9 @@ Both were measured the same way: `yolo26n`, `rhino` added as class 80, 262 image
 
 Refinement loses a few percent on the new class while keeping 99.8% of the accuracy on the 80 COCO classes. Training every layer keeps 9% of it.
 
-Mixing the original data back in is the standard remedy, and the last row shows its limits: it needs the original dataset, it trained on five times the images, and it still keeps only 69% of the old accuracy.
+Mixing the original data back in is the standard remedy. The last row shows what it costs. You need the original dataset, you train on five times the images, and the old classes still come back at only 69%.
 
-The reason this is easy to miss is that the damage lands well before the new class works:
+The damage is easy to miss because it lands well before the new class starts working.
 
 | Epoch | Every layer trainable |       | `RefineDetectionTrainer` |       |
 | ----- | --------------------- | ----- | ------------------------ | ----- |

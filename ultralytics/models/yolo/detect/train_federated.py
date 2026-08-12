@@ -509,6 +509,7 @@ class FederatedDetectionTrainer(DetectionTrainer):
                 )
             unwrap_model(self.model).model[-1].install_semantic_classifier(list(self.slices.values()), prototypes)
         self.source_loss_stats = torch.zeros(2, len(self.slices), device=self.device)
+        self.source_box_losses = torch.ones(len(self.slices), device=self.device)
         self.sampling_metrics = {}
         self.add_callback("on_train_batch_end", self._record_source_loss)
         self.add_callback("on_train_epoch_end", self._update_loss_quota)
@@ -538,9 +539,9 @@ class FederatedDetectionTrainer(DetectionTrainer):
         """
         super().resume_training(ckpt)
         if ckpt is not None and self.resume:
-            self.quota_sampler.update_loss_quota(
-                np.array([ckpt["train_metrics"][f"sampling/{name}/box_loss"] for name in self.slices])
-            )
+            losses = np.array([ckpt["train_metrics"][f"sampling/{name}/box_loss"] for name in self.slices])
+            self.source_box_losses.copy_(torch.from_numpy(losses).to(self.device))
+            self.quota_sampler.update_loss_quota(losses)
         if getattr(self.args, "federated_cls_heads", "merged") in {"source", "semantic"}:
             model = unwrap_model(self.model)
             updates = ckpt.get("epoch", -1) + 1 if ckpt is not None and self.resume else 0
@@ -602,8 +603,9 @@ class FederatedDetectionTrainer(DetectionTrainer):
         batches = self.source_loss_stats[1].cpu().numpy().copy()
         if dist.is_initialized():
             dist.all_reduce(self.source_loss_stats)
-        assert self.source_loss_stats[1].count_nonzero() == len(self.slices), "every source must appear each epoch"
-        losses = (self.source_loss_stats[0] / self.source_loss_stats[1]).cpu().numpy()
+        seen = self.source_loss_stats[1].bool()
+        self.source_box_losses[seen] = self.source_loss_stats[0, seen] / self.source_loss_stats[1, seen]
+        losses = self.source_box_losses.cpu().numpy()
         quota = self.quota_sampler.quota.copy()
         self.sampling_metrics = {
             key: value

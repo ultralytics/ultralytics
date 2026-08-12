@@ -32,6 +32,7 @@ Flags:
                 the mode's profile (coco-preserve, multi-det, obj365-pretrain). Use coco-adapt for a
                 non-distilled backbone, coco-after-o365 after an obj365 pretrain, multi-det-musgd-cos or
                 yolo26-published-{det,multi-det,objv1} for MuSGD.
+    --repo_defaults: multi_det_finetune only. Inherit default.yaml and set epochs=100, deterministic=True, workers=4.
     --model <yaml>: det modes. Detector yaml to build, replacing the one derived from the checkpoint.
                 Needed when the run swaps the checkpoint's trunk into a different neck/head.
     --lr <val>: override the profile lr0 (det modes) or the final lr0 (other modes).
@@ -67,7 +68,7 @@ from ultralytics.data.utils import IMG_FORMATS
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import guess_model_scale, load_checkpoint
 from ultralytics.nn.teacher_model import TEACHER_REGISTRY, safe_key
-from ultralytics.utils import SETTINGS, YAML
+from ultralytics.utils import DEFAULT_CFG_DICT, SETTINGS, YAML
 from ultralytics.utils.downloads import attempt_download_asset, safe_download
 from ultralytics.utils.torch_utils import intersect_dicts
 
@@ -525,12 +526,11 @@ def _load_cls_table(vocab: str) -> dict:
 
 
 class _ClsMapTrainer(DetectionTrainer):
-    """DetectionTrainer applying a hand-written class map before pretrained head-row transfer.
+    """DetectionTrainer applying class aliases before pretrained head-row transfer.
 
     Renames the dataset classes to their mapped source-checkpoint names right before ``model.load()``, so
-    ``BaseModel._remap_cls_by_names`` copies exactly the hand-picked rows from ``cfg/ul33_cls_map.json`` and nothing
-    else. Unlisted classes get a non-matching placeholder and keep their fresh init, and ``set_model_attributes()``
-    restores the real dataset names right after the weights are loaded.
+    ``BaseModel._remap_cls_by_names`` copies same-name rows plus aliases from ``cfg/ul33_cls_map.json``.
+    ``set_model_attributes()`` restores the real dataset names right after the weights are loaded.
     """
 
     cls_map: dict = {}
@@ -538,7 +538,7 @@ class _ClsMapTrainer(DetectionTrainer):
     def set_model_names_for_load(self, model):
         """Alias dataset class names to their manually mapped source names."""
         names = self.data["names"]
-        model.names = {i: self.cls_map.get(str(n).strip().lower(), f"__unmapped_{i}") for i, n in names.items()}
+        model.names = {i: self.cls_map.get(str(n).strip().lower(), n) for i, n in names.items()}
         return model
 
 
@@ -560,6 +560,7 @@ def _run_multi_det(
     backbone_lr_ratio_override: str = "",
     recipe_name: str = "",
     cls_map_vocab: str = "",
+    repo_defaults: bool = False,
 ) -> None:
     """Sequentially train + val on a list of YOLO-format detection datasets.
 
@@ -592,8 +593,9 @@ def _run_multi_det(
         backbone_lr_ratio_override (str, optional): Backbone LR = lr0 * this (below 1 preserves distilled features).
         recipe_name (str, optional): Recipe profile stem under cfg/recipes/, defaulting to the mode's profile.
         cls_map_vocab (str, optional): Vocab key in ul33_cls_map.json (coco/obj365/oiv7/enterprise). When set, forces
-            cls_remap=true and transfers head cls rows per the hand-written map instead of the profile's no-transfer
+            cls_remap=true and transfers same-name head rows plus listed aliases instead of the profile's no-transfer
             default. Pick the vocab matching phase1_weights' pretraining label space.
+        repo_defaults (bool, optional): Inherit default.yaml and set epochs=100, deterministic=True, and workers=4.
     """
     if "," in gpu:
         raise SystemExit(
@@ -642,17 +644,42 @@ def _run_multi_det(
         except OSError as e:
             print(f"[multi_det_finetune] NFS mirror of multi_results.csv failed (continuing): {e}")
 
-    # Every input to the recipe is loop-invariant, so resolve it once here rather than per dataset.
-    det_args = _load_recipe(
-        recipe_name or "multi-det",
-        model_yaml,
-        epochs=epochs,
-        patience=patience,
-        batch=batch_override,
-        lr0=lr_override,
-        nbs=nbs_override,
-        backbone_lr_ratio=backbone_lr_ratio_override,
-    )
+    if repo_defaults:
+        if any(
+            (
+                recipe_name,
+                patience,
+                batch_override,
+                lr_override,
+                nbs_override,
+                backbone_lr_ratio_override,
+                freeze_override,
+                imgsz_override,
+                teacher_spec,
+            )
+        ) or epochs not in (
+            None,
+            100,
+        ):
+            raise SystemExit("ERROR: --repo_defaults permits only the 100-epoch budget and class mapping.")
+        if not cls_map_vocab:
+            raise SystemExit("ERROR: --repo_defaults requires --cls_map.")
+        det_args = {"epochs": 100, "deterministic": True, "workers": 4}
+        train_defaults = {}
+        print("[repo defaults] default.yaml + epochs=100 deterministic=True workers=4")
+    else:
+        # Every input to the recipe is loop-invariant, so resolve it once here rather than per dataset.
+        det_args = _load_recipe(
+            recipe_name or "multi-det",
+            model_yaml,
+            epochs=epochs,
+            patience=patience,
+            batch=batch_override,
+            lr0=lr_override,
+            nbs=nbs_override,
+            backbone_lr_ratio=backbone_lr_ratio_override,
+        )
+        train_defaults = {"dropout": 0, "amp": True, "deterministic": True, "workers": 4, **_TRAIN_DEFAULTS}
     if epochs or patience:
         print("[multi_det_finetune] NOTE macros are comparable only across equal epoch budgets.")
     cls_table = _load_cls_table(cls_map_vocab)
@@ -676,7 +703,7 @@ def _run_multi_det(
 
     recipe_args = {
         "pretrained": False if teacher_spec else phase1_weights,
-        "seed": seed,
+        **({} if repo_defaults else {"seed": seed}),
         **det_args,
     }
     resume_args = {"model": model_yaml, **recipe_args}
@@ -711,11 +738,11 @@ def _run_multi_det(
             stale_dir = root / parent_name / basename
             if stale_dir.exists():
                 shutil.rmtree(stale_dir)
-        n_imgs, iters_per_ep = _dataset_train_stats(ds_yaml, det_args["batch"])
+        n_imgs, iters_per_ep = _dataset_train_stats(ds_yaml, det_args.get("batch", DEFAULT_CFG_DICT["batch"]))
         print(f"\n=== [{i}/{len(dataset_yamls)}] {basename} ===")
         print(
             f"[multi_det_finetune] {basename}: n_train={n_imgs} iters/ep={iters_per_ep} "
-            f"epochs={det_args['epochs']} patience={det_args['patience']}"
+            f"epochs={det_args['epochs']} patience={det_args.get('patience', DEFAULT_CFG_DICT['patience'])}"
         )
 
         model = YOLO(model_yaml)
@@ -742,13 +769,8 @@ def _run_multi_det(
             "name": basename,
             "save_dir": str(parent_save_dir / basename),
             "exist_ok": False,
-            "dropout": 0,
-            "amp": True,
-            "deterministic": True,
-            "workers": 4,
             "data": str(ds_yaml),
-            # Only recipe keys enter the per-sub-run resume_args comparison above.
-            **_TRAIN_DEFAULTS,
+            **train_defaults,
             **recipe_args,
         }
         # Nest the NFS mirror under the parent so different parents' same-basename sub-runs (e.g. two parents both
@@ -811,12 +833,15 @@ def main(argv: list[str]) -> None:
     argv, backbone_lr_ratio_override = _pop_flag(argv, "--backbone_lr_ratio")
     argv, recipe_name = _pop_flag(argv, "--recipe")
     argv, model_override = _pop_flag(argv, "--model")
+    argv, repo_defaults = _pop_flag(argv, "--repo_defaults", is_bool=True)
     argv, cls_map_vocab = _pop_flag(argv, "--cls_map")
     argv, scratch = _pop_flag(argv, "--scratch", is_bool=True)
     argv, datasets_arg = _pop_flag(argv, "--datasets")
     argv, imgsz_override = _pop_flag(argv, "--imgsz")
     argv, seed_override = _pop_flag(argv, "--seed")
     seed = int(seed_override) if seed_override else 0
+    if repo_defaults and seed_override:
+        raise SystemExit("ERROR: --repo_defaults inherits the repository seed.")
     argv, teacher_spec = _pop_flag(argv, "--teacher")
     if teacher_spec:
         # Layout: <gpu> teacher_frozen_det <name> --teacher <spec> --datasets <file>. The frozen-teacher backbone
@@ -837,6 +862,8 @@ def main(argv: list[str]) -> None:
             raise SystemExit(
                 "ERROR: --freeze is not supported with --teacher (teacher_frozen_det already freezes layer 0)."
             )
+        if repo_defaults:
+            raise SystemExit("ERROR: --repo_defaults is not supported with --teacher.")
         gpu = argv[0] if argv else "0"
         if "," in gpu:
             raise SystemExit(
@@ -908,6 +935,7 @@ def main(argv: list[str]) -> None:
             backbone_lr_ratio_override=backbone_lr_ratio_override,
             recipe_name=recipe_name,
             cls_map_vocab=cls_map_vocab,
+            repo_defaults=bool(repo_defaults),
         )
         return
 

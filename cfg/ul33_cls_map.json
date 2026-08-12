@@ -29,8 +29,7 @@
   "hit-uav": {
    "person": "person",
    "car": "car",
-   "bicycle": "bicycle",
-   "othervehicle": "truck"
+   "bicycle": "bicycle"
   },
   "iedxray": {
    "modified laptop": "laptop",

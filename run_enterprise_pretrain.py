@@ -34,7 +34,6 @@ FEDERATED_CLI_KEYS = (
     "federated_cls_loss",
     "federated_cls_heads",
     "repeat_sources",
-    "loss_aware_sampling",
     "focal_alpha",
     "focal_gamma",
     "asl_gamma_pos",
@@ -60,9 +59,7 @@ def main() -> None:
     a.add_argument("--lrf", type=float, default=None)
     a.add_argument("--cos-lr", action="store_true", default=None)
     a.add_argument("--backbone-lr-ratio", type=float, default=None)
-    a.add_argument("--quota-alpha", type=float, default=None)
     a.add_argument("--repeat-sources", default=None, help="comma-separated sources receiving repeat-factor sampling")
-    a.add_argument("--loss-aware-sampling", action="store_true", default=None)
     a.add_argument("--federated-cls-loss", choices=("bce", "focal", "asl"), default=None)
     a.add_argument("--federated-cls-heads", choices=("merged", "source", "semantic"), default=None)
     a.add_argument("--focal-alpha", type=float, default=None)
@@ -87,7 +84,6 @@ def main() -> None:
         lrf=args.lrf,
         cos_lr=args.cos_lr,
         backbone_lr_ratio=args.backbone_lr_ratio,
-        quota_alpha=args.quota_alpha,
         **{key: getattr(args, key) for key in FEDERATED_CLI_KEYS},
     )
     if (

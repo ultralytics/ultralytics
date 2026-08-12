@@ -6,12 +6,13 @@ draw from one source by construction. Batches are dataset-pure, which is what ma
 `target_scores_sum` in `v8DetectionLoss` well defined, and it lets the cls BCE see only the batch's owning class slice
 instead of teaching every other source's classes as absent.
 
-Sampling is a two-stage draw per step: a source by quota `p(d) = N_d^quota_alpha`, then images within it by repeat
-factor. `quota_alpha`, `repeat_t` and `fed_k` come from the recipe profile, not from this file.
+Sampling is a two-stage draw per step: a source by localization hardness, then images within it by repeat factor.
+The first epoch samples sources uniformly. Later epochs use the preceding epoch's source box losses.
 """
 
 from __future__ import annotations
 
+import shutil
 from copy import copy
 from pathlib import Path
 from typing import Any
@@ -78,6 +79,7 @@ SOURCE_METRIC_KEYS = (
     "metrics/mAP_large(B)",
     "metrics/mAR_large(B)",
 )
+LOCALIZATION_METRIC_KEY = "metrics/localization_mAR100(B)"
 
 
 class PartitionedDetectionLoss:
@@ -135,7 +137,6 @@ class QuotaBatchSampler(Sampler):
         counts: list[int],
         weights: list[np.ndarray],
         batch: int,
-        alpha: float,
         world_size: int,
         rank: int,
         seed: int,
@@ -146,15 +147,13 @@ class QuotaBatchSampler(Sampler):
             counts (list[int]): Image count per source, in concatenation order.
             weights (list[np.ndarray]): Per-image draw probability inside each source.
             batch (int): Global batch size, summed over ranks.
-            alpha (float): Quota temper exponent.
             world_size (int): Number of ranks sharing a global batch.
             rank (int): This process's rank.
             seed (int): Base seed, shared by every rank so they agree on the source per step.
         """
         self.starts = np.cumsum([0, *counts[:-1]]).tolist()
         self.counts = np.array(counts, dtype=np.float64)
-        tempered = np.array(counts, dtype=np.float64) ** alpha  # Enterprise study choice, not paper-derived
-        self.quota = tempered / tempered.sum()
+        self.quota = np.full(len(counts), 1 / len(counts))
         self.cdfs = [np.cumsum(w) for w in weights]  # sampling a p vector directly recumsums it every step
         self.batch, self.world_size, self.rank, self.seed = batch, world_size, rank, seed
         self.batches = max(1, sum(counts) // batch)
@@ -170,9 +169,9 @@ class QuotaBatchSampler(Sampler):
 
     def update_loss_quota(self, losses: np.ndarray) -> None:
         """Set source probabilities from the latest per-source box losses."""
-        # Plain-Det hardness-indicated sampling, Eq. 9:
-        # https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/00763.pdf#page=10
-        weights = losses / losses.min() * np.sqrt(self.counts.max() / self.counts)
+        # Plain-Det applies loss * (Nmax / N)^0.7 per image, giving aggregate source mass loss * N^0.3:
+        # https://github.com/ChengShiest/Plain-Det/blob/ca4bda1e51d99d1ef07230ed1616fd4c377f1a9e/Plain_Det/data/multidataset.py#L372-L402
+        weights = losses * self.counts**0.3
         self.quota = weights / weights.sum()
 
     def __iter__(self):
@@ -232,6 +231,7 @@ class FederatedDetMetrics(DetMetrics):
         super().__init__()
         self.source_metrics = {name: DetMetrics() for name in sources}
         self.coco_results = {}
+        self.localization_results = {}
 
     @property
     def keys(self) -> list[str]:
@@ -240,8 +240,10 @@ class FederatedDetMetrics(DetMetrics):
             "metrics/precision(B)",
             "metrics/recall(B)",
             *SOURCE_METRIC_KEYS,
+            LOCALIZATION_METRIC_KEY,
             "metrics/macro_mAP50-95(B)",
             *(f"metrics/{name}/{key[8:]}" for name in self.source_metrics for key in SOURCE_METRIC_KEYS),
+            *(f"metrics/{name}/localization_mAR100(B)" for name in self.source_metrics),
         ]
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
@@ -277,12 +279,14 @@ class FederatedDetMetrics(DetMetrics):
             "metrics/precision(B)": precision,
             "metrics/recall(B)": recall,
             **macro,
+            LOCALIZATION_METRIC_KEY: float(np.mean(list(self.localization_results.values()))),
             "metrics/macro_mAP50-95(B)": macro["metrics/mAP50-95(B)"],
             **{
                 f"metrics/{name}/{key[8:]}": value
                 for name, metrics in self.coco_results.items()
                 for key, value in metrics.items()
             },
+            **{f"metrics/{name}/localization_mAR100(B)": value for name, value in self.localization_results.items()},
             "fitness": macro["metrics/mAP50-95(B)"],
         }
 
@@ -425,6 +429,7 @@ class FederatedDetectionValidator(DetectionValidator):
         """Return source-aware metrics without merged-dataset COCO evaluation."""
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         self.metrics.coco_results = {}
+        self.metrics.localization_results = {}
         predictions = self.coco_gt.loadRes(self.jdict) if self.jdict else None
         for name, (lo, hi) in self.slices.items():
             image_ids = self.source_image_ids[name]
@@ -433,6 +438,9 @@ class FederatedDetectionValidator(DetectionValidator):
                     {}, predictions, self.coco_gt, image_ids=image_ids, category_ids=list(range(lo + 1, hi + 1))
                 )
                 self.metrics.coco_results[name] = {key: source[key] for key in SOURCE_METRIC_KEYS}
+                self.metrics.localization_results[name] = self.coco_evaluate(
+                    {}, predictions, self.coco_gt, image_ids=image_ids, class_agnostic=True
+                )["metrics/mAR(B)"]
             else:
                 areas = [ann["area"] for ann in self.coco_gt.loadAnns(self.coco_gt.getAnnIds(imgIds=image_ids))]
                 has_size = {
@@ -450,6 +458,7 @@ class FederatedDetectionValidator(DetectionValidator):
                         for kind in ("AP", "AR")
                     },
                 }
+                self.metrics.localization_results[name] = 0.0
         stats = self.metrics.results_dict
         self.metrics.clear_stats()
         for metric in self.metrics.source_metrics.values():
@@ -462,7 +471,10 @@ class FederatedDetectionValidator(DetectionValidator):
         pf = "%22s" + "%11i" * 2 + "%11.3g" * 4
         LOGGER.info(pf % ("all", self.seen, self.metrics.nt_per_class.sum(), *self.metrics.mean_results()))
         for name, metrics in self.metrics.coco_results.items():
-            LOGGER.info(f"{name:>22s} mAP50-95 {metrics['metrics/mAP50-95(B)']:.4g}")
+            LOGGER.info(
+                f"{name:>22s} mAP50-95 {metrics['metrics/mAP50-95(B)']:.4g} "
+                f"localization AR100 {self.metrics.localization_results[name]:.4g}"
+            )
 
 
 class FederatedDetectionTrainer(DetectionTrainer):
@@ -478,7 +490,7 @@ class FederatedDetectionTrainer(DetectionTrainer):
     """
 
     def set_model_attributes(self) -> None:
-        """Set source heads, frozen prototypes, and optional loss-aware sampling."""
+        """Set source heads, frozen prototypes, and loss-aware sampling."""
         super().set_model_attributes()
         bounds = [*sorted(self.data["offsets"].values()), self.data["nc"]]
         self.slices = {k: (lo, hi) for (k, lo), hi in zip(self.data["offsets"].items(), bounds[1:])}
@@ -496,10 +508,10 @@ class FederatedDetectionTrainer(DetectionTrainer):
                     self.device,
                 )
             unwrap_model(self.model).model[-1].install_semantic_classifier(list(self.slices.values()), prototypes)
-        if self.args.loss_aware_sampling:
-            self.source_loss_stats = torch.zeros(2, len(self.slices), device=self.device)
-            self.add_callback("on_train_batch_end", self._record_source_loss)
-            self.add_callback("on_train_epoch_end", self._update_loss_quota)
+        self.source_loss_stats = torch.zeros(2, len(self.slices), device=self.device)
+        self.sampling_metrics = {}
+        self.add_callback("on_train_batch_end", self._record_source_loss)
+        self.add_callback("on_train_epoch_end", self._update_loss_quota)
 
     def build_dataset(self, img_path: str | list, mode: str = "train", batch: int | None = None):
         """Build one dataset per source in train mode, and the plain merged dataset in val mode."""
@@ -525,6 +537,10 @@ class FederatedDetectionTrainer(DetectionTrainer):
             ckpt (dict | None): Training checkpoint state.
         """
         super().resume_training(ckpt)
+        if ckpt is not None and self.resume:
+            self.quota_sampler.update_loss_quota(
+                np.array([ckpt["train_metrics"][f"sampling/{name}/box_loss"] for name in self.slices])
+            )
         if getattr(self.args, "federated_cls_heads", "merged") in {"source", "semantic"}:
             model = unwrap_model(self.model)
             updates = ckpt.get("epoch", -1) + 1 if ckpt is not None and self.resume else 0
@@ -561,14 +577,11 @@ class FederatedDetectionTrainer(DetectionTrainer):
             [len(d) for d in dataset.datasets],
             weights,
             batch_size * world,
-            self.args.quota_alpha,
             world,
             max(rank, 0),  # rank is LOCAL_RANK, which is -1 outside DDP
             self.args.seed,
         )
         self.quota_sampler = sampler
-        if self.args.loss_aware_sampling:
-            sampler.quota.fill(1 / len(sampler.quota))
         self.rng = np.random.default_rng(self.args.seed)
         LOGGER.info(
             f"{len(dataset.datasets)} sources, {len(dataset):,} images, {sampler.batches:,} steps/epoch, "
@@ -586,13 +599,40 @@ class FederatedDetectionTrainer(DetectionTrainer):
 
     def _update_loss_quota(self, _) -> None:
         """Update every DDP rank with the same Plain-Det source quota."""
+        batches = self.source_loss_stats[1].cpu().numpy().copy()
         if dist.is_initialized():
             dist.all_reduce(self.source_loss_stats)
         assert self.source_loss_stats[1].count_nonzero() == len(self.slices), "every source must appear each epoch"
         losses = (self.source_loss_stats[0] / self.source_loss_stats[1]).cpu().numpy()
+        quota = self.quota_sampler.quota.copy()
+        self.sampling_metrics = {
+            key: value
+            for name, loss, probability, count in zip(self.slices, losses, quota, batches)
+            for key, value in {
+                f"sampling/{name}/box_loss": loss,
+                f"sampling/{name}/target_probability": probability,
+                f"sampling/{name}/realized_batches": count,
+                f"sampling/{name}/realized_probability": count / batches.sum(),
+            }.items()
+        }
         self.quota_sampler.update_loss_quota(losses)
         self.source_loss_stats.zero_()
-        LOGGER.info(f"loss-aware quota {np.round(self.quota_sampler.quota, 4).tolist()}")
+        LOGGER.info(
+            f"source box loss {np.round(losses, 4).tolist()}, next quota "
+            f"{np.round(self.quota_sampler.quota, 4).tolist()}"
+        )
+
+    def save_metrics(self, metrics: dict[str, float]) -> None:
+        """Save validation and source-sampling metrics."""
+        self.metrics.update(self.sampling_metrics)
+        super().save_metrics({**metrics, **self.sampling_metrics})
+
+    def save_model(self) -> bool:
+        """Save the regular checkpoint and fixed Enterprise transfer snapshots."""
+        saved = super().save_model()
+        if self.epoch + 1 in {2, 10, 20}:
+            shutil.copyfile(self.last, self.wdir / f"epoch{self.epoch + 1}.pt")
+        return saved
 
     def preprocess_batch(self, batch: dict) -> dict:
         """Point the cls loss at this batch's owning class slice, then preprocess as usual."""

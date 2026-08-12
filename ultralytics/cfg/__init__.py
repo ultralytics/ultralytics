@@ -660,10 +660,8 @@ def check_dict_alignment(
             "nfs_sync",
             # Federated Enterprise pretraining knobs (models/yolo/detect/train_federated.py), carried in the
             # cfg/recipes/enterprise.yaml profile so the arm stays reproducible from the profile alone.
-            "quota_alpha",
             "repeat_t",
             "repeat_sources",
-            "loss_aware_sampling",
             "fed_k",
             "federated_cls_loss",
             "federated_cls_heads",

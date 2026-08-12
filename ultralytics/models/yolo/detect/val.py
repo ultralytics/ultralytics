@@ -539,6 +539,7 @@ class DetectionValidator(BaseValidator):
         suffix: str | list[str] = "Box",
         image_ids: list[int] | None = None,
         category_ids: list[int] | None = None,
+        class_agnostic: bool = False,
     ) -> dict[str, Any]:
         """Evaluate COCO/LVIS metrics using faster-coco-eval library.
 
@@ -556,6 +557,7 @@ class DetectionValidator(BaseValidator):
                 iou_types if multiple types provided. Defaults to "Box".
             image_ids (list[int], optional): Image ids to evaluate instead of the complete validation set.
             category_ids (list[int], optional): Category ids to evaluate instead of every category.
+            class_agnostic (bool): Whether to ignore category ids when matching predictions to annotations.
 
         Returns:
             (dict[str, Any]): Updated stats dictionary containing the computed COCO/LVIS evaluation metrics.
@@ -588,6 +590,7 @@ class DetectionValidator(BaseValidator):
                     val.params.imgIds = eval_image_ids
                     if category_ids is not None:
                         val.params.catIds = category_ids
+                    val.params.useCats = int(not class_agnostic)
                     val.evaluate()
                     val.accumulate()
                     val.summarize()

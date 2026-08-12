@@ -54,6 +54,7 @@ def main() -> None:
     a.add_argument("name", nargs="?", help="run name, defaults to ph2-<arm>-<model stem>")
     a.add_argument("--pretrained", default=None, help="backbone init .pt, defaults to the arm's staged init")
     a.add_argument("--no-amp", action="store_true", help="ultravit arms, which are unstable under fp16")
+    a.add_argument("--recipe", default=None, help="recipe profile, defaults to the arm's paired profile")
     a.add_argument("--epochs", type=int, default=None)
     a.add_argument("--batch", type=int, default=None)
     a.add_argument("--lrf", type=float, default=None)
@@ -77,7 +78,7 @@ def main() -> None:
 
     recipe_name, data, trainer = ARMS[args.arm]
     recipe = _load_recipe(
-        recipe_name,
+        args.recipe or recipe_name,
         args.model,
         epochs=args.epochs,
         batch=args.batch,

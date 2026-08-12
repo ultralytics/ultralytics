@@ -125,7 +125,7 @@ The Hailo ecosystem covers a broad range of computer vision workloads, but the U
 | :------------------------ | :-----------------: | :----------------------- | :------------------------------------------------------------------------------------------- |
 | Object detection          |         ✅          | YOLOv8, YOLO11, YOLO26   | Standard Ultralytics `Detect` heads, including custom models                                 |
 | Instance segmentation     |         ✅          | YOLOv8, YOLO11           | Raw head tensors decoded by Ultralytics at inference; YOLO26-seg is not currently supported  |
-| Semantic segmentation     |         ✅          | YOLO26                   | Hailo-8/8L and single-class heads return logits; Hailo-10H/15 bakes multi-class maps          |
+| Semantic segmentation     |         ✅          | YOLO26                   | Hailo-8/8L and single-class heads return logits; Hailo-10H/15 bakes multi-class maps         |
 | Depth estimation          |         ✅          | YOLO26                   | Dense logit compiled in `a16`; Ultralytics rebuilds the metric depth map at inference        |
 | Image classification      |         ✅          | YOLOv8, YOLO11, YOLO26   | Softmax runs on chip; the HEF returns class probabilities directly                           |
 | Pose estimation           |         ✅          | YOLOv8, YOLO11           | Raw head tensors decoded by Ultralytics at inference; YOLO26-pose is not currently supported |
@@ -138,11 +138,11 @@ Specialized detection families such as YOLOv10, YOLO-World, YOLOE, and RT-DETR a
 | YOLOv8 / YOLO11 detection            |         ✅         |          ✅          | HEF with HailoRT YOLO NMS                                     |
 | YOLO26 detection                     |         ✅         |          ✅          | NMS-free detection-head outputs for supported runtimes        |
 | YOLOv8-seg / YOLO11-seg              |         ✅         |          ✅          | Raw segmentation tensors, decoded by Ultralytics at inference |
-| YOLOv8-pose / YOLO11-pose            | Hailo-8L validated |    Not validated    | Raw pose tensors, decoded by Ultralytics at inference         |
-| YOLOv8-obb / YOLO11-obb              | Hailo-8L validated |    Not validated    | Raw OBB tensors, decoded by Ultralytics at inference          |
-| YOLOv8-cls / YOLO11-cls / YOLO26-cls | Hailo-8L validated |    Not validated    | On-chip softmax; HEF returns class probabilities              |
-| YOLO26-sem                           | Hailo-8L validated |    Not validated    | Logits, or a baked multi-class map on Hailo-10H/15             |
-| YOLO26-depth                         | Hailo-8L validated |    Not validated    | Dense logit; metric depth map decoded by Ultralytics          |
+| YOLOv8-pose / YOLO11-pose            | Hailo-8L validated |    Not validated     | Raw pose tensors, decoded by Ultralytics at inference         |
+| YOLOv8-obb / YOLO11-obb              | Hailo-8L validated |    Not validated     | Raw OBB tensors, decoded by Ultralytics at inference          |
+| YOLOv8-cls / YOLO11-cls / YOLO26-cls | Hailo-8L validated |    Not validated     | On-chip softmax; HEF returns class probabilities              |
+| YOLO26-sem                           | Hailo-8L validated |    Not validated     | Logits, or a baked multi-class map on Hailo-10H/15            |
+| YOLO26-depth                         | Hailo-8L validated |    Not validated     | Dense logit; metric depth map decoded by Ultralytics          |
 
 Pose, OBB, classification, YOLO26 semantic segmentation, and YOLO26 depth estimation (Hailo-8/8L path) were validated on Hailo-8L with HailoRT 4.23 and DFC 3.33. The exporter accepts the other listed targets, but those new task paths require validation with the matching compiler and device before production use.
 

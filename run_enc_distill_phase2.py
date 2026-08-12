@@ -32,6 +32,8 @@ Flags:
                 the mode's profile (coco-preserve, multi-det, obj365-pretrain). Use coco-adapt for a
                 non-distilled backbone, coco-after-o365 after an obj365 pretrain, multi-det-musgd-cos or
                 yolo26-published-{det,multi-det,objv1} for MuSGD.
+    --model <yaml>: det modes. Detector yaml to build, replacing the one derived from the checkpoint.
+                Needed when the run swaps the checkpoint's trunk into a different neck/head.
     --lr <val>: override the profile lr0 (det modes) or the final lr0 (other modes).
     --batch <int>: override the profile batch (det modes), applied as-is for other modes.
     --nbs <int>: override the profile nbs. A bare --batch already carries the profile's
@@ -808,6 +810,7 @@ def main(argv: list[str]) -> None:
     argv, freeze_override = _pop_flag(argv, "--freeze")
     argv, backbone_lr_ratio_override = _pop_flag(argv, "--backbone_lr_ratio")
     argv, recipe_name = _pop_flag(argv, "--recipe")
+    argv, model_override = _pop_flag(argv, "--model")
     argv, cls_map_vocab = _pop_flag(argv, "--cls_map")
     argv, scratch = _pop_flag(argv, "--scratch", is_bool=True)
     argv, datasets_arg = _pop_flag(argv, "--datasets")
@@ -918,7 +921,8 @@ def main(argv: list[str]) -> None:
 
     if mode in _DET_MODES:
         head_suffix = {"coco_pose_finetune": "-pose", "dota_obb_finetune": "-obb"}.get(mode, "")
-        model_yaml = _infer_model_yaml(phase1_weights, head_suffix)
+        # A checkpoint names only its own architecture, so swapping its trunk into another neck/head needs the yaml.
+        model_yaml = model_override or _infer_model_yaml(phase1_weights, head_suffix)
         _assert_backbone_compatible(phase1_weights, model_yaml)
     else:
         model_yaml = "yolo26s-cls.yaml"

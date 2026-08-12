@@ -1081,6 +1081,7 @@ class BaseTrainer:
         self.start_epoch = start_epoch
         if start_epoch > (self.epochs - self.args.close_mosaic):
             self._close_dataloader_mosaic()
+            self.train_loader.reset()
 
     def _close_dataloader_mosaic(self):
         """Update dataloaders to stop using mosaic augmentation."""

@@ -284,6 +284,7 @@ def convert_coco(
             annotations[ann["image_id"]].append(ann)
 
         image_txt = []
+        dropped = False
         # Write labels file
         for img_id, anns in TQDM(annotations.items(), desc=f"Annotations {json_file}"):
             img = images[f"{img_id:d}"]
@@ -318,14 +319,29 @@ def convert_coco(
                     bboxes.append(box)
                     if use_segments:
                         seg = ann.get("segmentation")
-                        if seg is None or len(seg) == 0:
-                            segments.append([])
-                        elif len(seg) > 1:
-                            s = merge_multi_segment(seg)
+                        polygons = (
+                            [
+                                p
+                                for p in seg or []
+                                if isinstance(p, list)
+                                and len(p) >= 6
+                                and not len(p) % 2
+                                and all(isinstance(c, (int, float)) for c in p)
+                            ]
+                            if isinstance(seg, list)
+                            else []
+                        )
+                        if not polygons:
+                            dropped = True
+                            cx, cy, bw, bh = box[1:]
+                            x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2
+                            segments.append([cls, x1, y1, x2, y1, x2, y2, x1, y2])
+                        elif len(polygons) > 1:
+                            s = merge_multi_segment(polygons)
                             s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
                             segments.append([cls, *s])
                         else:
-                            s = [j for i in seg for j in i]  # all segments concatenated
+                            s = [j for i in polygons for j in i]  # all segments concatenated
                             s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
                             segments.append([cls, *s])
 
@@ -335,10 +351,14 @@ def convert_coco(
                     if use_keypoints:
                         line = (*(keypoints[i]),)  # cls, box, keypoints
                     else:
-                        line = (
-                            *(segments[i] if use_segments and len(segments[i]) > 0 else bboxes[i]),
-                        )  # cls, box or segments
+                        line = (*(segments[i] if use_segments else bboxes[i]),)  # cls, box or segments
                     file.write(("%g " * len(line)).rstrip() % line + "\n")
+
+        if dropped and not use_keypoints:  # segments are unused when keypoints own the output
+            LOGGER.warning(
+                f"{json_file}: annotations without a usable polygon, because the segmentation is missing, "
+                "empty, or not a point list such as an RLE mask, use a segment shaped like their bounding box."
+            )
 
         if lvis:
             filename = Path(save_dir) / json_file.name.replace("lvis_v1_", "").replace(".json", ".txt")
@@ -638,7 +658,7 @@ def yolo_bbox2segment(im_dir: str | Path, save_dir: str | Path | None = None, sa
         txt_file = save_dir / lb_name
         cls = label["cls"]
         for i, s in enumerate(label["segments"]):
-            if len(s) == 0:
+            if len(s) < 3:  # fewer than 3 points is not a polygon, and writes a row no loader accepts
                 continue
             line = (int(cls[i]), *s.reshape(-1))
             texts.append(("%g " * len(line)).rstrip() % line)

@@ -27,13 +27,13 @@ Useful Hailo resources:
 
 The Hailo lineup spans host-attached AI accelerators and fully integrated AI vision processors (SoCs).
 
-| Product       | Class          | Performance    | Highlights                                              |
-| :------------ | :------------- | :------------- | :------------------------------------------------------ |
-| **Hailo-8**   | AI accelerator | 26 TOPS (INT8) | High-performance vision and multi-stream analytics      |
-| **Hailo-8L**  | AI accelerator | 13 TOPS (INT8) | Entry-level, cost-sensitive vision                      |
-| **Hailo-10H** | AI accelerator | 20 TOPS (INT8) | Adds generative AI (LLMs/VLMs) and a USB 3 interface    |
-| **Hailo-15H** | AI SoC         | 20 TOPS (INT8) | Vision processor for mid- to high-end smart cameras     |
-| **Hailo-15L** | AI SoC         | 7 TOPS (INT8)  | Cost-efficient vision processor for mass-market cameras |
+| Product       | Class          | Performance                     | Highlights                                              |
+| :------------ | :------------- | :------------------------------ | :------------------------------------------------------ |
+| **Hailo-8**   | AI accelerator | 26 TOPS (INT8)                  | High-performance vision and multi-stream analytics      |
+| **Hailo-8L**  | AI accelerator | 13 TOPS (INT8)                  | Entry-level, cost-sensitive vision                      |
+| **Hailo-10H** | AI accelerator | 20 TOPS (INT8) / 40 TOPS (INT4) | Adds generative AI (LLMs/VLMs) and a USB 3 interface    |
+| **Hailo-15H** | AI SoC         | 20 TOPS (INT8)                  | Vision processor for mid- to high-end smart cameras     |
+| **Hailo-15L** | AI SoC         | 7 TOPS (INT8)                   | Cost-efficient vision processor for mass-market cameras |
 
 Select the target with the `name=` export argument (see [Supported Models and Hardware](#supported-models-and-hardware)).
 

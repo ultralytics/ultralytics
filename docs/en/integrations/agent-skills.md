@@ -94,4 +94,4 @@ Installing the full set is recommended since the skills cross-reference each oth
 
 ### How do I update the skills?
 
-For Claude Code, run `claude plugin update yolo@ultralytics`; for Codex, run `codex plugin marketplace upgrade ultralytics`. Both require a restart to apply the update. For the skills CLI, rerun `npx skills add ultralytics/skills` to pull the latest versions. Skills are grounded against a specific `ultralytics` release, so updating keeps agent knowledge aligned with the package version you use.
+For Claude Code, run `claude plugin update yolo@ultralytics`; for Codex, run `codex plugin marketplace upgrade ultralytics` followed by `codex plugin add yolo@ultralytics`. Both agents require a restart to apply the update. For the skills CLI, rerun `npx skills add ultralytics/skills` to pull the latest versions. Skills are grounded against a specific `ultralytics` release, so updating keeps agent knowledge aligned with the package version you use.

@@ -1,9 +1,5 @@
-# Objects365v1 pretrain args read from yolo27s-obj365-l-c3k2-muon.pt (`s-light-muon-0.5-sgd-0.5-150`,
-# project YOLO27-obj365-new), which reached 23.90 mAP50-95 at epoch 150 on yolo26s-p4p5-wide-slim19.yaml
-# from a c3k2_s.pt init. MuSGD 0.5/0.5 at lr0 0.01 b128, near-default aug, 2 warmup epochs.
-# `optimizer: auto` in the source resolves to MuSGD there. Ours would pick AdamW, so it is named here.
-# amp false departs from the source bf16: lq's own matched S pair scores fp32 above bf16 by 0.93 points, and
-# our enterprise arms already run without AMP. See .claude/lq-obj365-grid.md.
+# lq-yolo27-365 with the MuSGD split moved to the branch default. Ablation arm A1, one axis off the control.
+# See .claude/lq-obj365-grid.md: every lq MuSGD arm holds 0.5/0.5, so this split is untested at any scale.
 # Known infidelities: cls_norm tss / cls_lr_mult / dup_sup / o2f / dup_margin are not args on this branch.
 # No grad_clip key: main() passes it. end2end stays unset, as in the source.
 amp: false
@@ -32,13 +28,13 @@ lrf: 0.01
 mixup: 0.05
 momentum: 0.937
 mosaic: 1.0
-muon: 0.5
+muon: 0.2
 nbs: 64
 optimizer: MuSGD
 patience: 100
 pose: 12.0
 scale: 0.9
-sgd: 0.5
+sgd: 1.0
 shear: 0.0
 translate: 0.1
 warmup_bias_lr: 0.0

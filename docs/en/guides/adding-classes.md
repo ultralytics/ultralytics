@@ -225,9 +225,9 @@ Both were measured the same way: `yolo26n`, `rhino` added as class 80, 262 image
 | Every layer trainable, head rebuilt for 81    | 0.809            | 0.000         | 0%        |
 | Every layer trainable, 1000 COCO images added | 0.846            | 0.272         | 69%       |
 
-Refinement gives up a few percent on the new class. In exchange the 80 COCO classes stay where they were, instead of dropping by 91%.
+Refinement loses a few percent on the new class while keeping 99.8% of the accuracy on the 80 COCO classes. Training every layer keeps 9% of it.
 
-Mixing the original data back in is the standard remedy, and the last row shows its limits: it needs the original dataset, it trained on five times the images, and it still lost 31% of the old accuracy.
+Mixing the original data back in is the standard remedy, and the last row shows its limits: it needs the original dataset, it trained on five times the images, and it still keeps only 69% of the old accuracy.
 
 The reason this is easy to miss is that the damage lands well before the new class works:
 

@@ -242,6 +242,8 @@ The reason this is easy to miss is that the damage lands well before the new cla
 
 By epoch 11 the unfrozen run has lost half of its COCO accuracy and has not yet learned anything about `rhino`, so stopping early does not avoid the trade. Nothing in the training logs reports this, because the only metrics on screen are for the class being added.
 
+The table above reports each run's best saved checkpoint, which is what you would deploy. Training every layer keeps gaining on `rhino` past that point, up to 0.877 here, so the gap on the new class is 2.5% to 5% depending on which checkpoint you take.
+
 ## FAQ
 
 ### Are the other classes really unchanged?

@@ -46,57 +46,22 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 
 ### Solutions Arguments
 
-| Argument | Type | Default | Description |
-| -------- | ---- | ------- | ----------- |
-| `model` | `str` | `None` | Path to an Ultralytics YOLO model file. |
-| `region` | `list` or `dict` | `None` | Points defining the region of interest, either a list of `(x, y)` tuples or a dictionary mapping region names to point lists for multiple regions (`RegionCounter` only). When `None`, solutions that require a region fall back to a predefined default. |
-| `show_in` | `bool` | `True` | Flag to control whether to display the in counts on the video stream. |
-| `show_out` | `bool` | `True` | Flag to control whether to display the out counts on the video stream. |
-| `analytics_type` | `str` | `'line'` | Type of graph, i.e., `line`, `bar`, `area`, or `pie`. |
-| `colormap` | `int` | `cv2.COLORMAP_DEEPGREEN` | Colormap to use for the heatmap. |
-| `json_file` | `str` | `None` | Path to the JSON file that contains all parking coordinates data. |
-| `up_angle` | `float` | `145.0` | Angle threshold for the 'up' pose. |
-| `kpts` | `list[int]` | `'[6, 8, 10]'` | List of three keypoint indices used for monitoring workouts. These keypoints correspond to body joints or parts, such as shoulders, elbows, and wrists, for exercises like push-ups, pull-ups, squats, and ab-workouts. |
-| `down_angle` | `int` | `90` | Angle threshold for the 'down' pose. |
-| `blur_ratio` | `float` | `0.5` | Adjusts percentage of blur intensity, with values in range `0.1 - 1.0`. |
-| `crop_dir` | `str` | `'cropped-detections'` | Directory name for storing cropped detections. |
-| `records` | `int` | `5` | Total detections count to trigger an email with security alarm system. |
-| `vision_point` | `tuple[int, int]` | `(20, 20)` | The point where vision will track objects and draw paths using VisionEye Solution. |
-| `source` | `str` | `None` | Path to the input source (video, RTSP, etc.). Only usable with Solutions command line interface (CLI). |
-| `figsize` | `tuple[float, float]` | `(12.8, 7.2)` | Figure size for analytics charts such as heatmaps or graphs. |
-| `fps` | `float` | `30.0` | Frames per second used for speed calculations. |
-| `max_hist` | `int` | `5` | Maximum historical points to track per object for speed/direction calculations. |
-| `meter_per_pixel` | `float` | `0.05` | Scaling factor used for converting pixel distance to real-world units. |
-| `max_speed` | `int` | `120` | Maximum speed limit in visual overlays (used in alerts). |
-| `data` | `str` | `'images'` | Path to image directory used for similarity search. |
-| `imgsz` | `int` | `640` | Input image size for model inference. |
-
+{% from "macros/solutions-args.md" import param_table %}
+{{ param_table() }}
 
 !!! note "Track args"
 
      Solutions also support some of the arguments from `track`, including parameters such as `conf`, `line_width`, `tracker`, `model`, `show`, `verbose` and `classes`.
 
-| Argument | Type | Default | Description |
-| -------- | ---- | ------- | ----------- |
-| `tracker` | `str` | `'tracktrack.yaml'` | Specifies the tracking algorithm to use. Built-in options: `botsort.yaml`, `bytetrack.yaml`, `ocsort.yaml`, `deepocsort.yaml`, `fasttrack.yaml`, `tracktrack.yaml`. |
-| `conf` | `float` | `0.1` | Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives. |
-| `iou` | `float` | `0.7` | Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections. |
-| `classes` | `list` | `None` | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes. |
-| `verbose` | `bool` | `True` | Controls the display of tracking results, providing a visual output of tracked objects. |
-| `device` | `str` | `None` | Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution. |
-
+{% from "macros/track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
 
 !!! note "Visualization args"
 
     You can use `show_conf`, `show_labels`, and other mentioned arguments to customize the visualization.
 
-| Argument | Type | Default | Description |
-| -------- | ---- | ------- | ----------- |
-| `show` | `bool` | `False` | If `True`, displays the annotated images or videos in a window. Useful for immediate visual feedback during development or testing. |
-| `line_width` | `int or None` | `None` | Specifies the line width of bounding boxes. If `None`, the line width is automatically adjusted based on the image size. Provides visual customization for clarity. |
-| `show_conf` | `bool` | `True` | Displays the confidence score for each detection alongside the label. Gives insight into the model's certainty for each detection. |
-| `show_labels` | `bool` | `True` | Displays labels for each detection in the visual output. Provides immediate understanding of detected objects. |
-
+{% from "macros/visualization-args.md" import param_table %}
+{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
 
 ### Usage of SolutionAnnotator
 

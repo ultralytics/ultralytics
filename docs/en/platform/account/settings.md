@@ -100,11 +100,7 @@ Manage email addresses linked to your account in the `Profile` tab:
 
 View your data region on the `Profile` tab:
 
-| Region | Label                        | Location             | Best For                                |
-| ------ | ---------------------------- | -------------------- | --------------------------------------- |
-| **US** | Americas                     | Iowa, USA            | Americas users, fastest for Americas    |
-| **EU** | Europe, Middle East & Africa | Belgium, Europe      | European users, GDPR compliance         |
-| **AP** | Asia Pacific                 | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+{% include "macros/platform-data-regions.md" %}
 
 !!! note "Data Region"
 
@@ -221,23 +217,7 @@ The `Plans` tab lets you compare available plans and upgrade or downgrade your s
 
 ![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/4687f31bbcab35be3b474784751759e5.avif)<!-- screenshot -->
 
-| Feature                                                    | Free       | Pro ($29/mo)    | Enterprise  |
-| ---------------------------------------------------------- | ---------- | --------------- | ----------- |
-| **Signup Credit**                                          | $5 / $25\* | -               | Custom      |
-| **Monthly Credit**                                         | -          | $30/seat/month  | Custom      |
-| **Models**                                                 | 100        | 500             | Unlimited   |
-| **Concurrent Trainings**                                   | 3          | 10              | Unlimited   |
-| **Storage**                                                | 100 GB     | 500 GB          | Unlimited   |
-| **Dataset Upload (ZIP/TAR incl. `.tar.gz`/`.tgz`/NDJSON)** | 10 GB      | 20 GB           | 50 GB       |
-| **Deployments**                                            | 3          | 10              | Unlimited   |
-| **Cloud GPU Types**                                        | 24         | 26              | 26          |
-| **Best GPUs (B200, B300)**                                 | -          | Yes             | Yes         |
-| **Teams**                                                  | -          | Up to 5 members | Custom size |
-| **SSO / SAML**                                             | -          | -               | Yes         |
-| **Enterprise License**                                     | -          | -               | Yes         |
-| **License**                                                | AGPL-3.0   | AGPL-3.0        | Enterprise  |
-
-\*Free plan: $5 at signup, or $25 if you verify a company/work email address.
+{% include "macros/platform-plan-comparison.md" %}
 
 From this tab you can:
 
@@ -278,12 +258,7 @@ The `Teams` tab lets you manage workspace members, roles, and invitations. Teams
 
 ### Roles and Permissions
 
-| Role       | Description                                                                       |
-| ---------- | --------------------------------------------------------------------------------- |
-| **Owner**  | Full control, including members, billing, team deletion, and ownership transfer   |
-| **Admin**  | Full editor access; manage billing, settings, and members below the admin role    |
-| **Editor** | Create, edit, and delete resources; upload data; train, export, and deploy models |
-| **Viewer** | Read-only access to team resources and members                                    |
+{% include "macros/platform-team-roles.md" %}
 
 ### Manage Members
 

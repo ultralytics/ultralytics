@@ -39,15 +39,8 @@ The IMX500 works with quantized models. Quantization makes models smaller and fa
 
 IMX500 export supports four of the seven Ultralytics tasks, and only for **YOLOv8n** and **YOLO11n**: other model families, scales, and architectures are not supported, and exporting a semantic segmentation, OBB, or depth estimation model raises an error.
 
-| Task                             | [YOLOv8](../models/yolov8.md)                                                                                    | [YOLO11](../models/yolo11.md)                                                                                    | [YOLO26](../models/yolo26.md)                                                                                    |
-| :------------------------------- | :--------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------- |
-| [Detect](../tasks/detect.md)     | ✅     | ✅     | ❌     |
-| [Segment](../tasks/segment.md)   | ✅   | ✅   | ❌   |
-| [Semantic](../tasks/semantic.md) | ❌                                                                                                               | ❌                                                                                                               | ❌ |
-| [Depth](../tasks/depth.md)       | ❌                                                                                                               | ❌                                                                                                               | ❌       |
-| [Classify](../tasks/classify.md) | ✅ | ✅ | ❌ |
-| [Pose](../tasks/pose.md)         | ✅         | ✅         | ❌         |
-| [OBB](../tasks/obb.md)           | ❌           | ❌           | ❌           |
+{% set unsupported = ["obb", "yolo26"] %}
+{% include "macros/supported-tasks.md" %}
 
 ## Usage Examples
 

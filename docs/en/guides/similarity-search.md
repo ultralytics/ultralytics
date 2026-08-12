@@ -101,14 +101,10 @@ Call the searcher with a natural language query to get back a list of matching i
 
 The table below outlines the available parameters for `VisualAISearch`:
 
-| Argument | Type | Default | Description |
-| -------- | ---- | ------- | ----------- |
-| `data` | `str` | `'images'` | Path to image directory used for similarity search. |
-
-| Argument | Type | Default | Description |
-| -------- | ---- | ------- | ----------- |
-| `device` | `str` | `None` | Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution. |
-
+{% from "macros/solutions-args.md" import param_table %}
+{{ param_table(["data"]) }}
+{% from "macros/track-args.md" import param_table %}
+{{ param_table(["device"]) }}
 
 !!! tip "Manage your data in the cloud"
 

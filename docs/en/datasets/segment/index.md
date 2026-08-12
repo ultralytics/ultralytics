@@ -151,18 +151,7 @@ To auto-annotate your dataset using the Ultralytics framework, you can use the `
         auto_annotate(data="path/to/images", det_model="yolo26x.pt", sam_model="sam_b.pt")
         ```
 
-| Argument     | Type        | Default        | Description                                                                          |
-| ------------ | ----------- | -------------- | ------------------------------------------------------------------------------------ |
-| `data`       | `str`       | required       | Path to directory containing target images for annotation or segmentation.           |
-| `det_model`  | `str`       | `'yolo26x.pt'` | YOLO detection model path for initial object detection.                              |
-| `sam_model`  | `str`       | `'sam_b.pt'`   | SAM model path for segmentation (supports SAM, SAM 2, MobileSAM, and SAM 3 weights). |
-| `device`     | `str`       | `''`           | Computation device (e.g., 'cuda:0', 'cpu', or '' for automatic device detection).    |
-| `conf`       | `float`     | `0.25`         | YOLO detection confidence threshold for filtering weak detections.                   |
-| `iou`        | `float`     | `0.45`         | IoU threshold for Non-Maximum Suppression to filter overlapping boxes.               |
-| `imgsz`      | `int`       | `640`          | Input size for resizing images (must be multiple of 32).                             |
-| `max_det`    | `int`       | `300`          | Maximum number of detections per image for memory efficiency.                        |
-| `classes`    | `list[int]` | `None`         | List of class indices to detect (e.g., `[0, 1]` for person & bicycle).               |
-| `output_dir` | `str`       | `None`         | Save directory for annotations (default: `<data>_auto_annotate_labels` sibling).     |
+{% include "macros/sam-auto-annotate.md" %}
 
 The `auto_annotate` function takes the path to your images, along with optional arguments for specifying the pretrained detection models, e.g. [YOLO26](../../models/yolo26.md), [YOLO11](../../models/yolo11.md), or other [models](../../models/index.md), and segmentation models, e.g. [SAM](../../models/sam.md), [SAM 2](../../models/sam-2.md), [MobileSAM](../../models/mobile-sam.md), or [SAM 3](../../models/sam-3.md), the device to run the models on, and the output directory for saving the annotated results.
 

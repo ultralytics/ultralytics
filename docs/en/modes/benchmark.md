@@ -110,29 +110,7 @@ Arguments such as `model`, `data`, `imgsz`, `quantize`, `device`, `verbose` and 
 
 Benchmarks will attempt to run automatically on all possible export formats listed below. Alternatively, you can run benchmarks for a specific format by using the `format` argument, which accepts any of the formats mentioned below.
 
-| Format | `format` Argument | Model | Metadata | Arguments |
-| ---------------------------------------------------------- | ----------------- | ------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
-| [PyTorch](https://pytorch.org/) | - | `yolo26n.pt` | ✅ | - |
-| [TorchScript](../integrations/torchscript.md) | `torchscript` | `yolo26n.torchscript` | ✅ | `imgsz`, `quantize`, `dynamic`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device` |
-| [ONNX](../integrations/onnx.md) | `onnx` | `yolo26n.onnx` | ✅ | `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
-| [OpenVINO](../integrations/openvino.md) | `openvino` | `yolo26n_openvino_model/` | ✅ | `imgsz`, `quantize`, `dynamic`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
-| [TensorRT](../integrations/tensorrt.md) | `engine` | `yolo26n.engine` | ✅ | `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `workspace`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
-| [CoreML](../integrations/coreml.md) | `coreml` | `yolo26n.mlpackage` | ✅ | `imgsz`, `dynamic`, `quantize`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device` |
-| [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model` | `yolo26n_saved_model/` | ✅ | `imgsz`, `keras`, `quantize`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
-| [TF GraphDef](../integrations/tf-graphdef.md) | `pb` | `yolo26n.pb` | ❌ | `imgsz`, `opset`, `batch`, `device` |
-| [TF Edge TPU](../integrations/edge-tpu.md) | `edgetpu` | `yolo26n_edgetpu.tflite` | ✅ | `imgsz`, `quantize`, `opset`, `data`, `fraction`, `device` |
-| [PaddlePaddle](../integrations/paddlepaddle.md) | `paddle` | `yolo26n_paddle_model/` | ✅ | `imgsz`, `batch`, `device` |
-| [MNN](../integrations/mnn.md) | `mnn` | `yolo26n.mnn` | ✅ | `imgsz`, `batch`, `dynamic`, `quantize`, `simplify`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `device` |
-| [NCNN](../integrations/ncnn.md) | `ncnn` | `yolo26n_ncnn_model/` | ✅ | `imgsz`, `quantize`, `batch`, `device` |
-| [IMX500](../integrations/sony-imx500.md):material-information-outline:{ title="IMX format is currently only supported for YOLOv8n, YOLO11n models" } | `imx` | `yolo26n_imx_model/` | ✅ | `imgsz`, `quantize`, `data`, `fraction`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `device` |
-| [RKNN](../integrations/rockchip-rknn.md) | `rknn` | `yolo26n_rknn_model/` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `simplify`, `opset`, `data`, `fraction`, `device` |
-| [ExecuTorch](../integrations/executorch.md) | `executorch` | `yolo26n_executorch_model/` | ✅ | `imgsz`, `batch`, `device` |
-| [Axelera](../integrations/axelera.md) | `axelera` | `yolo26n_axelera_model/` | ✅ | `imgsz`, `batch`, `quantize`, `data`, `fraction`, `device` |
-| [DEEPX](../integrations/deepx.md) | `deepx` | `yolo26n_deepx_model/` | ✅ | `imgsz`, `quantize`, `simplify`, `opset`, `data`, `optimize`, `device` |
-| [Qualcomm QNN](../integrations/qnn.md) | `qnn` | `yolo26n_qnn.onnx` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `simplify`, `opset`, `data`, `fraction`, `device` |
-| [LiteRT](../integrations/litert.md) | `litert` | `yolo26n.tflite` | ✅ | `imgsz`, `quantize`, `batch`, `data`, `fraction`, `device` |
-| [Hailo](../integrations/hailo.md) | `hailo` | `yolo26n_hailo_model/` | ✅ | `imgsz`, `name`, `quantize`, `data`, `fraction`, `simplify`, `conf`, `iou` |
-| [Huawei Ascend](../integrations/ascend.md) | `ascend` | `yolo26n_ascend_model/` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `opset`, `simplify`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" } |
+{% include "macros/export-table.md" %}
 
 See full `export` details in the [Export](../modes/export.md) page.
 

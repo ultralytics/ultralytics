@@ -82,11 +82,7 @@ graph TB
     classDef out fill:#9C27B0,color:#fff
 ```
 
-| Region | Label                        | Location             | Best For                                |
-| ------ | ---------------------------- | -------------------- | --------------------------------------- |
-| **US** | Americas                     | Iowa, USA            | Americas users, fastest for Americas    |
-| **EU** | Europe, Middle East & Africa | Belgium, Europe      | European users, GDPR compliance         |
-| **AP** | Asia Pacific                 | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+{% include "macros/platform-data-regions.md" %}
 
 ### Dedicated Endpoints
 

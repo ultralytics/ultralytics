@@ -134,7 +134,7 @@ gst-launch-1.0 filesrc location=/home/dlstreamer/demo/video1.mp4 ! decodebin3 ! 
 
 ## Multi-Stream Setup
 
-DL Streamer supports multi-stream processing, where multiple video sources are decoded and inferred simultaneously. You can launch multiple pipelines in parallel using GStreamer's `vacompositor` element to combine multiple streams.
+DL Streamer supports multi-stream processing, where multiple video sources are decoded and inferred simultaneously. You can launch multiple pipelines in parallel using GStreamer’s `vacompositor` element to combine multiple streams.
 
 ### Running Multiple Pipelines (4 streams) in Parallel (GPU)
 
@@ -166,7 +166,7 @@ Install DL Streamer following the [Installation Guide](https://github.com/open-e
 
 ### What is the benefit of using OpenVINO™ with YOLO26 on Intel hardware?
 
-OpenVINO™ optimizes the YOLO26 model specifically for Intel hardware through techniques such as graph optimization, layer fusion, and hardware-specific kernel tuning. Combined with DL Streamer's VA-API accelerated decode and zero-copy `va-surface-sharing` pre-processing, the full video analytics pipeline achieves significantly higher throughput than unoptimized frameworks.
+OpenVINO™ optimizes the YOLO26 model specifically for Intel hardware through techniques such as graph optimization, layer fusion, and hardware-specific kernel tuning. Combined with DL Streamer’s VA-API accelerated decode and zero-copy `va-surface-sharing` pre-processing, the full video analytics pipeline achieves significantly higher throughput than unoptimized frameworks.
 
 ### Can I run YOLO26 with DL Streamer on different Intel devices?
 

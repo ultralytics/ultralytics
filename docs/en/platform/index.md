@@ -62,11 +62,7 @@ graph LR
 
 Your data stays in your region. Ultralytics Platform operates infrastructure in three global regions:
 
-| Region | Label                        | Location             | Best For                                |
-| ------ | ---------------------------- | -------------------- | --------------------------------------- |
-| **US** | Americas                     | Iowa, USA            | Americas users, fastest for Americas    |
-| **EU** | Europe, Middle East & Africa | Belgium, Europe      | European users, GDPR compliance         |
-| **AP** | Asia Pacific                 | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+{% include "macros/platform-data-regions.md" %}
 
 You select your data region during onboarding. Datasets, models, and managed training data remain in that region.
 Dedicated endpoints are deployed separately to a region you choose from the global deployment map.
@@ -351,34 +347,7 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 
 Ultralytics Platform supports multiple GPU types for cloud training:
 
-| GPU          | Generation | VRAM   | Cost/Hour | Best For                   |
-| ------------ | ---------- | ------ | --------- | -------------------------- |
-| RTX 2000 Ada | Ada        | 16 GB  | $0.24     | Small datasets, testing    |
-| RTX A4500    | Ampere     | 20 GB  | $0.25     | Small-medium datasets      |
-| RTX 4000 Ada | Ada        | 20 GB  | $0.26     | Medium datasets            |
-| RTX A5000    | Ampere     | 24 GB  | $0.27     | Medium datasets            |
-| L4           | Ada        | 24 GB  | $0.39     | Inference optimized        |
-| A40          | Ampere     | 48 GB  | $0.44     | Larger batch sizes         |
-| RTX 3090     | Ampere     | 24 GB  | $0.46     | General training           |
-| RTX A6000    | Ampere     | 48 GB  | $0.49     | Large models               |
-| RTX PRO 4000 | Blackwell  | 24 GB  | $0.57     | Budget Blackwell           |
-| RTX PRO 4500 | Blackwell  | 32 GB  | $0.64     | Great price/performance    |
-| RTX 4090     | Ada        | 24 GB  | $0.69     | Best price/performance     |
-| RTX 6000 Ada | Ada        | 48 GB  | $0.77     | Large batch training       |
-| L40S         | Ada        | 48 GB  | $0.86     | Large batch training       |
-| RTX PRO 5000 | Blackwell  | 48 GB  | $0.96     | Large batch training       |
-| RTX 5090     | Blackwell  | 32 GB  | $0.99     | Latest consumer generation |
-| L40          | Ada        | 48 GB  | $0.99     | Large models               |
-| A100 PCIe    | Ampere     | 80 GB  | $1.39     | Production training        |
-| A100 SXM     | Ampere     | 80 GB  | $1.49     | Production training        |
-| RTX PRO 6000 | Blackwell  | 96 GB  | $2.09     | Recommended default        |
-| H100 PCIe    | Hopper     | 80 GB  | $2.89     | High-performance training  |
-| H100 NVL     | Hopper     | 94 GB  | $3.19     | Maximum performance        |
-| H100 SXM     | Hopper     | 80 GB  | $3.29     | Fastest training           |
-| H200 NVL     | Hopper     | 143 GB | $3.39     | Maximum memory             |
-| H200 SXM     | Hopper     | 141 GB | $4.39     | Maximum performance        |
-| B200         | Blackwell  | 180 GB | $5.89     | Large models (Pro+)        |
-| B300         | Blackwell  | 288 GB | $7.39     | Largest models (Pro+)      |
+{% include "macros/platform-gpu-table.md" %}
 
 See [Cloud Training](train/cloud-training.md) for complete pricing and GPU options.
 
@@ -459,28 +428,6 @@ See [Annotation](data/annotation.md) for the complete guide.
 
 The Platform supports the same 20 deployment formats as Ultralytics Export mode. PyTorch is the source format; each row with a `format` argument is an export target.
 
-| Format | `format` Argument | Model | Metadata | Arguments |
-| ---------------------------------------------------------- | ----------------- | ------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
-| [PyTorch](https://pytorch.org/) | - | `yolo26n.pt` | ✅ | - |
-| [TorchScript](../integrations/torchscript.md) | `torchscript` | `yolo26n.torchscript` | ✅ | `imgsz`, `quantize`, `dynamic`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device` |
-| [ONNX](../integrations/onnx.md) | `onnx` | `yolo26n.onnx` | ✅ | `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
-| [OpenVINO](../integrations/openvino.md) | `openvino` | `yolo26n_openvino_model/` | ✅ | `imgsz`, `quantize`, `dynamic`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
-| [TensorRT](../integrations/tensorrt.md) | `engine` | `yolo26n.engine` | ✅ | `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `workspace`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
-| [CoreML](../integrations/coreml.md) | `coreml` | `yolo26n.mlpackage` | ✅ | `imgsz`, `dynamic`, `quantize`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device` |
-| [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model` | `yolo26n_saved_model/` | ✅ | `imgsz`, `keras`, `quantize`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
-| [TF GraphDef](../integrations/tf-graphdef.md) | `pb` | `yolo26n.pb` | ❌ | `imgsz`, `opset`, `batch`, `device` |
-| [TF Edge TPU](../integrations/edge-tpu.md) | `edgetpu` | `yolo26n_edgetpu.tflite` | ✅ | `imgsz`, `quantize`, `opset`, `data`, `fraction`, `device` |
-| [PaddlePaddle](../integrations/paddlepaddle.md) | `paddle` | `yolo26n_paddle_model/` | ✅ | `imgsz`, `batch`, `device` |
-| [MNN](../integrations/mnn.md) | `mnn` | `yolo26n.mnn` | ✅ | `imgsz`, `batch`, `dynamic`, `quantize`, `simplify`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `device` |
-| [NCNN](../integrations/ncnn.md) | `ncnn` | `yolo26n_ncnn_model/` | ✅ | `imgsz`, `quantize`, `batch`, `device` |
-| [IMX500](../integrations/sony-imx500.md):material-information-outline:{ title="IMX format is currently only supported for YOLOv8n, YOLO11n models" } | `imx` | `yolo26n_imx_model/` | ✅ | `imgsz`, `quantize`, `data`, `fraction`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `device` |
-| [RKNN](../integrations/rockchip-rknn.md) | `rknn` | `yolo26n_rknn_model/` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `simplify`, `opset`, `data`, `fraction`, `device` |
-| [ExecuTorch](../integrations/executorch.md) | `executorch` | `yolo26n_executorch_model/` | ✅ | `imgsz`, `batch`, `device` |
-| [Axelera](../integrations/axelera.md) | `axelera` | `yolo26n_axelera_model/` | ✅ | `imgsz`, `batch`, `quantize`, `data`, `fraction`, `device` |
-| [DEEPX](../integrations/deepx.md) | `deepx` | `yolo26n_deepx_model/` | ✅ | `imgsz`, `quantize`, `simplify`, `opset`, `data`, `optimize`, `device` |
-| [Qualcomm QNN](../integrations/qnn.md) | `qnn` | `yolo26n_qnn.onnx` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `simplify`, `opset`, `data`, `fraction`, `device` |
-| [LiteRT](../integrations/litert.md) | `litert` | `yolo26n.tflite` | ✅ | `imgsz`, `quantize`, `batch`, `data`, `fraction`, `device` |
-| [Hailo](../integrations/hailo.md) | `hailo` | `yolo26n_hailo_model/` | ✅ | `imgsz`, `name`, `quantize`, `data`, `fraction`, `simplify`, `conf`, `iou` |
-| [Huawei Ascend](../integrations/ascend.md) | `ascend` | `yolo26n_ascend_model/` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `opset`, `simplify`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" } |
+{% include "macros/export-table.md" %}
 
 See [Models Export](train/models.md#export-model), the [Export mode guide](../modes/export.md), and the [Integrations index](../integrations/index.md) for format-specific options.

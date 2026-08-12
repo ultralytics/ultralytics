@@ -30,15 +30,7 @@ keywords: Ultralytics, YOLO26, MNN, model export, machine learning, deployment, 
 
 MNN export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
 
-| Task                             | [YOLOv8](../models/yolov8.md)                                                                                    | [YOLO11](../models/yolo11.md)                                                                                    | [YOLO26](../models/yolo26.md)                                                                                    |
-| :------------------------------- | :--------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------- |
-| [Detect](../tasks/detect.md)     | ✅     | ✅     | ✅     |
-| [Segment](../tasks/segment.md)   | ✅   | ✅   | ✅   |
-| [Semantic](../tasks/semantic.md) | ❌                                                                                                               | ❌                                                                                                               | ✅ |
-| [Depth](../tasks/depth.md)       | ❌                                                                                                               | ❌                                                                                                               | ✅       |
-| [Classify](../tasks/classify.md) | ✅ | ✅ | ✅ |
-| [Pose](../tasks/pose.md)         | ✅         | ✅         | ✅         |
-| [OBB](../tasks/obb.md)           | ✅           | ✅           | ✅           |
+{% include "macros/supported-tasks.md" %}
 
 ## Export to MNN: Converting Your YOLO26 Model
 

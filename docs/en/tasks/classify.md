@@ -34,13 +34,7 @@ YOLO26 pretrained Classify models are shown here. Detect, Segment, and Pose mode
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) are downloaded automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
-| Model                                                                          | size<br><sup>(pixels)</sup> | acc<br><sup>top1</sup> | acc<br><sup>top5</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B) at 224</sup> |
-| ------------------------------------------------------------------------------ | --------------------------- | ---------------------- | ---------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ------------------------------ |
-| [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) | 224                         | 71.4                   | 90.1                   | 5.0 ± 0.3                            | 1.1 ± 0.0                                 | 2.8                      | 0.5                            |
-| [YOLO26s-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s-cls) | 224                         | 76.0                   | 92.9                   | 7.9 ± 0.2                            | 1.3 ± 0.0                                 | 6.7                      | 1.6                            |
-| [YOLO26m-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m-cls) | 224                         | 78.1                   | 94.2                   | 17.2 ± 0.4                           | 2.0 ± 0.0                                 | 11.6                     | 4.9                            |
-| [YOLO26l-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-cls) | 224                         | 79.0                   | 94.6                   | 23.2 ± 0.3                           | 2.8 ± 0.0                                 | 14.1                     | 6.2                            |
-| [YOLO26x-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-cls) | 224                         | 79.9                   | 95.0                   | 41.4 ± 0.9                           | 3.8 ± 0.0                                 | 29.6                     | 13.6                           |
+{% include "macros/yolo-cls-perf.md" %}
 
 - **acc** values are model accuracies on the [ImageNet](https://www.image-net.org/) dataset validation set. <br>Reproduce by `yolo val classify data=path/to/ImageNet device=0`
 - **Speed** averaged over ImageNet val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val classify data=path/to/ImageNet batch=1 device=0|cpu`
@@ -263,29 +257,7 @@ Export a YOLO26n-cls model to a different format like ONNX, CoreML, etc.
 
 Available YOLO26-cls export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-cls.onnx`. Usage examples are shown for your model after export completes.
 
-| Format | `format` Argument | Model | Metadata | Arguments |
-| ---------------------------------------------------------- | ----------------- | ------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
-| [PyTorch](https://pytorch.org/) | - | `yolo26n-cls.pt` | ✅ | - |
-| [TorchScript](../integrations/torchscript.md) | `torchscript` | `yolo26n-cls.torchscript` | ✅ | `imgsz`, `quantize`, `dynamic`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device` |
-| [ONNX](../integrations/onnx.md) | `onnx` | `yolo26n-cls.onnx` | ✅ | `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
-| [OpenVINO](../integrations/openvino.md) | `openvino` | `yolo26n-cls_openvino_model/` | ✅ | `imgsz`, `quantize`, `dynamic`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
-| [TensorRT](../integrations/tensorrt.md) | `engine` | `yolo26n-cls.engine` | ✅ | `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `workspace`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
-| [CoreML](../integrations/coreml.md) | `coreml` | `yolo26n-cls.mlpackage` | ✅ | `imgsz`, `dynamic`, `quantize`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device` |
-| [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model` | `yolo26n-cls_saved_model/` | ✅ | `imgsz`, `keras`, `quantize`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
-| [TF GraphDef](../integrations/tf-graphdef.md) | `pb` | `yolo26n-cls.pb` | ❌ | `imgsz`, `opset`, `batch`, `device` |
-| [TF Edge TPU](../integrations/edge-tpu.md) | `edgetpu` | `yolo26n-cls_edgetpu.tflite` | ✅ | `imgsz`, `quantize`, `opset`, `data`, `fraction`, `device` |
-| [PaddlePaddle](../integrations/paddlepaddle.md) | `paddle` | `yolo26n-cls_paddle_model/` | ✅ | `imgsz`, `batch`, `device` |
-| [MNN](../integrations/mnn.md) | `mnn` | `yolo26n-cls.mnn` | ✅ | `imgsz`, `batch`, `dynamic`, `quantize`, `simplify`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `device` |
-| [NCNN](../integrations/ncnn.md) | `ncnn` | `yolo26n-cls_ncnn_model/` | ✅ | `imgsz`, `quantize`, `batch`, `device` |
-| [IMX500](../integrations/sony-imx500.md):material-information-outline:{ title="IMX format is currently only supported for YOLOv8n, YOLO11n models" } | `imx` | `yolo26n-cls_imx_model/` | ✅ | `imgsz`, `quantize`, `data`, `fraction`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `device` |
-| [RKNN](../integrations/rockchip-rknn.md) | `rknn` | `yolo26n-cls_rknn_model/` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `simplify`, `opset`, `data`, `fraction`, `device` |
-| [ExecuTorch](../integrations/executorch.md) | `executorch` | `yolo26n-cls_executorch_model/` | ✅ | `imgsz`, `batch`, `device` |
-| [Axelera](../integrations/axelera.md) | `axelera` | `yolo26n-cls_axelera_model/` | ✅ | `imgsz`, `batch`, `quantize`, `data`, `fraction`, `device` |
-| [DEEPX](../integrations/deepx.md) | `deepx` | `yolo26n-cls_deepx_model/` | ✅ | `imgsz`, `quantize`, `simplify`, `opset`, `data`, `optimize`, `device` |
-| [Qualcomm QNN](../integrations/qnn.md) | `qnn` | `yolo26n-cls_qnn.onnx` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `simplify`, `opset`, `data`, `fraction`, `device` |
-| [LiteRT](../integrations/litert.md) | `litert` | `yolo26n-cls.tflite` | ✅ | `imgsz`, `quantize`, `batch`, `data`, `fraction`, `device` |
-| [Hailo](../integrations/hailo.md) | `hailo` | `yolo26n-cls_hailo_model/` | ✅ | `imgsz`, `name`, `quantize`, `data`, `fraction`, `simplify`, `conf`, `iou` |
-| [Huawei Ascend](../integrations/ascend.md) | `ascend` | `yolo26n-cls_ascend_model/` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `opset`, `simplify`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" } |
+{% include "macros/export-table.md" %}
 
 See full `export` details in the [Export](../modes/export.md) page.
 

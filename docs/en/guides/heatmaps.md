@@ -108,36 +108,18 @@ Run the Heatmap solution on a video source from the CLI or Python. The Python ex
 
 Here's a table with the `Heatmap` arguments:
 
-| Argument | Type | Default | Description |
-| -------- | ---- | ------- | ----------- |
-| `model` | `str` | `None` | Path to an Ultralytics YOLO model file. |
-| `colormap` | `int` | `cv2.COLORMAP_DEEPGREEN` | Colormap to use for the heatmap. |
-| `show_in` | `bool` | `True` | Flag to control whether to display the in counts on the video stream. |
-| `show_out` | `bool` | `True` | Flag to control whether to display the out counts on the video stream. |
-| `region` | `list` or `dict` | `None` | Points defining the region of interest, either a list of `(x, y)` tuples or a dictionary mapping region names to point lists for multiple regions (`RegionCounter` only). When `None`, solutions that require a region fall back to a predefined default. |
-
+{% from "macros/solutions-args.md" import param_table %}
+{{ param_table(["model", "colormap", "show_in", "show_out", "region"]) }}
 
 You can also apply different `track` arguments in the `Heatmap` solution.
 
-| Argument | Type | Default | Description |
-| -------- | ---- | ------- | ----------- |
-| `tracker` | `str` | `'tracktrack.yaml'` | Specifies the tracking algorithm to use. Built-in options: `botsort.yaml`, `bytetrack.yaml`, `ocsort.yaml`, `deepocsort.yaml`, `fasttrack.yaml`, `tracktrack.yaml`. |
-| `conf` | `float` | `0.1` | Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives. |
-| `iou` | `float` | `0.7` | Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections. |
-| `classes` | `list` | `None` | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes. |
-| `verbose` | `bool` | `True` | Controls the display of tracking results, providing a visual output of tracked objects. |
-| `device` | `str` | `None` | Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution. |
-
+{% from "macros/track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
 
 Additionally, the supported visualization arguments are listed below:
 
-| Argument | Type | Default | Description |
-| -------- | ---- | ------- | ----------- |
-| `show` | `bool` | `False` | If `True`, displays the annotated images or videos in a window. Useful for immediate visual feedback during development or testing. |
-| `line_width` | `int or None` | `None` | Specifies the line width of bounding boxes. If `None`, the line width is automatically adjusted based on the image size. Provides visual customization for clarity. |
-| `show_conf` | `bool` | `True` | Displays the confidence score for each detection alongside the label. Gives insight into the model's certainty for each detection. |
-| `show_labels` | `bool` | `True` | Displays labels for each detection in the visual output. Provides immediate understanding of detected objects. |
-
+{% from "macros/visualization-args.md" import param_table %}
+{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
 
 ### Heatmap Colormaps
 

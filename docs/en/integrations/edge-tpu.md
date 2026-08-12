@@ -47,15 +47,8 @@ TFLite Edge TPU offers various deployment options for machine learning models, i
 
 Edge TPU export supports six of the seven Ultralytics tasks. Semantic segmentation is available only with YOLO26, the only family that ships that head. Depth estimation is not supported because its INT8 model emits an `EXP` v2 operator that the Edge TPU compiler cannot parse.
 
-| Task                             | [YOLOv8](../models/yolov8.md)                                                                                    | [YOLO11](../models/yolo11.md)                                                                                    | [YOLO26](../models/yolo26.md)                                                                                    |
-| :------------------------------- | :--------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------- |
-| [Detect](../tasks/detect.md)     | ✅     | ✅     | ✅     |
-| [Segment](../tasks/segment.md)   | ✅   | ✅   | ✅   |
-| [Semantic](../tasks/semantic.md) | ❌                                                                                                               | ❌                                                                                                               | ✅ |
-| [Depth](../tasks/depth.md)       | ❌                                                                                                               | ❌                                                                                                               | ❌       |
-| [Classify](../tasks/classify.md) | ✅ | ✅ | ✅ |
-| [Pose](../tasks/pose.md)         | ✅         | ✅         | ✅         |
-| [OBB](../tasks/obb.md)           | ✅           | ✅           | ✅           |
+{% set unsupported = ["depth"] %}
+{% include "macros/supported-tasks.md" %}
 
 The Edge TPU compiler maps the operations it supports onto the accelerator and leaves the rest on the CPU, so task support does not mean every operation runs on the TPU.
 

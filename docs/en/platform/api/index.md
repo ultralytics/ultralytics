@@ -1122,15 +1122,7 @@ Public models can be predicted without authentication. Private and shared models
 
 **Multipart Form:**
 
-| Parameter   | Type   | Default | Range      | Description                                        |
-| ----------- | ------ | ------- | ---------- | -------------------------------------------------- |
-| `file`      | file   | -       | -          | Image or video file (required unless `source` set) |
-| `conf`      | float  | 0.25    | 0.01 – 1.0 | Minimum confidence threshold                       |
-| `iou`       | float  | 0.7     | 0.0 – 0.95 | NMS IoU threshold                                  |
-| `imgsz`     | int    | 640     | 32 – 1280  | Input image size in pixels                         |
-| `normalize` | bool   | false   | -          | Return bounding box coordinates as 0 – 1           |
-| `decimals`  | int    | 5       | 0 – 10     | Decimal precision for coordinate values            |
-| `source`    | string | -       | -          | Image URL or base64 string (alternative to `file`) |
+{% include "macros/platform-inference-parameters.md" %}
 
 Provide either `file` or `source`. Maximum upload size is 100 MB.
 
@@ -1425,15 +1417,7 @@ Send an image directly to a deployment endpoint for inference. Functionally equi
 
 **Multipart Form:**
 
-| Parameter   | Type   | Default | Range      | Description                                        |
-| ----------- | ------ | ------- | ---------- | -------------------------------------------------- |
-| `file`      | file   | -       | -          | Image or video file (required unless `source` set) |
-| `conf`      | float  | 0.25    | 0.01 – 1.0 | Minimum confidence threshold                       |
-| `iou`       | float  | 0.7     | 0.0 – 0.95 | NMS IoU threshold                                  |
-| `imgsz`     | int    | 640     | 32 – 1280  | Input image size in pixels                         |
-| `normalize` | bool   | false   | -          | Return bounding box coordinates as 0 – 1           |
-| `decimals`  | int    | 5       | 0 – 10     | Decimal precision for coordinate values            |
-| `source`    | string | -       | -          | Image URL or base64 string (alternative to `file`) |
+{% include "macros/platform-inference-parameters.md" %}
 
 Provide either `file` or `source`. The response uses the same image and metadata contract as model prediction and never returns the internal model path.
 
@@ -1526,29 +1510,7 @@ POST /api/exports
 
 Use the `format` argument from the shared export table below. PyTorch is the source format and is not an API export target.
 
-| Format | `format` Argument | Model | Metadata | Arguments |
-| ---------------------------------------------------------- | ----------------- | ------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
-| [PyTorch](https://pytorch.org/) | - | `yolo26n.pt` | ✅ | - |
-| [TorchScript](../../integrations/torchscript.md) | `torchscript` | `yolo26n.torchscript` | ✅ | `imgsz`, `quantize`, `dynamic`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device` |
-| [ONNX](../../integrations/onnx.md) | `onnx` | `yolo26n.onnx` | ✅ | `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
-| [OpenVINO](../../integrations/openvino.md) | `openvino` | `yolo26n_openvino_model/` | ✅ | `imgsz`, `quantize`, `dynamic`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
-| [TensorRT](../../integrations/tensorrt.md) | `engine` | `yolo26n.engine` | ✅ | `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `workspace`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
-| [CoreML](../../integrations/coreml.md) | `coreml` | `yolo26n.mlpackage` | ✅ | `imgsz`, `dynamic`, `quantize`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device` |
-| [TF SavedModel](../../integrations/tf-savedmodel.md) | `saved_model` | `yolo26n_saved_model/` | ✅ | `imgsz`, `keras`, `quantize`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
-| [TF GraphDef](../../integrations/tf-graphdef.md) | `pb` | `yolo26n.pb` | ❌ | `imgsz`, `opset`, `batch`, `device` |
-| [TF Edge TPU](../../integrations/edge-tpu.md) | `edgetpu` | `yolo26n_edgetpu.tflite` | ✅ | `imgsz`, `quantize`, `opset`, `data`, `fraction`, `device` |
-| [PaddlePaddle](../../integrations/paddlepaddle.md) | `paddle` | `yolo26n_paddle_model/` | ✅ | `imgsz`, `batch`, `device` |
-| [MNN](../../integrations/mnn.md) | `mnn` | `yolo26n.mnn` | ✅ | `imgsz`, `batch`, `dynamic`, `quantize`, `simplify`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `device` |
-| [NCNN](../../integrations/ncnn.md) | `ncnn` | `yolo26n_ncnn_model/` | ✅ | `imgsz`, `quantize`, `batch`, `device` |
-| [IMX500](../../integrations/sony-imx500.md):material-information-outline:{ title="IMX format is currently only supported for YOLOv8n, YOLO11n models" } | `imx` | `yolo26n_imx_model/` | ✅ | `imgsz`, `quantize`, `data`, `fraction`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `device` |
-| [RKNN](../../integrations/rockchip-rknn.md) | `rknn` | `yolo26n_rknn_model/` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `simplify`, `opset`, `data`, `fraction`, `device` |
-| [ExecuTorch](../../integrations/executorch.md) | `executorch` | `yolo26n_executorch_model/` | ✅ | `imgsz`, `batch`, `device` |
-| [Axelera](../../integrations/axelera.md) | `axelera` | `yolo26n_axelera_model/` | ✅ | `imgsz`, `batch`, `quantize`, `data`, `fraction`, `device` |
-| [DEEPX](../../integrations/deepx.md) | `deepx` | `yolo26n_deepx_model/` | ✅ | `imgsz`, `quantize`, `simplify`, `opset`, `data`, `optimize`, `device` |
-| [Qualcomm QNN](../../integrations/qnn.md) | `qnn` | `yolo26n_qnn.onnx` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `simplify`, `opset`, `data`, `fraction`, `device` |
-| [LiteRT](../../integrations/litert.md) | `litert` | `yolo26n.tflite` | ✅ | `imgsz`, `quantize`, `batch`, `data`, `fraction`, `device` |
-| [Hailo](../../integrations/hailo.md) | `hailo` | `yolo26n_hailo_model/` | ✅ | `imgsz`, `name`, `quantize`, `data`, `fraction`, `simplify`, `conf`, `iou` |
-| [Huawei Ascend](../../integrations/ascend.md) | `ascend` | `yolo26n_ascend_model/` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `opset`, `simplify`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" } |
+{% include "macros/export-table.md" %}
 
 ### Get Export Status
 

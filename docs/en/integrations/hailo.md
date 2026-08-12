@@ -31,9 +31,9 @@ The Hailo lineup spans host-attached AI accelerators and fully integrated AI vis
 | :------------ | :------------- | :------------------------------ | :------------------------------------------------------ |
 | **Hailo-8**   | AI accelerator | 26 TOPS (INT8)                  | High-performance vision and multi-stream analytics      |
 | **Hailo-8L**  | AI accelerator | 13 TOPS (INT8)                  | Entry-level, cost-sensitive vision                      |
-| **Hailo-10H** | AI accelerator | 20 TOPS (INT8) / 40 TOPS (INT4) | Adds generative AI (LLMs/VLMs) and a USB 3 interface    |
-| **Hailo-15H** | AI SoC         | 20 TOPS (INT8) / 40 TOPS (INT4) | Vision processor for mid- to high-end smart cameras     |
-| **Hailo-15L** | AI SoC         | 7 TOPS (INT8) / 14 TOPS (INT4)  | Cost-efficient vision processor for mass-market cameras |
+| **Hailo-10H** | AI accelerator | 20 TOPS (INT8)                  | Adds generative AI (LLMs/VLMs) and a USB 3 interface    |
+| **Hailo-15H** | AI SoC         | 20 TOPS (INT8)                  | Vision processor for mid- to high-end smart cameras     |
+| **Hailo-15L** | AI SoC         | 7 TOPS (INT8)                   | Cost-efficient vision processor for mass-market cameras |
 
 Select the target with the `name=` export argument (see [Supported Models and Hardware](#supported-models-and-hardware)).
 
@@ -249,16 +249,20 @@ The intermediate ONNX graph is removed after compilation.
 
 ## Run Inference on Hailo Hardware
 
-Install HailoRT on the target device. Raspberry Pi AI HAT+ and AI HAT+ 2 users can follow the [Raspberry Pi AI software guide](https://www.raspberrypi.com/documentation/computers/ai.html):
+Install HailoRT on the target device. Raspberry Pi AI HAT+ and AI HAT+ 2 users can follow the [Raspberry Pi AI software guide](https://www.raspberrypi.com/documentation/computers/ai.html). On Raspberry Pi OS, install the package set that matches the accelerator: `hailo-all` for the AI HAT+ (Hailo-8/8L), or `hailo-h10-all` for the AI HAT+ 2 (Hailo-10H, Raspberry Pi OS Trixie or newer). The two package sets cannot be installed together:
 
 ```bash
+# AI HAT+ (Hailo-8 / Hailo-8L):
 sudo apt install hailo-all
+# AI HAT+ 2 (Hailo-10H, Raspberry Pi OS Trixie or newer) — install dkms first:
+# sudo apt install dkms
+# sudo apt install hailo-h10-all
 hailortcli fw-control identify
 ```
 
 !!! note
 
-    `sudo apt install hailo-all` installs HailoRT only on Raspberry Pi OS. On any other host, download and install the HailoRT package from the [Hailo Developer Zone](https://hailo.ai/developer-zone/) — the same source as the DFC.
+    The `hailo-all` and `hailo-h10-all` packages install HailoRT only on Raspberry Pi OS. On any other host, download and install the HailoRT package from the [Hailo Developer Zone](https://hailo.ai/developer-zone/) — the same source as the DFC.
 
 Copy the complete export directory to the device so `metadata.yaml` remains next to the HEF. Ultralytics uses HailoRT to run `predict` and `val` directly on the exported directory:
 
@@ -328,7 +332,7 @@ Model and pipeline choices often matter more than compiler flags:
 | `conf`     | `float`       | `0.25`    | YOLOv8/YOLO11 HailoRT NMS confidence threshold                                                                                                                              |
 | `iou`      | `float`       | `0.7`     | YOLOv8/YOLO11 HailoRT NMS IoU threshold                                                                                                                                     |
 
-For detection export, YOLOv8 and YOLO11 receive HailoRT NMS, while YOLO26 keeps its NMS-free one-to-one outputs. Segmentation, pose, and OBB use raw head tensors, classification returns on-chip probabilities, and semantic segmentation returns raw logits on Hailo-8/8L and all single-class heads or baked class maps for multi-class Hailo-10H/15 heads. Depth estimation returns the raw depth logit, which Ultralytics decodes into a metric depth map at inference. Do not pass `end2end`; explicit overrides are rejected. Dynamic shapes, embedded Ultralytics NMS, FP16, and FP32 are not supported. The Ultralytics runtime also runs inference at batch size 1, though Hailo hardware and HailoRT support larger batch sizes in native applications.
+For detection export, YOLOv8 and YOLO11 receive HailoRT NMS, while YOLO26 keeps its NMS-free one-to-one outputs. Segmentation, pose, and OBB use raw head tensors, classification returns on-chip probabilities, and semantic segmentation returns raw logits on Hailo-8/8L and all single-class heads or baked class maps for multi-class Hailo-10H/15 heads. Depth estimation returns the raw depth logit, which Ultralytics decodes into a metric depth map at inference. Do not pass `end2end`; explicit overrides are rejected. Dynamic shapes, embedded Ultralytics NMS, FP16, and FP32 are not supported.
 
 ## Troubleshooting Hailo Export
 

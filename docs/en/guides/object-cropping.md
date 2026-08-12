@@ -94,13 +94,19 @@ Pass your video to the `ObjectCropper` solution and it detects objects each fram
 
 Here's a table with the `ObjectCropper` arguments:
 
-{% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "crop_dir"]) }}
+| Argument | Type | Default | Description |
+| -------- | ---- | ------- | ----------- |
+| `model` | `str` | `None` | Path to an Ultralytics YOLO model file. |
+| `crop_dir` | `str` | `'cropped-detections'` | Directory name for storing cropped detections. |
+
 
 Moreover, the following visualization arguments are available for use:
 
-{% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width"]) }}
+| Argument | Type | Default | Description |
+| -------- | ---- | ------- | ----------- |
+| `show` | `bool` | `False` | If `True`, displays the annotated images or videos in a window. Useful for immediate visual feedback during development or testing. |
+| `line_width` | `int or None` | `None` | Specifies the line width of bounding boxes. If `None`, the line width is automatically adjusted based on the image size. Provides visual customization for clarity. |
+
 
 ## FAQ
 

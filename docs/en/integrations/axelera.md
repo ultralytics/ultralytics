@@ -70,8 +70,15 @@ For turnkey solutions, Axelera partners with manufacturers to provide systems pr
 
 Depth estimation is not supported: the depth head emits operators the Metis AIPU compiler cannot lower. YOLO26 segmentation is not supported by Ultralytics `export` either, but can still be deployed through the Voyager SDK as described below.
 
-{% set unsupported = ["depth", "yolo26-segment"] %}
-{% include "macros/supported-tasks.md" %}
+| Task                             | [YOLOv8](../models/yolov8.md)                                                                                    | [YOLO11](../models/yolo11.md)                                                                                    | [YOLO26](../models/yolo26.md)                                                                                    |
+| :------------------------------- | :--------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------- |
+| [Detect](../tasks/detect.md)     | ✅     | ✅     | ✅     |
+| [Segment](../tasks/segment.md)   | ✅   | ✅   | ❌   |
+| [Semantic](../tasks/semantic.md) | ❌                                                                                                               | ❌                                                                                                               | ✅ |
+| [Depth](../tasks/depth.md)       | ❌                                                                                                               | ❌                                                                                                               | ❌       |
+| [Classify](../tasks/classify.md) | ✅ | ✅ | ✅ |
+| [Pose](../tasks/pose.md)         | ✅         | ✅         | ✅         |
+| [OBB](../tasks/obb.md)           | ✅           | ✅           | ✅           |
 
 !!! note
 

@@ -12,6 +12,105 @@ keywords: Ultralytics, PaddlePaddle, model export, PyTorch to Paddle, X2Paddle, 
 
 <br>
 
-## ::: ultralytics.utils.export.paddle.torch2paddle
+!!! abstract "Summary"
+
+    === "<span class="doc-kind doc-kind-function">Functions</span>"
+
+        - [`torch2paddle`](#ultralytics.utils.export.paddle.torch2paddle)
+
+
+## Function `ultralytics.utils.export.paddle.torch2paddle` {#ultralytics.utils.export.paddle.torch2paddle}
+
+```python
+def torch2paddle(
+    model: torch.nn.Module,
+    im: torch.Tensor,
+    output_dir: Path | str,
+    metadata: dict | None = None,
+    prefix: str = "",
+) -> str
+```
+
+Export a PyTorch model to PaddlePaddle format using X2Paddle.
+
+**Args**
+
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `model` | `torch.nn.Module` | The PyTorch model to export. | *required* |
+| `im` | `torch.Tensor` | Example input tensor for tracing. | *required* |
+| `output_dir` | `Path \| str` | Directory to save the exported PaddlePaddle model. | *required* |
+| `metadata` | `dict \| None` | Optional metadata saved as ``metadata.yaml``. | `None` |
+| `prefix` | `str` | Prefix for log messages. | `""` |
+
+**Returns**
+
+| Type | Description |
+| --- | --- |
+| `str` | Path to the exported ``_paddle_model`` directory. |
+
+<details>
+<summary>Source code in <code>ultralytics/utils/export/paddle.py</code></summary>
+
+<a href="https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/export/paddle.py#L12-L67">View on GitHub</a>
+```python
+def torch2paddle(
+    model: torch.nn.Module,
+    im: torch.Tensor,
+    output_dir: Path | str,
+    metadata: dict | None = None,
+    prefix: str = "",
+) -> str:
+    """Export a PyTorch model to PaddlePaddle format using X2Paddle.
+
+    Args:
+        model (torch.nn.Module): The PyTorch model to export.
+        im (torch.Tensor): Example input tensor for tracing.
+        output_dir (Path | str): Directory to save the exported PaddlePaddle model.
+        metadata (dict | None): Optional metadata saved as ``metadata.yaml``.
+        prefix (str): Prefix for log messages.
+
+    Returns:
+        (str): Path to the exported ``_paddle_model`` directory.
+    """
+    assert not IS_JETSON, "Jetson Paddle exports not supported yet"
+    from ultralytics.utils.checks import check_requirements
+
+    check_requirements(
+        (
+            # Interchangeable candidates so an installed variant is never dual-installed over (both ship 'paddle')
+            (
+                "paddlepaddle-gpu>=3.0.0,<3.3.0"  # pin <3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340
+                if im.device.type == "cuda"
+                else "paddlepaddle==3.0.0"  # pin 3.0.0 for ARM64
+                if ARM64
+                else "paddlepaddle>=3.0.0,<3.3.0",  # pin <3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340
+                "paddlepaddle==3.0.0" if ARM64 else "paddlepaddle>=3.0.0,<3.3.0",
+                "paddlepaddle-gpu>=3.0.0,<3.3.0",
+            ),
+            "x2paddle",
+        )
+    )
+
+    import x2paddle
+    from x2paddle.convert import pytorch2paddle
+    from x2paddle.op_mapper.pytorch2paddle import prim2code
+
+    # x2paddle 1.6.0 codegen for pooling asserts reads exec() results from locals(), which PEP 667 broke in Python
+    # 3.13. The assert only re-checks pooling args that torch already validated during tracing, so skip emitting it.
+    prim_assert = prim2code.prim_assert
+    prim2code.prim_assert = lambda layer, **kwargs: None
+
+    LOGGER.info(f"\n{prefix} starting export with X2Paddle {x2paddle.__version__}...")
+
+    try:
+        pytorch2paddle(module=model, save_dir=output_dir, jit_type="trace", input_examples=[im])  # export
+    finally:
+        prim2code.prim_assert = prim_assert
+    if metadata:
+        YAML.save(Path(output_dir) / "metadata.yaml", metadata)  # add metadata.yaml
+    return str(output_dir)
+```
+</details>
 
 <br><br>

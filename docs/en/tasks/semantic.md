@@ -34,7 +34,13 @@ YOLO26 semantic segmentation models pretrained on the [Cityscapes](https://githu
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
-{% include "macros/yolo-semantic-perf.md" %}
+| Model                                                                          | size<br><sup>(pixels)</sup> | mIoU<sup>val</sup> | Speed<br><sup>RTX3090 PyTorch<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| ------------------------------------------------------------------------------ | --------------------------- | ------------------ | ------------------------------------------- | ------------------------ | ----------------------- |
+| [YOLO26n-sem](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-sem) | 1024 &times; 2048           | 78.3               | 4.4 ± 0.0                                   | 1.6                      | 22.7                    |
+| [YOLO26s-sem](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s-sem) | 1024 &times; 2048           | 80.8               | 8.4 ± 0.0                                   | 6.5                      | 88.8                    |
+| [YOLO26m-sem](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m-sem) | 1024 &times; 2048           | 82.0               | 19.9 ± 0.1                                  | 14.3                     | 304.5                   |
+| [YOLO26l-sem](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-sem) | 1024 &times; 2048           | 82.9               | 26.5 ± 0.1                                  | 17.9                     | 384.7                   |
+| [YOLO26x-sem](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-sem) | 1024 &times; 2048           | 83.6               | 48.9 ± 0.2                                  | 40.2                     | 861.7                   |
 
 - **mIoU<sup>val</sup>** values are for single-model single-scale on the [Cityscapes](https://www.cityscapes-dataset.com/) validation set. <br>Reproduce with `yolo semantic val data=cityscapes.yaml device=0 imgsz=2048`
 - **Speed** metrics are averaged over Cityscapes validation images using an RTX3090 instance. <br>Reproduce with `yolo semantic val data=cityscapes.yaml batch=1 device=0|cpu imgsz=2048`
@@ -44,7 +50,13 @@ YOLO26 semantic segmentation models pretrained on the [ADE20K](https://github.co
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
-{% include "macros/yolo-semantic-ade20k-perf.md" %}
+| Model                                                                     | size<br><sup>(pixels)</sup> | mIoU<sup>val</sup> | Speed<br><sup>RTX3090 PyTorch<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| ------------------------------------------------------------------------- | --------------------------- | ------------------ | ------------------------------------------- | ------------------------ | ----------------------- |
+| [YOLO26n-sem-ade20k](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 38.8               | 3.9 ± 0.2                                   | 1.6                      | 4.4                     |
+| [YOLO26s-sem-ade20k](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 45.6               | 4.2 ± 0.3                                   | 6.5                      | 17.4                    |
+| [YOLO26m-sem-ade20k](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 47.4               | 4.7 ± 0.3                                   | 14.3                     | 59.5                    |
+| [YOLO26l-sem-ade20k](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 49.7               | 8.3 ± 0.2                                   | 17.9                     | 75.0                    |
+| [YOLO26x-sem-ade20k](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 51.5               | 9.9 ± 0.3                                   | 40.2                     | 168.1                   |
 
 - **mIoU<sup>val</sup>** values are for single-model single-scale on the [ADE20K](https://github.com/CSAILVision/ADE20K) validation set. <br>Reproduce with `yolo semantic val model=yolo26n-sem-ade20k.pt data=ade20k.yaml device=0 imgsz=640`, replacing `yolo26n-sem-ade20k.pt` with the desired `yolo26*-sem-ade20k.pt` checkpoint.
 - **Speed** metrics are averaged over ADE20K validation images using an RTX3090 instance. <br>Reproduce with `yolo semantic val model=yolo26n-sem-ade20k.pt data=ade20k.yaml batch=1 device=0|cpu imgsz=640`, replacing `yolo26n-sem-ade20k.pt` with the desired `yolo26*-sem-ade20k.pt` checkpoint.
@@ -217,7 +229,29 @@ Export a YOLO26n-sem model to a different format like ONNX, CoreML, etc.
 
 Available YOLO26 semantic segmentation export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-sem.onnx`. Usage examples are shown for your model after export completes.
 
-{% include "macros/export-table.md" %}
+| Format | `format` Argument | Model | Metadata | Arguments |
+| ---------------------------------------------------------- | ----------------- | ------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| [PyTorch](https://pytorch.org/) | - | `yolo26n-sem.pt` | ✅ | - |
+| [TorchScript](../integrations/torchscript.md) | `torchscript` | `yolo26n-sem.torchscript` | ✅ | `imgsz`, `quantize`, `dynamic`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device` |
+| [ONNX](../integrations/onnx.md) | `onnx` | `yolo26n-sem.onnx` | ✅ | `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
+| [OpenVINO](../integrations/openvino.md) | `openvino` | `yolo26n-sem_openvino_model/` | ✅ | `imgsz`, `quantize`, `dynamic`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
+| [TensorRT](../integrations/tensorrt.md) | `engine` | `yolo26n-sem.engine` | ✅ | `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `workspace`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
+| [CoreML](../integrations/coreml.md) | `coreml` | `yolo26n-sem.mlpackage` | ✅ | `imgsz`, `dynamic`, `quantize`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device` |
+| [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model` | `yolo26n-sem_saved_model/` | ✅ | `imgsz`, `keras`, `quantize`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
+| [TF GraphDef](../integrations/tf-graphdef.md) | `pb` | `yolo26n-sem.pb` | ❌ | `imgsz`, `opset`, `batch`, `device` |
+| [TF Edge TPU](../integrations/edge-tpu.md) | `edgetpu` | `yolo26n-sem_edgetpu.tflite` | ✅ | `imgsz`, `quantize`, `opset`, `data`, `fraction`, `device` |
+| [PaddlePaddle](../integrations/paddlepaddle.md) | `paddle` | `yolo26n-sem_paddle_model/` | ✅ | `imgsz`, `batch`, `device` |
+| [MNN](../integrations/mnn.md) | `mnn` | `yolo26n-sem.mnn` | ✅ | `imgsz`, `batch`, `dynamic`, `quantize`, `simplify`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `device` |
+| [NCNN](../integrations/ncnn.md) | `ncnn` | `yolo26n-sem_ncnn_model/` | ✅ | `imgsz`, `quantize`, `batch`, `device` |
+| [IMX500](../integrations/sony-imx500.md):material-information-outline:{ title="IMX format is currently only supported for YOLOv8n, YOLO11n models" } | `imx` | `yolo26n-sem_imx_model/` | ✅ | `imgsz`, `quantize`, `data`, `fraction`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `device` |
+| [RKNN](../integrations/rockchip-rknn.md) | `rknn` | `yolo26n-sem_rknn_model/` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `simplify`, `opset`, `data`, `fraction`, `device` |
+| [ExecuTorch](../integrations/executorch.md) | `executorch` | `yolo26n-sem_executorch_model/` | ✅ | `imgsz`, `batch`, `device` |
+| [Axelera](../integrations/axelera.md) | `axelera` | `yolo26n-sem_axelera_model/` | ✅ | `imgsz`, `batch`, `quantize`, `data`, `fraction`, `device` |
+| [DEEPX](../integrations/deepx.md) | `deepx` | `yolo26n-sem_deepx_model/` | ✅ | `imgsz`, `quantize`, `simplify`, `opset`, `data`, `optimize`, `device` |
+| [Qualcomm QNN](../integrations/qnn.md) | `qnn` | `yolo26n-sem_qnn.onnx` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `simplify`, `opset`, `data`, `fraction`, `device` |
+| [LiteRT](../integrations/litert.md) | `litert` | `yolo26n-sem.tflite` | ✅ | `imgsz`, `quantize`, `batch`, `data`, `fraction`, `device` |
+| [Hailo](../integrations/hailo.md) | `hailo` | `yolo26n-sem_hailo_model/` | ✅ | `imgsz`, `name`, `quantize`, `data`, `fraction`, `simplify`, `conf`, `iou` |
+| [Huawei Ascend](../integrations/ascend.md) | `ascend` | `yolo26n-sem_ascend_model/` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `opset`, `simplify`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" } |
 
 See full `export` details in the [Export](../modes/export.md) page.
 

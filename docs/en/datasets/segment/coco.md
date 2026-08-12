@@ -17,7 +17,13 @@ The [COCO-Seg](https://cocodataset.org/#home) dataset provides [COCO](https://co
 
 ## COCO-Seg Pretrained Models
 
-{% include "macros/yolo-seg-perf.md" %}
+| Model                                                                          | size<br><sup>(pixels)</sup> | mAP<sup>box<br>50-95(e2e)</sup> | mAP<sup>mask<br>50-95(e2e)</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| ------------------------------------------------------------------------------ | --------------------------- | ------------------------------- | -------------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
+| [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg) | 640                         | 39.6                            | 33.9                             | 53.3 ± 0.5                           | 2.1 ± 0.0                                 | 2.7                      | 9.1                     |
+| [YOLO26s-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s-seg) | 640                         | 47.3                            | 40.0                             | 118.4 ± 0.9                          | 3.3 ± 0.0                                 | 10.4                     | 34.2                    |
+| [YOLO26m-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m-seg) | 640                         | 52.5                            | 44.1                             | 328.2 ± 2.4                          | 6.7 ± 0.1                                 | 23.6                     | 121.5                   |
+| [YOLO26l-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-seg) | 640                         | 54.4                            | 45.5                             | 387.0 ± 3.7                          | 8.0 ± 0.1                                 | 28.0                     | 139.8                   |
+| [YOLO26x-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-seg) | 640                         | 56.5                            | 47.0                             | 787.0 ± 6.8                          | 16.4 ± 0.1                                | 62.8                     | 313.5                   |
 
 ## Key Features
 
@@ -149,7 +155,13 @@ The COCO-Seg dataset includes several key features:
 
 The COCO-Seg dataset supports multiple pretrained YOLO26 segmentation models with varying performance metrics. Here's a summary of the available models and their key metrics:
 
-{% include "macros/yolo-seg-perf.md" %}
+| Model                                                                          | size<br><sup>(pixels)</sup> | mAP<sup>box<br>50-95(e2e)</sup> | mAP<sup>mask<br>50-95(e2e)</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| ------------------------------------------------------------------------------ | --------------------------- | ------------------------------- | -------------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
+| [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg) | 640                         | 39.6                            | 33.9                             | 53.3 ± 0.5                           | 2.1 ± 0.0                                 | 2.7                      | 9.1                     |
+| [YOLO26s-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s-seg) | 640                         | 47.3                            | 40.0                             | 118.4 ± 0.9                          | 3.3 ± 0.0                                 | 10.4                     | 34.2                    |
+| [YOLO26m-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m-seg) | 640                         | 52.5                            | 44.1                             | 328.2 ± 2.4                          | 6.7 ± 0.1                                 | 23.6                     | 121.5                   |
+| [YOLO26l-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-seg) | 640                         | 54.4                            | 45.5                             | 387.0 ± 3.7                          | 8.0 ± 0.1                                 | 28.0                     | 139.8                   |
+| [YOLO26x-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-seg) | 640                         | 56.5                            | 47.0                             | 787.0 ± 6.8                          | 16.4 ± 0.1                                | 62.8                     | 313.5                   |
 
 These models range from the lightweight YOLO26n-seg to the more powerful YOLO26x-seg, offering different trade-offs between speed and accuracy to suit various application requirements. For more information on model selection, visit the [Ultralytics models page](../../models/index.md).
 

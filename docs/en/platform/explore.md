@@ -78,6 +78,7 @@ Cards and compact views support infinite scroll for loading more results.
 Each item displays:
 
 ![Ultralytics Platform Explore Dataset And Project Cards](https://cdn.ul.run/i/6d245bbadc0f8f3870cfd3659d6591a0.avif)<!-- screenshot -->
+
 === "Project Cards"
 
     | Element              | Description                                                   |

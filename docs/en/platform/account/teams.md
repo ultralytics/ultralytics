@@ -57,7 +57,12 @@ When you switch to a team workspace, all resources you see and create belong to 
 
 Teams use a four-role hierarchy for access control. Each role inherits all permissions from the roles below it.
 
-{% include "macros/platform-team-roles.md" %}
+| Role       | Description                                                                       |
+| ---------- | --------------------------------------------------------------------------------- |
+| **Owner**  | Full control, including members, billing, team deletion, and ownership transfer   |
+| **Admin**  | Full editor access; manage billing, settings, and members below the admin role    |
+| **Editor** | Create, edit, and delete resources; upload data; train, export, and deploy models |
+| **Viewer** | Read-only access to team resources and members                                    |
 
 !!! note "Single Owner"
 

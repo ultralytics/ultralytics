@@ -34,7 +34,13 @@ YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
-{% include "macros/yolo-depth-perf.md" %}
+| Model                                                                              | size<br><sup>(pixels)</sup> | delta1<sup>NYU</sup> | abs_rel<sup>NYU</sup> | rmse<sup>NYU</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| ---------------------------------------------------------------------------------- | --------------------------- | -------------------- | --------------------- | ------------------ | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
+| [YOLO26n-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth) | 768                         | 0.882                | 0.109                 | 0.414              | 272.0 ± 27.2                         | 2.7 ± 0.1                                 | 6.4                      | 46.9                    |
+| [YOLO26s-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s-depth) | 768                         | 0.896                | 0.104                 | 0.399              | 393.7 ± 13.1                         | 3.8 ± 0.0                                 | 13.2                     | 67.9                    |
+| [YOLO26m-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m-depth) | 768                         | 0.921                | 0.089                 | 0.364              | 621.5 ± 49.7                         | 6.0 ± 0.1                                 | 23.3                     | 130.7                   |
+| [YOLO26l-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-depth) | 768                         | 0.930                | 0.083                 | 0.351              | 821.9 ± 50.7                         | 7.7 ± 0.1                                 | 27.7                     | 157.2                   |
+| [YOLO26x-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth) | 768                         | 0.933                | 0.080                 | 0.344              | 1240.9 ± 73.3                        | 13.6 ± 0.2                                | 57.0                     | 302.0                   |
 
 - **delta1<sup>NYU</sup>** is the percentage of pixels where the predicted depth is within a factor of 1.25 of the ground truth, on the NYU Depth V2 Eigen test split (654 images) with multi-scale + horizontal-flip TTA and log-least-squares alignment.
 - Single-scale accuracy without TTA is reproducible with `yolo depth val model=yolo26n-depth.pt data=nyu-depth.yaml imgsz=768 device=0` (substitute `model=` for each size), which uses median (scale-only) alignment and scores lower: delta1 0.783 (n), 0.793 (s), 0.840 (m), 0.853 (l), 0.860 (x).
@@ -49,7 +55,15 @@ Depth Anything V2 is a widely used open baseline for monocular depth. Its DINOv2
 
 At ~768 px — `imgsz=768` for YOLO26, the resolution its released weights are trained at, and 770 px for Depth Anything V2, whose DINOv2 backbone requires a multiple of its patch size of 14:
 
-{% include "macros/yolo-depth-speed-comparison.md" %}
+| Model                   | params (M) | FLOPs (B) | T4 TensorRT10 (ms) |   FPS | Speedup vs V2 Small | Speedup vs V2 Base |
+| ----------------------- | ---------: | --------: | -----------------: | ----: | ------------------: | -----------------: |
+| Depth Anything V2 Base  |       97.5 |    1025.5 |              55.40 |  18.1 |                   — |                  — |
+| Depth Anything V2 Small |       24.8 |     346.9 |              20.99 |  47.6 |                   — |                  — |
+| YOLO26x-depth           |       57.0 |     302.0 |              13.57 |  73.7 |                1.5× |               4.1× |
+| YOLO26l-depth           |       27.7 |     157.2 |               7.68 | 130.2 |                2.7× |               7.2× |
+| YOLO26m-depth           |       23.3 |     130.7 |               6.00 | 166.7 |                3.5× |               9.2× |
+| YOLO26s-depth           |       13.2 |      67.9 |               3.82 | 261.6 |                5.5× |              14.5× |
+| YOLO26n-depth           |        6.4 |      46.9 |               2.73 | 365.8 |                7.7× |              20.3× |
 
 At ~640 px — `imgsz=640` and 644 px respectively — the ordering is unchanged, and YOLO26n-depth is 5.9× faster than Depth Anything V2 Small:
 
@@ -365,7 +379,29 @@ Export a YOLO26n-depth model to a different format like ONNX, CoreML, etc.
 
 Available YOLO26 depth estimation export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-depth.onnx`. Usage examples are shown for your model after export completes.
 
-{% include "macros/export-table.md" %}
+| Format | `format` Argument | Model | Metadata | Arguments |
+| ---------------------------------------------------------- | ----------------- | ------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| [PyTorch](https://pytorch.org/) | - | `yolo26n-depth.pt` | ✅ | - |
+| [TorchScript](../integrations/torchscript.md) | `torchscript` | `yolo26n-depth.torchscript` | ✅ | `imgsz`, `quantize`, `dynamic`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device` |
+| [ONNX](../integrations/onnx.md) | `onnx` | `yolo26n-depth.onnx` | ✅ | `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
+| [OpenVINO](../integrations/openvino.md) | `openvino` | `yolo26n-depth_openvino_model/` | ✅ | `imgsz`, `quantize`, `dynamic`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
+| [TensorRT](../integrations/tensorrt.md) | `engine` | `yolo26n-depth.engine` | ✅ | `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `workspace`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
+| [CoreML](../integrations/coreml.md) | `coreml` | `yolo26n-depth.mlpackage` | ✅ | `imgsz`, `dynamic`, `quantize`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device` |
+| [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model` | `yolo26n-depth_saved_model/` | ✅ | `imgsz`, `keras`, `quantize`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
+| [TF GraphDef](../integrations/tf-graphdef.md) | `pb` | `yolo26n-depth.pb` | ❌ | `imgsz`, `opset`, `batch`, `device` |
+| [TF Edge TPU](../integrations/edge-tpu.md) | `edgetpu` | `yolo26n-depth_edgetpu.tflite` | ✅ | `imgsz`, `quantize`, `opset`, `data`, `fraction`, `device` |
+| [PaddlePaddle](../integrations/paddlepaddle.md) | `paddle` | `yolo26n-depth_paddle_model/` | ✅ | `imgsz`, `batch`, `device` |
+| [MNN](../integrations/mnn.md) | `mnn` | `yolo26n-depth.mnn` | ✅ | `imgsz`, `batch`, `dynamic`, `quantize`, `simplify`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `device` |
+| [NCNN](../integrations/ncnn.md) | `ncnn` | `yolo26n-depth_ncnn_model/` | ✅ | `imgsz`, `quantize`, `batch`, `device` |
+| [IMX500](../integrations/sony-imx500.md):material-information-outline:{ title="IMX format is currently only supported for YOLOv8n, YOLO11n models" } | `imx` | `yolo26n-depth_imx_model/` | ✅ | `imgsz`, `quantize`, `data`, `fraction`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `device` |
+| [RKNN](../integrations/rockchip-rknn.md) | `rknn` | `yolo26n-depth_rknn_model/` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `simplify`, `opset`, `data`, `fraction`, `device` |
+| [ExecuTorch](../integrations/executorch.md) | `executorch` | `yolo26n-depth_executorch_model/` | ✅ | `imgsz`, `batch`, `device` |
+| [Axelera](../integrations/axelera.md) | `axelera` | `yolo26n-depth_axelera_model/` | ✅ | `imgsz`, `batch`, `quantize`, `data`, `fraction`, `device` |
+| [DEEPX](../integrations/deepx.md) | `deepx` | `yolo26n-depth_deepx_model/` | ✅ | `imgsz`, `quantize`, `simplify`, `opset`, `data`, `optimize`, `device` |
+| [Qualcomm QNN](../integrations/qnn.md) | `qnn` | `yolo26n-depth_qnn.onnx` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `simplify`, `opset`, `data`, `fraction`, `device` |
+| [LiteRT](../integrations/litert.md) | `litert` | `yolo26n-depth.tflite` | ✅ | `imgsz`, `quantize`, `batch`, `data`, `fraction`, `device` |
+| [Hailo](../integrations/hailo.md) | `hailo` | `yolo26n-depth_hailo_model/` | ✅ | `imgsz`, `name`, `quantize`, `data`, `fraction`, `simplify`, `conf`, `iou` |
+| [Huawei Ascend](../integrations/ascend.md) | `ascend` | `yolo26n-depth_ascend_model/` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `opset`, `simplify`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" } |
 
 See full `export` details in the [Export](../modes/export.md) page.
 

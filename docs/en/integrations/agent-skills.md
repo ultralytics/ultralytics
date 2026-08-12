@@ -65,7 +65,7 @@ Each skill ships a `SKILL.md` with decision tables and procedures, plus referenc
 
 ## Usage
 
-Once installed, skills activate automatically whenever a task involves Ultralytics — no extra configuration needed. Just ask your agent naturally:
+Once installed, skills activate automatically whenever a task involves Ultralytics — no extra configuration needed for supported agents' default setups (restart your agent if it was already running when you installed). Just ask your agent naturally:
 
 | Category  | Example prompt                                                                |
 | --------- | ----------------------------------------------------------------------------- |

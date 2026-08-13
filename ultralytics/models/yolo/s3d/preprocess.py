@@ -114,7 +114,7 @@ def decode_stereo3d_outputs(
     mean_dims: dict[int, tuple[float, float, float]] | None = None,
     std_dims: dict[int, tuple[float, float, float]] | None = None,
     class_names: dict[int, str] | None = None,
-    score_k: float = 0.5,
+    score_k: float = 2.5,
     depth_var_scale: float = 1.0,
     calib_letterboxed: bool = False,
 ) -> list[Box3D] | list[list[Box3D]]:
@@ -456,7 +456,7 @@ def decode_and_refine_predictions(
     mean_dims: dict[int, tuple[float, float, float]] | None = None,
     std_dims: dict[int, tuple[float, float, float]] | None = None,
     class_names: dict[int, str] | None = None,
-    score_k: float = 0.5,
+    score_k: float = 2.5,
     depth_var_scale: float = 1.0,
 ) -> list[list[Box3D]]:
     """Shared decode pipeline for val and predict.

@@ -55,3 +55,21 @@ The skills include version-grounded catalogs where exact weights, arguments, or 
 Once installed, ask the agent naturally, for example: "Export my trained YOLO model to TensorRT with INT8 quantization and benchmark it." The `yolo` router selects the relevant lifecycle guidance.
 
 See the [`ultralytics/skills` repository](https://github.com/ultralytics/skills) for current installation commands, source files, updates, and issue reporting.
+
+## FAQ
+
+### What are Ultralytics Agent Skills?
+
+They are reusable instructions and reference material that help AI coding agents work with Ultralytics Platform, the `ultralytics` Python package, and the `yolo` CLI.
+
+### Which agents can use these skills?
+
+The repository provides plugins for Claude Code and Codex. Cursor, Gemini CLI, and other agents that read the open [Agent Skills](https://agentskills.io/) format can install the skill folders directly or through the skills CLI.
+
+### Which skill should I install?
+
+Install the complete plugin for automatic routing across the computer vision lifecycle. To install one skill with the skills CLI, pass its name with `--skill`, such as `--skill yolo-training`.
+
+### Do the skills replace the Ultralytics documentation?
+
+No. The skills guide an agent toward the relevant workflow, but the installed package and current Ultralytics documentation remain authoritative when behavior or supported options differ.

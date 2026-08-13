@@ -120,7 +120,7 @@ Discover more examples in the YOLO [Python Docs](https://docs.ultralytics.com/us
 
 ### Platform
 
-Manage your [Ultralytics Platform](https://platform.ultralytics.com) resources from Python 3.11 or newer with an
+Manage your [Ultralytics Platform](https://platform.ultralytics.com) resources with an
 [API key](https://platform.ultralytics.com/settings?tab=api-keys):
 
 ```python

@@ -500,7 +500,7 @@
       .rail {
         height: 12px;
         border-radius: 2px;
-        background: var(--blue-2);
+        background: #78c8be;
       }
       .rail.short {
         width: 45%;
@@ -509,7 +509,7 @@
         width: 72%;
       }
       .rail.head {
-        background: var(--blue);
+        background: var(--green);
       }
 
       .eval-flow {
@@ -594,7 +594,9 @@
             <div class="lane-head"><b>Standard pretraining</b><span class="stat">same model YAMLs · 365 cls</span></div>
             <div class="chain">
               <div class="arrow">
-                <div class="block shared-block">BACKBONE[d]<small>Conv / UltraViT · BN</small></div>
+                <div class="block shared-block">
+                  BACKBONE[d]<small>Conv / UltraViT · <span class="yolo">BN: N,H,W</span></small>
+                </div>
               </div>
               <div class="arrow">
                 <div class="block shared-block">
@@ -614,7 +616,7 @@
                       <span>O2O</span><i class="head-box">BOX</i><i class="head-cls">365 CLS</i>
                     </div>
                   </div>
-                  <small>2 scales · one merged cls head</small>
+                  <small><span class="yolo">BN: N,H,W · merged CLS</span></small>
                 </div>
               </div>
             </div>
@@ -629,7 +631,7 @@
             <div class="chain">
               <div class="arrow">
                 <div class="block shared-block">
-                  BACKBONE[d]<small>Conv / UltraViT · <span class="enterprise">frozen BN</span></small>
+                  BACKBONE[d]<small>Conv / UltraViT · <span class="enterprise">FrozenBN: stored μ,σ</span></small>
                 </div>
               </div>
               <div class="arrow">
@@ -650,7 +652,7 @@
                       <span>O2O</span><i class="head-box">BOX</i><i class="head-cls">CLS[d]</i>
                     </div>
                   </div>
-                  <small>same towers · <span class="enterprise">CLS[d] + GN</span></small>
+                  <small><span class="enterprise">GN: per image, C-group,H,W · CLS[d]</span></small>
                 </div>
               </div>
             </div>
@@ -781,12 +783,12 @@
         <div class="diagram-name">04 · Weight groups</div>
         <div class="split">
           <div class="lane">
-            <div class="lane-head"><b>MuSGD</b><span class="stat">backbone LR × 1.0</span></div>
+            <div class="lane-head"><b>Shared parameter grouping</b><span class="stat">same trainer</span></div>
             <div class="group-stack">
-              <div class="group"><b>matrix / conv</b><i class="rail"></i><code>Muon + decay</code></div>
-              <div class="group"><b>cls head</b><i class="rail head medium"></i><code>LR × 3</code></div>
-              <div class="group"><b>norm</b><i class="rail short"></i><code>no decay</code></div>
-              <div class="group"><b>bias</b><i class="rail short"></i><code>no decay</code></div>
+              <div class="group"><b>MuSGD matrix</b><i class="rail"></i><code>Muon + decay</code></div>
+              <div class="group"><b>MuSGD cls</b><i class="rail head medium"></i><code>LR × 3</code></div>
+              <div class="group"><b>backbone</b><i class="rail medium"></i><code>LR × BBLR</code></div>
+              <div class="group"><b>norm / bias</b><i class="rail short"></i><code>no decay</code></div>
             </div>
           </div>
           <div class="lane enterprise-lane">
@@ -796,7 +798,7 @@
                 Deep16 Y27-N · MuSGD<code>lr .01 · BBLR .1 · wd .0005 · warmup 1.04 · mixup 0</code>
               </div>
               <div class="profile">
-                Slim19 Y27-S · AdamW<code>lr .0005 · BBLR .1 · wd .000125 · warmup .14 · mixup .05</code>
+                Slim19 Y27-S · AdamW · stale default<code>actual run · LQ S-Conv winner is MuSGD</code>
               </div>
               <div class="profile">
                 Slim19 UViT-S · MuSGD<code>lr .0025 · BBLR 1 · wd .0005 · warmup .14 · mixup .05</code>

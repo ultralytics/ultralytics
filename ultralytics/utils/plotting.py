@@ -16,12 +16,14 @@ from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
 if TYPE_CHECKING:
+    # Annotation-only: ultralytics.data.stereo imports back into utils, so a runtime import here is
+    # circular. It silently WAS circular — the previous `try: ... except ImportError` left
+    # CalibrationParameters bound to None on every import and took five other modules down with it.
+    # `from __future__ import annotations` makes these annotations strings, so nothing is needed at
+    # runtime; the calib readers below duck-type instead of isinstance-checking.
     from ultralytics.data.stereo.box3d import Box3D
-
-try:
     from ultralytics.data.stereo.calib import CalibrationParameters
-except ImportError:
-    CalibrationParameters = None  # type: ignore
+
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, TryExcept, ops, plt_settings, threaded
 from ultralytics.utils.checks import check_font, check_version, is_ascii
 from ultralytics.utils.files import increment_path

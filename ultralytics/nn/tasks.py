@@ -92,22 +92,6 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import REMOTE_FILE_PREFIXES, check_file, check_requirements, check_suffix, check_yaml
 
 # Lazy import stereo-specific module for parse_model() resolution
-Stereo3DDetHead = None
-
-
-def _lazy_import_s3d_head():
-    """Lazy import of Stereo3DDetHead to avoid circular dependencies."""
-    global Stereo3DDetHead
-    if Stereo3DDetHead is None:
-        try:
-            from ultralytics.models.yolo.s3d.head import Stereo3DDetHead as SYH
-
-            Stereo3DDetHead = SYH
-        except ImportError:
-            pass
-    return Stereo3DDetHead
-
-
 from ultralytics.utils.loss import (
     DepthLoss26,
     E2ELoss,
@@ -1963,6 +1947,13 @@ def parse_model(d, ch, verbose=True):
     """
     import ast
 
+    # The stereo-3D head lives under models/yolo/s3d/ so that stereo-only code stays out of nn/, and
+    # models/ imports nn/ — so this cannot be a module-scope import. parse_model runs once per model
+    # build, and sys.modules caches the rest. Importing here rather than behind a sentinel global keeps
+    # a broken s3d module loud: it raises with the real traceback instead of resolving to None and
+    # surfacing later as KeyError: 'Stereo3DDetHead' from an unrelated line.
+    from ultralytics.models.yolo.s3d.head import Stereo3DDetHead
+
     # Args
     legacy = True  # backward compatibility for v3/v5/v8/v9 models
     max_channels = float("inf")
@@ -2046,14 +2037,13 @@ def parse_model(d, ch, verbose=True):
         }
     )
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
-        # Lazy import for stereo head to avoid circular dependencies
-        if m == "Stereo3DDetHead" and Stereo3DDetHead is None:
-            _lazy_import_s3d_head()
         m = (
             getattr(torch.nn, m[3:])
             if m.startswith("nn.")
             else getattr(__import__("torchvision").ops, m[16:])
             if m.startswith("torchvision.ops.")
+            else Stereo3DDetHead
+            if m == "Stereo3DDetHead"
             else globals()[m]
         )  # get module
         if restricted and not (isinstance(m, type) and issubclass(m, torch.nn.Module)):
@@ -2100,36 +2090,44 @@ def parse_model(d, ch, verbose=True):
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in frozenset(
-            {
-                Detect,
-                WorldDetect,
-                YOLOEDetect,
-                Segment,
-                Segment26,
-                YOLOESegment,
-                YOLOESegment26,
-                Pose,
-                Pose26,
-                OBB,
-                OBB26,
-            }
-        ) or (Stereo3DDetHead is not None and m is Stereo3DDetHead):
+        elif (
+            m
+            in frozenset(
+                {
+                    Detect,
+                    WorldDetect,
+                    YOLOEDetect,
+                    Segment,
+                    Segment26,
+                    YOLOESegment,
+                    YOLOESegment26,
+                    Pose,
+                    Pose26,
+                    OBB,
+                    OBB26,
+                }
+            )
+            or m is Stereo3DDetHead
+        ):
             args.extend([reg_max, end2end, [ch[x] for x in f]])
             if m is Segment or m is YOLOESegment or m is Segment26 or m is YOLOESegment26:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {
-                Detect,
-                YOLOEDetect,
-                Segment,
-                Segment26,
-                YOLOESegment,
-                YOLOESegment26,
-                Pose,
-                Pose26,
-                OBB,
-                OBB26,
-            } or (Stereo3DDetHead is not None and m is Stereo3DDetHead):
+            if (
+                m
+                in {
+                    Detect,
+                    YOLOEDetect,
+                    Segment,
+                    Segment26,
+                    YOLOESegment,
+                    YOLOESegment26,
+                    Pose,
+                    Pose26,
+                    OBB,
+                    OBB26,
+                }
+                or m is Stereo3DDetHead
+            ):
                 m.legacy = legacy
         elif m is Depth:
             args = [*args[:1], [ch[x] for x in f]]  # c_mid, ch tuple; drops the legacy mode arg old checkpoints store

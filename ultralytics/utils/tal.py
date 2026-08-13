@@ -56,7 +56,7 @@ class TaskAlignedAssigner(nn.Module):
         self.alpha = alpha
         self.beta = beta
         self.stride = stride if stride is not None else [8, 16, 32]
-        self.stride_val = self.stride[1] if len(self.stride) > 1 else self.stride[0]
+        self.stride_val = self.stride[0] * 2 if len(self.stride) > 1 else self.stride[0]
         self.eps = eps
         self.o2f_k = 0  # o2f: number of ambiguous soft-labeled anchors per GT (0=disabled)
         self.o2f_T = 0.0  # o2f: positive degree of ambiguous anchors, annealed per epoch by E2ELoss.update()

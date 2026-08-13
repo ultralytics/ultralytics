@@ -187,6 +187,22 @@ _AUG_ARGS = dict(
 _TRAIN_DEFAULTS = {"grad_clip": 1.0, "muon": 0.5, "sgd": 0.5}
 
 
+def _resume_mode(train_args: dict) -> str:
+    """Infer the phase 2 mode from saved training arguments."""
+    data = Path(str(train_args.get("data", ""))).name
+    if data == "coco.yaml":
+        return "coco_det_finetune_frozen" if train_args.get("freeze") else "coco_det_finetune"
+    if data == "imagenet":
+        if train_args.get("freeze"):
+            return "inet_linear_probe"
+        return "inet_adamw_finetune" if train_args.get("optimizer") == "AdamW" else "inet_finetune"
+    return {
+        "Objects365v1.yaml": _DDP_CAPABLE_MODE,
+        "coco-pose.yaml": "coco_pose_finetune",
+        "DOTAv1.yaml": "dota_obb_finetune",
+    }.get(data, "inet_finetune")
+
+
 def _infer_model_yaml(phase1_weights: str, head_suffix: str = "") -> str:
     """Resolve the task-specific model yaml from a weights path.
 
@@ -894,7 +910,7 @@ def main(argv: list[str]) -> None:
         if len(argv) > 1
         else resume_args.get("pretrained", "runs/classify/yolo-next-encoder/phase1-d7-dinov3-convnextb/weights/best.pt")
     )
-    mode = argv[2] if len(argv) > 2 else ("inet_linear_probe" if resume_args.get("freeze") else "inet_finetune")
+    mode = argv[2] if len(argv) > 2 else _resume_mode(resume_args)
     if "," in gpu and mode != _DDP_CAPABLE_MODE:
         raise SystemExit(
             f"ERROR: mode={mode!r} needs a single GPU. dist.py:79 rebuilds the trainer per DDP child with "

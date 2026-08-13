@@ -803,7 +803,6 @@ def _run_multi_det(
             "save_dir": str(parent_save_dir / basename),
             "exist_ok": False,
             "data": str(ds_yaml),
-            "max_det": 500,
             **train_defaults,
             **recipe_args,
         }
@@ -814,7 +813,7 @@ def _run_multi_det(
             _ClsMapTrainer.cls_map = cls_table.get(basename, {})
             print(f"[multi_det_finetune] {basename}: cls_map rows={len(_ClsMapTrainer.cls_map)}")
         model.train(trainer=_ClsMapTrainer if cls_map_vocab else None, **train_args)
-        metrics = model.val(max_det=train_args["max_det"])
+        metrics = model.val()
         sync_stop()
         shutil.rmtree(parent_save_dir / basename / "weights")
         p, r = (float(metrics.results_dict[key]) for key in ("metrics/precision(B)", "metrics/recall(B)"))

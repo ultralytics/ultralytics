@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import functools
 import math
 import re
 import time
@@ -460,6 +461,16 @@ def segments2boxes(segments):
     return xyxy2xywh(np.array(boxes).reshape(-1, 4))  # cls, xywh
 
 
+@functools.lru_cache(maxsize=512)
+def _resample_grid(length: int, n: int) -> tuple[np.ndarray, np.ndarray]:
+    """Return the sample and source coordinates interpolating a closed length-point polygon to n points."""
+    x = np.linspace(0, length - 1, n - length if length < n else n)
+    xp = np.arange(length)
+    x = np.insert(x, np.searchsorted(x, xp), xp) if length < n else x
+    x.flags.writeable = xp.flags.writeable = False  # callers share these arrays
+    return x, xp
+
+
 def resample_segments(segments, n: int = 1000):
     """Resample segments to n points each using linear interpolation.
 
@@ -474,9 +485,7 @@ def resample_segments(segments, n: int = 1000):
         if len(s) == n:
             continue
         s = np.concatenate((s, s[0:1, :]), axis=0)
-        x = np.linspace(0, len(s) - 1, n - len(s) if len(s) < n else n)
-        xp = np.arange(len(s))
-        x = np.insert(x, np.searchsorted(x, xp), xp) if len(s) < n else x
+        x, xp = _resample_grid(len(s), n)
         segments[i] = (
             np.concatenate([np.interp(x, xp, s[:, i]) for i in range(2)], dtype=np.float32).reshape(2, -1).T
         )  # segment xy

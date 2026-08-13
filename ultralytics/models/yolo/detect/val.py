@@ -589,6 +589,7 @@ class DetectionValidator(BaseValidator):
                     val = COCOeval_faster(
                         anno, pred, iouType=iou_type, lvis_style=self.is_lvis, print_function=print_function
                     )
+                    val.params.maxDets[-1] = self.args.max_det
                     val.params.imgIds = eval_image_ids
                     if category_ids is not None:
                         val.params.catIds = category_ids
@@ -601,7 +602,7 @@ class DetectionValidator(BaseValidator):
                     stats[f"metrics/mAP50({suffix[i][0]})"] = val.stats_as_dict["AP_50"]
                     stats[f"metrics/mAP50-95({suffix[i][0]})"] = val.stats_as_dict["AP_all"]
                     if iou_type == "bbox":
-                        stats["metrics/mAR(B)"] = val.stats_as_dict["AR_third"]  # AR@100
+                        stats["metrics/mAR(B)"] = val.stats_as_dict["AR_third"]
                         for size in "small", "medium", "large":
                             stats[f"metrics/mAP_{size}(B)"] = val.stats_as_dict[f"AP_{size}"]
                             stats[f"metrics/mAR_{size}(B)"] = val.stats_as_dict[f"AR_{size}"]

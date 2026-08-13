@@ -112,7 +112,7 @@ SOURCE_METRIC_KEYS = (
     "metrics/mAP_large(B)",
     "metrics/mAR_large(B)",
 )
-LOCALIZATION_METRIC_KEY = "metrics/localization_mAR100(B)"
+LOCALIZATION_METRIC_KEY = "metrics/localization_mAR(B)"
 
 
 class PartitionedDetectionLoss:
@@ -276,7 +276,7 @@ class FederatedDetMetrics(DetMetrics):
             LOCALIZATION_METRIC_KEY,
             "metrics/macro_mAP50-95(B)",
             *(f"metrics/{name}/{key[8:]}" for name in self.source_metrics for key in SOURCE_METRIC_KEYS),
-            *(f"metrics/{name}/localization_mAR100(B)" for name in self.source_metrics),
+            *(f"metrics/{name}/{LOCALIZATION_METRIC_KEY[8:]}" for name in self.source_metrics),
         ]
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
@@ -319,7 +319,10 @@ class FederatedDetMetrics(DetMetrics):
                 for name, metrics in self.coco_results.items()
                 for key, value in metrics.items()
             },
-            **{f"metrics/{name}/localization_mAR100(B)": value for name, value in self.localization_results.items()},
+            **{
+                f"metrics/{name}/{LOCALIZATION_METRIC_KEY[8:]}": value
+                for name, value in self.localization_results.items()
+            },
             "fitness": macro["metrics/mAP50-95(B)"],
         }
 

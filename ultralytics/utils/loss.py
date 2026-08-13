@@ -603,6 +603,8 @@ class v8DetectionLoss:
         self.cache_fg = False  # cache this branch's foreground mask/soft label for the DetectAux foreground target
         self.fg_mask = None  # this branch's foreground mask, read by E2ELoss to build the aux target
         self.fg_score = None  # this branch's class-agnostic soft label (per-anchor max of the cls target)
+        self.fg_cls = None  # this branch's per-class soft label (its cls target), for the DetectAuxCls aux target
+        self.fg_labels = None  # this branch's matched-GT class per anchor, for the hard per-class aux target
         self.small_cls_gain = 1.0  # P3 positive GT-class cls up-gradient gain (small objects); set by E2ELoss
         self.small_cls_area = 0.0  # >0 switches to continuous area-based weighting (letterbox px^2); 0 = P3 binary
         self.small_target_gamma = 1.0  # <1 raises small-object TAL targets; set on the one2one loss by E2ELoss
@@ -807,9 +809,10 @@ class v8DetectionLoss:
 
         if self.cache_obj_assign:  # o2m branch: expose foreground + matched-GT boxes for the o2o objectness target
             self.obj_fg, self.obj_gt_bboxes = fg_mask, target_bboxes
-        if self.cache_fg:  # expose this branch's assignment for the DetectAux class-agnostic foreground target
+        if self.cache_fg:  # expose this branch's assignment for the DetectAux foreground target
             self.fg_mask = fg_mask
             self.fg_score = target_scores.amax(-1)  # class-agnostic soft label (IoU-weighted, == this branch's cls tgt)
+            self.fg_cls, self.fg_labels = target_scores, target_labels  # per-class label for the DetectAuxCls target
 
         cls_target, cls_target_sum = target_scores, target_scores_sum
 
@@ -1756,6 +1759,9 @@ class E2ELoss:
         )
         # aux target: the IoU soft label (same as that branch's cls target) instead of a hard 0/1 foreground mask
         self.aux_fg_iou = getattr(model.args, "aux_fg_iou", False)
+        # DetectAuxCls head: the branch predicts nc class logits, so the target is the per-class label (the branch's own
+        # cls target, or its one-hot foreground) instead of the same label collapsed over classes
+        self.aux_fg_cls = getattr(model.model[-1], "aux_cls", False)
         # which assignment supplies the aux target: the dense 'o2m' foreground, the single-anchor 'o2o' foreground, or
         # 'mix' (o2f-style): 1 at the o2o positive and a decaying degree at o2m-only anchors, so the trunk supervision
         # slides from dense to o2o-shaped as the o2o branch takes over, without contradicting the o2m head early on.
@@ -1933,8 +1939,33 @@ class E2ELoss:
             loss_items = torch.cat((loss_items, aux.detach().view(1)))
         return total, loss_items
 
+    def aux_branch_target(self, branch: v8DetectionLoss, iou: bool) -> torch.Tensor:
+        """Shape one branch's cached assignment into an aux target laid out like the aux branch's logits.
+
+        Class-agnostic (DetectAux): a single channel holding the IoU soft label (the per-anchor max of the cls target)
+        or the hard 0/1 foreground mask. Class-aware (DetectAuxCls): nc channels holding the branch's own cls target or
+        its one-hot foreground, so each anchor's mass sits on its matched GT's class channel instead of being collapsed.
+
+        Args:
+            branch (v8DetectionLoss): Branch loss whose cached assignment supplies the target.
+            iou (bool): Use the IoU soft label instead of the hard foreground.
+
+        Returns:
+            (torch.Tensor): Aux target with shape (bs, 1, num_anchors), or (bs, nc, num_anchors) when class-aware.
+        """
+        if not self.aux_fg_cls:
+            return (branch.fg_score if iou else branch.fg_mask).unsqueeze(1)
+        if iou:
+            return branch.fg_cls.permute(0, 2, 1)
+        one_hot = torch.zeros_like(branch.fg_cls).scatter_(
+            2,
+            branch.fg_labels.long().unsqueeze(-1),
+            branch.fg_mask.unsqueeze(-1).to(branch.fg_cls.dtype),
+        )
+        return one_hot.permute(0, 2, 1)
+
     def aux_target(self) -> torch.Tensor:
-        """Build the class-agnostic foreground target for the DetectAux branch from the cached assignments.
+        """Build the foreground target for the DetectAux branch from the cached assignments.
 
         Three sources, selected by ``aux_fg_tgt``. ``o2m`` is the dense one2many foreground (~topk anchors per GT), the
         signal that already trains the trunk through the one2many loss. ``o2o`` is the single one2one positive per GT,
@@ -1947,14 +1978,16 @@ class E2ELoss:
         takes over. The ambiguous degree is capped at 1 so an ambiguous anchor never exceeds the one2one positive.
 
         Returns:
-            target (torch.Tensor): Per-anchor foreground target with shape (bs, num_anchors), values in [0, 1].
+            target (torch.Tensor): Aux target with shape (bs, C, num_anchors), values in [0, 1]; C is 1 for the
+                class-agnostic branch and nc for the class-aware one.
             norm (torch.Tensor | None): Explicit normalization denominator, or None to normalize by the target sum.
         """
         if self.aux_fg_tgt != "mix":
             branch = self.one2many if self.aux_fg_tgt == "o2m" else self.one2one
-            return (branch.fg_score if self.aux_fg_iou else branch.fg_mask), None
-        o2o_pos = self.one2one.fg_mask.to(self.one2many.fg_score.dtype)  # hard 1.0 at the single o2o positive per GT
-        amb = self.one2many.fg_score if self.aux_fg_iou else self.one2many.fg_mask.to(o2o_pos.dtype)
+            return self.aux_branch_target(branch, self.aux_fg_iou), None
+        amb = self.aux_branch_target(self.one2many, self.aux_fg_iou)
+        # hard 1.0 at the single o2o positive per GT (on its class channel when class-aware)
+        o2o_pos = self.aux_branch_target(self.one2one, False).to(amb.dtype)
         target = torch.maximum(o2o_pos, self.aux_fg_t_cur * amb)  # degree <= 1 never exceeds the o2o positive's 1.0
         # Normalize by the participating anchor count |o2o U o2m| rather than the target sum. The ambiguous degree decays
         # to 0, which shrinks sum(target) by roughly the same factor as the o2m weight decay and would leave the trunk
@@ -1994,23 +2027,25 @@ class E2ELoss:
         norm: torch.Tensor | None = None,
         weight: torch.Tensor | None = None,
     ) -> torch.Tensor:
-        """Class-agnostic foreground BCE toward the one2many target.
+        """Sigmoid BCE from the auxiliary branch's logits toward the assignment target.
 
         Normalized by ``norm`` when given, otherwise by the target sum: the positive count for a hard 0/1 mask, or the
         sum of soft targets for the IoU label, matching how the one2many cls loss normalizes.
 
         Args:
-            aux_pred (torch.Tensor): Foreground logits with shape (bs, 1, num_anchors).
-            target (torch.Tensor): Foreground target with shape (bs, num_anchors); a hard 0/1 mask, the class-agnostic
-                IoU soft label (per-anchor max of the cls target), or the graded mix target.
+            aux_pred (torch.Tensor): Auxiliary logits with shape (bs, C, num_anchors); C is 1 for the class-agnostic
+                branch and nc for the class-aware one.
+            target (torch.Tensor): Auxiliary target with the same shape as ``aux_pred``; a hard 0/1 mask (one-hot when
+                class-aware), the IoU soft label, or the graded mix target.
             norm (torch.Tensor, optional): Explicit denominator, used by the mix target to keep the loss magnitude
                 independent of the scheduled target composition.
-            weight (torch.Tensor, optional): Per-anchor weights with shape (bs, num_anchors) from the split schedule.
+            weight (torch.Tensor, optional): Per-anchor weights with shape (bs, num_anchors) from the split schedule,
+                broadcast over the channels.
 
         Returns:
-            (torch.Tensor): Scalar foreground auxiliary loss (0 when there are no positives).
+            (torch.Tensor): Scalar auxiliary loss (0 when there are no positives).
         """
-        t = target.unsqueeze(1).to(aux_pred.dtype)  # (bs, 1, num_anchors)
+        t = target.to(aux_pred.dtype)
         loss = F.binary_cross_entropy_with_logits(aux_pred.float(), t.float(), reduction="none")
         if weight is not None:
             loss = loss * weight.unsqueeze(1).float()

@@ -121,7 +121,7 @@ o2o_small_target_end: 64.0 # (float) 640-equivalent GT side at or above which ta
 o2o_obj: 1.0 # (float) one2one class-agnostic objectness loss gain (DetectO2OObj* heads; BCE toward the o2m foreground graded by the one2one box IoU)
 o2o_obj_fuse: 1.0 # (float) DetectO2OObjBox logit-fusion weight; score = sigmoid(cls_logit + o2o_obj_fuse * obj_logit) at inference and in the cls loss (obj detached); 0 disables
 o2o_quality: False # (bool) DetectO2OObjBox quality mode: branch regresses the o2o box IoU at the single o2o positive, cls uses a hard target, score = cls_prob * IoU_pred (product)
-aux_fg: 0.0 # (float) DetectAux training-only class-agnostic foreground auxiliary loss gain (BCE toward the o2m foreground; 0=disable)
+aux_fg: 0.0 # (float) DetectAux training-only auxiliary loss gain (sigmoid+BCE toward the o2m foreground, class-agnostic or per-class with the DetectAuxCls head; 0=disable)
 aux_fg_iou: False # (bool) when aux_fg>0, use the o2m IoU soft label as the foreground target (same as the o2m cls target) instead of a hard 0/1 target
 aux_fg_end: 0.0 # (float) when aux_fg>0, fraction of epochs over which the aux gain linearly decays to exactly 0 (e.g. 0.6 = off after 60% of training; 0=disable, follow the o2m schedule only, which floors at 0.1)
 aux_fg_tgt: o2m # (str) assignment supplying the aux foreground target: dense 'o2m', single-anchor 'o2o', or 'mix' (o2f-style: 1 at the o2o positive, decaying degree at o2m-only anchors)

@@ -338,7 +338,7 @@ class DetectAux(Detect):
     and neck. It does not participate in inference or export and adds no deployment cost.
 
     Attributes:
-        aux_fg (nn.ModuleList): Per-level foreground branch (3x3 Conv + 1x1 Conv) producing one logit per anchor.
+        aux_fg (nn.ModuleList): Per-level foreground branch (3x3 Conv + 1x1 Conv) producing aux_nc logits per anchor.
 
     Examples:
         Create an end-to-end detection head with a class-agnostic foreground auxiliary branch
@@ -360,18 +360,22 @@ class DetectAux(Detect):
         c3 = max(ch[0], min(self.nc, 100))  # foreground branch hidden channels, matching the Detect cls branch
         self.aux_fg = nn.ModuleList(self.aux_branch(x, c3) for x in ch)
 
-    @staticmethod
-    def aux_branch(c1: int, c3: int) -> nn.Sequential:
-        """Build one level's foreground branch, ending in the 1-channel logit conv that bias_init primes.
+    @property
+    def aux_nc(self) -> int:
+        """Output channels of the auxiliary branch: a single class-agnostic foreground logit per anchor."""
+        return 1
+
+    def aux_branch(self, c1: int, c3: int) -> nn.Sequential:
+        """Build one level's foreground branch, ending in the logit conv that bias_init primes.
 
         Args:
             c1 (int): Input channels of this level's head-input feature.
             c3 (int): Hidden channels, matching the Detect cls branch.
 
         Returns:
-            (nn.Sequential): Foreground branch whose last module is the 1-channel logit conv.
+            (nn.Sequential): Foreground branch whose last module is the aux_nc-channel logit conv.
         """
-        return nn.Sequential(Conv(c1, c3, 3), nn.Conv2d(c3, 1, 1))
+        return nn.Sequential(Conv(c1, c3, 3), nn.Conv2d(c3, self.aux_nc, 1))
 
     def forward(
         self, x: list[torch.Tensor]
@@ -380,14 +384,15 @@ class DetectAux(Detect):
         out = super().forward(x)
         if self.training:  # out is the training preds dict; foreground branch is a training-only auxiliary
             bs = x[0].shape[0]  # batch size
-            out["aux_fg"] = torch.cat([self.aux_fg[i](x[i]).view(bs, 1, -1) for i in range(self.nl)], -1)
+            out["aux_fg"] = torch.cat([self.aux_fg[i](x[i]).view(bs, self.aux_nc, -1) for i in range(self.nl)], -1)
         return out
 
     def bias_init(self):
-        """Initialize Detect biases plus the class-agnostic foreground prior."""
+        """Initialize Detect biases plus the auxiliary branch prior, spread over its aux_nc channels."""
         super().bias_init()
         for i, aux in enumerate(self.aux_fg):
-            aux[-1].bias.data[:] = math.log(5 / (640 / self.stride[i]) ** 2)  # ~object density per anchor
+            # ~object density per anchor, divided over the channels as the Detect cls head divides it over nc
+            aux[-1].bias.data[:] = math.log(5 / self.aux_nc / (640 / self.stride[i]) ** 2)
 
 
 class DetectAux3x3(DetectAux):
@@ -401,10 +406,9 @@ class DetectAux3x3(DetectAux):
         >>> detect = DetectAux3x3(nc=80, end2end=True, ch=(256, 512, 1024))
     """
 
-    @staticmethod
-    def aux_branch(c1: int, c3: int) -> nn.Sequential:
+    def aux_branch(self, c1: int, c3: int) -> nn.Sequential:
         """Build one level's foreground branch as a single 3x3 conv straight to the logit."""
-        return nn.Sequential(nn.Conv2d(c1, 1, 3, padding=1))
+        return nn.Sequential(nn.Conv2d(c1, self.aux_nc, 3, padding=1))
 
 
 class DetectAux1x1(DetectAux):
@@ -418,10 +422,9 @@ class DetectAux1x1(DetectAux):
         >>> detect = DetectAux1x1(nc=80, end2end=True, ch=(256, 512, 1024))
     """
 
-    @staticmethod
-    def aux_branch(c1: int, c3: int) -> nn.Sequential:
+    def aux_branch(self, c1: int, c3: int) -> nn.Sequential:
         """Build one level's foreground branch as a single 1x1 conv straight to the logit."""
-        return nn.Sequential(nn.Conv2d(c1, 1, 1))
+        return nn.Sequential(nn.Conv2d(c1, self.aux_nc, 1))
 
 
 class DetectAuxDeep(DetectAux):
@@ -434,10 +437,30 @@ class DetectAuxDeep(DetectAux):
         >>> detect = DetectAuxDeep(nc=80, end2end=True, ch=(256, 512, 1024))
     """
 
-    @staticmethod
-    def aux_branch(c1: int, c3: int) -> nn.Sequential:
+    def aux_branch(self, c1: int, c3: int) -> nn.Sequential:
         """Build one level's foreground branch as two hidden 3x3 Convs followed by the 1x1 logit conv."""
-        return nn.Sequential(Conv(c1, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, 1, 1))
+        return nn.Sequential(Conv(c1, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.aux_nc, 1))
+
+
+class DetectAuxCls(DetectAux):
+    """DetectAux whose auxiliary branch predicts nc class logits instead of a single class-agnostic foreground logit.
+
+    Keeps the DetectAux block (3x3 Conv + 1x1 Conv) but widens the final conv to nc channels, matching the Detect cls
+    head, so the branch is supervised by sigmoid + BCE toward the assignment's per-class target (the same soft or hard
+    label the branch's cls loss uses) instead of a foreground mask collapsed over classes. The deep supervision it
+    injects into the trunk therefore asks the shared features to be class-discriminative, not just object/background.
+    Still training-only: it does not participate in inference or export and adds no deployment cost.
+
+    Examples:
+        >>> detect = DetectAuxCls(nc=80, end2end=True, ch=(256, 512, 1024))
+    """
+
+    aux_cls = True  # read by E2ELoss to build a per-class aux target instead of a class-agnostic one
+
+    @property
+    def aux_nc(self) -> int:
+        """Output channels of the auxiliary branch: one logit per class, matching the Detect cls head."""
+        return self.nc
 
 
 class DetectO2OShared(Detect):

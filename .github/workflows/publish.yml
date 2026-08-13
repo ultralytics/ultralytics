@@ -33,6 +33,8 @@ jobs:
         with:
           python-version: "3.x"
       - uses: ultralytics/actions/setup-uv@main
+        with:
+          version: latest-known
       - run: uv pip install --system --no-cache ultralytics-actions
       - name: Check PyPI version and publish flag
         id: check_pypi
@@ -82,6 +84,8 @@ jobs:
         with:
           python-version: "3.x"
       - uses: ultralytics/actions/setup-uv@main
+        with:
+          version: latest-known
       - run: uv pip install --system --no-cache build
       - name: Build ultralytics
         run: python -m build --outdir dist/
@@ -154,6 +158,8 @@ jobs:
         with:
           python-version: "3.x"
       - uses: ultralytics/actions/setup-uv@main
+        with:
+          version: latest-known
       - run: |
           uv venv sbom-env
           uv pip install -e .

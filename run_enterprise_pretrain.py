@@ -2,11 +2,11 @@
 """Launch one arm of the Enterprise vs Objects365v1 detection pretraining ablation.
 
 The paired recipes share optimization and augmentation settings. Data, schedule, and classification handling differ.
-The Enterprise arm uses source-pure batches and masked federated classification. The exhaustively annotated O365
+The Enterprise arm uses source-pure batches and source-aware federated classification. The exhaustively annotated O365
 control uses the stock loss.
 
 Usage:
-    python run_enterprise_pretrain.py 0,1 yolo26s-p4p5-wide-deep16-sni.yaml enterprise
+    python run_enterprise_pretrain.py 0,1 yolo26n-p4p5-wide-deep16-sni.yaml enterprise --recipe yolo27-deep16-n-enterprise
     python run_enterprise_pretrain.py 2,3 yolo26s-p4p5-wide-slim19-ultravit.yaml o365 --no-amp
 """
 
@@ -23,7 +23,7 @@ from ultralytics.models.yolo.detect.train_federated import FederatedDetectionTra
 
 ARMS = {
     "enterprise": (
-        "enterprise",
+        None,
         "/data/shared-datasets/domain-det/_merged/data.yaml",
         FederatedDetectionTrainer,
     ),
@@ -54,7 +54,7 @@ def main() -> None:
     a.add_argument("name", nargs="?", help="run name, defaults to ph2-<arm>-<model stem>")
     a.add_argument("--pretrained", default=None, help="backbone init .pt, defaults to the arm's staged init")
     a.add_argument("--no-amp", action="store_true", help="ultravit arms, which are unstable under fp16")
-    a.add_argument("--recipe", default=None, help="recipe profile, defaults to the arm's paired profile")
+    a.add_argument("--recipe", default=None, help="recipe profile, required for the enterprise arm")
     a.add_argument("--epochs", type=int, default=None)
     a.add_argument("--batch", type=int, default=None)
     a.add_argument("--lrf", type=float, default=None)
@@ -77,8 +77,9 @@ def main() -> None:
         a.error("federated options apply only to the enterprise arm")
 
     recipe_name, data, trainer = ARMS[args.arm]
+    recipe_name = args.recipe or recipe_name or a.error("--recipe is required for the enterprise arm")
     recipe = _load_recipe(
-        args.recipe or recipe_name,
+        recipe_name,
         args.model,
         epochs=args.epochs,
         batch=args.batch,

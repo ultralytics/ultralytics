@@ -46,6 +46,7 @@ Flags:
     --imgsz <int>: multi_det_finetune/teacher_frozen_det only. Override the canonical det
                 imgsz (640), e.g. 224 to run the frozen backbone at its phase-1 grid.
 """
+from __future__ import annotations
 
 import csv
 import json
@@ -169,18 +170,18 @@ _DET_MODES = (*_SCALED_MODES, "coco_pose_finetune")
 # The only mode allowed multiple GPUs. See the DDP guard in main().
 _DDP_CAPABLE_MODE = "obj365v1_det_pretrain"
 
-_AUG_ARGS = dict(
-    hsv_h=0.015,
-    hsv_s=0.4,
-    hsv_v=0.4,
-    translate=0.1,
-    scale=0.5,
-    fliplr=0.5,
-    mosaic=1,
-    auto_augment="randaugment",
-    erasing=0.4,
-    crop_fraction=1,
-)
+_AUG_ARGS = {
+    "hsv_h": 0.015,
+    "hsv_s": 0.4,
+    "hsv_v": 0.4,
+    "translate": 0.1,
+    "scale": 0.5,
+    "fliplr": 0.5,
+    "mosaic": 1,
+    "auto_augment": "randaugment",
+    "erasing": 0.4,
+    "crop_fraction": 1,
+}
 
 # Every-mode defaults kept out of recipe profiles, recipes override via a later merge.
 # muon/sgd 0.5/0.5 suggested by Jing.
@@ -1097,7 +1098,7 @@ def main(argv: list[str]) -> None:
         # and warmup span (in samples) stay invariant.
         obb_batch = int(batch_override) if batch_override else 32
         obb_scale = obb_batch / 32.0
-        obb_nbs = max(1, int(nbs_override) if nbs_override else int(round(64 * obb_scale)))
+        obb_nbs = max(1, int(nbs_override) if nbs_override else round(64 * obb_scale))
         obb_base_lr = float(lr_override) if lr_override else 0.00125
         obb_lr0 = obb_base_lr * obb_scale
         obb_warmup = 1.0 * obb_scale

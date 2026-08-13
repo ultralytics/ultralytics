@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Phase 1: Encoder distillation pretraining on the 7-source mix, 12-source with the domain pools."""
+from __future__ import annotations
 
 import os
 import sys
@@ -24,17 +25,7 @@ NBS_CANONICAL = 512
 
 _PHASE1_RECIPE = Path(_REPO_ROOT) / "cfg" / "recipes" / "phase1.yaml"
 
-DATA_7SRC_DEFAULT = ",".join(
-    [
-        "/data/shared-datasets/imagenet",
-        "/data/shared-datasets/coco",
-        "/data/shared-datasets/yoloe26_data/Objects365v1/images/train",
-        "/data/shared-datasets/yoloe26_data/mixed_grounding/gqa/paired/train",
-        "/data/shared-datasets/yoloe26_data/flickr/paired/train",
-        "/data/shared-datasets/DOTAv1-split/paired/train",
-        "/data/shared-datasets/SODA-A-split/images/train",
-    ]
-)
+DATA_7SRC_DEFAULT = "/data/shared-datasets/imagenet,/data/shared-datasets/coco,/data/shared-datasets/yoloe26_data/Objects365v1/images/train,/data/shared-datasets/yoloe26_data/mixed_grounding/gqa/paired/train,/data/shared-datasets/yoloe26_data/flickr/paired/train,/data/shared-datasets/DOTAv1-split/paired/train,/data/shared-datasets/SODA-A-split/images/train"
 
 
 def _pop_flag(argv: list[str], flag: str, is_bool: bool = False) -> tuple[list[str], str]:
@@ -305,15 +296,15 @@ def main(argv: list[str]) -> None:
         # trains at the target effective batch, and lr0/warmup scale off it.
         nbs = int(nbs_override) if nbs_override else max(global_batch, NBS_CANONICAL)
         scale = max(1.0, nbs / NBS_CANONICAL)
-        schedule = dict(
-            epochs=epochs or r["epochs"],
-            batch=global_batch,
-            imgsz=224,
-            nbs=nbs,
-            lr0=float(lr_override or r["lr0"]) * scale,
-            warmup_epochs=r["warmup_epochs"] * scale,
-            weight_decay=r["weight_decay"],
-        )
+        schedule = {
+            "epochs": epochs or r["epochs"],
+            "batch": global_batch,
+            "imgsz": 224,
+            "nbs": nbs,
+            "lr0": float(lr_override or r["lr0"]) * scale,
+            "warmup_epochs": r["warmup_epochs"] * scale,
+            "weight_decay": r["weight_decay"],
+        }
     momentum_v = post_training_args.get("momentum", r["momentum"])
     grad_clip_v = post_training_args.get("grad_clip", r["grad_clip"])
     beta2_v = post_training_args.get("beta2", r["beta2"])

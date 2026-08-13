@@ -15,6 +15,7 @@ dfl: 6.0
 epochs: 150
 erasing: 0.4
 fliplr: 0.5
+grad_clip: 1.0
 hsv_h: 0.015
 hsv_s: 0.7
 hsv_v: 0.4

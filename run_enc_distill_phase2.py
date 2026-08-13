@@ -594,6 +594,7 @@ def _run_multi_det(
     backbone_lr_ratio_override: str = "",
     recipe_name: str = "",
     cls_map_vocab: str = "",
+    model_override: str = "",
 ) -> None:
     """Sequentially train + val on a list of YOLO-format detection datasets.
 
@@ -628,6 +629,7 @@ def _run_multi_det(
         cls_map_vocab (str, optional): Vocab key in ul33_cls_map.json (coco/obj365/oiv7/enterprise). When set, forces
             cls_remap=true and transfers same-name head rows plus listed aliases instead of the profile's no-transfer
             default. Pick the vocab matching phase1_weights' pretraining label space.
+        model_override (str): Detector YAML override.
     """
     if "," in gpu:
         raise SystemExit(
@@ -645,7 +647,7 @@ def _run_multi_det(
         model_yaml = str(parent_save_dir / "teacherdet.yaml")
         YAML.save(model_yaml, cfg)
     else:
-        model_yaml = _infer_model_yaml(phase1_weights)
+        model_yaml = model_override or _infer_model_yaml(phase1_weights)
         _assert_backbone_compatible(phase1_weights, model_yaml)
         # Fail fast on a wrong parent id (e.g. a dir basename) before training the full dataset suite, since
         # push_summary_to_parent would otherwise drop the downstream link silently at the final step.
@@ -697,6 +699,9 @@ def _run_multi_det(
             raise SystemExit("ERROR: --repo_defaults permits only the 100-epoch budget and class mapping.")
         if not cls_map_vocab:
             raise SystemExit("ERROR: --repo_defaults requires --cls_map.")
+        actual_defaults = {key: DEFAULT_CFG_DICT[key] for key in ("grad_clip", "muon", "sgd")}
+        if actual_defaults != {"grad_clip": 10.0, "muon": 0.2, "sgd": 1.0}:
+            raise SystemExit(f"ERROR: UL33 repository defaults changed: {actual_defaults}")
         det_args = {"epochs": 100, "deterministic": True, "workers": 4}
         train_defaults = {}
         print("[repo defaults] default.yaml + epochs=100 deterministic=True workers=4")
@@ -974,6 +979,7 @@ def main(argv: list[str]) -> None:
             backbone_lr_ratio_override=backbone_lr_ratio_override,
             recipe_name=recipe_name,
             cls_map_vocab=cls_map_vocab,
+            model_override=model_override,
         )
         return
 

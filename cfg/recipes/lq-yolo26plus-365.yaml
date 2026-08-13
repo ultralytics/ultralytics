@@ -1,7 +1,7 @@
 # Objects365v1 args for YOLO26+ S (`s-light-muon-0.5-sgd-0.5-150`), 23.90 at ep150.
 # Source `optimizer: auto` is MuSGD there and AdamW here, so it is named. amp false over the source bf16,
 # which lost 0.93 points on lq's matched S pair.
-# cls_norm / cls_lr_mult / dup_sup / o2f / dup_margin are not branch args. grad_clip comes from main().
+# cls_norm / cls_lr_mult / dup_sup / o2f / dup_margin are not branch args.
 amp: false
 auto_augment: randaugment
 backbone_lr_ratio: 1.0
@@ -18,6 +18,7 @@ dfl: 6.0
 epochs: 150
 erasing: 0.4
 fliplr: 0.5
+grad_clip: 1.0
 hsv_h: 0.015
 hsv_s: 0.7
 hsv_v: 0.4

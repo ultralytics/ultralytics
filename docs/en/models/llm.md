@@ -4,7 +4,7 @@ description: Reach any OpenAI-compatible large language or vision model from Ult
 keywords: Ultralytics LLM, OpenAI compatible API, vision language model, VLM, Responses API, Chat Completions, local LLM, on-prem LLM, Ollama, vLLM, LM Studio, llama.cpp, YOLO, async inference
 ---
 
-# Ultralytics LLM: OpenAI-Compatible Large Language and Vision Model Interface
+# Ultralytics LLM Interface: OpenAI-Compatible Large Language and Vision Models
 
 ## Overview
 
@@ -21,7 +21,7 @@ Because the OpenAI API format has become the de facto standard for model serving
 - **Vision built in:** Pass a file path, URL, data URI, NumPy array, or PIL image and it is encoded and attached for you.
 - **Native passthrough:** Constructor and per-call keyword arguments go straight to the SDK, so `temperature`, `stream`, `reasoning`, `tools`, `response_format`, and anything else your provider supports all work.
 - **Sync and async:** Use `model(...)` for scripts and `await model.async_call(...)` for concurrent workloads.
-- **Lazy and light:** The client is created on the first request, and `openai` is installed on demand rather than at import time.
+- **Lazy and light:** The underlying OpenAI client is created on the first request, and `openai` is installed on demand rather than at import time.
 - **On-prem ready:** Fully local, air-gapped inference is a `base_url` change, which keeps sensitive imagery inside your own network.
 
 ## Installation
@@ -55,7 +55,7 @@ The `responses` API is the default. Read the generated text from `response.outpu
         from ultralytics import LLM
 
         # Load a model, the API key is read from OPENAI_API_KEY
-        model = LLM("gpt-5.5")
+        model = LLM("gpt-5.6-luna")
 
         # Run inference
         response = model("What is YOLO and what is it used for?")
@@ -68,7 +68,7 @@ The `responses` API is the default. Read the generated text from `response.outpu
         from ultralytics import LLM
 
         # Use the Chat Completions format instead
-        model = LLM("gpt-5.5", api="chat.completions")
+        model = LLM("gpt-5.6-luna", api="chat.completions")
 
         response = model("What is YOLO and what is it used for?")
         print(response.choices[0].message.content)
@@ -85,7 +85,7 @@ Pass an image with the `image` argument to use any vision-capable model. A plain
         ```python
         from ultralytics import LLM
 
-        model = LLM("gpt-5.5")
+        model = LLM("gpt-5.6-luna")
 
         # From a local file, encoded and attached for you
         response = model("What is happening in this image?", image="path/to/bus.jpg")
@@ -104,7 +104,7 @@ Pass an image with the `image` argument to use any vision-capable model. A plain
 
         from ultralytics import LLM
 
-        model = LLM("gpt-5.5")
+        model = LLM("gpt-5.6-luna")
 
         # OpenCV BGR array
         im = cv2.imread("path/to/bus.jpg")
@@ -125,7 +125,7 @@ The `prompt` argument holds an instruction that is prepended to plain text and i
 ```python
 from ultralytics import LLM
 
-model = LLM("gpt-5.5", prompt="You are a factory safety inspector. Answer in at most two sentences.")
+model = LLM("gpt-5.6-luna", prompt="You are a factory safety inspector. Answer in at most two sentences.")
 
 print(model("Is the operator wearing a helmet?", image="path/to/line.jpg").output_text)
 print(model("Is the walkway clear?", image="path/to/aisle.jpg").output_text)
@@ -141,7 +141,7 @@ Constructor keyword arguments become defaults for every request, and per-call ke
 from ultralytics import LLM
 
 # Defaults applied to every request
-model = LLM("gpt-5.5", temperature=0.2, max_output_tokens=300)
+model = LLM("gpt-5.6-luna", temperature=0.2, max_output_tokens=300)
 
 # Override for a single request
 response = model("Write a one paragraph release note for YOLO26.", max_output_tokens=120)
@@ -155,7 +155,7 @@ Pass a message list to keep conversation history. The list is forwarded as `inpu
 ```python
 from ultralytics import LLM
 
-model = LLM("gpt-5.5", api="chat.completions")
+model = LLM("gpt-5.6-luna", api="chat.completions")
 
 messages = [
     {"role": "system", "content": "You are an Ultralytics deployment engineer."},
@@ -183,7 +183,7 @@ Streaming is a normal SDK argument, so pass `stream=True` and iterate the result
         ```python
         from ultralytics import LLM
 
-        model = LLM("gpt-5.5", api="chat.completions")
+        model = LLM("gpt-5.6-luna", api="chat.completions")
 
         for chunk in model("Explain non-maximum suppression.", stream=True):
             delta = chunk.choices[0].delta.content
@@ -196,7 +196,7 @@ Streaming is a normal SDK argument, so pass `stream=True` and iterate the result
         ```python
         from ultralytics import LLM
 
-        model = LLM("gpt-5.5")
+        model = LLM("gpt-5.6-luna")
 
         for event in model("Explain non-maximum suppression.", stream=True):
             if event.type == "response.output_text.delta":
@@ -212,7 +212,7 @@ import asyncio
 
 from ultralytics import LLM
 
-model = LLM("gpt-5.5")
+model = LLM("gpt-5.6-luna")
 
 
 async def caption(paths):
@@ -235,7 +235,7 @@ import json
 
 from ultralytics import LLM
 
-model = LLM("gpt-5.5", api="chat.completions", response_format={"type": "json_object"})
+model = LLM("gpt-5.6-luna", api="chat.completions", response_format={"type": "json_object"})
 
 response = model('List three YOLO tasks as JSON with a "tasks" array of strings.')
 print(json.loads(response.choices[0].message.content))
@@ -350,7 +350,7 @@ The interface is most useful next to a detector. YOLO answers where and what, an
         from ultralytics import LLM, YOLO
 
         detector = YOLO("yolo26n.pt")
-        model = LLM("gpt-5.5", prompt="You are a traffic analyst. Reply in two sentences.")
+        model = LLM("gpt-5.6-luna", prompt="You are a traffic analyst. Reply in two sentences.")
 
         results = detector("path/to/bus.jpg")
         counts = Counter(results[0].names[int(c)] for c in results[0].boxes.cls)
@@ -365,7 +365,7 @@ The interface is most useful next to a detector. YOLO answers where and what, an
         from ultralytics import LLM, YOLO
 
         detector = YOLO("yolo26n.pt")
-        model = LLM("gpt-5.5")
+        model = LLM("gpt-5.6-luna")
 
         results = detector("path/to/bus.jpg")
         annotated = results[0].plot()  # BGR array with boxes drawn
@@ -380,7 +380,7 @@ The interface is most useful next to a detector. YOLO answers where and what, an
         from ultralytics import LLM, YOLO
 
         detector = YOLO("yolo26n.pt")
-        model = LLM("gpt-5.5", prompt="Describe the object in one short phrase.")
+        model = LLM("gpt-5.6-luna", prompt="Describe the object in one short phrase.")
 
         results = detector("path/to/bus.jpg")
         im = results[0].orig_img
@@ -397,14 +397,14 @@ For a fully local version of the same pipeline, run YOLO on your own hardware an
 
 ### Constructor Arguments
 
-| Argument   | Type  | Default       | Description                                                                                         |
-| ---------- | ----- | ------------- | --------------------------------------------------------------------------------------------------- |
-| `model`    | `str` | `"gpt-5.5"`   | Model name sent with every request. For self-hosted servers, use the identifier the server exposes. |
-| `api`      | `str` | `"responses"` | API format, either `"responses"` or `"chat.completions"`. Any other value raises `ValueError`.      |
-| `base_url` | `str` | `None`        | OpenAI-compatible endpoint. Falls back to the SDK default or `OPENAI_BASE_URL`.                     |
-| `api_key`  | `str` | `None`        | API key. Falls back to the `OPENAI_API_KEY` environment variable.                                   |
-| `prompt`   | `str` | `None`        | Instruction prepended to plain text and image requests, ignored for native message payloads.        |
-| `**kwargs` | `Any` |               | Default request arguments forwarded to the SDK, such as `temperature` or `max_output_tokens`.       |
+| Argument   | Type  | Default       | Description                                                                                                                                                                            |
+| ---------- | ----- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`    | `str` | `"gpt-5.5"`   | Model name sent with every request. Pass a model your provider serves, since the default can lag the provider catalog. For self-hosted servers, use the identifier the server exposes. |
+| `api`      | `str` | `"responses"` | API format, either `"responses"` or `"chat.completions"`. Any other value raises `ValueError`.                                                                                         |
+| `base_url` | `str` | `None`        | OpenAI-compatible endpoint. Falls back to the SDK default or `OPENAI_BASE_URL`.                                                                                                        |
+| `api_key`  | `str` | `None`        | API key. Falls back to the `OPENAI_API_KEY` environment variable.                                                                                                                      |
+| `prompt`   | `str` | `None`        | Instruction prepended to plain text and image requests, ignored for native message payloads.                                                                                           |
+| `**kwargs` | `Any` |               | Default request arguments forwarded to the SDK, such as `temperature` or `max_output_tokens`.                                                                                          |
 
 ### Call Arguments
 
@@ -418,7 +418,7 @@ Both arguments are optional. Calling `model()` with a configured `prompt` sends 
 
 ## Supported Modes
 
-`LLM` is an inference-only client, not a trainable Ultralytics model. It has no `train`, `val`, `export`, or `benchmark` mode, and it is not available through the `yolo` CLI.
+`LLM` is an inference-only interface, not a trainable Ultralytics model. It has no `train`, `val`, `export`, or `benchmark` mode, and it is not available through the `yolo` CLI.
 
 | Model | Tasks                        | Train | Val | Predict           | Export |
 | ----- | ---------------------------- | ----- | --- | ----------------- | ------ |
@@ -428,7 +428,7 @@ Both arguments are optional. Calling `model()` with a configured `prompt` sends 
 
 ### What is the Ultralytics LLM interface?
 
-`LLM` is a small OpenAI-compatible client included in the `ultralytics` package. It sends text and images to any compatible endpoint and returns the provider's native response object. It exists so that language and vision-language reasoning can live in the same script as your YOLO inference, without a second dependency stack.
+`LLM` is a small OpenAI-compatible interface included in the `ultralytics` package. It sends text and images to any compatible endpoint and returns the provider's native response object. It exists so that language and vision-language reasoning can live in the same script as your YOLO inference, without a second dependency stack.
 
 ### Can I run it fully on-prem without sending data to OpenAI?
 
@@ -448,7 +448,7 @@ Yes to all three, because keyword arguments reach the SDK unchanged. Pass `strea
 
 ### Can I train, fine-tune, or export a model through this interface?
 
-No. `LLM` is a client for models that are already served elsewhere. Training, validation, and export in Ultralytics apply to vision models such as [YOLO26](yolo26.md), documented under [Train](../modes/train.md), [Val](../modes/val.md), and [Export](../modes/export.md). To fine-tune a language model, train it with your provider or serving stack and then point `model` at the resulting checkpoint name.
+No. `LLM` is an interface to models that are already served elsewhere. Training, validation, and export in Ultralytics apply to vision models such as [YOLO26](yolo26.md), documented under [Train](../modes/train.md), [Val](../modes/val.md), and [Export](../modes/export.md). To fine-tune a language model, train it with your provider or serving stack and then point `model` at the resulting checkpoint name.
 
 ### Which package extras do I need?
 

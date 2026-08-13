@@ -1919,6 +1919,8 @@ class CopyPaste(BaseMixTransform):
         if len(labels["instances"].segments) == 0 or self.p == 0:
             return labels
         if self.mode == "flip":
+            if random.uniform(0, 1) > self.p:
+                return labels
             params = self.get_params(labels)
             labels = self.apply_image(labels, params)
             labels = self.apply_instances(labels, params)

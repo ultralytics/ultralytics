@@ -87,7 +87,7 @@ class STrack(BaseTrack):
         """Perform multi-object predictive tracking using Kalman filter for the provided list of STrack instances."""
         if not stracks:
             return
-        multi_mean = np.asarray([st.mean.copy() for st in stracks])
+        multi_mean = np.asarray([st.mean for st in stracks])
         multi_covariance = np.asarray([st.covariance for st in stracks])
         for i, st in enumerate(stracks):
             if st.state != TrackState.Tracked:

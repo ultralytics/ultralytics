@@ -118,6 +118,17 @@ path = model.export(format="onnx")  # Returns the path to the exported model
 
 Discover more examples in the YOLO [Python Docs](https://docs.ultralytics.com/usage/python).
 
+### Platform
+
+Manage your [Ultralytics Platform](https://platform.ultralytics.com) resources from Python 3.11 or newer:
+
+```python
+from ultralytics import Platform
+
+with Platform(api_key="YOUR_API_KEY") as client:
+    datasets = client.datasets.list("your_username")
+```
+
 </details>
 
 ## ✨ Models

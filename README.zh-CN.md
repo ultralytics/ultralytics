@@ -127,7 +127,8 @@ path = model.export(format="onnx")  # 返回导出模型的路径
 from ultralytics import Platform
 
 with Platform(api_key="YOUR_API_KEY") as client:
-    datasets = client.datasets.list("your_username")
+    account = client.account.retrieve_summary()
+    print(account)
 ```
 
 </details>

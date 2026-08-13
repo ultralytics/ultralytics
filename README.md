@@ -127,7 +127,8 @@ Manage your [Ultralytics Platform](https://platform.ultralytics.com) resources w
 from ultralytics import Platform
 
 with Platform(api_key="YOUR_API_KEY") as client:
-    datasets = client.datasets.list("your_username")
+    account = client.account.retrieve_summary()
+    print(account)
 ```
 
 </details>

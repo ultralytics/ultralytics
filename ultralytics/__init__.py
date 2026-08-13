@@ -24,7 +24,7 @@ __all__ = (  # noqa: PLE0604
     "__version__",
     "ASSETS",
     *MODELS,
-    *PLATFORM_EXPORTS,
+    *(PLATFORM_EXPORTS if sys.version_info >= (3, 11) else ()),
     "checks",
     "download",
     "settings",

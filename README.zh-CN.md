@@ -118,6 +118,18 @@ path = model.export(format="onnx")  # 返回导出模型的路径
 
 在 YOLO [Python 文档](https://docs.ultralytics.com/usage/python)中发现更多示例。
 
+### Platform
+
+使用 [API 密钥](https://platform.ultralytics.com/settings?tab=api-keys)，通过 Python 3.11 或更高版本管理您的
+[Ultralytics Platform](https://platform.ultralytics.com) 资源：
+
+```python
+from ultralytics import Platform
+
+with Platform(api_key="YOUR_API_KEY") as client:
+    datasets = client.datasets.list("your_username")
+```
+
 </details>
 
 ## ✨ 模型

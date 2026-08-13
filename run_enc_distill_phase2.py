@@ -494,14 +494,32 @@ def _read_multi_results(csv_path: Path) -> dict[str, dict[str, float]]:
             name = record.pop("dataset")
             if name in rows:
                 raise ValueError(f"{csv_path}: duplicate row for dataset {name!r}")
-            rows[name] = {key: float(value) for key, value in record.items()}
+            rows[name] = {key: float(value) for key, value in record.items() if value}
     return rows
+
+
+def _backfill_multi_f1(run_dirs: tuple[Path, ...], rows: dict[str, dict[str, float]]) -> None:
+    """Backfill F1 from each dataset's best-mAP epoch for legacy aggregate rows."""
+    for name, row in rows.items():
+        if name == "MACRO" or "f1" in row:
+            continue
+        results_path = next(
+            (run_dir / name / "results.csv" for run_dir in run_dirs if (run_dir / name / "results.csv").exists()), None
+        )
+        if results_path is None:
+            raise FileNotFoundError(f"Cannot backfill F1 for {name!r}: results.csv is missing under {run_dirs}")
+        with results_path.open(newline="") as f:
+            best = max(csv.DictReader(f), key=lambda record: float(record["metrics/mAP50-95(B)"]))
+        p, r = float(best["metrics/precision(B)"]), float(best["metrics/recall(B)"])
+        row["f1"] = round(2 * p * r / (p + r), 4) if p + r else 0.0
+    if (macro := rows.get("MACRO")) is not None and "f1" not in macro:
+        macro["f1"] = round(sum(row["f1"] for name, row in rows.items() if name != "MACRO") / (len(rows) - 1), 4)
 
 
 def _write_multi_results(csv_path: Path, rows: dict[str, dict[str, float]]) -> None:
     """Write one canonical multi_det CSV with no duplicate rows."""
     with csv_path.open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=("dataset", "map50", "map50_95", "fitness"))
+        writer = csv.DictWriter(f, fieldnames=("dataset", "map50", "map50_95", "fitness", "f1"))
         writer.writeheader()
         writer.writerows(
             {"dataset": name, **{key: f"{value:.4f}" for key, value in row.items()}} for name, row in rows.items()
@@ -521,6 +539,7 @@ def load_multi_results(parent_name: str, expected: list[str] | None = None) -> t
     if csv_path is None:
         raise FileNotFoundError(f"multi_results.csv not found for {parent_name!r} under NFS or local root")
     per_dataset = _read_multi_results(csv_path)
+    _backfill_multi_f1((csv_path.parent,), per_dataset)
     macro = per_dataset.pop("MACRO", None)
     if macro is None:
         raise ValueError(f"{csv_path}: no MACRO row, the run is incomplete")
@@ -642,6 +661,7 @@ def _run_multi_det(
     if conflicts:
         raise ValueError(f"Conflicting local and NFS multi_results.csv rows for {conflicts}")
     completed.update(shared)
+    _backfill_multi_f1(tuple(root / parent_name for root in (paths.LOCAL_ROOT, paths.NFS_MIRROR_ROOT)), completed)
     expected = {path.parent.name for path in dataset_yamls}
     unexpected = sorted(completed.keys() - expected)
     if unexpected:
@@ -797,26 +817,33 @@ def _run_multi_det(
         metrics = model.val(max_det=train_args["max_det"])
         sync_stop()
         shutil.rmtree(parent_save_dir / basename / "weights")
+        p, r = (float(metrics.results_dict[key]) for key in ("metrics/precision(B)", "metrics/recall(B)"))
         row = {
             "dataset": basename,
             "map50": float(metrics.box.map50),
             "map50_95": float(metrics.box.map),
             "fitness": float(metrics.fitness),
+            "f1": 2 * p * r / (p + r) if p + r else 0.0,
         }
-        completed[basename] = {key: row[key] for key in ("map50", "map50_95", "fitness")}
+        completed[basename] = {key: row[key] for key in ("map50", "map50_95", "fitness", "f1")}
         if len(completed) < len(dataset_yamls):
             _write_multi_results(csv_path, completed)
             _mirror_csv()
-        print(f"[done] {basename} mAP50={row['map50']:.4f} mAP50-95={row['map50_95']:.4f} fitness={row['fitness']:.4f}")
+        print(
+            f"[done] {basename} mAP50={row['map50']:.4f} mAP50-95={row['map50_95']:.4f} "
+            f"fitness={row['fitness']:.4f} F1={row['f1']:.4f}"
+        )
 
     macro = {
-        key: sum(row[key] for row in completed.values()) / len(completed) for key in ("map50", "map50_95", "fitness")
+        key: sum(row[key] for row in completed.values()) / len(completed)
+        for key in ("map50", "map50_95", "fitness", "f1")
     }
     _write_multi_results(csv_path, {**completed, "MACRO": macro})
     _mirror_csv()
     print(
         f"\n[multi_det_finetune] MACRO over {len(completed)} datasets: "
-        f"mAP50={macro['map50']:.4f} mAP50-95={macro['map50_95']:.4f} fitness={macro['fitness']:.4f}"
+        f"mAP50={macro['map50']:.4f} mAP50-95={macro['map50_95']:.4f} "
+        f"fitness={macro['fitness']:.4f} F1={macro['f1']:.4f}"
     )
     if not teacher_spec:  # frozen-teacher runs have no phase1 distillation parent to push the downstream link to
         # Auto-resolve the phase-1 run from the backbone dir when no id was passed, so the sweep view self-links.

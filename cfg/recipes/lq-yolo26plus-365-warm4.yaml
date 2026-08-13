@@ -1,4 +1,4 @@
-# lq-yolo27-365 at muon 1.0, twice the control, sgd held at 0.5. Ablation arm A7, one axis off the control.
+# lq-yolo26plus-365 at warmup 4. Ablation arm A5, one axis off the control (lq holds 2 below X, 3.0 at X).
 amp: false
 auto_augment: randaugment
 backbone_lr_ratio: 1.0
@@ -25,7 +25,7 @@ lrf: 0.01
 mixup: 0.05
 momentum: 0.937
 mosaic: 1.0
-muon: 1.0
+muon: 0.5
 nbs: 64
 optimizer: MuSGD
 patience: 100
@@ -35,6 +35,6 @@ sgd: 0.5
 shear: 0.0
 translate: 0.1
 warmup_bias_lr: 0.0
-warmup_epochs: 2
+warmup_epochs: 4
 warmup_momentum: 0.8
 weight_decay: 0.0005

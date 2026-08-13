@@ -1,7 +1,4 @@
-# Objects365v1 args from yolo27s-obj365-l-c3k2-muon.pt (`s-light-muon-0.5-sgd-0.5-150`), 23.90 at ep150.
-# Source `optimizer: auto` is MuSGD there and AdamW here, so it is named. amp false over the source bf16,
-# which lost 0.93 points on lq's matched S pair. Grid in .claude/lq-yolo27-recipes.md.
-# cls_norm / cls_lr_mult / dup_sup / o2f / dup_margin are not branch args. grad_clip comes from main().
+# lq-yolo26plus-365 at lr0 0.005, half the control. Ablation arm A3, one axis off the control.
 amp: false
 auto_augment: randaugment
 backbone_lr_ratio: 1.0
@@ -23,7 +20,7 @@ hsv_s: 0.7
 hsv_v: 0.4
 imgsz: 640
 kobj: 1.0
-lr0: 0.01
+lr0: 0.005
 lrf: 0.01
 mixup: 0.05
 momentum: 0.937
@@ -41,4 +38,3 @@ warmup_bias_lr: 0.0
 warmup_epochs: 2
 warmup_momentum: 0.8
 weight_decay: 0.0005
-workers: 4

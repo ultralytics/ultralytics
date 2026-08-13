@@ -440,6 +440,7 @@ Efficient annotation with keyboard shortcuts:
     | `Cmd/Ctrl+Y`                  | Redo                         |
     | `Escape`                      | Save / Deselect / Exit       |
     | `Delete` / `Backspace`        | Delete selected annotation   |
+    | `Cmd/Ctrl+Delete`             | Delete image                 |
     | `1-9`                         | Select class 1-9             |
     | `Cmd/Ctrl+Scroll`             | Zoom in/out                  |
     | `Cmd/Ctrl++` or `Cmd/Ctrl+=`  | Zoom in                      |

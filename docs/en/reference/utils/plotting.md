@@ -72,10 +72,6 @@ keywords: ultralytics, plotting, utilities, documentation, data visualization, a
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.plotting.project_3d_to_2d
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.plotting.project_box3d_corners
 
 <br><br><hr><br>

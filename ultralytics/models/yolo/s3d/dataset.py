@@ -108,8 +108,6 @@ class Stereo3DDetDataset(BaseDataset):
         names: dict[int, str] | list[str] | None = None,
         mean_dims: dict[str, list[float]] | None = None,
         std_dims: dict[str, list[float]] | None = None,
-        filter_occluded: bool = False,
-        max_occlusion_level: int = 1,
         cache: bool | str = False,
         augment: bool = True,
         hyp: dict[str, Any] = DEFAULT_CFG,
@@ -128,11 +126,6 @@ class Stereo3DDetDataset(BaseDataset):
                 default KITTI values.
             std_dims (dict[str, list[float]] | None): Standard deviation of dimensions per class [L, W, H] in meters.
                 Used for normalized offset prediction. If None, defaults to reasonable estimates.
-            filter_occluded (bool): Whether to filter out heavily occluded objects during training. If True, objects
-                with occlusion level > max_occlusion_level are excluded from training. Defaults to False.
-            max_occlusion_level (int): Maximum occlusion level to include when filter_occluded is True.
-                KITTI occlusion levels: 0=fully visible, 1=partially occluded, 2=heavily occluded, 3=unknown.
-                Default is 1 (exclude heavily occluded and unknown objects).
             cache: Cache images to RAM or disk.
             augment: Whether to apply augmentation.
             hyp: Hyperparameters dict.
@@ -150,8 +143,6 @@ class Stereo3DDetDataset(BaseDataset):
         imgsz_int = max(self.imgsz_tuple) if isinstance(imgsz, (tuple, list)) else imgsz
         self.names = names or {}
         self.data = data or {}
-        self.filter_occluded = filter_occluded
-        self.max_occlusion_level = max_occlusion_level
 
         # Dataset layout (KITTI-style stereo):
         # - images/{split}/left, images/{split}/right
@@ -170,13 +161,6 @@ class Stereo3DDetDataset(BaseDataset):
             raise FileNotFoundError(f"Calibration directory not found: {self.calib_dir}")
         if not self.label_dir.exists():
             raise FileNotFoundError(f"Label directory not found: {self.label_dir}")
-
-        # Occlusion filtering settings
-        if filter_occluded:
-            LOGGER.info(
-                f"Occlusion filtering enabled: excluding objects with occlusion level > {max_occlusion_level} "
-                f"(0=visible, 1=partial, 2=heavy, 3=unknown)"
-            )
 
         # Initialize BaseDataset with left image directory as img_path
         # BaseDataset will call get_img_files() and get_labels()
@@ -725,29 +709,6 @@ class Stereo3DDetDataset(BaseDataset):
                 rotation_y = np.zeros((0,), dtype=np.float32)
                 occluded = np.zeros((0,), dtype=np.int32)
                 truncated = np.zeros((0,), dtype=np.float32)
-
-            # Filter occluded objects if enabled (for training only)
-            if self.filter_occluded and n > 0:
-                valid_mask = occluded <= self.max_occlusion_level
-                filtered_count = n - valid_mask.sum()
-
-                if filtered_count > 0:
-                    bboxes_xywh = bboxes_xywh[valid_mask]
-                    cls_array = cls_array[valid_mask]
-                    right_bboxes = right_bboxes[valid_mask]
-                    dimensions_3d = dimensions_3d[valid_mask]
-                    location_3d = location_3d[valid_mask]
-                    rotation_y = rotation_y[valid_mask]
-                    occluded = occluded[valid_mask]
-                    truncated = truncated[valid_mask]
-                    n = valid_mask.sum()
-
-                    # Log filtered objects for the first few batches
-                    if i < 5:
-                        LOGGER.debug(
-                            f"Image {i}: filtered {filtered_count}/{n + filtered_count} occluded objects "
-                            f"(max_occlusion_level={self.max_occlusion_level})"
-                        )
 
             per_image_counts.append(n)
 

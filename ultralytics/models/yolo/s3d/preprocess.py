@@ -117,7 +117,7 @@ def decode_stereo3d_outputs(
     score_k: float = 2.5,
     depth_var_scale: float = 1.0,
     calib_letterboxed: bool = False,
-) -> list[Box3D] | list[list[Box3D]]:
+) -> list[list[Box3D]]:
     """Decode s3d outputs to Box3D objects.
 
     Uses Detect inference output for candidate 2D boxes and class scores, then samples the auxiliary stereo/3D maps at
@@ -141,6 +141,13 @@ def decode_stereo3d_outputs(
             which is how a higher bin count re-weights the fusion without changing the bin count.
         calib_letterboxed: If True, reverse-letterbox the per-sample calib (fx/fy/cx/cy) to original-image coords before
             back-projection (the production caller sets this).
+
+    Returns:
+        (list[list[Box3D]]): One list per batch image, ALWAYS — including a single-image batch and
+            including images with no detections, which yield an empty inner list. Callers index by
+            image, so never collapse the outer list for bs==1: `Stereo3DDetValidator.update_metrics`
+            zips predictions against labels, so a collapsed empty result silently drops that image's
+            ground truth from the recall denominator and inflates AP3D.
 
     Notes:
         The projected-center offset ("proj_offset"), inverse-variance depth fusion, and
@@ -340,9 +347,6 @@ def decode_stereo3d_outputs(
 
         results_per_batch.append(boxes3d)
 
-    # Match legacy return format
-    if bs == 1:
-        return results_per_batch[0]
     return results_per_batch
 
 
@@ -530,9 +534,5 @@ def decode_and_refine_predictions(
         depth_var_scale=depth_var_scale,
         calib_letterboxed=True,  # batch calib is in letterbox-input space; decode reverses it to original
     )
-
-    # Ensure results is list of lists
-    if isinstance(results, list) and len(results) > 0 and isinstance(results[0], Box3D):
-        results = [results]
 
     return results

@@ -663,9 +663,13 @@ def test_decode_uses_proj_offset():
             out["proj_offset"] = torch.tensor([[[du], [0.0]]]).float()
         return out
 
-    # bs=1 -> decode_stereo3d_outputs returns a flat list[Box3D] (unwrapped), so index once.
-    x_off = decode_stereo3d_outputs(make_outputs(True), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0].center_3d[0]
-    x_no = decode_stereo3d_outputs(make_outputs(False), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0].center_3d[0]
+    # decode_stereo3d_outputs always returns list[list[Box3D]] (one list per image), so index twice.
+    x_off = decode_stereo3d_outputs(make_outputs(True), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0][
+        0
+    ].center_3d[0]
+    x_no = decode_stereo3d_outputs(make_outputs(False), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0][
+        0
+    ].center_3d[0]
     expected_shift = (du * input_w / scale) * z / calib["fx"]
     assert abs((x_off - x_no) - expected_shift) < 1e-2, f"{x_off - x_no} != {expected_shift}"
 
@@ -702,12 +706,14 @@ def test_ivw_fusion_equal_sigma_matches_geomean():
             out["lr_logvar"] = torch.tensor([[[0.0]]])
         return out
 
-    # bs=1 -> decode_stereo3d_outputs returns a flat list[Box3D] (unwrapped), so index once.
+    # decode_stereo3d_outputs always returns list[list[Box3D]] (one list per image), so index twice.
     # No lr_logvar -> geometric-mean fallback; equal-variance lr_logvar -> IVW. They must coincide.
-    z_geo = decode_stereo3d_outputs(make_outputs(False), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0].center_3d[
-        2
-    ]
-    z_ivw = decode_stereo3d_outputs(make_outputs(True), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0].center_3d[2]
+    z_geo = decode_stereo3d_outputs(make_outputs(False), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0][
+        0
+    ].center_3d[2]
+    z_ivw = decode_stereo3d_outputs(make_outputs(True), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0][
+        0
+    ].center_3d[2]
     assert abs(z_ivw - z_geo) < 1e-2, f"ivw {z_ivw} != geomean {z_geo}"
 
 
@@ -737,9 +743,9 @@ def test_score_weight_demotes_uncertain():
             "depth": torch.tensor([[[math.log(25.0)]]]),
             "lr_logvar": torch.tensor([[[logvar]]]),
         }
-        # bs=1 -> decode_stereo3d_outputs returns a flat list[Box3D] (unwrapped), so index once.
+        # decode_stereo3d_outputs always returns list[list[Box3D]] (one list per image), so index twice.
         # score-weighting is applied unconditionally when lr_logvar is present.
-        return decode_stereo3d_outputs(outputs, calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], score_k=0.5)[
+        return decode_stereo3d_outputs(outputs, calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw], score_k=0.5)[0][
             0
         ].confidence
 
@@ -790,10 +796,12 @@ def test_ivw_fusion_uses_dfl_variance():
         return out
 
     # No lr_logvar -> geometric-mean fallback; with lr_logvar -> IVW using the DFL spread.
-    z_geo = decode_stereo3d_outputs(make_outputs(False), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0].center_3d[
-        2
-    ]
-    z_ivw = decode_stereo3d_outputs(make_outputs(True), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0].center_3d[2]
+    z_geo = decode_stereo3d_outputs(make_outputs(False), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0][
+        0
+    ].center_3d[2]
+    z_ivw = decode_stereo3d_outputs(make_outputs(True), calib=[calib], imgsz=imgsz, ori_shapes=[ori_hw])[0][
+        0
+    ].center_3d[2]
 
     # The direct cue is nearly certain (narrow DFL distribution) while the stereo cue is highly
     # uncertain, so IVW fusion must sit much closer to z_direct than the plain geometric mean.
@@ -840,8 +848,8 @@ def _decode_fusion_scale(**kwargs):
     boxes = decode_stereo3d_outputs(
         _fusion_scale_outputs(), calib=[calib], imgsz=(384, 1248), ori_shapes=[(375, 1242)], **kwargs
     )
-    assert boxes, "decode returned no boxes; the fixture no longer produces a detection"
-    flat = [v for b in boxes for v in (*b.center_3d, *b.dimensions, b.orientation, b.confidence)]
+    assert boxes and boxes[0], "decode returned no boxes; the fixture no longer produces a detection"
+    flat = [v for img in boxes for b in img for v in (*b.center_3d, *b.dimensions, b.orientation, b.confidence)]
     return torch.tensor(flat, dtype=torch.float64)  # float64 keeps the Python floats bit-exact
 
 

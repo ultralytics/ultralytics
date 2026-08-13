@@ -129,7 +129,6 @@ class Stereo3DDetLoss(v8DetectionLoss):
         tal_topk: int = 10,
         loss_weights: dict[str, float] | None = None,
         use_bbox_loss: bool = True,
-        cls_label_smoothing: float = 0.0,
         photometric_loss: bool = False,
     ):
         super().__init__(model, tal_topk=tal_topk)
@@ -137,7 +136,6 @@ class Stereo3DDetLoss(v8DetectionLoss):
         self.photometric_loss = photometric_loss
         self.aux_w = loss_weights or {}
         self.use_bbox_loss = use_bbox_loss
-        self.cls_label_smoothing = cls_label_smoothing
 
         # Depth bin classification (DFL-style). Every parameter comes from the head's own grid: sizing
         # DFLoss from the module-level DEPTH_BINS instead would clamp targets to the default bin count

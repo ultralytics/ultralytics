@@ -540,22 +540,6 @@ class Stereo3DDetValidator(BaseValidator):
                 }
             )
 
-            # Update progress bar with intermediate metrics (every batch for real-time feedback)
-        if hasattr(self, "_progress_bar") and self._progress_bar is not None and RANK in {-1, 0}:
-            # Update progress bar periodically to avoid performance impact
-            if hasattr(self, "_batch_count"):
-                self._batch_count += 1
-            else:
-                self._batch_count = 1
-
-            # Update every 5 batches or if we're near the end (more frequent than before)
-            if self._batch_count % 5 == 0 or (
-                hasattr(self, "_total_batches") and self._batch_count >= self._total_batches - 1
-            ):
-                metrics_str = self._format_progress_metrics()
-                if metrics_str:
-                    self._progress_bar.set_description(metrics_str)
-
         # Generate visualization images if plots enabled.
         # NOTE: This stereo validator saves 1 file per sample, so keep defaults conservative to avoid generating
         # thousands of images when using large validation batch sizes.
@@ -848,33 +832,6 @@ class Stereo3DDetValidator(BaseValidator):
                     )
                 )
 
-    def _format_progress_metrics(self) -> str:
-        """Format current metrics for progress bar display."""
-        if not hasattr(self.metrics, "stats") or len(self.metrics.stats) == 0:
-            return ("%11i" + "%11s" * 6) % (int(self.seen), "-", "-", "-", "-", "-", "-")
-
-        saved_stats = self.metrics.stats.copy()
-        self.metrics.process(save_dir=self.save_dir, plot=False)
-        ap3d = self.metrics.ap3d
-        self.metrics.stats = saved_stats
-
-        if not ap3d:
-            return ("%11i" + "%11s" * 6) % (int(self.seen), "-", "-", "-", "-", "-", "-")
-
-        def mean_ap(iou_t, diff):
-            d = ap3d.get(iou_t, {}).get(diff, {})
-            return float(np.mean(list(d.values()))) if d else 0.0
-
-        return ("%11i" + "%11.4g" * 6) % (
-            int(self.seen),
-            mean_ap(0.5, DIFFICULTY_EASY),
-            mean_ap(0.5, DIFFICULTY_MODERATE),
-            mean_ap(0.5, DIFFICULTY_HARD),
-            mean_ap(0.7, DIFFICULTY_EASY),
-            mean_ap(0.7, DIFFICULTY_MODERATE),
-            mean_ap(0.7, DIFFICULTY_HARD),
-        )
-
     def build_dataset(
         self, img_path: str | dict[str, Any], mode: str = "val", batch: int | None = None
     ) -> torch.utils.data.Dataset:
@@ -914,7 +871,6 @@ class Stereo3DDetValidator(BaseValidator):
             mean_dims=self.data.get("mean_dims"),
             std_dims=self.data.get("std_dims"),
             augment=False,
-            filter_occluded=False,
         )
 
     def get_dataloader(self, dataset_path: str | dict[str, Any], batch_size: int) -> torch.utils.data.DataLoader:

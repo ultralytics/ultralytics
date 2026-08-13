@@ -214,3 +214,8 @@ results.csv
 fuzz-sources/
 fuzz-datasets/
 fuzz-models/
+
+# Internal research notes and planning docs — working material, not product source.
+# These were previously committed on the s3d branch; keep them out of the feature branch.
+research/
+docs/superpowers/

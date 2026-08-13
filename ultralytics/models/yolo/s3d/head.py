@@ -13,7 +13,7 @@ from ultralytics.nn.modules.head import Detect
 from .orientation import ORIENT_CHANNELS
 
 # 64 log-spaced depth bins is the measured optimum of an inverted-U curve, not a guess. On the
-# drive-disjoint Chen split (research/findings.md C9/C11/C12): 64 beats 16 at every GT range band and cuts
+# drive-disjoint Chen split: 64 beats 16 by 1.82 Car AP3D@0.7 Mod, beats it at every GT range band, and cuts
 # median depth error ~24% on the screening subset, 128 ties, and 192/256 are WORSE than 16 because very fine
 # bins spread the DFL target too thin to optimise. The gain is a genuinely better depth branch (+28.3% with
 # the cue fusion bypassed), not the fusion re-weighting a smaller bin spread also causes. Override per model

@@ -458,27 +458,6 @@
         font-weight: 800;
       }
 
-      .schedule {
-        display: flex;
-        gap: 8px;
-        margin-top: 10px;
-      }
-      .schedule div {
-        flex: 1;
-        padding: 7px;
-        border-radius: 4px;
-        font: 700 9px/1.25 monospace;
-      }
-      .o2m {
-        color: var(--blue);
-        background: var(--blue-bg);
-      }
-      .o2o {
-        color: var(--green);
-        background: var(--green-bg);
-        text-align: right;
-      }
-
       .group-stack {
         display: grid;
         gap: 6px;
@@ -745,10 +724,6 @@
               <b class="plus">+</b>
               <div class="loss-node loc">L1 × 6.0</div>
             </div>
-            <div class="schedule">
-              <div class="o2m">O2M 0.8 → 0.1</div>
-              <div class="o2o">0.2 → 0.9 · O2O</div>
-            </div>
           </div>
           <div class="lane enterprise-lane">
             <div class="lane-head">
@@ -770,10 +745,6 @@
               <div class="loss-node cls">LOCAL BCE × 0.5</div>
               <b class="plus">+</b>
               <div class="loss-node loc">L1 × 6.0</div>
-            </div>
-            <div class="schedule">
-              <div class="o2m">batch[d] → CLS[d] → criterion[d]</div>
-              <div class="o2o">epoch: sampled heads 1…21 update</div>
             </div>
           </div>
         </div>

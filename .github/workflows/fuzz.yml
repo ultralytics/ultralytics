@@ -58,7 +58,6 @@ jobs:
       - uses: actions/checkout@v7
       - uses: ultralytics/actions/setup-uv@main
         with:
-          version: latest-known
           python-version: "3.13"
           activate-environment: true
       - name: Install requirements

@@ -46,7 +46,6 @@ jobs:
           fetch-depth: 0
       - uses: ultralytics/actions/setup-uv@main
         with:
-          version: latest-known
           python-version: "3.14"
       - name: Install Dependencies
         run: |

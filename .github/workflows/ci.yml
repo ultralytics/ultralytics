@@ -68,7 +68,6 @@ jobs:
           python-version: ${{ matrix.python }}
       - uses: ultralytics/actions/setup-uv@main
         with:
-          version: latest-known
           python-version: ${{ matrix.python }}
           activate-environment: ${{ matrix.os == 'cpu-latest' }}
       - name: Install requirements
@@ -156,7 +155,6 @@ jobs:
       - uses: actions/checkout@v7
       - uses: ultralytics/actions/setup-uv@main
         with:
-          version: latest-known
           python-version: ${{ matrix.python }}
           activate-environment: true
       - name: Install requirements
@@ -307,7 +305,6 @@ jobs:
       - uses: actions/checkout@v7
       - uses: ultralytics/actions/setup-uv@main
         with:
-          version: latest-known
           python-version: ${{ matrix.python }}
           activate-environment: true
       - name: Install requirements
@@ -374,7 +371,6 @@ jobs:
           python-version: "3.13"
       - uses: ultralytics/actions/setup-uv@main
         with:
-          version: latest-known
           python-version: "3.13"
       - name: Install export system dependencies
         run: sudo apt-get update && sudo apt-get install -y openjdk-21-jre flatbuffers-compiler
@@ -430,7 +426,6 @@ jobs:
       - uses: actions/checkout@v7
       - uses: ultralytics/actions/setup-uv@main
         with:
-          version: latest-known
           activate-environment: true
       - name: Install requirements
         run: |
@@ -474,8 +469,6 @@ jobs:
           source env-tests/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - uses: ultralytics/actions/setup-uv@main
-        with:
-          version: latest-known
       - name: Install requirements
         uses: ultralytics/actions/retry@main
         with:
@@ -570,8 +563,6 @@ jobs:
         uses: eviden-actions/clean-self-hosted-runner@v1.4.37
       - uses: actions/checkout@v7
       - uses: ultralytics/actions/setup-uv@main
-        with:
-          version: latest-known
       - name: Activate virtual environment
         run: |
           python${{ matrix.python }} -m venv env --system-site-packages
@@ -613,8 +604,6 @@ jobs:
         shell: bash -el {0}
     steps:
       - uses: ultralytics/actions/setup-uv@main
-        with:
-          version: latest-known
       - uses: conda-incubator/setup-miniconda@v4
         with:
           python-version: ${{ matrix.python }}

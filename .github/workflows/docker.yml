@@ -113,6 +113,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0 # copy full .git directory to access full git history in Docker images
+          persist-credentials: false # .git/ ships in the images, so leave no auth config in it
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4

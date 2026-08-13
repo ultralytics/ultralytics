@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Use the Ultralytics LLM interface with OpenAI-compatible language and vision models through Responses or Chat Completions APIs.
-keywords: Ultralytics LLM, OpenAI compatible API, Responses API, Chat Completions, vision language model, local LLM, YOLO
+description: Use the Ultralytics LLM interface with OpenAI, DeepSeek, Kimi, Z.AI GLM, OpenRouter, and other compatible providers.
+keywords: Ultralytics LLM, OpenAI, DeepSeek, Kimi, Z.AI, GLM, OpenRouter, OpenAI compatible API, Responses API, Chat Completions, vision language model, local LLM, YOLO
 ---
 
 # Ultralytics LLM Interface
@@ -24,44 +24,37 @@ For OpenAI, set the API key in the environment:
 export OPENAI_API_KEY="your-api-key"
 ```
 
-## Text and Images
+## Responses API
 
-### Text
+The Responses API is the default. Pass a prompt and read `output_text`:
 
 ```python
 from ultralytics import LLM
 
-model = LLM("gpt-5.6-luna")
-response = model("What is YOLO and when should I use it?")
+llm = LLM("gpt-5.6-luna")
+response = llm("What is YOLO?")
 print(response.output_text)
 ```
 
-Constructor keyword arguments become request defaults. Arguments passed to a call override them:
-
-```python
-model = LLM("gpt-5.6-luna", temperature=0.2, max_output_tokens=300)
-response = model("Write a short YOLO26 release note.", max_output_tokens=120)
-```
-
-### Images
+### Multimodal Input
 
 Pass a path, HTTP URL, data URI, NumPy array, or PIL image through `image`:
 
 ```python
 from ultralytics import LLM
 
-model = LLM("gpt-5.6-luna")
-response = model("Describe this image.", image="https://ultralytics.com/images/bus.jpg")
+llm = LLM("gpt-5.6-luna")
+response = llm("What is happening in this image?", image="https://ultralytics.com/images/bus.jpg")
 print(response.output_text)
 ```
 
-Local files and image objects are encoded as JPEG data URIs. NumPy arrays use OpenCV's BGR channel order. A string passed as `source`, such as `model("bus.jpg")`, is treated as text; use the `image` argument to send an image.
+Local files and image objects are encoded as JPEG data URIs. NumPy arrays use OpenCV's BGR channel order. A string passed as `source`, such as `llm("bus.jpg")`, is treated as text; use the `image` argument to send an image.
 
-The optional `prompt` constructor argument prepends a reusable instruction to plain text and image requests:
+Use `prompt` for an instruction shared by every request:
 
 ```python
-model = LLM("gpt-5.6-luna", prompt="Answer as a factory safety inspector in two sentences.")
-response = model("Is the walkway clear?", image="aisle.jpg")
+llm = LLM("gpt-5.6-luna", prompt="Answer in one sentence.")
+response = llm("Describe this image.", image="bus.jpg")
 ```
 
 ## Chat Completions
@@ -71,20 +64,27 @@ Select Chat Completions when required by the endpoint, and read its native respo
 ```python
 from ultralytics import LLM
 
-model = LLM("gpt-5.6-luna", api="chat.completions")
-response = model("Explain non-maximum suppression.")
+llm = LLM("gpt-5.6-luna", api="chat.completions")
+response = llm("What is non-maximum suppression?")
 print(response.choices[0].message.content)
 ```
 
-Pass a list of native message objects to preserve conversation history. Such lists are forwarded unchanged and do not receive the configured `prompt` prefix.
+The same interface accepts multimodal input:
+
+```python
+response = llm("Describe this image.", image="bus.jpg")
+print(response.choices[0].message.content)
+```
+
+Pass native message objects when you need conversation history. They are forwarded unchanged.
 
 ## Streaming and Async Calls
 
 SDK request arguments pass through unchanged, including `stream=True`:
 
 ```python
-model = LLM("gpt-5.6-luna")
-for event in model("Explain object detection.", stream=True):
+llm = LLM("gpt-5.6-luna")
+for event in llm("Explain object detection.", stream=True):
     if event.type == "response.output_text.delta":
         print(event.delta, end="", flush=True)
 ```
@@ -96,55 +96,52 @@ import asyncio
 
 from ultralytics import LLM
 
-model = LLM("gpt-5.6-luna")
+llm = LLM("gpt-5.6-luna")
 
 
 async def main():
-    responses = await asyncio.gather(
-        model.async_call("Describe this image.", image="image1.jpg"),
-        model.async_call("Describe this image.", image="image2.jpg"),
-    )
-    return [response.output_text for response in responses]
+    response = await llm.async_call("What is YOLO?")
+    print(response.output_text)
 
 
-print(asyncio.run(main()))
+asyncio.run(main())
 ```
 
-## OpenAI-Compatible Endpoints
+## OpenAI-Compatible Providers
 
-Set `base_url` and the model identifier exposed by your provider. Many local servers implement Chat Completions, so check the server's API support:
+`LLM` works with providers that expose an OpenAI-compatible Responses or Chat Completions API, including [DeepSeek](https://api-docs.deepseek.com/), [Kimi](https://platform.kimi.ai/docs/overview), [Z.AI GLM](https://docs.z.ai/guides/develop/openai/python), and [OpenRouter](https://openrouter.ai/docs/api_reference/overview). Set the provider's `base_url`, model name, and API key:
 
 ```python
 from ultralytics import LLM
 
-model = LLM(
-    "local-model",
+llm = LLM(
+    "provider-model",
     api="chat.completions",
-    base_url="http://localhost:8000/v1",
-    api_key="local",
+    base_url="https://provider.example/v1",
+    api_key="your-api-key",
 )
-response = model("Summarize the YOLO task list.")
+response = llm("What tasks does YOLO support?")
 print(response.choices[0].message.content)
 ```
 
-Compatibility, model names, image support, and request arguments are determined by the selected provider. Use the provider's documentation rather than assuming every OpenAI-compatible server implements both APIs or every SDK option.
+The same configuration works with compatible local servers. Model names, image support, request arguments, and supported APIs vary by provider, so check its linked documentation.
 
-## Combine LLM and YOLO
+## Combine YOLO and an LLM
 
-YOLO can extract structured visual results before an LLM summarizes them:
+Run YOLO first, then call the LLM only when a person is detected:
 
 ```python
-from collections import Counter
-
 from ultralytics import LLM, YOLO
 
-detector = YOLO("yolo26n.pt")
-model = LLM("gpt-5.6-luna", prompt="Reply as a traffic analyst in two sentences.")
+yolo = YOLO("yolo26n.pt")
+llm = LLM("gpt-5.6-luna")
+image = "https://ultralytics.com/images/bus.jpg"
 
-result = detector("https://ultralytics.com/images/bus.jpg")[0]
-counts = Counter(result.names[int(cls)] for cls in result.boxes.cls)
-response = model(f"Summarize these detections: {dict(counts)}")
-print(response.output_text)
+result = yolo(image)[0]
+# Call the LLM only when YOLO detects a person.
+if any(result.names[int(cls)] == "person" for cls in result.boxes.cls):
+    response = llm("Describe the scene.", image=image)
+    print(response.output_text)
 ```
 
 ## API Reference
@@ -161,3 +158,21 @@ print(response.output_text)
 `source` accepts text, a native message list, or an image object. `image` accepts an image URL, data URI, path, NumPy array, or PIL image. Calling `model()` with a configured `prompt` sends the prompt by itself.
 
 `LLM` is inference-only and is not exposed through the `yolo` CLI. It does not implement `train`, `val`, `export`, `track`, or `benchmark`.
+
+## FAQ
+
+### Which APIs does `LLM` support?
+
+`LLM` uses the Responses API by default. Set `api="chat.completions"` for Chat Completions endpoints.
+
+### Which providers can I use?
+
+You can use OpenAI or another provider with a compatible API, such as [DeepSeek](https://api-docs.deepseek.com/), [Kimi](https://platform.kimi.ai/docs/overview), [Z.AI GLM](https://docs.z.ai/guides/develop/openai/python), or [OpenRouter](https://openrouter.ai/docs/api_reference/overview). Use the provider's model name, base URL, and API key.
+
+### How do I send an image to a multimodal model?
+
+Pass the prompt as the first argument and a local path, URL, data URI, NumPy array, or PIL image through `image`. Image support depends on the selected model and provider.
+
+### Can I train or export an LLM with this class?
+
+No. `LLM` provides synchronous and asynchronous inference only. Use Ultralytics `YOLO` for computer vision training, validation, prediction, export, tracking, and benchmarking.

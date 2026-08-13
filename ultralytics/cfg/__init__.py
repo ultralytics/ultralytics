@@ -292,6 +292,8 @@ CFG_BOOL_KEYS = frozenset(
         "cls_remap",
         "aux_fg_on",
         "half_channel",
+        "half_channel_box",
+        "half_channel_cls",
     }
 )
 CFG_STR_KEYS = frozenset({"optimizer", "split", "copy_paste_mode", "auto_augment", "aux_fg_sched"})

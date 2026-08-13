@@ -197,7 +197,9 @@ class DetectionTrainer(BaseTrainer):
         Returns:
             (DetectionModel): YOLO detection model.
         """
-        Detect.half_channel = bool(getattr(self.args, "half_channel", False))  # cls-head width, read in Detect.__init__
+        Detect.half_channel = bool(getattr(self.args, "half_channel", False))  # box/cls-head width, read in Detect.__init__
+        Detect.half_box = bool(getattr(self.args, "half_channel_box", False))  # box-head width only
+        Detect.half_cls = bool(getattr(self.args, "half_channel_cls", False))  # cls-head width only
         model = self.set_model_names_for_load(
             DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         )

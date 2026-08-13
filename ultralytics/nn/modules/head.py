@@ -84,7 +84,9 @@ class Detect(nn.Module):
     anchors = torch.empty(0)  # init
     strides = torch.empty(0)  # init
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
-    half_channel = False  # halve the cls-head hidden channels; set by DetectionTrainer when half_channel=True
+    half_channel = False  # halve the box/cls-head hidden channels; set by DetectionTrainer when half_channel=True
+    half_box = False  # halve only the box-head (c2) hidden channels; set by DetectionTrainer when half_channel_box=True
+    half_cls = False  # halve only the cls-head (c3) hidden channels; set by DetectionTrainer when half_channel_cls=True
     xyxy = False  # xyxy or xywh output
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = (), sigmoid_box=False):
@@ -105,8 +107,9 @@ class Detect(nn.Module):
         self.no = nc + self.reg_max * 4  # number of outputs per anchor
         self.stride = torch.zeros(self.nl)  # strides computed during build
         # update the channel to 100 so nano size can also load pretrained cls weight
-        c2 = max((16, ch[0] // 4, self.reg_max * 4))  # channels
-        c3 = max(ch[0] // 2, 64) if self.half_channel else max(ch[0], 64)  # cls-head hidden channels
+        half_box, half_cls = self.half_channel or self.half_box, self.half_channel or self.half_cls
+        c2 = max((16, ch[0] // (8 if half_box else 4), self.reg_max * 4))  # box-head hidden channels
+        c3 = max(ch[0] // 2, 64) if half_cls else max(ch[0], 64)  # cls-head hidden channels
         self.cv2 = nn.ModuleList(
             nn.Sequential(
                 Conv(x, c2, 3),

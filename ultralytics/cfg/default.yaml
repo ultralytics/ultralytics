@@ -124,7 +124,9 @@ dup_sup: 0.0 # (float) weight for duplicate-suppression margin loss on one-to-on
 dup_margin: 0.3 # (float) required prob margin between the certain anchor and its best sibling for dup_sup
 aux_fg_on: False # (bool) enable the training-only class-agnostic foreground auxiliary loss on the Detect head (gain/target args aux_fg, aux_fg_tgt, aux_fg_t are code-only, defaulting to 0.5/'mix'/0.75)
 aux_fg_sched: o2m # (str) branch weight carrying the aux foreground loss: 'o2m' (decays 0.8->0.1), 'const' (flat 1.0), 'o2o' (grows 0.2->0.9), or 'split' (per-anchor)
-half_channel: False # (bool) halve the Detect cls-head hidden channels to max(ch[0] // 2, 64) instead of max(ch[0], 64); structural, applied at model build during training
+half_channel: False # (bool) halve BOTH the Detect box-head (c2: ch[0] // 8 divisor) and cls-head (c3: max(ch[0] // 2, 64)) hidden channels; structural, applied at model build during training
+half_channel_box: False # (bool) halve only the Detect box-head (c2) hidden channels; structural, applied at model build during training
+half_channel_cls: False # (bool) halve only the Detect cls-head (c3) hidden channels; structural, applied at model build during training
 dfl: 1.5 # (float) distribution focal loss gain
 pose: 12.0 # (float) pose loss gain (pose tasks)
 kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)

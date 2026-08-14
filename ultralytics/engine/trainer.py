@@ -520,6 +520,7 @@ class BaseTrainer:
         self.set_class_weights()  # before any forward builds the loss criterion, which snapshots the weights
         if auto and not self.resume and not scratch:
             self._find_lr()
+        LOGGER.info(self.optimizer_info.format(lr=self.args.lr0))
         self.validator = self.get_validator()
         self.ema = ModelEMA(self.model)
         if RANK in {-1, 0}:
@@ -642,6 +643,7 @@ class BaseTrainer:
                     self.loss = self.loss_items = self.tloss = None
                     self._clear_memory()
                     self._build_train_pipeline()  # rebuild dataloaders, optimizer, scheduler
+                    LOGGER.info(self.optimizer_info.format(lr=self.args.lr0))
                     self.scheduler.last_epoch = self.start_epoch - 1
                     nb = len(self.train_loader)
                     nw = self._get_warmup_iterations(nb)
@@ -1305,9 +1307,11 @@ class BaseTrainer:
             g = g_
         optimizer = (partial(MuSGD, muon=muon, sgd=sgd) if use_muon else getattr(optim, name))(params=g)
 
-        LOGGER.info(
-            f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
-            f"{num_params[1]} weight(decay=0.0), {num_params[0]} weight(decay={decay}), {num_params[2]} bias(decay=0.0)"
+        # logged by the caller, as a sweep may still replace the rate this was built with
+        self.optimizer_info = (
+            f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={{lr}}, momentum={momentum}) with parameter "
+            f"groups {num_params[1]} weight(decay=0.0), {num_params[0]} weight(decay={decay}), "
+            f"{num_params[2]} bias(decay=0.0)"
         )
         return optimizer
 

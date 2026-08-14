@@ -311,7 +311,7 @@ Then launch the training with the Python API:
     - Unlike mixup which blends pixel values globally, `cutmix` maintains the original pixel intensities within the cut regions, preserving local features.
     - A region is pasted into the target image only if it does not overlap with any existing bounding box. Additionally, only the bounding boxes that retain at least `0.1` (10%) of their original area within the pasted region are preserved.
     - This minimum bounding box area threshold cannot be changed with the current implementation and is set to `0.1` by default.
-    - [Semantic segmentation](../tasks/semantic.md) datasets are augmented too, but only when they use [YOLO polygon labels](../datasets/semantic/index.md#yolo-polygon-label-format). PNG-mask datasets carry no bounding boxes, so no cut region is ever selected.
+    - [Semantic segmentation](../tasks/semantic.md) datasets are augmented too, but only when they use [YOLO polygon labels](../datasets/semantic/index.md#yolo-polygon-label-format). PNG-mask datasets carry no bounding boxes, so the transform is skipped and leaves them unchanged.
 
 |                                                     **First image, `cutmix` off**                                                      |                                                     **Second image, `cutmix` off**                                                      |                                                           **`cutmix` on**                                                           |
 | :------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------: |
@@ -341,7 +341,7 @@ Then launch the training with the Python API:
 
 - **Options**: `'flip'`, `'mixup'`
 - **Default**: `'{{ copy_paste_mode }}'`
-- **Usage**: Determines the method used for [copy-paste](#copy-paste-copy_paste) augmentation. If set to `'flip'`, the objects come from the same image and each copy is a horizontal mirror of the original, while `'mixup'` takes them from a randomly selected dataset image, which may be another image or the current one.
+- **Usage**: Determines the method used for [copy-paste](#copy-paste-copy_paste) augmentation. If set to `'flip'`, the objects come from the same image and each copy is a horizontal mirror of the original, while `'mixup'` takes them from a randomly sampled dataset entry after that entry's own pre-transforms, so the source may be the current image or a mosaic of several images.
 - **Purpose**: Allows flexibility in how copied objects are integrated into target images.
 - **Ultralytics' implementation**: [CopyPaste](../reference/data/augment.md#ultralytics.data.augment.CopyPaste)
 - **Note**:

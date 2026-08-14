@@ -1551,8 +1551,8 @@ def test_advertised_keys_cover_everything_get_stats_returns():
     v.metrics.names = {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
 
     # get_stats() returns {**metrics.results_dict, **det_metrics.results_dict} minus 2D fitness.
-    returned = set(v.metrics.results_dict) | set(v.det_metrics.results_dict) - {"fitness"}
-    missing = returned - set(v.metrics.keys) - {"fitness"}
+    returned = (set(v.metrics.results_dict) | set(v.det_metrics.results_dict)) - {"fitness"}
+    missing = returned - set(v.metrics.keys)
     assert not missing, f"returned by get_stats but absent from the CSV header, so rows go ragged: {sorted(missing)}"
 
 

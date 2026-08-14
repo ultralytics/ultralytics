@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
+from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, MONO_TASK_MODEL_DATA, TASK_MODEL_DATA
 from ultralytics.utils import ARM64, ASSETS, DATASETS_DIR, IS_RASPBERRYPI, LINUX, WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_VERSION
 
@@ -98,9 +98,13 @@ def test_val(task: str, model: str, data: str) -> None:
         run(f"yolo val {task} model={model} data={data} imgsz=32 end2end={end2end} max_det=100 agnostic_nms")
 
 
-@pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
+@pytest.mark.parametrize("task,model,data", MONO_TASK_MODEL_DATA)
 def test_predict(task: str, model: str, data: str) -> None:
-    """Test YOLO prediction on provided sample assets for specified task and model."""
+    """Test YOLO prediction on provided sample assets for specified task and model.
+
+    Uses MONO_TASK_MODEL_DATA, not TASK_MODEL_DATA: `source=ASSETS` is a directory of single images,
+    which a paired-source task like s3d cannot consume.
+    """
     for end2end in (False, True):
         run(f"yolo {task} predict model={model} source={ASSETS} imgsz=32 save end2end={end2end} max_det=100")
 

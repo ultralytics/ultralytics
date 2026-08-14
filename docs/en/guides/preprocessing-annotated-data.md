@@ -83,7 +83,7 @@ With YOLO26, augmentation is controlled through [training arguments](../usage/cf
 - **Flips** (`fliplr`, `flipud`): Mirror images horizontally or vertically.
 - **Geometric transforms** (`degrees`, `translate`, `scale`, `shear`, `perspective`): Rotate, shift, zoom, and warp images.
 - **HSV color jitter** (`hsv_h`, `hsv_s`, `hsv_v`): Vary hue, saturation, and brightness.
-- **Copy-paste** (`copy_paste`): Paste objects between images for segmentation.
+- **Copy-paste** (`copy_paste`): Paste extra object instances into segmentation images.
 
 !!! example "Set augmentation strength when training"
 

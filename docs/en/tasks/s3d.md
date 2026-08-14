@@ -28,7 +28,7 @@ Ultralytics YOLO26 Stereo 3D Detection models use a siamese backbone over the [K
 
 - Trained **from scratch** on the Chen `train` split (3712 images) for 400 epochs at `imgsz=[384, 1248]`, then evaluated once on the held-out Chen `test` split (3769 images) via `kitti-stereo-chen-test.yaml`. The two splits share no raw drive.
 - **Car** columns are the KITTI headline (Car at IoU 0.7 is the number published stereo-3D work leads with). **mAP3D** columns are the unweighted mean over Car/Pedestrian/Cyclist and are much lower because Cyclist AP is near zero on this split — the two are not interchangeable.
-- Decoded with the shipped `score_k=2.5` confidence weighting. AP_BEV@0.7 (Mod) is 10.4; the instance-weighted mAP3D@0.5 is 44.5.
+- Decoded with the shipped `score_k=2.5` confidence weighting. The 3-class mean AP_BEV@0.7 (Mod) is 10.4 — an unweighted mean like the mAP3D columns, **not** a Car figure, since BEV IoU ignores height and is therefore never below the 3D IoU for the same boxes. The instance-weighted mAP3D@0.5 is 44.5.
 
 !!! warning "Earlier published numbers for n/s/m/l/x were measured on a leaked split and have been removed"
 

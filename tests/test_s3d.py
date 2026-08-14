@@ -1552,52 +1552,24 @@ def test_patience_zero_disables_early_stopping():
     assert any(on(e, 0.0) for e in range(1, 100)), "a positive patience must still stop on a plateau"
 
 
-def test_cost_volume_variants_differ_from_the_parent_ONLY_in_level_count():
-    """A sweep variant must differ from `yolo26-s3d.yaml` in nothing but `StereoCostVolume` num_levels.
+def test_cost_volume_builds_with_the_level_count_its_yaml_declares():
+    """The parent YAML must build a cost volume with exactly the 48 levels it declares.
 
-    This is the guard, not a nicety. The cv variants were forked from the parent YAML, and a later commit
-    added `depth_bins: 64` to the parent only — so the control built a 64-bin head while every treatment arm
-    built a 16-bin one. Since 16 -> 64 bins is worth about +6 points of frac-within-tolerance, on its own
-    larger than the effect the sweep was measuring, that would have produced a confident and completely wrong
-    conclusion that a finer cost volume is harmful.
+    Guards a silent fallback to the module default: if the YAML's num_levels were ignored, the model would
+    still build and train, every disparity would simply be sampled on the wrong grid, and nothing else in
+    the suite would notice. Asserts the BUILT module, not that the file parses.
 
-    Comparing the full key space rather than a whitelist means the next key added to the parent is caught
-    automatically, whatever it is.
-    """
-    from ultralytics.utils import YAML
-
-    root = Path(__file__).resolve().parents[1] / "ultralytics/cfg/models/26"
-    parent = YAML.load(root / "yolo26-s3d.yaml")
-    for levels in (24, 96, 144):
-        child = YAML.load(root / f"yolo26-s3d-cv{levels}.yaml")
-        assert set(child) == set(parent), (
-            f"cv{levels} key set diverged from the parent: "
-            f"only in child {set(child) - set(parent)}, only in parent {set(parent) - set(child)}"
-        )
-        for key in parent:
-            if key in {"head", "backbone"}:
-                continue  # the layer lists legitimately differ, and are asserted on the built model below
-            assert child[key] == parent[key], f"cv{levels} diverged from the parent at '{key}'"
-
-
-@pytest.mark.parametrize("tag,levels", [("", 48), ("-cv24", 24), ("-cv96", 96), ("-cv144", 144)])
-def test_cost_volume_level_variants_build_with_their_declared_resolution(tag, levels):
-    """Each cost-volume resolution variant must build with exactly the level count its YAML declares.
-
-    The sweep exists to test whether a finer disparity grid is LEARNABLE, not merely representable: the
-    adjacent depth-bin curve improved to 64 bins and then turned over, being worse than baseline at 256. So
-    the variants deliberately bracket the default (24 / 48 / 96 / 144) rather than only going finer.
-
-    A silent fallback to the default level count would make every arm identical and the sweep would report a
-    flat, meaningless curve — hence asserting the built module, not just that the file parses.
+    (This once covered -cv24/-cv96/-cv144 sweep variants too. The cost-volume resolution sweep returned a
+    null result -- the arms spanned 4.2 points against a 5.1-point noise bar -- so the variants were dropped
+    rather than shipped; reproduce that sweep with benchmark_s3d.py's --model override.)
     """
     from ultralytics.models.yolo.s3d.model import Stereo3DDetModel
     from ultralytics.nn.modules.block import StereoCostVolume
 
-    model = Stereo3DDetModel(f"yolo26n-s3d{tag}.yaml", ch=6, nc=3, verbose=False)
+    model = Stereo3DDetModel("yolo26n-s3d.yaml", ch=6, nc=3, verbose=False)
     volumes = [m for m in model.modules() if isinstance(m, StereoCostVolume)]
     assert len(volumes) == 1, f"expected exactly one cost volume, found {len(volumes)}"
-    assert int(volumes[0].d_norm.numel()) == levels
+    assert int(volumes[0].d_norm.numel()) == 48
 
 
 def _s3d_yaml_with(tmp_path, **training):

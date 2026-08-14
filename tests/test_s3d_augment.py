@@ -1,10 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""Tests for StereoZoom — true stereo scale jitter (zoom + crop/pad back to the original canvas)."""
+"""Tests for the stereo augmentation transforms: StereoZoom (scale jitter) and StereoHFlip (mirror + view swap)."""
 
 import numpy as np
 import pytest
 
-from ultralytics.models.yolo.s3d.augment import StereoLabels, StereoZoom
+from ultralytics.models.yolo.s3d.augment import StereoHFlip, StereoLabels, StereoZoom
 from ultralytics.utils.instance import Instances
 
 H, W = 96, 160
@@ -145,3 +145,91 @@ def test_scale_jitter_is_live_in_the_dataset_pipeline():
     assert np.allclose(np.asarray(a["location_3d"]), np.asarray(b["location_3d"])), (
         "zoom must NOT move objects in 3D — only their apparent size and the calibration change"
     )
+
+
+def test_hflip_swaps_the_two_views():
+    """The mirrored scene puts the right camera where the left was, so the views must SWAP, not just flip.
+
+    Flipping each half in place without swapping leaves the rig handedness reversed: the left image
+    would see the scene from the right camera's viewpoint, making every disparity negative while the
+    3D depth targets stay positive. Training absorbs that silently -- all losses stay finite.
+    """
+    lab0 = _labels()
+    left0, right0 = lab0["img"][:, :, :3].copy(), lab0["img"][:, :, 3:6].copy()
+
+    lab = StereoHFlip(p=1.0)(_labels())
+
+    assert np.array_equal(lab["img"][:, :, :3], right0[:, ::-1]), "new left view must be the flipped OLD RIGHT"
+    assert np.array_equal(lab["img"][:, :, 3:6], left0[:, ::-1]), "new right view must be the flipped OLD LEFT"
+
+
+def test_hflip_mirrors_geometry_and_keeps_disparity_physical():
+    """Yaw negates, X mirrors about the baseline, depth is untouched, and disparity stays fx*B/z.
+
+    Disparity is the invariant that ties the flipped labels back to the flipped pixels. A sign error
+    anywhere in the mirror leaves it negative or inconsistent with depth, which is exactly the class of
+    corruption that runs for 600 epochs without a single failed assertion anywhere else.
+    """
+    lab = StereoHFlip(p=1.0)(_labels())
+    inst = lab["instances"]
+
+    assert float(inst.location_3d[0, 0]) == pytest.approx(BASE - 0.0)  # X -> baseline - X
+    assert float(inst.location_3d[0, 2]) == pytest.approx(Z), "flipping must not touch the depth target"
+    assert lab["calibration"]["cx"] == pytest.approx((W - 1) - CX)
+    assert lab["calibration"]["fx"] == pytest.approx(FX), "a mirror does not change focal length"
+
+    d_px = float(inst.bboxes[0][0] - inst.right_bboxes[0][0]) * W
+    assert d_px > 0, "left-minus-right disparity must stay POSITIVE; negative means the views were not swapped"
+    assert d_px == pytest.approx(FX * BASE / (Z - 0.3), rel=1e-3)  # near face, as in the zoom tests
+
+
+def test_hflip_ties_the_label_mirror_to_the_pixel_flip():
+    """The new left box centre must land where the OLD RIGHT box centre lands after mirroring the canvas.
+
+    This is the cross-check between the two halves of the transform: labels are mirrored analytically
+    while pixels are mirrored by cv2. `X -> -X` (forgetting the baseline term) still yields positive,
+    depth-consistent disparity and would pass the test above -- it only breaks here.
+    """
+    lab0 = _labels()
+    u_right_old_px = float(lab0["instances"].right_bboxes[0][0]) * W
+
+    lab = StereoHFlip(p=1.0)(_labels())
+    u_left_new_px = float(lab["instances"].bboxes[0][0]) * W
+
+    assert u_left_new_px == pytest.approx((W - 1) - u_right_old_px, abs=0.5)
+
+
+def test_hflip_twice_is_identity():
+    """Two flips restore the original geometry -- an involution check no single-direction test can give."""
+    lab0 = _labels()
+    lab2 = StereoHFlip(p=1.0)(StereoHFlip(p=1.0)(_labels()))
+
+    assert np.array_equal(lab2["img"], lab0["img"])
+    for field in ("bboxes", "right_bboxes", "location_3d", "rotation_y"):
+        assert np.allclose(getattr(lab2["instances"], field), getattr(lab0["instances"], field), atol=1e-5), field
+    assert lab2["calibration"]["cx"] == pytest.approx(CX)
+
+
+def test_hflip_p_zero_is_a_noop():
+    """p=0 must leave pixels, labels and calibration byte-for-byte alone."""
+    lab0 = _labels()
+    lab = StereoHFlip(p=0.0)(_labels())
+    assert np.array_equal(lab["img"], lab0["img"])
+    assert np.array_equal(lab["instances"].location_3d, lab0["instances"].location_3d)
+    assert lab["calibration"]["cx"] == pytest.approx(CX)
+
+
+def test_hflip_negates_a_non_zero_yaw():
+    """Mirroring reverses handedness, so yaw must negate.
+
+    Kept separate and given a NON-ZERO angle deliberately. The shared fixture's yaw is 0.0, and 0.0
+    negates to 0.0 -- a transform that dropped the negation entirely passed the geometry test above
+    until this case was added (confirmed by mutating the negation out). A rotated box also moves its
+    near face, which is why this cannot simply be folded into the disparity assertion.
+    """
+    src = _labels()
+    src["instances"].rotation_y = np.array([0.6], dtype=np.float32)
+
+    lab = StereoHFlip(p=1.0)(src)
+
+    assert float(lab["instances"].rotation_y[0]) == pytest.approx(-0.6, abs=1e-5)

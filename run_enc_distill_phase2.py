@@ -13,14 +13,14 @@ Usage:
           det fine-tune + val over a list of YOLO-format datasets; logs per-dataset and
           macro-averaged mAP to a CSV, on the multi-det recipe profile),
           "obj365v1_det_pretrain" (Objects365-v1 detection pretrain, 150 epochs, any backbone,
-          on the obj365-pretrain profile; its output checkpoint is then COCO fine-tuned with
+          on the lq-yolo26plus-365-lr0p0025 profile. Its output checkpoint is then COCO fine-tuned with
           --recipe coco-after-o365, coco-adapt args on the published post-objv1 epoch ladder,
           since it is no longer a pristine distilled backbone)
 
-    obj365v1_det_pretrain is the only mode taking multiple GPUs ("0,1,2,3"): grad_clip is a train arg and
-    nfs_sync starts in the runner, so neither rides a callback DDP drops. muon/sgd are train args read by
-    build_optimizer (DDP-safe). log_config still rides a callback, so under DDP the W&B run misses the
-    parent-run fields (args.yaml keeps them).
+    coco_det_finetune{,_frozen} and obj365v1_det_pretrain take multiple GPUs ("0,1,2,3"): grad_clip is a train arg
+    and nfs_sync starts in the runner, so neither rides a callback DDP drops. muon/sgd are train args read by
+    build_optimizer (DDP-safe). log_config still rides a callback, so under DDP the W&B run misses the parent-run
+    fields (args.yaml keeps them).
     Keep batch divisible by the GPU count: trainer.py floors batch_size // world_size silently.
 
 Flags:
@@ -29,7 +29,7 @@ Flags:
                 relaunch those from the recipe instead.
     --fork_from <parent_id>:<fork_step>: wandb-fork continuation (all single-dataset modes)
     --recipe <name>: coco/multi_det/obj365 modes. Recipe profile stem under cfg/recipes/, defaulting to
-                the mode's profile (coco-preserve, multi-det, obj365-pretrain). Use coco-adapt for a
+                the mode's profile (coco-preserve, multi-det, lq-yolo26plus-365-lr0p0025). Use coco-adapt for a
                 non-distilled backbone, coco-after-o365 after an obj365 pretrain, multi-det-musgd-cos or
                 yolo26-published-{det,multi-det,objv1} for MuSGD, or repo-defaults for UL33 default.yaml settings.
     --model <yaml>: det modes. Detector yaml to build, replacing the one derived from the checkpoint.
@@ -166,8 +166,8 @@ _COCO_DET_MODES = ("coco_det_finetune", "coco_det_finetune_frozen")
 _SCALED_MODES = (*_COCO_DET_MODES, "dota_obb_finetune", "obj365v1_det_pretrain")
 # Modes that build a detection/OBB model rather than a classifier.
 _DET_MODES = (*_SCALED_MODES, "coco_pose_finetune")
-# The only mode allowed multiple GPUs. See the DDP guard in main().
-_DDP_CAPABLE_MODE = "obj365v1_det_pretrain"
+# Modes allowed multiple GPUs. See the DDP guard in main().
+_DDP_CAPABLE_MODES = (*_COCO_DET_MODES, "obj365v1_det_pretrain")
 
 _AUG_ARGS = dict(
     hsv_h=0.015,
@@ -197,7 +197,7 @@ def _resume_mode(train_args: dict) -> str:
             return "inet_linear_probe"
         return "inet_adamw_finetune" if train_args.get("optimizer") == "AdamW" else "inet_finetune"
     return {
-        "Objects365v1.yaml": _DDP_CAPABLE_MODE,
+        "Objects365v1.yaml": "obj365v1_det_pretrain",
         "coco-pose.yaml": "coco_pose_finetune",
         "DOTAv1.yaml": "dota_obb_finetune",
     }.get(data, "inet_finetune")
@@ -943,11 +943,11 @@ def main(argv: list[str]) -> None:
         else resume_args.get("pretrained", "runs/classify/yolo-next-encoder/phase1-d7-dinov3-convnextb/weights/best.pt")
     )
     mode = argv[2] if len(argv) > 2 else _resume_mode(resume_args)
-    if "," in gpu and mode != _DDP_CAPABLE_MODE:
+    if "," in gpu and mode not in _DDP_CAPABLE_MODES:
         raise SystemExit(
             f"ERROR: mode={mode!r} needs a single GPU. dist.py:79 rebuilds the trainer per DDP child with "
-            f"no callbacks, so log_config no-ops and W&B misses the parent-run fields. Only "
-            f"{_DDP_CAPABLE_MODE} is DDP-safe. Got gpu={gpu!r}."
+            f"no callbacks, so log_config no-ops and W&B misses the parent-run fields. DDP-safe modes are "
+            f"{_DDP_CAPABLE_MODES}. Got gpu={gpu!r}."
         )
     name = argv[3] if len(argv) > 3 else resume_args.get("name", f"phase2-{mode}-d7")
     phase1_wandb_id = argv[4] if len(argv) > 4 else ""
@@ -1080,7 +1080,7 @@ def main(argv: list[str]) -> None:
             train_args["freeze"] = 9
     elif mode == "obj365v1_det_pretrain":
         det_args = _load_recipe(
-            recipe_name or "obj365-pretrain",
+            recipe_name or "lq-yolo26plus-365-lr0p0025",
             model_yaml,
             epochs=epochs,
             patience=patience,

@@ -22,16 +22,17 @@ Deploy a model from its `Deploy` tab:
 3. Review the world map and the region table, which is sorted by measured latency from your location
 4. Click **Deploy** in the region row you want to use
 
-The deployment name is auto-generated from the model name and region city (e.g., `yolo26n-iowa`).
+Deployment starts immediately with no naming step: the name is generated from the model name and the region city (for
+example `yolo26n-iowa`). The model must have weights, or the tab shows an empty state instead of the region table.
 
 ### From the Deployments Page
 
 Create a deployment from the global `Deploy` page in the sidebar:
 
 1. Click **New Deployment**
-2. Select a model from the model selector
-3. Select a region from the map or table
-4. Review the editable, auto-generated deployment name and the fixed resource defaults
+2. Select a model from the model selector, which lists your completed models
+3. Select a region from the mini map or the latency table
+4. Review the auto-generated deployment name, which you can edit here
 5. Click **Deploy Model**
 
 ![Ultralytics Platform New Deployment Dialog With Model Selector And Region Map](https://cdn.ul.run/i/d0447123225bbac5c67ae7aee0f15da2.avif)<!-- screenshot -->
@@ -41,12 +42,13 @@ Create a deployment from the global `Deploy` page in the sidebar:
 ```mermaid
 stateDiagram-v2
     [*] --> Creating: Deploy
-    Creating --> Deploying: Container starting
-    Deploying --> Ready: Health check passed
+    Creating --> Deploying: Service starting
+    Deploying --> Ready: Service URL published
     Ready --> Stopping: Stop
     Ready --> Deploying: Replace model
     Stopping --> Stopped: Stopped
-    Stopped --> Ready: Start
+    Stopped --> Deploying: Start
+    Deploying --> Stopped: Start failed
     Ready --> [*]: Delete
     Stopped --> [*]: Delete
     Creating --> Failed: Error
@@ -70,28 +72,30 @@ Connect [Slack alerts](../integrations/slack.md) to receive a message when a dep
 Choose from 42 regions worldwide. The interactive region map and table show:
 
 - **Region pins**: Color-coded by latency on a green-to-red gradient (faster regions are greener, slower regions are redder)
-- **Deployed regions**: Highlighted with a "Deployed" badge
-- **Deploying regions**: Animated pulse indicator
+- **Deployed regions**: Highlighted with a "Deployed" badge in the table
+- **Deploying regions**: Animated pulse indicator on the pin and the table row
 - **Bidirectional highlighting**: Hover on the map highlights the table row, and vice versa
 
 ![Ultralytics Platform Deploy Tab Region Latency Table Sorted By Latency](https://cdn.ul.run/i/b763bfb3b965aac1e274bfed782a82e8.avif)<!-- screenshot -->
 The region table on the model `Deploy` tab includes:
 
-| Column       | Description                              |
-| ------------ | ---------------------------------------- |
-| **Location** | City and country with flag icon          |
-| **Zone**     | Region identifier                        |
-| **Latency**  | Measured ping time (median of 3 pings)   |
-| **Distance** | Distance from your location in km        |
-| **Actions**  | Deploy button or "Deployed" status badge |
+| Column       | Description                                   |
+| ------------ | --------------------------------------------- |
+| **Location** | City and country with flag icon               |
+| **Zone**     | Region identifier                             |
+| **Latency**  | Measured ping time from your browser          |
+| **Distance** | Distance from your approximate location in km |
+| **Actions**  | Deploy button or "Deployed" status badge      |
+
+The table is searchable by city, country, and zone, and is sorted by latency by default.
 
 !!! note "New Deployment Dialog"
 
-    The `New Deployment` dialog (from the global `Deploy` page) shows a simpler region table with only Location, Latency, and Select columns.
+    The `New Deployment` dialog (from the global `Deploy` page) shows a simpler region table with only Location, Latency, and Select columns, listing the 20 fastest regions with a note about the remaining ones. Use the mini map to pick any other region.
 
-!!! tip "Choose Wisely"
+!!! tip "How Latency Is Measured"
 
-    Select the region closest to your users for lowest latency. Use the **Rescan** button to re-measure latency from your current location.
+    Your browser measures latency to each of the 42 regions, and results are cached for 30 minutes and shared across the `Deploy` tab and the `New Deployment` dialog. Use the **Rescan** button on the model `Deploy` tab to re-measure from your current network. Distance is computed from the approximate location of your request, so it is a rough guide rather than a precise value.
 
 ## Available Regions
 
@@ -161,26 +165,26 @@ The region table on the model `Deploy` tab includes:
 
 ### New Deployment Dialog
 
-The `New Deployment` dialog provides:
+The `New Deployment` dialog collects three inputs:
 
-| Setting             | Description                  | Default |
-| ------------------- | ---------------------------- | ------- |
-| **Model**           | Select from completed models | -       |
-| **Region**          | Deployment region            | -       |
-| **Deployment Name** | Auto-generated, editable     | -       |
-| **CPU Cores**       | Fixed default                | 1       |
-| **Memory (GB)**     | Fixed default                | 2       |
+| Field               | Description                                                       |
+| ------------------- | ----------------------------------------------------------------- |
+| **Model**           | Any completed model in the workspace, chosen with the selector    |
+| **Region**          | Deployment region, chosen on the mini map or in the latency table |
+| **Deployment Name** | Auto-generated once model and region are set, and editable        |
 
 ![Ultralytics Platform New Deployment Dialog Fixed Resource Defaults](https://cdn.ul.run/i/574300ec688c813a92304f252b57476b.avif)<!-- screenshot -->
-The disabled **Resources** panel is marked **Coming Soon** and cannot currently be expanded or customized. Deployments use `1 CPU`, `2 GiB` memory, `minInstances = 0`, and `maxInstances = 1`.
+Below the name, a read-only **Resources** panel carries a `Custom resources coming soon` badge. Resources are not
+configurable today: every endpoint runs as a single instance that scales to zero when idle.
 
 !!! note "Auto-Generated Names"
 
-    The deployment name is automatically generated from the model name and region city (e.g., `yolo26n-iowa`). If you deploy the same model to the same region again, a numeric suffix is added (e.g., `yolo26n-iowa-2`).
+    The deployment name combines the model name with the region city, for example `yolo26n-iowa`. On the model `Deploy` tab, a numeric suffix is added when that model already has a deployment in the region (for example `yolo26n-iowa-2`). Names must be unique within a workspace — deploying a name that already exists returns an error rather than silently renaming.
 
 ### Deploy Tab (Quick Deploy)
 
-When deploying from the model's `Deploy` tab, endpoints are created with default resources (1 CPU, 2 GB memory) with scale-to-zero enabled. The deployment name is auto-generated.
+Deploying from the model's `Deploy` tab uses the same fixed resources and auto-generated name, with no dialog step. The
+deployment appears immediately in the **Active Deployments** list below the region table while it is created.
 
 ## Manage Endpoints
 
@@ -200,13 +204,22 @@ The deployments list supports three view modes:
 
 Each deployment card in the cards view shows:
 
-- **Header**: Name, region flag, status badge, replace/start/stop/delete buttons
-- **Endpoint URL**: Copyable URL with link to API docs
-- **Metrics**: Request count (24h), P95 latency, error rate
+- **Header**: Name, region flag, status badge, and the action buttons available for the current status — replace and stop when **Ready**, start when **Stopped**, delete at any time
+- **Endpoint URL**: Copyable URL with a link to the endpoint's own API reference
+- **Metrics**: Request count (24h), P95 latency, error rate, or "No traffic yet"
 - **Health check**: Live health indicator with latency and manual refresh
 - **Tabs**: `Logs`, `Code`, and `Predict`
+- **Footer**: The API key prefix bound to the deployment and the date it became ready
+- **Status message**: The failure reason, when a deployment failed
 
-The `Logs` tab shows recent log entries with severity filtering (All / Errors). The `Code` tab shows ready-to-use code examples in Python, JavaScript, and cURL with your actual endpoint URL and API key. The `Predict` tab provides an inline predict panel for testing directly on the deployment.
+The URL, metrics, health check, and tabs appear only while the deployment is **Ready**. The `Logs` tab shows recent log
+entries with severity filtering (All / Errors). The `Code` tab shows ready-to-use code examples in Python, JavaScript,
+and cURL with your endpoint URL, plus the bound API key for workspace owners (see [Monitoring](monitoring.md#code-examples)). The `Predict` tab provides an inline predict panel for testing
+directly on the deployment.
+
+!!! note "Compact and Table Views"
+
+    Compact cards show the flag, name, city, status, and the three metrics. The table view is sortable on Name, Region, Status, Requests, P95, and Errors, with search across name, region, and status. Both views keep the delete action; start, stop, and replace are available in the cards view.
 
 ### Replace a Model
 
@@ -218,7 +231,13 @@ Replace the model behind a ready endpoint without changing its URL:
 4. Optionally edit the deployment name
 5. Click **Replace Model**
 
-Platform creates a new revision of the existing service. The current model continues serving while the replacement revision starts and passes its health check. When the revision is ready, traffic moves to the new model. The deployment ID, URL, region, and API key remain unchanged; its display name changes only when you enter a new one. If replacement fails, the previous model and name remain active.
+The current model continues serving while the replacement starts up. Once the replacement is ready, traffic moves to the new model. The deployment ID, URL, region, and API key remain unchanged; its display name changes only when you enter a new one. If replacement fails, the previous model and name remain active.
+
+Replacement requires all of the following, and is rejected otherwise:
+
+- The deployment is **Ready** and has no other lifecycle operation in flight
+- The replacement model has weights and belongs to the same workspace as the deployment
+- The replacement model is not the one already deployed
 
 !!! note "One Model per Endpoint"
 
@@ -240,11 +259,19 @@ Platform creates a new revision of the existing service. The current model conti
 Each endpoint has a unique URL, for example:
 
 ```text
-https://predict-abc123.run.app
+https://predict-<deployment-id>-<hash>-<region>.a.run.app
 ```
 
 ![Ultralytics Platform Deployment Card Endpoint Url With Copy Button](https://cdn.ul.run/i/4f02beb3dd4915d65c72051e0235b1ea.avif)<!-- screenshot -->
-Click the copy button to copy the URL. Click the docs icon to view the auto-generated API documentation for the endpoint.
+Click the copy button to copy the URL. Click the docs icon to open the endpoint's own API reference. The endpoint
+serves these paths:
+
+| Path       | Method | Description                                                                |
+| ---------- | ------ | -------------------------------------------------------------------------- |
+| `/predict` | POST   | Run inference; requires the deployment API key                             |
+| `/health`  | GET    | Liveness check reporting service status and the number of cached models    |
+| `/`        | GET    | Status summary for the deployed service                                    |
+| `/docs`    | GET    | Interactive API reference generated for this deployment, model, and region |
 
 ## Lifecycle Management
 
@@ -277,8 +304,9 @@ Stop an endpoint when you do not want it to accept requests:
 
 Stopped endpoints:
 
-- Don't accept requests
-- Can be restarted anytime
+- Don't accept requests, and report no metrics or health status
+- Keep their URL, region, and bound API key, and can be restarted anytime
+- Still count against your plan's deployment quota — delete an endpoint to free its slot
 
 ### Delete Endpoint
 
@@ -289,24 +317,43 @@ Permanently remove an endpoint:
 
 !!! warning "Permanent Action"
 
-    Deletion is immediate and permanent. You can always create a new endpoint.
+    Deletion is immediate and permanent — deployments do not go to [Trash](../account/trash.md). Deleting the endpoint removes its service and frees a slot in your deployment quota. You can always create a new endpoint, but it receives a new URL.
+
+Deployments are also removed when their model or project is permanently deleted, or when a trashed model or project
+reaches the end of its retention window.
 
 ## Using Endpoints
 
 ### Authentication
 
-Each deployment is created with an API key from your account. Include it in requests:
+Each deployment is bound to a single API key from the workspace that owns the model. Include it in requests:
 
 ```bash
 Authorization: Bearer YOUR_API_KEY
 ```
 
-The API key prefix is displayed on the deployment card footer for identification. Generate keys from [API Keys](../account/api-keys.md).
+The endpoint accepts only the key bound at creation, so **no other key opens it** — not even another active key in
+the same workspace. To control which key gets bound, deploy via the API authenticated with the workspace owner's key:
+that exact key is bound, and you already hold it. Deployments created any other way (the Platform UI, or an API call
+authenticated as a team member) bind one of the owning workspace's active keys automatically — identify it by the key
+prefix shown in the deployment card footer, and ask the workspace owner for its value, since only the owner can view
+key values (see [API Keys](../account/api-keys.md)). Team members without the bound key can still run inference
+through the Platform predict proxy in the browser.
+
+!!! warning "Deleting the Bound Key Does Not Lock the Endpoint"
+
+    Deleting or deactivating the bound API key does **not** revoke direct access to the endpoint — anyone holding the key string can still call the endpoint URL. What does break is the Platform predict proxy, which checks the key live and reports it as no longer available. To fully revoke access, stop or delete the deployment; after rotating keys, create the endpoint again so it binds the new key.
 
 ### Direct Endpoint Requests
 
 Send production requests directly to the URL shown on the deployment card. These requests do not pass through the
-Platform API rate limiter. The endpoint currently runs one instance with the fixed resources described above.
+Platform API rate limiter, so the 20 requests/minute predict limit does not apply. The endpoint still has its own
+capacity ceiling:
+
+- A single instance serves each endpoint, processing a limited number of requests at once
+- Requests that cannot be served promptly return `429` with a `Retry-After` header
+- A single request may run for up to 1 hour, which allows video inference to complete
+- Responses larger than 1 KB are gzip-compressed, and cross-origin browser requests are allowed
 
 ### Request Example
 
@@ -316,7 +363,7 @@ Platform API rate limiter. The endpoint currently runs one instance with the fix
     import requests
 
     # Deployment endpoint
-    url = "https://predict-abc123.run.app/predict"
+    url = "https://YOUR_DEPLOYMENT_URL.run.app/predict"
 
     # Headers with your deployment API key
     headers = {"Authorization": "Bearer YOUR_API_KEY"}
@@ -343,7 +390,7 @@ Platform API rate limiter. The endpoint currently runs one instance with the fix
 
     // Send image for inference
     const response = await fetch(
-      "https://predict-abc123.run.app/predict",
+      "https://YOUR_DEPLOYMENT_URL.run.app/predict",
       {
         method: "POST",
         headers: { Authorization: "Bearer YOUR_API_KEY" },
@@ -359,7 +406,7 @@ Platform API rate limiter. The endpoint currently runs one instance with the fix
 
     ```bash
     curl -X POST \
-      "https://predict-abc123.run.app/predict" \
+      "https://YOUR_DEPLOYMENT_URL.run.app/predict" \
       -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg" \
       -F "conf=0.25" \
@@ -371,6 +418,9 @@ Platform API rate limiter. The endpoint currently runs one instance with the fix
 
 {% include "macros/platform-inference-parameters.md" %}
 
+See [Depth responses](inference.md#task-specific-responses) for how `bits` changes the returned depth map and how to
+decode it.
+
 !!! tip "Video Inference"
 
     Dedicated endpoints accept both images and videos via the `file` parameter.
@@ -378,7 +428,7 @@ Platform API rate limiter. The endpoint currently runs one instance with the fix
     - **Image formats** (up to 100 MB): AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WEBP
     - **Video formats** (up to 100 MB): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV
 
-    Each video frame is processed individually and results are returned per frame. You can also pass a public image URL or a base64-encoded image via the `source` parameter instead of `file`.
+    Each video frame is processed individually and results are returned per frame. You can also pass a public image URL or a base64-encoded image via the `source` parameter instead of `file`. Oversized uploads are rejected with `413`.
 
 ### Response Format
 
@@ -394,7 +444,9 @@ Endpoint limits depend on plan:
 - **Pro**: Up to 10 deployments
 - **Enterprise**: Unlimited deployments
 
-Each model can still be deployed to multiple regions within your plan quota.
+Each model can still be deployed to multiple regions within your plan quota. The quota is counted against the workspace
+that owns the model, so team members deploying a shared model consume the owner's allowance. Reaching the limit returns
+an error asking you to delete an existing deployment first.
 
 ### Can I change the region after deployment?
 
@@ -402,6 +454,9 @@ No, regions are fixed. To change regions:
 
 1. Delete the existing endpoint
 2. Create a new endpoint in the desired region
+
+The new endpoint receives a new URL. To change only the model behind an endpoint, use
+[model replacement](#replace-a-model), which keeps the URL.
 
 ### How do I handle multi-region deployment?
 
@@ -413,7 +468,10 @@ For global coverage:
 
 ### What's the cold start time?
 
-Cold start time depends on the model and whether the endpoint has scaled to zero. Platform's health-check request allows
-up to 55 seconds so an idle endpoint has time to start.
+Cold start time depends on the model and whether the endpoint has scaled to zero; Platform allows an idle endpoint
+extra time to start before reporting it unhealthy. Running a health check from the deployment card before a burst of traffic warms the instance.
 
-Each deployment currently uses the generated endpoint URL shown on its deployment card.
+### Can I use a custom domain?
+
+No. Each deployment serves traffic on the generated endpoint URL shown on its deployment card, which stays stable for
+the life of the deployment — including across model replacements.

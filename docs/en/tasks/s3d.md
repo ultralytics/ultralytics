@@ -20,19 +20,21 @@ The output of a stereo 3D detection model includes a 3D center location `[x, y, 
 
 ## Models
 
-Ultralytics YOLO26 pretrained Stereo 3D Detection models are shown here. All models are trained on the [KITTI Stereo](../datasets/detect/kitti-stereo.md) dataset with SGD for 1000 epochs.
+Ultralytics YOLO26 Stereo 3D Detection models use a siamese backbone over the [KITTI Stereo](../datasets/detect/kitti-stereo.md) dataset. The table below reports the only configuration measured on a **drive-disjoint** split; see the note beneath it before comparing against any other stereo-3D number.
 
-| Model                                                                                                         | Params | AP3D@0.5 (Mod) | AP3D@0.7 (Mod) |
-| ------------------------------------------------------------------------------------------------------------- | ------ | -------------- | -------------- |
-| [YOLO26n-s3d](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26/yolo26-s3d.yaml) | 3.6M   | 48.1%          | 29.9%          |
-| [YOLO26s-s3d](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26/yolo26-s3d.yaml) | 11.6M  | 48.3%          | 29.4%          |
-| [YOLO26m-s3d](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26/yolo26-s3d.yaml) | 26.8M  | 49.0%          | 29.1%          |
-| [YOLO26l-s3d](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26/yolo26-s3d.yaml) | 31.2M  | 50.9%          | 31.6%          |
-| [YOLO26x-s3d](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26/yolo26-s3d.yaml) | 69.9M  | 43.4%          | 24.5%          |
+| Model                                                                                                         | Params | Car AP3D@0.5 (E/M/H)   | Car AP3D@0.7 (E/M/H)   | mAP3D@0.5 (Mod) | mAP3D@0.7 (Mod) |
+| ------------------------------------------------------------------------------------------------------------- | ------ | ---------------------- | ---------------------- | --------------- | --------------- |
+| [YOLO26s-s3d](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26/yolo26-s3d.yaml) | 12.8M  | 66.6 / **54.0** / 47.1 | 27.2 / **20.1** / 16.8 | 23.1            | 6.8             |
 
-- **AP3D** values are KITTI R40 Moderate mean across Car/Pedestrian/Cyclist classes.
-- All models trained with `imgsz=[384, 1248]`, SGD optimizer, cosine LR schedule for 1000 epochs.
-- YOLO26l achieves the best accuracy. The x-size model overfits on KITTI's relatively small training set (3712 images).
+- Trained **from scratch** on the Chen `train` split (3712 images) for 400 epochs at `imgsz=[384, 1248]`, then evaluated once on the held-out Chen `test` split (3769 images) via `kitti-stereo-chen-test.yaml`. The two splits share no raw drive.
+- **Car** columns are the KITTI headline (Car at IoU 0.7 is the number published stereo-3D work leads with). **mAP3D** columns are the unweighted mean over Car/Pedestrian/Cyclist and are much lower because Cyclist AP is near zero on this split — the two are not interchangeable.
+- Decoded with the shipped `score_k=2.5` confidence weighting. AP_BEV@0.7 (Mod) is 10.4; the instance-weighted mAP3D@0.5 is 44.5.
+
+!!! warning "Earlier published numbers for n/s/m/l/x were measured on a leaked split and have been removed"
+
+    A previous version of this table reported 24.5-31.6% AP3D@0.7 (Mod) across five model sizes. Those runs used the `kitti-stereo.yaml` config, which split frames by a contiguous index cutoff and placed 128 of KITTI's 141 raw drives on **both** sides — 99.6% of its validation frames shared a drive with training. That config has since been removed from the repository. Re-measured on a drive-disjoint split, the same class of model scores roughly **5x lower** at AP3D@0.7, which is why only the row above remains.
+
+    Numbers for `n`, `m`, `l` and `x` are pending re-benchmarking on the drive-disjoint split. Reproduce any of them with `python -m ultralytics.data.scripts.benchmark_s3d --data kitti-stereo-chen-test.yaml`. **Do not restore the old figures.**
 
 ## Train
 
@@ -205,7 +207,7 @@ model = YOLO("yolo26s-s3d.yaml")
 results = model.train(data="your-stereo-dataset.yaml", epochs=1000, imgsz=[384, 1248], optimizer="SGD", cos_lr=True)
 ```
 
-Use rectangular `imgsz` matching your camera's aspect ratio. SGD with cosine LR for 1000 epochs is recommended — shorter schedules (e.g., 200 epochs) may not converge fully.
+Use rectangular `imgsz` matching your camera's aspect ratio. A long schedule matters: the benchmarked model used 400 epochs, and shorter schedules (e.g., 200 epochs) may not converge fully.
 
 ### What metrics does KITTI R40 evaluation use?
 
@@ -213,4 +215,4 @@ KITTI R40 evaluation computes 3D Average Precision (AP3D) using 40-point interpo
 
 ### What pretrained stereo 3D detection models are available?
 
-Five YOLO26 siamese models are available in sizes n/s/m/l/x, ranging from 3.6M to 69.9M parameters. The best-performing model is YOLO26l (31.2M params) achieving 50.9% AP3D@0.5 and 31.6% AP3D@0.7 on KITTI Moderate. The x-size model has diminishing returns due to overfitting on KITTI's small training set. See the [Models section](#models) for the full comparison table.
+YOLO26 siamese stereo models are configured in sizes n/s/m/l/x via the `-s3d` suffix. Only `YOLO26s-s3d` currently has a benchmark measured on a drive-disjoint split (12.8M params; 54.0 Car AP3D@0.5 and 20.1 Car AP3D@0.7 at Moderate). The other sizes are pending re-benchmarking — earlier figures for them came from a split with 99.6% drive leakage and were withdrawn. See the [Models section](#models) for the details and how to reproduce.

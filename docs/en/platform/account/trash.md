@@ -157,8 +157,8 @@ Items in Trash still count toward your storage quota:
 ## API Access
 
 Access trash programmatically via the [REST API](../api/index.md#trash-api). All three operations live on the same
-`/api/trash` path, and each accepts an optional `?owner=WORKSPACE_USERNAME` query parameter to target a team workspace
-where you have the required access.
+`/api/trash` path and operate on the workspace that issued the API key — to manage a team workspace's trash, use an
+API key from that workspace.
 
 === "List Trash"
 

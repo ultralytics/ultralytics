@@ -332,12 +332,13 @@ Authorization: Bearer YOUR_API_KEY
 ```
 
 The endpoint stores only the SHA-256 hash of that key, so **no other key opens it** — not even another active key in
-the same workspace. Which key gets bound depends on how you deploy:
+the same workspace. The bound key is always one of the owning workspace's keys, never a team member's personal key.
+Which one gets bound depends on how you deploy:
 
-| Deploy method                           | Key bound to the endpoint                             |
-| --------------------------------------- | ----------------------------------------------------- |
-| Platform UI, or a team member's API key | Any active API key belonging to the model's workspace |
-| The workspace owner's own API key       | That exact key                                        |
+| Deploy method                                              | Key bound to the endpoint                                      |
+| ---------------------------------------------------------- | -------------------------------------------------------------- |
+| The workspace owner's own API key                          | That exact key                                                 |
+| Platform UI, or an API call authenticated as a team member | One of the workspace's active API keys, selected automatically |
 
 The bound key's prefix is displayed in the deployment card footer for identification. Generate and manage keys from
 [API Keys](../account/api-keys.md).

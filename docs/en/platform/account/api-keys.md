@@ -16,7 +16,8 @@ keywords: Ultralytics Platform, API keys, authentication, remote training, secur
 
     Only the workspace owner can create, view, or revoke a workspace's API keys, because a key authenticates as the
     workspace owner. Members with any other role see a note on the tab instead of the key list. API keys themselves
-    cannot create or revoke other API keys.
+    cannot create or revoke other API keys. The one exception is [On Premise worker keys](#on-premise-worker-keys),
+    which are revoked by disconnecting the host from the On Premise integration.
 
 ## Create API Key
 

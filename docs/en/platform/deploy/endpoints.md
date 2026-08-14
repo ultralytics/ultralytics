@@ -332,16 +332,12 @@ Authorization: Bearer YOUR_API_KEY
 ```
 
 The endpoint stores only the SHA-256 hash of that key, so **no other key opens it** — not even another active key in
-the same workspace. The bound key is always one of the owning workspace's keys, never a team member's personal key.
-Which one gets bound depends on how you deploy:
-
-| Deploy method                                              | Key bound to the endpoint                                      |
-| ---------------------------------------------------------- | -------------------------------------------------------------- |
-| The workspace owner's own API key                          | That exact key                                                 |
-| Platform UI, or an API call authenticated as a team member | One of the workspace's active API keys, selected automatically |
-
-The bound key's prefix is displayed in the deployment card footer for identification. Generate and manage keys from
-[API Keys](../account/api-keys.md).
+the same workspace. To control which key gets bound, deploy via the API authenticated with the workspace owner's key:
+that exact key is bound, and you already hold it. Deployments created any other way (the Platform UI, or an API call
+authenticated as a team member) bind one of the owning workspace's active keys automatically — identify it by the key
+prefix shown in the deployment card footer, and ask the workspace owner for its value, since only the owner can view
+key values (see [API Keys](../account/api-keys.md)). Team members without the bound key can still run inference
+through the Platform predict proxy in the browser.
 
 !!! warning "Do Not Delete the Bound Key"
 

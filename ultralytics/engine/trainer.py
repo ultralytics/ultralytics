@@ -328,8 +328,10 @@ class BaseTrainer:
                     except StopIteration:
                         loader = iter(self.train_loader)
                         batch = next(loader)
-                    loss, _ = self.forward_batch(batch)
-                    total += loss.detach() / len(batch["img"])  # per image, so the curve does not track the batch size
+                    loss, loss_items = self.forward_batch(batch)
+                    # the reported items, not the summed loss: they are batch size independent, and for an end to end
+                    # model they are the one to one branch, whose share of the objective grows as training proceeds
+                    total += sum(loss_items.values()).detach()
                     self.scaler.scale(loss).backward()
             except RuntimeError as e:
                 if self.world_size > 1:

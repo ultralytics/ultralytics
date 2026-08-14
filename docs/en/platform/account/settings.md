@@ -215,8 +215,8 @@ Permanently delete your account:
 
 !!! warning "Irreversible Action"
 
-    Account deletion is permanent. Your sign-in account is removed immediately and a background job deletes the
-    associated Platform data and stored files.
+    Account deletion is permanent. Your sign-in account is removed immediately, and the associated Platform data and
+    stored files are deleted.
 
 If you own any team workspaces, deletion is refused until you delete those teams or
 [transfer ownership](teams.md#roles-and-permissions) to someone else.
@@ -354,7 +354,7 @@ active workspace.
 
 **Infrastructure**
 
-- **On Premise** — run Platform CPU and GPU workers on your own hardware and keep dataset files on your host. See [On Premise](../integrations/on-premise.md).
+- **On Premise** — run Platform training on your own hardware and keep dataset files on your host. See [On Premise](../integrations/on-premise.md).
 - **Amazon S3** — use datasets stored in S3 without uploading a copy. See [Amazon S3](../integrations/amazon-s3.md).
 - **Google Cloud Storage** — use datasets stored in GCS without uploading a copy. See [Google Cloud Storage](../integrations/google-cloud-storage.md).
 - **Azure Blob Storage** — use datasets stored in Azure without uploading a copy. See [Azure Blob Storage](../integrations/azure-blob-storage.md).
@@ -434,5 +434,5 @@ Google or GitHub, configure multi-factor authentication with that provider.
 ### How long until deleted data is removed?
 
 - **Trash items** remain recoverable for 30 days before automatic permanent deletion.
-- **Account deletion** removes the sign-in account immediately and queues deletion of associated Platform records and
-  stored files. The action cannot be undone.
+- **Account deletion** removes the sign-in account immediately, along with associated Platform records and stored
+  files. The action cannot be undone.

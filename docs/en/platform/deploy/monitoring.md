@@ -297,7 +297,7 @@ An unhealthy response omits `status` when the endpoint could not be reached at a
 
 !!! note "Dashboard Overview"
 
-    The aggregated numbers on the `Deploy` page come from `GET /api/monitoring`, which is a signed-in Platform route rather than part of the API-key REST surface. Reproduce it by calling the metrics route for each deployment returned by `GET /api/deployments/{owner}`.
+    The aggregated numbers on the `Deploy` page are not available as a single REST endpoint. Reproduce them by calling the metrics route for each deployment returned by `GET /api/deployments/{owner}`.
 
 ## Performance Optimization
 
@@ -322,10 +322,10 @@ Use monitoring data to optimize your deployments:
 
     1. Review error logs in the `Logs` tab
     2. Check request format (multipart form required)
-    3. If calling through the Platform predict proxy, verify the bound API key is still active (direct endpoint calls validate the key hash fixed at creation instead)
+    3. If calling through the Platform predict proxy, verify the bound API key is still active (revoking the key does not affect direct endpoint calls)
     4. Retry a request and compare its timestamp with the deployment logs
 
-    A burst of `429` responses means the single instance is saturated rather than broken — the endpoint sheds requests that wait more than 30 seconds for a slot.
+    A burst of `429` responses means the endpoint is temporarily at capacity rather than broken — honor the `Retry-After` header and retry.
 
 === "Scaling Issues"
 
@@ -343,7 +343,7 @@ The metrics API supports selectable windows from 1 hour through 30 days, sampled
 1-minute buckets over 1 hour up to 4-hour buckets over 30 days. The deployment card shows the 20 most recent log
 entries; the logs API can return up to 200 entries per request and supports pagination.
 
-Metrics and logs live with the underlying cloud service, so deleting a deployment also ends access to its history.
+Metrics and logs are retained only while the deployment exists, so deleting a deployment also ends access to its history.
 Export anything you need to keep before deleting an endpoint.
 
 ### Can I monitor multiple endpoints together?

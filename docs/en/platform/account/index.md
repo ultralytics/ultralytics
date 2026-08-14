@@ -36,16 +36,16 @@ The Account section helps you:
 
 ## Account Features
 
-| Feature      | Description                                       |
-| ------------ | ------------------------------------------------- |
-| **Settings** | Profile, emails, social links, and data region    |
-| **API Keys** | Generate keys for programmatic access             |
-| **Plans**    | Free, Pro, and Enterprise plan comparison         |
-| **Billing**  | Credits, payment methods, and transaction history |
-| **Usage**    | Spend charts, usage events, and storage breakdown |
-| **Teams**    | Members, roles, invites, and seat management      |
-| **Trash**    | Recover deleted items within 30 days              |
-| **Activity** | Event log with inbox, archive, search, and undo   |
+| Feature      | Description                                                 |
+| ------------ | ----------------------------------------------------------- |
+| **Settings** | Profile, emails, social links, and data region              |
+| **API Keys** | Generate AES-256-GCM encrypted keys for programmatic access |
+| **Plans**    | Free, Pro, and Enterprise plan comparison                   |
+| **Billing**  | Credits, payment methods, and transaction history           |
+| **Usage**    | Spend charts, usage events, and storage breakdown           |
+| **Teams**    | Members, roles, invites, and seat management                |
+| **Trash**    | Recover deleted items within 30 days                        |
+| **Activity** | Event log with inbox, archive, search, and undo             |
 
 ## Settings Tabs
 
@@ -75,7 +75,7 @@ Ultralytics Platform implements multiple security measures:
 ### Data Protection
 
 - **Transport security**: Platform traffic uses HTTPS
-- **API Keys**: Stored encrypted, never in plaintext
+- **API Keys**: AES-256-GCM encrypted storage
 - **Data region**: Datasets, models, and managed training data use your selected US, EU, or AP region; deployment
   regions are selected separately
 
@@ -131,7 +131,7 @@ member first; the team's resources are deleted automatically.
 Yes, Ultralytics Platform implements:
 
 - Secure encrypted connections (HTTPS)
-- Encrypted API key storage
+- AES-256-GCM encryption for API keys
 - Regional storage for datasets, models, and managed training data (US, EU, AP)
 
 ### Can I change my data region?

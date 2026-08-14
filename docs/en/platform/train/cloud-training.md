@@ -322,11 +322,8 @@ Training costs are based on GPU usage:
 
 ### Cost Estimation
 
-Before training starts, the platform estimates total cost by:
-
-1. **Estimating seconds per epoch** from dataset size, model complexity, image size, batch size, and GPU speed
-2. **Calculating total training time** by multiplying seconds per epoch by the number of epochs, then adding startup overhead
-3. **Computing the estimated cost** from total training hours multiplied by the GPU's hourly rate
+Before training starts, the platform estimates the total duration and cost from your dataset size, model size,
+image size, batch size, epochs, and selected GPU. Estimates are approximate; actual usage is what gets billed.
 
 **Factors affecting cost:**
 

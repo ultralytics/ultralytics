@@ -134,7 +134,7 @@ Endpoints currently behave as follows:
 
 - **Scale to zero**: idle endpoints scale down to zero and cold-start on the next request
 - **Single active instance**: each endpoint currently serves from one instance on all plans
-- **Load shedding**: requests that queue too long receive `429` responses — see [Direct Endpoint Requests](endpoints.md#direct-endpoint-requests)
+- **Load shedding**: requests receive `429` responses when the endpoint is temporarily at capacity — see [Direct Endpoint Requests](endpoints.md#direct-endpoint-requests)
 - **Request timeout**: each request may run for up to 1 hour, which is enough for video inference
 
 ### Regional Deployment
@@ -191,8 +191,7 @@ Create a deployment:
 ### How long does deployment take?
 
 The deployment remains in a creating or deploying state while its service starts. It becomes usable when the status
-changes to **Ready**; timing varies by model and region. Platform waits up to 3 minutes for the new service to publish
-its URL, and the container's own startup check allows up to 2 minutes for the model to load.
+changes to **Ready**; timing varies by model and region, and typically takes a few minutes.
 
 ### Can I deploy multiple models?
 

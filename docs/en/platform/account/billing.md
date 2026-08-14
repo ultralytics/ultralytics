@@ -148,7 +148,7 @@ Enable automatic credit purchases when your balance drops below a threshold:
 Default settings: threshold $20, amount $100.
 
 Auto top-up is evaluated whenever a charge lowers your balance, including mid-run training charges, and charges your
-default payment method. At most one auto top-up runs in any 10-minute window. If the card is declined, a
+default payment method. Top-ups are briefly rate-limited to prevent duplicate charges. If the card is declined, a
 **Auto Top-Up Failed** row is added to your transaction history with the reason, and no credits are added.
 
 !!! tip "Reduce Training Interruptions"

@@ -46,7 +46,7 @@ Reconnecting the same storage account later adds new containers to the existing 
 
 !!! note "Credential security"
 
-    An account key can authorize write and delete operations or create SAS tokens if it is exposed outside Platform. Credentials are encrypted at rest with AES-256-GCM, are never returned to the browser, and never enter training job payloads. Use a dedicated storage account where practical. To revoke access, rotate the storage account access keys in Azure.
+    An account key can authorize write and delete operations or create SAS tokens if it is exposed outside Platform. Credentials are encrypted at rest with AES-256-GCM, are never returned to the browser, and are never exposed to training workloads. Use a dedicated storage account where practical. To revoke access, rotate the storage account access keys in Azure.
 
 ## Create a Dataset from a Blob Container
 
@@ -81,7 +81,7 @@ A retry re-lists the folder rather than resuming: blobs added since the first at
 
 ## Training
 
-Managed training works through the normal training flow. Ultralytics Cloud stages the pinned originals in temporary job storage for the run and removes them afterward — your Azure credentials never reach training compute, because Platform uses its own short-lived signed image links instead.
+Managed training works through the normal training flow. Training uses Platform's own copies of the pinned images for the duration of the run, and your Azure credentials are never exposed to training workloads.
 
 ## Disconnect a Connection
 

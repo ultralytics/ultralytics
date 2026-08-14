@@ -48,7 +48,7 @@ Reconnecting the same service account later adds new buckets to the existing int
 
 !!! note "Credential security"
 
-    Credentials are encrypted at rest with AES-256-GCM, are never returned to the browser, and never enter training job payloads. To revoke access, delete the service account key in Google Cloud.
+    Credentials are encrypted at rest with AES-256-GCM, are never returned to the browser, and are never exposed to training workloads. To revoke access, delete the service account key in Google Cloud.
 
 ## Create a Dataset from a GCS Bucket
 
@@ -83,7 +83,7 @@ A retry re-lists the folder rather than resuming: objects added since the first 
 
 ## Training
 
-Managed training works through the normal training flow. Ultralytics Cloud stages the pinned originals in temporary job storage for the run and removes them afterward — your Google Cloud credentials never reach training compute, because Platform uses its own short-lived signed image links instead.
+Managed training works through the normal training flow. Training uses Platform's own copies of the pinned images for the duration of the run, and your Google Cloud credentials are never exposed to training workloads.
 
 ## Disconnect a Connection
 

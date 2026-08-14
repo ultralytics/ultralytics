@@ -2,13 +2,13 @@
 plans: [free, pro, enterprise]
 title: API Key Management
 comments: true
-description: Create and manage API keys for Ultralytics Platform for secure remote training and programmatic access.
+description: Create and manage API keys for Ultralytics Platform with secure AES-256-GCM encryption for remote training and programmatic access.
 keywords: Ultralytics Platform, API keys, authentication, remote training, security, access control
 ---
 
 # API Keys
 
-[Ultralytics Platform](https://platform.ultralytics.com) API keys enable secure programmatic access for remote training, inference, and automation. Create named keys for different use cases.
+[Ultralytics Platform](https://platform.ultralytics.com) API keys enable secure programmatic access for remote training, inference, and automation. Create named keys with AES-256-GCM encryption for different use cases.
 
 ![Ultralytics Platform Settings API Keys Tab Key List](https://cdn.ul.run/i/f2c74d17fe21805f988c87adbc456674.avif)<!-- screenshot -->
 
@@ -62,7 +62,7 @@ ul_a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4
 
 ### Key Security
 
-- Keys are stored encrypted, never in plaintext
+- Keys are stored with **AES-256-GCM encryption**, never in plaintext
 - The first 11 characters (`ul_` plus 8 hex characters) act as a display prefix, so a key can be identified without exposing it
 
 ## Using API Keys

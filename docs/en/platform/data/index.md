@@ -76,10 +76,10 @@ Ultralytics Platform datasets support 6 of the 7 YOLO task types — [depth](../
 
 ### Smart Storage
 
-Ultralytics Platform uses Content-Addressable Storage (CAS) for efficient data management:
+Ultralytics Platform manages storage efficiently:
 
-- **Deduplication**: Identical image bytes in the same data region reuse one CAS object via XXH3-128 hashing
-- **Integrity**: Hash-based addressing ensures data integrity
+- **Deduplication**: Identical images in the same data region are stored once
+- **Integrity**: Uploads are verified for data integrity
 - **Efficiency**: Optimized storage and fast processing
 
 ### Dataset URIs

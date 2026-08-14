@@ -135,7 +135,7 @@ To permanently delete one item without waiting:
 3. Confirm deletion — the dialog names the item and how many cascaded models go with it
 
 For projects, permanent deletion also removes related deployments and export files that belong to the deleted workspace
-resources. If a deployment's underlying service cannot be torn down, the Platform warns you and leaves the deployment
+resources. If a deployment cannot be deleted, the Platform warns you and leaves it
 listed on the [Deployments](../deploy/endpoints.md) page so you can retry from there.
 
 ## Storage and Trash

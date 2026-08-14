@@ -42,7 +42,7 @@ Create a deployment from the global `Deploy` page in the sidebar:
 ```mermaid
 stateDiagram-v2
     [*] --> Creating: Deploy
-    Creating --> Deploying: Container starting
+    Creating --> Deploying: Service starting
     Deploying --> Ready: Service URL published
     Ready --> Stopping: Stop
     Ready --> Deploying: Replace model
@@ -231,7 +231,7 @@ Replace the model behind a ready endpoint without changing its URL:
 4. Optionally edit the deployment name
 5. Click **Replace Model**
 
-Platform creates a new revision of the existing service. The current model continues serving while the replacement revision starts and passes its health check. When the revision is ready, traffic moves to the new model. The deployment ID, URL, region, and API key remain unchanged; its display name changes only when you enter a new one. If replacement fails, the previous model and name remain active.
+The current model continues serving while the replacement starts up. Once the replacement is ready, traffic moves to the new model. The deployment ID, URL, region, and API key remain unchanged; its display name changes only when you enter a new one. If replacement fails, the previous model and name remain active.
 
 Replacement requires all of the following, and is rejected otherwise:
 
@@ -342,7 +342,7 @@ through the Platform predict proxy in the browser.
 
 !!! warning "Deleting the Bound Key Does Not Lock the Endpoint"
 
-    The endpoint's key check is fixed when the deployment is created, so deleting or deactivating the bound API key does **not** revoke direct access — anyone holding the key string can still call the endpoint URL. What does break is the Platform predict proxy, which checks the key live and reports it as no longer available. To fully revoke access, stop or delete the deployment; after rotating keys, create the endpoint again so it binds the new key.
+    Deleting or deactivating the bound API key does **not** revoke direct access to the endpoint — anyone holding the key string can still call the endpoint URL. What does break is the Platform predict proxy, which checks the key live and reports it as no longer available. To fully revoke access, stop or delete the deployment; after rotating keys, create the endpoint again so it binds the new key.
 
 ### Direct Endpoint Requests
 
@@ -351,7 +351,7 @@ Platform API rate limiter, so the 20 requests/minute predict limit does not appl
 capacity ceiling:
 
 - A single instance serves each endpoint, processing a limited number of requests at once
-- A request that waits more than 30 seconds for a slot returns `429` with a `Retry-After` header
+- Requests that cannot be served promptly return `429` with a `Retry-After` header
 - A single request may run for up to 1 hour, which allows video inference to complete
 - Responses larger than 1 KB are gzip-compressed, and cross-origin browser requests are allowed
 

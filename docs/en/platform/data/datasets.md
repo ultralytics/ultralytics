@@ -248,7 +248,7 @@ Two dialogs may then appear:
     | **Keep Both** | Import the incoming alongside the existing  |
     | **Replace**   | Overwrite the existing images               |
 
-After upload, the platform processes your data through a multi-stage pipeline:
+After upload, the platform processes your data automatically:
 
 ```mermaid
 graph LR
@@ -340,12 +340,8 @@ Images can be sorted and filtered for efficient browsing:
 
     The search box sits at the right of the gallery toolbar and filters every view mode — grid, compact, and table. It matches the image filename (the file extension is optional) as well as custom metadata keys, scalar values, and array entries, so an image named `img_0042` carrying `{"ship_type": "yacht"}` is found by searching either `img_0042` or `yacht`.
 
-    Values nested inside sub-objects are not matched. Two exact-lookup shortcuts bypass the text search entirely:
-
-    | Pasted value            | Looks up                |
-    | ----------------------- | ----------------------- |
-    | 24-character hex string | That exact image ID     |
-    | 32-character hex string | That exact content hash |
+    Values nested inside sub-objects are not matched. Pasting a 24-character image ID looks up that exact image
+    directly, bypassing the text search.
 
 ### Fullscreen Viewer
 
@@ -596,7 +592,7 @@ Each version is numbered sequentially (v1, v2, v3...) and is immutable — versi
 
 !!! warning "Restoring a Version"
 
-    Restore replaces the dataset's current images, splits, classes, and annotations with the selected snapshot and cannot be undone unless you first save the current state as another version. The dataset is locked in `processing` status while it rebuilds. Because image bytes are shared through content-addressable storage, only the database records are rewritten — nothing is re-uploaded — so restores are typically fast even on large datasets.
+    Restore replaces the dataset's current images, splits, classes, and annotations with the selected snapshot and cannot be undone unless you first save the current state as another version. The dataset is locked in `processing` status while it rebuilds. Nothing is re-uploaded during a restore, so restores are typically fast even on large datasets.
 
 !!! tip "Save a Version While Training"
 
@@ -871,16 +867,16 @@ Your data is processed and stored in your selected region (US, EU, or AP). Image
 1. Validated for format and size
 2. Rejected if minimum dimension is below 28px
 3. Normalized if larger than 4096px (preserving aspect ratio; encoded for optimized storage)
-4. Stored using Content-Addressable Storage (CAS) with XXH3-128 hashing
+4. Stored with deduplication, so identical images are kept only once
 5. Thumbnails generated at 256px WebP for fast browsing
 
 ### How does storage work?
 
-Ultralytics Platform uses **Content-Addressable Storage (CAS)** for efficient storage:
+Ultralytics Platform manages storage efficiently:
 
-- **Deduplication**: Identical image bytes in the same data region reuse the same underlying object
-- **Integrity**: XXH3-128 hashing ensures data integrity
-- **Efficiency**: Clones reuse CAS objects instead of copying image bytes, while still counting toward the destination workspace's storage quota
+- **Deduplication**: Identical images in the same data region are stored once
+- **Integrity**: Uploads are verified for data integrity
+- **Efficiency**: Clones reuse stored images instead of copying them, while still counting toward the destination workspace's storage quota
 - **Regional**: Data stays in your selected region (US, EU, or AP)
 
 ### Can I add images to an existing dataset?

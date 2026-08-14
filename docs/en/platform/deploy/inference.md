@@ -431,7 +431,7 @@ throttled, the API returns `429` with a `Retry-After` header. See the full
 
 !!! tip "Need More Throughput?"
 
-    Requests sent directly to a [dedicated endpoint](endpoints.md) do not pass through the Platform API rate limiter. The endpoint still sheds load with `429` and a `Retry-After` header when its single instance is saturated. For high-volume local inference, see the [Predict mode guide](../../modes/predict.md).
+    Requests sent directly to a [dedicated endpoint](endpoints.md) do not pass through the Platform API rate limiter. The endpoint still sheds load with `429` and a `Retry-After` header when it is temporarily at capacity. For high-volume local inference, see the [Predict mode guide](../../modes/predict.md).
 
 ## Error Handling
 

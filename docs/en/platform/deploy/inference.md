@@ -149,7 +149,7 @@ Each running [dedicated endpoint](endpoints.md) includes a `Predict` tab directl
 The **API Docs** card in the model `Predict` tab contains example Python, JavaScript, and cURL requests, pre-filled with
 the confidence, IoU, and image size currently set on the sliders. The URL and key are placeholders until you deploy the
 model — a **Deploy** button next to the code tabs jumps to the model's `Deploy` tab. After deployment, the deployment
-card's `Code` tab fills in that endpoint's URL and the workspace API key, ready to copy and run.
+card's `Code` tab fills in that endpoint's URL and its bound API key, ready to copy and run.
 
 ### Authentication
 

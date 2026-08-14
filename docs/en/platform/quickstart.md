@@ -155,11 +155,11 @@ A floating chat widget is available on every page. Click it to ask questions abo
 
 The Platform includes guided tours that introduce key features as you explore different sections:
 
-| Tour             | Trigger                              | What It Covers                                                                  |
-| ---------------- | ------------------------------------ | ------------------------------------------------------------------------------- |
-| **Nav Tour**     | First visit to Home after onboarding | Home, Explore, Annotate, Train, Deploy, Settings, Your Account                  |
-| **Project Tour** | First visit to a project page        | Models, Training Charts, Train a Model                                          |
-| **Dataset Tour** | First visit to a dataset page        | Images, Dataset Splits, Classes, Charts, Train a Model, Upload Images, Download |
+| Tour             | Trigger                              | What It Covers                                                                          |
+| ---------------- | ------------------------------------ | --------------------------------------------------------------------------------------- |
+| **Nav Tour**     | First visit to Home after onboarding | Home, Explore, Annotate, Train, Deploy, Settings, Your Account                          |
+| **Project Tour** | First visit to a project page        | Models, Training Charts, Train a Model                                                  |
+| **Dataset Tour** | First visit to a dataset page        | Images, Dataset Splits, Classes, Charts, Train a Model, Upload Images, Download Dataset |
 
 !!! tip "Enterprise Users"
 
@@ -181,12 +181,12 @@ Open `Annotate` in the sidebar and click the `+` to create a new dataset. You ca
 The **New Dataset** dialog offers four sources. This quickstart uses **Upload**; the others are covered in
 [Datasets](data/datasets.md) and [Integrations](integrations/index.md):
 
-| Source         | Availability  | Description                                                                    |
-| -------------- | ------------- | ------------------------------------------------------------------------------ |
-| **Upload**     | All plans     | Drop images, videos, archives, or NDJSON from your machine                     |
-| **URL**        | All plans     | Import from a direct HTTPS link to a ZIP, TAR, TAR.GZ, TGZ, or NDJSON file     |
-| **Cloud**      | Pro and above | Connect an [S3, GCS, or Azure bucket](integrations/index.md)                   |
-| **On Premise** | Enterprise    | Index data that stays on your own [connected host](integrations/on-premise.md) |
+| Source         | Availability  | Description                                                                        |
+| -------------- | ------------- | ---------------------------------------------------------------------------------- |
+| **Upload**     | All plans     | Drop images, videos, archives, or NDJSON from your machine                         |
+| **URL**        | All plans     | Import from a direct HTTP or HTTPS link to a ZIP, TAR, TAR.GZ, TGZ, or NDJSON file |
+| **Cloud**      | Pro and above | Connect an [S3, GCS, or Azure bucket](integrations/index.md)                       |
+| **On Premise** | Enterprise    | Index data that stays on your own [connected host](integrations/on-premise.md)     |
 
 Uploads support multiple formats (full details in [Datasets](data/datasets.md)):
 

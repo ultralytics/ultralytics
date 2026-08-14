@@ -259,17 +259,18 @@ Replacement requires all of the following, and is rejected otherwise:
 Each endpoint has a unique URL, for example:
 
 ```text
-https://predict-<deployment-id>-<hash>-uc.a.run.app
+https://predict-<deployment-id>-<hash>-<region>.a.run.app
 ```
 
 ![Ultralytics Platform Deployment Card Endpoint Url With Copy Button](https://cdn.ul.run/i/4f02beb3dd4915d65c72051e0235b1ea.avif)<!-- screenshot -->
-Click the copy button to copy the URL. Click the docs icon to open the endpoint's own API reference. These are the
-three paths you'll use:
+Click the copy button to copy the URL. Click the docs icon to open the endpoint's own API reference. The endpoint
+serves these paths:
 
 | Path       | Method | Description                                                                |
 | ---------- | ------ | -------------------------------------------------------------------------- |
 | `/predict` | POST   | Run inference; requires the deployment API key                             |
 | `/health`  | GET    | Liveness check reporting service status and the number of cached models    |
+| `/`        | GET    | Status summary for the deployed service                                    |
 | `/docs`    | GET    | Interactive API reference generated for this deployment, model, and region |
 
 ## Lifecycle Management
@@ -339,9 +340,9 @@ prefix shown in the deployment card footer, and ask the workspace owner for its 
 key values (see [API Keys](../account/api-keys.md)). Team members without the bound key can still run inference
 through the Platform predict proxy in the browser.
 
-!!! warning "Do Not Delete the Bound Key"
+!!! warning "Deleting the Bound Key Does Not Lock the Endpoint"
 
-    Deleting or deactivating the bound API key breaks the endpoint: direct calls return `401`, and the Platform predict proxy reports that the key is no longer available. Create the endpoint again after rotating the key it uses.
+    The endpoint validates requests against a key hash fixed when the deployment is created, so deleting or deactivating the bound API key does **not** revoke direct access — anyone holding the key string can still call the endpoint URL. What does break is the Platform predict proxy, which checks the key live and reports it as no longer available. To fully revoke access, stop or delete the deployment; after rotating keys, create the endpoint again so it binds the new key.
 
 ### Direct Endpoint Requests
 

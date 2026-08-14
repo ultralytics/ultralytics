@@ -81,7 +81,7 @@ Values typed outside a parameter's range are clamped when the field loses focus.
 
 !!! tip "Image Sizes Above 1280"
 
-    The slider stops at 1280, but the YAML editor accepts any multiple of 32 up to 4096. A warning appears above 1280
+    The slider stops at 1280, but the YAML editor accepts sizes up to 4096. A warning appears above 1280
     because larger resolutions substantially increase GPU memory use, training time, and cost.
 
 ### Step 4: Advanced Settings (Optional)
@@ -100,7 +100,7 @@ Expand **Advanced Settings** to access the full YAML-based parameter editor with
 | **Dataset**                 | fraction, freeze, single_cls, rect, multi_scale, val, resume                                                           |
 | **Device & Inference**      | device, cache, workers, dropout, iou, max_det                                                                          |
 
-Parameters are task-aware (e.g., `copy_paste` only shows for segment tasks, `pose`/`kobj` only for pose tasks, `dropout` only for classify). A **Modified** badge appears when values differ from defaults, and you can reset all to defaults with the reset button. Only non-default values are sent to the training job, so the resulting command stays readable.
+Parameters are task-aware (e.g., `copy_paste` only shows for segment tasks, `pose`/`kobj` only for pose tasks, `dropout` only for classify). A **Modified** badge appears when values differ from defaults, and you can reset all to defaults with the reset button. Only non-default advanced values are sent to the training job (the basic epochs, batch, and image size parameters are always included), so the resulting command stays readable.
 
 ??? example "Example: Tuning Augmentation for Small Datasets"
 
@@ -180,7 +180,7 @@ Training jobs progress through the following statuses:
 | **Failed**    | Training failed (see console logs for details)       |
 | **Cancelled** | Training was cancelled by the user                   |
 
-A fatal Python error in the console stream — a traceback, a CUDA out-of-memory error, or a failed CUDA initialization — ends the run immediately rather than waiting for a timeout, and the extracted message appears in an error banner on the model page with **View console** and **Retry** actions. Runs that report no activity for 4 hours are swept and marked failed, and their compute is released.
+A fatal Python error in the console stream — a traceback, a CUDA out-of-memory error, or a failed CUDA initialization — ends the run immediately rather than waiting for a timeout, and the extracted message appears in an error banner on the model page with **View full console logs** and **Retry Training** actions. Runs that report no activity for 4 hours are swept and marked failed, and their compute is released.
 
 To receive the completed and failed results without keeping this page open, connect [Slack alerts](../integrations/slack.md).
 

@@ -161,7 +161,7 @@ On Premise supports the same ingest formats and computer-vision tasks as uploade
 - ZIP, TAR, TAR.GZ, and TGZ archives
 - Ultralytics NDJSON and COCO JSON
 - YOLO datasets and classification folders
-- Detect, segment, classify, pose, and oriented bounding box (OBB) tasks
+- Detect, segment, semantic, classify, pose, and oriented bounding box (OBB) tasks
 
 Platform automatically recognizes common dataset layouts, classes, labels, and train/validation/test splits. The dataset folder is mounted read-only, so Platform never resizes, re-encodes, edits, or deletes your source files. Anything derived during ingest — extracted archives, downloaded NDJSON assets, and video frames — is written to a private Docker volume on the same computer.
 

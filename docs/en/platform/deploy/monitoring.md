@@ -171,7 +171,8 @@ returns a `nextPageToken` for paging further back.
 
 ## Code Examples
 
-Each deployment card includes a `Code` tab showing ready-to-use API code with your actual endpoint URL and API key:
+Each deployment card includes a `Code` tab showing ready-to-use API code with the endpoint URL and the deployment's
+bound API key filled in when you can view key values (non-owners see a `YOUR_API_KEY` placeholder):
 
 === "Python"
 
@@ -232,7 +233,7 @@ Each deployment card includes a `Code` tab showing ready-to-use API code with yo
 
 !!! note "Auto-Populated Credentials"
 
-    When viewing the `Code` tab in the platform, your actual endpoint URL and API key are automatically filled in. Copy the code and run it directly. See [API Keys](../account/api-keys.md) to generate a key.
+    When viewing the `Code` tab in the platform, the endpoint URL and the deployment's bound API key are filled in for you — confirm the key matches the prefix shown in the deployment card footer, since only the [bound key](endpoints.md#authentication) opens the endpoint. See [API Keys](../account/api-keys.md) to generate a key.
 
 ## Deployment Predict
 

@@ -37,7 +37,7 @@ The annotation editor supports all 6 YOLO task types:
 | **[Segment](../../datasets/segment/index.md)**   | Polygon        | Pixel-precise masks (polygon vertices)                    |
 | **[Semantic](../../datasets/semantic/index.md)** | Polygon        | Per-class region masks (polygon vertices)                 |
 | **[Classify](../../datasets/classify/index.md)** | Class Selector | Image-level labels                                        |
-| **[Pose](../../datasets/pose/index.md)**         | Keypoint       | Skeleton templates (Person, Hand, Face, Dog, Box, custom) |
+| **[Pose](../../datasets/pose/index.md)**         | Keypoint       | Skeleton templates (Person, Hand, Dog, Face, Box, custom) |
 | **[OBB](../../datasets/obb/index.md)**           | Oriented Box   | Rotated bounding boxes (4 corners)                        |
 
 !!! tip "Multi-Task Annotations"

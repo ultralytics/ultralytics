@@ -186,7 +186,7 @@ Switch to table view for side-by-side comparison of training arguments and final
 
 1. Click the **Table** view mode toggle
 2. See all selected models as rows with training args and metrics as columns
-3. Use the **Diff** button to highlight only columns where values differ across models
+3. Use the **Diff** button to show only the columns where values differ across models
 
 ## Upload Models
 

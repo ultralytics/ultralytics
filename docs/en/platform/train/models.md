@@ -81,7 +81,7 @@ Each model page has the following tabs:
 
 ### Model Header
 
-Above the tabs, the header shows the model color (editable), the name (click to rename), the task badge, the checkpoint's `ultralytics` version, and a [license](projects.md#create-project) selector. Its actions are **Clone Model** (on other people's public models), **Download**, **Star**, **Share** (public models), and a **More actions** menu holding **Information**, **Refresh**, and **Delete Model**.
+Above the tabs, the header shows the model color (editable), the name (click to rename), the task badge, the checkpoint's `ultralytics` version, and a [license](projects.md#create-project) selector. Its actions are **Clone Model** (on completed models with weights that you don't already own), **Download**, **Star**, **Share** (public models), and a **More actions** menu holding **Information**, **Refresh**, and **Delete Model**.
 
 Directly below, one card per task metric shows the final value over a sparkline of its training progression — click any card to jump to the charts — alongside a card linking the dataset the model was trained on.
 
@@ -327,7 +327,7 @@ Some export formats have architecture or task restrictions:
 | **IMX500**   | Available only for `YOLOv8n` and `YOLO11n`; INT8 or W8A16                                                                                                                              |
 | **Axelera**  | Detect models only; INT8 only                                                                                                                                                          |
 | **DeepX**    | INT8 only                                                                                                                                                                              |
-| **Hailo**    | INT8 HEF output; select Hailo-8, Hailo-8L, Hailo-10H, Hailo-15H, or Hailo-15L. YOLOv8, YOLO11, and YOLO26 only; for YOLO26, detect, classify, semantic, and depth                      |
+| **Hailo**    | INT8 HEF output; select Hailo-8, Hailo-8L, Hailo-10H, Hailo-15H, or Hailo-15L. YOLOv8, YOLO11, and YOLO26 only; for YOLO26, detect, semantic, depth, and classify                      |
 | **Huawei**   | FP16 .om output; Ascend310P1, Ascend310P3, Ascend310B1, and Ascend310B4 targets                                                                                                        |
 | **Qualcomm** | Fixed W8A16 quantization; select a [supported HTP target](../../integrations/qnn.md#supported-htp-targets). Dragonwing IQ-8275 is supported with `name=iq-8275`; IQ-615 is unsupported |
 

@@ -431,7 +431,7 @@ See [Cloud Training](train/cloud-training.md#remote-training) for more details o
 The Platform includes a full-featured annotation editor supporting:
 
 - **Manual Tools**: Bounding boxes, polygons, keypoints with skeleton templates, oriented boxes, classification
-- **Skeleton Templates**: Place all keypoints at once using built-in (Person, Hand, Face, Dog, Box) or custom templates
+- **Skeleton Templates**: Place all keypoints at once using built-in (Person, Hand, Dog, Face, Box) or custom templates
 - **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) or [SAM 3](../models/sam-3.md) for click-based annotation, or run pretrained Ultralytics YOLO models and your own fine-tuned YOLO models from the toolbar for detect, segment, semantic, and OBB
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys, listed in the editor's shortcuts popover
 

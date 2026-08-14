@@ -84,7 +84,7 @@ restores the previous result list.
 
 !!! note "Sorting by Stars"
 
-    The **Stars** sort shows only resources with at least one star, so unrated content is hidden while it is active.
+    The **Stars** sort shows only datasets with at least one star, so unrated datasets are hidden while it is active.
 
 ### View Modes
 

@@ -189,11 +189,11 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     The format is detected automatically: datasets with a `data.yaml` containing `names`, `train`, or `val` keys are treated as YOLO. Datasets with COCO JSON files (containing `images`, `annotations`, and `categories` arrays) are treated as COCO. `.ndjson` exports are imported as Ultralytics NDJSON. Datasets with only images and no annotations are treated as raw.
 
-    When an archive contains several YAML files, the one used is chosen by preferring `data.yaml`, `data.yml`, `dataset.yaml`, or `dataset.yml`, then the shallowest path, then alphabetical order.
+    When an archive contains several YAML files, the one used is chosen by preferring the standard names (`data.yaml`, `data.yml`, `dataset.yaml`, `dataset.yml`) as a group, then names matching the archive filename, then the shallowest path, then alphabetical order.
 
 !!! warning "Pascal VOC XML Is Not Imported"
 
-    Label files in Pascal VOC XML format are detected but their annotations are **not** imported — the images upload as unannotated. Platform warns you before the upload starts ("Pascal VOC labels detected") and again in the processing log. Convert VOC XML to YOLO or COCO first; see [format conversion tools](../../datasets/detect/index.md#port-or-convert-label-formats).
+    Label files in Pascal VOC XML format are detected but their annotations are **not** imported — the images upload as unannotated. Platform warns you before the upload starts ("Pascal VOC labels detected"). Convert VOC XML to YOLO or COCO first; see [format conversion tools](../../datasets/detect/index.md#port-or-convert-label-formats).
 
 If labels reference class IDs but no class names are supplied, Platform generates dense placeholder names (`class0`, `class1`, …) that you can rename later in the [Classes tab](#classes-tab).
 
@@ -390,7 +390,7 @@ Start an analysis:
 2. Click `Analyze Dataset`
 3. Wait for the progress bar to finish — results appear in the same panel
 
-Analysis runs in the background in two stages, `Computing embeddings` and `Clustering`, and can take a few minutes depending on the size of your dataset. You can close the panel or leave the page and come back later, and you can cancel a running analysis at any time.
+Analysis runs in the background in two stages, `Computing embeddings` and `Clustering`, and can take a few minutes depending on the size of your dataset. You can close the panel or leave the page and come back later.
 
 !!! note "Analysis Requirements"
 

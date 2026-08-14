@@ -774,15 +774,15 @@ POST /api/datasets/{owner}/{dataset}/ingest
 Processes a completed upload, a remote archive, or a connected storage source into an existing dataset. Supply exactly
 one source:
 
-| Field            | Type   | Description                                                                                      |
-| ---------------- | ------ | ------------------------------------------------------------------------------------------------ |
-| `sessionId`      | string | Upload session from `POST /api/upload/signed-url`, already completed                             |
-| `sourceUrl`      | string | Public HTTPS URL of a ZIP, TAR, TAR.GZ, TGZ, or NDJSON file (max 4096 chars)                     |
-| `reference`      | object | A connected cloud storage or On Premise source (`provider`, `integrationId`, `target`, `prefix`) |
-| `targetSplit`    | string | `train`, `val`, or `test`; overrides the archive's split structure                               |
-| `conflictPolicy` | string | `skip`, `keep_both`, or `replace` for filename or content conflicts                              |
-| `classMapping`   | object | Maps incoming class names to a class index, an existing or new class name, or `null` to skip     |
-| `imageMetadata`  | object | Custom metadata keyed by each image's archive-relative path or NDJSON `file` value               |
+| Field            | Type   | Description                                                                                                                                                 |
+| ---------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sessionId`      | string | Upload session from `POST /api/upload/signed-url`, already completed                                                                                        |
+| `sourceUrl`      | string | Public HTTP or HTTPS URL of a ZIP, TAR, TAR.GZ, TGZ, or NDJSON file (max 4096 chars)                                                                        |
+| `reference`      | object | A connected source: cloud storage (`provider: "cloud"`, `integrationId`, `target`, `prefix`) or On Premise (`provider: "local"`, `keyId`, `root`, `prefix`) |
+| `targetSplit`    | string | `train`, `val`, or `test`; overrides the archive's split structure                                                                                          |
+| `conflictPolicy` | string | `skip`, `keep_both`, or `replace` for filename or content conflicts                                                                                         |
+| `classMapping`   | object | Maps incoming class names to a class index, an existing or new class name, or `null` to skip                                                                |
+| `imageMetadata`  | object | Custom metadata keyed by each image's archive-relative path or NDJSON `file` value                                                                          |
 
 Upload sessions are bound to a dataset by the `assetId` passed to `POST /api/upload/signed-url`, and ingest rejects a
 session that belongs to a different dataset.
@@ -1521,11 +1521,11 @@ GET /api/models/{owner}/{project}/{model}/exports
 POST /api/models/{owner}/{project}/{model}/exports
 ```
 
-| Field     | Type   | Required    | Description                                                                                                                   |
-| --------- | ------ | ----------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `format`  | string | Yes         | Target export format (see table below)                                                                                        |
-| `gpuType` | string | Conditional | Required when `format` is `engine`; use a supported [GPU or Jetson target](../train/models.md#nvidia-jetson-tensorrt-targets) |
-| `args`    | object | No          | Export options: `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `conf`, `iou`, `batch`, `workspace`, `nms`, `end2end`    |
+| Field     | Type   | Required    | Description                                                                                                                                                                                                          |
+| --------- | ------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`  | string | Yes         | Target export format (see table below)                                                                                                                                                                               |
+| `gpuType` | string | Conditional | Required when `format` is `engine`; use a supported [GPU or Jetson target](../train/models.md#nvidia-jetson-tensorrt-targets)                                                                                        |
+| `args`    | object | No          | Export options: `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `conf`, `iou`, `batch`, `workspace`, `nms`, `end2end`, `optimize`, `keras`, and `name` (device target for RKNN, QNN, Hailo, and Ascend formats) |
 
 === "cURL"
 
@@ -2086,9 +2086,9 @@ Returns the plan, credit balance, and resource counts for the workspace that iss
 GET /api/api-keys
 ```
 
-Returns `keys` with `keyId`, `name`, `keyPrefix`, and `createdAt` for the key's workspace. Key values are never
-returned after creation — create, rename, and revoke keys from
-[Settings > API Keys](../account/api-keys.md) in the Platform UI.
+Returns `keys` with `keyId`, `name`, `keyPrefix`, and `createdAt` for the key's workspace. API-key-authenticated
+requests receive metadata only; full key values are shown to the workspace owner in
+[Settings > API Keys](../account/api-keys.md) in the Platform UI, which is also where keys are created and revoked.
 
 ### Check Storage Usage
 

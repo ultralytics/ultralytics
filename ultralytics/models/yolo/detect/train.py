@@ -102,6 +102,7 @@ class DetectionTrainer(BaseTrainer):
             rank=rank,
             drop_last=self.args.compile and mode == "train",
             device=self.device,
+            seed=self.args.seed,
         )
 
     def preprocess_batch(self, batch: dict) -> dict:

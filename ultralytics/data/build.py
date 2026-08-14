@@ -323,6 +323,7 @@ def build_dataloader(
     drop_last: bool = False,
     pin_memory: bool = True,
     device: torch.device | str = "cuda",
+    seed: int = 0,
 ) -> InfiniteDataLoader:
     """Create and return an InfiniteDataLoader for training or validation.
 
@@ -335,6 +336,8 @@ def build_dataloader(
         drop_last (bool, optional): Whether to drop the last incomplete batch.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
         device (torch.device | str, optional): Device used by the dataloader consumer.
+        seed (int, optional): Run seed mixed into the sampling and worker RNGs so that different seeds produce
+            different shuffle orders and augmentations.
 
     Returns:
         (InfiniteDataLoader): A dataloader that can be used for training or validation.
@@ -362,7 +365,9 @@ def build_dataloader(
     # persistent DataLoader worker pools that add overhead and can stall tiny datasets while holding CUDA context.
     nw = min(os.cpu_count() // max(nd, 1), workers, 0 if batches <= 1 else batches)  # number of workers
     generator = torch.Generator()
-    generator.manual_seed(6148914691236517205 + RANK)
+    # Workers derive their numpy/random seeds from this generator via seed_worker, so `seed` has to reach it for
+    # augmentations to vary between runs. Without it every seed replays one fixed augmentation stream.
+    generator.manual_seed(6148914691236517205 + RANK + seed)
     pin_memory = nd > 0 and pin_memory
     pin_memory_device = (
         device_type if pin_memory and device_type in {"npu", "xpu"} and TORCH_1_13 and not TORCH_2_7 else None

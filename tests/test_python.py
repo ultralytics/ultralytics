@@ -76,6 +76,18 @@ def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
         loader.close()
 
 
+def test_dataloader_seed_varies_sampling_order():
+    """Test `seed` reaches the loader RNG instead of every run replaying one fixed order."""
+    loaders = [build_dataloader(range(64), batch=4, workers=0, seed=s) for s in (0, 0, 1)]
+    try:
+        first, repeat, other = (torch.cat(list(loader)).tolist() for loader in loaders)
+        assert first == repeat  # same seed stays reproducible
+        assert first != other  # different seeds must not share one order
+    finally:
+        for loader in loaders:
+            loader.close()
+
+
 def test_dataloader_empty_dataset_uses_dataloader_validation():
     """Test empty datasets fail through DataLoader validation instead of worker-cap math."""
     with pytest.raises(ValueError, match="positive integer"):

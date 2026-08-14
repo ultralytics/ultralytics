@@ -18,7 +18,7 @@ Notes:
 - Pass checkpoint paths (or names resolvable by YOLO) via --weights.
 - The "Car (Mod)" columns are the KITTI headline; the "mean (Mod)" columns
   average over the model's classes, matching the validator's
-  ap3d_*/apbev_*/aos_* summaries.
+  metrics/ap3d_*, metrics/apbev_* and metrics/aos_* summaries.
 """
 
 from __future__ import annotations
@@ -70,8 +70,8 @@ def render_tables(rows: list[dict]) -> str:
         rd = r["rd"]
         out.append(
             f"| {r['name']} | {r['params']:.1f}M "
-            f"| {_fmt(_get(rd, 'AP3D_Car_Mod_50'))} | {_fmt(_get(rd, 'AP3D_Car_Mod_70'))} "
-            f"| {_fmt(_get(rd, 'ap3d_50'))} | {_fmt(_get(rd, 'ap3d_70'))} |"
+            f"| {_fmt(_get(rd, 'metrics/AP3D_Car_Mod_50'))} | {_fmt(_get(rd, 'metrics/AP3D_Car_Mod_70'))} "
+            f"| {_fmt(_get(rd, 'metrics/ap3d_50'))} | {_fmt(_get(rd, 'metrics/ap3d_70'))} |"
         )
 
     # Extended table: BEV and orientation (AOS) at Moderate.
@@ -82,9 +82,9 @@ def render_tables(rows: list[dict]) -> str:
         rd = r["rd"]
         out.append(
             f"| {r['name']} "
-            f"| {_fmt(_get(rd, 'APBEV_Car_Mod_50'))} | {_fmt(_get(rd, 'APBEV_Car_Mod_70'))} "
-            f"| {_fmt(_get(rd, 'AOS_Car_Mod_50'))} | {_fmt(_get(rd, 'AOS_Car_Mod_70'))} "
-            f"| {_fmt(_get(rd, 'aos_70'))} |"
+            f"| {_fmt(_get(rd, 'metrics/APBEV_Car_Mod_50'))} | {_fmt(_get(rd, 'metrics/APBEV_Car_Mod_70'))} "
+            f"| {_fmt(_get(rd, 'metrics/AOS_Car_Mod_50'))} | {_fmt(_get(rd, 'metrics/AOS_Car_Mod_70'))} "
+            f"| {_fmt(_get(rd, 'metrics/aos_70'))} |"
         )
     out.append("")
     return "\n".join(out)

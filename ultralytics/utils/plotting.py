@@ -1066,26 +1066,21 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
     assert len(files), f"No results.csv files found in {save_dir.resolve()}, nothing to plot."
 
     loss_keys, metric_keys = [], []
-    skip_prefixes = {"epoch", "time", "lr/"}
     fig, ax = None, None
     for i, f in enumerate(files):
         try:
-            data = pl.read_csv(f, infer_schema_length=None, truncate_ragged_lines=True)
+            data = pl.read_csv(f, infer_schema_length=None)
             if i == 0:
                 for c in data.columns:
-                    c_strip = c.strip()
-                    if "loss" in c_strip or c_strip.startswith(("train/", "val/")):
+                    if "loss" in c:
                         loss_keys.append(c)
-                    elif not any(c_strip.startswith(p) or c_strip == p for p in skip_prefixes):
+                    elif "metric" in c:
                         metric_keys.append(c)
                 loss_mid, metric_mid = len(loss_keys) // 2, len(metric_keys) // 2
                 columns = (
                     loss_keys[:loss_mid] + metric_keys[:metric_mid] + loss_keys[loss_mid:] + metric_keys[metric_mid:]
                 )
-                if not columns:
-                    LOGGER.warning(f"No plottable columns found in {f}")
-                    return
-                n_cols = max(-(-len(columns) // 2), 1)  # ceiling division
+                n_cols = max(-(-len(columns) // 2), 1)  # ceiling division, and never 0 subplots
                 fig, ax = plt.subplots(2, n_cols, figsize=(len(columns) + 2, 6), tight_layout=True)
                 ax = ax.ravel()
             x = data.select(data.columns[0]).to_numpy().flatten()

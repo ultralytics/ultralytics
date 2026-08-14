@@ -283,6 +283,10 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
             names = {}
         self.names = names
         self.nc = len(names) if names else 0
+        # Keys merged into get_stats() by the validator but computed elsewhere (the 2D DetMetrics). The
+        # trainer builds the results.csv header from `keys` alone, so anything get_stats() returns but
+        # `keys` omits makes every validating epoch write more values than the header has columns.
+        self.extra_keys: list[str] = []
         self.stats: list[dict[str, Any]] = []
         self.speed = {"preprocess": 0.0, "inference": 0.0, "postprocess": 0.0}
         # metric[iou_thresh][difficulty][class_id] = float
@@ -559,16 +563,19 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
                     diff_str = DIFFICULTY_NAMES[diff]
                     for cls_id, val in cls_dict.items():
                         cls_name = self.names.get(cls_id, f"class_{cls_id}")
-                        result[f"{prefix}_{cls_name}_{diff_str}_{iou_str}"] = val
+                        result[f"metrics/{prefix}_{cls_name}_{diff_str}_{iou_str}"] = val
 
-        # Summary means (Moderate) across classes
-        result["ap3d_50"] = self.maps3d_50
-        result["ap3d_70"] = self.maps3d_70
-        result["apbev_50"] = self._mean_metric(self.apbev, 0.5, DIFFICULTY_MODERATE)
-        result["apbev_70"] = self._mean_metric(self.apbev, 0.7, DIFFICULTY_MODERATE)
-        result["aos_50"] = self._mean_metric(self.aos, 0.5, DIFFICULTY_MODERATE)
-        result["aos_70"] = self._mean_metric(self.aos, 0.7, DIFFICULTY_MODERATE)
-        result["ap3d_50_weighted"] = self._instance_weighted_ap(0.5, DIFFICULTY_MODERATE)
+        # Summary means (Moderate) across classes. The `metrics/` prefix is the repo-wide convention
+        # (DetMetrics emits "metrics/mAP50-95(B)", ClassifyMetrics "metrics/accuracy_top1", ...), and
+        # plot_results classifies results.csv columns by it. Emitting bare keys made s3d columns match
+        # neither the loss nor the metric branch, which is why the shared plotter had to be rewritten.
+        result["metrics/ap3d_50"] = self.maps3d_50
+        result["metrics/ap3d_70"] = self.maps3d_70
+        result["metrics/apbev_50"] = self._mean_metric(self.apbev, 0.5, DIFFICULTY_MODERATE)
+        result["metrics/apbev_70"] = self._mean_metric(self.apbev, 0.7, DIFFICULTY_MODERATE)
+        result["metrics/aos_50"] = self._mean_metric(self.aos, 0.5, DIFFICULTY_MODERATE)
+        result["metrics/aos_70"] = self._mean_metric(self.aos, 0.7, DIFFICULTY_MODERATE)
+        result["metrics/ap3d_50_weighted"] = self._instance_weighted_ap(0.5, DIFFICULTY_MODERATE)
         result["fitness"] = self.fitness
 
         return result
@@ -581,11 +588,21 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
             for iou_str in ["50", "70"]:
                 for diff_str in DIFFICULTY_NAMES:
                     for _, cls_name in sorted(self.names.items()):
-                        keys.append(f"{prefix}_{cls_name}_{diff_str}_{iou_str}")
+                        keys.append(f"metrics/{prefix}_{cls_name}_{diff_str}_{iou_str}")
         # `keys`, not `results_dict`, is what fixes the results.csv header, so a summary added only to
-        # results_dict never reaches the CSV. Keep the two in step.
-        keys.extend(["ap3d_50", "ap3d_70", "apbev_50", "apbev_70", "aos_50", "aos_70", "ap3d_50_weighted"])
-        return keys
+        # results_dict never reaches the CSV. Keep the two in step, prefix included.
+        keys.extend(
+            [
+                "metrics/ap3d_50",
+                "metrics/ap3d_70",
+                "metrics/apbev_50",
+                "metrics/apbev_70",
+                "metrics/aos_50",
+                "metrics/aos_70",
+                "metrics/ap3d_50_weighted",
+            ]
+        )
+        return keys + self.extra_keys
 
     @property
     def fitness(self) -> float:

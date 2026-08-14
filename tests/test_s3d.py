@@ -1529,7 +1529,31 @@ def test_metric_keys_and_results_dict_stay_in_step():
     # `fitness` is popped by the trainer before logging, so it is exempt.
     missing = {k for k in m.results_dict if k not in set(m.keys) and k != "fitness"}
     assert not missing, f"in results_dict but absent from keys, so dropped from results.csv: {sorted(missing)}"
-    assert "ap3d_50_weighted" in m.keys
+    assert "metrics/ap3d_50_weighted" in m.keys
+    # Every key carries the repo-wide `metrics/` prefix; without it `plot_results` classifies s3d
+    # columns as neither loss nor metric and silently drops them from results.png.
+    assert all(k.startswith("metrics/") for k in m.keys), [k for k in m.keys if not k.startswith("metrics/")]
+
+
+def test_advertised_keys_cover_everything_get_stats_returns():
+    """The results.csv header is built from `validator.metrics.keys`, but `get_stats` merges in 2D metrics.
+
+    BaseTrainer writes the header once, from `self.validator.metrics.keys`, then appends one row per epoch
+    from whatever `get_stats` returned. Any key the merge adds but `keys` omits makes every validating epoch
+    write MORE values than the header has columns, which shifts every later column under the wrong heading —
+    a real `results.csv` on disk had a 28-column header over 86-column rows, so its `val/box` curve was
+    plotting an AP3D number.
+    """
+    from ultralytics.cfg import get_cfg
+    from ultralytics.models.yolo.s3d.val import Stereo3DDetValidator
+
+    v = Stereo3DDetValidator(args=get_cfg(overrides={"task": "s3d", "mode": "val"}))
+    v.metrics.names = {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
+
+    # get_stats() returns {**metrics.results_dict, **det_metrics.results_dict} minus 2D fitness.
+    returned = set(v.metrics.results_dict) | set(v.det_metrics.results_dict) - {"fitness"}
+    missing = returned - set(v.metrics.keys) - {"fitness"}
+    assert not missing, f"returned by get_stats but absent from the CSV header, so rows go ragged: {sorted(missing)}"
 
 
 def test_patience_zero_disables_early_stopping():

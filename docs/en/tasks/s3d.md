@@ -96,8 +96,8 @@ Validate a trained stereo 3D detection model using KITTI R40 evaluation protocol
 
         # Validate the model
         metrics = model.val()  # no arguments needed, dataset and settings remembered
-        metrics.results_dict["ap3d_50"]  # mean AP3D @ IoU=0.5 (Moderate)
-        metrics.results_dict["ap3d_70"]  # mean AP3D @ IoU=0.7 (Moderate)
+        metrics.results_dict["metrics/ap3d_50"]  # mean AP3D @ IoU=0.5 (Moderate)
+        metrics.results_dict["metrics/ap3d_70"]  # mean AP3D @ IoU=0.7 (Moderate)
         metrics.results_dict["AP3D_Car_Mod_50"]  # per-class per-difficulty
         ```
 

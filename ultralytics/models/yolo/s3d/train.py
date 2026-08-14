@@ -151,8 +151,8 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         # unwrap_model, not self.model directly: get_validator() runs AFTER the DDP wrap in
         # BaseTrainer._setup_train, and DistributedDataParallel does not forward attribute lookups to the
         # module it wraps, so `self.model.names` was None on every multi-GPU run. That silently cost the
-        # per-class columns in results.csv (28 columns instead of 82, zero AP3D entries) and, worse, changed
-        # what the surviving `ap3d_50` summary MEANS: Stereo3DDetMetrics._mean_metric averages over whichever
+        # per-class columns in results.csv (only the 7 summary keys survive, zero AP3D entries) and, worse, changed
+        # what the surviving `metrics/ap3d_50` summary MEANS: Stereo3DDetMetrics._mean_metric averages over whichever
         # classes happen to appear when `names` is empty, rather than over all of them.
         names = getattr(unwrap_model(self.model), "names", None)
         if names:

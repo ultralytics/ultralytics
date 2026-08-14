@@ -163,6 +163,8 @@ class Stereo3DDetValidator(BaseValidator):
         # 2D bbox metrics (YOLO-style mAP50/mAP50-95) for debugging bbox head quality.
         self.det_iouv = torch.linspace(0.5, 0.95, 10)
         self.det_metrics = DetMetrics()
+        # get_stats() returns the 3D and 2D metrics merged, so the CSV header must advertise both.
+        self.metrics.extra_keys = self.det_metrics.keys
 
         # Mean and std dimensions from dataset config (for decoding)
         self.mean_dims = None

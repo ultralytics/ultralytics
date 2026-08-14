@@ -370,7 +370,7 @@ POST /api/datasets
 | `description` | string | No       | Description (max 1000 chars)                                              |
 | `task`        | string | No       | Task type (default: `detect`)                                             |
 | `classNames`  | array  | No       | Class names in index order (max 25,000)                                   |
-| `format`      | string | No       | Annotation format: `yolo` (default), `coco`, `voc`, `raw`, `ndjson`       |
+| `format`      | string | No       | Annotation format: `yolo` (default), `coco`, `raw`, `ndjson`              |
 | `visibility`  | string | No       | `public` or `private`                                                     |
 | `tags`        | array  | No       | Up to 50 tags of 50 characters each                                       |
 | `license`     | string | No       | Dataset license identifier                                                |

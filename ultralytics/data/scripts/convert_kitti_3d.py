@@ -182,7 +182,7 @@ class KITTIToYOLO3D:
             "P3": P3,
         }
 
-    def compute_right_box(self, X, Y, Z, h, w, l, ry, calib, left_box_2d):
+    def compute_right_box(self, X, Y, Z, h, w, length, ry, calib, left_box_2d):
         """Compute right image 2D box center and width.
 
         Uses disparity-based formula for center (geometrically correct) and
@@ -212,15 +212,15 @@ class KITTIToYOLO3D:
         corners_3d_obj = np.array(
             [
                 # Bottom 4
-                [-l / 2, 0, -w / 2],
-                [l / 2, 0, -w / 2],
-                [l / 2, 0, w / 2],
-                [-l / 2, 0, w / 2],
+                [-length / 2, 0, -w / 2],
+                [length / 2, 0, -w / 2],
+                [length / 2, 0, w / 2],
+                [-length / 2, 0, w / 2],
                 # Top 4
-                [-l / 2, -h, -w / 2],
-                [l / 2, -h, -w / 2],
-                [l / 2, -h, w / 2],
-                [-l / 2, -h, w / 2],
+                [-length / 2, -h, -w / 2],
+                [length / 2, -h, -w / 2],
+                [length / 2, -h, w / 2],
+                [-length / 2, -h, w / 2],
             ]
         )
 
@@ -313,7 +313,7 @@ class KITTIToYOLO3D:
                 continue
 
             # 3D dimensions
-            h, w, l = [float(x) for x in parts[8:11]]
+            h, w, length = [float(x) for x in parts[8:11]]
 
             # 3D location (bottom center)
             X, Y, Z = [float(x) for x in parts[11:14]]
@@ -338,7 +338,7 @@ class KITTIToYOLO3D:
 
             # ===== Right 2D Box (normalized) =====
             center_x_r, width_r = self.compute_right_box(
-                X, Y, Z, h, w, l, rotation_y, calib, left_box_2d=[x1, y1, x2, y2]
+                X, Y, Z, h, w, length, rotation_y, calib, left_box_2d=[x1, y1, x2, y2]
             )
 
             center_x_r_norm = center_x_r / self.img_width
@@ -364,7 +364,7 @@ class KITTIToYOLO3D:
             label += f"{center_x_r_norm:.6f} {center_y_r_norm:.6f} "
             label += f"{width_r_norm:.6f} {height_r_norm:.6f} "
             # Dimensions: length, width, height (3 values)
-            label += f"{l:.2f} {w:.2f} {h:.2f} "
+            label += f"{length:.2f} {w:.2f} {h:.2f} "
             # 3D location: X, Y, Z (3 values)
             label += f"{X:.4f} {Y:.4f} {Z:.4f} "
             # Rotation around Y-axis (1 value)

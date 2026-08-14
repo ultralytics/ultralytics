@@ -293,22 +293,22 @@ class Stereo3DDetValidator(BaseValidator):
             for class_key, dims in raw_dims.items():
                 if not (isinstance(dims, (list, tuple)) and len(dims) == 3):
                     continue
-                l, w, h = dims  # YAML has [L, W, H]
+                length, w, h = dims  # YAML has [L, W, H]
                 # Find model class ID by name match
                 matched = False
                 for cid, cname in self.names.items() if isinstance(self.names, dict) else enumerate(self.names):
                     if str(class_key) == str(cname) or (isinstance(class_key, int) and class_key == cid):
-                        result[cid] = (h, w, l)  # Store as (H, W, L)
+                        result[cid] = (h, w, length)  # Store as (H, W, L)
                         matched = True
                         break
                 if not matched and isinstance(class_key, int):
-                    result[class_key] = (h, w, l)
+                    result[class_key] = (h, w, length)
             # Fallback: if name matching failed, assign by iteration order to class IDs 0..N
             if not result and raw_dims:
                 for i, (_, dims) in enumerate(raw_dims.items()):
                     if isinstance(dims, (list, tuple)) and len(dims) == 3:
-                        l, w, h = dims
-                        result[i] = (h, w, l)
+                        length, w, h = dims
+                        result[i] = (h, w, length)
             return result if result else None
 
         mean_dims_raw = self.data.get("mean_dims") if hasattr(self, "data") and self.data else None

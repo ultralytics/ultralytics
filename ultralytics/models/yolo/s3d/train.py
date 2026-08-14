@@ -407,9 +407,9 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         result = {}
         for i, (key, dims) in enumerate(raw_dims.items()):
             if isinstance(dims, (list, tuple)) and len(dims) == 3:
-                l, w, h = dims
+                length, w, h = dims
                 cid = key if isinstance(key, int) else i
-                result[cid] = (h, w, l)
+                result[cid] = (h, w, length)
         return result if result else None
 
     def preprocess_batch(self, batch):

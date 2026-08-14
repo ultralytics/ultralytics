@@ -306,8 +306,8 @@ class Results(SimpleClass, DataExportMixin):
         data = []
         for box in self.boxes3d:
             x, y, z = box.center_3d
-            l, w, h = box.dimensions
-            data.append([x, y, z, l, w, h, box.orientation, float(box.class_id), box.confidence])
+            length, w, h = box.dimensions
+            data.append([x, y, z, length, w, h, box.orientation, float(box.class_id), box.confidence])
         return np.array(data, dtype=np.float32)
 
     @property

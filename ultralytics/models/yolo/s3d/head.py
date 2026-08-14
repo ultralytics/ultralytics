@@ -247,7 +247,7 @@ class Stereo3DDetHead(Detect):
             if "depth_bins" in preds:
                 aux_tensors.append(preds["depth_bins"])  # [B, n_bins, anchors] raw logits
             if aux_tensors:
-                y = torch.cat([y, *aux_tensors], dim=1)  # [B, 7+22, anchors]
+                y = torch.cat([y, *aux_tensors], dim=1)  # [B, nc+4+74, anchors] (74 = 1+3+6+64)
             return y
 
         return (y, preds)

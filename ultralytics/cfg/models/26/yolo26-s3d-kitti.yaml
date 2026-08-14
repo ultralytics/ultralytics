@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # YOLO26 Stereo 3D Detection — KITTI-scale recipe (opt-in variant of yolo26-s3d.yaml)
-# Finer cost-volume disparity sampling (48 bins over the same 48-px range, ~4 px/bin at full res)
+# Finer cost-volume disparity sampling (64 bins over the same 48-px range, ~4 px/bin at full res)
 # plus dense self-supervised photometric left-right consistency with a weakened supervised
 # lr_distance anchor. Together (and only together) these lift KITTI Car AP3D@0.7 Moderate from
 # 20.1 to 25.7 (3 seeds, validated with epochs=400 optimizer=MuSGD amp=False).

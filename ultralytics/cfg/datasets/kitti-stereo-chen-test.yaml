@@ -9,7 +9,7 @@
 # train. Because consecutive frames of a drive show the same vehicles at almost the same range, a model can
 # reach a high score by memorising scene-specific appearance→depth cues, so numbers measured on that split
 # do not indicate generalisation. On a leakage-free split the same checkpoint scores roughly 5x lower at
-# Car AP3D@0.7. Train on this file instead.
+# Car AP3D@0.7. Train with `kitti-stereo-chen.yaml` instead (see the warning below).
 #
 # `train` and `dev` together are exactly Chen et al.'s 3712-frame train split; `test` is exactly their
 # 3769-frame val split, which is what published stereo-3D papers report on. All three are DRIVE-DISJOINT

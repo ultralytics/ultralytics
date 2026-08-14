@@ -32,6 +32,10 @@ keywords: Ultralytics, ultralytics.models.yolo.s3d.augment, API reference, YOLO,
 
 <br><br><hr><br>
 
+## ::: ultralytics.models.yolo.s3d.augment.StereoZoom
+
+<br><br><hr><br>
+
 ## ::: ultralytics.models.yolo.s3d.augment.project_3d_box_to_2d
 
 <br><br><hr><br>

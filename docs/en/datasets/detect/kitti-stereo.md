@@ -257,10 +257,14 @@ python ultralytics/data/scripts/convert_kitti_3d.py --kitti-root /path/to/kitti_
 python ultralytics/data/scripts/convert_kitti_3d.py --kitti-root /path/to/kitti_raw --filter-classes Car Pedestrian Cyclist
 ```
 
+!!! warning "The script's split is the leaky one — do not report numbers from it"
+
+    `convert_kitti_3d.py` partitions by a contiguous index cutoff, which is exactly the split described above as placing 128 of KITTI's 141 raw drives on both sides (99.6% of validation frames share a drive with training). Use the script to produce the **image, label and calibration files**, then evaluate with the drive-disjoint `kitti-stereo-chen.yaml` / `kitti-stereo-chen-test.yaml` configs — not with the train/val directories the script writes. Numbers measured on the script's own split are roughly 5x optimistic at Car AP3D@0.7 and are not comparable to published stereo-3D results.
+
 The script will:
 
 - Process the KITTI training split
-- Use 3DOP strategy: indices 0-3711 -> train, 3712+ -> val
+- Split by contiguous index: 0-3711 -> train, 3712+ -> val (**leaky — see the warning above**)
 - Output converted dataset to the same directory as `--kitti-root`
 - Include all classes by default, or only specified classes if `--filter-classes` is used
 - Available classes: Car, Van, Truck, Pedestrian, Person_sitting, Cyclist, Tram, Misc

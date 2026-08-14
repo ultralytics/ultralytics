@@ -96,7 +96,7 @@ TASK2METRIC = {
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
-    "s3d": "metrics/mAP3D",
+    "s3d": "ap3d_50",
 }
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []

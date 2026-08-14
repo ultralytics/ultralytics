@@ -12,7 +12,7 @@ were inflated and not leaderboard-comparable).
 Example (run on the GPU box):
     python -m ultralytics.data.scripts.benchmark_s3d \
         --weights yolo26n-s3d.pt yolo26s-s3d.pt yolo26m-s3d.pt yolo26l-s3d.pt yolo26x-s3d.pt \
-        --data kitti-stereo.yaml --imgsz 384 1248 --device 0 --out s3d_benchmark.md
+        --data kitti-stereo-chen-test.yaml --imgsz 384 1248 --device 0 --out s3d_benchmark.md
 
 Notes:
 - Pass checkpoint paths (or names resolvable by YOLO) via --weights.

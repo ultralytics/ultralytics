@@ -66,7 +66,7 @@ Oriented Bounding Box (OBB) detection enhances traditional object detection by a
 
 ## [Stereo 3D Detection](s3d.md)
 
-Stereo 3D detection estimates full 3D bounding boxes — including depth, dimensions, and orientation — from calibrated stereo image pairs. By leveraging the disparity between left and right camera views, YOLO26 recovers the spatial geometry of objects in the scene without requiring LiDAR. This task is essential for autonomous driving and robotics applications where precise 3D spatial understanding is needed. Models are available in n/s/m/l sizes and are evaluated using the KITTI R40 protocol.
+Stereo 3D detection estimates full 3D bounding boxes — including depth, dimensions, and orientation — from calibrated stereo image pairs. By leveraging the disparity between left and right camera views, YOLO26 recovers the spatial geometry of objects in the scene without requiring LiDAR. This task is essential for autonomous driving and robotics applications where precise 3D spatial understanding is needed. Models are available in n/s/m/l/x sizes and are evaluated using the KITTI R40 protocol.
 
 [Stereo 3D Detection](s3d.md){ .md-button }
 

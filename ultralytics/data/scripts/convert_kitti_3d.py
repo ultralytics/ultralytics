@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 KITTI to YOLO 3D Stereo Format Converter.

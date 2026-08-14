@@ -10,7 +10,7 @@ keywords: stereo 3D detection, YOLO26, Ultralytics, 3D object detection, KITTI, 
 
 Stereo 3D detection is a computer vision task that estimates full 3D bounding boxes — including depth, dimensions, and orientation — from calibrated stereo image pairs. Unlike standard 2D detection which only produces flat bounding boxes, stereo 3D detection recovers the spatial geometry of objects in the scene by leveraging the disparity between left and right camera views.
 
-The output of a stereo 3D detection model includes a 3D center location `[x, y, z]` in camera coordinates, physical dimensions `[height, width, length]` in meters, and a rotation angle around the vertical axis. This makes it essential for autonomous driving and robotics applications where precise spatial understanding is required.
+The output of a stereo 3D detection model includes a 3D center location `[x, y, z]` in camera coordinates, physical dimensions `[length, width, height]` in meters, and a rotation angle around the vertical axis. This makes it essential for autonomous driving and robotics applications where precise spatial understanding is required.
 
 !!! tip
 
@@ -183,14 +183,16 @@ sess = ort.InferenceSession("yolo26s-s3d.onnx")
 left = np.random.randn(1, 3, 384, 1248).astype(np.float32)
 right = np.random.randn(1, 3, 384, 1248).astype(np.float32)
 output = sess.run(None, {"left_img": left, "right_img": right})[0]
-# output shape: [1, nc+4+22, anchors] where 22 = 1(lr_dist) + 3(dims) + 2(orient) + 16(depth_bins)
+# output shape: [1, nc+4+74, anchors] where 74 = 1(lr_dist) + 3(dims) + 6(orient) + 64(depth_bins)
+# orient is MultiBin: NUM_ORIENT_BINS*(1 conf + 2 residual) = 6. depth_bins follows the model YAML's
+# `training: depth_bins:` (default 64), so re-check this width if you override it.
 ```
 
 ## FAQ
 
 ### What is stereo 3D detection and how does it differ from standard object detection?
 
-Standard object detection produces 2D bounding boxes `[x, y, width, height]` in pixel coordinates. Stereo 3D detection goes further by estimating full 3D bounding boxes including the object's physical location in 3D space `[x, y, z]`, real-world dimensions `[height, width, length]` in meters, and orientation (rotation angle). It achieves this by processing calibrated stereo image pairs and leveraging the disparity between left and right views to estimate depth.
+Standard object detection produces 2D bounding boxes `[x, y, width, height]` in pixel coordinates. Stereo 3D detection goes further by estimating full 3D bounding boxes including the object's physical location in 3D space `[x, y, z]`, real-world dimensions `[length, width, height]` in meters, and orientation (rotation angle). It achieves this by processing calibrated stereo image pairs and leveraging the disparity between left and right views to estimate depth.
 
 ### How do I train a stereo 3D detection model on a custom dataset?
 

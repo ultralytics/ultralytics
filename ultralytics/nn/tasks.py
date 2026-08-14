@@ -2219,7 +2219,7 @@ def guess_model_task(model):
         model (torch.nn.Module | dict | str | Path): PyTorch model, model configuration dict, or model file path.
 
     Returns:
-        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'obb', 'semantic', 's3d', 'depth').
+        (str): Task of the model ('detect', 'segment', 'semantic', 'depth', 'classify', 'pose', 'obb', 's3d').
     """
 
     def cfg2task(cfg):

@@ -159,7 +159,7 @@ Resources are addressed by the same human-readable names that appear in Platform
 
 ## Rate Limits
 
-The API enforces sliding-window, Redis-backed limits per API key. Each route falls into one category, and each category
+The API enforces sliding-window limits per API key. Each route falls into one category, and each category
 has an independent counter, so 20 predict requests do not consume your default allowance.
 
 | Category       | Limit            | Applies To                                                                                |
@@ -2195,8 +2195,7 @@ GET /api/billing/transactions
 | `to`      | string | Latest transaction timestamp (ISO 8601)   |
 
 Each transaction includes `id`, `type` (such as `purchase`, `training`, `monthly_grant`, or `refund`), `amountCents`,
-`balanceAfter`, `createdAt`, an optional `receiptUrl`, and model context for training charges. Internal notes, Stripe
-payment IDs, and idempotency keys are never returned.
+`balanceAfter`, `createdAt`, an optional `receiptUrl`, and model context for training charges. Internal billing details are never returned.
 
 ---
 

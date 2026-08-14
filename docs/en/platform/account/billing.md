@@ -117,7 +117,7 @@ Top up your balance:
 1. Go to **Settings > Billing**
 2. Click **Top Up**
 3. Pick a preset amount, or choose **Custom amount…** and enter $5 – $1,000
-4. Complete payment in the Stripe checkout tab that opens
+4. Complete payment in the secure checkout tab that opens
 
 Your balance updates automatically once the payment succeeds — you don't need to reload the page.
 
@@ -255,7 +255,7 @@ After upgrading:
 
 ### Renewals
 
-Ultralytics bills the Pro plan directly rather than through a Stripe subscription. At the end of each billing period,
+Ultralytics bills the Pro plan directly from your saved payment method. At the end of each billing period,
 your default payment method is charged for the seats currently in use. If the charge fails you're emailed, and the
 platform retries on the following days — after three failed attempts the workspace is downgraded to Free.
 

@@ -95,7 +95,7 @@ The table is searchable by city, country, and zone, and is sorted by latency by 
 
 !!! tip "How Latency Is Measured"
 
-    Your browser probes each of the 42 regional Google Cloud endpoints three times and keeps the median. Results are cached in the browser for 30 minutes and shared across the `Deploy` tab and the `New Deployment` dialog, so switching pages does not re-run 126 probes. Use the **Rescan** button on the model `Deploy` tab to re-measure from your current network. Distance is computed from the approximate location of your request, so it is a rough guide rather than a precise value.
+    Your browser probes each of the 42 regions three times and keeps the median. Results are cached in the browser for 30 minutes and shared across the `Deploy` tab and the `New Deployment` dialog, so switching pages does not re-run 126 probes. Use the **Rescan** button on the model `Deploy` tab to re-measure from your current network. Distance is computed from the approximate location of your request, so it is a rough guide rather than a precise value.
 
 ## Available Regions
 

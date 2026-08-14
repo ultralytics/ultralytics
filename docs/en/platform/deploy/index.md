@@ -99,7 +99,7 @@ Each endpoint is a single-tenant service with:
 
 - Fixed resources of `1 CPU`, `2 GiB` memory, `minInstances=0`, `maxInstances=1`
 - Scale-to-zero when idle
-- Unique endpoint URL with its own [Scalar](https://scalar.com/) API reference at `/docs`
+- Unique endpoint URL with its own interactive API reference at `/docs`
 - Its own API key binding, so only that key can call the endpoint
 - Independent monitoring, logs, and health checks
 

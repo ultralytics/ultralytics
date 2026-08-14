@@ -151,7 +151,7 @@ Each log entry shows:
     | **ERROR**    | Red    | Failed requests     |
     | **CRITICAL** | Red    | Critical failures   |
 
-    The API accepts the full set of Cloud Logging severities as a comma-separated filter: `DEBUG`, `INFO`, `NOTICE`, `WARNING`, `ERROR`, `CRITICAL`, `ALERT`, and `EMERGENCY`.
+    The API accepts the full set of log severities as a comma-separated filter: `DEBUG`, `INFO`, `NOTICE`, `WARNING`, `ERROR`, `CRITICAL`, `ALERT`, and `EMERGENCY`.
 
 === "Log Controls"
 
@@ -234,7 +234,7 @@ since only the bound key opens the endpoint. Non-owners see a `YOUR_API_KEY` pla
 
 !!! note "Auto-Populated Credentials"
 
-    When viewing the `Code` tab in the platform, the endpoint URL and the deployment's bound API key are filled in for you — confirm the key matches the prefix shown in the deployment card footer, since only the [bound key](endpoints.md#authentication) opens the endpoint. See [API Keys](../account/api-keys.md) to generate a key.
+    When viewing the `Code` tab in the platform, the endpoint URL is filled in for you, along with an API key for workspace owners — confirm the key matches the prefix shown in the deployment card footer, since only the [bound key](endpoints.md#authentication) opens the endpoint. See [API Keys](../account/api-keys.md) to generate a key.
 
 ## Deployment Predict
 

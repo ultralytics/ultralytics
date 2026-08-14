@@ -189,7 +189,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     The format is detected automatically: datasets with a `data.yaml` containing `names`, `train`, or `val` keys are treated as YOLO. Datasets with COCO JSON files (containing `images`, `annotations`, and `categories` arrays) are treated as COCO. `.ndjson` exports are imported as Ultralytics NDJSON. Datasets with only images and no annotations are treated as raw.
 
-    When an archive contains several YAML files, the one used is chosen by preferring the standard names (`data.yaml`, `data.yml`, `dataset.yaml`, `dataset.yml`) as a group, then the shallowest path, then names matching the archive filename, then alphabetical order.
+    When an archive contains several YAML files, Platform prefers standard names (`data.yaml`, `data.yml`, `dataset.yaml`, `dataset.yml`) closest to the archive root. Keep one clearly named YAML per archive to avoid ambiguity.
 
 !!! warning "Pascal VOC XML Is Not Imported"
 

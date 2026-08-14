@@ -70,7 +70,7 @@ Ultralytics Platform implements multiple security measures:
 
 - **OAuth**: Sign in with Google or GitHub
 - **Email/password**: Sign in with email and password
-- **Session management**: Clerk-managed sessions shared across Ultralytics subdomains
+- **Session management**: Sessions shared across Ultralytics subdomains
 
 ### Data Protection
 

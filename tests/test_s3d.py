@@ -1788,3 +1788,56 @@ def test_shipped_label_format_actually_loads_objects(tmp_path):
         assert len(sample["bboxes"]) == 1, f"{name}: loader returned {len(sample['bboxes'])} objects, expected 1"
         assert int(sample["cls"].flatten()[0]) == 0, f"{name}: wrong class id"
         assert abs(float(sample["location_3d"][0][2]) - 13.22) < 1e-3, f"{name}: depth field misread"
+
+
+def test_collate_keeps_aux_targets_aligned_when_a_batch_holds_an_empty_image():
+    """An image with no objects must not shift its neighbours' 3D targets.
+
+    `per_image_aux[k]` is indexed by BATCH POSITION in the padding loop. It used to be appended to only
+    for images with objects, so one negative image slid every later image's depth/dimension/orientation
+    targets onto the wrong image and dropped the last one entirely -- while the DETECTION targets stayed
+    correct, so TAL kept supervising those anchors against another image's 3D truth with nothing raised.
+
+    Negative images are normal: `plot_training_labels` reports them, and `update_labels_info` empties any
+    frame whose classes all fall outside a class subset.
+    """
+    import types
+
+    import torch
+
+    from ultralytics.models.yolo.s3d.dataset import Stereo3DDetDataset
+
+    def sample(zs):
+        n = len(zs)
+        t32 = lambda a, s: torch.tensor(a, dtype=torch.float32) if n else torch.zeros(s)  # noqa: E731
+        return {
+            "img": torch.zeros(6, 64, 64),
+            "cls": torch.zeros(n),
+            "bboxes": t32([[0.5, 0.5, 0.2, 0.3]] * n, (0, 4)),
+            "right_bboxes": t32([[0.48, 0.5, 0.2, 0.3]] * n, (0, 4)),
+            "dimensions_3d": t32([[3.9, 1.6, 1.5]] * n, (0, 3)),
+            "location_3d": t32([[0.0, 1.5, z] for z in zs], (0, 3)),
+            "rotation_y": t32([0.0] * n, (0,)),
+            "truncated": torch.zeros(n),
+            "occluded": torch.zeros(n, dtype=torch.long),
+            "im_file": "x",
+            "ori_shape": (375, 1242),
+            "resized_shape": (64, 64),
+            "ratio_pad": (1.0, (0, 0)),
+            "calibration": {"fx": 721.5, "fy": 721.5, "cx": 609.6, "cy": 172.9, "baseline": 0.54},
+            "image_id": 0,
+            "batch_idx": torch.zeros(n),
+            "labels": [],
+        }
+
+    stub = types.SimpleNamespace(imgsz_tuple=(64, 64), mean_dims={0: [3.9, 1.6, 1.5]}, std_dims={0: [0.42, 0.10, 0.15]})
+    # image 1 is empty; 2 and 3 must still receive THEIR OWN depths, not their neighbours'
+    batch = [sample([10.0]), sample([]), sample([60.0]), sample([90.0])]
+    out = Stereo3DDetDataset.collate_fn(stub, batch)
+
+    z = out["aux_targets"]["depth"].exp().squeeze(-1)  # targets are log-depth
+    assert float(z[0, 0]) == pytest.approx(10.0, rel=1e-3)
+    assert float(z[2, 0]) == pytest.approx(60.0, rel=1e-3), "image 2 received another image's depth target"
+    assert float(z[3, 0]) == pytest.approx(90.0, rel=1e-3), "image 3's depth target was dropped"
+    for k, t in out["aux_targets"].items():
+        assert t.shape[0] == len(batch), f"{k} must carry one row-set per batch image"

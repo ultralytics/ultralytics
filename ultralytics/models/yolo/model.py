@@ -81,11 +81,13 @@ class YOLO(Model):
             # Continue with default YOLO initialization
             super().__init__(model=model, task=task, verbose=verbose)
             # Check if model has a subscriptable 'model' attribute before accessing with [-1]
+            # `self.model.model` is an nn.Sequential for every model built by parse_model. Test for
+            # subscriptability, NOT for list/tuple: an isinstance((list, tuple)) check is permanently False
+            # against a Sequential, which silently disables the RTDETR morph entirely.
+            inner = getattr(self.model, "model", None)
             if (
-                hasattr(self.model, "model")
-                and isinstance(self.model.model, (list, tuple))
-                and len(self.model.model) > 0
-            ) and "RTDETR" in self.model.model[-1]._get_name():  # if RTDETR head
+                isinstance(inner, torch.nn.Sequential) and len(inner) > 0 and "RTDETR" in inner[-1]._get_name()
+            ):  # if RTDETR head
                 from ultralytics import RTDETR
 
                 new_instance = RTDETR(self)

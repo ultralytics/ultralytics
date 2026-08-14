@@ -271,10 +271,15 @@ class Stereo3DDetPredictor(DetectionPredictor):
             conf_threshold=self.args.conf,
             top_k=self.args.max_det,
             iou_thres=getattr(self.args, "iou", 0.45),
-            imgsz=getattr(self.args, "imgsz", 384),
+            # self.imgsz, not self.args.imgsz: check_imgsz() rounds to a stride multiple in setup_source
+            # and does not write back, so args.imgsz can name a canvas the images were never letterboxed to.
+            imgsz=self.imgsz,
             mean_dims=self.mean_dims,
             std_dims=self.std_dims,
             class_names=class_names,
+            # Predict loads calibration from disk in ORIGINAL image space and letterboxes only the pixels,
+            # so the decode must not reverse a letterbox that was never applied to these intrinsics.
+            calib_letterboxed=False,
         )
 
         # Create Results objects (one per input image; decode may return fewer when no detections)

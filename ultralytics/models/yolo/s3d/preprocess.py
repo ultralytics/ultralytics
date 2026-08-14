@@ -462,6 +462,7 @@ def decode_and_refine_predictions(
     class_names: dict[int, str] | None = None,
     score_k: float = 2.5,
     depth_var_scale: float = 1.0,
+    calib_letterboxed: bool = True,
 ) -> list[list[Box3D]]:
     """Shared decode pipeline for val and predict.
 
@@ -481,6 +482,11 @@ def decode_and_refine_predictions(
         class_names: Mapping from class ID to class name.
         score_k: Decay rate for the uncertainty-based confidence weighting (see decode_stereo3d_outputs).
         depth_var_scale: Multiplier on the direct-depth cue's fusion variance (see decode_stereo3d_outputs).
+        calib_letterboxed: Whether `batch["calib"]` is expressed in LETTERBOX-input space. True for the
+            validator, whose dataset pipeline scales and pads the calibration alongside the image. False
+            for the predictor, which loads calibration straight from disk in original-image space and
+            letterboxes only the pixels — passing True there applies the inverse letterbox a second time,
+            which at the default imgsz=640 on KITTI inflates fx by 1.94x and moves cy off the sensor.
 
     Returns:
         List of Box3D lists (one per batch item).
@@ -532,7 +538,7 @@ def decode_and_refine_predictions(
         class_names=class_names,
         score_k=score_k,
         depth_var_scale=depth_var_scale,
-        calib_letterboxed=True,  # batch calib is in letterbox-input space; decode reverses it to original
+        calib_letterboxed=calib_letterboxed,
     )
 
     return results

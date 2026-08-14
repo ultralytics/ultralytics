@@ -91,6 +91,19 @@ def encode_proj_offset(
     return u_norm - box_center_norm[0], v_norm - box_center_norm[1]
 
 
+# Channel width of each auxiliary TARGET, keyed as in `aux_targets`. Deliberately not head.AUX_SPECS:
+# that describes the head's OUTPUT widths, where `lr_distance` is 2 (value + log-variance for the
+# heteroscedastic NLL) while its target is the single value. Kept here as one owner so the empty-image
+# path and the padding loop cannot disagree about a width.
+AUX_TARGET_CHANNELS: dict[str, int] = {
+    "lr_distance": 1,
+    "depth": 1,
+    "dimensions": 3,
+    "orientation": ORIENT_CHANNELS,
+    "proj_offset": 2,
+}
+
+
 class Stereo3DDetDataset(BaseDataset):
     """Stereo 3D detection dataset (single, unified dataset).
 
@@ -747,7 +760,15 @@ class Stereo3DDetDataset(BaseDataset):
             labels_list.append(sample_labels)
 
             if n == 0:
-                # keep empty placeholders
+                # Append an empty (0, C) tensor rather than skipping: `per_image_aux[k]` is indexed by
+                # BATCH POSITION in the padding loop below, so omitting an entry here shifts every later
+                # image's targets onto the wrong image and drops the last one entirely. Negative images are
+                # normal (plot_training_labels reports them, and update_labels_info empties any frame whose
+                # classes all fall outside a class subset), and the detection targets stay correct for the
+                # rest of the batch, so TAL still supervises those anchors — against another image's depth,
+                # dimensions and orientation, with nothing raised.
+                for key, ch in AUX_TARGET_CHANNELS.items():
+                    per_image_aux[key].append(torch.zeros((0, ch), dtype=torch.float32))
                 continue
 
             # Build per-object aux targets for this image
@@ -820,19 +841,16 @@ class Stereo3DDetDataset(BaseDataset):
         max_n = max(per_image_counts) if per_image_counts else 0
         aux_targets: dict[str, torch.Tensor] = {}
         for k in per_image_aux:
-            c = {
-                "lr_distance": 1,
-                "depth": 1,
-                "dimensions": 3,
-                "orientation": ORIENT_CHANNELS,
-                "proj_offset": 2,
-            }[k]
+            c = AUX_TARGET_CHANNELS[k]
+            # per_image_aux[k] is now one entry per batch image, so this must be exact. A length
+            # mismatch means the alignment invariant broke and would silently mis-supervise, so assert
+            # rather than skipping past it.
+            assert len(per_image_aux[k]) == len(batch), (
+                f"aux target list for {k!r} has {len(per_image_aux[k])} entries for {len(batch)} images"
+            )
             padded = torch.zeros((len(batch), max_n, c), dtype=torch.float32)
             for bi in range(len(batch)):
                 if per_image_counts[bi] == 0:
-                    continue
-                # If missing (e.g. empty but list absent), skip
-                if bi >= len(per_image_aux[k]):
                     continue
                 t = per_image_aux[k][bi]  # [n, c]
                 padded[bi, : t.shape[0]] = t

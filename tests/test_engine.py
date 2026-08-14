@@ -391,15 +391,18 @@ def test_train_multi_custom_trainer_metrics_and_failure_keys(monkeypatch, tmp_pa
     assert results == {"coco8": {"fitness": 1.0}, "coco8-2": None}
 
 
-@pytest.mark.parametrize("pretrained,uses_weights", [(True, True), (False, False), (MODEL, True)])
-def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrained, uses_weights):
-    """Test .pt models use checkpoint config while respecting the pretrained argument."""
+@pytest.mark.parametrize(
+    "pretrained,resume,expected",
+    [(True, False, "ckpt"), (False, False, None), (MODEL, False, "pretrained"), (MODEL, True, "ckpt")],
+)
+def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrained, resume, expected):
+    """Test .pt models use checkpoint config while respecting the pretrained argument, which resume ignores."""
     captured = {}
-    checkpoint_model = SimpleNamespace(yaml={"nc": 80})
+    models = {"ckpt": SimpleNamespace(yaml={"nc": 80}), "pretrained": SimpleNamespace(yaml={"nc": 1})}
     trainer = object.__new__(BaseTrainer)
     trainer.model = "yolo26n.pt"
     trainer.args = SimpleNamespace(pretrained=pretrained)
-    trainer.resume = False
+    trainer.resume = resume
 
     def fake_get_model(cfg=None, weights=None, verbose=True):
         captured["cfg"] = cfg
@@ -408,10 +411,11 @@ def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrain
 
     trainer.get_model = fake_get_model
     monkeypatch.setattr(
-        "ultralytics.engine.trainer.load_checkpoint", lambda path: (checkpoint_model, {"checkpoint": True})
+        "ultralytics.engine.trainer.load_checkpoint",
+        lambda path: (models["pretrained" if str(path) == str(MODEL) else "ckpt"], {"checkpoint": True}),
     )
 
     trainer.setup_model()
 
-    assert captured["cfg"] == checkpoint_model.yaml, "Checkpoint config was not used"
-    assert captured["weights"] is (checkpoint_model if uses_weights else None), "Unexpected weights loaded"
+    assert captured["cfg"] == models["ckpt"].yaml, "Checkpoint config was not used"
+    assert captured["weights"] is (models[expected] if expected else None), "Unexpected weights loaded"

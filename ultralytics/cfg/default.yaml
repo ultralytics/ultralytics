@@ -93,7 +93,7 @@ workspace: # (float, optional) engine (TensorRT) only; workspace size in GiB, e.
 nms: False # (bool) fuse NMS into exported model when backend supports; if True, conf/iou/agnostic_nms apply
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
-lr0: 0.01 # (float) initial learning rate (SGD=1e-2, Adam/AdamW=1e-3)
+lr0: 0.01 # (float | str) initial learning rate (SGD=1e-2, Adam/AdamW=1e-3), or 'auto' to fit by range test
 lrf: 0.01 # (float) final LR fraction; final LR = lr0 * lrf
 backbone_lr_ratio: 1.0 # (float) backbone LR = lr0 * this, 1.0 = uniform, values below 1 preserve distilled backbone features
 grad_clip: 10.0 # (float) max gradient L2 norm clipped before each optimizer step

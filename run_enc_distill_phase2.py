@@ -326,7 +326,11 @@ def _load_recipe(name: str, model_yaml: str, **deltas: str | float | None) -> di
     if not path.exists():
         raise SystemExit(f"unknown recipe '{name}'. Available: {sorted(p.stem for p in _RECIPE_DIR.glob('*.yaml'))}")
     recipe = YAML.load(path)
-    deltas = {k: _RECIPE_DELTA_CASTS[k](v) for k, v in deltas.items() if v is not None and v != ""}
+    deltas = {
+        k: "auto" if k == "lr0" and str(v).lower() == "auto" else _RECIPE_DELTA_CASTS[k](v)
+        for k, v in deltas.items()
+        if v is not None and v != ""
+    }
     scale = guess_model_scale(model_yaml)
     epochs_by_scale = recipe.pop("_epochs_by_scale", None)
     if epochs_by_scale:
@@ -359,7 +363,8 @@ def _load_recipe(name: str, model_yaml: str, **deltas: str | float | None) -> di
     # profile's lr0/nbs/warmup_epochs come from the downloaded checkpoint.
     print(
         f"[recipe] {path} {f'+ declared deltas {deltas}' if deltas else '(no deltas)'} -> "
-        f"optimizer={recipe['optimizer']} batch={recipe['batch']} nbs={recipe['nbs']} lr0={recipe['lr0']:.5f} "
+        f"optimizer={recipe['optimizer']} batch={recipe['batch']} nbs={recipe['nbs']} "
+        f"lr0={recipe['lr0'] if recipe['lr0'] == 'auto' else format(recipe['lr0'], '.5f')} "
         f"lrf={recipe['lrf']} cos_lr={recipe['cos_lr']} warmup_epochs={recipe['warmup_epochs']:.3f} "
         f"epochs={recipe['epochs']} backbone_lr_ratio={recipe['backbone_lr_ratio']} "
         f"mixup={recipe['mixup']} copy_paste={recipe['copy_paste']} scale={recipe['scale']} "

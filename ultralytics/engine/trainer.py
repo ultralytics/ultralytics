@@ -276,6 +276,90 @@ class BaseTrainer:
             world_size=self.world_size,
         )
 
+    def _find_lr(self, num_it: int = 100, lr_min: float = 1e-6, lr_max: float = 1.0):
+        """Fit the initial learning rate and warmup to the current model and dataset.
+
+        Sweep the learning rate exponentially over at most one tenth of the run. Fit the rate halfway in log space
+        between the fastest loss descent and the highest rate that still improves the loss. Restore model, optimizer,
+        scaler, and dataloader state before returning.
+
+        Args:
+            num_it (int): Upper bound on optimizer steps in the sweep.
+            lr_min (float): Learning rate of the first step.
+            lr_max (float): Learning rate of the last step.
+        """
+        nb = len(self.train_loader) // self.accumulate
+        num_it = min(num_it, nb * self.epochs // 10)
+        if nb < 10 or num_it < 50:
+            LOGGER.info(f"{colorstr('LR finder:')} run too short to sweep, using the 'lr0' equation")
+            return
+        pg = self.optimizer.param_groups
+        base = min(g["lr"] for g in pg)
+        ratios = [g["lr"] / base for g in pg]
+        model_state = {k: v.detach().to("cpu", copy=True) for k, v in self.model.state_dict().items()}
+        optimizer_state, scaler_state = deepcopy(self.optimizer.state_dict()), self.scaler.state_dict()
+
+        self._model_train()
+        lrs = np.logspace(math.log10(lr_min), math.log10(lr_max), num_it)
+        losses, total, loader = [], torch.zeros(1, device=self.device), iter(self.train_loader)
+        desc = f"{colorstr('LR finder:')} sweeping lr {lr_min:g} -> {lr_max:g}"
+        for lr in TQDM(lrs, total=num_it, desc=desc) if RANK in {-1, 0} else lrs:
+            for g, ratio in zip(pg, ratios):
+                g["lr"] = lr * ratio
+            total.zero_()
+            for _ in range(self.accumulate):
+                try:
+                    batch = next(loader)
+                except StopIteration:
+                    loader = iter(self.train_loader)
+                    batch = next(loader)
+                loss, loss_items = self.forward_batch(batch)
+                total += sum(loss_items.values()).detach()
+                self.scaler.scale(loss).backward()
+            self.optimizer_step()
+            if self.world_size > 1:
+                dist.all_reduce(total)
+            losses.append(total.item() / (self.accumulate * max(self.world_size, 1)))
+            if not math.isfinite(losses[-1]) or losses[-1] > 4 * min(losses):
+                break
+
+        self.model.load_state_dict(model_state)
+        self.optimizer.load_state_dict(optimizer_state)
+        self.scaler.load_state_dict(scaler_state)
+        pg = self.optimizer.param_groups
+        self.train_loader.reset()
+
+        window = 5
+        if len(losses) < 3 * window:
+            LOGGER.warning(f"{colorstr('LR finder:')} sweep too short to fit, using the 'lr0' equation")
+            return
+        y = np.convolve(losses, np.ones(window) / window, mode="valid")
+        x = np.log10(lrs[window // 2 : window // 2 + len(y)])
+        edge = int(y.argmin())
+        if not 5 <= edge < len(y) - 1:
+            LOGGER.warning(f"{colorstr('LR finder:')} sweep did not bracket an optimum, using the 'lr0' equation")
+            return
+        velocity = -np.gradient(y[: edge + 1], x[: edge + 1])
+        peak, radius = int(velocity.argmax()), max(edge // 8, 3)
+        if not 0 < peak < edge:
+            LOGGER.warning(f"{colorstr('LR finder:')} sweep found no velocity peak, using the 'lr0' equation")
+            return
+        region = slice(max(peak - radius, 0), min(peak + radius + 1, edge + 1))
+        a, b, _ = np.polyfit(x[region], velocity[region], 2)
+        fastest = np.clip(-b / (2 * a) if a < 0 else x[peak], x[0], x[edge])
+        lr = float(f"{min(10 ** ((fastest + x[edge]) / 2), 0.01):.3g}")
+
+        self.args.lr0 = self.args.warmup_bias_lr = lr
+        if self.args.warmup_epochs == DEFAULT_CFG.warmup_epochs:
+            self.args.warmup_epochs = round(float(np.clip(5.0 - 2.5 * (x[edge] - fastest), 1.0, 5.0)), 1)
+        for g, ratio in zip(pg, ratios):
+            g["lr"] = g["initial_lr"] = lr * ratio
+        self._setup_scheduler()
+        LOGGER.info(
+            f"{colorstr('LR finder:')} fitted 'lr0={lr:g}', 'warmup_bias_lr={lr:g}' and "
+            f"'warmup_epochs={self.args.warmup_epochs:g}'"
+        )
+
     def _build_train_pipeline(self):
         """Build dataloaders, optimizer, and scheduler for current batch size."""
         batch_size = self.batch_size // max(self.world_size, 1)
@@ -402,10 +486,13 @@ class BaseTrainer:
         # Batch size
         if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
             self.args.batch = self.batch_size = self.auto_batch()
+        auto_lr = str(self.args.lr0).lower() == "auto"
         self._build_train_pipeline()
+        self.set_class_weights()  # before the LR finder builds a loss criterion that snapshots the weights
+        if auto_lr and not self.resume:
+            self._find_lr()
         self.validator = self.get_validator()
         self.ema = ModelEMA(self.model)
-        self.set_class_weights()  # compute class weights after dataloader is ready
         if RANK in {-1, 0}:
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))
@@ -487,27 +574,17 @@ class BaseTrainer:
 
                 # Forward
                 try:
-                    with autocast(self.amp, device=self.device.type):
-                        batch = self.preprocess_batch(batch)
-                        if self.args.compile:
-                            # Decouple inference and loss calculations for improved compile performance
-                            preds = self.model(batch["img"])
-                            loss, self.loss_items = unwrap_model(self.model).loss(batch, preds)
-                        else:
-                            loss, self.loss_items = self.model(batch)
-                        self.loss = loss.sum()
-                        if RANK != -1:
-                            self.loss *= self.world_size
-                        if not self.loss_names:  # derive loss names from the criterion's loss dict on first batch
-                            self.loss_names = tuple(self.loss_items)
-                            if RANK in {-1, 0}:
-                                LOGGER.info(self.progress_string())
-                                self.metrics.update(dict.fromkeys(self.label_loss_items(prefix="val"), 0.0))
-                        self.tloss = (
-                            self.loss_items
-                            if self.tloss is None
-                            else {k: (self.tloss[k] * i + v) / (i + 1) for k, v in self.loss_items.items()}
-                        )
+                    self.loss, self.loss_items = self.forward_batch(batch)
+                    if not self.loss_names:  # derive loss names from the criterion's loss dict on first batch
+                        self.loss_names = tuple(self.loss_items)
+                        if RANK in {-1, 0}:
+                            LOGGER.info(self.progress_string())
+                            self.metrics.update(dict.fromkeys(self.label_loss_items(prefix="val"), 0.0))
+                    self.tloss = (
+                        self.loss_items
+                        if self.tloss is None
+                        else {k: (self.tloss[k] * i + v) / (i + 1) for k, v in self.loss_items.items()}
+                    )
 
                     # Backward
                     self.scaler.scale(self.loss).backward()
@@ -532,7 +609,7 @@ class BaseTrainer:
                         f"{error} with batch={old_batch}. "
                         f"Reducing to batch={self.batch_size} and retrying ({self._oom_retries}/3)."
                     )
-                    batch = loss = preds = None
+                    batch = None
                     self.loss = self.loss_items = self.tloss = None
                     self._clear_memory()
                     self._build_train_pipeline()  # rebuild dataloaders, optimizer, scheduler
@@ -839,6 +916,25 @@ class BaseTrainer:
             self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK in {-1, 0})  # calls Model(cfg, weights)
         return ckpt
 
+    def forward_batch(self, batch):
+        """Run one training forward pass.
+
+        Args:
+            batch (dict): Batch to preprocess and run through the model.
+
+        Returns:
+            loss (torch.Tensor): Summed loss to backpropagate, scaled by world size under DDP.
+            loss_items (dict): Detached per-component losses independent of batch size.
+        """
+        with autocast(self.amp, device=self.device.type):
+            batch = self.preprocess_batch(batch)
+            if self.args.compile:
+                preds = self.model(batch["img"])
+                loss, loss_items = unwrap_model(self.model).loss(batch, preds)
+            else:
+                loss, loss_items = self.model(batch)
+            return loss.sum() * (self.world_size if RANK != -1 else 1), loss_items
+
     def optimizer_step(self):
         """Perform a single step of the training optimizer with gradient clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
@@ -1114,16 +1210,17 @@ class BaseTrainer:
         bn = tuple(v for k, v in nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
         optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSprop", "SGD", "MuSGD", "auto"}
         name = {x.lower(): x for x in optimizers}.get(str(name).lower(), str(name))
+        lr_fit = round(0.002 * 5 / (4 + self.data.get("nc", 10)), 6)
         if name == "auto":
             LOGGER.info(
                 f"{colorstr('optimizer:')} 'optimizer=auto' found, "
                 f"ignoring 'lr0={self.args.lr0}' and 'momentum={self.args.momentum}' and "
                 f"determining best 'optimizer', 'lr0' and 'momentum' automatically... "
             )
-            nc = self.data.get("nc", 10)  # number of classes
-            lr_fit = round(0.002 * 5 / (4 + nc), 6)  # lr0 fit equation to 6 decimal places
             name, lr, momentum = ("MuSGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
+        elif str(lr).lower() == "auto":
+            self.args.lr0 = lr = lr_fit
 
         use_muon = name == "MuSGD"
         ratio = self.args.backbone_lr_ratio  # backbone LR = lr * ratio (1.0 = uniform)

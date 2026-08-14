@@ -24,12 +24,15 @@ Ultralytics YOLO26 Stereo 3D Detection models use a siamese backbone over the [K
 
 | Model                                                                                                         | Params | Car AP3D@0.5 (E/M/H)   | Car AP3D@0.7 (E/M/H)   | mAP3D@0.5 (Mod) | mAP3D@0.7 (Mod) |
 | ------------------------------------------------------------------------------------------------------------- | ------ | ---------------------- | ---------------------- | --------------- | --------------- |
-| [YOLO26s-s3d](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26/yolo26-s3d.yaml) | 12.8M  | 66.6 / **54.0** / 47.1 | 27.2 / **20.1** / 16.8 | 23.1            | 6.8             |
+| [YOLO26n-s3d](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26/yolo26-s3d.yaml) | 4.4M   | 59.5 / **47.0** / 40.6 | 19.9 / **13.5** / 11.3 | 19.1            | 4.5             |
+| [YOLO26s-s3d](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26/yolo26-s3d.yaml) | 12.8M  | 57.3 / **46.5** / 40.6 | 17.6 / **13.6** / 11.3 | 19.5            | 4.5             |
 
-- Trained **from scratch** for 400 epochs at `imgsz=[384, 1248]` on Chen's full 3712-frame training set — that is `train` **and** `dev` combined, not the 3172-frame `train` split that `kitti-stereo-chen.yaml` ships. Evaluated once on the held-out Chen `test` split (3769 images) via `yolo val ... data=kitti-stereo-chen.yaml split=test`. Training and test share no raw drive. To reproduce exactly, point `train:` at both splits; training on the shipped 3172-frame `train` alone will score slightly lower.
+- These are the **published checkpoints** (the `v8.4.0` assets), evaluated on the held-out Chen `test` split (3769 images) via `yolo val ... data=kitti-stereo-chen.yaml split=test` with the shipped defaults. This is what you get from `YOLO("yolo26n-s3d.pt")` — not a locally trained reference.
 - **Car** columns are the KITTI headline (Car at IoU 0.7 is the number published stereo-3D work leads with). **mAP3D** columns are the unweighted mean over Car/Pedestrian/Cyclist and are much lower because Cyclist AP is near zero on this split — the two are not interchangeable.
-- Decoded with the shipped `score_k=2.5` confidence weighting. The 3-class mean AP_BEV@0.7 (Mod) is 10.4 — an unweighted mean like the mAP3D columns, **not** a Car figure, since BEV IoU ignores height and is therefore never below the 3D IoU for the same boxes. The instance-weighted mAP3D@0.5 is 44.5.
-- Cross-checked against a port of the official KITTI devkit on identical predictions: Ultralytics' R40 reads **0.15-0.65 AP lower** across all nine class/difficulty cells (Car Mod@0.7 scores 20.7 there against 20.1 here). The gap is mainly the devkit's neighbour-class don't-care rule, which needs the `Van`/`Person_sitting` boxes this 3-class dataset does not carry. These figures are therefore a floor, not an optimistic reading.
+- Decoded with the shipped `score_k=2.5` confidence weighting.
+- Cross-checked against a port of the official KITTI devkit on identical predictions: Ultralytics' R40 reads **0.15-0.65 AP lower** across all nine class/difficulty cells. The gap is mainly the devkit's neighbour-class don't-care rule, which needs the `Van`/`Person_sitting` boxes this 3-class dataset does not carry. These figures are a floor, not an optimistic reading.
+- `n` and `s` land within ~0.5 AP of each other, so the released `s` is not currently buying its extra capacity. For reference, an `s` trained from scratch for 400 epochs on Chen's full 3712-frame training set (`train` **and** `dev`, not the shipped 3172-frame `train`) reaches **54.0 / 20.1** Car Moderate — so the gap is training budget, not architecture.
+- `m`, `l` and `x` are pending re-benchmarking on the drive-disjoint split. Reproduce any row with `python -m ultralytics.data.scripts.benchmark_s3d --data kitti-stereo-chen.yaml --split test`.
 
 !!! warning "Earlier published numbers for n/s/m/l/x were measured on a leaked split and have been removed"
 
@@ -216,4 +219,4 @@ KITTI R40 evaluation computes 3D Average Precision (AP3D) using 40-point interpo
 
 ### What pretrained stereo 3D detection models are available?
 
-YOLO26 siamese stereo models are configured in sizes n/s/m/l/x via the `-s3d` suffix. Only `YOLO26s-s3d` currently has a benchmark measured on a drive-disjoint split (12.8M params; 54.0 Car AP3D@0.5 and 20.1 Car AP3D@0.7 at Moderate). The other sizes are pending re-benchmarking — earlier figures for them came from a split with 99.6% drive leakage and were withdrawn. See the [Models section](#models) for the details and how to reproduce.
+YOLO26 siamese stereo models are configured in sizes n/s/m/l/x via the `-s3d` suffix. `YOLO26n-s3d` and `YOLO26s-s3d` are published and benchmarked on a drive-disjoint split (47.0 and 46.5 Car AP3D@0.5 Moderate respectively). `m`, `l` and `x` are pending re-benchmarking — earlier figures for them came from a split with 99.6% drive leakage and were withdrawn. See the [Models section](#models) for the details and how to reproduce.

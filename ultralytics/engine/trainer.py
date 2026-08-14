@@ -455,6 +455,7 @@ class BaseTrainer:
         self._oom_retries = 0  # OOM auto-reduce counter for first epoch
         while True:
             self.epoch = epoch
+            self.fitness = None  # only validation sets this, so best.pt cannot be saved on a non-validating epoch
             self.run_callbacks("on_train_epoch_start")
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")  # suppress 'Detected lr_scheduler.step() before optimizer.step()'
@@ -617,7 +618,7 @@ class BaseTrainer:
                 self.metrics, self.fitness = self.validate()
 
             # NaN recovery
-            if self._handle_nan_recovery(epoch, fitness_fresh=should_val):
+            if self._handle_nan_recovery(epoch):
                 continue
 
             self.nan_recovery_attempts = 0
@@ -1042,19 +1043,14 @@ class BaseTrainer:
             self.ema.updates = ckpt["updates"]
         self.best_fitness = ckpt.get("best_fitness")
 
-    def _handle_nan_recovery(self, epoch, fitness_fresh: bool = True):
+    def _handle_nan_recovery(self, epoch):
         """Detect and recover from NaN/Inf loss by loading last checkpoint.
 
         Args:
             epoch (int): Current epoch index.
-            fitness_fresh (bool): Whether `self.fitness` was recomputed this epoch. With `val_period > 1`
-                the value persists between validations, so the fitness check below must not be re-applied
-                to a stale number — one NaN validation would otherwise be counted as a fresh failure on
-                every subsequent epoch and exhaust the retry budget.
         """
         loss_nan = self.loss is not None and not self.loss.isfinite()
-        # Gated on freshness: `self.loss` is updated every epoch, `self.fitness` only on validation epochs.
-        fitness_nan = fitness_fresh and self.fitness is not None and not np.isfinite(self.fitness)
+        fitness_nan = self.fitness is not None and not np.isfinite(self.fitness)
         corrupted = RANK in {-1, 0} and (loss_nan or fitness_nan)
         reason = "Loss NaN/Inf" if loss_nan else "Fitness NaN/Inf"
         if RANK != -1:  # DDP: broadcast to all ranks

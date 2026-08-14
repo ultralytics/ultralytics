@@ -1909,17 +1909,16 @@ def test_nan_recovery_flag_before_first_validation(monkeypatch):
     assert t._handle_nan_recovery(0) is False
 
 
-def test_stale_fitness_does_not_retrigger_collapse_recovery(monkeypatch):
-    """A zero fitness must never trigger recovery, and a stale NaN one must not exhaust the retry budget.
+def test_unvalidated_epoch_does_not_retrigger_collapse_recovery(monkeypatch):
+    """A zero fitness must never trigger recovery, and an epoch that skipped validation must not either.
 
     Zero is a legitimate fitness on a small validation set: an s3d screening split of 189 frames returns
     AP3D 0.0 at some early validations, which killed 1 arm in 8 per launch. Upstream removed the
     fitness-collapse trigger outright, so a zero fitness is now simply survivable.
 
-    The `fitness_fresh` gate this branch keeps covers what remains: `_handle_nan_recovery` runs every
-    epoch, but with `val_period > 1` `self.fitness` only changes on validation epochs, so one NaN
-    validation would otherwise re-fire on the same stale value each following epoch, spending a retry
-    per epoch and reporting "NaN persisted" though nothing recomputed it.
+    With `val_period > 1` most epochs never recompute fitness. `train()` resets `self.fitness` to None at
+    the top of each epoch so a NaN validation cannot re-fire on the same stale value every epoch after,
+    spending a retry each time and reporting "NaN persisted" though nothing recomputed it.
     """
     from ultralytics.engine import trainer as trainer_mod
     from ultralytics.models.yolo.detect import DetectionTrainer
@@ -1933,26 +1932,25 @@ def test_stale_fitness_does_not_retrigger_collapse_recovery(monkeypatch):
 
     monkeypatch.setattr(trainer_mod, "RANK", -1)
 
-    # A zero fitness after a positive best is healthy, fresh or stale: it is no longer a recovery trigger.
-    for fresh in (False, True):
-        t = make()
-        assert t._handle_nan_recovery(5, fitness_fresh=fresh) is False
-        assert t.nan_recovery_attempts == 0, "a zero fitness must not consume a recovery attempt"
-
-    # Stale NaN fitness (no validation this epoch): must be ignored, and must not consume a retry.
+    # A zero fitness after a positive best is healthy: it is no longer a recovery trigger.
     t = make()
-    t.fitness = float("nan")
-    assert t._handle_nan_recovery(5, fitness_fresh=False) is False
-    assert t.nan_recovery_attempts == 0, "a stale fitness must not consume a recovery attempt"
+    assert t._handle_nan_recovery(5) is False
+    assert t.nan_recovery_attempts == 0, "a zero fitness must not consume a recovery attempt"
 
-    # The same NaN fitness on a validation epoch is fresh, so it is detected.
+    # An epoch that skipped validation carries fitness None: ignored, and must not consume a retry.
+    t = make()
+    t.fitness = None
+    assert t._handle_nan_recovery(5) is False
+    assert t.nan_recovery_attempts == 0, "an unvalidated epoch must not consume a recovery attempt"
+
+    # A NaN fitness from an epoch that did validate is detected.
     t = make()
     t.fitness = float("nan")
     with pytest.raises(RuntimeError, match="no valid last.pt"):
-        t._handle_nan_recovery(5, fitness_fresh=True)
+        t._handle_nan_recovery(5)
 
-    # A real NaN loss is detected regardless of freshness, since self.loss updates every epoch.
+    # A real NaN loss is detected even on an unvalidated epoch, since self.loss updates every epoch.
     t = make()
-    t.loss = torch.tensor(float("nan"))
+    t.loss, t.fitness = torch.tensor(float("nan")), None
     with pytest.raises(RuntimeError, match="no valid last.pt"):
-        t._handle_nan_recovery(5, fitness_fresh=False)
+        t._handle_nan_recovery(5)

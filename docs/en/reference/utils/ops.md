@@ -80,6 +80,10 @@ keywords: Ultralytics, utility operations, non-max suppression, bounding box tra
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.ops._resample_grid
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.ops.resample_segments
 
 <br><br><hr><br>

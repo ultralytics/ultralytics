@@ -172,8 +172,8 @@ returns a `nextPageToken` for paging further back.
 ## Code Examples
 
 Each deployment card includes a `Code` tab showing ready-to-use API code with the endpoint URL filled in. For workspace
-owners, one of the workspace's API keys is inserted — confirm it matches the bound key prefix shown in the card footer,
-since only the bound key opens the endpoint. Non-owners see a `YOUR_API_KEY` placeholder:
+owners, the deployment's bound API key is inserted, ready to copy and run. Non-owners see a `YOUR_API_KEY`
+placeholder:
 
 === "Python"
 
@@ -234,7 +234,7 @@ since only the bound key opens the endpoint. Non-owners see a `YOUR_API_KEY` pla
 
 !!! note "Auto-Populated Credentials"
 
-    When viewing the `Code` tab in the platform, the endpoint URL is filled in for you, along with an API key for workspace owners — confirm the key matches the prefix shown in the deployment card footer, since only the [bound key](endpoints.md#authentication) opens the endpoint. See [API Keys](../account/api-keys.md) to generate a key.
+    When viewing the `Code` tab in the platform, the endpoint URL and, for workspace owners, the deployment's [bound API key](endpoints.md#authentication) are filled in for you. See [API Keys](../account/api-keys.md) to generate a key.
 
 ## Deployment Predict
 

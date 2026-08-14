@@ -834,6 +834,8 @@ class Model(torch.nn.Module):
             self.predictor = None  # this module replaced the one the cached predictor wrapped
 
         self.trainer.train()
+        if self.trainer.args.lr_find_only:
+            return None
         # Update model and cfg after training
         if RANK in {-1, 0}:
             ckpt = self.trainer.best if self.trainer.best.exists() else self.trainer.last

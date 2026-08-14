@@ -877,6 +877,7 @@ def main(argv: list[str]) -> None:
     argv, resume = _pop_flag(argv, "--resume")
     argv, fork_from = _pop_flag(argv, "--fork_from")
     argv, lr_override = _pop_flag(argv, "--lr")
+    argv, lr_find_only = _pop_flag(argv, "--lr-find-only", is_bool=True)
     argv, batch_override = _pop_flag(argv, "--batch")
     argv, nbs_override = _pop_flag(argv, "--nbs")
     argv, freeze_override = _pop_flag(argv, "--freeze")
@@ -1233,6 +1234,8 @@ def main(argv: list[str]) -> None:
     if scratch:
         train_args["pretrained"] = False
         print("[scratch] pretrained=False, backbone will be randomly initialized")
+    if lr_find_only:
+        train_args["lr_find_only"] = True
     if cls_map_vocab:
         # Table rows are keyed by dataset basename, the same key multi_det uses per sub-run.
         _ClsMapTrainer.cls_map = _load_cls_table(cls_map_vocab).get(Path(train_args["data"]).stem, {})

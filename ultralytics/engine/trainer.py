@@ -8,6 +8,7 @@ Usage:
 
 from __future__ import annotations
 
+import csv
 import gc
 import math
 import os
@@ -348,6 +349,40 @@ class BaseTrainer:
         a, b, _ = np.polyfit(x[region], velocity[region], 2)
         fastest = np.clip(-b / (2 * a) if a < 0 else x[peak], x[0], x[edge])
         lr = float(f"{min(10 ** ((fastest + x[edge]) / 2), 0.01):.3g}")
+        lrs = lrs[: len(losses)]
+
+        smooth = np.full(len(losses), np.nan)
+        descent = np.full(len(losses), np.nan)
+        offset = window // 2
+        smooth[offset : offset + len(y)] = y
+        descent[offset : offset + len(velocity)] = velocity
+        potential = (np.log10(lrs) >= fastest) & (np.log10(lrs) <= x[edge])
+        with open(self.save_dir / "lr_finder.csv", "w", newline="", encoding="utf-8") as file:
+            writer = csv.writer(file)
+            writer.writerow(("step", "lr", "loss", "smoothed_loss", "descent_velocity", "potential"))
+            for i, (step_lr, loss) in enumerate(zip(lrs, losses)):
+                writer.writerow(
+                    (
+                        i + 1,
+                        step_lr,
+                        loss,
+                        "" if np.isnan(smooth[i]) else smooth[i],
+                        "" if np.isnan(descent[i]) else descent[i],
+                        bool(potential[i]),
+                    )
+                )
+        YAML.save(
+            self.save_dir / "lr_finder.yaml",
+            {
+                "steps": len(losses),
+                "range": [float(lrs[0]), float(lrs[-1])],
+                "fastest_descent_lr": float(10**fastest),
+                "fastest_descent_sample_lr": float(10 ** x[peak]),
+                "stability_edge_lr": float(10 ** x[edge]),
+                "potential_lrs": [float(v) for v in lrs[potential]],
+                "selected_lr": lr,
+            },
+        )
 
         self.args.lr0 = self.args.warmup_bias_lr = lr
         if self.args.warmup_epochs == DEFAULT_CFG.warmup_epochs:
@@ -358,6 +393,10 @@ class BaseTrainer:
         LOGGER.info(
             f"{colorstr('LR finder:')} fitted 'lr0={lr:g}', 'warmup_bias_lr={lr:g}' and "
             f"'warmup_epochs={self.args.warmup_epochs:g}'"
+        )
+        LOGGER.info(
+            f"{colorstr('LR finder:')} potential range {10**fastest:.3g} -> {10 ** x[edge]:.3g}; "
+            f"saved {self.save_dir / 'lr_finder.csv'} and {self.save_dir / 'lr_finder.yaml'}"
         )
 
     def _build_train_pipeline(self):
@@ -487,10 +526,14 @@ class BaseTrainer:
         if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
             self.args.batch = self.batch_size = self.auto_batch()
         auto_lr = str(self.args.lr0).lower() == "auto"
+        if self.args.lr_find_only and not auto_lr:
+            raise ValueError("'lr_find_only=True' requires 'lr0=auto'")
         self._build_train_pipeline()
         self.set_class_weights()  # before the LR finder builds a loss criterion that snapshots the weights
         if auto_lr and not self.resume:
             self._find_lr()
+        if self.args.lr_find_only:
+            return
         self.validator = self.get_validator()
         self.ema = ModelEMA(self.model)
         if RANK in {-1, 0}:
@@ -509,6 +552,10 @@ class BaseTrainer:
         if self.world_size > 1:
             self._setup_ddp()
         self._setup_train()
+
+        if self.args.lr_find_only:
+            self._teardown()
+            return
 
         nb = len(self.train_loader)  # number of batches
         nw = self._get_warmup_iterations(nb)
@@ -722,6 +769,10 @@ class BaseTrainer:
             if self.args.plots:
                 self.plot_metrics()
             self.run_callbacks("on_train_end")
+        self._teardown()
+
+    def _teardown(self):
+        """Release training resources."""
         self._clear_memory()
         for loader in (self.train_loader, self.test_loader):
             if hasattr(loader, "close"):

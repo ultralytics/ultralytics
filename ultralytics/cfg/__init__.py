@@ -315,6 +315,7 @@ CFG_BOOL_KEYS = frozenset(
         "channels_last",
         "end2end",
         "cls_remap",
+        "lr_find_only",
     }
 )
 CFG_STR_KEYS = frozenset(

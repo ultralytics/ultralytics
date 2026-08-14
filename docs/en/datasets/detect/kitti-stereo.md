@@ -20,7 +20,7 @@ The YOLO 3D Stereo format is a specialized dataset format for training stereo-ba
     | `dev` | 540 | 14 | Early stopping and model selection (this is what `val:` points at) |
     | `test` | 3769 | 45 | Final reporting only, equal to the Chen validation split |
 
-    `train` and `dev` together are exactly Chen's 3712-frame training split. Evaluate once at the end with `kitti-stereo-chen-test.yaml`, which points `val:` at the held-out test split — using it during training selects on the reported set and invalidates the number.
+    `train` and `dev` together are exactly Chen's 3712-frame training split. Evaluate once at the end with `split=test` (`yolo val task=s3d data=kitti-stereo-chen.yaml split=test model=best.pt`) — using the test split during training selects on the reported set and invalidates the number.
 
     Why drive-disjointness matters: an earlier `kitti-stereo.yaml` config split frames by a contiguous index cutoff, which placed 128 of KITTI's 141 raw drives on **both** sides — 3754 of its 3769 validation frames (99.6%) belonged to a drive that also appeared in training. Because consecutive frames of a drive show the same vehicles at nearly the same range, a model could score highly by memorizing scene-specific appearance-to-depth cues, and the same checkpoint scored roughly 5x lower at Car AP3D@0.7 once the leak was removed. That config and its dataset archive have been removed to prevent it being used by accident.
 
@@ -259,7 +259,7 @@ python ultralytics/data/scripts/convert_kitti_3d.py --kitti-root /path/to/kitti_
 
 !!! warning "The script's split is the leaky one — do not report numbers from it"
 
-    `convert_kitti_3d.py` partitions by a contiguous index cutoff, which is exactly the split described above as placing 128 of KITTI's 141 raw drives on both sides (99.6% of validation frames share a drive with training). Use the script to produce the **image, label and calibration files**, then evaluate with the drive-disjoint `kitti-stereo-chen.yaml` / `kitti-stereo-chen-test.yaml` configs — not with the train/val directories the script writes. Numbers measured on the script's own split are roughly 5x optimistic at Car AP3D@0.7 and are not comparable to published stereo-3D results.
+    `convert_kitti_3d.py` partitions by a contiguous index cutoff, which is exactly the split described above as placing 128 of KITTI's 141 raw drives on both sides (99.6% of validation frames share a drive with training). Use the script to produce the **image, label and calibration files**, then evaluate with the drive-disjoint `kitti-stereo-chen.yaml` config (`split=test` for the reported number) — not with the train/val directories the script writes. Numbers measured on the script's own split are roughly 5x optimistic at Car AP3D@0.7 and are not comparable to published stereo-3D results.
 
 The script will:
 

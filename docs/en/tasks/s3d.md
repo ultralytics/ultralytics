@@ -26,7 +26,7 @@ Ultralytics YOLO26 Stereo 3D Detection models use a siamese backbone over the [K
 | ------------------------------------------------------------------------------------------------------------- | ------ | ---------------------- | ---------------------- | --------------- | --------------- |
 | [YOLO26s-s3d](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26/yolo26-s3d.yaml) | 12.8M  | 66.6 / **54.0** / 47.1 | 27.2 / **20.1** / 16.8 | 23.1            | 6.8             |
 
-- Trained **from scratch** on the Chen `train` split (3712 images) for 400 epochs at `imgsz=[384, 1248]`, then evaluated once on the held-out Chen `test` split (3769 images) via `kitti-stereo-chen-test.yaml`. The two splits share no raw drive.
+- Trained **from scratch** on the Chen `train` split (3712 images) for 400 epochs at `imgsz=[384, 1248]`, then evaluated once on the held-out Chen `test` split (3769 images) via `yolo val ... data=kitti-stereo-chen.yaml split=test`. The two splits share no raw drive.
 - **Car** columns are the KITTI headline (Car at IoU 0.7 is the number published stereo-3D work leads with). **mAP3D** columns are the unweighted mean over Car/Pedestrian/Cyclist and are much lower because Cyclist AP is near zero on this split — the two are not interchangeable.
 - Decoded with the shipped `score_k=2.5` confidence weighting. The 3-class mean AP_BEV@0.7 (Mod) is 10.4 — an unweighted mean like the mAP3D columns, **not** a Car figure, since BEV IoU ignores height and is therefore never below the 3D IoU for the same boxes. The instance-weighted mAP3D@0.5 is 44.5.
 
@@ -34,7 +34,7 @@ Ultralytics YOLO26 Stereo 3D Detection models use a siamese backbone over the [K
 
     A previous version of this table reported 24.5-31.6% AP3D@0.7 (Mod) across five model sizes. Those runs used the `kitti-stereo.yaml` config, which split frames by a contiguous index cutoff and placed 128 of KITTI's 141 raw drives on **both** sides — 99.6% of its validation frames shared a drive with training. That config has since been removed from the repository. Re-measured on a drive-disjoint split, the same class of model scores roughly **5x lower** at AP3D@0.7, which is why only the row above remains.
 
-    Numbers for `n`, `m`, `l` and `x` are pending re-benchmarking on the drive-disjoint split. Reproduce any of them with `python -m ultralytics.data.scripts.benchmark_s3d --data kitti-stereo-chen-test.yaml`. **Do not restore the old figures.**
+    Numbers for `n`, `m`, `l` and `x` are pending re-benchmarking on the drive-disjoint split. Reproduce any of them with `python -m ultralytics.data.scripts.benchmark_s3d --data kitti-stereo-chen.yaml --split test`. **Do not restore the old figures.**
 
 ## Train
 

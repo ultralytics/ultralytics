@@ -12,7 +12,7 @@ were inflated and not leaderboard-comparable).
 Example (run on the GPU box):
     python -m ultralytics.data.scripts.benchmark_s3d \
         --weights yolo26n-s3d.pt yolo26s-s3d.pt yolo26m-s3d.pt yolo26l-s3d.pt yolo26x-s3d.pt \
-        --data kitti-stereo-chen-test.yaml --imgsz 384 1248 --device 0 --out s3d_benchmark.md
+        --data kitti-stereo-chen.yaml --split test --imgsz 384 1248 --device 0 --out s3d_benchmark.md
 
 Notes:
 - Pass checkpoint paths (or names resolvable by YOLO) via --weights.
@@ -47,12 +47,12 @@ def _fmt(v: float | None) -> str:
     return f"{v * 100:.1f}" if v is not None else "-"
 
 
-def benchmark(weights: list[str], data: str, imgsz: list[int], batch: int, device: str) -> list[dict]:
+def benchmark(weights: list[str], data: str, imgsz: list[int], batch: int, device: str, split: str) -> list[dict]:
     """Val each checkpoint and collect its results_dict plus parameter count."""
     rows = []
     for w in weights:
         model = YOLO(w)
-        metrics = model.val(data=data, imgsz=imgsz, batch=batch, device=device, plots=False, verbose=False)
+        metrics = model.val(data=data, split=split, imgsz=imgsz, batch=batch, device=device, plots=False, verbose=False)
         rd = metrics.results_dict
         rows.append({"name": Path(w).stem, "params": _param_count(model), "rd": rd})
     return rows
@@ -99,14 +99,20 @@ def main() -> None:
         default=["yolo26n-s3d.pt", "yolo26s-s3d.pt", "yolo26m-s3d.pt", "yolo26l-s3d.pt", "yolo26x-s3d.pt"],
         help="Checkpoint paths or names to validate.",
     )
-    p.add_argument("--data", default="kitti-stereo.yaml", help="Dataset YAML.")
+    p.add_argument("--data", default="kitti-stereo-chen.yaml", help="Dataset YAML.")
+    p.add_argument(
+        "--split",
+        default="test",
+        help="Dataset split to report on. Defaults to 'test', the held-out reporting split; "
+        "'val' selects the dev split, which is for model selection and is NOT publishable.",
+    )
     p.add_argument("--imgsz", nargs=2, type=int, default=[384, 1248], help="Validation image size [H, W].")
     p.add_argument("--batch", type=int, default=8, help="Validation batch size.")
     p.add_argument("--device", default="0", help="CUDA device, e.g. '0' or 'cpu'.")
     p.add_argument("--out", default="s3d_benchmark.md", help="Output Markdown file.")
     args = p.parse_args()
 
-    rows = benchmark(args.weights, args.data, args.imgsz, args.batch, args.device)
+    rows = benchmark(args.weights, args.data, args.imgsz, args.batch, args.device, args.split)
     tables = render_tables(rows)
     Path(args.out).write_text(tables)
     print(tables)

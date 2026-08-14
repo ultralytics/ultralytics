@@ -336,8 +336,8 @@ def build_dataloader(
         drop_last (bool, optional): Whether to drop the last incomplete batch.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
         device (torch.device | str, optional): Device used by the dataloader consumer.
-        seed (int, optional): Run seed mixed into the sampling and worker RNGs so that different seeds produce
-            different shuffle orders and augmentations.
+        seed (int, optional): Run seed mixed into the sampling and worker RNGs so that different seeds produce different
+            shuffle orders and augmentations.
 
     Returns:
         (InfiniteDataLoader): A dataloader that can be used for training or validation.

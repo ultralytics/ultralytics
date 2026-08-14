@@ -1,0 +1,38 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# YOLO26-M detector with the UltraViT-M 290726 backbone and P4/P5 Deep16-SNI head.
+
+nc: 80
+end2end: True
+reg_max: 1
+
+scales:
+  m: [0.25, 1.00, 512]
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [96, 3, 2]]
+  - [-1, 5, RepUltraViTBlock, [6.0, True, 0.00001, True]]
+  - [-1, 1, Conv, [192, 3, 2]]
+  - [-1, 8, RepUltraViTBlock, [4.75, True, 0.00001, True]]
+  - [-1, 1, Conv, [384, 3, 2]]
+  - [-1, 8, RepUltraViTBlock, [4.25, True, 0.00001, True]]
+  - [-1, 1, Conv, [1152, 3, 2]]
+  - [-1, 5, MHSABlock, [0, 4.75, True, 0.00001, False, 64]]
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [-1, 1, Scale, [0.5]]
+  - [[-1, 6], 1, Concat, [1]]
+  - [-1, 2, C3k2, [768, True]]
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [-1, 1, Scale, [0.5]]
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, 6, C3k2, [384, True]]
+  - [-1, 1, Conv, [384, 3, 2]]
+  - [[-1, 12], 1, Concat, [1]]
+  - [-1, 2, C3k2, [768, True]]
+  - [-1, 1, Conv, [768, 3, 2]]
+  - [[-1, 8], 1, Concat, [1]]
+  - [-1, 1, C3k2, [1024, True, 0.5, True]]
+  - [[19, 22], 1, Detect, [nc]]

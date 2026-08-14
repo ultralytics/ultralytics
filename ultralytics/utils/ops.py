@@ -74,6 +74,19 @@ class Profile(contextlib.ContextDecorator):
         return time.perf_counter()
 
 
+def grouped_topk(x: torch.Tensor, k: int, groups: int = 8) -> tuple[torch.Tensor, torch.Tensor]:
+    """Select exact top-k values through smaller grouped selections."""
+    n = x.shape[1]
+    while groups > 1 and (n % groups or n // groups < k):
+        groups //= 2
+    if groups == 1:  # nothing to gain, e.g. a short axis or one that does not divide evenly
+        return x.topk(k, dim=1)
+    size = n // groups
+    values, index = x.reshape(x.shape[0], groups, size).topk(k, dim=-1)
+    values, winners = values.flatten(1).topk(k, dim=1)
+    return values, winners // k * size + index.flatten(1).gather(1, winners)
+
+
 def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.ndarray:
     """Convert segment coordinates to bounding box coordinates.
 

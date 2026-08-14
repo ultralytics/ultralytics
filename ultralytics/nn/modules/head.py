@@ -34,6 +34,7 @@ __all__ = (
     "v10Detect",
 )
 
+
 class Detect(nn.Module):
     """YOLO Detect head for object detection models.
 

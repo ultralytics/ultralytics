@@ -11,7 +11,7 @@ import pytest
 
 from ultralytics import YOLO
 from ultralytics.data.stereo.box3d import Box3D
-from ultralytics.utils.metrics import compute_3d_iou, compute_bev_iou
+from ultralytics.models.yolo.s3d.metrics import compute_3d_iou, compute_bev_iou
 
 MODEL = "yolo26n-s3d.yaml"
 DATA = "kitti-stereo8.yaml"
@@ -264,7 +264,7 @@ def test_bev_corners_uses_kitti_axis_convention():
     same wrong footprint, so identical-box, 45-degree, disjoint and stacked cases are all unaffected. Only tying the
     footprint to a named axis catches it.
     """
-    from ultralytics.utils.metrics import _bev_corners
+    from ultralytics.models.yolo.s3d.metrics import _bev_corners
 
     extent = lambda v: float(v.max() - v.min())  # noqa: E731
 
@@ -1710,7 +1710,7 @@ def test_close_range_boxes_are_rendered():
     Regression for a hardcoded 2.0 m visualization floor that silently dropped every box from a
     short-baseline rig (cube_s3d objects sit at 0.45-1.66 m), so Results.plot() drew nothing at all.
     """
-    from ultralytics.utils.plotting import plot_boxes3d, project_box3d_corners
+    from ultralytics.models.yolo.s3d.plotting import plot_boxes3d, project_box3d_corners
 
     calib = {"fx": 645.66, "fy": 645.66, "cx": 480.0, "cy": 300.0, "baseline": 0.063}
     img = np.zeros((600, 960, 3), dtype=np.uint8)

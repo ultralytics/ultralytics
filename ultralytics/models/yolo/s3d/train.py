@@ -23,7 +23,8 @@ from ultralytics.models.yolo.s3d.model import Stereo3DDetModel
 from ultralytics.models.yolo.s3d.preprocess import preprocess_stereo_batch
 from ultralytics.nn.modules.block import StereoCostVolume
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.plotting import Annotator, VisualizationConfig, colors, plot_labels, plot_stereo3d_boxes
+from ultralytics.models.yolo.s3d.plotting import VisualizationConfig, plot_stereo3d_boxes
+from ultralytics.utils.plotting import Annotator, colors, plot_labels
 from ultralytics.utils.torch_utils import unwrap_model
 
 

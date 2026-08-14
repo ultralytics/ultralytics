@@ -727,6 +727,7 @@ nav:
                   - metrics: reference/models/yolo/s3d/metrics.md
                   - model: reference/models/yolo/s3d/model.md
                   - orientation: reference/models/yolo/s3d/orientation.md
+                  - plotting: reference/models/yolo/s3d/plotting.md
                   - predict: reference/models/yolo/s3d/predict.md
                   - preprocess: reference/models/yolo/s3d/preprocess.md
                   - train: reference/models/yolo/s3d/train.md

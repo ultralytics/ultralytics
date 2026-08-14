@@ -16,7 +16,7 @@ import numpy as np
 import torch
 
 from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, ops
-from ultralytics.utils.plotting import Annotator, colors, plot_boxes3d, save_one_box
+from ultralytics.utils.plotting import Annotator, colors, save_one_box
 
 
 class BaseTensor(SimpleClass):
@@ -619,6 +619,11 @@ class Results(SimpleClass, DataExportMixin):
         if pred_boxes3d is not None and boxes3d:
             _calib = getattr(self, "_calib", None)
             if _calib is not None:
+                # Local import: the stereo-3D renderer lives under models/yolo/s3d/, and engine/ must not
+                # import models/ at module scope. Only reached when an s3d predictor has attached `_calib`,
+                # so non-s3d results never pay for it.
+                from ultralytics.models.yolo.s3d.plotting import plot_boxes3d
+
                 img_np = np.asarray(annotator.im)
                 canvas = plot_boxes3d(img_np, list(pred_boxes3d), _calib)
                 if isinstance(annotator.im, np.ndarray):

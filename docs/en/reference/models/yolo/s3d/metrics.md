@@ -16,6 +16,30 @@ keywords: Ultralytics, ultralytics.models.yolo.s3d.metrics, API reference, YOLO,
 
 <br><br><hr><br>
 
+## ::: ultralytics.models.yolo.s3d.metrics._bev_corners
+
+<br><br><hr><br>
+
+## ::: ultralytics.models.yolo.s3d.metrics._polygon_area
+
+<br><br><hr><br>
+
+## ::: ultralytics.models.yolo.s3d.metrics._convex_intersection_area
+
+<br><br><hr><br>
+
+## ::: ultralytics.models.yolo.s3d.metrics._box_to_params
+
+<br><br><hr><br>
+
+## ::: ultralytics.models.yolo.s3d.metrics.compute_bev_iou
+
+<br><br><hr><br>
+
+## ::: ultralytics.models.yolo.s3d.metrics.compute_3d_iou
+
+<br><br><hr><br>
+
 ## ::: ultralytics.models.yolo.s3d.metrics.classify_difficulty
 
 <br><br><hr><br>

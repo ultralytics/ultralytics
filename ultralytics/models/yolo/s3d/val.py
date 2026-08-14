@@ -17,15 +17,17 @@ from ultralytics.models.yolo.s3d.metrics import (
     DIFFICULTY_MODERATE,
     Stereo3DDetMetrics,
     classify_difficulty,
+    compute_3d_iou,
+    compute_bev_iou,
 )
 from ultralytics.models.yolo.s3d.preprocess import (
     compute_letterbox_params,
     decode_and_refine_predictions,
     preprocess_stereo_batch,
 )
+from ultralytics.models.yolo.s3d.plotting import plot_stereo3d_boxes
 from ultralytics.utils import LOGGER, RANK
-from ultralytics.utils.metrics import DetMetrics, box_iou, compute_3d_iou, compute_bev_iou
-from ultralytics.utils.plotting import plot_stereo3d_boxes
+from ultralytics.utils.metrics import DetMetrics, box_iou
 
 
 def _reverse_letterbox_calib(

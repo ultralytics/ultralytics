@@ -83,7 +83,7 @@ The region table on the model `Deploy` tab includes:
 | ------------ | --------------------------------------------- |
 | **Location** | City and country with flag icon               |
 | **Zone**     | Region identifier                             |
-| **Latency**  | Measured ping time (median of 3 probes)       |
+| **Latency**  | Measured ping time from your browser          |
 | **Distance** | Distance from your approximate location in km |
 | **Actions**  | Deploy button or "Deployed" status badge      |
 
@@ -95,7 +95,7 @@ The table is searchable by city, country, and zone, and is sorted by latency by 
 
 !!! tip "How Latency Is Measured"
 
-    Your browser probes each of the 42 regions three times and keeps the median. Results are cached in the browser for 30 minutes and shared across the `Deploy` tab and the `New Deployment` dialog, so switching pages does not re-run 126 probes. Use the **Rescan** button on the model `Deploy` tab to re-measure from your current network. Distance is computed from the approximate location of your request, so it is a rough guide rather than a precise value.
+    Your browser measures latency to each of the 42 regions, and results are cached for 30 minutes and shared across the `Deploy` tab and the `New Deployment` dialog. Use the **Rescan** button on the model `Deploy` tab to re-measure from your current network. Distance is computed from the approximate location of your request, so it is a rough guide rather than a precise value.
 
 ## Available Regions
 
@@ -175,11 +175,11 @@ The `New Deployment` dialog collects three inputs:
 
 ![Ultralytics Platform New Deployment Dialog Fixed Resource Defaults](https://cdn.ul.run/i/574300ec688c813a92304f252b57476b.avif)<!-- screenshot -->
 Below the name, a read-only **Resources** panel carries a `Custom resources coming soon` badge. Resources are not
-configurable today: every endpoint runs with `1 CPU`, `2 GiB` memory, `minInstances = 0`, and `maxInstances = 1`.
+configurable today: every endpoint runs as a single instance that scales to zero when idle.
 
 !!! note "Auto-Generated Names"
 
-    The deployment name combines the model name (first 20 characters) with the region city (first 15 characters), for example `yolo26n-iowa`. On the model `Deploy` tab, a numeric suffix is added when that model already has a deployment in the region (for example `yolo26n-iowa-2`). Names must be unique within a workspace — deploying a name that already exists returns an error rather than silently renaming.
+    The deployment name combines the model name with the region city, for example `yolo26n-iowa`. On the model `Deploy` tab, a numeric suffix is added when that model already has a deployment in the region (for example `yolo26n-iowa-2`). Names must be unique within a workspace — deploying a name that already exists returns an error rather than silently renaming.
 
 ### Deploy Tab (Quick Deploy)
 
@@ -332,7 +332,7 @@ Each deployment is bound to a single API key from the workspace that owns the mo
 Authorization: Bearer YOUR_API_KEY
 ```
 
-The endpoint stores only the SHA-256 hash of that key, so **no other key opens it** — not even another active key in
+The endpoint accepts only the key bound at creation, so **no other key opens it** — not even another active key in
 the same workspace. To control which key gets bound, deploy via the API authenticated with the workspace owner's key:
 that exact key is bound, and you already hold it. Deployments created any other way (the Platform UI, or an API call
 authenticated as a team member) bind one of the owning workspace's active keys automatically — identify it by the key
@@ -342,7 +342,7 @@ through the Platform predict proxy in the browser.
 
 !!! warning "Deleting the Bound Key Does Not Lock the Endpoint"
 
-    The endpoint validates requests against a key hash fixed when the deployment is created, so deleting or deactivating the bound API key does **not** revoke direct access — anyone holding the key string can still call the endpoint URL. What does break is the Platform predict proxy, which checks the key live and reports it as no longer available. To fully revoke access, stop or delete the deployment; after rotating keys, create the endpoint again so it binds the new key.
+    The endpoint's key check is fixed when the deployment is created, so deleting or deactivating the bound API key does **not** revoke direct access — anyone holding the key string can still call the endpoint URL. What does break is the Platform predict proxy, which checks the key live and reports it as no longer available. To fully revoke access, stop or delete the deployment; after rotating keys, create the endpoint again so it binds the new key.
 
 ### Direct Endpoint Requests
 
@@ -350,7 +350,7 @@ Send production requests directly to the URL shown on the deployment card. These
 Platform API rate limiter, so the 20 requests/minute predict limit does not apply. The endpoint still has its own
 capacity ceiling:
 
-- One instance accepts up to 8 concurrent requests and runs 2 inferences at a time
+- A single instance serves each endpoint, processing a limited number of requests at once
 - A request that waits more than 30 seconds for a slot returns `429` with a `Retry-After` header
 - A single request may run for up to 1 hour, which allows video inference to complete
 - Responses larger than 1 KB are gzip-compressed, and cross-origin browser requests are allowed
@@ -468,9 +468,8 @@ For global coverage:
 
 ### What's the cold start time?
 
-Cold start time depends on the model and whether the endpoint has scaled to zero. Platform's health-check request allows
-up to 55 seconds so an idle endpoint has time to start, and the container's startup check allows up to 2 minutes on a
-new revision. Running a health check from the deployment card before a burst of traffic warms the instance.
+Cold start time depends on the model and whether the endpoint has scaled to zero; Platform allows an idle endpoint
+extra time to start before reporting it unhealthy. Running a health check from the deployment card before a burst of traffic warms the instance.
 
 ### Can I use a custom domain?
 

@@ -112,8 +112,7 @@ If the original slug is already taken, the platform restores the item with a uni
 
 ### Automatic Deletion
 
-Items in Trash are automatically and permanently deleted after 30 days. A cleanup job runs daily at 03:00 UTC and
-removes expired items.
+Items in Trash are automatically and permanently deleted after 30 days.
 
 ### Empty Trash
 

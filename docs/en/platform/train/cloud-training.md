@@ -181,7 +181,7 @@ Training jobs progress through the following statuses:
 | **Failed**    | Training failed (see console logs for details)       |
 | **Cancelled** | Training was cancelled by the user                   |
 
-A fatal Python error in the console stream — a traceback, a CUDA out-of-memory error, or a failed CUDA initialization — ends the run immediately rather than waiting for a timeout, and the extracted message appears in an error banner on the model page with **View full console logs** and **Retry Training** actions. Runs that report no activity for 4 hours are swept and marked failed, and their compute is released.
+A fatal Python error in the console stream — a traceback, a CUDA out-of-memory error, or a failed CUDA initialization — ends the run immediately rather than waiting for a timeout, and the extracted message appears in an error banner on the model page with **View full console logs** and **Retry Training** actions. Runs that stop reporting activity for several hours are automatically marked failed, and their compute is released.
 
 To receive the completed and failed results without keeping this page open, connect [Slack alerts](../integrations/slack.md).
 
@@ -219,7 +219,7 @@ A live host card (hostname, CPU, GPU, RAM, and disk totals) plus per-epoch chart
 
 ### Checkpoints
 
-The best checkpoint (`best.pt`) is uploaded to the Platform **during** training — at most once every 15 minutes — and again when the run ends, so download, export, and deployment always use the best epoch produced so far. If the run is cancelled, the checkpoint uploaded before cancellation is kept.
+The best checkpoint (`best.pt`) is uploaded to the Platform periodically **during** training and again when the run ends, so download, export, and deployment always use the best epoch produced so far. If the run is cancelled, the checkpoint uploaded before cancellation is kept.
 
 ## Cancel Training
 
@@ -330,18 +330,18 @@ Before training starts, the platform estimates total cost by:
 
 **Factors affecting cost:**
 
-| Factor               | Impact                                                                                                |
-| -------------------- | ----------------------------------------------------------------------------------------------------- |
-| **Dataset Size**     | More images = longer training time (compute scales roughly linearly with dataset size)                |
-| **Model Size**       | Larger models (m, l, x) train slower than (n, s)                                                      |
-| **Number of Epochs** | Direct multiplier on training time                                                                    |
-| **Image Size**       | Larger imgsz increases computation: 320px=~0.3x, 640px=1.0x (baseline), 1280px=~3.5x                  |
-| **Batch Size**       | Larger batches are more efficient (batch 32 = ~0.84x time, batch 8 = ~1.2x time vs batch 16 baseline) |
-| **GPU Speed**        | Faster GPUs reduce training time (e.g., H100 SXM is estimated ~1.8x faster than RTX 4090)             |
-| **Optimizer**        | `MuSGD` is estimated at 2x the time of the other optimizers; all others are equal                     |
-| **Startup Overhead** | Up to 5 minutes for instance initialization, data download, and warmup (scales with dataset size)     |
+| Factor               | Impact                                                                                            |
+| -------------------- | ------------------------------------------------------------------------------------------------- |
+| **Dataset Size**     | More images = longer training time (compute scales roughly linearly with dataset size)            |
+| **Model Size**       | Larger models (m, l, x) train slower than (n, s)                                                  |
+| **Number of Epochs** | Direct multiplier on training time                                                                |
+| **Image Size**       | Larger imgsz substantially increases computation — 1280px costs several times more than 640px     |
+| **Batch Size**       | Larger batches train more efficiently than small ones                                             |
+| **GPU Speed**        | Faster GPUs reduce training time, partially offsetting their higher hourly rate                   |
+| **Optimizer**        | `MuSGD` takes roughly twice as long as the other optimizers                                       |
+| **Startup Overhead** | Up to 5 minutes for instance initialization, data download, and warmup (scales with dataset size) |
 
-The model behind these numbers is fitted from thousands of real cloud runs, and the estimate always uses the GPU you selected — so a job routed to faster Ultralytics infrastructure finishes ahead of its estimate.
+Estimates are based on real cloud training runs, and the estimate always uses the GPU you selected — so a job routed to faster Ultralytics infrastructure finishes ahead of its estimate.
 
 ### Cost Examples
 
@@ -389,7 +389,7 @@ Cloud training billing flow:
 | **Failed**    | Yes, when cloud compute started — elapsed GPU time used |
 | **Stuck**     | Yes — elapsed GPU time until automatic termination      |
 
-A run is treated as stuck after 4 hours without activity; the sweep marks it failed, terminates the instance, and settles the elapsed GPU time. Remote runs on your own hardware are simply marked failed with nothing to charge.
+A run that stops reporting activity for several hours is automatically marked failed; the instance is terminated and the elapsed GPU time settled. Remote runs on your own hardware are simply marked failed with nothing to charge.
 
 !!! note "Failures Before Compute Starts"
 

@@ -85,7 +85,7 @@ Below the overview cards, the deployments list shows all endpoints across your p
 
 !!! tip "Real-Time Updates"
 
-    The dashboard polls every 15 seconds for deployment status updates. When deployments are in a transitional state (`creating`, `deploying`, or `stopping`), polling increases to every 3 seconds. Per-deployment metrics refresh every 60 seconds. Click the refresh button for immediate updates.
+    The dashboard refreshes automatically, updating faster while deployments are in a transitional state (`creating`, `deploying`, or `stopping`). Click the refresh button for immediate updates.
 
 ## Per-Deployment Metrics
 
@@ -99,7 +99,7 @@ Each deployment card (in cards view) shows real-time metrics:
 | **P95 Latency** | Average of hourly 95th-percentile latencies (24h)       |
 | **Error Rate**  | Share of 4xx and 5xx responses, shown only when above 0 |
 
-Metrics come from the deployment's summary metrics endpoint and refresh every 60 seconds. Endpoints that have not
+Metrics refresh automatically. Endpoints that have not
 served a request show "No traffic yet", and metrics are collected only for deployments in the **Ready** state. On the
 deployments dashboard, metrics are fetched for the 20 most recent deployments.
 
@@ -113,14 +113,14 @@ Running deployments show a health check indicator:
 | **Red heart**     | Unhealthy — shows error message  |
 | **Spinning icon** | Health check in progress         |
 
-Health checks auto-retry every 20 seconds while unhealthy and stop polling once the endpoint responds. Click the
+Health checks auto-retry while unhealthy and stop once the endpoint responds. Click the
 refresh icon to manually trigger a health check, which doubles as a way to warm a scaled-to-zero endpoint before
 sending traffic.
 
 ![Ultralytics Platform Deployment Card Health Check Healthy With Latency](https://cdn.ul.run/i/c1c2da5731737f6afbd70b12eb144f9f.avif)<!-- screenshot -->
 !!! info "Cold Start Tolerance"
 
-    Platform allows the health-check request up to 55 seconds, and retries transient connection failures, so a scale-to-zero endpoint has time to start. If the card reports "Service starting up...", refresh it to pick up an instance that finished booting in the meantime.
+    Platform gives the health check extra time and retries transient connection failures, so a scale-to-zero endpoint has time to start. If the card reports "Service starting up...", refresh it to pick up an instance that finished booting in the meantime.
 
 ## Logs
 

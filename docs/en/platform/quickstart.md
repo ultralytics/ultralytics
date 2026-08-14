@@ -201,7 +201,7 @@ Uploads support multiple formats (full details in [Datasets](data/datasets.md)):
 graph LR
     A[Drop Files]:::start --> B[Auto-Package ZIP]:::proc
     B --> C[Upload to Storage]:::proc
-    C --> D[Backend Worker]:::proc
+    C --> D[Process Data]:::proc
     D --> E[Resize & Thumbnail]:::proc
     E --> F[Parse Labels]:::proc
     F --> G[Compute Statistics]:::proc

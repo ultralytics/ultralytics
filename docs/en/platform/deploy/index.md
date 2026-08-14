@@ -97,7 +97,7 @@ Deploy to 42 regions worldwide on Ultralytics Cloud:
 
 Each endpoint is a single-tenant service with:
 
-- Fixed resources of `1 CPU`, `2 GiB` memory, `minInstances=0`, `maxInstances=1`
+- Platform-managed sizing (not configurable today)
 - Scale-to-zero when idle
 - Unique endpoint URL with its own interactive API reference at `/docs`
 - Its own API key binding, so only that key can call the endpoint
@@ -132,9 +132,9 @@ Deploy close to your users with 42 regions covering:
 
 Endpoints currently behave as follows:
 
-- **Scale to zero**: `minInstances` is `0`
-- **Single active instance**: `maxInstances` is currently fixed at `1` on all plans
-- **In-instance concurrency**: the instance accepts up to 8 concurrent requests and runs 2 inferences at a time
+- **Scale to zero**: idle endpoints scale down to zero and cold-start on the next request
+- **Single active instance**: each endpoint currently serves from one instance on all plans
+- **Load shedding**: requests that queue too long receive `429` responses — see [Direct Endpoint Requests](endpoints.md#direct-endpoint-requests)
 - **Request timeout**: each request may run for up to 1 hour, which is enough for video inference
 
 ### Regional Deployment

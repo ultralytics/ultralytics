@@ -110,9 +110,9 @@ graph LR
 
 !!! info "Automatic Checkpoints"
 
-    The best checkpoint (`best.pt`, the highest-fitness epoch) is uploaded to the Platform **while training runs** —
-    at most once every 15 minutes — and again when the run ends, so download, export, and deployment always use the
-    best epoch produced so far. Cancelled runs keep the last checkpoint that finished uploading.
+    The best checkpoint (`best.pt`, the highest-fitness epoch) is uploaded to the Platform periodically **while
+    training runs** and again when the run ends, so download, export, and deployment always use the best epoch
+    produced so far. Cancelled runs keep the last checkpoint that finished uploading.
 
 ## Quick Start
 
@@ -179,7 +179,7 @@ If training fails:
 1. The model is marked failed and the compute instance is terminated
 2. The model page shows an error banner with the captured error, a link to the console output, and a **Retry**
    action that reopens the training dialog with the same configuration
-3. A run that reports no activity for 4 hours is automatically marked failed and its compute released
+3. A run that stops reporting activity for several hours is automatically marked failed and its compute released
 4. If cloud compute had started, elapsed GPU time is charged; failures before compute starts have no GPU usage charge
 
 ### How do I choose the right GPU?

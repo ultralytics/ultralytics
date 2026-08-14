@@ -83,7 +83,7 @@ A retry re-lists the folder rather than resuming: objects added since the first 
 
 ## Training
 
-Managed training works through the normal training flow. Workers download the pinned originals into temporary job storage for the run and remove them with job cleanup — your Google Cloud credentials never reach compute, because Platform hands the worker short-lived signed links to its own image endpoint instead.
+Managed training works through the normal training flow. Ultralytics Cloud stages the pinned originals in temporary job storage for the run and removes them afterward — your Google Cloud credentials never reach training compute, because Platform uses its own short-lived signed image links instead.
 
 ## Disconnect a Connection
 

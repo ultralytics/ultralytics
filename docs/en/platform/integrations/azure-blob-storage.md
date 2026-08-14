@@ -81,7 +81,7 @@ A retry re-lists the folder rather than resuming: blobs added since the first at
 
 ## Training
 
-Managed training works through the normal training flow. Workers download the pinned originals into temporary job storage for the run and remove them with job cleanup — your Azure credentials never reach compute, because Platform hands the worker short-lived signed links to its own image endpoint instead.
+Managed training works through the normal training flow. Ultralytics Cloud stages the pinned originals in temporary job storage for the run and removes them afterward — your Azure credentials never reach training compute, because Platform uses its own short-lived signed image links instead.
 
 ## Disconnect a Connection
 

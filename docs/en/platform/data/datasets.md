@@ -39,7 +39,7 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 === "Videos"
 
-    Videos are uploaded to the regional ingest worker, which samples frames at 1 FPS — up to 100 frames per video — and stores each frame as a WebP image named `<video>_frame_001.webp`. For longer videos, the worker widens the interval so the result stays within 100 frames. The container and codec must be decodable by the worker — see [Video Codec Support](#video-codec-support).
+    During processing, Platform samples video frames at 1 FPS — up to 100 frames per video — and stores each frame as a WebP image named `<video>_frame_001.webp`. For longer videos, the sampling interval widens so the result stays within 100 frames. The container and codec must be decodable by Platform — see [Video Codec Support](#video-codec-support).
 
     | Format | Extensions | Extraction            | Max Size |
     | ------ | ---------- | --------------------- | -------- |
@@ -51,7 +51,7 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
     !!! info "Video Frame Extraction"
 
-        A 60-second video produces up to 60 WebP frames. For videos longer than 100 seconds, the worker samples at a wider interval so the result stays within 100 frames.
+        A 60-second video produces up to 60 WebP frames. For videos longer than 100 seconds, frames are sampled at a wider interval so the result stays within 100 frames.
 
     AVI is not accepted and is excluded from the upload picker. Re-wrap AVI footage as MP4 before uploading.
 
@@ -69,7 +69,7 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 ### Video Codec Support
 
-The file extension alone isn't enough: a video can still fail if its codec cannot be decoded by the Platform ingest worker, which uses OpenCV/FFmpeg.
+The file extension alone isn't enough: a video can still fail if its codec cannot be decoded during processing.
 
 !!! tip "Use H.264 MP4"
 

@@ -259,7 +259,7 @@ The Platform supports export to [20 deployment formats](../../modes/export.md#ex
 
 ### NVIDIA Jetson TensorRT Targets
 
-Ultralytics Platform offers the following Jetson target selections for TensorRT `.engine` exports. As of July 2026, the Jetson export workers use JetPack 7.2 / L4T r39.2, Python 3.12.3, NVIDIA PyTorch 2.12.0a0 (26.04 build), CUDA 13.2, and TensorRT 10.16.1.11 inside the export container.
+Ultralytics Platform offers the following Jetson target selections for TensorRT `.engine` exports. As of July 2026, Jetson TensorRT exports are built with JetPack 7.2 / L4T r39.2, Python 3.12.3, NVIDIA PyTorch 2.12.0a0 (26.04 build), CUDA 13.2, and TensorRT 10.16.1.11.
 
 | Target selection           | API `gpuType`          | Memory | GPU architecture   | Python | CUDA | TensorRT   | Measured YOLO26n FP16 export | Physical build/load validation                |
 | -------------------------- | ---------------------- | -----: | ------------------ | ------ | ---- | ---------- | ---------------------------: | --------------------------------------------- |

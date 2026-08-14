@@ -171,8 +171,9 @@ returns a `nextPageToken` for paging further back.
 
 ## Code Examples
 
-Each deployment card includes a `Code` tab showing ready-to-use API code with the endpoint URL and the deployment's
-bound API key filled in when you can view key values (non-owners see a `YOUR_API_KEY` placeholder):
+Each deployment card includes a `Code` tab showing ready-to-use API code with the endpoint URL filled in. For workspace
+owners, one of the workspace's API keys is inserted — confirm it matches the bound key prefix shown in the card footer,
+since only the bound key opens the endpoint. Non-owners see a `YOUR_API_KEY` placeholder:
 
 === "Python"
 
@@ -321,7 +322,7 @@ Use monitoring data to optimize your deployments:
 
     1. Review error logs in the `Logs` tab
     2. Check request format (multipart form required)
-    3. Verify the API key bound to the deployment is still active
+    3. If calling through the Platform predict proxy, verify the bound API key is still active (direct endpoint calls validate the key hash fixed at creation instead)
     4. Retry a request and compare its timestamp with the deployment logs
 
     A burst of `429` responses means the single instance is saturated rather than broken — the endpoint sheds requests that wait more than 30 seconds for a slot.

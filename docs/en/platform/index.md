@@ -78,7 +78,7 @@ Dedicated endpoints are deployed separately to a region you choose from the glob
 
 - **Dataset Management**: Create datasets from local files, a URL, connected [cloud storage](integrations/index.md), or an [on-premise host](integrations/on-premise.md), with automatic processing
 - **[Annotation Editor](https://www.ultralytics.com/annotate)**: Manual annotation for all 6 YOLO task types (detect, segment, semantic, classify, pose, OBB; see [supported tasks](data/index.md#supported-tasks))
-- **Skeleton Templates**: Built-in (Person, Hand, Face, Dog, Box) and custom skeleton templates for one-click pose annotation
+- **Skeleton Templates**: Built-in (Person, Hand, Dog, Face, Box) and custom skeleton templates for one-click pose annotation
 - **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), pretrained Ultralytics YOLO models, or your own fine-tuned YOLO models from the annotation toolbar for detect, segment, semantic, and OBB tasks
 - **Dataset Versioning**: Create numbered NDJSON snapshots with descriptions, then download or restore any version for reproducible training
 - **Statistics**: Class distribution, split distribution, location heatmaps, and bounding box dimension analysis

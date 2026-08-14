@@ -88,7 +88,7 @@ The project's visibility badge sits beside its name in the breadcrumb at the top
 
 Toggle between three view modes using the view controls. The selected mode is remembered per project.
 
-- **Cards**: Full-width models sidebar with the Charts dashboard on the right — loss curves and metric comparisons for checked models.
+- **Cards**: Full-size model cards in the sidebar with the Charts dashboard on the right — loss curves and metric comparisons for checked models.
 - **Compact**: Condensed models sidebar with the Charts dashboard on the right — more vertical room for models in projects with many experiments.
 - **Table**: Comparison table showing training arguments and final metrics side-by-side. Enable **Diff** to show only the columns where values differ across models.
 
@@ -157,7 +157,7 @@ Clone a public project to your own account:
 Compare model performance using the charts dashboard:
 
 1. Select models in the sidebar using checkboxes
-2. View overlaid metric curves grouped by type (metrics, train loss, validation loss, learning rate)
+2. View overlaid metric curves grouped by type (metrics, loss, learning rate)
 3. Drag charts to rearrange, resize by dragging edges
 4. Hover to see exact values, click legend items to hide/show models, click a model line to navigate to that model
 

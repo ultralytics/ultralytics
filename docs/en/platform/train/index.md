@@ -69,7 +69,7 @@ Ultralytics Platform supports multiple training approaches:
 
     When you select a GPU cheaper than the RTX PRO 6000 and Ultralytics-managed capacity is free, the Platform runs
     your job on an RTX PRO 6000 while still billing your selected GPU's hourly rate. Runs can finish sooner and cost
-    less than estimated — never more.
+    less than they would have on the selected GPU — the upgrade never adds time or cost.
 
 ## GPU Options
 

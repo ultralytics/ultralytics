@@ -98,7 +98,7 @@ Directly below, one card per task metric shows the final value over a sparkline 
 
 The **Run Information** card records how the run executed: status, start time, runtime, compute cost with the GPU and hourly rate, the `ultralytics` version, host details (hostname, environment, OS, Python, CPU, GPU), the parent model, the pinned dataset version, Git repository, branch and commit when the run reported them, and a reproducible `yolo train` command you can copy.
 
-While a run is active the card shows live progress — epoch counter, progress bar, elapsed time, ETA, accruing cost — and a **Cancel** button. If a run fails, an error banner replaces it with the captured error and **View console** and **Retry** actions.
+While a run is active the card shows live progress — epoch counter, progress bar, elapsed time, ETA, accruing cost — and a **Cancel** button. If a run fails, an error banner replaces it with the captured error and **View full console logs** and **Retry Training** actions.
 
 Below it, **Training Configuration** lists every hyperparameter used and **Performance Metrics** lists the final evaluation results. Both tables are searchable and have an **Export data** menu (Copy JSON, Download CSV, Download JSON).
 
@@ -286,8 +286,8 @@ When exporting to RKNN format, select your target Rockchip device:
 | ------- | -------------------- |
 | RK3588  | High-end edge SoC    |
 | RK3576  | Mid-range edge SoC   |
-| RK3568  | Mid-range edge SoC   |
 | RK3566  | Mid-range edge SoC   |
+| RK3568  | Mid-range edge SoC   |
 | RK3562  | Entry-level edge SoC |
 | RV1103  | Vision processor     |
 | RV1106  | Vision processor     |
@@ -428,7 +428,7 @@ Ultralytics Platform fully supports all YOLO architectures with dedicated projec
 - [**YOLOv8**](../../models/yolov8.md): n, s, m, l, x variants — [platform.ultralytics.com/ultralytics/yolov8](https://platform.ultralytics.com/ultralytics/yolov8)
 - [**YOLOv5**](../../models/yolov5.md): n, s, m, l, x variants — [platform.ultralytics.com/ultralytics/yolov5](https://platform.ultralytics.com/ultralytics/yolov5)
 
-YOLO26 supports 7 task types: [detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [depth](../../tasks/depth.md), [classify](../../tasks/classify.md), [pose](../../tasks/pose.md), and [OBB](../../tasks/obb.md). YOLO11 and YOLOv8 support the same set except semantic segmentation and depth, while YOLOv5 supports detect, segment, and classify.
+YOLO26 supports 7 task types: [detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [depth](../../tasks/depth.md), [classify](../../tasks/classify.md), [pose](../../tasks/pose.md), and [OBB](../../tasks/obb.md). YOLO11 and YOLOv8 support the same set except semantic segmentation and depth, while YOLOv5 supports detect only.
 
 ### Can I download my trained model?
 

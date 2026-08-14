@@ -153,7 +153,8 @@ The dialog shows your current **balance** and a **Top Up** button. The cost card
 
     Selecting a GPU cheaper than the RTX PRO 6000 makes your job eligible for Ultralytics-managed infrastructure. When
     that capacity is free, the run executes on an RTX PRO 6000 but is still billed at your selected GPU's rate, so a
-    run can finish faster and cost less than the estimate — never slower or more expensive.
+    run can finish faster and cost less than it would have on your selected GPU — the upgrade itself never makes a run
+    slower or more expensive.
 
 ### Step 6: Start Training
 
@@ -335,7 +336,7 @@ Before training starts, the platform estimates total cost by:
 | **Model Size**       | Larger models (m, l, x) train slower than (n, s)                                                      |
 | **Number of Epochs** | Direct multiplier on training time                                                                    |
 | **Image Size**       | Larger imgsz increases computation: 320px=~0.3x, 640px=1.0x (baseline), 1280px=~3.5x                  |
-| **Batch Size**       | Larger batches are more efficient (batch 32 = ~0.85x time, batch 8 = ~1.2x time vs batch 16 baseline) |
+| **Batch Size**       | Larger batches are more efficient (batch 32 = ~0.84x time, batch 8 = ~1.2x time vs batch 16 baseline) |
 | **GPU Speed**        | Faster GPUs reduce training time (e.g., H100 SXM is estimated ~1.8x faster than RTX 4090)             |
 | **Optimizer**        | `MuSGD` is estimated at 2x the time of the other optimizers; all others are equal                     |
 | **Startup Overhead** | Up to 5 minutes for instance initialization, data download, and warmup (scales with dataset size)     |

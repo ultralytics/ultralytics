@@ -214,7 +214,7 @@ Each deployment card in the cards view shows:
 
 The URL, metrics, health check, and tabs appear only while the deployment is **Ready**. The `Logs` tab shows recent log
 entries with severity filtering (All / Errors). The `Code` tab shows ready-to-use code examples in Python, JavaScript,
-and cURL with your actual endpoint URL and API key. The `Predict` tab provides an inline predict panel for testing
+and cURL with your endpoint URL, plus an API key for workspace owners (see [Monitoring](monitoring.md#code-examples)). The `Predict` tab provides an inline predict panel for testing
 directly on the deployment.
 
 !!! note "Compact and Table Views"

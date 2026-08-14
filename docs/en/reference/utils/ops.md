@@ -20,10 +20,6 @@ keywords: Ultralytics, utility operations, non-max suppression, bounding box tra
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.ops._clipped_boxes
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.ops.scale_boxes
 
 <br><br><hr><br>
@@ -81,10 +77,6 @@ keywords: Ultralytics, utility operations, non-max suppression, bounding box tra
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.ops.segments2boxes
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.ops._resample_grid
 
 <br><br><hr><br>
 

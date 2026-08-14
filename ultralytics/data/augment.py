@@ -1283,7 +1283,7 @@ class RandomPerspective(BaseTransform):
         xy = xy @ M.T  # transform
         xy = xy[:, :2] / xy[:, 2:3]
         segments = xy.reshape(n, -1, 2)
-        bboxes = segment2box(segments, size[0], size[1])
+        bboxes = np.stack([segment2box(xy, size[0], size[1]) for xy in segments], 0)
         if not self.preserve_obb:
             segments[..., 0] = segments[..., 0].clip(bboxes[:, 0:1], bboxes[:, 2:3])
             segments[..., 1] = segments[..., 1].clip(bboxes[:, 1:2], bboxes[:, 3:4])
@@ -2235,7 +2235,7 @@ class Albumentations(BaseTransform):
                         keypoints = np.ascontiguousarray(keypoints[:, self.flip_idx])
                 if n:
                     segments = moved[:n].reshape(segments.shape)[i]
-                    bboxes = segment2box(segments, w, h).astype(np.float32).reshape(-1, 4)
+                    bboxes = np.array([segment2box(s, w, h) for s in segments], np.float32).reshape(-1, 4)
                     segments[..., 0] = segments[..., 0].clip(bboxes[:, 0:1], bboxes[:, 2:3])
                     segments[..., 1] = segments[..., 1].clip(bboxes[:, 1:2], bboxes[:, 3:4])
                     instances = Instances(bboxes, segments, keypoints, bbox_format="xyxy", normalized=False)

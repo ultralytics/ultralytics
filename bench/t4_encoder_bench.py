@@ -89,6 +89,7 @@ INTERNAL_RUNS = {
 }
 
 EXPLORATORY_YAMLS = {
+    "ultravit-m-290726-yaml-cls": ("yolo26m-ultravit-290726-cls.yaml", "yolo26m-sppf-cls"),
     "ultravit-n-020826-1-cls": ("yolo26n-ultravit-020826-1-cls.yaml", "yolo26n-sppf-cls"),
     "ultravit-n-020826-2-cls": ("yolo26n-ultravit-020826-2-cls.yaml", "yolo26n-sppf-cls"),
     "ultravit-n-020826-3-cls": ("yolo26n-ultravit-020826-3-cls.yaml", "yolo26n-sppf-cls"),

@@ -104,7 +104,7 @@ For most fine-tuning tasks, the default setting works well without any manual tu
 
 ### Fitting the Learning Rate to the Dataset
 
-Setting `lr0='auto'` runs a short [learning rate range test](https://arxiv.org/abs/1506.01186) before training starts and fits `lr0`, `warmup_bias_lr` and `warmup_epochs` to the model and dataset being trained. The equation behind the default `lr0` reads only the class count, so it cannot tell how far the target domain sits from the pretrained weights. The range test measures that directly, at the cost of roughly 25 seconds of extra start time at batch 32.
+Setting `lr0='auto'` runs a short [learning rate range test](https://arxiv.org/abs/1506.01186) before training starts and fits `lr0`, `warmup_bias_lr` and `warmup_epochs` to the model and dataset being trained. The default values are rule of thumb heuristics, so they cannot tell how far the target domain sits from the pretrained weights. The range test measures that directly, at the cost of roughly 25 seconds of extra start time at batch 32.
 
 !!! example "Fit the learning rate"
 
@@ -164,7 +164,7 @@ Freeze depth can also be treated as a hyperparameter - trying a few values (0, 5
 
 Fine-tuning generally requires fewer hyperparameter adjustments than training from scratch. The parameters that matter most are:
 
-- **`lr0`**: The learning rate has the largest effect on fine-tuning accuracy of any single setting. `lr0='auto'` is the recommended starting point, as it fits the rate to the model and dataset rather than reading the class count alone. See [Fitting the Learning Rate to the Dataset](#fitting-the-learning-rate-to-the-dataset).
+- **`lr0`**: The learning rate has the largest effect on fine-tuning accuracy of any single setting. `lr0='auto'` is the recommended starting point, as it fits the rate to the model and dataset rather than relying on rule of thumb heuristics. See [Fitting the Learning Rate to the Dataset](#fitting-the-learning-rate-to-the-dataset).
 - **`epochs`**: Fine-tuning converges faster than training from scratch. Start with a moderate value and use `patience` to stop early when validation metrics plateau.
 - **`patience`**: The default of 100 is designed for long training runs. Reducing this to 10-20 avoids wasting time on runs that have already converged.
 - **`warmup_epochs`**: The default warmup (3 epochs) gradually increases the learning rate from zero, which prevents large gradient updates from damaging pretrained features in early iterations. Keeping the default is recommended even for fine-tuning, or set `lr0='auto'` to fit it from the width of the stable learning rate band.

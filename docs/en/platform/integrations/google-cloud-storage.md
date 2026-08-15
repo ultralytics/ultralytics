@@ -97,6 +97,14 @@ curl -X DELETE \
   https://platform.ultralytics.com/api/integrations/buckets/INTEGRATION_ID
 ```
 
+```python
+from ultralytics_platform import Platform
+
+client = Platform()  # reads ULTRALYTICS_API_KEY
+integrations = client.storage_integrations.list()
+client.storage_integrations.delete("INTEGRATION_ID")
+```
+
 To revoke access at the source instead, delete the service account key in Google Cloud.
 
 ## Current Limitations

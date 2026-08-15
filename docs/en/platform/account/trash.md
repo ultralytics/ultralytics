@@ -166,6 +166,13 @@ API key from that workspace.
       "https://platform.ultralytics.com/api/trash?type=all&page=1&limit=50"
     ```
 
+    ```python
+    from ultralytics_platform import Platform
+
+    client = Platform()  # reads ULTRALYTICS_API_KEY
+    trash = client.lifecycle.trash(type="all", page=1, limit=50)
+    ```
+
     `type` accepts `all`, `project`, `dataset`, or `model`. `limit` defaults to 50 and caps at 200. Listing needs
     Viewer access or higher.
 
@@ -178,6 +185,10 @@ API key from that workspace.
       https://platform.ultralytics.com/api/trash
     ```
 
+    ```python
+    client.lifecycle.restore(id="ITEM_ID", type="dataset")
+    ```
+
 === "Delete One Item"
 
     ```bash
@@ -187,6 +198,10 @@ API key from that workspace.
       https://platform.ultralytics.com/api/trash
     ```
 
+    ```python
+    client.lifecycle.delete_trash(body={"id": "ITEM_ID", "type": "dataset"})
+    ```
+
 === "Empty Trash"
 
     ```bash
@@ -194,6 +209,10 @@ API key from that workspace.
       -H "Content-Type: application/json" \
       -d '{"all": true}' \
       https://platform.ultralytics.com/api/trash
+    ```
+
+    ```python
+    client.lifecycle.delete_trash(body={"all": True})
     ```
 
 Restoring and deleting require Editor access or higher.

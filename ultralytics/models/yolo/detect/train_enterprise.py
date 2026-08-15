@@ -27,7 +27,7 @@ from torchvision.ops.misc import FrozenBatchNorm2d
 from ultralytics.data import YOLOConcatDataset, build_dataloader
 from ultralytics.models.yolo.detect.train import DetectionTrainer
 from ultralytics.models.yolo.detect.val import DetectionValidator
-from ultralytics.utils import LOCAL_RANK, LOGGER, RANK
+from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.metrics import DetMetrics
 from ultralytics.utils.torch_utils import torch_distributed_zero_first, unwrap_model
 
@@ -63,44 +63,6 @@ def _replace_batch_norm(module: torch.nn.Module, frozen: bool) -> int:
     return replaced
 
 
-def load_or_build_label_prototypes(
-    path: str | Path, names: list[str], variant: str, device: torch.device
-) -> torch.Tensor:
-    """Load or build ordered Enterprise label prototypes.
-
-    Args:
-        path (str | Path): Cached artifact path.
-        names (list[str]): Ordered namespaced class names.
-        variant (str): Text encoder variant.
-        device (torch.device): Text encoder device.
-
-    Returns:
-        (torch.Tensor): Empty-prompt-calibrated label prototypes.
-    """
-    path = Path(path)
-    text_labels = [name.split("/", 1)[1].replace("_", " ") for name in names]
-    if path.exists():
-        artifact = torch.load(path, map_location="cpu")
-        if artifact.get("names") == names and artifact.get("text_labels") == text_labels:
-            return artifact["prototypes"]
-        LOGGER.info(f"Rebuilding {path} because its class order or prompt labels changed")
-
-    from ultralytics.nn.text_model import build_text_model, encode_text
-
-    LOGGER.info(f"Building {variant} label prototypes for {len(names)} Enterprise classes")
-    model = build_text_model(variant, device=device)
-    embeddings = encode_text(model, [f"the photo is {name}" for name in text_labels])
-    empty = encode_text(model, [""])
-    # Plain-Det subtracts the empty-prompt basis and L2-normalizes the frozen classifier, Eq. 5:
-    # https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/00763.pdf#page=9
-    prototypes = torch.nn.functional.normalize(embeddings - empty, dim=-1).cpu()
-    del model
-    path.parent.mkdir(parents=True, exist_ok=True)
-    torch.save({"names": names, "text_labels": text_labels, "prototypes": prototypes, "text_model": variant}, path)
-    LOGGER.info(f"Saved {len(names)} label prototypes to {path}")
-    return prototypes
-
-
 SOURCE_METRIC_KEYS = (
     "metrics/mAP50(B)",
     "metrics/mAP50-95(B)",
@@ -127,15 +89,14 @@ class PartitionedDetectionLoss:
             updates (int): Completed end-to-end loss schedule updates.
         """
         self.criteria = {}
-        head = model.model[-1]
         for index, source in enumerate(slices):
-            head.set_class_source(index)
+            model.set_class_source(index)
             criterion = model.init_criterion()
             if hasattr(criterion, "updates"):
                 criterion.updates = updates - 1
                 criterion.update()
             self.criteria[source] = criterion
-        head.set_class_source(None)
+        model.set_class_source(None)
         self.source = next(iter(slices))
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
@@ -219,8 +180,8 @@ class QuotaBatchSampler(Sampler):
             yield (idx[self.rank * per_rank : (self.rank + 1) * per_rank] + self.starts[d]).tolist()
 
 
-def source_stats(dataset, lo: int, hi: int, t: float) -> tuple[np.ndarray, np.ndarray]:
-    """Return per-image draw probabilities and per-class image counts for one source.
+def source_stats(dataset, lo: int, hi: int, t: float) -> np.ndarray:
+    """Return per-image draw probabilities for one source.
 
     f(c) is the image frequency of class c inside this source, r(c) = max(1, sqrt(t / f(c))), and an image takes the
     largest r(c) over the classes it holds, so the rarest class sets the weight. Backgrounds keep r = 1.
@@ -233,14 +194,13 @@ def source_stats(dataset, lo: int, hi: int, t: float) -> tuple[np.ndarray, np.nd
 
     Returns:
         (np.ndarray): Per-image draw probability, summing to 1.
-        (np.ndarray): Per-class image count over the slice, length hi - lo.
     """
     labels = dataset.labels
     counts = np.zeros(hi - lo, dtype=np.float64)
     for lb in labels:
         counts[np.unique(lb["cls"].astype(np.int64).ravel() - lo)] += 1
     if not t:
-        return np.full(len(labels), 1 / len(labels)), counts
+        return np.full(len(labels), 1 / len(labels))
     # LVIS repeat-factor sampling:
     # https://github.com/facebookresearch/detectron2/blob/b4a4a3bd136852dae5fb1de37978dee412653e31/detectron2/data/samplers/distributed_sampler.py#L159-L209
     r_c = np.maximum(1.0, np.sqrt(t / np.maximum(counts / len(labels), 1e-12)))
@@ -249,10 +209,10 @@ def source_stats(dataset, lo: int, hi: int, t: float) -> tuple[np.ndarray, np.nd
         dtype=np.float64,
         count=len(labels),
     )
-    return r / r.sum(), counts
+    return r / r.sum()
 
 
-class FederatedDetMetrics(DetMetrics):
+class EnterpriseDetMetrics(DetMetrics):
     """Calculate source metrics and use their unweighted mean as the primary detection metric."""
 
     def __init__(self, sources: list[str]) -> None:
@@ -327,7 +287,7 @@ class FederatedDetMetrics(DetMetrics):
         }
 
 
-class FederatedDetectionValidator(DetectionValidator):
+class EnterpriseDetectionValidator(DetectionValidator):
     """Evaluate every Enterprise image only against its source label space."""
 
     def __init__(self, *args, slices: dict[str, tuple[int, int]], **kwargs) -> None:
@@ -340,7 +300,7 @@ class FederatedDetectionValidator(DetectionValidator):
         """
         super().__init__(*args, **kwargs)
         self.slices = slices
-        self.metrics = FederatedDetMetrics(list(slices))
+        self.metrics = EnterpriseDetMetrics(list(slices))
 
     def init_metrics(self, model: torch.nn.Module) -> None:
         """Initialize metrics, source paths, and the validation criterion."""
@@ -387,10 +347,6 @@ class FederatedDetectionValidator(DetectionValidator):
             for i, name in enumerate(self.batch_sources):
                 lo, hi = self.slices[name]
                 weights[i, :, lo:hi] = 1.0
-            if getattr(self.args, "federated_cls_normalize", "none") == "active_classes":
-                # Adapt UniDet's dataset-local cls heads while preserving the fed_k-class reference magnitude.
-                # https://github.com/xingyizhou/UniDet/blob/94cd0e8612e558c1dff64d2928bc969856c9a802/unidet/modeling/roi_heads/multi_dataset_fast_rcnn.py#L45-L73
-                weights *= self.args.fed_k / weights.sum(2, keepdim=True)
             self.model.criterion.class_weights = weights
         return batch
 
@@ -513,20 +469,16 @@ class FederatedDetectionValidator(DetectionValidator):
             )
 
 
-class FederatedDetectionTrainer(DetectionTrainer):
-    """Detection trainer whose train loader emits dataset-pure batches and whose cls loss sees only the owning slice.
-
-    The mask rides the existing per-class `class_weights` multiply in `v8DetectionLoss`, recomputed every step. That
-    hook is exclusive here because the corpus recipe sets `cls_pw: 0.0`, so `set_class_weights` writes nothing.
+class EnterpriseDetectionTrainer(DetectionTrainer):
+    """Detection trainer using dataset-pure batches and one classifier per source label space.
 
     Attributes:
         slices (dict): Source name to (lo, hi) class-id bounds, from the `offsets` block of the corpus data.yaml.
         source_of (dict): Image directory to source name, how a batch reports which slice owns it.
-        neg_weights (dict): Source name to per-class sampling weight for federated negatives, image count^0.5.
     """
 
     def set_model_attributes(self) -> None:
-        """Set source heads, frozen prototypes, and loss-aware sampling."""
+        """Set source heads, normalization, and loss-aware sampling."""
         super().set_model_attributes()
         model = unwrap_model(self.model)
         backbone_layers = len(model.yaml["backbone"])
@@ -536,19 +488,7 @@ class FederatedDetectionTrainer(DetectionTrainer):
         bounds = [*sorted(self.data["offsets"].values()), self.data["nc"]]
         self.slices = {k: (lo, hi) for (k, lo), hi in zip(self.data["offsets"].items(), bounds[1:])}
         self.source_indices = {source: index for index, source in enumerate(self.slices)}
-        classifier = getattr(self.args, "federated_cls_heads", "merged")
-        if classifier == "source":
-            model.model[-1].partition_classifiers(list(self.slices.values()))
-        elif classifier == "semantic":
-            names = list(self.data["names"].values())
-            with torch_distributed_zero_first(LOCAL_RANK):
-                prototypes = load_or_build_label_prototypes(
-                    self.args.federated_semantic_prototypes,
-                    names,
-                    self.args.federated_semantic_text_model,
-                    self.device,
-                )
-            model.model[-1].install_semantic_classifier(list(self.slices.values()), prototypes)
+        model.model[-1].partition_classifiers(list(self.slices.values()))
         self.source_loss_stats = torch.zeros(2, len(self.slices), device=self.device)
         self.source_l1_losses = torch.ones(len(self.slices), device=self.device)
         self.sampling_metrics = {}
@@ -560,11 +500,11 @@ class FederatedDetectionTrainer(DetectionTrainer):
         if mode != "train":
             return super().build_dataset(img_path, mode, batch)
         paths = img_path if isinstance(img_path, list) else [img_path]
-        return YOLOConcatDataset([super(FederatedDetectionTrainer, self).build_dataset(p, mode, batch) for p in paths])
+        return YOLOConcatDataset([super(EnterpriseDetectionTrainer, self).build_dataset(p, mode, batch) for p in paths])
 
     def get_validator(self):
         """Return the source-aware Enterprise validator."""
-        return FederatedDetectionValidator(
+        return EnterpriseDetectionValidator(
             self.test_loader,
             save_dir=self.save_dir,
             args=copy(self.args),
@@ -583,20 +523,14 @@ class FederatedDetectionTrainer(DetectionTrainer):
             losses = np.array([ckpt["train_metrics"][f"sampling/{name}/l1_loss"] for name in self.slices])
             self.source_l1_losses.copy_(torch.from_numpy(losses).to(self.device))
             self.quota_sampler.update_loss_quota(losses)
-        if getattr(self.args, "federated_cls_heads", "merged") in {"source", "semantic"}:
-            model = unwrap_model(self.model)
-            updates = ckpt.get("epoch", -1) + 1 if ckpt is not None and self.resume else 0
-            model.criterion = PartitionedDetectionLoss(model, self.slices, updates)
+        model = unwrap_model(self.model)
+        updates = ckpt.get("epoch", -1) + 1 if ckpt is not None and self.resume else 0
+        model.criterion = PartitionedDetectionLoss(model, self.slices, updates)
 
     def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):
         """Return the quota-sampled dataset-pure loader for training, and the default loader for validation."""
         if mode != "train":
             return super().get_dataloader(dataset_path, batch_size, rank, mode)
-        assert self.args.cls_pw == 0.0, "federated cls masking owns class_weights, so cls_pw must stay 0.0"
-        assert getattr(self.args, "federated_cls_normalize", "none") in {
-            "none",
-            "active_classes",
-        }, "federated_cls_normalize must be 'none' or 'active_classes'"
         with torch_distributed_zero_first(rank):
             dataset = self.build_dataset(dataset_path, mode, batch_size)
 
@@ -605,14 +539,14 @@ class FederatedDetectionTrainer(DetectionTrainer):
         assert repeat_sources <= self.slices.keys(), (
             f"unknown repeat_sources: {sorted(repeat_sources - self.slices.keys())}"
         )
-        self.source_of, self.neg_weights, weights = {}, {}, []
+        self.source_of, weights = {}, []
         for name, d in zip(self.slices, dataset.datasets):
             self.source_of[str(Path(d.im_files[0]).parent)] = name
-            w, counts = source_stats(
-                d, *self.slices[name], self.args.repeat_t if not repeat_sources or name in repeat_sources else 0
+            weights.append(
+                source_stats(
+                    d, *self.slices[name], self.args.repeat_t if not repeat_sources or name in repeat_sources else 0
+                )
             )
-            weights.append(w)
-            self.neg_weights[name] = np.sqrt(counts)
 
         world = self.world_size or 1
         sampler = QuotaBatchSampler(
@@ -624,7 +558,6 @@ class FederatedDetectionTrainer(DetectionTrainer):
             self.args.seed,
         )
         self.quota_sampler = sampler
-        self.rng = np.random.default_rng(self.args.seed)
         LOGGER.info(
             f"{len(dataset.datasets)} sources, {len(dataset):,} images, {sampler.batches:,} steps/epoch, "
             f"quota {np.round(sampler.quota, 4).tolist()}, RFS {sorted(repeat_sources) if repeat_sources else 'all'}"
@@ -680,49 +613,14 @@ class FederatedDetectionTrainer(DetectionTrainer):
     def preprocess_batch(self, batch: dict) -> dict:
         """Point the cls loss at this batch's owning class slice, then preprocess as usual."""
         self.current_source = self.source_of[str(Path(batch["im_file"][0]).parent)]
-        if getattr(self.args, "federated_cls_heads", "merged") in {"source", "semantic"}:
-            name = self.current_source
-            lo, _ = self.slices[name]
-            batch["cls"].sub_(lo)
-            unwrap_model(self.model).model[-1].set_class_source(self.source_indices[name])
-            batch = super().preprocess_batch(batch)
-            model = unwrap_model(self.model)
-            model.criterion.source = name
-            return batch
-        mask = self._fed_mask(batch, self.current_source)
-        batch = super().preprocess_batch(batch)
+        name = self.current_source
+        lo, _ = self.slices[name]
+        batch["cls"].sub_(lo)
         model = unwrap_model(self.model)
-        if getattr(model, "criterion", None) is None:
-            model.criterion = model.init_criterion()
-        weights = mask.to(self.device).view(1, 1, -1)
-        if getattr(self.args, "federated_cls_normalize", "none") == "active_classes":
-            weights *= self.args.fed_k / weights.sum()
-        model.criterion.class_weights = weights
+        model.set_class_source(self.source_indices[name])
+        batch = super().preprocess_batch(batch)
+        model.criterion.source = name
         return batch
-
-    def _fed_mask(self, batch: dict, name: str) -> torch.Tensor:
-        """Return an nc-long CPU mask over the batch's owning slice, subsampled when the slice exceeds `fed_k`.
-
-        Every class present in the batch is always kept, topped up with negatives drawn without replacement at image
-        count^0.5 until the kept set reaches `fed_k`. The kept count lands above `fed_k` when the batch alone holds
-        that many classes, and below it when the slice runs short of drawable negatives. Columns outside the kept set
-        get no gradient. The draw is per rank, as in Detic, so a class masked on one rank still learns from another.
-        """
-        lo, hi = self.slices[name]
-        mask = torch.zeros(self.data["nc"])
-        # Full source-local classification follows UniDet's dataset-specific classifier:
-        # https://github.com/xingyizhou/UniDet/blob/94cd0e8612e558c1dff64d2928bc969856c9a802/unidet/modeling/roi_heads/multi_dataset_fast_rcnn.py#L20-L73
-        if hi - lo <= self.args.fed_k:
-            mask[lo:hi] = 1.0
-            return mask
-        present = torch.unique(batch["cls"].int()).numpy()  # still on cpu, super() has not moved the batch yet
-        w = self.neg_weights[name].copy()
-        w[present - lo] = 0.0
-        mask[present] = 1.0
-        k = min(self.args.fed_k - len(present), int((w > 0).sum()))
-        if k > 0:
-            mask[self.rng.choice(len(w), k, replace=False, p=w / w.sum()) + lo] = 1.0
-        return mask
 
     def plot_training_labels(self):
         """Skip the label histogram, unreadable over 807 classes and 14.7M boxes and minutes of pandas work."""

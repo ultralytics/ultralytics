@@ -19,13 +19,13 @@ from callbacks import nfs_sync
 from callbacks.paths import run_paths
 from run_enc_distill_phase2 import _TRAIN_DEFAULTS, _load_recipe
 from ultralytics import YOLO
-from ultralytics.models.yolo.detect.train_federated import FederatedDetectionTrainer
+from ultralytics.models.yolo.detect.train_enterprise import EnterpriseDetectionTrainer
 
 ARMS = {
     "enterprise": (
         "enterprise",
         "/data/shared-datasets/domain-det/_merged/data.yaml",
-        FederatedDetectionTrainer,
+        EnterpriseDetectionTrainer,
     ),
     "o365": ("obj365v1", "Objects365v1.yaml", None),
 }

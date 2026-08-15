@@ -356,20 +356,6 @@ class v8DetectionLoss:
         self.no = m.nc + m.reg_max * 4
         self.reg_max = m.reg_max
         self.device = device
-        self.federated_cls_loss = getattr(h, "federated_cls_loss", "bce")
-        self.focal_alpha = getattr(h, "focal_alpha", 0.25)
-        self.focal_gamma = getattr(h, "focal_gamma", 2.0)
-        self.focal = FocalLoss(self.focal_gamma, self.focal_alpha) if self.federated_cls_loss == "focal" else None
-        # METR uses the mild 0/2/0 ASL profile for auxiliary category extraction.
-        # https://github.com/isbrycee/METR/blob/41b400002b708d645c430367fad4289693aad522/main.py#L113-L115
-        self.asl_gamma_pos = getattr(h, "asl_gamma_pos", 0.0)
-        self.asl_gamma_neg = getattr(h, "asl_gamma_neg", 2.0)
-        self.asl_clip = getattr(h, "asl_clip", 0.0)
-        assert self.federated_cls_loss in {"bce", "focal", "asl"}, "federated_cls_loss must be bce, focal, or asl"
-        assert self.focal_gamma >= 0 and self.asl_gamma_pos >= 0 and self.asl_gamma_neg >= 0, (
-            "focal and ASL gammas must be nonnegative"
-        )
-
         self.use_dfl = m.reg_max > 1
         self.loss_names = "box_loss", "cls_loss", "dfl_loss" if self.use_dfl else "l1_loss"
 
@@ -416,27 +402,6 @@ class v8DetectionLoss:
             # pred_dist = (pred_dist.view(b, a, c // 4, 4).softmax(2) * self.proj.type(pred_dist.dtype).view(1, 1, -1, 1)).sum(2)
         return dist2bbox(pred_dist, anchor_points, xywh=False)
 
-    def classification_loss(self, pred_scores: torch.Tensor, target_scores: torch.Tensor) -> torch.Tensor:
-        """Return the unreduced classification loss."""
-        if self.federated_cls_loss == "bce":
-            return self.bce(pred_scores, target_scores)
-        if self.federated_cls_loss == "focal":
-            # Plain-Det applies sigmoid focal loss to dense detector classification.
-            # https://github.com/ChengShiest/Plain-Det/blob/ca4bda1e51d99d1ef07230ed1616fd4c377f1a9e/detrex/modeling/criterion/criterion.py#L86-L110
-            return self.focal.elementwise(pred_scores, target_scores)
-
-        # Adapt ASL's asymmetric clipping and focusing elementwise to YOLO's soft target scores.
-        # https://github.com/Alibaba-MIIL/ASL/blob/8c9e0bd8d5d450cf19093363fc08aa7244ad4408/src/loss_functions/losses.py#L5-L50
-        target_scores = target_scores.float()
-        pred_prob = pred_scores.float().sigmoid()
-        neg_prob = (1 - pred_prob + self.asl_clip).clamp(max=1)
-        loss = -target_scores * pred_prob.clamp_min(1e-8).log() - (1 - target_scores) * neg_prob.clamp_min(1e-8).log()
-        with torch.no_grad():
-            p_t = target_scores * pred_prob + (1 - target_scores) * neg_prob
-            gamma = target_scores * self.asl_gamma_pos + (1 - target_scores) * self.asl_gamma_neg
-            weight = (1 - p_t).pow(gamma)
-        return loss * weight
-
     def get_assigned_targets_and_loss(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> tuple:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size and return foreground mask and
         target indices.
@@ -474,14 +439,9 @@ class v8DetectionLoss:
 
         # Cls loss with optional class weighting
         cls_targets = target_scores.to(dtype)
-        if self.federated_cls_loss != "bce" and self.class_weights is not None:
-            weights = self.class_weights.expand_as(pred_scores)
-            active = weights.bool()
-            cls_loss = self.classification_loss(pred_scores[active], cls_targets[active]) * weights[active]
-        else:
-            cls_loss = self.classification_loss(pred_scores, cls_targets)  # (bs, num_anchors, nc)
-            if self.class_weights is not None:
-                cls_loss *= self.class_weights
+        cls_loss = self.bce(pred_scores, cls_targets)  # (bs, num_anchors, nc)
+        if self.class_weights is not None:
+            cls_loss *= self.class_weights
         loss[1] = cls_loss.sum() / target_scores_sum
         has_fg = bool(fg_mask.any())
 

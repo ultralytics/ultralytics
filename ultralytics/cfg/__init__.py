@@ -218,9 +218,6 @@ CFG_FLOAT_KEYS = frozenset(
         "workspace",
         "batch",
         "grad_clip",
-        "focal_gamma",
-        "asl_gamma_pos",
-        "asl_gamma_neg",
     }
 )
 CFG_FRACTION_KEYS = frozenset(
@@ -253,8 +250,6 @@ CFG_FRACTION_KEYS = frozenset(
         "multi_scale",
         "dlam",
         "o2m",
-        "focal_alpha",
-        "asl_clip",
     }
 )
 CFG_INT_KEYS = frozenset(
@@ -324,10 +319,6 @@ CFG_STR_KEYS = frozenset(
         "split",
         "copy_paste_mode",
         "auto_augment",
-        "federated_cls_loss",
-        "federated_cls_heads",
-        "federated_cls_normalize",
-        "federated_semantic_text_model",
     }
 )
 
@@ -664,21 +655,9 @@ def check_dict_alignment(
             "sample_t",
             "beta2",
             "nfs_sync",
-            # Federated Enterprise pretraining knobs (models/yolo/detect/train_federated.py), carried in the
-            # cfg/recipes/enterprise.yaml profile so the arm stays reproducible from the profile alone.
+            # Enterprise pretraining knobs carried in cfg/recipes/enterprise.yaml.
             "repeat_t",
             "repeat_sources",
-            "fed_k",
-            "federated_cls_loss",
-            "federated_cls_heads",
-            "focal_alpha",
-            "focal_gamma",
-            "asl_gamma_pos",
-            "asl_gamma_neg",
-            "asl_clip",
-            "federated_cls_normalize",
-            "federated_semantic_prototypes",
-            "federated_semantic_text_model",
             # DINOv3 / UNIC / DUNE encoder-distillation knobs surfaced through DDP-serialised args.
             # ``wd_end``: half-cosine target weight_decay (callbacks/wd_schedule.py); reference
             #   DINOv3 distillation_convnext/convnext_tiny_p16.yaml schedules.weight_decay.

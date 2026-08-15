@@ -775,6 +775,10 @@ def test_platform_project_slug():
     for path in ("/private/var/folders/ab/proj_x", "/tmp", "C:/Users/me/runs", "C:/runs", "runs\\exp/x", "A B/exp"):
         assert project(path) is None, path
 
+    # An owner with an empty or fully-unslugifiable project half must not produce a truncated "owner/" identifier
+    for path in ("username/", "username/!!!"):
+        assert project(path) is None, path
+
 
 def test_platform_job_transport(monkeypatch, tmp_path):
     """Test configurable Platform transport with an existing local checkpoint."""

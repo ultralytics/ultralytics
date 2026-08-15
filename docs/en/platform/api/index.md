@@ -25,7 +25,7 @@ integrations_path: ../../integrations
     === "Python SDK"
 
         ```bash
-        pip install "ultralytics-platform>=0.1.5"  # Python 3.11+
+        pip install "ultralytics-platform>=0.1.5" # Python 3.11+
         ```
 
         ```python
@@ -2384,7 +2384,7 @@ OpenAPI contract, with one method per endpoint (`client.datasets.list`, `client.
 and optional per-request `timeout` and `extra_headers`.
 
 ```bash
-pip install "ultralytics-platform>=0.1.5"  # Python 3.11+
+pip install "ultralytics-platform>=0.1.5" # Python 3.11+
 ```
 
 ```python

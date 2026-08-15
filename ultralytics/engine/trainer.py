@@ -500,14 +500,13 @@ class BaseTrainer:
         # Batch size
         if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
             self.args.batch = self.batch_size = self.auto_batch()
-        lr0 = str(self.args.lr0).lower()  # read before build_optimizer resolves 'auto' to a number
-        auto_lr = lr0 == "auto" or str(self.args.optimizer).lower() == "auto"
+        auto_lr = str(self.args.lr0).lower() == "auto"  # read before build_optimizer resolves it to a number
         # a range test reads the rate a fixed set of weights tolerates for one step, which a run starting from random
         # weights cannot sustain for a full schedule, so those keep the hand-tuned defaults
         scratch = self.args.pretrained is False or (
             not str(self.args.model).endswith(".pt") and not isinstance(self.args.pretrained, (str, Path))
         )
-        if scratch and lr0 == "auto":
+        if scratch and auto_lr:
             self.args.lr0 = DEFAULT_CFG.lr0
         self._build_train_pipeline()
         self.set_class_weights()  # before any forward builds the loss criterion, which snapshots the weights

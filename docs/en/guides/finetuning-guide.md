@@ -100,7 +100,27 @@ For most fine-tuning tasks, the default setting works well without any manual tu
 
 !!! warning "Auto optimizer overrides manual lr0"
 
-    When `optimizer=auto`, the `lr0` and `momentum` values are ignored. To control the learning rate manually, set the optimizer explicitly: `optimizer=SGD, lr0=0.005`.
+    When `optimizer=auto`, the `lr0` and `momentum` values are ignored, except for `lr0='auto'`. To control the learning rate manually, set the optimizer explicitly: `optimizer=SGD, lr0=0.005`.
+
+### Fitting the Learning Rate to the Dataset
+
+Setting `lr0='auto'` runs a short [learning rate range test](https://arxiv.org/abs/1506.01186) before training starts and fits `lr0`, `warmup_bias_lr` and `warmup_epochs` to the model and dataset being trained. The equation behind the default `lr0` reads only the class count, so it cannot tell how far the target domain sits from the pretrained weights. The range test measures that directly, at the cost of roughly 25 seconds of extra start time at batch 32.
+
+!!! example "Fit the learning rate"
+
+    === "Python"
+
+        ```python
+        model.train(data="custom.yaml", epochs=50, lr0="auto")
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo train model=yolo26n.pt data=custom.yaml epochs=50 lr0=auto
+        ```
+
+This works with any optimizer, including `optimizer=auto`, and only applies to fine-tuning. Training from a YAML model, or from a checkpoint with `pretrained=False`, keeps the current defaults because those are tuned for training from scratch.
 
 ## Freezing Layers
 
@@ -146,7 +166,7 @@ Fine-tuning generally requires fewer hyperparameter adjustments than training fr
 
 - **`epochs`**: Fine-tuning converges faster than training from scratch. Start with a moderate value and use `patience` to stop early when validation metrics plateau.
 - **`patience`**: The default of 100 is designed for long training runs. Reducing this to 10-20 avoids wasting time on runs that have already converged.
-- **`warmup_epochs`**: The default warmup (3 epochs) gradually increases the learning rate from zero, which prevents large gradient updates from damaging pretrained features in early iterations. Keeping the default is recommended even for fine-tuning.
+- **`warmup_epochs`**: The default warmup (3 epochs) gradually increases the learning rate from zero, which prevents large gradient updates from damaging pretrained features in early iterations. Keeping the default is recommended even for fine-tuning, or set `lr0='auto'` to fit it from the width of the stable learning rate band.
 
 For the full list of training parameters, see the [training configuration reference](../usage/cfg.md).
 

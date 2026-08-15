@@ -12,19 +12,21 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from ultralytics.utils import NOT_MACOS14
+from ultralytics.utils import NOT_MACOS14, TORCH_VERSION
+from ultralytics.utils.checks import check_version
+from ultralytics.utils.torch_utils import get_torch_device_backend
 
 
 class Profile(contextlib.ContextDecorator):
     """Ultralytics Profile class for timing code execution.
 
     Use as a decorator with @Profile() or as a context manager with 'with Profile():'. Provides accurate timing
-    measurements with CUDA synchronization support for GPU operations.
+    measurements with accelerator synchronization support.
 
     Attributes:
         t (float): Accumulated time in seconds.
         device (torch.device): Device used for model inference.
-        cuda (bool): Whether CUDA is being used for timing synchronization.
+        accelerator (module): PyTorch device module used for timing synchronization.
 
     Examples:
         Use as a context manager to time code execution
@@ -44,11 +46,12 @@ class Profile(contextlib.ContextDecorator):
 
         Args:
             t (float): Initial accumulated time in seconds.
-            device (torch.device, optional): Device used for model inference to enable CUDA synchronization.
+            device (torch.device, optional): Device used for model inference to enable accelerator synchronization.
         """
         self.t = t
         self.device = device
-        self.cuda = bool(device and str(device).startswith("cuda"))
+        device_type = getattr(device, "type", str(device).split(":")[0] if device else None)
+        self.accelerator = get_torch_device_backend(device_type) if device_type in {"cuda", "npu", "xpu"} else None
 
     def __enter__(self):
         """Start timing."""
@@ -65,9 +68,9 @@ class Profile(contextlib.ContextDecorator):
         return f"Elapsed time is {self.t} s"
 
     def time(self):
-        """Get current time with CUDA synchronization if applicable."""
-        if self.cuda:
-            torch.cuda.synchronize(self.device)
+        """Get current time with accelerator synchronization if applicable."""
+        if self.accelerator is not None:
+            self.accelerator.synchronize(self.device)
         return time.perf_counter()
 
 
@@ -86,11 +89,12 @@ def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.
     Returns:
         (np.ndarray): Bounding box coordinates in xyxy format [x1, y1, x2, y2].
     """
+    if not len(segment):
+        return np.zeros(4, dtype=segment.dtype)
     x, y = segment[:, 0], segment[:, 1]
-    if len(segment):
-        xmin, ymin, xmax, ymax = x.min(), y.min(), x.max(), y.max()
-        if xmin >= 0 and ymin >= 0 and xmax <= width and ymax <= height:  # fully inside image
-            return np.array([xmin, ymin, xmax, ymax], dtype=segment.dtype)
+    xmin, ymin, xmax, ymax = x.min(), y.min(), x.max(), y.max()
+    if xmin >= 0 and ymin >= 0 and xmax <= width and ymax <= height:  # fully inside image
+        return np.array([xmin, ymin, xmax, ymax], dtype=segment.dtype)
     axes = np.array((0, 0, 1, 1))
     bounds = np.array((0, width, 0, height), dtype=segment.dtype)
     lims = np.array((height, height, width, width), dtype=segment.dtype)  # (height, width)[axis] per boundary
@@ -184,12 +188,12 @@ def clip_boxes(boxes, shape):
     """
     h, w = shape[:2]  # supports both HWC or HW shapes
     if isinstance(boxes, torch.Tensor):  # faster individually
-        if NOT_MACOS14:
+        if NOT_MACOS14 and not (boxes.device.type == "mps" and check_version(TORCH_VERSION, "<2.5.0")):
             boxes[..., 0].clamp_(0, w)  # x1
             boxes[..., 1].clamp_(0, h)  # y1
             boxes[..., 2].clamp_(0, w)  # x2
             boxes[..., 3].clamp_(0, h)  # y2
-        else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
+        else:  # MPS strided in-place bug on macOS 14 or torch<2.5
             boxes[..., 0] = boxes[..., 0].clamp(0, w)
             boxes[..., 1] = boxes[..., 1].clamp(0, h)
             boxes[..., 2] = boxes[..., 2].clamp(0, w)
@@ -212,10 +216,10 @@ def clip_coords(coords, shape):
     """
     h, w = shape[:2]  # supports both HWC or HW shapes
     if isinstance(coords, torch.Tensor):
-        if NOT_MACOS14:
+        if NOT_MACOS14 and not (coords.device.type == "mps" and check_version(TORCH_VERSION, "<2.5.0")):
             coords[..., 0].clamp_(0, w)  # x
             coords[..., 1].clamp_(0, h)  # y
-        else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
+        else:  # MPS strided in-place bug on macOS 14 or torch<2.5
             coords[..., 0] = coords[..., 0].clamp(0, w)
             coords[..., 1] = coords[..., 1].clamp(0, h)
     else:  # np.array
@@ -362,20 +366,23 @@ def xyxyxyxy2xywhr(x):
     """Convert batched Oriented Bounding Boxes (OBB) from [xy1, xy2, xy3, xy4] to [xywh, rotation] format.
 
     Args:
-        x (np.ndarray | torch.Tensor): Input box corners with shape (N, 8) in [xy1, xy2, xy3, xy4] format.
+        x (np.ndarray | torch.Tensor): Input box corners with shape (N, 8) or (N, 4, 2) in [xy1, xy2, xy3, xy4] format.
+            Polygons with more than four points are accepted in the same two layouts, (N, 2P) or (N, P, 2), and are
+            reduced to their minimum-area rectangle.
 
     Returns:
-        (np.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5). Rotation
-            values are in radians from [-pi/4, 3pi/4).
+        (np.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5). The
+            parameterization is canonical rather than the caller's: w is the longer side and rotation is in radians
+            from [-pi/4, 3pi/4), so a box given with w < h comes back with w and h swapped and its angle shifted by
+            pi/2 modulo pi.
     """
     is_torch = isinstance(x, torch.Tensor)
     points = x.cpu().numpy() if is_torch else x
-    points = points.reshape(len(x), -1, 2)
     rboxes = []
     for pts in points:
         # NOTE: Use cv2.minAreaRect to get accurate xywhr,
         # especially some objects are cut off by augmentations in dataloader.
-        (cx, cy), (w, h), angle = cv2.minAreaRect(pts)
+        (cx, cy), (w, h), angle = cv2.minAreaRect(pts.reshape(-1, 2))
         # convert angle to radian and normalize to [-pi/4, 3pi/4)
         theta = angle / 180 * np.pi
         if w < h:
@@ -386,7 +393,8 @@ def xyxyxyxy2xywhr(x):
         while theta < -np.pi / 4:
             theta += np.pi
         rboxes.append([cx, cy, w, h, theta])
-    return torch.tensor(rboxes, device=x.device, dtype=x.dtype) if is_torch else np.asarray(rboxes)
+    rboxes = np.asarray(rboxes).reshape(-1, 5)  # reshape keeps the (0, 5) shape on an empty input
+    return torch.tensor(rboxes, device=x.device, dtype=x.dtype) if is_torch else rboxes
 
 
 def xywhr2xyxyxyxy(x):
@@ -394,7 +402,9 @@ def xywhr2xyxyxyxy(x):
 
     Args:
         x (np.ndarray | torch.Tensor): Boxes in [cx, cy, w, h, rotation] format with shape (N, 5) or (B, N, 5). Rotation
-            values should be in radians from [-pi/4, 3pi/4).
+            is in radians and is neither range-checked nor normalized; the box is not canonicalized, so converting the
+            (N, 4, 2) corners back with xyxyxyxy2xywhr returns the canonical form of the same rectangle rather than
+            these values.
 
     Returns:
         (np.ndarray | torch.Tensor): Converted corner points with shape (N, 4, 2) or (B, N, 4, 2).
@@ -447,7 +457,7 @@ def segments2boxes(segments):
     for s in segments:
         x, y = s.T  # segment xy
         boxes.append([x.min(), y.min(), x.max(), y.max()])  # cls, xyxy
-    return xyxy2xywh(np.array(boxes))  # cls, xywh
+    return xyxy2xywh(np.array(boxes).reshape(-1, 4))  # cls, xywh
 
 
 def resample_segments(segments, n: int = 1000):
@@ -515,14 +525,16 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
         return torch.zeros((0, *(shape if upsample else (mh, mw))), dtype=torch.uint8, device=masks_in.device)
     masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)  # NHW
 
-    width_ratio = mw / shape[1]
-    height_ratio = mh / shape[0]
-    ratios = torch.tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
-
-    masks = crop_mask(masks, boxes=bboxes * ratios)  # NHW
     if upsample:
+        # Upsample then crop at image resolution; cropping first smears the bilinear edge outside the bbox (#24272)
         masks = F.interpolate(masks[None], shape, mode="bilinear")[0]  # NHW
-    return masks.gt_(0.0).byte()
+    else:
+        width_ratio = mw / shape[1]
+        height_ratio = mh / shape[0]
+        ratios = torch.tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
+        bboxes = bboxes * ratios  # scale boxes to prototype resolution
+    # Binarize before cropping so crop_mask runs on uint8 instead of float32, as in process_mask_native
+    return crop_mask(masks.gt_(0.0).byte(), bboxes)
 
 
 def process_mask_native(protos, masks_in, bboxes, shape):
@@ -611,7 +623,7 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     if ratio_pad is None:  # calculate from img0_shape
         img1_h, img1_w = img1_shape[:2]  # supports both HWC or HW shapes
         gain = min(img1_h / img0_h, img1_w / img0_w)  # gain  = old / new
-        pad = (img1_w - round(img0_w * gain)) / 2, (img1_h - round(img0_h * gain)) / 2  # wh padding
+        pad = round((img1_w - round(img0_w * gain)) / 2 - 0.1), round((img1_h - round(img0_h * gain)) / 2 - 0.1)
     else:
         gain = ratio_pad[0][0]
         pad = ratio_pad[1]
@@ -718,10 +730,9 @@ def linear_sum_assignment(cost_matrix):
     present. SciPy is imported lazily so it never slows `import ultralytics`. For a rectangular matrix only min(rows,
     columns) entries are matched.
 
-    The NumPy fallback expects finite costs: an `inf` entry marks a forbidden assignment (matching SciPy), while `NaN`
-    is not rejected (SciPy raises), so callers must sanitize NaN upstream (e.g. the RT-DETR matcher zeros NaN/inf
-    beforehand). The two backends may return a different equal-cost assignment under exact ties, but the total cost is
-    identical.
+    The NumPy fallback supports `+inf` as a forbidden assignment and raises `ValueError("cost matrix is infeasible")`
+    when no assignment exists; callers must sanitize `NaN` and `-inf`. The two backends may return a different
+    equal-cost assignment under exact ties, but the total cost is identical.
 
     The NumPy fallback is validated against SciPy with exact optimal-cost parity across ~6.9k randomized cases (every
     shape including empty/tall/wide, ties, negatives, IoU- and RT-DETR-style matrices, `maximize` via negation,
@@ -734,7 +745,7 @@ def linear_sum_assignment(cost_matrix):
         300 x 300     28ms    1.5ms
 
     Args:
-        cost_matrix (np.ndarray | torch.Tensor): Cost matrix with shape (N, M) and finite values.
+        cost_matrix (np.ndarray | torch.Tensor): Cost matrix with shape (N, M); `+inf` forbids assignments.
 
     Returns:
         row_ind (np.ndarray): Row indices of the optimal assignment, sorted ascending, with length min(N, M).
@@ -761,7 +772,7 @@ def _linear_sum_assignment_numpy(a):
     """Solve the rectangular linear sum assignment problem with NumPy (Jonker-Volgenant SciPy-free fallback).
 
     Args:
-        a (np.ndarray): Cost matrix of shape (N, M) with dtype float64 and finite values.
+        a (np.ndarray): Float64 cost matrix of shape (N, M); `+inf` forbids assignments.
 
     Returns:
         row_ind (np.ndarray): Row indices of the optimal assignment, sorted ascending, with length min(N, M).
@@ -784,8 +795,11 @@ def _linear_sum_assignment_numpy(a):
             cur = a[i0 - 1] - u[i0] - v[1:]
             improve = (~used[1:]) & (cur < minv[1:])
             minv[1:][improve], way[1:][improve] = cur[improve], j0
-            j1 = int(np.argmin(np.where(used[1:], np.inf, minv[1:]))) + 1
-            delta = minv[j1]
+            candidates = np.where(used[1:], np.inf, minv[1:])
+            j1 = int(np.argmin(candidates)) + 1
+            delta = candidates[j1 - 1]
+            if delta == np.inf:
+                raise ValueError("cost matrix is infeasible")
             u[p[used]] += delta
             v[used] -= delta
             minv[~used] -= delta

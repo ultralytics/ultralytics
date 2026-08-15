@@ -55,7 +55,7 @@ After conversion, [organize your directory structure](#3-organize-directory-stru
 
 A typical COCO-format dataset exported from annotation tools has the following structure:
 
-```
+```text
 my_dataset/
 ├── images/
 │   ├── train/
@@ -138,7 +138,7 @@ Use the [`convert_coco()`](../reference/data/converter.md#ultralytics.data.conve
 
 `convert_coco()` writes one `.txt` file per annotated image into a `labels/` subdirectory named after each JSON file, with the `instances_` prefix removed (so `instances_train.json` produces `labels/train/`). Images with no annotations are skipped and get no label file, so the `labels/` tree may not mirror every image:
 
-```
+```text
 my_dataset/converted/
 └── labels/
     ├── train/   # from instances_train.json
@@ -176,7 +176,7 @@ for src in converted_dir.iterdir():
 
 Your final [dataset structure](../datasets/detect/index.md#ultralytics-yolo-format) should look like:
 
-```
+```text
 my_dataset/
 ├── images/
 │   ├── train/
@@ -306,6 +306,12 @@ If you get `KeyError: 'bbox'` or similar errors when running `convert_coco()`, y
 If conversion completes but `.txt` files are empty or missing, all annotations may have `iscrowd: 1` (common with [SAM](../models/sam.md)-generated masks), or [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) have zero width or height.
 
 **Solution**: Inspect your JSON annotations for `iscrowd` values. If using SAM masks, preprocess the JSON to set `iscrowd: 0`.
+
+### Box-Shaped Polygons From Mask Annotations
+
+If `use_segments=True` logs `annotations without a usable polygon`, some annotations carry no `segmentation` value, or one that is not a list of at least three coordinate pairs. The usual causes are detection-only exports, which leave the field missing or empty, and COCO run-length encoding (`{"counts": ..., "size": ...}`), which bitmask exporters such as [SAM](../models/sam.md) write; a flat coordinate list with no enclosing polygon list, one- and two-point outlines, and other malformed values are handled the same way. An annotation keeps whichever polygons remain, and falls back to a segment row shaped like its bounding box when none do, so the labels stay valid but those rows carry no mask detail.
+
+**Solution**: Re-export the annotations with polygon segmentations, decode the RLE masks to polygons before running `convert_coco()`, or correct any malformed `segmentation` values.
 
 ### Class ID Gaps in Converted Labels
 

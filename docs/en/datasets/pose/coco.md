@@ -1,6 +1,12 @@
 ---
 title: COCO-Pose Estimation Dataset
 comments: true
+creator:
+    name: COCO Consortium
+    url: https://cocodataset.org/
+license:
+    name: CC-BY-4.0
+    url: https://cocodataset.org/#termsofuse
 description: "Explore the Ultralytics COCO-Pose dataset: 58,945 images with 156K+ annotated people and a 17-keypoint schema, for training YOLO26 pose estimation models."
 keywords: COCO-Pose, pose estimation, dataset, keypoints, COCO Keypoints 2017, YOLO, deep learning, computer vision
 ---
@@ -20,7 +26,7 @@ The [COCO-Pose](https://cocodataset.org/#keypoints-2017) dataset adapts COCO (Co
 - COCO-Pose builds upon the [COCO Keypoints 2017](http://presentations.cocodataset.org/COCO17-Keypoints-Overview.pdf) challenge, which labels 1,710,498 individual keypoints across 156,165 annotated people.
 - Each person annotation uses 17 keypoint types — nose, eyes, ears, shoulders, elbows, wrists, hips, knees, and ankles — stored as `(x, y, visibility)` triplets.
 - Like COCO, it provides standardized evaluation metrics, including Object Keypoint Similarity (OKS) for pose estimation tasks, making it suitable for comparing model performance.
-- **Download size**: ~27 GB on first use. The `coco-pose.yaml` header lists 20.1 GB (`train2017.zip` + `val2017.zip` only), but the download script also fetches the 7 GB `test2017.zip` unconditionally, even though that archive is needed only for the optional test-dev2017 submission split.
+- **Download size**: ~20.2 GB on first use (`train2017.zip` + `val2017.zip` + labels). The 7 GB `test2017.zip` is not fetched automatically, since those images have withheld ground truth and are only needed for a [test-dev2017 submission](https://codalab.lisn.upsaclay.fr/competitions/7403).
 
 ## Dataset Structure
 
@@ -38,7 +44,7 @@ The COCO-Pose dataset is specifically used for training and evaluating [deep lea
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO-Pose dataset, the `coco-pose.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml).
+A YAML file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO-Pose dataset, the `coco-pose.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml).
 
 !!! example "ultralytics/cfg/datasets/coco-pose.yaml"
 

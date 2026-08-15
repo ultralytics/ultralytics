@@ -25,7 +25,7 @@ class YOLOETrainer(DetectionTrainer):
     model initialization, validation, and dataset building with multi-modal support.
 
     Attributes:
-        loss_names (tuple): Names of loss components used during training.
+        loss_names (tuple): Names of loss components, derived from the loss dict returned by the criterion.
 
     Methods:
         get_model: Initialize and return a YOLOEModel with specified configuration.
@@ -79,7 +79,6 @@ class YOLOETrainer(DetectionTrainer):
 
     def get_validator(self):
         """Return a YOLOEDetectValidator for YOLOE model validation."""
-        self.loss_names = "box", "cls", "dfl"
         return YOLOEDetectValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
@@ -147,9 +146,9 @@ class YOLOEPETrainer(DetectionTrainer):
         model.model[-1].cv3[2][2] = deepcopy(model.model[-1].cv3[2][2]).requires_grad_(True)
 
         if getattr(model.model[-1], "one2one_cv3", None) is not None:
-            model.model[-1].one2one_cv3[0][2] = deepcopy(model.model[-1].cv3[0][2]).requires_grad_(True)
-            model.model[-1].one2one_cv3[1][2] = deepcopy(model.model[-1].cv3[1][2]).requires_grad_(True)
-            model.model[-1].one2one_cv3[2][2] = deepcopy(model.model[-1].cv3[2][2]).requires_grad_(True)
+            model.model[-1].one2one_cv3[0][2] = deepcopy(model.model[-1].one2one_cv3[0][2]).requires_grad_(True)
+            model.model[-1].one2one_cv3[1][2] = deepcopy(model.model[-1].one2one_cv3[1][2]).requires_grad_(True)
+            model.model[-1].one2one_cv3[2][2] = deepcopy(model.model[-1].one2one_cv3[2][2]).requires_grad_(True)
 
         model.train()
 
@@ -222,7 +221,6 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
 
     def get_validator(self):
         """Return a DetectionValidator for YOLO model validation."""
-        self.loss_names = "box", "cls", "dfl"
         return DetectionValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
@@ -238,7 +236,6 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
             datasets (list[Dataset]): List of datasets containing category names to process.
             batch (int): Batch size for processing text embeddings.
         """
-        pass
 
 
 class YOLOEVPTrainer(YOLOETrainerFromScratch):

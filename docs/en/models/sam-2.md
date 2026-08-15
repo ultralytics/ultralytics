@@ -124,16 +124,16 @@ pip install ultralytics
 
 The following table details the available SAM 2 models, their pretrained weights, supported tasks, and compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md).
 
-| Model Type    | Pretrained Weights                                                                        | Tasks Supported                              | Inference | Validation | Training | Export |
-| ------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
-| SAM 2 tiny    | [sam2_t.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam2_t.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
-| SAM 2 small   | [sam2_s.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam2_s.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
-| SAM 2 base    | [sam2_b.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam2_b.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
-| SAM 2 large   | [sam2_l.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam2_l.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
-| SAM 2.1 tiny  | [sam2.1_t.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam2.1_t.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
-| SAM 2.1 small | [sam2.1_s.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam2.1_s.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
-| SAM 2.1 base  | [sam2.1_b.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam2.1_b.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
-| SAM 2.1 large | [sam2.1_l.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam2.1_l.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| Model Type    | Pretrained Weights                                                                        | Tasks Supported                              | Training | Validation | Inference | Export |
+| ------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------- | -------- | ---------- | --------- | ------ |
+| SAM 2 tiny    | [sam2_t.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam2_t.pt)     | [Instance Segmentation](../tasks/segment.md) | ❌       | ❌         | ✅        | ❌     |
+| SAM 2 small   | [sam2_s.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam2_s.pt)     | [Instance Segmentation](../tasks/segment.md) | ❌       | ❌         | ✅        | ❌     |
+| SAM 2 base    | [sam2_b.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam2_b.pt)     | [Instance Segmentation](../tasks/segment.md) | ❌       | ❌         | ✅        | ❌     |
+| SAM 2 large   | [sam2_l.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam2_l.pt)     | [Instance Segmentation](../tasks/segment.md) | ❌       | ❌         | ✅        | ❌     |
+| SAM 2.1 tiny  | [sam2.1_t.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam2.1_t.pt) | [Instance Segmentation](../tasks/segment.md) | ❌       | ❌         | ✅        | ❌     |
+| SAM 2.1 small | [sam2.1_s.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam2.1_s.pt) | [Instance Segmentation](../tasks/segment.md) | ❌       | ❌         | ✅        | ❌     |
+| SAM 2.1 base  | [sam2.1_b.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam2.1_b.pt) | [Instance Segmentation](../tasks/segment.md) | ❌       | ❌         | ✅        | ❌     |
+| SAM 2.1 large | [sam2.1_l.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam2.1_l.pt) | [Instance Segmentation](../tasks/segment.md) | ❌       | ❌         | ✅        | ❌     |
 
 ### SAM 2 Prediction Examples
 
@@ -212,7 +212,7 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
         from ultralytics.models.sam import SAM2VideoPredictor
 
         # Create SAM2VideoPredictor
-        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="sam2_b.pt")
+        overrides = {"conf": 0.25, "task": "segment", "mode": "predict", "imgsz": 1024, "model": "sam2_b.pt"}
         predictor = SAM2VideoPredictor(overrides=overrides)
 
         # Run inference with single point
@@ -260,7 +260,7 @@ It offers three significant enhancements:
         from ultralytics.models.sam import SAM2DynamicInteractivePredictor
 
         # Create SAM2DynamicInteractivePredictor
-        overrides = dict(conf=0.01, task="segment", mode="predict", imgsz=1024, model="sam2_t.pt", save=False)
+        overrides = {"conf": 0.01, "task": "segment", "mode": "predict", "imgsz": 1024, "model": "sam2_t.pt", "save": False}
         predictor = SAM2DynamicInteractivePredictor(overrides=overrides, max_obj_num=10)
 
         # Define a category by box prompt

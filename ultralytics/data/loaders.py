@@ -8,6 +8,7 @@ import os
 import time
 import urllib
 from dataclasses import dataclass
+from io import BytesIO
 from pathlib import Path
 from threading import Thread
 from typing import Any
@@ -164,13 +165,12 @@ class LoadStreams:
                 cap.grab()  # .read() = .grab() followed by .retrieve()
                 if n % self.vid_stride == 0:
                     success, im = cap.retrieve()
-                    im = (
-                        cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)[..., None] if self.cv2_flag == cv2.IMREAD_GRAYSCALE else im
-                    )
-                    if not success:
+                    if not success or im is None:
                         im = np.zeros(self.shape[i], dtype=np.uint8)
                         LOGGER.warning("Video stream unresponsive, please check your IP camera connection.")
                         cap.open(stream)  # re-open stream if signal was lost
+                    elif self.cv2_flag == cv2.IMREAD_GRAYSCALE:
+                        im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)[..., None]
                     if self.buffer:
                         self.imgs[i].append(im)
                     else:
@@ -427,12 +427,9 @@ class LoadImagesAndVideos:
 
                 if success:
                     success, im0 = self.cap.retrieve()
-                    im0 = (
-                        cv2.cvtColor(im0, cv2.COLOR_BGR2GRAY)[..., None]
-                        if self.cv2_flag == cv2.IMREAD_GRAYSCALE
-                        else im0
-                    )
-                    if success:
+                    if success and im0 is not None:
+                        if self.cv2_flag == cv2.IMREAD_GRAYSCALE:
+                            im0 = cv2.cvtColor(im0, cv2.COLOR_BGR2GRAY)[..., None]
                         self.frame += 1
                         paths.append(path)
                         imgs.append(im0)
@@ -512,34 +509,47 @@ class LoadPilAndNumpy:
         """
         if not isinstance(im0, list):
             im0 = [im0]
+        if not im0:  # an empty batch otherwise fails unnamed inside np.stack in Predictor.preprocess
+            raise FileNotFoundError("No images found in source, predict requires at least one image.")
         # use `image{i}.jpg` when Image.filename returns an empty path.
         self.paths = [getattr(im, "filename", "") or f"image{i}.jpg" for i, im in enumerate(im0)]
-        pil_flag = "L" if channels == 1 else "RGB"  # grayscale or RGB
-        self.im0 = [self._single_check(im, pil_flag) for im in im0]
+        self.im0 = [self._single_check(im, channels) for im in im0]
         self.mode = "image"
         self.bs = len(self.im0)
         self.count = 0
 
     @staticmethod
-    def _single_check(im: Image.Image | np.ndarray, flag: str = "RGB") -> np.ndarray:
-        """Validate and format an image to a NumPy array.
+    def _single_check(im: Image.Image | np.ndarray, channels: int = 3) -> np.ndarray:
+        """Validate an image and normalize its channel count.
 
         Notes:
             - PIL inputs are converted to NumPy and returned in OpenCV-compatible BGR order for color images.
-            - NumPy color inputs are returned as-is (no channel-order conversion is applied).
-            - 2D grayscale NumPy inputs are expanded to match the model channels (3 for color, 1 for grayscale),
-              mirroring how PIL and file inputs are handled.
+            - NumPy color inputs are assumed to use OpenCV-compatible BGR order.
         """
-        assert isinstance(im, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(im)}"
-        if isinstance(im, Image.Image):
+        if not isinstance(im, (Image.Image, np.ndarray)):
+            raise TypeError(f"Expected PIL/np.ndarray image type, but got {type(im)}")
+        pil = isinstance(im, Image.Image)
+        if pil:
+            flag = "L" if channels == 1 else "RGB"
             im = np.asarray(im.convert(flag))
-            # Add a new axis if grayscale; convert RGB -> BGR for OpenCV compatibility.
             im = im[..., None] if flag == "L" else im[..., ::-1]
-            im = np.ascontiguousarray(im)  # contiguous
-        elif im.ndim == 2:  # grayscale in numpy form
-            # Expand 2D grayscale to 3 channels for color models (like PIL/file inputs); np.repeat preserves dtype
-            im = im[..., None] if flag == "L" else np.repeat(im[..., None], 3, axis=2)
-        return im
+        im = np.atleast_3d(im)
+        # Both routes validate here: a zero dimension divides by zero in LetterBox, and a batched array reads
+        # shape[2] as a channel count it is not. Raised rather than asserted so `python -O` keeps the check.
+        if im.ndim != 3 or not all(im.shape):
+            raise ValueError(f"Expected a single (H, W, C) image, but got array of shape {im.shape}")
+        if pil:
+            return np.ascontiguousarray(im)
+        c = im.shape[2]
+        if c == channels:
+            return im
+        if c == 2:  # gray + alpha
+            im, c = im[..., :1], 1
+        if c == 1:
+            return np.repeat(im, channels, axis=2)
+        if channels == 1:
+            return cv2.cvtColor(im, cv2.COLOR_BGRA2GRAY if c == 4 else cv2.COLOR_BGR2GRAY)[..., None]
+        return np.ascontiguousarray(im[..., :3])
 
     def __len__(self) -> int:
         """Return the length of the 'im0' attribute, representing the number of loaded images."""
@@ -605,9 +615,9 @@ class LoadTensor:
                 raise ValueError(s)
             LOGGER.warning(s)
             im = im.unsqueeze(0)
-        if im.shape[2] % stride or im.shape[3] % stride:
-            raise ValueError(s)
-        if im.max() > 1.0 + torch.finfo(im.dtype).eps:  # torch.float32 eps is 1.2e-07
+        if not all(im.shape) or im.shape[2] % stride or im.shape[3] % stride:
+            raise ValueError(s)  # a zero dimension reaches im.max() below on an empty tensor
+        if im.max() > 1.0 + (torch.finfo(im.dtype).eps if im.is_floating_point() else 0):
             LOGGER.warning(
                 f"torch.Tensor inputs should be normalized 0.0-1.0 but max value is {im.max()}. Dividing input by 255."
             )
@@ -637,9 +647,15 @@ def autocast_list(source: list[Any]) -> list[Image.Image | np.ndarray]:
     files = []
     for im in source:
         if isinstance(im, (str, Path)):  # filename or uri
-            files.append(
-                ImageOps.exif_transpose(Image.open(urllib.request.urlopen(im) if str(im).startswith("http") else im))
-            )
+            if str(im).startswith("http"):  # requests follows HTTP 308 redirects that urllib lacks pre-3.11
+                import requests  # scoped as slow import
+
+                im = BytesIO(requests.get(im).content)
+            im = Image.open(im)
+            filename = im.filename
+            im = ImageOps.exif_transpose(im)
+            im.filename = filename
+            files.append(im)
         elif isinstance(im, (Image.Image, np.ndarray)):  # PIL or np Image
             files.append(im)
         else:

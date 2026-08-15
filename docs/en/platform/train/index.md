@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Cloud Model Training
 comments: true
 description: Learn about model training in Ultralytics Platform including project organization, cloud training, and real-time metrics streaming.
@@ -7,7 +8,7 @@ keywords: Ultralytics Platform, model training, cloud training, YOLO, GPU traini
 
 # Model Training
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive tools for training YOLO models, from organizing experiments to running cloud training jobs with real-time metrics streaming.
+[Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive tools for [training YOLO models](../../modes/train.md), from organizing experiments to running cloud training jobs with real-time metrics streaming.
 
 <p align="center">
   <br>
@@ -28,9 +29,9 @@ The Training section helps you:
 - **Train** on cloud GPUs with a single click
 - **Monitor** real-time metrics during training
 - **Compare** model performance across experiments
-- **Export** to 19+ deployment formats (see [supported formats](models.md#supported-formats))
+- **Export** to 20 deployment formats (see [supported formats](models.md#supported-formats))
 
-![Ultralytics Platform Train Overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-train-overview.avif)
+![Ultralytics Platform Train Overview](https://cdn.ul.run/i/4ec82b7ca5d7c33caab98e08da93ea05.avif)<!-- screenshot -->
 
 ## Workflow
 
@@ -52,7 +53,7 @@ graph LR
 | **Configure** | Select [dataset](../data/datasets.md), base model, and training parameters |
 | **Train**     | Run on cloud GPUs or your local hardware                                   |
 | **Monitor**   | View real-time loss curves and metrics                                     |
-| **Export**    | Convert to 19+ deployment formats ([details](models.md#supported-formats)) |
+| **Export**    | Convert to 20 deployment formats ([details](models.md#supported-formats))  |
 
 ## Training Options
 
@@ -63,6 +64,12 @@ Ultralytics Platform supports multiple training approaches:
 | **[Cloud Training](cloud-training.md)**                 | Train on Ultralytics Cloud GPUs               | No local GPU, scalability  |
 | **[Local Training](cloud-training.md#remote-training)** | Train locally, stream metrics to the platform | Existing hardware, privacy |
 | **[Colab Training](cloud-training.md#remote-training)** | Use Google Colab with platform integration    | Free GPU access            |
+
+!!! tip "Automatic GPU Routing"
+
+    When you select a GPU cheaper than the RTX PRO 6000 and Ultralytics-managed capacity is free, the Platform runs
+    your job on an RTX PRO 6000 while still billing your selected GPU's hourly rate. Runs can finish sooner and cost
+    less than they would have on the selected GPU — the upgrade never adds time or cost.
 
 ## GPU Options
 
@@ -85,25 +92,27 @@ During training, view live metrics across three subtabs:
 ```mermaid
 graph LR
     A[Charts]:::start --> B[Loss Curves]:::out
-    A --> C[Performance Metrics]:::out
+    A --> C[Task Metrics]:::out
     D[Console]:::start --> E[Live Logs]:::out
     D --> F[Error Detection]:::out
-    G[System]:::start --> H[GPU Utilization]:::out
-    G --> I[Memory & Temp]:::out
+    G[System]:::start --> H[GPU, CPU & Memory]:::out
+    G --> I[Network & Disk I/O]:::out
 
     classDef start fill:#4CAF50,color:#fff
     classDef out fill:#9C27B0,color:#fff
 ```
 
-| Subtab      | Metrics                                                |
-| ----------- | ------------------------------------------------------ |
-| **Charts**  | Box/class/DFL loss, mAP50, mAP50-95, precision, recall |
-| **Console** | Live training logs with ANSI color and error detection |
-| **System**  | GPU utilization, memory, temperature, CPU, disk        |
+| Subtab      | Metrics                                                                                          |
+| ----------- | ------------------------------------------------------------------------------------------------ |
+| **Charts**  | Task metrics (mAP50, mAP50-95, precision, recall for detection), train/val losses, learning rate |
+| **Console** | Live training logs with ANSI color and automatic error detection                                 |
+| **System**  | GPU utilization, GPU memory and temperature, CPU, RAM, network and disk I/O                      |
 
 !!! info "Automatic Checkpoints"
 
-    For cloud training, the **best model** (`best.pt`, the highest-mAP checkpoint) is saved automatically and made available for download, export, and deployment after training completes.
+    The best checkpoint (`best.pt`, the highest-fitness epoch) is uploaded to the Platform periodically **while
+    training runs** and again when the run ends, so download, export, and deployment always use the best epoch
+    produced so far. Cancelled runs keep the last checkpoint that finished uploading.
 
 ## Quick Start
 
@@ -155,7 +164,9 @@ Training time depends on:
 - Number of epochs
 - GPU type selected
 
-A typical training run with 1000 images, YOLO26n, 100 epochs on RTX PRO 6000 takes about 5-10 minutes. Smaller runs (500 images, 50 epochs on RTX 4090) complete in under an hour. See [cost examples](cloud-training.md#cost-examples) for detailed estimates.
+The current estimator predicts about 6 minutes for 1000 images, YOLO26n, 100 epochs on RTX PRO 6000, and about 2
+minutes for 500 images, YOLO26n, 50 epochs on RTX 4090. Actual duration varies; use the live estimate in the training
+dialog for the selected dataset and configuration. See [cost examples](cloud-training.md#cost-examples).
 
 ### Can I train multiple models simultaneously?
 
@@ -166,8 +177,10 @@ Yes. Concurrent cloud training limits depend on your plan: Free allows 3, Pro al
 If training fails:
 
 1. The model is marked failed and the compute instance is terminated
-2. You can start a new training run from the base model
-3. Credits are only charged for completed compute time
+2. The model page shows an error banner with the captured error, a link to the console output, and a **Retry**
+   action that reopens the training dialog with the same configuration
+3. A run that stops reporting activity for several hours is automatically marked failed and its compute released
+4. If cloud compute had started, elapsed GPU time is charged; failures before compute starts have no GPU usage charge
 
 ### How do I choose the right GPU?
 

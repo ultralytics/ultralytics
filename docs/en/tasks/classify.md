@@ -5,9 +5,9 @@ keywords: YOLO26, image classification, AI, machine learning, pretrained models,
 model_name: yolo26n-cls
 ---
 
-# Image Classification
+# Image Classification with Ultralytics YOLO {#image-classification}
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/image-classification-examples.avif" alt="YOLO image classification of objects and scenes">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/image-classification-examples.avif" alt="Ultralytics YOLO image classification of objects and scenes">
 
 [Image classification](https://www.ultralytics.com/glossary/image-classification) is the simplest of the supported tasks and involves classifying an entire image into one of a set of predefined classes.
 
@@ -146,7 +146,7 @@ Train YOLO26n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
 
 ### Dataset format
 
-YOLO classification dataset format can be found in detail in the [Dataset Guide](../datasets/classify/index.md). Classification datasets can also be managed and labeled on [Ultralytics Platform](https://platform.ultralytics.com).
+YOLO classification dataset format can be found in detail in the [Dataset Guide](../datasets/classify/index.md). Classification datasets can also be managed and labeled with [Ultralytics Platform annotation tools](../platform/data/annotation.md).
 
 ## Val
 

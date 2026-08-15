@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Account Activity Feed
 comments: true
 description: Track all account activity and events on Ultralytics Platform with the activity feed, including training, uploads, and system events.
@@ -9,11 +10,11 @@ keywords: Ultralytics Platform, activity feed, audit log, notifications, event t
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides a comprehensive activity feed that tracks all events and actions across your account. Monitor training progress and system events in one centralized location.
 
-![Ultralytics Platform Activity Page Inbox Tab With Event List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/activity-page-inbox-tab-with-event-list.avif)
+![Ultralytics Platform Activity Page Inbox Tab With Event List](https://cdn.ul.run/i/13a07c40c136229925eb9c2dd08e109b.avif)<!-- screenshot -->
 
 ## Overview
 
-The Activity Feed serves as your central hub for:
+The Activity Feed provides one place for:
 
 - **Training updates**: Job started, completed, failed, or cancelled
 - **Data changes**: Datasets created, modified, or deleted
@@ -27,11 +28,13 @@ The Activity Feed serves as your central hub for:
 
 Navigate to the Activity Feed in any of the following ways:
 
-1. Click the activity indicator in the top navigation bar
+1. Click the activity indicator in the top navigation bar, then **View all**
 2. Open the profile menu at the bottom of the sidebar and select **Activity**
 3. Navigate directly to `/activity`
 
-![Ultralytics Platform Activity Page Inbox With Search And Date Filter](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/activity-page-inbox-with-search-and-date-filter.avif)
+The dropdown in the top bar shows the most recent events with the same archive and undo actions as the full page.
+
+![Ultralytics Platform Activity Page Inbox With Search And Date Filter](https://cdn.ul.run/i/25e9aec0b788985d37cc314093ebb1d8.avif)<!-- screenshot -->
 
 ## Activity Types
 
@@ -93,6 +96,9 @@ Move events to Archive to keep your Inbox clean:
 - Access archived events via the `Archive` tab
 - Click **Restore** on archived events to move them back to Inbox
 
+Archiving and restoring require the Editor role or higher in a team workspace. Viewers can read the feed and export it,
+but the Archive controls are hidden for them.
+
 ## Search and Filtering
 
 Find specific events quickly:
@@ -109,94 +115,60 @@ Filter by time period using the date range picker:
 - The page defaults to the last 30 days
 - Custom date ranges supported
 
-![Ultralytics Platform Activity Page Date Range Picker Expanded](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/activity-page-date-range-picker-expanded.avif)
+![Ultralytics Platform Activity Page Date Range Picker Expanded](https://cdn.ul.run/i/f5366025524c00a10e8a1135437f1d89.avif)<!-- screenshot -->
 
 ## Event Details
 
-Each event displays:
+Each row displays:
 
-| Field           | Description                                            |
-| --------------- | ------------------------------------------------------ |
-| **Icon**        | Resource type indicator                                |
-| **Description** | What happened (e.g., "Created project my-project")     |
-| **Timestamp**   | Relative time (e.g., "Today at 3:45 PM", "3 days ago") |
-| **Metadata**    | Additional context when available                      |
+| Field           | Description                                             |
+| --------------- | ------------------------------------------------------- |
+| **Event**       | Action and resource type (for example, Created Project) |
+| **Resource**    | Recorded resource name                                  |
+| **Time**        | Event timestamp                                         |
+| **User email**  | Account member that performed the action                |
+| **Resource ID** | Recorded resource identifier                            |
+| **Actions**     | Undo, Archive, or Restore when available                |
 
 ## Undo Support
 
-Some actions support undo directly from the Activity feed:
+Settings changes support undo directly from the Activity feed:
 
-- **Settings changes**: Click **Undo** next to a recent settings update event to revert the change
-- Undo is available for **one hour** after the action; after that, the undo button disappears
+- Click **Undo** next to the matching settings event to restore the previous value.
+- Undo remains available for **one hour** in the browser session where the change was made. It is held in memory only,
+  so it does not persist after reloading or opening another browser.
+- Only settings events are undoable. Trashed resources are recovered from [Trash](trash.md) instead.
 
 ## Pagination
 
 The Activity feed supports pagination:
 
-- Default page size: 20 events
-- Navigate between pages using the pagination controls
-- Page size is configurable via URL query parameter
+- Default page size: 20 events, up to 100 per page
+- Navigate between pages and change the page size using the pagination controls
+- The tab, page, page size, search, and date range are all reflected in the URL, so a filtered view can be bookmarked
+  or shared
 
-## API Routes
+## Export Activity
 
-The Activity feed is powered by browser-authenticated routes — it is not exposed as a public API and cannot be accessed with an API key. The route shapes are listed below for reference; to view, mark, or archive activity, use the Activity feed in the platform UI.
+Use the export menu in the card header to download the events in the current Inbox or Archive view as **CSV** or
+**JSON**, or to copy them to the clipboard as JSON. The export respects the active search and date filters, and covers
+the whole filtered result rather than just the visible page.
 
-!!! note "Browser Session Only"
-
-    The routes shown below require an active platform browser session. The `Authorization: Bearer YOUR_API_KEY` header in the examples will not authenticate these routes — they are documented only to describe how the in-app feed talks to the server.
-
-=== "List Activity"
-
-    ```bash
-    curl -H "Authorization: Bearer YOUR_API_KEY" \
-      https://platform.ultralytics.com/api/activity
-    ```
-
-=== "Filter and Search"
-
-    ```bash
-    curl -H "Authorization: Bearer YOUR_API_KEY" \
-      "https://platform.ultralytics.com/api/activity?archived=false&search=model&page=1&limit=20"
-    ```
-
-=== "Mark Seen"
-
-    ```bash
-    curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
-      -H "Content-Type: application/json" \
-      -d '{"all": true}' \
-      https://platform.ultralytics.com/api/activity/mark-seen
-    ```
-
-=== "Archive"
-
-    ```bash
-    # Archive specific events
-    curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
-      -H "Content-Type: application/json" \
-      -d '{"eventIds": ["event_id_here"], "archive": true}' \
-      https://platform.ultralytics.com/api/activity/archive
-
-    # Archive all events
-    curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
-      -H "Content-Type: application/json" \
-      -d '{"all": true, "archive": true}' \
-      https://platform.ultralytics.com/api/activity/archive
-    ```
+Each exported row carries the event time, action and resource type, resource name and ID, user name, email, and ID, the
+event metadata, and the archived and seen flags.
 
 ## FAQ
 
-### How long is activity history retained?
-
-Activity history is retained indefinitely for your account. Archived events are also kept permanently.
-
 ### Can I export my activity history?
 
-Yes, use the GDPR data export feature in [`Settings > Profile`](settings.md#gdpr-compliance) to download all account data including activity history.
+Yes. Use the export menu on the Activity page to download the current filtered view as CSV or JSON, or use the GDPR
+data export in [`Settings > Profile`](settings.md#gdpr-compliance) to download account metadata including your full
+activity history.
 
 ### What happens to activity when I delete a resource?
 
-The activity event remains in your history with a note that the resource was deleted. You can still see what happened even after deletion.
+The recorded event keeps its action, resource name, resource ID, time, and user email. The resource itself is no longer
+available after permanent deletion.
 
 ### Does activity work with team workspaces?
 

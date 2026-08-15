@@ -1,6 +1,10 @@
 ---
 title: Crack-Seg Dataset
 comments: true
+creator:
+    name: University
+license:
+    name: PDM-1.0
 description: Train Ultralytics YOLO segmentation models on the Crack Segmentation Dataset — 4,029 annotated road and wall images for a single crack class.
 keywords: Crack Segmentation Dataset, Ultralytics, transportation safety, public safety, self-driving cars, computer vision, road safety, infrastructure maintenance, dataset, YOLO, segmentation, deep learning
 ---
@@ -42,7 +46,7 @@ The complete Crack Segmentation Dataset can also be browsed and managed on [Ultr
 
 ## Dataset YAML
 
-A [YAML](https://www.ultralytics.com/glossary/yaml) (Yet Another Markup Language) file defines the dataset configuration. It includes details about the dataset's paths, classes, and other relevant information. For the Crack Segmentation dataset, the `crack-seg.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/crack-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/crack-seg.yaml).
+A [YAML](https://www.ultralytics.com/glossary/yaml) file defines the dataset configuration. It includes details about the dataset's paths, classes, and other relevant information. For the Crack Segmentation dataset, the `crack-seg.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/crack-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/crack-seg.yaml).
 
 !!! example "ultralytics/cfg/datasets/crack-seg.yaml"
 

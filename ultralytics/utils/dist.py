@@ -23,12 +23,27 @@ def find_free_network_port() -> int:
 
     Returns:
         (int): The available network port number.
+
+    Notes:
+        Candidates are drawn below the default OS ephemeral floor (32768 on Linux, 49152 on macOS and Windows)
+        because the port is released here and rebound later by the DDP subprocess. An ephemeral port can be handed to
+        any outbound connection in that window, which surfaces as an EADDRINUSE rendezvous failure at launch.
     """
+    import random
     import socket
 
+    # SystemRandom as init_seeds() seeds the global RNG earlier in this process, which would hand every concurrent
+    # DDP launch on a host the same candidate list
+    for port in random.SystemRandom().sample(range(10000, 32768), 10):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind(("127.0.0.1", port))
+                return port
+            except OSError:
+                continue  # in use by an explicit listener, try the next candidate
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(("127.0.0.1", 0))
-        return s.getsockname()[1]  # port
+        s.bind(("127.0.0.1", 0))  # no non-ephemeral candidate available, fall back to an ephemeral port
+        return s.getsockname()[1]
 
 
 def generate_ddp_file(trainer: BaseTrainer) -> str:
@@ -48,7 +63,6 @@ def generate_ddp_file(trainer: BaseTrainer) -> str:
         The generated file is saved in the USER_CONFIG_DIR/DDP directory and includes:
         - Trainer class import
         - Configuration overrides from the trainer arguments
-        - Model path configuration
         - Training initialization code
     """
     module, name = f"{trainer.__class__.__module__}.{trainer.__class__.__name__}".rsplit(".", 1)
@@ -77,7 +91,6 @@ if __name__ == "__main__":
     cfg = DEFAULT_CFG_DICT.copy()
     cfg.update(save_dir='')   # handle the extra key 'save_dir'
     trainer = {name}(cfg=cfg, overrides=overrides)
-    trainer.args.model = "{getattr(trainer.hub_session, "model_url", trainer.args.model)}"
     results = trainer.train()
 """
     (USER_CONFIG_DIR / "DDP").mkdir(exist_ok=True)

@@ -37,13 +37,24 @@ We greatly appreciate contributions in the form of [pull requests (PRs)](https:/
 5. **[Commit your changes](https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop):** Commit your changes with concise and descriptive commit messages. If your changes address a specific issue, include the issue number (e.g., `Fix #123: Corrected calculation error.`).
 6. **[Create a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request):** Submit a pull request from your branch to the `main` branch of the original Ultralytics repository. Provide a clear title and a detailed description explaining the purpose and scope of your changes.
 
+### 📚 Documentation Changes
+
+Documentation source lives under `docs/en/`. From the repository root, install the development dependencies and run the complete strict validation before opening a PR:
+
+```bash
+uv pip install -e ".[dev]"
+python docs/build_docs.py
+```
+
+The validation prepares generated references, macros, and comparison pages before running `zensical build --strict`. For a faster live preview of pages that do not use macros, run `zensical serve`.
+
 ### 📝 CLA Signing
 
 Before we can merge your pull request, you must sign our [Contributor License Agreement (CLA)](CLA.md). This legal agreement ensures that your contributions are properly licensed, allowing the project to continue being distributed under the [AGPL-3.0 license](https://www.ultralytics.com/legal/agpl-3-0-software-license).
 
 After submitting your pull request, the CLA bot will guide you through the signing process. To sign the CLA, simply add a comment in your PR stating:
 
-```
+```text
 I have read the CLA Document and I sign the CLA
 ```
 
@@ -124,14 +135,14 @@ When adding new functions or classes, include [Google-style docstrings](https://
         Note: Even though Python returns multiple values as a tuple (e.g., `return masks, scores`), always document each value separately for clarity and better tool integration. When documenting functions that return multiple values:
 
         ✅ Good - Document each return value separately:
-        ```
+        ```text
         Returns:
            (np.ndarray): Predicted masks with shape HxWxN.
            (list): Confidence scores for each instance.
         ```
 
         ❌ Bad - Don't document as a tuple with nested elements:
-        ```
+        ```text
         Returns:
            (tuple): Tuple containing:
                - (np.ndarray): Predicted masks with shape HxWxN.
@@ -257,7 +268,7 @@ Complying means making the **complete corresponding source code** of your projec
 
 Refer to the [Ultralytics Template Repository](https://github.com/ultralytics/template) for a practical example structure:
 
-```
+```text
 my-yolo-project/
 │
 ├── LICENSE               # Full AGPL-3.0 license text
@@ -296,7 +307,7 @@ Contributing to Ultralytics YOLO open-source repositories improves the software,
 
 To sign the Contributor License Agreement (CLA), follow the instructions provided by the CLA bot after submitting your pull request. This process ensures that your contributions are properly licensed under the AGPL-3.0 license, maintaining the legal integrity of the open-source project. Add a comment in your pull request stating:
 
-```
+```text
 I have read the CLA Document and I sign the CLA
 ```
 

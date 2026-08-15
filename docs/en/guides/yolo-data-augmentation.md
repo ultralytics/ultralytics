@@ -185,7 +185,7 @@ Then launch the training with the Python API:
 - **Ultralytics' implementation**: [RandomPerspective](../reference/data/augment.md#ultralytics.data.augment.RandomPerspective)
 - **Note**: For simplicity, the translations applied below are the same each time for both `x` and `y` axes. Values `-1.0` and `1.0` are not shown as they would translate the image completely out of the frame.
 
-|                                                                           `-0.5`                                                                           |                                                                         **`-0.25`**                                                                          |                                                                 **`0.0`**                                                                  |                                                                         **`0.25`**                                                                         |                                                                        **`0.5`**                                                                         |
+|                                                                         **`-0.5`**                                                                         |                                                                         **`-0.25`**                                                                          |                                                                 **`0.0`**                                                                  |                                                                         **`0.25`**                                                                         |                                                                        **`0.5`**                                                                         |
 | :--------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_geometric_translate_-0.5.avif" alt="Translation -0.5 shift augmentation"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_geometric_translate_-0.25.avif" alt="Translation -0.25 shift augmentation"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_identity.avif" alt="Original image without augmentation"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_geometric_translate_0.25.avif" alt="Translation 0.25 shift augmentation"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_geometric_translate_0.5.avif" alt="Translation 0.5 shift augmentation"/> |
 
@@ -240,9 +240,9 @@ Then launch the training with the Python API:
 - **Purpose**: Useful for scenarios where objects can appear upside down. For example, in robotic vision systems, objects on conveyor belts or robotic arms may be picked up and placed in various orientations. Vertical flipping helps the model recognize objects regardless of their top-down positioning.
 - **Ultralytics' implementation**: [RandomFlip](../reference/data/augment.md#ultralytics.data.augment.RandomFlip)
 
-|                                                                    **`flipud` off**                                                                    |                                                                       **`flipud` on**                                                                        |
-| :----------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_identity.avif" alt="Original image without augmentation" width="38%"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_flip_vertical_1.avif" alt="Vertical flip augmentation enabled" width="38%"/> |
+|                                                              **`flipud` off**                                                              |                                                                 **`flipud` on**                                                                  |
+| :----------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------: |
+| <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_identity.avif" alt="Original image without augmentation"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_flip_vertical_1.avif" alt="Vertical flip augmentation enabled"/> |
 
 ### Flip Left-Right (`fliplr`)
 
@@ -252,9 +252,9 @@ Then launch the training with the Python API:
 - **Purpose**: Horizontal flipping is widely used in object detection, pose estimation, and facial recognition to improve robustness against left-right variations. For example, in autonomous driving, vehicles and pedestrians can appear on either side of the road, and horizontal flipping helps the model recognize them equally well in both orientations.
 - **Ultralytics' implementation**: [RandomFlip](../reference/data/augment.md#ultralytics.data.augment.RandomFlip)
 
-|                                                                    **`fliplr` off**                                                                    |                                                                         **`fliplr` on**                                                                          |
-| :----------------------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_identity.avif" alt="Original image without augmentation" width="38%"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_flip_horizontal_1.avif" alt="Horizontal flip augmentation enabled" width="38%"/> |
+|                                                              **`fliplr` off**                                                              |                                                                   **`fliplr` on**                                                                    |
+| :----------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------: |
+| <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_identity.avif" alt="Original image without augmentation"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_flip_horizontal_1.avif" alt="Horizontal flip augmentation enabled"/> |
 
 ### BGR Channel Swap (`bgr`)
 
@@ -264,9 +264,9 @@ Then launch the training with the Python API:
 - **Purpose**: Increases robustness to different color channel orderings. For example, when training models that must work across various camera systems and imaging libraries where RGB and BGR formats may be inconsistently used, or when deploying models to environments where the input color format might differ from the training data.
 - **Ultralytics' implementation**: [Format](../reference/data/augment.md#ultralytics.data.augment.Format)
 
-|                                                                     **`bgr` off**                                                                      |                                                                        **`bgr` on**                                                                        |
-| :----------------------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_identity.avif" alt="Original image without augmentation" width="38%"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_bgr_channel_swap_1.avif" alt="BGR channel swap augmentation" width="38%"/> |
+|                                                               **`bgr` off**                                                                |                                                                  **`bgr` on**                                                                  |
+| :----------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------: |
+| <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_identity.avif" alt="Original image without augmentation"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_bgr_channel_swap_1.avif" alt="BGR channel swap augmentation"/> |
 
 ### Mosaic (`mosaic`)
 
@@ -281,9 +281,9 @@ Then launch the training with the Python API:
     - The center of the generated mosaic is determined using random values, and can either be inside the image or outside of it.
     - The current implementation of the `mosaic` augmentation combines 4 images picked randomly from the dataset. If the dataset is small, the same image may be used multiple times in the same mosaic.
 
-|                                                                    **`mosaic` off**                                                                    |                                                                     **`mosaic` on**                                                                     |
-| :----------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------: |
-| <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_identity.avif" alt="Original image without augmentation" width="38%"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_mosaic_on.avif" alt="Mosaic 4-image augmentation enabled" width="55%"/> |
+|                                                              **`mosaic` off**                                                              |                                                               **`mosaic` on**                                                               |
+| :----------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------: |
+| <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_identity.avif" alt="Original image without augmentation"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_mosaic_on.avif" alt="Mosaic 4-image augmentation enabled"/> |
 
 ### Mixup (`mixup`)
 
@@ -295,9 +295,9 @@ Then launch the training with the Python API:
 - **Note**:
     - The `mixup` ratio is a random value picked from a `np.random.beta(32.0, 32.0)` beta distribution, meaning each image contributes approximately 50%, with slight variations.
 
-|                                                           **First image, `mixup` off**                                                            |                                                               **Second image, `mixup` off**                                                                |                                                                     **`mixup` on**                                                                     |
-| :-----------------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------: |
-| <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_identity.avif" alt="First image for MixUp blending" width="60%"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_mixup_identity_2.avif" alt="Second image for MixUp blending" width="60%"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_mixup_on.avif" alt="MixUp blending augmentation enabled" width="85%"/> |
+|                                                     **First image, `mixup` off**                                                      |                                                         **Second image, `mixup` off**                                                          |                                                               **`mixup` on**                                                               |
+| :-----------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------: |
+| <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_identity.avif" alt="First image for MixUp blending"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_mixup_identity_2.avif" alt="Second image for MixUp blending"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_mixup_on.avif" alt="MixUp blending augmentation enabled"/> |
 
 ### CutMix (`cutmix`)
 
@@ -312,9 +312,9 @@ Then launch the training with the Python API:
     - A region is pasted into the target image only if it does not overlap with any existing bounding box. Additionally, only the bounding boxes that retain at least `0.1` (10%) of their original area within the pasted region are preserved.
     - This minimum bounding box area threshold cannot be changed with the current implementation and is set to `0.1` by default.
 
-|                                                           **First image, `cutmix` off**                                                            |                                                           **Second image, `cutmix` off**                                                            |                                                                 **`cutmix` on**                                                                 |
-| :------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------: |
-| <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_cutmix_identity_1.avif" alt="First image for CutMix" width="85%"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_cutmix_identity_2.avif" alt="Second image for CutMix" width="85%"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_cutmix_on.avif" alt="CutMix augmentation enabled" width="85%"/> |
+|                                                     **First image, `cutmix` off**                                                      |                                                     **Second image, `cutmix` off**                                                      |                                                           **`cutmix` on**                                                           |
+| :------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------: |
+| <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_cutmix_identity_1.avif" alt="First image for CutMix"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_cutmix_identity_2.avif" alt="Second image for CutMix"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_cutmix_on.avif" alt="CutMix augmentation enabled"/> |
 
 ## Segmentation-Specific Augmentations
 
@@ -327,12 +327,12 @@ Then launch the training with the Python API:
 - **Ultralytics' implementation**: [CopyPaste](../reference/data/augment.md#ultralytics.data.augment.CopyPaste)
 - **Note**:
     - As pictured in the gif below, the `copy_paste` augmentation can be used to copy objects from one image to another.
-    - Once an object is copied, regardless of the `copy_paste_mode`, its Intersection over Area (IoA) is computed with all the object of the source image. If all the IoA are below `0.3` (30%), the object is pasted in the target image. If only one the IoA is above `0.3`, the object is not pasted in the target image.
+    - Once an object is selected for copying, its IoA is computed against all objects already present in the target image, regardless of `copy_paste_mode`. The object is pasted only if all IoA values are below `0.3` (30%); it is not pasted if any IoA value is `0.3` or higher.
     - The IoA threshold cannot be changed with the current implementation and is set to `0.3` by default.
 
-|                                                                     **`copy_paste` off**                                                                     |                                                     **`copy_paste` on with `copy_paste_mode=flip`**                                                     |                                                               Visualize the `copy_paste` process                                                                |
-| :----------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_copy_paste_off.avif" alt="Original image without augmentation" width="80%"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_copy_paste_on.avif" alt="Copy-paste augmentation enabled" width="80%"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_copy_paste_demo.avif" alt="Copy-paste augmentation animated demo" width="97%"/> |
+|                                                               **`copy_paste` off**                                                               |                                               **`copy_paste` on with `copy_paste_mode=flip`**                                               |                                                       **Visualize the `copy_paste` process**                                                        |
+| :----------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------: |
+| <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_copy_paste_off.avif" alt="Original image without augmentation"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_copy_paste_on.avif" alt="Copy-paste augmentation enabled"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_copy_paste_demo.avif" alt="Copy-paste augmentation animated demo"/> |
 
 ### Copy-Paste Mode (`copy_paste_mode`)
 
@@ -342,13 +342,13 @@ Then launch the training with the Python API:
 - **Purpose**: Allows flexibility in how copied objects are integrated into target images.
 - **Ultralytics' implementation**: [CopyPaste](../reference/data/augment.md#ultralytics.data.augment.CopyPaste)
 - **Note**:
-    - The IoA principle is the same for both `copy_paste_mode`, but the way the objects are copied is different.
+    - The IoA principle is the same for both `copy_paste_mode` options, but the way the objects are copied is different.
     - Depending on the image size, objects may sometimes be copied partially or entirely outside the frame.
     - Depending on the quality of polygon annotations, copied objects may have slight shape variations compared to the originals.
 
-|                                                                    **Reference image**                                                                     |                                                              **Chosen image for `copy_paste`**                                                               |                                                   **`copy_paste` on with `copy_paste_mode=mixup`**                                                    |
-| :--------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------: |
-| <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_mixup_identity_2.avif" alt="Second image for MixUp blending" width="77%"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_copy_paste_off.avif" alt="Original image without augmentation" width="80%"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_copy_paste_mixup.avif" alt="Copy-paste with MixUp mode" width="77%"/> |
+|                                                              **Reference image**                                                               |                                                        **Chosen image for `copy_paste`**                                                         |                                             **`copy_paste` on with `copy_paste_mode=mixup`**                                              |
+| :--------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------: |
+| <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_mixup_identity_2.avif" alt="Second image for MixUp blending"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_copy_paste_off.avif" alt="Original image without augmentation"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_copy_paste_mixup.avif" alt="Copy-paste with MixUp mode"/> |
 
 ## Classification-Specific Augmentations
 
@@ -377,9 +377,9 @@ Then launch the training with the Python API:
     - The `erasing` augmentation comes with a `scale`, `ratio`, and `value` hyperparameters that cannot be changed with the [current implementation](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py). Their default values are `(0.02, 0.33)`, `(0.3, 3.3)`, and `0`, respectively, as stated in the PyTorch [documentation](https://docs.pytorch.org/vision/main/generated/torchvision.transforms.RandomErasing.html).
     - The upper limit of the `erasing` hyperparameter is set to `0.9` to avoid applying the transformation to all images.
 
-|                                                                   **`erasing` off**                                                                    |                                                          **`erasing` on (example 1)**                                                          |                                                          **`erasing` on (example 2)**                                                          |                                                          **`erasing` on (example 3)**                                                          |
-| :----------------------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------: |
-| <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_identity.avif" alt="Original image without augmentation" width="85%"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_erasing_ex1.avif" alt="Random erasing example 1" width="85%"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_erasing_ex2.avif" alt="Random erasing example 2" width="85%"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_erasing_ex3.avif" alt="Random erasing example 3" width="85%"/> |
+|                                                             **`erasing` off**                                                              |                                                    **`erasing` on (example 1)**                                                    |                                                    **`erasing` on (example 2)**                                                    |                                                    **`erasing` on (example 3)**                                                    |
+| :----------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------: |
+| <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_identity.avif" alt="Original image without augmentation"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_erasing_ex1.avif" alt="Random erasing example 1"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_erasing_ex2.avif" alt="Random erasing example 2"/> | <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/augmentation_erasing_ex3.avif" alt="Random erasing example 3"/> |
 
 ## Advanced Augmentation Features
 
@@ -390,6 +390,8 @@ Then launch the training with the Python API:
 - **Usage**: Allows you to provide custom [Albumentations](https://albumentations.ai/) transforms for data augmentation using the Python API. This parameter accepts a list of Albumentations transform objects that will be applied during training instead of the default Albumentations transforms.
 - **Purpose**: Provides fine-grained control over data augmentation strategies by leveraging the extensive library of Albumentations transforms. This is particularly useful when you need specialized augmentations beyond the built-in YOLO options, such as advanced color adjustments, noise injection, or domain-specific transformations.
 - **Ultralytics' implementation**: [Albumentations](../reference/data/augment.md#ultralytics.data.augment.Albumentations)
+
+The examples below need Albumentations 1.4.22 or newer, and therefore Python 3.9 or newer.
 
 !!! example "Custom Albumentations Example"
 
@@ -406,7 +408,7 @@ Then launch the training with the Python API:
         # Define custom Albumentations transforms
         custom_transforms = [
             A.Blur(blur_limit=7, p=0.5),
-            A.GaussNoise(var_limit=(10.0, 50.0), p=0.3),
+            A.GaussNoise(std_range=(0.0124, 0.0277), p=0.3),
             A.CLAHE(clip_limit=4.0, p=0.5),
             A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.5),
             A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
@@ -443,7 +445,7 @@ Then launch the training with the Python API:
             ),
             A.OneOf(
                 [
-                    A.GaussNoise(var_limit=(10.0, 50.0), p=1.0),
+                    A.GaussNoise(std_range=(0.0124, 0.0277), p=1.0),
                     A.ISONoise(color_shift=(0.01, 0.05), intensity=(0.1, 0.5), p=1.0),
                 ],
                 p=0.2,
@@ -451,9 +453,7 @@ Then launch the training with the Python API:
             A.CLAHE(clip_limit=4.0, tile_grid_size=(8, 8), p=0.5),
             A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, brightness_by_max=True, p=0.5),
             A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
-            A.CoarseDropout(
-                max_holes=8, max_height=32, max_width=32, min_holes=1, min_height=8, min_width=8, fill_value=0, p=0.2
-            ),
+            A.CoarseDropout(num_holes_range=(1, 8), hole_height_range=(8, 32), hole_width_range=(8, 32), fill=0, p=0.2),
         ]
 
         # Train with advanced custom transforms
@@ -482,7 +482,6 @@ Then launch the training with the Python API:
 
 **Compatibility Notes:**
 
-- Requires Albumentations version 1.0.3 or higher
 - Compatible with all YOLO detection and segmentation tasks
 - Not applicable for classification tasks (classification uses a different augmentation pipeline)
 

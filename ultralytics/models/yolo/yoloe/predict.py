@@ -17,12 +17,14 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
     Attributes:
         model (torch.nn.Module): The YOLO model for inference.
         device (torch.device): Device to run the model on (CPU or CUDA).
-        prompts (dict | torch.Tensor): Visual prompts containing class indices and bounding boxes or masks.
+        prompts (dict): Visual prompts containing class indices and bounding boxes or masks.
+        visuals (torch.Tensor): The prompts rasterized against the shapes of the batch being preprocessed.
 
     Methods:
         setup_model: Initialize the YOLO model and set it to evaluation mode.
         set_prompts: Set the visual prompts for the model.
-        pre_transform: Preprocess images and prompts before inference.
+        is_per_image: Report whether the prompts hold one array per image.
+        preprocess: Preprocess a batch of images and rasterize its visual prompts.
         inference: Run inference with visual prompts.
         get_vpe: Process source to get visual prompt embeddings.
     """
@@ -46,65 +48,41 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         """
         self.prompts = prompts
 
-    def pre_transform(self, im):
-        """Preprocess images and prompts before inference.
+    @staticmethod
+    def is_per_image(prompts: dict) -> bool:
+        """Return True if 'bboxes' and 'cls' hold one array per image rather than one set applied to every image."""
+        return all(
+            isinstance(prompts.get(k), list) and all(isinstance(x, np.ndarray) for x in prompts[k])
+            for k in ("bboxes", "cls")
+        )
 
-        This method applies letterboxing to the input image and transforms the visual prompts (bounding boxes or masks)
-        accordingly.
+    def preprocess(self, im):
+        """Preprocess a batch and rasterize its visual prompts."""
+        imgs = super().preprocess(im)
+        dst_shape = tuple(imgs.shape[2:])  # one letterboxed shape per batch, since preprocess stacks the images
+        # tensor sources skip letterboxing, so their src and dst shapes are identical
+        src_shapes = [dst_shape] * len(im) if isinstance(im, torch.Tensor) else [x.shape[:2] for x in im]
+        self.visuals = self._prompts_to_tensor(dst_shape, src_shapes)
+        return imgs
 
-        Args:
-            im (list): List of input images.
-
-        Returns:
-            (list): Preprocessed images ready for model inference.
-
-        Raises:
-            ValueError: If neither valid bounding boxes nor masks are provided in the prompts.
-        """
-        img = super().pre_transform(im)
-        bboxes = self.prompts.pop("bboxes", None)
-        masks = self.prompts.pop("masks", None)
-        category = self.prompts["cls"]
-        if len(img) == 1:
-            visuals = self._process_single_image(img[0].shape[:2], im[0].shape[:2], category, bboxes, masks)
-            prompts = visuals.unsqueeze(0).to(self.device)  # (1, N, H, W)
+    def _prompts_to_tensor(self, dst_shape, src_shapes):
+        """Rasterize prompts into a batched tensor on the model device."""
+        bboxes, category = self.prompts.get("bboxes", None), self.prompts["cls"]
+        if not self.is_per_image(self.prompts):  # one flat set, rasterized against every image in the batch
+            masks = self.prompts.get("masks", None)
+            visuals = [self._process_single_image(dst_shape, src, category, bboxes, masks) for src in src_shapes]
         else:
-            # NOTE: only supports bboxes as prompts for now
-            assert bboxes is not None, f"Expected bboxes, but got {bboxes}!"
-            # NOTE: needs list[np.ndarray]
-            assert isinstance(bboxes, list) and all(isinstance(b, np.ndarray) for b in bboxes), (
-                f"Expected list[np.ndarray], but got {bboxes}!"
-            )
-            assert isinstance(category, list) and all(isinstance(b, np.ndarray) for b in category), (
-                f"Expected list[np.ndarray], but got {category}!"
-            )
-            assert len(im) == len(category) == len(bboxes), (
-                f"Expected same length for all inputs, but got {len(im)}vs{len(category)}vs{len(bboxes)}!"
+            assert len(src_shapes) == len(category) == len(bboxes), (
+                f"Expected same length for all inputs, but got {len(src_shapes)}vs{len(category)}vs{len(bboxes)}!"
             )
             visuals = [
-                self._process_single_image(img[i].shape[:2], im[i].shape[:2], category[i], bboxes[i])
-                for i in range(len(img))
+                self._process_single_image(dst_shape, src, category[i], bboxes[i]) for i, src in enumerate(src_shapes)
             ]
-            prompts = torch.nn.utils.rnn.pad_sequence(visuals, batch_first=True).to(self.device)  # (B, N, H, W)
-        self.prompts = prompts.half() if self.model.fp16 else prompts.float()
-        return img
+        prompts = torch.nn.utils.rnn.pad_sequence(visuals, batch_first=True).to(self.device)  # (B, N, H, W)
+        return prompts.half() if self.model.fp16 else prompts.float()
 
     def _process_single_image(self, dst_shape, src_shape, category, bboxes=None, masks=None):
-        """Process a single image by resizing bounding boxes or masks and generating visuals.
-
-        Args:
-            dst_shape (tuple): The target shape (height, width) of the image.
-            src_shape (tuple): The original shape (height, width) of the image.
-            category (list | np.ndarray): The category indices for visual prompts.
-            bboxes (list | np.ndarray, optional): A list of bounding boxes in the format [x1, y1, x2, y2].
-            masks (np.ndarray, optional): A list of masks corresponding to the image.
-
-        Returns:
-            (torch.Tensor): The processed visuals for the image.
-
-        Raises:
-            ValueError: If neither `bboxes` nor `masks` are provided.
-        """
+        """Resize one image's prompts and generate its visuals."""
         if bboxes is not None and len(bboxes):
             bboxes = np.array(bboxes, dtype=np.float32)
             if bboxes.ndim == 1:
@@ -126,37 +104,17 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         return LoadVisualPrompt().get_visuals(category, dst_shape, bboxes, masks)
 
     def inference(self, im, *args, **kwargs):
-        """Run inference with visual prompts.
-
-        Args:
-            im (torch.Tensor): Input image tensor.
-            *args (Any): Variable length argument list.
-            **kwargs (Any): Arbitrary keyword arguments.
-
-        Returns:
-            (torch.Tensor): Model prediction results.
-        """
-        return super().inference(im, vpe=self.prompts, *args, **kwargs)
+        """Run inference with visual prompts."""
+        return super().inference(im, *args, vpe=self.visuals, **kwargs)
 
     def get_vpe(self, source):
-        """Process the source to get the visual prompt embeddings (VPE).
-
-        Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of the image to
-                make predictions on. Accepts various types including file paths, URLs, PIL images, numpy arrays, and
-                torch tensors.
-
-        Returns:
-            (torch.Tensor): The visual prompt embeddings (VPE) from the model.
-        """
+        """Extract visual prompt embeddings from one source image."""
         self.setup_source(source)
         assert len(self.dataset) == 1, "get_vpe only supports one image!"
         for _, im0s, _ in self.dataset:
             im = self.preprocess(im0s)
-            return self.model(im, vpe=self.prompts, return_vpe=True)
+            return self.model(im, vpe=self.visuals, return_vpe=True)
 
 
 class YOLOEVPSegPredictor(YOLOEVPDetectPredictor, SegmentationPredictor):
     """Predictor for YOLO-EVP segmentation tasks combining detection and segmentation capabilities."""
-
-    pass

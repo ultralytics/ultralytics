@@ -44,7 +44,7 @@ jobs:
           token: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           ref: ${{ env.BRANCH }}
           fetch-depth: 0
-      - uses: astral-sh/setup-uv@v7
+      - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: "3.14"
       - name: Install Dependencies
@@ -59,8 +59,8 @@ jobs:
           --fix \
           --unsafe-fixes \
           --extend-select F,I,D,UP,RUF,FA \
-          --target-version py39 \
-          --ignore D100,D104,D203,D205,D212,D213,D401,D406,D407,D413,RUF001,RUF002,RUF012 \
+          --target-version py38 \
+          --ignore BLE001,D100,D104,D203,D205,D212,D213,D401,D406,D407,D413,RUF001,RUF002,RUF012,S110 \
           .
       - name: Update Docs Reference Section and Push Changes
         continue-on-error: true
@@ -82,12 +82,11 @@ jobs:
         run: |
           ruff check \
           --extend-select F,I,D,UP,RUF,FA \
-          --target-version py39 \
-          --ignore D100,D104,D203,D205,D212,D213,D401,D406,D407,D413,RUF001,RUF002,RUF012 \
+          --target-version py38 \
+          --ignore BLE001,D100,D104,D203,D205,D212,D213,D401,D406,D407,D413,RUF001,RUF002,RUF012,S110 \
           .
-      - name: Build Docs and Check for Warnings
-        run: |
-          python docs/build_docs.py
+      - name: Validate Docs with Zensical
+        run: python docs/build_docs.py
       - name: Commit and Push Docs changes
         continue-on-error: true
         if: always()
@@ -102,7 +101,7 @@ jobs:
             echo "No changes to commit"
           fi
       - name: Publish Docs to https://docs.ultralytics.com
-        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_docs == 'true')
+        if: github.ref_name == 'main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_docs == 'true'))
         env:
           EVENT_NAME: ${{ github.event_name }}
           VERCEL_DOCS_DEPLOY_HOOK: ${{ secrets.VERCEL_DOCS_DEPLOY_HOOK }}
@@ -113,7 +112,9 @@ jobs:
             if [[ "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
               BEFORE_SHA=$(git rev-list --max-parents=0 "$CURRENT_SHA")
             fi
-            changed_files=$(git diff --name-only "$BEFORE_SHA" "$CURRENT_SHA" -- docs/ mkdocs.yml mkdocs.yaml)
+            # ultralytics/ covers docstrings (reference pages are regenerated from them at publish time)
+            # and every cfg/*.yaml consumed by --8<-- snippets, not just cfg/default.yaml.
+            changed_files=$(git diff --name-only "$BEFORE_SHA" "$CURRENT_SHA" -- docs/ mkdocs.yml mkdocs.yaml ultralytics/)
             if [[ -z "$changed_files" ]]; then
               echo "No docs source changes."
               exit 0

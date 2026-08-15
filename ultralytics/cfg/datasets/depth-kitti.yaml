@@ -1,0 +1,98 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# KITTI dataset for monocular depth estimation — real outdoor driving, Velodyne HDL-64 LiDAR (densified), sparse, up to ~80 m
+# Documentation: https://docs.ultralytics.com/datasets/depth/kitti
+# Example usage: yolo depth train data=depth-kitti.yaml model=yolo26n-depth.pt
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── depth-kitti  ← downloads here (~190 GB archives, ~140 GB converted)
+#         ├── images/{train,val}  # RGB images
+#         └── depth/{train,val}   # paired *.npy, float32 meters (images/ -> depth/)
+# If an interrupted download leaves a partial dataset, delete the depth-kitti dir and re-run to rebuild it.
+# The download only runs when the val images are missing (train is never checked), so a depth-kitti dir
+# built before this split fix keeps the old split until it is deleted and rebuilt.
+
+path: depth-kitti # dataset root dir (relative to Ultralytics settings 'datasets_dir')
+train: images/train # train images (relative to 'path') 55198 images
+val: images/val # val images (relative to 'path') 652 images (KITTI Eigen test split, left camera)
+max_depth: 80 # (m) maximum valid depth; GT beyond this is excluded from val metrics
+
+nc: 1
+names:
+  0: depth
+
+channels: 3
+
+# Download script/URL (optional)
+download: |
+  import shutil
+  from pathlib import Path
+
+  import cv2
+  import numpy as np
+
+  from ultralytics.utils import TQDM
+  from ultralytics.utils.downloads import download
+
+  # The 28 KITTI Eigen test scenes as "<drive> <frame indices>" -> val; every other annotated drive -> train. val is
+  # the 697-frame Eigen et al. (NeurIPS 2014) test split restricted to frames with improved GT here: 652 left-camera.
+  EIGEN_TEST = """
+  2011_09_26_drive_0002 6 9 12 15 18 21 24 27 30 33 36 39 42 45 48 51 54 57 60 63 69
+  2011_09_26_drive_0009 16 32 48 64 80 96 112 128 144 160 176 196 212 228 244 260 276 292 308 324 340 356 372 388
+  2011_09_26_drive_0013 5 10 20 30 35 40 45 50 60 65 70 80 85 90 95 100 105 110 115 120 125 130 135
+  2011_09_26_drive_0020 6 9 12 15 18 21 27 33 36 42 45 48 51 54 57 60 63 66 69 72 75 78
+  2011_09_26_drive_0023 18 36 54 72 90 108 126 144 162 180 198 216 252 270 288 306 324 342 360 378 396 414 432 450 468
+  2011_09_26_drive_0027 7 14 21 28 35 42 49 56 63 70 77 84 91 98 112 119 126 133 140 147 161 168 175 182
+  2011_09_26_drive_0029 14 28 42 56 70 84 98 112 126 140 154 168 182 196 268 296 310 324 338 352 366 380 394 408
+  2011_09_26_drive_0036 32 64 96 128 160 192 224 256 288 320 352 384 416 448 480 512 544 576 608 640 672 704 768
+  2011_09_26_drive_0046 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100 105 110 115
+  2011_09_26_drive_0048 5 6 7 8 9 10 11 12 13 14 15 16
+  2011_09_26_drive_0052 6 8 10 12 14 16 18 20 22 26 28 30 32 36 38 40 42 44 46 48 50 52
+  2011_09_26_drive_0056 11 22 33 44 55 66 77 88 99 110 121 143 154 165 176 187 198 209 220 231 242 253 264 275 286
+  2011_09_26_drive_0059 14 28 42 56 70 84 98 112 126 140 154 182 196 210 224 238 274 288 302 316 330 344 358
+  2011_09_26_drive_0064 22 44 66 88 110 154 176 198 220 242 264 286 308 330 352 374 396 418 440 462 484 506 528 550
+  2011_09_26_drive_0084 49 62 75 88 101 114 127 140 153 179 192 205 218 231 244 257 270 283 296 309 322 335 348 361 374
+  2011_09_26_drive_0086 7 34 61 88 115 142 169 196 223 250 277 304 331 358 385 412 439 466 493 520 574 601 628 655 682
+  2011_09_26_drive_0093 16 32 48 64 80 96 112 128 144 160 176 192 208 224 240 256 305 321 337 353 369 385 401 417
+  2011_09_26_drive_0096 19 38 57 76 95 114 133 152 171 190 209 228 247 266 285 304 323 342 361 380 399 418 437 456
+  2011_09_26_drive_0101 80 114 148 182 216 284 318 352 386 420 454 488 522 556 590 624 658 692 726 760 794 828 862 896 930
+  2011_09_26_drive_0106 15 35 43 51 59 67 75 83 91 99 107 115 123 131 139 147 155 163 171 179 187 195 203 211 219
+  2011_09_26_drive_0117 26 52 78 104 130 156 182 208 234 260 286 312 338 364 390 416 442 468 494 546 572 598 624 650
+  2011_09_28_drive_0002 6 9 12 18 21 24 30 33 36 39 45 48 51 54 57 60 63 72 78 81 84 87 90
+  2011_09_29_drive_0071 36 72 108 144 180 216 252 288 324 360 396 432 468 504 540 576 612 735 771 807 879 915 951
+  2011_09_30_drive_0016 11 22 33 44 55 66 77 88 110 121 132 143 154 165 176 187 198 209 220 231 242 253 264
+  2011_09_30_drive_0018 107 214 428 535 642 749 856 963 1070 1177 1284 1391 1498 1605 1712 1819 1926 2033 2140 2247 2419 2526 2633 2740
+  2011_09_30_drive_0027 41 82 123 164 205 246 287 328 369 410 451 492 533 574 615 656 753 794 835 876 917 958 1040 1081
+  2011_10_03_drive_0027 181 362 543 734 915 1096 1277 1458 1639 1820 2001 2363 2544 2725 2906 3087 3268 3449 3630 3811 3992 4173 4354 4535
+  2011_10_03_drive_0047 32 64 96 128 160 192 224 288 320 352 384 416 448 480 512 544 576 608 640 672 704 736 768 800"""
+  EIGEN_TEST = {ln.split()[0]: {int(i) for i in ln.split()[1:]} for ln in EIGEN_TEST.strip().splitlines()}
+  # Annotated drives excluded from the release training set (raw data was unavailable at build time)
+  SKIP_DRIVES = {"2011_09_28_drive_0104", "2011_09_28_drive_0135", "2011_09_28_drive_0177", "2011_09_28_drive_0214"}
+
+  # Download the improved sparse GT (~14 GB) and the raw recordings it covers (~175 GB)
+  dir = Path(yaml["path"])  # dataset root dir
+  base = "https://s3.eu-central-1.amazonaws.com/avg-kitti"
+  download([f"{base}/data_depth_annotated.zip"], dir=dir / "source", delete=True, exist_ok=True)
+  gt_drives = sorted(p for p in (dir / "source" / "data_depth_annotated").glob("*/*_sync") if p.name[:-5] not in SKIP_DRIVES)
+  urls = [f"{base}/raw_data/{p.name[:-5]}/{p.name}.zip" for p in gt_drives]
+  download(urls, dir=dir / "source" / "raw", delete=True, exist_ok=True, threads=4)
+
+  # Convert: GT PNGs are uint16 meters*256; RGB frames come from the matching raw drive
+  for split in ("train", "val"):
+      (dir / "images" / split).mkdir(parents=True, exist_ok=True)
+      (dir / "depth" / split).mkdir(parents=True, exist_ok=True)
+  for gt in TQDM(gt_drives, desc="Converting"):
+      drive = gt.name[:-5]  # 2011_09_26_drive_0002
+      split = "val" if drive in EIGEN_TEST else "train"
+      # val is the canonical Eigen test split: left camera only, and only its 652 listed frames
+      for cam in ("image_02",) if split == "val" else ("image_02", "image_03"):
+          for png in sorted((gt / "proj_depth" / "groundtruth" / cam).glob("*.png")):
+              if split == "val" and int(png.stem) not in EIGEN_TEST[drive]:
+                  continue
+              name = f"{drive}_{cam[-2:]}_{png.stem}"
+              depth = cv2.imread(str(png), cv2.IMREAD_ANYDEPTH).astype(np.float32) / 256.0
+              np.save(dir / "depth" / split / f"{name}.npy", depth)
+              raw = dir / "source" / "raw" / drive[:10] / gt.name / cam / "data" / png.name
+              raw.replace(dir / "images" / split / f"{name}.png")
+  shutil.rmtree(dir / "source")

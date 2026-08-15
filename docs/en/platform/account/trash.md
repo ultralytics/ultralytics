@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Learn how to recover deleted projects, datasets, and models from Trash on Ultralytics Platform with the 30-day soft delete policy.
 keywords: Ultralytics Platform, trash, restore, soft delete, recover, deleted items, data recovery
@@ -8,7 +9,7 @@ keywords: Ultralytics Platform, trash, restore, soft delete, recover, deleted it
 
 [Ultralytics Platform](https://platform.ultralytics.com) implements a 30-day soft delete policy, allowing you to recover accidentally deleted projects, datasets, and models. Deleted items are moved to Trash where they can be restored before permanent deletion.
 
-![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-trash-tab-with-items-and-storage-treemap.avif)
+![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.ul.run/i/1fda3fe06d0527f579017b71afa6a2ff.avif)<!-- screenshot -->
 
 ## Soft Delete Policy
 
@@ -29,31 +30,32 @@ Navigate to your Trash:
 1. Go to **Settings** and click the **Trash** tab
 2. Or navigate directly to `/trash` (redirects to `Settings > Trash`)
 
-![Ultralytics Platform Settings Trash Tab Filter By Type Dropdown](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-trash-tab-filter-by-type-dropdown.avif)
+![Ultralytics Platform Settings Trash Tab Filter By Type Dropdown](https://cdn.ul.run/i/0590e96caff8724036eb5af5d24fa206.avif)<!-- screenshot -->
 
 ## Trash Contents
 
-The Trash shows all soft-deleted resources with filter options:
+The Trash shows all soft-deleted resources with filter tabs, each showing a live count, plus a search box that matches
+on name and type:
 
 | Filter       | Shows             |
 | ------------ | ----------------- |
 | **All**      | All trashed items |
-| **Projects** | Trashed projects  |
 | **Datasets** | Trashed datasets  |
+| **Projects** | Trashed projects  |
 | **Models**   | Trashed models    |
 
 ### Viewing Trash Items
 
 Each item in Trash displays:
 
-| Field        | Description                                                  |
-| ------------ | ------------------------------------------------------------ |
-| **Name**     | Original resource name                                       |
-| **Type**     | Project, Dataset, or Model (color-coded)                     |
-| **Deleted**  | Date and time of deletion                                    |
-| **Expires**  | Days until permanent deletion (e.g. "30d")                   |
-| **Size**     | Storage used by the item                                     |
-| **Cascaded** | Child items included, shown as a `+N` badge next to the name |
+| Field        | Description                                                                     |
+| ------------ | ------------------------------------------------------------------------------- |
+| **Name**     | Original resource name                                                          |
+| **Type**     | Project, Dataset, or Model (color-coded)                                        |
+| **Deleted**  | How long ago the item was deleted                                               |
+| **Expires**  | Days until permanent deletion (e.g. "30d"), amber under 15 days and red under 8 |
+| **Size**     | Storage used by the item                                                        |
+| **Cascaded** | Child items included, shown as a `+N` badge next to the name                    |
 
 (Parent project information is returned by the Trash API for models but is not shown in the Trash table.)
 
@@ -67,6 +69,12 @@ When deleting a parent resource, child resources are also moved to Trash:
 | [**Datasets**](../data/datasets.md)  | Dataset + all images and annotations       |
 | [**Models**](../train/models.md)     | Model weights + training history + exports |
 
+!!! note "Active Training Is Cancelled"
+
+    Trashing a model — or a project containing one — cancels any cloud training that model has in progress and
+    terminates its GPU instance. Elapsed GPU time is still billed. See
+    [Billing](billing.md#training-cost-flow).
+
 ### Storage Treemap
 
 The Trash tab includes a storage visualization (treemap) showing the relative size of trashed items, color-coded by type:
@@ -77,15 +85,13 @@ The Trash tab includes a storage visualization (treemap) showing the relative si
 
 ## Restoring Items
 
-Recover a deleted item:
+Recover a deleted item (Editor role or higher in a team workspace):
 
 1. Navigate to **Settings > Trash**
 2. Find the item you want to restore
 3. Click the **Restore** button (undo icon)
-4. Confirm restoration
 
-![Ultralytics Platform Settings Trash Tab Restore Button On Item](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-trash-tab-restore-button-on-item.avif)
-
+![Ultralytics Platform Settings Trash Tab Restore Button On Item](https://cdn.ul.run/i/2dd74fa1d628c9dc2c1bd7581f299976.avif)<!-- screenshot -->
 The item returns to its original location with all data intact.
 
 If the original slug is already taken, the platform restores the item with a unique available slug so you can access it immediately.
@@ -106,14 +112,14 @@ If the original slug is already taken, the platform restores the item with a uni
 
 ### Automatic Deletion
 
-Items in Trash are automatically and permanently deleted after 30 days. A daily cleanup job removes expired items automatically.
+Items in Trash are automatically and permanently deleted after 30 days.
 
 ### Empty Trash
 
 Permanently delete all items immediately:
 
 1. Navigate to **Settings > Trash**
-2. Click **Empty Trash**
+2. Click the trash icon in the header
 3. Confirm the action
 
 !!! warning "Irreversible Action"
@@ -125,10 +131,12 @@ Permanently delete all items immediately:
 To permanently delete one item without waiting:
 
 1. Find the item in Trash
-2. Click the **Delete** button
-3. Confirm deletion
+2. Click the **Delete permanently** (trash) button on its row
+3. Confirm deletion — the dialog names the item and how many cascaded models go with it
 
-For projects, permanent deletion also removes related deployments and export files that belong to the deleted workspace resources.
+For projects, permanent deletion also removes related deployments and export files that belong to the deleted workspace
+resources. If a deployment cannot be deleted, the Platform warns you and leaves it
+listed on the [Deployments](../deploy/endpoints.md) page so you can retry from there.
 
 ## Storage and Trash
 
@@ -147,29 +155,70 @@ Items in Trash still count toward your storage quota:
 
 ## API Access
 
-Access trash programmatically via the [REST API](../api/index.md#trash-api):
+Access trash programmatically via the [REST API](../api/index.md#trash-api). All three operations live on the same
+`/api/trash` path and operate on the workspace that issued the API key — to manage a team workspace's trash, use an
+API key from that workspace. The Python examples use the [`ultralytics-platform`](../api/index.md#python-sdk) SDK:
+
+```python
+from ultralytics_platform import Platform
+
+client = Platform()  # reads ULTRALYTICS_API_KEY
+```
 
 === "List Trash"
 
     ```bash
     curl -H "Authorization: Bearer YOUR_API_KEY" \
-      https://platform.ultralytics.com/api/trash
+      "https://platform.ultralytics.com/api/trash?type=all&page=1&limit=50"
     ```
+
+    ```python
+    trash = client.lifecycle.trash(type="all", page=1, limit=50)
+    ```
+
+    `type` accepts `all`, `project`, `dataset`, or `model`. `limit` defaults to 50 and caps at 200. Listing needs
+    Viewer access or higher.
 
 === "Restore Item"
 
     ```bash
     curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
       -H "Content-Type: application/json" \
-      -d '{"id": "item_abc123", "type": "dataset"}' \
+      -d '{"id": "ITEM_ID", "type": "dataset"}' \
       https://platform.ultralytics.com/api/trash
+    ```
+
+    ```python
+    client.lifecycle.restore(id="ITEM_ID", type="dataset")
+    ```
+
+=== "Delete One Item"
+
+    ```bash
+    curl -X DELETE -H "Authorization: Bearer YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"id": "ITEM_ID", "type": "dataset"}' \
+      https://platform.ultralytics.com/api/trash
+    ```
+
+    ```python
+    client.lifecycle.delete_trash(body={"id": "ITEM_ID", "type": "dataset"})
     ```
 
 === "Empty Trash"
 
-    !!! note "Browser session only"
+    ```bash
+    curl -X DELETE -H "Authorization: Bearer YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"all": true}' \
+      https://platform.ultralytics.com/api/trash
+    ```
 
-        `DELETE /api/trash/empty` requires an authenticated browser session and cannot be called with an API key. Use the **Empty Trash** button in [**Settings > Trash**](../account/settings.md#trash-tab) instead, or permanently delete individual items via `DELETE /api/trash` (API-key compatible).
+    ```python
+    client.lifecycle.delete_trash(body={"all": True})
+    ```
+
+Restoring and deleting require Editor access or higher.
 
 ## FAQ
 
@@ -179,7 +228,8 @@ No. After 30 days, items are permanently deleted and cannot be recovered. Make s
 
 ### What happens when I delete a project with models?
 
-Both the project and all models inside it move to Trash together. Restoring the project restores all its models. You can also restore individual models separately.
+Both the project and all active models inside it move to Trash together. Restoring the project restores the models that
+were trashed with it. A cascaded model cannot be restored while its parent project remains in Trash.
 
 ### Do items in Trash count toward storage?
 

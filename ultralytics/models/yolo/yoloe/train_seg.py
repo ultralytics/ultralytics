@@ -52,7 +52,6 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
         Returns:
             (YOLOESegValidator): Validator for YOLOE segmentation models.
         """
-        self.loss_names = "box", "seg", "cls", "dfl"
         return YOLOESegValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
@@ -104,9 +103,9 @@ class YOLOEPESegTrainer(SegmentationTrainer):
         model.model[-1].cv3[2][2] = deepcopy(model.model[-1].cv3[2][2]).requires_grad_(True)
 
         if getattr(model.model[-1], "one2one_cv3", None) is not None:
-            model.model[-1].one2one_cv3[0][2] = deepcopy(model.model[-1].cv3[0][2]).requires_grad_(True)
-            model.model[-1].one2one_cv3[1][2] = deepcopy(model.model[-1].cv3[1][2]).requires_grad_(True)
-            model.model[-1].one2one_cv3[2][2] = deepcopy(model.model[-1].cv3[2][2]).requires_grad_(True)
+            model.model[-1].one2one_cv3[0][2] = deepcopy(model.model[-1].one2one_cv3[0][2]).requires_grad_(True)
+            model.model[-1].one2one_cv3[1][2] = deepcopy(model.model[-1].one2one_cv3[1][2]).requires_grad_(True)
+            model.model[-1].one2one_cv3[2][2] = deepcopy(model.model[-1].one2one_cv3[2][2]).requires_grad_(True)
 
         model.train()
 
@@ -116,10 +115,6 @@ class YOLOEPESegTrainer(SegmentationTrainer):
 class YOLOESegTrainerFromScratch(YOLOETrainerFromScratch, YOLOESegTrainer):
     """Trainer for YOLOE segmentation models trained from scratch without pretrained weights."""
 
-    pass
-
 
 class YOLOESegVPTrainer(YOLOEVPTrainer, YOLOESegTrainerFromScratch):
     """Trainer for YOLOE segmentation models with Vision Prompt (VP) capabilities."""
-
-    pass

@@ -49,7 +49,8 @@ def onnx2deepx(
         "calibration_num": 100,  # number of steps used during calibration
         "calibration_method": "ema",  # calibration method used during quantization
         "default_loader": {
-            "dataset_path": str(dataset.dataset.img_path),  # JSON needs str, classify returns a Path
+            # JSON needs str; ClassificationDataset stores its image directory as 'root' rather than 'img_path'
+            "dataset_path": str(getattr(dataset.dataset, "img_path", None) or dataset.dataset.root),
             "file_extensions": [val for x in ["jpeg", "jpg", "png"] for val in (x.lower(), x.upper())],
             "preprocessings": [
                 {"resize": {"mode": "pad", "size": imgsz[0], "pad_location": "edge", "pad_value": [114, 114, 114]}},

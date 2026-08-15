@@ -36,10 +36,9 @@ RUN apt-get update && \
 # Create working directory
 WORKDIR /ultralytics
 
-# Copy contents and configure git
+# Copy contents and configure dependencies
 COPY . .
-RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config && \
-    sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml
+RUN sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml
 ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
 # Install pip packages (uv already installed in base image)
@@ -56,4 +55,6 @@ RUN uv pip install --system --no-cache -e "." albumentations faster-coco-eval &&
 # Example (run-gpu-subset): docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t
 # Note: CDI devices 2,3 appear as cuda:0,1 inside the container.
 # Example (run-with-volume): docker run -it --ipc=host --device nvidia.com/gpu=all -v "$PWD/shared/datasets:/datasets" $t
+# CDI requires Docker >= 28.2.0 and nvidia-container-toolkit >= 1.18.
+# Legacy --gpus all can lose GPU access after host systemd daemon reloads (nvidia-container-toolkit#48).
 # Example (tag-release): t=ultralytics/ultralytics:latest tnew=ultralytics/ultralytics:vX.Y && docker tag $t $tnew && docker push $tnew

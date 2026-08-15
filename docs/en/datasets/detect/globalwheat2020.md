@@ -1,6 +1,11 @@
 ---
 title: Global Wheat Head Detection Dataset
 comments: true
+creator:
+    name: Global Wheat Dataset Consortium
+    url: https://www.global-wheat.com/
+license:
+    name: None
 description: Train YOLO26 on the Global Wheat Head Dataset — 3,422 train, 748 validation, and 1,276 test field images labeled with wheat head boxes for single-class detection.
 keywords: Global Wheat Head Dataset, GWHD, wheat head detection, wheat spike detection, wheat phenotyping, crop management, object detection, YOLO26, agriculture
 ---
@@ -38,7 +43,7 @@ To annotate field imagery, train, and manage dataset versions in your browser, r
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It defines the dataset's paths, classes, and other configuration details. For the Global Wheat Head Dataset, the `GlobalWheat2020.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/GlobalWheat2020.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/GlobalWheat2020.yaml).
+A YAML file is used to define the dataset configuration. It defines the dataset's paths, classes, and other configuration details. For the Global Wheat Head Dataset, the `GlobalWheat2020.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/GlobalWheat2020.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/GlobalWheat2020.yaml).
 
 !!! example "ultralytics/cfg/datasets/GlobalWheat2020.yaml"
 

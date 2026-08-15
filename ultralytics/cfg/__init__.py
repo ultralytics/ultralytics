@@ -20,9 +20,9 @@ from ultralytics.utils import (
     FLOAT_OR_INT,
     IS_VSCODE,
     LOGGER,
+    PLATFORM_URL,
     RANK,
     ROOT,
-    RUNS_DIR,
     SETTINGS,
     SETTINGS_FILE,
     STR_OR_PATH,
@@ -55,40 +55,44 @@ SOLUTION_MAP = {
     "help": None,
 }
 
-# Define valid tasks and modes
-MODES = frozenset({"train", "val", "predict", "export", "track", "benchmark"})
-TASKS = frozenset({"detect", "segment", "classify", "pose", "obb", "semantic"})
+# Define valid tasks and modes, ordered as they appear across the docs and Ultralytics Platform
+MODES = ("train", "val", "predict", "export", "track", "benchmark")
+TASKS = ("detect", "segment", "semantic", "depth", "classify", "pose", "obb")
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
+    "semantic": "cityscapes8.yaml",
+    "depth": "depth8.yaml",
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
-    "semantic": "cityscapes8.yaml",
 }
 TASK2CALIBRATIONDATA = {
     "detect": "coco128.yaml",
     "segment": "coco128-seg.yaml",
+    "semantic": "cityscapes8.yaml",
+    "depth": "depth8.yaml",
     "classify": "imagenet100",
     "pose": "coco8-pose.yaml",
     "obb": "dota128.yaml",
-    "semantic": "cityscapes8.yaml",
 }
 TASK2MODEL = {
     "detect": "yolo26n.pt",
     "segment": "yolo26n-seg.pt",
+    "semantic": "yolo26n-sem.pt",
+    "depth": "yolo26n-depth.pt",
     "classify": "yolo26n-cls.pt",
     "pose": "yolo26n-pose.pt",
     "obb": "yolo26n-obb.pt",
-    "semantic": "yolo26n-sem.pt",
 }
 TASK2METRIC = {
     "detect": "metrics/mAP50-95(B)",
     "segment": "metrics/mAP50-95(M)",
+    "semantic": "metrics/mIoU",
+    "depth": "metrics/delta1",
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
-    "semantic": "metrics/mIoU",
 }
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
@@ -162,12 +166,14 @@ CLI_HELP_MSG = f"""
         yolo checks
         yolo version
         yolo settings
+        yolo login API_KEY
+        yolo logout
         yolo copy-cfg
         yolo cfg
         yolo solutions help
 
     Docs: https://docs.ultralytics.com
-    Solutions: https://docs.ultralytics.com/solutions/
+    Platform: https://platform.ultralytics.com
     Community: https://community.ultralytics.com
     GitHub: https://github.com/ultralytics/ultralytics
     """
@@ -199,6 +205,12 @@ CFG_FLOAT_KEYS = frozenset(
         "box",
         "cls",
         "dfl",
+        "pose",
+        "kobj",
+        "rle",
+        "angle",
+        "dlog",
+        "dgrad",
         "dis",
         "degrees",
         "shear",
@@ -208,7 +220,7 @@ CFG_FLOAT_KEYS = frozenset(
     }
 )
 CFG_FRACTION_KEYS = frozenset(
-    {  # fractional float arguments with 0.0<=values<=1.0
+    {  # fractional floats use [0.0, 1.0], except dataset fraction uses (0.0, 1.0]
         "dropout",
         "lr0",
         "lrf",
@@ -229,10 +241,12 @@ CFG_FRACTION_KEYS = frozenset(
         "mixup",
         "cutmix",
         "copy_paste",
+        "erasing",
         "conf",
         "iou",
         "fraction",
         "multi_scale",
+        "dlam",
     }
 )
 CFG_INT_KEYS = frozenset(
@@ -289,10 +303,12 @@ CFG_BOOL_KEYS = frozenset(
         "simplify",
         "nms",
         "profile",
+        "channels_last",
         "end2end",
         "cls_remap",
     }
 )
+CFG_STR_KEYS = frozenset({"optimizer", "split", "copy_paste_mode", "auto_augment"})
 
 
 def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:
@@ -366,7 +382,7 @@ def get_cfg(
         if k in cfg and isinstance(cfg[k], FLOAT_OR_INT):
             cfg[k] = str(cfg[k])
     if cfg.get("name") == "model":  # assign model to 'name' arg
-        cfg["name"] = str(cfg.get("model", "")).partition(".")[0]
+        cfg["name"] = Path(str(cfg.get("model") or "")).stem
         LOGGER.warning(f"'name=model' automatically updated to 'name={cfg['name']}'.")
 
     # Type and Value checks
@@ -401,11 +417,11 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
     Notes:
         - The function modifies the input dictionary in-place.
         - None values are ignored as they may be from optional arguments.
-        - Fraction keys are checked to be within the range [0.0, 1.0].
+        - Fraction keys use [0.0, 1.0], except dataset fraction, which uses (0.0, 1.0].
     """
-    typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | {"scale", "compile"}
+    typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | CFG_STR_KEYS | {"scale", "compile"}
     for k, v in cfg.items():
-        if v is None and DEFAULT_CFG_DICT.get(k) is not None and k in typed_keys:
+        if v is None and DEFAULT_CFG_DICT.get(k) is not None and k in typed_keys and k != "auto_augment":
             raise TypeError(f"'{k}=None' is invalid. '{k}' must not be None.")
         if v is not None:  # None values may be from optional args
             if k in CFG_FLOAT_KEYS and not isinstance(v, FLOAT_OR_INT):
@@ -442,8 +458,8 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                             f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
                         )
                     cfg[k] = v = float(v)
-                if not (0.0 <= v <= 1.0):
-                    raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
+                if not (0.0 <= v <= 1.0) or (k == "fraction" and v == 0.0):
+                    raise ValueError(f"'{k}={v}' is invalid. Use (0.0, 1.0] for fraction; [0.0, 1.0] otherwise.")
             elif k in CFG_INT_KEYS:
                 if not isinstance(v, int):
                     if hard:
@@ -460,6 +476,10 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')"
                     )
                 cfg[k] = bool(v)
+            elif k in CFG_STR_KEYS and not isinstance(v, str):
+                if hard:
+                    raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. '{k}' must be a str.")
+                cfg[k] = str(v)
             elif k == "compile" and not isinstance(v, (bool, str)):  # False=off, True="default", or a mode string
                 if hard:
                     raise TypeError(
@@ -493,10 +513,9 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
 
     Examples:
         >>> from types import SimpleNamespace
-        >>> args = SimpleNamespace(project="my_project", task="detect", mode="train", exist_ok=True)
-        >>> save_dir = get_save_dir(args)
-        >>> print(save_dir)
-        runs/detect/my_project/train
+        >>> args = SimpleNamespace(project="my_project", name="exp", task="detect", mode="train", exist_ok=True)
+        >>> get_save_dir(args).parts[-3:]
+        ('detect', 'my_project', 'exp')
     """
     if getattr(args, "save_dir", None):
         save_dir = args.save_dir
@@ -505,7 +524,7 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
 
         project = args.project or ""
         if not Path(project).is_absolute():
-            base = ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR
+            base = ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else Path(SETTINGS["runs_dir"])
             worker = os.environ.get("PYTEST_XDIST_WORKER")
             if worker and TESTS_RUNNING:  # isolate parallel pytest-xdist workers
                 base = base / worker
@@ -591,6 +610,7 @@ def check_dict_alignment(
         ...     check_dict_alignment(base_cfg, custom_cfg)
         ... except SyntaxError:
         ...     print("Mismatched keys found")
+        Mismatched keys found
 
     Notes:
         - Suggests corrections for mismatched keys based on similarity to valid keys.
@@ -673,33 +693,35 @@ def merge_equals_args(args: list[str]) -> list[str]:
     return new_args
 
 
-def handle_yolo_hub(args: list[str]) -> None:
-    """Handle Ultralytics HUB command-line interface (CLI) commands for authentication.
+def handle_yolo_login(args: list[str]) -> None:
+    """Log in to Ultralytics Platform with an API key or remove the saved key."""
+    if args[0] == "logout":
+        SETTINGS["api_key"] = ""
+        LOGGER.info("Logged out ✅. To log in again, use 'yolo login API_KEY'.")
+        return
 
-    This function processes Ultralytics HUB CLI commands such as login and logout. It should be called when executing a
-    script with arguments related to HUB authentication.
+    api_key_url = f"{PLATFORM_URL}/settings?tab=api-keys"
+    if len(args) < 2:
+        LOGGER.info(f"Get an API key from {api_key_url} and then run 'yolo login API_KEY'.")
+        return
 
-    Args:
-        args (list[str]): A list of command line arguments. The first argument should be either 'login' or 'logout'. For
-            'login', an optional second argument can be the API key.
+    import requests  # scoped as slow import
 
-    Examples:
-        $ yolo login YOUR_API_KEY
-
-    Notes:
-        - The function imports the 'hub' module from ultralytics to perform login and logout operations.
-        - For the 'login' command, if no API key is provided, an empty string is passed to the login function.
-        - The 'logout' command does not require any additional arguments.
-    """
-    from ultralytics import hub
-
-    if args[0] == "login":
-        key = args[1] if len(args) > 1 else ""
-        # Log in to Ultralytics HUB using the provided API key
-        hub.login(key)
-    elif args[0] == "logout":
-        # Log out from Ultralytics HUB
-        hub.logout()
+    try:
+        response = requests.get(
+            f"{PLATFORM_URL}/api/settings",
+            headers={"Authorization": f"Bearer {args[1]}"},
+            timeout=30,
+        )
+        if response.status_code == 200:
+            SETTINGS["api_key"] = args[1]
+            LOGGER.info("New authentication successful ✅")
+        elif response.status_code == 401:
+            LOGGER.warning("Invalid API key")
+        else:
+            response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        LOGGER.warning(f"Authentication request failed, check your connection: {e}")
 
 
 def handle_yolo_settings(args: list[str]) -> None:
@@ -817,7 +839,8 @@ def handle_yolo_solutions(args: list[str]) -> None:
                 "--server.headless",
                 "true",
                 overrides.pop("model", "yolo26n.pt"),
-            ]
+            ],
+            check=False,
         )
     else:
         import cv2  # Only needed for cap and vw functionality
@@ -906,7 +929,7 @@ def smart_value(v: str) -> Any:
         3.14
         >>> smart_value("True")
         True
-        >>> smart_value("None")
+        >>> print(smart_value("None"))
         None
         >>> smart_value("some_string")
         'some_string'
@@ -969,12 +992,11 @@ def entrypoint(debug: str = "") -> None:
         "version": lambda: LOGGER.info(__version__),
         "settings": lambda: handle_yolo_settings(args[1:]),
         "cfg": lambda: YAML.print(DEFAULT_CFG_PATH),
-        "hub": lambda: handle_yolo_hub(args[1:]),
-        "login": lambda: handle_yolo_hub(args),
-        "logout": lambda: handle_yolo_hub(args),
+        "login": lambda: handle_yolo_login(args),
+        "logout": lambda: handle_yolo_login(args),
         "copy-cfg": copy_default_cfg,
         "solutions": lambda: handle_yolo_solutions(args[1:]),
-        "help": lambda: LOGGER.info(CLI_HELP_MSG),  # help below hub for -h flag precedence
+        "help": lambda: LOGGER.info(CLI_HELP_MSG),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 
@@ -1118,9 +1140,6 @@ def copy_default_cfg() -> None:
 
     Examples:
         >>> copy_default_cfg()
-        # Output: default.yaml copied to /path/to/current/directory/default_copy.yaml
-        # Example YOLO command with this new custom cfg:
-        #   yolo cfg='/path/to/current/directory/default_copy.yaml' imgsz=320 batch=8
 
     Notes:
         - The new configuration file is created in the current working directory.

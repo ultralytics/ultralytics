@@ -118,9 +118,8 @@ This version exactly replicates the default Ultralytics preprocessing with cente
 !!! example "DALI pipeline with centered padding (recommended)"
 
     ```python
-    import nvidia.dali as dali
-    import nvidia.dali.fn as fn
-    import nvidia.dali.types as types
+    from nvidia import dali
+    from nvidia.dali import fn, types
 
 
     @dali.pipeline_def(batch_size=8, num_threads=4, device_id=0)
@@ -245,9 +244,8 @@ For real-time video processing, use `fn.external_source` to feed frames from any
     === "Pipeline Definition"
 
         ```python
-        import nvidia.dali as dali
-        import nvidia.dali.fn as fn
-        import nvidia.dali.types as types
+        from nvidia import dali
+        from nvidia.dali import fn, types
 
 
         @dali.pipeline_def(batch_size=1, num_threads=4, device_id=0)
@@ -321,7 +319,7 @@ For production deployment, combine DALI preprocessing with [TensorRT](../integra
 
 ### Model Repository Structure
 
-```
+```text
 model_repository/
 ├── dali_preprocessing/
 │   ├── 1/
@@ -343,9 +341,8 @@ Serialize the DALI pipeline for the Triton DALI backend:
 !!! example "Serialize DALI pipeline for Triton"
 
     ```python
-    import nvidia.dali as dali
-    import nvidia.dali.fn as fn
-    import nvidia.dali.types as types
+    from nvidia import dali
+    from nvidia.dali import fn, types
 
 
     @dali.pipeline_def(batch_size=8, num_threads=4, device_id=0)
@@ -541,9 +538,9 @@ DALI preprocessing works with all YOLO tasks that use the standard `LetterBox` p
 | [Detection](../tasks/detect.md)               | ✅        | Standard letterbox preprocessing                         |
 | [Instance Segmentation](../tasks/segment.md)  | ✅        | Same preprocessing as detection                          |
 | [Semantic Segmentation](../tasks/semantic.md) | ✅        | Same image preprocessing as detection                    |
+| [Classification](../tasks/classify.md)        | ❌        | Uses torchvision transforms (center crop), not letterbox |
 | [Pose Estimation](../tasks/pose.md)           | ✅        | Same preprocessing as detection                          |
 | [Oriented Detection (OBB)](../tasks/obb.md)   | ✅        | Same preprocessing as detection                          |
-| [Classification](../tasks/classify.md)        | ❌        | Uses torchvision transforms (center crop), not letterbox |
 
 ## Limitations
 

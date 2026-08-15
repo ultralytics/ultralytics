@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 title: Project Management
 comments: true
 description: Learn how to organize and manage projects in Ultralytics Platform for efficient model development.
@@ -30,8 +31,7 @@ graph TB
 
 Navigate to **Projects** in the sidebar and click **New Project**.
 
-![Ultralytics Platform Projects List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-projects-list.avif)
-
+![Ultralytics Platform Projects List](https://cdn.ul.run/i/11ba0c7e59d846cbc7bde563701bc141.avif)<!-- screenshot -->
 ??? tip "Quick Create"
 
     You can also create a project from the Home page quick actions.
@@ -39,24 +39,26 @@ Navigate to **Projects** in the sidebar and click **New Project**.
 Enter your project details:
 
 - **Name**: A descriptive name for your project (a random name is auto-generated)
+- **URL**: The project slug, generated from the name and editable before creation
 - **Description**: Optional notes about the project purpose
 - **Visibility**: Public (anyone can view) or Private (only you and your team members can access). New projects default to Public; Enterprise workspaces default new projects to Private with the Ultralytics-Enterprise license.
-- **License**: Optional license for your project (AGPL-3.0, Apache-2.0, MIT, GPL-3.0, BSD-3-Clause, LGPL-3.0, MPL-2.0, EUPL-1.1, Unlicense, Ultralytics-Enterprise, and more). The **Ultralytics-Enterprise** license is for commercial use without AGPL requirements and is available with an Enterprise plan — see [Ultralytics Licensing](https://www.ultralytics.com/license).
+- **License**: Optional license for your project (None, Apache-2.0, MIT, BSD-3-Clause, AGPL-3.0, GPL-3.0, LGPL-3.0, MPL-2.0, EUPL-1.1, Unlicense, CC0-1.0, Ultralytics-Enterprise, or Other). The **Ultralytics-Enterprise** license is for commercial use without AGPL requirements and is available with an Enterprise plan — see [Ultralytics Licensing](https://www.ultralytics.com/license). Enterprise workspaces preselect it for new projects.
 
-![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-new-project-dialog-name-visibility-license.avif)
-
+![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.ul.run/i/81a34dad08ad659335f49cd7d9f7bcd9.avif)<!-- screenshot -->
 Click **Create Project** to finalize. Your new project appears in the Projects list and sidebar.
 
 ## Project Page
 
 The project page has two main areas:
 
-| Area               | Description                                                                                                         |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| **Models Sidebar** | Resizable list of all models in the project with search, status filters, sort options, and checkboxes for selection |
-| **Main Panel**     | Charts dashboard or comparison table (toggle between views)                                                         |
+| Area               | Description                                                                      |
+| ------------------ | -------------------------------------------------------------------------------- |
+| **Models Sidebar** | Resizable list of all models in the project, with checkboxes for chart selection |
+| **Main Panel**     | Charts dashboard or comparison table (toggle between views)                      |
 
-![Ultralytics Platform Project Page Sidebar And Charts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-project-page-sidebar-and-charts.avif)
+A controls row above both areas holds the model search box, the **Diff** toggle (table view only, badged with how many columns differ), the view-options dropdown, and the view-mode toggle.
+
+![Ultralytics Platform Project Page Sidebar And Charts](https://cdn.ul.run/i/1ec7d084c2a0ce6b7bf0b582093566f8.avif)<!-- screenshot -->
 
 ### Project Header
 
@@ -64,41 +66,51 @@ The header displays:
 
 - **Project icon** (customizable color, letter, or uploaded image)
 - **Editable name** (click to rename; slug auto-updates)
-- **License badge**
-- **Model count**, completed/running/failed counts, total size
+- **License selector** (click to change; copyleft licenses inherited from a clone are locked)
+- **Model count**, completed/training/failed counts, total size
 - **Clone count** and **last updated** timestamp
 - **Description** (click to edit)
 
 Action buttons in the header:
 
-| Button        | Description                                    |
-| ------------- | ---------------------------------------------- |
-| **New Model** | Opens the [training dialog](cloud-training.md) |
-| **Clone**     | Clone project and all models (public projects) |
-| **Star**      | Star/unstar the project                        |
-| **Share**     | Social sharing for public projects             |
-| **Refresh**   | Refresh project data                           |
-| **Delete**    | Move project to trash                          |
+| Button            | Description                                                                |
+| ----------------- | -------------------------------------------------------------------------- |
+| **New Model**     | Open the [training dialog](cloud-training.md) for editable projects        |
+| **Upload models** | Select one or more `.pt` checkpoints for an editable project               |
+| **Clone Project** | Clone a public project and its completed models into your workspace        |
+| **Star**          | Star or unstar the project                                                 |
+| **Share**         | Share or embed a public project                                            |
+| **More actions**  | **Information** (metadata), **Refresh**, and **Delete Project** for owners |
+
+The project's visibility badge sits beside its name in the breadcrumb at the top of the page; click it to switch between public and private.
 
 ### View Modes
 
-Toggle between three view modes using the view controls:
+Toggle between three view modes using the view controls. The selected mode is remembered per project.
 
-- **Cards**: Full-width models sidebar with the Charts dashboard on the right — loss curves and metric comparisons for checked models.
+- **Cards**: Full-size model cards in the sidebar with the Charts dashboard on the right — loss curves and metric comparisons for checked models.
 - **Compact**: Condensed models sidebar with the Charts dashboard on the right — more vertical room for models in projects with many experiments.
-- **Table**: Comparison table showing training arguments and final metrics side-by-side. Enable **Diff** to highlight only the columns where values differ across models.
+- **Table**: Comparison table showing training arguments and final metrics side-by-side. Enable **Diff** to show only the columns where values differ across models.
 
-![Ultralytics Platform Project Comparison Table View](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-project-comparison-table-view.avif)
+![Ultralytics Platform Project Comparison Table View](https://cdn.ul.run/i/d2c9ac86bfb48c6afff55f5f2f53167b.avif)<!-- screenshot -->
+
+### Filter and Sort
+
+The controls row above the models list provides:
+
+- **Search** to filter models by name
+- **Status filter**: All, Completed, Untrained, Running, Starting, or Failed
+- **Group by**: None or Task — grouping applies in Compact and Table modes
+- **Sort by**: Created, Name, or Size, each ascending or descending
 
 ### Models Sidebar
 
 The resizable sidebar lists all models in the project:
 
-- **Checkboxes** to select which models appear in charts/table
-- **Search** to filter models by name
-- **View options** for status filter (All, Completed, Untrained, Running, Starting, Failed), grouping by task, and sort order
+- **Checkboxes** to select which models appear in charts and the comparison table
 - **Drag and drop** `.pt` files directly onto the sidebar to upload models ([model upload details](models.md#upload-model))
 - **Training progress** shown for running models (epoch count and progress bar)
+- **Model color** picker, used consistently across every chart
 
 Click any model to open its [model page](models.md).
 
@@ -145,17 +157,19 @@ Clone a public project to your own account:
 Compare model performance using the charts dashboard:
 
 1. Select models in the sidebar using checkboxes
-2. View overlaid metric curves grouped by type (metrics, train loss, validation loss, learning rate)
+2. View overlaid metric curves grouped by type (metrics, loss, learning rate)
 3. Drag charts to rearrange, resize by dragging edges
 4. Hover to see exact values, click legend items to hide/show models, click a model line to navigate to that model
 
 Available chart groups:
 
-| Group             | Charts                                                                                   |
-| ----------------- | ---------------------------------------------------------------------------------------- |
-| **Metrics**       | mAP50, mAP50-95, precision, recall                                                       |
-| **Loss**          | train/box_loss, train/cls_loss, train/dfl_loss, val/box_loss, val/cls_loss, val/dfl_loss |
-| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                                                                   |
+| Group             | Charts                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------- |
+| **Metrics**       | Task metrics, such as mAP50, mAP50-95, precision, and recall for detection            |
+| **Loss**          | One chart per loss component (box, cls, dfl, …), training solid and validation dashed |
+| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                                                                |
+
+Comparing models trained for different tasks works, but each model only draws on the charts for metrics it actually reported.
 
 !!! tip "Interactive Charts"
 
@@ -163,6 +177,7 @@ Available chart groups:
     - Click legend items to hide/show models
     - Drag to zoom into specific regions
     - Click a model line to navigate to that model's page
+    - Collapse a group, or use its menu to hide individual charts and the train or validation loss series
     - Rearrange and resize charts; layout persists across sessions
 
 ### Comparison Table
@@ -171,7 +186,7 @@ Switch to table view for side-by-side comparison of training arguments and final
 
 1. Click the **Table** view mode toggle
 2. See all selected models as rows with training args and metrics as columns
-3. Use the **Diff** button to highlight only columns where values differ across models
+3. Use the **Diff** button to show only the columns where values differ across models
 
 ## Upload Models
 
@@ -195,13 +210,22 @@ Update project name, description, or settings:
 3. Click the icon to customize it
 4. Click the license badge to change the license
 
-![Ultralytics Platform Projects Settings](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-projects-settings.avif)
+![Ultralytics Platform Projects Settings](https://cdn.ul.run/i/efc68367a7a6f0b80f43e28e96b22167.avif)<!-- screenshot -->
+
+### Custom Metadata
+
+Open **More actions** and select **Information** to review two sections:
+
+- **Ultralytics Metadata**: Read-only Platform details such as the project ID, owner, visibility, license, tags, and timestamps
+- **Custom Metadata**: Your own JSON object for department, program, cost center, governance, or other organizational context
+
+Workspace viewers can inspect metadata, while members with edit access can replace the custom metadata object. The serialized metadata object is limited to 500,000 characters, and each top-level key is limited to 128 characters. Save an empty object (`{}`) to clear custom metadata.
 
 ## Delete Project
 
 Remove a project you no longer need:
 
-1. Click the **Delete** button (trash icon) in the header
+1. Open the **More actions** menu in the header and select **Delete Project**
 2. Confirm deletion
 
 !!! warning "Cascading Delete"
@@ -212,10 +236,11 @@ Remove a project you no longer need:
 
 ### How many models can a project contain?
 
-There's no hard limit on models per project. However, for better organization, we recommend:
+There is no separate per-project model limit. The workspace-wide plan limit applies across all projects: Free supports
+100 models, Pro supports 500, and Enterprise is unlimited. For clearer comparisons:
 
 - Group related experiments (same dataset/task)
-- Archive old experiments
+- Delete obsolete runs to Trash when you no longer need them
 - Use meaningful project names
 
 ### Can I restore a deleted project?

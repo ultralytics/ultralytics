@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Ultralytics Platform is an end-to-end computer vision platform for data preparation, model training, and deployment with multi-region infrastructure.
 keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud deployment, annotation, inference, YOLO11, YOLO26, machine learning
@@ -8,19 +9,11 @@ keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud dep
 
 [Ultralytics Platform](https://platform.ultralytics.com) is a comprehensive end-to-end computer vision platform that streamlines the entire ML workflow from data preparation to model deployment. Built for teams and individuals who need production-ready [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) solutions without the infrastructure complexity.
 
-![Ultralytics Platform Dataset Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/dataset-screenshot.avif)
+![Ultralytics Platform Dataset Screenshot](https://cdn.ul.run/i/2990f4be3ba5e24b885f6a1ea278a793.avif)<!-- screenshot -->
 
 ## What is Ultralytics Platform?
 
-Ultralytics Platform is designed to replace fragmented ML tooling with a unified solution. It combines the capabilities of:
-
-- **Roboflow** - Data management and annotation
-- **Weights & Biases** - Experiment tracking
-- **SageMaker** - Cloud training
-- **HuggingFace** - Model deployment
-- **Arize** - Monitoring
-
-All in one platform with native support for [YOLO26](../models/yolo26.md) and [YOLO11](../models/yolo11.md) models.
+Ultralytics Platform brings dataset management and annotation, experiment tracking, cloud and remote training, model export, dedicated inference endpoints, and deployment monitoring into one workspace. It has native support for [YOLO26](../models/yolo26.md), [YOLO11](../models/yolo11.md), [YOLOv8](../models/yolov8.md), and [YOLOv5](../models/yolov5.md) models.
 
 ## Workflow: Upload → Annotate → Train → Export → Deploy
 
@@ -49,48 +42,46 @@ graph LR
 
 | Stage        | Features                                                                                                                                                                                                               |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) with automatic processing                                                                                                 |
+| **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) from your machine, a URL, cloud storage, or an on-premise host                                                            |
 | **Annotate** | Manual tools for all 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM and YOLO models for detect, segment, semantic, and OBB (see [supported tasks](data/index.md#supported-tasks)) |
 | **Train**    | Cloud GPUs (24 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                              |
-| **Export**   | [19+ deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, etc.; see [supported formats](train/models.md#supported-formats))                                                                        |
-| **Deploy**   | 43 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                          |
+| **Export**   | [20 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.; see [supported formats](train/models.md#supported-formats))                                                          |
+| **Deploy**   | 42 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                          |
 
 **What you can do:**
 
 - **Upload** images, videos, and dataset files to create training datasets
 - **Visualize** annotations with interactive overlays for all 6 YOLO task types (see [supported tasks](data/index.md#supported-tasks))
 - **Train** models on cloud GPUs (24 on all plans, 26 with Pro or Enterprise for B200 and B300) with real-time metrics
-- **Export** to [19+ deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, etc.)
-- **Deploy** to 43 global regions with one-click dedicated endpoints
+- **Export** to [20 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.)
+- **Deploy** to 42 global regions with one-click dedicated endpoints
 - **Monitor** training progress, deployment health, and usage metrics
+- **Connect** cloud storage, annotation tools, and Slack through [integrations](integrations/index.md)
 - **Collaborate** by making projects and datasets public for the community
 
 ## Multi-Region Infrastructure
 
 Your data stays in your region. Ultralytics Platform operates infrastructure in three global regions:
 
-| Region | Label                        | Location             | Best For                                |
-| ------ | ---------------------------- | -------------------- | --------------------------------------- |
-| **US** | Americas                     | Iowa, USA            | Americas users, fastest for Americas    |
-| **EU** | Europe, Middle East & Africa | Belgium, Europe      | European users, GDPR compliance         |
-| **AP** | Asia Pacific                 | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+{% include "macros/platform-data-regions.md" %}
 
-You select your region during onboarding, and all your data, models, and deployments remain in that region.
+You select your data region during onboarding. Datasets, models, and managed training data remain in that region.
+Dedicated endpoints are deployed separately to a region you choose from the global deployment map.
 
 !!! warning "Region is Permanent"
 
-    Your data region cannot be changed after account creation. During onboarding, the platform measures latency to each region and recommends the closest one. Choose carefully. Note: this applies to your dataset and model content. Account-level data (profile, billing, activity logs) is processed globally, as described in our [Privacy Policy](https://www.ultralytics.com/legal/privacy) and [Data Processing Agreement](https://www.ultralytics.com/legal/ultralytics-data-processing-agreement#exhibit-a-details-of-personal-data-processing).
+    You cannot change your data region yourself after account creation. During onboarding, the Platform measures latency to each region and recommends the closest one. Contact support if you later need to request a region change. This applies to dataset and model content; account-level data such as profile, billing, and activity records is processed globally, as described in our [Privacy Policy](https://www.ultralytics.com/legal/privacy) and [Data Processing Agreement](https://www.ultralytics.com/legal/ultralytics-data-processing-agreement#exhibit-a-details-of-personal-data-processing).
 
 ## Key Features
 
 ### Data Preparation
 
-- **Dataset Management**: Upload images, videos, or dataset files with automatic processing
-- **[Annotation Editor](https://www.ultralytics.com/annotate)**: Manual annotation for all 6 YOLO task types (detect, segment, semantic, pose, OBB, classify; see [supported tasks](data/index.md#supported-tasks))
-- **Skeleton Templates**: Built-in (Person, Hand, Face, Dog, Box) and custom skeleton templates for one-click pose annotation
+- **Dataset Management**: Create datasets from local files, a URL, connected [cloud storage](integrations/index.md), or an [on-premise host](integrations/on-premise.md), with automatic processing
+- **[Annotation Editor](https://www.ultralytics.com/annotate)**: Manual annotation for all 6 YOLO task types (detect, segment, semantic, classify, pose, OBB; see [supported tasks](data/index.md#supported-tasks))
+- **Skeleton Templates**: Built-in (Person, Hand, Dog, Face, Box) and custom skeleton templates for one-click pose annotation
 - **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), pretrained Ultralytics YOLO models, or your own fine-tuned YOLO models from the annotation toolbar for detect, segment, semantic, and OBB tasks
-- **Dataset Versioning**: Create numbered NDJSON snapshots with descriptions for reproducible training
-- **Statistics**: Class distribution, location heatmaps, and dimension analysis
+- **Dataset Versioning**: Create numbered NDJSON snapshots with descriptions, then download or restore any version for reproducible training
+- **Statistics**: Class distribution, split distribution, location heatmaps, and bounding box dimension analysis
 
 ```mermaid
 graph LR
@@ -112,23 +103,23 @@ graph LR
 
 !!! tip "Supported Task Types"
 
-    The annotation editor supports all 6 YOLO task types: **[detect](../datasets/detect/index.md)** (bounding boxes), **[segment](../datasets/segment/index.md)** (polygons), **[semantic](../datasets/semantic/index.md)** (per-class regions), **[pose](../datasets/pose/index.md)** (keypoints), **[OBB](../datasets/obb/index.md)** (oriented boxes), and **[classify](../datasets/classify/index.md)** (image-level labels). Each task type has dedicated drawing tools and keyboard shortcuts.
+    The annotation editor supports all 6 YOLO task types: **[detect](../datasets/detect/index.md)** (bounding boxes), **[segment](../datasets/segment/index.md)** (polygons), **[semantic](../datasets/semantic/index.md)** (per-class regions), **[classify](../datasets/classify/index.md)** (image-level labels), **[pose](../datasets/pose/index.md)** (keypoints), and **[OBB](../datasets/obb/index.md)** (oriented boxes). Each task type has dedicated annotation controls and keyboard shortcuts.
 
 ### Model Training
 
-- **Cloud Training**: Train on cloud GPUs (24 on all plans, 26 with [Pro or Enterprise](account/billing.md#plans) for B200 and B300) with real-time metrics
-- **Remote Training**: Train anywhere and stream metrics to the platform (W&B-style)
+- **Cloud Training**: Train on cloud GPUs (24 on all plans, 26 with [Pro or Enterprise](account/billing.md#plans) for B200 and B300) with real-time metrics and a live cost estimate
+- **Remote Training**: Train anywhere and stream metrics to Ultralytics Platform
+- **Advanced Settings**: Override any Ultralytics training argument from a built-in YAML editor in the training dialog
 - **Project Organization**: Group related models, compare experiments, track activity
-- **19+ Export Formats**: ONNX, TensorRT, CoreML, LiteRT, and more (see [supported formats](train/models.md#supported-formats))
+- **20 Export Formats**: ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, and more (see [supported formats](train/models.md#supported-formats))
 
-![Ultralytics Platform Project Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/project-screenshot.avif)
-
+![Ultralytics Platform Project Screenshot](https://cdn.ul.run/i/fd80b9795191f02b24d9b8d8d1c8380b.avif)<!-- screenshot -->
 You can train models either through the web UI (cloud training) or from your own machine (remote training):
 
 === "Cloud Training (Web UI)"
 
     1. Navigate to your project
-    2. Click `Train Model`
+    2. Click `New Model`
     3. Select dataset, model, GPU, and epochs
     4. Monitor real-time loss curves and metrics
 
@@ -136,7 +127,7 @@ You can train models either through the web UI (cloud training) or from your own
 
     ```bash
     # Install ultralytics
-    pip install "ultralytics>=8.4.60"
+    pip install "ultralytics>=8.4.120"
 
     # Set your API key
     export ULTRALYTICS_API_KEY="YOUR_API_KEY"
@@ -166,8 +157,8 @@ You can train models either through the web UI (cloud training) or from your own
 
 ### Deployment
 
-- **Inference Testing**: Test models directly in the browser with custom images
-- **Dedicated Endpoints**: Deploy to 43 global regions with scale-to-zero by default (single active instance)
+- **Inference Testing**: Test models directly in the browser with your own images, a webcam capture, or the built-in examples
+- **Dedicated Endpoints**: Deploy to 42 global regions with scale-to-zero by default (single active instance)
 - **Monitoring**: Real-time metrics, request logs, and performance dashboards
 
 ```mermaid
@@ -177,7 +168,7 @@ graph LR
     B --> D[Export Format]:::proc
     B --> E[Deploy Endpoint]:::proc
     D --> F[ONNX / TensorRT / CoreML / LiteRT / ...]:::out
-    E --> G[43 Global Regions]:::proc
+    E --> G[42 Global Regions]:::proc
     G --> H[API Endpoint URL]:::proc
     H --> I[Monitor & Scale]:::out
 
@@ -187,18 +178,25 @@ graph LR
     classDef out fill:#9C27B0,color:#fff
 ```
 
-Once deployed, call your endpoint from any language:
+Once deployed, call your endpoint from any language. `conf`, `iou`, and `imgsz` are optional form fields that default to
+`0.25`, `0.7`, and `640`:
 
 === "Python"
 
     ```python
     import requests
 
-    url = "https://your-endpoint-url/predict"
-    headers = {"Authorization": "Bearer YOUR_API_KEY"}
+    url = "https://your-deployment-url.run.app/predict"
+    api_key = "YOUR_API_KEY"
+    args = {"conf": 0.25, "iou": 0.7, "imgsz": 640}
 
     with open("image.jpg", "rb") as f:
-        response = requests.post(url, headers=headers, files={"file": f})
+        response = requests.post(
+            url,
+            headers={"Authorization": f"Bearer {api_key}"},
+            data=args,
+            files={"file": f},
+        )
 
     print(response.json())
     ```
@@ -206,9 +204,12 @@ Once deployed, call your endpoint from any language:
 === "cURL"
 
     ```bash
-    curl -X POST "https://your-endpoint-url/predict" \
+    curl -X POST "https://your-deployment-url.run.app/predict" \
       -H "Authorization: Bearer YOUR_API_KEY" \
-      -F "file=@image.jpg"
+      -F "file=@image.jpg" \
+      -F "conf=0.25" \
+      -F "iou=0.7" \
+      -F "imgsz=640"
     ```
 
 === "JavaScript"
@@ -216,8 +217,11 @@ Once deployed, call your endpoint from any language:
     ```javascript
     const form = new FormData();
     form.append("file", fileInput.files[0]);
+    form.append("conf", "0.25");
+    form.append("iou", "0.7");
+    form.append("imgsz", "640");
 
-    const response = await fetch("https://your-endpoint-url/predict", {
+    const response = await fetch("https://your-deployment-url.run.app/predict", {
         method: "POST",
         headers: { Authorization: "Bearer YOUR_API_KEY" },
         body: form,
@@ -229,46 +233,113 @@ Once deployed, call your endpoint from any language:
 
 ### Account Management
 
-- **Teams & Organizations**: Collaborate with team members, manage roles and invites
+- **Teams & Organizations**: Collaborate with team members, manage roles and invites, and switch workspaces from the account menu
 - **API Keys**: Secure key management for remote training and API access
-- **Credits & Billing**: Pay-as-you-go training with transparent pricing
+- **Credits & Billing**: Pay-as-you-go training with transparent pricing and top-ups from $5 to $1,000
 - **Activity Feed**: Track all account events and actions
 - **Trash & Restore**: 30-day soft delete with item recovery
 - **GDPR Compliance**: Data export and account deletion
 
 !!! info "Plan Tiers"
 
-    | Feature              | Free           | Pro ($29/mo)            | Enterprise     |
-    | -------------------- | -------------- | ----------------------- | -------------- |
-    | Signup Credit        | $5 / $25*      | -                       | Custom         |
-    | Monthly Credit       | -              | $30/seat/month          | Custom         |
-    | Models               | 100            | 500                     | Unlimited      |
-    | Concurrent Trainings | 3              | 10                      | Unlimited      |
-    | Deployments          | 3              | 10                      | Unlimited      |
-    | Storage              | 100 GB         | 500 GB                  | Unlimited      |
-    | Cloud GPU Types      | 24             | 26 (incl. B200 / B300)  | 26             |
-    | Teams                | -              | Up to 5 members         | Up to 50       |
-    | Support              | Community      | Priority                | Dedicated      |
-
-    *$5 at signup, or $25 with a verified company/work email.
+    See the canonical [Free, Pro, and Enterprise comparison](account/billing.md#plans) for current limits, GPU access, collaboration, and licensing.
 
 ## Quick Links
 
 Get started with these resources:
 
 - [**Quickstart**](quickstart.md): Create your first project and train a model in minutes
+- [**Explore**](explore.md): Browse and clone public datasets and projects
+- [**Data**](data/index.md): Dataset preparation overview
 - [**Datasets**](data/datasets.md): Upload and manage your training data
 - [**Annotation**](data/annotation.md): Label your data with manual and AI-assisted tools
+- [**Train**](train/index.md): Training overview
 - [**Projects**](train/projects.md): Organize your models and experiments
+- [**Models**](train/models.md): Model pages, downloads, and exports
 - [**Cloud Training**](train/cloud-training.md): Train on cloud GPUs
+- [**Deploy**](deploy/index.md): Deployment overview
 - [**Inference**](deploy/inference.md): Test your models
 - [**Endpoints**](deploy/endpoints.md): Deploy models to production
 - [**Monitoring**](deploy/monitoring.md): Track deployment performance
+- [**Account**](account/index.md): Account overview
+- [**Settings**](account/settings.md): Profile and workspace preferences
+- [**Teams**](account/teams.md): Members, roles, and invites
 - [**API Keys**](account/api-keys.md): Manage API access
 - [**Billing**](account/billing.md): Credits and payment
 - [**Activity**](account/activity.md): Track account events
 - [**Trash**](account/trash.md): Recover deleted items
+- [**Integrations**](integrations/index.md): Cloud storage, annotation tools, and Slack
 - [**REST API**](api/index.md): API reference
+
+## Troubleshooting
+
+### Dataset Issues
+
+| Problem                | Solution                                                                                                                                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, TIFF, HEIC, AVIF, BMP, JP2, DNG, MPO for images). Max file size: images 50 MB, videos 1 GB, dataset archives 10 GB (Free) / 20 GB (Pro) / 50 GB (Enterprise) |
+| Missing annotations    | Verify labels are in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format) with `.txt` files matching image filenames, or upload COCO JSON                                                       |
+| "Train split required" | Add `train/` folder to your dataset structure, or redistribute splits via the [split bar](data/datasets.md#split-redistribution)                                                                              |
+| Class names undefined  | Add a `data.yaml` file with `names:` list (see [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format)), or define classes in the [Classes tab](data/datasets.md#classes-tab)                      |
+
+### Training Issues
+
+| Problem              | Solution                                                                            |
+| -------------------- | ----------------------------------------------------------------------------------- |
+| Training won't start | Check credit balance in Settings > Billing. Positive balance required               |
+| Out of memory error  | Reduce batch size, use smaller model (n/s), or select GPU with more VRAM            |
+| Poor metrics         | Check dataset quality, increase epochs, try data augmentation, verify class balance |
+| Training slow        | Select faster GPU, reduce image size, check dataset isn't bottlenecked              |
+
+### Deployment Issues
+
+| Problem                 | Solution                                                                                                                    |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Endpoint not responding | Check endpoint status (Ready vs Stopped). A cold start after idle can take up to ~45 seconds on the first request           |
+| 401 Unauthorized        | Verify the API key is active and copied correctly                                                                           |
+| Slow inference          | Check model size, consider [TensorRT export](train/models.md#supported-formats), select closer region                       |
+| Export failed           | Some formats require specific model architectures. Try [ONNX](train/models.md#supported-formats) for broadest compatibility |
+
+### Common Questions
+
+??? question "Can I change my username after signup?"
+
+    No, usernames are permanent and cannot be changed. Choose carefully during signup.
+
+??? question "Can I change my data region?"
+
+    Your data region is selected during onboarding and can't be changed yourself. To switch regions, contact support to request a region change.
+
+??? question "How do I get more credits?"
+
+    Go to **Settings > Billing** and click **Top Up**. Purchase credits from $5 to $1,000. Purchased credits never
+    expire.
+
+??? question "What happens if training fails?"
+
+    If cloud compute had started, elapsed GPU time is charged. Failures before a GPU starts have no compute usage
+    charge.
+
+??? question "Can I download my trained model?"
+
+    Yes. Click the download icon on a model page for its `.pt` weights, or open the **Export** tab for completed exported formats.
+
+??? question "How do I share my work publicly?"
+
+    Open the project or dataset, click its **Private** badge in the top navigation bar, and confirm **Make Public**.
+    Public content appears on the Explore page.
+
+??? question "What are the file size limits?"
+
+    Images: 50MB, Videos: 1GB, datasets: 10GB on Free, 20GB on Pro, 50GB on Enterprise. For larger files, split into multiple uploads.
+
+??? question "How long are deleted items kept in Trash?"
+
+    30 days. After that, items are permanently deleted and cannot be recovered.
+
+??? question "Can I use Platform models commercially?"
+
+    Free and Pro plans use the AGPL license. For commercial use without AGPL requirements, see [Ultralytics Licensing](https://www.ultralytics.com/license).
 
 ## FAQ
 
@@ -278,7 +349,7 @@ To get started with [Ultralytics Platform](https://platform.ultralytics.com):
 
 1. **Sign Up**: Create an account at [platform.ultralytics.com](https://platform.ultralytics.com)
 2. **Select Region**: Choose your data region (US, EU, or AP) during onboarding
-3. **Upload Dataset**: Navigate to the [Datasets](data/datasets.md) section to upload your data
+3. **Upload Dataset**: Open `Annotate` in the sidebar and upload your data
 4. **Train Model**: Create a project and start training on cloud GPUs
 5. **Deploy**: Test your model and deploy to a dedicated endpoint
 
@@ -292,8 +363,8 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 - **Multi-Region**: Data residency in US, EU, or AP regions
 - **No-Code Training**: Train advanced YOLO models without writing code
 - **Real-Time Metrics**: Stream training progress and monitor deployments
-- **43 Deploy Regions**: Deploy models close to your users worldwide
-- **6 Task Types**: Support for detection, instance segmentation, semantic segmentation, pose, OBB, and classification (see [task docs](../tasks/index.md))
+- **42 Deploy Regions**: Deploy models close to your users worldwide
+- **7 Task Types**: Support for detection, instance segmentation, semantic segmentation, depth estimation (models and prediction today; depth datasets coming soon), classification, pose, and OBB (see [task docs](../tasks/index.md))
 - **AI-Assisted Annotation**: [Smart annotation](data/annotation.md#smart-annotation) with SAM and YOLO models to speed up data preparation
 
 ### What GPU options are available for cloud training?
@@ -306,14 +377,14 @@ See [Cloud Training](train/cloud-training.md) for complete pricing and GPU optio
 
 ### How does remote training work?
 
-You can train models on your own hardware and stream real-time metrics to the platform, similar to Weights & Biases.
+You can train models on your own hardware and stream real-time metrics to Ultralytics Platform.
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.60**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.120**. Lower versions will NOT work with Platform.
 
     ```bash
-    pip install "ultralytics>=8.4.60"
+    pip install "ultralytics>=8.4.120"
     ```
 
 === "CLI"
@@ -360,113 +431,31 @@ See [Cloud Training](train/cloud-training.md#remote-training) for more details o
 The Platform includes a full-featured annotation editor supporting:
 
 - **Manual Tools**: Bounding boxes, polygons, keypoints with skeleton templates, oriented boxes, classification
-- **Skeleton Templates**: Place all keypoints at once using built-in (Person, Hand, Face, Dog, Box) or custom templates
+- **Skeleton Templates**: Place all keypoints at once using built-in (Person, Hand, Dog, Face, Box) or custom templates
 - **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) or [SAM 3](../models/sam-3.md) for click-based annotation, or run pretrained Ultralytics YOLO models and your own fine-tuned YOLO models from the toolbar for detect, segment, semantic, and OBB
-- **Keyboard Shortcuts**: Efficient workflows with hotkeys
+- **Keyboard Shortcuts**: Efficient workflows with hotkeys, listed in the editor's shortcuts popover
 
-| Shortcut  | Action                            |
-| --------- | --------------------------------- |
-| `V`       | Manual (draw) mode                |
-| `S`       | Smart mode (SAM or YOLO model)    |
-| `A`       | Toggle auto-apply (in Smart mode) |
-| `1` - `9` | Select class by number            |
-| `Delete`  | Delete selected annotation        |
-| `Ctrl+Z`  | Undo                              |
-| `Ctrl+Y`  | Redo                              |
-| `Escape`  | Save / deselect / exit            |
+| Shortcut               | Action                            |
+| ---------------------- | --------------------------------- |
+| `V`                    | Manual (draw) mode                |
+| `S`                    | Smart mode (SAM or YOLO model)    |
+| `P`                    | Predict (in Smart mode)           |
+| `A`                    | Toggle auto-apply (in Smart mode) |
+| `1` - `9`              | Select class by number            |
+| `H`                    | Toggle annotation visibility      |
+| `Space` + drag         | Pan the canvas                    |
+| `Delete` / `Backspace` | Delete selected annotation        |
+| `Ctrl+S`               | Save annotations                  |
+| `Ctrl+Z`               | Undo                              |
+| `Ctrl+Y`               | Redo                              |
+| `Escape`               | Save / deselect / exit            |
 
 See [Annotation](data/annotation.md) for the complete guide.
 
 ### What export formats are supported?
 
-The Platform supports 19+ deployment formats:
+The Platform supports the same 20 deployment formats as Ultralytics Export mode. PyTorch is the source format; each row with a `format` argument is an export target.
 
-| Format        | File Extension      | Use Case                  |
-| ------------- | ------------------- | ------------------------- |
-| ONNX          | `.onnx`             | Cross-platform deployment |
-| TorchScript   | `.torchscript`      | C++ deployment            |
-| OpenVINO      | `_openvino_model`   | Intel hardware            |
-| TensorRT      | `.engine`           | NVIDIA GPU inference      |
-| CoreML        | `.mlpackage`        | Apple devices             |
-| TF SavedModel | `_saved_model`      | TensorFlow ecosystem      |
-| TF GraphDef   | `.pb`               | TensorFlow legacy         |
-| PaddlePaddle  | `_paddle_model`     | Baidu ecosystem           |
-| NCNN          | `_ncnn_model`       | Mobile (Android/ARM)      |
-| LiteRT        | `.tflite`           | Mobile/edge and browser   |
-| Edge TPU      | `_edgetpu.tflite`   | Google Coral devices      |
-| MNN           | `.mnn`              | Alibaba mobile            |
-| RKNN          | `_rknn_model`       | Rockchip NPU              |
-| Qualcomm      | `_qnn.onnx`         | Qualcomm Snapdragon NPU   |
-| IMX500        | `_imx_model`        | Sony IMX500 sensor        |
-| Axelera       | `_axelera_model`    | Axelera AI accelerators   |
-| ExecuTorch    | `_executorch_model` | PyTorch mobile            |
-| DeepX         | `_deepx_model`      | DeepX NPU accelerators    |
+{% include "macros/export-table.md" %}
 
 See [Models Export](train/models.md#export-model), the [Export mode guide](../modes/export.md), and the [Integrations index](../integrations/index.md) for format-specific options.
-
-## Troubleshooting
-
-### Dataset Issues
-
-| Problem                | Solution                                                                                                                                                                                                      |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, TIFF, HEIC, AVIF, BMP, JP2, DNG, MPO for images). Max file size: images 50 MB, videos 1 GB, dataset archives 10 GB (Free) / 20 GB (Pro) / 50 GB (Enterprise) |
-| Missing annotations    | Verify labels are in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format) with `.txt` files matching image filenames, or upload COCO JSON                                                       |
-| "Train split required" | Add `train/` folder to your dataset structure, or redistribute splits via the [split bar](data/datasets.md#split-redistribution)                                                                              |
-| Class names undefined  | Add a `data.yaml` file with `names:` list (see [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format)), or define classes in the [Classes tab](data/datasets.md#classes-tab)                      |
-
-### Training Issues
-
-| Problem              | Solution                                                                            |
-| -------------------- | ----------------------------------------------------------------------------------- |
-| Training won't start | Check credit balance in Settings > Billing. Positive balance required               |
-| Out of memory error  | Reduce batch size, use smaller model (n/s), or select GPU with more VRAM            |
-| Poor metrics         | Check dataset quality, increase epochs, try data augmentation, verify class balance |
-| Training slow        | Select faster GPU, reduce image size, check dataset isn't bottlenecked              |
-
-### Deployment Issues
-
-| Problem                 | Solution                                                                                                                    |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Endpoint not responding | Check endpoint status (Ready vs Stopped). Cold start may take 5-15 seconds                                                  |
-| 401 Unauthorized        | Verify API key is correct and has required scopes                                                                           |
-| Slow inference          | Check model size, consider [TensorRT export](train/models.md#supported-formats), select closer region                       |
-| Export failed           | Some formats require specific model architectures. Try [ONNX](train/models.md#supported-formats) for broadest compatibility |
-
-### Common Questions
-
-??? question "Can I change my username after signup?"
-
-    No, usernames are permanent and cannot be changed. Choose carefully during signup.
-
-??? question "Can I change my data region?"
-
-    Your data region is selected during onboarding and can't be changed yourself. To switch regions, contact support to request a region change.
-
-??? question "How do I get more credits?"
-
-    Go to Settings > Billing > Add Credits. Purchase credits from $5 to $1000. Purchased credits never expire.
-
-??? question "What happens if training fails?"
-
-    You're only charged for completed compute time. Checkpoints are saved, and you can resume training.
-
-??? question "Can I download my trained model?"
-
-    Yes, click the download icon on any model page to download the `.pt` file or exported formats.
-
-??? question "How do I share my work publicly?"
-
-    Edit your project or dataset settings and toggle visibility to "Public". Public content appears on the Explore page.
-
-??? question "What are the file size limits?"
-
-    Images: 50MB, Videos: 1GB, datasets: 10GB on Free, 20GB on Pro, 50GB on Enterprise. For larger files, split into multiple uploads.
-
-??? question "How long are deleted items kept in Trash?"
-
-    30 days. After that, items are permanently deleted and cannot be recovered.
-
-??? question "Can I use Platform models commercially?"
-
-    Free and Pro plans use the AGPL license. For commercial use without AGPL requirements, see [Ultralytics Licensing](https://www.ultralytics.com/license).

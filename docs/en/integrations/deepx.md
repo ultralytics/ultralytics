@@ -32,16 +32,9 @@ DEEPX models offer several advantages for edge deployment:
 
 ## Supported Tasks
 
-All standard Ultralytics tasks are supported for DEEPX export across YOLO26, YOLO11, and YOLOv8 model families.
+DEEPX export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
 
-| Task                                          | Supported |
-| :-------------------------------------------- | :-------- |
-| [Object Detection](../tasks/detect.md)        | ✅        |
-| [Instance Segmentation](../tasks/segment.md)  | ✅        |
-| [Semantic Segmentation](../tasks/semantic.md) | ✅        |
-| [Pose Estimation](../tasks/pose.md)           | ✅        |
-| [OBB Detection](../tasks/obb.md)              | ✅        |
-| [Classification](../tasks/classify.md)        | ✅        |
+{% include "macros/supported-tasks.md" %}
 
 ## Export to DEEPX: Converting Your YOLO Model
 
@@ -135,14 +128,16 @@ The DEEPX format supports the [Export](../modes/export.md), [Predict](../modes/p
 
 ### Export Arguments
 
-| Argument   | Type             | Default        | Description                                                                                                                                        |
-| :--------- | :--------------- | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'deepx'`      | Target format for the exported model, defining compatibility with DEEPX NPU hardware.                                                              |
-| `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. DEEPX export requires a square input — pass an integer (e.g., `640`) or a tuple where height equals width. |
-| `quantize` | `int` or `str`   | `8`/auto       | Quantization precision. `8` (INT8) is required for DEEPX export and auto-enabled if not specified. Replaces the deprecated `half`/`int8` flags.    |
-| `data`     | `str`            | `'coco8.yaml'` | Dataset configuration file used for INT8 calibration. Specifies the calibration image source.                                                      |
-| `device`   | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`) or CPU (`device=cpu`).                                                                        |
-| `optimize` | `bool`           | `False`        | Enables higher compiler optimization which reduces inference latency and increases compilation time.                                               |
+| Argument   | Type             | Default   | Description                                                                                                                                                                                                                |
+| :--------- | :--------------- | :-------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'deepx'` | Target format for the exported model, defining compatibility with DEEPX NPU hardware.                                                                                                                                      |
+| `imgsz`    | `int` or `tuple` | `640`     | Desired image size for the model input. DEEPX export requires a square input — pass an integer (e.g., `640`) or a tuple where height equals width.                                                                         |
+| `quantize` | `int` or `str`   | `8`/auto  | Quantization precision. `8` (INT8) is required for DEEPX export and auto-enabled if not specified. Replaces the deprecated `half`/`int8` flags.                                                                            |
+| `simplify` | `bool`           | `True`    | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                                    |
+| `opset`    | `int`            | `None`    | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                                           |
+| `data`     | `str`            | `None`    | Dataset YAML used for INT8 calibration; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task. |
+| `device`   | `str`            | `None`    | Specifies the device for exporting: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                                                                |
+| `optimize` | `bool`           | `False`   | Enables higher compiler optimization which reduces inference latency and increases compilation time.                                                                                                                       |
 
 !!! tip
 
@@ -270,7 +265,7 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
     Add the following lines at the end of the file:
 
-    ```
+    ```text
     dtparam=pciex1
     dtparam=pciex1_gen=3
     ```
@@ -356,7 +351,7 @@ The export creates a directory (e.g., `yolo26n_deepx_model/`) containing:
 
 ### Can I deploy custom-trained models on DEEPX hardware?
 
-Yes. Any model trained using [Ultralytics Train Mode](../modes/train.md) and exported with `format="deepx"` can be deployed on DEEPX NPU hardware, provided it uses supported layer operations. Export supports detection, segmentation, pose estimation, oriented bounding box (OBB), and classification tasks.
+Yes. Any model trained using [Ultralytics Train Mode](../modes/train.md) and exported with `format="deepx"` can be deployed on DEEPX NPU hardware, provided it uses supported layer operations. Export supports all seven Ultralytics tasks: detection, instance segmentation, semantic segmentation, depth estimation, classification, pose estimation, and oriented bounding box (OBB).
 
 ### How many calibration images should I use for DEEPX export?
 

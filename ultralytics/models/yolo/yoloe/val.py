@@ -127,6 +127,7 @@ class YOLOEDetectValidator(DetectionValidator):
             self.args.workers,
             shuffle=False,
             rank=-1,
+            device=self.device,
         )
 
     @smart_inference_mode()
@@ -209,5 +210,3 @@ class YOLOEDetectValidator(DetectionValidator):
 
 class YOLOESegValidator(YOLOEDetectValidator, SegmentationValidator):
     """YOLOE segmentation validator that supports both text and visual prompt embeddings."""
-
-    pass

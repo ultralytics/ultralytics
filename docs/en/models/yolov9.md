@@ -34,7 +34,7 @@ YOLOv9's advancements are deeply rooted in addressing the challenges posed by in
 
 The Information Bottleneck Principle reveals a fundamental challenge in deep learning: as data passes through successive layers of a network, the potential for information loss increases. This phenomenon is mathematically represented as:
 
-```python
+```text
 I(X, X) >= I(X, f_theta(X)) >= I(X, g_phi(f_theta(X)))
 ```
 
@@ -86,9 +86,6 @@ By benchmarking, you can ensure that your model not only performs well in contro
 </p>
 
 ## Performance on MS COCO Dataset
-
-<script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script defer src="../../javascript/benchmark.js"></script>
 
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv9"]'></canvas>
 
@@ -173,10 +170,10 @@ This example provides simple YOLOv9 training and inference examples. For full do
 
 The YOLOv9 series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
 
-| Model      | Filenames                                                        | Tasks                                        | Inference | Validation | Training | Export |
-| ---------- | ---------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLOv9     | `yolov9t.pt` `yolov9s.pt` `yolov9m.pt` `yolov9c.pt` `yolov9e.pt` | [Object Detection](../tasks/detect.md)       | ✅        | ✅         | ✅       | ✅     |
-| YOLOv9-seg | `yolov9c-seg.pt` `yolov9e-seg.pt`                                | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| Model      | Filenames                                                        | Tasks                                        | Training | Validation | Inference | Export |
+| ---------- | ---------------------------------------------------------------- | -------------------------------------------- | -------- | ---------- | --------- | ------ |
+| YOLOv9     | `yolov9t.pt` `yolov9s.pt` `yolov9m.pt` `yolov9c.pt` `yolov9e.pt` | [Object Detection](../tasks/detect.md)       | ✅       | ✅         | ✅        | ✅     |
+| YOLOv9-seg | `yolov9c-seg.pt` `yolov9e-seg.pt`                                | [Instance Segmentation](../tasks/segment.md) | ✅       | ✅         | ✅        | ✅     |
 
 This table provides a detailed overview of the YOLOv9 model variants, highlighting their capabilities in object detection tasks and their compatibility with various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv9 models in a broad range of object detection scenarios.
 

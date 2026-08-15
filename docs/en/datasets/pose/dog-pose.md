@@ -1,6 +1,12 @@
 ---
 title: Dog-Pose Estimation Dataset
 comments: true
+creator:
+    name: Stanford Vision Lab
+    url: http://vision.stanford.edu/aditya86/ImageNetDogs/
+license:
+    name: Research-Only
+    url: https://www.image-net.org/download.php
 description: "Explore the Ultralytics Dog-Pose dataset: 6,773 training and 1,703 validation images with 24 keypoints per dog, for canine pose estimation with YOLO26."
 keywords: Dog-Pose, Ultralytics, pose estimation dataset, YOLO26, machine learning, computer vision, training data
 ---
@@ -35,7 +41,7 @@ For a specific breed or a different animal altogether, [Ultralytics Platform](ht
 - **Download size**: ~337 MB.
 - **Layout**:
 
-    ```
+    ```text
     datasets/dog-pose/
     ├── images/{train,val}
     └── labels/{train,val}
@@ -43,7 +49,7 @@ For a specific breed or a different animal altogether, [Ultralytics Platform](ht
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It includes paths, keypoint details, and other relevant information. In the case of the Dog-Pose dataset, the `dog-pose.yaml` file is available at <https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/dog-pose.yaml>.
+A YAML file is used to define the dataset configuration. It includes paths, keypoint details, and other relevant information. In the case of the Dog-Pose dataset, the `dog-pose.yaml` file is available at <https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/dog-pose.yaml>.
 
 !!! example "ultralytics/cfg/datasets/dog-pose.yaml"
 

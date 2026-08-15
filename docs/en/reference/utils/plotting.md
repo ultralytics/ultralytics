@@ -24,6 +24,14 @@ keywords: ultralytics, plotting, utilities, documentation, data visualization, a
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.plotting._spectral_lut
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.plotting.colorize_depth
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.plotting.plot_labels
 
 <br><br><hr><br>
@@ -48,10 +56,14 @@ keywords: ultralytics, plotting, utilities, documentation, data visualization, a
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.plotting.plot_depth_panels
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.plotting.plot_tune_results
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.plotting.feature_visualization
+## ::: ultralytics.utils.plotting.class_activation_map
 
 <br><br>

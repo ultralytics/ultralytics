@@ -39,10 +39,10 @@ For an in-depth look at the Segment Anything Model and the SA-1B dataset, please
 
 This table presents the available models with their specific pretrained weights, the tasks they support, and their compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), indicated by ✅ emojis for supported modes and ❌ emojis for unsupported modes.
 
-| Model Type | Pretrained Weights                                                                  | Tasks Supported                              | Inference | Validation | Training | Export |
-| ---------- | ----------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
-| SAM base   | [sam_b.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam_b.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
-| SAM large  | [sam_l.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam_l.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| Model Type | Pretrained Weights                                                                  | Tasks Supported                              | Training | Validation | Inference | Export |
+| ---------- | ----------------------------------------------------------------------------------- | -------------------------------------------- | -------- | ---------- | --------- | ------ |
+| SAM base   | [sam_b.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam_b.pt) | [Instance Segmentation](../tasks/segment.md) | ❌       | ❌         | ✅        | ❌     |
+| SAM large  | [sam_l.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam_l.pt) | [Instance Segmentation](../tasks/segment.md) | ❌       | ❌         | ✅        | ❌     |
 
 ## How to Use SAM: Versatility and Power in Image Segmentation
 
@@ -121,7 +121,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         from ultralytics.models.sam import Predictor as SAMPredictor
 
         # Create SAMPredictor
-        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="mobile_sam.pt")
+        overrides = {"conf": 0.25, "task": "segment", "mode": "predict", "imgsz": 1024, "model": "mobile_sam.pt"}
         predictor = SAMPredictor(overrides=overrides)
 
         # Set image
@@ -150,7 +150,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         from ultralytics.models.sam import Predictor as SAMPredictor
 
         # Create SAMPredictor
-        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="mobile_sam.pt")
+        overrides = {"conf": 0.25, "task": "segment", "mode": "predict", "imgsz": 1024, "model": "mobile_sam.pt"}
         predictor = SAMPredictor(overrides=overrides)
 
         # Segment with additional args

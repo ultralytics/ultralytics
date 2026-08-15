@@ -37,7 +37,7 @@ class OpenVINOBackend(BaseBackend):
         if isinstance(self.device, str) and self.device.startswith("intel"):
             device_name = self.device.split(":")[1].upper()
             self.device = torch.device("cpu")
-            if device_name not in core.available_devices:
+            if not any(d == device_name or d.startswith(f"{device_name}.") for d in core.available_devices):
                 LOGGER.warning(f"OpenVINO device '{device_name}' not available. Using '{fallback_device}' instead.")
                 device_name = fallback_device
 
@@ -62,6 +62,12 @@ class OpenVINOBackend(BaseBackend):
         if LINUX and ARM64 and device_name == "CPU":
             config["EXECUTION_MODE_HINT"] = ov.properties.hint.ExecutionMode.ACCURACY
             config["INFERENCE_PRECISION_HINT"] = ov.Type.f32
+        if (
+            self.task == "classify"
+            and device_name.startswith("NPU")
+            and "NPU_TURBO" in core.get_property(device_name, "SUPPORTED_PROPERTIES")
+        ):
+            config["NPU_TURBO"] = "YES"
 
         self.ov_compiled_model = core.compile_model(
             ov_model,
@@ -84,7 +90,7 @@ class OpenVINOBackend(BaseBackend):
         Returns:
             (list[np.ndarray]): Model predictions as a list of numpy arrays, one per output layer.
         """
-        im = im.cpu().numpy().astype(np.float32)
+        im = im.cpu().numpy().astype(np.float32, copy=False)
 
         if self.inference_mode in {"THROUGHPUT", "CUMULATIVE_THROUGHPUT"}:
             # Async inference for larger batch sizes

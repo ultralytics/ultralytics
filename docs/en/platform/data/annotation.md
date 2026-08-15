@@ -1,4 +1,5 @@
 ---
+plans: [free, pro, enterprise]
 comments: true
 description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, and Smart annotation with SAM and YOLO models for detect, segment, semantic, and OBB tasks.
 keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation, YOLO
@@ -6,19 +7,20 @@ keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, boun
 
 # Annotation Editor
 
-[Ultralytics Platform](https://platform.ultralytics.com) includes a powerful annotation editor for labeling images with bounding boxes, polygons, keypoints, oriented boxes, and classifications. The editor supports manual drawing and [SAM-powered smart annotation](https://www.ultralytics.com/annotate).
+[Ultralytics Platform](https://platform.ultralytics.com) includes an annotation editor for labeling images with bounding boxes, polygons, keypoints, oriented boxes, and classifications. The editor supports manual drawing, [SAM-powered smart annotation](https://www.ultralytics.com/annotate), and predictions from compatible YOLO models.
 
-![Ultralytics Platform Annotate Editor Toolbar With Canvas](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-editor-toolbar-with-canvas.avif)
+![Ultralytics Platform Annotate Editor Toolbar With Canvas](https://cdn.ul.run/i/fd13a4b1f4b8fad9ed5e736030a070cf.avif)<!-- screenshot -->
 
 ```mermaid
 graph TB
-    subgraph Manual["Manual Tools"]
-        A[Box]:::start & B[Polygon]:::start & C[Keypoint]:::start & D[OBB]:::start & E[Classify]:::start
+    subgraph Draw["Draw Mode"]
+        A[Box]:::start & B[Polygon]:::start & C[Classify]:::start & D[Keypoint]:::start & E[OBB]:::start
     end
     subgraph AI["AI-Assisted"]
         F[SAM Smart]:::start
+        G[YOLO Predict]:::start
     end
-    Manual --> H[Save Labels]:::out
+    Draw --> H[Save Labels]:::out
     AI --> H
 
     classDef start fill:#4CAF50,color:#fff
@@ -34,9 +36,9 @@ The annotation editor supports all 6 YOLO task types:
 | **[Detect](../../datasets/detect/index.md)**     | Rectangle      | Bounding boxes (x, y, width, height)                      |
 | **[Segment](../../datasets/segment/index.md)**   | Polygon        | Pixel-precise masks (polygon vertices)                    |
 | **[Semantic](../../datasets/semantic/index.md)** | Polygon        | Per-class region masks (polygon vertices)                 |
-| **[Pose](../../datasets/pose/index.md)**         | Keypoint       | Skeleton templates (Person, Hand, Face, Dog, Box, custom) |
-| **[OBB](../../datasets/obb/index.md)**           | Oriented Box   | Rotated bounding boxes (4 corners)                        |
 | **[Classify](../../datasets/classify/index.md)** | Class Selector | Image-level labels                                        |
+| **[Pose](../../datasets/pose/index.md)**         | Keypoint       | Skeleton templates (Person, Hand, Dog, Face, Box, custom) |
+| **[OBB](../../datasets/obb/index.md)**           | Oriented Box   | Rotated bounding boxes (4 corners)                        |
 
 !!! tip "Multi-Task Annotations"
 
@@ -99,22 +101,22 @@ The annotation editor supports all 6 YOLO task types:
 To annotate images:
 
 1. Navigate to your dataset
-2. Click on an image to open the fullscreen viewer
-3. Click `Edit` to enter annotation mode
-4. Select your annotation tool from the toolbar
-5. Draw annotations on the image
-6. Click `Save` when finished
+2. Click an image once to open the fullscreen annotation editor
+3. Use the default `Draw` mode, or switch to `Smart` where supported
+4. Select a class and add or adjust annotations directly on the image
+5. Continue to another image or close the editor; changes save automatically after each edit
 
-![Ultralytics Platform Annotate Fullscreen Edit Mode With Toolbar](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-fullscreen-edit-mode-with-toolbar.avif)
+For datasets you can edit, annotation controls are active as soon as the fullscreen viewer opens on desktop. There is no separate edit mode or `Edit` button. On mobile, and when you do not have edit access, the fullscreen viewer is read-only.
+
+![Ultralytics Platform Fullscreen Annotation Editor With Toolbar](https://cdn.ul.run/i/96b05b3e135932d5a49ba8c0ad05d0b8.avif)<!-- screenshot -->
 
 ```mermaid
 graph LR
     A[Open Dataset]:::start --> B[Click Image]:::proc
-    B --> C[Click Edit]:::proc
-    C --> D[Draw Annotations]:::proc
-    D --> E[Save]:::out
-    E --> F[Next Image]:::proc
-    F --> B
+    B --> C[Annotate in Fullscreen]:::proc
+    C --> D[Changes Auto-Save]:::out
+    D --> E[Next Image]:::proc
+    E --> B
 
     classDef start fill:#4CAF50,color:#fff
     classDef proc fill:#2196F3,color:#fff
@@ -123,26 +125,28 @@ graph LR
 
 ## Annotation Modes
 
-The editor provides two annotation modes, selectable from the toolbar:
+`Draw` is the default mode for spatial annotation tasks. For detect, segment, semantic, and OBB datasets, the toolbar also provides `Smart` mode when Smart annotation is available:
 
-| Mode       | Description                                                                 | Shortcut |
-| ---------- | --------------------------------------------------------------------------- | -------- |
-| **Manual** | Draw annotations with task-specific tools (all 6 task types)                | `V`      |
-| **Smart**  | SAM or YOLO model-assisted annotation (detect, segment, semantic, OBB only) | `S`      |
+| Mode      | Description                                                                 | Shortcut |
+| --------- | --------------------------------------------------------------------------- | -------- |
+| **Draw**  | Default manual mode with task-specific drawing tools                        | `V`      |
+| **Smart** | SAM or YOLO model-assisted annotation (detect, segment, semantic, OBB only) | `S`      |
 
-## Manual Annotation Tools
+Pose annotation uses `Draw` with a skeleton template — the `Smart` button appears but is disabled and marked "Coming Soon". Classification uses the class sidebar directly and shows no drawing toolbar or `Smart` button at all.
+
+Smart annotation is not currently available for [connected datasets](../integrations/index.md) backed by cloud or On Premise storage.
+
+## Draw Mode Tools
 
 ### Bounding Box (Detect)
 
 Draw rectangular boxes around objects:
 
-1. Enter edit mode and select `Draw`
-2. Click and drag to draw a rectangle
+1. Select a class in the class sidebar
+2. In the default `Draw` mode, click and drag to draw a rectangle
 3. Release to complete the box
-4. Select a class from the dropdown
 
-![Ultralytics Platform Annotate Detect Bounding Box Drawing](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-detect-bounding-box-drawing.avif)
-
+![Ultralytics Platform Annotate Detect Bounding Box Drawing](https://cdn.ul.run/i/03f7437fabd12653415375312874950c.avif)<!-- screenshot -->
 !!! tip "Resize and Move"
 
     - Drag 8 corner/edge handles to resize
@@ -153,13 +157,11 @@ Draw rectangular boxes around objects:
 
 Draw precise polygon masks:
 
-1. Enter edit mode and select `Draw`
-2. Click to add vertices, or hold `Shift` and move the mouse to freehand-draw dense points
-3. Click the first vertex, or press `Enter` or `Escape` to close the polygon
-4. Select a class from the dropdown
+1. Select a class in the class sidebar
+2. In the default `Draw` mode, click to add vertices, or hold `Shift` and move the mouse to freehand-draw dense points
+3. Double-click, click the first vertex, or press `Enter` or `Escape` to close the polygon
 
-![Ultralytics Platform Annotate Segment Polygon Vertices](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-segment-polygon-vertices.avif)
-
+![Ultralytics Platform Annotate Segment Polygon Vertices](https://cdn.ul.run/i/be5cf764c0b8a32158064b352934cdff.avif)<!-- screenshot -->
 !!! tip "Edit Vertices"
 
     - Drag individual vertices to adjust
@@ -170,14 +172,12 @@ Draw precise polygon masks:
 
 Annotate poses using skeleton templates. Select a template from the toolbar, click once to place all keypoints, then drag individual keypoints to adjust positions.
 
-1. Enter edit mode and select `Draw`
-2. Choose a skeleton template from the template picker in the toolbar
-
-![Ultralytics Platform Annotate Pose Template Dropdown](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-pose-template-dropdown.avif)
-
+1. Select a class in the class sidebar
+2. In the default `Draw` mode, choose a skeleton template from the template picker in the toolbar
 3. Click on the image to place all keypoints at once
 4. Drag individual keypoints to adjust their positions
-5. Press `Enter` to confirm or `Escape` to cancel
+
+![Ultralytics Platform Annotate Pose Template Dropdown](https://cdn.ul.run/i/baef28c5d70d64d970d35496f4326f5e.avif)<!-- screenshot -->
 
 #### Built-in Skeleton Templates
 
@@ -187,11 +187,11 @@ The editor includes 5 built-in templates:
 | ---------- | --------- | ---------------------------------------------------------------------------------------------------------------------- |
 | **Person** | 17        | [COCO human body pose](../../datasets/pose/coco.md) — nose, eyes, ears, shoulders, elbows, wrists, hips, knees, ankles |
 | **Hand**   | 21        | [Ultralytics Hand Keypoints](../../datasets/pose/hand-keypoints.md) — wrist, thumb, index, middle, ring, pinky joints  |
-| **Face**   | 68        | iBUG 300W facial landmarks — jaw, eyebrows, nose, eyes, mouth                                                          |
 | **Dog**    | 18        | AP-10K animal pose — nose, head, neck, shoulders, tailbase, tail, and 4 legs (elbows, knees, paws)                     |
+| **Face**   | 68        | iBUG 300W facial landmarks — jaw, eyebrows, nose, eyes, mouth                                                          |
 | **Box**    | 4         | Corner keypoints — top-left, top-right, bottom-right, bottom-left                                                      |
 
-![Ultralytics Platform Annotate Pose Keypoints Skeleton](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-pose-keypoints-skeleton.avif)
+![Ultralytics Platform Annotate Pose Keypoints Skeleton](https://cdn.ul.run/i/d23341102121bd297eda4762674133e4.avif)<!-- screenshot -->
 
 #### Custom Skeleton Templates
 
@@ -204,8 +204,7 @@ Create custom templates for any pose structure:
 5. Connect keypoints by selecting two points (connections are drawn automatically as you place sequential keypoints)
 6. Save the template for reuse across your dataset
 
-![Ultralytics Platform Annotate Pose Custom Template](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-pose-custom-template.avif)
-
+![Ultralytics Platform Annotate Pose Custom Template](https://cdn.ul.run/i/17471f496ec024a8b1db75ac99d1bc09.avif)<!-- screenshot -->
 Custom templates are saved to your account and available in all pose datasets.
 
 !!! tip "Template Workflow"
@@ -220,23 +219,21 @@ Custom templates are saved to your account and available in all pose datasets.
 
 Draw rotated boxes for angled objects:
 
-1. Enter edit mode and select `Draw`
-2. Click and drag to draw an initial box
+1. Select a class in the class sidebar
+2. In the default `Draw` mode, click and drag to draw an initial box
 3. Use the rotation handle to adjust angle
 4. Drag corner handles to resize
-5. Select a class from the dropdown
 
-![Ultralytics Platform Annotate Obb Rotated Box](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-obb-rotated-box.avif)
+![Ultralytics Platform Annotate Obb Rotated Box](https://cdn.ul.run/i/f7bd3dc0bc310162c5841659eed55b72.avif)<!-- screenshot -->
 
 ### Classification (Classify)
 
 Assign image-level class labels:
 
-1. Enter edit mode
-2. A side panel appears with class selection buttons
-3. Click on class buttons or press number keys `1-9`
+1. Click an image to open the fullscreen editor
+2. Select a class in the class sidebar, or press a number key from `1-9`
 
-![Ultralytics Platform Annotate Classify Side Panel](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-classify-side-panel.avif)
+![Ultralytics Platform Annotate Classify Side Panel](https://cdn.ul.run/i/aee8d1a82873672bf6d179df35e5d939.avif)<!-- screenshot -->
 
 ## Smart Annotation
 
@@ -246,12 +243,12 @@ Smart annotation adds model-assisted annotation to the editor. In Smart mode, yo
 
 With a SAM model selected:
 
-1. Enter edit mode and select `Smart` or press `S`
+1. Select `Smart` or press `S`
 2. Click on the object you want to annotate — SAM generates an initial mask in real-time
 3. Refine the mask with additional clicks: click **outside** the current mask to add coverage, or click **inside** the current mask to subtract regions
 4. Press `Enter` or `Escape` to save the annotation, or enable **auto-apply** for one-click workflows
 
-![Ultralytics Platform Annotate Sam Positive Negative Points Mask](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-sam-positive-negative-points-mask.avif)
+![Ultralytics Platform Annotate Sam Positive Negative Points Mask](https://cdn.ul.run/i/b91475227406a0f3a596d3b5e200f39c.avif)<!-- screenshot -->
 
 ```mermaid
 graph LR
@@ -288,7 +285,7 @@ SAM smart annotation can generate:
 
 !!! warning "SAM Task Support"
 
-    SAM smart annotation is only available for **detect**, **segment**, **semantic**, and **OBB** tasks. Classification and pose tasks require manual annotation.
+    SAM smart annotation is only available for **detect**, **segment**, **semantic**, and **OBB** tasks. Pose and classification require manual annotation.
 
 #### Auto-Apply Mode
 
@@ -300,8 +297,7 @@ Auto-apply mode speeds up Smart annotation by automatically saving the SAM mask 
 | **Auto-apply ON + `Shift`**  | Place multiple points first, mask applies on release |
 | **Auto-apply OFF** (default) | Place points freely, press `Enter` to apply          |
 
-![Ultralytics Platform Annotate Sam Auto Apply Toggle](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-sam-auto-apply-toggle.avif)
-
+![Ultralytics Platform Annotate Sam Auto Apply Toggle](https://cdn.ul.run/i/f58a86dfc093bd70d95901a53d7b0851.avif)<!-- screenshot -->
 !!! tip "When to Use Auto-Apply"
 
     Auto-apply is ideal for datasets with well-separated objects where a single click produces an accurate mask. For complex or overlapping objects, turn auto-apply off and use multiple positive/negative points to refine the mask before saving.
@@ -318,21 +314,19 @@ When Smart mode is active, a model picker appears in the toolbar. Five SAM model
 | **SAM 2.1 Large** | 428 MB  | Slower   | Most accurate of SAM 2.1   |
 | **SAM 3**         | 3.45 GB | Slowest  | Default, latest generation |
 
-![Ultralytics Platform Annotate Sam Model Selector](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-sam-model-selector.avif)
-
+![Ultralytics Platform Annotate Sam Model Selector](https://cdn.ul.run/i/88703961af233af7fe5ddf35ff8a5f96.avif)<!-- screenshot -->
 Switching models while Smart mode is active re-initializes the predictor for the current image automatically.
 
 ### YOLO Smart Annotation
 
 With a YOLO model selected, Smart annotation can add predictions from pretrained Ultralytics models or your own fine-tuned models.
 
-1. Enter edit mode and select `Smart` or press `S`
+1. Select `Smart` or press `S`
 2. Select a YOLO model from the model picker in the toolbar (`Official` or `My Models`)
 3. Click `Predict`
 4. Review the added annotations and make any needed corrections
 
-![Ultralytics Platform Annotate Smart Annotation Yolo Model](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-yolo-auto-labeling.avif)
-
+![Ultralytics Platform Annotate Smart Annotation Yolo Model](https://cdn.ul.run/i/5340dc36ed1da9a4804c4fc8ec5c4552.avif)<!-- screenshot -->
 !!! tip "YOLO Model Notes"
 
     - The model picker only lists models that match the current dataset task.
@@ -349,9 +343,10 @@ The annotation editor includes a collapsible class sidebar on the right side of 
 - **Per-class annotation count**: Each class row shows a superscript count of annotations.
 - **Expand/collapse**: Click the chevron to expand a class and see individual annotations listed below it.
 - **Bidirectional hover highlighting**: Hovering an annotation on the canvas highlights it in the sidebar, and vice versa. The sidebar auto-scrolls to the relevant class.
+- **Hide/show a whole class**: Click the eye icon on a class row to hide or show every annotation of that class at once.
 - **Hide/show individual annotations**: Click the eye icon on any annotation row to toggle its visibility on the canvas.
 - **Delete annotations**: Click the trash icon on any annotation row to delete it.
-- **Keyboard shortcuts**: Press `1-9` to quickly select the first 9 classes.
+- **Keyboard shortcuts**: Press `1-9` to quickly select the first 9 classes, or `H` to toggle the visibility of every annotation on the image.
 
 ## Context Menu
 
@@ -374,14 +369,14 @@ The visibility dropdown (eye icon) lets you toggle display of individual element
 | **Annotations**     | Show or hide all annotation overlays                                                                            |
 | **Class labels**    | Show or hide class name labels on annotations                                                                   |
 | **Show pixels**     | Toggle pixelated rendering for zoom inspection (fullscreen)                                                     |
-| **Crosshairs**      | Show crosshair cursor with pixel coordinates (edit mode)                                                        |
+| **Crosshairs**      | Show crosshair cursor with pixel coordinates while annotating                                                   |
 | **Nav thumbnails**  | Show navigation thumbnail strip (fullscreen)                                                                    |
 | **Bottom info bar** | Show or hide the image info bar at the bottom (fullscreen)                                                      |
 | **Show all**        | Toggle annotations, labels, crosshairs, thumbnails, and the bottom info bar at once (does not affect pixelated) |
 
 ## Crosshair Cursor
 
-In edit mode, a crosshair overlay tracks the cursor position and displays pixel coordinates on the canvas. This helps place annotations with precision. Toggle it via the visibility dropdown.
+While annotating, a crosshair overlay tracks the cursor position and displays pixel coordinates on the canvas. This helps place annotations with precision. Toggle it via the visibility dropdown.
 
 ## SAM Hover Preview
 
@@ -405,7 +400,7 @@ Define annotation classes for your dataset in the `Classes` tab:
 3. Click `Add` or press `Enter`
 4. A color is assigned automatically from the Ultralytics palette
 
-![Ultralytics Platform Annotate Classes Tab Add New Class](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-classes-tab-add-new-class.avif)
+![Ultralytics Platform Annotate Classes Tab Add New Class](https://cdn.ul.run/i/103c2683f43dbbbc4997faf6959c8315.avif)<!-- screenshot -->
 
 ### Add New Class During Annotation
 
@@ -431,7 +426,7 @@ This allows for a seamless workflow where you can define classes as you encounte
 
 ### Class Colors
 
-Each class is assigned a color from the Ultralytics palette. You can customize colors using the color picker on the `Classes` tab. Colors are consistent across the platform for easy recognition.
+Each class is assigned a color from the Ultralytics palette. You can customize colors using the color picker on the `Classes` tab; the selected colors are used throughout that dataset.
 
 ## Keyboard Shortcuts
 
@@ -446,6 +441,8 @@ Efficient annotation with keyboard shortcuts:
     | `Cmd/Ctrl+Y`                  | Redo                         |
     | `Escape`                      | Save / Deselect / Exit       |
     | `Delete` / `Backspace`        | Delete selected annotation   |
+    | `Cmd/Ctrl+Delete`             | Delete image                 |
+    | `H`                           | Toggle all annotations       |
     | `1-9`                         | Select class 1-9             |
     | `Cmd/Ctrl+Scroll`             | Zoom in/out                  |
     | `Cmd/Ctrl++` or `Cmd/Ctrl+=`  | Zoom in                      |
@@ -460,10 +457,10 @@ Efficient annotation with keyboard shortcuts:
 
 === "Modes"
 
-    | Shortcut | Action                          |
-    | -------- | ------------------------------- |
-    | `V`      | Manual mode (draw)              |
-    | `S`      | Smart mode (SAM or YOLO model)  |
+    | Shortcut | Action                         |
+    | -------- | ------------------------------ |
+    | `V`      | Draw mode (manual, default)    |
+    | `S`      | Smart mode (SAM or YOLO model) |
 
 === "Drawing"
 
@@ -477,8 +474,8 @@ Efficient annotation with keyboard shortcuts:
     | `Shift (hold) + Click`  | Place multiple SAM points before auto-apply commits (Smart mode, auto-apply on)        |
     | `A`                     | Toggle auto-apply (Smart mode)                                                         |
     | `P`                     | Run YOLO prediction (Smart mode)                                                       |
-    | `Enter`                 | Complete polygon / Confirm pose / Save SAM annotation                                  |
-    | `Escape`                | Cancel pose / Save SAM annotation / Deselect / Exit                                    |
+    | `Enter`                 | Complete polygon / Save SAM annotation                                                 |
+    | `Escape`                | Complete polygon / Save SAM annotation / Deselect / Exit                               |
 
 === "Arrange (Z-Order)"
 
@@ -489,8 +486,7 @@ Efficient annotation with keyboard shortcuts:
     | `Cmd/Ctrl+Shift+]` | Bring to front |
     | `Cmd/Ctrl+Shift+[` | Send to back   |
 
-![Ultralytics Platform Annotate Keyboard Shortcuts Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-keyboard-shortcuts-dialog.avif)
-
+![Ultralytics Platform Annotate Keyboard Shortcuts Dialog](https://cdn.ul.run/i/6bb507eae033a53c4181106227895112.avif)<!-- screenshot -->
 ??? tip "View All Shortcuts"
 
     Click the keyboard icon in the annotation toolbar to open the shortcuts reference.
@@ -514,19 +510,18 @@ History tracks:
 
 !!! info "Unlimited Undo"
 
-    The undo stack has no fixed limit — you can undo all changes made during the current editing session, back to the original state of the image when you clicked `Edit`.
+    The undo stack has no fixed limit — you can undo changes made since you opened the image.
 
 ## Saving Annotations
 
-Annotations are saved when you click `Save` or press `Cmd/Ctrl+S`:
+Changes save automatically one second after the last annotation edit. They also save when you move to another image or close the fullscreen editor.
 
-- **Save**: Click the save button or press `Cmd/Ctrl+S`
-- **Cancel**: Click cancel to discard changes
-- **Escape**: Saves if there are unsaved changes, otherwise exits edit mode
+- **Save now**: Click the save button or press `Cmd/Ctrl+S`
+- **Close**: Click the close button, click outside the image, or press `Escape`; closing triggers a background save for pending changes
 
 !!! warning "Save Your Work"
 
-    Changes auto-save shortly after each edit, and the editor also saves automatically when you navigate to another image or close the editor. You can still save manually at any time with `Save` or `Cmd/Ctrl+S`.
+    Wait for the `Saving...` or `Unsaved` status in the image information bar to clear before closing the browser tab. You can save manually at any time with the save button or `Cmd/Ctrl+S`.
 
 ## FAQ
 
@@ -542,7 +537,7 @@ For best results, start with a click on the object center, then use outside-mask
 
 ### Can I import existing annotations?
 
-Yes, upload your dataset with [YOLO-format label files](../../datasets/detect/index.md#ultralytics-yolo-format). The Platform automatically parses and displays them in the editor.
+Yes. Upload your dataset with [YOLO-format label files](../../datasets/detect/index.md#ultralytics-yolo-format), COCO JSON annotation files, or an [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) export. Platform parses them during processing and displays them in the editor. Pascal VOC XML labels are not imported — convert them to YOLO or COCO first. See [Preparing Your Dataset](datasets.md#preparing-your-dataset).
 
 ### How do I annotate multiple objects of the same class?
 
@@ -560,7 +555,6 @@ Yes, but for best results:
 
 - Label all objects of your target classes in each image
 - Use the `Annotations` filter set to `Unannotated` to identify images that still need annotation
-- Unlabeled images are excluded from training; only labeled images contribute to the loss
 
 ### Which SAM model should I use?
 
@@ -568,7 +562,7 @@ Yes, but for best results:
 
 ### Which tasks support SAM smart annotation?
 
-SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks. Classification and pose tasks use manual annotation only.
+SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks. Pose and classification use manual annotation only — on pose datasets the `Smart` button is visible but disabled and marked "Coming Soon". Smart annotation is also unavailable on connected cloud and On Premise datasets.
 
 ### Can I create custom skeleton templates for pose annotation?
 
@@ -576,4 +570,8 @@ Yes. Click the **+** button next to the skeleton template picker to open the tem
 
 ### How do I switch between skeleton templates?
 
-Click the template picker dropdown in the annotation toolbar. Select any built-in template (Person, Hand, Face, Dog, Box) or your saved custom templates. The selected template determines which keypoints are placed when you click on the image.
+Click the template picker dropdown in the annotation toolbar. Select any built-in template (Person, Hand, Dog, Face, Box) or your saved custom templates. The selected template determines which keypoints are placed when you click on the image.
+
+### Can I copy annotations between images?
+
+Yes. Select one or more annotations, press `Cmd/Ctrl+C` to copy (or `Cmd/Ctrl+X` to cut), navigate to another image with the arrow keys or thumbnail strip, and press `Cmd/Ctrl+V` to paste. The clipboard persists while the fullscreen editor stays open.

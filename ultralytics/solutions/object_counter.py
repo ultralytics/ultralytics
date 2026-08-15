@@ -18,7 +18,7 @@ class ObjectCounter(BaseSolution):
     Attributes:
         in_count (int): Counter for objects moving inward.
         out_count (int): Counter for objects moving outward.
-        counted_ids (list[int]): List of IDs of objects that have been counted.
+        counted_ids (set[int]): IDs of objects that have been counted.
         classwise_count (dict[str, dict[str, int]]): Dictionary for counts, categorized by object class.
         region_initialized (bool): Flag indicating whether the counting region has been initialized.
         show_in (bool): Flag to control display of inward count.
@@ -34,7 +34,7 @@ class ObjectCounter(BaseSolution):
         >>> counter = ObjectCounter()
         >>> frame = cv2.imread("frame.jpg")
         >>> results = counter.process(frame)
-        >>> print(f"Inward count: {counter.in_count}, Outward count: {counter.out_count}")
+        >>> print(f"Inward count: {results.in_count}, Outward count: {results.out_count}")
     """
 
     def __init__(self, **kwargs: Any) -> None:
@@ -43,7 +43,7 @@ class ObjectCounter(BaseSolution):
 
         self.in_count = 0  # Counter for objects moving inward
         self.out_count = 0  # Counter for objects moving outward
-        self.counted_ids = []  # List of IDs of objects that have been counted
+        self.counted_ids = set()  # IDs of objects that have been counted
         self.classwise_count = defaultdict(lambda: {"IN": 0, "OUT": 0})  # Dictionary for counts, categorized by class
         self.region_initialized = False  # Flag indicating whether the region has been initialized
 
@@ -96,26 +96,38 @@ class ObjectCounter(BaseSolution):
                 else:  # Moving upward
                     self.out_count += 1
                     self.classwise_count[self.names[cls]]["OUT"] += 1
-                self.counted_ids.append(track_id)
+                self.counted_ids.add(track_id)
 
-        elif len(self.region) > 2:  # Polygonal region
-            if self.r_s.contains(self.Point(current_centroid)):
-                # Judge direction by the object's dominant motion axis over its recent track, not by the
-                # region's shape; a ~5-frame baseline is robust to tracker jitter where a 1-frame delta is not.
-                # The baseline is the oldest recent point OUTSIDE the region, so the entry vector is not
-                # polluted by an uncounted first frame that spawned inside (quick exit and re-entry).
-                window = self.track_history[track_id][-5:] or [prev_position]
-                baseline = next((p for p in window if not self.r_s.contains(self.Point(p))), window[0])
-                dx = current_centroid[0] - baseline[0]
-                dy = current_centroid[1] - baseline[1]
-                moving_in = dx > 0 if abs(dx) > abs(dy) else dy > 0  # moving right or downward
-                if moving_in:
-                    self.in_count += 1
-                    self.classwise_count[self.names[cls]]["IN"] += 1
-                else:  # Moving left or upward
-                    self.out_count += 1
-                    self.classwise_count[self.names[cls]]["OUT"] += 1
-                self.counted_ids.append(track_id)
+        # An object fast enough to straddle the region leaves no centroid inside it, so count a crossing segment
+        # too, but only from outside: a track already inside has had the containment check since it entered.
+        elif len(self.region) > 2 and (
+            self.r_s.contains(self.Point(current_centroid))
+            or (
+                not self.r_s.contains(self.Point(prev_position))
+                and self.r_s.crosses(self.LineString([prev_position, current_centroid]))
+            )
+        ):
+            # Judge direction by the object's dominant motion axis over its recent track, not by the
+            # region's shape; a ~5-frame baseline is robust to tracker jitter where a 1-frame delta is not.
+            # The baseline is the oldest recent point OUTSIDE the region, so the entry vector is not
+            # polluted by an uncounted first frame that spawned inside (quick exit and re-entry).
+            window = self.track_history[track_id][-5:] or [prev_position]
+            baseline = next((p for p in window if not self.r_s.contains(self.Point(p))), window[0])
+            dx = current_centroid[0] - baseline[0]
+            dy = current_centroid[1] - baseline[1]
+            moving_in = dx > 0 if abs(dx) > abs(dy) else dy > 0  # moving right or downward
+            if moving_in:
+                self.in_count += 1
+                self.classwise_count[self.names[cls]]["IN"] += 1
+            else:  # Moving left or upward
+                self.out_count += 1
+                self.classwise_count[self.names[cls]]["OUT"] += 1
+            self.counted_ids.add(track_id)
+
+    def forget_tracks(self, track_ids: list[int]) -> None:
+        """Drop retired IDs from `counted_ids` so it doesn't grow across a 24/7 stream (see BaseSolution)."""
+        super().forget_tracks(track_ids)
+        self.counted_ids.difference_update(track_ids)
 
     def display_counts(self, plot_im) -> None:
         """Display object counts on the input image or frame.

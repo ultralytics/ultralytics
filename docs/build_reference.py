@@ -31,8 +31,6 @@ PACKAGE_DIR = REPO_ROOT / "ultralytics"
 REFERENCE_DIR = PACKAGE_DIR.parent / "docs/en/reference"
 GITHUB_REPO = "ultralytics/ultralytics"
 SIGNATURE_LINE_LENGTH = 120
-# Use Font Awesome brand GitHub icon (CSS already loaded via mkdocs.yml and HTML head)
-GITHUB_ICON = '<i class="fa-brands fa-github" aria-hidden="true" style="margin-right:6px;"></i>'
 
 MKDOCS_YAML = PACKAGE_DIR.parent / "mkdocs.yml"
 INCLUDE_SPECIAL_METHODS = {
@@ -143,18 +141,23 @@ def _with_reference_title(header_content: str, module_path: str) -> str:
     return header_content.replace("---\n", f"---\ntitle: {title}\n", 1)
 
 
+def _existing_frontmatter(md_filepath: Path) -> str:
+    """Return a page's leading YAML frontmatter block, or "" when it has none.
+
+    Anchored to the top of the file: splitting on every `---` also matches Markdown table separators, which folds page
+    content into the header when the generator runs over its own output instead of a freshly cloned stub.
+    """
+    if not md_filepath.exists():
+        return ""
+    match = re.match(r"---\n.*?\n---\n", md_filepath.read_text(), flags=re.DOTALL)
+    return f"{match.group()}\n" if match else ""
+
+
 def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: list[str], functions: list[str]) -> Path:
     """Create a minimal Markdown reference stub."""
     md_filepath = REFERENCE_DIR / py_filepath.relative_to(PACKAGE_DIR).with_suffix(".md")
-    exists = md_filepath.exists()
 
-    header_content = ""
-    if exists:
-        current = md_filepath.read_text()
-        if current.startswith("---"):
-            parts = current.split("---", 2)
-            if len(parts) > 2:
-                header_content = f"---{parts[1]}---\n\n"
+    header_content = _existing_frontmatter(md_filepath)
     if not header_content:
         header_content = (
             f"---\ndescription: Reference for `{module_path}` in the Ultralytics package.\n"
@@ -218,7 +221,7 @@ def _format_parameter(arg: ast.arg, default: ast.AST | None, src: str) -> str:
         rendered += f": {annotation}"
     default_value = _format_default(default, src)
     if default_value is not None:
-        rendered += f" = {default_value}"
+        rendered += f" = {default_value}" if annotation else f"={default_value}"  # PEP 8 spacing
     return rendered
 
 
@@ -277,16 +280,9 @@ def format_signature(
         return ""
 
     if isinstance(node, ast.ClassDef):
-        init_method = next(
-            (n for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == "__init__"),
-            None,
-        )
-        args = (
-            init_method.args
-            if init_method
-            else ast.arguments(
-                posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]
-            )
+        # parse_class passes the ClassDef only when no __init__ exists anywhere in its in-module chain, so `Name()`.
+        args = ast.arguments(
+            posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]
         )
     else:
         args = node.args
@@ -300,8 +296,14 @@ def format_signature(
     default_offset = total_regular - len(defaults)
 
     combined = posonly + regular
-    for idx, arg in enumerate(combined):
-        default = defaults[idx - default_offset] if idx >= default_offset else None
+    pairs = [
+        (arg, defaults[idx - default_offset] if idx >= default_offset else None) for idx, arg in enumerate(combined)
+    ]
+    # A constructor is called as Class(...), so drop __init__'s leading bound parameter — and only that one,
+    # since `cls` is a real argument elsewhere (e.g. BOTrack(xywh, score, cls, feat=None)).
+    if is_class and pairs and pairs[0][0].arg in {"self", "cls"}:
+        pairs, posonly = pairs[1:], posonly[1:]
+    for idx, (arg, default) in enumerate(pairs):
         params.append(_format_parameter(arg, default, src))
         if posonly and idx == len(posonly) - 1:
             params.append("/")
@@ -326,7 +328,7 @@ def format_signature(
 
     return_annotation = (
         _format_annotation(node.returns, src)
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.returns
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.returns and not is_class
         else None
     )
 
@@ -337,6 +339,8 @@ def format_signature(
 
     if len(signature) <= SIGNATURE_LINE_LENGTH or not params:
         return signature
+    if is_class:  # the raw source of a long constructor is `def __init__(self, ...)`, not the call form
+        return "{}(\n    {},\n)".format(name, ",\n    ".join(params))
 
     raw_signature = _get_definition_signature(node, src)
     return raw_signature or signature
@@ -377,9 +381,8 @@ def _parse_named_entries(lines: list[str]) -> list[ParameterDoc]:
         match = SECTION_ENTRY_RE.match(first_line)
         if match:
             name, type_hint, desc = match.groups()
-            description = " ".join(desc.split())
-            if rest:
-                description = f"{description}\n" + "\n".join(rest)
+            # Dedent continuations so _normalize_text reflows a wrapped sentence; lists and code keep their breaks.
+            description = "\n".join([" ".join(desc.split()), textwrap.dedent("\n".join(rest))]).strip()
             entries.append(ParameterDoc(name=name, type=type_hint, description=_normalize_text(description)))
         else:
             entries.append(ParameterDoc(name=text, type=None, description=""))
@@ -393,13 +396,16 @@ def _parse_returns(lines: list[str]) -> list[ReturnDoc]:
         text = textwrap.dedent("\n".join(block)).strip()
         if not text:
             continue
-        match = RETURNS_RE.match(text)
+        first_line, *rest = text.splitlines()
+        match = RETURNS_RE.match(first_line)
         if match:
             type_hint, desc = match.groups()
             cleaned_type = type_hint.strip()
             if cleaned_type.startswith("(") and cleaned_type.endswith(")"):
                 cleaned_type = cleaned_type[1:-1].strip()
-            entries.append(ReturnDoc(type=cleaned_type, description=_normalize_text(desc.strip())))
+            # Continuation lines carry the rest of the sentence; dedent them so _normalize_text reflows the paragraph.
+            description = "\n".join([desc.strip(), textwrap.dedent("\n".join(rest))]).strip()
+            entries.append(ReturnDoc(type=cleaned_type, description=_normalize_text(description)))
         else:
             entries.append(ReturnDoc(type=None, description=_normalize_text(text)))
     return entries
@@ -433,8 +439,11 @@ def _normalize_text(text: str) -> str:
     """Normalize text while preserving Markdown structures like tables, admonitions, and code blocks."""
     if not text:
         return ""
-    # Check if text contains Markdown structures that need line preservation
-    if any(marker in text for marker in ("|", "!!!", "```", "\n#", "\n- ", "\n* ", "\n1. ", "\n    ")):
+    # Check if text contains Markdown structures that need line preservation. The table check is line-anchored:
+    # a bare pipe is usually a union type in prose ("Array[M, 4] | Array[M, 5]"), not a table.
+    if re.search(r"(?m)^\s*\|", text) or any(
+        marker in text for marker in ("!!!", "```", "\n#", "\n- ", "\n* ", "\n1. ", "\n    ")
+    ):
         # Preserve Markdown formatting - just strip trailing whitespace from lines
         return "\n".join(line.rstrip() for line in text.splitlines()).strip()
     # Simple text - collapse single newlines within paragraphs
@@ -598,17 +607,63 @@ def parse_function(
     )
 
 
-def parse_class(node: ast.ClassDef, module_path: str, src: str) -> DocItem:
+def _class_init(node: ast.ClassDef) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
+    """Return the class's own __init__, if it declares one."""
+    return next(
+        (n for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == "__init__"), None
+    )
+
+
+def _mro(node: ast.ClassDef, class_nodes: dict[str, ast.ClassDef], stack: tuple[str, ...] = ()) -> list[ast.ClassDef]:
+    """Return the C3 linearization of a class over the base classes defined in the same module.
+
+    Bases from other modules are unresolvable here and drop out, which in rare multiple-inheritance shapes reorders the
+    in-module classes that remain — an absent base can no longer delay a sibling from becoming the next head. Resolving
+    that needs the imports, not the AST. A cyclic or inconsistent hierarchy stops early rather than looping.
+    """
+    bases = [
+        class_nodes[n] for n in (getattr(b, "id", None) for b in node.bases) if n in class_nodes and n not in stack
+    ]
+    sequences = [_mro(base, class_nodes, (*stack, node.name)) for base in bases] + [bases]
+    linearized = [node]
+    while any(sequences):
+        head = next(
+            (s[0] for s in sequences if s and not any(s[0] in rest[1:] for rest in sequences)),
+            None,
+        )
+        if head is None:
+            break
+        linearized.append(head)
+        sequences = [[c for c in s if c is not head] for s in sequences]
+    return linearized
+
+
+def _inherited_init(
+    node: ast.ClassDef, class_nodes: dict[str, ast.ClassDef]
+) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
+    """Return the __init__ Python binds for a class that declares none, following its method resolution order."""
+    return next((init for base in _mro(node, class_nodes)[1:] if (init := _class_init(base))), None)
+
+
+def parse_class(node: ast.ClassDef, module_path: str, src: str, class_nodes: dict[str, ast.ClassDef]) -> DocItem:
     """Parse a class node, merging __init__ docs and collecting methods."""
     class_doc = parse_google_docstring(ast.get_docstring(node))
 
-    init_node: ast.FunctionDef | ast.AsyncFunctionDef | None = next(
-        (n for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == "__init__"),
-        None,
+    own_init = _class_init(node)
+    # A subclass that declares no __init__ is still constructed with its base's signature, so document that one.
+    init_node = own_init or _inherited_init(node, class_nodes)
+    # The class definition runs to the end of its own __init__, or to its first method when it declares none;
+    # 0 leaves _collect_source_block on its own end_lineno fallback for classes that define no methods at all.
+    first_method = next(
+        (n for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n is not own_init), None
     )
+    class_end = min([first_method.lineno, *(d.lineno for d in first_method.decorator_list)]) - 1 if first_method else 0
     signature_params: list[ParameterDoc] = []
     if init_node:
         init_doc = parse_google_docstring(ast.get_docstring(init_node))
+        if init_node is not own_init:
+            # An inherited __init__ documents the signature we render, but its prose describes the base class.
+            init_doc = ParsedDocstring(params=init_doc.params)
         class_doc = merge_docstrings(class_doc, init_doc, ignore_summary=True)
         signature_params = collect_signature_parameters(init_node.args, src, skip_self=True)
 
@@ -618,7 +673,7 @@ def parse_class(node: ast.ClassDef, module_path: str, src: str) -> DocItem:
 
     methods: list[DocItem] = []
     for child in node.body:
-        if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)) and child is not init_node:
+        if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)) and child is not own_init:
             method_doc = parse_function(child, module_path, src, parent=f"{module_path}.{node.name}")
             if method_doc:
                 methods.append(method_doc)
@@ -635,7 +690,7 @@ def parse_class(node: ast.ClassDef, module_path: str, src: str) -> DocItem:
         bases=bases,
         children=methods,
         module_path=module_path,
-        source=_collect_source_block(src, node, end_line=init_node.end_lineno if init_node else node.lineno),
+        source=_collect_source_block(src, node, end_line=own_init.end_lineno if own_init else class_end),
     )
 
 
@@ -656,9 +711,10 @@ def parse_module(py_filepath: Path) -> DocumentedModule | None:
     classes: list[DocItem] = []
     functions: list[DocItem] = []
 
+    class_nodes = {n.name: n for n in tree.body if isinstance(n, ast.ClassDef)}
     for node in tree.body:
         if isinstance(node, ast.ClassDef):
-            classes.append(parse_class(node, module_path, src))
+            classes.append(parse_class(node, module_path, src, class_nodes))
         elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             func = parse_function(node, module_path, src, parent=None)
             if func:
@@ -683,10 +739,10 @@ def _render_table(headers: list[str], rows: list[list[str]], level: int, title: 
         return ""
 
     def _clean_cell(value: str | None) -> str:
-        """Normalize table cell values for Markdown output."""
+        """Normalize table cell values for Markdown output, escaping pipes so unions stay in one column."""
         if value is None:
             return ""
-        return str(value).replace("\n", "<br>").strip()
+        return str(value).replace("\n", "<br>").replace("|", r"\|").strip()
 
     rows = [[_clean_cell(c) for c in row] for row in rows]
     table_lines = ["| " + " | ".join(headers) + " |", "| " + " | ".join("---" for _ in headers) + " |"]
@@ -759,7 +815,7 @@ def render_source_panel(item: DocItem, module_url: str, module_path: str) -> str
     return (
         "<details>\n"
         f"<summary>{summary}</summary>\n\n"
-        f'<a href="{source_url}">{GITHUB_ICON}View on GitHub</a>\n'
+        f'<a href="{source_url}">View on GitHub</a>\n'
         f"{_code_fence(item.source)}\n"
         "</details>\n"
     )
@@ -784,7 +840,8 @@ def render_docstring(
 
     sections: dict[str, str] = {}
 
-    if merged_params:
+    # A table whose Type and Description cells are all empty repeats the signature above it and nothing else.
+    if merged_params and any(p.type or p.description.strip() for p in merged_params):
         rows = []
         for p in merged_params:
             default_val = f"`{p.default}`" if p.default not in (None, "") else "*required*"
@@ -807,9 +864,17 @@ def render_docstring(
         sections["returns"] = f"**Returns**\n\n{table}"
 
     if doc.examples:
-        code_block = "\n\n".join(f"```python\n{example.strip()}\n```" for example in doc.examples if example.strip())
-        if code_block:
-            sections["examples"] = f"**Examples**\n\n{code_block}\n\n"
+        # Google-style Examples interleave captions with >>> runs; fence only the runs so the captions stay prose.
+        blocks: list[str] = []
+        for paragraph in (p.strip() for example in doc.examples for p in re.split(r"\n\s*\n", example.strip())):
+            lines = paragraph.splitlines()
+            prompt = next((i for i, line in enumerate(lines) if line.lstrip().startswith(">>>")), 0)
+            if prompt:
+                blocks.append("\n".join(lines[:prompt]).strip())
+            if paragraph:
+                blocks.append(_code_fence("\n".join(lines[prompt:]).strip()))
+        if blocks:
+            sections["examples"] = "**Examples**\n\n" + "\n\n".join(blocks) + "\n\n"
 
     if doc.notes:
         note_text = "\n\n".join(doc.notes).strip()
@@ -1022,11 +1087,7 @@ def create_markdown(module: DocumentedModule) -> Path:
     md_filepath = REFERENCE_DIR / module.path.relative_to(PACKAGE_DIR).with_suffix(".md")
     exists = md_filepath.exists()
 
-    header_content = ""
-    if exists:
-        for part in md_filepath.read_text().split("---"):
-            if "description:" in part or "comments:" in part:
-                header_content += f"---{part}---\n\n"
+    header_content = _existing_frontmatter(md_filepath)
     if not header_content:
         header_content = (
             f"---\ndescription: Reference for `{module.module_path}` in the Ultralytics package.\n"
@@ -1142,7 +1203,11 @@ def update_mkdocs_file(reference_yaml: str) -> None:
         MKDOCS_YAML.write_text(new_content)
         try:
             result = subprocess.run(
-                ["npx", "prettier", "--write", str(MKDOCS_YAML)], capture_output=True, text=True, cwd=PACKAGE_DIR.parent
+                ["npx", "prettier", "--write", str(MKDOCS_YAML)],
+                capture_output=True,
+                text=True,
+                cwd=PACKAGE_DIR.parent,
+                check=False,
             )
             if result.returncode != 0:
                 LOGGER.warning(f"prettier formatting failed: {result.stderr.strip()}")

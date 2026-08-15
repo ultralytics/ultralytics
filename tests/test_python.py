@@ -68,7 +68,7 @@ def test_dataloader_can_disable_worker_reuse():
         assert type(finite_loader) is data_build.dataloader.DataLoader
         assert finite_loader.prefetch_factor == 2
         assert isinstance(infinite_loader, data_build.InfiniteDataLoader)
-        assert infinite_loader.prefetch_factor == 4
+        assert infinite_loader.prefetch_factor == (4 if data_build.TORCH_2_0 else 2)
     finally:
         infinite_loader.close()
 

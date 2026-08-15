@@ -45,14 +45,3 @@ workers: 4
 epochs: 78
 repeat_t: 0.001
 repeat_sources: cct20,flir-adas-v2,locount
-fed_k: 365
-federated_cls_loss: bce
-federated_cls_heads: source
-focal_alpha: 0.25
-focal_gamma: 2.0
-asl_gamma_pos: 0.0
-asl_gamma_neg: 2.0
-asl_clip: 0.0
-federated_cls_normalize: none
-federated_semantic_prototypes: ""
-federated_semantic_text_model: mobileclip2:s4

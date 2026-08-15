@@ -51,4 +51,3 @@ workers: 4
 epochs: 78
 repeat_t: 0.001
 repeat_sources: cct20,flir-adas-v2,locount
-federated_cls_heads: source

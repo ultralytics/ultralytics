@@ -31,20 +31,20 @@ class LLM:
 
     Examples:
         >>> from ultralytics import LLM
-        >>> model = LLM("gpt-5.5")
+        >>> model = LLM("gpt-5.6-luna")
         >>> response = model("What is YOLO?")
 
         Analyze an image:
         >>> response = model("Describe this image", image="bus.jpg")
 
         Use the Chat Completions API:
-        >>> model = LLM("gpt-5.5", api="chat.completions")
+        >>> model = LLM("gpt-5.6-luna", api="chat.completions")
         >>> response = model("What is YOLO?")
     """
 
     def __init__(
         self,
-        model: str = "gpt-5.5",
+        model: str = "gpt-5.6-luna",
         api: str = "responses",
         base_url: str | None = None,
         api_key: str | None = None,

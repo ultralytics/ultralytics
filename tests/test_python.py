@@ -418,6 +418,29 @@ def test_track_second_association_indices():
     assert len(low) == 1 and int(low[0, -1]) == 2, f"second-association idx not preserved:\n{tracks}"
 
 
+def test_track_split_detections_degenerate_boxes():
+    """`_split_detections` must drop zero/negative-dimension boxes from both confidence partitions while keeping every
+    valid detection's index into the full detection-set space (later assigned to `track.idx`).
+    """
+    from ultralytics.engine.results import Boxes
+    from ultralytics.trackers.byte_tracker import BYTETracker
+    from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace
+
+    args = IterableSimpleNamespace(**YAML.load(ROOT / "cfg/trackers/bytetrack.yaml"))
+    tracker = BYTETracker(args)
+    boxes = [
+        [10, 10, 50, 50, 0.9, 0],  # idx 0: valid, high-confidence partition
+        [300, 480, 350, 480, 0.9, 0],  # idx 1: degenerate, zero height, high-confidence partition
+        [100, 100, 150, 150, 0.15, 0],  # idx 2: valid, low-confidence partition
+        [300, 490, 350, 480, 0.15, 0],  # idx 3: degenerate, negative height, low-confidence partition
+        [150, 100, 100, 150, 0.9, 0],  # idx 4: degenerate, negative width, high-confidence partition
+    ]
+    results = Boxes(torch.tensor(boxes, dtype=torch.float32), (640, 640))
+    high, low, mask_high, mask_low = tracker._split_detections(results)
+    assert np.flatnonzero(mask_high).tolist() == [0] and len(high) == 1, f"degenerate box leaked high band: {mask_high}"
+    assert np.flatnonzero(mask_low).tolist() == [2] and len(low) == 1, f"degenerate box leaked low band: {mask_low}"
+
+
 @pytest.mark.parametrize("tracker_type", ["bytetrack", "fasttrack"])
 def test_track_second_association_low_conf_keeps_id(tracker_type):
     """Low-confidence detection is recovered by the second association under the default fuse_score=True."""
@@ -1565,6 +1588,17 @@ def test_nn_modules_block():
     C3TR(c1, c2)(x)
     C3Ghost(c1, c2)(x)
     BottleneckCSP(c1, c2)(x)
+
+
+def test_nn_detect_head_export_clamps_max_det():
+    """Detect export postprocess should not request more candidates than available anchors."""
+    from ultralytics.nn.modules.head import Detect
+
+    head = Detect(nc=2, ch=(16,))
+    head.export = True
+    head.format = "onnx"
+    anchors = 21
+    assert head.postprocess(torch.rand(1, anchors, 4 + head.nc)).shape == (1, anchors, 6)
 
 
 def _depth_head_feats():

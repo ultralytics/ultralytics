@@ -97,11 +97,12 @@ class DetectionTrainer(BaseTrainer):
         return build_dataloader(
             dataset,
             batch=batch_size,
-            workers=self.args.workers if mode == "train" else self.args.workers * 2,
+            workers=self.args.workers,
             shuffle=shuffle,
             rank=rank,
             drop_last=self.args.compile and mode == "train",
             device=self.device,
+            infinite=mode == "train",
         )
 
     def preprocess_batch(self, batch: dict) -> dict:

@@ -323,8 +323,9 @@ def build_dataloader(
     drop_last: bool = False,
     pin_memory: bool = True,
     device: torch.device | str = "cuda",
-) -> InfiniteDataLoader:
-    """Create and return an InfiniteDataLoader for training or validation.
+    infinite: bool = True,
+) -> dataloader.DataLoader:
+    """Create and return a dataloader for training or validation.
 
     Args:
         dataset (Dataset): Dataset to load data from.
@@ -335,9 +336,10 @@ def build_dataloader(
         drop_last (bool, optional): Whether to drop the last incomplete batch.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
         device (torch.device | str, optional): Device used by the dataloader consumer.
+        infinite (bool, optional): Whether to reuse workers across iterations.
 
     Returns:
-        (InfiniteDataLoader): A dataloader that can be used for training or validation.
+        (DataLoader): A dataloader that can be used for training or validation.
 
     Examples:
         Create a dataloader for training
@@ -359,7 +361,7 @@ def build_dataloader(
     device_type = getattr(device, "type", str(device).split(":")[0])
     nd = get_torch_device_backend(device).device_count() if device_type not in {"cpu", "mps"} else 0
     # Do not create more worker processes than final loader batches. Single-batch loaders run in-process to avoid
-    # persistent DataLoader worker pools that add overhead and can stall tiny datasets while holding CUDA context.
+    # DataLoader worker pools that add overhead and can stall tiny datasets while holding CUDA context.
     nw = min(os.cpu_count() // max(nd, 1), workers, 0 if batches <= 1 else batches)  # number of workers
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + RANK)
@@ -367,13 +369,14 @@ def build_dataloader(
     pin_memory_device = (
         device_type if pin_memory and device_type in {"npu", "xpu"} and TORCH_1_13 and not TORCH_2_7 else None
     )
-    return InfiniteDataLoader(
+    loader = InfiniteDataLoader if infinite else dataloader.DataLoader
+    return loader(
         dataset=dataset,
         batch_size=batch,
         shuffle=shuffle and sampler is None,
         num_workers=nw,
         sampler=sampler,
-        prefetch_factor=4 if nw > 0 else None,  # increase over default 2
+        **({"prefetch_factor": 4} if infinite and nw > 0 else {}),
         pin_memory=pin_memory,
         collate_fn=getattr(dataset, "collate_fn", None),
         worker_init_fn=seed_worker,

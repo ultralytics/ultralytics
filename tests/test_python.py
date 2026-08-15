@@ -60,6 +60,39 @@ def test_dataloader_caps_workers_to_batches():
         two_batches.close()
 
 
+def test_dataloader_can_disable_worker_reuse():
+    """Test finite dataloaders use PyTorch's default prefetch depth while infinite loaders retain the larger queue."""
+    finite_loader = build_dataloader(range(8), batch=4, workers=2, infinite=False)
+    infinite_loader = build_dataloader(range(8), batch=4, workers=2)
+    try:
+        assert type(finite_loader) is data_build.dataloader.DataLoader
+        assert finite_loader.prefetch_factor == 2
+        assert isinstance(infinite_loader, data_build.InfiniteDataLoader)
+        assert infinite_loader.prefetch_factor == 4
+    finally:
+        infinite_loader.close()
+
+
+def test_detection_validation_dataloader_limits_workers(monkeypatch):
+    """Test detection validation uses finite loaders without multiplying the configured worker count."""
+    from ultralytics.models.yolo.detect import train as detect_train
+
+    calls = {}
+
+    def capture_dataloader(*args, **kwargs):
+        calls.update(kwargs)
+
+    trainer = object.__new__(detect_train.DetectionTrainer)
+    trainer.args = get_cfg(overrides={"workers": 15})
+    trainer.device = torch.device("cpu")
+    trainer.build_dataset = lambda *args: range(8)
+    monkeypatch.setattr(detect_train, "build_dataloader", capture_dataloader)
+
+    trainer.get_dataloader("unused", batch_size=4, rank=-1, mode="val")
+    assert calls["workers"] == 15
+    assert calls["infinite"] is False
+
+
 def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
     """Test worker cap follows distributed sampler size without changing global drop_last behavior."""
     sampler_cls = data_build.distributed.DistributedSampler

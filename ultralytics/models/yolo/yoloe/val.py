@@ -128,6 +128,7 @@ class YOLOEDetectValidator(DetectionValidator):
             shuffle=False,
             rank=-1,
             device=self.device,
+            infinite=False,
         )
 
     @smart_inference_mode()

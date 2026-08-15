@@ -202,8 +202,8 @@ class QuotaBatchSampler(Sampler):
 
     def update_loss_quota(self, losses: np.ndarray) -> None:
         """Set source probabilities from the latest per-source L1 losses."""
-        # Plain-Det paper Eq. 2 uses source mass L * sqrt(N):
-        # https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/00763.pdf#page=5
+        # Plain-Det paper Eq. 9 uses source mass L * sqrt(N):
+        # https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/00763.pdf#page=9
         weights = losses * np.sqrt(self.counts)
         self.quota = weights / weights.sum()
 

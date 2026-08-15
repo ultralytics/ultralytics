@@ -87,6 +87,7 @@ from ultralytics.nn.modules import (
     YOLOESegment26,
     v10Detect,
 )
+from ultralytics.nn.modules.head import SourceClassifier
 from ultralytics.nn.teacher_model import TEACHER_REGISTRY, TeacherDetBackbone, resolve_teacher_key
 from ultralytics.utils import (
     DEFAULT_CFG_DICT,
@@ -426,8 +427,7 @@ class BaseModel(torch.nn.Module):
         src_lookup = {_norm(v): k for k, v in src_names.items()}
         idx = torch.tensor([src_lookup.get(_norm(tgt_names.get(k)), -1) for k in range(tgt_nc)], dtype=torch.long)
         n_match = int((idx >= 0).sum())
-        # Skip if nothing matches, or class names already share order and count (intersect_dicts copies directly)
-        if n_match == 0 or (src_nc == tgt_nc and torch.equal(idx, torch.arange(tgt_nc))):
+        if n_match == 0:
             return 0
 
         valid = idx >= 0
@@ -443,13 +443,28 @@ class BaseModel(torch.nn.Module):
             if getattr(seq[-1], "out_channels", None) == tgt_nc
             for p in ("weight", "bias")
         }
+        # Flat heads with an unchanged class order are copied directly by intersect_dicts. Partitioned source heads
+        # still need to be joined below because their state keys do not exist in the destination model.
+        if src_nc == tgt_nc and torch.equal(idx, torch.arange(tgt_nc)) and cls_keys <= csd.keys():
+            return 0
+        src_modules = dict(src_model.named_modules())
         remapped = 0
-        for k in cls_keys & csd.keys():
-            v_src, v_tgt = csd[k], state_dict[k]
+        for k in cls_keys:
+            v_src = csd.get(k)
+            if v_src is None:
+                prefix, parameter = k.rsplit(".", 1)
+                classifier = src_modules.get(prefix)
+                if isinstance(classifier, SourceClassifier):
+                    if classifier.merged is None:
+                        classifier.set_source(None)
+                    v_src = classifier.merged[0 if parameter == "weight" else 1]
+            if v_src is None:
+                continue
+            v_tgt = state_dict[k]
             if v_src.shape[1:] != v_tgt.shape[1:]:  # cls-conv weight input width (c3) differs across nc; copy bias only
                 continue
             v_tgt[valid] = v_src[idx[valid]].to(v_tgt.dtype)
-            csd.pop(k)  # prevent intersect_dicts from copying these rows in the wrong (source) order
+            csd.pop(k, None)  # prevent intersect_dicts from copying these rows in the wrong (source) order
             remapped += 1
         if verbose and remapped:
             LOGGER.info(f"Remapped {n_match}/{tgt_nc} cls head rows from pretrained weights by class name")

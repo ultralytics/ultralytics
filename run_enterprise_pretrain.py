@@ -7,6 +7,7 @@ control uses the stock loss.
 
 Usage:
     python run_enterprise_pretrain.py 0,1 yolo26s-p4p5-wide-deep16-sni.yaml enterprise
+    python run_enterprise_pretrain.py 4,5 yolo26s-p4p5-wide-slim19.yaml enterprise-commercial
     python run_enterprise_pretrain.py 2,3 yolo26s-p4p5-wide-slim19-ultravit.yaml o365
 """
 
@@ -25,6 +26,11 @@ ARMS = {
     "enterprise": (
         "enterprise",
         "/data/shared-datasets/domain-det/_merged/data.yaml",
+        EnterpriseDetectionTrainer,
+    ),
+    "enterprise-commercial": (
+        "enterprise-commercial",
+        "/data/shared-datasets/domain-det/_merged_commercial/data.yaml",
         EnterpriseDetectionTrainer,
     ),
     "o365": ("obj365v1", "Objects365v1.yaml", None),

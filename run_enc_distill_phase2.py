@@ -298,16 +298,6 @@ _RECIPE_DELTA_CASTS = {
     "cos_lr": bool,
     "backbone_lr_ratio": float,
     "repeat_sources": str,
-    "federated_cls_loss": str,
-    "federated_cls_heads": str,
-    "focal_alpha": float,
-    "focal_gamma": float,
-    "asl_gamma_pos": float,
-    "asl_gamma_neg": float,
-    "asl_clip": float,
-    "federated_cls_normalize": str,
-    "federated_semantic_prototypes": str,
-    "federated_semantic_text_model": str,
 }
 
 

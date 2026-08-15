@@ -1,11 +1,12 @@
 # Enterprise 21-source pretrain, S scale p4p5 detectors. Partially labeled side of the ablation.
-# Shares optimization and augmentation args with enterprise-o365-control. Its epoch-denominated keys are rescaled
+# Shares optimization and augmentation args with obj365v1. Its epoch-denominated keys are rescaled
 # for a 1.93x bigger epoch:
 # 78 epochs matches images seen (150 x 608,606 / 1,174,087), warmup and close_mosaic halve to match update counts.
 # Compare checkpoints at Enterprise epoch = 0.518 x O365 epoch.
 # backbone_lr_ratio 1.0 matches the control, see its header.
 # patience is deliberately above both arms' epoch counts, so early stopping can never fire on either side.
 auto_augment: randaugment
+amp: false
 backbone_lr_ratio: 1.0
 batch: 128
 box: 7.5
@@ -27,37 +28,27 @@ hsv_s: 0.7
 hsv_v: 0.4
 imgsz: 640
 kobj: 1.0
-lr0: 0.0005
-lrf: 0.5
+lr0: 0.0025
+lrf: 0.01
 mixup: 0.05
-momentum: 0.9
+momentum: 0.937
 mosaic: 1.0
-muon: 0.2
+muon: 0.5
 nbs: 64
-optimizer: AdamW
+optimizer: MuSGD
 patience: 200
 perspective: 0.0
 pose: 12.0
 scale: 0.9
-sgd: 1.0
+sgd: 0.5
 shear: 0.0
 translate: 0.1
 warmup_bias_lr: 0.0
-warmup_epochs: 0.14
-warmup_momentum: 0.9
-weight_decay: 0.000125
+warmup_epochs: 1.04
+warmup_momentum: 0.8
+weight_decay: 0.0005
 workers: 4
 epochs: 78
 repeat_t: 0.001
 repeat_sources: cct20,flir-adas-v2,locount
-fed_k: 365
-federated_cls_loss: bce
-federated_cls_heads: merged
-focal_alpha: 0.25
-focal_gamma: 2.0
-asl_gamma_pos: 0.0
-asl_gamma_neg: 2.0
-asl_clip: 0.0
-federated_cls_normalize: none
-federated_semantic_prototypes: ""
-federated_semantic_text_model: mobileclip2:s4
+federated_cls_heads: source

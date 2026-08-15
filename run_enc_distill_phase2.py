@@ -13,7 +13,7 @@ Usage:
           det fine-tune + val over a list of YOLO-format datasets; logs per-dataset and
           macro-averaged mAP to a CSV, on the multi-det recipe profile),
           "obj365v1_det_pretrain" (Objects365-v1 detection pretrain, 150 epochs, any backbone,
-          on the lq-yolo26plus-365-lr0p0025 profile. Its output checkpoint is then COCO fine-tuned with
+          on the obj365v1 profile. Its output checkpoint is then COCO fine-tuned with
           --recipe coco-after-o365, coco-adapt args on the published post-objv1 epoch ladder,
           since it is no longer a pristine distilled backbone)
 
@@ -29,9 +29,9 @@ Flags:
                 relaunch those from the recipe instead.
     --fork_from <parent_id>:<fork_step>: wandb-fork continuation (all single-dataset modes)
     --recipe <name>: coco/multi_det/obj365 modes. Recipe profile stem under cfg/recipes/, defaulting to
-                the mode's profile (coco-preserve, multi-det, lq-yolo26plus-365-lr0p0025). Use coco-adapt for a
-                non-distilled backbone, coco-after-o365 after an obj365 pretrain, multi-det-musgd-cos or
-                yolo26-published-{det,multi-det,objv1} for MuSGD, or repo-defaults for UL33 default.yaml settings.
+                the mode's profile (coco-preserve or obj365v1). Use coco-adapt for a
+                non-distilled backbone, coco-after-o365 after an obj365 pretrain, or
+                yolo26-published-{det,multi-det,objv1} for MuSGD. UL33 uses default.yaml when omitted.
     --model <yaml>: det modes. Detector yaml to build, replacing the one derived from the checkpoint.
                 Needed when the run swaps the checkpoint's trunk into a different neck/head.
     --lr <val>: override the profile lr0 (det modes) or the final lr0 (other modes).
@@ -603,10 +603,9 @@ def _run_multi_det(
 ) -> None:
     """Sequentially train + val on a list of YOLO-format detection datasets.
 
-    Per dataset: fresh YOLO(model_yaml) with backbone from phase1_weights, train using the recipe profile (``multi-det``
-    by default), then val. Each dataset is its own W&B run named ``{parent_name}-{basename}``. Aggregate metrics are
-    written to ``{parent save_dir}/multi_results.csv`` (mirrored to the NFS run dir) and printed as a macro average at
-    the end.
+    Per dataset: fresh YOLO(model_yaml) with backbone from phase1_weights, train using repository defaults, then val.
+    Each dataset is its own W&B run named ``{parent_name}-{basename}``. Aggregate metrics are written to ``{parent
+    save_dir}/multi_results.csv`` (mirrored to the NFS run dir) and printed as a macro average at the end.
 
     Single-GPU only (same DDP-callback-loss caveat as other det modes).
 
@@ -630,7 +629,7 @@ def _run_multi_det(
         seed (int, optional): Training seed for detection-head init and augmentation RNG. Default 0 reproduces prior
             runs, vary it to sample per-dataset run-to-run variance.
         backbone_lr_ratio_override (str, optional): Backbone LR = lr0 * this (below 1 preserves distilled features).
-        recipe_name (str, optional): Recipe profile stem under cfg/recipes/, defaulting to the mode's profile.
+        recipe_name (str, optional): Recipe profile stem under cfg/recipes/, defaulting to repository settings.
         cls_map_vocab (str, optional): Vocab key in ul33_cls_map.json (coco/obj365/oiv7/enterprise). When set, forces
             cls_remap=true and transfers same-name head rows plus listed aliases instead of the profile's no-transfer
             default. Pick the vocab matching phase1_weights' pretraining label space.
@@ -684,7 +683,7 @@ def _run_multi_det(
         except OSError as e:
             print(f"[multi_det_finetune] NFS mirror of multi_results.csv failed (continuing): {e}")
 
-    repo_defaults = recipe_name == "repo-defaults"
+    repo_defaults = not recipe_name
     if repo_defaults:
         if any(
             (
@@ -693,17 +692,14 @@ def _run_multi_det(
                 lr_override,
                 nbs_override,
                 backbone_lr_ratio_override,
-                freeze_override,
                 imgsz_override,
-                teacher_spec,
+                seed,
             )
         ) or epochs not in (
             None,
             100,
         ):
-            raise SystemExit("ERROR: --repo_defaults permits only the 100-epoch budget and class mapping.")
-        if not cls_map_vocab:
-            raise SystemExit("ERROR: --repo_defaults requires --cls_map.")
+            raise SystemExit("ERROR: repository defaults permit only freeze, the 100-epoch budget, and class mapping.")
         actual_defaults = {key: DEFAULT_CFG_DICT[key] for key in ("grad_clip", "muon", "sgd")}
         if actual_defaults != {"grad_clip": 10.0, "muon": 0.2, "sgd": 1.0}:
             raise SystemExit(f"ERROR: UL33 repository defaults changed: {actual_defaults}")
@@ -713,7 +709,7 @@ def _run_multi_det(
     else:
         # Every input to the recipe is loop-invariant, so resolve it once here rather than per dataset.
         det_args = _load_recipe(
-            recipe_name or "multi-det",
+            recipe_name,
             model_yaml,
             epochs=epochs,
             patience=patience,
@@ -890,8 +886,6 @@ def main(argv: list[str]) -> None:
     argv, imgsz_override = _pop_flag(argv, "--imgsz")
     argv, seed_override = _pop_flag(argv, "--seed")
     seed = int(seed_override) if seed_override else 0
-    if recipe_name == "repo-defaults" and seed_override:
-        raise SystemExit("ERROR: --recipe repo-defaults inherits the repository seed.")
     argv, teacher_spec = _pop_flag(argv, "--teacher")
     if teacher_spec:
         # Layout: <gpu> teacher_frozen_det <name> --teacher <spec> --datasets <file>. The frozen-teacher backbone
@@ -912,8 +906,6 @@ def main(argv: list[str]) -> None:
             raise SystemExit(
                 "ERROR: --freeze is not supported with --teacher (teacher_frozen_det already freezes layer 0)."
             )
-        if recipe_name == "repo-defaults":
-            raise SystemExit("ERROR: --recipe repo-defaults is not supported with --teacher.")
         gpu = argv[0] if argv else "0"
         if "," in gpu:
             raise SystemExit(
@@ -1086,7 +1078,7 @@ def main(argv: list[str]) -> None:
             train_args["freeze"] = 9
     elif mode == "obj365v1_det_pretrain":
         det_args = _load_recipe(
-            recipe_name or "lq-yolo26plus-365-lr0p0025",
+            recipe_name or "obj365v1",
             model_yaml,
             epochs=epochs,
             patience=patience,

@@ -2,12 +2,12 @@
 """Launch one arm of the Enterprise vs Objects365v1 detection pretraining ablation.
 
 The paired recipes share optimization and augmentation settings. Data, schedule, and classification handling differ.
-The Enterprise arm uses source-pure batches and masked federated classification. The exhaustively annotated O365
+The Enterprise arm uses source-pure batches and source-specific classifiers. The exhaustively annotated O365
 control uses the stock loss.
 
 Usage:
     python run_enterprise_pretrain.py 0,1 yolo26s-p4p5-wide-deep16-sni.yaml enterprise
-    python run_enterprise_pretrain.py 2,3 yolo26s-p4p5-wide-slim19-ultravit.yaml o365 --no-amp
+    python run_enterprise_pretrain.py 2,3 yolo26s-p4p5-wide-slim19-ultravit.yaml o365
 """
 
 from __future__ import annotations
@@ -27,22 +27,9 @@ ARMS = {
         "/data/shared-datasets/domain-det/_merged/data.yaml",
         FederatedDetectionTrainer,
     ),
-    "o365": ("enterprise-o365-control", "Objects365v1.yaml", None),
+    "o365": ("obj365v1", "Objects365v1.yaml", None),
 }
 INIT = Path("/data/shared-datasets/fatih-runs/enterprise-init")
-FEDERATED_CLI_KEYS = (
-    "federated_cls_loss",
-    "federated_cls_heads",
-    "repeat_sources",
-    "focal_alpha",
-    "focal_gamma",
-    "asl_gamma_pos",
-    "asl_gamma_neg",
-    "asl_clip",
-    "federated_cls_normalize",
-    "federated_semantic_prototypes",
-    "federated_semantic_text_model",
-)
 
 
 def main() -> None:
@@ -53,50 +40,10 @@ def main() -> None:
     a.add_argument("arm", choices=sorted(ARMS))
     a.add_argument("name", nargs="?", help="run name, defaults to ph2-<arm>-<model stem>")
     a.add_argument("--pretrained", default=None, help="backbone init .pt, defaults to the arm's staged init")
-    a.add_argument("--no-amp", action="store_true", help="ultravit arms, which are unstable under fp16")
-    a.add_argument("--recipe", default=None, help="recipe profile, defaults to the arm's paired profile")
-    a.add_argument("--epochs", type=int, default=None)
-    a.add_argument("--batch", type=int, default=None)
-    a.add_argument("--lrf", type=float, default=None)
-    a.add_argument("--cos-lr", action="store_true", default=None)
-    a.add_argument("--backbone-lr-ratio", type=float, default=None)
-    a.add_argument("--repeat-sources", default=None, help="comma-separated sources receiving repeat-factor sampling")
-    a.add_argument("--federated-cls-loss", choices=("bce", "focal", "asl"), default=None)
-    a.add_argument("--federated-cls-heads", choices=("merged", "source", "semantic"), default=None)
-    a.add_argument("--focal-alpha", type=float, default=None)
-    a.add_argument("--focal-gamma", type=float, default=None)
-    a.add_argument("--asl-gamma-pos", type=float, default=None)
-    a.add_argument("--asl-gamma-neg", type=float, default=None)
-    a.add_argument("--asl-clip", type=float, default=None)
-    a.add_argument("--federated-cls-normalize", choices=("none", "active_classes"), default=None)
-    a.add_argument("--federated-semantic-prototypes", default=None)
-    a.add_argument("--federated-semantic-text-model", default=None)
     a.add_argument("--resume", default=None, help="checkpoint to resume from")
     args = a.parse_args()
-    if args.arm == "o365" and any(getattr(args, key) is not None for key in FEDERATED_CLI_KEYS):
-        a.error("federated options apply only to the enterprise arm")
-
     recipe_name, data, trainer = ARMS[args.arm]
-    recipe = _load_recipe(
-        args.recipe or recipe_name,
-        args.model,
-        epochs=args.epochs,
-        batch=args.batch,
-        lrf=args.lrf,
-        cos_lr=args.cos_lr,
-        backbone_lr_ratio=args.backbone_lr_ratio,
-        **{key: getattr(args, key) for key in FEDERATED_CLI_KEYS},
-    )
-    if (
-        args.arm == "enterprise"
-        and recipe["federated_cls_heads"] == "semantic"
-        and not recipe["federated_semantic_prototypes"]
-    ):
-        recipe["federated_semantic_prototypes"] = str(
-            INIT
-            / f"enterprise-{recipe['federated_semantic_text_model'].replace(':', '_').replace('/', '_')}-label-prototypes.pt"
-        )
-    recipe["amp"] = not args.no_amp
+    recipe = _load_recipe(recipe_name, args.model)
     stem = Path(args.model).stem
     pretrained = args.pretrained or str(INIT / ("ultravit_s.pt" if "ultravit" in stem else "c3k2_s.pt"))
     name = args.name or f"ph2-{args.arm}-{stem.replace('yolo26s-p4p5-wide-', '')}"

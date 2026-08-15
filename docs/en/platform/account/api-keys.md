@@ -102,6 +102,14 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \
   https://platform.ultralytics.com/api/...
 ```
 
+Or pass it to the Python SDK (`pip install "ultralytics-platform>=0.1.5"`), which also reads `ULTRALYTICS_API_KEY`:
+
+```python
+from ultralytics_platform import Platform
+
+client = Platform(api_key="YOUR_API_KEY")
+```
+
 See the [REST API Reference](../api/index.md) for all available endpoints.
 
 ### Remote Training

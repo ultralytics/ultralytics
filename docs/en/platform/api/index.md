@@ -14,11 +14,30 @@ integrations_path: ../../integrations
 
 !!! tip "Quick Start"
 
-    ```bash
-    # List the datasets owned by a workspace
-    curl -H "Authorization: Bearer YOUR_API_KEY" \
-      https://platform.ultralytics.com/api/datasets/YOUR_USERNAME
-    ```
+    === "cURL"
+
+        ```bash
+        # List the datasets owned by a workspace
+        curl -H "Authorization: Bearer YOUR_API_KEY" \
+          https://platform.ultralytics.com/api/datasets/YOUR_USERNAME
+        ```
+
+    === "Python SDK"
+
+        ```bash
+        pip install "ultralytics-platform>=0.1.5" # Python 3.11+
+        ```
+
+        ```python
+        from ultralytics_platform import Platform
+
+        client = Platform(api_key="YOUR_API_KEY")
+        datasets = client.datasets.list("YOUR_USERNAME")
+        ```
+
+    Every endpoint below lists its `client.<resource>.<method>(...)` call from the
+    [`ultralytics-platform`](https://pypi.org/project/ultralytics-platform/) SDK, which is generated from the same
+    contract as this reference.
 
 !!! tip "Interactive API Reference"
 
@@ -101,15 +120,10 @@ Authorization: Bearer YOUR_API_KEY
 === "Python"
 
     ```python
-    import requests
+    from ultralytics_platform import Platform
 
-    API_KEY = "YOUR_API_KEY"
-    headers = {"Authorization": f"Bearer {API_KEY}"}
-    response = requests.get(
-        "https://platform.ultralytics.com/api/account/summary",
-        headers=headers,
-    )
-    account = response.json()
+    client = Platform(api_key="YOUR_API_KEY")  # or set ULTRALYTICS_API_KEY
+    account = client.account.summary()
     print(account["username"], account["plan"], account["creditsCents"])
     ```
 
@@ -273,6 +287,8 @@ Create, browse, and manage labeled image datasets for training YOLO models. See
 GET /api/datasets/{owner}
 ```
 
+**Python SDK:** `client.datasets.list(owner)`
+
 Returns the owner's public datasets, plus private datasets when your key can view that workspace.
 
 **Query Parameters:**
@@ -293,14 +309,10 @@ Returns the owner's public datasets, plus private datasets when your key can vie
 === "Python"
 
     ```python
-    import requests
+    from ultralytics_platform import Platform
 
-    resp = requests.get(
-        "https://platform.ultralytics.com/api/datasets/acme-vision",
-        headers={"Authorization": f"Bearer {API_KEY}"},
-        params={"limit": 10, "includeSamples": "false"},
-    )
-    for ds in resp.json()["datasets"]:
+    client = Platform()  # reads ULTRALYTICS_API_KEY
+    for ds in client.datasets.list("acme-vision", limit=10, include_samples="false")["datasets"]:
         print(f"{ds['dataset']}: {ds['imageCount']} images, task={ds['task']}")
     ```
 
@@ -339,6 +351,8 @@ Returns the owner's public datasets, plus private datasets when your key can vie
 GET /api/datasets/{owner}/{dataset}
 ```
 
+**Python SDK:** `client.datasets.retrieve(owner, dataset)`
+
 Returns the full dataset object under a `dataset` key, including `classNames`, `splits`, `versions`, `source`, and the
 user-defined `metadata` object.
 
@@ -347,6 +361,8 @@ user-defined `metadata` object.
 ```http
 POST /api/datasets
 ```
+
+**Python SDK:** `client.datasets.create(dataset=..., name=...)`
 
 **Body:**
 
@@ -399,6 +415,8 @@ POST /api/datasets
 PATCH /api/datasets/{owner}/{dataset}
 ```
 
+**Python SDK:** `client.datasets.update(owner, dataset)`
+
 **Body (partial update):**
 
 ```json
@@ -431,6 +449,8 @@ Renaming changes the URL name, so use the returned `dataset` value for subsequen
 DELETE /api/datasets/{owner}/{dataset}
 ```
 
+**Python SDK:** `client.datasets.delete(owner, dataset)`
+
 Moves the dataset to [trash](../account/trash.md), where it is recoverable for 30 days.
 
 ### Clone Dataset
@@ -438,6 +458,8 @@ Moves the dataset to [trash](../account/trash.md), where it is recoverable for 3
 ```http
 POST /api/datasets/{owner}/{dataset}/clone
 ```
+
+**Python SDK:** `client.datasets.clone(owner, dataset)`
 
 Copies an accessible dataset, with its images and labels, into your personal workspace or a team workspace.
 
@@ -462,6 +484,8 @@ connected storage source return `409` because their files are not copied.
 ```http
 GET /api/datasets/{owner}/{dataset}/export
 ```
+
+**Python SDK:** `client.datasets.export(owner, dataset)`
 
 Returns a signed NDJSON download URL. Omit `v` to export the dataset's current state, reusing the cached export when
 nothing changed since it was generated.
@@ -488,6 +512,8 @@ Requesting a specific version returns `downloadUrl` and `version` instead of `ca
 ```http
 POST /api/datasets/{owner}/{dataset}/export
 ```
+
+**Python SDK:** `client.datasets.create_export(owner, dataset)`
 
 Creates an immutable numbered snapshot of the dataset and stores its NDJSON export. Requires editor access.
 
@@ -517,6 +543,8 @@ Creates an immutable numbered snapshot of the dataset and stores its NDJSON expo
 PATCH /api/datasets/{owner}/{dataset}/export
 ```
 
+**Python SDK:** `client.datasets.update_export(owner, dataset, version=..., description=...)`
+
 **Body:**
 
 ```json
@@ -533,6 +561,8 @@ PATCH /api/datasets/{owner}/{dataset}/export
 ```http
 POST /api/datasets/{owner}/{dataset}/restore
 ```
+
+**Python SDK:** `client.datasets.restore(owner, dataset, version=...)`
 
 Rebuilds images, annotations, and classes from a saved version without copying image bytes.
 
@@ -551,6 +581,8 @@ Rebuilds images, annotations, and classes from a saved version without copying i
 ```http
 GET /api/datasets/{owner}/{dataset}/class-stats
 ```
+
+**Python SDK:** `client.datasets.class_stats(owner, dataset)`
 
 Returns per-class annotation counts, image and annotation histograms, and heatmaps. Large datasets are sampled, in
 which case `sampleSize` reports how many images contributed.
@@ -602,6 +634,8 @@ Merge classes (reassign annotations to a target class, then remove the sources):
 POST /api/datasets/{owner}/{dataset}/classes/merge
 ```
 
+**Python SDK:** `client.datasets.merge_classes(owner, dataset, source_class_ids=..., target_class_id=...)`
+
 ```json
 {
     "sourceClassIds": [2, 4],
@@ -614,6 +648,8 @@ Delete classes (their annotations are deleted and the remaining class IDs shift 
 ```http
 POST /api/datasets/{owner}/{dataset}/classes/delete
 ```
+
+**Python SDK:** `client.datasets.delete_classes(owner, dataset, class_ids=...)`
 
 ```json
 {
@@ -635,6 +671,8 @@ Both operations return `success`, the updated `classNames` and `classColors`, an
 POST /api/datasets/{owner}/{dataset}/splits/redistribute
 ```
 
+**Python SDK:** `client.datasets.redistribute_splits(owner, dataset, train=..., val=..., test=...)`
+
 Randomly reassigns images across splits. The three percentages must total 100.
 
 ```json
@@ -655,6 +693,9 @@ POST /api/datasets/{owner}/{dataset}/embeddings
 DELETE /api/datasets/{owner}/{dataset}/embeddings
 ```
 
+**Python SDK:** `client.datasets.embeddings(owner, dataset)`, `client.datasets.create_embeddings(owner, dataset)`,
+`client.datasets.delete_embeddings(owner, dataset)`
+
 `GET` returns the analysis summary (`analyzedAt`, `embeddingsCount`, `latestImageAt`, `activeJob`). `POST` queues an
 embedding analysis and returns `202` with a `jobId`. `DELETE` cancels the active job and returns the cancelled job ID
 or `null`.
@@ -665,6 +706,8 @@ or `null`.
 GET /api/datasets/{owner}/{dataset}/images/clustering
 ```
 
+**Python SDK:** `client.datasets.clustering(owner, dataset)`
+
 Returns the UMAP 2D layout from a completed analysis, paginated with `offset` and `limit` (default and max 50,000).
 Each entry has `id`, `umapX`, `umapY`, `split`, `classIds`, `width`, `height`, `bytes`, `labelCount`, and `missing`.
 
@@ -673,6 +716,8 @@ Each entry has `id`, `umapX`, `umapY`, `split`, `classIds`, `width`, `height`, `
 ```http
 GET /api/datasets/{owner}/{dataset}/models
 ```
+
+**Python SDK:** `client.datasets.models(owner, dataset)`
 
 **Response:**
 
@@ -704,6 +749,8 @@ GET /api/datasets/{owner}/{dataset}/models
 ```http
 GET /api/datasets/{owner}/{dataset}/images
 ```
+
+**Python SDK:** `client.datasets.images(owner, dataset)`
 
 **Query Parameters:**
 
@@ -756,6 +803,8 @@ GET /api/datasets/{owner}/{dataset}/images
 POST /api/datasets/{owner}/{dataset}/images
 ```
 
+**Python SDK:** `client.datasets.selected_images(owner, dataset, image_ids=...)`
+
 Returns the same image shape for up to 1,000 supplied image IDs, and accepts the same filter and URL query parameters
 as the list operation.
 
@@ -770,6 +819,8 @@ as the list operation.
 ```http
 POST /api/datasets/{owner}/{dataset}/ingest
 ```
+
+**Python SDK:** `client.datasets.ingest(owner, dataset, body=...)`
 
 Processes a completed upload, a remote archive, or a connected storage source into an existing dataset. Supply exactly
 one source:
@@ -932,6 +983,8 @@ Inspect, annotate, move, and delete dataset images by their 24-character image I
 GET /api/images/{imageId}
 ```
 
+**Python SDK:** `client.images.retrieve(image_id)`
+
 Returns `metadata` (custom, user-defined), `properties` (filename, hash, dimensions, split, counts, timestamps),
 `labels`, and the dataset's `classNames`.
 
@@ -940,6 +993,8 @@ Returns `metadata` (custom, user-defined), `properties` (filename, hash, dimensi
 ```http
 PATCH /api/images/{imageId}
 ```
+
+**Python SDK:** `client.images.update(image_id, body=...)`
 
 Replaces **either** the annotations **or** the custom metadata — send one of the two shapes, not both.
 
@@ -976,6 +1031,8 @@ Replaces **either** the annotations **or** the custom metadata — send one of t
 DELETE /api/images/{imageId}
 ```
 
+**Python SDK:** `client.images.delete(image_id)`
+
 Permanently deletes one image and its annotations.
 
 ### Auto-Annotate Image
@@ -983,6 +1040,8 @@ Permanently deletes one image and its annotations.
 ```http
 POST /api/images/{imageId}/predict
 ```
+
+**Python SDK:** `client.images.predict(image_id, model_id=...)`
 
 Runs YOLO inference on the image and returns predicted annotations. It does not save them — write the results back with
 `PATCH /api/images/{imageId}` when you are happy with them.
@@ -1001,6 +1060,8 @@ not match the dataset returns `422`.
 ```http
 PATCH /api/images/bulk
 ```
+
+**Python SDK:** `client.images.update_bulk(image_ids=..., split=...)`
 
 Moves up to 1,000 images from one dataset into a different split.
 
@@ -1021,6 +1082,8 @@ Filename or content conflicts return `409` until you choose a basket-wide `confl
 DELETE /api/images/bulk
 ```
 
+**Python SDK:** `client.images.delete_bulk(image_ids=...)`
+
 ```json
 {
     "imageIds": ["65f1c0a2b3d4e5f601234567", "65f1c0a2b3d4e5f601234568"]
@@ -1034,6 +1097,8 @@ Deletes up to 1,000 images from a single dataset and returns `deletedCount` and 
 ```http
 POST /api/images/urls
 ```
+
+**Python SDK:** `client.images.urls(image_ids=...)`
 
 Returns temporary signed URLs for up to 100 image IDs from one dataset.
 
@@ -1058,6 +1123,8 @@ Organize your models into projects. Each model belongs to one project. See
 GET /api/projects/{owner}
 ```
 
+**Python SDK:** `client.projects.list(owner)`
+
 **Query Parameters:**
 
 | Parameter | Type | Description                                        |
@@ -1070,6 +1137,8 @@ GET /api/projects/{owner}
 GET /api/projects/{owner}/{project}
 ```
 
+**Python SDK:** `client.projects.retrieve(owner, project)`
+
 Returns the `project` object, a `models` array of per-model summaries (status, metrics, epochs, weights, train args),
 and `isOwner`.
 
@@ -1078,6 +1147,8 @@ and `isOwner`.
 ```http
 POST /api/projects
 ```
+
+**Python SDK:** `client.projects.create(project=..., name=...)`
 
 | Field         | Type   | Required | Description                                                |
 | ------------- | ------ | -------- | ---------------------------------------------------------- |
@@ -1108,17 +1179,12 @@ POST /api/projects
 === "Python"
 
     ```python
-    resp = requests.post(
-        "https://platform.ultralytics.com/api/projects",
-        headers={"Authorization": f"Bearer {API_KEY}"},
-        json={
-            "project": "inspection",
-            "name": "Inspection",
-            "description": "Detection experiments",
-            "metadata": {"department": "manufacturing", "cost_center": "cv-01"},
-        },
+    created = client.projects.create(
+        project="inspection",
+        name="Inspection",
+        description="Detection experiments",
+        metadata={"department": "manufacturing", "cost_center": "cv-01"},
     )
-    created = resp.json()
     owner, project = created["owner"], created["project"]
     ```
 
@@ -1129,6 +1195,8 @@ POST /api/projects
 ```http
 PATCH /api/projects/{owner}/{project}
 ```
+
+**Python SDK:** `client.projects.update(owner, project)`
 
 Accepted fields: `name`, `description`, `visibility`, `metadata`, `tags`, `license`, `archived`, `iconColor`,
 `iconLetter`, `viewPreferences`, and `starred`.
@@ -1148,6 +1216,8 @@ Send an empty `metadata` object (`{}`) to clear it. Project metadata uses the sa
 DELETE /api/projects/{owner}/{project}
 ```
 
+**Python SDK:** `client.projects.delete(owner, project)`
+
 Moves the project and its models to [trash](../account/trash.md), returning `cascadedModels`.
 
 ### Clone Project
@@ -1155,6 +1225,8 @@ Moves the project and its models to [trash](../account/trash.md), returning `cas
 ```http
 POST /api/projects/{owner}/{project}/clone
 ```
+
+**Python SDK:** `client.projects.clone(owner, project)`
 
 Clones an accessible project and its completed models. The optional body accepts `project`, `name`, `description`,
 `visibility`, `license`, and a destination `owner`.
@@ -1172,6 +1244,8 @@ Manage trained YOLO models — view metrics, download weights, run inference, an
 GET /api/models/{owner}/{project}
 ```
 
+**Python SDK:** `client.models.list(owner, project)`
+
 **Query Parameters:**
 
 | Parameter | Type | Description                                      |
@@ -1183,6 +1257,8 @@ GET /api/models/{owner}/{project}
 ```http
 GET /api/models/{owner}/{project}/{model}
 ```
+
+**Python SDK:** `client.models.retrieve(owner, project, model)`
 
 **Query Parameters:**
 
@@ -1198,6 +1274,8 @@ The default response contains the `model` object — status, task, metrics, `tra
 ```http
 POST /api/models
 ```
+
+**Python SDK:** `client.models.create(body=...)`
 
 Creates an untrained model record you can attach weights to or train.
 
@@ -1228,6 +1306,8 @@ Creates an untrained model record you can attach weights to or train.
 PATCH /api/models/{owner}/{project}/{model}
 ```
 
+**Python SDK:** `client.models.update(owner, project, model)`
+
 Accepted fields include `name`, `description`, `color`, `metadata`, `status`, `license`, `datasetSlug`, `trainArgs`,
 `trainResults`, `epochs`, `bestEpoch`, `bestFitness`, `version`, `trainingError`, and `starred`.
 
@@ -1246,6 +1326,8 @@ uses the same size limits as dataset metadata.
 DELETE /api/models/{owner}/{project}/{model}
 ```
 
+**Python SDK:** `client.models.delete(owner, project, model)`
+
 Moves the model to [trash](../account/trash.md) for 30 days.
 
 ### Download Model Files
@@ -1253,6 +1335,8 @@ Moves the model to [trash](../account/trash.md) for 30 days.
 ```http
 GET /api/models/{owner}/{project}/{model}/files
 ```
+
+**Python SDK:** `client.models.files(owner, project, model)`
 
 Returns short-lived signed URLs for the model's weights.
 
@@ -1273,6 +1357,8 @@ Returns short-lived signed URLs for the model's weights.
 ```http
 POST /api/models/{owner}/{project}/{model}/clone
 ```
+
+**Python SDK:** `client.models.clone(owner, project, model, project_body=...)`
 
 Copies an accessible model into an existing project.
 
@@ -1300,6 +1386,8 @@ Copies an accessible model into an existing project.
 POST /api/models/{owner}/{project}/{model}/predict
 ```
 
+**Python SDK:** `client.models.predict(owner, project, model, body=...)`
+
 Public models can be predicted without authentication. Private and shared models require an API key with access to the
 parent project.
 
@@ -1324,13 +1412,8 @@ quantization. Requests that exceed the service's input limits return `413`.
 
     ```python
     with open("image.jpg", "rb") as f:
-        resp = requests.post(
-            "https://platform.ultralytics.com/api/models/acme-vision/inspection/v3/predict",
-            headers={"Authorization": f"Bearer {API_KEY}"},
-            files={"file": f},
-            data={"conf": 0.5},
-        )
-    results = resp.json()["images"][0]["results"]
+        resp = client.models.predict("acme-vision", "inspection", "v3", body={"file": f, "conf": 0.5})
+    results = resp["images"][0]["results"]
     ```
 
 **Response:**
@@ -1372,6 +1455,8 @@ model paths are never returned.
 GET /api/models/{owner}/{project}/{model}/training
 ```
 
+**Python SDK:** `client.models.training(owner, project, model)`
+
 Returns `job`, containing status, epoch progress, timing, compute details, train args, epoch metrics, and safe error
 details, or `null` when the model has never been trained. Models in public projects are readable without
 authentication.
@@ -1381,6 +1466,8 @@ authentication.
 ```http
 DELETE /api/models/{owner}/{project}/{model}/training
 ```
+
+**Python SDK:** `client.models.delete_training(owner, project, model)`
 
 Terminates the running compute instance and marks the job cancelled. Returns `409` when training is no longer active.
 
@@ -1413,6 +1500,8 @@ graph LR
 GET /api/training/gpu-availability
 ```
 
+**Python SDK:** `client.training.gpu_availability()`
+
 Returns current stock status keyed by GPU ID. Public and unauthenticated; pass `managed=true` to include managed
 training capacity, which does require an API key.
 
@@ -1421,6 +1510,8 @@ training capacity, which does require an API key.
 ```http
 POST /api/training/start
 ```
+
+**Python SDK:** `client.training.start(model_id=..., train_args=...)`
 
 | Field                   | Type    | Required | Description                                                         |
 | ----------------------- | ------- | -------- | ------------------------------------------------------------------- |
@@ -1452,22 +1543,18 @@ POST /api/training/start
 === "Python"
 
     ```python
-    resp = requests.post(
-        "https://platform.ultralytics.com/api/training/start",
-        headers={"Authorization": f"Bearer {API_KEY}"},
-        json={
-            "modelId": "65f1c0a2b3d4e5f601234599",
-            "gpuType": "rtx-4090",
-            "trainArgs": {
-                "model": "yolo26n.pt",
-                "data": "ul://acme-vision/datasets/warehouse",
-                "epochs": 100,
-                "imgsz": 640,
-                "batch": 16,
-            },
+    resp = client.training.start(
+        model_id="65f1c0a2b3d4e5f601234599",
+        gpu_type="rtx-4090",
+        train_args={
+            "model": "yolo26n.pt",
+            "data": "ul://acme-vision/datasets/warehouse",
+            "epochs": 100,
+            "imgsz": 640,
+            "batch": 16,
         },
     )
-    print(resp.json()["billing"]["estimatedCostDisplay"])
+    print(resp["billing"]["estimatedCostDisplay"])
     ```
 
 **Response:**
@@ -1508,6 +1595,8 @@ Convert models to optimized formats like ONNX, TensorRT, CoreML, and LiteRT for 
 GET /api/models/{owner}/{project}/{model}/exports
 ```
 
+**Python SDK:** `client.exports.list(owner, project, model)`
+
 **Query Parameters:**
 
 | Parameter | Type   | Description                                                                      |
@@ -1520,6 +1609,8 @@ GET /api/models/{owner}/{project}/{model}/exports
 ```http
 POST /api/models/{owner}/{project}/{model}/exports
 ```
+
+**Python SDK:** `client.exports.create(owner, project, model, format=...)`
 
 | Field     | Type   | Required    | Description                                                                                                                                                                                                          |
 | --------- | ------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1540,16 +1631,9 @@ POST /api/models/{owner}/{project}/{model}/exports
 === "Python"
 
     ```python
-    base = "https://platform.ultralytics.com/api/models/acme-vision/inspection/v3/exports"
-    resp = requests.post(
-        base,
-        headers={"Authorization": f"Bearer {API_KEY}"},
-        json={"format": "onnx", "args": {"imgsz": 640, "quantize": 16}},
-    )
-    export_id = resp.json()["id"]
-
-    status = requests.get(f"{base}/{export_id}", headers={"Authorization": f"Bearer {API_KEY}"})
-    print(status.json()["export"]["status"])
+    export = client.exports.create("acme-vision", "inspection", "v3", format="onnx", args={"imgsz": 640, "quantize": 16})
+    status = client.exports.retrieve("acme-vision", "inspection", "v3", export["id"])
+    print(status["export"]["status"])
     ```
 
 **Response (`201`):** `id`, `format`, `status` (`queued` or `running`), `gpuType`, `region`. An equivalent export that
@@ -1568,6 +1652,8 @@ target.
 GET /api/models/{owner}/{project}/{model}/exports/{exportId}
 ```
 
+**Python SDK:** `client.exports.retrieve(owner, project, model, export_id)`
+
 Returns the `export` object with `status`, `format`, `args`, `gpuType`, timestamps, and — once complete — a `file`
 object containing `size`, `downloadUrl`, and `downloadFilename`.
 
@@ -1576,6 +1662,8 @@ object containing `size`, `downloadUrl`, and `downloadFilename`.
 ```http
 DELETE /api/models/{owner}/{project}/{model}/exports/{exportId}
 ```
+
+**Python SDK:** `client.exports.delete(owner, project, model, export_id)`
 
 Cancels an active export or deletes a finished one and its file. The response reports which happened:
 
@@ -1617,6 +1705,8 @@ graph LR
 GET /api/deployments/{owner}
 ```
 
+**Python SDK:** `client.deployments.list(owner)`
+
 **Query Parameters:**
 
 | Parameter | Type   | Description                                                          |
@@ -1632,6 +1722,8 @@ Anonymous callers must filter by one public model; listing a whole workspace req
 ```http
 POST /api/deployments/{owner}
 ```
+
+**Python SDK:** `client.deployments.create(owner, project=..., model=..., deployment=..., name=..., region=...)`
 
 **Body:**
 
@@ -1671,6 +1763,8 @@ POST /api/deployments/{owner}
 GET /api/deployments/{owner}/{deployment}
 ```
 
+**Python SDK:** `client.deployments.retrieve(owner, deployment)`
+
 Returns the `deployment` object with `status`, `statusMessage`, `region`, `serviceUrl`, and `resources`.
 
 ### Start, Stop, or Replace a Deployment
@@ -1678,6 +1772,8 @@ Returns the `deployment` object with `status`, `statusMessage`, `region`, `servi
 ```http
 PATCH /api/deployments/{owner}/{deployment}
 ```
+
+**Python SDK:** `client.deployments.update(owner, deployment, body=...)`
 
 A single `action` field selects the operation:
 
@@ -1715,6 +1811,8 @@ Completed operations return `200` with `status` `ready` or `stopped`; operations
 DELETE /api/deployments/{owner}/{deployment}
 ```
 
+**Python SDK:** `client.deployments.delete(owner, deployment)`
+
 Permanently removes the inference endpoint.
 
 ### Health Check
@@ -1723,6 +1821,8 @@ Permanently removes the inference endpoint.
 GET /api/deployments/{owner}/{deployment}/health
 ```
 
+**Python SDK:** `client.deployments.health(owner, deployment)`
+
 Pings and warms the endpoint, returning `healthy`, `latencyMs`, and the upstream `status` code.
 
 ### Run Inference on a Deployment
@@ -1730,6 +1830,8 @@ Pings and warms the endpoint, returning `healthy`, `latencyMs`, and the upstream
 ```http
 POST /api/deployments/{owner}/{deployment}/predict
 ```
+
+**Python SDK:** `client.deployments.predict(owner, deployment, body=...)`
 
 Routes an image or video through the dedicated endpoint. The request and response contracts match
 [model inference](#run-inference).
@@ -1743,6 +1845,8 @@ Routes an image or video through the dedicated endpoint. The request and respons
 ```http
 GET /api/deployments/{owner}/{deployment}/metrics
 ```
+
+**Python SDK:** `client.deployments.metrics(owner, deployment)`
 
 **Query Parameters:**
 
@@ -1760,6 +1864,8 @@ The full response contains `summary` (request totals, error rate, average and p5
 ```http
 GET /api/deployments/{owner}/{deployment}/logs
 ```
+
+**Python SDK:** `client.deployments.logs(owner, deployment)`
 
 **Query Parameters:**
 
@@ -1782,6 +1888,8 @@ View, restore, and permanently delete soft-deleted projects, datasets, and model
 GET /api/trash
 ```
 
+**Python SDK:** `client.lifecycle.trash()`
+
 **Query Parameters:**
 
 | Parameter | Type   | Description                                       |
@@ -1799,6 +1907,8 @@ with totals by type.
 POST /api/trash
 ```
 
+**Python SDK:** `client.lifecycle.restore(id=..., type=...)`
+
 ```json
 {
     "id": "65f1c0a2b3d4e5f601234567",
@@ -1813,6 +1923,8 @@ Restoring a project also restores the models that were trashed with it, reported
 ```http
 DELETE /api/trash
 ```
+
+**Python SDK:** `client.lifecycle.delete_trash(body=...)`
 
 Delete one item:
 
@@ -1850,6 +1962,8 @@ dataset archive upload records the session, which you then pass to
 ```http
 POST /api/upload/signed-url
 ```
+
+**Python SDK:** `client.upload.signed_url(body=...)`
 
 **Body:**
 
@@ -1894,6 +2008,8 @@ Upload the file with a `PUT` request to `uploadUrl`, using the same `Content-Typ
 POST /api/upload/complete
 ```
 
+**Python SDK:** `client.upload.complete(session_id=...)`
+
 ```json
 {
     "sessionId": "session_abc123",
@@ -1917,6 +2033,8 @@ See [Integrations documentation](../integrations/index.md).
 GET /api/integrations/buckets
 ```
 
+**Python SDK:** `client.storage_integrations.list()`
+
 Returns `integrations`, each with `id`, `provider`, `credentialIdentity`, `targets`, and `createdAt`. Credentials are
 never returned.
 
@@ -1925,6 +2043,8 @@ never returned.
 ```http
 POST /api/integrations/buckets/discover
 ```
+
+**Python SDK:** `client.storage_integrations.discover(body=...)`
 
 Lists the buckets or containers readable with the supplied credentials, without saving them.
 
@@ -1973,6 +2093,8 @@ Lists the buckets or containers readable with the supplied credentials, without 
 POST /api/integrations/buckets
 ```
 
+**Python SDK:** `client.storage_integrations.create(body=...)`
+
 Same credential shapes as discovery, plus a required `targets` array of 1-50 bucket or container names. Returns `201`
 with the stored integration. Temporary S3 credentials (`ASIA` access keys) are rejected.
 
@@ -1981,6 +2103,8 @@ with the stored integration. Temporary S3 credentials (`ASIA` access keys) are r
 ```http
 GET /api/integrations/buckets/{id}/objects
 ```
+
+**Python SDK:** `client.storage_integrations.objects(id, target=...)`
 
 **Query Parameters:**
 
@@ -1998,6 +2122,8 @@ Returns `entries` (each `kind` is `folder` or `file`) and an optional `cursor` f
 DELETE /api/integrations/buckets/{id}
 ```
 
+**Python SDK:** `client.storage_integrations.delete(id)`
+
 Removes the saved credentials without deleting provider data. Connected datasets remain visible, but their files stay
 unavailable until the same storage account is reconnected. Requires workspace admin access.
 
@@ -2012,6 +2138,8 @@ Import datasets from third-party services. See [Roboflow integration](../integra
 ```http
 POST /api/integrations/roboflow/preview
 ```
+
+**Python SDK:** `client.datasets.preview_roboflow(api_key=...)`
 
 Resolves a Roboflow API key into an import plan: workspace details, `newDatasets` that would be imported, counts of
 skipped, unsupported, and unresolved projects, `bytesTotal`, and your `storage` headroom. The Roboflow API key is read
@@ -2028,6 +2156,8 @@ from the body and is not persisted.
 ```http
 POST /api/integrations/roboflow/import
 ```
+
+**Python SDK:** `client.datasets.import_roboflow(api_key=..., items=...)`
 
 Queues ingest jobs for up to 500 selected Roboflow project versions, using the items returned by the preview.
 
@@ -2061,6 +2191,8 @@ Inspect your Platform account, keys, storage, and public profiles. See [Settings
 GET /api/account/summary
 ```
 
+**Python SDK:** `client.account.summary()`
+
 Returns the plan, credit balance, and resource counts for the workspace that issued the key.
 
 ```json
@@ -2086,6 +2218,8 @@ Returns the plan, credit balance, and resource counts for the workspace that iss
 GET /api/api-keys
 ```
 
+**Python SDK:** `client.account.api_keys()`
+
 Returns `keys` with `keyId`, `name`, `keyPrefix`, and `createdAt` for the key's workspace. API-key-authenticated
 requests receive metadata only; full key values are shown to the workspace owner in
 [Settings > API Keys](../account/api-keys.md) in the Platform UI, which is also where keys are created and revoked.
@@ -2095,6 +2229,8 @@ requests receive metadata only; full key values are shown to the workspace owner
 ```http
 GET /api/storage
 ```
+
+**Python SDK:** `client.account.storage()`
 
 **Query Parameters:**
 
@@ -2139,6 +2275,8 @@ GET /api/storage
 GET /api/users
 ```
 
+**Python SDK:** `client.account.profile(username=...)`
+
 **Query Parameters:**
 
 | Parameter  | Type   | Required | Description         |
@@ -2152,6 +2290,8 @@ Returns the public `user` profile with `followerCount` and, for authenticated ca
 ```http
 PATCH /api/users
 ```
+
+**Python SDK:** `client.account.follow(username=..., followed=...)`
 
 ```json
 {
@@ -2178,6 +2318,8 @@ Check plan usage and your credit ledger. See [Billing documentation](../account/
 GET /api/billing/usage-summary
 ```
 
+**Python SDK:** `client.billing.usage_summary()`
+
 Returns `plan` (ID, status, billing cycle, period end), `metrics` (storage limit and usage), `trainingCredit`,
 `features`, `creditsCents`, and seat counts.
 
@@ -2186,6 +2328,8 @@ Returns `plan` (ID, status, billing cycle, period end), `metrics` (storage limit
 ```http
 GET /api/billing/transactions
 ```
+
+**Python SDK:** `client.billing.transactions()`
 
 **Query Parameters:**
 
@@ -2209,6 +2353,8 @@ Search public projects and datasets shared by the community. See [Explore docume
 GET /api/explore/search
 ```
 
+**Python SDK:** `client.explore.search()`
+
 **Query Parameters:**
 
 | Parameter | Type    | Description                                                                                       |
@@ -2230,10 +2376,34 @@ curl "https://platform.ultralytics.com/api/explore/search?type=datasets&task=det
 
 ---
 
+## Python SDK
+
+[`ultralytics-platform`](https://pypi.org/project/ultralytics-platform/) is a typed Python client generated from the
+OpenAPI contract, with one method per endpoint (`client.datasets.list`, `client.models.predict`,
+`client.exports.create`, ...). Every method accepts the path parameters positionally, other inputs as keyword arguments,
+and optional per-request `timeout` and `extra_headers`.
+
+```bash
+pip install "ultralytics-platform>=0.1.5" # Python 3.11+
+```
+
+```python
+from ultralytics_platform import Platform
+
+with Platform() as client:  # reads ULTRALYTICS_API_KEY
+    dataset = client.datasets.retrieve("acme-vision", "warehouse")
+    images = client.datasets.images("acme-vision", "warehouse", limit=10)
+    export = client.exports.create("acme-vision", "inspection", "v3", format="onnx")
+```
+
+`AsyncPlatform` exposes the same resource tree for `async`/`await` code, unsuccessful responses raise `APIError` with
+`status_code`, `body`, and parsed `json`, and connection failures raise `APIConnectionError`. See the
+[SDK repository](https://github.com/ultralytics/sdk) for the full README.
+
 ## Python Integration
 
-For easier integration, use the Ultralytics Python package, which handles authentication, uploads, and real-time metric
-streaming automatically.
+For training and inference workflows, use the Ultralytics Python package, which handles authentication, uploads, and
+real-time metric streaming automatically.
 
 ### Installation & Setup
 
@@ -2407,9 +2577,10 @@ Trash uses `page`, and deployment logs use the opaque `pageToken` returned as `n
 
 Yes. Every operation on this page is a plain HTTPS request, and the complete contract is published as OpenAPI 3.2 at
 [platform.ultralytics.com/openapi.json](https://platform.ultralytics.com/openapi.json), which you can feed to a client
-generator in any language. The Python SDK is a convenience wrapper that adds real-time metric streaming and automatic
-model uploads. Browser-session-only account flows, such as billing checkout and team management, remain in the Platform
-UI.
+generator in any language. The [`ultralytics-platform`](#python-sdk) package is exactly that: a typed client generated
+from the contract, while the `ultralytics` package adds real-time metric streaming and automatic model uploads on top of
+training and inference. Browser-session-only account flows, such as billing checkout and team management, remain in the
+Platform UI.
 
 ### How do I handle rate limits?
 

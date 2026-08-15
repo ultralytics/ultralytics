@@ -104,7 +104,7 @@ For most fine-tuning tasks, the default setting works well without any manual tu
 
 ### Fitting the Learning Rate to the Dataset
 
-Setting `lr0='auto'` runs a short [learning rate range test](https://arxiv.org/abs/1506.01186) before training starts and fits `lr0`, `warmup_bias_lr` and `warmup_epochs` to the model and dataset being trained. The default values are rule of thumb heuristics, so they cannot tell how far the target domain sits from the pretrained weights. The range test measures that directly, at the cost of roughly 25 seconds of extra start time at batch 32.
+Setting `lr0='auto'` runs a short [learning rate range test](https://arxiv.org/abs/1506.01186) before training starts and fits `lr0`, `warmup_bias_lr` and `warmup_epochs` to the model and dataset being trained. `lrf` is raised alongside them when needed, so a lower `lr0` still anneals to a usable final rate rather than stalling. The default values are rule of thumb heuristics, so they cannot tell how far the target domain sits from the pretrained weights. The range test measures that directly, at the cost of roughly 25 seconds of extra start time at batch 32.
 
 !!! example "Fit the learning rate"
 

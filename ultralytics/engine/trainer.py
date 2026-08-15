@@ -284,7 +284,9 @@ class BaseTrainer:
         it off the sampling grid. Neither endpoint works alone. The minimum registers damage late, because each loss
         reflects every lower rate that preceded it, while the peak under-trains a schedule that decays from 'lr0'.
         'lr0' therefore lands halfway between them in log space, and 'warmup_epochs' falls with the gap, so a narrow
-        band between fastest descent and instability ramps for longer.
+        band between fastest descent and instability ramps for longer. 'lrf' is not measurable this way, as it governs
+        the end of a schedule that has not run, so it is set by rule of thumb to land on the final rate the optimizer
+        family usually anneals to rather than on a fixed fraction of a fitted 'lr0'.
 
         Args:
             num_steps (int): Upper bound on the optimizer steps in the sweep, capped to a tenth of the run.
@@ -318,10 +320,8 @@ class BaseTrainer:
                     except StopIteration:
                         loader = iter(self.train_loader)
                         batch = next(loader)
-                    loss, loss_items = self._forward_batch(batch)
-                    # the reported items, not the summed loss: they are batch size independent, and for an end to end
-                    # model they are the one to one branch, whose share of the objective grows as training proceeds
-                    loss_sum += sum(loss_items.values()).detach()
+                    loss, _ = self._forward_batch(batch)
+                    loss_sum += loss.detach() / len(batch["img"])  # the objective, per image so the batch cancels
                     self.scaler.scale(loss).backward()
             except RuntimeError as e:
                 if self.world_size > 1:
@@ -351,29 +351,32 @@ class BaseTrainer:
         if not 5 <= edge < len(smooth_loss) - 1:  # the loss must fall and then turn back up inside the sweep
             LOGGER.warning(f"{prefix} sweep did not bracket an optimum, using the 'lr0' equation")
             return
+        # Back off a fixed 0.6 decades from the edge rather than a share of the band, whose low end is measured
+        # where the loss barely moves and so is noise. Against the tuned YOLO26 COCO recipes, which fine-tune the
+        # Objects365 checkpoints, this reproduces 'lr0' to 1.07x where a share of the band is out by 42x.
+        # Cap the one-step stability estimate at the highest rate any shipped schedule uses.
+        self.args.lr0 = self.args.warmup_bias_lr = lr = float(f"{min(10 ** (log_lrs[edge] - 0.6), 0.01):.3g}")
+        # Take the ramp from the band width, which needs a velocity peak inside the descending region to locate.
+        # A sweep that does not resolve one still fits every other setting, so this only skips 'warmup_epochs'.
         velocity = -np.gradient(smooth_loss[: edge + 1], log_lrs[: edge + 1])
         peak, radius = int(velocity.argmax()), max(edge // 8, 3)
-        if not 0 < peak < edge:
-            LOGGER.warning(f"{prefix} sweep found no velocity peak, using the 'lr0' equation")
-            return
-        # Interpolate the velocity peak so the fit is not limited to one of the sampled rates.
-        neighborhood = slice(max(peak - radius, 0), min(peak + radius + 1, edge + 1))
-        curvature, slope, _ = np.polyfit(log_lrs[neighborhood], velocity[neighborhood], 2)
-        fastest_log_lr = np.clip(
-            -slope / (2 * curvature) if curvature < 0 else log_lrs[peak], log_lrs[0], log_lrs[edge]
-        )
-        fit_log_lr = (fastest_log_lr + log_lrs[edge]) / 2  # midpoint between fastest descent and instability
-
-        # Cap the one-step stability estimate at the highest learning rate used by a shipped schedule.
-        self.args.lr0 = self.args.warmup_bias_lr = lr = float(f"{min(10**fit_log_lr, 0.01):.3g}")
-        # Preserve explicit warmup settings; narrower stable bands need a longer ramp.
-        if self.args.warmup_epochs == DEFAULT_CFG.warmup_epochs:
-            self.args.warmup_epochs = round(float(np.clip(5.0 - 2.5 * (log_lrs[edge] - fastest_log_lr), 1.0, 5.0)), 1)
+        if 0 < peak < edge and self.args.warmup_epochs == DEFAULT_CFG.warmup_epochs:
+            neighborhood = slice(max(peak - radius, 0), min(peak + radius + 1, edge + 1))
+            curvature, slope, _ = np.polyfit(log_lrs[neighborhood], velocity[neighborhood], 2)  # off the sample grid
+            fastest = np.clip(-slope / (2 * curvature) if curvature < 0 else log_lrs[peak], log_lrs[0], log_lrs[edge])
+            self.args.warmup_epochs = round(float(np.clip(5.0 - 2.5 * (log_lrs[edge] - fastest), 1.0, 5.0)), 1)
+        # Anneal to a fixed final rate rather than a fixed fraction of 'lr0', which would stall a run whose fitted
+        # 'lr0' is well under the default. The tuned YOLO26 recipes end within 12% of 3e-4 across a 14x range of
+        # 'lr0' and a 6x range of 'epochs', so take that as the SGD family endpoint and scale it by the Adam default.
+        if self.args.lrf == DEFAULT_CFG.lrf:  # preserve an explicit final fraction
+            end = 3e-5 if "adam" in type(self.optimizer).__name__.lower() else 3e-4
+            self.args.lrf = round(float(np.clip(end / lr, DEFAULT_CFG.lrf, 0.9)), 3)  # never a flat schedule
         for group, ratio in zip(self.optimizer.param_groups, lr_ratios):
             group["lr"] = group["initial_lr"] = lr * ratio
-        self._setup_scheduler()  # rebuild, as LambdaLR captured the pre-sweep initial_lr
+        self._setup_scheduler()  # rebuild, as LambdaLR captured the pre-sweep initial_lr and 'lrf'
         LOGGER.info(
-            f"{prefix} fitted 'lr0={lr:g}', 'warmup_bias_lr={lr:g}' and 'warmup_epochs={self.args.warmup_epochs:g}'"
+            f"{prefix} fitted 'lr0={lr:g}', 'warmup_bias_lr={lr:g}', 'lrf={self.args.lrf:g}' and "
+            f"'warmup_epochs={self.args.warmup_epochs:g}'"
         )
 
     def _build_train_pipeline(self):

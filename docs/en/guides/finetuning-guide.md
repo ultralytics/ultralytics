@@ -164,6 +164,7 @@ Freeze depth can also be treated as a hyperparameter - trying a few values (0, 5
 
 Fine-tuning generally requires fewer hyperparameter adjustments than training from scratch. The parameters that matter most are:
 
+- **`lr0`**: The learning rate has the largest effect on fine-tuning accuracy of any single setting. `lr0='auto'` is the recommended starting point, as it fits the rate to the model and dataset rather than reading the class count alone. See [Fitting the Learning Rate to the Dataset](#fitting-the-learning-rate-to-the-dataset).
 - **`epochs`**: Fine-tuning converges faster than training from scratch. Start with a moderate value and use `patience` to stop early when validation metrics plateau.
 - **`patience`**: The default of 100 is designed for long training runs. Reducing this to 10-20 avoids wasting time on runs that have already converged.
 - **`warmup_epochs`**: The default warmup (3 epochs) gradually increases the learning rate from zero, which prevents large gradient updates from damaging pretrained features in early iterations. Keeping the default is recommended even for fine-tuning, or set `lr0='auto'` to fit it from the width of the stable learning rate band.
@@ -201,6 +202,7 @@ This approach is particularly useful when the target domain differs significantl
 
 ### Validation mAP plateaus early
 
+- **Fit the learning rate**: set `lr0='auto'` so the rate is measured on the dataset instead of assumed, as a rate that is too low plateaus early.
 - **Add more data**: fine-tuning benefits significantly from additional training data, especially diverse examples with varied angles, lighting, and backgrounds.
 - **Check class balance**: underrepresented classes will have low AP. Use `cls_pw` to apply inverse frequency class weighting (start with `cls_pw=0.25` for moderate imbalance, increase to `1.0` for severe imbalance).
 - **Reduce augmentation**: for very small datasets, heavy augmentation can hurt more than it helps. Try `mosaic=0.5` or `mosaic=0.0`.

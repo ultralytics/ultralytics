@@ -43,6 +43,8 @@ Flags:
     --datasets <path>: multi_det_finetune only. Either a file with one YOLO data.yaml
                 path per line (#-comments and blanks ignored), or a directory scanned
                 one level deep for ``*/data.yaml``.
+    --shard <index/count>: multi_det_finetune only. Run one disjoint dataset shard per GPU process while all shards
+                merge into the same locked aggregate CSV, e.g. --shard 0/2 and --shard 1/2.
     --imgsz <int>: multi_det_finetune/teacher_frozen_det only. Override the canonical det
                 imgsz (640), e.g. 224 to run the frozen backbone at its phase-1 grid.
 """
@@ -60,6 +62,7 @@ os.environ["PYTHONPATH"] = _REPO_ROOT + os.pathsep + os.environ.get("PYTHONPATH"
 os.environ.setdefault("OMP_NUM_THREADS", "1")  # before torch: BLAS pools size at init, ignore torch.set_num_threads
 
 import torch
+from filelock import FileLock
 
 from callbacks import nfs_sync, paths, wandb_config
 from ultralytics import YOLO
@@ -513,12 +516,70 @@ def _backfill_multi_f1(run_dirs: tuple[Path, ...], rows: dict[str, dict[str, flo
 
 def _write_multi_results(csv_path: Path, rows: dict[str, dict[str, float]]) -> None:
     """Write one canonical multi_det CSV with no duplicate rows."""
-    with csv_path.open("w", newline="") as f:
+    tmp = csv_path.with_suffix(".tmp")
+    with tmp.open("w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=("dataset", "map50", "map50_95", "fitness", "f1"))
         writer.writeheader()
         writer.writerows(
-            {"dataset": name, **{key: f"{value:.4f}" for key, value in row.items()}} for name, row in rows.items()
+            {"dataset": name, **{key: f"{value:.4f}" for key, value in row.items()}}
+            for name, row in sorted(rows.items(), key=lambda item: (item[0] == "MACRO", item[0]))
         )
+    tmp.replace(csv_path)
+
+
+def _merge_multi_results(
+    csv_path: Path,
+    nfs_csv: Path,
+    expected: set[str],
+    row: dict[str, str | float] | None = None,
+) -> tuple[dict[str, dict[str, float]], dict[str, float] | None, bool]:
+    """Merge one result into the locked local and NFS aggregate CSVs.
+
+    Args:
+        csv_path (Path): Host-local aggregate CSV path.
+        nfs_csv (Path): Shared aggregate CSV path and lock owner.
+        expected (set[str]): Complete dataset basename set across every shard.
+        row (dict, optional): Completed per-dataset result including its dataset basename.
+
+    Returns:
+        rows (dict): Current unique per-dataset results.
+        macro (dict | None): Final macro metrics once every expected dataset is committed.
+        finalized (bool): Whether this call created the final MACRO row.
+    """
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    nfs_csv.parent.mkdir(parents=True, exist_ok=True)
+    with FileLock(nfs_csv.with_suffix(".lock")):
+        local, shared = _read_multi_results(csv_path), _read_multi_results(nfs_csv)
+        had_macro = "MACRO" in local or "MACRO" in shared
+        local.pop("MACRO", None)
+        shared.pop("MACRO", None)
+        conflicts = sorted(name for name in local.keys() & shared.keys() if local[name] != shared[name])
+        if conflicts:
+            raise ValueError(f"Conflicting local and NFS multi_results.csv rows for {conflicts}")
+        local.update(shared)
+        if row is not None:
+            name = str(row["dataset"])
+            values = {key: round(float(row[key]), 4) for key in ("map50", "map50_95", "fitness", "f1")}
+            if name in local and local[name] != values:
+                raise ValueError(f"Conflicting multi_results.csv row for {name!r}")
+            local[name] = values
+        _backfill_multi_f1((csv_path.parent, nfs_csv.parent), local)
+        unexpected = sorted(local.keys() - expected)
+        if unexpected:
+            raise ValueError(f"Existing multi_results.csv contains datasets outside this suite: {unexpected}")
+        macro = (
+            {
+                key: sum(result[key] for result in local.values()) / len(local)
+                for key in ("map50", "map50_95", "fitness", "f1")
+            }
+            if len(local) == len(expected)
+            else None
+        )
+        _write_multi_results(csv_path, {**local, **({"MACRO": macro} if macro else {})})
+        mirror_tmp = nfs_csv.with_suffix(".tmp")
+        shutil.copy2(csv_path, mirror_tmp)
+        mirror_tmp.replace(nfs_csv)
+    return local, macro, macro is not None and not had_macro
 
 
 def load_multi_results(parent_name: str, expected: list[str] | None = None) -> tuple[dict, dict]:
@@ -590,6 +651,7 @@ def _run_multi_det(
     recipe_name: str = "",
     cls_map_vocab: str = "",
     model_override: str = "",
+    shard: str = "",
 ) -> None:
     """Sequentially train + val on a list of YOLO-format detection datasets.
 
@@ -613,6 +675,7 @@ def _run_multi_det(
         freeze_override (str): Distilled-student freeze depth. When set (and no teacher_spec), freezes det layers 0..N-1
             via the trainer freeze arg (e.g. 10 for yolo26l = transferred backbone 0-8 + SPPF 9), so only C2PSA + neck +
             Detect head train. Mirrors the frozen-teacher ceiling probe for the distilled backbone.
+        imgsz_override (str): Detection image-size override.
         teacher_spec (str, optional): Frozen-teacher registry key (e.g. "eupe:vitb16"). When set, runs the
             teacher_frozen_det mode: build yolo26-teacherdet.yaml with this teacher, freeze=1, no phase1 weights or
             parent push. When None, the standard distilled-student multi_det_finetune mode.
@@ -624,13 +687,21 @@ def _run_multi_det(
             cls_remap=true and transfers same-name head rows plus listed aliases instead of the profile's no-transfer
             default. Pick the vocab matching phase1_weights' pretraining label space.
         model_override (str): Detector YAML override.
+        shard (str, optional): Zero-based dataset shard in ``index/count`` form.
     """
     if "," in gpu:
         raise SystemExit(
             "ERROR: mode='multi_det_finetune' requires a single GPU. DetectionTrainer drops "
             f"add_callback registrations under DDP. Got gpu={gpu!r}; pass a single id like '0'."
         )
-    dataset_yamls = _resolve_dataset_list(datasets_arg)
+    suite_yamls = _resolve_dataset_list(datasets_arg)
+    shard_parts = shard.split("/") if shard else ["0", "1"]
+    if len(shard_parts) != 2 or not all(part.isdigit() for part in shard_parts):
+        raise SystemExit(f"ERROR: --shard must use zero-based index/count form, got {shard!r}.")
+    shard_index, shard_count = map(int, shard_parts)
+    if shard_count < 1 or shard_index >= shard_count or shard_count > len(suite_yamls):
+        raise SystemExit(f"ERROR: --shard {shard!r} is invalid for {len(suite_yamls)} datasets.")
+    dataset_yamls = suite_yamls[shard_index::shard_count]
     parent_save_dir = paths.LOCAL_ROOT / parent_name
     parent_save_dir.mkdir(parents=True, exist_ok=True)
     if teacher_spec:
@@ -649,29 +720,8 @@ def _run_multi_det(
 
     csv_path = paths.multi_results_csv(parent_name, paths.LOCAL_ROOT)
     nfs_csv = paths.multi_results_csv(parent_name)
-    completed = _read_multi_results(csv_path)
-    shared = _read_multi_results(nfs_csv)
-    completed.pop("MACRO", None)
-    shared.pop("MACRO", None)
-    conflicts = sorted(name for name in completed.keys() & shared.keys() if completed[name] != shared[name])
-    if conflicts:
-        raise ValueError(f"Conflicting local and NFS multi_results.csv rows for {conflicts}")
-    completed.update(shared)
-    _backfill_multi_f1(tuple(root / parent_name for root in (paths.LOCAL_ROOT, paths.NFS_MIRROR_ROOT)), completed)
-    expected = {path.parent.name for path in dataset_yamls}
-    unexpected = sorted(completed.keys() - expected)
-    if unexpected:
-        raise ValueError(f"Existing multi_results.csv contains datasets outside this suite: {unexpected}")
-    _write_multi_results(csv_path, completed)
-
-    def _mirror_csv() -> None:
-        # nfs_sync mirrors only per-dataset save_dirs, never this parent-level CSV, so it stays host-local otherwise.
-        # Warn-only on filesystem/NFS errors so a transient mirror failure never kills the run (nfs_sync is non-blocking for the same reason).
-        try:
-            nfs_csv.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(csv_path, nfs_csv)
-        except OSError as e:
-            print(f"[multi_det_finetune] NFS mirror of multi_results.csv failed (continuing): {e}")
+    expected = {path.parent.name for path in suite_yamls}
+    completed, macro, owns_final = _merge_multi_results(csv_path, nfs_csv, expected)
 
     repo_defaults = not recipe_name
     if repo_defaults:
@@ -727,7 +777,10 @@ def _run_multi_det(
     if imgsz_override:
         # Ablation lever: run the detector at a non-640 imgsz, e.g. 224 to match the phase-1 distillation grid.
         det_args["imgsz"] = int(imgsz_override)
-    print(f"[multi_det_finetune] parent={parent_name} datasets={len(dataset_yamls)} model={model_yaml}")
+    print(
+        f"[multi_det_finetune] parent={parent_name} datasets={len(dataset_yamls)}/{len(suite_yamls)} "
+        f"shard={shard_index}/{shard_count} model={model_yaml}"
+    )
     print(f"[multi_det_finetune] aggregate csv -> {csv_path}")
 
     recipe_args = {
@@ -820,27 +873,24 @@ def _run_multi_det(
             "fitness": float(metrics.fitness),
             "f1": 2 * p * r / (p + r) if p + r else 0.0,
         }
-        completed[basename] = {key: row[key] for key in ("map50", "map50_95", "fitness", "f1")}
-        if len(completed) < len(dataset_yamls):
-            _write_multi_results(csv_path, completed)
-            _mirror_csv()
+        completed, macro, finalized = _merge_multi_results(csv_path, nfs_csv, expected, row)
+        owns_final |= finalized
         print(
             f"[done] {basename} mAP50={row['map50']:.4f} mAP50-95={row['map50_95']:.4f} "
             f"fitness={row['fitness']:.4f} F1={row['f1']:.4f}"
         )
 
-    macro = {
-        key: sum(row[key] for row in completed.values()) / len(completed)
-        for key in ("map50", "map50_95", "fitness", "f1")
-    }
-    _write_multi_results(csv_path, {**completed, "MACRO": macro})
-    _mirror_csv()
+    if macro is None:
+        print(
+            f"[multi_det_finetune] shard {shard_index}/{shard_count} complete; suite={len(completed)}/{len(expected)}"
+        )
+        return
     print(
         f"\n[multi_det_finetune] MACRO over {len(completed)} datasets: "
         f"mAP50={macro['map50']:.4f} mAP50-95={macro['map50_95']:.4f} "
         f"fitness={macro['fitness']:.4f} F1={macro['f1']:.4f}"
     )
-    if not teacher_spec:  # frozen-teacher runs have no phase1 distillation parent to push the downstream link to
+    if owns_final and not teacher_spec:  # frozen-teacher runs have no phase1 distillation parent to push downstream
         # Auto-resolve the phase-1 run from the backbone dir when no id was passed, so the sweep view self-links.
         w = Path(phase1_weights)
         # Bare published weights like yolov8s.pt have no <run>/weights/<file>.pt lineage to link back to.
@@ -873,6 +923,7 @@ def main(argv: list[str]) -> None:
     argv, cls_map_vocab = _pop_flag(argv, "--cls_map")
     argv, scratch = _pop_flag(argv, "--scratch", is_bool=True)
     argv, datasets_arg = _pop_flag(argv, "--datasets")
+    argv, shard = _pop_flag(argv, "--shard")
     argv, imgsz_override = _pop_flag(argv, "--imgsz")
     argv, seed_override = _pop_flag(argv, "--seed")
     seed = int(seed_override) if seed_override else 0
@@ -918,6 +969,7 @@ def main(argv: list[str]) -> None:
             imgsz_override=imgsz_override,
             seed=seed,
             teacher_spec=teacher_spec,
+            shard=shard,
         )
         return
     if resume:
@@ -968,8 +1020,11 @@ def main(argv: list[str]) -> None:
             recipe_name=recipe_name,
             cls_map_vocab=cls_map_vocab,
             model_override=model_override,
+            shard=shard,
         )
         return
+    if shard:
+        raise SystemExit(f"ERROR: --shard is not supported for mode={mode!r}.")
 
     # Resume auto-fallback: pre-fill cli overrides from saved args so resume preserves the run's
     # lr/batch/nbs. Both the per-mode scaling blocks and the post-dispatch apply block read these

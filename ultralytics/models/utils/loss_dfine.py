@@ -233,33 +233,21 @@ class DfineLoss(nn.Module):
 
     @staticmethod
     def get_dn_match_indices(
-        dn_pos_idx: list[torch.Tensor], dn_num_group: int, gt_groups: list[int]
+        dn_pos_idx: list[torch.Tensor], dn_num_group: int, dn_gt_idx: list[torch.Tensor]
     ) -> list[tuple[torch.Tensor, torch.Tensor]]:
         """Get match indices for the denoising queries.
 
         Args:
             dn_pos_idx (list[torch.Tensor]): Positive denoising query indices for each image.
             dn_num_group (int): Number of denoising groups.
-            gt_groups (list[int]): Number of ground truth boxes per batch image.
+            dn_gt_idx (list[torch.Tensor]): Ground truth index each image's denoising queries reconstruct.
 
         Returns:
             (list[tuple[torch.Tensor, torch.Tensor]]): Per-image (query index, ground truth index) match pairs.
         """
-        dn_match_indices = []
-        idx_groups = torch.as_tensor([0, *gt_groups[:-1]]).cumsum_(0)
-        for i, num_gt in enumerate(gt_groups):
-            if num_gt > 0:
-                gt_idx = torch.arange(end=num_gt, dtype=torch.long, device=dn_pos_idx[i].device) + idx_groups[i]
-                gt_idx = gt_idx.repeat(dn_num_group)
-                dn_match_indices.append((dn_pos_idx[i], gt_idx))
-            else:
-                dn_match_indices.append(
-                    (
-                        torch.zeros([0], dtype=torch.long, device=dn_pos_idx[0].device if dn_pos_idx else None),
-                        torch.zeros([0], dtype=torch.long, device=dn_pos_idx[0].device if dn_pos_idx else None),
-                    )
-                )
-        return dn_match_indices
+        return [
+            (dn_pos_idx[i], gt_idx.to(dn_pos_idx[i].device).repeat(dn_num_group)) for i, gt_idx in enumerate(dn_gt_idx)
+        ]
 
     def _get_loss_class(
         self,
@@ -890,7 +878,7 @@ class DfineLoss(nn.Module):
 
         if dn_meta is not None and dn_bboxes is not None and dn_scores is not None:
             dn_pos_idx, dn_num_group = dn_meta["dn_pos_idx"], dn_meta["dn_num_group"]
-            dn_match_indices = self.get_dn_match_indices(dn_pos_idx, dn_num_group, batch["gt_groups"])
+            dn_match_indices = self.get_dn_match_indices(dn_pos_idx, dn_num_group, dn_meta["dn_gt_idx"])
             dn_norm = max(global_num_gts * dn_num_group, 1.0)
 
             total_loss.update(

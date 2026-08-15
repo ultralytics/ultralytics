@@ -43,14 +43,13 @@ Flags:
     --datasets <path>: multi_det_finetune only. Either a file with one YOLO data.yaml
                 path per line (#-comments and blanks ignored), or a directory scanned
                 one level deep for ``*/data.yaml``.
-    --shard <index/count>: multi_det_finetune only. Run one disjoint dataset shard per GPU process while all shards
-                merge into the same locked aggregate CSV, e.g. --shard 0/2 and --shard 1/2.
     --imgsz <int>: multi_det_finetune/teacher_frozen_det only. Override the canonical det
                 imgsz (640), e.g. 224 to run the frozen backbone at its phase-1 grid.
 """
 
 import csv
 import json
+import multiprocessing
 import os
 import re
 import shutil
@@ -72,7 +71,7 @@ from ultralytics.nn.tasks import guess_model_scale, load_checkpoint
 from ultralytics.nn.teacher_model import TEACHER_REGISTRY, safe_key
 from ultralytics.utils import DEFAULT_CFG_DICT, SETTINGS, YAML
 from ultralytics.utils.downloads import attempt_download_asset, safe_download
-from ultralytics.utils.torch_utils import intersect_dicts
+from ultralytics.utils.torch_utils import intersect_dicts, parse_device
 
 # teacher_frozen_det: frozen foundation teacher (yolo26-teacherdet.yaml layer 0) + trainable ViTDet pyramid + Detect,
 # the frozen-feature detection ceiling. Supported = ImageNet-stat ViT/ConvNeXt teachers audited (2026-06-24) to run at
@@ -651,7 +650,7 @@ def _run_multi_det(
     recipe_name: str = "",
     cls_map_vocab: str = "",
     model_override: str = "",
-    shard: str = "",
+    shard: tuple[int, int] = (0, 1),
 ) -> None:
     """Sequentially train + val on a list of YOLO-format detection datasets.
 
@@ -659,7 +658,7 @@ def _run_multi_det(
     Each dataset is its own W&B run named ``{parent_name}-{basename}``. Aggregate metrics are written to ``{parent
     save_dir}/multi_results.csv`` (mirrored to the NFS run dir) and printed as a macro average at the end.
 
-    Single-GPU only (same DDP-callback-loss caveat as other det modes).
+    Run one single-GPU worker (same DDP-callback-loss caveat as other det modes).
 
     Args:
         gpu (str): Single GPU id (e.g. "0").
@@ -687,20 +686,12 @@ def _run_multi_det(
             cls_remap=true and transfers same-name head rows plus listed aliases instead of the profile's no-transfer
             default. Pick the vocab matching phase1_weights' pretraining label space.
         model_override (str): Detector YAML override.
-        shard (str, optional): Zero-based dataset shard in ``index/count`` form.
+        shard (tuple, optional): Internal dataset shard index and worker count.
     """
-    if "," in gpu:
-        raise SystemExit(
-            "ERROR: mode='multi_det_finetune' requires a single GPU. DetectionTrainer drops "
-            f"add_callback registrations under DDP. Got gpu={gpu!r}; pass a single id like '0'."
-        )
     suite_yamls = _resolve_dataset_list(datasets_arg)
-    shard_parts = shard.split("/") if shard else ["0", "1"]
-    if len(shard_parts) != 2 or not all(part.isdigit() for part in shard_parts):
-        raise SystemExit(f"ERROR: --shard must use zero-based index/count form, got {shard!r}.")
-    shard_index, shard_count = map(int, shard_parts)
+    shard_index, shard_count = shard
     if shard_count < 1 or shard_index >= shard_count or shard_count > len(suite_yamls):
-        raise SystemExit(f"ERROR: --shard {shard!r} is invalid for {len(suite_yamls)} datasets.")
+        raise SystemExit(f"ERROR: internal UL33 shard {shard_index}/{shard_count} is invalid.")
     dataset_yamls = suite_yamls[shard_index::shard_count]
     parent_save_dir = paths.LOCAL_ROOT / parent_name
     parent_save_dir.mkdir(parents=True, exist_ok=True)
@@ -923,7 +914,6 @@ def main(argv: list[str]) -> None:
     argv, cls_map_vocab = _pop_flag(argv, "--cls_map")
     argv, scratch = _pop_flag(argv, "--scratch", is_bool=True)
     argv, datasets_arg = _pop_flag(argv, "--datasets")
-    argv, shard = _pop_flag(argv, "--shard")
     argv, imgsz_override = _pop_flag(argv, "--imgsz")
     argv, seed_override = _pop_flag(argv, "--seed")
     seed = int(seed_override) if seed_override else 0
@@ -969,7 +959,6 @@ def main(argv: list[str]) -> None:
             imgsz_override=imgsz_override,
             seed=seed,
             teacher_spec=teacher_spec,
-            shard=shard,
         )
         return
     if resume:
@@ -983,12 +972,6 @@ def main(argv: list[str]) -> None:
         else resume_args.get("pretrained", "runs/classify/yolo-next-encoder/phase1-d7-dinov3-convnextb/weights/best.pt")
     )
     mode = argv[2] if len(argv) > 2 else _resume_mode(resume_args)
-    if "," in gpu and mode not in _DDP_CAPABLE_MODES:
-        raise SystemExit(
-            f"ERROR: mode={mode!r} needs a single GPU. dist.py:79 rebuilds the trainer per DDP child with "
-            f"no callbacks, so log_config no-ops and W&B misses the parent-run fields. DDP-safe modes are "
-            f"{_DDP_CAPABLE_MODES}. Got gpu={gpu!r}."
-        )
     name = argv[3] if len(argv) > 3 else resume_args.get("name", f"phase2-{mode}-d7")
     phase1_wandb_id = argv[4] if len(argv) > 4 else ""
     epochs = int(argv[5]) if len(argv) > 5 else resume_args.get("epochs")
@@ -1002,29 +985,49 @@ def main(argv: list[str]) -> None:
             raise SystemExit("ERROR: mode='multi_det_finetune' requires --datasets <file|dir>.")
         if resume or fork_from:
             raise SystemExit("ERROR: --resume and --fork_from are not supported for multi_det_finetune.")
-        _run_multi_det(
-            gpu=gpu,
-            phase1_weights=phase1_weights,
-            parent_name=name,
-            phase1_wandb_id=phase1_wandb_id,
-            epochs=epochs,
-            patience=patience,
-            batch_override=batch_override,
-            lr_override=lr_override,
-            nbs_override=nbs_override,
-            datasets_arg=datasets_arg,
-            freeze_override=freeze_override,
-            imgsz_override=imgsz_override,
-            seed=seed,
-            backbone_lr_ratio_override=backbone_lr_ratio_override,
-            recipe_name=recipe_name,
-            cls_map_vocab=cls_map_vocab,
-            model_override=model_override,
-            shard=shard,
-        )
+        multi_args = {
+            "phase1_weights": phase1_weights,
+            "parent_name": name,
+            "phase1_wandb_id": phase1_wandb_id,
+            "epochs": epochs,
+            "patience": patience,
+            "batch_override": batch_override,
+            "lr_override": lr_override,
+            "nbs_override": nbs_override,
+            "datasets_arg": datasets_arg,
+            "freeze_override": freeze_override,
+            "imgsz_override": imgsz_override,
+            "seed": seed,
+            "backbone_lr_ratio_override": backbone_lr_ratio_override,
+            "recipe_name": recipe_name,
+            "cls_map_vocab": cls_map_vocab,
+            "model_override": model_override,
+        }
+        gpus = parse_device(gpu).split(",")
+        if len(set(gpus)) != len(gpus):
+            raise SystemExit(f"ERROR: duplicate multi_det_finetune GPU in {gpu!r}.")
+        if len(gpus) == 1:
+            _run_multi_det(gpu=gpus[0], **multi_args)
+            return
+        context = multiprocessing.get_context("spawn")
+        workers = [
+            context.Process(target=_run_multi_det, kwargs={"gpu": device, "shard": (index, len(gpus)), **multi_args})
+            for index, device in enumerate(gpus)
+        ]
+        for worker in workers:
+            worker.start()
+        for worker in workers:
+            worker.join()
+        if failures := [worker.exitcode for worker in workers if worker.exitcode]:
+            raise SystemExit(f"ERROR: multi_det_finetune workers failed with exit codes {failures}.")
         return
-    if shard:
-        raise SystemExit(f"ERROR: --shard is not supported for mode={mode!r}.")
+
+    if "," in gpu and mode not in _DDP_CAPABLE_MODES:
+        raise SystemExit(
+            f"ERROR: mode={mode!r} needs a single GPU. dist.py:79 rebuilds the trainer per DDP child with "
+            f"no callbacks, so log_config no-ops and W&B misses the parent-run fields. DDP-safe modes are "
+            f"{_DDP_CAPABLE_MODES}. Got gpu={gpu!r}."
+        )
 
     # Resume auto-fallback: pre-fill cli overrides from saved args so resume preserves the run's
     # lr/batch/nbs. Both the per-mode scaling blocks and the post-dispatch apply block read these

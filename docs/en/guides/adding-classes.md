@@ -114,7 +114,7 @@ The detection head gains a small refinement branch, one per detection level, bui
 
 Everything else is frozen, including [batch normalization](https://www.ultralytics.com/glossary/batch-normalization) statistics. The classification output rows of the untuned classes are restored after every optimizer step, so weight decay and momentum cannot move them either.
 
-The guarantee covers class scores. A single box is predicted per anchor and shared by every class, so the box adjustment can move a box on an anchor where a tuned class is confident. The confidence gate is what keeps every other anchor exactly where it was.
+The guarantee covers class scores. A single box is predicted per anchor and shared by every class, so the box adjustment can move a box on an anchor where a tuned class is confident. The confidence gate scales that adjustment down to nothing on the anchors where no tuned class fires.
 
 The cost for one added class, measured at 640 pixels after `fuse`:
 

@@ -58,6 +58,7 @@ from ultralytics.nn.modules import (
     ImagePoolingAttn,
     Index,
     LRPCHead,
+    Mono3DDetect,
     Pose,
     Pose26,
     RepC3,
@@ -96,6 +97,7 @@ from ultralytics.utils.loss import (
     SemanticSegmentationLoss,
     v8ClassificationLoss,
     v8DetectionLoss,
+    v8Mono3DLoss,
     v8OBBLoss,
     v8PoseLoss,
     v8SegmentationLoss,
@@ -594,7 +596,8 @@ class DetectionModel(BaseModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the DetectionModel."""
-        return E2ELoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
+        loss_fn = v8Mono3DLoss if isinstance(self.model[-1], Mono3DDetect) else v8DetectionLoss
+        return E2ELoss(self, loss_fn) if getattr(self, "end2end", False) else loss_fn(self)
 
 
 class OBBModel(DetectionModel):
@@ -2082,6 +2085,7 @@ def parse_model(d, ch, verbose=True):
         elif m in frozenset(
             {
                 Detect,
+                Mono3DDetect,
                 WorldDetect,
                 YOLOEDetect,
                 Segment,
@@ -2097,7 +2101,19 @@ def parse_model(d, ch, verbose=True):
             args.extend([reg_max, end2end, [ch[x] for x in f]])
             if m is Segment or m is YOLOESegment or m is Segment26 or m is YOLOESegment26:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
+            if m in {
+                Detect,
+                Mono3DDetect,
+                YOLOEDetect,
+                Segment,
+                Segment26,
+                YOLOESegment,
+                YOLOESegment26,
+                Pose,
+                Pose26,
+                OBB,
+                OBB26,
+            }:
                 m.legacy = legacy
         elif m is Depth:
             args = [*args[:1], [ch[x] for x in f]]  # c_mid, ch tuple; drops the legacy mode arg old checkpoints store

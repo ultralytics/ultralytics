@@ -24,6 +24,7 @@ __all__ = (
     "Classify",
     "Depth",
     "Detect",
+    "Mono3DDetect",
     "Pose",
     "RTDETRDecoder",
     "Segment",
@@ -276,6 +277,43 @@ class Detect(nn.Module):
     def fuse(self) -> None:
         """Remove the one2many head for inference optimization."""
         self.cv2 = self.cv3 = None
+
+
+class Mono3DDetect(Detect):
+    """Detection head with eight raw monocular 3D parameters per anchor."""
+
+    def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
+        """Initialize the detection and monocular 3D regression branches."""
+        super().__init__(nc, reg_max, end2end, ch)
+        self.ne = 8  # projected center offsets, log-depth, sin/cos alpha, log h/w/l
+        c4 = max(ch[0] // 4, self.ne)
+        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.ne, 1)) for x in ch)
+        if end2end:
+            self.one2one_cv4 = copy.deepcopy(self.cv4)
+
+    @property
+    def one2many(self):
+        """Return one-to-many detection and monocular 3D branches."""
+        return {"box_head": self.cv2, "cls_head": self.cv3, "d3_head": self.cv4}
+
+    @property
+    def one2one(self):
+        """Return one-to-one detection and monocular 3D branches."""
+        return {"box_head": self.one2one_cv2, "cls_head": self.one2one_cv3, "d3_head": self.one2one_cv4}
+
+    def forward_head(
+        self, x: list[torch.Tensor], box_head: torch.nn.Module, cls_head: torch.nn.Module, d3_head: torch.nn.Module
+    ) -> dict[str, torch.Tensor]:
+        """Return standard detection predictions with raw monocular 3D parameters."""
+        preds = super().forward_head(x, box_head, cls_head)
+        if d3_head is not None:
+            bs = x[0].shape[0]
+            preds["d3_params"] = torch.cat([d3_head[i](x[i]).view(bs, self.ne, -1) for i in range(self.nl)], dim=2)
+        return preds
+
+    def fuse(self) -> None:
+        """Remove the one-to-many branches for inference optimization."""
+        self.cv2 = self.cv3 = self.cv4 = None
 
 
 class Segment(Detect):

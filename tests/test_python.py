@@ -1601,6 +1601,43 @@ def test_nn_detect_head_export_clamps_max_det():
     assert head.postprocess(torch.rand(1, anchors, 4 + head.nc)).shape == (1, anchors, 6)
 
 
+def test_mono3d_detect_head_loss_keeps_detect_ownership():
+    """Mono3D uses DetectionModel and propagates its encoded regression loss through both YOLO26 branches."""
+    from ultralytics.nn.modules.head import Mono3DDetect
+    from ultralytics.nn.tasks import DetectionModel, guess_model_task
+    from ultralytics.utils.loss import E2ELoss, v8Mono3DLoss
+
+    cfg = YAML.load(ROOT / "cfg/models/26/yolo26.yaml")
+    cfg["scale"] = "n"
+    cfg["head"][-1][2] = "Mono3DDetect"
+    model = DetectionModel(cfg, nc=1, verbose=False)
+    model.args = get_cfg()
+    head = model.model[-1]
+    assert isinstance(head, Mono3DDetect) and guess_model_task(model) == "detect"
+    criterion = model.init_criterion()
+    assert isinstance(criterion, E2ELoss) and isinstance(criterion.one2many, v8Mono3DLoss)
+
+    image = torch.zeros(1, 3, 64, 64)
+    preds = model(image)
+    d3_o2m, d3_o2o = preds["one2many"]["d3_params"], preds["one2one"]["d3_params"]
+    assert d3_o2m.shape == d3_o2o.shape and d3_o2m.shape[:2] == (1, 8)
+    batch = {
+        "img": image,
+        "batch_idx": torch.tensor([0.0]),
+        "cls": torch.tensor([[0.0]]),
+        "bboxes": torch.tensor([[0.5, 0.5, 0.5, 0.5]]),
+        "d3_params": torch.tensor([[0.0, 0.0, 3.0, 0.0, 1.0, 0.4, 0.5, 1.4]]),
+    }
+    loss, items = model.loss(batch, preds)
+    assert torch.isfinite(loss).all() and items["mono3d_loss"] > 0
+    loss.sum().backward()
+    assert head.cv4[0][-1].bias.grad.abs().sum() > 0 and head.one2one_cv4[0][-1].bias.grad.abs().sum() > 0
+    model.eval()
+    model.fuse(verbose=False, imgsz=64)
+    output, raw = model(image)
+    assert head.cv4 is None and output.shape[-1] == 6 and raw["one2one"]["d3_params"].shape[1] == 8
+
+
 def _depth_head_feats():
     """Return a small Depth head constructor kwargs-matched P3/P4/P5 feature pyramid."""
     return [torch.randn(1, 32, 32, 32), torch.randn(1, 64, 16, 16), torch.randn(1, 128, 8, 8)]

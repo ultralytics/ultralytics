@@ -486,6 +486,43 @@ class v8DetectionLoss:
         return loss * batch_size, loss_detach
 
 
+class v8Mono3DLoss(v8DetectionLoss):
+    """Detection loss for encoded dx/dy, log-depth, sin/cos alpha, and log h/w/l targets."""
+
+    def __init__(self, model: torch.nn.Module, tal_topk: int = 10, tal_topk2: int | None = None):
+        """Initialize the shared detection loss and raw 3D parameter layout."""
+        super().__init__(model, tal_topk, tal_topk2)
+        self.ne = model.model[-1].ne
+        self.loss_names = (*self.loss_names, "mono3d_loss")
+
+    def loss(
+        self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        """Calculate detection loss and SmoothL1 loss for encoded monocular 3D targets."""
+        pred_d3 = preds["d3_params"].permute(0, 2, 1).contiguous()
+        batch_size = pred_d3.shape[0]
+        assigned, det_loss, _ = self.get_assigned_targets_and_loss(preds, batch)
+        fg_mask, target_gt_idx = assigned[:2]
+        loss = torch.cat((det_loss, pred_d3.sum().reshape(1) * 0))
+
+        if fg_mask.any():
+            imgsz = torch.tensor(preds["feats"][0].shape[2:], device=self.device, dtype=pred_d3.dtype) * self.stride[0]
+            targets = torch.cat(
+                (
+                    batch["batch_idx"].view(-1, 1),
+                    batch["cls"].view(-1, 1),
+                    batch["bboxes"],
+                    batch["d3_params"],
+                ),
+                dim=1,
+            )
+            targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
+            target_d3 = targets[..., 5:].gather(1, target_gt_idx.unsqueeze(-1).expand(-1, -1, self.ne))
+            loss[-1] = F.smooth_l1_loss(pred_d3[fg_mask], target_d3[fg_mask])
+
+        return loss * batch_size, dict(zip(self.loss_names, loss.detach()))
+
+
 class v8SegmentationLoss(v8DetectionLoss):
     """Criterion class for computing training losses for YOLOv8 segmentation."""
 

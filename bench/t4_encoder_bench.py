@@ -89,7 +89,6 @@ INTERNAL_RUNS = {
 }
 
 EXPLORATORY_YAMLS = {
-    "ultravit-m-290726-yaml-cls": ("yolo26m-ultravit-290726-cls.yaml", "yolo26m-sppf-cls"),
     "ultravit-n-020826-1-cls": ("yolo26n-ultravit-020826-1-cls.yaml", "yolo26n-sppf-cls"),
     "ultravit-n-020826-2-cls": ("yolo26n-ultravit-020826-2-cls.yaml", "yolo26n-sppf-cls"),
     "ultravit-n-020826-3-cls": ("yolo26n-ultravit-020826-3-cls.yaml", "yolo26n-sppf-cls"),
@@ -102,14 +101,8 @@ EXPLORATORY_YAMLS = {
     "ultravit-s-040826-1-cls": ("yolo26s-ultravit-040826-1-cls.yaml", "yolo26s-sppf-cls"),
     "ultravit-s-040826-2-cls": ("yolo26s-ultravit-040826-2-cls.yaml", "yolo26s-sppf-cls"),
     "ultravit-m-040826-1-cls": ("yolo26m-ultravit-040826-1-cls.yaml", "yolo26m-sppf-cls"),
-    "ultravit-l-stagematch-cls": ("yolo26l-ultravit-290726-stagematch-cls.yaml", "yolo26l-sppf-cls"),
     "ultravit-l-010826-1-cls": ("yolo26l-ultravit-010826-1-cls.yaml", "yolo26l-sppf-cls"),
     "ultravit-l-010826-2-cls": ("yolo26l-ultravit-010826-2-cls.yaml", "yolo26l-sppf-cls"),
-    "ultravit-l-deepbal-cls": ("yolo26l-ultravit-290726-deepbal-cls.yaml", "yolo26l-sppf-cls"),
-    "ultravit-l-deepbal-p5lean-cls": (
-        "yolo26l-ultravit-290726-deepbal-p5lean-cls.yaml",
-        "yolo26l-sppf-cls",
-    ),
 }
 
 

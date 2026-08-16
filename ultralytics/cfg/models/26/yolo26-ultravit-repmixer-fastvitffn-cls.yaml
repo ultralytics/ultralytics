@@ -4,8 +4,7 @@
 # Lane B phase1 isolation rung: identical to yolo26-ultravit-repmixer-cls.yaml except the RepUltraViTBlock
 # 4th arg fastvit_ffn=True, which runs a DW7x7+BN at input width BEFORE the 1x1 PW expansion (paper-exact
 # FastViT ConvFFN), vs the base DW3x3+BN at hidden width after. Stage 4 keeps the base MHSABlock
-# (conv_ffn=True, head_dim=32); no dinop5 bundle. Isolates the FastViT DW7x7 ConvFFN effect from the
-# dinop5 P5 bundle carried by yolo26-ultravit-repmixer-fastvitffn-dinop5-cls.yaml.
+# (conv_ffn=True, head_dim=32). Isolates the FastViT DW7x7 ConvFFN effect.
 # Backbone rows 0-8 == yolo26-ultravit-repmixer-fastvitffn.yaml layers 0-8, so cls/distilled weights
 # cover 100% of the det backbone. Blocks in ultralytics/nn/modules/vit_blocks.py.
 

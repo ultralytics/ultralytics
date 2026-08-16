@@ -374,7 +374,7 @@
    "motor": "motorcycle"
   }
  },
- "enterprise": {
+ "ent": {
   "annopage-doc-elements": {
    "chemical formula and equation": "doclaynet/Formula",
    "mathematical expression and equation": "doclaynet/Formula",
@@ -530,6 +530,135 @@
    "motor": "Objects365v1/motorcycle",
    "tricycle": "Objects365v1/tricycle",
    "awning-tricycle": "Objects365v1/tricycle"
+  }
+ },
+ "entcom": {
+  "annopage-doc-elements": {
+   "chemical formula and equation": "doclaynet/Formula",
+   "mathematical expression and equation": "doclaynet/Formula",
+   "table": "doclaynet/Table",
+   "photograph": "doclaynet/Picture",
+   "image": "doclaynet/Picture",
+   "graph": "doclaynet/Picture",
+   "diagram": "doclaynet/Picture"
+  },
+  "basketball-hoop-detection": {
+   "basketball": "OIv7/sports ball"
+  },
+  "ena24": {
+   "bird": "cct20/bird",
+   "american crow": "cct20/bird",
+   "eastern gray squirrel": "cct20/squirrel",
+   "eastern fox squirrel": "cct20/squirrel",
+   "eastern chipmunk": "cct20/squirrel",
+   "woodchuck": "cct20/rodent",
+   "striped skunk": "cct20/skunk",
+   "red fox": "cct20/fox",
+   "grey fox": "cct20/fox",
+   "coyote": "cct20/coyote",
+   "bobcat": "cct20/bobcat",
+   "northern raccoon": "cct20/raccoon",
+   "virginia opossum": "cct20/opossum",
+   "eastern cottontail": "cct20/rabbit",
+   "domestic cat": "cct20/cat",
+   "dog": "cct20/dog",
+   "white_tailed_deer": "cct20/deer",
+   "vehicle": "cct20/car",
+   "horse": "OIv7/horse",
+   "american black bear": "OIv7/bear"
+  },
+  "fisheye8k-traffic": {
+   "pedestrian": "flir-adas-v2/person",
+   "car": "dronevehicle/car",
+   "truck": "dronevehicle/truck",
+   "bus": "dronevehicle/bus",
+   "bike": "OIv7/bicycle"
+  },
+  "floorplancad-2": {
+   "sofa": "OIv7/couch",
+   "bed": "OIv7/bed",
+   "chair": "OIv7/chair",
+   "table": "OIv7/table",
+   "cabinet": "OIv7/cabinetry",
+   "tv cabinet": "OIv7/cabinetry",
+   "gas stove": "OIv7/gas stove",
+   "sink": "OIv7/sink",
+   "refrigerator": "OIv7/refrigerator",
+   "bath": "OIv7/bathtub",
+   "bath tub": "OIv7/bathtub",
+   "washing machine": "OIv7/washing machine",
+   "squat toilet": "OIv7/toilet",
+   "toilet": "OIv7/toilet"
+  },
+  "groundcua-ui": {
+   "button": "rico/Text Button",
+   "input elements": "rico/Input",
+   "navigation": "rico/Bottom Navigation",
+   "sidebar": "rico/Drawer"
+  },
+  "hit-uav": {
+   "person": "flir-adas-v2/person",
+   "car": "dronevehicle/car",
+   "bicycle": "flir-adas-v2/bike",
+   "othervehicle": "flir-adas-v2/other vehicle"
+  },
+  "iedxray": {
+   "laptop": "OIv7/laptop",
+   "modified laptop": "OIv7/laptop",
+   "mobile phone": "OIv7/cell phone",
+   "modified mobile phone": "OIv7/cell phone",
+   "battery": "wixray/HazardousWaste_Battery"
+  },
+  "kvasir-seg-polyp": {
+   "polyp": "real-colon/polyp"
+  },
+  "llvip": {
+   "person": "flir-adas-v2/person"
+  },
+  "ruod-underwater": {
+   "holothurian": "duo/holothurian",
+   "echinus": "duo/echinus",
+   "scallop": "duo/scallop",
+   "starfish": "duo/starfish",
+   "jellyfish": "OIv7/jellyfish",
+   "diver": "OIv7/person"
+  },
+  "seadronessee-2": {
+   "swimmer": "OIv7/person",
+   "boat": "SODA-A-split/ship"
+  },
+  "ssdd-sar-ship": {
+   "ship": "ssdd/ship"
+  },
+  "taco-litter": {
+   "bottle": "OIv7/bottle",
+   "cup": "OIv7/cup",
+   "can": "OIv7/tin can"
+  },
+  "txl-pbc-blood-cells": {
+   "rbc": "cbc/RBC",
+   "wbc": "cbc/WBC"
+  },
+  "uec-school-lunch-food-2": {
+   "milk": "locount/Dairy",
+   "rice": "locount/Rise",
+   "mixed rice": "locount/Rise",
+   "bread": "OIv7/bread",
+   "white bread": "OIv7/bread",
+   "cherry tomatoes": "OIv7/tomato",
+   "apple": "OIv7/apple",
+   "spaghetti": "OIv7/pasta",
+   "fried noodles": "locount/Instant noodles"
+  },
+  "visdrone": {
+   "pedestrian": "flir-adas-v2/person",
+   "people": "flir-adas-v2/person",
+   "car": "dronevehicle/car",
+   "van": "dronevehicle/van",
+   "truck": "dronevehicle/truck",
+   "bus": "dronevehicle/bus",
+   "bicycle": "OIv7/bicycle",
+   "motor": "OIv7/motorcycle"
   }
  }
 }

@@ -682,7 +682,7 @@ def _run_multi_det(
             runs, vary it to sample per-dataset run-to-run variance.
         backbone_lr_ratio_override (str, optional): Backbone LR = lr0 * this (below 1 preserves distilled features).
         recipe_name (str, optional): Recipe profile stem under cfg/recipes/, defaulting to repository settings.
-        cls_map_vocab (str, optional): Vocab key in ul33_cls_map.json (coco/obj365/oiv7/enterprise). When set, forces
+        cls_map_vocab (str, optional): Vocab key in ul33_cls_map.json (coco/obj365/oiv7/ent/entcom). When set, forces
             cls_remap=true and transfers same-name head rows plus listed aliases instead of the profile's no-transfer
             default. Pick the vocab matching phase1_weights' pretraining label space.
         model_override (str): Detector YAML override.

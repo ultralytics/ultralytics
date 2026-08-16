@@ -220,13 +220,13 @@ To train a stereo 3D detection model:
         from ultralytics import YOLO
 
         model = YOLO("yolo26-s3d.yaml")
-        results = model.train(data="kitti-stereo-chen.yaml", epochs=1000, imgsz=[384, 1248])
+        results = model.train(data="kitti-stereo-chen.yaml", epochs=400, imgsz=[384, 1248])
         ```
 
     === "CLI"
 
         ```bash
-        yolo task=s3d train data=kitti-stereo-chen.yaml model=yolo26-s3d.yaml epochs=1000 imgsz=384,1248
+        yolo task=s3d train data=kitti-stereo-chen.yaml model=yolo26-s3d.yaml epochs=400 imgsz=384,1248
         ```
 
 ## Important Notes

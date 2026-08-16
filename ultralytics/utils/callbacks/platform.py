@@ -282,7 +282,7 @@ def _get_project_name(trainer):
         and 4 <= len(owner) <= 32
         and "\\" not in raw
         and "/" not in project
-        and slugify(owner) == owner.lower()
+        and re.fullmatch(r"[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*", owner)
     )
     return (f"{owner}/{slugify(project)}" if valid else None), name
 

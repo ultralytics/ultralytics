@@ -1996,9 +1996,9 @@ class RefineDetect(Detect):
         for branch, index in zip(refine, self.refine_classes):
             nr = len(index)
             r = torch.cat([branch[i](feats[i]).view(bs, nr + 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
-            scores = scores.index_add(1, index, r[:, :nr])
+            scores, box = scores.index_add(1, index, r[:, :nr]), r[:, nr:]
             gate = scores.index_select(1, index).sigmoid().amax(1, keepdim=True).detach()
-            boxes = boxes + gate * r[:, nr:]
+            boxes = boxes + box + (gate - 1) * box.detach()  # gate scales the delta, never its gradient
         preds["scores"], preds["boxes"] = scores, boxes
         return preds
 

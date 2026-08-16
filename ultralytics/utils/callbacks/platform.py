@@ -275,9 +275,14 @@ def _get_project_name(trainer):
     name = slugify(str(trainer.args.name or "train"))
     if not sep:
         return slugify(raw), name  # bare project name, owner resolved from the API key
-    # An owner is a username slug, so a second separator, a backslash or any non-slug character is a directory path
+    # An owner is a 4-32 character username slug, so a second separator, a backslash, or any non-slug or
+    # out-of-range owner means a directory path
     valid = (
-        bool(owner and slugify(project)) and "\\" not in raw and "/" not in project and slugify(owner) == owner.lower()
+        bool(owner and slugify(project))
+        and 4 <= len(owner) <= 32
+        and "\\" not in raw
+        and "/" not in project
+        and slugify(owner) == owner.lower()
     )
     return (f"{owner}/{slugify(project)}" if valid else None), name
 

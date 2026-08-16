@@ -770,6 +770,7 @@ def test_platform_project_slug():
     assert project("username/my-project") == "username/my-project"
     assert project("Glenn-Jocher/My-Project") == "Glenn-Jocher/my-project"  # owner passed through as-is
     assert project("my_local_dir") == "mylocaldir"  # bare project name, owner resolved from the API key
+    assert project("abcd/exp") == "abcd/exp"  # owner at the 4-character Platform username floor
 
     # Path shapes whose components must never become an owner slug
     for path in ("/private/var/folders/ab/proj_x", "/tmp", "C:/Users/me/runs", "C:/runs", "runs\\exp/x", "A B/exp"):
@@ -777,6 +778,10 @@ def test_platform_project_slug():
 
     # An owner with an empty or fully-unslugifiable project half must not produce a truncated "owner/" identifier
     for path in ("username/", "username/!!!"):
+        assert project(path) is None, path
+
+    # Owner outside the documented 4-32 character Platform username range cannot be a real owner
+    for path in ("a/exp", "abc/exp", "x" * 33 + "/exp"):
         assert project(path) is None, path
 
 

@@ -23,7 +23,7 @@ project: # (str, optional) project name for results root
 name: # (str, optional) experiment name; results in 'project/name'
 exist_ok: False # (bool) overwrite existing 'project/name' if True
 pretrained: True # (bool | str) use pretrained weights (bool) or load weights from path (str)
-optimizer: auto # (str) optimizer: SGD, MuSGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, or auto
+optimizer: auto # (str) optimizer: SGD, MuSGD, MuonAdamW, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, or auto
 verbose: True # (bool) print verbose logs during training/val
 seed: 0 # (int) random seed for reproducibility
 deterministic: True # (bool) enable deterministic ops; reproducible but may be slower
@@ -101,7 +101,7 @@ momentum: 0.937 # (float) SGD momentum or Adam beta1
 weight_decay: 0.0005 # (float) weight decay (L2 regularization)
 muon_dense_only: False # (bool) when optimizer='MuSGD', restrict the Muon group to dense matrices; grouped/depthwise convs, the stem conv and the head's final box/cls convs fall back to the non-Muon group
 muon_conv_scale: False # (bool) when optimizer='MuSGD', scale conv Muon updates by sqrt(max(1, out/(in*kh*kw))) from the reshaped 2D matrix as in reference Muon; False leaves conv updates unscaled
-muon_aux_adamw: False # (bool) when optimizer='MuSGD', drop the SGD component so the Muon groups take Muon alone and the rest take AdamW, with the Muon update RMS fixed at 0.2 so both share one lr
+muon_aux_adamw: False # (bool) when optimizer='MuSGD', drop the SGD component so the Muon groups take Muon alone and the rest take AdamW, with the Muon update RMS fixed at 0.2 so both share one lr; ignored by optimizer='MuonAdamW', which keeps the auxiliary update on the Muon groups
 warmup_epochs: 3.0 # (float) warmup epochs (fractions allowed)
 warmup_momentum: 0.8 # (float) initial momentum during warmup
 warmup_bias_lr: 0.1 # (float) bias learning rate during warmup

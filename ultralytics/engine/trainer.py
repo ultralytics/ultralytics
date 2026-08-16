@@ -1038,7 +1038,7 @@ class BaseTrainer:
             name, lr, momentum = ("MuSGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
-        use_muon = name == "MuSGD"
+        use_muon = name.lower() in {"musgd", "muonadamw"}
         dense_only = use_muon and self.args.muon_dense_only
         skip_muon = set()  # ids of the stem and head final conv weights, excluded from Muon when dense_only
         if dense_only:
@@ -1070,13 +1070,13 @@ class BaseTrainer:
         if not use_muon:
             g = [x.values() for x in g[:3]]  # convert to list of params
 
-        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "MuSGD", "auto"}
+        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "MuSGD", "MuonAdamW", "auto"}
         name = {x.lower(): x for x in optimizers}.get(name.lower())
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
             optim_args = dict(lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
         elif name == "RMSProp":
             optim_args = dict(lr=lr, momentum=momentum)
-        elif name == "SGD" or name == "MuSGD":
+        elif name in {"SGD", "MuSGD", "MuonAdamW"}:
             optim_args = dict(lr=lr, momentum=momentum, nesterov=True)
         else:
             raise NotImplementedError(
@@ -1088,8 +1088,13 @@ class BaseTrainer:
         g[2] = {"params": g[2], **optim_args, "param_group": "bias"}
         g[0] = {"params": g[0], **optim_args, "weight_decay": decay, "param_group": "weight"}
         g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0, "param_group": "bn"}
-        adamw = float(self.args.muon_aux_adamw)  # Muon switches to a matching update RMS, so both share one lr
-        muon, sgd = (1.0, 0.0) if adamw else (0.2, 1.0)  # pure Muon next to AdamW, or the hybrid Muon+SGD default
+        # Muon switches to an Adam-matching update RMS whenever AdamW is the auxiliary optimizer, so both share one lr
+        if name == "MuonAdamW":  # Muon + AdamW on the Muon groups, AdamW alone elsewhere
+            muon, sgd, adamw, muon_aux = 0.2, 0.0, 1.0, True
+        elif self.args.muon_aux_adamw:  # Muon alone on the Muon groups, AdamW elsewhere
+            muon, sgd, adamw, muon_aux = 1.0, 0.0, 1.0, False
+        else:  # the MuSGD default: Muon + SGD on the Muon groups, SGD alone elsewhere
+            muon, sgd, adamw, muon_aux = 0.2, 1.0, 0.0, True
         if use_muon:
             g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True, "param_group": "muon"}
             import re
@@ -1107,11 +1112,13 @@ class BaseTrainer:
                 g_.extend([{"params": p1, **x, "lr": lr * 3}, {"params": p2, **x}])
             g = g_
         optimizer = getattr(
-            optim, name, partial(MuSGD, muon=muon, sgd=sgd, adamw=adamw, conv_scale=self.args.muon_conv_scale)
+            optim,
+            name,
+            partial(MuSGD, muon=muon, sgd=sgd, adamw=adamw, muon_aux=muon_aux, conv_scale=self.args.muon_conv_scale),
         )(params=g)
 
         LOGGER.info(
-            f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
+            f"{colorstr('optimizer:')} {name}(lr={lr}, momentum={momentum}) with parameter groups "
             f"{num_params[1]} weight(decay=0.0), {num_params[0]} weight(decay={decay}), {num_params[2]} bias(decay=0.0)"
             + (f", {num_params[3]} muon(decay={decay})" if use_muon else "")
         )

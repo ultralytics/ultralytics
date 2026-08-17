@@ -554,6 +554,40 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
             return self._mean_metric(self.ap3d, iou_thresh, difficulty)
         return float(sum(per_class.get(cid, 0.0) * w for cid, w in zip(ids, weights)) / total)
 
+    def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict[str, Any]]:
+        """Generate a per-class summary of the 3D metrics, one row per class.
+
+        `DataExportMixin.to_df`/`to_csv`/`to_json` all call this, so without it every export path raises
+        AttributeError for this task. `results_dict` cannot serve them: it is a flat name-mangled mapping
+        keyed for the CSV logger, whereas these expect one record per class.
+
+        Args:
+            normalize (bool): Unused. AP3D, AP_BEV and AOS are already in [0, 1]; accepted so the signature
+                matches the other metrics classes and the mixin can call it uniformly.
+            decimals (int): Number of decimal places to round the metric values to.
+
+        Returns:
+            (list[dict[str, Any]]): One dictionary per class, holding the Moderate GT instance count and
+                AP3D, AP_BEV and AOS at both IoU thresholds across all three difficulties.
+
+        Examples:
+            >>> results = model.val(data="kitti-stereo-chen.yaml", split="test")
+            >>> results.summary()[0]["AP3D_Mod_70"]
+        """
+        rows = []
+        for cls_id, cls_name in sorted(self.names.items()):
+            row: dict[str, Any] = {
+                "Class": cls_name,
+                "Instances": self.gt_counts.get((DIFFICULTY_MODERATE, cls_id), 0),
+            }
+            for prefix, metric in (("AP3D", self.ap3d), ("APBEV", self.apbev), ("AOS", self.aos)):
+                for iou_t, diff_dict in sorted(metric.items()):
+                    for diff, diff_name in enumerate(DIFFICULTY_NAMES):
+                        value = diff_dict.get(diff, {}).get(cls_id, 0.0)
+                        row[f"{prefix}_{diff_name}_{int(iou_t * 100)}"] = round(float(value), decimals)
+            rows.append(row)
+        return rows
+
     @property
     def results_dict(self) -> dict[str, Any]:
         """Return results as flat dictionary for CSV logging."""

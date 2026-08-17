@@ -1514,6 +1514,31 @@ def test_fitness_weights_classes_by_gt_instance_count():
     assert abs(m.fitness - 0.10) < 1e-6, "with no counts, fitness must fall back to the unweighted mean"
 
 
+def test_metrics_summary_feeds_the_export_helpers():
+    """`summary()` must exist and carry per-class values, or every export path breaks for this task.
+
+    `DataExportMixin.to_df`/`to_csv`/`to_json` all call `summary()`. s3d never implemented it, so all
+    three raised AttributeError — the shared `test_val` caught it only once s3d joined that parametrization.
+    `results_dict` cannot stand in: it is one flat name-mangled mapping for the CSV logger, while the
+    mixin wants one record per class.
+    """
+    from ultralytics.models.yolo.s3d.metrics import DIFFICULTY_MODERATE, Stereo3DDetMetrics
+
+    m = Stereo3DDetMetrics(names={0: "Car", 1: "Pedestrian"})
+    m.ap3d = {0.5: {DIFFICULTY_MODERATE: {0: 0.62, 1: 0.13}}, 0.7: {DIFFICULTY_MODERATE: {0: 0.21, 1: 0.0}}}
+    m.gt_counts = {(DIFFICULTY_MODERATE, 0): 1913, (DIFFICULTY_MODERATE, 1): 230}
+
+    rows = m.summary()
+    assert [r["Class"] for r in rows] == ["Car", "Pedestrian"], "one row per class, in class-id order"
+    assert rows[0]["Instances"] == 1913, "per-class GT count must reach the summary"
+    assert rows[0]["AP3D_Mod_50"] == 0.62 and rows[0]["AP3D_Mod_70"] == 0.21, "values must land in the right cells"
+    assert rows[1]["AP3D_Mod_70"] == 0.0, "a genuine zero must be reported, not dropped"
+
+    # The mixin path itself, which is what actually broke.
+    assert len(m.to_json()) > 2, "to_json must serialize the summary"
+    assert m.to_df().shape[0] == 2, "to_df must produce one row per class"
+
+
 def test_fitness_selects_on_iou_70_not_iou_50():
     """Model selection must follow IoU 0.7, the threshold KITTI reports and the table leads with.
 

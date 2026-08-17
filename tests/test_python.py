@@ -17,7 +17,7 @@ import torch
 from PIL import Image
 
 import ultralytics.data.build as data_build
-from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
+from tests import CFG, MODEL, MODELS, MONO_TASK_MODEL_DATA, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
@@ -517,7 +517,10 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics.to_df()
         metrics.to_csv()
         metrics.to_json()
-        if task != "depth":  # depth is dense regression: no classes, no confusion matrix
+        # depth is dense regression: no classes, no confusion matrix. s3d has classes but its validator
+        # builds no ConfusionMatrix — its 2D stats go through a plain DetMetrics — so there is nothing to
+        # attach; adding one is a validator feature, not a test fix.
+        if task not in {"depth", "s3d"}:
             metrics.confusion_matrix.to_df()
             metrics.confusion_matrix.to_csv()
             metrics.confusion_matrix.to_json()
@@ -1856,9 +1859,14 @@ def test_multichannel():
     model.export(format="onnx")
 
 
-@pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
+@pytest.mark.parametrize("task,model,data", MONO_TASK_MODEL_DATA)
 def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
-    """Test YOLO model grayscale training, validation, and prediction functionality."""
+    """Test YOLO model grayscale training, validation, and prediction functionality.
+
+    Mono-source: this predicts on a single-channel array, so paired-source tasks are excluded. Grayscale
+    is meaningless for them anyway — s3d stacks left and right RGB into one 6-channel input, and forcing
+    `channels=1` onto a stereo dataset describes an input the siamese backbone cannot split.
+    """
     if IS_RASPBERRYPI and task == "semantic":
         skip_rpi_semantic()
     if task in {"classify", "depth"}:  # grayscale not supported for classification or depth tasks

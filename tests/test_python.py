@@ -1890,9 +1890,9 @@ def test_multichannel():
 def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     """Test YOLO model grayscale training, validation, and prediction functionality.
 
-    Mono-source: this predicts on a single-channel array, so paired-source tasks are excluded. Grayscale
-    is meaningless for them anyway — s3d stacks left and right RGB into one 6-channel input, and forcing
-    `channels=1` onto a stereo dataset describes an input the siamese backbone cannot split.
+    Mono-source: this predicts on a single-channel array, so paired-source tasks are excluded. Grayscale is meaningless
+    for them anyway — s3d stacks left and right RGB into one 6-channel input, and forcing `channels=1` onto a stereo
+    dataset describes an input the siamese backbone cannot split.
     """
     if IS_RASPBERRYPI and task == "semantic":
         skip_rpi_semantic()
@@ -1929,9 +1929,9 @@ def test_semantic_polygon_data():
 def test_nan_recovery_flag_before_first_validation(monkeypatch):
     """Test the DDP NaN-recovery flag is int-able before any validation has set best_fitness.
 
-    Under DDP the flag is broadcast as int(corrupted); an epoch that skips validation (val_period > 1,
-    or val=False) leaves best_fitness unset, which used to make the fitness-collapse chain return None
-    and raise TypeError at the end of epoch 1.
+    Under DDP the flag is broadcast as int(corrupted); an epoch that skips validation (val_period > 1, or val=False)
+    leaves best_fitness unset, which used to make the fitness-collapse chain return None and raise TypeError at the end
+    of epoch 1.
     """
     from ultralytics.engine import trainer as trainer_mod
     from ultralytics.models.yolo.detect import DetectionTrainer
@@ -1947,13 +1947,13 @@ def test_nan_recovery_flag_before_first_validation(monkeypatch):
 def test_unvalidated_epoch_does_not_retrigger_collapse_recovery(monkeypatch):
     """A zero fitness must never trigger recovery, and an epoch that skipped validation must not either.
 
-    Zero is a legitimate fitness on a small validation set: an s3d screening split of 189 frames returns
-    AP3D 0.0 at some early validations, which killed 1 arm in 8 per launch. Upstream removed the
-    fitness-collapse trigger outright, so a zero fitness is now simply survivable.
+    Zero is a legitimate fitness on a small validation set: an s3d screening split of 189 frames returns AP3D 0.0 at
+    some early validations, which killed 1 arm in 8 per launch. Upstream removed the fitness-collapse trigger outright,
+    so a zero fitness is now simply survivable.
 
-    With `val_period > 1` most epochs never recompute fitness. `train()` resets `self.fitness` to None at
-    the top of each epoch so a NaN validation cannot re-fire on the same stale value every epoch after,
-    spending a retry each time and reporting "NaN persisted" though nothing recomputed it.
+    With `val_period > 1` most epochs never recompute fitness. `train()` resets `self.fitness` to None at the top of
+    each epoch so a NaN validation cannot re-fire on the same stale value every epoch after, spending a retry each time
+    and reporting "NaN persisted" though nothing recomputed it.
     """
     from ultralytics.engine import trainer as trainer_mod
     from ultralytics.models.yolo.detect import DetectionTrainer

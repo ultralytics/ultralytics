@@ -192,7 +192,7 @@ class Stereo3DDetValidator(BaseValidator):
 
         root = Path(data_cfg["path"])
         train_split = data_cfg.get("train_split", "train")
-        # Honour the standard `split` argument (default.yaml: 'val' | 'test' | 'train') instead of always
+        # Honor the standard `split` argument (default.yaml: 'val' | 'test' | 'train') instead of always
         # evaluating whatever `val_split` names. A dataset declares its directory per split via the
         # `<split>_split` keys, so `split=test` on a config carrying `test_split: test` evaluates the held-out
         # split with no second YAML. Falls back to the split's own name, so `split=test` works on any layout

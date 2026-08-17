@@ -92,7 +92,7 @@ def _convex_intersection_area(subject: np.ndarray, clip: np.ndarray) -> float:
         ex, ey = edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]
 
         # `edge`/`ex`/`ey` are bound as defaults rather than captured: both closures are only ever called
-        # inside this iteration, so the behaviour is unchanged, but the binding is now explicit.
+        # inside this iteration, so the behavior is unchanged, but the binding is now explicit.
         def inside(p, edge=edge, ex=ex, ey=ey):
             return ex * (p[1] - edge[0][1]) - ey * (p[0] - edge[0][0]) >= 0
 
@@ -532,7 +532,7 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
 
         Weighting by instance count is not merely "Car matters more" — the sampling variance of a per-class
         AP estimate falls roughly as 1/n, so weights proportional to n are approximately inverse-variance
-        weights, i.e. the combination that minimises the variance of the aggregate. Classes with no eligible
+        weights, i.e. the combination that minimizes the variance of the aggregate. Classes with no eligible
         GT contribute nothing instead of dragging a zero into the average.
 
         Falls back to the unweighted mean when no counts are recorded (nothing processed yet), so callers
@@ -565,13 +565,13 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         keyed for the CSV logger, whereas these expect one record per class.
 
         Args:
-            normalize (bool): Unused. AP3D, AP_BEV and AOS are already in [0, 1]; accepted so the signature
-                matches the other metrics classes and the mixin can call it uniformly.
+            normalize (bool): Unused. AP3D, AP_BEV and AOS are already in [0, 1]; accepted so the signature matches the
+                other metrics classes and the mixin can call it uniformly.
             decimals (int): Number of decimal places to round the metric values to.
 
         Returns:
-            (list[dict[str, Any]]): One dictionary per class, holding the Moderate GT instance count and
-                AP3D, AP_BEV and AOS at both IoU thresholds across all three difficulties.
+            (list[dict[str, Any]]): One dictionary per class, holding the Moderate GT instance count and AP3D, AP_BEV
+                and AOS at both IoU thresholds across all three difficulties.
 
         Examples:
             >>> results = model.val(data="kitti-stereo-chen.yaml", split="test")

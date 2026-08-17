@@ -72,9 +72,9 @@ EDGE_CONNECTIONS = (
     (3, 7),
 )
 
-# Smallest depth (metres) a 3D box centre may have and still be projected. Guards the 1/z in the
+# Smallest depth (meters) a 3D box center may have and still be projected. Guards the 1/z in the
 # pinhole projection only — it is deliberately not a plausibility floor, so close-range stereo rigs
-# (objects at tens of centimetres) render as well as automotive ones.
+# (objects at tens of centimeters) render as well as automotive ones.
 EPS_PROJECT_Z = 1e-3
 
 
@@ -114,7 +114,7 @@ def project_box3d_corners(
 
     # Skip only boxes that are not projectable at all: behind the camera, on it, or non-finite.
     # A metric depth floor must NOT live here — it is dataset-specific (a close-range rig images
-    # objects at tens of centimetres) and callers own it via the head's configured depth range.
+    # objects at tens of centimeters) and callers own it via the head's configured depth range.
     # Extreme pixel coordinates from a small z are already bounded by the caller, which clips
     # every corner to +/-1e6 and then to the image rect via cv2.clipLine.
     if not np.isfinite(z) or z <= EPS_PROJECT_Z:

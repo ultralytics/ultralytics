@@ -746,13 +746,13 @@ class StereoLetterBox:
 class StereoZoom:
     """True stereo scale jitter: zoom content by s and crop/pad back to the ORIGINAL canvas size.
 
-    Unlike StereoScale — whose canvas resize is fully undone by the subsequent StereoLetterBox (final content scale
-    and calibration both end up independent of s) — the canvas here keeps its size, so apparent object size genuinely
+    Unlike StereoScale — whose canvas resize is fully undone by the subsequent StereoLetterBox (final content scale and
+    calibration both end up independent of s) — the canvas here keeps its size, so apparent object size genuinely
     changes by s on the network input while the metric 3D targets (depth, dimensions) stay fixed. This decorrelates
-    apparent size from depth, attacking the monocular size→depth shortcut on constant-dimension datasets.
-    Calibration is scaled and shifted accordingly and both 2D boxes are re-projected from the 3D labels
-    (same pattern as StereoHFlip), so every encoded target (lr_distance, proj_offset, depth) stays geometrically
-    consistent: disparity_px == fx' · baseline / z holds exactly after the transform.
+    apparent size from depth, attacking the monocular size→depth shortcut on constant-dimension datasets. Calibration is
+    scaled and shifted accordingly and both 2D boxes are re-projected from the 3D labels (same pattern as StereoHFlip),
+    so every encoded target (lr_distance, proj_offset, depth) stays geometrically consistent: disparity_px == fx' ·
+    baseline / z holds exactly after the transform.
     """
 
     def __init__(self, scale_range: tuple[float, float] = (0.5, 1.5), p: float = 1.0):

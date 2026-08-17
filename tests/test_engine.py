@@ -252,9 +252,9 @@ def test_nan_recovery():
 def test_best_checkpoint_is_a_validated_epoch(tmp_path):
     """Test best.pt holds the best VALIDATED epoch when most epochs skip validation.
 
-    `self.fitness` is only assigned by validate(), so with `val_period > 1` it used to persist between
-    validations and make the `best_fitness == fitness` save condition trivially true — best.pt was then
-    rewritten every non-validating epoch and ended up holding weights that were never scored at all.
+    `self.fitness` is only assigned by validate(), so with `val_period > 1` it used to persist between validations and
+    make the `best_fitness == fitness` save condition trivially true — best.pt was then rewritten every non-validating
+    epoch and ended up holding weights that were never scored at all.
     """
     fitness = {3: 0.9, 6: 0.1}  # validation epochs (1-indexed) -> fitness; the peak is epoch 3
 

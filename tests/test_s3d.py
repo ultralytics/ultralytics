@@ -281,9 +281,10 @@ def test_bev_corners_uses_kitti_axis_convention():
 def test_3d_iou_depth_tolerance_matches_kitti_devkit():
     """A car displaced purely in depth must lose IoU against its LENGTH, not its width.
 
-    For pure longitudinal translation the exact 3D IoU is (D - dz) / (D + dz) where D is the footprint's depth extent, so
-    IoU=0.7 is reached at dz = 0.176*D. With the axes swapped the tolerance came out 2.36x too tight (0.289 m instead of
-    0.683 m for a 3.87 m car), making AP3D@0.7 far harsher than the published KITTI benchmark. This pins the tolerance.
+    For pure longitudinal translation the exact 3D IoU is (D - dz) / (D + dz) where D is the footprint's depth extent,
+    so IoU=0.7 is reached at dz = 0.176*D. With the axes swapped the tolerance came out 2.36x too tight (0.289 m instead
+    of 0.683 m for a 3.87 m car), making AP3D@0.7 far harsher than the published KITTI benchmark. This pins the
+    tolerance.
     """
     length, width, height = 3.87, 1.64, 1.53
     z, ry = 20.0, np.pi / 2  # pointing along depth: the length faces the camera axis
@@ -812,9 +813,9 @@ def test_ivw_fusion_uses_dfl_variance():
 def _fusion_scale_outputs():
     """Build s3d outputs whose two depth cues disagree and whose DFL spread is moderate.
 
-    Flat bin logits give var_direct ~ the grid's own variance (O(1)), well clear of the decode's 1e-6 floor --
-    a peaked distribution would be clamped there and make any variance rescaling invisible.
-    non_max_suppression rewrites outputs["det"] in place, so every decode call needs its own dict.
+    Flat bin logits give var_direct ~ the grid's own variance (O(1)), well clear of the decode's 1e-6 floor -- a peaked
+    distribution would be clamped there and make any variance rescaling invisible. non_max_suppression rewrites
+    outputs["det"] in place, so every decode call needs its own dict.
     """
     import math
 
@@ -856,8 +857,8 @@ def _decode_fusion_scale(**kwargs):
 def test_depth_var_scale_default_is_a_bitwise_noop():
     """depth_var_scale=1.0 must be indistinguishable from not passing it at all.
 
-    The knob exists only to reproduce a bin count's fusion re-weighting at a fixed bin count, so every run
-    that does not ask for it -- every existing checkpoint, every other arm -- must decode bit for bit as
+    The knob exists only to reproduce a bin count's fusion re-weighting at a fixed bin count, so every run that does not
+    ask for it -- every existing checkpoint, every other arm -- must decode bit for bit as
     before. A float multiply by 1.0 is exact in IEEE 754, and this pins that.
     """
     import torch
@@ -1015,13 +1016,13 @@ def test_configurable_depth_range():
 def test_stereo_reaches_every_scale(imgsz):
     """Depth and disparity at EVERY FPN scale must be a function of the right image.
 
-    The cost volume is the only right-image path into the depth branches. If it is concatenated at one
-    scale only, objects whose anchors land on the other scales are decoded monocularly by construction —
-    no amount of training can recover stereo for them.
+    The cost volume is the only right-image path into the depth branches. If it is concatenated at one scale only,
+    objects whose anchors land on the other scales are decoded monocularly by construction — no amount of training can
+    recover stereo for them.
 
-    eval() is mandatory: in train mode backbone layers 0-1 run on the concatenated [2B, 3, H, W] siamese
-    batch, so BatchNorm mixes left/right statistics and the left path acquires a spurious right-image
-    dependence at every scale, which would make this test pass for the wrong reason.
+    eval() is mandatory: in train mode backbone layers 0-1 run on the concatenated [2B, 3, H, W] siamese batch, so
+    BatchNorm mixes left/right statistics and the left path acquires a spurious right-image dependence at every scale,
+    which would make this test pass for the wrong reason.
     """
     import torch
 
@@ -1033,7 +1034,7 @@ def test_stereo_reaches_every_scale(imgsz):
     offset, magnitudes = 0, {}
     for stride in (int(s) for s in model.stride.tolist()):
         gh, gw = h // stride, w // stride
-        idx = offset + (gh // 2) * gw + gw // 2  # centre anchor of this scale
+        idx = offset + (gh // 2) * gw + gw // 2  # center anchor of this scale
         offset += gh * gw
         for key in ("depth", "lr_distance"):
             grad = torch.autograd.grad(preds[key][0, 0, idx], x, retain_graph=True)[0]
@@ -1050,10 +1051,10 @@ def test_stereo_reaches_every_scale(imgsz):
 def test_cost_volume_recovers_known_disparity(true_disp_px):
     """The soft-argmin readout must recover a known disparity from a synthetic shifted pair.
 
-    This is the learnability gate for the stereo cue: a model-free NCC block matcher recovers per-object
-    disparity on real KITTI to ~1 px, so the readout is the only thing that can lose it. A conv over the
-    cost channels cannot express peak position at all; soft-argmin over the disparity grid can, and being
-    an expectation it is continuous, so it must also land between grid levels.
+    This is the learnability gate for the stereo cue: a model-free NCC block matcher recovers per-object disparity on
+    real KITTI to ~1 px, so the readout is the only thing that can lose it. A conv over the cost channels cannot express
+    peak position at all; soft-argmin over the disparity grid can, and being an expectation it is continuous, so it must
+    also land between grid levels.
     """
     import torch
 
@@ -1092,9 +1093,9 @@ def test_cost_volume_recovers_known_disparity(true_disp_px):
 def test_cost_volume_disparity_grid_is_resolution_invariant():
     """The width-normalized grid must give the same disparity in *normalized* units at any input width.
 
-    Offsets are stored as a fraction of image width (what a stereo rig physically fixes) and converted to
-    feature pixels at forward time, so one checkpoint serves rectangular and square imgsz alike. Storing
-    raw pixel offsets instead is what made the grid silently mis-scaled per dataset and per imgsz.
+    Offsets are stored as a fraction of image width (what a stereo rig physically fixes) and converted to feature pixels
+    at forward time, so one checkpoint serves rectangular and square imgsz alike. Storing raw pixel offsets instead is
+    what made the grid silently mis-scaled per dataset and per imgsz.
     """
     import torch
 
@@ -1115,8 +1116,8 @@ def test_cost_volume_disparity_grid_is_resolution_invariant():
 def test_cost_volume_correlation_is_spatially_centred():
     """Correlation must run on spatially-centred features, or the disparity gradient starves at init.
 
-    Cosine similarity of raw post-activation features is DC-dominated: measured on real KITTI pairs it is
-    ~0.92 at EVERY disparity offset (3.8% dynamic range), versus 32% once each channel's spatial mean is
+    Cosine similarity of raw post-activation features is DC-dominated: measured on real KITTI pairs it is ~0.92 at EVERY
+    disparity offset (3.8% dynamic range), versus 32% once each channel's spatial mean is
     removed. Without centering there is almost no disparity signal to descend on.
     """
     import torch
@@ -1133,18 +1134,17 @@ def test_cost_volume_correlation_is_spatially_centred():
         with torch.no_grad():
             out = cv((feats, feats.roll(shifts=-shift, dims=-1)))
         costs.append(float(cv.to_disparity(out[:, :1]).median()))
-    # Centred correlation keeps the readout responsive to disparity despite the DC offset.
+    # Centered correlation keeps the readout responsive to disparity despite the DC offset.
     assert max(costs) - min(costs) > 1e-3, f"readout is flat across disparities: {costs}"
 
 
 def test_decode_anchor_count_ignores_single_scale_maps():
     """`hw_total` must come from a per-anchor aux map, never from a single-scale map like cv_disparity.
 
-    The aux maps are [B, C, HW_total] and detections index into them by flat anchor index. The head also
-    emits cv_disparity on one scale's grid ([B, 1, H/8, W/8]); taking shape[2] off that yields the grid
-    HEIGHT, which silently clamps every detection into the first few anchors. It zeroes every 3D metric
-    while leaving 2D detection and all training losses untouched — so nothing else in this suite, and no
-    loss curve, reveals it.
+    The aux maps are [B, C, HW_total] and detections index into them by flat anchor index. The head also emits
+    cv_disparity on one scale's grid ([B, 1, H/8, W/8]); taking shape[2] off that yields the grid HEIGHT, which silently
+    clamps every detection into the first few anchors. It zeroes every 3D metric while leaving 2D detection and all
+    training losses untouched — so nothing else in this suite, and no loss curve, reveals it.
     """
     import torch
 
@@ -1173,11 +1173,10 @@ def _sampler_drive_counts(sampler, drive_of):
 def test_drive_balanced_sampler_flattens_drive_concentration():
     """Drive-balanced sampling must actually rebalance, and must never upweight the long tail.
 
-    The drive-disjoint KITTI split puts 37.8% of its 3712 frames in 5 of 71 drives, so every epoch's
-    gradient is a handful of scenes seen from slightly different positions. The cap only down-weights
-    over-represented drives: frames in drives at or below the cap keep the uniform weight they have
-    today, which is what distinguishes this from inverse-frequency balancing (which would draw a
-    one-frame drive ~52 times an epoch).
+    The drive-disjoint KITTI split puts 37.8% of its 3712 frames in 5 of 71 drives, so every epoch's gradient is a
+    handful of scenes seen from slightly different positions. The cap only down-weights over-represented drives: frames
+    in drives at or below the cap keep the uniform weight they have today, which is what distinguishes this from
+    inverse-frequency balancing (which would draw a one-frame drive ~52 times an epoch).
     """
     from ultralytics.models.yolo.s3d.train import drive_balanced_sampler
 
@@ -1216,10 +1215,10 @@ def test_drive_balanced_sampler_flattens_drive_concentration():
 def test_drive_sampler_seed_varies_with_the_run_seed(tmp_path):
     """Two runs with different `seed` must draw different frame orders, not just different weights.
 
-    `_drive_sampler` previously seeded from `max(rank, 0)`, which is 0 for every single-process run. A
-    multi-seed noise-floor measurement would then vary initialisation and augmentation but reuse one
-    sampling order, understating the real run-to-run spread — the exact quantity such a measurement exists
-    to bound. The sampler seed now mixes `args.seed` with the rank.
+    `_drive_sampler` previously seeded from `max(rank, 0)`, which is 0 for every single-process run. A multi-seed
+    noise-floor measurement would then vary initialization and augmentation but reuse one sampling order, understating
+    the real run-to-run spread — the exact quantity such a measurement exists to bound. The sampler seed now mixes
+    `args.seed` with the rank.
     """
     from ultralytics.models.yolo.s3d.train import Stereo3DDetTrainer
 
@@ -1246,10 +1245,10 @@ def test_drive_sampler_seed_varies_with_the_run_seed(tmp_path):
 def test_drive_sampler_supports_the_ddp_set_epoch_contract():
     """The train sampler must implement `set_epoch`, and each epoch must draw a different sample.
 
-    `BaseTrainer` calls `self.train_loader.sampler.set_epoch(epoch)` for every epoch whenever `RANK != -1`.
-    A plain `WeightedRandomSampler` has no such method, so a multi-GPU run died with AttributeError on both
-    ranks before its first step while single-process runs passed — which is exactly how this reached a GPU
-    box unnoticed. Reseeding from (seed, epoch) also makes a resumed run reproduce its draw order.
+    `BaseTrainer` calls `self.train_loader.sampler.set_epoch(epoch)` for every epoch whenever `RANK != -1`. A plain
+    `WeightedRandomSampler` has no such method, so a multi-GPU run died with AttributeError on both ranks before its
+    first step while single-process runs passed — which is exactly how this reached a GPU box unnoticed. Reseeding from
+    (seed, epoch) also makes a resumed run reproduce its draw order.
     """
     from ultralytics.models.yolo.s3d.train import drive_balanced_sampler
 
@@ -1278,11 +1277,11 @@ def test_drive_sampler_supports_the_ddp_set_epoch_contract():
 def test_drive_map_accepts_zero_padded_and_plain_integer_keys():
     """The drives map must resolve whether it is keyed "000003" or "3".
 
-    KITTI frame ids are zero-padded on disk, so `dataset.im_files` stems are "000003", while split files
-    conventionally key frames as plain integers ("3"). If only the exact stem is tried, every lookup misses,
-    every frame becomes its own single-frame drive, the cap becomes non-binding, and the sampler silently
-    degrades to uniform — a no-op that looks like a working feature. Verified against the real split file:
-    0/5 stems resolved by exact match, 5/5 by integer normalisation.
+    KITTI frame ids are zero-padded on disk, so `dataset.im_files` stems are "000003", while split files conventionally
+    key frames as plain integers ("3"). If only the exact stem is tried, every lookup misses, every frame becomes its
+    own single-frame drive, the cap becomes non-binding, and the sampler silently degrades to uniform — a no-op that
+    looks like a working feature. Verified against the real split file: 0/5 stems resolved by exact match, 5/5 by
+    integer normalization.
     """
     from ultralytics.models.yolo.s3d.train import drive_balanced_sampler
 
@@ -1301,14 +1300,14 @@ def test_drive_map_accepts_zero_padded_and_plain_integer_keys():
         assert got == [0.6, 1.0], f"{label}: expected per-drive weights [0.6, 1.0], got {got}"
 
     # Contrast: an unresolvable map must not masquerade as balanced. Every frame becomes its own drive, so
-    # the weights come out flat (their absolute value is an artefact of the cap) and sampling is uniform —
+    # the weights come out flat (their absolute value is an artifact of the cap) and sampling is uniform —
     # which is why the function also warns about unmapped frames rather than relying on the weights to show it.
     unmatched = drive_balanced_sampler(stems, {f"x{i}": "d" for i in range(60)}, balance=0.5).weights
     assert len(unmatched.unique()) == 1, f"an unusable map must degrade to uniform, got {unmatched.unique()}"
 
 
 def test_dataset_without_drives_key_is_unaffected():
-    """A dataset YAML with no `drives:` key must keep the default uniform/DistributedSampler behaviour."""
+    """A dataset YAML with no `drives:` key must keep the default uniform/DistributedSampler behavior."""
     from ultralytics.models.yolo.s3d.train import Stereo3DDetTrainer
 
     trainer = Stereo3DDetTrainer(overrides={"model": MODEL, "data": DATA, "epochs": 1, "imgsz": [384, 1248]})
@@ -1347,9 +1346,9 @@ def test_drives_yaml_key_builds_balanced_sampler(tmp_path):
 def test_val_false_warns_that_best_is_not_selected(monkeypatch):
     """`val=False` silently disables model selection, so it must warn loudly.
 
-    With val=False the trainer never sets self.fitness, so `if self.best_fitness == self.fitness:` is
-    `None == None` and best.pt is rewritten every epoch — verified identical to last.pt in all 806 tensors
-    on a real checkpoint. Nothing in the log said so.
+    With val=False the trainer never sets self.fitness, so `if self.best_fitness == self.fitness:` is `None == None` and
+    best.pt is rewritten every epoch — verified identical to last.pt in all 806 tensors on a real checkpoint. Nothing in
+    the log said so.
     """
     from ultralytics.models.yolo.s3d.train import Stereo3DDetTrainer
 
@@ -1369,9 +1368,9 @@ def test_val_false_warns_that_best_is_not_selected(monkeypatch):
 def test_dfl_variance_uses_the_retargeted_bin_grid():
     """The depth-bin variance must be read on the head's own grid, not a grid rebuilt from the defaults.
 
-    DepthDFL._set_range() retargets the bins per dataset, and this variance is the inverse-variance
-    weight for the depth cue against the disparity cue in decode. Evaluating the logits on the default
-    2-80 m axis while the head was trained on another silently mis-weights every fused depth.
+    DepthDFL._set_range() retargets the bins per dataset, and this variance is the inverse-variance weight for the depth
+    cue against the disparity cue in decode. Evaluating the logits on the default 2-80 m axis while the head was trained
+    on another silently mis-weights every fused depth.
     """
     import math
 
@@ -1416,8 +1415,8 @@ def test_head_publishes_its_depth_bin_grid():
 def test_depth_channel_width_follows_the_decode_grid():
     """The depth branch must emit exactly one logit per decode bin.
 
-    AUX_SPECS carries a default, but the head's own DepthDFL owns the bin count. If the two are allowed to
-    disagree, forward_head's `view(bs, out_c, -1)` reshapes the branch output against the wrong width.
+    AUX_SPECS carries a default, but the head's own DepthDFL owns the bin count. If the two are allowed to disagree,
+    forward_head's `view(bs, out_c, -1)` reshapes the branch output against the wrong width.
     """
     head = YOLO(MODEL).model.model[-1]
     assert head.aux_specs["depth"] == head.depth_dfl.n_bins
@@ -1427,8 +1426,8 @@ def test_depth_channel_width_follows_the_decode_grid():
 def test_set_depth_mode_preserves_a_nondefault_bin_count():
     """set_depth_mode must filter the head's OWN specs, not rebuild them from module-level AUX_SPECS.
 
-    Rebuilding from the global silently reset a customized depth width back to the default while the built
-    branches kept the custom one -- a shape mismatch that no existing test would have caught.
+    Rebuilding from the global silently reset a customized depth width back to the default while the built branches kept
+    the custom one -- a shape mismatch that no existing test would have caught.
     """
     import torch
 
@@ -1466,9 +1465,9 @@ def test_set_depth_mode_rejects_an_unknown_mode():
 def test_depth_dfl_loss_is_sized_from_the_head_not_the_module_default():
     """DFLoss must be sized from the head's grid, or a non-default bin count clamps targets to bin 15.
 
-    DFLoss clamps its target to reg_max-1.01 and gathers (tl, tl+1); _depth_bin_loss builds the target as a
-    fractional index over the head's own n_bins. A stale reg_max therefore silently discards every target
-    above the default range and trains the wrong pair of bins.
+    DFLoss clamps its target to reg_max-1.01 and gathers (tl, tl+1); _depth_bin_loss builds the target as a fractional
+    index over the head's own n_bins. A stale reg_max therefore silently discards every target above the default range
+    and trains the wrong pair of bins.
     """
     from ultralytics.models.yolo.s3d.head import AUX_SPECS, DepthDFL
     from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
@@ -1485,10 +1484,10 @@ def test_depth_dfl_loss_is_sized_from_the_head_not_the_module_default():
 def test_fitness_weights_classes_by_gt_instance_count():
     """Early stopping and best.pt must not be dominated by the rarest class.
 
-    s3d `fitness` was an UNWEIGHTED mean AP3D@0.5 Moderate across classes. On the 189-frame screening split
-    (680 Car, 81 Pedestrian, 37 Cyclist GT) two thirds of that mean is noise on ~120 objects, and it stopped
-    8 calibration runs while Car AP was still climbing 3-4x. Weighting by GT count is approximately
-    inverse-variance weighting, since a per-class AP estimate's variance falls about as 1/n.
+    s3d `fitness` was an UNWEIGHTED mean AP3D@0.5 Moderate across classes. On the 189-frame screening split (680 Car, 81
+    Pedestrian, 37 Cyclist GT) two thirds of that mean is noise on ~120 objects, and it stopped 8 calibration runs while
+    Car AP was still climbing 3-4x. Weighting by GT count is approximately inverse-variance weighting, since a per-class
+    AP estimate's variance falls about as 1/n.
 
     Constructed so the two aggregations disagree sharply: Car is good and common, the VRU classes are ~0 and
     rare. Unweighted -> (30+0+0)/3 = 10.0; weighted -> 30*680/798 = 25.56.
@@ -1517,10 +1516,9 @@ def test_fitness_weights_classes_by_gt_instance_count():
 def test_metrics_summary_feeds_the_export_helpers():
     """`summary()` must exist and carry per-class values, or every export path breaks for this task.
 
-    `DataExportMixin.to_df`/`to_csv`/`to_json` all call `summary()`. s3d never implemented it, so all
-    three raised AttributeError — the shared `test_val` caught it only once s3d joined that parametrization.
-    `results_dict` cannot stand in: it is one flat name-mangled mapping for the CSV logger, while the
-    mixin wants one record per class.
+    `DataExportMixin.to_df`/`to_csv`/`to_json` all call `summary()`. s3d never implemented it, so all three raised
+    AttributeError — the shared `test_val` caught it only once s3d joined that parametrization. `results_dict` cannot
+    stand in: it is one flat name-mangled mapping for the CSV logger, while the mixin wants one record per class.
     """
     from ultralytics.models.yolo.s3d.metrics import DIFFICULTY_MODERATE, Stereo3DDetMetrics
 
@@ -1542,10 +1540,10 @@ def test_metrics_summary_feeds_the_export_helpers():
 def test_fitness_selects_on_iou_70_not_iou_50():
     """Model selection must follow IoU 0.7, the threshold KITTI reports and the table leads with.
 
-    Read at IoU 0.5 alone, fitness cannot see localization precision: a checkpoint that trades tight boxes
-    for coarse ones outscores the better model. That is not hypothetical — the released `l` was first
-    published from a checkpoint scoring 12.4 Car Moderate AP3D@0.7 on dev where another scored 15.5, and
-    re-selecting at 0.7 was worth +3.6 AP@0.7 on the held-out test split.
+    Read at IoU 0.5 alone, fitness cannot see localization precision: a checkpoint that trades tight boxes for coarse
+    ones outscores the better model. That is not hypothetical — the released `l` was first published from a checkpoint
+    scoring 12.4 Car Moderate AP3D@0.7 on dev where another scored 15.5, and re-selecting at 0.7 was worth +3.6 AP@0.7
+    on the held-out test split.
 
     Built as that exact trade: `coarse` is better at 0.5, `tight` is better at 0.7.
     """
@@ -1572,9 +1570,9 @@ def test_fitness_selects_on_iou_70_not_iou_50():
 def test_metric_keys_and_results_dict_stay_in_step():
     """Every summary in `results_dict` must also be in `keys`, or it never reaches results.csv.
 
-    The CSV header is built from `keys`; `results_dict` supplies the values. A summary added to only one of
-    them is silently dropped from the log — which is what happened to `ap3d_50_weighted`, the new
-    instance-weighted fitness signal, on its first run.
+    The CSV header is built from `keys`; `results_dict` supplies the values. A summary added to only one of them is
+    silently dropped from the log — which is what happened to `ap3d_50_weighted`, the new instance-weighted fitness
+    signal, on its first run.
     """
     from ultralytics.models.yolo.s3d.metrics import DIFFICULTY_MODERATE, Stereo3DDetMetrics
 
@@ -1594,11 +1592,10 @@ def test_metric_keys_and_results_dict_stay_in_step():
 def test_advertised_keys_cover_everything_get_stats_returns():
     """The results.csv header is built from `validator.metrics.keys`, but `get_stats` merges in 2D metrics.
 
-    BaseTrainer writes the header once, from `self.validator.metrics.keys`, then appends one row per epoch
-    from whatever `get_stats` returned. Any key the merge adds but `keys` omits makes every validating epoch
-    write MORE values than the header has columns, which shifts every later column under the wrong heading —
-    a real `results.csv` on disk had a 28-column header over 86-column rows, so its `val/box` curve was
-    plotting an AP3D number.
+    BaseTrainer writes the header once, from `self.validator.metrics.keys`, then appends one row per epoch from whatever
+    `get_stats` returned. Any key the merge adds but `keys` omits makes every validating epoch write MORE values than
+    the header has columns, which shifts every later column under the wrong heading — a real `results.csv` on disk had a
+    28-column header over 86-column rows, so its `val/box` curve was plotting an AP3D number.
     """
     from ultralytics.cfg import get_cfg
     from ultralytics.models.yolo.s3d.val import Stereo3DDetValidator
@@ -1615,9 +1612,9 @@ def test_advertised_keys_cover_everything_get_stats_returns():
 def test_patience_zero_disables_early_stopping():
     """`patience=0` must mean "never stop", so every A/B arm trains exactly --epochs.
 
-    A/B comparability, not noise, is the reason: an arm that halts at a data-dependent epoch confounds the
-    treatment with training length, so a measured difference cannot be attributed. Ultralytics encodes
-    "off" as `patience or float("inf")`, which is easy to misread as "stop immediately" — this pins it.
+    A/B comparability, not noise, is the reason: an arm that halts at a data-dependent epoch confounds the treatment
+    with training length, so a measured difference cannot be attributed. Ultralytics encodes "off" as `patience or
+    float("inf")`, which is easy to misread as "stop immediately" — this pins it.
     """
     from ultralytics.utils.torch_utils import EarlyStopping
 
@@ -1635,13 +1632,13 @@ def test_patience_zero_disables_early_stopping():
 def test_cost_volume_builds_with_the_level_count_its_yaml_declares():
     """The parent YAML must build a cost volume with exactly the 48 levels it declares.
 
-    Guards a silent fallback to the module default: if the YAML's num_levels were ignored, the model would
-    still build and train, every disparity would simply be sampled on the wrong grid, and nothing else in
-    the suite would notice. Asserts the BUILT module, not that the file parses.
+    Guards a silent fallback to the module default: if the YAML's num_levels were ignored, the model would still build
+    and train, every disparity would simply be sampled on the wrong grid, and nothing else in the suite would notice.
+    Asserts the BUILT module, not that the file parses.
 
-    (This once covered -cv24/-cv96/-cv144 sweep variants too. The cost-volume resolution sweep returned a
-    null result -- the arms spanned 4.2 points against a 5.1-point noise bar -- so the variants were dropped
-    rather than shipped; reproduce that sweep with benchmark_s3d.py's --model override.)
+    (This once covered -cv24/-cv96/-cv144 sweep variants too. The cost-volume resolution sweep returned a null result --
+    the arms spanned 4.2 points against a 5.1-point noise bar -- so the variants were dropped rather than shipped;
+    reproduce that sweep with benchmark_s3d.py's --model override.)
     """
     from ultralytics.models.yolo.s3d.model import Stereo3DDetModel
     from ultralytics.nn.modules.block import StereoCostVolume
@@ -1685,10 +1682,10 @@ def test_configure_depth_resizes_the_branch_and_the_loss(tmp_path):
 def test_shipped_yamls_default_to_64_depth_bins():
     """The shipped s3d configs must build a 64-bin depth head.
 
-    64 is the measured optimum of an inverted-U bin curve (findings C9/C11/C12): better than 16 at every GT
-    range band on the full Chen split, while 192+ is worse than 16. This guards against a silent revert --
-    the model summary printed during training reports the pre-`configure_depth` channel count, so a
-    regression here would not be visible in any training log.
+    64 is the measured optimum of an inverted-U bin curve (findings C9/C11/C12): better than 16 at every GT range band
+    on the full Chen split, while 192+ is worse than 16. This guards against a silent revert -- the model summary
+    printed during training reports the pre-`configure_depth` channel count, so a regression here would not be visible
+    in any training log.
     """
     from ultralytics.utils import ROOT
 
@@ -1702,9 +1699,9 @@ def test_shipped_yamls_default_to_64_depth_bins():
 def test_bin_count_default_is_64_and_overridable(tmp_path):
     """A config that declares nothing gets 64 bins; a config that declares a count gets that count.
 
-    64 is the module-level default (`DEPTH_BINS`), so every s3d model — including variant YAMLs that never
-    mention depth bins — inherits the measured optimum. The override path still has to work, because it is
-    what the bin sweep itself used and what any future per-dataset tuning needs.
+    64 is the module-level default (`DEPTH_BINS`), so every s3d model — including variant YAMLs that never mention depth
+    bins — inherits the measured optimum. The override path still has to work, because it is what the bin sweep itself
+    used and what any future per-dataset tuning needs.
     """
     import yaml
 
@@ -1735,16 +1732,15 @@ def test_bin_count_default_is_64_and_overridable(tmp_path):
 def test_validator_metric_names_survive_a_ddp_wrapped_model(monkeypatch):
     """`get_validator` must read `names` through the parallel wrapper, not off `self.model` directly.
 
-    `BaseTrainer._setup_train` wraps `self.model` in DistributedDataParallel BEFORE calling
-    `get_validator()`, and DDP does not forward attribute lookups to the module it wraps. Reading
-    `self.model.names` therefore returned None on every multi-GPU run, with two silent consequences:
-    results.csv lost all 18 per-class AP3D columns (28 columns instead of 82), and the surviving
-    `ap3d_50` summary changed meaning, because `Stereo3DDetMetrics._mean_metric` averages over whichever
-    classes appear when `names` is empty rather than over all of them. A full-split DDP run reported
-    `ap3d_50` near 29 where the true 3-class mean was 6.96.
+    `BaseTrainer._setup_train` wraps `self.model` in DistributedDataParallel BEFORE calling `get_validator()`, and DDP
+    does not forward attribute lookups to the module it wraps. Reading `self.model.names` therefore returned None on
+    every multi-GPU run, with two silent consequences: results.csv lost all 18 per-class AP3D columns (28 columns
+    instead of 82), and the surviving `ap3d_50` summary changed meaning, because `Stereo3DDetMetrics._mean_metric`
+    averages over whichever classes appear when `names` is empty rather than over all of them. A full-split DDP run
+    reported `ap3d_50` near 29 where the true 3-class mean was 6.96.
 
-    The validator is stubbed: building a real one needs a live dataloader, and the defect under test is
-    purely how `get_validator` reaches the model's `names`.
+    The validator is stubbed: building a real one needs a live dataloader, and the defect under test is purely how
+    `get_validator` reaches the model's `names`.
     """
     import torch
 
@@ -1789,8 +1785,8 @@ def test_validator_metric_names_survive_a_ddp_wrapped_model(monkeypatch):
 def test_close_range_boxes_are_rendered():
     """A close-range 3D box must draw: the projection guard is 1/z-safety, not a depth plausibility floor.
 
-    Regression for a hardcoded 2.0 m visualization floor that silently dropped every box from a
-    short-baseline rig (cube_s3d objects sit at 0.45-1.66 m), so Results.plot() drew nothing at all.
+    Regression for a hardcoded 2.0 m visualization floor that silently dropped every box from a short-baseline rig
+    (cube_s3d objects sit at 0.45-1.66 m), so Results.plot() drew nothing at all.
     """
     from ultralytics.models.yolo.s3d.plotting import plot_boxes3d, project_box3d_corners
 
@@ -1809,7 +1805,7 @@ def test_close_range_boxes_are_rendered():
         assert not np.allclose(corners, 0.0), f"z={z} m was dropped by the projection guard"
         assert (plot_boxes3d(img, [box], calib) != img).any(), f"z={z} m drew no pixels"
 
-    # Non-projectable centres must still be rejected rather than producing garbage coordinates.
+    # Non-projectable centers must still be rejected rather than producing garbage coordinates.
     # Box3D itself rejects z <= 0, so only the non-finite and sub-epsilon cases reach this guard.
     for bad_z in (float("nan"), float("inf"), 1e-9):
         bad = Box3D(
@@ -1826,16 +1822,15 @@ def test_close_range_boxes_are_rendered():
 def test_shipped_label_format_actually_loads_objects(tmp_path):
     """The dataset must yield non-zero objects for BOTH shipped label layouts, 18- and 26-value.
 
-    This is the guard that was missing. Every shipped asset — kitti-stereo.zip, the kitti-stereo8 test
-    fixture, and the kitti-stereo-chen.zip published from this branch — uses the 26-value layout with 8
-    projected-corner values at indices 16-23. When the 26-value branch was deleted from `_parse_labels`,
-    every label was rejected with a warning and the loader returned zero objects, yet the whole suite still
-    passed: the existing train/val tests only assert that training RUNS, and a run with no supervision runs
-    perfectly happily. An 8-arm dose-response then trained 600 epochs per arm on nothing and reported
-    AP3D 0.00 across the board.
+    This is the guard that was missing. Every shipped asset — kitti-stereo.zip, the kitti-stereo8 test fixture, and the
+    kitti-stereo-chen.zip published from this branch — uses the 26-value layout with 8 projected-corner values at
+    indices 16-23. When the 26-value branch was deleted from `_parse_labels`, every label was rejected with a warning
+    and the loader returned zero objects, yet the whole suite still passed: the existing train/val tests only assert
+    that training RUNS, and a run with no supervision runs perfectly happily. An 8-arm dose-response then trained 600
+    epochs per arm on nothing and reported AP3D 0.00 across the board.
 
-    So this asserts on the object count, which is the property that was silently violated, rather than on
-    the absence of an exception.
+    So this asserts on the object count, which is the property that was silently violated, rather than on the absence of
+    an exception.
     """
     from ultralytics.models.yolo.s3d.dataset import Stereo3DDetDataset
 
@@ -1875,13 +1870,13 @@ def test_shipped_label_format_actually_loads_objects(tmp_path):
 def test_collate_keeps_aux_targets_aligned_when_a_batch_holds_an_empty_image():
     """An image with no objects must not shift its neighbours' 3D targets.
 
-    `per_image_aux[k]` is indexed by BATCH POSITION in the padding loop. It used to be appended to only
-    for images with objects, so one negative image slid every later image's depth/dimension/orientation
-    targets onto the wrong image and dropped the last one entirely -- while the DETECTION targets stayed
-    correct, so TAL kept supervising those anchors against another image's 3D truth with nothing raised.
+    `per_image_aux[k]` is indexed by BATCH POSITION in the padding loop. It used to be appended to only for images with
+    objects, so one negative image slid every later image's depth/dimension/orientation targets onto the wrong image and
+    dropped the last one entirely -- while the DETECTION targets stayed correct, so TAL kept supervising those anchors
+    against another image's 3D truth with nothing raised.
 
-    Negative images are normal: `plot_training_labels` reports them, and `update_labels_info` empties any
-    frame whose classes all fall outside a class subset.
+    Negative images are normal: `plot_training_labels` reports them, and `update_labels_info` empties any frame whose
+    classes all fall outside a class subset.
     """
     import types
 

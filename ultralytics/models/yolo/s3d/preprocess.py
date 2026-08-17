@@ -78,14 +78,14 @@ def compute_letterbox_params(
 def _dfl_variance(outputs: dict[str, torch.Tensor], b: int, idx: int) -> float:
     """Return the DFL depth-distribution spread Σpᵢ(bᵢ-μ)² at (b, idx), else 1.0 (high variance).
 
-    The bin grid comes from the head, which is the only thing that knows it: DepthDFL._set_range()
-    retargets the grid to each dataset's depth range, so rebuilding it here from DEPTH_MIN/DEPTH_MAX
-    would evaluate the logits on a different axis than the one they were trained and decoded on — and
-    this variance is the fusion weight for the depth cue against the disparity cue.
+    The bin grid comes from the head, which is the only thing that knows it: DepthDFL._set_range() retargets the grid to
+    each dataset's depth range, so rebuilding it here from DEPTH_MIN/DEPTH_MAX would evaluate the logits on a different
+    axis than the one they were trained and decoded on — and this variance is the fusion weight for the depth cue
+    against the disparity cue.
 
     Args:
-        outputs: Model outputs dictionary, may contain raw "depth_bins" logits [B, n_bins, HW] and the
-            matching "depth_bin_values" grid [n_bins].
+        outputs: Model outputs dictionary, may contain raw "depth_bins" logits [B, n_bins, HW] and the matching
+            "depth_bin_values" grid [n_bins].
         b: Batch index.
         idx: Flat spatial index into the aux maps.
 
@@ -137,14 +137,14 @@ def decode_stereo3d_outputs(
         score_k: Decay rate for the uncertainty-based confidence weighting (confidence is scaled by exp(-score_k *
             sigma), sigma = predicted lr-distance std-dev, when "lr_logvar" is present).
         depth_var_scale: Multiplier on the direct-depth cue's variance in the inverse-variance depth fusion. 1.0
-            (default) is an exact no-op; <1 shrinks the variance and so gives the direct cue more fusion weight,
-            which is how a higher bin count re-weights the fusion without changing the bin count.
+            (default) is an exact no-op; <1 shrinks the variance and so gives the direct cue more fusion weight, which
+            is how a higher bin count re-weights the fusion without changing the bin count.
         calib_letterboxed: If True, reverse-letterbox the per-sample calib (fx/fy/cx/cy) to original-image coords before
             back-projection (the production caller sets this).
 
     Returns:
-        (list[list[Box3D]]): One list per batch image, ALWAYS — including a single-image batch and
-            including images with no detections, which yield an empty inner list. Callers index by
+        (list[list[Box3D]]): One list per batch image, ALWAYS — including a single-image batch and including images with
+            no detections, which yield an empty inner list. Callers index by
             image, so never collapse the outer list for bs==1: `Stereo3DDetValidator.update_metrics`
             zips predictions against labels, so a collapsed empty result silently drops that image's
             ground truth from the recall denominator and inflates AP3D.
@@ -466,8 +466,8 @@ def decode_and_refine_predictions(
 ) -> list[list[Box3D]]:
     """Shared decode pipeline for val and predict.
 
-    Decodes raw model outputs to Box3D objects, pulling calibration and original shapes off the batch so both
-    entry points reverse the letterbox identically.
+    Decodes raw model outputs to Box3D objects, pulling calibration and original shapes off the batch so both entry
+    points reverse the letterbox identically.
 
     Args:
         preds: Dictionary of model outputs.
@@ -482,11 +482,11 @@ def decode_and_refine_predictions(
         class_names: Mapping from class ID to class name.
         score_k: Decay rate for the uncertainty-based confidence weighting (see decode_stereo3d_outputs).
         depth_var_scale: Multiplier on the direct-depth cue's fusion variance (see decode_stereo3d_outputs).
-        calib_letterboxed: Whether `batch["calib"]` is expressed in LETTERBOX-input space. True for the
-            validator, whose dataset pipeline scales and pads the calibration alongside the image. False
-            for the predictor, which loads calibration straight from disk in original-image space and
-            letterboxes only the pixels — passing True there applies the inverse letterbox a second time,
-            which at the default imgsz=640 on KITTI inflates fx by 1.94x and moves cy off the sensor.
+        calib_letterboxed: Whether `batch["calib"]` is expressed in LETTERBOX-input space. True for the validator, whose
+            dataset pipeline scales and pads the calibration alongside the image. False for the predictor, which loads
+            calibration straight from disk in original-image space and letterboxes only the pixels — passing True there
+            applies the inverse letterbox a second time, which at the default imgsz=640 on KITTI inflates fx by 1.94x
+            and moves cy off the sensor.
 
     Returns:
         List of Box3D lists (one per batch item).

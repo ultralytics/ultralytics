@@ -7,8 +7,8 @@
 # WHY THIS EXISTS. The older `kitti-stereo.yaml` splits by a contiguous index cutoff, which puts 128 of 141
 # raw drives on BOTH sides: 3754 of its 3769 val frames (99.6%) belong to a drive that also appears in
 # train. Because consecutive frames of a drive show the same vehicles at almost the same range, a model can
-# reach a high score by memorising scene-specific appearance→depth cues, so numbers measured on that split
-# do not indicate generalisation. On a leakage-free split the same checkpoint scores roughly 5x lower at
+# reach a high score by memorizing scene-specific appearance→depth cues, so numbers measured on that split
+# do not indicate generalization. On a leakage-free split the same checkpoint scores roughly 5x lower at
 # Car AP3D@0.7. Train on this file instead.
 #
 # `train` and `dev` together are exactly Chen et al.'s 3712-frame train split; `test` is exactly their

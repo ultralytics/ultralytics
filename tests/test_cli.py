@@ -102,8 +102,8 @@ def test_val(task: str, model: str, data: str) -> None:
 def test_predict(task: str, model: str, data: str) -> None:
     """Test YOLO prediction on provided sample assets for specified task and model.
 
-    Uses MONO_TASK_MODEL_DATA, not TASK_MODEL_DATA: `source=ASSETS` is a directory of single images,
-    which a paired-source task like s3d cannot consume.
+    Uses MONO_TASK_MODEL_DATA, not TASK_MODEL_DATA: `source=ASSETS` is a directory of single images, which a
+    paired-source task like s3d cannot consume.
     """
     for end2end in (False, True):
         run(f"yolo {task} predict model={model} source={ASSETS} imgsz=32 save end2end={end2end} max_det=100")

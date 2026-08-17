@@ -2081,24 +2081,17 @@ class RealNVP(nn.Module):
 class StereoCostVolume(nn.Module):
     """Group-wise correlation cost volume with a soft-argmin disparity readout.
 
-    The disparity grid is stored in *width-normalized* units (disparity_px / image_width), which is the
-    quantity a stereo rig physically fixes: `fx * baseline / (z * W)`. Feature-pixel offsets are derived
-    from it at forward time, so one module serves any rig and any input resolution, and the same
-    checkpoint transfers between rectangular and square imgsz. `set_disparity_range` retargets the grid
-    onto the disparities a dataset actually contains (the s3d trainer derives it from the labels) —
-    without that, a grid wide enough for a short-baseline rig wastes most of its levels on a driving
-    dataset, and vice versa.
+    The disparity grid is stored in *width-normalized* units (disparity_px / image_width), which is the quantity a
+    stereo rig physically fixes: `fx * baseline / (z * W)`. Feature-pixel offsets are derived from it at forward time,
+    so one module serves any rig and any input resolution, and the same checkpoint transfers between rectangular and
+    square imgsz. `set_disparity_range` retargets the grid onto the disparities a dataset actually contains (the s3d
+    trainer derives it from the labels) — without that, a grid wide enough for a short-baseline rig wastes most of its
+    levels on a driving dataset, and vice versa.
 
-    Correlation runs in `groups` channel groups (GwcNet-style) instead of collapsing every channel into
-    one scalar per level, and each level's group costs are aggregated into a single cost. Disparity is
-    then read out by soft-argmin over the levels, which is continuous and therefore sub-pixel, and is
-    emitted as the FIRST output channel so the depth branches receive a metric cue directly rather than
-    an unordered feature bank.
-
-    Note:
-        Peak activation memory scales with `groups` (the volume is `groups * num_levels` channels wide
-        before aggregation). `groups=1` reduces to a single full-channel correlation at the old memory
-        cost while keeping the centering, grid and soft-argmin.
+    Correlation runs in `groups` channel groups (GwcNet-style) instead of collapsing every channel into one scalar per
+    level, and each level's group costs are aggregated into a single cost. Disparity is then read out by soft-argmin
+    over the levels, which is continuous and therefore sub-pixel, and is emitted as the FIRST output channel so the
+    depth branches receive a metric cue directly rather than an unordered feature bank.
 
     Args:
         c1: Per-view input channels (the siamese tap output).
@@ -2106,6 +2099,11 @@ class StereoCostVolume(nn.Module):
         num_levels: Number of disparity samples.
         groups: Correlation groups, clamped to a divisor of c1.
         refine_layers: Number of conv layers in the refinement network.
+
+    Notes:
+        Peak activation memory scales with `groups` (the volume is `groups * num_levels` channels wide
+        before aggregation). `groups=1` reduces to a single full-channel correlation at the old memory
+        cost while keeping the centering, grid and soft-argmin.
     """
 
     def __init__(self, c1: int, c2: int = 64, num_levels: int = 48, groups: int = 4, refine_layers: int = 2):

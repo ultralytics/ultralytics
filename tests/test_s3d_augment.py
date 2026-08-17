@@ -84,17 +84,15 @@ def test_zoom_keeps_object_in_view():
 
 
 def test_scale_jitter_is_live_in_the_dataset_pipeline():
-    """End-to-end gate: with `scale_jitter>0` the image AND the 2D targets must change, calib must scale
-    with the zoom, and the 3D truth must NOT move.
+    """End-to-end gate: with `scale_jitter>0` the image AND the 2D targets must change, calib must scale with the zoom,
+    and the 3D truth must NOT move.
 
-    This gate exists because the previous scale augmentation, `StereoScale`, was geometrically INERT — its
-    canvas resize was fully undone by the subsequent `StereoLetterBox`, so no scale jitter ever actually
-    ran in any s3d training. A unit test of the transform in isolation would not have caught that; only
-    driving the real dataset pipeline does.
+    This gate exists because the previous scale augmentation, `StereoScale`, was geometrically INERT — its canvas resize
+    was fully undone by the subsequent `StereoLetterBox`, so no scale jitter ever actually ran in any s3d training. A
+    unit test of the transform in isolation would not have caught that; only driving the real dataset pipeline does.
 
-    Note which field to assert on: the sample's `labels` entry holds the raw per-object 3D truth and
-    correctly does NOT change under zoom. The trainable 2D targets are `bboxes`. Checking `labels` makes a
-    working augmentation look inert.
+    Note which field to assert on: the sample's `labels` entry holds the raw per-object 3D truth and correctly does NOT
+    change under zoom. The trainable 2D targets are `bboxes`. Checking `labels` makes a working augmentation look inert.
     """
     from pathlib import Path
 
@@ -150,9 +148,9 @@ def test_scale_jitter_is_live_in_the_dataset_pipeline():
 def test_hflip_swaps_the_two_views():
     """The mirrored scene puts the right camera where the left was, so the views must SWAP, not just flip.
 
-    Flipping each half in place without swapping leaves the rig handedness reversed: the left image
-    would see the scene from the right camera's viewpoint, making every disparity negative while the
-    3D depth targets stay positive. Training absorbs that silently -- all losses stay finite.
+    Flipping each half in place without swapping leaves the rig handedness reversed: the left image would see the scene
+    from the right camera's viewpoint, making every disparity negative while the 3D depth targets stay positive.
+    Training absorbs that silently -- all losses stay finite.
     """
     lab0 = _labels()
     left0, right0 = lab0["img"][:, :, :3].copy(), lab0["img"][:, :, 3:6].copy()
@@ -166,9 +164,9 @@ def test_hflip_swaps_the_two_views():
 def test_hflip_mirrors_geometry_and_keeps_disparity_physical():
     """Yaw negates, X mirrors about the baseline, depth is untouched, and disparity stays fx*B/z.
 
-    Disparity is the invariant that ties the flipped labels back to the flipped pixels. A sign error
-    anywhere in the mirror leaves it negative or inconsistent with depth, which is exactly the class of
-    corruption that runs for 600 epochs without a single failed assertion anywhere else.
+    Disparity is the invariant that ties the flipped labels back to the flipped pixels. A sign error anywhere in the
+    mirror leaves it negative or inconsistent with depth, which is exactly the class of corruption that runs for 600
+    epochs without a single failed assertion anywhere else.
     """
     lab = StereoHFlip(p=1.0)(_labels())
     inst = lab["instances"]
@@ -184,11 +182,11 @@ def test_hflip_mirrors_geometry_and_keeps_disparity_physical():
 
 
 def test_hflip_ties_the_label_mirror_to_the_pixel_flip():
-    """The new left box centre must land where the OLD RIGHT box centre lands after mirroring the canvas.
+    """The new left box center must land where the OLD RIGHT box center lands after mirroring the canvas.
 
-    This is the cross-check between the two halves of the transform: labels are mirrored analytically
-    while pixels are mirrored by cv2. `X -> -X` (forgetting the baseline term) still yields positive,
-    depth-consistent disparity and would pass the test above -- it only breaks here.
+    This is the cross-check between the two halves of the transform: labels are mirrored analytically while pixels are
+    mirrored by cv2. `X -> -X` (forgetting the baseline term) still yields positive, depth-consistent disparity and
+    would pass the test above -- it only breaks here.
     """
     lab0 = _labels()
     u_right_old_px = float(lab0["instances"].right_bboxes[0][0]) * W
@@ -211,7 +209,7 @@ def test_hflip_twice_is_identity():
 
 
 def test_hflip_p_zero_is_a_noop():
-    """p=0 must leave pixels, labels and calibration byte-for-byte alone."""
+    """P=0 must leave pixels, labels and calibration byte-for-byte alone."""
     lab0 = _labels()
     lab = StereoHFlip(p=0.0)(_labels())
     assert np.array_equal(lab["img"], lab0["img"])
@@ -222,10 +220,10 @@ def test_hflip_p_zero_is_a_noop():
 def test_hflip_negates_a_non_zero_yaw():
     """Mirroring reverses handedness, so yaw must negate.
 
-    Kept separate and given a NON-ZERO angle deliberately. The shared fixture's yaw is 0.0, and 0.0
-    negates to 0.0 -- a transform that dropped the negation entirely passed the geometry test above
-    until this case was added (confirmed by mutating the negation out). A rotated box also moves its
-    near face, which is why this cannot simply be folded into the disparity assertion.
+    Kept separate and given a NON-ZERO angle deliberately. The shared fixture's yaw is 0.0, and 0.0 negates to 0.0 -- a
+    transform that dropped the negation entirely passed the geometry test above until this case was added (confirmed by
+    mutating the negation out). A rotated box also moves its near face, which is why this cannot simply be folded into
+    the disparity assertion.
     """
     src = _labels()
     src["instances"].rotation_y = np.array([0.6], dtype=np.float32)

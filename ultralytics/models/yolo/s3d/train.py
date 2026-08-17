@@ -33,13 +33,13 @@ class DriveBalancedSampler(torch.utils.data.WeightedRandomSampler):
 
     `BaseTrainer` calls `self.train_loader.sampler.set_epoch(epoch)` unconditionally whenever `RANK != -1`
     (`ultralytics/engine/trainer.py`), because the default distributed sampler needs it to reshuffle. Plain
-    `WeightedRandomSampler` has no such method, so every rank raised `AttributeError` on the first epoch and
-    a multi-GPU run died before its first step while single-process runs were unaffected.
+    `WeightedRandomSampler` has no such method, so every rank raised `AttributeError` on the first epoch and a multi-GPU
+    run died before its first step while single-process runs were unaffected.
 
-    Reseeding per epoch is also better than letting the generator drift: the draw becomes a pure function of
-    (seed, epoch), so a resumed run reproduces the same sequence instead of depending on how far the
-    generator happened to advance before the interruption. The epoch is mixed in with a large stride so that
-    rank r at epoch e never collides with rank r' at epoch e'.
+    Reseeding per epoch is also better than letting the generator drift: the draw becomes a pure function of (seed,
+    epoch), so a resumed run reproduces the same sequence instead of depending on how far the generator happened to
+    advance before the interruption. The epoch is mixed in with a large stride so that rank r at epoch e never collides
+    with rank r' at epoch e'.
     """
 
     def __init__(self, weights: torch.Tensor, num_samples: int, seed: int = 0) -> None:
@@ -67,25 +67,25 @@ def drive_balanced_sampler(
 ) -> DriveBalancedSampler:
     """Sample frames so that no recording drive dominates an epoch.
 
-    KITTI-style stereo splits are extremely drive-concentrated: on the drive-disjoint 3712-frame split the
-    71 drives have a median of 10 frames but a maximum of 321, so the top five drives supply 37.8% of every
-    epoch's gradient while the smallest half of the drives supply 3.9%. Consecutive frames of one drive are
-    near-duplicates, so proportional sampling counts redundant scenes many times over.
+    KITTI-style stereo splits are extremely drive-concentrated: on the drive-disjoint 3712-frame split the 71 drives
+    have a median of 10 frames but a maximum of 321, so the top five drives supply 37.8% of every epoch's gradient while
+    the smallest half of the drives supply 3.9%. Consecutive frames of one drive are near-duplicates, so proportional
+    sampling counts redundant scenes many times over.
 
-    The correction caps each drive's contribution instead of inverting its frequency. A frame in a drive of
-    `n` frames gets weight `min(1, cap / n)` with `cap = balance * len(image_ids) / n_drives`, i.e. `balance`
-    multiples of the mean frames-per-drive. Only over-represented drives are down-weighted; every frame in
-    a drive at or below the cap keeps the uniform weight it has today, so relative probabilities inside the
-    long tail are untouched. Full inverse-frequency balancing (weight `1/n`) was rejected: it makes a
-    one-frame drive as influential as the 321-frame drive, drawing that single frame ~52 times per epoch.
+    The correction caps each drive's contribution instead of inverting its frequency. A frame in a drive of `n` frames
+    gets weight `min(1, cap / n)` with `cap = balance * len(image_ids) / n_drives`, i.e. `balance` multiples of the mean
+    frames-per-drive. Only over-represented drives are down-weighted; every frame in a drive at or below the cap keeps
+    the uniform weight it has today, so relative probabilities inside the long tail are untouched. Full
+    inverse-frequency balancing (weight `1/n`) was rejected: it makes a one-frame drive as influential as the 321-frame
+    drive, drawing that single frame ~52 times per epoch.
 
     Args:
         image_ids (list[str]): Frame stems in dataset order (index i of the returned sampler indexes here).
         drives (dict[str, str]): Map of frame stem to drive identifier. Unmapped frames form singleton drives.
-        balance (float): Cap in multiples of the mean frames-per-drive. Smaller is flatter; large values
-            recover uniform sampling exactly.
-        num_samples (int, optional): Draws per epoch. Defaults to `len(image_ids)`, keeping epoch length —
-            and therefore the LR schedule and total step count — identical to uniform sampling.
+        balance (float): Cap in multiples of the mean frames-per-drive. Smaller is flatter; large values recover uniform
+            sampling exactly.
+        num_samples (int, optional): Draws per epoch. Defaults to `len(image_ids)`, keeping epoch length — and therefore
+            the LR schedule and total step count — identical to uniform sampling.
         seed (int): Generator seed; pass the process rank so DDP ranks draw independent samples.
 
     Returns:
@@ -200,7 +200,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         std_dims = data_cfg.get("std_dims")
 
         # Scan up to 200 label files for the width-normalized disparities they contain — fields 1 and 5
-        # are the left/right box centres, so their difference IS disparity/width, the grid
+        # are the left/right box centers, so their difference IS disparity/width, the grid
         # StereoCostVolume needs to sample. Frame ids are grouped by recording drive, so the files are
         # strided rather than truncated: taking the first 200 would measure the grid on two or three
         # scenes and miss whatever depth range the rest of the split covers.
@@ -254,7 +254,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             return lo, hi
         if len(disparities) < 32:
             LOGGER.warning(
-                "s3d: only %d labelled disparities found — keeping the default cost-volume disparity grid. "
+                "s3d: only %d labeled disparities found — keeping the default cost-volume disparity grid. "
                 "Set `disparity_range: [min, max]` (width-normalized) in the dataset YAML to target it.",
                 len(disparities),
             )
@@ -326,7 +326,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             rank (int): Process rank, -1 for single-process training.
 
         Returns:
-            (torch.utils.data.WeightedRandomSampler | None): Sampler, or None to keep the default behaviour.
+            (torch.utils.data.WeightedRandomSampler | None): Sampler, or None to keep the default behavior.
         """
         drives_file = self.data.get("drives")
         if not drives_file:
@@ -344,7 +344,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             num_samples=math.ceil(len(dataset) / world_size) if rank != -1 else len(dataset),
             # Mix the run seed with the rank. Seeding from the rank alone made every single-process run
             # (rank -1 -> 0) draw the identical frame sequence, so a multi-seed noise-floor measurement
-            # would have varied initialisation and augmentation but NOT the sampling order, understating
+            # would have varied initialization and augmentation but NOT the sampling order, understating
             # the true run-to-run spread. The 10_000 stride keeps distinct (seed, rank) pairs distinct.
             seed=int(getattr(self.args, "seed", 0) or 0) * 10_000 + max(rank, 0),
         )

@@ -156,7 +156,6 @@ class RepCPE(nn.Module):
 
     Attributes:
         pe (nn.Conv2d): Training-time depthwise positional convolution.
-        reparam_conv (nn.Conv2d): Deploy convolution containing the positional and identity kernels.
     """
 
     def __init__(self, c: int, kernel_size: int = 7):
@@ -170,15 +169,14 @@ class RepCPE(nn.Module):
         self.pe = nn.Conv2d(c, c, kernel_size, padding=kernel_size // 2, groups=c, bias=True)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Apply the training or reparameterized positional convolution."""
-        return self.reparam_conv(x) if hasattr(self, "reparam_conv") else x + self.pe(x)
+        """Apply the training-time positional convolution and identity branch."""
+        return x + self.pe(x)
 
     @torch.no_grad()
     def fuse(self):
         """Fold the identity kernel into the positional convolution."""
         self.pe.weight[:, 0, self.pe.kernel_size[0] // 2, self.pe.kernel_size[1] // 2].add_(1)
-        self.reparam_conv = self.pe
-        del self.pe
+        return self.pe
 
 
 class MHSABlock(nn.Module):
@@ -209,7 +207,7 @@ class MHSABlock(nn.Module):
         ln1 (nn.LayerNorm): Pre-attention norm.
         qkv (nn.Linear): Fused QKV projection, bias per `qkv_bias`.
         proj (nn.Linear): Post-attention projection, bias per `proj_bias`.
-        pe (RepCPE): Optional reparameterizable conditional positional encoding.
+        pe (RepCPE | nn.Conv2d): Optional train or deploy conditional positional encoding.
         ln2 (nn.LayerNorm): Pre-FFN norm (token-Linear/SwiGLU FFN only).
         swiglu (bool): FFN form switch (token-Linear vs SwiGLU), set only on the token-FFN path (`conv_ffn=False`).
         fc1 (nn.Linear): FFN first layer (token FFN), or the fused value+gate projection when `swiglu=True` (one Linear
@@ -296,7 +294,7 @@ class MHSABlock(nn.Module):
     def fuse(self):
         """Fold LayerScale into the attention and FFN output projections for deploy."""
         if hasattr(self, "pe"):
-            self.pe.fuse()
+            self.pe = self.pe.fuse()
         if hasattr(self, "ffn_bn"):
             self.ffn_dw = fuse_conv_and_bn(self.ffn_dw, self.ffn_bn)
             del self.ffn_bn

@@ -28,7 +28,7 @@ graph LR
         D[Configure]:::proc --> E[Train on GPU]:::proc
         E --> F[View Metrics]:::out
     end
-    subgraph Deploy["🌐 Deploy"]
+    subgraph Deploy["🌐 Export or Deploy"]
         G[Export]:::proc
         H[Deploy Endpoint]:::proc --> I[Monitor]:::out
     end

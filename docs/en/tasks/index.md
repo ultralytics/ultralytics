@@ -2,7 +2,7 @@
 title: YOLO26 Computer Vision Tasks Overview
 comments: true
 description: Explore Ultralytics YOLO26 for detection, segmentation, semantic segmentation, depth estimation, classification, pose estimation, and OBB with high accuracy and speed. Learn how to apply each task.
-keywords: Ultralytics YOLO26, detection, segmentation, semantic segmentation, depth estimation, classification, oriented object detection, pose estimation, computer vision, AI framework
+keywords: Ultralytics YOLO26, detection, segmentation, semantic segmentation, depth estimation, classification, pose estimation, oriented object detection, computer vision, AI framework
 ---
 
 # Computer Vision Tasks Supported by Ultralytics YOLO26
@@ -66,7 +66,7 @@ Oriented Bounding Box (OBB) detection enhances traditional object detection by a
 
 ## Conclusion
 
-Ultralytics YOLO26 supports multiple computer vision tasks, including detection, instance segmentation, semantic segmentation, monocular depth estimation, classification, oriented object detection, and keypoint detection. Each task addresses specific needs in the computer vision landscape, from basic object identification to dense per-pixel depth inference. By understanding the capabilities and applications of each task, you can select the most appropriate approach for your specific computer vision challenges and leverage YOLO26's powerful features to build effective solutions.
+Ultralytics YOLO26 supports multiple computer vision tasks, including detection, instance segmentation, semantic segmentation, monocular depth estimation, classification, keypoint detection, and oriented object detection. Each task addresses specific needs in the computer vision landscape, from basic object identification to dense per-pixel depth inference. By understanding the capabilities and applications of each task, you can select the most appropriate approach for your specific computer vision challenges and leverage YOLO26's powerful features to build effective solutions.
 
 ## What's Next
 

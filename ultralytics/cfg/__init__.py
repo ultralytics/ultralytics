@@ -293,6 +293,7 @@ CFG_BOOL_KEYS = frozenset(
         "end2end",
         "muon_dense_only",
         "muon_conv_scale",
+        "muon_tau_momentum",
         "muon_aux_adamw",
         "vfl",
         "vfl_o2m",

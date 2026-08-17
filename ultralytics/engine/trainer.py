@@ -1122,6 +1122,7 @@ class BaseTrainer:
                 muon_aux=muon_aux,
                 conv_scale=self.args.muon_conv_scale,
                 tau=self.args.muon_tau,
+                tau_momentum=self.args.muon_tau_momentum,
             ),
         )(params=g)
 

@@ -102,6 +102,7 @@ weight_decay: 0.0005 # (float) weight decay (L2 regularization)
 muon_dense_only: False # (bool) when optimizer='MuSGD', restrict the Muon group to dense matrices; grouped/depthwise convs, the stem conv and the head's final box/cls convs fall back to the non-Muon group
 muon_conv_scale: False # (bool) when optimizer='MuSGD', scale conv Muon updates by sqrt(max(1, out/(in*kh*kw))) from the reshaped 2D matrix as in reference Muon; False leaves conv updates unscaled
 muon_tau: 0.0 # (float) MiMuon threshold; when optimizer='MuSGD', matrices whose momentum Frobenius norm is below it take a momentum SGD step instead of the orthogonalized Muon one (paper value 0.01); 0.0 orthogonalizes every matrix
+muon_tau_momentum: False # (bool) when muon_tau > 0, read the threshold on the momentum buffer M_t and fall back to it as in the MiMuon paper; False reads it on the matrix that would have been orthogonalized, which under Nesterov is ~1.5x larger in norm
 muon_aux_adamw: False # (bool) when optimizer='MuSGD', drop the SGD component so the Muon groups take Muon alone and the rest take AdamW, with the Muon update RMS fixed at 0.2 so both share one lr; ignored by optimizer='MuonAdamW', which keeps the auxiliary update on the Muon groups
 warmup_epochs: 3.0 # (float) warmup epochs (fractions allowed)
 warmup_momentum: 0.8 # (float) initial momentum during warmup

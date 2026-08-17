@@ -867,6 +867,9 @@ class DeimSegmentationLoss(DfineLoss):
         loss = masks_coeff.new_zeros(())
         offset = 0
         for i, (src_idx, dst_idx) in enumerate(self.main_indices):
+            # Matcher indices are CPU tensors; move them to the model device
+            src_idx = src_idx.to(proto.device)
+            dst_idx = dst_idx.to(proto.device)
             if len(src_idx):
                 if self.overlap:
                     local_idx = dst_idx - offset  # per-image instance rank in the overlap index map

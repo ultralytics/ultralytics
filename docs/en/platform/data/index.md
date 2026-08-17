@@ -40,8 +40,8 @@ The Data section of Ultralytics Platform helps you:
 ```mermaid
 graph LR
     A[Upload]:::start --> B[Annotate]:::proc
+    B --> D[Train]:::out
     B --> C[Analyze]:::proc
-    C --> D[Train]:::out
 
     classDef start fill:#4CAF50,color:#fff
     classDef proc fill:#2196F3,color:#fff

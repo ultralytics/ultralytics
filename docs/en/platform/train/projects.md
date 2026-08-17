@@ -15,10 +15,10 @@ graph TB
     P[Project]:::start --> M1[Model 1]:::proc
     P --> M2[Model 2]:::proc
     P --> M3[Model 3]:::proc
-    M1 --> C[Charts Dashboard]:::out
+    M1 --> C[Charts for selected models]:::out
     M2 --> C
     M3 --> C
-    M1 --> T[Comparison Table]:::out
+    M1 --> T[Comparison of selected models]:::out
     M2 --> T
     M3 --> T
 

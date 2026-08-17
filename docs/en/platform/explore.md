@@ -143,7 +143,7 @@ graph TD
     A[Find Content on Explore]:::start --> B{Content Type}:::decide
     B --> C[Dataset]:::proc
     B --> D[Project]:::proc
-    B --> E[Model]:::proc
+    D --> E[Model in the Project]:::proc
     C --> F[Clone Dataset]:::proc
     D --> G[Clone Project]:::proc
     E --> H[Download Model]:::proc
@@ -269,13 +269,13 @@ profiles. The **Share** button next to it copies a link or opens a pre-filled so
 
 ## Make Your Content Public
 
-Make your work available to the community. Public content appears on the Explore page and is visible to everyone, including users who aren't signed in.
+Make your work available to the community. Public content is visible to everyone, including users who aren't signed in. Explore lists public datasets that contain at least one image and public projects that contain at least one model, so an empty dataset or a project with no models stays off the Explore page until you add content to it. Models follow the visibility of the project that holds them and have no separate badge.
 
 ```mermaid
 graph LR
-    A[Your Private Content]:::start --> B[Click Private Badge]:::proc
+    A[Your Private Dataset or Project]:::start --> B[Click Private Badge]:::proc
     B --> C[Confirm Make Public]:::proc
-    C --> D[Appears on Explore Page]:::proc
+    C --> D[Appears on Explore Once It Has Content]:::proc
     D --> E[Community Can Clone/Download]:::out
 
     classDef start fill:#4CAF50,color:#fff

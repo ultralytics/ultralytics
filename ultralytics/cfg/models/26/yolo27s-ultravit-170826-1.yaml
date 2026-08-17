@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO27-S hybrid backbone with conditional positional encoding before P5 attention.
+# YOLO27-S export-first hybrid with conditional positional encoding, undamped P3 fusion, and P3-P5 outputs.
 
 nc: 80
 end2end: True
@@ -25,7 +25,6 @@ head:
   - [[-1, 6], 1, Concat, [1]]
   - [-1, 1, C3k2, [384, True]]
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
-  - [-1, 1, Scale, [0.5]]
   - [[-1, 4], 1, Concat, [1]]
   - [-1, 2, C3k2, [192, True]]
   - [-1, 1, Conv, [192, 3, 2]]
@@ -34,4 +33,4 @@ head:
   - [-1, 1, Conv, [384, 3, 2]]
   - [[-1, 8], 1, Concat, [1]]
   - [-1, 1, C3k2, [512, True, 0.5, True]]
-  - [[19, 22], 1, Detect, [nc]]
+  - [[15, 18, 21], 1, Detect, [nc]]

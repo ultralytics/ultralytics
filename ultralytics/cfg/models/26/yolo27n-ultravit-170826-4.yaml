@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO27-N hybrid with conditional positional encoding and P3-P5 detection outputs.
+# YOLO27-N FastViT-aligned hybrid with a deeper P4 stage, RepCPE, and P3-P5 outputs.
 
 nc: 80
 end2end: True
@@ -15,7 +15,7 @@ backbone:
   - [-1, 1, Conv, [64, 3, 2]]
   - [-1, 1, C3k2, [128, False, 0.25]]
   - [-1, 1, Conv, [96, 3, 2]]
-  - [-1, 5, RepUltraViTBlock, [1.25, True, 0.00001, True]]
+  - [-1, 8, RepUltraViTBlock, [1.25, True, 0.00001, True]]
   - [-1, 1, Conv, [256, 3, 2]]
   - [-1, 1, MHSABlock, [0, 3.8125, True, 0.00001, False, 64, False, False, False, False, 0, True]]
 

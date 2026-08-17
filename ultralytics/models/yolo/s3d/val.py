@@ -7,6 +7,7 @@ from typing import Any
 
 import numpy as np
 import torch
+import torch.distributed as dist
 
 from ultralytics.data.stereo.box3d import Box3D
 from ultralytics.data.stereo.calib import CalibrationParameters
@@ -27,7 +28,7 @@ from ultralytics.models.yolo.s3d.preprocess import (
 )
 from ultralytics.models.yolo.s3d.plotting import plot_stereo3d_boxes
 from ultralytics.utils import LOGGER, RANK
-from ultralytics.utils.metrics import DetMetrics, box_iou
+from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 
 
 def _reverse_letterbox_calib(
@@ -343,6 +344,11 @@ class Stereo3DDetValidator(BaseValidator):
         self.det_metrics.names = self.names
         self.det_metrics.clear_stats()
 
+        # Confusion matrix over the left-image 2D detections. The 3D branch has no notion of a class
+        # confusion — a box is matched or it is not — so this reports what the classifier actually did,
+        # in the same class space as the 2D mAP above.
+        self.confusion_matrix = ConfusionMatrix(names=self.names)
+
     def update_metrics(self, preds: list[list[Box3D]], batch: dict[str, Any]) -> None:
         """Update metrics with predictions and ground truth.
 
@@ -499,6 +505,28 @@ class Stereo3DDetValidator(BaseValidator):
                 pred_cls_np = np.asarray(pred_cls2d, dtype=np.int64)
 
             target_cls_np = np.asarray(gt_cls2d, dtype=np.int64)
+            # Same boxes the 2D mAP above is built from, in original-image space for both sides.
+            # Restricted to model class space: a dataset may carry classes the model cannot predict
+            # (kitti-stereo8 keeps raw KITTI ids, so a Cyclist arrives as 5 against a 3-class model).
+            # The 3D path skips those objects; ConfusionMatrix indexes by class id, so feeding them
+            # through would write past the end of its own matrix.
+            nc = len(self.names)
+            gt_keep = (target_cls_np >= 0) & (target_cls_np < nc)
+            pred_keep = (pred_cls_np >= 0) & (pred_cls_np < nc)
+            gt_boxes_np = np.asarray(gt_bboxes2d, dtype=np.float32).reshape(-1, 4)
+            pred_boxes_np = np.asarray(pred_bboxes2d, dtype=np.float32).reshape(-1, 4)
+            self.confusion_matrix.process_batch(
+                {
+                    "bboxes": torch.from_numpy(pred_boxes_np[pred_keep]),
+                    "conf": torch.from_numpy(np.asarray(conf2d, dtype=np.float32)[pred_keep]),
+                    "cls": torch.from_numpy(pred_cls_np[pred_keep]),
+                },
+                {
+                    "bboxes": torch.from_numpy(gt_boxes_np[gt_keep]),
+                    "cls": torch.from_numpy(target_cls_np[gt_keep]),
+                },
+                conf=self.args.conf if self.args.conf is not None else 0.25,
+            )
             self.det_metrics.update_stats(
                 {
                     "tp": tp2d,
@@ -580,6 +608,16 @@ class Stereo3DDetValidator(BaseValidator):
         self.metrics.save_dir = self.save_dir
         self.det_metrics.speed = self.speed
         self.det_metrics.save_dir = self.save_dir
+
+        # Under DDP each rank has counted only its own shard, so sum before rank 0 plots or reports.
+        if RANK > -1:
+            matrix = torch.as_tensor(self.confusion_matrix.matrix, device=self.device)
+            dist.reduce(matrix, dst=0, op=dist.ReduceOp.SUM)
+            if RANK == 0:
+                self.confusion_matrix.matrix = matrix.cpu().numpy()
+        if self.args.plots:
+            self.confusion_matrix.plot(save_dir=self.save_dir, on_plot=self.on_plot)
+        self.metrics.confusion_matrix = self.confusion_matrix
 
     def get_stats(self) -> dict[str, Any]:
         """Calculate and return metrics statistics.

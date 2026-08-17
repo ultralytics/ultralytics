@@ -517,10 +517,7 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics.to_df()
         metrics.to_csv()
         metrics.to_json()
-        # depth is dense regression: no classes, no confusion matrix. s3d has classes but its validator
-        # builds no ConfusionMatrix — its 2D stats go through a plain DetMetrics — so there is nothing to
-        # attach; adding one is a validator feature, not a test fix.
-        if task not in {"depth", "s3d"}:
+        if task != "depth":  # depth is dense regression: no classes, no confusion matrix
             metrics.confusion_matrix.to_df()
             metrics.confusion_matrix.to_csv()
             metrics.confusion_matrix.to_json()

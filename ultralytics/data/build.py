@@ -336,8 +336,8 @@ def build_dataloader(
         drop_last (bool, optional): Whether to drop the last incomplete batch.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
         sampler (torch.utils.data.Sampler, optional): Index sampler to use instead of the default
-            shuffle/DistributedSampler behavior. It must already be rank-aware — its length sets the per-rank epoch
-            size — and it suppresses `shuffle`, which the sampler is then responsible for.
+            shuffle/DistributedSampler behavior. It must already be rank-aware — its length sets the per-rank epoch size
+            — and it suppresses `shuffle`, which the sampler is then responsible for.
         device (torch.device | str, optional): Device used by the dataloader consumer.
 
     Returns:

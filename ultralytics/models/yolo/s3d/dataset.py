@@ -329,7 +329,7 @@ class Stereo3DDetDataset(BaseDataset):
                     LOGGER.info(f"{self.prefix}Loaded {len(labels)} labels from cache: {cache_path}")
                     return labels
             except Exception as e:
-                # A cache is only ever an optimisation, so ANY failure to read one must fall through to
+                # A cache is only ever an optimization, so ANY failure to read one must fall through to
                 # parsing rather than end the run. The guard used to list (OSError, ValueError), which let
                 # `ModuleNotFoundError: No module named 'numpy._core'` escape: the cache is a pickle, and one
                 # written under NumPy 2 cannot be unpickled by NumPy 1.x, whose module layout has no

@@ -1516,17 +1516,16 @@ def test_fitness_weights_classes_by_gt_instance_count():
 def test_unreadable_label_cache_falls_back_to_parsing():
     """An unreadable label cache must be re-parsed, never raise.
 
-    The cache is a pickle, so one written under NumPy 2 cannot be read by NumPy 1.x — there is no
-    `numpy._core` there — and the load raises ModuleNotFoundError. The guard listed only
-    (OSError, ValueError), so that escaped and killed the run in `get_labels`, even though the parse path
-    directly below it works. CI hit exactly this: its asset cache is keyed on the OS alone, so the
-    Python 3.13 job's dataset directory (NumPy 2 caches included) is restored by the Python 3.8 /
-    torch 1.8 floor job, which then crashed before running a single s3d test.
+    The cache is a pickle, so one written under NumPy 2 cannot be read by NumPy 1.x — there is no `numpy._core` there —
+    and the load raises ModuleNotFoundError. The guard listed only (OSError, ValueError), so that escaped and killed the
+    run in `get_labels`, even though the parse path directly below it works. CI hit exactly this: its asset cache is
+    keyed on the OS alone, so the Python 3.13 job's dataset directory (NumPy 2 caches included) is restored by the
+    Python 3.8 / torch 1.8 floor job, which then crashed before running a single s3d test.
 
-    The test cannot install a second NumPy, so it writes a `.npy` whose pickle payload imports a module
-    present in no NumPy version. That raises ModuleNotFoundError from `np.load` — the same class, escaping
-    the same guard. A merely corrupt file would NOT do: it raises ValueError, which the old guard caught,
-    so such a test would pass with or without the fix.
+    The test cannot install a second NumPy, so it writes a `.npy` whose pickle payload imports a module present in no
+    NumPy version. That raises ModuleNotFoundError from `np.load` — the same class, escaping the same guard. A merely
+    corrupt file would NOT do: it raises ValueError, which the old guard caught, so such a test would pass with or
+    without the fix.
     """
     import numpy.lib.format as npy_format
 

@@ -7,7 +7,6 @@ import torch.nn.functional as F
 
 from ultralytics.utils.loss import DFLoss, v8DetectionLoss
 
-
 # Order of the loss vector Stereo3DDetLoss returns. The trainer derives its own loss_names from the
 # criterion's dict on the first batch, but Stereo3DDetTrainer needs them before that to print the progress
 # header, so both read this one tuple rather than repeating the literal.

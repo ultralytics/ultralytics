@@ -21,12 +21,12 @@ from ultralytics.models.yolo.s3d.metrics import (
     compute_3d_iou,
     compute_bev_iou,
 )
+from ultralytics.models.yolo.s3d.plotting import plot_stereo3d_boxes
 from ultralytics.models.yolo.s3d.preprocess import (
     compute_letterbox_params,
     decode_and_refine_predictions,
     preprocess_stereo_batch,
 )
-from ultralytics.models.yolo.s3d.plotting import plot_stereo3d_boxes
 from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 

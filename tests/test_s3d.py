@@ -266,7 +266,7 @@ def test_bev_corners_uses_kitti_axis_convention():
     """
     from ultralytics.models.yolo.s3d.metrics import _bev_corners
 
-    extent = lambda v: float(v.max() - v.min())  # noqa: E731
+    extent = lambda v: float(v.max() - v.min())
 
     corners = _bev_corners(0.0, 0.0, length=4.0, width=2.0, rot=0.0)
     assert abs(extent(corners[:, 0]) - 4.0) < 1e-6, "length must span camera x at rot=0"
@@ -1291,7 +1291,7 @@ def test_drive_map_accepts_zero_padded_and_plain_integer_keys():
     # balance=1.0 give cap = 60/2 = 30, hence weights {min(1, 30/50), min(1, 30/10)} = {0.6, 1.0} — two
     # distinct values, where a failed lookup produces 60 singletons, cap 1.0, and a single weight of 1.0.
     stems = [f"{i:06d}" for i in range(60)]  # on-disk form
-    drive_of = lambda i: "drive_big" if i < 50 else "drive_small"  # noqa: E731
+    drive_of = lambda i: "drive_big" if i < 50 else "drive_small"
     plain = {str(i): drive_of(i) for i in range(60)}  # split-file form
     padded = {f"{i:06d}": drive_of(i) for i in range(60)}  # already-padded form
 
@@ -1889,7 +1889,7 @@ def test_collate_keeps_aux_targets_aligned_when_a_batch_holds_an_empty_image():
 
     def sample(zs):
         n = len(zs)
-        t32 = lambda a, s: torch.tensor(a, dtype=torch.float32) if n else torch.zeros(s)  # noqa: E731
+        t32 = lambda a, s: torch.tensor(a, dtype=torch.float32) if n else torch.zeros(s)
         return {
             "img": torch.zeros(6, 64, 64),
             "cls": torch.zeros(n),

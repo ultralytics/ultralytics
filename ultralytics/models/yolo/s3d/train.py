@@ -20,10 +20,10 @@ from ultralytics.models.yolo.s3d.dataset import Stereo3DDetDataset
 from ultralytics.models.yolo.s3d.head import DEPTH_MAX, DEPTH_MIN
 from ultralytics.models.yolo.s3d.loss import LOSS_NAMES
 from ultralytics.models.yolo.s3d.model import Stereo3DDetModel
+from ultralytics.models.yolo.s3d.plotting import VisualizationConfig, plot_stereo3d_boxes
 from ultralytics.models.yolo.s3d.preprocess import preprocess_stereo_batch
 from ultralytics.nn.modules.block import StereoCostVolume
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.models.yolo.s3d.plotting import VisualizationConfig, plot_stereo3d_boxes
 from ultralytics.utils.plotting import Annotator, colors, plot_labels
 from ultralytics.utils.torch_utils import unwrap_model
 

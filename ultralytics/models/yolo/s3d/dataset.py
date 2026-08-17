@@ -328,8 +328,15 @@ class Stereo3DDetDataset(BaseDataset):
                     labels = cache["labels"]
                     LOGGER.info(f"{self.prefix}Loaded {len(labels)} labels from cache: {cache_path}")
                     return labels
-            except (OSError, ValueError) as e:
-                LOGGER.warning(f"{self.prefix}Cache loading failed: {e}")
+            except Exception as e:
+                # A cache is only ever an optimisation, so ANY failure to read one must fall through to
+                # parsing rather than end the run. The guard used to list (OSError, ValueError), which let
+                # `ModuleNotFoundError: No module named 'numpy._core'` escape: the cache is a pickle, and one
+                # written under NumPy 2 cannot be unpickled by NumPy 1.x, whose module layout has no
+                # `numpy._core`. That happens whenever a dataset directory is shared between environments of
+                # different NumPy majors — CI hits it because its asset cache is keyed on the OS alone, so the
+                # Python 3.13 job's cache is restored by the Python 3.8 / torch 1.8 floor job.
+                LOGGER.warning(f"{self.prefix}Cache loading failed, re-parsing labels: {e}")
 
         # Parse labels
         labels = []

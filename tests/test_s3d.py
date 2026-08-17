@@ -1513,6 +1513,56 @@ def test_fitness_weights_classes_by_gt_instance_count():
     assert abs(m.fitness - 0.10) < 1e-6, "with no counts, fitness must fall back to the unweighted mean"
 
 
+def test_unreadable_label_cache_falls_back_to_parsing():
+    """An unreadable label cache must be re-parsed, never raise.
+
+    The cache is a pickle, so one written under NumPy 2 cannot be read by NumPy 1.x — there is no
+    `numpy._core` there — and the load raises ModuleNotFoundError. The guard listed only
+    (OSError, ValueError), so that escaped and killed the run in `get_labels`, even though the parse path
+    directly below it works. CI hit exactly this: its asset cache is keyed on the OS alone, so the
+    Python 3.13 job's dataset directory (NumPy 2 caches included) is restored by the Python 3.8 /
+    torch 1.8 floor job, which then crashed before running a single s3d test.
+
+    The test cannot install a second NumPy, so it writes a `.npy` whose pickle payload imports a module
+    present in no NumPy version. That raises ModuleNotFoundError from `np.load` — the same class, escaping
+    the same guard. A merely corrupt file would NOT do: it raises ValueError, which the old guard caught,
+    so such a test would pass with or without the fix.
+    """
+    import numpy.lib.format as npy_format
+
+    from ultralytics.data.utils import check_det_dataset
+    from ultralytics.models.yolo.s3d.dataset import Stereo3DDetDataset
+    from ultralytics.utils import DEFAULT_CFG
+
+    data = check_det_dataset(DATA)
+    root = Path(data["path"])
+    names = data["names"]
+    kwargs = {
+        "root": root,
+        "split": data.get("val_split", "val"),
+        "imgsz": [128, 416],
+        "names": names,
+        "mean_dims": data.get("mean_dims"),
+        "std_dims": data.get("std_dims"),
+        "augment": False,
+        "hyp": DEFAULT_CFG,
+        "data": data,
+    }
+
+    expected = len(Stereo3DDetDataset(**kwargs).labels)
+    assert expected > 0, "baseline load produced no labels"
+
+    cache_path = root / "labels" / f"stereo3d_{kwargs['split']}.cache"
+    with open(cache_path, "wb") as f:  # valid .npy container, pickle payload importing a missing module
+        npy_format.write_array_header_1_0(f, {"descr": "|O", "fortran_order": False, "shape": ()})
+        f.write(b"\x80\x04c" + b"numpy._absent_layout\n" + b"thing\n" + b".")
+    try:
+        labels = Stereo3DDetDataset(**kwargs).labels
+    finally:
+        cache_path.unlink(missing_ok=True)
+    assert len(labels) == expected, "an unreadable cache must be re-parsed, not fatal"
+
+
 def test_metrics_summary_feeds_the_export_helpers():
     """`summary()` must exist and carry per-class values, or every export path breaks for this task.
 

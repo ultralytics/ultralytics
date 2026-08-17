@@ -49,8 +49,7 @@ BIAS_FILL = 1e-3
 TIMER = "predictor-speed"  # rows measured before 2026-07-27 used "cuda-events"
 
 # Format tables: name -> (Variant attribute holding the artifact, extra predict kwargs, timed runs). Warmup defaults to a
-# tenth of the runs and only a `warmup=N` sweep changes it. `half` rather than `quantize` because the bench checkouts span both spellings and newer
-# versions still forward `half`.
+# tenth of the runs and only a `warmup=N` sweep changes it.
 #
 # Only TensorRT is timed in the paired rounds. The other three used to run back to back ahead of it, which cooled
 # the card on the CPU row and then reheated it at an architecture-dependent rate, a confound balanced round order
@@ -58,8 +57,8 @@ TIMER = "predictor-speed"  # rows measured before 2026-07-27 used "cuda-events"
 # after the rounds, into a sidecar, as export health rather than a paired comparison.
 TIMED_FORMATS = {"trt": ("engine", {}, 100)}
 SIDECAR_FORMATS = {
-    "pt_cpu": ("weights", {"device": "cpu", "half": False}, 20),
-    "pt16": ("weights", {"half": True}, 100),
+    "pt_cpu": ("weights", {"device": "cpu", "quantize": 32}, 20),
+    "pt16": ("weights", {"quantize": 16}, 100),
     "onnx": ("onnx", {}, 100),
 }
 
@@ -95,9 +94,9 @@ class Variant:
 def parse_session(argv):
     """Split ``<lane>-<scale> [arm,arm] [warmup=N]`` into the lane, the scale, the session id and the warmup override.
 
-    A warmup override is its own measurement occasion, so it goes into the session id. That keeps an exploratory
-    sweep from writing over the standard run's csv, rounds and env files, and keeps its rows visibly outside the
-    standard cohort. The suffix lands after the lane and scale are read off, so it cannot be mistaken for the scale.
+    A warmup override is its own measurement occasion, so it goes into the session id. That keeps an exploratory sweep
+    from writing over the standard run's csv, rounds and env files, and keeps its rows visibly outside the standard
+    cohort. The suffix lands after the lane and scale are read off, so it cannot be mistaken for the scale.
 
     Returns:
         (str): Lane name, `lane-a` or `lane-b`.
@@ -192,9 +191,9 @@ def materialize_yaml(name, yaml, outdir, ident, model_cls):
 def pinned_fp32_attn(onnx, engine):
     """Build the FP16 engine through Esat's builder, with attention softmax and norm internals pinned to fp32.
 
-    This is the Lane B engine build. Without the pin DINOv3 decomposed attention overflows fp16, and the `debug`
-    flag is his, so these engines match the ones his published numbers came from. The import is local because
-    `working_dir` only exists in the Lane B checkout.
+    This is the Lane B engine build. Without the pin DINOv3 decomposed attention overflows fp16, and the `debug` flag is
+    his, so these engines match the ones his published numbers came from. The import is local because `working_dir` only
+    exists in the Lane B checkout.
     """
     from working_dir.export_deimv2 import build_engine_fp16
 
@@ -249,7 +248,7 @@ def build_variant(name, weights, outdir, imgsz, device="0", model_cls=YOLO, engi
         if engine_builder:
             engine_builder(onnx, engine)
         else:
-            export("engine", engine, half=True)
+            export("engine", engine, quantize=16)
     model = model_cls(str(weights))
     model.fuse()  # so params and GFLOPs describe the deployed graph
     _, params, _, gflops = model.info(imgsz=imgsz)
@@ -274,7 +273,7 @@ def profile_model(model, image, runs, warmup, **predict_kwargs):
         image (np.ndarray): HWC uint8 input reused for every call.
         runs (int): Timed calls to collect.
         warmup (int): Untimed calls made first, which also set how hot the card is when timing starts.
-        **predict_kwargs (Any): Forwarded to the predictor, typically imgsz, device and half.
+        **predict_kwargs (Any): Forwarded to the predictor, typically imgsz, device and quantize.
 
     Returns:
         (dict): Sigma-clipped mean inference ms under `inf`, its standard deviation under `inf_std`, and preprocess plus
@@ -365,12 +364,12 @@ def run_benchmark(variants, baselines, out_csv, session, imgsz, device="0", warm
 
     Args:
         variants (list[Variant]): Variants to compare, all artifacts already built.
-        baselines (dict): Maps each variant name to the name of the variant its delta is taken against. Keying it
-            per variant is what lets one suite span scales, since a row only means architecture when its baseline
-            is at its own scale.
+        baselines (dict): Maps each variant name to the name of the variant its delta is taken against. Keying it per
+            variant is what lets one suite span scales, since a row only means architecture when its baseline is at its
+            own scale.
         out_csv (str | Path): Summary CSV path. Per-round rows, other formats and provenance go beside it.
-        session (str): Identifies this measurement session, since a delta is only exact against arms measured in
-            the same one. Chaining across sessions needs a bridge arm present in both.
+        session (str): Identifies this measurement session, since a delta is only exact against arms measured in the
+            same one. Chaining across sessions needs a bridge arm present in both.
         imgsz (int): Square input size, which must match the size the artifacts were exported at.
         device (str): CUDA device index passed to the predictor.
         warmup (int, optional): Untimed calls before each timed block, overriding the tenth-of-runs default. Rows

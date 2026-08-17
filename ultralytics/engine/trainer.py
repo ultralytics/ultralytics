@@ -306,34 +306,39 @@ class BaseTrainer:
 
         self._model_train()
         lrs = np.logspace(math.log10(lr_min), math.log10(lr_max), num_steps)
-        losses, loss_sum, loader = [], torch.zeros(1, device=self.device), iter(self.train_loader)
+        losses, loader = [], iter(self.train_loader)
+        probe = next(loader)  # read every rate on one held out batch, so no sampling noise reaches the curve
+        momenta = [(m, m.momentum) for m in self.model.modules() if isinstance(m, nn.modules.batchnorm._BatchNorm)]
+        for m, _ in momenta:
+            m.momentum = 0.0  # normalize the probe on its own statistics, and never write the sweep's back
         iterator = TQDM(lrs, desc=f"{prefix} sweeping lr {lr_min:g} -> {lr_max:g}") if RANK in {-1, 0} else lrs
         for lr in iterator:
             for group, ratio in zip(param_groups, lr_ratios):
                 group["lr"] = lr * ratio
-            loss_sum.zero_()
             try:
                 for _ in range(self.accumulate):
                     batch = next(loader, None)
                     if batch is None or len(batch["img"]) < self.train_loader.batch_size:
-                        loader = iter(self.train_loader)  # restart rather than fit a rescaled short tail batch
+                        loader = iter(self.train_loader)  # restart rather than step on a rescaled short tail batch
                         batch = next(loader)
-                    loss, _ = self._forward_batch(batch)
-                    loss_sum += loss.detach() / len(batch["img"])  # the objective, per image so the batch cancels
-                    self.scaler.scale(loss).backward()
+                    self.scaler.scale(self._forward_batch(batch)[0]).backward()
+                self.optimizer_step()
+                with torch.no_grad():
+                    loss = self._forward_batch(dict(probe))[0].reshape(1)  # shallow copy, preprocessing is in place
             except RuntimeError as e:
                 if self.world_size > 1:
                     raise  # a rank that skips its backward would desynchronize the others
                 LOGGER.warning(f"{prefix} sweep stopped early, {e}")
                 self._clear_memory()
                 break
-            self.optimizer_step()
             if self.world_size > 1:
-                dist.all_reduce(loss_sum)  # every rank fits the same global curve
-            losses.append(loss_sum.item() / (self.accumulate * max(self.world_size, 1)))
+                dist.all_reduce(loss)  # every rank fits the same global curve
+            losses.append(loss.item() / (len(probe["img"]) * max(self.world_size, 1)))
             if not math.isfinite(losses[-1]) or losses[-1] > 4 * min(losses):
                 break
 
+        for m, momentum in momenta:
+            m.momentum = momentum
         self.model.load_state_dict(model_state)
         self.optimizer.load_state_dict(optimizer_state)
         self.scaler.load_state_dict(scaler_state)

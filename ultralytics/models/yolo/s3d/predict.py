@@ -25,7 +25,7 @@ class Stereo3DDetPredictor(DetectionPredictor):
     10-branch model outputs.
     """
 
-    def __init__(self, cfg=None, overrides: dict[str, Any] | None = None, _callbacks=None):
+    def __init__(self, cfg: Any = None, overrides: dict[str, Any] | None = None, _callbacks: dict | None = None):
         """Initialize Stereo3DDetPredictor.
 
         Args:
@@ -65,7 +65,7 @@ class Stereo3DDetPredictor(DetectionPredictor):
         self.mean_dims = getattr(self.model.model, "mean_dims", None)
         self.std_dims = getattr(self.model.model, "std_dims", None)
 
-    def setup_source(self, source=None):
+    def setup_source(self, source: str | Path | tuple | list | None = None):
         """Set up input source for stereo prediction.
 
         For s3d, source can be:
@@ -205,7 +205,9 @@ class Stereo3DDetPredictor(DetectionPredictor):
             letterbox=self._letterbox,
         )
 
-    def postprocess(self, preds, img: torch.Tensor, orig_imgs: list[np.ndarray], **kwargs) -> list[Results]:
+    def postprocess(
+        self, preds: tuple | list | dict, img: torch.Tensor, orig_imgs: list[np.ndarray], **kwargs
+    ) -> list[Results]:
         """Post-process model predictions to Results objects with 3D boxes.
 
         Uses shared decode_and_refine_predictions from preprocess.py so predict and val decode identically.
@@ -214,7 +216,7 @@ class Stereo3DDetPredictor(DetectionPredictor):
             preds: Tuple of (inference_output, preds_dict) from model forward.
             img: Preprocessed input tensor.
             orig_imgs: List of original stereo images (6-channel).
-            **kwargs: Additional arguments.
+            **kwargs (Any): Additional arguments.
 
         Returns:
             List of Results objects with boxes3d attribute.

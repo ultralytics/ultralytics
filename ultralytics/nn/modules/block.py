@@ -2108,7 +2108,7 @@ class StereoCostVolume(nn.Module):
         refine_layers: Number of conv layers in the refinement network.
     """
 
-    def __init__(self, c1, c2=64, num_levels=48, groups=4, refine_layers=2):
+    def __init__(self, c1: int, c2: int = 64, num_levels: int = 48, groups: int = 4, refine_layers: int = 2):
         super().__init__()
         self.num_levels = num_levels
         self.groups = math.gcd(groups, c1)

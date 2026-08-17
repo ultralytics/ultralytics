@@ -146,7 +146,13 @@ class Stereo3DDetValidator(BaseValidator):
     to ground truth, and calculates AP3D at IoU 0.5 and 0.7.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
+    def __init__(
+        self,
+        dataloader: torch.utils.data.DataLoader | None = None,
+        save_dir: Path | None = None,
+        args: dict[str, Any] | None = None,
+        _callbacks: dict | None = None,
+    ) -> None:
         """Initialize Stereo3DDetValidator.
 
         Args:
@@ -224,7 +230,7 @@ class Stereo3DDetValidator(BaseValidator):
         self._current_batch = batch
         return batch
 
-    def postprocess(self, preds) -> list[list[Box3D]]:
+    def postprocess(self, preds: tuple | list | dict) -> list[list[Box3D]]:
         """Postprocess model outputs to Box3D objects.
 
         Uses shared decode_and_refine_predictions from preprocess.py so val and predict decode identically.

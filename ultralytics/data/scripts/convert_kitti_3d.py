@@ -393,7 +393,7 @@ class KITTIToYOLO3D:
             f.write(f"image_width: {calib['image_width']}\n")
             f.write(f"image_height: {calib['image_height']}\n")
 
-    def _compute_mean_dimensions(self, split_name="train"):
+    def _compute_mean_dimensions(self, split_name: str = "train"):
         """Compute mean dimensions from converted label files.
 
         Args:
@@ -486,7 +486,7 @@ class KITTIToYOLO3D:
         LOGGER.info(f"Computed mean dimensions from {total_labels} labels across {len(mean_dims)} classes")
         return mean_dims if mean_dims else None
 
-    def _compute_std_dimensions(self, split_name="train"):
+    def _compute_std_dimensions(self, split_name: str = "train"):
         """Compute standard deviation of dimensions from converted label files.
 
         Args:
@@ -574,14 +574,15 @@ class KITTIToYOLO3D:
         LOGGER.info(f"Computed std dimensions from {total_labels} labels across {len(std_dims)} classes")
         return std_dims if std_dims else None
 
-    def convert_split(self, split="training"):
+    def convert_split(self, split: str = "training"):
         """Convert entire KITTI split.
 
-        Args:
-            split: 'training' or 'testing'
-            Behavior:
+        Behavior:
             - 'single' strategy: mirrors KITTI splits to train/val.
             - '3dop' strategy: when split=='training', internally slices indices 0-3711 -> train, 3712-end -> val.
+
+        Args:
+            split (str): 'training' or 'testing'.
         """
         LOGGER.info(f"\n{'=' * 60}")
         LOGGER.info(f"Converting KITTI {split} split (strategy={self.split_strategy})")

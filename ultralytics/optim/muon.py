@@ -57,6 +57,7 @@ def muon_update(
     nesterov: bool = True,
     conv_scale: bool = True,
     rms: float = 0.0,
+    tau: float = 0.0,
 ) -> torch.Tensor | list[torch.Tensor]:
     """Compute Muon optimizer updates with momentum and orthogonalization.
 
@@ -77,6 +78,9 @@ def muon_update(
         rms (float, optional): Target update RMS. Non-zero replaces the scale above with rms * sqrt(max(rows, cols)),
             which an orthogonalized matrix turns into a constant RMS of `rms` regardless of shape, matching Adam's
             update magnitude so both can share one learning rate. Ignores conv_scale. Default: 0.0.
+        tau (float, optional): MiMuon threshold on the Frobenius norm of the momentum. Matrices below it skip
+            orthogonalization and keep the raw momentum as their update. Zero orthogonalizes every matrix, which is
+            plain Muon. Default: 0.0.
 
     Returns:
         (torch.Tensor | list[torch.Tensor]): Orthogonalized update tensor(s), each with the gradient's shape and dtype.
@@ -95,6 +99,8 @@ def muon_update(
         - 4D tensors (conv filters) are reshaped to 2D as (out_channels, in_channels*height*width) for orthogonalization.
         - Final updates are scaled by sqrt(max(1, rows / cols)), taken from that 2D matrix when conv_scale.
         - With rms, they are scaled by rms * sqrt(max(rows, cols)) from that 2D matrix instead, fixing their RMS.
+        - With tau, matrices whose momentum has a Frobenius norm below it keep that momentum unscaled as their update,
+          which is the MiMuon rule (https://arxiv.org/abs/2605.19619) and skips their Newton-Schulz call.
     """
     single = isinstance(grad, torch.Tensor)
     grads, momentums = ([grad], [momentum]) if single else (grad, momentum)
@@ -105,8 +111,12 @@ def muon_update(
         torch._foreach_add_(updates, grads, alpha=1 - beta)
     else:
         updates = list(momentums)
+    # MiMuon: orthogonalize only where the momentum is large enough, one device sync for the whole list
+    small = torch.stack(torch._foreach_norm(updates)).lt(tau).tolist() if tau else None
     buckets = {}  # group matrices transposed to rows <= cols by (rows,) for batched orthogonalization
     for i, u in enumerate(updates):
+        if small and small[i]:  # below tau, so the update stays the raw momentum
+            continue
         m = u.view(len(u), -1) if u.ndim == 4 else u
         if rms:
             scale = rms * max(m.size(-2), m.size(-1)) ** 0.5  # constant update RMS, matching Adam
@@ -143,6 +153,8 @@ class MuSGD(optim.Optimizer):
             non-zero. Default: 0.0.
         muon_aux (bool, optional): Whether the Muon groups also take the auxiliary update. Default: True.
         conv_scale (bool, optional): Scale conv Muon updates by their reshaped 2D matrix shape. Default: True.
+        tau (float, optional): MiMuon threshold below which a matrix keeps its raw momentum instead of the
+            orthogonalized direction. Default: 0.0.
 
     Attributes:
         muon (float): Scaling factor applied to Muon learning rate.
@@ -150,6 +162,7 @@ class MuSGD(optim.Optimizer):
         adamw (float): Scaling factor applied to the AdamW learning rate, or 0 when the auxiliary optimizer is SGD.
         muon_aux (bool): Whether the Muon groups take the auxiliary update on top of the Muon one.
         conv_scale (bool): Whether conv filter updates are scaled by their reshaped 2D matrix shape.
+        tau (float): Frobenius norm threshold gating orthogonalization, 0 to orthogonalize every matrix.
 
     Examples:
         >>> param_groups = [
@@ -181,6 +194,8 @@ class MuSGD(optim.Optimizer):
         - Parameter groups with 'use_muon': False receive only the auxiliary update.
         - The auxiliary update is SGD, or AdamW when adamw > 0.
         - The Muon update uses orthogonalization which works best for 2D+ parameter tensors.
+        - With tau > 0 the Muon update follows MiMuon and drops to plain momentum on matrices whose momentum norm
+          falls below tau.
     """
 
     def __init__(
@@ -196,6 +211,7 @@ class MuSGD(optim.Optimizer):
         adamw: float = 0.0,
         muon_aux: bool = True,
         conv_scale: bool = True,
+        tau: float = 0.0,
     ):
         """Initialize MuSGD optimizer with hybrid Muon and SGD capabilities.
 
@@ -214,6 +230,8 @@ class MuSGD(optim.Optimizer):
                 which then carries a decoupled weight decay instead of the L2 the auxiliary update would apply.
             conv_scale (bool): Take the Muon update scale from the reshaped 2D matrix, scaling conv filters by
                 sqrt(max(1, out / (in * kh * kw))) instead of leaving them unscaled.
+            tau (float): MiMuon threshold on the momentum Frobenius norm. Matrices below it take a momentum SGD step in
+                place of the orthogonalized one, on the same learning rate. Zero keeps every matrix on Muon.
         """
         defaults = dict(
             lr=lr,
@@ -228,6 +246,7 @@ class MuSGD(optim.Optimizer):
         self.adamw = adamw
         self.muon_aux = muon_aux
         self.conv_scale = conv_scale
+        self.tau = tau
 
     def _adamw_step(self, group: dict, params: list, lr: float, beta1: float, beta2: float = 0.999, eps: float = 1e-8):
         """Apply an AdamW update to a non-Muon parameter group, through torch's own AdamW kernels.
@@ -313,6 +332,7 @@ class MuSGD(optim.Optimizer):
                     nesterov=nesterov,
                     conv_scale=self.conv_scale,
                     rms=0.2 if adam else 0.0,  # share one lr with the AdamW groups
+                    tau=self.tau,
                 )
                 if not aux and group["weight_decay"] != 0:  # no aux update to carry the L2, so decouple the decay
                     torch._foreach_mul_(params, 1 - lr * self.muon * group["weight_decay"])

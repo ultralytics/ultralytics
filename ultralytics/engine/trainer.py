@@ -1114,7 +1114,15 @@ class BaseTrainer:
         optimizer = getattr(
             optim,
             name,
-            partial(MuSGD, muon=muon, sgd=sgd, adamw=adamw, muon_aux=muon_aux, conv_scale=self.args.muon_conv_scale),
+            partial(
+                MuSGD,
+                muon=muon,
+                sgd=sgd,
+                adamw=adamw,
+                muon_aux=muon_aux,
+                conv_scale=self.args.muon_conv_scale,
+                tau=self.args.muon_tau,
+            ),
         )(params=g)
 
         LOGGER.info(

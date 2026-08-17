@@ -184,6 +184,7 @@ CFG_FLOAT_KEYS = frozenset(
         "o2o_small_target_end",
         "dfl",
         "shape_iou_scale",
+        "muon_tau",
         "alpha_iou",
         "wiou_alpha",
         "wiou_delta",

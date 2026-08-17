@@ -54,6 +54,7 @@ from ultralytics.nn.modules import (
     Detect,
     DeimDecoder,
     DeimLayerNormDecoder,
+    DeimSegmentDecoder,
     DWConv,
     DWConvTranspose2d,
     DINOv3RoPE2D,
@@ -911,6 +912,7 @@ class RTDETRDetectionModel(DetectionModel):
         dn_refs, o2o_refs, o2m_refs = split_layered(dfine_meta["ref_points"])
         dn_pre_bboxes, o2o_pre_bboxes, o2m_pre_bboxes = split_flat(dfine_meta["pre_bboxes"])
         dn_pre_logits, o2o_pre_logits, o2m_pre_logits = split_flat(dfine_meta["pre_logits"])
+        dn_masks, o2o_masks, o2m_masks = split_layered(dfine_meta.get("dec_masks"))
 
         base_meta = {
             "up": dfine_meta["up"],
@@ -923,11 +925,15 @@ class RTDETRDetectionModel(DetectionModel):
             "pre_bboxes": o2o_pre_bboxes,
             "pre_logits": o2o_pre_logits,
         }
+        if o2o_masks is not None:
+            o2o_meta["dec_masks"] = o2o_masks
         if dn_corners is not None:
             o2o_meta["dn_pred_corners"] = dn_corners
             o2o_meta["dn_ref_points"] = dn_refs
             o2o_meta["dn_pre_bboxes"] = dn_pre_bboxes
             o2o_meta["dn_pre_logits"] = dn_pre_logits
+        if dn_masks is not None:
+            o2o_meta["dn_dec_masks"] = dn_masks
 
         o2m_meta = None
         if num_o2m > 0:
@@ -938,6 +944,8 @@ class RTDETRDetectionModel(DetectionModel):
                 "pre_bboxes": o2m_pre_bboxes,
                 "pre_logits": o2m_pre_logits,
             }
+            if o2m_masks is not None:
+                o2m_meta["dec_masks"] = o2m_masks
         return o2o_meta, o2m_meta
 
     def _apply(self, fn):
@@ -958,12 +966,16 @@ class RTDETRDetectionModel(DetectionModel):
     def init_criterion(self):
         """Initialize the loss criterion for the RTDETRDetectionModel."""
         from ultralytics.models.utils.loss import RTDETRDetectionLoss
-        from ultralytics.models.utils.loss_dfine import DfineLoss
+        from ultralytics.models.utils.loss_dfine import DeimSegmentationLoss, DfineLoss
 
         loss_cfg = self.yaml.get("loss", {})
         loss_gain = loss_cfg.get("loss_gain", {}) if isinstance(loss_cfg, dict) else {}
         has_dfine_gain = any(k in loss_gain for k in ("fgl", "ddf"))
         if has_dfine_gain:
+            if isinstance(self.model[-1], DeimSegmentDecoder):
+                loss_cfg = dict(loss_cfg)
+                loss_cfg.setdefault("overlap_mask", getattr(self.args, "overlap_mask", True))
+                return DeimSegmentationLoss(nc=self.nc, **loss_cfg)
             return DfineLoss(nc=self.nc, **loss_cfg)
         return RTDETRDetectionLoss(nc=self.nc, **loss_cfg)
 
@@ -1017,8 +1029,13 @@ class RTDETRDetectionModel(DetectionModel):
         split_outputs = self._split_decoder_predictions(dec_bboxes, dec_scores, dn_meta)
         supports_dfine = getattr(self.criterion, "supports_dfine", False)
         dfine_meta_o2m = None
+        proto = semseg = masks_coeff = None
         if supports_dfine and dfine_meta is not None:
+            proto = dfine_meta.pop("proto", None)  # image-level, not dn-split
+            semseg = dfine_meta.pop("semseg", None)  # image-level semseg aux logits, not dn-split
             dfine_meta, dfine_meta_o2m = self._split_dfine_meta(dfine_meta, dn_meta)
+            dec_masks = dfine_meta.pop("dec_masks", None)
+            masks_coeff = dec_masks[-1] if dec_masks is not None else None  # final-layer o2o coefficients
         matcher_epoch = 0
         training_progress = 0.0
         if supports_dfine and "epoch" in batch:
@@ -1060,6 +1077,12 @@ class RTDETRDetectionModel(DetectionModel):
             loss_kwargs["dfine_meta"] = dfine_meta
             loss_kwargs["matcher_epoch"] = matcher_epoch
             loss_kwargs["training_progress"] = training_progress
+        if getattr(self.criterion, "supports_seg", False):
+            loss_kwargs["masks_coeff"] = masks_coeff
+            loss_kwargs["proto"] = proto
+            loss_kwargs["semseg"] = semseg
+            loss_kwargs["gt_masks"] = batch.get("masks")
+            loss_kwargs["sem_masks"] = batch.get("sem_masks")
         loss_inputs = (dec_bboxes, dec_scores)
         loss_targets = targets
         if strict_loss_fp32:
@@ -1114,6 +1137,12 @@ class RTDETRDetectionModel(DetectionModel):
             # Fill with zeros if not training (o2m only computed during training)
             if not self.training:
                 for k in ["loss_giou_o2m", "loss_class_o2m", "loss_bbox_o2m"]:
+                    loss[k] = torch.tensor(0.0, device=img.device)
+        if getattr(self.criterion, "supports_seg", False):
+            loss_keys.extend(["loss_mask", "loss_semseg"])
+            # Fill with zeros when absent (e.g. semseg is only produced during training)
+            for k in ["loss_mask", "loss_semseg"]:
+                if k not in loss:
                     loss[k] = torch.tensor(0.0, device=img.device)
         return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in loss_keys], device=img.device)
 
@@ -2029,8 +2058,11 @@ def parse_model(d, ch, verbose=True):
             DFineDecoder,
             DeimDecoder,
             DeimLayerNormDecoder,
+            DeimSegmentDecoder,
         }:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
+            if m is DeimSegmentDecoder:
+                args[3] = make_divisible(min(args[3], max_channels) * width, 8)  # npr scaled by width multiplier
         elif m is CBLinear:
             c2 = args[0]
             c1 = ch[f]

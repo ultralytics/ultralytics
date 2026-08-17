@@ -38,6 +38,7 @@ __all__ = (
     "Detect",
     "DeimDecoder",
     "DeimLayerNormDecoder",
+    "DeimSegmentDecoder",
     "DFineDecoder",
     "Pose",
     "RTDETRDecoder",
@@ -2361,7 +2362,7 @@ class DFineDecoder(RTDETRDecoder):
             attn_mask = self._extend_attn_mask_for_o2m(attn_mask, dn_meta, num_o2m, device=feats.device)
 
         # Decoder
-        dec_bboxes, dec_scores, dec_pred_corners, dec_refs, pre_bboxes, pre_scores = self.decoder(
+        dec_bboxes, dec_scores, dec_pred_corners, dec_refs, pre_bboxes, pre_scores, dec_feats = self.decoder(
             embed,
             refer_bbox,
             feats,
@@ -2385,6 +2386,7 @@ class DFineDecoder(RTDETRDecoder):
             "pre_logits": pre_scores,
             "up": self.up,
             "reg_scale": self.reg_scale,
+            "dec_feats": dec_feats,
         }
         x = dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta, dfine_meta
         if self.training:
@@ -2584,6 +2586,196 @@ class DeimLayerNormDecoder(DeimDecoder):
     def __init__(self, *args, **kwargs):
         kwargs["use_rmsnorm"] = False
         super().__init__(*args, **kwargs)
+
+
+class DeimSegmentDecoder(DeimDecoder):
+    """DEIMv2 instance-segmentation decoder head with per-query mask coefficients and a multi-scale proto module.
+
+    This class extends DeimDecoder with a Proto26 mask-prototype module fused over all decoder input levels and a
+    per-decoder-layer linear mask-coefficient head, mirroring how Segment26 extends Detect for YOLO26 segmentation.
+
+    YAML argument order (parse_model inserts input channels `ch` at index 1):
+        [nc, nm, npr, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
+        learnt_init_query, enable_cuda_acceleration, one_to_many_groups, dab_sine_embedding,
+        efficient_msdeformable_attn, query_select_method, reg_max, reg_scale, layer_scale, mlp_act, o2m_topk_mode,
+        use_gateway, share_bbox_head, share_score_head, use_rmsnorm]
+
+    Attributes:
+        nm (int): Number of mask coefficients per query.
+        npr (int): Number of intermediate proto channels.
+        proto (Proto26): Prototype generation module with a training-only semantic-segmentation aux head.
+        dec_mask_head (nn.ModuleList): Per-decoder-layer linear heads mapping hidden states to mask coefficients.
+
+    Examples:
+        Create a DEIM segmentation head
+        >>> head = DeimSegmentDecoder(nc=80, ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = head(x)
+    """
+
+    def __init__(
+        self,
+        nc: int = 80,
+        ch: tuple = (512, 1024, 2048),
+        nm: int = 32,  # number of mask coefficients
+        npr: int = 256,  # number of proto channels
+        hd: int = 256,
+        nq: int = 300,
+        ndp: int = 4,
+        nh: int = 8,
+        ndl: int = 6,
+        d_ffn: int = 1024,
+        dropout: float = 0.0,
+        act: str = "relu",
+        eval_idx: int = -1,
+        nd: int = 100,
+        label_noise_ratio: float = 0.5,
+        box_noise_scale: float = 1.0,
+        learnt_init_query: bool = False,
+        enable_cuda_acceleration: bool = False,
+        one_to_many_groups: int = 0,
+        dab_sine_embedding: bool = False,
+        efficient_msdeformable_attn: bool = False,
+        query_select_method: str = "default",
+        reg_max: int = 32,
+        reg_scale: float = 4.0,
+        layer_scale: float = 1.0,
+        mlp_act: str = "relu",
+        o2m_topk_mode: str = "unshared",
+        use_gateway: bool = True,
+        share_bbox_head: bool = False,
+        share_score_head: bool = False,
+        use_rmsnorm: bool = True,
+    ):
+        """Initialize the DEIM segmentation decoder with mask coefficient heads and a Proto26 module.
+
+        Args:
+            nc (int): Number of classes.
+            ch (tuple): Channels of the backbone/neck feature maps fed to the decoder.
+            nm (int): Number of mask coefficients per query.
+            npr (int): Number of intermediate proto channels.
+            hd (int): Hidden dimension of the decoder.
+            nq (int): Number of queries.
+            ndp (int): Number of decoder sampling points.
+            nh (int): Number of attention heads.
+            ndl (int): Number of decoder layers.
+            d_ffn (int): Dimension of the feed-forward networks.
+            dropout (float): Dropout rate.
+            act (str): Activation function name.
+            eval_idx (int): Decoder layer index used at evaluation.
+            nd (int): Number of denoising queries.
+            label_noise_ratio (float): Denoising label noise ratio.
+            box_noise_scale (float): Denoising box noise scale.
+            learnt_init_query (bool): Whether to learn initial query embeddings.
+            enable_cuda_acceleration (bool): Whether to use CUDA-accelerated deformable attention.
+            one_to_many_groups (int): Number of one-to-many query groups.
+            dab_sine_embedding (bool): Whether to use DAB sine embeddings.
+            efficient_msdeformable_attn (bool): Whether to use efficient multi-scale deformable attention.
+            query_select_method (str): Query selection method.
+            reg_max (int): Maximum value of the integral regression bins.
+            reg_scale (float): Scale of the integral regression.
+            layer_scale (int): Hidden dimension scale for wide decoder layers.
+            mlp_act (str): Activation function name for MLP heads.
+            o2m_topk_mode (str): One-to-many top-k mode.
+            use_gateway (bool): Whether to use gateway in DEIM decoder layers.
+            share_bbox_head (bool): Whether to share the bbox head across decoder layers.
+            share_score_head (bool): Whether to share the score head across decoder layers.
+            use_rmsnorm (bool): Whether to use RMSNorm in DEIM decoder layers.
+        """
+        super().__init__(
+            nc,
+            ch,
+            hd,
+            nq,
+            ndp,
+            nh,
+            ndl,
+            d_ffn,
+            dropout,
+            act,
+            eval_idx,
+            nd,
+            label_noise_ratio,
+            box_noise_scale,
+            learnt_init_query,
+            enable_cuda_acceleration,
+            one_to_many_groups,
+            dab_sine_embedding,
+            efficient_msdeformable_attn,
+            query_select_method,
+            reg_max,
+            reg_scale,
+            layer_scale,
+            mlp_act,
+            o2m_topk_mode,
+            use_gateway,
+            share_bbox_head,
+            share_score_head,
+            use_rmsnorm,
+        )
+        self.nm = nm
+        self.npr = npr
+        self.proto = Proto26(ch, npr, nm, nc)  # mask prototypes (+ training-only semseg aux head)
+        self.dec_mask_head = nn.ModuleList(nn.Linear(hd, nm) for _ in range(ndl))
+
+    def forward(self, x: list[torch.Tensor], batch: dict | None = None) -> tuple | torch.Tensor:
+        """Run the forward pass, attaching mask coefficients, protos, and the semseg aux output.
+
+        Training returns the parent 6-tuple with `dec_masks` (L, bs, Q, nm), `proto`, and `semseg` added to
+        `dfine_meta`. Evaluation returns `((y, proto), x)` where `y` has shape (bs, k, 6 + nm) with layout
+        [cx, cy, w, h, score, cls, mc...], or `(y, proto)` when exporting.
+        """
+        if self.training:
+            outputs = super().forward(x, batch)
+            dfine_meta = outputs[-1]
+            dec_feats = dfine_meta["dec_feats"]  # (L, bs, Q, hd)
+            proto, semseg = self.proto(x)
+            dfine_meta["dec_masks"] = torch.stack([head(feat) for head, feat in zip(self.dec_mask_head, dec_feats)])
+            dfine_meta["proto"] = proto
+            dfine_meta["semseg"] = semseg
+            return outputs
+        # Eval: run the parent path with export disabled so the raw decoder outputs stay available.
+        export = self.export
+        self.export = False
+        _, outputs = super().forward(x, batch)
+        self.export = export
+        dec_bboxes, dec_scores, _, _, _, dfine_meta = outputs
+        mc = self.dec_mask_head[self.eval_idx](dfine_meta["dec_feats"][0])  # (bs, nq, nm)
+        dfine_meta["dec_masks"] = mc.unsqueeze(0)  # (1, bs, nq, nm), consumed by the loss during validation
+        proto = self.proto(x)
+        dfine_meta["proto"] = proto
+        y = self.postprocess(dec_bboxes.squeeze(0), dec_scores.squeeze(0).sigmoid(), mc)
+        return (y, proto) if export else ((y, proto), outputs)
+
+    def postprocess(
+        self, boxes: torch.Tensor, scores: torch.Tensor, coeffs: torch.Tensor | None = None
+    ) -> torch.Tensor:
+        """Post-process predictions to select top-k detections, gathering mask coefficients with the same indices.
+
+        Args:
+            boxes (torch.Tensor): Predicted bounding boxes with shape (batch_size, num_queries, 4), format [cx, cy, w,
+                h].
+            scores (torch.Tensor): Class scores with shape (batch_size, num_queries, nc).
+            coeffs (torch.Tensor, optional): Mask coefficients with shape (batch_size, num_queries, nm). If None, falls
+                back to the detection-only postprocess.
+
+        Returns:
+            (torch.Tensor): Processed predictions with shape (batch_size, k, 6 + nm) and last dimension format [cx, cy,
+                w, h, max_class_prob, class_index, mask_coefficients].
+        """
+        if coeffs is None:
+            return super().postprocess(boxes, scores)
+        if self.disable_topk:
+            scores, class_idx = scores.max(dim=-1, keepdim=True)  # (bs, nq, 1), (bs, nq, 1)
+            return torch.cat([boxes, scores, class_idx.float(), coeffs], dim=-1)  # (bs, nq, 6+nm)
+        k = min(self.num_queries, self.max_det) if self.export else self.num_queries
+        scores, index = scores.flatten(1).topk(k)
+        # CoreML MIL lacks integer floor-div and mod lowering: use torch.div(rounding_mode="floor") and (index - q*nc).
+        query_idx = torch.div(index, self.nc, rounding_mode="floor")
+        gather_idx = query_idx.unsqueeze(-1).long()
+        boxes = boxes.gather(dim=1, index=gather_idx.expand(-1, -1, 4))
+        coeffs = coeffs.gather(dim=1, index=gather_idx.expand(-1, -1, self.nm))
+        return torch.cat([boxes, scores[..., None], (index - query_idx * self.nc)[..., None].float(), coeffs], dim=-1)
 
 
 class v10Detect(Detect):

@@ -9,15 +9,24 @@ References:
     https://arxiv.org/pdf/2304.08069.pdf
 """
 
+from pathlib import Path
 from typing import Any
 
 import torch
 
 from ultralytics.engine.model import Model
+from ultralytics.engine.results import Results
 from ultralytics.nn.tasks import RTDETRDetectionModel
+from ultralytics.utils import ops
 from ultralytics.utils.torch_utils import TORCH_1_11
 
-from .deim import RTDETRDEIMTrainer, RTDETRDEIMTrainerV2, RTDETRDEIMValidator
+from .deim import (
+    RTDETRDEIMSegmentTrainer,
+    RTDETRDEIMSegmentValidator,
+    RTDETRDEIMTrainer,
+    RTDETRDEIMTrainerV2,
+    RTDETRDEIMValidator,
+)
 from .predict import RTDETRPredictor
 from .train import RTDETRTrainer
 from .val import RTDETRValidator
@@ -42,14 +51,20 @@ class RTDETR(Model):
         >>> results = model("image.jpg")
     """
 
-    def __init__(self, model: str = "rtdetr-l.pt") -> None:
+    def __init__(self, model: str = "rtdetr-l.pt", task: str | None = None) -> None:
         """Initialize the RT-DETR model with the given pre-trained model file.
 
         Args:
             model (str): Path to the pre-trained model. Supports .pt, .yaml, and .yml formats.
+            task (str, optional): Task of the model. If None, inferred from the YAML head (defaults to 'detect').
         """
         assert TORCH_1_11, "RTDETR requires torch>=1.11"
-        super().__init__(model=model, task="detect")
+        if task is None and isinstance(model, (str, Path)) and str(model).endswith((".yaml", ".yml")):
+            from ultralytics.nn.tasks import yaml_model_load
+
+            head_name = str(yaml_model_load(model)["head"][-1][-2]).lower()
+            task = "segment" if "segment" in head_name else "detect"
+        super().__init__(model=model, task=task or "detect")
 
     @property
     def task_map(self) -> dict:
@@ -84,6 +99,61 @@ class RTDETRDEIMPredictor(RTDETRPredictor):
         return im
 
 
+class RTDETRDEIMSegmentPredictor(RTDETRDEIMPredictor):
+    """DEIM predictor for instance segmentation models built on DeimSegmentDecoder.
+
+    Splits mask coefficients from the decoder top-k rows, assembles masks from the proto, scales boxes to the
+    original image, and drops detections with empty masks (mirrors SegmentationPredictor).
+    """
+
+    def postprocess(self, preds, img, orig_imgs):
+        """Postprocess predictions into Results with boxes and masks.
+
+        Args:
+            preds (list | tuple): Model predictions `((y, proto), x)` where `y` has shape (bs, num_queries, 6 + nm)
+                with format [cx, cy, w, h, score, class, mc...] (normalized cxcywh).
+            img (torch.Tensor): Processed input images with shape (N, 3, H, W).
+            orig_imgs (list | torch.Tensor): Original, unprocessed images.
+
+        Returns:
+            (list[Results]): A list of Results objects containing boxes and masks.
+        """
+        protos = preds[0][1] if isinstance(preds[0], tuple) else preds[1]
+        y = preds[0][0] if isinstance(preds[0], tuple) else preds[0]
+        bboxes, scores, labels, coeffs = y.split((4, 1, 1, protos.shape[1]), dim=-1)
+
+        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
+
+        results = []
+        for bbox, score, label, coeff, proto, orig_img, img_path in zip(
+            bboxes, scores, labels, coeffs, protos, orig_imgs, self.batch[0]
+        ):
+            idx = score.squeeze(-1) > self.args.conf
+            if self.args.classes is not None:
+                idx = (label.squeeze(-1) == torch.tensor(self.args.classes, device=label.device)).any(1) & idx
+            bbox, coeff = ops.xywh2xyxy(bbox[idx]), coeff[idx]
+            bbox[:, [0, 2]] *= img.shape[3]  # normalized -> model input pixels
+            bbox[:, [1, 3]] *= img.shape[2]
+            pred = torch.cat([bbox, score[idx], label[idx]], dim=-1)
+            if pred.shape[0] == 0:  # save empty boxes
+                masks = None
+            elif self.args.retina_masks:
+                pred[:, [0, 2]] *= orig_img.shape[1] / img.shape[3]  # model input -> original image
+                pred[:, [1, 3]] *= orig_img.shape[0] / img.shape[2]
+                masks = ops.process_mask_native(proto, coeff, pred[:, :4], orig_img.shape[:2])  # NHW
+            else:
+                masks = ops.process_mask(proto, coeff, pred[:, :4], img.shape[2:], upsample=True)  # NHW
+                pred[:, [0, 2]] *= orig_img.shape[1] / img.shape[3]  # model input -> original image
+                pred[:, [1, 3]] *= orig_img.shape[0] / img.shape[2]
+            if masks is not None:
+                keep = masks.amax((-2, -1)) > 0  # only keep predictions with masks
+                if not all(keep):  # most predictions have masks
+                    pred, masks = pred[keep], masks[keep]  # indexing is slow
+            results.append(Results(orig_img, path=img_path, names=self.model.names, boxes=pred, masks=masks))
+        return results
+
+
 class RTDETRDEIM(RTDETR):
     """RT-DETR interface that routes training/validation through isolated DEIM classes."""
 
@@ -103,7 +173,13 @@ class RTDETRDEIM(RTDETR):
                 "validator": RTDETRDEIMValidator,
                 "trainer": RTDETRDEIMTrainer,
                 "model": RTDETRDetectionModel,
-            }
+            },
+            "segment": {
+                "predictor": RTDETRDEIMSegmentPredictor,
+                "validator": RTDETRDEIMSegmentValidator,
+                "trainer": RTDETRDEIMSegmentTrainer,
+                "model": RTDETRDetectionModel,
+            },
         }
 
 
@@ -124,5 +200,11 @@ class RTDETRDEIMv2(RTDETR):
                 "validator": RTDETRDEIMValidator,
                 "trainer": RTDETRDEIMTrainerV2,
                 "model": RTDETRDetectionModel,
-            }
+            },
+            "segment": {
+                "predictor": RTDETRDEIMSegmentPredictor,
+                "validator": RTDETRDEIMSegmentValidator,
+                "trainer": RTDETRDEIMSegmentTrainer,
+                "model": RTDETRDetectionModel,
+            },
         }

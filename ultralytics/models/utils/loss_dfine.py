@@ -10,7 +10,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ultralytics.nn.modules.dfine_utils import bbox2distance
-from ultralytics.utils.loss import FocalLoss, MALoss, RankLoss, StableDINOLoss, VarifocalLoss
+from ultralytics.utils.loss import BCEDiceLoss, FocalLoss, MALoss, RankLoss, StableDINOLoss, VarifocalLoss
+from ultralytics.utils.ops import crop_mask
 
 from .box_ops import aligned_box_iou, aligned_giou, aligned_giou_new, box_cxcywh_to_xyxy
 from .ops import HungarianMatcher
@@ -116,6 +117,7 @@ class DfineLoss(nn.Module):
         self.device = None
         self.matcher_epoch = 0
         self.training_progress = 0.0
+        self.main_indices = None  # final-layer Hungarian matches of the last forward pass
 
     def _clear_local_cache(self) -> None:
         """Clear per-forward local-loss caches."""
@@ -123,6 +125,7 @@ class DfineLoss(nn.Module):
         self.fgl_targets_dn = None
         self.num_pos = None
         self.num_neg = None
+        self.main_indices = None
 
     def _aligned_giou_loss(self, pred_bboxes: torch.Tensor, gt_bboxes: torch.Tensor) -> torch.Tensor:
         """Compute the configured aligned GIoU loss vector for matched xywh boxes."""
@@ -657,6 +660,7 @@ class DfineLoss(nn.Module):
 
         gt_cls, gt_bboxes, gt_groups = batch["cls"], batch["bboxes"], batch["gt_groups"]
         main_indices = self._match(pred_bboxes[-1], pred_scores[-1], gt_bboxes, gt_cls, gt_groups)
+        self.main_indices = main_indices  # exposed for subclasses (e.g. instance-mask losses)
         aux_indices = self._prepare_aux_indices(pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups)
         pre_bboxes, pre_logits, pre_indices = self._prepare_pre_indices(dfine_meta, gt_bboxes, gt_cls, gt_groups)
 
@@ -805,4 +809,137 @@ class DfineLoss(nn.Module):
                 )
             )
 
+        return self._sanitize_losses(total_loss)
+
+
+class DeimSegmentationLoss(DfineLoss):
+    """DfineLoss extended with instance-mask and semantic-segmentation losses for DeimSegmentDecoder.
+
+    The mask loss follows the YOLO segmentation convention: per-image matched query coefficients are combined with
+    the shared proto via einsum and supervised with a box-cropped BCE against the GT masks. Mask supervision uses
+    the final-layer one-to-one Hungarian matches only (no denoising or auxiliary-layer mask losses). The semantic
+    segmentation aux loss supervises the training-only semseg head of Proto26 with a BCEDice loss, mirroring
+    v8SegmentationLoss.
+    """
+
+    supports_seg = True
+
+    def __init__(self, *args, overlap_mask: bool = True, **kwargs):
+        """Initialize the DEIM segmentation loss.
+
+        Args:
+            overlap_mask (bool): Whether GT masks use the overlap index-map convention (bs, H, W) with instance
+                ranks starting at 1, as opposed to a per-instance stack (N, H, W).
+            *args (Any): Positional arguments forwarded to DfineLoss.
+            **kwargs (Any): Keyword arguments forwarded to DfineLoss. The `mask` entry of `loss_gain` (default 5.0)
+                weights the instance-mask loss; the `bbox` gain weights the semseg aux loss.
+        """
+        super().__init__(*args, **kwargs)
+        self.overlap = overlap_mask
+        self.mask_gain = self.loss_gain.get("mask", 5.0)
+        self.bcedice_loss = BCEDiceLoss(weight_bce=0.5, weight_dice=0.5)
+
+    def _get_loss_mask(
+        self, masks_coeff: torch.Tensor, proto: torch.Tensor, gt_masks: torch.Tensor, batch: dict[str, Any]
+    ) -> torch.Tensor:
+        """Compute the instance-mask loss from final-layer o2o matches (port of v8SegmentationLoss).
+
+        Args:
+            masks_coeff (torch.Tensor): Final-layer o2o mask coefficients with shape (bs, nq, nm).
+            proto (torch.Tensor): Mask prototypes with shape (bs, nm, H, W).
+            gt_masks (torch.Tensor): GT masks, an overlap index-map with shape (bs, H, W) when `self.overlap` is
+                True, otherwise a per-instance stack with shape (N, H, W).
+            batch (dict[str, Any]): Targets dict with `bboxes` (normalized cxcywh), `batch_idx`, and `gt_groups`.
+
+        Returns:
+            (torch.Tensor): Weighted instance-mask loss.
+        """
+        bs, _, mask_h, mask_w = proto.shape
+        gt_masks = gt_masks.to(proto.device)
+        if gt_masks.shape[-2:] != (mask_h, mask_w):  # match proto resolution to GT masks
+            proto = F.interpolate(proto, gt_masks.shape[-2:], mode="bilinear", align_corners=False)
+            mask_h, mask_w = proto.shape[-2:]
+        gt_xyxy = box_cxcywh_to_xyxy(batch["bboxes"])  # normalized xyxy
+        total = sum(len(src) for src, _ in self.main_indices)
+        if not total:
+            # WARNING: zero-grad sum prevents Multi-GPU DDP 'unused gradient' errors, do not remove
+            return (masks_coeff.sum() + proto.sum()) * 0.0
+        loss = masks_coeff.new_zeros(())
+        offset = 0
+        for i, (src_idx, dst_idx) in enumerate(self.main_indices):
+            if len(src_idx):
+                if self.overlap:
+                    local_idx = dst_idx - offset  # per-image instance rank in the overlap index map
+                    gt_mask = (gt_masks[i] == (local_idx + 1).view(-1, 1, 1)).float()
+                else:
+                    gt_mask = gt_masks[dst_idx].float()
+                mxyxy = gt_xyxy[dst_idx] * gt_xyxy.new_tensor([mask_w, mask_h, mask_w, mask_h])
+                marea = batch["bboxes"][dst_idx][:, 2:4].prod(1)  # normalized box area (w * h of cxcywh)
+                pred_mask = torch.einsum("in,nhw->ihw", masks_coeff[i][src_idx], proto[i])
+                loss_i = F.binary_cross_entropy_with_logits(pred_mask, gt_mask, reduction="none")
+                loss += (crop_mask(loss_i, mxyxy).mean(dim=(1, 2)) / marea).sum()
+            else:
+                # WARNING: zero-grad sum prevents Multi-GPU DDP 'unused gradient' errors, do not remove
+                loss += (proto[i].sum() + masks_coeff[i].sum()) * 0.0
+            offset += batch["gt_groups"][i]
+        return loss / total * self.mask_gain
+
+    def _get_loss_semseg(
+        self,
+        semseg: torch.Tensor,
+        sem_masks: torch.Tensor,
+        gt_masks: torch.Tensor,
+        batch: dict[str, Any],
+    ) -> torch.Tensor:
+        """Compute the semantic-segmentation aux loss (port of v8SegmentationLoss).
+
+        Args:
+            semseg (torch.Tensor): Semseg aux head logits with shape (bs, nc, H, W).
+            sem_masks (torch.Tensor): Per-pixel class indices with shape (bs, H, W), background as 0.
+            gt_masks (torch.Tensor): GT instance masks used to zero out background, same convention as
+                `_get_loss_mask`.
+            batch (dict[str, Any]): Targets dict, used for `batch_idx` when `self.overlap` is False.
+
+        Returns:
+            (torch.Tensor): Weighted semseg aux loss.
+        """
+        bs = semseg.shape[0]
+        sem_masks = sem_masks.to(semseg.device)
+        target = F.one_hot(sem_masks.long(), num_classes=self.nc).permute(0, 3, 1, 2).float()  # (bs, nc, H, W)
+        if self.overlap:
+            mask_zero = gt_masks.to(semseg.device) == 0  # (bs, H, W) overlap index map
+            target[mask_zero.unsqueeze(1).expand_as(target)] = 0
+        else:
+            batch_idx = batch["batch_idx"]
+            for i in range(bs):
+                instance_masks = gt_masks[batch_idx == i]
+                if len(instance_masks) == 0:
+                    continue
+                target[i, :, instance_masks.sum(dim=0) == 0] = 0
+        return self.bcedice_loss(semseg, target) * self.loss_gain["bbox"]
+
+    def forward(
+        self,
+        preds: tuple[torch.Tensor, torch.Tensor],
+        batch: dict[str, Any],
+        dn_bboxes: torch.Tensor | None = None,
+        dn_scores: torch.Tensor | None = None,
+        dn_meta: dict[str, Any] | None = None,
+        dfine_meta: dict[str, Any] | None = None,
+        matcher_epoch: int = 0,
+        training_progress: float = 0.0,
+        masks_coeff: torch.Tensor | None = None,
+        proto: torch.Tensor | None = None,
+        semseg: torch.Tensor | None = None,
+        gt_masks: torch.Tensor | None = None,
+        sem_masks: torch.Tensor | None = None,
+    ) -> dict[str, torch.Tensor]:
+        """Compute the detection losses plus the instance-mask and semseg losses when mask inputs are provided."""
+        total_loss = super().forward(
+            preds, batch, dn_bboxes, dn_scores, dn_meta, dfine_meta, matcher_epoch, training_progress
+        )
+        if masks_coeff is not None and proto is not None and gt_masks is not None:
+            total_loss["loss_mask"] = self._get_loss_mask(masks_coeff, proto, gt_masks, batch)
+        if semseg is not None and sem_masks is not None and gt_masks is not None:
+            total_loss["loss_semseg"] = self._get_loss_semseg(semseg, sem_masks, gt_masks, batch)
         return self._sanitize_losses(total_loss)

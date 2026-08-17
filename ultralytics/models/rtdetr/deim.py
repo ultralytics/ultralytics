@@ -8,14 +8,18 @@ from copy import copy
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import torch
+import torch.nn.functional as F
 from torch import distributed as dist
 from torch import optim
 
 from ultralytics.data import YOLODataset
 from ultralytics.data.augment import Compose, Format, v8_transforms
 from ultralytics.nn.tasks import load_checkpoint
-from ultralytics.utils import LOGGER, RANK, colorstr
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, colorstr, ops
+from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.metrics import SegmentMetrics, mask_iou
 from ultralytics.utils.torch_utils import one_cycle, strip_optimizer, unwrap_model
 
 from .detr_augment import (
@@ -27,7 +31,14 @@ from .detr_augment import (
 from .train import RTDETRTrainer
 from .val import RTDETRDataset, RTDETRValidator
 
-__all__ = ("RTDETRDEIMDataset", "RTDETRDEIMValidator", "RTDETRDEIMTrainer", "RTDETRDEIMTrainerV2")
+__all__ = (
+    "RTDETRDEIMDataset",
+    "RTDETRDEIMValidator",
+    "RTDETRDEIMTrainer",
+    "RTDETRDEIMTrainerV2",
+    "RTDETRDEIMSegmentValidator",
+    "RTDETRDEIMSegmentTrainer",
+)
 
 
 class _RTDETRDEIMBatchAugment:
@@ -724,3 +735,292 @@ class RTDETRDEIMTrainerV2(RTDETRDEIMTrainer):
                 strip_optimizer(best_orig)
             return
         super().final_eval()
+
+
+class RTDETRDEIMSegmentValidator(RTDETRDEIMValidator):
+    """RT-DETR DEIM validator for instance segmentation models built on DeimSegmentDecoder.
+
+    Ports the SegmentationValidator mask handling (proto-based mask assembly, GT mask preparation, mask IoU stats,
+    and COCO segm JSON) onto the RT-DETR postprocess, where top-k selection already happens inside the decoder head
+    and predictions are normalized [cx, cy, w, h, score, cls, mc...] rows.
+    """
+
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None) -> None:
+        """Initialize the validator with task 'segment' and SegmentMetrics."""
+        super().__init__(dataloader, save_dir, args, _callbacks)
+        self.process = None
+        self.args.task = "segment"
+        self.metrics = SegmentMetrics()
+
+    def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
+        """Preprocess validation batch and cast GT masks to float."""
+        batch = super().preprocess(batch)
+        batch["masks"] = batch["masks"].float()
+        return batch
+
+    def init_metrics(self, model: torch.nn.Module) -> None:
+        """Initialize metrics and select the mask processing function based on save_json/save_txt flags."""
+        super().init_metrics(model)
+        if self.args.save_json:
+            check_requirements("faster-coco-eval>=1.6.7")
+        # More accurate vs faster
+        self.process = ops.process_mask_native if self.args.save_json or self.args.save_txt else ops.process_mask
+
+    def get_desc(self) -> str:
+        """Return a formatted description of evaluation metrics."""
+        return ("%22s" + "%11s" * 10) % (
+            "Class",
+            "Images",
+            "Instances",
+            "Box(P",
+            "R",
+            "mAP50",
+            "mAP50-95)",
+            "Mask(P",
+            "R",
+            "mAP50",
+            "mAP50-95)",
+        )
+
+    def build_dataset(self, img_path, mode="val", batch=None):
+        """Build the DEIM dataset variant with segmentation masks enabled."""
+        return RTDETRDEIMDataset(
+            img_path=img_path,
+            imgsz=self.args.imgsz,
+            batch_size=batch,
+            augment=False,
+            hyp=self.args,
+            rect=False,
+            cache=self.args.cache or None,
+            prefix=colorstr(f"{mode}: "),
+            data=self.data,
+            task="segment",
+        )
+
+    def postprocess(
+        self, preds: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor]
+    ) -> list[dict[str, torch.Tensor]]:
+        """Convert decoder outputs to pixel-space detections and assemble masks from protos and coefficients.
+
+        Args:
+            preds (torch.Tensor | list | tuple): Model predictions `((y, proto), x)` where `y` has shape
+                (batch_size, num_queries, 6 + nm) with last dimension [cx, cy, w, h, score, class, mc...].
+
+        Returns:
+            (list[dict[str, torch.Tensor]]): List of dictionaries for each image, each containing 'bboxes' (xyxy
+                pixel format), 'conf', 'cls', and 'masks'.
+        """
+        proto = preds[0][1] if isinstance(preds[0], tuple) else preds[1]
+        y = preds[0][0] if isinstance(preds[0], tuple) else preds[0]
+        bboxes, scores, labels, coeffs = y.split((4, 1, 1, proto.shape[1]), dim=-1)
+        bboxes = ops.xywh2xyxy(bboxes) * self.args.imgsz
+        scores = scores.squeeze(-1)
+        labels = labels.squeeze(-1)
+        imgsz = [4 * x for x in proto.shape[2:]]  # get image size from proto
+
+        outputs = []
+        for b, s, lab, c, p in zip(bboxes, scores, labels, coeffs, proto):
+            keep = s > self.args.conf  # confidence threshold (also drops NaN: NaN > x is False)
+            b, s, lab, c = b[keep], s[keep], lab[keep], c[keep]
+            masks = (
+                self.process(p, c, b, shape=imgsz)
+                if c.shape[0]
+                else torch.zeros(
+                    (0, *(imgsz if self.process is ops.process_mask_native else proto.shape[2:])),
+                    dtype=torch.uint8,
+                    device=b.device,
+                )
+            )
+            outputs.append({"bboxes": b, "conf": s, "cls": lab, "masks": masks})
+        return outputs
+
+    def _prepare_batch(self, si: int, batch: dict[str, Any]) -> dict[str, Any]:
+        """Prepare a batch for validation, converting GT masks to per-instance binary masks at proto size."""
+        prepared_batch = super()._prepare_batch(si, batch)
+        nl = prepared_batch["cls"].shape[0]
+        if self.args.overlap_mask:
+            masks = batch["masks"][si]
+            index = torch.arange(1, nl + 1, device=masks.device).view(nl, 1, 1)
+            masks = (masks == index).float()
+        else:
+            masks = batch["masks"][batch["batch_idx"] == si]
+        if nl:
+            mask_size = [s if self.process is ops.process_mask_native else s // 4 for s in prepared_batch["imgsz"]]
+            if masks.shape[1:] != mask_size:
+                masks = F.interpolate(masks[None], mask_size, mode="bilinear", align_corners=False)[0]
+                masks = masks.gt_(0.5)
+        prepared_batch["masks"] = masks
+        return prepared_batch
+
+    def _process_batch(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> dict[str, np.ndarray]:
+        """Compute correct prediction matrices for boxes and masks."""
+        tp = super()._process_batch(preds, batch)
+        gt_cls = batch["cls"]
+        if gt_cls.shape[0] == 0 or preds["cls"].shape[0] == 0:
+            tp_m = np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)
+        else:
+            iou = mask_iou(batch["masks"].flatten(1), preds["masks"].flatten(1).float())  # float, uint8
+            tp_m = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()
+        tp.update({"tp_m": tp_m})  # update tp with mask IoU
+        return tp
+
+    def gather_stats(self) -> None:
+        """Gather stats from all GPUs."""
+        super().gather_stats()  # gather stats from DetectionValidator
+        self._gather_image_metrics(self.metrics.seg)
+
+    def plot_predictions(self, batch: dict[str, Any], preds: list[dict[str, torch.Tensor]], ni: int) -> None:
+        """Plot batch predictions with masks and bounding boxes."""
+        for p in preds:
+            masks = p["masks"]
+            if masks.shape[0] > self.args.max_det:
+                LOGGER.warning(f"Limiting validation plots to 'max_det={self.args.max_det}' items.")
+            p["masks"] = torch.as_tensor(masks[: self.args.max_det], dtype=torch.uint8).cpu()
+        super().plot_predictions(batch, preds, ni, max_det=self.args.max_det)  # plot bboxes
+
+    def save_one_txt(self, predn: dict[str, torch.Tensor], save_conf: bool, shape: tuple[int, int], file: Path) -> None:
+        """Save YOLO detections to a txt file in normalized coordinates in a specific format."""
+        from ultralytics.engine.results import Results
+
+        Results(
+            np.zeros((shape[0], shape[1]), dtype=np.uint8),
+            path=None,
+            names=self.names,
+            boxes=torch.cat([predn["bboxes"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
+            masks=torch.as_tensor(predn["masks"], dtype=torch.uint8),
+        ).save_txt(file, save_conf=save_conf)
+
+    def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
+        """Scale masks to the original image size; boxes are already scaled in postprocessing/pred_to_json."""
+        return {
+            **predn,
+            "masks": ops.scale_masks(predn["masks"][None], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])[
+                0
+            ].byte(),
+        }
+
+    def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
+        """Save one JSON result for COCO evaluation, including the RLE-encoded segmentation."""
+
+        def to_string(counts: list[int]) -> str:
+            """Convert the RLE object into a compact string representation."""
+            result = []
+
+            for i in range(len(counts)):
+                x = int(counts[i])
+
+                # Apply delta encoding for all counts after the second entry
+                if i > 2:
+                    x -= int(counts[i - 2])
+
+                # Variable-length encode the value
+                while True:
+                    c = x & 0x1F  # Take 5 bits
+                    x >>= 5
+
+                    # If the sign bit (0x10) is set, continue if x != -1;
+                    # otherwise, continue if x != 0
+                    more = (x != -1) if (c & 0x10) else (x != 0)
+                    if more:
+                        c |= 0x20  # Set continuation bit
+                    c += 48  # Shift to ASCII
+                    result.append(chr(c))
+                    if not more:
+                        break
+
+            return "".join(result)
+
+        def multi_encode(pixels: torch.Tensor) -> list[int]:
+            """Convert multiple binary masks using Run-Length Encoding (RLE)."""
+            transitions = pixels[:, 1:] != pixels[:, :-1]
+            row_idx, col_idx = torch.where(transitions)
+            col_idx = col_idx + 1
+
+            # Compute run lengths
+            counts = []
+            for i in range(pixels.shape[0]):
+                positions = col_idx[row_idx == i]
+                if len(positions):
+                    count = torch.diff(positions).tolist()
+                    count.insert(0, positions[0].item())
+                    count.append(len(pixels[i]) - positions[-1].item())
+                else:
+                    count = [len(pixels[i])]
+
+                # Ensure starting with background (0) count
+                if pixels[i][0].item() == 1:
+                    count = [0, *count]
+                counts.append(count)
+
+            return counts
+
+        pred_masks = predn["masks"].transpose(2, 1).contiguous().view(len(predn["masks"]), -1)  # N, H*W
+        h, w = predn["masks"].shape[1:3]
+        counts = multi_encode(pred_masks)
+        rles = []
+        for c in counts:
+            rles.append({"size": [h, w], "counts": to_string(c)})
+        super().pred_to_json(predn, pbatch)
+        for i, r in enumerate(rles):
+            self.jdict[-len(rles) + i]["segmentation"] = r  # segmentation
+
+    def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:
+        """Return COCO-style instance segmentation evaluation metrics."""
+        pred_json = self.save_dir / "predictions.json"  # predictions
+        anno_json = (
+            self.data["path"]
+            / "annotations"
+            / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
+        )  # annotations
+        return super().coco_evaluate(stats, pred_json, anno_json, ["bbox", "segm"], suffix=["Box", "Mask"])
+
+
+class RTDETRDEIMSegmentTrainer(RTDETRDEIMTrainer):
+    """RT-DETR DEIM trainer variant for instance segmentation models built on DeimSegmentDecoder.
+
+    Note:
+        The DEIM batch-level augmentations (MixUp/CopyBlend collate, active with `rtdetr_augmentations=True`) do not
+        handle masks; train segmentation models with `rtdetr_augmentations=False`.
+    """
+
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks: dict | None = None):
+        """Initialize the trainer with task 'segment'."""
+        if overrides is None:
+            overrides = {}
+        overrides["task"] = "segment"
+        super().__init__(cfg, overrides, _callbacks)
+
+    def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None):
+        """Build the DEIM dataset variant with segmentation masks enabled."""
+        return RTDETRDEIMDataset(
+            img_path=img_path,
+            imgsz=self.args.imgsz,
+            batch_size=batch,
+            augment=mode == "train",
+            hyp=self.args,
+            rect=False,
+            cache=self.args.cache or None,
+            single_cls=self.args.single_cls or False,
+            prefix=colorstr(f"{mode}: "),
+            classes=self.args.classes,
+            data=self.data,
+            fraction=self.args.fraction if mode == "train" else 1.0,
+            task="segment",
+        )
+
+    def get_validator(self):
+        """Return an RTDETRDEIMSegmentValidator with loss names extended by the mask and semseg losses."""
+        loss_names = ["giou_loss", "cls_loss", "l1_loss"]
+        loss_gain = self.model_yaml.get("loss", {}).get("loss_gain", {})
+        if loss_gain.get("fgl", 0) > 0:
+            loss_names.append("fgl_loss")
+        if loss_gain.get("ddf", 0) > 0:
+            loss_names.append("ddf_loss")
+        if loss_gain.get("rank", 0) > 0:
+            loss_names.append("rank_loss")
+        model = unwrap_model(self.model)
+        if getattr(model.model[-1], "one_to_many_groups", 0) > 0:
+            loss_names.extend(["giou_o2m", "cls_o2m", "l1_o2m"])
+        loss_names.extend(["mask_loss", "sem_loss"])
+        self.loss_names = tuple(loss_names)
+        return RTDETRDEIMSegmentValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))

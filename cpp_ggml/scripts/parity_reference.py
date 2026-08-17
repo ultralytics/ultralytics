@@ -83,7 +83,9 @@ def main():
             out = model.model(x)
         # Detect returns (y, preds); preds holds the pre-DFL raw head output.
         preds = out[1]
-        head = preds.get("one2many", preds)
+        head = preds.get("one2one", preds)
+        if "boxes" not in head:
+            head = preds.get("one2many", head)
         raw = torch.cat([head["boxes"], head["scores"]], dim=1)[0].numpy()  # [no, A]
         print(f"raw={raw.shape} canvas={dims}")
         write_bin(sys.argv[4], b"YRAW0001", raw.shape, raw)

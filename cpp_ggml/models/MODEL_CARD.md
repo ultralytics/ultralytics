@@ -18,6 +18,21 @@ models/
 Do not put checkpoints in `cpp_ggml/` or the repository root. The converter resolves model aliases against
 `models/pytorch/` and writes to `models/gguf/` by default.
 
+## Layout migration
+
+Older checkouts may contain the 11 source checkpoints directly under `cpp_ggml/` (or a duplicate `yolo26n.pt` in the
+repository root). Those paths are retired. Move any locally retained files once, then remove the old copies:
+
+```bash
+mkdir -p cpp_ggml/models/pytorch
+for name in yolov8n yolov8s yolov8m yolov8l yolov8x yolo26n yolo26s yolo26m yolo26l yolo26x yolo26n-depth; do
+    test -f "cpp_ggml/$name.pt" && mv "cpp_ggml/$name.pt" "cpp_ggml/models/pytorch/$name.pt"
+done
+```
+
+All conversion, benchmark, parity, and rendering scripts resolve this canonical directory; no script should reference
+`cpp_ggml/<model>.pt` or a root-level checkpoint.
+
 ## Supported models
 
 | Model         | Task           | Default input | Recommended use                                      |
@@ -42,7 +57,7 @@ Ultralytics checkout. The depth model produces one floating-point distance in me
 | Format | Precision                                                           | Intended use                                 |
 | ------ | ------------------------------------------------------------------- | -------------------------------------------- |
 | F32    | Float32 weights and activations                                     | Reference parity and debugging               |
-| F16    | Float16 matrix/conv weights with float accumulations                | Default GPU deployment format                |
+| F16    | Float16 matrix/conv weights; backend-dependent activations          | Default GPU deployment format                |
 | Q8_0   | Block-quantized eligible conv weights; other tensors remain F16/F32 | Smaller files; validate accuracy per dataset |
 
 F16 and Q8_0 are not expected to be bit-identical to PyTorch F32. Integration parity means equivalent task output

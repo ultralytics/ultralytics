@@ -6,6 +6,10 @@
 #include <cstdio>
 #include <cstring>
 
+#if defined(YOLO_USE_OPENMP)
+#include <omp.h>
+#endif
+
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_ONLY_JPEG
 #define STBI_ONLY_PNG
@@ -30,54 +34,40 @@ bool load_image(const std::string& path, Image& img) {
     return true;
 }
 
-// Bilinear resize matching cv2.INTER_LINEAR: src coord = (dst + 0.5) * s - 0.5.
-static void resize_bilinear(const uint8_t* src, int sw, int sh, uint8_t* dst, int dw, int dh) {
-    const float fx = (float)sw / dw;
-    const float fy = (float)sh / dh;
-    for (int y = 0; y < dh; y++) {
-        const float sy = (y + 0.5f) * fy - 0.5f;
-        const int y0 = (int)std::floor(sy);
-        const int y1 = y0 + 1;
-        const float wy = sy - y0;
-        const int yc0 = std::clamp(y0, 0, sh - 1);
-        const int yc1 = std::clamp(y1, 0, sh - 1);
-        for (int x = 0; x < dw; x++) {
-            const float sx = (x + 0.5f) * fx - 0.5f;
-            const int x0 = (int)std::floor(sx);
-            const int x1 = x0 + 1;
-            const float wx = sx - x0;
-            const int xc0 = std::clamp(x0, 0, sw - 1);
-            const int xc1 = std::clamp(x1, 0, sw - 1);
-            for (int c = 0; c < 3; c++) {
-                const float v00 = src[(yc0 * sw + xc0) * 3 + c];
-                const float v01 = src[(yc0 * sw + xc1) * 3 + c];
-                const float v10 = src[(yc1 * sw + xc0) * 3 + c];
-                const float v11 = src[(yc1 * sw + xc1) * 3 + c];
-                const float v0 = v00 + (v01 - v00) * wx;
-                const float v1 = v10 + (v11 - v10) * wx;
-                dst[(y * dw + x) * 3 + c] = (uint8_t)(v0 + (v1 - v0) * wy + 0.5f);
-            }
-        }
-    }
-}
-
 static std::vector<float> resize_bilinear_float(const float* src, int sw, int sh, int dw, int dh) {
     std::vector<float> dst((size_t)dw * dh);
     const float fx = (float)sw / dw;
     const float fy = (float)sh / dh;
+    std::vector<int> x0(dw), x1(dw), y0(dh), y1(dh);
+    std::vector<float> wx(dw), wy(dh);
+    for (int x = 0; x < dw; x++) {
+        const float sx = (x + 0.5f) * fx - 0.5f;
+        const int ix = (int)std::floor(sx);
+        x0[x] = std::clamp(ix, 0, sw - 1);
+        x1[x] = std::clamp(ix + 1, 0, sw - 1);
+        wx[x] = sx - ix;
+    }
     for (int y = 0; y < dh; y++) {
         const float sy = (y + 0.5f) * fy - 0.5f;
-        const int y0 = (int)std::floor(sy), y1 = y0 + 1;
-        const float wy = sy - y0;
-        const int yc0 = std::clamp(y0, 0, sh - 1), yc1 = std::clamp(y1, 0, sh - 1);
+        const int iy = (int)std::floor(sy);
+        y0[y] = std::clamp(iy, 0, sh - 1);
+        y1[y] = std::clamp(iy + 1, 0, sh - 1);
+        wy[y] = sy - iy;
+    }
+#if defined(YOLO_USE_OPENMP)
+    const int resize_threads = std::min(8, omp_get_max_threads());
+#pragma omp parallel for schedule(static) num_threads(resize_threads) if (dh >= 64)
+#endif
+    for (int y = 0; y < dh; y++) {
+        const int yc0 = y0[y], yc1 = y1[y];
+        const float wyv = wy[y];
         for (int x = 0; x < dw; x++) {
-            const float sx = (x + 0.5f) * fx - 0.5f;
-            const int x0 = (int)std::floor(sx), x1 = x0 + 1;
-            const float wx = sx - x0;
-            const int xc0 = std::clamp(x0, 0, sw - 1), xc1 = std::clamp(x1, 0, sw - 1);
-            const float v0 = src[(size_t)yc0 * sw + xc0] * (1.0f - wx) + src[(size_t)yc0 * sw + xc1] * wx;
-            const float v1 = src[(size_t)yc1 * sw + xc0] * (1.0f - wx) + src[(size_t)yc1 * sw + xc1] * wx;
-            dst[(size_t)y * dw + x] = v0 * (1.0f - wy) + v1 * wy;
+            const float wxv = wx[x];
+            const float v0 = src[(size_t)yc0 * sw + x0[x]] * (1.0f - wxv) +
+                             src[(size_t)yc0 * sw + x1[x]] * wxv;
+            const float v1 = src[(size_t)yc1 * sw + x0[x]] * (1.0f - wxv) +
+                             src[(size_t)yc1 * sw + x1[x]] * wxv;
+            dst[(size_t)y * dw + x] = v0 * (1.0f - wyv) + v1 * wyv;
         }
     }
     return dst;
@@ -99,22 +89,44 @@ std::vector<float> letterbox_image(const Image& img, int imgsz, LetterboxInfo& i
 
     info = LetterboxInfo{r, left, top, new_w, new_h, canvas_w, canvas_h};
 
-    std::vector<uint8_t> resized((size_t)new_w * new_h * 3);
-    resize_bilinear(img.rgb.data(), img.w, img.h, resized.data(), new_w, new_h);
+    const size_t plane = (size_t)canvas_w * canvas_h;
+    std::vector<float> out(3 * plane, 114.0f / 255.0f);
 
-    std::vector<uint8_t> canvas((size_t)canvas_w * canvas_h * 3, 114);  // ultralytics pad color
-    for (int y = 0; y < new_h; y++) {
-        memcpy(canvas.data() + ((size_t)(y + top) * canvas_w + left) * 3,
-               resized.data() + (size_t)y * new_w * 3, (size_t)new_w * 3);
+    const float fx = (float)img.w / new_w;
+    const float fy = (float)img.h / new_h;
+    std::vector<int> x0(new_w), x1(new_w);
+    std::vector<float> wx(new_w);
+    for (int x = 0; x < new_w; x++) {
+        const float sx = (x + 0.5f) * fx - 0.5f;
+        const int ix0 = (int)std::floor(sx);
+        x0[x] = std::clamp(ix0, 0, img.w - 1);
+        x1[x] = std::clamp(ix0 + 1, 0, img.w - 1);
+        wx[x] = sx - ix0;
     }
 
-    // HWC RGB -> CHW float /255
-    std::vector<float> out((size_t)3 * canvas_h * canvas_w);
-    const size_t plane = (size_t)canvas_w * canvas_h;
-    for (size_t i = 0; i < plane; i++) {
-        out[i] = canvas[i * 3 + 0] / 255.0f;
-        out[plane + i] = canvas[i * 3 + 1] / 255.0f;
-        out[2 * plane + i] = canvas[i * 3 + 2] / 255.0f;
+#if defined(YOLO_USE_OPENMP)
+    const int resize_threads = std::min(8, omp_get_max_threads());
+#pragma omp parallel for schedule(static) num_threads(resize_threads) if (new_h >= 64)
+#endif
+    for (int y = 0; y < new_h; y++) {
+        const float sy = (y + 0.5f) * fy - 0.5f;
+        const int iy0 = (int)std::floor(sy);
+        const int yc0 = std::clamp(iy0, 0, img.h - 1);
+        const int yc1 = std::clamp(iy0 + 1, 0, img.h - 1);
+        const float wy = sy - iy0;
+        for (int x = 0; x < new_w; x++) {
+            const size_t p00 = ((size_t)yc0 * img.w + x0[x]) * 3;
+            const size_t p01 = ((size_t)yc0 * img.w + x1[x]) * 3;
+            const size_t p10 = ((size_t)yc1 * img.w + x0[x]) * 3;
+            const size_t p11 = ((size_t)yc1 * img.w + x1[x]) * 3;
+            const size_t dst = (size_t)(y + top) * canvas_w + x + left;
+            for (int c = 0; c < 3; c++) {
+                const float v0 = img.rgb[p00 + c] + (img.rgb[p01 + c] - img.rgb[p00 + c]) * wx[x];
+                const float v1 = img.rgb[p10 + c] + (img.rgb[p11 + c] - img.rgb[p10 + c]) * wx[x];
+                const uint8_t value = (uint8_t)(v0 + (v1 - v0) * wy + 0.5f);
+                out[(size_t)c * plane + dst] = value / 255.0f;
+            }
+        }
     }
     return out;
 }

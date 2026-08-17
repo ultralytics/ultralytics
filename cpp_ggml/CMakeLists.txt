@@ -16,6 +16,7 @@ option(YOLO_GGML_SHARED      "Build libyologgml as a shared library" OFF)
 
 # Backend forwarding to ggml (mirrors rf-detr.cpp pattern)
 option(YOLO_GGML_CUDA    "Enable CUDA backend in ggml"    OFF)
+option(YOLO_GGML_CUDNN   "Use cuDNN for direct CUDA convolutions" ON)
 option(YOLO_GGML_METAL   "Enable Metal backend in ggml"   OFF)
 option(YOLO_GGML_VULKAN  "Enable Vulkan backend in ggml"  OFF)
 option(YOLO_GGML_HIPBLAS "Enable HIPBLAS backend in ggml" OFF)
@@ -53,6 +54,7 @@ endif()
 if(YOLO_GGML_CUDA)
     set(GGML_CUDA        ON CACHE BOOL "" FORCE)
     set(GGML_CUDA_GRAPHS ON CACHE BOOL "Replay CUDA graphs" FORCE)
+    set(GGML_CUDA_CUDNN  ${YOLO_GGML_CUDNN} CACHE BOOL "Use cuDNN direct convolutions" FORCE)
 endif()
 if(YOLO_GGML_METAL)
     set(GGML_METAL   ON CACHE BOOL "" FORCE)
@@ -164,6 +166,12 @@ target_include_directories(yologgml
 target_link_libraries(yologgml
     PUBLIC  ggml
     PRIVATE yolo_stb)
+
+find_package(OpenMP QUIET)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(yologgml PRIVATE OpenMP::OpenMP_CXX)
+    target_compile_definitions(yologgml PRIVATE YOLO_USE_OPENMP)
+endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(yologgml PRIVATE -Wall -Wextra -Wno-unused-parameter)

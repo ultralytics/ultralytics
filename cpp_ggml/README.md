@@ -1,8 +1,9 @@
 # YOLO inference with ggml
 
 `cpp_ggml` is a standalone C++17 inference runtime for YOLOv8 and YOLO26 detection plus YOLO26 absolute depth. It
-loads metadata-driven GGUF graphs on CPU, CUDA, Vulkan, Metal, or HIP without Python or PyTorch at runtime. Conversion
-supports F32, F16, and Q8_0 weights.
+loads metadata-driven GGUF graphs without Python or PyTorch at runtime. CPU, CUDA, and Vulkan are validated here;
+Metal and HIP have build wiring but remain experimental until they pass the same benchmark and parity matrix.
+Conversion supports F32, F16, and Q8_0 weights.
 
 The [model card](models/MODEL_CARD.md) defines every supported checkpoint and the canonical model layout. The
 [benchmark report](benchmarks/README.md) contains raw measurements, latency charts, visual comparisons, parity scope,
@@ -23,19 +24,20 @@ cpp_ggml/
 ├── scripts/                   # conversion, benchmark, parity, and plot tools
 └── third_party/
     ├── ggml/                  # pinned v0.18.1 submodule
+    ├── cudnn-frontend/        # pinned cuDNN Graph API headers
     └── ggml-patches/          # idempotent local performance/correctness patches
 ```
 
 ## Clone and build
 
 Prerequisites are a C++17 compiler, CMake 3.14 or newer, Git, and Python dependencies from the repository for model
-conversion. CUDA builds need the CUDA toolkit; Vulkan builds need a discoverable Vulkan SDK. Each build directory
-contains exactly one GPU backend. CPU fallback is included in every build.
+conversion. CUDA builds need the CUDA toolkit and cuDNN development headers/libraries; Vulkan builds need a discoverable
+Vulkan SDK. Each build directory contains exactly one GPU backend. CPU fallback is included in every build.
 
 ```bash
 git clone --recurse-submodules <repository-url>
 cd ultralytics-ggml
-git submodule update --init cpp_ggml/third_party/ggml
+git submodule update --init --recursive
 
 cmake -S cpp_ggml -B cpp_ggml/build-cpu
 cmake --build cpp_ggml/build-cpu --parallel 6
@@ -46,6 +48,10 @@ cmake --build cpp_ggml/build-cuda --parallel 6
 cmake -S cpp_ggml -B cpp_ggml/build-vulkan -DYOLO_GGML_VULKAN=ON
 cmake --build cpp_ggml/build-vulkan --parallel 6
 ```
+
+Export `CUDNN_ROOT` when cuDNN is outside the system search path. A CUDA build can use
+`-DYOLO_GGML_CUDNN=OFF` when cuDNN is unavailable, but that falls back to generic convolution kernels and is intended
+for compatibility rather than peak performance.
 
 Do not raise build parallelism above 6 on memory-constrained hosts. With CMake older than 3.24, the CUDA configure step
 detects the attached NVIDIA GPU compute capability. For cross-compilation or a headless builder, set it explicitly,

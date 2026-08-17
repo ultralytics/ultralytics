@@ -25,7 +25,7 @@ if (( $# )); then
 else
     MODELS=(yolov8n yolov8s yolov8m yolov8l yolov8x yolo26n yolo26s yolo26m yolo26l yolo26x yolo26n-depth)
 fi
-DTYPES=(f16 f32 q8_0)
+read -r -a DTYPES <<< "${YOLO_BENCH_DTYPES:-f16 f32 q8_0}"
 SRC="../ultralytics/assets/bus.jpg"
 
 THREADS=0
@@ -34,7 +34,7 @@ COOLDOWN=0
 if [[ "$TAG" == "cpu" ]]; then THREADS=8; else GPU_ARGS=(--warmup 20 --iters 50); COOLDOWN=3; fi
 
 mkdir -p benchmarks
-OUT="benchmarks/bench.jsonl"
+OUT="${YOLO_BENCH_OUT:-benchmarks/bench.jsonl}"
 echo "collecting ${#MODELS[@]} models x ${#DTYPES[@]} dtypes on $TAG -> $OUT"
 
 for m in "${MODELS[@]}"; do

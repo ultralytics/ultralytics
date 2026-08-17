@@ -14,10 +14,17 @@
 #include "ggml-vulkan.h"
 #endif
 
+#include <cstdio>
 #include <thread>
 #include <vector>
 
 namespace yolo {
+
+static void forward_ggml_log(enum ggml_log_level level, const char* text, void*) {
+    if (level == GGML_LOG_LEVEL_DEBUG) return;
+    std::fputs(text, stderr);
+    std::fflush(stderr);
+}
 
 /* Try to create a GPU backend if one was compiled in and a device exists.
  * Returns nullptr (not an error) when no GPU backend is built or no device
@@ -59,6 +66,7 @@ static ggml_backend_t try_init_gpu_backend() {
 }
 
 BackendCtx init_backend_ctx(int n_threads) {
+    ggml_log_set(forward_ggml_log, nullptr);
     BackendCtx ctx{};
     if (n_threads <= 0) {
         // Hardware default. The backend and the persistent threadpool below

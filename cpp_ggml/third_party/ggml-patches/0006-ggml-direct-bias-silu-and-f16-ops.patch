@@ -1,0 +1,78 @@
+diff --git a/include/ggml.h b/include/ggml.h
+index 35f0c44e..d8247368 100644
+--- a/include/ggml.h
++++ b/include/ggml.h
+@@ -2187,6 +2187,18 @@ extern "C" {
+             int                   d0,  // dilation dimension 0
+             int                   d1); // dilation dimension 1
+ 
++    GGML_API struct ggml_tensor * ggml_conv_2d_direct_bias_silu(
++            struct ggml_context * ctx,
++            struct ggml_tensor  * a,
++            struct ggml_tensor  * b,
++            struct ggml_tensor  * bias,
++            int                   s0,
++            int                   s1,
++            int                   p0,
++            int                   p1,
++            int                   d0,
++            int                   d1);
++
+     GGML_API struct ggml_tensor * ggml_conv_3d_direct(
+             struct ggml_context * ctx,
+             struct ggml_tensor  * a,   // kernel [KW, KH, KD, IC * OC]
+diff --git a/src/ggml.c b/src/ggml.c
+index 59191c66..a2435b54 100644
+--- a/src/ggml.c
++++ b/src/ggml.c
+@@ -4885,6 +4885,24 @@ struct ggml_tensor * ggml_conv_2d_direct(
+     return result;
+ }
+ 
++struct ggml_tensor * ggml_conv_2d_direct_bias_silu(
++        struct ggml_context * ctx,
++        struct ggml_tensor  * a,
++        struct ggml_tensor  * b,
++        struct ggml_tensor  * bias,
++        int                   s0,
++        int                   s1,
++        int                   p0,
++        int                   p1,
++        int                   d0,
++        int                   d1) {
++    struct ggml_tensor * result = ggml_conv_2d_direct(ctx, a, b, s0, s1, p0, p1, d0, d1);
++    GGML_ASSERT(bias->ne[0] == result->ne[2] && ggml_nelements(bias) == result->ne[2]);
++    result->src[2] = bias;
++    ggml_set_op_params_i32(result, 7, 1);
++    return result;
++}
++
+ // ggml_conv_3d_direct
+ 
+ struct ggml_tensor * ggml_conv_3d_direct(
+@@ -4954,7 +4972,7 @@ struct ggml_tensor * ggml_conv_transpose_2d_p0(
+         a->ne[2], b->ne[3],
+     };
+ 
+-    struct ggml_tensor* result = ggml_new_tensor(ctx, GGML_TYPE_F32, 4, ne);
++    struct ggml_tensor* result = ggml_new_tensor(ctx, b->type, 4, ne);
+ 
+     ggml_set_op_params_i32(result, 0, stride);
+ 
+@@ -5021,7 +5039,7 @@ struct ggml_tensor * ggml_pool_2d(
+     GGML_ASSERT(ne[0] > 0);
+     GGML_ASSERT(ne[1] > 0);
+ 
+-    result = ggml_new_tensor(ctx, GGML_TYPE_F32, 4, ne);
++    result = ggml_new_tensor(ctx, a->type, 4, ne);
+ 
+     int32_t params[] = { op, k0, k1, s0, s1, p0, p1 };
+     ggml_set_op_params(result, params, sizeof(params));
+@@ -5069,6 +5087,6 @@ static struct ggml_tensor * ggml_interpolate_impl(
+     GGML_ASSERT((mode & 0xFF) < GGML_SCALE_MODE_COUNT);
+     // TODO: implement antialias for modes other than bilinear
+     GGML_ASSERT(!(mode & GGML_SCALE_FLAG_ANTIALIAS) || (mode & 0xFF) == GGML_SCALE_MODE_BILINEAR);
+-    GGML_ASSERT(a->type == GGML_TYPE_F32);
++    GGML_ASSERT(a->type == GGML_TYPE_F32 || a->type == GGML_TYPE_F16);
+ 
+     struct ggml_tensor * result = ggml_new_tensor_4d(ctx, a->type, ne0, ne1, ne2, ne3);

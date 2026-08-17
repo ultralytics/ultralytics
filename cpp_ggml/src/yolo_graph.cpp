@@ -58,7 +58,39 @@ struct GraphBuilder {
         ggml_tensor* wT = w(prefix, "w");
         GGML_ASSERT(wT && "conv without weight");
         const bool depthwise = op.type == "dwconv";
+        [[maybe_unused]] ggml_tensor* bias = w(prefix, "b");
+        const auto act = op.sparams.find("act");
+        [[maybe_unused]] const bool silu = act != op.sparams.end() && act->second == "silu";
+        [[maybe_unused]] const bool direct_types =
+            wT->type == x->type && (wT->type == GGML_TYPE_F32 || wT->type == GGML_TYPE_F16);
         ggml_tensor* out;
+#if defined(YOLO_USE_VULKAN)
+        if (direct_types) {
+            out = depthwise
+                ? ggml_conv_2d_dw_direct(gctx, wT, x, (int)op.ai("s", 0), (int)op.ai("s", 1),
+                                         (int)op.ai("p", 0), (int)op.ai("p", 1),
+                                         (int)op.ai("d", 0), (int)op.ai("d", 1))
+                : ggml_conv_2d_direct(gctx, wT, x, (int)op.ai("s", 0), (int)op.ai("s", 1),
+                                      (int)op.ai("p", 0), (int)op.ai("p", 1),
+                                      (int)op.ai("d", 0), (int)op.ai("d", 1));
+        } else
+#elif defined(YOLO_USE_CUDA)
+        if (!depthwise && direct_types && bias && silu) {
+            return ggml_conv_2d_direct_bias_silu(gctx, wT, x, bias,
+                                                 (int)op.ai("s", 0), (int)op.ai("s", 1),
+                                                 (int)op.ai("p", 0), (int)op.ai("p", 1),
+                                                 (int)op.ai("d", 0), (int)op.ai("d", 1));
+        }
+        if (direct_types) {
+            out = depthwise
+                ? ggml_conv_2d_dw_direct(gctx, wT, x, (int)op.ai("s", 0), (int)op.ai("s", 1),
+                                         (int)op.ai("p", 0), (int)op.ai("p", 1),
+                                         (int)op.ai("d", 0), (int)op.ai("d", 1))
+                : ggml_conv_2d_direct(gctx, wT, x, (int)op.ai("s", 0), (int)op.ai("s", 1),
+                                      (int)op.ai("p", 0), (int)op.ai("p", 1),
+                                      (int)op.ai("d", 0), (int)op.ai("d", 1));
+        } else
+#endif
         if (!depthwise && ggml_is_quantized(wT->type)) {
             out = conv2d_q(wT, kernel4d(op, wT), x, (int)op.ai("s", 0), (int)op.ai("s", 1),
                            (int)op.ai("p", 0), (int)op.ai("p", 1), (int)op.ai("d", 0), (int)op.ai("d", 1));
@@ -124,9 +156,21 @@ struct GraphBuilder {
             if (wT->ne[2] == 1 && wT->ne[3] == 1) {
                 wT = ggml_reshape_4d(gctx, wT, k, k, wT->ne[0] / (k * k), wT->ne[1]);
             }
+#if defined(YOLO_USE_CUDA)
+            if (wT->type == x->type && (wT->type == GGML_TYPE_F32 || wT->type == GGML_TYPE_F16)) {
+                out = k > 1
+                    ? ggml_conv_2d_dw_direct(gctx, wT, x, 1, 1, (int)(k / 2), (int)(k / 2), 1, 1)
+                    : ggml_conv_2d_direct(gctx, wT, x, 1, 1, 0, 0, 1, 1);
+            } else {
+                out = k > 1
+                    ? ggml_conv_2d_dw(gctx, dw_kernel(wT), x, 1, 1, (int)(k / 2), (int)(k / 2), 1, 1)
+                    : ggml_conv_2d(gctx, wT, x, 1, 1, 0, 0, 1, 1);
+            }
+#else
             out = k > 1
                 ? ggml_conv_2d_dw(gctx, dw_kernel(wT), x, 1, 1, (int)(k / 2), (int)(k / 2), 1, 1)
                 : ggml_conv_2d(gctx, wT, x, 1, 1, 0, 0, 1, 1);
+#endif
         }
         if (ggml_tensor* b = w(prefix, (std::string(tag) + "_b").c_str())) {
             out = ggml_add(gctx, out, ggml_reshape_4d(gctx, b, 1, 1, b->ne[0], 1));
@@ -205,7 +249,12 @@ Session* create_session(const std::string& gguf_path, int threads, int input_w, 
     GraphBuilder gb{s->gctx, s->wctx, s->model, {}};
     std::vector<ggml_tensor*> values(s->model.ops.size(), nullptr);
 
-    s->input = ggml_new_tensor_4d(s->gctx, GGML_TYPE_F32, s->input_w, s->input_h, 3, 1);
+    ggml_type input_type = GGML_TYPE_F32;
+#if defined(YOLO_USE_CUDA)
+    if (meta.dtype == "f16") input_type = GGML_TYPE_F16;
+#endif
+    s->input = ggml_new_tensor_4d(s->gctx, input_type, s->input_w, s->input_h, 3, 1);
+    if (input_type == GGML_TYPE_F16) s->input_f16.resize(ggml_nelements(s->input));
     ggml_set_input(s->input);  // allocated before compute nodes
     ggml_set_name(s->input, "image");
 
@@ -235,7 +284,14 @@ Session* create_session(const std::string& gguf_path, int threads, int input_w, 
             const int64_t sf = op.ip("sf", 1);
             const uint32_t mode = GGML_SCALE_MODE_BILINEAR |
                                   (op.ip("align_corners") ? GGML_SCALE_FLAG_ALIGN_CORNERS : 0);
+#if defined(YOLO_USE_CUDA)
+            const bool f16 = x->type == GGML_TYPE_F16;
+            if (f16) x = ggml_cast(s->gctx, x, GGML_TYPE_F32);
             out = ggml_interpolate(s->gctx, x, x->ne[0] * sf, x->ne[1] * sf, x->ne[2], x->ne[3], mode);
+            if (f16) out = ggml_cast(s->gctx, out, GGML_TYPE_F16);
+#else
+            out = ggml_interpolate(s->gctx, x, x->ne[0] * sf, x->ne[1] * sf, x->ne[2], x->ne[3], mode);
+#endif
         } else if (op.type == "conv_transpose") {
             out = gb.conv_transpose(op, prefix, in0());
         } else if (op.type == "add") {
@@ -272,6 +328,9 @@ Session* create_session(const std::string& gguf_path, int threads, int input_w, 
     }
 
     s->output = values.back();
+#if defined(YOLO_USE_CUDA)
+    if (s->output->type == GGML_TYPE_F16) s->output = ggml_cast(s->gctx, s->output, GGML_TYPE_F32);
+#endif
     GGML_ASSERT(s->output && "graph produced no output");
 
     s->graph = ggml_new_graph_custom(s->gctx, s->model.ops.size() * 12 + 512, /*grads*/ false);
@@ -327,7 +386,13 @@ Session* create_session(const std::string& gguf_path, int threads, int input_w, 
 }
 
 bool session_run(Session* s, const float* chw_image) {
-    ggml_backend_tensor_set(s->input, chw_image, 0, (size_t)ggml_nelements(s->input) * sizeof(float));
+    const size_t input_elements = (size_t)ggml_nelements(s->input);
+    if (s->input->type == GGML_TYPE_F16) {
+        ggml_fp32_to_fp16_row(chw_image, s->input_f16.data(), input_elements);
+        ggml_backend_tensor_set(s->input, s->input_f16.data(), 0, input_elements * sizeof(ggml_fp16_t));
+    } else {
+        ggml_backend_tensor_set(s->input, chw_image, 0, input_elements * sizeof(float));
+    }
     const int st = backend_graph_compute(s->backend, s->graph);
     if (st != GGML_STATUS_SUCCESS) {
         YOLO_LOG_ERROR("graph compute failed: %d", st);

@@ -1,6 +1,7 @@
 ---
 plans: [enterprise]
 title: On Premise - Ultralytics Platform
+comments: true
 description: Use local datasets and train YOLO models on your own computer while uploading completed models to Platform.
 keywords: Ultralytics Platform, On Premise, private datasets, local training, data residency, YOLO
 ---
@@ -39,15 +40,21 @@ cloud workflow; the worker never forwards an image from your mounted dataset.
 
 ## Before You Start
 
-Choose a Linux computer, an Apple silicon Mac, or a 64-bit Windows computer that can access your datasets and remain
-powered on while Platform is using them. Allow enough free storage for the datasets, model runs, and Docker images, and
-ensure the computer can make outbound HTTPS connections.
+Choose a computer that can reach your datasets and stay powered on while Platform is using them:
+
+|                  | Minimum                                                                | Recommended                                               |
+| ---------------- | ---------------------------------------------------------------------- | --------------------------------------------------------- |
+| Operating system | 64-bit Linux, Apple silicon macOS, or x86-64 Windows with WSL 2        | Current operating system and Docker releases              |
+| CPU              | 4 cores                                                                | 8 or more cores for CPU training                          |
+| Memory           | 8 GB RAM                                                               | 16 GB or more                                             |
+| Storage          | 20 GB free, plus room for your datasets and models                     | SSD with at least twice your working dataset size free    |
+| Network          | Outbound HTTPS to Ultralytics Platform and Docker container registries | Stable broadband for the initial container image download |
 
 A GPU is optional. Every computer can ingest datasets and train models on its CPU. A compatible NVIDIA GPU can accelerate larger training jobs.
 
 !!! note "Corporate networks"
 
-    If your company restricts outbound traffic, allow HTTPS access to Ultralytics Platform, Docker registries, and Python package downloads before setup.
+    If your company restricts outbound traffic, allow HTTPS access to Ultralytics Platform, Docker registries, and Python package downloads before setup. The worker always dials out to Platform, so no inbound access to your network is required.
 
 ## Connect Your Computer
 
@@ -59,6 +66,12 @@ A GPU is optional. Every computer can ingest datasets and train models on its CP
 6. Keep the Integrations page open until the progress indicator shows **Connected**.
 
 ![Ultralytics Platform On Premise Integration Setup](https://cdn.ul.run/i/ff5b55316ea85e8eadcffa272698239c.avif)<!-- screenshot -->
+
+The page tracks the six setup steps live — running the command, downloading the worker files, downloading the Docker
+image, building the worker, starting it, and confirming the connection — so you can watch progress without reading the
+terminal. Connecting a host requires the workspace editor [role](../account/teams.md#roles-and-permissions) and an
+active Enterprise plan; workspaces on another plan see a **Continue** button that requests a guided On Premise
+walkthrough instead of an install command.
 
 Platform fills in the folders and one-time connection token before you copy the command. The generated command follows the format below:
 
@@ -129,7 +142,7 @@ uploads.
 
 !!! warning "Use CDI for GPU access"
 
-    CPU setup requires nothing beyond the guided installation. On Linux, NVIDIA GPU acceleration requires Docker >= 28.2 and NVIDIA Container Toolkit >= 1.18. The installer uses CDI `--device` reservations, not legacy `--gpus all`, so GPU access survives host daemon reloads. Docker Desktop on Windows uses its supported NVIDIA device reservation because NVIDIA CDI devices are not available there. Platform detects the supported GPU path automatically; see the [Docker Quickstart Guide](../../guides/docker-quickstart.md#using-gpus) for setup details.
+    CPU setup requires nothing beyond the guided installation. On Linux, NVIDIA GPU acceleration requires Docker >= 28.2 and NVIDIA Container Toolkit >= 1.18. Platform detects the supported GPU path automatically on Linux, macOS, and Windows; see the [Docker Quickstart Guide](../../guides/docker-quickstart.md#using-gpus) for setup details.
 
 ## Add a Dataset
 
@@ -148,9 +161,9 @@ On Premise supports the same ingest formats and computer-vision tasks as uploade
 - ZIP, TAR, TAR.GZ, and TGZ archives
 - Ultralytics NDJSON and COCO JSON
 - YOLO datasets and classification folders
-- Detect, segment, pose, oriented bounding box (OBB), and classify tasks
+- Detect, segment, semantic, classify, pose, and oriented bounding box (OBB) tasks
 
-Platform automatically recognizes common dataset layouts, classes, labels, and train/validation/test splits. Platform treats source files as read-only and never resizes, re-encodes, edits, or deletes them.
+Platform automatically recognizes common dataset layouts, classes, labels, and train/validation/test splits. The dataset folder is mounted read-only, so Platform never resizes, re-encodes, edits, or deletes your source files. Anything derived during ingest — extracted archives, downloaded NDJSON assets, and video frames — is written to a private Docker volume on the same computer.
 
 ## Preview and Annotate
 
@@ -177,10 +190,32 @@ compute credits, and Platform never sends the training job to cloud compute.
 
 ## Manage the Connection
 
-Open `Settings > Integrations` to see whether the computer and its CPU or GPU are available. You can reconnect to refresh its access or disconnect it when it is no longer needed.
+Open `Settings > Integrations` to see each connected computer, its hostname and hardware, and whether its CPU and GPU
+are currently online. The host reports in continuously, so a computer that is shut down or loses connectivity shows as
+offline and its datasets become temporarily unavailable rather than falling back to cloud compute.
 
-Disconnecting prevents new jobs and previews but does not delete datasets or source files from the computer. Uploaded
-models remain available in Platform.
+**Reconnect** issues a fresh install command for a host you previously disconnected. It reuses the same host record, so
+its existing datasets resume working without being re-imported.
+
+**Disconnect** revokes that host's access immediately. Queued, starting, and running jobs bound to it are cancelled,
+including training in progress, and a dataset that was still being imported fails with `On Premise host disconnected
+during ingest.` Datasets that finished importing keep their classes, labels, and annotations but cannot be previewed or
+trained on until you reconnect. Nothing is deleted from the computer, and models already uploaded to Platform remain
+available.
+
+## Current Limitations
+
+- **No rescan.** A dataset is indexed once when you create it. If the source files change afterwards, Platform does not
+  notice — create a new dataset to pick up the changes.
+- **Platform-copy features are unavailable.** On Premise datasets exclude the features that need Platform-owned copies of
+  your images: auto-annotation, [clustering analysis](../data/datasets.md#clustering), dataset cloning, and immutable
+  [version snapshots](../data/datasets.md#versions-tab).
+- **Training does not move.** If the worker process stops mid-run, the run fails rather than restarting elsewhere.
+- **Model files stay on the host.** Deleting or trashing a model in Platform removes it from Platform, not from your
+  models folder — clean that folder up yourself when a run is no longer needed.
+
+Deleting an On Premise dataset, or individual images from it, removes Platform's references and annotations only. Your
+files are never touched.
 
 ## If Setup Does Not Finish
 
@@ -190,5 +225,7 @@ models remain available in Platform.
 - **The connection stays offline:** Open Docker Desktop, rerun a newly generated command, and keep the terminal open until it reports that On Premise is running.
 - **Previews do not load:** Open Platform in a browser on the connected computer. Dataset previews come directly from
   that computer.
+- **You need the worker logs:** The installer writes to `/opt/ultralytics-worker` on Linux and `~/.ultralytics/worker`
+  on macOS and Windows. Run `docker compose logs -f` from that folder to follow the worker.
 
 Also see [Datasets](../data/datasets.md), [Annotation](../data/annotation.md), and [Training](../train/index.md).

@@ -99,9 +99,11 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
         return None
     import requests  # scoped as slow import
 
-    payload = {"event": event, "project": project, "name": name, "data": _sanitize_json_value(data)}
+    payload = {"event": event, "data": _sanitize_json_value(data)}
     if model_id:
         payload["modelId"] = model_id
+    else:
+        payload.update(project=project, name=name)
 
     def send_once():
         global _api_key
@@ -170,9 +172,11 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
     # Get signed upload URL from Platform (server sanitizes filename for storage safety)
     @Retry(times=3, delay=2)
     def get_signed_url():
-        payload = {"project": project, "name": name, "filename": model_path.name}
+        payload = {"filename": model_path.name}
         if model_id:
             payload["modelId"] = model_id  # Direct lookup avoids slug mismatch from auto-increment
+        else:
+            payload.update(project=project, name=name)
         if run_id:
             payload["runId"] = run_id
         r = requests.post(

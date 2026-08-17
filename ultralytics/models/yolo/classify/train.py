@@ -160,8 +160,9 @@ class ClassificationTrainer(BaseTrainer):
                     f"All {original_count} samples in '{mode}' split filtered out: every sample had class index >= "
                     f"model nc={nc}. Reset the model's class count or align dataset class indices."
                 )
+        drop_last = self.args.compile and mode == "train"
         loader = build_dataloader(
-            dataset, batch_size, self.args.workers, rank=rank, drop_last=self.args.compile, device=self.device
+            dataset, batch_size, self.args.workers, rank=rank, drop_last=drop_last, device=self.device
         )
         # Attach inference transforms
         if mode != "train":

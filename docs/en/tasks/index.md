@@ -2,12 +2,12 @@
 title: YOLO26 Computer Vision Tasks Overview
 comments: true
 description: Explore Ultralytics YOLO26 for detection, segmentation, semantic segmentation, depth estimation, classification, pose estimation, OBB, and stereo 3D detection with high accuracy and speed. Learn how to apply each task.
-keywords: Ultralytics YOLO26, detection, segmentation, semantic segmentation, depth estimation, classification, oriented object detection, pose estimation, stereo 3D detection, computer vision, AI framework
+keywords: Ultralytics YOLO26, detection, segmentation, semantic segmentation, depth estimation, classification, pose estimation, oriented object detection, stereo 3D detection, computer vision, AI framework
 ---
 
 # Computer Vision Tasks Supported by Ultralytics YOLO26
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-tasks-banner.avif" alt="Ultralytics YOLO supported computer vision tasks">
+<img width="1024" src="https://cdn.ul.run/i/c99d914c3958d0755b5a3d7204b6f24a.avif" alt="Ultralytics YOLO supported computer vision tasks">
 
 Ultralytics YOLO26 is a versatile AI framework that supports multiple [computer vision](https://www.ultralytics.com/blog/everything-you-need-to-know-about-computer-vision-in-2025) **tasks**. The framework can be used to perform [detection](detect.md), [segmentation](segment.md), [semantic segmentation](semantic.md), [depth estimation](depth.md), [classification](classify.md), [pose](pose.md) estimation, [OBB](obb.md), and [stereo 3D detection](s3d.md). Each of these tasks has a different objective and use case, allowing you to address various computer vision challenges with a single framework.
 
@@ -72,7 +72,7 @@ Stereo 3D detection estimates full 3D bounding boxes — including depth, dimens
 
 ## Conclusion
 
-Ultralytics YOLO26 supports multiple computer vision tasks, including detection, instance segmentation, semantic segmentation, monocular depth estimation, classification, oriented object detection, keypoint detection, and stereo 3D detection. Each task addresses specific needs in the computer vision landscape, from basic object identification to dense per-pixel depth inference and full 3D spatial understanding. By understanding the capabilities and applications of each task, you can select the most appropriate approach for your specific computer vision challenges and leverage YOLO26's powerful features to build effective solutions.
+Ultralytics YOLO26 supports multiple computer vision tasks, including detection, instance segmentation, semantic segmentation, monocular depth estimation, classification, keypoint detection, oriented object detection, and stereo 3D detection. Each task addresses specific needs in the computer vision landscape, from basic object identification to dense per-pixel depth inference and full 3D spatial understanding. By understanding the capabilities and applications of each task, you can select the most appropriate approach for your specific computer vision challenges and leverage YOLO26's powerful features to build effective solutions.
 
 ## What's Next
 

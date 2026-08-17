@@ -1919,6 +1919,8 @@ class CopyPaste(BaseMixTransform):
         if len(labels["instances"].segments) == 0 or self.p == 0:
             return labels
         if self.mode == "flip":
+            if random.random() >= self.p:
+                return labels
             params = self.get_params(labels)
             labels = self.apply_image(labels, params)
             labels = self.apply_instances(labels, params)
@@ -1953,11 +1955,7 @@ class CopyPaste(BaseMixTransform):
             instances2.fliplr(w)
 
         ioa = bbox_ioa(instances2.bboxes, instances.bboxes)
-        indexes = np.nonzero((ioa < 0.30).all(1))[0]
-        n = len(indexes)
-        sorted_idx = np.argsort(ioa.max(1)[indexes])
-        indexes = indexes[sorted_idx]
-        selected = indexes[: round(self.p * n)]
+        selected = np.nonzero((ioa < 0.30).all(1))[0]
 
         im_new = np.zeros((h, w), np.uint8)
 
@@ -2015,9 +2013,9 @@ class CopyPaste(BaseMixTransform):
         cls = labels["cls"]
         labels2_cls = params.get("labels2_cls")
 
-        for j in selected:
-            cls = np.concatenate((cls, (labels2_cls if labels2_cls is not None else cls)[[j]]), axis=0)
-            instances = Instances.concatenate((instances, instances2[[j]]), axis=0)
+        if len(selected):
+            cls = np.concatenate((cls, (labels2_cls if labels2_cls is not None else cls)[selected]), axis=0)
+            instances = Instances.concatenate([instances, instances2[selected]], axis=0)
 
         labels["cls"] = cls
         labels["instances"] = instances

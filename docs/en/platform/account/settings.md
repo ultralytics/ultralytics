@@ -101,7 +101,7 @@ team workspaces have no separate email list.
 | **Set as primary** | Set a verified email as your primary address                               |
 | **Remove**         | Remove a non-primary email address                                         |
 
-Each address is labelled with **Primary**, **Verified** or **Unverified**, and **Company** badges.
+Each address is labeled with **Primary**, **Verified** or **Unverified**, and **Company** badges.
 
 !!! note "Primary Email"
 

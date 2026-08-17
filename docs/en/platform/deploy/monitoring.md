@@ -251,6 +251,8 @@ Every deployment is addressed by its owner and deployment name, and each route r
 GET /api/deployments/{owner}/{deployment}/metrics?range=24h
 ```
 
+**Python SDK:** `client.deployments.metrics(owner, deployment, range="24h")`
+
 Returns the full metrics payload for a deployment: a `summary` block with total requests, error count and rate, and
 average, P50, P95, and P99 latency, plus `timeSeries` arrays for requests, errors, P50 and P95 latency, CPU and memory
 utilization, and instance count.
@@ -269,6 +271,8 @@ requests, error rate, and average latency. This is the call that refreshes every
 GET /api/deployments/{owner}/{deployment}/logs?limit=50&severity=ERROR,WARNING
 ```
 
+**Python SDK:** `client.deployments.logs(owner, deployment, limit=50, severity="ERROR,WARNING")`
+
 Returns recent log entries with optional severity filter and pagination.
 
 | Parameter   | Type   | Description                                   |
@@ -282,6 +286,8 @@ Returns recent log entries with optional severity filter and pagination.
 ```http
 GET /api/deployments/{owner}/{deployment}/health
 ```
+
+**Python SDK:** `client.deployments.health(owner, deployment)`
 
 Pings the deployment and returns its health status with the measured round-trip latency:
 
@@ -297,7 +303,7 @@ An unhealthy response omits `status` when the endpoint could not be reached at a
 
 !!! note "Dashboard Overview"
 
-    The aggregated numbers on the `Deploy` page are not available as a single REST endpoint. Reproduce them by calling the metrics route for each deployment returned by `GET /api/deployments/{owner}`.
+    The aggregated numbers on the `Deploy` page are not available as a single REST endpoint. Reproduce them by calling the metrics route for each deployment returned by `GET /api/deployments/{owner}` (`client.deployments.list(owner)`).
 
 ## Performance Optimization
 

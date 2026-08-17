@@ -177,7 +177,17 @@ Shared inference uses the Platform API with the model's full path:
 POST https://platform.ultralytics.com/api/models/{owner}/{project}/{model}/predict
 ```
 
-Both accept the same `multipart/form-data` body and return the same response shape.
+Both accept the same `multipart/form-data` body and return the same response shape. With the
+[Python SDK](../api/index.md#python-sdk), use `client.models.predict(owner, project, model, body=...)` for shared
+inference or `client.deployments.predict(owner, deployment, body=...)` for a dedicated deployment:
+
+```python
+from ultralytics_platform import Platform
+
+client = Platform()  # reads ULTRALYTICS_API_KEY
+with open("image.jpg", "rb") as f:
+    results = client.models.predict("acme-vision", "inspection", "v3", body={"file": f, "conf": 0.25})
+```
 
 ### Request
 

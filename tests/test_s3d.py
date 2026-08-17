@@ -1496,7 +1496,8 @@ def test_fitness_weights_classes_by_gt_instance_count():
     from ultralytics.models.yolo.s3d.metrics import DIFFICULTY_MODERATE, Stereo3DDetMetrics
 
     m = Stereo3DDetMetrics(names={0: "Car", 1: "Pedestrian", 2: "Cyclist"})
-    m.ap3d = {0.5: {DIFFICULTY_MODERATE: {0: 0.30, 1: 0.0, 2: 0.0}}}
+    # Same AP at both thresholds, so this test reads the class weighting alone, not the IoU weighting.
+    m.ap3d = {t: {DIFFICULTY_MODERATE: {0: 0.30, 1: 0.0, 2: 0.0}} for t in (0.5, 0.7)}
     m.gt_counts = {(DIFFICULTY_MODERATE, 0): 680, (DIFFICULTY_MODERATE, 1): 81, (DIFFICULTY_MODERATE, 2): 37}
 
     assert abs(m.maps3d_50 - 0.10) < 1e-6, "the unweighted mean must stay unweighted for continuity"
@@ -1511,6 +1512,36 @@ def test_fitness_weights_classes_by_gt_instance_count():
     # No counts recorded at all (nothing processed yet) must fall back, not report a spurious 0.
     m.gt_counts = {}
     assert abs(m.fitness - 0.10) < 1e-6, "with no counts, fitness must fall back to the unweighted mean"
+
+
+def test_fitness_selects_on_iou_70_not_iou_50():
+    """Model selection must follow IoU 0.7, the threshold KITTI reports and the table leads with.
+
+    Read at IoU 0.5 alone, fitness cannot see localization precision: a checkpoint that trades tight boxes
+    for coarse ones outscores the better model. That is not hypothetical — the released `l` was first
+    published from a checkpoint scoring 12.4 Car Moderate AP3D@0.7 on dev where another scored 15.5, and
+    re-selecting at 0.7 was worth +3.6 AP@0.7 on the held-out test split.
+
+    Built as that exact trade: `coarse` is better at 0.5, `tight` is better at 0.7.
+    """
+    from ultralytics.models.yolo.s3d.metrics import DIFFICULTY_MODERATE, Stereo3DDetMetrics
+
+    def fitness_of(ap50, ap70):
+        """Fitness of a single-class run scoring ap50 at IoU 0.5 and ap70 at IoU 0.7."""
+        m = Stereo3DDetMetrics(names={0: "Car"})
+        m.ap3d = {0.5: {DIFFICULTY_MODERATE: {0: ap50}}, 0.7: {DIFFICULTY_MODERATE: {0: ap70}}}
+        m.gt_counts = {(DIFFICULTY_MODERATE, 0): 680}
+        return m.fitness
+
+    coarse, tight = fitness_of(0.46, 0.12), fitness_of(0.45, 0.15)
+    assert tight > coarse, f"a checkpoint better at IoU 0.7 must win selection, got {tight} <= {coarse}"
+
+    # The 0.5 term must still rank checkpoints while AP@0.7 is stuck at zero, which it is for long
+    # stretches early in training — otherwise best.pt silently degrades to the last validated epoch.
+    assert fitness_of(0.20, 0.0) > fitness_of(0.10, 0.0), "with AP@0.7 flat at zero, IoU 0.5 must break the tie"
+
+    # ...but it must not outvote a real difference at 0.7.
+    assert fitness_of(0.90, 0.10) < fitness_of(0.10, 0.20), "IoU 0.5 must not outweigh a real gain at IoU 0.7"
 
 
 def test_metric_keys_and_results_dict_stay_in_step():

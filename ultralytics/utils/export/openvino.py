@@ -18,6 +18,7 @@ def torch2openvino(
     quantize: int | str | None = None,
     calibration_dataset: Any | None = None,
     int8_detect: bool = False,
+    nms: bool = False,
     prefix: str = "",
 ) -> Any:
     """Export a PyTorch model to OpenVINO format with optional INT8 quantization.
@@ -30,6 +31,8 @@ def torch2openvino(
         quantize (int | str | None): Precision scheme, e.g. 16 for FP16 or 8 for INT8.
         calibration_dataset (nncf.Dataset | None): Dataset for INT8 calibration (required when ``quantize=8``).
         int8_detect (bool): Whether to keep the detection head in floating-point precision during INT8 quantization.
+        nms (bool): Whether ``model`` embeds NMS post-processing; if so, only batch stays dynamic since NMS bakes
+            height/width into a fixed anchor count at trace time.
         prefix (str): Prefix for log messages.
 
     Returns:
@@ -45,7 +48,15 @@ def torch2openvino(
     # non-deterministic on NMS models and fails with "Graphs differed across invocations!". check_trace=False skips
     # the same check on our own trace.
     ts = torch.jit.trace(model, im, strict=False, check_trace=False)
-    ov_model = ov.convert_model(ts, input=None if dynamic else input_shape, example_input=im)
+    if dynamic and nms:
+        ov_input = ov.PartialShape([-1, *input_shape[1:]])  # only batch dynamic; see docstring
+        LOGGER.warning(
+            f"{prefix} 'dynamic=True' with 'nms=True' only makes the batch size dynamic; height and width stay "
+            f"fixed at the traced size={tuple(input_shape[2:])}."
+        )
+    else:
+        ov_input = None if dynamic else input_shape
+    ov_model = ov.convert_model(ts, input=ov_input, example_input=im)
     if quantize == 8:
         import nncf
 

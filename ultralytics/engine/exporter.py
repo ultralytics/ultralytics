@@ -1054,8 +1054,16 @@ class Exporter:
                 dynamic["output0"] = {0: "batch", 2: "height", 3: "width"}  # shape(1,1,640,640) dense map, not anchors
             elif isinstance(self.model, DetectionModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 84, 8400)
-            if self.args.nms:  # only batch size is dynamic with NMS
+            if self.args.nms:  # only batch size is dynamic with NMS: postprocessing bakes height/width into a fixed
+                # anchor count at trace time, so a graph that still advertised dynamic height/width would silently
+                # stop applying max_det/NMS filtering whenever inference ran at a size other than the traced one.
+                dynamic["images"].pop(2)
+                dynamic["images"].pop(3)
                 dynamic["output0"].pop(2)
+                LOGGER.warning(
+                    f"{prefix} 'dynamic=True' with 'nms=True' only makes the batch size dynamic; height and width "
+                    f"stay fixed at the traced imgsz={self.imgsz}."
+                )
         if self.args.nms and self.model.task == "obb":
             self.args.opset = opset  # for NMSModel
             self.args.simplify = True  # fix OBB runtime error related to topk
@@ -1192,6 +1200,7 @@ class Exporter:
             quantize=self.args.quantize,
             calibration_dataset=calibration_dataset,
             int8_detect=isinstance(self.model.model[-1], Detect),
+            nms=self.args.nms,
             prefix=prefix,
         )
 

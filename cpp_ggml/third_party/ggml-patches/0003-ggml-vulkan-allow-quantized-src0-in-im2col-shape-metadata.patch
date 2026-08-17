@@ -1,0 +1,33 @@
+From d3ed8b6a0d5ff44df7d40bd63965688bf18b1a38 Mon Sep 17 00:00:00 2001
+From: yolo-ggml <dev@local>
+Date: Mon, 17 Aug 2026 15:47:43 +0800
+Subject: [PATCH] ggml-vulkan: allow quantized src0 in im2col
+
+ggml_vk_op_f32 rejects any quantized src0 up front, but im2col never
+reads src0 data: the dispatch binds only src1/dst buffers and src0 only
+contributes KH/KW/IC shape metadata to the patch loop. Conv graphs that
+pair a quantized 2D mul_mat kernel with a same-shape 4D view for im2col
+(llama.cpp-style conv2d) trip the assert on Vulkan while running fine
+on CPU/CUDA. Exempt IM2COL/IM2COL_3D like GET_ROWS/CPY/CONCAT.
+---
+ src/ggml-vulkan/ggml-vulkan.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/ggml-vulkan/ggml-vulkan.cpp b/src/ggml-vulkan/ggml-vulkan.cpp
+index 510fb689..6a4831e2 100644
+--- a/src/ggml-vulkan/ggml-vulkan.cpp
++++ b/src/ggml-vulkan/ggml-vulkan.cpp
+@@ -11722,7 +11722,9 @@ static void ggml_vk_op_f32(ggml_backend_vk_context * ctx, vk_context& subctx, co
+     }
+     std::cerr << "), (" << dst << ", name=" << dst->name << ", type=" << dst->type << ", ne0=" << dst->ne[0] << ", ne1=" << dst->ne[1] << ", ne2=" << dst->ne[2] << ", ne3=" << dst->ne[3] << ", nb0=" << dst->nb[0] << ", nb1=" << dst->nb[1] << ", nb2=" << dst->nb[2] << ", nb3=" << dst->nb[3];
+     std::cerr << "), " << ggml_op_name(op) << ")");
+-    GGML_ASSERT(op == GGML_OP_GET_ROWS || op == GGML_OP_CPY || op == GGML_OP_CONCAT || (!ggml_is_quantized(src0->type) && (src1 == nullptr || !ggml_is_quantized(src1->type))));  // NOLINT
++    // IM2COL/IM2COL_3D never bind src0 (dispatch uses only src1/dst buffers);
++    // a quantized src0 only lends KH/KW/IC shape metadata to the patch loop.
++    GGML_ASSERT(op == GGML_OP_GET_ROWS || op == GGML_OP_CPY || op == GGML_OP_CONCAT || op == GGML_OP_IM2COL || op == GGML_OP_IM2COL_3D || (!ggml_is_quantized(src0->type) && (src1 == nullptr || !ggml_is_quantized(src1->type))));  // NOLINT
+     GGML_ASSERT(dst->buffer != nullptr);
+     const uint64_t ne00 = src0->ne[0];
+     const uint64_t ne01 = src0->ne[1];
+-- 
+2.25.1
+

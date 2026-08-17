@@ -52,6 +52,22 @@ Request an Enterprise License for commercial use at [Ultralytics Licensing](http
   <a href="https://discord.com/invite/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="2%" alt="Ultralytics Discord"></a>
 </div>
 
+## GGML C++ Inference
+
+This fork includes a standalone [GGML C++ runtime](cpp_ggml/README.md) for YOLOv8 and YOLO26 detection plus YOLO26n
+absolute-depth estimation. It supports CPU, CUDA, and Vulkan inference with F32, F16, and Q8_0 GGUF models and does not
+require Python or PyTorch at runtime. Source checkpoints and generated models have one canonical layout documented in
+the [model card](cpp_ggml/models/MODEL_CARD.md).
+
+| End-to-end latency                                                             | Detection output parity                                                           |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| ![GGML backend latency comparison](cpp_ggml/benchmarks/latency_by_backend.png) | ![PyTorch and GGML detection comparison](cpp_ggml/benchmarks/parity_grid_bus.png) |
+
+See the [benchmark and parity report](cpp_ggml/benchmarks/README.md) for raw data, the complete model/backend/precision
+matrix, reproduction commands, accuracy scope, and remaining optimization work. Current measurements do not show every
+CUDA and Vulkan configuration beating PyTorch CUDA; the report preserves that limitation instead of making a universal
+speed claim.
+
 ## 📄 Documentation
 
 See below for quickstart installation and usage examples. For comprehensive guidance on training, validation, prediction, and deployment, refer to our full [Ultralytics Docs](https://docs.ultralytics.com/).

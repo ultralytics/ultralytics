@@ -1,0 +1,261 @@
+From 1b4e4911942ee2ac4b2231075cd446c9dc4d9110 Mon Sep 17 00:00:00 2001
+From: Ettore Di Giacinto <mudler@localai.io>
+Date: Tue, 26 May 2026 15:17:30 +0000
+Subject: [PATCH 2/2] ggml-cpu: per-op profile gated on GGML_PROFILE_OPS=1
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+When the env var is set, accumulate wall-clock time on thread 0 around
+each node's compute+barrier, bucket by op type (with MUL_MAT subdivided
+by K size: <=64, <=384, >384) and per distinct shape, and dump a summary
+on every graph compute call.
+
+Diagnostic only — zero overhead when GGML_PROFILE_OPS is unset (single
+cached env check; profile body compiled in but never entered).
+
+Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+---
+ src/ggml-cpu/ggml-cpu.c | 205 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 205 insertions(+)
+
+diff --git a/src/ggml-cpu/ggml-cpu.c b/src/ggml-cpu/ggml-cpu.c
+index 51c2a18c..f3c81e35 100644
+--- a/src/ggml-cpu/ggml-cpu.c
++++ b/src/ggml-cpu/ggml-cpu.c
+@@ -3128,6 +3128,187 @@ static int ggml_cpu_try_fuse_ops(
+     return 0;
+ }
+ 
++// ---------------------------------------------------------------------------
++// Per-op-type profiling (enabled at runtime via env GGML_PROFILE_OPS=1).
++// Profile is accumulated on thread 0 only, using wall-clock time around each
++// node's compute+barrier. Summary is printed on every graph compute call.
++//
++// MUL_MAT is bucketed by K (the reduction dimension on src0->ne[0]):
++//   - "MUL_MAT[K<=64]"     (e.g. attention QK^T / PV for small head_dim)
++//   - "MUL_MAT[K<=384]"    (medium)
++//   - "MUL_MAT[K>384]"     (bulk projections / FFN)
++// ---------------------------------------------------------------------------
++
++static int ggml_profile_ops_enabled(void) {
++    static int cached = -1;
++    if (cached < 0) {
++        const char * s = getenv("GGML_PROFILE_OPS");
++        cached = (s && s[0] && s[0] != '0') ? 1 : 0;
++    }
++    return cached;
++}
++
++#define GGML_PROF_NUM_BUCKETS (GGML_OP_COUNT + 3)  // +3 mul_mat sub-buckets
++#define GGML_PROF_BUCKET_MM_SMALL  (GGML_OP_COUNT + 0)
++#define GGML_PROF_BUCKET_MM_MED    (GGML_OP_COUNT + 1)
++#define GGML_PROF_BUCKET_MM_LARGE  (GGML_OP_COUNT + 2)
++
++#define GGML_PROF_MM_DETAIL 32  // top-N distinct mul_mat shapes to track
++struct ggml_prof_mm_shape {
++    int64_t M, N, K, B;
++    int64_t total_us;
++    int64_t calls;
++    int64_t flops_per_call;
++};
++
++struct ggml_profile_state {
++    int64_t total_us[GGML_PROF_NUM_BUCKETS];
++    int64_t calls   [GGML_PROF_NUM_BUCKETS];
++    int64_t total_flops[GGML_PROF_NUM_BUCKETS]; // for MUL_MAT buckets
++    int64_t grand_total_us;
++    int     graph_idx;
++    struct ggml_prof_mm_shape mm_shapes[GGML_PROF_MM_DETAIL];
++    int     n_mm_shapes;
++};
++
++static struct ggml_profile_state g_ggml_profile = {0};
++
++static const char * ggml_prof_bucket_name(int b) {
++    if (b < GGML_OP_COUNT) return ggml_op_name((enum ggml_op)b);
++    switch (b) {
++        case GGML_PROF_BUCKET_MM_SMALL: return "MUL_MAT[K<=64]";
++        case GGML_PROF_BUCKET_MM_MED:   return "MUL_MAT[K<=384]";
++        case GGML_PROF_BUCKET_MM_LARGE: return "MUL_MAT[K>384]";
++    }
++    return "?";
++}
++
++static int ggml_prof_bucket_for(const struct ggml_tensor * node) {
++    if (node->op == GGML_OP_MUL_MAT) {
++        const int64_t K = node->src[0]->ne[0];
++        if (K <= 64)  return GGML_PROF_BUCKET_MM_SMALL;
++        if (K <= 384) return GGML_PROF_BUCKET_MM_MED;
++        return GGML_PROF_BUCKET_MM_LARGE;
++    }
++    return (int) node->op;
++}
++
++static int64_t ggml_prof_flops_for(const struct ggml_tensor * node) {
++    if (node->op != GGML_OP_MUL_MAT) return 0;
++    // src0: [K, M, ...]  src1: [K, N, ...]  dst: [M, N, ...]
++    const int64_t K = node->src[0]->ne[0];
++    const int64_t M = node->src[0]->ne[1];
++    const int64_t N = node->src[1]->ne[1];
++    // batch dims
++    int64_t B = 1;
++    for (int d = 2; d < GGML_MAX_DIMS; ++d) {
++        B *= node->ne[d];
++    }
++    return 2 * M * N * K * B;
++}
++
++static void ggml_prof_record_mm(const struct ggml_tensor * node, int64_t dt_us) {
++    const int64_t K = node->src[0]->ne[0];
++    const int64_t M = node->src[0]->ne[1];
++    const int64_t N = node->src[1]->ne[1];
++    int64_t B = 1;
++    for (int d = 2; d < GGML_MAX_DIMS; ++d) {
++        B *= node->ne[d];
++    }
++    for (int i = 0; i < g_ggml_profile.n_mm_shapes; ++i) {
++        struct ggml_prof_mm_shape * s = &g_ggml_profile.mm_shapes[i];
++        if (s->M == M && s->N == N && s->K == K && s->B == B) {
++            s->total_us += dt_us;
++            s->calls    += 1;
++            return;
++        }
++    }
++    if (g_ggml_profile.n_mm_shapes < GGML_PROF_MM_DETAIL) {
++        struct ggml_prof_mm_shape * s = &g_ggml_profile.mm_shapes[g_ggml_profile.n_mm_shapes++];
++        s->M = M; s->N = N; s->K = K; s->B = B;
++        s->total_us = dt_us;
++        s->calls = 1;
++        s->flops_per_call = 2 * M * N * K * B;
++    }
++}
++
++static int ggml_prof_mm_cmp(const void * a, const void * b) {
++    const struct ggml_prof_mm_shape * sa = (const struct ggml_prof_mm_shape *)a;
++    const struct ggml_prof_mm_shape * sb = (const struct ggml_prof_mm_shape *)b;
++    if (sa->total_us < sb->total_us) return  1;
++    if (sa->total_us > sb->total_us) return -1;
++    return 0;
++}
++
++static int ggml_prof_cmp(const void * a, const void * b) {
++    int ia = *(const int *)a;
++    int ib = *(const int *)b;
++    int64_t ta = g_ggml_profile.total_us[ia];
++    int64_t tb = g_ggml_profile.total_us[ib];
++    if (ta < tb) return  1;
++    if (ta > tb) return -1;
++    return 0;
++}
++
++static void ggml_prof_dump_and_reset(void) {
++    int idx[GGML_PROF_NUM_BUCKETS];
++    int n_used = 0;
++    for (int i = 0; i < GGML_PROF_NUM_BUCKETS; ++i) {
++        if (g_ggml_profile.calls[i] > 0) {
++            idx[n_used++] = i;
++        }
++    }
++    qsort(idx, n_used, sizeof(int), ggml_prof_cmp);
++
++    int64_t total = g_ggml_profile.grand_total_us;
++    fprintf(stderr,
++        "\n=== GGML per-op profile (graph #%d, total=%.2f ms) ===\n",
++        g_ggml_profile.graph_idx, total / 1000.0);
++    fprintf(stderr,
++        "%-26s %10s %8s %10s %12s\n",
++        "op", "time_ms", "calls", "pct", "GFLOPS");
++    for (int i = 0; i < n_used; ++i) {
++        int b = idx[i];
++        int64_t us = g_ggml_profile.total_us[b];
++        double  ms = us / 1000.0;
++        double pct = total > 0 ? 100.0 * (double)us / (double)total : 0.0;
++        if (b >= GGML_OP_COUNT) {
++            double gflops = (us > 0)
++                ? ((double)g_ggml_profile.total_flops[b] / 1e9) / (us / 1e6)
++                : 0.0;
++            fprintf(stderr, "%-26s %10.2f %8" PRId64 " %9.1f%% %12.2f\n",
++                    ggml_prof_bucket_name(b), ms, g_ggml_profile.calls[b], pct, gflops);
++        } else {
++            fprintf(stderr, "%-26s %10.2f %8" PRId64 " %9.1f%%\n",
++                    ggml_prof_bucket_name(b), ms, g_ggml_profile.calls[b], pct);
++        }
++    }
++    fprintf(stderr, "===\n");
++
++    if (g_ggml_profile.n_mm_shapes > 0) {
++        qsort(g_ggml_profile.mm_shapes,
++              g_ggml_profile.n_mm_shapes,
++              sizeof(struct ggml_prof_mm_shape),
++              ggml_prof_mm_cmp);
++        fprintf(stderr, "--- MUL_MAT shape breakdown (top, sorted by total_us) ---\n");
++        fprintf(stderr, "%6s %6s %6s %4s %8s %6s %10s %10s\n",
++                "M", "N", "K", "B", "time_ms", "calls", "GFLOPS/call", "GFLOPS_eff");
++        for (int i = 0; i < g_ggml_profile.n_mm_shapes; ++i) {
++            struct ggml_prof_mm_shape * s = &g_ggml_profile.mm_shapes[i];
++            double ms = s->total_us / 1000.0;
++            double gflops_eff = s->total_us > 0
++                ? ((double)(s->flops_per_call * s->calls) / 1e9) / (s->total_us / 1e6) : 0.0;
++            fprintf(stderr, "%6" PRId64 " %6" PRId64 " %6" PRId64 " %4" PRId64
++                    " %8.2f %6" PRId64 " %10.3f %10.2f\n",
++                    s->M, s->N, s->K, s->B, ms, s->calls,
++                    (double)s->flops_per_call / 1e9, gflops_eff);
++        }
++        fprintf(stderr, "---\n");
++    }
++
++    memset(&g_ggml_profile, 0, sizeof(g_ggml_profile));
++}
++
+ static thread_ret_t ggml_graph_compute_thread(void * data) {
+     struct ggml_compute_state * state = (struct ggml_compute_state *) data;
+     struct ggml_threadpool    * tp    = state->threadpool;
+@@ -3156,6 +3337,9 @@ static thread_ret_t ggml_graph_compute_thread(void * data) {
+     GGML_PRINT_DEBUG("thread #%d compute-start cplan %p last-graph %d\n", state->ith, (const void *)cplan, state->last_graph);
+ #endif
+ 
++    const int prof_enabled = (state->ith == 0) && ggml_profile_ops_enabled();
++    int64_t prof_node_start_us = 0;
++
+     for (int node_n = 0; node_n < cgraph->n_nodes && atomic_load_explicit(&tp->abort, memory_order_relaxed) != node_n; node_n++) {
+         struct ggml_tensor * node = cgraph->nodes[node_n];
+ 
+@@ -3168,6 +3352,10 @@ static thread_ret_t ggml_graph_compute_thread(void * data) {
+             continue;
+         }
+ 
++        if (prof_enabled) {
++            prof_node_start_us = ggml_time_us();
++        }
++
+         // TODO: move fused-op detection into ggml_graph_plan so fusion decisions are made once at planning time
+         // Try fused ops, fall back to normal compute
+         const int n_fused = ggml_cpu_try_fuse_ops(cgraph, node_n, &params, cplan);
+@@ -3186,6 +3374,23 @@ static thread_ret_t ggml_graph_compute_thread(void * data) {
+         if (node_n + 1 < cgraph->n_nodes) {
+             ggml_barrier(state->threadpool);
+         }
++
++        if (prof_enabled) {
++            const int64_t dt = ggml_time_us() - prof_node_start_us;
++            const int b = ggml_prof_bucket_for(node);
++            g_ggml_profile.total_us[b]    += dt;
++            g_ggml_profile.calls   [b]    += 1;
++            g_ggml_profile.total_flops[b] += ggml_prof_flops_for(node);
++            g_ggml_profile.grand_total_us += dt;
++            if (node->op == GGML_OP_MUL_MAT) {
++                ggml_prof_record_mm(node, dt);
++            }
++        }
++    }
++
++    if (prof_enabled) {
++        g_ggml_profile.graph_idx++;
++        ggml_prof_dump_and_reset();
+     }
+ 
+ #ifdef GGML_USE_OPENMP
+-- 
+2.43.0
+

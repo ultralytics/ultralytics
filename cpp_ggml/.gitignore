@@ -1,0 +1,19 @@
+# Build directories
+build*/
+bin/
+lib/
+
+# Converted models (tracked layout is described in models/MODEL_CARD.md)
+models/pytorch/*.pt
+models/gguf/*.gguf
+models/onnx/*.onnx
+
+# Benchmark artifacts
+benchmarks/*.json.tmp
+
+# Patch-apply flock sentinel (runtime artifact, not source)
+third_party/.ggml-patch.lock
+
+# Python + parity-render intermediates
+__pycache__/
+benchmarks/_*

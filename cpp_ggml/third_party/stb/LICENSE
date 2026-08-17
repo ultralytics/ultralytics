@@ -1,0 +1,4 @@
+The stb libraries (stb_image.h, stb_image_write.h, stb_truetype.h) are
+dual-licensed under the MIT License and the Public Domain. See the
+license text at the bottom of each header file. Source:
+https://github.com/nothings/stb

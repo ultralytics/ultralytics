@@ -211,3 +211,19 @@ results.csv
 fuzz-sources/
 fuzz-datasets/
 fuzz-models/
+
+# Build directories
+cpp_ggml/build-*/
+cpp_ggml/bin/
+cpp_ggml/lib/
+
+# Benchmark artifacts
+cpp_ggml/benchmarks/*.json.tmp
+
+# ggml benchmark report charts are report artifacts, keep them tracked
+!cpp_ggml/benchmarks/*.png
+
+# Converted models (tracked layout is described in cpp_ggml/models/MODEL_CARD.md)
+*.gguf
+*.pt
+*.onnx

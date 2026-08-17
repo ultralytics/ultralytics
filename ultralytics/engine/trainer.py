@@ -283,7 +283,7 @@ class BaseTrainer:
         (https://arxiv.org/abs/2506.13274), so that peak estimates the optimal rate and a local parabola fit refines
         it off the sampling grid. Neither endpoint works alone. The minimum registers damage late, because each loss
         reflects every lower rate that preceded it, while the peak under-trains a schedule that decays from 'lr0'.
-        'lr0' therefore lands a quarter of the way from that peak to the minimum in log space, near enough to the peak
+        'lr0' therefore lands an eighth of the way from that peak to the minimum in log space, near enough to the peak
         to keep the rate the sweep measured as best, far enough above it to leave the decay room to work. 'lrf' is not
         measurable this way, as it governs the end of a schedule that has not run, so it is set by rule of thumb to
         land on the final rate the optimizer family usually anneals to rather than on a fixed fraction of a fitted
@@ -360,8 +360,8 @@ class BaseTrainer:
         fit_lrs = log_lrs[neighborhood]
         curvature, slope, _ = np.polyfit(fit_lrs, velocity[neighborhood], 2)  # refine the peak off the sample grid
         fastest = np.clip(-slope / (2 * curvature) if curvature < 0 else log_lrs[peak], fit_lrs[0], fit_lrs[-1])
-        # Take a quarter of the band above the peak, then cap the estimate at the highest rate a shipped recipe uses.
-        rate = fastest + (log_lrs[edge] - fastest) / 4
+        # Take an eighth of the band above the peak, then cap the estimate at the highest rate a shipped recipe uses.
+        rate = fastest + (log_lrs[edge] - fastest) / 8
         self.args.lr0 = self.args.warmup_bias_lr = lr = float(f"{min(10**rate, 0.01):.3g}")
         # Anneal to a fixed final rate rather than a fixed fraction of 'lr0', which would stall a run whose fitted
         # 'lr0' is well under the default. The tuned YOLO26 recipes end within 12% of 3e-4 across a 14x range of

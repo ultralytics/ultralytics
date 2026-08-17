@@ -495,29 +495,53 @@ def _read_multi_results(csv_path: Path) -> dict[str, dict[str, float]]:
     return rows
 
 
-def _backfill_multi_f1(run_dirs: tuple[Path, ...], rows: dict[str, dict[str, float]]) -> None:
-    """Backfill F1 from each dataset's best-mAP epoch for legacy aggregate rows."""
+_MULTI_SIZE_METRICS = {
+    "map_small": "metrics/mAP_small(B)",
+    "mar_small": "metrics/mAR_small(B)",
+    "map_medium": "metrics/mAP_medium(B)",
+    "mar_medium": "metrics/mAR_medium(B)",
+    "map_large": "metrics/mAP_large(B)",
+    "mar_large": "metrics/mAR_large(B)",
+}
+_MULTI_METRICS = ("map50", "map50_95", "fitness", "f1", *_MULTI_SIZE_METRICS)
+
+
+def _backfill_multi_metrics(run_dirs: tuple[Path, ...], rows: dict[str, dict[str, float]]) -> None:
+    """Backfill F1 and size metrics from each dataset's best-mAP epoch."""
     for name, row in rows.items():
-        if name == "MACRO" or "f1" in row:
+        if name == "MACRO" or all(key in row for key in ("f1", *_MULTI_SIZE_METRICS)):
             continue
         results_path = next(
             (run_dir / name / "results.csv" for run_dir in run_dirs if (run_dir / name / "results.csv").exists()), None
         )
         if results_path is None:
-            raise FileNotFoundError(f"Cannot backfill F1 for {name!r}: results.csv is missing under {run_dirs}")
+            if "f1" not in row:
+                raise FileNotFoundError(f"Cannot backfill F1 for {name!r}: results.csv is missing under {run_dirs}")
+            continue
         with results_path.open(newline="") as f:
             best = max(csv.DictReader(f), key=lambda record: float(record["metrics/mAP50-95(B)"]))
-        p, r = float(best["metrics/precision(B)"]), float(best["metrics/recall(B)"])
-        row["f1"] = round(2 * p * r / (p + r), 4) if p + r else 0.0
-    if (macro := rows.get("MACRO")) is not None and "f1" not in macro:
-        macro["f1"] = round(sum(row["f1"] for name, row in rows.items() if name != "MACRO") / (len(rows) - 1), 4)
+        if "f1" not in row:
+            p, r = float(best["metrics/precision(B)"]), float(best["metrics/recall(B)"])
+            row["f1"] = round(2 * p * r / (p + r), 4) if p + r else 0.0
+        for aggregate_key, result_key in _MULTI_SIZE_METRICS.items():
+            if aggregate_key not in row and result_key in best and float(best[result_key]) >= 0:
+                row[aggregate_key] = round(float(best[result_key]), 4)
+
+
+def _multi_macro(rows: dict[str, dict[str, float]]) -> dict[str, float]:
+    """Calculate each macro metric over datasets with a valid value."""
+    return {
+        key: sum(values) / len(values)
+        for key in _MULTI_METRICS
+        if (values := [result[key] for result in rows.values() if key in result])
+    }
 
 
 def _write_multi_results(csv_path: Path, rows: dict[str, dict[str, float]]) -> None:
     """Write one canonical multi_det CSV with no duplicate rows."""
     tmp = csv_path.with_suffix(".tmp")
     with tmp.open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=("dataset", "map50", "map50_95", "fitness", "f1"))
+        writer = csv.DictWriter(f, fieldnames=("dataset", *_MULTI_METRICS))
         writer.writeheader()
         writer.writerows(
             {"dataset": name, **{key: f"{value:.4f}" for key, value in row.items()}}
@@ -559,21 +583,14 @@ def _merge_multi_results(
         if row is not None:
             name = str(row["dataset"])
             values = {key: round(float(row[key]), 4) for key in ("map50", "map50_95", "fitness", "f1")}
-            if name in local and local[name] != values:
+            if name in local and {key: local[name][key] for key in values} != values:
                 raise ValueError(f"Conflicting multi_results.csv row for {name!r}")
-            local[name] = values
-        _backfill_multi_f1((csv_path.parent, nfs_csv.parent), local)
+            local.setdefault(name, values)
+        _backfill_multi_metrics((csv_path.parent, nfs_csv.parent), local)
         unexpected = sorted(local.keys() - expected)
         if unexpected:
             raise ValueError(f"Existing multi_results.csv contains datasets outside this suite: {unexpected}")
-        macro = (
-            {
-                key: sum(result[key] for result in local.values()) / len(local)
-                for key in ("map50", "map50_95", "fitness", "f1")
-            }
-            if len(local) == len(expected)
-            else None
-        )
+        macro = _multi_macro(local) if len(local) == len(expected) else None
         _write_multi_results(csv_path, {**local, **({"MACRO": macro} if macro else {})})
         mirror_tmp = nfs_csv.with_suffix(".tmp")
         shutil.copy2(csv_path, mirror_tmp)
@@ -594,13 +611,14 @@ def load_multi_results(parent_name: str, expected: list[str] | None = None) -> t
     if csv_path is None:
         raise FileNotFoundError(f"multi_results.csv not found for {parent_name!r} under NFS or local root")
     per_dataset = _read_multi_results(csv_path)
-    _backfill_multi_f1((csv_path.parent,), per_dataset)
+    _backfill_multi_metrics((csv_path.parent,), per_dataset)
     macro = per_dataset.pop("MACRO", None)
     if macro is None:
         raise ValueError(f"{csv_path}: no MACRO row, the run is incomplete")
     missing = sorted(set(expected or ()) - per_dataset)
     if missing:
         raise ValueError(f"{csv_path}: missing rows for {missing}")
+    macro.update(_multi_macro(per_dataset))
     return per_dataset, macro
 
 
@@ -879,7 +897,9 @@ def _run_multi_det(
     print(
         f"\n[multi_det_finetune] MACRO over {len(completed)} datasets: "
         f"mAP50={macro['map50']:.4f} mAP50-95={macro['map50_95']:.4f} "
-        f"fitness={macro['fitness']:.4f} F1={macro['f1']:.4f}"
+        f"fitness={macro['fitness']:.4f} F1={macro['f1']:.4f} "
+        f"mAP-S/M/L={macro.get('map_small', float('nan')):.4f}/"
+        f"{macro.get('map_medium', float('nan')):.4f}/{macro.get('map_large', float('nan')):.4f}"
     )
     if owns_final and not teacher_spec:  # frozen-teacher runs have no phase1 distillation parent to push downstream
         # Auto-resolve the phase-1 run from the backbone dir when no id was passed, so the sweep view self-links.

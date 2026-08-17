@@ -32,7 +32,9 @@ graph LR
         G[Export]:::proc
         H[Deploy Endpoint]:::proc --> I[Monitor]:::out
     end
-    Data --> Train --> Deploy
+    Data --> Train
+    E --> G
+    E --> H
 
     classDef start fill:#4CAF50,color:#fff
     classDef proc fill:#2196F3,color:#fff

@@ -19,7 +19,7 @@
 # For comprehensive documentation and usage instructions, visit: https://docs.ultralytics.com
 
 [build-system]
-requires = ["setuptools>=70.0.0,<=82.0.1", "wheel"]
+requires = ["setuptools>=70.0.0,<=84.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 # Project settings -----------------------------------------------------------------------------------------------------
@@ -76,6 +76,7 @@ dependencies = [
     "polars>=0.20.0",
     "nvidia-ml-py>=12.0.0", # NVIDIA GPU monitoring https://pypi.org/project/nvidia-ml-py
     "ultralytics-thop>=2.1.6", # FLOPs computation https://github.com/ultralytics/thop
+    "ultralytics-platform>=0.1.3; python_version >= '3.11'",
 ]
 
 # Optional dependencies ------------------------------------------------------------------------------------------------
@@ -97,13 +98,14 @@ export-base = [
     # ONNX export validation and inference. Jetson jobs provide custom aarch64 onnxruntime-gpu wheels.
     "onnxruntime<1.20.0; python_version < '3.11' and (platform_machine != 'aarch64' or platform_system != 'Linux')",
     "onnxruntime>=1.20.0; python_version >= '3.11'",
-    "nncf>=2.14.0,<3.0.0; python_version >= '3.9'",  # OpenVINO INT8 export
+    "nncf>=2.14.0,<4.0.0; python_version >= '3.9'",  # OpenVINO INT8 export
     "openvino>=2024.0.0",  # OpenVINO export
     "packaging>=26.0; platform_machine == 'aarch64' and platform_system == 'Linux' and python_version >= '3.9'", # IMX export bug
 ]
 export-legacy-torch = [
     "numpy<2",
     "setuptools<81.0.0; python_version >= '3.9'",  # legacy torch's torch_version imports pkg_resources, removed in setuptools>=81
+    "nncf<3.0.0; python_version >= '3.9'",  # nncf>=3 reads torch.uint16, added in torch 2.3
 ]
 export-tensorflow = [
     "numpy<2.0.0; python_version < '3.13'", # TF 2.20 compatibility
@@ -148,6 +150,9 @@ solutions = [
     "streamlit>=1.51.0; python_version >= '3.10'",    # for live inference on web browser, i.e `yolo streamlit-predict`
     "streamlit>=1.29.0,<1.51.0; python_version < '3.10' and (platform_machine != 'aarch64' or platform_system != 'Linux')",
     "flask>=3.0.1",  # for similarity search solution
+]
+llm = [
+    "openai>=2.0.0",
 ]
 logging = [
     "wandb", # https://docs.ultralytics.com/integrations/weights-biases/

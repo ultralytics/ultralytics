@@ -135,6 +135,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
     """Stereo 3D Detection trainer extending DetectionTrainer with stereo-specific dataset, loss, and validation."""
 
     def __init__(self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks=None):
+        """Force task=s3d and apply the stereo defaults before delegating to DetectionTrainer."""
         if overrides is None:
             overrides = {}
         overrides["task"] = "s3d"

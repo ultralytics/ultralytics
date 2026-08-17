@@ -1658,7 +1658,8 @@ def _s3d_yaml_with(tmp_path, **training):
 
     from ultralytics.utils import ROOT
 
-    cfg = yaml.safe_load(open(ROOT / "cfg/models/26/yolo26-s3d.yaml"))
+    with open(ROOT / "cfg/models/26/yolo26-s3d.yaml") as f:
+        cfg = yaml.safe_load(f)
     cfg["training"] = {**cfg.get("training", {}), **training}
     cfg["scale"] = "n"
     p = tmp_path / "arm-s3d.yaml"
@@ -1713,7 +1714,8 @@ def test_bin_count_default_is_64_and_overridable(tmp_path):
     assert DEPTH_BINS == 64, "the shipped default is the measured optimum of the bin curve"
     assert AUX_SPECS["depth"] == 64, "AUX_SPECS must track DEPTH_BINS or the branch is sized wrong"
 
-    cfg = yaml.safe_load(open(ROOT / "cfg/models/26/yolo26-s3d.yaml"))
+    with open(ROOT / "cfg/models/26/yolo26-s3d.yaml") as f:
+        cfg = yaml.safe_load(f)
     cfg["training"] = {k: v for k, v in cfg.get("training", {}).items() if k != "depth_bins"}
     cfg["scale"] = "n"
     silent = tmp_path / "silent-s3d.yaml"

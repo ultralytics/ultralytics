@@ -441,6 +441,7 @@ class StereoLabels:
         return self
 
     def __repr__(self) -> str:
+        """Return the instances and calibration this container holds."""
         return f"StereoLabels(instances={self.instances}, calibration={self.calibration})"
 
 
@@ -738,6 +739,7 @@ class StereoLetterBox:
         return stereo.to_labels(labels)
 
     def __repr__(self) -> str:
+        """Return the target shape, scaleup flag and stride of this letterbox."""
         return f"StereoLetterBox(new_shape={self.new_shape}, scaleup={self.scaleup}, stride={self.stride})"
 
 

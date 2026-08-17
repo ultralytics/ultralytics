@@ -91,10 +91,12 @@ def _convex_intersection_area(subject: np.ndarray, clip: np.ndarray) -> float:
         edge = (cp_prev, cp)
         ex, ey = edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]
 
-        def inside(p):
+        # `edge`/`ex`/`ey` are bound as defaults rather than captured: both closures are only ever called
+        # inside this iteration, so the behaviour is unchanged, but the binding is now explicit.
+        def inside(p, edge=edge, ex=ex, ey=ey):
             return ex * (p[1] - edge[0][1]) - ey * (p[0] - edge[0][0]) >= 0
 
-        def intersect(a, b):
+        def intersect(a, b, edge=edge):
             # Intersection of segment a-b with the infinite line through `edge`.
             x1, y1, x2, y2 = a[0], a[1], b[0], b[1]
             x3, y3, x4, y4 = edge[0][0], edge[0][1], edge[1][0], edge[1][1]
@@ -283,6 +285,7 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
     """
 
     def __init__(self, names: dict[int, str] | None = None) -> None:
+        """Set up empty AP3D/AP_BEV/AOS tables for every IoU threshold and difficulty."""
         if names is None:
             names = {}
         self.names = names

@@ -2109,6 +2109,7 @@ class StereoCostVolume(nn.Module):
     """
 
     def __init__(self, c1: int, c2: int = 64, num_levels: int = 48, groups: int = 4, refine_layers: int = 2):
+        """Build the group-wise correlation volume and its refinement stack."""
         super().__init__()
         self.num_levels = num_levels
         self.groups = math.gcd(groups, c1)

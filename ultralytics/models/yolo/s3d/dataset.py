@@ -610,15 +610,6 @@ class Stereo3DDetDataset(BaseDataset):
         # Use BaseDataset's __getitem__ which applies transforms
         result = super().__getitem__(idx)
 
-        # Ensure we have the right keys for collate_fn
-        # Transforms should have handled img, labels, calibration
-        # But we need to make sure labels and calib are in the right format
-        if "labels" not in result:
-            # Extract from the label dict structure
-            if "instances" in result:
-                # Convert instances back to labels format if needed
-                pass
-
         # Ensure im_file is set
         if "im_file" not in result:
             result["im_file"] = self.im_files[idx]
@@ -840,19 +831,19 @@ class Stereo3DDetDataset(BaseDataset):
         # Pad aux targets per image to [B, max_n, C]
         max_n = max(per_image_counts) if per_image_counts else 0
         aux_targets: dict[str, torch.Tensor] = {}
-        for k in per_image_aux:
+        for k, per_image in per_image_aux.items():
             c = AUX_TARGET_CHANNELS[k]
-            # per_image_aux[k] is now one entry per batch image, so this must be exact. A length
+            # per_image is now one entry per batch image, so this must be exact. A length
             # mismatch means the alignment invariant broke and would silently mis-supervise, so assert
             # rather than skipping past it.
-            assert len(per_image_aux[k]) == len(batch), (
-                f"aux target list for {k!r} has {len(per_image_aux[k])} entries for {len(batch)} images"
+            assert len(per_image) == len(batch), (
+                f"aux target list for {k!r} has {len(per_image)} entries for {len(batch)} images"
             )
             padded = torch.zeros((len(batch), max_n, c), dtype=torch.float32)
             for bi in range(len(batch)):
                 if per_image_counts[bi] == 0:
                     continue
-                t = per_image_aux[k][bi]  # [n, c]
+                t = per_image[bi]  # [n, c]
                 padded[bi, : t.shape[0]] = t
             aux_targets[k] = padded
 

@@ -48,6 +48,7 @@ class VisualizationConfig:
     )
 
     def __post_init__(self) -> None:
+        """Reject invalid camera views and non-positive line widths at construction time."""
         if self.camera_view not in {"left", "right", "both"}:
             raise ValueError(f"camera_view must be 'left', 'right', or 'both', got '{self.camera_view}'")
         if self.line_width <= 0:

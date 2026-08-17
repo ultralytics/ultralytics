@@ -130,6 +130,7 @@ class Stereo3DDetLoss(v8DetectionLoss):
         use_bbox_loss: bool = True,
         photometric_loss: bool = False,
     ):
+        """Wire up the 2D detection losses plus the depth DFL, sized from the head's own bin grid."""
         super().__init__(model, tal_topk=tal_topk)
         self.loss_names = LOSS_NAMES
         self.photometric_loss = photometric_loss

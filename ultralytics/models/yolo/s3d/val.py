@@ -866,7 +866,7 @@ class Stereo3DDetValidator(BaseValidator):
                 nt_class = int(nt_per_class[class_id]) if class_id < len(nt_per_class) else 0
                 nt_images = int(nt_per_image[class_id]) if class_id < len(nt_per_image) else 0
 
-                def cls_ap(iou_t, diff):
+                def cls_ap(iou_t, diff, class_id=class_id):  # bind the loop variable, not capture it
                     if not ap3d or iou_t not in ap3d:
                         return 0.0
                     return ap3d[iou_t].get(diff, {}).get(class_id, 0.0)

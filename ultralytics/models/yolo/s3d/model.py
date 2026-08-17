@@ -16,6 +16,7 @@ class Stereo3DDetModel(DetectionModel):
     """
 
     def __init__(self, cfg, ch=None, nc=None, verbose=True):
+        """Build the model, doubling input channels first when the YAML declares a siamese backbone."""
         # Load YAML to check for siamese flag before building the model
         from ultralytics.nn.tasks import yaml_model_load
 

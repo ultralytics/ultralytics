@@ -28,16 +28,21 @@ except ImportError:
     from tqdm import tqdm as TQDM
 
     class SimpleLogger:
+        """Stand-in for ultralytics LOGGER so this script runs standalone, outside an install."""
+
         @staticmethod
         def info(msg):
+            """Print an informational message."""
             print(f"[INFO] {msg}")
 
         @staticmethod
         def warning(msg):
+            """Print a warning message."""
             print(f"[WARNING] {msg}")
 
         @staticmethod
         def error(msg):
+            """Print an error message."""
             print(f"[ERROR] {msg}")
 
     # Match expected interface name
@@ -74,6 +79,7 @@ class KITTIToYOLO3D:
             kitti_root: Path to KITTI dataset root
             output_root: Path to output directory
             filter_classes: List of class names to include (None = include all)
+            split_strategy: How to partition frames into splits, e.g. 'single' for one train split
             filter_occluded: Whether to filter out heavily occluded objects (default: False)
             max_occlusion_level: Maximum occlusion level to include (default: 1, excludes heavy/unknown).
         """

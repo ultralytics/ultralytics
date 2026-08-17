@@ -1981,11 +1981,11 @@ def test_unvalidated_epoch_does_not_retrigger_collapse_recovery(monkeypatch):
     # A NaN fitness from an epoch that did validate is detected.
     t = make()
     t.fitness = float("nan")
-    with pytest.raises(RuntimeError, match="no valid last.pt"):
+    with pytest.raises(RuntimeError, match=r"no valid last\.pt"):
         t._handle_nan_recovery(5)
 
     # A real NaN loss is detected even on an unvalidated epoch, since self.loss updates every epoch.
     t = make()
     t.loss, t.fitness = torch.tensor(float("nan")), None
-    with pytest.raises(RuntimeError, match="no valid last.pt"):
+    with pytest.raises(RuntimeError, match=r"no valid last\.pt"):
         t._handle_nan_recovery(5)

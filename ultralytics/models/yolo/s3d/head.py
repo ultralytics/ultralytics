@@ -32,6 +32,7 @@ class DepthDFL(nn.Module):
     """DFL-style decode for depth bins: softmax → weighted sum → scale to log-depth range."""
 
     def __init__(self, n_bins: int = DEPTH_BINS, d_min: float = DEPTH_MIN, d_max: float = DEPTH_MAX):
+        """Set up the depth bin grid spanning [d_min, d_max] in log space."""
         super().__init__()
         self.n_bins = n_bins
         log_min, log_max = math.log(d_min), math.log(d_max)
@@ -91,6 +92,7 @@ class Stereo3DDetHead(Detect):
     """
 
     def __init__(self, nc: int = 3, reg_max: int = 1, end2end: bool = False, ch: tuple = ()):
+        """Build the 2D detection head plus the depth, dimension, orientation and disparity branches."""
         if isinstance(reg_max, (list, tuple)):  # YAML [nc] — ch landed in reg_max slot
             ch, reg_max = reg_max, 1
 

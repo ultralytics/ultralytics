@@ -540,6 +540,7 @@ class Results(SimpleClass, DataExportMixin):
             labels (bool): Whether to plot labels of bounding boxes.
             boxes (bool): Whether to plot bounding boxes.
             masks (bool): Whether to plot masks.
+            boxes3d (bool): Whether to plot 3D bounding boxes, when the result carries them.
             probs (bool): Whether to plot classification probabilities.
             show (bool): Whether to display the annotated image.
             save (bool): Whether to save the annotated image.

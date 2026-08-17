@@ -747,6 +747,11 @@ class Results(SimpleClass, DataExportMixin):
             # Classify
             [texts.append(f"{probs.data[j]:.2f} {self.names[j]}") for j in probs.top5]
         elif boxes:
+            boxes = boxes.cpu()  # one host transfer avoids per-box GPU syncs in the loop below
+            if masks:
+                masks = masks.cpu()  # ditto for the per-box masks2segments() sync below
+            if kpts is not None:
+                kpts = kpts.cpu()  # ditto for the per-box keypoints sync below
             # Detect/segment/pose
             for j, d in enumerate(boxes):
                 c, conf, id = int(d.cls.item()), float(d.conf.item()), int(d.id.item()) if d.is_track else None
@@ -804,7 +809,7 @@ class Results(SimpleClass, DataExportMixin):
         if self.depth is not None:
             LOGGER.warning("Depth task does not support `save_crop`.")
             return
-        for d in self.boxes:
+        for d in self.boxes.cpu():  # one host transfer avoids per-box GPU syncs in the loop below
             save_one_box(
                 d.xyxy,
                 self.orig_img.copy(),
@@ -879,6 +884,11 @@ class Results(SimpleClass, DataExportMixin):
 
         is_obb = self.obb is not None
         data = self.obb if is_obb else self.boxes
+        if data:
+            data = data.cpu()  # one host transfer avoids per-row GPU syncs in the loop below
+        kpts = self.keypoints
+        if kpts is not None:
+            kpts = kpts.cpu()  # ditto for the per-row keypoints sync below
         h, w = self.orig_shape if normalize else (1, 1)
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
             class_id, conf = int(row.cls.item()), round(row.conf.item(), decimals)
@@ -896,7 +906,7 @@ class Results(SimpleClass, DataExportMixin):
                     "y": (self.masks.xy[i][:, 1] / h).astype(float).round(decimals).tolist(),
                 }
             if self.keypoints is not None:
-                kpt = self.keypoints[i]
+                kpt = kpts[i]
                 k = kpt.data[0]
                 k = k.cpu().numpy() if isinstance(k, torch.Tensor) else k
                 result["keypoints"] = {

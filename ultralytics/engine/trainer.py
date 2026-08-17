@@ -308,9 +308,6 @@ class BaseTrainer:
         lrs = np.logspace(math.log10(lr_min), math.log10(lr_max), num_steps)
         losses, loader = [], iter(self.train_loader)
         probe = next(loader)  # read every rate on one held out batch, so no sampling noise reaches the curve
-        momenta = [(m, m.momentum) for m in self.model.modules() if isinstance(m, nn.modules.batchnorm._BatchNorm)]
-        for m, _ in momenta:
-            m.momentum = 0.0  # normalize the probe on its own statistics, and never write the sweep's back
         iterator = TQDM(lrs, desc=f"{prefix} sweeping lr {lr_min:g} -> {lr_max:g}") if RANK in {-1, 0} else lrs
         for lr in iterator:
             for group, ratio in zip(param_groups, lr_ratios):
@@ -337,8 +334,6 @@ class BaseTrainer:
             if not math.isfinite(losses[-1]) or losses[-1] > 4 * min(losses):
                 break
 
-        for m, momentum in momenta:
-            m.momentum = momentum
         self.model.load_state_dict(model_state)
         self.optimizer.load_state_dict(optimizer_state)
         self.scaler.load_state_dict(scaler_state)

@@ -151,6 +151,36 @@ class RepUltraViTBlock(UltraViTBlock):
             del self.ls2
 
 
+class RepCPE(nn.Module):
+    """Apply conditional positional encoding and fold its residual into one deploy convolution.
+
+    Attributes:
+        pe (nn.Conv2d): Training-time depthwise positional convolution.
+        reparam_conv (nn.Conv2d): Deploy convolution containing the positional and identity kernels.
+    """
+
+    def __init__(self, c: int, kernel_size: int = 7):
+        """Initialize the depthwise positional convolution.
+
+        Args:
+            c (int): Number of input and output channels.
+            kernel_size (int): Spatial convolution kernel size.
+        """
+        super().__init__()
+        self.pe = nn.Conv2d(c, c, kernel_size, padding=kernel_size // 2, groups=c, bias=True)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply the training or reparameterized positional convolution."""
+        return self.reparam_conv(x) if hasattr(self, "reparam_conv") else x + self.pe(x)
+
+    @torch.no_grad()
+    def fuse(self):
+        """Fold the identity kernel into the positional convolution."""
+        self.pe.weight[:, 0, self.pe.kernel_size[0] // 2, self.pe.kernel_size[1] // 2].add_(1)
+        self.reparam_conv = self.pe
+        del self.pe
+
+
 class MHSABlock(nn.Module):
     """Pre-norm ViT block with SDPA and a token-Linear, SwiGLU, or NCHW ConvMlp FFN. Dim-preserving 4D in/out.
 
@@ -179,7 +209,7 @@ class MHSABlock(nn.Module):
         ln1 (nn.LayerNorm): Pre-attention norm.
         qkv (nn.Linear): Fused QKV projection, bias per `qkv_bias`.
         proj (nn.Linear): Post-attention projection, bias per `proj_bias`.
-        pe (nn.Conv2d): Optional zero-initialized depthwise 7x7 conditional positional encoding.
+        pe (RepCPE): Optional reparameterizable conditional positional encoding.
         ln2 (nn.LayerNorm): Pre-FFN norm (token-Linear/SwiGLU FFN only).
         swiglu (bool): FFN form switch (token-Linear vs SwiGLU), set only on the token-FFN path (`conv_ffn=False`).
         fc1 (nn.Linear): FFN first layer (token FFN), or the fused value+gate projection when `swiglu=True` (one Linear
@@ -222,9 +252,7 @@ class MHSABlock(nn.Module):
         self.num_heads = num_heads
         self.head_dim = c // num_heads
         if cpe:
-            self.pe = nn.Conv2d(c, c, 7, padding=3, groups=c, bias=True)
-            nn.init.zeros_(self.pe.weight)
-            nn.init.zeros_(self.pe.bias)
+            self.pe = RepCPE(c)
         if xca:  # cross-covariance attention: map is head_dim x head_dim (token-count invariant), learnable per-head temperature (XCiT)
             self.temperature = nn.Parameter(torch.ones(num_heads, 1, 1))
         self.n_storage_tokens = n_storage_tokens
@@ -267,6 +295,8 @@ class MHSABlock(nn.Module):
     @torch.no_grad()
     def fuse(self):
         """Fold LayerScale into the attention and FFN output projections for deploy."""
+        if hasattr(self, "pe"):
+            self.pe.fuse()
         if hasattr(self, "ffn_bn"):
             self.ffn_dw = fuse_conv_and_bn(self.ffn_dw, self.ffn_bn)
             del self.ffn_bn
@@ -286,9 +316,8 @@ class MHSABlock(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass: 4D → tokens (+ storage) → SA → drop storage → FFN (token Linear/SwiGLU or ConvMlp) → 4D."""
         b, c, h, w = x.shape
-        pe = getattr(self, "pe", None)
-        if pe is not None:
-            x = x + pe(x)
+        if hasattr(self, "pe"):
+            x = self.pe(x)
         t = x.flatten(2).transpose(1, 2)  # (B, N, C)
         xca = getattr(self, "temperature", None) is not None
         n_storage_tokens = getattr(self, "n_storage_tokens", 0)  # getattr: pre-registers checkpoints still load

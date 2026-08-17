@@ -986,10 +986,16 @@ def main(argv: list[str]) -> None:
         resume = paths.patch_resume(resume, grad_clip=1.0)
     resume_args = _load_train_args(resume) if resume else {}
     gpu = argv[0] if argv else "0"
-    phase1_weights = _resolve_weights(
-        argv[1]
-        if len(argv) > 1
-        else resume_args.get("pretrained", "runs/classify/yolo-next-encoder/phase1-d7-dinov3-convnextb/weights/best.pt")
+    phase1_weights = (
+        ""
+        if scratch
+        else _resolve_weights(
+            argv[1]
+            if len(argv) > 1
+            else resume_args.get(
+                "pretrained", "runs/classify/yolo-next-encoder/phase1-d7-dinov3-convnextb/weights/best.pt"
+            )
+        )
     )
     mode = argv[2] if len(argv) > 2 else _resume_mode(resume_args)
     name = argv[3] if len(argv) > 3 else resume_args.get("name", f"phase2-{mode}-d7")
@@ -1061,7 +1067,8 @@ def main(argv: list[str]) -> None:
         head_suffix = {"coco_pose_finetune": "-pose", "dota_obb_finetune": "-obb"}.get(mode, "")
         # A checkpoint names only its own architecture, so swapping its trunk into another neck/head needs the yaml.
         model_yaml = model_override or _infer_model_yaml(phase1_weights, head_suffix)
-        _assert_backbone_compatible(phase1_weights, model_yaml)
+        if phase1_weights:
+            _assert_backbone_compatible(phase1_weights, model_yaml)
     else:
         model_yaml = "yolo26s-cls.yaml"
     wandb_group = {
@@ -1085,7 +1092,7 @@ def main(argv: list[str]) -> None:
         ),
     )
     train_args = dict(
-        pretrained=phase1_weights,
+        pretrained=phase1_weights or False,
         device=gpu,
         **paths.run_paths(name),
         cos_lr=True,
@@ -1292,7 +1299,6 @@ def main(argv: list[str]) -> None:
         parent_id, fork_step = fork_from.split(":")
         wandb_config.fork_and_attach(parent_id, int(fork_step), name)
     if scratch:
-        train_args["pretrained"] = False
         print("[scratch] pretrained=False, backbone will be randomly initialized")
     if lr_find_only:
         train_args["lr_find_only"] = True

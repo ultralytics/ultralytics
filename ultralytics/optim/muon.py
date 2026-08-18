@@ -83,7 +83,7 @@ def muon_update(
         - With Nesterov: update = beta * momentum + (1-beta) * grad.
         - Without Nesterov: update = momentum.
         - Tensors with more than 2 dimensions are reshaped to 2D with the first dimension preserved.
-        - Final updates are scaled by sqrt(max(1, dim[-2] / dim[-1])) to account for parameter dimensions.
+        - Final updates are scaled by sqrt(max(1, rows / cols)) of the flattened 2D matrix.
     """
     single = isinstance(grad, torch.Tensor)
     grads, momentums = ([grad], [momentum]) if single else (grad, momentum)
@@ -97,10 +97,10 @@ def muon_update(
     buckets = {}  # group matrices transposed to rows <= cols by (rows, scale) for batched orthogonalization
     for i, u in enumerate(updates):
         m = u.view(len(u), -1) if u.ndim > 2 else u
+        scale = max(1, m.size(0) / m.size(1)) ** 0.5  # from the flattened matrix, not the original kernel dims
         transpose = m.size(0) > m.size(1)
         if transpose:
             m = m.transpose(0, 1)
-        scale = max(1, grads[i].size(-2) / grads[i].size(-1)) ** 0.5
         buckets.setdefault((m.size(0), scale, m.device, m.dtype), []).append((i, m, transpose))
     for (_, scale, _, _), items in buckets.items():
         n = max(m.size(1) for _, m, _ in items)

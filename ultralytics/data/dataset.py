@@ -361,7 +361,7 @@ class YOLODataset(BaseDataset):
         return [k for k, v in category_freq.items() if v >= threshold]
 
     def close_mosaic(self, hyp: dict) -> None:
-        """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their probabilities to 0.0.
+        """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their values to 0.0.
 
         Args:
             hyp (dict): Hyperparameters for transforms.
@@ -860,7 +860,7 @@ class YOLOConcatDataset(ConcatDataset):
         return YOLODataset.collate_fn(batch)
 
     def close_mosaic(self, hyp: dict) -> None:
-        """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their probabilities to 0.0.
+        """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their values to 0.0.
 
         Args:
             hyp (dict): Hyperparameters for transforms.

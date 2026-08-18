@@ -323,14 +323,15 @@ Then launch the training with the Python API:
 
 - **Range**: `0.0` - `1.0`
 - **Default**: `{{ copy_paste }}`
-- **Usage**: Only works for segmentation tasks, this augmentation copies objects within or between images, controlled by the [`copy_paste_mode`](#copy-paste-mode-copy_paste_mode). The `copy_paste` hyperparameter defines the probability of attempting the transformation on an image, with `copy_paste=1.0` attempting it on every image and `copy_paste=0.0` disabling the transformation. For example, with `copy_paste=0.5`, each image has a 50% chance of being selected.
+- **Usage**: Only works for segmentation tasks, this augmentation copies objects within or between images, controlled by the [`copy_paste_mode`](#copy-paste-mode-copy_paste_mode). The `copy_paste` hyperparameter sets how many objects are copied rather than how often: an image with `n` eligible objects receives `round(copy_paste * n)` copies, so `copy_paste=1.0` copies every eligible object and `copy_paste=0.0` disables the transformation. For example, an image with six eligible objects gains three copies at `copy_paste=0.5`.
 - **Purpose**: Particularly useful for instance segmentation tasks and rare object classes. For example, in industrial defect detection where certain types of defects appear infrequently, copy-paste augmentation can artificially increase the occurrence of these rare defects by duplicating them into more training samples, helping the model better learn these underrepresented cases without requiring additional defective samples.
 - **Ultralytics' implementation**: [CopyPaste](../reference/data/augment.md#ultralytics.data.augment.CopyPaste)
 - **Note**:
-    - Images that carry no polygon instances are returned unchanged, before the probability is drawn.
-    - Once an image is selected, every candidate that passes the IoA check below is pasted, so `copy_paste` sets how often objects are copied rather than how many. An image can still come out unchanged when every candidate fails that check.
+    - Images that carry no polygon instances are returned unchanged, before any object is selected.
+    - Eligible objects are ordered by ascending overlap, so lowering `copy_paste` drops the most overlapping copies first. The count is rounded, so a small value on an image with few eligible objects selects nothing: `copy_paste=0.25` copies nothing until an image has at least three of them. An image also comes out unchanged when every candidate fails the IoA check below.
     - Once an object is selected for copying, its IoA is computed against all objects already present in the target image, regardless of `copy_paste_mode`. The object is pasted only if all IoA values are below `0.3` (30%); it is not pasted if any IoA value is `0.3` or higher.
     - The IoA threshold cannot be changed with the current implementation and is set to `0.3` by default.
+    - With `copy_paste_mode='mixup'` the value is used twice: first as the per-image probability of running the transform, then as the fraction of eligible objects pasted.
     - [Semantic segmentation](../tasks/semantic.md) datasets are augmented too, but only when they use [YOLO polygon labels](../datasets/semantic/index.md#yolo-polygon-label-format). PNG-mask datasets carry no polygons, so copy-paste leaves them unchanged.
 
 |                                                               **`copy_paste` off**                                                               |                                               **`copy_paste` on with `copy_paste_mode=flip`**                                               |                                                       **Visualize the `copy_paste` process**                                                        |

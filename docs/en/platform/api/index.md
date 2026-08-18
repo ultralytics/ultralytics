@@ -395,8 +395,10 @@ POST /api/datasets
 
 !!! note "Supported Tasks"
 
-    Valid `task` values when creating or updating a dataset: `detect`, `segment`, `semantic`, `classify`, `pose`, and
-    `obb`. Depth datasets are not yet accepted by these routes, although `depth` is a valid model and project task.
+    Valid `task` values when creating or updating a dataset: `detect`, `segment`, `semantic`, `depth`, `classify`,
+    `pose`, and `obb`. Depth datasets have no classes, so sending `classNames` with `task: "depth"` returns `400`, and
+    they cannot use connected storage — ingest them from an upload or a `sourceUrl`. Switching an existing dataset to or
+    from `depth` is only accepted while it holds no images (`409`).
 
 **Response (`201`):**
 
@@ -797,6 +799,10 @@ GET /api/datasets/{owner}/{dataset}/images
 }
 ```
 
+On a [depth dataset](../data/datasets.md#depth-maps) each paired image also carries a `depth` object — `hash`, `bytes`,
+`shape` as `[height, width]`, and the optional `min`, `max`, and `validFraction` statistics — plus a signed
+`previewUrl` for the grayscale depth preview when thumbnails are requested. Unpaired images omit it entirely.
+
 ### Get Selected Images
 
 ```http
@@ -836,7 +842,8 @@ one source:
 | `imageMetadata`  | object | Custom metadata keyed by each image's archive-relative path or NDJSON `file` value                                                                          |
 
 Upload sessions are bound to a dataset by the `assetId` passed to `POST /api/upload/signed-url`, and ingest rejects a
-session that belongs to a different dataset.
+session that belongs to a different dataset. A `reference` source on a depth dataset returns `409` — depth datasets
+cannot read from connected storage yet.
 
 **Body (uploaded archive):**
 
@@ -985,8 +992,8 @@ GET /api/images/{imageId}
 
 **Python SDK:** `client.images.retrieve(image_id)`
 
-Returns `metadata` (custom, user-defined), `properties` (filename, hash, dimensions, split, counts, timestamps),
-`labels`, and the dataset's `classNames`.
+Returns `metadata` (custom, user-defined), `properties` (filename, hash, dimensions, split, counts, timestamps, and
+the `depth` target on a paired depth image), `labels`, and the dataset's `classNames`.
 
 ### Update Image
 
@@ -1053,7 +1060,8 @@ Runs YOLO inference on the image and returns predicted annotations. It does not 
 | `iou`        | float  | No       | IoU threshold for non-maximum suppression, 0.0 – 0.95 (default: 0.7) |
 
 **Response:** `success`, `predictions` (annotation objects), `modelUsed`, and `inferenceTime`. A model whose classes do
-not match the dataset returns `422`.
+not match the dataset returns `422`. Depth datasets return `400`: a depth map cannot be stored as annotations. Use
+[Run Inference](#run-inference) to predict depth from a model instead.
 
 ### Bulk Move Images
 
@@ -1574,7 +1582,8 @@ POST /api/training/start
 ```
 
 Training returns `402` when your credit balance is too low and `503` when no capacity is available for the requested
-GPU.
+GPU. A [depth](../data/datasets.md#depth-maps) run additionally returns `400` unless the dataset has at least one
+depth-paired image in `train` and two in `val`; depth models and depth datasets can only be paired with each other.
 
 !!! note "GPU Types"
 

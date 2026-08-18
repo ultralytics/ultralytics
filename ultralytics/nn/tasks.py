@@ -818,6 +818,9 @@ class RTDETRDetectionModel(DetectionModel):
 
         updated_csd = intersect_dicts(csd, state_dict)
         self.load_state_dict(updated_csd, strict=False)
+        # Track parameters with no pretrained counterpart (e.g. newly added seg/mask heads) so the trainer can
+        # optionally train them with a different learning rate (see 'fresh_lr_ratio' in RTDETRTrainer).
+        self.fresh_param_names = {n for n, _ in self.named_parameters()} - set(updated_csd)
         if verbose:
             LOGGER.info(f"Transferred {len(updated_csd)}/{len(self.model.state_dict())} items from pretrained weights")
 

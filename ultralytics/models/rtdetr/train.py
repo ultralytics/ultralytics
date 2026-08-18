@@ -182,7 +182,13 @@ class RTDETRTrainer(DetectionTrainer):
         backbone_lr_ratio = self.args.backbone_lr_ratio
         if backbone_lr_ratio <= 0:
             raise ValueError(f"Invalid backbone_lr_ratio={backbone_lr_ratio}. Expected > 0.")
+        fresh_lr_ratio = float(getattr(self.args, "fresh_lr_ratio", 1.0))
+        if fresh_lr_ratio <= 0:
+            raise ValueError(f"Invalid fresh_lr_ratio={fresh_lr_ratio}. Expected > 0.")
+        fresh_names = set(getattr(model, "fresh_param_names", None) or ())
+        use_fresh_split = fresh_lr_ratio != 1.0 and bool(fresh_names)
         g = [{}, {}, {}, {}, {}, {}, {}, {}]  # optimizer parameter groups, 8 groups for MuSGD support
+        gf = [{}, {}, {}, {}, {}, {}, {}, {}]  # parallel groups for params missing from pretrained weights
         bn = tuple(v for k, v in nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
         if name == "auto":
             LOGGER.info(
@@ -240,30 +246,41 @@ class RTDETRTrainer(DetectionTrainer):
                     isinstance(module, bn) or module.__class__.__name__ == "DEIMRMSNorm" or "logit_scale" in fullname
                 )
 
+                # Params without pretrained counterparts (e.g. new seg/mask heads) go to the fresh groups
+                tg = gf if use_fresh_split and ".".join(parts) in fresh_names else g
+
                 if is_backbone:
                     # Backbone parameters (groups 4, 5, 6, 7)
                     if param.ndim >= 2 and use_muon:
-                        g[7][fullname] = param  # backbone muon params
+                        tg[7][fullname] = param  # backbone muon params
                     elif "bias" in fullname:
-                        g[6][fullname] = param  # backbone bias
+                        tg[6][fullname] = param  # backbone bias
                     elif is_norm_like_param:
-                        g[5][fullname] = param  # backbone bn weight
+                        tg[5][fullname] = param  # backbone bn weight
                     else:
-                        g[4][fullname] = param  # backbone weight with decay (1D params)
+                        tg[4][fullname] = param  # backbone weight with decay (1D params)
                 else:
                     # Head parameters (groups 0, 1, 2, 3)
                     if param.ndim >= 2 and use_muon:
-                        g[3][fullname] = param  # head muon params
+                        tg[3][fullname] = param  # head muon params
                     elif "bias" in fullname:
-                        g[2][fullname] = param  # head bias
+                        tg[2][fullname] = param  # head bias
                     elif is_norm_like_param:
-                        g[1][fullname] = param  # head bn weight
+                        tg[1][fullname] = param  # head bn weight
                     else:
-                        g[0][fullname] = param  # head weight with decay (1D params)
+                        tg[0][fullname] = param  # head weight with decay (1D params)
 
         if not use_muon:
             # Convert to list of params for non-MuSGD optimizers (skip muon groups 3 and 7)
             g = [list(x.values()) for i, x in enumerate(g) if i not in [3, 7]]
+            gf = [list(x.values()) for i, x in enumerate(gf) if i not in [3, 7]]
+
+        if use_fresh_split:
+            n_fresh = sum(len(x) for x in gf)
+            LOGGER.info(
+                f"{colorstr('optimizer:')} {n_fresh} parameters missing from pretrained weights "
+                f"use fresh_lr_ratio={fresh_lr_ratio}"
+            )
 
         optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "MuSGD", "auto"}
         name = {x.lower(): x for x in optimizers}.get(name.lower())
@@ -300,6 +317,14 @@ class RTDETRTrainer(DetectionTrainer):
             g[5] = {"params": list(g[5].values()), **optim_args, "lr": backbone_lr, "weight_decay": 0.0}  # backbone bn
             g[7] = {"params": list(g[7].values()), **optim_args, "lr": backbone_lr, "weight_decay": decay, "use_muon": True}  # backbone muon params
 
+            if use_fresh_split:
+                for base_group, fresh in zip(g, gf):
+                    if fresh:
+                        fresh_group = {k: v for k, v in base_group.items() if k != "params"}
+                        fresh_group["params"] = list(fresh.values())
+                        fresh_group["lr"] = base_group["lr"] * fresh_lr_ratio
+                        g.append(fresh_group)
+
             muon = self.args.muon_w
             sgd = self.args.sgd_w
             optimizer = MuSGD(params=g, muon=muon, sgd=sgd)
@@ -328,6 +353,21 @@ class RTDETRTrainer(DetectionTrainer):
             optimizer.add_param_group({"params": g[5], "lr": backbone_lr, "weight_decay": 0.0})   # backbone bias
             optimizer.add_param_group({"params": g[3], "lr": backbone_lr, "weight_decay": decay}) # backbone weights
             optimizer.add_param_group({"params": g[4], "lr": backbone_lr, "weight_decay": 0.0})   # backbone bn
+
+            if use_fresh_split:
+                # Fresh param groups (params missing from pretrained weights, lr scaled by fresh_lr_ratio)
+                fresh_lr = lr * fresh_lr_ratio
+                fresh_backbone_lr = backbone_lr * fresh_lr_ratio
+                for params, group_lr, wd in (
+                    (gf[0], fresh_lr, decay),           # head weights
+                    (gf[1], fresh_lr, 0.0),             # head bn
+                    (gf[2], fresh_lr, 0.0),             # head bias
+                    (gf[3], fresh_backbone_lr, decay),  # backbone weights
+                    (gf[4], fresh_backbone_lr, 0.0),    # backbone bn
+                    (gf[5], fresh_backbone_lr, 0.0),    # backbone bias
+                ):
+                    if params:
+                        optimizer.add_param_group({"params": params, "lr": group_lr, "weight_decay": wd})
 
             LOGGER.info(
                 f"{colorstr('optimizer:')} {type(optimizer).__name__} with parameter groups:\n"

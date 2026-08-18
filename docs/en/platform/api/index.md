@@ -712,7 +712,7 @@ GET /api/datasets/{owner}/{dataset}/images/clustering
 **Python SDK:** `client.datasets.clustering(owner, dataset)`
 
 Returns the UMAP 2D layout from a completed analysis, paginated with `offset` and `limit` (default and max 50,000).
-Each entry has `id`, `umapX`, `umapY`, `split`, `classIds`, `width`, `height`, `bytes`, `labelCount`, and `missing`.
+Each entry has `id`, `umapX`, `umapY`, `split`, `classIds`, `width`, `height`, `bytes`, `labelCount`, `labeled`, and `missing`.
 
 ### List Models Trained on a Dataset
 
@@ -1119,7 +1119,7 @@ Returns temporary signed URLs for up to 100 image IDs from one dataset.
 }
 ```
 
-**Response:** `urls` and `thumbnails`, both keyed by image ID.
+**Response:** `urls`, `thumbnails`, and `depths` (depth previews on paired images), all keyed by image ID.
 
 ---
 

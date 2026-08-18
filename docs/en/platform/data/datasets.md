@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, datasets, dataset management, dataset versioning
 
 [Ultralytics Platform](https://platform.ultralytics.com) datasets provide a streamlined solution for managing your training data. After upload, the platform processes images, labels, and statistics automatically.
 
-A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image. The dataset header shows a `Ready` badge when all three conditions are met, and a `Not Ready` badge otherwise — click the badge to see exactly which condition is missing. [Depth](#depth-maps) datasets additionally need at least two paired images in the `val` split, which the badge does not check.
+A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image. The dataset header shows a `Ready` badge when all three conditions are met, and a `Not Ready` badge otherwise — click the badge to see exactly which condition is missing. [Depth](#depth-maps) datasets have a stricter, per-split requirement — see [dataset requirements](../train/cloud-training.md#step-2-select-dataset).
 
 ## Upload Dataset
 
@@ -183,11 +183,11 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
 !!! tip "Flat Directory Structure"
 
-    You can also upload images without explicit split folders. Platform respects the active split target during upload. If no split target is set and the upload leaves the `val` split empty, non-classify datasets automatically move roughly 20% of the `train` images to `val` so the dataset is immediately trainable. Classification datasets are skipped because they use directory-based splits. You can always reassign images later with [bulk move-to-split](#bulk-move-to-split) or [split redistribution](#split-redistribution).
+    You can also upload images without explicit split folders. Platform respects the active split target during upload. If no split target is set and the upload leaves the `val` split empty — fewer than two depth-paired images on a [depth](#depth-maps) dataset — non-classify datasets automatically move train images to `val` so the dataset is immediately trainable. Classification datasets are skipped because they use directory-based splits. You can always reassign images later with [bulk move-to-split](#bulk-move-to-split) or [split redistribution](#split-redistribution).
 
 !!! tip "Format Auto-Detection"
 
-    The format is detected automatically: an archive holding depth maps is imported as a depth dataset and must not also contain annotation labels; datasets with a `data.yaml` containing `names`, `train`, or `val` keys are treated as YOLO. Datasets with COCO JSON files (containing `images`, `annotations`, and `categories` arrays) are treated as COCO. `.ndjson` exports are imported as Ultralytics NDJSON. Datasets with only images and no annotations are treated as raw.
+    The format is detected automatically: datasets with a `data.yaml` containing `names`, `train`, or `val` keys are treated as YOLO. Datasets with COCO JSON files (containing `images`, `annotations`, and `categories` arrays) are treated as COCO. `.ndjson` exports are imported as Ultralytics NDJSON. Datasets with only images and no annotations are treated as raw.
 
     When an archive contains several YAML files, Platform prefers standard names (`data.yaml`, `data.yml`, `dataset.yaml`, `dataset.yml`) closest to the archive root. Keep one clearly named YAML per archive to avoid ambiguity.
 
@@ -203,15 +203,15 @@ For task-specific format details, see [supported tasks](index.md#supported-tasks
 
 [Depth](../../datasets/depth/index.md) datasets pair each image with a ground truth depth map instead of drawn annotations. Use the standard [NPY depth map layout](../../datasets/depth/index.md#npy-depth-map-format) — a `depth/` tree mirroring `images/`, each map named after its image — with a 100 MB cap per map. A lower-resolution map is fine, but a map whose aspect ratio differs from its image by more than 2%, or that holds no valid depth values, is rejected: that image is skipped and counted in the upload summary.
 
-A first import containing depth maps sets the dataset task to depth, so no `data.yaml` is required. Once a dataset holds images its task is pinned, and an archive of depth maps aimed at a non-depth dataset is rejected. Depth datasets have no classes, and their images carry no annotations.
+A first import containing depth maps sets the dataset task to depth, so no `data.yaml` is required. An archive carrying both depth maps and annotation labels is rejected. Depth datasets have no classes, and their images carry no annotations.
 
 !!! tip "Adding Depth Maps Later"
 
     On a dataset created with the **Depth** task you can upload images first and pair depth maps afterwards: re-upload the archive with the `depth/` tree added. Images already stored are matched and paired rather than duplicated, and the upload reports how many gained a target. Images without a paired map stay in the dataset, are shown as unpaired in the gallery, and are excluded from training.
 
-!!! warning "Depth Maps Need an Archive"
+!!! warning "Depth Maps Cannot Be Uploaded Loose"
 
-    Depth maps must be uploaded inside a ZIP or TAR archive. The upload picker filters out loose `.npy` files. Depth datasets also cannot read from [connected storage](../integrations/index.md) yet — import from an upload or a URL.
+    The upload picker filters out loose `.npy` files, so depth maps must travel inside a ZIP or TAR archive. A Platform [NDJSON export](#export-dataset) can also be re-imported as-is. Depth datasets also cannot read from [connected storage](../integrations/index.md) yet — import from an upload or a URL.
 
 ### Upload Process
 
@@ -648,7 +648,7 @@ The optional image-level `metadata` object is preserved when an NDJSON file is i
 
 Pose datasets also carry a `kpt_shape` field in the dataset header line, inferred from the annotations when it is not already set.
 
-Depth datasets replace each image's `annotations` object with a `depth` object pointing at the paired map, so an export you re-import into Platform restores the pairing. Exports ship only paired images; [version snapshots](#versions-tab) keep unpaired ones so a restore is lossless.
+Depth datasets replace each image's `annotations` object with a `depth` object pointing at the paired map, so an export you re-import into Platform restores the pairing. Exports and version downloads ship only paired images; [snapshots](#versions-tab) retain unpaired ones so a restore is lossless.
 
 !!! note "Signed URLs"
 

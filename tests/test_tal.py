@@ -44,7 +44,7 @@ def test_make_anchors_preserves_dtype(dtype):
 
 
 def test_dist2bbox_xyxy():
-    """ltrb distances decode to xyxy by subtracting lt and adding rb."""
+    """Ltrb distances decode to xyxy by subtracting lt and adding rb."""
     out = dist2bbox(torch.tensor([[1.0, 2.0, 3.0, 4.0]]), torch.tensor([[10.0, 10.0]]), xywh=False)
     assert torch.equal(out, torch.tensor([[9.0, 8.0, 13.0, 14.0]]))
 
@@ -64,7 +64,7 @@ def test_dist2bbox_custom_dim():
 
 
 def test_bbox2dist_inverts_dist2bbox():
-    """bbox2dist is the exact inverse of dist2bbox(xywh=False)."""
+    """Bbox2dist is the exact inverse of dist2bbox(xywh=False)."""
     torch.manual_seed(0)
     anchors = torch.rand(16, 2) * 100
     dist = torch.rand(16, 4) * 10
@@ -108,7 +108,7 @@ def test_dist2rbox_quarter_turn():
 
 
 def test_rbox2dist_inverts_dist2rbox():
-    """rbox2dist recovers the ltrb distances produced by dist2rbox."""
+    """Rbox2dist recovers the ltrb distances produced by dist2rbox."""
     torch.manual_seed(0)
     dist = torch.rand(2, 16, 4) * 10
     angle = (torch.rand(2, 16, 1) - 0.5) * math.pi

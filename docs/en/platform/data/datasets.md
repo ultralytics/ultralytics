@@ -67,6 +67,16 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
     Password-protected (encrypted) archives are rejected — re-create the archive without a password.
 
+=== "Depth Maps"
+
+    [Depth](../../tasks/depth.md) datasets pair every image with a ground truth depth map. Depth maps travel inside an archive, never as loose files — the upload picker accepts only images, videos, archives, and NDJSON.
+
+    | Format | Extensions | Notes                                                | Max Size            |
+    | ------ | ---------- | ---------------------------------------------------- | ------------------- |
+    | NPY    | `.npy`     | 2-D float32 array, values in meters, `0` = no depth | 100 MB per map      |
+
+    Total depth maps per archive are capped at 50 GB. See [Depth Maps](#depth-maps) for the directory layout.
+
 ### Video Codec Support
 
 The file extension alone isn't enough: a video can still fail if its codec cannot be decoded during processing.
@@ -84,7 +94,7 @@ The file extension alone isn't enough: a video can still fail if its codec canno
 
 ### Preparing Your Dataset
 
-The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), [COCO](https://cocodataset.org/#format-data), [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format), and raw (unannotated) uploads:
+The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), [COCO](https://cocodataset.org/#format-data), [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format), and raw (unannotated) uploads. [Depth](../../tasks/depth.md) datasets carry paired depth maps instead of annotations — see [Depth Maps](#depth-maps):
 
 === "YOLO Format"
 
@@ -183,11 +193,11 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
 !!! tip "Flat Directory Structure"
 
-    You can also upload images without explicit split folders. Platform respects the active split target during upload. If no split target is set and the upload leaves the `val` split empty, non-classify datasets automatically move roughly 20% of the `train` images to `val` so the dataset is immediately trainable. Classification datasets are skipped because they use directory-based splits. You can always reassign images later with [bulk move-to-split](#bulk-move-to-split) or [split redistribution](#split-redistribution).
+    You can also upload images without explicit split folders. Platform respects the active split target during upload. If no split target is set and the upload leaves the `val` split empty, non-classify datasets automatically move roughly 20% of the `train` images to `val` so the dataset is immediately trainable. Classification datasets are skipped because they use directory-based splits. Depth datasets count only paired images and top `val` up to the two paired images training requires, keeping at least one paired image in `train`. You can always reassign images later with [bulk move-to-split](#bulk-move-to-split) or [split redistribution](#split-redistribution).
 
 !!! tip "Format Auto-Detection"
 
-    The format is detected automatically: datasets with a `data.yaml` containing `names`, `train`, or `val` keys are treated as YOLO. Datasets with COCO JSON files (containing `images`, `annotations`, and `categories` arrays) are treated as COCO. `.ndjson` exports are imported as Ultralytics NDJSON. Datasets with only images and no annotations are treated as raw.
+    The format is detected automatically: an archive holding depth maps is a depth dataset regardless of what else it contains; datasets with a `data.yaml` containing `names`, `train`, or `val` keys are treated as YOLO. Datasets with COCO JSON files (containing `images`, `annotations`, and `categories` arrays) are treated as COCO. `.ndjson` exports are imported as Ultralytics NDJSON. Datasets with only images and no annotations are treated as raw.
 
     When an archive contains several YAML files, Platform prefers standard names (`data.yaml`, `data.yml`, `dataset.yaml`, `dataset.yml`) closest to the archive root. Keep one clearly named YAML per archive to avoid ambiguity.
 
@@ -198,6 +208,38 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 If labels reference class IDs but no class names are supplied, Platform generates dense placeholder names (`class0`, `class1`, …) that you can rename later in the [Classes tab](#classes-tab).
 
 For task-specific format details, see [supported tasks](index.md#supported-tasks) and the [Datasets Overview](../../datasets/index.md).
+
+### Depth Maps
+
+[Depth](../../tasks/depth.md) datasets pair each image with a ground truth depth map instead of drawn annotations. Mirror the `images/` tree with a `depth/` tree and give every map the image's filename with an `.npy` extension:
+
+```text
+my-depth-dataset/
+├── images/
+│   ├── train/
+│   │   ├── img001.jpg
+│   │   └── img002.jpg
+│   └── val/
+│       └── img003.jpg
+└── depth/
+    ├── train/
+    │   ├── img001.npy
+    │   └── img002.npy
+    └── val/
+        └── img003.npy
+```
+
+Each `.npy` file is a 2-D float32 array of metric depth in meters, where `0` marks pixels with no depth (sky, sensor dropouts, unlabeled regions). Maps whose aspect ratio matches the image within 2% are resampled to the image resolution with nearest-neighbor interpolation, so a half-resolution map is fine; a mismatched aspect ratio, a non-float32 or non-2-D array, or a map with no valid pixels fails that image and is reported in the [Errors tab](#errors-tab).
+
+Platform infers the depth task from the presence of depth maps, so no `data.yaml` or task selection is required. Depth datasets have no classes, and their images carry no annotations.
+
+!!! tip "Adding Depth Maps Later"
+
+    You can upload images first and pair depth maps afterwards. Upload a second archive containing only the `depth/` tree — maps are matched to stored images by filename, and the upload reports how many images gained a target. Images without a paired map stay in the dataset, are shown as unpaired in the gallery, and are excluded from training.
+
+!!! warning "Depth Maps Need an Archive"
+
+    Depth maps must be uploaded inside a ZIP or TAR archive, or referenced from an [NDJSON](#export-dataset) `depth.url`. The upload picker filters out loose `.npy` files. Depth datasets also cannot read from [connected storage](../integrations/index.md) yet — import from an upload or a URL.
 
 ### Upload Process
 
@@ -302,6 +344,10 @@ Open the [Clustering](#clustering) panel from the gallery toolbar to explore you
 
 ![Ultralytics Platform Datasets Gallery Grid View With Annotations](https://cdn.ul.run/i/1d9140731cab4a43d3d5cc74925aab67.avif)<!-- screenshot -->
 
+!!! info "Depth Datasets"
+
+    On depth datasets the gallery composites each paired depth map over its thumbnail through a jet colormap — warm is near, cool is far — and images with no paired map show the plain thumbnail. The table view replaces the classes and annotation-count columns with a **Depth** column carrying each map's maximum depth in meters.
+
 ### Sorting and Filtering
 
 Images can be sorted and filtered for efficient browsing:
@@ -332,6 +378,8 @@ Images can be sorted and filtered for efficient browsing:
     | **Class filter** | Filter by class name                  |
     | **Search**       | Filter images by filename or metadata |
 
+    On depth datasets the annotation filter becomes **Depth** with `Paired` and `Unpaired` options, and the class filter is hidden.
+
 !!! tip "Finding Unlabeled Images"
 
     Use the `Annotations` filter set to `Unannotated` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
@@ -359,6 +407,7 @@ Click any image to open the fullscreen viewer with:
 - **Reset view**: `Cmd/Ctrl + 0` or the reset button to fit the image to the viewer
 - **Pan**: Hold `Space` and drag to pan the canvas when zoomed
 - **Pixel view**: Toggle pixelated rendering for close inspection
+- **Depth curtain**: On depth datasets, a draggable divider wipes between the RGB image and the colorized depth map, with the map's depth range in meters and its valid-pixel percentage in the information bar
 
 ![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.ul.run/i/083e8f7a4ad565c1cca40ec0f214b748.avif)<!-- screenshot -->
 
@@ -452,7 +501,7 @@ The default view showing the image gallery with annotation overlays. Supports gr
 
 ### Classes Tab
 
-This tab appears when the dataset has images.
+This tab appears when the dataset has images. [Depth](#depth-maps) datasets have no classes, so it — and the class breakdown in the charts and gallery — is hidden for them.
 
 Manage annotation classes for your dataset:
 
@@ -632,6 +681,15 @@ The NDJSON format stores one JSON object per line. The first line contains datas
 The optional image-level `metadata` object is preserved when an NDJSON file is imported into Platform. You can inspect or edit it from the image's fullscreen information panel. For programmatic archive uploads, the [Ingest Dataset Data API](../api/index.md#ingest-dataset-data) accepts the equivalent `imageMetadata` path map.
 
 Pose datasets also carry a `kpt_shape` field in the dataset header line, inferred from the annotations when it is not already set.
+
+Depth datasets replace the `annotations` object with a `depth` object pointing at the paired map, and their image records are named by content hash so that same-stem images in different folders cannot mispair:
+
+```json
+{"type": "dataset", "task": "depth", "name": "my-depth-dataset", "class_names": {"0": "depth"}, "version": 1}
+{"type": "image", "file": "9f2c1d4b6a8e0f3c5d7b9a1e2f4c6d8b.jpg", "url": "https://...", "width": 640, "height": 480, "split": "train", "depth": {"url": "https://...", "hash": "1a2b...", "bytes": 1228928, "shape": [480, 640], "encoding": "npy-f32", "unit": "m", "min": 0.42, "max": 27.9, "valid_fraction": 0.93}}
+```
+
+An export you re-import into Platform restores the pairing from these records. Version snapshots keep unpaired images so a restore is lossless, while exports delivered to training ship only paired images.
 
 !!! note "Signed URLs"
 
@@ -917,9 +975,15 @@ Ultralytics Platform supports YOLO labels, COCO JSON, Ultralytics NDJSON, and ra
 
     Ultralytics NDJSON exports can be re-imported into Platform. This is the most complete way to move dataset metadata, splits, and annotations between workspaces.
 
+=== "Depth"
+
+    Depth ground truth is not a label file. Each image is paired with a 2-D float32 `.npy` depth map in meters, resolved from the `depth/` tree that mirrors `images/`. See [Depth Maps](#depth-maps).
+
 ### Can I annotate the same dataset for multiple task types?
 
-Yes. Each image stores annotations for all 6 task types (detect, segment, semantic, classify, pose, OBB) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training — annotations for other tasks are preserved and reappear when you switch back.
+Yes. Each image stores annotations for all 6 annotation task types (detect, segment, semantic, classify, pose, OBB) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training — annotations for other tasks are preserved and reappear when you switch back.
+
+[Depth](#depth-maps) is the exception. Its ground truth is a paired file rather than an annotation and it has no classes, so a dataset can only switch to or from depth while it is still empty. To convert an existing dataset, re-import it as a new depth dataset.
 
 ### Are there limits on classes and annotations?
 
@@ -946,5 +1010,6 @@ Datasets that read from [cloud storage](../integrations/index.md) or [On Premise
 | [Cloning](#clone-dataset)                          | Unavailable     | Unavailable |
 | [Version snapshots](#versions-tab)                 | Unavailable     | Unavailable |
 | [NDJSON export](#export-dataset)                   | Available       | Unavailable |
+| [Depth datasets](#depth-maps)                      | Unavailable     | Unavailable |
 
 Browsing, manual annotation, class management, splits, statistics, and training all work normally.

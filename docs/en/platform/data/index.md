@@ -57,20 +57,23 @@ graph LR
 
 ## Supported Tasks
 
-Ultralytics Platform datasets support 6 of the 7 YOLO task types — [depth](../../tasks/depth.md) datasets are coming soon (depth models and prediction are already supported):
+Ultralytics Platform datasets support all 7 YOLO task types:
 
-| Task                                             | Description                                                     | Annotation Tool   |
-| ------------------------------------------------ | --------------------------------------------------------------- | ----------------- |
-| **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes                            | Rectangle tool    |
-| **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks                          | Polygon tool      |
-| **[Semantic](../../datasets/semantic/index.md)** | Semantic segmentation with per-class pixel regions              | Polygon tool      |
-| **[Classify](../../datasets/classify/index.md)** | Image-level classification                                      | Class selector    |
-| **[Pose](../../datasets/pose/index.md)**         | Keypoint estimation with built-in and custom skeleton templates | Keypoint tool     |
-| **[OBB](../../datasets/obb/index.md)**           | Oriented bounding boxes for rotated objects                     | Oriented box tool |
+| Task                                             | Description                                                     | Annotation Tool     |
+| ------------------------------------------------ | --------------------------------------------------------------- | ------------------- |
+| **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes                            | Rectangle tool      |
+| **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks                          | Polygon tool        |
+| **[Semantic](../../datasets/semantic/index.md)** | Semantic segmentation with per-class pixel regions              | Polygon tool        |
+| **[Depth](../../tasks/depth.md)**                | Per-pixel metric depth from paired depth maps                   | Uploaded depth maps |
+| **[Classify](../../datasets/classify/index.md)** | Image-level classification                                      | Class selector      |
+| **[Pose](../../datasets/pose/index.md)**         | Keypoint estimation with built-in and custom skeleton templates | Keypoint tool       |
+| **[OBB](../../datasets/obb/index.md)**           | Oriented bounding boxes for rotated objects                     | Oriented box tool   |
+
+Depth is the one task whose ground truth is not drawn in the editor: each image is paired with a `.npy` depth map you upload alongside it. See [depth datasets](datasets.md#depth-maps) for the layout.
 
 !!! info "Task Type Selection"
 
-    The task type is set when creating a dataset and determines which annotation tools are available. You can change it later from the dataset header task selector, but incompatible annotations won't be displayed after switching.
+    The task type is set when creating a dataset and determines which annotation tools are available. You can change it later from the dataset header task selector, but incompatible annotations won't be displayed after switching. Switching **to or from depth** is the exception: because depth datasets carry paired targets instead of annotations and have no classes, it is only allowed while the dataset is still empty — re-import the dataset instead.
 
 ## Key Features
 
@@ -155,6 +158,8 @@ Ultralytics Platform supports:
 **Videos:** MP4, WebM, MOV, MKV, M4V (max 1GB, frames extracted at 1 FPS, max 100 frames)
 
 **Dataset files:** ZIP or TAR archives including `.tar.gz` and `.tgz` (max 10GB on Free, 20GB on Pro, 50GB on Enterprise) containing images with optional [YOLO-format](../../datasets/detect/index.md#ultralytics-yolo-format) or COCO JSON labels, plus [NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) exports
+
+**Depth maps:** 2-D float32 `.npy` arrays in meters, paired with images inside an archive (max 100MB each). Loose `.npy` files are not accepted by the upload picker — see [depth maps](datasets.md#depth-maps).
 
 Any of these archive or NDJSON formats can also be imported by pasting a direct HTTP(S) link in the `URL` tab of the `New Dataset` dialog. Pascal VOC XML labels are detected but not imported.
 

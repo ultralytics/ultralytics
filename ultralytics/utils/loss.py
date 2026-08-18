@@ -121,6 +121,8 @@ class BboxLoss(nn.Module):
         l1_scale: str = "norm",
         smooth_l1: bool = True,
         smooth_l1_beta: float = 1.0,
+        nwd: bool = False,
+        nwd_c: float = 12.8,
     ):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
@@ -131,6 +133,8 @@ class BboxLoss(nn.Module):
         self.l1_scale = l1_scale  # when reg_max==1, scale of the box L1 loss: image-normalized or feature-map grid
         self.smooth_l1 = smooth_l1 and l1_scale == "feat"  # Smooth L1 (Huber) instead of L1, feat scale only
         self.smooth_l1_beta = smooth_l1_beta  # transition point between the quadratic and linear regions
+        self.nwd = nwd  # replace CIoU with Normalized Wasserstein Distance (tiny-object fine-tuning)
+        self.nwd_c = nwd_c  # NWD normalization constant (dataset mean object size, pixels)
 
     def forward(
         self,
@@ -146,7 +150,15 @@ class BboxLoss(nn.Module):
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute IoU and DFL losses for bounding boxes."""
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
-        iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
+        if self.nwd:
+            # NWD (arXiv:2110.13389): model boxes as 2D Gaussians N((cx, cy), diag((w/2)^2, (h/2)^2));
+            # similarity = exp(-W2^2 / C), robust to 1-2 px deviations that zero out IoU on tiny boxes
+            p, t = pred_bboxes[fg_mask], target_bboxes[fg_mask]
+            p_gauss = torch.cat([(p[..., :2] + p[..., 2:]) / 2, (p[..., 2:] - p[..., :2]) / 2], -1)
+            t_gauss = torch.cat([(t[..., :2] + t[..., 2:]) / 2, (t[..., 2:] - t[..., :2]) / 2], -1)
+            iou = torch.exp(-(p_gauss - t_gauss).pow(2).sum(-1) / self.nwd_c).unsqueeze(-1)  # (N, 1), like bbox_iou
+        else:
+            iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 
         # DFL loss
@@ -406,6 +418,8 @@ class v8DetectionLoss:
             l1_scale=getattr(h, "l1_scale", "norm"),
             smooth_l1=getattr(h, "smooth_l1", True),  # applies to l1_scale='feat' only
             smooth_l1_beta=getattr(h, "smooth_l1_beta", 1.0),
+            nwd=getattr(h, "nwd", False),
+            nwd_c=getattr(h, "nwd_c", 12.8),
         ).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 

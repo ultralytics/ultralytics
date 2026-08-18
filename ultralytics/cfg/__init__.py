@@ -204,6 +204,7 @@ CFG_FLOAT_KEYS = frozenset(
         "time",
         "workspace",
         "batch",
+        "nwd_c",
     }
 )
 CFG_FRACTION_KEYS = frozenset(
@@ -294,6 +295,7 @@ CFG_BOOL_KEYS = frozenset(
         "half_channel",
         "half_channel_box",
         "half_channel_cls",
+        "nwd",
     }
 )
 CFG_STR_KEYS = frozenset({"optimizer", "split", "copy_paste_mode", "auto_augment", "aux_fg_sched", "l1_scale"})

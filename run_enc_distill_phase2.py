@@ -673,8 +673,9 @@ def _run_multi_det(
     """Sequentially train + val on a list of YOLO-format detection datasets.
 
     Per dataset: fresh YOLO(model_yaml) with backbone from phase1_weights, train using repository defaults, then val.
-    Each dataset is its own W&B run named ``{parent_name}-{basename}``. Aggregate metrics are written to ``{parent
-    save_dir}/multi_results.csv`` (mirrored to the NFS run dir) and printed as a macro average at the end.
+    Each dataset is its own W&B run named ``{parent_name}-{basename}``. Validation predictions are saved to ``{parent
+    save dir}/{basename}/predictions.json``. Aggregate metrics are written to ``{parent save dir}/multi_results.csv``
+    (mirrored to the NFS run dir) and printed as a macro average at the end.
 
     Run one single-GPU worker (same DDP-callback-loss caveat as other det modes).
 
@@ -871,7 +872,7 @@ def _run_multi_det(
             _ClsMapTrainer.cls_map = cls_table.get(basename, {})
             print(f"[multi_det_finetune] {basename}: cls_map rows={len(_ClsMapTrainer.cls_map)}")
         model.train(trainer=_ClsMapTrainer if cls_map_vocab else None, **train_args)
-        metrics = model.val()
+        metrics = model.val(save_json=True, save_dir=train_args["save_dir"])
         sync_stop()
         shutil.rmtree(parent_save_dir / basename / "weights")
         p, r = (float(metrics.results_dict[key]) for key in ("metrics/precision(B)", "metrics/recall(B)"))

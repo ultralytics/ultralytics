@@ -8,6 +8,7 @@ import pytest
 import torch
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
+from tests.conftest import isolated_model_path
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ASSETS, IS_JETSON, WEIGHTS_DIR
@@ -113,6 +114,33 @@ def test_export_engine_matrix(task, dynamic, quantize, batch):
         Path(file).with_suffix(".int8.onnx").unlink(missing_ok=True)  # cleanup TensorRT 11 ModelOpt INT8 ONNX
     if quantize == 16:
         Path(file).with_suffix(".fp16.onnx").unlink(missing_ok=True)  # cleanup TensorRT 11 ModelOpt FP16 ONNX
+
+
+@pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
+def test_export_engine_nms_dynamic_fixed_hw(tmp_path):
+    """nms=True + dynamic=True must build a TensorRT optimization profile with height/width fixed at the traced
+    imgsz (the parsed ONNX network reports those axes as static, not -1) while batch keeps a real dynamic range; see
+    the ONNX/OpenVINO counterparts in test_exports.py. nms=True requires a non-end2end model, hence yolo11n.
+    """
+    check_tensorrt()
+    import tensorrt as trt
+
+    file = YOLO(isolated_model_path(tmp_path, WEIGHTS_DIR / "yolo11n.pt")).export(
+        format="engine", nms=True, dynamic=True, batch=2, imgsz=32, workspace=1, device=DEVICES[0]
+    )
+    with open(file, "rb") as f, trt.Runtime(trt.Logger(trt.Logger.ERROR)) as runtime:
+        meta_len = int.from_bytes(f.read(4), byteorder="little")
+        f.read(meta_len)  # skip the metadata JSON onnx2engine prepends to the serialized engine bytes
+        engine = runtime.deserialize_cuda_engine(f.read())
+    if hasattr(engine, "num_bindings"):  # TensorRT 7-9 legacy binding API
+        min_shape, _, max_shape = engine.get_profile_shape(0, engine.get_binding_index("images"))
+    else:
+        min_shape, _, max_shape = engine.get_tensor_profile_shape("images", 0)
+    assert min_shape[2:] == max_shape[2:] == (32, 32), (
+        f"height/width must stay fixed at imgsz, got {min_shape}/{max_shape}"
+    )
+    assert min_shape[0] < max_shape[0], f"batch must keep a dynamic range, got {min_shape}/{max_shape}"
+    Path(file).unlink()
 
 
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")

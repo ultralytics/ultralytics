@@ -44,8 +44,11 @@ Within each tab, models are grouped by task in canonical order and sorted by siz
 
 !!! note "Depth Training"
 
-    Depth datasets are not available yet, so depth models are currently for prediction and export only. Every other
-    task can be trained on the Platform.
+    A depth model can only be trained on a [depth dataset](../data/datasets.md#depth-maps), and a depth dataset can only
+    train a depth model. Training needs at least one depth-paired image in `train` and two in `val`: images without a
+    paired depth map are excluded from the run, and the trainer needs two validation targets to calibrate metric scale.
+    A run that finishes without that calibration produces a model that predicts relative rather than metric depth, and
+    Platform marks it with a `Relative depth` badge.
 
 ### Step 2: Select Dataset
 
@@ -537,7 +540,9 @@ Before starting a cloud job, the training dialog shows your current credit balan
 
     Some parameters only apply to specific tasks:
 
-    - **Every task except classify** (detect, segment, semantic, depth, pose, obb): `box`, `dfl`, `degrees`, `translate`, `shear`, `perspective`, `mosaic`, `mixup`, `close_mosaic`, `iou`, `max_det`
+    - **Every task except classify and depth** (detect, segment, semantic, pose, obb): `box`, `dfl`, `mosaic`, `mixup`, `close_mosaic`, `iou`, `max_det`
+    - **Every task except depth** (the tasks with classes): `cls`, `label_smoothing`, `single_cls`
+    - **Every task except classify** (detect, segment, semantic, depth, pose, obb): `degrees`, `translate`, `shear`, `perspective`
     - **Segment only**: `copy_paste`
     - **Pose only**: `pose` (loss weight), `kobj` (keypoint objectness)
     - **Classify only**: `dropout`

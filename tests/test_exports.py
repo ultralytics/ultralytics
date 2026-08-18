@@ -63,6 +63,7 @@ def test_export_onnx(end2end, isolated_model):
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
+@pytest.mark.skipif(not TORCH_1_13, reason="ONNX export with NMS requires torch>=1.13")
 def test_export_onnx_nms_dynamic_fixed_hw(tmp_path):
     """nms=True + dynamic=True must keep height/width fixed at the traced imgsz, not silently skip NMS filtering when
     inference later runs at a different size (the postprocessing loop bakes anchor count in at trace time). nms=True

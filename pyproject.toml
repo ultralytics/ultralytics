@@ -161,7 +161,7 @@ logging = [
 extra = [
     "ipython", # interactive notebook
     "albumentations>=1.4.6", # training augmentations
-    "faster-coco-eval>=1.6.7", # COCO mAP
+    "faster-coco-eval>=1.7.0", # COCO mAP with custom area ranges
 ]
 typing = [
     "types-pillow",

@@ -26,7 +26,7 @@ from torchvision.ops.misc import FrozenBatchNorm2d
 
 from ultralytics.data import YOLOConcatDataset, build_dataloader
 from ultralytics.models.yolo.detect.train import DetectionTrainer
-from ultralytics.models.yolo.detect.val import DetectionValidator
+from ultralytics.models.yolo.detect.val import DETECTION_AREA_RANGES, DetectionValidator
 from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.metrics import DetMetrics
 from ultralytics.utils.torch_utils import torch_distributed_zero_first, unwrap_model
@@ -67,12 +67,7 @@ SOURCE_METRIC_KEYS = (
     "metrics/mAP50(B)",
     "metrics/mAP50-95(B)",
     "metrics/mAR(B)",
-    "metrics/mAP_small(B)",
-    "metrics/mAR_small(B)",
-    "metrics/mAP_medium(B)",
-    "metrics/mAR_medium(B)",
-    "metrics/mAP_large(B)",
-    "metrics/mAR_large(B)",
+    *(f"metrics/m{kind}_{size}(B)" for size in DETECTION_AREA_RANGES for kind in ("AP", "AR")),
 )
 LOCALIZATION_METRIC_KEY = "metrics/localization_mAR(B)"
 
@@ -436,9 +431,8 @@ class EnterpriseDetectionValidator(DetectionValidator):
             else:
                 areas = [ann["area"] for ann in self.coco_gt.loadAnns(self.coco_gt.getAnnIds(imgIds=image_ids))]
                 has_size = {
-                    "small": any(area < 32**2 for area in areas),
-                    "medium": any(32**2 <= area < 96**2 for area in areas),
-                    "large": any(area >= 96**2 for area in areas),
+                    size: any(lower <= area < upper for area in areas)
+                    for size, (lower, upper) in DETECTION_AREA_RANGES.items()
                 }
                 self.metrics.coco_results[name] = {
                     "metrics/mAP50(B)": 0.0,

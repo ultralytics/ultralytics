@@ -17,6 +17,13 @@ from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.utils.plotting import plot_images
 
+COCO_AREA_RANGES = {
+    "small": [0, 32**2],
+    "medium": [32**2, 96**2],
+    "large": [96**2, 1e5**2],
+}
+DETECTION_AREA_RANGES = {"tiny": [0, 10**2], **COCO_AREA_RANGES}
+
 
 class DetectionValidator(BaseValidator):
     """A class extending the BaseValidator class for validation based on a detection model.
@@ -137,7 +144,7 @@ class DetectionValidator(BaseValidator):
 
     def _init_coco_ground_truth(self, val: str | list[str]) -> None:
         """Build the COCO ground truth used by per-epoch detection metrics."""
-        check_requirements("faster-coco-eval>=1.6.7")
+        check_requirements("faster-coco-eval>=1.7.0")
         from faster_coco_eval import COCO
 
         # COCO val2017 uses the official annotations (mask areas, iscrowd) so per-epoch metrics match eval_json
@@ -572,7 +579,7 @@ class DetectionValidator(BaseValidator):
                         assert Path(x).is_file(), f"{x} file not found"
                 iou_types = [iou_types] if isinstance(iou_types, str) else iou_types
                 suffix = [suffix] if isinstance(suffix, str) else suffix
-                check_requirements("faster-coco-eval>=1.6.7")
+                check_requirements("faster-coco-eval>=1.7.0")
                 from faster_coco_eval import COCO, COCOeval_faster
 
                 anno = COCO(anno_json) if isinstance(anno_json, (str, Path)) else anno_json
@@ -586,8 +593,16 @@ class DetectionValidator(BaseValidator):
                     else [int(Path(x).stem) for x in self.dataloader.dataset.im_files]
                 )
                 for i, iou_type in enumerate(iou_types):
+                    area_ranges = (
+                        DETECTION_AREA_RANGES if iou_type == "bbox" and not class_agnostic else COCO_AREA_RANGES
+                    )
                     val = COCOeval_faster(
-                        anno, pred, iouType=iou_type, lvis_style=self.is_lvis, print_function=print_function
+                        anno,
+                        pred,
+                        iouType=iou_type,
+                        ranges=area_ranges,
+                        lvis_style=self.is_lvis,
+                        print_function=print_function,
                     )
                     val.params.maxDets[-1] = self.args.max_det
                     val.params.imgIds = eval_image_ids
@@ -603,7 +618,7 @@ class DetectionValidator(BaseValidator):
                     stats[f"metrics/mAP50-95({suffix[i][0]})"] = val.stats_as_dict["AP_all"]
                     if iou_type == "bbox":
                         stats["metrics/mAR(B)"] = val.stats_as_dict["AR_third"]
-                        for size in "small", "medium", "large":
+                        for size in area_ranges:
                             stats[f"metrics/mAP_{size}(B)"] = val.stats_as_dict[f"AP_{size}"]
                             stats[f"metrics/mAR_{size}(B)"] = val.stats_as_dict[f"AR_{size}"]
                     # update fitness

@@ -67,6 +67,7 @@ from callbacks import nfs_sync, paths, wandb_config
 from ultralytics import YOLO
 from ultralytics.data.utils import IMG_FORMATS
 from ultralytics.models.yolo.detect import DetectionTrainer
+from ultralytics.models.yolo.detect.val import DETECTION_AREA_RANGES
 from ultralytics.nn.tasks import guess_model_scale, load_checkpoint
 from ultralytics.nn.teacher_model import TEACHER_REGISTRY, safe_key
 from ultralytics.utils import DEFAULT_CFG_DICT, SETTINGS, YAML
@@ -496,12 +497,7 @@ def _read_multi_results(csv_path: Path) -> dict[str, dict[str, float]]:
 
 
 _MULTI_SIZE_METRICS = {
-    "map_small": "metrics/mAP_small(B)",
-    "mar_small": "metrics/mAR_small(B)",
-    "map_medium": "metrics/mAP_medium(B)",
-    "mar_medium": "metrics/mAR_medium(B)",
-    "map_large": "metrics/mAP_large(B)",
-    "mar_large": "metrics/mAR_large(B)",
+    f"m{kind.lower()}_{size}": f"metrics/m{kind}_{size}(B)" for size in DETECTION_AREA_RANGES for kind in ("AP", "AR")
 }
 _MULTI_METRICS = ("map50", "map50_95", "fitness", "f1", *_MULTI_SIZE_METRICS)
 
@@ -899,7 +895,8 @@ def _run_multi_det(
         f"\n[multi_det_finetune] MACRO over {len(completed)} datasets: "
         f"mAP50={macro['map50']:.4f} mAP50-95={macro['map50_95']:.4f} "
         f"fitness={macro['fitness']:.4f} F1={macro['f1']:.4f} "
-        f"mAP-S/M/L={macro.get('map_small', float('nan')):.4f}/"
+        f"mAP-T/S/M/L={macro.get('map_tiny', float('nan')):.4f}/"
+        f"{macro.get('map_small', float('nan')):.4f}/"
         f"{macro.get('map_medium', float('nan')):.4f}/{macro.get('map_large', float('nan')):.4f}"
     )
     if owns_final and not teacher_spec:  # frozen-teacher runs have no phase1 distillation parent to push downstream

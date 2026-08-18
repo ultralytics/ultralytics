@@ -292,9 +292,7 @@ EXPORT_ENVS = {
             "onnxruntime",
             "protobuf>=5",
         ],
-        "indexes": [
-            ("--extra-index-url", "https://pypi.ngc.nvidia.com"),
-        ],
+        "indexes": [],
         "env": {},
         "smoke": ["yolo export format=saved_model model=yolo26n.pt imgsz=32"],
     },
@@ -1028,7 +1026,7 @@ class Exporter:
 
     @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):  # noqa: B008
-        """Export YOLO model to ONNX format."""<<<<<<< main
+        """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.16.1,<1.19.0" if self.args.format == "rknn" else "onnx>=1.12.0,<2.0.0"]
         is_rocm = rocm_is_available()
         is_migraphx = migraphx_is_available()

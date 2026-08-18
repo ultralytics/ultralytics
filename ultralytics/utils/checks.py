@@ -237,7 +237,7 @@ def is_ascii(s) -> bool:
     Returns:
         (bool): True if the string is composed only of ASCII characters, False otherwise.
     """
-    return all(ord(c) < 128 for c in str(s))
+    return str(s).isascii()
 
 
 def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):

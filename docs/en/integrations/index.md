@@ -23,6 +23,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 ## Training Integrations
 
+- [Agent Skills](agent-skills.md): Teach AI coding agents like Claude Code, Codex, Cursor, and Gemini CLI the complete Ultralytics YOLO workflow with official skills covering datasets, training, inference, and export.
+
 - [Albumentations](albumentations.md): Enhance your Ultralytics models with powerful image augmentations to improve model robustness and generalization.
 
 - [Amazon SageMaker](amazon-sagemaker.md): Leverage Amazon SageMaker to efficiently build, train, and deploy Ultralytics models, providing an all-in-one platform for the ML lifecycle.

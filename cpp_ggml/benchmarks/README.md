@@ -123,7 +123,7 @@ cmake --build build-cpu --parallel 6
 
 bash scripts/convert_all.sh
 for backend in cuda vulkan cpu; do
-    bash scripts/bench_all.sh "build-$backend" "$backend"
+  bash scripts/bench_all.sh "build-$backend" "$backend"
 done
 python3 scripts/bench_pytorch.py > benchmarks/pytorch.jsonl
 python3 scripts/plot_benchmarks.py

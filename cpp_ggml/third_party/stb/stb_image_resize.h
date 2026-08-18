@@ -1,3 +1,5 @@
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 /* stb_image_resize2 - v2.18 - public domain image resizing
 
    by Jeff Roberts (v2) and Jorge L Rodriguez
@@ -167,7 +169,7 @@
 
          Because alpha weighting produces the same effect as premultiplying, you
          even have the option with non-premultiplied inputs to let the resizer
-         produce a premultiplied output. Because the intially computed alpha-weighted
+         produce a premultiplied output. Because the initially computed alpha-weighted
          output image is effectively premultiplied, this is actually more performant
          than the normal path which un-premultiplies the output image as a final step.
 
@@ -675,7 +677,7 @@ STBIRDEF int stbir_resize_extended( STBIR_RESIZE * resize );
 
 STBIRDEF int stbir_build_samplers_with_splits( STBIR_RESIZE * resize, int try_splits );
 
-// This function does a split of the resizing (you call this fuction for each
+// This function does a split of the resizing (you call this function for each
 // split, on multiple threads). A split is a piece of the output resize pixel space.
 
 // Note that you MUST call stbir_build_samplers_with_splits before stbir_resize_extended_split!
@@ -2679,7 +2681,7 @@ static void stbir_simd_memcpy( void * dest, void const * src, size_t bytes )
   }
 }
 
-// memcpy that is specically intentionally overlapping (src is smaller then dest, so can be
+// memcpy that is specifically intentionally overlapping (src is smaller then dest, so can be
 //   a normal forward copy, bytes is divisible by 4 and bytes is greater than or equal to
 //   the diff between dest and src)
 static void stbir_overlapping_memcpy( void * dest, void const * src, size_t bytes )
@@ -3014,7 +3016,7 @@ static int stbir__get_filter_pixel_width(stbir__support_callback * support, floa
     return (int)STBIR_CEILF(support(scale,user_data) * 2.0f / scale);
 }
 
-// this is how many coefficents per run of the filter (which is different
+// this is how many coefficients per run of the filter (which is different
 //   from the filter_pixel_width depending on if we are scattering or gathering)
 static int stbir__get_coefficient_width(stbir__sampler * samp, int is_gather, void * user_data)
 {
@@ -3500,7 +3502,7 @@ static void stbir__calculate_coefficients_for_gather_downsample( int start, int 
         else
         {
           // insert on end (always in order)
-          if ( coeffs[0] == 0.0f )  // if the first coefficent is zero, then zap it for this coeffs
+          if ( coeffs[0] == 0.0f )  // if the first coefficient is zero, then zap it for this coeffs
           {
             STBIR_ASSERT( ( in_pixel - contribs->n0 ) == 1 ); // ensure that when we zap, we're at the 2nd pos
             contribs->n0 = in_pixel;
@@ -3693,7 +3695,7 @@ static void stbir__cleanup_gathered_coefficients( stbir_edge edge, stbir__filter
 
 #undef STBIR_RENORM_TYPE 
 
-static int stbir__pack_coefficients( int num_contributors, stbir__contributors* contributors, float * coefficents, int coefficient_width, int widest, int row0, int row1 ) 
+static int stbir__pack_coefficients( int num_contributors, stbir__contributors* contributors, float * coefficients, int coefficient_width, int widest, int row0, int row1 ) 
 {
   #define STBIR_MOVE_1( dest, src ) { STBIR_NO_UNROLL(dest); ((stbir_uint32*)(dest))[0] = ((stbir_uint32*)(src))[0]; }
   #define STBIR_MOVE_2( dest, src ) { STBIR_NO_UNROLL(dest); ((stbir_uint64*)(dest))[0] = ((stbir_uint64*)(src))[0]; }
@@ -3708,9 +3710,9 @@ static int stbir__pack_coefficients( int num_contributors, stbir__contributors* 
 
   if ( coefficient_width != widest )
   {
-    float * pc = coefficents;
-    float * coeffs = coefficents;
-    float * pc_end = coefficents + num_contributors * widest;
+    float * pc = coefficients;
+    float * coeffs = coefficients;
+    float * pc_end = coefficients + num_contributors * widest;
     switch( widest )
     {
       case 1:
@@ -3849,7 +3851,7 @@ static int stbir__pack_coefficients( int num_contributors, stbir__contributors* 
   }
 
   // some horizontal routines read one float off the end (which is then masked off), so put in a sentinel so we don't read an snan or denormal
-  coefficents[ widest * num_contributors ] = 8888.0f;
+  coefficients[ widest * num_contributors ] = 8888.0f;
 
   // the minimum we might read for unrolled filters widths is 12. So, we need to
   //   make sure we never read outside the decode buffer, by possibly moving
@@ -3858,7 +3860,7 @@ static int stbir__pack_coefficients( int num_contributors, stbir__contributors* 
   //   clip area (2*widest).
   {
     stbir__contributors * contribs = contributors + num_contributors - 1;
-    float * coeffs = coefficents + widest * ( num_contributors - 1 );
+    float * coeffs = coefficients + widest * ( num_contributors - 1 );
 
     // go until no chance of clipping (this is usually less than 8 lops)
     while ( ( contribs >= contributors ) && ( ( contribs->n0 + widest*2 ) >= row_end ) )
@@ -6760,7 +6762,7 @@ static void stbir__get_split_info( stbir__per_split_info* split_info, int splits
 
     // ok, when we are gathering, we need to make sure we are starting on a y offset that doesn't have
     //   a "special" set of coefficients. Basically, with exactly the right filter at exactly the right
-    //   resize at exactly the right phase, some of the coefficents can be zero. When they are zero, we
+    //   resize at exactly the right phase, some of the coefficients can be zero. When they are zero, we
     //   don't process them at all.  But this leads to a tricky thing with the thread splits, where we
     //   might have a set of two coeffs like this for example: (4,4) and (3,6).  The 4,4 means there was
     //   just one single coeff because things worked out perfectly (normally, they all have 4 coeffs
@@ -6772,7 +6774,7 @@ static void stbir__get_split_info( stbir__per_split_info* split_info, int splits
     //   simply bump up our previous thread split range to include it, and then start this threads
     //   range with the smaller sample. It just moves one scanline from one thread split to another,
     //   so that we end with the unusual one, instead of start with it. To do this, we check 2-4 
-    //   sample at each thread split start and then occassionally move them.
+    //   sample at each thread split start and then occasionally move them.
     
     if ( ( is_gather ) && ( i ) )
     {
@@ -7568,7 +7570,7 @@ static void stbir__clip( int * outx, int * outsubw, int outw, double * u0, doubl
 }
 
 // converts a double to a rational that has less than one float bit of error (returns 0 if unable to do so)
-static int stbir__double_to_rational(double f, stbir_uint32 limit, stbir_uint32 *numer, stbir_uint32 *denom, int limit_denom ) // limit_denom (1) or limit numer (0)
+static int stbir__double_to_rational(double f, stbir_uint32 limit, stbir_uint32 *number, stbir_uint32 *denom, int limit_denom ) // limit_denom (1) or limit number (0)
 {
   double err;
   stbir_uint64 top, bot;
@@ -7598,7 +7600,7 @@ static int stbir__double_to_rational(double f, stbir_uint32 limit, stbir_uint32 
       if ( err < ( 1.0 / (double)(1<<24) ) )
       {
         // yup, found it
-        *numer = (stbir_uint32) numer_estimate;
+        *number = (stbir_uint32) numer_estimate;
         *denom = (stbir_uint32) denom_estimate;
         return 1;
       }
@@ -7637,7 +7639,7 @@ static int stbir__double_to_rational(double f, stbir_uint32 limit, stbir_uint32 
     denom_estimate = (stbir_uint64)( ( (double)limit / f ) + 0.5 );
   }
 
-  *numer = (stbir_uint32) numer_estimate;
+  *number = (stbir_uint32) numer_estimate;
   *denom = (stbir_uint32) denom_estimate;
 
   err = ( denom_estimate ) ? ( ( (double)(stbir_uint32)numer_estimate / (double)(stbir_uint32)denom_estimate ) - f ) : 1.0;

@@ -15,7 +15,7 @@ overhead — ggml_barrier, chunk_set, kernel prelude, and poor thread
 utilization on tiny N — dominates the actual FMA work.
 
 Collapse such broadcast iterations into a single sgemm of merged
-N = ne11 * ne12 * ne13. Two specialisations:
+N = ne11 * ne12 * ne13. Two specializations:
   fold_2_3: ne02==1 && ne03==1 -> single merged call
   fold_2  : ne02==1 && ne03>1  -> per-i13 call with merged ne11*ne12
 

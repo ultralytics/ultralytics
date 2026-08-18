@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """PyTorch e2e reference benchmark for the ggml comparison report.
 
 Mirrors yolo-cli bench timing: warmup, then timed iterations of a full
@@ -21,7 +22,7 @@ from ultralytics import YOLO
 
 
 def parse_imgsz(text: str):
-    """ "480,640" -> (480, 640) tuple; plain "640" -> 640."""
+    """"480,640" -> (480, 640) tuple; plain "640" -> 640."""
     if "," in text:
         h, w = (int(v) for v in text.split(","))
         return (h, w)

@@ -300,8 +300,8 @@ Q8_BLOCK = 32
 def should_quantize(name: str, arr: np.ndarray) -> bool:
     """Quantize a conv weight [out, in, kh, kw] when K = in*kh*kw is 32-aligned.
 
-    Depthwise kernels (in == 1) stay f16: the CPU conv_2d_dw path requires an
-    f16 kernel next to its f16 im2col, and their K is tiny anyway.
+    Depthwise kernels (in == 1) stay f16: the CPU conv_2d_dw path requires an f16 kernel next to its f16 im2col, and
+    their K is tiny anyway.
     """
     if arr.ndim != 4 or arr.shape[1] == 1:
         return False

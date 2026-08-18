@@ -1,3 +1,5 @@
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 /* stb_image_write - v1.16 - public domain - http://nothings.org/stb
    writes out PNG/BMP/TGA/JPEG/HDR images to C stdio - Sean Barrett 2010-2015
                                      no warranty implied; use at your own risk
@@ -1088,7 +1090,7 @@ static unsigned char stbiw__paeth(int a, int b, int c)
    return STBIW_UCHAR(c);
 }
 
-// @OPTIMIZE: provide an option that always forces left-predict or paeth predict
+// @OPTIMIZE: provide an option that always forces left-predict or path predict
 static void stbiw__encode_png_line(unsigned char *pixels, int stride_bytes, int width, int height, int y, int n, int filter_type, signed char *line_buffer)
 {
    static int mapping[] = { 0,1,2,3,4 };

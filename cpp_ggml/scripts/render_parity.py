@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Render detection parity grids: PyTorch vs ggml (CUDA/Vulkan/CPU).
 
 Runs yolov8n + yolo26n (f16) on the two upstream asset images through every

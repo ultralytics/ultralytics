@@ -83,18 +83,18 @@ The C++ graph builder therefore has one execution path for model scale, weight p
 ```bash
 # Detection: prints detections and optionally writes an annotated image.
 cpp_ggml/build-cuda/bin/yolo-cli detect \
-    --model cpp_ggml/models/gguf/yolo26n-f16.gguf \
-    --source ultralytics/assets/bus.jpg --out detection.png --conf 0.25
+  --model cpp_ggml/models/gguf/yolo26n-f16.gguf \
+  --source ultralytics/assets/bus.jpg --out detection.png --conf 0.25
 
 # Absolute depth: writes metric float data plus an optional display-only PNG.
 cpp_ggml/build-cuda/bin/yolo-cli depth \
-    --model cpp_ggml/models/gguf/yolo26n-depth-f16.gguf \
-    --source ultralytics/assets/bus.jpg --raw depth.bin --out depth.png
+  --model cpp_ggml/models/gguf/yolo26n-depth-f16.gguf \
+  --source ultralytics/assets/bus.jpg --raw depth.bin --out depth.png
 
 # Full preprocess + graph/readback + postprocess latency.
 cpp_ggml/build-cuda/bin/yolo-cli bench \
-    --model cpp_ggml/models/gguf/yolo26n-f16.gguf \
-    --source ultralytics/assets/bus.jpg --warmup 20 --iters 50
+  --model cpp_ggml/models/gguf/yolo26n-f16.gguf \
+  --source ultralytics/assets/bus.jpg --warmup 20 --iters 50
 ```
 
 The depth `--raw` file starts with the `YDEP0001` magic, two little-endian int32 dimensions `(height, width)`, then
@@ -107,7 +107,7 @@ failure modes.
 ```bash
 cd cpp_ggml
 for backend in cuda vulkan cpu; do
-    bash scripts/bench_all.sh "build-$backend" "$backend"
+  bash scripts/bench_all.sh "build-$backend" "$backend"
 done
 python3 scripts/bench_pytorch.py > benchmarks/pytorch.jsonl
 python3 scripts/plot_benchmarks.py

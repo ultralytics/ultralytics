@@ -26,7 +26,7 @@ repository root). Those paths are retired. Move any locally retained files once,
 ```bash
 mkdir -p cpp_ggml/models/pytorch
 for name in yolov8n yolov8s yolov8m yolov8l yolov8x yolo26n yolo26s yolo26m yolo26l yolo26x yolo26n-depth; do
-    test -f "cpp_ggml/$name.pt" && mv "cpp_ggml/$name.pt" "cpp_ggml/models/pytorch/$name.pt"
+  test -f "cpp_ggml/$name.pt" && mv "cpp_ggml/$name.pt" "cpp_ggml/models/pytorch/$name.pt"
 done
 ```
 

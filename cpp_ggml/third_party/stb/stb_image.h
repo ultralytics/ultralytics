@@ -1,3 +1,5 @@
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 /* stb_image - v2.30 - public domain image loader - http://nothings.org/stb
                                   no warranty implied; use at your own risk
 
@@ -2155,7 +2157,7 @@ stbi_inline static int stbi__extend_receive(stbi__jpeg *j, int n)
    unsigned int k;
    int sgn;
    if (j->code_bits < n) stbi__grow_buffer_unsafe(j);
-   if (j->code_bits < n) return 0; // ran out of bits from stream, return 0s intead of continuing
+   if (j->code_bits < n) return 0; // ran out of bits from stream, return 0s instead of continuing
 
    sgn = j->code_buffer >> 31; // sign bit always in MSB; 0 if MSB clear (positive), 1 if MSB set (negative)
    k = stbi_lrot(j->code_buffer, n);
@@ -2170,7 +2172,7 @@ stbi_inline static int stbi__jpeg_get_bits(stbi__jpeg *j, int n)
 {
    unsigned int k;
    if (j->code_bits < n) stbi__grow_buffer_unsafe(j);
-   if (j->code_bits < n) return 0; // ran out of bits from stream, return 0s intead of continuing
+   if (j->code_bits < n) return 0; // ran out of bits from stream, return 0s instead of continuing
    k = stbi_lrot(j->code_buffer, n);
    j->code_buffer = k & ~stbi__bmask[n];
    k &= stbi__bmask[n];
@@ -2182,7 +2184,7 @@ stbi_inline static int stbi__jpeg_get_bit(stbi__jpeg *j)
 {
    unsigned int k;
    if (j->code_bits < 1) stbi__grow_buffer_unsafe(j);
-   if (j->code_bits < 1) return 0; // ran out of bits from stream, return 0s intead of continuing
+   if (j->code_bits < 1) return 0; // ran out of bits from stream, return 0s instead of continuing
    k = j->code_buffer;
    j->code_buffer <<= 1;
    --j->code_bits;
@@ -4651,7 +4653,7 @@ static stbi_uc first_row_filter[5] =
    STBI__F_sub,
    STBI__F_none,
    STBI__F_avg_first,
-   STBI__F_sub // Paeth with b=c=0 turns out to be equivalent to sub
+   STBI__F_sub // Path with b=c=0 turns out to be equivalent to sub
 };
 
 static int stbi__paeth(int a, int b, int c)
@@ -4961,7 +4963,7 @@ static int stbi__expand_png_palette(stbi__png *a, stbi_uc *palette, int len, int
    p = (stbi_uc *) stbi__malloc_mad2(pixel_count, pal_img_n, 0);
    if (p == NULL) return stbi__err("outofmem", "Out of memory");
 
-   // between here and free(out) below, exitting would leak
+   // between here and free(out) below, exiting would leak
    temp_out = p;
 
    if (pal_img_n == 3) {
@@ -5652,7 +5654,7 @@ static void *stbi__bmp_load(stbi__context *s, int *x, int *y, int *comp, int req
          }
       }
    } else {
-      int rshift=0,gshift=0,bshift=0,ashift=0,rcount=0,gcount=0,bcount=0,acount=0;
+      int rshift=0,gshift=0,bshift=0,ashift=0,rcount=0,gcount=0,bcount=0,account=0;
       int z = 0;
       int easy=0;
       stbi__skip(s, info.offset - info.extra_read - info.hsz);
@@ -5672,8 +5674,8 @@ static void *stbi__bmp_load(stbi__context *s, int *x, int *y, int *comp, int req
          rshift = stbi__high_bit(mr)-7; rcount = stbi__bitcount(mr);
          gshift = stbi__high_bit(mg)-7; gcount = stbi__bitcount(mg);
          bshift = stbi__high_bit(mb)-7; bcount = stbi__bitcount(mb);
-         ashift = stbi__high_bit(ma)-7; acount = stbi__bitcount(ma);
-         if (rcount > 8 || gcount > 8 || bcount > 8 || acount > 8) { STBI_FREE(out); return stbi__errpuc("bad masks", "Corrupt BMP"); }
+         ashift = stbi__high_bit(ma)-7; account = stbi__bitcount(ma);
+         if (rcount > 8 || gcount > 8 || bcount > 8 || account > 8) { STBI_FREE(out); return stbi__errpuc("bad masks", "Corrupt BMP"); }
       }
       for (j=0; j < (int) s->img_y; ++j) {
          if (easy) {
@@ -5695,7 +5697,7 @@ static void *stbi__bmp_load(stbi__context *s, int *x, int *y, int *comp, int req
                out[z++] = STBI__BYTECAST(stbi__shiftsigned(v & mr, rshift, rcount));
                out[z++] = STBI__BYTECAST(stbi__shiftsigned(v & mg, gshift, gcount));
                out[z++] = STBI__BYTECAST(stbi__shiftsigned(v & mb, bshift, bcount));
-               a = (ma ? stbi__shiftsigned(v & ma, ashift, acount) : 255);
+               a = (ma ? stbi__shiftsigned(v & ma, ashift, account) : 255);
                all_a |= a;
                if (target == 4) out[z++] = STBI__BYTECAST(a);
             }
@@ -5901,7 +5903,7 @@ static void *stbi__tga_load(stbi__context *s, int *x, int *y, int *comp, int req
    if (tga_height > STBI_MAX_DIMENSIONS) return stbi__errpuc("too large","Very large image (corrupt?)");
    if (tga_width > STBI_MAX_DIMENSIONS) return stbi__errpuc("too large","Very large image (corrupt?)");
 
-   //   do a tiny bit of precessing
+   //   do a tiny bit of processing
    if ( tga_image_type >= 8 )
    {
       tga_image_type -= 8;
@@ -6783,7 +6785,7 @@ static stbi_uc *stbi__gif_load_next(stbi__context *s, stbi__gif *g, int *comp, i
    int pcount;
    STBI_NOTUSED(req_comp);
 
-   // on first frame, any non-written pixels get the background colour (non-transparent)
+   // on first frame, any non-written pixels get the background color (non-transparent)
    first_frame = 0;
    if (g->out == 0) {
       if (!stbi__gif_header(s, g, comp,0)) return 0; // stbi__g_failure_reason set by stbi__gif_header
@@ -6797,7 +6799,7 @@ static stbi_uc *stbi__gif_load_next(stbi__context *s, stbi__gif *g, int *comp, i
          return stbi__errpuc("outofmem", "Out of memory");
 
       // image is treated as "transparent" at the start - ie, nothing overwrites the current background;
-      // background colour is only used for pixels that are not rendered first frame, after that "background"
+      // background color is only used for pixels that are not rendered first frame, after that "background"
       // color refers to the color that was there the previous frame.
       memset(g->out, 0x00, 4 * pcount);
       memset(g->background, 0x00, 4 * pcount); // state of the background (starts transparent)
@@ -6832,7 +6834,7 @@ static stbi_uc *stbi__gif_load_next(stbi__context *s, stbi__gif *g, int *comp, i
          // 0:  not specified.
       }
 
-      // background is what out is after the undoing of the previou frame;
+      // background is what out is after the undoing of the previous frame;
       memcpy( g->background, g->out, 4 * g->w * g->h );
    }
 
@@ -7865,7 +7867,7 @@ STBIDEF int stbi_is_16_bit_from_callbacks(stbi_io_callbacks const *c, void *user
       1.31  (2011-06-20)
               a few more leak fixes, bug in PNG handling (SpartanJ)
       1.30  (2011-06-11)
-              added ability to load files via callbacks to accomidate custom input streams (Ben Wenger)
+              added ability to load files via callbacks to accommodate custom input streams (Ben Wenger)
               removed deprecated format-specific test/load functions
               removed support for installable file formats (stbi_loader) -- would have been broken for IO callbacks anyway
               error cases in bmp and tga give messages and don't leak (Raymond Barbiero, grisha)

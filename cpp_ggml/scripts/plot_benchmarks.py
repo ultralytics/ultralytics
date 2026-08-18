@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Render the speed comparison charts for the ggml integration report.
 
 Inputs:  benchmarks/bench.jsonl (yolo-cli bench lines, any backend)

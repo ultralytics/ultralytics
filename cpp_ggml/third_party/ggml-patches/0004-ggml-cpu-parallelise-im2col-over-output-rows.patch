@@ -1,7 +1,7 @@
 From e623ecf4c0ae7bba499906abee999dcf5ef8b604 Mon Sep 17 00:00:00 2001
 From: yolo-ggml <dev@local>
 Date: Mon, 17 Aug 2026 15:55:50 +0800
-Subject: [PATCH] ggml-cpu: parallelise im2col over output rows instead of
+Subject: [PATCH] ggml-cpu: parallelize im2col over output rows instead of
  channels
 
 The im2col kernels sliced the thread work on the input-channel loop
@@ -44,7 +44,7 @@ index 42ec809c..7545d272 100644
 -                                } else {
 -                                    dst_data[iic*(KH*KW) + ikh*KW + ikw] = (src_data[iih*IW + iiw]);
 -                                }
-+        // Parallelise over output rows (N*OH): the spatial dimension is far
++        // Parallelize over output rows (N*OH): the spatial dimension is far
 +        // larger than IC, and slicing on IC both starves threads (IC can be 3)
 +        // and makes every thread write the same (oh,ow) slot of dst.
 +        for (int64_t row = ith; row < N*OH; row += nth) {
@@ -106,7 +106,7 @@ index 42ec809c..7545d272 100644
 -
 -                                if (iih < 0 || iih >= IH || iiw < 0 || iiw >= IW) {
 -                                    dst_data[iic*(KH*KW) + ikh*KW + ikw] = 0;
-+        // Parallelise over output rows (N*OH): see im2col_f32 above.
++        // Parallelize over output rows (N*OH): see im2col_f32 above.
 +        for (int64_t row = ith; row < N*OH; row += nth) {
 +            const int64_t in  = row / OH;
 +            const int64_t ioh = row % OH;

@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, datasets, dataset management, dataset versioning
 
 [Ultralytics Platform](https://platform.ultralytics.com) datasets provide a streamlined solution for managing your training data. After upload, the platform processes images, labels, and statistics automatically.
 
-A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image. The dataset header shows a `Ready` badge when all three conditions are met, and a `Not Ready` badge otherwise — click the badge to see exactly which condition is missing.
+A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image. The dataset header shows a `Ready` badge when all three conditions are met, and a `Not Ready` badge otherwise — click the badge to see exactly which condition is missing. [Depth](#depth-maps) datasets additionally need at least two paired images in the `val` split, which the badge does not check.
 
 ## Upload Dataset
 
@@ -203,15 +203,15 @@ For task-specific format details, see [supported tasks](index.md#supported-tasks
 
 [Depth](../../datasets/depth/index.md) datasets pair each image with a ground truth depth map instead of drawn annotations. Use the standard [NPY depth map layout](../../datasets/depth/index.md#npy-depth-map-format) — a `depth/` tree mirroring `images/`, each map named after its image — with a 100 MB cap per map. A lower-resolution map is fine, but a map whose aspect ratio differs from its image by more than 2%, or that holds no valid depth values, is rejected: that image is skipped and counted in the upload summary.
 
-Platform infers the depth task from the presence of depth maps, so no `data.yaml` or task selection is required. Depth datasets have no classes, and their images carry no annotations.
+A first import containing depth maps sets the dataset task to depth, so no `data.yaml` is required. Once a dataset holds images its task is pinned, and an archive of depth maps aimed at a non-depth dataset is rejected. Depth datasets have no classes, and their images carry no annotations.
 
 !!! tip "Adding Depth Maps Later"
 
-    You can upload images first and pair depth maps afterwards: re-upload the archive with the `depth/` tree added. Images already stored are matched and paired rather than duplicated, and the upload reports how many gained a target. Images without a paired map stay in the dataset, are shown as unpaired in the gallery, and are excluded from training.
+    On a dataset created with the **Depth** task you can upload images first and pair depth maps afterwards: re-upload the archive with the `depth/` tree added. Images already stored are matched and paired rather than duplicated, and the upload reports how many gained a target. Images without a paired map stay in the dataset, are shown as unpaired in the gallery, and are excluded from training.
 
 !!! warning "Depth Maps Need an Archive"
 
-    Depth maps must be uploaded inside a ZIP or TAR archive, or referenced from an [NDJSON](#export-dataset) `depth.url`. The upload picker filters out loose `.npy` files. Depth datasets also cannot read from [connected storage](../integrations/index.md) yet — import from an upload or a URL.
+    Depth maps must be uploaded inside a ZIP or TAR archive. The upload picker filters out loose `.npy` files. Depth datasets also cannot read from [connected storage](../integrations/index.md) yet — import from an upload or a URL.
 
 ### Upload Process
 
@@ -467,7 +467,7 @@ The default view showing the image gallery with annotation overlays. Supports gr
 
 ### Classes Tab
 
-This tab appears when the dataset has images.
+This tab appears when the dataset has images and its task has classes.
 
 Manage annotation classes for your dataset:
 
@@ -812,7 +812,7 @@ Dataset metadata is edited inline directly on the dataset page — no dialog nee
 
 !!! info "Changing Task Type"
 
-    Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back.
+    Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back. [Depth](#depth-maps) is the exception: its ground truth is a paired file rather than an annotation, so a dataset can only switch to or from depth while it holds no images — re-import it instead.
 
 ### Custom Metadata
 
@@ -937,8 +937,6 @@ Ultralytics Platform supports YOLO labels, COCO JSON, Ultralytics NDJSON, and ra
 ### Can I annotate the same dataset for multiple task types?
 
 Yes. Each image stores annotations for all 6 annotation task types (detect, segment, semantic, classify, pose, OBB) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training — annotations for other tasks are preserved and reappear when you switch back.
-
-[Depth](#depth-maps) is the exception. Its ground truth is a paired file rather than an annotation and it has no classes, so a dataset can only switch to or from depth while it is still empty. To convert an existing dataset, re-import it as a new depth dataset.
 
 ### Are there limits on classes and annotations?
 

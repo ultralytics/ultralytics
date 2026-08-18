@@ -118,9 +118,9 @@ def test_export_engine_matrix(task, dynamic, quantize, batch):
 
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_export_engine_nms_dynamic_fixed_hw(tmp_path):
-    """nms=True + dynamic=True must build a TensorRT optimization profile with height/width fixed at the traced
-    imgsz (the parsed ONNX network reports those axes as static, not -1) while batch keeps a real dynamic range; see
-    the ONNX/OpenVINO counterparts in test_exports.py. nms=True requires a non-end2end model, hence yolo11n.
+    """nms=True + dynamic=True must build a TensorRT optimization profile with height/width fixed at the traced imgsz
+    (the parsed ONNX network reports those axes as static, not -1) while batch keeps a real dynamic range; see the
+    ONNX/OpenVINO counterparts in test_exports.py. nms=True requires a non-end2end model, hence yolo11n.
     """
     check_tensorrt()
     import tensorrt as trt

@@ -121,8 +121,8 @@ def test_rocm_train():
 def test_rocm_train_cold_process_nonzero_device():
     """Train on a nonzero GPU index in a fresh process with cold HIP state, reproducing real CLI usage.
 
-    A warm pytest process has HIP initialized, so a subprocess without CUDA_VISIBLE_DEVICES is the only way to
-    reproduce cold-start device selection as on production pods (e.g. Ultralytics Platform).
+    A warm pytest process has HIP initialized, so a subprocess without CUDA_VISIBLE_DEVICES is the only way to reproduce
+    cold-start device selection as on production pods (e.g. Ultralytics Platform).
     """
     import subprocess
 

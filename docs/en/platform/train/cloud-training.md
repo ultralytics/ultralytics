@@ -55,9 +55,11 @@ Choose a dataset to train on (see [Datasets](../data/datasets.md)):
 
     Datasets must be in `ready` status with at least 1 image in the train split, 1 image in the validation or test
     split, at least 1 labeled image, and at least one class name. Classification datasets additionally require the
-    train-split image to be labeled, and pose datasets must define a keypoint shape. [Depth](../data/datasets.md#depth-maps)
-    For depth datasets, the class-name requirement above does not apply: they have no class names and instead need at least 1 depth-paired image in `train` and 2 in `val`; images
-    without a paired depth map are excluded from the run.
+    train-split image to be labeled, and pose datasets must define a keypoint shape.
+
+    [Depth](../data/datasets.md#depth-maps) datasets are the exception: they have no class names, and a paired depth map
+    is what counts as a label, so they need at least 1 depth-paired image in `train` and 2 in `val`. Images without a
+    paired map are excluded from the run.
 
 !!! warning "Task Mismatch"
 

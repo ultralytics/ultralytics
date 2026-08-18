@@ -52,6 +52,34 @@ All conversion, benchmark, parity, and rendering scripts resolve this canonical 
 Detection models use COCO's 80 classes. YOLO26 detection checkpoints use the end-to-end head exported by the local
 Ultralytics checkout. The depth model produces one floating-point distance in meters per source pixel.
 
+### YOLOv8 detector family
+
+- **YOLOv8n** is the default for latency-sensitive applications and constrained GPUs.
+- **YOLOv8s** trades a small latency increase for more capacity while remaining suitable for edge deployment.
+- **YOLOv8m** is the balanced choice when throughput and detection quality have similar weight.
+- **YOLOv8l** targets accuracy-oriented GPU services where a larger memory and latency budget is available.
+- **YOLOv8x** is the highest-capacity YOLOv8 checkpoint in this integration and the runtime/memory stress case.
+
+All five use the same graph and postprocessing owners; model scale changes tensor shapes, not the public CLI or GGUF
+contract.
+
+### YOLO26 detector family
+
+- **YOLO26n** is the lowest-latency end-to-end model and the strongest throughput choice in the measured matrix.
+- **YOLO26s** is the compact accuracy/latency step above n.
+- **YOLO26m** is the general balanced deployment model.
+- **YOLO26l** uses a larger capacity budget for accuracy-oriented inference.
+- **YOLO26x** is the largest YOLO26 integration target and the narrowest measured CUDA speedup case.
+
+The exported end-to-end head is part of the model contract. Do not substitute YOLOv8 head decoding or assume that raw
+tensor layouts are interchangeable across the two families.
+
+### YOLO26n absolute depth
+
+**YOLO26n-depth** predicts a dense metric-depth map rather than COCO detections. It has a 768 default input and a
+task-specific restoration step that removes letterbox padding and resizes values to source resolution. Use the `depth`
+CLI command; the `detect` command intentionally rejects this checkpoint.
+
 ## Formats
 
 | Format | Precision                                                           | Intended use                                 |
@@ -63,6 +91,17 @@ Ultralytics checkout. The depth model produces one floating-point distance in me
 F16 and Q8_0 are not expected to be bit-identical to PyTorch F32. Integration parity means equivalent task output
 within declared tolerances, not identical intermediate activations. Dataset accuracy must be validated on the target
 dataset before production deployment.
+
+## Runtime support
+
+| Backend | F32 | F16 | Q8_0 | Status                                                                  |
+| ------- | --- | --- | ---- | ----------------------------------------------------------------------- |
+| CPU     | yes | yes | yes  | Functional reference/fallback; 8-thread measurements are checked in     |
+| CUDA    | yes | yes | yes  | F16 release path; all 11 models beat the measured PyTorch-CUDA baseline |
+| Vulkan  | yes | yes | yes  | F16 release path; all 11 models meet the declared x0.70 proximity floor |
+
+See the [benchmark and parity report](../benchmarks/README.md) for hardware, protocol, per-model values, raw numerical
+error, and the limits of the current accuracy evidence.
 
 ## Rebuild
 

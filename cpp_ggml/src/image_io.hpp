@@ -19,7 +19,7 @@ bool load_image(const std::string& path, Image& img);
 // Ultralytics-equivalent LetterBox(auto=True, stride=32): resize keeping aspect
 // then pad to a stride-multiple rectangle inside imgsz x imgsz. Bilinear
 // resampling matches cv2.INTER_LINEAR bit-for-bit.
-std::vector<float> letterbox_image(const Image& img, int imgsz, LetterboxInfo& info);
+void letterbox_image(const Image& img, int imgsz, LetterboxInfo& info, std::vector<float>& out);
 
 // Map boxes from the letterboxed canvas back to original image pixels.
 void unscale_boxes(std::vector<Detection>& dets, const LetterboxInfo& info);

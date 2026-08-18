@@ -42,9 +42,10 @@
 | ---------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | ![GGML 后端延迟对比](cpp_ggml/benchmarks/latency_by_backend.png) | ![PyTorch 与 GGML 检测结果对比](cpp_ggml/benchmarks/parity_grid_bus.png) |
 
-完整原始数据、构建和运行命令、精度验证范围以及剩余优化项请参阅[基准与一致性报告](cpp_ggml/benchmarks/README.md)。在实测
-RTX 3060 上，CUDA 最佳精度有 6/11 个模型超过 PyTorch-CUDA（最高 x1.79），其余 5 个模型均在 10% 以内；Vulkan 尚未达到
-要求的接近程度。报告只陈述已经测得的结果，不作无法复现的通用速度声明。
+完整原始数据、构建和运行命令、精度验证范围以及剩余验证项请参阅[基准与一致性报告](cpp_ggml/benchmarks/README.md)。在实测
+RTX 3060 上，F16 ggml CUDA 的 11/11 个模型均超过 PyTorch-CUDA（x1.04-x2.01）；F16 Vulkan 的 11/11 个模型均达到明确定义
+的 x0.70 吞吐接近线（x0.70-x1.32）。聚焦一致性验证已覆盖全部模型，但完整 COCO 和 NYU Depth V2 数据集验证仍是发布级精度
+结论的必要条件。
 
 <a href="https://platform.ultralytics.com/ultralytics/yolo26" target="_blank">
   <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/yolo/performance-comparison.png" alt="YOLO26 performance plots">

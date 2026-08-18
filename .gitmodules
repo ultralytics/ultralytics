@@ -4,3 +4,7 @@
 [submodule "cpp_ggml/third_party/cudnn-frontend"]
 	path = cpp_ggml/third_party/cudnn-frontend
 	url = https://github.com/NVIDIA/cudnn-frontend.git
+[submodule "cpp_ggml/third_party/cutlass"]
+	path = cpp_ggml/third_party/cutlass
+	url = https://github.com/NVIDIA/cutlass.git
+	branch = v3.5.1

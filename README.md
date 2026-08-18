@@ -64,9 +64,10 @@ the [model card](cpp_ggml/models/MODEL_CARD.md).
 | ![GGML backend latency comparison](cpp_ggml/benchmarks/latency_by_backend.png) | ![PyTorch and GGML detection comparison](cpp_ggml/benchmarks/parity_grid_bus.png) |
 
 See the [benchmark and parity report](cpp_ggml/benchmarks/README.md) for raw data, the complete model/backend/precision
-matrix, reproduction commands, accuracy scope, and remaining optimization work. On the measured RTX 3060, the best CUDA
-precision beats PyTorch CUDA on 6 of 11 models (up to x1.79), while all five misses are within 10%. Vulkan remains below
-the requested proximity target. The report preserves those limitations instead of making a universal speed claim.
+matrix, reproduction commands, accuracy scope, and remaining validation work. On the measured RTX 3060, F16 ggml CUDA
+beats PyTorch CUDA on all 11 models (x1.04-x2.01). F16 Vulkan meets the declared x0.70 throughput-proximity floor on all
+11 models (x0.70-x1.32). Focused parity covers every model; full COCO and NYU Depth V2 validation remains required before
+claiming portable dataset-level accuracy.
 
 ## 📄 Documentation
 

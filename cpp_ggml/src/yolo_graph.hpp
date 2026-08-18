@@ -16,10 +16,11 @@ struct Session {
     ggml_context* gctx = nullptr;              // graph tensors
     ggml_context* wctx = nullptr;              // weight tensors
     ggml_backend_buffer_t wbuf = nullptr;
-    ggml_tensor* input = nullptr;              // [W, H, 3], F16 on CUDA F16 models and F32 otherwise
+    ggml_tensor* input = nullptr;              // external [W, H, 3] input; F16 on Vulkan F16 models
     ggml_tensor* output = nullptr;             // raw detect [A,no] or metric depth [W,H,1,1]
     ggml_cgraph* graph = nullptr;
-    std::vector<ggml_fp16_t> input_f16;         // CUDA F16 upload scratch, allocated once per session
+    std::vector<ggml_fp16_t> input_f16;         // Vulkan F16 upload scratch, allocated once per session
+    std::vector<ggml_fp16_t> output_f16;        // F16 readback scratch, allocated once per session
     int input_w = 640;                          // letterboxed canvas dims (stride-multiple,
     int input_h = 640;                          // non-square under LetterBox auto=True)
 

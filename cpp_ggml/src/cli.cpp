@@ -201,7 +201,7 @@ int cmd_detect(const Args& args) {
         info = yolo::LetterboxInfo{1.0f, 0, 0, canvas_w, canvas_h, canvas_w, canvas_h};
     } else {
         if (!yolo::load_image(source, img)) return 1;
-        input = yolo::letterbox_image(img, meta.imgsz, info);
+        yolo::letterbox_image(img, meta.imgsz, info, input);
         canvas_w = info.imgsz_w;
         canvas_h = info.imgsz_h;
     }
@@ -291,7 +291,8 @@ int cmd_depth(const Args& args) {
     yolo::Image img;
     yolo::LetterboxInfo info{};
     if (!yolo::load_image(source, img)) return 1;
-    std::vector<float> input = yolo::letterbox_image(img, meta.imgsz, info);
+    std::vector<float> input;
+    yolo::letterbox_image(img, meta.imgsz, info, input);
     const std::string dump_ops = arg_s(args, "dump-ops");
     SessionPtr session(yolo::create_session(model_path, arg_i(args, "threads", 0), info.imgsz_w, info.imgsz_h,
                                             !dump_ops.empty()),
@@ -378,7 +379,8 @@ int cmd_bench(const Args& args) {
     yolo::Image img;
     yolo::LetterboxInfo info{};
     if (!yolo::load_image(source, img)) return 1;
-    std::vector<float> input = yolo::letterbox_image(img, meta.imgsz, info);
+    std::vector<float> input;
+    yolo::letterbox_image(img, meta.imgsz, info, input);
 
     SessionPtr session(yolo::create_session(model_path, arg_i(args, "threads", 0), info.imgsz_w, info.imgsz_h),
                        yolo::free_session);
@@ -394,7 +396,7 @@ int cmd_bench(const Args& args) {
     Stats preprocess, graph, post, e2e;
 
     for (int i = 0; i < warmup; i++) {
-        input = yolo::letterbox_image(img, meta.imgsz, info);
+        yolo::letterbox_image(img, meta.imgsz, info, input);
         if (!yolo::session_run(s, input.data())) return 1;
         if (meta.task == "detect") {
             if (!yolo::session_read_output(s, raw, no, na)) return 1;
@@ -405,7 +407,7 @@ int cmd_bench(const Args& args) {
     for (int i = 0; i < iters; i++) {
         yolo::Clock ce;
         yolo::Clock c0;
-        input = yolo::letterbox_image(img, meta.imgsz, info);
+        yolo::letterbox_image(img, meta.imgsz, info, input);
         preprocess.ms.push_back(c0.ms_since());
         yolo::Clock c1;
         if (!yolo::session_run(s, input.data())) return 1;

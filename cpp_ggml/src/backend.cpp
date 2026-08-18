@@ -150,7 +150,6 @@ void free_backend_ctx(BackendCtx& ctx) {
 
 bool backend_graph_alloc(BackendCtx& ctx, ggml_cgraph* graph) {
     if (ctx.sched) {
-        ggml_backend_sched_reset(ctx.sched);
         if (!ggml_backend_sched_alloc_graph(ctx.sched, graph)) {
             YOLO_LOG_ERROR("backend_graph_alloc: sched alloc failed");
             return false;
@@ -175,11 +174,9 @@ bool backend_graph_alloc(BackendCtx& ctx, ggml_cgraph* graph) {
 int backend_graph_compute(BackendCtx& ctx, ggml_cgraph* graph) {
     if (ctx.sched) {
         ggml_status st = ggml_backend_sched_graph_compute(ctx.sched, graph);
-        ggml_backend_sched_synchronize(ctx.sched);
         return (int)st;
     }
     ggml_status st = ggml_backend_graph_compute(ctx.cpu, graph);
-    ggml_backend_synchronize(ctx.cpu);
     return (int)st;
 }
 

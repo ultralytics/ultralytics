@@ -7,7 +7,7 @@ Conversion supports F32, F16, and Q8_0 weights.
 
 The [model card](models/MODEL_CARD.md) defines every supported checkpoint and the canonical model layout. The
 [benchmark report](benchmarks/README.md) contains raw measurements, latency charts, visual comparisons, parity scope,
-and remaining performance gaps.
+and the remaining validation boundary.
 
 ## Repository layout
 
@@ -25,6 +25,7 @@ cpp_ggml/
 └── third_party/
     ├── ggml/                  # pinned v0.18.1 submodule
     ├── cudnn-frontend/        # pinned cuDNN Graph API headers
+    ├── cutlass/               # pinned v3.5.1 implicit-GEMM kernels
     └── ggml-patches/          # idempotent local performance/correctness patches
 ```
 
@@ -49,9 +50,9 @@ cmake -S cpp_ggml -B cpp_ggml/build-vulkan -DYOLO_GGML_VULKAN=ON
 cmake --build cpp_ggml/build-vulkan --parallel 6
 ```
 
-Export `CUDNN_ROOT` when cuDNN is outside the system search path. A CUDA build can use
-`-DYOLO_GGML_CUDNN=OFF` when cuDNN is unavailable, but that falls back to generic convolution kernels and is intended
-for compatibility rather than peak performance.
+Export `CUDNN_ROOT` when cuDNN is outside the system search path. `YOLO_GGML_CUDNN` and `YOLO_GGML_CUTLASS` default to
+`ON`; CUDA selects the fastest supported implementation per complete convolution shape. A compatibility build can set
+either option to `OFF`, but the checked-in all-model performance target requires both cuDNN Graph and CUTLASS.
 
 Do not raise build parallelism above 6 on memory-constrained hosts. With CMake older than 3.24, the CUDA configure step
 detects the attached NVIDIA GPU compute capability. For cross-compilation or a headless builder, set it explicitly,
@@ -113,10 +114,10 @@ python3 scripts/plot_benchmarks.py
 python3 scripts/render_parity.py
 ```
 
-Speed depends on the GPU, toolkit, driver, thermal state, model scale, and precision. The current evidence does not show
-all CUDA and Vulkan combinations beating PyTorch CUDA. F32 task-output parity has been checked on focused samples;
-quantized formats require tolerance-based and dataset-level validation. The benchmark report keeps these constraints
-visible rather than promoting an unverified universal claim.
+On the measured RTX 3060, F16 CUDA is faster than PyTorch CUDA on all 11 models (x1.04-x2.01), and Vulkan reaches the
+declared x0.70 proximity floor on all 11 (x0.70-x1.32). Speed depends on the GPU, toolkit, driver, thermal state, model
+scale, and precision, so rerun the matrix on deployment hardware. Focused F16 numerical parity covers every integrated
+model; F32/Q8_0 and production claims still require tolerance-based COCO and NYU Depth V2 validation.
 
 ## Architecture and extension points
 
@@ -125,6 +126,8 @@ visible rather than promoting an unverified universal claim.
   detection models.
 - `yolo_graph.cpp` owns task-independent graph construction and task-specific output reads.
 - `backend.cpp` owns CPU plus one optional GPU scheduler and CPU fallback.
+- The ggml patch series owns cuDNN Graph/CUTLASS shape selection and Vulkan direct convolution; do not edit generated
+  build-tree copies of ggml.
 - `image_io.cpp` and `postprocess.cpp` own preprocessing and task output restoration.
 - `cli.cpp` is a thin command adapter for `detect`, `depth`, `info`, and `bench`.
 

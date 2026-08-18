@@ -73,7 +73,7 @@ static std::vector<float> resize_bilinear_float(const float* src, int sw, int sh
     return dst;
 }
 
-std::vector<float> letterbox_image(const Image& img, int imgsz, LetterboxInfo& info) {
+void letterbox_image(const Image& img, int imgsz, LetterboxInfo& info, std::vector<float>& out) {
     const float r = std::min((float)imgsz / img.w, (float)imgsz / img.h);
     // nearbyint = round-half-to-even, matching Python round().
     const int new_w = (int)std::nearbyint(img.w * r);
@@ -90,7 +90,20 @@ std::vector<float> letterbox_image(const Image& img, int imgsz, LetterboxInfo& i
     info = LetterboxInfo{r, left, top, new_w, new_h, canvas_w, canvas_h};
 
     const size_t plane = (size_t)canvas_w * canvas_h;
-    std::vector<float> out(3 * plane, 114.0f / 255.0f);
+    out.resize(3 * plane);
+    if (left || right || top || bottom) {
+        constexpr float pad = 114.0f / 255.0f;
+        for (int c = 0; c < 3; c++) {
+            float* channel = out.data() + (size_t)c * plane;
+            std::fill(channel, channel + (size_t)top * canvas_w, pad);
+            std::fill(channel + (size_t)(top + new_h) * canvas_w, channel + plane, pad);
+            for (int y = top; y < top + new_h; y++) {
+                float* row = channel + (size_t)y * canvas_w;
+                std::fill(row, row + left, pad);
+                std::fill(row + left + new_w, row + canvas_w, pad);
+            }
+        }
+    }
 
     const float fx = (float)img.w / new_w;
     const float fy = (float)img.h / new_h;
@@ -128,7 +141,6 @@ std::vector<float> letterbox_image(const Image& img, int imgsz, LetterboxInfo& i
             }
         }
     }
-    return out;
 }
 
 void unscale_boxes(std::vector<Detection>& dets, const LetterboxInfo& info) {

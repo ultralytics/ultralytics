@@ -57,6 +57,31 @@ skipped=0
 
 cd "${GGML_DIR}"
 
+# Later patches may intentionally modify the same hunk as earlier patches, so
+# checking every patch independently in reverse is not a valid idempotence test
+# for an already-applied series. Record the exact series and resulting files,
+# and scope the stamp to this git worktree.
+PATCH_SIGNATURE="$(git hash-object "${PATCHES[@]}" | git hash-object --stdin)"
+mapfile -t PATCHED_PATHS < <(sed -n 's|^+++ b/||p' "${PATCHES[@]}" | LC_ALL=C sort -u)
+
+patched_tree_signature() {
+    for path in "${PATCHED_PATHS[@]}"; do
+        if [[ -f "${path}" ]]; then
+            printf '%s ' "${path}"
+            git hash-object "${path}"
+        else
+            printf '%s missing\n' "${path}"
+        fi
+    done | git hash-object --stdin
+}
+
+STAMP_FILE="$(git rev-parse --git-path yolo-ggml-patches.signature)"
+STAMP_VALUE="${PATCH_SIGNATURE} $(patched_tree_signature)"
+if [[ -f "${STAMP_FILE}" ]] && [[ "$(<"${STAMP_FILE}")" == "${STAMP_VALUE}" ]]; then
+    echo "ggml patches: series ${PATCH_SIGNATURE} already applied"
+    exit 0
+fi
+
 # Serialise concurrent invocations against the shared submodule tree: a
 # best-effort flock on a sentinel file alongside the submodule serialises the
 # window between `git apply --check` and the actual `git apply`.
@@ -103,5 +128,7 @@ for patch in "${PATCHES[@]}"; do
     echo "       try: cd ${GGML_DIR} && git status" >&2
     exit 1
 done
+
+printf '%s %s\n' "${PATCH_SIGNATURE}" "$(patched_tree_signature)" > "${STAMP_FILE}"
 
 echo "ggml patches: applied ${applied}, skipped ${skipped}"

@@ -59,15 +59,15 @@ graph LR
 
 Ultralytics Platform datasets support all 7 YOLO task types:
 
-| Task                                             | Description                                                     | Annotation Tool                               |
-| ------------------------------------------------ | --------------------------------------------------------------- | --------------------------------------------- |
-| **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes                            | Rectangle tool                                |
-| **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks                          | Polygon tool                                  |
-| **[Semantic](../../datasets/semantic/index.md)** | Semantic segmentation with per-class pixel regions              | Polygon tool                                  |
-| **[Depth](../../datasets/depth/index.md)**       | Per-pixel metric depth from paired depth maps                   | Uploaded [depth maps](datasets.md#depth-maps) |
-| **[Classify](../../datasets/classify/index.md)** | Image-level classification                                      | Class selector                                |
-| **[Pose](../../datasets/pose/index.md)**         | Keypoint estimation with built-in and custom skeleton templates | Keypoint tool                                 |
-| **[OBB](../../datasets/obb/index.md)**           | Oriented bounding boxes for rotated objects                     | Oriented box tool                             |
+| Task                                             | Description                                                     | Annotation Tool                                          |
+| ------------------------------------------------ | --------------------------------------------------------------- | -------------------------------------------------------- |
+| **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes                            | Rectangle tool                                           |
+| **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks                          | Polygon tool                                             |
+| **[Semantic](../../datasets/semantic/index.md)** | Semantic segmentation with per-class pixel regions              | Polygon tool                                             |
+| **[Depth](../../datasets/depth/index.md)**       | Per-pixel metric depth from paired depth maps                   | None — [depth maps](datasets.md#depth-maps) are uploaded |
+| **[Classify](../../datasets/classify/index.md)** | Image-level classification                                      | Class selector                                           |
+| **[Pose](../../datasets/pose/index.md)**         | Keypoint estimation with built-in and custom skeleton templates | Keypoint tool                                            |
+| **[OBB](../../datasets/obb/index.md)**           | Oriented bounding boxes for rotated objects                     | Oriented box tool                                        |
 
 !!! info "Task Type Selection"
 

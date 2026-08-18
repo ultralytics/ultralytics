@@ -46,7 +46,7 @@ The annotation editor supports the 6 YOLO task types whose ground truth is drawn
 
 !!! info "Depth Datasets Are Read-Only Here"
 
-    [Depth](../../tasks/depth.md) ground truth is a [paired depth map](datasets.md#depth-maps) you upload, not something you draw. On a depth dataset the editor opens in view mode: the fullscreen viewer wipes between the image and its colorized depth map, and the drawing tools, [smart annotation](#smart-annotation), and class sidebar are all unavailable. Depth datasets have no classes.
+    [Depth](../../datasets/depth/index.md) ground truth is a [paired depth map](datasets.md#depth-maps) you upload, not something you draw, so the editor opens read-only on a depth dataset.
 
 ### Task Details
 

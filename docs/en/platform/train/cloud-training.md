@@ -42,14 +42,6 @@ Choose an official Ultralytics model or one of your own completed models:
 
 Within each tab, models are grouped by task in canonical order and sorted by size. The selector filters official models to tasks compatible with the selected dataset. YOLO26 includes [Detect](../../tasks/detect.md), [Segment](../../tasks/segment.md), [Semantic](../../tasks/semantic.md), [Depth](../../tasks/depth.md), [Classify](../../tasks/classify.md), [Pose](../../tasks/pose.md), and [OBB](../../tasks/obb.md) variants in sizes from nano to xlarge.
 
-!!! note "Depth Training"
-
-    A depth model can only be trained on a [depth dataset](../data/datasets.md#depth-maps), and a depth dataset can only
-    train a depth model. Training needs at least one depth-paired image in `train` and two in `val`: images without a
-    paired depth map are excluded from the run, and the trainer needs two validation targets to calibrate metric scale.
-    A run that finishes without that calibration produces a model that predicts relative rather than metric depth, and
-    Platform marks it with a `Relative depth` badge.
-
 ### Step 2: Select Dataset
 
 Choose a dataset to train on (see [Datasets](../data/datasets.md)):
@@ -63,7 +55,9 @@ Choose a dataset to train on (see [Datasets](../data/datasets.md)):
 
     Datasets must be in `ready` status with at least 1 image in the train split, 1 image in the validation or test
     split, at least 1 labeled image, and at least one class name. Classification datasets additionally require the
-    train-split image to be labeled, and pose datasets must define a keypoint shape.
+    train-split image to be labeled, and pose datasets must define a keypoint shape. [Depth](../data/datasets.md#depth-maps)
+    datasets have no class names and instead need at least 1 depth-paired image in `train` and 2 in `val`; images
+    without a paired depth map are excluded from the run.
 
 !!! warning "Task Mismatch"
 
@@ -546,6 +540,9 @@ Before starting a cloud job, the training dialog shows your current credit balan
     - **Segment only**: `copy_paste`
     - **Pose only**: `pose` (loss weight), `kobj` (keypoint objectness)
     - **Classify only**: `dropout`
+
+    Depth training also seeds a fine-tuning recipe, so its optimizer, learning rate, and warmup bias learning rate start
+    from values other than the defaults above.
 
 ## FAQ
 

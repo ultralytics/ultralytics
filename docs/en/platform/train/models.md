@@ -81,7 +81,7 @@ Each model page has the following tabs:
 
 ### Model Header
 
-Above the tabs, the header shows the model color (editable), the name (click to rename), the task badge, the checkpoint's `ultralytics` version, and a [license](projects.md#create-project) selector. Its actions are **Clone Model** (on completed models with weights that you don't already own), **Download**, **Star**, **Share** (public models), and a **More actions** menu holding **Information**, **Refresh**, and **Delete Model**. A depth model whose checkpoint records no calibrated scale also carries a `Relative depth` badge, meaning its predictions are relative rather than metric — see [depth training](cloud-training.md#step-1-select-base-model).
+Above the tabs, the header shows the model color (editable), the name (click to rename), the task badge, the checkpoint's `ultralytics` version, and a [license](projects.md#create-project) selector. Its actions are **Clone Model** (on completed models with weights that you don't already own), **Download**, **Star**, **Share** (public models), and a **More actions** menu holding **Information**, **Refresh**, and **Delete Model**. A depth model whose checkpoint records no calibrated scale also carries a `Relative depth` badge, meaning its predictions are relative rather than metric.
 
 Directly below, one card per task metric shows the final value over a sparkline of its training progression — click any card to jump to the charts — alongside a card linking the dataset the model was trained on.
 

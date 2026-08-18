@@ -127,7 +127,7 @@ To revoke access at the source instead, deactivate or delete the access key in A
 
 ## Current Limitations
 
-S3-backed datasets currently exclude features that require Platform-owned copies of your images: auto-annotation, [clustering analysis](../data/datasets.md#clustering), dataset cloning, and immutable [version snapshots](../data/datasets.md#versions-tab). [Depth](../data/datasets.md#depth-maps) datasets cannot be connected at all — import their depth maps from an upload or a URL.
+S3-backed datasets currently exclude features that require Platform-owned copies of your images: auto-annotation, [clustering analysis](../data/datasets.md#clustering), dataset cloning, and immutable [version snapshots](../data/datasets.md#versions-tab).
 
 Deleting an S3-backed dataset, or individual images from it, removes Platform's references only — your objects are never touched.
 

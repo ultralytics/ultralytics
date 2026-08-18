@@ -396,7 +396,7 @@ POST /api/datasets
 !!! note "Supported Tasks"
 
     Valid `task` values when creating or updating a dataset: `detect`, `segment`, `semantic`, `depth`, `classify`,
-    `pose`, and `obb`. Depth datasets have no classes, so sending `classNames` with `task: "depth"` returns `400`, and
+    `pose`, and `obb`. Depth datasets have no classes, so `classNames` and `classColors` are rejected with `400`, and
     they cannot use connected storage — ingest them from an upload or a `sourceUrl`. Switching an existing dataset to or
     from `depth` is only accepted while it holds no images (`409`).
 
@@ -768,7 +768,7 @@ GET /api/datasets/{owner}/{dataset}/images
 | `classIds`          | string  | Comma-separated class IDs; returns images containing any of them                                                                                                    |
 | `search`            | string  | Substring match on filename and custom metadata (max 200 chars)                                                                                                     |
 | `sort`              | string  | `newest` (default), `oldest`, `name-asc`, `name-desc`, `height-asc`, `height-desc`, `width-asc`, `width-desc`, `size-asc`, `size-desc`, `labels-asc`, `labels-desc` |
-| `includeThumbnails` | boolean | Include signed thumbnail URLs (default: `true`)                                                                                                                     |
+| `includeThumbnails` | boolean | Include signed thumbnail URLs (default: `false`)                                                                                                                    |
 | `includeImageUrls`  | boolean | Include signed full-size image URLs (default: `false`)                                                                                                              |
 | `includeLabels`     | boolean | Include capped preview annotations (default: `false`)                                                                                                               |
 
@@ -799,9 +799,9 @@ GET /api/datasets/{owner}/{dataset}/images
 }
 ```
 
-On a [depth dataset](../data/datasets.md#depth-maps) each paired image also carries a `depth` object — `hash`, `bytes`,
-`shape` as `[height, width]`, and the optional `min`, `max`, and `validFraction` statistics — plus a signed
-`previewUrl` for the grayscale depth preview when thumbnails are requested. Unpaired images omit it entirely.
+On a [depth dataset](../data/datasets.md#depth-maps), `includeThumbnails=true` also returns a `depth` object on each
+paired image — `hash`, `bytes`, `shape` as `[height, width]`, the optional `min`, `max`, and `validFraction`
+statistics, and a signed `previewUrl` for the grayscale depth preview. Unpaired images omit it entirely.
 
 ### Get Selected Images
 
@@ -1003,7 +1003,8 @@ PATCH /api/images/{imageId}
 
 **Python SDK:** `client.images.update(image_id, body=...)`
 
-Replaces **either** the annotations **or** the custom metadata — send one of the two shapes, not both.
+Replaces **either** the annotations **or** the custom metadata — send one of the two shapes, not both. A `labels`
+body on a [depth dataset](../data/datasets.md#depth-maps) returns `400`.
 
 **Body (annotations):**
 

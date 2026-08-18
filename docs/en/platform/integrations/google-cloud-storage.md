@@ -109,7 +109,7 @@ To revoke access at the source instead, delete the service account key in Google
 
 ## Current Limitations
 
-GCS-backed datasets currently exclude features that require Platform-owned copies of your images: auto-annotation, [clustering analysis](../data/datasets.md#clustering), dataset cloning, and immutable [version snapshots](../data/datasets.md#versions-tab). [Depth](../data/datasets.md#depth-maps) datasets cannot be connected at all — import their depth maps from an upload or a URL.
+GCS-backed datasets currently exclude features that require Platform-owned copies of your images: auto-annotation, [clustering analysis](../data/datasets.md#clustering), dataset cloning, and immutable [version snapshots](../data/datasets.md#versions-tab).
 
 Deleting a GCS-backed dataset, or individual images from it, removes Platform's references only — your objects are never touched.
 

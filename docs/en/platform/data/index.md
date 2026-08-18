@@ -64,7 +64,7 @@ Ultralytics Platform datasets support all 7 YOLO task types:
 | **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes                            | Rectangle tool      |
 | **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks                          | Polygon tool        |
 | **[Semantic](../../datasets/semantic/index.md)** | Semantic segmentation with per-class pixel regions              | Polygon tool        |
-| **[Depth](../../tasks/depth.md)**                | Per-pixel metric depth from paired depth maps                   | Uploaded depth maps |
+| **[Depth](../../datasets/depth/index.md)**       | Per-pixel metric depth from paired depth maps                   | Uploaded depth maps |
 | **[Classify](../../datasets/classify/index.md)** | Image-level classification                                      | Class selector      |
 | **[Pose](../../datasets/pose/index.md)**         | Keypoint estimation with built-in and custom skeleton templates | Keypoint tool       |
 | **[OBB](../../datasets/obb/index.md)**           | Oriented bounding boxes for rotated objects                     | Oriented box tool   |
@@ -159,7 +159,7 @@ Ultralytics Platform supports:
 
 **Dataset files:** ZIP or TAR archives including `.tar.gz` and `.tgz` (max 10GB on Free, 20GB on Pro, 50GB on Enterprise) containing images with optional [YOLO-format](../../datasets/detect/index.md#ultralytics-yolo-format) or COCO JSON labels, plus [NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) exports
 
-**Depth maps:** 2-D float32 `.npy` arrays in meters, paired with images inside an archive (max 100MB each). Loose `.npy` files are not accepted by the upload picker — see [depth maps](datasets.md#depth-maps).
+**Depth maps:** `.npy` depth maps paired with images inside an archive (max 100MB each). Loose `.npy` files are not accepted by the upload picker — see [depth maps](datasets.md#depth-maps).
 
 Any of these archive or NDJSON formats can also be imported by pasting a direct HTTP(S) link in the `URL` tab of the `New Dataset` dialog. Pascal VOC XML labels are detected but not imported.
 

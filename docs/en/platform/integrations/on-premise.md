@@ -209,7 +209,8 @@ available.
   notice — create a new dataset to pick up the changes.
 - **Platform-copy features are unavailable.** On Premise datasets exclude the features that need Platform-owned copies of
   your images: auto-annotation, [clustering analysis](../data/datasets.md#clustering), dataset cloning, and immutable
-  [version snapshots](../data/datasets.md#versions-tab).
+  [version snapshots](../data/datasets.md#versions-tab). [Depth](../data/datasets.md#depth-maps) datasets cannot be
+  connected at all — import their depth maps from an upload or a URL.
 - **Training does not move.** If the worker process stops mid-run, the run fails rather than restarting elsewhere.
 - **Model files stay on the host.** Deleting or trashing a model in Platform removes it from Platform, not from your
   models folder — clean that folder up yourself when a run is no longer needed.

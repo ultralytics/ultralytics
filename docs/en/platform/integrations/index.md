@@ -20,6 +20,9 @@ All integrations are managed from your account settings:
 2. Pick a service from the list on the left — grouped into **Infrastructure**, **Notifications**, and **Imports** — or type its name in the search box
 3. Follow the connection prompts
 
+[Depth](../data/datasets.md#depth-maps) datasets cannot read from connected storage yet — import their depth maps from
+an upload or a URL.
+
 Roboflow imports start with a preview so you can review what will be transferred and confirm that you have enough
 [storage](../account/billing.md). Labelbox, LabelMe, CVAT, and Label Studio need no connection at all — upload the
 exported dataset and Platform reads it directly. Cloud storage connections verify list and read access on every

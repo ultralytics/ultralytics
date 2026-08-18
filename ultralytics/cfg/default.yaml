@@ -127,6 +127,7 @@ aux_fg_sched: o2m # (str) branch weight carrying the aux foreground loss: 'o2m' 
 half_channel: False # (bool) halve BOTH the Detect box-head (c2: ch[0] // 8 divisor) and cls-head (c3: max(ch[0] // 2, 64)) hidden channels; structural, applied at model build during training
 half_channel_box: False # (bool) halve only the Detect box-head (c2) hidden channels; structural, applied at model build during training
 half_channel_cls: False # (bool) halve only the Detect cls-head (c3) hidden channels; structural, applied at model build during training
+l1_scale: norm # (str) when reg_max=1, box L1 loss scale: 'norm' (image-normalized) or 'feat' (feature-map grid scale with Smooth L1; smooth_l1/smooth_l1_beta are code-only)
 dfl: 1.5 # (float) distribution focal loss gain
 pose: 12.0 # (float) pose loss gain (pose tasks)
 kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)

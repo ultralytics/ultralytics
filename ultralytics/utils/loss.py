@@ -114,11 +114,23 @@ class DFLoss(nn.Module):
 class BboxLoss(nn.Module):
     """Criterion class for computing training losses for bounding boxes."""
 
-    def __init__(self, reg_max: int = 16, sigmoid_box: bool = False):
+    def __init__(
+        self,
+        reg_max: int = 16,
+        sigmoid_box: bool = False,
+        l1_scale: str = "norm",
+        smooth_l1: bool = True,
+        smooth_l1_beta: float = 1.0,
+    ):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
         self.sigmoid_box = sigmoid_box
         self.dfl_loss = DFLoss(reg_max) if reg_max > 1 else None
+        if l1_scale not in {"norm", "feat"}:
+            raise ValueError(f"l1_scale must be 'norm' or 'feat', not {l1_scale}")
+        self.l1_scale = l1_scale  # when reg_max==1, scale of the box L1 loss: image-normalized or feature-map grid
+        self.smooth_l1 = smooth_l1 and l1_scale == "feat"  # Smooth L1 (Huber) instead of L1, feat scale only
+        self.smooth_l1_beta = smooth_l1_beta  # transition point between the quadratic and linear regions
 
     def forward(
         self,
@@ -150,17 +162,21 @@ class BboxLoss(nn.Module):
             loss_dfl = loss_dfl.sum() / target_scores_sum
         else:
             target_ltrb = bbox2dist(anchor_points, target_bboxes)
-            # normalize ltrb by image size
-            target_ltrb = target_ltrb * stride
-            target_ltrb[..., 0::2] /= imgsz[1]
-            target_ltrb[..., 1::2] /= imgsz[0]
-            pred_dist = pred_dist * stride
-            pred_dist[..., 0::2] /= imgsz[1]
-            pred_dist[..., 1::2] /= imgsz[0]
-            loss_dfl = (
-                F.l1_loss(pred_dist[fg_mask], target_ltrb[fg_mask], reduction="none").mean(-1, keepdim=True) * weight
-            )
-            loss_dfl = loss_dfl.sum() / target_scores_sum
+            if self.l1_scale != "feat":  # 'feat' keeps the raw feature-map (grid) scale
+                # normalize ltrb by image size
+                target_ltrb = target_ltrb * stride  # grid -> pixels
+                target_ltrb[..., 0::2] /= imgsz[1]
+                target_ltrb[..., 1::2] /= imgsz[0]
+                pred_dist = pred_dist * stride
+                pred_dist[..., 0::2] /= imgsz[1]
+                pred_dist[..., 1::2] /= imgsz[0]
+            if self.smooth_l1:
+                reg = F.smooth_l1_loss(
+                    pred_dist[fg_mask], target_ltrb[fg_mask], reduction="none", beta=self.smooth_l1_beta
+                )
+            else:
+                reg = F.l1_loss(pred_dist[fg_mask], target_ltrb[fg_mask], reduction="none")
+            loss_dfl = (reg.mean(-1, keepdim=True) * weight).sum() / target_scores_sum
 
         return loss_iou, loss_dfl
 
@@ -384,7 +400,13 @@ class v8DetectionLoss:
         )
         self.assigner.monitor = getattr(h, "tal_monitor", False)  # collect assignment stats for tal_monitor callback
         self.assigner.dup_sup = self.dup_sup > 0
-        self.bbox_loss = BboxLoss(m.reg_max, self.sigmoid_box).to(device)
+        self.bbox_loss = BboxLoss(
+            m.reg_max,
+            self.sigmoid_box,
+            l1_scale=getattr(h, "l1_scale", "norm"),
+            smooth_l1=getattr(h, "smooth_l1", True),  # applies to l1_scale='feat' only
+            smooth_l1_beta=getattr(h, "smooth_l1_beta", 1.0),
+        ).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 
     def preprocess(self, targets: torch.Tensor, batch_size: int, scale_tensor: torch.Tensor) -> torch.Tensor:

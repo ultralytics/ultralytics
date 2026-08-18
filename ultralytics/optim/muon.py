@@ -59,7 +59,7 @@ def muon_update(
     rms: float = 0.0,
     tau: float = 0.0,
     tau_momentum: bool = False,
-) -> torch.Tensor | list[torch.Tensor]:
+) -> torch.Tensor | list[torch.Tensor | None]:
     """Compute Muon optimizer updates with momentum and orthogonalization.
 
     This function applies momentum to the gradients, optionally uses Nesterov acceleration, and then orthogonalizes the
@@ -79,15 +79,16 @@ def muon_update(
         rms (float, optional): Target update RMS. Non-zero replaces the scale above with rms * sqrt(max(rows, cols)),
             which an orthogonalized matrix turns into a constant RMS of `rms` regardless of shape, matching Adam's
             update magnitude so both can share one learning rate. Ignores conv_scale. Default: 0.0.
-        tau (float, optional): MiMuon threshold on the Frobenius norm of the momentum. Matrices below it skip
-            orthogonalization and keep the raw momentum as their update. Zero orthogonalizes every matrix, which is
-            plain Muon. Default: 0.0.
-        tau_momentum (bool, optional): Measure tau on the momentum buffer M_t and fall back to it, as in the MiMuon
-            paper. False measures tau on the matrix that is actually orthogonalized, which under Nesterov is
-        beta * M_t + (1 - beta) * grad, and falls back to that instead. Default: False.
+        tau (float, optional): MiMuon threshold on the Frobenius norm of the momentum. Matrices below it update
+            along that momentum instead of its orthogonalization, on the same learning rate. Zero orthogonalizes every
+            matrix, which is plain Muon. Default: 0.0.
+        tau_momentum (bool, optional): Measure tau on the momentum buffer M_t, as in the MiMuon paper. False measures
+            it on the matrix that is actually orthogonalized, which under Nesterov is beta * M_t + (1 - beta) * grad
+            and runs about 1.5x larger in norm. Default: False.
 
     Returns:
-        (torch.Tensor | list[torch.Tensor]): Orthogonalized update tensor(s), each with the gradient's shape and dtype.
+        (torch.Tensor | list[torch.Tensor]): Update tensor(s), each with the gradient's shape and dtype, orthogonalized
+            unless the tau gate sent that matrix down the momentum branch.
 
     Examples:
         >>> grad = torch.randn(64, 128)
@@ -103,10 +104,12 @@ def muon_update(
         - 4D tensors (conv filters) are reshaped to 2D as (out_channels, in_channels*height*width) for orthogonalization.
         - Final updates are scaled by sqrt(max(1, rows / cols)), taken from that 2D matrix when conv_scale.
         - With rms, they are scaled by rms * sqrt(max(rows, cols)) from that 2D matrix instead, fixing their RMS.
-        - With tau, matrices whose momentum has a Frobenius norm below it keep that momentum unscaled as their update,
-          which is the MiMuon rule (https://arxiv.org/abs/2605.19619) and skips their Newton-Schulz call.
-        - tau_momentum picks which matrix that threshold reads, and the same matrix becomes the fallback update. Under
-          Nesterov the two differ by roughly 1.5x in norm, so a tau tuned for one needs retuning for the other.
+        - With tau, a matrix whose momentum norm falls below it updates along M_t rather than orthogonalize(M_t),
+          skipping its Newton-Schulz call, which is Algorithm 2 of MiMuon (https://arxiv.org/abs/2605.19619). Both
+          branches share the learning rate, and M_t runs 2 to 4 orders of magnitude smaller than an orthogonalized
+          direction, so a gated step is far smaller than an ungated one.
+        - tau_momentum picks which matrix that threshold reads. Under Nesterov the two differ by roughly 1.5x in norm,
+          so a tau tuned for one needs retuning for the other.
     """
     single = isinstance(grad, torch.Tensor)
     grads, momentums = ([grad], [momentum]) if single else (grad, momentum)
@@ -118,12 +121,12 @@ def muon_update(
     else:
         updates = list(momentums)
     # MiMuon: orthogonalize only where the momentum is large enough, one device sync for the whole list
-    gated = momentums if tau_momentum else updates  # what tau reads, and what a gated matrix falls back to
-    small = torch.stack(torch._foreach_norm(gated)).lt(tau).tolist() if tau else None
+    read = momentums if tau_momentum else updates  # the matrix tau is measured on
+    small = torch.stack(torch._foreach_norm(read)).lt(tau).tolist() if tau else None
     buckets = {}  # group matrices transposed to rows <= cols by (rows,) for batched orthogonalization
     for i, u in enumerate(updates):
-        if small and small[i]:  # below tau, so the update stays the raw momentum
-            updates[i] = gated[i]
+        if small and small[i]:  # below tau, so this matrix updates along M itself instead
+            updates[i] = read[i]
             continue
         m = u.view(len(u), -1) if u.ndim == 4 else u
         if rms:
@@ -161,10 +164,10 @@ class MuSGD(optim.Optimizer):
             non-zero. Default: 0.0.
         muon_aux (bool, optional): Whether the Muon groups also take the auxiliary update. Default: True.
         conv_scale (bool, optional): Scale conv Muon updates by their reshaped 2D matrix shape. Default: True.
-        tau (float, optional): MiMuon threshold below which a matrix keeps its raw momentum instead of the
-            orthogonalized direction. Default: 0.0.
+        tau (float, optional): MiMuon threshold below which a matrix updates along M instead of its
+            orthogonalization. Default: 0.0.
         tau_momentum (bool, optional): Read tau on the momentum buffer rather than on the orthogonalized matrix.
-        Default: False.
+            Default: False.
 
     Attributes:
         muon (float): Scaling factor applied to Muon learning rate.
@@ -172,7 +175,8 @@ class MuSGD(optim.Optimizer):
         adamw (float): Scaling factor applied to the AdamW learning rate, or 0 when the auxiliary optimizer is SGD.
         muon_aux (bool): Whether the Muon groups take the auxiliary update on top of the Muon one.
         conv_scale (bool): Whether conv filter updates are scaled by their reshaped 2D matrix shape.
-        tau (float): Frobenius norm threshold gating orthogonalization, 0 to orthogonalize every matrix.
+        tau (float): Frobenius norm threshold switching a matrix between orthogonalize(M) and M, 0 to
+            orthogonalize every matrix.
         tau_momentum (bool): Whether tau reads the momentum buffer instead of the orthogonalized matrix.
 
     Examples:
@@ -205,8 +209,9 @@ class MuSGD(optim.Optimizer):
         - Parameter groups with 'use_muon': False receive only the auxiliary update.
         - The auxiliary update is SGD, or AdamW when adamw > 0.
         - The Muon update uses orthogonalization which works best for 2D+ parameter tensors.
-        - With tau > 0 the Muon update follows MiMuon and drops to plain momentum on matrices whose momentum norm
-          falls below tau.
+        - With tau > 0 the Muon update follows MiMuon, switching between orthogonalize(M) and M per matrix per
+          step. Pair it with muon_aux False, as optimizer='MiMuon' does, to keep that switch from being diluted by an
+          auxiliary update riding on the same parameters.
     """
 
     def __init__(
@@ -242,11 +247,12 @@ class MuSGD(optim.Optimizer):
                 which then carries a decoupled weight decay instead of the L2 the auxiliary update would apply.
             conv_scale (bool): Take the Muon update scale from the reshaped 2D matrix, scaling conv filters by
                 sqrt(max(1, out / (in * kh * kw))) instead of leaving them unscaled.
-            tau (float): MiMuon threshold on the momentum Frobenius norm. Matrices below it take a momentum SGD step in
-                place of the orthogonalized one, on the same learning rate. Zero keeps every matrix on Muon.
-            tau_momentum (bool): Read tau on the momentum buffer M_t and fall back to it, following the MiMuon paper.
-                False reads it on the matrix that would have been orthogonalized, so the threshold and the Newton-Schulz
-                input stay the same quantity.
+            tau (float): MiMuon threshold on the momentum Frobenius norm. A Muon-group matrix at or above it
+                updates along orthogonalize(M), one below it updates along M, both on the Muon learning rate. Zero
+                orthogonalizes every matrix.
+            tau_momentum (bool): Read tau on the momentum buffer M_t, following the MiMuon paper. False reads it on the
+                matrix that would have been orthogonalized, so the threshold and the Newton-Schulz input stay the same
+                quantity.
         """
         defaults = dict(
             lr=lr,
@@ -300,6 +306,8 @@ class MuSGD(optim.Optimizer):
         Muon-enabled groups receive an orthogonalized Muon update, followed by the auxiliary
         update unless self.muon_aux is False. Every other group receives the auxiliary update
         alone. That auxiliary update is SGD with momentum, or AdamW when self.adamw is non-zero.
+        With self.tau set, the Muon update itself switches per matrix between orthogonalize(M)
+        and M, which is MiMuon.
 
         Args:
             closure (Callable, optional): A closure that reevaluates the model

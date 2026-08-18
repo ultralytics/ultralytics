@@ -1038,7 +1038,7 @@ class BaseTrainer:
             name, lr, momentum = ("MuSGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
-        use_muon = name.lower() in {"musgd", "muonadamw"}
+        use_muon = name.lower() in {"musgd", "muonadamw", "mimuon"}
         dense_only = use_muon and self.args.muon_dense_only
         skip_muon = set()  # ids of the stem and head final conv weights, excluded from Muon when dense_only
         if dense_only:
@@ -1070,13 +1070,13 @@ class BaseTrainer:
         if not use_muon:
             g = [x.values() for x in g[:3]]  # convert to list of params
 
-        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "MuSGD", "MuonAdamW", "auto"}
+        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "MuSGD", "MuonAdamW", "MiMuon", "auto"}
         name = {x.lower(): x for x in optimizers}.get(name.lower())
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
             optim_args = dict(lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
         elif name == "RMSProp":
             optim_args = dict(lr=lr, momentum=momentum)
-        elif name in {"SGD", "MuSGD", "MuonAdamW"}:
+        elif name in {"SGD", "MuSGD", "MuonAdamW", "MiMuon"}:
             optim_args = dict(lr=lr, momentum=momentum, nesterov=True)
         else:
             raise NotImplementedError(
@@ -1089,7 +1089,11 @@ class BaseTrainer:
         g[0] = {"params": g[0], **optim_args, "weight_decay": decay, "param_group": "weight"}
         g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0, "param_group": "bn"}
         # Muon switches to an Adam-matching update RMS whenever AdamW is the auxiliary optimizer, so both share one lr
-        if name == "MuonAdamW":  # Muon + AdamW on the Muon groups, AdamW alone elsewhere
+        tau = self.args.muon_tau
+        if name == "MiMuon":  # Muon groups switch between orthogonalize(M) and M alone, everything else is SGD
+            muon, sgd, adamw, muon_aux = 0.2, 0.0, 0.0, False  # same Muon lr factor as MuSGD, minus its SGD component
+            tau = tau or 0.01  # paper value for YOLO26m, since a MiMuon run with no threshold is just Muon
+        elif name == "MuonAdamW":  # Muon + AdamW on the Muon groups, AdamW alone elsewhere
             muon, sgd, adamw, muon_aux = 0.2, 0.0, 1.0, True
         elif self.args.muon_aux_adamw:  # Muon alone on the Muon groups, AdamW elsewhere
             muon, sgd, adamw, muon_aux = 1.0, 0.0, 1.0, False
@@ -1121,7 +1125,7 @@ class BaseTrainer:
                 adamw=adamw,
                 muon_aux=muon_aux,
                 conv_scale=self.args.muon_conv_scale,
-                tau=self.args.muon_tau,
+                tau=tau,
                 tau_momentum=self.args.muon_tau_momentum,
             ),
         )(params=g)
@@ -1130,5 +1134,6 @@ class BaseTrainer:
             f"{colorstr('optimizer:')} {name}(lr={lr}, momentum={momentum}) with parameter groups "
             f"{num_params[1]} weight(decay=0.0), {num_params[0]} weight(decay={decay}), {num_params[2]} bias(decay=0.0)"
             + (f", {num_params[3]} muon(decay={decay})" if use_muon else "")
+            + (f", muon_tau={tau}" if use_muon and tau else "")
         )
         return optimizer

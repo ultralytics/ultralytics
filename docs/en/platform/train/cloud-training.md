@@ -541,9 +541,6 @@ Before starting a cloud job, the training dialog shows your current credit balan
     - **Pose only**: `pose` (loss weight), `kobj` (keypoint objectness)
     - **Classify only**: `dropout`
 
-    Depth training also seeds a fine-tuning recipe, so its optimizer, learning rate, and warmup bias learning rate start
-    from values other than the defaults above.
-
 ## FAQ
 
 ### How long does training take?

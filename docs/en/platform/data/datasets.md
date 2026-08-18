@@ -373,7 +373,7 @@ Click any image to open the fullscreen viewer with:
 - **Reset view**: `Cmd/Ctrl + 0` or the reset button to fit the image to the viewer
 - **Pan**: Hold `Space` and drag to pan the canvas when zoomed
 - **Pixel view**: Toggle pixelated rendering for close inspection
-- **Depth curtain**: On depth datasets, a draggable divider wipes between the RGB image and its colorized depth map; the **Annotations**, **Class Breakdown**, and **Annotate** controls above are unavailable
+- **Depth curtain**: On depth datasets, a draggable divider wipes between the RGB image and its colorized depth map
 
 ![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.ul.run/i/083e8f7a4ad565c1cca40ec0f214b748.avif)<!-- screenshot -->
 

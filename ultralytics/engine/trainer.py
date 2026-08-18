@@ -1070,7 +1070,19 @@ class BaseTrainer:
         if not use_muon:
             g = [x.values() for x in g[:3]]  # convert to list of params
 
-        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "MuSGD", "MuonAdamW", "MiMuon", "auto"}
+        optimizers = {
+            "Adam",
+            "Adamax",
+            "AdamW",
+            "NAdam",
+            "RAdam",
+            "RMSProp",
+            "SGD",
+            "MuSGD",
+            "MuonAdamW",
+            "MiMuon",
+            "auto",
+        }
         name = {x.lower(): x for x in optimizers}.get(name.lower())
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
             optim_args = dict(lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
@@ -1089,10 +1101,14 @@ class BaseTrainer:
         g[0] = {"params": g[0], **optim_args, "weight_decay": decay, "param_group": "weight"}
         g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0, "param_group": "bn"}
         # Muon switches to an Adam-matching update RMS whenever AdamW is the auxiliary optimizer, so both share one lr
-        tau = self.args.muon_tau
+        tau, muon_decay = self.args.muon_tau, decay
         if name == "MiMuon":  # Muon groups switch between orthogonalize(M) and M alone, everything else is SGD
             muon, sgd, adamw, muon_aux = 0.2, 0.0, 0.0, False  # same Muon lr factor as MuSGD, minus its SGD component
             tau = tau or 0.01  # paper value for YOLO26m, since a MiMuon run with no threshold is just Muon
+            # Muon groups take a decoupled decay of lr * muon * decay, while MuSGD carries the same decay as L2
+            # through its SGD momentum, which the momentum amplifies by 1/(1 - momentum). Rescale so one
+            # weight_decay value means the same amount of decay under either optimizer.
+            muon_decay = decay / (muon * (1 - momentum))
         elif name == "MuonAdamW":  # Muon + AdamW on the Muon groups, AdamW alone elsewhere
             muon, sgd, adamw, muon_aux = 0.2, 0.0, 1.0, True
         elif self.args.muon_aux_adamw:  # Muon alone on the Muon groups, AdamW elsewhere
@@ -1100,7 +1116,7 @@ class BaseTrainer:
         else:  # the MuSGD default: Muon + SGD on the Muon groups, SGD alone elsewhere
             muon, sgd, adamw, muon_aux = 0.2, 1.0, 0.0, True
         if use_muon:
-            g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True, "param_group": "muon"}
+            g[3] = {"params": g[3], **optim_args, "weight_decay": muon_decay, "use_muon": True, "param_group": "muon"}
             import re
 
             # higher lr for certain parameters in MuSGD when finetuning
@@ -1133,7 +1149,7 @@ class BaseTrainer:
         LOGGER.info(
             f"{colorstr('optimizer:')} {name}(lr={lr}, momentum={momentum}) with parameter groups "
             f"{num_params[1]} weight(decay=0.0), {num_params[0]} weight(decay={decay}), {num_params[2]} bias(decay=0.0)"
-            + (f", {num_params[3]} muon(decay={decay})" if use_muon else "")
+            + (f", {num_params[3]} muon(decay={muon_decay:.3g})" if use_muon else "")
             + (f", muon_tau={tau}" if use_muon and tau else "")
         )
         return optimizer

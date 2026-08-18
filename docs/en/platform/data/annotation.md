@@ -29,7 +29,7 @@ graph TB
 
 ## Supported Task Types
 
-The annotation editor supports the 6 YOLO task types whose ground truth is drawn on the image:
+The annotation editor provides annotation tools for 6 YOLO task types:
 
 | Task                                             | Tool           | Annotation Format                                         |
 | ------------------------------------------------ | -------------- | --------------------------------------------------------- |

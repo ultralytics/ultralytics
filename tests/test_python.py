@@ -1487,6 +1487,20 @@ def test_utils_ops():
     assert segment2box(seg, 640, 640).tolist() == [0, 0, 640, 640]
 
 
+def test_scale_coords_nonuniform_letterbox():
+    """Coordinate scaling must invert independent height and width gains from stretched preprocessing."""
+    from ultralytics.data.augment import LetterBox
+    from ultralytics.utils import ops
+
+    labels = {"img": np.zeros((320, 640, 3), dtype=np.uint8), "ratio_pad": (3.2, 3.2)}
+    ratio_pad = LetterBox((640, 640), scale_fill=True)(labels)["ratio_pad"]
+    boxes = np.array([[32.0, 64.0, 320.0, 384.0]])
+    coords = torch.tensor([[160.0, 128.0]])
+    assert ratio_pad == ((6.4, 3.2), (0, 0))
+    assert np.allclose(ops.scale_boxes((640, 640), boxes, (100, 200), ratio_pad), [[10, 10, 100, 60]])
+    assert torch.allclose(ops.scale_coords((640, 640), coords, (100, 200), ratio_pad), coords.new_tensor([[50, 20]]))
+
+
 def test_nms_end2end_classes_before_max_det():
     """The end-to-end NMS branch must filter classes before truncating to max_det, like the NMS-based branch."""
     from ultralytics.utils.nms import non_max_suppression

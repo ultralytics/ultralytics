@@ -269,7 +269,7 @@ class YOLODataset(BaseDataset):
         Args:
             hyp (dict): Hyperparameters for transforms.
         """
-        if self.aug_stop_epoch > 0:
+        if self.aug_stop_epoch is not None and self.aug_stop_epoch > 0:
             hyp.mosaic = hyp.mixup = hyp.copy_paste = hyp.cutmix = 0.0
             hyp.degrees = hyp.translate = hyp.scale = hyp.shear = hyp.perspective = 0.0
             hyp.hsv_h = hyp.hsv_s = hyp.hsv_v = 0.0

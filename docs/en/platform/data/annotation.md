@@ -29,7 +29,7 @@ graph TB
 
 ## Supported Task Types
 
-The annotation editor supports all 6 YOLO task types:
+The annotation editor provides annotation tools for 6 YOLO task types:
 
 | Task                                             | Tool           | Annotation Format                                         |
 | ------------------------------------------------ | -------------- | --------------------------------------------------------- |
@@ -43,6 +43,8 @@ The annotation editor supports all 6 YOLO task types:
 !!! tip "Multi-Task Annotations"
 
     All 6 annotation types are stored together on each image. You can switch the dataset's active task type without losing existing annotations — they are preserved and reappear when you switch back.
+
+[Depth ground truth](../../datasets/depth/index.md#depth-map-format) is a paired map you upload, not something you draw, so the editor opens read-only on a depth dataset.
 
 ### Task Details
 

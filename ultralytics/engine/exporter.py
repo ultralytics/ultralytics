@@ -847,7 +847,7 @@ class Exporter:
         for m in model.modules():
             if isinstance(m, Attention):
                 m.export = True
-                m.format = self.args.format
+                m.format = "mlmodel" if self.args.format.lower() == "mlmodel" else fmt
             if isinstance(m, (Classify, SemanticSegment, Depth)):
                 m.export = True
                 m.format = self.args.format

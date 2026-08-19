@@ -91,7 +91,7 @@ def delete_dsstore(path: str | Path, files_to_delete: tuple[str, ...] = (".DS_St
         are hidden system files and can cause issues when transferring files between different operating systems.
     """
     for file in files_to_delete:
-        matches = list(Path(path).rglob(file))
+        matches = sorted(Path(path).rglob(file), key=lambda x: len(x.parts), reverse=True)
         LOGGER.info(f"Deleting {file} files: {matches}")
         for f in matches:
             if f.is_dir() and not f.is_symlink():

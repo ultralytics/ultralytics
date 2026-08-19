@@ -1028,9 +1028,12 @@ def test_data_utils(tmp_path):
     Image.new("RGB", (8, 8)).save(images_dir / "test.jpg")
     metadata_dir = images_dir / "__MACOSX"
     metadata_dir.mkdir()
+    nested_metadata_dir = metadata_dir / "nested/__MACOSX"
+    nested_metadata_dir.mkdir(parents=True)
     metadata_file = images_dir / ".DS_Store"
     metadata_file.write_bytes(b"metadata")
     (metadata_dir / "._test.jpg").write_bytes(b"metadata")
+    (nested_metadata_dir / "._nested.jpg").write_bytes(b"metadata")
 
     autosplit(tmp_path / "coco8/images")
     assert any((tmp_path / "coco8").glob("autosplit_*.txt"))

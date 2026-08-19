@@ -814,8 +814,6 @@ class BaseTrainer:
         if str(self.model).endswith(".pt"):
             weights, ckpt = load_checkpoint(self.model)
             cfg = weights.yaml
-        # When resuming, keep the resumed checkpoint weights; do not reload the
-        # initial pretrained weights (https://github.com/ultralytics/ultralytics/issues/25812)
         if isinstance(self.args.pretrained, (str, Path)) and not self.resume:
             weights, _ = load_checkpoint(self.args.pretrained)
         elif self.args.pretrained is False and not self.resume:

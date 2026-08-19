@@ -85,11 +85,11 @@ def load_depth(path: str | Path, scale: float = DEPTH_PNG_SCALE) -> np.ndarray:
     encoded = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
     if encoded is None or encoded.ndim != 2 or encoded.dtype.kind not in "iu" or encoded.dtype.itemsize < 2:
         raise ValueError(f"Depth PNG {path} must be a 2D uint16 map")
-    if encoded.dtype != np.uint16:
-        if encoded.size and (encoded.min() < 0 or encoded.max() > np.iinfo(np.uint16).max):
-            raise ValueError(f"Depth PNG {path} contains values outside the uint16 range")
-        encoded = encoded.astype(np.uint16)
-    return encoded.astype(np.float32) / scale
+    if encoded.dtype != np.uint16 and encoded.size and (encoded.min() < 0 or encoded.max() > np.iinfo(np.uint16).max):
+        raise ValueError(f"Depth PNG {path} contains values outside the uint16 range")
+    depth = encoded.astype(np.float32)
+    depth /= scale
+    return depth
 
 
 def img2label_paths(img_paths: list[str], label_dir: str = "labels", suffix: str = ".txt") -> list[str]:

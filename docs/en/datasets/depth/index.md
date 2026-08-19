@@ -134,7 +134,7 @@ val: images/val
 
 nc: 1
 names:
-  0: depth
+    0: depth
 
 # Optional: PNG integer units per meter (default 1000)
 depth_scale: 1000

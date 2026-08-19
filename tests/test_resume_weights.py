@@ -1,5 +1,8 @@
-import torch
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from types import SimpleNamespace
+
+import torch
 
 from ultralytics.engine import trainer as trainer_mod
 from ultralytics.engine.trainer import BaseTrainer
@@ -8,12 +11,13 @@ from ultralytics.engine.trainer import BaseTrainer
 def test_setup_model_resume_keeps_resumed_weights(monkeypatch):
     """Regression test for https://github.com/ultralytics/ultralytics/issues/25812.
 
-    When training is resumed, ``BaseTrainer.setup_model`` must keep the weights loaded
-    from the resume checkpoint (last.pt) and must NOT overwrite them with the
-    initial pretrained weights, even when ``args.pretrained`` is a (string) model
+    When training is resumed, ``BaseTrainer.setup_model`` must keep the weights loaded from the resume checkpoint
+    (last.pt) and must NOT overwrite them with the initial pretrained weights, even when ``args.pretrained`` is a
+    (string) model
     path. Otherwise the resumed run silently restarts from the initial pretrained
     weights while only the optimizer/epoch state is restored.
     """
+
     # Two distinct fake weight objects so we can tell which one is actually used.
     class FakeWeights:
         yaml = {}

@@ -234,21 +234,6 @@ def seed_worker(worker_id: int) -> None:
     random.seed(worker_seed)
 
 
-def get_hyps_from_cfg(cfg: IterableSimpleNamespace) -> IterableSimpleNamespace:
-    """Return a per-dataset copy of cfg to use as augmentation hyperparameters.
-
-    Datasets mutate hyperparameter fields (e.g. mosaic, mixup) on the object they're given, so passing the shared
-    trainer cfg directly would let one dataset's construction silently change another's settings.
-
-    Args:
-        cfg (IterableSimpleNamespace): Configuration to copy hyperparameters from.
-
-    Returns:
-        (IterableSimpleNamespace): Independent copy of cfg safe for a dataset to mutate.
-    """
-    return copy(cfg)
-
-
 def build_yolo_dataset(
     cfg: IterableSimpleNamespace,
     img_path: str,
@@ -285,7 +270,7 @@ def build_yolo_dataset(
         imgsz=cfg.imgsz,
         batch_size=batch,
         augment=mode == "train",
-        hyp=get_hyps_from_cfg(cfg),
+        hyp=copy(cfg),
         rect=rect,
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,
@@ -317,7 +302,7 @@ def build_grounding(
         imgsz=cfg.imgsz,
         batch_size=batch,
         augment=mode == "train",  # augmentation
-        hyp=get_hyps_from_cfg(cfg),
+        hyp=copy(cfg),
         rect=cfg.rect or rect,  # rectangular batches
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,

@@ -14,7 +14,7 @@ path: nyu-depth-png # dataset root dir (relative to Ultralytics settings 'datase
 train: images/train # train images (relative to 'path') 795 images
 val: images/val # val images (relative to 'path') 654 images
 
-# Depth maps are paired self-describing 16-bit PNGs under depth/<split>/, resolved by
+# Depth maps are paired uint16 millimeter PNGs under depth/<split>/, resolved by
 # swapping '/images/' -> '/depth/' on each image path.
 
 # Classes
@@ -23,6 +23,7 @@ names:
   0: depth
 
 channels: 3
+depth_scale: 1000
 
 # Download script/URL (optional)
 download: https://github.com/ultralytics/assets/releases/download/v0.0.0/nyu-depth-png.zip

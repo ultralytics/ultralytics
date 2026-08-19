@@ -84,7 +84,7 @@ The file extension alone isn't enough: a video can still fail if its codec canno
 
 ### Preparing Your Dataset
 
-The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), [COCO](https://cocodataset.org/#format-data), [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format), and raw (unannotated) uploads. [Depth](../../datasets/depth/index.md) datasets carry paired depth maps instead of annotations — see [Depth Maps](#depth-maps):
+The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), [COCO](https://cocodataset.org/#format-data), [depth datasets](../../datasets/depth/index.md#depth-map-format), [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format), and raw (unannotated) uploads:
 
 === "YOLO Format"
 
@@ -172,6 +172,30 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
         ├── cats/
         └── dogs/
     ```
+
+=== "Depth"
+
+    Depth archives keep RGB images and paired targets in parallel `images/` and `depth/` folders. Targets may be
+    floating-point NPY arrays in meters or plain uint16 grayscale PNGs. PNG values are divided by `depth_scale`, which
+    defaults to `1000` (millimeters); no PNG metadata is required.
+
+    ```text
+    my-depth-dataset/
+    ├── data.yaml
+    ├── images/{train,val}/scene.jpg
+    └── depth/{train,val}/scene.png  # or scene.npy
+    ```
+
+    ```yaml
+    train: images/train
+    val: images/val
+    nc: 1
+    names: {0: depth}
+    depth_scale: 1000 # PNG value 1000 = 1 meter
+    ```
+
+    Files pair by stem. Depth maps may use a smaller resolution than their RGB images when the aspect ratio matches.
+    See the [depth dataset format](../../datasets/depth/index.md#depth-map-format).
 
 === "NDJSON"
 
@@ -648,7 +672,9 @@ The optional image-level `metadata` object is preserved when an NDJSON file is i
 
 Pose datasets also carry a `kpt_shape` field in the dataset header line, inferred from the annotations when it is not already set.
 
-Depth datasets replace each image's `annotations` object with a `depth` object pointing at the paired map, so an export you re-import into Platform restores the pairing. Exports and version downloads ship only paired images; [snapshots](#versions-tab) retain unpaired ones so a restore is lossless.
+Depth exports declare `"task": "depth"` and `"depth_scale": 1000` in the dataset line. Each image line includes a
+`depth.url` for its paired plain uint16 PNG. Ultralytics downloads image and depth URLs concurrently and writes a
+training YAML with the same scale, so the NDJSON file can be passed directly to `model.train(data=...)`.
 
 !!! note "Signed URLs"
 

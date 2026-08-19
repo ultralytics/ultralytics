@@ -13,7 +13,7 @@ keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, boun
 
 ```mermaid
 graph TB
-    subgraph Draw["Draw Mode"]
+    subgraph Draw["Shape set by the dataset task"]
         A[Box]:::start & B[Polygon]:::start & C[Classify]:::start & D[Keypoint]:::start & E[OBB]:::start
     end
     subgraph AI["AI-Assisted"]

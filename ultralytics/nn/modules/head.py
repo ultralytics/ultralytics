@@ -38,6 +38,8 @@ __all__ = (
     "Detect",
     "DeimDecoder",
     "DeimLayerNormDecoder",
+    "DeimOBBDecoder",
+    "DeimPoseDecoder",
     "DeimSegmentDecoder",
     "DFineDecoder",
     "Pose",
@@ -2776,6 +2778,367 @@ class DeimSegmentDecoder(DeimDecoder):
         boxes = boxes.gather(dim=1, index=gather_idx.expand(-1, -1, 4))
         coeffs = coeffs.gather(dim=1, index=gather_idx.expand(-1, -1, self.nm))
         return torch.cat([boxes, scores[..., None], (index - query_idx * self.nc)[..., None].float(), coeffs], dim=-1)
+
+
+class DeimPoseDecoder(DeimDecoder):
+    """DEIMv2 pose-estimation decoder head with per-query keypoint heads.
+
+    This class extends DeimDecoder with a per-decoder-layer linear keypoint head, mirroring how Pose extends Detect
+    for YOLO pose estimation. Keypoint xy coordinates are predicted in sigmoid space (image-normalized absolute
+    coordinates, consistent with the decoder's sigmoid-space boxes) and visibility scores are kept as raw logits.
+
+    YAML argument order (parse_model inserts input channels `ch` at index 1):
+        [nc, kpt_shape, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
+        learnt_init_query, enable_cuda_acceleration, one_to_many_groups, dab_sine_embedding,
+        efficient_msdeformable_attn, query_select_method, reg_max, reg_scale, layer_scale, mlp_act, o2m_topk_mode,
+        use_gateway, share_bbox_head, share_score_head, use_rmsnorm]
+
+    Attributes:
+        kpt_shape (tuple): Number of keypoints and dimensions (2 for x,y or 3 for x,y,visible).
+        nk (int): Total number of keypoint values (kpt_shape[0] * kpt_shape[1]).
+        dec_kpt_head (nn.ModuleList): Per-decoder-layer linear heads mapping hidden states to keypoints.
+
+    Examples:
+        Create a DEIM pose head
+        >>> head = DeimPoseDecoder(nc=80, ch=(256, 512, 1024), kpt_shape=[17, 3])
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = head(x)
+    """
+
+    def __init__(
+        self,
+        nc: int = 80,
+        ch: tuple = (512, 1024, 2048),
+        kpt_shape: tuple = (17, 3),  # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
+        hd: int = 256,
+        nq: int = 300,
+        ndp: int = 4,
+        nh: int = 8,
+        ndl: int = 6,
+        d_ffn: int = 1024,
+        dropout: float = 0.0,
+        act: str = "relu",
+        eval_idx: int = -1,
+        nd: int = 100,
+        label_noise_ratio: float = 0.5,
+        box_noise_scale: float = 1.0,
+        learnt_init_query: bool = False,
+        enable_cuda_acceleration: bool = False,
+        one_to_many_groups: int = 0,
+        dab_sine_embedding: bool = False,
+        efficient_msdeformable_attn: bool = False,
+        query_select_method: str = "default",
+        reg_max: int = 32,
+        reg_scale: float = 4.0,
+        layer_scale: float = 1.0,
+        mlp_act: str = "relu",
+        o2m_topk_mode: str = "unshared",
+        use_gateway: bool = True,
+        share_bbox_head: bool = False,
+        share_score_head: bool = False,
+        use_rmsnorm: bool = True,
+    ):
+        """Initialize the DEIM pose decoder with per-decoder-layer keypoint heads.
+
+        Args:
+            nc (int): Number of classes.
+            ch (tuple): Channels of the backbone/neck feature maps fed to the decoder.
+            kpt_shape (tuple): Number of keypoints, number of dims (2 for x,y or 3 for x,y,visible).
+            hd (int): Hidden dimension of the decoder.
+            nq (int): Number of queries.
+            ndp (int): Number of decoder sampling points.
+            nh (int): Number of attention heads.
+            ndl (int): Number of decoder layers.
+            d_ffn (int): Dimension of the feed-forward networks.
+            dropout (float): Dropout rate.
+            act (str): Activation function name.
+            eval_idx (int): Decoder layer index used at evaluation.
+            nd (int): Number of denoising queries.
+            label_noise_ratio (float): Denoising label noise ratio.
+            box_noise_scale (float): Denoising box noise scale.
+            learnt_init_query (bool): Whether to learn initial query embeddings.
+            enable_cuda_acceleration (bool): Whether to use CUDA-accelerated deformable attention.
+            one_to_many_groups (int): Number of one-to-many query groups.
+            dab_sine_embedding (bool): Whether to use DAB sine embeddings.
+            efficient_msdeformable_attn (bool): Whether to use efficient multi-scale deformable attention.
+            query_select_method (str): Query selection method.
+            reg_max (int): Maximum value of the integral regression bins.
+            reg_scale (float): Scale of the integral regression.
+            layer_scale (int): Hidden dimension scale for wide decoder layers.
+            mlp_act (str): Activation function name for MLP heads.
+            o2m_topk_mode (str): One-to-many top-k mode.
+            use_gateway (bool): Whether to use gateway in DEIM decoder layers.
+            share_bbox_head (bool): Whether to share the bbox head across decoder layers.
+            share_score_head (bool): Whether to share the score head across decoder layers.
+            use_rmsnorm (bool): Whether to use RMSNorm in DEIM decoder layers.
+        """
+        super().__init__(
+            nc,
+            ch,
+            hd,
+            nq,
+            ndp,
+            nh,
+            ndl,
+            d_ffn,
+            dropout,
+            act,
+            eval_idx,
+            nd,
+            label_noise_ratio,
+            box_noise_scale,
+            learnt_init_query,
+            enable_cuda_acceleration,
+            one_to_many_groups,
+            dab_sine_embedding,
+            efficient_msdeformable_attn,
+            query_select_method,
+            reg_max,
+            reg_scale,
+            layer_scale,
+            mlp_act,
+            o2m_topk_mode,
+            use_gateway,
+            share_bbox_head,
+            share_score_head,
+            use_rmsnorm,
+        )
+        self.kpt_shape = kpt_shape
+        self.nk = kpt_shape[0] * kpt_shape[1]  # number of keypoints total
+        self.dec_kpt_head = nn.ModuleList(nn.Linear(hd, self.nk) for _ in range(ndl))
+
+    def forward(self, x: list[torch.Tensor], batch: dict | None = None) -> tuple | torch.Tensor:
+        """Run the forward pass, attaching per-layer keypoint predictions.
+
+        Training returns the parent 6-tuple with `dec_kpts` (L, bs, Q, nk) added to `dfine_meta`. Evaluation returns
+        `(y, x)` where `y` has shape (bs, k, 6 + nk) with layout [cx, cy, w, h, score, cls, kpts...] (keypoint xy
+        image-normalized, visibility as raw logits), or `y` alone when exporting.
+        """
+        if self.training:
+            outputs = super().forward(x, batch)
+            dfine_meta = outputs[-1]
+            dec_feats = dfine_meta["dec_feats"]  # (L, bs, Q, hd)
+            dfine_meta["dec_kpts"] = torch.stack([head(feat) for head, feat in zip(self.dec_kpt_head, dec_feats)])
+            return outputs
+        # Eval: run the parent path with export disabled so the raw decoder outputs stay available.
+        export = self.export
+        self.export = False
+        _, outputs = super().forward(x, batch)
+        self.export = export
+        dec_bboxes, dec_scores, _, _, _, dfine_meta = outputs
+        kpts = self.dec_kpt_head[self.eval_idx](dfine_meta["dec_feats"][0])  # (bs, nq, nk)
+        dfine_meta["dec_kpts"] = kpts.unsqueeze(0)  # (1, bs, nq, nk), consumed by the loss during validation
+        y = self.postprocess(dec_bboxes.squeeze(0), dec_scores.squeeze(0).sigmoid(), kpts)
+        return y if export else (y, outputs)
+
+    def postprocess(
+        self, boxes: torch.Tensor, scores: torch.Tensor, kpts: torch.Tensor | None = None
+    ) -> torch.Tensor:
+        """Post-process predictions to select top-k detections, gathering keypoints with the same indices.
+
+        Args:
+            boxes (torch.Tensor): Predicted bounding boxes with shape (batch_size, num_queries, 4), format [cx, cy, w,
+                h].
+            scores (torch.Tensor): Class scores with shape (batch_size, num_queries, nc).
+            kpts (torch.Tensor, optional): Raw keypoint predictions with shape (batch_size, num_queries, nk). If
+                None, falls back to the detection-only postprocess.
+
+        Returns:
+            (torch.Tensor): Processed predictions with shape (batch_size, k, 6 + nk) and last dimension format [cx,
+                cy, w, h, max_class_prob, class_index, keypoints] with keypoint xy passed through a sigmoid
+                (image-normalized absolute coordinates) and visibility kept as raw logits.
+        """
+        if kpts is None:
+            return super().postprocess(boxes, scores)
+        bs, nq = kpts.shape[:2]
+        kpts = kpts.view(bs, nq, *self.kpt_shape)
+        # xy: sigmoid to image-normalized absolute coords; visibility kept as raw logits
+        kpts = torch.cat([kpts[..., :2].sigmoid(), kpts[..., 2:]], dim=-1).flatten(2)  # (bs, nq, nk)
+        if self.disable_topk:
+            scores, class_idx = scores.max(dim=-1, keepdim=True)  # (bs, nq, 1), (bs, nq, 1)
+            return torch.cat([boxes, scores, class_idx.float(), kpts], dim=-1)  # (bs, nq, 6+nk)
+        k = min(self.num_queries, self.max_det) if self.export else self.num_queries
+        scores, index = scores.flatten(1).topk(k)
+        # CoreML MIL lacks integer floor-div and mod lowering: use torch.div(rounding_mode="floor") and (index - q*nc).
+        query_idx = torch.div(index, self.nc, rounding_mode="floor")
+        gather_idx = query_idx.unsqueeze(-1).long()
+        boxes = boxes.gather(dim=1, index=gather_idx.expand(-1, -1, 4))
+        kpts = kpts.gather(dim=1, index=gather_idx.expand(-1, -1, self.nk))
+        return torch.cat([boxes, scores[..., None], (index - query_idx * self.nc)[..., None].float(), kpts], dim=-1)
+
+
+class DeimOBBDecoder(DeimDecoder):
+    """DEIMv2 oriented-bounding-box decoder head with per-query angle heads.
+
+    This class extends DeimDecoder with a per-decoder-layer linear angle head, mirroring how OBB26 extends Detect for
+    YOLO26 rotated-object detection. Angles are raw regression values (no sigmoid transform), supervised with a
+    wrap-invariant sin(2*delta)^2 loss, matching the OBB26 methodology.
+
+    YAML argument order (parse_model inserts input channels `ch` at index 1): identical to DeimDecoder.
+
+    Attributes:
+        ne (int): Number of extra parameters (rotation angles), fixed to 1.
+        dec_angle_head (nn.ModuleList): Per-decoder-layer linear heads mapping hidden states to rotation angles.
+
+    Examples:
+        Create a DEIM OBB head
+        >>> head = DeimOBBDecoder(nc=15, ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = head(x)
+    """
+
+    def __init__(
+        self,
+        nc: int = 80,
+        ch: tuple = (512, 1024, 2048),
+        hd: int = 256,
+        nq: int = 300,
+        ndp: int = 4,
+        nh: int = 8,
+        ndl: int = 6,
+        d_ffn: int = 1024,
+        dropout: float = 0.0,
+        act: str = "relu",
+        eval_idx: int = -1,
+        nd: int = 100,
+        label_noise_ratio: float = 0.5,
+        box_noise_scale: float = 1.0,
+        learnt_init_query: bool = False,
+        enable_cuda_acceleration: bool = False,
+        one_to_many_groups: int = 0,
+        dab_sine_embedding: bool = False,
+        efficient_msdeformable_attn: bool = False,
+        query_select_method: str = "default",
+        reg_max: int = 32,
+        reg_scale: float = 4.0,
+        layer_scale: float = 1.0,
+        mlp_act: str = "relu",
+        o2m_topk_mode: str = "unshared",
+        use_gateway: bool = True,
+        share_bbox_head: bool = False,
+        share_score_head: bool = False,
+        use_rmsnorm: bool = True,
+    ):
+        """Initialize the DEIM OBB decoder with per-decoder-layer angle heads.
+
+        Args:
+            nc (int): Number of classes.
+            ch (tuple): Channels of the backbone/neck feature maps fed to the decoder.
+            hd (int): Hidden dimension of the decoder.
+            nq (int): Number of queries.
+            ndp (int): Number of decoder sampling points.
+            nh (int): Number of attention heads.
+            ndl (int): Number of decoder layers.
+            d_ffn (int): Dimension of the feed-forward networks.
+            dropout (float): Dropout rate.
+            act (str): Activation function name.
+            eval_idx (int): Decoder layer index used at evaluation.
+            nd (int): Number of denoising queries.
+            label_noise_ratio (float): Denoising label noise ratio.
+            box_noise_scale (float): Denoising box noise scale.
+            learnt_init_query (bool): Whether to learn initial query embeddings.
+            enable_cuda_acceleration (bool): Whether to use CUDA-accelerated deformable attention.
+            one_to_many_groups (int): Number of one-to-many query groups.
+            dab_sine_embedding (bool): Whether to use DAB sine embeddings.
+            efficient_msdeformable_attn (bool): Whether to use efficient multi-scale deformable attention.
+            query_select_method (str): Query selection method.
+            reg_max (int): Maximum value of the integral regression bins.
+            reg_scale (float): Scale of the integral regression.
+            layer_scale (int): Hidden dimension scale for wide decoder layers.
+            mlp_act (str): Activation function name for MLP heads.
+            o2m_topk_mode (str): One-to-many top-k mode.
+            use_gateway (bool): Whether to use gateway in DEIM decoder layers.
+            share_bbox_head (bool): Whether to share the bbox head across decoder layers.
+            share_score_head (bool): Whether to share the score head across decoder layers.
+            use_rmsnorm (bool): Whether to use RMSNorm in DEIM decoder layers.
+        """
+        super().__init__(
+            nc,
+            ch,
+            hd,
+            nq,
+            ndp,
+            nh,
+            ndl,
+            d_ffn,
+            dropout,
+            act,
+            eval_idx,
+            nd,
+            label_noise_ratio,
+            box_noise_scale,
+            learnt_init_query,
+            enable_cuda_acceleration,
+            one_to_many_groups,
+            dab_sine_embedding,
+            efficient_msdeformable_attn,
+            query_select_method,
+            reg_max,
+            reg_scale,
+            layer_scale,
+            mlp_act,
+            o2m_topk_mode,
+            use_gateway,
+            share_bbox_head,
+            share_score_head,
+            use_rmsnorm,
+        )
+        self.ne = 1  # number of extra parameters (rotation angles)
+        self.dec_angle_head = nn.ModuleList(nn.Linear(hd, self.ne) for _ in range(ndl))
+
+    def forward(self, x: list[torch.Tensor], batch: dict | None = None) -> tuple | torch.Tensor:
+        """Run the forward pass, attaching per-layer rotation-angle predictions.
+
+        Training returns the parent 6-tuple with `dec_angles` (L, bs, Q, 1) added to `dfine_meta`. Evaluation returns
+        `(y, x)` where `y` has shape (bs, k, 7) with layout [cx, cy, w, h, score, cls, angle] (raw angle), or `y`
+        alone when exporting.
+        """
+        if self.training:
+            outputs = super().forward(x, batch)
+            dfine_meta = outputs[-1]
+            dec_feats = dfine_meta["dec_feats"]  # (L, bs, Q, hd)
+            dfine_meta["dec_angles"] = torch.stack([head(feat) for head, feat in zip(self.dec_angle_head, dec_feats)])
+            return outputs
+        # Eval: run the parent path with export disabled so the raw decoder outputs stay available.
+        export = self.export
+        self.export = False
+        _, outputs = super().forward(x, batch)
+        self.export = export
+        dec_bboxes, dec_scores, _, _, _, dfine_meta = outputs
+        angle = self.dec_angle_head[self.eval_idx](dfine_meta["dec_feats"][0])  # (bs, nq, 1)
+        dfine_meta["dec_angles"] = angle.unsqueeze(0)  # (1, bs, nq, 1), consumed by the loss during validation
+        y = self.postprocess(dec_bboxes.squeeze(0), dec_scores.squeeze(0).sigmoid(), angle)
+        return y if export else (y, outputs)
+
+    def postprocess(
+        self, boxes: torch.Tensor, scores: torch.Tensor, angle: torch.Tensor | None = None
+    ) -> torch.Tensor:
+        """Post-process predictions to select top-k detections, gathering rotation angles with the same indices.
+
+        Args:
+            boxes (torch.Tensor): Predicted bounding boxes with shape (batch_size, num_queries, 4), format [cx, cy, w,
+                h].
+            scores (torch.Tensor): Class scores with shape (batch_size, num_queries, nc).
+            angle (torch.Tensor, optional): Raw rotation angle predictions with shape (batch_size, num_queries, 1).
+                If None, falls back to the detection-only postprocess.
+
+        Returns:
+            (torch.Tensor): Processed predictions with shape (batch_size, k, 7) and last dimension format [cx, cy, w,
+                h, max_class_prob, class_index, angle].
+        """
+        if angle is None:
+            return super().postprocess(boxes, scores)
+        if self.disable_topk:
+            scores, class_idx = scores.max(dim=-1, keepdim=True)  # (bs, nq, 1), (bs, nq, 1)
+            return torch.cat([boxes, scores, class_idx.float(), angle], dim=-1)  # (bs, nq, 7)
+        k = min(self.num_queries, self.max_det) if self.export else self.num_queries
+        scores, index = scores.flatten(1).topk(k)
+        # CoreML MIL lacks integer floor-div and mod lowering: use torch.div(rounding_mode="floor") and (index - q*nc).
+        query_idx = torch.div(index, self.nc, rounding_mode="floor")
+        gather_idx = query_idx.unsqueeze(-1).long()
+        boxes = boxes.gather(dim=1, index=gather_idx.expand(-1, -1, 4))
+        angle = angle.gather(dim=1, index=gather_idx.expand(-1, -1, self.ne))
+        return torch.cat([boxes, scores[..., None], (index - query_idx * self.nc)[..., None].float(), angle], dim=-1)
 
 
 class v10Detect(Detect):

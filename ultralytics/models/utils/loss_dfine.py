@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 import torch
@@ -10,7 +11,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ultralytics.nn.modules.dfine_utils import bbox2distance
-from ultralytics.utils.loss import BCEDiceLoss, FocalLoss, MALoss, RankLoss, StableDINOLoss, VarifocalLoss
+from ultralytics.utils.loss import BCEDiceLoss, FocalLoss, KeypointLoss, MALoss, RankLoss, StableDINOLoss, VarifocalLoss
+from ultralytics.utils.metrics import OKS_SIGMA
 from ultralytics.utils.ops import crop_mask
 
 from .box_ops import aligned_box_iou, aligned_giou, aligned_giou_new, box_cxcywh_to_xyxy
@@ -945,4 +947,183 @@ class DeimSegmentationLoss(DfineLoss):
             total_loss["loss_mask"] = self._get_loss_mask(masks_coeff, proto, gt_masks, batch)
         if semseg is not None and sem_masks is not None and gt_masks is not None:
             total_loss["loss_semseg"] = self._get_loss_semseg(semseg, sem_masks, gt_masks, batch)
+        return self._sanitize_losses(total_loss)
+
+
+class DeimPoseLoss(DfineLoss):
+    """DfineLoss extended with keypoint and keypoint-visibility losses for DeimPoseDecoder.
+
+    The pose loss follows the YOLO pose convention (port of v8PoseLoss.calculate_keypoints_loss): an OKS-form
+    KeypointLoss on the sigmoid-decoded keypoint xy coordinates against normalized GT keypoints, weighted by the
+    matched GT box area, plus a BCE-with-logits loss on the visibility channel. Keypoint supervision uses the
+    final-layer one-to-one Hungarian matches only (no denoising or auxiliary-layer pose losses); the Hungarian
+    matcher itself stays box+cls only.
+    """
+
+    supports_pose = True
+
+    def __init__(self, *args, kpt_shape: tuple = (17, 3), **kwargs):
+        """Initialize the DEIM pose loss.
+
+        Args:
+            kpt_shape (tuple): Number of keypoints and dimensions (2 for x,y or 3 for x,y,visible).
+            *args (Any): Positional arguments forwarded to DfineLoss.
+            **kwargs (Any): Keyword arguments forwarded to DfineLoss. The `pose` (default 12.0) and `kobj`
+                (default 1.0) entries of `loss_gain` weight the keypoint and visibility losses.
+        """
+        super().__init__(*args, **kwargs)
+        self.kpt_shape = list(kpt_shape)
+        self.pose_gain = self.loss_gain.get("pose", 12.0)
+        self.kobj_gain = self.loss_gain.get("kobj", 1.0)
+        nkpt = self.kpt_shape[0]  # number of keypoints
+        is_pose = self.kpt_shape == [17, 3]
+        self.sigmas = torch.from_numpy(OKS_SIGMA) if is_pose else torch.ones(nkpt) / nkpt
+
+    def _get_loss_pose(
+        self, kpts: torch.Tensor, gt_keypoints: torch.Tensor, batch: dict[str, Any]
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Compute the keypoint and visibility losses from final-layer o2o matches (port of v8PoseLoss).
+
+        Args:
+            kpts (torch.Tensor): Final-layer o2o raw keypoint predictions with shape (bs, nq, nk).
+            gt_keypoints (torch.Tensor): GT keypoints with shape (N, nkpt, ndim), xy normalized to the image.
+            batch (dict[str, Any]): Targets dict with `bboxes` (normalized cxcywh) used for the OKS area term.
+
+        Returns:
+            (tuple[torch.Tensor, torch.Tensor]): Weighted keypoint loss and weighted visibility loss.
+        """
+        device = kpts.device
+        gt_keypoints = gt_keypoints.to(device).float()
+        keypoint_loss = KeypointLoss(sigmas=self.sigmas.to(device))
+        total = sum(len(src) for src, _ in self.main_indices)
+        if not total:
+            # WARNING: zero-grad sum prevents Multi-GPU DDP 'unused gradient' errors, do not remove
+            return kpts.sum() * 0.0, kpts.sum() * 0.0
+        loss_pose = kpts.new_zeros(())
+        loss_kobj = kpts.new_zeros(())
+        for i, (src_idx, dst_idx) in enumerate(self.main_indices):
+            # Matcher indices are CPU tensors; move them to the model device
+            src_idx = src_idx.to(device)
+            dst_idx = dst_idx.to(device)
+            if len(src_idx):
+                pred_kpt = kpts[i][src_idx].view(-1, *self.kpt_shape)  # (n, nkpt, ndim)
+                pred_kpt = torch.cat([pred_kpt[..., :2].sigmoid(), pred_kpt[..., 2:]], dim=-1)
+                gt_kpt = gt_keypoints[dst_idx]  # (n, nkpt, ndim), matcher dst is global into concatenated GT
+                kpt_mask = (
+                    gt_kpt[..., 2] != 0
+                    if gt_kpt.shape[-1] == 3
+                    else torch.full_like(gt_kpt[..., 0], True, dtype=torch.bool)
+                )
+                area = batch["bboxes"][dst_idx][:, 2:4].prod(1, keepdim=True)  # normalized box area (w * h of cxcywh)
+                loss_pose += keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area) * len(src_idx)
+                if pred_kpt.shape[-1] == 3:
+                    loss_kobj += (
+                        F.binary_cross_entropy_with_logits(pred_kpt[..., 2], kpt_mask.float()) * len(src_idx)
+                    )
+            else:
+                # WARNING: zero-grad sum prevents Multi-GPU DDP 'unused gradient' errors, do not remove
+                zero = kpts[i].sum() * 0.0
+                loss_pose += zero
+                loss_kobj += zero
+        return loss_pose / total * self.pose_gain, loss_kobj / total * self.kobj_gain
+
+    def forward(
+        self,
+        preds: tuple[torch.Tensor, torch.Tensor],
+        batch: dict[str, Any],
+        dn_bboxes: torch.Tensor | None = None,
+        dn_scores: torch.Tensor | None = None,
+        dn_meta: dict[str, Any] | None = None,
+        dfine_meta: dict[str, Any] | None = None,
+        matcher_epoch: int = 0,
+        training_progress: float = 0.0,
+        kpts: torch.Tensor | None = None,
+        gt_keypoints: torch.Tensor | None = None,
+    ) -> dict[str, torch.Tensor]:
+        """Compute the detection losses plus the keypoint and visibility losses when keypoint inputs are provided."""
+        total_loss = super().forward(
+            preds, batch, dn_bboxes, dn_scores, dn_meta, dfine_meta, matcher_epoch, training_progress
+        )
+        if kpts is not None and gt_keypoints is not None:
+            total_loss["loss_pose"], total_loss["loss_kobj"] = self._get_loss_pose(kpts, gt_keypoints, batch)
+        return self._sanitize_losses(total_loss)
+
+
+class DeimOBBLoss(DfineLoss):
+    """DfineLoss extended with a rotation-angle loss for DeimOBBDecoder.
+
+    The angle loss is a port of v8OBBLoss.calculate_angle_loss: a wrap-invariant sin(2*delta)^2 term (delta wrapped
+    mod pi) weighted by an aspect-ratio factor exp(-(log(w/h))^2/lambda^2) with lambda=3, computed on the final-layer
+    one-to-one Hungarian matches only. The box losses (Hungarian cost, L1, GIoU, FGL/DDF) keep running on the xywh
+    part of the xywhr GT; a probiou box-loss term is future work.
+    """
+
+    supports_obb = True
+
+    def __init__(self, *args, **kwargs):
+        """Initialize the DEIM OBB loss.
+
+        Args:
+            *args (Any): Positional arguments forwarded to DfineLoss.
+            **kwargs (Any): Keyword arguments forwarded to DfineLoss. The `angle` entry of `loss_gain` (default 1.0)
+                weights the rotation-angle loss.
+        """
+        super().__init__(*args, **kwargs)
+        self.angle_gain = self.loss_gain.get("angle", 1.0)
+
+    def _get_loss_angle(
+        self, angles: torch.Tensor, gt_bboxes: torch.Tensor, lambda_val: int = 3
+    ) -> torch.Tensor:
+        """Compute the rotation-angle loss from final-layer o2o matches (port of v8OBBLoss).
+
+        Args:
+            angles (torch.Tensor): Final-layer o2o raw angle predictions with shape (bs, nq, 1).
+            gt_bboxes (torch.Tensor): GT rotated boxes with shape (N, 5), normalized xywhr.
+            lambda_val (int): Controls the sensitivity to aspect ratio.
+
+        Returns:
+            (torch.Tensor): Weighted rotation-angle loss.
+        """
+        device = angles.device
+        gt_bboxes = gt_bboxes.to(device).float()
+        total = sum(len(src) for src, _ in self.main_indices)
+        if not total:
+            # WARNING: zero-grad sum prevents Multi-GPU DDP 'unused gradient' errors, do not remove
+            return angles.sum() * 0.0
+        loss = angles.new_zeros(())
+        for i, (src_idx, dst_idx) in enumerate(self.main_indices):
+            # Matcher indices are CPU tensors; move them to the model device
+            src_idx = src_idx.to(device)
+            dst_idx = dst_idx.to(device)
+            if len(src_idx):
+                target = gt_bboxes[dst_idx]  # (n, 5), matcher dst is global into concatenated GT
+                log_ar = torch.log((target[:, 2] + 1e-9) / (target[:, 3] + 1e-9))
+                scale_weight = torch.exp(-(log_ar**2) / (lambda_val**2))
+                delta_theta = angles[i][src_idx, 0] - target[:, 4]
+                delta_theta = delta_theta - torch.round(delta_theta / math.pi) * math.pi
+                loss += (scale_weight * torch.sin(2 * delta_theta) ** 2).sum()
+            else:
+                # WARNING: zero-grad sum prevents Multi-GPU DDP 'unused gradient' errors, do not remove
+                loss += angles[i].sum() * 0.0
+        return loss / total * self.angle_gain
+
+    def forward(
+        self,
+        preds: tuple[torch.Tensor, torch.Tensor],
+        batch: dict[str, Any],
+        dn_bboxes: torch.Tensor | None = None,
+        dn_scores: torch.Tensor | None = None,
+        dn_meta: dict[str, Any] | None = None,
+        dfine_meta: dict[str, Any] | None = None,
+        matcher_epoch: int = 0,
+        training_progress: float = 0.0,
+        angles: torch.Tensor | None = None,
+        gt_bboxes: torch.Tensor | None = None,
+    ) -> dict[str, torch.Tensor]:
+        """Compute the detection losses plus the rotation-angle loss when angle inputs are provided."""
+        total_loss = super().forward(
+            preds, batch, dn_bboxes, dn_scores, dn_meta, dfine_meta, matcher_epoch, training_progress
+        )
+        if angles is not None and gt_bboxes is not None:
+            total_loss["loss_angle"] = self._get_loss_angle(angles, gt_bboxes)
         return self._sanitize_losses(total_loss)

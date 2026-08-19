@@ -54,6 +54,8 @@ from ultralytics.nn.modules import (
     Detect,
     DeimDecoder,
     DeimLayerNormDecoder,
+    DeimOBBDecoder,
+    DeimPoseDecoder,
     DeimSegmentDecoder,
     DWConv,
     DWConvTranspose2d,
@@ -916,6 +918,8 @@ class RTDETRDetectionModel(DetectionModel):
         dn_pre_bboxes, o2o_pre_bboxes, o2m_pre_bboxes = split_flat(dfine_meta["pre_bboxes"])
         dn_pre_logits, o2o_pre_logits, o2m_pre_logits = split_flat(dfine_meta["pre_logits"])
         dn_masks, o2o_masks, o2m_masks = split_layered(dfine_meta.get("dec_masks"))
+        dn_kpts, o2o_kpts, o2m_kpts = split_layered(dfine_meta.get("dec_kpts"))
+        dn_angles, o2o_angles, o2m_angles = split_layered(dfine_meta.get("dec_angles"))
 
         base_meta = {
             "up": dfine_meta["up"],
@@ -930,6 +934,10 @@ class RTDETRDetectionModel(DetectionModel):
         }
         if o2o_masks is not None:
             o2o_meta["dec_masks"] = o2o_masks
+        if o2o_kpts is not None:
+            o2o_meta["dec_kpts"] = o2o_kpts
+        if o2o_angles is not None:
+            o2o_meta["dec_angles"] = o2o_angles
         if dn_corners is not None:
             o2o_meta["dn_pred_corners"] = dn_corners
             o2o_meta["dn_ref_points"] = dn_refs
@@ -937,6 +945,10 @@ class RTDETRDetectionModel(DetectionModel):
             o2o_meta["dn_pre_logits"] = dn_pre_logits
         if dn_masks is not None:
             o2o_meta["dn_dec_masks"] = dn_masks
+        if dn_kpts is not None:
+            o2o_meta["dn_dec_kpts"] = dn_kpts
+        if dn_angles is not None:
+            o2o_meta["dn_dec_angles"] = dn_angles
 
         o2m_meta = None
         if num_o2m > 0:
@@ -949,6 +961,10 @@ class RTDETRDetectionModel(DetectionModel):
             }
             if o2m_masks is not None:
                 o2m_meta["dec_masks"] = o2m_masks
+            if o2m_kpts is not None:
+                o2m_meta["dec_kpts"] = o2m_kpts
+            if o2m_angles is not None:
+                o2m_meta["dec_angles"] = o2m_angles
         return o2o_meta, o2m_meta
 
     def _apply(self, fn):
@@ -969,7 +985,7 @@ class RTDETRDetectionModel(DetectionModel):
     def init_criterion(self):
         """Initialize the loss criterion for the RTDETRDetectionModel."""
         from ultralytics.models.utils.loss import RTDETRDetectionLoss
-        from ultralytics.models.utils.loss_dfine import DeimSegmentationLoss, DfineLoss
+        from ultralytics.models.utils.loss_dfine import DeimOBBLoss, DeimPoseLoss, DeimSegmentationLoss, DfineLoss
 
         loss_cfg = self.yaml.get("loss", {})
         loss_gain = loss_cfg.get("loss_gain", {}) if isinstance(loss_cfg, dict) else {}
@@ -979,6 +995,12 @@ class RTDETRDetectionModel(DetectionModel):
                 loss_cfg = dict(loss_cfg)
                 loss_cfg.setdefault("overlap_mask", getattr(self.args, "overlap_mask", True))
                 return DeimSegmentationLoss(nc=self.nc, **loss_cfg)
+            if isinstance(self.model[-1], DeimPoseDecoder):
+                loss_cfg = dict(loss_cfg)
+                loss_cfg.setdefault("kpt_shape", getattr(self.model[-1], "kpt_shape", [17, 3]))
+                return DeimPoseLoss(nc=self.nc, **loss_cfg)
+            if isinstance(self.model[-1], DeimOBBDecoder):
+                return DeimOBBLoss(nc=self.nc, **loss_cfg)
             return DfineLoss(nc=self.nc, **loss_cfg)
         return RTDETRDetectionLoss(nc=self.nc, **loss_cfg)
 
@@ -1014,9 +1036,14 @@ class RTDETRDetectionModel(DetectionModel):
         bs = img.shape[0]
         batch_idx = batch["batch_idx"]
         gt_groups = [(batch_idx == i).sum().item() for i in range(bs)]
+        bboxes = batch["bboxes"].to(device=img.device)
+        gt_bboxes_obb = None
+        if getattr(self.criterion, "supports_obb", False):
+            gt_bboxes_obb = bboxes  # full normalized xywhr, angle column consumed by the OBB angle loss
+            bboxes = bboxes[:, :4]  # detection losses (matcher, L1, GIoU, FGL/DDF) run on the xywh part
         targets = {
             "cls": batch["cls"].to(img.device, dtype=torch.long).view(-1),
-            "bboxes": batch["bboxes"].to(device=img.device),
+            "bboxes": bboxes,
             "batch_idx": batch_idx.to(img.device, dtype=torch.long).view(-1),
             "gt_groups": gt_groups,
         }
@@ -1032,13 +1059,17 @@ class RTDETRDetectionModel(DetectionModel):
         split_outputs = self._split_decoder_predictions(dec_bboxes, dec_scores, dn_meta)
         supports_dfine = getattr(self.criterion, "supports_dfine", False)
         dfine_meta_o2m = None
-        proto = semseg = masks_coeff = None
+        proto = semseg = masks_coeff = kpts = angles = None
         if supports_dfine and dfine_meta is not None:
             proto = dfine_meta.pop("proto", None)  # image-level, not dn-split
             semseg = dfine_meta.pop("semseg", None)  # image-level semseg aux logits, not dn-split
             dfine_meta, dfine_meta_o2m = self._split_dfine_meta(dfine_meta, dn_meta)
             dec_masks = dfine_meta.pop("dec_masks", None)
             masks_coeff = dec_masks[-1] if dec_masks is not None else None  # final-layer o2o coefficients
+            dec_kpts = dfine_meta.pop("dec_kpts", None)
+            kpts = dec_kpts[-1] if dec_kpts is not None else None  # final-layer o2o keypoints
+            dec_angles = dfine_meta.pop("dec_angles", None)
+            angles = dec_angles[-1] if dec_angles is not None else None  # final-layer o2o rotation angles
         matcher_epoch = 0
         training_progress = 0.0
         if supports_dfine and "epoch" in batch:
@@ -1086,6 +1117,12 @@ class RTDETRDetectionModel(DetectionModel):
             loss_kwargs["semseg"] = semseg
             loss_kwargs["gt_masks"] = batch.get("masks")
             loss_kwargs["sem_masks"] = batch.get("sem_masks")
+        if getattr(self.criterion, "supports_pose", False):
+            loss_kwargs["kpts"] = kpts
+            loss_kwargs["gt_keypoints"] = batch.get("keypoints")
+        if getattr(self.criterion, "supports_obb", False):
+            loss_kwargs["angles"] = angles
+            loss_kwargs["gt_bboxes"] = gt_bboxes_obb
         loss_inputs = (dec_bboxes, dec_scores)
         loss_targets = targets
         if strict_loss_fp32:
@@ -1147,6 +1184,17 @@ class RTDETRDetectionModel(DetectionModel):
             for k in ["loss_mask", "loss_semseg"]:
                 if k not in loss:
                     loss[k] = torch.tensor(0.0, device=img.device)
+        if getattr(self.criterion, "supports_pose", False):
+            loss_keys.extend(["loss_pose", "loss_kobj"])
+            # Fill with zeros when absent
+            for k in ["loss_pose", "loss_kobj"]:
+                if k not in loss:
+                    loss[k] = torch.tensor(0.0, device=img.device)
+        if getattr(self.criterion, "supports_obb", False):
+            loss_keys.append("loss_angle")
+            # Fill with zeros when absent
+            if "loss_angle" not in loss:
+                loss["loss_angle"] = torch.tensor(0.0, device=img.device)
         return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in loss_keys], device=img.device)
 
     def predict(self, x, profile=False, visualize=False, batch=None, augment=False, embed=None):
@@ -2061,6 +2109,8 @@ def parse_model(d, ch, verbose=True):
             DFineDecoder,
             DeimDecoder,
             DeimLayerNormDecoder,
+            DeimOBBDecoder,
+            DeimPoseDecoder,
             DeimSegmentDecoder,
         }:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])

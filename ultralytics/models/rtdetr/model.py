@@ -21,6 +21,10 @@ from ultralytics.utils import ops
 from ultralytics.utils.torch_utils import TORCH_1_11
 
 from .deim import (
+    RTDETRDEIMOBBTrainer,
+    RTDETRDEIMOBBValidator,
+    RTDETRDEIMPoseTrainer,
+    RTDETRDEIMPoseValidator,
     RTDETRDEIMSegmentTrainer,
     RTDETRDEIMSegmentValidator,
     RTDETRDEIMTrainer,
@@ -63,7 +67,10 @@ class RTDETR(Model):
             from ultralytics.nn.tasks import yaml_model_load
 
             head_name = str(yaml_model_load(model)["head"][-1][-2]).lower()
-            task = "segment" if "segment" in head_name else "detect"
+            for candidate in ("segment", "pose", "obb"):
+                if candidate in head_name:
+                    task = candidate
+                    break
         super().__init__(model=model, task=task or "detect")
 
     @property
@@ -154,6 +161,89 @@ class RTDETRDEIMSegmentPredictor(RTDETRDEIMPredictor):
         return results
 
 
+class RTDETRDEIMPosePredictor(RTDETRDEIMPredictor):
+    """DEIM predictor for pose estimation models built on DeimPoseDecoder.
+
+    Splits keypoints from the decoder top-k rows and scales boxes and keypoint xy per-axis (scale-fill convention)
+    to the original image, mirroring RTDETRDEIMSegmentPredictor.
+    """
+
+    def postprocess(self, preds, img, orig_imgs):
+        """Postprocess predictions into Results with boxes and keypoints.
+
+        Args:
+            preds (list | tuple): Model predictions `(y, x)` where `y` has shape (bs, num_queries, 6 + nk) with
+                format [cx, cy, w, h, score, class, kpts...] (keypoint xy normalized).
+            img (torch.Tensor): Processed input images with shape (N, 3, H, W).
+            orig_imgs (list | torch.Tensor): Original, unprocessed images.
+
+        Returns:
+            (list[Results]): A list of Results objects containing boxes and keypoints.
+        """
+        y = preds[0][0] if isinstance(preds[0], tuple) else preds[0]
+        bboxes, scores, labels, kpts = y.split((4, 1, 1, y.shape[-1] - 6), dim=-1)
+        head = self.model.model.model[-1] if isinstance(getattr(self.model, "model", None), torch.nn.Module) else None
+        kpt_shape = getattr(head, "kpt_shape", [17, 3])
+
+        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
+
+        results = []
+        for bbox, score, label, kpt, orig_img, img_path in zip(bboxes, scores, labels, kpts, orig_imgs, self.batch[0]):
+            idx = score.squeeze(-1) > self.args.conf
+            if self.args.classes is not None:
+                idx = (label.squeeze(-1) == torch.tensor(self.args.classes, device=label.device)).any(1) & idx
+            bbox = ops.xywh2xyxy(bbox[idx])
+            bbox[:, [0, 2]] *= orig_img.shape[1]  # normalized -> original image (scale-fill)
+            bbox[:, [1, 3]] *= orig_img.shape[0]
+            pred = torch.cat([bbox, score[idx], label[idx]], dim=-1)
+            kpt = kpt[idx].view(-1, *kpt_shape).clone()
+            kpt[..., 0] *= orig_img.shape[1]  # normalized -> original image (scale-fill)
+            kpt[..., 1] *= orig_img.shape[0]
+            results.append(Results(orig_img, path=img_path, names=self.model.names, boxes=pred, keypoints=kpt))
+        return results
+
+
+class RTDETRDEIMOBBPredictor(RTDETRDEIMPredictor):
+    """DEIM predictor for oriented bounding box models built on DeimOBBDecoder.
+
+    Splits rotation angles from the decoder top-k rows and scales the xywh part per-axis (scale-fill convention) to
+    the original image, leaving angles untouched, mirroring OBBPredictor.
+    """
+
+    def postprocess(self, preds, img, orig_imgs):
+        """Postprocess predictions into Results with oriented bounding boxes.
+
+        Args:
+            preds (list | tuple): Model predictions `(y, x)` where `y` has shape (bs, num_queries, 7) with format
+                [cx, cy, w, h, score, class, angle] (xywh normalized, raw angle).
+            img (torch.Tensor): Processed input images with shape (N, 3, H, W).
+            orig_imgs (list | torch.Tensor): Original, unprocessed images.
+
+        Returns:
+            (list[Results]): A list of Results objects containing oriented bounding boxes.
+        """
+        y = preds[0][0] if isinstance(preds[0], tuple) else preds[0]
+        bboxes, scores, labels, angles = y.split((4, 1, 1, 1), dim=-1)
+
+        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
+
+        results = []
+        for bbox, score, label, angle, orig_img, img_path in zip(
+            bboxes, scores, labels, angles, orig_imgs, self.batch[0]
+        ):
+            idx = score.squeeze(-1) > self.args.conf
+            if self.args.classes is not None:
+                idx = (label.squeeze(-1) == torch.tensor(self.args.classes, device=label.device)).any(1) & idx
+            bbox = bbox[idx].clone()
+            bbox[:, [0, 2]] *= orig_img.shape[1]  # normalized -> original image (scale-fill)
+            bbox[:, [1, 3]] *= orig_img.shape[0]
+            obb = torch.cat([bbox, angle[idx], score[idx], label[idx]], dim=-1)  # [xywhr, conf, cls]
+            results.append(Results(orig_img, path=img_path, names=self.model.names, obb=obb))
+        return results
+
+
 class RTDETRDEIM(RTDETR):
     """RT-DETR interface that routes training/validation through isolated DEIM classes."""
 
@@ -178,6 +268,18 @@ class RTDETRDEIM(RTDETR):
                 "predictor": RTDETRDEIMSegmentPredictor,
                 "validator": RTDETRDEIMSegmentValidator,
                 "trainer": RTDETRDEIMSegmentTrainer,
+                "model": RTDETRDetectionModel,
+            },
+            "pose": {
+                "predictor": RTDETRDEIMPosePredictor,
+                "validator": RTDETRDEIMPoseValidator,
+                "trainer": RTDETRDEIMPoseTrainer,
+                "model": RTDETRDetectionModel,
+            },
+            "obb": {
+                "predictor": RTDETRDEIMOBBPredictor,
+                "validator": RTDETRDEIMOBBValidator,
+                "trainer": RTDETRDEIMOBBTrainer,
                 "model": RTDETRDetectionModel,
             },
         }
@@ -205,6 +307,18 @@ class RTDETRDEIMv2(RTDETR):
                 "predictor": RTDETRDEIMSegmentPredictor,
                 "validator": RTDETRDEIMSegmentValidator,
                 "trainer": RTDETRDEIMSegmentTrainer,
+                "model": RTDETRDetectionModel,
+            },
+            "pose": {
+                "predictor": RTDETRDEIMPosePredictor,
+                "validator": RTDETRDEIMPoseValidator,
+                "trainer": RTDETRDEIMPoseTrainer,
+                "model": RTDETRDetectionModel,
+            },
+            "obb": {
+                "predictor": RTDETRDEIMOBBPredictor,
+                "validator": RTDETRDEIMOBBValidator,
+                "trainer": RTDETRDEIMOBBTrainer,
                 "model": RTDETRDetectionModel,
             },
         }

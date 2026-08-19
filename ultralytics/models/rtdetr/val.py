@@ -99,6 +99,7 @@ class RTDETRDataset(YOLODataset):
                 normalize=True,
                 return_mask=self.use_segments,
                 return_keypoint=self.use_keypoints,
+                return_obb=self.use_obb,
                 batch_idx=True,
                 mask_ratio=hyp.mask_ratio,
                 mask_overlap=hyp.overlap_mask,

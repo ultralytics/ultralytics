@@ -16,10 +16,11 @@ from torch import optim
 
 from ultralytics.data import YOLODataset
 from ultralytics.data.augment import Compose, Format, v8_transforms
-from ultralytics.nn.tasks import load_checkpoint
+from ultralytics.nn.tasks import load_checkpoint, yaml_model_load
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, colorstr, ops
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.metrics import SegmentMetrics, mask_iou
+from ultralytics.utils.metrics import OKS_SIGMA, OBBMetrics, PoseMetrics, SegmentMetrics, batch_probiou, kpt_iou, mask_iou
+from ultralytics.utils.plotting import plot_images
 from ultralytics.utils.torch_utils import one_cycle, strip_optimizer, unwrap_model
 
 from .detr_augment import (
@@ -38,6 +39,10 @@ __all__ = (
     "RTDETRDEIMTrainerV2",
     "RTDETRDEIMSegmentValidator",
     "RTDETRDEIMSegmentTrainer",
+    "RTDETRDEIMPoseValidator",
+    "RTDETRDEIMPoseTrainer",
+    "RTDETRDEIMOBBValidator",
+    "RTDETRDEIMOBBTrainer",
 )
 
 
@@ -437,6 +442,7 @@ class RTDETRDEIMDataset(RTDETRDataset):
                 normalize=True,
                 return_mask=self.use_segments,
                 return_keypoint=self.use_keypoints,
+                return_obb=self.use_obb,
                 batch_idx=True,
                 mask_ratio=hyp.mask_ratio,
                 mask_overlap=hyp.overlap_mask,
@@ -1024,3 +1030,434 @@ class RTDETRDEIMSegmentTrainer(RTDETRDEIMTrainer):
         loss_names.extend(["mask_loss", "sem_loss"])
         self.loss_names = tuple(loss_names)
         return RTDETRDEIMSegmentValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
+
+
+class RTDETRDEIMPoseValidator(RTDETRDEIMValidator):
+    """RT-DETR DEIM validator for pose estimation models built on DeimPoseDecoder.
+
+    Ports the PoseValidator keypoint handling (GT keypoint preparation, OKS-based pose stats via kpt_iou, and COCO
+    keypoints JSON) onto the RT-DETR postprocess, where top-k selection already happens inside the decoder head and
+    predictions are normalized [cx, cy, w, h, score, cls, kpts...] rows.
+    """
+
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None) -> None:
+        """Initialize the validator with task 'pose' and PoseMetrics."""
+        super().__init__(dataloader, save_dir, args, _callbacks)
+        self.sigma = None
+        self.kpt_shape = None
+        self.args.task = "pose"
+        self.metrics = PoseMetrics()
+
+    def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
+        """Preprocess validation batch and cast GT keypoints to float."""
+        batch = super().preprocess(batch)
+        batch["keypoints"] = batch["keypoints"].float()
+        return batch
+
+    def get_desc(self) -> str:
+        """Return a formatted description of evaluation metrics."""
+        return ("%22s" + "%11s" * 10) % (
+            "Class",
+            "Images",
+            "Instances",
+            "Box(P",
+            "R",
+            "mAP50",
+            "mAP50-95)",
+            "Pose(P",
+            "R",
+            "mAP50",
+            "mAP50-95)",
+        )
+
+    def init_metrics(self, model: torch.nn.Module) -> None:
+        """Initialize metrics and keypoint sigmas for OKS calculation."""
+        super().init_metrics(model)
+        self.kpt_shape = self.data["kpt_shape"]
+        is_pose = self.kpt_shape == [17, 3]
+        nkpt = self.kpt_shape[0]  # number of keypoints
+        self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
+
+    def build_dataset(self, img_path, mode="val", batch=None):
+        """Build the DEIM dataset variant with keypoints enabled."""
+        return RTDETRDEIMDataset(
+            img_path=img_path,
+            imgsz=self.args.imgsz,
+            batch_size=batch,
+            augment=False,
+            hyp=self.args,
+            rect=False,
+            cache=self.args.cache or None,
+            prefix=colorstr(f"{mode}: "),
+            data=self.data,
+            task="pose",
+        )
+
+    def postprocess(
+        self, preds: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor]
+    ) -> list[dict[str, torch.Tensor]]:
+        """Convert decoder outputs to pixel-space detections with per-instance keypoints.
+
+        Args:
+            preds (torch.Tensor | list | tuple): Model predictions `(y, x)` where `y` has shape (batch_size,
+                num_queries, 6 + nk) with last dimension [cx, cy, w, h, score, class, kpts...] (keypoint xy
+                normalized, visibility as raw logits).
+
+        Returns:
+            (list[dict[str, torch.Tensor]]): List of dictionaries for each image, each containing 'bboxes' (xyxy
+                pixel format), 'conf', 'cls', and 'keypoints' (M, nkpt, ndim, xy in pixels).
+        """
+        if not isinstance(preds, (list, tuple)):  # list for PyTorch inference but list[0] Tensor for export inference
+            preds = [preds, None]
+        y = preds[0][0] if isinstance(preds[0], tuple) else preds[0]
+        nk = self.kpt_shape[0] * self.kpt_shape[1]
+        bboxes, scores, labels, kpts = y.split((4, 1, 1, nk), dim=-1)
+        bboxes = ops.xywh2xyxy(bboxes) * self.args.imgsz
+        scores = scores.squeeze(-1)
+        labels = labels.squeeze(-1)
+        kpts = kpts.view(*kpts.shape[:2], *self.kpt_shape).clone()
+        kpts[..., 0] *= self.args.imgsz
+        kpts[..., 1] *= self.args.imgsz
+
+        outputs = []
+        for b, s, lab, k in zip(bboxes, scores, labels, kpts):
+            keep = s > self.args.conf  # confidence threshold (also drops NaN: NaN > x is False)
+            outputs.append({"bboxes": b[keep], "conf": s[keep], "cls": lab[keep], "keypoints": k[keep]})
+        return outputs
+
+    def _prepare_batch(self, si: int, batch: dict[str, Any]) -> dict[str, Any]:
+        """Prepare a batch for validation, scaling GT keypoints to pixel coordinates."""
+        prepared_batch = super()._prepare_batch(si, batch)
+        kpts = batch["keypoints"][batch["batch_idx"] == si]
+        h, w = prepared_batch["imgsz"]
+        kpts = kpts.clone()
+        kpts[..., 0] *= w
+        kpts[..., 1] *= h
+        prepared_batch["keypoints"] = kpts
+        return prepared_batch
+
+    def _process_batch(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> dict[str, np.ndarray]:
+        """Compute correct prediction matrices for boxes and keypoints."""
+        tp = super()._process_batch(preds, batch)
+        gt_cls = batch["cls"]
+        if gt_cls.shape[0] == 0 or preds["cls"].shape[0] == 0:
+            tp_p = np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)
+        else:
+            # `0.53` is from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384
+            area = ops.xyxy2xywh(batch["bboxes"])[:, 2:].prod(1) * 0.53
+            iou = kpt_iou(batch["keypoints"], preds["keypoints"], sigma=self.sigma, area=area)
+            tp_p = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()
+        tp.update({"tp_p": tp_p})  # update tp with kpts IoU
+        return tp
+
+    def gather_stats(self) -> None:
+        """Gather stats from all GPUs."""
+        super().gather_stats()  # gather stats from DetectionValidator
+        self._gather_image_metrics(self.metrics.pose)
+
+    def save_one_txt(self, predn: dict[str, torch.Tensor], save_conf: bool, shape: tuple[int, int], file: Path) -> None:
+        """Save YOLO pose detections to a txt file in normalized coordinates in a specific format."""
+        from ultralytics.engine.results import Results
+
+        Results(
+            np.zeros((shape[0], shape[1]), dtype=np.uint8),
+            path=None,
+            names=self.names,
+            boxes=torch.cat([predn["bboxes"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
+            keypoints=predn["keypoints"],
+        ).save_txt(file, save_conf=save_conf)
+
+    def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
+        """Scale keypoints to the original image size; boxes are already scaled in postprocessing/pred_to_json."""
+        kpts = predn["keypoints"].clone()
+        kpts[..., 0] *= pbatch["ori_shape"][1] / self.args.imgsz
+        kpts[..., 1] *= pbatch["ori_shape"][0] / self.args.imgsz
+        return {**predn, "kpts": kpts}
+
+    def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
+        """Save one JSON result for COCO evaluation, including the flattened keypoint list."""
+        super().pred_to_json(predn, pbatch)
+        kpts = predn["kpts"]
+        for i, k in enumerate(kpts.flatten(1, 2).tolist()):
+            self.jdict[-len(kpts) + i]["keypoints"] = k  # keypoints
+
+    def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:
+        """Return COCO-style keypoint evaluation metrics."""
+        pred_json = self.save_dir / "predictions.json"  # predictions
+        anno_json = self.data["path"] / "annotations/person_keypoints_val2017.json"  # annotations
+        return super().coco_evaluate(stats, pred_json, anno_json, ["bbox", "keypoints"], suffix=["Box", "Pose"])
+
+
+class RTDETRDEIMPoseTrainer(RTDETRDEIMTrainer):
+    """RT-DETR DEIM trainer variant for pose estimation models built on DeimPoseDecoder.
+
+    Note:
+        The DEIM batch-level augmentations (MixUp/CopyBlend collate, active with `rtdetr_augmentations=True`) do not
+        handle keypoints; train pose models with `rtdetr_augmentations=False`.
+    """
+
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks: dict | None = None):
+        """Initialize the trainer with task 'pose'."""
+        if overrides is None:
+            overrides = {}
+        overrides["task"] = "pose"
+        super().__init__(cfg, overrides, _callbacks)
+
+    def get_dataset(self) -> dict[str, Any]:
+        """Retrieve the dataset and ensure it contains the required `kpt_shape` key."""
+        data = super().get_dataset()
+        if "kpt_shape" not in data:
+            raise KeyError(f"No `kpt_shape` in the {self.args.data}. See https://docs.ultralytics.com/datasets/pose/")
+        return data
+
+    def get_model(self, cfg: dict | None = None, weights: str | None = None, verbose: bool = True):
+        """Build the model with `kpt_shape` synced from the dataset config (mirrors PoseModel)."""
+        if not isinstance(cfg, dict):
+            cfg = yaml_model_load(cfg)  # load model YAML
+        data_kpt_shape = self.data["kpt_shape"]
+        if data_kpt_shape and list(data_kpt_shape) != list(cfg["kpt_shape"]):
+            LOGGER.info(f"Overriding model.yaml kpt_shape={cfg['kpt_shape']} with kpt_shape={data_kpt_shape}")
+            cfg["kpt_shape"] = data_kpt_shape
+        return super().get_model(cfg=cfg, weights=weights, verbose=verbose)
+
+    def set_model_attributes(self):
+        """Set keypoint shape and keypoint names attributes on the model."""
+        super().set_model_attributes()
+        self.model.kpt_shape = self.data["kpt_shape"]
+        kpt_names = self.data.get("kpt_names")
+        if not kpt_names:
+            names = list(map(str, range(self.model.kpt_shape[0])))
+            kpt_names = {i: names for i in range(self.model.nc)}
+        self.model.kpt_names = kpt_names
+
+    def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None):
+        """Build the DEIM dataset variant with keypoints enabled."""
+        return RTDETRDEIMDataset(
+            img_path=img_path,
+            imgsz=self.args.imgsz,
+            batch_size=batch,
+            augment=mode == "train",
+            hyp=self.args,
+            rect=False,
+            cache=self.args.cache or None,
+            single_cls=self.args.single_cls or False,
+            prefix=colorstr(f"{mode}: "),
+            classes=self.args.classes,
+            data=self.data,
+            fraction=self.args.fraction if mode == "train" else 1.0,
+            task="pose",
+        )
+
+    def get_validator(self):
+        """Return an RTDETRDEIMPoseValidator with loss names extended by the pose and kobj losses."""
+        loss_names = ["giou_loss", "cls_loss", "l1_loss"]
+        loss_gain = self.model_yaml.get("loss", {}).get("loss_gain", {})
+        if loss_gain.get("fgl", 0) > 0:
+            loss_names.append("fgl_loss")
+        if loss_gain.get("ddf", 0) > 0:
+            loss_names.append("ddf_loss")
+        if loss_gain.get("rank", 0) > 0:
+            loss_names.append("rank_loss")
+        model = unwrap_model(self.model)
+        if getattr(model.model[-1], "one_to_many_groups", 0) > 0:
+            loss_names.extend(["giou_o2m", "cls_o2m", "l1_o2m"])
+        loss_names.extend(["pose_loss", "kobj_loss"])
+        self.loss_names = tuple(loss_names)
+        return RTDETRDEIMPoseValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
+
+
+class RTDETRDEIMOBBValidator(RTDETRDEIMValidator):
+    """RT-DETR DEIM validator for oriented bounding box models built on DeimOBBDecoder.
+
+    Ports the OBBValidator rotated-box handling (xywhr GT preparation, batch_probiou true positives, and rbox/poly
+    JSON) onto the RT-DETR postprocess, where top-k selection already happens inside the decoder head and predictions
+    are normalized [cx, cy, w, h, score, cls, angle] rows.
+    """
+
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None) -> None:
+        """Initialize the validator with task 'obb' and OBBMetrics."""
+        super().__init__(dataloader, save_dir, args, _callbacks)
+        self.args.task = "obb"
+        self.metrics = OBBMetrics()
+
+    def init_metrics(self, model: torch.nn.Module) -> None:
+        """Initialize evaluation metrics for OBB validation."""
+        super().init_metrics(model)
+        val = self.data.get(self.args.split, "")  # validation path
+        self.is_dota = isinstance(val, str) and "DOTA" in val  # check if dataset is DOTA format
+        self.confusion_matrix.task = "obb"  # set confusion matrix task to 'obb'
+
+    def build_dataset(self, img_path, mode="val", batch=None):
+        """Build the DEIM dataset variant with oriented bounding boxes enabled."""
+        return RTDETRDEIMDataset(
+            img_path=img_path,
+            imgsz=self.args.imgsz,
+            batch_size=batch,
+            augment=False,
+            hyp=self.args,
+            rect=False,
+            cache=self.args.cache or None,
+            prefix=colorstr(f"{mode}: "),
+            data=self.data,
+            task="obb",
+        )
+
+    def postprocess(
+        self, preds: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor]
+    ) -> list[dict[str, torch.Tensor]]:
+        """Convert decoder outputs to pixel-space rotated detections.
+
+        Args:
+            preds (torch.Tensor | list | tuple): Model predictions `(y, x)` where `y` has shape (batch_size,
+                num_queries, 7) with last dimension [cx, cy, w, h, score, class, angle].
+
+        Returns:
+            (list[dict[str, torch.Tensor]]): List of dictionaries for each image, each containing 'bboxes' (xywhr
+                pixel format), 'conf', and 'cls'.
+        """
+        if not isinstance(preds, (list, tuple)):  # list for PyTorch inference but list[0] Tensor for export inference
+            preds = [preds, None]
+        y = preds[0][0] if isinstance(preds[0], tuple) else preds[0]
+        bboxes, scores, labels, angles = y.split((4, 1, 1, 1), dim=-1)
+        bboxes = bboxes * self.args.imgsz  # normalized xywh -> pixel xywh
+        scores = scores.squeeze(-1)
+        labels = labels.squeeze(-1)
+
+        outputs = []
+        for b, s, lab, a in zip(bboxes, scores, labels, angles):
+            keep = s > self.args.conf  # confidence threshold (also drops NaN: NaN > x is False)
+            outputs.append({"bboxes": torch.cat([b[keep], a[keep]], dim=-1), "conf": s[keep], "cls": lab[keep]})
+        return outputs
+
+    def _prepare_batch(self, si: int, batch: dict[str, Any]) -> dict[str, Any]:
+        """Prepare a batch for validation, scaling the xywh part of GT xywhr boxes to pixel coordinates."""
+        idx = batch["batch_idx"] == si
+        cls = batch["cls"][idx].squeeze(-1)
+        bbox = batch["bboxes"][idx]
+        ori_shape = batch["ori_shape"][si]
+        imgsz = batch["img"].shape[2:]
+        ratio_pad = batch["ratio_pad"][si]
+        if cls.shape[0]:
+            bbox[..., :4].mul_(torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]])  # target boxes
+        return {
+            "cls": cls,
+            "bboxes": bbox,
+            "ori_shape": ori_shape,
+            "imgsz": imgsz,
+            "ratio_pad": ratio_pad,
+            "im_file": batch["im_file"][si],
+        }
+
+    def _process_batch(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> dict[str, np.ndarray]:
+        """Compute the correct prediction matrix using probabilistic IoU between rotated boxes."""
+        if batch["cls"].shape[0] == 0 or preds["cls"].shape[0] == 0:
+            return {"tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)}
+        iou = batch_probiou(batch["bboxes"], preds["bboxes"])
+        return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
+
+    def plot_predictions(self, batch: dict[str, Any], preds: list[dict[str, torch.Tensor]], ni: int) -> None:
+        """Plot predicted oriented bounding boxes on input images and save the result."""
+        if not preds:
+            return
+        for i, pred in enumerate(preds):
+            pred["batch_idx"] = torch.ones_like(pred["conf"]) * i
+        keys = preds[0].keys()
+        batched_preds = {k: torch.cat([x[k] for x in preds], dim=0) for k in keys}
+        plot_images(
+            images=batch["img"],
+            labels=batched_preds,
+            paths=batch["im_file"],
+            fname=self.save_dir / f"val_batch{ni}_pred.jpg",
+            names=self.names,
+            on_plot=self.on_plot,
+        )
+
+    def save_one_txt(self, predn: dict[str, torch.Tensor], save_conf: bool, shape: tuple[int, int], file: Path) -> None:
+        """Save YOLO OBB detections to a txt file in normalized coordinates in a specific format."""
+        from ultralytics.engine.results import Results
+
+        Results(
+            np.zeros((shape[0], shape[1]), dtype=np.uint8),
+            path=None,
+            names=self.names,
+            obb=torch.cat([predn["bboxes"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
+        ).save_txt(file, save_conf=save_conf)
+
+    def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
+        """Save one JSON result with rotated bounding boxes in both rbox and polygon formats."""
+        path = Path(pbatch["im_file"])
+        stem = path.stem
+        image_id = int(stem) if stem.isnumeric() else stem
+        rbox = predn["bboxes"]
+        poly = ops.xywhr2xyxyxyxy(rbox).view(-1, 8)
+        for r, b, s, c in zip(rbox.tolist(), poly.tolist(), predn["conf"].tolist(), predn["cls"].tolist()):
+            self.jdict.append(
+                {
+                    "image_id": image_id,
+                    "file_name": path.name,
+                    "category_id": self.class_map[int(c)],
+                    "score": round(s, 5),
+                    "rbox": [round(x, 3) for x in r],
+                    "poly": [round(x, 3) for x in b],
+                }
+            )
+
+    def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:
+        """DOTA split-evaluation is not supported for DEIM OBB models yet."""
+        if self.args.save_json and self.is_dota and len(self.jdict):
+            raise NotImplementedError(
+                "DOTA split-evaluation (eval_json) is not supported for RT-DETR DEIM OBB models yet; "
+                "run validation without save_json."
+            )
+        return stats
+
+
+class RTDETRDEIMOBBTrainer(RTDETRDEIMTrainer):
+    """RT-DETR DEIM trainer variant for oriented bounding box models built on DeimOBBDecoder.
+
+    Note:
+        The DEIM batch-level augmentations (MixUp/CopyBlend collate, active with `rtdetr_augmentations=True`) do not
+        handle rotated boxes; train OBB models with `rtdetr_augmentations=False`.
+    """
+
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks: dict | None = None):
+        """Initialize the trainer with task 'obb'."""
+        if overrides is None:
+            overrides = {}
+        overrides["task"] = "obb"
+        super().__init__(cfg, overrides, _callbacks)
+
+    def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None):
+        """Build the DEIM dataset variant with oriented bounding boxes enabled."""
+        return RTDETRDEIMDataset(
+            img_path=img_path,
+            imgsz=self.args.imgsz,
+            batch_size=batch,
+            augment=mode == "train",
+            hyp=self.args,
+            rect=False,
+            cache=self.args.cache or None,
+            single_cls=self.args.single_cls or False,
+            prefix=colorstr(f"{mode}: "),
+            classes=self.args.classes,
+            data=self.data,
+            fraction=self.args.fraction if mode == "train" else 1.0,
+            task="obb",
+        )
+
+    def get_validator(self):
+        """Return an RTDETRDEIMOBBValidator with loss names extended by the angle loss."""
+        loss_names = ["giou_loss", "cls_loss", "l1_loss"]
+        loss_gain = self.model_yaml.get("loss", {}).get("loss_gain", {})
+        if loss_gain.get("fgl", 0) > 0:
+            loss_names.append("fgl_loss")
+        if loss_gain.get("ddf", 0) > 0:
+            loss_names.append("ddf_loss")
+        if loss_gain.get("rank", 0) > 0:
+            loss_names.append("rank_loss")
+        model = unwrap_model(self.model)
+        if getattr(model.model[-1], "one_to_many_groups", 0) > 0:
+            loss_names.extend(["giou_o2m", "cls_o2m", "l1_o2m"])
+        loss_names.append("angle_loss")
+        self.loss_names = tuple(loss_names)
+        return RTDETRDEIMOBBValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))

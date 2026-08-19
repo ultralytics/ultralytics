@@ -2,13 +2,24 @@
 
 from .deim import (
     RTDETRDEIMDataset,
+    RTDETRDEIMOBBTrainer,
+    RTDETRDEIMOBBValidator,
+    RTDETRDEIMPoseTrainer,
+    RTDETRDEIMPoseValidator,
     RTDETRDEIMSegmentTrainer,
     RTDETRDEIMSegmentValidator,
     RTDETRDEIMTrainer,
     RTDETRDEIMTrainerV2,
     RTDETRDEIMValidator,
 )
-from .model import RTDETR, RTDETRDEIM, RTDETRDEIMSegmentPredictor, RTDETRDEIMv2
+from .model import (
+    RTDETR,
+    RTDETRDEIM,
+    RTDETRDEIMOBBPredictor,
+    RTDETRDEIMPosePredictor,
+    RTDETRDEIMSegmentPredictor,
+    RTDETRDEIMv2,
+)
 from .predict import RTDETRPredictor
 from .val import RTDETRValidator
 
@@ -25,4 +36,10 @@ __all__ = (
     "RTDETRDEIMSegmentValidator",
     "RTDETRDEIMSegmentTrainer",
     "RTDETRDEIMSegmentPredictor",
+    "RTDETRDEIMPoseValidator",
+    "RTDETRDEIMPoseTrainer",
+    "RTDETRDEIMPosePredictor",
+    "RTDETRDEIMOBBValidator",
+    "RTDETRDEIMOBBTrainer",
+    "RTDETRDEIMOBBPredictor",
 )

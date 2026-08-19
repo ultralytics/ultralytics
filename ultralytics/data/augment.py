@@ -23,9 +23,7 @@ from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TO
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
 DEFAULT_STD = (1.0, 1.0, 1.0)
-# Apple Accelerate on ARM SME leaves FP-exception flags set after finite matmuls; numpy reports them as spurious
-# divide/overflow/invalid RuntimeWarnings until 2.3.1 stopped checking unconditionally. Empty off that window so a
-# real overflow still warns.
+# Apple ARM with numpy<2.3.1 reports finite matmuls as FP exceptions; empty elsewhere so real overflows still warn
 SPURIOUS_FPE = (
     {"divide": "ignore", "over": "ignore", "invalid": "ignore"}
     if MACOS and ARM64 and check_version(np.__version__, ">=2.0.0,<2.3.1")

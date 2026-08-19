@@ -82,6 +82,14 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
         build_dataloader([], batch=4, workers=2)
 
 
+def test_build_yolo_dataset_hyp_isolated():
+    """Test dataset construction never mutates hyperparameters on the shared cfg it was built from."""
+    data = check_det_dataset("coco8.yaml")
+    cfg = get_cfg(overrides={"data": "coco8.yaml", "imgsz": 32, "rect": True})  # rect zeroes mosaic on the hyp used
+    data_build.build_yolo_dataset(cfg, data["train"], batch=2, data=data, mode="train")
+    assert cfg.mosaic == DEFAULT_CFG.mosaic
+
+
 def test_cfg_rejects_fuzzed_values():
     """Test invalid overrides fail in config validation."""
     with pytest.raises(TypeError, match="degrees"):
@@ -1497,6 +1505,25 @@ def test_utils_ops():
     assert segment2box(np.empty((0, 2)), 640, 640).tolist() == [0, 0, 0, 0]
     seg = np.array([[-100.0, -100.0], [740.0, -100.0], [740.0, 740.0], [-100.0, 740.0]])  # surrounds the image
     assert segment2box(seg, 640, 640).tolist() == [0, 0, 640, 640]
+
+
+def test_scale_coords_nonuniform_letterbox():
+    """Coordinate scaling must invert independent height and width gains from stretched preprocessing."""
+    from ultralytics.data.augment import LetterBox
+    from ultralytics.utils import ops
+
+    labels = {"img": np.zeros((320, 640, 3), dtype=np.uint8), "ratio_pad": (3.2, 3.2)}
+    ratio_pad = LetterBox((640, 640), scale_fill=True)(labels)["ratio_pad"]
+    boxes = np.array([[32.0, 64.0, 320.0, 384.0]])
+    coords = torch.tensor([[160.0, 128.0]])
+    assert ratio_pad == ((6.4, 3.2), (0, 0))
+    assert np.allclose(ops.scale_boxes((640, 640), boxes, (100, 200), ratio_pad), [[10, 10, 100, 60]])
+    assert torch.allclose(ops.scale_coords((640, 640), coords, (100, 200), ratio_pad), coords.new_tensor([[50, 20]]))
+
+    boxes = np.array([[32.0, 192.0, 320.0, 352.0]])
+    coords = torch.tensor([[160.0, 224.0]])
+    assert np.allclose(ops.scale_boxes((640, 640), boxes, (100, 200)), [[10, 10, 100, 60]])
+    assert torch.allclose(ops.scale_coords((640, 640), coords, (100, 200)), coords.new_tensor([[50, 20]]))
 
 
 def test_nms_end2end_classes_before_max_det():

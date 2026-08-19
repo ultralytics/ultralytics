@@ -395,8 +395,8 @@ POST /api/datasets
 
 !!! note "Supported Tasks"
 
-    Valid `task` values when creating or updating a dataset: `detect`, `segment`, `semantic`, `classify`, `pose`, and
-    `obb`. Depth datasets are not yet accepted by these routes, although `depth` is a valid model and project task.
+    Valid `task` values when creating or updating a dataset: `detect`, `segment`, `semantic`, `depth`, `classify`,
+    `pose`, and `obb`. Depth datasets have no classes.
 
 **Response (`201`):**
 

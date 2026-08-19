@@ -364,7 +364,7 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 - **No-Code Training**: Train advanced YOLO models without writing code
 - **Real-Time Metrics**: Stream training progress and monitor deployments
 - **42 Deploy Regions**: Deploy models close to your users worldwide
-- **7 Task Types**: Support for detection, instance segmentation, semantic segmentation, depth estimation (models and prediction today; depth datasets coming soon), classification, pose, and OBB (see [task docs](../tasks/index.md))
+- **7 Task Types**: Support for detection, instance segmentation, semantic segmentation, depth estimation, classification, pose, and OBB (see [task docs](../tasks/index.md))
 - **AI-Assisted Annotation**: [Smart annotation](data/annotation.md#smart-annotation) with SAM and YOLO models to speed up data preparation
 
 ### What GPU options are available for cloud training?

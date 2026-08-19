@@ -1267,18 +1267,30 @@ def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch,
 def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     """Drop unreadable depth maps and accept single-class mode with empty class labels."""
     from ultralytics.data.dataset import DepthDataset
+    from ultralytics.data.utils import save_depth_png
 
     images, depth = tmp_path / "images" / "train", tmp_path / "depth" / "train"
     images.mkdir(parents=True)
     depth.mkdir(parents=True)
-    for name in ("valid", "corrupt", "missing"):
+    for name in ("valid", "scaled", "legacy", "aspect", "corrupt", "missing"):
         cv2.imwrite(str(images / f"{name}.jpg"), np.zeros((32, 32, 3), np.uint8))
-    np.save(depth / "valid.npy", np.ones((32, 32), dtype=np.float32))
-    (depth / "corrupt.npy").write_text("not an npy file")
+    save_depth_png(depth / "valid.png", np.ones((32, 32), dtype=np.float32), scale=100)
+    with Image.open(depth / "valid.png") as image:
+        assert not image.info
+        assert np.asarray(image).max() == 100
+    cv2.imwrite(str(depth / "scaled.png"), np.full((32, 32), 150, np.uint16))
+    legacy = np.full((32, 32), 2.0, np.float32)
+    legacy[0, :3] = np.nan, np.inf, -np.inf
+    np.save(depth / "legacy.npy", legacy)
+    cv2.imwrite(str(depth / "aspect.png"), np.ones((16, 32), np.uint16))
+    (depth / "corrupt.png").write_text("not a png file")
 
-    data = {"names": {0: "depth"}, "nc": 1, "channels": 3}
+    data = {"names": {0: "depth"}, "nc": 1, "channels": 3, "depth_scale": 100}
     ds = DepthDataset(img_path=str(images), imgsz=32, data=data, augment=False, single_cls=True, batch_size=1)
-    assert [Path(f).stem for f in ds.im_files] == ["valid"]
+    assert {Path(f).stem for f in ds.im_files} == {"valid", "scaled", "legacy"}
+    assert sorted(ds._load_depth(i).max() for i in range(len(ds))) == [1.0, 1.5, 2.0]
+    legacy_index = next(i for i, path in enumerate(ds.im_files) if Path(path).stem == "legacy")
+    assert not ds._load_depth(legacy_index)[0, :3].any()
     assert (depth.parent / "train.cache").exists()  # scan results cached next to the depth maps
 
 

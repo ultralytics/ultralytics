@@ -274,11 +274,13 @@ def _get_project_name(trainer):
     name = slugify(str(trainer.args.name or "train"))
     owner, sep, raw_project = raw.partition("/")
     project = slugify(raw_project if sep else raw)
-    if (
-        "\\" in raw
-        or re.match(r"^[A-Za-z]:", raw)
-        or (sep and ("/" in raw_project or not project or not re.fullmatch(r"[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*", owner)))
-    ):
+    valid = not sep or (
+        "/" not in raw_project
+        and bool(project)
+        and 4 <= len(owner) <= 32
+        and re.fullmatch(r"[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*", owner)
+    )
+    if "\\" in raw or re.match(r"^[A-Za-z]:", raw) or not valid:
         return None, name
     return (f"{owner}/{project}" if sep else project), name
 

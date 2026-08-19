@@ -2,39 +2,14 @@
 
 from __future__ import annotations
 
-import types
 from pathlib import Path
 from typing import Any
 
 import torch
-import torch.nn.functional as F
 from torch import nn
 
-from ultralytics.nn.modules.block import Attention
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.torch_utils import TORCH_2_0
-
-
-def _attention_forward_sdpa(self, x: torch.Tensor) -> torch.Tensor:
-    """Attention.forward using scaled_dot_product_attention instead of a manual matmul+transpose.
-
-    ML Program's GPU (MPSGraph) backend aborts the process with `Error: MLIR pass manager failed` on the manual `v @
-    attn.transpose(-2, -1)` pattern once the surrounding graph is deep enough (e.g. C2PSA in the YOLO backbone).
-    scaled_dot_product_attention lowers to a MIL op that avoids the crash.
-
-    scale is omitted: SDPA's default (1/sqrt(query.size(-1))) already equals self.scale here, since q is transposed to
-    put key_dim last.
-    """
-    B, C, H, W = x.shape
-    N = H * W
-    qkv = self.qkv(x)
-    q, k, v = qkv.view(B, self.num_heads, self.key_dim * 2 + self.head_dim, N).split(
-        [self.key_dim, self.key_dim, self.head_dim], dim=2
-    )
-    out = F.scaled_dot_product_attention(q.transpose(-2, -1), k.transpose(-2, -1), v.transpose(-2, -1))
-    x = out.transpose(-2, -1).reshape(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
-    return self.proj(x)
 
 
 class IOSDetectModel(nn.Module):
@@ -220,20 +195,7 @@ def torch2coreml(
     import coremltools as ct
 
     LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
-    if mlmodel or not TORCH_2_0:  # scaled_dot_product_attention requires torch>=2.0
-        ts = torch.jit.trace(model.eval(), im, strict=False)  # TorchScript model
-    else:
-        # Patch only this model's Attention instances (not the class) so concurrent exports/inference
-        # elsewhere in the process are never affected.
-        attn_modules = [m for m in model.modules() if isinstance(m, Attention)]
-        originals = [m.forward for m in attn_modules]
-        for m in attn_modules:
-            m.forward = types.MethodType(_attention_forward_sdpa, m)
-        try:
-            ts = torch.jit.trace(model.eval(), im, strict=False)  # TorchScript model
-        finally:
-            for m, original_forward in zip(attn_modules, originals):
-                m.forward = original_forward
+    ts = torch.jit.trace(model.eval(), im, strict=False)  # TorchScript model
     fp16 = quantize == 16
     weight_int8 = quantize in {8, "w8a16"}
 

@@ -16,10 +16,6 @@ keywords: Ultralytics, CoreML, model export, PyTorch to CoreML, Apple iOS, macOS
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.export.coreml._attention_forward_sdpa
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.export.coreml.pipeline_coreml
 
 <br><br><hr><br>

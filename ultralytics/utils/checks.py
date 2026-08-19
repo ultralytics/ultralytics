@@ -400,19 +400,6 @@ def check_version(
     return result
 
 
-# Apple ARM with numpy 2.0-2.3.4 flags finite matmuls as FP exceptions (numpy#28687, fixed in 2.3.5)
-_SPURIOUS_FPE = MACOS and ARM64 and check_version(np.__version__, ">=2.0.0,<2.3.5")
-
-
-def _matmul(a: np.ndarray, b: np.ndarray) -> np.ndarray:
-    """Multiply arrays without Apple Accelerate's spurious FP flags while preserving non-finite diagnostics."""
-    if not _SPURIOUS_FPE:
-        return a @ b
-    with np.errstate(all="ignore"):
-        result = a @ b
-    return result if np.isfinite(result).all() else a @ b
-
-
 def check_latest_pypi_version(package_name="ultralytics"):
     """Return the latest version of a PyPI package without downloading or installing it.
 

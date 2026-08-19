@@ -6,8 +6,6 @@ from typing import Any
 
 import numpy as np
 
-from ultralytics.utils.checks import _matmul
-
 from ..utils.ops import xyxy2ltwh
 from .basetrack import TrackState
 from .byte_tracker import BYTETracker, STrack
@@ -324,8 +322,8 @@ class OCSORT(BYTETracker):
             if not valid.any():
                 continue
             directions[valid] /= norms[valid, None]
-            dots = _matmul(directions[valid], track.velocity)
-            cost[i, valid] = np.arccos(np.clip(dots, -1.0, 1.0)) / np.pi
+            dots = np.clip(directions[valid] @ track.velocity, -1.0, 1.0)
+            cost[i, valid] = np.arccos(dots) / np.pi
 
         return cost
 

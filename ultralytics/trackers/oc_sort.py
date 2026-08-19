@@ -6,6 +6,8 @@ from typing import Any
 
 import numpy as np
 
+from ultralytics.utils.checks import SPURIOUS_FPE
+
 from ..utils.ops import xyxy2ltwh
 from .basetrack import TrackState
 from .byte_tracker import BYTETracker, STrack
@@ -322,8 +324,9 @@ class OCSORT(BYTETracker):
             if not valid.any():
                 continue
             directions[valid] /= norms[valid, None]
-            dots = np.clip(directions[valid] @ track.velocity, -1.0, 1.0)
-            cost[i, valid] = np.arccos(dots) / np.pi
+            with np.errstate(**SPURIOUS_FPE):
+                dots = directions[valid] @ track.velocity
+            cost[i, valid] = np.arccos(np.clip(dots, -1.0, 1.0)) / np.pi
 
         return cost
 

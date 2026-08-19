@@ -207,7 +207,7 @@ The released `yolo26*-depth.pt` checkpoints ship with this calibration already b
 
 ### Dataset format
 
-Depth estimation datasets pair each RGB image with a corresponding depth file. Depth targets are stored as `.npy` arrays containing float32 values in meters. The dataset YAML points to an `images/` directory; the loader derives the depth file path by replacing the `images` component with `depth` and replacing the image extension with `.npy`.
+Depth estimation datasets pair each RGB image with a corresponding self-describing 16-bit depth PNG. The dataset YAML points to an `images/` directory; the loader derives the depth path by replacing the `images` component with `depth` and the image extension with `.png`.
 
 ```text
 dataset/
@@ -219,7 +219,7 @@ dataset/
     └── val/
 ```
 
-For example, an image at `images/train/scene_001.jpg` is paired with a depth map at `depth/train/scene_001.npy`. See the [Depth Estimation Dataset Guide](../datasets/depth/index.md) for the full format specification.
+For example, an image at `images/train/scene_001.jpg` is paired with a depth map at `depth/train/scene_001.png`. See the [Depth Estimation Dataset Guide](../datasets/depth/index.md) for the full format specification.
 
 ## Val
 
@@ -373,7 +373,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ### How do I train a YOLO26 depth estimation model on a custom dataset?
 
-Prepare paired RGB images and `.npy` depth files, then create a dataset YAML pointing to your `images/` directory. The loader finds depth files automatically by replacing `images` with `depth` in the path and swapping the image extension for `.npy`.
+Prepare paired RGB images and 16-bit depth PNGs, then create a dataset YAML pointing to your `images/` directory. The loader finds depth files automatically by replacing `images` with `depth` in the path and swapping the image extension for `.png`.
 
 Start from pretrained weights and use a low learning rate with AdamW so the fine-tune retains what the model already knows (see [Fine-tuning on your own data](#fine-tuning-on-your-own-data) for why):
 

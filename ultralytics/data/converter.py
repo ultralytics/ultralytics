@@ -818,8 +818,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format. For
     detection/segmentation/pose/obb tasks, it creates separate directories for images and labels. Depth datasets use
-    parallel images/ and depth/ trees with float32 NPY targets. Classification tasks use the ImageNet-style
-    {split}/{class_name}/ folder structure. Downloads run concurrently.
+    parallel images/ and depth/ trees with self-describing 16-bit PNG targets. Classification tasks use the
+    ImageNet-style {split}/{class_name}/ folder structure. Downloads run concurrently.
 
     The NDJSON format consists of:
     - First line: Dataset metadata with class names, task type, and configuration
@@ -932,8 +932,8 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
             depth = record.get("depth")
             if not isinstance(depth, dict) or not isinstance(depth.get("url"), str) or not depth["url"]:
                 raise ValueError(f"Depth record '{record.get('file', '<unknown>')}' is missing depth.url")
-            if depth.get("encoding") != "npy-f32" or depth.get("unit") != "m":
-                raise ValueError("Depth records require encoding='npy-f32' and unit='m'")
+            if depth.get("encoding") != "linear-u16" or depth.get("unit") != "m":
+                raise ValueError("Depth records require encoding='linear-u16' and unit='m'")
             shape = depth.get("shape")
             if not isinstance(shape, list) or len(shape) != 2 or not all(type(x) is int and x > 0 for x in shape):
                 raise ValueError("Depth records require a positive [height, width] shape")
@@ -1070,7 +1070,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
                 return image_ok
 
             stem = original_name.rsplit(".", 1)[0] or original_name
-            depth_path = dataset_dir / "depth" / split / f"{stem}.npy"
+            depth_path = dataset_dir / "depth" / split / f"{stem}.png"
             depth_ok = await ensure_file(session, depth_path, record["depth"]["url"])
             if not image_ok or not depth_ok:
                 image_path.unlink(missing_ok=True)

@@ -83,9 +83,9 @@ def load_depth(path: str | Path, scale: float = DEPTH_PNG_SCALE) -> np.ndarray:
     if not isinstance(scale, (int, float)) or isinstance(scale, bool) or not np.isfinite(scale) or scale <= 0:
         raise ValueError("Depth scale must be a positive finite number")
     encoded = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
-    if encoded is None or encoded.ndim != 2 or encoded.dtype != np.uint16:
+    if encoded is None or encoded.ndim != 2 or encoded.dtype.kind not in "iu" or encoded.dtype.itemsize < 2:
         raise ValueError(f"Depth PNG {path} must be a 2D uint16 map")
-    return encoded.astype(np.float32) / scale
+    return encoded.astype(np.uint16, copy=False).astype(np.float32) / scale
 
 
 def img2label_paths(img_paths: list[str], label_dir: str = "labels", suffix: str = ".txt") -> list[str]:

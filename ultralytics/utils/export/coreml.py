@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
+import types
 from pathlib import Path
 from typing import Any
-
-import types
 
 import torch
 import torch.nn.functional as F
@@ -20,12 +19,12 @@ from ultralytics.utils.torch_utils import TORCH_2_0
 def _attention_forward_sdpa(self, x: torch.Tensor) -> torch.Tensor:
     """Attention.forward using scaled_dot_product_attention instead of a manual matmul+transpose.
 
-    ML Program's GPU (MPSGraph) backend aborts the process with `Error: MLIR pass manager failed` on
-    the manual `v @ attn.transpose(-2, -1)` pattern once the surrounding graph is deep enough (e.g. C2PSA
-    in the YOLO backbone). scaled_dot_product_attention lowers to a MIL op that avoids the crash.
+    ML Program's GPU (MPSGraph) backend aborts the process with `Error: MLIR pass manager failed` on the manual `v @
+    attn.transpose(-2, -1)` pattern once the surrounding graph is deep enough (e.g. C2PSA in the YOLO backbone).
+    scaled_dot_product_attention lowers to a MIL op that avoids the crash.
 
-    scale is omitted: SDPA's default (1/sqrt(query.size(-1))) already equals self.scale here, since
-    q is transposed to put key_dim last.
+    scale is omitted: SDPA's default (1/sqrt(query.size(-1))) already equals self.scale here, since q is transposed to
+    put key_dim last.
     """
     B, C, H, W = x.shape
     N = H * W

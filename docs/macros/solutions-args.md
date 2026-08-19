@@ -1,8 +1,9 @@
 {% macro param_table(params=None) -%}
 
-| Argument                  | Type | Default | Description |
-| ------------------------- | ---- | ------- | ----------- |
-| {% set default_params = { |
+| Argument | Type | Default | Description |
+| -------- | ---- | ------- | ----------- |
+
+{% set default_params = {
 
     "model": ["str", "None", "Path to an Ultralytics YOLO model file."],
     "region": ["list` or `dict", "None", "Points defining the region of interest, either a list of `(x, y)` tuples or a dictionary mapping region names to point lists for multiple regions (`RegionCounter` only). When `None`, solutions that require a region fall back to a predefined default."],

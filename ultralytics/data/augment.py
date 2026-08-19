@@ -1958,12 +1958,9 @@ class CopyPaste(BaseMixTransform):
             instances2.fliplr(w)
 
         ioa = bbox_ioa(instances2.bboxes, instances.bboxes)
-        # p is the fraction of eligible objects pasted, least-overlapping first; mixup mode also gates on it
         indexes = np.nonzero((ioa < 0.30).all(1))[0]
-        n = len(indexes)
-        sorted_idx = np.argsort(ioa.max(1)[indexes])
-        indexes = indexes[sorted_idx]
-        selected = indexes[: round(self.p * n)]
+        indexes = indexes[np.argsort(ioa.max(1)[indexes])]
+        selected = indexes[: round(self.p * len(indexes))]
 
         im_new = np.zeros((h, w), np.uint8)
 

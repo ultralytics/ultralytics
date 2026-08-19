@@ -311,7 +311,6 @@ Then launch the training with the Python API:
     - Unlike mixup which blends pixel values globally, `cutmix` maintains the original pixel intensities within the cut regions, preserving local features.
     - A region is pasted into the target image only if it does not overlap with any existing bounding box. Additionally, only the bounding boxes that retain at least `0.1` (10%) of their original area within the pasted region are preserved.
     - This minimum bounding box area threshold cannot be changed with the current implementation and is set to `0.1` by default.
-    - [Semantic segmentation](../tasks/semantic.md) datasets are augmented too, but only when they use [YOLO polygon labels](../datasets/semantic/index.md#yolo-polygon-label-format). PNG-mask datasets carry no bounding boxes, so the transform is skipped and leaves them unchanged.
 
 |                                                     **First image, `cutmix` off**                                                      |                                                     **Second image, `cutmix` off**                                                      |                                                           **`cutmix` on**                                                           |
 | :------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------: |
@@ -323,16 +322,13 @@ Then launch the training with the Python API:
 
 - **Range**: `0.0` - `1.0`
 - **Default**: `{{ copy_paste }}`
-- **Usage**: Only works for segmentation tasks, this augmentation copies objects within or between images, controlled by the [`copy_paste_mode`](#copy-paste-mode-copy_paste_mode). The `copy_paste` hyperparameter sets how many objects are copied rather than how often: an image with `n` eligible objects receives `round(copy_paste * n)` copies, so `copy_paste=1.0` copies every eligible object and `copy_paste=0.0` disables the transformation. For example, an image with six eligible objects gains three copies at `copy_paste=0.5`.
-- **Purpose**: Particularly useful for instance segmentation tasks and rare object classes. For example, in industrial defect detection where certain types of defects appear infrequently, copy-paste augmentation can artificially increase the occurrence of these rare defects by duplicating them into more training samples, helping the model better learn these underrepresented cases without requiring additional defective samples.
+- **Usage**: Only works for segmentation tasks, this augmentation copies objects within or between images, controlled by the [`copy_paste_mode`](#copy-paste-mode-copy_paste_mode). In `flip` mode, `copy_paste` is the fraction of eligible objects copied: an image with six eligible objects gains three copies at `copy_paste=0.5`. In `mixup` mode, the same value also controls the probability that copy-paste runs. `copy_paste=0.0` disables the transformation.
+- **Purpose**: Particularly useful for instance segmentation tasks and rare object classes. For example, in industrial defect detection where certain types of defects appear infrequently, copy-paste augmentation can artificially increase the occurrence of these rare defects by copying them from one image to another, helping the model better learn these underrepresented cases without requiring additional defective samples.
 - **Ultralytics' implementation**: [CopyPaste](../reference/data/augment.md#ultralytics.data.augment.CopyPaste)
 - **Note**:
-    - Images that carry no polygon instances are returned unchanged, before any object is selected.
-    - Eligible objects are ordered by ascending overlap, so lowering `copy_paste` drops the most overlapping copies first. The count is rounded, so a small value on an image with few eligible objects selects nothing: `copy_paste=0.25` copies nothing until an image has at least three of them. An image also comes out unchanged when every candidate fails the IoA check below.
+    - As pictured in the gif below, the `copy_paste` augmentation can be used to copy objects from one image to another.
     - Once an object is selected for copying, its IoA is computed against all objects already present in the target image, regardless of `copy_paste_mode`. The object is pasted only if all IoA values are below `0.3` (30%); it is not pasted if any IoA value is `0.3` or higher.
     - The IoA threshold cannot be changed with the current implementation and is set to `0.3` by default.
-    - With `copy_paste_mode='mixup'` the value is used twice: first as the per-image probability of running the transform, then as the fraction of eligible objects pasted.
-    - [Semantic segmentation](../tasks/semantic.md) datasets are augmented too, but only when they use [YOLO polygon labels](../datasets/semantic/index.md#yolo-polygon-label-format). PNG-mask datasets carry no polygons, so copy-paste leaves them unchanged.
 
 |                                                               **`copy_paste` off**                                                               |                                               **`copy_paste` on with `copy_paste_mode=flip`**                                               |                                                       **Visualize the `copy_paste` process**                                                        |
 | :----------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------: |
@@ -342,7 +338,7 @@ Then launch the training with the Python API:
 
 - **Options**: `'flip'`, `'mixup'`
 - **Default**: `'{{ copy_paste_mode }}'`
-- **Usage**: Determines the method used for [copy-paste](#copy-paste-copy_paste) augmentation. If set to `'flip'`, the objects come from the same image and each copy is a horizontal mirror of the original, while `'mixup'` takes them from a randomly sampled dataset entry after that entry's own pre-transforms, so the source may be the current image or a mosaic of several images.
+- **Usage**: Determines the method used for [copy-paste](#copy-paste-copy_paste) augmentation. If set to `'flip'`, the objects come from the same image, while `'mixup'` allows objects to be copied from different images.
 - **Purpose**: Allows flexibility in how copied objects are integrated into target images.
 - **Ultralytics' implementation**: [CopyPaste](../reference/data/augment.md#ultralytics.data.augment.CopyPaste)
 - **Note**:

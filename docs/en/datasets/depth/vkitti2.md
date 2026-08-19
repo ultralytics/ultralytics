@@ -26,7 +26,7 @@ The Virtual KITTI 2 depth dataset is split into two subsets:
 1. **Train**: 25,780 images with paired dense depth maps for training.
 2. **Val**: 16,740 images with paired dense depth maps for validation during training.
 
-Each RGB image is paired with a `.npy` float32 depth map storing per-pixel distances in meters, following the [Ultralytics depth dataset format](index.md).
+Each RGB image is paired with a 16-bit depth PNG storing per-pixel distances in meters, following the [Ultralytics depth dataset format](index.md).
 
 ## Role in YOLO26-Depth
 

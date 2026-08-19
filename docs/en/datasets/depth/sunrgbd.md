@@ -23,7 +23,7 @@ The SUN RGB-D depth dataset is split into two subsets:
 1. **Train**: 9,245 images with paired depth maps for training.
 2. **Val**: 1,090 images with paired depth maps for validation during model training.
 
-Each sample consists of one RGB image and one paired `.npy` float32 depth map storing per-pixel distances in meters, following the [Ultralytics depth dataset format](index.md).
+Each sample consists of one RGB image and one paired 16-bit depth PNG storing per-pixel distances in meters, following the [Ultralytics depth dataset format](index.md).
 
 ## Role in YOLO26-Depth
 

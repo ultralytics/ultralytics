@@ -417,34 +417,20 @@ class EnterpriseDetectionValidator(DetectionValidator):
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         self.metrics.coco_results = {}
         self.metrics.localization_results = {}
-        predictions = self.coco_gt.loadRes(self.jdict) if self.jdict else None
+        predictions = self.coco_gt.loadRes(self.jdict) if self.jdict else self.jdict
         for name, (lo, hi) in self.slices.items():
             image_ids = self.source_image_ids[name]
-            if predictions is not None:
-                source = self.coco_evaluate(
-                    {}, predictions, self.coco_gt, image_ids=image_ids, category_ids=list(range(lo + 1, hi + 1))
-                )
-                self.metrics.coco_results[name] = {key: source[key] for key in SOURCE_METRIC_KEYS}
-                self.metrics.localization_results[name] = self.coco_evaluate(
-                    {}, predictions, self.coco_gt, image_ids=image_ids, class_agnostic=True
-                )["metrics/mAR(B)"]
-            else:
-                areas = [ann["area"] for ann in self.coco_gt.loadAnns(self.coco_gt.getAnnIds(imgIds=image_ids))]
-                has_size = {
-                    size: any(lower <= area < upper for area in areas)
-                    for size, (lower, upper) in DETECTION_AREA_RANGES.items()
-                }
-                self.metrics.coco_results[name] = {
-                    "metrics/mAP50(B)": 0.0,
-                    "metrics/mAP50-95(B)": 0.0,
-                    "metrics/mAR(B)": 0.0,
-                    **{
-                        f"metrics/m{kind}_{size}(B)": 0.0 if exists else -1.0
-                        for size, exists in has_size.items()
-                        for kind in ("AP", "AR")
-                    },
-                }
-                self.metrics.localization_results[name] = 0.0
+            source = self.coco_evaluate(
+                {}, predictions, self.coco_gt, image_ids=image_ids, category_ids=list(range(lo + 1, hi + 1))
+            )
+            self.metrics.coco_results[name] = {key: source[key] for key in SOURCE_METRIC_KEYS}
+            self.metrics.localization_results[name] = (
+                self.coco_evaluate({}, predictions, self.coco_gt, image_ids=image_ids, class_agnostic=True)[
+                    "metrics/mAR(B)"
+                ]
+                if self.jdict
+                else 0.0
+            )
         stats = self.metrics.results_dict
         self.metrics.clear_stats()
         for metric in self.metrics.source_metrics.values():

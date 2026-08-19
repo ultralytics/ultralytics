@@ -44,6 +44,7 @@ from pathlib import Path
 
 import h5py
 import numpy as np
+
 from ultralytics.data.utils import save_depth_png
 
 W, H, FOCAL = 1024, 768, 886.81  # Hypersim camera intrinsics

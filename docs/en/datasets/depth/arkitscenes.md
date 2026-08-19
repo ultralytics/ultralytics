@@ -42,6 +42,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+
 from ultralytics.data.utils import save_depth_png
 
 src, dst = Path("data/upsampling"), Path("datasets/depth-arkitscenes")

@@ -15,12 +15,11 @@ graph TB
     P[Project]:::start --> M1[Model 1]:::proc
     P --> M2[Model 2]:::proc
     P --> M3[Model 3]:::proc
-    M1 --> C[Charts Dashboard]:::out
-    M2 --> C
-    M3 --> C
-    M1 --> T[Comparison Table]:::out
-    M2 --> T
-    M3 --> T
+    M1 --> S[Check in Sidebar]:::proc
+    M2 --> S
+    M3 --> S
+    S --> C[Charts]:::out
+    S --> T[Comparison Table]:::out
 
     classDef start fill:#4CAF50,color:#fff
     classDef proc fill:#2196F3,color:#fff

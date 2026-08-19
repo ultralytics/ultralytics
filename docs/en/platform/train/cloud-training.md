@@ -44,8 +44,8 @@ Within each tab, models are grouped by task in canonical order and sorted by siz
 
 !!! note "Depth Training"
 
-    Depth datasets are not available yet, so depth models are currently for prediction and export only. Every other
-    task can be trained on the Platform.
+    Depth datasets can be uploaded with float NPY targets in meters or uint16 PNG targets using the dataset's
+    `depth_scale`. See the [depth dataset format](../../datasets/depth/index.md#depth-map-format).
 
 ### Step 2: Select Dataset
 

@@ -48,22 +48,23 @@ graph LR
     classDef out fill:#9C27B0,color:#fff
 ```
 
-| Stage        | Description                                                                                                     |
-| ------------ | --------------------------------------------------------------------------------------------------------------- |
-| **Upload**   | Import images, videos, or archives with automatic processing                                                    |
-| **Annotate** | Label data with manual tools for all 6 task types, or use SAM annotation for detect, segment, semantic, and OBB |
-| **Analyze**  | View class distributions, spatial heatmaps, dimension statistics, and embedding clusters                        |
-| **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use           |
+| Stage        | Description                                                                                           |
+| ------------ | ----------------------------------------------------------------------------------------------------- |
+| **Upload**   | Import images, videos, or archives with automatic processing                                          |
+| **Annotate** | Label data with manual tools, or use SAM annotation for detect, segment, semantic, and OBB            |
+| **Analyze**  | View class distributions, spatial heatmaps, dimension statistics, and embedding clusters              |
+| **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use |
 
 ## Supported Tasks
 
-Ultralytics Platform datasets support 6 of the 7 YOLO task types — [depth](../../tasks/depth.md) datasets are coming soon (depth models and prediction are already supported):
+Ultralytics Platform datasets support all 7 YOLO task types:
 
 | Task                                             | Description                                                     | Annotation Tool   |
 | ------------------------------------------------ | --------------------------------------------------------------- | ----------------- |
 | **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes                            | Rectangle tool    |
 | **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks                          | Polygon tool      |
 | **[Semantic](../../datasets/semantic/index.md)** | Semantic segmentation with per-class pixel regions              | Polygon tool      |
+| **[Depth](../../datasets/depth/index.md)**       | Per-pixel metric depth maps                                     | Imported targets  |
 | **[Classify](../../datasets/classify/index.md)** | Image-level classification                                      | Class selector    |
 | **[Pose](../../datasets/pose/index.md)**         | Keypoint estimation with built-in and custom skeleton templates | Keypoint tool     |
 | **[OBB](../../datasets/obb/index.md)**           | Oriented bounding boxes for rotated objects                     | Oriented box tool |

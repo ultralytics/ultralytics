@@ -247,11 +247,14 @@ Each image record may include a `metadata` JSON object for application-specific 
 
 ```json
 {
-    "type": "image",
-    "file": "airbus-wing.jpg",
-    "url": "https://example.com/airbus-wing.jpg",
-    "split": "train",
-    "metadata": { "aircraft": { "family": "A350", "section": "wing" }, "inspectionStatus": "reviewed" }
+  "type": "image",
+  "file": "airbus-wing.jpg",
+  "url": "https://example.com/airbus-wing.jpg",
+  "split": "train",
+  "metadata": {
+    "aircraft": { "family": "A350", "section": "wing" },
+    "inspectionStatus": "reviewed"
+  }
 }
 ```
 

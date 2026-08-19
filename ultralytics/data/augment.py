@@ -14,7 +14,7 @@ from PIL import Image
 from torch.nn import functional as F
 
 from ultralytics.data.utils import polygons2masks, polygons2masks_overlap
-from ultralytics.utils import LOGGER, IterableSimpleNamespace, colorstr, deprecation_warn
+from ultralytics.utils import ARM64, LOGGER, MACOS, IterableSimpleNamespace, colorstr, deprecation_warn
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
@@ -23,6 +23,14 @@ from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TO
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
 DEFAULT_STD = (1.0, 1.0, 1.0)
+# Apple Accelerate on ARM SME leaves FP-exception flags set after finite matmuls; numpy reports them as spurious
+# divide/overflow/invalid RuntimeWarnings until 2.3.1 stopped checking unconditionally. Empty off that window so a
+# real overflow still warns.
+SPURIOUS_FPE = (
+    {"divide": "ignore", "over": "ignore", "invalid": "ignore"}
+    if MACOS and ARM64 and check_version(np.__version__, ">=2.0.0,<2.3.1")
+    else {}
+)
 
 
 class BaseTransform:
@@ -1261,8 +1269,7 @@ class RandomPerspective(BaseTransform):
 
         xy = np.ones((n * 4, 3), dtype=bboxes.dtype)
         xy[:, :2] = bboxes[:, [0, 1, 2, 3, 0, 3, 2, 1]].reshape(n * 4, 2)  # x1y1, x2y2, x1y2, x2y1
-        # numpy<2.3.1 on Apple ARM SME flags finite matmuls; a real overflow still reaches callers as inf
-        with np.errstate(divide="ignore", over="ignore", invalid="ignore"):
+        with np.errstate(**SPURIOUS_FPE):
             xy = xy @ M.T  # transform
         xy = (xy[:, :2] / xy[:, 2:3] if self.perspective else xy[:, :2]).reshape(n, 8)  # perspective rescale or affine
 
@@ -1282,8 +1289,7 @@ class RandomPerspective(BaseTransform):
         xy = np.ones((n * num, 3), dtype=segments.dtype)
         segments = segments.reshape(-1, 2)
         xy[:, :2] = segments
-        # numpy<2.3.1 on Apple ARM SME flags finite matmuls; a real overflow still reaches callers as inf
-        with np.errstate(divide="ignore", over="ignore", invalid="ignore"):
+        with np.errstate(**SPURIOUS_FPE):
             xy = xy @ M.T  # transform
         xy = xy[:, :2] / xy[:, 2:3]
         segments = xy.reshape(n, -1, 2)
@@ -1321,8 +1327,7 @@ class RandomPerspective(BaseTransform):
         xy = np.ones((n * nkpt, 3), dtype=keypoints.dtype)
         visible = keypoints[..., 2].reshape(n * nkpt, 1)
         xy[:, :2] = keypoints[..., :2].reshape(n * nkpt, 2)
-        # numpy<2.3.1 on Apple ARM SME flags finite matmuls; a real overflow still reaches callers as inf
-        with np.errstate(divide="ignore", over="ignore", invalid="ignore"):
+        with np.errstate(**SPURIOUS_FPE):
             xy = xy @ M.T  # transform
         xy = xy[:, :2] / xy[:, 2:3]  # perspective rescale or affine
         out_mask = (xy[:, 0] < 0) | (xy[:, 1] < 0) | (xy[:, 0] > size[0]) | (xy[:, 1] > size[1])

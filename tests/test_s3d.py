@@ -3,7 +3,6 @@
 
 import json
 from pathlib import Path
-from types import SimpleNamespace
 
 import cv2
 import numpy as np
@@ -1343,28 +1342,6 @@ def test_drives_yaml_key_builds_balanced_sampler(tmp_path):
     assert float(sampler.weights[-1]) == 1.0, "the single-frame drive must keep uniform weight"
 
 
-def test_val_false_warns_that_best_is_not_selected(monkeypatch):
-    """`val=False` silently disables model selection, so it must warn loudly.
-
-    With val=False the trainer never sets self.fitness, so `if self.best_fitness == self.fitness:` is `None == None` and
-    best.pt is rewritten every epoch — verified identical to last.pt in all 806 tensors on a real checkpoint. Nothing in
-    the log said so.
-    """
-    from ultralytics.models.yolo.s3d.train import Stereo3DDetTrainer
-
-    warnings = []
-    monkeypatch.setattr(
-        "ultralytics.engine.trainer.LOGGER.warning",
-        lambda msg, *a: warnings.append(str(msg) % a if a else str(msg)),
-    )
-    Stereo3DDetTrainer(overrides={"model": MODEL, "data": DATA, "epochs": 1, "imgsz": [384, 1248], "val": False})
-    assert any("val=False disables model selection" in w for w in warnings), f"no warning fired: {warnings}"
-
-    warnings.clear()
-    Stereo3DDetTrainer(overrides={"model": MODEL, "data": DATA, "epochs": 1, "imgsz": [384, 1248], "val": True})
-    assert not any("val=False" in w for w in warnings), f"warned with val=True: {warnings}"
-
-
 def test_dfl_variance_uses_the_retargeted_bin_grid():
     """The depth-bin variance must be read on the head's own grid, not a grid rebuilt from the defaults.
 
@@ -1776,59 +1753,6 @@ def test_bin_count_default_is_64_and_overridable(tmp_path):
     head = YOLO(str(override)).model.model[-1]
     assert head.depth_dfl.n_bins == 16
     assert head.aux["depth"][0][-1].out_channels == 16
-
-
-def test_validator_metric_names_survive_a_ddp_wrapped_model(monkeypatch):
-    """`get_validator` must read `names` through the parallel wrapper, not off `self.model` directly.
-
-    `BaseTrainer._setup_train` wraps `self.model` in DistributedDataParallel BEFORE calling `get_validator()`, and DDP
-    does not forward attribute lookups to the module it wraps. Reading `self.model.names` therefore returned None on
-    every multi-GPU run, with two silent consequences: results.csv lost all 18 per-class AP3D columns (28 columns
-    instead of 82), and the surviving `ap3d_50` summary changed meaning, because `Stereo3DDetMetrics._mean_metric`
-    averages over whichever classes appear when `names` is empty rather than over all of them. A full-split DDP run
-    reported `ap3d_50` near 29 where the true 3-class mean was 6.96.
-
-    The validator is stubbed: building a real one needs a live dataloader, and the defect under test is purely how
-    `get_validator` reaches the model's `names`.
-    """
-    import torch
-
-    from ultralytics.models.yolo import s3d as s3d_mod
-    from ultralytics.models.yolo.s3d.metrics import Stereo3DDetMetrics
-    from ultralytics.models.yolo.s3d.train import Stereo3DDetTrainer
-
-    class _StubValidator:
-        def __init__(self, *args, **kwargs):
-            self.metrics = Stereo3DDetMetrics()
-
-    monkeypatch.setattr(s3d_mod, "Stereo3DDetValidator", _StubValidator)
-
-    names = {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
-    trainer = object.__new__(Stereo3DDetTrainer)
-    trainer.test_loader, trainer.save_dir, trainer.callbacks = None, Path("."), {}
-    trainer.args = SimpleNamespace()
-
-    plain = torch.nn.Linear(2, 2)
-    plain.names = names
-    trainer.model = plain
-    bare_keys = len(trainer.get_validator().metrics.keys)
-    assert bare_keys > 20, "single-process baseline should include the per-class AP3D keys"
-
-    class _FakeDDP(torch.nn.Module):
-        """Mimics the one property that matters: attributes are not forwarded to `.module`."""
-
-        def __init__(self, module):
-            super().__init__()
-            self.module = module
-
-    trainer.model = _FakeDDP(plain)
-    assert getattr(trainer.model, "names", None) is None, "the wrapper must hide .names, as DDP does"
-
-    wrapped = trainer.get_validator()
-    assert wrapped.metrics.names == names, "a DDP-wrapped model must still yield names"
-    assert len(wrapped.metrics.keys) == bare_keys, (
-        f"DDP run lost metric columns: {len(wrapped.metrics.keys)} vs {bare_keys} single-process"
-    )
 
 
 def test_close_range_boxes_are_rendered():

@@ -23,7 +23,7 @@ The ARKitScenes depth dataset is split into two subsets:
 1. **Train**: 676,080 images with paired depth maps for training.
 2. **Val**: 21,559 images with paired depth maps for validation during model training.
 
-Each sample consists of one RGB image and one paired 16-bit depth PNG storing per-pixel distances in meters, following the [Ultralytics depth dataset format](index.md).
+Each sample consists of one RGB image and one paired uint16 depth PNG in millimeters (`depth_scale: 1000`), following the [Ultralytics depth dataset format](index.md).
 
 ## Obtain the Data
 
@@ -39,11 +39,9 @@ Depth frames are `uint16` PNGs in **millimeters** (0 = invalid), and RGB/depth f
 
 ```python
 from pathlib import Path
+import shutil
 
 import cv2
-import numpy as np
-
-from ultralytics.data.utils import save_depth_png
 
 src, dst = Path("data/upsampling"), Path("datasets/depth-arkitscenes")
 for split, out in (("Training", "train"), ("Validation", "val")):
@@ -57,8 +55,7 @@ for split, out in (("Training", "train"), ("Validation", "val")):
             t = float(depth_png.stem.split("_")[-1])
             rgb = rgbs[min(rgbs, key=lambda k: abs(k - t))]  # nearest-timestamp RGB frame
             name = f"{video.name}_{depth_png.stem}"
-            depth = cv2.imread(str(depth_png), cv2.IMREAD_UNCHANGED).astype(np.float32) / 1000.0  # mm → m
-            save_depth_png(dst / f"depth/{out}/{name}.png", depth)
+            shutil.copy2(depth_png, dst / f"depth/{out}/{name}.png")
             cv2.imwrite(str(dst / f"images/{out}/{name}.png"), cv2.imread(str(rgb)))
 ```
 

@@ -25,7 +25,7 @@ The TartanAir depth dataset is split into two subsets:
 1. **Train**: 55,660 images with paired dense depth maps for training.
 2. **Val**: 5,810 images with paired dense depth maps for validation during training.
 
-Each RGB image is paired with a 16-bit depth PNG storing per-pixel distances in meters, following the [Ultralytics depth dataset format](index.md).
+Each RGB image is paired with a scaled uint16 depth PNG, following the [Ultralytics depth dataset format](index.md).
 
 ## Obtain the Data
 

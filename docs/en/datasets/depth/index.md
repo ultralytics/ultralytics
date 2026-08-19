@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLO, depth estimation, depth dataset format, PNG depth m
 
 # Depth Estimation Datasets Overview
 
-Monocular depth estimation assigns a depth value in meters to every pixel in an image. The training target is a self-describing 16-bit grayscale PNG that stores its linear meter range in PNG metadata.
+Monocular depth estimation assigns a depth value in meters to every pixel in an image. Depth targets use either scaled 16-bit grayscale PNGs or floating-point NPY arrays in meters.
 
 This guide explains the dataset format used by Ultralytics YOLO depth estimation models and lists the built-in dataset configurations available for training and validation.
 
@@ -14,13 +14,24 @@ This guide explains the dataset format used by Ultralytics YOLO depth estimation
 
 ### Depth map format
 
-Each training sample consists of one RGB image and one paired depth file. Existing datasets can use floating-point `.npy` maps in meters or ordinary integer `.png` maps with a dataset-level `depth_scale`. For compact, self-describing datasets, `save_depth_png()` writes the meter range into each PNG; code `0` means invalid and codes `256–65535` cover the valid range.
+Each training sample consists of one RGB image and one paired depth file. PNG values are divided by the optional dataset-level `depth_scale` to produce meters. The default is `1000`, so a value of `1500` represents `1.5` meters. Code `0` means invalid; PNGs need no embedded metadata.
 
-- Depth files use `.png` (preferred) or `.npy`. NPY arrays must be 2D and floating-point, with values in meters.
-- Ordinary integer PNG values are divided by `depth_scale` to produce meters (for example, use `depth_scale: 1000` for millimeters).
+- Depth files use `.png` (preferred) or `.npy`. PNG maps must be 2D uint16 grayscale images. NPY arrays must be 2D and floating-point, with values in meters.
+- Set `depth_scale` only when PNGs do not use the default millimeter convention. For example, KITTI uses `256` and Virtual KITTI 2 uses `100`.
 - Each depth file should have the same stem as its matching image file (e.g., `scene_001.png` pairs with `scene_001.jpg`).
+- Depth maps may be smaller than their RGB images as long as the aspect ratio matches; training resizes them in memory.
 - The dataset loader finds depth files by replacing the `images` directory component with `depth`, preferring `.png` and falling back to `.npy`.
 - Pixels with depth `≤ 0` are treated as invalid and excluded from loss and metric computation.
+
+Because code `0` is reserved for invalid pixels, a uint16 PNG provides 65,535 positive depth values. The scale controls both precision and range:
+
+| Convention            | `depth_scale` | Resolution |  Maximum depth |
+| --------------------- | ------------: | ---------: | -------------: |
+| Default / ARKitScenes |        `1000` |       1 mm |       65.535 m |
+| KITTI                 |         `256` | 3.90625 mm | 255.99609375 m |
+| Virtual KITTI 2       |         `100` |       1 cm |       655.35 m |
+
+These are storage limits, not recommended training caps. A dataset can set a smaller `max_depth` independently for loss calibration or evaluation.
 
 The standard layout keeps images and depth maps in parallel folders:
 
@@ -40,15 +51,15 @@ For example, an image at `images/train/scene_001.jpg` is paired with a depth map
 
 Depth estimation datasets are configured with YAML files. The main fields are:
 
-| Key           | Description                                                                           |
-| ------------- | ------------------------------------------------------------------------------------- |
-| `path`        | Dataset root directory.                                                               |
-| `train`       | Training image path relative to `path`, or an absolute path.                          |
-| `val`         | Validation image path relative to `path`, or an absolute path.                        |
-| `test`        | Optional test image path.                                                             |
-| `nc`          | Number of classes — always `1` for depth estimation.                                  |
-| `names`       | Class name mapping — always `{0: depth}`.                                             |
-| `depth_scale` | Optional raw integer PNG units per meter; not needed for NPY or self-describing PNGs. |
+| Key           | Description                                                    |
+| ------------- | -------------------------------------------------------------- |
+| `path`        | Dataset root directory.                                        |
+| `train`       | Training image path relative to `path`, or an absolute path.   |
+| `val`         | Validation image path relative to `path`, or an absolute path. |
+| `test`        | Optional test image path.                                      |
+| `nc`          | Number of classes — always `1` for depth estimation.           |
+| `names`       | Class name mapping — always `{0: depth}`.                      |
+| `depth_scale` | Optional PNG units per meter; defaults to `1000`.              |
 
 !!! example "ultralytics/cfg/datasets/nyu-depth.yaml"
 
@@ -112,7 +123,7 @@ Per-model accuracy on these benchmarks and the downloadable pretrained weights a
 ## Adding Your Own Dataset
 
 1. Save RGB images under split folders such as `images/train` and `images/val`.
-2. Save one depth PNG or NPY per image under the matching `depth/train` and `depth/val` folders using the same file stem as the image. Existing integer PNG datasets only need `depth_scale` added to their YAML; use `save_depth_png()` when creating new compact datasets.
+2. Save one depth PNG or NPY per image under the matching `depth/train` and `depth/val` folders using the same file stem as the image. Use `save_depth_png()` to convert meter arrays into compact millimeter PNGs.
 3. Ensure the decoded depth values are in meters and that invalid or missing pixels use `0` or negative values.
 4. Create a dataset YAML with `path`, `train`, `val`, `nc: 1`, and `names: {0: depth}`.
 
@@ -125,7 +136,7 @@ nc: 1
 names:
     0: depth
 
-# Only for ordinary integer PNGs, e.g. millimeters:
+# Optional: PNG integer units per meter (default 1000)
 depth_scale: 1000
 ```
 
@@ -133,7 +144,7 @@ depth_scale: 1000
 
 ### What file format should depth maps use?
 
-Use self-describing 16-bit PNGs written with `ultralytics.data.utils.save_depth_png()` for new datasets. Existing floating-point NPY maps in meters also work directly, and ordinary integer PNG datasets can declare `depth_scale` in their YAML.
+Use scaled 16-bit grayscale PNGs for compact datasets. By default each integer step is one millimeter; set `depth_scale` in the dataset YAML for another scale. `ultralytics.data.utils.save_depth_png()` converts meter arrays to the default format. Floating-point NPY maps in meters also work directly.
 
 ### How are invalid depth pixels handled?
 

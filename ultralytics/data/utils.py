@@ -86,10 +86,6 @@ def load_depth(path: str | Path, scale: float = DEPTH_PNG_SCALE) -> np.ndarray:
         if image.format != "PNG" or image.mode not in {"I", "I;16"}:
             raise ValueError(f"Depth PNG {path} must be a 2D uint16 map")
         encoded = np.asarray(image)
-    if encoded.ndim != 2 or encoded.dtype.kind not in "iu" or encoded.dtype.itemsize < 2:
-        raise ValueError(f"Depth PNG {path} must be a 2D uint16 map")
-    if encoded.dtype != np.uint16 and encoded.size and (encoded.min() < 0 or encoded.max() > np.iinfo(np.uint16).max):
-        raise ValueError(f"Depth PNG {path} contains values outside the uint16 range")
     depth = encoded.astype(np.float32)
     depth /= scale
     return depth
@@ -271,7 +267,9 @@ def verify_image_depth(args: tuple) -> tuple:
                 isinstance(scale, (int, float)) and not isinstance(scale, bool) and np.isfinite(scale) and scale > 0
             ), "depth_scale must be a positive finite number"
             with Image.open(depth_file) as depth:
-                assert depth.mode in {"I", "I;16"}, f"depth map {depth_file} must be an integer grayscale PNG"
+                assert depth.format == "PNG" and depth.mode in {"I", "I;16"}, (
+                    f"depth map {depth_file} must be an integer grayscale PNG"
+                )
                 depth_shape = (depth.height, depth.width)
                 depth.verify()
         assert abs(np.log((depth_shape[1] / depth_shape[0]) / (shape[1] / shape[0]))) <= 0.02, (

@@ -82,6 +82,14 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
         build_dataloader([], batch=4, workers=2)
 
 
+def test_build_yolo_dataset_hyp_isolated():
+    """Test dataset construction never mutates hyperparameters on the shared cfg it was built from."""
+    data = check_det_dataset("coco8.yaml")
+    cfg = get_cfg(overrides={"data": "coco8.yaml", "imgsz": 32, "rect": True})  # rect zeroes mosaic on the hyp used
+    data_build.build_yolo_dataset(cfg, data["train"], batch=2, data=data, mode="train")
+    assert cfg.mosaic == DEFAULT_CFG.mosaic
+
+
 def test_cfg_rejects_fuzzed_values():
     """Test invalid overrides fail in config validation."""
     with pytest.raises(TypeError, match="degrees"):
@@ -1026,10 +1034,20 @@ def test_data_utils(tmp_path):
     images_dir = tmp_path / "coco8/images/val"
     images_dir.mkdir(parents=True)
     Image.new("RGB", (8, 8)).save(images_dir / "test.jpg")
+    metadata_dir = images_dir / "__MACOSX"
+    metadata_dir.mkdir()
+    nested_metadata_dir = metadata_dir / "nested/__MACOSX"
+    nested_metadata_dir.mkdir(parents=True)
+    metadata_file = images_dir / ".DS_Store"
+    metadata_file.write_bytes(b"metadata")
+    (metadata_dir / "._test.jpg").write_bytes(b"metadata")
+    (nested_metadata_dir / "._nested.jpg").write_bytes(b"metadata")
 
     autosplit(tmp_path / "coco8/images")
     assert any((tmp_path / "coco8").glob("autosplit_*.txt"))
     assert zip_directory(images_dir).is_file()
+    assert not metadata_dir.exists()
+    assert not metadata_file.exists()
     with pytest.raises(ValueError, match="split"):
         check_cls_dataset("imagenet10", split="invalid")
     with pytest.raises(FileNotFoundError, match="'test:' images not found"):
@@ -1267,18 +1285,30 @@ def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch,
 def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     """Drop unreadable depth maps and accept single-class mode with empty class labels."""
     from ultralytics.data.dataset import DepthDataset
+    from ultralytics.data.utils import save_depth_png
 
     images, depth = tmp_path / "images" / "train", tmp_path / "depth" / "train"
     images.mkdir(parents=True)
     depth.mkdir(parents=True)
-    for name in ("valid", "corrupt", "missing"):
+    for name in ("valid", "scaled", "legacy", "aspect", "corrupt", "missing"):
         cv2.imwrite(str(images / f"{name}.jpg"), np.zeros((32, 32, 3), np.uint8))
-    np.save(depth / "valid.npy", np.ones((32, 32), dtype=np.float32))
-    (depth / "corrupt.npy").write_text("not an npy file")
+    save_depth_png(depth / "valid.png", np.ones((32, 32), dtype=np.float32), scale=100)
+    with Image.open(depth / "valid.png") as image:
+        assert not image.info
+        assert np.asarray(image).max() == 100
+    cv2.imwrite(str(depth / "scaled.png"), np.full((32, 32), 150, np.uint16))
+    legacy = np.full((32, 32), 2.0, np.float32)
+    legacy[0, :3] = np.nan, np.inf, -np.inf
+    np.save(depth / "legacy.npy", legacy)
+    cv2.imwrite(str(depth / "aspect.png"), np.ones((16, 32), np.uint16))
+    (depth / "corrupt.png").write_text("not a png file")
 
-    data = {"names": {0: "depth"}, "nc": 1, "channels": 3}
+    data = {"names": {0: "depth"}, "nc": 1, "channels": 3, "depth_scale": 100}
     ds = DepthDataset(img_path=str(images), imgsz=32, data=data, augment=False, single_cls=True, batch_size=1)
-    assert [Path(f).stem for f in ds.im_files] == ["valid"]
+    assert {Path(f).stem for f in ds.im_files} == {"valid", "scaled", "legacy"}
+    assert sorted(ds._load_depth(i).max() for i in range(len(ds))) == [1.0, 1.5, 2.0]
+    legacy_index = next(i for i, path in enumerate(ds.im_files) if Path(path).stem == "legacy")
+    assert not ds._load_depth(legacy_index)[0, :3].any()
     assert (depth.parent / "train.cache").exists()  # scan results cached next to the depth maps
 
 
@@ -1485,6 +1515,25 @@ def test_utils_ops():
     assert segment2box(np.empty((0, 2)), 640, 640).tolist() == [0, 0, 0, 0]
     seg = np.array([[-100.0, -100.0], [740.0, -100.0], [740.0, 740.0], [-100.0, 740.0]])  # surrounds the image
     assert segment2box(seg, 640, 640).tolist() == [0, 0, 640, 640]
+
+
+def test_scale_coords_nonuniform_letterbox():
+    """Coordinate scaling must invert independent height and width gains from stretched preprocessing."""
+    from ultralytics.data.augment import LetterBox
+    from ultralytics.utils import ops
+
+    labels = {"img": np.zeros((320, 640, 3), dtype=np.uint8), "ratio_pad": (3.2, 3.2)}
+    ratio_pad = LetterBox((640, 640), scale_fill=True)(labels)["ratio_pad"]
+    boxes = np.array([[32.0, 64.0, 320.0, 384.0]])
+    coords = torch.tensor([[160.0, 128.0]])
+    assert ratio_pad == ((6.4, 3.2), (0, 0))
+    assert np.allclose(ops.scale_boxes((640, 640), boxes, (100, 200), ratio_pad), [[10, 10, 100, 60]])
+    assert torch.allclose(ops.scale_coords((640, 640), coords, (100, 200), ratio_pad), coords.new_tensor([[50, 20]]))
+
+    boxes = np.array([[32.0, 192.0, 320.0, 352.0]])
+    coords = torch.tensor([[160.0, 224.0]])
+    assert np.allclose(ops.scale_boxes((640, 640), boxes, (100, 200)), [[10, 10, 100, 60]])
+    assert torch.allclose(ops.scale_coords((640, 640), coords, (100, 200)), coords.new_tensor([[50, 20]]))
 
 
 def test_nms_end2end_classes_before_max_det():

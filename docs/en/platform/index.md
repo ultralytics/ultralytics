@@ -15,7 +15,7 @@ keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud dep
 
 Ultralytics Platform brings dataset management and annotation, experiment tracking, cloud and remote training, model export, dedicated inference endpoints, and deployment monitoring into one workspace. It has native support for [YOLO26](../models/yolo26.md), [YOLO11](../models/yolo11.md), [YOLOv8](../models/yolov8.md), and [YOLOv5](../models/yolov5.md) models.
 
-## Workflow: Upload → Annotate → Train → Export → Deploy
+## Workflow: Upload → Annotate → Train → Export or Deploy
 
 The Platform provides an end-to-end workflow:
 
@@ -23,17 +23,18 @@ The Platform provides an end-to-end workflow:
 graph LR
     subgraph Data["📁 Data"]
         A[Upload]:::start --> B[Annotate]:::proc
-        B --> C[Analyze]:::proc
     end
     subgraph Train["🚀 Train"]
         D[Configure]:::proc --> E[Train on GPU]:::proc
         E --> F[View Metrics]:::out
     end
-    subgraph Deploy["🌐 Deploy"]
-        G[Export]:::proc --> H[Deploy Endpoint]:::proc
-        H --> I[Monitor]:::out
+    subgraph Deploy["🌐 Export or Deploy"]
+        G[Export]:::proc
+        H[Deploy Endpoint]:::proc --> I[Monitor]:::out
     end
-    Data --> Train --> Deploy
+    Data --> Train
+    E --> G
+    E --> H
 
     classDef start fill:#4CAF50,color:#fff
     classDef proc fill:#2196F3,color:#fff
@@ -42,7 +43,7 @@ graph LR
 
 | Stage        | Features                                                                                                                                                                                                               |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) with automatic processing                                                                                                 |
+| **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) from your machine, a URL, cloud storage, or an on-premise host                                                            |
 | **Annotate** | Manual tools for all 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM and YOLO models for detect, segment, semantic, and OBB (see [supported tasks](data/index.md#supported-tasks)) |
 | **Train**    | Cloud GPUs (24 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                              |
 | **Export**   | [20 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.; see [supported formats](train/models.md#supported-formats))                                                          |
@@ -56,6 +57,7 @@ graph LR
 - **Export** to [20 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.)
 - **Deploy** to 42 global regions with one-click dedicated endpoints
 - **Monitor** training progress, deployment health, and usage metrics
+- **Connect** cloud storage, annotation tools, and Slack through [integrations](integrations/index.md)
 - **Collaborate** by making projects and datasets public for the community
 
 ## Multi-Region Infrastructure
@@ -75,12 +77,12 @@ Dedicated endpoints are deployed separately to a region you choose from the glob
 
 ### Data Preparation
 
-- **Dataset Management**: Upload images, videos, or dataset files with automatic processing
+- **Dataset Management**: Create datasets from local files, a URL, connected [cloud storage](integrations/index.md), or an [on-premise host](integrations/on-premise.md), with automatic processing
 - **[Annotation Editor](https://www.ultralytics.com/annotate)**: Manual annotation for all 6 YOLO task types (detect, segment, semantic, classify, pose, OBB; see [supported tasks](data/index.md#supported-tasks))
-- **Skeleton Templates**: Built-in (Person, Hand, Face, Dog, Box) and custom skeleton templates for one-click pose annotation
+- **Skeleton Templates**: Built-in (Person, Hand, Dog, Face, Box) and custom skeleton templates for one-click pose annotation
 - **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), pretrained Ultralytics YOLO models, or your own fine-tuned YOLO models from the annotation toolbar for detect, segment, semantic, and OBB tasks
-- **Dataset Versioning**: Create numbered NDJSON snapshots with descriptions for reproducible training
-- **Statistics**: Class distribution, location heatmaps, and dimension analysis
+- **Dataset Versioning**: Create numbered NDJSON snapshots with descriptions, then download or restore any version for reproducible training
+- **Statistics**: Class distribution, split distribution, location heatmaps, and bounding box dimension analysis
 
 ```mermaid
 graph LR
@@ -106,8 +108,9 @@ graph LR
 
 ### Model Training
 
-- **Cloud Training**: Train on cloud GPUs (24 on all plans, 26 with [Pro or Enterprise](account/billing.md#plans) for B200 and B300) with real-time metrics
+- **Cloud Training**: Train on cloud GPUs (24 on all plans, 26 with [Pro or Enterprise](account/billing.md#plans) for B200 and B300) with real-time metrics and a live cost estimate
 - **Remote Training**: Train anywhere and stream metrics to Ultralytics Platform
+- **Advanced Settings**: Override any Ultralytics training argument from a built-in YAML editor in the training dialog
 - **Project Organization**: Group related models, compare experiments, track activity
 - **20 Export Formats**: ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, and more (see [supported formats](train/models.md#supported-formats))
 
@@ -125,7 +128,7 @@ You can train models either through the web UI (cloud training) or from your own
 
     ```bash
     # Install ultralytics
-    pip install "ultralytics>=8.4.104"
+    pip install "ultralytics>=8.4.120"
 
     # Set your API key
     export ULTRALYTICS_API_KEY="YOUR_API_KEY"
@@ -155,7 +158,7 @@ You can train models either through the web UI (cloud training) or from your own
 
 ### Deployment
 
-- **Inference Testing**: Test models directly in the browser with custom images
+- **Inference Testing**: Test models directly in the browser with your own images, a webcam capture, or the built-in examples
 - **Dedicated Endpoints**: Deploy to 42 global regions with scale-to-zero by default (single active instance)
 - **Monitoring**: Real-time metrics, request logs, and performance dashboards
 
@@ -176,18 +179,25 @@ graph LR
     classDef out fill:#9C27B0,color:#fff
 ```
 
-Once deployed, call your endpoint from any language:
+Once deployed, call your endpoint from any language. `conf`, `iou`, and `imgsz` are optional form fields that default to
+`0.25`, `0.7`, and `640`:
 
 === "Python"
 
     ```python
     import requests
 
-    url = "https://your-endpoint-url/predict"
-    headers = {"Authorization": "Bearer YOUR_API_KEY"}
+    url = "https://your-deployment-url.run.app/predict"
+    api_key = "YOUR_API_KEY"
+    args = {"conf": 0.25, "iou": 0.7, "imgsz": 640}
 
     with open("image.jpg", "rb") as f:
-        response = requests.post(url, headers=headers, files={"file": f})
+        response = requests.post(
+            url,
+            headers={"Authorization": f"Bearer {api_key}"},
+            data=args,
+            files={"file": f},
+        )
 
     print(response.json())
     ```
@@ -195,9 +205,12 @@ Once deployed, call your endpoint from any language:
 === "cURL"
 
     ```bash
-    curl -X POST "https://your-endpoint-url/predict" \
+    curl -X POST "https://your-deployment-url.run.app/predict" \
       -H "Authorization: Bearer YOUR_API_KEY" \
-      -F "file=@image.jpg"
+      -F "file=@image.jpg" \
+      -F "conf=0.25" \
+      -F "iou=0.7" \
+      -F "imgsz=640"
     ```
 
 === "JavaScript"
@@ -205,8 +218,11 @@ Once deployed, call your endpoint from any language:
     ```javascript
     const form = new FormData();
     form.append("file", fileInput.files[0]);
+    form.append("conf", "0.25");
+    form.append("iou", "0.7");
+    form.append("imgsz", "640");
 
-    const response = await fetch("https://your-endpoint-url/predict", {
+    const response = await fetch("https://your-deployment-url.run.app/predict", {
         method: "POST",
         headers: { Authorization: "Bearer YOUR_API_KEY" },
         body: form,
@@ -218,9 +234,9 @@ Once deployed, call your endpoint from any language:
 
 ### Account Management
 
-- **Teams & Organizations**: Collaborate with team members, manage roles and invites
+- **Teams & Organizations**: Collaborate with team members, manage roles and invites, and switch workspaces from the account menu
 - **API Keys**: Secure key management for remote training and API access
-- **Credits & Billing**: Pay-as-you-go training with transparent pricing
+- **Credits & Billing**: Pay-as-you-go training with transparent pricing and top-ups from $5 to $1,000
 - **Activity Feed**: Track all account events and actions
 - **Trash & Restore**: 30-day soft delete with item recovery
 - **GDPR Compliance**: Data export and account deletion
@@ -234,17 +250,26 @@ Once deployed, call your endpoint from any language:
 Get started with these resources:
 
 - [**Quickstart**](quickstart.md): Create your first project and train a model in minutes
+- [**Explore**](explore.md): Browse and clone public datasets and projects
+- [**Data**](data/index.md): Dataset preparation overview
 - [**Datasets**](data/datasets.md): Upload and manage your training data
 - [**Annotation**](data/annotation.md): Label your data with manual and AI-assisted tools
+- [**Train**](train/index.md): Training overview
 - [**Projects**](train/projects.md): Organize your models and experiments
+- [**Models**](train/models.md): Model pages, downloads, and exports
 - [**Cloud Training**](train/cloud-training.md): Train on cloud GPUs
+- [**Deploy**](deploy/index.md): Deployment overview
 - [**Inference**](deploy/inference.md): Test your models
 - [**Endpoints**](deploy/endpoints.md): Deploy models to production
 - [**Monitoring**](deploy/monitoring.md): Track deployment performance
+- [**Account**](account/index.md): Account overview
+- [**Settings**](account/settings.md): Profile and workspace preferences
+- [**Teams**](account/teams.md): Members, roles, and invites
 - [**API Keys**](account/api-keys.md): Manage API access
 - [**Billing**](account/billing.md): Credits and payment
 - [**Activity**](account/activity.md): Track account events
 - [**Trash**](account/trash.md): Recover deleted items
+- [**Integrations**](integrations/index.md): Cloud storage, annotation tools, and Slack
 - [**REST API**](api/index.md): API reference
 
 ## Troubleshooting
@@ -271,7 +296,7 @@ Get started with these resources:
 
 | Problem                 | Solution                                                                                                                    |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Endpoint not responding | Check endpoint status (Ready vs Stopped). Cold start may take 5-15 seconds                                                  |
+| Endpoint not responding | Check endpoint status (Ready vs Stopped). A cold start after idle can take up to ~45 seconds on the first request           |
 | 401 Unauthorized        | Verify the API key is active and copied correctly                                                                           |
 | Slow inference          | Check model size, consider [TensorRT export](train/models.md#supported-formats), select closer region                       |
 | Export failed           | Some formats require specific model architectures. Try [ONNX](train/models.md#supported-formats) for broadest compatibility |
@@ -340,7 +365,7 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 - **No-Code Training**: Train advanced YOLO models without writing code
 - **Real-Time Metrics**: Stream training progress and monitor deployments
 - **42 Deploy Regions**: Deploy models close to your users worldwide
-- **7 Task Types**: Support for detection, instance segmentation, semantic segmentation, depth estimation (models and prediction today; depth datasets coming soon), classification, pose, and OBB (see [task docs](../tasks/index.md))
+- **7 Task Types**: Support for detection, instance segmentation, semantic segmentation, depth estimation, classification, pose, and OBB (see [task docs](../tasks/index.md))
 - **AI-Assisted Annotation**: [Smart annotation](data/annotation.md#smart-annotation) with SAM and YOLO models to speed up data preparation
 
 ### What GPU options are available for cloud training?
@@ -357,10 +382,10 @@ You can train models on your own hardware and stream real-time metrics to Ultral
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.104**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.120**. Lower versions will NOT work with Platform.
 
     ```bash
-    pip install "ultralytics>=8.4.104"
+    pip install "ultralytics>=8.4.120"
     ```
 
 === "CLI"
@@ -407,20 +432,24 @@ See [Cloud Training](train/cloud-training.md#remote-training) for more details o
 The Platform includes a full-featured annotation editor supporting:
 
 - **Manual Tools**: Bounding boxes, polygons, keypoints with skeleton templates, oriented boxes, classification
-- **Skeleton Templates**: Place all keypoints at once using built-in (Person, Hand, Face, Dog, Box) or custom templates
+- **Skeleton Templates**: Place all keypoints at once using built-in (Person, Hand, Dog, Face, Box) or custom templates
 - **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) or [SAM 3](../models/sam-3.md) for click-based annotation, or run pretrained Ultralytics YOLO models and your own fine-tuned YOLO models from the toolbar for detect, segment, semantic, and OBB
-- **Keyboard Shortcuts**: Efficient workflows with hotkeys
+- **Keyboard Shortcuts**: Efficient workflows with hotkeys, listed in the editor's shortcuts popover
 
-| Shortcut  | Action                            |
-| --------- | --------------------------------- |
-| `V`       | Manual (draw) mode                |
-| `S`       | Smart mode (SAM or YOLO model)    |
-| `A`       | Toggle auto-apply (in Smart mode) |
-| `1` - `9` | Select class by number            |
-| `Delete`  | Delete selected annotation        |
-| `Ctrl+Z`  | Undo                              |
-| `Ctrl+Y`  | Redo                              |
-| `Escape`  | Save / deselect / exit            |
+| Shortcut               | Action                            |
+| ---------------------- | --------------------------------- |
+| `V`                    | Manual (draw) mode                |
+| `S`                    | Smart mode (SAM or YOLO model)    |
+| `P`                    | Predict (in Smart mode)           |
+| `A`                    | Toggle auto-apply (in Smart mode) |
+| `1` - `9`              | Select class by number            |
+| `H`                    | Toggle annotation visibility      |
+| `Space` + drag         | Pan the canvas                    |
+| `Delete` / `Backspace` | Delete selected annotation        |
+| `Ctrl+S`               | Save annotations                  |
+| `Ctrl+Z`               | Undo                              |
+| `Ctrl+Y`               | Redo                              |
+| `Escape`               | Save / deselect / exit            |
 
 See [Annotation](data/annotation.md) for the complete guide.
 

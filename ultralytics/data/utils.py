@@ -76,17 +76,25 @@ def save_depth_png(path: str | Path, depth: np.ndarray) -> None:
     Image.fromarray(encoded).save(path, pnginfo=metadata)
 
 
-def load_depth(path: str | Path) -> np.ndarray:
-    """Load a metric depth PNG."""
+def load_depth(path: str | Path, scale: float | None = None) -> np.ndarray:
+    """Load a metric depth map from an Ultralytics PNG, scaled integer PNG, or floating-point NPY."""
     path = Path(path)
+    if path.suffix.lower() == ".npy":
+        depth = np.load(path, allow_pickle=False)
+        if depth.ndim != 2 or depth.dtype.kind != "f":
+            raise ValueError(f"Depth map {path} must be a 2D floating-point NPY array")
+        return depth.astype(np.float32, copy=False)
     with Image.open(path) as image:
         info = image.info
-        if info.get("ultralytics.depth.encoding") != "linear-u16" or info.get("ultralytics.depth.unit") != "m":
-            raise ValueError(f"Depth PNG {path} is missing Ultralytics linear-u16 meter metadata")
-        minimum, maximum = float(info["ultralytics.depth.min"]), float(info["ultralytics.depth.max"])
-        encoded = np.asarray(image, dtype=np.uint16)
+        encoded = np.asarray(image)
     if encoded.ndim != 2:
         raise ValueError(f"Depth map {path} must be 2D, got shape {encoded.shape}")
+    if info.get("ultralytics.depth.encoding") != "linear-u16" or info.get("ultralytics.depth.unit") != "m":
+        if encoded.dtype.kind not in "ui" or not scale or scale <= 0:
+            raise ValueError(f"Depth PNG {path} requires a positive depth_scale in the dataset YAML")
+        return encoded.astype(np.float32) / scale
+    minimum, maximum = float(info["ultralytics.depth.min"]), float(info["ultralytics.depth.max"])
+    encoded = encoded.astype(np.uint16, copy=False)
     valid = encoded >= DEPTH_PNG_MIN_CODE
     depth = np.zeros(encoded.shape, dtype=np.float32)
     if maximum == minimum:
@@ -255,7 +263,7 @@ def verify_image(args: tuple) -> tuple:
 
 def verify_image_depth(args: tuple) -> tuple:
     """Verify that an image and its paired depth map exist and are readable."""
-    im_file, depth_file, prefix = args
+    im_file, depth_file, prefix, scale = args
     # Number (found, missing, corrupt), message
     nf, nm, nc, msg = 0, 0, 0, ""
     try:
@@ -265,15 +273,21 @@ def verify_image_depth(args: tuple) -> tuple:
             nm = 1
             msg = f"{prefix}{im_file}: ignoring image with missing depth map {depth_file}"
             return None, None, nf, nm, nc, msg
-        with Image.open(depth_file) as depth:
-            info = depth.info
-            assert depth.mode in {"I", "I;16"}, f"depth map {depth_file} must be 16-bit grayscale"
-            assert (
-                info.get("ultralytics.depth.encoding") == "linear-u16" and info.get("ultralytics.depth.unit") == "m"
-            ), f"depth map {depth_file} must use Ultralytics linear-u16 meter metadata"
-            float(info["ultralytics.depth.min"])
-            float(info["ultralytics.depth.max"])
-            depth.verify()
+        if Path(depth_file).suffix.lower() == ".npy":
+            depth = np.load(depth_file, mmap_mode="r", allow_pickle=False)
+            assert depth.ndim == 2 and depth.dtype.kind == "f", "depth NPY must be 2D and floating-point"
+        else:
+            with Image.open(depth_file) as depth:
+                info = depth.info
+                assert depth.mode in {"I", "I;16"}, f"depth map {depth_file} must be an integer grayscale PNG"
+                canonical = (
+                    info.get("ultralytics.depth.encoding") == "linear-u16" and info.get("ultralytics.depth.unit") == "m"
+                )
+                assert canonical or (scale and scale > 0), "integer depth PNG requires a positive depth_scale"
+                if canonical:
+                    float(info["ultralytics.depth.min"])
+                    float(info["ultralytics.depth.max"])
+                depth.verify()
         nf = 1
         return im_file, shape, nf, nm, nc, msg
     except Exception as e:

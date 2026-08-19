@@ -1272,14 +1272,17 @@ def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     images, depth = tmp_path / "images" / "train", tmp_path / "depth" / "train"
     images.mkdir(parents=True)
     depth.mkdir(parents=True)
-    for name in ("valid", "corrupt", "missing"):
+    for name in ("valid", "scaled", "legacy", "corrupt", "missing"):
         cv2.imwrite(str(images / f"{name}.jpg"), np.zeros((32, 32, 3), np.uint8))
     save_depth_png(depth / "valid.png", np.ones((32, 32), dtype=np.float32))
+    cv2.imwrite(str(depth / "scaled.png"), np.full((32, 32), 1500, np.uint16))
+    np.save(depth / "legacy.npy", np.full((32, 32), 2.0, np.float32))
     (depth / "corrupt.png").write_text("not a png file")
 
-    data = {"names": {0: "depth"}, "nc": 1, "channels": 3}
+    data = {"names": {0: "depth"}, "nc": 1, "channels": 3, "depth_scale": 1000}
     ds = DepthDataset(img_path=str(images), imgsz=32, data=data, augment=False, single_cls=True, batch_size=1)
-    assert [Path(f).stem for f in ds.im_files] == ["valid"]
+    assert {Path(f).stem for f in ds.im_files} == {"valid", "scaled", "legacy"}
+    assert sorted(ds._load_depth(i).max() for i in range(len(ds))) == [1.0, 1.5, 2.0]
     assert (depth.parent / "train.cache").exists()  # scan results cached next to the depth maps
 
 

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to prepare depth estimation datasets for Ultralytics YOLO, including 16-bit PNG depth maps, dataset YAML fields, directory layout, and supported datasets.
-keywords: Ultralytics, YOLO, depth estimation, depth dataset format, PNG depth maps, NYU Depth V2, monocular depth, per-pixel depth
+description: Learn how to prepare depth estimation datasets for Ultralytics YOLO, including PNG and NPY depth maps, dataset YAML fields, directory layout, and supported datasets.
+keywords: Ultralytics, YOLO, depth estimation, depth dataset format, PNG depth maps, NPY depth maps, NYU Depth V2, monocular depth, per-pixel depth
 ---
 
 # Depth Estimation Datasets Overview
@@ -12,13 +12,14 @@ This guide explains the dataset format used by Ultralytics YOLO depth estimation
 
 ## Supported Dataset Format
 
-### PNG depth map format
+### Depth map format
 
-Each training sample consists of one RGB image and one paired `.png` depth file. Code `0` means invalid; writers use codes `256–65535` to linearly cover the valid per-image minimum and maximum stored in the PNG metadata. Starting at 256 preserves the nearest valid band when browsers display the same 16-bit asset as 8-bit.
+Each training sample consists of one RGB image and one paired depth file. Existing datasets can use floating-point `.npy` maps in meters or ordinary integer `.png` maps with a dataset-level `depth_scale`. For compact, self-describing datasets, `save_depth_png()` writes the meter range into each PNG; code `0` means invalid and codes `256–65535` cover the valid range.
 
-- Depth files use the `.png` extension and the Ultralytics `linear-u16` metadata convention.
+- Depth files use `.png` (preferred) or `.npy`. NPY arrays must be 2D and floating-point, with values in meters.
+- Ordinary integer PNG values are divided by `depth_scale` to produce meters (for example, use `depth_scale: 1000` for millimeters).
 - Each depth file should have the same stem as its matching image file (e.g., `scene_001.png` pairs with `scene_001.jpg`).
-- The dataset loader finds depth files by replacing the `images` directory component with `depth` and swapping the image extension for `.png`.
+- The dataset loader finds depth files by replacing the `images` directory component with `depth`, preferring `.png` and falling back to `.npy`.
 - Pixels with depth `≤ 0` are treated as invalid and excluded from loss and metric computation.
 
 The standard layout keeps images and depth maps in parallel folders:
@@ -39,14 +40,15 @@ For example, an image at `images/train/scene_001.jpg` is paired with a depth map
 
 Depth estimation datasets are configured with YAML files. The main fields are:
 
-| Key     | Description                                                    |
-| ------- | -------------------------------------------------------------- |
-| `path`  | Dataset root directory.                                        |
-| `train` | Training image path relative to `path`, or an absolute path.   |
-| `val`   | Validation image path relative to `path`, or an absolute path. |
-| `test`  | Optional test image path.                                      |
-| `nc`    | Number of classes — always `1` for depth estimation.           |
-| `names` | Class name mapping — always `{0: depth}`.                      |
+| Key           | Description                                                                           |
+| ------------- | ------------------------------------------------------------------------------------- |
+| `path`        | Dataset root directory.                                                               |
+| `train`       | Training image path relative to `path`, or an absolute path.                          |
+| `val`         | Validation image path relative to `path`, or an absolute path.                        |
+| `test`        | Optional test image path.                                                             |
+| `nc`          | Number of classes — always `1` for depth estimation.                                  |
+| `names`       | Class name mapping — always `{0: depth}`.                                             |
+| `depth_scale` | Optional raw integer PNG units per meter; not needed for NPY or self-describing PNGs. |
 
 !!! example "ultralytics/cfg/datasets/nyu-depth.yaml"
 
@@ -110,8 +112,8 @@ Per-model accuracy on these benchmarks and the downloadable pretrained weights a
 ## Adding Your Own Dataset
 
 1. Save RGB images under split folders such as `images/train` and `images/val`.
-2. Save one 16-bit depth PNG per image under the matching `depth/train` and `depth/val` folders using the same file stem as the image. Use `save_depth_png()` to write the required metadata.
-3. Ensure depth values are in meters and that invalid or missing pixels use `0` or negative values.
+2. Save one depth PNG or NPY per image under the matching `depth/train` and `depth/val` folders using the same file stem as the image. Existing integer PNG datasets only need `depth_scale` added to their YAML; use `save_depth_png()` when creating new compact datasets.
+3. Ensure the decoded depth values are in meters and that invalid or missing pixels use `0` or negative values.
 4. Create a dataset YAML with `path`, `train`, `val`, `nc: 1`, and `names: {0: depth}`.
 
 ```yaml
@@ -122,13 +124,16 @@ val: images/val
 nc: 1
 names:
     0: depth
+
+# Only for ordinary integer PNGs, e.g. millimeters:
+depth_scale: 1000
 ```
 
 ## FAQ
 
 ### What file format should depth maps use?
 
-Depth maps must be self-describing 16-bit PNGs written with `ultralytics.data.utils.save_depth_png()`. The loader reconstructs meter-valued float32 arrays and preserves code `0` as invalid.
+Use self-describing 16-bit PNGs written with `ultralytics.data.utils.save_depth_png()` for new datasets. Existing floating-point NPY maps in meters also work directly, and ordinary integer PNG datasets can declare `depth_scale` in their YAML.
 
 ### How are invalid depth pixels handled?
 
@@ -145,4 +150,4 @@ Depth estimation validation reports the standard Depth Anything metric set:
 
 ### Do depth file names need to match image file names?
 
-Yes. Each depth `.png` file must share the same stem as the corresponding image. The loader derives the depth path by replacing the `images` directory component with `depth` and substituting the image extension for `.png`. Images whose depth file is missing or unreadable are dropped during the cached dataset scan with a warning.
+Yes. Each depth `.png` or `.npy` file must share the same stem as the corresponding image. The loader derives the depth path by replacing the `images` directory component with `depth`, preferring PNG and falling back to NPY. Images whose depth file is missing or unreadable are dropped during the cached dataset scan with a warning.

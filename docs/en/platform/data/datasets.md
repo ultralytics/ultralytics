@@ -57,7 +57,7 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 === "Archives"
 
-    Archives are extracted and processed automatically. Archives can also be nested inside a folder structure, and a single archive can mix images, videos, and labels.
+    Archives are extracted and processed automatically. Archives can also be nested inside a folder structure, and a single archive can mix images, videos, and labels, or carry the `depth/` tree of a [depth dataset](../../datasets/depth/index.md#depth-map-format).
 
     | Format | Extensions              | Notes             | Free  | Pro   | Enterprise |
     | ------ | ----------------------- | ----------------- | ----- | ----- | ---------- |
@@ -207,7 +207,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
 !!! tip "Flat Directory Structure"
 
-    You can also upload images without explicit split folders. Platform respects the active split target during upload. If no split target is set and the upload leaves the `val` split empty, non-classify datasets automatically move roughly 20% of the `train` images to `val` so the dataset is immediately trainable. Classification datasets are skipped because they use directory-based splits. You can always reassign images later with [bulk move-to-split](#bulk-move-to-split) or [split redistribution](#split-redistribution).
+    You can also upload images without explicit split folders. Platform respects the active split target during upload. If no split target is set and the upload leaves `val` empty — or with fewer than two paired maps for depth — non-classify datasets automatically move train images to `val` so the dataset is immediately trainable. Classification datasets are skipped because they use directory-based splits. You can always reassign images later with [bulk move-to-split](#bulk-move-to-split) or [split redistribution](#split-redistribution).
 
 !!! tip "Format Auto-Detection"
 
@@ -383,6 +383,7 @@ Click any image to open the fullscreen viewer with:
 - **Reset view**: `Cmd/Ctrl + 0` or the reset button to fit the image to the viewer
 - **Pan**: Hold `Space` and drag to pan the canvas when zoomed
 - **Pixel view**: Toggle pixelated rendering for close inspection
+- **Depth curtain**: On depth datasets, a draggable divider wipes between the RGB image and its colorized depth map
 
 ![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.ul.run/i/083e8f7a4ad565c1cca40ec0f214b748.avif)<!-- screenshot -->
 
@@ -476,7 +477,7 @@ The default view showing the image gallery with annotation overlays. Supports gr
 
 ### Classes Tab
 
-This tab appears when the dataset has images.
+This tab appears when the dataset has images and its task has classes.
 
 Manage annotation classes for your dataset:
 
@@ -823,7 +824,7 @@ Dataset metadata is edited inline directly on the dataset page — no dialog nee
 
 !!! info "Changing Task Type"
 
-    Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back.
+    Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back. [Depth](../../datasets/depth/index.md#depth-map-format) is the exception: its ground truth is a paired file rather than an annotation, so a dataset can only switch to or from depth while it holds no images — re-import it instead.
 
 ### Custom Metadata
 
@@ -947,7 +948,7 @@ Ultralytics Platform supports YOLO labels, COCO JSON, Ultralytics NDJSON, and ra
 
 ### Can I annotate the same dataset for multiple task types?
 
-Yes. Each image stores annotations for all 6 task types (detect, segment, semantic, classify, pose, OBB) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training — annotations for other tasks are preserved and reappear when you switch back.
+Yes. Each image stores annotations for all 6 annotation task types (detect, segment, semantic, classify, pose, OBB) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training — annotations for other tasks are preserved and reappear when you switch back.
 
 ### Are there limits on classes and annotations?
 

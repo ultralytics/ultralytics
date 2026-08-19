@@ -225,17 +225,9 @@ For task-specific format details, see [supported tasks](index.md#supported-tasks
 
 ### Depth Maps
 
-[Depth](../../datasets/depth/index.md) datasets pair each image with a ground truth depth map instead of drawn annotations. Use the standard [NPY depth map layout](../../datasets/depth/index.md#npy-depth-map-format) — a `depth/` tree mirroring `images/`, each map named after its image — with a 100 MB cap per map. A lower-resolution map is fine, but a map whose aspect ratio differs from its image by more than 2%, or that holds no valid depth values, is rejected: that image is skipped and counted in the upload summary.
-
-A first import containing depth maps sets the dataset task to depth, so no `data.yaml` is required. An archive carrying both depth maps and annotation labels is rejected. Depth datasets have no classes, and their images carry no annotations.
-
-!!! tip "Adding Depth Maps Later"
-
-    On a dataset created with the **Depth** task you can upload images first and pair depth maps afterwards: re-upload the archive with the `depth/` tree added. Images already stored are matched and paired rather than duplicated, and the upload reports how many gained a target. Images without a paired map stay in the dataset, are shown as unpaired in the gallery, and are excluded from training.
-
-!!! warning "Depth Maps Cannot Be Uploaded Loose"
-
-    The upload picker filters out loose `.npy` files, so depth maps must travel inside a ZIP or TAR archive. A Platform [NDJSON export](#export-dataset) can also be re-imported as-is. Depth datasets also cannot read from [connected storage](../integrations/index.md) yet — import from an upload or a URL.
+[Depth](../../datasets/depth/index.md) datasets pair each image with a scaled uint16 PNG or floating-point NPY map in
+the mirrored `depth/` tree shown above. Upload the pairs in an archive or [NDJSON export](#export-dataset); connected
+storage is not supported. Unpaired images stay visible but are excluded from training; later archives pair by stem.
 
 ### Upload Process
 

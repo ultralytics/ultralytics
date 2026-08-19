@@ -14,8 +14,8 @@ from PIL import Image
 from torch.nn import functional as F
 
 from ultralytics.data.utils import polygons2masks, polygons2masks_overlap
-from ultralytics.utils import ARM64, LOGGER, MACOS, IterableSimpleNamespace, colorstr, deprecation_warn
-from ultralytics.utils.checks import check_version
+from ultralytics.utils import LOGGER, IterableSimpleNamespace, colorstr, deprecation_warn
+from ultralytics.utils.checks import SPURIOUS_FPE, check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
 from ultralytics.utils.ops import segment2box, xywh2xyxy, xyxyxyxy2xywhr
@@ -23,12 +23,6 @@ from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TO
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
 DEFAULT_STD = (1.0, 1.0, 1.0)
-# Apple ARM with numpy<2.3.1 reports finite matmuls as FP exceptions; empty elsewhere so real overflows still warn
-SPURIOUS_FPE = (
-    {"divide": "ignore", "over": "ignore", "invalid": "ignore"}
-    if MACOS and ARM64 and check_version(np.__version__, ">=2.0.0,<2.3.1")
-    else {}
-)
 
 
 class BaseTransform:

@@ -13,7 +13,7 @@ from typing import Any
 
 import cv2
 import numpy as np
-from PIL import Image, ImageOps, PngImagePlugin
+from PIL import Image, ImageOps
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (
@@ -51,50 +51,43 @@ IMG_FORMATS = {
 VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ts", "wmv", "webm"}  # videos
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
 
-DEPTH_PNG_MIN_CODE = 256  # survives browser uint16 → uint8 display as 1; zero stays transparent
+DEPTH_PNG_SCALE = 1000  # uint16 millimeters by default; zero is invalid
 
 
-def save_depth_png(path: str | Path, depth: np.ndarray) -> None:
-    """Save metric depth as a self-describing 16-bit PNG with zero reserved for invalid pixels."""
+def save_depth_png(path: str | Path, depth: np.ndarray, scale: float = DEPTH_PNG_SCALE) -> None:
+    """Save metric depth as a scaled uint16 PNG with zero reserved for invalid pixels."""
+    if not isinstance(scale, (int, float)) or isinstance(scale, bool) or not np.isfinite(scale) or scale <= 0:
+        raise ValueError("Depth scale must be a positive finite number")
     depth = np.asarray(depth, dtype=np.float32).squeeze()
     if depth.ndim != 2:
         raise ValueError(f"Depth map must be 2D, got shape {depth.shape}")
     valid = np.isfinite(depth) & (depth > 0)
-    minimum, maximum = (float(x) for x in (depth[valid].min(), depth[valid].max())) if valid.any() else (0.0, 0.0)
     encoded = np.zeros(depth.shape, dtype=np.uint16)
-    if maximum == minimum:
-        encoded[valid] = 65535
-    else:
-        encoded[valid] = DEPTH_PNG_MIN_CODE + np.rint(
-            (depth[valid] - minimum) * ((65535 - DEPTH_PNG_MIN_CODE) / (maximum - minimum))
-        ).astype(np.uint16)
-    metadata = PngImagePlugin.PngInfo()
-    metadata.add_text("ultralytics.depth.encoding", "linear-u16")
-    metadata.add_text("ultralytics.depth.min", repr(minimum))
-    metadata.add_text("ultralytics.depth.max", repr(maximum))
-    metadata.add_text("ultralytics.depth.unit", "m")
-    Image.fromarray(encoded).save(path, pnginfo=metadata)
+    if valid.any():
+        scaled = np.rint(depth[valid] * scale)
+        if scaled.max() > np.iinfo(np.uint16).max:
+            raise ValueError(f"Depth map exceeds the {np.iinfo(np.uint16).max / scale:g} meter PNG limit")
+        encoded[valid] = np.maximum(scaled, 1).astype(np.uint16)
+    if not cv2.imwrite(str(path), encoded):
+        raise OSError(f"Failed to save depth map to {path}")
 
 
-def load_depth(path: str | Path) -> np.ndarray:
-    """Load a metric depth PNG."""
+def load_depth(path: str | Path, scale: float = DEPTH_PNG_SCALE) -> np.ndarray:
+    """Load metric depth from a scaled uint16 PNG or floating-point meter NPY."""
     path = Path(path)
+    if path.suffix.lower() == ".npy":
+        depth = np.load(path, allow_pickle=False)
+        if depth.ndim != 2 or depth.dtype.kind != "f":
+            raise ValueError(f"Depth map {path} must be a 2D floating-point NPY array")
+        return np.nan_to_num(depth.astype(np.float32, copy=False), copy=False, nan=0.0, posinf=0.0, neginf=0.0)
+    if not isinstance(scale, (int, float)) or isinstance(scale, bool) or not np.isfinite(scale) or scale <= 0:
+        raise ValueError("Depth scale must be a positive finite number")
     with Image.open(path) as image:
-        info = image.info
-        if info.get("ultralytics.depth.encoding") != "linear-u16" or info.get("ultralytics.depth.unit") != "m":
-            raise ValueError(f"Depth PNG {path} is missing Ultralytics linear-u16 meter metadata")
-        minimum, maximum = float(info["ultralytics.depth.min"]), float(info["ultralytics.depth.max"])
-        encoded = np.asarray(image, dtype=np.uint16)
-    if encoded.ndim != 2:
-        raise ValueError(f"Depth map {path} must be 2D, got shape {encoded.shape}")
-    valid = encoded >= DEPTH_PNG_MIN_CODE
-    depth = np.zeros(encoded.shape, dtype=np.float32)
-    if maximum == minimum:
-        depth[valid] = minimum
-    else:
-        depth[valid] = minimum + (encoded[valid].astype(np.float32) - DEPTH_PNG_MIN_CODE) * (
-            (maximum - minimum) / (65535 - DEPTH_PNG_MIN_CODE)
-        )
+        if image.format != "PNG" or image.mode not in {"I", "I;16"}:
+            raise ValueError(f"Depth PNG {path} must be a 2D uint16 map")
+        encoded = np.asarray(image)
+    depth = encoded.astype(np.float32)
+    depth /= scale
     return depth
 
 
@@ -255,7 +248,7 @@ def verify_image(args: tuple) -> tuple:
 
 def verify_image_depth(args: tuple) -> tuple:
     """Verify that an image and its paired depth map exist and are readable."""
-    im_file, depth_file, prefix = args
+    im_file, depth_file, prefix, scale = args
     # Number (found, missing, corrupt), message
     nf, nm, nc, msg = 0, 0, 0, ""
     try:
@@ -265,15 +258,23 @@ def verify_image_depth(args: tuple) -> tuple:
             nm = 1
             msg = f"{prefix}{im_file}: ignoring image with missing depth map {depth_file}"
             return None, None, nf, nm, nc, msg
-        with Image.open(depth_file) as depth:
-            info = depth.info
-            assert depth.mode in {"I", "I;16"}, f"depth map {depth_file} must be 16-bit grayscale"
+        if Path(depth_file).suffix.lower() == ".npy":
+            depth = np.load(depth_file, mmap_mode="r", allow_pickle=False)
+            assert depth.ndim == 2 and depth.dtype.kind == "f", "depth NPY must be 2D and floating-point"
+            depth_shape = depth.shape
+        else:
             assert (
-                info.get("ultralytics.depth.encoding") == "linear-u16" and info.get("ultralytics.depth.unit") == "m"
-            ), f"depth map {depth_file} must use Ultralytics linear-u16 meter metadata"
-            float(info["ultralytics.depth.min"])
-            float(info["ultralytics.depth.max"])
-            depth.verify()
+                isinstance(scale, (int, float)) and not isinstance(scale, bool) and np.isfinite(scale) and scale > 0
+            ), "depth_scale must be a positive finite number"
+            with Image.open(depth_file) as depth:
+                assert depth.format == "PNG" and depth.mode in {"I", "I;16"}, (
+                    f"depth map {depth_file} must be an integer grayscale PNG"
+                )
+                depth_shape = (depth.height, depth.width)
+                depth.verify()
+        assert abs(np.log((depth_shape[1] / depth_shape[0]) / (shape[1] / shape[0]))) <= 0.02, (
+            f"depth map shape {depth_shape} does not match image shape {shape}"
+        )
         nf = 1
         return im_file, shape, nf, nm, nc, msg
     except Exception as e:

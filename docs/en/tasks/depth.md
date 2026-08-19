@@ -207,7 +207,7 @@ The released `yolo26*-depth.pt` checkpoints ship with this calibration already b
 
 ### Dataset format
 
-Depth estimation datasets pair each RGB image with a corresponding self-describing 16-bit depth PNG. The dataset YAML points to an `images/` directory; the loader derives the depth path by replacing the `images` component with `depth` and the image extension with `.png`.
+Depth estimation datasets pair each RGB image with a scaled uint16 depth PNG or floating-point NPY depth map in meters. PNG values use millimeters by default; datasets with another convention set `depth_scale` in their YAML. The loader derives the depth path by replacing the `images` component with `depth`, preferring `.png` and falling back to `.npy`.
 
 ```text
 dataset/
@@ -373,7 +373,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ### How do I train a YOLO26 depth estimation model on a custom dataset?
 
-Prepare paired RGB images and 16-bit depth PNGs, then create a dataset YAML pointing to your `images/` directory. The loader finds depth files automatically by replacing `images` with `depth` in the path and swapping the image extension for `.png`.
+Prepare paired RGB images and either 16-bit depth PNGs or floating-point NPY depth maps in meters, then create a dataset YAML pointing to your `images/` directory. The loader finds depth files automatically by replacing `images` with `depth` in the path, preferring `.png` and falling back to `.npy`.
 
 Start from pretrained weights and use a low learning rate with AdamW so the fine-tune retains what the model already knows (see [Fine-tuning on your own data](#fine-tuning-on-your-own-data) for why):
 

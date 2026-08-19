@@ -58,8 +58,8 @@ Choose a dataset to train on (see [Datasets](../data/datasets.md)):
     train-split image to be labeled, and pose datasets must define a keypoint shape.
 
     [Depth](../data/datasets.md#depth-maps) datasets are the exception: they have no class names, and a paired depth map
-    is what counts as a label, so they need at least 1 depth-paired image in `train` and 2 in `val`. Images without a
-    paired map are excluded from the run.
+    is what counts as a label, so they need at least 1 image with a paired depth map in `train` and 2 in `val`. Images
+    without a paired map are excluded from the run.
 
 !!! warning "Task Mismatch"
 

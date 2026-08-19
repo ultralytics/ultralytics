@@ -1585,8 +1585,8 @@ POST /api/training/start
 ```
 
 Training returns `402` when your credit balance is too low and `503` when no capacity is available for the requested
-GPU. A [depth](../data/datasets.md#depth-maps) run additionally returns `400` unless the dataset has at least one
-depth-paired image in `train` and two in `val`; depth models and depth datasets can only be paired with each other.
+GPU. A [depth](../data/datasets.md#depth-maps) run additionally returns `400` unless the dataset has at least one image
+with a paired depth map in `train` and two in `val`; depth models and depth datasets can only be paired with each other.
 
 !!! note "GPU Types"
 

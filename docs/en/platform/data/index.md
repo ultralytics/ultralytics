@@ -48,12 +48,12 @@ graph LR
     classDef out fill:#9C27B0,color:#fff
 ```
 
-| Stage        | Description                                                                                                     |
-| ------------ | --------------------------------------------------------------------------------------------------------------- |
-| **Upload**   | Import images, videos, or archives with automatic processing                                                    |
-| **Annotate** | Label data with manual tools for all 6 task types, or use SAM annotation for detect, segment, semantic, and OBB |
-| **Analyze**  | View class distributions, spatial heatmaps, dimension statistics, and embedding clusters                        |
-| **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use           |
+| Stage        | Description                                                                                                            |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| **Upload**   | Import images, videos, or archives with automatic processing                                                           |
+| **Annotate** | Label data with manual annotation tools for 6 task types, or use SAM annotation for detect, segment, semantic, and OBB |
+| **Analyze**  | View class distributions, spatial heatmaps, dimension statistics, and embedding clusters                               |
+| **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use                  |
 
 ## Supported Tasks
 
@@ -119,7 +119,7 @@ Dataset pages can show up to six tabs, depending on the dataset state and your p
 | **Versions** | Create, download, and restore immutable NDJSON snapshots for reproducibility |
 | **Errors**   | Images that failed processing with error details and fix guidance            |
 
-`Classes` and `Charts` appear when the dataset has images. `Errors` appears only when processing failures exist. `Versions` appears when you have edit access, or in read-only mode when versions already exist.
+`Classes` appears when the dataset has images and its task has classes, while `Charts` appears whenever it has images. `Errors` appears only when processing failures exist. `Versions` appears when you have edit access, or in read-only mode when versions already exist.
 
 ### Clustering
 
@@ -157,7 +157,7 @@ Ultralytics Platform supports:
 
 **Dataset files:** ZIP or TAR archives including `.tar.gz` and `.tgz` (max 10GB on Free, 20GB on Pro, 50GB on Enterprise) containing images with optional [YOLO-format](../../datasets/detect/index.md#ultralytics-yolo-format) or COCO JSON labels, plus [NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) exports
 
-**Depth maps:** `.npy` depth maps paired with images inside an archive (max 100MB each). See [depth maps](datasets.md#depth-maps).
+**Depth maps:** `.npy` depth maps paired with images inside an archive (max 100 MB each). See [depth maps](datasets.md#depth-maps).
 
 Any of these archive or NDJSON formats can also be imported by pasting a direct HTTP(S) link in the `URL` tab of the `New Dataset` dialog. Pascal VOC XML labels are detected but not imported.
 

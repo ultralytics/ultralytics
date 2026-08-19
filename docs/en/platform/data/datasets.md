@@ -183,7 +183,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
 !!! tip "Flat Directory Structure"
 
-    You can also upload images without explicit split folders. Platform respects the active split target during upload. If no split target is set and the upload leaves the `val` split empty — fewer than two depth-paired images on a [depth](#depth-maps) dataset — non-classify datasets automatically move train images to `val` so the dataset is immediately trainable. Classification datasets are skipped because they use directory-based splits. You can always reassign images later with [bulk move-to-split](#bulk-move-to-split) or [split redistribution](#split-redistribution).
+    You can also upload images without explicit split folders. Platform respects the active split target during upload. If no split target is set and the upload leaves the `val` split empty — fewer than two images with paired depth maps on a [depth](#depth-maps) dataset — non-classify datasets automatically move train images to `val` so the dataset is immediately trainable. Classification datasets are skipped because they use directory-based splits. You can always reassign images later with [bulk move-to-split](#bulk-move-to-split) or [split redistribution](#split-redistribution).
 
 !!! tip "Format Auto-Detection"
 

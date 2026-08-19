@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from ultralytics.utils.checks import SPURIOUS_FPE
+from ultralytics.utils.checks import suppress_spurious_fpe
 from ultralytics.utils.metrics import batch_probiou, bbox_ioa
 
 try:
@@ -130,7 +130,7 @@ def embedding_distance(tracks: list, detections: list) -> np.ndarray:
     det_features = np.asarray([f if f is not None else zeros for f in det_feats], dtype=np.float32)
     track_norm = np.linalg.norm(track_features, axis=1, keepdims=True)
     det_norm = np.linalg.norm(det_features, axis=1, keepdims=True).T
-    with np.errstate(**SPURIOUS_FPE):
+    with suppress_spurious_fpe(track_features, det_features):
         similarity = track_features @ det_features.T
     cost_matrix = 1 - similarity / np.maximum(track_norm * det_norm, np.finfo(track_features.dtype).eps)
     cost_matrix = np.maximum(0.0, cost_matrix)  # Normalized features

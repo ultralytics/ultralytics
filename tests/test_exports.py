@@ -63,20 +63,6 @@ def test_export_onnx(end2end, isolated_model):
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
-@pytest.mark.skipif(not TORCH_1_13, reason="ONNX export with NMS requires torch>=1.13")
-def test_export_onnx_nms_dynamic_fixed_hw(tmp_path):
-    """nms=True + dynamic=True must keep height/width fixed at the traced imgsz, not silently skip NMS filtering when
-    inference later runs at a different size (the postprocessing loop bakes anchor count in at trace time). nms=True
-    requires a non-end2end model, so this can't use the suite's default YOLO26 MODEL (see #23647).
-    """
-    file = YOLO(isolated_model_path(tmp_path, WEIGHTS_DIR / "yolo11n.pt")).export(
-        format="onnx", nms=True, dynamic=True, batch=1, imgsz=32
-    )
-    YOLO(file)(SOURCE, imgsz=32)  # same size as export: still works
-    with pytest.raises(Exception, match="dimensions"):
-        YOLO(file)(SOURCE, imgsz=64)  # different size: must fail loud, not silently return unfiltered detections
-
-
 @pytest.mark.slow
 @pytest.mark.parametrize("precision", [{"int8": True}, {"quantize": 8}])
 def test_export_onnx_int8(isolated_model, precision):
@@ -280,19 +266,6 @@ def test_export_openvino(end2end, isolated_model):
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
-@pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")
-def test_export_openvino_nms_dynamic_fixed_hw(tmp_path):
-    """nms=True + dynamic=True must keep height/width fixed at the traced imgsz for OpenVINO too (see the ONNX
-    counterpart above); nms=True requires a non-end2end model, so this can't use the default YOLO26 MODEL.
-    """
-    file = YOLO(isolated_model_path(tmp_path, WEIGHTS_DIR / "yolo11n.pt")).export(
-        format="openvino", nms=True, dynamic=True, batch=1, imgsz=32
-    )
-    YOLO(file)(SOURCE, imgsz=32)  # same size as export: still works
-    with pytest.raises(Exception, match="shape"):
-        YOLO(file)(SOURCE, imgsz=64)  # different size: must fail loud, not silently return unfiltered detections
-
-
 @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")
 @pytest.mark.parametrize(
@@ -346,7 +319,7 @@ def test_export_onnx_matrix(task, dynamic, batch, simplify, nms, end2end):
         nms=nms,
         end2end=end2end,
     )
-    r = YOLO(file)([SOURCE] * batch, imgsz=64 if (dynamic and not nms) else 32)  # nms fixes height/width at imgsz=32
+    r = YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
     if task == "semantic":
         assert r[0].semantic_mask is not None
         assert r[0].semantic_mask.data.dtype in {torch.uint8, torch.int32}

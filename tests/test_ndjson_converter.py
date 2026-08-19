@@ -12,6 +12,7 @@ import numpy as np
 import pytest
 
 from ultralytics.data.converter import convert_ndjson_to_yolo
+from ultralytics.data.utils import load_depth, save_depth_png
 from ultralytics.utils import YAML
 
 
@@ -31,10 +32,10 @@ def _write_manifest(path, base_url, *, missing_depth=False):
             "url": f"{base_url}/train.jpg?signature=image",
             "split": "train",
             "depth": {
-                "url": f"{base_url}/train.npy?signature=depth",
+                "url": f"{base_url}/train.png?signature=depth",
                 "hash": "depth-train",
                 "shape": [3, 4],
-                "encoding": "npy-f32",
+                "encoding": "linear-u16",
                 "unit": "m",
             },
         },
@@ -44,10 +45,10 @@ def _write_manifest(path, base_url, *, missing_depth=False):
             "url": f"{base_url}/test.jpg?signature=image",
             "split": "val",
             "depth": {
-                "url": f"{base_url}/missing.npy" if missing_depth else f"{base_url}/test.npy?signature=depth",
+                "url": f"{base_url}/missing.png" if missing_depth else f"{base_url}/test.png?signature=depth",
                 "hash": "depth-test",
                 "shape": [3, 4],
-                "encoding": "npy-f32",
+                "encoding": "linear-u16",
                 "unit": "m",
             },
         },
@@ -63,7 +64,7 @@ def depth_server(tmp_path):
     depth = np.arange(12, dtype=np.float32).reshape(3, 4)
     for split, value in (("train", 0), ("test", 255)):
         cv2.imwrite(str(source / f"{split}.jpg"), np.full((3, 4, 3), value, dtype=np.uint8))
-        np.save(source / f"{split}.npy", depth)
+        save_depth_png(source / f"{split}.png", depth)
     server = ThreadingHTTPServer(("127.0.0.1", 0), partial(_QuietHandler, directory=source))
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -92,7 +93,7 @@ def test_convert_depth_ndjson_downloads_image_target_pairs(tmp_path, depth_serve
     assert not (yaml_path.parent / "labels").exists()
     for index, split in enumerate(("train", "val"), 1):
         assert (yaml_path.parent / "images" / split / f"{index}.jpg").is_file()
-        np.testing.assert_array_equal(np.load(yaml_path.parent / "depth" / split / f"{index}.npy"), depth)
+        np.testing.assert_allclose(load_depth(yaml_path.parent / "depth" / split / f"{index}.png"), depth, atol=1e-3)
 
 
 def test_convert_depth_ndjson_reuses_existing_conversion(tmp_path, depth_server, monkeypatch):
@@ -106,7 +107,7 @@ def test_convert_depth_ndjson_reuses_existing_conversion(tmp_path, depth_server,
     assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
 
     monkeypatch.undo()
-    depth_path = yaml_path.parent / "depth" / "val" / "2.npy"
+    depth_path = yaml_path.parent / "depth" / "val" / "2.png"
     depth_path.unlink()
     data = YAML.load(yaml_path)
     data.pop("complete")
@@ -126,7 +127,7 @@ def test_convert_depth_ndjson_removes_incomplete_pair(tmp_path, depth_server):
 
     dataset_dir = next(p for p in (tmp_path / "datasets").iterdir() if p.is_dir())
     assert not (dataset_dir / "images" / "val" / "2.jpg").exists()
-    assert not (dataset_dir / "depth" / "val" / "2.npy").exists()
+    assert not (dataset_dir / "depth" / "val" / "2.png").exists()
     assert not (dataset_dir / "data.yaml").exists()
 
 
@@ -140,12 +141,12 @@ def test_convert_depth_ndjson_rejects_incomplete_descriptor(tmp_path):
             "file": "train.jpg",
             "url": "http://127.0.0.1:1/train.jpg",
             "split": "train",
-            "depth": {"url": "http://127.0.0.1:1/train.npy", "shape": [3, 4], "encoding": "npy-f32"},
+            "depth": {"url": "http://127.0.0.1:1/train.png", "shape": [3, 4], "encoding": "linear-u16"},
         },
     ]
     manifest.write_text("\n".join(json.dumps(record) for record in records))
 
-    with pytest.raises(ValueError, match="encoding='npy-f32' and unit='m'"):
+    with pytest.raises(ValueError, match="encoding='linear-u16' and unit='m'"):
         asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
 
 

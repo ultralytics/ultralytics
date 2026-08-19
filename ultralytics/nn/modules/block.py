@@ -1287,7 +1287,6 @@ class Attention(nn.Module):
         pe (Conv): Convolutional layer for positional encoding.
     """
 
-    export = False
     format = None
 
     def __init__(self, dim: int, num_heads: int = 8, attn_ratio: float = 0.5):
@@ -1325,7 +1324,7 @@ class Attention(nn.Module):
             [self.key_dim, self.key_dim, self.head_dim], dim=2
         )
 
-        if self.export and self.format == "coreml" and hasattr(F, "scaled_dot_product_attention"):
+        if self.format == "coreml" and hasattr(F, "scaled_dot_product_attention"):
             x = F.scaled_dot_product_attention(q.transpose(-2, -1), k.transpose(-2, -1), v.transpose(-2, -1))
             x = x.transpose(-2, -1).reshape(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
         else:

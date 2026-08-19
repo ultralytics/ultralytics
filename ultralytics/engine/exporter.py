@@ -847,9 +847,8 @@ class Exporter:
 
             model = executorch_wrapper(model)
         for m in model.modules():
-            if isinstance(m, Attention):
-                m.export = True
-                m.format = "mlmodel" if self.args.format.lower() == "mlmodel" else fmt
+            if isinstance(m, Attention) and fmt == "coreml" and self.args.format.lower() != "mlmodel":
+                m.format = fmt
             if isinstance(m, (Classify, SemanticSegment, Depth)):
                 m.export = True
                 m.format = self.args.format

@@ -76,11 +76,11 @@ def is_url(url: str | Path, check: bool = False) -> bool:
 
 
 def delete_dsstore(path: str | Path, files_to_delete: tuple[str, ...] = (".DS_Store", "__MACOSX")) -> None:
-    """Delete all specified system files in a directory.
+    """Delete all specified system files and directories in a directory.
 
     Args:
         path (str | Path): The directory path where the files should be deleted.
-        files_to_delete (tuple[str, ...]): The files to be deleted.
+        files_to_delete (tuple[str, ...]): Names of files and directories to delete.
 
     Examples:
         >>> from ultralytics.utils.downloads import delete_dsstore
@@ -94,7 +94,10 @@ def delete_dsstore(path: str | Path, files_to_delete: tuple[str, ...] = (".DS_St
         matches = list(Path(path).rglob(file))
         LOGGER.info(f"Deleting {file} files: {matches}")
         for f in matches:
-            f.unlink()
+            if f.is_dir() and not f.is_symlink():
+                shutil.rmtree(f)
+            else:
+                f.unlink()
 
 
 def zip_directory(

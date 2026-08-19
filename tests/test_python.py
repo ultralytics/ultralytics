@@ -1026,10 +1026,17 @@ def test_data_utils(tmp_path):
     images_dir = tmp_path / "coco8/images/val"
     images_dir.mkdir(parents=True)
     Image.new("RGB", (8, 8)).save(images_dir / "test.jpg")
+    metadata_dir = images_dir / "__MACOSX"
+    metadata_dir.mkdir()
+    metadata_file = images_dir / ".DS_Store"
+    metadata_file.write_bytes(b"metadata")
+    (metadata_dir / "._test.jpg").write_bytes(b"metadata")
 
     autosplit(tmp_path / "coco8/images")
     assert any((tmp_path / "coco8").glob("autosplit_*.txt"))
     assert zip_directory(images_dir).is_file()
+    assert not metadata_dir.exists()
+    assert not metadata_file.exists()
     with pytest.raises(ValueError, match="split"):
         check_cls_dataset("imagenet10", split="invalid")
     with pytest.raises(FileNotFoundError, match="'test:' images not found"):

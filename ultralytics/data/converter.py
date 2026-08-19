@@ -819,8 +819,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format. For
     detection/segmentation/pose/obb tasks, it creates separate directories for images and labels. Depth datasets use
-    parallel images/ and depth/ trees with scaled uint16 PNG targets. Classification tasks use the
-    ImageNet-style {split}/{class_name}/ folder structure. Downloads run concurrently.
+    parallel images/ and depth/ trees with scaled uint16 PNG targets. Classification tasks use the ImageNet-style
+    {split}/{class_name}/ folder structure. Downloads run concurrently.
 
     The NDJSON format consists of:
     - First line: Dataset metadata with class names, task type, and configuration

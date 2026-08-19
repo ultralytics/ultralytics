@@ -38,8 +38,8 @@ python3 download_data.py upsampling --split Validation --download_dir ./data
 Depth frames are `uint16` PNGs in **millimeters** (0 = invalid), and RGB/depth filenames are capture timestamps that do not match exactly — pair each depth frame with the nearest-timestamp RGB frame. Reference conversion to the [Ultralytics depth dataset format](index.md):
 
 ```python
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 import cv2
 

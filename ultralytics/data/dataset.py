@@ -439,8 +439,8 @@ class YOLODataset(BaseDataset):
 class DepthDataset(YOLODataset):
     """Dataset for monocular depth estimation with paired RGB + depth map loading.
 
-    Extends YOLODataset to load depth ground truth maps alongside RGB images. Depth maps are stored as 16-bit PNGs in a
-    parallel directory structure (images/train/*.jpg → depth/train/*.png).
+    Extends YOLODataset to load depth ground truth maps alongside RGB images. Depth maps are stored as PNG or NPY files
+    in a parallel directory structure (images/train/*.jpg → depth/train/*.{png,npy}).
 
     Examples:
         >>> dataset = DepthDataset(img_path="/data/nyu/images/train", data={"nc": 1})
@@ -449,13 +449,14 @@ class DepthDataset(YOLODataset):
     format_class = DepthFormat
 
     def _depth_path_for(self, im_file: str) -> str:
-        """Map an image path to its companion depth PNG."""
+        """Map an image path to its companion PNG or NPY depth target."""
         parts = list(Path(im_file).parts)
         for i in range(len(parts) - 1, -1, -1):
             if parts[i] == "images":
                 parts[i] = "depth"
                 break
-        return str(Path(*parts).with_suffix(".png"))
+        path = Path(*parts).with_suffix(".png")
+        return str(path if path.is_file() else path.with_suffix(".npy"))
 
     def get_label_files(self) -> list[str]:
         """Return the depth paths paired with the dataset's images.
@@ -463,7 +464,8 @@ class DepthDataset(YOLODataset):
         Returns:
             (list[str]): List of depth file paths.
         """
-        self.depth_files = [self._depth_path_for(f) for f in self.im_files]
+        self.depth_files_by_image = {f: self._depth_path_for(f) for f in self.im_files}
+        self.depth_files = list(self.depth_files_by_image.values())
         return self.depth_files
 
     def get_cache_hash(self) -> str:
@@ -472,7 +474,7 @@ class DepthDataset(YOLODataset):
         Returns:
             (str): Dataset cache hash.
         """
-        return get_hash(self.depth_files + self.im_files)
+        return get_hash(self.depth_files + self.im_files + [str(self.data.get("depth_scale", 1000))])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
         """Return a one-line summary of image-depth scan counters."""
@@ -480,7 +482,9 @@ class DepthDataset(YOLODataset):
 
     def verify_args(self) -> tuple:
         """Return the depth verification function and its argument iterable."""
-        return verify_image_depth, zip(self.im_files, self.depth_files, repeat(self.prefix))
+        return verify_image_depth, zip(
+            self.im_files, self.depth_files, repeat(self.prefix), repeat(self.data.get("depth_scale", 1000))
+        )
 
     def result_to_label(self, result: tuple) -> tuple[dict | None, int, int, int, int, str]:
         """Convert one verify_image_depth result into a label dict and scan counter increments."""
@@ -505,7 +509,7 @@ class DepthDataset(YOLODataset):
 
     def _load_depth(self, index):
         """Return the native-resolution depth map for an image."""
-        return load_depth(self._depth_path_for(self.im_files[index]))
+        return load_depth(self.depth_files_by_image[self.im_files[index]], self.data.get("depth_scale", 1000))
 
     def get_image_and_label(self, index):
         """Load image, label, and depth map for the given index."""

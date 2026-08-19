@@ -16,7 +16,7 @@ The [Ultralytics](https://www.ultralytics.com/) Depth8 dataset is a compact [mon
 
 ## Dataset Structure
 
-Depth8 follows the standard [Ultralytics depth dataset layout](index.md#supported-dataset-format): RGB images with paired 16-bit depth PNGs in meters, matched by file stem.
+Depth8 follows the standard [Ultralytics depth dataset layout](index.md#supported-dataset-format): RGB images with paired uint16 millimeter depth PNGs (`depth_scale: 1000`), matched by file stem.
 
 ```text
 depth8-png/

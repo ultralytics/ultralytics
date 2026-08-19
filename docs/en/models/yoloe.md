@@ -90,7 +90,7 @@ The original paper reports, for the v8-scale models it introduced: on LVIS, YOLO
 
 YOLOE retains the standard YOLO structure—a convolutional **backbone** (e.g., CSP-Darknet) for feature extraction, a **neck** (e.g., PAN-FPN) for multi-scale fusion, and an **anchor-free, decoupled** detection **head** (as in YOLOv8/YOLO11) predicting classes and boxes independently. YOLOE introduces three novel modules enabling open-vocabulary detection:
 
-- **Re-parameterizable Region-Text Alignment (RepRTA)**: Supports **text-prompted detection** by refining text [embeddings](https://www.ultralytics.com/glossary/embeddings) (e.g., from CLIP) via a small auxiliary network. At inference, this network is folded into the main model, ensuring zero overhead. YOLOE thus detects arbitrary text-labeled objects (e.g., unseen "traffic light") without runtime penalties.
+- **Re-parameterizable Region-Text Alignment (RepRTA)**: Supports **text-prompted detection** by refining text [embeddings](https://www.ultralytics.com/glossary/embeddings) (e.g., from CLIP) via a small auxiliary network. The auxiliary network is re-parameterized away after training, so prompting costs no extra network at inference — the prompt embeddings are simply compared against region features. YOLOE thus detects arbitrary text-labeled objects, such as an unseen "traffic light".
 
 - **Semantic-Activated Visual Prompt Encoder (SAVPE)**: Enables **visual-prompted detection** via a lightweight embedding branch. Given a reference image, SAVPE encodes semantic and activation features, conditioning the model to detect visually similar objects—a one-shot detection capability useful for logos or specific parts.
 
@@ -715,7 +715,7 @@ Parameters and FLOPs for every prompt-based checkpoint, measured on the fused mo
 
 - **vs closed-set YOLO.** Once the prompts are set, YOLOE predicts through the ordinary detect/segment path and exports like any other model. What it adds is the ability to change the class list at inference time instead of retraining. What it costs is zero-shot accuracy well below a model trained on your own classes; see [Limitations](#limitations).
 - **vs YOLOE on YOLO11.** YOLOE-26 inherits [YOLO26](yolo26.md)'s NMS-free end-to-end head and covers five scales (n/s/m/l/x) against the earlier three (s/m/l). Its per-scale LVIS minival figures are in [Available Models](#available-models-supported-tasks-and-operating-modes).
-- **vs transformer-based open-vocabulary detectors.** GLIP and OWL-ViT run a vision-language transformer at inference. YOLOE encodes the prompts once and then compares them against region features inside a convolutional head, which is what keeps it in real-time territory.
+- **vs transformer-based open-vocabulary detectors.** GLIP and OWL-ViT run a vision-language transformer at inference. YOLOE encodes the prompts once and then compares them against region features inside a convolutional head.
 
 ## Use Cases and Applications
 
@@ -757,7 +757,7 @@ All three take a text prompt, but only YOLOE and SAM 3 return masks, and they an
 - **Class names are placeholders until you prompt.** A freshly loaded `*-seg.pt` checkpoint reports `nc=80` with numeric names (`"0"`, `"1"`, …), so call `set_classes()` before reading labels. Prompt-free checkpoints ship the full 4,585-name vocabulary already populated.
 - **Prompt cost scales with the number of classes.** The prompt embeddings are computed once and stored on the model, but they are compared against region features on every forward pass, so a short prompt list is close to free and a very large one is not. Measured on `yoloe-26s-seg` on CPU, a forward pass grows about 19% going from 80 to 1,203 classes and about 89% going to the full 4,585. Reported FLOPs do not move at all, because the region-text similarity is not counted.
 - **NMS behavior.** YOLOE automatically uses `agnostic_nms=True` during prediction, suppressing lower-scoring overlapping boxes across different classes rather than only within the same class. This prevents duplicate detections when the same object matches multiple categories in YOLOE's large vocabulary. On end-to-end YOLOE-26 models it only prevents the same detection from appearing under multiple class labels (IoU=1.0 duplicates) and performs no IoU-threshold suppression between distinct boxes. You can override this by passing `agnostic_nms=False` explicitly.
-- **Batch inference** works directly (`model.predict([img1, img2])`). Per-image prompts require one call per image.
+- **Batch inference** works directly (`model.predict([img1, img2])`), and visual prompts can differ per image in the same call by passing one `bboxes`/`cls` array per source image.
 
 !!! tip
 
@@ -930,9 +930,9 @@ Most readers never need this. It reproduces the published open-vocabulary checkp
         model = YOLOE("yoloe-26l-seg.yaml")
         model.load("yoloe-26l-seg.pt")
 
-        # Visual-prompt weights from the SAVPE run above. Take the path from the trainer
-        # rather than hardcoding it: a rerun writes to train-2, train-3, and so on.
-        vp_model = YOLOE(model.trainer.best)
+        # Weights written by the SAVPE training run above. Each rerun creates a new
+        # directory (train-2, train-3, ...), so take the path the run printed.
+        vp_model = YOLOE("runs/segment/train/weights/best.pt")
         model.model.model[-1].savpe = deepcopy(vp_model.model.model[-1].savpe)
         model.eval()
         model.save("yoloe-26l-seg-vp.pt")  # never overwrite the released checkpoint
@@ -1064,11 +1064,11 @@ For further reading, the original YOLOE paper is available on [arXiv](https://ar
 
 ### How does YOLOE differ from YOLO-World?
 
-Both do open-vocabulary detection; YOLOE adds two things YOLO-World does not have. It accepts **visual prompts** (an example box instead of a class name) and ships **prompt-free** checkpoints with a built-in 4,585-name vocabulary, where YOLO-World is text-only. Every YOLOE prediction also carries an [instance segmentation](https://www.ultralytics.com/blog/what-is-instance-segmentation-a-quick-guide) mask. On accuracy, the paper reports YOLOE-v8-S ahead of YOLO-Worldv2-S by 3.5 AP on LVIS, at a third of the training cost and 1.4× the inference speed. Migrating is a one-line change — see [YOLOE vs SAM 3 vs YOLO-World](#yoloe-vs-sam-3-vs-yolo-world).
+Both do open-vocabulary detection; YOLOE adds two things YOLO-World does not have. It accepts **visual prompts** (an example box instead of a class name) and ships **prompt-free** checkpoints with a built-in 4,585-name vocabulary, where YOLO-World is text-only. Every prediction from the released `*-seg.pt` checkpoints also carries an [instance segmentation](https://www.ultralytics.com/blog/what-is-instance-segmentation-a-quick-guide) mask. On accuracy, the paper reports YOLOE-v8-S ahead of YOLO-Worldv2-S by 3.5 AP on LVIS, at a third of the training cost and 1.4× the inference speed. Migrating is a one-line change — see [YOLOE vs SAM 3 vs YOLO-World](#yoloe-vs-sam-3-vs-yolo-world).
 
 ### Can I use YOLOE as a regular YOLO model?
 
-Yes. Once prompts are set, the open-vocabulary modules are folded into the standard head, so inference follows the ordinary detect/segment path and exports like any other model. Two caveats worth knowing: the released YOLOE checkpoints are **segmentation** models, so compare them against `yolo26*-seg`, not against the detection variants; and a freshly loaded checkpoint has numeric placeholder class names until you call `set_classes()`.
+Yes. `set_classes()` stores the prompt embeddings on the model, and inference then follows the ordinary detect/segment path and exports like any other model. Classes only become static at export time. Two caveats worth knowing: the released YOLOE checkpoints are **segmentation** models, so compare them against `yolo26*-seg`, not against the detection variants; and a freshly loaded checkpoint has numeric placeholder class names until you call `set_classes()`.
 
 ### What types of prompts can I use with YOLOE?
 
@@ -1114,7 +1114,7 @@ Prompt-free checkpoints (`*-seg-pf.pt`) resolve classes through their own built-
 
 ### What does YOLOE download the first time I run a text prompt?
 
-The first `set_classes()` call installs [MobileCLIP](https://github.com/ultralytics/mobileclip) from GitHub with `pip` and downloads `mobileclip_blt.pt` from Apple's CDN into the current working directory. Both require network access. Visual prompts and prompt-free checkpoints need neither. To avoid the download on the target machine, set the prompts once and save them with `save_prompt_embeddings()`, or export the model with the classes already configured.
+It installs [ultralytics/CLIP](https://github.com/ultralytics/CLIP) from GitHub with `pip` and fetches a TorchScript text encoder into the Ultralytics weights directory — see [Installation and Requirements](#installation-and-requirements) for the exact asset per model family. Visual prompts and prompt-free checkpoints need neither. To avoid the download on the target machine, set the prompts once and save them with `save_prompt_embeddings()`, or export the model with the classes already configured.
 
 ### Can I change the classes of an exported YOLOE model?
 

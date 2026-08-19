@@ -11,7 +11,7 @@ from PIL import Image
 
 from ultralytics.data.utils import IMG_FORMATS
 from ultralytics.utils import LOGGER, TORCH_VERSION
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.checks import SPURIOUS_FPE, check_requirements
 from ultralytics.utils.torch_utils import TORCH_2_4, select_device
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some systems
@@ -150,7 +150,8 @@ class VisualAISearch:
             >>> results = searcher.search("red car", k=5, similarity_thresh=0.2)
         """
         text_feat = self._normalize(self.extract_text_feature(query).astype("float32"))
-        scores = self.index @ text_feat[0]  # cosine similarity (embeddings are L2-normalized)
+        with np.errstate(**SPURIOUS_FPE):
+            scores = self.index @ text_feat[0]  # cosine similarity (embeddings are L2-normalized)
         top_k = np.argsort(scores)[::-1][: max(k, 0)]
         results = [(self.image_paths[i], float(scores[i])) for i in top_k if scores[i] >= similarity_thresh]
         results.sort(key=lambda x: x[1], reverse=True)

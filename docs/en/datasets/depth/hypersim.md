@@ -25,7 +25,7 @@ The Hypersim depth dataset is split into two subsets:
 1. **Train**: 68,242 images with paired dense depth maps for training.
 2. **Val**: 6,377 images with paired dense depth maps for validation during training.
 
-Each RGB image is paired with a `.npy` float32 depth map storing per-pixel distances in meters, following the [Ultralytics depth dataset format](index.md).
+Each RGB image is paired with a 16-bit depth PNG storing per-pixel distances in meters, following the [Ultralytics depth dataset format](index.md).
 
 ## Obtain the Data
 
@@ -44,6 +44,7 @@ from pathlib import Path
 
 import h5py
 import numpy as np
+from ultralytics.data.utils import save_depth_png
 
 W, H, FOCAL = 1024, 768, 886.81  # Hypersim camera intrinsics
 x, y = np.meshgrid(np.linspace(-W / 2, W / 2, W), np.linspace(-H / 2, H / 2, H))
@@ -59,7 +60,7 @@ for h5 in sorted(src.rglob("*.depth_meters.hdf5")):
     dist = np.asarray(h5py.File(h5)["dataset"], np.float32)
     depth = np.nan_to_num(dist * ray2plane, nan=0.0)  # NaN (sky, glass) → 0 = invalid
     name = f"{scene}_{cam}_{frame}"
-    np.save(dst / f"depth/{out}/{name}.npy", depth)
+    save_depth_png(dst / f"depth/{out}/{name}.png", depth)
     shutil.copy(rgb, dst / f"images/{out}/{name}.jpg")
 ```
 

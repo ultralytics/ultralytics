@@ -39,6 +39,7 @@ from .utils import (
     get_hash,
     img2label_paths,
     load_dataset_cache_file,
+    load_depth,
     polygons2masks_overlap,
     save_dataset_cache_file,
     verify_image,
@@ -438,8 +439,8 @@ class YOLODataset(BaseDataset):
 class DepthDataset(YOLODataset):
     """Dataset for monocular depth estimation with paired RGB + depth map loading.
 
-    Extends YOLODataset to load depth ground truth maps alongside RGB images. Depth maps are stored as .npy files in a
-    parallel directory structure (images/train/*.jpg → depth/train/*.npy).
+    Extends YOLODataset to load depth ground truth maps alongside RGB images. Depth maps are stored as 16-bit PNGs in a
+    parallel directory structure (images/train/*.jpg → depth/train/*.png).
 
     Examples:
         >>> dataset = DepthDataset(img_path="/data/nyu/images/train", data={"nc": 1})
@@ -448,21 +449,24 @@ class DepthDataset(YOLODataset):
     format_class = DepthFormat
 
     def _depth_path_for(self, im_file: str) -> str:
-        """Map an image path to its companion depth .npy path (last 'images' path component → 'depth')."""
+        """Map an image path to its companion depth PNG, falling back to legacy NPY."""
         parts = list(Path(im_file).parts)
         for i in range(len(parts) - 1, -1, -1):
             if parts[i] == "images":
                 parts[i] = "depth"
                 break
-        return str(Path(*parts).with_suffix(".npy"))
+        path = Path(*parts).with_suffix(".png")
+        legacy = path.with_suffix(".npy")
+        return str(path if path.exists() or not legacy.exists() else legacy)
 
     def get_label_files(self) -> list[str]:
-        """Return the depth .npy paths paired with the dataset's images.
+        """Return the depth paths paired with the dataset's images.
 
         Returns:
             (list[str]): List of depth file paths.
         """
         self.depth_files = [self._depth_path_for(f) for f in self.im_files]
+        self.depth_by_image = dict(zip(self.im_files, self.depth_files))
         return self.depth_files
 
     def get_cache_hash(self) -> str:
@@ -504,8 +508,7 @@ class DepthDataset(YOLODataset):
 
     def _load_depth(self, index):
         """Return the native-resolution depth map for an image, with non-finite values mapped to 0 (invalid)."""
-        depth = np.load(self._depth_path_for(self.im_files[index])).astype(np.float32)
-        return np.nan_to_num(depth, nan=0.0, posinf=0.0, neginf=0.0)
+        return load_depth(self.depth_by_image[self.im_files[index]])
 
     def get_image_and_label(self, index):
         """Load image, label, and depth map for the given index."""

@@ -781,6 +781,8 @@ class Exporter:
                 assert model.task != "classify" and not isinstance(model.model[-1], RTDETRDecoder), (
                     "'dynamic=True' is not supported for CoreML classification or RT-DETR models."
                 )
+        if fmt in {"engine", "onnx", "openvino"} and self.args.dynamic and self.args.nms:
+            LOGGER.warning("'dynamic=True' with 'nms=True' keeps height and width fixed; only batch is dynamic.")
         if (fmt in {"engine", "coreml"} or self.args.nms) and self.args.dynamic and self.args.batch == 1:
             LOGGER.warning(
                 f"'dynamic=True' model with '{'nms=True' if self.args.nms else f'format={self.args.format}'}' requires max batch size, i.e. 'batch=16'"
@@ -1054,8 +1056,8 @@ class Exporter:
                 dynamic["output0"] = {0: "batch", 2: "height", 3: "width"}  # shape(1,1,640,640) dense map, not anchors
             elif isinstance(self.model, DetectionModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 84, 8400)
-            if self.args.nms:  # only batch size is dynamic with NMS
-                dynamic["output0"].pop(2)
+            if self.args.nms:  # NMS postprocessing bakes the traced anchor count into the graph
+                dynamic["images"] = dynamic["output0"] = {0: "batch"}
         if self.args.nms and self.model.task == "obb":
             self.args.opset = opset  # for NMSModel
             self.args.simplify = True  # fix OBB runtime error related to topk
@@ -1192,6 +1194,7 @@ class Exporter:
             quantize=self.args.quantize,
             calibration_dataset=calibration_dataset,
             int8_detect=isinstance(self.model.model[-1], Detect),
+            nms=self.args.nms,
             prefix=prefix,
         )
 

@@ -6,7 +6,7 @@ from typing import Any
 
 import numpy as np
 
-from ultralytics.utils.checks import suppress_spurious_fpe
+from ultralytics.utils.checks import _suppress_spurious_fpe
 
 from ..utils.ops import xyxy2ltwh
 from .basetrack import TrackState
@@ -324,7 +324,7 @@ class OCSORT(BYTETracker):
             if not valid.any():
                 continue
             directions[valid] /= norms[valid, None]
-            with suppress_spurious_fpe(directions[valid], track.velocity):
+            with _suppress_spurious_fpe(directions[valid], track.velocity):
                 dots = directions[valid] @ track.velocity
             cost[i, valid] = np.arccos(np.clip(dots, -1.0, 1.0)) / np.pi
 

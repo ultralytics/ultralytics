@@ -9,7 +9,7 @@ from typing import Any
 import numpy as np
 import torch
 
-from ultralytics.utils.checks import suppress_spurious_fpe
+from ultralytics.utils.checks import _suppress_spurious_fpe
 from ultralytics.utils.metrics import bbox_ioa
 
 from ..utils import LOGGER
@@ -207,7 +207,7 @@ def _cosine_distance(tracks: list[TTSTrack], dets: list[TTSTrack]) -> np.ndarray
     T = np.asarray([f if f is not None else zeros for f in tfeat], dtype=np.float32)
     D = np.asarray([f if f is not None else zeros for f in dfeat], dtype=np.float32)
     valid = np.array([f is not None for f in tfeat])[:, None] & np.array([f is not None for f in dfeat])[None, :]
-    with suppress_spurious_fpe(T, D):
+    with _suppress_spurious_fpe(T, D):
         similarity = T @ D.T
     return np.where(valid, np.clip(1 - similarity, 0, 1), np.nan).astype(np.float32)
 

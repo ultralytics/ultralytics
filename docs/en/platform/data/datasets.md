@@ -57,7 +57,7 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 === "Archives"
 
-    Archives are extracted and processed automatically. Archives can also be nested inside a folder structure, and a single archive can mix images, videos, and labels, or carry the `depth/` tree of a [depth dataset](#depth-maps).
+    Archives are extracted and processed automatically. Archives can also be nested inside a folder structure, and a single archive can mix images, videos, and labels, or carry the `depth/` tree of a [depth dataset](#depth).
 
     | Format | Extensions              | Notes             | Free  | Pro   | Enterprise |
     | ------ | ----------------------- | ----------------- | ----- | ----- | ---------- |
@@ -207,7 +207,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
 !!! tip "Flat Directory Structure"
 
-    You can also upload images without explicit split folders. Platform respects the active split target during upload. If no split target is set and the upload leaves the `val` split empty — fewer than two images with paired depth maps on a [depth](#depth-maps) dataset — non-classify datasets automatically move train images to `val` so the dataset is immediately trainable. Classification datasets are skipped because they use directory-based splits. You can always reassign images later with [bulk move-to-split](#bulk-move-to-split) or [split redistribution](#split-redistribution).
+    You can also upload images without explicit split folders. Platform respects the active split target during upload. If no split target is set and the upload leaves `val` empty — or with fewer than two paired maps for depth — non-classify datasets automatically move train images to `val` so the dataset is immediately trainable. Classification datasets are skipped because they use directory-based splits. You can always reassign images later with [bulk move-to-split](#bulk-move-to-split) or [split redistribution](#split-redistribution).
 
 !!! tip "Format Auto-Detection"
 
@@ -222,12 +222,6 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 If labels reference class IDs but no class names are supplied, Platform generates dense placeholder names (`class0`, `class1`, …) that you can rename later in the [Classes tab](#classes-tab).
 
 For task-specific format details, see [supported tasks](index.md#supported-tasks) and the [Datasets Overview](../../datasets/index.md).
-
-### Depth Maps
-
-[Depth](../../datasets/depth/index.md) datasets pair each image with a scaled uint16 PNG or floating-point NPY map in
-the mirrored `depth/` tree shown above. Upload the pairs in an archive or [NDJSON export](#export-dataset); connected
-storage is not supported. Unpaired images stay visible but are excluded from training; later archives pair by stem.
 
 ### Upload Process
 
@@ -830,7 +824,7 @@ Dataset metadata is edited inline directly on the dataset page — no dialog nee
 
 !!! info "Changing Task Type"
 
-    Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back. [Depth](#depth-maps) is the exception: its ground truth is a paired file rather than an annotation, so a dataset can only switch to or from depth while it holds no images — re-import it instead.
+    Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back. [Depth](#depth) is the exception: its ground truth is a paired file rather than an annotation, so a dataset can only switch to or from depth while it holds no images — re-import it instead.
 
 ### Custom Metadata
 

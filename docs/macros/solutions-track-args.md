@@ -1,8 +1,9 @@
 {% macro param_table(params=None) -%}
 
-| Argument                  | Type | Default | Description |
-| ------------------------- | ---- | ------- | ----------- |
-| {% set default_params = { |
+| Argument | Type | Default | Description |
+| -------- | ---- | ------- | ----------- |
+
+{% set default_params = {
 
     "tracker": ["str", "'botsort.yaml'", "Specifies the tracking algorithm to use. Built-in options: `botsort.yaml`, `bytetrack.yaml`, `ocsort.yaml`, `deepocsort.yaml`, `fasttrack.yaml`, `tracktrack.yaml`."],
     "conf": ["float", "0.25", "Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives."],

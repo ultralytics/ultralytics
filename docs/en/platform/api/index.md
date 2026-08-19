@@ -396,8 +396,7 @@ POST /api/datasets
 !!! note "Supported Tasks"
 
     Valid `task` values when creating or updating a dataset: `detect`, `segment`, `semantic`, `depth`, `classify`,
-    `pose`, and `obb`. Depth datasets have no classes, so a non-empty `classNames` returns `400`, and they cannot use
-    connected storage — ingest them from an upload or a `sourceUrl`.
+    `pose`, and `obb`. Depth datasets have no classes.
 
 **Response (`201`):**
 
@@ -430,9 +429,7 @@ PATCH /api/datasets/{owner}/{dataset}
 ```
 
 Accepted fields: `name`, `description`, `visibility`, `metadata`, `tags`, `classNames`, `classColors`, `format`, `task`,
-`license`, `iconColor`, `iconLetter`, and `starred`. On a [depth dataset](../data/datasets.md#depth-maps) `classNames`
-and `classColors` are rejected with `400`, and moving `task` to or from `depth` is only accepted while the dataset holds
-no images (`409`). Send an empty `metadata` object (`{}`) to clear custom metadata.
+`license`, `iconColor`, `iconLetter`, and `starred`. Send an empty `metadata` object (`{}`) to clear custom metadata.
 Metadata keys are limited to 128 characters and the serialized object to 500,000 characters.
 
 **Response:**
@@ -800,11 +797,6 @@ GET /api/datasets/{owner}/{dataset}/images
 }
 ```
 
-On a [depth dataset](../data/datasets.md#depth-maps) each paired image also carries a `depth` object — `hash`,
-`bytes`, `shape` as `[height, width]`, the optional `min`, `max`, and `validFraction` statistics, and a signed
-`previewUrl` for the grayscale depth preview. Unpaired images omit it, as does any response with
-`includeThumbnails=false`.
-
 ### Get Selected Images
 
 ```http
@@ -844,8 +836,7 @@ one source:
 | `imageMetadata`  | object | Custom metadata keyed by each image's archive-relative path or NDJSON `file` value                                                                          |
 
 Upload sessions are bound to a dataset by the `assetId` passed to `POST /api/upload/signed-url`, and ingest rejects a
-session that belongs to a different dataset. A `reference` source on a depth dataset returns `409` — depth datasets
-cannot read from connected storage yet.
+session that belongs to a different dataset.
 
 **Body (uploaded archive):**
 
@@ -994,8 +985,8 @@ GET /api/images/{imageId}
 
 **Python SDK:** `client.images.retrieve(image_id)`
 
-Returns `metadata` (custom, user-defined), `properties` (filename, hash, dimensions, split, counts, timestamps, and
-the `depth` target on a paired depth image), `labels`, and the dataset's `classNames`.
+Returns `metadata` (custom, user-defined), `properties` (filename, hash, dimensions, split, counts, timestamps),
+`labels`, and the dataset's `classNames`.
 
 ### Update Image
 
@@ -1005,8 +996,7 @@ PATCH /api/images/{imageId}
 
 **Python SDK:** `client.images.update(image_id, body=...)`
 
-Replaces **either** the annotations **or** the custom metadata — send one of the two shapes, not both. A `labels`
-body on a [depth dataset](../data/datasets.md#depth-maps) returns `400`.
+Replaces **either** the annotations **or** the custom metadata — send one of the two shapes, not both.
 
 **Body (annotations):**
 
@@ -1063,8 +1053,7 @@ Runs YOLO inference on the image and returns predicted annotations. It does not 
 | `iou`        | float  | No       | IoU threshold for non-maximum suppression, 0.0 – 0.95 (default: 0.7) |
 
 **Response:** `success`, `predictions` (annotation objects), `modelUsed`, and `inferenceTime`. A model whose classes do
-not match the dataset returns `422`. Depth datasets return `400`: a depth map cannot be stored as annotations. Use
-[Run Inference](#run-inference) to predict depth from a model instead.
+not match the dataset returns `422`.
 
 ### Bulk Move Images
 
@@ -1119,7 +1108,7 @@ Returns temporary signed URLs for up to 100 image IDs from one dataset.
 }
 ```
 
-**Response:** `urls`, `thumbnails`, and `depths` (depth previews on paired images), all keyed by image ID.
+**Response:** `urls` and `thumbnails`, both keyed by image ID.
 
 ---
 
@@ -1585,8 +1574,7 @@ POST /api/training/start
 ```
 
 Training returns `402` when your credit balance is too low and `503` when no capacity is available for the requested
-GPU. A [depth](../data/datasets.md#depth-maps) run additionally returns `400` unless the dataset has at least one image
-with a paired depth map in `train` and two in `val`; depth models and depth datasets can only be paired with each other.
+GPU.
 
 !!! note "GPU Types"
 

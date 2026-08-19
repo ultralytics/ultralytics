@@ -157,8 +157,6 @@ Ultralytics Platform supports:
 
 **Dataset files:** ZIP or TAR archives including `.tar.gz` and `.tgz` (max 10GB on Free, 20GB on Pro, 50GB on Enterprise) containing images with optional [YOLO-format](../../datasets/detect/index.md#ultralytics-yolo-format) or COCO JSON labels, plus [NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) exports
 
-**Depth maps:** Scaled uint16 PNG or floating-point NPY maps paired with images inside an archive (max 100 MB each). See [depth maps](datasets.md#depth-maps).
-
 Any of these archive or NDJSON formats can also be imported by pasting a direct HTTP(S) link in the `URL` tab of the `New Dataset` dialog. Pascal VOC XML labels are detected but not imported.
 
 ### What is the maximum dataset size?

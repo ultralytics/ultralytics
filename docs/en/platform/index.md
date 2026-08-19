@@ -15,7 +15,7 @@ keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud dep
 
 Ultralytics Platform brings dataset management and annotation, experiment tracking, cloud and remote training, model export, dedicated inference endpoints, and deployment monitoring into one workspace. It has native support for [YOLO26](../models/yolo26.md), [YOLO11](../models/yolo11.md), [YOLOv8](../models/yolov8.md), and [YOLOv5](../models/yolov5.md) models.
 
-## Workflow: Upload → Annotate → Train → Export → Deploy
+## Workflow: Upload → Annotate → Train → Export or Deploy
 
 The Platform provides an end-to-end workflow:
 
@@ -23,17 +23,18 @@ The Platform provides an end-to-end workflow:
 graph LR
     subgraph Data["📁 Data"]
         A[Upload]:::start --> B[Annotate]:::proc
-        B --> C[Analyze]:::proc
     end
     subgraph Train["🚀 Train"]
         D[Configure]:::proc --> E[Train on GPU]:::proc
         E --> F[View Metrics]:::out
     end
-    subgraph Deploy["🌐 Deploy"]
-        G[Export]:::proc --> H[Deploy Endpoint]:::proc
-        H --> I[Monitor]:::out
+    subgraph Deploy["🌐 Export or Deploy"]
+        G[Export]:::proc
+        H[Deploy Endpoint]:::proc --> I[Monitor]:::out
     end
-    Data --> Train --> Deploy
+    Data --> Train
+    E --> G
+    E --> H
 
     classDef start fill:#4CAF50,color:#fff
     classDef proc fill:#2196F3,color:#fff
@@ -364,7 +365,7 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 - **No-Code Training**: Train advanced YOLO models without writing code
 - **Real-Time Metrics**: Stream training progress and monitor deployments
 - **42 Deploy Regions**: Deploy models close to your users worldwide
-- **7 Task Types**: Support for detection, instance segmentation, semantic segmentation, depth estimation (models and prediction today; depth datasets coming soon), classification, pose, and OBB (see [task docs](../tasks/index.md))
+- **7 Task Types**: Support for detection, instance segmentation, semantic segmentation, depth estimation, classification, pose, and OBB (see [task docs](../tasks/index.md))
 - **AI-Assisted Annotation**: [Smart annotation](data/annotation.md#smart-annotation) with SAM and YOLO models to speed up data preparation
 
 ### What GPU options are available for cloud training?

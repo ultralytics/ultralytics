@@ -44,8 +44,8 @@ Within each tab, models are grouped by task in canonical order and sorted by siz
 
 !!! note "Depth Training"
 
-    Depth datasets are not available yet, so depth models are currently for prediction and export only. Every other
-    task can be trained on the Platform.
+    Depth datasets can be uploaded with float NPY targets in meters or uint16 PNG targets using the dataset's
+    `depth_scale`. See the [depth dataset format](../../datasets/depth/index.md#depth-map-format).
 
 ### Step 2: Select Dataset
 
@@ -232,8 +232,8 @@ what it has before exiting.
 
 ```mermaid
 graph LR
-    A[Local GPU]:::start --> B[Train]:::proc
-    B --> C[ultralytics Package]:::proc
+    A[Local GPU]:::start --> B[ultralytics Package]:::proc
+    B --> C[Train]:::proc
     C --> D[Stream Metrics]:::proc
     D --> E[Platform Dashboard]:::out
 
@@ -357,8 +357,8 @@ Estimates are based on real cloud training runs, and the estimate always uses th
 ```mermaid
 graph LR
     A[Estimate Cost]:::start --> B[Balance Check]:::decide
-    B --> C[Train]:::proc
-    C --> D[Charge Actual Runtime]:::out
+    B --> C[Train and Meter GPU Time]:::proc
+    C --> D[Settle at Terminal State]:::out
 
     classDef start fill:#4CAF50,color:#fff
     classDef proc fill:#2196F3,color:#fff
@@ -370,8 +370,8 @@ Cloud training billing flow:
 
 1. **Estimate**: Cost calculated before training starts
 2. **Balance Check**: Available credits are checked before launch
-3. **Train**: Job runs on selected compute
-4. **Charge**: Final cost is based on actual runtime
+3. **Train and Meter**: The job runs on the selected compute, and accrued GPU time is debited from your balance in steps while it runs
+4. **Settle**: At the terminal state the remaining tail is debited and a single **Training** transaction is written for the whole run
 
 !!! success "Consumer Protection"
 

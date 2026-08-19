@@ -155,7 +155,7 @@ def test_convert_depth_ndjson_rejects_missing_url(tmp_path):
     ]
     manifest.write_text("\n".join(json.dumps(record) for record in records))
 
-    with pytest.raises(ValueError, match="missing depth.url"):
+    with pytest.raises(ValueError, match=r"missing depth\.url"):
         asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
 
 

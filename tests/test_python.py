@@ -550,6 +550,30 @@ def test_val(task: str, weight: str, data: str) -> None:
             assert len(cm.tp_fp()[0]) == cm.nc  # per-class TP/FP never include background
 
 
+@pytest.mark.skipif(
+    not checks.check_requirements("faster-coco-eval", install=False), reason="faster-coco-eval not installed"
+)
+def test_segment_pred_to_json_rle_roundtrip(tmp_path):
+    """SegmentationValidator.pred_to_json's packed multi_encode must RLE-encode masks losslessly. test_faster_coco_eval
+    reaches this path too, but it is skipped without the optional faster-coco-eval extra and never asserts the RLE
+    round-trips, so this test guards that directly, in-memory, gated the same way.
+    """
+    from faster_coco_eval.core.mask import decode
+
+    from ultralytics.models.yolo.segment import SegmentationValidator
+
+    validator = SegmentationValidator(args={"model": "yolo26n-seg.pt", "data": "coco8-seg.yaml"}, save_dir=tmp_path)
+    validator.jdict, validator.class_map, validator.names = [], {0: 1}, {0: "obj"}
+    masks = torch.zeros(4, 5, 7, dtype=torch.uint8)  # [0]=all-background, [3]=all-foreground edge cases
+    masks[1, 2, 3] = 1  # single foreground pixel
+    masks[2, ::2, ::2] = 1  # many transitions per row
+    masks[3] = 1
+    predn = {"bboxes": torch.zeros(4, 4), "conf": torch.zeros(4), "cls": torch.zeros(4), "masks": masks}
+    validator.pred_to_json(predn, {"im_file": "0.jpg"})
+    for i, mask in enumerate(masks):
+        assert np.array_equal(decode(validator.jdict[i]["segmentation"]), mask.numpy()), f"mask {i} RLE mismatch"
+
+
 def test_val_save_txt_pose(tmp_path):
     """Test that pose keypoints saved by val(save_txt=True) and val(save_json=True) are in the original image space."""
     model = YOLO(WEIGHTS_DIR / "yolo26n-pose.pt")

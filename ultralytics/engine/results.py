@@ -747,25 +747,23 @@ class Results(SimpleClass, DataExportMixin):
             # Classify
             [texts.append(f"{probs.data[j]:.2f} {self.names[j]}") for j in probs.top5]
         elif boxes:
-            box_data = boxes.data.tolist()
-            coordinates = (boxes.xyxyxyxyn if is_obb else boxes.xywhn).reshape(len(boxes), -1).tolist()
-            segments = masks.xyn if masks else None
-            if kpts is not None:
-                keypoints = kpts.xyn
-                if kpts.has_visible:
-                    keypoints = torch.cat((torch.as_tensor(keypoints), torch.as_tensor(kpts.conf)[..., None]), 2)
-                keypoints = keypoints.reshape(len(kpts), -1).tolist()
             # Detect/segment/pose
-            for j, d in enumerate(box_data):
-                c, conf, id = int(d[-1]), float(d[-2]), int(d[-3]) if boxes.is_track else None
-                line = (c, *coordinates[j])
+            boxes = boxes.cpu()  # one host transfer avoids per-box GPU syncs in the loop below
+            kpts = kpts.cpu() if kpts is not None else None
+            segments = masks.xyn if masks else None
+            for j, d in enumerate(boxes):
+                c, conf, id = int(d.cls.item()), float(d.conf.item()), int(d.id.item()) if d.is_track else None
+                line = (c, *(d.xyxyxyxyn.reshape(-1) if is_obb else d.xywhn.reshape(-1)))
                 if segments is not None:
                     seg = segments[j]
                     if len(seg) < 3:  # fewer than 3 points is not a polygon, and writes a row no loader accepts
                         continue
                     line = (c, *seg.copy().reshape(-1))  # reversed mask.xyn, (n,2) to (n*2)
                 if kpts is not None:
-                    line += (*keypoints[j],)
+                    kpt = kpts[j].xyn
+                    if kpts[j].has_visible:
+                        kpt = torch.cat((torch.as_tensor(kpt), torch.as_tensor(kpts[j].conf)[..., None]), 2)
+                    line += (*kpt.reshape(-1).tolist(),)
                 line += (conf,) * save_conf + (() if id is None else (id,))
                 texts.append(("%g " * len(line)).rstrip() % line)
 
@@ -905,7 +903,7 @@ class Results(SimpleClass, DataExportMixin):
                     "x": (self.masks.xy[i][:, 0] / w).astype(float).round(decimals).tolist(),
                     "y": (self.masks.xy[i][:, 1] / h).astype(float).round(decimals).tolist(),
                 }
-            if self.keypoints is not None:
+            if kpts is not None:
                 kpt = kpts[i]
                 k = kpt.data[0]
                 k = k.cpu().numpy() if isinstance(k, torch.Tensor) else k

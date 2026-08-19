@@ -404,6 +404,11 @@ def check_version(
 SPURIOUS_FPE = {"all": "ignore"} if MACOS and ARM64 and check_version(np.__version__, ">=2.0.0,<2.3.1") else {}
 
 
+def suppress_spurious_fpe(*arrays: np.ndarray):
+    """Ignore Apple Accelerate's spurious FP flags only for finite NumPy matmul operands."""
+    return np.errstate(**SPURIOUS_FPE) if SPURIOUS_FPE and all(np.isfinite(x).all() for x in arrays) else np.errstate()
+
+
 def check_latest_pypi_version(package_name="ultralytics"):
     """Return the latest version of a PyPI package without downloading or installing it.
 

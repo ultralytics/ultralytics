@@ -9,6 +9,7 @@ from numbers import Number
 import cv2
 import numpy as np
 
+from .checks import SPURIOUS_FPE
 from .ops import ltwh2xywh, ltwh2xyxy, resample_segments, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh
 
 
@@ -409,7 +410,8 @@ class Instances:
                     angle = np.deg2rad(angle)
                     cos, sin = np.cos(angle), np.sin(angle)
                     basis = np.array(((cos, -sin), (sin, cos)), dtype=np.float32)
-                    aligned = visible @ basis
+                    with np.errstate(**SPURIOUS_FPE):
+                        aligned = visible @ basis
                     (u1, v1), (u2, v2) = aligned.min(0), aligned.max(0)
                     corners = np.array(((u2, v2), (u2, v1), (u1, v1), (u1, v2)), dtype=np.float32)
                     segments[i] = resample_segments([corners @ basis.T], n=len(segment))[0]

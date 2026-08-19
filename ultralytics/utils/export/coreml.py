@@ -6,10 +6,32 @@ from pathlib import Path
 from typing import Any
 
 import torch
+import torch.nn.functional as F
 from torch import nn
 
+from ultralytics.nn.modules.block import Attention
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
+
+
+def _attention_forward_sdpa(self, x: torch.Tensor) -> torch.Tensor:
+    """Attention.forward using scaled_dot_product_attention instead of a manual matmul+transpose.
+
+    ML Program's GPU (MPSGraph) backend aborts the process with `Error: MLIR pass manager failed` on
+    the manual `v @ attn.transpose(-2, -1)` pattern once the surrounding graph is deep enough (e.g. C2PSA
+    in the YOLO backbone). scaled_dot_product_attention lowers to a MIL op that avoids the crash.
+    """
+    B, C, H, W = x.shape
+    N = H * W
+    qkv = self.qkv(x)
+    q, k, v = qkv.view(B, self.num_heads, self.key_dim * 2 + self.head_dim, N).split(
+        [self.key_dim, self.key_dim, self.head_dim], dim=2
+    )
+    out = F.scaled_dot_product_attention(
+        q.transpose(-2, -1), k.transpose(-2, -1), v.transpose(-2, -1), scale=self.scale
+    )
+    x = out.transpose(-2, -1).reshape(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
+    return self.proj(x)
 
 
 class IOSDetectModel(nn.Module):
@@ -195,7 +217,15 @@ def torch2coreml(
     import coremltools as ct
 
     LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
-    ts = torch.jit.trace(model.eval(), im, strict=False)  # TorchScript model
+    if mlmodel:
+        ts = torch.jit.trace(model.eval(), im, strict=False)  # TorchScript model
+    else:
+        original_attn_forward = Attention.forward
+        Attention.forward = _attention_forward_sdpa
+        try:
+            ts = torch.jit.trace(model.eval(), im, strict=False)  # TorchScript model
+        finally:
+            Attention.forward = original_attn_forward
     fp16 = quantize == 16
     weight_int8 = quantize in {8, "w8a16"}
 

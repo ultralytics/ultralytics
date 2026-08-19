@@ -244,6 +244,8 @@ class BaseTrainer:
                 self._do_train()
         finally:
             unset_deterministic()  # never leave deterministic state on, including the DDP parent and failed runs
+        if not self.ddp:
+            self.run_callbacks("teardown")
 
     def _setup_scheduler(self):
         """Initialize training learning rate scheduler."""
@@ -649,7 +651,6 @@ class BaseTrainer:
         for loader in (self.train_loader, self.test_loader):
             if hasattr(loader, "close"):
                 loader.close()  # shut down persistent dataloader workers so none survive to interpreter exit
-        self.run_callbacks("teardown")
 
     def auto_batch(self, max_num_obj=0, dataset_size=0):
         """Calculate optimal batch size based on model and device memory constraints."""

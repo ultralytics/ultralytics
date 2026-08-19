@@ -32,9 +32,9 @@ The VSCode compatible protocols for viewing images using the integrated terminal
     "terminal.integrated.enableImages": true
     ```
 
-     <p align="center">
-       <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/vscode-enable-terminal-images-setting.avif" alt="VSCode enable terminal images setting">
-     </p>
+      <p align="center">
+        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/vscode-enable-terminal-images-setting.avif" alt="VSCode enable terminal images setting">
+      </p>
 
 2. Install the `python-sixel` library in your virtual environment. This is a [fork](https://github.com/lubosz/python-sixel?tab=readme-ov-file) of the `PySixel` library, which is no longer maintained.
 

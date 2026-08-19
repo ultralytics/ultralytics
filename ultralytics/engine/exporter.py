@@ -85,6 +85,7 @@ from ultralytics.nn.autobackend import AutoBackend, check_class_names, default_c
 from ultralytics.nn.modules import (
     OBB,
     OBB26,
+    Attention,
     C2f,
     Classify,
     Depth,
@@ -846,6 +847,8 @@ class Exporter:
 
             model = executorch_wrapper(model)
         for m in model.modules():
+            if isinstance(m, Attention) and fmt == "coreml" and self.args.format.lower() != "mlmodel":
+                m.format = fmt
             if isinstance(m, (Classify, SemanticSegment, Depth)):
                 m.export = True
                 m.format = self.args.format

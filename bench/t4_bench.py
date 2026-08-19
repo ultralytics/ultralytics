@@ -86,6 +86,8 @@ LANES = {
             "slim19-conv": ("yolo26{s}-p4p5-wide-slim19.yaml", "s"),
             "y27-p3-170826-1": ("yolo27{s}-p3-170826-1.yaml", "ns"),
             "y27-p3-170826-2": ("yolo27{s}-p3-170826-2.yaml", "ns"),
+            "y27-p2lite-190826-1": ("yolo27{s}-p2lite-190826-1.yaml", "ns"),
+            "y27-p3-repcib-190826-2": ("yolo27{s}-p3-repcib-190826-2.yaml", "ns"),
             "y27-ultravit-170826-1": ("yolo27{s}-ultravit-170826-1.yaml", "ns"),
             "y27-ultravit-170826-2": ("yolo27{s}-ultravit-170826-2.yaml", "ns"),
             "y27-ultravit-170826-3": ("yolo27{s}-ultravit-170826-3.yaml", "ns"),

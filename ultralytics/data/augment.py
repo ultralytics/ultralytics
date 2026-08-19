@@ -1261,7 +1261,7 @@ class RandomPerspective(BaseTransform):
 
         xy = np.ones((n * 4, 3), dtype=bboxes.dtype)
         xy[:, :2] = bboxes[:, [0, 1, 2, 3, 0, 3, 2, 1]].reshape(n * 4, 2)  # x1y1, x2y2, x1y2, x2y1
-        # numpy<2.3.1 on Apple Accelerate leaves spurious FPE flags set after finite tall-skinny matmuls
+        # numpy<2.3.1 on Apple ARM SME flags finite matmuls; a real overflow still reaches callers as inf
         with np.errstate(divide="ignore", over="ignore", invalid="ignore"):
             xy = xy @ M.T  # transform
         xy = (xy[:, :2] / xy[:, 2:3] if self.perspective else xy[:, :2]).reshape(n, 8)  # perspective rescale or affine
@@ -1282,7 +1282,7 @@ class RandomPerspective(BaseTransform):
         xy = np.ones((n * num, 3), dtype=segments.dtype)
         segments = segments.reshape(-1, 2)
         xy[:, :2] = segments
-        # numpy<2.3.1 on Apple Accelerate leaves spurious FPE flags set after finite tall-skinny matmuls
+        # numpy<2.3.1 on Apple ARM SME flags finite matmuls; a real overflow still reaches callers as inf
         with np.errstate(divide="ignore", over="ignore", invalid="ignore"):
             xy = xy @ M.T  # transform
         xy = xy[:, :2] / xy[:, 2:3]
@@ -1321,7 +1321,7 @@ class RandomPerspective(BaseTransform):
         xy = np.ones((n * nkpt, 3), dtype=keypoints.dtype)
         visible = keypoints[..., 2].reshape(n * nkpt, 1)
         xy[:, :2] = keypoints[..., :2].reshape(n * nkpt, 2)
-        # numpy<2.3.1 on Apple Accelerate leaves spurious FPE flags set after finite tall-skinny matmuls
+        # numpy<2.3.1 on Apple ARM SME flags finite matmuls; a real overflow still reaches callers as inf
         with np.errstate(divide="ignore", over="ignore", invalid="ignore"):
             xy = xy @ M.T  # transform
         xy = xy[:, :2] / xy[:, 2:3]  # perspective rescale or affine

@@ -932,8 +932,8 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
             depth = record.get("depth")
             if not isinstance(depth, dict) or not isinstance(depth.get("url"), str) or not depth["url"]:
                 raise ValueError(f"Depth record '{record.get('file', '<unknown>')}' is missing depth.url")
-            if depth.get("encoding") != "png-u16-linear" or depth.get("unit") != "m":
-                raise ValueError("Depth records require encoding='png-u16-linear' and unit='m'")
+            if depth.get("encoding") != "linear-u16" or depth.get("unit") != "m":
+                raise ValueError("Depth records require encoding='linear-u16' and unit='m'")
             shape = depth.get("shape")
             if not isinstance(shape, list) or len(shape) != 2 or not all(type(x) is int and x > 0 for x in shape):
                 raise ValueError("Depth records require a positive [height, width] shape")

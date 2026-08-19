@@ -504,7 +504,7 @@ class DepthDataset(YOLODataset):
         """Skip box and segment checks; depth datasets carry no box or segment annotations."""
 
     def _load_depth(self, index):
-        """Return the native-resolution depth map for an image, with non-finite values mapped to 0 (invalid)."""
+        """Return the native-resolution depth map for an image."""
         return load_depth(self._depth_path_for(self.im_files[index]))
 
     def get_image_and_label(self, index):

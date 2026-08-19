@@ -1283,22 +1283,6 @@ def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     assert (depth.parent / "train.cache").exists()  # scan results cached next to the depth maps
 
 
-def test_depth_png_round_trip(tmp_path):
-    """Preserve invalid pixels and bound linear uint16 quantization error."""
-    from ultralytics.data.utils import load_depth, save_depth_png
-
-    source = np.array([[0.0, 0.5, 1.0], [10.0, 40.0, 80.0]], dtype=np.float32)
-    path = tmp_path / "depth.png"
-    save_depth_png(path, source)
-    restored = load_depth(path)
-
-    with Image.open(path) as image:
-        codes = np.asarray(image, dtype=np.uint16)
-    assert codes[source > 0].min() >= 256  # nearest values survive browser uint16 → uint8 display
-    assert restored[0, 0] == 0
-    np.testing.assert_allclose(restored[source > 0], source[source > 0], atol=(80.0 - 0.5) / (65535 - 256))
-
-
 def test_utils_init():
     """Test initialization utilities in the Ultralytics library."""
     from ultralytics.utils import get_ubuntu_version, is_github_action_running

@@ -35,7 +35,7 @@ def _write_manifest(path, base_url, *, missing_depth=False):
                 "url": f"{base_url}/train.png?signature=depth",
                 "hash": "depth-train",
                 "shape": [3, 4],
-                "encoding": "png-u16-linear",
+                "encoding": "linear-u16",
                 "unit": "m",
             },
         },
@@ -48,7 +48,7 @@ def _write_manifest(path, base_url, *, missing_depth=False):
                 "url": f"{base_url}/missing.png" if missing_depth else f"{base_url}/test.png?signature=depth",
                 "hash": "depth-test",
                 "shape": [3, 4],
-                "encoding": "png-u16-linear",
+                "encoding": "linear-u16",
                 "unit": "m",
             },
         },
@@ -141,12 +141,12 @@ def test_convert_depth_ndjson_rejects_incomplete_descriptor(tmp_path):
             "file": "train.jpg",
             "url": "http://127.0.0.1:1/train.jpg",
             "split": "train",
-            "depth": {"url": "http://127.0.0.1:1/train.png", "shape": [3, 4], "encoding": "png-u16-linear"},
+            "depth": {"url": "http://127.0.0.1:1/train.png", "shape": [3, 4], "encoding": "linear-u16"},
         },
     ]
     manifest.write_text("\n".join(json.dumps(record) for record in records))
 
-    with pytest.raises(ValueError, match="encoding='png-u16-linear' and unit='m'"):
+    with pytest.raises(ValueError, match="encoding='linear-u16' and unit='m'"):
         asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
 
 

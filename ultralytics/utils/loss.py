@@ -1282,7 +1282,8 @@ class E2ELoss:
         self.o2o = self.total - self.o2m
         self.o2m_copy = self.o2m
         # final gain
-        self.final_o2m = 0.1
+        # self.final_o2m = 0.1
+        self.final_o2m = self.one2one.hyp.o2m
         # Training-only class-agnostic foreground auxiliary; the one2one branch takes detached features, so this is
         # the only aux path that shapes the trunk besides the one2many loss. Gated by aux_fg_on (default off), which
         # makes DetectionTrainer.get_model attach the head's aux_fg branch; aux_fg/aux_fg_tgt/aux_fg_t are code-only

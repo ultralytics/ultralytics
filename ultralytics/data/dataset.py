@@ -105,6 +105,8 @@ class YOLODataset(BaseDataset):
             self.mixup_prob = float(hyp.mixup)
             self.copy_paste_prob = float(hyp.copy_paste)
             self.decay_min_prob = float(hyp.aug_decay_min_prob)
+        else:
+            self.aug_stop_epoch = hyp.no_aug_epoch
         super().__init__(*args, channels=self.data.get("channels", 3), **kwargs)
 
     def cache_labels(self, path: Path = Path("./labels.cache")) -> dict:
@@ -267,10 +269,16 @@ class YOLODataset(BaseDataset):
         Args:
             hyp (dict): Hyperparameters for transforms.
         """
-        hyp.mosaic = 0.0
-        hyp.copy_paste = 0.0
-        hyp.mixup = 0.0
-        hyp.cutmix = 0.0
+        if self.aug_stop_epoch > 0:
+            hyp.mosaic = hyp.mixup = hyp.copy_paste = hyp.cutmix = 0.0
+            hyp.degrees = hyp.translate = hyp.scale = hyp.shear = hyp.perspective = 0.0
+            hyp.hsv_h = hyp.hsv_s = hyp.hsv_v = 0.0
+            hyp.augmentations = []
+        else:
+            hyp.mosaic = 0.0
+            hyp.copy_paste = 0.0
+            hyp.mixup = 0.0
+            hyp.cutmix = 0.0
         self.transforms = self.build_transforms(hyp)
 
     def set_epoch(self, epoch: int) -> None:

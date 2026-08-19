@@ -48,7 +48,7 @@ keywords: Ultralytics, YOLO, utility functions, version checks, requirements, im
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.checks._suppress_spurious_fpe
+## ::: ultralytics.utils.checks._matmul
 
 <br><br><hr><br>
 

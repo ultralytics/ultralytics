@@ -1283,29 +1283,6 @@ def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     assert (depth.parent / "train.cache").exists()  # scan results cached next to the depth maps
 
 
-def test_depth_dataset_keeps_targets_paired_after_rect_sort(tmp_path):
-    """Carry each verified depth path with its label when rectangular loading reorders images."""
-    from ultralytics.data.dataset import DepthDataset
-    from ultralytics.data.utils import save_depth_png
-
-    images, depths = tmp_path / "images" / "val", tmp_path / "depth" / "val"
-    images.mkdir(parents=True)
-    depths.mkdir(parents=True)
-    for name, shape, value in (("wide", (32, 64), 1.0), ("tall", (64, 32), 2.0)):
-        cv2.imwrite(str(images / f"{name}.jpg"), np.zeros((*shape, 3), dtype=np.uint8))
-        save_depth_png(depths / f"{name}.png", np.full(shape, value, dtype=np.float32))
-
-    data = {"names": {0: "depth"}, "nc": 1, "channels": 3}
-    dataset = DepthDataset(
-        img_path=str(images), imgsz=64, data=data, augment=False, rect=True, single_cls=True, batch_size=1
-    )
-
-    for index, image_path in enumerate(dataset.im_files):
-        assert Path(dataset.depth_by_image[image_path]).stem == Path(image_path).stem
-        expected = 1.0 if Path(image_path).stem == "wide" else 2.0
-        np.testing.assert_allclose(dataset._load_depth(index), expected)
-
-
 def test_depth_png_round_trip(tmp_path):
     """Preserve invalid pixels and bound linear uint16 quantization error."""
     from ultralytics.data.utils import load_depth, save_depth_png

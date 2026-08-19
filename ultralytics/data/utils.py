@@ -51,16 +51,7 @@ IMG_FORMATS = {
 VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ts", "wmv", "webm"}  # videos
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
 
-DEPTH_PNG_ENCODING = "linear-u16"
-DEPTH_PNG_KEYS = {
-    "encoding": "ultralytics.depth.encoding",
-    "min": "ultralytics.depth.min",
-    "max": "ultralytics.depth.max",
-    "unit": "ultralytics.depth.unit",
-}
 DEPTH_PNG_MIN_CODE = 256  # survives browser uint16 → uint8 display as 1; zero stays transparent
-DEPTH_PNG_MAX_CODE = np.iinfo(np.uint16).max
-DEPTH_PNG_CODE_SPAN = DEPTH_PNG_MAX_CODE - DEPTH_PNG_MIN_CODE
 
 
 def save_depth_png(path: str | Path, depth: np.ndarray) -> None:
@@ -69,65 +60,38 @@ def save_depth_png(path: str | Path, depth: np.ndarray) -> None:
     if depth.ndim != 2:
         raise ValueError(f"Depth map must be 2D, got shape {depth.shape}")
     valid = np.isfinite(depth) & (depth > 0)
-    if not valid.any():
-        raise ValueError("Depth map has no valid pixels")
-    minimum, maximum = (float(x) for x in (depth[valid].min(), depth[valid].max()))
+    minimum, maximum = (float(x) for x in (depth[valid].min(), depth[valid].max())) if valid.any() else (0.0, 0.0)
     encoded = np.zeros(depth.shape, dtype=np.uint16)
     if maximum == minimum:
-        encoded[valid] = DEPTH_PNG_MAX_CODE
+        encoded[valid] = 65535
     else:
-        encoded[valid] = DEPTH_PNG_MIN_CODE + np.rint(
-            (depth[valid] - minimum) * (DEPTH_PNG_CODE_SPAN / (maximum - minimum))
-        ).astype(np.uint16)
+        encoded[valid] = DEPTH_PNG_MIN_CODE + np.rint((depth[valid] - minimum) * (65279 / (maximum - minimum))).astype(
+            np.uint16
+        )
     metadata = PngImagePlugin.PngInfo()
-    metadata.add_text(DEPTH_PNG_KEYS["encoding"], DEPTH_PNG_ENCODING)
-    metadata.add_text(DEPTH_PNG_KEYS["min"], repr(minimum))
-    metadata.add_text(DEPTH_PNG_KEYS["max"], repr(maximum))
-    metadata.add_text(DEPTH_PNG_KEYS["unit"], "m")
+    metadata.add_text("ultralytics.depth.min", repr(minimum))
+    metadata.add_text("ultralytics.depth.max", repr(maximum))
     Image.fromarray(encoded).save(path, pnginfo=metadata, compress_level=6)
 
 
 def load_depth(path: str | Path) -> np.ndarray:
-    """Load a metric depth PNG, with temporary support for legacy float NPY maps."""
+    """Load a metric depth PNG."""
     path = Path(path)
-    if path.suffix.lower() == ".npy":
-        depth = np.load(path, allow_pickle=False).astype(np.float32)
+    with Image.open(path) as image:
+        info = image.info
+        minimum, maximum = float(info["ultralytics.depth.min"]), float(info["ultralytics.depth.max"])
+        encoded = np.asarray(image, dtype=np.uint16)
+    valid = encoded >= DEPTH_PNG_MIN_CODE
+    depth = np.zeros(encoded.shape, dtype=np.float32)
+    if maximum == minimum:
+        depth[valid] = minimum
     else:
-        with Image.open(path) as image:
-            info = image.info
-            if info.get(DEPTH_PNG_KEYS["encoding"]) != DEPTH_PNG_ENCODING or info.get(DEPTH_PNG_KEYS["unit"]) != "m":
-                raise ValueError(f"Depth PNG {path} is missing Ultralytics linear-u16 meter metadata")
-            minimum, maximum = float(info[DEPTH_PNG_KEYS["min"]]), float(info[DEPTH_PNG_KEYS["max"]])
-            encoded = np.asarray(image, dtype=np.uint16)
-        valid = encoded >= DEPTH_PNG_MIN_CODE
-        depth = np.zeros(encoded.shape, dtype=np.float32)
-        if maximum == minimum:
-            depth[valid] = minimum
-        else:
-            depth[valid] = minimum + (encoded[valid].astype(np.float32) - DEPTH_PNG_MIN_CODE) * (
-                (maximum - minimum) / DEPTH_PNG_CODE_SPAN
-            )
+        depth[valid] = minimum + (encoded[valid].astype(np.float32) - DEPTH_PNG_MIN_CODE) * (
+            (maximum - minimum) / 65279
+        )
     if depth.ndim != 2:
         raise ValueError(f"Depth map {path} must be 2D, got shape {depth.shape}")
     return np.nan_to_num(depth, nan=0.0, posinf=0.0, neginf=0.0)
-
-
-def verify_depth(path: str | Path) -> None:
-    """Verify depth shape and encoding metadata without decoding its pixel payload."""
-    path = Path(path)
-    if path.suffix.lower() == ".npy":
-        depth = np.load(path, mmap_mode="r", allow_pickle=False)
-        if depth.ndim != 2 or depth.dtype.kind != "f":
-            raise ValueError(f"Depth map {path} must be a 2D floating-point array")
-        return
-    with Image.open(path) as image:
-        info = image.info
-        if image.mode not in {"I", "I;16"}:
-            raise ValueError(f"Depth PNG {path} must be 16-bit grayscale")
-        if info.get(DEPTH_PNG_KEYS["encoding"]) != DEPTH_PNG_ENCODING or info.get(DEPTH_PNG_KEYS["unit"]) != "m":
-            raise ValueError(f"Depth PNG {path} is missing Ultralytics linear-u16 meter metadata")
-        float(info[DEPTH_PNG_KEYS["min"]])
-        float(info[DEPTH_PNG_KEYS["max"]])
 
 
 def img2label_paths(img_paths: list[str], label_dir: str = "labels", suffix: str = ".txt") -> list[str]:
@@ -297,7 +261,7 @@ def verify_image_depth(args: tuple) -> tuple:
             nm = 1
             msg = f"{prefix}{im_file}: ignoring image with missing depth map {depth_file}"
             return None, None, nf, nm, nc, msg
-        verify_depth(depth_file)
+        load_depth(depth_file)
         nf = 1
         return im_file, shape, nf, nm, nc, msg
     except Exception as e:

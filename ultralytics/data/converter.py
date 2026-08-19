@@ -932,8 +932,8 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
             depth = record.get("depth")
             if not isinstance(depth, dict) or not isinstance(depth.get("url"), str) or not depth["url"]:
                 raise ValueError(f"Depth record '{record.get('file', '<unknown>')}' is missing depth.url")
-            if depth.get("encoding") not in {"png-u16-linear", "npy-f32"} or depth.get("unit") != "m":
-                raise ValueError("Depth records require a supported encoding and unit='m'")
+            if depth.get("encoding") != "png-u16-linear" or depth.get("unit") != "m":
+                raise ValueError("Depth records require encoding='png-u16-linear' and unit='m'")
             shape = depth.get("shape")
             if not isinstance(shape, list) or len(shape) != 2 or not all(type(x) is int and x > 0 for x in shape):
                 raise ValueError("Depth records require a positive [height, width] shape")
@@ -1070,8 +1070,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
                 return image_ok
 
             stem = original_name.rsplit(".", 1)[0] or original_name
-            suffix = ".png" if record["depth"]["encoding"] == "png-u16-linear" else ".npy"
-            depth_path = dataset_dir / "depth" / split / f"{stem}{suffix}"
+            depth_path = dataset_dir / "depth" / split / f"{stem}.png"
             depth_ok = await ensure_file(session, depth_path, record["depth"]["url"])
             if not image_ok or not depth_ok:
                 image_path.unlink(missing_ok=True)

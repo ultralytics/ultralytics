@@ -449,15 +449,13 @@ class DepthDataset(YOLODataset):
     format_class = DepthFormat
 
     def _depth_path_for(self, im_file: str) -> str:
-        """Map an image path to its companion depth PNG, falling back to legacy NPY."""
+        """Map an image path to its companion depth PNG."""
         parts = list(Path(im_file).parts)
         for i in range(len(parts) - 1, -1, -1):
             if parts[i] == "images":
                 parts[i] = "depth"
                 break
-        path = Path(*parts).with_suffix(".png")
-        legacy = path.with_suffix(".npy")
-        return str(path if path.exists() or not legacy.exists() else legacy)
+        return str(Path(*parts).with_suffix(".png"))
 
     def get_label_files(self) -> list[str]:
         """Return the depth paths paired with the dataset's images.
@@ -466,7 +464,6 @@ class DepthDataset(YOLODataset):
             (list[str]): List of depth file paths.
         """
         self.depth_files = [self._depth_path_for(f) for f in self.im_files]
-        self.depth_by_image = dict(zip(self.im_files, self.depth_files))
         return self.depth_files
 
     def get_cache_hash(self) -> str:
@@ -508,7 +505,7 @@ class DepthDataset(YOLODataset):
 
     def _load_depth(self, index):
         """Return the native-resolution depth map for an image, with non-finite values mapped to 0 (invalid)."""
-        return load_depth(self.depth_by_image[self.im_files[index]])
+        return load_depth(self._depth_path_for(self.im_files[index]))
 
     def get_image_and_label(self, index):
         """Load image, label, and depth map for the given index."""

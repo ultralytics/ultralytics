@@ -1500,6 +1500,11 @@ def test_scale_coords_nonuniform_letterbox():
     assert np.allclose(ops.scale_boxes((640, 640), boxes, (100, 200), ratio_pad), [[10, 10, 100, 60]])
     assert torch.allclose(ops.scale_coords((640, 640), coords, (100, 200), ratio_pad), coords.new_tensor([[50, 20]]))
 
+    boxes = np.array([[32.0, 192.0, 320.0, 352.0]])
+    coords = torch.tensor([[160.0, 224.0]])
+    assert np.allclose(ops.scale_boxes((640, 640), boxes, (100, 200)), [[10, 10, 100, 60]])
+    assert torch.allclose(ops.scale_coords((640, 640), coords, (100, 200)), coords.new_tensor([[50, 20]]))
+
 
 def test_nms_end2end_classes_before_max_det():
     """The end-to-end NMS branch must filter classes before truncating to max_det, like the NMS-based branch."""

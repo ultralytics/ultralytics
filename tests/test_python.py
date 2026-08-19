@@ -83,6 +83,14 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
         build_dataloader([], batch=4, workers=2)
 
 
+def test_build_yolo_dataset_hyp_isolated():
+    """Test dataset construction never mutates hyperparameters on the shared cfg it was built from."""
+    data = check_det_dataset("coco8.yaml")
+    cfg = get_cfg(overrides={"data": "coco8.yaml", "imgsz": 32, "rect": True})  # rect zeroes mosaic on the hyp used
+    data_build.build_yolo_dataset(cfg, data["train"], batch=2, data=data, mode="train")
+    assert cfg.mosaic == DEFAULT_CFG.mosaic
+
+
 def test_cfg_rejects_fuzzed_values():
     """Test invalid overrides fail in config validation."""
     with pytest.raises(TypeError, match="degrees"):

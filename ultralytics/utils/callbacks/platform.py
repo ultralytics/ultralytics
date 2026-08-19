@@ -272,16 +272,14 @@ def _get_project_name(trainer):
     """Get slugified project and name from trainer args, ignoring local directory paths."""
     raw = str(trainer.args.project)
     name = slugify(str(trainer.args.name or "train"))
-    if (
-        raw.startswith(("~/", "./", "../"))
-        or Path(raw).is_absolute()
-        or "\\" in raw
-        or raw.count("/") > 1
-        or re.match(r"^[A-Za-z]:/", raw)
+    owner, sep, raw_project = raw.partition("/")
+    project = slugify(raw_project if sep else raw)
+    if "\\" in raw or re.match(r"^[A-Za-z]:", raw) or (
+        sep
+        and ("/" in raw_project or not project or not re.fullmatch(r"[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*", owner))
     ):
         return None, name
-    owner, sep, project = raw.partition("/")
-    return (f"{owner}/{slugify(project)}" if sep else slugify(raw)), name
+    return (f"{owner}/{project}" if sep else project), name
 
 
 def on_pretrain_routine_start(trainer):

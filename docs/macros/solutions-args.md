@@ -1,7 +1,9 @@
 {% macro param_table(params=None) -%}
-| Argument | Type | Default | Description |
-| -------- | ---- | ------- | ----------- |
-{% set default_params = {
+
+| Argument                  | Type | Default | Description |
+| ------------------------- | ---- | ------- | ----------- |
+| {% set default_params = { |
+
     "model": ["str", "None", "Path to an Ultralytics YOLO model file."],
     "region": ["list` or `dict", "None", "Points defining the region of interest, either a list of `(x, y)` tuples or a dictionary mapping region names to point lists for multiple regions (`RegionCounter` only). When `None`, solutions that require a region fall back to a predefined default."],
     "show_in": ["bool", "True", "Flag to control whether to display the in counts on the video stream."],
@@ -24,6 +26,7 @@
     "max_speed": ["int", "120", "Maximum speed limit in visual overlays (used in alerts)."],
     "data": ["str", "'images'", "Path to image directory used for similarity search."],
     "imgsz": ["int", "640", "Input image size for model inference."],
+
 } %}
 {% if not params %}
 {% for param, details in default_params.items() %}

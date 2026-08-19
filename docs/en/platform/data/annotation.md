@@ -44,7 +44,7 @@ The annotation editor provides annotation tools for 6 YOLO task types:
 
     All 6 annotation types are stored together on each image. You can switch the dataset's active task type without losing existing annotations — they are preserved and reappear when you switch back.
 
-[Depth](../../datasets/depth/index.md) ground truth is a [paired depth map](datasets.md#depth) you upload, not something you draw, so the editor opens read-only on a depth dataset.
+[Depth ground truth](../../datasets/depth/index.md#depth-map-format) is a paired map you upload, not something you draw, so the editor opens read-only on a depth dataset.
 
 ### Task Details
 

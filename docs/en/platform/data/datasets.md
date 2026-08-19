@@ -57,7 +57,7 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 === "Archives"
 
-    Archives are extracted and processed automatically. Archives can also be nested inside a folder structure, and a single archive can mix images, videos, and labels, or carry the `depth/` tree of a [depth dataset](#depth).
+    Archives are extracted and processed automatically. Archives can also be nested inside a folder structure, and a single archive can mix images, videos, and labels, or carry the `depth/` tree of a [depth dataset](../../datasets/depth/index.md#depth-map-format).
 
     | Format | Extensions              | Notes             | Free  | Pro   | Enterprise |
     | ------ | ----------------------- | ----------------- | ----- | ----- | ---------- |
@@ -824,7 +824,7 @@ Dataset metadata is edited inline directly on the dataset page — no dialog nee
 
 !!! info "Changing Task Type"
 
-    Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back. [Depth](#depth) is the exception: its ground truth is a paired file rather than an annotation, so a dataset can only switch to or from depth while it holds no images — re-import it instead.
+    Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back. [Depth](../../datasets/depth/index.md#depth-map-format) is the exception: its ground truth is a paired file rather than an annotation, so a dataset can only switch to or from depth while it holds no images — re-import it instead.
 
 ### Custom Metadata
 

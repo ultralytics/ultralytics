@@ -269,22 +269,13 @@ def _get_environment_info():
 
 
 def _get_project_name(trainer):
-    """Get slugified project and name from trainer args, project None when it is a local directory path."""
+    """Get slugified project and name from trainer args, ignoring local directory paths."""
     raw = str(trainer.args.project)
-    owner, sep, project = raw.partition("/")
     name = slugify(str(trainer.args.name or "train"))
-    if not sep and "\\" not in raw:
-        return slugify(raw), name  # bare project name, owner resolved from the API key
-    # An owner is a 4-32 character username slug, so a second separator, a backslash, or any non-slug or
-    # out-of-range owner means a directory path
-    valid = (
-        bool(owner and slugify(project))
-        and 4 <= len(owner) <= 32
-        and "\\" not in raw
-        and "/" not in project
-        and re.fullmatch(r"[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*", owner)
-    )
-    return (f"{owner}/{slugify(project)}" if valid else None), name
+    if Path(raw).is_absolute() or "\\" in raw or raw.count("/") > 1 or re.match(r"^[A-Za-z]:/", raw):
+        return None, name
+    owner, sep, project = raw.partition("/")
+    return (f"{owner}/{slugify(project)}" if sep else slugify(raw)), name
 
 
 def on_pretrain_routine_start(trainer):

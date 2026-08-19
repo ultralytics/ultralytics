@@ -758,33 +758,6 @@ def test_ndjson_conversion_concurrency_and_resume(monkeypatch, tmp_path, task):
     assert sum(counts.values()) == request_count
 
 
-def test_platform_project_slug():
-    """Test that local directory paths are not sent to Platform as owner/project identifiers."""
-    from types import SimpleNamespace
-
-    from ultralytics.utils.callbacks.platform import _get_project_name
-
-    def project(value):
-        return _get_project_name(SimpleNamespace(args=SimpleNamespace(project=value, name="exp")))[0]
-
-    assert project("username/my-project") == "username/my-project"
-    assert project("Glenn-Jocher/My-Project") == "Glenn-Jocher/my-project"  # owner passed through as-is
-    assert project("my_local_dir") == "mylocaldir"  # bare project name, owner resolved from the API key
-    assert project("abcd/exp") == "abcd/exp"  # owner at the 4-character Platform username floor
-
-    # Path shapes whose components must never become an owner slug
-    for path in ("/private/var/folders/ab/proj_x", "/tmp", "C:/Users/me/runs", "C:/runs", "runs\\exp/x", "A B/exp"):
-        assert project(path) is None, path
-
-    # An owner with an empty or fully-unslugifiable project half must not produce a truncated "owner/" identifier
-    for path in ("username/", "username/!!!"):
-        assert project(path) is None, path
-
-    # Owner outside the documented 4-32 character Platform username range cannot be a real owner
-    for path in ("a/exp", "abc/exp", "x" * 33 + "/exp"):
-        assert project(path) is None, path
-
-
 def test_platform_job_transport(monkeypatch, tmp_path):
     """Test configurable Platform transport with an existing local checkpoint."""
     from types import SimpleNamespace

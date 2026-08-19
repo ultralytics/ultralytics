@@ -401,11 +401,7 @@ def check_version(
 
 
 # Apple ARM with numpy 2.0-2.3.0 flags finite matmuls as FP exceptions (numpy#28687, fixed in 2.3.1)
-SPURIOUS_FPE = (
-    {"divide": "ignore", "over": "ignore", "invalid": "ignore"}
-    if MACOS and ARM64 and check_version(np.__version__, ">=2.0.0,<2.3.1")
-    else {}
-)
+SPURIOUS_FPE = {"all": "ignore"} if MACOS and ARM64 and check_version(np.__version__, ">=2.0.0,<2.3.1") else {}
 
 
 def check_latest_pypi_version(package_name="ultralytics"):

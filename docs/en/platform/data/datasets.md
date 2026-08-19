@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, datasets, dataset management, dataset versioning
 
 [Ultralytics Platform](https://platform.ultralytics.com) datasets provide a streamlined solution for managing your training data. After upload, the platform processes images, labels, and statistics automatically.
 
-A dataset is ready to train once processing has completed and it meets the task-specific [dataset requirements](../train/cloud-training.md#step-2-select-dataset). The dataset header shows a `Ready` badge when those requirements are met and a `Not Ready` badge otherwise — click the badge to see exactly which condition is missing.
+A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image. The dataset header shows a `Ready` badge when all three conditions are met, and a `Not Ready` badge otherwise — click the badge to see exactly which condition is missing. [Depth](#depth-maps) datasets have a stricter, per-split requirement — see [dataset requirements](../train/cloud-training.md#step-2-select-dataset).
 
 ## Upload Dataset
 

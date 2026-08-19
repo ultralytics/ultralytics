@@ -19,6 +19,7 @@ def torch2openvino(
     calibration_dataset: Any | None = None,
     int8_detect: bool = False,
     prefix: str = "",
+    nms: bool = False,
 ) -> Any:
     """Export a PyTorch model to OpenVINO format with optional INT8 quantization.
 
@@ -31,6 +32,7 @@ def torch2openvino(
         calibration_dataset (nncf.Dataset | None): Dataset for INT8 calibration (required when ``quantize=8``).
         int8_detect (bool): Whether to keep the detection head in floating-point precision during INT8 quantization.
         prefix (str): Prefix for log messages.
+        nms (bool): Whether the model embeds NMS post-processing.
 
     Returns:
         (ov.Model): The converted OpenVINO model.
@@ -45,7 +47,8 @@ def torch2openvino(
     # non-deterministic on NMS models and fails with "Graphs differed across invocations!". check_trace=False skips
     # the same check on our own trace.
     ts = torch.jit.trace(model, im, strict=False, check_trace=False)
-    ov_model = ov.convert_model(ts, input=None if dynamic else input_shape, example_input=im)
+    ov_input = ov.PartialShape([-1, *input_shape[1:]]) if dynamic and nms else None if dynamic else input_shape
+    ov_model = ov.convert_model(ts, input=ov_input, example_input=im)
     if quantize == 8:
         import nncf
 

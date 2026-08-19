@@ -142,21 +142,21 @@ This section details the models available with their specific pretrained weights
 
         | Model         | size<br><sup>(pixels)</sup> | Prompt Type | mAP<sup>minival<br>50-95(e2e)</sup> | mAP<sup>minival<br>50-95</sup> | mAP<sub>r</sub> | mAP<sub>c</sub> | mAP<sub>f</sub> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         |---------------|-----------------------------|-------------|-------------------------------------|----------------------------|-----------------|-----------------|-----------------|--------------------------|-------------------------|
-        | [YOLOE-26n-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26n-seg.pt) | 640                         | Text/Visual | 23.7 / 20.9                         | 24.7 / 21.9                | 20.5 / 17.6     | 24.1 / 22.3     | 26.1 / 22.4     | 5.1                      | 9.9                     |
-        | [YOLOE-26s-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26s-seg.pt) | 640                         | Text/Visual | 29.9 / 27.1                         | 30.8 / 28.6                | 23.9 / 25.1     | 29.6 / 27.8     | 33.0 / 29.9     | 14.0                     | 35.4                    |
-        | [YOLOE-26m-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26m-seg.pt) | 640                         | Text/Visual | 35.4 / 31.3                         | 35.4 / 33.9                | 31.1 / 33.4     | 34.7 / 34.0     | 36.9 / 33.8     | 31.0                     | 123.6                   |
-        | [YOLOE-26l-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26l-seg.pt) | 640                         | Text/Visual | 36.8 / 33.7                         | 37.8 / 36.3                | 35.1 / 37.6     | 37.6 / 36.2     | 38.5 / 36.1     | 35.4                     | 142.0                   |
-        | [YOLOE-26x-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26x-seg.pt) | 640                         | Text/Visual | 39.5 / 36.2                         | 40.6 / 38.5                | 37.4 / 35.3     | 40.9 / 38.8     | 41.0 / 38.8     | 77.0                     | 316.9                   |
+        | [YOLOE-26n-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26n-seg.pt) | 640                         | Text/Visual | 23.7 / 20.9                         | 24.7 / 21.9                | 20.5 / 17.6     | 24.1 / 22.3     | 26.1 / 22.4     | 3.9 / 3.1                | 6.1                     |
+        | [YOLOE-26s-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26s-seg.pt) | 640                         | Text/Visual | 29.9 / 27.1                         | 30.8 / 28.6                | 23.9 / 25.1     | 29.6 / 27.8     | 33.0 / 29.9     | 10.7 / 11.0              | 21.9                    |
+        | [YOLOE-26m-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26m-seg.pt) | 640                         | Text/Visual | 35.4 / 31.3                         | 35.4 / 33.9                | 31.1 / 33.4     | 34.7 / 34.0     | 36.9 / 33.8     | 21.3 / 25.1              | 70.6                    |
+        | [YOLOE-26l-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26l-seg.pt) | 640                         | Text/Visual | 36.8 / 33.7                         | 37.8 / 36.3                | 35.1 / 37.6     | 37.6 / 36.2     | 38.5 / 36.1     | 25.5 / 29.3              | 89.0                    |
+        | [YOLOE-26x-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26x-seg.pt) | 640                         | Text/Visual | 39.5 / 36.2                         | 40.6 / 38.5                | 37.4 / 35.3     | 40.9 / 38.8     | 41.0 / 38.8     | 55.2 / 65.2              | 197.7                   |
 
     === "Prompt-free"
 
         | Model            | size<br><sup>(pixels)</sup> | mAP<sup>minival<br>50-95(e2e)</sup> | mAP<sup>minival<br>50(e2e)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         |------------------|-----------------------------|-------------------------------------|------------------------------|--------------------------|-------------------------|
-        | [YOLOE-26n-seg-pf](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26n-seg-pf.pt) | 640                         | 16.6                                | 22.7                         | 6.5                      | 15.8                    |
-        | [YOLOE-26s-seg-pf](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26s-seg-pf.pt) | 640                         | 21.4                                | 28.6                         | 16.2                     | 35.5                    |
-        | [YOLOE-26m-seg-pf](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26m-seg-pf.pt) | 640                         | 25.7                                | 33.6                         | 36.2                     | 122.1                   |
-        | [YOLOE-26l-seg-pf](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26l-seg-pf.pt) | 640                         | 27.2                                | 35.4                         | 40.6                     | 140.4                   |
-        | [YOLOE-26x-seg-pf](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26x-seg-pf.pt) | 640                         | 29.9                                | 38.7                         | 86.3                     | 314.4                   |
+        | [YOLOE-26n-seg-pf](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26n-seg-pf.pt) | 640                         | 16.6                                | 22.7                         | 2.3                      | 5.3                     |
+        | [YOLOE-26s-seg-pf](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26s-seg-pf.pt) | 640                         | 21.4                                | 28.6                         | 9.0                      | 20.8                    |
+        | [YOLOE-26m-seg-pf](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26m-seg-pf.pt) | 640                         | 25.7                                | 33.6                         | 19.4                     | 68.4                    |
+        | [YOLOE-26l-seg-pf](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26l-seg-pf.pt) | 640                         | 27.2                                | 35.4                         | 23.6                     | 86.8                    |
+        | [YOLOE-26x-seg-pf](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26x-seg-pf.pt) | 640                         | 29.9                                | 38.7                         | 53.1                     | 194.4                   |
 
 ## Usage Examples
 
@@ -689,27 +689,27 @@ Prompted classes carry straight into [tracking](../modes/track.md), so you can f
 
 ## YOLOE Performance Comparison
 
-Parameters and FLOPs for every prompt-based checkpoint, measured on the fused model at 640 pixels — the same convention as the [segmentation](../tasks/segment.md) tables. These figures do not change with the number of prompted classes.
+Zero-shot results on LVIS minival for every prompt-based scale, from the [Ultralytics YOLO26 paper](https://arxiv.org/abs/2606.03748). Each cell is reported as **text prompt / visual prompt**; parameters and FLOPs are for the detection configuration the paper evaluates.
 
-| Model         | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-| ------------- | ------------------------ | ----------------------- |
-| YOLOE-v8s-seg | 15.4                     | 41.0                    |
-| YOLOE-v8m-seg | 32.7                     | 106.0                   |
-| YOLOE-v8l-seg | 53.5                     | 212.3                   |
-| YOLOE-11s-seg | 13.7                     | 34.0                    |
-| YOLOE-11m-seg | 29.9                     | 115.2                   |
-| YOLOE-11l-seg | 35.1                     | 134.3                   |
-| YOLOE-26n-seg | 5.1                      | 9.9                     |
-| YOLOE-26s-seg | 14.0                     | 35.4                    |
-| YOLOE-26m-seg | 31.0                     | 123.6                   |
-| YOLOE-26l-seg | 35.4                     | 142.0                   |
-| YOLOE-26x-seg | 77.0                     | 316.9                   |
+| Model     | mAP<sub>50-95</sub> | mAP<sub>r</sub> | mAP<sub>c</sub> | mAP<sub>f</sub> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| --------- | ------------------- | --------------- | --------------- | --------------- | ------------------------ | ----------------------- |
+| YOLOE-v8s | 27.9 / 26.2         | 22.3 / 21.3     | 27.8 / 27.7     | 29.0 / 25.7     | 12.3 / 12.6              | 29.8                    |
+| YOLOE-v8m | 32.6 / 31.0         | 26.9 / 27.0     | 31.9 / 31.7     | 34.4 / 31.1     | 26.4 / 28.4              | 80.7                    |
+| YOLOE-v8l | 35.9 / 34.2         | 33.2 / 33.2     | 34.8 / 34.6     | 37.3 / 34.1     | 43.5 / 47.3              | 167.6                   |
+| YOLOE-11s | 27.5 / 26.3         | 21.4 / 22.5     | 26.8 / 27.1     | 29.3 / 26.4     | 10.7 / 10.9              | 22.7                    |
+| YOLOE-11m | 33.0 / 31.4         | 26.9 / 27.1     | 32.5 / 31.9     | 34.5 / 31.7     | 21.0 / 24.8              | 70.4                    |
+| YOLOE-11l | 35.2 / 33.7         | 29.1 / 28.1     | 35.0 / 34.6     | 36.5 / 33.8     | 26.0 / 29.8              | 89.5                    |
+| YOLOE-26n | 24.7 / 21.9         | 20.5 / 17.6     | 24.1 / 22.3     | 26.1 / 22.4     | 3.9 / 3.1                | 6.1                     |
+| YOLOE-26s | 30.8 / 28.6         | 23.9 / 25.1     | 29.6 / 27.8     | 33.0 / 29.9     | 10.7 / 11.0              | 21.9                    |
+| YOLOE-26m | 35.4 / 33.9         | 31.1 / 33.4     | 34.7 / 34.0     | 36.9 / 33.8     | 21.3 / 25.1              | 70.6                    |
+| YOLOE-26l | 37.8 / 36.3         | 35.1 / 37.6     | 37.6 / 36.2     | 38.5 / 36.1     | 25.5 / 29.3              | 89.0                    |
+| YOLOE-26x | 40.6 / 38.5         | 37.4 / 35.3     | 40.9 / 38.8     | 41.0 / 38.8     | 55.2 / 65.2              | 197.7                   |
 
-!!! note "Compare against the segmentation baselines, not the detection ones"
+At every scale the YOLOE-26 models lead their YOLOE-11 and YOLOE-v8 counterparts on mAP<sub>50-95</sub> while staying below the v8 line on parameters and FLOPs. On the same split the paper reports YOLO-Worldv2 at 24.4 (S), 32.4 (M) and 35.5 (L), and the transformer-based detectors GLIP-T at 26.0, GDINO-T at 27.4 and DetCLIP-T at 34.4, each carrying 155 to 232 M parameters.
 
-    Every released YOLOE checkpoint is a **segmentation** model, so the like-for-like reference is `yolo26*-seg`. YOLOE-26l-seg at 35.4 M / 142.0 B sits just above [YOLO26l-seg](yolo26.md) at 28.0 M / 139.8 B — the open-vocabulary head adds parameters and very little compute. Set against the *detection* model `yolo26l` (24.8 M / 86.4 B) the same figures look like a large regression, which is an artifact of comparing two different tasks.
+!!! note "These are not the counts for the checkpoint you download"
 
-    Reported FLOPs exclude the region-text similarity, which is not counted by the profiler. Real cost therefore grows with the size of the prompt set even though this column does not move; see [Deployment Notes](#deployment-notes).
+    The paper evaluates a detection configuration. The released weights are **segmentation** checkpoints and carry a mask branch, SAVPE and the text projection on top, so a loaded `yoloe-26l-seg.pt` reports 35.4 M and 142.0 B rather than the 25.5 M and 89.0 B above. In both cases the FLOPs figure excludes the region-text similarity, so real cost grows with the size of the prompt set even though the column does not move; see [Deployment Notes](#deployment-notes).
 
 ## Comparison with Previous Models
 

@@ -268,7 +268,9 @@ def verify_image_depth(args: tuple) -> tuple:
         with Image.open(depth_file) as depth:
             info = depth.info
             assert depth.mode in {"I", "I;16"}, f"depth map {depth_file} must be 16-bit grayscale"
-            assert info.get("ultralytics.depth.encoding") == "linear-u16" and info.get("ultralytics.depth.unit") == "m"
+            assert (
+                info.get("ultralytics.depth.encoding") == "linear-u16" and info.get("ultralytics.depth.unit") == "m"
+            ), f"depth map {depth_file} must use Ultralytics linear-u16 meter metadata"
             float(info["ultralytics.depth.min"])
             float(info["ultralytics.depth.max"])
             depth.verify()

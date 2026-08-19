@@ -7,10 +7,10 @@
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── nyu-depth  ← downloads here (≈1.5 GB)
+#     └── nyu-depth-png  ← downloads here (≈1.5 GB)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: nyu-depth # dataset root dir (relative to Ultralytics settings 'datasets_dir')
+path: nyu-depth-png # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train # train images (relative to 'path') 795 images
 val: images/val # val images (relative to 'path') 654 images
 

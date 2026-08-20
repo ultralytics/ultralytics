@@ -193,7 +193,7 @@ There are over 💯 keyword arguments for all the various Ultralytics [tasks](..
         iou=0.7,  # (float) intersection over union (IoU) threshold for NMS
         vid_stride=1,  # (int) video frame-rate stride
         stream_buffer=False,  # (bool) buffer incoming frames in a queue (True) or only keep the most recent frame (False)
-        visualize=False,  # (bool) visualize model features
+        visualize=False,  # (bool) save class activation heatmaps
         augment=False,  # (bool) apply image augmentation to prediction sources
         agnostic_nms=False,  # (bool) class-agnostic NMS
         classes=None,  # (int | list[int], optional) filter results by class, i.e. classes=0, or classes=[0,2,3]

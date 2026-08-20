@@ -121,17 +121,20 @@ def increment_path(path: str | Path, exist_ok: bool = False, sep: str = "-", mkd
 
     Examples:
         Increment a directory path:
+        >>> import tempfile
         >>> from pathlib import Path
-        >>> path = Path("runs/exp")
-        >>> new_path = increment_path(path)
-        >>> print(new_path)
-        runs/exp-2
+        >>> with tempfile.TemporaryDirectory() as tmp:
+        ...     exp = Path(tmp) / "exp"
+        ...     exp.mkdir()
+        ...     increment_path(exp).name
+        'exp-2'
 
         Increment a file path:
-        >>> path = Path("runs/exp/results.txt")
-        >>> new_path = increment_path(path)
-        >>> print(new_path)
-        runs/exp/results-2.txt
+        >>> with tempfile.TemporaryDirectory() as tmp:
+        ...     results = Path(tmp) / "results.txt"
+        ...     results.touch()
+        ...     increment_path(results).name
+        'results-2.txt'
     """
     path = Path(path)  # os-agnostic
     if path.exists() and not exist_ok:

@@ -32,6 +32,10 @@ keywords: ultralytics, plotting, utilities, documentation, data visualization, a
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.plotting.plot_reid_retrieval
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.plotting.plot_labels
 
 <br><br><hr><br>
@@ -65,13 +69,5 @@ keywords: ultralytics, plotting, utilities, documentation, data visualization, a
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.plotting.class_activation_map
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.plotting._reid_tile
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.plotting.plot_reid_retrieval
 
 <br><br>

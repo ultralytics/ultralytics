@@ -22,8 +22,4 @@ keywords: YOLO, object detection, Ultralytics, YOLO model, machine learning, Pyt
 
 ## ::: ultralytics.models.yolo.model.YOLOE
 
-<br><br><hr><br>
-
-## ::: ultralytics.models.yolo.model._is_object_label
-
 <br><br>

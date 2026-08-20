@@ -99,9 +99,11 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
         return None
     import requests  # scoped as slow import
 
-    payload = {"event": event, "project": project, "name": name, "data": _sanitize_json_value(data)}
+    payload = {"event": event, "data": _sanitize_json_value(data)}
     if model_id:
         payload["modelId"] = model_id
+    else:
+        payload.update(project=project, name=name)
 
     def send_once():
         global _api_key
@@ -170,9 +172,11 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
     # Get signed upload URL from Platform (server sanitizes filename for storage safety)
     @Retry(times=3, delay=2)
     def get_signed_url():
-        payload = {"project": project, "name": name, "filename": model_path.name}
+        payload = {"filename": model_path.name}
         if model_id:
             payload["modelId"] = model_id  # Direct lookup avoids slug mismatch from auto-increment
+        else:
+            payload.update(project=project, name=name)
         if run_id:
             payload["runId"] = run_id
         r = requests.post(
@@ -265,11 +269,20 @@ def _get_environment_info():
 
 
 def _get_project_name(trainer):
-    """Get slugified project and name from trainer args."""
+    """Get slugified project and name from trainer args, ignoring local directory paths."""
     raw = str(trainer.args.project)
-    parts = raw.split("/", 1)
-    project = f"{parts[0]}/{slugify(parts[1])}" if len(parts) == 2 else slugify(raw)
-    return project, slugify(str(trainer.args.name or "train"))
+    name = slugify(str(trainer.args.name or "train"))
+    owner, sep, raw_project = raw.partition("/")
+    project = slugify(raw_project if sep else raw)
+    valid = not sep or (
+        "/" not in raw_project
+        and re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", project)
+        and 4 <= len(owner) <= 32
+        and re.fullmatch(r"[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*", owner)
+    )
+    if "\\" in raw or re.match(r"^[A-Za-z]:", raw) or not valid:
+        return None, name
+    return (f"{owner}/{project}" if sep else project), name
 
 
 def on_pretrain_routine_start(trainer):
@@ -282,6 +295,12 @@ def on_pretrain_routine_start(trainer):
         return
 
     project, name = _get_project_name(trainer)
+    if not project:
+        LOGGER.info(
+            f"{PREFIX}project='{trainer.args.project}' is a local path, not an 'owner/project' Platform ID. "
+            f"Training will not be tracked on Platform."
+        )
+        return
     LOGGER.info(f"{PREFIX}Streaming training metrics to Platform")
 
     from ultralytics.utils.logger import ConsoleLogger

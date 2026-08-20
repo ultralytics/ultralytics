@@ -104,6 +104,8 @@ The collapse lands exactly at the cap boundary. The `log` head has no such bound
 | KITTI Eigen | 80 m  |             **0.942** |                 0.891 |
 | **Mean**    | —     |             **0.819** |                 0.799 |
 
+Both columns are as published. The other rows are scored with the TTA and log-least-squares protocol described on their dataset pages, which the validator in this repo does not implement, so the KITTI row cannot be re-measured on the same footing; the [KITTI page](../datasets/depth/kitti.md) carries numbers measured on the canonical 652-frame Eigen split instead.
+
 The largest gains are on the longer-range outdoor benchmarks (KITTI, ETH3D) — exactly where a fixed 10 m ceiling hurts most — while indoor performance is retained.
 
 ## Train
@@ -205,7 +207,7 @@ The released `yolo26*-depth.pt` checkpoints ship with this calibration already b
 
 ### Dataset format
 
-Depth estimation datasets pair each RGB image with a corresponding depth file. Depth targets are stored as `.npy` arrays containing float32 values in meters. The dataset YAML points to an `images/` directory; the loader derives the depth file path by replacing the `images` component with `depth` and replacing the image extension with `.npy`.
+Depth estimation datasets pair each RGB image with a scaled uint16 depth PNG or floating-point NPY depth map in meters. PNG values use millimeters by default; datasets with another convention set `depth_scale` in their YAML. The loader derives the depth path by replacing the `images` component with `depth`, preferring `.png` and falling back to `.npy`.
 
 ```text
 dataset/
@@ -217,7 +219,7 @@ dataset/
     └── val/
 ```
 
-For example, an image at `images/train/scene_001.jpg` is paired with a depth map at `depth/train/scene_001.npy`. See the [Depth Estimation Dataset Guide](../datasets/depth/index.md) for the full format specification.
+For example, an image at `images/train/scene_001.jpg` is paired with a depth map at `depth/train/scene_001.png`. See the [Depth Estimation Dataset Guide](../datasets/depth/index.md) for the full format specification.
 
 ## Val
 
@@ -371,7 +373,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ### How do I train a YOLO26 depth estimation model on a custom dataset?
 
-Prepare paired RGB images and `.npy` depth files, then create a dataset YAML pointing to your `images/` directory. The loader finds depth files automatically by replacing `images` with `depth` in the path and swapping the image extension for `.npy`.
+Prepare paired RGB images and either 16-bit depth PNGs or floating-point NPY depth maps in meters, then create a dataset YAML pointing to your `images/` directory. The loader finds depth files automatically by replacing `images` with `depth` in the path, preferring `.png` and falling back to `.npy`.
 
 Start from pretrained weights and use a low learning rate with AdamW so the fine-tune retains what the model already knows (see [Fine-tuning on your own data](#fine-tuning-on-your-own-data) for why):
 
@@ -414,7 +416,7 @@ Depth estimation validation reports the metric set used by Depth Anything and re
 - **rmse** — root mean squared error in meters. Lower is better.
 - **silog** — scale-invariant logarithmic error. Lower is better.
 
-Each prediction is median-aligned to its ground truth per image, and the statistics are then pooled over every valid pixel of the validation set (images with more valid depth pixels weigh proportionally more). Papers that instead average per-image metrics can report slightly different values on the same predictions.
+Each prediction is median-aligned to its ground truth per image, each metric is finalized on that image, and those per-image results are averaged over the validation set, so every image weighs the same regardless of how many valid depth pixels it holds. Images with fewer than 10 valid ground-truth pixels are skipped and do not enter that average, since aligning the median of a handful of pixels is meaningless; non-finite predictions are instead scored at the depth bounds. This matches the per-sample averaging and the 10-pixel floor used by Depth Anything V2.
 
 ### What is the depth map output format?
 

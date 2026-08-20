@@ -217,6 +217,30 @@ An NDJSON dataset file contains:
 
         Format: `[class_id]`
 
+    === "Depth"
+
+        The dataset record declares the PNG scale once:
+
+        ```json
+        { "type": "dataset", "task": "depth", "depth_scale": 1000 }
+        ```
+
+        Each image record adds the URL of its paired uint16 depth PNG:
+
+        ```json
+        {
+            "type": "image",
+            "file": "image1.jpg",
+            "url": "https://www.url.com/path/to/image1.jpg",
+            "width": 640,
+            "height": 480,
+            "split": "train",
+            "depth": { "url": "https://www.url.com/path/to/image1.png" }
+        }
+        ```
+
+        `depth_scale` is optional and defaults to `1000`; see the [depth map format](../depth/index.md#depth-map-format).
+
 #### Custom image metadata
 
 Each image record may include a `metadata` JSON object for application-specific context such as capture conditions, equipment identifiers, or review status. Nested values are supported. When imported into Ultralytics Platform, the metadata is stored with that image and can be viewed or edited from its fullscreen information panel.
@@ -227,7 +251,10 @@ Each image record may include a `metadata` JSON object for application-specific 
     "file": "airbus-wing.jpg",
     "url": "https://example.com/airbus-wing.jpg",
     "split": "train",
-    "metadata": { "aircraft": { "family": "A350", "section": "wing" }, "inspectionStatus": "reviewed" }
+    "metadata": {
+        "aircraft": { "family": "A350", "section": "wing" },
+        "inspectionStatus": "reviewed"
+    }
 }
 ```
 

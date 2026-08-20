@@ -23,6 +23,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 ## Training Integrations
 
+- [Agent Skills](agent-skills.md): Teach AI coding agents like Claude Code, Codex, Cursor, and Gemini CLI the complete Ultralytics YOLO workflow with official skills covering datasets, training, inference, and export.
+
 - [Albumentations](albumentations.md): Enhance your Ultralytics models with powerful image augmentations to improve model robustness and generalization.
 
 - [Amazon SageMaker](amazon-sagemaker.md): Leverage Amazon SageMaker to efficiently build, train, and deploy Ultralytics models, providing an all-in-one platform for the ML lifecycle.
@@ -60,6 +62,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 - [VS Code](vscode.md): An extension for VS Code that provides code snippets to accelerate Ultralytics development workflows and offers examples to help anyone learn or get started.
 
 - [Weights & Biases (W&B)](weights-biases.md): Monitor experiments, visualize metrics, and foster reproducibility and collaboration on Ultralytics projects.
+
+- [YAML2ModelGraph](yaml2modelgraph.md): Generate publication-ready SVG architecture diagrams directly from Ultralytics YOLO YAML configuration files.
 
 ## Deployment Integrations
 

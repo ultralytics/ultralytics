@@ -21,7 +21,7 @@ Key design choices across all sizes:
 - **[Objects365](../datasets/detect/objects365.md) pretraining** for every size before the COCO stage
 - **End-to-end training** (`end2end=True`) with NMS-free one-to-one head
 - **[MuSGD](../modes/train.md#musgd-optimizer) optimizer** combining SGD with Muon-style orthogonalized updates for weight matrices (2D linear weights and 4D conv filters, which are reshaped to 2D)
-- **Heavy mosaic augmentation** (~0.9-1.0 probability) disabled in the last 10 epochs (`close_mosaic=10`)
+- **Heavy mosaic augmentation** (~0.9-1.0 probability) disabled for the final epochs (`close_mosaic=8` in pretraining, `close_mosaic=10` on COCO)
 - **Aggressive scale augmentation** (0.56-0.95) to handle objects at different sizes
 - **Minimal rotation/shear** for most sizes, keeping geometric distortion low
 
@@ -37,7 +37,7 @@ Every YOLO26 COCO checkpoint was fine-tuned from an Objects365v1 checkpoint of t
 | `yolo26l.pt`    | `yolo26l-objv1-150.pt` |
 | `yolo26x.pt`    | `yolo26x-objv1-150.pt` |
 
-Pretraining used mostly default settings rather than searched values. `lr0`, `lrf`, `momentum`, `weight_decay`, `box`, and `cls` match `default.yaml`, while `warmup_epochs`, `close_mosaic`, and `dfl` were overridden. The values are shared across sizes apart from `warmup_epochs` on X and the augmentation strengths:
+Pretraining used mostly default settings rather than searched values. `lr0`, `lrf`, `momentum`, `weight_decay`, `box`, and `cls` match `default.yaml`, while `warmup_epochs`, `close_mosaic`, and `dfl` were overridden. Settings are shared across sizes apart from `warmup_epochs` on X, the augmentation strengths, and the internal MuSGD and head weights listed after the tables:
 
 | Setting               | Value           |
 | --------------------- | --------------- |
@@ -60,6 +60,18 @@ Pretraining used mostly default settings rather than searched values. `lr0`, `lr
 | `copy_paste` | 0.1 | 0.15 | 0.4  | 0.5  | 0.6 |
 | `scale`      | 0.5 | 0.9  | 0.9  | 0.9  | 0.9 |
 
+Augmentations not listed, such as `hsv_h`, `translate`, `fliplr`, and `erasing`, are at their `default.yaml` values and are identical across sizes.
+
+??? note "Advanced: internal pretraining parameters"
+
+    Pretraining also varied the same kind of experimental-branch parameters described in [Internal Training Parameters](#internal-training-parameters). `cls_w` was 1.0 for every size:
+
+    | Setting | N    | S   | M    | L    | X   |
+    | ------- | ---- | --- | ---- | ---- | --- |
+    | `muon_w` | 0.45 | 0.5 | 0.45 | 0.45 | 0.5 |
+    | `sgd_w`  | 0.55 | 0.5 | 0.55 | 0.55 | 0.6 |
+    | `o2m`    | 0.1  | 0.1 | 0.1  | 1.0  | 1.0 |
+
 !!! tip "Start from the Objects365 weights"
 
     You do not need the Objects365 dataset to reuse stage 1. The pretrained checkpoints download automatically like any other Ultralytics asset, so you can fine-tune them on your own dataset:
@@ -79,7 +91,7 @@ Pretraining used mostly default settings rather than searched values. `lr0`, `lr
         yolo train model=yolo26s-objv1-150.pt data=your-dataset.yaml epochs=100 imgsz=640
         ```
 
-    To rerun the COCO stage instead, start from the same weights and pass the stage 2 values for that size from the tables below.
+    To rerun the COCO stage instead, start from the same weights and pass the stage 2 optimizer, loss, and augmentation values for that size from the tables below. The internal parameters in that section are rejected by the released package and need the experimental branch.
 
 ## Inspecting YOLO26 Checkpoint Training Args
 

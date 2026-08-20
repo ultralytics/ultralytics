@@ -136,7 +136,7 @@ def scale_boxes(
         img1_shape (tuple[int, int]): Shape of the source image (height, width).
         boxes (torch.Tensor | np.ndarray): Bounding boxes to rescale in format (N, 4).
         img0_shape (tuple[int, int]): Shape of the target image (height, width).
-        ratio_pad (tuple, optional): Tuple of (ratio, pad) for scaling. If None, calculated from image shapes.
+        ratio_pad (tuple, optional): Ratio and padding as ((ratio_h, ratio_w), (pad_w, pad_h)).
         padding (bool): Whether boxes are based on YOLO-style augmented images with padding.
         xywh (bool): Whether box format is xywh (True) or xyxy (False).
 
@@ -145,10 +145,11 @@ def scale_boxes(
     """
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
+        gain_y = gain_x = gain
         pad_x = round((img1_shape[1] - round(img0_shape[1] * gain)) / 2 - 0.1)
         pad_y = round((img1_shape[0] - round(img0_shape[0] * gain)) / 2 - 0.1)
     else:
-        gain = ratio_pad[0][0]
+        gain_y, gain_x = ratio_pad[0]
         pad_x, pad_y = ratio_pad[1]
 
     if padding:
@@ -157,7 +158,10 @@ def scale_boxes(
         if not xywh:
             boxes[..., 2] -= pad_x  # x padding
             boxes[..., 3] -= pad_y  # y padding
-    boxes[..., :4] /= gain
+    boxes[..., 0] /= gain_x
+    boxes[..., 1] /= gain_y
+    boxes[..., 2] /= gain_x
+    boxes[..., 3] /= gain_y
     return boxes if xywh else clip_boxes(boxes, img0_shape)
 
 
@@ -623,16 +627,17 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     if ratio_pad is None:  # calculate from img0_shape
         img1_h, img1_w = img1_shape[:2]  # supports both HWC or HW shapes
         gain = min(img1_h / img0_h, img1_w / img0_w)  # gain  = old / new
+        gain_y = gain_x = gain
         pad = round((img1_w - round(img0_w * gain)) / 2 - 0.1), round((img1_h - round(img0_h * gain)) / 2 - 0.1)
     else:
-        gain = ratio_pad[0][0]
+        gain_y, gain_x = ratio_pad[0]
         pad = ratio_pad[1]
 
     if padding:
         coords[..., 0] -= pad[0]  # x padding
         coords[..., 1] -= pad[1]  # y padding
-    coords[..., 0] /= gain
-    coords[..., 1] /= gain
+    coords[..., 0] /= gain_x
+    coords[..., 1] /= gain_y
     coords = clip_coords(coords, img0_shape)
     if normalize:
         coords[..., 0] /= img0_w  # width

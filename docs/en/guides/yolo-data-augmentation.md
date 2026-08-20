@@ -322,7 +322,7 @@ Then launch the training with the Python API:
 
 - **Range**: `0.0` - `1.0`
 - **Default**: `{{ copy_paste }}`
-- **Usage**: Only works for segmentation tasks, this augmentation copies objects within or between images based on a specified probability, controlled by the [`copy_paste_mode`](#copy-paste-mode-copy_paste_mode). The `copy_paste` hyperparameter defines the probability of applying the transformation, with `copy_paste=1.0` ensuring that all images are copied and `copy_paste=0.0` disabling the transformation. For example, with `copy_paste=0.5`, each image has a 50% chance of having objects copied from another image.
+- **Usage**: Only works for segmentation tasks, this augmentation copies objects within or between images, controlled by the [`copy_paste_mode`](#copy-paste-mode-copy_paste_mode). In `flip` mode, `copy_paste` is the fraction of eligible objects copied: an image with six eligible objects gains three copies at `copy_paste=0.5`. In `mixup` mode, the same value also controls the probability that copy-paste runs. `copy_paste=0.0` disables the transformation.
 - **Purpose**: Particularly useful for instance segmentation tasks and rare object classes. For example, in industrial defect detection where certain types of defects appear infrequently, copy-paste augmentation can artificially increase the occurrence of these rare defects by copying them from one image to another, helping the model better learn these underrepresented cases without requiring additional defective samples.
 - **Ultralytics' implementation**: [CopyPaste](../reference/data/augment.md#ultralytics.data.augment.CopyPaste)
 - **Note**:

@@ -25,7 +25,7 @@ The TartanAir depth dataset is split into two subsets:
 1. **Train**: 55,660 images with paired dense depth maps for training.
 2. **Val**: 5,810 images with paired dense depth maps for validation during training.
 
-Each RGB image is paired with a `.npy` float32 depth map storing per-pixel distances in meters, following the [Ultralytics depth dataset format](index.md).
+Each RGB image is paired with a scaled uint16 depth PNG with 256 units per meter (`depth_scale: 256`), following the [Ultralytics depth dataset format](index.md). This represents the full 80 m range at 3.90625 mm resolution.
 
 ## Obtain the Data
 
@@ -44,6 +44,8 @@ from pathlib import Path
 
 import numpy as np
 
+from ultralytics.data.utils import save_depth_png
+
 VAL_ENVS = {"neighborhood"}  # environments held out for validation
 src, dst = Path("data"), Path("datasets/depth-tartanair")
 for depth_file in sorted(src.rglob("depth_left/*_left_depth.npy")):
@@ -55,7 +57,7 @@ for depth_file in sorted(src.rglob("depth_left/*_left_depth.npy")):
     depth[depth > 80.0] = 0.0  # sky/extreme range → 0 = invalid
     frame = depth_file.name.replace("_depth.npy", "")  # e.g. 000000_left
     name = f"{env}_{traj}_{frame}"
-    np.save(dst / f"depth/{out}/{name}.npy", depth)
+    save_depth_png(dst / f"depth/{out}/{name}.png", depth, scale=256)
     shutil.copy(depth_file.parents[1] / "image_left" / f"{frame}.png", dst / f"images/{out}/{name}.png")
 ```
 

@@ -29,7 +29,7 @@ Because ImageNet ships without depth annotations, depth targets are produced off
 
 1. Each ImageNet training image is run through `depth-anything/DA3MONO-LARGE`, which predicts a highly detailed depth map that is only defined up to an unknown per-image scale and shift, and through `depth-anything/DA3METRIC-LARGE`, whose output is coarser but in real units.
 2. A per-image robust affine fit maps the monocular prediction onto the metric one, `label = a * mono + b`. Every per-pixel detail therefore comes from the monocular checkpoint, while the metric checkpoint only sets the two scalars that place the map on the meter axis. No camera intrinsics are involved, so images without calibration can be labeled.
-3. The result is saved as a `.npy` array in meters, following the [Ultralytics depth dataset format](index.md), and paired with its source image by file stem. These maps are stored as float16 to halve the on-disk footprint across 1.28M files; the dataset loader casts them to float32 on read, and float32 remains the documented format for custom depth datasets.
+3. The result is saved as a 16-bit millimeter PNG, following the [Ultralytics depth dataset format](index.md), and paired with its source image by file stem.
 4. The pseudo-labeled pairs are then added as one component of a larger training mix, where a student YOLO26-Depth model learns to match the teacher while also training on real ground-truth sources.
 
 Because the scale comes from a prediction rather than a measurement, each map can carry a global scale error. YOLO26-Depth trains with a scale-invariant log (SILog) loss plus gradient matching and validates with median alignment, so a per-image scale offset in the pseudo labels is largely absorbed.

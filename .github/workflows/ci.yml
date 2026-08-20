@@ -352,7 +352,7 @@ jobs:
               PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -n 2 --dist=loadfile "${pytest_args[@]}"
             fi
           retries: 1 # Retry once after initial attempt (2 total runs)
-          timeout_minutes: 180
+          timeout_minutes: 120
           retry_delay_seconds: 60
         env:
           YOLO_AUTOINSTALL: "false"

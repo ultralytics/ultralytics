@@ -53,17 +53,10 @@ Here's how you can deploy with TF GraphDef efficiently across various platforms.
 
 ## Supported Tasks
 
-TF GraphDef export supports all seven Ultralytics tasks. Detection, instance segmentation, pose, OBB, and classification cover the YOLO26, YOLO11, and YOLOv8 families; semantic segmentation and depth estimation are YOLO26-only.
+TF GraphDef export supports six of the seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads. Pose models can be exported, but Ultralytics GraphDef inference is not currently supported for them.
 
-| Task                                          | Supported |
-| :-------------------------------------------- | :-------- |
-| [Object Detection](../tasks/detect.md)        | ✅        |
-| [Instance Segmentation](../tasks/segment.md)  | ✅        |
-| [Semantic Segmentation](../tasks/semantic.md) | ✅        |
-| [Pose Estimation](../tasks/pose.md)           | ✅        |
-| [OBB Detection](../tasks/obb.md)              | ✅        |
-| [Classification](../tasks/classify.md)        | ✅        |
-| [Depth Estimation](../tasks/depth.md)         | ✅        |
+{% set unsupported = ["obb"] %}
+{% include "macros/supported-tasks.md" %}
 
 ## Exporting YOLO26 Models to TF GraphDef
 
@@ -88,7 +81,7 @@ For detailed instructions and best practices related to the installation process
 
 All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
-The TF GraphDef format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy.
+The TF GraphDef format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes, except that pose models currently support export only. Export your model, then load the exported model to run inference or validate its accuracy.
 
 !!! example "Export"
 

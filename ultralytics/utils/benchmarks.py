@@ -127,7 +127,9 @@ def benchmark(
                 continue
 
             # Checks
-            if export_format == "edgetpu":
+            if export_format == "pb":
+                assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
+            elif export_format == "edgetpu":
                 assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
                 assert shutil.which("edgetpu_compiler"), "Edge TPU benchmark requires edgetpu_compiler"
             elif export_format == "coreml":
@@ -141,7 +143,6 @@ def benchmark(
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
             if export_format == "paddle":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
-                assert model.task != "obb", "Paddle OBB bug https://github.com/PaddlePaddle/Paddle/issues/72024"
                 assert (LINUX and not IS_JETSON) or MACOS, "Windows and Jetson Paddle exports not supported yet"
                 # PaddlePaddle export works standalone on Python 3.13 but its native protobuf clashes with the
                 # protobuf>=6.31.1 that TensorFlow loads earlier in this shared benchmark process, causing a segfault.
@@ -209,6 +210,7 @@ def benchmark(
             emoji = "❎"  # indicates export succeeded
 
             # Predict
+            assert model.task != "pose" or export_format != "pb", "GraphDef Pose inference is not supported"
             assert export_format != "edgetpu", "inference not supported"
             assert export_format != "coreml" or platform.system() == "Darwin", "inference requires macOS>=10.13"
             assert export_format != "axelera", "inference only supported on Axelera hardware"
@@ -418,7 +420,8 @@ class ProfileModels:
         data = np.array(data)
         for _ in range(max_iters):
             mean, std = np.mean(data), np.std(data)
-            clipped_data = data[(data > mean - sigma * std) & (data < mean + sigma * std)]
+            # Include exact-boundary and zero-variance samples.
+            clipped_data = data[(data >= mean - sigma * std) & (data <= mean + sigma * std)]
             if len(clipped_data) == len(data):
                 break
             data = clipped_data
@@ -444,10 +447,10 @@ class ProfileModels:
         # Warmup runs
         elapsed = 0.0
         for _ in range(3):
-            start_time = time.time()
+            start_time = time.perf_counter()
             for _ in range(self.num_warmup_runs):
                 model(input_data, imgsz=self.imgsz, verbose=False)
-            elapsed = time.time() - start_time
+            elapsed = time.perf_counter() - start_time
 
         # Compute number of runs as higher of min_time or num_timed_runs
         num_runs = max(round(self.min_time / (elapsed + eps) * self.num_warmup_runs), self.num_timed_runs * 50)
@@ -520,10 +523,10 @@ class ProfileModels:
         # Warmup runs
         elapsed = 0.0
         for _ in range(3):
-            start_time = time.time()
+            start_time = time.perf_counter()
             for _ in range(self.num_warmup_runs):
                 sess.run([output_name], input_data_dict)
-            elapsed = time.time() - start_time
+            elapsed = time.perf_counter() - start_time
 
         # Compute number of runs as higher of min_time or num_timed_runs
         num_runs = max(round(self.min_time / (elapsed + eps) * self.num_warmup_runs), self.num_timed_runs)
@@ -531,9 +534,9 @@ class ProfileModels:
         # Timed runs
         run_times = []
         for _ in TQDM(range(num_runs), desc=onnx_file):
-            start_time = time.time()
+            start_time = time.perf_counter()
             sess.run([output_name], input_data_dict)
-            run_times.append((time.time() - start_time) * 1000)  # Convert to milliseconds
+            run_times.append((time.perf_counter() - start_time) * 1000)  # Convert to milliseconds
 
         run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=5)  # sigma clipping
         return np.mean(run_times), np.std(run_times)

@@ -77,17 +77,9 @@ While ONNX models are commonly used on CPUs, they can also be deployed on the fo
 
 ## Supported Tasks
 
-ONNX export supports all seven Ultralytics tasks. Detection, instance segmentation, pose, OBB, and classification cover the YOLO26, YOLO11, and YOLOv8 families; semantic segmentation and depth estimation are YOLO26-only.
+ONNX export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
 
-| Task                                          | Supported |
-| :-------------------------------------------- | :-------- |
-| [Object Detection](../tasks/detect.md)        | ✅        |
-| [Instance Segmentation](../tasks/segment.md)  | ✅        |
-| [Semantic Segmentation](../tasks/semantic.md) | ✅        |
-| [Pose Estimation](../tasks/pose.md)           | ✅        |
-| [OBB Detection](../tasks/obb.md)              | ✅        |
-| [Classification](../tasks/classify.md)        | ✅        |
-| [Depth Estimation](../tasks/depth.md)         | ✅        |
+{% include "macros/supported-tasks.md" %}
 
 ## Exporting YOLO26 Models to ONNX
 
@@ -192,7 +184,7 @@ When exporting your YOLO26 model to ONNX format, you can customize the process u
 | `format`   | `str`            | `'onnx'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                              |
 | `imgsz`    | `int` or `tuple` | `640`    | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                               |
 | `quantize` | `int` or `str`   | `None`   | Quantization precision: `16` (FP16) or `8` (INT8 static quantization with ONNX Runtime using calibration images from `data`, producing an `_int8.onnx` model); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags. |
-| `data`     | `str`            | `None`   | Dataset YAML used for INT8 calibration. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task.                                                                                   |
+| `data`     | `str`            | `None`   | Dataset YAML used for INT8 calibration; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task.      |
 | `fraction` | `float`          | `1.0`    | Fraction of calibration images to use for INT8 quantization.                                                                                                                                                                    |
 | `dynamic`  | `bool`           | `False`  | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                                                         |
 | `simplify` | `bool`           | `True`   | Simplifies the model graph with `onnxslim`, potentially improving performance and compatibility.                                                                                                                                |

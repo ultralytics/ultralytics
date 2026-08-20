@@ -5,9 +5,9 @@ keywords: YOLO26, image classification, AI, machine learning, pretrained models,
 model_name: yolo26n-cls
 ---
 
-# Image Classification
+# Image Classification with Ultralytics YOLO {#image-classification}
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/image-classification-examples.avif" alt="YOLO image classification of objects and scenes">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/image-classification-examples.avif" alt="Ultralytics YOLO image classification of objects and scenes">
 
 [Image classification](https://www.ultralytics.com/glossary/image-classification) is the simplest of the supported tasks and involves classifying an entire image into one of a set of predefined classes.
 
@@ -257,7 +257,6 @@ Export a YOLO26n-cls model to a different format like ONNX, CoreML, etc.
 
 Available YOLO26-cls export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-cls.onnx`. Usage examples are shown for your model after export completes.
 
-{% set model_name = "yolo26n-cls" %}
 {% include "macros/export-table.md" %}
 
 See full `export` details in the [Export](../modes/export.md) page.

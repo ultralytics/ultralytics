@@ -17,6 +17,7 @@ permissions:
   contents: write # Modify code in PRs
   pull-requests: write # Add comments and labels to PRs
   issues: write # Add comments and labels to issues
+  discussions: write # Add labels to discussions
 
 jobs:
   actions:

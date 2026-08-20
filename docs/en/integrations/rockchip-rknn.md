@@ -43,17 +43,9 @@ The first step after getting your hands on a Rockchip-based device is to flash a
 
 ## Supported Tasks
 
-RKNN export supports all seven Ultralytics tasks. Detection, instance segmentation, pose, OBB, and classification cover the YOLO26, YOLO11, and YOLOv8 families; semantic segmentation and depth estimation are YOLO26-only.
+RKNN export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
 
-| Task                                          | Supported |
-| :-------------------------------------------- | :-------- |
-| [Object Detection](../tasks/detect.md)        | ✅        |
-| [Instance Segmentation](../tasks/segment.md)  | ✅        |
-| [Semantic Segmentation](../tasks/semantic.md) | ✅        |
-| [Pose Estimation](../tasks/pose.md)           | ✅        |
-| [OBB Detection](../tasks/obb.md)              | ✅        |
-| [Classification](../tasks/classify.md)        | ✅        |
-| [Depth Estimation](../tasks/depth.md)         | ✅        |
+{% include "macros/supported-tasks.md" %}
 
 ## Export to RKNN: Converting Your YOLO26 Model
 
@@ -162,7 +154,7 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
 | `quantize` | `int` or `str`   | `None`     | Quantization precision: unset or `16` builds FP16 for FP16-capable targets; unset auto-enables INT8 for INT8-only targets; `8` builds INT8. RKNN export has no separate FP32 mode. Replaces the deprecated `half`/`int8` flags.                             |
 | `simplify` | `bool`           | `True`     | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                                                                     |
 | `opset`    | `int`            | `None`     | Specifies the ONNX opset version for the intermediate ONNX graph. Defaults to 19 if unset, and values above 19 are reduced to 19.                                                                                                                           |
-| `data`     | `str`            | `None`     | Dataset YAML used for INT8 calibration. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task.                                                                                                               |
+| `data`     | `str`            | `None`     | Dataset YAML used for INT8 calibration; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task.                                  |
 | `fraction` | `float`          | `1.0`      | Fraction of calibration images to use for INT8 quantization.                                                                                                                                                                                                |
 | `device`   | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                                                                                                                   |
 

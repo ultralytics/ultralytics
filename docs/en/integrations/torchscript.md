@@ -57,17 +57,9 @@ TorchScript offers various deployment options for [machine learning](https://www
 
 ## Supported Tasks
 
-TorchScript export supports all seven Ultralytics tasks. Detection, instance segmentation, pose, OBB, and classification cover the YOLO26, YOLO11, and YOLOv8 families; semantic segmentation and depth estimation are YOLO26-only.
+TorchScript export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
 
-| Task                                          | Supported |
-| :-------------------------------------------- | :-------- |
-| [Object Detection](../tasks/detect.md)        | ✅        |
-| [Instance Segmentation](../tasks/segment.md)  | ✅        |
-| [Semantic Segmentation](../tasks/semantic.md) | ✅        |
-| [Pose Estimation](../tasks/pose.md)           | ✅        |
-| [OBB Detection](../tasks/obb.md)              | ✅        |
-| [Classification](../tasks/classify.md)        | ✅        |
-| [Depth Estimation](../tasks/depth.md)         | ✅        |
+{% include "macros/supported-tasks.md" %}
 
 ## Export to TorchScript: Converting Your YOLO26 Model
 

@@ -5,9 +5,9 @@ keywords: instance segmentation, YOLO26, object detection, image segmentation, m
 model_name: yolo26n-seg
 ---
 
-# Instance Segmentation
+# Instance Segmentation with Ultralytics YOLO {#instance-segmentation}
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/instance-segmentation-examples.avif" alt="Instance segmentation examples">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/instance-segmentation-examples.avif" alt="Ultralytics YOLO instance segmentation examples">
 
 [Instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) goes a step further than object detection and involves identifying individual objects in an image and segmenting them from the rest of the image.
 
@@ -203,7 +203,6 @@ Available YOLO26-seg export formats are in the table below. You can export to an
 
     CoreML embedded NMS pipelines (`nms=True`) only support object detection models. Segmentation exports to CoreML warn and force `nms=False`, producing a raw model without NMS.
 
-{% set model_name = "yolo26n-seg" %}
 {% include "macros/export-table.md" %}
 
 See full `export` details in the [Export](../modes/export.md) page.

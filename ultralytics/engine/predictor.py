@@ -83,7 +83,7 @@ class BasePredictor:
         save_dir (Path): Directory to save results.
         done_warmup (bool): Whether the predictor has finished setup.
         model (torch.nn.Module): Model used for prediction.
-        data (str): Data configuration.
+        data (str | Path | None): Copy of args.data, the dataset YAML AutoBackend falls back to for class names.
         device (torch.device): Device used for prediction.
         dataset (Dataset): Dataset used for prediction.
         vid_writer (dict[Path, cv2.VideoWriter]): Dictionary of {save_path: video_writer} for saving video output.
@@ -138,7 +138,7 @@ class BasePredictor:
 
         # Usable if setup is done
         self.model = None
-        self.data = self.args.data  # data_dict
+        self.data = self.args.data
         self.imgsz = None
         self.device = None
         self.dataset = None
@@ -185,7 +185,7 @@ class BasePredictor:
     def inference(self, im: torch.Tensor, *args, **kwargs):
         """Run inference on a given image using the specified model and arguments."""
         skip = self.source_type.tensor or self.args.augment or self.args.embed  # unsupported with activation maps
-        if self.args.visualize and self.model.format == "pt" and not skip:
+        if self.args.visualize and getattr(self.model, "base_model", True) and not skip:
             return class_activation_map(
                 self.model,
                 im,
@@ -310,6 +310,11 @@ class BasePredictor:
         # Setup model
         if self.model is None:
             self.setup_model(model)
+        if not getattr(self.model, "base_model", True) and (
+            unsupported := [k for k in ("augment", "embed", "visualize") if getattr(self.args, k)]
+        ):
+            LOGGER.warning(f"{unsupported} not supported by this model (format='{self.model.format}'), ignoring.")
+            self.args.augment, self.args.embed, self.args.visualize = False, None, False
 
         with self._lock:  # for thread-safe inference
             # Setup source every time predict is called

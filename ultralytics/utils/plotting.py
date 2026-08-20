@@ -519,11 +519,9 @@ class Annotator:
         if self.pil:
             # Convert to numpy first
             self.im = np.asarray(self.im).copy()
-        overlay = np.zeros_like(self.im)
-        for cls_id in np.unique(mask):
-            if cls_id == ignore_index:
-                continue
-            overlay[mask == cls_id] = colors(int(cls_id), True)
+        ids = np.unique(mask)  # class IDs present, ascending
+        palette = np.array([(0, 0, 0) if i == ignore_index else colors(int(i), True) for i in ids], self.im.dtype)
+        overlay = palette[np.searchsorted(ids, mask)] if len(ids) else np.zeros_like(self.im)
         self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
         if self.pil:
             # Convert im back to PIL and update draw
@@ -589,12 +587,12 @@ class Annotator:
         for i, k in enumerate(kpts):
             color_k = kpt_color or (self.kpt_color[i].tolist() if is_pose else colors(i))
             x_coord, y_coord = k[0], k[1]
-            if x_coord % shape[1] != 0 and y_coord % shape[0] != 0:
-                if len(k) == 3:
-                    conf = k[2]
-                    if conf < conf_thres:
-                        continue
-                cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, color_k, -1, lineType=cv2.LINE_AA)
+            if len(k) == 3:
+                if k[2] < conf_thres:
+                    continue
+            elif x_coord == 0 and y_coord == 0:  # (0, 0) marks a missing keypoint when there is no confidence channel
+                continue
+            cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, color_k, -1, lineType=cv2.LINE_AA)
 
         if kpt_line:
             ndim = kpts.shape[-1]
@@ -606,9 +604,9 @@ class Annotator:
                     conf2 = kpts[(sk[1] - 1), 2]
                     if conf1 < conf_thres or conf2 < conf_thres:
                         continue
-                if pos1[0] % shape[1] == 0 or pos1[1] % shape[0] == 0 or pos1[0] < 0 or pos1[1] < 0:
+                elif not (kpts[sk[0] - 1, :2].any() and kpts[sk[1] - 1, :2].any()):  # (0, 0) marks a missing keypoint
                     continue
-                if pos2[0] % shape[1] == 0 or pos2[1] % shape[0] == 0 or pos2[0] < 0 or pos2[1] < 0:
+                if min(pos1 + pos2) < 0:
                     continue
                 cv2.line(
                     self.im,
@@ -1374,8 +1372,10 @@ def class_activation_map(
                 handle.remove()
         s = torch.cat(scores, 2)  # (B, nc, predictions) class logits
         if classes is not None:
-            cls = torch.as_tensor(classes, dtype=torch.long, device=s.device)
-            s = s[:, cls.flatten()]  # heatmap for the requested classes only
+            cls = torch.as_tensor(classes, dtype=torch.long, device=s.device).flatten()
+            cls = cls[(cls >= 0) & (cls < s.shape[1])]  # drop ids outside this model's output channels
+            if len(cls):
+                s = s[:, cls]  # heatmap for the requested classes only
         s = s.amax(1)  # (B, predictions) best class logit of each prediction
         keep = (s.sigmoid() >= conf) | (s == s.amax(1, keepdim=True))  # top prediction alone if none above conf
         n = min(int(keep.sum(1).amax()), topk)  # predictions to explain, one backward pass each

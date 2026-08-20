@@ -1249,11 +1249,13 @@ class YOLOEModel(DetectionModel):
             without_reprta (bool): Whether to return text embeddings without reprta module processing.
 
         Returns:
-            (torch.Tensor): Text positional embeddings.
+            (torch.Tensor): Text positional embeddings in the model's parameter dtype.
         """
         from ultralytics.nn.text_model import build_text_model
 
-        device = next(self.model.parameters()).device
+        assert len(text), f"Expected at least one class name, but got {text}"
+        param = next(self.model.parameters())
+        device = param.device
         if not getattr(self, "clip_model", None) and cache_clip_model:
             # For backwards compatibility of models lacking clip_model attribute
             self.clip_model = build_text_model(getattr(self, "text_model", "mobileclip:blt"), device=device)
@@ -1266,7 +1268,7 @@ class YOLOEModel(DetectionModel):
         text_token = model.tokenize(text)
         txt_feats = [model.encode_text(token).detach() for token in text_token.split(batch)]
         txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)
-        txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1])
+        txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1]).to(param.dtype)  # CLIP always emits float32
         if without_reprta:
             return txt_feats
 
@@ -1297,10 +1299,12 @@ class YOLOEModel(DetectionModel):
         assert not self.training
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
+        names = check_class_names(names)  # validate before the re-parameterization below, which cannot be undone
+        assert len(vocab) == head.nl, f"Expected one vocabulary item per detection level ({head.nl}), got {len(vocab)}."
 
         # Cache anchors for head
-        device = next(self.parameters()).device
-        self(torch.empty(1, 3, self.args["imgsz"], self.args["imgsz"]).to(device))  # warmup
+        with torch.no_grad():  # a tracked warmup would build a graph through the backbone
+            self(next(self.parameters()).new_empty(1, 3, self.args["imgsz"], self.args["imgsz"]))  # warmup
 
         cv3 = getattr(head, "one2one_cv3", head.cv3)
         cv2 = getattr(head, "one2one_cv2", head.cv2)
@@ -1309,13 +1313,13 @@ class YOLOEModel(DetectionModel):
         self.model[-1].lrpc = nn.ModuleList(
             LRPCHead(cls, pf[-1], loc[-1], enabled=i != 2) for i, (cls, pf, loc) in enumerate(zip(vocab, cv3, cv2))
         )
-        for loc_head, cls_head in zip(head.cv2, head.cv3):
+        for loc_head, cls_head in zip(cv2, cv3):  # the branches lrpc was built from, one2one when end2end
             assert isinstance(loc_head, nn.Sequential)
             assert isinstance(cls_head, nn.Sequential)
             del loc_head[-1]
             del cls_head[-1]
         self.model[-1].nc = len(names)
-        self.names = check_class_names(names)
+        self.names = names
 
     def get_vocab(self, names):
         """Get fused vocabulary layer from the model.
@@ -1330,6 +1334,7 @@ class YOLOEModel(DetectionModel):
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
         assert not head.is_fused
+        names = list(check_class_names(names).values())  # validate before fusing the head, which cannot be undone
 
         tpe = self.get_text_pe(names)
         self.set_classes(names, tpe)
@@ -1354,9 +1359,9 @@ class YOLOEModel(DetectionModel):
             "Prompt-free model does not support setting classes. Please try with Text/Visual prompt models."
         )
         assert embeddings.ndim == 3
+        self.names = check_class_names(names)  # validate before any state is written
         self.pe = embeddings
         self.model[-1].nc = len(names)
-        self.names = check_class_names(names)
 
     def get_cls_pe(self, tpe, vpe):
         """Get class positional embeddings.
@@ -1786,6 +1791,12 @@ def torch_safe_load(weight, safe_only=None):
                     return torch_load(file, map_location="cpu", weights_only=True)
             return torch_load(file, map_location="cpu")
 
+    # weights_only=True raises on a TorchScript archive; the default path returns a ScriptModule instead.
+    torchscript_error = emojis(
+        f"ERROR ❌️ {weight} is a TorchScript archive, not an Ultralytics PyTorch checkpoint.\n"
+        f"Load the original .pt weights, or export again with format='torchscript' and load that file directly."
+    )
+
     try:
         ckpt = _load()
 
@@ -1794,6 +1805,8 @@ def torch_safe_load(weight, safe_only=None):
         # RuntimeError for a truncated zip, EOFError for an empty one, UnpicklingError for bytes that are not a
         # pickle at all (an image or archive renamed .pt). They are one user-facing condition, so they share one
         # handler and one message.
+        if isinstance(e, RuntimeError) and "TorchScript archive" in str(e):
+            raise TypeError(torchscript_error) from e
         if isinstance(e, RuntimeError) and "PytorchStreamReader" not in str(e):
             raise  # an unrelated RuntimeError is a real failure, not a damaged file
         if safe_only and isinstance(e, pickle.UnpicklingError):
@@ -1856,6 +1869,9 @@ def torch_safe_load(weight, safe_only=None):
         )
         check_requirements(e.name)  # install missing module
         ckpt = torch_load(file, map_location="cpu")
+
+    if isinstance(ckpt, torch.jit.ScriptModule):
+        raise TypeError(torchscript_error)  # default path: torch.load dispatched to torch.jit.load and succeeded
 
     if not isinstance(ckpt, dict):
         # File is likely a YOLO instance saved with i.e. torch.save(model, "saved_model.pt")
@@ -1933,6 +1949,9 @@ def parse_model(d, ch, verbose=True):
     legacy = True  # backward compatibility for v3/v5/v8/v9 models
     max_channels = float("inf")
     nc, act, scales, end2end = (d.get(x) for x in ("nc", "activation", "scales", "end2end"))
+    channel_divisor = d.get("channel_divisor", 8)
+    if isinstance(channel_divisor, bool) or not isinstance(channel_divisor, int) or channel_divisor <= 0:
+        raise ValueError(f"channel_divisor must be a positive integer, got {channel_divisor}")
     reg_max = d.get("reg_max", 16)
     depth, width, kpt_shape = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
     scale = d.get("scale")
@@ -2027,13 +2046,28 @@ def parse_model(d, ch, verbose=True):
                 with contextlib.suppress(ValueError):
                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
+        adjustments = []
         if m in base_modules:
             c1, c2 = ch[f], args[0]
             if m is not Classify:  # Classify() output must stay at nc; every other layer scales by width
-                c2 = make_divisible(min(c2, max_channels) * width, 8)
+                c2_requested = min(c2, max_channels) * width
+                c2 = make_divisible(c2_requested, channel_divisor)
+                if c2 != c2_requested:
+                    adjustments.append(f"c2 {c2_requested:g}->{c2}")
             if m is C2fAttn:  # set 1) embed channels and 2) num heads
-                args[1] = make_divisible(min(args[1], max_channels // 2) * width, 8)
+                embed_channels_requested = min(args[1], max_channels // 2) * width
                 args[2] = int(max(round(min(args[2], max_channels // 2 // 32)) * width, 1) if args[2] > 1 else args[2])
+                # MaxSigmoidAttnBlock reshapes its ec-channel embed and its hidden-channel projection into nh heads,
+                # so the embed width must equal the attention hidden width and stay divisible by nh
+                hidden_channels = int(c2 * (args[6] if len(args) > 6 else 0.5))
+                if hidden_channels % args[2]:
+                    raise ValueError(
+                        f"C2fAttn hidden channels {hidden_channels} (from c2={c2}) must be divisible by nh={args[2]}; "
+                        f"adjust channel_divisor, width_multiple or nh"
+                    )
+                args[1] = hidden_channels
+                if args[1] != embed_channels_requested:
+                    adjustments.append(f"embed {embed_channels_requested:g}->{args[1]}")
 
             args = [c1, c2, *args[1:]]
             if m in repeat_modules:
@@ -2080,7 +2114,10 @@ def parse_model(d, ch, verbose=True):
         ):
             args.extend([reg_max, end2end, [ch[x] for x in f]])
             if m is Segment or m is YOLOESegment or m is Segment26 or m is YOLOESegment26:
-                args[2] = make_divisible(min(args[2], max_channels) * width, 8)
+                mask_channels_requested = min(args[2], max_channels) * width
+                args[2] = make_divisible(mask_channels_requested, channel_divisor)
+                if args[2] != mask_channels_requested:
+                    adjustments.append(f"mask {mask_channels_requested:g}->{args[2]}")
             if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
                 m.legacy = legacy
         elif m is Depth:
@@ -2111,7 +2148,8 @@ def parse_model(d, ch, verbose=True):
         m_.np = sum(x.numel() for x in m_.parameters())  # number params
         m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type
         if verbose:
-            LOGGER.info(f"{i:>3}{f!s:>20}{n_:>3}{m_.np:10.0f}  {t:<45}{args!s:<30}")  # print
+            note = f"  # channel_divisor {channel_divisor}: {', '.join(adjustments)}" if adjustments else ""
+            LOGGER.info(f"{i:>3}{f!s:>20}{n_:>3}{m_.np:10.0f}  {t:<45}{args!s:<30}{note}")  # print
         save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
         layers.append(m_)
         if i == 0:

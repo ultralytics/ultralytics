@@ -98,7 +98,7 @@ The following table lists the default search space parameters for hyperparameter
 | `mosaic`          | `float` | `(0.0, 1.0)`   | Probability of using mosaic augmentation, which combines 4 images. Especially useful for small object detection            |
 | `mixup`           | `float` | `(0.0, 1.0)`   | Probability of using mixup augmentation, which blends two images. Can improve model robustness                             |
 | `cutmix`          | `float` | `(0.0, 1.0)`   | Probability of using cutmix augmentation. Combines image regions while maintaining local features                          |
-| `copy_paste`      | `float` | `(0.0, 1.0)`   | Probability of using copy-paste augmentation. Helps improve instance segmentation performance                              |
+| `copy_paste`      | `float` | `(0.0, 1.0)`   | In `flip` mode the fraction of eligible objects copied, in `mixup` mode also the probability of applying it                |
 | `close_mosaic`    | `float` | `(0.0, 10.0)`  | Disables mosaic in the last N epochs to stabilize training before completion                                               |
 
 ## Custom Search Space Example

@@ -201,8 +201,10 @@ def _cosine_distance(tracks: list[TTSTrack], dets: list[TTSTrack]) -> np.ndarray
     dfeat = [d.curr_feat for d in dets]
     dim = next((f.shape[0] for f in (*tfeat, *dfeat) if f is not None), 128)
     zeros = np.zeros(dim, dtype=np.float32)
-    T = np.stack([f if f is not None else zeros for f in tfeat])
-    D = np.stack([f if f is not None else zeros for f in dfeat])
+    # Pin float32 as `matching.embedding_distance` does: an unpinned stack inherits the encoder's dtype, so a
+    # half-precision ReID backend (`quantize=16`, or a float16 ONNX model) would decide this cost matrix' precision.
+    T = np.asarray([f if f is not None else zeros for f in tfeat], dtype=np.float32)
+    D = np.asarray([f if f is not None else zeros for f in dfeat], dtype=np.float32)
     valid = np.array([f is not None for f in tfeat])[:, None] & np.array([f is not None for f in dfeat])[None, :]
     return np.where(valid, np.clip(1 - T @ D.T, 0, 1), np.nan).astype(np.float32)
 
@@ -227,7 +229,7 @@ class TTSTrack(BOTrack):
 
     Examples:
         Create and activate a new track
-        >>> track = TTSTrack([100, 200, 50, 80, 0], score=0.9, cls="person")
+        >>> track = TTSTrack(np.array([100, 200, 50, 80, 0]), score=0.9, cls="person")
         >>> track.activate(KalmanFilterXYWH(), frame_id=1)
     """
 
@@ -487,7 +489,7 @@ class TRACKTRACK:
             (unconfirmed if not track.is_activated else tracked).append(track)
         pool = joint_stracks(tracked, self.lost_stracks)
 
-        if img is not None:
+        if img is not None and self.gmc.method is not None:
             self._apply_gmc(img, dets_high, [pool, unconfirmed])
         TTSTrack.multi_predict(pool)
 

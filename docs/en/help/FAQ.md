@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO, FAQ, object detection, hardware requirements, fine-
 
 # Ultralytics YOLO Frequently Asked Questions (FAQ)
 
-This FAQ section addresses common questions and issues users might encounter while working with [Ultralytics](https://www.ultralytics.com/) YOLO repositories.
+This FAQ section addresses common questions and issues users might encounter while working with [Ultralytics](https://www.ultralytics.com) YOLO repositories.
 
 ## FAQ
 
@@ -226,7 +226,7 @@ Ultralytics provides a wealth of resources to help you get started and master th
 - 📚 [Official documentation](../index.md): Comprehensive guides, API references, and best practices.
 - 💻 [GitHub repository](https://github.com/ultralytics/ultralytics): Source code, example scripts, and community contributions.
 - ✍️ [Ultralytics blog](https://www.ultralytics.com/blog): In-depth articles, use cases, and technical insights.
-- 💬 [Community forums](https://community.ultralytics.com/): Connect with other users, ask questions, and share your experiences.
+- 💬 [Community forums](https://community.ultralytics.com): Connect with other users, ask questions, and share your experiences.
 - 🎥 [YouTube channel](https://www.youtube.com/ultralytics?sub_confirmation=1): Video tutorials, demos, and webinars on various Ultralytics topics.
 
 These resources provide code examples, real-world use cases, and step-by-step guides for various tasks using Ultralytics models.

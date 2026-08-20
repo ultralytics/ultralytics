@@ -39,7 +39,7 @@ For smaller experimentation needs, see the [COCO128-Seg](coco128-seg.md) (128 im
 
 ## Applications
 
-COCO-Seg is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models on [instance segmentation](../../tasks/segment.md), such as the YOLO models. The large number of annotated images, the diversity of object categories, and the standardized evaluation metrics make it an indispensable resource for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) researchers and practitioners. Full COCO-Seg annotations can also be browsed and managed on [Ultralytics Platform](https://platform.ultralytics.com/).
+COCO-Seg is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models on [instance segmentation](../../tasks/segment.md), such as the YOLO models. The large number of annotated images, the diversity of object categories, and the standardized evaluation metrics make it an indispensable resource for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) researchers and practitioners. Full COCO-Seg annotations can also be browsed and managed on [Ultralytics Platform](https://platform.ultralytics.com).
 
 ## Dataset YAML
 

@@ -103,7 +103,7 @@ To train a YOLO26n model on the VisDrone dataset for 100 [epochs](https://www.ul
         yolo detect train data=VisDrone.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
-To label additional aerial images and manage VisDrone training runs in your browser, use [Ultralytics Platform](https://platform.ultralytics.com/).
+To label additional aerial images and manage VisDrone training runs in your browser, use [Ultralytics Platform](https://platform.ultralytics.com).
 
 ## Sample Data and Annotations
 

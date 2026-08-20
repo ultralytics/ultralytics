@@ -16,7 +16,7 @@ The [Google Cloud Storage](https://cloud.google.com/storage) integration connect
 
 ## Create a Read-Only Service Account
 
-Platform only ever reads from your storage — it never writes, modifies, or deletes your objects. Create a dedicated [service account](https://cloud.google.com/iam/docs/service-account-overview) with read access only:
+Platform only ever reads from your storage — it never writes, modifies, or deletes your objects. Create a dedicated [service account](https://docs.cloud.google.com/iam/docs/service-account-overview) with read access only:
 
 1. In the Google Cloud console, go to **IAM & Admin > Service Accounts** and create a service account.
 2. Grant it the **Storage Object Viewer** (`roles/storage.objectViewer`) role on the buckets you want to connect.

@@ -128,7 +128,6 @@ class BaseTrainer:
             overrides (dict, optional): Configuration overrides.
             _callbacks (dict, optional): Dictionary of callback functions.
         """
-        self.hub_session = overrides.pop("session", None)  # HUB
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
         self.args.device = parse_device(self.args.device)  # canonical string, resolves '-1' auto-selection once
@@ -219,29 +218,34 @@ class BaseTrainer:
     def train(self):
         """Execute the training process, using DDP subprocess for multi-GPU or direct training for single-GPU."""
         # Run subprocess if DDP training, else train normally
-        if self.ddp:
-            # Argument checks
-            if self.args.rect:
-                LOGGER.warning("'rect=True' is incompatible with Multi-GPU training, setting 'rect=False'")
-                self.args.rect = False
-            if self.args.batch < 1.0:
-                raise ValueError(
-                    "AutoBatch with batch<1 not supported for Multi-GPU training, "
-                    f"please specify a valid batch size multiple of GPU count {self.world_size}, i.e. batch={self.world_size * 8}."
-                )
+        try:
+            if self.ddp:
+                # Argument checks
+                if self.args.rect:
+                    LOGGER.warning("'rect=True' is incompatible with Multi-GPU training, setting 'rect=False'")
+                    self.args.rect = False
+                if self.args.batch < 1.0:
+                    raise ValueError(
+                        "AutoBatch with batch<1 not supported for Multi-GPU training, "
+                        f"please specify a valid batch size multiple of GPU count {self.world_size}, i.e. batch={self.world_size * 8}."
+                    )
 
-            # Command
-            cmd, file = None, None
-            try:
-                cmd, file = generate_ddp_command(self)
-                LOGGER.info(f"{colorstr('DDP:')} debug command {' '.join(cmd)}")
-                subprocess.run(cmd, check=True)
-            finally:
-                if file is not None:
-                    ddp_cleanup(self, str(file))
+                # Command
+                cmd, file = None, None
+                try:
+                    cmd, file = generate_ddp_command(self)
+                    LOGGER.info(f"{colorstr('DDP:')} debug command {' '.join(cmd)}")
+                    subprocess.run(cmd, check=True)
+                finally:
+                    if file is not None:
+                        ddp_cleanup(self, str(file))
 
-        else:
-            self._do_train()
+            else:
+                self._do_train()
+        finally:
+            unset_deterministic()  # never leave deterministic state on, including the DDP parent and failed runs
+        if not self.ddp:
+            self.run_callbacks("teardown")
 
     def _setup_scheduler(self):
         """Initialize training learning rate scheduler."""
@@ -648,8 +652,6 @@ class BaseTrainer:
         for loader in (self.train_loader, self.test_loader):
             if hasattr(loader, "close"):
                 loader.close()  # shut down persistent dataloader workers so none survive to interpreter exit
-        unset_deterministic()
-        self.run_callbacks("teardown")
 
     def auto_batch(self, max_num_obj=0, dataset_size=0):
         """Calculate optimal batch size based on model and device memory constraints."""
@@ -817,7 +819,7 @@ class BaseTrainer:
         if str(self.model).endswith(".pt"):
             weights, ckpt = load_checkpoint(self.model)
             cfg = weights.yaml
-        if isinstance(self.args.pretrained, (str, Path)):
+        if isinstance(self.args.pretrained, (str, Path)) and not self.resume:
             weights, _ = load_checkpoint(self.args.pretrained)
         elif self.args.pretrained is False and not self.resume:
             weights = None
@@ -1094,6 +1096,7 @@ class BaseTrainer:
         self.start_epoch = start_epoch
         if start_epoch > (self.epochs - self.args.close_mosaic):
             self._close_dataloader_mosaic()
+            self.train_loader.reset()
 
     def _close_dataloader_mosaic(self):
         """Update dataloaders to stop using mosaic augmentation."""
@@ -1270,7 +1273,6 @@ class MultiTrainer:
                         "project": str(self.save_dir),  # nest per-dataset runs inside the sweep directory
                         "name": name,
                         "resume": False,
-                        "session": None,
                     }
                     run = SimpleNamespace(
                         project=overrides["project"],
@@ -1291,7 +1293,7 @@ class MultiTrainer:
                             [
                                 *_YOLO_CLI_COMMAND,
                                 "train",
-                                *(f"{k}={v}" for k, v in overrides.items() if k != "session"),
+                                *(f"{k}={v}" for k, v in overrides.items()),
                             ],
                             check=True,
                         )

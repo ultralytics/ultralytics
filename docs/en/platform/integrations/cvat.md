@@ -22,6 +22,8 @@ Until then there is a short path that works today, because CVAT already exports 
 5. **Upload to Platform.** [Create a new dataset](../data/datasets.md) from the ZIP.
 6. **Train.** [Edit the annotations](../data/annotation.md), [train](../train/index.md), and [deploy](../deploy/index.md) without leaving the workspace.
 
+![Ultralytics Platform CVAT Dataset Import](https://cdn.ul.run/i/fb63d96ffcdd2ab234ed7bf9124ea212.avif)<!-- screenshot -->
+
 ### Export with the CLI
 
 [CVAT's CLI](https://docs.cvat.ai/docs/api_sdk/cli/) exports the same archive from a terminal:
@@ -46,11 +48,16 @@ archive.zip/
 
 CVAT offers [many export formats](https://docs.cvat.ai/docs/dataset_management/formats/). Three matter here:
 
-| CVAT Format          | Works  | Notes                                                                                        |
-| -------------------- | ------ | -------------------------------------------------------------------------------------------- |
-| **Ultralytics YOLO** | Best   | Ships `data.yaml`, so your label names come across intact                                    |
-| **COCO 1.0**         | Yes    | Read too; a mix of polygons and boxes imports as segment, and the box-only ones are dropped  |
-| **YOLO 1.1**         | Partly | Boxes import, but its `obj.names` file is not read — classes arrive as `class0`, `class1`, … |
+| CVAT Format            | Works  | Notes                                                                                        |
+| ---------------------- | ------ | -------------------------------------------------------------------------------------------- |
+| **Ultralytics YOLO**   | Best   | Ships `data.yaml`, so your label names come across intact                                    |
+| **COCO 1.0**           | Yes    | Read too; a mix of polygons and boxes imports as segment, and the box-only ones are dropped  |
+| **COCO Keypoints 1.0** | Yes    | Imports as a pose dataset, with the keypoint count taken from the most common shape          |
+| **YOLO 1.1**           | Partly | Boxes import, but its `obj.names` file is not read — classes arrive as `class0`, `class1`, … |
+
+Every COCO annotation must carry a `bbox` to be read, and crowd regions (`"iscrowd": 1`) are skipped. Category names
+become the class names, and category IDs are unified across all the JSON files in the archive, so per-split exports keep
+consistent class IDs.
 
 !!! warning "Pascal VOC imports without annotations"
 
@@ -67,4 +74,4 @@ Picking the right export format is the step the integration removes. Once it shi
 
 !!! tip "Available now"
 
-    The [Labelbox](labelbox.md), [Roboflow](roboflow.md), and [Ultralytics HUB](ultralytics-hub.md) integrations work today, and Platform imports YOLO, COCO, and Ultralytics NDJSON datasets directly.
+    The [Labelbox](labelbox.md) and [Roboflow](roboflow.md) integrations work today, and Platform imports YOLO, COCO, and Ultralytics NDJSON datasets directly.

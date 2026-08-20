@@ -10,6 +10,7 @@ import math
 import os
 import platform
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -236,7 +237,7 @@ def is_ascii(s) -> bool:
     Returns:
         (bool): True if the string is composed only of ASCII characters, False otherwise.
     """
-    return all(ord(c) < 128 for c in str(s))
+    return str(s).isascii()
 
 
 def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
@@ -598,23 +599,29 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             # Use --python to explicitly target current interpreter (venv or system)
             # This ensures correct installation when VIRTUAL_ENV env var isn't set
             return subprocess.check_output(
-                f'uv pip install --no-cache-dir --python "{sys.executable}" {packages} {commands} '
-                f"--index-strategy=unsafe-best-match --break-system-packages",
-                shell=True,
+                [
+                    "uv",
+                    "pip",
+                    "install",
+                    "--no-cache-dir",
+                    "--python",
+                    sys.executable,
+                    *packages,
+                    *shlex.split(commands),
+                    "--index-strategy=unsafe-best-match",
+                    "--break-system-packages",
+                ],
                 stderr=subprocess.STDOUT,
                 text=True,
             )
         return subprocess.check_output(
-            f'"{sys.executable}" -m pip install --no-cache-dir {packages} {commands}',
-            shell=True,
+            [sys.executable, "-m", "pip", "install", "--no-cache-dir", *packages, *shlex.split(commands)],
             stderr=subprocess.STDOUT,
             text=True,
         )
 
-    s = " ".join(f'"{x}"' for x in pkgs)  # console string
-    if s and constrain:  # append version constraints to prevent upgrades during install
-        s += " " + " ".join(f'"{c}"' for c in constrain)
-    if s:
+    if pkgs:
+        packages = [*pkgs, *constrain]
         if install and AUTOINSTALL:  # check environment variable
             # Note uv fails on arm64 macOS and Raspberry Pi runners
             n = len(pkgs)  # number of packages updates
@@ -623,7 +630,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
                 use_uv = not ARM64 and check_uv()  # uv fails on ARM64
-                LOGGER.info(attempt_install(s, cmds, use_uv=use_uv))
+                LOGGER.info(attempt_install(packages, cmds, use_uv=use_uv))
                 dt = time.time() - t
                 LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s")
                 LOGGER.warning(

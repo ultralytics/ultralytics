@@ -86,6 +86,19 @@ class Detect(nn.Module):
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
     xyxy = False  # xyxy or xywh output
 
+    @staticmethod
+    def _grouped_topk(x: torch.Tensor, k: int, groups: int = 8) -> tuple[torch.Tensor, torch.Tensor]:
+        """Select exact top-k values through smaller grouped selections."""
+        n = x.shape[1]
+        while groups > 1 and (n % groups or n // groups < k):
+            groups //= 2
+        if groups == 1:  # nothing to gain, e.g. a short axis or one that does not divide evenly
+            return x.topk(k, dim=1)
+        size = n // groups
+        values, index = x.reshape(x.shape[0], groups, size).topk(k, dim=-1)
+        values, winners = values.flatten(1).topk(k, dim=1)
+        return values, winners // k * size + index.flatten(1).gather(1, winners)
+
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """Initialize the YOLO detection layer with specified number of classes and channels.
 
@@ -243,17 +256,16 @@ class Detect(nn.Module):
             (torch.Tensor, torch.Tensor, torch.Tensor): Top scores, class indices, and filtered indices.
         """
         batch_size, anchors, nc = scores.shape  # i.e. shape(16,8400,80)
-        # Use max_det directly during export for TensorRT compatibility (requires k to be constant),
-        # otherwise use min(max_det, anchors) for safety with small inputs during Python inference
-        k = max_det if self.export else min(max_det, anchors)
+        k = min(max_det, anchors)
         if self.agnostic_nms:
             scores, labels = scores.max(dim=-1, keepdim=True)
             scores, indices = scores.topk(k, dim=1)
             labels = labels.gather(1, indices)
             return scores, labels.float(), indices
-        ori_index = scores.max(dim=-1)[0].topk(k)[1].unsqueeze(-1)
+        groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
+        ori_index = self._grouped_topk(scores.max(dim=-1)[0], k, groups)[1].unsqueeze(-1)
         scores = scores.gather(dim=1, index=ori_index.expand(-1, -1, nc))
-        scores, index = scores.flatten(1).topk(k)
+        scores, index = self._grouped_topk(scores.flatten(1), k, groups)
         idx = (
             ori_index[torch.arange(batch_size)[..., None], index // nc]
             if self.format == "coreml"
@@ -1027,7 +1039,7 @@ class LRPCHead(nn.Module):
     def conv2linear(conv: nn.Conv2d) -> nn.Linear:
         """Convert a 1x1 convolutional layer to a linear layer."""
         assert isinstance(conv, nn.Conv2d) and conv.kernel_size == (1, 1)
-        linear = nn.Linear(conv.in_channels, conv.out_channels)
+        linear = nn.Linear(conv.in_channels, conv.out_channels).requires_grad_(conv.weight.requires_grad)
         linear.weight.data = conv.weight.view(conv.out_channels, -1).data
         linear.bias.data = conv.bias.data
         return linear
@@ -1123,7 +1135,7 @@ class YOLOEDetect(Detect):
         self.savpe = SAVPE(ch, c3, embed)
         self.embed = embed
 
-    @smart_inference_mode()
+    @smart_inference_mode(False)  # fused layers stay in the model, so they must not be inference tensors
     def fuse(self, txt_feats: torch.Tensor = None):
         """Fuse text features with model weights for efficient inference."""
         if txt_feats is None:  # means eliminate one2many branch
@@ -1133,7 +1145,7 @@ class YOLOEDetect(Detect):
             return
 
         assert not self.training
-        txt_feats = txt_feats.to(torch.float32).squeeze(0)
+        txt_feats = txt_feats.to(next(self.parameters()).dtype).squeeze(0)
         if self.cv3 and self.cv4:
             self._fuse_tp(txt_feats, self.cv3, self.cv4)
         if self.end2end:
@@ -1170,7 +1182,7 @@ class YOLOEDetect(Detect):
                     kernel_size=1,
                 )
                 .requires_grad_(False)
-                .to(conv.weight.device)
+                .to(conv.weight.device, conv.weight.dtype)
             )
 
             conv.weight.data.copy_(w.unsqueeze(-1).unsqueeze(-1))
@@ -1689,7 +1701,8 @@ class RTDETRDecoder(nn.Module):
                 export, and last dimension format [cx, cy, w, h, max_class_prob, class_index].
         """
         k = min(self.num_queries, self.max_det) if self.export else self.num_queries
-        scores, index = scores.flatten(1).topk(k)
+        groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
+        scores, index = Detect._grouped_topk(scores.flatten(1), k, groups)
         # CoreML MIL lacks integer floor-div and mod lowering: use torch.div(rounding_mode="floor") and (index - q*nc).
         query_idx = torch.div(index, self.nc, rounding_mode="floor")
         boxes = boxes.gather(dim=1, index=query_idx.unsqueeze(-1).expand(-1, -1, 4).long())
@@ -1792,7 +1805,8 @@ class RTDETRDecoder(nn.Module):
 
         # Query selection
         # (bs*num_queries,)
-        topk_ind = torch.topk(enc_outputs_scores.max(-1).values, self.num_queries, dim=1).indices.view(-1)
+        groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
+        topk_ind = Detect._grouped_topk(enc_outputs_scores.max(-1).values, self.num_queries, groups)[1].view(-1)
         # (bs*num_queries,)
         batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
 

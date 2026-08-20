@@ -782,8 +782,6 @@ class Exporter:
                 assert model.task != "classify" and not isinstance(model.model[-1], RTDETRDecoder), (
                     "'dynamic=True' is not supported for CoreML classification or RT-DETR models."
                 )
-        if fmt in {"engine", "onnx", "openvino"} and self.args.dynamic and self.args.nms:
-            LOGGER.warning("'dynamic=True' with 'nms=True' keeps height and width fixed; only batch is dynamic.")
         if (fmt in {"engine", "coreml"} or self.args.nms) and self.args.dynamic and self.args.batch == 1:
             LOGGER.warning(
                 f"'dynamic=True' model with '{'nms=True' if self.args.nms else f'format={self.args.format}'}' requires max batch size, i.e. 'batch=16'"
@@ -1059,8 +1057,8 @@ class Exporter:
                 dynamic["output0"] = {0: "batch", 2: "height", 3: "width"}  # shape(1,1,640,640) dense map, not anchors
             elif isinstance(self.model, DetectionModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 84, 8400)
-            if self.args.nms:  # NMS postprocessing bakes the traced anchor count into the graph
-                dynamic["images"] = dynamic["output0"] = {0: "batch"}
+            if self.args.nms:
+                dynamic["output0"].pop(2)
         if self.args.nms and self.model.task == "obb":
             self.args.opset = opset  # for NMSModel
             self.args.simplify = True  # fix OBB runtime error related to topk
@@ -1198,7 +1196,6 @@ class Exporter:
             quantize=self.args.quantize,
             calibration_dataset=calibration_dataset,
             int8_detect=isinstance(self.model.model[-1], Detect),
-            nms=self.args.nms,
             prefix=prefix,
         )
 
@@ -1877,7 +1874,6 @@ class NMSModel(torch.nn.Module):
             pred = torch.cat((pred, pad))
         boxes, scores, extras = pred.split([4, len(self.model.names), extra_shape], dim=2)
         scores, classes = scores.max(dim=-1)
-        self.args.max_det = min(pred.shape[1], self.args.max_det)  # in case num_anchors < max_det
         # (N, max_det, 4 coords + 1 class score + 1 class label + extra_shape).
         out = torch.zeros(pred.shape[0], self.args.max_det, boxes.shape[-1] + 2 + extra_shape, **kwargs)
         for i in range(bs):
@@ -1886,14 +1882,22 @@ class NMSModel(torch.nn.Module):
             if self.is_tf or (self.args.format == "onnx" and self.obb):
                 # TFLite GatherND error if mask is empty
                 score *= mask
-                # Explicit length otherwise reshape error, hardcoded to `self.args.max_det * 5`
-                mask = score.topk(min(self.args.max_det * 5, score.shape[0])).indices
+                candidates = self.args.max_det * 5
+                if self.args.dynamic:
+                    # Keep TopK independent of the traced anchor count while guaranteeing enough candidates.
+                    box = torch.cat((box, box.new_zeros(candidates, box.shape[1])))
+                    score = torch.cat((score, score.new_zeros(candidates)))
+                    cls = torch.cat((cls, cls.new_zeros(candidates)))
+                    extra = torch.cat((extra, extra.new_zeros(candidates, extra.shape[1])))
+                    mask = score.topk(candidates).indices
+                else:
+                    mask = score.topk(min(candidates, score.shape[0])).indices
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             nmsbox = box.clone()
             # `8` is the minimum value experimented to get correct NMS results for obb
             multiplier = 8 if self.obb else 1 / max(len(self.model.names), 1)
             # Normalize boxes for NMS since large values for class offset causes issue with int8 quantization
-            nmsbox = multiplier * (nmsbox / torch.tensor(x.shape[2:], **kwargs).max())
+            nmsbox = multiplier * (nmsbox / torch._shape_as_tensor(x)[2:].max().to(**kwargs))
             if not self.args.agnostic_nms:  # class-wise NMS
                 end = 2 if self.obb else 4
                 # fully explicit expansion otherwise reshape error

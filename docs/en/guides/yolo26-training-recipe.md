@@ -142,7 +142,6 @@ ckpt = YOLO("yolo26s.pt").ckpt
 
 results = ckpt["train_results"]  # column name -> list of per-epoch values
 print(results.keys())  # 'epoch', 'train/box_loss', 'metrics/mAP50-95(B)', 'lr/pg0', ...
-print(len(results["epoch"]), "epochs logged")
 print(results["metrics/mAP50-95(B)"])  # mAP progression, epoch by epoch
 
 print(ckpt["train_metrics"])  # final validation metrics

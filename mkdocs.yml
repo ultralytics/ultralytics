@@ -20,6 +20,25 @@ use_directory_urls: true # use directory-style URLs instead of file-based paths
 # Theme customization
 theme:
   name: material
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
 
 extra:
   alternate:
@@ -176,6 +195,7 @@ nav:
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
       - YOLO-World: models/yolo-world.md
       - YOLOE (Real-Time Seeing Anything): models/yoloe.md
+      - Ultralytics LLM Interface: models/llm.md
   - Compare:
       - compare/index.md
       - YOLO26:
@@ -531,6 +551,7 @@ nav:
           - Clearml Logging: yolov5/tutorials/clearml-logging-integration.md
   - Integrations:
       - Integrations: integrations/index.md
+      - Agent Skills: integrations/agent-skills.md
       - Albumentations: integrations/albumentations.md
       - Amazon SageMaker: integrations/amazon-sagemaker.md
       - Ambarella: integrations/ambarella.md

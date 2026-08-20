@@ -333,7 +333,9 @@ def onnx2engine(
         min_shape = (1, shape[1], 32, 32)  # minimum input shape
         max_shape = (*shape[:2], *(int(max(2, workspace or 2) * d) for d in shape[2:]))  # max input shape
         for inp in inputs:
-            profile.set_shape(inp.name, min=min_shape, opt=shape, max=max_shape)
+            inp_min = tuple(d if d != -1 else lo for d, lo in zip(inp.shape, min_shape))
+            inp_max = tuple(d if d != -1 else hi for d, hi in zip(inp.shape, max_shape))
+            profile.set_shape(inp.name, min=inp_min, opt=shape, max=inp_max)
         config.add_optimization_profile(profile)
         if use_int8 and not is_trt10:  # deprecated in TensorRT 10, causes internal errors
             config.set_calibration_profile(profile)

@@ -42,7 +42,7 @@ class DepthPredictor(BasePredictor):
         depth_maps = ops.scale_masks(depth_maps, img.shape[2:], padding=False)
 
         if not isinstance(orig_imgs, list):  # torch.Tensor source (B, 3, H, W)
-            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
 
         results = []
         for i, orig_img in enumerate(orig_imgs):

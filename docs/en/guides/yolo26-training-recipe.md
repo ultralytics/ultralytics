@@ -164,7 +164,7 @@ print(YOLO("yolo26n.pt").ckpt["git"])
 git checkout cb13d5f9cfbd6f299da3620c625f81d721dc2849
 ```
 
-Experimental branches carry work that never landed on `main`, such as configurable `o2m` and `cls_w`. Training on `main` with the hyperparameters documented below will not be bit-identical, but it lands within a negligible distance of the published metrics, and can land above them because the training pipeline has received bug fixes since the YOLO26 release.
+Experimental branches carry work that never landed on `main`, such as configurable `o2m` and `cls_w`. Training on `main` with the hyperparameters documented below will not be bit-identical, but it lands within a negligible distance of the published metrics.
 
 ## YOLO26 Training Hyperparameters per Model Size
 
@@ -333,4 +333,4 @@ Inside the checkpoints. `ckpt["train_results"]` holds the complete per-epoch `re
 
 ### Can I reproduce the published COCO metrics with the released package?
 
-Close, but not bit-identical. The checkpoints were produced on an experimental branch with features that never landed on `main`, such as configurable `o2m` weights and `cls_w`. That branch is public, and each checkpoint records its commit under `ckpt["git"]`, so you can check the code out directly — see [Checking the Code Revision](#checking-the-code-revision). Using the released package with the hyperparameters on this page, starting from the Objects365 weights, gets within a negligible distance of the published metrics, and can beat them because the training pipeline has been fixed in several places since the YOLO26 release.
+Close, but not bit-identical. The checkpoints were produced on an experimental branch with features that never landed on `main`, such as configurable `o2m` weights and `cls_w`. That branch is public, and each checkpoint records its commit under `ckpt["git"]`, so you can check the code out directly — see [Checking the Code Revision](#checking-the-code-revision). Using the released package with the hyperparameters on this page, starting from the Objects365 weights, gets within a negligible distance of the published metrics.

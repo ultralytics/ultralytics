@@ -291,7 +291,7 @@ def onnx2engine(
     builder = trt.Builder(logger)
     config = builder.create_builder_config()
     if hw_compat != "none":
-        level = getattr(trt.HardwareCompatibilityLevel, hw_compat.upper(), None)
+        level = getattr(getattr(trt, "HardwareCompatibilityLevel", None), hw_compat.upper(), None)
         if level is None:
             raise ValueError(f"TensorRT {trt.__version__} does not support hw_compat='{hw_compat}'.")
         LOGGER.info(f"{prefix} setting hardware compatibility level to '{hw_compat}'")

@@ -56,8 +56,8 @@ def onnx2rknn(
     from ultralytics.utils.checks import check_requirements
 
     LOGGER.info(f"\n{prefix} starting export with rknn-toolkit2...")
-    check_requirements("rknn-toolkit2>=2.3.2")
-    check_requirements("onnx<1.19.0")  # fix AttributeError: module 'onnx' has no attribute 'mapping'
+    # setuptools<82 retains pkg_resources, which rknn-toolkit2 depends on and setuptools 82 removed
+    check_requirements(["rknn-toolkit2>=2.3.2", "setuptools<82"])
 
     if IS_COLAB:
         # Prevent 'exit' from closing the notebook https://github.com/airockchip/rknn-toolkit2/issues/259

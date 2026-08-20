@@ -408,7 +408,7 @@ def run_ray_tune(
         "mosaic": tune.uniform(0.0, 1.0),  # image mosaic (probability)
         "mixup": tune.uniform(0.0, 1.0),  # image mixup (probability)
         "cutmix": tune.uniform(0.0, 1.0),  # image cutmix (probability)
-        "copy_paste": tune.uniform(0.0, 1.0),  # segment copy-paste (probability)
+        "copy_paste": tune.uniform(0.0, 1.0),  # segment copy-paste (object fraction)
         "close_mosaic": tune.randint(0, 11),  # close dataloader mosaic (epochs)
     }
 

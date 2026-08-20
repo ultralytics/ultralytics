@@ -63,16 +63,9 @@ jobs:
           # Base images with their derivatives
           - dockerfile: "Dockerfile"
             tags: "latest"
-            aliases: "latest-cuda12"
             platforms: "linux/amd64"
             runs_on: "ubuntu-latest"
             derivatives: "Dockerfile-runner,Dockerfile-export"
-          - dockerfile: "Dockerfile" # CUDA 13 variant of the base image (same Dockerfile, newer PyTorch base)
-            tags: "latest-cuda13"
-            build_args: "--build-arg BASE_IMAGE=pytorch/pytorch:2.12.0-cuda13.2-cudnn9-runtime"
-            platforms: "linux/amd64"
-            runs_on: "ubuntu-latest"
-            derivatives: ""
           - dockerfile: "Dockerfile-python"
             tags: "latest-python"
             platforms: "linux/amd64"
@@ -120,6 +113,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0 # copy full .git directory to access full git history in Docker images
+          persist-credentials: false # .git/ ships in the images, so leave no auth config in it
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -188,9 +182,7 @@ jobs:
               echo "new_release=false" >> "$GITHUB_OUTPUT"
           fi
         env:
-          # Gate the release on the base version (e.g. 8.4.68) so all variant/alias rows publish their
-          # version-pinned tags together on a version bump, not whenever a variant tag happens to be new
-          VERSION_TAG: ${{ steps.get_version.outputs.version }}
+          VERSION_TAG: ${{ steps.get_version.outputs.version_tag }}
 
       - name: Build Base Image
         if: github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true'
@@ -200,7 +192,7 @@ jobs:
           retry_delay_seconds: 60
           retries: 2
           run: |
-            docker build ${{ matrix.build_args }} \
+            docker build \
               --platform ${{ matrix.platforms }} \
               --label "org.opencontainers.image.source=https://github.com/ultralytics/ultralytics" \
               --label "org.opencontainers.image.description=Ultralytics image" \
@@ -211,15 +203,6 @@ jobs:
               -t ghcr.io/ultralytics/ultralytics:${{ matrix.tags }} \
               -t ghcr.io/ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} \
               .
-
-            # Retag the freshly built image under any aliases (e.g. latest-cuda12) — same image, no re-upload
-            for alias in ${{ matrix.aliases }}; do
-              alias_version=$(echo "$alias" | sed "s/latest/${{ steps.get_version.outputs.version }}/")
-              docker tag ultralytics/ultralytics:${{ matrix.tags }} ultralytics/ultralytics:$alias
-              docker tag ultralytics/ultralytics:${{ matrix.tags }} ultralytics/ultralytics:$alias_version
-              docker tag ghcr.io/ultralytics/ultralytics:${{ matrix.tags }} ghcr.io/ultralytics/ultralytics:$alias
-              docker tag ghcr.io/ultralytics/ultralytics:${{ matrix.tags }} ghcr.io/ultralytics/ultralytics:$alias_version
-            done
 
       - name: Build Derivative Images
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.derivatives != ''
@@ -266,7 +249,12 @@ jobs:
       - name: Run Tests
         # latest-cuda13 has no -export derivative to test in, and the base image lacks the 'base' env export packages
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda' && matrix.tags != 'latest-cuda13'
-        run: docker run --rm ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "uv pip install --system --break-system-packages -e '.[solutions]' aiohttp pytest 'git+https://github.com/ultralytics/CLIP.git' && YOLO_AUTOINSTALL=false python3 tests/cache_test_assets.py && YOLO_AUTOINSTALL=false pytest tests --export-env base"
+        run: |
+          test_torch=""
+          if [[ "${{ matrix.dockerfile }}" == "Dockerfile-python" ]]; then
+            test_torch="'torch<2.7'"
+          fi
+          docker run --rm ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "uv pip install --system --break-system-packages -e '.[solutions]' aiohttp pytest $test_torch 'git+https://github.com/ultralytics/CLIP.git' && YOLO_AUTOINSTALL=false python3 tests/cache_test_assets.py && YOLO_AUTOINSTALL=false pytest tests --export-env base"
 
       - name: Run Benchmarks
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.dockerfile == 'Dockerfile-arm64') && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda'
@@ -292,11 +280,6 @@ jobs:
                 images_to_push+=("$derivative_tag")
               done
             fi
-
-            # Add alias tags (e.g. latest-cuda12) to the push list
-            for alias in ${{ matrix.aliases }}; do
-              images_to_push+=("$alias")
-            done
 
             # Push all images (base + derivatives)
             for tag in "${images_to_push[@]}"; do

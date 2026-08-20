@@ -309,14 +309,14 @@ class C2f(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass through C2f layer."""
         y = [self.cv1(x)]
-        split = y[0].chunk(2, 1)[1]
+        split = y[0][:, self.c :]
         y.extend(m(y[-1] if i else split) for i, m in enumerate(self.m))
         return self.cv2(torch.cat(y, 1))
 
     def forward_split(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass using split() instead of chunk()."""
         y = [self.cv1(x)]
-        split = y[0].split((self.c, self.c), 1)[1]
+        split = y[0][:, self.c :]
         y.extend(m(y[-1] if i else split) for i, m in enumerate(self.m))
         return self.cv2(torch.cat(y, 1))
 
@@ -667,7 +667,7 @@ class C2fAttn(nn.Module):
             (torch.Tensor): Output tensor after processing.
         """
         y = [self.cv1(x)]
-        split = y[0].chunk(2, 1)[1]
+        split = y[0][:, self.c :]
         y.extend(m(y[-1] if i else split) for i, m in enumerate(self.m))
         y.append(self.attn(y[-1], guide))
         return self.cv2(torch.cat(y, 1))
@@ -683,7 +683,7 @@ class C2fAttn(nn.Module):
             (torch.Tensor): Output tensor after processing.
         """
         y = [self.cv1(x)]
-        split = y[0].split((self.c, self.c), 1)[1]
+        split = y[0][:, self.c :]
         y.extend(m(y[-1] if i else split) for i, m in enumerate(self.m))
         y.append(self.attn(y[-1], guide))
         return self.cv2(torch.cat(y, 1))
@@ -892,14 +892,14 @@ class RepNCSPELAN4(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass through RepNCSPELAN4 layer."""
         y = [self.cv1(x)]
-        split = y[0].chunk(2, 1)[1]
+        split = y[0][:, self.c :]
         y.extend(m(y[-1] if i else split) for i, m in enumerate([self.cv2, self.cv3]))
         return self.cv4(torch.cat(y, 1))
 
     def forward_split(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass using split() instead of chunk()."""
         y = [self.cv1(x)]
-        split = y[0].split((self.c, self.c), 1)[1]
+        split = y[0][:, self.c :]
         y.extend(m(y[-1] if i else split) for i, m in enumerate([self.cv2, self.cv3]))
         return self.cv4(torch.cat(y, 1))
 

@@ -77,8 +77,12 @@ def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
 
 
 def test_dataloader_seed_varies_sampling_order():
-    """Test `seed` reaches the loader RNG instead of every run replaying one fixed order."""
-    loaders = [build_dataloader(range(64), batch=4, workers=0, seed=s) for s in (0, 0, 1)]
+    """Test the run seed reaches the loader RNG instead of every run replaying one fixed order."""
+    with torch.random.fork_rng():
+        loaders = []
+        for seed in (0, 0, 1):
+            torch.manual_seed(seed)
+            loaders.append(build_dataloader(range(64), batch=4, workers=0))
     try:
         first, repeat, other = (torch.cat(list(loader)).tolist() for loader in loaders)
         assert first == repeat  # same seed stays reproducible

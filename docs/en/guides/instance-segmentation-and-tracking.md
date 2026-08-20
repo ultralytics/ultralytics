@@ -101,17 +101,17 @@ The `InstanceSegmentation` solution runs a YOLO26 segmentation model on each fra
 Here's a table with the `InstanceSegmentation` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model"]) }}
+{{ param_table(["model", "line_width", "verbose"]) }}
 
 You can also take advantage of `track` arguments within the `InstanceSegmentation` solution:
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 Moreover, the following visualization arguments are available:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width", "show_conf", "show_labels", "show_boxes"]) }}
+{{ param_table(["show", "show_conf", "show_labels", "show_boxes"]) }}
 
 ## Applications of Instance Segmentation
 

@@ -106,17 +106,17 @@ The `AIGym` solution runs [pose estimation](../tasks/pose.md) and counts repetit
 Here's a table with the `AIGym` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "up_angle", "down_angle", "kpts"]) }}
+{{ param_table(["model", "up_angle", "down_angle", "kpts", "line_width", "verbose"]) }}
 
 The `AIGym` solution also supports a range of object tracking parameters:
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 Additionally, the following visualization settings can be applied:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
+{{ param_table(["show", "show_conf", "show_labels"]) }}
 
 ## FAQ
 

@@ -36,7 +36,7 @@ class FastSTrack(STrack):
 
     Examples:
         >>> from ultralytics.trackers.utils.kalman_filter import KalmanFilterXYAH
-        >>> t = FastSTrack([100, 200, 50, 80, 0], score=0.9, cls=0, history_len=8)
+        >>> t = FastSTrack(np.array([100, 200, 50, 80, 0]), score=0.9, cls=0, history_len=8)
         >>> t.activate(KalmanFilterXYAH(), frame_id=1)
         >>> len(t.mean_history)
         1

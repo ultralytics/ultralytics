@@ -101,6 +101,7 @@ class DetectionTrainer(BaseTrainer):
             shuffle=shuffle,
             rank=rank,
             drop_last=self.args.compile and mode == "train",
+            device=self.device,
         )
 
     def preprocess_batch(self, batch: dict) -> dict:
@@ -114,7 +115,7 @@ class DetectionTrainer(BaseTrainer):
         """
         for k, v in batch.items():
             if isinstance(v, torch.Tensor):
-                batch[k] = v.to(self.device, non_blocking=self.device.type == "cuda")
+                batch[k] = v.to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
         batch["img"] = batch["img"].float() / 255
         if self.args.multi_scale > 0.0:
             imgs = batch["img"]

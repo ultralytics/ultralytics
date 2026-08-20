@@ -4,7 +4,6 @@
 
 Welcome to Ultralytics Docs, your comprehensive resource for understanding and utilizing our state-of-the-art [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) tools and models, including [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo26). These documents are actively maintained and deployed to [https://docs.ultralytics.com](https://docs.ultralytics.com/) for easy access.
 
-[![pages-build-deployment](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment)
 [![Check Broken links](https://github.com/ultralytics/docs/actions/workflows/links.yml/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/links.yml)
 [![Ultralytics Actions](https://github.com/ultralytics/docs/actions/workflows/format.yml/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/format.yml)
 
@@ -33,26 +32,24 @@ To install the `ultralytics` package in developer mode, which allows you to modi
 3.  Install the package in editable mode (`-e`) along with its development dependencies (`[dev]`) using [pip](https://pip.pypa.io/en/stable/):
 
     ```bash
-    pip install -e '.[dev]'
+    uv pip install -e ".[dev]"
     ```
 
     This command installs the `ultralytics` package such that changes to the source code are immediately reflected in your environment, ideal for development.
 
 ## 🚀 Building and Serving Locally
 
-### Full Build (Recommended)
+### Full Validation (Recommended)
 
-The `build_docs.py` script runs the full documentation build pipeline — the same process used for production deployments. It renders Jinja macros, generates API reference pages, pulls in model comparison pages, and applies HTML postprocessing.
+The `build_docs.py` script prepares the complete documentation tree by rendering Jinja macros, generating API reference pages, and pulling in model comparison pages. It then runs `zensical build --strict`, matching the documentation validation performed in CI.
 
 ```bash
 # Requires Python >= 3.10
-pip install -e '.[dev]'
-
-cd docs
-python build_docs.py
+uv pip install -e ".[dev]"
+python docs/build_docs.py
 ```
 
-The script builds the site into the `site/` directory and automatically serves it at `http://localhost:8000`. Press `CTRL+C` to stop.
+The script builds the site into the `site/` directory. Preview it with `python -m http.server --directory site`; the local output intentionally omits production-owned banners, analytics, comments, and other site chrome.
 
 ### Quick Preview
 
@@ -66,7 +63,7 @@ Note that `zensical serve` does **not** render Jinja macros or include compare p
 
 ## 📤 Deploying Your Documentation Site
 
-Documentation is automatically built and deployed to [docs.ultralytics.com](https://docs.ultralytics.com) via the CI pipeline in `.github/workflows/docs.yml` on every push to `main`.
+The CI pipeline in `.github/workflows/docs.yml` validates documentation changes with Zensical and triggers Ultralytics' centralized publisher after relevant pushes to `main`.
 
 ## 💡 Contribute
 

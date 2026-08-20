@@ -945,6 +945,23 @@ def test_results(model: str, tmp_path, solution_assets):
         print(r, len(r), r.path)  # print after methods
 
 
+def test_results_summary_use_wh():
+    """Test Results.summary(use_wh=True) output format for detection and OBB models."""
+    from ultralytics.engine.results import Results
+
+    im = np.zeros((100, 200, 3), dtype=np.uint8)
+    r = Results(im, "", {0: "x"}, boxes=torch.tensor([[20, 10, 100, 50, 0.9, 0]]))
+    assert r.summary(use_wh=True)[0]["box"] == {"x1": 60.0, "y1": 30.0, "width": 80.0, "height": 40.0}
+    r = Results(im, "", {0: "x"}, obb=torch.tensor([[60, 30, 80, 40, 0.5, 0.9, 0]]))
+    assert r.summary(use_wh=True)[0]["box"] == {
+        "x1": 60.0,
+        "y1": 30.0,
+        "width": 80.0,
+        "height": 40.0,
+        "rotation": 0.5,
+    }
+
+
 def test_results_plot_without_boxes():
     """Test that plotting a masks-only Results (boxes=None) does not raise an AttributeError."""
     from ultralytics.engine.results import Results

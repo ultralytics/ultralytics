@@ -815,7 +815,7 @@ class Results(SimpleClass, DataExportMixin):
                 BGR=True,
             )
 
-    def summary(self, normalize: bool = False, decimals: int = 5) -> list[dict[str, Any]]:
+    def summary(self, normalize: bool = False, decimals: int = 5, use_wh: bool = False) -> list[dict[str, Any]]:
         """Convert inference results to a summarized dictionary with optional normalization for box coordinates.
 
         This method creates a list of detection dictionaries, each containing information about a single detection or
@@ -826,6 +826,7 @@ class Results(SimpleClass, DataExportMixin):
         Args:
             normalize (bool): Whether to normalize bounding box coordinates by image dimensions.
             decimals (int): Number of decimal places to round the output values to.
+            use_wh (bool): Whether to use [x, y, width, height] format for boxes. If OBBs, rotation is also included.
 
         Returns:
             (list[dict[str, Any]]): A list of dictionaries, each containing summarized information for a single
@@ -890,11 +891,22 @@ class Results(SimpleClass, DataExportMixin):
         h, w = self.orig_shape if normalize else (1, 1)
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
             class_id, conf = int(row.cls.item()), round(row.conf.item(), decimals)
-            box = (row.xyxyxyxy if is_obb else row.xyxy).squeeze().reshape(-1, 2).tolist()
-            xy = {}
-            for j, b in enumerate(box):
-                xy[f"x{j + 1}"] = round(b[0] / w, decimals)
-                xy[f"y{j + 1}"] = round(b[1] / h, decimals)
+            if use_wh:
+                b = (row.xywhr if is_obb else row.xywh).squeeze().tolist()
+                xy = {
+                    "x1": round(b[0] / w, decimals),
+                    "y1": round(b[1] / h, decimals),
+                    "width": round(b[2] / w, decimals),
+                    "height": round(b[3] / h, decimals),
+                }
+                if is_obb:
+                    xy["rotation"] = round(b[4], decimals)
+            else:
+                box = (row.xyxyxyxy if is_obb else row.xyxy).squeeze().reshape(-1, 2).tolist()
+                xy = {}
+                for j, b in enumerate(box):
+                    xy[f"x{j + 1}"] = round(b[0] / w, decimals)
+                    xy[f"y{j + 1}"] = round(b[1] / h, decimals)
             result = {"name": self.names[class_id], "class": class_id, "confidence": conf, "box": xy}
             if data.is_track:
                 result["track_id"] = int(row.id.item())  # track ID

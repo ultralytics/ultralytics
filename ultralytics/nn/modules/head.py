@@ -2972,7 +2972,7 @@ class DeimOBBDecoder(DeimDecoder):
 
     This class extends DeimDecoder with a per-decoder-layer linear angle head, mirroring how OBB26 extends Detect for
     YOLO26 rotated-object detection. Angles are raw regression values (no sigmoid transform), supervised with a
-    wrap-invariant sin(2*delta)^2 loss, matching the OBB26 methodology.
+    wrap-invariant 1-cos(delta) loss (see DeimOBBLoss for why this differs from OBB26's sin(2*delta)^2).
 
     YAML argument order (parse_model inserts input channels `ch` at index 1): identical to DeimDecoder.
 

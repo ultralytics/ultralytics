@@ -1052,10 +1052,15 @@ class DeimPoseLoss(DfineLoss):
 class DeimOBBLoss(DfineLoss):
     """DfineLoss extended with a rotation-angle loss for DeimOBBDecoder.
 
-    The angle loss is a port of v8OBBLoss.calculate_angle_loss: a wrap-invariant sin(2*delta)^2 term (delta wrapped
-    mod pi) weighted by an aspect-ratio factor exp(-(log(w/h))^2/lambda^2) with lambda=3, computed on the final-layer
-    one-to-one Hungarian matches only. The box losses (Hungarian cost, L1, GIoU, FGL/DDF) keep running on the xywh
-    part of the xywhr GT; a probiou box-loss term is future work.
+    The angle loss is a wrap-invariant 1-cos(delta) term (delta wrapped mod pi to (-pi/2, pi/2]) weighted by an
+    aspect-ratio factor exp(-(log(w/h))^2/lambda^2) with lambda=3, computed on the final-layer one-to-one Hungarian
+    matches only. It deliberately differs from v8OBBLoss's sin(2*delta)^2 in two ways: (1) sin(2*delta)^2 has period
+    pi/2 and cannot distinguish theta from theta+90deg — YOLO OBB resolves that branch ambiguity through its
+    angle-aware box losses (probiou IoU and rbox2dist DFL), but here the box losses (Hungarian cost, L1, GIoU,
+    FGL/DDF) run on the xywh part of the xywhr GT and never see the angle, so the angle loss itself must make
+    delta=90deg maximal; (2) 1-cos(delta) has maximal gradient at delta=90deg, whereas sin(delta)^2 is flat there,
+    so wrong-branch predictions are actively repelled instead of sitting on a gradient-free plateau. A probiou
+    box-loss term remains future work.
     """
 
     supports_obb = True
@@ -1074,7 +1079,12 @@ class DeimOBBLoss(DfineLoss):
     def _get_loss_angle(
         self, angles: torch.Tensor, gt_bboxes: torch.Tensor, lambda_val: int = 3
     ) -> torch.Tensor:
-        """Compute the rotation-angle loss from final-layer o2o matches (port of v8OBBLoss).
+        """Compute the rotation-angle loss from final-layer o2o matches.
+
+        Uses 1-cos(delta) (delta wrapped mod pi) rather than v8OBBLoss's sin(2*delta)^2: the latter has period pi/2
+        and scores a 90-degree angle error as zero, which only works when an angle-aware box loss (probiou/DFL)
+        resolves the branch; our box losses ignore the angle, so the angle loss must make 90deg maximal, and
+        1-cos(delta) additionally has maximal gradient there (sin(delta)^2 is flat at 90deg).
 
         Args:
             angles (torch.Tensor): Final-layer o2o raw angle predictions with shape (bs, nq, 1).
@@ -1101,7 +1111,9 @@ class DeimOBBLoss(DfineLoss):
                 scale_weight = torch.exp(-(log_ar**2) / (lambda_val**2))
                 delta_theta = angles[i][src_idx, 0] - target[:, 4]
                 delta_theta = delta_theta - torch.round(delta_theta / math.pi) * math.pi
-                loss += (scale_weight * torch.sin(2 * delta_theta) ** 2).sum()
+                # 1 - cos(delta), period 2pi wrapped to (-pi/2, pi/2]: a 90deg error is the loss maximum with
+                # maximal gradient there (unlike sin(delta)^2, whose gradient vanishes at 90deg; see class docstring)
+                loss += (scale_weight * (1.0 - torch.cos(delta_theta))).sum()
             else:
                 # WARNING: zero-grad sum prevents Multi-GPU DDP 'unused gradient' errors, do not remove
                 loss += angles[i].sum() * 0.0

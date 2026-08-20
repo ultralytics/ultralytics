@@ -1888,19 +1888,19 @@ def test_yoloe(tmp_path):
     )
 
     # memory bank
-    person_visuals = dict(
-        bboxes=np.array([[221.52, 405.8, 344.98, 857.54]]),
-        cls=np.array(["person"]),
-    )
+    person_visuals = {
+        "bboxes": np.array([[221.52, 405.8, 344.98, 857.54]]),
+        "cls": np.array(["person"]),
+    }
     person_memory_res = model.predict_memory(
         SOURCE,
         visual_prompts=person_visuals,
         vp_weight={"person": 0.2},
     )
-    random_visuals = dict(
-        bboxes=np.array([[100, 100, 200, 200]]),
-        cls=np.array(["random"]),
-    )
+    random_visuals = {
+        "bboxes": np.array([[100, 100, 200, 200]]),
+        "cls": np.array(["random"]),
+    }
     random_memory_res = model.predict_memory(
         SOURCE,
         visual_prompts=random_visuals,

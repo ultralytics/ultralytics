@@ -13,6 +13,40 @@ from ultralytics.utils.checks import check_requirements, check_tensorrt, check_v
 from ultralytics.utils.torch_utils import TORCH_2_4, TORCH_2_9
 
 
+class _NormalizeCoords(torch.nn.Module):
+    """Wrap a model with input-relative box and pose coordinates for per-tensor quantization."""
+
+    def __init__(self, model: torch.nn.Module, h: int, w: int, task: str, nc: int, kpt_shape: tuple | None):
+        """Initialize with the wrapped model and prediction metadata."""
+        super().__init__()
+        self.model = model
+        self.h = h
+        self.w = w
+        self.task = task
+        self.nc = nc
+        self.kpt_shape = kpt_shape
+
+    def forward(self, x: torch.Tensor):
+        """Run the wrapped model and normalize its coordinate channels by input size."""
+        y = self.model(x)
+        det = y[0] if isinstance(y, (tuple, list)) else y
+        box_wh = torch.tensor([self.w, self.h, self.w, self.h], dtype=det.dtype, device=det.device).view(1, 4, 1)
+        parts = [det[:, :4] / box_wh]
+        if self.task == "pose" and self.kpt_shape:
+            parts.append(det[:, 4 : 4 + self.nc])
+            b, _, a = det.shape
+            kpts = det[:, 4 + self.nc :].view(b, self.kpt_shape[0], self.kpt_shape[1], a)
+            kpt_wh = torch.tensor([self.w, self.h], dtype=det.dtype, device=det.device).view(1, 1, 2, 1)
+            kpts = torch.cat([kpts[:, :, :2] / kpt_wh, kpts[:, :, 2:]], dim=2)
+            parts.append(kpts.reshape(b, -1, a))
+        else:
+            parts.append(det[:, 4 : 4 + self.nc])
+            if det.shape[1] > 4 + self.nc:
+                parts.append(det[:, 4 + self.nc :])
+        det = torch.cat(parts, dim=1)
+        return (det, *y[1:]) if isinstance(y, (tuple, list)) else det
+
+
 def best_onnx_opset(onnx: types.ModuleType, cuda: bool = False, quantize: int | str | None = None) -> int:
     """Return max ONNX opset for this torch version with ONNX fallback."""
     if TORCH_2_4:  # _constants.ONNX_MAX_OPSET first defined in torch 1.13
@@ -301,7 +335,9 @@ def onnx2engine(
         min_shape = (1, shape[1], 32, 32)  # minimum input shape
         max_shape = (*shape[:2], *(int(max(2, workspace or 2) * d) for d in shape[2:]))  # max input shape
         for inp in inputs:
-            profile.set_shape(inp.name, min=min_shape, opt=shape, max=max_shape)
+            inp_min = tuple(d if d != -1 else lo for d, lo in zip(inp.shape, min_shape))
+            inp_max = tuple(d if d != -1 else hi for d, hi in zip(inp.shape, max_shape))
+            profile.set_shape(inp.name, min=inp_min, opt=shape, max=inp_max)
         config.add_optimization_profile(profile)
         if use_int8 and not is_trt10:  # deprecated in TensorRT 10, causes internal errors
             config.set_calibration_profile(profile)

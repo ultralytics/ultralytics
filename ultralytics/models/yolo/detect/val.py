@@ -201,6 +201,7 @@ class DetectionValidator(BaseValidator):
                         self.args.show_labels,
                         self.args.show_conf,
                     )
+
             if no_pred:
                 continue
 

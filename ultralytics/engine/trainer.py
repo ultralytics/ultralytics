@@ -982,7 +982,7 @@ class BaseTrainer:
                     ckpt_args["data"] = self.args.data
 
                 resume = True
-                self.args = get_cfg(ckpt_args)
+                self.args = get_cfg({**vars(DEFAULT_CFG), **ckpt_args})
                 self.args.model = self.args.resume = str(last)  # reinstate model
                 for k in (
                     "imgsz",

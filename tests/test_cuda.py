@@ -111,8 +111,7 @@ def test_export_engine_matrix(task, dynamic, quantize, batch):
     model.val(
         data=TASK2DATA[task],
         imgsz=32,
-        half=quantize == 16,
-        int8=quantize == 8,
+        quantize=quantize,
         device=DEVICES[0],
         batch=batch,
     )

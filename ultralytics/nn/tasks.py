@@ -1949,9 +1949,6 @@ def parse_model(d, ch, verbose=True):
     legacy = True  # backward compatibility for v3/v5/v8/v9 models
     max_channels = float("inf")
     nc, act, scales, end2end = (d.get(x) for x in ("nc", "activation", "scales", "end2end"))
-    channel_divisor = d.get("channel_divisor", 8)
-    if isinstance(channel_divisor, bool) or not isinstance(channel_divisor, int) or channel_divisor <= 0:
-        raise ValueError(f"channel_divisor must be a positive integer, got {channel_divisor}")
     reg_max = d.get("reg_max", 16)
     depth, width, kpt_shape = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
     scale = d.get("scale")
@@ -2046,28 +2043,19 @@ def parse_model(d, ch, verbose=True):
                 with contextlib.suppress(ValueError):
                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
-        adjustments = []
         if m in base_modules:
             c1, c2 = ch[f], args[0]
             if m is not Classify:  # Classify() output must stay at nc; every other layer scales by width
-                c2_requested = min(c2, max_channels) * width
-                c2 = make_divisible(c2_requested, channel_divisor)
-                if c2 != c2_requested:
-                    adjustments.append(f"c2 {c2_requested:g}->{c2}")
+                c2 = make_divisible(min(c2, max_channels) * width, 8)
             if m is C2fAttn:  # set 1) embed channels and 2) num heads
-                embed_channels_requested = min(args[1], max_channels // 2) * width
                 args[2] = int(max(round(min(args[2], max_channels // 2 // 32)) * width, 1) if args[2] > 1 else args[2])
-                # MaxSigmoidAttnBlock reshapes its ec-channel embed and its hidden-channel projection into nh heads,
-                # so the embed width must equal the attention hidden width and stay divisible by nh
                 hidden_channels = int(c2 * (args[6] if len(args) > 6 else 0.5))
                 if hidden_channels % args[2]:
                     raise ValueError(
                         f"C2fAttn hidden channels {hidden_channels} (from c2={c2}) must be divisible by nh={args[2]}; "
-                        f"adjust channel_divisor, width_multiple or nh"
+                        "adjust width_multiple, nh, or C2fAttn expansion"
                     )
                 args[1] = hidden_channels
-                if args[1] != embed_channels_requested:
-                    adjustments.append(f"embed {embed_channels_requested:g}->{args[1]}")
 
             args = [c1, c2, *args[1:]]
             if m in repeat_modules:
@@ -2114,10 +2102,7 @@ def parse_model(d, ch, verbose=True):
         ):
             args.extend([reg_max, end2end, [ch[x] for x in f]])
             if m is Segment or m is YOLOESegment or m is Segment26 or m is YOLOESegment26:
-                mask_channels_requested = min(args[2], max_channels) * width
-                args[2] = make_divisible(mask_channels_requested, channel_divisor)
-                if args[2] != mask_channels_requested:
-                    adjustments.append(f"mask {mask_channels_requested:g}->{args[2]}")
+                args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
                 m.legacy = legacy
         elif m is Depth:
@@ -2148,8 +2133,7 @@ def parse_model(d, ch, verbose=True):
         m_.np = sum(x.numel() for x in m_.parameters())  # number params
         m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type
         if verbose:
-            note = f"  # channel_divisor {channel_divisor}: {', '.join(adjustments)}" if adjustments else ""
-            LOGGER.info(f"{i:>3}{f!s:>20}{n_:>3}{m_.np:10.0f}  {t:<45}{args!s:<30}{note}")  # print
+            LOGGER.info(f"{i:>3}{f!s:>20}{n_:>3}{m_.np:10.0f}  {t:<45}{args!s:<30}")  # print
         save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
         layers.append(m_)
         if i == 0:

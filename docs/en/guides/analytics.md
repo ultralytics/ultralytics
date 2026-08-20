@@ -108,17 +108,17 @@ Pass your video to the `Analytics` solution and select a chart with `analytics_t
 Here's a table outlining the Analytics arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "analytics_type"]) }}
+{{ param_table(["model", "analytics_type", "line_width", "verbose"]) }}
 
 You can also leverage different [`track`](../modes/track.md) arguments in the `Analytics` solution.
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 Additionally, the following visualization arguments are supported:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width"]) }}
+{{ param_table(["show"]) }}
 
 ## Conclusion
 

@@ -22,7 +22,7 @@ graph TB
         Map[World Map]:::proc --- Cards[Overview Cards]:::proc
         Cards --- List[Deployments List]:::decide
     end
-    subgraph "Per Deployment"
+    subgraph "Per Ready Deployment"
         Metrics[Metrics Row]:::out
         Health[Health Check]:::out
         Logs[Logs Tab]:::out
@@ -89,7 +89,7 @@ Below the overview cards, the deployments list shows all endpoints across your p
 
 ## Per-Deployment Metrics
 
-Each deployment card (in cards view) shows real-time metrics:
+Each deployment card (in cards view) shows real-time metrics. The metrics row, health check, and the `Logs`, `Code`, and `Predict` tabs described below appear only while the deployment is **Ready**:
 
 ### Metrics Row
 

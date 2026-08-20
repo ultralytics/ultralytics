@@ -57,7 +57,7 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 === "Archives"
 
-    Archives are extracted and processed automatically. Archives can also be nested inside a folder structure, and a single archive can mix images, videos, and labels.
+    Archives are extracted and processed automatically. Archives can also be nested inside a folder structure, and a single archive can mix images, videos, and labels, or carry the `depth/` tree of a [depth dataset](../../datasets/depth/index.md#depth-map-format).
 
     | Format | Extensions              | Notes             | Free  | Pro   | Enterprise |
     | ------ | ----------------------- | ----------------- | ----- | ----- | ---------- |
@@ -84,7 +84,7 @@ The file extension alone isn't enough: a video can still fail if its codec canno
 
 ### Preparing Your Dataset
 
-The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), [COCO](https://cocodataset.org/#format-data), [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format), and raw (unannotated) uploads:
+The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), [COCO](https://cocodataset.org/#format-data), [depth datasets](../../datasets/depth/index.md#depth-map-format), [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format), and raw (unannotated) uploads:
 
 === "YOLO Format"
 
@@ -173,6 +173,30 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
         └── dogs/
     ```
 
+=== "Depth"
+
+    Depth archives keep RGB images and paired targets in parallel `images/` and `depth/` folders. Targets may be
+    floating-point NPY arrays in meters or plain uint16 grayscale PNGs. PNG values are divided by `depth_scale`, which
+    defaults to `1000` (millimeters); no PNG metadata is required.
+
+    ```text
+    my-depth-dataset/
+    ├── data.yaml
+    ├── images/{train,val}/scene.jpg
+    └── depth/{train,val}/scene.png  # or scene.npy
+    ```
+
+    ```yaml
+    train: images/train
+    val: images/val
+    nc: 1
+    names: {0: depth}
+    depth_scale: 1000 # PNG value 1000 = 1 meter
+    ```
+
+    Files pair by stem. Depth maps may use a smaller resolution than their RGB images when the aspect ratio matches.
+    See the [depth dataset format](../../datasets/depth/index.md#depth-map-format).
+
 === "NDJSON"
 
     Ultralytics NDJSON exports can be uploaded directly back into Platform. This is useful for moving datasets between workspaces while preserving metadata, classes, splits, and annotations.
@@ -183,7 +207,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
 !!! tip "Flat Directory Structure"
 
-    You can also upload images without explicit split folders. Platform respects the active split target during upload. If no split target is set and the upload leaves the `val` split empty, non-classify datasets automatically move roughly 20% of the `train` images to `val` so the dataset is immediately trainable. Classification datasets are skipped because they use directory-based splits. You can always reassign images later with [bulk move-to-split](#bulk-move-to-split) or [split redistribution](#split-redistribution).
+    You can also upload images without explicit split folders. Platform respects the active split target during upload. If no split target is set and the upload leaves `val` empty — or with fewer than two paired maps for depth — non-classify datasets automatically move train images to `val` so the dataset is immediately trainable. Classification datasets are skipped because they use directory-based splits. You can always reassign images later with [bulk move-to-split](#bulk-move-to-split) or [split redistribution](#split-redistribution).
 
 !!! tip "Format Auto-Detection"
 
@@ -359,6 +383,7 @@ Click any image to open the fullscreen viewer with:
 - **Reset view**: `Cmd/Ctrl + 0` or the reset button to fit the image to the viewer
 - **Pan**: Hold `Space` and drag to pan the canvas when zoomed
 - **Pixel view**: Toggle pixelated rendering for close inspection
+- **Depth curtain**: On depth datasets, a draggable divider wipes between the RGB image and its colorized depth map
 
 ![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.ul.run/i/083e8f7a4ad565c1cca40ec0f214b748.avif)<!-- screenshot -->
 
@@ -452,7 +477,7 @@ The default view showing the image gallery with annotation overlays. Supports gr
 
 ### Classes Tab
 
-This tab appears when the dataset has images.
+This tab appears when the dataset has images and its task has classes.
 
 Manage annotation classes for your dataset:
 
@@ -633,6 +658,10 @@ The optional image-level `metadata` object is preserved when an NDJSON file is i
 
 Pose datasets also carry a `kpt_shape` field in the dataset header line, inferred from the annotations when it is not already set.
 
+Depth exports declare `"task": "depth"` and `"depth_scale": 1000` in the dataset line. Each image line includes a
+`depth.url` for its paired plain uint16 PNG. Ultralytics downloads image and depth URLs concurrently and writes a
+training YAML with the same scale, so the NDJSON file can be passed directly to `model.train(data=...)`.
+
 !!! note "Signed URLs"
 
     Image URLs in the exported NDJSON are signed and valid for 7 days. Platform reuses a cached export for up to 6 days when the dataset has not changed, so a fresh download always has at least a day of validity left. If you need new URLs sooner, change the dataset or create a new version.
@@ -795,7 +824,7 @@ Dataset metadata is edited inline directly on the dataset page — no dialog nee
 
 !!! info "Changing Task Type"
 
-    Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back.
+    Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back. [Depth](../../datasets/depth/index.md#depth-map-format) is the exception: its ground truth is a paired file rather than an annotation, so a dataset can only switch to or from depth while it holds no images — re-import it instead.
 
 ### Custom Metadata
 
@@ -919,7 +948,7 @@ Ultralytics Platform supports YOLO labels, COCO JSON, Ultralytics NDJSON, and ra
 
 ### Can I annotate the same dataset for multiple task types?
 
-Yes. Each image stores annotations for all 6 task types (detect, segment, semantic, classify, pose, OBB) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training — annotations for other tasks are preserved and reappear when you switch back.
+Yes. Each image stores annotations for all 6 annotation task types (detect, segment, semantic, classify, pose, OBB) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training — annotations for other tasks are preserved and reappear when you switch back.
 
 ### Are there limits on classes and annotations?
 

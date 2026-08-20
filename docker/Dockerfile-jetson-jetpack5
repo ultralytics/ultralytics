@@ -28,11 +28,10 @@ RUN apt-get update && \
 # Create working directory
 WORKDIR /ultralytics
 
-# Copy contents and configure git
+# Copy contents and configure dependencies
 # Drop opencv-python from pyproject.toml to reuse the OpenCV preinstalled in JetPack 5 (GUI and FFmpeg support)
 COPY . .
-RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config && \
-    sed -i '/opencv-python/d' pyproject.toml
+RUN sed -i '/opencv-python/d' pyproject.toml
 ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
 # Replace pyproject.toml TF.js version with 'tensorflowjs>=3.9.0' for JetPack5 compatibility and install packages

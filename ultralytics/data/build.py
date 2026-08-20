@@ -6,6 +6,7 @@ import math
 import os
 import random
 from collections.abc import Iterator
+from copy import copy
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -269,7 +270,7 @@ def build_yolo_dataset(
         imgsz=cfg.imgsz,
         batch_size=batch,
         augment=mode == "train",
-        hyp=cfg,
+        hyp=copy(cfg),
         rect=rect,
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,
@@ -301,7 +302,7 @@ def build_grounding(
         imgsz=cfg.imgsz,
         batch_size=batch,
         augment=mode == "train",  # augmentation
-        hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
+        hyp=copy(cfg),
         rect=cfg.rect or rect,  # rectangular batches
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,
@@ -346,10 +347,11 @@ def build_dataloader(
     """
     dataset_len = len(dataset)
     batch = min(batch, dataset_len)
+    seed = torch.initial_seed() - RANK - 1
     sampler = (
         None
         if rank == -1
-        else distributed.DistributedSampler(dataset, shuffle=shuffle)
+        else distributed.DistributedSampler(dataset, shuffle=shuffle, seed=seed)
         if shuffle
         else ContiguousDistributedSampler(dataset)
     )
@@ -362,7 +364,7 @@ def build_dataloader(
     # persistent DataLoader worker pools that add overhead and can stall tiny datasets while holding CUDA context.
     nw = min(os.cpu_count() // max(nd, 1), workers, 0 if batches <= 1 else batches)  # number of workers
     generator = torch.Generator()
-    generator.manual_seed(6148914691236517205 + RANK)
+    generator.manual_seed((6148914691236517205 + RANK + seed) % (1 << 64))
     pin_memory = nd > 0 and pin_memory
     pin_memory_device = (
         device_type if pin_memory and device_type in {"npu", "xpu"} and TORCH_1_13 and not TORCH_2_7 else None

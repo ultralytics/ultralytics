@@ -8,7 +8,7 @@
 # └── datasets
 #     └── depth-kitti  ← downloads here (~190 GB archives, ~140 GB converted)
 #         ├── images/{train,val}  # RGB images
-#         └── depth/{train,val}   # paired *.npy, float32 meters (images/ -> depth/)
+#         └── depth/{train,val}   # paired 16-bit *.png depth maps (images/ -> depth/)
 # If an interrupted download leaves a partial dataset, delete the depth-kitti dir and re-run to rebuild it.
 # The download only runs when the val images are missing (train is never checked), so a depth-kitti dir
 # built before this split fix keeps the old split until it is deleted and rebuilt.
@@ -23,14 +23,12 @@ names:
   0: depth
 
 channels: 3
+depth_scale: 256 # KITTI PNG value 256 = 1 meter
 
 # Download script/URL (optional)
 download: |
   import shutil
   from pathlib import Path
-
-  import cv2
-  import numpy as np
 
   from ultralytics.utils import TQDM
   from ultralytics.utils.downloads import download
@@ -91,8 +89,7 @@ download: |
               if split == "val" and int(png.stem) not in EIGEN_TEST[drive]:
                   continue
               name = f"{drive}_{cam[-2:]}_{png.stem}"
-              depth = cv2.imread(str(png), cv2.IMREAD_ANYDEPTH).astype(np.float32) / 256.0
-              np.save(dir / "depth" / split / f"{name}.npy", depth)
+              png.replace(dir / "depth" / split / f"{name}.png")
               raw = dir / "source" / "raw" / drive[:10] / gt.name / cam / "data" / png.name
               raw.replace(dir / "images" / split / f"{name}.png")
   shutil.rmtree(dir / "source")

@@ -57,8 +57,10 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
         )
 
 
-class YOLOEPESegTrainer(YOLOEPETrainer, SegmentationTrainer):  # SegmentationTrainer.__init__ forces task="segment"
+class YOLOEPESegTrainer(SegmentationTrainer):
     """Fine-tune YOLOE segmentation models in linear probing way."""
+
+    get_model = YOLOEPETrainer.get_model  # shared linear-probing builder; SegmentationTrainer stays the sole base
 
 
 class YOLOESegTrainerFromScratch(YOLOETrainerFromScratch, YOLOESegTrainer):

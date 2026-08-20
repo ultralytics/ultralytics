@@ -252,6 +252,7 @@ class Inference:
 
                 self.org_frame.image(frame, channels="BGR", caption="Original Frame")  # Display original frame
                 self.ann_frame.image(annotated_frame, channels="BGR", caption="Predicted Frame")  # Display processed
+
             cap.release()  # Release the capture
         cv2.destroyAllWindows()  # Destroy all OpenCV windows
 

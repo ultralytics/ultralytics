@@ -61,8 +61,6 @@ def generate_ddp_file(trainer: BaseTrainer) -> str:
 
     Notes:
         The generated file is saved in the USER_CONFIG_DIR/DDP directory and includes:
-        - Process group initialization, done before importing ultralytics so that RANK and LOCAL_RANK are only
-          trusted inside a real DDP context
         - Trainer class import
         - Configuration overrides from the trainer arguments
         - Training initialization code
@@ -82,22 +80,6 @@ from pathlib import Path, PosixPath  # For model arguments stored as Path instea
 overrides = {overrides}
 
 if __name__ == "__main__":
-    import os
-    from datetime import timedelta
-
-    import torch
-    import torch.distributed as dist
-
-    LOCAL_RANK = int(os.getenv("LOCAL_RANK"))
-    torch.cuda.set_device(int("{trainer.args.device}".split(",")[LOCAL_RANK]))  # world_size > 1 is a multi-device string
-    os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
-    dist.init_process_group(
-        backend="nccl" if dist.is_nccl_available() else "gloo",
-        timeout=timedelta(seconds=10800),  # 3 hours
-        world_size={trainer.world_size},
-        rank=int(os.getenv("RANK", LOCAL_RANK)),
-    )
-
     from {module} import {name}
     from ultralytics.utils import DEFAULT_CFG_DICT
 

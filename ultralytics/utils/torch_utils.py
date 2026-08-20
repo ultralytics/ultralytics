@@ -237,8 +237,8 @@ def select_device(device="", newline=False, verbose=True):
         CUDA indices are torch device indices, which reflect any externally set CUDA_VISIBLE_DEVICES. This function
         never modifies CUDA_VISIBLE_DEVICES; an explicit single-GPU request is made the default CUDA device with
         torch.cuda.set_device() so that indexless 'cuda' operations land on it, while default '' requests (resolved
-        to the current device) and multi-GPU requests (DDP ranks pin their own device in the generated DDP file)
-        leave the current device untouched.
+        to the current device) and multi-GPU requests (DDP ranks pin their own device in trainer._setup_ddp()) leave
+        the current device untouched.
     """
     if isinstance(device, torch.device):
         if device.type not in {"cuda", "npu", "xpu"}:
@@ -315,7 +315,7 @@ def select_device(device="", newline=False, verbose=True):
             s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(int(d))})\n"
         arg = f"cuda:{devices[0]}"
         if device and len(devices) == 1:  # explicit single-GPU request only: '' never moves the current device, and
-            torch.cuda.set_device(int(devices[0]))  # multi-GPU DDP ranks each pin their own in the DDP file
+            torch.cuda.set_device(int(devices[0]))  # multi-GPU DDP ranks each pin their own device in _setup_ddp()
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"

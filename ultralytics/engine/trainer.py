@@ -15,7 +15,7 @@ import subprocess
 import time
 import warnings
 from copy import copy, deepcopy
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import partial
 from pathlib import Path
 
@@ -421,6 +421,8 @@ class BaseTrainer:
 
     def _do_train(self):
         """Perform the full training loop including setup, epoch iteration, validation, and final evaluation."""
+        if self.world_size > 1:
+            self._setup_ddp()
         self._setup_train()
 
         nb = len(self.train_loader)  # number of batches

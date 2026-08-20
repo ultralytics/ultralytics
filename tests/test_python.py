@@ -173,7 +173,7 @@ def test_select_device(monkeypatch):
         assert os.environ.get("CUDA_VISIBLE_DEVICES") is None  # CUDA_VISIBLE_DEVICES never written
     assert set_calls == [1, 1]  # explicit single-GPU requests set the default device for indexless 'cuda' operations
     assert str(torch_utils.select_device("0,1", verbose=False)) == "cuda:0"
-    assert set_calls == [1, 1]  # multi-GPU requests never move the current device; DDP ranks pin theirs in the DDP file
+    assert set_calls == [1, 1]  # multi-GPU requests never move the current device; DDP ranks pin theirs in _setup_ddp
     monkeypatch.setattr(torch_utils.torch.cuda, "current_device", lambda: 1)
     assert str(torch_utils.select_device("", verbose=False)) == "cuda:1"  # default '' resolves to the current device
     assert str(torch_utils.select_device(torch.device("cuda", 1), verbose=False)) == "cuda:1"

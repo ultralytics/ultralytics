@@ -32,8 +32,6 @@ class KalmanFilterXYAH:
         >>> kf = KalmanFilterXYAH()
         >>> measurement = np.array([100, 200, 1.5, 50])
         >>> mean, covariance = kf.initiate(measurement)
-        >>> print(mean)
-        >>> print(covariance)
     """
 
     def __init__(self):
@@ -64,14 +62,15 @@ class KalmanFilterXYAH:
                 and height h.
 
         Returns:
-            mean (np.ndarray): Mean vector (8-dimensional) of the new track. Unobserved velocities are initialized to 0.
-            covariance (np.ndarray): Covariance matrix (8x8 dimensional) of the new track.
+            mean (np.ndarray): Float64 mean vector (8-dimensional) with zero-initialized velocities.
+            covariance (np.ndarray): Float64 covariance matrix (8x8 dimensional).
 
         Examples:
             >>> kf = KalmanFilterXYAH()
             >>> measurement = np.array([100, 50, 1.5, 200])
             >>> mean, covariance = kf.initiate(measurement)
         """
+        measurement = np.asarray(measurement, dtype=np.float64)
         mean_pos = measurement
         mean_vel = np.zeros_like(mean_pos)
         mean = np.r_[mean_pos, mean_vel]
@@ -155,8 +154,8 @@ class KalmanFilterXYAH:
         if confidence is not None:  # NSA-Kalman: scale measurement noise by detection confidence (StrongSORT)
             innovation_cov *= max(1.0 - float(confidence), 0.05)
 
-        mean = np.dot(self._update_mat, mean)
-        covariance = np.linalg.multi_dot((self._update_mat, covariance, self._update_mat.T))
+        mean = mean[:4].copy()
+        covariance = covariance[:4, :4]
         return mean, covariance + innovation_cov
 
     def multi_predict(self, mean: np.ndarray, covariance: np.ndarray):
@@ -190,7 +189,8 @@ class KalmanFilterXYAH:
         ]
         sqr = np.square(np.r_[std_pos, std_vel]).T
 
-        motion_cov = sqr[:, :, None] * np.eye(8)
+        motion_cov = np.zeros((sqr.shape[0], 8, 8))
+        motion_cov[:, range(8), range(8)] = sqr
 
         mean = np.dot(mean, self._motion_mat.T)
         left = np.dot(self._motion_mat, covariance).transpose((1, 0, 2))
@@ -224,7 +224,7 @@ class KalmanFilterXYAH:
         """
         projected_mean, projected_cov = self.project(mean, covariance, confidence)
 
-        kalman_gain = np.linalg.solve(projected_cov, np.dot(covariance, self._update_mat.T).T).T
+        kalman_gain = np.linalg.solve(projected_cov, covariance[:, :4].T).T
         innovation = measurement - projected_mean
 
         new_mean = mean + np.dot(innovation, kalman_gain.T)
@@ -241,8 +241,9 @@ class KalmanFilterXYAH:
     ) -> np.ndarray:
         """Compute gating distance between state distribution and measurements.
 
-        A suitable distance threshold can be obtained from `chi2inv95`. If `only_position` is False, the chi-square
-        distribution has 4 degrees of freedom, otherwise 2.
+        A suitable threshold for the returned squared Mahalanobis distance is the 95th-percentile chi-square value:
+        9.4877 for 4 degrees of freedom when `only_position` is False, and 5.9915 for 2 otherwise. The `"gaussian"`
+        metric returns a squared Euclidean distance, for which this threshold does not apply.
 
         Args:
             mean (np.ndarray): Mean vector over the state distribution (8 dimensional).
@@ -308,8 +309,6 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         >>> kf = KalmanFilterXYWH()
         >>> measurement = np.array([100, 50, 20, 40])
         >>> mean, covariance = kf.initiate(measurement)
-        >>> print(mean)
-        >>> print(covariance)
     """
 
     def initiate(self, measurement: np.ndarray):
@@ -320,25 +319,15 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
                 height.
 
         Returns:
-            mean (np.ndarray): Mean vector (8 dimensional) of the new track. Unobserved velocities are initialized to 0.
-            covariance (np.ndarray): Covariance matrix (8x8 dimensional) of the new track.
+            mean (np.ndarray): Float64 mean vector (8 dimensional) with zero-initialized velocities.
+            covariance (np.ndarray): Float64 covariance matrix (8x8 dimensional).
 
         Examples:
             >>> kf = KalmanFilterXYWH()
             >>> measurement = np.array([100, 50, 20, 40])
             >>> mean, covariance = kf.initiate(measurement)
-            >>> print(mean)
-            [100.  50.  20.  40.   0.   0.   0.   0.]
-            >>> print(covariance)
-            [[ 4.      0.      0.      0.      0.      0.      0.      0.    ]
-             [ 0.     16.      0.      0.      0.      0.      0.      0.    ]
-             [ 0.      0.      4.      0.      0.      0.      0.      0.    ]
-             [ 0.      0.      0.     16.      0.      0.      0.      0.    ]
-             [ 0.      0.      0.      0.      1.5625  0.      0.      0.    ]
-             [ 0.      0.      0.      0.      0.      6.25    0.      0.    ]
-             [ 0.      0.      0.      0.      0.      0.      1.5625  0.    ]
-             [ 0.      0.      0.      0.      0.      0.      0.      6.25  ]]
         """
+        measurement = np.asarray(measurement, dtype=np.float64)
         mean_pos = measurement
         mean_vel = np.zeros_like(mean_pos)
         mean = np.r_[mean_pos, mean_vel]
@@ -422,8 +411,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         if confidence is not None:  # NSA-Kalman: scale measurement noise by detection confidence (StrongSORT)
             innovation_cov *= max(1.0 - float(confidence), 0.05)
 
-        mean = np.dot(self._update_mat, mean)
-        covariance = np.linalg.multi_dot((self._update_mat, covariance, self._update_mat.T))
+        mean = mean[:4].copy()
+        covariance = covariance[:4, :4]
         return mean, covariance + innovation_cov
 
     def multi_predict(self, mean: np.ndarray, covariance: np.ndarray):
@@ -457,7 +446,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         ]
         sqr = np.square(np.r_[std_pos, std_vel]).T
 
-        motion_cov = sqr[:, :, None] * np.eye(8)
+        motion_cov = np.zeros((sqr.shape[0], 8, 8))
+        motion_cov[:, range(8), range(8)] = sqr
 
         mean = np.dot(mean, self._motion_mat.T)
         left = np.dot(self._motion_mat, covariance).transpose((1, 0, 2))

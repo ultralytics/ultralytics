@@ -110,6 +110,8 @@ warmup_bias_lr: 0.1 # (float) bias learning rate during warmup
 muon: 0.2
 sgd: 1.0
 o2m: 0.1
+tal_alpha: 0.5 # (float) TAL label assignment alpha for the one-to-many head (0.0=disable, 1.0=full TAL)
+tal_beta: 6.0 # (float) TAL label assignment beta for the one-to
 distill_model: # (str, optional) path to teacher model for knowledge distillation
 dis: 6.0 # (float) distillation loss weight
 box: 7.5 # (float) box loss gain

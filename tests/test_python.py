@@ -129,6 +129,24 @@ def test_cfg_rejects_fuzzed_values():
     assert get_cfg(overrides={"auto_augment": None}).auto_augment is None
 
 
+def test_channel_divisor():
+    """Test custom channel rounding while preserving the default and rejecting invalid divisors."""
+    from ultralytics.nn.tasks import DetectionModel
+
+    cfg = {
+        "nc": 2,
+        "width_multiple": 0.37,
+        "backbone": [[-1, 1, "Conv", [100, 3, 2]]],
+        "head": [[[-1], 1, "Detect", [2]]],
+    }
+    default = DetectionModel(cfg=cfg, verbose=False)
+    exact = DetectionModel(cfg={**cfg, "channel_divisor": 1}, verbose=False)
+    assert default.model[0].conv.out_channels == 40
+    assert exact.model[0].conv.out_channels == 37
+    with pytest.raises(ValueError, match="channel_divisor"):
+        DetectionModel(cfg={**cfg, "channel_divisor": 0}, verbose=False)
+
+
 def skip_rpi_semantic():
     """Skip semantic segmentation tests on Raspberry Pi due to memory constraints."""
     if IS_RASPBERRYPI:

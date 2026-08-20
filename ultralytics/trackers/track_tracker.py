@@ -483,9 +483,13 @@ class TRACKTRACK:
                 del_boxes = np.concatenate([del_xywh[mask], -np.ones((mask.sum(), 1))], axis=-1)
                 dets_recovered = [_new_track(b, s, c) for b, s, c in zip(del_boxes, del_conf[mask], del_cls[mask])]
 
+        # Route by `state`, not `is_activated`: the frame_id == 1 bootstrap exception in `activate()` sets
+        # `is_activated=True` on a still-`New` track so it is visible in that frame's output, but it must still
+        # go through the unconfirmed path (`update()`, which gates on `min_track_len`) rather than the main pool
+        # (whose `re_activate()` branch promotes to `Tracked` unconditionally) on its next association.
         unconfirmed, tracked = [], []
         for track in self.tracked_stracks:
-            (unconfirmed if not track.is_activated else tracked).append(track)
+            (tracked if track.state == TrackState.Tracked else unconfirmed).append(track)
         pool = joint_stracks(tracked, self.lost_stracks)
 
         if img is not None and self.gmc.method is not None:

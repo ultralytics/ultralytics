@@ -512,6 +512,17 @@ def test_tracktrack_new_lifecycle():
         tracker.update(Boxes(torch.empty((0, 6)), (640, 640)))
         assert len(tracker.update(Boxes(box, (640, 640)))) == 1
 
+    from ultralytics.trackers.basetrack import TrackState
+
+    cfg["min_track_len"] = 4
+    tracker = TRACKER_MAP["tracktrack"](IterableSimpleNamespace(**cfg))
+    for center_x in (100, 135, 170, 205):  # frame_id == 1 carries a real detection, not an empty warm-up frame
+        box = torch.tensor([[center_x - 50, 50, center_x + 50, 150, 0.9, 0]], dtype=torch.float32)
+        tracker.update(Boxes(box, (640, 640)))
+        if tracker.frame_id == 2:
+            assert tracker.tracked_stracks[0].state != TrackState.Tracked, "frame_id==1 track confirmed after 2 hits"
+    assert tracker.tracked_stracks[0].state == TrackState.Tracked
+
 
 @pytest.mark.parametrize("tracker_type", ["botsort", "deepocsort", "tracktrack"])
 def test_track_reid_auto_user_detections(tracker_type):

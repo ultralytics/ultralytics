@@ -60,7 +60,8 @@ Choose a dataset to train on (see [Datasets](../data/datasets.md)):
 
     Datasets must be in `ready` status with at least 1 image in the train split, 1 image in the validation or test
     split, at least 1 labeled image, and at least one class name. Classification datasets additionally require the
-    train-split image to be labeled, and pose datasets must define a keypoint shape.
+    train-split image to be labeled, and pose datasets must define a keypoint shape. Depth datasets instead require one
+    paired map in `train` and two in `val`; unpaired images are excluded.
 
 !!! warning "Task Mismatch"
 
@@ -537,7 +538,9 @@ Before starting a cloud job, the training dialog shows your current credit balan
 
     Some parameters only apply to specific tasks:
 
-    - **Every task except classify** (detect, segment, semantic, depth, pose, obb): `box`, `dfl`, `degrees`, `translate`, `shear`, `perspective`, `mosaic`, `mixup`, `close_mosaic`, `iou`, `max_det`
+    - **Every task except classify and depth** (detect, segment, semantic, pose, obb): `box`, `dfl`, `mosaic`, `mixup`, `close_mosaic`, `iou`, `max_det`
+    - **Every task except depth** (the tasks with classes): `cls`, `label_smoothing`, `single_cls`
+    - **Every task except classify** (detect, segment, semantic, depth, pose, obb): `degrees`, `translate`, `shear`, `perspective`
     - **Segment only**: `copy_paste`
     - **Pose only**: `pose` (loss weight), `kobj` (keypoint objectness)
     - **Classify only**: `dropout`

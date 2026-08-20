@@ -63,7 +63,8 @@ classifiers = [
 # Required dependencies ------------------------------------------------------------------------------------------------
 dependencies = [
     "filelock>=3.16.1",
-    "numpy>=1.23.0",
+    "numpy>=1.23.0; platform_system != 'Darwin'",
+    "numpy>=1.23.0,!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.0,!=2.3.1,!=2.3.2,!=2.3.3,!=2.3.4; platform_system == 'Darwin'",  # Accelerate matmul bug fixed in 2.3.5
     "matplotlib>=3.3.0",
     "opencv-python>=4.7.0,!=4.13.0.90", # 4.13.0.90 FIPS selftest crash https://github.com/ultralytics/ultralytics/issues/23373
     "pillow>=7.1.2",

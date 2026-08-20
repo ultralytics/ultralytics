@@ -362,7 +362,7 @@ class YOLODataset(BaseDataset):
         return [k for k, v in category_freq.items() if v >= threshold]
 
     def close_mosaic(self, hyp: dict) -> None:
-        """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their probabilities to 0.0.
+        """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their values to 0.0.
 
         Args:
             hyp (dict): Hyperparameters for transforms.
@@ -864,7 +864,7 @@ class YOLOConcatDataset(ConcatDataset):
         return YOLODataset.collate_fn(batch)
 
     def close_mosaic(self, hyp: dict) -> None:
-        """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their probabilities to 0.0.
+        """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their values to 0.0.
 
         Args:
             hyp (dict): Hyperparameters for transforms.
@@ -902,6 +902,7 @@ class SemanticDataset(YOLODataset):
         """
         self.data = data or {}
         self.label_mapping = self._parse_label_mapping(self.data.get("label_mapping"))
+        self.label_lut, self.inverse_lut = self._build_label_luts()
         self.mask_files = []
         self.include_class = None
         super().__init__(*args, data=data, **kwargs)
@@ -945,6 +946,16 @@ class SemanticDataset(YOLODataset):
                 dst = int(dst)
             normalized[src] = dst
         return normalized
+
+    def _build_label_luts(self) -> tuple[np.ndarray, np.ndarray]:
+        """Build the 256-entry forward and inverse lookup tables for the dataset label mapping."""
+        forward, inverse = np.arange(256, dtype=np.uint8), np.arange(256, dtype=np.uint8)
+        for k, v in self.label_mapping.items():  # ids outside 0-255 never match a uint8 mask pixel
+            if 0 <= k < 256:
+                forward[k] = v
+            if 0 <= v < 256:
+                inverse[v] = k & 0xFF  # cityscapes maps -1; the inverse caller casts the result to uint8
+        return forward, inverse
 
     def get_label_files(self) -> list[str]:
         """Return the mask PNG paths paired with the dataset's images.
@@ -1032,20 +1043,14 @@ class SemanticDataset(YOLODataset):
         """Convert label values using the dataset's label mapping.
 
         Args:
-            label (np.ndarray): Segmentation label array to convert.
+            label (np.ndarray): Segmentation label array with integer ids in 0-255.
             inverse (bool): If True, apply inverse mapping (mapped -> original). Defaults to False.
 
         Returns:
-            (np.ndarray): Label array with converted values.
+            (np.ndarray): New uint8 array with converted values.
         """
-        temp = label.copy()
-        if inverse:
-            for v, k in self.label_mapping.items():
-                label[temp == k] = v
-        else:
-            for k, v in self.label_mapping.items():
-                label[temp == k] = v
-        return label
+        lut = self.inverse_lut if inverse else self.label_lut
+        return cv2.LUT(label, lut) if label.dtype == np.uint8 else lut[label]  # cv2.LUT needs a uint8 input
 
     def get_image_and_label(self, index):
         """Get image, label and semantic mask for the given index.

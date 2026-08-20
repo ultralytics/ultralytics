@@ -1892,13 +1892,13 @@ class CopyPaste(BaseMixTransform):
     """CopyPaste class for applying Copy-Paste augmentation to image datasets.
 
     This class implements the Copy-Paste augmentation technique as described in the paper "Simple Copy-Paste is a Strong
-    Data Augmentation Method for Instance Segmentation" (https://arxiv.org/abs/2012.07177). It combines objects from
-    different images to create new training samples.
+    Data Augmentation Method for Instance Segmentation" (https://arxiv.org/abs/2012.07177). In `flip` mode it pastes
+    mirrored copies of the image's own objects, in `mixup` mode objects from a randomly sampled dataset entry.
 
     Attributes:
         dataset (Any): The dataset to which Copy-Paste augmentation will be applied.
         pre_transform (Callable | None): Optional transform to apply before Copy-Paste.
-        p (float): Probability of applying Copy-Paste augmentation.
+        p (float): Fraction of eligible objects pasted; in `mixup` mode also the probability of applying it.
 
     Methods:
         get_params: Compute CopyPaste parameters including selected instances and mask.
@@ -1913,7 +1913,7 @@ class CopyPaste(BaseMixTransform):
     """
 
     def __init__(self, dataset=None, pre_transform=None, p: float = 0.5, mode: str = "flip") -> None:
-        """Initialize CopyPaste object with dataset, pre_transform, and probability of applying CopyPaste."""
+        """Initialize CopyPaste object with dataset, pre_transform, paste fraction and mode."""
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
         if mode not in ("flip", "mixup"):
             raise ValueError(f"Expected `mode` to be `flip` or `mixup`, but got {mode}.")
@@ -1924,8 +1924,6 @@ class CopyPaste(BaseMixTransform):
         if len(labels["instances"].segments) == 0 or self.p == 0:
             return labels
         if self.mode == "flip":
-            if random.random() >= self.p:
-                return labels
             params = self.get_params(labels)
             labels = self.apply_image(labels, params)
             labels = self.apply_instances(labels, params)
@@ -1960,7 +1958,9 @@ class CopyPaste(BaseMixTransform):
             instances2.fliplr(w)
 
         ioa = bbox_ioa(instances2.bboxes, instances.bboxes)
-        selected = np.nonzero((ioa < 0.30).all(1))[0]
+        indexes = np.nonzero((ioa < 0.30).all(1))[0]
+        indexes = indexes[np.argsort(ioa.max(1)[indexes])]
+        selected = indexes[: round(self.p * len(indexes))]
 
         im_new = np.zeros((h, w), np.uint8)
 

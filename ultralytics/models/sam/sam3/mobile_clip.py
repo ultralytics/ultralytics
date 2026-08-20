@@ -112,7 +112,7 @@ class MobileOneBlock(nn.Module):
         use_act: bool = True,
         use_scale_branch: bool = True,
         num_conv_branches: int = 1,
-        activation: nn.Module = nn.GELU(),
+        activation: nn.Module | None = None,
     ) -> None:
         """Initialize MobileOneBlock with parallel conv-BN branches."""
         super().__init__()
@@ -127,7 +127,7 @@ class MobileOneBlock(nn.Module):
         self.num_conv_branches = num_conv_branches
 
         self.se = SEBlock(out_channels) if use_se else nn.Identity()
-        self.activation = activation if use_act else nn.Identity()
+        self.activation = (activation if activation is not None else nn.GELU()) if use_act else nn.Identity()
 
         if inference_mode:
             self.reparam_conv = nn.Conv2d(
@@ -306,10 +306,10 @@ class LayerNormFP32(nn.LayerNorm):
     ):
         """Initialize LayerNorm2d_fp32 forwarding parameters to nn.LayerNorm."""
         super().__init__(
+            *args,
             normalized_shape=normalized_shape,
             eps=eps,
             elementwise_affine=elementwise_affine,
-            *args,
             **kwargs,
         )
 
@@ -413,11 +413,11 @@ class PositionalEmbedding(nn.Module):
         """Initialize SinusoidalLearnablePositionalEmbedding wrapper."""
         super().__init__()
         self.pos_embed = LearnablePositionalEmbedding(
+            *args,
             num_embeddings=num_embeddings,
             embedding_dim=embedding_dim,
             padding_idx=padding_idx,
             interpolation_mode=interpolation_mode,
-            *args,
             **kwargs,
         )
 

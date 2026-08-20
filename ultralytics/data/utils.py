@@ -23,7 +23,6 @@ from ultralytics.utils import (
     ROOT,
     SETTINGS_FILE,
     YAML,
-    TypeValidator,
     clean_url,
     colorstr,
     emojis,
@@ -561,17 +560,20 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
     data = YAML.load(file, append_filename=True)  # dictionary
 
     # Checks
-    DATA_DOCS = "https://docs.ultralytics.com/datasets/{}"
-    DATA_CFG_TYPES = [  # key, valid_types, example, docs
-        ["path", str, "/datasets/coco", DATA_DOCS.format("detect")],
-        ["train", (str, list), "images/train", DATA_DOCS.format("detect")],
-        ["val", (str, list), "images/val", DATA_DOCS.format("detect")],
-        ["test", (str, list), "images/test", DATA_DOCS.format("detect")],
-        ["names", (list, dict), '["person", "car"]', DATA_DOCS.format("detect")],
-        ["kpt_shape", list, "[17, 3]", DATA_DOCS.format("pose")],
-        ["flip_idx", list, "[0, 1, 2, 3]", DATA_DOCS.format("pose")],
-    ]
-    TypeValidator(DATA_CFG_TYPES)(data)
+    for key, valid_types in {
+        "path": str,
+        "train": (str, list),
+        "val": (str, list),
+        "test": (str, list),
+        "names": (list, dict),
+        "kpt_shape": list,
+        "flip_idx": list,
+    }.items():
+        if data.get(key) is not None and not isinstance(data[key], valid_types):
+            expected = (
+                ", ".join(t.__name__ for t in valid_types) if isinstance(valid_types, tuple) else valid_types.__name__
+            )
+            raise TypeError(f"{dataset} '{key}' must be {expected}, not {type(data[key]).__name__}")
 
     for k in "train", "val":
         if k not in data:

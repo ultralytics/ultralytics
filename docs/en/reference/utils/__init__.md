@@ -32,10 +32,6 @@ keywords: Ultralytics, utils, TQDM, Python, ML, Machine Learning utilities, YOLO
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.__init__.TypeValidator
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.__init__.TryExcept
 
 <br><br><hr><br>

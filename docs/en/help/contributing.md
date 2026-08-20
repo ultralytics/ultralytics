@@ -83,6 +83,17 @@ The steps above cover the most common case: forking the repository to contribute
         pip install -r requirements.txt
         ```
 
+### Documentation Changes
+
+Documentation source lives under `docs/en/`. From the repository root, install the development dependencies and run the complete strict validation before opening a PR:
+
+```bash
+uv pip install -e ".[dev]"
+python docs/build_docs.py
+```
+
+The validation prepares generated references, macros, and comparison pages before running `zensical build --strict`. For a faster live preview of pages that do not use macros, run `zensical serve`.
+
 ### CLA Signing
 
 Before we can merge your pull request, you must sign our [Contributor License Agreement (CLA)](CLA.md). This legal agreement ensures that your contributions are properly licensed, allowing the project to continue being distributed under the [AGPL-3.0 license](https://www.ultralytics.com/legal/agpl-3-0-software-license).

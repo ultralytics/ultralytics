@@ -143,14 +143,14 @@ The helper module (e.g. `ultralytics/utils/export/partner.py`) is where the actu
 
 #### Integration Registration
 
-Register the new format in `export_formats()`. The `Arguments` list is the **only** arg-validation hook required: the generic `validate_args()` function automatically rejects any non-default export arg the user passes that is not on this list.
+Register the new format in `export_formats()`. Its `Arguments` list declares which existing configuration arguments the format accepts; the generic `validate_args()` function rejects any non-default export argument not on that list. New argument names must also be added to `ultralytics/cfg/default.yaml` and the corresponding configuration type/value validation owner.
 
 ```python
 def export_formats():
     """Return a dictionary of Ultralytics YOLO export formats."""
     x = [
         # ... existing formats ...
-        ["Partner Format", "partner_format", "_partner_model", True, True, ["batch", "half", "int8", "nms"]],
+        ["Partner Format", "partner_format", "_partner_model", True, True, ["batch", "quantize", "nms"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 ```
@@ -184,7 +184,7 @@ if fmt == "partner_format":
 
 #### Argument Validation Framework
 
-Argument validation is generic — do not add per-format branches to `validate_args()`. Each format declares its supported argument names in the `Arguments` column of `export_formats()`, and `validate_args()` rejects any non-default export arg that is not on that list. To add support for a new arg combination, extend the `Arguments` list for your format entry.
+Argument validation is generic — do not add per-format branches to `validate_args()`. Each format declares its supported existing argument names in the `Arguments` column of `export_formats()`, and `validate_args()` rejects any non-default export arg that is not on that list. To add support for an existing argument, extend the `Arguments` list for your format entry; a genuinely new argument must first be registered and validated in the shared configuration owner.
 
 ### Model Modification Guidelines
 
@@ -267,7 +267,7 @@ Before opening a PR:
 1. **Dependency audit**: provide a complete dependency tree analysis.
 2. **Conflict test**: demonstrate no conflicts with a clean `ultralytics` installation.
 3. **Cross-platform test**: installation must succeed on at least one of Linux or macOS (Windows is also tested in CI and recommended where applicable).
-4. **Version compatibility**: confirm dependencies work across all supported Python versions (3.8 to 3.12).
+4. **Version compatibility**: confirm dependencies work across all supported Python versions (3.8 to 3.13).
 5. **Long-term stability**: demonstrate dependency maintenance commitments.
 
 #### Common Blockers

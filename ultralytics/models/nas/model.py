@@ -61,14 +61,6 @@ class NAS(Model):
         elif suffix == "":
             self.model = super_gradients.training.models.get(weights, pretrained_weights="coco")
 
-        # Override the forward method to ignore additional arguments
-        def new_forward(x, *args, **kwargs):
-            """Ignore additional __call__ arguments."""
-            return self.model._original_forward(x)
-
-        self.model._original_forward = self.model.forward
-        self.model.forward = new_forward
-
         # Standardize model attributes for compatibility
         self.model.fuse = lambda verbose=True, imgsz=640: self.model
         self.model.stride = torch.tensor([32])

@@ -710,6 +710,57 @@ class Annotator:
         return width, height, width * height
 
 
+def plot_reid_retrieval(
+    rows: list[list[tuple[str | Path, str, tuple[int, int, int]]]],
+    save_path: str | Path,
+    tile_size: tuple[int, int] = (240, 320),
+    gap: int = 24,
+) -> Path:
+    """Render and save rows of one query followed by its ranked ReID matches.
+
+    Args:
+        rows (list): Query and match image paths, labels, and RGB border colors.
+        save_path (str | Path): Output image path.
+        tile_size (tuple[int, int]): Width and height of each tile.
+        gap (int): Horizontal gap between the query and its matches.
+
+    Returns:
+        (Path): Saved image path.
+    """
+    save_path = Path(save_path)
+    if not rows:
+        LOGGER.warning("plot_reid_retrieval: no rows to plot; skipping.")
+        return save_path
+
+    w, h = tile_size
+    max_matches = max(len(row) - 1 for row in rows)
+    sheet = Image.new("RGB", (w + (gap + max_matches * w if max_matches else 0), len(rows) * h), (12, 12, 12))
+    font = ImageFont.load_default()
+    for row_index, row in enumerate(rows):
+        for column_index, (path, label, color) in enumerate(row):
+            tile = Image.new("RGB", tile_size, (20, 20, 20))
+            try:
+                with Image.open(path) as source:
+                    image = ImageOps.contain(source.convert("RGB"), (w - 16, h - 64))
+                tile.paste(image, ((w - image.width) // 2, 36 + (h - 64 - image.height) // 2))
+                filename = Path(path).name[:38]
+            except (OSError, ValueError):
+                filename = "missing"
+            draw = ImageDraw.Draw(tile)
+            draw.rectangle((0, 0, w - 1, h - 1), outline=color, width=4)
+            label = str(label).encode("latin-1", "replace").decode("latin-1")
+            filename = filename.encode("latin-1", "replace").decode("latin-1")
+            draw.text((10, 10), label, fill=(255, 255, 255), font=font)
+            draw.text((10, h - 22), filename, fill=(200, 200, 200), font=font)
+            x = 0 if column_index == 0 else w + gap + (column_index - 1) * w
+            sheet.paste(tile, (x, row_index * h))
+
+    save_path.parent.mkdir(parents=True, exist_ok=True)
+    sheet.save(save_path)
+    LOGGER.info(f"Saved ReID retrieval visualization to {save_path}")
+    return save_path
+
+
 @TryExcept()
 @plt_settings()
 def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):

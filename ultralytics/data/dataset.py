@@ -8,7 +8,7 @@ from collections import defaultdict
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 import cv2
 import numpy as np
@@ -1364,7 +1364,7 @@ class ReidDataset(ClassificationDataset):
     """
 
     # Default filename patterns for common ReID datasets (group1=pid, group2=camid)
-    PATTERNS = {
+    PATTERNS: ClassVar[dict[str, str]] = {
         "market1501": r"(-?\d+)_c(\d+)s\d+_\d+_\d+\.(?:jpg|png|bmp)",
         "dukemtmc": r"(\d+)_c(\d+)_f\d+\.(?:jpg|png|bmp)",
         "msmt17": r"(\d+)_(\d+)_\d+_\d+\.(?:jpg|png|bmp)",

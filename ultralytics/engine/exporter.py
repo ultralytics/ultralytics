@@ -92,7 +92,6 @@ from ultralytics.nn.modules import (
     Detect,
     Pose,
     Pose26,
-    ReID,
     RTDETRDecoder,
     Segment,
     Segment26,

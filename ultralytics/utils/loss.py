@@ -659,7 +659,17 @@ class v8PoseLoss(v8DetectionLoss):
         self.bce_pose = nn.BCEWithLogitsLoss()
         is_pose = self.kpt_shape == [17, 3]
         nkpt = self.kpt_shape[0]  # number of keypoints
-        sigmas = torch.from_numpy(OKS_SIGMA).to(self.device) if is_pose else torch.ones(nkpt, device=self.device) / nkpt
+
+        sigmas = getattr(model, "kpt_oks_sigmas", None)
+        if sigmas is None:
+            sigmas = (
+                torch.from_numpy(OKS_SIGMA).to(self.device) if is_pose else torch.ones(nkpt, device=self.device) / nkpt
+            )
+        else:
+            sigmas = torch.as_tensor(sigmas, device=self.device, dtype=torch.float32).flatten()
+            if len(sigmas) != nkpt or not torch.all(sigmas > 0):
+                raise ValueError(f"'kpt_oks_sigmas' must be {nkpt} positive values, got {sigmas.tolist()}")
+
         self.keypoint_loss = KeypointLoss(sigmas=sigmas)
 
     def loss(
@@ -1245,12 +1255,15 @@ class DepthLoss26:
             if pred_log.shape[-1] < 4 or pred_log.shape[-2] < 4:
                 break
             vp = F.avg_pool2d(valid_f, 2)
-            if vp.mean() < 0.5:  # skip sparse GT (LiDAR)
+            occupied = vp > 0
+            # Continue per image while its occupied cells are mostly full: contiguous padding is, LiDAR scatter is not
+            keep = (vp.sum(dim=(1, 2, 3)) > 0.7 * occupied.sum(dim=(1, 2, 3))).view(-1, 1, 1, 1)
+            if not keep.any():
                 break
             denom = vp.clamp(min=1e-6)
             pred_log = F.avg_pool2d(pred_log * valid_f, 2) / denom
             gt_log = F.avg_pool2d(gt_log * valid_f, 2) / denom
-            valid_f = (vp > 0).float()
+            valid_f = occupied.float() * keep  # zeroed images cannot re-enter deeper levels
             grad_loss = grad_loss + self._grad_l1(pred_log, gt_log, valid_f)
         loss[1] = grad_loss * self.grad_weight
 

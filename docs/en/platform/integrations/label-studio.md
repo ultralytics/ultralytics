@@ -20,6 +20,8 @@ Until then there is a short path that works today, because Label Studio's YOLO w
 3. **Upload to Platform.** [Create a new dataset](../data/datasets.md) from the ZIP.
 4. **Train.** [Edit the annotations](../data/annotation.md), [train](../train/index.md), and [deploy](../deploy/index.md) without leaving the workspace.
 
+![Ultralytics Platform Label Studio Dataset Import](https://cdn.ul.run/i/730d485fb7b6856bd0fd91de876c67e1.avif)<!-- screenshot -->
+
 !!! warning "Plain YOLO and COCO export annotations only"
 
     Label Studio's `YOLO` and `COCO` options write label files without the images, because your images normally live behind the URLs Label Studio was pointed at. Uploading one of those archives to Platform gives you a dataset with no images. Pick the **with Images** variant instead.
@@ -59,6 +61,9 @@ Label Studio offers [several export formats](https://labelstud.io/guide/export).
 | **YOLO** / **COCO**  | No    | Annotation files only — the dataset imports with no images                           |
 | **Pascal VOC XML**   | No    | XML label files cannot be read                                                       |
 
+In a COCO export, every annotation must carry a `bbox` to be read, crowd regions (`"iscrowd": 1`) are skipped, and the
+category names become your class names — so a COCO archive does not need `classes.txt` to keep its labels.
+
 !!! warning "Pascal VOC imports without annotations"
 
     Platform does not read Pascal VOC XML labels, and a VOC export fails quietly rather than loudly: the images import and the annotations do not. Choose YOLO with Images or COCO with Images instead.
@@ -74,4 +79,4 @@ Picking the right export format is the step the integration removes. Once it shi
 
 !!! tip "Available now"
 
-    The [Labelbox](labelbox.md), [Roboflow](roboflow.md), and [Ultralytics HUB](ultralytics-hub.md) integrations work today, and Platform imports YOLO, COCO, and Ultralytics NDJSON datasets directly.
+    The [Labelbox](labelbox.md) and [Roboflow](roboflow.md) integrations work today, and Platform imports YOLO, COCO, and Ultralytics NDJSON datasets directly.

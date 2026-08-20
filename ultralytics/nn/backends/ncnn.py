@@ -68,7 +68,6 @@ class NCNNBackend(BaseBackend):
         for sample in im.cpu().numpy():
             with self.net.create_extractor() as ex:
                 ex.input(self.net.input_names()[0], self.pyncnn.Mat(sample))
-                # Keep only real "outN" blobs and sort them as temporary fix for pnnx issue
-                names = sorted(x for x in self.net.output_names() if "out" in x)
-                outputs.append([np.array(ex.extract(x)[1]) for x in names])
+                # Sort output names as temporary fix for pnnx issue
+                outputs.append([np.array(ex.extract(x)[1]) for x in sorted(self.net.output_names())])
         return [np.stack(y) for y in zip(*outputs)]

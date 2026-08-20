@@ -581,6 +581,9 @@ class BaseTrainer:
             if should_val:
                 self._clear_memory(None if self.device.type == "mps" else 0.5)  # prevent VRAM spike
                 self.metrics, self.fitness = self.validate()
+            else:
+                self.metrics = {k: "" for k in self.metrics}
+                self.fitness = None
 
             # NaN recovery
             if self._handle_nan_recovery(epoch):
@@ -588,9 +591,7 @@ class BaseTrainer:
 
             self.nan_recovery_attempts = 0
             if RANK in {-1, 0}:
-                # On non-val epochs, write empty val metrics so CSV doesn't carry stale values
-                val_metrics = self.metrics if should_val else {k: "" for k in self.metrics}
-                self.save_metrics(metrics={**self.label_loss_items(self.tloss), **val_metrics, **self.lr})
+                self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
                 if should_val:
                     self.stop |= self.stopper(epoch + 1, self.fitness)
                 self.stop |= final_epoch
@@ -754,7 +755,7 @@ class BaseTrainer:
         # Save checkpoints
         self.wdir.mkdir(parents=True, exist_ok=True)  # ensure weights directory exists
         self.last.write_bytes(serialized_ckpt)  # save last.pt
-        if self.best_fitness == self.fitness:
+        if self.best_fitness is not None and self.best_fitness == self.fitness:
             self.best.write_bytes(serialized_ckpt)  # save best.pt
         if (self.save_period > 0) and (self.epoch % self.save_period == 0):
             (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'

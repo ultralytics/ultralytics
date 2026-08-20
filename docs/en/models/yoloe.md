@@ -1015,26 +1015,20 @@ Most readers never need this. It reproduces the published open-vocabulary checkp
         )
         ```
 
-        Convert back to segmentation model after training. Only needed if you converted segmentation model to detection model before training.
+        Re-parameterize the trained model into a prompt-free one, which then reports the given names with no prompt at inference.
 
         ```python
-        from copy import deepcopy
-
         from ultralytics import YOLOE
 
-        model = YOLOE("yoloe-26l-seg.pt")
-        model.eval()
+        # Weights written by the prompt-free training run above. Each rerun creates a new
+        # directory (train-2, train-3, ...), so take the path the run printed.
+        model = YOLOE("runs/segment/train/weights/best.pt")
 
-        pf_model = YOLOE("yoloe-26l-seg-pf.pt")
-        names = ["object"]
-        tpe = model.get_text_pe(names)
-        model.set_classes(names, tpe)
-        model.model.model[-1].fuse(model.model.pe)
+        # get_vocab fuses the text head, so build the vocabulary on a fresh checkpoint.
+        names = ["person", "bus", "dog"]  # released checkpoints use the 4,585-name tag list
+        vocab = YOLOE("yoloe-26l-seg.pt").get_vocab(names)
 
-        model.model.model[-1].cv3[0][2] = deepcopy(pf_model.model.model[-1].cv3[0][2]).requires_grad_(True)
-        model.model.model[-1].cv3[1][2] = deepcopy(pf_model.model.model[-1].cv3[1][2]).requires_grad_(True)
-        model.model.model[-1].cv3[2][2] = deepcopy(pf_model.model.model[-1].cv3[2][2]).requires_grad_(True)
-        del model.model.pe
+        model.set_vocab(vocab, names)
         model.save("yoloe-26l-seg-pf-custom.pt")  # never overwrite the released checkpoint
         ```
 

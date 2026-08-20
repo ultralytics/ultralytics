@@ -283,7 +283,7 @@ def test_export_rdk_creates_deployment_package(tmp_path, monkeypatch):
         calls.append((cmd, check, Path(cwd)))
         compiler_output = Path(cwd) / "compiler_output"
         compiler_output.mkdir(parents=True, exist_ok=True)
-        (compiler_output / "compiled.bin").write_bytes(b"bin")
+        (compiler_output / "yolo11n_bayese_32x32_nv12.bin").write_bytes(b"bin")
 
     monkeypatch.setattr(rdk_export.subprocess, "run", fake_run)
 

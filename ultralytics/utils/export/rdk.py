@@ -169,9 +169,9 @@ def export_rdk(model, args, onnx_path: str | Path, metadata: dict, prefix: str =
         cwd=workspace,
     )
 
-    compiled_bin = next(compiler_dir.rglob("*.bin"), None)
-    if compiled_bin is None:
-        raise FileNotFoundError(f"{prefix} compilation completed but no .bin artifact was produced.")
+    compiled_bin = compiler_dir / f"{output_prefix}.bin"
+    if not compiled_bin.exists():
+        raise FileNotFoundError(f"{prefix} compilation completed but {compiled_bin} was not produced.")
     shutil.copy2(compiled_bin, model_dir / f"{onnx_path.stem}.bin")
     YAML.save(model_dir / "metadata.yaml", metadata)
     return model_dir

@@ -1934,7 +1934,6 @@ def parse_model(d, ch, verbose=True):
     max_channels = float("inf")
     nc, act, scales, end2end = (d.get(x) for x in ("nc", "activation", "scales", "end2end"))
     channel_divisor = d.get("channel_divisor", 8)
-    channel_divisor = 8 if channel_divisor is None else channel_divisor
     if isinstance(channel_divisor, bool) or not isinstance(channel_divisor, int) or channel_divisor <= 0:
         raise ValueError(f"channel_divisor must be a positive integer, got {channel_divisor}")
     reg_max = d.get("reg_max", 16)

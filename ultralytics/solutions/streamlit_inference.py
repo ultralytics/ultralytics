@@ -69,7 +69,6 @@ class Inference:
         self.iou = 0.45  # Intersection-over-Union (IoU) threshold for non-maximum suppression
         self.org_frame = None  # Container for the original frame display
         self.ann_frame = None  # Container for the annotated frame display
-        self.show_json = False
         self.vid_file_name = None  # Video file name or webcam index
         self.selected_ind: list[int] = []  # List of selected class indices for detection
         self.model = None  # YOLO model instance
@@ -120,7 +119,7 @@ class Inference:
         self.iou = float(self.st.sidebar.slider("IoU Threshold", 0.0, 1.0, self.iou, 0.01))  # Slider for NMS threshold
 
         if self.source == "image":
-            self.show_json = self.st.sidebar.checkbox("Show JSON Output", value=False)
+            self.show_json = self.st.sidebar.checkbox("Show JSON Output")
 
         if self.source != "image":  # Only create columns for video/webcam
             col1, col2 = self.st.columns(2)  # Create two columns for displaying frames

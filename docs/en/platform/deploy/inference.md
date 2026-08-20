@@ -15,12 +15,14 @@ and dedicated endpoints for programmatic access.
 
 ## Predict Tab
 
-Every model includes a `Predict` tab for browser-based inference:
+Every model with weights includes a `Predict` tab for browser-based inference:
 
 1. Navigate to your model
 2. Click the **Predict** tab
 3. Upload an image, use an example, or open your webcam
 4. Review the task-specific overlay, prediction summary, timing, and raw response
+
+Models without weights show an empty state instead — train the model or upload weights first.
 
 ![Ultralytics Platform Predict Tab Image Upload Dropzone](https://cdn.ul.run/i/d2dafa4b28ec36687eaf850ccb1fea3c.avif)<!-- screenshot -->
 
@@ -50,24 +52,29 @@ graph LR
 
 Drag and drop or click to upload:
 
-- **Supported formats**: JPEG, PNG, WebP, AVIF, HEIC, JP2, TIFF, BMP, DNG, MPO
-- **Max size**: 10MB
+- **Supported formats**: JPEG, PNG, WebP, AVIF, HEIC, JP2, TIFF, BMP
+- **Max size**: 10 MB
 - **Auto-inference**: Results appear automatically after upload
 
 !!! info "Auto-Inference"
 
     The predict panel runs inference automatically when you upload an image, select an example, or capture a webcam frame. No button click is needed.
 
+!!! note "Client-Side Resize"
+
+    Before uploading, the panel resizes the image so its longest side matches the selected `Image Size`, and requests normalized coordinates. This keeps browser testing fast; requests you send yourself are not resized.
+
 ### Example Images
 
-The predict panel shows example images from your model's linked dataset. If no dataset is linked, default examples are used:
+The predict panel shows up to two example images from your model's linked dataset, preferring the `val` split, then
+`test`, then `train`. If no dataset is linked, default examples are used:
 
 | Image        | Content                    |
 | ------------ | -------------------------- |
 | `bus.jpg`    | Street scene with vehicles |
 | `zidane.jpg` | Sports scene with people   |
 
-For OBB models, aerial images of boats and airports are shown instead.
+For OBB models, aerial images of boats and an airport are shown instead.
 
 !!! tip "Preloaded Images"
 
@@ -91,11 +98,15 @@ The panel also shows preprocess, inference, postprocess, and network timing.
 ![Ultralytics Platform Predict Tab Results With Detections And Speed Stats](https://cdn.ul.run/i/b12413a329d89294abbe75ed8b488356.avif)<!-- screenshot -->
 The results panel shows:
 
-| Field               | Description                                             |
-| ------------------- | ------------------------------------------------------- |
-| **Results summary** | Detections, classifications, or semantic class coverage |
-| **Speed stats**     | Preprocess, inference, postprocess, and network (ms)    |
-| **JSON response**   | Raw API response in a code block                        |
+| Field               | Description                                                                      |
+| ------------------- | -------------------------------------------------------------------------------- |
+| **Results summary** | Per-detection list, or the top 5 classes for classification and semantic models  |
+| **Speed stats**     | Preprocess, inference, postprocess, and network (ms)                             |
+| **Versions**        | Ultralytics and PyTorch versions, plus depth range or mask size where applicable |
+| **JSON response**   | Raw API response in a code block, with base64 map data elided                    |
+
+Two controls sit over the preview once results are in: click the image to enlarge it with overlays intact, and use the
+download button to save an annotated JPEG of the current result.
 
 ## Inference Parameters
 
@@ -135,9 +146,10 @@ Each running [dedicated endpoint](endpoints.md) includes a `Predict` tab directl
 
 ## Dedicated Endpoint API
 
-The **API Docs** card in the model `Predict` tab contains example Python, JavaScript, and cURL requests. The examples
-use placeholders until you deploy the model. After deployment, the deployment card's `Code` tab fills in its endpoint
-URL and the API key available to your workspace.
+The **API Docs** card in the model `Predict` tab contains example Python, JavaScript, and cURL requests, pre-filled with
+the confidence, IoU, and image size currently set on the sliders. The URL and key are placeholders until you deploy the
+model — a **Deploy** button next to the code tabs jumps to the model's `Deploy` tab. After deployment, the deployment
+card's `Code` tab fills in that endpoint's URL and, for workspace owners, its bound API key, ready to copy and run.
 
 ### Authentication
 
@@ -149,12 +161,32 @@ Authorization: Bearer YOUR_API_KEY
 
 !!! warning "API Key Required"
 
-    To run inference from your own scripts, notebooks, or apps, include an API key. Generate one in [`Settings > API Keys`](../account/api-keys.md).
+    To run inference from your own scripts, notebooks, or apps, include an API key. Generate one in [`Settings > API Keys`](../account/api-keys.md). A dedicated endpoint accepts only the single key it was created with; the shared model API accepts any active key in the workspace, and public models also accept anonymous requests.
 
 ### Endpoint
 
+Dedicated endpoints take requests on their own URL:
+
 ```http
 POST https://YOUR_DEPLOYMENT_URL.run.app/predict
+```
+
+Shared inference uses the Platform API with the model's full path:
+
+```http
+POST https://platform.ultralytics.com/api/models/{owner}/{project}/{model}/predict
+```
+
+Both accept the same `multipart/form-data` body and return the same response shape. With the
+[Python SDK](../api/index.md#python-sdk), use `client.models.predict(owner, project, model, body=...)` for shared
+inference or `client.deployments.predict(owner, deployment, body=...)` for a dedicated deployment:
+
+```python
+from ultralytics_platform import Platform
+
+client = Platform()  # reads ULTRALYTICS_API_KEY
+with open("image.jpg", "rb") as f:
+    results = client.models.predict("acme-vision", "inspection", "v3", body={"file": f, "conf": 0.25})
 ```
 
 ### Request
@@ -243,6 +275,7 @@ POST https://YOUR_DEPLOYMENT_URL.run.app/predict
     ],
     "metadata": {
         "imageCount": 1,
+        "functionTimeAlive": 1284.51,
         "functionTimeCall": 0.018,
         "task": "detect",
         "version": {
@@ -259,17 +292,19 @@ POST https://YOUR_DEPLOYMENT_URL.run.app/predict
 
 ### Response Fields
 
-| Field                           | Type   | Description                       |
-| ------------------------------- | ------ | --------------------------------- |
-| `images`                        | array  | List of processed images          |
-| `images[].shape`                | array  | Image dimensions [height, width]  |
-| `images[].results`              | array  | List of detections                |
-| `images[].results[].class`      | int    | Class index (integer ID)          |
-| `images[].results[].name`       | string | Class name                        |
-| `images[].results[].confidence` | float  | Detection confidence (0-1)        |
-| `images[].results[].box`        | object | Bounding box coordinates          |
-| `images[].speed`                | object | Processing times in milliseconds  |
-| `metadata`                      | object | Request metadata and version info |
+| Field                           | Type   | Description                                                          |
+| ------------------------------- | ------ | -------------------------------------------------------------------- |
+| `images`                        | array  | List of processed images, one entry per video frame for videos       |
+| `images[].shape`                | array  | Image dimensions [height, width]                                     |
+| `images[].results`              | array  | List of detections                                                   |
+| `images[].results[].class`      | int    | Class index (integer ID)                                             |
+| `images[].results[].name`       | string | Class name                                                           |
+| `images[].results[].confidence` | float  | Detection confidence (0-1)                                           |
+| `images[].results[].box`        | object | Bounding box coordinates                                             |
+| `images[].semantic_mask`        | object | Per-pixel class map (semantic models only)                           |
+| `images[].depth`                | object | Per-pixel depth map (depth models only)                              |
+| `images[].speed`                | object | Processing times in milliseconds                                     |
+| `metadata`                      | object | Image count, service timings, task, and Ultralytics/PyTorch versions |
 
 ### Task-Specific Responses
 
@@ -305,11 +340,16 @@ Response format varies by task:
       "results": [
         {"class": 0, "name": "road", "pixel_ratio": 0.42},
         {"class": 1, "name": "building", "pixel_ratio": 0.23}
-      ]
+      ],
+      "semantic_mask": {
+        "shape": [1080, 1920],
+        "encoding": "png",
+        "data": "<base64 PNG>"
+      }
     }
     ```
 
-    Semantic segmentation returns per-class pixel coverage (`pixel_ratio`, the fraction of image pixels assigned to each class) instead of per-object boxes.
+    [Semantic segmentation](../../tasks/semantic.md) returns per-class pixel coverage (`pixel_ratio`, the fraction of image pixels assigned to each class) instead of per-object boxes, alongside `semantic_mask`: a base64-encoded PNG whose pixel values are class indices. Unlike the depth map, the mask is returned at the original image resolution (matching `images[].shape`), so it aligns per-pixel without resizing.
 
 === "Depth"
 
@@ -370,6 +410,8 @@ Response format varies by task:
     }
     ```
 
+    [Classification](../../tasks/classify.md) returns the top 5 classes by confidence, without boxes.
+
 === "OBB"
 
     ```json
@@ -398,8 +440,7 @@ throttled, the API returns `429` with a `Retry-After` header. See the full
 
 !!! tip "Need More Throughput?"
 
-    Requests sent directly to a [dedicated endpoint](endpoints.md) do not pass through the Platform API rate limiter.
-    For high-volume local inference, see the [Predict mode guide](../../modes/predict.md).
+    Requests sent directly to a [dedicated endpoint](endpoints.md) do not pass through the Platform API rate limiter. The endpoint still sheds load with `429` and a `Retry-After` header when it is temporarily at capacity. For high-volume local inference, see the [Predict mode guide](../../modes/predict.md).
 
 ## Error Handling
 
@@ -407,9 +448,10 @@ Common error responses:
 
 | Code | Message             | Solution                                                                          |
 | ---- | ------------------- | --------------------------------------------------------------------------------- |
-| 400  | Invalid image       | Check file format                                                                 |
+| 400  | Invalid image       | Check file format, or that the model has trained weights                          |
 | 401  | Unauthorized        | Verify API key                                                                    |
-| 404  | Model not found     | Check model ID                                                                    |
+| 404  | Model not found     | Check the owner, project, and model names                                         |
+| 413  | Input too large     | Reduce the file size below the endpoint limit                                     |
 | 429  | Rate limited        | Wait and retry, or send requests directly to a [dedicated endpoint](endpoints.md) |
 | 500  | Server error        | Retry request                                                                     |
 | 503  | Service unavailable | Predict service starting up or unreachable; wait briefly and retry                |
@@ -421,12 +463,14 @@ Common error responses:
 Both inference methods accept video files:
 
 - **Dedicated endpoints** accept video files directly. Supported formats (up to 100 MB): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV. Each frame is processed individually and results are returned per frame. See [dedicated endpoints](endpoints.md#request-parameters) for details.
-- **Shared inference** (`/api/models/{id}/predict`) uses the same predict service and accepts the same video formats.
-  The browser **Predict** tab only selects images, so use the API or a [dedicated endpoint](endpoints.md) for video.
+- **Shared inference** (`POST /api/models/{owner}/{project}/{model}/predict`) uses the same predict service and accepts
+  the same video formats. The browser **Predict** tab only selects images, so use the API or a
+  [dedicated endpoint](endpoints.md) for video.
 
 ### How do I get the annotated image?
 
-The API returns JSON predictions. To visualize:
+In the **Predict** tab, the download button over the preview saves the current result as an annotated JPEG. The API
+itself returns JSON predictions. To visualize those:
 
 1. Use predictions to draw boxes locally
 2. Use Ultralytics `plot()` method:
@@ -444,10 +488,11 @@ See the [Predict mode documentation](../../modes/predict.md) for the full result
 ### What's the maximum image size?
 
 - **Predict tab limit**: 10 MB
-- **Dedicated endpoint API limit**: 100 MB
+- **API limit**: 100 MB for both shared inference and dedicated endpoints
 - **Auto-resize in the Predict tab**: Images are resized to the selected `Image Size` before upload
 
-Large images are automatically resized while preserving aspect ratio.
+Large images are automatically resized in the browser while preserving aspect ratio. Requests you send yourself are not
+resized, so images above the limit are rejected with `413`.
 
 ### Can I run batch inference?
 
@@ -464,7 +509,7 @@ The current API processes one image per request. For batch:
 
     import requests
 
-    url = "https://predict-abc123.run.app/predict"
+    url = "https://YOUR_DEPLOYMENT_URL.run.app/predict"
     headers = {"Authorization": "Bearer YOUR_API_KEY"}
     images = ["img1.jpg", "img2.jpg", "img3.jpg"]
 

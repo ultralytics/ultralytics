@@ -117,8 +117,8 @@ class Analytics(BaseSolution):
             update_required = frame_number % self.update_every == 0 or self.last_plot_im is None
             if update_required:
                 self.last_plot_im = self.update_graph(frame_number=frame_number)
+                self.total_counts = 0
             plot_im = self.last_plot_im
-            self.total_counts = 0
         elif self.type in {"pie", "bar", "area"}:
             from collections import Counter
 
@@ -223,7 +223,6 @@ class Analytics(BaseSolution):
                 # Create the legend using labels from the bars
                 for bar, label in zip(bars, labels):
                     bar.set_label(label)  # Assign label to each bar
-                self.ax.legend(loc="upper left", fontsize=13, facecolor=self.fg_color, edgecolor=self.fg_color)
             elif plot == "pie":
                 total = sum(counts)
                 percentages = [size / total * 100 for size in counts]
@@ -248,7 +247,9 @@ class Analytics(BaseSolution):
         self.ax.set_ylabel(self.y_label, color=self.fg_color, fontsize=self.fontsize - 3)
 
         # Add and format legend
-        legend = self.ax.legend(loc="upper left", fontsize=13, facecolor=self.bg_color, edgecolor=self.bg_color)
+        legend = self.ax.get_legend() or self.ax.legend(
+            loc="upper left", fontsize=13, facecolor=self.bg_color, edgecolor=self.bg_color
+        )
         for text in legend.get_texts():
             text.set_color(self.fg_color)
 

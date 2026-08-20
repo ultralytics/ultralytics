@@ -242,7 +242,7 @@ def _peek_litetext_pos_embed_length(checkpoint_path: str) -> int | None:
     """
     try:
         with open(checkpoint_path, "rb") as f:
-            ckpt = torch_load(f, map_location="cpu", weights_only=False)
+            ckpt = torch_load(f, map_location="cpu")
         state = ckpt.get("model", ckpt)
         for key, val in state.items():
             if "language_backbone" in key and "positional_embedding.pos_embed.pos_embed" in key:

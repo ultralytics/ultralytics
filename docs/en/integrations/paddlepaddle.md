@@ -58,6 +58,12 @@ PaddlePaddle provides a range of options, each offering a distinct balance of ea
 
 - **Paddle.js**: Paddle.js enables you to deploy PaddlePaddle models directly within web browsers. Paddle.js can either load a pretrained model or transform a model from [paddle-hub](https://github.com/PaddlePaddle/PaddleHub) with model transforming tools provided by Paddle.js. It can run in browsers that support WebGL/WebGPU/WebAssembly.
 
+## Supported Tasks
+
+PaddlePaddle export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+
+{% include "macros/supported-tasks.md" %}
+
 ## Export to PaddlePaddle: Converting Your YOLO26 Model
 
 Converting YOLO26 models to the PaddlePaddle format can improve execution flexibility and optimize performance for various deployment scenarios.

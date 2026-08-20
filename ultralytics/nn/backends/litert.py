@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, NUM_THREADS
 from ultralytics.utils.checks import check_requirements
 
 from .base import BaseBackend, read_tflite_metadata
@@ -34,7 +34,7 @@ class LiteRTBackend(BaseBackend):
         tflite_file = Path(weight)
 
         LOGGER.info(f"Loading {tflite_file} for LiteRT inference...")
-        self.interpreter = Interpreter(str(tflite_file))
+        self.interpreter = Interpreter(str(tflite_file), num_threads=NUM_THREADS)  # Enable multi-core inference
         self.interpreter.allocate_tensors()
         self.input_details = self.interpreter.get_input_details()
         self.output_details = self.interpreter.get_output_details()

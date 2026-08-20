@@ -82,17 +82,17 @@ VisionEye fixes a single observation point in the frame and draws a ray from it 
 Here's a table with the `VisionEye` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "vision_point"]) }}
+{{ param_table(["model", "vision_point", "line_width", "verbose"]) }}
 
 You can also utilize various `track` arguments within the `VisionEye` solution:
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 Furthermore, some visualization arguments are supported, as listed below:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
+{{ param_table(["show", "show_conf", "show_labels"]) }}
 
 ## How VisionEye Works
 

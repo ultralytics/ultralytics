@@ -27,7 +27,7 @@ Key design choices across all sizes:
 
 ## Stage 1: Objects365 Pretraining
 
-Every YOLO26 COCO checkpoint was fine-tuned from an Objects365v1 checkpoint of the same size. Those pretrained weights are published too, and are documented on the [Objects365 dataset page](../datasets/detect/objects365.md). The `model` value in the COCO `train_args` names the exact starting weights:
+Every YOLO26 COCO checkpoint was fine-tuned from an Objects365v1 checkpoint of the same size. Those pretrained weights are published too, and are documented on the [Objects365 dataset page](../datasets/detect/objects365.md). Each COCO checkpoint names its starting weights in the training configuration embedded in the `.pt` file, which [Inspecting YOLO26 Checkpoint Training Args](#inspecting-yolo26-checkpoint-training-args) below shows how to read:
 
 | COCO checkpoint | Starting weights       |
 | --------------- | ---------------------- |

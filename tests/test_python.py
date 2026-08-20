@@ -64,16 +64,35 @@ def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
     """Test worker cap follows distributed sampler size without changing global drop_last behavior."""
     sampler_cls = data_build.distributed.DistributedSampler
 
-    def distributed_sampler(dataset, shuffle):
-        return sampler_cls(dataset, num_replicas=3, rank=0, shuffle=shuffle)
+    def distributed_sampler(dataset, shuffle, seed):
+        return sampler_cls(dataset, num_replicas=3, rank=2, shuffle=shuffle, seed=seed)
 
     monkeypatch.setattr(data_build.distributed, "DistributedSampler", distributed_sampler)
+    monkeypatch.setattr(data_build, "RANK", 2)  # Simulate the second node with global rank 2 and local rank 0
+    expected_seed = torch.initial_seed() - 3
     loader = build_dataloader(range(8), batch=4, workers=8, rank=0, drop_last=True)
     try:
         assert len(loader) == 1
         assert loader.num_workers == 0
+        assert loader.sampler.seed == expected_seed
     finally:
         loader.close()
+
+
+def test_dataloader_seed_varies_sampling_order():
+    """Test the run seed reaches the loader RNG instead of every run replaying one fixed order."""
+    with torch.random.fork_rng():
+        loaders = []
+        for seed in (0, 0, 1):
+            torch.manual_seed(seed)
+            loaders.append(build_dataloader(range(64), batch=4, workers=0))
+    try:
+        first, repeat, other = (torch.cat(list(loader)).tolist() for loader in loaders)
+        assert first == repeat  # same seed stays reproducible
+        assert first != other  # different seeds must not share one order
+    finally:
+        for loader in loaders:
+            loader.close()
 
 
 def test_dataloader_empty_dataset_uses_dataloader_validation():

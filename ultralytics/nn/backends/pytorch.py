@@ -9,6 +9,7 @@ import torch
 from torch import nn
 
 from ultralytics.utils import IS_JETSON, LOGGER, is_jetson
+from ultralytics.utils.torch_utils import unwrap_model
 
 from .base import BaseBackend
 
@@ -71,23 +72,25 @@ class PyTorchBackend(BaseBackend):
 
         self.model = model
         self.end2end = getattr(model, "end2end", False)
+        self.base_model = isinstance(unwrap_model(model), BaseModel)
 
     def forward(
-        self, im: torch.Tensor, augment: bool = False, visualize: bool = False, embed: list | None = None, **kwargs: Any
+        self, im: torch.Tensor, augment: bool = False, embed: list | None = None, **kwargs: Any
     ) -> torch.Tensor | list[torch.Tensor]:
-        """Run native PyTorch inference with support for augmentation, visualization, and embeddings.
+        """Run native PyTorch inference with support for augmentation and embeddings.
 
         Args:
             im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
             augment (bool): Whether to apply test-time augmentation.
-            visualize (bool): Whether to visualize intermediate feature maps.
             embed (list | None): List of layer indices to extract embeddings from, or None.
             **kwargs (Any): Additional keyword arguments passed to the model forward method.
 
         Returns:
             (torch.Tensor | list[torch.Tensor]): Model predictions as tensor(s).
         """
-        return self.model(im, augment=augment, visualize=visualize, embed=embed, **kwargs)
+        if not self.base_model:  # a foreign nn.Module defines no `augment`/`embed` contract to honor
+            return self.model(im, **kwargs)
+        return self.model(im, augment=augment, embed=embed, **kwargs)
 
 
 class TorchScriptBackend(BaseBackend):

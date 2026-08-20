@@ -52,7 +52,6 @@ from ultralytics.utils.torch_utils import (
     TORCH_1_11,
     TORCH_2_0,
     TORCH_2_4,
-    DistributedDataParallel,
     EarlyStopping,
     ModelEMA,
     attempt_compile,
@@ -495,7 +494,7 @@ class BaseTrainer:
                         if self.args.compile:
                             # Decouple inference and loss calculations for improved compile performance
                             preds = self.model(batch["img"])
-                            loss, self.loss_items = self.model.loss(batch, preds)
+                            loss, self.loss_items = unwrap_model(self.model).loss(batch, preds)
                         else:
                             loss, self.loss_items = self.model(batch)
                         self.loss = loss.sum()

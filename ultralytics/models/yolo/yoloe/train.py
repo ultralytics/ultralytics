@@ -12,6 +12,7 @@ from ultralytics.data.augment import LoadVisualPrompt
 from ultralytics.models.yolo.detect import DetectionTrainer, DetectionValidator
 from ultralytics.nn.tasks import YOLOEModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
+from ultralytics.utils.torch_utils import unwrap_model
 
 from ..world.train_world import WorldTrainerFromScratch
 from .val import YOLOEDetectValidator
@@ -93,7 +94,7 @@ class YOLOETrainer(DetectionTrainer):
         Returns:
             (Dataset): YOLO dataset configured for training or validation.
         """
-        gs = max(int(self.model.stride.max() if self.model else 0), 32)
+        gs = max(int(unwrap_model(self.model).stride.max() if self.model else 0), 32)
         return build_yolo_dataset(
             self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, multi_modal=mode == "train"
         )
@@ -192,7 +193,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         Returns:
             (dict): Dictionary mapping text samples to their embeddings.
         """
-        model = self.model.text_model
+        model = unwrap_model(self.model).text_model
         cache_path = cache_dir / f"text_embeddings_{model.replace(':', '_').replace('/', '_')}.pt"
         if cache_path.exists():
             LOGGER.info(f"Reading existed cache from '{cache_path}'")
@@ -200,7 +201,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
             if sorted(txt_map.keys()) == sorted(texts):
                 return txt_map
         LOGGER.info(f"Caching text embeddings to '{cache_path}'")
-        txt_feats = self.model.get_text_pe(texts, batch, without_reprta=True, cache_clip_model=False)
+        txt_feats = unwrap_model(self.model).get_text_pe(texts, batch, without_reprta=True, cache_clip_model=False)
         txt_map = dict(zip(texts, txt_feats.squeeze(0)))
         torch.save(txt_map, cache_path)
         return txt_map

@@ -1033,31 +1033,6 @@ class EarlyStopping:
         return stop
 
 
-class DistributedDataParallel(nn.parallel.DistributedDataParallel):
-    """DistributedDataParallel wrapper that forwards missing attributes and methods to the wrapped module.
-
-    This removes the need for explicit `.module` access or `unwrap_model()` calls when reading extra attributes or
-    calling custom methods defined on the underlying model, e.g. `model.stride` or `model.loss()`.
-    """
-
-    def __getattr__(self, name: str) -> Any:
-        """Return the named attribute from the wrapper, falling back to the wrapped module.
-
-        Args:
-            name (str): Name of the attribute to retrieve.
-
-        Returns:
-            (Any): Attribute from either the DDP wrapper or the wrapped module.
-
-        Raises:
-            AttributeError: If found on neither the DDP wrapper nor the wrapped module.
-        """
-        try:
-            return super().__getattr__(name)
-        except AttributeError:
-            return getattr(self.module, name)
-
-
 def attempt_compile(
     model: torch.nn.Module,
     device: torch.device,

@@ -51,6 +51,7 @@ from ultralytics.utils.torch_utils import (
     select_device,
     smart_inference_mode,
     torch_distributed_zero_first,
+    unwrap_model,
 )
 
 
@@ -246,7 +247,7 @@ class BaseValidator:
             Profile(device=self.device),
         )
         bar = TQDM(self.dataloader, desc=self.get_desc(), total=len(self.dataloader))
-        self.init_metrics(model)
+        self.init_metrics(unwrap_model(model))
         self.jdict = []  # empty before each val
         for batch_i, batch in enumerate(bar):
             self.run_callbacks("on_val_batch_start")

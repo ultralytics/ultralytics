@@ -363,7 +363,7 @@ def build_dataloader(
     # persistent DataLoader worker pools that add overhead and can stall tiny datasets while holding CUDA context.
     nw = min(os.cpu_count() // max(nd, 1), workers, 0 if batches <= 1 else batches)  # number of workers
     generator = torch.Generator()
-    generator.manual_seed(6148914691236517205 + RANK + seed)
+    generator.manual_seed((6148914691236517205 + RANK + seed) % (1 << 64))
     pin_memory = nd > 0 and pin_memory
     pin_memory_device = (
         device_type if pin_memory and device_type in {"npu", "xpu"} and TORCH_1_13 and not TORCH_2_7 else None

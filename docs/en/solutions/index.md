@@ -51,17 +51,17 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 
 !!! note "Track args"
 
-     Solutions also support some of the arguments from `track`, including parameters such as `conf`, `line_width`, `tracker`, `model`, `show`, `verbose` and `classes`.
+     Solutions forward some of their arguments to `track`, namely `tracker`, `conf`, `iou`, `classes` and `device`.
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 !!! note "Visualization args"
 
     You can use `show_conf`, `show_labels`, and other mentioned arguments to customize the visualization.
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
+{{ param_table(["show", "show_conf", "show_labels"]) }}
 
 ### Usage of SolutionAnnotator
 

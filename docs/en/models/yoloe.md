@@ -1015,7 +1015,7 @@ Most readers never need this. It reproduces the published open-vocabulary checkp
         )
         ```
 
-        Re-parameterize the trained model into a prompt-free one, which then reports the given names with no prompt at inference.
+        Re-parameterize the trained model into a prompt-free one, which then reports the given names with no prompt at inference. This assumes the default segmentation path; a run started from `yoloe-26l-seg-det.pt` writes to `runs/detect/` instead.
 
         ```python
         from ultralytics import YOLOE
@@ -1024,8 +1024,8 @@ Most readers never need this. It reproduces the published open-vocabulary checkp
         # directory (train-2, train-3, ...), so take the path the run printed.
         model = YOLOE("runs/segment/train/weights/best.pt")
 
-        # get_vocab fuses the text head, so build the vocabulary on a fresh checkpoint.
-        names = ["person", "bus", "dog"]  # released checkpoints use the 4,585-name tag list
+        # get_vocab needs an unfused text head, which the trained checkpoint no longer has.
+        names = list(YOLOE("yoloe-26l-seg-pf.pt").model.names.values())  # or your own list
         vocab = YOLOE("yoloe-26l-seg.pt").get_vocab(names)
 
         model.set_vocab(vocab, names)

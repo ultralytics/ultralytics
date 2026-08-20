@@ -36,11 +36,12 @@ The Deployment section helps you:
 
 Ultralytics Platform offers multiple deployment paths:
 
-| Option                                  | Description                                              | Best For                |
-| --------------------------------------- | -------------------------------------------------------- | ----------------------- |
-| **[Predict Tab](inference.md)**         | Browser-based inference with image, webcam, and examples | Development, validation |
-| **Shared Inference**                    | Multi-tenant service across 3 regions                    | Light usage, testing    |
-| **[Dedicated Endpoints](endpoints.md)** | Single-tenant services across 42 regions                 | Production, low latency |
+| Option                                        | Description                                              | Best For                |
+| --------------------------------------------- | -------------------------------------------------------- | ----------------------- |
+| **[Predict Tab](inference.md)**               | Browser-based inference with image, webcam, and examples | Development, validation |
+| **Shared Inference**                          | Multi-tenant service across 3 data regions               | Light usage, testing    |
+| **[Dedicated Endpoints](endpoints.md)**       | Single-tenant services across 42 regions                 | Production, low latency |
+| **[Export](../train/models.md#export-model)** | Download weights in 20 formats for local or edge runtime | Offline, on-device      |
 
 ## Workflow
 
@@ -55,26 +56,27 @@ graph LR
     classDef out fill:#9C27B0,color:#fff
 ```
 
-| Stage         | Description                                                              |
-| ------------- | ------------------------------------------------------------------------ |
-| **Test**      | Validate model with the [`Predict` tab](inference.md)                    |
-| **Configure** | Select a region and review the editable, auto-generated deployment name  |
-| **Deploy**    | Create a dedicated endpoint from the [`Deploy` tab](endpoints.md)        |
-| **Monitor**   | Track requests, latency, errors, and logs in [Monitoring](monitoring.md) |
+| Stage         | Description                                                               |
+| ------------- | ------------------------------------------------------------------------- |
+| **Test**      | Validate model with the [`Predict` tab](inference.md)                     |
+| **Configure** | Select a region; the deployment name is generated from the model and city |
+| **Deploy**    | Create a dedicated endpoint from the [`Deploy` tab](endpoints.md)         |
+| **Monitor**   | Track requests, latency, errors, and logs in [Monitoring](monitoring.md)  |
 
 ## Architecture
 
 ### Shared Inference
 
-The shared inference service runs in 3 key regions, automatically routing requests based on your data region:
+The shared inference service runs in 3 key regions. Requests to a model are routed to the service in that model's
+[data region](../account/settings.md), so results stay inside the region where the model is stored:
 
 ```mermaid
 graph TB
     User[User Request]:::start --> API[Platform API]:::proc
-    API --> Router{Region Router}:::decide
-    Router -->|US users| US["US Predict Service<br/>Iowa"]:::out
-    Router -->|EU users| EU["EU Predict Service<br/>Belgium"]:::out
-    Router -->|AP users| AP["AP Predict Service<br/>Taiwan"]:::out
+    API --> Router{Model Data Region}:::decide
+    Router -->|US models| US["US Predict Service<br/>Iowa"]:::out
+    Router -->|EU models| EU["EU Predict Service<br/>Belgium"]:::out
+    Router -->|AP models| AP["AP Predict Service<br/>Taiwan"]:::out
 
     classDef start fill:#4CAF50,color:#fff
     classDef proc fill:#2196F3,color:#fff
@@ -95,24 +97,26 @@ Deploy to 42 regions worldwide on Ultralytics Cloud:
 
 Each endpoint is a single-tenant service with:
 
-- Default resources of `1 CPU`, `2 GiB` memory, `minInstances=0`, `maxInstances=1`
+- Platform-managed sizing (not configurable today)
 - Scale-to-zero when idle
-- Unique endpoint URL
+- Unique endpoint URL with its own interactive API reference at `/docs`
+- Its own API key binding, so only that key can call the endpoint
 - Independent monitoring, logs, and health checks
 
 ## Deployments Page
 
 Access the global deployments page from the sidebar under `Deploy`. This page shows:
 
-- **World map** with deployed region pins (interactive map)
+- **World map** with deployed region pins; click a region to open the `New Deployment` dialog
 - **Overview cards**: Total Requests (24h), Active Deployments, Error Rate (24h), P95 Latency (24h)
 - **Deployments list** with three view modes: cards, compact, and table
 - **New Deployment** button to create endpoints from any completed model
+- **Refresh** button and an `Updated` timestamp in the page header
 
 ![Ultralytics Platform Deploy Page Overview Cards And Deployments List](https://cdn.ul.run/i/eb51c1bb9c4884b4b1bc89e4caf94eee.avif)<!-- screenshot -->
 !!! info "Automatic Polling"
 
-    The page polls every 15 seconds normally. When deployments are in a transitional state (`creating`, `deploying`, or `stopping`), polling increases to every 3 seconds for faster feedback.
+    The page refreshes automatically, polling faster while deployments are in a transitional state (`creating`, `deploying`, or `stopping`). See [Monitoring](monitoring.md) for details.
 
 ## Key Features
 
@@ -128,8 +132,10 @@ Deploy close to your users with 42 regions covering:
 
 Endpoints currently behave as follows:
 
-- **Scale to zero**: `minInstances` defaults to `0`
-- **Single active instance**: `maxInstances` is currently capped at `1` on all plans
+- **Scale to zero**: idle endpoints scale down to zero and cold-start on the next request
+- **Single active instance**: each endpoint currently serves from one instance on all plans
+- **Load shedding**: requests receive `429` responses when the endpoint is temporarily at capacity — see [Direct Endpoint Requests](endpoints.md#direct-endpoint-requests)
+- **Request timeout**: each request may run for up to 1 hour, which is enough for video inference
 
 ### Regional Deployment
 
@@ -142,7 +148,7 @@ Each running deployment includes an automatic health check with:
 
 - Live status indicator (healthy/unhealthy)
 - Response latency display
-- Auto-retry when unhealthy (polls every 20 seconds)
+- Auto-retry when unhealthy, stopping once healthy
 - Manual refresh button
 
 ## Quick Start
@@ -160,7 +166,7 @@ Create a deployment:
     Model → Deploy tab → Select region → Click Deploy → Endpoint URL ready
     ```
 
-    Once deployed, use the endpoint URL with your API key to send inference requests from any application.
+    The deployment name is generated from the model name and the region city, so no naming step is required. Once deployed, use the endpoint URL with your API key to send inference requests from any application.
 
 ## Quick Links
 
@@ -172,22 +178,26 @@ Create a deployment:
 
 ### What's the difference between shared and dedicated inference?
 
-| Feature     | Shared                       | Dedicated                            |
-| ----------- | ---------------------------- | ------------------------------------ |
-| **Service** | Shared across Platform users | Dedicated to one deployment          |
-| **Scale**   | Managed by Platform          | Scale-to-zero, one instance          |
-| **Regions** | 3 data regions               | Choose from 42 deployment regions    |
-| **URL**     | Platform model API           | Generated deployment endpoint URL    |
-| **Testing** | Model `Predict` tab          | Deployment-card `Predict` tab or API |
+| Feature         | Shared                       | Dedicated                                |
+| --------------- | ---------------------------- | ---------------------------------------- |
+| **Service**     | Shared across Platform users | Dedicated to one deployment              |
+| **Scale**       | Managed by Platform          | Scale-to-zero, one instance              |
+| **Regions**     | 3 data regions               | Choose from 42 deployment regions        |
+| **URL**         | Platform model API           | Generated deployment endpoint URL        |
+| **Testing**     | Model `Predict` tab          | Deployment-card `Predict` tab or API     |
+| **Rate limits** | 20 requests/minute           | No Platform rate limit on direct calls   |
+| **Auth**        | Any workspace API key        | Only the API key bound to the deployment |
 
 ### How long does deployment take?
 
 The deployment remains in a creating or deploying state while its service starts. It becomes usable when the status
-changes to **Ready**; timing varies by model and region.
+changes to **Ready**; timing varies by model and region, and typically takes a few minutes.
 
 ### Can I deploy multiple models?
 
-Yes, each model can have multiple endpoints in different regions. Deployment counts are limited by plan: Free `3`, Pro `10`, Enterprise `unlimited`.
+Yes, each model can have multiple endpoints in different regions. Deployment counts are limited by plan: Free `3`, Pro
+`10`, Enterprise `unlimited`. The quota is charged to the workspace that owns the model, and an endpoint serves exactly
+one model at a time — use [model replacement](endpoints.md#replace-a-model) to swap it without changing the URL.
 
 ### What happens when an endpoint is idle?
 
@@ -197,4 +207,5 @@ With scale-to-zero enabled:
 - First request triggers cold start
 - Subsequent requests are fast
 
-First requests after an idle period trigger a cold start.
+First requests after an idle period trigger a cold start. Opening the deployment card runs a health check that warms
+the endpoint, so a test prediction right after it responds quickly.

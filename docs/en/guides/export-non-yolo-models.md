@@ -167,7 +167,7 @@ Requirements:
 - `onnx2tf>=1.26.3,<1.29.0`
 - `tf_keras<=2.19.0`
 - `sng4onnx>=1.0.1`
-- `onnx_graphsurgeon>=0.3.26` (install with `--extra-index-url https://pypi.ngc.nvidia.com`)
+- `onnx_graphsurgeon>=0.3.26`
 - `ai-edge-litert>=1.2.0,<1.4.0` on macOS (`ai-edge-litert>=1.2.0` on other platforms)
 - `onnxslim>=0.1.82`
 - `onnx>=1.12.0,<2.0.0`

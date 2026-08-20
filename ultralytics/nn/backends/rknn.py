@@ -60,11 +60,27 @@ class RKNNBackend(BaseBackend):
         """Run inference on the Rockchip NPU.
 
         Args:
-            im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
+            im (torch.Tensor): Input image tensor in BHWC format, normalized to [0, 1].
 
         Returns:
             (list): Model predictions as a list of output arrays.
         """
+        h, w = im.shape[1:3]
         im = (im.cpu().numpy() * 255).astype("uint8")
         im = im if isinstance(im, (list, tuple)) else [im]
-        return self.model.inference(inputs=im)
+        y = self.model.inference(inputs=im)
+        # INT8 exports use input-relative coordinates so a single per-tensor scale preserves class scores.
+        if (
+            self.metadata.get("args", {}).get("quantize") == 8
+            and self.task in {"detect", "segment", "pose", "obb"}
+            and not self.end2end
+        ):
+            kpt_start = 4 + len(self.names)  # pose keypoints follow the box (4) and class-score (nc) channels
+            for x in y:
+                if x.ndim == 3:
+                    x[:, [0, 2]] *= w
+                    x[:, [1, 3]] *= h
+                    if self.task == "pose":
+                        x[:, kpt_start::3] *= w
+                        x[:, kpt_start + 1 :: 3] *= h
+        return y

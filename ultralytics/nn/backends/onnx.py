@@ -38,7 +38,7 @@ class ONNXBackend(BaseBackend):
         device: torch.device,
         fp16: bool = False,
         format: str = "onnx",
-        session_options=None,
+        session_options: object | None = None,
     ):
         """Initialize the ONNX backend.
 
@@ -47,7 +47,7 @@ class ONNXBackend(BaseBackend):
             device (torch.device): Device to run inference on.
             fp16 (bool): Whether to use FP16 half-precision inference.
             format (str): Inference engine, either "onnx" for ONNX Runtime or "dnn" for OpenCV DNN.
-            session_options: Optional ONNX Runtime session options.
+            session_options (object | None): Optional ONNX Runtime session options.
         """
         assert format in {"onnx", "dnn"}, f"Unsupported ONNX format: {format}."
         self.format = format

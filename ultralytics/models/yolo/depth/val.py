@@ -81,7 +81,7 @@ class DepthValidator(DetectionValidator):
             return
         totals = self.metrics._totals
         totals = (
-            totals.to(self.device) if totals is not None else torch.zeros(7, dtype=torch.float64, device=self.device)
+            totals.to(self.device) if totals is not None else torch.zeros(6, dtype=torch.float64, device=self.device)
         )
         count = torch.tensor([self.metrics._count], dtype=torch.float64, device=self.device)
         dist.all_reduce(totals, op=dist.ReduceOp.SUM)

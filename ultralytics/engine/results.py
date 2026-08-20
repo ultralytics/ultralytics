@@ -249,8 +249,8 @@ class Results(SimpleClass, DataExportMixin):
         obb: torch.Tensor | None = None,
         speed: dict[str, float] | None = None,
         semantic_mask: torch.Tensor | None = None,
-        logits: torch.Tensor | None = None,
         depth: torch.Tensor | None = None,
+        logits: torch.Tensor | None = None,
     ) -> None:
         """Initialize the Results class for storing and manipulating inference results.
 

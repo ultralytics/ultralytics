@@ -215,6 +215,7 @@ class YOLODETRTrainer(RTDETRTrainer):
     """
 
     _DEIM_DEFAULTS = _YOLODETR_DEFAULTS
+    _MAX_GRAD_NORM = 0.1
     _epoch_callback_registered = False
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):

@@ -316,7 +316,7 @@ class BasePredictor:
             self.setup_source(source if source is not None else self.args.source)
 
             # Reset FPS tracking for new source
-            self.last_frame_process_time = 0.0
+            self.last_frame_process_time = {}
 
             # Check if save_dir/ label file exists
             if self.args.save or self.args.save_txt:
@@ -541,12 +541,12 @@ class BasePredictor:
             mode = getattr(self.dataset, "mode", None)
             if mode in {"video", "stream"}:
                 current_frame_process_time = time.perf_counter()
-                if self.last_frame_process_time != 0:
-                    fps = 1 / max(current_frame_process_time - self.last_frame_process_time, 1e-6)
+                if last_frame_process_time := self.last_frame_process_time.get(p):
+                    fps = 1 / max(current_frame_process_time - last_frame_process_time, 1e-6)
                     cv2.putText(
                         im, f"FPS: {fps:.2f}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2, cv2.LINE_AA
                     )
-                self.last_frame_process_time = current_frame_process_time
+                self.last_frame_process_time[p] = current_frame_process_time
 
         if platform.system() in {"Linux", "Windows"} and p not in self.windows:  # macOS scales natively
             self.windows.append(p)

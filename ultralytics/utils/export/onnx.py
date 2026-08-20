@@ -52,6 +52,7 @@ def onnx_int8_quantize(
     # ONNX Runtime crash on the uncalibrated attention Softmax.
     graph = onnx.load(onnx_file).graph
     exclude = [n.name for n in graph.node if n.op_type not in {"Conv", "Gemm", "MatMul"}]
+    del graph
 
     LOGGER.info(f"{prefix} quantizing INT8 with ONNX Runtime...")
     quantize_static(

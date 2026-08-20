@@ -244,22 +244,12 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
         # Freeze all backbone and neck layers (i.e., everything before the head)
         freeze = [str(i) for i in range(head_index)]
 
-        # Freeze parts of the segmentation head, keeping only the classification branch trainable
-        for name, child in model.model.model[-1].named_children():
-            if "cv3" not in name:
+        # Freeze the whole head except the terminal conv of every classification tower
+        for name, _ in model.model.model[-1].named_children():
+            if "cv3" in name:  # cv3, plus one2one_cv3 on end-to-end YOLOE-26 configs
+                freeze.extend(f"{head_index}.{name}.{i}.{j}" for i in range(3) for j in (0, 1))
+            else:
                 freeze.append(f"{head_index}.{name}")
-
-        # Freeze detection branch components
-        freeze.extend(
-            [
-                f"{head_index}.cv3.0.0",
-                f"{head_index}.cv3.0.1",
-                f"{head_index}.cv3.1.0",
-                f"{head_index}.cv3.1.1",
-                f"{head_index}.cv3.2.0",
-                f"{head_index}.cv3.2.1",
-            ]
-        )
 
         # Train only the classification branch
         results = model.train(
@@ -291,22 +281,12 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
         # Freeze all backbone and neck layers (i.e., everything before the head)
         freeze = [str(i) for i in range(head_index)]
 
-        # Freeze parts of the segmentation head, keeping only the classification branch trainable
-        for name, child in model.model.model[-1].named_children():
-            if "cv3" not in name:
+        # Freeze the whole head except the terminal conv of every classification tower
+        for name, _ in model.model.model[-1].named_children():
+            if "cv3" in name:  # cv3, plus one2one_cv3 on end-to-end YOLOE-26 configs
+                freeze.extend(f"{head_index}.{name}.{i}.{j}" for i in range(3) for j in (0, 1))
+            else:
                 freeze.append(f"{head_index}.{name}")
-
-        # Freeze detection branch components
-        freeze.extend(
-            [
-                f"{head_index}.cv3.0.0",
-                f"{head_index}.cv3.0.1",
-                f"{head_index}.cv3.1.0",
-                f"{head_index}.cv3.1.1",
-                f"{head_index}.cv3.2.0",
-                f"{head_index}.cv3.2.1",
-            ]
-        )
 
         # Train only the classification branch
         results = model.train(
@@ -982,20 +962,11 @@ Most readers never need this. It reproduces the published open-vocabulary checkp
         # freeze layers.
         head_index = len(model.model.model) - 1
         freeze = [str(f) for f in range(head_index)]
-        for name, child in model.model.model[-1].named_children():
-            if "cv3" not in name:
+        for name, _ in model.model.model[-1].named_children():
+            if "cv3" in name:  # cv3, plus one2one_cv3 on end-to-end YOLOE-26 configs
+                freeze.extend(f"{head_index}.{name}.{i}.{j}" for i in range(3) for j in (0, 1))
+            else:
                 freeze.append(f"{head_index}.{name}")
-
-        freeze.extend(
-            [
-                f"{head_index}.cv3.0.0",
-                f"{head_index}.cv3.0.1",
-                f"{head_index}.cv3.1.0",
-                f"{head_index}.cv3.1.1",
-                f"{head_index}.cv3.2.0",
-                f"{head_index}.cv3.2.1",
-            ]
-        )
 
         model.train(
             data=data,

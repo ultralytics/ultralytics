@@ -121,7 +121,7 @@ class SAM(Model):
         # An export states the size it was traced at, so honor that over the checkpoint default.
         imgsz = getattr(self.model, "imgsz", None) if self.is_exported_dir else None
         overrides = {"conf": 0.25, "task": "segment", "mode": "predict", "imgsz": imgsz or 1024}
-        kwargs = {**overrides, **kwargs}
+        kwargs = {**overrides, **kwargs, "retina_masks": True}
         prompts = {"bboxes": bboxes, "points": points, "labels": labels}
         if text is not None:
             prompts["text"] = text

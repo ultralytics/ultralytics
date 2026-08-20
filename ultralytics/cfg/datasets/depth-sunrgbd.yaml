@@ -8,7 +8,7 @@
 # └── datasets
 #     └── depth-sunrgbd  ← downloads here (6.5 GB archive, ~14 GB converted)
 #         ├── images/{train,val}  # RGB images
-#         └── depth/{train,val}   # paired *.npy, float32 meters (images/ -> depth/)
+#         └── depth/{train,val}   # paired 16-bit *.png depth maps (images/ -> depth/)
 # If an interrupted download leaves a partial dataset, delete the depth-sunrgbd dir and re-run to rebuild it.
 
 path: depth-sunrgbd # dataset root dir (relative to Ultralytics settings 'datasets_dir')
@@ -30,6 +30,7 @@ download: |
   import cv2
   import numpy as np
 
+  from ultralytics.data.utils import save_depth_png
   from ultralytics.utils import TQDM
   from ultralytics.utils.downloads import download
 
@@ -48,6 +49,6 @@ download: |
       split = "val" if name in val else "train"
       d = cv2.imread(str(next((scene / "depth_bfx").glob("*.png"))), cv2.IMREAD_ANYDEPTH)
       d = (((d >> 3) | (d << 13)) / 1000.0).clip(max=10).astype(np.float32)  # bit-rotated mm -> m
-      np.save(dir / "depth" / split / f"{name}.npy", d)
+      save_depth_png(dir / "depth" / split / f"{name}.png", d)
       next((scene / "image").glob("*.jpg")).replace(dir / "images" / split / f"{name}.jpg")
   shutil.rmtree(dir / "source")

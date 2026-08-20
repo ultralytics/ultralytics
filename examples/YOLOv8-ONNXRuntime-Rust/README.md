@@ -165,7 +165,7 @@ cargo run --release -- --help
 
 ## 🖼️ Examples
 
-![Ultralytics YOLO Tasks](https://raw.githubusercontent.com/ultralytics/assets/main/im/banner-tasks.png)
+![Ultralytics YOLO Tasks](https://cdn.ul.run/i/c99d914c3958d0755b5a3d7204b6f24a.avif)
 
 ### Classification
 

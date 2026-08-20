@@ -10,6 +10,7 @@ from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from urllib import parse
+from uuid import uuid4
 
 from ultralytics.utils import ASSETS_BASE_URL, ASSETS_URL, LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
 
@@ -75,11 +76,11 @@ def is_url(url: str | Path, check: bool = False) -> bool:
 
 
 def delete_dsstore(path: str | Path, files_to_delete: tuple[str, ...] = (".DS_Store", "__MACOSX")) -> None:
-    """Delete all specified system files in a directory.
+    """Delete all specified system files and directories in a directory.
 
     Args:
         path (str | Path): The directory path where the files should be deleted.
-        files_to_delete (tuple[str, ...]): The files to be deleted.
+        files_to_delete (tuple[str, ...]): Names of files and directories to delete.
 
     Examples:
         >>> from ultralytics.utils.downloads import delete_dsstore
@@ -90,10 +91,13 @@ def delete_dsstore(path: str | Path, files_to_delete: tuple[str, ...] = (".DS_St
         are hidden system files and can cause issues when transferring files between different operating systems.
     """
     for file in files_to_delete:
-        matches = list(Path(path).rglob(file))
+        matches = sorted(Path(path).rglob(file), key=lambda x: len(x.parts), reverse=True)
         LOGGER.info(f"Deleting {file} files: {matches}")
         for f in matches:
-            f.unlink()
+            if f.is_dir() and not f.is_symlink():
+                shutil.rmtree(f)
+            else:
+                f.unlink()
 
 
 def zip_directory(
@@ -343,6 +347,8 @@ def safe_download(
             uri = (url if gdrive else clean_url(url)).replace(ASSETS_URL, "https://ultralytics.com/assets")  # clean
             desc = f"Downloading {uri} to '{f}'"
             f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
+            target = f
+            f = target.with_name(f".{target.name}.{uuid4().hex}.part")  # publish only after size validation
             curl_installed = shutil.which("curl")
             expected_size = None  # set from Content-Length; reused to validate curl retries
             for i in range(retry + 1):
@@ -386,6 +392,8 @@ def safe_download(
                                     f"Partial download: {file_size}/{expected_size} bytes ({file_size / expected_size * 100:.1f}%)"
                                 )
                             else:
+                                f.replace(target)
+                                f = target
                                 break  # success
                         f.unlink()  # remove partial downloads
                 except MemoryError:

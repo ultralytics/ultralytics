@@ -3,10 +3,10 @@ title: ADE20K Segmentation Dataset
 comments: true
 creator:
     name: MIT CSAIL
-    url: https://ade20k.csail.mit.edu/
+    url: https://github.com/CSAILVision/ADE20K
 license:
     name: Research-Only
-    url: https://ade20k.csail.mit.edu/terms
+    url: https://github.com/CSAILVision/ADE20K#terms
 description: Train Ultralytics YOLO on the ADE20K dataset — 20,210 training and 2,000 validation images across 150 scene-parsing classes for semantic segmentation.
 keywords: ADE20K dataset, semantic segmentation, scene parsing, Ultralytics YOLO, YOLO26, ADEChallengeData2016, computer vision, deep learning
 ---
@@ -84,7 +84,7 @@ To train a YOLO26n-sem model on the ADE20K dataset for 100 [epochs](https://www.
 
 ## Citations, License and Acknowledgments
 
-ADE20K images are released for [non-commercial research and educational use only](https://ade20k.csail.mit.edu/terms); the dataset's annotation software is separately licensed under BSD-3. Commercial use requires permission from MIT CSAIL.
+ADE20K images are released for [non-commercial research and educational use only](https://github.com/CSAILVision/ADE20K#terms); the dataset's annotation software is separately licensed under BSD-3. Commercial use requires permission from MIT CSAIL.
 
 If you use the ADE20K dataset in your research or development work, please cite the following paper:
 
@@ -148,4 +148,4 @@ ADE20K annotation masks store source label IDs where `0` denotes the ignore or b
 
 ### Is the ADE20K dataset free for commercial use?
 
-No. ADE20K images are released under [terms restricting use to non-commercial research and education](https://ade20k.csail.mit.edu/terms); the accompanying annotation software is separately licensed under BSD-3. Contact MIT CSAIL for commercial licensing options.
+No. ADE20K images are released under [terms restricting use to non-commercial research and education](https://github.com/CSAILVision/ADE20K#terms); the accompanying annotation software is separately licensed under BSD-3. Contact MIT CSAIL for commercial licensing options.

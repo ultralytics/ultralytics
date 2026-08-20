@@ -117,7 +117,7 @@ class Tuner:
             "mosaic": (0.0, 1.0),  # image mosaic (probability)
             "mixup": (0.0, 1.0),  # image mixup (probability)
             "cutmix": (0.0, 1.0),  # image cutmix (probability)
-            "copy_paste": (0.0, 1.0),  # segment copy-paste (probability)
+            "copy_paste": (0.0, 1.0),  # segment copy-paste (object fraction)
             "close_mosaic": (0.0, 10.0),  # close dataloader mosaic (epochs)
         }
         mongodb_uri = args.pop("mongodb_uri", None)

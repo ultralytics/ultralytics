@@ -52,7 +52,7 @@ The semantic masks are single-channel PNG files. The original Cityscapes label I
 
 Cityscapes is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in semantic segmentation, particularly for [autonomous driving](https://www.ultralytics.com/glossary/autonomous-vehicles), advanced driver-assistance systems (ADAS), and urban robotics.
 
-Its high-resolution images and detailed annotations also make it valuable for research on real-time scene parsing, lane and obstacle understanding, and any task that requires dense pixel-level understanding of complex urban environments. Pretrained YOLO26 semantic segmentation models reach up to 83.6 mIoU on the Cityscapes validation set — see the [semantic segmentation models](../../tasks/semantic.md) page for the full benchmark table. Cityscapes annotations are also available on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/cityscapes) for browsing and dataset management.
+Its high-resolution images and detailed annotations also make it valuable for research on real-time scene parsing, lane and obstacle understanding, and any task that requires dense pixel-level understanding of complex urban environments. Pretrained YOLO26 semantic segmentation models reach up to 83.6 mIoU on the Cityscapes validation set — see the [semantic segmentation models](../../tasks/semantic.md) page for the full benchmark table. You can organize, visualize, and manage Cityscapes data throughout the model development workflow with [Ultralytics Platform](https://platform.ultralytics.com/).
 
 ## Dataset YAML
 

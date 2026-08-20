@@ -110,7 +110,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
     def get_vpe(self, source):
         """Extract visual prompt embeddings from one source image."""
         self.setup_source(source)
-        assert len(self.dataset) == self.dataset.bs, "get_vpe only supports a single image or a list of images!"
+        assert len(self.dataset) == 1, "get_vpe only supports one image!"
         for _, im0s, _ in self.dataset:
             im = self.preprocess(im0s)
             return self.model(im, vpe=self.visuals, return_vpe=True)

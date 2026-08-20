@@ -376,53 +376,6 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         model.export(format="onnx")
         ```
 
-        You can also pass a list of reference images to `refer_image`, with one set of prompts per reference image, to condition each class on several examples:
-
-        ```python
-        import numpy as np
-
-        from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
-
-        # Initialize a YOLOE model
-        model = YOLOE("yoloe-26l-seg.pt")
-
-        # Define visual prompts using bounding boxes and their corresponding class IDs.
-        # Each box highlights an example of the object you want the model to detect.
-        # For multiple reference images, prompts are a list of numpy arrays, one per reference image.
-        visual_prompts = {
-            "bboxes": [
-                np.array([[150, 200, 1150, 700]]),  # Box enclosing person in reference image 1
-                np.array(
-                    [
-                        [221.52, 405.8, 344.98, 857.54],  # Box enclosing person in reference image 2
-                        [120, 425, 160, 445],  # Box enclosing glasses in reference image 2
-                    ],
-                ),
-            ],
-            "cls": [
-                np.array([0]),  # ID to be assigned for person in reference image 1
-                np.array(
-                    [
-                        0,  # ID to be assigned for person in reference image 2
-                        1,  # ID to be assigned for glasses in reference image 2
-                    ]
-                ),
-            ],
-        }
-
-        # Run prediction on a different image, using the reference images to guide what to look for
-        results = model.predict(
-            "ultralytics/assets/bus.jpg",  # Target image for detection
-            refer_image=["ultralytics/assets/zidane.jpg", "ultralytics/assets/bus.jpg"],  # Multiple reference images
-            visual_prompts=visual_prompts,
-            predictor=YOLOEVPSegPredictor,
-        )
-
-        # Show results
-        results[0].show()
-        ```
-
         You can also use PyTorch tensors directly as both the source and `refer_image`, which is useful when images are already in tensor format from an existing pipeline:
 
         ```python
@@ -465,7 +418,6 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
 
         # Define visual prompts using bounding boxes and their corresponding class IDs.
         # Each box highlights an example of the object you want the model to detect.
-        # For multiple target images, prompts are a list of numpy arrays, one per target image.
         visual_prompts = {
             "bboxes": [
                 np.array(

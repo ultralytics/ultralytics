@@ -109,17 +109,17 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
 Here's a table with the `TrackZone` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "region"]) }}
+{{ param_table(["model", "region", "line_width", "verbose"]) }}
 
 The TrackZone solution includes support for `track` parameters:
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 Moreover, the following visualization options are available:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
+{{ param_table(["show", "show_conf", "show_labels"]) }}
 
 ## Count Objects Inside the Zone
 

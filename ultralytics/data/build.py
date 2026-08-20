@@ -352,7 +352,7 @@ def build_dataloader(
     sampler = (
         None
         if rank == -1
-        else distributed.DistributedSampler(dataset, shuffle=shuffle)
+        else distributed.DistributedSampler(dataset, shuffle=shuffle, seed=seed)
         if shuffle
         else ContiguousDistributedSampler(dataset)
     )

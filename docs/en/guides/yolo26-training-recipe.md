@@ -37,7 +37,7 @@ Every YOLO26 COCO checkpoint was fine-tuned from an Objects365v1 checkpoint of t
 | `yolo26l.pt`    | `yolo26l-objv1-150.pt` |
 | `yolo26x.pt`    | `yolo26x-objv1-150.pt` |
 
-Pretraining used stock defaults rather than searched values, and the settings are identical across sizes except for augmentation strength:
+Pretraining used mostly default settings rather than searched values. `lr0`, `lrf`, `momentum`, `weight_decay`, `box`, and `cls` match `default.yaml`, while `warmup_epochs`, `close_mosaic`, and `dfl` were overridden. The values are shared across sizes apart from `warmup_epochs` on X and the augmentation strengths:
 
 | Setting               | Value           |
 | --------------------- | --------------- |
@@ -62,7 +62,7 @@ Pretraining used stock defaults rather than searched values, and the settings ar
 
 !!! tip "Start from the Objects365 weights"
 
-    You do not need the Objects365 dataset to reuse stage 1. The pretrained checkpoints download automatically like any other Ultralytics asset, so you can jump straight to the COCO stage or to your own dataset:
+    You do not need the Objects365 dataset to reuse stage 1. The pretrained checkpoints download automatically like any other Ultralytics asset, so you can fine-tune them on your own dataset:
 
     === "Python"
 
@@ -70,14 +70,16 @@ Pretraining used stock defaults rather than searched values, and the settings ar
         from ultralytics import YOLO
 
         model = YOLO("yolo26s-objv1-150.pt")
-        results = model.train(data="coco.yaml", epochs=70, imgsz=640, batch=128, optimizer="MuSGD")
+        results = model.train(data="your-dataset.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
-        yolo train model=yolo26s-objv1-150.pt data=coco.yaml epochs=70 imgsz=640 batch=128 optimizer=MuSGD
+        yolo train model=yolo26s-objv1-150.pt data=your-dataset.yaml epochs=100 imgsz=640
         ```
+
+    To rerun the COCO stage instead, start from the same weights and pass the stage 2 values for that size from the tables below.
 
 ## Inspecting YOLO26 Checkpoint Training Args
 
@@ -147,7 +149,7 @@ print(ckpt["train_metrics"])  # final validation metrics
 print(ckpt["git"])  # repository, branch, and commit of the run
 ```
 
-The number of logged rows always equals `train_args["epochs"]`, so these curves are complete rather than truncated. `yolo26s.pt` logs 70 rows because its COCO stage ran for 70 epochs on top of Objects365 pretraining, and the 150-epoch Objects365 curve is stored in `yolo26s-objv1-150.pt`. [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26) reads the same data out of the checkpoints and renders it as charts.
+For the released YOLO26 runs the number of logged rows equals `train_args["epochs"]`, so these curves are complete rather than truncated. A run can log fewer rows than `epochs` when early stopping (`patience`), a `time` limit, or an interruption ends it early. `yolo26s.pt` logs 70 rows because its COCO stage ran for 70 epochs on top of Objects365 pretraining, and the 150-epoch Objects365 curve is stored in `yolo26s-objv1-150.pt`. [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26) reads the same data out of the checkpoints and renders it as charts.
 
 ### Checking the Code Revision
 
@@ -329,7 +331,7 @@ No. Each COCO checkpoint was fine-tuned from an Objects365v1 checkpoint of the s
 
 ### Where are the full training logs and loss curves?
 
-Inside the checkpoints. `ckpt["train_results"]` holds the complete per-epoch `results.csv` of the run — losses, precision, recall, mAP50, mAP50-95, and learning rates — and the row count matches `epochs` exactly. See [Reading the Embedded Training Log](#reading-the-embedded-training-log) for the code, or browse the same data as charts on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26). The Objects365 stage has its own log in the `yolo26*-objv1-150.pt` checkpoints.
+Inside the checkpoints. `ckpt["train_results"]` holds the complete per-epoch `results.csv` of the run — losses, precision, recall, mAP50, mAP50-95, and learning rates — and for the released YOLO26 runs the row count matches `epochs` exactly. See [Reading the Embedded Training Log](#reading-the-embedded-training-log) for the code, or browse the same data as charts on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26). The Objects365 stage has its own log in the `yolo26*-objv1-150.pt` checkpoints.
 
 ### Can I reproduce the published COCO metrics with the released package?
 

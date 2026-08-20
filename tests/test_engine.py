@@ -418,22 +418,14 @@ def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrain
 
 
 def test_match_predictions_iou_priority():
-    """Regression: highest-IoU detection wins when two detections compete for the same ground truth."""
+    """Test matching restores IoU order before ground-truth deduplication."""
     from ultralytics.engine.validator import BaseValidator
 
     validator = object.__new__(BaseValidator)
-    validator.iouv = torch.linspace(0.5, 0.95, 10)
+    validator.iouv = torch.tensor([0.2])
+    iou = torch.tensor([[0.64, 0.27, 0.04], [0.02, 0.81, 0.91], [0.61, 0.73, 0.54]])
+    classes = torch.zeros(3, dtype=torch.long)
 
-    # Two detections, same class, same ground truth; det0 has IoU=0.9, det1 has IoU=0.8.
-    # det0 must be matched (TP) and det1 must not (FP).
-    pred_classes = torch.tensor([0, 0])
-    true_classes = torch.tensor([0])
-    iou = torch.tensor([[0.9, 0.8]])  # shape (1 gt, 2 detections) = (M, N)
+    correct = validator.match_predictions(classes, classes, iou)
 
-    correct = validator.match_predictions(pred_classes, true_classes, iou)
-
-    # At IoU threshold 0.5 and 0.9: det0 (higher IoU) should be TP, det1 FP.
-    assert correct[0, 0].item(), "det0 (IoU=0.9) must be TP at threshold 0.5"
-    assert not correct[1, 0].item(), "det1 (IoU=0.8) must be FP when det0 already claims the gt"
-    # At threshold 0.95 neither detection qualifies.
-    assert not correct[0, 9].item(), "det0 (IoU=0.9) must be FP at threshold 0.95"
+    assert correct[:, 0].tolist() == [True, False, True]  # keep 0.91 (detection 2), not 0.81 (detection 1)

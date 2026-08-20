@@ -62,17 +62,21 @@ class OpenVINOBackend(BaseBackend):
         if LINUX and ARM64 and device_name == "CPU":
             config["EXECUTION_MODE_HINT"] = ov.properties.hint.ExecutionMode.ACCURACY
             config["INFERENCE_PRECISION_HINT"] = ov.Type.f32
+        if (
+            self.task == "classify"
+            and device_name.startswith("NPU")
+            and "NPU_TURBO" in core.get_property(device_name, "SUPPORTED_PROPERTIES")
+        ):
+            config["NPU_TURBO"] = "YES"
 
         self.ov_compiled_model = core.compile_model(
             ov_model,
             device_name=device_name,
             config=config,
         )
-        execution_devices = self.ov_compiled_model.get_property("EXECUTION_DEVICES")
-        self.infer_device = ",".join(execution_devices).lower()
         LOGGER.info(
             f"Using OpenVINO {self.inference_mode} mode for batch={self.batch} inference on "
-            f"{', '.join(execution_devices)}..."
+            f"{', '.join(self.ov_compiled_model.get_property('EXECUTION_DEVICES'))}..."
         )
         self.input_name = self.ov_compiled_model.input().get_any_name()
         self.ov = ov

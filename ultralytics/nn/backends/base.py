@@ -57,8 +57,9 @@ class BaseBackend(ABC):
         channels (int): Number of input channels, typically 3 for RGB.
         end2end (bool): Whether the model includes end-to-end NMS post-processing.
         dynamic (bool): Whether the model supports dynamic input shapes.
+        base_model (bool): Whether the loaded model is an Ultralytics `BaseModel`, and so implements the `augment` and
+            `embed` forward arguments.
         metadata (dict): Model metadata dictionary containing export configuration.
-        infer_device (str): Actual hardware the backend runs on, e.g. 'cpu', 'cuda:0', 'npu', 'edgetpu'.
     """
 
     def __init__(self, weight: str | torch.nn.Module, device: torch.device | str, fp16: bool = False):
@@ -79,9 +80,9 @@ class BaseBackend(ABC):
         self.channels = 3
         self.end2end = False
         self.dynamic = False
+        self.base_model = False
         self.metadata = {}
         self.model = None
-        self.infer_device = str(device)  # actual inference device; backends override this after load_model()
         self.load_model(weight)
 
     @abstractmethod

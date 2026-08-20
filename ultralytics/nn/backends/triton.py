@@ -28,7 +28,6 @@ class TritonBackend(BaseBackend):
         from ultralytics.utils.triton import TritonRemoteModel
 
         self.model = TritonRemoteModel(weight)
-        self.infer_device = "triton"
 
         # Copy metadata from Triton model
         if hasattr(self.model, "metadata"):

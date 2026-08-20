@@ -57,7 +57,7 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
         )
 
 
-class YOLOEPESegTrainer(YOLOEPETrainer, SegmentationTrainer):
+class YOLOEPESegTrainer(YOLOEPETrainer, SegmentationTrainer):  # SegmentationTrainer.__init__ forces task="segment"
     """Fine-tune YOLOE segmentation models in linear probing way."""
 
 

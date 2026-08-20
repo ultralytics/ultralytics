@@ -249,6 +249,59 @@ def test_nan_recovery():
     assert nan_injected[0], "NaN injection failed"
 
 
+def test_best_checkpoint_is_a_validated_epoch(tmp_path):
+    """Test best.pt holds the best VALIDATED epoch when most epochs skip validation.
+
+    `self.fitness` is only assigned by validate(), so with `val_period > 1` it used to persist between validations and
+    make the `best_fitness == fitness` save condition trivially true — best.pt was then rewritten every non-validating
+    epoch and ended up holding weights that were never scored at all.
+    """
+    fitness = {3: 0.9, 6: 0.1}  # validation epochs (1-indexed) -> fitness; the peak is epoch 3
+
+    class ScriptedValTrainer(detect.DetectionTrainer):
+        """Trainer that returns a scripted fitness per epoch so checkpoint selection is deterministic."""
+
+        def validate(self):
+            """Return the scripted fitness for the current epoch, with the usual best_fitness bookkeeping."""
+            f = fitness[self.epoch + 1]
+            if self.best_fitness is None or self.best_fitness < f:
+                self.best_fitness = f
+            return {"metrics/mAP50(B)": f}, f
+
+    trainer = ScriptedValTrainer(
+        overrides={
+            "data": "coco8.yaml",
+            "model": "yolo26n.yaml",
+            "imgsz": 32,
+            "epochs": max(fitness),
+            "val_period": 3,
+            "save_period": 1,  # keep every epoch so best.pt can be identified by its weights
+            "batch": 2,
+            "nbs": 2,  # step every batch, so each epoch's weights differ once cast to fp16
+            "optimizer": "SGD",
+            "lr0": 0.5,
+            "warmup_epochs": 0.0,
+            "project": str(tmp_path),
+            "plots": False,
+        }
+    )
+    trainer.train()
+
+    def weights(name):
+        """Load a checkpoint's weight tensors, preferring the raw model over the EMA copy."""
+        ckpt = torch.load(trainer.wdir / name, map_location="cpu", weights_only=False)
+        return (ckpt.get("model") or ckpt["ema"]).state_dict()
+
+    best = weights("best.pt")
+    # epoch{N}.pt is 0-indexed, so the peak at training epoch 3 is epoch2.pt and epoch4.pt never validated
+    assert all(torch.equal(best[k].float(), v.float()) for k, v in weights("epoch2.pt").items()), (
+        "best.pt does not hold the highest-scoring validated epoch"
+    )
+    assert not all(torch.equal(best[k].float(), v.float()) for k, v in weights("epoch4.pt").items()), (
+        "best.pt holds an epoch that was never validated"
+    )
+
+
 def test_checkpoint_fp16_overflow():
     """Test a finite model whose weights overflow fp16 is still checkpointed (clamped) instead of skipped."""
 

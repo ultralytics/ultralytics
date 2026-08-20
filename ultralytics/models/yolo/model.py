@@ -80,7 +80,14 @@ class YOLO(Model):
         else:
             # Continue with default YOLO initialization
             super().__init__(model=model, task=task, verbose=verbose)
-            if hasattr(self.model, "model") and "RTDETR" in self.model.model[-1]._get_name():  # if RTDETR head
+            # Check if model has a subscriptable 'model' attribute before accessing with [-1]
+            # `self.model.model` is an nn.Sequential for every model built by parse_model. Test for
+            # subscriptability, NOT for list/tuple: an isinstance((list, tuple)) check is permanently False
+            # against a Sequential, which silently disables the RTDETR morph entirely.
+            inner = getattr(self.model, "model", None)
+            if (
+                isinstance(inner, torch.nn.Sequential) and len(inner) > 0 and "RTDETR" in inner[-1]._get_name()
+            ):  # if RTDETR head
                 from ultralytics import RTDETR
 
                 new_instance = RTDETR(self)
@@ -132,6 +139,13 @@ class YOLO(Model):
                 "trainer": yolo.semantic.SemanticSegmentationTrainer,
                 "validator": yolo.semantic.SemanticSegmentationValidator,
                 "predictor": yolo.semantic.SemanticSegmentationPredictor,
+            },
+            # Stereo 3D detection
+            "s3d": {
+                "model": yolo.s3d.Stereo3DDetModel,
+                "trainer": yolo.s3d.Stereo3DDetTrainer,
+                "validator": yolo.s3d.Stereo3DDetValidator,
+                "predictor": yolo.s3d.Stereo3DDetPredictor,
             },
         }
 

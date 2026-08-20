@@ -1,0 +1,690 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+"""3D Detection Metrics for Stereo 3D Object Detection.
+
+Implements KITTI-standard R40 evaluation with difficulty splits (Easy/Moderate/Hard).
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+
+import numpy as np
+
+from ultralytics.utils import DataExportMixin, SimpleClass
+
+# KITTI difficulty levels
+DIFFICULTY_EASY = 0
+DIFFICULTY_MODERATE = 1
+DIFFICULTY_HARD = 2
+DIFFICULTY_NAMES = ["Easy", "Mod", "Hard"]
+
+# IoU thresholds `fitness` reads, and their weights. Selection follows the threshold KITTI reports (0.7);
+# the small 0.5 term only breaks ties while 0.7 is still zero. See Stereo3DDetMetrics.fitness.
+FITNESS_IOU_WEIGHTS = {0.5: 0.1, 0.7: 0.9}
+
+# Minimum 2D bbox height in pixels for valid predictions (KITTI standard)
+MIN_HEIGHT_2D = 25
+
+
+# ---------------------------------------------------------------------------------------------------
+# 3D / BEV IoU. Moved here from ultralytics/utils/metrics.py: nothing outside s3d ever imported these,
+# and living in the shared module forced two lazy `import ultralytics.data.stereo.box3d` calls INSIDE
+# the functions to dodge a circular import — the import direction was already saying where they belong.
+# ---------------------------------------------------------------------------------------------------
+
+
+def _bev_corners(cx: float, cz: float, length: float, width: float, rot: float) -> np.ndarray:
+    """Return the 4 ground-plane (x, z) corners of a yaw-rotated 3D box footprint.
+
+    Follows the KITTI devkit convention for `rotation_y` (rotation about the camera y-axis): at rot=0 the object's
+    LENGTH extends along the local x-axis and its WIDTH along the local z-axis, matching `s3d/augment.py`,
+    `s3d/geometric.py` and `utils/plotting.py`. Corners are returned counter-clockwise.
+
+    Args:
+        cx: Box center x (lateral) in meters.
+        cz: Box center z (depth/forward) in meters.
+        length: Box length (along the object's heading) in meters.
+        width: Box width (across the object's heading) in meters.
+        rot: Yaw rotation about the y-axis in radians.
+
+    Returns:
+        (np.ndarray): (4, 2) array of (x, z) corners.
+    """
+    cos, sin = np.cos(rot), np.sin(rot)
+    hw, hl = width / 2.0, length / 2.0
+    # Local (x=length, z=width) corners, counter-clockwise in the x-z plane.
+    local = np.array([[-hl, -hw], [hl, -hw], [hl, hw], [-hl, hw]])
+    # Rotation about y maps local (x, z) -> world via [[cos, sin], [-sin, cos]],
+    # matching R = [[cos, 0, sin], [0, 1, 0], [-sin, 0, cos]] used elsewhere.
+    rotm = np.array([[cos, sin], [-sin, cos]])
+    return local @ rotm.T + np.array([cx, cz])
+
+
+def _polygon_area(poly: np.ndarray) -> float:
+    """Compute the area of a simple polygon via the shoelace formula."""
+    if len(poly) < 3:
+        return 0.0
+    x, y = poly[:, 0], poly[:, 1]
+    return 0.5 * abs(float(np.dot(x, np.roll(y, -1)) - np.dot(y, np.roll(x, -1))))
+
+
+def _convex_intersection_area(subject: np.ndarray, clip: np.ndarray) -> float:
+    """Area of the intersection of two convex polygons (Sutherland-Hodgman clipping).
+
+    Args:
+        subject: (N, 2) vertices of the subject polygon.
+        clip: (M, 2) vertices of the convex clip polygon, counter-clockwise.
+
+    Returns:
+        (float): Area of the intersection polygon (0.0 if disjoint).
+    """
+    # Ensure the clip polygon is counter-clockwise so "inside" is the left half-plane.
+    if (np.dot(clip[:, 0], np.roll(clip[:, 1], -1)) - np.dot(clip[:, 1], np.roll(clip[:, 0], -1))) < 0:
+        clip = clip[::-1]
+
+    output = [tuple(p) for p in subject]
+    cp_prev = clip[-1]
+    for cp in clip:
+        if not output:
+            break
+        edge = (cp_prev, cp)
+        ex, ey = edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]
+
+        # `edge`/`ex`/`ey` are bound as defaults rather than captured: both closures are only ever called
+        # inside this iteration, so the behavior is unchanged, but the binding is now explicit.
+        def inside(p, edge=edge, ex=ex, ey=ey):
+            return ex * (p[1] - edge[0][1]) - ey * (p[0] - edge[0][0]) >= 0
+
+        def intersect(a, b, edge=edge):
+            # Intersection of segment a-b with the infinite line through `edge`.
+            x1, y1, x2, y2 = a[0], a[1], b[0], b[1]
+            x3, y3, x4, y4 = edge[0][0], edge[0][1], edge[1][0], edge[1][1]
+            denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+            if abs(denom) < 1e-12:
+                return b
+            t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom
+            return (x1 + t * (x2 - x1), y1 + t * (y2 - y1))
+
+        input_list = output
+        output = []
+        s = input_list[-1]
+        for e in input_list:
+            if inside(e):
+                if not inside(s):
+                    output.append(intersect(s, e))
+                output.append(e)
+            elif inside(s):
+                output.append(intersect(s, e))
+            s = e
+        cp_prev = cp
+
+    return _polygon_area(np.array(output)) if len(output) >= 3 else 0.0
+
+
+def _box_to_params(box: Any | np.ndarray) -> tuple[float, float, float, float, float, float, float]:
+    """Unpack a Box3D or [x, y, z, l, w, h, rot] array into scalar parameters."""
+    from ultralytics.data.stereo.box3d import Box3D
+
+    if isinstance(box, Box3D):
+        x, y, z = box.center_3d
+        length, width, height = box.dimensions
+        return x, y, z, length, width, height, box.orientation
+    return box[0], box[1], box[2], box[3], box[4], box[5], box[6]
+
+
+def compute_bev_iou(
+    box1: Any | np.ndarray,
+    box2: Any | np.ndarray,
+    eps: float = 1e-7,
+) -> float:
+    """Compute the bird's-eye-view (BEV) IoU between two 3D boxes.
+
+    Projects both boxes onto the ground plane and computes the exact rotated 2D IoU of their footprints, ignoring the
+    vertical (height) extent. This is the standard KITTI AP_BEV overlap measure.
+
+    Args:
+        box1: First 3D box (Box3D object or array [x, y, z, l, w, h, orientation]).
+        box2: Second 3D box (Box3D object or array [x, y, z, l, w, h, orientation]).
+        eps: Small value to avoid division by zero.
+
+    Returns:
+        (float): BEV IoU value in range [0.0, 1.0].
+    """
+    x1, _, z1, l1, w1, _, rot1 = _box_to_params(box1)
+    x2, _, z2, l2, w2, _, rot2 = _box_to_params(box2)
+
+    inter_area = _convex_intersection_area(_bev_corners(x1, z1, l1, w1, rot1), _bev_corners(x2, z2, l2, w2, rot2))
+    if inter_area <= 0.0:
+        return 0.0
+    union = l1 * w1 + l2 * w2 - inter_area
+    return float(min(max(inter_area / (union + eps), 0.0), 1.0))
+
+
+def compute_3d_iou(
+    box1: Any | np.ndarray,
+    box2: Any | np.ndarray,
+    eps: float = 1e-7,
+) -> float:
+    """Compute the true rotated 3D Intersection over Union (IoU) between two 3D boxes.
+
+    Follows the KITTI evaluation convention: the bird's-eye-view (BEV) intersection of the two yaw-rotated footprints is
+    computed exactly via convex polygon clipping, then multiplied by the overlap of the vertical (height) extents to
+    obtain the intersection volume. Unlike an axis-aligned-bbox approximation, this does not overestimate overlap for
+    rotated boxes.
+
+    Args:
+        box1: First 3D box (Box3D object or array [x, y, z, l, w, h, orientation]).
+        box2: Second 3D box (Box3D object or array [x, y, z, l, w, h, orientation]).
+        eps: Small value to avoid division by zero.
+
+    Returns:
+        (float): 3D IoU value in range [0.0, 1.0].
+
+    References:
+        KITTI Object Detection Evaluation: http://www.cvlibs.net/datasets/kitti/eval_object.php
+    """
+    from ultralytics.data.stereo.box3d import Box3D
+
+    if isinstance(box1, Box3D):
+        x1, y1, z1 = box1.center_3d
+        l1, w1, h1 = box1.dimensions
+        rot1 = box1.orientation
+    else:
+        x1, y1, z1, l1, w1, h1, rot1 = box1[:7]
+
+    if isinstance(box2, Box3D):
+        x2, y2, z2 = box2.center_3d
+        l2, w2, h2 = box2.dimensions
+        rot2 = box2.orientation
+    else:
+        x2, y2, z2, l2, w2, h2, rot2 = box2[:7]
+
+    # Vertical (height) overlap. Box3D y is the geometric center, height extends +/- h/2.
+    top1, bot1 = y1 - h1 / 2.0, y1 + h1 / 2.0
+    top2, bot2 = y2 - h2 / 2.0, y2 + h2 / 2.0
+    inter_h = max(0.0, min(bot1, bot2) - max(top1, top2))
+    if inter_h <= 0.0:
+        return 0.0
+
+    # Exact BEV (ground-plane) intersection area of the two rotated footprints.
+    corners1 = _bev_corners(x1, z1, l1, w1, rot1)
+    corners2 = _bev_corners(x2, z2, l2, w2, rot2)
+    inter_area = _convex_intersection_area(corners1, corners2)
+    if inter_area <= 0.0:
+        return 0.0
+
+    intersection = inter_area * inter_h
+    volume1 = l1 * w1 * h1
+    volume2 = l2 * w2 * h2
+    union = volume1 + volume2 - intersection
+
+    iou = intersection / (union + eps)
+    return float(min(max(iou, 0.0), 1.0))
+
+
+def classify_difficulty(truncated: float, occluded: int, bbox_height_2d: float) -> int:
+    """Classify GT difficulty per KITTI criteria.
+
+    Args:
+        truncated: Truncation level [0.0, 1.0] (0=fully visible, 1=fully truncated).
+        occluded: Occlusion level (0=visible, 1=partial, 2=heavy, 3=unknown).
+        bbox_height_2d: 2D bounding box height in pixels.
+
+    Returns:
+        Difficulty level: 0=Easy, 1=Moderate, 2=Hard, -1=DontCare.
+    """
+    if bbox_height_2d >= 40 and occluded == 0 and truncated <= 0.15:
+        return DIFFICULTY_EASY
+    if bbox_height_2d >= 25 and occluded <= 1 and truncated <= 0.30:
+        return DIFFICULTY_MODERATE
+    if bbox_height_2d >= 25 and occluded <= 2 and truncated <= 0.50:
+        return DIFFICULTY_HARD
+    return -1  # DontCare
+
+
+def compute_ap_r40(recall: np.ndarray, precision: np.ndarray) -> float:
+    """Compute AP using 40-point interpolation (KITTI R40 standard).
+
+    Uses max-precision-at-recall-threshold method (not COCO-style sentinel interpolation). For each of 40 recall
+    thresholds, finds the maximum precision at recall >= threshold.
+
+    Args:
+        recall: Cumulative recall values (ascending).
+        precision: Corresponding precision values.
+
+    Returns:
+        AP value (float).
+    """
+    # Precision envelope: monotonically decreasing from right
+    envelope = precision.copy()
+    for i in range(len(envelope) - 2, -1, -1):
+        envelope[i] = max(envelope[i], envelope[i + 1])
+
+    # Sample at 40 recall points [1/40, 2/40, ..., 40/40]
+    ap = 0.0
+    for i in range(40):
+        threshold = (i + 1) / 40.0
+        mask = recall >= threshold
+        ap += float(envelope[mask].max()) if mask.any() else 0.0
+    return ap / 40.0
+
+
+class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
+    """3D Detection Metrics Calculator with KITTI-standard R40 evaluation.
+
+    Computes AP3D at IoU thresholds 0.5 and 0.7 for each class and difficulty level (Easy, Moderate, Hard) using
+    40-point recall interpolation.
+
+    Stats format (per image):
+        pred_boxes: list[Box3D] with confidence and class_id
+        gt_boxes: list[Box3D] with truncated and occluded
+        iou_matrix: np.ndarray (N_pred, N_gt) 3D IoU matrix
+        gt_difficulties: np.ndarray (N_gt,) difficulty per GT (0/1/2/-1)
+        pred_heights_2d: np.ndarray (N_pred,) 2D bbox heights in pixels
+    """
+
+    def __init__(self, names: dict[int, str] | None = None) -> None:
+        """Set up empty AP3D/AP_BEV/AOS tables for every IoU threshold and difficulty."""
+        if names is None:
+            names = {}
+        self.names = names
+        self.nc = len(names) if names else 0
+        # Keys merged into get_stats() by the validator but computed elsewhere (the 2D DetMetrics). The
+        # trainer builds the results.csv header from `keys` alone, so anything get_stats() returns but
+        # `keys` omits makes every validating epoch write more values than the header has columns.
+        self.extra_keys: list[str] = []
+        self.stats: list[dict[str, Any]] = []
+        self.speed = {"preprocess": 0.0, "inference": 0.0, "postprocess": 0.0}
+        # metric[iou_thresh][difficulty][class_id] = float
+        self.ap3d: dict[float, dict[int, dict[int, float]]] = {}
+        self.apbev: dict[float, dict[int, dict[int, float]]] = {}
+        self.aos: dict[float, dict[int, dict[int, float]]] = {}
+        # gt_counts[(difficulty, class_id)] = number of GT instances eligible at that difficulty. Recorded
+        # by _eval_class_difficulty so the weighting reuses its exact eligibility gating rather than a copy.
+        self.gt_counts: dict[tuple[int, int], int] = {}
+
+    def update_stats(self, stat: dict[str, Any]) -> None:
+        """Store per-image raw data for later processing."""
+        self.stats.append(stat)
+
+    def process(
+        self,
+        save_dir: Path = Path("."),
+        plot: bool = False,
+        on_plot: callable | None = None,
+    ) -> dict[float, dict[int, dict[int, float]]]:
+        """Process statistics and compute KITTI-standard AP3D metrics with R40."""
+        if not self.stats:
+            return {}
+
+        iou_thresholds = [0.5, 0.7]
+        difficulties = [DIFFICULTY_EASY, DIFFICULTY_MODERATE, DIFFICULTY_HARD]
+
+        self.ap3d = {iou_t: {diff: {} for diff in difficulties} for iou_t in iou_thresholds}
+        self.apbev = {iou_t: {diff: {} for diff in difficulties} for iou_t in iou_thresholds}
+        self.aos = {iou_t: {diff: {} for diff in difficulties} for iou_t in iou_thresholds}
+
+        # Collect unique class IDs
+        all_classes = set()
+        for stat in self.stats:
+            for box in stat.get("gt_boxes", []):
+                all_classes.add(box.class_id)
+            for box in stat.get("pred_boxes", []):
+                all_classes.add(box.class_id)
+        all_classes = sorted(all_classes)
+
+        if not all_classes:
+            return {}
+
+        for diff in difficulties:
+            for iou_t in iou_thresholds:
+                for cls_id in all_classes:
+                    # AP3D + AOS share the 3D matching (AOS = orientation similarity of TPs).
+                    ap3d, aos = self._eval_class_difficulty(cls_id, diff, iou_t, "iou_matrix", compute_aos=True)
+                    self.ap3d[iou_t][diff][cls_id] = ap3d
+                    self.aos[iou_t][diff][cls_id] = aos
+                    # AP_BEV uses the ground-plane footprint IoU matrix.
+                    apbev, _ = self._eval_class_difficulty(cls_id, diff, iou_t, "bev_iou_matrix", compute_aos=False)
+                    self.apbev[iou_t][diff][cls_id] = apbev
+
+        return self.ap3d
+
+    def _eval_class_difficulty(
+        self, cls_id: int, max_difficulty: int, iou_thresh: float, iou_key: str, compute_aos: bool = False
+    ) -> tuple[float, float]:
+        """Compute AP (and optionally AOS) for one class/difficulty/IoU threshold.
+
+        Uses KITTI convention: difficulty X includes all GTs at difficulty <= X.
+        Predictions matching same-class GTs outside the difficulty range are ignored
+        (neither TP nor FP), following the KITTI "don't care" matching protocol.
+        Matching is per-image, but predictions are sorted globally by confidence.
+
+        Args:
+            cls_id: Class id to evaluate.
+            max_difficulty: Highest difficulty level to include (Easy/Mod/Hard).
+            iou_thresh: IoU threshold for a true positive.
+            iou_key: Stat key selecting the IoU matrix ("iou_matrix" for 3D, "bev_iou_matrix" for BEV).
+            compute_aos: If True, also return Average Orientation Similarity over true positives.
+
+        Returns:
+            (ap, aos): R40 AP, and R40 AOS (0.0 when ``compute_aos`` is False).
+        """
+        all_preds = []  # (confidence, image_idx, local_pred_idx)
+        n_gt_total = 0
+        per_image_data = []
+
+        for img_idx, stat in enumerate(self.stats):
+            gt_boxes = stat.get("gt_boxes", [])
+            pred_boxes = stat.get("pred_boxes", [])
+            iou_matrix = stat.get(iou_key, np.zeros((0, 0)))
+            gt_difficulties = stat.get("gt_difficulties", np.array([], dtype=int))
+            pred_heights_2d = stat.get("pred_heights_2d", np.array([]))
+
+            # Evaluate GTs: class match AND valid difficulty within range
+            gt_eval_indices = [
+                i
+                for i, box in enumerate(gt_boxes)
+                if box.class_id == cls_id and i < len(gt_difficulties) and 0 <= gt_difficulties[i] <= max_difficulty
+            ]
+
+            # Ignored GTs: same class but difficulty outside range (or DontCare=-1)
+            # Predictions matching these are neither TP nor FP (KITTI protocol)
+            gt_ignored_indices = [
+                i
+                for i, box in enumerate(gt_boxes)
+                if box.class_id == cls_id
+                and i < len(gt_difficulties)
+                and not (0 <= gt_difficulties[i] <= max_difficulty)
+            ]
+
+            # Filter pred: class match AND min 25px height
+            pred_indices = [
+                i
+                for i, box in enumerate(pred_boxes)
+                if box.class_id == cls_id and (i >= len(pred_heights_2d) or pred_heights_2d[i] >= MIN_HEIGHT_2D)
+            ]
+
+            n_gt_total += len(gt_eval_indices)
+
+            # Sub-IoU matrix for preds x eval GTs
+            if iou_matrix.size > 0 and pred_indices and gt_eval_indices:
+                sub_iou_eval = iou_matrix[np.ix_(pred_indices, gt_eval_indices)]
+            else:
+                sub_iou_eval = np.zeros((len(pred_indices), len(gt_eval_indices)))
+
+            # Sub-IoU matrix for preds x ignored GTs (for "don't care" matching)
+            if iou_matrix.size > 0 and pred_indices and gt_ignored_indices:
+                sub_iou_ignored = iou_matrix[np.ix_(pred_indices, gt_ignored_indices)]
+            else:
+                sub_iou_ignored = np.zeros((len(pred_indices), len(gt_ignored_indices)))
+
+            # Orientations for AOS (aligned with pred_indices / gt_eval_indices order)
+            pred_oris = np.array([pred_boxes[p].orientation for p in pred_indices]) if compute_aos else None
+            gt_eval_oris = np.array([gt_boxes[g].orientation for g in gt_eval_indices]) if compute_aos else None
+
+            per_image_data.append(
+                {
+                    "sub_iou_eval": sub_iou_eval,
+                    "sub_iou_ignored": sub_iou_ignored,
+                    "pred_oris": pred_oris,
+                    "gt_eval_oris": gt_eval_oris,
+                    "matched_gt": set(),
+                }
+            )
+
+            # Collect predictions with global image index
+            for local_idx, pred_idx in enumerate(pred_indices):
+                all_preds.append((pred_boxes[pred_idx].confidence, img_idx, local_idx))
+
+        # Recorded here rather than recomputed elsewhere: this is the only place the difficulty and
+        # min-height eligibility rules live, and the weighting must use the same population AP is over.
+        self.gt_counts[(max_difficulty, cls_id)] = n_gt_total
+
+        if n_gt_total == 0 or not all_preds:
+            return 0.0, 0.0
+
+        # Sort globally by confidence (descending)
+        all_preds.sort(key=lambda x: x[0], reverse=True)
+
+        # Match predictions to GT in confidence order (per-image greedy matching)
+        # Result per prediction: +1 = TP, 0 = FP, -1 = ignored
+        match_result = np.zeros(len(all_preds), dtype=int)
+        orient_sim = np.zeros(len(all_preds))  # (1 + cos d_theta) / 2 for TPs, else 0
+        for i, (_, img_idx, local_idx) in enumerate(all_preds):
+            img_data = per_image_data[img_idx]
+            sub_iou_eval = img_data["sub_iou_eval"]
+
+            # Try to match with eval GTs first
+            best_gt = -1
+            best_iou = iou_thresh
+            if sub_iou_eval.shape[1] > 0:
+                ious = sub_iou_eval[local_idx]
+                for gi in range(len(ious)):
+                    if gi in img_data["matched_gt"]:
+                        continue
+                    if ious[gi] >= best_iou:
+                        best_iou = ious[gi]
+                        best_gt = gi
+
+            if best_gt >= 0:
+                match_result[i] = 1  # TP
+                img_data["matched_gt"].add(best_gt)
+                if compute_aos:
+                    dtheta = float(img_data["pred_oris"][local_idx] - img_data["gt_eval_oris"][best_gt])
+                    orient_sim[i] = (1.0 + np.cos(dtheta)) / 2.0
+            else:
+                # Check if prediction overlaps an ignored GT — if so, ignore it
+                sub_iou_ignored = img_data["sub_iou_ignored"]
+                if sub_iou_ignored.shape[1] > 0:
+                    max_ignored_iou = sub_iou_ignored[local_idx].max()
+                    if max_ignored_iou >= iou_thresh:
+                        match_result[i] = -1  # Ignored (don't count as FP)
+
+        # Filter out ignored predictions, compute cumulative TP/FP
+        valid_mask = match_result >= 0
+        valid_tp = (match_result == 1)[valid_mask]
+
+        if len(valid_tp) == 0:
+            return 0.0, 0.0
+
+        tp_cum = np.cumsum(valid_tp)
+        fp_cum = np.cumsum(~valid_tp)
+        n_valid = tp_cum + fp_cum
+        precision = tp_cum / n_valid
+        recall = tp_cum / n_gt_total
+        ap = compute_ap_r40(recall, precision)
+
+        aos = 0.0
+        if compute_aos:
+            # KITTI AOS: orientation-similarity-weighted precision, R40 interpolated.
+            sim_cum = np.cumsum(orient_sim[valid_mask])
+            aos_precision = sim_cum / n_valid
+            aos = compute_ap_r40(recall, aos_precision)
+
+        return ap, aos
+
+    def _mean_metric(
+        self, metric: dict[float, dict[int, dict[int, float]]], iou_thresh: float, difficulty: int
+    ) -> float:
+        """Mean of a metric across classes for an IoU/difficulty."""
+        if not metric or iou_thresh not in metric:
+            return 0.0
+        diff_dict = metric[iou_thresh].get(difficulty, {})
+        if not diff_dict:
+            return 0.0
+        if not self.names:
+            # Fallback: no names set, average over all classes in diff_dict
+            return float(np.mean(list(diff_dict.values())))
+        return float(np.mean([diff_dict.get(cid, 0.0) for cid in self.names]))
+
+    def _mean_ap(self, iou_thresh: float, difficulty: int) -> float:
+        """Compute mean AP3D across classes for given IoU and difficulty."""
+        return self._mean_metric(self.ap3d, iou_thresh, difficulty)
+
+    def _instance_weighted_ap(self, iou_thresh: float, difficulty: int) -> float:
+        """Mean AP3D across classes, weighted by each class's GT instance count.
+
+        An unweighted class mean makes model selection and early stopping hostage to whichever class is
+        rarest. On a 189-frame KITTI val split with 680 Car, 81 Pedestrian and 37 Cyclist instances, two
+        thirds of an unweighted mean is noise on ~120 objects: it declared a plateau and stopped training
+        while Car AP was still climbing 3-4x.
+
+        Weighting by instance count is not merely "Car matters more" — the sampling variance of a per-class
+        AP estimate falls roughly as 1/n, so weights proportional to n are approximately inverse-variance
+        weights, i.e. the combination that minimizes the variance of the aggregate. Classes with no eligible
+        GT contribute nothing instead of dragging a zero into the average.
+
+        Falls back to the unweighted mean when no counts are recorded (nothing processed yet), so callers
+        never see a spurious 0.0.
+
+        Args:
+            iou_thresh (float): IoU threshold to read.
+            difficulty (int): Difficulty level to read.
+
+        Returns:
+            (float): Instance-weighted mean AP3D.
+        """
+        if not self.ap3d or iou_thresh not in self.ap3d:
+            return 0.0
+        per_class = self.ap3d[iou_thresh].get(difficulty, {})
+        if not per_class:
+            return 0.0
+        ids = list(self.names) if self.names else list(per_class)
+        weights = [self.gt_counts.get((difficulty, cid), 0) for cid in ids]
+        total = sum(weights)
+        if total <= 0:
+            return self._mean_metric(self.ap3d, iou_thresh, difficulty)
+        return float(sum(per_class.get(cid, 0.0) * w for cid, w in zip(ids, weights)) / total)
+
+    def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict[str, Any]]:
+        """Generate a per-class summary of the 3D metrics, one row per class.
+
+        `DataExportMixin.to_df`/`to_csv`/`to_json` all call this, so without it every export path raises
+        AttributeError for this task. `results_dict` cannot serve them: it is a flat name-mangled mapping
+        keyed for the CSV logger, whereas these expect one record per class.
+
+        Args:
+            normalize (bool): Unused. AP3D, AP_BEV and AOS are already in [0, 1]; accepted so the signature matches the
+                other metrics classes and the mixin can call it uniformly.
+            decimals (int): Number of decimal places to round the metric values to.
+
+        Returns:
+            (list[dict[str, Any]]): One dictionary per class, holding the Moderate GT instance count and AP3D, AP_BEV
+                and AOS at both IoU thresholds across all three difficulties.
+
+        Examples:
+            >>> results = model.val(data="kitti-stereo-chen.yaml", split="test")
+            >>> results.summary()[0]["AP3D_Mod_70"]
+        """
+        rows = []
+        for cls_id, cls_name in sorted(self.names.items()):
+            row: dict[str, Any] = {
+                "Class": cls_name,
+                "Instances": self.gt_counts.get((DIFFICULTY_MODERATE, cls_id), 0),
+            }
+            for prefix, metric in (("AP3D", self.ap3d), ("APBEV", self.apbev), ("AOS", self.aos)):
+                for iou_t, diff_dict in sorted(metric.items()):
+                    for diff, diff_name in enumerate(DIFFICULTY_NAMES):
+                        value = diff_dict.get(diff, {}).get(cls_id, 0.0)
+                        row[f"{prefix}_{diff_name}_{int(iou_t * 100)}"] = round(float(value), decimals)
+            rows.append(row)
+        return rows
+
+    @property
+    def results_dict(self) -> dict[str, Any]:
+        """Return results as flat dictionary for CSV logging."""
+        result = {}
+
+        # Per-class per-difficulty per-IoU for AP3D, AP_BEV, and AOS
+        for prefix, metric in (("AP3D", self.ap3d), ("APBEV", self.apbev), ("AOS", self.aos)):
+            for iou_t, diff_dict in metric.items():
+                iou_str = str(int(iou_t * 100))
+                for diff, cls_dict in diff_dict.items():
+                    diff_str = DIFFICULTY_NAMES[diff]
+                    for cls_id, val in cls_dict.items():
+                        cls_name = self.names.get(cls_id, f"class_{cls_id}")
+                        result[f"metrics/{prefix}_{cls_name}_{diff_str}_{iou_str}"] = val
+
+        # Summary means (Moderate) across classes. The `metrics/` prefix is the repo-wide convention
+        # (DetMetrics emits "metrics/mAP50-95(B)", ClassifyMetrics "metrics/accuracy_top1", ...), and
+        # plot_results classifies results.csv columns by it. Emitting bare keys made s3d columns match
+        # neither the loss nor the metric branch, which is why the shared plotter had to be rewritten.
+        result["metrics/ap3d_50"] = self.maps3d_50
+        result["metrics/ap3d_70"] = self.maps3d_70
+        result["metrics/apbev_50"] = self._mean_metric(self.apbev, 0.5, DIFFICULTY_MODERATE)
+        result["metrics/apbev_70"] = self._mean_metric(self.apbev, 0.7, DIFFICULTY_MODERATE)
+        result["metrics/aos_50"] = self._mean_metric(self.aos, 0.5, DIFFICULTY_MODERATE)
+        result["metrics/aos_70"] = self._mean_metric(self.aos, 0.7, DIFFICULTY_MODERATE)
+        result["metrics/ap3d_50_weighted"] = self._instance_weighted_ap(0.5, DIFFICULTY_MODERATE)
+        result["metrics/ap3d_70_weighted"] = self._instance_weighted_ap(0.7, DIFFICULTY_MODERATE)
+        result["fitness"] = self.fitness
+
+        return result
+
+    @property
+    def keys(self) -> list[str]:
+        """Return list of metric keys."""
+        keys = []
+        for prefix in ["AP3D", "APBEV", "AOS"]:
+            for iou_str in ["50", "70"]:
+                for diff_str in DIFFICULTY_NAMES:
+                    for _, cls_name in sorted(self.names.items()):
+                        keys.append(f"metrics/{prefix}_{cls_name}_{diff_str}_{iou_str}")
+        # `keys`, not `results_dict`, is what fixes the results.csv header, so a summary added only to
+        # results_dict never reaches the CSV. Keep the two in step, prefix included.
+        keys.extend(
+            [
+                "metrics/ap3d_50",
+                "metrics/ap3d_70",
+                "metrics/apbev_50",
+                "metrics/apbev_70",
+                "metrics/aos_50",
+                "metrics/aos_70",
+                "metrics/ap3d_50_weighted",
+                "metrics/ap3d_70_weighted",
+            ]
+        )
+        return keys + self.extra_keys
+
+    @property
+    def fitness(self) -> float:
+        """Model fitness = GT-instance-weighted mean AP3D at Moderate, weighted 0.9 toward IoU 0.7.
+
+        Weighted across classes rather than a plain class mean because `patience` and `best.pt` both key off
+        this value, and a plain mean lets a class with a few dozen instances dominate a decision about the
+        whole run. The unweighted means are still reported as `ap3d_50`/`ap3d_70`, so no recorded metric
+        changes value — only which checkpoint gets called best, and when training stops.
+
+        Weighted toward IoU 0.7 because that is the threshold KITTI reports and the one the model table
+        leads with. Read at IoU 0.5 alone, this metric cannot see localization precision at all: a
+        checkpoint that trades tight boxes for coarse ones wins the selection while being the worse model.
+        Measured on the released sizes, selecting at 0.7 rather than 0.5 is worth +3.0 Car Moderate
+        AP3D@0.7 for `s` and +3.6 for `l`.
+
+        The IoU 0.5 term is small but not zero: AP3D@0.7 is legitimately 0.0 for long stretches early in
+        training and on small validation splits, and a criterion that is flat at zero silently degrades
+        `best.pt` to "the last epoch that happened to validate". The 0.1 weight keeps the ranking
+        informative until 0.7 becomes non-zero, then stops mattering.
+        """
+        return float(
+            sum(w * self._instance_weighted_ap(t, DIFFICULTY_MODERATE) for t, w in FITNESS_IOU_WEIGHTS.items())
+        )
+
+    @property
+    def maps3d_50(self) -> float:
+        """Mean AP3D@0.5 Moderate across all classes."""
+        return self._mean_ap(0.5, DIFFICULTY_MODERATE)
+
+    @property
+    def maps3d_70(self) -> float:
+        """Mean AP3D@0.7 Moderate across all classes."""
+        return self._mean_ap(0.7, DIFFICULTY_MODERATE)
+
+    def clear_stats(self) -> None:
+        """Clear stored statistics."""
+        self.stats = []
+        self.ap3d = {}
+        self.apbev = {}
+        self.aos = {}
+        self.gt_counts = {}

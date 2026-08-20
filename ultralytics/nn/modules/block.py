@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import math
+
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -51,6 +53,7 @@ __all__ = (
     "RepVGGDW",
     "ResNetLayer",
     "SCDown",
+    "StereoCostVolume",
     "TorchVision",
 )
 
@@ -2078,3 +2081,118 @@ class RealNVP(nn.Module):
             self.float()
         z, log_det = self.backward_p(x)
         return self.prior.log_prob(z) + log_det
+
+
+class StereoCostVolume(nn.Module):
+    """Group-wise correlation cost volume with a soft-argmin disparity readout.
+
+    The disparity grid is stored in *width-normalized* units (disparity_px / image_width), which is the quantity a
+    stereo rig physically fixes: `fx * baseline / (z * W)`. Feature-pixel offsets are derived from it at forward time,
+    so one module serves any rig and any input resolution, and the same checkpoint transfers between rectangular and
+    square imgsz. `set_disparity_range` retargets the grid onto the disparities a dataset actually contains (the s3d
+    trainer derives it from the labels) — without that, a grid wide enough for a short-baseline rig wastes most of its
+    levels on a driving dataset, and vice versa.
+
+    Correlation runs in `groups` channel groups (GwcNet-style) instead of collapsing every channel into one scalar per
+    level, and each level's group costs are aggregated into a single cost. Disparity is then read out by soft-argmin
+    over the levels, which is continuous and therefore sub-pixel, and is emitted as the FIRST output channel so the
+    depth branches receive a metric cue directly rather than an unordered feature bank.
+
+    Args:
+        c1: Per-view input channels (the siamese tap output).
+        c2: Refined feature channels. Total output is c2 + 1, the extra channel being the disparity map.
+        num_levels: Number of disparity samples.
+        groups: Correlation groups, clamped to a divisor of c1.
+        refine_layers: Number of conv layers in the refinement network.
+
+    Notes:
+        Peak activation memory scales with `groups` (the volume is `groups * num_levels` channels wide
+        before aggregation). `groups=1` reduces to a single full-channel correlation at the old memory
+        cost while keeping the centering, grid and soft-argmin.
+    """
+
+    def __init__(self, c1: int, c2: int = 64, num_levels: int = 48, groups: int = 4, refine_layers: int = 2):
+        """Build the group-wise correlation volume and its refinement stack."""
+        super().__init__()
+        self.num_levels = num_levels
+        self.groups = math.gcd(groups, c1)
+        # Default grid spans KITTI-like disparities: fx*B/W = 384.3/1242 over z = 3..80 m.
+        self.register_buffer("d_norm", torch.linspace(384.3 / 80 / 1242, 384.3 / 3 / 1242, num_levels))
+        # Per-level linear aggregation of that level's `groups` costs into one cost. Initialized to a
+        # plain group average so the soft-argmin below starts as a true correlation soft-argmin: with
+        # random weights it would scramble the level ordering and the readout would return the grid
+        # midpoint for every input, geometrically meaningless until the layer happened to learn a mean.
+        self.aggregate = nn.Conv2d(self.groups * num_levels, num_levels, 1, groups=num_levels)
+        nn.init.constant_(self.aggregate.weight, 1.0 / self.groups)
+        nn.init.zeros_(self.aggregate.bias)
+        # Raw cosine costs live in [-1, 1]; softmax over them is near-uniform without a temperature.
+        self.logit_scale = nn.Parameter(torch.tensor(8.0))
+
+        layers = [Conv(num_levels, c2, 3)]
+        for _ in range(refine_layers - 2):
+            layers.append(Conv(c2, c2, 3))
+        layers.append(Conv(c2, c2, 3, s=2))
+        self.refine = nn.Sequential(*layers)
+
+    def set_disparity_range(self, d_norm_min: float, d_norm_max: float) -> None:
+        """Retarget the disparity grid, in width-normalized units (disparity_px / image_width)."""
+        if not 0 <= d_norm_min < d_norm_max:
+            raise ValueError(f"Disparity range must satisfy 0 <= min < max, got ({d_norm_min}, {d_norm_max})")
+        self.d_norm = torch.linspace(
+            d_norm_min, d_norm_max, self.num_levels, device=self.d_norm.device, dtype=self.d_norm.dtype
+        )
+
+    def forward(self, x):
+        """Build the cost volume from a (left, right) pair of [B, C, H, W] siamese tap features.
+
+        A bare tensor is the shape-inference path (stride computation at model init runs the plain
+        single-image forward): both views are taken to be the same features, so only shapes are
+        meaningful. Real stereo forwards always pass the (left, right) tuple.
+
+        Returns:
+            [B, 1 + c2, H//2, W//2] — channel 0 is the disparity readout, the rest refined features.
+        """
+        left, right = x if isinstance(x, (tuple, list)) else (x, x)
+        B, C, H, W = left.shape
+        G, L = self.groups, self.num_levels
+
+        # Centre spatially before normalizing. Cosine similarity of raw post-activation features is
+        # DC-dominated (~0.92 at every offset on real features), which leaves almost no disparity
+        # gradient at initialization; removing each channel's spatial mean restores the dynamic range.
+        left = left - left.mean((2, 3), keepdim=True)
+        right = right - right.mean((2, 3), keepdim=True)
+        left = F.normalize(left.view(B, G, C // G, H, W), dim=2)
+        right = F.normalize(right.view(B, G, C // G, H, W), dim=2)
+
+        # Width-normalized grid → fractional feature-pixel offsets at this resolution. Fractional
+        # placement is what keeps num_levels independent of resolution: rounding to integers would
+        # collapse neighbouring levels into duplicates whenever the spacing falls below one pixel.
+        costs = []
+        for d in (self.d_norm.to(left.dtype) * W).tolist():
+            lo = int(d)
+            corr = left.new_zeros(B, G, H, W)
+            for weight, off in ((1.0 - (d - lo), lo), (d - lo, lo + 1)):
+                if weight == 0.0 or off >= W:
+                    continue
+                if off == 0:
+                    corr += weight * (left * right).sum(2)
+                else:
+                    corr[..., off:] += weight * (left[..., off:] * right[..., :-off]).sum(2)
+            costs.append(corr)
+        # cat is already level-major ([level0 groups..., level1 groups...]), matching groups=L below.
+        cost = self.aggregate(torch.cat(costs, 1))  # [B, L, H, W]
+
+        # Soft-argmin: a continuous expectation over the disparity grid, so the readout is sub-pixel.
+        # A conv over the cost channels cannot express peak position, only a weighted sum of costs.
+        # Emitted on [0, 1] over the grid (see to_disparity) — width-normalized disparity is ~1e-2, too
+        # small to register against the BN-scaled refined features sharing the consuming conv.
+        prob = (cost * self.logit_scale).softmax(1)
+        idx = torch.arange(L, device=cost.device, dtype=cost.dtype).view(1, -1, 1, 1)
+        disp01 = (prob * idx).sum(1, keepdim=True) / max(L - 1, 1)
+
+        feat = self.refine(cost)
+        return torch.cat([F.adaptive_avg_pool2d(disp01, feat.shape[-2:]), feat], 1)
+
+    def to_disparity(self, disp01: torch.Tensor) -> torch.Tensor:
+        """Map the emitted [0, 1] disparity channel back to width-normalized disparity (px / width)."""
+        return self.d_norm[0] + disp01 * (self.d_norm[-1] - self.d_norm[0])

@@ -55,16 +55,22 @@ class ClassificationPredictor(BasePredictor):
         import torchvision.transforms as T
 
         super().setup_source(source)
-        updated = (
-            self.model.model.transforms.transforms[0].size != max(self.imgsz)
-            if hasattr(self.model.model, "transforms") and hasattr(self.model.model.transforms.transforms[0], "size")
-            else False
-        )
+        transforms = getattr(self.model.model, "transforms", None)
+        first = transforms.transforms[0] if isinstance(transforms, T.Compose) and transforms.transforms else None
+        updated = first is not None and hasattr(first, "size") and first.size != max(self.imgsz)
         self.transforms = (
-            classify_transforms(self.imgsz) if updated or self.model.format != "pt" else self.model.model.transforms
+            classify_transforms(self.imgsz)
+            if updated or self.model.format != "pt" or transforms is None
+            else transforms
         )
-        tensor_transforms = classify_transforms(self.imgsz)
-        self.tensor_transforms = T.Compose([t for t in tensor_transforms.transforms if not isinstance(t, T.ToTensor)])
+        self.tensor_transforms = None
+        if self.args.preprocess_tensor:
+            supported = (T.Resize, T.CenterCrop, T.ToTensor, T.Normalize)
+            if not isinstance(self.transforms, T.Compose) or any(
+                not isinstance(t, supported) for t in self.transforms.transforms
+            ):
+                raise NotImplementedError("Raw tensor preprocessing requires standard classification transforms.")
+            self.tensor_transforms = T.Compose([t for t in self.transforms.transforms if not isinstance(t, T.ToTensor)])
 
     def preprocess(self, img):
         """Convert input images to model-compatible tensor format with appropriate normalization."""

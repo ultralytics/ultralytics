@@ -122,7 +122,7 @@ path = model.export(format="onnx")  # 返回导出模型的路径
 
 ## ✨ 模型
 
-Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https://docs.ultralytics.com/models/yolov3) 到最新的 [YOLO26](https://docs.ultralytics.com/models/yolo26)。下表展示了在 [COCO](https://docs.ultralytics.com/datasets/detect/coco) 上预训练的 YOLO26 模型，用于[检测](https://docs.ultralytics.com/tasks/detect)、[分割](https://docs.ultralytics.com/tasks/segment)和[姿态估计](https://docs.ultralytics.com/tasks/pose)任务。[语义分割](https://docs.ultralytics.com/tasks/semantic)模型在 [Cityscapes](https://docs.ultralytics.com/datasets/semantic/cityscapes) 上预训练，[深度估计](https://docs.ultralytics.com/tasks/depth)模型在广泛的多数据集混合上预训练并在 [NYU Depth V2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html) 上评估，[分类](https://docs.ultralytics.com/tasks/classify)模型在 [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet) 上预训练。[跟踪](https://docs.ultralytics.com/modes/track)模式与检测、分割、姿态和 OBB 模型兼容。所有[模型](https://docs.ultralytics.com/models)在首次使用时都会自动从最新的 Ultralytics [发布版本](https://github.com/ultralytics/assets/releases)下载。
+Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https://docs.ultralytics.com/models/yolov3) 到最新的 [YOLO26](https://docs.ultralytics.com/models/yolo26)。下表展示了在 [COCO](https://docs.ultralytics.com/datasets/detect/coco) 上预训练的 YOLO26 模型，用于[检测](https://docs.ultralytics.com/tasks/detect)、[分割](https://docs.ultralytics.com/tasks/segment)和[姿态估计](https://docs.ultralytics.com/tasks/pose)任务。[语义分割](https://docs.ultralytics.com/tasks/semantic)模型在 [Cityscapes](https://docs.ultralytics.com/datasets/semantic/cityscapes) 上预训练，[深度估计](https://docs.ultralytics.com/tasks/depth)模型在广泛的多数据集混合上预训练并在 [NYU Depth V2](https://cs.nyu.edu/~fergus/datasets/nyu_depth_v2.html) 上评估，[分类](https://docs.ultralytics.com/tasks/classify)模型在 [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet) 上预训练。[跟踪](https://docs.ultralytics.com/modes/track)模式与检测、分割、姿态和 OBB 模型兼容。所有[模型](https://docs.ultralytics.com/models)在首次使用时都会自动从最新的 Ultralytics [发布版本](https://github.com/ultralytics/assets/releases)下载。
 
 <a href="https://docs.ultralytics.com/tasks" target="_blank">
     <img width="100%" src="https://cdn.ul.run/i/c99d914c3958d0755b5a3d7204b6f24a.avif" alt="Ultralytics YOLO supported tasks">
@@ -183,7 +183,7 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 
 <details><summary>深度估计 (NYU Depth V2)</summary>
 
-请参阅[深度估计文档](https://docs.ultralytics.com/tasks/depth)获取使用示例。这些模型在广泛的多数据集混合上预训练，并在 [NYU Depth V2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html) Eigen 测试集上评估，预测每像素深度（单位为米）。
+请参阅[深度估计文档](https://docs.ultralytics.com/tasks/depth)获取使用示例。这些模型在广泛的多数据集混合上预训练，并在 [NYU Depth V2](https://cs.nyu.edu/~fergus/datasets/nyu_depth_v2.html) Eigen 测试集上评估，预测每像素深度（单位为米）。
 
 | 模型                                                                               | 尺寸<br><sup>(像素) | delta1<sup>NYU</sup> | abs_rel<sup>NYU</sup> | rmse<sup>NYU</sup> | 速度<br><sup>CPU ONNX<br>(毫秒) | 速度<br><sup>T4 TensorRT10<br>(毫秒) | 参数<br><sup>(百万) | FLOPs<br><sup>(十亿) |
 | ---------------------------------------------------------------------------------- | ------------------- | -------------------- | --------------------- | ------------------ | ------------------------------- | ------------------------------------ | ------------------- | -------------------- |

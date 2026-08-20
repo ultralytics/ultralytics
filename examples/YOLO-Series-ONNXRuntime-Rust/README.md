@@ -46,7 +46,7 @@ This repository provides a [Rust](https://rust-lang.org/) demo showcasing key [U
 ### 2. [Optional] Install CUDA, CuDNN, and TensorRT
 
 - The CUDA execution provider requires [NVIDIA CUDA Toolkit](https://developer.nvidia.com/cuda/toolkit) version `12.x`.
-- The TensorRT execution provider requires both CUDA `12.x` and [NVIDIA TensorRT](https://developer.nvidia.com/tensorrt) `10.x`. Ensure [cuDNN](https://developer.nvidia.com/cudnn) is also correctly installed.
+- The TensorRT execution provider requires both CUDA `12.x` and [NVIDIA TensorRT](https://developer.nvidia.com/tensorrt) `10.x`. Ensure [cuDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn) is also correctly installed.
 
 ### 3. [Optional] Install ffmpeg
 

@@ -37,7 +37,7 @@ ADEChallengeData2016/
 
 !!! warning "Manual Download Required"
 
-    ADE20K has no automatic download script. Download the ~1 GB [`ADEChallengeData2016.zip`](http://data.csail.mit.edu/places/ADEchallenge/ADEChallengeData2016.zip) archive and extract it directly into your `datasets/` folder. The archive's own top-level folder is already named `ADEChallengeData2016/`, so this produces `datasets/ADEChallengeData2016/` matching the layout above — do not create an `ADEChallengeData2016` folder yourself and extract into it, or you'll end up with a nested `datasets/ADEChallengeData2016/ADEChallengeData2016/` directory that the YAML won't find.
+    ADE20K has no automatic download script. Download the ~1 GB [`ADEChallengeData2016.zip`](https://data.csail.mit.edu/places/ADEchallenge/ADEChallengeData2016.zip) archive and extract it directly into your `datasets/` folder. The archive's own top-level folder is already named `ADEChallengeData2016/`, so this produces `datasets/ADEChallengeData2016/` matching the layout above — do not create an `ADEChallengeData2016` folder yourself and extract into it, or you'll end up with a nested `datasets/ADEChallengeData2016/ADEChallengeData2016/` directory that the YAML won't find.
 
 The `masks_dir` field is set to `annotations`, so each image under `images/` is paired with its corresponding mask under `annotations/`. The original ADE20K masks use source label IDs where `0` is ignored, and the `label_mapping` section converts valid labels `1` through `150` to contiguous train IDs `0` through `149`, mapping ignored pixels to `255`.
 
@@ -140,7 +140,7 @@ The ADE20K dataset follows the official ADEChallengeData2016 layout, with images
 
 ### Do I need to download ADE20K manually?
 
-Yes. Download the [`ADEChallengeData2016.zip`](http://data.csail.mit.edu/places/ADEchallenge/ADEChallengeData2016.zip) archive (~1 GB) and extract it directly into your `datasets/` folder before training — the archive's own top-level folder is already named `ADEChallengeData2016/`, so extracting it there (not into a separate `ADEChallengeData2016` folder you create yourself) produces the `images/` and `annotations/` layout that `ade20k.yaml` expects.
+Yes. Download the [`ADEChallengeData2016.zip`](https://data.csail.mit.edu/places/ADEchallenge/ADEChallengeData2016.zip) archive (~1 GB) and extract it directly into your `datasets/` folder before training — the archive's own top-level folder is already named `ADEChallengeData2016/`, so extracting it there (not into a separate `ADEChallengeData2016` folder you create yourself) produces the `images/` and `annotations/` layout that `ade20k.yaml` expects.
 
 ### Why does ADE20K use `label_mapping`?
 

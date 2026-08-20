@@ -16,7 +16,7 @@ A C++ application that runs every [Ultralytics YOLO](https://docs.ultralytics.co
 | :------------------------------------------------ | :------- | :-------------------------------------- |
 | [MNN](https://mnn-docs.readthedocs.io/en/latest/) | >=2.0.0  | The core inference engine from Alibaba. |
 | [OpenCV](https://opencv.org/)                     | >=4.0.0  | Image I/O, drawing, and NMS.            |
-| [C++](https://en.cppreference.com/w/)             | >=17     | Modern C++ compiler.                    |
+| [C++](https://en.cppreference.com/)               | >=17     | Modern C++ compiler.                    |
 | [CMake](https://cmake.org/documentation/)         | >=3.12.0 | Build system.                           |
 
 ## 📦 Exporting a Model

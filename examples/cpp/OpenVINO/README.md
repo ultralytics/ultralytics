@@ -18,7 +18,7 @@ A single C++ application that runs **every [Ultralytics YOLO](https://docs.ultra
 | ----------------------------------------- | -------- |
 | [OpenVINO](https://docs.openvino.ai/)     | >=2023.3 |
 | [OpenCV](https://opencv.org/)             | >=4.5.0  |
-| [C++](https://en.cppreference.com/w/)     | >=17     |
+| [C++](https://en.cppreference.com/)       | >=17     |
 | [CMake](https://cmake.org/documentation/) | >=3.12.0 |
 
 ## 📦 Exporting a Model

@@ -44,7 +44,7 @@ The skills include version-grounded catalogs where exact weights, arguments, or 
 
 === "Other agents"
 
-    Install all seven skills with the [skills CLI](https://skills.sh/):
+    Install all seven skills with the [skills CLI](https://www.skills.sh/):
 
     ```bash
     npx skills add ultralytics/skills

@@ -139,7 +139,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 - **Number of Classes**: 1 (hand).
 - **Keypoints**: 21 keypoints.
 - **Usage**: Great for human hand pose estimation and [gesture recognition](https://www.ultralytics.com/blog/enhancing-hand-keypoints-estimation-with-ultralytics-yolo11).
-- **Additional Notes**: Keypoint annotations are generated using [Google MediaPipe](https://developers.google.com/mediapipe/solutions/vision/hand_landmarker) for consistent labeling.
+- **Additional Notes**: Keypoint annotations are generated using [Google MediaPipe](https://developers.google.com/edge/mediapipe/solutions/vision/hand_landmarker) for consistent labeling.
 - [Read more about Hand Keypoints](hand-keypoints.md)
 
 ### Tiger-Pose

@@ -337,7 +337,7 @@ def time_sync(device: torch.device | None = None):
         accelerator = get_torch_device_backend(device or "cuda")
         if accelerator.is_available() and hasattr(accelerator, "synchronize"):
             accelerator.synchronize()
-    return time.time()
+    return time.perf_counter()
 
 
 def fuse_conv_and_bn(conv, bn):
@@ -890,7 +890,7 @@ def cuda_memory_usage(device=None):
         yield info
 
 
-def profile_ops(input, ops, n=10, device=None, max_num_obj=0, return_oom=False):
+def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
     """Ultralytics speed, memory and FLOPs profiler.
 
     Args:
@@ -899,13 +899,9 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0, return_oom=False):
         n (int, optional): Number of iterations to average.
         device (str | torch.device, optional): Device to profile on.
         max_num_obj (int, optional): Maximum number of objects for simulation.
-        return_oom (bool, optional): Whether to also return, per profiled op, whether its failure (if any) was a
-            confirmed accelerator out-of-memory error rather than an unrelated model/backend/runtime error.
 
     Returns:
-        (list | tuple[list, list[bool]]): Profile results for each operation. If return_oom=True, returns a tuple of
-            (results, oom) where oom[i] is True only when results[i] is None because that op raised a confirmed
-            out-of-memory error (as opposed to any other exception, which also sets results[i] to None).
+        (list): Profile results for each operation.
 
     Examples:
         >>> from ultralytics.utils.torch_utils import profile_ops
@@ -920,7 +916,6 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0, return_oom=False):
         thop = None  # conda support without 'ultralytics-thop' installed
 
     results = []
-    oom = []
     if not isinstance(device, torch.device):
         device = select_device(device)
     LOGGER.info(
@@ -977,18 +972,14 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0, return_oom=False):
                 p = sum(x.numel() for x in m.parameters()) if isinstance(m, nn.Module) else 0  # parameters
                 LOGGER.info(f"{p:12}{flops:12.4g}{mem:>14.3f}{tf:14.4g}{tb:14.4g}{s_in!s:>24s}{s_out!s:>24s}")
                 results.append([p, flops, mem, tf, tb, s_in, s_out])
-                oom.append(False)
             except Exception as e:
                 LOGGER.info(e)
                 results.append(None)
-                # torch.cuda.OutOfMemoryError requires torch>=1.13; the message-based check stays backend-agnostic
-                # and mirrors the OOM detection already used for the training-loop auto-retry in trainer.py.
-                oom.append("out of memory" in str(e).lower())
             finally:
                 gc.collect()  # attempt to free unused memory
                 if accelerator is not None:
                     accelerator.empty_cache()
-    return (results, oom) if return_oom else results
+    return results
 
 
 class EarlyStopping:

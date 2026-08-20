@@ -51,6 +51,45 @@ IMG_FORMATS = {
 VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ts", "wmv", "webm"}  # videos
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
 
+DEPTH_PNG_SCALE = 1000  # uint16 millimeters by default; zero is invalid
+
+
+def save_depth_png(path: str | Path, depth: np.ndarray, scale: float = DEPTH_PNG_SCALE) -> None:
+    """Save metric depth as a scaled uint16 PNG with zero reserved for invalid pixels."""
+    if not isinstance(scale, (int, float)) or isinstance(scale, bool) or not np.isfinite(scale) or scale <= 0:
+        raise ValueError("Depth scale must be a positive finite number")
+    depth = np.asarray(depth, dtype=np.float32).squeeze()
+    if depth.ndim != 2:
+        raise ValueError(f"Depth map must be 2D, got shape {depth.shape}")
+    valid = np.isfinite(depth) & (depth > 0)
+    encoded = np.zeros(depth.shape, dtype=np.uint16)
+    if valid.any():
+        scaled = np.rint(depth[valid] * scale)
+        if scaled.max() > np.iinfo(np.uint16).max:
+            raise ValueError(f"Depth map exceeds the {np.iinfo(np.uint16).max / scale:g} meter PNG limit")
+        encoded[valid] = np.maximum(scaled, 1).astype(np.uint16)
+    if not cv2.imwrite(str(path), encoded):
+        raise OSError(f"Failed to save depth map to {path}")
+
+
+def load_depth(path: str | Path, scale: float = DEPTH_PNG_SCALE) -> np.ndarray:
+    """Load metric depth from a scaled uint16 PNG or floating-point meter NPY."""
+    path = Path(path)
+    if path.suffix.lower() == ".npy":
+        depth = np.load(path, allow_pickle=False)
+        if depth.ndim != 2 or depth.dtype.kind != "f":
+            raise ValueError(f"Depth map {path} must be a 2D floating-point NPY array")
+        return np.nan_to_num(depth.astype(np.float32, copy=False), copy=False, nan=0.0, posinf=0.0, neginf=0.0)
+    if not isinstance(scale, (int, float)) or isinstance(scale, bool) or not np.isfinite(scale) or scale <= 0:
+        raise ValueError("Depth scale must be a positive finite number")
+    with Image.open(path) as image:
+        if image.format != "PNG" or image.mode not in {"I", "I;16"}:
+            raise ValueError(f"Depth PNG {path} must be a 2D uint16 map")
+        encoded = np.asarray(image)
+    depth = encoded.astype(np.float32)
+    depth /= scale
+    return depth
+
 
 def img2label_paths(img_paths: list[str], label_dir: str = "labels", suffix: str = ".txt") -> list[str]:
     """Convert image paths to label paths by replacing 'images' with 'labels' and extension with '.txt'."""
@@ -208,8 +247,8 @@ def verify_image(args: tuple) -> tuple:
 
 
 def verify_image_depth(args: tuple) -> tuple:
-    """Verify that an image and its paired depth .npy map exist and are readable."""
-    im_file, depth_file, prefix = args
+    """Verify that an image and its paired depth map exist and are readable."""
+    im_file, depth_file, prefix, scale = args
     # Number (found, missing, corrupt), message
     nf, nm, nc, msg = 0, 0, 0, ""
     try:
@@ -219,8 +258,23 @@ def verify_image_depth(args: tuple) -> tuple:
             nm = 1
             msg = f"{prefix}{im_file}: ignoring image with missing depth map {depth_file}"
             return None, None, nf, nm, nc, msg
-        depth = np.load(depth_file, mmap_mode="r", allow_pickle=False)
-        assert depth.ndim == 2, f"depth map {depth_file} expected a 2D array, got shape {depth.shape}"
+        if Path(depth_file).suffix.lower() == ".npy":
+            depth = np.load(depth_file, mmap_mode="r", allow_pickle=False)
+            assert depth.ndim == 2 and depth.dtype.kind == "f", "depth NPY must be 2D and floating-point"
+            depth_shape = depth.shape
+        else:
+            assert (
+                isinstance(scale, (int, float)) and not isinstance(scale, bool) and np.isfinite(scale) and scale > 0
+            ), "depth_scale must be a positive finite number"
+            with Image.open(depth_file) as depth:
+                assert depth.format == "PNG" and depth.mode in {"I", "I;16"}, (
+                    f"depth map {depth_file} must be an integer grayscale PNG"
+                )
+                depth_shape = (depth.height, depth.width)
+                depth.verify()
+        assert abs(np.log((depth_shape[1] / depth_shape[0]) / (shape[1] / shape[0]))) <= 0.02, (
+            f"depth map shape {depth_shape} does not match image shape {shape}"
+        )
         nf = 1
         return im_file, shape, nf, nm, nc, msg
     except Exception as e:
@@ -279,6 +333,7 @@ def verify_image_label(args: tuple) -> list:
             with open(lb_file, encoding="utf-8") as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
                 if any(len(x) > 6 for x in lb) and (not keypoint):  # is segment
+                    assert not any(len(x) == 5 for x in lb), "labels mix segment and detection rows"
                     classes = np.array([x[0] for x in lb], dtype=np.float32)
                     segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)
                     lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)
@@ -632,14 +687,14 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     train_set = data_dir / "train"
     if not train_set.is_dir():
         LOGGER.warning(f"Dataset 'split=train' not found at {train_set}")
-        if image_files := list(data_dir.rglob("*.jpg")) + list(data_dir.rglob("*.png")):
+        if image_files := [f for f in data_dir.rglob("*.*") if f.suffix[1:].lower() in IMG_FORMATS]:
             from ultralytics.data.split import split_classify_dataset
 
             LOGGER.info(f"Found {len(image_files)} images in subdirectories. Attempting to split...")
             data_dir = split_classify_dataset(data_dir, train_ratio=0.8)
             train_set = data_dir / "train"
         else:
-            LOGGER.error(f"No images found in {data_dir} or its subdirectories.")
+            raise FileNotFoundError(f"No images found in {data_dir} or its subdirectories.")
     val_set = (
         data_dir / "val"
         if (data_dir / "val").exists()

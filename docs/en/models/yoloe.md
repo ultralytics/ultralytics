@@ -1032,7 +1032,7 @@ Quickly set up YOLOE with Ultralytics by following these steps:
 6. **Integration Tips**:
     - **Class names**: Default YOLOE outputs use LVIS categories; use `set_classes()` to specify your own labels.
     - **Speed**: YOLOE has no overhead unless using prompts. Text prompts have minimal impact; visual prompts slightly more.
-    - **NMS behavior**: YOLOE automatically uses `agnostic_nms=True` during prediction, merging overlapping boxes across classes. This prevents duplicate detections when the same object matches multiple categories in YOLOE's large vocabulary (1200+ LVIS classes). You can override this by passing `agnostic_nms=False` explicitly.
+    - **NMS behavior**: YOLOE automatically uses `agnostic_nms=True` during prediction, suppressing lower-scoring overlapping boxes across different classes rather than only within the same class. This prevents duplicate detections when the same object matches multiple categories in YOLOE's large vocabulary (1200+ LVIS classes). On end-to-end YOLOE-26 models it only prevents the same detection from appearing under multiple class labels (IoU=1.0 duplicates) and performs no IoU-threshold suppression between distinct boxes. You can override this by passing `agnostic_nms=False` explicitly.
     - **Batch inference**: Supported directly (`model.predict([img1, img2])`). For image-specific prompts, run images individually.
 
 The [Ultralytics documentation](../index.md) provides further resources. YOLOE lets you easily explore powerful open-world capabilities within the familiar YOLO ecosystem.

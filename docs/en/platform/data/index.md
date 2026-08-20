@@ -25,10 +25,12 @@ Data preparation is the foundation of successful [computer vision](https://www.u
 The Data section of Ultralytics Platform helps you:
 
 - **Upload** images, videos, and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON)
+- **Import from a URL** by pasting a direct link to an archive or NDJSON export, or from [Roboflow](../integrations/roboflow.md)
 - **Connect** [Google Cloud Storage](../integrations/google-cloud-storage.md), [Amazon S3](../integrations/amazon-s3.md), or [Azure Blob Storage](../integrations/azure-blob-storage.md) and use your data in place without uploading a copy
 - **Keep pixels on premise** with Enterprise [On Premise](../integrations/on-premise.md) CPU/GPU workers
 - **Annotate** with manual drawing tools and SAM-powered smart labeling — choose from [SAM 2.1](../../models/sam-2.md) or the new [SAM 3](../../models/sam-3.md)
-- **Analyze** your data with statistics and visualizations
+- **Manage classes** by renaming, recoloring, merging, and deleting them across the whole dataset
+- **Analyze** your data with statistics, visualizations, and embedding-based clustering
 - **Export** in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for local training
 
 ![Ultralytics Platform Data Overview Sidebar Datasets](https://cdn.ul.run/i/c6f7198b77344ed8d712d8c34ec82459.avif)<!-- screenshot -->
@@ -38,46 +40,47 @@ The Data section of Ultralytics Platform helps you:
 ```mermaid
 graph LR
     A[Upload]:::start --> B[Annotate]:::proc
+    B --> D[Train]:::out
     B --> C[Analyze]:::proc
-    C --> D[Train]:::out
 
     classDef start fill:#4CAF50,color:#fff
     classDef proc fill:#2196F3,color:#fff
     classDef out fill:#9C27B0,color:#fff
 ```
 
-| Stage        | Description                                                                                                     |
-| ------------ | --------------------------------------------------------------------------------------------------------------- |
-| **Upload**   | Import images, videos, or archives with automatic processing                                                    |
-| **Annotate** | Label data with manual tools for all 6 task types, or use SAM annotation for detect, segment, semantic, and OBB |
-| **Analyze**  | View class distributions, spatial heatmaps, and dimension statistics                                            |
-| **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use           |
+| Stage        | Description                                                                                           |
+| ------------ | ----------------------------------------------------------------------------------------------------- |
+| **Upload**   | Import images, videos, or archives with automatic processing                                          |
+| **Annotate** | Label data with manual tools, or use SAM annotation for detect, segment, semantic, and OBB            |
+| **Analyze**  | View class distributions, spatial heatmaps, dimension statistics, and embedding clusters              |
+| **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use |
 
 ## Supported Tasks
 
-Ultralytics Platform datasets support 6 of the 7 YOLO task types — [depth](../../tasks/depth.md) datasets are coming soon (depth models and prediction are already supported):
+Ultralytics Platform datasets support all 7 YOLO task types:
 
 | Task                                             | Description                                                     | Annotation Tool   |
 | ------------------------------------------------ | --------------------------------------------------------------- | ----------------- |
 | **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes                            | Rectangle tool    |
 | **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks                          | Polygon tool      |
 | **[Semantic](../../datasets/semantic/index.md)** | Semantic segmentation with per-class pixel regions              | Polygon tool      |
+| **[Depth](../../datasets/depth/index.md)**       | Per-pixel metric depth maps                                     | Imported targets  |
 | **[Classify](../../datasets/classify/index.md)** | Image-level classification                                      | Class selector    |
 | **[Pose](../../datasets/pose/index.md)**         | Keypoint estimation with built-in and custom skeleton templates | Keypoint tool     |
 | **[OBB](../../datasets/obb/index.md)**           | Oriented bounding boxes for rotated objects                     | Oriented box tool |
 
 !!! info "Task Type Selection"
 
-    The task type is set when creating a dataset and determines which annotation tools are available. You can change it later from the dataset header task selector, but incompatible annotations won't be displayed after switching.
+    The task type is set when creating a dataset and determines which annotation tools are available. You can change it later from the dataset header task selector, but incompatible annotations won't be displayed after switching. Switching to or from depth is only allowed while the dataset is empty — see [Edit Dataset](datasets.md#edit-dataset).
 
 ## Key Features
 
 ### Smart Storage
 
-Ultralytics Platform uses Content-Addressable Storage (CAS) for efficient data management:
+Ultralytics Platform manages storage efficiently:
 
-- **Deduplication**: Identical image bytes in the same data region reuse one CAS object via XXH3-128 hashing
-- **Integrity**: Hash-based addressing ensures data integrity
+- **Deduplication**: Identical images in the same data region are stored once
+- **Integrity**: Uploads are verified for data integrity
 - **Efficiency**: Optimized storage and fast processing
 
 ### Dataset URIs
@@ -110,28 +113,30 @@ Dataset pages can show up to six tabs, depending on the dataset state and your p
 | Tab          | Description                                                                  |
 | ------------ | ---------------------------------------------------------------------------- |
 | **Images**   | Browse images in grid, compact, or table view with annotation overlays       |
-| **Classes**  | View and edit class names, colors, and label counts per class                |
+| **Classes**  | View, rename, recolor, merge, and delete classes with per-class label counts |
 | **Charts**   | Automatic statistics: split distribution, class counts, heatmaps             |
 | **Models**   | [Models](../train/models.md) trained on this dataset with metrics and status |
-| **Versions** | Create and download immutable NDJSON snapshots for reproducible training     |
+| **Versions** | Create, download, and restore immutable NDJSON snapshots for reproducibility |
 | **Errors**   | Images that failed processing with error details and fix guidance            |
 
-`Classes` and `Charts` appear when the dataset has images. `Errors` appears only when processing failures exist. `Versions` appears when you have edit access, or in read-only mode when versions already exist.
+`Classes` appears when the dataset has images and its task has classes, while `Charts` appears whenever it has images. `Errors` appears only when processing failures exist. `Versions` appears when you have edit access, or in read-only mode when versions already exist.
 
 ### Clustering
 
-Explore your dataset as an interactive 2D scatter plot where visually similar images sit close together — useful for surfacing clusters, duplicates, and outliers, and for inspecting how splits or classes are distributed across your data. Lasso a region of the plot to filter the gallery to those images. See [Clustering](datasets.md#clustering) for details.
+Explore your dataset as an interactive 2D scatter plot where visually similar images sit close together — useful for surfacing clusters, duplicates, and outliers, and for inspecting how splits or classes are distributed across your data. Lasso a region of the plot to filter the gallery to those images. Analysis needs between 20 and 200,000 non-errored images. See [Clustering](datasets.md#clustering) for details.
 
 ### Statistics and Visualization
 
 The `Charts` tab provides automatic analysis including:
 
 - **Split Distribution**: Donut chart of train/val/test image counts
-- **Top Classes**: Donut chart of most frequent annotation classes
+- **Top Classes**: Donut chart of the 10 most frequent annotation classes
 - **Image Dimensions**: Histogram of image width and height distribution (in pixels)
-- **Points per Instance**: Polygon vertex or keypoint count distribution (segment/pose datasets)
-- **Annotation Locations**: 2D heatmap of bounding box center positions
 - **Image Dimensions 2D**: 2D heatmap of width vs height with aspect ratio guide lines
+- **Annotation Locations**: 2D heatmap of bounding box center positions
+- **Points per Instance**: Polygon vertex or keypoint count distribution (segment/pose datasets)
+
+See the [Charts tab](datasets.md#charts-tab) for the full list.
 
 ## Quick Links
 
@@ -150,7 +155,9 @@ Ultralytics Platform supports:
 
 **Videos:** MP4, WebM, MOV, MKV, M4V (max 1GB, frames extracted at 1 FPS, max 100 frames)
 
-**Dataset files:** ZIP or TAR archives including `.tar.gz` and `.tgz` (max 10GB on Free, 20GB on Pro, 50GB on Enterprise) containing images with optional [YOLO-format labels](../../datasets/detect/index.md#ultralytics-yolo-format), plus NDJSON exports
+**Dataset files:** ZIP or TAR archives including `.tar.gz` and `.tgz` (max 10GB on Free, 20GB on Pro, 50GB on Enterprise) containing images with optional [YOLO-format](../../datasets/detect/index.md#ultralytics-yolo-format) or COCO JSON labels, plus [NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) exports
+
+Any of these archive or NDJSON formats can also be imported by pasting a direct HTTP(S) link in the `URL` tab of the `New Dataset` dialog. Pascal VOC XML labels are detected but not imported.
 
 ### What is the maximum dataset size?
 

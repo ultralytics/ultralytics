@@ -14,7 +14,7 @@ The [KITTI](https://www.cvlibs.net/datasets/kitti/) dataset is a real-world outd
 - Depth ground truth obtained from a Velodyne HDL-64 LiDAR and densified with the [Sparsity Invariant CNNs](https://arxiv.org/abs/1708.06500) approach of Uhrig et al. 2017.
 - Sparse supervision: only about 16–20% of pixels per image carry a valid depth value; invalid pixels are masked out of the loss and metrics.
 - Stereo image pairs (left `image_02` and right `image_03`) provide additional viewpoints for training.
-- Depth values are stored as `.npy` float32 arrays in meters, following the [Ultralytics depth dataset format](index.md).
+- Depth values are stored as uint16 PNGs with 256 units per meter (`depth_scale: 256`), following the [Ultralytics depth dataset format](index.md).
 
 ## Dataset Structure
 

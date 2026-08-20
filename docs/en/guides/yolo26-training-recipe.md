@@ -14,17 +14,7 @@ Knowing what went into the official checkpoints — not just the architecture, b
 
 ## Training Overview
 
-All YOLO26 base models were trained on COCO at **640x640** resolution using the **MuSGD** optimizer with **[batch size](https://www.ultralytics.com/glossary/batch-size) 128**. Rather than starting from random weights in a single run, models were initialized from intermediate pretrained weights and refined with hyperparameters found via [evolutionary search](./hyperparameter-tuning.md#genetic-evolution-and-mutation). Full training logs and metrics for every model size are available on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26):
-
-<iframe
-  src="https://platform.ultralytics.com/embed/ultralytics/yolo26"
-  title="YOLO26 COCO training runs and metrics on Ultralytics Platform"
-  loading="lazy"
-  scrolling="no"
-  width="100%"
-  height="290px"
-  style="border:none"
-></iframe>
+All YOLO26 base models were trained on COCO at **640x640** resolution using the **MuSGD** optimizer with **[batch size](https://www.ultralytics.com/glossary/batch-size) 128**. Rather than starting from random weights in a single run, models were initialized from intermediate pretrained weights and refined with hyperparameters found via [evolutionary search](./hyperparameter-tuning.md#genetic-evolution-and-mutation). Full training logs and metrics for every model size are available on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26).
 
 Key design choices across all sizes:
 

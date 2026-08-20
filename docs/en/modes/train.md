@@ -114,6 +114,16 @@ Multi-GPU training allows for more efficient utilization of available hardware r
         yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 device=-1,-1
         ```
 
+!!! warning "Windows Multi-GPU Support"
+
+    Multi-GPU training does not work on Windows with the official PyTorch wheels for `torch>=2.4`. Ultralytics launches DDP through `torch.distributed.run`, whose rendezvous step builds a `TCPStore` that has defaulted to the libuv backend since PyTorch 2.4, and the official Windows wheels are built without libuv. Training exits immediately with:
+
+    ```
+    RuntimeError: use_libuv was requested but PyTorch was built without libuv support
+    ```
+
+    Setting `USE_LIBUV=0` does not resolve this, because the rendezvous constructs the `TCPStore` directly and that code path never reads the variable. Train on Linux or [WSL2](https://learn.microsoft.com/windows/wsl/install) to use multiple GPUs, or train on a single GPU with `device=0` on Windows.
+
 !!! note "Multi-GPU Training with Custom Code"
 
     When you specify multiple devices (e.g., `device=[0, 1]`), Ultralytics internally spawns a new trainer instance and executes `torch.distributed.run` under the hood. This works seamlessly for standard CLI usage and unmodified Python scripts.

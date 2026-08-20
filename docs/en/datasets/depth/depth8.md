@@ -16,16 +16,16 @@ The [Ultralytics](https://www.ultralytics.com/) Depth8 dataset is a compact [mon
 
 ## Dataset Structure
 
-Depth8 follows the standard [Ultralytics depth dataset layout](index.md#supported-dataset-format): RGB images with paired `.npy` float32 depth maps in meters, matched by file stem.
+Depth8 follows the standard [Ultralytics depth dataset layout](index.md#supported-dataset-format): RGB images with paired uint16 millimeter depth PNGs (`depth_scale: 1000`), matched by file stem.
 
 ```text
-depth8/
+depth8-png/
 ├── images/
 │   ├── train/  # 4 images
 │   └── val/    # 4 images
 └── depth/
-    ├── train/  # 4 float32 .npy depth maps
-    └── val/    # 4 float32 .npy depth maps
+    ├── train/  # 4 16-bit PNG depth maps
+    └── val/    # 4 16-bit PNG depth maps
 ```
 
 Depth values are real indoor sensor captures ranging from roughly 0.5 m to 4 m, well within the ≤10 m range of the full SUN RGB-D dataset.
@@ -92,7 +92,7 @@ The Ultralytics Depth8 dataset is designed for rapid testing and debugging of [m
 
 ### How does Depth8 differ from the full SUN RGB-D dataset?
 
-Depth8 samples 8 images from SUN RGB-D's 9,245-train/1,090-val split, favoring Kinect v1/v2 captures with clean, dense depth maps. It uses the identical directory layout and `.npy` depth format, so a pipeline that runs on Depth8 runs unmodified on the full dataset — just point `data=` at `depth-sunrgbd.yaml` instead of `depth8.yaml`. Unlike the full dataset, Depth8 downloads in seconds and needs no conversion step.
+Depth8 samples 8 images from SUN RGB-D's 9,245-train/1,090-val split, favoring Kinect v1/v2 captures with clean, dense depth maps. It uses the identical 16-bit PNG depth format, so a pipeline that runs on Depth8 runs unmodified on the full dataset. Unlike the full dataset, Depth8 downloads in seconds and needs no conversion step.
 
 ### Should I use Depth8 for benchmarking?
 

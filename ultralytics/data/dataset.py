@@ -39,6 +39,7 @@ from .utils import (
     get_hash,
     img2label_paths,
     load_dataset_cache_file,
+    load_depth,
     polygons2masks_overlap,
     save_dataset_cache_file,
     verify_image,
@@ -361,7 +362,7 @@ class YOLODataset(BaseDataset):
         return [k for k, v in category_freq.items() if v >= threshold]
 
     def close_mosaic(self, hyp: dict) -> None:
-        """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their probabilities to 0.0.
+        """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their values to 0.0.
 
         Args:
             hyp (dict): Hyperparameters for transforms.
@@ -438,8 +439,8 @@ class YOLODataset(BaseDataset):
 class DepthDataset(YOLODataset):
     """Dataset for monocular depth estimation with paired RGB + depth map loading.
 
-    Extends YOLODataset to load depth ground truth maps alongside RGB images. Depth maps are stored as .npy files in a
-    parallel directory structure (images/train/*.jpg → depth/train/*.npy).
+    Extends YOLODataset to load depth ground truth maps alongside RGB images. Depth maps are stored as PNG or NPY files
+    in a parallel directory structure (images/train/*.jpg → depth/train/*.{png,npy}).
 
     Examples:
         >>> dataset = DepthDataset(img_path="/data/nyu/images/train", data={"nc": 1})
@@ -448,21 +449,23 @@ class DepthDataset(YOLODataset):
     format_class = DepthFormat
 
     def _depth_path_for(self, im_file: str) -> str:
-        """Map an image path to its companion depth .npy path (last 'images' path component → 'depth')."""
+        """Map an image path to its companion PNG or NPY depth target."""
         parts = list(Path(im_file).parts)
         for i in range(len(parts) - 1, -1, -1):
             if parts[i] == "images":
                 parts[i] = "depth"
                 break
-        return str(Path(*parts).with_suffix(".npy"))
+        path = Path(*parts).with_suffix(".png")
+        return str(path if path.is_file() else path.with_suffix(".npy"))
 
     def get_label_files(self) -> list[str]:
-        """Return the depth .npy paths paired with the dataset's images.
+        """Return the depth paths paired with the dataset's images.
 
         Returns:
             (list[str]): List of depth file paths.
         """
-        self.depth_files = [self._depth_path_for(f) for f in self.im_files]
+        self.depth_files_by_image = {f: self._depth_path_for(f) for f in self.im_files}
+        self.depth_files = list(self.depth_files_by_image.values())
         return self.depth_files
 
     def get_cache_hash(self) -> str:
@@ -471,7 +474,7 @@ class DepthDataset(YOLODataset):
         Returns:
             (str): Dataset cache hash.
         """
-        return get_hash(self.depth_files + self.im_files)
+        return get_hash(self.depth_files + self.im_files + [str(self.data.get("depth_scale", 1000))])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
         """Return a one-line summary of image-depth scan counters."""
@@ -479,7 +482,9 @@ class DepthDataset(YOLODataset):
 
     def verify_args(self) -> tuple:
         """Return the depth verification function and its argument iterable."""
-        return verify_image_depth, zip(self.im_files, self.depth_files, repeat(self.prefix))
+        return verify_image_depth, zip(
+            self.im_files, self.depth_files, repeat(self.prefix), repeat(self.data.get("depth_scale", 1000))
+        )
 
     def result_to_label(self, result: tuple) -> tuple[dict | None, int, int, int, int, str]:
         """Convert one verify_image_depth result into a label dict and scan counter increments."""
@@ -503,9 +508,8 @@ class DepthDataset(YOLODataset):
         """Skip box and segment checks; depth datasets carry no box or segment annotations."""
 
     def _load_depth(self, index):
-        """Return the native-resolution depth map for an image, with non-finite values mapped to 0 (invalid)."""
-        depth = np.load(self._depth_path_for(self.im_files[index])).astype(np.float32)
-        return np.nan_to_num(depth, nan=0.0, posinf=0.0, neginf=0.0)
+        """Return the native-resolution depth map for an image."""
+        return load_depth(self.depth_files_by_image[self.im_files[index]], self.data.get("depth_scale", 1000))
 
     def get_image_and_label(self, index):
         """Load image, label, and depth map for the given index."""
@@ -727,8 +731,6 @@ class GroundingDataset(YOLODataset):
                     raw_seg = ann.get("segmentation")
                     segmented |= raw_seg is not None
                     seg = raw_seg if isinstance(raw_seg, list) else []
-                    if seg and all(isinstance(x, list) and len(x) == 2 for x in seg):
-                        seg = [[c for point in seg for c in point]]  # [[x, y], ...] is one polygon
                     polygons = [
                         p
                         for p in seg
@@ -862,7 +864,7 @@ class YOLOConcatDataset(ConcatDataset):
         return YOLODataset.collate_fn(batch)
 
     def close_mosaic(self, hyp: dict) -> None:
-        """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their probabilities to 0.0.
+        """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their values to 0.0.
 
         Args:
             hyp (dict): Hyperparameters for transforms.

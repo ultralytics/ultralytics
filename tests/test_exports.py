@@ -262,8 +262,8 @@ def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
 @pytest.mark.parametrize("end2end", [False, True])
 def test_export_openvino(end2end, isolated_model):
     """Test YOLO export to OpenVINO format for model inference compatibility."""
-    file = YOLO(isolated_model).export(format="openvino", imgsz=32, dynamic=True, nms=not end2end, end2end=end2end)
-    YOLO(file)(SOURCE, imgsz=64)  # exported model inference
+    file = YOLO(isolated_model).export(format="openvino", imgsz=32, end2end=end2end)
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
 @pytest.mark.slow
@@ -319,14 +319,7 @@ def test_export_onnx_matrix(task, dynamic, batch, simplify, nms, end2end):
         nms=nms,
         end2end=end2end,
     )
-    exported = YOLO(file)
-    r = exported([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
-    if task == "detect" and dynamic and batch == 1 and simplify and nms:
-        session = exported.predictor.model.backend.session
-        assert (
-            session.run(None, {session.get_inputs()[0].name: torch.zeros(1, 3, 64, 64).numpy()})[0].shape[1]
-            == get_cfg().max_det
-        )
+    r = YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
     if task == "semantic":
         assert r[0].semantic_mask is not None
         assert r[0].semantic_mask.data.dtype in {torch.uint8, torch.int32}

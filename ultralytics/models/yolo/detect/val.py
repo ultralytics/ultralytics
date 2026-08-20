@@ -50,6 +50,8 @@ class DetectionValidator(BaseValidator):
             args (dict[str, Any], optional): Arguments for the validator.
             _callbacks (dict, optional): Dictionary of callback functions.
         """
+        conf = args.get("conf") if isinstance(args, dict) else getattr(args, "conf", None)
+        self.confusion_matrix_conf = 0.25 if conf is None else conf
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.is_coco = False
         self.is_lvis = False
@@ -70,7 +72,7 @@ class DetectionValidator(BaseValidator):
         """
         for k, v in batch.items():
             if isinstance(v, torch.Tensor):
-                batch[k] = v.to(self.device, non_blocking=self.device.type == "cuda")
+                batch[k] = v.to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
         batch["img"] = (batch["img"].half() if self.args.quantize == 16 else batch["img"].float()) / 255
         return batch
 
@@ -192,7 +194,7 @@ class DetectionValidator(BaseValidator):
             )
             # Evaluate
             if self.args.plots:
-                self.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
+                self.confusion_matrix.process_batch(predn, pbatch, conf=self.confusion_matrix_conf)
                 if self.args.visualize:
                     self.confusion_matrix.plot_matches(
                         batch["img"][si],
@@ -347,6 +349,7 @@ class DetectionValidator(BaseValidator):
             rank=-1,
             drop_last=self.args.compile,
             pin_memory=self.training,
+            device=self.device,
         )
 
     def plot_val_samples(self, batch: dict[str, Any], ni: int) -> None:

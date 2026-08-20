@@ -68,16 +68,10 @@ For turnkey solutions, Axelera partners with manufacturers to provide systems pr
 
 ## Supported Tasks
 
-The following tasks are supported across YOLOv8, YOLO11, and YOLO26 models.
+Depth estimation is not supported: the depth head emits operators the Metis AIPU compiler cannot lower. YOLO26 segmentation is not supported by Ultralytics `export` either, but can still be deployed through the Voyager SDK as described below.
 
-| Task                                          | YOLOv8 | YOLO11 | YOLO26              |
-| :-------------------------------------------- | :----- | :----- | :------------------ |
-| [Object Detection](../tasks/detect.md)        | ✅     | ✅     | ✅                  |
-| [Pose Estimation](../tasks/pose.md)           | ✅     | ✅     | ✅                  |
-| [Instance Segmentation](../tasks/segment.md)  | ✅     | ✅     | ⚠️ Voyager SDK only |
-| [Semantic Segmentation](../tasks/semantic.md) | ❌     | ❌     | ✅                  |
-| [Oriented Bounding Boxes](../tasks/obb.md)    | ✅     | ✅     | ✅                  |
-| [Classification](../tasks/classify.md)        | ✅     | ✅     | ✅                  |
+{% set unsupported = ["depth", "yolo26-segment"] %}
+{% include "macros/supported-tasks.md" %}
 
 !!! note
 
@@ -234,15 +228,15 @@ The Axelera format supports the [Export](../modes/export.md), [Predict](../modes
 
 ### Export Arguments
 
-| Argument   | Type             | Default          | Description                                                                                                                                                                                                          |
-| :--------- | :--------------- | :--------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'axelera'`      | Target format for Axelera Metis AIPU hardware.                                                                                                                                                                       |
-| `imgsz`    | `int` or `tuple` | `640`            | Image size for model input.                                                                                                                                                                                          |
-| `batch`    | `int`            | `1`              | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                              |
-| `quantize` | `int` or `str`   | `8`/auto         | Quantization precision. `8` (INT8) is required and auto-enabled for the Axelera AIPU. Replaces the deprecated `half`/`int8` flags. See [INT8 quantization](https://www.ultralytics.com/glossary/model-quantization). |
-| `data`     | `str`            | `'coco128.yaml'` | [Dataset](../datasets/index.md) config for quantization calibration.                                                                                                                                                 |
-| `fraction` | `float`          | `1.0`            | Fraction of dataset for calibration (100-400 images recommended).                                                                                                                                                    |
-| `device`   | `str`            | `None`           | Export device: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                                                                               |
+| Argument   | Type             | Default     | Description                                                                                                                                                                                                          |
+| :--------- | :--------------- | :---------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'axelera'` | Target format for Axelera Metis AIPU hardware.                                                                                                                                                                       |
+| `imgsz`    | `int` or `tuple` | `640`       | Image size for model input.                                                                                                                                                                                          |
+| `batch`    | `int`            | `1`         | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                              |
+| `quantize` | `int` or `str`   | `8`/auto    | Quantization precision. `8` (INT8) is required and auto-enabled for the Axelera AIPU. Replaces the deprecated `half`/`int8` flags. See [INT8 quantization](https://www.ultralytics.com/glossary/model-quantization). |
+| `data`     | `str`            | `None`      | Calibration dataset YAML; classification instead takes a dataset directory or a built-in dataset name. If omitted, Ultralytics selects a task-specific calibration dataset.                                          |
+| `fraction` | `float`          | `1.0`       | Fraction of dataset for calibration (100-400 images recommended).                                                                                                                                                    |
+| `device`   | `str`            | `None`      | Export device: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                                                                               |
 
 For all export options, see the [Export Mode documentation](../modes/export.md).
 

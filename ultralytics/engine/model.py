@@ -417,7 +417,7 @@ class Model(torch.nn.Module):
         self.model = self.model.fuse(verbose=verbose, imgsz=imgsz)
         return self
 
-    def metadata(self) -> Dict:
+    def metadata(self) -> dict:
         """Returns the metadata of the model.
 
         This method returns the metadata of the model, including information about the model's task, configuration,
@@ -425,7 +425,7 @@ class Model(torch.nn.Module):
         further analysis.
 
         Returns:
-            (Dict): A dictionary containing the model's metadata.
+            (dict): A dictionary containing the model's metadata.
 
         Examples:
             >>> model = YOLO("yolo11n.pt")

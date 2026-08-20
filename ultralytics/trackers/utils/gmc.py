@@ -301,13 +301,6 @@ class GMC:
         # Find good features to track
         keypoints = cv2.goodFeaturesToTrack(frame, mask=None, **self.feature_params)
 
-        if self.prevFrame is not None and frame.shape != self.prevFrame.shape:
-            LOGGER.warning(
-                "Frame shape changed from the previous frame, resetting motion compensation. "
-                "When tracking a new video pass persist=False on its first frame to reset the tracker."
-            )
-            self.reset_params()
-
         # Handle first frame initialization
         if not self.initializedFirstFrame or self.prevKeyPoints is None:
             self.prevFrame = frame.copy()

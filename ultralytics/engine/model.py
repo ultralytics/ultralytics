@@ -552,8 +552,7 @@ class Model(torch.nn.Module):
             source (str | Path | int | list | tuple | np.ndarray | torch.Tensor, optional): Input source for object
                 tracking. Can be a file path, URL, or video stream.
             stream (bool): If True, treats the input source as a continuous video stream.
-            persist (bool): If True, persists trackers between different calls to this method. Passing False on a later
-                call resets the trackers, e.g. when starting a new video.
+            persist (bool): If True, persists trackers between different calls to this method.
             **kwargs (Any): Additional keyword arguments for configuring the tracking process.
 
         Returns:

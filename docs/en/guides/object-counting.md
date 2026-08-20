@@ -39,7 +39,7 @@ Object counting with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 
 ## Count Objects with YOLO26
 
-Define a counting `region` — two points for a line or three or more for a polygon — and pass it to the `ObjectCounter` solution. The counter tracks each object across frames and tallies IN/OUT counts when tracked centroids cross the line or move inside the region, returning an annotated frame you can write to an output video.
+Define a counting `region` — two points for a line or three or more for a polygon — and pass it to the `ObjectCounter` solution. The counter tracks each object across frames and tallies IN/OUT counts when tracked objects cross the line or pass through the region, returning an annotated frame you can write to an output video.
 
 !!! example "Object Counting using Ultralytics YOLO"
 
@@ -109,17 +109,17 @@ Define a counting `region` — two points for a line or three or more for a poly
 Here's a table with the `ObjectCounter` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "show_in", "show_out", "region"]) }}
+{{ param_table(["model", "show_in", "show_out", "region", "line_width", "verbose"]) }}
 
 The `ObjectCounter` solution allows the use of several `track` arguments:
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 Additionally, the visualization arguments listed below are supported:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
+{{ param_table(["show", "show_conf", "show_labels"]) }}
 
 ## FAQ
 

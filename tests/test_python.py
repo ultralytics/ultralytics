@@ -879,25 +879,19 @@ def test_results(model: str, tmp_path):
 
 def test_results_summary_use_wh():
     """Test Results.summary(use_wh=True) output format for detection and OBB models."""
-    # Detection: use_wh=True should return {x1, y1, width, height} centered box, no rotation key
-    model = YOLO(WEIGHTS_DIR / "yolo26n.pt")
-    results = model(SOURCE, imgsz=160)
-    for r in results:
-        summary = r.summary(use_wh=True)
-        for det in summary:
-            box = det["box"]
-            assert set(box.keys()) == {"x1", "y1", "width", "height"}
-            assert "rotation" not in box
+    from ultralytics.engine.results import Results
 
-    # OBB: use_wh=True should additionally include a "rotation" key
-    model = YOLO(WEIGHTS_DIR / "yolo26n-obb.pt")
-    results = model("https://ultralytics.com/images/boats.jpg", imgsz=160)
-    for r in results:
-        summary = r.summary(use_wh=True)
-        for det in summary:
-            box = det["box"]
-            assert set(box.keys()) == {"x1", "y1", "width", "height", "rotation"}
-            assert isinstance(box["rotation"], float)
+    im = np.zeros((100, 200, 3), dtype=np.uint8)
+    r = Results(im, "", {0: "x"}, boxes=torch.tensor([[20, 10, 100, 50, 0.9, 0]]))
+    assert r.summary(use_wh=True)[0]["box"] == {"x1": 60.0, "y1": 30.0, "width": 80.0, "height": 40.0}
+    r = Results(im, "", {0: "x"}, obb=torch.tensor([[60, 30, 80, 40, 0.5, 0.9, 0]]))
+    assert r.summary(use_wh=True)[0]["box"] == {
+        "x1": 60.0,
+        "y1": 30.0,
+        "width": 80.0,
+        "height": 40.0,
+        "rotation": 0.5,
+    }
 
 
 def test_results_plot_without_boxes():

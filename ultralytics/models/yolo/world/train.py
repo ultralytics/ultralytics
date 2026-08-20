@@ -86,7 +86,9 @@ class WorldTrainer(DetectionTrainer):
         )
         if weights:
             model.load(weights)
-        self.add_callback("on_pretrain_routine_end", on_pretrain_routine_end)
+        # the caller's Model shares this dict, so a bare append outlives the trainer and stacks on every later one
+        if on_pretrain_routine_end not in self.callbacks["on_pretrain_routine_end"]:
+            self.add_callback("on_pretrain_routine_end", on_pretrain_routine_end)
 
         return model
 
@@ -166,7 +168,7 @@ class WorldTrainer(DetectionTrainer):
         # Add text features
         texts = list(itertools.chain(*batch["texts"]))
         txt_feats = torch.stack([self.text_embeddings[text] for text in texts]).to(
-            self.device, non_blocking=self.device.type == "cuda"
+            self.device, non_blocking=self.device.type not in {"cpu", "mps"}
         )
         batch["txt_feats"] = txt_feats.reshape(len(batch["texts"]), -1, txt_feats.shape[-1])
         return batch

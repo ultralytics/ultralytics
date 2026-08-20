@@ -66,6 +66,8 @@ To use Albumentations with YOLO26, start by making sure you have the necessary p
 
 For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO26, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
+The custom transform examples on this page need Albumentations 1.4.22 or newer, and therefore Python 3.9 or newer.
+
 ### Usage
 
 After installing the necessary packages, you're ready to start using Albumentations with YOLO26. When you train YOLO26, a set of augmentations is automatically applied through its integration with Albumentations, making it easy to enhance your model's performance.
@@ -97,7 +99,7 @@ After installing the necessary packages, you're ready to start using Albumentati
         # Define custom Albumentations transforms
         custom_transforms = [
             A.Blur(blur_limit=7, p=0.5),
-            A.GaussNoise(var_limit=(10.0, 50.0), p=0.3),
+            A.GaussNoise(std_range=(0.0124, 0.0277), p=0.3),
             A.CLAHE(clip_limit=4.0, p=0.5),
             A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.5),
         ]
@@ -173,7 +175,7 @@ The image below shows an example of the CLAHE transformation applied.
 
 ## Using Custom Albumentations Transforms
 
-While the default Albumentations integration provides a solid set of augmentations, you may want to customize the transforms for your specific use case. With Ultralytics YOLO26, you can easily pass custom Albumentations transforms via the Python API using the `augmentations` parameter.
+While the default Albumentations integration provides a solid set of augmentations, you may want to customize the transforms for your specific use case. With Ultralytics YOLO26, you can easily pass custom Albumentations transforms via the Python API using the `augmentations` parameter. The examples in this section need Albumentations 1.4.22 or newer.
 
 ### How to Define Custom Transforms
 
@@ -203,7 +205,7 @@ custom_transforms = [
     # Noise variations
     A.OneOf(
         [
-            A.GaussNoise(var_limit=(10.0, 50.0), p=1.0),
+            A.GaussNoise(std_range=(0.0124, 0.0277), p=1.0),
             A.ISONoise(color_shift=(0.01, 0.05), intensity=(0.1, 0.5), p=1.0),
         ],
         p=0.2,
@@ -213,9 +215,7 @@ custom_transforms = [
     A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, p=0.5),
     A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
     # Simulate occlusions
-    A.CoarseDropout(
-        max_holes=8, max_height=32, max_width=32, min_holes=1, min_height=8, min_width=8, fill_value=0, p=0.2
-    ),
+    A.CoarseDropout(num_holes_range=(1, 8), hole_height_range=(8, 32), hole_width_range=(8, 32), fill=0, p=0.2),
 ]
 
 # Train with custom transforms

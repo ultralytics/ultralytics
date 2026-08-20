@@ -77,7 +77,7 @@ import numpy as np
 import torch
 
 from ultralytics import __version__
-from ultralytics.cfg import QUANTIZE_DOCS_URL, TASK2CALIBRATIONDATA, TASK2DATA, cfg2dict, get_cfg
+from ultralytics.cfg import QUANTIZE_DOCS_URL, TASK2CALIBRATIONDATA, TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.data.dataset import ClassificationDataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
@@ -85,6 +85,7 @@ from ultralytics.nn.autobackend import AutoBackend, check_class_names, default_c
 from ultralytics.nn.modules import (
     OBB,
     OBB26,
+    Attention,
     C2f,
     Classify,
     Depth,
@@ -299,9 +300,7 @@ EXPORT_ENVS = {
             "onnxruntime",
             "protobuf>=5",
         ],
-        "indexes": [
-            ("--extra-index-url", "https://pypi.ngc.nvidia.com"),
-        ],
+        "indexes": [],
         "env": {},
         "smoke": ["yolo export format=saved_model model=yolo26n.pt imgsz=32"],
     },
@@ -563,14 +562,7 @@ class Exporter:
             overrides (dict, optional): Configuration overrides.
             _callbacks (dict, optional): Dictionary of callback functions.
         """
-        export_cfg = deepcopy(cfg2dict(cfg))
-        export_overrides = deepcopy(cfg2dict(overrides)) if overrides else {}
-        calibration_batch = export_overrides.pop("calibration_batch", None)
-        if calibration_batch is None:
-            calibration_batch = export_cfg.pop("calibration_batch", None)
-
-        self.args = get_cfg(export_cfg, export_overrides)
-        self.args.calibration_batch = calibration_batch
+        self.args = get_cfg(cfg, overrides)
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
@@ -801,6 +793,8 @@ class Exporter:
                 assert model.task != "classify" and not isinstance(model.model[-1], RTDETRDecoder), (
                     "'dynamic=True' is not supported for CoreML classification or RT-DETR models."
                 )
+        if fmt in {"engine", "onnx", "openvino"} and self.args.dynamic and self.args.nms:
+            LOGGER.warning("'dynamic=True' with 'nms=True' keeps height and width fixed; only batch is dynamic.")
         if (fmt in {"engine", "coreml"} or self.args.nms) and self.args.dynamic and self.args.batch == 1:
             LOGGER.warning(
                 f"'dynamic=True' model with '{'nms=True' if self.args.nms else f'format={self.args.format}'}' requires max batch size, i.e. 'batch=16'"
@@ -864,6 +858,8 @@ class Exporter:
 
             model = executorch_wrapper(model)
         for m in model.modules():
+            if isinstance(m, Attention) and fmt == "coreml" and self.args.format.lower() != "mlmodel":
+                m.format = fmt
             if isinstance(m, (Classify, SemanticSegment, Depth)):
                 m.export = True
                 m.format = self.args.format
@@ -990,29 +986,22 @@ class Exporter:
     def get_int8_calibration_dataloader(self, prefix=""):
         """Build and return a dataloader for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
-        data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
-
-        calibration_batch = self.args.calibration_batch if self.args.calibration_batch is not None else self.args.batch
-        if calibration_batch <= 0:
-            raise ValueError("calibration_batch must be a positive integer")
-        fmt = str(self.args.format).lower()
-        if fmt in {"engine", "tensorrt", "trt"} and calibration_batch > self.args.batch:
+        calibration_batch = self.args.calibration_batch or self.args.batch
+        if self.args.format == "engine" and calibration_batch > self.args.batch:
             raise ValueError(
                 f"calibration_batch={calibration_batch} cannot exceed batch={self.args.batch} for TensorRT export, "
                 f"set calibration_batch <= batch or increase batch."
             )
 
-        quantize = getattr(self.args, "quantize", None)
-        quantize_label = str(quantize).strip().lower() if quantize is not None else ""
-        int8_enabled = quantize == 8 or quantize_label in {"8", "int8"}
-        legacy_int8 = getattr(self.args, "int8", None)
-        if legacy_int8 is not None:
-            int8_enabled = int8_enabled or bool(legacy_int8)
-
-        dynamic = bool(getattr(self.args, "dynamic", False))
-        if int8_enabled and fmt in {"engine", "openvino"} and not dynamic and calibration_batch != self.args.batch:
+        if (
+            self.args.quantize == 8
+            and self.args.format in {"engine", "openvino"}
+            and not self.args.dynamic
+            and calibration_batch != self.args.batch
+        ):
             raise ValueError(
-                f"calibration_batch={calibration_batch} cannot differ from batch={self.args.batch} for {fmt} INT8 export "
+                f"calibration_batch={calibration_batch} cannot differ from batch={self.args.batch} for "
+                f"{self.args.format} INT8 export "
                 f"when dynamic=False. Please set calibration_batch == batch or use dynamic=True."
             )
 
@@ -1100,8 +1089,8 @@ class Exporter:
                 dynamic["output0"] = {0: "batch", 2: "height", 3: "width"}  # shape(1,1,640,640) dense map, not anchors
             elif isinstance(self.model, DetectionModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 84, 8400)
-            if self.args.nms:  # only batch size is dynamic with NMS
-                dynamic["output0"].pop(2)
+            if self.args.nms:  # NMS postprocessing bakes the traced anchor count into the graph
+                dynamic["images"] = dynamic["output0"] = {0: "batch"}
         if self.args.nms and self.model.task == "obb":
             self.args.opset = opset  # for NMSModel
             self.args.simplify = True  # fix OBB runtime error related to topk
@@ -1182,6 +1171,7 @@ class Exporter:
                 LOGGER.warning(f"{prefix} FP16 conversion failure: {e}")
 
         onnx.save(model_onnx, f)
+        del model_onnx
         if self.args.quantize == 8 and self.args.format == "onnx":
             from ultralytics.utils.export.onnx import onnx_int8_quantize
 
@@ -1223,17 +1213,13 @@ class Exporter:
             ov.save_model(ov_model, file, compress_to_fp16=self.args.quantize == 16)
             YAML.save(Path(file).parent / "metadata.yaml", self.metadata)  # add metadata.yaml
 
-        calibration_dataset, ignored_scope = None, None
+        calibration_dataset = None
         if self.args.quantize == 8:
             check_requirements("packaging>=23.2")  # must be installed first to build nncf wheel
             check_requirements("nncf>=2.14.0,<3.0.0" if not TORCH_2_3 else "nncf>=2.14.0")
             import nncf
 
             calibration_dataset = nncf.Dataset(self.get_int8_calibration_dataloader(prefix), self._transform_fn)
-            if isinstance(self.model.model[-1], Detect):
-                # Includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect
-                head_module_name = ".".join(list(self.model.named_modules())[-1][0].split(".")[:2])
-                ignored_scope = nncf.IgnoredScope(patterns=[f".*{head_module_name}(/|\\.dfl).*"], types=["Sigmoid"])
 
         ov_model = torch2openvino(
             model=NMSModel(self.model, self.args) if self.args.nms else self.model,
@@ -1241,7 +1227,8 @@ class Exporter:
             dynamic=self.args.dynamic,
             quantize=self.args.quantize,
             calibration_dataset=calibration_dataset,
-            ignored_scope=ignored_scope,
+            int8_detect=isinstance(self.model.model[-1], Detect),
+            nms=self.args.nms,
             prefix=prefix,
         )
 

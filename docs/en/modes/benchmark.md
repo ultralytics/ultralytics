@@ -10,13 +10,6 @@ keywords: model benchmarking, YOLO26, Ultralytics, performance evaluation, expor
 
 ## Benchmark Visualization
 
-!!! tip "Refresh Browser"
-
-    You may need to refresh the page to view the graphs correctly due to potential cookie issues.
-
-<script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script defer src="../../javascript/benchmark.js"></script>
-
 <canvas id="modelComparisonChart" width="1024" height="400"></canvas>
 
 ## Introduction

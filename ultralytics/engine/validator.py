@@ -329,8 +329,8 @@ class BaseValidator:
                 at the first IoU threshold.
 
         Returns:
-            (torch.Tensor | tuple[torch.Tensor, np.ndarray]): Correct tensor of shape (N, 10), optionally accompanied
-                by an array of matched ground-truth indices with -1 for unmatched predictions.
+            (torch.Tensor | tuple[torch.Tensor, np.ndarray]): Correct tensor of shape (N, 10), optionally accompanied by
+                an array of matched ground-truth indices with -1 for unmatched predictions.
         """
         # Dx10 matrix, where D - detections, 10 - IoU thresholds
         correct = np.zeros((pred_classes.shape[0], self.iouv.shape[0])).astype(bool)

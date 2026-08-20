@@ -346,7 +346,7 @@ def build_dataloader(
     """
     dataset_len = len(dataset)
     batch = min(batch, dataset_len)
-    seed = torch.initial_seed() - rank - 1
+    seed = torch.initial_seed() - RANK - 1
     sampler = (
         None
         if rank == -1

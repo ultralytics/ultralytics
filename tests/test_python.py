@@ -65,10 +65,11 @@ def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
     sampler_cls = data_build.distributed.DistributedSampler
 
     def distributed_sampler(dataset, shuffle, seed):
-        return sampler_cls(dataset, num_replicas=3, rank=0, shuffle=shuffle, seed=seed)
+        return sampler_cls(dataset, num_replicas=3, rank=2, shuffle=shuffle, seed=seed)
 
     monkeypatch.setattr(data_build.distributed, "DistributedSampler", distributed_sampler)
-    expected_seed = torch.initial_seed() - 1  # BaseTrainer uses run seed + 1 for rank 0
+    monkeypatch.setattr(data_build, "RANK", 2)  # Simulate the second node with global rank 2 and local rank 0
+    expected_seed = torch.initial_seed() - 3
     loader = build_dataloader(range(8), batch=4, workers=8, rank=0, drop_last=True)
     try:
         assert len(loader) == 1

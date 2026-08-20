@@ -112,6 +112,7 @@ sgd: 1.0
 o2m: 0.1
 tal_alpha: 0.5 # (float) TAL label assignment alpha for the one-to-many head (0.0=disable, 1.0=full TAL)
 tal_beta: 6.0 # (float) TAL label assignment beta for the one-to
+tal_o2o: True
 topk2: 7
 distill_model: # (str, optional) path to teacher model for knowledge distillation
 dis: 6.0 # (float) distillation loss weight

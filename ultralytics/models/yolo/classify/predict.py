@@ -63,7 +63,8 @@ class ClassificationPredictor(BasePredictor):
         self.transforms = (
             classify_transforms(self.imgsz) if updated or self.model.format != "pt" else self.model.model.transforms
         )
-        self.tensor_transforms = T.Compose([t for t in self.transforms.transforms if not isinstance(t, T.ToTensor)])
+        tensor_transforms = classify_transforms(self.imgsz)
+        self.tensor_transforms = T.Compose([t for t in tensor_transforms.transforms if not isinstance(t, T.ToTensor)])
 
     def preprocess(self, img):
         """Convert input images to model-compatible tensor format with appropriate normalization."""

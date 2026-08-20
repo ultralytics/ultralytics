@@ -1872,6 +1872,8 @@ class NMSModel(torch.nn.Module):
         if self.args.dynamic and self.args.batch > 1:  # batch size needs to always be same due to loop unroll
             pad = torch.zeros(torch.max(torch.tensor(self.args.batch - bs), torch.tensor(0)), *pred.shape[1:], **kwargs)
             pred = torch.cat((pred, pad))
+        if self.args.dynamic and self.args.format == "onnx" and self.obb:
+            pred = torch.cat((pred, pred.new_zeros(pred.shape[0], self.args.max_det * 5, pred.shape[2])), dim=1)
         boxes, scores, extras = pred.split([4, len(self.model.names), extra_shape], dim=2)
         scores, classes = scores.max(dim=-1)
         # (N, max_det, 4 coords + 1 class score + 1 class label + extra_shape).
@@ -1882,16 +1884,8 @@ class NMSModel(torch.nn.Module):
             if self.is_tf or (self.args.format == "onnx" and self.obb):
                 # TFLite GatherND error if mask is empty
                 score *= mask
-                candidates = self.args.max_det * 5
-                if self.args.dynamic:
-                    # Keep TopK independent of the traced anchor count while guaranteeing enough candidates.
-                    box = torch.cat((box, box.new_zeros(candidates, box.shape[1])))
-                    score = torch.cat((score, score.new_zeros(candidates)))
-                    cls = torch.cat((cls, cls.new_zeros(candidates)))
-                    extra = torch.cat((extra, extra.new_zeros(candidates, extra.shape[1])))
-                    mask = score.topk(candidates).indices
-                else:
-                    mask = score.topk(min(candidates, score.shape[0])).indices
+                # Explicit length otherwise reshape error, hardcoded to `self.args.max_det * 5`
+                mask = score.topk(min(self.args.max_det * 5, score.shape[0])).indices
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             nmsbox = box.clone()
             # `8` is the minimum value experimented to get correct NMS results for obb

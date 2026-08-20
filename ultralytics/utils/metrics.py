@@ -1041,6 +1041,8 @@ class Metric(SimpleClass):
                 - px (list): X values for the curves.
                 - prec_values (list): Precision values for each class.
         """
+        self.__dict__.pop("_map50", None)
+        self.__dict__.pop("_map", None)
         (
             self.p,
             self.r,

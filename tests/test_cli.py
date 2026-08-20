@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import json
 import shutil
 import subprocess
 import sys
@@ -26,6 +27,49 @@ def test_special_modes() -> None:
     run("yolo settings reset")
     run(f"yolo settings weights_dir={WEIGHTS_DIR} datasets_dir={DATASETS_DIR}")
     run("yolo cfg")
+
+
+@pytest.mark.parametrize("api_key", ["legacy_api_key", "ul_" + "a" * 40])
+def test_settings_migration(tmp_path: Path, api_key: str) -> None:
+    """Verify schema migration preserves user settings and only retains Platform API keys."""
+    from ultralytics.utils import SettingsManager
+
+    settings_file = tmp_path / "settings.json"
+    settings_file.write_text(
+        json.dumps(
+            {
+                "settings_version": "0.0.6",
+                "runs_dir": "/custom/runs",
+                "api_key": api_key,
+                "hub": True,
+            }
+        )
+    )
+    settings = SettingsManager(settings_file, version="0.0.7")
+
+    assert settings["runs_dir"] == "/custom/runs"
+    assert settings["api_key"] == (api_key if api_key.startswith("ul_") else "")
+    assert settings["settings_version"] == "0.0.7"
+    assert "hub" not in settings
+
+
+def test_platform_login(monkeypatch) -> None:
+    """Verify Platform login saves valid keys and logout removes them."""
+    import requests
+
+    from ultralytics import cfg
+
+    class Response:
+        status_code = 200
+
+    settings = {"api_key": ""}
+    monkeypatch.setattr(cfg, "SETTINGS", settings)
+    monkeypatch.setattr(requests, "get", lambda *args, **kwargs: Response())
+
+    cfg.handle_yolo_login(["login", "ul_valid"])
+    assert settings["api_key"] == "ul_valid"
+    cfg.handle_yolo_login(["logout"])
+    assert settings["api_key"] == ""
 
 
 def test_cli_imports_defer_torchvision() -> None:

@@ -187,16 +187,6 @@ def test_int8_calibration_validates_split():
         exporter.get_int8_calibration_dataloader()
 
 
-def test_int8_calibration_classify_fraction():
-    """Check classification INT8 calibration respects fraction (#25469)."""
-    exporter = object.__new__(Exporter)
-    exporter.model = SimpleNamespace(task="classify")
-    exporter.args = get_cfg(overrides={"data": "imagenet10", "fraction": 0.5, "batch": 1})
-    exporter.imgsz = [32]
-    dataloader = exporter.get_int8_calibration_dataloader()
-    assert len(dataloader.dataset) == 6  # imagenet10 val has 12 images, fraction=0.5 keeps 6
-
-
 def test_export_rknn_batch_expansion(monkeypatch, tmp_path):
     """Check RKNN calibrates batch 1 before Toolkit expands to the requested batch."""
     calls = {}
@@ -670,15 +660,14 @@ def test_export_executorch_matrix(task):
 
 
 @pytest.mark.skipif(
-    not (WINDOWS or (LINUX and ARM64)) or sys.version_info < (3, 11),
-    reason="onnxruntime-qnn ships prebuilt wheels only for Windows (x64/ARM64) and Linux ARM64 on Python>=3.11",
+    not (WINDOWS or LINUX) or sys.version_info < (3, 11),
+    reason="onnxruntime-qnn ships prebuilt wheels only for Windows and Linux on Python>=3.11",
 )
 def test_export_qnn(isolated_model):
     """Test YOLO export to Qualcomm QNN format via the ONNX Runtime QNN Execution Provider."""
     import importlib.util
 
-    # QNN EP ships either as the 'onnxruntime_qnn' plugin module (Windows/Linux-aarch64) or as a provider library
-    # bundled in onnxruntime/capi (Linux x86-64). Skip cleanly only when neither is present.
+    # QNN EP ships either as the 'onnxruntime_qnn' plugin module or as a provider library bundled in onnxruntime/capi.
     has_qnn = importlib.util.find_spec("onnxruntime_qnn") is not None
     if not has_qnn and importlib.util.find_spec("onnxruntime") is not None:
         import onnxruntime

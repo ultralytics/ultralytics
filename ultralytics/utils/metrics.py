@@ -539,7 +539,7 @@ class ConfusionMatrix(DataExportMixin):
         normalize: bool = True,
         save_dir: str = "",
         on_plot=None,
-        filter_empty: bool = True,
+        filter_empty: bool = False,
         show_values: bool | None = None,
     ):
         """Plot the confusion matrix using matplotlib and save it to a file.

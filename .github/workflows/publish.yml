@@ -34,7 +34,8 @@ jobs:
           python-version: "3.x"
       - uses: ultralytics/actions/setup-uv@main
       - run: uv pip install --system --no-cache ultralytics-actions
-      - id: check_pypi
+      - name: Check PyPI version and publish flag
+        id: check_pypi
         shell: python
         env:
           PYPI_DISPATCH: ${{ github.event.inputs.pypi }}

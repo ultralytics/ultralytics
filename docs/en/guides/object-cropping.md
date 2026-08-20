@@ -97,11 +97,6 @@ Here's a table with the `ObjectCropper` arguments:
 {% from "macros/solutions-args.md" import param_table %}
 {{ param_table(["model", "crop_dir"]) }}
 
-Moreover, the following visualization arguments are available for use:
-
-{% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width"]) }}
-
 ## FAQ
 
 ### What is object cropping in Ultralytics YOLO26 and how does it work?

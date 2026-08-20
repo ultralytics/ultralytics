@@ -109,17 +109,17 @@ Run the Heatmap solution on a video source from the CLI or Python. The Python ex
 Here's a table with the `Heatmap` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "colormap", "show_in", "show_out", "region"]) }}
+{{ param_table(["model", "colormap", "show_in", "show_out", "region", "line_width", "verbose"]) }}
 
 You can also apply different `track` arguments in the `Heatmap` solution.
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 Additionally, the supported visualization arguments are listed below:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
+{{ param_table(["show", "show_conf", "show_labels"]) }}
 
 ### Heatmap Colormaps
 

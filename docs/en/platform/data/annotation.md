@@ -13,7 +13,7 @@ keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, boun
 
 ```mermaid
 graph TB
-    subgraph Draw["Draw Mode"]
+    subgraph Draw["Shape set by the dataset task"]
         A[Box]:::start & B[Polygon]:::start & C[Classify]:::start & D[Keypoint]:::start & E[OBB]:::start
     end
     subgraph AI["AI-Assisted"]
@@ -29,7 +29,7 @@ graph TB
 
 ## Supported Task Types
 
-The annotation editor supports all 6 YOLO task types:
+The annotation editor provides annotation tools for 6 YOLO task types:
 
 | Task                                             | Tool           | Annotation Format                                         |
 | ------------------------------------------------ | -------------- | --------------------------------------------------------- |
@@ -37,12 +37,14 @@ The annotation editor supports all 6 YOLO task types:
 | **[Segment](../../datasets/segment/index.md)**   | Polygon        | Pixel-precise masks (polygon vertices)                    |
 | **[Semantic](../../datasets/semantic/index.md)** | Polygon        | Per-class region masks (polygon vertices)                 |
 | **[Classify](../../datasets/classify/index.md)** | Class Selector | Image-level labels                                        |
-| **[Pose](../../datasets/pose/index.md)**         | Keypoint       | Skeleton templates (Person, Hand, Face, Dog, Box, custom) |
+| **[Pose](../../datasets/pose/index.md)**         | Keypoint       | Skeleton templates (Person, Hand, Dog, Face, Box, custom) |
 | **[OBB](../../datasets/obb/index.md)**           | Oriented Box   | Rotated bounding boxes (4 corners)                        |
 
 !!! tip "Multi-Task Annotations"
 
     All 6 annotation types are stored together on each image. You can switch the dataset's active task type without losing existing annotations — they are preserved and reappear when you switch back.
+
+[Depth ground truth](../../datasets/depth/index.md#depth-map-format) is a paired map you upload, not something you draw, so the editor opens read-only on a depth dataset.
 
 ### Task Details
 
@@ -132,9 +134,9 @@ graph LR
 | **Draw**  | Default manual mode with task-specific drawing tools                        | `V`      |
 | **Smart** | SAM or YOLO model-assisted annotation (detect, segment, semantic, OBB only) | `S`      |
 
-Pose annotation uses `Draw` with a skeleton template. Classification uses the class sidebar directly and does not show the drawing toolbar.
+Pose annotation uses `Draw` with a skeleton template — the `Smart` button appears but is disabled and marked "Coming Soon". Classification uses the class sidebar directly and shows no drawing toolbar or `Smart` button at all.
 
-Smart annotation is not currently available for connected datasets.
+Smart annotation is not currently available for [connected datasets](../integrations/index.md) backed by cloud or On Premise storage.
 
 ## Draw Mode Tools
 
@@ -187,8 +189,8 @@ The editor includes 5 built-in templates:
 | ---------- | --------- | ---------------------------------------------------------------------------------------------------------------------- |
 | **Person** | 17        | [COCO human body pose](../../datasets/pose/coco.md) — nose, eyes, ears, shoulders, elbows, wrists, hips, knees, ankles |
 | **Hand**   | 21        | [Ultralytics Hand Keypoints](../../datasets/pose/hand-keypoints.md) — wrist, thumb, index, middle, ring, pinky joints  |
-| **Face**   | 68        | iBUG 300W facial landmarks — jaw, eyebrows, nose, eyes, mouth                                                          |
 | **Dog**    | 18        | AP-10K animal pose — nose, head, neck, shoulders, tailbase, tail, and 4 legs (elbows, knees, paws)                     |
+| **Face**   | 68        | iBUG 300W facial landmarks — jaw, eyebrows, nose, eyes, mouth                                                          |
 | **Box**    | 4         | Corner keypoints — top-left, top-right, bottom-right, bottom-left                                                      |
 
 ![Ultralytics Platform Annotate Pose Keypoints Skeleton](https://cdn.ul.run/i/d23341102121bd297eda4762674133e4.avif)<!-- screenshot -->
@@ -285,7 +287,7 @@ SAM smart annotation can generate:
 
 !!! warning "SAM Task Support"
 
-    SAM smart annotation is only available for **detect**, **segment**, **semantic**, and **OBB** tasks. Classification and pose tasks require manual annotation.
+    SAM smart annotation is only available for **detect**, **segment**, **semantic**, and **OBB** tasks. Pose and classification require manual annotation.
 
 #### Auto-Apply Mode
 
@@ -343,9 +345,10 @@ The annotation editor includes a collapsible class sidebar on the right side of 
 - **Per-class annotation count**: Each class row shows a superscript count of annotations.
 - **Expand/collapse**: Click the chevron to expand a class and see individual annotations listed below it.
 - **Bidirectional hover highlighting**: Hovering an annotation on the canvas highlights it in the sidebar, and vice versa. The sidebar auto-scrolls to the relevant class.
+- **Hide/show a whole class**: Click the eye icon on a class row to hide or show every annotation of that class at once.
 - **Hide/show individual annotations**: Click the eye icon on any annotation row to toggle its visibility on the canvas.
 - **Delete annotations**: Click the trash icon on any annotation row to delete it.
-- **Keyboard shortcuts**: Press `1-9` to quickly select the first 9 classes.
+- **Keyboard shortcuts**: Press `1-9` to quickly select the first 9 classes, or `H` to toggle the visibility of every annotation on the image.
 
 ## Context Menu
 
@@ -440,6 +443,8 @@ Efficient annotation with keyboard shortcuts:
     | `Cmd/Ctrl+Y`                  | Redo                         |
     | `Escape`                      | Save / Deselect / Exit       |
     | `Delete` / `Backspace`        | Delete selected annotation   |
+    | `Cmd/Ctrl+Delete`             | Delete image                 |
+    | `H`                           | Toggle all annotations       |
     | `1-9`                         | Select class 1-9             |
     | `Cmd/Ctrl+Scroll`             | Zoom in/out                  |
     | `Cmd/Ctrl++` or `Cmd/Ctrl+=`  | Zoom in                      |
@@ -454,10 +459,10 @@ Efficient annotation with keyboard shortcuts:
 
 === "Modes"
 
-    | Shortcut | Action                          |
-    | -------- | ------------------------------- |
-    | `V`      | Draw mode (manual, default)     |
-    | `S`      | Smart mode (SAM or YOLO model)  |
+    | Shortcut | Action                         |
+    | -------- | ------------------------------ |
+    | `V`      | Draw mode (manual, default)    |
+    | `S`      | Smart mode (SAM or YOLO model) |
 
 === "Drawing"
 
@@ -534,7 +539,7 @@ For best results, start with a click on the object center, then use outside-mask
 
 ### Can I import existing annotations?
 
-Yes, upload your dataset with [YOLO-format label files](../../datasets/detect/index.md#ultralytics-yolo-format). The Platform automatically parses and displays them in the editor.
+Yes. Upload your dataset with [YOLO-format label files](../../datasets/detect/index.md#ultralytics-yolo-format), COCO JSON annotation files, or an [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) export. Platform parses them during processing and displays them in the editor. Pascal VOC XML labels are not imported — convert them to YOLO or COCO first. See [Preparing Your Dataset](datasets.md#preparing-your-dataset).
 
 ### How do I annotate multiple objects of the same class?
 
@@ -559,7 +564,7 @@ Yes, but for best results:
 
 ### Which tasks support SAM smart annotation?
 
-SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks. Classification and pose tasks use manual annotation only.
+SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks. Pose and classification use manual annotation only — on pose datasets the `Smart` button is visible but disabled and marked "Coming Soon". Smart annotation is also unavailable on connected cloud and On Premise datasets.
 
 ### Can I create custom skeleton templates for pose annotation?
 
@@ -567,4 +572,8 @@ Yes. Click the **+** button next to the skeleton template picker to open the tem
 
 ### How do I switch between skeleton templates?
 
-Click the template picker dropdown in the annotation toolbar. Select any built-in template (Person, Hand, Face, Dog, Box) or your saved custom templates. The selected template determines which keypoints are placed when you click on the image.
+Click the template picker dropdown in the annotation toolbar. Select any built-in template (Person, Hand, Dog, Face, Box) or your saved custom templates. The selected template determines which keypoints are placed when you click on the image.
+
+### Can I copy annotations between images?
+
+Yes. Select one or more annotations, press `Cmd/Ctrl+C` to copy (or `Cmd/Ctrl+X` to cut), navigate to another image with the arrow keys or thumbnail strip, and press `Cmd/Ctrl+V` to paste. The clipboard persists while the fullscreen editor stays open.

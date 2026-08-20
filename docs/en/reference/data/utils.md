@@ -12,6 +12,14 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 
 <br>
 
+## ::: ultralytics.data.utils.save_depth_png
+
+<br><br><hr><br>
+
+## ::: ultralytics.data.utils.load_depth
+
+<br><br><hr><br>
+
 ## ::: ultralytics.data.utils.img2label_paths
 
 <br><br><hr><br>

@@ -8,7 +8,9 @@ keywords: Ultralytics Platform, datasets, dataset management, dataset versioning
 
 # Datasets
 
-[Ultralytics Platform](https://platform.ultralytics.com) datasets provide a streamlined solution for managing your training data. After upload, the platform processes images, labels, and statistics automatically. A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, at least one labeled image, and a total of at least two images.
+[Ultralytics Platform](https://platform.ultralytics.com) datasets provide a streamlined solution for managing your training data. After upload, the platform processes images, labels, and statistics automatically.
+
+A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image. The dataset header shows a `Ready` badge when all three conditions are met, and a `Not Ready` badge otherwise — click the badge to see exactly which condition is missing.
 
 ## Upload Dataset
 
@@ -37,7 +39,7 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 === "Videos"
 
-    Videos are uploaded to the regional ingest worker and extracted at 1 FPS, up to 100 frames per video. For longer videos, the worker increases the interval to sample no more than 100 frames across the duration. The container and codec must be decodable by the processing worker — see [Video Codec Support](#video-codec-support).
+    During processing, Platform samples video frames at 1 FPS — up to 100 frames per video — and stores each frame as a WebP image named `<video>_frame_001.webp`. For longer videos, the sampling interval widens so the result stays within 100 frames. The container and codec must be decodable by Platform — see [Video Codec Support](#video-codec-support).
 
     | Format | Extensions | Extraction            | Max Size |
     | ------ | ---------- | --------------------- | -------- |
@@ -49,25 +51,29 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
     !!! info "Video Frame Extraction"
 
-        A 60-second video produces up to 60 WebP frames. For videos longer than 100 seconds, the worker samples at a wider interval so the result stays within 100 frames.
+        A 60-second video produces up to 60 WebP frames. For videos longer than 100 seconds, frames are sampled at a wider interval so the result stays within 100 frames.
+
+    AVI is not accepted and is excluded from the upload picker. Re-wrap AVI footage as MP4 before uploading.
 
 === "Archives"
 
-    Archives are extracted and processed automatically.
+    Archives are extracted and processed automatically. Archives can also be nested inside a folder structure, and a single archive can mix images, videos, and labels, or carry the `depth/` tree of a [depth dataset](../../datasets/depth/index.md#depth-map-format).
 
-    | Format | Extensions              | Notes             | Free   | Pro    | Enterprise |
-    | ------ | ----------------------- | ----------------- | ------ | ------ | ---------- |
-    | ZIP    | `.zip`                  | Most common       | 10 GB  | 20 GB  | 50 GB      |
-    | TAR    | `.tar` `.tar.gz` `.tgz` | Compressed or raw | 10 GB  | 20 GB  | 50 GB      |
-    | NDJSON | `.ndjson`               | Dataset export    | 10 GB  | 20 GB  | 50 GB      |
+    | Format | Extensions              | Notes             | Free  | Pro   | Enterprise |
+    | ------ | ----------------------- | ----------------- | ----- | ----- | ---------- |
+    | ZIP    | `.zip`                  | Most common       | 10 GB | 20 GB | 50 GB      |
+    | TAR    | `.tar` `.tar.gz` `.tgz` | Compressed or raw | 10 GB | 20 GB | 50 GB      |
+    | NDJSON | `.ndjson`               | Dataset export    | 10 GB | 20 GB | 50 GB      |
+
+    Password-protected (encrypted) archives are rejected — re-create the archive without a password.
 
 ### Video Codec Support
 
-The file extension alone isn't enough: a video can still fail if its codec cannot be decoded by the Platform ingest worker.
+The file extension alone isn't enough: a video can still fail if its codec cannot be decoded during processing.
 
 !!! tip "Use H.264 MP4"
 
-    H.264 video in an MP4 container has the broadest support across major browsers and is the safest choice. If a video won't upload, re-encode it with [FFmpeg](https://ffmpeg.org/):
+    H.264 video in an MP4 container has the broadest decoder support and is the safest choice. If a video won't process, re-encode it with [FFmpeg](https://ffmpeg.org/):
 
     ```bash
     ffmpeg -i input.mov \
@@ -78,7 +84,7 @@ The file extension alone isn't enough: a video can still fail if its codec canno
 
 ### Preparing Your Dataset
 
-The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), [COCO](https://cocodataset.org/#format-data), [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format), and raw (unannotated) uploads:
+The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), [COCO](https://cocodataset.org/#format-data), [depth datasets](../../datasets/depth/index.md#depth-map-format), [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format), and raw (unannotated) uploads:
 
 === "YOLO Format"
 
@@ -167,6 +173,30 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
         └── dogs/
     ```
 
+=== "Depth"
+
+    Depth archives keep RGB images and paired targets in parallel `images/` and `depth/` folders. Targets may be
+    floating-point NPY arrays in meters or plain uint16 grayscale PNGs. PNG values are divided by `depth_scale`, which
+    defaults to `1000` (millimeters); no PNG metadata is required.
+
+    ```text
+    my-depth-dataset/
+    ├── data.yaml
+    ├── images/{train,val}/scene.jpg
+    └── depth/{train,val}/scene.png  # or scene.npy
+    ```
+
+    ```yaml
+    train: images/train
+    val: images/val
+    nc: 1
+    names: {0: depth}
+    depth_scale: 1000 # PNG value 1000 = 1 meter
+    ```
+
+    Files pair by stem. Depth maps may use a smaller resolution than their RGB images when the aspect ratio matches.
+    See the [depth dataset format](../../datasets/depth/index.md#depth-map-format).
+
 === "NDJSON"
 
     Ultralytics NDJSON exports can be uploaded directly back into Platform. This is useful for moving datasets between workspaces while preserving metadata, classes, splits, and annotations.
@@ -177,11 +207,19 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
 !!! tip "Flat Directory Structure"
 
-    You can also upload images without explicit split folders. Platform respects the active split target during upload, and for non-classify datasets it may automatically create a validation split from part of the training set when no split information is provided. You can always reassign images later with bulk move-to-split or split redistribution.
+    You can also upload images without explicit split folders. Platform respects the active split target during upload. If no split target is set and the upload leaves `val` empty — or with fewer than two paired maps for depth — non-classify datasets automatically move train images to `val` so the dataset is immediately trainable. Classification datasets are skipped because they use directory-based splits. You can always reassign images later with [bulk move-to-split](#bulk-move-to-split) or [split redistribution](#split-redistribution).
 
 !!! tip "Format Auto-Detection"
 
     The format is detected automatically: datasets with a `data.yaml` containing `names`, `train`, or `val` keys are treated as YOLO. Datasets with COCO JSON files (containing `images`, `annotations`, and `categories` arrays) are treated as COCO. `.ndjson` exports are imported as Ultralytics NDJSON. Datasets with only images and no annotations are treated as raw.
+
+    When an archive contains several YAML files, Platform prefers standard names (`data.yaml`, `data.yml`, `dataset.yaml`, `dataset.yml`) closest to the archive root. Keep one clearly named YAML per archive to avoid ambiguity.
+
+!!! warning "Pascal VOC XML Is Not Imported"
+
+    Label files in Pascal VOC XML format are detected but their annotations are **not** imported — the images upload as unannotated. Platform warns you before the upload starts ("Pascal VOC labels detected"). Convert VOC XML to YOLO or COCO first; see [format conversion tools](../../datasets/detect/index.md#port-or-convert-label-formats).
+
+If labels reference class IDs but no class names are supplied, Platform generates dense placeholder names (`class0`, `class1`, …) that you can rename later in the [Classes tab](#classes-tab).
 
 For task-specific format details, see [supported tasks](index.md#supported-tasks) and the [Datasets Overview](../../datasets/index.md).
 
@@ -191,15 +229,50 @@ To create a dataset:
 
 1. Navigate to `Annotate` in the sidebar
 2. Click `New Dataset`
-3. Select the task type (see [supported tasks](index.md#supported-tasks))
-4. Add a name and optional description
-5. Set visibility (public or private) and optional license (see [available licenses](#available-licenses))
-6. Add files and click `Create & Upload`, or click `Create Dataset` to start with an empty dataset
+3. Pick a data source tab (see [Data Sources](#data-sources) below)
+4. Add a name — the URL slug is derived automatically and can be edited — plus an optional description
+5. Select the task type (see [supported tasks](index.md#supported-tasks)), an optional license (see [available licenses](#available-licenses)), and visibility (public or private)
+6. Click `Create & Upload` for local files, `Create & Import` for a URL or connected source, or `Create Dataset` to start empty
 
 ![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.ul.run/i/9a60591229e11552b91f805de387893e.avif)<!-- screenshot -->
 To add files to an existing dataset, open its dataset page and either drag the files onto the gallery or click the upload icon in the page header. The upload icon opens your browser's native file picker directly because the dataset task is already defined.
 
-After upload, the platform processes your data through a multi-stage pipeline:
+#### Data Sources
+
+The `New Dataset` dialog offers four sources:
+
+| Source         | Description                                                                                                                                                                                                            |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Upload**     | Drag files in or browse for them — images, videos, archives, or NDJSON                                                                                                                                                 |
+| **URL**        | Paste a direct link to a `.zip`, `.tar`, `.tar.gz`, `.tgz`, or `.ndjson` file; Platform downloads and ingests it server-side                                                                                           |
+| **Cloud**      | Use data in place from [Google Cloud Storage](../integrations/google-cloud-storage.md), [Amazon S3](../integrations/amazon-s3.md), or [Azure Blob Storage](../integrations/azure-blob-storage.md) (Pro and Enterprise) |
+| **On Premise** | Index and train on data that never leaves your own machines via [On Premise](../integrations/on-premise.md) workers (Enterprise)                                                                                       |
+
+!!! note "URL Import Limits"
+
+    A URL import is capped by both your plan's per-upload limit (10 GB Free / 20 GB Pro / 50 GB Enterprise) and your remaining storage quota, whichever is smaller. The link must be publicly reachable over HTTP or HTTPS and end in a supported extension.
+
+#### Before the Upload Starts
+
+Platform validates your files in the browser before uploading anything, so common problems surface immediately rather than after a long transfer. Archives are checked for corruption, emptiness, password protection, and YAML syntax errors, and oversized files are listed by name.
+
+Two dialogs may then appear:
+
+=== "Map Imported Classes"
+
+    When the archive declares class names and your dataset already has classes, the `Map imported classes` dialog lists one row per incoming class. For each one, choose an existing class to merge into, create a new class, or skip it. Exact name matches are preselected, and skipped classes and their annotations are not imported.
+
+=== "Handle Conflicts"
+
+    When you upload an archive, multiple files, or anything into a dataset that already has images, Platform asks how to handle filename or content conflicts:
+
+    | Choice        | Behavior                                    |
+    | ------------- | ------------------------------------------- |
+    | **Skip**      | Keep the existing images, drop the incoming |
+    | **Keep Both** | Import the incoming alongside the existing  |
+    | **Replace**   | Overwrite the existing images               |
+
+After upload, the platform processes your data automatically:
 
 ```mermaid
 graph LR
@@ -215,10 +288,14 @@ graph LR
 ```
 
 1. **Validation**: Format and size checks
-2. **Normalization**: Large images resized (max 4096px, min dimension 28px)
+2. **Normalization**: Large images resized (max 4096px, min dimension 28px), grayscale expanded to RGB, transparency flattened onto white, and EXIF orientation applied
 3. **Thumbnails**: 256px WebP previews generated
-4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format) and COCO format labels extracted
+4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), COCO, and [NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) labels extracted
 5. **Statistics**: Class distributions and image dimensions computed
+
+!!! info "Stored Image Encoding"
+
+    AVIF and WebP originals are stored byte-for-byte when no resize or color change is needed. Everything else is re-encoded — WebP sources stay WebP, and all other formats (JPEG, PNG, BMP, TIFF, HEIC, JP2, DNG, MPO) become JPEG at quality 92. Your original filename and source extension are retained as metadata.
 
 ![Ultralytics Platform Datasets Upload Progress Bar](https://cdn.ul.run/i/5ed3a283c82984bbc109ac647d26f73f.avif)<!-- screenshot -->
 ??? tip "Validate Before Upload"
@@ -255,18 +332,20 @@ Images can be sorted and filtered for efficient browsing:
 
 === "Sort Options"
 
-    | Sort                 | Description                  |
-    | -------------------- | ---------------------------- |
-    | Newest / Oldest      | Upload / creation order      |
-    | Name A-Z / Z-A       | Filename alphabetical        |
-    | Height ↑/↓           | Image height in pixels       |
-    | Width ↑/↓            | Image width in pixels        |
-    | Size ↑/↓             | File size on disk            |
-    | Annotations ↑/↓      | Annotation count per image   |
+    Each option toggles between ascending (↑) and descending (↓):
+
+    | Sort            | Description                |
+    | --------------- | -------------------------- |
+    | Created ↑/↓     | Upload order (default ↓)   |
+    | Name ↑/↓        | Filename alphabetical      |
+    | Height ↑/↓      | Image height in pixels     |
+    | Width ↑/↓       | Image width in pixels      |
+    | Size ↑/↓        | File size on disk          |
+    | Annotations ↑/↓ | Annotation count per image |
 
     !!! note "Large Datasets"
 
-        For datasets over 100,000 images, name / size / width / height sorts are disabled to keep the gallery responsive. Newest, oldest, and annotation-count sorts remain available.
+        For datasets over 100,000 images, the name, width, height, and size sorts are hidden to keep the gallery responsive. Created and annotation-count sorts remain available.
 
 === "Filters"
 
@@ -275,18 +354,26 @@ Images can be sorted and filtered for efficient browsing:
     | **Split filter** | Train, Val, Test, or All              |
     | **Annotations**  | All images, Annotated, or Unannotated |
     | **Class filter** | Filter by class name                  |
-    | **Search**       | Filter images by filename             |
+    | **Search**       | Filter images by filename or metadata |
 
 !!! tip "Finding Unlabeled Images"
 
     Use the `Annotations` filter set to `Unannotated` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
+
+!!! tip "Searching Custom Metadata"
+
+    The search box sits at the right of the gallery toolbar and filters every view mode — grid, compact, and table. It matches the image filename (the file extension is optional) as well as custom metadata keys, scalar values, and array entries, so an image named `img_0042` carrying `{"ship_type": "yacht"}` is found by searching either `img_0042` or `yacht`.
+
+    Values nested inside sub-objects are not matched. Pasting a 24-character image ID looks up that exact image
+    directly, bypassing the text search.
 
 ### Fullscreen Viewer
 
 Click any image to open the fullscreen viewer with:
 
 - **Navigation**: Arrow keys or thumbnail previews to browse
-- **Metadata**: Filename, dimensions, split badge, annotation count
+- **Image information**: Review Platform-generated properties, custom metadata, and embedded file metadata such as EXIF
+- **Custom metadata**: Owners and editors can add or replace a JSON object, including nested values up to 500,000 serialized characters and top-level keys up to 128 characters
 - **Annotations**: Toggle annotation overlay visibility
 - **Class Breakdown**: Per-class label counts with color indicators
 - **Annotate**: When you have edit access, annotation controls are active immediately when the fullscreen viewer opens on desktop
@@ -296,8 +383,9 @@ Click any image to open the fullscreen viewer with:
 - **Reset view**: `Cmd/Ctrl + 0` or the reset button to fit the image to the viewer
 - **Pan**: Hold `Space` and drag to pan the canvas when zoomed
 - **Pixel view**: Toggle pixelated rendering for close inspection
+- **Depth curtain**: On depth datasets, a draggable divider wipes between the RGB image and its colorized depth map
 
-![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.ul.run/i/94b50fcde4feb9a2ae540138010a1d6c.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.ul.run/i/083e8f7a4ad565c1cca40ec0f214b748.avif)<!-- screenshot -->
 
 ### Filter by Split
 
@@ -323,11 +411,15 @@ Start an analysis:
 2. Click `Analyze Dataset`
 3. Wait for the progress bar to finish — results appear in the same panel
 
-Analysis runs in the background and can take a few minutes depending on the size of your dataset. You can close the panel or leave the page and come back later.
+Analysis runs in the background in two stages, `Computing embeddings` and `Clustering`, and can take a few minutes depending on the size of your dataset. You can close the panel or leave the page and come back later.
+
+!!! note "Analysis Requirements"
+
+    A dataset needs at least 20 and at most 200,000 non-errored images to analyze. [Connected datasets](../integrations/index.md) backed by cloud or On Premise storage are not supported yet.
 
 ### Visualization
 
-Once analysis completes, the panel shows a 2D scatter of all analyzed images. Gallery filters (split, class, labeled/unlabeled) dim out-of-filter points so you can focus on the subset you care about.
+Once analysis completes, the panel shows a 2D scatter of all analyzed images with a legend and a point counter. Gallery filters (split, class, labeled/unlabeled) dim out-of-filter points so you can focus on the subset you care about — the counter then reads `visible / total points`.
 
 ![Ultralytics Platform Datasets Clustering Scatter Plot](https://cdn.ul.run/i/ccc3e7d7437108d8ab9abbfe2bcaa800.avif)<!-- screenshot -->
 
@@ -354,19 +446,24 @@ Draw a free-form selection around a region to highlight points on the plot. The 
 
     A chip above the chart shows how many points are selected — click the `×` to clear the lasso and return to the full gallery view.
 
+!!! note "Selection Size"
+
+    A lasso resolves to at most 1,000 images. If your selection matches more, Platform shows a sampled 1,000 and suggests drawing a smaller region.
+
 #### Pan and Zoom
 
-Navigate large scatters directly from your mouse and keyboard:
+Navigate large scatters directly from your mouse and keyboard, or with the zoom buttons at the bottom-left of the plot:
 
 | Input               | Action                                 |
 | ------------------- | -------------------------------------- |
 | **Scroll**          | Pan the plot in 2D                     |
 | **Cmd/Ctrl+Scroll** | Zoom in or out, anchored at the cursor |
 | **Hold Space**      | Switch to drag-to-pan mode             |
+| **Reset button**    | Return to the full extent of the plot  |
 
 ### Re-analyzing
 
-If your dataset changes after analysis, a `Re-analyze` button appears at the top of the panel for owners and editors.
+If your dataset changes after analysis — new images arrive, or the analyzed count no longer matches the dataset — a `Re-analyze` button appears at the top of the panel for owners and editors.
 
 Click `Re-analyze` to recompute embeddings and the 2D projection from scratch.
 
@@ -380,20 +477,49 @@ The default view showing the image gallery with annotation overlays. Supports gr
 
 ### Classes Tab
 
-This tab appears when the dataset has images.
+This tab appears when the dataset has images and its task has classes.
 
 Manage annotation classes for your dataset:
 
-- **Class histogram**: Bar chart showing annotation count per class with linear/log scale toggle
-- **Class table**: Sortable, searchable table with class name, label count, and image count
+- **Class histogram**: Bar chart showing annotation count per class, sorted by frequency, with a linear/log scale toggle
+- **Class table**: Sortable, searchable table with index, name, annotation count, and image count
 - **Edit class names**: Click any class name to rename it inline
 - **Edit class colors**: Click a color swatch to change the class color
 - **Add new class**: Use the input at the bottom to add classes
+- **Merge classes**: Select two or more rows and click `Merge into one`
+- **Delete classes**: Select one or more rows and click `Delete`
 
 ![Ultralytics Platform Datasets Classes Tab Histogram And Table](https://cdn.ul.run/i/4436768ff6dd3de4184b44ddec5fb042.avif)<!-- screenshot -->
 !!! note "Log Scale for Imbalanced Datasets"
 
     If your dataset has class imbalance (e.g., 10,000 "person" annotations but only 50 "bicycle"), use the `Log Scale` toggle on the class histogram to visualize all classes clearly.
+
+#### Merge Classes
+
+Merging consolidates duplicate or overlapping labels — for example folding `car`, `automobile`, and `vehicle` into one class:
+
+1. Select two or more classes using the row checkboxes
+2. Click `Merge into one` in the table header, or right-click the selection
+3. Choose which of the selected classes is the **target** the others merge into
+4. Confirm
+
+Every annotation belonging to the source classes is reassigned to the target class, and the source classes are removed. No annotations are deleted, so the dataset's total annotation count is unchanged.
+
+#### Delete Classes
+
+1. Select one or more classes using the row checkboxes
+2. Click `Delete` in the table header, or right-click the selection
+3. Confirm
+
+Deleting a class removes the class **and all of its annotations**. For classification datasets the labels are removed but the images remain, becoming unannotated.
+
+!!! warning "Class Indices Shift"
+
+    Class IDs are positional. Merging or deleting a class shifts every higher class index down to close the gap, so exports and label files written before the change no longer line up with the new indices. Create a [version](#versions-tab) first if you need the old numbering.
+
+!!! note "Statistics Sampling"
+
+    Class counts are computed from at most 100,000 images. On larger datasets a note above the histogram reads "Based on a 100,000-image subset of this dataset."
 
 ### Charts Tab
 
@@ -401,23 +527,25 @@ This tab appears when the dataset has images.
 
 Automatic statistics computed from your dataset:
 
-| Chart                       | Description                                                           |
-| --------------------------- | --------------------------------------------------------------------- |
-| **Split Distribution**      | Donut chart of train/val/test image counts and labeled percent        |
-| **Top Classes**             | Donut chart of the 10 most frequent annotation classes                |
-| **Image Dimensions**        | Histogram of image width and height distribution (overlaid) with mean |
-| **Points per Instance**     | Polygon vertex or keypoint count per annotation (segment/pose)        |
-| **Annotation Locations**    | 2D heatmap of bounding box center positions                           |
-| **Image File Size**         | Histogram of image file size distribution                             |
-| **Image Formats**           | Distribution of source image formats (JPG, PNG, etc.)                 |
-| **Bounding Box Dimensions** | Histogram of bounding box width and height (overlaid)                 |
-| **Objects per Image**       | Histogram of annotation count per image                               |
-| **Image Dimensions 2D**     | 2D width vs height heatmap with aspect ratio guide lines              |
+Charts appear in this order, and each one is omitted when the dataset has no data for it — a raw image dataset shows no annotation charts, and `Points per Instance` only appears for segment and pose data:
+
+| Chart                       | Description                                                                      |
+| --------------------------- | -------------------------------------------------------------------------------- |
+| **Split Distribution**      | Donut chart of train/val/test image counts and labeled percent                   |
+| **Top Classes**             | Donut chart of the 10 most frequent annotation classes, with the rest as "Other" |
+| **Image Dimensions**        | Histogram of image width and height distribution (overlaid) with mean            |
+| **Image File Size**         | Histogram of image file size distribution                                        |
+| **Image Dimensions 2D**     | 2D width vs height heatmap with aspect ratio guide lines                         |
+| **Annotation Locations**    | 2D heatmap of bounding box center positions                                      |
+| **Image Formats**           | Distribution of source image formats (JPG, PNG, etc.)                            |
+| **Bounding Box Dimensions** | Histogram of bounding box width and height (overlaid)                            |
+| **Objects per Image**       | Histogram of annotation count per image                                          |
+| **Points per Instance**     | Polygon vertex or keypoint count per annotation (segment/pose)                   |
 
 ![Ultralytics Platform Datasets Charts Tab Statistics Grid](https://cdn.ul.run/i/7f75c56ff648ab3dfa612ba732283a6f.avif)<!-- screenshot -->
 !!! tip "Statistics Caching"
 
-    The Platform caches computed statistics and invalidates them when images, annotations, classes, or splits change.
+    The Platform caches computed statistics and invalidates them when images, annotations, classes, or splits change. On datasets larger than 100,000 images the charts are computed from a 100,000-image subset, noted above the grid.
 
 !!! info "Fullscreen Heatmaps"
 
@@ -454,12 +582,14 @@ Images that failed processing are listed here with:
 ![Ultralytics Platform Datasets Errors Tab Processing Failures](https://cdn.ul.run/i/bdf0b8ce26f807b8633305f27d3fbccd.avif)<!-- screenshot -->
 ??? info "Common Processing Errors"
 
-    | Error                      | Cause                                   | Fix                                    |
-    | -------------------------- | --------------------------------------- | -------------------------------------- |
-    | Unable to read image file  | Corrupted or unsupported format         | Re-export from image editor            |
-    | Incomplete or corrupted    | File was truncated during transfer      | Re-download the original file          |
-    | Image too small            | Minimum dimension below 28px            | Use higher resolution source images    |
-    | Unsupported color mode     | CMYK or indexed color mode              | Convert to RGB mode                    |
+    | Error                     | Cause                              | Fix                                 |
+    | ------------------------- | ---------------------------------- | ----------------------------------- |
+    | Unable to read image file | Corrupted or unsupported format    | Re-export from image editor         |
+    | Incomplete or corrupted   | File was truncated during transfer | Re-download the original file       |
+    | Unsupported image format  | Format Platform cannot decode      | Convert to JPG, PNG, or WebP        |
+    | File permission error     | File is locked or read-protected   | Unlock the file and re-upload       |
+    | Image too small           | Minimum dimension below 28px       | Use higher resolution source images |
+    | Unsupported color mode    | CMYK or indexed color mode         | Convert to RGB mode                 |
 
 ### Versions Tab
 
@@ -474,21 +604,20 @@ Create immutable NDJSON snapshots of your dataset for reproducible training. Eac
 | Annotations | Annotation count at time of snapshot |
 | Size        | NDJSON export file size              |
 | Created     | When the version was created         |
-| Actions     | Download, restore, or delete         |
+| Actions     | Download or restore                  |
 
 To create a version:
 
 1. Open the **Versions** tab
 2. Optionally enter a description (e.g., "Added 500 training images" or "Fixed mislabeled classes")
-3. Click **+ New Version**
+3. Click **New Version**
 4. The new version appears in the table
-5. Use the row actions to download, restore, or delete the version
 
-Each version is numbered sequentially (v1, v2, v3...). You can download a saved version while it remains in the versions table.
+Each version is numbered sequentially (v1, v2, v3...) and is immutable — versions cannot be edited or removed, only their descriptions can be changed. Use the row actions to download or restore any version at any time.
 
 !!! warning "Restoring a Version"
 
-    Restore permanently replaces the dataset's current images, splits, classes, and annotations with the selected snapshot. The rebuild can take several minutes and cannot be undone unless you first save the current state as another version.
+    Restore replaces the dataset's current images, splits, classes, and annotations with the selected snapshot and cannot be undone unless you first save the current state as another version. The dataset is locked in `processing` status while it rebuilds. Nothing is re-uploaded during a restore, so restores are typically fast even on large datasets.
 
 !!! tip "Save a Version While Training"
 
@@ -496,7 +625,7 @@ Each version is numbered sequentially (v1, v2, v3...). You can download a saved 
 
 !!! note "Ready Datasets Only"
 
-    Version creation is available after the dataset reaches `ready` status.
+    Version creation and restore are available after the dataset reaches `ready` status. Versions are not available for [connected](../integrations/index.md) cloud or [On Premise](../integrations/on-premise.md) datasets.
 
 !!! tip "When to Create Versions"
 
@@ -504,7 +633,7 @@ Each version is numbered sequentially (v1, v2, v3...). You can download a saved 
 
 !!! note "NDJSON File Size"
 
-    The size shown is the NDJSON export file size, which contains image URLs and annotations — not the images themselves. Actual image data is stored separately and accessed via signed URLs.
+    The size shown is the NDJSON export file size, which contains image URLs and annotations — not the images themselves. Actual image data is stored separately and accessed via signed URLs. The snapshot file still counts against your workspace [storage quota](../account/billing.md), so version creation fails if you have no headroom left.
 
 ## Export Dataset
 
@@ -521,13 +650,25 @@ The NDJSON format stores one JSON object per line. The first line contains datas
 
 ```json
 {"type": "dataset", "task": "detect", "name": "my-dataset", "description": "...", "bytes": 12345678, "url": "https://platform.ultralytics.com/...", "class_names": {"0": "person", "1": "car"}, "version": 1, "created_at": "2026-01-15T10:00:00Z", "updated_at": "2026-02-20T14:30:00Z"}
-{"type": "image", "file": "img001.jpg", "url": "https://...", "width": 640, "height": 480, "split": "train", "annotations": {"boxes": [[0, 0.5, 0.5, 0.2, 0.3]]}}
+{"type": "image", "file": "img001.jpg", "url": "https://...", "width": 640, "height": 480, "split": "train", "metadata": {"location": {"site": "factory-1"}, "reviewed": true}, "annotations": {"boxes": [[0, 0.5, 0.5, 0.2, 0.3]]}}
 {"type": "image", "file": "img002.jpg", "url": "https://...", "width": 1280, "height": 720, "split": "val"}
 ```
 
+The optional image-level `metadata` object is preserved when an NDJSON file is imported into Platform. You can inspect or edit it from the image's fullscreen information panel. For programmatic archive uploads, the [Ingest Dataset Data API](../api/index.md#ingest-dataset-data) accepts the equivalent `imageMetadata` path map.
+
+Pose datasets also carry a `kpt_shape` field in the dataset header line, inferred from the annotations when it is not already set.
+
+Depth exports declare `"task": "depth"` and `"depth_scale": 1000` in the dataset line. Each image line includes a
+`depth.url` for its paired plain uint16 PNG. Ultralytics downloads image and depth URLs concurrently and writes a
+training YAML with the same scale, so the NDJSON file can be passed directly to `model.train(data=...)`.
+
 !!! note "Signed URLs"
 
-    Image URLs in the exported NDJSON are signed and valid for 7 days. If you need fresh URLs, re-export the dataset or create a new version.
+    Image URLs in the exported NDJSON are signed and valid for 7 days. Platform reuses a cached export for up to 6 days when the dataset has not changed, so a fresh download always has at least a day of validity left. If you need new URLs sooner, change the dataset or create a new version.
+
+!!! warning "On Premise Datasets"
+
+    Export is not available for [On Premise](../integrations/on-premise.md) datasets, whose image bytes never reach Platform.
 
 See the [Ultralytics NDJSON format documentation](../../datasets/detect/index.md#ultralytics-ndjson-format) for full specification.
 
@@ -557,7 +698,7 @@ Reassign selected images to a different split within the same dataset:
 3. Right-click to open the context menu
 4. Choose `Move to split` > **Train**, **Validation**, or **Test**
 
-You can also drag and drop images onto the split filter tabs in grid view.
+You can also drag and drop images onto the split filter tabs in grid view. If moving an image would collide with an identical image already in the target split, Platform asks whether to skip, keep both, or replace.
 
 !!! tip "Organizing Train/Val Splits"
 
@@ -592,7 +733,7 @@ A live preview shows exactly how many images will land in each split before you 
 Delete multiple images at once:
 
 1. Select images in the table view
-2. Right-click and choose `Delete`
+2. Right-click and choose `Delete`, or press `Cmd/Ctrl+Delete`
 3. Confirm deletion
 
 ## Dataset URI
@@ -639,10 +780,13 @@ The Platform supports the following licenses for datasets:
 | --------------- | ------------------- |
 | None            | No license selected |
 | CC0-1.0         | Public domain       |
+| PDM-1.0         | Public domain       |
 | CC-BY-2.5       | Permissive          |
 | CC-BY-4.0       | Permissive          |
+| CC-BY-NC-2.0    | Non-commercial      |
 | CC-BY-SA-4.0    | Copyleft            |
 | CC-BY-NC-4.0    | Non-commercial      |
+| CC-BY-NC-SA-3.0 | Copyleft            |
 | CC-BY-NC-SA-4.0 | Copyleft            |
 | CC-BY-ND-4.0    | No derivatives      |
 | CC-BY-NC-ND-4.0 | Non-commercial      |
@@ -655,7 +799,7 @@ The Platform supports the following licenses for datasets:
 
 !!! note "Copyleft Licenses"
 
-    When cloning a dataset with a copyleft license (AGPL-3.0, GPL-3.0, CC-BY-SA-4.0, CC-BY-NC-SA-4.0), the clone inherits the license and the license selector is locked.
+    When cloning a dataset with a copyleft license (AGPL-3.0, GPL-3.0, CC-BY-SA-4.0, CC-BY-NC-SA-3.0, CC-BY-NC-SA-4.0), the clone inherits the license and the license selector is locked.
 
 ## Visibility Settings
 
@@ -672,30 +816,49 @@ Visibility is set when creating a dataset in the `New Dataset` dialog using a to
 
 Dataset metadata is edited inline directly on the dataset page — no dialog needed:
 
-- **Name**: Click the dataset name to edit it. Changes auto-save on blur or `Enter`.
-- **Description**: Click the description (or "Add a description..." placeholder) to edit. Changes auto-save.
+- **Name**: Click the dataset name to edit it. Changes auto-save on blur or `Enter`. Names are limited to 100 characters.
+- **Description**: Click the description (or "Add a description..." placeholder) to edit. Changes auto-save. Descriptions are limited to 1,000 characters.
 - **Task type**: Click the task badge to select a different task type.
 - **License**: Click the license selector to change the dataset license.
+- **Icon**: Click the dataset icon to upload your own image, promote one of the dataset's own images to the icon, or pick a letter and color.
 
 !!! info "Changing Task Type"
 
-    Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back.
+    Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back. [Depth](../../datasets/depth/index.md#depth-map-format) is the exception: its ground truth is a paired file rather than an annotation, so a dataset can only switch to or from depth while it holds no images — re-import it instead.
+
+### Custom Metadata
+
+Open **More actions** and select **Information** to review two sections:
+
+- **Ultralytics Metadata**: Read-only Platform details such as the dataset ID, owner, task, image and annotation counts, storage region, and timestamps
+- **Custom Metadata**: Your own JSON object for provenance, capture conditions, customer IDs, governance, or other contextual data
+
+Workspace viewers can inspect metadata, while members with edit access can replace the custom metadata object. The serialized metadata object is limited to 500,000 characters, and each top-level key is limited to 128 characters. Save an empty object (`{}`) to clear custom metadata.
 
 ## Clone Dataset
 
 When viewing a public dataset you do not own, click `Clone Dataset` to open the clone dialog. Review the destination workspace, name, visibility, and license, then confirm the clone. The copy includes all images, annotations, and class definitions. Public source datasets stay public by default in workspaces whose default visibility is public; Enterprise workspace clones default to private. If the original dataset has a copyleft license, the clone inherits it and the license selector is locked.
 
+The destination slug is auto-renamed if it is already taken, and cloning requires enough remaining storage quota to hold the copy.
+
+!!! note "Connected Datasets"
+
+    Datasets backed by [cloud storage](../integrations/index.md) or [On Premise](../integrations/on-premise.md) sources cannot be cloned, because Platform does not hold their image bytes.
+
 ## Star and Share
 
 - **Star**: Click the star button to bookmark a dataset. The star count is visible to all users.
-- **Share**: For public datasets, click the share button to copy a link or share to social platforms.
+- **Share**: For public datasets, click the share button to copy a link, grab an embed snippet, or share to social platforms.
 
 ## Delete Dataset
 
 Delete a dataset you no longer need:
 
-1. Click the **Delete dataset** trash icon in the dataset header
-2. Confirm in the dialog: "This will move [name] to trash. You can restore it within 30 days."
+1. Open **More actions** (the `…` button) in the dataset header
+2. Choose **Delete Dataset**
+3. Confirm in the dialog: "This will move [name] to trash. You can restore it within 30 days."
+
+The same menu holds **Information**, which opens the metadata dialog described in [Custom Metadata](#custom-metadata), and **Refresh**, which re-reads the dataset from the server.
 
 !!! note "Trash and Restore"
 
@@ -733,16 +896,16 @@ Your data is processed and stored in your selected region (US, EU, or AP). Image
 1. Validated for format and size
 2. Rejected if minimum dimension is below 28px
 3. Normalized if larger than 4096px (preserving aspect ratio; encoded for optimized storage)
-4. Stored using Content-Addressable Storage (CAS) with XXH3-128 hashing
+4. Stored with deduplication, so identical images are kept only once
 5. Thumbnails generated at 256px WebP for fast browsing
 
 ### How does storage work?
 
-Ultralytics Platform uses **Content-Addressable Storage (CAS)** for efficient storage:
+Ultralytics Platform manages storage efficiently:
 
-- **Deduplication**: Identical image bytes in the same data region reuse the same underlying object
-- **Integrity**: XXH3-128 hashing ensures data integrity
-- **Efficiency**: Clones reuse CAS objects instead of copying image bytes, while still counting toward the destination workspace's storage quota
+- **Deduplication**: Identical images in the same data region are stored once
+- **Integrity**: Uploads are verified for data integrity
+- **Efficiency**: Clones reuse stored images instead of copying them, while still counting toward the destination workspace's storage quota
 - **Regional**: Data stays in your selected region (US, EU, or AP)
 
 ### Can I add images to an existing dataset?
@@ -759,7 +922,7 @@ Use the bulk move-to-split feature:
 
 ### What label formats are supported?
 
-Ultralytics Platform supports YOLO labels, COCO JSON, Ultralytics NDJSON, and raw image uploads:
+Ultralytics Platform supports YOLO labels, COCO JSON, Ultralytics NDJSON, and raw image uploads. Pascal VOC XML labels are detected but not imported:
 
 === "YOLO Format"
 
@@ -785,4 +948,32 @@ Ultralytics Platform supports YOLO labels, COCO JSON, Ultralytics NDJSON, and ra
 
 ### Can I annotate the same dataset for multiple task types?
 
-Yes. Each image stores annotations for all 6 task types (detect, segment, semantic, classify, pose, OBB) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training — annotations for other tasks are preserved and reappear when you switch back.
+Yes. Each image stores annotations for all 6 annotation task types (detect, segment, semantic, classify, pose, OBB) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training — annotations for other tasks are preserved and reappear when you switch back.
+
+### Are there limits on classes and annotations?
+
+Yes:
+
+| Limit                      | Value                         |
+| -------------------------- | ----------------------------- |
+| Classes per dataset        | 25,000                        |
+| Annotations per image      | 10,000                        |
+| Coordinates per annotation | 10,000                        |
+| Dataset name               | 100 characters                |
+| Dataset description        | 1,000 characters              |
+| Custom metadata            | 500,000 serialized characters |
+| Metadata top-level key     | 128 characters                |
+
+### What is not available for connected datasets?
+
+Datasets that read from [cloud storage](../integrations/index.md) or [On Premise](../integrations/on-premise.md) sources keep their pixels outside Platform, so the features that need Platform-owned copies of the image bytes are unavailable:
+
+| Feature                                            | Cloud-connected | On Premise  |
+| -------------------------------------------------- | --------------- | ----------- |
+| [Smart annotation](annotation.md#smart-annotation) | Unavailable     | Unavailable |
+| [Clustering analysis](#clustering)                 | Unavailable     | Unavailable |
+| [Cloning](#clone-dataset)                          | Unavailable     | Unavailable |
+| [Version snapshots](#versions-tab)                 | Unavailable     | Unavailable |
+| [NDJSON export](#export-dataset)                   | Available       | Unavailable |
+
+Browsing, manual annotation, class management, splits, statistics, and training all work normally.

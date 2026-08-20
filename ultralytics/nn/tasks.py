@@ -2178,7 +2178,7 @@ def parse_model(d, ch, verbose=True):
         adjustments = []
         if m in base_modules:
             c1, c2 = ch[f], args[0]
-            if m is not Classify:  # Classify() output must stay at nc; every other layer scales by width
+            if m not in {Classify, ReID}:  # task outputs must stay at nc; feature channels scale by width
                 c2_requested = min(c2, max_channels) * width
                 c2 = make_divisible(c2_requested, channel_divisor)
                 if c2 != c2_requested:

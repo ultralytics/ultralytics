@@ -44,7 +44,6 @@ from ultralytics.utils import (
     TORCH_VERSION,
     TORCHVISION_VERSION,
     USER_CONFIG_DIR,
-    WEIGHTS_DIR,
     WINDOWS,
     Retry,
     ThreadingLocked,
@@ -928,6 +927,7 @@ def check_amp(model):
     warning_msg = "Setting 'amp=True'. If you experience zero-mAP or NaN losses you can disable AMP with amp=False."
     try:
         from ultralytics import YOLO
+        from ultralytics.utils import WEIGHTS_DIR
 
         amp_weights = WEIGHTS_DIR / "yolo26n.pt"
         if not amp_weights.is_file():

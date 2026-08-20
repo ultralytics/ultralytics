@@ -10,6 +10,10 @@ Hailo AI accelerators run compiled Hailo Executable Format (HEF) models on edge 
 
 Hailo deployment is designed for computer vision at the edge: cameras, robots, industrial systems, gateways, and other devices that need local object detection without sending every frame to the cloud. A compiled HEF contains the quantized network, hardware allocation, scheduling, and optional HailoRT post-processing needed by the selected accelerator.
 
+<p align="center">
+  <img width="640" src="https://github.com/user-attachments/assets/6ea5bffa-5a80-4e81-a68c-a60ebd4d0718" alt="Hailo edge AI ecosystem for Ultralytics YOLO">
+</p>
+
 !!! note "Compare newer edge accelerators"
 
     For new hardware deployments, also evaluate [Axelera](axelera.md) and [DeepX](deepx.md), which target newer edge accelerator platforms and may offer higher performance. DeepX is the stronger starting point when module power is a primary constraint, while Axelera targets higher-throughput deployments. Hailo recommends at least 1,024 representative calibration images for best accuracy; the built-in task-specific datasets are suitable only for quick testing.

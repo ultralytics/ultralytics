@@ -19,7 +19,7 @@ Ultralytics YOLO26 is a versatile AI framework that supports multiple [computer 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Explore Ultralytics YOLO26 Tasks: <a href="https://www.ultralytics.com/blog/a-guide-to-deep-dive-into-object-detection-in-2025">Object Detection</a>, Segmentation, OBB, Classification, Pose Estimation, and Depth Estimation.
+  <strong>Watch:</strong> Explore Ultralytics YOLO26 Tasks: <a href="https://www.ultralytics.com/blog/a-guide-to-deep-dive-into-object-detection-in-2025">Object Detection</a>, Segmentation, Depth Estimation, Classification, Pose Estimation, and OBB.
 </p>
 
 ## [Detection](detect.md)

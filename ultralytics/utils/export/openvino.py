@@ -17,8 +17,9 @@ def torch2openvino(
     dynamic: bool = False,
     quantize: int | str | None = None,
     calibration_dataset: Any | None = None,
-    ignored_scope: dict | None = None,
+    int8_detect: bool = False,
     prefix: str = "",
+    nms: bool = False,
 ) -> Any:
     """Export a PyTorch model to OpenVINO format with optional INT8 quantization.
 
@@ -29,8 +30,9 @@ def torch2openvino(
         dynamic (bool): Whether to use dynamic input shapes.
         quantize (int | str | None): Precision scheme, e.g. 16 for FP16 or 8 for INT8.
         calibration_dataset (nncf.Dataset | None): Dataset for INT8 calibration (required when ``quantize=8``).
-        ignored_scope (dict | None): Kwargs passed to ``nncf.IgnoredScope`` for head patterns.
+        int8_detect (bool): Whether to keep the detection head in floating-point precision during INT8 quantization.
         prefix (str): Prefix for log messages.
+        nms (bool): Whether the model embeds NMS post-processing.
 
     Returns:
         (ov.Model): The converted OpenVINO model.
@@ -45,14 +47,30 @@ def torch2openvino(
     # non-deterministic on NMS models and fails with "Graphs differed across invocations!". check_trace=False skips
     # the same check on our own trace.
     ts = torch.jit.trace(model, im, strict=False, check_trace=False)
-    ov_model = ov.convert_model(ts, input=None if dynamic else input_shape, example_input=im)
+    ov_input = ov.PartialShape([-1, *input_shape[1:]]) if dynamic and nms else None if dynamic else input_shape
+    ov_model = ov.convert_model(ts, input=ov_input, example_input=im)
     if quantize == 8:
         import nncf
 
+        ignored_scope = None
+        if int8_detect:
+            operations = ov_model.get_ordered_ops()
+            sigmoid_names = [op.get_friendly_name() for op in operations if op.get_type_name() == "Sigmoid"]
+            head_scope = sigmoid_names[-1].split("/", 1)[0]
+            ignored_scope = nncf.IgnoredScope(
+                names=[
+                    op.get_friendly_name()
+                    for op in operations
+                    if op.get_type_name() == "Sigmoid"
+                    or op.get_friendly_name().startswith((f"{head_scope}/", f"{head_scope}.dfl"))
+                ]
+            )
         ov_model = nncf.quantize(
             model=ov_model,
             calibration_dataset=calibration_dataset,
             preset=nncf.QuantizationPreset.MIXED,
+            # Calibrate on the full dataset like other INT8 backends, not nncf's 300-batch default
+            subset_size=calibration_dataset.get_length() or 300,
             ignored_scope=ignored_scope,
         )
 

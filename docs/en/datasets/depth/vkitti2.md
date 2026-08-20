@@ -26,7 +26,7 @@ The Virtual KITTI 2 depth dataset is split into two subsets:
 1. **Train**: 25,780 images with paired dense depth maps for training.
 2. **Val**: 16,740 images with paired dense depth maps for validation during training.
 
-Each RGB image is paired with a `.npy` float32 depth map storing per-pixel distances in meters, following the [Ultralytics depth dataset format](index.md).
+Each RGB image is paired with a scaled uint16 depth PNG, following the [Ultralytics depth dataset format](index.md). The source and converted PNGs use centimeters (`depth_scale: 100`), which preserves the 80 m training range.
 
 ## Role in YOLO26-Depth
 
@@ -71,7 +71,7 @@ To train a YOLO26n-Depth model on the Virtual KITTI 2 dataset with an image size
 
 ## Pretrained Models
 
-The YOLO26 depth family (`yolo26n-depth.pt`, `yolo26s-depth.pt`, `yolo26m-depth.pt`, `yolo26l-depth.pt`, `yolo26x-depth.pt`) auto-downloads from the [v8.4.0 release](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-depth.pt) and is trained on the broad multi-dataset mix that Virtual KITTI 2 is part of.
+The YOLO26 depth family (`yolo26n-depth.pt`, `yolo26s-depth.pt`, `yolo26m-depth.pt`, `yolo26l-depth.pt`, `yolo26x-depth.pt`) auto-downloads from Ultralytics releases and is trained on the broad multi-dataset mix that Virtual KITTI 2 is part of. Explore [YOLO26x-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth) on Ultralytics Platform.
 
 ## Citations and Acknowledgments
 

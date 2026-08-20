@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Learn about object detection with YOLO26. Explore pretrained models, training, validation, prediction, and export details for efficient object recognition.
-keywords: object detection, YOLO26, pretrained models, training, validation, prediction, export, machine learning, computer vision
+description: Learn about object detection with Ultralytics YOLO26. Explore pretrained models, training, validation, prediction, and export details for efficient object recognition.
+keywords: object detection, Ultralytics YOLO, YOLO26, pretrained models, training, validation, prediction, export, machine learning, computer vision
 ---
 
-# Object Detection
+# Object Detection with Ultralytics YOLO {#object-detection}
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/object-detection-examples.avif" alt="YOLO object detection with bounding boxes">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/object-detection-examples.avif" alt="Ultralytics YOLO object detection with bounding boxes">
 
 [Object detection](https://www.ultralytics.com/glossary/object-detection) is a task that involves identifying the location and class of objects in an image or video stream.
 
@@ -233,11 +233,11 @@ For detailed configuration options, visit the [Configuration](../usage/cfg.md) p
 
 Ultralytics YOLO26 offers various pretrained models for [object detection](detect.md), [instance segmentation](segment.md), [semantic segmentation](semantic.md), and [pose estimation](pose.md). These models are pretrained on the COCO dataset, Cityscapes for semantic segmentation, or ImageNet for classification tasks. Here are some of the available models:
 
-- [YOLO26n](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt)
-- [YOLO26s](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s.pt)
-- [YOLO26m](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m.pt)
-- [YOLO26l](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l.pt)
-- [YOLO26x](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x.pt)
+- [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n)
+- [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s)
+- [YOLO26m](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m)
+- [YOLO26l](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l)
+- [YOLO26x](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x)
 
 For a detailed list and performance metrics, refer to the [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26) section.
 

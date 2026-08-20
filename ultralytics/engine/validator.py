@@ -47,6 +47,7 @@ from ultralytics.utils.ops import Profile, linear_sum_assignment
 from ultralytics.utils.torch_utils import (
     attempt_compile,
     autocast,
+    get_torch_device_backend,
     select_device,
     smart_inference_mode,
     torch_distributed_zero_first,
@@ -177,12 +178,14 @@ class BaseValidator:
                     model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
             with torch_distributed_zero_first(LOCAL_RANK):
                 self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)
+            device_type = str(self.args.device).split(":", 1)[0]
+            device_type = device_type if device_type in {"npu", "xpu"} else "cuda"
             model = AutoBackend(
                 model=model or self.args.model,
-                # DDP ranks reuse the device assigned in trainer._setup_ddp() via torch.cuda.set_device()
+                # DDP ranks reuse the device assigned in trainer._setup_ddp()
                 device=select_device(self.args.device)
                 if RANK == -1
-                else torch.device("cuda", torch.cuda.current_device()),
+                else torch.device(device_type, get_torch_device_backend(device_type).current_device()),
                 dnn=self.args.dnn,
                 data=self.args.data,
                 fp16=self.args.quantize == 16,
@@ -191,6 +194,9 @@ class BaseValidator:
             self.args.quantize = 16 if model.fp16 else None  # record actual inference precision
             stride, fmt = model.stride, model.format
             pt = fmt == "pt"
+            if augment and not model.base_model:
+                LOGGER.warning(f"'augment' is not supported by this model (format='{fmt}'), ignoring.")
+                augment = False
             # Same gate as predictor.setup_model: NHWC is lossless only for native PyTorch models on CUDA.
             channels_last = self.args.channels_last and self.device.type == "cuda" and pt
             if self.args.channels_last and not channels_last:
@@ -202,6 +208,8 @@ class BaseValidator:
                 model.to(memory_format=torch.channels_last)
             imgsz = check_imgsz(self.args.imgsz, stride=stride)
             if fmt not in {"pt", "torchscript"} and not getattr(model, "dynamic", False):
+                if hasattr(model, "imgsz"):
+                    self.args.imgsz = imgsz = max(model.imgsz)  # reuse square imgsz from export metadata
                 self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1
                 LOGGER.info(f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz}, {imgsz})")
 

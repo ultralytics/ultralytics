@@ -575,7 +575,7 @@ class MultiScaleBlock(nn.Module):
         >>> x = torch.randn(1, 56, 56, 256)
         >>> output = block(x)
         >>> print(output.shape)
-        torch.Size([1, 28, 28, 512])
+        torch.Size([1, 56, 56, 512])
     """
 
     def __init__(
@@ -686,7 +686,7 @@ class PositionEmbeddingSine(nn.Module):
         >>> x = torch.randn(1, 3, 224, 224)
         >>> embeddings = pos_emb(x)
         >>> print(embeddings.shape)
-        torch.Size([1, 256, 224, 224])
+        torch.Size([1, 128, 224, 224])
     """
 
     def __init__(

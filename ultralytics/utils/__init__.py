@@ -437,7 +437,7 @@ def plt_settings(rcparams=None, backend="Agg"):
                     plt.close("all")
                     # Best-effort restore: an interactive backend captured headful can't reload headless, so a
                     # failed restore must not crash a finished run (get_backend() doesn't guarantee a valid backend)
-                    with contextlib.suppress(Exception):
+                    with contextlib.suppress(ImportError):
                         plt.switch_backend(original_backend)
             return result
 

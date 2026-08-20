@@ -110,7 +110,6 @@ from ultralytics.utils import (
     RKNN_CHIPS,
     SETTINGS,
     TORCH_VERSION,
-    WINDOWS,
     YAML,
     callbacks,
     colorstr,
@@ -755,7 +754,9 @@ class Exporter:
             LOGGER.warning(f"'nms=True' is not valid for {model.task} models. Forcing 'nms=False'.")
             self.args.nms = False
         if fmt == "coreml" and self.args.nms and model.task not in {"detect", "segment", "pose"}:
-            LOGGER.warning(f"CoreML 'nms=True' is only supported for detect, segment, and pose models. Forcing 'nms=False'.")
+            LOGGER.warning(
+                "CoreML 'nms=True' is only supported for detect, segment, and pose models. Forcing 'nms=False'."
+            )
             self.args.nms = False
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
@@ -1284,7 +1285,6 @@ class Exporter:
             pipeline_coreml,
             torch2coreml,
         )
-
 
         # numpy 2.4.x breaks coremltools CoreML export https://github.com/apple/coremltools/issues/2633
         check_requirements(["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"])

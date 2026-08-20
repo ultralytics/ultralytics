@@ -60,11 +60,11 @@ class IOSSegmentModel(IOSDetectModel):
         preds = output[0] if isinstance(output, tuple) else output
         preds = preds[0]  # strip batch dimension
         xywh, cls, masks = preds.transpose(0, 1).split((4, self.nc, self.nm), 1)
-        
+
         if self.mlprogram and self.nc % 80 != 0:
             pad_length = int(((self.nc + 79) // 80) * 80) - self.nc
             cls = torch.nn.functional.pad(cls, (0, pad_length, 0, 0), "constant", 0)
-        
+
         # Scale mask coefficients to prevent them from becoming the argmax class during NMS
         masks = masks * 1e-4
         conf = torch.cat([cls, masks], dim=1)
@@ -86,11 +86,11 @@ class IOSPoseModel(IOSDetectModel):
         preds = preds[0] if isinstance(preds, tuple) else preds
         preds = preds[0]  # strip batch dimension
         xywh, cls, keypoints = preds.transpose(0, 1).split((4, self.nc, self.nk), 1)
-        
+
         if self.mlprogram and self.nc % 80 != 0:
             pad_length = int(((self.nc + 79) // 80) * 80) - self.nc
             cls = torch.nn.functional.pad(cls, (0, pad_length, 0, 0), "constant", 0)
-        
+
         # Scale keypoints to prevent them from becoming the argmax class during NMS
         keypoints = keypoints * 1e-4
         conf = torch.cat([cls, keypoints], dim=1)

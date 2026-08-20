@@ -24,7 +24,7 @@ You do not need a Slack API key, webhook, or technical setup. Before you start, 
 
 ![Ultralytics Platform Slack Integration Setup](https://cdn.ul.run/i/9a47efa8a0df9db1d13e941e7572ca49.avif)<!-- screenshot -->
 
-Platform posts a confirmation in the selected channel as soon as the connection succeeds. Workspace admins manage the connection and alert choices for the whole workspace from the [Integrations tab](../account/settings.md#integrations-tab).
+Platform posts a confirmation in the selected channel as soon as the connection succeeds, and the integration then shows which Slack workspace and channel it is connected to. Workspace admins manage the connection and alert choices for the whole workspace from the [Integrations tab](../account/settings.md#integrations-tab).
 
 !!! info "What Slack Allows"
 
@@ -41,7 +41,7 @@ Platform posts a confirmation in the selected channel as soon as the connection 
 | **Deployment ready**  | A [deployment](../deploy/endpoints.md#deployment-lifecycle) is ready           |
 | **Deployment failed** | A deployment fails to start                                                    |
 
-Each message says what finished and includes a direct link to the related model or deployment in Platform. Failed-job alerts include a short error summary when one is available. Slack delivery does not change the result of the training, export, or deployment. Review the current result from the model's [training](../train/cloud-training.md#monitor-training) or [export](../train/models.md#export-model) page, or from the [Deployments page](../deploy/index.md#deployments-page).
+Each message says what finished and links straight to the related model or deployment in Platform. Training alerts add the dataset name, the model's primary metric, how long the run took, and what it cost; export alerts add the format and file size. Failed-job alerts include a short error summary when one is available, as an inline note or a code block for longer messages. Slack delivery does not change the result of the training, export, or deployment. Review the current result from the model's [training](../train/cloud-training.md#monitor-training) or [export](../train/models.md#export-model) page, or from the [Deployments page](../deploy/index.md#deployments-page).
 
 ## Change or Disconnect Slack
 

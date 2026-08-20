@@ -41,6 +41,24 @@ ExecuTorch provides several powerful features for deploying Ultralytics YOLO mod
 
 - **Model Metadata**: Exported models include metadata (image size, class names, etc.) in a separate YAML file for easy integration.
 
+## Deployment Options with ExecuTorch
+
+ExecuTorch models can be deployed across various edge and mobile platforms:
+
+- **Mobile Applications**: Deploy on iOS and Android applications with native performance, enabling real-time object detection in mobile apps.
+
+- **Embedded Systems**: Run on embedded Linux devices like Raspberry Pi, NVIDIA Jetson, and other ARM-based systems with optimized performance.
+
+- **Edge AI Devices**: Deploy on specialized edge AI hardware with custom delegates for accelerated inference.
+
+- **IoT Devices**: Integrate into IoT devices for on-device inference without cloud connectivity requirements.
+
+## Supported Tasks
+
+ExecuTorch export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+
+{% include "macros/supported-tasks.md" %}
+
 ## Exporting Ultralytics YOLO26 Models to ExecuTorch
 
 Exporting Ultralytics YOLO26 models to ExecuTorch format enables efficient deployment on mobile and edge devices.
@@ -323,7 +341,7 @@ fun nmsDetections(
         val it = sorted.iterator()
         while (it.hasNext()) {
             val det = it.next()
-            if (intersectionOverUnion(best, det) > iouThreshold) it.remove()
+            if (best.cls == det.cls && intersectionOverUnion(best, det) > iouThreshold) it.remove()
         }
 
         if (keep.size >= maxDet) break

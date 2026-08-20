@@ -658,22 +658,9 @@ class Exporter:
                 raise ValueError(
                     "IMX export only supported for detection, pose estimation, classification, and segmentation models."
                 )
-        if not hasattr(model, "names") or model.names is None:  # 'names' is absent or None type
-            LOGGER.warning(
-                "Model 'names' attribute is missing or None. "
-                "Attempting to resolve via model.yaml before falling back to default class names."
-            )
-            # try to get the number of classes
-            nc = model.yaml.get("nc") if hasattr(model, "yaml") and model.yaml else None
-            model.names = {i: f"class{i}" for i in range(nc)} if nc else default_class_names()
-
-        try:  # handles case where 'names' is present but might be malformed
-            model.names = check_class_names(model.names)  # check if 'names' is dict(int: str)
-        except Exception as e:
-            LOGGER.warning(f"Model class names are malformed ({e}); falling back to default class names.")
-            nc = model.yaml.get("nc") if hasattr(model, "yaml") and model.yaml else None
-            model.names = {i: f"class{i}" for i in range(nc)} if nc else default_class_names()
-
+        if not hasattr(model, "names"):
+            model.names = default_class_names()
+        model.names = check_class_names(model.names)
         if hasattr(model, "end2end"):
             if self.args.end2end is not None:
                 model.end2end = self.args.end2end

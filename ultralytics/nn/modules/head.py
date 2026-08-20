@@ -11,7 +11,6 @@ import torch.nn.functional as F
 from torch import nn
 from torch.nn.init import constant_, xavier_uniform_
 
-from ultralytics.utils.ops import grouped_topk
 from ultralytics.utils.tal import dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, smart_inference_mode
 
@@ -86,6 +85,19 @@ class Detect(nn.Module):
     strides = torch.empty(0)  # init
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
     xyxy = False  # xyxy or xywh output
+
+    @staticmethod
+    def _grouped_topk(x: torch.Tensor, k: int, groups: int = 8) -> tuple[torch.Tensor, torch.Tensor]:
+        """Select exact top-k values through smaller grouped selections."""
+        n = x.shape[1]
+        while groups > 1 and (n % groups or n // groups < k):
+            groups //= 2
+        if groups == 1:  # nothing to gain, e.g. a short axis or one that does not divide evenly
+            return x.topk(k, dim=1)
+        size = n // groups
+        values, index = x.reshape(x.shape[0], groups, size).topk(k, dim=-1)
+        values, winners = values.flatten(1).topk(k, dim=1)
+        return values, winners // k * size + index.flatten(1).gather(1, winners)
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """Initialize the YOLO detection layer with specified number of classes and channels.
@@ -251,9 +263,9 @@ class Detect(nn.Module):
             labels = labels.gather(1, indices)
             return scores, labels.float(), indices
         groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
-        ori_index = grouped_topk(scores.max(dim=-1)[0], k, groups)[1].unsqueeze(-1)
+        ori_index = self._grouped_topk(scores.max(dim=-1)[0], k, groups)[1].unsqueeze(-1)
         scores = scores.gather(dim=1, index=ori_index.expand(-1, -1, nc))
-        scores, index = grouped_topk(scores.flatten(1), k, groups)
+        scores, index = self._grouped_topk(scores.flatten(1), k, groups)
         idx = (
             ori_index[torch.arange(batch_size)[..., None], index // nc]
             if self.format == "coreml"
@@ -1690,7 +1702,7 @@ class RTDETRDecoder(nn.Module):
         """
         k = min(self.num_queries, self.max_det) if self.export else self.num_queries
         groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
-        scores, index = grouped_topk(scores.flatten(1), k, groups)
+        scores, index = Detect._grouped_topk(scores.flatten(1), k, groups)
         # CoreML MIL lacks integer floor-div and mod lowering: use torch.div(rounding_mode="floor") and (index - q*nc).
         query_idx = torch.div(index, self.nc, rounding_mode="floor")
         boxes = boxes.gather(dim=1, index=query_idx.unsqueeze(-1).expand(-1, -1, 4).long())
@@ -1794,7 +1806,7 @@ class RTDETRDecoder(nn.Module):
         # Query selection
         # (bs*num_queries,)
         groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
-        topk_ind = grouped_topk(enc_outputs_scores.max(-1).values, self.num_queries, groups)[1].view(-1)
+        topk_ind = Detect._grouped_topk(enc_outputs_scores.max(-1).values, self.num_queries, groups)[1].view(-1)
         # (bs*num_queries,)
         batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
 

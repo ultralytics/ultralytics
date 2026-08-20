@@ -754,8 +754,8 @@ class Exporter:
         if self.args.nms and model.task in {"semantic", "depth"}:
             LOGGER.warning(f"'nms=True' is not valid for {model.task} models. Forcing 'nms=False'.")
             self.args.nms = False
-        if fmt == "coreml" and self.args.nms and model.task != "detect":
-            LOGGER.warning("CoreML 'nms=True' is only supported for detect models. Forcing 'nms=False'.")
+        if fmt == "coreml" and self.args.nms and model.task not in {"detect", "segment", "pose"}:
+            LOGGER.warning(f"CoreML 'nms=True' is only supported for detect, segment, and pose models. Forcing 'nms=False'.")
             self.args.nms = False
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
@@ -1277,20 +1277,34 @@ class Exporter:
     def export_coreml(self, prefix=colorstr("CoreML:")):  # noqa: B008
         """Export YOLO model to CoreML format."""
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
-        from ultralytics.utils.export.coreml import IOSDetectModel, pipeline_coreml, torch2coreml
+        from ultralytics.utils.export.coreml import (
+            IOSDetectModel,
+            IOSPoseModel,
+            IOSSegmentModel,
+            pipeline_coreml,
+            torch2coreml,
+        )
+
 
         # numpy 2.4.x breaks coremltools CoreML export https://github.com/apple/coremltools/issues/2633
         check_requirements(["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"])
         import coremltools as ct
 
-        assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
+        # assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
         assert TORCH_1_11, "CoreML export requires torch>=1.11"
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
         if f.is_dir():
             shutil.rmtree(f)
 
-        # TODO CoreML Segment and Pose model pipelining; 'nms=True' is forced off for non-detect tasks upstream
-        model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel) if self.args.nms else self.model
+        if self.args.nms:
+            if self.model.task == "segment":
+                model = IOSSegmentModel(self.model, self.im, mlprogram=not mlmodel)
+            elif self.model.task == "pose":
+                model = IOSPoseModel(self.model, self.im, mlprogram=not mlmodel)
+            else:
+                model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel)
+        else:
+            model = self.model
 
         if self.args.dynamic:
             h, w = self.imgsz

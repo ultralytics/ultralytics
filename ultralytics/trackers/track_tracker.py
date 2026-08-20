@@ -323,7 +323,7 @@ class TTSTrack(BOTrack):
         if new_track.curr_feat is not None:
             self.update_features(new_track.curr_feat)
 
-        if self.state == TrackState.Tracked or self.tracklet_len >= self.min_track_len:
+        if self.state == TrackState.Tracked or self.tracklet_len + 1 >= self.min_track_len:
             self.state = TrackState.Tracked
             self.is_activated = True
         self.cls, self.angle, self.idx = new_track.cls, new_track.angle, new_track.idx
@@ -492,6 +492,7 @@ class TRACKTRACK:
         if img is not None and self.gmc.method is not None:
             self._apply_gmc(img, dets_high, [pool, unconfirmed])
         TTSTrack.multi_predict(pool)
+        TTSTrack.multi_predict(unconfirmed)
 
         # Main association: pool vs (high + low + recovered) detections, with per-bucket cost penalties.
         all_dets = dets_high + dets_low + dets_recovered

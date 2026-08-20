@@ -44,6 +44,7 @@ from ultralytics.utils import (
     TORCH_VERSION,
     TORCHVISION_VERSION,
     USER_CONFIG_DIR,
+    WEIGHTS_DIR,
     WINDOWS,
     Retry,
     ThreadingLocked,
@@ -928,7 +929,7 @@ def check_amp(model):
     try:
         from ultralytics import YOLO
 
-        amp_weights = USER_CONFIG_DIR / "weights" / "yolo26n.pt"
+        amp_weights = WEIGHTS_DIR / "yolo26n.pt"
         if not amp_weights.is_file():
             LOGGER.info(f"{prefix}downloading yolo26n.pt for AMP checks (one-time, not used for training)...")
         assert amp_allclose(YOLO(amp_weights), im)

@@ -101,10 +101,10 @@ Call the searcher with a natural language query to get back a list of matching i
 
 The table below outlines the available parameters for `VisualAISearch`:
 
-{% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["data"]) }}
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["device"]) }}
+| Argument | Type  | Default    | Description                                               |
+| -------- | ----- | ---------- | --------------------------------------------------------- |
+| `data`   | `str` | `'images'` | Path to the image directory to index and search.          |
+| `device` | `str` | `'cpu'`    | Device used for CLIP inference (e.g. `cpu`, `cuda`, `0`). |
 
 !!! tip "Manage your data in the cloud"
 

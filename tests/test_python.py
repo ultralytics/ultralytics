@@ -64,14 +64,16 @@ def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
     """Test worker cap follows distributed sampler size without changing global drop_last behavior."""
     sampler_cls = data_build.distributed.DistributedSampler
 
-    def distributed_sampler(dataset, shuffle):
-        return sampler_cls(dataset, num_replicas=3, rank=0, shuffle=shuffle)
+    def distributed_sampler(dataset, shuffle, seed):
+        return sampler_cls(dataset, num_replicas=3, rank=0, shuffle=shuffle, seed=seed)
 
     monkeypatch.setattr(data_build.distributed, "DistributedSampler", distributed_sampler)
+    expected_seed = torch.initial_seed() - 1  # BaseTrainer uses run seed + 1 for rank 0
     loader = build_dataloader(range(8), batch=4, workers=8, rank=0, drop_last=True)
     try:
         assert len(loader) == 1
         assert loader.num_workers == 0
+        assert loader.sampler.seed == expected_seed
     finally:
         loader.close()
 

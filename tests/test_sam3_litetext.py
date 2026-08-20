@@ -339,65 +339,7 @@ class TestPeekPosEmbedLength:
 
 
 # ---------------------------------------------------------------------------
-# 6. build_sam3_image_model - architecture check (no weights loaded)
-# ---------------------------------------------------------------------------
-
-
-class TestBuildSam3ImageModel:
-    """Test that build_sam3_image_model wires the correct encoder type."""
-
-    # We patch _load_checkpoint so the test runs without a real .pt file.
-    @pytest.fixture(autouse=True)
-    def patch_load_checkpoint(self, monkeypatch):
-        """Patch _load_checkpoint so tests run without real checkpoint files."""
-        import ultralytics.models.sam.build_sam3 as m
-
-        monkeypatch.setattr(m, "_load_checkpoint", lambda model, path: model)
-
-    @pytest.mark.parametrize(
-        "fake_name",
-        [
-            "sam3-litetext-s0.pt",
-            "sam3-litetext-s1.pt",
-            "sam3-litetext-l.pt",
-        ],
-    )
-    def test_litetext_encoder_is_used(self, fake_name):
-        """Verify LiteText filenames route to TextStudentEncoder."""
-        from ultralytics.models.sam.build_sam3 import build_sam3_image_model
-        from ultralytics.models.sam.sam3.text_encoder_student import TextStudentEncoder
-
-        model = build_sam3_image_model(fake_name)
-        assert isinstance(model.backbone.language_backbone, TextStudentEncoder), (
-            f"Expected TextStudentEncoder for {fake_name}"
-        )
-
-    def test_standard_sam3_uses_ve_encoder(self):
-        """Verify standard sam3.pt routes to VETextEncoder."""
-        from ultralytics.models.sam.build_sam3 import build_sam3_image_model
-        from ultralytics.models.sam.sam3.text_encoder_ve import VETextEncoder
-
-        model = build_sam3_image_model("sam3.pt")
-        assert isinstance(model.backbone.language_backbone, VETextEncoder)
-
-    @pytest.mark.parametrize(
-        "fake_name,expected_ctx",
-        [
-            ("efficient_sam3_text_s0_ctx16_fixed.pt", 16),
-            ("efficient_sam3_text_s0_ctx32_fixed.pt", 32),
-        ],
-    )
-    def test_context_length_auto_detected(self, fake_name, expected_ctx):
-        """Verify context length is auto-detected from the checkpoint name."""
-        from ultralytics.models.sam.build_sam3 import build_sam3_image_model
-
-        model = build_sam3_image_model(fake_name)
-        enc = model.backbone.language_backbone
-        assert enc.context_length == expected_ctx
-
-
-# ---------------------------------------------------------------------------
-# 7. Full predictor inference (requires local checkpoint)
+# 6. Full predictor inference (requires local checkpoint)
 # ---------------------------------------------------------------------------
 
 

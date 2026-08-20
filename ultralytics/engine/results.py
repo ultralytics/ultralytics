@@ -15,7 +15,6 @@ from typing import Any
 import numpy as np
 import torch
 
-from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, ops
 from ultralytics.utils.plotting import Annotator, colors, save_one_box
 
@@ -69,7 +68,7 @@ class BaseTensor(SimpleClass):
             >>> data = torch.rand(100, 4)
             >>> base_tensor = BaseTensor(data, orig_shape=(720, 1280))
             >>> print(base_tensor.shape)
-            (100, 4)
+            torch.Size([100, 4])
         """
         return self.data.shape
 
@@ -481,8 +480,7 @@ class Results(SimpleClass, DataExportMixin):
         font_size: float | None = None,
         font: str = "Arial.ttf",
         pil: bool = False,
-        img: np.ndarray | None = None,
-        im_gpu: torch.Tensor | None = None,
+        img: np.ndarray | torch.Tensor | None = None,
         kpt_radius: int = 5,
         kpt_line: bool = True,
         labels: bool = True,
@@ -503,8 +501,8 @@ class Results(SimpleClass, DataExportMixin):
             font_size (float | None): Font size for text. If None, scaled to image size.
             font (str): Font to use for text.
             pil (bool): Whether to return the image as a PIL Image.
-            img (np.ndarray | None): Image to plot on. If None, uses original image.
-            im_gpu (torch.Tensor | None): Normalized image on GPU for faster mask plotting.
+            img (np.ndarray | torch.Tensor | None): Image to plot on. Tensor images must be contiguous HWC BGR uint8. If
+                None, uses the original image.
             kpt_radius (int): Radius of drawn keypoints.
             kpt_line (bool): Whether to draw lines connecting keypoints.
             labels (bool): Whether to plot labels of bounding boxes.
@@ -549,15 +547,6 @@ class Results(SimpleClass, DataExportMixin):
         # Plot Segment results
         if pred_masks and show_masks:
             pred_mask_data = torch.as_tensor(pred_masks.data)  # no-op for torch, converts a numpy() result
-            if im_gpu is None:
-                img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
-                im_gpu = (
-                    torch.as_tensor(img, dtype=torch.float16, device=pred_mask_data.device)
-                    .permute(2, 0, 1)
-                    .flip(0)
-                    .contiguous()
-                    / 255
-                )
             idx = (
                 pred_boxes.id
                 if pred_boxes and pred_boxes.is_track and color_mode == "instance"
@@ -565,7 +554,7 @@ class Results(SimpleClass, DataExportMixin):
                 if pred_boxes and color_mode == "class"
                 else reversed(range(len(pred_masks)))
             )
-            annotator.masks(pred_mask_data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
+            annotator.masks(pred_mask_data, colors=[colors(x, True) for x in idx])
 
         # Plot Detect results
         if pred_boxes is not None and show_boxes:
@@ -738,6 +727,8 @@ class Results(SimpleClass, DataExportMixin):
               - For detections: `class x_center y_center width height [confidence] [track_id]`
               - For classifications: `confidence class_name`
               - For masks and keypoints, the specific formats will vary accordingly.
+            - A detection whose mask contour has fewer than 3 points is omitted, since a shorter row is not a
+              polygon, and no file is written when no line remains.
             - The function will create the output directory if it does not exist.
             - If save_conf is False, the confidence scores will be excluded from the output.
             - Existing contents of the file will not be overwritten; new results will be appended.
@@ -757,12 +748,17 @@ class Results(SimpleClass, DataExportMixin):
             [texts.append(f"{probs.data[j]:.2f} {self.names[j]}") for j in probs.top5]
         elif boxes:
             # Detect/segment/pose
+            boxes = boxes.cpu()  # one host transfer avoids per-box GPU syncs in the loop below
+            kpts = kpts.cpu() if kpts is not None else None
+            segments = masks.xyn if masks else None
             for j, d in enumerate(boxes):
                 c, conf, id = int(d.cls.item()), float(d.conf.item()), int(d.id.item()) if d.is_track else None
                 line = (c, *(d.xyxyxyxyn.reshape(-1) if is_obb else d.xywhn.reshape(-1)))
-                if masks:
-                    seg = masks[j].xyn[0].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
-                    line = (c, *seg)
+                if segments is not None:
+                    seg = segments[j]
+                    if len(seg) < 3:  # fewer than 3 points is not a polygon, and writes a row no loader accepts
+                        continue
+                    line = (c, *seg.copy().reshape(-1))  # reversed mask.xyn, (n,2) to (n*2)
                 if kpts is not None:
                     kpt = kpts[j].xyn
                     if kpts[j].has_visible:
@@ -811,7 +807,7 @@ class Results(SimpleClass, DataExportMixin):
         if self.depth is not None:
             LOGGER.warning("Depth task does not support `save_crop`.")
             return
-        for d in self.boxes:
+        for d in self.boxes.cpu():  # one host transfer avoids per-box GPU syncs in the loop below
             save_one_box(
                 d.xyxy,
                 self.orig_img.copy(),
@@ -886,6 +882,11 @@ class Results(SimpleClass, DataExportMixin):
 
         is_obb = self.obb is not None
         data = self.obb if is_obb else self.boxes
+        if data:
+            data = data.cpu()  # one host transfer avoids per-row GPU syncs in the loop below
+        kpts = self.keypoints
+        if kpts is not None:
+            kpts = kpts.cpu()  # ditto for the per-row keypoints sync below
         h, w = self.orig_shape if normalize else (1, 1)
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
             class_id, conf = int(row.cls.item()), round(row.conf.item(), decimals)
@@ -902,8 +903,8 @@ class Results(SimpleClass, DataExportMixin):
                     "x": (self.masks.xy[i][:, 0] / w).astype(float).round(decimals).tolist(),
                     "y": (self.masks.xy[i][:, 1] / h).astype(float).round(decimals).tolist(),
                 }
-            if self.keypoints is not None:
-                kpt = self.keypoints[i]
+            if kpts is not None:
+                kpt = kpts[i]
                 k = kpt.data[0]
                 k = k.cpu().numpy() if isinstance(k, torch.Tensor) else k
                 result["keypoints"] = {
@@ -1059,9 +1060,6 @@ class Boxes(BaseTensor):
             ...     torch.tensor([[100, 50, 150, 100, 0.9, 0], [200, 150, 300, 250, 0.8, 1]]), orig_shape=(480, 640)
             ... )
             >>> xywh = boxes.xywh
-            >>> print(xywh)
-            tensor([[125.0000,  75.0000,  50.0000,  50.0000],
-                    [250.0000, 200.0000, 100.0000, 100.0000]])
         """
         return ops.xyxy2xywh(self.xyxy)
 
@@ -1482,6 +1480,11 @@ class OBB(BaseTensor):
             >>> xywhr = obb.xywhr
             >>> print(xywhr.shape)
             torch.Size([3, 5])
+
+        Notes:
+            Predictions are not canonicalized to the long-edge convention that training labels use, so width may be
+            smaller than height with the rotation measured from the short edge. Use `xyxyxyxy` when only the geometry
+            matters, or `ops.xyxyxyxy2xywhr(obb.xyxyxyxy)` for the canonical form.
         """
         return self.data[:, :5]
 
@@ -1545,8 +1548,8 @@ class OBB(BaseTensor):
 
         Returns:
             (torch.Tensor | np.ndarray): Rotated bounding boxes in xyxyxyxy format with shape (N, 4, 2), where N is the
-                number of boxes. Each box is represented by 4 points (x, y), starting from the top-left corner and
-                moving clockwise.
+                number of boxes. The 4 points (x, y) are wound counter-clockwise as rendered, starting from the corner
+                at +w/2, +h/2 in the box frame, so which image corner comes first follows the rotation.
 
         Examples:
             >>> obb = OBB(torch.tensor([[100, 100, 50, 30, 0.5, 0.9, 0]]), orig_shape=(640, 640))

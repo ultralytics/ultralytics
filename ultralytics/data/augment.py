@@ -2064,7 +2064,7 @@ class Albumentations(BaseTransform):
     Notes:
         - Requires Albumentations version 1.0.3 or higher.
         - Spatial transforms are handled differently to ensure bbox compatibility.
-        - The default transforms are applied with probability `p`, in addition to the `p` pipeline gate.
+        - Some transforms are applied with very low probability (0.01) by default.
     """
 
     def __init__(self, p: float = 1.0, transforms: list | None = None, flip_idx: list[int] | None = None) -> None:
@@ -2075,8 +2075,7 @@ class Albumentations(BaseTransform):
         contrast, RandomGamma, and image quality reduction through compression.
 
         Args:
-            p (float): Probability of applying the augmentations, also used as the probability of each default
-                transform. Must be between 0 and 1.
+            p (float): Probability of applying the augmentations. Must be between 0 and 1.
             transforms (list | None): List of custom Albumentations transforms. If None, uses default transforms.
             flip_idx (list[int] | None): Keypoint index mapping for reflection transforms.
         """
@@ -2105,13 +2104,13 @@ class Albumentations(BaseTransform):
             # Transforms, use custom transforms if provided, otherwise use defaults
             T = (
                 [
-                    A.Blur(p=self.p),
-                    A.MedianBlur(p=self.p),
-                    A.ToGray(p=self.p),
-                    A.CLAHE(p=self.p),
-                    A.RandomBrightnessContrast(p=self.p),
-                    A.RandomGamma(p=self.p),
-                    A.ImageCompression(quality_range=(75, 100), p=self.p),
+                    A.Blur(p=0.01),
+                    A.MedianBlur(p=0.01),
+                    A.ToGray(p=0.01),
+                    A.CLAHE(p=0.01),
+                    A.RandomBrightnessContrast(p=0.0),
+                    A.RandomGamma(p=0.0),
+                    A.ImageCompression(quality_range=(75, 100), p=0.0),
                 ]
                 if transforms is None
                 else transforms

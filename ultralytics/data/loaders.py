@@ -489,7 +489,7 @@ class LoadPilAndNumpy:
         im0 (list[np.ndarray]): List of images stored as Numpy arrays.
         mode (str): Type of data being processed, set to 'image'.
         nf (int): Number of images provided.
-        bs (int): Batch size, the requested batch size when set explicitly and `nf` otherwise.
+        bs (int): Number of images yielded per iteration.
 
     Methods:
         _single_check: Validate and format a single image to a Numpy array.
@@ -505,20 +505,13 @@ class LoadPilAndNumpy:
         Loaded 2 images
     """
 
-    def __init__(
-        self,
-        im0: Image.Image | np.ndarray | list,
-        channels: int = 3,
-        batch: int = 1,
-        if_set_batch_explicitly: bool = False,
-    ):
+    def __init__(self, im0: Image.Image | np.ndarray | list, channels: int = 3, batch: int | None = None):
         """Initialize a loader for PIL and Numpy images, converting inputs to a standardized format.
 
         Args:
             im0 (PIL.Image.Image | np.ndarray | list): Single image or list of images in PIL or numpy format.
             channels (int): Number of image channels (1 for grayscale, 3 for color).
-            batch (int): Number of images yielded per iteration when `if_set_batch_explicitly` is True.
-            if_set_batch_explicitly (bool): Whether the user explicitly requested a batch size.
+            batch (int, optional): Number of images yielded per iteration. By default all images are yielded at once.
         """
         if not isinstance(im0, list):
             im0 = [im0]
@@ -529,8 +522,7 @@ class LoadPilAndNumpy:
         self.im0 = [self._single_check(im, channels) for im in im0]
         self.mode = "image"
         self.nf = len(self.im0)
-        self.if_set_batch_explicitly = if_set_batch_explicitly
-        self.bs = batch if if_set_batch_explicitly else self.nf
+        self.bs = min(batch or self.nf, self.nf)
         self.count = 0
 
     @staticmethod
@@ -572,11 +564,6 @@ class LoadPilAndNumpy:
 
     def __next__(self) -> tuple[list[str], list[np.ndarray], list[str]]:
         """Return the next batch of images, paths, and metadata for processing."""
-        if not self.if_set_batch_explicitly:
-            if self.count == 1:  # loop only once as it's batch inference
-                raise StopIteration
-            self.count += 1
-            return self.paths, self.im0, [""] * self.bs
         if self.count >= self.nf:
             raise StopIteration
         i, self.count = self.count, min(self.count + self.bs, self.nf)  # last batch may be partial

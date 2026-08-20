@@ -60,8 +60,8 @@ The `SearchApp` class launches the full Flask interface. On first run it downloa
     from ultralytics import solutions
 
     app = solutions.SearchApp(
-        # data = "path/to/img/directory" # Optional, build search engine with your own images
-        device="cpu"  # configure the device for processing, e.g., "cpu" or "cuda"
+        data="images",  # replace with a path to build the search engine with your own images
+        device="cpu",  # configure the device for processing, e.g., "cpu" or "cuda"
     )
 
     app.run(debug=False)  # You can also use `debug=True` argument for testing
@@ -83,8 +83,8 @@ Call the searcher with a natural language query to get back a list of matching i
     from ultralytics import solutions
 
     searcher = solutions.VisualAISearch(
-        # data = "path/to/img/directory" # Optional, build search engine with your own images
-        device="cpu"  # configure the device for processing, e.g., "cpu" or "cuda"
+        data="images",  # replace with a path to build the search engine with your own images
+        device="cpu",  # configure the device for processing, e.g., "cpu" or "cuda"
     )
 
     results = searcher("a dog sitting on a bench")
@@ -101,10 +101,10 @@ Call the searcher with a natural language query to get back a list of matching i
 
 The table below outlines the available parameters for `VisualAISearch`:
 
-{% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["data"]) }}
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["device"]) }}
+| Argument | Type  | Default    | Description                                               |
+| -------- | ----- | ---------- | --------------------------------------------------------- |
+| `data`   | `str` | `'images'` | Path to the image directory to index and search.          |
+| `device` | `str` | `'cpu'`    | Device used for CLIP inference (e.g. `cpu`, `cuda`, `0`). |
 
 !!! tip "Manage your data in the cloud"
 
@@ -138,8 +138,8 @@ While CLIP is developed by OpenAI, the [Ultralytics Python package](https://pypi
     from ultralytics import solutions
 
     searcher = solutions.VisualAISearch(
-        # data = "path/to/img/directory" # Optional, build search engine with your own images
-        device="cpu"  # configure the device for processing, e.g., "cpu" or "cuda"
+        data="images",  # replace with a path to build the search engine with your own images
+        device="cpu",  # configure the device for processing, e.g., "cpu" or "cuda"
     )
 
     results = searcher("a dog sitting on a bench")

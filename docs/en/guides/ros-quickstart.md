@@ -11,12 +11,9 @@ This guide shows you how to integrate [Ultralytics YOLO](../models/yolo26.md) wi
 
 Jump to [setting up YOLO with ROS](#setting-up-ultralytics-yolo-with-ros), then work with [RGB images](#use-ultralytics-with-ros-sensor_msgsimage), [depth images](#use-ultralytics-with-ros-depth-images), or [point clouds](#use-ultralytics-with-ros-sensor_msgspointcloud2).
 
-<p align="center"> <iframe src="https://player.vimeo.com/video/639236696?h=740f412ce5" width="640" height="360" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></p>
-<p align="center"><a href="https://vimeo.com/639236696">ROS Introduction (captioned)</a> from <a href="https://vimeo.com/osrfoundation">Open Robotics</a> on <a href="https://vimeo.com/">Vimeo</a>.</p>
-
 ## What is ROS?
 
-The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source framework widely used in robotics research and industry. ROS provides a collection of [libraries and tools](https://www.ros.org/blog/ecosystem/) to help developers create robot applications. ROS is designed to work with various [robotic platforms](https://robots.ros.org/), making it a flexible and powerful tool for roboticists.
+The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source framework widely used in robotics research and industry. ROS provides a collection of [libraries and tools](https://www.ros.org/blog/ecosystem/) to help developers create robot applications. ROS is designed to work with various [robotic platforms](https://robots.ros.org/), making it a flexible and powerful tool for roboticists. For a brief introduction, watch the three-minute [ROS Introduction](https://vimeo.com/639236696) video from Open Robotics.
 
 ### Key Features of ROS
 

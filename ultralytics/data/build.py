@@ -6,6 +6,7 @@ import math
 import os
 import random
 from collections.abc import Iterator
+from copy import copy
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -269,7 +270,7 @@ def build_yolo_dataset(
         imgsz=cfg.imgsz,
         batch_size=batch,
         augment=mode == "train",
-        hyp=cfg,
+        hyp=copy(cfg),
         rect=rect,
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,
@@ -301,7 +302,7 @@ def build_grounding(
         imgsz=cfg.imgsz,
         batch_size=batch,
         augment=mode == "train",  # augmentation
-        hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
+        hyp=copy(cfg),
         rect=cfg.rect or rect,  # rectangular batches
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,

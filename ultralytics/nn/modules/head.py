@@ -256,9 +256,7 @@ class Detect(nn.Module):
             (torch.Tensor, torch.Tensor, torch.Tensor): Top scores, class indices, and filtered indices.
         """
         batch_size, anchors, nc = scores.shape  # i.e. shape(16,8400,80)
-        # Use max_det directly during export for TensorRT compatibility (requires k to be constant),
-        # otherwise use min(max_det, anchors) for safety with small inputs during Python inference
-        k = max_det if self.export else min(max_det, anchors)
+        k = min(max_det, anchors)
         if self.agnostic_nms:
             scores, labels = scores.max(dim=-1, keepdim=True)
             scores, indices = scores.topk(k, dim=1)
@@ -1041,7 +1039,7 @@ class LRPCHead(nn.Module):
     def conv2linear(conv: nn.Conv2d) -> nn.Linear:
         """Convert a 1x1 convolutional layer to a linear layer."""
         assert isinstance(conv, nn.Conv2d) and conv.kernel_size == (1, 1)
-        linear = nn.Linear(conv.in_channels, conv.out_channels)
+        linear = nn.Linear(conv.in_channels, conv.out_channels).requires_grad_(conv.weight.requires_grad)
         linear.weight.data = conv.weight.view(conv.out_channels, -1).data
         linear.bias.data = conv.bias.data
         return linear

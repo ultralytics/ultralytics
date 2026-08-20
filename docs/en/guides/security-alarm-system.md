@@ -104,17 +104,17 @@ When you run the code, you will receive a single email notification if any objec
 Here's a table with the `SecurityAlarm` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "records"]) }}
+{{ param_table(["model", "records", "line_width", "verbose"]) }}
 
 The `SecurityAlarm` solution supports a variety of `track` parameters:
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 Moreover, the following visualization settings are available:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
+{{ param_table(["show", "show_conf", "show_labels"]) }}
 
 ## How It Works
 

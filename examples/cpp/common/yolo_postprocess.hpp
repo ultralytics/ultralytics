@@ -198,6 +198,7 @@ inline std::vector<Result> PostprocessPose(const float* data, const std::vector<
     const int a = dim2;
     std::vector<cv::Rect> boxes;
     std::vector<float> confidences;
+    std::vector<int> class_ids;
     std::vector<std::vector<cv::Point2f>> kpts;
     std::vector<std::vector<float>> kscores;
     for (int i = 0; i < a; ++i) {
@@ -207,6 +208,7 @@ inline std::vector<Result> PostprocessPose(const float* data, const std::vector<
         boxes.emplace_back(static_cast<int>((cx - 0.5f * w) * inv), static_cast<int>((cy - 0.5f * h) * inv),
                            static_cast<int>(w * inv), static_cast<int>(h * inv));
         confidences.push_back(conf);
+        class_ids.push_back(0);
         std::vector<cv::Point2f> kp;
         std::vector<float> ks;
         for (int k = 0; k < nkpt; ++k) {
@@ -217,7 +219,7 @@ inline std::vector<Result> PostprocessPose(const float* data, const std::vector<
         kscores.push_back(std::move(ks));
     }
     std::vector<int> keep;
-    cv::dnn::NMSBoxes(boxes, confidences, conf_thr, iou_thr, keep);
+    ClassAwareNMS(boxes, confidences, class_ids, conf_thr, iou_thr, keep);
     for (int idx : keep) {
         Result r;
         r.class_id = 0;
@@ -259,6 +261,7 @@ inline std::vector<Result> PostprocessObb(const float* data, const std::vector<i
     const int a = dim2;
     std::vector<cv::Rect> boxes;
     std::vector<float> confidences;
+    std::vector<int> class_ids;
     std::vector<Result> candidates;
     for (int i = 0; i < a; ++i) {
         int best = 0;
@@ -272,6 +275,7 @@ inline std::vector<Result> PostprocessObb(const float* data, const std::vector<i
         boxes.emplace_back(static_cast<int>(cx - 0.5f * w), static_cast<int>(cy - 0.5f * h),
                            static_cast<int>(w), static_cast<int>(h));
         confidences.push_back(best_score);
+        class_ids.push_back(best);
         Result r;
         r.class_id = best;
         r.confidence = best_score;
@@ -280,7 +284,7 @@ inline std::vector<Result> PostprocessObb(const float* data, const std::vector<i
         candidates.push_back(r);
     }
     std::vector<int> keep;
-    cv::dnn::NMSBoxes(boxes, confidences, conf_thr, iou_thr, keep);  // axis-aligned proxy NMS
+    ClassAwareNMS(boxes, confidences, class_ids, conf_thr, iou_thr, keep);  // axis-aligned proxy NMS
     for (int idx : keep) results.push_back(candidates[idx]);
     return results;
 }

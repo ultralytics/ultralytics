@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLO, agent skills, Claude Code, Codex, Cursor, Gemini CL
 
 # Ultralytics Agent Skills
 
-[Ultralytics Agent Skills](https://github.com/ultralytics/skills) give compatible AI coding agents instructions and reference material for working with the `ultralytics` Python package, the `yolo` CLI, and [Ultralytics Platform](https://platform.ultralytics.com/). They follow the open [Agent Skills](https://agentskills.io/) format and load when a relevant task is requested.
+[Ultralytics Agent Skills](https://github.com/ultralytics/skills) give compatible AI coding agents instructions and reference material for working with the `ultralytics` Python package, the `yolo` CLI, and [Ultralytics Platform](https://platform.ultralytics.com). They follow the open [Agent Skills](https://agentskills.io/) format and load when a relevant task is requested.
 
 ## Available Skills
 

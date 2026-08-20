@@ -1,12 +1,12 @@
-<a href="https://www.ultralytics.com/" target="_blank"><img src="https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Original.svg" width="320" alt="Ultralytics logo"></a>
+<a href="https://www.ultralytics.com" target="_blank"><img src="https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Original.svg" width="320" alt="Ultralytics logo"></a>
 
 # Ultralytics Model Configurations
 
-Welcome to the [Ultralytics](https://www.ultralytics.com/) models configuration directory. This folder contains a collection of model configuration files (`*.yaml`) that define Ultralytics YOLO model architectures. These configurations are used across common [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as [object detection](https://docs.ultralytics.com/tasks/detect), [image segmentation](https://docs.ultralytics.com/tasks/segment), pose estimation, oriented bounding boxes (OBB), and image classification.
+Welcome to the [Ultralytics](https://www.ultralytics.com) models configuration directory. This folder contains a collection of model configuration files (`*.yaml`) that define Ultralytics YOLO model architectures. These configurations are used across common [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as [object detection](https://docs.ultralytics.com/tasks/detect), [image segmentation](https://docs.ultralytics.com/tasks/segment), pose estimation, oriented bounding boxes (OBB), and image classification.
 
 Configurations are designed to run efficiently on a range of hardware, from standard [CPUs](https://en.wikipedia.org/wiki/Central_processing_unit) to modern [GPUs](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit). Pick a base model that matches your constraints (latency, memory, and accuracy), then customize it as needed.
 
-To get started, choose a `*.yaml` file (see the [YAML format](https://www.ultralytics.com/glossary/yaml)) and use it to [train](https://docs.ultralytics.com/modes/train) or export your model. For more details, see the Ultralytics [Documentation](https://docs.ultralytics.com/) or open a question on [GitHub Issues](https://github.com/ultralytics/ultralytics/issues).
+To get started, choose a `*.yaml` file (see the [YAML format](https://www.ultralytics.com/glossary/yaml)) and use it to [train](https://docs.ultralytics.com/modes/train) or export your model. For more details, see the Ultralytics [Documentation](https://docs.ultralytics.com) or open a question on [GitHub Issues](https://github.com/ultralytics/ultralytics/issues).
 
 ## 🚀 Usage
 

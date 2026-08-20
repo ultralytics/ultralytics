@@ -128,7 +128,7 @@ What makes CLIP stand out is its ability to generalize. Instead of being trained
 
 Once CLIP turns your images into embeddings, the Ultralytics package L2-normalizes them and stores them in a single [NumPy](https://numpy.org/) array. A query is ranked with one matrix multiplication that computes the [cosine similarity](https://en.wikipedia.org/wiki/Cosine_similarity) between the query embedding and every image embedding, then sorts the scores. This brute-force search is exact and fast for typical image collections, with no extra vector-database dependency to install or manage.
 
-### Why use the [Ultralytics](https://www.ultralytics.com/) [Python package](https://github.com/ultralytics/ultralytics/) if CLIP is from OpenAI?
+### Why use the [Ultralytics](https://www.ultralytics.com) [Python package](https://github.com/ultralytics/ultralytics/) if CLIP is from OpenAI?
 
 While CLIP is developed by OpenAI, the [Ultralytics Python package](https://pypi.org/project/ultralytics/) wraps embedding generation, indexing, and cosine-similarity search into a complete semantic image search pipeline behind a few lines of code that just work:
 

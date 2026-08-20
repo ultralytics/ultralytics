@@ -45,7 +45,7 @@ The `masks_dir` field is set to `annotations`, so each image under `images/` is 
 
 ADE20K is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in semantic segmentation and scene parsing. Its diverse set of categories and complex scenes make it valuable for applications such as autonomous navigation, robotics, augmented reality, and image editing.
 
-The breadth of indoor and outdoor scenes also makes ADE20K a strong benchmark for evaluating model generalization across domains. Pretrained YOLO26 semantic segmentation models reach up to 51.5 mIoU on the ADE20K validation set — see the [semantic segmentation models](../../tasks/semantic.md) page for the full benchmark table. ADE20K-format datasets are also fully compatible with [Ultralytics Platform](https://platform.ultralytics.com/) for dataset management and training.
+The breadth of indoor and outdoor scenes also makes ADE20K a strong benchmark for evaluating model generalization across domains. Pretrained YOLO26 semantic segmentation models reach up to 51.5 mIoU on the ADE20K validation set — see the [semantic segmentation models](../../tasks/semantic.md) page for the full benchmark table. ADE20K-format datasets are also fully compatible with [Ultralytics Platform](https://platform.ultralytics.com) for dataset management and training.
 
 ## Dataset YAML
 

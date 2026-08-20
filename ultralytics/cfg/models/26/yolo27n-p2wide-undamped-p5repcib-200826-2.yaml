@@ -1,0 +1,53 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# YOLO27-N P3 detector with P2 detail, undamped P3 fusion, and reparameterized P5 context.
+
+nc: 80
+end2end: True
+reg_max: 1
+scales:
+  n: [0.50, 0.25, 1024]
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [128, 3, 2]]
+  - [-1, 2, C3k2, [256, False, 0.25]]
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [-1, 2, C3k2, [512, False, 0.25]]
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, Conv, [1024, 3, 2]]
+  - [-1, 2, C3k2, [1024, True]]
+  - [-1, 1, SPPF, [1024, 5, 3, True]]
+  - [-1, 2, C2PSA, [1024]]
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  # Adapted from SNI Section 3.2 and source lines 24-36: damp only the P5-to-P4 semantic path.
+  # https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/08386.pdf#page=6
+  # https://github.com/alanli1997/rethinking-fpn/blob/a7c5ba02a54a4b39c620b56f85b4d89233515c37/slimneck_v2/for_yolo/sn2-yolov5-v8/ultralytics/nn/modules.py#L24-L36
+  - [-1, 1, Scale, [0.5]]
+  - [[-1, 6], 1, Concat, [1]]
+  - [-1, 2, C3k2, [768, True]]
+  # DM-EFS Figure 2 adds shallow high-resolution features. Project P2 into P3 without a costly P2 Detect head.
+  # SR-TOD Section 3.1 likewise uses P2 as its tiny-object feature interface.
+  # https://openaccess.thecvf.com/content/ICCV2025/papers/Sharma_DM-EFS_Dynamically_Multiplexed_Expanded_Features_Set_Form_for_Robust_and_ICCV_2025_paper.pdf#page=2
+  # https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/02515.pdf#page=6
+  - [2, 1, Conv, [128, 3, 2]]
+  # Transfer the 170826-2 result: retain P5-to-P4 damping but preserve the P4 signal entering P3.
+  - [14, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4, 15], 1, Concat, [1]]
+  - [-1, 3, C3k2, [512, True]]
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 14], 1, Concat, [1]]
+  - [-1, 2, C3k2, [768, True]]
+  - [-1, 1, Conv, [768, 3, 2]]
+  - [[-1, 10], 1, Concat, [1]]
+  # Use YOLOv10's fuseable large-kernel CIB at P5, not P3, to add M/L context at the lowest head resolution.
+  # UniRepLKNet Section 3.2, Guideline 3 likewise assigns large kernels to middle/high-level stages.
+  # https://github.com/THU-MIG/yolov10/blob/453c6e38a51e9d1d5a2aa5fb7f1014a711913397/ultralytics/cfg/models/v10/yolov10n.yaml#L36-L38
+  # https://github.com/THU-MIG/yolov10/blob/453c6e38a51e9d1d5a2aa5fb7f1014a711913397/ultralytics/nn/modules/block.py#L702-L768
+  # https://openaccess.thecvf.com/content/CVPR2024/papers/Ding_UniRepLKNet_A_Universal_Perception_Large-Kernel_ConvNet_for_Audio_Video_Point_CVPR_2024_paper.pdf#page=5
+  # https://github.com/AILab-CVC/UniRepLKNet/blob/b5677d8fb0e7b8af61eac39c1bf02727f5afc1d5/unireplknet.py#L172-L243
+  - [-1, 1, C2fCIB, [1024, True, True]]
+  - [[18, 21, 24], 1, Detect, [nc]]

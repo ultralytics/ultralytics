@@ -64,22 +64,49 @@ def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
     """Test worker cap follows distributed sampler size without changing global drop_last behavior."""
     sampler_cls = data_build.distributed.DistributedSampler
 
-    def distributed_sampler(dataset, shuffle):
-        return sampler_cls(dataset, num_replicas=3, rank=0, shuffle=shuffle)
+    def distributed_sampler(dataset, shuffle, seed):
+        return sampler_cls(dataset, num_replicas=3, rank=2, shuffle=shuffle, seed=seed)
 
     monkeypatch.setattr(data_build.distributed, "DistributedSampler", distributed_sampler)
+    monkeypatch.setattr(data_build, "RANK", 2)  # Simulate the second node with global rank 2 and local rank 0
+    expected_seed = torch.initial_seed() - 3
     loader = build_dataloader(range(8), batch=4, workers=8, rank=0, drop_last=True)
     try:
         assert len(loader) == 1
         assert loader.num_workers == 0
+        assert loader.sampler.seed == expected_seed
     finally:
         loader.close()
+
+
+def test_dataloader_seed_varies_sampling_order():
+    """Test the run seed reaches the loader RNG instead of every run replaying one fixed order."""
+    with torch.random.fork_rng():
+        loaders = []
+        for seed in (0, 0, 1):
+            torch.manual_seed(seed)
+            loaders.append(build_dataloader(range(64), batch=4, workers=0))
+    try:
+        first, repeat, other = (torch.cat(list(loader)).tolist() for loader in loaders)
+        assert first == repeat  # same seed stays reproducible
+        assert first != other  # different seeds must not share one order
+    finally:
+        for loader in loaders:
+            loader.close()
 
 
 def test_dataloader_empty_dataset_uses_dataloader_validation():
     """Test empty datasets fail through DataLoader validation instead of worker-cap math."""
     with pytest.raises(ValueError, match="positive integer"):
         build_dataloader([], batch=4, workers=2)
+
+
+def test_build_yolo_dataset_hyp_isolated():
+    """Test dataset construction never mutates hyperparameters on the shared cfg it was built from."""
+    data = check_det_dataset("coco8.yaml")
+    cfg = get_cfg(overrides={"data": "coco8.yaml", "imgsz": 32, "rect": True})  # rect zeroes mosaic on the hyp used
+    data_build.build_yolo_dataset(cfg, data["train"], batch=2, data=data, mode="train")
+    assert cfg.mosaic == DEFAULT_CFG.mosaic
 
 
 def test_cfg_rejects_fuzzed_values():
@@ -100,6 +127,24 @@ def test_cfg_rejects_fuzzed_values():
         with pytest.raises((TypeError, ValueError), match=key):
             get_cfg(overrides={key: value})
     assert get_cfg(overrides={"auto_augment": None}).auto_augment is None
+
+
+def test_channel_divisor():
+    """Test custom channel rounding while preserving the default and rejecting invalid divisors."""
+    from ultralytics.nn.tasks import DetectionModel
+
+    cfg = {
+        "nc": 2,
+        "width_multiple": 0.37,
+        "backbone": [[-1, 1, "Conv", [100, 3, 2]]],
+        "head": [[[-1], 1, "Detect", [2]]],
+    }
+    default = DetectionModel(cfg=cfg, verbose=False)
+    exact = DetectionModel(cfg={**cfg, "channel_divisor": 1}, verbose=False)
+    assert default.model[0].conv.out_channels == 40
+    assert exact.model[0].conv.out_channels == 37
+    with pytest.raises(ValueError, match="channel_divisor"):
+        DetectionModel(cfg={**cfg, "channel_divisor": 0}, verbose=False)
 
 
 def skip_rpi_semantic():
@@ -275,7 +320,7 @@ def test_predict_csv_single_row(tmp_path):
 
 @pytest.mark.parametrize("model_name", MODELS)
 def test_predict_img(model_name):
-    """Test YOLO model predictions on various image input types and sources, including online images."""
+    """Test YOLO model predictions on various image input types."""
     if IS_RASPBERRYPI and model_name == "yolo26n-sem.pt":
         skip_rpi_semantic()
     channels = 1 if model_name == "yolo11n-grayscale.pt" else 3
@@ -290,7 +335,6 @@ def test_predict_img(model_name):
     batch = [
         str(SOURCE),  # filename
         Path(SOURCE),  # Path
-        "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/im/zidane.jpg?token=123" if ONLINE else SOURCE,  # URI
         im,  # OpenCV
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, channels), dtype=np.uint8),  # numpy
@@ -300,12 +344,16 @@ def test_predict_img(model_name):
 
 @pytest.mark.parametrize("model_name", ["yolo26n.pt", "yolo11n.pt"])  # end2end and NMS-based models
 def test_predict_classes_with_max_det(model_name):
-    """Test that the classes filter applies before max_det truncation in both end2end and NMS-based models."""
+    """Test classes-before-max_det and reset reused-call filters for end2end and NMS-based models."""
     boxes = YOLO(WEIGHTS_DIR / model_name)(SOURCE, classes=[0], max_det=300, verbose=False)[0].boxes
     assert len(boxes) > 1  # bus.jpg contains multiple persons
-    top1 = YOLO(WEIGHTS_DIR / model_name)(SOURCE, classes=[0], max_det=1, verbose=False)[0].boxes  # fresh model
+    top1_model = YOLO(WEIGHTS_DIR / model_name)
+    top1 = top1_model(SOURCE, classes=[0], max_det=1, verbose=False)[0].boxes
     assert len(top1) == 1 and int(top1.cls) == 0
     assert float(top1.conf) == pytest.approx(float(boxes.conf.max()))  # best person kept, not an arbitrary one
+
+    reused = top1_model(SOURCE, verbose=False)[0].boxes  # SAME model, no kwargs at all this time
+    assert len(reused) > 1  # classes=[0]/max_det=1 from the previous call must not leak into this one
 
 
 @pytest.mark.parametrize("model", MODELS)
@@ -419,6 +467,29 @@ def test_track_second_association_indices():
     assert len(low) == 1 and int(low[0, -1]) == 2, f"second-association idx not preserved:\n{tracks}"
 
 
+def test_track_split_detections_degenerate_boxes():
+    """`_split_detections` must drop zero/negative-dimension boxes from both confidence partitions while keeping every
+    valid detection's index into the full detection-set space (later assigned to `track.idx`).
+    """
+    from ultralytics.engine.results import Boxes
+    from ultralytics.trackers.byte_tracker import BYTETracker
+    from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace
+
+    args = IterableSimpleNamespace(**YAML.load(ROOT / "cfg/trackers/bytetrack.yaml"))
+    tracker = BYTETracker(args)
+    boxes = [
+        [10, 10, 50, 50, 0.9, 0],  # idx 0: valid, high-confidence partition
+        [300, 480, 350, 480, 0.9, 0],  # idx 1: degenerate, zero height, high-confidence partition
+        [100, 100, 150, 150, 0.15, 0],  # idx 2: valid, low-confidence partition
+        [300, 490, 350, 480, 0.15, 0],  # idx 3: degenerate, negative height, low-confidence partition
+        [150, 100, 100, 150, 0.9, 0],  # idx 4: degenerate, negative width, high-confidence partition
+    ]
+    results = Boxes(torch.tensor(boxes, dtype=torch.float32), (640, 640))
+    high, low, mask_high, mask_low = tracker._split_detections(results)
+    assert np.flatnonzero(mask_high).tolist() == [0] and len(high) == 1, f"degenerate box leaked high band: {mask_high}"
+    assert np.flatnonzero(mask_low).tolist() == [2] and len(low) == 1, f"degenerate box leaked low band: {mask_low}"
+
+
 @pytest.mark.parametrize("tracker_type", ["bytetrack", "fasttrack"])
 def test_track_second_association_low_conf_keeps_id(tracker_type):
     """Low-confidence detection is recovered by the second association under the default fuse_score=True."""
@@ -471,7 +542,7 @@ def test_reid_invalid_crops():
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
-def test_track_stream(model, tmp_path):
+def test_track_stream(model, tmp_path, solution_assets):
     """Test streaming tracking on a short video with all built-in trackers and various GMC/ReID configurations.
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
@@ -484,7 +555,7 @@ def test_track_stream(model, tmp_path):
         return
     from ultralytics.trackers.track import TRACKER_MAP
 
-    video_url = f"{ASSETS_URL}/decelera_portrait_min.mov"
+    video_url = solution_assets("track_video")
     model = YOLO(model)
 
     # Default end-to-end run for all built-in trackers
@@ -756,7 +827,7 @@ def test_platform_job_transport(monkeypatch, tmp_path):
         captured.update(url=url, **kwargs)
         return SimpleNamespace(status_code=200, json=lambda: {"received": True}, raise_for_status=lambda: None)
 
-    monkeypatch.setattr(platform, "requests", SimpleNamespace(post=post), raising=False)
+    monkeypatch.setattr("requests.post", post)
     monkeypatch.setattr(platform, "_api_key", "api-key")
     monkeypatch.setattr(platform, "PLATFORM_API_URL", "https://example.test/api/webhooks")
     assert platform._send("epoch_end", {"epoch": 0}, "user/project", "model") == {"received": True}
@@ -846,11 +917,11 @@ def test_predict_callback_and_setup():
 
 
 @pytest.mark.parametrize("model", MODELS)
-def test_results(model: str, tmp_path):
+def test_results(model: str, tmp_path, solution_assets):
     """Test YOLO model results processing and output in various formats."""
     if IS_RASPBERRYPI and model == "yolo26n-sem.pt":
         skip_rpi_semantic()
-    im = "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/im/boats.jpg" if model == "yolo26n-obb.pt" else SOURCE
+    im = solution_assets("boats") if model == "yolo26n-obb.pt" else SOURCE
     is_semantic = "semantic" in model or "-sem" in model
     results = YOLO(WEIGHTS_DIR / model)([im, im], imgsz=32 if is_semantic else 160)
     for r in results:
@@ -937,6 +1008,21 @@ def test_annotator_depth_map():
     assert ann.result().shape == (16, 16, 3)
 
 
+def test_annotator_tensor_image():
+    """Annotator accepts tensor images and matches Results.plot compositing pixels."""
+    from ultralytics.engine.results import Results
+    from ultralytics.utils.plotting import Annotator
+
+    image = torch.zeros((16, 16, 3), dtype=torch.uint8)
+    masks = torch.ones((1, 16, 16), dtype=torch.bool)
+    ann = Annotator(image)
+    ann.masks(masks, [[255, 0, 0]])
+    assert ann.result()[0, 0].tolist() == [127, 0, 0]
+    result = Results(np.zeros((16, 16, 3), dtype=np.uint8), path="image.jpg", names={}, masks=masks)
+    expected = result.plot(img=np.zeros((16, 16, 3), dtype=np.uint8), boxes=False)
+    np.testing.assert_array_equal(result.plot(img=torch.zeros_like(image), boxes=False), expected)
+
+
 def test_results_update_probs():
     """Test that Results.update(probs=...) wraps the tensor in Probs like the sibling attributes."""
     from ultralytics.engine.results import Probs, Results
@@ -989,10 +1075,20 @@ def test_data_utils(tmp_path):
     images_dir = tmp_path / "coco8/images/val"
     images_dir.mkdir(parents=True)
     Image.new("RGB", (8, 8)).save(images_dir / "test.jpg")
+    metadata_dir = images_dir / "__MACOSX"
+    metadata_dir.mkdir()
+    nested_metadata_dir = metadata_dir / "nested/__MACOSX"
+    nested_metadata_dir.mkdir(parents=True)
+    metadata_file = images_dir / ".DS_Store"
+    metadata_file.write_bytes(b"metadata")
+    (metadata_dir / "._test.jpg").write_bytes(b"metadata")
+    (nested_metadata_dir / "._nested.jpg").write_bytes(b"metadata")
 
     autosplit(tmp_path / "coco8/images")
     assert any((tmp_path / "coco8").glob("autosplit_*.txt"))
     assert zip_directory(images_dir).is_file()
+    assert not metadata_dir.exists()
+    assert not metadata_file.exists()
     with pytest.raises(ValueError, match="split"):
         check_cls_dataset("imagenet10", split="invalid")
     with pytest.raises(FileNotFoundError, match="'test:' images not found"):
@@ -1230,18 +1326,30 @@ def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch,
 def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     """Drop unreadable depth maps and accept single-class mode with empty class labels."""
     from ultralytics.data.dataset import DepthDataset
+    from ultralytics.data.utils import save_depth_png
 
     images, depth = tmp_path / "images" / "train", tmp_path / "depth" / "train"
     images.mkdir(parents=True)
     depth.mkdir(parents=True)
-    for name in ("valid", "corrupt", "missing"):
+    for name in ("valid", "scaled", "legacy", "aspect", "corrupt", "missing"):
         cv2.imwrite(str(images / f"{name}.jpg"), np.zeros((32, 32, 3), np.uint8))
-    np.save(depth / "valid.npy", np.ones((32, 32), dtype=np.float32))
-    (depth / "corrupt.npy").write_text("not an npy file")
+    save_depth_png(depth / "valid.png", np.ones((32, 32), dtype=np.float32), scale=100)
+    with Image.open(depth / "valid.png") as image:
+        assert not image.info
+        assert np.asarray(image).max() == 100
+    cv2.imwrite(str(depth / "scaled.png"), np.full((32, 32), 150, np.uint16))
+    legacy = np.full((32, 32), 2.0, np.float32)
+    legacy[0, :3] = np.nan, np.inf, -np.inf
+    np.save(depth / "legacy.npy", legacy)
+    cv2.imwrite(str(depth / "aspect.png"), np.ones((16, 32), np.uint16))
+    (depth / "corrupt.png").write_text("not a png file")
 
-    data = {"names": {0: "depth"}, "nc": 1, "channels": 3}
+    data = {"names": {0: "depth"}, "nc": 1, "channels": 3, "depth_scale": 100}
     ds = DepthDataset(img_path=str(images), imgsz=32, data=data, augment=False, single_cls=True, batch_size=1)
-    assert [Path(f).stem for f in ds.im_files] == ["valid"]
+    assert {Path(f).stem for f in ds.im_files} == {"valid", "scaled", "legacy"}
+    assert sorted(ds._load_depth(i).max() for i in range(len(ds))) == [1.0, 1.5, 2.0]
+    legacy_index = next(i for i, path in enumerate(ds.im_files) if Path(path).stem == "legacy")
+    assert not ds._load_depth(legacy_index)[0, :3].any()
     assert (depth.parent / "train.cache").exists()  # scan results cached next to the depth maps
 
 
@@ -1277,6 +1385,14 @@ def test_utils_checks(monkeypatch):
     assert checks.parse_version("v2.1") == (2, 1, 0)
     assert checks.parse_version("1.0rc1") == (1, 0, 0)  # documented non-PEP-440 tradeoff: pre-releases equal the final
     monkeypatch.setattr(checks.metadata, "version", package_version)
+    monkeypatch.setattr(checks, "ARM64", True)
+    monkeypatch.setattr(checks, "AUTOINSTALL", True)
+    monkeypatch.setattr(checks, "ONLINE", True)
+    commands = []
+    monkeypatch.setattr(checks.subprocess, "check_output", lambda command, **kwargs: commands.append(command) or "")
+    requirements = ["ray[tune]", "nvidia-modelopt[onnx]>=0.44", "$(touch /tmp/pwned)/missing"]
+    assert checks.check_requirements(requirements)
+    assert commands[0][5:] == requirements  # requirements remain individual argv entries, never shell source
     assert not checks.check_version("v2", ">=2.0")  # installed version-shaped package keeps metadata precedence
     versions = ("v2.1-rc.1", "v2.1-beta1", "v2.1rev1", "v2.1-dev1", "v2.1+cu118")
     assert all(checks.check_version(v, ">=2.0") for v in versions)
@@ -1442,6 +1558,25 @@ def test_utils_ops():
     assert segment2box(seg, 640, 640).tolist() == [0, 0, 640, 640]
 
 
+def test_scale_coords_nonuniform_letterbox():
+    """Coordinate scaling must invert independent height and width gains from stretched preprocessing."""
+    from ultralytics.data.augment import LetterBox
+    from ultralytics.utils import ops
+
+    labels = {"img": np.zeros((320, 640, 3), dtype=np.uint8), "ratio_pad": (3.2, 3.2)}
+    ratio_pad = LetterBox((640, 640), scale_fill=True)(labels)["ratio_pad"]
+    boxes = np.array([[32.0, 64.0, 320.0, 384.0]])
+    coords = torch.tensor([[160.0, 128.0]])
+    assert ratio_pad == ((6.4, 3.2), (0, 0))
+    assert np.allclose(ops.scale_boxes((640, 640), boxes, (100, 200), ratio_pad), [[10, 10, 100, 60]])
+    assert torch.allclose(ops.scale_coords((640, 640), coords, (100, 200), ratio_pad), coords.new_tensor([[50, 20]]))
+
+    boxes = np.array([[32.0, 192.0, 320.0, 352.0]])
+    coords = torch.tensor([[160.0, 224.0]])
+    assert np.allclose(ops.scale_boxes((640, 640), boxes, (100, 200)), [[10, 10, 100, 60]])
+    assert torch.allclose(ops.scale_coords((640, 640), coords, (100, 200)), coords.new_tensor([[50, 20]]))
+
+
 def test_nms_end2end_classes_before_max_det():
     """The end-to-end NMS branch must filter classes before truncating to max_det, like the NMS-based branch."""
     from ultralytics.utils.nms import non_max_suppression
@@ -1545,6 +1680,17 @@ def test_nn_modules_block():
     BottleneckCSP(c1, c2)(x)
 
 
+def test_nn_detect_head_export_clamps_max_det():
+    """Detect export postprocess should not request more candidates than available anchors."""
+    from ultralytics.nn.modules.head import Detect
+
+    head = Detect(nc=2, ch=(16,))
+    head.export = True
+    head.format = "onnx"
+    anchors = 21
+    assert head.postprocess(torch.rand(1, anchors, 4 + head.nc)).shape == (1, anchors, 6)
+
+
 def _depth_head_feats():
     """Return a small Depth head constructor kwargs-matched P3/P4/P5 feature pyramid."""
     return [torch.randn(1, 32, 32, 32), torch.randn(1, 64, 16, 16), torch.randn(1, 128, 8, 8)]
@@ -1570,17 +1716,6 @@ def test_nn_depth_head_no_dead_parameters():
     head(_depth_head_feats())["depth"].sum().backward()
     unused = [n for n, p in head.named_parameters() if p.grad is None]
     assert not unused, f"parameters with no gradient: {unused}"
-
-
-@pytest.mark.skipif(not ONLINE, reason="environment is offline")
-def test_hub():
-    """Test Ultralytics HUB functionalities."""
-    from ultralytics.hub import export_fmts_hub, logout
-    from ultralytics.hub.utils import smart_request
-
-    export_fmts_hub()
-    logout()
-    smart_request("GET", "https://github.com", progress=True)
 
 
 @pytest.fixture

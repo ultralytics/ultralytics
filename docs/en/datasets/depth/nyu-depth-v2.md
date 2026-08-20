@@ -71,7 +71,7 @@ To evaluate a YOLO26-Depth model on the NYU Depth V2 benchmark, you can use the 
 
 ## Pretrained Models
 
-The YOLO26 depth family is evaluated zero-shot on the NYU Depth V2 benchmark. These models auto-download from the latest Ultralytics release, for example [YOLO26x-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-depth.pt) from v8.4.0, and span a range of sizes (yolo26n/s/m/l/x-depth) for different accuracy and resource requirements.
+The YOLO26 depth family is evaluated zero-shot on the NYU Depth V2 benchmark. These models auto-download from the latest Ultralytics release, for example [YOLO26x-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth) from v8.4.0, and span a range of sizes (yolo26n/s/m/l/x-depth) for different accuracy and resource requirements.
 
 ## Citations and Acknowledgments
 

@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import math
+from typing import Any
 
 import torch
 import torch.nn.functional as F
@@ -301,8 +302,8 @@ class LayerNormFP32(nn.LayerNorm):
         normalized_shape: int | list[int] | torch.Size,
         eps: float | None = 1e-5,
         elementwise_affine: bool | None = True,
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ):
         """Initialize LayerNorm2d_fp32 forwarding parameters to nn.LayerNorm."""
         super().__init__(
@@ -354,8 +355,8 @@ class LearnablePositionalEmbedding(nn.Module):
         embedding_dim: int,
         padding_idx: int | None = None,
         interpolation_mode: str | None = "bilinear",
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ):
         """Initialize learnable positional embedding parameters."""
         super().__init__()
@@ -373,7 +374,7 @@ class LearnablePositionalEmbedding(nn.Module):
             with torch.no_grad():
                 self.pos_embed[:, :, self.padding_idx, ...] = 0.0
 
-    def forward(self, seq_len: int, *args, **kwargs) -> torch.Tensor:
+    def forward(self, seq_len: int, *args: Any, **kwargs: Any) -> torch.Tensor:
         """Return positional embeddings for the given sequence length."""
         pos_embed = self.pos_embed
         if self.padding_idx is not None:
@@ -407,8 +408,8 @@ class PositionalEmbedding(nn.Module):
         padding_idx: int | None = None,
         is_learnable: bool | None = False,
         interpolation_mode: str | None = "bilinear",
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ):
         """Initialize SinusoidalLearnablePositionalEmbedding wrapper."""
         super().__init__()
@@ -421,7 +422,7 @@ class PositionalEmbedding(nn.Module):
             **kwargs,
         )
 
-    def forward(self, seq_len: int, *args, **kwargs) -> torch.Tensor:
+    def forward(self, seq_len: int, *args: Any, **kwargs: Any) -> torch.Tensor:
         """Return positional embeddings by delegating to the inner embedding module."""
         return self.pos_embed(seq_len, *args, **kwargs)
 
@@ -444,8 +445,8 @@ class MultiHeadAttention(nn.Module):
         attn_dropout: float | None = 0.0,
         bias: bool | None = True,
         output_dim: int | None = None,
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         """Initialize MultiHeadAttention with QKV and output projection layers."""
         if output_dim is None:
@@ -467,8 +468,8 @@ class MultiHeadAttention(nn.Module):
         x_kv: torch.Tensor | None = None,
         key_padding_mask: torch.Tensor | None = None,
         attn_mask: torch.Tensor | None = None,
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ) -> torch.Tensor:
         """Compute scaled dot-product multi-head attention."""
         b_sz, s_len, _ = x_q.shape
@@ -521,8 +522,8 @@ class TransformerEncoder(nn.Module):
         ffn_dropout: float | None = 0.0,
         transformer_norm_layer: str | None = "layer_norm",
         stochastic_dropout: float | None = 0.0,
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         """Initialize TransformerLayer with pre-norm attention and FFN sub-layers."""
         super().__init__()
@@ -548,8 +549,8 @@ class TransformerEncoder(nn.Module):
         x_prev: torch.Tensor | None = None,
         key_padding_mask: torch.Tensor | None = None,
         attn_mask: torch.Tensor | None = None,
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ) -> torch.Tensor:
         """Apply pre-norm multi-head attention and feed-forward network with drop-path."""
         res = x
@@ -763,8 +764,8 @@ class RepMixerBlock(nn.Module):
         use_layer_scale: bool = True,
         layer_scale_init_value: float = 1e-5,
         inference_mode: bool = False,
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ):
         """Initialize RepMixerBlock with token mixer, ConvFFN, and drop-path."""
         super().__init__()
@@ -788,7 +789,7 @@ class RepMixerBlock(nn.Module):
         if use_layer_scale:
             self.layer_scale = nn.Parameter(layer_scale_init_value * torch.ones((dim, 1, 1)), requires_grad=True)
 
-    def forward(self, x: torch.Tensor, *args, **kwargs) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, *args: Any, **kwargs: Any) -> torch.Tensor:
         """Apply RepMixerBlock: token mixing and ConvFFN with optional drop-path."""
         if x.dim() == 3:
             # (B, C, D) -> (B, D, C) -> (B, D, 1, C)
@@ -848,7 +849,9 @@ class MobileCLIPTextTransformer(nn.Module):
             pre-computed embeddings). Default is False.
     """
 
-    def __init__(self, cfg: dict, projection_dim: int, skip_embeddings: bool = False, *args, **kwargs) -> None:
+    def __init__(
+        self, cfg: dict, projection_dim: int, skip_embeddings: bool = False, *args: Any, **kwargs: Any
+    ) -> None:
         """Initialize MobileCLIPTextTransformer from a configuration dict."""
         super().__init__()
 
@@ -983,8 +986,8 @@ class MobileCLIPTextTransformer(nn.Module):
         key_padding_mask: torch.Tensor | None = None,
         return_all_tokens: bool = False,
         input_is_embeddings: bool = False,
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ) -> torch.Tensor:
         """Encode text tokens or pre-computed embeddings.
 
@@ -1040,8 +1043,8 @@ class MobileCLIPTextTransformer(nn.Module):
         key_padding_mask: torch.Tensor | None = None,
         return_all_tokens: bool = False,
         input_is_embeddings: bool = False,
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ) -> torch.Tensor:
         """Encode text tokens by delegating to encode_text."""
         return self.encode_text(

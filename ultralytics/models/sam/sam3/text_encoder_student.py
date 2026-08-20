@@ -86,7 +86,7 @@ class TextStudentEncoder(nn.Module):
         self.encoder.reparameterize()
 
     def forward(
-        self, text: list, input_boxes=None, device: torch.device | None = None
+        self, text: list, input_boxes: list | None = None, device: torch.device | None = None
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Tokenise text, encode, project, and return SAM3-compatible outputs.
 

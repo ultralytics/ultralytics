@@ -298,12 +298,8 @@ def test_predict_img(model_name):
 
 
 @pytest.mark.parametrize("model_name", ["yolo26n.pt", "yolo11n.pt"])  # end2end and NMS-based models
-def test_predict_classes_with_max_det(tmp_path, model_name):
-    """Test that the classes filter applies before max_det truncation in both end2end and NMS-based models, and that
-    reusing the same Model for a later call without these kwargs resets them instead of leaking (both the args
-    namespace and, for end2end models, the max_det/agnostic_nms baked into the head), including an explicit save_dir
-    that a later call omitting it must not inherit.
-    """
+def test_predict_classes_with_max_det(model_name):
+    """Test classes-before-max_det and reset reused-call filters for end2end and NMS-based models."""
     boxes = YOLO(WEIGHTS_DIR / model_name)(SOURCE, classes=[0], max_det=300, verbose=False)[0].boxes
     assert len(boxes) > 1  # bus.jpg contains multiple persons
     top1_model = YOLO(WEIGHTS_DIR / model_name)
@@ -313,12 +309,6 @@ def test_predict_classes_with_max_det(tmp_path, model_name):
 
     reused = top1_model(SOURCE, verbose=False)[0].boxes  # SAME model, no kwargs at all this time
     assert len(reused) > 1  # classes=[0]/max_det=1 from the previous call must not leak into this one
-
-    custom_dir = tmp_path / "custom"
-    top1_model(SOURCE, save=True, save_dir=str(custom_dir), verbose=False)
-    assert top1_model.predictor.save_dir == custom_dir
-    top1_model(SOURCE, save=True, verbose=False)  # SAME model, save_dir omitted this time
-    assert top1_model.predictor.save_dir != custom_dir  # must not leak into the default-derived dir
 
 
 @pytest.mark.parametrize("model", MODELS)

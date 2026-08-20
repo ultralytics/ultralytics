@@ -64,7 +64,7 @@ class ClassificationPredictor(BasePredictor):
             else transforms
         )
         self.tensor_transforms = None
-        if self.args.preprocess_tensor:
+        if self.args.preprocess_tensor and self.source_type.tensor:
             supported = (T.Resize, T.CenterCrop, T.ToTensor, T.Normalize)
             if not isinstance(self.transforms, T.Compose) or any(
                 not isinstance(t, supported) for t in self.transforms.transforms

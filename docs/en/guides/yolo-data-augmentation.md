@@ -482,8 +482,8 @@ The examples below need Albumentations 1.4.22 or newer, and therefore Python 3.9
 
 **Compatibility Notes:**
 
-- Requires Albumentations version 1.0.3 or higher
-- Fully compatible with all YOLO tasks (detect, segment, classify, pose, and OBB).
+- Compatible with all YOLO detection and segmentation tasks
+- Not applicable for classification tasks (classification uses a different augmentation pipeline)
 
 For more information about Albumentations and available transforms, visit the [official Albumentations documentation](https://albumentations.ai/docs/).
 

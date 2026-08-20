@@ -2916,7 +2916,6 @@ def classify_augmentations(
     force_color_jitter: bool = False,
     erasing: float = 0.0,
     interpolation: str = "BILINEAR",
-    augmentations: list | None = None,
 ):
     """Create a composition of image augmentation transforms for classification tasks.
 
@@ -2938,18 +2937,12 @@ def classify_augmentations(
         force_color_jitter (bool): Whether to apply color jitter even if auto augment is enabled.
         erasing (float): Probability of random erasing.
         interpolation (str): Interpolation method of either 'NEAREST', 'BILINEAR' or 'BICUBIC'.
-        augmentations (list | None): Optional list of custom Albumentations transforms for classification.
 
     Returns:
         (torchvision.transforms.Compose): A composition of image augmentation transforms.
 
     Examples:
         >>> transforms = classify_augmentations(size=224, auto_augment="randaugment")
-        >>> augmented_image = transforms(original_image)
-
-        >>> import albumentations as A
-        >>> custom_transforms = [A.Blur(p=0.5), A.CLAHE(p=0.3)]
-        >>> transforms = classify_augmentations(size=224, augmentations=custom_transforms)
         >>> augmented_image = transforms(original_image)
     """
     # Transforms to apply if Albumentations not installed
@@ -2967,36 +2960,6 @@ def classify_augmentations(
         primary_tfl.append(T.RandomVerticalFlip(p=vflip))
 
     secondary_tfl = []
-
-    # Add custom Albumentations transforms if provided
-    if augmentations is not None:
-        try:
-            import albumentations as A
-
-            # Wrap Albumentations in a torchvision-compatible transform
-            class AlbumentationsTransform:
-                """Wrapper to use Albumentations transforms with torchvision pipeline."""
-
-                def __init__(self, transform):
-                    self.transform = transform
-
-                def __call__(self, img):
-                    """Apply Albumentations transform to PIL image."""
-                    # Convert PIL to numpy array
-                    img_np = np.array(img)
-                    # Apply Albumentations
-                    augmented = self.transform(image=img_np)
-                    # Convert back to PIL
-                    return Image.fromarray(augmented["image"])
-
-            # Create Albumentations compose
-            alb_transform = A.Compose(augmentations)
-            secondary_tfl.append(AlbumentationsTransform(alb_transform))
-            LOGGER.info(f"Custom Albumentations transforms added for classification: {augmentations}")
-        except ImportError:
-            LOGGER.warning("Albumentations not installed. Custom augmentations will be ignored.")
-        except Exception as e:
-            LOGGER.warning(f"Error setting up custom Albumentations: {e}")
 
     disable_color_jitter = False
     if auto_augment:

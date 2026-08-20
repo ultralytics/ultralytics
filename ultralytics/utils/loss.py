@@ -1268,7 +1268,7 @@ class E2ELoss:
         """Initialize E2ELoss with one-to-many and one-to-one detection losses using the provided model."""
         self.one2many = loss_fn(model, tal_topk=10)
         o2f_k = int(getattr(model.args, "o2f", 0))
-        self.one2one = loss_fn(model, tal_topk=7, tal_topk2=1 + o2f_k if o2f_k else 1)
+        self.one2one = loss_fn(model, tal_topk=model.args.topk2, tal_topk2=1 + o2f_k if o2f_k else 1)
         if o2f_k:  # o2f: certain positive + K ambiguous soft-labeled anchors per GT
             self.one2one.assigner.o2f_k = o2f_k
             self.one2one.assigner.o2f_T = self.o2f_tmax = getattr(model.args, "o2f_tmax", 0.6)

@@ -1092,7 +1092,11 @@ class Exporter:
             elif not is_s3d and isinstance(self.model, DetectionModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 84, 8400)
             if self.args.nms:  # NMS postprocessing bakes the traced anchor count into the graph
-                dynamic["images"] = dynamic["output0"] = {0: "batch"}
+                dynamic["output0"] = {0: "batch"}
+                if is_s3d:
+                    dynamic["left_img"] = dynamic["right_img"] = {0: "batch"}
+                else:
+                    dynamic["images"] = {0: "batch"}
         if self.args.nms and self.model.task == "obb":
             self.args.opset = opset  # for NMSModel
             self.args.simplify = True  # fix OBB runtime error related to topk

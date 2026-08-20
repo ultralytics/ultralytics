@@ -2960,7 +2960,6 @@ def classify_augmentations(
         primary_tfl.append(T.RandomVerticalFlip(p=vflip))
 
     secondary_tfl = []
-
     disable_color_jitter = False
     if auto_augment:
         assert isinstance(auto_augment, str), f"Provided argument should be string, but got type {type(auto_augment)}"

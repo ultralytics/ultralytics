@@ -812,7 +812,7 @@ class Results(SimpleClass, DataExportMixin):
                 BGR=True,
             )
 
-    def summary(self, use_wh: bool = False, normalize: bool = False, decimals: int = 5) -> list[dict[str, Any]]:
+    def summary(self, normalize: bool = False, decimals: int = 5, use_wh: bool = False) -> list[dict[str, Any]]:
         """Convert inference results to a summarized dictionary with optional normalization for box coordinates.
 
         This method creates a list of detection dictionaries, each containing information about a single detection or
@@ -821,9 +821,9 @@ class Results(SimpleClass, DataExportMixin):
         optionally mask segments and keypoints.
 
         Args:
-            use_wh (bool): Whether to use [x, y, width, height] format for boxes. If OBBs, rotation is also included.
             normalize (bool): Whether to normalize bounding box coordinates by image dimensions.
             decimals (int): Number of decimal places to round the output values to.
+            use_wh (bool): Whether to use [x, y, width, height] format for boxes. If OBBs, rotation is also included.
 
         Returns:
             (list[dict[str, Any]]): A list of dictionaries, each containing summarized information for a single

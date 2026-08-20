@@ -6,6 +6,7 @@ from collections import abc
 from itertools import repeat
 from numbers import Number
 
+import cv2
 import numpy as np
 
 from .ops import ltwh2xywh, ltwh2xyxy, resample_segments, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh
@@ -234,7 +235,7 @@ class Instances:
         self._bboxes = Bboxes(bboxes=bboxes, format=bbox_format)
         self.keypoints = keypoints
         self.normalized = normalized
-        self.segments = segments
+        self.segments = segments if segments is not None else np.zeros((0, 0, 2), dtype=np.float32)
 
     def convert_bbox(self, format: str) -> None:
         """Convert bounding box format.
@@ -374,21 +375,52 @@ class Instances:
         if self.keypoints is not None:
             self.keypoints[..., 0] = w - self.keypoints[..., 0]
 
-    def clip(self, w: int, h: int) -> None:
+    def clip(self, w: int, h: int, preserve_obb: bool = False) -> None:
         """Clip coordinates to stay within image boundaries.
 
         Args:
             w (int): Image width.
             h (int): Image height.
+            preserve_obb (bool): Preserve oriented-box direction while clipping segments.
         """
         ori_format = self._bboxes.format
         self.convert_bbox(format="xyxy")
-        self.bboxes[:, [0, 2]] = self.bboxes[:, [0, 2]].clip(0, w)
-        self.bboxes[:, [1, 3]] = self.bboxes[:, [1, 3]].clip(0, h)
+        if preserve_obb and len(self.segments):
+            segment_mins, segment_maxs = self.segments.min(1), self.segments.max(1)
+            inside = ((segment_mins >= 0) & (segment_maxs <= (w, h))).all(1)
+            if not inside.all():
+                canvas = np.array(((0, 0), (w, 0), (w, h), (0, h)), dtype=np.float32)
+                bboxes, segments = self.bboxes.copy(), self.segments.copy()
+                for i in np.flatnonzero(~inside):
+                    segment = self.segments[i]
+                    visible_area, visible = cv2.intersectConvexConvex(
+                        cv2.convexHull(segment.astype(np.float32)), canvas
+                    )
+                    if visible is None or visible_area <= 0:
+                        bboxes[i], segments[i] = 0, 0
+                        continue
+                    visible = visible.reshape(-1, 2)
+                    bboxes[i] = np.array((*visible.min(0), *visible.max(0)), dtype=segment.dtype)
+
+                    # Fit the visible polygon in the full box's coordinates so edge crops cannot change its angle.
+                    (_, _), (box_w, box_h), angle = cv2.minAreaRect(segment.astype(np.float32))
+                    if box_w < box_h:
+                        angle += 90
+                    angle = np.deg2rad(angle)
+                    cos, sin = np.cos(angle), np.sin(angle)
+                    basis = np.array(((cos, -sin), (sin, cos)), dtype=np.float32)
+                    aligned = visible @ basis
+                    (u1, v1), (u2, v2) = aligned.min(0), aligned.max(0)
+                    corners = np.array(((u2, v2), (u2, v1), (u1, v1), (u1, v2)), dtype=np.float32)
+                    segments[i] = resample_segments([corners @ basis.T], n=len(segment))[0]
+                self.update(bboxes, segments)
+        else:
+            self.bboxes[:, [0, 2]] = self.bboxes[:, [0, 2]].clip(0, w)
+            self.bboxes[:, [1, 3]] = self.bboxes[:, [1, 3]].clip(0, h)
+            self.segments[..., 0] = self.segments[..., 0].clip(0, w)
+            self.segments[..., 1] = self.segments[..., 1].clip(0, h)
         if ori_format != "xyxy":
             self.convert_bbox(format=ori_format)
-        self.segments[..., 0] = self.segments[..., 0].clip(0, w)
-        self.segments[..., 1] = self.segments[..., 1].clip(0, h)
         if self.keypoints is not None:
             # Set out of bounds visibility to zero
             self.keypoints[..., 2][

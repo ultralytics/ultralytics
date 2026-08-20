@@ -149,7 +149,7 @@ This works for any `.pt` checkpoint — official releases and your own fine-tune
 
 ### Reading the Embedded Training Log
 
-`train_args` is not the only thing stored. Every checkpoint also carries the `results.csv` rows accumulated up to the epoch it was saved at under `train_results`, the validation metrics from that point under `train_metrics`, and the code revision under `git`. The released YOLO26 checkpoints come from finished runs, so their log covers the run end to end:
+`train_args` is not the only thing stored. Every checkpoint also carries the per-epoch `results.csv` under `train_results`, validation metrics under `train_metrics`, and the code revision under `git`. Once a run finishes, `last.pt` and `best.pt` both hold the whole log, while a checkpoint written mid-run stops at the epoch it was saved at:
 
 ```python
 from ultralytics import YOLO
@@ -343,7 +343,7 @@ No. Each COCO checkpoint was fine-tuned from an Objects365v1 checkpoint of the s
 
 ### Where are the full training logs and loss curves?
 
-Inside the checkpoints. `ckpt["train_results"]` holds the per-epoch `results.csv` rows accumulated up to the saved epoch, which for the released checkpoints is the whole run: losses, precision, recall, mAP50, mAP50-95, and learning rates. See [Reading the Embedded Training Log](#reading-the-embedded-training-log) for the code, or browse the same data as charts on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26). The Objects365 stage has its own log in the `yolo26*-objv1-150.pt` checkpoints.
+Inside the checkpoints. `ckpt["train_results"]` holds the per-epoch `results.csv` of the whole run: losses, precision, recall, mAP50, mAP50-95, and learning rates. See [Reading the Embedded Training Log](#reading-the-embedded-training-log) for the code, or browse the same data as charts on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26). The Objects365 stage has its own log in the `yolo26*-objv1-150.pt` checkpoints.
 
 ### Can I reproduce the published COCO metrics with the released package?
 

@@ -3,7 +3,7 @@ title: Medical Pills Detection Dataset
 comments: true
 creator:
     name: Ultralytics
-    url: https://www.ultralytics.com/
+    url: https://www.ultralytics.com
 license:
     name: AGPL-3.0
     url: https://www.ultralytics.com/license
@@ -133,7 +133,7 @@ If you use the Medical Pills dataset in your research or development work, pleas
             license = {AGPL-3.0},
             month = {Dec},
             title = {Ultralytics Datasets: Medical-pills Detection Dataset},
-            url = {https://docs.ultralytics.com/datasets/detect/medical-pills/},
+            url = {https://docs.ultralytics.com/datasets/detect/medical-pills},
             version = {1.0.0},
             year = {2024}
         }

@@ -125,7 +125,7 @@ You can access these metrics from the training logs or by using tools like Tenso
 
 - [TensorBoard](https://www.tensorflow.org/tensorboard): TensorBoard is a popular choice for visualizing training metrics, including loss, [accuracy](https://www.ultralytics.com/glossary/accuracy), and more. You can integrate it with your YOLO26 training process.
 - [Comet](../integrations/comet.md): Comet provides an extensive toolkit for experiment tracking and comparison. It allows you to track metrics, hyperparameters, and even model weights. Integration with YOLO models is also straightforward, providing you with a complete overview of your experiment cycle.
-- [Ultralytics Platform](https://platform.ultralytics.com/): Ultralytics Platform offers a specialized environment for tracking YOLO models, giving you a one-stop platform to manage metrics, datasets, and even collaborate with your team. Given its tailored focus on YOLO, it offers more customized tracking options.
+- [Ultralytics Platform](https://platform.ultralytics.com): Ultralytics Platform offers a specialized environment for tracking YOLO models, giving you a one-stop platform to manage metrics, datasets, and even collaborate with your team. Given its tailored focus on YOLO, it offers more customized tracking options.
 
 #### How to Check if Training is Happening on the GPU
 
@@ -304,7 +304,7 @@ If the 'device' value shows 'null' in the training logs, it generally means the 
 
 ### How can I monitor and track my YOLO26 model training progress?
 
-Tracking and visualizing training progress can be efficiently managed through tools like [TensorBoard](https://www.tensorflow.org/tensorboard), [Comet](../integrations/comet.md), and [Ultralytics Platform](https://platform.ultralytics.com/). These tools allow you to log and visualize metrics such as loss, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and mAP. Implementing [early stopping](#continuous-monitoring-parameters) based on these metrics can also help achieve better training outcomes.
+Tracking and visualizing training progress can be efficiently managed through tools like [TensorBoard](https://www.tensorflow.org/tensorboard), [Comet](../integrations/comet.md), and [Ultralytics Platform](https://platform.ultralytics.com). These tools allow you to log and visualize metrics such as loss, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and mAP. Implementing [early stopping](#continuous-monitoring-parameters) based on these metrics can also help achieve better training outcomes.
 
 ### What should I do if YOLO26 is not recognizing my dataset format?
 

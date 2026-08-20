@@ -99,7 +99,7 @@ Open Images V7 supports training and evaluating models across a range of compute
 - **Multimodal learning**: Localized narratives that combine voice, text, and mouse traces pair visual data with rich descriptions.
 - **Zero-shot evaluation**: The extensive class coverage helps assess how models handle objects not seen during training.
 
-To label your own images, train, and manage large-scale datasets in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com/).
+To label your own images, train, and manage large-scale datasets in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com).
 
 ## Dataset YAML
 

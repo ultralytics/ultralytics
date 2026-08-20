@@ -1102,17 +1102,6 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
     if not image_records or success_count < len(image_records):
         raise RuntimeError(f"Downloaded {success_count}/{len(image_records)} images from {ndjson_path}")
 
-    # Local dirs are not hash-qualified, so drop labels left behind by an earlier version of the dataset
-    if local_mode:
-        expected = {
-            dataset_dir / "labels" / r["split"] / f"{r['file'].rsplit('.', 1)[0] or r['file']}.txt"
-            for r in image_records
-        }
-        for split in splits:
-            for p in (dataset_dir / "labels" / split).glob("*.txt"):
-                if p not in expected:
-                    p.unlink()
-
     if is_classification:
         # Classification: return dataset directory (check_cls_dataset expects a directory path)
         # Keep class paths safe while check_cls_dataset restores the original display names.

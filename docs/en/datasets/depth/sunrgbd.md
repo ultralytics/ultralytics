@@ -23,7 +23,7 @@ The SUN RGB-D depth dataset is split into two subsets:
 1. **Train**: 9,245 images with paired depth maps for training.
 2. **Val**: 1,090 images with paired depth maps for validation during model training.
 
-Each sample consists of one RGB image and one paired `.npy` float32 depth map storing per-pixel distances in meters, following the [Ultralytics depth dataset format](index.md).
+Each sample consists of one RGB image and one paired scaled uint16 depth PNG, following the [Ultralytics depth dataset format](index.md). The built-in conversion writes millimeters, so the default `depth_scale: 1000` applies.
 
 ## Role in YOLO26-Depth
 
@@ -66,7 +66,7 @@ To train a YOLO26n-depth model on the SUN RGB-D dataset with an image size of 64
 
 ## Pretrained Models
 
-The YOLO26 depth family is trained on the broad multi-dataset depth pretraining mix that SUN RGB-D is part of. These models auto-download from the latest Ultralytics release, for example [YOLO26x-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-depth.pt) from v8.4.0, and span a range of sizes for different accuracy and resource requirements.
+The YOLO26 depth family is trained on the broad multi-dataset depth pretraining mix that SUN RGB-D is part of. These models auto-download from the latest Ultralytics release, for example [YOLO26x-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth) from v8.4.0, and span a range of sizes for different accuracy and resource requirements.
 
 ## Citations and Acknowledgments
 

@@ -71,7 +71,7 @@ Ultralytics Platform datasets support all 7 YOLO task types:
 
 !!! info "Task Type Selection"
 
-    The task type is set when creating a dataset and determines which annotation tools are available. You can change it later from the dataset header task selector, but incompatible annotations won't be displayed after switching.
+    The task type is set when creating a dataset and determines which annotation tools are available. You can change it later from the dataset header task selector, but incompatible annotations won't be displayed after switching. Switching to or from depth is only allowed while the dataset is empty — see [Edit Dataset](datasets.md#edit-dataset).
 
 ## Key Features
 
@@ -119,7 +119,7 @@ Dataset pages can show up to six tabs, depending on the dataset state and your p
 | **Versions** | Create, download, and restore immutable NDJSON snapshots for reproducibility |
 | **Errors**   | Images that failed processing with error details and fix guidance            |
 
-`Classes` and `Charts` appear when the dataset has images. `Errors` appears only when processing failures exist. `Versions` appears when you have edit access, or in read-only mode when versions already exist.
+`Classes` appears when the dataset has images and its task has classes, while `Charts` appears whenever it has images. `Errors` appears only when processing failures exist. `Versions` appears when you have edit access, or in read-only mode when versions already exist.
 
 ### Clustering
 

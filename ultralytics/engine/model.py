@@ -505,16 +505,32 @@ class Model(torch.nn.Module):
         )
 
         custom = {"conf": 0.25, "batch": 1, "save": is_cli, "mode": "predict", "rect": True, "embed": None}
+        prompts = kwargs.pop("prompts", None)  # for SAM-type models
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
-        prompts = args.pop("prompts", None)  # for SAM-type models
 
         if not self.predictor or self.predictor.args.device != args.get("device", self.predictor.args.device):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup
-            self.predictor.args = get_cfg(self.predictor.args, args)
-            if "project" in args or "name" in args:
+            save_keys = ("project", "name", "save_dir", "exist_ok")
+            prev_save_args = tuple(getattr(self.predictor.args, k, None) for k in save_keys)
+            setup_keys = ("device", "dnn", "data", "end2end", "compile", "channels_last", "quantize")
+            base_args = {
+                **DEFAULT_CFG_DICT,
+                **self.overrides,
+                **{k: getattr(self.predictor.args, k) for k in setup_keys},
+            }
+            if hasattr(self.predictor.model, "imgsz") and not self.predictor.model.dynamic:
+                base_args["imgsz"] = self.predictor.args.imgsz
+            self.predictor.args = get_cfg(base_args, {**custom, **kwargs})
+            if self.predictor.args.show:
+                self.predictor.args.show = checks.check_imshow(warn=True)
+            if prev_save_args != tuple(getattr(self.predictor.args, k, None) for k in save_keys):
                 self.predictor.save_dir = get_save_dir(self.predictor.args)
+            if getattr(self.model, "end2end", False):
+                self.model.set_head_attr(
+                    max_det=max(self.predictor.args.max_det, 300), agnostic_nms=self.predictor.args.agnostic_nms
+                )
         if prompts and hasattr(self.predictor, "set_prompts"):  # for SAM-type models
             self.predictor.set_prompts(prompts)
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)

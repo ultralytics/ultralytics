@@ -40,37 +40,38 @@ The Data section of Ultralytics Platform helps you:
 ```mermaid
 graph LR
     A[Upload]:::start --> B[Annotate]:::proc
+    B --> D[Train]:::out
     B --> C[Analyze]:::proc
-    C --> D[Train]:::out
 
     classDef start fill:#4CAF50,color:#fff
     classDef proc fill:#2196F3,color:#fff
     classDef out fill:#9C27B0,color:#fff
 ```
 
-| Stage        | Description                                                                                                     |
-| ------------ | --------------------------------------------------------------------------------------------------------------- |
-| **Upload**   | Import images, videos, or archives with automatic processing                                                    |
-| **Annotate** | Label data with manual tools for all 6 task types, or use SAM annotation for detect, segment, semantic, and OBB |
-| **Analyze**  | View class distributions, spatial heatmaps, dimension statistics, and embedding clusters                        |
-| **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use           |
+| Stage        | Description                                                                                           |
+| ------------ | ----------------------------------------------------------------------------------------------------- |
+| **Upload**   | Import images, videos, or archives with automatic processing                                          |
+| **Annotate** | Label data with manual tools, or use SAM annotation for detect, segment, semantic, and OBB            |
+| **Analyze**  | View class distributions, spatial heatmaps, dimension statistics, and embedding clusters              |
+| **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use |
 
 ## Supported Tasks
 
-Ultralytics Platform datasets support 6 of the 7 YOLO task types — [depth](../../tasks/depth.md) datasets are coming soon (depth models and prediction are already supported):
+Ultralytics Platform datasets support all 7 YOLO task types:
 
 | Task                                             | Description                                                     | Annotation Tool   |
 | ------------------------------------------------ | --------------------------------------------------------------- | ----------------- |
 | **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes                            | Rectangle tool    |
 | **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks                          | Polygon tool      |
 | **[Semantic](../../datasets/semantic/index.md)** | Semantic segmentation with per-class pixel regions              | Polygon tool      |
+| **[Depth](../../datasets/depth/index.md)**       | Per-pixel metric depth maps                                     | Imported targets  |
 | **[Classify](../../datasets/classify/index.md)** | Image-level classification                                      | Class selector    |
 | **[Pose](../../datasets/pose/index.md)**         | Keypoint estimation with built-in and custom skeleton templates | Keypoint tool     |
 | **[OBB](../../datasets/obb/index.md)**           | Oriented bounding boxes for rotated objects                     | Oriented box tool |
 
 !!! info "Task Type Selection"
 
-    The task type is set when creating a dataset and determines which annotation tools are available. You can change it later from the dataset header task selector, but incompatible annotations won't be displayed after switching.
+    The task type is set when creating a dataset and determines which annotation tools are available. You can change it later from the dataset header task selector, but incompatible annotations won't be displayed after switching. Switching to or from depth is only allowed while the dataset is empty — see [Edit Dataset](datasets.md#edit-dataset).
 
 ## Key Features
 
@@ -118,7 +119,7 @@ Dataset pages can show up to six tabs, depending on the dataset state and your p
 | **Versions** | Create, download, and restore immutable NDJSON snapshots for reproducibility |
 | **Errors**   | Images that failed processing with error details and fix guidance            |
 
-`Classes` and `Charts` appear when the dataset has images. `Errors` appears only when processing failures exist. `Versions` appears when you have edit access, or in read-only mode when versions already exist.
+`Classes` appears when the dataset has images and its task has classes, while `Charts` appears whenever it has images. `Errors` appears only when processing failures exist. `Versions` appears when you have edit access, or in read-only mode when versions already exist.
 
 ### Clustering
 

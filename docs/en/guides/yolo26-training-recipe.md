@@ -316,10 +316,6 @@ Load the checkpoint with `torch.load()` and access the `train_args` key, or use 
 
 Every size received the same 150 epochs of Objects365 pretraining, so the COCO counts only cover the fine-tuning stage. Larger models converge on COCO in fewer of those epochs, 40 for X versus 245 for N. The counts are not strictly monotonic (S used 70, M used 80) because they came out of the per-size hyperparameter search. When fine-tuning on your own dataset, the optimal number of epochs depends on your dataset size and complexity, not the model size. Use early stopping (`patience`) to find the right stopping point automatically.
 
-### Should I use MuSGD for fine-tuning?
-
-Usually you don't need to choose: with the default `optimizer=auto`, Ultralytics automatically selects **MuSGD** for longer training runs (>10,000 iterations) and **AdamW** for shorter ones. You can explicitly set `optimizer=MuSGD` if you prefer. For more on how MuSGD works, see the [training documentation](../modes/train.md#musgd-optimizer).
-
 ### What are `muon_w`, `sgd_w`, `cls_w`, `o2m`, and `topk` in the checkpoint?
 
 These come from the experimental branch that produced the base checkpoints, recorded in `train_args` for reproducibility. They are not user-configurable settings in `default.yaml`, and passing them to `model.train()` raises an invalid-argument error because the released package does not read them. You do not need to set them when fine-tuning; see [Internal Training Parameters](#internal-training-parameters) for their values per model size.

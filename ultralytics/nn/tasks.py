@@ -331,8 +331,11 @@ class BaseModel(torch.nn.Module):
             c1, c2, h, w = state_dict[first_conv].shape
             cc1, cc2, ch, cw = csd[first_conv].shape
             if ch == h and cw == w:
-                c1, c2 = min(c1, cc1), min(c2, cc2)
-                state_dict[first_conv][:c1, :c2] = csd[first_conv][:c1, :c2]
+                c1 = min(c1, cc1)
+                first_weight = csd[first_conv][:c1]
+                if c2 != cc2:  # tile the input-channel mean so every new channel inherits pretrained filters
+                    first_weight = first_weight.mean(dim=1, keepdim=True).repeat(1, c2, 1, 1)
+                state_dict[first_conv][:c1] = first_weight
                 len_updated_csd += 1
         if verbose:
             LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")

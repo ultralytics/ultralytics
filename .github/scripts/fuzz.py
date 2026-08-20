@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """Monte Carlo fuzzing of the `yolo` CLI to find bugs outside the finite test matrix.
 
 Runs randomized/mutated `yolo` commands in subprocesses, classifies every outcome (pass, expected cfg error,

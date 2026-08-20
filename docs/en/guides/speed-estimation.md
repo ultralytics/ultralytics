@@ -112,17 +112,17 @@ The `SpeedEstimator` solution tracks each object across frames and converts its 
 Here's a table with the `SpeedEstimator` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "fps", "max_hist", "meter_per_pixel", "max_speed"]) }}
+{{ param_table(["model", "fps", "max_hist", "meter_per_pixel", "max_speed", "line_width", "verbose"]) }}
 
 The `SpeedEstimator` solution allows the use of `track` parameters:
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 Additionally, the following visualization options are supported:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
+{{ param_table(["show", "show_conf", "show_labels"]) }}
 
 ## FAQ
 

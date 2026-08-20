@@ -8,6 +8,7 @@ tracker_type: ocsort # (str) Tracker backend: ocsort; observation-centric SORT f
 track_high_thresh: 0.25 # (float) First-stage match threshold; raise for cleaner tracks, lower to keep more
 track_low_thresh: 0.1 # (float) Second-stage threshold for low-score matches; only used when use_byte=True
 new_track_thresh: 0.25 # (float) Start a new track if no match ≥ this; higher reduces false tracks
+min_hits: 2 # (int) Consecutive detections required before an unconfirmed track is confirmed and given an ID
 track_buffer: 30 # (int) Frames to keep lost tracks alive; higher handles occlusion, increases ID switches risk
 match_thresh: 0.8 # (float) Association similarity threshold (IoU/cost); tune with detector quality
 fuse_score: True # (bool) Fuse detection score with motion/IoU for matching; stabilizes weak detections

@@ -100,13 +100,14 @@ class STrack(BaseTrack):
     def activate(self, kalman_filter: KalmanFilterXYAH, frame_id: int):
         """Activate a new tracklet using the provided Kalman filter and initialize its state and covariance."""
         self.kalman_filter = kalman_filter
-        self.track_id = self.next_id()
         self.mean, self.covariance = self.kalman_filter.initiate(self.convert_coords(self._tlwh))
 
         self.tracklet_len = 0
         self.state = TrackState.Tracked
         if frame_id == 1:
-            self.is_activated = True
+            self.confirm()  # first-frame tracks are trusted immediately
+        else:
+            self.track_id = self.next_tentative_id()  # placeholder ID until the track is confirmed
         self.frame_id = frame_id
         self.start_frame = frame_id
 
@@ -148,7 +149,6 @@ class STrack(BaseTrack):
             self.mean, self.covariance, self.convert_coords(new_tlwh)
         )
         self.state = TrackState.Tracked
-        self.is_activated = True
 
         self.score = new_track.score
         self.cls = new_track.cls
@@ -449,6 +449,9 @@ class BYTETracker:
     ) -> tuple[list[int], list[STrack]]:
         """Associate unconfirmed tracks with leftover high-score detections.
 
+        A matched track is confirmed, and only then consumes a global track ID, once it reaches `min_hits` consecutive
+        detections. Unmatched unconfirmed tracks are removed without ever burning an ID.
+
         Returns:
             (tuple[list[int], list[STrack]]): Unmatched detection indices after association, and the filtered detection
                 list those indices refer to.
@@ -459,8 +462,11 @@ class BYTETracker:
         dists = self.get_dists(unconfirmed, detections)
         matches, u_unconfirmed, u_detection = matching.linear_assignment(dists, thresh=0.7)
         for itracked, idet in matches:
-            unconfirmed[itracked].update(detections[idet], self.frame_id)
-            activated.append(unconfirmed[itracked])
+            track = unconfirmed[itracked]
+            track.update(detections[idet], self.frame_id)
+            if track.tracklet_len + 1 >= self.args.min_hits:  # hits == tracklet_len + the activating detection
+                track.confirm()
+            activated.append(track)
         for it in u_unconfirmed:
             track = unconfirmed[it]
             track.mark_removed()

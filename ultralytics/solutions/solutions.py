@@ -180,6 +180,12 @@ class BaseSolution:
         else:
             self.LOGGER.warning("No tracks found.")
             self.boxes, self.clss, self.track_ids, self.confs = [], [], [], []
+        self.forget_tracks([track.track_id for track in self.model.predictor.trackers[0].removed_stracks_frame])
+
+    def forget_tracks(self, track_ids: list[int]) -> None:
+        """Drop bookkeeping for IDs retired by the active tracker."""
+        for track_id in track_ids:
+            self.track_history.pop(track_id, None)
 
     def store_tracking_history(self, track_id: int, box) -> None:
         """Store the tracking history of an object.

@@ -139,12 +139,14 @@ def select_calibration_cv(
 
 @smart_inference_mode()
 def _collect_logpairs(
-    model: torch.nn.Module, dataloader, device: torch.device | str, max_images: int
+    model: torch.nn.Module, dataloader, device: torch.device | str, max_images: int, max_depth: float = 100.0
 ) -> list[tuple[np.ndarray, np.ndarray]]:
     """Run the model over the loader and return a list of per-image ``(log_pred, log_gt)`` arrays.
 
     One entry per image (each subsampled to ≤20k valid pixels) so callers can split images into independent fit/score
-    sets. Calibration buffers are reset to identity for the duration so the fit sees the raw output, then restored.
+    sets. Only GT inside ``(0.001, max_depth)`` is collected — the same population ``DepthMetrics`` evaluates (Eigen
+    protocol), so invalid far GT cannot steer the fitted scale or the held-out δ1 the selection policy trusts.
+    Calibration buffers are reset to identity for the duration so the fit sees the raw output, then restored.
     """
     head = _depth_head(model)
     a0, b0 = float(head.cal_a), float(head.cal_b)
@@ -167,7 +169,7 @@ def _collect_logpairs(
             if pred.shape[-2:] != gt.shape[-2:]:
                 pred = F.interpolate(pred, size=gt.shape[-2:], mode="bilinear", align_corners=True)
             for pi, gi in zip(pred, gt):
-                valid = (gi > 1e-3) & (pi > 1e-3) & torch.isfinite(pi)
+                valid = (gi > 1e-3) & (gi < max_depth) & (pi > 1e-3) & torch.isfinite(pi)
                 if not valid.any():
                     continue
                 lp = torch.log(pi[valid]).detach().cpu().numpy()
@@ -192,6 +194,7 @@ def fit_calibration_selective(
     device: torch.device | str,
     max_images: int = 200,
     margin: float = 0.002,
+    max_depth: float = 100.0,
 ) -> dict[str, Any] | None:
     """Select and apply calibration via "calibrate only if it helps" (see :func:`select_calibration_cv`).
 
@@ -206,7 +209,7 @@ def fit_calibration_selective(
     if head is None:
         LOGGER.warning("calibrate: no Depth head with cal buffers found; skipping.")
         return None
-    pairs = _collect_logpairs(model, dataloader, device, max_images)
+    pairs = _collect_logpairs(model, dataloader, device, max_images, max_depth)
     if len(pairs) < 2:
         LOGGER.warning("calibrate: fewer than 2 valid images for fit/score split; calibration skipped.")
         return None
@@ -281,6 +284,7 @@ def calibrate_checkpoint(
     *,
     dataset_hash: str | None = None,
     validation_split: str | None = None,
+    max_depth: float = 100.0,
 ) -> dict | None:
     """Fit calibration for a saved checkpoint in place (used by automatic post-training calibration).
 
@@ -296,6 +300,8 @@ def calibrate_checkpoint(
             | raw | calibrated) for the first val batches into this directory.
         dataset_hash (str, optional): Immutable dataset manifest identity used for calibration.
         validation_split (str, optional): Dataset-root-relative split used to collect calibration images.
+        max_depth (float): Maximum valid GT depth in meters; pixels beyond it are excluded from the fit and the held-out
+            δ1 scoring, matching the val metrics' Eigen protocol.
     """
     from copy import deepcopy
 
@@ -306,7 +312,7 @@ def calibrate_checkpoint(
     if saved is None or _depth_head(saved) is None:
         return
     work = deepcopy(saved).float()
-    res = fit_calibration_selective(work, dataloader, device)
+    res = fit_calibration_selective(work, dataloader, device, max_depth=max_depth)
     if res is None:
         return None
     a, b = res["a"], res["b"]

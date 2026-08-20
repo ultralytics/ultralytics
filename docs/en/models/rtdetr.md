@@ -41,9 +41,6 @@ The Ultralytics Python API provides pretrained PaddlePaddle RT-DETR models with 
 
 Additionally, Baidu has released RTDETRv2 in July 2024, which further improves upon the original architecture with enhanced performance metrics.
 
-<script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script defer src="../../javascript/benchmark.js"></script>
-
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["RTDETRv2"]'></canvas>
 
 ## Usage Examples

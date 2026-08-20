@@ -55,7 +55,7 @@ from ultralytics.data.augment import LetterBox
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops
 from ultralytics.utils.checks import check_imgsz, check_imshow
-from ultralytics.utils.files import increment_path
+from ultralytics.utils.plotting import class_activation_map
 from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode
 
 STREAM_WARNING = """
@@ -82,7 +82,7 @@ class BasePredictor:
         save_dir (Path): Directory to save results.
         done_warmup (bool): Whether the predictor has finished setup.
         model (torch.nn.Module): Model used for prediction.
-        data (str): Data configuration.
+        data (str | Path | None): Copy of args.data, the dataset YAML AutoBackend falls back to for class names.
         device (torch.device): Device used for prediction.
         dataset (Dataset): Dataset used for prediction.
         vid_writer (dict[Path, cv2.VideoWriter]): Dictionary of {save_path: video_writer} for saving video output.
@@ -137,7 +137,7 @@ class BasePredictor:
 
         # Usable if setup is done
         self.model = None
-        self.data = self.args.data  # data_dict
+        self.data = self.args.data
         self.imgsz = None
         self.device = None
         self.dataset = None
@@ -183,12 +183,19 @@ class BasePredictor:
 
     def inference(self, im: torch.Tensor, *args, **kwargs):
         """Run inference on a given image using the specified model and arguments."""
-        visualize = (
-            increment_path(self.save_dir / Path(self.batch[0][0]).stem, mkdir=True)
-            if self.args.visualize and (not self.source_type.tensor)
-            else False
-        )
-        return self.model(im, *args, augment=self.args.augment, visualize=visualize, embed=self.args.embed, **kwargs)
+        skip = self.source_type.tensor or self.args.augment or self.args.embed  # unsupported with activation maps
+        if self.args.visualize and getattr(self.model, "base_model", True) and not skip:
+            return class_activation_map(
+                self.model,
+                im,
+                self.batch[0],
+                self.save_dir,
+                *args,
+                conf=self.args.conf,
+                classes=self.args.classes,
+                **kwargs,
+            )
+        return self.model(im, *args, augment=self.args.augment, embed=self.args.embed, **kwargs)
 
     def pre_transform(self, im: list[np.ndarray]) -> list[np.ndarray]:
         """Pre-transform input image before inference.
@@ -302,6 +309,11 @@ class BasePredictor:
         # Setup model
         if self.model is None:
             self.setup_model(model)
+        if not getattr(self.model, "base_model", True) and (
+            unsupported := [k for k in ("augment", "embed", "visualize") if getattr(self.args, k)]
+        ):
+            LOGGER.warning(f"{unsupported} not supported by this model (format='{self.model.format}'), ignoring.")
+            self.args.augment, self.args.embed, self.args.visualize = False, None, False
 
         with self._lock:  # for thread-safe inference
             # Setup source every time predict is called

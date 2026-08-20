@@ -56,7 +56,6 @@ class ONNXBackend(BaseBackend):
         if self.format == "dnn":
             # OpenCV DNN
             LOGGER.info(f"Loading {weight} for ONNX OpenCV DNN inference...")
-            check_requirements("opencv-python>=4.5.4")
             import cv2
 
             self.net = cv2.dnn.readNetFromONNX(weight)

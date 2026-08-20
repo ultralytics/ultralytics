@@ -533,6 +533,57 @@ The export process is similar to other YOLO models, with the added flexibility o
 
     Classes configured with `set_classes()` (or via `refer_image` for visual prompts) are baked into the exported weights. Once exported, the model can no longer accept new prompts: calling `set_classes()` or passing `visual_prompts=...` to `predict()` on a loaded export will fail. To change the detected classes, re-export from the original `.pt` checkpoint with the new prompts configured. The exported file behaves like a standard YOLO detector and can also be loaded with `YOLO()` instead of `YOLOE()`.
 
+Prompt embeddings can be saved once and reused when producing static exports such as ONNX, OpenVINO, TensorRT, CoreML, LiteRT, and RKNN. The NPZ profile is loaded by the original PyTorch model before export; it is not an additional runtime input, and the exported model does not require the NPZ file.
+
+!!! example "Reuse prompt embeddings"
+
+    === "Text Prompt"
+
+        ```python
+        from ultralytics import YOLOE
+
+        model = YOLOE("yoloe-26n-seg.pt")
+        model.set_classes(["person", "bus"])
+        model.save_prompt_embeddings("person-bus.npz")
+
+        # The profile is bound to the source checkpoint and can be reused for later exports.
+        model = YOLOE("yoloe-26n-seg.pt")
+        model.load_prompt_embeddings("person-bus.npz")
+        model.export(format="onnx")
+        ```
+
+    === "Visual Prompt"
+
+        ```python
+        import numpy as np
+
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
+
+        model = YOLOE("yoloe-26n-seg.pt")
+        model.predict(
+            "path/to/image.jpg",
+            refer_image="path/to/reference.jpg",
+            visual_prompts={"bboxes": np.array([[50, 80, 180, 260]]), "cls": np.array([0])},
+            predictor=YOLOEVPSegPredictor,
+        )
+        model.save_prompt_embeddings("visual-object.npz")
+
+        model = YOLOE("yoloe-26n-seg.pt")
+        model.load_prompt_embeddings("visual-object.npz")
+        model.export(format="engine")
+        ```
+
+The same prompt profile can also configure a detection-only model built from the matching YOLOE architecture. This removes the mask branch while retaining the prompted classes:
+
+```python
+from ultralytics import YOLOE
+
+model = YOLOE("yoloe-26n.yaml").load("yoloe-26n-seg.pt")
+model.load_prompt_embeddings("person-bus.npz")
+model.export(format="rknn", name="rk3588", quantize=16)
+```
+
 !!! example
 
     ```python
@@ -981,7 +1032,7 @@ Quickly set up YOLOE with Ultralytics by following these steps:
 6. **Integration Tips**:
     - **Class names**: Default YOLOE outputs use LVIS categories; use `set_classes()` to specify your own labels.
     - **Speed**: YOLOE has no overhead unless using prompts. Text prompts have minimal impact; visual prompts slightly more.
-    - **NMS behavior**: YOLOE automatically uses `agnostic_nms=True` during prediction, merging overlapping boxes across classes. This prevents duplicate detections when the same object matches multiple categories in YOLOE's large vocabulary (1200+ LVIS classes). You can override this by passing `agnostic_nms=False` explicitly.
+    - **NMS behavior**: YOLOE automatically uses `agnostic_nms=True` during prediction, suppressing lower-scoring overlapping boxes across different classes rather than only within the same class. This prevents duplicate detections when the same object matches multiple categories in YOLOE's large vocabulary (1200+ LVIS classes). On end-to-end YOLOE-26 models it only prevents the same detection from appearing under multiple class labels (IoU=1.0 duplicates) and performs no IoU-threshold suppression between distinct boxes. You can override this by passing `agnostic_nms=False` explicitly.
     - **Batch inference**: Supported directly (`model.predict([img1, img2])`). For image-specific prompts, run images individually.
 
 The [Ultralytics documentation](../index.md) provides further resources. YOLOE lets you easily explore powerful open-world capabilities within the familiar YOLO ecosystem.

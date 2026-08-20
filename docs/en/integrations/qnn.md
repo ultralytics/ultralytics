@@ -116,24 +116,49 @@ Qualcomm QNN export supports all seven Ultralytics tasks. Semantic segmentation 
 
 ## Export to QNN: Converting Your YOLO Model
 
-Export an Ultralytics YOLO model to QNN format for deployment on Snapdragon hardware. The context binary is finalized for a target Hexagon Tensor Processor (HTP) architecture, which you select with the `name` argument — the same argument used to target a chip in [RKNN export](rockchip-rknn.md).
+Export an Ultralytics YOLO model to QNN format for deployment on Qualcomm hardware. The context binary is finalized for a target Hexagon Tensor Processor (HTP) architecture or supported SoC, which you select with the `name` argument — the same argument used to target a chip in [RKNN export](rockchip-rknn.md).
 
-### Supported HTP Architectures
+### Supported HTP Targets
 
-Pass the target architecture via `name` (e.g. `name="73"`). Valid values:
+Pass the target architecture or SoC via `name` (e.g. `name="73"` or `name="iq-8275"`). Support is determined by
+the HTP target, so the Snapdragon rows below are representative platforms rather than an exhaustive list of every SoC.
+Dragonwing devices are listed explicitly.
 
-| `name` | Hexagon HTP | Snapdragon platform                   |
-| :----- | :---------- | :------------------------------------ |
-| `68`   | v68         | Snapdragon 888                        |
-| `69`   | v69         | Snapdragon 8 Gen 1 / 8+ Gen 1         |
-| `73`   | v73         | Snapdragon 8 Gen 2, X Elite (default) |
-| `75`   | v75         | Snapdragon 8 Gen 3                    |
-| `79`   | v79         | Snapdragon 8 Elite                    |
-| `81`   | v81         | Snapdragon 8 Elite Gen 5              |
+| Status         | `name`                 | Hexagon HTP | Example device or platform                      |
+| :------------- | :--------------------- | :---------- | :---------------------------------------------- |
+| ✅ Supported   | `68`                   | v68         | Snapdragon 888                                  |
+| ✅ Supported   | `69`                   | v69         | Snapdragon 8 Gen 1 / 8+ Gen 1                   |
+| ✅ Supported   | `73`                   | v73         | Snapdragon 8 Gen 2, X Elite (default)           |
+| ✅ Supported   | `75`                   | v75         | Snapdragon 8 Gen 3                              |
+| ✅ Supported   | `79`                   | v79         | Snapdragon 8 Elite                              |
+| ✅ Supported   | `81`                   | v81         | Snapdragon 8 Elite Gen 5                        |
+| ✅ Supported   | `iq-8275` or `qcs8275` | v75         | Dragonwing IQ-8275 / QCS8275 (QNN SoC model 82) |
+| ❌ Unsupported | —                      | v66         | Dragonwing IQ-615 / QCS615                      |
+
+Dragonwing IQ-615 cannot use Ultralytics QNN context-binary export because ONNX Runtime does not expose its v66 DSP as
+an offline HTP target. A standard ONNX export can still be integrated separately with a CPU or GPU execution provider
+supported by the board BSP.
+
+!!! example "Export for Dragonwing IQ-8275"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("best.pt")
+        model.export(format="qnn", name="iq-8275", imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo export model=best.pt format=qnn name=iq-8275 imgsz=640
+        ```
 
 !!! note "Platform support"
 
-    QNN export uses the `onnxruntime-qnn` package. Prebuilt wheels are published for **Windows (x64 and ARM64)** and **Linux ARM64 (aarch64)**; on **Linux x86-64** build ONNX Runtime from source with `--use_qnn` (no prebuilt wheel is published, and macOS is not a supported QNN host). QNN context-binary generation runs on an x64 host — Windows x64 or Linux x86-64 — and does not require a Snapdragon device for the export step.
+    QNN export uses the `onnxruntime-qnn` package. Version 2.4.0 and later publishes prebuilt wheels for **Windows (x64 and ARM64)** and **Linux (x86-64 and ARM64)** on Python 3.11 or later; macOS is not a supported QNN host. QNN context-binary generation runs on an x64 host and does not require a Snapdragon device for the export step.
 
 ### Installation
 
@@ -164,16 +189,14 @@ The QNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
         # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
-        # Export to Qualcomm QNN format (INT8, enforced automatically), targeting an HTP architecture via 'name'
-        # 'name' can be one of 68, 69, 73, 75, 79, 81 (Snapdragon 888, 8 Gen 1, 8 Gen 2, 8 Gen 3, 8 Elite, 8 Elite Gen 5)
+        # Export to Qualcomm QNN format (INT8, enforced automatically) for the default v73 HTP target
         model.export(format="qnn", name="73", imgsz=640)  # use imgsz=224 for classification
         ```
 
     === "CLI"
 
         ```bash
-        # Export a YOLO26n PyTorch model to Qualcomm QNN format for the target HTP architecture
-        # 'name' can be one of 68, 69, 73, 75, 79, 81 (Snapdragon 888, 8 Gen 1, 8 Gen 2, 8 Gen 3, 8 Elite, 8 Elite Gen 5)
+        # Export a YOLO26n PyTorch model for the default v73 HTP target
         yolo export model=yolo26n.pt format=qnn name=73 imgsz=640 # use imgsz=224 for classification
         ```
 
@@ -221,18 +244,18 @@ The QNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
 
 ### Export Arguments
 
-| Argument   | Type             | Default        | Description                                                                                                                                                                                                |
-| :--------- | :--------------- | :------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'qnn'`        | Target format for the exported model, defining compatibility with the Qualcomm QNN runtime.                                                                                                                |
-| `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)`.                                                                                                  |
-| `batch`    | `int`            | `1`            | Specifies the export model batch size, which is baked into the generated QNN context binary.                                                                                                               |
-| `name`     | `str`            | `'73'`         | Target Hexagon HTP architecture version: `68`, `69`, `73`, `75`, `79`, or `81` (Snapdragon 888, 8 Gen 1, 8 Gen 2, 8 Gen 3, 8 Elite, 8 Elite Gen 5). The context binary is finalized for this architecture. |
-| `quantize` | `int` or `str`   | `'w8a16'`/auto | Quantization precision. QNN HTP export is quantized to INT8 weights with 16-bit activations (`'w8a16'`) and is auto-enabled if not specified. Replaces the deprecated `half`/`int8` flags.                 |
-| `simplify` | `bool`           | `True`         | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                    |
-| `opset`    | `int`            | `None`         | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                           |
-| `data`     | `str`            | `'coco8.yaml'` | Dataset configuration file used for INT8 calibration. Specifies the calibration image source.                                                                                                              |
-| `fraction` | `float`          | `1.0`          | Fraction of the calibration dataset to use for INT8 quantization.                                                                                                                                          |
-| `device`   | `str`            | `None`         | Specifies the device for the ONNX export step: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                                     |
+| Argument   | Type             | Default        | Description                                                                                                                                                                                              |
+| :--------- | :--------------- | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'qnn'`        | Target format for the exported model, defining compatibility with the Qualcomm QNN runtime.                                                                                                              |
+| `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)`.                                                                                                |
+| `batch`    | `int`            | `1`            | Specifies the export model batch size, which is baked into the generated QNN context binary.                                                                                                             |
+| `name`     | `str`            | `'73'`         | Target Hexagon HTP architecture (`68`, `69`, `73`, `75`, `79`, or `81`) or supported SoC (`iq-8275` or `qcs8275`). The context binary is finalized for this target.                                      |
+| `quantize` | `int` or `str`   | `'w8a16'`/auto | Quantization precision. QNN HTP export is quantized to INT8 weights with 16-bit activations (`'w8a16'`) and is auto-enabled if not specified. Replaces the deprecated `half`/`int8` flags.               |
+| `simplify` | `bool`           | `True`         | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                  |
+| `opset`    | `int`            | `None`         | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                         |
+| `data`     | `str`            | `None`         | Dataset YAML used for INT8 calibration; classification instead takes a dataset directory or a built-in dataset name. If omitted, Ultralytics selects the default calibration dataset for the model task. |
+| `fraction` | `float`          | `1.0`          | Fraction of the calibration dataset to use for INT8 quantization.                                                                                                                                        |
+| `device`   | `str`            | `None`         | Specifies the device for the ONNX export step: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                                   |
 
 !!! note "Precision"
 
@@ -250,7 +273,7 @@ The `yolo26n_qnn.onnx` file embeds the QNN context binary and is loaded by ONNX 
 
 ## Deploying Exported YOLO QNN Models
 
-QNN models run on Qualcomm Snapdragon hardware, making on-device [model deployment](https://www.ultralytics.com/glossary/model-deployment) straightforward. On a Snapdragon device with `onnxruntime-qnn` installed, run the exported model directly with the Ultralytics API (`yolo predict`/`yolo val`, see [Usage](#usage) above) — Ultralytics loads the context binary through the [ONNX Runtime QNN Execution Provider](https://onnxruntime.ai/docs/execution-providers/QNN-ExecutionProvider.html) and selects the HTP (NPU), GPU, or CPU backend.
+QNN models run on supported Qualcomm hardware, making on-device [model deployment](https://www.ultralytics.com/glossary/model-deployment) straightforward. On a compatible device with `onnxruntime-qnn` installed, run the exported model directly with the Ultralytics API (`yolo predict`/`yolo val`, see [Usage](#usage) above) — Ultralytics loads the HTP context binary through the [ONNX Runtime QNN Execution Provider](https://onnxruntime.ai/docs/execution-providers/QNN-ExecutionProvider.html).
 
 For custom pipelines, you can also load the context-binary [ONNX](https://onnx.ai/) directly with ONNX Runtime. `onnxruntime-qnn` is a plugin Execution Provider, so register it at runtime:
 
@@ -271,12 +294,18 @@ outputs = session.run(None, {input_info.name: input_tensor})  # input_tensor: fl
 
 Because the QNN context binary is precompiled, the session loads quickly without recompiling the graph on-device.
 
+### Linux and Yocto BSP Requirements
+
+The target board must provide a mutually compatible Qualcomm runtime and BSP. For HTP inference this includes the ONNX Runtime QNN Execution Provider, `libQnnSystem.so`, `libQnnHtp.so`, the v75 HTP stub and skeleton libraries for IQ-8275, FastRPC userspace support such as `libcdsprpc.so`, the DSP firmware, and the corresponding FastRPC/kernel drivers. The skeleton library must be discoverable through the BSP's DSP library path.
+
+These target-side components come from the board vendor's QAIRT/QNN-enabled BSP; they are not embedded in the exported model. GPU execution instead requires `libQnnGpu.so` and the matching Adreno userspace driver stack. Ultralytics `format=qnn` output is an HTP-specific context binary, so GPU or CPU deployment should start from a standard ONNX export rather than the precompiled `*_qnn.onnx` file.
+
 ## Recommended Workflow
 
 1. **Train** your model using Ultralytics [Train Mode](../modes/train.md)
-2. **Export** to QNN format using `model.export(format="qnn", imgsz=640)` on a supported platform (use `imgsz=224` for classification)
-3. **Deploy** the exported `*_qnn.onnx` file to your Snapdragon device
-4. **Run** inference with ONNX Runtime and the QNN Execution Provider, selecting the HTP, GPU, or CPU backend
+2. **Export** to QNN format using `model.export(format="qnn", name="iq-8275", imgsz=640)` on a supported platform (use `imgsz=224` for classification)
+3. **Deploy** the exported `*_qnn.onnx` file to your Qualcomm device
+4. **Run** inference with ONNX Runtime and the QNN Execution Provider using the HTP backend
 
 ## Real-World Applications
 
@@ -329,7 +358,7 @@ No. QNN export runs entirely on your local machine using the `onnxruntime-qnn` p
 
 ### Which platforms can I export on?
 
-`onnxruntime-qnn` provides prebuilt wheels for **Windows (x64 and ARM64)** and **Linux ARM64 (aarch64)**; on **Linux x86-64** build ONNX Runtime from source with `--use_qnn` (no prebuilt wheel is published, and macOS is not a supported QNN host). Context-binary generation runs on an x64 host — Windows x64 or Linux x86-64 — and does not require a physical Snapdragon device.
+`onnxruntime-qnn` 2.4.0 and later provides prebuilt wheels for **Windows (x64 and ARM64)** and **Linux (x86-64 and ARM64)** on Python 3.11 or later; macOS is not a supported QNN host. Context-binary generation runs on an x64 host and does not require a physical Snapdragon device.
 
 ### How do I run YOLO on a Qualcomm Snapdragon NPU?
 

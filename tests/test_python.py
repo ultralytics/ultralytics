@@ -82,6 +82,14 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
         build_dataloader([], batch=4, workers=2)
 
 
+def test_build_yolo_dataset_hyp_isolated():
+    """Test dataset construction never mutates hyperparameters on the shared cfg it was built from."""
+    data = check_det_dataset("coco8.yaml")
+    cfg = get_cfg(overrides={"data": "coco8.yaml", "imgsz": 32, "rect": True})  # rect zeroes mosaic on the hyp used
+    data_build.build_yolo_dataset(cfg, data["train"], batch=2, data=data, mode="train")
+    assert cfg.mosaic == DEFAULT_CFG.mosaic
+
+
 def test_cfg_rejects_fuzzed_values():
     """Test invalid overrides fail in config validation."""
     with pytest.raises(TypeError, match="degrees"):
@@ -416,6 +424,29 @@ def test_track_second_association_indices():
         tracks = tracker.update(Boxes(data, (640, 640)))
     low = tracks[np.isclose(tracks[:, 5], 0.2)]  # columns are [x1, y1, x2, y2, id, score, cls, idx]
     assert len(low) == 1 and int(low[0, -1]) == 2, f"second-association idx not preserved:\n{tracks}"
+
+
+def test_track_split_detections_degenerate_boxes():
+    """`_split_detections` must drop zero/negative-dimension boxes from both confidence partitions while keeping every
+    valid detection's index into the full detection-set space (later assigned to `track.idx`).
+    """
+    from ultralytics.engine.results import Boxes
+    from ultralytics.trackers.byte_tracker import BYTETracker
+    from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace
+
+    args = IterableSimpleNamespace(**YAML.load(ROOT / "cfg/trackers/bytetrack.yaml"))
+    tracker = BYTETracker(args)
+    boxes = [
+        [10, 10, 50, 50, 0.9, 0],  # idx 0: valid, high-confidence partition
+        [300, 480, 350, 480, 0.9, 0],  # idx 1: degenerate, zero height, high-confidence partition
+        [100, 100, 150, 150, 0.15, 0],  # idx 2: valid, low-confidence partition
+        [300, 490, 350, 480, 0.15, 0],  # idx 3: degenerate, negative height, low-confidence partition
+        [150, 100, 100, 150, 0.9, 0],  # idx 4: degenerate, negative width, high-confidence partition
+    ]
+    results = Boxes(torch.tensor(boxes, dtype=torch.float32), (640, 640))
+    high, low, mask_high, mask_low = tracker._split_detections(results)
+    assert np.flatnonzero(mask_high).tolist() == [0] and len(high) == 1, f"degenerate box leaked high band: {mask_high}"
+    assert np.flatnonzero(mask_low).tolist() == [2] and len(low) == 1, f"degenerate box leaked low band: {mask_low}"
 
 
 @pytest.mark.parametrize("tracker_type", ["bytetrack", "fasttrack"])
@@ -1003,10 +1034,20 @@ def test_data_utils(tmp_path):
     images_dir = tmp_path / "coco8/images/val"
     images_dir.mkdir(parents=True)
     Image.new("RGB", (8, 8)).save(images_dir / "test.jpg")
+    metadata_dir = images_dir / "__MACOSX"
+    metadata_dir.mkdir()
+    nested_metadata_dir = metadata_dir / "nested/__MACOSX"
+    nested_metadata_dir.mkdir(parents=True)
+    metadata_file = images_dir / ".DS_Store"
+    metadata_file.write_bytes(b"metadata")
+    (metadata_dir / "._test.jpg").write_bytes(b"metadata")
+    (nested_metadata_dir / "._nested.jpg").write_bytes(b"metadata")
 
     autosplit(tmp_path / "coco8/images")
     assert any((tmp_path / "coco8").glob("autosplit_*.txt"))
     assert zip_directory(images_dir).is_file()
+    assert not metadata_dir.exists()
+    assert not metadata_file.exists()
     with pytest.raises(ValueError, match="split"):
         check_cls_dataset("imagenet10", split="invalid")
     with pytest.raises(FileNotFoundError, match="'test:' images not found"):
@@ -1244,18 +1285,30 @@ def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch,
 def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     """Drop unreadable depth maps and accept single-class mode with empty class labels."""
     from ultralytics.data.dataset import DepthDataset
+    from ultralytics.data.utils import save_depth_png
 
     images, depth = tmp_path / "images" / "train", tmp_path / "depth" / "train"
     images.mkdir(parents=True)
     depth.mkdir(parents=True)
-    for name in ("valid", "corrupt", "missing"):
+    for name in ("valid", "scaled", "legacy", "aspect", "corrupt", "missing"):
         cv2.imwrite(str(images / f"{name}.jpg"), np.zeros((32, 32, 3), np.uint8))
-    np.save(depth / "valid.npy", np.ones((32, 32), dtype=np.float32))
-    (depth / "corrupt.npy").write_text("not an npy file")
+    save_depth_png(depth / "valid.png", np.ones((32, 32), dtype=np.float32), scale=100)
+    with Image.open(depth / "valid.png") as image:
+        assert not image.info
+        assert np.asarray(image).max() == 100
+    cv2.imwrite(str(depth / "scaled.png"), np.full((32, 32), 150, np.uint16))
+    legacy = np.full((32, 32), 2.0, np.float32)
+    legacy[0, :3] = np.nan, np.inf, -np.inf
+    np.save(depth / "legacy.npy", legacy)
+    cv2.imwrite(str(depth / "aspect.png"), np.ones((16, 32), np.uint16))
+    (depth / "corrupt.png").write_text("not a png file")
 
-    data = {"names": {0: "depth"}, "nc": 1, "channels": 3}
+    data = {"names": {0: "depth"}, "nc": 1, "channels": 3, "depth_scale": 100}
     ds = DepthDataset(img_path=str(images), imgsz=32, data=data, augment=False, single_cls=True, batch_size=1)
-    assert [Path(f).stem for f in ds.im_files] == ["valid"]
+    assert {Path(f).stem for f in ds.im_files} == {"valid", "scaled", "legacy"}
+    assert sorted(ds._load_depth(i).max() for i in range(len(ds))) == [1.0, 1.5, 2.0]
+    legacy_index = next(i for i, path in enumerate(ds.im_files) if Path(path).stem == "legacy")
+    assert not ds._load_depth(legacy_index)[0, :3].any()
     assert (depth.parent / "train.cache").exists()  # scan results cached next to the depth maps
 
 
@@ -1464,6 +1517,25 @@ def test_utils_ops():
     assert segment2box(seg, 640, 640).tolist() == [0, 0, 640, 640]
 
 
+def test_scale_coords_nonuniform_letterbox():
+    """Coordinate scaling must invert independent height and width gains from stretched preprocessing."""
+    from ultralytics.data.augment import LetterBox
+    from ultralytics.utils import ops
+
+    labels = {"img": np.zeros((320, 640, 3), dtype=np.uint8), "ratio_pad": (3.2, 3.2)}
+    ratio_pad = LetterBox((640, 640), scale_fill=True)(labels)["ratio_pad"]
+    boxes = np.array([[32.0, 64.0, 320.0, 384.0]])
+    coords = torch.tensor([[160.0, 128.0]])
+    assert ratio_pad == ((6.4, 3.2), (0, 0))
+    assert np.allclose(ops.scale_boxes((640, 640), boxes, (100, 200), ratio_pad), [[10, 10, 100, 60]])
+    assert torch.allclose(ops.scale_coords((640, 640), coords, (100, 200), ratio_pad), coords.new_tensor([[50, 20]]))
+
+    boxes = np.array([[32.0, 192.0, 320.0, 352.0]])
+    coords = torch.tensor([[160.0, 224.0]])
+    assert np.allclose(ops.scale_boxes((640, 640), boxes, (100, 200)), [[10, 10, 100, 60]])
+    assert torch.allclose(ops.scale_coords((640, 640), coords, (100, 200)), coords.new_tensor([[50, 20]]))
+
+
 def test_nms_end2end_classes_before_max_det():
     """The end-to-end NMS branch must filter classes before truncating to max_det, like the NMS-based branch."""
     from ultralytics.utils.nms import non_max_suppression
@@ -1565,6 +1637,17 @@ def test_nn_modules_block():
     C3TR(c1, c2)(x)
     C3Ghost(c1, c2)(x)
     BottleneckCSP(c1, c2)(x)
+
+
+def test_nn_detect_head_export_clamps_max_det():
+    """Detect export postprocess should not request more candidates than available anchors."""
+    from ultralytics.nn.modules.head import Detect
+
+    head = Detect(nc=2, ch=(16,))
+    head.export = True
+    head.format = "onnx"
+    anchors = 21
+    assert head.postprocess(torch.rand(1, anchors, 4 + head.nc)).shape == (1, anchors, 6)
 
 
 def _depth_head_feats():

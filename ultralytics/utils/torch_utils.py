@@ -337,7 +337,7 @@ def time_sync(device: torch.device | None = None):
         accelerator = get_torch_device_backend(device or "cuda")
         if accelerator.is_available() and hasattr(accelerator, "synchronize"):
             accelerator.synchronize()
-    return time.time()
+    return time.perf_counter()
 
 
 def fuse_conv_and_bn(conv, bn):

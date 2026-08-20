@@ -35,7 +35,7 @@ Documentation](https://docs.openedgeplatform.intel.com/2026.1/edge-ai-libraries/
 
 Before you begin, ensure the following are installed and configured on your Intel system:
 
-- **Ubuntu 24.04** with Intel GPU/NPU drivers installed (check [installation guide](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/get_started/install/install_guide_ubuntu.html))
+- **Ubuntu 24.04** with Intel GPU/NPU drivers installed (check [installation guide](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/install/install_guide_ubuntu.html))
 
 - **docker engine** (check [installation guide](https://docs.docker.com/engine/install/ubuntu/))
 
@@ -148,11 +148,21 @@ gst-launch-1.0 vacompositor name=comp sink_0::xpos=0 sink_0::ypos=0 sink_1::xpos
 
 <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/dlstreamer-intel-yolo26-detect-multistream-gpu.avif" alt="Intel DL Streamer Multistream GPU">
 
+## Additional Resources
+
+- [DL Streamer GitHub Repository](https://github.com/open-edge-platform/dlstreamer)
+- [DL Streamer Documentation](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/)
+- [DL Streamer Elements](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/elements/elements.html)
+- [OpenVINO™ Toolkit](https://docs.openvino.ai/)
+- [Ultralytics YOLO26](https://www.ultralytics.com/yolo/yolo26)
+- [GStreamer Framework](https://gstreamer.freedesktop.org/)
+- [Supported Models Table](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/supported_models.html)
+
 ## FAQ
 
 ### How do I set up Ultralytics YOLO26 on an Intel platform with DL Streamer?
 
-Install DL Streamer following the [Installation Guide](https://github.com/open-edge-platform/dlstreamer/blob/main/docs/user-guide/get_started/install/install_guide_ubuntu.md), set up the environment with `source /opt/intel/dlstreamer/scripts/setup_dls_env.sh`, install Ultralytics and OpenVINO™, download models using `download_ultralytics_models.sh`. Then run inference with the DL Streamer sample application `yolo_detect.sh` that provides a ready-to-use script for running YOLO26 inference pipelines. Check the [short tutorial](https://github.com/open-edge-platform/dlstreamer/tree/main/samples/gstreamer/gst_launch/detection_with_yolo) how to run it.
+Install DL Streamer following the [Installation Guide](https://github.com/open-edge-platform/dlstreamer/blob/main/docs/user-guide/install/install_guide_ubuntu.md), set up the environment with `source /opt/intel/dlstreamer/scripts/setup_dls_env.sh`, install Ultralytics and OpenVINO™, download models using `download_ultralytics_models.sh`. Then run inference with the DL Streamer sample application `yolo_detect.sh` that provides a ready-to-use script for running YOLO26 inference pipelines. Check the [short tutorial](https://github.com/open-edge-platform/dlstreamer/tree/main/samples/gstreamer/gst_launch/detection_with_yolo) how to run it.
 
 ### What is the benefit of using OpenVINO™ with YOLO26 on Intel hardware?
 
@@ -180,13 +190,3 @@ Use the `json` output option to write detection results as JSON-lines to a file:
 ```
 
 Alternatively, use the `gvametapublish` element in custom pipelines to publish metadata to files, MQTT, or Kafka.
-
-## Additional Resources
-
-- [DL Streamer GitHub Repository](https://github.com/open-edge-platform/dlstreamer)
-- [DL Streamer Documentation](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/)
-- [DL Streamer Elements](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/elements/elements.html)
-- [OpenVINO™ Toolkit](https://docs.openvino.ai/)
-- [Ultralytics YOLO26](https://www.ultralytics.com/yolo/yolo26)
-- [GStreamer Framework](https://gstreamer.freedesktop.org/)
-- [Supported Models Table](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/supported_models.html)

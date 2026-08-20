@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn how to efficiently train object detection models using YOLO26 with comprehensive instructions on settings, augmentation, and hardware utilization.
-keywords: Ultralytics, YOLO26, model training, deep learning, object detection, GPU training, dataset augmentation, hyperparameter tuning, model performance, apple silicon training
+keywords: Ultralytics, YOLO26, model training, deep learning, object detection, GPU training, AMD ROCm, Huawei Ascend NPU, dataset augmentation, hyperparameter tuning, model performance, apple silicon training
 ---
 
 # Model Training with Ultralytics YOLO
@@ -114,6 +114,16 @@ Multi-GPU training allows for more efficient utilization of available hardware r
         yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 device=-1,-1
         ```
 
+!!! warning "Windows Multi-GPU Support"
+
+    Multi-GPU training does not work on Windows with the official PyTorch wheels for `torch>=2.4`. Ultralytics launches DDP through `torch.distributed.run`, whose rendezvous step builds a `TCPStore` that has defaulted to the libuv backend since PyTorch 2.4, and the official Windows wheels are built without libuv. Training exits immediately with:
+
+    ```
+    RuntimeError: use_libuv was requested but PyTorch was built without libuv support
+    ```
+
+    Setting `USE_LIBUV=0` does not resolve this, because the rendezvous constructs the `TCPStore` directly and that code path never reads the variable. Train on Linux or [WSL2](https://learn.microsoft.com/windows/wsl/install) to use multiple GPUs, or train on a single GPU with `device=0` on Windows.
+
 !!! note "Multi-GPU Training with Custom Code"
 
     When you specify multiple devices (e.g., `device=[0, 1]`), Ultralytics internally spawns a new trainer instance and executes `torch.distributed.run` under the hood. This works seamlessly for standard CLI usage and unmodified Python scripts.
@@ -123,6 +133,53 @@ Multi-GPU training allows for more efficient utilization of available hardware r
     ```bash
     python -m torch.distributed.run --nproc_per_node 2 your_training_script.py
     ```
+
+AMD GPU training uses a PyTorch ROCm build with the standard `device=0` or `device=cuda:0` syntax. See the
+[AMD integration guide](../integrations/amd.md) for installation and the current MIGraphX, DirectML, and Ryzen AI NPU
+support status.
+
+Intel GPU training uses `device=xpu:0`, or multiple XPU IDs with a PyTorch build that provides XCCL.
+
+### Huawei Ascend NPU Training
+
+Ultralytics supports training and validation on Huawei Ascend NPUs through
+[`torch_npu`](https://github.com/Ascend/pytorch). Install mutually compatible CANN, PyTorch, and `torch_npu`
+versions by following the [Ascend Extension for PyTorch installation guide](https://github.com/Ascend/pytorch#installation),
+then source the CANN environment before starting Ultralytics:
+
+```bash
+source /usr/local/Ascend/ascend-toolkit/set_env.sh
+```
+
+!!! example "Ascend NPU Training Example"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.pt")
+
+        # Train on one Ascend NPU
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device="npu:0")
+
+        # Train across two Ascend NPUs with HCCL
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device="npu:0,1")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Train on one Ascend NPU
+        yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 device=npu:0
+
+        # Train across two Ascend NPUs with HCCL
+        yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 device=npu:0,1
+        ```
+
+The standard training features, including AMP, validation, checkpointing, and resume, use the active NPU. AutoBatch is
+available for single-NPU training, while multiple NPU IDs launch distributed training through HCCL. See the
+[Huawei Ascend integration guide](../integrations/ascend.md) for model export and deployment after training.
 
 ### Idle GPU Training
 
@@ -239,7 +296,7 @@ In YOLO26, **MuSGD** is a hybrid optimizer that combines standard **SGD** update
 
 It is **recommended for longer YOLO26 training runs and larger datasets**, where orthogonalized Muon updates can help stabilize optimization.
 
-Only parameters with `param.ndim >= 2` (such as convolutional weights) receive the Muon style update together with SGD, while lower dimensional parameters like batch normalization layers and bias terms remain on standard SGD.
+Only 2D linear weights and 4D convolutional filters (reshaped to 2D) receive the Muon style update together with SGD, while all other parameters, such as batch normalization weights and bias terms, remain on standard SGD.
 
 When `optimizer=auto` is used, Ultralytics automatically selects **MuSGD** for longer training runs (typically when iterations > 10000). For shorter runs, the trainer falls back to **AdamW**.
 
@@ -261,6 +318,7 @@ See the implementation in `ultralytics/optim/muon.py` and the optimizer auto-sel
     - **Auto Mode (60% GPU Memory)**: Use `batch=-1` to automatically adjust batch size for approximately 60% CUDA memory utilization.
     - **Auto Mode with Utilization Fraction**: Set a fraction value (e.g., `batch=0.70`) to adjust batch size based on the specified fraction of GPU memory usage.
     - **OOM Auto-Retry**: If a CUDA out-of-memory error occurs during the first epoch, the trainer automatically halves the batch size and retries (up to 3 times). This only applies to single-GPU training; multi-GPU (DDP) training will raise the error immediately.
+    - **No Fit Found**: If no candidate batch size produces a usable profile, AutoBatch raises a clear `RuntimeError` instead of silently falling back to an unrelated default.
 
 ## Augmentation Settings and Hyperparameters
 
@@ -493,14 +551,14 @@ For more details, refer to the [Apple Silicon MPS Training](#apple-silicon-mps-t
 
 Ultralytics YOLO26 allows you to configure a variety of training settings such as batch size, learning rate, epochs, and more through arguments. Here's a brief overview:
 
-| Argument | Default | Description                                                            |
-| -------- | ------- | ---------------------------------------------------------------------- |
-| `model`  | `None`  | Path to the model file for training.                                   |
-| `data`   | `None`  | Path to the dataset configuration file (e.g., `coco8.yaml`).           |
-| `epochs` | `100`   | Total number of training epochs.                                       |
-| `batch`  | `16`    | Batch size, adjustable as integer or auto mode.                        |
-| `imgsz`  | `640`   | Target image size for training.                                        |
-| `device` | `None`  | Computational device(s) for training like `cpu`, `0`, `0,1`, or `mps`. |
-| `save`   | `True`  | Enables saving of training checkpoints and final model weights.        |
+| Argument | Default | Description                                                                                                            |
+| -------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `model`  | `None`  | Path to the model file for training.                                                                                   |
+| `data`   | `None`  | Path to the dataset YAML (e.g., `coco8.yaml`), or a dataset directory or name (e.g., `imagenet10`) for classification. |
+| `epochs` | `100`   | Total number of training epochs.                                                                                       |
+| `batch`  | `16`    | Batch size, adjustable as integer or auto mode.                                                                        |
+| `imgsz`  | `640`   | Target image size for training.                                                                                        |
+| `device` | `None`  | Computational device(s) for training like `cpu`, `0`, `0,1`, or `mps`.                                                 |
+| `save`   | `True`  | Enables saving of training checkpoints and final model weights.                                                        |
 
 For an in-depth guide on training settings, check the [Train Settings](#train-settings) section.

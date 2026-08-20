@@ -141,7 +141,7 @@ class YOLOv8:
         # Convert the image color space from BGR to RGB
         img = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
 
-        img, pad = self.letterbox(img, (self.input_width, self.input_height))
+        img, pad = self.letterbox(img, (self.input_height, self.input_width))
 
         # Normalize the image data by dividing it by 255.0
         image_data = np.array(img) / 255.0
@@ -241,10 +241,10 @@ class YOLOv8:
         # Get the model inputs
         model_inputs = session.get_inputs()
 
-        # Store the shape of the input for later use
-        input_shape = model_inputs[0].shape
-        self.input_height = input_shape[2]
-        self.input_width = input_shape[3]
+        # Store the shape of the input for later use, falling back to 640 for dynamic (non-integer) axes
+        _, _, height, width = model_inputs[0].shape
+        self.input_height = height if isinstance(height, int) else 640
+        self.input_width = width if isinstance(width, int) else 640
 
         # Preprocess the image data
         img_data, pad = self.preprocess()

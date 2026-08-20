@@ -54,9 +54,6 @@ YOLOv10 comes in various model scales to cater to different application needs:
 
 ## Performance
 
-<script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script defer src="../../javascript/benchmark.js"></script>
-
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv10"]'></canvas>
 
 YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in terms of accuracy and efficiency. For example, YOLOv10s is 1.8x faster than [RT-DETR-R18](../models/rtdetr.md) with similar AP on the COCO dataset, and YOLOv10b has 46% less latency and 25% fewer parameters than [YOLOv9-C](../models/yolov9.md) with the same performance.
@@ -210,9 +207,9 @@ For training YOLOv10 on a custom dataset:
 
 The YOLOv10 model series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
 
-| Model   | Filenames                                                             | Tasks                                  | Inference | Validation | Training | Export |
-| ------- | --------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLOv10 | `yolov10n.pt` `yolov10s.pt` `yolov10m.pt` `yolov10l.pt` `yolov10x.pt` | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| Model   | Filenames                                                             | Tasks                                  | Training | Validation | Inference | Export |
+| ------- | --------------------------------------------------------------------- | -------------------------------------- | -------- | ---------- | --------- | ------ |
+| YOLOv10 | `yolov10n.pt` `yolov10s.pt` `yolov10m.pt` `yolov10l.pt` `yolov10x.pt` | [Object Detection](../tasks/detect.md) | ✅       | ✅         | ✅        | ✅     |
 
 ## Exporting YOLOv10
 

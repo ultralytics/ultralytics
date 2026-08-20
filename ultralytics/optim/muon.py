@@ -60,11 +60,10 @@ def muon_update(
     This function applies momentum to the gradients, optionally uses Nesterov acceleration, and then orthogonalizes the
     updates using Newton-Schulz iterations. Matrices with the same row count are zero-padded and orthogonalized in a
     single batched call, and momentum math uses fused foreach ops, avoiding per-parameter kernel launch overhead.
-    Convolutional filters (4D tensors) are reshaped before orthogonalization, and each update is scaled based on
-    parameter dimensions.
+    Higher-rank tensors are reshaped before orthogonalization, and each update is scaled based on parameter dimensions.
 
     Args:
-        grad (torch.Tensor | list[torch.Tensor]): Gradient tensor(s) to update. Each can be 2D or 4D.
+        grad (torch.Tensor | list[torch.Tensor]): Gradient tensor(s) to update. Each must have at least two dimensions.
         momentum (torch.Tensor | list[torch.Tensor]): Momentum buffer tensor(s), modified in-place.
         beta (float, optional): Momentum coefficient for exponential moving average. Default: 0.95.
         nesterov (bool, optional): Whether to use Nesterov momentum acceleration. Default: True.
@@ -83,7 +82,7 @@ def muon_update(
         - Momentum buffers are updated in-place: momentum = beta * momentum + (1-beta) * grad.
         - With Nesterov: update = beta * momentum + (1-beta) * grad.
         - Without Nesterov: update = momentum.
-        - 4D tensors (conv filters) are reshaped to 2D as (out_channels, in_channels*height*width) for orthogonalization.
+        - Tensors with more than 2 dimensions are reshaped to 2D with the first dimension preserved.
         - Final updates are scaled by sqrt(max(1, dim[-2] / dim[-1])) to account for parameter dimensions.
     """
     single = isinstance(grad, torch.Tensor)
@@ -97,10 +96,10 @@ def muon_update(
         updates = list(momentums)
     buckets = {}  # group matrices transposed to rows <= cols by (rows, scale) for batched orthogonalization
     for i, u in enumerate(updates):
-        m = u.view(len(u), -1) if u.ndim == 4 else u
+        m = u.view(len(u), -1) if u.ndim > 2 else u
         transpose = m.size(0) > m.size(1)
         if transpose:
-            m = m.T
+            m = m.transpose(0, 1)
         scale = max(1, grads[i].size(-2) / grads[i].size(-1)) ** 0.5
         buckets.setdefault((m.size(0), scale, m.device, m.dtype), []).append((i, m, transpose))
     for (_, scale, _, _), items in buckets.items():

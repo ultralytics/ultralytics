@@ -8,7 +8,7 @@
 # └── datasets
 #     └── depth-diode  ← downloads here (84 GB archives, ~90 GB converted)
 #         ├── images/{train,val}  # RGB images
-#         └── depth/{train,val}   # paired *.npy, float32 meters (images/ -> depth/)
+#         └── depth/{train,val}   # paired 16-bit *.png depth maps (images/ -> depth/)
 # If an interrupted download leaves a partial dataset, delete the depth-diode dir and re-run to rebuild it.
 
 path: depth-diode # dataset root dir (relative to Ultralytics settings 'datasets_dir')
@@ -21,6 +21,7 @@ names:
   0: depth
 
 channels: 3
+depth_scale: 256 # PNG value 256 = 1 meter; represents the 80 m outdoor range
 
 # Download script/URL (optional)
 download: |
@@ -29,12 +30,13 @@ download: |
 
   import numpy as np
 
+  from ultralytics.data.utils import save_depth_png
   from ultralytics.utils import TQDM
   from ultralytics.utils.downloads import download
 
   # Download and extract the official archives (train ~81 GB, val ~2.6 GB), then convert:
   # flatten <split>/<scene>/<scan>/*.png into images/<split>/ and save the paired *_depth.npy
-  # (masked invalid -> 0, clipped at 80 m) as depth/<split>/*.npy
+  # (masked invalid -> 0, clipped at 80 m) as depth/<split>/*.png
   dir = Path(yaml["path"])  # dataset root dir
   download([f"https://diode-dataset.s3.amazonaws.com/{s}.tar.gz" for s in ("train", "val")], dir=dir / "source", delete=True)
   for split in ("train", "val"):
@@ -44,6 +46,6 @@ download: |
           name = "_".join(im.relative_to(dir / "source").parts)  # train/indoors/scene/scan/x.png -> train_indoors_scene_scan_x.png
           depth = np.load(im.with_name(f"{im.stem}_depth.npy")).squeeze().astype(np.float32)
           depth[np.load(im.with_name(f"{im.stem}_depth_mask.npy")) == 0] = 0.0  # zero out invalid pixels
-          np.save(dir / "depth" / split / f"{name[:-4]}.npy", depth.clip(max=80))
+          save_depth_png(dir / "depth" / split / f"{name[:-4]}.png", depth.clip(max=80), scale=256)
           im.replace(dir / "images" / split / name)
   shutil.rmtree(dir / "source")

@@ -369,7 +369,7 @@ def test_export_torchscript_matrix(task, dynamic, batch, nms, end2end, tmp_path)
         for task, dynamic, quantize, nms, batch, end2end in product(
             sorted(TASKS), [True, False], [8, 16], [True, False], [1], [True, False]
         )
-        if not (task != "detect" and nms)
+        if not (task not in {"detect", "segment", "pose"} and nms)
         and not (dynamic and nms)
         and not (task == "classify" and dynamic)
         and not (end2end and nms)
@@ -388,6 +388,20 @@ def test_export_coreml_matrix(task, dynamic, quantize, nms, batch, end2end):
         end2end=end2end,
     )
     YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
+    shutil.rmtree(file)  # cleanup
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not MACOS, reason="CoreML inference only supported on macOS")
+@pytest.mark.skipif(not TORCH_1_11, reason="CoreML export requires torch>=1.11")
+@pytest.mark.parametrize("task", ["segment", "pose"])
+def test_export_coreml_nms_alignment(task):
+    """Verify CoreML NMS-baked segment/pose exports keep masks/keypoints aligned with the kept boxes."""
+    file = YOLO(TASK2MODEL[task]).export(format="coreml", imgsz=32, nms=True)
+    results = YOLO(file)(SOURCE, imgsz=32)[0]
+    n = len(results.boxes)
+    assert n > 0, "expected at least one detection to validate alignment"
+    assert len(results.masks if task == "segment" else results.keypoints) == n
     shutil.rmtree(file)  # cleanup
 
 
@@ -463,10 +477,15 @@ def test_export_coreml_rtdetr():
 
 @pytest.mark.parametrize(
     "model, expected_nms",
-    [("yolo11n.yaml", True), ("yolo11n-seg.yaml", False), ("yolo11n-pose.yaml", False)],
+    [
+        ("yolo11n.yaml", True),
+        ("yolo11n-seg.yaml", True),
+        ("yolo11n-pose.yaml", True),
+        ("yolo11n-cls.yaml", False),
+    ],
 )
-def test_export_coreml_nms_detect_only(model, expected_nms, monkeypatch):
-    """Test CoreML 'nms=True' stays enabled for detect but warns and is forced off for other tasks."""
+def test_export_coreml_nms_task_gate(model, expected_nms, monkeypatch):
+    """Test CoreML 'nms=True' stays enabled for detect/segment/pose but warns and is forced off otherwise."""
     captured = {}
     warnings = []
 
@@ -479,7 +498,9 @@ def test_export_coreml_nms_detect_only(model, expected_nms, monkeypatch):
     YOLO(model).export(format="coreml", nms=True, imgsz=32)
     assert captured["nms"] is expected_nms
     assert captured["metadata_nms"] is expected_nms
-    assert any("only supported for detect models" in warning for warning in warnings) is not expected_nms
+    assert any("only supported for detect, segment and pose models" in warning for warning in warnings) is not (
+        expected_nms
+    )
 
 
 @pytest.mark.skipif(True, reason="Test disabled")

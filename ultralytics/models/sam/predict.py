@@ -447,7 +447,8 @@ class Predictor(BasePredictor):
             nms_thresh = max(self.args.iou, crop_nms_thresh)
             # Masks here are in the model input space; convert the area from original-image pixels so the threshold is
             # independent of imgsz and input aspect ratio (gain is the letterbox scale applied in pre_transform)
-            h0, w0 = self.batch[1][0].shape[:2]
+            source = self.batch[1][0]
+            h0, w0 = source.shape[-2:] if isinstance(source, torch.Tensor) else source.shape[:2]
             gain = min(ih / h0, iw / w0)
             min_area = min_mask_region_area * gain * gain
             pred_masks, keep = self.remove_small_regions(pred_masks, min_area, nms_thresh)

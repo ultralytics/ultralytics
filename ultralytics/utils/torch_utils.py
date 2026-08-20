@@ -143,15 +143,6 @@ def get_gpu_info(index):
     return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
 
 
-@functools.lru_cache
-def get_xpu_info(index: int = 0):
-    """Return a string with system XPU information, i.e. 'Intel(R) Graphics..., 15102MiB'."""
-    if hasattr(torch, "xpu") and torch.xpu.is_available():
-        properties = torch.xpu.get_device_properties(index)
-        return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
-    return None
-
-
 def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
     """Parse a device request of any form into a canonical device string.
 
@@ -297,36 +288,6 @@ def select_device(device="", newline=False, verbose=True):
 
     cpu = device == "cpu"
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
-    if device.startswith("xpu"):  # Intel XPU
-        available = torch.xpu.device_count() if hasattr(torch, "xpu") else 0  # count under any active affinity mask
-        mask = [i for i in os.environ.get("ZE_AFFINITY_MASK", "").replace(" ", "").split(",") if i]  # physical ids
-        ids = [i for i in device.split(":", 1)[1].split(",") if i] if ":" in device else []
-        ids = ids or ["0"]  # 'xpu' -> XPU 0
-        if mask and all(i in mask for i in ids):
-            ids = [str(mask.index(i)) for i in ids]  # physical ids -> torch indices, so DDP ranks re-parse identically
-        indices = [int(i) for i in ids]
-        if max(indices) >= available:
-            install = (
-                "See https://pytorch-extension.intel.com/installation?platform=gpu for up-to-date torch install "
-                "instructions if no XPU devices are seen by torch.\n"
-                if available == 0
-                else ""
-            )
-            raise ValueError(
-                f"Invalid XPU 'device={device}' requested."
-                f" Use 'device=cpu' or pass valid XPU device(s) if available,"
-                f" i.e. 'device=xpu' or 'device=xpu:0,1,2,3' for Multi-GPU.\n"
-                f"\ntorch.xpu.device_count(): {available}"
-                f"\nos.environ['ZE_AFFINITY_MASK']: {os.environ.get('ZE_AFFINITY_MASK')}\n"
-                f"{install}"
-            )
-        if len(indices) > 1 and not mask:
-            os.environ["ZE_AFFINITY_MASK"] = ",".join(ids)  # restrict visible XPUs to the requested set for DDP
-        index = indices[0]
-        if verbose:
-            s += f"XPU:{index} ({get_xpu_info(index)})\n"
-            LOGGER.info(s if newline else s.rstrip())
-        return torch.device("xpu", index)
     if not cpu and not mps and device:  # non-cpu device requested
         valid = all(x.isdigit() and int(x) < torch.cuda.device_count() for x in device.split(","))
         if not (torch.cuda.is_available() and valid):

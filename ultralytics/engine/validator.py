@@ -291,11 +291,8 @@ class BaseValidator:
             # Reduce loss across all GPUs
             loss = {k: v.clone().detach() for k, v in self.loss.items()}
             if trainer.world_size > 1:
-                xpu = trainer.device.type == "xpu"  # XPU CCL backend lacks ReduceOp.AVG, so SUM then average on rank 0
                 for v in loss.values():
-                    dist.reduce(v, dst=0, op=dist.ReduceOp.SUM if xpu else dist.ReduceOp.AVG)
-                    if xpu and RANK == 0:
-                        v /= trainer.world_size
+                    dist.reduce(v, dst=0, op=dist.ReduceOp.AVG)
             if RANK > 0:
                 return
             loss = {k: v.cpu() / len(self.dataloader) for k, v in loss.items()}

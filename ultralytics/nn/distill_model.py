@@ -199,10 +199,10 @@ class DistillationModel(nn.Module):
             return self.loss(x, *args, **kwargs)
         return self.student_model.predict(x, *args, **kwargs)
 
-    def fuse(self, verbose: bool = True):
+    def fuse(self, verbose: bool = True, imgsz: int | list[int, int] = 640):
         """Fuse and return the student model, dropping the training-only distillation wrapper."""
         self._remove_feature_hooks()
-        return self.student_model.fuse(verbose=verbose)
+        return self.student_model.fuse(verbose=verbose, imgsz=imgsz)
 
     def loss(self, batch, preds=None):
         """Compute loss.

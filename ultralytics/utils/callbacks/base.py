@@ -170,10 +170,8 @@ def get_default_callbacks():
 def add_integration_callbacks(instance):
     """Add integration callbacks to the instance's callbacks dictionary.
 
-    This function loads and adds various integration callbacks to the provided instance. The specific callbacks added
-    depend on the type of instance provided. All instances receive HUB callbacks, while Trainer instances also receive
-    additional callbacks for various integrations like ClearML, Comet, DVC, MLflow, Neptune, Ray Tune, TensorBoard, and
-    Weights & Biases.
+    This function loads and adds analytics callbacks to every instance. Trainer instances also receive Platform and
+    experiment logger callbacks for ClearML, Comet, DVC, MLflow, Neptune, Ray Tune, TensorBoard, and Weights & Biases.
 
     Args:
         instance (Trainer | Predictor | Validator | Exporter): The object instance to which callbacks will be added. The
@@ -184,11 +182,9 @@ def add_integration_callbacks(instance):
         >>> trainer = BaseTrainer()
         >>> add_integration_callbacks(trainer)
     """
-    from .hub import callbacks as hub_cb
-    from .platform import callbacks as platform_cb
+    from ultralytics.utils.events import callbacks as events_cb
 
-    # Load Ultralytics callbacks
-    callbacks_list = [hub_cb, platform_cb]
+    callbacks_list = [events_cb]
 
     # Load training callbacks
     if "Trainer" in instance.__class__.__name__:
@@ -197,11 +193,12 @@ def add_integration_callbacks(instance):
         from .dvc import callbacks as dvc_cb
         from .mlflow import callbacks as mlflow_cb
         from .neptune import callbacks as neptune_cb
+        from .platform import callbacks as platform_cb
         from .raytune import callbacks as tune_cb
         from .tensorboard import callbacks as tb_cb
         from .wb import callbacks as wb_cb
 
-        callbacks_list.extend([clear_cb, comet_cb, dvc_cb, mlflow_cb, neptune_cb, tune_cb, tb_cb, wb_cb])
+        callbacks_list.extend([platform_cb, clear_cb, comet_cb, dvc_cb, mlflow_cb, neptune_cb, tune_cb, tb_cb, wb_cb])
 
     # Add the callbacks to the callbacks dictionary
     for callbacks in callbacks_list:

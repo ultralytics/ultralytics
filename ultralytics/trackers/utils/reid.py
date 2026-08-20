@@ -1,9 +1,11 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Shared ReID encoder used by BoT-SORT, Deep OC-SORT, and TrackTrack.
 
-* `.pt` YOLO checkpoints — loaded via `YOLO()`; embeddings are pulled from the second-to-last
-layer through the predictor's `embed=[...]` argument (works with classification and ReID
-backbones).
+* `.pt` reid-task checkpoints (`task == "reid"`) — loaded via `YOLO()` and run normally; the
+trained ReID head's L2-normalized embedding is read from `Results.embeddings`, and the crop
+size is taken from the model's training `imgsz`.
+* Other `.pt` checkpoints (e.g. classification) — loaded via `YOLO()`; embeddings are pulled
+from the second-to-last layer through the predictor's `embed=[...]` argument.
 * Any other extension (`.torchscript`, `.onnx`, `.engine`, `.openvino`, …) — loaded via
 `AutoBackend`; the model is expected to output the embedding tensor directly.
 """
@@ -22,6 +24,8 @@ REID_ASSETS = frozenset(f"yolo26{k}-reid.onnx" for k in "nsmlx")
 
 class ReID:
     """ReID encoder. Routes `.pt` to the YOLO predictor path; everything else to `AutoBackend`."""
+
+    is_reid = False  # True only for reid-task `.pt` checkpoints, whose head already outputs the embedding
 
     def __init__(self, model: str, imgsz: int = 224, device: str | torch.device | None = None, fp16: bool = False):
         """Initialize encoder for re-identification.
@@ -45,8 +49,23 @@ class ReID:
             from ultralytics import YOLO
 
             self.model = YOLO(model)
-            # Initialize predictor with embed=[idx] so subsequent calls return embeddings.
-            self.model(embed=[len(self.model.model.model) - 2], device=self.device, verbose=False, save=False)
+            # ReID-task checkpoints have a trained head whose inference output IS the
+            # L2-normalized embedding; run them normally and read Results.embeddings.
+            # Everything else (e.g. yolo*-cls.pt) uses the generic second-to-last-layer tap.
+            self.is_reid = getattr(self.model, "task", None) == "reid"
+            warmup = np.zeros((32, 32, 3), dtype=np.uint8)  # single blank image; avoids the default-assets run
+            if self.is_reid:
+                margs = getattr(self.model.model, "args", None)
+                self.imgsz = int(
+                    margs.get("imgsz", self.imgsz) if isinstance(margs, dict) else getattr(margs, "imgsz", self.imgsz)
+                )
+                # Warm up ReidPredictor so subsequent calls return Results carrying embeddings
+                self.model(warmup, imgsz=self.imgsz, device=self.device, verbose=False, save=False)
+            else:
+                # Initialize predictor with embed=[idx] so subsequent calls return embeddings.
+                self.model(
+                    warmup, embed=[len(self.model.model.model) - 2], device=self.device, verbose=False, save=False
+                )
             self.fp16 = False
         else:
             from pathlib import Path
@@ -101,10 +120,13 @@ class ReID:
             return [None] * len(crops)
 
         if self.is_pt:
-            feats = self.model.predictor(valid_crops)
-            if len(feats) != len(valid_crops) and feats[0].shape[0] == len(valid_crops):
-                feats = feats[0]  # batched prediction with non-PyTorch backend
-            valid_feats = [f.cpu().numpy() for f in feats]
+            if self.is_reid:  # ReidPredictor returns Results; pull the head's normalized embedding
+                valid_feats = [r.embeddings.data.cpu().numpy() for r in self.model.predictor(valid_crops)]
+            else:
+                feats = self.model.predictor(valid_crops)
+                if len(feats) != len(valid_crops) and feats[0].shape[0] == len(valid_crops):
+                    feats = feats[0]  # batched prediction with non-PyTorch backend
+                valid_feats = [f.cpu().numpy() for f in feats]
         else:
             batch = self._crops_to_tensor(valid_crops)
             bs, n = self.batch_size, batch.shape[0]

@@ -94,6 +94,24 @@ TASK2METRIC = {
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
 }
+TASK_CUSTOM_KEYS = {
+    "reid": {
+        "reid_p",
+        "reid_k",
+        "triplet_margin",
+        "triplet_weight",
+        "ce_weight",
+        "center_weight",
+        "center_momentum",
+        "focal_gamma",
+        "supcon_temp",
+        "reid_arcface",
+        "reid_letterbox",
+        "reid_reranking",
+        "reid_tta",
+        "reid_scales",
+    },
+}
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 _YOLO_CLI_COMMAND = [sys.executable, "-m", "ultralytics.cfg.__init__"]
@@ -374,7 +392,8 @@ def get_cfg(
     # Merge overrides
     if overrides:
         overrides = cfg2dict(overrides)
-        check_dict_alignment(cfg, overrides)
+        task_keys = TASK_CUSTOM_KEYS.get(overrides.get("task", cfg.get("task", "")), set())
+        check_dict_alignment(cfg, overrides, allowed_custom_keys={"augmentations", "save_dir"} | task_keys)
         cfg = {**cfg, **overrides}  # merge cfg and overrides dicts (prefer overrides)
 
     # Special handling for numeric project/name
@@ -1043,8 +1062,15 @@ def entrypoint(debug: str = "") -> None:
         else:
             check_dict_alignment(full_args_dict, {a: ""})
 
-    # Check keys
-    check_dict_alignment(full_args_dict, overrides)
+    # Check keys (allow task-specific custom keys). Prefer an explicit task=; otherwise infer the task
+    # from the model filename (e.g. 'yolo26n-reid.pt' -> 'reid') so task-specific args such as reid's
+    # 'triplet_margin' are accepted on the CLI without requiring an explicit task= argument.
+    task = overrides.get("task", "")
+    if not task:
+        stem = Path(str(overrides.get("model", ""))).stem.lower()
+        task = next((t for t in TASK_CUSTOM_KEYS if f"-{t}" in stem), "")
+    task_keys = TASK_CUSTOM_KEYS.get(task, set())
+    check_dict_alignment(full_args_dict, overrides, allowed_custom_keys={"augmentations", "save_dir"} | task_keys)
 
     # Mode
     mode = overrides.get("mode")

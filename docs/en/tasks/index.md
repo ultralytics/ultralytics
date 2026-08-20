@@ -64,6 +64,12 @@ Oriented Bounding Box (OBB) detection enhances traditional object detection by a
 
 [Oriented Detection](obb.md){ .md-button }
 
+## [ReID](reid.md)
+
+Person re-identification (ReID) matches the same individual across different camera views or time instances. Unlike detection or classification, ReID produces compact embedding vectors that can be compared by distance to determine identity matches. YOLO26 ReID models use PK batch sampling and multi-loss training (cross-entropy + batch-hard triplet or supervised-contrastive metric loss) for robust metric learning, making them well-suited for surveillance, multi-camera tracking, and person retrieval applications.
+
+[ReID Examples](reid.md){ .md-button }
+
 ## Conclusion
 
 Ultralytics YOLO26 supports multiple computer vision tasks, including detection, instance segmentation, semantic segmentation, monocular depth estimation, classification, keypoint detection, and oriented object detection. Each task addresses specific needs in the computer vision landscape, from basic object identification to dense per-pixel depth inference. By understanding the capabilities and applications of each task, you can select the most appropriate approach for your specific computer vision challenges and leverage YOLO26's powerful features to build effective solutions.
@@ -85,6 +91,7 @@ Ultralytics YOLO26 is a versatile AI framework capable of performing various com
 - **[Classification](classify.md):** Categorizing entire images based on their content.
 - **[Pose estimation](pose.md):** Detecting specific keypoints in an image or video frame to track movements or poses.
 - **[Oriented Object Detection (OBB)](obb.md):** Detecting rotated objects with an added orientation angle for enhanced accuracy.
+- **[Person Re-Identification (ReID)](reid.md):** Producing compact embedding vectors for matching the same person across cameras and time.
 
 ### How do I use Ultralytics YOLO26 for object detection?
 

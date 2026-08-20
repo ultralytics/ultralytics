@@ -551,7 +551,8 @@ def test_track_stream(model, tmp_path, solution_assets):
         "yolo26n-cls.pt",
         "yolo26n-sem.pt",
         "yolo26n-depth.pt",
-    }:  # classification, semantic, and depth not supported
+        "yolo26n-reid.pt",
+    }:  # tasks without detection boxes
         return
     from ultralytics.trackers.track import TRACKER_MAP
 
@@ -589,7 +590,8 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics.to_df()
         metrics.to_csv()
         metrics.to_json()
-        if task != "depth":  # depth is dense regression: no classes, no confusion matrix
+        # depth is dense regression and ReID is query-gallery retrieval: neither has classes or a confusion matrix
+        if task not in {"depth", "reid"}:
             metrics.confusion_matrix.to_df()
             metrics.confusion_matrix.to_csv()
             metrics.confusion_matrix.to_json()
@@ -1981,7 +1983,7 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     """Test YOLO model grayscale training, validation, and prediction functionality."""
     if IS_RASPBERRYPI and task == "semantic":
         skip_rpi_semantic()
-    if task in {"classify", "depth"}:  # grayscale not supported for classification or depth tasks
+    if task in {"classify", "depth", "reid"}:  # grayscale not supported for classification, depth, or ReID tasks
         return
     grayscale_data = tmp_path / f"{Path(data).stem}-grayscale.yaml"
     data = check_det_dataset(data)

@@ -26,7 +26,7 @@
 </div>
 <br>
 
-[Ultralytics](https://www.ultralytics.com/) creates cutting-edge, state-of-the-art (SOTA) [YOLO models](https://www.ultralytics.com/yolo) built on years of foundational research in computer vision and AI. Constantly updated for performance and flexibility, our models are **fast**, **accurate**, and **easy to use**. They excel at [object detection](https://docs.ultralytics.com/tasks/detect), [tracking](https://docs.ultralytics.com/modes/track), [instance segmentation](https://docs.ultralytics.com/tasks/segment), [semantic segmentation](https://docs.ultralytics.com/tasks/semantic), [image classification](https://docs.ultralytics.com/tasks/classify), and [pose estimation](https://docs.ultralytics.com/tasks/pose) tasks.
+[Ultralytics](https://www.ultralytics.com/) creates cutting-edge, state-of-the-art (SOTA) [YOLO models](https://www.ultralytics.com/yolo) built on years of foundational research in computer vision and AI. Constantly updated for performance and flexibility, our models are **fast**, **accurate**, and **easy to use**. They excel at [object detection](https://docs.ultralytics.com/tasks/detect), [tracking](https://docs.ultralytics.com/modes/track), [instance segmentation](https://docs.ultralytics.com/tasks/segment), [semantic segmentation](https://docs.ultralytics.com/tasks/semantic), [image classification](https://docs.ultralytics.com/tasks/classify), [pose estimation](https://docs.ultralytics.com/tasks/pose), and [person re-identification](https://docs.ultralytics.com/tasks/reid) tasks.
 
 Find detailed documentation in the [Ultralytics Docs](https://docs.ultralytics.com/). Get support via [GitHub Issues](https://github.com/ultralytics/ultralytics/issues/new/choose). Join discussions on [Discord](https://discord.com/invite/ultralytics), [Reddit](https://www.reddit.com/r/ultralytics/), and the [Ultralytics Community Forums](https://community.ultralytics.com/)!
 
@@ -250,6 +250,19 @@ Check the [OBB Docs](https://docs.ultralytics.com/tasks/obb) for usage examples.
 
 - **mAP<sup>test</sup>** values are for single-model multiscale performance on the [DOTAv1 test set](https://captain-whu.github.io/DOTA/dataset.html). <br>Reproduce by `yolo val obb data=DOTAv1.yaml device=0 split=test` and submit merged results to the [DOTA evaluation server](https://captain-whu.github.io/DOTA/evaluation.html).
 - **Speed** metrics are averaged over [DOTAv1 val images](https://docs.ultralytics.com/datasets/obb/dota-v2#dota-v10) using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. CPU speeds measured with [ONNX](https://onnx.ai/) export. GPU speeds measured with [TensorRT](https://developer.nvidia.com/tensorrt) export. <br>Reproduce by `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu`
+
+</details>
+
+<details><summary>Person Re-Identification (Market-1501)</summary>
+
+Check the [ReID Docs](https://docs.ultralytics.com/tasks/reid/) for usage examples. These models are trained on [Market-1501](https://docs.ultralytics.com/datasets/reid/market1501/) and produce L2-normalized embedding vectors for matching the same person across cameras.
+
+| Model                                                                                          | size<br><sup>(pixels)</sup> | mAP<sup>Market-1501</sup> | Rank-1<sup>Market-1501</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| ---------------------------------------------------------------------------------------------- | --------------------------- | ------------------------- | ---------------------------- | ------------------------ | ----------------------- |
+| [YOLO26n-reid](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo26n-reid.pt) | 256                         | 23.7                      | 42.5                         | 2.0                      | 3.3                     |
+| [YOLO26s-reid](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo26s-reid.pt) | 256                         | 29.4                      | 50.4                         | 6.5                      | 12.7                    |
+
+- **mAP** and **Rank-1** values are for single-model single-scale evaluation on the [Market-1501 val/gallery splits](https://docs.ultralytics.com/datasets/reid/market1501/). <br>Reproduce by `yolo reid val data=Market-1501.yaml device=0`
 
 </details>
 

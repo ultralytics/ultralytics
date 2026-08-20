@@ -63,7 +63,6 @@ def generate_ddp_file(trainer: BaseTrainer) -> str:
         The generated file is saved in the USER_CONFIG_DIR/DDP directory and includes:
         - Trainer class import
         - Configuration overrides from the trainer arguments
-        - Model path configuration
         - Training initialization code
     """
     module, name = f"{trainer.__class__.__module__}.{trainer.__class__.__name__}".rsplit(".", 1)
@@ -92,7 +91,6 @@ if __name__ == "__main__":
     cfg = DEFAULT_CFG_DICT.copy()
     cfg.update(save_dir='')   # handle the extra key 'save_dir'
     trainer = {name}(cfg=cfg, overrides=overrides)
-    trainer.args.model = "{getattr(trainer.hub_session, "model_url", trainer.args.model)}"
     results = trainer.train()
 """
     (USER_CONFIG_DIR / "DDP").mkdir(exist_ok=True)

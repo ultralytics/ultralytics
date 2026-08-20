@@ -9,7 +9,7 @@
 # └── datasets
 #     └── depth-tartanair
 #         ├── images/{train,val}  # RGB images
-#         └── depth/{train,val}   # paired *.npy, float32 meters (images/ -> depth/)
+#         └── depth/{train,val}   # paired 16-bit *.png depth maps (images/ -> depth/)
 
 path: depth-tartanair # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train # train images (relative to 'path') 55660 images
@@ -21,3 +21,4 @@ names:
   0: depth
 
 channels: 3
+depth_scale: 256 # PNG value 256 = 1 meter; represents the 80 m outdoor range

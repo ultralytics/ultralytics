@@ -12,6 +12,10 @@ This guide documents the exact [training](../modes/train.md) recipe used to prod
 
 Knowing what went into the official checkpoints — not just the architecture, but the [learning rate](https://www.ultralytics.com/glossary/learning-rate) schedules, augmentation pipelines, and loss weights that shaped their performance — helps you make better decisions when [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning): which [data augmentations](./yolo-data-augmentation.md) to keep, which [loss function](https://www.ultralytics.com/glossary/loss-function) weights to adjust, and what optimizer settings work best for your dataset size.
 
+!!! note "Read the paper for the full picture"
+
+    This page covers the hyperparameters recorded in the released checkpoints. For the reasoning behind them, including the architecture, the loss and label assignment changes, and the ablations, read [Ultralytics YOLO26: Unified Real-Time End-to-End Vision Models](https://arxiv.org/abs/2606.03748).
+
 ## Training Overview
 
 All YOLO26 base models were trained in two stages: **[Objects365v1](../datasets/detect/objects365.md) pretraining** for 150 epochs, followed by **COCO fine-tuning**. Both stages ran at **640x640** resolution with the **MuSGD** optimizer and **[batch size](https://www.ultralytics.com/glossary/batch-size) 128**. No YOLO26 checkpoint was trained on COCO from random weights, which is why the COCO stage is short for most sizes, and the COCO-stage hyperparameters were found via [evolutionary search](./hyperparameter-tuning.md#genetic-evolution-and-mutation). Full training logs and metrics for every model size are stored inside the released checkpoints and rendered as charts on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26).

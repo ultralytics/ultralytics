@@ -277,9 +277,8 @@ class TTSTrack(BOTrack):
         self.mean, self.covariance = kalman_filter.initiate(self.convert_coords(self._tlwh))
         self._history.append((frame_id, self.xyxy))
         self.tracklet_len = 0
-        self.state = TrackState.New
-        if frame_id == 1:
-            self.is_activated = True
+        self.state = TrackState.Tracked if len(self._history) >= self.min_track_len else TrackState.New
+        self.is_activated = frame_id == 1 or self.state == TrackState.Tracked
         self.frame_id = self.start_frame = frame_id
 
     def re_activate(self, new_track, frame_id: int, new_id: bool = False) -> None:

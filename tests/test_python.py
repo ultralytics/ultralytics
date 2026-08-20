@@ -506,6 +506,11 @@ def test_tracktrack_new_lifecycle():
         box = torch.tensor([[center_x - 50, 50, center_x + 50, 150, 0.9, 0]], dtype=torch.float32)
         outputs.append(tracker.update(Boxes(box, (640, 640))))
     assert [len(output) for output in outputs] == [0, 0, 0, 1]
+    for min_track_len in (0, 1):
+        cfg["min_track_len"] = min_track_len
+        tracker = TRACKER_MAP["tracktrack"](IterableSimpleNamespace(**cfg))
+        tracker.update(Boxes(torch.empty((0, 6)), (640, 640)))
+        assert len(tracker.update(Boxes(box, (640, 640)))) == 1
 
 
 @pytest.mark.parametrize("tracker_type", ["botsort", "deepocsort", "tracktrack"])

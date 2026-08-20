@@ -88,6 +88,7 @@ def torch2onnx(
     input_names: list[str] | None = None,
     output_names: list[str] | None = None,
     dynamic: dict | None = None,
+    dynamo: bool = True,
 ) -> str:
     """Export a PyTorch model to ONNX format.
 
@@ -99,6 +100,7 @@ def torch2onnx(
         input_names (list[str] | None): List of input tensor names. Defaults to ``["images"]``.
         output_names (list[str] | None): List of output tensor names. Defaults to ``["output0"]``.
         dynamic (dict | None): Dictionary specifying dynamic axes for inputs and outputs.
+        dynamo (bool): Use the TorchDynamo-based exporter, requires torch>=2.9.
 
     Returns:
         (str): Path to the exported ONNX file.
@@ -110,7 +112,25 @@ def torch2onnx(
         input_names = ["images"]
     if output_names is None:
         output_names = ["output0"]
-    kwargs = {"dynamo": False} if TORCH_2_4 else {}
+    if TORCH_2_9 and dynamo:  # TorchDynamo-based export
+        dims = None
+        if dynamic:
+            dims = {
+                0: 1 * torch.export.Dim("batch", min=1),
+                2: 32 * torch.export.Dim("height", min=1),
+                3: 32 * torch.export.Dim("width", min=1),
+            }
+            if im.shape[2] == 32:
+                im = torch.empty(
+                    *im.shape[:2], 64, 64, device=im.device, dtype=im.dtype
+                )  # dynamo requires at least (1, 3, 64, 64) to infer dynamic shapes
+        kwargs = {
+            "dynamo": True,
+            "external_data": False,  # do not create .onnx.data file
+            "dynamic_shapes": {"x": dims} if dims else None,
+        }
+    else:
+        kwargs = {"dynamo": False} if TORCH_2_4 else {}
     torch.onnx.export(
         model,
         im,

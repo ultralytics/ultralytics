@@ -1026,9 +1026,11 @@ class Exporter:
         )
 
     @try_export
-    def export_onnx(self, prefix=colorstr("ONNX:")):  # noqa: B008
+    def export_onnx(self, prefix=colorstr("ONNX:"), dynamo=True):  # noqa: B008
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.16.1,<1.19.0" if self.args.format == "rknn" else "onnx>=1.12.0,<2.0.0"]
+        if TORCH_2_9 and dynamo:
+            requirements += ["onnxscript>=0.2.5"]  # TorchDynamo-based ONNX export
         if self.args.simplify or (self.args.format == "onnx" and self.args.quantize == 8):
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
@@ -1093,6 +1095,7 @@ class Exporter:
                 input_names=["images"],
                 output_names=output_names,
                 dynamic=dynamic or None,
+                dynamo=dynamo,
             )
 
         # Checks
@@ -1407,7 +1410,7 @@ class Exporter:
             self.args.opset = self.args.opset or 19
             assert self.args.opset <= 19, "RTDETR TensorFlow export requires opset<=19"
         self.args.simplify = True
-        f_onnx = self.export_onnx()  # ensure ONNX is available
+        f_onnx = self.export_onnx(dynamo=False)  # ensure ONNX is available
         keras_model = onnx2saved_model(
             f_onnx,
             f,
@@ -1853,6 +1856,7 @@ class NMSModel(torch.nn.Module):
         self.args = args
         self.obb = model.task == "obb"
         self.is_tf = self.args.format == "saved_model"
+        self.eval()  # avoid torch.onnx.export training-mode warning under dynamo
 
     def forward(self, x):
         """Perform inference with NMS post-processing. Supports Detect, Segment, OBB and Pose.
@@ -1877,13 +1881,14 @@ class NMSModel(torch.nn.Module):
             pred = torch.cat((pred, pad))
         boxes, scores, extras = pred.split([4, len(self.model.names), extra_shape], dim=2)
         scores, classes = scores.max(dim=-1)
-        self.args.max_det = min(pred.shape[1], self.args.max_det)  # in case num_anchors < max_det
+        if not self.dynamo():
+            self.args.max_det = min(pred.shape[1], self.args.max_det)  # in case num_anchors < max_det
         # (N, max_det, 4 coords + 1 class score + 1 class label + extra_shape).
         out = torch.zeros(pred.shape[0], self.args.max_det, boxes.shape[-1] + 2 + extra_shape, **kwargs)
         for i in range(bs):
             box, cls, score, extra = boxes[i], classes[i], scores[i], extras[i]
             mask = score > self.args.conf
-            if self.is_tf or (self.args.format == "onnx" and self.obb):
+            if self.is_tf or (self.args.format == "onnx" and self.obb) or self.dynamo():
                 # TFLite GatherND error if mask is empty
                 score *= mask
                 # Explicit length otherwise reshape error, hardcoded to `self.args.max_det * 5`
@@ -1897,7 +1902,8 @@ class NMSModel(torch.nn.Module):
             if not self.args.agnostic_nms:  # class-wise NMS
                 end = 2 if self.obb else 4
                 # fully explicit expansion otherwise reshape error
-                cls_offset = cls.view(cls.shape[0], 1).expand(cls.shape[0], end)
+                # cast to float, dynamo cannot convert the implicit int64 * float promotion to ONNX
+                cls_offset = cls.view(cls.shape[0], 1).expand(cls.shape[0], end).to(nmsbox.dtype)
                 offbox = nmsbox[:, :end] + cls_offset * multiplier
                 nmsbox = torch.cat((offbox, nmsbox[:, end:]), dim=-1)
             nms_fn = (
@@ -1918,7 +1924,12 @@ class NMSModel(torch.nn.Module):
                 torch.cat([nmsbox, extra], dim=-1) if self.obb else nmsbox,
                 score,
                 self.args.iou,
-            )[: self.args.max_det]
+            )
+            if self.dynamo():
+                keep = torch.nn.functional.pad(
+                    keep, (0, self.args.max_det), value=mask.shape[0] - 1
+                )  # repeat the final index as pad
+            keep = keep[: self.args.max_det]
             dets = torch.cat(
                 [box[keep], score[keep].view(-1, 1), cls[keep].view(-1, 1).to(out.dtype), extra[keep]], dim=-1
             )
@@ -1926,3 +1937,9 @@ class NMSModel(torch.nn.Module):
             pad = (0, 0, 0, self.args.max_det - dets.shape[0])
             out[i] = torch.nn.functional.pad(dets, pad)
         return (out[:bs], preds[1]) if self.model.task == "segment" else out[:bs]
+
+    def dynamo(self):
+        """Check if export is using dynamo."""
+        if hasattr(torch, "compiler") and hasattr(torch.compiler, "is_exporting"):
+            return torch.compiler.is_exporting()
+        return False

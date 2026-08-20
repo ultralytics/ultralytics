@@ -200,7 +200,7 @@ class Detect(nn.Module):
         """Get decoded boxes based on anchors and strides."""
         shape = x["feats"][0].shape  # BCHW
         if self.dynamic or self.shape != shape:
-            self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x["feats"], self.stride, 0.5))
+            self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x["feats"], self.stride.int(), 0.5))
             self.shape = shape
 
         dbox = self.decode_bboxes(self.dfl(x["boxes"]), self.anchors.unsqueeze(0)) * self.strides

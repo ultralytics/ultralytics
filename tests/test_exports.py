@@ -394,10 +394,14 @@ def test_export_coreml_matrix(task, dynamic, quantize, nms, batch, end2end):
 @pytest.mark.slow
 @pytest.mark.skipif(not MACOS, reason="CoreML inference only supported on macOS")
 @pytest.mark.skipif(not TORCH_1_11, reason="CoreML export requires torch>=1.11")
+@pytest.mark.skipif(
+    MACOS and MACOS_VERSION and MACOS_VERSION >= "15", reason="CoreML YOLO26 matrix test crashes on macOS 15+"
+)
 @pytest.mark.parametrize("task", ["segment", "pose"])
 def test_export_coreml_nms_alignment(task):
     """Verify CoreML NMS-baked segment/pose exports keep masks/keypoints aligned with the kept boxes."""
-    file = YOLO(TASK2MODEL[task]).export(format="coreml", imgsz=32, nms=True)
+    # end2end=False: TASK2MODEL's YOLO26 models default to end2end=True, which forces nms=False upstream
+    file = YOLO(TASK2MODEL[task]).export(format="coreml", imgsz=32, nms=True, end2end=False)
     results = YOLO(file)(SOURCE, imgsz=32)[0]
     n = len(results.boxes)
     assert n > 0, "expected at least one detection to validate alignment"

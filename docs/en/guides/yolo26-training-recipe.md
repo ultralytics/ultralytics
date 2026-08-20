@@ -347,4 +347,4 @@ Inside the checkpoints. `ckpt["train_results"]` holds the complete per-epoch `re
 
 ### Can I reproduce the published COCO metrics with the released package?
 
-Close, but not bit-identical. The checkpoints were produced on an experimental branch with features that never landed on `main`, such as configurable `o2m` weights and `cls_w`. That branch is public, and each checkpoint records its commit under `ckpt["git"]`, so you can check the code out directly. See [Checking the Code Revision](#checking-the-code-revision). Using the released package with the hyperparameters on this page, starting from the Objects365 weights, gets within a negligible distance of the published metrics.
+You will land close to the published metrics, but not identical to them. For an identical setup, check out the commit recorded in the checkpoint and train on that branch. See [Checking the Code Revision](#checking-the-code-revision).

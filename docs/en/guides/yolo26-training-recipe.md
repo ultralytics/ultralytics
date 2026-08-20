@@ -149,7 +149,7 @@ print(ckpt["train_metrics"])  # final validation metrics
 print(ckpt["git"])  # repository, branch, and commit of the run
 ```
 
-For the released YOLO26 runs the number of logged rows equals `train_args["epochs"]`, so these curves are complete rather than truncated. A run can log fewer rows than `epochs` when early stopping (`patience`), a `time` limit, or an interruption ends it early. `yolo26s.pt` logs 70 rows because its COCO stage ran for 70 epochs on top of Objects365 pretraining, and the 150-epoch Objects365 curve is stored in `yolo26s-objv1-150.pt`. [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26) reads the same data out of the checkpoints and renders it as charts.
+Each checkpoint covers the stage that produced it, so the COCO curve is in `yolo26s.pt` and the 150-epoch Objects365 curve is in `yolo26s-objv1-150.pt`. [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26) reads the same data out of the checkpoints and renders it as charts.
 
 ### Checking the Code Revision
 
@@ -170,7 +170,7 @@ Experimental branches carry work that never landed on `main`, such as configurab
 
 ## YOLO26 Training Hyperparameters per Model Size
 
-These are the stage 2 values, applied on top of the Objects365 weights above. The tables below group the recipe by category — optimizer and schedule, loss weights, and augmentation. Every value comes straight from the `train_args` embedded in the released checkpoints.
+These are the stage 2 values, applied on top of the Objects365 weights above. The tables below group the recipe by category: optimizer and schedule, loss weights, and augmentation. Every value comes straight from the `train_args` embedded in the released checkpoints.
 
 ### Optimizer and Learning Rate
 
@@ -315,7 +315,7 @@ Load the checkpoint with `torch.load()` and access the `train_args` key, or use 
 
 ### Why are the epoch counts different for each model size?
 
-Every size received the same 150 epochs of Objects365 pretraining, so the COCO counts only cover the fine-tuning stage. Larger models converge on COCO in fewer of those epochs — the X model trained for 40 versus 245 for N — though the counts are not strictly monotonic (S used 70, M used 80) because they came out of the per-size hyperparameter search. When fine-tuning on your own dataset, the optimal number of epochs depends on your dataset size and complexity, not the model size. Use early stopping (`patience`) to find the right stopping point automatically.
+Every size received the same 150 epochs of Objects365 pretraining, so the COCO counts only cover the fine-tuning stage. Larger models converge on COCO in fewer of those epochs, 40 for X versus 245 for N. The counts are not strictly monotonic (S used 70, M used 80) because they came out of the per-size hyperparameter search. When fine-tuning on your own dataset, the optimal number of epochs depends on your dataset size and complexity, not the model size. Use early stopping (`patience`) to find the right stopping point automatically.
 
 ### Should I use MuSGD for fine-tuning?
 
@@ -331,8 +331,8 @@ No. Each COCO checkpoint was fine-tuned from an Objects365v1 checkpoint of the s
 
 ### Where are the full training logs and loss curves?
 
-Inside the checkpoints. `ckpt["train_results"]` holds the complete per-epoch `results.csv` of the run — losses, precision, recall, mAP50, mAP50-95, and learning rates — and for the released YOLO26 runs the row count matches `epochs` exactly. See [Reading the Embedded Training Log](#reading-the-embedded-training-log) for the code, or browse the same data as charts on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26). The Objects365 stage has its own log in the `yolo26*-objv1-150.pt` checkpoints.
+Inside the checkpoints. `ckpt["train_results"]` holds the complete per-epoch `results.csv` of the run: losses, precision, recall, mAP50, mAP50-95, and learning rates. See [Reading the Embedded Training Log](#reading-the-embedded-training-log) for the code, or browse the same data as charts on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26). The Objects365 stage has its own log in the `yolo26*-objv1-150.pt` checkpoints.
 
 ### Can I reproduce the published COCO metrics with the released package?
 
-Close, but not bit-identical. The checkpoints were produced on an experimental branch with features that never landed on `main`, such as configurable `o2m` weights and `cls_w`. That branch is public, and each checkpoint records its commit under `ckpt["git"]`, so you can check the code out directly — see [Checking the Code Revision](#checking-the-code-revision). Using the released package with the hyperparameters on this page, starting from the Objects365 weights, gets within a negligible distance of the published metrics.
+Close, but not bit-identical. The checkpoints were produced on an experimental branch with features that never landed on `main`, such as configurable `o2m` weights and `cls_w`. That branch is public, and each checkpoint records its commit under `ckpt["git"]`, so you can check the code out directly. See [Checking the Code Revision](#checking-the-code-revision). Using the released package with the hyperparameters on this page, starting from the Objects365 weights, gets within a negligible distance of the published metrics.

@@ -26,6 +26,12 @@ keywords: Ultralytics, YOLO26, MNN, model export, machine learning, deployment, 
   <strong>Watch:</strong> How to Export Ultralytics YOLO26 to MNN Format | Speed up Inference on Mobile Devices📱
 </p>
 
+## Supported Tasks
+
+MNN export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+
+{% include "macros/supported-tasks.md" %}
+
 ## Export to MNN: Converting Your YOLO26 Model
 
 You can expand model compatibility and deployment flexibility by converting [Ultralytics YOLO](../models/yolo26.md) models to MNN format. This conversion optimizes your models for mobile and embedded environments, ensuring efficient performance on resource-constrained devices.

@@ -44,7 +44,7 @@ The output from Ultralytics trackers is consistent with standard [object detecti
 
 ## Quick Start
 
-Run tracking on a video with the default BoT-SORT tracker. Swap to another tracker by changing the `tracker` argument.
+Run tracking on a video with the default TrackTrack tracker. Swap to another tracker by changing the `tracker` argument.
 
 !!! example
 
@@ -55,7 +55,7 @@ Run tracking on a video with the default BoT-SORT tracker. Swap to another track
 
         model = YOLO("yolo26n.pt")
 
-        # Default tracker (BoT-SORT)
+        # Default tracker (TrackTrack)
         results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)
 
         # Switch to ByteTrack
@@ -65,7 +65,7 @@ Run tracking on a video with the default BoT-SORT tracker. Swap to another track
     === "CLI"
 
         ```bash
-        # Default tracker (BoT-SORT)
+        # Default tracker (TrackTrack)
         yolo track model=yolo26n.pt source="https://youtu.be/LNwODJXcvt4" show
 
         # Switch to ByteTrack
@@ -105,8 +105,6 @@ To run the tracker on video streams, use a trained Detect, Segment, Pose, or OBB
         yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4" tracker="bytetrack.yaml"
         ```
 
-As can be seen in the above usage, tracking is available for all Detect, Segment, and Pose models run on videos or streaming sources.
-
 ## Supported Trackers
 
 Ultralytics YOLO ships with six built-in trackers. Enable one by passing its YAML config file to the `tracker` argument.
@@ -122,10 +120,10 @@ Ultralytics YOLO ships with six built-in trackers. Enable one by passing its YAM
 
 ### Which Tracker Should I Use?
 
-Use this flow to pick a starting point:
+Use this flow to pick a starting point; `tracktrack.yaml` is used when you pass no `tracker`:
 
 1. **Need the fastest, simplest baseline?** → **ByteTrack** (no ReID, no camera-motion compensation, minimum overhead).
-2. **Handheld, drone, or moving-camera footage?** → **BoT-SORT** (default; adds camera-motion compensation and optional ReID).
+2. **Handheld, drone, or moving-camera footage?** → **BoT-SORT** (adds camera-motion compensation and optional ReID).
 3. **Non-linear motion (sports, dancing, abrupt turns) and no ReID?** → **OC-SORT** (observation-centric corrections without appearance cost).
 4. **Crowded moving-camera scenes where ID swaps are the main problem?** → **Deep OC-SORT** or **TrackTrack** (both add adaptive appearance fusion; TrackTrack also adds multi-cue association and duplicate-ID suppression).
 5. **Frequent partial overlap in real-time, no ReID budget?** → **FastTracker** (occlusion-aware ByteTrack variant with Kalman rollback).
@@ -296,7 +294,7 @@ Expand the sections below for each tracker's design, specific parameters, and tu
 
 #### BoT-SORT
 
-[BoT-SORT](https://github.com/NirAharon/BoT-SORT) (Aharon et al., 2022) is the default tracker. It extends ByteTrack with camera-motion compensation and optional ReID:
+[BoT-SORT](https://github.com/NirAharon/BoT-SORT) (Aharon et al., 2022) extends ByteTrack with camera-motion compensation and optional ReID:
 
 - **Camera Motion Compensation (CMC):** an affine warp estimated each frame (sparse optical flow by default; ORB / ECC also available) is applied to Kalman states before IoU matching.
 - **Optional ReID:** appearance embeddings can be fused into the cost matrix. Disabled by default; enable with `with_reid: True`.
@@ -425,7 +423,7 @@ There is no appearance model and no camera-motion compensation.
 
 #### TrackTrack
 
-[TrackTrack](https://openaccess.thecvf.com/content/CVPR2025/papers/Shim_Focusing_on_Tracks_for_Online_Multi-Object_Tracking_CVPR_2025_paper.pdf) (Shim et al., CVPR 2025) reasons from each track's perspective with multi-cue iterative association:
+[TrackTrack](https://openaccess.thecvf.com/content/CVPR2025/papers/Shim_Focusing_on_Tracks_for_Online_Multi-Object_Tracking_CVPR_2025_paper.pdf) (Shim et al., CVPR 2025) is the default tracker. It reasons from each track's perspective with multi-cue iterative association:
 
 - **Track-Perspective-Based Association (TPA):** combines HMIoU, cosine ReID distance, confidence-projection distance, and corner-angle distance. Assignment is solved iteratively with a relaxing threshold.
 - **Track-Aware Initialization (TAI):** suppresses duplicate spawns before a new ID is created.

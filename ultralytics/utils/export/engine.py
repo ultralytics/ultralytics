@@ -255,12 +255,6 @@ def onnx2engine(
         confidence-score calibration (see #24668). Metadata is serialized and written to the engine file if provided.
     """
     hw_compat = (hw_compat or "none").lower()
-    if hw_compat not in {"none", "ampere_plus", "same_compute_capability"}:
-        LOGGER.warning(
-            f"{prefix} invalid hw_compat='{hw_compat}', valid options are 'none', 'ampere_plus' and "
-            f"'same_compute_capability'. Using 'none'."
-        )
-        hw_compat = "none"
 
     # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports, except when hardware
     # compatibility is requested as Jetson Thor <-> DGX Spark interop is only validated on TensorRT 10.13.3.9
@@ -281,11 +275,10 @@ def onnx2engine(
         and (is_jetson(jetpack=7) or (is_dgx() and ARM64))
         and not trt.__version__.startswith("10.13.3.9")
     ):
-        LOGGER.warning(
-            f"{prefix} disabling hw_compat='{hw_compat}' as Jetson Thor and DGX Spark (ARM64) support it only with "
-            f"TensorRT 10.13.3.9 (found {trt.__version__})."
+        raise ValueError(
+            f"hw_compat='{hw_compat}' on Jetson Thor or DGX Spark (ARM64) requires TensorRT 10.13.3.9, "
+            f"but found {trt.__version__}."
         )
-        hw_compat = "none"
 
     LOGGER.info(f"\n{prefix} starting export with TensorRT {trt.__version__}...")
     output_file = output_file or Path(onnx_file).with_suffix(".engine")
@@ -300,10 +293,9 @@ def onnx2engine(
     if hw_compat != "none":
         level = getattr(trt.HardwareCompatibilityLevel, hw_compat.upper(), None)
         if level is None:
-            LOGGER.warning(f"{prefix} TensorRT {trt.__version__} does not support hw_compat='{hw_compat}', ignoring.")
-        else:
-            LOGGER.info(f"{prefix} setting hardware compatibility level to '{hw_compat}'")
-            config.hardware_compatibility_level = level
+            raise ValueError(f"TensorRT {trt.__version__} does not support hw_compat='{hw_compat}'.")
+        LOGGER.info(f"{prefix} setting hardware compatibility level to '{hw_compat}'")
+        config.hardware_compatibility_level = level
     workspace_bytes = int((workspace or 0) * (1 << 30))
     trt_major = int(trt.__version__.split(".", 1)[0])
     is_trt10 = trt_major >= 10
@@ -363,7 +355,9 @@ def onnx2engine(
         min_shape = (1, shape[1], 32, 32)  # minimum input shape
         max_shape = (*shape[:2], *(int(max(2, workspace or 2) * d) for d in shape[2:]))  # max input shape
         for inp in inputs:
-            profile.set_shape(inp.name, min=min_shape, opt=shape, max=max_shape)
+            inp_min = tuple(d if d != -1 else lo for d, lo in zip(inp.shape, min_shape))
+            inp_max = tuple(d if d != -1 else hi for d, hi in zip(inp.shape, max_shape))
+            profile.set_shape(inp.name, min=inp_min, opt=shape, max=inp_max)
         config.add_optimization_profile(profile)
         if use_int8 and not is_trt10:  # deprecated in TensorRT 10, causes internal errors
             config.set_calibration_profile(profile)

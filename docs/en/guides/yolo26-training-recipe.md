@@ -64,7 +64,7 @@ Pretraining used mostly default settings rather than searched values. `lr0`, `lr
 | `copy_paste` | 0.1 | 0.15 | 0.4  | 0.5  | 0.6 |
 | `scale`      | 0.5 | 0.9  | 0.9  | 0.9  | 0.9 |
 
-Augmentations not listed, such as `hsv_h`, `translate`, `fliplr`, and `erasing`, are at their `default.yaml` values and are identical across sizes.
+These tables cover the settings that shape pretraining, not the full configuration. The checkpoints record over 100 arguments, so print `train_args` as shown below for the authoritative list.
 
 ??? note "Advanced: internal pretraining parameters"
 
@@ -95,7 +95,7 @@ Augmentations not listed, such as `hsv_h`, `translate`, `fliplr`, and `erasing`,
         yolo train model=yolo26s-objv1-150.pt data=your-dataset.yaml epochs=100 imgsz=640
         ```
 
-    To rerun the COCO stage instead, start from the same weights and pass the stage 2 optimizer, loss, and augmentation values for that size from the tables below. The internal parameters in that section are rejected by the released package and need the experimental branch.
+    To rerun the COCO stage instead, start from the same weights and pass the stage 2 optimizer, loss, and augmentation values for that size from the tables below. Those tables leave out smaller non-default arguments such as `warmup_momentum`, `warmup_bias_lr`, `perspective`, `flipud`, and `cutmix`, so print `train_args` from the checkpoint for the exact configuration. The internal parameters are rejected by the released package and need the experimental branch.
 
 ## Inspecting YOLO26 Checkpoint Training Args
 
@@ -149,7 +149,7 @@ This works for any `.pt` checkpoint — official releases and your own fine-tune
 
 ### Reading the Embedded Training Log
 
-`train_args` is not the only thing stored. Every checkpoint also carries the complete per-epoch `results.csv` of the run that produced it under `train_results`, the final validation metrics under `train_metrics`, and the code revision under `git`:
+`train_args` is not the only thing stored. Every checkpoint also carries the `results.csv` rows accumulated up to the epoch it was saved at under `train_results`, the validation metrics from that point under `train_metrics`, and the code revision under `git`. The released YOLO26 checkpoints come from finished runs, so their log covers the run end to end:
 
 ```python
 from ultralytics import YOLO
@@ -178,6 +178,7 @@ print(YOLO("yolo26n.pt").ckpt["git"])
 ```
 
 ```bash
+git fetch origin cb13d5f9cfbd6f299da3620c625f81d721dc2849
 git checkout cb13d5f9cfbd6f299da3620c625f81d721dc2849
 ```
 
@@ -342,7 +343,7 @@ No. Each COCO checkpoint was fine-tuned from an Objects365v1 checkpoint of the s
 
 ### Where are the full training logs and loss curves?
 
-Inside the checkpoints. `ckpt["train_results"]` holds the complete per-epoch `results.csv` of the run: losses, precision, recall, mAP50, mAP50-95, and learning rates. See [Reading the Embedded Training Log](#reading-the-embedded-training-log) for the code, or browse the same data as charts on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26). The Objects365 stage has its own log in the `yolo26*-objv1-150.pt` checkpoints.
+Inside the checkpoints. `ckpt["train_results"]` holds the per-epoch `results.csv` rows accumulated up to the saved epoch, which for the released checkpoints is the whole run: losses, precision, recall, mAP50, mAP50-95, and learning rates. See [Reading the Embedded Training Log](#reading-the-embedded-training-log) for the code, or browse the same data as charts on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26). The Objects365 stage has its own log in the `yolo26*-objv1-150.pt` checkpoints.
 
 ### Can I reproduce the published COCO metrics with the released package?
 

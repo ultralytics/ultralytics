@@ -13,13 +13,13 @@ Ultralytics YOLO26 is a versatile AI framework that supports multiple [computer 
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/NAs-cfq9BDw"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/3Z0_Fxhm030"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Explore Ultralytics YOLO Tasks: <a href="https://www.ultralytics.com/blog/a-guide-to-deep-dive-into-object-detection-in-2025">Object Detection</a>, Segmentation, OBB, Tracking, and Pose Estimation.
+  <strong>Watch:</strong> Explore Ultralytics YOLO26 Tasks: <a href="https://www.ultralytics.com/blog/a-guide-to-deep-dive-into-object-detection-in-2025">Object Detection</a>, Segmentation, OBB, Tracking, Pose Estimation, and Depth Estimation.
 </p>
 
 ## [Detection](detect.md)

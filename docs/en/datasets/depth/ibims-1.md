@@ -65,7 +65,7 @@ iBims-1 is an external benchmark, so models are typically run with `predict` on 
 
 ## Pretrained Models
 
-The YOLO26 depth family is evaluated zero-shot on the iBims-1 benchmark. These models auto-download from the latest Ultralytics release, for example [YOLO26x-depth](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-depth.pt) from v8.4.0, and span a range of sizes (yolo26n/s/m/l/x-depth) for different accuracy and resource requirements.
+The YOLO26 depth family is evaluated zero-shot on the iBims-1 benchmark. These models auto-download from the latest Ultralytics release, for example [YOLO26x-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth) from v8.4.0, and span a range of sizes (yolo26n/s/m/l/x-depth) for different accuracy and resource requirements.
 
 ## Citations and Acknowledgments
 

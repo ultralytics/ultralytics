@@ -124,17 +124,17 @@ A parking management system built with [Ultralytics YOLO26](https://github.com/u
 Here's a table with the `ParkingManagement` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "json_file"]) }}
+{{ param_table(["model", "json_file", "line_width", "verbose"]) }}
 
 The `ParkingManagement` solution allows the use of several [`track`](../modes/track.md) parameters:
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 Moreover, the following visualization options are supported:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width"]) }}
+{{ param_table(["show"]) }}
 
 ## FAQ
 

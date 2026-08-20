@@ -229,7 +229,7 @@ class TTSTrack(BOTrack):
 
     Examples:
         Create and activate a new track
-        >>> track = TTSTrack([100, 200, 50, 80, 0], score=0.9, cls="person")
+        >>> track = TTSTrack(np.array([100, 200, 50, 80, 0]), score=0.9, cls="person")
         >>> track.activate(KalmanFilterXYWH(), frame_id=1)
     """
 
@@ -489,7 +489,7 @@ class TRACKTRACK:
             (unconfirmed if not track.is_activated else tracked).append(track)
         pool = joint_stracks(tracked, self.lost_stracks)
 
-        if img is not None:
+        if img is not None and self.gmc.method is not None:
             self._apply_gmc(img, dets_high, [pool, unconfirmed])
         TTSTrack.multi_predict(pool)
 

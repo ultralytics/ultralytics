@@ -1596,13 +1596,17 @@ class _SafeLoad:
     allow-list) and build models without `eval()`.
 
     Enabled per-process by the `ULTRALYTICS_SAFE_LOAD` env flag, or per-call by `torch_safe_load(..., safe_only=True)`.
-    Default loading (flag off) is unchanged.
+    Default loading (flag off) is unchanged. The globals a restricted load registers stay registered for the process, so
+    they also apply to any other `torch.load(weights_only=True)` call made afterwards.
     """
 
-    # Restricted loading reconstructs allow-listed classes via the torch.serialization.safe_globals context manager,
-    # added in torch 2.5. On older torch it is unavailable, so restricted loading degrades to a standard load there.
-    SUPPORTED = hasattr(torch.serialization, "safe_globals")
-    _globals = None  # cached allow-list, built once
+    # Restricted loading needs torch 2.6+: the checkpoint global scan and `(obj, "module.Name")` allow-list aliases.
+    # On older torch restricted loading degrades to a standard load.
+    SUPPORTED = hasattr(torch.serialization, "get_unsafe_globals_in_checkpoint")
+    _registry = None  # {"module.Name": allow-list entry}, built once per process
+    _lock = (
+        threading.Lock()
+    )  # add_safe_globals rebinds a process-global set; held across _build(), so no load may run at import
     _local = threading.local()  # per-thread flag set while a weights_only load is in progress
 
     @classmethod
@@ -1613,26 +1617,36 @@ class _SafeLoad:
     @classmethod
     @contextlib.contextmanager
     def loading(cls, weight):
-        """Load with `weights_only=True`: scope the allow-list to this load and mark the thread restricted, so a
-        checkpoint that reaches model construction (parse_model) also uses the no-eval, known-layer path.
-        """
-        if cls._globals is None:
-            cls._globals = cls._build()
-        allow = cls._globals
-        get_unsafe_globals = getattr(torch.serialization, "get_unsafe_globals_in_checkpoint", None)
-        try:
-            unsafe_globals = get_unsafe_globals(weight) if get_unsafe_globals else None
-        except ValueError:  # Unscannable checkpoint; preserve fallback globals and defer format handling to torch.load.
-            unsafe_globals = None
-        if unsafe_globals is None or any(name.startswith("torchvision.transforms.") for name in unsafe_globals):
-            import torchvision.transforms.transforms as tvt
-            from torchvision.transforms.functional import InterpolationMode
+        """Load with `weights_only=True`: register the globals this checkpoint needs and mark the thread restricted, so
+        a checkpoint that reaches model construction (parse_model) also uses the no-eval, known-layer path.
 
-            allow = [*allow, tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode]
+        Globals are registered with `add_safe_globals` for the life of the process, never scoped per load: the
+        `safe_globals()` context manager removes its entries from a process-global set on exit, so with concurrent
+        loads one thread's exit strips the allow-list out of another thread's in-flight unpickle. Registering only
+        the globals a checkpoint references also keeps the restricted unpickler fast — torch rebuilds its lookup from
+        the whole registered set on every GLOBAL/NEWOBJ/REDUCE/BUILD opcode, so a 660-entry allow-list nearly doubled
+        the load time of a checkpoint that references 20 of them.
+        """
+        try:
+            needed = torch.serialization.get_unsafe_globals_in_checkpoint(weight)
+        except ValueError:  # Not a torch.save() zip archive; torch.load reports the format error, nothing to register
+            needed = []
+        with cls._lock:
+            if cls._registry is None:
+                cls._registry = cls._build()
+            if any(name.startswith("torchvision.transforms.") for name in needed):
+                # Classification preprocessing transforms; imported only for checkpoints that serialize them.
+                import torchvision.transforms.transforms as tvt
+                from torchvision.transforms.functional import InterpolationMode
+
+                for obj in (tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode):
+                    cls._registry[f"{obj.__module__}.{obj.__qualname__}"] = obj
+            entries = [cls._registry[name] for name in needed if name in cls._registry]
+            if entries:
+                torch.serialization.add_safe_globals(entries)
         cls._local.active = True
         try:
-            with torch.serialization.safe_globals(allow):
-                yield
+            yield
         finally:
             cls._local.active = False
 
@@ -1673,7 +1687,8 @@ class _SafeLoad:
         `head.RealNVP`), plus legacy aliases.
 
         Returns:
-            (list): Items for `torch.serialization.safe_globals` — classes and `(obj, "module.Name")` aliases.
+            (dict): `torch.serialization.add_safe_globals` entries — classes and `(obj, "module.Name")` aliases — keyed
+                by the pickled "module.Name" path each one serves.
         """
         import enum
         import importlib
@@ -1738,7 +1753,7 @@ class _SafeLoad:
                 (pathlib.PosixPath, "pathlib.WindowsPath"),
                 (pathlib.PosixPath, f"{pathlib.WindowsPath.__module__}.{pathlib.WindowsPath.__qualname__}"),
             ]
-        return allow
+        return {(e[1] if isinstance(e, tuple) else f"{e.__module__}.{e.__qualname__}"): e for e in allow}
 
 
 def torch_safe_load(weight, safe_only=None):
@@ -1789,7 +1804,7 @@ def torch_safe_load(weight, safe_only=None):
             },
         ):
             if safe_only:
-                with _SafeLoad.loading(file):  # weights_only load scoped to the known-class allow-list
+                with _SafeLoad.loading(file):  # weights_only load against the known-class allow-list
                     return torch_load(file, map_location="cpu", weights_only=True)
             return torch_load(file, map_location="cpu")
 

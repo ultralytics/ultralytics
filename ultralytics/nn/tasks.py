@@ -1622,8 +1622,8 @@ class _SafeLoad:
         get_unsafe_globals = getattr(torch.serialization, "get_unsafe_globals_in_checkpoint", None)
         try:
             unsafe_globals = get_unsafe_globals(weight) if get_unsafe_globals else None
-        except ValueError:  # Not a regular torch.save checkpoint; defer format handling to torch.load.
-            unsafe_globals = ()
+        except ValueError:  # Unscannable checkpoint; preserve fallback globals and defer format handling to torch.load.
+            unsafe_globals = None
         if unsafe_globals is None or any(name.startswith("torchvision.transforms.") for name in unsafe_globals):
             import torchvision.transforms.transforms as tvt
             from torchvision.transforms.functional import InterpolationMode

@@ -1604,7 +1604,9 @@ class _SafeLoad:
     # On older torch restricted loading degrades to a standard load.
     SUPPORTED = hasattr(torch.serialization, "get_unsafe_globals_in_checkpoint")
     _registry = None  # {"module.Name": allow-list entry}, built once per process
-    _lock = threading.Lock()  # torch's add_safe_globals rebinds a process-global set: serialize registrations
+    _lock = (
+        threading.Lock()
+    )  # add_safe_globals rebinds a process-global set; held across _build(), so no load may run at import
     _local = threading.local()  # per-thread flag set while a weights_only load is in progress
 
     @classmethod

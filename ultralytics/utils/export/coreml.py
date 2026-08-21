@@ -45,7 +45,6 @@ class IOSDetectModel(nn.Module):
         return cls, xywh * self.normalize
 
 
-
 def pipeline_coreml(
     model: Any,
     output_shape: tuple[int, ...],

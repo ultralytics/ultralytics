@@ -515,32 +515,34 @@ def test_export_coreml_nms_support(model_name, task, expected_nms, monkeypatch):
         # Pose + nms=False -> coreml multiarray
         # Output tensor: 4 (box) + 1 (cls) + 51 (keypoints) = 56
         ("yolo11n-pose.yaml", False, 1, 56, None),
-    ]
+    ],
 )
-def test_export_coreml_nms_architectures(tmp_path, model_name, nms, expected_outputs, expected_detect_shape, expected_proto_shape):
+def test_export_coreml_nms_architectures(
+    tmp_path, model_name, nms, expected_outputs, expected_detect_shape, expected_proto_shape
+):
     """Test CoreML NMS preserves mask coefficients and keypoints, and correctly routes Detect vs Segment/Pose."""
     import coremltools as ct
-    
+
     # Export with small imgsz to speed up test execution
     file = YOLO(model_name).export(format="coreml", nms=nms, imgsz=160)
     spec = ct.utils.load_spec(str(file))
     outputs = spec.description.output
-    
+
     assert len(outputs) == expected_outputs, f"Expected {expected_outputs} outputs, got {len(outputs)}"
-    
+
     if nms and "seg" not in model_name and "pose" not in model_name:
         # Detect + nms=True uses pipeline_coreml which outputs explicitly named tensors
         names = [out.name for out in outputs]
         assert "confidence" in names and "coordinates" in names
         return
-        
+
     shapes = [tuple(out.type.multiArrayType.shape) for out in outputs]
-    
+
     if "seg" in model_name:
         # Segment models have a prototype output and a detections output
         has_proto = any(len(s) == 4 and s[1] == expected_proto_shape[1] for s in shapes)
         assert has_proto, f"Prototype output missing in shapes: {shapes}"
-        
+
         # Verify the detection tensor contains the 32 mask coefficients
         if nms:
             # (1, max_det, 38)
@@ -548,9 +550,9 @@ def test_export_coreml_nms_architectures(tmp_path, model_name, nms, expected_out
         else:
             # (1, 116, anchors)
             has_det = any(len(s) == 3 and s[1] == expected_detect_shape for s in shapes)
-            
+
         assert has_det, f"Detection output missing or lost mask coefficients: {shapes}"
-        
+
     elif "pose" in model_name:
         # Verify the detection tensor contains the 51 keypoint values
         if nms:

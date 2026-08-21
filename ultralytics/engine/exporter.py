@@ -1286,7 +1286,6 @@ class Exporter:
             torch2coreml,
         )
 
-
         # numpy 2.4.x breaks coremltools CoreML export https://github.com/apple/coremltools/issues/2633
         check_requirements(["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"])
         import coremltools as ct

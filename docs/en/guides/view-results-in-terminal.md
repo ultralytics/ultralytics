@@ -33,7 +33,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
     ```
 
     <p align="center">
-      <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/vscode-enable-terminal-images-setting.avif" alt="VSCode enable terminal images setting">
+      <img width="800" src="https://cdn.ul.run/i/1612186c3f4dc7738b5d78340c28cb7e.avif" alt="VSCode enable terminal images setting">
     </p>
 
 2. Install the `python-sixel` library in your virtual environment. This is a [fork](https://github.com/lubosz/python-sixel?tab=readme-ov-file) of the `PySixel` library, which is no longer maintained.
@@ -94,7 +94,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 ## Example Inference Results
 
 <p align="center">
-  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/view-image-in-terminal.avif" alt="YOLO inference results displayed in terminal">
+  <img width="800" src="https://cdn.ul.run/i/f25c5ed919a7a68de875b2c3028f5723.avif" alt="YOLO inference results displayed in terminal">
 </p>
 
 !!! danger "Videos and GIFs are untested"

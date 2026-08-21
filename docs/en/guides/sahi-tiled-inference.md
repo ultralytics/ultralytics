@@ -54,8 +54,8 @@ Sliced Inference refers to the practice of subdividing a large or high-resolutio
     <th>YOLO26 with SAHI</th>
   </tr>
   <tr>
-    <td><img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov8-without-sahi.avif" alt="YOLO26 without SAHI" width="640"></td>
-    <td><img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov8-with-sahi.avif" alt="YOLO26 with SAHI" width="640"></td>
+    <td><img src="https://cdn.ul.run/i/1865c0db3cd5e950fa75d07c6f5f38bb.avif" alt="YOLO26 without SAHI" width="640"></td>
+    <td><img src="https://cdn.ul.run/i/9f337a31d7085922645a191325a4a419.avif" alt="YOLO26 with SAHI" width="640"></td>
   </tr>
 </table>
 

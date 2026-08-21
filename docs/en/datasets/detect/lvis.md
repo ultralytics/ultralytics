@@ -26,7 +26,7 @@ The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale [object detect
 </p>
 
 <p align="center">
-    <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/lvis-dataset-example-images.avif" alt="LVIS large vocabulary instance segmentation dataset">
+    <img width="640" src="https://cdn.ul.run/i/d6581aa0d474f8c8592580239fa60898.avif" alt="LVIS large vocabulary instance segmentation dataset">
 </p>
 
 ## Key Features
@@ -94,7 +94,7 @@ To train a YOLO26n model on the LVIS dataset for 100 [epochs](https://www.ultral
 
 The LVIS dataset contains diverse images with many object categories in complex scenes. Below is an example of a mosaiced training batch:
 
-![LVIS large vocabulary instance segmentation dataset mosaic](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/lvis-mosaiced-training-batch.avif)
+![LVIS large vocabulary instance segmentation dataset mosaic](https://cdn.ul.run/i/3c2b9360ffd8f0e28875a5fe3ac1fff9.avif)
 
 - **Mosaiced Image**: This training batch combines multiple LVIS images into one through mosaicing, a technique that increases the variety of objects and scenes in each batch and helps the model generalize to different object sizes, aspect ratios, and contexts.
 

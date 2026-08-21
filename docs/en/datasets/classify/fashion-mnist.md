@@ -80,7 +80,7 @@ Train a YOLO model on Fashion-MNIST for 100 [epochs](https://www.ultralytics.com
 
 Sample images from the Fashion-MNIST dataset:
 
-![Fashion-MNIST clothing classification dataset samples](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/fashion-mnist-sample.avif)
+![Fashion-MNIST clothing classification dataset samples](https://cdn.ul.run/i/a6bf21f75576305211b4f4c6054fa47d.avif)
 
 The samples show the variety of clothing categories in the Fashion-MNIST dataset, underlining the value of a varied dataset for training robust image classification models.
 

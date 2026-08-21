@@ -24,7 +24,7 @@ Analytics with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/)
 
 |                                                              Line Graph                                                              |                                                             Bar Plot                                                              |                                                               Pie Chart                                                               |
 | :----------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------: |
-| ![YOLO analytics line graph for object tracking](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-line-graph.avif) | ![YOLO analytics bar plot for detection counts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-bar-plot.avif) | ![YOLO analytics pie chart for class distribution](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-pie-chart.avif) |
+| ![YOLO analytics line graph for object tracking](https://cdn.ul.run/i/ab5f7bbe8dbf3ffa16c5b3f57e2a1e62.avif) | ![YOLO analytics bar plot for detection counts](https://cdn.ul.run/i/fb022fb21fdc90c61acd4f7f4271e1aa.avif) | ![YOLO analytics pie chart for class distribution](https://cdn.ul.run/i/cf6e1e1697aa19aa016600c7fe8ea937.avif) |
 
 ## Why Visualize Detection Data?
 

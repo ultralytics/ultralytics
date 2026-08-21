@@ -79,7 +79,7 @@ Train a YOLO model on Caltech-256 for 100 [epochs](https://www.ultralytics.com/g
 
 The Caltech-256 dataset contains high-quality color images of various objects, providing a well-structured dataset for [image classification](https://www.ultralytics.com/glossary/image-classification) tasks. Here are some examples of images from the dataset ([credit](https://ml4a.github.io/demos/tsne_viewer.html)):
 
-![Caltech-256 image classification dataset samples](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/caltech256-sample-image.avif)
+![Caltech-256 image classification dataset samples](https://cdn.ul.run/i/f8d04e02a43b5c41b2373fc4e7bc61c6.avif)
 
 The samples show the diversity and complexity of the objects in the Caltech-256 dataset, underlining the value of a varied dataset for training robust object recognition models.
 

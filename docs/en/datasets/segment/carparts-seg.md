@@ -105,7 +105,7 @@ To train an [Ultralytics YOLO26](../../models/yolo26.md) model on the Carparts S
 
 Below is an example image from the Carparts Segmentation Dataset with its [object segmentation](../../tasks/segment.md) masks overlaid, showing how individual car parts are outlined and labeled:
 
-![Car parts segmentation dataset sample image](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/carparts-seg-sample.avif)
+![Car parts segmentation dataset sample image](https://cdn.ul.run/i/9b08df913c58411bff2db52e5e00f36e.avif)
 
 The dataset spans varied locations, lighting conditions, and object densities, giving models trained on it exposure to the range of real-world scenes they'll need to generalize across.
 

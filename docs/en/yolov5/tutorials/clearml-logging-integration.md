@@ -163,7 +163,7 @@ python utils/loggers/clearml/hpo.py
 
 Switch `task.execute_locally()` to `task.execute()` to push the job to a ClearML queue for a remote agent to pick up.
 
-![ClearML HPO dashboard with YOLOv5 metrics](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/hpo-clearml-experiment.avif)
+![ClearML HPO dashboard with YOLOv5 metrics](https://cdn.ul.run/i/49f494e1b64967a77f01b991fcf3c1f1.avif)
 
 ## 🤯 Remote Execution (Advanced)
 
@@ -215,7 +215,7 @@ ClearML ships with [autoscalers](https://docs.clear.ml/docs/latest/docs/guides/s
 
 Watch the getting-started video below:
 
-[![Watch the video](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clearml-autoscalers-video-thumbnail.avif)](https://youtu.be/j4XVMAaUt3E)
+[![Watch the video](https://cdn.ul.run/i/4b345f5a6f3554421759f8af9ed2b267.avif)](https://youtu.be/j4XVMAaUt3E)
 
 ## Learn More
 

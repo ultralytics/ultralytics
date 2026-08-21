@@ -80,7 +80,7 @@ Train a YOLO model on CIFAR-100 for 100 [epochs](https://www.ultralytics.com/glo
 
 Sample images from the CIFAR-100 dataset:
 
-![CIFAR-100 image classification dataset samples](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/cifar100-sample-image.avif)
+![CIFAR-100 image classification dataset samples](https://cdn.ul.run/i/2499e5e8ee6f126a00dc508052af4dd4.avif)
 
 The samples show the diversity of the objects in the CIFAR-100 dataset, underlining the value of a varied dataset for training robust image classification models.
 

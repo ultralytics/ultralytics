@@ -6,7 +6,7 @@ keywords: YOLO models, thread-safe, Python threading, model inference, concurren
 
 # Thread-Safe Inference with YOLO Models
 
-To run [Ultralytics YOLO](https://www.ultralytics.com/) [inference](../modes/predict.md) safely across Python threads, instantiate a separate `YOLO` model inside each thread instead of sharing one instance across them. Sharing a single model causes race conditions that corrupt its internal state and produce unpredictable results, because Python's `threading` module runs the threads concurrently against the same object. This guide explains why sharing fails, shows the safe per-thread pattern, and covers the `ThreadingLocked` decorator for cases where you must share an instance.
+To run [Ultralytics YOLO](https://www.ultralytics.com) [inference](../modes/predict.md) safely across Python threads, instantiate a separate `YOLO` model inside each thread instead of sharing one instance across them. Sharing a single model causes race conditions that corrupt its internal state and produce unpredictable results, because Python's `threading` module runs the threads concurrently against the same object. This guide explains why sharing fails, shows the safe per-thread pattern, and covers the `ThreadingLocked` decorator for cases where you must share an instance.
 
 Jump to [why sharing a model fails](#the-danger-of-shared-model-instances), the [thread-safe pattern](#thread-safe-inference), or the [`ThreadingLocked` decorator](#using-the-threadinglocked-decorator).
 

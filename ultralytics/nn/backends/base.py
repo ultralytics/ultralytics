@@ -44,7 +44,8 @@ def read_export_metadata(file: str | Path) -> dict:
     Every Ultralytics export embeds the metadata dict built by `Exporter`, but each format stores it differently:
     directory-based formats write a `metadata.yaml` sidecar, while single-file formats embed it in a length-prefixed
     JSON header (`.engine`), a zip entry (`.torchscript`, `.tflite`), or protobuf metadata props (`.onnx`). Reading it
-    up front resolves a model's task and head when its filename carries neither, i.e. `best.engine`.
+    up front resolves a model's task and head when its filename carries neither, i.e. `best.engine`. MNN keeps its
+    metadata in a flatbuffer `bizCode` field and Triton serves it over HTTP, so neither is read here.
 
     Args:
         file (str | Path): Path to an exported model file or directory.

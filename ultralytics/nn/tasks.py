@@ -2253,15 +2253,14 @@ def guess_model_task(model):
             elif isinstance(m, (Detect, WorldDetect, YOLOEDetect, v10Detect)):
                 return "detect"
 
-    # Guess from export metadata, which is authoritative for exports whose filename carries no task, i.e. best.onnx
     if isinstance(model, (str, Path)):
         from ultralytics.nn.backends.base import read_export_metadata
 
+        # Guess from export metadata, authoritative for exports whose filename carries no task, i.e. best.onnx
         if task := read_export_metadata(model).get("task"):
             return task
 
-    # Guess from model filename
-    if isinstance(model, (str, Path)):
+        # Guess from model filename
         model = Path(model)
         if "-sem" in model.stem or "semantic" in model.parts:
             return "semantic"

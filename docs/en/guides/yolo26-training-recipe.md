@@ -147,24 +147,11 @@ optimizer: MuSGD
 
 This works for any `.pt` checkpoint — official releases and your own fine-tuned models alike. For the full list of configurable training arguments, see the [training configuration reference](../usage/cfg.md).
 
-### Reading the Embedded Training Log
+### Viewing the Training Curves
 
-`train_args` is not the only thing stored. Every checkpoint also carries the complete per-epoch `results.csv` of the run that produced it under `train_results`, the final validation metrics under `train_metrics`, and the code revision under `git`:
+`train_args` is not the only thing stored. Every checkpoint also carries the complete per-epoch `results.csv` of the run that produced it, along with its final validation metrics. The curves for the official YOLO26 checkpoints are published on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26), and any `.pt` file can be [dragged and dropped onto a project](../platform/train/models.md#upload-model) to chart the same data, with the metadata parsed out of the file automatically.
 
-```python
-from ultralytics import YOLO
-
-ckpt = YOLO("yolo26s.pt").ckpt
-
-results = ckpt["train_results"]  # column name -> list of per-epoch values
-print(results.keys())  # 'epoch', 'train/box_loss', 'metrics/mAP50-95(B)', 'lr/pg0', ...
-print(results["metrics/mAP50-95(B)"])  # mAP progression, epoch by epoch
-
-print(ckpt["train_metrics"])  # final validation metrics
-print(ckpt["git"])  # repository, branch, and commit of the run
-```
-
-Each checkpoint covers the stage that produced it, so the COCO curve is in `yolo26s.pt` and the 150-epoch Objects365 curve is in `yolo26s-objv1-150.pt`. [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26) reads the same data out of the checkpoints and renders it as charts.
+Each checkpoint covers the stage that produced it, so the COCO curves are in `yolo26s.pt` and the 150-epoch Objects365 curves are in `yolo26s-objv1-150.pt`.
 
 ### Checking the Code Revision
 
@@ -343,7 +330,7 @@ No. Each COCO checkpoint was fine-tuned from an Objects365v1 checkpoint of the s
 
 ### Where are the full training logs and loss curves?
 
-Inside the checkpoints. `ckpt["train_results"]` holds the complete per-epoch `results.csv` of the run: losses, precision, recall, mAP50, mAP50-95, and learning rates. See [Reading the Embedded Training Log](#reading-the-embedded-training-log) for the code, or browse the same data as charts on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26). The Objects365 stage has its own log in the `yolo26*-objv1-150.pt` checkpoints.
+Inside the checkpoints, and charted on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26). Every checkpoint stores the complete per-epoch `results.csv` of its run, so dropping a `.pt` file onto a Platform project plots the losses, mAP progression, and learning rates without any code. See [Viewing the Training Curves](#viewing-the-training-curves). The Objects365 stage has its own log in the `yolo26*-objv1-150.pt` checkpoints.
 
 ### Can I reproduce the published COCO metrics with the released package?
 

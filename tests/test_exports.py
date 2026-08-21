@@ -462,11 +462,16 @@ def test_export_coreml_rtdetr():
 
 
 @pytest.mark.parametrize(
-    "model, expected_nms",
-    [("yolo11n.yaml", True), ("yolo11n-seg.yaml", False), ("yolo11n-pose.yaml", False)],
+    "model_name, task, expected_nms",
+    [
+        ("yolo11n.yaml", "detect", True),
+        ("yolo11n-seg.yaml", "segment", True),
+        ("yolo11n-pose.yaml", "pose", True),
+        ("yolo11n-seg.yaml", "semantic", False),
+    ],
 )
-def test_export_coreml_nms_detect_only(model, expected_nms, monkeypatch):
-    """Test CoreML 'nms=True' stays enabled for detect but warns and is forced off for other tasks."""
+def test_export_coreml_nms_support(model_name, task, expected_nms, monkeypatch):
+    """Test CoreML 'nms=True' stays enabled for detect/segment/pose but warns and is forced off for others."""
     captured = {}
     warnings = []
 
@@ -476,10 +481,83 @@ def test_export_coreml_nms_detect_only(model, expected_nms, monkeypatch):
 
     monkeypatch.setattr(Exporter, "export_coreml", stub)  # skip the actual CoreML export
     monkeypatch.setattr("ultralytics.engine.exporter.LOGGER.warning", warnings.append)
-    YOLO(model).export(format="coreml", nms=True, imgsz=32)
+    YOLO(model_name, task=task).export(format="coreml", nms=True, imgsz=32)
     assert captured["nms"] is expected_nms
     assert captured["metadata_nms"] is expected_nms
-    assert any("only supported for detect models" in warning for warning in warnings) is not expected_nms
+    if not expected_nms:
+        assert any("Forcing 'nms=False'" in warning for warning in warnings)
+
+
+@pytest.mark.skipif(not TORCH_1_11, reason="CoreML export requires torch>=1.11")
+@pytest.mark.skipif(WINDOWS, reason="CoreML not supported on Windows")
+@pytest.mark.skipif(LINUX and ARM64, reason="CoreML not supported on aarch64 Linux")
+@pytest.mark.skipif(
+    MACOS and checks.IS_PYTHON_MINIMUM_3_13,
+    reason="coremltools deadlocks after OpenVINO on macOS Python 3.13 (conflicting OpenMP runtimes)",
+)
+@pytest.mark.parametrize(
+    "model_name, nms, expected_outputs, expected_detect_shape, expected_proto_shape",
+    [
+        # Detect + nms=True -> pipeline_coreml (confidence, coordinates)
+        ("yolo11n.yaml", True, 2, None, None),
+        # Segment + nms=True -> NMSModel (detections, prototypes)
+        # NMS detection tensor: 4 (box) + 1 (score) + 1 (cls) + 32 (masks) = 38
+        ("yolo11n-seg.yaml", True, 2, 38, (1, 32, 160, 160)),
+        # Pose + nms=True -> NMSModel (detections)
+        # NMS detection tensor: 4 (box) + 1 (score) + 1 (cls) + 51 (keypoints) = 57
+        ("yolo11n-pose.yaml", True, 1, 57, None),
+        # Detect + nms=False -> coreml multiarray
+        # Output tensor: 4 (box) + 80 (cls) = 84
+        ("yolo11n.yaml", False, 1, 84, None),
+        # Segment + nms=False -> coreml multiarray
+        # Output tensor: 4 (box) + 80 (cls) + 32 (masks) = 116
+        ("yolo11n-seg.yaml", False, 2, 116, (1, 32, 160, 160)),
+        # Pose + nms=False -> coreml multiarray
+        # Output tensor: 4 (box) + 1 (cls) + 51 (keypoints) = 56
+        ("yolo11n-pose.yaml", False, 1, 56, None),
+    ]
+)
+def test_export_coreml_nms_architectures(tmp_path, model_name, nms, expected_outputs, expected_detect_shape, expected_proto_shape):
+    """Test CoreML NMS preserves mask coefficients and keypoints, and correctly routes Detect vs Segment/Pose."""
+    import coremltools as ct
+    
+    # Export with small imgsz to speed up test execution
+    file = YOLO(model_name).export(format="coreml", nms=nms, imgsz=160)
+    spec = ct.utils.load_spec(str(file))
+    outputs = spec.description.output
+    
+    assert len(outputs) == expected_outputs, f"Expected {expected_outputs} outputs, got {len(outputs)}"
+    
+    if nms and "seg" not in model_name and "pose" not in model_name:
+        # Detect + nms=True uses pipeline_coreml which outputs explicitly named tensors
+        names = [out.name for out in outputs]
+        assert "confidence" in names and "coordinates" in names
+        return
+        
+    shapes = [tuple(out.type.multiArrayType.shape) for out in outputs]
+    
+    if "seg" in model_name:
+        # Segment models have a prototype output and a detections output
+        has_proto = any(len(s) == 4 and s[1] == expected_proto_shape[1] for s in shapes)
+        assert has_proto, f"Prototype output missing in shapes: {shapes}"
+        
+        # Verify the detection tensor contains the 32 mask coefficients
+        if nms:
+            # (1, max_det, 38)
+            has_det = any(len(s) == 3 and s[2] == expected_detect_shape for s in shapes)
+        else:
+            # (1, 116, anchors)
+            has_det = any(len(s) == 3 and s[1] == expected_detect_shape for s in shapes)
+            
+        assert has_det, f"Detection output missing or lost mask coefficients: {shapes}"
+        
+    elif "pose" in model_name:
+        # Verify the detection tensor contains the 51 keypoint values
+        if nms:
+            has_det = any(len(s) == 3 and s[2] == expected_detect_shape for s in shapes)
+        else:
+            has_det = any(len(s) == 3 and s[1] == expected_detect_shape for s in shapes)
+        assert has_det, f"Detection output missing or lost keypoints: {shapes}"
 
 
 @pytest.mark.skipif(True, reason="Test disabled")

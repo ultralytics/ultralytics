@@ -45,57 +45,6 @@ class IOSDetectModel(nn.Module):
         return cls, xywh * self.normalize
 
 
-class IOSSegmentModel(IOSDetectModel):
-    """Wrap an Ultralytics YOLO Segment model for Apple iOS CoreML export."""
-
-    def __init__(self, model: nn.Module, im: torch.Tensor, mlprogram: bool = True):
-        """Initialize the IOSSegmentModel class."""
-        super().__init__(model, im, mlprogram)
-        self.nm = model.model[-1].nm  # number of masks
-
-    def forward(self, x: torch.Tensor):
-        """Normalize predictions and append scaled mask coefficients to the confidence tensor."""
-        output = self.model(x)
-        # Segment model outputs (preds, protos) or similar. For NMS we only care about preds.
-        preds = output[0] if isinstance(output, tuple) else output
-        preds = preds[0]  # strip batch dimension
-        xywh, cls, masks = preds.transpose(0, 1).split((4, self.nc, self.nm), 1)
-
-        if self.mlprogram and self.nc % 80 != 0:
-            pad_length = int(((self.nc + 79) // 80) * 80) - self.nc
-            cls = torch.nn.functional.pad(cls, (0, pad_length, 0, 0), "constant", 0)
-
-        # Scale mask coefficients to prevent them from becoming the argmax class during NMS
-        masks = masks * 1e-4
-        conf = torch.cat([cls, masks], dim=1)
-        return conf, xywh * self.normalize
-
-
-class IOSPoseModel(IOSDetectModel):
-    """Wrap an Ultralytics YOLO Pose model for Apple iOS CoreML export."""
-
-    def __init__(self, model: nn.Module, im: torch.Tensor, mlprogram: bool = True):
-        """Initialize the IOSPoseModel class."""
-        super().__init__(model, im, mlprogram)
-        kpt_shape = model.model[-1].kpt_shape
-        self.nk = kpt_shape[0] * kpt_shape[1]  # number of keypoint coordinates
-
-    def forward(self, x: torch.Tensor):
-        """Normalize predictions and append scaled keypoints to the confidence tensor."""
-        preds = self.model(x)
-        preds = preds[0] if isinstance(preds, tuple) else preds
-        preds = preds[0]  # strip batch dimension
-        xywh, cls, keypoints = preds.transpose(0, 1).split((4, self.nc, self.nk), 1)
-
-        if self.mlprogram and self.nc % 80 != 0:
-            pad_length = int(((self.nc + 79) // 80) * 80) - self.nc
-            cls = torch.nn.functional.pad(cls, (0, pad_length, 0, 0), "constant", 0)
-
-        # Scale keypoints to prevent them from becoming the argmax class during NMS
-        keypoints = keypoints * 1e-4
-        conf = torch.cat([cls, keypoints], dim=1)
-        return conf, xywh * self.normalize
-
 
 def pipeline_coreml(
     model: Any,
@@ -131,8 +80,9 @@ def pipeline_coreml(
     spec = model.get_spec()
     outs = list(iter(spec.description.output))
     if mlmodel:  # mlmodel doesn't infer shapes automatically
-        outs[0].type.multiArrayType.shape[:] = output_shape[2], output_shape[1] - 4
-        outs[1].type.multiArrayType.shape[:] = output_shape[2], 4
+        shape = output_shape[0] if isinstance(output_shape[0], tuple) else output_shape
+        outs[0].type.multiArrayType.shape[:] = shape[2], shape[1] - 4
+        outs[1].type.multiArrayType.shape[:] = shape[2], 4
 
     names = metadata["names"]
     nx = spec.description.input[0].type.imageType.width

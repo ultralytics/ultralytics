@@ -110,6 +110,7 @@ from ultralytics.utils import (
     RKNN_CHIPS,
     SETTINGS,
     TORCH_VERSION,
+    WINDOWS,
     YAML,
     callbacks,
     colorstr,
@@ -571,7 +572,7 @@ class Exporter:
         if fmt in {"tflite", "tfjs"}:  # deprecated formats, replaced by the unified Google LiteRT export
             LOGGER.warning(
                 f"format='{fmt}' is deprecated as of 8.4.83 and has been replaced by the unified Google LiteRT "
-                f"format. Exporting format='litert' instead. See https://docs.ultralytics.com/integrations/litert"
+                f"format. Exporting format='litert' instead. See https://docs.ultralytics.com/integrations/litert/"
             )
             fmt = self.args.format = "litert"
         fmts_dict = export_formats()
@@ -692,7 +693,7 @@ class Exporter:
                         model.end2end = False
                         LOGGER.warning(
                             "TensorRT 10.3.0 on JetPack 6 with int8 has known end2end build issues, disabling end2end branch. "
-                            "For a fix, see https://docs.ultralytics.com/guides/nvidia-jetson#why-does-my-tensorrt-int8-export-disable-end2end-on-jetpack-6"
+                            "For a fix, see https://docs.ultralytics.com/guides/nvidia-jetson/#why-does-my-tensorrt-int8-export-disable-end2end-on-jetpack-6"
                             ""
                         )
                 except ImportError:
@@ -735,7 +736,7 @@ class Exporter:
             if not str(self.args.name).startswith("Ascend"):
                 raise ValueError(
                     f"Invalid Ascend SoC name='{self.args.name}'. Expected a CANN --soc_version such as "
-                    f"'Ascend310P3' or 'Ascend310B4'. See https://docs.ultralytics.com/integrations/ascend"
+                    f"'Ascend310P3' or 'Ascend310B4'. See https://docs.ultralytics.com/integrations/ascend/"
                 )
             if self.args.quantize is None:
                 self.args.quantize = 16  # Ascend AI Core convolutions accept only FP16/INT8 inputs, never FP32
@@ -752,11 +753,6 @@ class Exporter:
             )
         if self.args.nms and model.task in {"semantic", "depth"}:
             LOGGER.warning(f"'nms=True' is not valid for {model.task} models. Forcing 'nms=False'.")
-            self.args.nms = False
-        if fmt == "coreml" and self.args.nms and model.task not in {"detect", "segment", "pose"}:
-            LOGGER.warning(
-                "CoreML 'nms=True' is only supported for detect, segment, and pose models. Forcing 'nms=False'."
-            )
             self.args.nms = False
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
@@ -783,6 +779,8 @@ class Exporter:
                 assert model.task != "classify" and not isinstance(model.model[-1], RTDETRDecoder), (
                     "'dynamic=True' is not supported for CoreML classification or RT-DETR models."
                 )
+        if fmt in {"engine", "onnx", "openvino"} and self.args.dynamic and self.args.nms:
+            LOGGER.warning("'dynamic=True' with 'nms=True' keeps height and width fixed; only batch is dynamic.")
         if (fmt in {"engine", "coreml"} or self.args.nms) and self.args.dynamic and self.args.batch == 1:
             LOGGER.warning(
                 f"'dynamic=True' model with '{'nms=True' if self.args.nms else f'format={self.args.format}'}' requires max batch size, i.e. 'batch=16'"
@@ -813,7 +811,7 @@ class Exporter:
             if is_intel():
                 LOGGER.info(
                     "💡 ProTip: Export to OpenVINO format for best performance on Intel hardware."
-                    " Learn more at https://docs.ultralytics.com/integrations/openvino"
+                    " Learn more at https://docs.ultralytics.com/integrations/openvino/"
                 )
             SETTINGS["openvino_msg"] = False
 
@@ -888,7 +886,13 @@ class Exporter:
 
         y = None
         for _ in range(2):  # dry runs
-            y = NMSModel(model, self.args)(im) if self.args.nms and fmt not in {"coreml", "imx"} else model(im)
+            if self.args.nms and fmt != "imx":
+                if fmt == "coreml" and model.task == "detect":
+                    y = model(im)
+                else:
+                    y = NMSModel(model, self.args)(im)
+            else:
+                y = model(im)
         if self.args.quantize == 16 and fmt in {"onnx", "torchscript"} and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
 
@@ -1058,8 +1062,8 @@ class Exporter:
                 dynamic["output0"] = {0: "batch", 2: "height", 3: "width"}  # shape(1,1,640,640) dense map, not anchors
             elif isinstance(self.model, DetectionModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 84, 8400)
-            if self.args.nms:
-                dynamic["output0"].pop(2)
+            if self.args.nms:  # NMS postprocessing bakes the traced anchor count into the graph
+                dynamic["images"] = dynamic["output0"] = {0: "batch"}
         if self.args.nms and self.model.task == "obb":
             self.args.opset = opset  # for NMSModel
             self.args.simplify = True  # fix OBB runtime error related to topk
@@ -1197,6 +1201,7 @@ class Exporter:
             quantize=self.args.quantize,
             calibration_dataset=calibration_dataset,
             int8_detect=isinstance(self.model.model[-1], Detect),
+            nms=self.args.nms,
             prefix=prefix,
         )
 
@@ -1277,29 +1282,26 @@ class Exporter:
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
         from ultralytics.utils.export.coreml import (
             IOSDetectModel,
-            IOSPoseModel,
-            IOSSegmentModel,
             pipeline_coreml,
             torch2coreml,
         )
+
 
         # numpy 2.4.x breaks coremltools CoreML export https://github.com/apple/coremltools/issues/2633
         check_requirements(["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"])
         import coremltools as ct
 
-        # assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
+        assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
         assert TORCH_1_11, "CoreML export requires torch>=1.11"
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
         if f.is_dir():
             shutil.rmtree(f)
 
         if self.args.nms:
-            if self.model.task == "segment":
-                model = IOSSegmentModel(self.model, self.im, mlprogram=not mlmodel)
-            elif self.model.task == "pose":
-                model = IOSPoseModel(self.model, self.im, mlprogram=not mlmodel)
-            else:
+            if self.model.task == "detect":
                 model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel)
+            else:
+                model = NMSModel(self.model, self.args)
         else:
             model = self.model
 
@@ -1338,7 +1340,7 @@ class Exporter:
             prefix=prefix,
         )
 
-        if self.args.nms:
+        if self.args.nms and self.model.task == "detect":
             ct_model = pipeline_coreml(
                 ct_model,
                 self.output_shape,
@@ -1621,7 +1623,7 @@ class Exporter:
             f"\nHailo level-2 optimization will use {calibration_size} calibration images. "
             "Hailo recommends at least 1,024 representative images for best accuracy. "
             'Pass data="path/to/dataset.yaml". '
-            "See https://docs.ultralytics.com/integrations/hailo#export-a-hailo-hef-model"
+            "See https://docs.ultralytics.com/integrations/hailo/#export-a-hailo-hef-model"
         )
         head_index = len(self.model.model) - 1
         head = self.model.model[head_index]
@@ -1886,10 +1888,9 @@ class NMSModel(torch.nn.Module):
         if self.args.dynamic and self.args.batch > 1:  # batch size needs to always be same due to loop unroll
             pad = torch.zeros(torch.max(torch.tensor(self.args.batch - bs), torch.tensor(0)), *pred.shape[1:], **kwargs)
             pred = torch.cat((pred, pad))
-        if self.args.dynamic and self.args.format == "onnx" and self.obb:
-            pred = torch.cat((pred, pred.new_zeros(pred.shape[0], self.args.max_det * 5, pred.shape[2])), dim=1)
         boxes, scores, extras = pred.split([4, len(self.model.names), extra_shape], dim=2)
         scores, classes = scores.max(dim=-1)
+        self.args.max_det = min(pred.shape[1], self.args.max_det)  # in case num_anchors < max_det
         # (N, max_det, 4 coords + 1 class score + 1 class label + extra_shape).
         out = torch.zeros(pred.shape[0], self.args.max_det, boxes.shape[-1] + 2 + extra_shape, **kwargs)
         for i in range(bs):
@@ -1905,7 +1906,7 @@ class NMSModel(torch.nn.Module):
             # `8` is the minimum value experimented to get correct NMS results for obb
             multiplier = 8 if self.obb else 1 / max(len(self.model.names), 1)
             # Normalize boxes for NMS since large values for class offset causes issue with int8 quantization
-            nmsbox = multiplier * (nmsbox / torch._shape_as_tensor(x)[2:].max().to(**kwargs))
+            nmsbox = multiplier * (nmsbox / torch.tensor(x.shape[2:], **kwargs).max())
             if not self.args.agnostic_nms:  # class-wise NMS
                 end = 2 if self.obb else 4
                 # fully explicit expansion otherwise reshape error

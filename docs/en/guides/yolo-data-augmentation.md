@@ -326,7 +326,7 @@ Then launch the training with the Python API:
 - **Purpose**: Particularly useful for instance segmentation tasks and rare object classes. For example, in industrial defect detection where certain types of defects appear infrequently, copy-paste augmentation can artificially increase the occurrence of these rare defects by copying them from one image to another, helping the model better learn these underrepresented cases without requiring additional defective samples.
 - **Ultralytics' implementation**: [CopyPaste](../reference/data/augment.md#ultralytics.data.augment.CopyPaste)
 - **Note**:
-    - As pictured in the gif below, the `copy_paste` augmentation can be used to copy objects from one image to another.
+    - As shown in the video below, the `copy_paste` augmentation can be used to copy objects from one image to another.
     - Once an object is selected for copying, its IoA is computed against all objects already present in the target image, regardless of `copy_paste_mode`. The object is pasted only if all IoA values are below `0.3` (30%); it is not pasted if any IoA value is `0.3` or higher.
     - The IoA threshold cannot be changed with the current implementation and is set to `0.3` by default.
 

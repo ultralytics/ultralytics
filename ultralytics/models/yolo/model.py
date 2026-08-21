@@ -81,12 +81,9 @@ class YOLO(Model):
         else:
             # Continue with default YOLO initialization
             super().__init__(model=model, task=task, verbose=verbose)
-            head = (
-                self.model.model[-1]._get_name()
-                if hasattr(self.model, "model")  # PyTorch model, so read the head module directly
-                else read_export_metadata(self.model).get("head", "")  # exported model, so read the export metadata
-            )
-            if "RTDETR" in head:  # if RTDETR head
+            module = getattr(self.model, "model", None)  # None for exported models, which are held as a path
+            head = module[-1]._get_name() if module is not None else read_export_metadata(self.model).get("head")
+            if head == "RTDETRDecoder":  # if RTDETR head
                 from ultralytics import RTDETR
 
                 new_instance = RTDETR(self)

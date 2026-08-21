@@ -1620,7 +1620,10 @@ class _SafeLoad:
             cls._globals = cls._build()
         allow = cls._globals
         get_unsafe_globals = getattr(torch.serialization, "get_unsafe_globals_in_checkpoint", None)
-        unsafe_globals = get_unsafe_globals(weight) if get_unsafe_globals else None
+        try:
+            unsafe_globals = get_unsafe_globals(weight) if get_unsafe_globals else None
+        except ValueError:  # Not a regular torch.save checkpoint; defer format handling to torch.load.
+            unsafe_globals = ()
         if unsafe_globals is None or any(name.startswith("torchvision.transforms.") for name in unsafe_globals):
             import torchvision.transforms.transforms as tvt
             from torchvision.transforms.functional import InterpolationMode
@@ -1683,9 +1686,7 @@ class _SafeLoad:
         import ultralytics.nn.modules as ul_nn
         from ultralytics.nn import tasks as ul_tasks  # noqa: PLW0406
 
-        # Public torch.nn classes retain their canonical pickle paths, so importing every torch.nn submodule is wasted
-        # work and pulls unrelated distributed/compiler stacks into inference processes.
-        allow = [klass for _, klass in inspect.getmembers(torch_nn, inspect.isclass) if issubclass(klass, nn.Module)]
+        allow = []
 
         def _scan(pkg):
             mods = [pkg]
@@ -1701,6 +1702,7 @@ class _SafeLoad:
                         # Register under the path the class is reachable from — matches how a checkpoint pickled it.
                         allow.append((klass, f"{mod.__name__}.{name}"))
 
+        _scan(torch_nn)  # PyTorch nn modules
         _scan(ul_nn)  # ultralytics block/conv/head/transformer
         _scan(ul_tasks)  # ultralytics task models
 
@@ -1831,11 +1833,6 @@ def torch_safe_load(weight, safe_only=None):
         Path(file).unlink(missing_ok=True)
         file = attempt_download_asset(weight)
         ckpt = _load()
-
-    except ValueError as e:
-        if safe_only and "torchscript checkpoint" in str(e).lower():
-            raise TypeError(torchscript_error) from e
-        raise
 
     except ModuleNotFoundError as e:  # e.name is missing module name
         if e.name in {"models", "models.yolo", "models.common", "models.experimental"}:

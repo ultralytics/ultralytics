@@ -1599,8 +1599,8 @@ class _SafeLoad:
     Default loading (flag off) is unchanged.
     """
 
-    # Restricted loading reconstructs allow-listed classes via the torch.serialization.safe_globals context manager,
-    # added in torch 2.5. On older torch it is unavailable, so restricted loading degrades to a standard load there.
+    # Restricted loading needs torch.serialization's allow-list API (torch 2.5+); on older torch it is unavailable, so
+    # restricted loading degrades to a standard load there.
     SUPPORTED = hasattr(torch.serialization, "safe_globals")
     _globals = None  # cached allow-list, built once
     _local = threading.local()  # per-thread flag set while a weights_only load is in progress
@@ -1612,27 +1612,20 @@ class _SafeLoad:
 
     @classmethod
     @contextlib.contextmanager
-    def loading(cls, weight):
-        """Load with `weights_only=True`: scope the allow-list to this load and mark the thread restricted, so a
-        checkpoint that reaches model construction (parse_model) also uses the no-eval, known-layer path.
+    def loading(cls):
+        """Load with `weights_only=True`: mark the thread restricted, so a checkpoint that reaches model construction
+        (parse_model) also uses the no-eval, known-layer path.
         """
         if cls._globals is None:
-            cls._globals = cls._build()
-        allow = cls._globals
-        get_unsafe_globals = getattr(torch.serialization, "get_unsafe_globals_in_checkpoint", None)
-        try:
-            unsafe_globals = get_unsafe_globals(weight) if get_unsafe_globals else None
-        except ValueError:  # Unscannable checkpoint; preserve fallback globals and defer format handling to torch.load.
-            unsafe_globals = None
-        if unsafe_globals is None or any(name.startswith("torchvision.transforms.") for name in unsafe_globals):
-            import torchvision.transforms.transforms as tvt
-            from torchvision.transforms.functional import InterpolationMode
-
-            allow = [*allow, tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode]
+            # Add the allow-list once per process: torch.serialization.safe_globals() removes its entries from a
+            # process-global set on exit, so with concurrent loads one thread's exit strips the allow-list out of
+            # another thread's in-flight unpickle.
+            allow = cls._build()
+            torch.serialization.add_safe_globals(allow)
+            cls._globals = allow  # publish only after the add, so a racing thread never sees a cached-but-unadded list
         cls._local.active = True
         try:
-            with torch.serialization.safe_globals(allow):
-                yield
+            yield
         finally:
             cls._local.active = False
 
@@ -1673,7 +1666,7 @@ class _SafeLoad:
         `head.RealNVP`), plus legacy aliases.
 
         Returns:
-            (list): Items for `torch.serialization.safe_globals` — classes and `(obj, "module.Name")` aliases.
+            (list): Items for `torch.serialization.add_safe_globals` — classes and `(obj, "module.Name")` aliases.
         """
         import enum
         import importlib
@@ -1682,6 +1675,8 @@ class _SafeLoad:
         import pkgutil
 
         import torch.nn.modules as torch_nn
+        import torchvision.transforms.transforms as tvt
+        from torchvision.transforms.functional import InterpolationMode
 
         import ultralytics.nn.modules as ul_nn
         from ultralytics.nn import tasks as ul_tasks  # noqa: PLW0406
@@ -1709,6 +1704,8 @@ class _SafeLoad:
         # Non-nn.Module data globals in official checkpoints, incl. the pre-8.0.44 `ultralytics.yolo.utils` path.
         allow.append(IterableSimpleNamespace)
         allow.append((IterableSimpleNamespace, "ultralytics.yolo.utils.IterableSimpleNamespace"))
+        # torchvision transforms pickled into classification checkpoints (InterpolationMode is an Enum, not a Module).
+        allow += [tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode]
 
         # Legacy/cross-platform aliases (pickled paths with no current class namespace), mirroring temporary_modules().
         from ultralytics.utils.loss import E2EDetectLoss
@@ -1789,7 +1786,7 @@ def torch_safe_load(weight, safe_only=None):
             },
         ):
             if safe_only:
-                with _SafeLoad.loading(file):  # weights_only load scoped to the known-class allow-list
+                with _SafeLoad.loading():  # weights_only load against the known-class allow-list
                     return torch_load(file, map_location="cpu", weights_only=True)
             return torch_load(file, map_location="cpu")
 

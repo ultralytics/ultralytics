@@ -56,9 +56,9 @@ def read_export_metadata(file: str | Path) -> dict:
     import zipfile
 
     path = Path(file)
+    if path.suffix in {".pt", ".yaml", ".yml"}:  # checkpoints and configs are not exports
+        return {}
     try:
-        if path.suffix in {".pt", ".yaml", ".yml"}:  # checkpoints and configs are not exports
-            return {}
         if path.suffix == ".engine":
             with open(path, "rb") as f:
                 length = int.from_bytes(f.read(4), byteorder="little", signed=True)
@@ -74,15 +74,16 @@ def read_export_metadata(file: str | Path) -> dict:
         if path.suffix in {".mlpackage", ".mlmodel"}:  # Model.description.metadata.userDefined
             model = path / "Data/com.apple.CoreML/model.mlmodel" if path.suffix == ".mlpackage" else path
             return _read_proto_metadata(model, (2, 100, 100))
-        sidecar = (path if path.is_dir() else path.parent) / "metadata.yaml"  # openvino, paddle, ncnn, saved_model
-        if path.suffix == ".pb":  # a frozen graph keeps its metadata in the sibling saved_model directory
-            sidecar = next(path.resolve().parent.rglob(f"{path.stem}_saved_model*/metadata.yaml"), sidecar)
-        if sidecar.exists():
-            from ultralytics.utils import YAML
-
-            return YAML.load(sidecar)
     except (OSError, ValueError, KeyError, zipfile.BadZipFile):
-        pass
+        return {}  # a third-party or truncated file carries no Ultralytics header
+
+    sidecar = (path if path.is_dir() else path.parent) / "metadata.yaml"  # openvino, paddle, ncnn, saved_model
+    if path.suffix == ".pb":  # a frozen graph keeps its metadata in the sibling saved_model directory
+        sidecar = next(path.resolve().parent.rglob(f"{path.stem}_saved_model*/metadata.yaml"), sidecar)
+    if sidecar.exists():
+        from ultralytics.utils import YAML
+
+        return YAML.load(sidecar)
     return {}
 
 

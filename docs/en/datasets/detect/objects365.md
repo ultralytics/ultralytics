@@ -107,7 +107,7 @@ The Objects365 dataset supports a wide range of [deep learning](https://www.ultr
 - **Robotics and smart environments**: Broad household and street-object coverage helps robots and smart cameras recognize objects in unstructured scenes.
 - **Detector benchmarking**: The long class list and in-the-wild imagery make it a demanding benchmark for evaluating how well detection models generalize.
 
-To label your own images, train, and manage large-scale datasets in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com/).
+To label your own images, train, and manage large-scale datasets in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com).
 
 ## Dataset YAML
 

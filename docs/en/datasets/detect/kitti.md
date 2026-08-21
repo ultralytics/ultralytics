@@ -66,7 +66,7 @@ The KITTI dataset supports a range of 2D detection applications in autonomous dr
 - **Traffic and road-scene analysis**: Detect and count vehicles and road users to study traffic flow and road safety.
 - **Computer vision benchmarking**: Use KITTI as a standard benchmark for evaluating 2D [object detection](../../tasks/detect.md) and [tracking](../../modes/track.md) models.
 
-To label your own driving imagery, train, and manage dataset versions in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com/).
+To label your own driving imagery, train, and manage dataset versions in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com).
 
 ## Dataset YAML
 

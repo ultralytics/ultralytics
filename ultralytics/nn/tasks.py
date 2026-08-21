@@ -1035,14 +1035,23 @@ class RTDETRDetectionModel(DetectionModel):
         # NOTE: preprocess gt_bbox and gt_labels to list.
         bs = img.shape[0]
         batch_idx = batch["batch_idx"]
-        gt_groups = [(batch_idx == i).sum().item() for i in range(bs)]
+        cls = batch["cls"]
         bboxes = batch["bboxes"].to(device=img.device)
         gt_bboxes_obb = None
         if getattr(self.criterion, "supports_obb", False):
+            # Same tiny-rbox filter as v8OBBLoss (rw/rh >= 2px): drops degenerate/tiny rotated GT that destabilizes
+            # matching and produces NaN gradients in the rotated-IoU (probiou) loss
+            h, w = img.shape[-2:]
+            keep = (bboxes[:, 2] * w >= 2) & (bboxes[:, 3] * h >= 2)
+            if not bool(keep.all()):
+                bboxes = bboxes[keep]
+                cls = cls[keep]
+                batch_idx = batch_idx[keep]
             gt_bboxes_obb = bboxes  # full normalized xywhr, angle column consumed by the OBB angle loss
             bboxes = bboxes[:, :4]  # detection losses (matcher, L1, GIoU, FGL/DDF) run on the xywh part
+        gt_groups = [(batch_idx == i).sum().item() for i in range(bs)]
         targets = {
-            "cls": batch["cls"].to(img.device, dtype=torch.long).view(-1),
+            "cls": cls.to(img.device, dtype=torch.long).view(-1),
             "bboxes": bboxes,
             "batch_idx": batch_idx.to(img.device, dtype=torch.long).view(-1),
             "gt_groups": gt_groups,

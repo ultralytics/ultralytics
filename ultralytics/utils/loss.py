@@ -926,7 +926,7 @@ class PoseLoss26(v8PoseLoss):
         if not error.numel():
             return pred_kpt[..., :0].sum()
 
-        # Filter out NaN and Inf values to prevent MultivariateNormal validation errors
+        # Filter out NaN and Inf values that would propagate into the loss
         valid_mask = ~(torch.isnan(error) | torch.isinf(error)).any(dim=-1)
         if not valid_mask.any():
             return pred_kpt[..., :0].sum()

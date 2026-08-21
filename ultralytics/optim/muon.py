@@ -54,6 +54,7 @@ def muon_update(
     momentum: torch.Tensor | list[torch.Tensor],
     beta: float = 0.95,
     nesterov: bool = True,
+    tau: float = 0.0,
 ) -> torch.Tensor | list[torch.Tensor]:
     """Compute Muon optimizer updates with momentum and orthogonalization.
 
@@ -68,9 +69,13 @@ def muon_update(
         momentum (torch.Tensor | list[torch.Tensor]): Momentum buffer tensor(s), modified in-place.
         beta (float, optional): Momentum coefficient for exponential moving average. Default: 0.95.
         nesterov (bool, optional): Whether to use Nesterov momentum acceleration. Default: True.
+        tau (float, optional): MiMuon threshold on the Frobenius norm of the matrix that would be orthogonalized.
+            Matrices below it update along that matrix instead of its orthogonalization, on the same learning rate.
+            Zero orthogonalizes every matrix, which is plain Muon. Default: 0.0.
 
     Returns:
-        (torch.Tensor | list[torch.Tensor]): Orthogonalized update tensor(s), each with the gradient's shape and dtype.
+        (torch.Tensor | list[torch.Tensor]): Update tensor(s), each with the gradient's shape and dtype, orthogonalized
+            unless the tau gate sent that matrix down the momentum branch.
 
     Examples:
         >>> grad = torch.randn(64, 128)
@@ -85,6 +90,10 @@ def muon_update(
         - Without Nesterov: update = momentum.
         - 4D tensors (conv filters) are reshaped to 2D as (out_channels, in_channels*height*width) for orthogonalization.
         - Final updates are scaled by sqrt(max(1, dim[-2] / dim[-1])) to account for parameter dimensions.
+        - With tau, a matrix whose norm falls below it updates along M rather than orthogonalize(M), skipping its
+          Newton-Schulz call, which is Algorithm 2 of MiMuon (https://arxiv.org/abs/2605.19619). Both branches share
+          the learning rate, and M runs 2 to 4 orders of magnitude smaller than an orthogonalized direction, so a
+          gated step is far smaller than an ungated one.
     """
     single = isinstance(grad, torch.Tensor)
     grads, momentums = ([grad], [momentum]) if single else (grad, momentum)
@@ -95,8 +104,12 @@ def muon_update(
         torch._foreach_add_(updates, grads, alpha=1 - beta)
     else:
         updates = list(momentums)
+    # MiMuon: orthogonalize only where the update is large enough, one device sync for the whole list
+    small = torch.stack(torch._foreach_norm(updates)).lt(tau).tolist() if tau else None
     buckets = {}  # group matrices transposed to rows <= cols by (rows, scale) for batched orthogonalization
     for i, u in enumerate(updates):
+        if small and small[i]:  # below tau, so this matrix updates along M itself instead
+            continue
         m = u.view(len(u), -1) if u.ndim == 4 else u
         transpose = m.size(0) > m.size(1)
         if transpose:
@@ -124,11 +137,17 @@ class MuSGD(optim.Optimizer):
     Args:
         params (Iterable): Parameters to optimize or dicts defining parameter groups.
         muon (float, optional): Weight factor for Muon updates in hybrid mode. Default: 0.5.
-        sgd (float, optional): Weight factor for SGD updates in hybrid mode. Default: 0.5.
+        sgd (float, optional): Weight factor for SGD updates in hybrid mode. Zero drops the SGD update from the Muon
+            groups, leaving them on Muon alone. Default: 0.5.
+        tau (float, optional): MiMuon threshold below which a matrix updates along M instead of its
+            orthogonalization. Default: 0.0.
 
     Attributes:
         muon (float): Scaling factor applied to Muon learning rate.
-        sgd (float): Scaling factor applied to SGD learning rate in hybrid mode.
+        sgd (float): Scaling factor applied to SGD learning rate in hybrid mode, 0 to leave the Muon groups on Muon
+            alone.
+        tau (float): Frobenius norm threshold switching a matrix between orthogonalize(M) and M, 0 to orthogonalize
+            every matrix.
 
     Examples:
         >>> param_groups = [
@@ -155,9 +174,13 @@ class MuSGD(optim.Optimizer):
         >>> optimizer.step()
 
     Notes:
-        - Parameter groups with 'use_muon': True will receive both Muon and SGD updates.
-        - Parameter groups with 'use_muon': False will receive only SGD updates.
+        - Parameter groups with 'use_muon': True receive both Muon and SGD updates, or Muon alone when sgd is 0,
+          which then carries a decoupled weight decay in place of the L2 the SGD update would have applied.
+        - Parameter groups with 'use_muon': False will receive only SGD updates, at the full learning rate.
         - The Muon update uses orthogonalization which works best for 2D+ parameter tensors.
+        - With tau > 0 the Muon update follows MiMuon, switching between orthogonalize(M) and M per matrix per step.
+          Pair it with sgd 0, as optimizer='MiMuon' does, to keep that switch from being diluted by an SGD update
+          riding on the same parameters.
     """
 
     def __init__(
@@ -170,6 +193,7 @@ class MuSGD(optim.Optimizer):
         use_muon: bool = False,
         muon: float = 0.5,
         sgd: float = 0.5,
+        tau: float = 0.0,
     ):
         """Initialize MuSGD optimizer with hybrid Muon and SGD capabilities.
 
@@ -181,7 +205,11 @@ class MuSGD(optim.Optimizer):
             nesterov (bool): Whether to use Nesterov momentum.
             use_muon (bool): Whether to enable Muon updates.
             muon (float): Scaling factor for Muon component.
-            sgd (float): Scaling factor for SGD component.
+            sgd (float): Scaling factor for SGD component. Zero drops the SGD update from the Muon groups, leaving them
+                on Muon alone, which then carries a decoupled weight decay instead of the L2 that update applies.
+            tau (float): MiMuon threshold on the Frobenius norm of the matrix that would be orthogonalized. A Muon-group
+                matrix at or above it updates along orthogonalize(M), one below it updates along M, both on the Muon
+                learning rate. Zero orthogonalizes every matrix.
         """
         defaults = dict(
             lr=lr,
@@ -193,6 +221,7 @@ class MuSGD(optim.Optimizer):
         super().__init__(params, defaults)
         self.muon = muon
         self.sgd = sgd
+        self.tau = tau
 
     @torch.no_grad()
     def step(self, closure=None):
@@ -200,7 +229,9 @@ class MuSGD(optim.Optimizer):
 
         Applies either hybrid Muon+SGD updates or pure SGD updates depending on the
         'use_muon' flag in each parameter group. For Muon-enabled groups, parameters
-        receive both an orthogonalized Muon update and a standard SGD momentum update.
+        receive both an orthogonalized Muon update and a standard SGD momentum update,
+        or the Muon update alone when self.sgd is 0. With self.tau set, the Muon update
+        itself switches per matrix between orthogonalize(M) and M, which is MiMuon.
 
         Args:
             closure (Callable, optional): A closure that reevaluates the model
@@ -212,7 +243,8 @@ class MuSGD(optim.Optimizer):
         Notes:
             - Parameters with None gradients are skipped.
             - Muon updates use Newton-Schulz orthogonalization and work best on 2D+ tensors.
-            - Weight decay is applied only to the SGD component in hybrid mode.
+            - Weight decay is applied only to the SGD component in hybrid mode. Muon groups that skip the SGD
+              update take a decoupled decay of their own.
         """
         loss = None
         if closure is not None:
@@ -224,10 +256,11 @@ class MuSGD(optim.Optimizer):
             if not params:
                 continue
             lr, momentum, nesterov = group["lr"], group["momentum"], group["nesterov"]
+            aux = self.sgd != 0 or not group["use_muon"]  # this group takes the SGD update
             for p in params:
                 if len(self.state[p]) == 0:
                     self.state[p]["momentum_buffer"] = torch.zeros_like(p)
-                    if group["use_muon"]:
+                    if aux and group["use_muon"]:
                         self.state[p]["momentum_buffer_SGD"] = torch.zeros_like(p)
             if group["use_muon"]:
                 updates = muon_update(
@@ -235,8 +268,13 @@ class MuSGD(optim.Optimizer):
                     [self.state[p]["momentum_buffer"] for p in params],
                     beta=momentum,
                     nesterov=nesterov,
+                    tau=self.tau,
                 )
+                if not aux and group["weight_decay"] != 0:  # no SGD update to carry the L2, so decouple the decay
+                    torch._foreach_mul_(params, 1 - lr * self.muon * group["weight_decay"])
                 torch._foreach_add_(params, updates, alpha=-(lr * self.muon))
+                if not aux:
+                    continue
                 buffers = [self.state[p]["momentum_buffer_SGD"] for p in params]
                 lr *= self.sgd
             else:

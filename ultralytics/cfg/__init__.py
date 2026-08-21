@@ -199,6 +199,7 @@ CFG_FLOAT_KEYS = frozenset(
         "cls",
         "dfl",
         "dis",
+        "muon_tau",
         "degrees",
         "shear",
         "time",

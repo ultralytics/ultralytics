@@ -24,7 +24,7 @@ name: # (str, optional) experiment name; results in 'project/name'
 exist_ok: False # (bool) overwrite existing 'project/name' if True
 pretrained: True # (bool | str) use pretrained weights (bool) or load weights from path (str)
 cls_remap: True # (bool) when fine-tuning across datasets, remap pretrained cls head rows by class-name match
-optimizer: MuSGD # (str) optimizer: SGD, MuSGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, or auto
+optimizer: MuSGD # (str) optimizer: SGD, MuSGD, MiMuon, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, or auto
 verbose: True # (bool) print verbose logs during training/val
 seed: 0 # (int) random seed for reproducibility
 deterministic: True # (bool) enable deterministic ops; reproducible but may be slower
@@ -109,6 +109,7 @@ warmup_momentum: 0.8 # (float) initial momentum during warmup
 warmup_bias_lr: 0.1 # (float) bias learning rate during warmup
 muon: 0.2
 sgd: 1.0
+muon_tau: 0.0 # (float) MiMuon threshold; a Muon-group matrix whose Frobenius norm reaches it updates along orthogonalize(M), one below it updates along M, both on the Muon lr; 0.0 orthogonalizes every matrix, and optimizer='MiMuon' falls back to the paper's 0.01 when this is 0.0
 distill_model: # (str, optional) path to teacher model for knowledge distillation
 dis: 6.0 # (float) distillation loss weight
 box: 7.5 # (float) box loss gain

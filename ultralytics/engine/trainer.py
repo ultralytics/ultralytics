@@ -1132,7 +1132,7 @@ class BaseTrainer:
             name, lr, momentum = ("MuSGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
-        use_muon = name == "MuSGD"
+        use_muon = str(name).lower() in {"musgd", "mimuon"}
         for module_name, module in unwrap_model(model).named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
@@ -1146,13 +1146,13 @@ class BaseTrainer:
                 else:  # weight (with decay)
                     g[0][fullname] = param
 
-        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "MuSGD", "auto"}
+        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "MuSGD", "MiMuon", "auto"}
         name = {x.lower(): x for x in optimizers}.get(str(name).lower(), str(name))
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
             optim_args = dict(lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
         elif name == "RMSProp":
             optim_args = dict(lr=lr, momentum=momentum)
-        elif name == "SGD" or name == "MuSGD":
+        elif name in {"SGD", "MuSGD", "MiMuon"}:
             optim_args = dict(lr=lr, momentum=momentum, nesterov=True)
         else:
             raise NotImplementedError(
@@ -1169,6 +1169,10 @@ class BaseTrainer:
             {"param_group": "bias"},
         ]
         muon, sgd = self.args.muon, self.args.sgd
+        tau = self.args.muon_tau
+        if name == "MiMuon":  # Muon groups switch between orthogonalize(M) and M alone, everything else is SGD
+            sgd = 0.0  # same Muon lr factor as MuSGD, minus its SGD component
+            tau = tau or 0.01  # paper value for YOLO26m, since a MiMuon run with no threshold is just Muon
         if use_muon:
             num_params[0] = len(g[3])  # update number of params
             settings.append({"weight_decay": decay, "use_muon": True, "param_group": "muon"})
@@ -1196,11 +1200,12 @@ class BaseTrainer:
                     (p1 if id(v) in boosted or "proto.semseg" in k or "SemanticSegment" in k else p2).append(v)
                 g_.extend([{"params": p1, **x, "lr": lr * self.args.cls_lr_mult}, {"params": p2, **x}])
             g = g_
-        optimizer = getattr(optim, name, partial(MuSGD, muon=muon, sgd=sgd))(params=g)
+        optimizer = getattr(optim, name, partial(MuSGD, muon=muon, sgd=sgd, tau=tau))(params=g)
 
         LOGGER.info(
-            f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
+            f"{colorstr('optimizer:')} {name}(lr={lr}, momentum={momentum}) with parameter groups "
             f"{num_params[1]} weight(decay=0.0), {num_params[0]} weight(decay={decay}), {num_params[2]} bias(decay=0.0)"
+            + (f", muon_tau={tau}" if use_muon and tau else "")
         )
         return optimizer
 

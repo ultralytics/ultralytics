@@ -1458,6 +1458,6 @@ class RTDETRDEIMOBBTrainer(RTDETRDEIMTrainer):
         model = unwrap_model(self.model)
         if getattr(model.model[-1], "one_to_many_groups", 0) > 0:
             loss_names.extend(["giou_o2m", "cls_o2m", "l1_o2m"])
-        loss_names.append("angle_loss")
+        loss_names.extend(["angle_loss", "probiou_loss"])
         self.loss_names = tuple(loss_names)
         return RTDETRDEIMOBBValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))

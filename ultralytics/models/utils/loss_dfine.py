@@ -12,7 +12,7 @@ import torch.nn.functional as F
 
 from ultralytics.nn.modules.dfine_utils import bbox2distance
 from ultralytics.utils.loss import BCEDiceLoss, FocalLoss, KeypointLoss, MALoss, RankLoss, StableDINOLoss, VarifocalLoss
-from ultralytics.utils.metrics import OKS_SIGMA
+from ultralytics.utils.metrics import OKS_SIGMA, probiou
 from ultralytics.utils.ops import crop_mask
 
 from .box_ops import aligned_box_iou, aligned_giou, aligned_giou_new, box_cxcywh_to_xyxy
@@ -1055,12 +1055,14 @@ class DeimOBBLoss(DfineLoss):
     The angle loss is a wrap-invariant 1-cos(delta) term (delta wrapped mod pi to (-pi/2, pi/2]) weighted by an
     aspect-ratio factor exp(-(log(w/h))^2/lambda^2) with lambda=3, computed on the final-layer one-to-one Hungarian
     matches only. It deliberately differs from v8OBBLoss's sin(2*delta)^2 in two ways: (1) sin(2*delta)^2 has period
-    pi/2 and cannot distinguish theta from theta+90deg — YOLO OBB resolves that branch ambiguity through its
-    angle-aware box losses (probiou IoU and rbox2dist DFL), but here the box losses (Hungarian cost, L1, GIoU,
-    FGL/DDF) run on the xywh part of the xywhr GT and never see the angle, so the angle loss itself must make
-    delta=90deg maximal; (2) 1-cos(delta) has maximal gradient at delta=90deg, whereas sin(delta)^2 is flat there,
-    so wrong-branch predictions are actively repelled instead of sitting on a gradient-free plateau. A probiou
-    box-loss term remains future work.
+    pi/2 and cannot distinguish theta from theta+90deg; (2) 1-cos(delta) has maximal gradient at delta=90deg, whereas
+    sin(delta)^2 is flat there, so wrong-branch predictions are actively repelled instead of sitting on a
+    gradient-free plateau. Additionally, a probiou IoU term on the full rotated boxes (same o2o matches, final layer)
+    couples the (w, h, theta) prediction jointly: DOTA label polygons extending beyond image borders are clipped by
+    the augmentation pipeline and their recomputed minAreaRect can flip to the perpendicular representation, and only
+    an angle-aware box loss keeps (w, h, theta) consistent through such label noise (this is what makes YOLO OBB
+    robust to it). The axis-aligned box losses (Hungarian cost, L1, GIoU, FGL/DDF) still run on the xywh part of the
+    xywhr GT.
     """
 
     supports_obb = True
@@ -1071,10 +1073,11 @@ class DeimOBBLoss(DfineLoss):
         Args:
             *args (Any): Positional arguments forwarded to DfineLoss.
             **kwargs (Any): Keyword arguments forwarded to DfineLoss. The `angle` entry of `loss_gain` (default 1.0)
-                weights the rotation-angle loss.
+                weights the rotation-angle loss; the `probiou` entry (default 1.0) weights the rotated-IoU loss.
         """
         super().__init__(*args, **kwargs)
         self.angle_gain = self.loss_gain.get("angle", 1.0)
+        self.probiou_gain = self.loss_gain.get("probiou", 1.0)
 
     def _get_loss_angle(
         self, angles: torch.Tensor, gt_bboxes: torch.Tensor, lambda_val: int = 3
@@ -1119,6 +1122,36 @@ class DeimOBBLoss(DfineLoss):
                 loss += angles[i].sum() * 0.0
         return loss / total * self.angle_gain
 
+    def _get_loss_probiou(self, pred_boxes: torch.Tensor, angles: torch.Tensor, gt_bboxes: torch.Tensor) -> torch.Tensor:
+        """Compute the rotated-IoU (probiou) loss from final-layer o2o matches.
+
+        Args:
+            pred_boxes (torch.Tensor): Final-layer o2o predicted boxes with shape (bs, nq, 4), normalized cxcywh.
+            angles (torch.Tensor): Final-layer o2o raw angle predictions with shape (bs, nq, 1).
+            gt_bboxes (torch.Tensor): GT rotated boxes with shape (N, 5), normalized xywhr.
+
+        Returns:
+            (torch.Tensor): Rotated-IoU loss coupling the (w, h, theta) prediction jointly.
+        """
+        device = angles.device
+        gt_bboxes = gt_bboxes.to(device).float()
+        total = sum(len(src) for src, _ in self.main_indices)
+        if not total:
+            # WARNING: zero-grad sum prevents Multi-GPU DDP 'unused gradient' errors, do not remove
+            return angles.sum() * 0.0
+        loss = angles.new_zeros(())
+        for i, (src_idx, dst_idx) in enumerate(self.main_indices):
+            # Matcher indices are CPU tensors; move them to the model device
+            src_idx = src_idx.to(device)
+            dst_idx = dst_idx.to(device)
+            if len(src_idx):
+                pred_xywhr = torch.cat([pred_boxes[i][src_idx].float(), angles[i][src_idx]], dim=-1)  # (n, 5)
+                loss += (1.0 - probiou(pred_xywhr, gt_bboxes[dst_idx])).sum()
+            else:
+                # WARNING: zero-grad sum prevents Multi-GPU DDP 'unused gradient' errors, do not remove
+                loss += angles[i].sum() * 0.0
+        return loss / total * self.probiou_gain
+
     def forward(
         self,
         preds: tuple[torch.Tensor, torch.Tensor],
@@ -1132,10 +1165,11 @@ class DeimOBBLoss(DfineLoss):
         angles: torch.Tensor | None = None,
         gt_bboxes: torch.Tensor | None = None,
     ) -> dict[str, torch.Tensor]:
-        """Compute the detection losses plus the rotation-angle loss when angle inputs are provided."""
+        """Compute the detection losses plus the rotation-angle and rotated-IoU losses when angle inputs are given."""
         total_loss = super().forward(
             preds, batch, dn_bboxes, dn_scores, dn_meta, dfine_meta, matcher_epoch, training_progress
         )
         if angles is not None and gt_bboxes is not None:
             total_loss["loss_angle"] = self._get_loss_angle(angles, gt_bboxes)
+            total_loss["loss_probiou"] = self._get_loss_probiou(preds[0][-1], angles, gt_bboxes)
         return self._sanitize_losses(total_loss)

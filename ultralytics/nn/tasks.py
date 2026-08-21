@@ -1191,10 +1191,11 @@ class RTDETRDetectionModel(DetectionModel):
                 if k not in loss:
                     loss[k] = torch.tensor(0.0, device=img.device)
         if getattr(self.criterion, "supports_obb", False):
-            loss_keys.append("loss_angle")
+            loss_keys.extend(["loss_angle", "loss_probiou"])
             # Fill with zeros when absent
-            if "loss_angle" not in loss:
-                loss["loss_angle"] = torch.tensor(0.0, device=img.device)
+            for k in ["loss_angle", "loss_probiou"]:
+                if k not in loss:
+                    loss[k] = torch.tensor(0.0, device=img.device)
         return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in loss_keys], device=img.device)
 
     def predict(self, x, profile=False, visualize=False, batch=None, augment=False, embed=None):

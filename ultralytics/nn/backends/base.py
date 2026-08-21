@@ -38,6 +38,95 @@ def read_tflite_metadata(file: str | Path) -> dict | None:
     return None
 
 
+def read_export_metadata(file: str | Path) -> dict:
+    """Read Ultralytics metadata from an exported model without loading it or importing its framework.
+
+    Every Ultralytics export embeds the metadata dict built by `Exporter`, but each format stores it differently:
+    directory-based formats write a `metadata.yaml` sidecar, while single-file formats embed it in a length-prefixed
+    JSON header (`.engine`), a zip entry (`.torchscript`, `.tflite`), or protobuf metadata props (`.onnx`). Reading it
+    up front lets callers resolve a model's task and head from a non-descriptive filename such as `best.engine`.
+
+    Args:
+        file (str | Path): Path to an exported model file or directory.
+
+    Returns:
+        (dict): Parsed metadata, empty if the export holds none or predates metadata embedding.
+    """
+    import json
+    import zipfile
+
+    path = Path(file)
+    try:
+        if path.suffix in {".pt", ".yaml", ".yml"}:  # not exports, so never carry export metadata
+            return {}
+        if path.suffix == ".engine":
+            with open(path, "rb") as f:
+                length = int.from_bytes(f.read(4), byteorder="little", signed=True)
+                return json.loads(f.read(length).decode("utf-8")) if 0 < length < path.stat().st_size else {}
+        if path.suffix == ".tflite":
+            return read_tflite_metadata(path) or {}
+        if path.suffix == ".torchscript":
+            with zipfile.ZipFile(path) as zf:
+                name = next(n for n in zf.namelist() if n.endswith("extra/config.txt"))
+                return json.loads(zf.read(name))
+        if path.suffix == ".onnx":
+            return _read_onnx_metadata(path)
+        sidecar = (path if path.is_dir() else path.parent) / "metadata.yaml"  # openvino, paddle, ncnn, saved_model, ...
+        if sidecar.exists():
+            from ultralytics.utils import YAML
+
+            return YAML.load(sidecar)
+    except (OSError, StopIteration, UnicodeDecodeError, ValueError, KeyError, zipfile.BadZipFile):
+        return {}
+    return {}
+
+
+def _read_onnx_metadata(file: Path) -> dict:
+    """Collect ONNX `metadata_props` by walking top-level protobuf fields, skipping the graph.
+
+    ModelProto serializes `metadata_props` as field 14, after the graph weights, so the entries are found by stepping
+    over each top-level field using its declared wire-format length rather than parsing the whole file.
+
+    Args:
+        file (Path): Path to the `.onnx` model file.
+
+    Returns:
+        (dict): Parsed metadata props as string key-value pairs.
+    """
+    import io
+
+    def varint(read) -> int | None:
+        """Decode a base-128 varint from a `read(n)` callable, returning None at end of stream."""
+        shift = value = 0
+        while chunk := read(1):
+            value |= (chunk[0] & 0x7F) << shift
+            if not chunk[0] & 0x80:
+                return value
+            shift += 7
+        return None
+
+    metadata = {}
+    with open(file, "rb") as f:
+        while (tag := varint(f.read)) is not None:
+            wire = tag & 7
+            if wire == 0:  # varint
+                varint(f.read)
+            elif wire in {1, 5}:  # 64-bit, 32-bit
+                f.seek(8 if wire == 1 else 4, 1)
+            elif wire == 2:  # length-delimited
+                length = varint(f.read)
+                if tag >> 3 != 14:  # not metadata_props, so skip the payload wholesale
+                    f.seek(length, 1)
+                    continue
+                entry, pair = io.BytesIO(f.read(length)), {}
+                while (field := varint(entry.read)) is not None:  # StringStringEntryProto: 1=key, 2=value
+                    pair[field >> 3] = entry.read(varint(entry.read)).decode("utf-8")
+                metadata[pair[1]] = pair.get(2, "")
+            else:
+                break
+    return metadata
+
+
 class BaseBackend(ABC):
     """Base class for all inference backends.
 

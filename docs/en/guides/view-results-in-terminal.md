@@ -8,7 +8,7 @@ keywords: YOLO, inference results, VSCode terminal, sixel, display images in ter
 # How to View YOLO Inference Results in a VSCode Terminal
 
 <p align="center">
-  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sixel-example-terminal.avif" alt="Sixel example of image in Terminal">
+  <video width="800" src="https://cdn.ul.run/v/52831dec3e45136996ffd67cd3cfa8af.mp4" autoplay loop muted playsinline aria-label="Sixel example of image in Terminal"></video>
 </p>
 
 Image from the [libsixel](https://saitoha.github.io/libsixel/) website.

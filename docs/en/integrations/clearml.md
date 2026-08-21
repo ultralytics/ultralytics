@@ -171,7 +171,7 @@ This setup is applicable to cloud VMs, local GPUs, or laptops. [ClearML Autoscal
 ClearML's user-friendly interface allows easy cloning, editing, and enqueuing of tasks. Users can clone an existing experiment, adjust parameters or other details through the UI, and enqueue the task for execution. This streamlined process ensures that the ClearML Agent executing the task uses updated configurations, making it ideal for iterative experimentation and model fine-tuning.
 
 <p align="center"><br>
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/cloning-editing-enqueuing-clearml.avif" alt="Cloning, Editing, and Enqueuing with ClearML">
+  <video width="100%" src="https://cdn.ul.run/v/0bda035ae9950163a7148c89b28e5023.mp4" autoplay loop muted playsinline aria-label="Cloning, Editing, and Enqueuing with ClearML"></video>
 </p>
 
 ## Dataset Version Management

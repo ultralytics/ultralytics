@@ -37,10 +37,10 @@ The output from Ultralytics trackers is consistent with standard [object detecti
 
 ## Real-world Applications
 
-|           Transportation           |              Retail              |         Aquaculture          |
-| :--------------------------------: | :------------------------------: | :--------------------------: |
-| ![Vehicle Tracking][vehicle track] | ![People Tracking][people track] | ![Fish Tracking][fish track] |
-|          Vehicle Tracking          |         People Tracking          |        Fish Tracking         |
+|                                                                Transportation                                                                 |                                                                    Retail                                                                    |                                                                Aquaculture                                                                 |
+| :-------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------: |
+| <video src="https://cdn.ul.run/v/23923522c5d2fe7beae4e98fac7c776e.mp4" autoplay loop muted playsinline aria-label="Vehicle Tracking"></video> | <video src="https://cdn.ul.run/v/e2cf6c60f0339f5d0811ebbdd54f7e7d.mp4" autoplay loop muted playsinline aria-label="People Tracking"></video> | <video src="https://cdn.ul.run/v/521b31f0fc1442078a66ff9068cacea3.mp4" autoplay loop muted playsinline aria-label="Fish Tracking"></video> |
+|                                                               Vehicle Tracking                                                                |                                                               People Tracking                                                                |                                                               Fish Tracking                                                                |
 
 ## Quick Start
 
@@ -658,10 +658,6 @@ By contributing to this section, you help expand the scope of tracking solutions
 To initiate your contribution, please refer to our [Contributing Guide](../help/contributing.md) for comprehensive instructions on submitting a Pull Request (PR) 🛠️. We are excited to see what you bring to the table!
 
 Together, let's enhance the tracking capabilities of the Ultralytics YOLO ecosystem 🙏!
-
-[fish track]: https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/fish-tracking.avif
-[people track]: https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/people-tracking.avif
-[vehicle track]: https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/vehicle-tracking.avif
 
 ## FAQ
 

@@ -71,7 +71,7 @@ Your problem statement helps you conceptualize which computer vision task can so
 For example, if your problem is monitoring vehicle speeds on a highway, the relevant task is [object tracking](../modes/track.md). Tracking is suitable because it follows each vehicle across video frames with a persistent ID, which is what speed calculation requires.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/example-of-object-tracking.avif" alt="YOLO object tracking of vehicles on a highway with persistent track IDs">
+  <video width="100%" src="https://cdn.ul.run/v/2da5e8da1b4179d1a089b77f6b0844ac.mp4" autoplay loop muted playsinline aria-label="YOLO object tracking of vehicles on a highway with persistent track IDs"></video>
 </p>
 
 Other tasks are less suitable on their own. [Object detection](../tasks/detect.md), for instance, locates vehicles in every frame but doesn't maintain each vehicle's identity across frames — and without that identity, the system can't measure movement over time. Once you've identified the appropriate computer vision task, it guides several critical aspects of your project, like model selection, dataset preparation, and model training approaches.

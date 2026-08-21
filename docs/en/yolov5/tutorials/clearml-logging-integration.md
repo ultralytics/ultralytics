@@ -20,7 +20,7 @@ keywords: ClearML, YOLOv5, machine learning, experiment tracking, data versionin
 
 Use as many or as few of these tools as you need — start with the experiment manager alone, or chain everything together into a full pipeline.
 
-![ClearML scalars dashboard showing YOLOv5 training metrics](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clearml-scalars-dashboard.avif)
+<video src="https://cdn.ul.run/v/886d75fb9f1d20b983189506744c5099.mp4" poster="https://cdn.ul.run/i/6db466e53fea6426293a3dd7e117c36a.avif" controls preload="metadata" playsinline aria-label="ClearML scalars dashboard showing YOLOv5 training metrics"></video>
 
 ## 🦾 Setting Things Up
 
@@ -87,7 +87,7 @@ Keep reading for [hyperparameter optimization](https://www.ultralytics.com/gloss
 
 Versioning data separately from code makes it easy to pull the latest version and ensures full reproducibility. This repository accepts a dataset version ID, fetches the data automatically if it is missing, and records the ID as a task parameter so you always know which data was used in which experiment.
 
-![ClearML dataset version management interface](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clearml-dataset-interface.avif)
+<video src="https://cdn.ul.run/v/80c610cce4726f991ec50cf15db3c907.mp4" autoplay loop muted playsinline aria-label="ClearML dataset version management interface"></video>
 
 ### Prepare Your Dataset
 
@@ -188,7 +188,7 @@ With an agent running, you can assign it work directly from the UI:
 - 🎯 Edit its hyperparameters.
 - ⏳ Right-click the cloned task and enqueue it to a target queue.
 
-![Enqueue a task from the UI](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/enqueue-task-ui.avif)
+<video src="https://cdn.ul.run/v/77d92db23bc4078de3689d6ef162325a.mp4" autoplay loop muted playsinline aria-label="Enqueue a task from the UI"></video>
 
 ### Executing A Task Remotely
 

@@ -990,6 +990,41 @@ def test_annotator_depth_map():
     assert ann.result().shape == (16, 16, 3)
 
 
+def test_dense_result_tensor_indexing():
+    """Valid indices keep the intact map on SemanticMask/DepthMap; out-of-range raises; empty selections zero len."""
+    from ultralytics.engine.results import DepthMap, SemanticMask
+
+    data = torch.arange(20, dtype=torch.float32).reshape(4, 5)
+    valid = (0, -1, [0], np.array([0]), torch.tensor(0), torch.tensor([0]), [True], torch.tensor([True]), slice(0, 1))
+    invalid = (1, -2, [1], torch.tensor(1))
+    empty = ([False], torch.tensor([False]), slice(1, None), slice(0, 0))
+    for cls in (SemanticMask, DepthMap):
+        dense = cls(data, orig_shape=(4, 5))
+        for idx in valid:
+            sel = dense[idx]
+            assert len(sel) == 1 and torch.equal(torch.as_tensor(sel.data), data), f"{cls.__name__}[{idx!r}]"
+        for idx in invalid:
+            with pytest.raises(IndexError):
+                dense[idx]
+        for idx in empty:
+            assert len(dense[idx]) == 0, f"{cls.__name__}[{idx!r}] should be empty"
+
+
+def test_results_plot_empty_dense_selection():
+    """result[1:].plot() on a one-result dense (semantic/depth) Results returns the plain image, no overlay."""
+    from ultralytics.engine.results import Results
+
+    img = np.zeros((16, 16, 3), dtype=np.uint8)
+    dense_map = np.ones((16, 16), dtype=np.float32)
+    plain = Results(orig_img=img, path="x.jpg", names={}).plot()
+    for kwargs in ({"semantic_mask": dense_map.astype(np.uint8)}, {"depth": dense_map}):
+        r = Results(orig_img=img, path="x.jpg", names={0: "a"}, **kwargs)
+        assert len(r[1:]) == 0
+        np.testing.assert_array_equal(r[1:].plot(), plain)
+        with pytest.raises(IndexError):
+            r[1]
+
+
 def test_annotator_tensor_image():
     """Annotator accepts tensor images and matches Results.plot compositing pixels."""
     from ultralytics.engine.results import Results

@@ -30,10 +30,10 @@ Object cropping with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 
 ## Visuals
 
-|                                                                                 Airport Luggage                                                                                 |
-| :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|                                                           Airport Luggage                                                           |
+| :---------------------------------------------------------------------------------------------------------------------------------: |
 | ![Conveyor Belt at Airport Suitcases Cropping using Ultralytics YOLO26](https://cdn.ul.run/i/64b719a995705988d204b205eb0d3a9e.avif) |
-|                                                      Suitcases Cropping at airport conveyor belt using Ultralytics YOLO26                                                       |
+|                                Suitcases Cropping at airport conveyor belt using Ultralytics YOLO26                                 |
 
 ## Crop Objects with YOLO26
 

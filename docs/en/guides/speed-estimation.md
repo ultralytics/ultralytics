@@ -34,10 +34,10 @@ keywords: Ultralytics YOLO26, speed estimation, object tracking, vehicle speed, 
 
 ## Real World Applications
 
-|                                                                            Transportation                                                                             |                                                                              Transportation                                                                               |
-| :-------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|                                                  Transportation                                                  |                                                   Transportation                                                   |
+| :--------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------: |
 | ![Speed Estimation on Road using Ultralytics YOLO26](https://cdn.ul.run/i/4d24b34b71b3154a20cb4ec598022204.avif) | ![Speed Estimation on Bridge using Ultralytics YOLO26](https://cdn.ul.run/i/f48362a36acbf45ed3627dda1b2c88df.avif) |
-|                                                           Speed Estimation on Road using Ultralytics YOLO26                                                           |                                                            Speed Estimation on Bridge using Ultralytics YOLO26                                                            |
+|                                Speed Estimation on Road using Ultralytics YOLO26                                 |                                Speed Estimation on Bridge using Ultralytics YOLO26                                 |
 
 ???+ warning "Speed is an Estimate"
 

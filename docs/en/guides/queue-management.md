@@ -33,10 +33,10 @@ Queue management using [Ultralytics YOLO26](https://github.com/ultralytics/ultra
 
 ## Real World Applications
 
-|                                                                                            Logistics                                                                                             |                                                                             Retail                                                                             |
-| :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|                                                             Logistics                                                              |                                                      Retail                                                       |
+| :--------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------: |
 | ![Queue management at airport ticket counter using Ultralytics YOLO26](https://cdn.ul.run/i/eab33d5de0ba3789d5da8f0c007511e9.avif) | ![Queue monitoring in crowd using Ultralytics YOLO26](https://cdn.ul.run/i/1b5e30d89e0b2606189c909207cf43cd.avif) |
-|                                                               Queue management at airport ticket counter Using Ultralytics YOLO26                                                                |                                                          Queue monitoring in crowd Ultralytics YOLO26                                                          |
+|                                Queue management at airport ticket counter Using Ultralytics YOLO26                                 |                                   Queue monitoring in crowd Ultralytics YOLO26                                    |
 
 ## Manage Queues with YOLO26
 

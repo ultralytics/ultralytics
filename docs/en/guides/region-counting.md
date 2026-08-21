@@ -28,10 +28,10 @@ The [RegionCounter solution](../reference/solutions/region_counter.md) in [Ultra
 
 ## Real World Applications
 
-|                                                                                                Retail                                                                                                 |                                                                                     Market Streets                                                                                      |
-| :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|                                                                     Retail                                                                     |                                                          Market Streets                                                           |
+| :--------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------: |
 | ![Ultralytics YOLO counting people inside drawn polygon regions in a retail store](https://cdn.ul.run/i/fe73398cea2c66ea7d666593160baef5.avif) | ![Ultralytics YOLO region counts overlaid on a crowded market street](https://cdn.ul.run/i/fb862e384539b1046f843a2d5691ad80.avif) |
-|                                                                              Ultralytics YOLO People Counting in Regions                                                                              |                                                                       Ultralytics YOLO Crowd Counting in Regions                                                                        |
+|                                                  Ultralytics YOLO People Counting in Regions                                                   |                                            Ultralytics YOLO Crowd Counting in Regions                                             |
 
 ## How to Count Objects in Regions with Ultralytics YOLO
 

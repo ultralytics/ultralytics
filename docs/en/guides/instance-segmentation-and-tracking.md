@@ -32,10 +32,10 @@ There are two types of instance segmentation tracking available in the Ultralyti
 
 ## Samples
 
-|                                                         Instance Segmentation                                                         |                                                                  Instance Segmentation + Object Tracking                                                                   |
-| :-----------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|                                      Instance Segmentation                                       |                                        Instance Segmentation + Object Tracking                                        |
+| :----------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------: |
 | ![Ultralytics Instance Segmentation](https://cdn.ul.run/i/ced9bc3d97a11702962789cc52c6cf89.avif) | ![Ultralytics Instance Segmentation with Object Tracking](https://cdn.ul.run/i/63b0ce2e4edbe54b46c7a7c173618975.avif) |
-|                                                 Ultralytics Instance Segmentation 😍                                                  |                                                         Ultralytics Instance Segmentation with Object Tracking 🔥                                                          |
+|                               Ultralytics Instance Segmentation 😍                               |                               Ultralytics Instance Segmentation with Object Tracking 🔥                               |
 
 ## Segment and Track with YOLO26
 

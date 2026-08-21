@@ -32,8 +32,8 @@ The output of an oriented object detector is a set of rotated bounding boxes tha
 
 ## Visual Samples
 
-|                                               Ships Detection using OBB                                               |                                                Vehicle Detection using OBB                                                |
-| :-------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------: |
+|                                Ships Detection using OBB                                 |                                Vehicle Detection using OBB                                 |
+| :--------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------: |
 | ![Ships Detection using OBB](https://cdn.ul.run/i/c6591549a27062e19a12e83e6c139728.avif) | ![Vehicle Detection using OBB](https://cdn.ul.run/i/bdc446c744810812060cea58a16d9065.avif) |
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)

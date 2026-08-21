@@ -30,10 +30,10 @@ A parking management system built with [Ultralytics YOLO26](https://github.com/u
 
 ## Real World Applications
 
-|                                                                      Parking Management System                                                                      |                                                                       Parking Management System                                                                       |
-| :-----------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|                                           Parking Management System                                            |                                              Parking Management System                                              |
+| :------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------: |
 | ![Parking lots Analytics Using Ultralytics YOLO26](https://cdn.ul.run/i/8a724644289b80d7197f06d4e83a8918.avif) | ![Parking management top view using Ultralytics YOLO26](https://cdn.ul.run/i/5e72aba63b6a111b8767d38a9be0e5e8.avif) |
-|                                                       Parking management Aerial View using Ultralytics YOLO26                                                       |                                                         Parking management Top View using Ultralytics YOLO26                                                          |
+|                            Parking management Aerial View using Ultralytics YOLO26                             |                                Parking management Top View using Ultralytics YOLO26                                 |
 
 ## Parking Management System Code Workflow
 

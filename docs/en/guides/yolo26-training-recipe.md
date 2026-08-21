@@ -153,6 +153,20 @@ This works for any `.pt` checkpoint — official releases and your own fine-tune
 
 Each checkpoint covers the stage that produced it, so the COCO curves are in `yolo26s.pt` and the 150-epoch Objects365 curves are in `yolo26s-objv1-150.pt`.
 
+??? example "Read the same values in Python"
+
+    ```python
+    from ultralytics import YOLO
+
+    ckpt = YOLO("yolo26s.pt").ckpt
+
+    results = ckpt["train_results"]  # column name -> list of per-epoch values
+    print(results.keys())  # 'epoch', 'train/box_loss', 'metrics/mAP50-95(B)', 'lr/pg0', ...
+    print(results["metrics/mAP50-95(B)"])  # mAP progression, epoch by epoch
+
+    print(ckpt["train_metrics"])  # final validation metrics
+    ```
+
 ### Checking the Code Revision
 
 `ckpt["git"]` records the commit that produced the checkpoint, and those commits live on public experimental branches of the Ultralytics repository, so you can check out the exact training code:

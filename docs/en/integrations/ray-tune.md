@@ -11,7 +11,7 @@ Hyperparameter tuning is vital in achieving peak model performance by discoverin
 
 ## Accelerate Tuning with Ultralytics YOLO26 and Ray Tune
 
-[Ultralytics YOLO26](https://www.ultralytics.com/) incorporates Ray Tune for hyperparameter tuning, streamlining the optimization of YOLO26 model hyperparameters. With Ray Tune, you can utilize advanced search strategies, parallelism, and early stopping to expedite the tuning process.
+[Ultralytics YOLO26](https://www.ultralytics.com) incorporates Ray Tune for hyperparameter tuning, streamlining the optimization of YOLO26 model hyperparameters. With Ray Tune, you can utilize advanced search strategies, parallelism, and early stopping to expedite the tuning process.
 
 ### Ray Tune
 

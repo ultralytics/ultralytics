@@ -1,8 +1,8 @@
-<a href="https://www.ultralytics.com/" target="_blank"><img src="https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Original.svg" width="320" alt="Ultralytics logo"></a>
+<a href="https://www.ultralytics.com" target="_blank"><img src="https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Original.svg" width="320" alt="Ultralytics logo"></a>
 
 # Contributing to Ultralytics Open-Source Projects
 
-Welcome! We're thrilled that you're considering contributing to our [Ultralytics](https://www.ultralytics.com/) [open-source](https://github.com/ultralytics) projects. Your involvement not only helps enhance the quality of our repositories but also benefits the entire [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community. This guide provides clear guidelines and best practices to help you get started.
+Welcome! We're thrilled that you're considering contributing to our [Ultralytics](https://www.ultralytics.com) [open-source](https://github.com/ultralytics) projects. Your involvement not only helps enhance the quality of our repositories but also benefits the entire [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community. This guide provides clear guidelines and best practices to help you get started.
 
 [![Ultralytics open-source contributors](https://raw.githubusercontent.com/ultralytics/assets/main/im/image-contributors.png)](https://github.com/ultralytics/ultralytics/graphs/contributors)
 
@@ -127,7 +127,7 @@ When contributing code to Ultralytics projects, keep these best practices in min
 Reviewing pull requests is another valuable way to contribute. When reviewing PRs:
 
 - **Check for unit tests:** Verify that the PR includes tests for new features or changes.
-- **Review documentation updates:** Ensure [documentation](https://docs.ultralytics.com/) is updated to reflect changes.
+- **Review documentation updates:** Ensure [documentation](https://docs.ultralytics.com) is updated to reflect changes.
 - **Evaluate performance impact:** Consider how changes might affect [performance](https://docs.ultralytics.com/guides/yolo-performance-metrics).
 - **Verify CI tests:** Confirm all [Continuous Integration tests](https://docs.ultralytics.com/help/CI) are passing.
 - **Provide constructive feedback:** Offer specific, clear feedback about any issues or concerns.
@@ -144,7 +144,7 @@ If needed, you may re-request a review from Ultralytics Assistant via the GitHub
 We highly value bug reports as they help us improve the quality and reliability of our projects. When reporting a bug via [GitHub Issues](https://github.com/ultralytics/ultralytics/issues):
 
 - **Check existing issues:** Search first to see if the bug has already been reported.
-- **Provide a [Minimum Reproducible Example](https://docs.ultralytics.com/help/minimum-reproducible-example/):** Create a small, self-contained code snippet that consistently reproduces the issue. This is crucial for efficient debugging.
+- **Provide a [Minimum Reproducible Example](https://docs.ultralytics.com/help/minimum-reproducible-example):** Create a small, self-contained code snippet that consistently reproduces the issue. This is crucial for efficient debugging.
 - **Describe the environment:** Specify your operating system, Python version, relevant library versions (e.g., [`torch`](https://pytorch.org/), [`ultralytics`](https://github.com/ultralytics/ultralytics)), and hardware ([CPU](https://en.wikipedia.org/wiki/Central_processing_unit)/[GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit)).
 - **Explain expected vs. actual behavior:** Clearly state what you expected to happen and what actually occurred. Include any error messages or tracebacks.
 
@@ -226,7 +226,7 @@ By following these guidelines, you ensure compliance with AGPL-3.0, supporting t
 
 ## 🎉 Conclusion
 
-Thank you for your interest in contributing to [Ultralytics](https://www.ultralytics.com/) [open-source](https://github.com/ultralytics) YOLO projects. Your participation is essential in shaping the future of our software and building a vibrant community of innovation and collaboration. Whether you're enhancing code, reporting bugs, or suggesting new features, your contributions are invaluable.
+Thank you for your interest in contributing to [Ultralytics](https://www.ultralytics.com) [open-source](https://github.com/ultralytics) YOLO projects. Your participation is essential in shaping the future of our software and building a vibrant community of innovation and collaboration. Whether you're enhancing code, reporting bugs, or suggesting new features, your contributions are invaluable.
 
 We're excited to see your ideas come to life and appreciate your commitment to advancing [object detection](https://www.ultralytics.com/glossary/object-detection) technology. Together, let's continue to grow and innovate in this exciting open-source journey. Happy coding! 🚀🌟
 
@@ -256,7 +256,7 @@ Before your pull request can be merged, it must pass all GitHub Actions Continuo
 
 ### How do I report a bug in Ultralytics YOLO repositories?
 
-To report a bug, provide a clear and concise [Minimum Reproducible Example](https://docs.ultralytics.com/help/minimum-reproducible-example/) along with your bug report. This helps developers quickly identify and fix the issue. Ensure your example is minimal yet sufficient to replicate the problem. For more detailed steps on reporting bugs, refer to the [Reporting Bugs](#-reporting-bugs) section.
+To report a bug, provide a clear and concise [Minimum Reproducible Example](https://docs.ultralytics.com/help/minimum-reproducible-example) along with your bug report. This helps developers quickly identify and fix the issue. Ensure your example is minimal yet sufficient to replicate the problem. For more detailed steps on reporting bugs, refer to the [Reporting Bugs](#-reporting-bugs) section.
 
 ### What does the AGPL-3.0 license mean if I use Ultralytics YOLO in my own project?
 

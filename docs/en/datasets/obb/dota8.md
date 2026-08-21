@@ -3,7 +3,7 @@ title: DOTA8 OBB Dataset
 comments: true
 creator:
     name: Ultralytics
-    url: https://www.ultralytics.com/
+    url: https://www.ultralytics.com
 license:
     name: Research-Only
     url: https://captain-whu.github.io/DOTA/dataset.html
@@ -15,7 +15,7 @@ keywords: DOTA8 dataset, Ultralytics, YOLO26, object detection, debugging, train
 
 ## Introduction
 
-[Ultralytics](https://www.ultralytics.com/) DOTA8 is a small but versatile oriented [object detection](https://www.ultralytics.com/glossary/object-detection) dataset composed of the first 8 images of the split DOTAv1 set, 4 for training and 4 for validation. This dataset is ideal for testing and debugging object detection models, or for experimenting with new detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
+[Ultralytics](https://www.ultralytics.com) DOTA8 is a small but versatile oriented [object detection](https://www.ultralytics.com/glossary/object-detection) dataset composed of the first 8 images of the split DOTAv1 set, 4 for training and 4 for validation. This dataset is ideal for testing and debugging object detection models, or for experimenting with new detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
 
 ## Dataset Structure
 

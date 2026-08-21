@@ -3,7 +3,7 @@ title: COCO8-Pose Estimation Dataset
 comments: true
 creator:
     name: Ultralytics
-    url: https://www.ultralytics.com/
+    url: https://www.ultralytics.com
 license:
     name: CC-BY-4.0
     url: https://cocodataset.org/#termsofuse
@@ -15,7 +15,7 @@ keywords: COCO8-Pose, Ultralytics, pose estimation dataset, keypoint detection, 
 
 ## Introduction
 
-[Ultralytics](https://www.ultralytics.com/) COCO8-Pose is a small but versatile pose estimation dataset composed of the first 8 images of the COCO train 2017 set (4 for training, 4 for validation), using a 17-keypoint schema for the single "person" class. This dataset is ideal for testing and debugging [pose estimation](../../tasks/pose.md) models, or for experimenting with new keypoint-detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training on the full [COCO-Pose](coco.md) dataset.
+[Ultralytics](https://www.ultralytics.com) COCO8-Pose is a small but versatile pose estimation dataset composed of the first 8 images of the COCO train 2017 set (4 for training, 4 for validation), using a 17-keypoint schema for the single "person" class. This dataset is ideal for testing and debugging [pose estimation](../../tasks/pose.md) models, or for experimenting with new keypoint-detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training on the full [COCO-Pose](coco.md) dataset.
 
 ## Dataset Structure
 

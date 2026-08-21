@@ -45,7 +45,7 @@ All images share the same 8 object classes (indices 0–7): person, bicycle, car
 
 The Argoverse-HD dataset supports a range of [object detection](../../tasks/detect.md) applications in autonomous driving:
 
-- **Self-driving perception** — detect vehicles, pedestrians, and cyclists from a forward-facing camera to support [autonomous-vehicle](https://www.ultralytics.com/solutions/ai-in-automotive) navigation.
+- **Self-driving perception** — detect vehicles, pedestrians, and cyclists from a forward-facing camera to support [autonomous-vehicle](https://www.ultralytics.com/solutions/computer-vision-in-automotive) navigation.
 - **Advanced driver-assistance systems (ADAS)** — recognize traffic lights and stop signs for real-time driver alerts.
 - **Traffic monitoring** — count and track road users in urban scenes for smart-city analytics.
 - **Research and prototyping** — a large, real-world benchmark for learning [model training](../../modes/train.md) and [prediction](../../modes/predict.md) on driving data.

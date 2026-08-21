@@ -15,7 +15,7 @@ keywords: Dog-Pose, Ultralytics, pose estimation dataset, YOLO26, machine learni
 
 ## Introduction
 
-The [Ultralytics](https://www.ultralytics.com/) Dog-Pose dataset is a high-quality and extensive dataset specifically curated for dog keypoint estimation, providing 6,773 training and 1,703 validation images.
+The [Ultralytics](https://www.ultralytics.com) Dog-Pose dataset is a high-quality and extensive dataset specifically curated for dog keypoint estimation, providing 6,773 training and 1,703 validation images.
 
 <p align="center">
   <br>
@@ -32,7 +32,7 @@ Each annotated image includes 24 keypoints with 3 dimensions per keypoint (x, y,
 
 <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-dogs.avif" alt="Ultralytics Dog-Pose display image" width="800">
 
-For a specific breed or a different animal altogether, [Ultralytics Platform](https://platform.ultralytics.com/) handles uploading, labeling, and training a custom keypoint model on your own data without managing infrastructure.
+For a specific breed or a different animal altogether, [Ultralytics Platform](https://platform.ultralytics.com) handles uploading, labeling, and training a custom keypoint model on your own data without managing infrastructure.
 
 ## Dataset Structure
 

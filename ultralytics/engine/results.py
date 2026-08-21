@@ -2,7 +2,7 @@
 """
 Ultralytics Results, Boxes, Masks, SemanticMask, Keypoints, Probs, and OBB classes for handling inference results.
 
-Usage: See https://docs.ultralytics.com/modes/predict/
+Usage: See https://docs.ultralytics.com/modes/predict
 """
 
 from __future__ import annotations

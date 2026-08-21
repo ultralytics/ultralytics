@@ -15,7 +15,7 @@ keywords: Carparts Segmentation Dataset, computer vision, automotive AI, vehicle
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-carparts-segmentation-dataset.ipynb" target="_blank"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Carparts Segmentation Dataset In Colab"></a>
 
-The [Ultralytics](https://www.ultralytics.com/) Carparts Segmentation Dataset provides 3,833 annotated images across 23 car-part classes — including bumpers, doors, lights, mirrors, hood, and trunk — for training [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) models on automotive [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks. Captured from multiple perspectives and [annotated](https://www.ultralytics.com/glossary/data-labeling) with pixel-level masks, it pairs directly with [Ultralytics YOLO](../../models/yolo26.md) for use cases ranging from automotive quality control and auto repair to insurance-claim damage assessment and autonomous-vehicle perception.
+The [Ultralytics](https://www.ultralytics.com) Carparts Segmentation Dataset provides 3,833 annotated images across 23 car-part classes — including bumpers, doors, lights, mirrors, hood, and trunk — for training [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) models on automotive [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks. Captured from multiple perspectives and [annotated](https://www.ultralytics.com/glossary/data-labeling) with pixel-level masks, it pairs directly with [Ultralytics YOLO](../../models/yolo26.md) for use cases ranging from automotive quality control and auto repair to insurance-claim damage assessment and autonomous-vehicle perception.
 
 <p align="center">
   <br>
@@ -51,7 +51,7 @@ Carparts Segmentation finds applications in various domains including:
 - **Recycling**: Sorting vehicle components for efficient recycling processes.
 - **Smart City Initiatives**: Contributing data for urban planning and traffic management systems within [Smart Cities](https://en.wikipedia.org/wiki/Smart_city).
 
-The complete Carparts Segmentation Dataset can also be browsed and managed on [Ultralytics Platform](https://platform.ultralytics.com/).
+The complete Carparts Segmentation Dataset can also be browsed and managed on [Ultralytics Platform](https://platform.ultralytics.com).
 
 ## Dataset YAML
 

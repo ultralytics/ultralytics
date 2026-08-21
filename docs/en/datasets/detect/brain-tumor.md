@@ -3,7 +3,7 @@ title: Brain Tumor Detection Dataset
 comments: true
 creator:
     name: Ultralytics
-    url: https://www.ultralytics.com/
+    url: https://www.ultralytics.com
 license:
     name: AGPL-3.0
     url: https://www.ultralytics.com/license
@@ -137,7 +137,7 @@ If you use this dataset in your research or development work, please cite it app
             title = {Brain Tumor Detection Dataset},
             year = {2023},
             publisher = {Ultralytics},
-            url = {https://docs.ultralytics.com/datasets/detect/brain-tumor/}
+            url = {https://docs.ultralytics.com/datasets/detect/brain-tumor}
         }
         ```
 

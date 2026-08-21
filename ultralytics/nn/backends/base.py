@@ -70,8 +70,13 @@ def read_export_metadata(file: str | Path) -> dict:
                 name = next((n for n in zf.namelist() if n.endswith("extra/config.txt")), "")
                 return json.loads(zf.read(name)) if name else {}
         if path.suffix == ".onnx":
-            return _read_onnx_metadata(path)
+            return _read_proto_metadata(path, (14,))  # ModelProto.metadata_props
+        if path.suffix in {".mlpackage", ".mlmodel"}:  # Model.description.metadata.userDefined
+            model = path / "Data/com.apple.CoreML/model.mlmodel" if path.suffix == ".mlpackage" else path
+            return _read_proto_metadata(model, (2, 100, 100))
         sidecar = (path if path.is_dir() else path.parent) / "metadata.yaml"  # openvino, paddle, ncnn, saved_model
+        if path.suffix == ".pb":  # a frozen graph keeps its metadata in the sibling saved_model directory
+            sidecar = next(path.resolve().parent.rglob(f"{path.stem}_saved_model*/metadata.yaml"), sidecar)
         if sidecar.exists():
             from ultralytics.utils import YAML
 
@@ -81,14 +86,19 @@ def read_export_metadata(file: str | Path) -> dict:
     return {}
 
 
-def _read_onnx_metadata(file: Path) -> dict:
-    """Collect ONNX `metadata_props` by stepping over top-level protobuf fields instead of parsing the graph.
+def _read_proto_metadata(file: Path, field_path: tuple[int, ...]) -> dict:
+    """Collect a protobuf `map<string, string>` at a nested field path, without parsing the fields around it.
+
+    ONNX keeps its metadata props at top-level field 14 while CoreML nests them under
+    `description.metadata.userDefined`, and both encode entries the same way, so each is read by stepping over
+    every field using its declared wire-format length and descending only into the fields on the path.
 
     Args:
-        file (Path): Path to the `.onnx` model file.
+        file (Path): Path to the protobuf file.
+        field_path (tuple[int, ...]): Field numbers to descend, the last holding the repeated map entries.
 
     Returns:
-        (dict): Metadata props as string key-value pairs.
+        (dict): Map entries as string key-value pairs.
     """
     import io
 
@@ -101,23 +111,31 @@ def _read_onnx_metadata(file: Path) -> dict:
                 return value
             shift += 7
 
-    metadata = {}
-    with open(file, "rb") as f:
-        while (tag := varint(f.read)) is not None:
-            if tag & 7 == 0:  # varint field, i.e. ir_version
-                varint(f.read)
+    def walk(stream, fields):
+        """Scan one message level, descending into `fields[0]` and collecting map entries at the last field."""
+        metadata = {}
+        while (tag := varint(stream.read)) is not None:
+            wire = tag & 7
+            if wire == 0:  # varint field, i.e. ir_version
+                varint(stream.read)
                 continue
-            if tag & 7 != 2:  # ModelProto carries only varint and length-delimited fields
+            if wire != 2:  # these protos carry only varint and length-delimited fields
                 break
-            length = varint(f.read)
-            if tag >> 3 != 14:  # not metadata_props, so step over the payload, i.e. the graph
-                f.seek(length, 1)
+            length = varint(stream.read)
+            if tag >> 3 != fields[0]:  # off the path, so step over the payload, i.e. the graph or weights
+                stream.seek(length, 1)
                 continue
-            entry, pair = io.BytesIO(f.read(length)), {}
-            while (field := varint(entry.read)) is not None:  # StringStringEntryProto, 1=key and 2=value
-                pair[field >> 3] = entry.read(varint(entry.read)).decode()
+            nested = io.BytesIO(stream.read(length))
+            if len(fields) > 1:
+                return walk(nested, fields[1:])
+            pair = {}
+            while (field := varint(nested.read)) is not None:  # map entry, 1=key and 2=value
+                pair[field >> 3] = nested.read(varint(nested.read)).decode()
             metadata[pair[1]] = pair.get(2, "")
-    return metadata
+        return metadata
+
+    with open(file, "rb") as f:
+        return walk(f, field_path)
 
 
 class BaseBackend(ABC):

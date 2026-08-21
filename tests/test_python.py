@@ -259,6 +259,45 @@ def test_model_load_remaps_cls_head_by_names():
         assert trainer.set_model_names_for_load(model).names == names
 
 
+def test_read_export_metadata(tmp_path):
+    """Test export metadata reads from engine headers, zip entries, protobuf fields, and metadata.yaml sidecars."""
+    import json
+
+    from ultralytics.nn.backends.base import read_export_metadata
+
+    def field(num, payload):
+        """Encode one length-delimited protobuf field."""
+        tag = (num << 3) | 2
+        prefix = bytes([tag]) if tag < 128 else bytes([tag & 0x7F | 0x80, tag >> 7])
+        return prefix + bytes([len(payload)]) + payload
+
+    meta = json.dumps({"task": "detect", "head": "RTDETRDecoder"})
+    (tmp_path / "best.engine").write_bytes(len(meta).to_bytes(4, "little", signed=True) + meta.encode())
+    assert read_export_metadata(tmp_path / "best.engine")["head"] == "RTDETRDecoder"
+
+    with zipfile.ZipFile(tmp_path / "best.torchscript", "w") as zf:
+        zf.writestr("best/extra/config.txt", meta)
+    assert read_export_metadata(tmp_path / "best.torchscript")["head"] == "RTDETRDecoder"
+
+    entry = field(1, b"head") + field(2, b"MyDecoder")
+    graph = field(7, b"weights")  # stepped over by its declared length, as the real graph is
+    (tmp_path / "best.onnx").write_bytes(b"\x08\x08" + graph + field(14, entry))  # ir_version, graph, metadata_props
+    assert read_export_metadata(tmp_path / "best.onnx")["head"] == "MyDecoder"
+
+    coreml = tmp_path / "best.mlpackage" / "Data" / "com.apple.CoreML"
+    coreml.mkdir(parents=True)
+    (coreml / "model.mlmodel").write_bytes(field(2, field(100, field(100, entry))))  # description.metadata.userDefined
+    assert read_export_metadata(tmp_path / "best.mlpackage")["head"] == "MyDecoder"
+
+    (tmp_path / "best_saved_model").mkdir()
+    (tmp_path / "best_saved_model" / "metadata.yaml").write_text("task: segment\nhead: Segment\n")
+    (tmp_path / "best.pb").touch()
+    assert read_export_metadata(tmp_path / "best.pb")["task"] == "segment"  # sibling saved_model directory
+    assert read_export_metadata(tmp_path / "best_saved_model")["task"] == "segment"
+
+    assert read_export_metadata(tmp_path / "missing.onnx") == read_export_metadata(MODEL) == {}
+
+
 def test_model_profile():
     """Test profiling of the YOLO model with `profile=True` to assess performance and resource usage."""
     from ultralytics.nn.tasks import DetectionModel

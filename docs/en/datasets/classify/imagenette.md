@@ -117,7 +117,7 @@ To use these datasets, simply replace `imagenette` with `imagenette160` or `imag
         yolo classify train data=imagenette320 model=yolo26n-cls.pt epochs=100 imgsz=320
         ```
 
-These smaller versions of the dataset allow for rapid iterations during development while still providing realistic image classification tasks. You can also manage classification datasets and run training in the cloud with [Ultralytics Platform](https://platform.ultralytics.com/).
+These smaller versions of the dataset allow for rapid iterations during development while still providing realistic image classification tasks. You can also manage classification datasets and run training in the cloud with [Ultralytics Platform](https://platform.ultralytics.com).
 
 ## Citations and Acknowledgments
 

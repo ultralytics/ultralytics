@@ -3,7 +3,7 @@ title: HomeObjects-3K Detection Dataset
 comments: true
 creator:
     name: Ultralytics
-    url: https://www.ultralytics.com/
+    url: https://www.ultralytics.com
 license:
     name: AGPL-3.0
     url: https://www.ultralytics.com/license
@@ -72,7 +72,7 @@ HomeObjects-3K supports a range of indoor computer vision applications across re
 
 - **Home inventory and asset tracking**: Automatically detect and list home items in photos or videos, useful for managing belongings, organizing spaces, or visualizing furniture in real estate.
 
-To label your own indoor images, train, and manage dataset versions in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com/).
+To label your own indoor images, train, and manage dataset versions in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com).
 
 ## Dataset YAML
 
@@ -130,7 +130,7 @@ If you use this dataset in your research, please cite it using the mentioned det
             license = {AGPL-3.0},
             month = {May},
             title = {Ultralytics Datasets: HomeObjects-3K Detection Dataset},
-            url = {https://docs.ultralytics.com/datasets/detect/homeobjects-3k/},
+            url = {https://docs.ultralytics.com/datasets/detect/homeobjects-3k},
             version = {1.0.0},
             year = {2025}
         }

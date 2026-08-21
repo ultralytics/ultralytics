@@ -125,7 +125,7 @@ Zero-shot results on [LVIS](../datasets/detect/lvis.md) minival at 640 pixels, f
 
 ### Text and visual prompts
 
-Each accuracy and parameter cell reads **text prompt / visual prompt**; FLOPs are given once. Parameters and FLOPs are for the detection configuration the paper evaluates.
+Each accuracy and parameter cell reads **text prompt / visual prompt**; FLOPs are given once. Parameters and FLOPs are for the detection configuration the paper evaluates. Accuracy is the paper's Non-E2E figure, the only protocol it reports for every model in the comparison; the YOLOE-26 end-to-end head trails it by at most 1.1 AP under text prompts and 2.6 AP under visual prompts.
 
 | Model     | mAP<sub>50-95</sub> | mAP<sub>r</sub> | mAP<sub>c</sub> | mAP<sub>f</sub> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
 | --------- | ------------------- | --------------- | --------------- | --------------- | ------------------------ | ----------------------- |
@@ -143,15 +143,15 @@ Each accuracy and parameter cell reads **text prompt / visual prompt**; FLOPs ar
 
 ### Prompt-free
 
-The prompt-free checkpoints answer from their built-in vocabulary, so they are scored end-to-end with no prompt supplied.
+The prompt-free checkpoints answer from their built-in vocabulary with no prompt supplied. Each accuracy cell reads **end-to-end / Non-E2E**: YOLOE-26 keeps YOLO26's NMS-free head, and the paper also scores it through the NMS path the earlier YOLOE families use. The [YOLO26 page](yolo26.md#yoloe-26-open-vocabulary-detection-and-segmentation) quotes the Non-E2E column.
 
-| Model        | mAP<sub>50-95</sub> | mAP<sub>50</sub> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-| ------------ | ------------------- | ---------------- | ------------------------ | ----------------------- |
-| YOLOE-26n-pf | 16.6                | 22.7             | 2.3                      | 5.3                     |
-| YOLOE-26s-pf | 21.4                | 28.6             | 9.0                      | 20.8                    |
-| YOLOE-26m-pf | 25.7                | 33.6             | 19.4                     | 68.4                    |
-| YOLOE-26l-pf | 27.2                | 35.4             | 23.6                     | 86.8                    |
-| YOLOE-26x-pf | 29.9                | 38.7             | 53.1                     | 194.4                   |
+| Model        | mAP<sub>50-95</sub> | mAP<sub>r</sub> | mAP<sub>c</sub> | mAP<sub>f</sub> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| ------------ | ------------------- | --------------- | --------------- | --------------- | ------------------------ | ----------------------- |
+| YOLOE-26n-pf | 16.6 / 17.7         | 15.7 / 15.8     | 15.3 / 16.4     | 17.9 / 19.2     | 2.3                      | 5.3                     |
+| YOLOE-26s-pf | 21.4 / 22.6         | 16.2 / 20.2     | 20.1 / 20.9     | 23.5 / 24.5     | 9.0                      | 20.8                    |
+| YOLOE-26m-pf | 25.7 / 26.4         | 26.7 / 24.5     | 24.0 / 25.0     | 26.9 / 27.9     | 19.4                     | 68.4                    |
+| YOLOE-26l-pf | 27.2 / 28.0         | 26.3 / 25.7     | 25.7 / 26.8     | 28.7 / 29.5     | 23.6                     | 86.8                    |
+| YOLOE-26x-pf | 29.9 / 31.1         | 27.5 / 28.9     | 29.1 / 30.7     | 31.1 / 31.7     | 53.1                     | 194.4                   |
 
 At every scale the YOLOE-26 models lead their YOLOE-11 and YOLOE-v8 counterparts on mAP<sub>50-95</sub> while staying below the v8 line on parameters and FLOPs. On the same split the paper reports YOLO-Worldv2 at 24.4 (S), 32.4 (M) and 35.5 (L), and the transformer-based detectors GLIP-T at 26.0, GDINO-T at 27.4 and DetCLIP-T at 34.4, each carrying 155 to 232 M parameters. The original YOLOE paper adds two results for the v8-scale models it introduced. On LVIS, YOLOE-v8s beats YOLO-Worldv2-S by **3.5 AP** at a third of the training cost and 1.4× the inference speed. Transferred to COCO, YOLOE-v8l gains **0.6 box AP** and **0.4 mask AP** over closed-set YOLOv8-L with nearly **4× less training time**.
 

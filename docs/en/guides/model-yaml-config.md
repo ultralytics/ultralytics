@@ -28,13 +28,11 @@ scales: # compound scaling constants [depth, width, max_channels]
     l: [1.00, 1.00, 512] # large: full depth and width
     x: [1.00, 1.50, 512] # extra-large: maximum performance
 kpt_shape: [17, 3] # pose models only
-channel_divisor: 8 # channel rounding granularity (default 8)
 ```
 
 - `nc` sets the number of classes the model predicts.
 - `scales` define compound scaling factors that adjust model depth, width, and maximum channels to produce different size variants (nano through extra-large).
 - `kpt_shape` applies to pose models. It can be `[N, 2]` for `(x, y)` keypoints or `[N, 3]` for `(x, y, visibility)`.
-- `channel_divisor` rounds layer channels up to the nearest multiple (default `8`); set it to `1` to disable multiple-of-8 alignment for tight embedded channel budgets; `C2fAttn` embedding widths always follow the rounded output channels so attention shapes stay valid.
 
 !!! tip "Reduce redundancy with `scales`"
 

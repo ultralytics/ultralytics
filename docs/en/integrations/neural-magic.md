@@ -7,7 +7,7 @@ keywords: YOLO26, DeepSparse, Neural Magic, model optimization, object detection
 
 # Optimizing YOLO26 Inferences with Neural Magic's DeepSparse Engine
 
-When deploying [object detection](https://www.ultralytics.com/glossary/object-detection) models like [Ultralytics YOLO26](https://www.ultralytics.com/) on various hardware, you can bump into unique issues like optimization. This is where YOLO26's integration with Neural Magic's DeepSparse Engine steps in. It transforms the way YOLO26 models are executed and enables GPU-level performance directly on CPUs.
+When deploying [object detection](https://www.ultralytics.com/glossary/object-detection) models like [Ultralytics YOLO26](https://www.ultralytics.com) on various hardware, you can bump into unique issues like optimization. This is where YOLO26's integration with Neural Magic's DeepSparse Engine steps in. It transforms the way YOLO26 models are executed and enables GPU-level performance directly on CPUs.
 
 This guide shows you how to deploy YOLO26 using Neural Magic's DeepSparse, how to run inferences, and also how to benchmark performance to ensure it is optimized.
 

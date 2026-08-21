@@ -3,7 +3,7 @@ title: Construction-PPE Detection Dataset
 comments: true
 creator:
     name: Ultralytics
-    url: https://www.ultralytics.com/
+    url: https://www.ultralytics.com
 license:
     name: AGPL-3.0
     url: https://www.ultralytics.com/license
@@ -64,7 +64,7 @@ Construction-PPE powers a variety of safety-focused computer vision applications
 - **Robotics and autonomous systems**: Enable drones or robots to perform PPE checks across large sites, supporting faster and safer inspections.
 - **Research and education**: Provide a real-world dataset for students and researchers exploring workplace safety and human-object interactions.
 
-To label, train, and deploy a PPE detection model without managing local infrastructure, run the full workflow in your browser with [Ultralytics Platform](https://platform.ultralytics.com/).
+To label, train, and deploy a PPE detection model without managing local infrastructure, run the full workflow in your browser with [Ultralytics Platform](https://platform.ultralytics.com).
 
 ## Dataset YAML
 
@@ -124,7 +124,7 @@ If you use this dataset in your research, please cite it:
             year = {2025},
             version = {1.0.0},
             license = {AGPL-3.0},
-            url = {https://docs.ultralytics.com/datasets/detect/construction-ppe/},
+            url = {https://docs.ultralytics.com/datasets/detect/construction-ppe},
             publisher = {Ultralytics}
         }
         ```

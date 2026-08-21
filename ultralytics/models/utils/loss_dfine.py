@@ -1154,7 +1154,12 @@ class DeimOBBLoss(DfineLoss):
                 if valid.any():
                     src_valid = src_idx[valid]
                     pred_xywhr = torch.cat([pred_boxes[i][src_valid].float(), angles[i][src_valid]], dim=-1)
-                    loss += (1.0 - probiou(pred_xywhr * scale, target[valid] * scale)).sum()
+                    tgt = target[valid] * scale
+                    pred_xywhr = pred_xywhr * scale
+                    # Clamp w/h to >= 1px: near-zero widths/heights make probiou's sqrt backward explode (inf/NaN)
+                    pred_xywhr = torch.cat([pred_xywhr[:, :2], pred_xywhr[:, 2:4].clamp(min=1.0), pred_xywhr[:, 4:]], dim=-1)
+                    tgt = torch.cat([tgt[:, :2], tgt[:, 2:4].clamp(min=1.0), tgt[:, 4:]], dim=-1)
+                    loss += (1.0 - probiou(pred_xywhr, tgt)).sum()
                 else:
                     # WARNING: zero-grad sum prevents Multi-GPU DDP 'unused gradient' errors, do not remove
                     loss += angles[i].sum() * 0.0

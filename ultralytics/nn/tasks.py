@@ -1612,15 +1612,23 @@ class _SafeLoad:
 
     @classmethod
     @contextlib.contextmanager
-    def loading(cls):
+    def loading(cls, weight):
         """Load with `weights_only=True`: scope the allow-list to this load and mark the thread restricted, so a
         checkpoint that reaches model construction (parse_model) also uses the no-eval, known-layer path.
         """
         if cls._globals is None:
             cls._globals = cls._build()
+        allow = cls._globals
+        get_unsafe_globals = getattr(torch.serialization, "get_unsafe_globals_in_checkpoint", None)
+        unsafe_globals = get_unsafe_globals(weight) if get_unsafe_globals else None
+        if unsafe_globals is None or any(name.startswith("torchvision.transforms.") for name in unsafe_globals):
+            import torchvision.transforms.transforms as tvt
+            from torchvision.transforms.functional import InterpolationMode
+
+            allow = [*allow, tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode]
         cls._local.active = True
         try:
-            with torch.serialization.safe_globals(cls._globals):
+            with torch.serialization.safe_globals(allow):
                 yield
         finally:
             cls._local.active = False
@@ -1659,7 +1667,7 @@ class _SafeLoad:
     def _build(cls):
         """Auto-discover `nn.Module` subclasses across `torch.nn` and the ultralytics model families, registered under
         every namespace path they are reachable from (covering re-exports such as `block.RealNVP` as
-        `head.RealNVP`), plus torchvision transforms and legacy aliases.
+        `head.RealNVP`), plus legacy aliases.
 
         Returns:
             (list): Items for `torch.serialization.safe_globals` — classes and `(obj, "module.Name")` aliases.
@@ -1675,7 +1683,9 @@ class _SafeLoad:
         import ultralytics.nn.modules as ul_nn
         from ultralytics.nn import tasks as ul_tasks  # noqa: PLW0406
 
-        allow = []
+        # Public torch.nn classes retain their canonical pickle paths, so importing every torch.nn submodule is wasted
+        # work and pulls unrelated distributed/compiler stacks into inference processes.
+        allow = [klass for _, klass in inspect.getmembers(torch_nn, inspect.isclass) if issubclass(klass, nn.Module)]
 
         def _scan(pkg):
             mods = [pkg]
@@ -1691,22 +1701,12 @@ class _SafeLoad:
                         # Register under the path the class is reachable from — matches how a checkpoint pickled it.
                         allow.append((klass, f"{mod.__name__}.{name}"))
 
-        _scan(torch_nn)  # PyTorch nn modules
         _scan(ul_nn)  # ultralytics block/conv/head/transformer
         _scan(ul_tasks)  # ultralytics task models
 
         # Non-nn.Module data globals in official checkpoints, incl. the pre-8.0.44 `ultralytics.yolo.utils` path.
         allow.append(IterableSimpleNamespace)
         allow.append((IterableSimpleNamespace, "ultralytics.yolo.utils.IterableSimpleNamespace"))
-
-        # Classification preprocessing transforms.
-        try:
-            import torchvision.transforms.transforms as tvt
-            from torchvision.transforms.functional import InterpolationMode
-
-            allow += [tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode]
-        except ImportError:
-            pass
 
         # Legacy/cross-platform aliases (pickled paths with no current class namespace), mirroring temporary_modules().
         from ultralytics.utils.loss import E2EDetectLoss
@@ -1787,7 +1787,7 @@ def torch_safe_load(weight, safe_only=None):
             },
         ):
             if safe_only:
-                with _SafeLoad.loading():  # weights_only load scoped to the known-class allow-list
+                with _SafeLoad.loading(file):  # weights_only load scoped to the known-class allow-list
                     return torch_load(file, map_location="cpu", weights_only=True)
             return torch_load(file, map_location="cpu")
 
@@ -1831,6 +1831,11 @@ def torch_safe_load(weight, safe_only=None):
         Path(file).unlink(missing_ok=True)
         file = attempt_download_asset(weight)
         ckpt = _load()
+
+    except ValueError as e:
+        if safe_only and "torchscript checkpoint" in str(e).lower():
+            raise TypeError(torchscript_error) from e
+        raise
 
     except ModuleNotFoundError as e:  # e.name is missing module name
         if e.name in {"models", "models.yolo", "models.common", "models.experimental"}:

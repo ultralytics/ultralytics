@@ -1140,13 +1140,24 @@ class DeimOBBLoss(DfineLoss):
             # WARNING: zero-grad sum prevents Multi-GPU DDP 'unused gradient' errors, do not remove
             return angles.sum() * 0.0
         loss = angles.new_zeros(())
+        # probiou is scale-invariant; upscale normalized boxes to pixel-ish units for numerical conditioning
+        # (tiny normalized w/h make the covariance determinants eps-dominated, saturating IoU at ~1 with no signal)
+        scale = angles.new_tensor([1024.0, 1024.0, 1024.0, 1024.0, 1.0])
         for i, (src_idx, dst_idx) in enumerate(self.main_indices):
             # Matcher indices are CPU tensors; move them to the model device
             src_idx = src_idx.to(device)
             dst_idx = dst_idx.to(device)
             if len(src_idx):
-                pred_xywhr = torch.cat([pred_boxes[i][src_idx].float(), angles[i][src_idx]], dim=-1)  # (n, 5)
-                loss += (1.0 - probiou(pred_xywhr, gt_bboxes[dst_idx])).sum()
+                target = gt_bboxes[dst_idx]  # (n, 5), matcher dst is global into concatenated GT
+                # Degenerate GT (polygon clipped to zero area by augmentation) makes probiou's sqrt backward NaN
+                valid = (target[:, 2] > 0) & (target[:, 3] > 0)
+                if valid.any():
+                    src_valid = src_idx[valid]
+                    pred_xywhr = torch.cat([pred_boxes[i][src_valid].float(), angles[i][src_valid]], dim=-1)
+                    loss += (1.0 - probiou(pred_xywhr * scale, target[valid] * scale)).sum()
+                else:
+                    # WARNING: zero-grad sum prevents Multi-GPU DDP 'unused gradient' errors, do not remove
+                    loss += angles[i].sum() * 0.0
             else:
                 # WARNING: zero-grad sum prevents Multi-GPU DDP 'unused gradient' errors, do not remove
                 loss += angles[i].sum() * 0.0

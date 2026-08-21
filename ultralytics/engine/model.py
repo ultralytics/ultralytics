@@ -463,7 +463,7 @@ class Model(torch.nn.Module):
         self,
         source: str | Path | int | Image.Image | list[Any] | tuple[Any, ...] | np.ndarray | torch.Tensor | None = None,
         stream: bool = False,
-        predictor: BasePredictor | None = None,
+        predictor: type[BasePredictor] | None = None,
         **kwargs: Any,
     ) -> Iterator[Results | torch.Tensor] | list[Results] | list[torch.Tensor]:
         """Perform predictions on the given image source using the YOLO model.

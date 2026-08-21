@@ -1596,13 +1596,15 @@ class _SafeLoad:
     allow-list) and build models without `eval()`.
 
     Enabled per-process by the `ULTRALYTICS_SAFE_LOAD` env flag, or per-call by `torch_safe_load(..., safe_only=True)`.
-    Default loading (flag off) is unchanged.
+    Default loading (flag off) is unchanged. The globals a restricted load registers stay registered for the process,
+    so they also apply to any other `torch.load(weights_only=True)` call made afterwards.
     """
 
-    # Restricted loading needs torch.serialization's allow-list API (torch 2.5+); on older torch it is unavailable, so
-    # restricted loading degrades to a standard load there.
-    SUPPORTED = hasattr(torch.serialization, "safe_globals")
+    # Restricted loading needs torch 2.6+: the checkpoint global scan and `(obj, "module.Name")` allow-list aliases.
+    # On older torch restricted loading degrades to a standard load.
+    SUPPORTED = hasattr(torch.serialization, "get_unsafe_globals_in_checkpoint")
     _registry = None  # {"module.Name": allow-list entry}, built once per process
+    _lock = threading.Lock()  # torch's add_safe_globals rebinds a process-global set: serialize registrations
     _local = threading.local()  # per-thread flag set while a weights_only load is in progress
 
     @classmethod
@@ -1623,26 +1625,23 @@ class _SafeLoad:
         the whole registered set on every GLOBAL/NEWOBJ/REDUCE/BUILD opcode, so a 660-entry allow-list nearly doubled
         the load time of a checkpoint that references 20 of them.
         """
-        if cls._registry is None:
-            cls._registry = cls._build()
-        get_unsafe_globals = getattr(torch.serialization, "get_unsafe_globals_in_checkpoint", None)
         try:
-            needed = get_unsafe_globals(weight) if get_unsafe_globals else None
-        except ValueError:  # Unscannable checkpoint; defer format handling to torch.load.
-            needed = None
-        if needed is None or any(name.startswith("torchvision.transforms.") for name in needed):
-            # Classification preprocessing transforms; imported only for checkpoints that serialize them.
-            import torchvision.transforms.transforms as tvt
-            from torchvision.transforms.functional import InterpolationMode
+            needed = torch.serialization.get_unsafe_globals_in_checkpoint(weight)
+        except ValueError:  # Not a torch.save() zip archive; torch.load reports the format error, nothing to register
+            needed = []
+        with cls._lock:
+            if cls._registry is None:
+                cls._registry = cls._build()
+            if any(name.startswith("torchvision.transforms.") for name in needed):
+                # Classification preprocessing transforms; imported only for checkpoints that serialize them.
+                import torchvision.transforms.transforms as tvt
+                from torchvision.transforms.functional import InterpolationMode
 
-            for obj in (tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode):
-                cls._registry[f"{obj.__module__}.{obj.__qualname__}"] = obj
-        if needed is None:  # No scan API (torch < 2.6): register everything
-            entries = list(cls._registry.values())
-        else:
+                for obj in (tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode):
+                    cls._registry[f"{obj.__module__}.{obj.__qualname__}"] = obj
             entries = [cls._registry[name] for name in needed if name in cls._registry]
-        if entries:
-            torch.serialization.add_safe_globals(entries)
+            if entries:
+                torch.serialization.add_safe_globals(entries)
         cls._local.active = True
         try:
             yield

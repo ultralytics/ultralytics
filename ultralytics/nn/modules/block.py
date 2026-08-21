@@ -2042,6 +2042,10 @@ class RealNVP(nn.Module):
     def __init__(self):
         super().__init__()
 
+        # loc/cov are no longer read (the prior is the closed-form standard normal in log_prob) but stay registered so
+        # checkpoints saved before 8.4.126 still resume: the EMA state is loaded strictly.
+        self.register_buffer("loc", torch.zeros(2))
+        self.register_buffer("cov", torch.eye(2))
         self.register_buffer("mask", torch.tensor([[0, 1], [1, 0]] * 3, dtype=torch.float32))
 
         self.s = torch.nn.ModuleList([self.nets() for _ in range(len(self.mask))])

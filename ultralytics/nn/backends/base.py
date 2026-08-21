@@ -90,8 +90,8 @@ def _read_proto_metadata(file: Path, field_path: tuple[int, ...]) -> dict:
     """Collect a protobuf `map<string, string>` at a nested field path, without parsing the fields around it.
 
     ONNX keeps its metadata props at top-level field 14 while CoreML nests them under
-    `description.metadata.userDefined`, and both encode entries the same way, so each is read by stepping over
-    every field using its declared wire-format length and descending only into the fields on the path.
+    `description.metadata.userDefined`, and both encode entries the same way, so each is read by stepping over every
+    field using its declared wire-format length and descending only into the fields on the path.
 
     Args:
         file (Path): Path to the protobuf file.

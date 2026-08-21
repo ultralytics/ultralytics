@@ -3,7 +3,7 @@ title: Signature Detection Dataset
 comments: true
 creator:
     name: Ultralytics
-    url: https://www.ultralytics.com/
+    url: https://www.ultralytics.com
 license:
     name: AGPL-3.0
     url: https://www.ultralytics.com/license
@@ -125,7 +125,7 @@ If you use the Signature Detection Dataset in your research or development work,
             title = {Signature Detection Dataset},
             year = {2024},
             publisher = {Ultralytics},
-            url = {https://docs.ultralytics.com/datasets/detect/signature/}
+            url = {https://docs.ultralytics.com/datasets/detect/signature}
         }
         ```
 

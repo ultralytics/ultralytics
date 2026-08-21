@@ -236,7 +236,7 @@ Upon successful completion of training, the best performing model checkpoint (`b
 
 ## Supported Environments
 
-Ultralytics provides ready-to-use environments equipped with essential dependencies like [CUDA](https://developer.nvidia.com/cuda), [cuDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), facilitating a smooth start.
+Ultralytics provides ready-to-use environments equipped with essential dependencies like [CUDA](https://developer.nvidia.com/cuda), [cuDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), facilitating a smooth start.
 
 - **Free GPU Notebooks**:
     - <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a>
@@ -284,7 +284,7 @@ Training YOLOv5 on a custom dataset involves several key steps:
 - **Collaboration Features**: Facilitates teamwork through shared resources, project management tools, and easy model sharing.
 - **No-Code Deployment**: Deploy trained models directly to various targets.
 
-For a practical walkthrough, check out our blog post: [How to Train Your Custom Models with Ultralytics Platform](https://www.ultralytics.com/blog/how-to-train-your-custom-models-with-ultralytics-hub).
+For a practical walkthrough, check out our blog post: [How to Train Your Custom Models with Ultralytics Platform](https://www.ultralytics.com/blog/train-yolo-models-faster-with-ultralytics-platform).
 
 ### How do I convert my annotated data to the YOLOv5 format?
 

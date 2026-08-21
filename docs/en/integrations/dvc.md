@@ -9,7 +9,7 @@ keywords: YOLO26, DVCLive, experiment tracking, machine learning, model training
 
 Experiment tracking in [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) is critical to model development and evaluation. It involves recording and analyzing various parameters, metrics, and outcomes from numerous training runs. This process is essential for understanding model performance and making data-driven decisions to refine and optimize models.
 
-Integrating DVCLive with [Ultralytics YOLO26](https://www.ultralytics.com/) transforms the way experiments are tracked and managed. This integration offers a seamless solution for automatically logging key experiment details, comparing results across different runs, and visualizing data for in-depth analysis. In this guide, we'll understand how DVCLive can be used to streamline the process.
+Integrating DVCLive with [Ultralytics YOLO26](https://www.ultralytics.com) transforms the way experiments are tracked and managed. This integration offers a seamless solution for automatically logging key experiment details, comparing results across different runs, and visualizing data for in-depth analysis. In this guide, we'll understand how DVCLive can be used to streamline the process.
 
 ## DVCLive
 

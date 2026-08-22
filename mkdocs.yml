@@ -495,6 +495,7 @@ nav:
           - YOLO26 Training Recipe: guides/yolo26-training-recipe.md
           - Hyperparameter Tuning: guides/hyperparameter-tuning.md
           - Knowledge Distillation 🚀: guides/knowledge-distillation.md
+          - Adding and Fine-Tuning Classes: guides/adding-classes.md
           - K-Fold Cross Validation: guides/kfold-cross-validation.md
           - Customizing Trainer: guides/custom-trainer.md
           - Model YAML Configuration Guide: guides/model-yaml-config.md

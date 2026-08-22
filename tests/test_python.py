@@ -902,6 +902,35 @@ def test_custom_albumentations():
         assert trainer_with_override.args.augmentations == [new_custom_transform]
 
 
+def test_serialize_augmentations_nested():
+    """Test serialize_augmentations with nested structures and containers."""
+    from types import SimpleNamespace
+
+    from ultralytics.utils import serialize_augmentations
+
+    class DummyTransform:
+        def __repr__(self):
+            return "DummyTransform(p=0.5)"
+
+    dummy = DummyTransform()
+
+    # Test with dict
+    args_dict = {"augmentations": [dummy, [dummy], {"nested": dummy}, {dummy}], "other_arg": 123}
+    sanitized_dict = serialize_augmentations(args_dict)
+    assert sanitized_dict["other_arg"] == 123
+    assert sanitized_dict["augmentations"][0] == "DummyTransform(p=0.5)"
+    assert sanitized_dict["augmentations"][1] == ["DummyTransform(p=0.5)"]
+    assert sanitized_dict["augmentations"][2] == {"nested": "DummyTransform(p=0.5)"}
+    assert sanitized_dict["augmentations"][3] == {"DummyTransform(p=0.5)"}
+
+    # Test with namespace object
+    args_ns = SimpleNamespace(augmentations=[dummy, (dummy,)], other_arg="test")
+    sanitized_ns = serialize_augmentations(args_ns)
+    assert sanitized_ns.other_arg == "test"
+    assert sanitized_ns.augmentations[0] == "DummyTransform(p=0.5)"
+    assert sanitized_ns.augmentations[1] == ("DummyTransform(p=0.5)",)
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_ndjson():

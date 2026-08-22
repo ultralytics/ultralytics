@@ -622,20 +622,11 @@ class YAML:
         file = Path(file)
         file.parent.mkdir(parents=True, exist_ok=True)
 
-        # Convert non-serializable objects to strings recursively
-        def sanitize(v):
-            if isinstance(v, dict):
-                return {k: sanitize(val) for k, val in v.items()}
-            elif isinstance(v, (list, tuple)):
-                return type(v)(sanitize(val) for val in v)
-            elif isinstance(v, set):
-                return [sanitize(val) for val in v]
-            elif isinstance(v, (int, float, str, bool, type(None))):
-                return v
-            else:
-                return str(v)
-
-        data = sanitize(data)
+        # Convert non-serializable objects to strings
+        valid_types = int, float, str, bool, list, tuple, dict, type(None)
+        for k, v in data.items():
+            if not isinstance(v, valid_types):
+                data[k] = str(v)
 
         # Write YAML file
         with open(file, "w", errors="ignore", encoding="utf-8") as f:
@@ -698,24 +689,8 @@ class YAML:
         """
         instance = cls._get_instance()
 
-        # Load file if path provided, and convert non-serializable objects to strings recursively
-        if isinstance(yaml_file, dict):
-
-            def sanitize(v):
-                if isinstance(v, dict):
-                    return {k: sanitize(val) for k, val in v.items()}
-                elif isinstance(v, (list, tuple)):
-                    return type(v)(sanitize(val) for val in v)
-                elif isinstance(v, set):
-                    return [sanitize(val) for val in v]
-                elif isinstance(v, (int, float, str, bool, type(None))):
-                    return v
-                else:
-                    return str(v)
-
-            yaml_dict = sanitize(yaml_file)
-        else:
-            yaml_dict = cls.load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
+        # Load file if path provided
+        yaml_dict = cls.load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
 
         # Use -1 for unlimited width in C implementation
         dump = instance.yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True, width=-1, Dumper=instance.SafeDumper)
@@ -1534,6 +1509,43 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
     installed = any(path.glob(f"{ext}*")) and ext not in (obs_file.read_text("utf-8") if obs_file.exists() else "")
     url = "https://docs.ultralytics.com/integrations/vscode"
     return "" if installed else f"{colorstr('VS Code:')} view Ultralytics VS Code Extension ⚡ at {url}"
+
+
+def serialize_augmentations(args):
+    """Recursively converts custom or non-serializable objects within 'augmentations' to their string representations.
+
+    Args:
+        args (dict | SimpleNamespace | IterableSimpleNamespace): Configuration arguments.
+
+    Returns:
+        (dict | SimpleNamespace | IterableSimpleNamespace): The sanitized copy of arguments.
+    """
+
+    def sanitize(v):
+        if isinstance(v, dict):
+            return {k: sanitize(val) for k, val in v.items()}
+        elif isinstance(v, (list, tuple)):
+            return type(v)(sanitize(val) for val in v)
+        elif isinstance(v, set):
+            return {sanitize(val) for val in v}
+        elif isinstance(v, (int, float, str, bool, type(None))):
+            return v
+        else:
+            return repr(v)
+
+    if args is None:
+        return args
+
+    import copy
+
+    if isinstance(args, dict):
+        if "augmentations" in args:
+            args = args.copy()
+            args["augmentations"] = sanitize(args["augmentations"])
+    elif hasattr(args, "augmentations"):
+        args = copy.copy(args)
+        args.augmentations = sanitize(args.augmentations)
+    return args
 
 
 # Run below code on utils init ------------------------------------------------------------------------------------

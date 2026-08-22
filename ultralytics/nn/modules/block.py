@@ -1142,12 +1142,12 @@ class LSKAttention(nn.Module):
         self.conv_squeeze = nn.Conv2d(2, 2, 7, padding=autopad(7))
         self.conv = nn.Conv2d(c2 // 2, c2, 1)
         self.proj2 = nn.Conv2d(c2, c2, 1)
-        self.shortcut = nn.Conv2d(c1, c2, 1) if c1 != c2 else nn.Identity()
+        self.add_identity = c1 == c2
         self.act = nn.GELU()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Select local and dilated large-kernel features and add the residual path."""
-        shortcut = self.shortcut(x)
+        shortcut = x
         x = self.act(self.proj1(x))
         attn1 = self.conv0(x)
         attn2 = self.conv_spatial(attn1)
@@ -1155,7 +1155,8 @@ class LSKAttention(nn.Module):
         avg_attn = (attn1.mean(1, keepdim=True) + attn2.mean(1, keepdim=True)) * 0.5
         max_attn = torch.maximum(attn1.amax(1, keepdim=True), attn2.amax(1, keepdim=True))
         weights = self.conv_squeeze(torch.cat((avg_attn, max_attn), 1)).sigmoid()
-        return shortcut + self.proj2(x * self.conv(attn1 * weights[:, :1] + attn2 * weights[:, 1:]))
+        x = self.proj2(x * self.conv(attn1 * weights[:, :1] + attn2 * weights[:, 1:]))
+        return shortcut + x if self.add_identity else x
 
 
 class PKIContext(nn.Module):
@@ -1182,6 +1183,7 @@ class PKIContext(nn.Module):
         self.anchor_v = nn.Conv2d(c_, c_, (caa_kernel, 1), padding=autopad((caa_kernel, 1)), groups=c_)
         self.anchor2 = nn.Conv2d(c_, c_, 1)
         self.post = Conv(c_, c2, 1)
+        self.add_identity = c1 == c2
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Combine poly-kernel features with a context anchor attention factor."""
@@ -1189,7 +1191,7 @@ class PKIContext(nn.Module):
         y = self.local(x)
         y = self.mix(y + sum(m(y) for m in self.context))
         anchor = self.anchor2(self.anchor_v(self.anchor_h(self.anchor1(self.pool(x))))).sigmoid()
-        return self.post(y + y * anchor)
+        return self.post(y + y * anchor if self.add_identity else y * anchor)
 
 
 class C3k(C3):

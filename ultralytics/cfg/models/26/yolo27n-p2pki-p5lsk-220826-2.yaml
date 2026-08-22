@@ -31,7 +31,7 @@ head:
   # 3/5/7/9/11 depthwise contexts, then apply pooled strip context-anchor attention before P3 fusion.
   # https://openaccess.thecvf.com/content/CVPR2024/papers/Cai_Poly_Kernel_Inception_Network_for_Remote_Sensing_Detection_CVPR_2024_paper.pdf#page=4
   # https://github.com/PKINet/PKINet/blob/c2ee525025a330b9a943be9b791d99017837b325/mmrotate/models/backbones/pkinet.py#L142-L209
-  - [-1, 1, PKIContext, [128, 0.5]]
+  - [-1, 1, PKIContext, [128]]
   - [14, 1, nn.Upsample, [None, 2, "nearest"]]
   - [-1, 1, Scale, [0.5]]
   - [[-1, 4, 16], 1, Concat, [1]]
@@ -41,10 +41,9 @@ head:
   - [-1, 2, C3k2, [768, True]]
   - [-1, 1, Conv, [768, 3, 2]]
   - [[-1, 10], 1, Concat, [1]]
-  - [-1, 1, C3k2, [1024, True, 0.5, True]]
   # LSKNet Sections 3.2-3.3 and source lines 35-79: dynamically select sequential 5x5 and dilated 7x7
-  # depthwise context at P5, where medium/large semantics are refined at low spatial cost.
+  # depthwise context where medium/large semantics are refined at low spatial cost.
   # https://openaccess.thecvf.com/content/ICCV2023/papers/Li_Large_Selective_Kernel_Network_for_Remote_Sensing_Object_Detection_ICCV_2023_paper.pdf#page=4
   # https://github.com/zcablii/LSKNet/blob/8214a95cf782a4361cbec5368f4921e37785575e/mmrotate/models/backbones/lsknet.py#L35-L79
   - [-1, 1, LSKAttention, [1024]]
-  - [[20, 23, 27], 1, Detect, [nc]]
+  - [[20, 23, 26], 1, Detect, [nc]]

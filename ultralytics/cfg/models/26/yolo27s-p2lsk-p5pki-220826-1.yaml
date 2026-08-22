@@ -41,10 +41,9 @@ head:
   - [-1, 2, C3k2, [768, True]]
   - [-1, 1, Conv, [768, 3, 2]]
   - [[-1, 10], 1, Concat, [1]]
-  - [-1, 1, C3k2, [1024, True, 0.5, True]]
   # PKINet Sections 3.2-3.3 and source lines 142-209: sum undilated 3/5/7/9/11 depthwise contexts,
-  # then use pooled 11x1 and 1x11 context-anchor attention at P5 to protect medium/large recognition.
+  # then use pooled strip context-anchor attention for medium/large recognition.
   # https://openaccess.thecvf.com/content/CVPR2024/papers/Cai_Poly_Kernel_Inception_Network_for_Remote_Sensing_Detection_CVPR_2024_paper.pdf#page=4
   # https://github.com/PKINet/PKINet/blob/c2ee525025a330b9a943be9b791d99017837b325/mmrotate/models/backbones/pkinet.py#L142-L209
-  - [-1, 1, PKIContext, [1024, 0.5]]
-  - [[20, 23, 27], 1, Detect, [nc]]
+  - [-1, 1, PKIContext, [1024]]
+  - [[20, 23, 26], 1, Detect, [nc]]

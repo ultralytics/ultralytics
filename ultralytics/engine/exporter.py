@@ -25,6 +25,7 @@ Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 LiteRT                  | `litert`                  | yolo26n.tflite
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
+SafeTensors             | `safetensors`             | yolo26n.safetensors
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -60,6 +61,7 @@ Inference:
                          yolo26n_qnn.onnx           # Qualcomm QNN
                          yolo26n.tflite             # LiteRT
                          yolo26n_ascend_model       # Huawei Ascend
+                         yolo26n.safetensors        # SafeTensors
 """
 
 from __future__ import annotations
@@ -262,6 +264,7 @@ def export_formats():
             ["batch", "name", "quantize", "opset", "simplify", "nms"],
             "base",
         ],
+        ["SafeTensors", "safetensors", ".safetensors", True, True, ["batch", "quantize"], "base"],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -399,7 +402,9 @@ EXPORT_ENVS = {
 
 
 # Export precision support per format. Unset/32 requests are FP32 except for formats listed in FP32_UNSUPPORTED_FORMATS.
-FP16_FORMATS = frozenset({"torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn", "rknn", "ascend"})
+FP16_FORMATS = frozenset(
+    {"torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn", "rknn", "ascend", "safetensors"}
+)
 INT8_FORMATS = frozenset(
     {
         "onnx",
@@ -1739,6 +1744,36 @@ class Exporter:
             return str(output_dir)
         finally:
             f_onnx.unlink(missing_ok=True)
+
+    @try_export
+    def export_safetensors(self, prefix=colorstr("SafeTensors:")):  # noqa: B008
+        """Export YOLO model to SafeTensors format.
+
+        SafeTensors is a simple, safe and fast tensor serialization format that cannot execute arbitrary code on load,
+        unlike pickle-based `*.pt` checkpoints. The fused model weights are saved alongside the model YAML (JSON
+        encoded) and the standard export metadata, so no companion file is required for inference.
+
+        Returns:
+            (str): Path to the exported SafeTensors file.
+        """
+        assert IS_PYTHON_MINIMUM_3_9, "SafeTensors export requires Python>=3.9"
+        check_requirements("safetensors>=0.7.0")
+        from safetensors.torch import save_file
+
+        LOGGER.info(f"\n{prefix} starting export with safetensors...")
+        half = self.args.quantize == 16
+        f = self.file.with_name(f"{self.file.stem}{'_fp16' if half else ''}.safetensors")
+        model = self.model.half() if half else self.model.float()
+
+        # SafeTensors metadata only accepts string values, so serialize everything to str
+        metadata = {k: str(v) for k, v in self.metadata.items()}
+        metadata["fused"] = "True"  # weights come from the fused model built in __call__
+        yaml_data = dict(model.yaml)
+        yaml_data["nc"] = getattr(model, "nc", None) or len(model.names)
+        metadata["model_yaml"] = json.dumps(yaml_data)
+
+        save_file(model.state_dict(), str(f), metadata=metadata)
+        return str(f)
 
     def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://ai.google.dev/edge/litert/models/metadata."""

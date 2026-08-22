@@ -29,6 +29,7 @@ from .backends import (
     PyTorchBackend,
     QNNBackend,
     RKNNBackend,
+    SafeTensorsBackend,
     TensorFlowBackend,
     TensorRTBackend,
     TorchScriptBackend,
@@ -121,6 +122,7 @@ class AutoBackend(nn.Module):
             | LiteRT                | *.tflite          |
             | Hailo                 | *_hailo_model/    |
             | Huawei Ascend         | *_ascend_model/   |
+            | SafeTensors           | *.safetensors     |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
@@ -168,6 +170,7 @@ class AutoBackend(nn.Module):
         "litert": LiteRTBackend,
         "hailo": HailoBackend,
         "ascend": AscendBackend,
+        "safetensors": SafeTensorsBackend,
     }
 
     @torch.no_grad()
@@ -198,14 +201,14 @@ class AutoBackend(nn.Module):
         format = "pt" if isinstance(model, nn.Module) else self._model_type(model, dnn)
 
         # Check if format supports FP16
-        fp16 &= format in {"pt", "torchscript", "onnx", "openvino", "engine", "triton"}
+        fp16 &= format in {"pt", "torchscript", "onnx", "openvino", "engine", "triton", "safetensors"}
 
         # Set device
         if (
             isinstance(device, torch.device)
             and torch.cuda.is_available()
             and device.type != "cpu"
-            and format not in {"pt", "torchscript", "engine", "onnx", "paddle"}
+            and format not in {"pt", "torchscript", "engine", "onnx", "paddle", "safetensors"}
         ):
             device = torch.device("cpu")
 
@@ -315,7 +318,7 @@ class AutoBackend(nn.Module):
 
         if not self.end2end:
             import torchvision  # noqa (import here triggers torchvision NMS use in nms.py)
-        if self.format in {"pt", "torchscript", "onnx", "engine", "saved_model", "pb", "triton"} and (
+        if self.format in {"pt", "torchscript", "onnx", "engine", "saved_model", "pb", "triton", "safetensors"} and (
             self.device.type != "cpu" or self.format == "triton"
         ):
             im = (

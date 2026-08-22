@@ -888,6 +888,19 @@ def test_custom_albumentations():
         loaded_model = YOLO(ckpt_path)
         assert loaded_model is not None
 
+        # Test resuming without overrides clears the string representations
+        from ultralytics.engine.trainer import BaseTrainer
+
+        trainer_no_override = BaseTrainer(overrides={"resume": str(ckpt_path), "project": tmp_dir})
+        assert getattr(trainer_no_override.args, "augmentations", None) is None
+
+        # Test resuming with overrides retains the new custom augmentations
+        new_custom_transform = DummyCustomTransform()
+        trainer_with_override = BaseTrainer(
+            overrides={"resume": str(ckpt_path), "augmentations": [new_custom_transform], "project": tmp_dir}
+        )
+        assert trainer_with_override.args.augmentations == [new_custom_transform]
+
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")

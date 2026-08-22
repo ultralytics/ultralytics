@@ -1014,6 +1014,8 @@ class BaseTrainer:
                         "'augmentations' parameter again to get expected results. Example: \n"
                         f"model.train(resume=True, augmentations={ckpt_args['augmentations']})"
                     )
+                    if "augmentations" not in overrides:
+                        self.args.augmentations = None
 
             except Exception as e:
                 raise FileNotFoundError(

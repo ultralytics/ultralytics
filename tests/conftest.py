@@ -83,7 +83,9 @@ def isolated_model_path(tmp_path, model):
         from ultralytics.utils.downloads import attempt_download_asset
 
         model.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(attempt_download_asset(model.name), model)
+        downloaded = Path(attempt_download_asset(model.name))
+        if downloaded != model:
+            shutil.copy(downloaded, model)
 
     dst = tmp_path / model.name
     shutil.copy(model, dst)

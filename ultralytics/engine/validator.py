@@ -316,8 +316,13 @@ class BaseValidator:
             return stats
 
     def match_predictions(
-        self, pred_classes: torch.Tensor, true_classes: torch.Tensor, iou: torch.Tensor, use_scipy: bool = False
-    ) -> torch.Tensor:
+        self,
+        pred_classes: torch.Tensor,
+        true_classes: torch.Tensor,
+        iou: torch.Tensor,
+        use_scipy: bool = False,
+        return_indices: bool = False,
+    ) -> torch.Tensor | tuple[torch.Tensor, np.ndarray]:
         """Match predictions to ground truth objects using IoU.
 
         Args:
@@ -325,9 +330,12 @@ class BaseValidator:
             true_classes (torch.Tensor): Target class indices of shape (M,).
             iou (torch.Tensor): An NxM tensor containing the pairwise IoU values for predictions and ground truth.
             use_scipy (bool, optional): Whether to use Hungarian one-to-one matching (more precise).
+            return_indices (bool, optional): Whether to also return the matched ground-truth index for each prediction
+                at the first IoU threshold.
 
         Returns:
-            (torch.Tensor): Correct tensor of shape (N, 10) for 10 IoU thresholds.
+            (torch.Tensor | tuple[torch.Tensor, np.ndarray]): Correct tensor of shape (N, 10), optionally accompanied by
+                an array of matched ground-truth indices with -1 for unmatched predictions.
         """
         # Dx10 matrix, where D - detections, 10 - IoU thresholds
         correct = np.zeros((pred_classes.shape[0], self.iouv.shape[0])).astype(bool)
@@ -335,6 +343,7 @@ class BaseValidator:
         correct_class = true_classes[:, None] == pred_classes
         iou = iou * correct_class  # zero out the wrong classes
         iou = iou.cpu().numpy()
+        match_indices = np.full(pred_classes.shape[0], -1, dtype=int)
         for i, threshold in enumerate(self.iouv.cpu().tolist()):
             if use_scipy:
                 cost_matrix = iou * (iou >= threshold)
@@ -343,6 +352,8 @@ class BaseValidator:
                     valid = cost_matrix[labels_idx, detections_idx] > 0
                     if valid.any():
                         correct[detections_idx[valid], i] = True
+                        if i == 0:
+                            match_indices[detections_idx[valid]] = labels_idx[valid]
             else:
                 matches = np.nonzero(iou >= threshold)  # IoU > threshold and classes match
                 matches = np.array(matches).T
@@ -352,7 +363,10 @@ class BaseValidator:
                         matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
                         matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
                     correct[matches[:, 1].astype(int), i] = True
-        return torch.from_numpy(correct)
+                    if i == 0:
+                        match_indices[matches[:, 1].astype(int)] = matches[:, 0].astype(int)
+        correct = torch.from_numpy(correct)
+        return (correct, match_indices) if return_indices else correct
 
     def add_callback(self, event: str, callback):
         """Append the given callback to the specified event."""

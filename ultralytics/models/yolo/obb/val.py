@@ -90,9 +90,13 @@ class OBBValidator(DetectionValidator):
             >>> correct_matrix = validator._process_batch(preds, batch)
         """
         if batch["cls"].shape[0] == 0 or preds["cls"].shape[0] == 0:
-            return {"tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)}
+            return {
+                "tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool),
+                "match_gt": np.full(preds["cls"].shape[0], -1, dtype=int),
+            }
         iou = batch_probiou(batch["bboxes"], preds["bboxes"])
-        return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
+        tp, match_gt = self.match_predictions(preds["cls"], batch["cls"], iou, return_indices=True)
+        return {"tp": tp.cpu().numpy(), "match_gt": match_gt}
 
     def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:
         """Postprocess OBB predictions.

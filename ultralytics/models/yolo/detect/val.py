@@ -18,6 +18,24 @@ from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.utils.plotting import plot_images
 
 
+def _compute_box_centers(boxes: np.ndarray) -> np.ndarray:
+    """Compute (x, y) centers for boxes in xyxy, xywhr, or polygon format.
+
+    Args:
+        boxes (np.ndarray): Boxes array of shape (N, 4), (N, 5) for xywhr, or (N, 9) for polygons.
+
+    Returns:
+        (np.ndarray): Centers of shape (N, 2).
+    """
+    if boxes.shape[1] == 9:  # polygon: cls + 4 points (x, y)
+        positions = boxes[:, 1:].reshape(-1, 4, 2)
+        return positions.mean(axis=1)
+    elif boxes.shape[1] == 5:  # xywhr: x, y are the box center
+        return boxes[:, :2]
+    else:  # xyxy
+        return (boxes[:, :2] + boxes[:, 2:4]) / 2.0
+
+
 class DetectionValidator(BaseValidator):
     """A class extending the BaseValidator class for validation based on a detection model.
 
@@ -103,7 +121,7 @@ class DetectionValidator(BaseValidator):
 
     def get_desc(self) -> str:
         """Return a formatted string summarizing class metrics of YOLO model."""
-        return ("%22s" + "%11s" * 6) % ("Class", "Images", "Instances", "Box(P", "R", "mAP50", "mAP50-95)")
+        return ("%22s" + "%11s" * 7) % ("Class", "Images", "Instances", "Box(P", "R", "mAP50", "mAP50-95)", "TP-RMSE")
 
     def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:
         """Apply Non-maximum suppression to prediction outputs.
@@ -182,13 +200,52 @@ class DetectionValidator(BaseValidator):
 
             cls = pbatch["cls"].cpu().numpy()
             no_pred = predn["cls"].shape[0] == 0
+
+            stats = self._process_batch(predn, pbatch)
+            # compute per-TP center offsets (normalized by image diagonal)
+            if no_pred or cls.shape[0] == 0:
+                tp_center_offsets = np.zeros(len(predn["cls"]))  # same size as predictions
+            else:
+                # TP-RMSE calculation (normalized by img diagonal)
+                tp = stats["tp"]
+                tp_preds = tp[:, 0]
+                tp_idx = np.where(tp_preds)[0]
+
+                tp_center_offsets = np.zeros(len(predn["cls"]))
+
+                if tp_idx.size > 0:
+                    gt_idx = stats["match_gt"][tp_idx]
+                    valid = gt_idx >= 0
+                    tp_idx_valid = tp_idx[valid]
+                    gt_idx = gt_idx[valid]
+
+                    if tp_idx_valid.size > 0:
+                        gt_boxes = np.asarray(pbatch["bboxes"].cpu().numpy())
+                        pred_boxes = np.asarray(predn["bboxes"].cpu().numpy())
+
+                        # compute centers
+                        gt_centers = _compute_box_centers(gt_boxes)
+                        pred_centers = _compute_box_centers(pred_boxes)
+                        # keep only TP predictions
+                        pred_centers_tp = pred_centers[tp_idx_valid]
+                        # final distances
+                        dists = np.linalg.norm(
+                            pred_centers_tp - gt_centers[gt_idx],
+                            axis=1,
+                        )
+                        # normalize by image diagonal
+                        imgsz_arr = np.asarray(pbatch["imgsz"])
+                        diag = np.sqrt((imgsz_arr**2).sum()) + 1e-7
+                        tp_center_offsets[tp_idx_valid] = dists / diag
+
             self.metrics.update_stats(
                 {
-                    **self._process_batch(predn, pbatch),
+                    **stats,
                     "target_cls": cls,
                     "target_img": np.unique(cls),
                     "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
                     "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
+                    "tp_center_offset": tp_center_offsets,
                     "im_name": Path(pbatch["im_file"]).name,
                 }
             )
@@ -313,9 +370,13 @@ class DetectionValidator(BaseValidator):
                 10 IoU levels.
         """
         if batch["cls"].shape[0] == 0 or preds["cls"].shape[0] == 0:
-            return {"tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)}
+            return {
+                "tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool),
+                "match_gt": np.full(preds["cls"].shape[0], -1, dtype=int),
+            }
         iou = box_iou(batch["bboxes"], preds["bboxes"])
-        return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
+        tp, match_gt = self.match_predictions(preds["cls"], batch["cls"], iou, return_indices=True)
+        return {"tp": tp.cpu().numpy(), "match_gt": match_gt}
 
     def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None) -> torch.utils.data.Dataset:
         """Build YOLO Dataset.

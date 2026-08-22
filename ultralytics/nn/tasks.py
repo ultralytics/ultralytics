@@ -12,7 +12,7 @@ from pathlib import Path
 import torch
 from torch import nn
 
-from ultralytics.nn.autobackend import check_class_names
+from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import (
     AIFI,
     C1,
@@ -1929,6 +1929,14 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
     model = candidate.float()  # FP32 model
 
     # Model compatibility updates
+    try:
+        names = check_class_names(model.names)
+    except (AttributeError, KeyError, TypeError, ValueError):
+        names = None
+    if names is None:
+        nc = (getattr(model, "yaml", None) or {}).get("nc")
+        names = {i: f"class{i}" for i in range(nc)} if nc else default_class_names()
+    model.names = names
     model.args = args  # attach args to model
     model.pt_path = str(weight)  # attach *.pt file path to model as string (avoids WindowsPath pickle issues)
     model.task = getattr(model, "task", guess_model_task(model))

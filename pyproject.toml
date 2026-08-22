@@ -131,6 +131,12 @@ export-deepx = [
     "dx_com",
     "numpy<2",
 ]
+export-paddle = [
+    "paddlepaddle==3.0.0; platform_machine == 'aarch64' or platform_machine == 'arm64'", # pin 3.0.0 for ARM64
+    "paddlepaddle>=3.0.0,<3.3.0; platform_machine != 'aarch64' and platform_machine != 'arm64'", # pin <3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340
+    "x2paddle",
+    # CUDA users install paddlepaddle-gpu>=3.0.0,<3.3.0 manually instead (both variants ship the 'paddle' module)
+]
 export-litert = [  # LiteRT export, Linux x86 and macOS (litert-torch trace + ai-edge-litert/quantizer)
     "litert-torch>=0.9.0; (platform_system == 'Linux' and platform_machine == 'x86_64') or platform_system == 'Darwin'",
     "ai-edge-litert>=2.1.4; (platform_system == 'Linux' and platform_machine == 'x86_64') or platform_system == 'Darwin'",
@@ -141,6 +147,7 @@ export = [
     "ultralytics[export-tensorflow]",
     "ultralytics[export-coreml]",
     "ultralytics[export-litert]",
+    "ultralytics[export-paddle]",
     # Raspberry Pi Python 3.11 ExecuTorch inference requires the last known-good Linux ARM64 Torch 2.12 stack.
     "torch>=2.12.0,<2.13.0; platform_system == 'Linux' and platform_machine == 'aarch64' and python_version == '3.11'",
 ]

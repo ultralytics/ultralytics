@@ -15,6 +15,8 @@ keywords: Fashion-MNIST, image classification, Zalando dataset, machine learning
 
 The [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) dataset is an [image classification](https://www.ultralytics.com/glossary/image-classification) benchmark of 70,000 28x28 grayscale images of Zalando's clothing articles, evenly split across 10 classes — T-shirt/top, trouser, pullover, dress, coat, sandal, shirt, sneaker, bag, and ankle boot. It ships with a predefined split of 60,000 training and 10,000 test images (7,000 per class) and serves as a drop-in replacement for the original [MNIST](mnist.md) dataset for benchmarking [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) algorithms. For the color-image equivalent, see the related [CIFAR-10](cifar10.md) dataset.
 
+Explore [Fashion-MNIST on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/fashion-mnist) to preview samples, inspect dataset statistics, and clone it for training.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/eX5ad6udQ9Q"
@@ -146,4 +148,4 @@ Fashion-MNIST ships with a predefined split of 60,000 training images and 10,000
 
 ### Can I use Ultralytics Platform for training models on the Fashion-MNIST dataset?
 
-Yes. [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/fashion-mnist) lets you manage datasets, train [image classification](../../tasks/classify.md) models, and deploy them without extensive coding. It is a convenient way to run Fashion-MNIST experiments in the cloud, and you can explore more options in our [classification datasets overview](index.md).
+Yes. [Ultralytics Platform](https://platform.ultralytics.com) lets you manage datasets, train [image classification](../../tasks/classify.md) models, and deploy them without extensive coding. It is a convenient way to run Fashion-MNIST experiments in the cloud, and you can explore more options in our [classification datasets overview](index.md).

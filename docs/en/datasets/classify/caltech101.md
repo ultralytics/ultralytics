@@ -14,6 +14,8 @@ keywords: Caltech-101, dataset, image classification, object recognition, machin
 
 The [Caltech-101](https://data.caltech.edu/records/mzrjq-6wc02) dataset is a classic [image classification](https://www.ultralytics.com/glossary/image-classification) benchmark of 9,144 images spanning 101 object categories plus one background class. Each category holds about 40 to 800 images of real-world objects — animals, vehicles, household items, and people — making it a compact yet challenging benchmark for object recognition models.
 
+Explore [Caltech-101 on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/caltech101) to preview samples, inspect dataset statistics, and clone it for training.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/isc06_9qnM0"
@@ -147,4 +149,4 @@ Caltech-101 has no predefined split. The first time you train, Ultralytics autom
 
 ### Can I use Ultralytics Platform for training models on the Caltech-101 dataset?
 
-Yes. [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/caltech101) lets you manage datasets, train [image classification](../../tasks/classify.md) models, and deploy them without extensive coding. It is a convenient way to run Caltech-101 experiments in the cloud, and you can explore more options in our [classification datasets overview](index.md).
+Yes. [Ultralytics Platform](https://platform.ultralytics.com) lets you manage datasets, train [image classification](../../tasks/classify.md) models, and deploy them without extensive coding. It is a convenient way to run Caltech-101 experiments in the cloud, and you can explore more options in our [classification datasets overview](index.md).

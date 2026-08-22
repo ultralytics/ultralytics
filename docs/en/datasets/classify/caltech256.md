@@ -14,6 +14,8 @@ keywords: Caltech-256, dataset, image classification, object recognition, machin
 
 The [Caltech-256](https://data.caltech.edu/records/nyy15-4j048) dataset is a classic [image classification](https://www.ultralytics.com/glossary/image-classification) benchmark of 30,607 images spanning 256 object categories plus one background class. Each category holds at least 80 images of real-world objects — animals, vehicles, household items, and people — making it a larger, more challenging successor to [Caltech-101](caltech101.md) for object recognition models.
 
+Explore [Caltech-256 on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/caltech256) to preview samples, inspect dataset statistics, and clone it for training.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Y7cfNkqSdMg"
@@ -142,4 +144,4 @@ Caltech-256 has no predefined split. The first time you train, Ultralytics autom
 
 ### Can I use Ultralytics Platform for training models on the Caltech-256 dataset?
 
-Yes. [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/caltech256) lets you manage datasets, train [image classification](../../tasks/classify.md) models, and deploy them without extensive coding. It is a convenient way to run Caltech-256 experiments in the cloud, and you can explore more options in our [classification datasets overview](index.md).
+Yes. [Ultralytics Platform](https://platform.ultralytics.com) lets you manage datasets, train [image classification](../../tasks/classify.md) models, and deploy them without extensive coding. It is a convenient way to run Caltech-256 experiments in the cloud, and you can explore more options in our [classification datasets overview](index.md).

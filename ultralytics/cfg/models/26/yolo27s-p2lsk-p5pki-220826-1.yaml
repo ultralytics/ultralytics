@@ -26,12 +26,12 @@ head:
   - [-1, 1, Scale, [0.5]]
   - [[-1, 6], 1, Concat, [1]]
   - [-1, 2, C3k2, [768, True]]
-  - [2, 1, Conv, [64, 3, 2]]
+  - [2, 1, Conv, [32, 3, 2]]
   # LSKNet Sections 3.2-3.3 and source lines 35-79: spatially select sequential 5x5 and dilated 7x7
   # depthwise contexts on the narrow projected P2 path before it enters the full-depth P3 refinement.
   # https://openaccess.thecvf.com/content/ICCV2023/papers/Li_Large_Selective_Kernel_Network_for_Remote_Sensing_Object_Detection_ICCV_2023_paper.pdf#page=4
   # https://github.com/zcablii/LSKNet/blob/8214a95cf782a4361cbec5368f4921e37785575e/mmrotate/models/backbones/lsknet.py#L35-L79
-  - [-1, 1, LSKAttention, [64]]
+  - [-1, 1, LSKAttention, [32]]
   - [14, 1, nn.Upsample, [None, 2, "nearest"]]
   - [-1, 1, Scale, [0.5]]
   - [[-1, 4, 16], 1, Concat, [1]]

@@ -155,11 +155,49 @@ class Attention(nn.Module):
 
         self.freqs_cis = freqs_cis
 
+    def prepare_for_onnx_export(self):
+        """Split the fused QKV into separate Q/K/V projections and pre-expand the RoPE buffers.
+
+        The per-block ``_ViTBlockONNX`` export wrapper reads these separate ``q_proj``/``k_proj``/
+        ``v_proj`` weights (fused ``dim*3`` linears lose precision in TRT FP16) and the real
+        ``freqs_cos``/``freqs_sin`` buffers (repeat_interleave(2) for the rotate_half RoPE pattern).
+        """
+        # Split fused QKV (dim*3) into separate Q, K, V (dim each).
+        # TRT FP16 loses precision on the wide 3*dim fused linear output.
+        dim = self.head_dim * self.num_heads
+        w = self.qkv.weight.data  # (3*dim, dim)
+        b = self.qkv.bias.data if self.qkv.bias is not None else None
+        self.q_proj = nn.Linear(dim, dim, bias=b is not None)
+        self.k_proj = nn.Linear(dim, dim, bias=b is not None)
+        self.v_proj = nn.Linear(dim, dim, bias=b is not None)
+        self.q_proj.weight.data = w[:dim]
+        self.k_proj.weight.data = w[dim : 2 * dim]
+        self.v_proj.weight.data = w[2 * dim :]
+        if b is not None:
+            self.q_proj.bias.data = b[:dim]
+            self.k_proj.bias.data = b[dim : 2 * dim]
+            self.v_proj.bias.data = b[2 * dim :]
+
+        if not self.use_rope or self.freqs_cis is None:
+            return
+        freqs_cos = self.freqs_cis.real.float()
+        freqs_sin = self.freqs_cis.imag.float()
+        # Pre-expand to full dim: (seq, dim//2) -> (seq, dim) by repeating each value for pairs
+        freqs_cos = freqs_cos.repeat_interleave(2, dim=-1)
+        freqs_sin = freqs_sin.repeat_interleave(2, dim=-1)
+        self.register_buffer("freqs_cos", freqs_cos)
+        self.register_buffer("freqs_sin", freqs_sin)
+        del self.freqs_cis
+        self.freqs_cis = None
+
     def _apply_rope(self, q, k) -> tuple[Tensor, Tensor]:
-        """Apply 2d-rope to q and k."""
+        """Apply 2d-rope to q and k.
+
+        Only the eager path lives here. After ``prepare_for_onnx_export`` every block is wrapped by
+        ``_ViTBlockONNX``, which inlines its own rotate_half RoPE and never calls this.
+        """
         if not self.use_rope:
             return q, k
-
         assert self.freqs_cis is not None
         return apply_rotary_enc(q, k, freqs_cis=self.freqs_cis.to(q.device))
 

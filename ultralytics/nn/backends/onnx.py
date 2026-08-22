@@ -21,6 +21,7 @@ _ORT_DTYPES = {
     "tensor(int8)": (torch.int8, np.int8),
     "tensor(int32)": (torch.int32, np.int32),
     "tensor(int64)": (torch.int64, np.int64),
+    "tensor(bool)": (torch.bool, np.bool_),
 }
 
 

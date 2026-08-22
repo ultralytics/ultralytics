@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from collections import OrderedDict, namedtuple
 from pathlib import Path
 
@@ -12,7 +11,7 @@ import torch
 from ultralytics.utils import IS_JETSON, LOGGER, PYTHON_VERSION
 from ultralytics.utils.checks import check_requirements, check_tensorrt, check_version
 
-from .base import BaseBackend
+from .base import BaseBackend, read_engine_metadata
 
 
 class TensorRTBackend(BaseBackend):
@@ -50,15 +49,9 @@ class TensorRTBackend(BaseBackend):
 
         # Read engine file
         with open(weight, "rb") as f, trt.Runtime(logger) as runtime:
-            try:
-                meta_len = int.from_bytes(f.read(4), byteorder="little")
-                metadata = json.loads(f.read(meta_len).decode("utf-8"))
-                dla = metadata.get("dla", None)
-                if dla is not None:
-                    runtime.DLA_core = int(dla)
-            except UnicodeDecodeError:
-                f.seek(0)
-                metadata = None
+            metadata = read_engine_metadata(f)
+            if metadata and metadata.get("dla") is not None:
+                runtime.DLA_core = int(metadata["dla"])
             engine = runtime.deserialize_cuda_engine(f.read())
             self.apply_metadata(metadata)
         try:

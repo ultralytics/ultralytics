@@ -310,7 +310,12 @@ class TransformerEncoder(nn.Module):
         src_flatten = torch.cat(src_flatten, 1)  # bs, \sum{hxw}, c
         mask_flatten = torch.cat(mask_flatten, 1) if has_mask else None  # bs, \sum{hxw}
         lvl_pos_embed_flatten = torch.cat(lvl_pos_embed_flatten, 1)  # bs, \sum{hxw}, c
-        spatial_shapes = torch.tensor(spatial_shapes, dtype=torch.long, device=src_flatten.device)
+        if getattr(self, "_export_dynamic_shapes", False):
+            # Building this from python ints freezes the feature grid into a traced graph, which
+            # then pins every consumer of it, so read the shapes back out as tensors instead.
+            spatial_shapes = torch.stack([torch._shape_as_tensor(s)[2:4].to(src_flatten.device) for s in srcs])
+        else:
+            spatial_shapes = torch.tensor(spatial_shapes, dtype=torch.long, device=src_flatten.device)
         level_start_index = torch.cat(
             (
                 spatial_shapes.new_zeros((1,)),

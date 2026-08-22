@@ -397,7 +397,9 @@ class SAM2MaskDecoder(nn.Module):
             src = image_embeddings
         src = src + dense_prompt_embeddings
         assert image_pe.shape[0] == 1, "image_pe should have size 1 in batch dim (from `get_dense_pe()`)"
-        pos_src = torch.repeat_interleave(image_pe, tokens.shape[0], dim=0)
+        # expand reads the same as repeat_interleave with batch 1 and still traces on CUDA, where an
+        # int repeats argument is turned into a CPU scalar tensor that index_select rejects
+        pos_src = image_pe.expand(tokens.shape[0], -1, -1, -1)
         b, c, h, w = src.shape
 
         # Run the transformer

@@ -42,6 +42,7 @@ from ultralytics.utils import (
     clean_url,
     colorstr,
     emojis,
+    serialize_augmentations,
 )
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
@@ -146,10 +147,7 @@ class BaseTrainer:
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
             self.args.save_dir = str(self.save_dir)
             # Save run args, serializing augmentations as reprs for resume compatibility
-            args_dict = vars(self.args).copy()
-            if args_dict.get("augmentations") is not None:
-                # Serialize Albumentations transforms as their repr strings for checkpoint compatibility
-                args_dict["augmentations"] = [repr(t) for t in args_dict["augmentations"]]
+            args_dict = serialize_augmentations(vars(self.args).copy())
             YAML.save(self.save_dir / "args.yaml", args_dict)  # save run args
         self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
         self.save_period = self.args.save_period
@@ -733,8 +731,13 @@ class BaseTrainer:
             if isinstance(v, torch.Tensor) and v.is_floating_point():
                 torch.nan_to_num_(v)
 
+        # Sanitize model args to prevent serialization corruption/dependencies
+        if hasattr(ema, "args"):
+            ema.args = serialize_augmentations(ema.args)
+
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
+        train_args = serialize_augmentations(vars(self.args).copy())
         torch.save(
             {
                 "epoch": self.epoch,
@@ -744,7 +747,7 @@ class BaseTrainer:
                 "updates": self.ema.updates,
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "scaler": self.scaler.state_dict(),
-                "train_args": vars(self.args),  # save as dict
+                "train_args": train_args,  # save as dict
                 "train_metrics": {**self.metrics, "fitness": self.fitness},
                 "train_results": self.read_results_csv(),
                 "date": datetime.now().astimezone().isoformat(),
@@ -1000,6 +1003,8 @@ class BaseTrainer:
                         "'augmentations' parameter again to get expected results. Example: \n"
                         f"model.train(resume=True, augmentations={ckpt_args['augmentations']})"
                     )
+                    if "augmentations" not in overrides:
+                        self.args.augmentations = None
 
             except Exception as e:
                 raise FileNotFoundError(

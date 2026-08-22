@@ -1384,7 +1384,8 @@ def test_utils_checks(monkeypatch):
     monkeypatch.setattr(checks.subprocess, "check_output", lambda command, **kwargs: commands.append(command) or "")
     requirements = ["ray[tune]", "nvidia-modelopt[onnx]>=0.44", "$(touch /tmp/pwned)/missing"]
     assert checks.check_requirements(requirements)
-    assert commands[0][5:] == requirements  # requirements remain individual argv entries, never shell source
+    start = commands[0].index(requirements[0])
+    assert commands[0][start : start + len(requirements)] == requirements  # individual argv entries, never shell source
     assert not checks.check_version("v2", ">=2.0")  # installed version-shaped package keeps metadata precedence
     versions = ("v2.1-rc.1", "v2.1-beta1", "v2.1rev1", "v2.1-dev1", "v2.1+cu118")
     assert all(checks.check_version(v, ">=2.0") for v in versions)

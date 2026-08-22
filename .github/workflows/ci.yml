@@ -342,14 +342,17 @@ jobs:
         uses: ultralytics/actions/retry@main
         with:
           shell: bash # for Windows compatibility
-          # -n 2 limits parallelism for resource-heavy base export tests on shared runners. The ARM runner is
-          # single-process to avoid xdist worker overhead and runner disconnects during long slow-test runs.
+          # Keep OpenVINO exports isolated from concurrent CPU-heavy tests on Ubuntu to avoid native runtime crashes.
+          # The ARM runner is single-process to avoid xdist worker overhead and runner disconnects.
           run: |
-            pytest_args=(-vv -s --slow --durations=50 --durations-min=1 tests/ --export-env base)
+            pytest_args=(-vv -s --slow --durations=50 --durations-min=1 --export-env base)
             if [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]]; then
-              PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest "${pytest_args[@]}"
+              PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest "${pytest_args[@]}" tests/
+            elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+              PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -n 2 --dist=loadfile "${pytest_args[@]}" tests/ --ignore=tests/test_exports.py
+              PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest "${pytest_args[@]}" tests/test_exports.py
             else
-              PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -n 2 --dist=loadfile "${pytest_args[@]}"
+              PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -n 2 --dist=loadfile "${pytest_args[@]}" tests/
             fi
           retries: 1 # Retry once after initial attempt (2 total runs)
           timeout_minutes: 120

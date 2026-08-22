@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLO26, YOLO11, Install Ultralytics, pip, conda, Docker, 
 
 # Install Ultralytics
 
-Ultralytics offers a variety of installation methods, including pip, conda, and Docker. You can install YOLO via the `ultralytics` pip package for the latest stable release, or by cloning the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) for the most current version. Docker is also an option to run the package in an isolated container, which avoids local installation.
+Ultralytics offers a variety of installation methods, including a one-line script, pip, conda, and Docker. You can install YOLO via the `ultralytics` pip package for the latest stable release, or by cloning the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) for the most current version. Docker is also an option to run the package in an isolated container, which avoids local installation.
 
 <p align="center">
   <br>
@@ -22,6 +22,26 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
 !!! example "Install"
 
     ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ultralytics?logo=python&logoColor=gold)
+
+    === "One-line install"
+
+        Run one command and you are done. The script installs Python for you if you do not have it, then installs the `yolo` command. Use it if you only want the CLI and do not already have a Python setup.
+
+        === "macOS and Linux"
+
+            ```bash
+            # Install Python if missing, then the ultralytics package and the yolo command
+            curl -fsSL https://raw.githubusercontent.com/ultralytics/ultralytics/main/install.sh | sh
+            ```
+
+        === "Windows"
+
+            ```powershell
+            # Install Python if missing, then the ultralytics package and the yolo command
+            powershell -c "irm https://raw.githubusercontent.com/ultralytics/ultralytics/main/install.ps1 | iex"
+            ```
+
+        The script uses [uv](https://docs.astral.sh/uv/) to download a private Python 3.12 and install `ultralytics` in its own environment, so it does not touch any Python you already have. Set `ULTRALYTICS_PYTHON` to choose a different Python version. To use Ultralytics as a library in your own project, use one of the other methods instead.
 
     === "Pip install (recommended)"
 

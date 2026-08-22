@@ -48,7 +48,7 @@ In modern warehouses, [vision AI solutions](https://www.ultralytics.com/solution
 
 Package segmentation models can identify damaged packages by analyzing their shape and appearance. By detecting irregularities or deformations in package outlines, these models help ensure that only intact packages proceed through the supply chain, reducing customer complaints and return rates. This is a key aspect of [quality control in manufacturing](https://www.ultralytics.com/blog/improving-manufacturing-with-computer-vision) and is vital for maintaining product integrity.
 
-The complete Package Segmentation Dataset can also be browsed and managed on [Ultralytics Platform](https://platform.ultralytics.com).
+The complete Package Segmentation Dataset can also be browsed and managed on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/package-seg).
 
 ## Dataset YAML
 

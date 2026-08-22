@@ -14,6 +14,8 @@ keywords: Argoverse dataset, Argoverse-HD, object detection, 2D detection, auton
 
 The Ultralytics Argoverse dataset (Argoverse-HD) is a 2D [object detection](../../tasks/detect.md) dataset of 54,446 labeled autonomous-driving images — 39,384 for training and 15,062 for validation — across 8 classes: person, bicycle, car, motorcycle, bus, truck, traffic light, and stop sign. The images are captured from a vehicle's ring-front-center camera, and the annotations come from Carnegie Mellon University's streaming-perception project, built on [Argo AI](https://www.argoverse.org/)'s Argoverse 1.1 driving data. It is a large, real-world benchmark for training [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models to detect road objects in self-driving scenarios.
 
+Explore [Argoverse-HD on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/argoverse) to preview annotated samples, inspect dataset statistics, and clone it for training.
+
 !!! note "Manual download required"
 
     The Argoverse-HD `*.zip` file (~31.5 GB) needed for training was removed from Amazon S3 after the shutdown of Argo AI by Ford. It is available for manual download from [Google Drive](https://drive.google.com/file/d/1st9qW3BeIwQsnR0t8mRpvbsSWIo16ACi/view?usp=drive_link) — automatic download will not work, so download the archive before training.

@@ -42,7 +42,7 @@ Crack segmentation supports [infrastructure maintenance](https://www.ultralytics
 
 In industrial settings, crack detection with models like [Ultralytics YOLO26](../../models/yolo26.md) helps verify building integrity in construction, prevents costly downtime in [manufacturing](https://www.ultralytics.com/solutions/computer-vision-in-manufacturing), and makes road inspections safer. Automatically classifying cracks lets maintenance teams prioritize the most urgent repairs.
 
-The complete Crack Segmentation Dataset can also be browsed and managed on [Ultralytics Platform](https://platform.ultralytics.com).
+The complete Crack Segmentation Dataset can also be browsed and managed on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/crack-seg).
 
 ## Dataset YAML
 

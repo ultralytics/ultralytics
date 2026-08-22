@@ -24,7 +24,7 @@ keywords: DOTA128 dataset, Ultralytics, YOLO26, object detection, debugging, tra
 - **Labels**: YOLO-format oriented bounding boxes saved as `.txt` files beside each image.
 - **Download**: 34 MB, fetched automatically from Ultralytics GitHub assets the first time you train.
 
-This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com) and [YOLO26](https://github.com/ultralytics/ultralytics).
+This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/dota128) and [YOLO26](https://github.com/ultralytics/ultralytics).
 
 ## Dataset YAML
 

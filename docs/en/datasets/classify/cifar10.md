@@ -15,6 +15,8 @@ keywords: CIFAR-10, dataset, image classification, object recognition, machine l
 
 The [CIFAR-10](https://cave.cs.toronto.edu/kriz/cifar.html) (Canadian Institute For Advanced Research) dataset is a classic [image classification](https://www.ultralytics.com/glossary/image-classification) benchmark of 60,000 32x32 color images evenly split across 10 classes — airplane, automobile, bird, cat, deer, dog, frog, horse, ship, and truck. It ships with a predefined split of 50,000 training and 10,000 test images (6,000 per class), making it a lightweight, well-balanced starting point for training and benchmarking classification models. For a more fine-grained challenge, see the related [CIFAR-100](cifar100.md) dataset.
 
+Explore [CIFAR-10 on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/cifar10) to preview samples, inspect dataset statistics, and clone it for training.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/fLBbyhPbWzY"

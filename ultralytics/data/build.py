@@ -42,6 +42,14 @@ from ultralytics.utils.checks import check_file
 from ultralytics.utils.torch_utils import TORCH_1_13, TORCH_2_0, TORCH_2_7, get_torch_device_backend
 
 
+def get_split_fraction(fraction: float | list[float], mode: str = "train") -> float:
+    """Resolve a scalar fraction for the requested dataset split."""
+    if isinstance(fraction, (list, tuple)):
+        index = 0 if mode == "train" else 1
+        return fraction[index] if len(fraction) > index else 1.0
+    return fraction if mode == "train" else 1.0
+
+
 class InfiniteDataLoader(dataloader.DataLoader):
     """DataLoader that reuses workers for infinite iteration.
 
@@ -264,7 +272,7 @@ def build_yolo_dataset(
         dataset = YOLODataset
 
     if fraction is None:
-        fraction = cfg.fraction if mode == "train" else 1.0
+        fraction = get_split_fraction(cfg.fraction, mode)
     return dataset(
         img_path=img_path,
         imgsz=cfg.imgsz,
@@ -311,7 +319,7 @@ def build_grounding(
         prefix=colorstr(f"{mode}: "),
         task=cfg.task,
         classes=cfg.classes,
-        fraction=cfg.fraction if mode == "train" else 1.0,
+        fraction=get_split_fraction(cfg.fraction, mode),
     )
 
 

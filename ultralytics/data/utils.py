@@ -560,6 +560,21 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
     data = YAML.load(file, append_filename=True)  # dictionary
 
     # Checks
+    for key, valid_types in {
+        "path": str,
+        "train": (str, list),
+        "val": (str, list),
+        "test": (str, list),
+        "names": (list, dict),
+        "kpt_shape": list,
+        "flip_idx": list,
+    }.items():
+        if data.get(key) is not None and not isinstance(data[key], valid_types):
+            expected = (
+                ", ".join(t.__name__ for t in valid_types) if isinstance(valid_types, tuple) else valid_types.__name__
+            )
+            raise TypeError(f"{dataset} '{key}' must be {expected}, not {type(data[key]).__name__}")
+
     for k in "train", "val":
         if k not in data:
             if k != "val" or "validation" not in data:

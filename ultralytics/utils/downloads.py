@@ -12,7 +12,7 @@ from pathlib import Path
 from urllib import parse
 from uuid import uuid4
 
-from ultralytics.utils import ASSETS_URL, LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
+from ultralytics.utils import ASSETS_BASE_URL, ASSETS_URL, LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
 
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets
 GITHUB_ASSETS_REPO = "ultralytics/assets"
@@ -526,7 +526,8 @@ def attempt_download_asset(
     else:
         # URL specified
         name = Path(parse.unquote(str(file))).name  # decode '%2F' to '/' etc.
-        download_url = f"https://github.com/{repo}/releases/download"
+        # ASSETS_BASE_URL respects ULTRALYTICS_ASSETS_URL, allowing mirrors of the Ultralytics assets repo
+        download_url = ASSETS_BASE_URL if repo == GITHUB_ASSETS_REPO else f"https://github.com/{repo}/releases/download"
         if str(file).startswith(("http:/", "https:/")):  # download
             url = str(file).replace(":/", "://")  # Pathlib turns :// -> :/
             file = url2file(name)  # parse authentication query strings

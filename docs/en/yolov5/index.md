@@ -7,7 +7,7 @@ keywords: YOLOv5, Ultralytics, object detection, computer vision, deep learning,
 <div align="center">
   <p>
     <a href="https://www.ultralytics.com/yolo" target="_blank">
-      <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov5-splash.avif" alt="Ultralytics YOLOv5 v7.0 banner">
+      <img width="100%" src="https://cdn.ul.run/i/76b943ef63f00f48350f0afddcbd15f9.avif" alt="Ultralytics YOLOv5 v7.0 banner">
     </a>
   </p>
     <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml/badge.svg" alt="Ultralytics CI"></a>

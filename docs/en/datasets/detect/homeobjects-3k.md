@@ -112,7 +112,7 @@ You can train a YOLO26n model on the HomeObjects-3K dataset for 100 epochs using
 
 The sample below shows an indoor scene from the dataset with its bounding-box annotations, illustrating the object positions, scales, and spatial relationships that models learn to detect.
 
-![HomeObjects-3K dataset sample with household objects](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/homeobjects-3k-dataset-sample.avif)
+![HomeObjects-3K dataset sample with household objects](https://cdn.ul.run/i/61224ae0d023edc6e44e00296fd1a816.avif)
 
 ## License and Attribution
 

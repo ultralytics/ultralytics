@@ -87,7 +87,7 @@ The COCO8-Grayscale dataset (1 MB) downloads automatically the first time you st
 
 Below is an example of a mosaiced training batch from the COCO8-Grayscale dataset:
 
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/grayscale-mosaic.avif" alt="COCO8 grayscale dataset mosaic training batch" width="800">
+<img src="https://cdn.ul.run/i/c5cd2cbda030086ff84555dc8c484cd1.avif" alt="COCO8 grayscale dataset mosaic training batch" width="800">
 
 - **Mosaiced Image**: This image illustrates a training batch where multiple dataset images are combined using mosaic augmentation. Mosaic augmentation increases the diversity of objects and scenes within each batch, helping the model generalize better to various object sizes, aspect ratios, and backgrounds.
 

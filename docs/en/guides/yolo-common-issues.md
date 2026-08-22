@@ -7,7 +7,7 @@ keywords: YOLO, YOLO26, troubleshooting, installation errors, model training, GP
 # Troubleshooting Common YOLO Issues
 
 <p align="center">
-  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-common-issues.avif" alt="YOLO common training and deployment issues">
+  <img width="800" src="https://cdn.ul.run/i/6016dbdee5493d18b34ccd8c54450d6d.avif" alt="YOLO common training and deployment issues">
 </p>
 
 This guide covers the most common problems you'll hit when working with Ultralytics YOLO26, grouped by where they occur: [installation](#installation-errors), [model training](#model-training-issues), [prediction](#issues-related-to-model-predictions), and [deployment](#deployment-challenges). Jump to the category that matches your error, or scan the [FAQ](#faq) for quick answers. Each entry states the issue and a concrete fix you can apply directly.

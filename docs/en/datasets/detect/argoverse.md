@@ -114,7 +114,7 @@ Once trained, run [inference](../../modes/predict.md) with the fine-tuned model 
 
 The Argoverse-HD dataset contains high-resolution driving images captured from a ring-front-center camera, annotated with 2D bounding boxes for the 8 object classes. Below is an example image from the dataset with its corresponding annotations:
 
-![Argoverse-HD autonomous driving scene with annotated road objects](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/argoverse-3d-tracking-sample.avif)
+![Argoverse-HD autonomous driving scene with annotated road objects](https://cdn.ul.run/i/7a50b6053357bf7d3f350227801dce66.avif)
 
 - **Annotated driving scene**: This image shows road objects — such as vehicles and pedestrians — labeled with 2D bounding boxes, the format YOLO models learn to predict during training.
 

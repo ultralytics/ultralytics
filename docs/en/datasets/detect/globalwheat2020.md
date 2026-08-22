@@ -80,7 +80,7 @@ To train a YOLO26n model on the Global Wheat Head Dataset for 100 [epochs](https
 
 The Global Wheat Head Dataset contains a diverse set of outdoor field images, capturing the natural variability in wheat head appearances, environments, and conditions. Here is an example image from the dataset, along with its corresponding annotations:
 
-![Global Wheat dataset sample showing wheat head detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/wheat-head-detection-sample.avif)
+![Global Wheat dataset sample showing wheat head detection](https://cdn.ul.run/i/8e9624f0c7a3dba5a50e77531f41268e.avif)
 
 - **Wheat Head Detection**: Wheat heads are annotated with bounding boxes for [object detection](../../tasks/detect.md), across a variety of field conditions that reflect the diversity and complexity of the dataset.
 

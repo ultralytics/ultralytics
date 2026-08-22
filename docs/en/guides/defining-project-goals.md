@@ -36,7 +36,7 @@ A clear problem statement is the first big step toward finding the most effectiv
 Consider a computer vision project where you want to [estimate the speed of vehicles](./speed-estimation.md) on a highway. The core issue is that current speed monitoring methods are inefficient and error-prone due to outdated radar systems and manual processes. The project aims to develop a real-time computer vision system that can replace legacy [speed estimation](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects) systems.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/speed-estimation-using-yolov8.avif" alt="Vehicle speed estimation on a highway using Ultralytics YOLO">
+  <img width="100%" src="https://cdn.ul.run/i/e2861c34c64e564b4e623f11c93d6d21.avif" alt="Vehicle speed estimation on a highway using Ultralytics YOLO">
 </p>
 
 Primary users include traffic management authorities and law enforcement, while secondary stakeholders are highway planners and the public benefiting from safer roads. Key requirements involve evaluating budget, time, and personnel, as well as addressing technical needs like high-resolution cameras and real-time data processing. Additionally, regulatory constraints on privacy and [data security](https://www.ultralytics.com/glossary/data-security) must be considered.
@@ -65,13 +65,13 @@ By setting specific and quantifiable goals, you can effectively track progress, 
 Your problem statement helps you conceptualize which computer vision task can solve your issue. The most popular tasks include [image classification](https://www.ultralytics.com/glossary/image-classification), [object detection](https://www.ultralytics.com/glossary/object-detection), and [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) — see the [Ultralytics tasks page](../tasks/index.md) for a detailed comparison.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/image-classification-vs-object-detection-vs-image-segmentation.avif" alt="Comparison of image classification, object detection, and image segmentation outputs">
+  <img width="100%" src="https://cdn.ul.run/i/ee8d61458d72810155656d51266ef13e.avif" alt="Comparison of image classification, object detection, and image segmentation outputs">
 </p>
 
 For example, if your problem is monitoring vehicle speeds on a highway, the relevant task is [object tracking](../modes/track.md). Tracking is suitable because it follows each vehicle across video frames with a persistent ID, which is what speed calculation requires.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/example-of-object-tracking.avif" alt="YOLO object tracking of vehicles on a highway with persistent track IDs">
+  <video width="100%" src="https://cdn.ul.run/v/2da5e8da1b4179d1a089b77f6b0844ac.mp4" autoplay loop muted playsinline aria-label="YOLO object tracking of vehicles on a highway with persistent track IDs"></video>
 </p>
 
 Other tasks are less suitable on their own. [Object detection](../tasks/detect.md), for instance, locates vehicles in every frame but doesn't maintain each vehicle's identity across frames — and without that identity, the system can't measure movement over time. Once you've identified the appropriate computer vision task, it guides several critical aspects of your project, like model selection, dataset preparation, and model training approaches.
@@ -124,7 +124,7 @@ Use the SMART criteria: Specific, Measurable, Achievable, Relevant, and Time-bou
 No, pretrained models don't "remember" classes in the traditional sense. They learn patterns from massive datasets, and during custom training (fine-tuning), these patterns are adjusted for your specific task. The model's capacity is limited, and focusing on new information can overwrite some previous learnings.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/overview-of-transfer-learning.avif" alt="Overview of transfer learning from a pretrained model to a custom model">
+  <img width="100%" src="https://cdn.ul.run/i/4da0fb7c63ae4cbef15348acfe2f4c6a.avif" alt="Overview of transfer learning from a pretrained model to a custom model">
 </p>
 
 If you want to use the classes the model was pretrained on, a practical approach is to use two models: one retains the original performance, and the other is fine-tuned for your specific task. This way, you can combine the outputs of both models. There are other options like freezing layers, using the pretrained model as a feature extractor, and task-specific branching, but these are more complex solutions and require more expertise.

@@ -104,7 +104,7 @@ To train an [Ultralytics YOLO26n](../../models/yolo26.md) model on the Package S
 
 Below is an example from the Package Segmentation Dataset with its segmentation masks overlaid, outlining detected packages:
 
-![Package segmentation dataset sample for logistics](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/package-seg-sample.avif)
+![Package segmentation dataset sample for logistics](https://cdn.ul.run/i/0f69b252d02b4774b1a4caccc60602ef.avif)
 
 The dataset spans varied locations, environments, and package densities, so models trained on it see the range of real-world logistics scenes they need to generalize across. See the [segmentation task](../../tasks/segment.md) page for related workflows.
 

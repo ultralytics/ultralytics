@@ -191,4 +191,4 @@ The Argoverse-HD `*.zip` file (~31.5 GB), previously hosted on Amazon S3, can no
 
 ### Can I use the Argoverse dataset with Ultralytics Platform?
 
-Yes. [Ultralytics Platform](https://platform.ultralytics.com) lets you upload and version large datasets like Argoverse-HD, then train and deploy [object detection](../../tasks/detect.md) models in the cloud without heavy local setup. You can also browse related datasets in the [detection datasets overview](index.md).
+Yes. [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/argoverse) lets you upload and version large datasets like Argoverse-HD, then train and deploy [object detection](../../tasks/detect.md) models in the cloud without heavy local setup. You can also browse related datasets in the [detection datasets overview](index.md).

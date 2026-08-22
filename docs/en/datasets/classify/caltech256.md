@@ -142,4 +142,4 @@ Caltech-256 has no predefined split. The first time you train, Ultralytics autom
 
 ### Can I use Ultralytics Platform for training models on the Caltech-256 dataset?
 
-Yes. [Ultralytics Platform](https://platform.ultralytics.com) lets you manage datasets, train [image classification](../../tasks/classify.md) models, and deploy them without extensive coding. It is a convenient way to run Caltech-256 experiments in the cloud, and you can explore more options in our [classification datasets overview](index.md).
+Yes. [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/caltech256) lets you manage datasets, train [image classification](../../tasks/classify.md) models, and deploy them without extensive coding. It is a convenient way to run Caltech-256 experiments in the cloud, and you can explore more options in our [classification datasets overview](index.md).

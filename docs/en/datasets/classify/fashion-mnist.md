@@ -146,4 +146,4 @@ Fashion-MNIST ships with a predefined split of 60,000 training images and 10,000
 
 ### Can I use Ultralytics Platform for training models on the Fashion-MNIST dataset?
 
-Yes. [Ultralytics Platform](https://platform.ultralytics.com) lets you manage datasets, train [image classification](../../tasks/classify.md) models, and deploy them without extensive coding. It is a convenient way to run Fashion-MNIST experiments in the cloud, and you can explore more options in our [classification datasets overview](index.md).
+Yes. [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/fashion-mnist) lets you manage datasets, train [image classification](../../tasks/classify.md) models, and deploy them without extensive coding. It is a convenient way to run Fashion-MNIST experiments in the cloud, and you can explore more options in our [classification datasets overview](index.md).

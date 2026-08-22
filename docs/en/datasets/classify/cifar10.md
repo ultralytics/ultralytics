@@ -144,4 +144,4 @@ CIFAR-10 ships with a predefined split of 50,000 training images and 10,000 test
 
 ### Can I use Ultralytics Platform for training models on the CIFAR-10 dataset?
 
-Yes. [Ultralytics Platform](https://platform.ultralytics.com) lets you manage datasets, train [image classification](../../tasks/classify.md) models, and deploy them without extensive coding. It is a convenient way to run CIFAR-10 experiments in the cloud, and you can explore more options in our [classification datasets overview](index.md).
+Yes. [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/cifar10) lets you manage datasets, train [image classification](../../tasks/classify.md) models, and deploy them without extensive coding. It is a convenient way to run CIFAR-10 experiments in the cloud, and you can explore more options in our [classification datasets overview](index.md).

@@ -157,7 +157,7 @@ The MNIST dataset contains only handwritten digits, whereas the Extended MNIST (
 
 ### Can I use Ultralytics Platform to train models on datasets like MNIST?
 
-Yes. [Ultralytics Platform](https://platform.ultralytics.com) lets you upload datasets, train [image classification](../../tasks/classify.md) models, and deploy them without extensive coding. It is a convenient way to run MNIST experiments in the cloud — see the [classification datasets overview](index.md) for related options.
+Yes. [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/mnist) lets you upload datasets, train [image classification](../../tasks/classify.md) models, and deploy them without extensive coding. It is a convenient way to run MNIST experiments in the cloud — see the [classification datasets overview](index.md) for related options.
 
 ### How does MNIST compare to other image classification datasets?
 

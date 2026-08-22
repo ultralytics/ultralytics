@@ -36,7 +36,7 @@ For training and validation, COCO-Pose includes only COCO 2017 images with keypo
 2. **Val2017**: This subset has 2,346 images used for validation purposes during model training.
 3. **Test-dev2017**: A 20,288-image subset of the full 40,670-image test2017 set with withheld ground truth. The dataset YAML links this split to the [COCO test-dev keypoints evaluation server](https://codalab.lisn.upsaclay.fr/competitions/7403).
 
-Training at this scale is where [Ultralytics Platform](https://platform.ultralytics.com) helps most — it manages the compute so you can launch and monitor runs without provisioning your own GPUs.
+Training at this scale is where [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/coco2017-pose) helps most — it manages the compute so you can launch and monitor runs without provisioning your own GPUs.
 
 ## Applications
 

@@ -45,6 +45,8 @@ __all__ = (
     "HGBlock",
     "HGStem",
     "ImagePoolingAttn",
+    "LSKAttention",
+    "PKIContext",
     "Proto",
     "RepC3",
     "RepNCSPELAN4",
@@ -1119,6 +1121,75 @@ class Scale(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Return the input multiplied by the constant factor."""
         return x * self.factor
+
+
+class LSKAttention(nn.Module):
+    """Apply large selective kernel spatial attention with a residual projection."""
+
+    def __init__(self, c1: int, c2: int):
+        """Initialize large selective kernel attention.
+
+        Args:
+            c1 (int): Number of input channels.
+            c2 (int): Number of output channels.
+        """
+        super().__init__()
+        self.proj1 = nn.Conv2d(c1, c2, 1)
+        self.conv0 = nn.Conv2d(c2, c2, 5, padding=autopad(5), groups=c2)
+        self.conv_spatial = nn.Conv2d(c2, c2, 7, padding=autopad(7, d=3), groups=c2, dilation=3)
+        self.conv1 = nn.Conv2d(c2, c2 // 2, 1)
+        self.conv2 = nn.Conv2d(c2, c2 // 2, 1)
+        self.conv_squeeze = nn.Conv2d(2, 2, 7, padding=autopad(7))
+        self.conv = nn.Conv2d(c2 // 2, c2, 1)
+        self.proj2 = nn.Conv2d(c2, c2, 1)
+        self.shortcut = nn.Conv2d(c1, c2, 1) if c1 != c2 else nn.Identity()
+        self.act = nn.GELU()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Select local and dilated large-kernel features and add the residual path."""
+        shortcut = self.shortcut(x)
+        x = self.act(self.proj1(x))
+        attn1 = self.conv0(x)
+        attn2 = self.conv_spatial(attn1)
+        attn1, attn2 = self.conv1(attn1), self.conv2(attn2)
+        avg_attn = (attn1.mean(1, keepdim=True) + attn2.mean(1, keepdim=True)) * 0.5
+        max_attn = torch.maximum(attn1.amax(1, keepdim=True), attn2.amax(1, keepdim=True))
+        weights = self.conv_squeeze(torch.cat((avg_attn, max_attn), 1)).sigmoid()
+        return shortcut + self.proj2(x * self.conv(attn1 * weights[:, :1] + attn2 * weights[:, 1:]))
+
+
+class PKIContext(nn.Module):
+    """Extract multi-kernel texture features with context anchor attention."""
+
+    def __init__(self, c1: int, c2: int, e: float = 0.5, caa_kernel: int = 11):
+        """Initialize poly-kernel inception context extraction.
+
+        Args:
+            c1 (int): Number of input channels.
+            c2 (int): Number of output channels.
+            e (float): Hidden-channel expansion ratio.
+            caa_kernel (int): Context anchor stripe kernel size.
+        """
+        super().__init__()
+        c_ = int(c2 * e)
+        self.pre = Conv(c1, c_, 1)
+        self.local = nn.Conv2d(c_, c_, 3, padding=autopad(3), groups=c_)
+        self.context = nn.ModuleList(nn.Conv2d(c_, c_, k, padding=autopad(k), groups=c_) for k in (5, 7, 9, 11))
+        self.mix = Conv(c_, c_, 1)
+        self.pool = nn.AvgPool2d(7, 1, autopad(7))
+        self.anchor1 = nn.Conv2d(c_, c_, 1)
+        self.anchor_h = nn.Conv2d(c_, c_, (1, caa_kernel), padding=autopad((1, caa_kernel)), groups=c_)
+        self.anchor_v = nn.Conv2d(c_, c_, (caa_kernel, 1), padding=autopad((caa_kernel, 1)), groups=c_)
+        self.anchor2 = nn.Conv2d(c_, c_, 1)
+        self.post = Conv(c_, c2, 1)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Combine poly-kernel features with a context anchor attention factor."""
+        x = self.pre(x)
+        y = self.local(x)
+        y = self.mix(y + sum(m(y) for m in self.context))
+        anchor = self.anchor2(self.anchor_v(self.anchor_h(self.anchor1(self.pool(x))))).sigmoid()
+        return self.post(y + y * anchor)
 
 
 class C3k(C3):

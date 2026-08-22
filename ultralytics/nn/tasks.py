@@ -60,8 +60,10 @@ from ultralytics.nn.modules import (
     ImagePoolingAttn,
     Index,
     LRPCHead,
+    LSKAttention,
     MHSABlock,
     MixedRoPE2D,
+    PKIContext,
     PooledMHSABlock,
     Pose,
     Pose26,
@@ -2200,6 +2202,8 @@ def parse_model(d, ch, verbose=True):
             PSA,
             SCDown,
             C2fCIB,
+            LSKAttention,
+            PKIContext,
             A2C2f,
         }
     )

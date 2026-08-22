@@ -57,8 +57,11 @@ class OpenVINOBackend(BaseBackend):
             self.apply_metadata(YAML.load(metadata_file))
 
         # Set inference mode
-        throughput_mode = "CUMULATIVE_THROUGHPUT" if device_name == "AUTO" else "THROUGHPUT"
-        self.inference_mode = throughput_mode if self.dynamic and self.batch > 1 else "LATENCY"
+        self.inference_mode = (
+            ("CUMULATIVE_THROUGHPUT" if device_name == "AUTO" else "THROUGHPUT")
+            if self.dynamic and self.batch > 1
+            else "LATENCY"
+        )
         config = {"PERFORMANCE_HINT": self.inference_mode}
         if LINUX and ARM64 and device_name == "CPU":
             config["EXECUTION_MODE_HINT"] = ov.properties.hint.ExecutionMode.ACCURACY

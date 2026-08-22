@@ -1124,7 +1124,7 @@ class Scale(nn.Module):
 
 
 class LSKAttention(nn.Module):
-    """Apply large selective kernel spatial attention with a residual projection."""
+    """Apply large selective kernel spatial attention with a shape-matched residual path."""
 
     def __init__(self, c1: int, c2: int):
         """Initialize large selective kernel attention.
@@ -1163,7 +1163,7 @@ class LSKAttention(nn.Module):
         max_attn = torch.maximum(attn1.amax(1, keepdim=True), attn2.amax(1, keepdim=True))
         weights = self.conv_squeeze(torch.cat((avg_attn, max_attn), 1)).sigmoid()
         x = self.proj2(x * self.conv(attn1 * weights[:, :1] + attn2 * weights[:, 1:]))
-        # LSKNet Attention wrapper lines 67-78 adds the input identity. This adaptation keeps it only when shapes match.
+        # LSKNet Attention wrapper lines 67-78 add the input identity. This adaptation keeps it only when shapes match.
         # https://github.com/zcablii/LSKNet/blob/8214a95cf782a4361cbec5368f4921e37785575e/mmrotate/models/backbones/lsknet.py#L67-L78
         return shortcut + x if self.add_identity else x
 
@@ -1206,7 +1206,7 @@ class PKIContext(nn.Module):
         y = self.local(x)
         y = self.mix(y + sum(m(y) for m in self.context))
         anchor = self.anchor2(self.anchor_v(self.anchor_h(self.anchor1(self.pool(x))))).sigmoid()
-        # InceptionBottleneck lines 188-208 adds identity only for equal input/output channels.
+        # InceptionBottleneck lines 188-208 add identity only for equal input/output channels.
         # https://github.com/PKINet/PKINet/blob/c2ee525025a330b9a943be9b791d99017837b325/mmrotate/models/backbones/pkinet.py#L188-L208
         return self.post(y + y * anchor if self.add_identity else y * anchor)
 

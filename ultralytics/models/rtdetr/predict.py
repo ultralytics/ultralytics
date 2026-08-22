@@ -81,3 +81,17 @@ class RTDETRPredictor(BasePredictor):
         """
         letterbox = LetterBox(self.imgsz, auto=False, scale_fill=True)
         return [letterbox(image=x) for x in im]
+
+    def pre_transform_tensor(self, im: torch.Tensor) -> torch.Tensor:
+        """Pre-transform a raw (B, C, H, W) tensor on-device before inference.
+
+        The input images are letterboxed to ensure a square aspect ratio and scale-filled.
+
+        Args:
+            im (torch.Tensor): Normalized input tensor of shape (B, C, H, W) at original resolution.
+
+        Returns:
+            (torch.Tensor): Transformed tensor.
+        """
+        letterbox = LetterBox(self.imgsz, auto=False, scale_fill=True)
+        return letterbox.apply_tensor(im)

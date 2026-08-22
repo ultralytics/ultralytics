@@ -51,7 +51,7 @@ Carparts Segmentation finds applications in various domains including:
 - **Recycling**: Sorting vehicle components for efficient recycling processes.
 - **Smart City Initiatives**: Contributing data for urban planning and traffic management systems within [Smart Cities](https://en.wikipedia.org/wiki/Smart_city).
 
-The complete Carparts Segmentation Dataset can also be browsed and managed on [Ultralytics Platform](https://platform.ultralytics.com).
+The complete Carparts Segmentation Dataset can also be browsed and managed on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/carparts-seg).
 
 ## Dataset YAML
 

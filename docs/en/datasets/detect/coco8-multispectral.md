@@ -21,7 +21,7 @@ The [Ultralytics](https://www.ultralytics.com) COCO8-Multispectral dataset is an
   <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/coco8-multispectral-overview.avif" alt="Multispectral imaging for object detection">
 </p>
 
-COCO8-Multispectral is fully compatible with [Ultralytics Platform](https://platform.ultralytics.com) and [YOLO26](../../models/yolo26.md), ensuring seamless integration into your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) workflows.
+COCO8-Multispectral is fully compatible with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/coco8-multispectral) and [YOLO26](../../models/yolo26.md), ensuring seamless integration into your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) workflows.
 
 <p align="center">
   <br>

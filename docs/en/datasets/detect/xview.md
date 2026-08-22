@@ -105,7 +105,7 @@ To train a model on the xView dataset for 100 [epochs](https://www.ultralytics.c
         yolo detect train data=xView.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
-To label additional satellite images and manage xView training runs in your browser, use [Ultralytics Platform](https://platform.ultralytics.com).
+To label additional satellite images and manage xView training runs in your browser, use [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/xview).
 
 ## Sample Data and Annotations
 

@@ -48,7 +48,7 @@ Each hand is annotated with 21 keypoints as follows:
 - **Keypoints**: 21 per hand with `(x, y, visibility)` triplets.
 - **Download size**: ~369 MB.
 
-For a custom gesture vocabulary beyond generic hand landmarks, [Ultralytics Platform](https://platform.ultralytics.com) handles labeling and training your own dataset from the browser.
+For a custom gesture vocabulary beyond generic hand landmarks, [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/hand-keypoints) handles labeling and training your own dataset from the browser.
 
 ## Applications
 

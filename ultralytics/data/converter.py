@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import math
 import random
 import shutil
 from collections import defaultdict
@@ -798,7 +799,7 @@ def _infer_ndjson_kpt_shape(image_records: list) -> list:
             break
 
     if not kpt_lengths or len(set(kpt_lengths)) != 1:
-        raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose/")
+        raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose")
 
     n = kpt_lengths[0]
 
@@ -810,7 +811,7 @@ def _infer_ndjson_kpt_shape(image_records: list) -> list:
     if n % 2 == 0 and n % 3 != 0:
         return [n // 2, 2]
 
-    raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose/")
+    raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose")
 
 
 async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Path | None = None) -> Path:
@@ -818,7 +819,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format. For
     detection/segmentation/pose/obb tasks, it creates separate directories for images and labels. Depth datasets use
-    parallel images/ and depth/ trees with float32 NPY targets. Classification tasks use the ImageNet-style
+    parallel images/ and depth/ trees with scaled uint16 PNG targets. Classification tasks use the ImageNet-style
     {split}/{class_name}/ folder structure. Downloads run concurrently.
 
     The NDJSON format consists of:
@@ -881,12 +882,23 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
     check_requirements("aiohttp")
     import aiohttp
 
-    content = await asyncio.get_running_loop().run_in_executor(None, ndjson_path.read_text)
-    lines = [json.loads(line.strip()) for line in content.splitlines() if line.strip()]
+    def read_records():
+        with ndjson_path.open() as file:
+            return [json.loads(line) for line in file if line.strip()]
+
+    lines = await asyncio.get_running_loop().run_in_executor(None, read_records)
     dataset_record, image_records = lines[0], lines[1:]
     task = dataset_record.get("task", "detect")
     is_classification = task == "classify"
     is_depth = task == "depth"
+    depth_scale = dataset_record.get("depth_scale", 1000)
+    if is_depth and (
+        not isinstance(depth_scale, (int, float))
+        or isinstance(depth_scale, bool)
+        or not math.isfinite(depth_scale)
+        or depth_scale <= 0
+    ):
+        raise ValueError("Depth datasets require a positive finite depth_scale")
     class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
     classification_ids = set()
 
@@ -932,11 +944,6 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
             depth = record.get("depth")
             if not isinstance(depth, dict) or not isinstance(depth.get("url"), str) or not depth["url"]:
                 raise ValueError(f"Depth record '{record.get('file', '<unknown>')}' is missing depth.url")
-            if depth.get("encoding") != "npy-f32" or depth.get("unit") != "m":
-                raise ValueError("Depth records require encoding='npy-f32' and unit='m'")
-            shape = depth.get("shape")
-            if not isinstance(shape, list) or len(shape) != 2 or not all(type(x) is int and x > 0 for x in shape):
-                raise ValueError("Depth records require a positive [height, width] shape")
 
     # Hash-qualified dirs allow identical datasets to reuse downloads while preventing changed datasets from mutating
     # files that another training job may still be reading.
@@ -996,7 +1003,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
     if not is_classification:
         # Detection/segmentation/pose/obb/depth: prepare YAML and create base structure
         if is_depth:
-            data_yaml = {"task": "depth", "nc": 1, "names": {0: "depth"}}
+            data_yaml = {"task": "depth", "nc": 1, "names": {0: "depth"}, "depth_scale": depth_scale}
         else:
             data_yaml = dict(dataset_record)
             if class_names:
@@ -1070,7 +1077,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
                 return image_ok
 
             stem = original_name.rsplit(".", 1)[0] or original_name
-            depth_path = dataset_dir / "depth" / split / f"{stem}.npy"
+            depth_path = dataset_dir / "depth" / split / f"{stem}.png"
             depth_ok = await ensure_file(session, depth_path, record["depth"]["url"])
             if not image_ok or not depth_ok:
                 image_path.unlink(missing_ok=True)
@@ -1078,7 +1085,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
                 return False
             return True
 
-    # Process all images with async downloads (limit connections for small datasets)
+    # Keep download concurrency high without creating one live coroutine per record for very large datasets.
     semaphore = asyncio.Semaphore(min(128, len(image_records)))
     async with aiohttp.ClientSession(trust_env=True) as session:
         pbar = TQDM(
@@ -1091,11 +1098,13 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
             pbar.update(1)
             return result
 
-        results = await asyncio.gather(*[tracked_process(record) for record in image_records])
+        success_count = 0
+        for start in range(0, len(image_records), 1024):
+            results = await asyncio.gather(*[tracked_process(record) for record in image_records[start : start + 1024]])
+            success_count += sum(results)
         pbar.close()
 
     # Validate images were downloaded successfully
-    success_count = sum(1 for r in results if r)
     if not image_records or success_count < len(image_records):
         raise RuntimeError(f"Downloaded {success_count}/{len(image_records)} images from {ndjson_path}")
 

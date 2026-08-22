@@ -32,10 +32,10 @@ Object counting with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 
 ## Real World Applications
 
-|                                                                        Logistics                                                                         |                                                                          Aquaculture                                                                          |
-| :------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Conveyor Belt Packets Counting Using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/conveyor-belt-packets-counting.avif) | ![Fish Counting in Sea using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/fish-counting-in-sea-using-ultralytics-yolov8.avif) |
-|                                                 Conveyor Belt Packets Counting Using Ultralytics YOLO26                                                  |                                                         Fish Counting in Sea using Ultralytics YOLO26                                                         |
+|                                                       Logistics                                                        |                                                 Aquaculture                                                  |
+| :--------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------: |
+| ![Conveyor Belt Packets Counting Using Ultralytics YOLO26](https://cdn.ul.run/i/f63ae2faf83bb9dff2ef777c213b85f5.avif) | ![Fish Counting in Sea using Ultralytics YOLO26](https://cdn.ul.run/i/01c5af886b2295753d88a201fbda959a.avif) |
+|                                Conveyor Belt Packets Counting Using Ultralytics YOLO26                                 |                                Fish Counting in Sea using Ultralytics YOLO26                                 |
 
 ## Count Objects with YOLO26
 
@@ -109,17 +109,17 @@ Define a counting `region` — two points for a line or three or more for a poly
 Here's a table with the `ObjectCounter` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "show_in", "show_out", "region"]) }}
+{{ param_table(["model", "show_in", "show_out", "region", "line_width", "verbose"]) }}
 
 The `ObjectCounter` solution allows the use of several `track` arguments:
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 Additionally, the visualization arguments listed below are supported:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
+{{ param_table(["show", "show_conf", "show_labels"]) }}
 
 ## FAQ
 

@@ -237,7 +237,7 @@ def is_ascii(s) -> bool:
     Returns:
         (bool): True if the string is composed only of ASCII characters, False otherwise.
     """
-    return all(ord(c) < 128 for c in str(s))
+    return str(s).isascii()
 
 
 def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
@@ -1055,7 +1055,7 @@ def check_multiple_install():
         )
         install_msg = (
             f"Install your local copy in editable mode with 'pip install -e {ROOT.parent}' to avoid "
-            "issues. See https://docs.ultralytics.com/quickstart/"
+            "issues. See https://docs.ultralytics.com/quickstart"
         )
         if result.returncode != 0:
             if "not found" in result.stderr.lower():  # Package not pip-installed but locally imported

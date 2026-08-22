@@ -57,11 +57,21 @@ class OpenVINOBackend(BaseBackend):
             self.apply_metadata(YAML.load(metadata_file))
 
         # Set inference mode
-        self.inference_mode = "CUMULATIVE_THROUGHPUT" if self.dynamic and self.batch > 1 else "LATENCY"
+        self.inference_mode = (
+            ("CUMULATIVE_THROUGHPUT" if device_name == "AUTO" else "THROUGHPUT")
+            if self.dynamic and self.batch > 1
+            else "LATENCY"
+        )
         config = {"PERFORMANCE_HINT": self.inference_mode}
         if LINUX and ARM64 and device_name == "CPU":
             config["EXECUTION_MODE_HINT"] = ov.properties.hint.ExecutionMode.ACCURACY
             config["INFERENCE_PRECISION_HINT"] = ov.Type.f32
+        if (
+            self.task == "classify"
+            and device_name.startswith("NPU")
+            and "NPU_TURBO" in core.get_property(device_name, "SUPPORTED_PROPERTIES")
+        ):
+            config["NPU_TURBO"] = "YES"
 
         self.ov_compiled_model = core.compile_model(
             ov_model,

@@ -12,7 +12,7 @@ keywords: VisionEye, YOLO26, Ultralytics, object mapping, object tracking, dista
 [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) VisionEye offers the capability for computers to identify and pinpoint objects, simulating the observational [precision](https://www.ultralytics.com/glossary/precision) of the human eye. This functionality enables computers to discern and focus on specific objects, much like the way the human eye observes details from a particular viewpoint.
 
 <p align="center">
-  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/visioneye-object-mapping-with-tracking.avif" alt="VisionEye object mapping with YOLO tracking">
+  <img width="800" src="https://cdn.ul.run/i/9a649d717a86935dc277b78410391516.avif" alt="VisionEye object mapping with YOLO tracking">
 </p>
 
 ## Map Objects with YOLO26
@@ -82,17 +82,17 @@ VisionEye fixes a single observation point in the frame and draws a ray from it 
 Here's a table with the `VisionEye` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "vision_point"]) }}
+{{ param_table(["model", "vision_point", "line_width", "verbose"]) }}
 
 You can also utilize various `track` arguments within the `VisionEye` solution:
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 Furthermore, some visualization arguments are supported, as listed below:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
+{{ param_table(["show", "show_conf", "show_labels"]) }}
 
 ## How VisionEye Works
 

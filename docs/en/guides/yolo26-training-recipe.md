@@ -30,6 +30,7 @@ Full training logs and metrics for every model size are available on [Ultralytic
   height="290px"
   style="border:none"
 ></iframe>
+All YOLO26 base models were trained on COCO at **640x640** resolution using the **MuSGD** optimizer with **[batch size](https://www.ultralytics.com/glossary/batch-size) 128**. Rather than starting from random weights in a single run, models were initialized from intermediate pretrained weights and refined with hyperparameters found via [evolutionary search](./hyperparameter-tuning.md#genetic-evolution-and-mutation). Full training logs and metrics for every model size are available on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26).
 
 ## Stage 1: Objects365 Pretraining
 

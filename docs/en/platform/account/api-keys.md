@@ -12,6 +12,13 @@ keywords: Ultralytics Platform, API keys, authentication, remote training, secur
 
 ![Ultralytics Platform Settings API Keys Tab Key List](https://cdn.ul.run/i/f2c74d17fe21805f988c87adbc456674.avif)<!-- screenshot -->
 
+!!! note "Owner-Only"
+
+    Only the workspace owner can create, view, or revoke a workspace's API keys, because a key authenticates as the
+    workspace owner. Members with any other role see a note on the tab instead of the key list. API keys themselves
+    cannot create or revoke other API keys. The one exception is [On Premise worker keys](#on-premise-worker-keys),
+    which are revoked by disconnecting the host from the On Premise integration.
+
 ## Create API Key
 
 Create a new API key:
@@ -55,9 +62,8 @@ ul_a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4
 
 ### Key Security
 
-- Keys are stored with **AES-256-GCM encryption**
-- Authentication uses a SHA-256 hash for a fast indexed lookup
-- Full key values are never stored in plaintext
+- Keys are stored with **AES-256-GCM encryption**, never in plaintext
+- The first 11 characters (`ul_` plus 8 hex characters) act as a display prefix, so a key can be identified without exposing it
 
 ## Using API Keys
 
@@ -96,6 +102,14 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \
   https://platform.ultralytics.com/api/...
 ```
 
+Or pass it to the Python SDK (`pip install "ultralytics-platform>=0.1.5"`), which also reads `ULTRALYTICS_API_KEY`:
+
+```python
+from ultralytics_platform import Platform
+
+client = Platform(api_key="YOUR_API_KEY")
+```
+
 See the [REST API Reference](../api/index.md) for all available endpoints.
 
 ### Remote Training
@@ -121,7 +135,7 @@ See [Cloud Training](../train/cloud-training.md#remote-training) for the complet
 
 All keys are listed on the `Settings > API Keys` tab:
 
-Each key card shows the key name, copyable key value, relative creation time, usage count, and a revoke button.
+Each key card shows the key name, the copyable key value, the relative creation time, and a revoke button.
 
 ### Revoke Key
 
@@ -133,7 +147,8 @@ Revoke a key that's compromised or no longer needed:
 
 !!! warning "Immediate Effect"
 
-    Revocation is immediate. Any applications using the key will stop working.
+    Revocation is immediate and permanent — the key record is deleted, not disabled. Any applications using the key
+    will stop working.
 
 ### Regenerate Key
 
@@ -148,9 +163,17 @@ If a key is compromised:
 API keys are scoped to the currently active workspace:
 
 - **Personal workspace**: Keys authenticate as your personal account
-- **Team workspace**: Keys authenticate within the team context
+- **Team workspace**: Keys authenticate as the team workspace owner, with full owner permissions in that workspace
 
-When switching workspaces in the sidebar, the API Keys section shows keys for that workspace. Editor role or higher is required to manage workspace API keys. See [Teams](teams.md) for role details.
+When switching workspaces in the sidebar, the API Keys section shows keys for that workspace. Because a workspace key
+carries owner permissions, only the workspace owner can create, view, or revoke one. See [Teams](teams.md) for role
+details.
+
+### On Premise Worker Keys
+
+Connecting an [On Premise](../integrations/on-premise.md) host mints a separate worker key. Worker keys are managed from
+the On Premise integration rather than this tab, are never listed alongside your API keys, and are revoked by
+disconnecting the host — which also cancels that host's queued and running jobs.
 
 ## Security Best Practices
 
@@ -195,7 +218,7 @@ Solutions:
 1. Verify key is copied correctly (including the `ul_` prefix)
 2. Check key hasn't been revoked
 3. Confirm environment variable is set
-4. Ensure you're using `ultralytics>=8.4.104`
+4. Ensure you're using `ultralytics>=8.4.120`
 
 ### Permission Denied
 
@@ -207,7 +230,9 @@ Solutions:
 
 1. Verify you're the resource owner or have appropriate workspace access
 2. Check the key belongs to the correct workspace
-3. Create a new key if needed
+3. If you're managing keys in a team workspace, confirm you're the workspace owner — other roles get
+   `Workspace owner access required`
+4. Create a new key if needed
 
 ### Rate Limited
 
@@ -217,7 +242,7 @@ Error: Rate limit exceeded
 
 Solutions:
 
-1. Reduce request frequency — see the [rate limit table](../api/index.md#per-api-key-limits) for per-endpoint limits
+1. Reduce request frequency — see the [rate limit table](../api/index.md#rate-limits) for per-category limits
 2. Implement exponential backoff using the `Retry-After` header
 3. Use a [dedicated endpoint](../deploy/endpoints.md) when you need isolated inference capacity
 
@@ -241,4 +266,11 @@ Keys work across regions but access data in your account's region only.
 
 ### Can I share keys with team members?
 
-Better practice: Have each team member create their own key. For team workspaces, each member with Editor role or higher can create keys scoped to that workspace.
+No — a team workspace key authenticates as the workspace owner, so only the owner can create or view one, and sharing it
+hands over owner permissions. Have each member create a key in their own personal workspace instead, and ask the owner
+to mint a dedicated workspace key for shared automation such as CI.
+
+### Do keys work in every workspace I belong to?
+
+No. A key belongs to the workspace it was created in and only reaches that workspace's resources. Create a separate key
+for each workspace you automate.

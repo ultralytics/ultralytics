@@ -51,6 +51,45 @@ IMG_FORMATS = {
 VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ts", "wmv", "webm"}  # videos
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
 
+DEPTH_PNG_SCALE = 1000  # uint16 millimeters by default; zero is invalid
+
+
+def save_depth_png(path: str | Path, depth: np.ndarray, scale: float = DEPTH_PNG_SCALE) -> None:
+    """Save metric depth as a scaled uint16 PNG with zero reserved for invalid pixels."""
+    if not isinstance(scale, (int, float)) or isinstance(scale, bool) or not np.isfinite(scale) or scale <= 0:
+        raise ValueError("Depth scale must be a positive finite number")
+    depth = np.asarray(depth, dtype=np.float32).squeeze()
+    if depth.ndim != 2:
+        raise ValueError(f"Depth map must be 2D, got shape {depth.shape}")
+    valid = np.isfinite(depth) & (depth > 0)
+    encoded = np.zeros(depth.shape, dtype=np.uint16)
+    if valid.any():
+        scaled = np.rint(depth[valid] * scale)
+        if scaled.max() > np.iinfo(np.uint16).max:
+            raise ValueError(f"Depth map exceeds the {np.iinfo(np.uint16).max / scale:g} meter PNG limit")
+        encoded[valid] = np.maximum(scaled, 1).astype(np.uint16)
+    if not cv2.imwrite(str(path), encoded):
+        raise OSError(f"Failed to save depth map to {path}")
+
+
+def load_depth(path: str | Path, scale: float = DEPTH_PNG_SCALE) -> np.ndarray:
+    """Load metric depth from a scaled uint16 PNG or floating-point meter NPY."""
+    path = Path(path)
+    if path.suffix.lower() == ".npy":
+        depth = np.load(path, allow_pickle=False)
+        if depth.ndim != 2 or depth.dtype.kind != "f":
+            raise ValueError(f"Depth map {path} must be a 2D floating-point NPY array")
+        return np.nan_to_num(depth.astype(np.float32, copy=False), copy=False, nan=0.0, posinf=0.0, neginf=0.0)
+    if not isinstance(scale, (int, float)) or isinstance(scale, bool) or not np.isfinite(scale) or scale <= 0:
+        raise ValueError("Depth scale must be a positive finite number")
+    with Image.open(path) as image:
+        if image.format != "PNG" or image.mode not in {"I", "I;16"}:
+            raise ValueError(f"Depth PNG {path} must be a 2D uint16 map")
+        encoded = np.asarray(image)
+    depth = encoded.astype(np.float32)
+    depth /= scale
+    return depth
+
 
 def img2label_paths(img_paths: list[str], label_dir: str = "labels", suffix: str = ".txt") -> list[str]:
     """Convert image paths to label paths by replacing 'images' with 'labels' and extension with '.txt'."""
@@ -132,7 +171,7 @@ def check_file_speeds(
         LOGGER.warning(
             f"{prefix}Slow image access detected ({ping_msg}{speed_msg}{size_msg}). "
             f"Use local storage instead of remote/mounted storage for better performance. "
-            f"See https://docs.ultralytics.com/guides/model-training-tips/"
+            f"See https://docs.ultralytics.com/guides/model-training-tips"
         )
 
 
@@ -208,8 +247,8 @@ def verify_image(args: tuple) -> tuple:
 
 
 def verify_image_depth(args: tuple) -> tuple:
-    """Verify that an image and its paired depth .npy map exist and are readable."""
-    im_file, depth_file, prefix = args
+    """Verify that an image and its paired depth map exist and are readable."""
+    im_file, depth_file, prefix, scale = args
     # Number (found, missing, corrupt), message
     nf, nm, nc, msg = 0, 0, 0, ""
     try:
@@ -219,8 +258,23 @@ def verify_image_depth(args: tuple) -> tuple:
             nm = 1
             msg = f"{prefix}{im_file}: ignoring image with missing depth map {depth_file}"
             return None, None, nf, nm, nc, msg
-        depth = np.load(depth_file, mmap_mode="r", allow_pickle=False)
-        assert depth.ndim == 2, f"depth map {depth_file} expected a 2D array, got shape {depth.shape}"
+        if Path(depth_file).suffix.lower() == ".npy":
+            depth = np.load(depth_file, mmap_mode="r", allow_pickle=False)
+            assert depth.ndim == 2 and depth.dtype.kind == "f", "depth NPY must be 2D and floating-point"
+            depth_shape = depth.shape
+        else:
+            assert (
+                isinstance(scale, (int, float)) and not isinstance(scale, bool) and np.isfinite(scale) and scale > 0
+            ), "depth_scale must be a positive finite number"
+            with Image.open(depth_file) as depth:
+                assert depth.format == "PNG" and depth.mode in {"I", "I;16"}, (
+                    f"depth map {depth_file} must be an integer grayscale PNG"
+                )
+                depth_shape = (depth.height, depth.width)
+                depth.verify()
+        assert abs(np.log((depth_shape[1] / depth_shape[0]) / (shape[1] / shape[0]))) <= 0.02, (
+            f"depth map shape {depth_shape} does not match image shape {shape}"
+        )
         nf = 1
         return im_file, shape, nf, nm, nc, msg
     except Exception as e:
@@ -620,7 +674,7 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
         if data_dir.suffix != "":
             raise ValueError(
                 f'Classification datasets must be a directory (data="path/to/dir") not a file (data="{dataset}"), '
-                "See https://docs.ultralytics.com/datasets/classify/"
+                "See https://docs.ultralytics.com/datasets/classify"
             )
         LOGGER.info("")
         LOGGER.warning(f"Dataset not found, missing path {data_dir}, attempting download...")

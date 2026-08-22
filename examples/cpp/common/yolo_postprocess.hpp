@@ -91,6 +91,24 @@ inline Task InferTask(const std::vector<std::vector<int64_t>>& shapes, int num_l
 
 // ---- Post-processing --------------------------------------------------------
 
+inline void ClassAwareNMS(const std::vector<cv::Rect>& boxes, const std::vector<float>& scores,
+                          const std::vector<int>& class_ids, float score_thr, float iou_thr,
+                          std::vector<int>& keep) {
+    double min_coordinate = 0.0, max_coordinate = 0.0;
+    std::vector<cv::Rect2d> shifted_boxes(boxes.begin(), boxes.end());
+    for (const auto& box : shifted_boxes) {
+        min_coordinate = std::min({min_coordinate, box.x, box.y});
+        max_coordinate = std::max({max_coordinate, box.x + box.width, box.y + box.height});
+    }
+    const double span = max_coordinate - min_coordinate + 1.0;
+    for (size_t i = 0; i < shifted_boxes.size(); ++i) {
+        const double offset = class_ids[i] * span;
+        shifted_boxes[i].x += offset;
+        shifted_boxes[i].y += offset;
+    }
+    cv::dnn::NMSBoxes(shifted_boxes, scores, score_thr, iou_thr, keep);
+}
+
 inline std::vector<Result> PostprocessDetect(const float* data, const std::vector<int64_t>& shape,
                                              float scale, float conf_thr, float iou_thr) {
     std::vector<Result> results;
@@ -136,7 +154,7 @@ inline std::vector<Result> PostprocessDetect(const float* data, const std::vecto
         class_ids.push_back(best);
     }
     std::vector<int> keep;
-    cv::dnn::NMSBoxes(boxes, confidences, conf_thr, iou_thr, keep);
+    ClassAwareNMS(boxes, confidences, class_ids, conf_thr, iou_thr, keep);
     for (int idx : keep) {
         Result r;
         r.class_id = class_ids[idx];
@@ -180,6 +198,7 @@ inline std::vector<Result> PostprocessPose(const float* data, const std::vector<
     const int a = dim2;
     std::vector<cv::Rect> boxes;
     std::vector<float> confidences;
+    std::vector<int> class_ids;
     std::vector<std::vector<cv::Point2f>> kpts;
     std::vector<std::vector<float>> kscores;
     for (int i = 0; i < a; ++i) {
@@ -189,6 +208,7 @@ inline std::vector<Result> PostprocessPose(const float* data, const std::vector<
         boxes.emplace_back(static_cast<int>((cx - 0.5f * w) * inv), static_cast<int>((cy - 0.5f * h) * inv),
                            static_cast<int>(w * inv), static_cast<int>(h * inv));
         confidences.push_back(conf);
+        class_ids.push_back(0);
         std::vector<cv::Point2f> kp;
         std::vector<float> ks;
         for (int k = 0; k < nkpt; ++k) {
@@ -199,7 +219,7 @@ inline std::vector<Result> PostprocessPose(const float* data, const std::vector<
         kscores.push_back(std::move(ks));
     }
     std::vector<int> keep;
-    cv::dnn::NMSBoxes(boxes, confidences, conf_thr, iou_thr, keep);
+    ClassAwareNMS(boxes, confidences, class_ids, conf_thr, iou_thr, keep);
     for (int idx : keep) {
         Result r;
         r.class_id = 0;
@@ -241,6 +261,7 @@ inline std::vector<Result> PostprocessObb(const float* data, const std::vector<i
     const int a = dim2;
     std::vector<cv::Rect> boxes;
     std::vector<float> confidences;
+    std::vector<int> class_ids;
     std::vector<Result> candidates;
     for (int i = 0; i < a; ++i) {
         int best = 0;
@@ -254,6 +275,7 @@ inline std::vector<Result> PostprocessObb(const float* data, const std::vector<i
         boxes.emplace_back(static_cast<int>(cx - 0.5f * w), static_cast<int>(cy - 0.5f * h),
                            static_cast<int>(w), static_cast<int>(h));
         confidences.push_back(best_score);
+        class_ids.push_back(best);
         Result r;
         r.class_id = best;
         r.confidence = best_score;
@@ -262,7 +284,7 @@ inline std::vector<Result> PostprocessObb(const float* data, const std::vector<i
         candidates.push_back(r);
     }
     std::vector<int> keep;
-    cv::dnn::NMSBoxes(boxes, confidences, conf_thr, iou_thr, keep);  // axis-aligned proxy NMS
+    ClassAwareNMS(boxes, confidences, class_ids, conf_thr, iou_thr, keep);  // axis-aligned proxy NMS
     for (int idx : keep) results.push_back(candidates[idx]);
     return results;
 }
@@ -323,7 +345,7 @@ inline std::vector<Result> PostprocessSegment(const float* det, const std::vecto
         keep.resize(boxes.size());
         for (size_t i = 0; i < keep.size(); ++i) keep[i] = static_cast<int>(i);
     } else {
-        cv::dnn::NMSBoxes(boxes, confidences, conf_thr, iou_thr, keep);
+        ClassAwareNMS(boxes, confidences, class_ids, conf_thr, iou_thr, keep);
     }
 
     const int new_w = static_cast<int>(std::round(orig.width * scale));

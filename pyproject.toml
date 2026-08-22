@@ -90,6 +90,7 @@ dev = [
     "coverage[toml]",
     "zensical>=0.0.53; python_version >= '3.10'",
     "minijinja>=2.0.0", # render docs macros without mkdocs-macros-plugin
+    "amdsmi; sys_platform == 'linux'", # AMD GPU monitoring for ROCm tests
 ]
 export-base = [
     "onnx>=1.12.0; platform_system != 'Darwin'", # ONNX export

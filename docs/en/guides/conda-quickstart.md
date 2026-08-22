@@ -54,6 +54,25 @@ conda install -c conda-forge ultralytics
     conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=12.1 ultralytics
     ```
 
+### Note on ROCm Environment (AMD GPU, Linux)
+
+For AMD GPU acceleration on Linux using [ROCm](https://rocm.docs.amd.com/), PyTorch ROCm wheels are not available via Conda and must be installed with `pip`. Use a Conda environment for isolation, then install PyTorch ROCm and Ultralytics via `pip`:
+
+```bash
+conda create --name ultralytics-rocm python=3.12 -y
+conda activate ultralytics-rocm
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/rocm7.2
+pip install ultralytics
+pip install onnxruntime-migraphx --extra-index-url https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/
+```
+
+!!! note
+
+    The AMD `onnxruntime-migraphx` wheel requires **Python 3.10 or 3.12** on **Linux x86_64**. Make sure the MIGraphX C++ library is installed on your system and `/opt/rocm/lib` is in the linker path (see the [ONNX integration guide](../integrations/onnx.md#amd-gpu-inference-with-migraphx) for details).
+    The `--extra-index-url` above targets `rocm-rel-7.2`, the ROCm/MIGraphX stack validated by Ultralytics `Dockerfile-amd` (wheels for `rocm-rel-7.2.x` use the same index). For other ROCm minors, pick the matching folder under [`repo.radeon.com/rocm/manylinux/`](https://repo.radeon.com/rocm/manylinux/).
+
+See the [PyTorch Get Started](https://pytorch.org/get-started/locally/) page for supported ROCm versions and the [ONNX integration guide](../integrations/onnx.md#amd-gpu-inference-with-migraphx) for MIGraphX inference setup.
+
 ## Using Ultralytics
 
 With Ultralytics installed, you can now start using its robust features for [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), and more. For example, to predict an image, you can run:

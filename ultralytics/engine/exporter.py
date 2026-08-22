@@ -125,6 +125,7 @@ from ultralytics.utils.checks import (
     check_version,
     is_intel,
 )
+from ultralytics.utils.export.axelera import AXELERA_SDK
 from ultralytics.utils.files import file_size
 from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
@@ -354,15 +355,13 @@ EXPORT_ENVS = {
         "smoke": ["yolo export format=rknn model=yolo26n.pt imgsz=32 quantize=16"],
     },
     "isolated-axelera": {
-        # Axelera devkit 1.7.0 does not provide Python 3.13 wheels.
-        "python": "3.12",
+        "python": "3.13",
         "extras": ["export-base"],
-        # Axelera export requires 2.8.0 <= torch < 2.12.0.
-        "torch": ">=2.8,<2.12",
+        # Axelera export requires 2.8.0 <= torch < 2.13.0.
+        "torch": ">=2.8,<2.13",
         "requirements": [
-            "axelera-devkit==1.7.0",
+            f"axelera-devkit=={AXELERA_SDK}",  # CI pins the version the integration targets
             "omnimalloc==0.5.0",
-            "numpy<=2.3.5",
             "onnx>=1.12.0,<2.0.0",
             "onnxslim>=0.1.71",
         ],

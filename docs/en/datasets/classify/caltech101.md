@@ -81,7 +81,7 @@ Train a YOLO model on Caltech-101 for 100 [epochs](https://www.ultralytics.com/g
 
 The Caltech-101 dataset contains high-quality color images of various objects, providing a well-structured dataset for [image classification](https://www.ultralytics.com/glossary/image-classification) tasks. Here are some examples of images from the dataset:
 
-![Caltech-101 image classification dataset samples](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/caltech101-sample-image.avif)
+![Caltech-101 image classification dataset samples](https://cdn.ul.run/i/c914f41ceb204ba9dc47bd4b80b12d53.avif)
 
 The samples show the variety of categories and the natural, centered framing typical of Caltech-101, which makes it a clean starting point for training robust object recognition models.
 

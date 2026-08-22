@@ -106,7 +106,7 @@ Note that smaller images will likely yield lower classification [accuracy](https
 
 The ImageWoof dataset contains colorful images of various dog breeds, providing a challenging dataset for image classification tasks. Here are some examples of images from the dataset:
 
-![ImageWoof dog breed classification dataset samples](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/imagewoof-dataset-sample.avif)
+![ImageWoof dog breed classification dataset samples](https://cdn.ul.run/i/37b2839fa206a3e90ad7206a61ccaa48.avif)
 
 The example showcases the subtle differences and similarities among the different dog breeds, highlighting the complexity and difficulty of the classification task.
 

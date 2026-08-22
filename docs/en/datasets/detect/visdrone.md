@@ -109,7 +109,7 @@ To label additional aerial images and manage VisDrone training runs in your brow
 
 The sample below shows a typical VisDrone scene: an aerial viewpoint over a busy road where pedestrians and vehicles appear as small, densely packed targets, many partially occluded by one another.
 
-![VisDrone dataset aerial drone imagery with object detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/visdrone-object-detection-sample.avif)
+![VisDrone dataset aerial drone imagery with object detection](https://cdn.ul.run/i/ba4380b79e064e9f1e2803e69eaa0ace.avif)
 
 ## Citations and Acknowledgments
 

@@ -1134,6 +1134,10 @@ class LSKAttention(nn.Module):
             c2 (int): Number of output channels.
         """
         super().__init__()
+        # LSKNet Sections 3.2-3.3 and source lines 38-50: sequential 5x5 and dilation-3 7x7 depthwise kernels,
+        # followed by separate pointwise reductions for spatial selection.
+        # https://openaccess.thecvf.com/content/ICCV2023/papers/Li_Large_Selective_Kernel_Network_for_Remote_Sensing_Object_Detection_ICCV_2023_paper.pdf#page=4
+        # https://github.com/zcablii/LSKNet/blob/8214a95cf782a4361cbec5368f4921e37785575e/mmrotate/models/backbones/lsknet.py#L38-L50
         self.proj1 = nn.Conv2d(c1, c2, 1)
         self.conv0 = nn.Conv2d(c2, c2, 5, padding=autopad(5), groups=c2)
         self.conv_spatial = nn.Conv2d(c2, c2, 7, padding=autopad(7, d=3), groups=c2, dilation=3)
@@ -1152,10 +1156,15 @@ class LSKAttention(nn.Module):
         attn1 = self.conv0(x)
         attn2 = self.conv_spatial(attn1)
         attn1, attn2 = self.conv1(attn1), self.conv2(attn2)
+        # LSKNet source lines 45-59: derive average/max selectors, weight both kernel paths, then gate the input.
+        # The split reductions below equal a mean over the source concat without allocating the full feature concat.
+        # https://github.com/zcablii/LSKNet/blob/8214a95cf782a4361cbec5368f4921e37785575e/mmrotate/models/backbones/lsknet.py#L45-L59
         avg_attn = (attn1.mean(1, keepdim=True) + attn2.mean(1, keepdim=True)) * 0.5
         max_attn = torch.maximum(attn1.amax(1, keepdim=True), attn2.amax(1, keepdim=True))
         weights = self.conv_squeeze(torch.cat((avg_attn, max_attn), 1)).sigmoid()
         x = self.proj2(x * self.conv(attn1 * weights[:, :1] + attn2 * weights[:, 1:]))
+        # LSKNet Attention wrapper lines 67-78 adds the input identity. This adaptation keeps it only when shapes match.
+        # https://github.com/zcablii/LSKNet/blob/8214a95cf782a4361cbec5368f4921e37785575e/mmrotate/models/backbones/lsknet.py#L67-L78
         return shortcut + x if self.add_identity else x
 
 
@@ -1174,9 +1183,15 @@ class PKIContext(nn.Module):
         super().__init__()
         c_ = int(c2 * e)
         self.pre = Conv(c1, c_, 1)
+        # PKINet Section 3.2 and InceptionBottleneck lines 165-199: sum undilated 3/5/7/9/11 depthwise kernels,
+        # then mix their poly-kernel context with a pointwise convolution.
+        # https://openaccess.thecvf.com/content/CVPR2024/papers/Cai_Poly_Kernel_Inception_Network_for_Remote_Sensing_Detection_CVPR_2024_paper.pdf#page=4
+        # https://github.com/PKINet/PKINet/blob/c2ee525025a330b9a943be9b791d99017837b325/mmrotate/models/backbones/pkinet.py#L165-L199
         self.local = nn.Conv2d(c_, c_, 3, padding=autopad(3), groups=c_)
         self.context = nn.ModuleList(nn.Conv2d(c_, c_, k, padding=autopad(k), groups=c_) for k in (5, 7, 9, 11))
         self.mix = Conv(c_, c_, 1)
+        # PKINet Section 3.3 and CAA lines 39-53: pool, apply horizontal/vertical strip context, and sigmoid-gate.
+        # https://github.com/PKINet/PKINet/blob/c2ee525025a330b9a943be9b791d99017837b325/mmrotate/models/backbones/pkinet.py#L39-L53
         self.pool = nn.AvgPool2d(7, 1, autopad(7))
         self.anchor1 = nn.Conv2d(c_, c_, 1)
         self.anchor_h = nn.Conv2d(c_, c_, (1, caa_kernel), padding=autopad((1, caa_kernel)), groups=c_)
@@ -1191,6 +1206,8 @@ class PKIContext(nn.Module):
         y = self.local(x)
         y = self.mix(y + sum(m(y) for m in self.context))
         anchor = self.anchor2(self.anchor_v(self.anchor_h(self.anchor1(self.pool(x))))).sigmoid()
+        # InceptionBottleneck lines 188-208 adds identity only for equal input/output channels.
+        # https://github.com/PKINet/PKINet/blob/c2ee525025a330b9a943be9b791d99017837b325/mmrotate/models/backbones/pkinet.py#L188-L208
         return self.post(y + y * anchor if self.add_identity else y * anchor)
 
 

@@ -4,7 +4,9 @@
 # Image is CUDA-optimized for YOLO single/multi-GPU training and inference
 
 # Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:25.02-py3
-FROM pytorch/pytorch:2.11.0-cuda12.8-cudnn9-runtime
+# BASE_IMAGE is overridable so CI builds both CUDA 12 (default) and CUDA 13 variants from this one Dockerfile
+ARG BASE_IMAGE=pytorch/pytorch:2.11.0-cuda12.8-cudnn9-runtime
+FROM ${BASE_IMAGE}
 
 # Set environment variables
 # Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library"

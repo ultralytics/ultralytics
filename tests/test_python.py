@@ -197,6 +197,16 @@ def test_select_device(monkeypatch):
     assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 found via normalized visible ids
 
 
+def test_restricted_load_threaded():
+    """Concurrent restricted loads share one process-wide allow-list and must not strip each other's entries."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    from ultralytics.nn.tasks import torch_safe_load
+
+    with ThreadPoolExecutor(8) as pool:
+        list(pool.map(lambda _: torch_safe_load(MODEL, safe_only=True), range(32)))
+
+
 def test_model_forward():
     """Test the forward pass of the YOLO model."""
     model = YOLO(CFG)

@@ -15,6 +15,8 @@ keywords: CIFAR-100, dataset, image classification, object recognition, machine 
 
 The [CIFAR-100](https://cave.cs.toronto.edu/kriz/cifar.html) (Canadian Institute For Advanced Research) dataset is an [image classification](https://www.ultralytics.com/glossary/image-classification) benchmark of 60,000 32x32 color images spread evenly across 100 fine-grained classes (600 images each), which are in turn grouped into 20 coarse superclasses. Created by Alex Krizhevsky, it ships with a predefined split of 50,000 training and 10,000 test images, making it the harder, more fine-grained sibling of the [CIFAR-10](cifar10.md) dataset.
 
+Explore [CIFAR-100 on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/cifar100) to preview samples, inspect dataset statistics, and clone it for training.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/6bZeCs0xwO4"

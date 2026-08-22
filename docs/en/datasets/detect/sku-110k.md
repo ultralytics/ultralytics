@@ -54,7 +54,7 @@ The SKU-110K dataset is widely used for training and evaluating [deep learning](
 - Self-checkout systems in stores
 - Robotic picking and sorting in warehouses
 
-To annotate your own shelf images, train, and manage retail-detection datasets in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com).
+To annotate your own shelf images, train, and manage retail-detection datasets in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/sku110k).
 
 ## Dataset YAML
 

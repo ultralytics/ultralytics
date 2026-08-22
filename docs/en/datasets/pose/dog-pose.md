@@ -32,7 +32,7 @@ Each annotated image includes 24 keypoints with 3 dimensions per keypoint (x, y,
 
 <img src="https://cdn.ul.run/i/552d36d65c7964875d28eff3c299c8cd.avif" alt="Ultralytics Dog-Pose display image" width="800">
 
-For a specific breed or a different animal altogether, [Ultralytics Platform](https://platform.ultralytics.com) handles uploading, labeling, and training a custom keypoint model on your own data without managing infrastructure.
+For a specific breed or a different animal altogether, [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/dog-pose) handles uploading, labeling, and training a custom keypoint model on your own data without managing infrastructure.
 
 ## Dataset Structure
 

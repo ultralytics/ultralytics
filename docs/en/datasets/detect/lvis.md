@@ -53,7 +53,7 @@ The upstream LVIS benchmark also includes a held-out test set of roughly 20,000 
 
 The LVIS dataset is widely used to train and evaluate [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models for object detection (such as [YOLO](../../models/yolo26.md), [Faster R-CNN](https://arxiv.org/abs/1506.01497), and [SSD](https://arxiv.org/abs/1512.02325)) and instance segmentation (such as [Mask R-CNN](https://arxiv.org/abs/1703.06870)). Its large, long-tailed vocabulary, high annotation volume, and standardized evaluation metrics make it an essential benchmark for measuring how well [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models handle rare categories.
 
-To label your own images, train, and manage large-vocabulary datasets like LVIS in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com).
+Browse the official [LVIS detection](https://platform.ultralytics.com/ultralytics/datasets/lvis) and [LVIS segmentation](https://platform.ultralytics.com/ultralytics/datasets/lvis-seg) datasets on Ultralytics Platform to inspect their annotations, statistics, and classes or clone them for training.
 
 ## Dataset YAML
 

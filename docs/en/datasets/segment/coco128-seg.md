@@ -28,7 +28,7 @@ keywords: COCO128-Seg, Ultralytics, segmentation dataset, YOLO26, COCO 2017, mod
 
     The default YAML points train and val at the same 128 images, so validation metrics measure fit on the training set rather than generalization on held-out data. Duplicate or customize the split if you need a true held-out set.
 
-This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com) and [YOLO26](https://github.com/ultralytics/ultralytics).
+This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/coco128-seg) and [YOLO26](https://github.com/ultralytics/ultralytics).
 
 ## Dataset YAML
 

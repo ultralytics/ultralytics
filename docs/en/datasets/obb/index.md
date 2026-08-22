@@ -94,6 +94,7 @@ Currently, the following datasets with oriented bounding boxes are supported:
 - [DOTA-v1.5](dota-v2.md#dota-v15): An intermediate version of the DOTA dataset, offering additional annotations and improvements over DOTA-v1 for enhanced object detection tasks.
 - [DOTA-v2](dota-v2.md#dota-v20): DOTA (A Large-scale Dataset for Object Detection in Aerial Images) version 2, emphasizes detection from aerial perspectives and contains oriented bounding boxes with 1.7 million instances and 11,268 images.
 - [DOTA8](dota8.md): A small, 8-image subset of the full DOTA dataset suitable for testing workflows and Continuous Integration (CI) checks of OBB training in the `ultralytics` repository.
+- [DOTA8 Multispectral](https://platform.ultralytics.com/ultralytics/datasets/dota8-multispectral): An 8-image, 10-channel TIFF subset for testing multispectral OBB training on Ultralytics Platform.
 - [DOTA128](dota128.md): A 128-image subset of the DOTA dataset with all images in the train folder (used for both train and val), providing a good balance between size and diversity for testing OBB models.
 
 ### Incorporating your own OBB dataset

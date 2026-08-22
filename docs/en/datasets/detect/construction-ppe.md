@@ -64,7 +64,7 @@ Construction-PPE powers a variety of safety-focused computer vision applications
 - **Robotics and autonomous systems**: Enable drones or robots to perform PPE checks across large sites, supporting faster and safer inspections.
 - **Research and education**: Provide a real-world dataset for students and researchers exploring workplace safety and human-object interactions.
 
-To label, train, and deploy a PPE detection model without managing local infrastructure, run the full workflow in your browser with [Ultralytics Platform](https://platform.ultralytics.com).
+To label, train, and deploy a PPE detection model without managing local infrastructure, run the full workflow in your browser with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/construction-ppe).
 
 ## Dataset YAML
 

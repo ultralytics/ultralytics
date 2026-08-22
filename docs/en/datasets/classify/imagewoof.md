@@ -100,7 +100,7 @@ To use these variants, simply replace `imagewoof` in the dataset argument with `
         yolo classify train model=yolo26n-cls.pt data=imagewoof320 epochs=100 imgsz=224
         ```
 
-Note that smaller images will likely yield lower classification [accuracy](https://www.ultralytics.com/glossary/accuracy), but they are an excellent way to iterate quickly in the early stages of model development. You can also manage classification datasets and run training in the cloud with [Ultralytics Platform](https://platform.ultralytics.com).
+Note that smaller images will likely yield lower classification [accuracy](https://www.ultralytics.com/glossary/accuracy), but they are an excellent way to iterate quickly in the early stages of model development. You can also manage classification datasets and run training in the cloud with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/imagewoof).
 
 ## Sample Images and Annotations
 

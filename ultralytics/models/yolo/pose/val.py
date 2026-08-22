@@ -78,18 +78,11 @@ class PoseValidator(DetectionValidator):
 
     def get_desc(self) -> str:
         """Return description of evaluation metrics in string format."""
-        return ("%22s" + "%11s" * 10) % (
-            "Class",
-            "Images",
-            "Instances",
-            "Box(P",
-            "R",
-            "mAP50",
-            "mAP50-95)",
-            "Pose(P",
-            "R",
-            "mAP50",
-            "mAP50-95)",
+        extra = "".join(f"{'mAP' + str(round(t * 100)):>11}" for t in self.metrics.iou_metrics)
+        return (
+            ("%22s" + "%11s" * 6) % ("Class", "Images", "Instances", "Box(P", "R", "mAP50", "mAP50-95)")
+            + extra
+            + ("%11s" * 4) % ("Pose(P", "R", "mAP50", "mAP50-95)")
         )
 
     def init_metrics(self, model: torch.nn.Module) -> None:

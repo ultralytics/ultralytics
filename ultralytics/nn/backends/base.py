@@ -38,6 +38,108 @@ def read_tflite_metadata(file: str | Path) -> dict | None:
     return None
 
 
+def read_export_metadata(file: str | Path) -> dict:
+    """Read Ultralytics metadata from an exported model without loading it or importing its framework.
+
+    Every Ultralytics export embeds the metadata dict built by `Exporter`, but each format stores it differently:
+    directory-based formats write a `metadata.yaml` sidecar, while single-file formats embed it in a length-prefixed
+    JSON header (`.engine`), a zip entry (`.torchscript`, `.tflite`), or protobuf metadata props (`.onnx`). Reading it
+    up front resolves a model's task and head when its filename carries neither, i.e. `best.engine`. MNN keeps its
+    metadata in a flatbuffer `bizCode` field and Triton serves it over HTTP, so neither is read here.
+
+    Args:
+        file (str | Path): Path to an exported model file or directory.
+
+    Returns:
+        (dict): Parsed metadata, empty if the export holds none or predates metadata embedding.
+    """
+    import json
+    import zipfile
+
+    path = Path(file)
+    if path.suffix in {".pt", ".yaml", ".yml"}:  # checkpoints and configs are not exports
+        return {}
+    try:
+        if path.suffix == ".engine":
+            with open(path, "rb") as f:
+                length = int.from_bytes(f.read(4), byteorder="little", signed=True)
+                return json.loads(f.read(length)) if length > 0 else {}
+        if path.suffix == ".tflite":
+            return read_tflite_metadata(path) or {}
+        if path.suffix == ".torchscript":
+            with zipfile.ZipFile(path) as zf:
+                name = next((n for n in zf.namelist() if n.endswith("extra/config.txt")), "")
+                return json.loads(zf.read(name)) if name else {}
+        if path.suffix == ".onnx":
+            return _read_proto_metadata(path, (14,))  # ModelProto.metadata_props
+        if path.suffix in {".mlpackage", ".mlmodel"}:  # Model.description.metadata.userDefined
+            model = path / "Data/com.apple.CoreML/model.mlmodel" if path.suffix == ".mlpackage" else path
+            return _read_proto_metadata(model, (2, 100, 100))
+    except (OSError, ValueError, KeyError, zipfile.BadZipFile):
+        return {}  # a third-party or truncated file carries no Ultralytics header
+
+    sidecar = (path if path.is_dir() else path.parent) / "metadata.yaml"  # openvino, paddle, ncnn, saved_model
+    if path.suffix == ".pb":  # a frozen graph keeps its metadata in the sibling saved_model directory
+        sidecar = next(path.resolve().parent.rglob(f"{path.stem}_saved_model*/metadata.yaml"), sidecar)
+    if sidecar.exists():
+        from ultralytics.utils import YAML
+
+        return YAML.load(sidecar)
+    return {}
+
+
+def _read_proto_metadata(file: Path, field_path: tuple[int, ...]) -> dict:
+    """Collect a protobuf `map<string, string>` at a nested field path, without parsing the fields around it.
+
+    ONNX keeps its metadata props at top-level field 14 while CoreML nests them under
+    `description.metadata.userDefined`, and both encode entries the same way, so each is read by stepping over every
+    field using its declared wire-format length and descending only into the fields on the path.
+
+    Args:
+        file (Path): Path to the protobuf file.
+        field_path (tuple[int, ...]): Field numbers to descend, the last holding the repeated map entries.
+
+    Returns:
+        (dict): Map entries as string key-value pairs.
+    """
+    import io
+
+    def varint(read):
+        """Decode a base-128 varint from a `read(n)` callable, returning None at end of stream."""
+        shift = value = 0
+        while chunk := read(1):
+            value |= (chunk[0] & 0x7F) << shift
+            if not chunk[0] & 0x80:
+                return value
+            shift += 7
+
+    def walk(stream, fields):
+        """Scan one message level, descending into `fields[0]` and collecting map entries at the last field."""
+        metadata = {}
+        while (tag := varint(stream.read)) is not None:
+            wire = tag & 7
+            if wire == 0:  # varint field, i.e. ir_version
+                varint(stream.read)
+                continue
+            if wire != 2:  # these protos carry only varint and length-delimited fields
+                break
+            length = varint(stream.read)
+            if tag >> 3 != fields[0]:  # off the path, so step over the payload, i.e. the graph or weights
+                stream.seek(length, 1)
+                continue
+            nested = io.BytesIO(stream.read(length))
+            if len(fields) > 1:
+                return walk(nested, fields[1:])
+            pair = {}
+            while (field := varint(nested.read)) is not None:  # map entry, 1=key and 2=value
+                pair[field >> 3] = nested.read(varint(nested.read)).decode()
+            metadata[pair[1]] = pair.get(2, "")
+        return metadata
+
+    with open(file, "rb") as f:
+        return walk(f, field_path)
+
+
 class BaseBackend(ABC):
     """Base class for all inference backends.
 

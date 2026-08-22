@@ -100,6 +100,10 @@ keywords: Ultralytics, utility operations, non-max suppression, bounding box tra
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.ops.guided_filter
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.ops.scale_coords
 
 <br><br><hr><br>

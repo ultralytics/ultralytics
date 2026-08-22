@@ -41,8 +41,9 @@ RUN dpkg -i cuda-keyring_1.1-1_all.deb && \
 WORKDIR /ultralytics
 
 # Copy contents and configure dependencies
+# Drop opencv-python from pyproject.toml to reuse the OpenCV preinstalled in JetPack 6 (GUI and FFmpeg support)
 COPY . .
-RUN sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml
+RUN sed -i '/opencv-python/d' pyproject.toml
 ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
 # Pip install onnxruntime-gpu, torch, torchvision and ultralytics, then remove build files

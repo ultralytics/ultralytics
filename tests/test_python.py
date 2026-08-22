@@ -848,6 +848,49 @@ def test_train_scratch():
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
+def test_custom_albumentations():
+    """Test training with custom Albumentations transforms to ensure serialization and checkpoints work without corruption."""
+    import tempfile
+
+    class DummyCustomTransform:
+        """A dummy custom transform for testing serialization."""
+
+        def __repr__(self):
+            return "DummyCustomTransform(p=1.0)"
+
+    custom_transform = DummyCustomTransform()
+
+    # Train a tiny model for 1 epoch with this custom transform
+    model = YOLO(CFG)
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        model.train(
+            data="coco8.yaml",
+            epochs=1,
+            imgsz=32,
+            batch=2,
+            augmentations=[custom_transform],
+            project=tmp_dir,
+            name="test_custom_aug",
+        )
+
+        # Verify that args.yaml contains string representations of the custom transform
+        args_yaml_path = Path(tmp_dir) / "test_custom_aug" / "args.yaml"
+        assert args_yaml_path.exists()
+        saved_args = YAML.load(args_yaml_path)
+        assert "DummyCustomTransform" in str(saved_args.get("augmentations"))
+
+        # Verify that checkpoint is saved and can be loaded without RepresenterError/corruption
+        ckpt_path = Path(tmp_dir) / "test_custom_aug" / "weights" / "last.pt"
+        assert ckpt_path.exists()
+
+        # Try loading the model from the checkpoint
+        loaded_model = YOLO(ckpt_path)
+        assert loaded_model is not None
+
+
+@pytest.mark.skipif(not ONLINE, reason="environment is offline")
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_ndjson():
     """Test training the YOLO model using NDJSON format dataset."""
     model = YOLO(WEIGHTS_DIR / "yolo26n.pt")

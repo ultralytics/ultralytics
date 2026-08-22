@@ -733,8 +733,22 @@ class BaseTrainer:
             if isinstance(v, torch.Tensor) and v.is_floating_point():
                 torch.nan_to_num_(v)
 
+        # Sanitize model args to prevent serialization corruption/dependencies
+        if hasattr(ema, "args"):
+            if isinstance(ema.args, dict) and ema.args.get("augmentations") is not None:
+                ema.args = ema.args.copy()
+                ema.args["augmentations"] = [repr(t) for t in ema.args["augmentations"]]
+            elif ema.args is not None and getattr(ema.args, "augmentations", None) is not None:
+                import copy
+
+                ema.args = copy.copy(ema.args)
+                ema.args.augmentations = [repr(t) for t in ema.args.augmentations]
+
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
+        train_args = vars(self.args).copy()
+        if train_args.get("augmentations") is not None:
+            train_args["augmentations"] = [repr(t) for t in train_args["augmentations"]]
         torch.save(
             {
                 "epoch": self.epoch,
@@ -744,7 +758,7 @@ class BaseTrainer:
                 "updates": self.ema.updates,
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "scaler": self.scaler.state_dict(),
-                "train_args": vars(self.args),  # save as dict
+                "train_args": train_args,  # save as dict
                 "train_metrics": {**self.metrics, "fitness": self.fitness},
                 "train_results": self.read_results_csv(),
                 "date": datetime.now().astimezone().isoformat(),

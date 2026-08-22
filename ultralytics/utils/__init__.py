@@ -622,11 +622,20 @@ class YAML:
         file = Path(file)
         file.parent.mkdir(parents=True, exist_ok=True)
 
-        # Convert non-serializable objects to strings
-        valid_types = int, float, str, bool, list, tuple, dict, type(None)
-        for k, v in data.items():
-            if not isinstance(v, valid_types):
-                data[k] = str(v)
+        # Convert non-serializable objects to strings recursively
+        def sanitize(v):
+            if isinstance(v, dict):
+                return {k: sanitize(val) for k, val in v.items()}
+            elif isinstance(v, (list, tuple)):
+                return type(v)(sanitize(val) for val in v)
+            elif isinstance(v, set):
+                return [sanitize(val) for val in v]
+            elif isinstance(v, (int, float, str, bool, type(None))):
+                return v
+            else:
+                return str(v)
+
+        data = sanitize(data)
 
         # Write YAML file
         with open(file, "w", errors="ignore", encoding="utf-8") as f:
@@ -689,8 +698,24 @@ class YAML:
         """
         instance = cls._get_instance()
 
-        # Load file if path provided
-        yaml_dict = cls.load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
+        # Load file if path provided, and convert non-serializable objects to strings recursively
+        if isinstance(yaml_file, dict):
+
+            def sanitize(v):
+                if isinstance(v, dict):
+                    return {k: sanitize(val) for k, val in v.items()}
+                elif isinstance(v, (list, tuple)):
+                    return type(v)(sanitize(val) for val in v)
+                elif isinstance(v, set):
+                    return [sanitize(val) for val in v]
+                elif isinstance(v, (int, float, str, bool, type(None))):
+                    return v
+                else:
+                    return str(v)
+
+            yaml_dict = sanitize(yaml_file)
+        else:
+            yaml_dict = cls.load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
 
         # Use -1 for unlimited width in C implementation
         dump = instance.yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True, width=-1, Dumper=instance.SafeDumper)

@@ -179,7 +179,7 @@ def export_formats():
             ".engine",
             False,
             True,
-            ["batch", "data", "dynamic", "quantize", "opset", "simplify", "workspace", "nms", "fraction"],
+            ["batch", "data", "dynamic", "quantize", "opset", "simplify", "workspace", "nms", "fraction", "hw_compat"],
             "base",
         ],
         ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "quantize", "nms"], "coreml"],
@@ -607,6 +607,11 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
+        if self.args.hw_compat not in {None, "ampere_plus", "same_compute_capability"}:
+            raise ValueError(
+                f"Invalid hw_compat='{self.args.hw_compat}'. Valid values are 'ampere_plus' and "
+                "'same_compute_capability'."
+            )
         if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo"} and self.args.quantize not in {8, "w8a16"}:
             if self.args.quantize == 32:
                 raise ValueError(
@@ -1372,6 +1377,7 @@ class Exporter:
             metadata=self.metadata,
             verbose=self.args.verbose,
             prefix=prefix,
+            hw_compat=self.args.hw_compat,
         )
 
         return f

@@ -168,6 +168,15 @@ The TensorRT format supports the [Export](../modes/export.md), [Predict](../mode
 | `data`      | `str`             | `None`     | Path to the [dataset](../datasets/index.md) YAML, essential for quantization; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task. |
 | `fraction`  | `float`           | `1.0`      | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used. |
 | `device`    | `str`             | `None`     | Specifies the device for exporting: GPU (`device=0`), DLA for NVIDIA Jetson (`device=dla:0` or `device=dla:1`).                                                                                                                                                  |
+| `hw_compat` | `str`             | `None`     | Specifies the TensorRT hardware compatibility level, i.e. `ampere_plus` or `same_compute_capability`. Unset (default) builds an engine for the export GPU only. See note below for platform/version behavior.                                                    |
+
+!!! note
+
+    `hw_compat` helps across compatible NVIDIA GPU families, but platform/runtime constraints still apply:
+
+    - Thor <-> Spark (ARM64): supported only when both systems use TensorRT `10.13.3.9`.
+    - Blackwell x86_64: this option works across TensorRT versions, but inference remains x86_64 runtime.
+    - Cross-architecture portability is not supported: x86_64-exported engines do not deserialize on ARM64 Thor/Spark, and ARM64 Thor/Spark-exported engines do not deserialize on x86_64.
 
 !!! tip
 

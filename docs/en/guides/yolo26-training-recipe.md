@@ -36,7 +36,8 @@ Full training logs and metrics for every model size are available on [Ultralytic
 The Objects365 pretraining stage uses the following starting weights, which can be inspected programmatically:
 
 !!! example "Inspect Stage 1 checkpoint"
-```python
+
+````python
 from ultralytics import YOLO
 
     # Replace 'yolo26n-objv1-150.pt' with the appropriate size
@@ -93,7 +94,6 @@ Every Ultralytics checkpoint stores the full training configuration used to prod
         ```
 
 The output lists the full configuration of over 100 entries, including every recipe value documented on this page. An excerpt for `yolo26n.pt`:
-
 ```plaintext
 batch: 128
 ...
@@ -110,7 +110,7 @@ lr0: 0.0054
 lrf: 0.04952
 ...
 optimizer: MuSGD
-```
+````
 
 This works for any `.pt` checkpoint — official releases and your own fine-tuned models alike. For the full list of configurable training arguments, see the [training configuration reference](../usage/cfg.md).
 
@@ -198,7 +198,8 @@ Every YOLO26 checkpoint carries the complete per-epoch `results.csv` of its trai
 The Git commit used to produce each checkpoint is stored in `ckpt["git"]`. You can check out the exact code revision as follows:
 
 !!! example "Checking out the code revision from a checkpoint"
-```python
+
+````python
 import torch
 
     ckpt = torch.load("yolo26n.pt", map_location="cpu")
@@ -296,3 +297,4 @@ Not exactly — the checkpoints were produced using an internal training branch 
 ### Where are the training curves for each checkpoint?
 
 Every checkpoint carries the complete per-epoch `results.csv` of its run, with the official curves on Ultralytics Platform and drag and drop upload for any other `.pt` file.
+````

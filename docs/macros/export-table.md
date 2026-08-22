@@ -5,8 +5,8 @@
 | [PyTorch](https://pytorch.org/) | - | `{{ model_name or "yolo26n" }}.pt` | ✅ | - |
 | [TorchScript]({{ integrations_path or "../integrations" }}/torchscript.md) | `torchscript` | `{{ model_name or "yolo26n" }}.torchscript` | ✅ | `imgsz`, `quantize`, `dynamic`, `nms`{{ tip1 }}, `batch`, `device` |
 | [ONNX]({{ integrations_path or "../integrations" }}/onnx.md) | `onnx` | `{{ model_name or "yolo26n" }}.onnx` | ✅ | `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `nms`{{ tip1 }}, `batch`, `data`, `fraction`, `device` |
-| [OpenVINO]({{ integrations_path or "../integrations" }}/openvino.md) | `openvino` | `{{ model_name or "yolo26n" }}_openvino_model/` | ✅ | `imgsz`, `quantize`, `dynamic`, `nms`{{ tip1 }}, `batch`, `data`, `fraction`, `device` |
-| [TensorRT]({{ integrations_path or "../integrations" }}/tensorrt.md) | `engine` | `{{ model_name or "yolo26n" }}.engine` | ✅ | `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `workspace`, `nms`{{ tip1 }}, `batch`, `data`, `fraction`, `device` |
+| [OpenVINO]({{ integrations_path or "../integrations" }}/openvino.md) | `openvino` | `{{ model_name or "yolo26n" }}_openvino_model/` | ✅ | `imgsz`, `quantize`, `dynamic`, `nms`{{ tip1 }}, `batch`, `calibration_batch`, `data`, `fraction`, `device` |
+| [TensorRT]({{ integrations_path or "../integrations" }}/tensorrt.md) | `engine` | `{{ model_name or "yolo26n" }}.engine` | ✅ | `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `workspace`, `nms`{{ tip1 }}, `batch`, `calibration_batch`, `data`, `fraction`, `device` |
 | [CoreML]({{ integrations_path or "../integrations" }}/coreml.md) | `coreml` | `{{ model_name or "yolo26n" }}.mlpackage` | ✅ | `imgsz`, `dynamic`, `quantize`, `nms`{{ tip1 }}, `batch`, `device` |
 | [TF SavedModel]({{ integrations_path or "../integrations" }}/tf-savedmodel.md) | `saved_model` | `{{ model_name or "yolo26n" }}_saved_model/` | ✅ | `imgsz`, `keras`, `quantize`, `opset`, `nms`{{ tip1 }}, `batch`, `data`, `fraction`, `device` |
 | [TF GraphDef]({{ integrations_path or "../integrations" }}/tf-graphdef.md) | `pb` | `{{ model_name or "yolo26n" }}.pb` | ❌ | `imgsz`, `opset`, `batch`, `device` |

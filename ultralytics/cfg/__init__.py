@@ -260,6 +260,7 @@ CFG_INT_KEYS = frozenset(
         "max_det",
         "vid_stride",
         "line_width",
+        "calibration_batch",
         "nbs",
         "save_period",
     }
@@ -269,6 +270,7 @@ CFG_INT_MIN = {  # minimum valid values for integer arguments used as divisors, 
     "max_det": 1,
     "mask_ratio": 1,
     "vid_stride": 1,
+    "calibration_batch": 1,
     "seed": 0,
 }
 CFG_BOOL_KEYS = frozenset(

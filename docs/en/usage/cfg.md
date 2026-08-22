@@ -202,7 +202,7 @@ Adjust these based on your dataset and hardware. Learn more in [Train Settings](
 
 ### How do I set the learning rate for training a YOLO model?
 
-The learning rate (`lr0`) is crucial; start with `0.01` for SGD or `0.001` for [Adam optimizer](https://www.ultralytics.com/glossary/adam-optimizer). Monitor metrics and adjust as needed. Use cosine learning rate schedulers (`cos_lr`) or warmup (`warmup_epochs`, `warmup_momentum`). Details are in the [Train Guide](../modes/train.md).
+The learning rate (`lr0`) is crucial; start with `0.01` for SGD or `0.001` for [Adam optimizer](https://www.ultralytics.com/glossary/adam-optimizer). Monitor metrics and adjust as needed. When fine-tuning, `lr0='auto'` fits the rate to the model and dataset with a range test instead. Use cosine learning rate schedulers (`cos_lr`) or warmup (`warmup_epochs`, `warmup_momentum`). Details are in the [Train Guide](../modes/train.md).
 
 ### What are the default inference settings for YOLO models?
 

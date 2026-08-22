@@ -100,7 +100,27 @@ For most fine-tuning tasks, the default setting works well without any manual tu
 
 !!! warning "Auto optimizer overrides manual lr0"
 
-    When `optimizer=auto`, the `lr0` and `momentum` values are ignored. To control the learning rate manually, set the optimizer explicitly: `optimizer=SGD, lr0=0.005`.
+    When `optimizer=auto`, the `lr0` and `momentum` values are ignored, except for `lr0='auto'`. To control the learning rate manually, set the optimizer explicitly: `optimizer=SGD, lr0=0.005`.
+
+### Fitting the Learning Rate to the Dataset
+
+Setting `lr0='auto'` runs a short [learning rate range test](https://arxiv.org/abs/1506.01186) before training starts and fits `lr0` and `warmup_bias_lr` to the model and dataset being trained. `lrf` is raised alongside them when needed, so a lower `lr0` still anneals to a usable final rate rather than stalling. The default values are rule of thumb heuristics, so they cannot tell how far the target domain sits from the pretrained weights. The range test measures that directly, at the cost of roughly 25 seconds of extra start time at batch 32.
+
+!!! example "Fit the learning rate"
+
+    === "Python"
+
+        ```python
+        model.train(data="custom.yaml", epochs=50, lr0="auto")
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo train model=yolo26n.pt data=custom.yaml epochs=50 lr0=auto
+        ```
+
+This works with any optimizer, including `optimizer=auto`, and only applies to fine-tuning. Training from a YAML model, or from a checkpoint with `pretrained=False`, keeps the current defaults because those are tuned for training from scratch.
 
 ## Freezing Layers
 
@@ -144,6 +164,7 @@ Freeze depth can also be treated as a hyperparameter - trying a few values (0, 5
 
 Fine-tuning generally requires fewer hyperparameter adjustments than training from scratch. The parameters that matter most are:
 
+- **`lr0`**: The learning rate has the largest effect on fine-tuning accuracy of any single setting. `lr0='auto'` is the recommended starting point, as it fits the rate to the model and dataset rather than relying on rule of thumb heuristics. See [Fitting the Learning Rate to the Dataset](#fitting-the-learning-rate-to-the-dataset).
 - **`epochs`**: Fine-tuning converges faster than training from scratch. Start with a moderate value and use `patience` to stop early when validation metrics plateau.
 - **`patience`**: The default of 100 is designed for long training runs. Reducing this to 10-20 avoids wasting time on runs that have already converged.
 - **`warmup_epochs`**: The default warmup (3 epochs) gradually increases the learning rate from zero, which prevents large gradient updates from damaging pretrained features in early iterations. Keeping the default is recommended even for fine-tuning.
@@ -181,6 +202,7 @@ This approach is particularly useful when the target domain differs significantl
 
 ### Validation mAP plateaus early
 
+- **Fit the learning rate**: set `lr0='auto'` so the rate is measured on the dataset instead of assumed, as a rate that is too low plateaus early.
 - **Add more data**: fine-tuning benefits significantly from additional training data, especially diverse examples with varied angles, lighting, and backgrounds.
 - **Check class balance**: underrepresented classes will have low AP. Use `cls_pw` to apply inverse frequency class weighting (start with `cls_pw=0.25` for moderate imbalance, increase to `1.0` for severe imbalance).
 - **Reduce augmentation**: for very small datasets, heavy augmentation can hurt more than it helps. Try `mosaic=0.5` or `mosaic=0.0`.

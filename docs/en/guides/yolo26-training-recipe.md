@@ -31,17 +31,17 @@ Full training logs and metrics for every model size are available on [Ultralytic
   style="border:none"
 ></iframe>
 
-
 ## Stage 1: Objects365 Pretraining
 
 The Objects365 pretraining stage uses the following starting weights, which can be inspected programmatically:
 
 !!! example "Inspect Stage 1 checkpoint"
-    ```python
-    from ultralytics import YOLO
+```python
+from ultralytics import YOLO
+
     # Replace 'yolo26n-objv1-150.pt' with the appropriate size
-    model = YOLO('yolo26n-objv1-150.pt')
-    print(model.ckpt['train_args'])
+    model = YOLO("yolo26n-objv1-150.pt")
+    print(model.ckpt["train_args"])
     ```
 
 The table below shows the per-size starting weights and key hyperparameters for Stage 1. These values are read directly from the released checkpoints.
@@ -198,10 +198,11 @@ Every YOLO26 checkpoint carries the complete per-epoch `results.csv` of its trai
 The Git commit used to produce each checkpoint is stored in `ckpt["git"]`. You can check out the exact code revision as follows:
 
 !!! example "Checking out the code revision from a checkpoint"
-    ```python
-    import torch
-    ckpt = torch.load('yolo26n.pt', map_location='cpu')
-    git_hash = ckpt.get('git')
+```python
+import torch
+
+    ckpt = torch.load("yolo26n.pt", map_location="cpu")
+    git_hash = ckpt.get("git")
     if git_hash:
         print(f"Checkpoint was built from commit: {git_hash}")
         # To check out this commit in your local clone:
@@ -275,6 +276,7 @@ For export and deployment options, see the [Export guide](../modes/export.md) an
 The YOLO26 checkpoints ship with their full training recipe embedded, so the exact hyperparameters behind every model size are always one `train_args` lookup away. Start fine-tuning from the defaults, adjust deliberately using the tables on this page, and verify every change against your own validation set. If questions come up along the way, ask the community on the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) or the [Ultralytics Discord server](https://discord.com/invite/ultralytics).
 
 ## FAQ
+
 ### How do I see the exact hyperparameters used for any checkpoint?
 
 Load the checkpoint with `torch.load()` and access the `train_args` key, or use `model.ckpt["train_args"]` with the Ultralytics API. See [Inspecting YOLO26 Checkpoint Training Args](#inspecting-yolo26-checkpoint-training-args) for complete examples.
@@ -294,4 +296,3 @@ Not exactly — the checkpoints were produced using an internal training branch 
 ### Where are the training curves for each checkpoint?
 
 Every checkpoint carries the complete per-epoch `results.csv` of its run, with the official curves on Ultralytics Platform and drag and drop upload for any other `.pt` file.
-

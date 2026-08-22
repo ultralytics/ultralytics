@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 1|# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 2|"""
 3|Run prediction on images, videos, directories, globs, YouTube, webcam, streams, etc.

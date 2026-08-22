@@ -415,3 +415,17 @@ def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrain
 
     assert captured["cfg"] == checkpoint_model.yaml, "Checkpoint config was not used"
     assert captured["weights"] is (checkpoint_model if uses_weights else None), "Unexpected weights loaded"
+
+
+def test_match_predictions_iou_priority():
+    """Test matching restores IoU order before ground-truth deduplication."""
+    from ultralytics.engine.validator import BaseValidator
+
+    validator = object.__new__(BaseValidator)
+    validator.iouv = torch.tensor([0.2])
+    iou = torch.tensor([[0.64, 0.27, 0.04], [0.02, 0.81, 0.91], [0.61, 0.73, 0.54]])
+    classes = torch.zeros(3, dtype=torch.long)
+
+    correct = validator.match_predictions(classes, classes, iou)
+
+    assert correct[:, 0].tolist() == [True, False, True]  # keep 0.91 (detection 2), not 0.81 (detection 1)

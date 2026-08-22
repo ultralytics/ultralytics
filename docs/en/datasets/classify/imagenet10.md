@@ -3,7 +3,7 @@ title: ImageNet10 Image Classification Dataset
 comments: true
 creator:
     name: Ultralytics
-    url: https://www.ultralytics.com/
+    url: https://www.ultralytics.com
 license:
     name: Research-Only
     url: https://www.image-net.org/download.php

@@ -74,7 +74,7 @@ To train a YOLO classification model on ImageNet for 100 [epochs](https://www.ul
         yolo classify train data=imagenet model=yolo26n-cls.pt epochs=100 imgsz=224
         ```
 
-You can also manage classification datasets and run training in the cloud with [Ultralytics Platform](https://platform.ultralytics.com/).
+You can also manage classification datasets and run training in the cloud with [Ultralytics Platform](https://platform.ultralytics.com).
 
 ## Sample Images and Annotations
 

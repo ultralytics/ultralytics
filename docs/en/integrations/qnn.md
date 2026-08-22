@@ -88,7 +88,7 @@ Adreno GPU, and Hexagon NPU (HTP v81).
 
 This historical sweep used pre-standard v73 QNN binaries; semantic and OBB used 1024px inputs. It ran on a Lenovo
 laptop with 32 GB memory and Windows 11. Its
-[Snapdragon X Elite](https://www.qualcomm.com/products/mobile/snapdragon/pcs-and-tablets/snapdragon-x-elite)
+[Snapdragon X Elite](https://www.qualcomm.com/laptops/products/snapdragon-x-elite)
 (X1E78100) has a 12-core Qualcomm Oryon CPU, Adreno GPU, and Hexagon NPU (HTP v73); the exact Lenovo model was not
 recorded. This Windows-on-Snapdragon comparison runs the native PyTorch FP32 CPU baseline that most desktop
 developers start from against the ONNX Runtime QNN Hexagon HTP path. Each cell shows the **full

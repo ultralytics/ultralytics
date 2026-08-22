@@ -1814,7 +1814,6 @@ def test_process_mask_native_chunked():
 
 
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for CLIP-based models")
-@pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOWorld with CLIP is not supported in Python 3.12")
 @pytest.mark.skipif(
     checks.IS_PYTHON_3_8 and LINUX and ARM64,
     reason="YOLOWorld with CLIP is not supported in Python 3.8 and aarch64 Linux",
@@ -1852,7 +1851,6 @@ def test_yolo_world():
 
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for heavy CLIP-based models")
 @pytest.mark.skipif(not TORCH_1_13, reason="YOLOE with CLIP requires torch>=1.13")
-@pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOE with CLIP is not supported in Python 3.12")
 @pytest.mark.skipif(
     checks.IS_PYTHON_3_8 and LINUX and ARM64,
     reason="YOLOE with CLIP is not supported in Python 3.8 and aarch64 Linux",
@@ -1887,7 +1885,7 @@ def test_yoloe(tmp_path):
     model.val(data="coco128-seg.yaml", load_vp=True, imgsz=32)
 
     # Train, fine-tune
-    from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer, YOLOESegTrainerFromScratch
+    from ultralytics.models.yolo.yoloe import YOLOEPEFreeTrainer, YOLOEPESegTrainer, YOLOESegTrainerFromScratch
 
     model = YOLOE("yoloe-11s-seg.pt")
     model.train(
@@ -1918,6 +1916,23 @@ def test_yoloe(tmp_path):
     # val
     model = YOLOE("yoloe-11s-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
     model.val(data="coco128-seg.yaml", imgsz=32)
+    # train, freezing everything but the classification branch
+    model = YOLOE("yoloe-11s-seg.pt")
+    head = len(model.model.model) - 1
+    freeze = [str(i) for i in range(head)]
+    freeze += [f"{head}.{name}" for name, _ in model.model.model[-1].named_children() if "cv3" not in name]
+    freeze += [f"{head}.cv3.{i}.{j}" for i in range(3) for j in (0, 1)]
+    model.train(
+        data={"train": {"yolo_data": ["coco128-seg.yaml"]}, "val": {"yolo_data": ["coco128-seg.yaml"]}},
+        epochs=1,
+        close_mosaic=1,
+        trainer=YOLOEPEFreeTrainer,
+        imgsz=32,
+        freeze=freeze,
+        single_cls=True,
+    )
+    assert "seg_loss" in model.trainer.loss_names  # segmentation criterion, not the detection one
+    assert Path(model.trainer.best).exists()  # end-of-training validation ran and weights were saved
 
 
 def test_yoloe_visual_prompt_verbose_false(capfd):

@@ -243,7 +243,7 @@ class BaseModel(torch.nn.Module):
         Returns:
             (torch.nn.Module): The fused model is returned.
         """
-        if not self.is_fused():
+        if not self.is_fused() and not hasattr(self, "_modelopt_state"):
             for m in self.model.modules():
                 if isinstance(m, (Conv, Conv2, DWConv)) and hasattr(m, "bn"):
                     if isinstance(m, Conv2):
@@ -299,13 +299,14 @@ class BaseModel(torch.nn.Module):
             (BaseModel): An updated BaseModel object.
         """
         super()._apply(fn)
-        m = self.model[-1]  # Detect()
-        if isinstance(
-            m, Detect
-        ):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect, YOLOESegment
-            m.stride = fn(m.stride)
-            m.anchors = fn(m.anchors)
-            m.strides = fn(m.strides)
+        if hasattr(self, "model"):  # ModelOpt QAT restore calls _apply before the layers are attached
+            m = self.model[-1]  # Detect()
+            if isinstance(
+                m, Detect
+            ):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect, YOLOESegment
+                m.stride = fn(m.stride)
+                m.anchors = fn(m.anchors)
+                m.strides = fn(m.strides)
         return self
 
     def load(self, weights, verbose=True):
@@ -1918,7 +1919,20 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
         weight = check_file(weight, download_dir=SETTINGS["weights_dir"])
     ckpt, weight = torch_safe_load(weight)  # load ckpt
     args = {**DEFAULT_CFG_DICT, **(ckpt.get("train_args", {}))}  # combine model and default args, preferring model args
-    candidate = ckpt.get("ema") or ckpt.get("model")
+    if "modelopt_state" in ckpt:  # QAT checkpoint stores ModelOpt state and weights instead of a pickled model
+        from ultralytics.utils.torch_utils import setup_modelopt
+
+        setup_modelopt()
+        import modelopt.torch.opt as mto
+
+        candidate = ckpt["model_class"](ckpt["yaml"], verbose=False)  # rebuild skeleton from YAML
+        candidate.names = ckpt["names"]
+        candidate.nc = ckpt["nc"]
+        with torch.no_grad():  # reinsert quantizers, then load the QAT weights
+            mto.restore_from_modelopt_state(candidate, ckpt["modelopt_state"])
+            candidate.load_state_dict(ckpt["state_dict"])
+    else:
+        candidate = ckpt.get("ema") or ckpt.get("model")
     if not isinstance(candidate, torch.nn.Module):
         raise TypeError(
             emojis(

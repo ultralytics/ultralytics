@@ -28,30 +28,27 @@ jobs:
               from ultralytics import YOLO
               kw = dict(format="openvino", imgsz=32, batch=2, data="coco8.yaml", nms=False, verbose=False, quantize=8, dynamic=True, end2end=True)
               path = str(shutil.move(YOLO("yolo26n.pt").export(**kw), "int8dyn_openvino_model"))
-              for cfg in [{}, {"INFERENCE_NUM_THREADS": 1}, {"INFERENCE_PRECISION_HINT": "f32"}, {"DYNAMIC_QUANTIZATION_GROUP_SIZE": "0"}, {"EXECUTION_MODE_HINT": "ACCURACY"}, {"reshape": 1}]:
-                  rcs = [subprocess.run([sys.executable, __file__, path, json.dumps(cfg)], capture_output=True, text=True, timeout=600).returncode for _ in range(2)]
-                  print(f"cfg={json.dumps(cfg):45} rcs={rcs}", flush=True)
-              r = subprocess.run(["gdb", "-batch", "-ex", "run", "-ex", "bt 30", "--args", sys.executable, __file__, path, "{}"], capture_output=True, text=True, timeout=900)
-              print("\n".join(l[:200] for l in r.stdout.splitlines() if l.startswith("#") or "SIG" in l), flush=True)
-              for ver in ["2026.2.0", "2026.1.0", "2025.4.0", "2025.3.0"]:
-                  subprocess.run([sys.executable, "-m", "pip", "install", "-q", f"openvino=={ver}"], capture_output=True)
-                  shutil.rmtree("int8dyn_openvino_model", ignore_errors=True)
-                  r = subprocess.run([sys.executable, "-c", "from ultralytics import YOLO; import shutil; shutil.move(YOLO('yolo26n.pt').export(format='openvino', imgsz=32, batch=2, data='coco8.yaml', nms=False, verbose=False, quantize=8, dynamic=True, end2end=True), 'int8dyn_openvino_model')"], capture_output=True, text=True, timeout=900)
-                  if r.returncode:
-                      print(f"openvino=={ver} export failed: {r.stderr.strip().splitlines()[-1][:150]}", flush=True); continue
-                  rcs = [subprocess.run([sys.executable, __file__, path, "{}"], capture_output=True, text=True, timeout=600).returncode for _ in range(2)]
-                  print(f"openvino=={ver} rcs={rcs}", flush=True)
+              for shape in ["none", "[2,3,64,64]", "[-1,3,64,64]", "[2,3,-1,-1]", "[1,3,-1,-1]", "[-1,3,-1,-1]", "range"]:
+                  rcs = [subprocess.run([sys.executable, __file__, path, shape], capture_output=True, text=True, timeout=600).returncode for _ in range(2)]
+                  print(f"shape={shape:16} rcs={rcs}", flush=True)
+              r = subprocess.run(["gdb", "-batch", "-ex", "run", "-ex", "bt 25", "--args", sys.executable, __file__, path, "none"], capture_output=True, text=True, timeout=900)
+              out = r.stdout + r.stderr
+              i = out.find("SIGSEGV")
+              print(out[i:i+4000], flush=True)
               sys.exit()
 
           import openvino as ov
-          path, cfg = sys.argv[1], json.loads(sys.argv[2])
+          path, shape = sys.argv[1], sys.argv[2]
           core = ov.Core()
           model = core.read_model(next(Path(path).glob("*.xml")))
-          if cfg.pop("reshape", 0):
-              model.reshape([2, 3, 64, 64])
-          cm = core.compile_model(model, "CPU", {"PERFORMANCE_HINT": "LATENCY", **cfg})
+          if shape == "range":
+              model.reshape(ov.PartialShape([ov.Dimension(1, 4), 3, ov.Dimension(32, 128), ov.Dimension(32, 128)]))
+          elif shape != "none":
+              model.reshape(json.loads(shape))
+          cm = core.compile_model(model, "CPU", {"PERFORMANCE_HINT": "LATENCY"})
+          n = 1 if shape.startswith("[1") else 2
           for _ in range(3):
-              cm(np.random.rand(2, 3, 64, 64).astype(np.float32))
+              cm(np.random.rand(n, 3, 64, 64).astype(np.float32))
           PY
           sudo apt-get install -y -qq gdb >/dev/null 2>&1
           python /tmp/ov_debug.py

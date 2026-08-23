@@ -139,7 +139,7 @@ The ExecuTorch format supports the [Export](../modes/export.md), [Predict](../mo
         yolo val model=yolo26n_executorch_model data=coco8.yaml
         ```
 
-    ExecuTorch exports generate a directory that includes a `.pte` file and metadata. Use the ExecuTorch runtime in your mobile or embedded application to load the `.pte` model and perform inference. To dynamically lookup human-readable detection class names and output-tensor shapes, embed the YAML metadata file in your app.
+    ExecuTorch exports generate a directory that includes a `.pte` file and metadata. Use the ExecuTorch runtime in your mobile or embedded application to load the `.pte` model and perform inference. To dynamically look up human-readable detection class names and output-tensor shapes, embed the YAML metadata file in your app.
 
 ### Export Arguments
 
@@ -201,6 +201,7 @@ Example Android integration (Kotlin Activity). ExecuTorch export disables the en
 ```kotlin
 // ...
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.core.graphics.scale
 import java.io.File
 import java.io.FileOutputStream
@@ -255,7 +256,7 @@ fun runObjectDetection() {
 
     Log.d(TAG, "Found ${detections.size} detections")
     detections.forEach {
-        // In your app, you may want to lookup the human-readable class names from the
+        // In your app, you may want to look up the human-readable class names from the
         // metadata.yaml file included with your exported model.
         Log.d(
             TAG,
@@ -268,7 +269,7 @@ fun runObjectDetection() {
 // * Multi-label: this sample forces one class per box.
 // * Coordinate mapping: this returns boxes in 640x640 model space, not original image space.
 // * Aspect-ratio handling: this assumes input was stretched, not letterboxed.
-// * Flexible output-tensor shapes: this assumes YOLO11 dimensions (8400 boxes, 84 attributes).
+// * Flexible output-tensor shapes: this assumes the 80-class COCO shape (8400 boxes, 84 attributes).
 // * Clipping: these bounding boxes are not clamped to image boundaries.
 // * Error handling: omitted because it's sample code.
 fun yoloNmsSingleLabel(
@@ -360,8 +361,8 @@ fun intersectionOverUnion(a: Detection, b: Detection): Float {
     return inter / (areaA + areaB - inter)
 }
 
-// Reshapes tensor to 2D. Uses YOLO11 output tensor of shape (1, 84, 8400).
-// In your app, you may want to dynamically lookup the shape from the
+// Reshapes tensor to 2D. Assumes the 80-class COCO output tensor of shape (1, 84, 8400).
+// In your app, you may want to dynamically look up the shape from the
 // metadata.yaml file included with your exported model.
 fun tensorTo2DPredictions(outputTensor: Tensor): Array<FloatArray> {
     val flat = outputTensor.dataAsFloatArray

@@ -211,10 +211,8 @@ class ClassificationValidator(BaseValidator):
             >>> batch = {"img": torch.rand(16, 3, 224, 224), "cls": torch.randint(0, 10, (16,))}
             >>> validator.plot_val_samples(batch, 0)
         """
-        plot_batch = {**batch}
+        plot_batch = {**batch}  # shallow copy so plot_images does not overwrite multi-hot 'cls' in place
         plot_batch["batch_idx"] = torch.arange(batch["img"].shape[0])
-        if self.multi_label and batch["cls"].ndim == 2:
-            plot_batch["cls"] = batch["cls"].argmax(dim=1)
         plot_images(
             labels=plot_batch,
             fname=self.save_dir / f"val_batch{ni}_labels.jpg",

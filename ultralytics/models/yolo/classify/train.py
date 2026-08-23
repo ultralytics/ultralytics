@@ -110,12 +110,6 @@ class ClassificationTrainer(BaseTrainer):
                 weights="IMAGENET1K_V1" if self.args.pretrained else None
             )
             ckpt = None
-            if getattr(self.args, "multi_label", False):
-                # TorchVision models have no Classify head; attach criterion directly
-                from ultralytics.utils.loss import v8MultiLabelClassificationLoss
-
-                self.model.criterion = v8MultiLabelClassificationLoss()
-                LOGGER.info("Multi-label mode: attached BCEWithLogitsLoss to TorchVision model")
         else:
             ckpt = super().setup_model()
         ClassificationModel.reshape_outputs(self.model, self.data["nc"])
@@ -225,11 +219,8 @@ class ClassificationTrainer(BaseTrainer):
             batch (dict[str, torch.Tensor]): Batch containing images and class labels.
             ni (int): Batch index used for naming the output file.
         """
-        plot_batch = {**batch}
+        plot_batch = {**batch}  # shallow copy so plot_images does not overwrite multi-hot 'cls' in place
         plot_batch["batch_idx"] = torch.arange(batch["img"].shape[0])
-        if getattr(self.args, "multi_label", False) and batch["cls"].ndim == 2:
-            # Convert multi-hot (B, nc) to first active class index for plotting
-            plot_batch["cls"] = batch["cls"].argmax(dim=1)
         plot_images(
             labels=plot_batch,
             fname=self.save_dir / f"train_batch{ni}.jpg",

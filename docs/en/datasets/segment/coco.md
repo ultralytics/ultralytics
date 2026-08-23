@@ -39,7 +39,7 @@ For smaller experimentation needs, see the [COCO128-Seg](coco128-seg.md) (128 im
 
 ## Applications
 
-COCO-Seg is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models on [instance segmentation](../../tasks/segment.md), such as the YOLO models. The large number of annotated images, the diversity of object categories, and the standardized evaluation metrics make it an indispensable resource for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) researchers and practitioners. Full COCO-Seg annotations can also be browsed and managed on [Ultralytics Platform](https://platform.ultralytics.com/).
+COCO-Seg is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models on [instance segmentation](../../tasks/segment.md), such as the YOLO models. The large number of annotated images, the diversity of object categories, and the standardized evaluation metrics make it an indispensable resource for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) researchers and practitioners. Full COCO-Seg annotations can also be browsed and managed on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/coco2017-seg).
 
 ## Dataset YAML
 
@@ -80,7 +80,7 @@ To train a YOLO26n-seg model on the COCO-Seg dataset for 100 [epochs](https://ww
 
 COCO-Seg contains the same diverse images, object categories, and complex scenes as COCO, with instance segmentation masks provided in the YOLO label format. Here are some examples of images from the dataset, along with their corresponding instance segmentation masks:
 
-![COCO segmentation dataset mosaic training batch](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-training-batch-3.avif)
+![COCO segmentation dataset mosaic training batch](https://cdn.ul.run/i/63f5611da08d9163cafb15ec0e215e45.avif)
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. [Mosaicing](../../guides/hyperparameter-tuning.md) is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This aids the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 

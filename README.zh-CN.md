@@ -10,7 +10,7 @@
     <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml/badge.svg" alt="Ultralytics CI"></a>
     <a href="https://clickpy.clickhouse.com/dashboard/ultralytics"><img src="https://static.pepy.tech/badge/ultralytics" alt="Ultralytics Downloads"></a>
     <a href="https://discord.com/invite/ultralytics"><img alt="Ultralytics Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
-    <a href="https://community.ultralytics.com/"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
+    <a href="https://community.ultralytics.com"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
     <a href="https://www.reddit.com/r/ultralytics/"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
     <br>
     <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run Ultralytics on Gradient"></a>
@@ -26,9 +26,9 @@
 </div>
 <br>
 
-[Ultralytics](https://www.ultralytics.com/) 基于多年在计算机视觉和人工智能领域的基础研究，创造了尖端的、最先进的 (SOTA) [YOLO 模型](https://www.ultralytics.com/yolo)。我们的模型不断更新以提高性能和灵活性，具有**速度快**、**精度高**和**易于使用**的特点。它们在[目标检测](https://docs.ultralytics.com/tasks/detect)、[跟踪](https://docs.ultralytics.com/modes/track)、[实例分割](https://docs.ultralytics.com/tasks/segment)、[语义分割](https://docs.ultralytics.com/tasks/semantic)、[图像分类](https://docs.ultralytics.com/tasks/classify)和[姿态估计](https://docs.ultralytics.com/tasks/pose)任务中表现出色。
+[Ultralytics](https://www.ultralytics.com) 基于多年在计算机视觉和人工智能领域的基础研究，创造了尖端的、最先进的 (SOTA) [YOLO 模型](https://www.ultralytics.com/yolo)。我们的模型不断更新以提高性能和灵活性，具有**速度快**、**精度高**和**易于使用**的特点。它们在[目标检测](https://docs.ultralytics.com/tasks/detect)、[跟踪](https://docs.ultralytics.com/modes/track)、[实例分割](https://docs.ultralytics.com/tasks/segment)、[语义分割](https://docs.ultralytics.com/tasks/semantic)、[图像分类](https://docs.ultralytics.com/tasks/classify)和[姿态估计](https://docs.ultralytics.com/tasks/pose)任务中表现出色。
 
-在 [Ultralytics 文档](https://docs.ultralytics.com/)中查找详细文档。通过 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues/new/choose) 获取支持。加入 [Discord](https://discord.com/invite/ultralytics)、[Reddit](https://www.reddit.com/r/ultralytics/) 和 [Ultralytics 社区论坛](https://community.ultralytics.com/)参与讨论！
+在 [Ultralytics 文档](https://docs.ultralytics.com)中查找详细文档。通过 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues/new/choose) 获取支持。加入 [Discord](https://discord.com/invite/ultralytics)、[Reddit](https://www.reddit.com/r/ultralytics/) 和 [Ultralytics 社区论坛](https://community.ultralytics.com)参与讨论！
 
 如需商业用途，请在 [Ultralytics 授权许可](https://www.ultralytics.com/license)申请企业许可证。
 
@@ -54,7 +54,7 @@
 
 ## 📄 文档
 
-请参阅下文了解快速安装和使用示例。有关训练、验证、预测和部署的全面指南，请参阅我们的完整 [Ultralytics 文档](https://docs.ultralytics.com/)。
+请参阅下文了解快速安装和使用示例。有关训练、验证、预测和部署的全面指南，请参阅我们的完整 [Ultralytics 文档](https://docs.ultralytics.com)。
 
 <details open>
 <summary>安装</summary>
@@ -122,7 +122,7 @@ path = model.export(format="onnx")  # 返回导出模型的路径
 
 ## ✨ 模型
 
-Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https://docs.ultralytics.com/models/yolov3) 到最新的 [YOLO26](https://docs.ultralytics.com/models/yolo26)。下表展示了在 [COCO](https://docs.ultralytics.com/datasets/detect/coco) 上预训练的 YOLO26 模型，用于[检测](https://docs.ultralytics.com/tasks/detect)、[分割](https://docs.ultralytics.com/tasks/segment)和[姿态估计](https://docs.ultralytics.com/tasks/pose)任务。[语义分割](https://docs.ultralytics.com/tasks/semantic)模型在 [Cityscapes](https://docs.ultralytics.com/datasets/semantic/cityscapes) 上预训练，[深度估计](https://docs.ultralytics.com/tasks/depth)模型在广泛的多数据集混合上预训练并在 [NYU Depth V2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html) 上评估，[分类](https://docs.ultralytics.com/tasks/classify)模型在 [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet) 上预训练。[跟踪](https://docs.ultralytics.com/modes/track)模式与检测、分割、姿态和 OBB 模型兼容。所有[模型](https://docs.ultralytics.com/models)在首次使用时都会自动从最新的 Ultralytics [发布版本](https://github.com/ultralytics/assets/releases)下载。
+Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https://docs.ultralytics.com/models/yolov3) 到最新的 [YOLO26](https://docs.ultralytics.com/models/yolo26)。下表展示了在 [COCO](https://docs.ultralytics.com/datasets/detect/coco) 上预训练的 YOLO26 模型，用于[检测](https://docs.ultralytics.com/tasks/detect)、[分割](https://docs.ultralytics.com/tasks/segment)和[姿态估计](https://docs.ultralytics.com/tasks/pose)任务。[语义分割](https://docs.ultralytics.com/tasks/semantic)模型在 [Cityscapes](https://docs.ultralytics.com/datasets/semantic/cityscapes) 上预训练，[深度估计](https://docs.ultralytics.com/tasks/depth)模型在广泛的多数据集混合上预训练并在 [NYU Depth V2](https://cs.nyu.edu/~fergus/datasets/nyu_depth_v2.html) 上评估，[分类](https://docs.ultralytics.com/tasks/classify)模型在 [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet) 上预训练。[跟踪](https://docs.ultralytics.com/modes/track)模式与检测、分割、姿态和 OBB 模型兼容。所有[模型](https://docs.ultralytics.com/models)在首次使用时都会自动从最新的 Ultralytics [发布版本](https://github.com/ultralytics/assets/releases)下载。
 
 <a href="https://docs.ultralytics.com/tasks" target="_blank">
     <img width="100%" src="https://cdn.ul.run/i/c99d914c3958d0755b5a3d7204b6f24a.avif" alt="Ultralytics YOLO supported tasks">
@@ -183,7 +183,7 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 
 <details><summary>深度估计 (NYU Depth V2)</summary>
 
-请参阅[深度估计文档](https://docs.ultralytics.com/tasks/depth)获取使用示例。这些模型在广泛的多数据集混合上预训练，并在 [NYU Depth V2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html) Eigen 测试集上评估，预测每像素深度（单位为米）。
+请参阅[深度估计文档](https://docs.ultralytics.com/tasks/depth)获取使用示例。这些模型在广泛的多数据集混合上预训练，并在 [NYU Depth V2](https://cs.nyu.edu/~fergus/datasets/nyu_depth_v2.html) Eigen 测试集上评估，预测每像素深度（单位为米）。
 
 | 模型                                                                               | 尺寸<br><sup>(像素) | delta1<sup>NYU</sup> | abs_rel<sup>NYU</sup> | rmse<sup>NYU</sup> | 速度<br><sup>CPU ONNX<br>(毫秒) | 速度<br><sup>T4 TensorRT10<br>(毫秒) | 参数<br><sup>(百万) | FLOPs<br><sup>(十亿) |
 | ---------------------------------------------------------------------------------- | ------------------- | -------------------- | --------------------- | ------------------ | ------------------------------- | ------------------------------------ | ------------------- | -------------------- |
@@ -280,7 +280,7 @@ Ultralytics 提供两种许可选项以满足不同需求：
 
 ## 📞 联系方式
 
-有关 Ultralytics 软件的错误报告和功能请求，请访问 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues)。如有疑问、讨论和社区支持，请加入我们在 [Discord](https://discord.com/invite/ultralytics)、[Reddit](https://www.reddit.com/r/ultralytics/) 和 [Ultralytics 社区论坛](https://community.ultralytics.com/)上的活跃社区。我们随时为您提供有关 Ultralytics 的所有帮助！
+有关 Ultralytics 软件的错误报告和功能请求，请访问 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues)。如有疑问、讨论和社区支持，请加入我们在 [Discord](https://discord.com/invite/ultralytics)、[Reddit](https://www.reddit.com/r/ultralytics/) 和 [Ultralytics 社区论坛](https://community.ultralytics.com)上的活跃社区。我们随时为您提供有关 Ultralytics 的所有帮助！
 
 <br>
 <div align="center">

@@ -16,16 +16,9 @@ Key Features:
 
 from __future__ import annotations
 
-from collections.abc import Iterator
 from pathlib import Path
-from typing import Any
-
-import numpy as np
-import torch
-from PIL import Image
 
 from ultralytics.engine.model import Model
-from ultralytics.engine.results import Results
 from ultralytics.utils.torch_utils import model_info
 
 from .predict import Predictor, SAM2Predictor, SAM3Predictor
@@ -89,24 +82,16 @@ class SAM(Model):
 
             self.model = build_sam(weights)
 
-    def predict(
-        self,
-        source: str | Path | int | Image.Image | list[Any] | tuple[Any, ...] | np.ndarray | torch.Tensor | None,
-        stream: bool = False,
-        bboxes: np.ndarray | list[Any] | None = None,
-        points: np.ndarray | list[Any] | None = None,
-        labels: np.ndarray | list[Any] | None = None,
-        **kwargs: Any,
-    ) -> Iterator[Results | torch.Tensor] | list[Results] | list[torch.Tensor]:
+    def predict(self, source, stream: bool = False, bboxes=None, points=None, labels=None, **kwargs):
         """Perform segmentation prediction on the given image or video source.
 
         Args:
             source (str | PIL.Image | np.ndarray): Path to the image or video file, or a PIL.Image object, or a
                 np.ndarray object.
             stream (bool): If True, enables real-time streaming.
-            bboxes (np.ndarray | list | None): List of bounding box coordinates for prompted segmentation.
-            points (np.ndarray | list | None): List of points for prompted segmentation.
-            labels (np.ndarray | list | None): List of labels for prompted segmentation.
+            bboxes (list[list[float]] | None): List of bounding box coordinates for prompted segmentation.
+            points (list[list[float]] | None): List of points for prompted segmentation.
+            labels (list[int] | None): List of labels for prompted segmentation.
             **kwargs (Any): Additional keyword arguments for prediction.
 
         Returns:
@@ -123,15 +108,7 @@ class SAM(Model):
         prompts = {"bboxes": bboxes, "points": points, "labels": labels}
         return super().predict(source, stream, prompts=prompts, **kwargs)
 
-    def __call__(
-        self,
-        source: str | Path | int | Image.Image | list[Any] | tuple[Any, ...] | np.ndarray | torch.Tensor | None = None,
-        stream: bool = False,
-        bboxes: np.ndarray | list[Any] | None = None,
-        points: np.ndarray | list[Any] | None = None,
-        labels: np.ndarray | list[Any] | None = None,
-        **kwargs: Any,
-    ) -> Iterator[Results | torch.Tensor] | list[Results] | list[torch.Tensor]:
+    def __call__(self, source=None, stream: bool = False, bboxes=None, points=None, labels=None, **kwargs):
         """Perform segmentation prediction on the given image or video source.
 
         This method is an alias for the 'predict' method, providing a convenient way to call the SAM model for
@@ -141,9 +118,9 @@ class SAM(Model):
             source (str | PIL.Image | np.ndarray | None): Path to the image or video file, or a PIL.Image object, or a
                 np.ndarray object.
             stream (bool): If True, enables real-time streaming.
-            bboxes (np.ndarray | list | None): List of bounding box coordinates for prompted segmentation.
-            points (np.ndarray | list | None): List of points for prompted segmentation.
-            labels (np.ndarray | list | None): List of labels for prompted segmentation.
+            bboxes (list[list[float]] | None): List of bounding box coordinates for prompted segmentation.
+            points (list[list[float]] | None): List of points for prompted segmentation.
+            labels (list[int] | None): List of labels for prompted segmentation.
             **kwargs (Any): Additional keyword arguments to be passed to the predict method.
 
         Returns:

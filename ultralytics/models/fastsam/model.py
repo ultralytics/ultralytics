@@ -2,16 +2,10 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
-import numpy as np
-import torch
-from PIL import Image
-
 from ultralytics.engine.model import Model
-from ultralytics.engine.results import Results
 
 from .predict import FastSAMPredictor
 from .val import FastSAMValidator
@@ -50,14 +44,14 @@ class FastSAM(Model):
 
     def predict(
         self,
-        source: str | Path | int | Image.Image | list[Any] | tuple[Any, ...] | np.ndarray | torch.Tensor | None,
+        source,
         stream: bool = False,
-        bboxes: np.ndarray | list[Any] | None = None,
-        points: np.ndarray | list[Any] | None = None,
-        labels: np.ndarray | list[Any] | None = None,
-        texts: str | list[str] | None = None,
+        bboxes: list | None = None,
+        points: list | None = None,
+        labels: list | None = None,
+        texts: list | None = None,
         **kwargs: Any,
-    ) -> Iterator[Results | torch.Tensor] | list[Results] | list[torch.Tensor]:
+    ):
         """Perform segmentation prediction on image or video source.
 
         Supports prompted segmentation with bounding boxes, points, labels, and texts. The method packages these prompts
@@ -67,11 +61,10 @@ class FastSAM(Model):
             source (str | PIL.Image | np.ndarray): Input source for prediction, can be a file path, URL, PIL image, or
                 numpy array.
             stream (bool): Whether to enable real-time streaming mode for video inputs.
-            bboxes (np.ndarray | list, optional): Bounding box coordinates for prompted segmentation in format [[x1, y1,
-                x2, y2]].
-            points (np.ndarray | list, optional): Point coordinates for prompted segmentation in format [[x, y]].
-            labels (np.ndarray | list, optional): Class labels for prompted segmentation.
-            texts (str | list[str], optional): Text prompts for segmentation guidance.
+            bboxes (list, optional): Bounding box coordinates for prompted segmentation in format [[x1, y1, x2, y2]].
+            points (list, optional): Point coordinates for prompted segmentation in format [[x, y]].
+            labels (list, optional): Class labels for prompted segmentation.
+            texts (list, optional): Text prompts for segmentation guidance.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:

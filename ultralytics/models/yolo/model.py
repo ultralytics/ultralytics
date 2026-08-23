@@ -2,19 +2,15 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 import torch
-from PIL import Image
 
 from ultralytics.cfg import get_cfg
 from ultralytics.data.build import load_inference_source
 from ultralytics.engine.model import Model
-from ultralytics.engine.predictor import BasePredictor
-from ultralytics.engine.results import Results
 from ultralytics.models import yolo
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.tasks import (
@@ -451,13 +447,13 @@ class YOLOE(Model):
 
     def predict(
         self,
-        source: str | Path | int | Image.Image | list[Any] | tuple[Any, ...] | np.ndarray | torch.Tensor | None = None,
+        source=None,
         stream: bool = False,
         visual_prompts: dict[str, np.ndarray | list[np.ndarray]] | None = None,
-        refer_image: str | Path | Image.Image | np.ndarray | None = None,
-        predictor: type[BasePredictor] | None = yolo.yoloe.YOLOEVPDetectPredictor,
-        **kwargs: Any,
-    ) -> Iterator[Results | torch.Tensor] | list[Results] | list[torch.Tensor]:
+        refer_image=None,
+        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        **kwargs,
+    ):
         """Run prediction on images, videos, directories, streams, etc.
 
         Args:
@@ -469,7 +465,7 @@ class YOLOE(Model):
                 model. Must include 'bboxes' and 'cls' keys when non-empty, holding either flat arrays or one array per
                 image for an explicit list, tuple, or 4-D tensor source with no refer_image.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
-            predictor (type[BasePredictor], optional): Custom predictor class for visual prompt predictions. Defaults to
+            predictor (callable): Custom predictor class for visual prompt predictions. Defaults to
                 YOLOEVPDetectPredictor.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
@@ -518,7 +514,6 @@ class YOLOE(Model):
             per_image = [len(set(c.tolist() if isinstance(c, np.ndarray) else c)) for _, c in pairs]
             assert all(per_image), "Expected at least one class per image"
             num_cls = max(per_image)
-            predictor = predictor or yolo.yoloe.YOLOEVPDetectPredictor
             if type(self.predictor) is not predictor:
                 args = get_cfg(overrides={**self.overrides, **kwargs})
                 self.predictor = predictor(

@@ -143,7 +143,7 @@ nav:
           - Advanced Customization: usage/engine.md
       - YOLO26 🚀: models/yolo26.md
       - Languages:
-          - 🇬🇧&nbsp English: https://ultralytics.com/docs/
+          - 🇬🇧&nbsp English: https://ultralytics.com/docs
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh
           - 🇰🇷&nbsp 한국어: https://docs.ultralytics.com/ko
           - 🇯🇵&nbsp 日本語: https://docs.ultralytics.com/ja

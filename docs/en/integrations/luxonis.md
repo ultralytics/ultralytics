@@ -17,7 +17,7 @@ This guide covers the two OAK hardware generations, conversion of a YOLO `.pt` c
 
 ## Luxonis Hardware Generations
 
-OAK cameras fall into two hardware generations, [`RVC2`](https://docs.luxonis.com/hardware/platform/rvc/rvc2) and [`RVC4`](https://docs.luxonis.com/hardware/platform/rvc/rvc4). Both run Ultralytics YOLO models, but each requires its own converted artifact.
+This guide covers the two current OAK hardware generations, [`RVC2`](https://docs.luxonis.com/hardware/platform/rvc/rvc2) and [`RVC4`](https://docs.luxonis.com/hardware/platform/rvc/rvc4). Both run Ultralytics YOLO models, but each requires its own converted artifact. For the older `RVC3` platform, see the Luxonis [hardware documentation](https://docs.luxonis.com/hardware/platform/rvc/rvc3).
 
 - `RVC2` is built around the Intel Movidius Myriad X and powers camera families such as [OAK-D](https://docs.luxonis.com/hardware/products/OAK-D) and [OAK-1](https://docs.luxonis.com/hardware/products/OAK-1). Converted models are `.superblob` artifacts executed through an [OpenVINO](https://docs.openvino.ai/)-based path.
 - `RVC4` is built around the [Qualcomm QCS8550](https://www.qualcomm.com/internet-of-things/products/q8-series/qcs8550) and powers the [OAK 4 family](https://www.luxonis.com/oak4). Converted models are `.dlc` artifacts executed through a [SNPE](https://www.qualcomm.com/developer/software/neural-processing-sdk-for-ai)-based path. RVC4 has more on-device compute than RVC2 and supports INT8 [quantization](https://www.ultralytics.com/glossary/model-quantization).
@@ -25,7 +25,7 @@ OAK cameras fall into two hardware generations, [`RVC2`](https://docs.luxonis.co
 !!! note "Compatibility at a glance"
 
     - Conversion support covers Ultralytics YOLO families from `YOLOv5` through `YOLO26`; the exact model and task matrix is maintained in the Luxonis [Tools supported models list](https://github.com/luxonis/tools#-supported-models). For example, `YOLO26` lists detection, instance segmentation, pose, and semantic segmentation, while classification and OBB are listed for `YOLOv8` and `YOLO11`.
-    - On-device output decoding with `DetectionNetwork` covers detection, instance segmentation, and pose models. Other tasks require a generic `NeuralNetwork` node and host-side parsing; see the Luxonis [inference documentation](https://docs.luxonis.com/software-v3/ai-inference/inference/).
+    - On-device output decoding with `DetectionNetwork` covers detection, instance segmentation, and pose models. Other tasks use a generic `NeuralNetwork` node with a Luxonis parser node or host-side parsing; see the Luxonis [inference documentation](https://docs.luxonis.com/software-v3/ai-inference/inference/).
     - Converted models are generation-specific: an `RVC2` artifact does not run on `RVC4`, and an `RVC4` artifact does not run on `RVC2`.
 
 ## Why YOLO Models Need Conversion
@@ -48,7 +48,7 @@ For model versioning, team sharing, or custom calibration data for `RVC4` INT8 q
 
 ### Using `hubai-sdk`
 
-[`hubai-sdk`](https://docs.luxonis.com/cloud/hubai/model-registry/hubai-sdk/) is the programmatic Python and CLI interface to Luxonis Hub. Create an [API key](https://docs.luxonis.com/cloud/api/api-keys/) in Luxonis Hub and expose it as `HUBAI_API_KEY` before running the example.
+[`hubai-sdk`](https://docs.luxonis.com/cloud/hubai/model-registry/hubai-sdk/) is the programmatic Python and CLI interface to Luxonis Hub. It requires Python 3.10 or newer. Create an [API key](https://docs.luxonis.com/cloud/api/api-keys/) in Luxonis Hub and expose it as `HUBAI_API_KEY` before running the example.
 
 !!! example "Convert a `YOLO26` checkpoint to `RVC4` with `hubai-sdk`"
 
@@ -105,7 +105,7 @@ Install Tools from source as documented in the [Tools README](https://github.com
 
 ### Stage 2: Compile the `ONNX` NN Archive for `RVC2` or `RVC4` with ModelConverter
 
-ModelConverter accepts any local path or remote URL for the archive and writes results to an `output/` directory in the current working directory.
+ModelConverter requires Python 3.10 or newer, accepts any local path or remote URL for the archive, and writes results to an `output/` directory in the current working directory. `RVC4` conversion quantizes to INT8 by default and needs a directory of representative calibration images passed as the `calibration.path` config override; without it, ModelConverter calibrates on random data.
 
 !!! example "Install ModelConverter and compile for `RVC4`"
 
@@ -114,20 +114,10 @@ ModelConverter accepts any local path or remote URL for the archive and writes r
         ```bash
         pip install modelconv
 
-        modelconverter convert rvc4 --path yolo26n.tar.xz
-        ```
-
-To quantize with your own images instead of the default calibration set, pass a calibration directory as a config override.
-
-!!! example "Compile for `RVC4` with custom calibration data"
-
-    === "CLI"
-
-        ```bash
         modelconverter convert rvc4 --path yolo26n.tar.xz calibration.path calibration_images/
         ```
 
-Use `rvc2` in place of `rvc4` to target `RVC2` devices. For tool versions, quantization modes, and further config overrides, see the [ModelConverter README](https://github.com/luxonis/modelconverter#readme).
+Use `rvc2` in place of `rvc4` to target `RVC2` devices, which do not use calibration data. For tool versions, quantization modes, and further config overrides, see the [ModelConverter README](https://github.com/luxonis/modelconverter#readme).
 
 ## Running Inference on OAK Cameras
 

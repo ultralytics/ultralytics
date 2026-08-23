@@ -477,7 +477,7 @@ class Model(torch.nn.Module):
                 to make predictions on. Accepts various types including file paths, URLs, PIL images, numpy arrays, and
                 torch tensors.
             stream (bool): If True, treats the input source as a continuous stream for predictions.
-            predictor (BasePredictor, optional): An instance of a custom predictor class for making predictions. If
+            predictor (type[BasePredictor], optional): A custom predictor class used to make predictions. If
                 None, the method uses a default predictor.
             **kwargs (Any): Additional keyword arguments for configuring the prediction process. These include `embed`
                 for returning feature embeddings from specified layers.

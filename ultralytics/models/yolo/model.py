@@ -125,6 +125,29 @@ class YOLO(Model):
         }
 
 
+class YOLODeim(YOLO):
+    """YOLO variant that trains the Detect head with DEIM-style augmentation probability decay.
+
+    Wraps the standard YOLO detect pipeline (DetectionModel, DetectionValidator, DetectionPredictor, v8DetectionLoss,
+    NMS postprocess) and swaps only the trainer for `DetectionDEIMTrainer`. Enables `deim_aug_scheduler=decay` and the
+    associated per-epoch probability decay for mosaic / mixup / copy_paste / affine / hsv, followed by a no-aug tail,
+    without pulling in the DETR loss chain.
+
+    Examples:
+        >>> model = YOLODeim("yolo26-ultravit-repmixer-fastvitffn-attn2.yaml")
+        >>> model.train(data="coco.yaml", epochs=60, deim_aug_scheduler="decay")
+    """
+
+    @property
+    def task_map(self) -> dict[str, dict[str, Any]]:
+        """Route detect training through DetectionDEIMTrainer; other tasks stay standard YOLO."""
+        from .detect.deim_train import DetectionDEIMTrainer
+
+        base = super().task_map
+        detect = {**base.get("detect", {}), "trainer": DetectionDEIMTrainer}
+        return {**base, "detect": detect}
+
+
 class YOLOWorld(Model):
     """YOLO-World object detection model.
 

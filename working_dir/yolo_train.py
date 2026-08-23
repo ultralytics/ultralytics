@@ -21,13 +21,18 @@ except ImportError:
 else:
     MODEL_CLASSES['RTDETRDEIMv2'] = RTDETRDEIMv2
 
+try:
+    from ultralytics import YOLODeim
+except ImportError:
+    YOLODeim = None
+else:
+    MODEL_CLASSES['YOLODeim'] = YOLODeim
+
 MODEL_CLASSES['YOLO'] = YOLO
 
 
 def parse_args():
-    """
-    Parse command line arguments for RT-DETR training
-    """
+    """Parse command line arguments for RT-DETR training."""
     parser = argparse.ArgumentParser(description='RT-DETR Training Pipeline')
 
     # Model and config arguments
@@ -74,9 +79,7 @@ def parse_overrides(pairs):
 
 
 def main():
-    """
-    RT-DETR Training Pipeline using YAML Configuration
-    """
+    """RT-DETR Training Pipeline using YAML Configuration."""
     # Parse command line arguments
     args = parse_args()
 

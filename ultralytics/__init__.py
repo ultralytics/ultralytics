@@ -16,7 +16,7 @@ from ultralytics.utils.downloads import download
 
 settings = SETTINGS
 
-MODELS = ("YOLO", "YOLOWorld", "YOLOE", "NAS", "SAM", "FastSAM", "RTDETR", "RTDETRDEIM", "RTDETRDEIMv2")
+MODELS = ("YOLO", "YOLODeim", "YOLOWorld", "YOLOE", "NAS", "SAM", "FastSAM", "RTDETR", "RTDETRDEIM", "RTDETRDEIMv2")
 
 __all__ = (
     "__version__",
@@ -29,7 +29,7 @@ __all__ = (
 
 if TYPE_CHECKING:
     # Enable hints for type checkers
-    from ultralytics.models import YOLO, YOLOWorld, YOLOE, NAS, SAM, FastSAM, RTDETR, RTDETRDEIM, RTDETRDEIMv2  # noqa
+    from ultralytics.models import YOLO, YOLODeim, YOLOWorld, YOLOE, NAS, SAM, FastSAM, RTDETR, RTDETRDEIM, RTDETRDEIMv2  # noqa
 
 
 def __getattr__(name: str):

@@ -1,0 +1,66 @@
+# YOLO Detect + DEIM Augmentation Decay Training Configuration
+# Companion to rtdetr_train_config_gpu_augdefault.yaml, adapted for the CNN Detect head:
+#   - backbone_lr_ratio = 1.0 (Detect head does not need decoder-side LR shrink on the backbone)
+#   - clip_grad_norm restored to the YOLO default 10.0
+#   - loss weights follow yolo26l-objv1-150.pt: box 7.5, cls 0.5, dfl 6.0
+# Use with: model.train(cfg='detect_deim_train_config_gpu.yaml')
+
+# Task
+task: detect
+mode: train
+
+# Dataset
+data: coco.yaml
+
+# Training hyperparameters
+epochs: 72
+batch: 16
+nbs: 16
+imgsz: 640
+
+# Device configuration
+device: [0,1,2,3]
+workers: 4
+amp: False
+sync_bn: True
+
+# Output and logging
+project: detect_trainings
+name: yolo26_ultravit_repmixer_fastvitffn_attn2_detect_coco
+exist_ok: True
+verbose: True
+
+# Optimizer
+optimizer: AdamW
+lr0: 0.0001
+lrf: 1.0
+momentum: 0.9
+weight_decay: 0.0001
+backbone_lr_ratio: 1.0  # CNN Detect head runs the backbone at the full lr0 (no decoder-side shrink)
+clip_grad_norm: 10.0  # YOLO default; CNN detect head does not need aggressive clipping
+
+# Learning rate scheduler
+warmup_epochs: 0.0
+warmup_momentum: 0.9
+warmup_bias_lr: 0.0
+cos_lr: False
+
+# Loss weights (match yolo26l-objv1-150.pt: box 7.5, cls 0.5, dfl 6.0)
+box: 7.5
+cls: 0.5
+dfl: 6.0
+
+# Augmentation defaults; DEIM decay activates per-epoch when deim_aug_scheduler=decay
+multi_scale: 0.0
+
+# Misc
+fraction: 1.0
+save: True
+save_period: -1
+cache: False
+val: True
+patience: 100
+plots: True
+resume: False
+seed: 0
+deterministic: False

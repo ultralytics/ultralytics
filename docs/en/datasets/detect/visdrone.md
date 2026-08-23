@@ -103,13 +103,13 @@ To train a YOLO26n model on the VisDrone dataset for 100 [epochs](https://www.ul
         yolo detect train data=VisDrone.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
-To label additional aerial images and manage VisDrone training runs in your browser, use [Ultralytics Platform](https://platform.ultralytics.com/).
+To label additional aerial images and manage VisDrone training runs in your browser, use [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/visdrone).
 
 ## Sample Data and Annotations
 
 The sample below shows a typical VisDrone scene: an aerial viewpoint over a busy road where pedestrians and vehicles appear as small, densely packed targets, many partially occluded by one another.
 
-![VisDrone dataset aerial drone imagery with object detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/visdrone-object-detection-sample.avif)
+![VisDrone dataset aerial drone imagery with object detection](https://cdn.ul.run/i/ba4380b79e064e9f1e2803e69eaa0ace.avif)
 
 ## Citations and Acknowledgments
 

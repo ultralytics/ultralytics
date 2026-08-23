@@ -193,6 +193,37 @@ This is known as catastrophic forgetting - the model loses previously learned kn
 - **Merge datasets**: include examples of the original classes alongside the new classes during fine-tuning. This is the only reliable way to prevent forgetting.
 - **Freeze backbone and neck**: freezing both the backbone and neck so only the detection head trains helps for short fine-tuning runs with a very low learning rate.
 - **Train for fewer epochs**: the longer the model trains on new data exclusively, the more forgetting increases.
+- **Add the classes instead**: `AddClassesTrainer` leaves the pretrained classes bit-identical, see below.
+
+### Adding Classes Without Forgetting
+
+`AddClassesTrainer` adds classes to a trained detection model while the boxes and scores of every pretrained class stay exactly as they were. Each classification branch gets a copy of itself that ends in a fresh conv for the new classes, and the rest of the model is frozen, so the new classes are learned from the features the pretrained model already has. This works when a new class looks like something the model has seen, such as a rhino on a COCO model that knows elephants and cows, and poorly for a domain the backbone has never encountered.
+
+The dataset YAML must list the pretrained classes first, in their original order, followed by the new ones. Label files only need boxes for the new classes:
+
+```yaml
+# rhino.yaml
+path: ../datasets/rhino
+train: images/train
+val: images/val
+
+names:
+    0: person
+    1: bicycle
+    # ... the remaining COCO names, unchanged ...
+    79: toothbrush
+    80: rhino # the new class
+```
+
+```python
+from ultralytics import YOLO
+from ultralytics.models.yolo.detect import AddClassesTrainer
+
+model = YOLO("yolo26n.pt")
+model.train(data="rhino.yaml", epochs=50, trainer=AddClassesTrainer)
+```
+
+The result is a normal checkpoint that predicts, validates and exports as usual. Training it again with a dataset that adds further classes stacks another branch and freezes the earlier ones, so classes can be added in several sessions. Pass `trainer=AddClassesTrainer` again when resuming or continuing such a run; the default trainer would train the whole model and lose the guarantee. Pass `classes=[80]` to `val` or `train` to report metrics for the new classes only.
 
 ## FAQ
 
@@ -214,4 +245,4 @@ It depends on the dataset size and domain similarity. For small datasets with a 
 
 ### How do I prevent catastrophic forgetting when fine-tuning YOLO on new classes?
 
-Include examples of the original classes in the training data alongside the new classes. If that is not possible, freezing more layers (`freeze=10` or higher) and using a lower learning rate helps preserve the pretrained knowledge. See [Performance degrades on original classes](#performance-degrades-on-original-classes-after-fine-tuning) for more details.
+Train with `AddClassesTrainer`, which keeps the predictions of the pretrained classes bit-identical, see [Adding Classes Without Forgetting](#adding-classes-without-forgetting). To fine-tune every layer instead, include examples of the original classes in the training data alongside the new classes.

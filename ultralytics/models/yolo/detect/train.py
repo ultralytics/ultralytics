@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 import random
-from copy import copy
+from copy import copy, deepcopy
 from typing import Any
 
 import numpy as np
@@ -14,6 +14,7 @@ from torch import nn
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
+from ultralytics.nn.modules import Parallel
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.patches import override_configs
@@ -251,3 +252,50 @@ class DetectionTrainer(BaseTrainer):
         n = len(train_dataset)
         del train_dataset  # free memory
         return super().auto_batch(max_num_obj, dataset_size=n)
+
+
+class AddClassesTrainer(DetectionTrainer):
+    """Add classes to a trained detection model while every existing class keeps its exact predictions.
+
+    Each classification branch gets a copy of itself that ends in a fresh conv for the classes the dataset adds, and the
+    rest of the model is frozen, so the boxes and the scores of the pretrained classes stay bit-identical. The dataset
+    YAML must list the pretrained classes first, in their original order, followed by the new ones. Training an already
+    extended model adds another copy and freezes the earlier ones. Pass the trainer again when resuming.
+
+    Examples:
+        >>> from ultralytics import YOLO
+        >>> from ultralytics.models.yolo.detect import AddClassesTrainer
+        >>> model = YOLO("yolo26n.pt")  # data.yaml lists the 80 COCO names followed by the new class "rhino"
+        >>> model.train(data="data.yaml", epochs=50, trainer=AddClassesTrainer)
+    """
+
+    def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True):
+        """Return the pretrained model with a classification branch added for the classes the dataset introduces."""
+        assert isinstance(weights, nn.Module), f"{self.__class__.__name__} requires a trained detection model"
+        head, names, old = weights.model[-1], self.data["names"], weights.names
+        nc, new = len(names), len(names) - len(old)
+        assert all(names.get(i) == old[i] for i in range(len(old))), "the dataset must list the pretrained classes first"
+        assert new > 0 or isinstance(head.cv3[0], Parallel), "the dataset adds no classes"
+        if new:
+            for cv3 in (head.cv3, getattr(head, "one2one_cv3", None)):
+                for i, seq in enumerate(cv3 or ()):
+                    branch = deepcopy(seq[-1] if isinstance(seq, Parallel) else seq)  # copy of the latest cls branch
+                    branch[-1] = nn.Conv2d(branch[-1].in_channels, new, 1)
+                    branch[-1].bias.data[:] = math.log(5 / nc / (640 / head.stride[i]) ** 2)  # Detect.bias_init
+                    cv3[i] = seq.append(branch) if isinstance(seq, Parallel) else Parallel([seq, branch])
+            head.nc, head.no = nc, nc + 4 * head.reg_max
+        return weights
+
+    def setup_model(self):
+        """Freeze everything but the classification branch added last."""
+        ckpt = super().setup_model()
+        model = unwrap_model(self.model)
+        head, i = model.model[-1], len(model.model) - 1
+        freeze = [str(j) for j in range(i)]  # backbone and neck
+        for name, m in head.named_children():
+            if "cv3" in name:  # cls branches, the last module of each is the one being trained
+                freeze += [f"{i}.{name}.{s}.{k}" for s in range(head.nl) for k in range(len(m[s]) - 1)]
+            else:
+                freeze.append(f"{i}.{name}")
+        self.args.freeze = freeze
+        return ckpt

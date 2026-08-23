@@ -22,6 +22,7 @@ __all__ = (
     "GhostConv",
     "Index",
     "LightConv",
+    "Parallel",
     "RepConv",
     "SpatialAttention",
 )
@@ -640,6 +641,14 @@ class Concat(nn.Module):
             (torch.Tensor): Concatenated tensor.
         """
         return torch.cat(x, self.d)
+
+
+class Parallel(nn.ModuleList):
+    """Apply every module to the same input and concatenate their outputs along the channel dimension."""
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Run the modules side by side on x and concatenate the results."""
+        return torch.cat([m(x) for m in self], 1)
 
 
 class Index(nn.Module):

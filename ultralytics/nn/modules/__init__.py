@@ -73,6 +73,7 @@ from .conv import (
     GhostConv,
     Index,
     LightConv,
+    Parallel,
     RepConv,
     SpatialAttention,
 )
@@ -168,6 +169,7 @@ __all__ = (
     "MLPBlock",
     "MSDeformAttn",
     "MaxSigmoidAttnBlock",
+    "Parallel",
     "Pose",
     "Pose26",
     "Proto",

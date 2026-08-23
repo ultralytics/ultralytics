@@ -17,7 +17,7 @@ on:
     inputs:
       Dockerfile:
         type: boolean
-        description: Dockerfile (+ runner, export)
+        description: Dockerfile (+ cuda13, runner, export)
         default: true
       Dockerfile-python:
         type: boolean

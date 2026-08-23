@@ -157,9 +157,9 @@ llm = [
     "openai>=2.0.0",
 ]
 logging = [
-    "wandb", # https://docs.ultralytics.com/integrations/weights-biases/
-    "tensorboard",  # https://docs.ultralytics.com/integrations/tensorboard/
-    "mlflow",  # https://docs.ultralytics.com/integrations/mlflow/
+    "wandb", # https://docs.ultralytics.com/integrations/weights-biases
+    "tensorboard",  # https://docs.ultralytics.com/integrations/tensorboard
+    "mlflow",  # https://docs.ultralytics.com/integrations/mlflow
 ]
 extra = [
     "ipython", # interactive notebook

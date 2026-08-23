@@ -926,7 +926,7 @@ class PoseLoss26(v8PoseLoss):
         if not error.numel():
             return pred_kpt[..., :0].sum()
 
-        # Filter out NaN and Inf values to prevent MultivariateNormal validation errors
+        # Filter out NaN and Inf values that would propagate into the loss
         valid_mask = ~(torch.isnan(error) | torch.isinf(error)).any(dim=-1)
         if not valid_mask.any():
             return pred_kpt[..., :0].sum()
@@ -1071,7 +1071,7 @@ class v8OBBLoss(v8DetectionLoss):
                 "This error can occur when incorrectly training a 'OBB' model on a 'detect' dataset, "
                 "i.e. 'yolo train model=yolo26n-obb.pt data=dota8.yaml'.\nVerify your dataset is a "
                 "correctly formatted 'OBB' dataset using 'data=dota8.yaml' "
-                "as an example.\nSee https://docs.ultralytics.com/datasets/obb/ for help."
+                "as an example.\nSee https://docs.ultralytics.com/datasets/obb for help."
             ) from e
 
         # Pboxes

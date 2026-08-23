@@ -168,16 +168,16 @@ class ActionRecognition(BaseSolution):
         annotator = SolutionAnnotator(im0, line_width=self.line_width)
         self.extract_tracks(im0)
 
-        tracks_to_infer, crops_to_infer = [], []
+        tracks_to_infer = []
 
         if len(self.boxes):
-            for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
+            for box, track_id in zip(self.boxes, self.track_ids):
                 if self.frame_counter % self.skip_frame == 0:
                     gain = 1 + 2 * self.crop_margin_percentage / 100
                     crop = save_one_box(
                         self.get_enclosing_box(box), im0, gain=gain, pad=0, square=True, save=False, BGR=True
                     )
-                    if crop.size and crop.shape[0] and crop.shape[1]:
+                    if crop.size:
                         self.crop_history[track_id].append(cv2.resize(crop, self.video_classifier.frame_size))
 
                 if len(self.crop_history[track_id]) > self.num_video_sequence_samples:
@@ -187,13 +187,13 @@ class ActionRecognition(BaseSolution):
                     len(self.crop_history[track_id]) == self.num_video_sequence_samples
                     and self.frame_counter % self.skip_frame == 0
                 ):
-                    crops_to_infer.append(self.video_classifier.preprocess(self.crop_history[track_id]))
                     tracks_to_infer.append(track_id)
 
-            if crops_to_infer:
-                interval = int(self.num_video_sequence_samples * self.skip_frame * (1 - self.video_cls_overlap_ratio))
-                if not self.pred_labels or self.frame_counter % max(1, interval) == 0:
-                    batch = torch.cat(crops_to_infer, dim=0)
+            if tracks_to_infer:
+                # Crops are collected once every skip_frame frames, so the interval is counted in collected samples
+                interval = max(1, int(self.num_video_sequence_samples * (1 - self.video_cls_overlap_ratio)))
+                if not self.pred_labels or (self.frame_counter // self.skip_frame) % interval == 0:
+                    batch = torch.cat([self.video_classifier.preprocess(self.crop_history[t]) for t in tracks_to_infer])
                     labels, confs = self.video_classifier(batch)
                     for tid, lbl, c in zip(tracks_to_infer, labels, confs):
                         self.pred_labels[tid] = lbl

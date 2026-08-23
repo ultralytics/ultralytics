@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        run: [1, 2, 3, 4, 5, 6]
+        run: [1, 2, 3, 4, 5, 6, 7, 8]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -37,7 +37,7 @@ jobs:
                   for hint in ["LATENCY", "THROUGHPUT"]:
                       for mode in ["sync", "async"]:
                           r = subprocess.run([sys.executable, __file__, path, hint, mode, name], capture_output=True, text=True, timeout=300)
-                          print(f"{name:13} {hint:11} {mode:6} -> rc={r.returncode} {r.stderr.strip().splitlines()[-1][:80] if r.returncode else 'OK'}", flush=True)
+                          print(f"{name:13} {hint:11} {mode:6} -> rc={r.returncode} {(r.stderr.strip().splitlines() or ['segfault'])[-1][:80] if r.returncode else 'OK'}", flush=True)
               sys.exit()
 
           import openvino as ov

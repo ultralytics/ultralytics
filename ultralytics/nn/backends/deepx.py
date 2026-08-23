@@ -33,7 +33,7 @@ class DeepXBackend(BaseBackend):
         except ImportError as e:
             raise ImportError(
                 "DEEPX inference requires the DEEPX DX-Runtime and `dx_engine` Python package. "
-                "See https://docs.ultralytics.com/integrations/deepx/#runtime-installation for installation instructions."
+                "See https://docs.ultralytics.com/integrations/deepx#runtime-installation for installation instructions."
             ) from e
 
         LOGGER.info(f"Loading {weight} for DEEPX inference...")
@@ -45,12 +45,7 @@ class DeepXBackend(BaseBackend):
 
         self.model = InferenceEngine(str(found))
 
-        # Load metadata
-        metadata_file = found.parent / "metadata.yaml"
-        if metadata_file.exists():
-            from ultralytics.utils import YAML
-
-            self.apply_metadata(YAML.load(metadata_file))
+        self.apply_metadata(self.read_metadata(found))
 
     def forward(self, im: torch.Tensor) -> np.ndarray | list[np.ndarray]:
         """Run inference on the DEEPX NPU.

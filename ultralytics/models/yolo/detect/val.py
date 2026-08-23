@@ -528,11 +528,10 @@ class DetectionValidator(BaseValidator):
                     metric = getattr(self.metrics, {"B": "box", "M": "seg", "P": "pose"}[suffix[i][0]])
                     metric.map50 = val.stats_as_dict["AP_50"]
                     metric.map = val.stats_as_dict["AP_all"]
-                    # record mAP for small, medium, large objects as well
-                    if val.stats_as_dict.get("AP_small") is not None:  # pose does not have small AP
-                        stats["metrics/mAP_small(B)"] = val.stats_as_dict["AP_small"]
-                    stats["metrics/mAP_medium(B)"] = val.stats_as_dict["AP_medium"]
-                    stats["metrics/mAP_large(B)"] = val.stats_as_dict["AP_large"]
+                    # record mAP for small, medium, large objects as well, reported for boxes only
+                    if iou_type == "bbox":
+                        for size in ("small", "medium", "large"):
+                            stats[f"metrics/mAP_{size}(B)"] = val.stats_as_dict[f"AP_{size}"]
                     # update fitness
                     stats["fitness"] = 0.9 * val.stats_as_dict["AP_all"] + 0.1 * val.stats_as_dict["AP_50"]
 

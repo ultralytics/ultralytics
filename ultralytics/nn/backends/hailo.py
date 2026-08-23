@@ -11,7 +11,7 @@ import torch
 
 from ultralytics.utils import LOGGER
 
-from .base import BaseBackend, read_export_metadata
+from .base import BaseBackend
 
 
 class HailoBackend(BaseBackend):
@@ -42,7 +42,7 @@ class HailoBackend(BaseBackend):
             raise FileNotFoundError(f"No .hef file found in: {w}")
 
         LOGGER.info(f"Loading {hef_file} for Hailo inference...")
-        self.apply_metadata(read_export_metadata(hef_file))
+        self.apply_metadata(self.read_metadata(hef_file))
         if self.task and self.task not in {"detect", "segment", "pose", "obb", "classify", "semantic", "depth"}:
             raise ValueError(
                 f"Hailo inference only supports detect, segment, pose, obb, classify, semantic and depth tasks, "

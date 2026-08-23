@@ -2254,9 +2254,9 @@ def guess_model_task(model):
                 return "detect"
 
     if isinstance(model, (str, Path)):
-        from ultralytics.nn.backends.base import read_export_metadata
+        from ultralytics.nn.backends.base import BaseBackend
 
-        if task := read_export_metadata(model).get("task"):  # exports embed their task, i.e. best.onnx
+        if task := BaseBackend.read_metadata(model).get("task"):  # exports embed their task, i.e. a renamed best.onnx
             return task
 
         # Guess from model filename

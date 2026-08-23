@@ -9,7 +9,7 @@ import torch
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_executorch_requirements
 
-from .base import BaseBackend, read_export_metadata
+from .base import BaseBackend
 
 
 class ExecuTorchBackend(BaseBackend):
@@ -33,7 +33,7 @@ class ExecuTorchBackend(BaseBackend):
         w = Path(weight)
         program = Runtime.get().load_program(str(next(w.rglob("*.pte")) if w.is_dir() else w))
         self.model = program.load_method("forward")
-        self.apply_metadata(read_export_metadata(w))
+        self.apply_metadata(self.read_metadata(w))
 
     def forward(self, im: torch.Tensor) -> list:
         """Run inference using the ExecuTorch runtime.

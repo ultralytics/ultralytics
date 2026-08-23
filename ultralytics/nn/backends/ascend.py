@@ -9,7 +9,7 @@ import torch
 
 from ultralytics.utils import LOGGER
 
-from .base import BaseBackend, read_export_metadata
+from .base import BaseBackend
 
 
 class AscendBackend(BaseBackend):
@@ -46,7 +46,7 @@ class AscendBackend(BaseBackend):
 
         self.model = InferSession(getattr(self.device, "index", None) or 0, str(found))
 
-        self.apply_metadata(read_export_metadata(found))
+        self.apply_metadata(self.read_metadata(found))
 
     def __del__(self):
         """Release the Ascend device-side resources held by the inference session."""

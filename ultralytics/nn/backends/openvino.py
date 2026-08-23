@@ -11,7 +11,7 @@ import torch
 from ultralytics.utils import ARM64, LINUX, LOGGER
 from ultralytics.utils.checks import check_requirements
 
-from .base import BaseBackend, read_export_metadata
+from .base import BaseBackend
 
 
 class OpenVINOBackend(BaseBackend):
@@ -50,7 +50,7 @@ class OpenVINOBackend(BaseBackend):
         if ov_model.get_parameters()[0].get_layout().empty:
             ov_model.get_parameters()[0].set_layout(ov.Layout("NCHW"))
 
-        self.apply_metadata(read_export_metadata(w))
+        self.apply_metadata(self.read_metadata(w))
 
         # OpenVINO CPU plugin segfaults running INT8 models with dynamic shapes on Intel AMX CPUs (Sapphire Rapids and
         # newer), see https://github.com/openvinotoolkit/openvino/issues/37577, so run those as static models by

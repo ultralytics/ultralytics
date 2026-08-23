@@ -13,7 +13,7 @@ from ultralytics.data.build import load_inference_source
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.autobackend import check_class_names
-from ultralytics.nn.backends.base import read_export_metadata
+from ultralytics.nn.backends.base import BaseBackend
 from ultralytics.nn.tasks import (
     ClassificationModel,
     DepthModel,
@@ -81,9 +81,8 @@ class YOLO(Model):
         else:
             # Continue with default YOLO initialization
             super().__init__(model=model, task=task, verbose=verbose)
-            module = getattr(self.model, "model", None)  # exported models are held as a path instead
-            head = module[-1]._get_name() if module else read_export_metadata(self.model).get("head")
-            if head == "RTDETRDecoder":  # if RTDETR head
+            head = self.model.model[-1]._get_name() if hasattr(self.model, "model") else ""
+            if "RTDETR" in (head or BaseBackend.read_metadata(self.model).get("head", "")):  # if RTDETR head
                 from ultralytics import RTDETR
 
                 new_instance = RTDETR(self)

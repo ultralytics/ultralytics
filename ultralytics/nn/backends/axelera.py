@@ -8,7 +8,7 @@ import torch
 
 from ultralytics.utils.checks import check_requirements
 
-from .base import BaseBackend, read_export_metadata
+from .base import BaseBackend
 
 
 class AxeleraBackend(BaseBackend):
@@ -40,7 +40,7 @@ class AxeleraBackend(BaseBackend):
 
         self.model = op.load(str(found)).optimized()
 
-        self.apply_metadata(read_export_metadata(found))
+        self.apply_metadata(self.read_metadata(found))
 
     def forward(self, im: torch.Tensor) -> list:
         """Run inference on the Axelera hardware accelerator.

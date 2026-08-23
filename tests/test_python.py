@@ -269,24 +269,6 @@ def test_model_load_remaps_cls_head_by_names():
         assert trainer.set_model_names_for_load(model).names == names
 
 
-def test_read_export_metadata(tmp_path):
-    """Test protobuf metadata parsing at the top-level ONNX field and the nested CoreML field path."""
-    from ultralytics.nn.backends.base import read_export_metadata
-
-    def field(num, payload):
-        """Encode one length-delimited protobuf field."""
-        tag = num << 3 | 2
-        return (bytes([tag]) if tag < 128 else bytes([tag & 0x7F | 0x80, tag >> 7])) + bytes([len(payload)]) + payload
-
-    entry = field(1, b"task") + field(2, b"segment")
-    (tmp_path / "best.onnx").write_bytes(
-        b"\x08\x08" + field(7, b"graph") + field(14, entry)
-    )  # ir_version, graph, props
-    (tmp_path / "best.mlmodel").write_bytes(field(2, field(100, field(100, entry))))  # description.metadata.userDefined
-    for file in ("best.onnx", "best.mlmodel"):
-        assert read_export_metadata(tmp_path / file) == {"task": "segment"}
-
-
 def test_model_profile():
     """Test profiling of the YOLO model with `profile=True` to assess performance and resource usage."""
     from ultralytics.nn.tasks import DetectionModel

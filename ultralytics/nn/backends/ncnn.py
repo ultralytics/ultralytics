@@ -10,7 +10,7 @@ import torch
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
 
-from .base import BaseBackend, read_export_metadata
+from .base import BaseBackend
 
 
 class NCNNBackend(BaseBackend):
@@ -48,7 +48,7 @@ class NCNNBackend(BaseBackend):
         self.net.load_param(str(w))
         self.net.load_model(str(w.with_suffix(".bin")))
 
-        self.apply_metadata(read_export_metadata(w))
+        self.apply_metadata(self.read_metadata(w))
 
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:
         """Run inference using the NCNN runtime.

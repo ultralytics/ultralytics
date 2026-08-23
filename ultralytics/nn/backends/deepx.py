@@ -9,7 +9,7 @@ import torch
 
 from ultralytics.utils import LOGGER
 
-from .base import BaseBackend, read_export_metadata
+from .base import BaseBackend
 
 
 class DeepXBackend(BaseBackend):
@@ -45,7 +45,7 @@ class DeepXBackend(BaseBackend):
 
         self.model = InferenceEngine(str(found))
 
-        self.apply_metadata(read_export_metadata(found))
+        self.apply_metadata(self.read_metadata(found))
 
     def forward(self, im: torch.Tensor) -> np.ndarray | list[np.ndarray]:
         """Run inference on the DEEPX NPU.

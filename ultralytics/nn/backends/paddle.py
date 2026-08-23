@@ -10,7 +10,7 @@ import torch
 from ultralytics.utils import ARM64, LOGGER
 from ultralytics.utils.checks import check_requirements
 
-from .base import BaseBackend, read_export_metadata
+from .base import BaseBackend
 
 
 class PaddleBackend(BaseBackend):
@@ -58,7 +58,7 @@ class PaddleBackend(BaseBackend):
         self.input_handle = self.predictor.get_input_handle(self.predictor.get_input_names()[0])
         self.output_names = self.predictor.get_output_names()
 
-        self.apply_metadata(read_export_metadata(w))
+        self.apply_metadata(self.read_metadata(w))
 
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:
         """Run Baidu PaddlePaddle inference.

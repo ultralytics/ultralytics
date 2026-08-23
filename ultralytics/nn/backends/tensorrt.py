@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from collections import OrderedDict, namedtuple
 from pathlib import Path
 
@@ -49,16 +48,12 @@ class TensorRTBackend(BaseBackend):
         logger = trt.Logger(trt.Logger.INFO)
 
         # Read engine file
+        metadata = self.read_metadata(weight)
         with open(weight, "rb") as f, trt.Runtime(logger) as runtime:
-            try:
-                meta_len = int.from_bytes(f.read(4), byteorder="little")
-                metadata = json.loads(f.read(meta_len).decode("utf-8"))
-                dla = metadata.get("dla", None)
-                if dla is not None:
+            if metadata:  # seek past the 4-byte length prefix and the metadata header itself
+                f.seek(4 + int.from_bytes(f.read(4), byteorder="little"))
+                if (dla := metadata.get("dla")) is not None:
                     runtime.DLA_core = int(dla)
-            except UnicodeDecodeError:
-                f.seek(0)
-                metadata = None
             engine = runtime.deserialize_cuda_engine(f.read())
             self.apply_metadata(metadata)
         try:

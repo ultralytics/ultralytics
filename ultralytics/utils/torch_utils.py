@@ -1138,6 +1138,6 @@ def setup_modelopt():
     import modelopt.torch.utils as mtu
 
     # Suppress logs
-    mtu.cpp_extension.print = mtq.conversion.print = lambda str: None
+    mtu.cpp_extension.print = mtq.conversion.print = lambda *args, **kwargs: None
     warnings.filterwarnings("ignore", module="modelopt")
     logging.getLogger("torch.utils.cpp_extension").setLevel(logging.ERROR)

@@ -24,7 +24,7 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
   <strong>Watch:</strong> How to use Ultralytics YOLO26 on NVIDIA Jetson Devices
 </p>
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/nvidia-jetson-ecosystem.avif" alt="NVIDIA Jetson Ecosystem">
+<img width="1024" src="https://cdn.ul.run/i/139ebce373930a635f74f71401d829b0.avif" alt="NVIDIA Jetson Ecosystem">
 
 !!! note
 
@@ -415,28 +415,28 @@ Even though all model exports work on NVIDIA Jetson, we have only included **PyT
 #### NVIDIA Jetson AGX Thor Developer Kit
 
 <figure style="text-align: center;">
-    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/jetson-agx-thor-benchmarks-coco128.avif" alt="Jetson AGX Thor Benchmarks">
+    <img src="https://cdn.ul.run/i/c91110d3c769efabab350f8410d1e56b.avif" alt="Jetson AGX Thor Benchmarks">
     <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics 8.3.226</figcaption>
 </figure>
 
 #### NVIDIA Jetson AGX Orin Developer Kit (64GB)
 
 <figure style="text-align: center;">
-    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/jetson-agx-orin-benchmarks-coco128.avif" alt="Jetson AGX Orin Benchmarks">
+    <img src="https://cdn.ul.run/i/029291c17e186b2905e22e3313f7a44b.avif" alt="Jetson AGX Orin Benchmarks">
     <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics 8.4.32</figcaption>
 </figure>
 
 #### NVIDIA Jetson Orin Nano Super Developer Kit
 
 <figure style="text-align: center;">
-    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/jetson-orin-nano-super-benchmarks-coco128.avif" alt="Jetson Orin Nano Super Benchmarks">
+    <img src="https://cdn.ul.run/i/99054f7bb4789792bc093847b771899d.avif" alt="Jetson Orin Nano Super Benchmarks">
     <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics 8.4.33</figcaption>
 </figure>
 
 #### NVIDIA Jetson Orin NX 16GB
 
 <figure style="text-align: center;">
-    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/jetson-orin-nx-16-benchmarks-coco128.avif" alt="Jetson Orin NX 16GB Benchmarks">
+    <img src="https://cdn.ul.run/i/37912c8e1334eb7f74ef1510bb20270c.avif" alt="Jetson Orin NX 16GB Benchmarks">
     <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics 8.4.33</figcaption>
 </figure>
 
@@ -880,7 +880,7 @@ When using NVIDIA Jetson, there are a couple of best practices to follow in orde
     jtop
     ```
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/jetson-stats-application.avif" alt="Jetson Stats">
+<img width="1024" src="https://cdn.ul.run/i/b7606d1afc83731483747c3def51ce0c.avif" alt="Jetson Stats">
 
 ## Memory Optimization Tips for NVIDIA Jetson
 

@@ -10,8 +10,8 @@ Luxonis [OAK cameras](https://www.luxonis.com/) run Ultralytics YOLO models on-d
 
 ```bash
 git clone --recursive https://github.com/luxonis/tools.git && cd tools && PIP_CONSTRAINT=constraints.txt PIP_BUILD_CONSTRAINT=constraints.txt pip install . modelconv depthai
-curl -LO https://github.com/ultralytics/assets/releases/latest/download/yolo26n.pt && tools yolo26n.pt --imgsz "640 640" --output-dir .  # writes yolo26n_<timestamp>/yolo26n.tar.xz
-modelconverter convert rvc4 --path yolo26n_*/yolo26n.tar.xz --output-dir rvc4 calibration.path calibration_images/  # writes output/rvc4/yolo26n.rvc4.tar.xz
+curl -LO https://github.com/ultralytics/assets/releases/latest/download/yolo26n.pt && tools yolo26n.pt --imgsz "640 640" --output-dir . # writes yolo26n_<timestamp>/yolo26n.tar.xz
+modelconverter convert rvc4 --path yolo26n_*/yolo26n.tar.xz --output-dir rvc4 calibration.path calibration_images/                      # writes output/rvc4/yolo26n.rvc4.tar.xz
 ```
 
 ```python

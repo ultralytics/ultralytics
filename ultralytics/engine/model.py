@@ -433,8 +433,6 @@ class Model(torch.nn.Module):
             >>> print(metadata)
         """
         self._check_is_pytorch_model()
-        import pprint
-
         metadata = {
             "model": self.model_name,
             "task": self.task,
@@ -446,7 +444,6 @@ class Model(torch.nn.Module):
             "train_metrics": self.ckpt.get("train_metrics", None),
             "train_args": self.ckpt.get("train_args", None),
         }
-        pprint.pprint(metadata)
         return metadata
 
     def embed(

@@ -6,7 +6,7 @@ keywords: YOLO26, OpenVINO, model export, Intel, AI inference, CPU speedup, GPU 
 
 # Intel OpenVINO Export
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ecosystem.avif" alt="OpenVINO Intel AI inference toolkit">
+<img width="1024" src="https://cdn.ul.run/i/c3120a6b5d08e902d20cc1447249c1ac.avif" alt="OpenVINO Intel AI inference toolkit">
 
 In this guide, we cover exporting YOLO26 models to the [OpenVINO](https://docs.openvino.ai/) format, which can provide up to 3x [CPU](https://docs.openvino.ai/2025/openvino-workflow/running-inference/inference-devices-and-modes/cpu-device.html) speedup, as well as accelerating YOLO inference on Intel [GPU](https://docs.openvino.ai/2025/openvino-workflow/running-inference/inference-devices-and-modes/gpu-device.html) and [NPU](https://docs.openvino.ai/2025/openvino-workflow/running-inference/inference-devices-and-modes/npu-device.html) hardware.
 
@@ -219,7 +219,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Integrated Intel® Arc™ GPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultraX7-358H-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/77186d2ff07d47c8d926468ebdecf8e1.avif" alt="Intel Core Ultra GPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -250,7 +250,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Intel® Panther Lake CPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultraX7-358H-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/0e59bd9390255fd2bca31c34193b1442.avif" alt="Intel Core Ultra CPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -281,7 +281,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Integrated Intel® AI Boost NPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultraX7-358H-npu.avif" alt="Intel Core Ultra NPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/755a0515d5283c2e1227fe177d2d1981.avif" alt="Intel Core Ultra NPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -316,7 +316,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Integrated Intel® Arc™ GPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-258V-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/49405e2a81ee5cedcb04c0cb1751bed9.avif" alt="Intel Core Ultra GPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -347,7 +347,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Intel® Lunar Lake CPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-258V-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/070db9675dfee5a2662aa09f0ba42c33.avif" alt="Intel Core Ultra CPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -378,7 +378,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Integrated Intel® AI Boost NPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-258V-npu.avif" alt="Intel Core Ultra NPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/ed172cc0d4eff0c333c3cdd584600c3d.avif" alt="Intel Core Ultra NPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -413,7 +413,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Integrated Intel® Arc™ GPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-155H-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/532d3bb375fcadaab3e1d13526f4638e.avif" alt="Intel Core Ultra GPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -444,7 +444,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Intel® Meteor Lake CPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-155H-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/9fc9ef5ec0d44f4405819edff62c1672.avif" alt="Intel Core Ultra CPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"

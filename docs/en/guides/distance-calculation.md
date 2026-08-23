@@ -24,9 +24,9 @@ Distance calculation is the process of measuring the space between two detected 
 
 ## Visuals
 
-|                                         Distance Calculation using Ultralytics YOLO26                                          |
-| :----------------------------------------------------------------------------------------------------------------------------: |
-| ![Ultralytics YOLO26 Distance Calculation](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/distance-calculation.avif) |
+|                             Distance Calculation using Ultralytics YOLO26                              |
+| :----------------------------------------------------------------------------------------------------: |
+| ![Ultralytics YOLO26 Distance Calculation](https://cdn.ul.run/i/240145bb1ea3874f24026e935256a577.avif) |
 
 ## Advantages of Distance Calculation
 

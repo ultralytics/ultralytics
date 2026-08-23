@@ -10,7 +10,7 @@ keywords: YOLO26, RKNN, model export, Ultralytics, Rockchip, INT8 quantization, 
 When deploying computer vision models on embedded devices, especially those powered by Rockchip processors, having a compatible model format is essential. Exporting [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models to RKNN format ensures optimized performance and compatibility with Rockchip's hardware. This guide will walk you through converting your YOLO26 models to RKNN format, including floating-point and INT8 quantized exports, enabling efficient deployment on Rockchip platforms.
 
 <p align="center">
-  <img width="50%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/rockchip-rknn-overview.avif" alt="Rockchip RKNN export for NPU deployment">
+  <img width="50%" src="https://cdn.ul.run/i/3c3fcbb470dabcabbe1b5c926fee152a.avif" alt="Rockchip RKNN export for NPU deployment">
 </p>
 
 !!! note
@@ -191,7 +191,7 @@ Once installed, run inference and validation on your Rockchip device exactly as 
 
     If you encounter a log message indicating that the RKNN runtime version does not match the RKNN Toolkit version and the inference fails, please replace `/usr/lib/librknnrt.so` with official [librknnrt.so file](https://github.com/airockchip/rknn-toolkit2/blob/master/rknpu2/runtime/Linux/librknn_api/aarch64/librknnrt.so).
 
-    ![RKNN export screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/rockchip-rknn-export-log.avif)
+    ![RKNN export screenshot](https://cdn.ul.run/i/90077c647a22b3a29612d2701c6f2108.avif)
 
 ## Real-World Applications
 

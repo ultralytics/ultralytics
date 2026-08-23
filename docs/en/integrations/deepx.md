@@ -11,7 +11,7 @@ Deploying computer vision models on specialized NPU hardware requires a compatib
 ## What is DEEPX?
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/deepx_cover.avif" alt="DEEPX NPU Inference">
+  <img width="640" src="https://cdn.ul.run/i/e9365c5acf3cdcbfc6526467c3e58fcf.avif" alt="DEEPX NPU Inference">
 </p>
 
 [DEEPX](https://deepx.ai/) is an AI semiconductor company specializing in Neural Processing Units (NPUs) designed for power-efficient [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference at the edge. DEEPX NPUs are engineered for demanding embedded and industrial AI applications, delivering high throughput with minimal power consumption. Their hardware is well suited for deployment scenarios where cloud connectivity is unreliable or undesirable, such as robotics, smart cameras, and industrial automation systems.
@@ -228,7 +228,7 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
     === "Raspberry Pi 5 + DX-M1 M.2 Module"
 
         <div align="center">
-        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/deepx-m1-npu-vs-pytorch.avif" alt="Raspberry Pi 5 DEEPX M1 NPU vs PyTorch benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/857bf50e3c613f76c2b26b28311106ce.avif" alt="Raspberry Pi 5 DEEPX M1 NPU vs PyTorch benchmarks">
         </div>
 
         | Model        	| Format  	| Status 	| Size (MB) 	| metrics/mAP50-95(B) 	| Inference time (ms/im) 	|

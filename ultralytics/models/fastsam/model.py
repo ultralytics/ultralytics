@@ -67,7 +67,8 @@ class FastSAM(Model):
             source (str | PIL.Image | np.ndarray): Input source for prediction, can be a file path, URL, PIL image, or
                 numpy array.
             stream (bool): Whether to enable real-time streaming mode for video inputs.
-            bboxes (np.ndarray | list, optional): Bounding box coordinates for prompted segmentation in format [[x1, y1, x2, y2]].
+            bboxes (np.ndarray | list, optional): Bounding box coordinates for prompted segmentation in format [[x1, y1,
+                x2, y2]].
             points (np.ndarray | list, optional): Point coordinates for prompted segmentation in format [[x, y]].
             labels (np.ndarray | list, optional): Class labels for prompted segmentation.
             texts (str | list[str], optional): Text prompts for segmentation guidance.

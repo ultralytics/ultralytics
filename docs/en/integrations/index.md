@@ -101,6 +101,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Rockchip RKNN](rockchip-rknn.md): Developed by [Rockchip](https://www.rock-chips.com/), RKNN is a specialized neural network inference framework optimized for Rockchip's hardware platforms, particularly their NPUs. It facilitates efficient deployment of AI models on edge devices, enabling high-performance inference in real-time applications.
 
+- [SafeTensors](safetensors.md): Developed by [Hugging Face](https://huggingface.co/), SafeTensors stores Ultralytics YOLO weights and their configuration in a single pickle-free file, removing the arbitrary code execution risk of `.pt` checkpoints while keeping loading fast.
+
 - [Seeed Studio reCamera](seeedstudio-recamera.md): Developed by [Seeed Studio](https://www.seeedstudio.com/), the reCamera is an advanced edge AI device designed for real-time computer vision applications. Powered by the RISC-V-based SG200X processor, it delivers high-performance AI inference with energy efficiency. Its modular design, advanced video processing capabilities, and support for flexible deployment make it an ideal choice for various use cases, including safety monitoring, environmental applications, and manufacturing.
 
 - [SONY IMX500](sony-imx500.md): Optimize and deploy [Ultralytics YOLO26](../models/yolo26.md) models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.

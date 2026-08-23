@@ -28,10 +28,6 @@ keywords: Ultralytics, TensorRT export, ONNX export, PyTorch to ONNX, quantizati
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.export.engine.write_engine
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.export.engine.onnx2engine
 
 <br><br>

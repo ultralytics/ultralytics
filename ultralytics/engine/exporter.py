@@ -1001,8 +1001,7 @@ class Exporter:
             )
 
         if (
-            self.args.quantize == 8
-            and self.args.format in {"engine", "openvino"}
+            self.args.format in {"engine", "openvino"}
             and not self.args.dynamic
             and calibration_batch != self.args.batch
         ):

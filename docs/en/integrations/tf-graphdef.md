@@ -12,7 +12,7 @@ When you are deploying cutting-edge [computer vision](https://www.ultralytics.co
 In this guide, we'll walk you step by step through how to export your [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models to the TF GraphDef model format. By converting your model, you can streamline deployment and use YOLO26's computer vision capabilities in a broader range of applications and platforms.
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tensorflow-graphdef.avif" alt="TensorFlow GraphDef model serialization format">
+  <img width="640" src="https://cdn.ul.run/i/50678f5c4ceb39fe69db84674e5c1691.avif" alt="TensorFlow GraphDef model serialization format">
 </p>
 
 ## Why Should You Export to TF GraphDef?
@@ -51,9 +51,16 @@ Here's how you can deploy with TF GraphDef efficiently across various platforms.
 
 - **Specialized Hardware:** TF GraphDef's platform-agnostic nature allows it to target custom hardware, such as accelerators and TPUs (Tensor Processing Units). These devices can provide performance advantages for computationally intensive models.
 
+## Supported Tasks
+
+TF GraphDef export supports six of the seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads. Pose models can be exported, but Ultralytics GraphDef inference is not currently supported for them.
+
+{% set unsupported = ["obb"] %}
+{% include "macros/supported-tasks.md" %}
+
 ## Exporting YOLO26 Models to TF GraphDef
 
-You can convert your YOLO26 object detection model to the TF GraphDef format, which is compatible with various systems, to improve its performance across platforms.
+You can convert your YOLO26 model to the TF GraphDef format, which is compatible with various systems, to improve its performance across platforms.
 
 ### Installation
 
@@ -74,7 +81,7 @@ For detailed instructions and best practices related to the installation process
 
 All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
-The TF GraphDef format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy.
+The TF GraphDef format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes, except that pose models currently support export only. Export your model, then load the exported model to run inference or validate its accuracy.
 
 !!! example "Export"
 

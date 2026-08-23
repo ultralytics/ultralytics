@@ -73,7 +73,7 @@ The `train`, `val`, and `test` fields point to the training, validation, and tes
 
 (Optional) `flip_idx` maps each keypoint to its mirror image, so horizontal-flip augmentation keeps left and right consistent on symmetric skeletons such as a human body or face. For five facial landmarks indexed as [left eye, right eye, nose, left mouth, right mouth] = [0, 1, 2, 3, 4], `flip_idx` is [1, 0, 2, 4, 3]: the left-right pairs 0-1 and 3-4 swap, and the nose keeps its own index.
 
-(Optional) `kpt_oks_sigmas` sets custom per-keypoint [OKS](https://docs.ultralytics.com/guides/yolo-performance-metrics/) sigmas used during validation, e.g. `[0.26, 0.25, 0.25, ...]`. The list length must equal the number of keypoints `N` from `kpt_shape`, and every value must be positive. When omitted, the COCO 17-keypoint sigmas are used for `kpt_shape: [17, 3]` and a uniform `1/N` otherwise.
+(Optional) `kpt_oks_sigmas` sets custom per-keypoint [OKS](https://docs.ultralytics.com/guides/yolo-performance-metrics) sigmas used during training and validation, e.g. `[0.26, 0.25, 0.25, ...]`. The list length must equal the number of keypoints `N` from `kpt_shape`, and every value must be positive. When omitted, the COCO 17-keypoint sigmas are used for `kpt_shape: [17, 3]` and a uniform `1/N` otherwise.
 
 ## Usage
 
@@ -114,7 +114,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 
 ### COCO8-Pose
 
-- **Description**: [Ultralytics](https://www.ultralytics.com/) COCO8-Pose is a small, but versatile pose estimation dataset composed of the first 8 images of the COCO train 2017 set, 4 for training and 4 for validation.
+- **Description**: [Ultralytics](https://www.ultralytics.com) COCO8-Pose is a small, but versatile pose estimation dataset composed of the first 8 images of the COCO train 2017 set, 4 for training and 4 for validation.
 - **Label Format**: Same as Ultralytics YOLO format as described above, with keypoints for human poses.
 - **Number of Classes**: 1 (person).
 - **Keypoints**: 17 keypoint types including nose, eyes, ears, shoulders, elbows, wrists, hips, knees, and ankles, each with a visibility dimension.
@@ -124,7 +124,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 
 ### Dog-Pose
 
-- **Description**: The [Ultralytics](https://www.ultralytics.com/) Dog-Pose dataset contains 6,773 training and 1,703 validation images for canine keypoint estimation.
+- **Description**: The [Ultralytics](https://www.ultralytics.com) Dog-Pose dataset contains 6,773 training and 1,703 validation images for canine keypoint estimation.
 - **Label Format**: Follows the Ultralytics YOLO format, with annotations for multiple keypoints specific to dog anatomy.
 - **Number of Classes**: 1 (dog).
 - **Keypoints**: 24 keypoints, each with a visibility dimension, tailored to dog poses such as limbs, joints, and head positions.
@@ -134,17 +134,17 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 
 ### Hand Keypoints
 
-- **Description**: The [Ultralytics](https://www.ultralytics.com/) Hand Keypoints dataset comprises 26,768 images, with 18,776 allocated for training and 7,992 for validation.
+- **Description**: The [Ultralytics](https://www.ultralytics.com) Hand Keypoints dataset comprises 26,768 images, with 18,776 allocated for training and 7,992 for validation.
 - **Label Format**: Same as the Ultralytics YOLO format described above, but with 21 keypoints for a human hand and a visibility dimension.
 - **Number of Classes**: 1 (hand).
 - **Keypoints**: 21 keypoints.
 - **Usage**: Great for human hand pose estimation and [gesture recognition](https://www.ultralytics.com/blog/enhancing-hand-keypoints-estimation-with-ultralytics-yolo11).
-- **Additional Notes**: Keypoint annotations are generated using [Google MediaPipe](https://developers.google.com/mediapipe/solutions/vision/hand_landmarker) for consistent labeling.
+- **Additional Notes**: Keypoint annotations are generated using [Google MediaPipe](https://developers.google.com/edge/mediapipe/solutions/vision/hand_landmarker) for consistent labeling.
 - [Read more about Hand Keypoints](hand-keypoints.md)
 
 ### Tiger-Pose
 
-- **Description**: The [Ultralytics](https://www.ultralytics.com/) Tiger-Pose dataset comprises 263 images sourced from a [YouTube video](https://youtu.be/Gc6K5eKrTNQ), with 210 images allocated for training and 53 for validation.
+- **Description**: The [Ultralytics](https://www.ultralytics.com) Tiger-Pose dataset comprises 263 images sourced from a [YouTube video](https://youtu.be/Gc6K5eKrTNQ), with 210 images allocated for training and 53 for validation.
 - **Label Format**: Same as Ultralytics YOLO format as described above, with 12 keypoints for animal pose and no visibility dimension.
 - **Number of Classes**: 1 (tiger).
 - **Keypoints**: 12 keypoints.
@@ -156,7 +156,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 
 If you have your own dataset and would like to use it for training pose estimation models with Ultralytics YOLO format, ensure that it follows the format specified above under "Ultralytics YOLO format". Convert your annotations to the required format and specify the paths, number of classes, and class names in the YAML configuration file.
 
-To skip the conversion step entirely, [Ultralytics Platform](https://platform.ultralytics.com/) lets you upload raw images, annotate keypoints in the browser, and train on the resulting dataset directly.
+To skip the conversion step entirely, [Ultralytics Platform](https://platform.ultralytics.com) lets you upload raw images, annotate keypoints in the browser, and train on the resulting dataset directly.
 
 ### Conversion Tool
 

@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Explore Ultralytics' diverse datasets for vision tasks like detection, segmentation, semantic segmentation, depth estimation, classification, and more. Enhance your projects with high-quality annotated data.
-keywords: Ultralytics, datasets, computer vision, object detection, instance segmentation, semantic segmentation, depth estimation, pose estimation, image classification, multi-object tracking
+keywords: Ultralytics, datasets, computer vision, object detection, instance segmentation, semantic segmentation, depth estimation, image classification, pose estimation, multi-object tracking
 ---
 
 # Datasets Overview
@@ -207,7 +207,7 @@ Visit [Contribute New Datasets](#contribute-new-datasets) for a comprehensive gu
 
 ### Why should I use Ultralytics Platform for my dataset?
 
-[Ultralytics Platform](https://platform.ultralytics.com/) offers powerful features for dataset management and analysis, including:
+[Ultralytics Platform](https://platform.ultralytics.com) offers powerful features for dataset management and analysis, including:
 
 - **Seamless Dataset Management**: Upload, organize, and manage your datasets in one place.
 - **Immediate Training Integration**: Use uploaded datasets directly for model training without additional setup.

@@ -24,9 +24,9 @@ Distance calculation is the process of measuring the space between two detected 
 
 ## Visuals
 
-|                                         Distance Calculation using Ultralytics YOLO26                                          |
-| :----------------------------------------------------------------------------------------------------------------------------: |
-| ![Ultralytics YOLO26 Distance Calculation](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/distance-calculation.avif) |
+|                             Distance Calculation using Ultralytics YOLO26                              |
+| :----------------------------------------------------------------------------------------------------: |
+| ![Ultralytics YOLO26 Distance Calculation](https://cdn.ul.run/i/240145bb1ea3874f24026e935256a577.avif) |
 
 ## Advantages of Distance Calculation
 
@@ -97,17 +97,17 @@ The `DistanceCalculation` solution tracks objects across frames and measures the
 Here's a table with the `DistanceCalculation` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model"]) }}
+{{ param_table(["model", "line_width", "verbose"]) }}
 
 You can also make use of various `track` arguments in the `DistanceCalculation` solution.
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 Moreover, the following visualization arguments are available:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
+{{ param_table(["show", "show_conf", "show_labels"]) }}
 
 ## Implementation Details
 
@@ -159,7 +159,7 @@ To delete points drawn during distance calculation with Ultralytics YOLO26, you 
 The key arguments for initializing the `DistanceCalculation` class in Ultralytics YOLO26 include:
 
 - `model`: Path to the YOLO26 model file.
-- `tracker`: Tracking algorithm to use (default is 'botsort.yaml').
+- `tracker`: Tracking algorithm to use (Solutions default to `botsort.yaml`).
 - `conf`: Confidence threshold for detections.
 - `show`: Flag to display the output.
 

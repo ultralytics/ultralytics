@@ -7,7 +7,7 @@ keywords: COCO to YOLO, convert COCO JSON to YOLO, COCO JSON format, YOLO annota
 
 # How to Convert COCO Annotations to YOLO Format
 
-Training [Ultralytics YOLO](https://www.ultralytics.com/) models requires annotations in YOLO format, but many popular [annotation](https://www.ultralytics.com/glossary/data-labeling) tools export in [COCO JSON](https://cocodataset.org/#format-data) format instead. This guide shows you how to convert your COCO annotations to YOLO format and start training [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), and [pose estimation](https://www.ultralytics.com/glossary/pose-estimation) models.
+Training [Ultralytics YOLO](https://www.ultralytics.com) models requires annotations in YOLO format, but many popular [annotation](https://www.ultralytics.com/glossary/data-labeling) tools export in [COCO JSON](https://cocodataset.org/#format-data) format instead. This guide shows you how to convert your COCO annotations to YOLO format and start training [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), and [pose estimation](https://www.ultralytics.com/glossary/pose-estimation) models.
 
 !!! tip "Prefer to skip conversion?"
 
@@ -306,6 +306,12 @@ If you get `KeyError: 'bbox'` or similar errors when running `convert_coco()`, y
 If conversion completes but `.txt` files are empty or missing, all annotations may have `iscrowd: 1` (common with [SAM](../models/sam.md)-generated masks), or [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) have zero width or height.
 
 **Solution**: Inspect your JSON annotations for `iscrowd` values. If using SAM masks, preprocess the JSON to set `iscrowd: 0`.
+
+### Box-Shaped Polygons From Mask Annotations
+
+If `use_segments=True` logs `annotations without a usable polygon`, some annotations carry no `segmentation` value, or one that is not a list of at least three coordinate pairs. The usual causes are detection-only exports, which leave the field missing or empty, and COCO run-length encoding (`{"counts": ..., "size": ...}`), which bitmask exporters such as [SAM](../models/sam.md) write; a flat coordinate list with no enclosing polygon list, one- and two-point outlines, and other malformed values are handled the same way. An annotation keeps whichever polygons remain, and falls back to a segment row shaped like its bounding box when none do, so the labels stay valid but those rows carry no mask detail.
+
+**Solution**: Re-export the annotations with polygon segmentations, decode the RLE masks to polygons before running `convert_coco()`, or correct any malformed `segmentation` values.
 
 ### Class ID Gaps in Converted Labels
 

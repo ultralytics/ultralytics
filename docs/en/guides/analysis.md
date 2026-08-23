@@ -145,7 +145,7 @@ See the [Platform API docs](https://docs.ultralytics.com/platform/api/) for URI 
 
 ## Output schema
 
-`per_image_analysis.csv` columns: `im_name`, `im_file`, then validator-supplied prediction-quality fields (`precision`, `recall`, `f1`, `tp`, `fp`, `fn`), then all 27 property fields plus `anomaly_score`. The CSV is always fully sorted ascending by F1.
+`per_image_analysis.csv` columns: `im_name`, `im_file`, then validator-supplied prediction-quality fields (`precision`, `recall`, `f1`, `tp`, `fp`, `fn`), then every property field plus `anomaly_score`. The CSV is always fully sorted ascending by F1.
 
 `correlations.json` entries:
 
@@ -169,6 +169,7 @@ See the [Platform API docs](https://docs.ultralytics.com/platform/api/) for URI 
 [
     {
         "im_name": "img_0042.jpg",
+        "im_file": "datasets/coco/images/val2017/img_0042.jpg",
         "f1": 0.12,
         "anomaly_score": 2.31,
         "top_3_problematic": ["blurriness", "num_small", "num_near_edge"]

@@ -296,7 +296,10 @@ class TQDM:
         try:
             progress_str = f"{self.desc}: {fields}"
             if self.file.isatty():  # description yields its cells first so the progress fields survive
-                width = shutil.get_terminal_size().columns - 1
+                try:  # measure self.file's own terminal, not sys.__stdout__
+                    width = os.get_terminal_size(self.file.fileno()).columns - 1
+                except Exception:  # streams without a usable fileno (io.StringIO, wrapped stdout)
+                    width = shutil.get_terminal_size().columns - 1  # COLUMNS env, else sys.__stdout__
                 progress_str = self._fit(f"{self._fit(self.desc, width - len(fields) - 2)}: {fields}", width)
             # Non-interactive environments avoid the carriage return which creates empty lines
             self.file.write(progress_str if self.noninteractive else f"\r\033[K{progress_str}")

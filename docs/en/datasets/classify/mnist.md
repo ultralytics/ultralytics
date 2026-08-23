@@ -15,6 +15,8 @@ keywords: MNIST, dataset, handwritten digits, image classification, deep learnin
 
 The [MNIST](https://en.wikipedia.org/wiki/MNIST_database) (Modified National Institute of Standards and Technology) dataset is an [image classification](https://www.ultralytics.com/glossary/image-classification) benchmark of 70,000 28x28 grayscale images of handwritten digits spanning 10 classes — the digits 0 through 9. It ships with a predefined split of 60,000 training and 10,000 test images and has long served as the standard benchmark for evaluating [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) algorithms. For the harder clothing-image equivalent, see the related [Fashion-MNIST](fashion-mnist.md) dataset; for color images, see [CIFAR-10](cifar10.md).
 
+Explore [MNIST on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/mnist) to preview samples, inspect dataset statistics, and clone it for training.
+
 ## Key Features
 
 - MNIST contains 60,000 training images and 10,000 test images of handwritten digits, for 70,000 in total.

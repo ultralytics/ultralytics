@@ -3,7 +3,7 @@ title: COCO12-Formats Detection Dataset
 comments: true
 creator:
     name: Ultralytics
-    url: https://www.ultralytics.com/
+    url: https://www.ultralytics.com
 license:
     name: CC-BY-4.0
     url: https://cocodataset.org/#termsofuse
@@ -15,7 +15,7 @@ keywords: COCO12-Formats, Ultralytics, dataset, image formats, object detection,
 
 ## Introduction
 
-The [Ultralytics](https://www.ultralytics.com/) COCO12-Formats dataset is a specialized test dataset designed to validate image loading across 12 supported image format extensions. It contains 12 images (6 for training, 6 for validation), each saved in a different format to ensure comprehensive testing of the image loading pipeline.
+The [Ultralytics](https://www.ultralytics.com) COCO12-Formats dataset is a specialized test dataset designed to validate image loading across 12 supported image format extensions. It contains 12 images (6 for training, 6 for validation), each saved in a different format to ensure comprehensive testing of the image loading pipeline.
 
 This dataset is invaluable for:
 
@@ -24,7 +24,7 @@ This dataset is invaluable for:
 - **Debugging**: Isolate format-specific issues in training pipelines
 - **Development**: Validate new format additions or changes
 
-When you manage datasets on [Ultralytics Platform](https://platform.ultralytics.com/), images in any of these formats are handled automatically—no manual conversion required.
+When you manage datasets on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/coco12-formats), images in any of these formats are handled automatically—no manual conversion required.
 
 ## Supported Formats
 

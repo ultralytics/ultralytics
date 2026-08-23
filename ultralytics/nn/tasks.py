@@ -2261,15 +2261,6 @@ def guess_model_task(model):
 
         # Guess from model filename
         model = Path(model)
-
-        # SafeTensors exports embed the task in their metadata
-        if model.suffix == ".safetensors":
-            with contextlib.suppress(Exception):
-                from safetensors import safe_open
-
-                with safe_open(str(model), framework="pt") as f:
-                    return f.metadata()["task"]
-
         if "-sem" in model.stem or "semantic" in model.parts:
             return "semantic"
         elif "-seg" in model.stem or "segment" in model.parts:

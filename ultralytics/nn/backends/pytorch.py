@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 
@@ -152,8 +153,6 @@ class SafeTensorsBackend(BaseBackend):
         Raises:
             ValueError: If the file has no embedded 'model_yaml' metadata.
         """
-        import json
-
         from ultralytics.nn.tasks import (
             ClassificationModel,
             DepthModel,
@@ -167,10 +166,9 @@ class SafeTensorsBackend(BaseBackend):
 
         LOGGER.info(f"Loading {weight} for SafeTensors inference...")
         check_requirements("safetensors>=0.7.0")
-        from safetensors.torch import load_file, safe_open
+        from safetensors.torch import load_file
 
-        with safe_open(str(weight), framework="pt") as f:
-            metadata = f.metadata() or {}
+        metadata = self.read_metadata(weight)
         if "model_yaml" not in metadata:
             raise ValueError(
                 f"SafeTensors file '{weight}' is missing 'model_yaml' metadata. "

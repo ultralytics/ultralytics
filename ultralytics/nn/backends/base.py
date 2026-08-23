@@ -153,9 +153,9 @@ class BaseBackend(ABC):
     def read_metadata(file: str | Path) -> dict:
         """Read Ultralytics metadata from an export without loading it or importing its framework.
 
-        Single-file formats embed metadata in a length-prefixed JSON header (``.engine``), a zip entry
-        (``.torchscript``, ``.tflite``) or protobuf string map entries (``.onnx``, ``.mlpackage``), and every other
-        format writes a ``metadata.yaml`` sidecar beside or inside the export. MNN keeps it in a flatbuffer
+        Single-file formats embed metadata in a length-prefixed JSON header (``.engine``, ``.safetensors``), a zip
+        entry (``.torchscript``, ``.tflite``) or protobuf string map entries (``.onnx``, ``.mlpackage``), and every
+        other format writes a ``metadata.yaml`` sidecar beside or inside the export. MNN keeps it in a flatbuffer
         ``bizCode`` field and Triton serves it over HTTP, so neither is read here.
 
         Args:
@@ -170,6 +170,10 @@ class BaseBackend(ABC):
         try:
             if p.suffix == ".engine":  # 4-byte little-endian length then that many bytes of JSON
                 return BaseBackend.engine_header(p)[1]
+            if p.suffix == ".safetensors":  # 8-byte little-endian length then that many bytes of JSON
+                with open(p, "rb") as f:
+                    n = int.from_bytes(f.read(8), byteorder="little")
+                    return json.loads(f.read(n)).get("__metadata__", {})
             if p.suffix in {".tflite", ".torchscript"}:  # metadata appended to or saved inside the model zip
                 with zipfile.ZipFile(p) as z:
                     names = z.namelist()

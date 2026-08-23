@@ -48,9 +48,9 @@ class TensorRTBackend(BaseBackend):
         logger = trt.Logger(trt.Logger.INFO)
 
         # Read engine file
-        metadata = self.read_metadata(weight)
+        offset, metadata = self.engine_header(weight)
         with open(weight, "rb") as f, trt.Runtime(logger) as runtime:
-            f.seek(self.engine_offset(weight))  # skip the metadata header, if any, that precedes the engine
+            f.seek(offset)  # skip the metadata header, if any, that precedes the engine
             if (dla := metadata.get("dla")) is not None:
                 runtime.DLA_core = int(dla)
             engine = runtime.deserialize_cuda_engine(f.read())

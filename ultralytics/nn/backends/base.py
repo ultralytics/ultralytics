@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import ast
+import contextlib
+import json
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
@@ -130,18 +132,22 @@ class BaseBackend(ABC):
         return self.forward(*args, **kwargs)
 
     @staticmethod
-    def engine_offset(file: str | Path) -> int:
-        """Return the offset of the serialized engine inside a ``.engine`` file, i.e. past its metadata header.
+    def engine_header(file: str | Path) -> tuple[int, dict]:
+        """Read the metadata header an Ultralytics ``.engine`` export writes ahead of its serialized engine.
 
         Args:
             file (str | Path): Path to the TensorRT engine file.
 
         Returns:
-            (int): Byte offset of the engine bytes, 0 for a third-party engine written without a metadata header.
+            (tuple[int, dict]): Byte offset of the engine bytes and the header metadata, ``(0, {})`` without a header.
         """
         with open(file, "rb") as f:
             n = int.from_bytes(f.read(4), byteorder="little")  # 4-byte little-endian JSON length, if a header exists
-            return 4 + n if 0 < n <= f.seek(0, 2) - 4 else 0  # a length overrunning the file is not a header
+            if 0 < n <= f.seek(0, 2) - 4:  # a length overrunning the file is not a header
+                f.seek(4)
+                with contextlib.suppress(ValueError):  # engine bytes are not JSON, so a real header parses
+                    return 4 + n, json.loads(f.read(n))
+        return 0, {}
 
     @staticmethod
     def read_metadata(file: str | Path) -> dict:
@@ -158,17 +164,12 @@ class BaseBackend(ABC):
         Returns:
             (dict): Parsed metadata, empty for a third-party export or one predating metadata embedding.
         """
-        import json
         import zipfile
 
         p = Path(file)
         try:
             if p.suffix == ".engine":  # 4-byte little-endian length then that many bytes of JSON
-                if not (offset := BaseBackend.engine_offset(p)):
-                    return {}
-                with open(p, "rb") as f:
-                    f.seek(4)
-                    return json.loads(f.read(offset - 4))
+                return BaseBackend.engine_header(p)[1]
             if p.suffix in {".tflite", ".torchscript"}:  # metadata appended to or saved inside the model zip
                 with zipfile.ZipFile(p) as z:
                     names = z.namelist()

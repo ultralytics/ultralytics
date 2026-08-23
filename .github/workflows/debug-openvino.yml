@@ -1,10 +1,7 @@
 name: Debug OpenVINO
 on:
-  workflow_dispatch:
-    inputs:
-      variant:
-        description: "Variant"
-        default: "main"
+  push:
+    branches: [fix-links-openvino]
 jobs:
   Repro:
     runs-on: ubuntu-latest

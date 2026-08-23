@@ -10,6 +10,7 @@ from typing import Any
 import torch
 
 from ultralytics.utils import YAML
+from ultralytics.utils.checks import check_requirements
 
 
 def read_tflite_metadata(file: str | Path) -> dict | None:
@@ -63,6 +64,7 @@ def read_export_metadata(file: str | Path) -> dict:
             with zipfile.ZipFile(path) as zf:
                 return json.loads(zf.read(next(n for n in zf.namelist() if n.endswith("extra/config.txt"))))
         if path.suffix == ".onnx" or path.name.endswith("_imx_model"):  # IMX packages its ONNX in a directory
+            check_requirements("onnx")  # the ONNX backend requires it alongside onnxruntime
             import onnx
 
             model = onnx.load(str(next(path.glob("*.onnx"), path) if path.is_dir() else path), load_external_data=False)

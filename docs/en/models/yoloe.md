@@ -165,7 +165,7 @@ Every YOLOE example below runs from the [Python API](../usage/python.md). Text-p
 
 ### Train Usage
 
-Fine-tune any released checkpoint on your own YOLO dataset. This mostly follows the [standard YOLO training procedure](../modes/train.md); the difference is which trainer you pass. `YOLOEPESegTrainer` fuses your class names into the head and fine-tunes from there, which is what you want on your own labels; the default `YOLOESegTrainer` keeps the open-vocabulary recipe.
+Fine-tune any released `*-seg.pt` checkpoint on your own YOLO dataset. This mostly follows the [standard YOLO training procedure](../modes/train.md); the difference is which trainer you pass. `YOLOEPESegTrainer` fuses your class names into the head and fine-tunes from there, which is what you want on your own labels; the default `YOLOESegTrainer` keeps the open-vocabulary recipe.
 
 <p align="center">
   <br>
@@ -228,7 +228,7 @@ Fine-tune any released checkpoint on your own YOLO dataset. This mostly follows 
 
 !!! tip "Training a detection model instead"
 
-    Every released checkpoint is a segmentation model. To train a detector, build the model from the matching YAML, load the segmentation weights of the same scale, and swap in the detection trainer. Everything else is unchanged; this example fine-tunes the full model, and the Linear Probing freeze list above works with this trainer too if you pass `freeze=freeze`.
+    Every released checkpoint is a segmentation model. To train a detector, build the model from the matching YAML, load the segmentation weights of the same scale, and swap in the detection trainer. Everything else is unchanged.
 
     ```python
     from ultralytics import YOLOE
@@ -568,13 +568,13 @@ A finished prompt-free run is re-parameterized into a checkpoint that reports it
 ```python
 from ultralytics import YOLOE
 
-# Weights written by the prompt-free training run. Each rerun creates a new
-# directory (train-2, train-3, ...), so take the path the run printed.
-model = YOLOE("runs/segment/train/weights/best.pt")
+# Weights written by the prompt-free run and by the text-prompt run it started from. Each
+# rerun creates a new directory (train2, train3, ...), so take the paths the runs printed.
+model = YOLOE("runs/segment/train2/weights/best.pt")  # prompt-free run, its head is already fused
+text_model = YOLOE("runs/segment/train/weights/best.pt")  # text-prompt run, its head is still unfused
 
-# get_vocab needs an unfused text head, which the trained checkpoint no longer has.
-names = list(YOLOE("yoloe-26l-seg-pf.pt").model.names.values())  # or your own list
-vocab = YOLOE("yoloe-26l-seg.pt").get_vocab(names)
+names = list(YOLOE("yoloe-26l-seg-pf.pt").model.names.values())  # the 4,585-name vocabulary, or your own list
+vocab = text_model.get_vocab(names)
 
 model.set_vocab(vocab, names)
 model.save("yoloe-26l-seg-pf-custom.pt")  # never overwrite the released checkpoint

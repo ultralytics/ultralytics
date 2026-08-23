@@ -171,7 +171,7 @@ def check_file_speeds(
         LOGGER.warning(
             f"{prefix}Slow image access detected ({ping_msg}{speed_msg}{size_msg}). "
             f"Use local storage instead of remote/mounted storage for better performance. "
-            f"See https://docs.ultralytics.com/guides/model-training-tips/"
+            f"See https://docs.ultralytics.com/guides/model-training-tips"
         )
 
 
@@ -689,7 +689,7 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
         if data_dir.suffix != "":
             raise ValueError(
                 f'Classification datasets must be a directory (data="path/to/dir") not a file (data="{dataset}"), '
-                "See https://docs.ultralytics.com/datasets/classify/"
+                "See https://docs.ultralytics.com/datasets/classify"
             )
         LOGGER.info("")
         LOGGER.warning(f"Dataset not found, missing path {data_dir}, attempting download...")

@@ -33,7 +33,7 @@ class DeepXBackend(BaseBackend):
         except ImportError as e:
             raise ImportError(
                 "DEEPX inference requires the DEEPX DX-Runtime and `dx_engine` Python package. "
-                "See https://docs.ultralytics.com/integrations/deepx/#runtime-installation for installation instructions."
+                "See https://docs.ultralytics.com/integrations/deepx#runtime-installation for installation instructions."
             ) from e
 
         LOGGER.info(f"Loading {weight} for DEEPX inference...")

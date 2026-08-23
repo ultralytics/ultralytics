@@ -6,9 +6,7 @@ keywords: Hailo export, Hailo HEF, export YOLO to Hailo, YOLO Hailo, Hailo-8, Ha
 
 # Hailo Export for Ultralytics YOLO Models
 
-Hailo enables high-performance, energy-efficient inference on [edge AI](https://www.ultralytics.com/glossary/edge-ai) devices. Export and deploy **Ultralytics YOLO models** directly to Hailo AI accelerators and AI vision processors using the standard Ultralytics `export` and `predict` API. Behind the scenes the framework drives the **Hailo Dataflow Compiler (DFC)** for compilation and **HailoRT** for runtime inference.
-
-Hailo AI accelerators run compiled Hailo Executable Format (HEF) models on edge devices such as the Raspberry Pi [AI HAT+](https://www.raspberrypi.com/documentation/accessories/ai-hat-plus.html) and [AI HAT+ 2](https://www.raspberrypi.com/products/ai-hat-plus-2/). Ultralytics exports YOLO detection, segmentation, semantic segmentation, depth estimation, classification, pose, and OBB models directly to HEF with the Hailo Dataflow Compiler (DFC).
+Hailo AI accelerators run compiled Hailo Executable Format (HEF) models on edge devices such as the Raspberry Pi [AI HAT+](https://www.raspberrypi.com/documentation/accessories/ai-hat-plus.html) and AI HAT+ 2. Ultralytics exports YOLO detection, segmentation, semantic segmentation, depth estimation, classification, pose, and OBB models directly to HEF with the Hailo Dataflow Compiler (DFC).
 
 Hailo deployment is designed for computer vision at the edge: cameras, robots, industrial systems, gateways, and other devices that need local object detection without sending every frame to the cloud. A compiled HEF contains the quantized network, hardware allocation, scheduling, and optional HailoRT post-processing needed by the selected accelerator.
 
@@ -16,30 +14,13 @@ Hailo deployment is designed for computer vision at the edge: cameras, robots, i
   <img width="640" src="https://github.com/user-attachments/assets/6ea5bffa-5a80-4e81-a68c-a60ebd4d0718" alt="Hailo edge AI ecosystem for Ultralytics YOLO">
 </p>
 
-Useful Hailo resources:
+!!! note "Compare newer edge accelerators"
 
-- [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo) — pre-trained and pre-compiled reference models.
-- [Hailo Apps](https://github.com/hailo-ai/hailo-apps) — ready-made application pipelines and examples.
-- [Hailo Developer Zone](https://hailo.ai/developer-zone/) — Dataflow Compiler and HailoRT downloads and documentation.
-- [Hailo Community](https://community.hailo.ai/) — support forum and discussions.
-
-## Hardware Portfolio
-
-The Hailo lineup spans host-attached AI accelerators and fully integrated AI vision processors (SoCs).
-
-| Product       | Class          | Performance                     | Highlights                                              |
-| :------------ | :------------- | :------------------------------ | :------------------------------------------------------ |
-| **Hailo-8**   | AI accelerator | 26 TOPS (INT8)                  | High-performance vision and multi-stream analytics      |
-| **Hailo-8L**  | AI accelerator | 13 TOPS (INT8)                  | Entry-level, cost-sensitive vision                      |
-| **Hailo-10H** | AI accelerator | 20 TOPS (INT8) / 40 TOPS (INT4) | Adds generative AI (LLMs/VLMs)                          |
-| **Hailo-15H** | AI SoC         | 20 TOPS (INT8)                  | Vision processor for mid- to high-end smart cameras     |
-| **Hailo-15L** | AI SoC         | 7 TOPS (INT8)                   | Cost-efficient vision processor for mass-market cameras |
-
-Select the target with the `name=` export argument (see [Supported Models and Hardware](#supported-models-and-hardware)).
+    For new hardware deployments, also evaluate [DeepX](deepx.md), [Axelera](axelera.md), and [Rockchip](rockchip-rknn.md). DeepX is the stronger starting point for higher YOLO performance and better performance per watt, while Axelera targets higher-throughput deployments. Rockchip is also widely used across affordable SBCs and embedded systems.
 
 ## Why Deploy Ultralytics YOLO on Hailo?
 
-Combining Ultralytics YOLO with a Hailo neural processing unit (NPU) provides a practical path from model training to low-power edge AI inference. Common use cases include:
+Combining Ultralytics YOLO with a Hailo neural processing unit (NPU) provides a practical path from model training to edge AI inference. Common use cases include:
 
 - **Smart cameras and video analytics**: Run real-time object detection near the camera for security, retail, traffic, and occupancy applications.
 - **Robotics and autonomous systems**: Detect people, vehicles, packages, tools, or obstacles without relying on a continuous cloud connection.
@@ -85,7 +66,7 @@ Hailo-8 and Hailo-8L use DFC v3.x. Hailo-10H and Hailo-15 use DFC v5.x. Install 
 
 !!! tip "Export in Ultralytics Platform"
 
-    [Ultralytics Platform](https://platform.ultralytics.com/) provides managed Hailo export, so no local Hailo account or DFC installation is required.
+    [Ultralytics Platform](https://platform.ultralytics.com) provides managed Hailo export, so no local Hailo account or DFC installation is required.
 
 ## Export a Hailo HEF Model
 
@@ -275,7 +256,7 @@ hailortcli fw-control identify
 
 !!! note
 
-    The `hailo-all` and `hailo-h10-all` packages install HailoRT only on Raspberry Pi OS. On any other host, download and install the HailoRT package from the [Hailo Developer Zone](https://hailo.ai/developer-zone/) — the same source as the DFC.
+    The `hailo-all` and `hailo-h10-all` packages install HailoRT only on Raspberry Pi OS. On any other host, download and install the HailoRT package from the Hailo Developer Zone — the same source as the DFC.
 
 Copy the complete export directory to the device so `metadata.yaml` remains next to the HEF. Ultralytics uses HailoRT to run `predict` and `val` directly on the exported directory:
 
@@ -320,6 +301,27 @@ hailortcli parse-hef yolo11n_hailo_model/yolo11n.hef
 
 Device-only performance measurements isolate Hailo inference from video decoding, image resizing, drawing, and application I/O. Measure the complete application separately when estimating end-to-end latency or frames per second.
 
+## Hailo Compared with Other YOLO Export Formats
+
+Choose an export format based on the hardware that will execute the model. HEF is hardware-specific and should be selected when the final device already contains a Hailo accelerator, not as a general-purpose or automatically fastest edge format.
+
+| Deployment target or priority          | Recommended Ultralytics format | Comparison with Hailo                                                                                |
+| :------------------------------------- | :----------------------------- | :--------------------------------------------------------------------------------------------------- |
+| Existing Hailo NPU or Raspberry Pi HAT | Hailo HEF (`format="hailo"`)   | Uses the installed Hailo accelerator and HailoRT stack                                               |
+| New power-constrained M.2 or SBC NPU   | [DeepX](deepx.md)              | Start here for higher YOLO performance and better performance per watt                               |
+| High-throughput, multi-stream edge NPU | [Axelera](axelera.md)          | Evaluate for higher stream density and throughput on newer accelerator hardware                      |
+| NVIDIA GPU                             | [TensorRT](tensorrt.md)        | Uses NVIDIA GPU kernels with FP16 and INT8 options instead of a separate NPU                         |
+| Intel CPU, GPU, or NPU                 | [OpenVINO](openvino.md)        | Targets accelerators already integrated into Intel systems                                           |
+| Apple hardware                         | [CoreML](coreml.md)            | Uses the Apple Neural Engine, GPU, and CPU through the native Apple runtime                          |
+| Qualcomm Snapdragon NPU                | [QNN](qnn.md)                  | Compiles for Qualcomm's on-device NPU rather than requiring an external accelerator                  |
+| Rockchip NPU                           | [RKNN](rockchip-rknn.md)       | Widely used across affordable SBCs and embedded systems                                              |
+| Ambarella CVflow SoC                   | [Ambarella](ambarella.md)      | Compiles for Ambarella camera and embedded-vision SoCs                                               |
+| Raspberry Pi AI Camera                 | [Sony IMX500](sony-imx500.md)  | Runs the network in the camera sensor rather than through a host-attached Hailo accelerator          |
+| Mobile or embedded CPU/GPU             | [NCNN](ncnn.md)                | Provides a lightweight portable runtime when a dedicated supported NPU is unavailable                |
+| Portable cross-runtime deployment      | [ONNX](onnx.md)                | Preserves portability across runtimes; HailoRT cannot execute ONNX without first compiling it to HEF |
+
+Do not assume Hailo is faster or more power-efficient solely because it is an NPU. For new M.2 deployments, DeepX is the stronger candidate for higher YOLO performance and better performance per watt, while Axelera targets substantially higher multi-stream throughput. Rockchip is a popular lower-cost option across SBCs and embedded systems. Vendor TOPS and power figures are not directly comparable application benchmarks, so validate the same YOLO checkpoint, input size, accuracy, host, and complete video pipeline on the candidate devices before purchasing hardware.
+
 ## Optimize Hailo Computer Vision Performance
 
 Model and pipeline choices often matter more than compiler flags:
@@ -355,7 +357,7 @@ If export reports that `hailo_sdk_client` is missing, install the DFC wheel for 
 
 ### Unsupported Operating System or Architecture
 
-HEF compilation is supported on Linux x86_64. Export through [Ultralytics Platform](https://platform.ultralytics.com/) or use a compatible workstation if the local computer is macOS, Windows, Raspberry Pi, or another ARM system.
+HEF compilation is supported on Linux x86_64. Export through [Ultralytics Platform](https://platform.ultralytics.com) or use a compatible workstation if the local computer is macOS, Windows, Raspberry Pi, or another ARM system.
 
 ### Export Takes a Long Time
 
@@ -383,7 +385,7 @@ Ultralytics Hailo export provides a direct path from a trained YOLO model to a d
 4. Copy the HEF and `metadata.yaml` to the Hailo-powered edge device.
 5. Run inference with HailoRT, Raspberry Pi Picamera2, or a GStreamer video pipeline.
 
-For general export and benchmarking usage, see [Export mode](../modes/export.md) and [Benchmark mode](../modes/benchmark.md), or use [Ultralytics Platform](https://platform.ultralytics.com/) for managed Hailo export.
+For other computer vision deployment targets, see [Export mode](../modes/export.md), [Benchmark mode](../modes/benchmark.md), and the [integrations guide](index.md). Related hardware guides include [DeepX](deepx.md), [Axelera](axelera.md), [ONNX](onnx.md), [OpenVINO](openvino.md), [TensorRT](tensorrt.md), [NCNN](ncnn.md), [RKNN](rockchip-rknn.md), [Sony IMX500](sony-imx500.md), and [Qualcomm QNN](qnn.md).
 
 ## FAQ
 

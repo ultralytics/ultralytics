@@ -112,5 +112,5 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         """
         data = super().get_dataset()
         if "kpt_shape" not in data:
-            raise KeyError(f"No `kpt_shape` in the {self.args.data}. See https://docs.ultralytics.com/datasets/pose/")
+            raise KeyError(f"No `kpt_shape` in the {self.args.data}. See https://docs.ultralytics.com/datasets/pose")
         return data

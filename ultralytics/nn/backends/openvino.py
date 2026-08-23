@@ -18,7 +18,7 @@ class OpenVINOBackend(BaseBackend):
     """Intel OpenVINO inference backend for Intel hardware acceleration.
 
     Loads and runs inference with Intel OpenVINO IR models (*_openvino_model/ directories). Supports automatic device
-    selection, Intel-specific device targeting, and async inference for throughput optimization.
+    selection and Intel-specific device targeting.
     """
 
     def load_model(self, weight: str | Path) -> None:
@@ -73,13 +73,8 @@ class OpenVINOBackend(BaseBackend):
         if self.read_model is not None:
             self.dynamic = False  # fixed letterbox shapes so recompiles stay rare
 
-        # Set inference mode
-        self.inference_mode = (
-            ("CUMULATIVE_THROUGHPUT" if device_name == "AUTO" else "THROUGHPUT")
-            if self.dynamic and self.batch > 1
-            else "LATENCY"
-        )
-        config = {"PERFORMANCE_HINT": self.inference_mode}
+        # One batched LATENCY request is ~2x faster and uses ~3x less RAM than THROUGHPUT with per-image async requests
+        config = {"PERFORMANCE_HINT": "LATENCY"}
         if LINUX and ARM64 and device_name == "CPU":
             config["EXECUTION_MODE_HINT"] = ov.properties.hint.ExecutionMode.ACCURACY
             config["INFERENCE_PRECISION_HINT"] = ov.Type.f32
@@ -92,15 +87,11 @@ class OpenVINOBackend(BaseBackend):
 
         self.compile_model = partial(core.compile_model, device_name=device_name, config=config)
         self.ov_compiled_model = self.compile_model(ov_model)
-        LOGGER.info(
-            f"Using OpenVINO {self.inference_mode} mode for batch={self.batch} inference on "
-            f"{', '.join(self.ov_compiled_model.get_property('EXECUTION_DEVICES'))}..."
-        )
-        self.input_name = self.ov_compiled_model.input().get_any_name()
+        LOGGER.info(f"Using OpenVINO on {', '.join(self.ov_compiled_model.get_property('EXECUTION_DEVICES'))}...")
         self.ov = ov
 
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:
-        """Run Intel OpenVINO inference with sync or async execution based on inference mode.
+        """Run Intel OpenVINO inference.
 
         Args:
             im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
@@ -116,25 +107,4 @@ class OpenVINOBackend(BaseBackend):
             ov_model.reshape(list(im.shape))
             self.ov_compiled_model = self.compile_model(ov_model)
 
-        if self.inference_mode in {"THROUGHPUT", "CUMULATIVE_THROUGHPUT"}:
-            # Async inference for larger batch sizes
-            n = im.shape[0]
-            results = [None] * n
-
-            def callback(request, userdata):
-                """Store async inference result in the preallocated results list at the given index."""
-                results[userdata] = request.results
-
-            async_queue = self.ov.AsyncInferQueue(self.ov_compiled_model)
-            async_queue.set_callback(callback)
-
-            for i in range(n):
-                async_queue.start_async(inputs={self.input_name: im[i : i + 1]}, userdata=i)
-            async_queue.wait_all()
-
-            y = [list(r.values()) for r in results]
-            y = [np.concatenate(x) for x in zip(*y)]
-        else:
-            # Sync inference for LATENCY mode
-            y = list(self.ov_compiled_model(im).values())
-        return y
+        return list(self.ov_compiled_model(im).values())

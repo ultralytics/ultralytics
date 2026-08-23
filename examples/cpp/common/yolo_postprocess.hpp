@@ -136,7 +136,7 @@ inline std::vector<Result> PostprocessDetect(const float* data, const std::vecto
         class_ids.push_back(best);
     }
     std::vector<int> keep;
-    cv::dnn::NMSBoxes(boxes, confidences, conf_thr, iou_thr, keep);
+    cv::dnn::NMSBoxesBatched(boxes, confidences, class_ids, conf_thr, iou_thr, keep);
     for (int idx : keep) {
         Result r;
         r.class_id = class_ids[idx];
@@ -241,6 +241,7 @@ inline std::vector<Result> PostprocessObb(const float* data, const std::vector<i
     const int a = dim2;
     std::vector<cv::Rect> boxes;
     std::vector<float> confidences;
+    std::vector<int> class_ids;
     std::vector<Result> candidates;
     for (int i = 0; i < a; ++i) {
         int best = 0;
@@ -254,6 +255,7 @@ inline std::vector<Result> PostprocessObb(const float* data, const std::vector<i
         boxes.emplace_back(static_cast<int>(cx - 0.5f * w), static_cast<int>(cy - 0.5f * h),
                            static_cast<int>(w), static_cast<int>(h));
         confidences.push_back(best_score);
+        class_ids.push_back(best);
         Result r;
         r.class_id = best;
         r.confidence = best_score;
@@ -262,7 +264,7 @@ inline std::vector<Result> PostprocessObb(const float* data, const std::vector<i
         candidates.push_back(r);
     }
     std::vector<int> keep;
-    cv::dnn::NMSBoxes(boxes, confidences, conf_thr, iou_thr, keep);  // axis-aligned proxy NMS
+    cv::dnn::NMSBoxesBatched(boxes, confidences, class_ids, conf_thr, iou_thr, keep);  // axis-aligned proxy NMS
     for (int idx : keep) results.push_back(candidates[idx]);
     return results;
 }
@@ -323,7 +325,7 @@ inline std::vector<Result> PostprocessSegment(const float* det, const std::vecto
         keep.resize(boxes.size());
         for (size_t i = 0; i < keep.size(); ++i) keep[i] = static_cast<int>(i);
     } else {
-        cv::dnn::NMSBoxes(boxes, confidences, conf_thr, iou_thr, keep);
+        cv::dnn::NMSBoxesBatched(boxes, confidences, class_ids, conf_thr, iou_thr, keep);
     }
 
     const int new_w = static_cast<int>(std::round(orig.width * scale));

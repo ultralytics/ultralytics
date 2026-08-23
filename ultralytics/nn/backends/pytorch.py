@@ -161,6 +161,7 @@ class SafeTensorsBackend(BaseBackend):
             PoseModel,
             SegmentationModel,
             SemanticSegmentationModel,
+            _SafeLoad,
         )
         from ultralytics.utils.checks import check_requirements
 
@@ -176,6 +177,8 @@ class SafeTensorsBackend(BaseBackend):
             )
 
         yaml_dict = json.loads(metadata["model_yaml"])
+        if act := yaml_dict.get("activation"):
+            _SafeLoad.activation(act)  # the file is untrusted, so reject any spec `parse_model` would eval()
         model_cls = {
             "detect": DetectionModel,
             "segment": SegmentationModel,

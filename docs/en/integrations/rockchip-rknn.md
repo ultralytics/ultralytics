@@ -72,6 +72,10 @@ For detailed instructions and best practices related to the installation process
 
 ### Usage
 
+!!! note
+
+    FP16 export is supported for all tasks. INT8 export is currently only supported for detection models, with more task support coming in the future.
+
 The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on Rockchip NPU hardware. Export your model, then load the exported model to run inference or validate its accuracy. By default, RKNN export uses the floating-point build path (`quantize=16`) for FP16-capable Rockchip targets. Use `quantize=8` to build an INT8-quantized RKNN model with calibration data. RKNN export does not expose a separate FP32 mode; the FP16 default does not request FP32.
 
 !!! example "Export"
@@ -205,15 +209,20 @@ YOLO26 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based 
 
 !!! tip "Performance"
 
-    | Model   | Format | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
-    | ------- | ------ | ------ | --------- | ----------- | ---------------------- |
-    | YOLO26n | `rknn` | ✅     | 7.1       | 0.479       | 65.7                   |
-    | YOLO26s | `rknn` | ✅     | 20.9      | 0.571       | 99.2                   |
-    | YOLO26m | `rknn` | ✅     | 42.5      | 0.610       | 235.3                  |
-    | YOLO26l | `rknn` | ✅     | 52.1      | 0.630       | 280.5                  |
-    | YOLO26x | `rknn` | ✅     | 112.2     | 0.666       | 669.1                  |
+    | Model   | Format | Precision | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
+    | ------- | ------ | --------- | ------ | --------- | ----------- | ---------------------- |
+    | YOLO26n | `rknn` | FP16      | ✅      | 7.2       | 0.477       | 58.5                   |
+    | YOLO26n | `rknn` | INT8      | ✅      | 4.1       | 0.463       | 41.2                   |
+    | YOLO26s | `rknn` | FP16      | ✅      | 21.0      | 0.569       | 93.8                   |
+    | YOLO26s | `rknn` | INT8      | ✅      | 12.0      | 0.554       | 61.9                   |
+    | YOLO26m | `rknn` | FP16      | ✅      | 43.0      | 0.608       | 226.3                  |
+    | YOLO26m | `rknn` | INT8      | ✅      | 22.0      | 0.603       | 122.0                  |
+    | YOLO26l | `rknn` | FP16      | ✅      | 53.0      | 0.628       | 264.7                  |
+    | YOLO26l | `rknn` | INT8      | ✅      | 28.0      | 0.617       | 145.3                  |
+    | YOLO26x | `rknn` | FP16      | ✅      | 113.0     | 0.664       | 655.4                  |
+    | YOLO26x | `rknn` | INT8      | ✅      | 58.0      | 0.649       | 287.4                  |
 
-    Benchmarked with `ultralytics 8.4.23`
+    Benchmarked with `ultralytics 8.4.60`
 
     !!! note
 
@@ -269,4 +278,4 @@ The Ultralytics YOLO export to RKNN format supports Rockchip platforms with floa
 
 ### How does the performance of RKNN models compare to other formats on Rockchip devices?
 
-RKNN models generally outperform other formats like ONNX or LiteRT on Rockchip devices due to their optimization for Rockchip's NPUs. For instance, benchmarks on the Radxa Rock 5B (RK3588) show that [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26) in RKNN format achieves an inference time of 65.7 ms/image, significantly faster than other formats. This performance advantage is consistent across various YOLO26 model sizes, as demonstrated in the [benchmarks section](#benchmarks). By leveraging the dedicated NPU hardware, RKNN models minimize latency and maximize throughput, making them ideal for real-time applications on Rockchip-based edge devices.
+RKNN models generally outperform other formats like ONNX or LiteRT on Rockchip devices due to their optimization for Rockchip's NPUs. For instance, benchmarks on the Radxa Rock 5B (RK3588) show that [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26) in RKNN format achieves an inference time of 58.5 ms/image in FP16 and 41.2 ms/image in INT8, significantly faster than other formats. This performance advantage is consistent across various YOLO26 model sizes, as demonstrated in the [benchmarks section](#benchmarks). By leveraging the dedicated NPU hardware, RKNN models minimize latency and maximize throughput, making them ideal for real-time applications on Rockchip-based edge devices.

@@ -42,11 +42,7 @@ class HailoBackend(BaseBackend):
             raise FileNotFoundError(f"No .hef file found in: {w}")
 
         LOGGER.info(f"Loading {hef_file} for Hailo inference...")
-        metadata_file = hef_file.parent / "metadata.yaml"
-        if metadata_file.exists():
-            from ultralytics.utils import YAML
-
-            self.apply_metadata(YAML.load(metadata_file))
+        self.apply_metadata(self.read_metadata(hef_file))
         if self.task and self.task not in {"detect", "segment", "pose", "obb", "classify", "semantic", "depth"}:
             raise ValueError(
                 f"Hailo inference only supports detect, segment, pose, obb, classify, semantic and depth tasks, "

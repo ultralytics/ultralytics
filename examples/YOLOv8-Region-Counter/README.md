@@ -81,7 +81,7 @@ The script accepts several command-line arguments for customization:
 - `--region-thickness`: Thickness of the lines defining the counting regions.
 - `--track-thickness`: Thickness of the object tracking lines.
 
-Explore different models and training options in the [Ultralytics documentation](https://docs.ultralytics.com/).
+Explore different models and training options in the [Ultralytics documentation](https://docs.ultralytics.com).
 
 ## ❓ Frequently Asked Questions (FAQ)
 

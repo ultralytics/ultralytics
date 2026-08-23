@@ -2,7 +2,7 @@
 
 # Depth8 dataset (8 clean-label indoor images from SUN RGB-D Kinect v1/v2, 4 train / 4 val) by Ultralytics
 # Documentation: https://docs.ultralytics.com/datasets/depth/depth8
-# Format: https://docs.ultralytics.com/datasets/depth/#depth-map-format
+# Format: https://docs.ultralytics.com/datasets/depth#depth-map-format
 # uint16 PNG values are divided by depth_scale to produce meters. The default 1000 gives 65,535
 # one-millimeter depth values from 0.001 to 65.535 m; code 0 is invalid.
 # Common values (resolution, uint16 maximum):

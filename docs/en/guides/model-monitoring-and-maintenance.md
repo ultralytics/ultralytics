@@ -69,7 +69,7 @@ When you are setting up your alert systems, keep these best practices in mind:
 Data drift detection is a concept that helps identify when the statistical properties of the input data change over time, which can degrade model performance. Before you decide to retrain or adjust your models, this technique helps spot that there is an issue. Data drift deals with changes in the overall data landscape over time, while [anomaly detection](https://www.ultralytics.com/glossary/anomaly-detection) focuses on identifying rare or unexpected data points that may require immediate attention.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/data-drift-detection-overview.avif" alt="Data drift detection monitoring pipeline">
+  <img width="100%" src="https://cdn.ul.run/i/3fc6868a7bf10726a97f3f64ecab4f1d.avif" alt="Data drift detection monitoring pipeline">
 </p>
 
 Here are several methods to detect data drift:
@@ -87,7 +87,7 @@ Model maintenance keeps computer vision models accurate and relevant over time b
 Once a model is deployed, while monitoring, you may notice changes in data patterns or performance, indicating model drift. Regular updates and retraining become essential parts of model maintenance to ensure the model can handle new patterns and scenarios. There are a few techniques you can use based on how your data is changing.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/computer-vision-model-drift-overview.avif" alt="Computer vision model drift causes">
+  <img width="100%" src="https://cdn.ul.run/i/d89c0f2eb754d81da7eddf0620a6d0ab.avif" alt="Computer vision model drift causes">
 </p>
 
 For example, if the data is changing gradually over time, incremental learning is a good approach. Incremental learning involves updating the model with new data without completely retraining it from scratch, saving computational resources and time. However, if the data has changed drastically, a periodic full retraining might be a better option to ensure the model does not [overfit](https://www.ultralytics.com/glossary/overfitting) on the new data while losing track of older patterns.
@@ -99,7 +99,7 @@ Regardless of the method, validation and testing are a must after updates. It is
 The frequency of retraining your computer vision model depends on data changes and model performance. Retrain your model whenever you observe a significant performance drop or detect data drift. Regular evaluations can help determine the right retraining schedule by testing the model against new data. Monitoring performance metrics and data patterns lets you decide if your model needs more frequent updates to maintain [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/when-to-retrain-overview.avif" alt="When to retrain ML models flowchart">
+  <img width="100%" src="https://cdn.ul.run/i/aa2ec516bfd018d5fffa591338ed3e6f.avif" alt="When to retrain ML models flowchart">
 </p>
 
 ## Documentation

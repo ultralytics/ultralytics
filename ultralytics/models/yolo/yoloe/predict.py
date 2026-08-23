@@ -18,8 +18,8 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         model (torch.nn.Module): The YOLO model for inference.
         device (torch.device): Device to run the model on (CPU or CUDA).
         prompts (dict): Visual prompts containing class indices and bounding boxes or masks.
-        visuals (torch.Tensor | None): The prompts rasterized against the shapes of the batch being preprocessed,
-            or None once get_vpe has consumed them.
+        visuals (torch.Tensor | None): The prompts rasterized against the shapes of the batch being preprocessed, or
+            None once get_vpe has consumed them.
 
     Methods:
         setup_model: Initialize the YOLO model and set it to evaluation mode.

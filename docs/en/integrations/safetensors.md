@@ -133,7 +133,7 @@ Export with different configurations:
         model = YOLO("yolo11n.pt")
         # Export FP16 weights for a ~50% smaller file
         model.export(format="safetensors", quantize=16)
-        # Creates 'yolo11n_fp16.safetensors' file
+        # Creates 'yolo11n.safetensors' file
         ```
 
     === "With Batch Size"
@@ -153,12 +153,6 @@ The SafeTensors export creates a single file containing the model weights and em
 
 ```text
 yolo11n.safetensors    # Model weights with embedded configuration
-```
-
-For exports with parameters, the naming reflects the configuration:
-
-```text
-yolo11n_fp16.safetensors    # FP16 weights (single file)
 ```
 
 The model configuration (task type, class names, arguments, etc.) is embedded directly in the SafeTensors file metadata, eliminating the need for separate configuration files.

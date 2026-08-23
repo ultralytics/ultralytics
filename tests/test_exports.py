@@ -683,6 +683,5 @@ def test_export_safetensors_matrix(task, quantize, batch):
     skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(format="safetensors", imgsz=32, quantize=quantize, batch=batch)
     assert file.endswith(".safetensors") and Path(file).is_file(), f"SafeTensors export failed for '{task}': {file}"
-    assert (quantize == 16) == ("fp16" in Path(file).name), f"filename does not reflect quantize={quantize}: {file}"
     YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     Path(file).unlink()  # cleanup

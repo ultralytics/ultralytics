@@ -1774,9 +1774,8 @@ class Exporter:
         from safetensors.torch import save_file
 
         LOGGER.info(f"\n{prefix} starting export with safetensors...")
-        half = self.args.quantize == 16
-        f = self.file.with_name(f"{self.file.stem}{'_fp16' if half else ''}.safetensors")
-        model = self.model.half() if half else self.model.float()
+        f = self.file.with_suffix(".safetensors")
+        model = self.model.half() if self.args.quantize == 16 else self.model.float()
 
         # SafeTensors metadata only accepts string values, so serialize everything to str
         metadata = {k: str(v) for k, v in self.metadata.items()}

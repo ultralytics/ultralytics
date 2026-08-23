@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from collections import OrderedDict, defaultdict
 from copy import deepcopy
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import cv2
@@ -2229,8 +2230,6 @@ class SAM3SemanticPredictor(SAM3Predictor):
 
     def get_model(self):
         """Retrieve and initialize the Segment Anything Model 3 (SAM3) for image segmentation tasks."""
-        from pathlib import Path
-
         model_path = Path(self.args.model)
         # Support ONNX/TensorRT directory backends
         if model_path.is_dir() and (model_path.name.endswith("_onnx") or model_path.name.endswith("_engine")):
@@ -2639,7 +2638,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
     UNCONFIRMED = 1  # newly added masklet, not confirmed by any detection yet
     CONFIRMED = 2  # confirmed by at least one detection
-    # _bb_feat_sizes and stride are inherited unchanged from SAM3Predictor
 
     def __init__(
         self,
@@ -2731,8 +2729,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     @smart_inference_mode(False)  # the tracker model is built after super() returns, outside its decorator
     def setup_model(self, model=None, verbose=True):
         """Setup the SAM3VideoSemanticPredictor model."""
-        from pathlib import Path
-
         # An exported directory holds no tracker with a memory bank, so tracking needs the checkpoint
         model_path = Path(str(self.args.model))
         if model_path.is_dir() and model_path.name.endswith(("_onnx", "_engine")):

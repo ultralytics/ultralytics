@@ -264,11 +264,10 @@ def test_export_rdk_creates_deployment_package(tmp_path, monkeypatch):
 
     class Args:
         data = "coco128.yaml"
-        imgsz = (32, 32)
 
     onnx_path = tmp_path / "yolo11n.onnx"
     onnx_path.write_bytes(b"onnx")
-    metadata = {"names": {0: "person"}}
+    metadata = {"names": {0: "person"}, "imgsz": (32, 32)}
 
     monkeypatch.setattr(rdk_export, "_check_rdk_export_requirements", lambda prefix: None)
     monkeypatch.setattr(
@@ -287,13 +286,7 @@ def test_export_rdk_creates_deployment_package(tmp_path, monkeypatch):
 
     monkeypatch.setattr(rdk_export.subprocess, "run", fake_run)
 
-    output_dir = rdk_export.export_rdk(
-        model=None,
-        args=Args(),
-        onnx_path=onnx_path,
-        metadata=metadata,
-        prefix="RDK:",
-    )
+    output_dir = rdk_export.export_rdk(args=Args(), onnx_path=onnx_path, metadata=metadata, prefix="RDK:")
 
     assert output_dir == tmp_path / "yolo11n_rdk_model"
     assert (output_dir / "yolo11n.bin").exists()
@@ -316,7 +309,6 @@ def test_export_rdk_requires_data_for_calibration(tmp_path, monkeypatch):
 
     class Args:
         data = None
-        imgsz = (32, 32)
 
     onnx_path = tmp_path / "yolo11n.onnx"
     onnx_path.write_bytes(b"onnx")
@@ -324,13 +316,7 @@ def test_export_rdk_requires_data_for_calibration(tmp_path, monkeypatch):
     monkeypatch.setattr(rdk_export, "_check_rdk_export_requirements", lambda prefix: None)
 
     with pytest.raises(ValueError, match=r"data=.*calibration"):
-        rdk_export.export_rdk(
-            model=None,
-            args=Args(),
-            onnx_path=onnx_path,
-            metadata={"names": {0: "person"}},
-            prefix="RDK:",
-        )
+        rdk_export.export_rdk(args=Args(), onnx_path=onnx_path, metadata={"names": {0: "person"}}, prefix="RDK:")
 
 
 @pytest.mark.skipif(

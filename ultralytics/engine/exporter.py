@@ -1535,9 +1535,7 @@ class Exporter:
         try:
             self.args.opset = 11
             onnx_path = self.export_onnx()
-            return export_rdk(
-                model=self.model, args=self.args, onnx_path=onnx_path, metadata=self.metadata, prefix=prefix
-            )
+            return export_rdk(args=self.args, onnx_path=onnx_path, metadata=self.metadata, prefix=prefix)
         finally:
             self.args.opset = old_opset
             restore_rdk_patches(patches)

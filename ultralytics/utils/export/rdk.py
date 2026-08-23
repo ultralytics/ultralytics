@@ -129,13 +129,13 @@ def _build_hb_mapper_config(
     }
 
 
-def export_rdk(model, args, onnx_path: str | Path, metadata: dict, prefix: str = colorstr("RDK:")):
+def export_rdk(args, onnx_path: str | Path, metadata: dict, prefix: str = colorstr("RDK:")):
     """Export an Ultralytics detection model through the RDK export path."""
     _check_rdk_export_requirements(prefix)
     if not args.data:
         raise ValueError(f"{prefix} export requires a detection dataset via `data=...` for calibration.")
 
-    imgsz = args.imgsz if isinstance(args.imgsz, (tuple, list)) else (args.imgsz, args.imgsz)
+    imgsz = metadata["imgsz"]  # validated (height, width) matching the exported ONNX input
     onnx_path = Path(onnx_path).resolve()
     if not onnx_path.exists():
         raise FileNotFoundError(f"{prefix} intermediate ONNX file not found at {onnx_path}.")

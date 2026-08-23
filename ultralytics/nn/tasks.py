@@ -1936,6 +1936,7 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
     if names is None:
         nc = (getattr(model, "yaml", None) or {}).get("nc")
         names = {i: f"class{i}" for i in range(nc)} if nc else default_class_names()
+        LOGGER.warning(f"{weight} has missing or invalid class names, assigning {len(names)} default names.")
     model.names = names
     model.args = args  # attach args to model
     model.pt_path = str(weight)  # attach *.pt file path to model as string (avoids WindowsPath pickle issues)

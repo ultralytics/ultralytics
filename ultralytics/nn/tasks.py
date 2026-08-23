@@ -1596,13 +1596,17 @@ class _SafeLoad:
     allow-list) and build models without `eval()`.
 
     Enabled per-process by the `ULTRALYTICS_SAFE_LOAD` env flag, or per-call by `torch_safe_load(..., safe_only=True)`.
-    Default loading (flag off) is unchanged.
+    Default loading (flag off) is unchanged. The globals a restricted load registers stay registered for the process, so
+    they also apply to any other `torch.load(weights_only=True)` call made afterwards.
     """
 
-    # Restricted loading reconstructs allow-listed classes via the torch.serialization.safe_globals context manager,
-    # added in torch 2.5. On older torch it is unavailable, so restricted loading degrades to a standard load there.
-    SUPPORTED = hasattr(torch.serialization, "safe_globals")
-    _globals = None  # cached allow-list, built once
+    # Restricted loading needs torch 2.6+: the checkpoint global scan and `(obj, "module.Name")` allow-list aliases.
+    # On older torch restricted loading degrades to a standard load.
+    SUPPORTED = hasattr(torch.serialization, "get_unsafe_globals_in_checkpoint")
+    _registry = None  # {"module.Name": allow-list entry}, built once per process
+    _lock = (
+        threading.Lock()
+    )  # add_safe_globals rebinds a process-global set; held across _build(), so no load may run at import
     _local = threading.local()  # per-thread flag set while a weights_only load is in progress
 
     @classmethod
@@ -1612,16 +1616,37 @@ class _SafeLoad:
 
     @classmethod
     @contextlib.contextmanager
-    def loading(cls):
-        """Load with `weights_only=True`: scope the allow-list to this load and mark the thread restricted, so a
-        checkpoint that reaches model construction (parse_model) also uses the no-eval, known-layer path.
+    def loading(cls, weight):
+        """Load with `weights_only=True`: register the globals this checkpoint needs and mark the thread restricted, so
+        a checkpoint that reaches model construction (parse_model) also uses the no-eval, known-layer path.
+
+        Globals are registered with `add_safe_globals` for the life of the process, never scoped per load: the
+        `safe_globals()` context manager removes its entries from a process-global set on exit, so with concurrent
+        loads one thread's exit strips the allow-list out of another thread's in-flight unpickle. Registering only
+        the globals a checkpoint references also keeps the restricted unpickler fast — torch rebuilds its lookup from
+        the whole registered set on every GLOBAL/NEWOBJ/REDUCE/BUILD opcode, so a 660-entry allow-list nearly doubled
+        the load time of a checkpoint that references 20 of them.
         """
-        if cls._globals is None:
-            cls._globals = cls._build()
+        try:
+            needed = torch.serialization.get_unsafe_globals_in_checkpoint(weight)
+        except ValueError:  # Not a torch.save() zip archive; torch.load reports the format error, nothing to register
+            needed = []
+        with cls._lock:
+            if cls._registry is None:
+                cls._registry = cls._build()
+            if any(name.startswith("torchvision.transforms.") for name in needed):
+                # Classification preprocessing transforms; imported only for checkpoints that serialize them.
+                import torchvision.transforms.transforms as tvt
+                from torchvision.transforms.functional import InterpolationMode
+
+                for obj in (tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode):
+                    cls._registry[f"{obj.__module__}.{obj.__qualname__}"] = obj
+            entries = [cls._registry[name] for name in needed if name in cls._registry]
+            if entries:
+                torch.serialization.add_safe_globals(entries)
         cls._local.active = True
         try:
-            with torch.serialization.safe_globals(cls._globals):
-                yield
+            yield
         finally:
             cls._local.active = False
 
@@ -1659,10 +1684,11 @@ class _SafeLoad:
     def _build(cls):
         """Auto-discover `nn.Module` subclasses across `torch.nn` and the ultralytics model families, registered under
         every namespace path they are reachable from (covering re-exports such as `block.RealNVP` as
-        `head.RealNVP`), plus torchvision transforms and legacy aliases.
+        `head.RealNVP`), plus legacy aliases.
 
         Returns:
-            (list): Items for `torch.serialization.safe_globals` — classes and `(obj, "module.Name")` aliases.
+            (dict): `torch.serialization.add_safe_globals` entries — classes and `(obj, "module.Name")` aliases — keyed
+                by the pickled "module.Name" path each one serves.
         """
         import enum
         import importlib
@@ -1699,15 +1725,6 @@ class _SafeLoad:
         allow.append(IterableSimpleNamespace)
         allow.append((IterableSimpleNamespace, "ultralytics.yolo.utils.IterableSimpleNamespace"))
 
-        # Classification preprocessing transforms.
-        try:
-            import torchvision.transforms.transforms as tvt
-            from torchvision.transforms.functional import InterpolationMode
-
-            allow += [tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode]
-        except ImportError:
-            pass
-
         # Legacy/cross-platform aliases (pickled paths with no current class namespace), mirroring temporary_modules().
         from ultralytics.utils.loss import E2EDetectLoss
 
@@ -1736,7 +1753,7 @@ class _SafeLoad:
                 (pathlib.PosixPath, "pathlib.WindowsPath"),
                 (pathlib.PosixPath, f"{pathlib.WindowsPath.__module__}.{pathlib.WindowsPath.__qualname__}"),
             ]
-        return allow
+        return {(e[1] if isinstance(e, tuple) else f"{e.__module__}.{e.__qualname__}"): e for e in allow}
 
 
 def torch_safe_load(weight, safe_only=None):
@@ -1787,7 +1804,7 @@ def torch_safe_load(weight, safe_only=None):
             },
         ):
             if safe_only:
-                with _SafeLoad.loading():  # weights_only load scoped to the known-class allow-list
+                with _SafeLoad.loading(file):  # weights_only load against the known-class allow-list
                     return torch_load(file, map_location="cpu", weights_only=True)
             return torch_load(file, map_location="cpu")
 
@@ -1957,9 +1974,6 @@ def parse_model(d, ch, verbose=True):
     legacy = True  # backward compatibility for v3/v5/v8/v9 models
     max_channels = float("inf")
     nc, act, scales, end2end = (d.get(x) for x in ("nc", "activation", "scales", "end2end"))
-    channel_divisor = d.get("channel_divisor", 8)
-    if isinstance(channel_divisor, bool) or not isinstance(channel_divisor, int) or channel_divisor <= 0:
-        raise ValueError(f"channel_divisor must be a positive integer, got {channel_divisor}")
     reg_max = d.get("reg_max", 16)
     depth, width, kpt_shape = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
     scale = d.get("scale")
@@ -2054,28 +2068,19 @@ def parse_model(d, ch, verbose=True):
                 with contextlib.suppress(ValueError):
                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
-        adjustments = []
         if m in base_modules:
             c1, c2 = ch[f], args[0]
             if m is not Classify:  # Classify() output must stay at nc; every other layer scales by width
-                c2_requested = min(c2, max_channels) * width
-                c2 = make_divisible(c2_requested, channel_divisor)
-                if c2 != c2_requested:
-                    adjustments.append(f"c2 {c2_requested:g}->{c2}")
+                c2 = make_divisible(min(c2, max_channels) * width, 8)
             if m is C2fAttn:  # set 1) embed channels and 2) num heads
-                embed_channels_requested = min(args[1], max_channels // 2) * width
                 args[2] = int(max(round(min(args[2], max_channels // 2 // 32)) * width, 1) if args[2] > 1 else args[2])
-                # MaxSigmoidAttnBlock reshapes its ec-channel embed and its hidden-channel projection into nh heads,
-                # so the embed width must equal the attention hidden width and stay divisible by nh
                 hidden_channels = int(c2 * (args[6] if len(args) > 6 else 0.5))
                 if hidden_channels % args[2]:
                     raise ValueError(
                         f"C2fAttn hidden channels {hidden_channels} (from c2={c2}) must be divisible by nh={args[2]}; "
-                        f"adjust channel_divisor, width_multiple or nh"
+                        "adjust width_multiple, nh, or C2fAttn expansion"
                     )
                 args[1] = hidden_channels
-                if args[1] != embed_channels_requested:
-                    adjustments.append(f"embed {embed_channels_requested:g}->{args[1]}")
 
             args = [c1, c2, *args[1:]]
             if m in repeat_modules:
@@ -2122,10 +2127,7 @@ def parse_model(d, ch, verbose=True):
         ):
             args.extend([reg_max, end2end, [ch[x] for x in f]])
             if m is Segment or m is YOLOESegment or m is Segment26 or m is YOLOESegment26:
-                mask_channels_requested = min(args[2], max_channels) * width
-                args[2] = make_divisible(mask_channels_requested, channel_divisor)
-                if args[2] != mask_channels_requested:
-                    adjustments.append(f"mask {mask_channels_requested:g}->{args[2]}")
+                args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
                 m.legacy = legacy
         elif m is Depth:
@@ -2156,8 +2158,7 @@ def parse_model(d, ch, verbose=True):
         m_.np = sum(x.numel() for x in m_.parameters())  # number params
         m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type
         if verbose:
-            note = f"  # channel_divisor {channel_divisor}: {', '.join(adjustments)}" if adjustments else ""
-            LOGGER.info(f"{i:>3}{f!s:>20}{n_:>3}{m_.np:10.0f}  {t:<45}{args!s:<30}{note}")  # print
+            LOGGER.info(f"{i:>3}{f!s:>20}{n_:>3}{m_.np:10.0f}  {t:<45}{args!s:<30}")  # print
         save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
         layers.append(m_)
         if i == 0:

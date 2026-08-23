@@ -3,10 +3,10 @@
 blank_issues_enabled: true
 contact_links:
   - name: 📄 Docs
-    url: https://docs.ultralytics.com/
+    url: https://docs.ultralytics.com
     about: Full Ultralytics YOLO Documentation
   - name: 💬 Forum
-    url: https://community.ultralytics.com/
+    url: https://community.ultralytics.com
     about: Ask on Ultralytics Community Forum
   - name: 🎧 Discord
     url: https://ultralytics.com/discord

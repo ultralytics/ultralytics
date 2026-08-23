@@ -102,7 +102,7 @@ With the binary mask ready, combine it with the original image. There are two co
         ```
 
         <figure markdown>
-            ![Example Full size Isolated Object Image Black Background](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/full-size-isolated-object-black-background.avif){ width=240 }
+            ![Example Full size Isolated Object Image Black Background](https://cdn.ul.run/i/effd6d59c803d824cbef6fa60236addd.avif){ width=240 }
             <figcaption>Full-size object on a black background</figcaption>
         </figure>
 
@@ -116,7 +116,7 @@ With the binary mask ready, combine it with the original image. There are two co
         ```
 
         <figure markdown>
-            ![Example Full size Isolated Object Image No Background](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/example-full-size-isolated-object-image-no-background.avif){ width=240 }
+            ![Example Full size Isolated Object Image No Background](https://cdn.ul.run/i/b4f15875131ff53de8dad501c13daec6.avif){ width=240 }
             <figcaption>Full-size object with a transparent background</figcaption>
         </figure>
 
@@ -132,7 +132,7 @@ With the binary mask ready, combine it with the original image. There are two co
     ```
 
     <figure markdown>
-        ![Example Crop Isolated Object Image Black Background](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/example-crop-isolated-object-image-black-background.avif){ width=240 }
+        ![Example Crop Isolated Object Image Black Background](https://cdn.ul.run/i/8819942788c1d27de1178b97864cd17a.avif){ width=240 }
         <figcaption>Object cropped to its bounding box</figcaption>
     </figure>
 

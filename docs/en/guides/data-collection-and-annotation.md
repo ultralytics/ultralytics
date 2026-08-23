@@ -72,7 +72,7 @@ Depending on the specific requirements of a [computer vision task](../tasks/inde
 - **Keypoints**: Specific points marked within an image to identify locations of interest. Keypoints are used in tasks like [pose estimation](../tasks/pose.md) and facial landmark detection.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/types-of-data-annotation.avif" alt="Data annotation types including bounding boxes, polygons, and masks">
+  <img width="100%" src="https://cdn.ul.run/i/8315a6d4fd7fa40b602fb0d05b56bba5.avif" alt="Data annotation types including bounding boxes, polygons, and masks">
 </p>
 
 ### Common Annotation Formats
@@ -111,7 +111,7 @@ Before annotating at scale, it helps to understand accuracy, [precision](https:/
 It's important to understand the difference between accuracy and precision and how it relates to annotation. Accuracy refers to how close the annotated data is to the true values. It helps us measure how closely the labels reflect real-world scenarios. Precision indicates the consistency of annotations. It checks if you are giving the same label to the same object or feature throughout the dataset. High accuracy and precision lead to better-trained models by reducing noise and improving the model's ability to generalize from the [training data](https://www.ultralytics.com/glossary/training-data).
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/example-of-precision.avif" alt="Accuracy vs precision comparison for data annotation">
+  <img width="100%" src="https://cdn.ul.run/i/4ec673bf92626814a34ed686b7a581ac.avif" alt="Accuracy vs precision comparison for data annotation">
 </p>
 
 #### Identifying Outliers

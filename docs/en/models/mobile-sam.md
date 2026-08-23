@@ -108,9 +108,9 @@ The key difference is the image encoder: MobileSAM replaces the original ViT-H e
 
 The performance of MobileSAM and the original SAM is illustrated below using both point and box prompts.
 
-![Image with Point as Prompt](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mask-box.avif)
+![Image with Point as Prompt](https://cdn.ul.run/i/9c372cef6bc33fa515bb2f5284d67c7b.avif)
 
-![Image with Box as Prompt](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mask-box.avif)
+![Image with Box as Prompt](https://cdn.ul.run/i/9c372cef6bc33fa515bb2f5284d67c7b.avif)
 
 MobileSAM is approximately 7 times smaller and 5 times faster than FastSAM. For further details, visit the [MobileSAM project page](https://github.com/ChaoningZhang/MobileSAM).
 

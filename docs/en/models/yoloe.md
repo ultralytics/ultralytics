@@ -52,7 +52,7 @@ The first `set_classes()` call downloads a text encoder; see [Installation and R
 
 YOLOE supports three prompting modes, and the choice decides which checkpoint you load and what your class labels look like. Pick the row that matches what you can supply at inference time.
 
-![YOLOE detecting and segmenting objects from text prompts, visual prompts, and its prompt-free vocabulary](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yoloe-visualization.avif)
+![YOLOE detecting and segmenting objects from text prompts, visual prompts, and its prompt-free vocabulary](https://cdn.ul.run/i/b144f94979e9ca2ae30bcbb41c69816d.avif)
 
 | Mode              | Checkpoint    | You supply                         | Class names in the results                    | Use it when                                                                 |
 | ----------------- | ------------- | ---------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------- |

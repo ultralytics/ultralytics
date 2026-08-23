@@ -115,7 +115,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [LiteRT](litert.md): Developed by [Google](https://www.google.com/), LiteRT (formerly TensorFlow Lite) is the on-device runtime for the `.tflite` format, deploying a single model across mobile, embedded, edge, and the browser (via LiteRT.js).
 
-- [Luxonis](luxonis.md): Deploy Ultralytics YOLO models on Luxonis OAK cameras using Luxonis Hub or local conversion tools for low-latency edge AI inference.
+- [Luxonis](luxonis.md): Convert Ultralytics YOLO models with Luxonis Hub or local Luxonis tooling and run them on-device on Luxonis OAK `RVC2` and `RVC4` cameras.
 
 - [TorchScript](torchscript.md): Developed as part of the [PyTorch](https://pytorch.org/) framework, TorchScript enables efficient execution and deployment of machine learning models in various production environments without the need for Python dependencies.
 

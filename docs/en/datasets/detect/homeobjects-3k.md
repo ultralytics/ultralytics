@@ -72,7 +72,7 @@ HomeObjects-3K supports a range of indoor computer vision applications across re
 
 - **Home inventory and asset tracking**: Automatically detect and list home items in photos or videos, useful for managing belongings, organizing spaces, or visualizing furniture in real estate.
 
-To label your own indoor images, train, and manage dataset versions in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com).
+To label your own indoor images, train, and manage dataset versions in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/homeobjects-3k).
 
 ## Dataset YAML
 
@@ -112,7 +112,7 @@ You can train a YOLO26n model on the HomeObjects-3K dataset for 100 epochs using
 
 The sample below shows an indoor scene from the dataset with its bounding-box annotations, illustrating the object positions, scales, and spatial relationships that models learn to detect.
 
-![HomeObjects-3K dataset sample with household objects](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/homeobjects-3k-dataset-sample.avif)
+![HomeObjects-3K dataset sample with household objects](https://cdn.ul.run/i/61224ae0d023edc6e44e00296fd1a816.avif)
 
 ## License and Attribution
 

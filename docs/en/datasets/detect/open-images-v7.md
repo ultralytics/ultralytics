@@ -40,7 +40,7 @@ Ultralytics publishes five [YOLOv8](../../models/yolov8.md) models pretrained on
 
 The visualization below shows the range of object classes these models can detect:
 
-![Open Images V7 classes visual](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/open-images-v7-classes-visual.avif)
+![Open Images V7 classes visual](https://cdn.ul.run/i/5f0362a9dd9d720d95f7e3bd2958644f.avif)
 
 You can run [prediction](../../modes/predict.md) or start fine-tuning from these checkpoints as follows.
 
@@ -144,7 +144,7 @@ To train a YOLO26n model on the Open Images V7 dataset for 100 [epochs](https://
 
 The sample below shows the bounding-box, relationship, and mask annotations that Open Images V7 layers on a single image:
 
-![Open Images V7 dataset sample with bounding box annotations](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/oidv7-all-in-one-example-ab.avif)
+![Open Images V7 dataset sample with bounding box annotations](https://cdn.ul.run/i/59c1b35c567ea11c5e69351df7a3ebdf.avif)
 
 ## Citations and Acknowledgments
 

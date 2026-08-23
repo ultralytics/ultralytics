@@ -92,6 +92,7 @@ from ultralytics.nn.modules import (
     Detect,
     Pose,
     Pose26,
+    ReID,
     RTDETRDecoder,
     Segment,
     Segment26,
@@ -874,7 +875,7 @@ class Exporter:
         for m in model.modules():
             if isinstance(m, Attention) and fmt == "coreml" and self.args.format.lower() != "mlmodel":
                 m.format = fmt
-            if isinstance(m, (Classify, SemanticSegment, Depth)):
+            if isinstance(m, (Classify, ReID, SemanticSegment, Depth)):
                 m.export = True
                 m.format = self.args.format
                 # Semantic argmax bake needs an integer graph output; TensorRT supports uint8 outputs only on TRT>=10

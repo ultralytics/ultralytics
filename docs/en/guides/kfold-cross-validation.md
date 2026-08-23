@@ -14,23 +14,9 @@ This comprehensive guide illustrates the implementation of K-Fold Cross Validati
   <img width="800" src="https://cdn.ul.run/i/457d0a77dc06d7204322ec056248c4b5.avif" alt="K-fold cross validation data splitting">
 </p>
 
-Whether your project involves the Fruit Detection dataset or a custom data source, this tutorial aims to help you comprehend and apply K-Fold Cross Validation to bolster the reliability and robustness of your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models. While we're applying `k=5` folds for this tutorial, keep in mind that the optimal number of folds can vary depending on your dataset and the specifics of your project.
+Whether your project involves the Fruit Detection dataset or a custom data source, this tutorial aims to help you comprehend and apply K-Fold Cross Validation to bolster the reliability and robustness of your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models. While we're applying `k=5` folds for this tutorial, keep in mind that the optimal number of folds can vary depending on your dataset and the specifics of your project. K-Fold Cross Validation delivers the most value when your dataset is small, noisy, or highly variable; for large, diverse datasets, a well-constructed train/val/test split is usually sufficient.
 
 Let's get started.
-
-## Task-Specific Split Guidance
-
-K-Fold Cross Validation can be useful across YOLO tasks when data is limited, noisy, or high-variance, but it is often unnecessary for large, diverse datasets with a reliable train/val/test split. The task type mainly affects how you design the folds rather than whether cross-validation helps. The example code below focuses on object detection datasets in the YOLO detection format.
-
-| Task       | Split Guidance                                                                                                                                                                          |
-| :--------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `detect`   | Split at the image level and keep object/class distributions balanced across folds. Use group-aware folds when images are linked by patient, video, sequence, camera, site, or subject. |
-| `segment`  | Follow detection-style image-level splitting while preserving mask/class coverage in each fold. Use group-aware folds for related samples.                                              |
-| `classify` | Use stratified folds when possible so class frequencies remain balanced across train and validation splits.                                                                             |
-| `pose`     | Split by image or subject group so the same person, animal, patient, or sequence does not appear in both train and validation folds.                                                    |
-| `obb`      | Split at the image level and preserve object/class coverage across folds, especially for aerial or tiled imagery from the same scene.                                                   |
-
-For all tasks, avoid placing near-duplicate or related samples in both the training and validation folds, since such leakage can make validation metrics look better than real-world performance.
 
 ## Setup
 
@@ -325,6 +311,20 @@ To implement K-Fold Cross Validation with Ultralytics YOLO, you need to follow t
 5. Train the YOLO model on each split.
 
 For a comprehensive guide, see the [K-Fold Dataset Split](#k-fold-dataset-split) section in our documentation.
+
+### How should I design folds for other YOLO tasks like segmentation, classification, pose, or OBB?
+
+The workflow in this guide targets the YOLO detection format, but the same approach adapts to every YOLO task — the task changes how you compose the folds, not whether cross-validation helps:
+
+| Task       | Fold design                                                                                                                                                                |
+| :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `detect`   | Split at the image level, balancing object and class distributions across folds. Keep related images (same patient, video sequence, camera, or site) within a single fold. |
+| `segment`  | Use the same image-level strategy as detection, additionally preserving mask and class coverage in every fold.                                                             |
+| `classify` | Prefer stratified folds so class frequencies stay balanced between training and validation.                                                                                |
+| `pose`     | Split by subject or sequence so the same person or animal never appears on both sides of a fold.                                                                           |
+| `obb`      | Split at the image level, keeping tiles or crops from the same scene together — especially important for aerial imagery.                                                   |
+
+Whatever the task, keep near-duplicate and related samples out of opposing folds: that kind of leakage inflates validation metrics well beyond what the model will achieve in production.
 
 ### Why should I use Ultralytics YOLO for object detection?
 

@@ -21,8 +21,6 @@ The [Ultralytics](https://www.ultralytics.com) COCO8-Multispectral dataset is an
   <img width="640" src="https://cdn.ul.run/i/ebea30ecd2c7b4014509e404db89a61d.avif" alt="Multispectral imaging for object detection">
 </p>
 
-COCO8-Multispectral is fully compatible with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/coco8-multispectral) and [YOLO26](../../models/yolo26.md), ensuring seamless integration into your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) workflows.
-
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/yw2Fo6qjJU4"
@@ -153,10 +151,6 @@ The Ultralytics COCO8-Multispectral dataset is designed for rapid testing and de
 ### How Does Multispectral Data Improve Object Detection?
 
 Multispectral data provides additional spectral information beyond standard RGB, enabling models to distinguish objects based on subtle differences in reflectance across wavelengths. This can enhance detection accuracy, especially in challenging scenarios. Learn more about [multispectral imaging](https://en.wikipedia.org/wiki/Multispectral_imaging) and its applications in [advanced computer vision](https://www.ultralytics.com/blog/ai-in-aviation-a-runway-to-smarter-airports).
-
-### Is COCO8-Multispectral Compatible With Ultralytics Platform and YOLO Models?
-
-Yes, COCO8-Multispectral is fully compatible with [Ultralytics Platform](https://platform.ultralytics.com) and all [YOLO models](../../models/yolo26.md), including the latest YOLO26. This allows you to easily integrate the dataset into your training and validation workflows.
 
 ### Where Can I Find More Information on Data Augmentation Techniques?
 

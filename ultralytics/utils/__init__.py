@@ -1511,43 +1511,6 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
     return "" if installed else f"{colorstr('VS Code:')} view Ultralytics VS Code Extension ⚡ at {url}"
 
 
-def serialize_augmentations(args):
-    """Recursively converts custom or non-serializable objects within 'augmentations' to their string representations.
-
-    Args:
-        args (dict | SimpleNamespace | IterableSimpleNamespace): Configuration arguments.
-
-    Returns:
-        (dict | SimpleNamespace | IterableSimpleNamespace): The sanitized copy of arguments.
-    """
-
-    def sanitize(v):
-        if isinstance(v, dict):
-            return {k: sanitize(val) for k, val in v.items()}
-        elif isinstance(v, (list, tuple)):
-            return type(v)(sanitize(val) for val in v)
-        elif isinstance(v, set):
-            return {sanitize(val) for val in v}
-        elif isinstance(v, (int, float, str, bool, type(None))):
-            return v
-        else:
-            return repr(v)
-
-    if args is None:
-        return args
-
-    import copy
-
-    if isinstance(args, dict):
-        if "augmentations" in args:
-            args = args.copy()
-            args["augmentations"] = sanitize(args["augmentations"])
-    elif hasattr(args, "augmentations"):
-        args = copy.copy(args)
-        args.augmentations = sanitize(args.augmentations)
-    return args
-
-
 # Run below code on utils init ------------------------------------------------------------------------------------
 
 # Check first-install steps

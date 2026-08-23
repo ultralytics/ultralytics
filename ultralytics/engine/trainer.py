@@ -38,11 +38,11 @@ from ultralytics.utils import (
     RANK,
     TQDM,
     YAML,
+    IterableSimpleNamespace,
     callbacks,
     clean_url,
     colorstr,
     emojis,
-    serialize_augmentations,
 )
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
@@ -146,9 +146,7 @@ class BaseTrainer:
         if RANK in {-1, 0}:
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
             self.args.save_dir = str(self.save_dir)
-            # Save run args, serializing augmentations as reprs for resume compatibility
-            args_dict = serialize_augmentations(vars(self.args).copy())
-            YAML.save(self.save_dir / "args.yaml", args_dict)  # save run args
+            YAML.save(self.save_dir / "args.yaml", self.serialized_args())  # save run args
         self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
         self.save_period = self.args.save_period
 
@@ -707,6 +705,13 @@ class BaseTrainer:
             if any(filter(lambda f: f in n, self.freeze_layer_names)) and isinstance(m, nn.BatchNorm2d):
                 m.eval()
 
+    def serialized_args(self) -> dict:
+        """Return a copy of the training args with custom augmentation transforms replaced by their reprs."""
+        args = vars(self.args).copy()
+        if args.get("augmentations") is not None:
+            args["augmentations"] = [repr(t) for t in args["augmentations"]]
+        return args
+
     def save_model(self):
         """Save model training checkpoints with additional metadata."""
         import io
@@ -731,13 +736,12 @@ class BaseTrainer:
             if isinstance(v, torch.Tensor) and v.is_floating_point():
                 torch.nan_to_num_(v)
 
-        # Sanitize model args to prevent serialization corruption/dependencies
+        train_args = self.serialized_args()
         if hasattr(ema, "args"):
-            ema.args = serialize_augmentations(ema.args)
+            ema.args = IterableSimpleNamespace(**train_args)  # drop custom transform objects pickled via model.args
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
-        train_args = serialize_augmentations(vars(self.args).copy())
         torch.save(
             {
                 "epoch": self.epoch,
@@ -994,17 +998,15 @@ class BaseTrainer:
                     if k in overrides:
                         setattr(self.args, k, overrides[k])
 
-                # Handle augmentations parameter for resume: check if user provided custom augmentations
-                if ckpt_args.get("augmentations") is not None:
-                    # Augmentations were saved in checkpoint as reprs but can't be restored automatically
+                if ckpt_args.get("augmentations") is not None and "augmentations" not in overrides:
+                    # Augmentations were saved in checkpoint as reprs and can't be restored automatically
                     LOGGER.warning(
                         "Custom Albumentations transforms were used in the original training run but are not "
                         "being restored. To preserve custom augmentations when resuming, you need to pass the "
                         "'augmentations' parameter again to get expected results. Example: \n"
                         f"model.train(resume=True, augmentations={ckpt_args['augmentations']})"
                     )
-                    if "augmentations" not in overrides:
-                        self.args.augmentations = None
+                    self.args.augmentations = None
 
             except Exception as e:
                 raise FileNotFoundError(

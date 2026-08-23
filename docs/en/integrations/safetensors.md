@@ -32,7 +32,7 @@ SafeTensors offers several compelling advantages for storing and loading YOLO mo
 
 - **Security**: SafeTensors files cannot execute arbitrary code during loading, unlike pickle-based formats. This eliminates a major security vulnerability when loading models from untrusted sources.
 
-- **Speed**: SafeTensors uses memory-mapped file I/O, enabling extremely fast loading times—up to **200-500x faster** than traditional PyTorch loading, especially beneficial for large models.
+- **Speed**: SafeTensors uses memory-mapped file I/O, so weights load faster than a pickle-based `.pt` checkpoint, especially for large models.
 
 - **Zero-Copy Loading**: Weights can be loaded directly to GPU memory without intermediate CPU copies, reducing memory usage and improving efficiency.
 
@@ -214,7 +214,7 @@ SafeTensors export works with all YOLO task types:
 
 !!! note
 
-    SafeTensors file size is larger than compressed `.pt` files because it stores raw tensor data. However, loading is significantly faster due to memory-mapped I/O.
+    Ultralytics `.pt` checkpoints store FP16 weights, so a default FP32 SafeTensors export is roughly twice their size. Export with `quantize=16` to match.
 
 ## Troubleshooting
 
@@ -249,7 +249,7 @@ Exporting YOLO models to SafeTensors format provides a secure, fast way to store
 
 Key takeaways:
 
-- SafeTensors provides **200-500x faster** loading compared to PyTorch's pickle format
+- **Speed**: Memory-mapped loading, without the pickle deserialization overhead of `.pt` files
 - **Security**: No arbitrary code execution during model loading
 - **Single file**: Everything is contained in one `.safetensors` file (metadata embedded)
 - **Simple export**: Use `format='safetensors'` to export
@@ -289,7 +289,7 @@ SafeTensors exported models are optimized for inference. For training, use the o
 
 ### Why is the SafeTensors file larger than the .pt file?
 
-PyTorch `.pt` files use compression, while SafeTensors stores raw tensor data for faster memory-mapped access. The larger file size is a tradeoff for significantly faster loading times. Use `quantize=16` during export to reduce file size by ~50% with FP16 precision.
+Ultralytics `.pt` checkpoints store FP16 weights, while a SafeTensors export stores FP32 tensors by default, so the file is roughly twice the size. Use `quantize=16` during export to store FP16 weights and reduce the file size by ~50%.
 
 ### Is SafeTensors compatible with Hugging Face Hub?
 

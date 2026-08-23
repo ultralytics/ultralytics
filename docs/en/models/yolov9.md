@@ -7,7 +7,7 @@ keywords: YOLOv9, object detection, real-time, PGI, GELAN, deep learning, MS COC
 
 # YOLOv9: A Leap Forward in [Object Detection](https://www.ultralytics.com/glossary/object-detection) Technology
 
-YOLOv9 marks a significant advancement in real-time object detection, introducing groundbreaking techniques such as Programmable Gradient Information (PGI) and the Generalized Efficient Layer Aggregation Network (GELAN). This model demonstrates remarkable improvements in efficiency, accuracy, and adaptability, setting new benchmarks on the MS COCO dataset. The YOLOv9 project, while developed by a separate open-source team, builds upon the robust codebase provided by [Ultralytics](https://www.ultralytics.com/) [YOLOv5](yolov5.md), showcasing the collaborative spirit of the AI research community.
+YOLOv9 marks a significant advancement in real-time object detection, introducing groundbreaking techniques such as Programmable Gradient Information (PGI) and the Generalized Efficient Layer Aggregation Network (GELAN). This model demonstrates remarkable improvements in efficiency, accuracy, and adaptability, setting new benchmarks on the MS COCO dataset. The YOLOv9 project, while developed by a separate open-source team, builds upon the robust codebase provided by [Ultralytics](https://www.ultralytics.com) [YOLOv5](yolov5.md), showcasing the collaborative spirit of the AI research community.
 
 <p align="center">
   <br>
@@ -20,7 +20,7 @@ YOLOv9 marks a significant advancement in real-time object detection, introducin
   <strong>Watch:</strong> YOLOv9 Training on Custom Data using Ultralytics | Industrial Package Dataset
 </p>
 
-![YOLOv9 performance comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov9-performance-comparison.avif)
+![YOLOv9 performance comparison](https://cdn.ul.run/i/8aed32329a039a65a2e5134cb536cbd4.avif)
 
 ## Introduction to YOLOv9
 
@@ -62,7 +62,7 @@ PGI is a novel concept introduced in YOLOv9 to combat the information bottleneck
 
 GELAN represents a strategic architectural advancement, enabling YOLOv9 to achieve superior parameter utilization and computational efficiency. Its design allows for flexible integration of various computational blocks, making YOLOv9 adaptable to a wide range of applications without sacrificing speed or accuracy.
 
-![YOLOv9 architecture comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov9-architecture-comparison.avif)
+![YOLOv9 architecture comparison](https://cdn.ul.run/i/6483991ea76b36341988f6b06074b1da.avif)
 
 ## YOLOv9 Benchmarks
 

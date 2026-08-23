@@ -480,7 +480,9 @@ class Results(SimpleClass, DataExportMixin):
             >>> results = model("path/to/image.jpg")
             >>> new_result = results[0].new()
         """
-        return Results(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed)
+        return Results(
+            orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed, multi_label=self.multi_label
+        )
 
     def plot(
         self,

@@ -48,12 +48,7 @@ class NCNNBackend(BaseBackend):
         self.net.load_param(str(w))
         self.net.load_model(str(w.with_suffix(".bin")))
 
-        # Load metadata
-        metadata_file = w.parent / "metadata.yaml"
-        if metadata_file.exists():
-            from ultralytics.utils import YAML
-
-            self.apply_metadata(YAML.load(metadata_file))
+        self.apply_metadata(self.read_metadata(w))
 
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:
         """Run inference using the NCNN runtime.

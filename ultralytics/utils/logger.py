@@ -44,6 +44,8 @@ class ConsoleLogger:
         >>> logger.start_capture()
     """
 
+    PROGRESS_INTERVAL = 1.0  # Minimum seconds between progress bar redraws
+
     def __init__(self, destination=None, batch_size=1, flush_interval=5.0, on_flush=None):
         """Initialize console logger with optional batching.
 
@@ -80,6 +82,7 @@ class ConsoleLogger:
         # Deduplication state
         self.last_line = ""
         self.last_time = 0.0
+        self.last_progress_time = 0.0
 
     def start_capture(self):
         """Start capturing console output and redirect stdout/stderr.
@@ -144,6 +147,12 @@ class ConsoleLogger:
 
         for line in lines:
             line = line.rstrip()
+
+            # Rate-limit progress bar redraws, always keeping the completed bar
+            if "─" in line or "╸" in line:  # unfilled glyphs mark an incomplete bar
+                if current_time - self.last_progress_time < self.PROGRESS_INTERVAL:
+                    continue
+                self.last_progress_time = current_time
 
             # General deduplication
             if line == self.last_line and current_time - self.last_time < 0.1:

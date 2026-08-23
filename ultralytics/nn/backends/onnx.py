@@ -53,6 +53,8 @@ class ONNXBackend(BaseBackend):
         """
         cuda = isinstance(self.device, torch.device) and torch.cuda.is_available() and self.device.type != "cpu"
 
+        self.apply_metadata(self.read_metadata(weight))
+
         if self.format == "dnn":
             # OpenCV DNN
             LOGGER.info(f"Loading {weight} for ONNX OpenCV DNN inference...")
@@ -95,11 +97,6 @@ class ONNXBackend(BaseBackend):
                     f"'yolo export model=yolo26n.pt format=onnx', or to re-download the file."
                 ) from e
             self.output_names = [x.name for x in self.session.get_outputs()]
-
-            # Get metadata
-            metadata_map = self.session.get_modelmeta().custom_metadata_map
-            if metadata_map:
-                self.apply_metadata(dict(metadata_map))
 
             # Check if dynamic shapes
             self.dynamic = isinstance(self.session.get_outputs()[0].shape[0], str)
@@ -185,9 +182,7 @@ class ONNXIMXBackend(ONNXBackend):
         self.output_names = [x.name for x in self.session.get_outputs()]
         self.dynamic = isinstance(self.session.get_outputs()[0].shape[0], str)
         self.fp16 = "float16" in self.session.get_inputs()[0].type
-        metadata_map = self.session.get_modelmeta().custom_metadata_map
-        if metadata_map:
-            self.apply_metadata(dict(metadata_map))
+        self.apply_metadata(self.read_metadata(w))
 
     def forward(self, im: torch.Tensor) -> np.ndarray | list[np.ndarray] | tuple[np.ndarray, ...]:
         """Run IMX inference with task-specific output concatenation for detect, pose, and segment tasks.

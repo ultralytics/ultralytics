@@ -10,7 +10,7 @@ import torch
 
 from ultralytics.utils import LOGGER
 
-from .base import BaseBackend, read_tflite_metadata
+from .base import BaseBackend
 
 
 class TensorFlowBackend(BaseBackend):
@@ -45,12 +45,7 @@ class TensorFlowBackend(BaseBackend):
         if self.format == "saved_model":
             LOGGER.info(f"Loading {weight} for TensorFlow SavedModel inference...")
             self.model = tf.saved_model.load(weight)
-            # Load metadata
-            metadata_file = Path(weight) / "metadata.yaml"
-            if metadata_file.exists():
-                from ultralytics.utils import YAML
-
-                self.apply_metadata(YAML.load(metadata_file))
+            self.apply_metadata(self.read_metadata(weight))
         elif self.format == "pb":
             LOGGER.info(f"Loading {weight} for TensorFlow GraphDef inference...")
             from ultralytics.utils.export.tensorflow import gd_outputs
@@ -65,17 +60,7 @@ class TensorFlowBackend(BaseBackend):
             with open(weight, "rb") as f:
                 gd.ParseFromString(f.read())
             self.frozen_func = wrap_frozen_graph(gd, inputs="x:0", outputs=gd_outputs(gd))
-
-            # Try to find metadata
-            try:
-                metadata_file = next(
-                    Path(weight).resolve().parent.rglob(f"{Path(weight).stem}_saved_model*/metadata.yaml")
-                )
-                from ultralytics.utils import YAML
-
-                self.apply_metadata(YAML.load(metadata_file))
-            except StopIteration:
-                pass
+            self.apply_metadata(self.read_metadata(weight))
         else:  # edgetpu
             try:
                 from tflite_runtime.interpreter import Interpreter, load_delegate
@@ -102,8 +87,7 @@ class TensorFlowBackend(BaseBackend):
             self.input_details = self.interpreter.get_input_details()
             self.output_details = self.interpreter.get_output_details()
 
-            # Load metadata embedded in the .tflite (shared helper handles metadata.json and legacy entries)
-            self.apply_metadata(read_tflite_metadata(weight))
+            self.apply_metadata(self.read_metadata(weight))
 
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:
         """Run Google TensorFlow inference with format-specific execution and output post-processing.

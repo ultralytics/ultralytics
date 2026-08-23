@@ -24,7 +24,7 @@ This dataset is invaluable for:
 - **Debugging**: Isolate format-specific issues in training pipelines
 - **Development**: Validate new format additions or changes
 
-When you manage datasets on [Ultralytics Platform](https://platform.ultralytics.com), images in any of these formats are handled automatically—no manual conversion required.
+When you manage datasets on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/coco12-formats), images in any of these formats are handled automatically—no manual conversion required.
 
 ## Supported Formats
 

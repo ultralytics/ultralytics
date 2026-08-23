@@ -111,7 +111,7 @@ Once trained, run [inference](../../modes/predict.md) with the fine-tuned model 
 
 The African Wildlife Dataset comprises a wide variety of images showcasing diverse animal species and their natural habitats. Below are examples of images from the dataset, each accompanied by its corresponding annotations.
 
-![African wildlife dataset sample image](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/african-wildlife-dataset-sample.avif)
+![African wildlife dataset sample image](https://cdn.ul.run/i/8ff389dba1e205ab981da75cfe2f25d9.avif)
 
 - **Mosaiced Image**: Here, we present a training batch consisting of mosaiced dataset images. Mosaicing, a training technique, combines multiple images into one, enriching batch diversity. This method helps enhance the model's ability to generalize across different object sizes, aspect ratios, and contexts.
 

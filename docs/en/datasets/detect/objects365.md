@@ -152,7 +152,7 @@ To train a YOLO26n model on the Objects365 dataset for 100 [epochs](https://www.
 
 The Objects365 dataset contains diverse, high-resolution images with dense bounding-box annotations across its 365 classes. The sample below shows the in-the-wild scenes and multi-object annotations typical of the dataset:
 
-![Objects365 dataset sample with diverse object annotations](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/objects365-sample-image.avif)
+![Objects365 dataset sample with diverse object annotations](https://cdn.ul.run/i/0bcf0c5da49d70164e367f8f86287753.avif)
 
 ## Citations and Acknowledgments
 

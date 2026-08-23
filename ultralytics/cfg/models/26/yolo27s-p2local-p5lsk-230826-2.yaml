@@ -38,11 +38,11 @@ head:
   - [-1, 1, Conv, [768, 3, 2]]
   - [[-1, 10], 1, Concat, [1]]
   # Restore learned P5 fusion before context. LSKNet projects each stage before applying same-channel LSK blocks.
-  - [-1, 1, C3k2, [768, True]]
+  - [-1, 1, C3k2, [640, True]]
   # LSKNet Sections 3.2-3.3 and source lines 35-104: apply selective large-kernel context only after channel
   # alignment, retaining the source attention wrapper's residual path for Medium/Large recognition.
   # https://openaccess.thecvf.com/content/ICCV2023/papers/Li_Large_Selective_Kernel_Network_for_Remote_Sensing_Object_Detection_ICCV_2023_paper.pdf#page=4
   # https://github.com/zcablii/LSKNet/blob/8214a95cf782a4361cbec5368f4921e37785575e/mmrotate/models/backbones/lsknet.py#L35-L104
-  - [-1, 1, LSKAttention, [768]]
+  - [-1, 1, LSKAttention, [640]]
   - [-1, 1, Conv, [1024, 1, 1]]
   - [[19, 22, 27], 1, Detect, [nc]]

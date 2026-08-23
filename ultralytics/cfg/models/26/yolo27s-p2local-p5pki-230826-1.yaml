@@ -38,11 +38,11 @@ head:
   - [-1, 1, Conv, [768, 3, 2]]
   - [[-1, 10], 1, Concat, [1]]
   # Restore learned P5 fusion before context. PKINet's stage projects first, then applies same-channel PKI blocks.
-  - [-1, 1, C3k2, [768, True]]
+  - [-1, 1, C3k2, [640, True]]
   # PKINet Sections 3.2-3.3 and source lines 142-273: apply poly-kernel context only after channel alignment,
   # retaining the source bottleneck's equal-channel identity path for Medium/Large recognition.
   # https://openaccess.thecvf.com/content/CVPR2024/papers/Cai_Poly_Kernel_Inception_Network_for_Remote_Sensing_Detection_CVPR_2024_paper.pdf#page=4
   # https://github.com/PKINet/PKINet/blob/c2ee525025a330b9a943be9b791d99017837b325/mmrotate/models/backbones/pkinet.py#L142-L273
-  - [-1, 1, PKIContext, [768]]
+  - [-1, 1, PKIContext, [640]]
   - [-1, 1, Conv, [1024, 1, 1]]
   - [[19, 22, 27], 1, Detect, [nc]]

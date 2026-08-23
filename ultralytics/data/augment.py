@@ -2076,8 +2076,8 @@ class Albumentations(BaseTransform):
 
         Args:
             p (float): Probability of applying the augmentations. Must be between 0 and 1.
-            transforms (list | None): Custom Albumentations transforms, either objects or `A.to_dict()` dicts as
-                stored in checkpoints. If None, uses default transforms.
+            transforms (list | None): Custom Albumentations transforms, either objects or `A.to_dict()` dicts as stored
+                in checkpoints. If None, uses default transforms.
             flip_idx (list[int] | None): Keypoint index mapping for reflection transforms.
         """
         self.p = p

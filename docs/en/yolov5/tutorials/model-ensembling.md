@@ -132,7 +132,7 @@ Results saved to runs/detect/exp-2
 Done. (0.223s)
 ```
 
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-inference-result.avif" width="500" alt="YOLO inference result">
+<img src="https://cdn.ul.run/i/abbd31bf5a19d431758c48ac4a6aef72.avif" width="500" alt="YOLO inference result">
 
 ## Benefits of Model Ensembling
 

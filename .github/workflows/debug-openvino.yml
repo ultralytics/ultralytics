@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        run: [1, 2, 3, 4]
+        run: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -31,7 +31,8 @@ jobs:
                   "fp16-dynamic": dict(quantize=16, dynamic=True),
                   "int8-static": dict(quantize=8, dynamic=False),
               }.items():
-                  models[name] = str(YOLO("yolo26n.pt").export(format="openvino", imgsz=32, batch=2, data="coco8.yaml", nms=False, end2end=True, verbose=False, **kw))
+                  out = YOLO("yolo26n.pt").export(format="openvino", imgsz=32, batch=2, data="coco8.yaml", nms=False, end2end=True, verbose=False, **kw)
+                  models[name] = str(__import__("shutil").move(out, f"{name}_openvino_model"))
               for name, path in models.items():
                   for hint in ["LATENCY", "THROUGHPUT"]:
                       for mode in ["sync", "async"]:

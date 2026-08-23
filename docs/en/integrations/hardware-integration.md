@@ -150,9 +150,9 @@ def export_formats():
     """Return a dictionary of Ultralytics YOLO export formats."""
     x = [
         # ... existing formats ...
-        ["Partner Format", "partner_format", "_partner_model", True, True, ["batch", "quantize", "nms"]],
+        ["Partner Format", "partner_format", "_partner_model", True, True, ["batch", "quantize", "nms"], "base"],
     ]
-    return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
+    return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 ```
 
 Choose a unique `Suffix` (e.g. `"_partner_model"` or `".partner"`) — this same suffix drives runtime auto-detection (see [Format Detection](#format-detection)).
@@ -175,9 +175,9 @@ If your format needs pre-validation — mutually exclusive args, hardware checks
 
 ```python
 if fmt == "partner_format":
-    if not self.args.int8:
-        LOGGER.warning("Partner format requires int8=True, setting int8=True.")
-        self.args.int8 = True
+    if self.args.quantize != 8:
+        LOGGER.warning("Partner format requires quantize=8, setting quantize=8.")
+        self.args.quantize = 8
     if model.task not in {"detect", "segment"}:
         raise ValueError("Partner format only supports detection and segmentation models.")
 ```
@@ -392,7 +392,7 @@ If the format supports FP16 inference, expects NHWC inputs, or runs on a CUDA GP
 fp16 &= format in {"pt", "torchscript", "onnx", "openvino", "engine", "triton"}
 
 # Add only if the runtime expects NHWC tensors instead of NCHW
-self.nhwc = format in {"coreml", "saved_model", "pb", "tflite", "edgetpu", "rknn"}
+self.nhwc = format in {"coreml", "saved_model", "pb", "edgetpu", "rknn"}
 
 # Add only if the runtime supports CUDA — otherwise device=cuda is silently downgraded to CPU
 if (
@@ -591,7 +591,7 @@ Ultralytics maintains an automated testing infrastructure that validates all int
 
 - **Continuous Integration**: All export and runtime functionality is tested in the CI pipeline.
 - **Cross-Platform Validation**: Automated testing for Linux, macOS, and Windows environments.
-- **Python Compatibility**: Testing across all supported Python versions (3.8–3.12).
+- **Python Compatibility**: Testing across all supported Python versions (3.8–3.13).
 - **Functional Unit Tests**: Comprehensive unit testing for both export pipelines and runtime integrations.
 - **Regression Testing**: Automated regression testing to prevent performance and functionality degradation.
 - **Performance Benchmarking**: Automated performance testing and regression detection.

@@ -304,7 +304,7 @@ class DetectionValidator(BaseValidator):
                 )
 
         # Save per-class metrics CSV when requested
-        if not self.training and self.args.save_csv and self.nc > 1 and len(self.metrics.ap_class_index):
+        if not self.training and self.args.save_csv and len(self.metrics.ap_class_index):
             csv_path = self.save_dir / "per_class_metrics.csv"
             csv_path.write_text(self.metrics.to_csv())
             LOGGER.info(f"Per-class metrics saved to {csv_path}")

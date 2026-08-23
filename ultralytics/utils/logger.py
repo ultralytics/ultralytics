@@ -81,7 +81,7 @@ class ConsoleLogger:
         self.last_line = ""
         self.last_time = 0.0
         self.last_progress_time = 0.0
-        self.progress_interval = 1.0  # minimum seconds between progress bar redraws
+        self.progress_interval = 1.0
 
     def start_capture(self):
         """Start capturing console output and redirect stdout/stderr.

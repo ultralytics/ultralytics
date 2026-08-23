@@ -108,13 +108,7 @@ def test_export_engine_matrix(task, dynamic, quantize, batch):
     )
     model = YOLO(file)
     model([SOURCE] * batch, imgsz=64 if dynamic else 32, device=DEVICES[0])  # exported model inference
-    model.val(
-        data=TASK2DATA[task],
-        imgsz=32,
-        quantize=quantize,
-        device=DEVICES[0],
-        batch=batch,
-    )
+    model.val(data=TASK2DATA[task], imgsz=32, device=DEVICES[0], batch=batch)  # exported model validation
     Path(file).unlink()  # cleanup
     if quantize == 8:
         Path(file).with_suffix(".cache").unlink(missing_ok=True)  # cleanup TensorRT 7-10 INT8 calibration cache

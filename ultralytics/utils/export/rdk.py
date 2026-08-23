@@ -16,19 +16,18 @@ from ultralytics.utils import ARM64, LINUX, LOGGER, YAML, colorstr
 
 def bpu_detect_forward(self, x):
     """Return raw detect head branch outputs for RDK export."""
+    heads = self.one2one if self.end2end else self.one2many
     res = []
-    cv3 = self.one2one_cv3 if hasattr(self, "one2one_cv3") else self.cv3
-    cv2 = self.one2one_cv2 if hasattr(self, "one2one_cv2") else self.cv2
     for i in range(self.nl):
         # RDK board-side decoding expects cls-first, box-second outputs.
-        res.append(cv3[i](x[i]).permute(0, 2, 3, 1).contiguous())
-        res.append(cv2[i](x[i]).permute(0, 2, 3, 1).contiguous())
+        res.append(heads["cls_head"][i](x[i]).permute(0, 2, 3, 1).contiguous())
+        res.append(heads["box_head"][i](x[i]).permute(0, 2, 3, 1).contiguous())
     return res
 
 
 def apply_rdk_patches(model):
     """Apply export-time patches for the detection-only RDK export path."""
-    from ultralytics.nn.modules import OBB, Detect, Pose, Segment, v10Detect
+    from ultralytics.nn.modules import OBB, Detect, Pose, Segment
 
     if getattr(model, "task", None) != "detect":
         raise NotImplementedError("RDK export currently supports detection models only.")
@@ -38,10 +37,6 @@ def apply_rdk_patches(model):
         if isinstance(module, Detect) and not isinstance(module, (Segment, Pose, OBB)):
             patches.append((module, "forward", module.forward))
             module.forward = bpu_detect_forward.__get__(module, Detect)
-            LOGGER.info(f"{colorstr('RDK:')} patched {type(module).__name__} head for export.")
-        elif isinstance(module, v10Detect):
-            patches.append((module, "forward", module.forward))
-            module.forward = bpu_detect_forward.__get__(module, v10Detect)
             LOGGER.info(f"{colorstr('RDK:')} patched {type(module).__name__} head for export.")
     return patches
 

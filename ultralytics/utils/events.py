@@ -7,6 +7,8 @@ from pathlib import Path
 from threading import Thread
 from urllib.request import Request, urlopen
 
+from torch import nn
+
 from ultralytics import SETTINGS, __version__
 from ultralytics.cfg import MODES, TASKS
 from ultralytics.utils import (
@@ -20,7 +22,7 @@ from ultralytics.utils import (
     TESTS_RUNNING,
     TORCH_VERSION,
 )
-from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info, unwrap_model
+from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info, get_num_params, unwrap_model
 
 
 def _post(url: str, data: dict, timeout: float = 5.0) -> None:
@@ -162,6 +164,9 @@ class Events:
                     model = run.model
                     params["format"] = model.format
                     params["nc"] = len(getattr(model, "names", None) or ()) or None  # drives head width and NMS
+                    # capacity, which inference time scales with alongside pixels; only torch formats hold weights
+                    module = getattr(model, "model", None)  # AutoBackend proxies this to the backend's module
+                    params["nparams"] = get_num_params(module) if isinstance(module, nn.Module) else None
                     # toggles that move inference time, as applied: compile replaces .model, end2end is tri-state
                     flags = {
                         "compile": hasattr(model, "_orig_mod"),

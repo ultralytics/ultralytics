@@ -16,9 +16,16 @@ Key Features:
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
+
+import numpy as np
+import torch
+from PIL import Image
 
 from ultralytics.engine.model import Model
+from ultralytics.engine.results import Results
 from ultralytics.utils.torch_utils import model_info
 
 from .predict import Predictor, SAM2Predictor, SAM3Predictor
@@ -82,7 +89,15 @@ class SAM(Model):
 
             self.model = build_sam(weights)
 
-    def predict(self, source, stream: bool = False, bboxes=None, points=None, labels=None, **kwargs):
+    def predict(
+        self,
+        source: str | Path | int | Image.Image | list[Any] | tuple[Any, ...] | np.ndarray | torch.Tensor | None,
+        stream: bool = False,
+        bboxes: list[list[float]] | None = None,
+        points: list[list[float]] | None = None,
+        labels: list[int] | None = None,
+        **kwargs: Any,
+    ) -> Iterator[Results | torch.Tensor] | list[Results] | list[torch.Tensor]:
         """Perform segmentation prediction on the given image or video source.
 
         Args:
@@ -108,7 +123,15 @@ class SAM(Model):
         prompts = {"bboxes": bboxes, "points": points, "labels": labels}
         return super().predict(source, stream, prompts=prompts, **kwargs)
 
-    def __call__(self, source=None, stream: bool = False, bboxes=None, points=None, labels=None, **kwargs):
+    def __call__(
+        self,
+        source: str | Path | int | Image.Image | list[Any] | tuple[Any, ...] | np.ndarray | torch.Tensor | None = None,
+        stream: bool = False,
+        bboxes: list[list[float]] | None = None,
+        points: list[list[float]] | None = None,
+        labels: list[int] | None = None,
+        **kwargs: Any,
+    ) -> Iterator[Results | torch.Tensor] | list[Results] | list[torch.Tensor]:
         """Perform segmentation prediction on the given image or video source.
 
         This method is an alias for the 'predict' method, providing a convenient way to call the SAM model for

@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+import torch
+from PIL import Image
+
 from ultralytics.engine.model import Model
+from ultralytics.engine.results import Results
 
 from .predict import FastSAMPredictor
 from .val import FastSAMValidator
@@ -44,14 +50,14 @@ class FastSAM(Model):
 
     def predict(
         self,
-        source,
+        source: str | Path | int | Image.Image | list[Any] | tuple[Any, ...] | np.ndarray | torch.Tensor | None,
         stream: bool = False,
         bboxes: list | None = None,
         points: list | None = None,
         labels: list | None = None,
         texts: list | None = None,
         **kwargs: Any,
-    ):
+    ) -> Iterator[Results | torch.Tensor] | list[Results] | list[torch.Tensor]:
         """Perform segmentation prediction on image or video source.
 
         Supports prompted segmentation with bounding boxes, points, labels, and texts. The method packages these prompts

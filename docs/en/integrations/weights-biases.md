@@ -25,7 +25,7 @@ This guide showcases Ultralytics YOLO26 integration with Weights & Biases for en
 ## Weights & Biases
 
 <p align="center">
-  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/wandb-demo-experiments.avif" alt="Weights and Biases experiment tracking">
+  <video width="800" src="https://cdn.ul.run/v/55283d7d84901048e2b19807e4c9ff04.mp4" autoplay loop muted playsinline aria-label="Weights and Biases experiment tracking"></video>
 </p>
 
 [Weights & Biases](https://wandb.ai/site) is a cutting-edge [MLOps platform](https://www.ultralytics.com/glossary/machine-learning-operations-mlops) designed for tracking, visualizing, and managing [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) experiments. It features automatic logging of training metrics for full experiment reproducibility, an interactive UI for streamlined data analysis, and efficient model management tools for deploying across various environments.

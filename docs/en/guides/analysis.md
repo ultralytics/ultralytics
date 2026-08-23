@@ -108,7 +108,7 @@ The 4 ObjectLab fields (`overlooked_score`, `badloc_score`, `swap_score`, `label
 metrics = model.val(data="coco128.yaml", score_labels=True)
 ```
 
-The validator stores ~32 bytes/image extra in `metrics.box.image_metrics` (4 float scores per image). Raw IoU matrices and pred/GT arrays are not retained. Without the flag, ObjectLab columns are populated as `NaN`.
+The validator stores the 4 float scores per image in `metrics.box.image_metrics`, together with the scaled prediction and ground-truth boxes, classes, and confidences that draw the green-GT / red-prediction overlays on the worst-image strip. Raw IoU matrices are not retained. Without the flag, ObjectLab columns are populated as `NaN`.
 
 All 4 ObjectLab scores follow the same convention. **Low score = model behavior that suggests a label issue. 1.0 = no such behavior observed, not a clean bill of health.**
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from functools import partial
 from pathlib import Path
 
 import numpy as np
@@ -73,11 +74,21 @@ class OpenVINOBackend(BaseBackend):
         ):
             config["NPU_TURBO"] = "YES"
 
-        self.ov_compiled_model = core.compile_model(
-            ov_model,
-            device_name=device_name,
-            config=config,
+        # OpenVINO CPU plugin segfaults running INT8 models with dynamic shapes on Intel AMX CPUs (Sapphire Rapids and
+        # newer), so reshape and recompile those statically per input shape in forward() instead
+        self.compile_model = partial(core.compile_model, device_name=device_name, config=config)
+        self.ov_model = (
+            ov_model
+            if device_name == "CPU"
+            and ov_model.input().get_partial_shape().is_dynamic
+            and any(op.get_type_name() == "FakeQuantize" for op in ov_model.get_ops())
+            and LINUX
+            and "amx_int8" in Path("/proc/cpuinfo").read_text()
+            else None
         )
+        if self.ov_model is not None:
+            self.inference_mode = "LATENCY"
+        self.ov_compiled_model = self.compile_model(ov_model)
         LOGGER.info(
             f"Using OpenVINO {self.inference_mode} mode for batch={self.batch} inference on "
             f"{', '.join(self.ov_compiled_model.get_property('EXECUTION_DEVICES'))}..."
@@ -95,6 +106,9 @@ class OpenVINOBackend(BaseBackend):
             (list[np.ndarray]): Model predictions as a list of numpy arrays, one per output layer.
         """
         im = im.cpu().numpy().astype(np.float32, copy=False)
+        if self.ov_model is not None and self.ov_model.input().get_partial_shape() != self.ov.PartialShape(im.shape):
+            self.ov_model.reshape(list(im.shape))
+            self.ov_compiled_model = self.compile_model(self.ov_model)
 
         if self.inference_mode in {"THROUGHPUT", "CUMULATIVE_THROUGHPUT"}:
             # Async inference for larger batch sizes

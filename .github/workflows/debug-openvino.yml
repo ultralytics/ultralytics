@@ -18,30 +18,12 @@ jobs:
       - uses: astral-sh/setup-uv@v7
       - run: uv pip install --system -e ".[export-base]" --torch-backend cpu
       - run: lscpu | grep -E "Model name"
+      - run: uv pip install --system pytest
       - run: |
-          cat > /tmp/ov_debug.py <<'PY'
-          import json, os, shutil, subprocess, sys
-          from pathlib import Path
-          import numpy as np
-
-          if len(sys.argv) == 1:
-              from ultralytics import YOLO
-              kw = dict(format="openvino", imgsz=32, batch=2, data="coco8.yaml", nms=False, verbose=False, quantize=8, dynamic=True, end2end=True)
-              path = str(shutil.move(YOLO("yolo26n.pt").export(**kw), "int8dyn_openvino_model"))
-              for cfg in [{}, {"SNIPPETS_MODE": "DISABLE"}, {"CPU_RUNTIME_CACHE_CAPACITY": "0"}, {"LP_TRANSFORMS_MODE": False}, {"ENABLE_CPU_PINNING": False}, {"KEY_CPU_DENORMALS_OPTIMIZATION": "NO"}, {"stage": "compile"}]:
-                  rs = [subprocess.run([sys.executable, __file__, path, json.dumps(cfg)], capture_output=True, text=True, timeout=600) for _ in range(2)]
-                  print(f"cfg={json.dumps(cfg):40} rcs={[r.returncode for r in rs]} {[r.stderr.strip().splitlines()[-1][:100] for r in rs if r.returncode and r.stderr.strip()]}", flush=True)
-              sys.exit()
-
-          import openvino as ov
-          path, cfg = sys.argv[1], json.loads(sys.argv[2])
-          stage = cfg.pop("stage", "infer")
-          core = ov.Core()
-          model = core.read_model(next(Path(path).glob("*.xml")))
-          cm = core.compile_model(model, "CPU", {"PERFORMANCE_HINT": "LATENCY", **cfg})
-          if stage == "compile":
-              sys.exit(0)
-          for _ in range(3):
-              cm(np.random.rand(2, 3, 64, 64).astype(np.float32))
-          PY
-          python /tmp/ov_debug.py
+          for i in 1 2 3; do
+            PYTHONFAULTHANDLER=1 timeout 900 python -m pytest -q -s --slow -p no:cacheprovider \
+              "tests/test_exports.py::test_export_openvino_matrix[detect-True-8-2-False-True]" \
+              "tests/test_exports.py::test_export_openvino_matrix[detect-True-8-1-False-True]" \
+              "tests/test_exports.py::test_export_openvino_matrix[segment-True-8-2-False-True]" > /tmp/out_$i.log 2>&1
+            echo "RUN $i rc=$? $(tail -1 /tmp/out_$i.log)"
+          done

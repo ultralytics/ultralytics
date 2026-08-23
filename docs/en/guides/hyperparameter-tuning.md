@@ -30,7 +30,7 @@ Hyperparameters are high-level, structural settings for the algorithm. They are 
 - **Architecture Specifics**: Such as channel counts, number of layers, types of activation functions, etc.
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/hyperparameter-tuning-visual.avif" alt="Hyperparameter optimization search space visualization">
+  <img width="640" src="https://cdn.ul.run/i/61d7129c7b5c4dcbdf8957fb535c998a.avif" alt="Hyperparameter optimization search space visualization">
 </p>
 
 For a full list of augmentation hyperparameters used in YOLO26 please refer to the [configurations page](../usage/cfg.md#augmentation-settings).
@@ -237,7 +237,7 @@ This is a plot displaying fitness against the number of iterations. It helps you
 - **Usage**: Performance visualization
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/best-fitness.avif" alt="Hyperparameter Tuning Fitness vs Iteration">
+  <img width="640" src="https://cdn.ul.run/i/f09fa53b10a1b45b27bf12aa4b3eb0d5.avif" alt="Hyperparameter Tuning Fitness vs Iteration">
 </p>
 
 The plot contains:
@@ -304,7 +304,7 @@ This file contains scatter plots generated from `tune_results.ndjson`, helping y
 - **Usage**: Exploratory data analysis
 
 <p align="center">
-  <img width="1000" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tune-scatter-plots.avif" alt="Hyperparameter tuning results scatter plot analysis">
+  <img width="1000" src="https://cdn.ul.run/i/c3b069fdecd02a9ecd2e929789c8cb6b.avif" alt="Hyperparameter tuning results scatter plot analysis">
 </p>
 
 #### weights/

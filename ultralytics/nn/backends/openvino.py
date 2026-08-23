@@ -57,10 +57,21 @@ class OpenVINOBackend(BaseBackend):
 
             self.apply_metadata(YAML.load(metadata_file))
 
+        # OpenVINO CPU plugin segfaults running INT8 models with dynamic shapes on Intel AMX CPUs (Sapphire Rapids and
+        # newer), so reshape and recompile those statically per input shape in forward() instead
+        self.ov_model = (
+            ov_model
+            if LINUX
+            and ov_model.input().get_partial_shape().is_dynamic
+            and any(op.get_type_name() == "FakeQuantize" for op in ov_model.get_ops())
+            and "amx_int8" in Path("/proc/cpuinfo").read_text()
+            else None
+        )
+
         # Set inference mode
         self.inference_mode = (
             ("CUMULATIVE_THROUGHPUT" if device_name == "AUTO" else "THROUGHPUT")
-            if self.dynamic and self.batch > 1
+            if self.dynamic and self.batch > 1 and self.ov_model is None
             else "LATENCY"
         )
         config = {"PERFORMANCE_HINT": self.inference_mode}
@@ -74,20 +85,7 @@ class OpenVINOBackend(BaseBackend):
         ):
             config["NPU_TURBO"] = "YES"
 
-        # OpenVINO CPU plugin segfaults running INT8 models with dynamic shapes on Intel AMX CPUs (Sapphire Rapids and
-        # newer), so reshape and recompile those statically per input shape in forward() instead
         self.compile_model = partial(core.compile_model, device_name=device_name, config=config)
-        self.ov_model = (
-            ov_model
-            if LINUX
-            and device_name == "CPU"
-            and ov_model.input().get_partial_shape().is_dynamic
-            and any(op.get_type_name() == "FakeQuantize" for op in ov_model.get_ops())
-            and "amx_int8" in Path("/proc/cpuinfo").read_text()
-            else None
-        )
-        if self.ov_model is not None:
-            self.inference_mode = "LATENCY"
         self.ov_compiled_model = self.compile_model(ov_model)
         LOGGER.info(
             f"Using OpenVINO {self.inference_mode} mode for batch={self.batch} inference on "

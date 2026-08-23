@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import sys
 import time
 import unicodedata
@@ -79,27 +80,6 @@ class TQDM:
     RATE_SMOOTHING_FACTOR = 0.3  # Factor for exponential smoothing of rates
     MAX_SMOOTHED_RATE = 1000000  # Maximum rate to apply smoothing to
     NONINTERACTIVE_MIN_INTERVAL = 60.0  # Minimum interval for non-interactive environments
-
-    @staticmethod
-    def _fit_cells(text: str, width: int | None = None) -> tuple[str, int]:
-        """Measure display cells and optionally trim to width, keeping ANSI color balanced."""
-        cells, i, n = 0, 0, len(text)
-        while i < n:
-            if text[i] == "\033":  # ANSI escape: zero width, consume through its letter terminator
-                i += 1
-                while i < n and not text[i].isalpha():
-                    i += 1
-                i += 1
-                continue
-            char_cells = 1 + (unicodedata.east_asian_width(text[i]) in "WF")
-            if width is not None and cells + char_cells > width:
-                trimmed = text[:i]
-                if "\033[" in trimmed and not trimmed.endswith("\033[0m"):
-                    trimmed += "\033[0m"  # close open color so it does not bleed into the rest of the line
-                return trimmed, cells
-            cells += char_cells
-            i += 1
-        return text, cells
 
     def __init__(
         self,
@@ -226,6 +206,21 @@ class TQDM:
             bar = f"{bar[:filled]}╸{bar[filled + 1 :]}"
         return bar
 
+    @staticmethod
+    def _fit(text: str, width: int) -> str:
+        """Truncate text to width display cells, skipping zero-width ANSI codes and counting CJK chars as 2."""
+        cells = i = 0
+        while i < len(text):
+            if text[i] == "\033":  # ANSI escape sequence: zero width, runs through its letter terminator
+                while i < len(text) and not text[i].isalpha():
+                    i += 1
+            else:
+                cells += 2 if unicodedata.east_asian_width(text[i]) in "WF" else 1
+                if cells > width:
+                    return f"{text[:i]}\033[0m"  # reset so a truncated color does not bleed
+            i += 1
+        return text
+
     def _should_update(self, dt: float, dn: int) -> bool:
         """Check if display should update."""
         if self.noninteractive:
@@ -285,43 +280,27 @@ class TQDM:
         elapsed_str = self._format_time(elapsed)
         rate_str = self._format_rate(rate) or (self._format_rate(self.n / elapsed) if elapsed > 0 else "")
 
-        def compose(desc: str, bar_width: int) -> str:
-            """Compose progress line with the given description and bar width."""
-            bar = self._generate_bar(bar_width)
-            if self.total:
-                if self.is_bytes and self.n >= self.total:
-                    return f"{desc}: {percent:.0f}% {bar} {t_str} {rate_str} {elapsed_str}"
-                return f"{desc}: {percent:.0f}% {bar} {n_str}/{t_str} {rate_str} {elapsed_str}{remaining_str}"
-            return f"{desc}: {bar} {n_str} {rate_str} {elapsed_str}"
+        bar = self._generate_bar()
 
-        desc = self.desc
-        progress_str = compose(desc, 12)
+        # Compose progress line via f-strings (two shapes: with/without total)
+        if self.total:
+            if self.is_bytes and self.n >= self.total:
+                # Completed bytes: show only final size
+                progress_str = f"{self.desc}: {percent:.0f}% {bar} {t_str} {rate_str} {elapsed_str}"
+            else:
+                progress_str = (
+                    f"{self.desc}: {percent:.0f}% {bar} {n_str}/{t_str} {rate_str} {elapsed_str}{remaining_str}"
+                )
+        else:
+            progress_str = f"{self.desc}: {bar} {n_str} {rate_str} {elapsed_str}"
 
+        # Write to output, fitting real terminals only so redirected logs keep full lines
         try:
-            try:
-                # Fit real terminals only; redirected logs preserve the full line.
-                if self.file.isatty():
-                    term_width = max(1, os.get_terminal_size(self.file.fileno()).columns - 1)
-                    _, cells = self._fit_cells(progress_str)
-                    if cells > term_width:
-                        bar_width = max(0, 12 - (cells - term_width))
-                        progress_str = compose(desc, bar_width)
-                        _, cells = self._fit_cells(progress_str)
-                        if cells > term_width and desc:
-                            desc, desc_cells = self._fit_cells(desc)
-                            desc, _ = self._fit_cells(desc, max(0, desc_cells - (cells - term_width) - 1))
-                            progress_str = compose(f"{desc}…" if desc else "", bar_width)
-                            _, cells = self._fit_cells(progress_str)
-                        if cells > term_width:
-                            progress_str, _ = self._fit_cells(progress_str, term_width)
-            finally:
-                if self.noninteractive:
-                    # In non-interactive environments, avoid carriage return which creates empty lines
-                    self.file.write(progress_str)
-                else:
-                    # In interactive terminals, use carriage return and clear line for updating display
-                    self.file.write(f"\r\033[K{progress_str}")
-                self.file.flush()
+            if self.file.isatty():
+                progress_str = self._fit(progress_str, shutil.get_terminal_size().columns - 1)
+            # Non-interactive environments avoid the carriage return which creates empty lines
+            self.file.write(progress_str if self.noninteractive else f"\r\033[K{progress_str}")
+            self.file.flush()
         except Exception:
             pass
 

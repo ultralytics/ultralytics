@@ -52,10 +52,10 @@ class FastSAM(Model):
         self,
         source: str | Path | int | Image.Image | list[Any] | tuple[Any, ...] | np.ndarray | torch.Tensor | None,
         stream: bool = False,
-        bboxes: list[Any] | None = None,
-        points: list[Any] | None = None,
-        labels: list[Any] | None = None,
-        texts: list[Any] | None = None,
+        bboxes: np.ndarray | list[Any] | None = None,
+        points: np.ndarray | list[Any] | None = None,
+        labels: np.ndarray | list[Any] | None = None,
+        texts: str | list[str] | None = None,
         **kwargs: Any,
     ) -> Iterator[Results | torch.Tensor] | list[Results] | list[torch.Tensor]:
         """Perform segmentation prediction on image or video source.
@@ -67,10 +67,10 @@ class FastSAM(Model):
             source (str | PIL.Image | np.ndarray): Input source for prediction, can be a file path, URL, PIL image, or
                 numpy array.
             stream (bool): Whether to enable real-time streaming mode for video inputs.
-            bboxes (list, optional): Bounding box coordinates for prompted segmentation in format [[x1, y1, x2, y2]].
-            points (list, optional): Point coordinates for prompted segmentation in format [[x, y]].
-            labels (list, optional): Class labels for prompted segmentation.
-            texts (list, optional): Text prompts for segmentation guidance.
+            bboxes (np.ndarray | list, optional): Bounding box coordinates for prompted segmentation in format [[x1, y1, x2, y2]].
+            points (np.ndarray | list, optional): Point coordinates for prompted segmentation in format [[x, y]].
+            labels (np.ndarray | list, optional): Class labels for prompted segmentation.
+            texts (str | list[str], optional): Text prompts for segmentation guidance.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:

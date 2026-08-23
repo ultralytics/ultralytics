@@ -518,6 +518,7 @@ class YOLOE(Model):
             per_image = [len(set(c.tolist() if isinstance(c, np.ndarray) else c)) for _, c in pairs]
             assert all(per_image), "Expected at least one class per image"
             num_cls = max(per_image)
+            predictor = predictor or yolo.yoloe.YOLOEVPDetectPredictor
             if type(self.predictor) is not predictor:
                 args = get_cfg(overrides={**self.overrides, **kwargs})
                 self.predictor = predictor(

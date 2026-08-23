@@ -139,7 +139,7 @@ Out of all the model [export formats](../modes/export.md) supported by Ultralyti
 YOLO26 is specifically designed to run on hardware-constrained devices such as the Raspberry Pi 5. Compared to YOLO11n, YOLO26n achieves a ~15% increase in FPS (6.79 → 7.79) while also delivering higher mAP (40.1 vs 39.5) at 640 input size with ONNX-exported models on the Raspberry Pi 5. The table and chart below showcase this comparison.
 
 <figure style="text-align: center;">
-    <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo26-vs-yolo11-rpi5-onnx-benchmarks.avif" alt="YOLO26 benchmarks on RPi 5">
+    <img width="800" src="https://cdn.ul.run/i/b2c28f4a5cfa8bc9cb64ce4d7daabaa8.avif" alt="YOLO26 benchmarks on RPi 5">
     <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics 8.4.14</figcaption>
 </figure>
 
@@ -177,7 +177,7 @@ YOLO26 [benchmarks](../modes/benchmark.md) were run by the Ultralytics team on e
 We have only included benchmarks for YOLO26n and YOLO26s models because other model sizes are too big to run on the Raspberry Pis and do not offer decent performance.
 
 <figure style="text-align: center;">
-    <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/raspberry-pi-yolo26-benchmarks.avif" alt="YOLO26 benchmarks on RPi 5">
+    <img width="800" src="https://cdn.ul.run/i/66e238f32755a6739f7a75f1ad67b629.avif" alt="YOLO26 benchmarks on RPi 5">
     <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics 8.4.108</figcaption>
 </figure>
 

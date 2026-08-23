@@ -437,11 +437,10 @@ def get_cfg(
         overrides = cfg2dict(overrides)
         check_dict_alignment(cfg, overrides)
 
-        # Apply task-specific training hyperparameters between defaults and user overrides
-        if overrides.get("mode", cfg.get("mode", "")) == "train":
-            task_hyps = TASK_HYPS.get(overrides.get("task", cfg.get("task", "")), {})
-            if task_hyps:
-                cfg = {**cfg, **task_hyps}
+        # Apply task-specific training hyperparameters to keys still left at their default.yaml values
+        if overrides.get("mode", cfg.get("mode")) == "train":
+            hyps = TASK_HYPS.get(overrides.get("task", cfg.get("task")), {})
+            cfg = {**cfg, **{k: v for k, v in hyps.items() if cfg.get(k) == DEFAULT_CFG_DICT[k]}}
 
         cfg = {**cfg, **overrides}  # merge cfg and overrides dicts (prefer overrides)
 
